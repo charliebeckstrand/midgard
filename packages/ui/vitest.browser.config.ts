@@ -7,6 +7,14 @@ import type { BrowserCommand } from 'vitest/node'
 
 const CI = Boolean(process.env.CI)
 
+const SEED = process.env.VITEST_SEED
+
+if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
+	throw new Error(
+		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
+	)
+}
+
 const COMPONENT_MODULES = 'virtual:component-modules'
 
 /**
@@ -190,6 +198,12 @@ export default defineConfig({
 		// declare no per-file `vi.mock` (the two `module-mocks` setup files are
 		// the only doubles, and they toggle per instance).
 		isolate: false,
+		// The shuffle `vitest.config.ts` runs, and for the same reason: an order
+		// dependency between files that share a page fails early rather than once
+		// a file moves. It could not land while clicks died at random after a
+		// drag. Since #1180 closed that, ten seeds pass. Replay a red run with
+		// `VITEST_SEED=<seed> pnpm test:browser`.
+		sequence: { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) },
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
 			// `userEvent.setup()` patches HTMLElement.prototype.focus with a

@@ -1,8 +1,6 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { Input } from '../../components/input'
-import { Density } from '../../primitives/density'
 import { bySlot, getSlot, renderUI, userEvent } from '../helpers'
 
 describe('Input', () => {
@@ -16,30 +14,12 @@ describe('Input', () => {
 		expect(input?.tagName).toBe('INPUT')
 	})
 
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		const { container } = renderUI(<Input ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-
-		expect(ref.current).toBe(bySlot(container, 'input'))
-	})
-
 	it('sets the type attribute', () => {
 		const { container } = renderUI(<Input type="email" />)
 
 		const input = bySlot(container, 'input')
 
 		expect(input).toHaveAttribute('type', 'email')
-	})
-
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<Input placeholder="Enter text" />)
-
-		const input = bySlot(container, 'input')
-
-		expect(input).toHaveAttribute('placeholder', 'Enter text')
 	})
 
 	it('treats a null/false affix as absent, and renders a 0 affix', () => {
@@ -88,42 +68,6 @@ describe('Input', () => {
 		await user.type(input, 'a')
 
 		expect(onChange).toHaveBeenCalled()
-	})
-})
-
-describe('Input size resolution', () => {
-	// Each size variant brings a unique text class via ji; matching it
-	// confirms which size the kata rendered.
-	const textClassFor = {
-		sm: 'text-sm',
-		md: 'text-base',
-		lg: 'text-lg',
-	} as const
-
-	it('inherits size from the Density context when no explicit prop is set', () => {
-		const { container } = renderUI(
-			<Density scale="lg">
-				<Input />
-			</Density>,
-		)
-
-		expect(bySlot(container, 'input')?.className).toContain(textClassFor.lg)
-	})
-
-	it('explicit size prop overrides Density inheritance', () => {
-		const { container } = renderUI(
-			<Density scale="lg">
-				<Input size="sm" />
-			</Density>,
-		)
-
-		expect(bySlot(container, 'input')?.className).toContain(textClassFor.sm)
-	})
-
-	it('falls back to "md" outside any size context', () => {
-		const { container } = renderUI(<Input />)
-
-		expect(bySlot(container, 'input')?.className).toContain(textClassFor.md)
 	})
 })
 

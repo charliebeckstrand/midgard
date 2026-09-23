@@ -65,6 +65,16 @@ export const overlays: readonly Case[] = [
 				<DrawerBody>Slides up from the bottom.</DrawerBody>
 			</Drawer>
 		),
+		density: [
+			{
+				render: (size) => (
+					<Drawer open onOpenChange={noop} size={size}>
+						<DrawerTitle>Drawer</DrawerTitle>
+					</Drawer>
+				),
+				slot: 'drawer',
+			},
+		],
 	},
 	{
 		// Side sheet: a modal surface named by its title.
@@ -103,6 +113,19 @@ export const overlays: readonly Case[] = [
 				<PopoverContent>This is a general-purpose floating container.</PopoverContent>
 			</Popover>
 		),
+		density: [
+			{
+				render: (size) => (
+					<Popover open>
+						<PopoverTrigger>
+							<Button variant="outline">Open</Button>
+						</PopoverTrigger>
+						<PopoverContent size={size}>content</PopoverContent>
+					</Popover>
+				),
+				slot: 'popover-content',
+			},
+		],
 	},
 	{
 		// Dropdown menu: role=menu with grouped menuitems, opened on mount.

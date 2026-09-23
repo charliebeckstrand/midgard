@@ -310,7 +310,13 @@ export function Sparkline({
 		// than the raw shapes — the same split ProgressGauge uses. Under `animate`,
 		// ReducedMotion (MotionConfig) wraps the motion marks so a reduced-motion
 		// preference settles them at rest.
-		<span data-slot="sparkline" role="img" {...labelProps} className={cn(k(), className)}>
+		<span
+			data-slot="sparkline"
+			data-size={resolvedSize}
+			role="img"
+			{...labelProps}
+			className={cn(k(), className)}
+		>
 			{animate ? <ReducedMotion>{svg}</ReducedMotion> : svg}
 		</span>
 	)

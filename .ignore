@@ -1,0 +1,3 @@
+# Ripgrep and fd read this file. They skip hidden directories by default.
+# This line lets them search the Biome plugins.
+!/.biome/

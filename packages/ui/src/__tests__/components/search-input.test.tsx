@@ -18,14 +18,6 @@ describe('SearchInput', () => {
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
 	})
 
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<SearchInput placeholder="Search..." />)
-
-		const input = bySlot(container, 'search-input')
-
-		expect(input).toHaveAttribute('placeholder', 'Search...')
-	})
-
 	it('shows clear button when value is non-empty and onClear is provided', () => {
 		renderUI(<SearchInput value="query" onClear={() => {}} onChange={() => {}} />)
 

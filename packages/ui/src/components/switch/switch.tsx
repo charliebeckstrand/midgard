@@ -107,6 +107,7 @@ export function Switch({
 	return (
 		<label
 			data-slot="control"
+			data-size={resolvedSize}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(k({ size: resolvedSize, color }), className)}
 		>

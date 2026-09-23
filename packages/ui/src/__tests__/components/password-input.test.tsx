@@ -46,14 +46,6 @@ describe('PasswordInput', () => {
 		expect(toggle).toHaveAccessibleName('Show password')
 	})
 
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<PasswordInput placeholder="Enter password" />)
-
-		const input = bySlot(container, 'password-input')
-
-		expect(input).toHaveAttribute('placeholder', 'Enter password')
-	})
-
 	it('disables the toggle when the input is disabled', () => {
 		renderUI(<PasswordInput disabled />)
 

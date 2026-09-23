@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
@@ -153,26 +152,6 @@ describe('Checkbox size', () => {
 
 	it('reflects an explicit size prop', () => {
 		const { container } = renderUI(<Checkbox size="lg" />)
-
-		expect(bySlot(container, 'control')?.className).toContain('size-5')
-	})
-
-	it('inherits size from the Density context', () => {
-		const { container } = renderUI(
-			<Density scale="sm">
-				<Checkbox />
-			</Density>,
-		)
-
-		expect(bySlot(container, 'control')?.className).toContain('size-4')
-	})
-
-	it('explicit size beats Density inheritance', () => {
-		const { container } = renderUI(
-			<Density scale="sm">
-				<Checkbox size="lg" />
-			</Density>,
-		)
 
 		expect(bySlot(container, 'control')?.className).toContain('size-5')
 	})

@@ -1,5 +1,6 @@
 import type { UserEvent } from '@testing-library/user-event'
 import type { ReactElement } from 'react'
+import type { Step } from '../../../recipes'
 
 /**
  * A subject of the pass-through sweep: a render that takes the props the sweep
@@ -30,6 +31,33 @@ export type LinkSubject = {
 	/** Renders the subject with `href` on the element that must become the anchor. */
 	render: (href: string) => ReactElement
 	/** The `data-slot` that must render an `<a>`. */
+	slot: string
+}
+
+/**
+ * A subject that resolves its size through the Density cascade and publishes
+ * the answer as `data-size`.
+ */
+export type DensitySubject = {
+	/** Renders the subject, with `size` as its explicit prop when the sweep passes one. */
+	render: (size?: Step) => ReactElement
+	/** The `data-slot` that publishes `data-size`. */
+	slot: string
+}
+
+/** The props the text-input sweep passes, one leg at a time. */
+export type TextInputProbe = {
+	/** A callback ref, so one probe fits an `<input>` and a `<textarea>` alike. */
+	ref?: (element: HTMLElement | null) => void
+	placeholder?: string
+	disabled?: boolean
+}
+
+/** A text field whose ref, placeholder, and disabled state reach its editable element. */
+export type TextInputSubject = {
+	/** Renders the subject with `props` on the component under test. */
+	render: (props: TextInputProbe) => ReactElement
+	/** The `data-slot` of the editable element. */
 	slot: string
 }
 
@@ -65,6 +93,14 @@ export type Case = Scenario & {
 	 * list, because one entry can publish more than one such subject.
 	 */
 	link?: readonly LinkSubject[]
+	/**
+	 * Subjects that resolve their size through the Density cascade. A list,
+	 * because one entry can publish more than one: `slider in field` covers the
+	 * slider and the range slider.
+	 */
+	density?: readonly DensitySubject[]
+	/** Text fields whose ref, placeholder, and disabled state reach the editable element. */
+	textInput?: readonly TextInputSubject[]
 }
 
 /**

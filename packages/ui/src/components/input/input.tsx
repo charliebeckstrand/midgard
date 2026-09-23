@@ -95,6 +95,7 @@ export function Input({
 		<input
 			ref={ref}
 			data-slot="input"
+			data-size={token.size}
 			type={type}
 			id={scope.id}
 			name={name}

@@ -1,4 +1,3 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	CreditCardInput,
@@ -26,22 +25,6 @@ describe('CreditCardInput', () => {
 		expect(input).toHaveAttribute('inputmode', 'numeric')
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<CreditCardInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<CreditCardInput placeholder="1234 1234 1234 1234" />)
-
-		const input = bySlot(container, 'credit-card-input')
-
-		expect(input).toHaveAttribute('placeholder', '1234 1234 1234 1234')
 	})
 
 	it('formats 16-digit card numbers in 4-4-4-4 groups', async () => {
@@ -99,25 +82,9 @@ describe('CreditCardInput', () => {
 
 		expect(input.value).toBe('4242 4242 4242 4242')
 	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<CreditCardInput disabled />)
-
-		const input = bySlot(container, 'credit-card-input')
-
-		expect(input).toBeDisabled()
-	})
 })
 
 describe('CreditCardInputExpiry', () => {
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<CreditCardInputExpiry ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
 	it('uses MM/YY as the default placeholder', () => {
 		const { container } = renderUI(<CreditCardInputExpiry />)
 
@@ -351,14 +318,6 @@ describe('CreditCardInputExpiry', () => {
 })
 
 describe('CreditCardInputCvv', () => {
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<CreditCardInputCvv ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
 	it('carries a default accessible name (placeholder is not a name)', () => {
 		renderUI(<CreditCardInputCvv />)
 

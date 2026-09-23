@@ -182,6 +182,7 @@ export function Tab({
 					// intent can chain onto them.
 					{...rest}
 					data-slot="tab"
+					data-size={size}
 					data-current={dataAttr(current)}
 					role="tab"
 					id={tabId}

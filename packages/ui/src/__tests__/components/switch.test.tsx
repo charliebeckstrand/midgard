@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { Switch, SwitchField } from '../../components/switch'
-import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
@@ -97,30 +96,6 @@ describe('Switch in a Form', () => {
 		expect(getFieldProbe('dark').textContent).toBe('false')
 
 		expect(onChange).toHaveBeenCalled()
-	})
-})
-
-describe('Switch size resolution', () => {
-	it('inherits size from the Density context when no explicit prop is set', () => {
-		const { container } = renderUI(
-			<Density scale="lg">
-				<Switch />
-			</Density>,
-		)
-
-		// switchVariants size="lg" brings *:data-[slot=switch-thumb]:size-5.
-		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-5')
-	})
-
-	it('explicit size prop overrides Density inheritance', () => {
-		const { container } = renderUI(
-			<Density scale="lg">
-				<Switch size="sm" />
-			</Density>,
-		)
-
-		// switchVariants size="sm" brings *:data-[slot=switch-thumb]:size-3.
-		expect(bySlot(container, 'control')?.className).toContain('*:data-[slot=switch-thumb]:size-3')
 	})
 })
 

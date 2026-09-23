@@ -7,7 +7,11 @@ import {
 	CheckboxSkeleton,
 } from '../../../components/checkbox'
 import { Combobox, ComboboxLabel, ComboboxOption } from '../../../components/combobox'
-import { CreditCardInput } from '../../../components/credit-card-input'
+import {
+	CreditCardInput,
+	CreditCardInputCvv,
+	CreditCardInputExpiry,
+} from '../../../components/credit-card-input'
 import { CurrencyInput } from '../../../components/currency-input'
 import { DateInput } from '../../../components/date-input'
 import { DatePicker } from '../../../components/date-picker'
@@ -25,7 +29,7 @@ import { Rating, RatingSkeleton } from '../../../components/rating'
 import { SearchInput } from '../../../components/search-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { SignaturePad } from '../../../components/signature-pad'
-import { Slider, SliderSkeleton } from '../../../components/slider'
+import { RangeSlider, Slider, SliderSkeleton } from '../../../components/slider'
 import { Switch, SwitchField, SwitchSkeleton } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
@@ -56,6 +60,8 @@ export const inputCases: readonly Case[] = [
 				<Input id="axe-name" />
 			</Field>
 		),
+		density: [{ render: (size) => <Input size={size} />, slot: 'input' }],
+		textInput: [{ render: (props) => <Input {...props} />, slot: 'input' }],
 	},
 	{
 		name: 'input in field (warning)',
@@ -86,6 +92,7 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		skeleton: [{ element: <TextareaSkeleton />, absentSlot: 'textarea' }],
+		textInput: [{ render: (props) => <Textarea {...props} />, slot: 'textarea' }],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -99,6 +106,10 @@ export const inputCases: readonly Case[] = [
 		),
 		passthrough: [{ render: (props) => <Slider {...props} />, slot: 'slider' }],
 		skeleton: [{ element: <SliderSkeleton />, absentSlot: 'slider' }],
+		density: [
+			{ render: (size) => <Slider size={size} />, slot: 'slider' },
+			{ render: (size) => <RangeSlider size={size} />, slot: 'slider-range' },
+		],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the
@@ -129,6 +140,7 @@ export const inputCases: readonly Case[] = [
 			</CheckboxGroup>
 		),
 		skeleton: [{ element: <CheckboxSkeleton />, absentSlot: 'checkbox' }],
+		density: [{ render: (size) => <Checkbox size={size} />, slot: 'control' }],
 	},
 	{
 		name: 'switch',
@@ -139,6 +151,7 @@ export const inputCases: readonly Case[] = [
 			</SwitchField>
 		),
 		skeleton: [{ element: <SwitchSkeleton />, absentSlot: 'switch' }],
+		density: [{ render: (size) => <Switch size={size} />, slot: 'control' }],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -157,6 +170,7 @@ export const inputCases: readonly Case[] = [
 			</RadioGroup>
 		),
 		skeleton: [{ element: <RadioSkeleton />, absentSlot: 'radio' }],
+		density: [{ render: (size) => <Radio size={size} />, slot: 'control' }],
 	},
 	{
 		// Icon-only toggle: aria-pressed reflects state, aria-label supplies the
@@ -183,6 +197,7 @@ export const inputCases: readonly Case[] = [
 				<TagInput defaultValue={['React', 'TypeScript']} placeholder="Add a tag" />
 			</Field>
 		),
+		textInput: [{ render: (props) => <TagInput {...props} />, slot: 'input' }],
 	},
 	{
 		name: 'calendar',
@@ -223,6 +238,7 @@ export const inputCases: readonly Case[] = [
 		// advertises numeric input mode; the calendar suffix icon is decorative.
 		name: 'date input',
 		element: <DateInput key="di" />,
+		textInput: [{ render: (props) => <DateInput {...props} />, slot: 'date-input' }],
 	},
 	{
 		// Same masked input wired to a Field: the Label names it and the default
@@ -259,6 +275,7 @@ export const inputCases: readonly Case[] = [
 				<NumberInput defaultValue={1} min={0} max={10} />
 			</Field>
 		),
+		textInput: [{ render: (props) => <NumberInput {...props} />, slot: 'number-input' }],
 	},
 	{
 		name: 'currency input',
@@ -268,6 +285,7 @@ export const inputCases: readonly Case[] = [
 				<CurrencyInput defaultValue={1234.56} />
 			</Field>
 		),
+		textInput: [{ render: (props) => <CurrencyInput {...props} />, slot: 'currency-input' }],
 	},
 	{
 		name: 'credit card input',
@@ -277,6 +295,11 @@ export const inputCases: readonly Case[] = [
 				<CreditCardInput placeholder="0000 0000 0000 0000" />
 			</Field>
 		),
+		textInput: [
+			{ render: (props) => <CreditCardInput {...props} />, slot: 'credit-card-input' },
+			{ render: (props) => <CreditCardInputExpiry {...props} />, slot: 'credit-card-input-expiry' },
+			{ render: (props) => <CreditCardInputCvv {...props} />, slot: 'credit-card-input-cvv' },
+		],
 	},
 	{
 		name: 'phone input',
@@ -286,6 +309,7 @@ export const inputCases: readonly Case[] = [
 				<PhoneInput placeholder="(555) 555-5555" />
 			</Field>
 		),
+		textInput: [{ render: (props) => <PhoneInput {...props} />, slot: 'phone-input' }],
 	},
 	{
 		name: 'zipcode input',
@@ -295,6 +319,7 @@ export const inputCases: readonly Case[] = [
 				<ZipcodeInput country="US" />
 			</Field>
 		),
+		textInput: [{ render: (props) => <ZipcodeInput {...props} />, slot: 'zipcode-input' }],
 	},
 	{
 		name: 'mask input',
@@ -304,6 +329,12 @@ export const inputCases: readonly Case[] = [
 				<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
 			</Field>
 		),
+		textInput: [
+			{
+				render: (props) => <MaskInput format={formatLicensePlate} {...props} />,
+				slot: 'mask-input',
+			},
+		],
 	},
 	{
 		name: 'search input',
@@ -313,6 +344,7 @@ export const inputCases: readonly Case[] = [
 				<SearchInput placeholder="Search" />
 			</Field>
 		),
+		textInput: [{ render: (props) => <SearchInput {...props} />, slot: 'search-input' }],
 	},
 	{
 		name: 'password input',
@@ -322,6 +354,7 @@ export const inputCases: readonly Case[] = [
 				<PasswordInput placeholder="Enter password" autoComplete="new-password" />
 			</Field>
 		),
+		textInput: [{ render: (props) => <PasswordInput {...props} />, slot: 'password-input' }],
 	},
 	{
 		// Two coupled fields under a wrapper that flags mismatch; each input is

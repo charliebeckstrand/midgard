@@ -58,6 +58,7 @@ export const layoutCases: readonly Case[] = [
 				<span>Two</span>
 			</Group>
 		),
+		density: [{ render: (size) => <Group size={size}>content</Group>, slot: 'group' }],
 	},
 	{
 		name: 'split',

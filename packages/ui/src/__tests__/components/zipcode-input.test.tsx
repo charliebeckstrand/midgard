@@ -1,4 +1,4 @@
-import { type ComponentProps, createRef } from 'react'
+import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { ZipcodeInput } from '../../components/zipcode-input'
@@ -24,14 +24,6 @@ describe('ZipcodeInput', () => {
 		)
 
 		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<ZipcodeInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it('uses a country-appropriate default placeholder', () => {
@@ -128,14 +120,6 @@ describe('ZipcodeInput', () => {
 		expect(input).toHaveAttribute('placeholder', '')
 
 		expect(input).toHaveAttribute('inputmode', 'text')
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<ZipcodeInput disabled />)
-
-		const input = bySlot(container, 'zipcode-input')
-
-		expect(input).toBeDisabled()
 	})
 
 	it('binds to a Form field by name, storing the formatted text', async () => {
