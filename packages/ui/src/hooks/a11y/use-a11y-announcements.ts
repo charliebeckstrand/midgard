@@ -15,7 +15,8 @@ export type A11yAnnouncementsOptions = {
  * Declaratively narrates a changing message to the live-region announcer. Pass
  * the current human-readable status: a result count, the active sort, the
  * current page. It speaks whenever that string changes, skipping the initial
- * value and consecutive duplicates.
+ * value and consecutive duplicates. An empty message speaks nothing, but it
+ * ends a run of duplicates: a status that clears and comes back is spoken again.
  *
  * The imperative `announce` underneath fires a message at a moment of the
  * caller's choosing. This hook owns the watch-and-dedupe wiring, so a widget
@@ -32,9 +33,13 @@ export function useA11yAnnouncements(
 	useEffect(() => {
 		if (!enabled) return
 
-		if (!message || message === previous.current) return
+		// The baseline records an empty message too, so a status that clears and comes back is
+		// spoken again.
+		const last = previous.current
 
 		previous.current = message
+
+		if (!message || message === last) return
 
 		announce(message, { assertive })
 	}, [message, enabled, assertive])
