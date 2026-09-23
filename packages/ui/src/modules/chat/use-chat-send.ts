@@ -144,7 +144,8 @@ export type ChatSend = {
 	/**
 	 * Aborts the in-flight send, retry, or edit, via the {@link ChatTransport}'s
 	 * `signal`. No-ops when nothing is in flight. Whatever the reply already
-	 * landed in the assistant bubble stays; `onError` and `onSent` do not fire.
+	 * landed stays, and a step still running becomes `failed`. `onError` and
+	 * `onSent` do not fire.
 	 */
 	stop: () => void
 	/** Escape hatch for direct list edits (e.g. seeding history or clearing). */
@@ -164,9 +165,9 @@ export type ChatSend = {
  * including) that message. Across all three, a transport failure drops the
  * still-empty placeholder (keyed by id, so concurrent or prior empty bubbles
  * are untouched). It keeps the user message, and fires `onError`.
- * {@link ChatSend.stop} aborts
- * whichever of the three is in flight, leaving the bubble at its last-folded
- * chunk without treating the stop as an error. The transport is supplied by
+ * {@link ChatSend.stop} aborts whichever of the three is in flight, and does
+ * not treat the stop as an error. The bubble keeps its last-folded chunk, and a
+ * step still running becomes `failed`. The transport is supplied by
  * the caller, keeping this hook free of any framework, endpoint, or wire-format
  * assumptions.
  *
