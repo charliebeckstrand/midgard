@@ -13,7 +13,7 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 //
 // A hand sweep closed thirteen rows across both categories and added no gate,
 // and both categories rotted inside a month. #1152 and #1164 moved eight
-// boundary rules into `biome.json` and `biome/plugins/`, and deleted the tests
+// boundary rules into `biome.json` and `.biome/plugins/`, and deleted the tests
 // that had held them. Comments still named the deleted files. The contracts
 // survived the move; only the pin changed, and no run said so.
 //
