@@ -70,7 +70,9 @@ export function mountsEveryPanel(mount: Mount): boolean {
  *
  * The latch clears during render, in React's adjust-state-during-render form. A
  * resting panel that becomes active, or whose policy stops holding it, therefore
- * wakes in the same pass that reveals it. It does not wake a commit later.
+ * wakes in the same pass that reveals it. It does not wake a commit later. The
+ * latch also arms during render. An inactive panel whose policy starts to hold
+ * it, or whose hold starts to defer, rests in the same pass.
  *
  * @param active - Whether the panel is the one currently shown.
  * @param mount - The policy governing inactive panels.
@@ -104,6 +106,20 @@ export function useMountHold(
 	// that stopped holding, or a hold that stopped deferring all clear it now —
 	// no animation completion will arrive to do it.
 	if (rested && (active || !held || !defer)) setRested(false)
+
+	// The arming direction. When the policy starts to hold, or the hold starts to
+	// defer, an inactive panel has no close transition in flight. No landing
+	// arrives to rest it, so rest it now. A panel that goes inactive keeps the
+	// latch open, because its close transition must still play.
+	const deferredHold = held && defer
+
+	const [wasDeferredHold, setWasDeferredHold] = useState(deferredHold)
+
+	if (wasDeferredHold !== deferredHold) {
+		setWasDeferredHold(deferredHold)
+
+		if (deferredHold && !active) setRested(true)
+	}
 
 	// Owns the "only a landing that closes counts" rule, so callers can hand every
 	// completion straight through instead of each restating the guard. An active

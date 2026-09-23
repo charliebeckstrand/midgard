@@ -192,4 +192,27 @@ describe('useMountHold', () => {
 
 		expect(screen.getByTestId('body')).toBeVisible()
 	})
+
+	it('rests an inactive panel when the policy starts to hold it', () => {
+		const { rerender } = renderUI(<Panel mount="active" defer />)
+
+		expect(screen.queryByTestId('body')).not.toBeInTheDocument()
+
+		// The policy now holds the inactive panel, and no fade is in flight. The
+		// panel must mount at rest, not visible.
+		rerender(<Panel mount="always" defer />)
+
+		expect(screen.getByTestId('body')).not.toBeVisible()
+	})
+
+	it('keeps an inactive held panel at rest when the hold starts to defer', () => {
+		const { rerender } = renderUI(<Panel mount="always" />)
+
+		expect(screen.getByTestId('body')).not.toBeVisible()
+
+		// No close transition is in flight, so no landing arrives to rest it.
+		rerender(<Panel mount="always" defer />)
+
+		expect(screen.getByTestId('body')).not.toBeVisible()
+	})
 })
