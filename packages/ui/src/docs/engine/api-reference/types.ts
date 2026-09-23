@@ -1,7 +1,8 @@
 /**
  * A resolved `{@link}` target lifted out of a TSDoc description, keyed in
- * `links` by the target name written in the comment. Backs the hover card
- * behind the rendered reference, mirroring an editor's quick-info popover.
+ * `links` by the target name written in the comment. The renderer shows each
+ * symbol reference as plain text and reads no `DocLink`. The extractor uses the
+ * keys only to track the source file of each target.
  */
 export type DocLink = {
 	/** One-line signature header, e.g. `type KbdProps` or `function Item(…): …`. */

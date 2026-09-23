@@ -34,12 +34,12 @@ import { srcDir, srcRelative } from '../helpers/walk-source'
 // here so the failure message does not have to overreach:
 //
 //   Whether the target names the right symbol of several, which nothing in the
-//   tree answers today. And whether the target renders as a link, which
-//   `docs/engine/api-reference/engine/link-resolver.ts` decides on a much
-//   smaller index — PascalCase top-level declarations outside `docs/`. 652 of
-//   this tree's 2,515 targets have a lowercase head, `dataAttr` among them, so
-//   they resolve here and render as plain text there. Gating on that index is
-//   the stronger rule and a larger change: it starts red on those 652.
+//   tree answers today. And whether the renderer's own index holds the target.
+//   `docs/engine/api-reference/engine/link-resolver.ts` indexes only PascalCase
+//   top-level declarations outside `docs/`, so 652 of 2,515 targets miss it.
+//   That miss changes no page. The API reference renders every symbol target
+//   as plain text, resolved or not, so the stricter index gates nothing a
+//   reader sees.
 //
 // Scope stops at `src`, and `docs/` stays out on purpose. An audit records the
 // dangling citation it fixed by quoting it, and a plan names the test file it
