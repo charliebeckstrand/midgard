@@ -129,7 +129,20 @@ export function GridColumnResizeHandle({
 			// handle it listens for `pointerdown` on the enclosing `<th>`, so keep a
 			// press on this separator from bubbling up and starting a column drag
 			// alongside the resize.
-			onPointerDown={(event) => event.stopPropagation()}
+			onPointerDown={(event) => {
+				event.stopPropagation()
+
+				// The same press gate as `onMouseDown`, which the browser fires after
+				// this event. Only a press that starts a drag-resize takes the capture.
+				if (!onPointer || event.button !== 0 || event.ctrlKey) return
+
+				// Capture holds the handle as the pointer target for the whole drag. The
+				// handle then keeps its resize cursor over a cell or a control with its
+				// own cursor. The engine's document-level mouse listeners still receive
+				// the moves and the release. The browser releases the capture on
+				// pointerup and pointercancel.
+				event.currentTarget.setPointerCapture(event.pointerId)
+			}}
 			onClick={(event) => event.stopPropagation()}
 			onDoubleClick={(event) => {
 				// Double-click auto-sizes the column to its content — the pointer
