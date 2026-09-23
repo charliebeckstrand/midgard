@@ -265,11 +265,16 @@ function resolveHighlightQuery(
  * before the DOM exists, so rather than paint a width that is about to change, paint none (see
  * {@link widthGateClass}).
  *
- * `settled` waits for a width pass that read real body cells. A grid whose result is
- * legitimately empty would never satisfy it, hence the second clause. Once the consumer
- * has stopped loading and there are no rows, the header and the empty state are all there
- * is to show. It is true from the first frame for any grid the autosizer does not size.
- * Such a grid is not resizable, has its sizing controlled by the consumer, or has no
+ * `settled` waits for a width pass that read real body cells. Some bodies have no data
+ * cells to read, so the gate also opens for them:
+ *
+ * - `loading`: the skeleton is the state to show. A hidden skeleton shows nothing for all
+ *   of the fetch. The columns can fit again when the rows land.
+ * - `failed`: the error slot replaces the rows, so no pass reads a body cell.
+ * - no rows: the header and the empty state are all there is to show.
+ *
+ * `settled` is true from the first frame for any grid the autosizer does not size. Such a
+ * grid is not resizable, has its sizing controlled by the consumer, or has no
  * `ResizeObserver` (SSR and jsdom). Those paint immediately and nothing regresses.
  *
  * Latched because the reveal is a one-way door. `loading` goes true again on page two, a
@@ -280,10 +285,15 @@ function resolveHighlightQuery(
  *
  * @internal
  */
-function useTableRevealed(settled: boolean, loading: boolean, rowCount: number): boolean {
+function useTableRevealed(
+	settled: boolean,
+	loading: boolean,
+	failed: boolean,
+	rowCount: number,
+): boolean {
 	const revealed = useRef(false)
 
-	if (settled || (!loading && rowCount === 0)) revealed.current = true
+	if (settled || loading || failed || rowCount === 0) revealed.current = true
 
 	return revealed.current
 }
@@ -889,7 +899,7 @@ export function GridData<T>({
 
 	// Whether the table can paint yet; holds its first frame until the widths are
 	// settled (see `useTableRevealed`, and the width gate on the `<table>` below).
-	const showTable = useTableRevealed(widthsSettled, loading, renderRows.length)
+	const showTable = useTableRevealed(widthsSettled, loading, showingError, renderRows.length)
 
 	// Fixed-layout column widths so a resize touches only its own column;
 	// `resizing` flags an in-flight drag so head/cells suppress their hover wash
