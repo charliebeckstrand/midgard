@@ -40,7 +40,9 @@ export type DatePickerSingleProps = {
 	/**
 	 * Pattern for the typed date while `input` is set.
 	 *
-	 * @defaultValue 'MM/DD/YYYY'
+	 * @defaultValue The layout matching the ambient `<LocaleProvider>` locale, as
+	 * on {@link DateInput}. The typed field then agrees with the Calendar and the
+	 * trigger label.
 	 */
 	format?: DateInputFormat
 }
@@ -253,7 +255,7 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		size = 'md',
 		truncate = true,
 		input = false,
-		format = 'MM/DD/YYYY',
+		format,
 		clearable = false,
 		className,
 		'aria-label': ariaLabel,
@@ -337,6 +339,9 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 						size={size}
 						disabled={state.disabled}
 						readOnly={state.readOnly}
+						// A field or Control error marks the input. Without one, `undefined`
+						// lets DateInput report its own typed-entry error.
+						invalid={state.invalid || undefined}
 						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}

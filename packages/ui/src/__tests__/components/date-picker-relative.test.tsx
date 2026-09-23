@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { DatePicker, type DatePickerRelativeValue } from '../../components/date-picker'
+import { LocaleProvider } from '../../providers/locale'
 import { allBySlot, bySlot, getSlot, renderUI, screen, userEvent, within } from '../helpers'
 
 // Controlled relative picker: the parent holds the (always-array) value so a
@@ -250,6 +251,32 @@ describe('DatePicker (relative)', () => {
 		await user.click(screen.getByRole('button', { name: 'Back to presets' }))
 
 		expect(screen.getByRole('button', { name: 'Today' })).toBeInTheDocument()
+	})
+
+	// The Start/End fields pass no format, so they follow the ambient locale, as
+	// the Calendar beside them does.
+	it('lays out the Start/End fields in the ambient locale', async () => {
+		const user = openPicker()
+
+		const { container } = renderUI(
+			<LocaleProvider locale="en-GB">
+				<DatePicker relative aria-label="Range" />
+			</LocaleProvider>,
+		)
+
+		await user.click(getSlot<HTMLButtonElement>(container, 'datepicker-button'))
+
+		await user.click(screen.getByRole('button', { name: 'Custom range' }))
+
+		expect(screen.getByRole('textbox', { name: 'Start' })).toHaveAttribute(
+			'placeholder',
+			'DD/MM/YYYY',
+		)
+
+		expect(screen.getByRole('textbox', { name: 'End' })).toHaveAttribute(
+			'placeholder',
+			'DD/MM/YYYY',
+		)
 	})
 
 	it('picks a custom endpoint from the field calendar without closing the popover', async () => {
