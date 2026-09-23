@@ -720,6 +720,18 @@ describe('List: static (non-interactive) mode', () => {
 		expect(allBySlot(container, 'list-item')).toHaveLength(items.length)
 	})
 
+	it('gives duplicate primitive items distinct positional ids', () => {
+		const { container } = renderUI(
+			<List items={['draft', 'draft', 'sent']} sortable={false}>
+				{(item) => <ListItem>{item}</ListItem>}
+			</List>,
+		)
+
+		const ids = allBySlot(container, 'list-item').map((row) => row.getAttribute('data-item-id'))
+
+		expect(ids).toEqual(['0', '1', '2'])
+	})
+
 	it('renders a non-interactive list when sortable is true but onReorder is omitted', () => {
 		const { container } = renderUI(
 			<List items={items} getKey={(i) => i.id}>

@@ -138,7 +138,7 @@ export function List<T>({
 	const rows = useMemo(
 		() =>
 			items.map((item, index) => {
-				const id = effectiveGetKey(item)
+				const id = effectiveGetKey(item, index)
 
 				// Read-only lists use `ListItemStatic`, skipping sortable-item
 				// registration. `useSortableItem` does non-trivial per-item work
