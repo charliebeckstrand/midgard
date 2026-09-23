@@ -31,7 +31,6 @@ type GridManagerColorMenuProps = {
 	usedColors?: Set<PaletteColor>
 	/** Sets the group's color, or clears it with `undefined`. */
 	onRecolor: (color: PaletteColor | undefined) => void
-	className?: string
 }
 
 /**
@@ -48,10 +47,9 @@ export function GridManagerColorMenu({
 	colorOptions = DEFAULT_COLOR_OPTIONS,
 	usedColors,
 	onRecolor,
-	className,
 }: GridManagerColorMenuProps): ReactNode {
 	return (
-		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end" className={className}>
+		<Menu aria-label={`Color menu for ${label}`} placement="bottom-end">
 			<MenuTrigger>
 				<Button type="button" color={color} variant="soft" aria-label={`Color for ${label}`}>
 					{color ? capitalizeFirst(color) : 'Color'}

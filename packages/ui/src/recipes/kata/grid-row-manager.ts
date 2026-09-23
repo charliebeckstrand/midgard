@@ -25,8 +25,6 @@ export const k = {
 		label: ['min-w-0', 'truncate', 'font-medium'],
 		// The row count, sitting right beside the label.
 		count: [text.muted, 'tabular-nums', 'shrink-0'],
-		// The color Menu trigger: holds its natural width at the trailing edge.
-		color: 'shrink-0',
 		// Group-reorder grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
 		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, 'cursor-grab', 'select-none'],
 	},
