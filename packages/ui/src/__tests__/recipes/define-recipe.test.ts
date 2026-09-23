@@ -231,6 +231,10 @@ describe('defineRecipe', () => {
 
 		expect(() => defineRecipe({ skeleton: 'x' }, { skeleton: {} })).toThrow(/extra name/)
 
+		// `skeleton` is reserved for the config, so an extra with that name throws
+		// also when the config has no skeleton.
+		expect(() => defineRecipe({}, { skeleton: {} })).toThrow(/extra name/)
+
 		expect(() => defineRecipe({}, { config: {} })).toThrow(/extra name/)
 
 		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
