@@ -392,7 +392,7 @@ function domainValuesFor<T>(args: {
 		? bound.length > 0
 			? data.map((_, index) => bound.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
 			: []
-		: bound.flatMap((meta) => meta.values.filter((value): value is number => value !== null))
+		: bound.flatMap((meta) => meta.values.filter((value) => value !== null))
 
 	const referenceValues = (reference ?? []).flatMap((line, index) =>
 		(line.axis ?? 'y') === axis && !referenceHidden.has(index) ? [line.value] : [],

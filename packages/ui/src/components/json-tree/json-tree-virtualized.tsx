@@ -15,7 +15,7 @@ import { k } from '../../recipes/kata/json-tree'
 import { nextIndexForKey } from '../../utilities'
 import { DEFAULT_OVERSCAN, DEFAULT_ROW_HEIGHT } from './json-tree-constants'
 import { JsonTreeNodeRow } from './json-tree-node-row'
-import { type buildSearchIndex, collectMatchPaths, flattenTree } from './json-tree-utilities'
+import { collectMatchPaths, flattenTree, type SearchIndex } from './json-tree-utilities'
 import type { JsonValue } from './types'
 import { useJsonTreeExpansion } from './use-json-tree-expansion'
 
@@ -98,7 +98,7 @@ type JsonTreeVirtualizedProps = {
 	onExpandedChange: ((expanded: Set<string>) => void) | undefined
 	searchValue: string
 	filter: boolean
-	searchIndex: ReturnType<typeof buildSearchIndex>
+	searchIndex: SearchIndex
 	virtualize: { estimateSize?: number; overscan?: number }
 	maxHeight: string
 	onKeyDown: KeyboardEventHandler<HTMLDivElement>

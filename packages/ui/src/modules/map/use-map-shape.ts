@@ -63,7 +63,7 @@ export type MapFrameShape = {
 	/** The graticule and sphere `d`s under the active fit; both `null` where the chrome is off. */
 	chrome: MapChromePaths
 	features: MapFeature[]
-	project: (position: LngLat) => ReturnType<typeof projectPoint>
+	project: (position: LngLat) => MapPoint2D | null
 	/**
 	 * {@link project} run backwards, `null` where the fit has no lon/lat for a
 	 * frame position — which the composite's gaps between insets genuinely have.

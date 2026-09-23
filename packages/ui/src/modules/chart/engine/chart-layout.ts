@@ -1179,9 +1179,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 
 	const valueProbe = probeOf(input.value, input.tickTarget, input.zeroBaseline)
 
-	const probes = [valueProbe, value2Probe].filter(
-		(probe): probe is ValueAxisProbe => probe !== null,
-	)
+	const probes = [valueProbe, value2Probe].filter((probe) => probe !== null)
 
 	// Without the axis chrome the marks border the frame directly, so both layouts
 	// reserve the widest mark's painted reach on every plot edge — here the value

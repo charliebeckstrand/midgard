@@ -25,7 +25,7 @@ export function normalizeSearch(search: Search | undefined): { value: string; fi
 }
 
 /** Narrows a {@link JsonValue} to a branch (array or object); `null` is a leaf. @internal */
-export function isBranch(value: JsonValue): value is JsonValue[] | { [key: string]: JsonValue } {
+export function isBranch(value: JsonValue) {
 	return typeof value === 'object' && value !== null
 }
 

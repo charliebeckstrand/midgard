@@ -14,6 +14,7 @@ import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
 	type Coord,
 	type GridCellActivate,
+	type GridNavStore,
 	type GridNavTableProps,
 	type GridRowActivate,
 	useGridNavigation,
@@ -96,7 +97,7 @@ export function useGridCursor<T>({
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
 	cursorEnabled: boolean
 	/** Cursor store to provide to the cells via {@link GridNavContext}. */
-	navStore: ReturnType<typeof useGridNavigation>['store']
+	navStore: GridNavStore
 	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
 	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
