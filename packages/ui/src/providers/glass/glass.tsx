@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { GlassContext } from './context'
+import { GlassScope } from './glass-scope'
 
 /** Props for {@link GlassProvider}. */
 export type GlassProviderProps = {
@@ -13,14 +13,17 @@ export type GlassProviderProps = {
  * Dialog, etc.) reads the flag through `useGlass()`. Renders a `display:
  * contents` span.
  *
+ * @remarks The file has no `'use client'`, so an RSC tree can host the
+ * provider. A client leaf writes the context.
+ *
  * @see {@link useGlass} for reading the flag at a leaf.
  */
 export function GlassProvider({ children }: GlassProviderProps) {
 	return (
-		<GlassContext value={true}>
+		<GlassScope>
 			<span data-slot="glass" className="contents">
 				{children}
 			</span>
-		</GlassContext>
+		</GlassScope>
 	)
 }
