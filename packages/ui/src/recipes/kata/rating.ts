@@ -72,11 +72,7 @@ export const k = defineRecipe(
 		star,
 		track,
 		/** Glyph dimension per step; the track and the fill share it, so the two stack exactly. */
-		glyph: {
-			sm: 'size-4',
-			md: 'size-5',
-			lg: 'size-6',
-		} as const,
+		glyph: kokkaku.rating.size,
 		/**
 		 * The window a partly-filled star draws its fill inside. Absolute over the
 		 * track glyph and clipping at its own width, which the component sets from

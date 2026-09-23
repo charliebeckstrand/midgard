@@ -56,11 +56,7 @@ const fill = defineRecipe({
 
 const root = defineRecipe({
 	base: ['relative', flex.inline, 'justify-center'],
-	size: {
-		sm: 'size-12',
-		md: 'size-16',
-		lg: 'size-20',
-	},
+	size: kokkaku.progress.gauge.size,
 	defaults: { size: 'md' },
 })
 
@@ -77,11 +73,7 @@ const label = defineRecipe({
 export const k = defineRecipe(
 	{
 		base: ['overflow-hidden', rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
-		size: {
-			sm: 'h-2',
-			md: 'h-3',
-			lg: 'h-4',
-		},
+		size: kokkaku.progress.bar.size,
 		defaults: { size: 'md' },
 		skeleton: kokkaku.progress,
 	},
