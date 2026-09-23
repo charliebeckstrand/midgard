@@ -27,7 +27,8 @@ export type CommandPaletteItemProps = CommandPaletteItemBaseProps &
  * `href` is set, a Link anchor, with roving tabindex and the input's
  * active-descendant pointing at it. Runs the consumer `onClick` then
  * `onAction`, closing the palette afterward unless `closeOnAction` is false;
- * `disabled` items are inert on every input path. Pass an explicit `id`
+ * `disabled` items are inert on every input path. A disabled link renders an
+ * inert `<span>` with no `href`. Pass an explicit `id`
  * inside a `VirtualOptions` with `getOptionId`. It overrides the auto-generated
  * one, which React's `useId` mints per instance and cannot predict ahead of the
  * row mounting.
@@ -50,9 +51,9 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	const onClick = (props as { onClick?: (event: MouseEvent<HTMLElement>) => void }).onClick
 
 	function handleSelect(event: MouseEvent<HTMLElement>) {
-		// The disabled guard runs before the consumer handler: disabled items
-		// are inert on every input path, and preventDefault keeps disabled
-		// link items from navigating.
+		// The disabled guard runs before the consumer handler, so disabled
+		// items are inert on every input path. A disabled link renders no
+		// anchor, so this guard only reaches the button.
 		if (disabled) {
 			event.preventDefault()
 
@@ -82,6 +83,25 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 	}
 
 	if (props.href !== undefined) {
+		// Middle-click and "Open in new tab" fire no `click`, so a click guard
+		// cannot stop them. A disabled link renders a `<span>` with no `href`,
+		// as `MenuItem` does.
+		if (disabled) {
+			return (
+				<span
+					id={itemId}
+					role="option"
+					tabIndex={-1}
+					aria-disabled={true}
+					data-slot="command-palette-item"
+					data-disabled={true}
+					className={optionProps.className}
+				>
+					{children}
+				</span>
+			)
+		}
+
 		return (
 			<LinkComponent {...forwardedProps(props)} {...optionProps}>
 				{children}

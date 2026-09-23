@@ -42,3 +42,31 @@ export function handleMenuItemKeyDown<E extends HTMLElement>(
 		}
 	})(event)
 }
+
+/**
+ * Space activation for a menu link row. Runs the consumer's `onKeyDown`
+ * first. Then Space cancels the page scroll and clicks the anchor, so the
+ * row navigates and selects as a pointer click does. Enter stays native.
+ *
+ * @remarks
+ * The click is the activation that the row exists to perform, so a consumer
+ * `preventDefault()` does not cancel it (CONVENTIONS §3.9).
+ *
+ * @internal
+ */
+export function handleMenuLinkKeyDown<E extends HTMLElement>(
+	event: KeyboardEvent<E>,
+	consumerOnKeyDown: ((event: KeyboardEvent<E>) => void) | undefined,
+): void {
+	composeEventHandlers(
+		consumerOnKeyDown,
+		(keyEvent) => {
+			if (keyEvent.key !== ' ') return
+
+			keyEvent.preventDefault()
+
+			keyEvent.currentTarget.click()
+		},
+		{ checkForDefaultPrevented: false },
+	)(event)
+}

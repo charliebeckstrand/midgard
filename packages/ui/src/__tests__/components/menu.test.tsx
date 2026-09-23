@@ -712,6 +712,59 @@ describe('MenuItem', () => {
 		expect(onAction).not.toHaveBeenCalled()
 	})
 
+	it('activates a link row on Space and cancels the page scroll', () => {
+		const onAction = vi.fn()
+
+		const onKeyDown = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="#about" onAction={onAction} onKeyDown={onKeyDown}>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('About').closest('a') as HTMLAnchorElement
+
+		const onNativeClick = vi.fn()
+
+		item.addEventListener('click', onNativeClick)
+
+		// fireEvent returns false when the event's default was prevented.
+		expect(fireEvent.keyDown(item, { key: ' ' })).toBe(false)
+
+		// Space clicks the anchor, so the row navigates and selects.
+		expect(onNativeClick).toHaveBeenCalledTimes(1)
+
+		expect(onAction).toHaveBeenCalledTimes(1)
+
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
+	})
+
+	it('leaves Enter on a link row to the native anchor', () => {
+		const onAction = vi.fn()
+
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="#about" onAction={onAction}>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('About').closest('a') as HTMLAnchorElement
+
+		// Enter must keep its default, or the anchor cannot navigate.
+		expect(fireEvent.keyDown(item, { key: 'Enter' })).toBe(true)
+
+		expect(onAction).not.toHaveBeenCalled()
+	})
+
 	it('renders the disabled href variant as a non-navigable element', () => {
 		renderUI(
 			<Menu defaultOpen>
