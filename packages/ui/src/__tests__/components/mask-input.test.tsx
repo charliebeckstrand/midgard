@@ -1,4 +1,3 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { MaskInput } from '../../components/mask-input'
@@ -21,22 +20,6 @@ describe('MaskInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input?.tagName).toBe('INPUT')
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<MaskInput format={formatGroups} ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} placeholder="123-456" />)
-
-		const input = bySlot(container, 'mask-input')
-
-		expect(input).toHaveAttribute('placeholder', '123-456')
 	})
 
 	it('applies the format as the user types', async () => {
@@ -121,14 +104,6 @@ describe('MaskInput', () => {
 		expect(input.value).toBe('AZB')
 
 		expect(input.selectionStart).toBe(2)
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} disabled />)
-
-		const input = bySlot(container, 'mask-input')
-
-		expect(input).toBeDisabled()
 	})
 
 	it('binds to a Form field by name, storing the formatted text', async () => {

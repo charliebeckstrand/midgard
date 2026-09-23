@@ -1,4 +1,4 @@
-import { createRef, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { TagInput } from '../../components/tag-input'
@@ -46,16 +46,6 @@ describe('TagInput', () => {
 		expect(input).toBeInTheDocument()
 
 		expect(input.tagName).toBe('INPUT')
-	})
-
-	it('forwards ref to the input', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		const { container } = renderUI(<TagInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-
-		expect(ref.current).toBe(getInput(container))
 	})
 
 	it('shows placeholder when there are no tags', () => {
@@ -354,14 +344,6 @@ describe('TagInput', () => {
 		await user.type(input, 'ok{Enter}')
 
 		expect(onChange).toHaveBeenCalledWith(['ok'])
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<TagInput disabled />)
-
-		const input = getInput(container)
-
-		expect(input).toBeDisabled()
 	})
 
 	it('hides remove buttons when disabled', () => {

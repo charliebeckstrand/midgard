@@ -235,25 +235,6 @@ describe('Tab', () => {
 		expect(el).toHaveAttribute('role', 'tab')
 	})
 
-	it('inherits size from ambient Density when wrapped in <Tabs>', () => {
-		const { container } = renderUI(
-			<DensityProvider density="compact">
-				<Tabs defaultValue="a">
-					<TabList aria-label="Tabs">
-						<Tab value="a">Tab A</Tab>
-					</TabList>
-				</Tabs>
-			</DensityProvider>,
-		)
-
-		// Compact density → 'sm' → text-sm + pb-3 from the recipe.
-		const tab = bySlot(container, 'tab')
-
-		expect(tab?.className).toContain('text-sm')
-
-		expect(tab?.className).toContain('pb-3')
-	})
-
 	it('inherits size from ambient Density when used à la carte (TabList + Tab without <Tabs>)', () => {
 		const { container } = renderUI(
 			<DensityProvider density="loose">

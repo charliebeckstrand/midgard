@@ -1,4 +1,4 @@
-import { type ComponentProps, createRef } from 'react'
+import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { NumberInput } from '../../components/number-input'
@@ -73,14 +73,6 @@ describe('NumberInput', () => {
 		expect(input).toHaveFocus()
 
 		expect(onBlur).not.toHaveBeenCalled()
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<NumberInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it('disables decrease button at min value', () => {

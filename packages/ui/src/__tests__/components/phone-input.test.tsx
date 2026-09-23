@@ -1,4 +1,3 @@
-import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
 import { PhoneInput } from '../../components/phone-input'
@@ -16,22 +15,6 @@ describe('PhoneInput', () => {
 		expect(input).toHaveAttribute('type', 'tel')
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<PhoneInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
-	})
-
-	it('passes through placeholder', () => {
-		const { container } = renderUI(<PhoneInput placeholder="(555) 555-5555" />)
-
-		const input = bySlot(container, 'phone-input')
-
-		expect(input).toHaveAttribute('placeholder', '(555) 555-5555')
 	})
 
 	it('formats US numbers as the user types', async () => {
@@ -102,14 +85,6 @@ describe('PhoneInput', () => {
 		expect(input.value).toBe('(551) 567-89')
 
 		expect(input.selectionStart).toBe(4)
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<PhoneInput disabled />)
-
-		const input = bySlot(container, 'phone-input')
-
-		expect(input).toBeDisabled()
 	})
 
 	it('renders a custom prefix in place of the default phone icon', () => {

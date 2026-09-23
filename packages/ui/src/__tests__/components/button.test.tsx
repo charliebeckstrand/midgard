@@ -162,16 +162,6 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
 		})
 
-		it('inherits size from the Density context when no explicit size prop is set', () => {
-			const { container } = renderUI(
-				<Density scale="sm">
-					<Button>Inherit</Button>
-				</Density>,
-			)
-
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
-		})
-
 		it('explicit size prop overrides <Group> inheritance', () => {
 			const { container } = renderUI(
 				<Group size="lg">
@@ -180,12 +170,6 @@ describe('Button', () => {
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
-		})
-
-		it('falls back to its own default when no wrapper provides a size', () => {
-			const { container } = renderUI(<Button>Bare</Button>)
-
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
 		})
 
 		// `<Input>` / `<SelectTrigger>` wrap their affix descendants in an
@@ -230,16 +214,6 @@ describe('Button', () => {
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
-		})
-
-		it('inherits Density when no explicit size is set', () => {
-			const { container } = renderUI(
-				<Density scale="lg">
-					<Button>Density</Button>
-				</Density>,
-			)
-
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
 		})
 	})
 

@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { Density } from '../../primitives/density'
 import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
@@ -74,16 +73,6 @@ describe('Radio size', () => {
 		const { container } = renderUI(<Radio size="lg" />)
 
 		expect(bySlot(container, 'control')?.className).toContain('size-5')
-	})
-
-	it('inherits size from the Density context', () => {
-		const { container } = renderUI(
-			<Density scale="sm">
-				<Radio />
-			</Density>,
-		)
-
-		expect(bySlot(container, 'control')?.className).toContain('size-4')
 	})
 
 	it('indicator dot scales with size', () => {

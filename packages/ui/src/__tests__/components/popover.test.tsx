@@ -2,7 +2,6 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI, userEvent } from '../helpers'
 
 describe('Popover', () => {
@@ -103,36 +102,6 @@ describe('PopoverContent size context', () => {
 
 		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(buttonInPopover()?.className).toContain('text-sm')
-	})
-
-	it('inherits an ambient Density when no size prop is given', () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<Popover open>
-					<PopoverTrigger>
-						<button type="button">Open</button>
-					</PopoverTrigger>
-					<PopoverContent>content</PopoverContent>
-				</Popover>
-			</DensityProvider>,
-		)
-
-		expect(popoverContent()).toHaveAttribute('data-size', 'sm')
-	})
-
-	it('explicit size prop wins over an ambient Density', () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<Popover open>
-					<PopoverTrigger>
-						<button type="button">Open</button>
-					</PopoverTrigger>
-					<PopoverContent size="lg">content</PopoverContent>
-				</Popover>
-			</DensityProvider>,
-		)
-
-		expect(popoverContent()).toHaveAttribute('data-size', 'lg')
 	})
 })
 

@@ -1,4 +1,4 @@
-import { createRef, type ReactElement, useState } from 'react'
+import { type ReactElement, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { DateInput } from '../../components/date-input'
@@ -39,14 +39,6 @@ describe('DateInput', () => {
 		expect(input?.tagName).toBe('INPUT')
 
 		expect(input).toHaveAttribute('inputmode', 'numeric')
-	})
-
-	it('forwards ref', () => {
-		const ref = createRef<HTMLInputElement>()
-
-		renderUI(<DateInput ref={ref} />)
-
-		expect(ref.current).toBeInstanceOf(HTMLInputElement)
 	})
 
 	it.each<[string, () => ReactElement, string, string]>([
@@ -531,12 +523,6 @@ describe('DateInput', () => {
 		expect(onChange.mock.calls.length).toBe(calls)
 
 		expect(input).not.toHaveAttribute('aria-invalid')
-	})
-
-	it('disables the input when disabled', () => {
-		const { container } = renderUI(<DateInput disabled />)
-
-		expect(bySlot(container, 'date-input')).toBeDisabled()
 	})
 
 	it('binds to a Form field by name, storing the Date', async () => {

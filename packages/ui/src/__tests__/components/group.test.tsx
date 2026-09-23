@@ -127,40 +127,6 @@ describe('Group', () => {
 		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'lg')
 	})
 
-	it('inherits size from an enclosing Density context when size is omitted', () => {
-		const { container } = renderUI(
-			<Density scale="sm">
-				<Group>
-					<button type="button">A</button>
-				</Group>
-			</Density>,
-		)
-
-		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'sm')
-	})
-
-	it('explicit size overrides Density inheritance', () => {
-		const { container } = renderUI(
-			<Density scale="sm">
-				<Group size="lg">
-					<button type="button">A</button>
-				</Group>
-			</Density>,
-		)
-
-		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'lg')
-	})
-
-	it('falls back to "md" outside any Density context and without explicit size', () => {
-		const { container } = renderUI(
-			<Group>
-				<button type="button">A</button>
-			</Group>,
-		)
-
-		expect(bySlot(container, 'group')).toHaveAttribute('data-size', 'md')
-	})
-
 	it('provides a Density context to descendants', () => {
 		let observed: string | undefined
 

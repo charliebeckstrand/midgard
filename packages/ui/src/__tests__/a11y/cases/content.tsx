@@ -33,6 +33,7 @@ export const contentCases: readonly Case[] = [
 		element: <Button key="b">Save</Button>,
 		skeleton: [{ element: <ButtonSkeleton />, absentSlot: 'button' }],
 		link: [{ render: (href) => <Button href={href}>About</Button>, slot: 'button' }],
+		density: [{ render: (size) => <Button size={size}>Save</Button>, slot: 'button' }],
 	},
 	{
 		name: 'heading + text',
