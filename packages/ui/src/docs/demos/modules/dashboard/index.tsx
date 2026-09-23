@@ -17,7 +17,7 @@ import {
 import { Grid, type GridColumn } from '../../../../modules/grid'
 import { QueryBuilder, type QueryGroup, QuerySummary } from '../../../../modules/query'
 import { Example } from '../../../engine'
-import { fields, type Sale, sales, sumBy } from './data'
+import { fields, products, type Sale, sales, sumBy } from './data'
 
 const layout: DashboardLayoutItem[] = [
 	{ id: 'regions', x: 0, y: 0, w: 12 },
@@ -30,7 +30,8 @@ const layout: DashboardLayoutItem[] = [
 const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
 
 // Each tile below is ordinary app code. It reads the scope through a hook and
-// hands rows to a widget; no widget knows that a dashboard holds it.
+// hands rows to a widget; no widget knows that a dashboard holds it. A chart that
+// selects also gets its own selection back, so the selected marks stay lit.
 
 function RevenueByRegion() {
 	const scope = useDashboardScope()
@@ -43,6 +44,7 @@ function RevenueByRegion() {
 			data={data}
 			series={[{ xKey: 'key', yKey: 'total', yName: 'Revenue' }]}
 			aspectRatio={false}
+			selectedCategories={scope.selected('region')}
 			onCategoryClick={(region) => scope.select('region', region)}
 		/>
 	)
@@ -59,6 +61,8 @@ function ProductMix() {
 			data={data}
 			series={[{ xKey: 'key', yKey: 'total' }]}
 			aspectRatio={false}
+			categories={products}
+			selectedCategories={scope.selected('product')}
 			onCategoryClick={(product) => scope.select('product', product)}
 		/>
 	)
@@ -136,7 +140,9 @@ export function Demo() {
 						<Spacer />
 
 						{selection.length > 0 && (
-							<Button onClick={() => setSelection([])}>Clear selection</Button>
+							<Button variant="plain" onClick={() => setSelection([])}>
+								Clear selection
+							</Button>
 						)}
 
 						<Button color={editing ? 'zinc' : 'blue'} onClick={() => setEditing((live) => !live)}>
