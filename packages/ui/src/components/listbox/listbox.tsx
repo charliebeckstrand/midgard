@@ -198,8 +198,8 @@ export function Listbox<T>({
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
 		required: resolvedRequired,
-		invalid: resolvedInvalid,
 		'aria-describedby': describedBy,
+		validation,
 	} = useControlProps({
 		id,
 		disabled,
@@ -225,15 +225,16 @@ export function Listbox<T>({
 	})
 
 	// readOnly keeps the trigger focusable and the value submitted but blocks
-	// every open path (frame click, floating-ui keyboard/typeahead); closing
-	// stays allowed so an externally-opened menu can still dismiss.
+	// every open path (frame click, floating-ui keyboard/typeahead). disabled
+	// blocks the same paths. The frame takes the click, not the disabled button.
+	// Closing stays allowed, so an externally-opened menu can still dismiss.
 	const setOpenGuarded = useCallback(
 		(next: boolean) => {
-			if (resolvedReadOnly && next) return
+			if ((resolvedReadOnly || resolvedDisabled) && next) return
 
 			setOpen(next)
 		},
-		[resolvedReadOnly, setOpen],
+		[resolvedReadOnly, resolvedDisabled, setOpen],
 	)
 
 	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
@@ -392,7 +393,7 @@ export function Listbox<T>({
 						disabled={resolvedDisabled}
 						readOnly={resolvedReadOnly}
 						required={resolvedRequired}
-						invalid={resolvedInvalid}
+						validation={validation}
 						label={label}
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}

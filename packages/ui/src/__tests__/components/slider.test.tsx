@@ -7,6 +7,7 @@ import { RangeSlider, Slider } from '../../components/slider'
 import { snapToStep } from '../../components/slider/range/range-utilities'
 import { DensityProvider } from '../../providers/density'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Slider', () => {
 	it('renders as a range input with data-slot="slider"', () => {
@@ -358,6 +359,61 @@ describe('Slider + Form', () => {
 		fireEvent.change(el, { target: { value: '40' } })
 
 		expect(el).not.toHaveAttribute('aria-invalid')
+	})
+})
+
+describe('RangeSlider + Form', () => {
+	const renderBound = () =>
+		renderUI(
+			<Form
+				defaultValues={{ price: [20, 50] as [number, number] }}
+				validate={{ price: (v) => (v[1] > 50 ? 'Too high' : undefined) }}
+				validateOn="change"
+			>
+				<RangeSlider name="price" />
+				<FieldProbe name="price" />
+			</Form>,
+		)
+
+	it('marks the bound field touched when focus leaves the widget', () => {
+		const { container } = renderBound()
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'false')
+
+		fireEvent.blur(lo as HTMLElement, { relatedTarget: null })
+
+		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'true')
+	})
+
+	it('does not mark the field touched when focus moves between the thumbs', () => {
+		const { container } = renderBound()
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		fireEvent.blur(lo as HTMLElement, { relatedTarget: hi })
+
+		expect(getFieldProbe('price')).toHaveAttribute('data-touched', 'false')
+	})
+
+	it('marks each thumb invalid while the bound field holds an error', () => {
+		const { container } = renderBound()
+
+		const thumbs = allBySlot(container, 'slider-range-thumb')
+
+		for (const thumb of thumbs) expect(thumb).not.toHaveAttribute('aria-invalid')
+
+		fireEvent.keyDown(thumbs[1] as HTMLElement, { key: 'ArrowRight' })
+
+		for (const thumb of thumbs) {
+			expect(thumb).toHaveAttribute('aria-invalid', 'true')
+
+			expect(thumb).toHaveAttribute('data-invalid')
+		}
+
+		// The root has no role, so it carries no validation state.
+		expect(getSlot(container, 'slider-range')).not.toHaveAttribute('aria-invalid')
 	})
 })
 

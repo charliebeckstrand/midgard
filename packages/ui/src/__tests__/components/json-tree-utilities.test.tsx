@@ -1,5 +1,5 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	buildSearchIndex,
 	collectMatchPaths,
@@ -246,14 +246,36 @@ describe('valueType', () => {
 	})
 })
 
+const openFrom = (paths: string[]) => (path: string) => paths.includes(path)
+
 describe('flattenTree', () => {
+	it('asks the resolver for each branch, with its depth', () => {
+		const isOpen = vi.fn((_path: string, depth: number) => depth < 1)
+
+		const nodes = flattenTree({
+			data: { outer: { inner: 1 } },
+			rootKey: undefined,
+			isOpen,
+			search: '',
+			filter: false,
+			searchIndex: new WeakMap(),
+		})
+
+		expect(isOpen.mock.calls).toEqual([
+			['$', 0],
+			['$.outer', 1],
+		])
+
+		expect(nodes.map((n) => n.type)).toEqual(['branch-open', 'branch-open', 'branch-close'])
+	})
+
 	it('emits a single branch-open row for a collapsed root', () => {
 		const tree = { a: 1 }
 
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(),
+			isOpen: openFrom([]),
 			search: '',
 			filter: false,
 			searchIndex: new WeakMap(),
@@ -270,7 +292,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(['$']),
+			isOpen: openFrom(['$']),
 			search: '',
 			filter: false,
 			searchIndex: new WeakMap(),
@@ -287,7 +309,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(['$']),
+			isOpen: openFrom(['$']),
 			search: 'alice',
 			filter: false,
 			searchIndex: new WeakMap(),
@@ -304,7 +326,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(['$', '$.outer', '$.outer.inner']),
+			isOpen: openFrom(['$', '$.outer', '$.outer.inner']),
 			search: '',
 			filter: false,
 			searchIndex: new WeakMap(),
@@ -327,7 +349,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(['$', '$.outer', '$.outer.inner']),
+			isOpen: openFrom(['$', '$.outer', '$.outer.inner']),
 			search: '',
 			filter: false,
 			searchIndex: new WeakMap(),
@@ -344,7 +366,7 @@ describe('flattenTree', () => {
 		const nodes = flattenTree({
 			data: tree,
 			rootKey: undefined,
-			expanded: new Set(['$']),
+			isOpen: openFrom(['$']),
 			search: 'yes',
 			filter: true,
 			searchIndex: index,

@@ -32,6 +32,12 @@ describe('useCurrentState', () => {
 
 		expect(typeof result.current.onValueChange).toBe('function')
 	})
+
+	it('keeps a controlled null as null, not as an unvalued context', () => {
+		const { result } = renderHook(() => useCurrentState({ value: null, onValueChange: vi.fn() }))
+
+		expect(result.current.value).toBeNull()
+	})
 })
 
 describe('CurrentContents / CurrentContent', () => {
@@ -85,6 +91,32 @@ describe('CurrentContents / CurrentContent', () => {
 		expect(screen.getByText('A')).toBeInTheDocument()
 
 		expect(screen.getByText('B')).toBeInTheDocument()
+	})
+
+	it('CurrentContent renders no valued panel when controlled with none active', () => {
+		function NoneActive() {
+			const context = useCurrentState({ value: null, onValueChange: () => {} })
+
+			return (
+				<CurrentContext value={context}>
+					<CurrentContents slotPrefix="test" fade={false} mount="active">
+						<CurrentContent slotPrefix="test" value="a">
+							A
+						</CurrentContent>
+						<CurrentContent slotPrefix="test" value="b">
+							B
+						</CurrentContent>
+					</CurrentContents>
+				</CurrentContext>
+			)
+		}
+
+		renderUI(<NoneActive />)
+
+		// CONVENTIONS §7.3: `null` keeps the root controlled with none active.
+		expect(screen.queryByText('A')).not.toBeInTheDocument()
+
+		expect(screen.queryByText('B')).not.toBeInTheDocument()
 	})
 
 	it('forwards id / role / aria-* in fade mode', () => {

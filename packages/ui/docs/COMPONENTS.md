@@ -19,7 +19,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 `form` · `fieldset` · `control`
 
-> `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. `control` provides `Control`, the context that broadcasts the same field state to control-aware descendants.
+> `fieldset` provides the `Field` / `Label` / `Description` / `Message` / `Legend` family. `Field` takes `severity` (`error` / `warning` / `success`) and broadcasts it to the nested control. Nest a `<Message>` to render the feedback; bind it to a form field through its own `name`. `control` provides `Control`, the context that broadcasts the same field state to one control-aware descendant. Nest one `Control` for each field to group fields.
 
 ## Buttons & actions
 

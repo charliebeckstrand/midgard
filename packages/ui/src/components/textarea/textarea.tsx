@@ -27,9 +27,11 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * `<GlassProvider>`, and Density contexts.
  *
  * @remarks Shares the Input value cascade through {@link useInputValue},
- * including the §7.3 value contract it owns. With `actions`, the frame
- * stacks the field above a right-justified actions row and `field-sizing:
- * content` ignores `rows`, so `rows` becomes a min-height floor.
+ * including the §7.3 value contract it owns. `defaultValue` reaches the element
+ * only while the textarea is uncontrolled, so a bound textarea ignores it.
+ * With `actions`, the frame stacks the field above a right-justified actions
+ * row and `field-sizing: content` ignores `rows`, so `rows` becomes a
+ * min-height floor.
  */
 export function Textarea({
 	className,
@@ -45,6 +47,7 @@ export function Textarea({
 	readOnly,
 	name,
 	value,
+	defaultValue,
 	onChange,
 	onBlur,
 	rows = 3,
@@ -91,6 +94,7 @@ export function Textarea({
 		required: resolvedRequired,
 		readOnly: resolvedReadOnly,
 		value: valueState.value,
+		defaultValue: valueState.value === undefined ? defaultValue : undefined,
 		onChange: valueState.onChange,
 		onBlur: valueState.onBlur,
 		'aria-describedby': resolvedDescribedBy,

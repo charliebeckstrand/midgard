@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type ReactNode, useRef } from 'react'
+import { type ReactNode, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yAutoFocus } from '../../hooks'
 import { Density, useDensity } from '../../primitives/density'
@@ -77,7 +77,9 @@ export function PopoverContent({
 
 	const { floatingStyles, floatingContext } = usePopoverPosition()
 
-	const contentRef = useRef<HTMLDivElement | null>(null)
+	// State, not a ref: the panel attaches inside its portal a commit after `open`
+	// flips, and the auto-focus effect must run again when it arrives.
+	const [content, setContent] = useState<HTMLDivElement | null>(null)
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
 	const inherited = useDensity()
@@ -86,7 +88,7 @@ export function PopoverContent({
 
 	const resolvedPadding: BoxPadding = paddingForSize[resolvedSize]
 
-	useA11yAutoFocus(contentRef, open && autoFocus)
+	useA11yAutoFocus(content, open && autoFocus)
 
 	return (
 		<FloatingSurface
@@ -98,7 +100,7 @@ export function PopoverContent({
 		>
 			<motion.div
 				{...k.panel.motion}
-				ref={contentRef}
+				ref={setContent}
 				id={panelId}
 				tabIndex={autoFocus ? -1 : undefined}
 				role={ariaLabel || ariaLabelledby ? 'dialog' : undefined}

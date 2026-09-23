@@ -231,6 +231,25 @@ describe('formReducer', () => {
 
 			expect(next.errors).not.toHaveProperty('age')
 		})
+
+		it('marks the field touched but does not validate when validateOn is "submit"', () => {
+			const prior: FormState<Values> = {
+				values: { name: '', age: 0 },
+				errors: { name: ['stale'] },
+				touched: {},
+			}
+
+			const next = formReducer(prior, {
+				type: 'set-touched',
+				name: 'name',
+				validate: validators,
+				validateOn: 'submit',
+			})
+
+			expect(next.touched).toEqual({ name: true })
+
+			expect(next.errors).toBe(prior.errors)
+		})
 	})
 
 	describe('set-errors-external', () => {

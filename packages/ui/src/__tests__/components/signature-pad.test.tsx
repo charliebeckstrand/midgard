@@ -266,6 +266,25 @@ describe('SignaturePad + Form', () => {
 		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-empty', '')
 	})
 
+	it('does not mark the field touched on a pointer release with no stroke', () => {
+		const { container } = renderUI(
+			<Form
+				defaultValues={{ sig: null as string | null }}
+				validate={{ sig: (v) => (v == null ? 'Signature required' : undefined) }}
+				validateOn="touched"
+			>
+				<SignaturePad name="sig" />
+			</Form>,
+		)
+
+		const canvas = getSlot(container, 'signature-pad-canvas')
+
+		// A press that began outside the pad releases over it: no stroke ends.
+		fireEvent.pointerUp(canvas)
+
+		expect(canvas).not.toHaveAttribute('aria-invalid')
+	})
+
 	it('merges a field-level error into the canvas invalid state once touched', () => {
 		const ref = createRef<SignaturePadHandle>()
 

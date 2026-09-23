@@ -1,3 +1,5 @@
+import { act, renderHook } from '@testing-library/react'
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ColorPanel, ColorPicker } from '../../components/color'
 import {
@@ -9,7 +11,11 @@ import {
 	hsvaToRgba,
 	rgbaToHsva,
 } from '../../components/color/color-utilities'
-import { allBySlot, bySlot, fireEvent, getSlot, present, renderUI } from '../helpers'
+import type { Hsva } from '../../components/color/types'
+import { useColorState } from '../../components/color/use-color-state'
+import { Control } from '../../components/control'
+import { Field, Label, Message } from '../../components/fieldset'
+import { allBySlot, bySlot, fireEvent, getAllSlots, getSlot, present, renderUI } from '../helpers'
 
 const within = (a: number, b: number, tolerance = 2) => Math.abs(a - b) <= tolerance
 
@@ -106,6 +112,32 @@ describe('color conversions', () => {
 })
 
 describe('ColorPanel', () => {
+	it('keeps the Field identity off the channel inputs', () => {
+		const { container } = renderUI(
+			<Control required>
+				<Field severity="error">
+					<Label>Brand colour</Label>
+					<ColorPanel defaultValue="#3b82f6" />
+					<Message>Pick a colour</Message>
+				</Field>
+			</Control>,
+		)
+
+		const label = getSlot<HTMLLabelElement>(container, 'label')
+
+		const channels = getAllSlots<HTMLInputElement>(container, 'color-channel-input')
+
+		for (const channel of channels) {
+			expect(channel.id).not.toBe(label.htmlFor)
+
+			expect(channel).not.toBeRequired()
+
+			expect(channel).not.toHaveAttribute('aria-describedby')
+
+			expect(channel).not.toHaveAttribute('aria-invalid')
+		}
+	})
+
 	it('renders the area, a hue slider, hex input, and swatches', () => {
 		const { container } = renderUI(<ColorPanel defaultValue="#3b82f6" />)
 
@@ -261,5 +293,33 @@ describe('ColorPicker', () => {
 		]) {
 			expect(wrapper).not.toHaveAttribute(attribute)
 		}
+	})
+})
+
+describe('useColorState', () => {
+	it('snaps back to a controlled value that the owner does not adopt (§7.2)', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useColorState({ value: '#ff0000', format: 'hex', alpha: false, onValueChange }),
+		)
+
+		act(() => result.current.setHsva({ h: 120, s: 100, v: 100, a: 1 }))
+
+		expect(onValueChange).toHaveBeenCalledWith('#00ff00')
+
+		expect(result.current.hsva).toMatchObject({ h: 0, s: 100, v: 100 })
+	})
+
+	it('keeps the hue when an adopting owner echoes a greyscale emission', () => {
+		const { result } = renderHook(() => {
+			const [value, setValue] = useState<string | Hsva>('#ff0000')
+
+			return useColorState({ value, format: 'hex', alpha: false, onValueChange: setValue })
+		})
+
+		act(() => result.current.setHsva({ h: 120, s: 0, v: 100, a: 1 }))
+
+		expect(result.current.hsva).toMatchObject({ h: 120, s: 0, v: 100 })
 	})
 })

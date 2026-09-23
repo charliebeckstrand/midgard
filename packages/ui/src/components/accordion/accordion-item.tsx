@@ -11,7 +11,8 @@ export type AccordionItemProps = {
 	/** Stable key identifying this section within the parent's open set. */
 	value: string
 	/**
-	 * Prevents toggling and removes the trigger from roving-tabindex navigation.
+	 * Prevents toggling, and removes the trigger from the Tab sequence and from
+	 * arrow-key navigation.
 	 * @defaultValue false
 	 */
 	disabled?: boolean

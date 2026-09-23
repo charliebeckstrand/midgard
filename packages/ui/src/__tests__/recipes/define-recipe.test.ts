@@ -214,7 +214,7 @@ describe('defineRecipe', () => {
 		expect(recipe({ size: 'sm', stray: 'x' } as { size: 'sm' })).toBe(plain)
 	})
 
-	it('rejects a slot name that collides with a recipe property', () => {
+	it('rejects a slot or extra name that collides with a recipe property', () => {
 		// Function built-ins (own like `name`, inherited like `call`) would be
 		// shadowed or throw an opaque strict-mode TypeError on assignment; the
 		// engine-attached `config` / `skeleton` would be silently clobbered.
@@ -225,5 +225,14 @@ describe('defineRecipe', () => {
 		expect(() => defineRecipe({ slots: { config: 'x' } })).toThrow(/slot name/)
 
 		expect(() => defineRecipe({ slots: { skeleton: 'x' } })).toThrow(/slot name/)
+
+		// An extra would overwrite a slot, the skeleton, or `config` with no error.
+		expect(() => defineRecipe({ slots: { title: 'x' } }, { title: {} })).toThrow(/extra name/)
+
+		expect(() => defineRecipe({ skeleton: 'x' }, { skeleton: {} })).toThrow(/extra name/)
+
+		expect(() => defineRecipe({}, { config: {} })).toThrow(/extra name/)
+
+		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
 	})
 })

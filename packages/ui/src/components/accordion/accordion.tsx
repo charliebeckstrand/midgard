@@ -58,9 +58,9 @@ export type AccordionProps = (SingleProps | MultipleProps) &
  * defaults to `'separated'`.
  *
  * @remarks
- * Triggers share a roving tabindex: Arrow keys move focus between enabled header
- * buttons, skipping disabled ones. The container carries no ARIA role, per the
- * WAI-ARIA accordion pattern.
+ * Each enabled header button is a Tab stop. Arrow keys also move focus between
+ * enabled header buttons, and skip disabled ones. The container carries no ARIA
+ * role, per the WAI-ARIA accordion pattern.
  *
  * @see {@link AccordionItem}
  * @see {@link AccordionTrigger}
@@ -114,7 +114,7 @@ export function Accordion(props: AccordionProps) {
 
 	return (
 		<AccordionContext value={context}>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the roving tabindex handler must live here to navigate between header buttons */}
+			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the arrow-key navigation handler must live here to move focus between header buttons */}
 			<div
 				{...rest}
 				ref={ref}

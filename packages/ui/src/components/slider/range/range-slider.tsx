@@ -1,10 +1,11 @@
 'use client'
 
-import { type CSSProperties, type Ref, useRef } from 'react'
-import { cn, dataAttr } from '../../../core'
+import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
+import { cn, dataAttr, invalidAttrs } from '../../../core'
 import { useDensity } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
+import { useControlProps } from '../../control/use-control-props'
 import { useFormValue } from '../../form/use-form-value'
 import type { ThumbButtonRefs, ThumbIndex } from './types'
 import { useRangeKeyboard } from './use-range-keyboard'
@@ -76,6 +77,10 @@ export type RangeSliderProps = {
  * under `allowCross`, and keyboard focus follows the moving value. Set it
  * `false` to clamp each thumb at the other. Each thumb carries `aria-valuemin`/`max`/`now` and a
  * `labels` name, with optional `getValueText` for `aria-valuetext`.
+ *
+ * @remarks Bound to a Form field through `name`, the slider marks the field touched when
+ * focus leaves the widget. A move from one thumb to the other does not mark it. An error
+ * on the field, or an `error` severity on an enclosing Control, marks each thumb invalid.
  */
 export function RangeSlider({
 	name,
@@ -97,7 +102,12 @@ export function RangeSlider({
 	style,
 	ref,
 }: RangeSliderProps) {
-	const { value: range, setValue: setRange } = useFormValue<[number, number]>(name, {
+	const {
+		value: range,
+		setValue: setRange,
+		setTouched,
+		invalid,
+	} = useFormValue<[number, number]>(name, {
 		value,
 		defaultValue: defaultValue ?? [min, max],
 		onValueChange: onValueChange
@@ -108,6 +118,21 @@ export function RangeSlider({
 	})
 
 	const current = range ?? [min, max]
+
+	// The root has no role, so the validation state goes on each `role="slider"` thumb.
+	const controlProps = useControlProps({ invalid })
+
+	const validation = invalidAttrs(controlProps.invalid)
+
+	// The widget has two thumbs and no native input. Focus that moves from one thumb to the
+	// other stays in the widget, so only a blur to a node outside the root marks the field.
+	const handleBlur = (event: FocusEvent<HTMLDivElement>) => {
+		const next = event.relatedTarget as Node | null
+
+		if (event.currentTarget.contains(next)) return
+
+		setTouched()
+	}
 
 	// Resolves size through the Density cascade: explicit prop > ambient Density,
 	// falling back to `'md'` outside any provider.
@@ -153,6 +178,7 @@ export function RangeSlider({
 	const hi = pct(current[1], min, max)
 
 	return (
+		// biome-ignore lint/a11y/noStaticElementInteractions: the root only hears the focus that leaves its two role="slider" thumbs. The thumbs carry the widget semantics.
 		<div
 			ref={ref}
 			data-slot="slider-range"
@@ -164,6 +190,7 @@ export function RangeSlider({
 			onPointerUp={onPointerUp}
 			onPointerCancel={onPointerCancel}
 			onLostPointerCapture={onLostPointerCapture}
+			onBlur={handleBlur}
 		>
 			{/* Track */}
 			<div
@@ -191,6 +218,7 @@ export function RangeSlider({
 				aria-valuenow={current[0]}
 				aria-valuetext={getValueText?.(current[0], 0)}
 				aria-label={labels[0]}
+				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${lo}%` }}
@@ -209,6 +237,7 @@ export function RangeSlider({
 				aria-valuenow={current[1]}
 				aria-valuetext={getValueText?.(current[1], 1)}
 				aria-label={labels[1]}
+				{...validation}
 				data-slot="slider-range-thumb"
 				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${hi}%` }}

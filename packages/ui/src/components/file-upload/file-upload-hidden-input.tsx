@@ -17,8 +17,10 @@ type FileUploadHiddenInputProps = {
 
 /**
  * The visually-hidden `<input type="file">` is the real control in every
- * variant. Screen readers reach it even at `tabIndex -1`, so each variant
- * supplies an accessible name drawn from its visible trigger.
+ * variant. Screen readers reach it even at `tabIndex -1`. It takes the Control
+ * id, so a `<Label>` in the enclosing `<Field>` points at it. A registered
+ * Label names it through `aria-labelledby`. With no Label, each variant
+ * supplies a name drawn from its visible trigger.
  */
 export function FileUploadHiddenInput({
 	ariaLabel,
@@ -34,7 +36,11 @@ export function FileUploadHiddenInput({
 		<input
 			ref={inputRef}
 			type="file"
-			aria-label={ariaLabel}
+			id={control?.id}
+			// `aria-label` wins over `<label for>`, so it is written only when no
+			// Field Label has registered to name the control.
+			aria-labelledby={control?.labelledBy}
+			aria-label={control?.labelledBy ? undefined : ariaLabel}
 			aria-describedby={control?.describedBy}
 			accept={accept}
 			multiple={multiple}

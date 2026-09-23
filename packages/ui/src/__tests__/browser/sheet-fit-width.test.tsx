@@ -92,3 +92,35 @@ describe('fit sheet width (real browser)', () => {
 		expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth)
 	})
 })
+
+describe('cross-docked sheet geometry (real browser)', () => {
+	// The width caps start at the `sm` breakpoint, so the case states a screen
+	// above it. Below `sm`, every sheet is full-width.
+	beforeAll(() => page.viewport(1100, 800))
+
+	it.each(['top', 'bottom'] as const)(
+		'spans the screen, with its %s grip on one edge',
+		async (side) => {
+			renderUI(
+				<Sheet open handle side={side} onOpenChange={() => {}} aria-label="Banner">
+					<SheetBody>
+						{/* Content with height, so a cover over the panel is taller than a strip. */}
+						<div className="h-96">Body</div>
+					</SheetBody>
+				</Sheet>,
+			)
+
+			await frames()
+
+			const panel = getSlot(document.body, 'sheet').getBoundingClientRect()
+
+			const handle = getSlot(document.body, 'sheet-handle').getBoundingClientRect()
+
+			// No width step caps a sheet docked across, the default `md` included.
+			expect(panel.width).toBeGreaterThanOrEqual(window.innerWidth - 1)
+
+			// The grip is a strip on the edge, not a cover over the whole panel.
+			expect(handle.height).toBeLessThan(panel.height / 2)
+		},
+	)
+})

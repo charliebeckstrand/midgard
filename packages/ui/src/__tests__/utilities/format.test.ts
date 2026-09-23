@@ -88,6 +88,18 @@ describe('resolveFormat', () => {
 		it('keeps the sign ahead of the padding', () => {
 			expect(resolveFormat({ type: 'id', pad: 3 })(-5)).toBe('-005')
 		})
+
+		it('renders NaN as Intl does, with no prefix and no padding', () => {
+			expect(resolveFormat({ type: 'id', prefix: 'INV', pad: 4 })(Number.NaN)).toBe('NaN')
+		})
+
+		it('renders an infinite value as Intl does, with no prefix and no padding', () => {
+			const format = resolveFormat({ type: 'id', prefix: 'INV', pad: 4 })
+
+			expect(format(Number.POSITIVE_INFINITY)).toBe('∞')
+
+			expect(format(Number.NEGATIVE_INFINITY)).toBe('-∞')
+		})
 	})
 
 	it('reuses one formatter across calls with the same spec', () => {

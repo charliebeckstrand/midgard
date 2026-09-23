@@ -48,6 +48,43 @@ function documentSettle(
 	return started ? EMPTY_DOCUMENT : 'pending'
 }
 
+/**
+ * Whether two page sets show the same document: the same length, and the same `id` and
+ * `src` at each index.
+ *
+ * @internal
+ */
+function samePages(previous: PdfViewerPage[] | undefined, next: PdfViewerPage[] | undefined) {
+	if (previous === next) return true
+
+	if (!previous || !next || previous.length !== next.length) return false
+
+	return previous.every((entry, index) => {
+		const other = next[index]
+
+		return entry.id === other?.id && entry.src === other?.src
+	})
+}
+
+/**
+ * The identity of the viewer's document, for the hooks that reset per document.
+ *
+ * Consumer `pages` keep their previous reference while {@link samePages} holds. An inline
+ * array literal therefore keeps one identity across parent renders. With no `pages`, the
+ * key is `src`, which stays stable while the cache publishes each rasterized page.
+ *
+ * @internal
+ */
+function useDocumentKey(pagesProp: PdfViewerPage[] | undefined, src: string | undefined) {
+	const heldRef = useRef(pagesProp)
+
+	const held = samePages(heldRef.current, pagesProp) ? heldRef.current : pagesProp
+
+	heldRef.current = held
+
+	return held ?? src
+}
+
 /** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
 type PdfViewerOptions = {
 	pages?: PdfViewerPage[]
@@ -435,12 +472,13 @@ export function usePdfViewer({
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
 
 	// The document's own identity, not the resolved `pages`: the cache republishes
-	// that array once per rasterized page, so keying on it reset the reader's
-	// rotations — and re-ran every hook below — on each page of a streaming load.
-	// `src` is stable across one; consumer-supplied pages carry their own identity.
-	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, pagesProp ?? src)
+	// that array once per rasterized page. A key on it reset the reader's rotations on
+	// each page of a streaming load. Both reset hooks take this one key.
+	const documentKey = useDocumentKey(pagesProp, src)
 
-	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage)
+	const { rotation, isTransposed, rotate } = usePdfViewerPageRotation(safePage, documentKey)
+
+	const { pageSize, onImageLoad } = usePdfViewerPageSize(activePage, safePage, documentKey)
 
 	// `isTransposed` is the invalidation key; the viewport re-measures
 	// synchronously on rotation flip, before paint.

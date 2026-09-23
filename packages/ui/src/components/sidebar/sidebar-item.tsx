@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, type Ref } from 'react'
+import { Children, isValidElement, type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
@@ -26,7 +26,8 @@ export type SidebarItemProps = NavItemProps & {
  * Partitions a `SidebarItem`'s children. A `SidebarItemActions` child hoists
  * into the `suffix` slot, and drops out of the inner content. It renders beside
  * the button rather than nested inside it, where an interactive control would
- * break markup. An explicit `suffix` prop wins. The mini-rail tooltip
+ * break markup. An explicit `suffix` prop wins. With both present, the
+ * actions child renders nowhere, and `dropped` reports it. The mini-rail tooltip
  * (portaled past the rail's group-scoped hiding) carries only the
  * `SidebarLabel` children, falling back to the inner content when composed
  * without one.
@@ -44,7 +45,12 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
 
 	const labels = childArray.filter((child) => isValidElement(child) && child.type === SidebarLabel)
 
-	return { suffix: suffix ?? actions, inner, tooltip: labels.length > 0 ? labels : inner }
+	return {
+		suffix: suffix ?? actions,
+		inner,
+		tooltip: labels.length > 0 ? labels : inner,
+		dropped: suffix != null && actions !== undefined,
+	}
 }
 
 /**
@@ -53,7 +59,8 @@ function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
  * `<li>` inside a `SidebarList`, else a `<span>`. A `prefix`/`suffix` affix
  * flips the row to a flex layout. Its slots join the cross-axis roving model,
  * and sit inside the shared hover tint and focus ring. A `SidebarItemActions`
- * child hoists into the `suffix` slot (an explicit `suffix` prop wins). Under
+ * child hoists into the `suffix` slot. An explicit `suffix` prop wins, and the
+ * actions child then renders nowhere; development builds warn. Under
  * the parent's mini rail the label is hidden in place (preserving the
  * accessible name) and echoed into a hover tooltip.
  *
@@ -84,7 +91,20 @@ export function SidebarItem({
 		suffix: resolvedSuffix,
 		inner: innerChildren,
 		tooltip,
+		dropped,
 	} = resolveItemChildren(children, suffix)
+
+	// An explicit suffix takes the slot, so the actions child renders nowhere.
+	// The controls then vanish with no signal, so warn in development.
+	useEffect(() => {
+		if (process.env.NODE_ENV === 'production') return
+
+		if (!dropped) return
+
+		console.warn(
+			'SidebarItem: an explicit `suffix` wins the slot, so the `SidebarItemActions` child does not render. Pass one of the two.',
+		)
+	}, [dropped])
 
 	// Affixes render as siblings of the inner button, not nested inside it;
 	// a slot can host its own interactive element. With an affix present the

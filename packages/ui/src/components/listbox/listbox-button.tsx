@@ -1,7 +1,7 @@
 'use client'
 
 import type { FocusEventHandler, ReactNode, Ref } from 'react'
-import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
@@ -18,7 +18,8 @@ type ListboxButtonProps = {
 	disabled?: boolean
 	readOnly?: boolean
 	required?: boolean
-	invalid?: boolean
+	/** The resolved validation attributes. The frame paints its ring from them. */
+	validation?: ValidationAttrs
 	label: ReactNode
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
@@ -45,7 +46,7 @@ export function ListboxButton({
 	disabled,
 	readOnly,
 	required,
-	invalid,
+	validation,
 	label,
 	onBlur,
 	placeholder,
@@ -72,7 +73,7 @@ export function ListboxButton({
 				disabled={disabled}
 				data-readonly={dataAttr(readOnly)}
 				onBlur={onBlur}
-				{...invalidAttrs(invalid)}
+				{...validation}
 				className={cn(k({ density, size }))}
 			>
 				<span className={cn(k.value({ truncate }))}>

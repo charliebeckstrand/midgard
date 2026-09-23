@@ -1,15 +1,7 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import {
-	type ComponentProps,
-	memo,
-	type Context as ReactContext,
-	type ReactNode,
-	use,
-	useCallback,
-	useId,
-} from 'react'
+import { type ComponentProps, memo, type ReactNode, useCallback, useId } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { memoWeak } from '../../utilities'
@@ -215,14 +207,18 @@ function isOptionSelected(
 
 /**
  * Factory for select-like option components. Consumers supply the data-slot
- * prefix and the host's selection {@link OptionSelectionContext}; the generated
- * `Option` reads it with React's `use`.
+ * prefix and a hook that reads the host's selection
+ * {@link OptionSelectionContext}. The generated `Option` and `Label` call it.
  *
  * `BaseOption` owns the selected-state check icon and sizes it from the
  * ambient Density.
  *
  * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
- * the host's `data-slot` prefix and selection context.
+ * the host's `data-slot` prefix and selection hook.
+ * @remarks Pass the hook that `createContext` generates for the host context.
+ * It throws outside a provider, so an orphan option fails at render with a
+ * message that names the host. A raw `use(Context)` returns the missing-value
+ * sentinel, and the fault then shows as an unnamed error at the first click.
  * @see {@link BaseOption}
  */
 export function createSelectOption<
@@ -235,7 +231,11 @@ export function createSelectOption<
 	 * `id` the owning input references. Omit for focus-roving lists.
 	 */
 	activeDescendant?: boolean
-	context: ReactContext<TContext>
+	/**
+	 * Reads the host's selection context. Pass the hook that `createContext`
+	 * generates, so that an orphan option throws a named error.
+	 */
+	useSelection: () => TContext
 }) {
 	function Option({
 		value,
@@ -246,7 +246,7 @@ export function createSelectOption<
 		'aria-setsize': ariaSetsize,
 		'aria-posinset': ariaPosinset,
 	}: OptionProps<TValue>) {
-		const { value: selectedValue, multiple, onSelect, capitalize } = use(config.context)
+		const { value: selectedValue, multiple, onSelect, capitalize } = config.useSelection()
 
 		const selected = isOptionSelected(selectedValue, value, multiple)
 
@@ -281,7 +281,7 @@ export function createSelectOption<
 		// The host's `capitalize` formats string labels at render — the same JS
 		// mechanism every select-family surface uses (custom nodes pass through
 		// as authored).
-		const { capitalize } = use(config.context)
+		const { capitalize } = config.useSelection()
 
 		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
 

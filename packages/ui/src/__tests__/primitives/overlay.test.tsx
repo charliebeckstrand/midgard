@@ -97,6 +97,53 @@ describe('Overlay', () => {
 		expect(onOpenChange).not.toHaveBeenCalled()
 	})
 
+	// With no backdrop to click, a modal overlay takes the press on its own root.
+	// The root fills the screen behind the panel, so a press there is outside it.
+	it('closes on a press outside the panel when modal and backdrop={false}', () => {
+		const onOpenChange = vi.fn()
+
+		renderUI(
+			<Overlay open backdrop={false} onOpenChange={onOpenChange}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
+
+		fireEvent.click(screen.getByText('content'))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		fireEvent.click(present(document.querySelector('[data-slot="overlay"]'), 'overlay root'))
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
+	})
+
+	it('keeps a modal overlay with backdrop={false} open when dismissOnBackdrop=false', () => {
+		const onOpenChange = vi.fn()
+
+		const onClick = vi.fn()
+
+		renderUI(
+			<Overlay
+				open
+				backdrop={false}
+				dismissOnBackdrop={false}
+				onOpenChange={onOpenChange}
+				onClick={onClick}
+			>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		fireEvent.click(present(document.querySelector('[data-slot="overlay"]'), 'overlay root'))
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		// The caller's own handler on the root still runs.
+		expect(onClick).toHaveBeenCalledOnce()
+	})
+
 	it('takes the backdrop class the panel hands it, in place of the base scrim', () => {
 		// One styling channel: every panel drives its own surface through
 		// `backdropClassName`, so nothing can be set and then silently outranked.

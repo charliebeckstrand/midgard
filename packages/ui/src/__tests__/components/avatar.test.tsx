@@ -54,6 +54,23 @@ describe('Avatar', () => {
 		expect(container.querySelector('img')).toHaveAttribute('alt', 'User')
 	})
 
+	it('names an avatar with alt but no src and no initials', () => {
+		const { container } = renderUI(<Avatar alt="Ada Lovelace" />)
+
+		const img = screen.getByRole('img', { name: 'Ada Lovelace' })
+
+		// The name sits on an inner node; the root stays a plain span.
+		expect(bySlot(container, 'avatar')).toContainElement(img)
+
+		expect(bySlot(container, 'avatar')).not.toHaveAttribute('role')
+	})
+
+	it('hides the empty avatar node when alt is empty', () => {
+		renderUI(<Avatar />)
+
+		expect(screen.queryByRole('img')).toBeNull()
+	})
+
 	it('applies className and spread props to the same element when status is set', () => {
 		const { container } = renderUI(
 			<Avatar initials="AB" status="active" className="custom" id="me" />,
@@ -93,5 +110,41 @@ describe('AvatarGroup', () => {
 		)
 
 		expect(screen.getByRole('img', { name: '3 more' })).toBeInTheDocument()
+	})
+
+	it('projects the ring onto the avatar circle, not the status wrapper', () => {
+		const { container } = renderUI(
+			<AvatarGroup>
+				<Avatar initials="A" status="active" />
+			</AvatarGroup>,
+		)
+
+		const group = bySlot(container, 'avatar-group')
+
+		// A status child's direct node is the square wrapper, so a `*:` ring misses the circle.
+		expect(group).toHaveClass('**:data-[slot=avatar]:ring-2')
+
+		expect(group?.className).not.toMatch(/(^|\s)\*:ring-2/)
+
+		expect(
+			bySlot(container, 'avatar-with-status')?.querySelector('[data-slot="avatar"]'),
+		).not.toBeNull()
+	})
+
+	it.each([
+		['sm', 'size-2'],
+		['md', 'size-2.5'],
+		['lg', 'size-3'],
+	] as const)('projects the %s size onto a child status dot', (size, dot) => {
+		const { container } = renderUI(
+			<AvatarGroup size={size}>
+				<Avatar initials="A" status="active" />
+			</AvatarGroup>,
+		)
+
+		// The child passes its own md size to the dot, so the group must override it.
+		expect(bySlot(container, 'avatar-group')).toHaveClass(`**:data-[slot=status-dot]:${dot}`)
+
+		expect(bySlot(container, 'status-dot')).toBeInTheDocument()
 	})
 })

@@ -3,9 +3,10 @@
 import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
+import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
-import { useAccordionItem } from './context'
+import { useAccordion, useAccordionItem } from './context'
 
 /** Props for {@link AccordionTrigger}. */
 export type AccordionTriggerProps = ComponentProps<'button'> & {
@@ -21,7 +22,8 @@ export type AccordionTriggerProps = ComponentProps<'button'> & {
 /**
  * Header button that toggles its {@link AccordionItem}. Wraps itself in an
  * `h{level}` element and renders a rotating chevron indicator, per the WAI-ARIA
- * accordion pattern. Participates in the parent's roving tabindex.
+ * accordion pattern. Is a Tab stop, and takes part in the parent's arrow-key
+ * navigation.
  *
  * @see {@link Accordion}
  * @see {@link AccordionPanel}
@@ -33,6 +35,7 @@ export function AccordionTrigger({
 	onClick,
 	...props
 }: AccordionTriggerProps) {
+	const { mount } = useAccordion()
 	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
 	// Tailwind preflight zeroes heading font and margin; the wrapper is
@@ -42,16 +45,15 @@ export function AccordionTrigger({
 	return (
 		<Heading data-slot="accordion-heading" className="m-0">
 			<button
-				// Consumer props spread first; the type, a11y id wiring, roving
-				// tabindex, context-driven disabled, and data-slot below take
-				// precedence.
+				// Consumer props spread first; the type, a11y id wiring,
+				// context-driven disabled, and data-slot below take precedence.
 				{...props}
 				type="button"
 				data-slot="accordion-trigger"
 				{...triggerProps}
-				// The panel unmounts while closed (AnimatePresence); the reference
-				// is set only while its target id exists.
-				aria-controls={open ? triggerProps['aria-controls'] : undefined}
+				// The reference needs its target id in the DOM. An open panel is
+				// present, and a closed panel is present only under `mount="always"`.
+				aria-controls={open || mountsEveryPanel(mount) ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
 				onClick={(event) => {
 					toggle()

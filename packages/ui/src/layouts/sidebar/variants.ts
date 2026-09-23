@@ -22,6 +22,7 @@ const panel = defineRecipe({
 		// holding the size step open.
 		'has-data-[mini]:w-fit',
 	],
+	// The rail holds text, so its width keys on the `size` axis, as the text does.
 	size: {
 		sm: 'w-2xs',
 		md: 'w-xs',
@@ -58,7 +59,8 @@ const content = defineRecipe({
 		'grow min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 	],
-	size: {
+	// Padding, so it keys on the `space` axis of the Density token.
+	density: {
 		sm: 'px-4 pb-4 lg:not-has-[[data-slot=header]]:pt-4',
 		md: 'px-6 pb-6 lg:not-has-[[data-slot=header]]:pt-6',
 		lg: 'px-8 pb-8 lg:not-has-[[data-slot=header]]:pt-8',
@@ -74,17 +76,18 @@ const content = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { size: 'md', stickyHeader: false },
+	defaults: { density: 'md', stickyHeader: false },
 })
 
 const header = defineRecipe({
 	base: ['flex items-center shrink-0'],
-	size: {
+	// Padding, so it keys on the `space` axis of the Density token.
+	density: {
 		sm: 'lg:pt-4 pb-4',
 		md: 'lg:pt-6 pb-6',
 		lg: 'lg:pt-8 pb-8',
 	},
-	defaults: { size: 'md' },
+	defaults: { density: 'md' },
 })
 
 const body = defineRecipe({

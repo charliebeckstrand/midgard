@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { Children, type ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanContext } from './context'
@@ -25,7 +25,10 @@ export type KanbanColumnBodyProps = {
 export function KanbanColumnBody({ empty, children, className }: KanbanColumnBodyProps) {
 	const { interactive } = useKanbanContext()
 
-	const hasChildren = Array.isArray(children) ? children.length > 0 : children != null
+	// Count what React renders, not the slots. A `false` card slot renders
+	// nothing, so it must not hide the placeholder or keep the list role. The
+	// body still renders `children` as-is, so no key shifts.
+	const hasChildren = Children.toArray(children).length > 0
 
 	return (
 		<div

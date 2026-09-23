@@ -24,7 +24,14 @@ export type StepperProps = Omit<
 	ComponentProps<'div'>,
 	'className' | 'children' | 'onKeyDown' | 'aria-label' | 'aria-orientation' | 'defaultValue'
 > & {
-	/** Controlled current step index. Pair with `onValueChange`. */
+	/**
+	 * Controlled current step index. Pair with `onValueChange`.
+	 *
+	 * @remarks
+	 * Stepper is index-only and takes no `null`, as an exemption from
+	 * CONVENTIONS §7.3. A flow always has a current step. `undefined` leaves
+	 * the stepper uncontrolled.
+	 */
 	value?: number
 	/**
 	 * Initial step index when uncontrolled.

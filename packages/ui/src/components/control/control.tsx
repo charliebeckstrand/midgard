@@ -37,6 +37,12 @@ export type ControlProps = {
  * listbox, combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
  * cascade through inner Controls, `severity` / `size` / `variant` inherit
  * unless overridden. Wraps its subtree in a Density scope when `size` resolves.
+ *
+ * @remarks A Control holds one control-aware descendant, because that
+ * descendant adopts the one id. To group fields, nest one Control for each
+ * field. A presentational sub-part opts out at its call site: it renders under
+ * `<ControlContext value={undefined}>` and gets `disabled`, `size` and
+ * `variant` explicitly.
  */
 export function Control({
 	id: idProp,

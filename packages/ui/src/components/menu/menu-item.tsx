@@ -7,7 +7,11 @@ import { useLink } from '../../primitives/link'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
-import { handleMenuItemClick, handleMenuItemKeyDown } from './menu-item-utilities'
+import {
+	handleMenuItemClick,
+	handleMenuItemKeyDown,
+	handleMenuLinkKeyDown,
+} from './menu-item-utilities'
 import { useMenuRowPointer } from './use-menu-pointer'
 
 type MenuItemBaseProps = {
@@ -36,6 +40,7 @@ export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof
  * middle-click and open-in-new-tab working), a `<button>` otherwise. A disabled
  * link degrades to an inert `<span>`; a disabled button stays a `<button>` with
  * `aria-disabled`. Fires `onAction` and closes the menu on click or Enter/Space.
+ * A link row leaves Enter to the native anchor, and Space clicks the anchor.
  */
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
@@ -95,6 +100,7 @@ export function MenuItem(props: MenuItemProps) {
 			onAction: _onAction,
 			closeOnAction: _closeOnAction,
 			onClick: consumerOnClick,
+			onKeyDown: consumerOnKeyDown,
 			onPointerMove: consumerOnPointerMove,
 			...rest
 		} = props
@@ -113,6 +119,11 @@ export function MenuItem(props: MenuItemProps) {
 				// selection (onAction/close).
 				onClick={(event: MouseEvent<HTMLAnchorElement>) =>
 					handleMenuItemClick(event, consumerOnClick, handleSelect)
+				}
+				// An anchor answers Enter natively but not Space. Space clicks the
+				// row, so it navigates and selects. Enter stays native.
+				onKeyDown={(event: KeyboardEvent<HTMLAnchorElement>) =>
+					handleMenuLinkKeyDown(event, consumerOnKeyDown)
 				}
 				onPointerMove={composeEventHandlers(consumerOnPointerMove, handlePointerMove)}
 			>

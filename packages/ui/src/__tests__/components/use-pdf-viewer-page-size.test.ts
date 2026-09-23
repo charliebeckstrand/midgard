@@ -61,4 +61,22 @@ describe('usePdfViewerPageSize', () => {
 
 		expect(result.current.pageSize).toBeNull()
 	})
+
+	it('resets the natural size when the document key changes at the same page', () => {
+		const { result, rerender } = renderHook(
+			({ page, documentKey }: { page: PdfViewerPage; documentKey: string }) =>
+				usePdfViewerPageSize(page, 1, documentKey),
+			{ initialProps: { page: { src: '/a.png' }, documentKey: 'first' } },
+		)
+
+		act(() => {
+			result.current.onImageLoad(makeLoadEvent(100, 200))
+		})
+
+		expect(result.current.pageSize).toEqual({ width: 100, height: 200 })
+
+		rerender({ page: { src: '/b.png' }, documentKey: 'second' })
+
+		expect(result.current.pageSize).toBeNull()
+	})
 })

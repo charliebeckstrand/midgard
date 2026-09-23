@@ -8,8 +8,10 @@ export type SidebarItemActionsProps = ComponentProps<'div'>
  * Trailing controls for a `SidebarItem`. Hoisted into the item's `suffix` slot,
  * so its contents render beside the row's button. Nested inside the `<button>`,
  * an interactive control would break markup. Beside the button they sit inside
- * the shared hover tint and focus ring, and join the cross-axis roving model. Equivalent to passing the same content to the `suffix` prop;
- * an explicit `suffix` wins. The suffix slot hides it on the mini rail.
+ * the shared hover tint and focus ring, and join the cross-axis roving model.
+ * Equivalent to passing the same content to the `suffix` prop. An explicit
+ * `suffix` wins, and this child then does not render; development builds warn.
+ * The suffix slot hides it on the mini rail.
  *
  * @see {@link SidebarItem}
  */

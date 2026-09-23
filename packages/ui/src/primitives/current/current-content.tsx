@@ -60,11 +60,14 @@ function useExitHold(current: boolean, hold: boolean): [boolean, () => void] {
 /**
  * Whether a panel counts as current: an unvalued panel renders always, an
  * unvalued context keeps every panel current, and otherwise the values must
- * agree.
+ * agree. A `null` context keeps no valued panel current.
  *
  * @internal
  */
-function matchesCurrent(value: string | undefined, contextValue: string | undefined): boolean {
+function matchesCurrent(
+	value: string | undefined,
+	contextValue: string | null | undefined,
+): boolean {
 	return value === undefined || contextValue === undefined || contextValue === value
 }
 

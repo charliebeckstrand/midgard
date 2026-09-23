@@ -8,7 +8,7 @@ import {
 	CommandPaletteLabel,
 	useCommandPaletteQuery,
 } from '../../components/command-palette'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, renderUI, screen, userEvent } from '../helpers'
 
 const FILTER_ITEMS = ['Alpha', 'Beta', 'Gamma']
 
@@ -336,7 +336,7 @@ describe('CommandPaletteItem', () => {
 		expect(onClick).not.toHaveBeenCalled()
 	})
 
-	it('prevents navigation when a disabled link item is clicked', () => {
+	it('renders a disabled link item with no href', () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>
 				<CommandPaletteItem disabled href="/somewhere">
@@ -345,8 +345,19 @@ describe('CommandPaletteItem', () => {
 			</CommandPalette>,
 		)
 
-		// fireEvent returns false when the event's default was prevented.
-		expect(fireEvent.click(screen.getByText('Go'))).toBe(false)
+		// Middle-click and "Open in new tab" fire no click. Only a row with no
+		// href stops them.
+		const item = screen.getByText('Go')
+
+		expect(item.tagName).toBe('SPAN')
+
+		expect(item).not.toHaveAttribute('href')
+
+		expect(item).toHaveAttribute('role', 'option')
+
+		expect(item).toHaveAttribute('aria-disabled', 'true')
+
+		expect(item).toHaveAttribute('data-slot', 'command-palette-item')
 	})
 
 	it('exposes aria-disabled on a disabled item', () => {

@@ -30,6 +30,70 @@ describe('Tree', () => {
 		expect(b).toHaveAttribute('aria-setsize', '3')
 	})
 
+	// A Fragment adds no level: its items are rendered siblings of the items
+	// around it, at the root and inside a branch.
+	it('counts the items inside a Fragment as siblings', () => {
+		const sources = (
+			<>
+				<TreeItem label="a.ts" />
+				<TreeItem label="b.ts" />
+			</>
+		)
+
+		const notices = (
+			<>
+				<TreeItem label="README" />
+				<TreeItem label="LICENSE" />
+			</>
+		)
+
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				<TreeItem label="src" defaultOpen>
+					{sources}
+					<TreeItem label="c.ts" />
+				</TreeItem>
+				{notices}
+			</Tree>,
+		)
+
+		const byLabel = (label: string) =>
+			Array.from(container.querySelectorAll('[role="treeitem"]')).find(
+				(el) => el.textContent === label,
+			)
+
+		const expected: Array<[string, string, string]> = [
+			['a.ts', '1', '3'],
+			['b.ts', '2', '3'],
+			['c.ts', '3', '3'],
+			['README', '2', '3'],
+			['LICENSE', '3', '3'],
+		]
+
+		for (const [label, posinset, setsize] of expected) {
+			expect(byLabel(label)).toHaveAttribute('aria-posinset', posinset)
+
+			expect(byLabel(label)).toHaveAttribute('aria-setsize', setsize)
+		}
+	})
+
+	// A false child renders nothing, so it is not a sibling and does not count.
+	it('skips a false child in the count', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files">
+				{false}
+				<TreeItem label="a.ts" />
+				<TreeItem label="b.ts" />
+			</Tree>,
+		)
+
+		const items = container.querySelectorAll('[role="treeitem"]')
+
+		expect(items[0]).toHaveAttribute('aria-posinset', '1')
+
+		expect(items[1]).toHaveAttribute('aria-setsize', '2')
+	})
+
 	it('drops a branch subtree while closed under the default mount policy', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
