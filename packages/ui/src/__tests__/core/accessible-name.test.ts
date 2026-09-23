@@ -37,6 +37,28 @@ describe('accessibleName', () => {
 		expect(accessibleName(host.querySelector('button'))).toBe('Labelled')
 	})
 
+	it('joins the trimmed text of every aria-labelledby target in list order', () => {
+		const host = mount(
+			'<span id="verb"> Move </span><span id="noun">Card 1</span><button aria-labelledby="noun  verb">x</button>',
+		)
+
+		expect(accessibleName(host.querySelector('button'))).toBe('Card 1 Move')
+	})
+
+	it('skips an aria-labelledby id that does not resolve', () => {
+		const host = mount(
+			'<span id="lbl">Labelled</span><button aria-labelledby="absent lbl">x</button>',
+		)
+
+		expect(accessibleName(host.querySelector('button'))).toBe('Labelled')
+	})
+
+	it('falls back to its own text when no aria-labelledby id in a list resolves', () => {
+		const host = mount('<button aria-labelledby="absent missing">Own</button>')
+
+		expect(accessibleName(host.querySelector('button'))).toBe('Own')
+	})
+
 	it('falls back to its own trimmed text when no aria attribute applies', () => {
 		const host = mount('<button>  Save  </button>')
 

@@ -19,7 +19,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `dataAttr` | Coerces a boolean flag to `''` / `undefined` for a spread-safe `data-*` presence attribute. |
 | `ariaAttr` | Coerces a boolean flag to `true` / `undefined` for a spread-safe ARIA boolean attribute. |
 | `composeEventHandlers` | Composes a caller's forwarded handler with the library's; theirs first, then ours unless they prevented default. |
-| `accessibleName` | Best-effort accessible name of an element: `aria-label`, `aria-labelledby` target text, else own text. |
+| `accessibleName` | Best-effort accessible name of an element: `aria-label`, joined `aria-labelledby` target text, else own text. |
 | `announce` | Imperative screen-reader announcement via a shared visually-hidden `aria-live` region on `document.body`. A repeat of the current text gets a trailing no-break space, so it is a real change. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |
