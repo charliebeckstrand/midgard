@@ -47,6 +47,18 @@ function makeRef(el: HTMLDivElement | null): RefObject<HTMLDivElement | null> {
 	return ref
 }
 
+/**
+ * A pointerdown on a handle node. `startDrag` captures the pointer on
+ * `currentTarget`, so each event carries a node with a capture spy.
+ */
+function handleDown(overrides: Parameters<typeof makePointerEvent>[0] = {}) {
+	const handle = document.createElement('div')
+
+	vi.spyOn(handle, 'setPointerCapture')
+
+	return makePointerEvent({ currentTarget: handle, ...overrides })
+}
+
 const equalPanels: PanelConfig[] = [
 	{ defaultSize: 1, minSize: 0, maxSize: 100 },
 	{ defaultSize: 1, minSize: 0, maxSize: 100 },
@@ -318,7 +330,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -336,7 +348,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 2, clientX: 0, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 2, clientX: 0, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -358,7 +370,7 @@ describe('useResizablePanel', () => {
 			act(() => {
 				result.current.startDrag(
 					0,
-					makePointerEvent({ button: 0, clientX: 100, clientY: 0, preventDefault }),
+					handleDown({ button: 0, clientX: 100, clientY: 0, preventDefault }),
 				)
 			})
 
@@ -371,6 +383,48 @@ describe('useResizablePanel', () => {
 			})
 
 			expect(result.current.dragging).toBeNull()
+		})
+	})
+
+	describe('pointer capture', () => {
+		it('captures the pointer on the handle when a drag starts', () => {
+			const group = makeGroup({ width: 1000, height: 100 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			const event = handleDown({ button: 0, clientX: 100, clientY: 0 })
+
+			act(() => {
+				result.current.startDrag(0, event)
+			})
+
+			expect(event.currentTarget.setPointerCapture).toHaveBeenCalledWith(1)
+		})
+
+		it('does not capture the pointer when the drag does not start', () => {
+			const group = makeGroup({ width: 1000, height: 100 })
+
+			const { result } = renderHook(() =>
+				useResizablePanel({
+					groupRef: makeRef(group),
+					orientation: 'horizontal',
+					panelConfigs: equalPanels,
+				}),
+			)
+
+			const event = handleDown({ button: 2, clientX: 100, clientY: 0 })
+
+			act(() => {
+				result.current.startDrag(0, event)
+			})
+
+			expect(event.currentTarget.setPointerCapture).not.toHaveBeenCalled()
 		})
 	})
 
@@ -390,7 +444,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
@@ -417,7 +471,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 500 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 500 }))
 			})
 
 			act(() => {
@@ -441,7 +495,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
@@ -467,7 +521,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
@@ -513,7 +567,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBeNull()
@@ -531,7 +585,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 0, clientY: 500 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 0, clientY: 500 }))
 			})
 
 			expect(result.current.dragging).toBe(0)
@@ -561,7 +615,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			expect(result.current.dragging).toBe(0)
@@ -590,7 +644,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			expect(onResizeStart).toHaveBeenCalledExactlyOnceWith(0)
@@ -617,7 +671,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			act(() => {
@@ -648,13 +702,13 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 300, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 300, clientY: 0 }))
 			})
 
 			// A second handle grabbed before the first lifts. The superseded drag is over,
 			// so its bracket closes rather than dangling.
 			act(() => {
-				result.current.startDrag(1, makePointerEvent({ button: 0, clientX: 600, clientY: 0 }))
+				result.current.startDrag(1, handleDown({ button: 0, clientX: 600, clientY: 0 }))
 			})
 
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
@@ -675,7 +729,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			unmount()
@@ -727,7 +781,7 @@ describe('useResizablePanel', () => {
 			)
 
 			act(() => {
-				result.current.startDrag(0, makePointerEvent({ button: 0, clientX: 500, clientY: 0 }))
+				result.current.startDrag(0, handleDown({ button: 0, clientX: 500, clientY: 0 }))
 			})
 
 			onSizesChange.mockClear()
