@@ -75,6 +75,10 @@ describe('litOverlay', () => {
 		expect(litOverlay(row, (datum) => datum !== 2)).toEqual({ dimmed: true, overlay: 'M0 M3' })
 	})
 
+	it('lifts a lone pointed bar, although each bar is lit', () => {
+		expect(litOverlay([{ d: 'M0' }], () => true, true)).toEqual({ dimmed: true, overlay: 'M0' })
+	})
+
 	it('dims with no overlay when no bar is lit', () => {
 		expect(litOverlay(row, () => false)).toEqual({ dimmed: true, overlay: null })
 	})

@@ -68,7 +68,11 @@ export function ChartBarMarks({
 	fills,
 	textureActive = false,
 }: ChartBarMarksProps) {
-	const { lit } = useChartMarkEmphasis()
+	const { mark, lit } = useChartMarkEmphasis()
+
+	// A pointed bar isolates one datum, so its series lifts even when that bar is
+	// the only one: the path dims and the bar re-draws over it.
+	const isolating = mark !== null && mark.datum !== null
 
 	// Stable across emphasis changes — the chart body holds `marks` steady while
 	// the pointer moves, so a crossing never rebuilds these strings.
@@ -88,7 +92,7 @@ export function ChartBarMarks({
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum))
+		const { dimmed, overlay } = litOverlay(row, (datum) => lit(series, datum), isolating)
 
 		return (
 			<g key={series} data-slot="chart-bar-series">
@@ -115,15 +119,19 @@ export function ChartBarMarks({
 }
 
 /**
- * How one series of bars paints under an emphasis. When each bar is lit, the
- * series path stands alone. Otherwise the series path dims, and the lit bars
- * join into one overlay path over it, or no overlay when none is lit.
+ * How one series of bars paints under an emphasis. When each bar is lit and
+ * nothing isolates a datum, the series path stands alone. Otherwise the series
+ * path dims, and the lit bars join into one overlay path over it, or no overlay
+ * when none is lit.
  *
+ * @param isolating - Whether the emphasis isolates one datum, such as a pointed
+ * bar. The lift then draws even when each bar of the series is lit.
  * @internal
  */
 export function litOverlay(
 	row: readonly ({ d: string } | null)[],
 	isLit: (datum: number) => boolean,
+	isolating = false,
 ): { dimmed: boolean; overlay: string | null } {
 	const lit: string[] = []
 
@@ -136,7 +144,7 @@ export function litOverlay(
 		else unlit = true
 	})
 
-	if (!unlit) return { dimmed: false, overlay: null }
+	if (!unlit && !isolating) return { dimmed: false, overlay: null }
 
 	return { dimmed: true, overlay: lit.length > 0 ? lit.join(' ') : null }
 }
