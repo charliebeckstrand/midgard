@@ -12,6 +12,12 @@ import { bySlot, getSlot, renderUI, screen } from '../helpers'
  */
 let reveal: (() => void) | undefined
 
+/**
+ * Reports each observed block as in or out of view, and keeps the observer
+ * connected, as a scroll does. `reveal` reports once and then forgets.
+ */
+let report: ((isIntersecting: boolean) => void) | undefined
+
 const original = window.IntersectionObserver
 
 beforeEach(() => {
@@ -37,6 +43,17 @@ beforeEach(() => {
 
 	window.IntersectionObserver = ControlledObserver as unknown as typeof IntersectionObserver
 
+	report = (isIntersecting) => {
+		act(() => {
+			for (const { target, callback } of observed) {
+				callback(
+					[{ target, isIntersecting } as IntersectionObserverEntry],
+					{} as IntersectionObserver,
+				)
+			}
+		})
+	}
+
 	reveal = () => {
 		act(() => {
 			for (const { target, callback } of observed.splice(0)) {
@@ -53,6 +70,8 @@ afterEach(() => {
 	window.IntersectionObserver = original
 
 	reveal = undefined
+
+	report = undefined
 
 	chart.mockClear()
 })
@@ -170,6 +189,42 @@ describe('the mount policy', () => {
 		)
 
 		expect(bySlot(container, 'chat-embed')).not.toHaveAttribute('data-deferred')
+	})
+
+	it('unmounts a view that scrolls away under `active`, and reserves its space again', () => {
+		const { container } = renderUI(
+			<ChatEmbedProvider renderers={renderers} mount="active">
+				<ChatMessage>{[embed()]}</ChatMessage>
+			</ChatEmbedProvider>,
+		)
+
+		report?.(true)
+
+		expect(screen.getByTestId('chart')).toBeInTheDocument()
+
+		report?.(false)
+
+		expect(screen.queryByTestId('chart')).not.toBeInTheDocument()
+
+		expect(getSlot(container, 'chat-embed')).toHaveAttribute('data-deferred')
+
+		report?.(true)
+
+		expect(screen.getByTestId('chart')).toBeInTheDocument()
+	})
+
+	it('keeps a view that scrolls away under `lazy`', () => {
+		renderUI(
+			<ChatEmbedProvider renderers={renderers}>
+				<ChatMessage>{[embed()]}</ChatMessage>
+			</ChatEmbedProvider>,
+		)
+
+		report?.(true)
+
+		report?.(false)
+
+		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
 
 	it('is inherited by a nested provider that sets none', () => {
