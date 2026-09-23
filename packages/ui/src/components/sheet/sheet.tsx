@@ -168,7 +168,7 @@ export function Sheet({
 		side,
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
-		floorOf: sheetFloor,
+		floorOf: (panel, size) => sheetFloor(panel, size, axis),
 		ceilingOf: (panel, viewport) => sheetCeiling(panel, viewport, axis),
 	})
 
