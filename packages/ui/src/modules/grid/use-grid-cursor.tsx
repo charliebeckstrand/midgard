@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import {
+	type EditorKind,
 	type GridKeyPress,
 	inferEditorKind,
 	isColumnEditable,
@@ -19,7 +20,7 @@ import {
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
-import { GridEditingSessionContext } from './grid-editing-context'
+import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { useGridEditing } from './use-grid-editing'
@@ -29,10 +30,13 @@ import {
 	type GridCellActivate,
 	type GridNavStore,
 	type GridNavTableProps,
+	type GridNewRowPosition,
 	type GridRowActivate,
+	NEW_ROW_INDEX,
 	useGridNavigation,
 } from './use-grid-navigation'
 import { useGridNavigationColumns } from './use-grid-navigation-columns'
+import { resolveNewRow } from './use-grid-new-row'
 
 /** Whether two cursor positions name the same cell; `moveTo` mints a fresh `Coord` per move. @internal */
 function sameCoord(a: Coord | null, b: Coord | null): boolean {
@@ -60,6 +64,24 @@ function typedSeed<T>(
 	if (!col || row == null || col.editCell || !isColumnEditable(col)) return null
 
 	return seedFromKey(press, inferEditorKind(col.field != null ? row[col.field] : undefined))
+}
+
+/**
+ * The value a printable key seeds into an editor of the new-row slot, or `null`
+ * when the key must not open it. The slot holds no value, so `kindOf` names
+ * the editor. As in a data row, only an editor that the grid infers takes a
+ * seed.
+ *
+ * @internal
+ */
+function slotSeed<T>(
+	press: GridKeyPress,
+	col: GridColumn<T> | undefined,
+	kindOf: (column: GridColumn<T>) => EditorKind,
+): string | number | null {
+	if (!col || col.editCell || !isColumnEditable(col)) return null
+
+	return seedFromKey(press, kindOf(col))
 }
 
 /**
@@ -151,6 +173,8 @@ export function useGridCursor<T>({
 	editOnCellDoubleClick: GridCellClick<T> | undefined
 	/** Wraps the table with the editing contexts when editable, else returns it unchanged. */
 	wrap: (children: ReactNode) => ReactNode
+	/** Where the new-row slot shows, or `null` when the grid shows none. */
+	newRow: GridNewRowPosition
 } {
 	const editingEnabled = editable != null
 
@@ -159,6 +183,14 @@ export function useGridCursor<T>({
 	// Grid-owned edit sessions: the grid begins one on a cell double-click or the
 	// cursor's Enter; the default 'manual' mode leaves entry to the consumer.
 	const managed = editingEnabled && editable.session === 'managed'
+
+	// The new-row slot is a row of the cursor's order, first or last. The cursor
+	// reads where it sits at event time.
+	const newRowPosition = resolveNewRow(editable, managed)
+
+	const newRowRef = useRef<GridNewRowPosition>(newRowPosition)
+
+	newRowRef.current = newRowPosition
 
 	const {
 		rowsRef,
@@ -198,6 +230,7 @@ export function useGridCursor<T>({
 		toggleActiveRow,
 		scrollRowIntoViewRef,
 		scrollContainerRef,
+		newRowRef,
 	})
 
 	/*
@@ -230,7 +263,8 @@ export function useGridCursor<T>({
 			// the two cannot name a cell differently.
 			if (!onActiveCellChange) return
 
-			if (!coord) {
+			// The new-row slot is not a data cell, so the cursor on it names none.
+			if (!coord || coord.row === NEW_ROW_INDEX) {
 				onActiveCellChange(null)
 
 				return
@@ -270,17 +304,24 @@ export function useGridCursor<T>({
 
 	// The keyboard entry starts from cursor indices, so it resolves them to the
 	// cell's identity first — the one place that conversion belongs.
+	// The new-row slot has no row key, so its cells open through the slot.
 	const enterEditAt = useCallback(
 		(rowIdx: number, colIdx: number, seed?: string | number) => {
-			const rowKey = rowKeysRef.current[rowIdx]
-
 			const col = dataColumnsRef.current[colIdx]
+
+			if (col && rowIdx === NEW_ROW_INDEX) {
+				editing.newRow.enter(col.id, seed)
+
+				return
+			}
+
+			const rowKey = rowKeysRef.current[rowIdx]
 
 			if (rowKey === undefined || !col) return
 
 			enterEditAtCell(rowKey, col.id, seed)
 		},
-		[enterEditAtCell, rowKeysRef, dataColumnsRef],
+		[enterEditAtCell, editing.newRow.enter, rowKeysRef, dataColumnsRef],
 	)
 
 	enterEditAtRef.current = enterEditAt
@@ -302,10 +343,18 @@ export function useGridCursor<T>({
 
 			const press = readKeyPress(event)
 
+			// The new-row slot is no data row, so the cursor's Enter activates
+			// nothing there. Enter opens its cell, as F2 does.
+			const slot = active.row === NEW_ROW_INDEX
+
+			const column = dataColumnsRef.current[active.col]
+
 			const seed =
-				event.key === 'F2'
+				event.key === 'F2' || (slot && event.key === 'Enter')
 					? undefined
-					: typedSeed(press, dataColumnsRef.current[active.col], rowsRef.current[active.row])
+					: slot
+						? slotSeed(press, column, editing.newRow.editorKind)
+						: typedSeed(press, column, rowsRef.current[active.row])
 
 			if (seed === null || (seed === undefined && !isPlainKey(press))) return
 
@@ -313,7 +362,7 @@ export function useGridCursor<T>({
 
 			enterEditAt(active.row, active.col, seed)
 		},
-		[enterEditAt, rowsRef, dataColumnsRef],
+		[enterEditAt, editing.newRow.editorKind, rowsRef, dataColumnsRef],
 	)
 
 	// The pointer entry, fired through the grid's built-in cell double-click event
@@ -391,14 +440,18 @@ export function useGridCursor<T>({
 		}
 	}, [nav.navTableProps, editing.sessionKeys, editing.sessionLeave, sessionEntryKeys])
 
+	const newRowSession = editing.newRow.session
+
 	const wrap = useMemo(
 		() =>
 			editingEnabled
 				? (children: ReactNode) => (
-						<GridEditingSessionContext value={session}>{children}</GridEditingSessionContext>
+						<GridEditingSessionContext value={session}>
+							<GridNewRowContext value={newRowSession}>{children}</GridNewRowContext>
+						</GridEditingSessionContext>
 					)
 				: (children: ReactNode) => children,
-		[editingEnabled, session],
+		[editingEnabled, session, newRowSession],
 	)
 
 	return {
@@ -409,5 +462,6 @@ export function useGridCursor<T>({
 		columns: editingEnabled ? editColumns : navColumns,
 		editOnCellDoubleClick,
 		wrap,
+		newRow: newRowPosition,
 	}
 }

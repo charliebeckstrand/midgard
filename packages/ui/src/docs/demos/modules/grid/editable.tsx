@@ -418,6 +418,84 @@ export function AsyncCommitExample() {
 	)
 }
 
+/**
+ * The demo's check for a new person: a name is required. The row adds only
+ * the cells that hold a value, so an empty name is absent from `values`.
+ */
+function refuseNewPerson(values: Record<string, unknown>): GridCellRefusal[] {
+	const name = String(values.name ?? '').trim()
+
+	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'A name is required' }] : []
+}
+
+export function NewRowExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	const [position, setPosition] = useState<'top' | 'bottom'>('bottom')
+
+	// The add takes a moment, as a save to a server does. A refusal keeps the
+	// values in the row, with the reason under the cell.
+	const onRowAdd = async (values: Record<string, unknown>) => {
+		await new Promise((resolve) => setTimeout(resolve, SAVE_DELAY_MS))
+
+		const refused = refuseNewPerson(values)
+
+		if (refused.length > 0) return refused
+
+		setPeople((prev) => [
+			...prev,
+			{
+				id: Math.max(0, ...prev.map((person) => person.id)) + 1,
+				name: String(values.name).trim(),
+				email: String(values.email ?? ''),
+				role: String(values.role ?? 'Developer'),
+				active: values.active === true,
+			},
+		])
+
+		return []
+	}
+
+	// `newRow` pins one blank editor row to the body, outside the row model. The
+	// data rows keep their cell-scoped session and their batch sink. The new row
+	// has its own sink, because a new record has no row key yet.
+	return (
+		<>
+			<Flex justify="between" align="center">
+				<Segment
+					value={position}
+					onValueChange={(next) => setPosition((next as 'top' | 'bottom' | null) ?? 'bottom')}
+				>
+					<SegmentControl aria-label="New row position">
+						<SegmentItem value="top">Top</SegmentItem>
+						<SegmentItem value="bottom">Bottom</SegmentItem>
+					</SegmentControl>
+				</Segment>
+				<EditHelp label="New row help">
+					The blank row adds a person. Fill its cells, then press Enter or the Add control. Escape
+					clears the row, and F2 goes back to the grid. Moving away never adds the row. It stays in
+					view while the grid scrolls, and the arrow keys reach it from the row next to it. A name
+					is required.
+				</EditHelp>
+			</Flex>
+			<Grid
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				maxHeight="320px"
+				header={{ position: 'sticky' }}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					newRow: position,
+					onRowAdd,
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 type Task = {
 	id: number
 	title: string

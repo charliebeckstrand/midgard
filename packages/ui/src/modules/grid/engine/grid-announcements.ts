@@ -138,3 +138,17 @@ export function describeSettle(saved: number, refused: number): string {
 
 	return saved === 0 ? failed : `${describeCommit(saved)}, ${failed}`
 }
+
+/**
+ * The polite announcement for an add from the new-row slot (WCAG 4.1.3). An
+ * accepted add reads `Row added`. A refused add counts the refused cells
+ * (`Row not added, 1 cell refused`), whether `validate` or the consumer
+ * refused them.
+ *
+ * @internal
+ */
+export function describeRowAdd(refused: number): string {
+	if (refused === 0) return 'Row added'
+
+	return `Row not added, ${refused} ${refused === 1 ? 'cell' : 'cells'} refused`
+}

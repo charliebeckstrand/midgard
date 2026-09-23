@@ -4324,3 +4324,566 @@ describe('Grid async commit', () => {
 		expect(view.cell('name', 1)).toHaveAttribute('aria-busy', 'true')
 	})
 })
+
+/**
+ * The new-row slot (`editable.newRow`): one blank editor row pinned at the top
+ * or the bottom of the body, outside the row model. An explicit add calls
+ * `onRowAdd` with the drafted values; leaving the row never adds it.
+ */
+describe('Grid new row', () => {
+	const moveFocus = (element: HTMLElement) => act(() => element.focus())
+
+	function renderNewRow(
+		editable: Partial<GridEditableConfig> = {},
+		props: Partial<GridProps<SessionRow>> = {},
+		cols: GridColumn<SessionRow>[] = sessionColumns,
+	) {
+		const onRowAdd = vi.fn()
+
+		const onCommit = vi.fn()
+
+		const view = renderUI(
+			<>
+				<button type="button">outside</button>
+				<Grid
+					columns={cols}
+					rows={sessionRows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit, ...editable }}
+					{...props}
+				/>
+			</>,
+		)
+
+		const slot = () => view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]')
+
+		const slotCell = (col: string) =>
+			present(
+				view.container.querySelector<HTMLElement>(`td[data-grid-new-col="${col}"]`),
+				`new-row cell ${col}`,
+			)
+
+		const slotEditor = (col: string) =>
+			present<HTMLInputElement>(slotCell(col).querySelector('input'), `new-row editor ${col}`)
+
+		return {
+			...view,
+			onRowAdd,
+			onCommit,
+			slot,
+			slotCell,
+			slotEditor,
+			grid: () => view.getByRole('grid'),
+			dataRows: () =>
+				Array.from(view.container.querySelectorAll<HTMLElement>('tr[data-row-index]')),
+			type: (col: string, value: string) =>
+				fireEvent.change(slotEditor(col), { target: { value } }),
+			press: (col: string, key: string) => fireEvent.keyDown(slotEditor(col), { key }),
+		}
+	}
+
+	/** Whether `a` comes before `b` in document order. */
+	const precedes = (a: Node, b: Node) =>
+		(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING) !== 0
+
+	it('renders the slot after the data rows at the bottom', () => {
+		const view = renderNewRow({ newRow: 'bottom' })
+
+		const slot = view.slot() as HTMLElement
+
+		expect(slot).toBeInTheDocument()
+
+		expect(precedes(view.dataRows().at(-1) as HTMLElement, slot)).toBe(true)
+	})
+
+	it('renders the slot before the data rows at the top', () => {
+		const view = renderNewRow({ newRow: 'top' })
+
+		const slot = view.slot() as HTMLElement
+
+		expect(precedes(slot, view.dataRows()[0] as HTMLElement)).toBe(true)
+	})
+
+	it('mounts an editor in each editable cell, with the new-row label', () => {
+		const view = renderNewRow()
+
+		expect(view.slot()).toHaveAttribute('aria-label', 'New row')
+
+		expect(view.slotEditor('name')).toHaveAttribute('aria-label', 'Edit Name, new row')
+
+		expect(view.slotEditor('count')).toHaveAttribute('aria-label', 'Edit Count, new row')
+
+		// No data row enters edit mode for it.
+		expect(editorsIn(view.container)).toHaveLength(2)
+	})
+
+	it('stays out of the sort, the filter, and the pagination', () => {
+		const rows = Array.from({ length: 5 }, (_, i) => ({
+			id: i + 1,
+			name: `Row ${i + 1}`,
+			count: i,
+			done: false,
+		}))
+
+		const onRowAdd = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={sessionColumns}
+				rows={rows}
+				getKey={(row) => row.id}
+				sort={{ defaultValue: [{ column: 'name', direction: 'desc' }] }}
+				pagination={{ defaultValue: { pageIndex: 1, pageSize: 2 } }}
+				editable={{ session: 'managed', newRow: 'top', onRowAdd, onCommit: vi.fn() }}
+			/>,
+		)
+
+		const slot = present(
+			view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]'),
+			'new row',
+		)
+
+		const dataRows = view.container.querySelectorAll('tr[data-row-index]')
+
+		// The second page of a descending sort, two rows a page, and the slot
+		// still first. The page holds two data rows, not one.
+		expect(dataRows).toHaveLength(2)
+
+		expect(dataRows[0]).toHaveTextContent('Row 3')
+
+		expect(precedes(slot, dataRows[0] as HTMLElement)).toBe(true)
+
+		// The sort does not reach the slot, which stays empty and first.
+		expect(slot.querySelectorAll('input')).toHaveLength(2)
+	})
+
+	it('stays when a filter empties the data rows, and is not a selectable row', () => {
+		const onRowAdd = vi.fn()
+
+		const view = renderUI(
+			<Grid
+				columns={[
+					{ id: '__select', title: '', selectable: true },
+					// A column needs `value` to be searchable.
+					{ ...(sessionColumns[0] as GridColumn<SessionRow>), value: (row) => row.name },
+					sessionColumns[1] as GridColumn<SessionRow>,
+				]}
+				rows={sessionRows}
+				getKey={(row) => row.id}
+				search={{ value: 'no such row' }}
+				editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit: vi.fn() }}
+			/>,
+		)
+
+		const slot = present(
+			view.container.querySelector<HTMLElement>('[data-slot="grid-new-row"]'),
+			'new row',
+		)
+
+		// The search leaves no data row, and the slot still shows.
+		expect(view.container.querySelectorAll('tr[data-row-index]')).toHaveLength(0)
+
+		expect(slot).toBeInTheDocument()
+
+		// The selection column renders an empty cell, with no checkbox to select it.
+		expect(slot.querySelector('input[type="checkbox"]')).toBeNull()
+	})
+
+	it('calls onRowAdd with the drafted values alone on Enter, and clears the row', async () => {
+		const view = renderNewRow()
+
+		view.type('name', 'Carol')
+
+		view.press('name', 'Enter')
+
+		expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		expect(view.slotEditor('name').value).toBe('')
+
+		// Focus goes back to the row's first editable cell, for the next entry.
+		expect(view.slotEditor('name')).toHaveFocus()
+
+		await expectAnnouncement('Row added')
+	})
+
+	it('adds through the Add control on the last editable cell', () => {
+		const view = renderNewRow()
+
+		view.type('name', 'Carol')
+
+		view.type('count', '7')
+
+		const add = view.getByRole('button', { name: 'Add row' })
+
+		expect(view.slotCell('count')).toContainElement(add)
+
+		fireEvent.click(add)
+
+		expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', count: 7 })
+	})
+
+	it('does nothing on an add with no value', () => {
+		const view = renderNewRow()
+
+		view.press('name', 'Enter')
+
+		fireEvent.click(view.getByRole('button', { name: 'Add row' }))
+
+		// A text typed and then cleared is no value either.
+		view.type('name', 'x')
+
+		view.type('name', '')
+
+		view.press('name', 'Enter')
+
+		expect(view.onRowAdd).not.toHaveBeenCalled()
+
+		expect(liveRegion()?.textContent ?? '').toBe('')
+	})
+
+	it('blocks the add when validate refuses a cell, and shows the error', async () => {
+		const cols: GridColumn<SessionRow>[] = [
+			{
+				...(sessionColumns[0] as GridColumn<SessionRow>),
+				validate: (value) => (value === 'bad' ? 'Not a name' : null),
+			},
+			sessionColumns[1] as GridColumn<SessionRow>,
+		]
+
+		const view = renderNewRow({}, {}, cols)
+
+		view.type('name', 'bad')
+
+		view.press('name', 'Enter')
+
+		expect(view.onRowAdd).not.toHaveBeenCalled()
+
+		expect(view.slotCell('name')).toHaveTextContent('Not a name')
+
+		expect(view.slotEditor('name').value).toBe('bad')
+
+		await expectAnnouncement('Row not added, 1 cell refused')
+	})
+
+	it('reads the values as the row that validate sees', () => {
+		const validate = vi.fn(() => null)
+
+		const cols: GridColumn<SessionRow>[] = [
+			{ ...(sessionColumns[0] as GridColumn<SessionRow>), validate },
+			sessionColumns[1] as GridColumn<SessionRow>,
+		]
+
+		const view = renderNewRow({}, {}, cols)
+
+		view.type('count', '3')
+
+		view.type('name', 'Carol')
+
+		validate.mockClear()
+
+		view.press('name', 'Enter')
+
+		expect(validate).toHaveBeenCalledWith('Carol', { name: 'Carol', count: 3 })
+	})
+
+	describe('an async add', () => {
+		function renderAsync() {
+			let resolve: (value?: GridCellRefusal[]) => void = () => {}
+
+			let reject: (reason: unknown) => void = () => {}
+
+			const onRowAdd = vi.fn(
+				(_values: Record<string, unknown>) =>
+					new Promise<GridCellRefusal[] | undefined>((res, rej) => {
+						resolve = res
+
+						reject = rej
+					}),
+			)
+
+			const view = renderNewRow({ onRowAdd })
+
+			return {
+				...view,
+				onRowAdd,
+				resolve: (value?: GridCellRefusal[]) => act(async () => resolve(value)),
+				reject: (reason: unknown) => act(async () => reject(reason)),
+				add: () => view.getByRole('button', { name: 'Add row' }),
+			}
+		}
+
+		it('shows the row as pending, and blocks a second add until it settles', async () => {
+			const view = renderAsync()
+
+			view.type('name', 'Carol')
+
+			view.slotEditor('name').focus()
+
+			view.press('name', 'Enter')
+
+			expect(view.slotCell('name')).toHaveAttribute('aria-busy', 'true')
+
+			expect(bySlot(view.slotCell('name'), 'grid-edit-pending')).toHaveTextContent('Carol')
+
+			// The editors give way to the pending cells, so focus rests on the grid.
+			expect(view.grid()).toHaveFocus()
+
+			expect(view.add()).toHaveAttribute('aria-disabled', 'true')
+
+			fireEvent.click(view.add())
+
+			fireEvent.keyDown(view.grid(), { key: 'Enter' })
+
+			expect(view.onRowAdd).toHaveBeenCalledTimes(1)
+
+			await view.resolve()
+
+			expect(view.slotCell('name')).not.toHaveAttribute('aria-busy')
+
+			expect(view.slotEditor('name').value).toBe('')
+
+			// Focus was still in the grid, so it goes to the first editable cell.
+			expect(view.slotEditor('name')).toHaveFocus()
+
+			await expectAnnouncement('Row added')
+
+			view.type('name', 'Dave')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenCalledTimes(2)
+		})
+
+		it('restores the drafts with the errors of a resolved refusal', async () => {
+			const view = renderAsync()
+
+			view.type('name', 'Carol')
+
+			view.type('count', '4')
+
+			view.press('name', 'Enter')
+
+			// The `rowKey` of a refusal is ignored, as the slot has no key.
+			await view.resolve([{ rowKey: 'anything', columnId: 'name', error: 'Name taken' }])
+
+			expect(view.slotEditor('name').value).toBe('Carol')
+
+			expect(view.slotCell('name')).toHaveTextContent('Name taken')
+
+			expect(view.slotEditor('count').value).toBe('4')
+
+			await expectAnnouncement('Row not added, 1 cell refused')
+
+			// A retry sends the restored values.
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenLastCalledWith({ name: 'Carol', count: 4 })
+		})
+
+		it('refuses each drafted cell on a rejection, with its message', async () => {
+			const view = renderAsync()
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			await view.reject(new Error('Server down'))
+
+			expect(view.slotEditor('name').value).toBe('Carol')
+
+			expect(view.slotCell('name')).toHaveTextContent('Server down')
+
+			await expectAnnouncement('Row not added, 1 cell refused')
+		})
+	})
+
+	it('clears the row on Escape, and puts focus on the grid', () => {
+		const view = renderNewRow()
+
+		view.type('name', 'Carol')
+
+		view.slotEditor('name').focus()
+
+		view.press('name', 'Escape')
+
+		expect(view.slotEditor('name').value).toBe('')
+
+		expect(view.grid()).toHaveFocus()
+
+		expect(view.grid()).toHaveAttribute('aria-activedescendant', view.slotCell('name').id)
+
+		view.press('name', 'Enter')
+
+		expect(view.onRowAdd).not.toHaveBeenCalled()
+	})
+
+	it('leaves a data session open on Escape in the row', () => {
+		const view = renderNewRow({ scope: 'cell' })
+
+		fireEvent.doubleClick(
+			present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name cell'),
+		)
+
+		view.press('name', 'Escape')
+
+		// The data row's editor stays: Escape in the slot is the slot's.
+		expect(editorsIn(view.container)).toHaveLength(3)
+	})
+
+	for (const commitOn of ['explicit', 'leaveEditor', 'leaveGrid'] as const) {
+		it(`never adds when focus leaves the row under commitOn '${commitOn}'`, () => {
+			const view = renderNewRow({ commitOn })
+
+			view.type('name', 'Carol')
+
+			moveFocus(view.slotEditor('name'))
+
+			moveFocus(view.slotEditor('count'))
+
+			moveFocus(view.grid())
+
+			moveFocus(view.getByRole('button', { name: 'outside' }))
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+
+			expect(view.onCommit).not.toHaveBeenCalled()
+
+			// The draft stays for the user to finish.
+			expect(view.slotEditor('name').value).toBe('Carol')
+		})
+	}
+
+	describe('ARIA rows', () => {
+		it('counts the row at the bottom, after the data rows', () => {
+			const view = renderNewRow({ newRow: 'bottom' }, { navigable: true })
+
+			// A header row, two data rows, and the slot.
+			expect(view.grid()).toHaveAttribute('aria-rowcount', '4')
+
+			expect(view.dataRows().map((row) => row.getAttribute('aria-rowindex'))).toEqual(['2', '3'])
+
+			expect(view.slot()).toHaveAttribute('aria-rowindex', '4')
+		})
+
+		it('counts the row at the top, and shifts the data rows down one', () => {
+			const view = renderNewRow({ newRow: 'top' }, { navigable: true })
+
+			expect(view.grid()).toHaveAttribute('aria-rowcount', '4')
+
+			expect(view.slot()).toHaveAttribute('aria-rowindex', '2')
+
+			expect(view.dataRows().map((row) => row.getAttribute('aria-rowindex'))).toEqual(['3', '4'])
+
+			expect(view.slotCell('name')).toHaveAttribute('aria-colindex', '1')
+		})
+	})
+
+	describe('the keyboard cursor', () => {
+		const active = (view: ReturnType<typeof renderNewRow>) =>
+			view.grid().getAttribute('aria-activedescendant')
+
+		const dataCell = (view: ReturnType<typeof renderNewRow>, col: string, row: number) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[row] as HTMLElement
+
+		it('reaches the bottom row with ArrowDown from the last data row, and no further', () => {
+			const view = renderNewRow({ newRow: 'bottom' })
+
+			const grid = view.grid()
+
+			moveFocus(grid)
+
+			fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+			expect(active(view)).toBe(dataCell(view, 'name', 1).id)
+
+			fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+			expect(active(view)).toBe(view.slotCell('name').id)
+
+			fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+			expect(active(view)).toBe(view.slotCell('name').id)
+
+			fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+			expect(active(view)).toBe(dataCell(view, 'name', 1).id)
+		})
+
+		it('reaches the top row with ArrowUp from the first data row', () => {
+			const view = renderNewRow({ newRow: 'top' })
+
+			const grid = view.grid()
+
+			moveFocus(grid)
+
+			// The slot is first in the cursor's order, so the cursor seeds there.
+			expect(active(view)).toBe(view.slotCell('name').id)
+
+			fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+			expect(active(view)).toBe(dataCell(view, 'name', 0).id)
+
+			fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+			expect(active(view)).toBe(view.slotCell('name').id)
+		})
+
+		it('opens the cell of the row with Enter, and a typed key seeds it', () => {
+			const view = renderNewRow({ newRow: 'top' })
+
+			const grid = view.grid()
+
+			moveFocus(grid)
+
+			fireEvent.keyDown(grid, { key: 'Enter' })
+
+			expect(view.slotEditor('name')).toHaveFocus()
+
+			fireEvent.keyDown(view.slotEditor('name'), { key: 'F2' })
+
+			expect(grid).toHaveFocus()
+
+			fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+			fireEvent.keyDown(grid, { key: '7' })
+
+			expect(view.slotEditor('count')).toHaveFocus()
+
+			expect(view.slotEditor('count').value).toBe('7')
+		})
+	})
+
+	describe('config warnings', () => {
+		it("warns and renders no row under session 'manual'", () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+			const view = renderNewRow({ session: 'manual' })
+
+			expect(view.slot()).toBeNull()
+
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining('`editable.newRow`'))
+
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining("'manual'"))
+		})
+
+		it('warns and renders no row without onRowAdd', () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+			const view = renderNewRow({ onRowAdd: undefined })
+
+			expect(view.slot()).toBeNull()
+
+			expect(warn).toHaveBeenCalledWith(expect.stringContaining('`editable.onRowAdd`'))
+		})
+
+		it('does not warn for a row that can show', () => {
+			const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
+
+			renderNewRow()
+
+			expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('newRow'))
+		})
+	})
+})

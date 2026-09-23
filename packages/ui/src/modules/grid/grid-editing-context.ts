@@ -1,7 +1,12 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { GridActiveEdit, GridDraft } from './engine/grid-editing-utilities'
+import type {
+	EditorKind,
+	GridActiveEdit,
+	GridDraft,
+	GridDraftKey,
+} from './engine/grid-editing-utilities'
 
 /**
  * An external store over the one cell a cell-scoped session edits. Each data
@@ -26,9 +31,10 @@ export type GridActiveEditStore = {
 /**
  * The settle controls beside an open editor. `'both'` is the save and discard
  * pair, `'discard'` is the discard control alone, and `'none'` shows no
- * control. @internal
+ * control. `'add'` is the Add control of the new-row slot, on its last
+ * editable cell. @internal
  */
-export type GridSettleControls = 'none' | 'discard' | 'both'
+export type GridSettleControls = 'none' | 'discard' | 'both' | 'add'
 
 /**
  * The editing session shared with the data cells. A row in `editableRows` puts
@@ -57,19 +63,19 @@ export type GridEditingSession = {
 	 * is no longer in `rows`. A write to a closed cell is ignored.
 	 */
 	stageDraft: (
-		rowKey: string | number,
+		rowKey: GridDraftKey,
 		columnId: string | number,
 		value: unknown,
 		row: unknown,
 	) => void
 	/** Drop a cell's pending value — Escape reverts it to the row's current value. */
-	unstageDraft: (rowKey: string | number, columnId: string | number) => void
+	unstageDraft: (rowKey: GridDraftKey, columnId: string | number) => void
 	/**
 	 * The cell's staged draft, or `undefined` when it has none. An editor reads
 	 * it once, as it mounts, so an editor that mounts again shows the value
 	 * that will commit.
 	 */
-	readDraft: (rowKey: string | number, columnId: string | number) => GridDraft | undefined
+	readDraft: (rowKey: GridDraftKey, columnId: string | number) => GridDraft | undefined
 	/**
 	 * Ends the grid-owned session on a row under `session: 'managed'` —
 	 * `'save'` on an editor's Enter, `'discard'` on Escape. A discard drops the
@@ -134,3 +140,49 @@ export function useGridEditingSession(): GridEditingSession {
  * assume. @internal
  */
 export const useGridEditingSessionOrNull = useSession
+
+/**
+ * The new-row slot of an editable grid ({@link GridEditableConfig.newRow}), as
+ * the slot's cells read it. It rides a context of its own, so a change to the
+ * slot renders the slot and no data cell.
+ *
+ * @internal
+ */
+export type GridNewRowSession = {
+	/** Where the slot sits, at the top or the bottom of the body. */
+	position: 'top' | 'bottom'
+	/**
+	 * A counter that the editors of the slot are keyed by. An add, an Escape,
+	 * and a typed entry raise it, so each editor mounts again and reads the
+	 * draft store.
+	 */
+	generation: number
+	/** Whether an add that `onRowAdd` returned as a promise is in flight. */
+	inFlight: boolean
+	/** The draft store of the session, which the slot writes under its reserved key. */
+	stageDraft: GridEditingSession['stageDraft']
+	unstageDraft: GridEditingSession['unstageDraft']
+	readDraft: GridEditingSession['readDraft']
+	/**
+	 * Whether the editor of this column takes focus now. It is `true` once, for
+	 * the cell that an add, or a typed entry, names.
+	 */
+	claimFocus: (columnId: string | number) => boolean
+	/** Adds the row: validates the drafted cells and calls `onRowAdd`. */
+	addRow: () => void
+	/** The editor that the grid infers for a column of the slot, which holds no value of its own. */
+	editorKind: (column: { id: string | number; field?: PropertyKey }) => EditorKind
+	/** The cursor's per-cell id deriver, for the `aria-activedescendant` of a slot cell. */
+	cellId: (row: number, col: number) => string
+	/** Moves the keyboard cursor, for a press on a cell of the slot. */
+	moveTo: (coord: { row: number; col: number }) => void
+}
+
+const [GridNewRowContext, useNewRow] = createContext<GridNewRowSession | null>('GridNewRow', {
+	default: null,
+})
+
+export { GridNewRowContext }
+
+/** The new-row slot, or `null` when the grid shows none. @internal */
+export const useGridNewRowSession = useNewRow

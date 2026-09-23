@@ -6,13 +6,14 @@
  * editing. The session scenarios are the exception: they open a cell-scoped
  * session and move it, which is the path the commit-and-move keys drive. The
  * Tab commit pair stages a value on each move, so each move commits a batch,
- * through a sync sink and through an async one.
+ * through a sync sink and through an async one. The new-row scenario mounts
+ * one row of editors, the new-row slot, beside the rows at rest.
  */
 
 import { act, fireEvent } from '@testing-library/react'
 import { useState } from 'react'
 import { describe } from 'vitest'
-import { Grid, type GridCellRef, type GridColumn } from '../modules/grid'
+import { Grid, type GridCellRef, type GridColumn, type GridEditableConfig } from '../modules/grid'
 import { noop } from '../utilities/noop'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, persistentTree } from './harness'
@@ -77,6 +78,26 @@ describe('Grid · editable virtualized initial render', () => {
 				maxHeight="600px"
 			/>
 		),
+	)
+})
+
+/**
+ * The at-rest grid with the new-row slot at the bottom. Against the initial
+ * render above, the difference is what the slot costs a grid's mount: one row
+ * of mounted editors, beside the same data rows.
+ */
+const NEW_ROW = {
+	...EDITABLE,
+	session: 'managed',
+	newRow: 'bottom',
+	onRowAdd: noop,
+} satisfies GridEditableConfig
+
+describe('Grid · editable new row', () => {
+	mountBenches(
+		SIZES,
+		(rows) => `${rows.length.toLocaleString()} rows × 8 cols · new row`,
+		(rows) => <Grid columns={COLUMNS} rows={rows} getKey={shipmentKey} editable={NEW_ROW} />,
 	)
 })
 

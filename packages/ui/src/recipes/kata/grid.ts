@@ -167,6 +167,18 @@ export const k = {
 		// against the transparent content block on mobile.
 		head: ['sticky top-0 z-10', hostSurface],
 	},
+	// The new-row slot of an editable grid. Its cells stick to the top or the
+	// bottom edge of the scroll container, over the data rows (`z-[1]` for a
+	// pinned cell) and under the sticky header (`z-10`). A pinned cell of the
+	// slot rides one layer higher, so a scrolled cell of the slot slides under
+	// it. The top offset is the height of a sticky header, which the slot
+	// measures into `--grid-new-row-top`.
+	newRow: {
+		cell: ['sticky z-[2]', hostSurface],
+		pinned: 'z-[3]',
+		top: 'top-(--grid-new-row-top)',
+		bottom: 'bottom-0',
+	},
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
 		// through, lifted just above the centre cells (below the z-10 sticky head,
