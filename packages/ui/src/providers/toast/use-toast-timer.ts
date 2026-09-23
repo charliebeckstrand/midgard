@@ -4,13 +4,14 @@ import { type RefObject, useCallback, useEffect, useRef } from 'react'
 import type { ToastData } from './types'
 
 /**
- * Owns the auto-dismiss countdown for {@link ToastProvider}. It arms a single
- * timer for the remaining duration, and pauses it while pointer/focus holds
- * exist (WCAG 2.2.1). It resumes with the leftover time, and exposes reset hooks
- * for re-armed toasts.
+ * Owns the auto-dismiss countdowns for {@link ToastProvider}. Each toast counts down its own
+ * `duration`. One timer is armed to the earliest live deadline, and it pauses while pointer or
+ * focus holds exist (WCAG 2.2.1).
  *
- * @returns The timer controls (`startTimer`, `pause`, `resume`,
- * `resetRemaining`, `reset`) plus the `remainingRef` countdown.
+ * @param start - Called with the ids whose time is up, oldest first. The staggered queue
+ * removes them one at a time.
+ * @param stop - Called on the first hold, so that the staggered queue stops too.
+ * @returns The timer controls: `arm`, `pause` and `resume`.
  *
  * @remarks
  * The pause is a source count, not a flag. Each hold (a toast's hover, a
@@ -19,19 +20,21 @@ import type { ToastData } from './types'
  * releasing `mouseleave`/`blur` never fires for a removed node, and a single
  * flag can't tell which holds remain. Each `ToastAlert` therefore releases its
  * own holds on unmount, and the count settles back to running.
+ *
+ * One pause covers the whole stack. A hold on any toast stops every countdown.
  * @internal
  */
 export function useToastTimer(
 	toastsRef: RefObject<ToastData[]>,
-	duration: number,
-	start: () => void,
+	start: (ids: string[]) => void,
 	stop: () => void,
 ) {
-	const remainingRef = useRef(duration)
+	// The time left for each counted toast, measured at `sinceRef`.
+	const remainingRef = useRef(new Map<string, number>())
 
 	const timerRef = useRef<ReturnType<typeof setTimeout>>(undefined)
 
-	const startRef = useRef(0)
+	const sinceRef = useRef(0)
 
 	const pauseCountRef = useRef(0)
 
@@ -42,62 +45,97 @@ export function useToastTimer(
 	// and a no-op state update — a leaked callback during teardown with no crash
 	// and no user-visible effect, so a disposed flag would buy nothing.
 
-	const startTimer = useCallback(() => {
-		// Don't arm while any hold remains (pointer/focus on a live toast); the
-		// final `resume` restarts. WCAG 2.2.1: no live auto-dismiss timer under
-		// the user's pointer/focus.
-		if (pauseCountRef.current > 0) return
+	// Moves each countdown to now, and drops the toasts that are gone or leave by
+	// another route. While held, the clock is stopped, so no time is subtracted.
+	const settle = useCallback(() => {
+		const now = Date.now()
 
+		const elapsed = pauseCountRef.current > 0 ? 0 : now - sinceRef.current
+
+		sinceRef.current = now
+
+		const live = new Set(toastsRef.current.filter((t) => !t.dismissed).map((t) => t.id))
+
+		for (const [id, left] of remainingRef.current) {
+			if (live.has(id)) remainingRef.current.set(id, Math.max(left - elapsed, 0))
+			else remainingRef.current.delete(id)
+		}
+	}, [toastsRef])
+
+	// Arms the one timer to the earliest live deadline. Call it after `settle`.
+	const schedule = useCallback(() => {
 		clearTimeout(timerRef.current)
 
-		startRef.current = Date.now()
+		// WCAG 2.2.1: no live auto-dismiss timer under the user's pointer or focus.
+		// The final `resume` arms again.
+		if (pauseCountRef.current > 0 || remainingRef.current.size === 0) return
 
-		timerRef.current = setTimeout(start, remainingRef.current)
-	}, [start])
+		const next = Math.min(...remainingRef.current.values())
+
+		timerRef.current = setTimeout(() => {
+			settle()
+
+			const expired = toastsRef.current
+				.map((t) => t.id)
+				.filter((id) => remainingRef.current.get(id) === 0)
+
+			for (const id of expired) remainingRef.current.delete(id)
+
+			if (expired.length > 0) start(expired)
+
+			schedule()
+		}, next)
+	}, [settle, start, toastsRef])
+
+	// Sets the countdown of one toast to `ms` from now, for a new toast or a reset.
+	// While held, the countdown stays frozen until the final `resume`.
+	const arm = useCallback(
+		(id: string, ms: number) => {
+			settle()
+
+			remainingRef.current.set(id, ms)
+
+			schedule()
+		},
+		[settle, schedule],
+	)
 
 	const pause = useCallback(() => {
-		pauseCountRef.current += 1
+		// Only the first hold freezes the countdowns; further holds just deepen it.
+		if (pauseCountRef.current > 0) {
+			pauseCountRef.current += 1
 
-		// Only the first hold freezes the countdown; further holds just deepen it.
-		if (pauseCountRef.current > 1) return
+			return
+		}
 
-		const elapsed = Date.now() - startRef.current
+		settle()
 
-		remainingRef.current = Math.max(remainingRef.current - elapsed, 0)
+		pauseCountRef.current = 1
+
+		// `stop` empties the staggered queue. A live toast with no countdown is in
+		// that queue, with its time up, so it counts again from zero.
+		for (const t of toastsRef.current) {
+			if (!(t.persist || t.dismissed || remainingRef.current.has(t.id))) {
+				remainingRef.current.set(t.id, 0)
+			}
+		}
 
 		clearTimeout(timerRef.current)
 		stop()
-	}, [stop])
+	}, [settle, stop, toastsRef])
 
 	const resume = useCallback(() => {
+		// Before the count drops, so that the held time is not subtracted.
+		settle()
+
 		// Floored: an unpaired release must not push the count negative and
 		// swallow a later hold.
 		pauseCountRef.current = Math.max(pauseCountRef.current - 1, 0)
 
 		if (pauseCountRef.current > 0) return
 
-		if (toastsRef.current.length > 0) startTimer()
-	}, [toastsRef, startTimer])
+		schedule()
+	}, [settle, schedule])
 
-	const resetRemaining = useCallback(
-		(ms?: number) => {
-			remainingRef.current = ms ?? duration
-		},
-		[duration],
-	)
-
-	// Restores the full duration and restarts the timer. While held, skips the
-	// restart; the final `resume()` picks up the new remaining on release.
-	const reset = useCallback(
-		(ms?: number) => {
-			resetRemaining(ms)
-
-			if (pauseCountRef.current > 0 || toastsRef.current.length === 0) return
-
-			startTimer()
-		},
-		[resetRemaining, startTimer, toastsRef],
-	)
-
-	return { remainingRef, startTimer, pause, resume, resetRemaining, reset }
+	return { arm, pause, resume }
 }

@@ -2,14 +2,13 @@ import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import type { ToastData } from '../../providers/toast/types'
 import { useToastQueue } from '../../providers/toast/use-toast-queue'
-import { useToastTimer } from '../../providers/toast/use-toast-timer'
 
-function makeToast(id: string, persist = false): ToastData {
-	return { id, title: id, persist, duration: 1000 }
+function makeToast(id: string): ToastData {
+	return { id, title: id, duration: 1000 }
 }
 
 describe('useToastQueue', () => {
-	it('drains non-persistent toasts from the head until the list is empty', () => {
+	it('drains the given toasts from the head, one on each exit', () => {
 		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
 
 		const sync = vi.fn()
@@ -19,7 +18,7 @@ describe('useToastQueue', () => {
 		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
-			result.current.start()
+			result.current.start(['a', 'b'])
 		})
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['b', 'c'])
@@ -30,41 +29,60 @@ describe('useToastQueue', () => {
 
 		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
 
-		expect(sync).toHaveBeenCalledTimes(2)
-	})
-
-	it('skips persistent toasts when seeding the queue', () => {
-		const toastsRef = {
-			current: [makeToast('a'), makeToast('sticky', true), makeToast('b')],
-		}
-
-		const sync = vi.fn()
-
-		const onTimeout = vi.fn()
-
-		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
-
-		act(() => {
-			result.current.start()
-		})
-
-		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky', 'b'])
-
 		act(() => {
 			result.current.handleExitComplete()
 		})
 
-		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky'])
-
-		act(() => {
-			result.current.handleExitComplete()
-		})
-
-		expect(toastsRef.current.map((t) => t.id)).toEqual(['sticky'])
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['c'])
 
 		expect(result.current.runningRef.current).toBe(false)
 
 		expect(sync).toHaveBeenCalledTimes(2)
+	})
+
+	it('adds ids to a running queue without a second removal before the exit', () => {
+		const toastsRef = { current: [makeToast('a'), makeToast('b')] }
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
+
+		act(() => {
+			result.current.start(['a'])
+		})
+
+		act(() => {
+			result.current.start(['b'])
+		})
+
+		// The stagger holds: `b` waits for the exit of `a`.
+		expect(toastsRef.current.map((t) => t.id)).toEqual(['b'])
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current).toEqual([])
+	})
+
+	it('skips an id that left the list after it was queued', () => {
+		const toastsRef = { current: [makeToast('a'), makeToast('b'), makeToast('c')] }
+
+		const onTimeout = vi.fn()
+
+		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), onTimeout))
+
+		act(() => {
+			result.current.start(['a', 'b', 'c'])
+		})
+
+		toastsRef.current = toastsRef.current.filter((t) => t.id !== 'b')
+
+		act(() => {
+			result.current.handleExitComplete()
+		})
+
+		expect(toastsRef.current).toEqual([])
+
+		expect(onTimeout.mock.calls.map(([t]) => t.id)).toEqual(['a', 'c'])
 	})
 
 	it('clears the running flag and queue on stop()', () => {
@@ -73,7 +91,7 @@ describe('useToastQueue', () => {
 		const { result } = renderHook(() => useToastQueue(toastsRef, vi.fn(), vi.fn()))
 
 		act(() => {
-			result.current.start()
+			result.current.start(['a'])
 		})
 
 		act(() => {
@@ -111,132 +129,9 @@ describe('useToastQueue', () => {
 		const { result } = renderHook(() => useToastQueue(toastsRef, sync, onTimeout))
 
 		act(() => {
-			result.current.start()
+			result.current.start([])
 		})
 
 		expect(result.current.runningRef.current).toBe(false)
-	})
-})
-
-describe('useToastTimer', () => {
-	it('fires start() after the configured duration', () => {
-		vi.useFakeTimers()
-
-		try {
-			const toastsRef: { current: ToastData[] } = { current: [makeToast('a')] }
-
-			const start = vi.fn()
-
-			const stop = vi.fn()
-
-			const { result } = renderHook(() => useToastTimer(toastsRef, 500, start, stop))
-
-			act(() => {
-				result.current.startTimer()
-			})
-
-			act(() => {
-				vi.advanceTimersByTime(500)
-			})
-
-			expect(start).toHaveBeenCalled()
-		} finally {
-			vi.useRealTimers()
-		}
-	})
-
-	it('pauses, stops the timer, and resumes from the remaining duration', () => {
-		vi.useFakeTimers()
-
-		try {
-			const toastsRef: { current: ToastData[] } = { current: [makeToast('a')] }
-
-			const start = vi.fn()
-
-			const stop = vi.fn()
-
-			const { result } = renderHook(() => useToastTimer(toastsRef, 1000, start, stop))
-
-			act(() => {
-				result.current.startTimer()
-			})
-
-			act(() => {
-				vi.advanceTimersByTime(300)
-			})
-
-			act(() => {
-				result.current.pause()
-			})
-
-			expect(stop).toHaveBeenCalled()
-
-			act(() => {
-				vi.advanceTimersByTime(1000)
-			})
-
-			expect(start).not.toHaveBeenCalled()
-
-			act(() => {
-				result.current.resume()
-			})
-
-			// 700ms remain of the 1000. A full second would pass on a restart too.
-			act(() => {
-				vi.advanceTimersByTime(699)
-			})
-
-			expect(start).not.toHaveBeenCalled()
-
-			act(() => {
-				vi.advanceTimersByTime(1)
-			})
-
-			expect(start).toHaveBeenCalledOnce()
-		} finally {
-			vi.useRealTimers()
-		}
-	})
-
-	it('does not resume when the toast list is empty', () => {
-		vi.useFakeTimers()
-
-		try {
-			const toastsRef: { current: ToastData[] } = { current: [] }
-
-			const start = vi.fn()
-
-			const { result } = renderHook(() => useToastTimer(toastsRef, 1000, start, vi.fn()))
-
-			act(() => {
-				result.current.resume()
-			})
-
-			act(() => {
-				vi.advanceTimersByTime(2000)
-			})
-
-			expect(start).not.toHaveBeenCalled()
-		} finally {
-			vi.useRealTimers()
-		}
-	})
-
-	it('resetRemaining defaults to the original duration when no argument is passed', () => {
-		const toastsRef: { current: ToastData[] } = { current: [] }
-
-		const { result } = renderHook(() => useToastTimer(toastsRef, 1000, vi.fn(), vi.fn()))
-
-		act(() => {
-			result.current.resetRemaining(250)
-		})
-
-		expect(result.current.remainingRef.current).toBe(250)
-
-		act(() => {
-			result.current.resetRemaining()
-		})
-
-		expect(result.current.remainingRef.current).toBe(1000)
 	})
 })

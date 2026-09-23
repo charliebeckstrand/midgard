@@ -4,9 +4,9 @@ import { type RefObject, useCallback, useRef } from 'react'
 import type { ToastData } from './types'
 
 /**
- * Drives the staggered exit queue for {@link ToastProvider}. `start` snapshots
- * the non-persistent toasts and removes them one at a time, advancing on each
- * `handleExitComplete` so their leave animations don't overlap.
+ * Drives the staggered exit queue for {@link ToastProvider}. `start` adds the toasts whose
+ * time is up, and the queue removes them one at a time. It advances on each
+ * `handleExitComplete`, so that their leave animations do not overlap.
  *
  * @param onRemove - Called with each toast the queue takes out of the list, after the
  * removal. The queue does not name the reason; the provider reads one from the toast.
@@ -30,29 +30,46 @@ export function useToastQueue(
 	}, [])
 
 	const next = useCallback(() => {
-		const id = queueRef.current.shift()
+		let removed: ToastData | undefined
 
-		if (!id) {
-			runningRef.current = false
+		// Skips an id that left by another route after it was queued: its removal
+		// has no leave animation of its own, so the queue would stall on it.
+		while (!removed) {
+			const id = queueRef.current.shift()
 
-			return
+			if (!id) {
+				runningRef.current = false
+
+				return
+			}
+
+			removed = toastsRef.current.find((t) => t.id === id)
 		}
 
-		const removed = toastsRef.current.find((t) => t.id === id)
+		const { id } = removed
 
 		toastsRef.current = toastsRef.current.filter((t) => t.id !== id)
 		sync()
 
-		if (removed) onRemove(removed)
+		onRemove(removed)
 	}, [toastsRef, sync, onRemove])
 
-	const start = useCallback(() => {
-		runningRef.current = true
+	// Adds `ids` behind the ids already queued. A running queue takes them on its
+	// next advance; an idle queue starts at once.
+	const start = useCallback(
+		(ids: string[]) => {
+			for (const id of ids) {
+				if (!queueRef.current.includes(id)) queueRef.current.push(id)
+			}
 
-		queueRef.current = toastsRef.current.filter((t) => !t.persist).map((t) => t.id)
+			if (runningRef.current) return
 
-		next()
-	}, [toastsRef, next])
+			runningRef.current = true
+
+			next()
+		},
+		[next],
+	)
 
 	const handleExitComplete = useCallback(() => {
 		if (runningRef.current) next()
