@@ -1,3 +1,4 @@
+import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
@@ -168,6 +169,19 @@ describe('PdfViewer', () => {
 		const { container } = renderUI(<PdfViewer pages={[]} />)
 
 		expect(bySlot(container, 'pdf-viewer-viewport')).toHaveTextContent('No pages to display')
+	})
+
+	/*
+	 * The load starts in an effect, so the server render and the first client render of a cold
+	 * `src` see no pages and no load. Asserted on the server render: no effect runs there, so it
+	 * is the one frame nothing can repair.
+	 */
+	it('paints the loading placeholder, not the empty state, before a src load starts', () => {
+		const html = renderToString(<PdfViewer src="/cold.pdf" />)
+
+		expect(html).toContain('aria-label="Loading PDF"')
+
+		expect(html).not.toContain('No pages to display')
 	})
 
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {

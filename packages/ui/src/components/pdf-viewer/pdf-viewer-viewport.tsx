@@ -28,6 +28,7 @@ export function PdfViewerViewport() {
 		safePage,
 		total,
 		loading,
+		pending,
 		error,
 		visible,
 		fit,
@@ -83,7 +84,9 @@ export function PdfViewerViewport() {
 				<div role="alert" className={cn(k.viewport.page.empty)}>
 					Failed to load PDF: {error.message}
 				</div>
-			) : loading ? (
+			) : loading || pending ? (
+				// `pending` covers the render before the load starts, on the server and on a cold
+				// `src`. Without it, that render shows the empty state for one frame.
 				<output
 					data-slot="pdf-viewer-page-frame"
 					aria-label="Loading PDF"
