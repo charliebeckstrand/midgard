@@ -169,7 +169,7 @@ type GridTableResult<T> = {
 	 * {@link GridColumn}. The header, body `<colgroup>`, and menus all read this.
 	 */
 	visibleColumns: GridColumn<T>[]
-	/** Rows to render: the engine-transformed slice when paginating/filtering client-side, else the supplied `rows`. */
+	/** Rows to render: the engine leaves when it materializes, else the sorted view, else the supplied `rows`. */
 	renderRows: T[]
 	/**
 	 * Per-row keys parallel to {@link renderRows}. Each is the value `getKey`
@@ -316,8 +316,8 @@ function useGroupingSlice(
 
 /**
  * Derives the row-model views the body reads. One is the grouped display list
- * (`groupedRows`, group headers interleaved with expanded leaves, or `null`
- * when ungrouped). The other is the flat `renderRows`/`rowKeys` backing
+ * (`groupedRows`, the top-level group-header rows with their leaves on
+ * `subRows`, or `null` when ungrouped). The other is the flat `renderRows`/`rowKeys` backing
  * selection identity and the data count. `getRowModel().rows` is
  * reference-stable until the sort, filter, pagination, or grouping state
  * changes. Memoizing on it
@@ -391,8 +391,8 @@ function useGridRowModel<T>(args: {
 
 /**
  * The off-engine client sort. When a sort is the grid's *only* transform, it
- * orders `rows` directly through {@link sortRowsSmart}, which matches the
- * engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
+ * orders `rows` directly through {@link computeSortOrder} and
+ * {@link materializeSort}, which match the engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
  * materializes the engine's Row-per-datum model. That is the same win the
  * lite-cell body buys mount and update, extended to sort. `null` when inactive
  * (no sort, or a filter / pagination / grouping is also live and the engine
@@ -741,7 +741,7 @@ export function useGridTable<T>({
 	const { grouped, groupingState, resolvedExpanded, onGroupingChange, onExpanded } =
 		useGroupingSlice(grouping, expanded, onExpandedChange)
 
-	// Frozen columns, keyed off each column's `pinned` flag. The engine pulls them
+	// Frozen columns, keyed off each column's `locked` or `pinned` flag. The engine pulls them
 	// to their edge via `columnPinning`, so these id lists drive the sticky order.
 	const { state: columnPinning, hasPinned } = useMemo(
 		() => toColumnPinningState(columns),

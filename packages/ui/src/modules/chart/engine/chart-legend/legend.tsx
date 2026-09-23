@@ -846,8 +846,8 @@ export function ChartLegend({
 				// column so a legend stretched to the plot's full height reads level with
 				// it, and horizontally so the left-aligned block sits centered in the
 				// reserved width rather than pinned to the plot. Below that width the panel
-				// stacks under the plot at full width. The wrap row centers its entries on
-				// mobile and justifies them edge to edge from sm.
+				// stacks under the plot at full width. The wrap row centers its entries at
+				// all widths.
 				panel
 					? 'flex flex-col items-center justify-center @sm:w-[min(16rem,40cqw)] @sm:shrink-0'
 					: 'flex flex-wrap items-center justify-center',

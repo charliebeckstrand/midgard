@@ -64,8 +64,7 @@ function obscuringInsets(cell: HTMLElement): { top: number; left: number; right:
 /**
  * Active-cell flag for one navigable cell. Subscribes to the cursor store, and
  * toggles `data-active` on its owning `role="gridcell"` `<td>` when this cell
- * becomes (or stops being) the active one. It is the read-only mirror of the
- * editable grid's `aria-selected` write. The `<td>`'s `cellProps` are
+ * becomes (or stops being) the active one. The `<td>`'s `cellProps` are
  * non-reactive, so the memoized row holds across cursor moves. The styling
  * therefore rides this imperative attribute instead. The active cell also
  * scrolls into view, clear of the grid's sticky header and pinned columns.
@@ -178,8 +177,8 @@ export function seatingCellProps<T>(args: {
  * marker wrapping its content. Display-order row/column indices resolve at
  * cell-render time from `rowIndexMapRef`/`colIndexMapRef`. The augmented columns
  * therefore stay referentially stable across cursor moves, and the memoized rows
- * hold. Only the marker whose active flag flipped re-renders. Select/actions columns, and a
- * non-navigable grid (`enabled` false), pass through untouched.
+ * hold. Only the marker whose active flag flipped re-renders. The non-data columns
+ * (selection, actions, drag handle, expander), and a non-navigable grid (`enabled` false), pass through untouched.
  *
  * @returns The augmented `GridColumn<T>[]` to feed the engine.
  * @internal

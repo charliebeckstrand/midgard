@@ -26,8 +26,9 @@ type ChartCartesianLegendProps = {
  * result. It is the one place {@link BarChart}, {@link LineChart},
  * {@link AreaChart}, and {@link ComboChart} share their legend wiring. A new
  * switch or a changed prop therefore lands in all four at once, rather than
- * four identical blocks drifting apart. Renders nothing for a lone series (no legend resolved), so a chart
- * hands it straight to the frame's `legend` slot.
+ * four identical blocks drifting apart. Renders nothing when no legend resolves,
+ * for example a lone series with `legend` unset. A chart therefore hands it
+ * straight to the frame's `legend` slot.
  *
  * @internal
  */

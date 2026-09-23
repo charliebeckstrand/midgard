@@ -114,8 +114,9 @@ import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
  * Whether the grid's current state permits a manual row drag-reorder. A manual
  * order only holds against the natural row order, so reordering stands down
  * whenever the rendered rows diverge from the source set. That covers an active
- * column sort, a filtered/searched view (fewer rendered rows than source),
- * pagination, virtualization, and an empty or loading grid. The rendered-length check
+ * column sort and a filtered/searched view (fewer rendered rows than source). It
+ * also covers pagination, virtualization, an active row grouping, and an empty or
+ * loading grid. The rendered-length check
  * catches client filtering, search, and client pagination in one; the pagination
  * and virtualization flags catch the server-page and windowed cases.
  *
@@ -303,9 +304,8 @@ function widthGateClass(revealed: boolean): string | undefined {
 }
 
 /**
- * The read-only data-grid implementation behind {@link Grid}. Kept a separate
- * component so the public dispatcher calls no hooks ahead of its `editable`
- * branch. The rules of hooks forbid a conditional early return over them.
+ * The data-grid implementation behind {@link Grid}, read-only and editable.
+ * {@link Grid} renders it through a memoized wrapper.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -697,9 +697,6 @@ export function GridData<T>({
 		[setHiddenColumns],
 	)
 
-	// TanStack Table is the data engine: rows flow through its row model, which
-	// also surfaces the pagination state and handlers the footer renders from.
-	// When `pagination` is unset the model is bypassed and `renderRows === rows`.
 	// Measured to auto-size resizable columns to fill the available width.
 	const wrapperRef = useRef<HTMLDivElement>(null)
 
@@ -710,6 +707,10 @@ export function GridData<T>({
 		[manualGroupingActive, groupRow],
 	)
 
+	// TanStack Table is the data engine: rows flow through its row model, which
+	// also surfaces the pagination state and handlers the footer renders from.
+	// Without an active client transform the model is bypassed, and `renderRows`
+	// is the sorted view or `rows` itself.
 	const {
 		table,
 		visibleColumns,
@@ -764,8 +765,8 @@ export function GridData<T>({
 		density,
 	})
 
-	// Cursor index space: rendered rows and the visible *data* columns (it skips
-	// select / actions cells). Synced from the refs here — after the engine resolves
+	// Cursor index space: rendered rows and the visible *data* columns. It skips the
+	// non-data columns (selection, actions, drag handle, expander). Synced from the refs here — after the engine resolves
 	// order and visibility — so the cell ids, `aria-activedescendant`, and
 	// click-to-focus track the displayed grid even as it sorts, filters, or paginates.
 	const dataColumns = useMemo(() => visibleColumns.filter(isDataColumn), [visibleColumns])

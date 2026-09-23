@@ -139,7 +139,7 @@ function levelUp(
  * instead of stretching the frozen rail. Returns integer widths keyed by column
  * id, summing to exactly the space consumed; an empty profile list yields `{}`.
  *
- * Pure: non-data columns (selection / actions), `width`-pinned columns, and
+ * Pure: non-data columns (selection, actions, drag handle, expander), `width`-pinned columns, and
  * manually drag-resized columns are resolved by the caller and excluded from
  * `profiles`. Their widths are already subtracted from `available`.
  *

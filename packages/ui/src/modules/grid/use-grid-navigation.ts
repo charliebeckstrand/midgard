@@ -162,6 +162,7 @@ function resolvePageStep(key: string, container: HTMLElement | null, table: HTML
  * - The subscription `store`.
  * - The `cellId` id-deriver matched by the active pointer.
  * - The clamped `moveTo` (for click-to-focus).
+ * - The `reconcile` re-clamp, which the grid runs as the bounds change.
  * - `navTableProps` to spread onto the `<table>` (or `undefined` when disabled).
  *
  * @internal

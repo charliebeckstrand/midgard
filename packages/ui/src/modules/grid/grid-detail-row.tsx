@@ -98,7 +98,7 @@ type GridDetailRowProps = {
  */
 export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetailRowProps) {
 	// A detail panel holds whatever the caller put in it — a nested grid, a chart
-	// — so a closed one is the most expensive thing a grouped body keeps live.
+	// — so a closed one is the most expensive row the flat body keeps live.
 	const reveal = useGridRevealHold(expanded)
 
 	return (

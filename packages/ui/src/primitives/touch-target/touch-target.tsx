@@ -16,9 +16,10 @@ import type { ReactNode } from 'react'
  * activation region, not the visible bounds.
  *
  * `__tests__/primitives/touch-target.test.tsx` asserts the floor classes under
- * jsdom. The geometry they resolve to has no browser pin, so the activation
- * region above is unverified. Axe cannot stand in for one, because its
- * target-size rule measures the host's own border-box and never sees the span.
+ * jsdom. `__tests__/browser/touch-target-geometry.test.tsx` measures the
+ * activation region in Chromium, on a fine and an emulated coarse pointer. Axe
+ * cannot stand in for that pin, because its target-size rule measures the
+ * host's own border-box and never sees the span.
  */
 export function TouchTarget({ children }: { children: ReactNode }) {
 	return (

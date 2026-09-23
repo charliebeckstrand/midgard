@@ -29,7 +29,7 @@ export type ChartValueAxis = {
 	/**
 	 * Formats this axis's ticks and its series' tooltip, label, and data-table
 	 * values — a currency for `y`, a percent for `y2`.
-	 * @defaultValue the chart's `formatValue`
+	 * @defaultValue the chart's `formatValue`, except a point chart's `x` axis, which takes the locale default
 	 */
 	format?: (value: number) => string
 	/** A short title drawn along the axis, naming the measure it scales. */

@@ -22,7 +22,7 @@ const GROUP_DRAG_MODIFIERS = [restrictToVerticalAxis, restrictToParentElement]
 
 /** Props for {@link GridRowManager}. */
 export type GridRowManagerProps = {
-	/** The grouped rows, in display order — a group per row-group with its leaves. */
+	/** The row groups in display order, one entry per group. */
 	groups: GridRowManagerGroup[]
 	/** Sets (or clears with `undefined`) a group's color. */
 	onRecolor: (key: string | number, color: PaletteColor | undefined) => void

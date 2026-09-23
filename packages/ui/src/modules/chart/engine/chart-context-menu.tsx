@@ -102,7 +102,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
  *
  * Each names a switchboard or a view the copy holds separately from the chart it
  * was cloned from. They are the legend's hidden set and emphasis, and the map's
- * view transform on a Choropleth. Shed on the clone rather than at each chart, because
+ * view transform, when a map element declares it. Shed on the clone rather than at each chart, because
  * the clone is the one place that knows a second instance exists.
  *
  * @internal

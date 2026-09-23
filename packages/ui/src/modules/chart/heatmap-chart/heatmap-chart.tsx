@@ -208,8 +208,9 @@ type HeatmapRangeLegendProps = RangeScale & {
 
 /**
  * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
- * wired to the grid. Its arrow tracks the pointed cell's bin, and a probe of the
- * bar emphasises that class's cells through the focus context, dimming the rest.
+ * wired to the grid. Its arrow marks the exact value of the pointed cell. A probe
+ * of the bar emphasises the cells of that class through the focus context, and
+ * dims the rest.
  * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
  * the bar's resolved placement — vertical beside the plot, horizontal above or
  * below — so the arrow and slider transpose together.
@@ -394,10 +395,10 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 
 	const fill = cell === null ? null : fills[cell.row * cols + cell.col]
 
-	// `track="point"`: a pure-hover readout repositions on every pointer move, so it
-	// skips autoUpdate's per-open observer wiring — ~1.5x cheaper across the
-	// open/reposition/teardown cycle (`tooltip-track.bench`). Safe here because the
-	// heatmap tooltip has no click-pinned mode that would need autoUpdate on scroll.
+	// `track="point"`: the readout anchors to the pointer point and skips
+	// autoUpdate's per-open observer wiring — ~1.5x cheaper across the
+	// open/reposition/teardown cycle (`tooltip-track.bench`). The heatmap sets it
+	// under both triggers, so a click-pinned readout also runs without autoUpdate.
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{cell !== null && (
@@ -624,8 +625,8 @@ function useHeatmap<T>(
 		bins,
 		domain,
 		ticks: heatmapTicks(matrix, xBand, yBand, plot),
-		// A cached thunk ({@link ChartReadoutSource}); the deferred table and hover
-		// tooltip materialize it off the mount render.
+		// A cached thunk ({@link ChartReadoutSource}). The data table and the context
+		// menu's CSV actions call it.
 		readout: cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format)) : null,
 		format,
 	}

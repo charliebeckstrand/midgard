@@ -218,7 +218,7 @@ export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
 }
 /**
  * Assembles the table-backed {@link GridColumnResize} controls (all but
- * `sizeToFit`, grafted on by the hook); every method reads it live. `columnFloors`
+ * `sizeToFit` and `reset`, which the hook adds); every method reads it live. `columnFloors`
  * carries the autosizer's per-column hard floor, so the resize `min` matches the
  * width the header needs. A single-word header reports (and can't be dragged
  * below) its full width, and a multi-word one its icons. A column the autosizer

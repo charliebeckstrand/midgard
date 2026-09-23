@@ -320,7 +320,7 @@ export function bandScale({ count, range, padding = 0.2 }: BandScaleOptions): Ba
  * The internal boundaries between adjacent bands: the `count - 1` slot edges
  * that sit halfway between neighbouring centers. None sits at the outer ends,
  * where the frame already bounds the plot. The category dividers rule one
- * dashed line per gap. Empty below two bands or on a collapsed (zero-step)
+ * line per gap. Empty below two bands or on a collapsed (zero-step)
  * scale.
  *
  * @internal

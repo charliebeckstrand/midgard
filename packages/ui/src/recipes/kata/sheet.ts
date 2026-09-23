@@ -2,8 +2,8 @@
  * Sheet kata: object-literal surface for the `<Sheet>` edge drawer, built by
  * bridging the shared `panel` recipe. The `panel` sub-recipe axes on `side`,
  * `width`, and `surface`. The `backdrop` mirrors the glass/flat surface. The
- * bridged `title` / `description` / `body` / `footer` slots, plus `motion`,
- * complete the dialog chrome.
+ * bridged `title` / `description` / `body` / `footer` slots, the `handle` drag
+ * grip, and `motion` complete the dialog chrome.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'

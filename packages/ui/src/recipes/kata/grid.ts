@@ -1,9 +1,9 @@
 /**
  * Data-table kata: object-literal surface for the table chrome that sits
  * around `kata/table` — sticky head, batch-action bar, sort controls, column
- * drag-reorder, and the row-loading pulse. No top-level variants axis; the only
- * sub-recipe is the `sort.icon`, inked or muted by whether its column is the
- * active sort.
+ * drag-reorder, and the row-loading pulse. No top-level variants axis. Three
+ * sub-recipes: `sort.icon`, inked or muted by the active sort, and the
+ * density-axed `resize.metrics` and `rowGroup.reveal.pad`.
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
@@ -300,8 +300,8 @@ export const k = {
 		// One-line cell content that truncates to an ellipsis at the column width.
 		// `block` gives the span the cell's width so the fixed/auto column bounds it.
 		truncate: ['block', 'truncate'],
-		// The search-highlight wash behind a matched substring when `search.filter`
-		// is `false` (mark, don't prune). The same mode-aware amber the JsonTree's
+		// The search-highlight wash behind a matched substring when `search.mode`
+		// is `'highlight'` (mark, don't prune). The same mode-aware amber the JsonTree's
 		// search highlight uses (`kata/json-tree` `highlight`), so a match reads the
 		// same across the system. `text-inherit` drops the browser's default
 		// yellow/black <mark> ink, and the wash carries no box metrics, so the marked

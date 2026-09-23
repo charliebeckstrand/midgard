@@ -2,7 +2,7 @@
  * Text kata: recipe-shaped surface for `<Text>` with two independent colour
  * axes plus a type scale. `tone` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
- * meaning-bearing axis. It is an emphasis ladder, not the feedback quartet
+ * meaning-bearing axis. It is an emphasis ladder, not the feedback set
  * `severity` names on Alert and the Control cascade. `color` is a separate
  * literal-hue override authored inline with `mode()`. A consumer sets one or
  * the other — tone for emphasis, color for a bespoke tint. `size` steps the type scale (`xs`/`sm`/`md`/`lg` →

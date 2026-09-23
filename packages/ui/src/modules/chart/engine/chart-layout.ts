@@ -243,7 +243,7 @@ export function plotRect(
  * label when there is room, else every nth — thinned by default. `slot` is one
  * label's footprint along the axis with a breath of air. The same math
  * therefore thins by row width (value on x) or by column height (categories
- * down y). A vertical chart opted into {@link CartesianFrameProps.tickRotation}
+ * down y). A vertical chart opted into {@link ChartCategoryAxis.tickRotation}
  * tilts instead of thinning once the same fit check fails — see
  * {@link willThin}.
  *
@@ -271,7 +271,8 @@ export function willThin(count: number, axisLength: number, slot: number): boole
 }
 
 /**
- * One placed value-axis title: its text, anchor point, and rotation about it.
+ * One placed axis title (value or band): its text, anchor point, and rotation
+ * about it.
  * The layout reserves the band the title sits in, so drawing it is a plain
  * `<text>` at the anchor.
  *
@@ -323,7 +324,7 @@ export type CartesianLayout = {
 	 * aligned.
 	 */
 	snapSeries: number[][]
-	/** The value-axis titles, placed inside their reserved bands; empty without titles. */
+	/** The axis titles (value and band), placed inside their reserved bands; empty without titles. */
 	titles: ChartAxisTitlePlacement[]
 	/**
 	 * Whether the {@link CartesianLayoutInput.valueHeadroom} asked for was
@@ -384,7 +385,7 @@ export type CartesianLayoutInput = {
 	/**
 	 * Tilt overflowing category labels instead of thinning them; the vertical
 	 * layout's own concern, ignored by the horizontal one. See {@link
-	 * CartesianFrameProps.tickRotation}.
+	 * ChartCategoryAxis.tickRotation}.
 	 */
 	tickRotation?: boolean
 	/**
@@ -428,9 +429,9 @@ export type CartesianLayoutInput = {
 	/**
 	 * Pixels of clear room to reserve between a data extreme and its unpinned
 	 * value-axis edge. An extreme's value label then sits above the peak or below
-	 * the trough, rather than flipping onto the line. The line-bearing charts set
-	 * it when they draw single-series extreme labels. `0` is the default, and
-	 * every multi-series or label-less chart reserves nothing.
+	 * the trough, rather than flipping onto the line. The `LineChart` sets it when
+	 * it draws single-series extreme labels. `0` is the default, and every other
+	 * chart reserves nothing.
 	 * @defaultValue 0
 	 */
 	valueHeadroom?: number
@@ -877,7 +878,7 @@ function verticalValueAxes(
  * exists. The right gutter appears only once a right scale resolves.
  *
  * Category labels that would collide at the flat band height either thin (the
- * default) or tilt, under {@link CartesianFrameProps.tickRotation}. A tilt takes
+ * default) or tilt, under {@link ChartCategoryAxis.tickRotation}. A tilt takes
  * the band-height decision, so the value scales resolve a second time against
  * the taller band once tilting wins.
  *

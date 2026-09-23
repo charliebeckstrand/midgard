@@ -385,7 +385,7 @@ export function isAutoSized<T>(
  * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}). It
  * also resolves every data column's {@link columnFloor}, held columns included.
  * A drag therefore honors the floor even on a column that sits out the
- * distribution. Non-data columns (selection / actions), `width`-held columns,
+ * distribution. Non-data columns (selection, actions, drag handle, expander), `width`-held columns,
  * and manually drag-resized columns are excluded from the profiles. Their widths
  * sum into `fixed` for the caller to reserve.
  *
@@ -426,7 +426,7 @@ export function measureColumnIntrinsics<T>({
 		const id = String(col.id)
 
 		if (!isDataColumn(col)) {
-			// Selection / actions columns keep their engine width and sit out the fit.
+			// Non-data columns (selection, actions, drag handle, expander) keep their engine width and sit out the fit.
 			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
 
 			continue

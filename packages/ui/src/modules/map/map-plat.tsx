@@ -390,8 +390,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
 		 * the plat can emphasise across SEVERAL of them at once. Give each plat
 		 * `legend={false}` and this prop, and drive it from whatever holds the shared
-		 * legend. That is a `ChoroplethChart`'s own range bar, or any control that
-		 * emits a bin id ({@link binEmphasisId}).
+		 * legend. That is any control that emits a bin id ({@link binEmphasisId}),
+		 * for example a range legend that the caller renders.
 		 *
 		 * The ids only line up across plats when the bins do. For the numeric mode
 		 * that means the same `colorRange`, `bins`, and an explicit `colorDomain`. Without

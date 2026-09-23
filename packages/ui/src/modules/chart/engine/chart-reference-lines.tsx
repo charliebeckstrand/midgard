@@ -96,9 +96,10 @@ export type ChartReferenceLinesProps = {
 	 */
 	animate?: boolean
 	/**
-	 * Draw each rule's value as a standing label at its far end — the
-	 * `labels.references` mode — in place of the hover tooltip. The rules then
-	 * shed their pointer target and float no surface. The caller also drops their
+	 * Draw a standing label at each rule's far end — the `labels.references`
+	 * mode — in place of the hover tooltip. The label shows the rule's own label
+	 * when it has one, else the rule's value. The rules then shed their pointer
+	 * target and float no surface. The caller also drops their
 	 * keyboard stop, since the label reads the value where pointing once did.
 	 * @defaultValue false
 	 */
@@ -125,7 +126,7 @@ type ReferenceRuleProps = {
 	/** The plot box, for flipping a far-end label off the near edge. */
 	plot: PlotRect
 	/**
-	 * Draw a standing value label at the rule's far end in place of the hover
+	 * Draw a standing label at the rule's far end in place of the hover
 	 * tooltip — the `labels.references` mode. The rule then sheds its wide hit
 	 * target and floats no surface, and the caller drops its keyboard stop.
 	 */
@@ -144,10 +145,10 @@ const REFERENCE_LABEL_INK = 'text-xs font-semibold tabular-nums'
 type ReferenceLabelAnchor = { x: number; y: number; textAnchor: 'end' | 'middle' }
 
 /**
- * Where a rule's standing label sits: at the far end of the rule, clear of the
- * dashes. A vertical rule labels above its far (right) end, flipping below when
- * the value crowds the top edge. A horizontal rule labels at the top of its far
- * end. @internal
+ * Where a rule's standing label sits, clear of the dashes. In a vertical chart,
+ * the label sits above the rule's right end. It flips below when the value
+ * crowds the top edge. In a horizontal chart, the label sits at the top of the
+ * rule. @internal
  */
 function referenceLabelAnchor(
 	orientation: ChartOrientation,
@@ -198,12 +199,12 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
 }
 
 /**
- * The labelled rendering: the rule under a standing value label at its far end,
+ * The labelled rendering: the rule under a standing label at its far end,
  * inked to match. That is a slot through its fill class, or a raw colour inline.
- * The rule's own label goes in as a prefix where it has one. It floats no
- * tooltip and lays no hit target. The label reads what pointing would, so the
- * rule drops the hover path (and the caller drops its keyboard stop). The label
- * rides the mount rise, so rule and label reveal as one.
+ * The label shows the rule's own label when it has one, else the rule's value.
+ * It floats no tooltip and lays no hit target. The label reads what pointing
+ * would, so the rule drops the hover path (and the caller drops its keyboard
+ * stop). The label rides the mount rise, so rule and label reveal as one.
  *
  * @internal
  */

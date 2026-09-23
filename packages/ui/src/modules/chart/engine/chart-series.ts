@@ -17,8 +17,8 @@ export const READOUT_GAP = '—'
 
 /**
  * A series mark-group's classes: the legend/keyboard dim rides the group wrapper
- * so a mark's own inline motion opacity still composes over it. Shared by the
- * line and scatter mark renderers.
+ * so a mark's own inline motion opacity still composes over it. The line mark
+ * renderers use it.
  *
  * @internal
  */

@@ -37,7 +37,7 @@ export type GridEditCellContext<T> = {
 	 * staged values, so there is no per-cell close.
 	 */
 	commit: (next?: unknown) => void
-	/** Discard the edit and close the editor. */
+	/** Revert the cell to the row's current value. The editor stays open. */
 	cancel: () => void
 	/** Accessible label naming the cell under edit, e.g. `Edit Status, row 2`. */
 	ariaLabel: string
@@ -49,7 +49,7 @@ export type GridEditCellContext<T> = {
  * Render function for a column's custom in-cell editor, invoked with a
  * {@link GridEditCellContext} when its cell enters edit mode. Supersedes the
  * editor the grid would otherwise infer from the cell value's primitive type
- * (string → text, number → number, boolean → checkbox).
+ * (string → text, number → number, boolean → yes/no listbox).
  *
  * @typeParam T - The row type the editor reads from and writes back to.
  */

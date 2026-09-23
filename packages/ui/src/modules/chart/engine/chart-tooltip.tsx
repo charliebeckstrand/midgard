@@ -136,9 +136,8 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
 
 /**
  * The hover readout: one tooltip listing every series at the pointed category,
- * values leading their labels. The panel is the real Tooltip component's:
- * `TooltipContent` driven through `TooltipContext` with the chart's own
- * floating state, anchored to the point through `useClientPoint`. The chart
+ * values leading their labels. The panel is the shared {@link TooltipPointer},
+ * which drives the real Tooltip chrome from a client point. The chart
  * readout therefore wears exactly the Tooltip chrome, motion, and glass
  * adoption. `flip` / `shift` keep it inside the frame at the edges.
  *

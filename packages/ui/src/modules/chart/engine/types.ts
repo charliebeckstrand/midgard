@@ -231,7 +231,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * switch that brings it back. A placement moves it:
 	 *
 	 * - A row under the plot (`'bottom'`, the default) or above it (`'top'`),
-	 *   centered on mobile and justified edge to edge from `sm`.
+	 *   centered at all widths.
 	 * - A column panel beside it (`'left'` / `'right'`). It sits side by side once
 	 *   the chart's own container is wide enough for both, and stacks under the
 	 *   plot below that width.
@@ -278,7 +278,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * normally, so a re-query (say a dashboard filter change) transitions rather
 	 * than snapping. A resize or a legend toggle is not a data
 	 * change and updates in place; a reduced-motion preference skips straight to
-	 * the new data.
+	 * the new data. Scatter and bubble charts do not replay on a data change.
 	 * @defaultValue false
 	 */
 	animate?: boolean
@@ -323,14 +323,14 @@ export type ChartBaseProps<T> = AccessibleName & {
  * @internal
  */
 export type CartesianFrameProps = {
-	/** Resolves against enclosing Density; sets the default frame height and tick count. */
+	/** Resolves against enclosing Density; sets the tick-count target. */
 	size?: Step
 	/**
 	 * The chart's axes. `true` (the default) draws the value and category axes
 	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
 	 * The object form configures each axis under its own key, matching the names a
 	 * series' `axis` binding uses. The category axis is `x`
-	 * (`{ type, format, separator, title }`), and a value axis is `y` or `y2`
+	 * (`{ type, format, separator, title, tickRotation }`), and a value axis is `y` or `y2`
 	 * (`{ min, max, format, title, grid }`). An omitted key keeps that axis's
 	 * defaults, so a chart names only the axes it tunes.
 	 * @defaultValue true
@@ -349,7 +349,7 @@ export type CartesianFrameProps = {
 	 * or averages the marks read against. Each value folds into the domain, so an
 	 * off-data line stays on-frame. The rules draw over the marks, so a mark
 	 * crossing one stays legible. Where the legend shows, each rule also names
-	 * itself in it as a static identity chip.
+	 * itself in it as a switch that toggles the rule.
 	 */
 	reference?: ChartReferenceLine[]
 	/**
