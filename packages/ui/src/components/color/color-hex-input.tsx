@@ -3,6 +3,7 @@
 import { Copy } from 'lucide-react'
 import type { ChangeEvent } from 'react'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { ControlContext, useControl } from '../control/context'
 import { CopyButton } from '../copy-button'
 import { Label } from '../fieldset'
 import { Input } from '../input'
@@ -10,9 +11,18 @@ import { hexToHsva, hsvaToHex } from './color-utilities'
 import { useColorPanelContext } from './context'
 import { useColorField } from './use-color-field'
 
-/** Hex entry with a copy affordance, two-way bound to the panel's colour. */
+/**
+ * Hex entry with a copy affordance, two-way bound to the panel's colour.
+ *
+ * @remarks The hex input and its label are sub-parts, not the field control.
+ * They opt out of an enclosing `<Control>` / `<Field>`, so they do not take
+ * its label id, `required`, `aria-describedby` or validation state. They keep
+ * its variant.
+ */
 export function ColorHexInput() {
 	const { hsva, setHsva, alpha, disabled, size } = useColorPanelContext()
+
+	const control = useControl()
 
 	const id = useIdScope().sub('hex')
 
@@ -31,7 +41,7 @@ export function ColorHexInput() {
 	}
 
 	return (
-		<>
+		<ControlContext value={undefined}>
 			<Label className="sr-only" htmlFor={id}>
 				Hex
 			</Label>
@@ -46,6 +56,7 @@ export function ColorHexInput() {
 				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
 				size={size}
+				variant={control?.variant}
 				data-slot="color-hex-input"
 				prefix="#"
 				spellCheck={false}
@@ -53,6 +64,6 @@ export function ColorHexInput() {
 				className="font-mono uppercase"
 				suffix={<CopyButton text={`#${hex}`} icon={<Copy />} aria-label="Copy hex value" />}
 			/>
-		</>
+		</ControlContext>
 	)
 }
