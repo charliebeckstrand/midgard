@@ -1,5 +1,5 @@
 /**
- * Panel archetype: slot bundle shared by dialog, drawer, and sheet.
+ * Panel archetype: slot bundle shared by dialog, drawer, sheet, box, panel, and grid.
  * Owns the surface (fill + chrome), the slot layout (title /
  * description / header / body / footer arrangement), and the drag grip
  * a resizable panel is taken by. The katakana applicator wraps these

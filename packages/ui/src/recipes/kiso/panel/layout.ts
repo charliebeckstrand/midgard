@@ -1,5 +1,5 @@
 /**
- * Panel archetype: slot layout. Shared by dialog, sheet, and drawer.
+ * Panel archetype: slot layout. Shared by dialog, sheet, drawer, and panel.
  *
  * Slot gaps come from `gap-4` on `base`, not per-slot `mt-*`; slots
  * compose in any order. `gap` (vs `space-y`) survives `display: contents`

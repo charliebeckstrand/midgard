@@ -9,7 +9,7 @@
  * concern and stays inline; only a layer that ranks against *other surfaces*
  * belongs here.
  *
- * The order is the point, so read the rungs as a ladder rather than as four
+ * The order is the point, so read the rungs as a ladder rather than as five
  * independent values:
  *
  * `overlay` seals the page for a transaction — Dialog, Sheet, Drawer.
