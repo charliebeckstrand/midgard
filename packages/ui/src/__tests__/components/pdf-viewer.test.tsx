@@ -260,18 +260,26 @@ describe('PdfViewer', () => {
 		expect(rail.className).toContain('transition-[margin]')
 	})
 
-	it('opens the mobile thumbnails sheet when toggled', async () => {
+	/*
+	 * A dialog opener, not a disclosure toggle. The name states the one action the button has,
+	 * and `aria-expanded` reports the state of the dialog it opens.
+	 */
+	it('opens the mobile thumbnails sheet from a dialog opener', async () => {
 		stubMatchMedia(() => false)
 
 		renderUI(<PdfViewer pages={pages} />)
 
-		const toggle = screen.getByLabelText('Show thumbnails')
+		const opener = screen.getByLabelText('Show thumbnails')
 
-		expect(toggle).toHaveAttribute('aria-expanded', 'false')
+		expect(opener).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(opener).toHaveAttribute('aria-expanded', 'false')
 
 		const user = userEvent.setup()
 
-		await user.click(toggle)
+		await user.click(opener)
+
+		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-haspopup', 'dialog')
 
 		expect(screen.getByLabelText('Show thumbnails')).toHaveAttribute('aria-expanded', 'true')
 	})
