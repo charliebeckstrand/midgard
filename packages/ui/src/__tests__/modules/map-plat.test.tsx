@@ -802,6 +802,28 @@ describe('MapPlat choropleth mode', () => {
 		expect(bySlot(container, 'map-regions-lit')).toBeNull()
 	})
 
+	it('keeps the hover arrow on the bar for a value outside a narrower colorDomain', () => {
+		const { container } = renderUI(choropleth({ legend: 'range', colorDomain: [25, 75] }))
+
+		const arrowTop = () => {
+			const style = bySlot(container, 'map-range-arrow')?.getAttribute('style') ?? ''
+
+			return Number(style.match(/top:\s*(-?[\d.]+)%/)?.[1] ?? Number.NaN)
+		}
+
+		const [alpha, , gamma] = allRegions(container)
+
+		// A = 0 sits below the domain floor, and C = 100 above its ceiling. Each pins
+		// to its end of the bar, not past it.
+		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
+
+		expect(arrowTop()).toBe(100)
+
+		fireEvent.pointerEnter(gamma as Element, { clientX: 300, clientY: 20 })
+
+		expect(arrowTop()).toBe(0)
+	})
+
 	it('marks the hovered region at its exact value on the range bar, not its bin centre', () => {
 		const { container } = renderUI(choropleth({ legend: 'range' }))
 

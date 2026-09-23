@@ -394,9 +394,10 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * for example a range legend that the caller renders.
 		 *
 		 * The ids only line up across plats when the bins do. For the numeric mode
-		 * that means the same `colorRange`, `bins`, and an explicit `colorDomain`. Without
-		 * the last one each plat bins to its own extent, and an id from one means
-		 * nothing to another.
+		 * that means `'linear'` binning with the same `colorRange`, `bins`, and an
+		 * explicit `colorDomain`. Without the domain each plat bins to its own
+		 * extent, and an id from one means nothing to another. Quantile bins
+		 * always cut each plat's own data, so they never line up.
 		 *
 		 * Omitted, the plat owns the state and its own legend drives it. A `null`
 		 * keeps it controlled with no emphasis (CONVENTIONS §7.3).

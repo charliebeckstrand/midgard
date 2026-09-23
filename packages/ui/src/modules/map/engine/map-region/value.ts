@@ -80,7 +80,9 @@ export function resolveValueBins<T>(
 } {
 	const values = data.map((datum) => toNumericCell(datum[valueKey]))
 
-	const resolved = valueExtent(values, domain)
+	// `domain` applies to linear binning. Quantile bins cut the data, so the
+	// scale spans the data extent, where the bins sit.
+	const resolved = valueExtent(values, binning === 'quantile' ? undefined : domain)
 
 	if (resolved === null) return { metas: [], domain: null, assign: () => null }
 

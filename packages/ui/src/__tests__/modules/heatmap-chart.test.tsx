@@ -481,3 +481,68 @@ describe('the range legend under quantile binning', () => {
 		expect(dimmed).toEqual([true, true, false, false])
 	})
 })
+
+describe('the range legend under quantile binning, continued', () => {
+	const cells = (values: number[]) =>
+		values.map((n, i) => ({ day: `D${Math.floor(i / 3)}`, hour: `H${i % 3}`, n }))
+
+	it('spans the data extent, not an explicit colorDomain', () => {
+		// `colorDomain` applies to linear binning. Quantile bins cut the data, so a
+		// wider domain would squeeze every class into a corner of the bar.
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Load"
+				width={400}
+				data={cells([10, 12, 18, 20])}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'n',
+						colorRange: ['#fff', '#aaa', '#555', '#000'],
+						colorDomain: [0, 100],
+						binning: 'quantile',
+					},
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'heatmap-range-track')
+
+		expect(track).toHaveAttribute('aria-valuemin', '10')
+
+		expect(track).toHaveAttribute('aria-valuemax', '20')
+	})
+
+	it('steps down past a class that tied thresholds leave empty', () => {
+		// Thresholds [1, 5, 5]: class 2 is [5, 5] and holds nothing. ArrowDown from
+		// the top class must reach the class below it, not sit at 5.
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Load"
+				width={400}
+				data={cells([1, 1, 1, 5, 5, 5, 5, 9, 9])}
+				series={[
+					{
+						xKey: 'hour',
+						yKey: 'day',
+						colorKey: 'n',
+						colorRange: ['#fff', '#aaa', '#555', '#000'],
+						bins: 4,
+						binning: 'quantile',
+					},
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'heatmap-range-track')
+
+		act(() => track.focus())
+
+		fireEvent.keyDown(track, { key: 'End' })
+
+		fireEvent.keyDown(track, { key: 'ArrowDown' })
+
+		expect(track).toHaveAttribute('aria-valuetext', '1–5')
+	})
+})
