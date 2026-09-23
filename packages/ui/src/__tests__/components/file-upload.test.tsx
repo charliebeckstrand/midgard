@@ -373,6 +373,17 @@ describe('FileUpload + Control', () => {
 		expect(hidden).not.toHaveAttribute('aria-label')
 	})
 
+	it('names the display field from the Field label', () => {
+		renderUI(
+			<Field>
+				<Label>Resume</Label>
+				<FileUploadInput />
+			</Field>,
+		)
+
+		expect(screen.getByPlaceholderText('Choose a file')).toHaveAccessibleName('Resume')
+	})
+
 	it.each([
 		['drop', <FileUploadDrop key="drop">Upload</FileUploadDrop>],
 		['input', <FileUploadInput key="input" />],

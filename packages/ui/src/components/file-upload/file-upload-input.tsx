@@ -27,7 +27,8 @@ import { activateOnEnterSpace, formatFileNames, selectionSummary } from './file-
  * The visible field is presentational. It opts out of the enclosing
  * `<Control>` / `<Field>`, so the id, `required` and `aria-describedby` go to
  * the hidden input only. The field still shows the disabled state, the
- * variant and the error ring of the enclosing Field.
+ * variant and the error ring of the enclosing Field. It is focusable, so it
+ * takes the Field Label as its name through `aria-labelledby`.
  *
  * @see {@link FileUploadDrop} · {@link FileUploadButton}
  */
@@ -63,12 +64,14 @@ export function FileUploadInput(props: FileUploadInputProps) {
 			/>
 			{/* The display field is not the control. It must not take the Field id,
 			    `required` or `aria-describedby`, so it renders outside the Control
-			    context and gets its presentational props explicitly. */}
+			    context and gets its presentational props explicitly. It is focusable,
+			    so it also takes the Field Label as its name. */}
 			<ControlContext value={undefined}>
 				<Tooltip disabled={!showTooltip}>
 					<TooltipTrigger>
 						<Input
 							readOnly
+							aria-labelledby={control?.labelledBy}
 							size={size}
 							variant={control?.variant}
 							disabled={disabled}
