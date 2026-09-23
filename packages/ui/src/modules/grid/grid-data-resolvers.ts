@@ -335,8 +335,8 @@ export function resolveHover<T>(
  * Fixed-layout pieces for a resizable grid: the `<colgroup>` of exact widths,
  * the `table-fixed` + trailing-padding class, and the total table width. A
  * resize therefore touches only its own column. `resizing` says whether a pointer
- * drag-resize is in flight; the wrapper flags it to paint the resize cursor
- * grid-wide and drop the hover wash. Inert (no colgroup, no width, not
+ * drag-resize is in flight; the wrapper flags it and the grid drops the hover
+ * wash. Inert (no colgroup, no width, not
  * resizing) when the grid is not resizable. Split out of {@link GridData} for
  * its cognitive-complexity budget.
  *
