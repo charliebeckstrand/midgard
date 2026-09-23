@@ -69,9 +69,10 @@ export type ListProps<T> = BaseListProps<T> &
  *
  * @remarks
  * Client component. Reorderable lists require a stable `getKey`; the index
- * fallback remounts items mid-drag and breaks keyboard-move refocus. Each row is
- * one Tab stop, on its content area when that area activates and on the `<li>`
- * otherwise — see {@link ListItem}.
+ * fallback remounts items mid-drag and breaks keyboard-move refocus. Each
+ * reorderable row adds one Tab stop of its own, on its content area when that
+ * area activates and on the `<li>` otherwise. A focusable child, such as a
+ * checkbox, keeps its own stop — see {@link ListItem}.
  *
  * @typeParam T - Shape of a single item.
  */
