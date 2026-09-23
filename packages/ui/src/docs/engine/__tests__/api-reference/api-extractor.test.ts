@@ -3,7 +3,7 @@ import fs from 'node:fs'
 import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { buildApi, createApiExtractor } from '../../api-reference'
+import { createApiExtractor } from '../../api-reference'
 import { aggregateHash } from '../../api-reference/engine/api-extractor'
 
 /**
@@ -44,22 +44,6 @@ const BAR_DEPENDS_ON_FOO: Record<string, string> = {
 		`import type { Tone } from '../foo/shared'`,
 		`/** A bar. */`,
 		`export function Bar(props: { tone?: Tone }) {`,
-		`\treturn props.tone ?? null`,
-		`}`,
-		'',
-	].join('\n'),
-}
-
-/** Put Foo's `{@link}` target under `src/primitives`, outside the roots `openProject` seeds. */
-const FOO_LINKS_OUTSIDE_ROOTS: Record<string, string> = {
-	'primitives/tone/tone.ts': [`/** A tone. */`, `export type Tone = 'a' | 'b'`, ''].join('\n'),
-	'components/foo/foo.tsx': [
-		`import type { Tone } from '../../primitives/tone/tone'`,
-		`/** A foo. */`,
-		`export function Foo(props: {`,
-		`\t/** Its tone, per {@link Tone}. */`,
-		`\ttone?: Tone`,
-		`}) {`,
 		`\treturn props.tone ?? null`,
 		`}`,
 		'',
@@ -251,6 +235,38 @@ describe('createApiExtractor', () => {
 		expect(second.bar).not.toBe(first.bar)
 	})
 
+	it('matches a fresh extraction after a {@link} target is declared in another barrel', () => {
+		// Foo links `Hue` before anything declares it. Bar then declares it. A barrel's
+		// output must not depend on whether a link target exists, or the edit to Bar
+		// leaves Foo's cached entry out of date with what a fresh pass reads.
+		const { srcDir } = fixture({
+			'components/foo/foo.tsx': [
+				`/** A foo. */`,
+				`export function Foo(props: {`,
+				`\t/** Its hue, per {@link Hue}. */`,
+				`\thue?: string`,
+				`}) {`,
+				`\treturn props.hue ?? null`,
+				`}`,
+				'',
+			].join('\n'),
+		})
+
+		const extractor = createApiExtractor(srcDir, { cacheDir: null })
+
+		extractor.getAll()
+
+		const bar = path.join(srcDir, 'components', 'bar', 'bar.tsx')
+
+		fs.writeFileSync(bar, `${fs.readFileSync(bar, 'utf8')}export type Hue = 'a' | 'b'\n`)
+
+		extractor.notifyChanged(bar)
+
+		const fresh = createApiExtractor(srcDir, { cacheDir: null }).getAll()
+
+		expect(extractor.getAll().foo).toEqual(fresh.foo)
+	})
+
 	it('replays the disk cache on a fresh extractor when nothing changed', () => {
 		const { srcDir, cacheDir } = fixture()
 
@@ -340,17 +356,5 @@ describe('createApiExtractor', () => {
 		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
 
 		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
-	})
-})
-
-describe('buildApi', () => {
-	// Pins `openProject`'s `resolveSourceFileDependencies` call, which is what
-	// puts a link target outside the seeded roots into the index. See its TSDoc.
-	it('resolves a link to a target outside the seeded roots', () => {
-		const { srcDir } = fixture(FOO_LINKS_OUTSIDE_ROOTS)
-
-		// The entry holds the name only. Nothing renders a target's signature or
-		// summary, so the extractor does not compute them.
-		expect(buildApi(srcDir).foo?.[0]?.props[0]?.links).toEqual(['Tone'])
 	})
 })

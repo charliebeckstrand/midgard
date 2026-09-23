@@ -1,38 +1,25 @@
 import type { ts } from 'ts-morph'
 import { LINK_RE, parseLinkToken } from '../link-syntax'
 
-type ExtractedDoc = { description?: string; links?: string[] }
+type ExtractedDoc = { description?: string }
 
 /**
- * Tells whether a `{@link}` target name is a known declaration. Backed by a
- * package-wide export index ({@link createLinkIndex}) rather than lexical scope, because TSDoc links resolve across files without
- * an import. `CommandPaletteItem` referenced from a sibling file's comment
- * therefore still resolves, even though the comment's file never imports it.
- */
-export type LinkResolver = (name: string) => boolean
-
-/**
- * Build a description plus the resolved `{@link}` target names from a symbol's
- * documentation display parts. `displayPartsToString` concatenates the link
+ * Build a description from a symbol's documentation display parts. `displayPartsToString` concatenates the link
  * parts with no separator (`KbdProps` + `the kbd props` → `KbdPropsthe kbd
  * props`), so the parts are re-serialized here into canonical `{@link target}` /
- * `{@link target|label}` tokens before resolution. Used for prop summaries.
+ * `{@link target|label}` tokens. Used for prop summaries.
  */
-export function extractDocFromParts(
-	parts: readonly ts.SymbolDisplayPart[],
-	resolve: LinkResolver,
-): ExtractedDoc {
-	return processDoc(partsToText(parts), resolve)
+export function extractDocFromParts(parts: readonly ts.SymbolDisplayPart[]): ExtractedDoc {
+	return processDoc(partsToText(parts))
 }
 
 /**
- * Build a description plus the resolved `{@link}` target names from raw comment text.
- * Component summaries arrive as already-lossless source text (ts-morph's
- * `getDescription()` preserves `{@link}` verbatim), so they skip the part
- * re-serialization and go straight to resolution.
+ * Build a description from raw comment text. Component summaries arrive as
+ * already-lossless source text (ts-morph's `getDescription()` preserves
+ * `{@link}` verbatim), so they skip the part re-serialization.
  */
-export function extractDocFromText(text: string, resolve: LinkResolver): ExtractedDoc {
-	return processDoc(text, resolve)
+export function extractDocFromText(text: string): ExtractedDoc {
+	return processDoc(text)
 }
 
 /** Re-serialize documentation display parts, rebuilding the `{@link}` tokens `displayPartsToString` collapses. */
@@ -73,25 +60,21 @@ function partsToText(parts: readonly ts.SymbolDisplayPart[]): string {
 	return out
 }
 
-/** Normalize `{@link}` tokens to canonical form and collect each symbol target that resolves. */
-function processDoc(text: string, resolve: LinkResolver): ExtractedDoc {
+/**
+ * Normalize `{@link}` tokens to canonical form. The renderer shows a symbol
+ * reference as plain text, so the extractor resolves no target. The output
+ * depends on this comment alone, never on the file that declares a target.
+ */
+function processDoc(text: string): ExtractedDoc {
 	const trimmed = text.trim()
 
 	if (!trimmed) return {}
 
-	const links: string[] = []
-
 	const description = trimmed.replace(LINK_RE, (_match, inner: string) => {
-		const { target, label, url } = parseLinkToken(inner)
-
-		if (!url && !links.includes(target) && resolve(target)) links.push(target)
+		const { target, label } = parseLinkToken(inner)
 
 		return label ? `{@link ${target}|${label}}` : `{@link ${target}}`
 	})
 
-	const doc: ExtractedDoc = { description }
-
-	if (links.length > 0) doc.links = links
-
-	return doc
+	return { description }
 }

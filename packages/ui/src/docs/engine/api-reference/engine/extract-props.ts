@@ -1,7 +1,7 @@
 import { ts } from 'ts-morph'
 import { IGNORED_PROPS } from '../../reserved-props'
 import type { PropDef } from '../types'
-import { extractDocFromParts, type LinkResolver } from './extract-doc'
+import { extractDocFromParts } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
 import { isFunctionType, unaliasSymbol } from './ts-utils'
@@ -19,7 +19,6 @@ export function extractProps(
 	projectNames: ReadonlySet<string> | null,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
-	resolveLink: LinkResolver,
 ): PropDef[] {
 	const props: PropDef[] = []
 
@@ -34,7 +33,7 @@ export function extractProps(
 
 		const types = resolveArmTypes(symbols, callable, checker)
 
-		props.push(buildPropDef(name, symbol, types, callable, defaults, checker, resolveLink))
+		props.push(buildPropDef(name, symbol, types, callable, defaults, checker))
 	}
 
 	return props
@@ -112,7 +111,6 @@ function buildPropDef(
 	callable: ts.Node,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
-	resolveLink: LinkResolver,
 ): PropDef {
 	// An enum-like prop — a pure union of string/number literals, whether
 	// authored inline or behind an alias (`ContainerPadding = keyof typeof
@@ -144,14 +142,9 @@ function buildPropDef(
 
 	if (externalFrom) prop.externalFrom = externalFrom
 
-	const { description, links } = extractDocFromParts(
-		symbol.getDocumentationComment(checker),
-		resolveLink,
-	)
+	const { description } = extractDocFromParts(symbol.getDocumentationComment(checker))
 
 	if (description) prop.description = description
-
-	if (links) prop.links = links
 
 	const tags = jsDocTags(symbol, checker)
 

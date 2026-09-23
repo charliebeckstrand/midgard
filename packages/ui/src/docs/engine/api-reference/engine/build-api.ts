@@ -3,7 +3,7 @@ import path from 'node:path'
 import { Node, Project, SyntaxKind, type ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { extractDefaults } from './extract-defaults'
-import { extractDocFromText, type LinkResolver } from './extract-doc'
+import { extractDocFromText } from './extract-doc'
 import { extractPassThrough } from './extract-passthrough'
 import { extractProjectPropNames } from './extract-project-props'
 import { extractProps } from './extract-props'
@@ -14,7 +14,6 @@ import {
 	readPublicExports,
 	unwrapFunctionLike,
 } from './find-components'
-import { createLinkIndex } from './link-resolver'
 
 /**
  * The two documented roots and the key prefix each barrel takes. Components key
@@ -66,13 +65,12 @@ export function listBarrels(srcDir: string): Barrel[] {
 /**
  * Extract the API reference for a single barrel from an already-open project.
  * Returns `null` when the index is absent from the project or exports nothing
- * documentable, so the caller can drop the key. The type checker and link
- * resolver are passed in so a batch shares one checker pass.
+ * documentable, so the caller can drop the key. The type checker is passed in
+ * so a batch shares one checker pass.
  */
 export function extractBarrel(
 	project: Project,
 	checker: ts.TypeChecker,
-	resolveLink: LinkResolver,
 	indexPath: string,
 ): ComponentApi[] | null {
 	const indexFile = project.getSourceFile(indexPath)
@@ -94,7 +92,7 @@ export function extractBarrel(
 			continue
 		}
 
-		apis.push(buildComponent(decl, checker, resolveLink))
+		apis.push(buildComponent(decl, checker))
 	}
 
 	return apis.length > 0 ? apis : null
@@ -115,12 +113,10 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
 
 	const checker = project.getTypeChecker().compilerObject
 
-	const { resolve: resolveLink } = createLinkIndex(project)
-
 	const result: Record<string, ComponentApi[]> = {}
 
 	for (const { key, indexPath } of listBarrels(srcDir)) {
-		const apis = extractBarrel(project, checker, resolveLink, indexPath)
+		const apis = extractBarrel(project, checker, indexPath)
 
 		if (apis) result[key] = apis
 	}
@@ -134,17 +130,17 @@ export function buildApi(srcDir: string): Record<string, ComponentApi[]> {
  * reach. `skipAddingFilesFromTsConfig` drops the tsconfig's whole `include`
  * glob, ~1.8k files. Most of them are irrelevant `node_modules` typings the
  * checker pulls in lazily anyway. Adding only the barrel indices and resolving
- * their dependencies pulls in exactly the project source the extractor and the
- * package-wide link index read. That cuts the checker's eager work roughly in
- * half, with byte-identical output.
+ * their dependencies pulls in exactly the project source the extractor reads.
+ * That cuts the checker's eager work roughly in half, with byte-identical
+ * output.
  *
- * `resolveSourceFileDependencies` is the expensive half and looks like the next
- * thing to cut. Do not cut it. It alone pulls `primitives`, `hooks`, and `core`
- * into the project, and the link index walks `project.getSourceFiles()`. Every
- * cross-root TSDoc link therefore drops out of `links` without it, and the
- * extractor stops tracking the file that declares the target. A wider seed is
- * no help either — measured over alternating cold processes, the two are within
- * noise. See `project-construction.bench.ts`.
+ * `resolveSourceFileDependencies` looks like the next thing to cut. It buys
+ * nothing to cut it. Without it the manifest is byte-identical, but a cold pass
+ * is not faster: the checker's program loads the same ~1.3k files either way.
+ * Keep the project whole, so the extractor's import-closure walk
+ * (`inputsFor`) reads every file the program does. A wider seed is no help
+ * either. Measured over alternating cold processes, the two are within noise.
+ * See `project-construction.bench.ts`.
  */
 export function openProject(srcDir: string): Project {
 	const project = new Project({
@@ -162,11 +158,7 @@ export function openProject(srcDir: string): Project {
 }
 
 /** Assemble the `ComponentApi` for one component from the focused extractors. */
-function buildComponent(
-	decl: ComponentDecl,
-	checker: ts.TypeChecker,
-	resolveLink: LinkResolver,
-): ComponentApi {
+function buildComponent(decl: ComponentDecl, checker: ts.TypeChecker): ComponentApi {
 	const inner = unwrapFunctionLike(decl.callable) ?? decl.callable
 
 	const callable = inner.compilerNode as ts.SignatureDeclaration
@@ -181,20 +173,16 @@ function buildComponent(
 
 	const defaults = extractDefaults(callable)
 
-	const props = propsType
-		? extractProps(callable, propsType, projectNames, defaults, checker, resolveLink)
-		: []
+	const props = propsType ? extractProps(callable, propsType, projectNames, defaults, checker) : []
 
 	const api: ComponentApi = { name: decl.name, props }
 
 	const summary = componentDescription(decl)
 
 	if (summary) {
-		const { description, links } = extractDocFromText(summary, resolveLink)
+		const { description } = extractDocFromText(summary)
 
 		if (description) api.description = description
-
-		if (links) api.links = links
 	}
 
 	if (passThrough.length > 0) api.passThrough = passThrough

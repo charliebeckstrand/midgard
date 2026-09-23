@@ -1,61 +1,44 @@
 // @vitest-environment node
 import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
-import {
-	extractDocFromParts,
-	extractDocFromText,
-	type LinkResolver,
-} from '../../api-reference/engine/extract-doc'
+import { extractDocFromParts, extractDocFromText } from '../../api-reference/engine/extract-doc'
 import { createInMemoryProgram } from './helpers'
 
-/** A resolver that knows only `KbdProps`, so tests exercise hit and miss paths. */
-const resolve: LinkResolver = (name) => name === 'KbdProps'
-
 describe('extractDocFromText', () => {
-	it('resolves a known link and keys it by target name', () => {
-		const doc = extractDocFromText('Hint built on {@link KbdProps}.', resolve)
+	it('keeps a symbol link as a canonical token', () => {
+		const doc = extractDocFromText('Hint built on {@link KbdProps}.')
 
 		expect(doc.description).toBe('Hint built on {@link KbdProps}.')
-
-		expect(doc.links).toEqual(['KbdProps'])
 	})
 
-	it('normalizes the pipe-label form while keying the link by its target', () => {
-		const doc = extractDocFromText('Same as {@link KbdProps | the kbd props}.', resolve)
+	it('normalizes the pipe-label form', () => {
+		const doc = extractDocFromText('Same as {@link KbdProps | the kbd props}.')
 
 		expect(doc.description).toBe('Same as {@link KbdProps|the kbd props}.')
-
-		expect(doc.links).toEqual(['KbdProps'])
 	})
 
 	it('normalizes the legacy space-label form', () => {
-		const doc = extractDocFromText('Same as {@link KbdProps the kbd props}.', resolve)
+		const doc = extractDocFromText('Same as {@link KbdProps the kbd props}.')
 
 		expect(doc.description).toBe('Same as {@link KbdProps|the kbd props}.')
 	})
 
-	it('leaves URL links unresolved, keeping the token in the description', () => {
-		const doc = extractDocFromText('See {@link https://example.com}.', resolve)
+	it('keeps a URL link as a token in the description', () => {
+		const doc = extractDocFromText('See {@link https://example.com}.')
 
 		expect(doc.description).toBe('See {@link https://example.com}.')
-
-		expect(doc.links).toBeUndefined()
 	})
 
-	it('keeps an unknown target as a token but emits no link entry', () => {
-		const doc = extractDocFromText('See {@link Missing}.', resolve)
+	it('keeps an unknown target as a token', () => {
+		const doc = extractDocFromText('See {@link Missing}.')
 
 		expect(doc.description).toBe('See {@link Missing}.')
-
-		expect(doc.links).toBeUndefined()
 	})
 
-	it('returns plain prose with no link map when no `{@link}` is present', () => {
-		const doc = extractDocFromText('Just prose.', resolve)
+	it('returns plain prose unchanged when no `{@link}` is present', () => {
+		const doc = extractDocFromText('Just prose.')
 
 		expect(doc.description).toBe('Just prose.')
-
-		expect(doc.links).toBeUndefined()
 	})
 })
 
@@ -85,12 +68,10 @@ describe('extractDocFromParts', () => {
 
 		if (!bar) throw new Error('expected a `bar` property')
 
-		const doc = extractDocFromParts(bar.getDocumentationComment(program.checker), resolve)
+		const doc = extractDocFromParts(bar.getDocumentationComment(program.checker))
 
 		// The lossy `displayPartsToString` path yields `KbdPropsthe kbd props`; the
 		// rebuilt token keeps the target and label apart.
 		expect(doc.description).toBe('Same as {@link KbdProps|the kbd props}.')
-
-		expect(doc.links).toEqual(['KbdProps'])
 	})
 })
