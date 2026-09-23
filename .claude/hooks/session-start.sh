@@ -7,6 +7,17 @@ fi
 
 cd "$CLAUDE_PROJECT_DIR"
 
+# The global pnpm switches to the `packageManager` version on its first run,
+# but it skips the `preinstall` of that version. The native binary then stays
+# a shebang-less placeholder, and turbo, which does not retry ENOEXEC under
+# `sh`, cannot spawn `pnpm`. Run the skipped `install.js` to link the binary.
+pnpm --version >/dev/null
+pnpm_version=$(node -p "require('./package.json').packageManager.split('@')[1]")
+pnpm_dir="${PNPM_HOME:-${XDG_DATA_HOME:-$HOME/.local/share}/pnpm}/.tools/pnpm/$pnpm_version/node_modules/pnpm"
+if [ -f "$pnpm_dir/pnpm" ] && [ "$(head -c 4 "$pnpm_dir/pnpm")" != $'\x7fELF' ]; then
+  (cd "$pnpm_dir" && node install.js)
+fi
+
 pnpm install --prefer-offline
 
 # Warm the turbo cache, then Vitest, in one detached background chain.
