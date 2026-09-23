@@ -203,3 +203,39 @@ describe('CheckboxField aria-describedby', () => {
 		expect(input).toHaveAttribute('aria-describedby', description.id)
 	})
 })
+
+describe('Checkbox defaultChecked under a binding', () => {
+	it('drops defaultChecked from a bound checkbox', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<Form defaultValues={{ terms: false }}>
+				<Checkbox name="terms" defaultChecked />
+			</Form>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		expect(input.checked).toBe(false)
+
+		expect(input.defaultChecked).toBe(false)
+
+		const warned = error.mock.calls.some(([message]) =>
+			String(message).includes('both checked and defaultChecked'),
+		)
+
+		expect(warned).toBe(false)
+
+		error.mockRestore()
+	})
+
+	it('keeps defaultChecked on an unbound checkbox', () => {
+		const { container } = renderUI(<Checkbox defaultChecked />)
+
+		const input = getSlot<HTMLInputElement>(container, 'checkbox')
+
+		expect(input.checked).toBe(true)
+
+		expect(input.defaultChecked).toBe(true)
+	})
+})

@@ -19,6 +19,8 @@ export type CheckboxProps = CheckboxVariants & {
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
  * and Control context for `name`, validation, and sizing. An explicit
  * `checked` prop wins over the bound field; `onChange` fires in either mode.
+ * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
+ * so a bound checkbox ignores it (§7.2).
  */
 export function Checkbox({
 	className,
@@ -31,6 +33,7 @@ export function Checkbox({
 	ref,
 	name,
 	checked,
+	defaultChecked,
 	onChange,
 	'aria-describedby': ariaDescribedBy,
 	...props
@@ -103,6 +106,7 @@ export function Checkbox({
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
 				checked={resolvedChecked}
+				defaultChecked={resolvedChecked === undefined ? defaultChecked : undefined}
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}
