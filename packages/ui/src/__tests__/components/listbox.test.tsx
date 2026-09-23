@@ -571,6 +571,80 @@ describe('Listbox readOnly', () => {
 	})
 })
 
+describe('Listbox disabled', () => {
+	// The button carries `disabled`, but the frame around it takes the click.
+	// A press on the frame padding, the prefix, or the chevron must not open it.
+	it('does not open the menu on a frame click while disabled', () => {
+		const { container } = renderUI(
+			<Listbox disabled aria-label="Fruit">
+				{option}
+			</Listbox>,
+		)
+
+		fireEvent.click(getSlot(container, 'control-frame'))
+
+		expect(getSlot(container, 'listbox-button')).toHaveAttribute('aria-expanded', 'false')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+
+	it('does not open the menu while an enclosing Control disables it', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Control>,
+		)
+
+		fireEvent.click(getSlot(container, 'control-frame'))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+	})
+})
+
+describe('Listbox validation', () => {
+	// The frame paints the ring from a descendant `data-*` attribute, so the
+	// trigger button must carry each resolved severity, not only the error pair.
+	it('marks the trigger for a warning severity', () => {
+		const { container } = renderUI(
+			<Field severity="warning">
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Field>,
+		)
+
+		const button = getSlot(container, 'listbox-button')
+
+		expect(button).toHaveAttribute('data-warning')
+
+		expect(button).not.toHaveAttribute('aria-invalid')
+	})
+
+	it('marks the trigger for a success severity', () => {
+		const { container } = renderUI(
+			<Field severity="success">
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Field>,
+		)
+
+		expect(getSlot(container, 'listbox-button')).toHaveAttribute('data-valid')
+	})
+
+	it('keeps the error pair for an error severity', () => {
+		const { container } = renderUI(
+			<Field severity="error">
+				<Listbox aria-label="Fruit">{option}</Listbox>
+			</Field>,
+		)
+
+		const button = getSlot(container, 'listbox-button')
+
+		expect(button).toHaveAttribute('data-invalid')
+
+		expect(button).toHaveAttribute('aria-invalid', 'true')
+
+		expect(button).not.toHaveAttribute('data-warning')
+	})
+})
+
 describe('Listbox onBlur', () => {
 	// `fireEvent.blur` dispatches with `relatedTarget: null`, which is also the
 	// blur-to-nowhere case: a press on unfocusable ground still leaves the widget.
