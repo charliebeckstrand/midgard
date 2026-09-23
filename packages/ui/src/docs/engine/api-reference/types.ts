@@ -2,14 +2,8 @@ export type PropDef = {
 	name: string
 	/** Type expression as written in source, e.g. `GridColumn<T>[]`. */
 	type: string
-	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized; their resolved targets are in `links`. */
+	/** Prose summary from the prop's TSDoc, with `@`-tags stripped. `{@link}` tokens are normalized to canonical form. */
 	description?: string
-	/**
-	 * The names of the `{@link}` targets in `description` that the link index
-	 * resolves. The renderer shows each symbol reference as plain text. The
-	 * extractor uses the names only to track the source file of each target.
-	 */
-	links?: string[]
 	/** Present and `true` only for required props; absent reads as optional. */
 	required?: boolean
 	/**
@@ -37,10 +31,8 @@ export type PassThrough = {
 
 export type ComponentApi = {
 	name: string
-	/** Component-level TSDoc summary: the `/** … *\/` above the function. `{@link}` tokens are normalized; their resolved targets are in `links`. */
+	/** Component-level TSDoc summary: the `/** … *\/` above the function. `{@link}` tokens are normalized to canonical form. */
 	description?: string
-	/** The names of the resolved `{@link}` targets in `description`. See {@link PropDef.links}. */
-	links?: string[]
 	props: PropDef[]
 	passThrough?: PassThrough[]
 }

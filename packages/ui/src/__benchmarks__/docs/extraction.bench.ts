@@ -15,7 +15,6 @@ import {
 	unwrapFunctionLike,
 } from '../../docs/engine/api-reference/engine/find-components'
 import { formatPropType } from '../../docs/engine/api-reference/engine/format-type'
-import { createLinkIndex } from '../../docs/engine/api-reference/engine/link-resolver'
 import { srcDir } from './paths'
 
 // Micro-benchmarks for the per-component extraction seams `buildComponent`
@@ -25,14 +24,11 @@ import { srcDir } from './paths'
 // first-resolution cost, which `extractor.bench.ts` covers end to end.
 
 // `openProject`, not a tsconfig-wide Project: the tsconfig include resolves
-// 1864 files against production's 1197, and the link-index walk is proportional
-// to `project.getSourceFiles()`. Measuring it on the wider project overstates
-// the one quantity this file is cited for.
+// 1864 files against production's 1197, so the extractors run against the
+// program production builds.
 const project = openProject(srcDir)
 
 const checker = project.getTypeChecker().compilerObject
-
-const { resolve: resolveLink } = createLinkIndex(project)
 
 /**
  * Everything `buildComponent` derives before calling the extractors, resolved
@@ -94,7 +90,7 @@ describe('docs: extractProps', () => {
 		const defaults = extractDefaults(seam.callable)
 
 		bench(label, () => {
-			extractProps(seam.callable, seam.propsType, projectNames, defaults, checker, resolveLink)
+			extractProps(seam.callable, seam.propsType, projectNames, defaults, checker)
 		})
 	}
 })
@@ -133,19 +129,4 @@ describe('docs: annotation extractors', () => {
 	bench('extractDefaults (Combobox)', () => {
 		extractDefaults(combobox.callable)
 	})
-})
-
-describe('docs: link resolver', () => {
-	// Index construction iterates every program file; low fixed iterations. One
-	// build serves both the resolver and the target-file map, so this is the whole
-	// per-pass link cost, not half of it. ts-morph caches statement wrappers on
-	// the Project, so the first calls run hot — warm up past them or the number
-	// reads high.
-	bench(
-		'createLinkIndex (index build)',
-		() => {
-			createLinkIndex(project)
-		},
-		{ warmupIterations: 3, warmupTime: 0, iterations: 5, time: 0 },
-	)
 })

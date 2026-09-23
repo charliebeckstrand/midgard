@@ -4,7 +4,6 @@ import path from 'node:path'
 import type { Project } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { type Barrel, extractBarrel, listBarrels, openProject } from './build-api'
-import { createLinkIndex } from './link-resolver'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
@@ -59,7 +58,7 @@ type BarrelState = {
 /** Persisted whole-record cache: the extracted record under the hash of all input files that produced it. */
 type DiskCache = { version: number; hash: string; record: Record<string, ComponentApi[]> }
 
-const CACHE_VERSION = 5
+const CACHE_VERSION = 6
 
 const CACHE_FILE = 'api.json'
 
@@ -218,31 +217,24 @@ export function createApiExtractor(
 		return project
 	}
 
-	// The checker and link machinery are recreated per extraction pass: a
-	// refreshed source file rebuilds the underlying program, so a cached checker
-	// or link index reads stale types. One `createLinkIndex` call serves both
-	// link consumers, because the index walk is a pass's largest fixed cost.
+	// The checker is recreated per extraction pass: a refreshed source file
+	// rebuilds the underlying program, so a cached checker reads stale types.
 	function extractionContext() {
 		const proj = ensureProject()
 
-		const { resolve, targetFile } = createLinkIndex(proj)
-
-		return {
-			proj,
-			checker: proj.getTypeChecker().compilerObject,
-			resolveLink: resolve,
-			targetFile,
-		}
+		return { proj, checker: proj.getTypeChecker().compilerObject }
 	}
 
 	type Context = ReturnType<typeof extractionContext>
 
-	/** The project-source files a barrel's output depends on: its import closure plus every `{@link}` target's source. */
+	/**
+	 * The project-source files a barrel's output depends on: its import closure.
+	 * A `{@link}` adds no input, because the output keeps the token as written
+	 * and never reads the file that declares its target.
+	 */
 	function inputsFor(
 		proj: Project,
 		barrel: Barrel,
-		api: ComponentApi[] | null,
-		targetFile: (name: string) => string | undefined,
 		directRefs: Map<string, string[]>,
 	): Set<string> {
 		const inputs = new Set<string>([toPosix(barrel.indexPath)])
@@ -276,14 +268,6 @@ export function createApiExtractor(
 			}
 		}
 
-		// `{@link}` targets resolve by name across the package with no import edge,
-		// so their source files must be tracked explicitly.
-		for (const name of linkNames(api)) {
-			const target = targetFile(name)
-
-			if (target && isInputFile(target)) inputs.add(target)
-		}
-
 		return inputs
 	}
 
@@ -297,9 +281,9 @@ export function createApiExtractor(
 			return
 		}
 
-		const api = extractBarrel(ctx.proj, ctx.checker, ctx.resolveLink, barrel.indexPath)
+		const api = extractBarrel(ctx.proj, ctx.checker, barrel.indexPath)
 
-		const inputs = inputsFor(ctx.proj, barrel, api, ctx.targetFile, directRefs)
+		const inputs = inputsFor(ctx.proj, barrel, directRefs)
 
 		states.set(key, { api, inputs })
 	}
@@ -487,23 +471,6 @@ export function createApiExtractor(
 			return true
 		},
 	}
-}
-
-/** Every `{@link}` target name referenced by a barrel's components (description and prop links). */
-function linkNames(api: ComponentApi[] | null): Set<string> {
-	const names = new Set<string>()
-
-	if (!api) return names
-
-	for (const component of api) {
-		for (const name of component.links ?? []) names.add(name)
-
-		for (const prop of component.props) {
-			for (const name of prop.links ?? []) names.add(name)
-		}
-	}
-
-	return names
 }
 
 function readDisk(cacheDir: string | null): DiskCache | null {
