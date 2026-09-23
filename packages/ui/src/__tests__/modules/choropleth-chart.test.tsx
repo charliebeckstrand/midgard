@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart } from '../../modules/chart'
-import { allBySlot, allRegions, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { formatChartValue } from '../../modules/chart/engine/chart-series'
+import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 const ROWS = [
@@ -262,5 +263,62 @@ describe('ChoroplethChart context menu', () => {
 		openMenu(container)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+})
+
+describe('the default value format', () => {
+	it('formats the table with the chart family default, the same as the CSV', () => {
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				data={[
+					{ region: 'A', pop: 1234.5 },
+					{ region: 'B', pop: 50 },
+					{ region: 'C', pop: 100 },
+				]}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] }]}
+			/>,
+		)
+
+		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
+			(cell) => cell.textContent,
+		)
+
+		expect(cells).toContain(formatChartValue(1234.5))
+	})
+})
+
+describe('the range legend under quantile binning', () => {
+	it('emphasises the class the host assigns the probed value to', () => {
+		// Quantile binning puts the threshold at 2, so a probe at 50 falls in the
+		// upper class with 2 and 100. Equal intervals over 1–100 put it with 1 and 2.
+		const { container } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				width={400}
+				legend="range"
+				data={[
+					{ region: 'A', pop: 1 },
+					{ region: 'B', pop: 2 },
+					{ region: 'C', pop: 100 },
+				]}
+				series={[
+					{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'], binning: 'quantile' },
+				]}
+			/>,
+		)
+
+		const track = getSlot(container, 'map-range-track')
+
+		track.getBoundingClientRect = () =>
+			({ left: 0, top: 0, width: 20, height: 99, right: 20, bottom: 99, x: 0, y: 0 }) as DOMRect
+
+		// Value 50 sits at (50 − 1) / 99 of the track, measured up from the bottom.
+		fireEvent.pointerMove(track, { clientY: 50 })
+
+		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(2)
 	})
 })

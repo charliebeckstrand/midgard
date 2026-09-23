@@ -385,3 +385,28 @@ describe('AreaChart stacked value labels', () => {
 		expect(drawn).not.toContain('0')
 	})
 })
+
+describe('AreaChart value-label headroom', () => {
+	it('keeps the extreme labels on their natural sides, above the peak', () => {
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Revenue"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={[
+					{ m: 'Jan', r: 40 },
+					{ m: 'Feb', r: 100 },
+					{ m: 'Mar', r: 65 },
+				]}
+				series={[{ xKey: 'm', yKey: 'r', yName: 'Revenue' }]}
+			/>,
+		)
+
+		const label = allBySlot(container, 'chart-value-label').find((n) => n.textContent === '100')
+
+		const peak = allBySlot(container, 'chart-point')[1]
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(peak?.getAttribute('cy')))
+	})
+})

@@ -223,6 +223,7 @@ function HeatmapRangeLegend({
 	format,
 	label,
 	bins,
+	thresholds,
 	values,
 	orientation,
 }: HeatmapRangeLegendProps) {
@@ -236,6 +237,7 @@ function HeatmapRangeLegend({
 			format={format}
 			label={label}
 			bins={bins}
+			thresholds={thresholds}
 			orientation={orientation}
 			onProbe={set}
 			arrow={<HeatmapRangeArrow values={values} domain={domain} orientation={orientation} />}
@@ -398,7 +400,11 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 	// `track="point"`: the readout anchors to the pointer point and skips
 	// autoUpdate's per-open observer wiring — ~1.5x cheaper across the
 	// open/reposition/teardown cycle (`tooltip-track.bench`). The heatmap sets it
-	// under both triggers, so a click-pinned readout also runs without autoUpdate.
+	// under both triggers. A pin stores the client point of the click, not the
+	// cell, so autoUpdate would re-place a pinned readout at that viewport point
+	// on a window scroll, off its cell. Without autoUpdate, the readout keeps its
+	// document position and scrolls with the cell. Neither mode re-anchors the
+	// readout in an inner scroll container.
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{cell !== null && (
@@ -482,6 +488,8 @@ type HeatmapModel = {
 	fills: (string | null)[]
 	cellBins: (number | null)[]
 	bins: ColorBin[]
+	/** The class edges the cells are binned by under `'quantile'`; absent under `'linear'`. */
+	thresholds: number[] | undefined
 	domain: [number, number] | null
 	ticks: { x: ChartAxisTick[]; y: ChartAxisTick[] }
 	readout: ChartReadoutSource | null
@@ -543,8 +551,9 @@ function useHeatmap<T>(
 	// One resolution per mode, each yielding both the painted bins and the
 	// assignment the cells read, so the fills and the legend cannot disagree on
 	// where the buckets fall. `MapPlat` resolves its own the same way.
-	const { bins, assign } = useMemo(() => {
-		if (!domain || !primary) return { bins: [] as ColorBin[], assign: () => null }
+	const { bins, thresholds, assign } = useMemo(() => {
+		if (!domain || !primary)
+			return { bins: [] as ColorBin[], thresholds: undefined, assign: () => null }
 
 		if (primary.binning === 'quantile') {
 			const { bins: quantileBins, thresholds } = resolveQuantileBins(
@@ -555,6 +564,7 @@ function useHeatmap<T>(
 
 			return {
 				bins: quantileBins,
+				thresholds,
 				assign: (value: number) => quantileBinIndex(value, thresholds),
 			}
 		}
@@ -563,6 +573,7 @@ function useHeatmap<T>(
 
 		return {
 			bins: linearBins,
+			thresholds: undefined,
 			assign: (value: number) => binIndex(value, domain, linearBins.length),
 		}
 	}, [domain, primary, values])
@@ -623,6 +634,7 @@ function useHeatmap<T>(
 		fills,
 		cellBins,
 		bins,
+		thresholds,
 		domain,
 		ticks: heatmapTicks(matrix, xBand, yBand, plot),
 		// A cached thunk ({@link ChartReadoutSource}). The data table and the context
@@ -738,6 +750,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		fills,
 		cellBins,
 		bins,
+		thresholds,
 		domain,
 		ticks,
 		readout,
@@ -835,6 +848,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 				format={format}
 				label={primary?.colorName}
 				bins={bins.length}
+				thresholds={thresholds}
 				values={matrix.values}
 				orientation={rangeLegend.orientation}
 			/>

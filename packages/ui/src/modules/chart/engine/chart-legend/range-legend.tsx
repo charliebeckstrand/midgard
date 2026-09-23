@@ -125,6 +125,13 @@ export type RangeScale = {
 	label?: string
 	/** The bin count; the bar snaps its classes to these bands. */
 	bins: number
+	/**
+	 * The class edges the host assigns values by, low → high: a value that
+	 * meets or passes an edge reads into the class above it. The host passes
+	 * them under `'quantile'` binning. Absent, the classes are equal intervals
+	 * of the domain, which is how `'linear'` binning assigns them.
+	 */
+	thresholds?: readonly number[]
 }
 
 /** Props for {@link RangeLegend}. @internal */
@@ -166,9 +173,10 @@ export type RangeLegendProps = RangeScale & {
 type RangeKeyContext = {
 	min: number
 	max: number
-	step: number
 	bins: number
 	binOf: (value: number) => number
+	/** The `[low, high]` value edges of a class. */
+	edgesOf: (bin: number) => [number, number]
 }
 
 /**
@@ -185,9 +193,13 @@ type RangeKeyContext = {
  * @internal
  */
 function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext): number | null {
-	const { min, max, step, bins, binOf } = ctx
+	const { min, max, bins, binOf, edgesOf } = ctx
 
-	const centre = (bin: number) => min + (Math.min(bins - 1, Math.max(0, bin)) + 0.5) * step
+	const centre = (bin: number) => {
+		const [low, high] = edgesOf(Math.min(bins - 1, Math.max(0, bin)))
+
+		return (low + high) / 2
+	}
 
 	const current = probe === null ? 0 : binOf(probe)
 
@@ -424,6 +436,7 @@ export function RangeLegend({
 	format,
 	label,
 	bins,
+	thresholds,
 	slot = 'range',
 	onProbe,
 	arrow,
@@ -441,15 +454,22 @@ export function RangeLegend({
 
 	const step = span / bins
 
-	// The equal-interval class that a value lands in. This agrees with the host
-	// only when the host bins by `'linear'`.
-	const binOf = (value: number): number =>
-		span > 0 ? Math.min(bins - 1, Math.max(0, Math.floor((value - min) / step))) : 0
+	// The class that a value lands in, by the host's own edges when it passes
+	// them, else by equal intervals — the host's rule under `'linear'`.
+	const binOf = (value: number): number => {
+		if (thresholds) return thresholds.filter((edge) => value >= edge).length
+
+		return span > 0 ? Math.min(bins - 1, Math.max(0, Math.floor((value - min) / step))) : 0
+	}
+
+	const edgesOf = (bin: number): [number, number] => {
+		if (thresholds) return [thresholds[bin - 1] ?? min, thresholds[bin] ?? max]
+
+		return [min + bin * step, bin === bins - 1 ? max : min + (bin + 1) * step]
+	}
 
 	const binLabel = (bin: number): string => {
-		const low = min + bin * step
-
-		const high = bin === bins - 1 ? max : min + (bin + 1) * step
+		const [low, high] = edgesOf(bin)
 
 		return `${format(low)}–${format(high)}`
 	}
@@ -491,7 +511,7 @@ export function RangeLegend({
 			return
 		}
 
-		const value = rangeKeyValue(event.key, probe, { min, max, step, bins, binOf })
+		const value = rangeKeyValue(event.key, probe, { min, max, bins, binOf, edgesOf })
 
 		if (value === null) return
 

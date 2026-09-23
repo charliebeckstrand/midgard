@@ -492,3 +492,22 @@ describe('scatter axis titles', () => {
 		expect(bySlot(container, 'chart-axis-titles')).toBeNull()
 	})
 })
+
+describe('the header reserve', () => {
+	it('counts the title and subtitle against the plot, so a short titled frame reads spark', () => {
+		// 200px at 16/9 is about 112px tall. The two header lines take 62px of it,
+		// which leaves the plot under the 96px spark floor.
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Dwell against distance"
+				title="Dwell"
+				subtitle="By distance"
+				data={STOPS}
+				width={200}
+				series={[{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' }]}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
+	})
+})

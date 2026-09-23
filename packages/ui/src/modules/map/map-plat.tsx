@@ -715,6 +715,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		regionValues,
 		regionNumbers,
 		domain: valueExtent,
+		thresholds: valueThresholds,
 	} = useMapRegionReadout(shape.features, props, regionIds, regionLabel, nameRegions)
 
 	const {
@@ -1172,6 +1173,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		{
 			colorRange,
 			valueExtent,
+			valueThresholds,
 			formatValue,
 			colorName,
 			regionNumbers,

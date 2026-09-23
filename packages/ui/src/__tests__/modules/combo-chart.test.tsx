@@ -239,3 +239,52 @@ describe('ComboChart', () => {
 		expect(areaGroup.getAttribute('class')).toContain('opacity-25')
 	})
 })
+
+describe('ComboChart reference labels', () => {
+	it('draws a standing label for a reference under `labels.references`', () => {
+		const { container } = renderUI(
+			<ComboChart
+				aria-label="Revenue and margin"
+				width={400}
+				data={[
+					{ q: 'Q1', r: 40, m: 12 },
+					{ q: 'Q2', r: 80, m: 18 },
+				]}
+				series={[
+					{ type: 'bar', xKey: 'q', yKey: 'r', yName: 'Revenue' },
+					{ type: 'line', xKey: 'q', yKey: 'm', yName: 'Margin' },
+				]}
+				reference={[{ value: 70, label: 'Target' }]}
+				labels={{ references: true }}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart-reference-label')).toHaveTextContent('Target')
+	})
+
+	it('keeps an edge value label on its natural side, above the peak', () => {
+		const { container } = renderUI(
+			<ComboChart
+				aria-label="Revenue and margin"
+				width={400}
+				points
+				labels={{ extremes: true }}
+				data={[
+					{ q: 'Q1', r: 10, m: 40 },
+					{ q: 'Q2', r: 20, m: 100 },
+					{ q: 'Q3', r: 15, m: 65 },
+				]}
+				series={[
+					{ type: 'bar', xKey: 'q', yKey: 'r', yName: 'Revenue' },
+					{ type: 'line', xKey: 'q', yKey: 'm', yName: 'Margin' },
+				]}
+			/>,
+		)
+
+		const label = allBySlot(container, 'chart-value-label').find((n) => n.textContent === '100')
+
+		const peak = allBySlot(container, 'chart-point')[1]
+
+		expect(Number(label?.getAttribute('y'))).toBeLessThan(Number(peak?.getAttribute('cy')))
+	})
+})

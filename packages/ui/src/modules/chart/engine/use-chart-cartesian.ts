@@ -138,8 +138,8 @@ export type CartesianConfig<T> = {
 	markInset?: number
 	/**
 	 * Pixels of clear room to reserve past a data extreme on the value axis — see
-	 * {@link CartesianLayoutInput.valueHeadroom}. The `LineChart` sets it when it
-	 * draws single-series extreme value labels. The label then sits clear
+	 * {@link CartesianLayoutInput.valueHeadroom}. The line, area, and combo charts
+	 * set it when they draw single-series point value labels. The label then sits clear
 	 * of its edge, instead of flipping onto the line.
 	 * @defaultValue 0
 	 */

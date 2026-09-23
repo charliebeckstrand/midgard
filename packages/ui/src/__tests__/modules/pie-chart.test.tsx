@@ -702,3 +702,25 @@ describe('pieCalloutFit', () => {
 		)
 	})
 })
+
+describe('the PieChart header reserve', () => {
+	it('counts the title and subtitle against the plot, so a short titled frame reads spark', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Share"
+				title="Share"
+				subtitle="By region"
+				data={[
+					{ k: 'a', v: 1 },
+					{ k: 'b', v: 2 },
+					{ k: 'c', v: 3 },
+				]}
+				series={[{ xKey: 'k', yKey: 'v', yName: 'V' }]}
+				width={280}
+				aspectRatio="16/9"
+			/>,
+		)
+
+		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
+	})
+})
