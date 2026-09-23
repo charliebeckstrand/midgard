@@ -2,10 +2,10 @@
 
 import { bench, describe } from 'vitest'
 import type { GridColumn } from '../modules/grid'
-import { allocateColumnWidths } from '../modules/grid/engine/grid-column/allocate'
 import { rowsToCsv } from '../modules/grid/engine/grid-export/csv'
 import { rowsToHtmlTable } from '../modules/grid/engine/grid-export/html-table'
 import { applyPinOverrides, type PinOverrides } from '../modules/grid/engine/grid-pin/overrides'
+import { allocateColumnWidths } from '../modules/grid/engine/grid-sizing/allocate'
 import {
 	makeColumnSizeProfiles,
 	makeEscapeHeavyRows,
@@ -16,7 +16,7 @@ import {
 
 // Pure grid compute that runs on the render hot path (column allocation, pin
 // overlay) or on an export, benched in a node env with no DOM. The DOM-bound
-// measurer (measureColumnIntrinsics) is excluded — its pure downstream
+// measurer (measureColumns) is excluded — its pure downstream
 // allocateColumnWidths is benched with synthetic profiles instead. Import each
 // utility by path; the grid barrel does not re-export them.
 

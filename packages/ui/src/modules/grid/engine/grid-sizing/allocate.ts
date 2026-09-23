@@ -140,8 +140,8 @@ function levelUp(
  * id, summing to exactly the space consumed; an empty profile list yields `{}`.
  *
  * Pure: non-data columns (selection, actions, drag handle, expander), `width`-pinned columns, and
- * manually drag-resized columns are resolved by the caller and excluded from
- * `profiles`. Their widths are already subtracted from `available`.
+ * held columns are resolved by the caller (see {@link createColumnSizer}) and
+ * excluded from `profiles`. Their widths are already subtracted from `available`.
  *
  * @internal
  */

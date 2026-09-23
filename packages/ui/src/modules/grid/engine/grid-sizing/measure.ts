@@ -1,15 +1,6 @@
-import type { Table } from '@tanstack/react-table'
 import { clamp, isDataColumn } from '../../../../utilities'
 import type { GridColumn } from '../../types'
-import {
-	DEFAULT_COLUMN_SIZE,
-	DEFAULT_CONTENT_MAX,
-	DEFAULT_MIN_COLUMN_SIZE,
-	HEADER_TRUNCATE_ALLOWANCE,
-} from '../grid-constants'
-import { isFrozen } from '../grid-pin/overrides'
-import { parsePxWidth } from '../grid-table/options'
-import type { ColumnSizeProfile } from './allocate'
+import { DEFAULT_MIN_COLUMN_SIZE, HEADER_TRUNCATE_ALLOWANCE } from '../grid-constants'
 
 /**
  * The intrinsic content width of an element's text — the width it wants before
@@ -235,57 +226,6 @@ function resolvePendingLeaves(scans: readonly ColumnScan[]): void {
 	for (const [i, { leaf }] of pending.entries()) leaf.style.width = prior[i] ?? ''
 }
 
-/** A measured column slice: the auto-sized columns' {@link ColumnSizeProfile}s, the summed width held by the rest, and every data column's floor. @internal */
-export type ColumnMeasurement = {
-	/** Profiles for the columns the allocator distributes width across. */
-	profiles: ColumnSizeProfile[]
-	/** Total width (px) of the columns excluded from allocation — non-data, `width`-held, and manually resized. */
-	fixed: number
-	/** Per-data-column hard floor (px) — held and auto-sized alike — the width a drag-resize cannot cross (see {@link columnFloor}). */
-	floors: Map<string, number>
-	/**
-	 * Body cells the pass read. Zero means the body rendered none:
-	 *
-	 * - A loading skeleton, whose placeholder cells carry no column id.
-	 * - An empty result.
-	 * - A virtualized window that hasn't landed yet.
-	 *
-	 * The pass then saw no content at all, and every profile fell back to its
-	 * header floor. Such a measurement is provisional: the caller re-measures
-	 * rather than reusing or freezing it.
-	 */
-	cells: number
-}
-
-/** Options for {@link measureColumnIntrinsics}. @internal */
-type MeasureOptions<T> = {
-	table: Table<T>
-	/** Visible columns in render order. */
-	columns: GridColumn<T>[]
-	/** Grid wrapper holding the rendered table. */
-	container: HTMLElement
-	/** Columns the user drag-resized; held at their current engine width, not auto-sized. */
-	manualPinned: ReadonlySet<string>
-	/** Columns whose `width` seed the user released via "Auto-size all columns"; they auto-size again instead of holding `width`. */
-	released: ReadonlySet<string>
-	/**
-	 * Per-column running-max content width (border-box), carried across passes. A
-	 * wider row scrolling or paging into view therefore only grows a column, never
-	 * shrinks it (no jitter). Mutated in place; cleared by the caller on a
-	 * structural change.
-	 */
-	runningContent: Map<string, number>
-	/**
-	 * Columns measured to their full content width. The automatic fit's
-	 * runaway-cell cap ({@link DEFAULT_CONTENT_MAX}) lifts to each column's own
-	 * `maxWidth`. A user-invoked fit ("Auto-size this column" / "Auto-size all
-	 * columns") therefore lands on the smallest width that shows the content
-	 * untruncated.
-	 * Absent for the automatic passes, which keep the cap.
-	 */
-	uncapped?: ReadonlySet<string>
-}
-
 /**
  * A data column's hard floor (px): the narrowest it can be sized — by the
  * allocator or a drag-resize — before its header can't show. A single-word title
@@ -320,152 +260,93 @@ function columnFloor<T>(col: GridColumn<T>, th: HTMLElement | undefined, slotGap
 }
 
 /**
- * Builds one auto-sized data column's {@link ColumnSizeProfile} from its `floor`
- * (see {@link columnFloor}) and measured body width (see {@link scanBodyCells}).
- * The width is driven by the body content. It is capped so a runaway cell can't
- * starve the rest. It is then folded into the running max, so a wider row paging
- * in only grows the column. The floor is always honored, so a single-word header
- * still fits while a multi-word one truncates to the data. `max` is the column's
- * `maxWidth`, else unbounded — which also lifts the content cap, an explicit
- * ceiling being deliberate. An `uncapped` column (a user-invoked fit) lifts the
- * cap the same way. Showing the content whole is the point of the action, and a
- * horizontal overflow is the accepted cost. A frozen (pinned or locked) column
- * is marked so the allocator holds it at content rather than lifting it into
- * the surplus.
+ * The facts one measurement pass reads from the rendered grid. It holds no
+ * decision: no content cap, no hold, and no running maximum. The sizer applies
+ * those rules (see {@link createColumnSizer}), so a cached fact stays true when
+ * the holds change.
  *
  * @internal
  */
-function columnProfile<T>(
-	col: GridColumn<T>,
-	bodyWidth: number,
-	floor: number,
-	runningContent: Map<string, number>,
-	uncapped: boolean,
-): ColumnSizeProfile {
-	const id = String(col.id)
-
-	const max = col.maxWidth ?? Number.MAX_SAFE_INTEGER
-
-	const cap = uncapped ? max : (col.maxWidth ?? DEFAULT_CONTENT_MAX)
-
-	const measured = Math.max(floor, Math.min(bodyWidth, cap))
-
-	const content = Math.max(measured, runningContent.get(id) ?? 0)
-
-	runningContent.set(id, content)
-
-	return { id, min: floor, content, max, frozen: isFrozen(col) }
+export type ColumnMeasurement = {
+	/** The hard floor (px) of every data column the pass saw (see {@link columnFloor}). */
+	floors: Map<string, number>
+	/**
+	 * The widest body cell (px, border box, rounded up) of each scanned column.
+	 * A scanned column that rendered no body cell has no entry.
+	 */
+	bodies: Map<string, number>
+	/**
+	 * The body cells the pass found, across every column. Zero means that the
+	 * body rendered none:
+	 *
+	 * - A loading skeleton, whose placeholder cells carry no column id.
+	 * - An empty result.
+	 * - A virtualized window that has not landed yet.
+	 *
+	 * The pass then saw no content. The sizer treats such a pass as provisional
+	 * and measures again at the next trigger.
+	 */
+	cells: number
 }
 
 /**
- * Whether a column is auto-sized — a data column the allocator distributes width
- * across, rather than one holding a fixed width. A drag-resized column (in
- * `manualPinned`) holds its width. A `width`-seeded column holds its initial
- * width too, until the user releases it via "Auto-size all columns" (its id
- * lands in `released`). It then rejoins the fit like a width-less column.
+ * Reads the {@link ColumnMeasurement} of the rendered grid. Every data column
+ * in `columns` gets a floor. Only the columns in `scan` get a body scan, because
+ * a held column needs no content width.
+ *
+ * The reads do not depend on the current column widths (see
+ * {@link headerWidth} and {@link scanBodyCells}). A pass after a resize therefore
+ * reads the same facts, and no feedback loop occurs. Every read against the
+ * current layout lands first. An element-bearing leaf, whose shrink-to-fit
+ * content clips with the cell, then gets one batched widen-read-revert (see
+ * {@link resolvePendingLeaves}).
  *
  * @internal
  */
-export function isAutoSized<T>(
-	col: GridColumn<T>,
-	manualPinned: ReadonlySet<string>,
-	released: ReadonlySet<string>,
-): boolean {
-	if (!isDataColumn(col)) return false
-
-	const id = String(col.id)
-
-	if (manualPinned.has(id)) return false
-
-	return parsePxWidth(col.width) == null || released.has(id)
-}
-
-/**
- * Reads the rendered grid and resolves, per auto-sized data column, the
- * {@link ColumnSizeProfile} the allocator needs (see {@link columnProfile}). It
- * also resolves every data column's {@link columnFloor}, held columns included.
- * A drag therefore honors the floor even on a column that sits out the
- * distribution. Non-data columns (selection, actions, drag handle, expander), `width`-held columns,
- * and manually drag-resized columns are excluded from the profiles. Their widths
- * sum into `fixed` for the caller to reserve.
- *
- * Measurements are read from the live DOM unclipped by the current column widths
- * (see {@link headerWidth} / {@link scanBodyCells}). Re-measuring after the
- * autosizer resizes a column therefore yields the same profile, with no feedback
- * loop. Reads against the current layout all land first. The one measurement
- * that needs a different layout is an element-bearing leaf, whose shrink-to-fit
- * content clips with the cell. It then runs as a single batched
- * widen-read-revert (see {@link resolvePendingLeaves}).
- *
- * @internal
- */
-export function measureColumnIntrinsics<T>({
-	table,
+export function measureColumns<T>({
 	columns,
 	container,
-	manualPinned,
-	released,
-	runningContent,
-	uncapped,
-}: MeasureOptions<T>): ColumnMeasurement {
+	scan,
+}: {
+	/** Visible columns in render order. */
+	columns: readonly GridColumn<T>[]
+	/** Grid wrapper that holds the rendered table. */
+	container: HTMLElement
+	/** Ids of the columns whose body cells the pass reads. */
+	scan: ReadonlySet<string>
+}): ColumnMeasurement {
 	const { headers, bodies, cells } = collectCells(container)
 
 	// The header flex row's `column-gap` is identical across columns (one recipe
 	// class), so read it once for the whole pass instead of per column.
 	const slotGap = headerSlotGap(headers)
 
-	const scans = new Map<string, ColumnScan>()
-
 	const floors = new Map<string, number>()
 
-	let fixed = 0
+	const scans = new Map<string, ColumnScan>()
 
 	// Pass one: every read against the current layout — header floors and body
 	// scans — before the batched leaf widening below dirties it.
 	for (const col of columns) {
+		if (!isDataColumn(col)) continue
+
 		const id = String(col.id)
 
-		if (!isDataColumn(col)) {
-			// Non-data columns (selection, actions, drag handle, expander) keep their engine width and sit out the fit.
-			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
+		floors.set(id, Math.ceil(columnFloor(col, headers.get(id), slotGap)))
 
-			continue
-		}
+		const cellsOfColumn = bodies.get(id)
 
-		// Every data column gets a floor — a `width`-held or drag-held one honors it on
-		// a resize even though it sits out the distribution.
-		floors.set(id, columnFloor(col, headers.get(id), slotGap))
-
-		if (isAutoSized(col, manualPinned, released)) {
-			scans.set(id, scanBodyCells(bodies.get(id) ?? []))
-		} else {
-			fixed += table.getColumn(id)?.getSize() ?? DEFAULT_COLUMN_SIZE
-		}
+		if (scan.has(id) && cellsOfColumn) scans.set(id, scanBodyCells(cellsOfColumn))
 	}
 
 	// Pass two: widen the element-bearing leaves to `max-content` and read the
-	// widths the clipped layout couldn't show (a Badge shrunk into a narrow cell).
+	// widths the clipped layout could not show (a Badge shrunk into a narrow cell).
 	resolvePendingLeaves([...scans.values()])
 
-	const profiles: ColumnSizeProfile[] = []
+	const widest = new Map<string, number>()
 
-	for (const col of columns) {
-		const id = String(col.id)
+	// Every width rounds up, so that a fractional pixel never clips the content.
+	for (const [id, { widest: width }] of scans) widest.set(id, Math.ceil(width))
 
-		const scan = scans.get(id)
-
-		if (!scan) continue
-
-		profiles.push(
-			columnProfile(
-				col,
-				scan.widest,
-				floors.get(id) ?? 0,
-				runningContent,
-				uncapped?.has(id) ?? false,
-			),
-		)
-	}
-
-	return { profiles, fixed, floors, cells }
+	return { floors, bodies: widest, cells }
 }

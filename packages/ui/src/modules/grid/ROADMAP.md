@@ -53,7 +53,7 @@ With the competitive suite swept, the shipped avenues (2, 4) are the wins that g
 
 ## Method
 
-The loop is the one the benchmark README documents: snapshot, optimize, compare. `pnpm bench:browser -- --outputJson baseline.json` before an avenue, `--compare baseline.json` after, so every change carries its own before/after and the competitive ratios never drift silently. When a browser scenario moves, the node benches (`pnpm bench`) and the pure cores (`grid-sort/utilities`, `grid-column/allocate`) are the ladder down to the responsible function — the same descend-to-localize the chart and map suites use. An avenue ships only when its browser number improves and no other regresses; the competitive table above is the scoreboard, re-run per change.
+The loop is the one the benchmark README documents: snapshot, optimize, compare. `pnpm bench:browser -- --outputJson baseline.json` before an avenue, `--compare baseline.json` after, so every change carries its own before/after and the competitive ratios never drift silently. When a browser scenario moves, the node benches (`pnpm bench`) and the pure cores (`grid-sort/utilities`, `grid-sizing/allocate`) are the ladder down to the responsible function — the same descend-to-localize the chart and map suites use. An avenue ships only when its browser number improves and no other regresses; the competitive table above is the scoreboard, re-run per change.
 
 ## Engine — the substrate the optimization rides
 
@@ -63,7 +63,7 @@ Every avenue lands in [`engine/`](engine), the module's pure functional core: a 
 
 The `@dnd-kit` / `@floating-ui` clause is now part of that gate. It stayed prose while [`grid-zone/map.ts`](engine/grid-zone/map.ts) runtime-imported `arrayMove` from `@dnd-kit/sortable`; a private `moveItem` holds that reorder now. The greps this section used to carry would have caught the import; nobody ran them, which is the argument for the gate. The type-only `@dnd-kit/core` imports in [`grid-reorder-compute.ts`](engine/grid-reorder-compute.ts) stay legal: a type import erases, and a self-check pins that.
 
-Because each shared rule has exactly one definition, its `*.test.ts` suite is where an optimization is proven safe before it is proven fast: the comparator lives once in `grid-sort/utilities`, the allocator once in `grid-column/allocate`, so a rewrite that holds the tests holds the module.
+Because each shared rule has exactly one definition, its `*.test.ts` suite is where an optimization is proven safe before it is proven fast: the comparator lives once in `grid-sort/utilities`, the allocator once in `grid-sizing/allocate`, so a rewrite that holds the tests holds the module.
 
 ---
 

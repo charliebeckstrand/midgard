@@ -54,7 +54,7 @@ export function GridColumnResizeHandle({
 
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
 		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
-		// reset the column to its default — the window-splitter key set (WCAG 4.1.2).
+		// auto-size the column to its content — the window-splitter key set (WCAG 4.1.2).
 		const size = resize.getSize(id)
 
 		switch (event.key) {
@@ -81,7 +81,7 @@ export function GridColumnResizeHandle({
 				)
 				break
 			case 'Enter':
-				resize.reset(id)
+				resize.autoSizeColumn(id)
 				break
 			default:
 				return
@@ -146,13 +146,12 @@ export function GridColumnResizeHandle({
 			onClick={(event) => event.stopPropagation()}
 			onDoubleClick={(event) => {
 				// Double-click auto-sizes the column to its content — the pointer
-				// twin of the Enter key's reset, and the "Auto-size this column"
-				// context-menu action. The two no-op drag-resizes the double press
-				// registers (down/up without motion) leave the width untouched, so
-				// the reset lands on the width the second release left in place.
+				// twin of the Enter key, and the "Auto-size this column" context-menu
+				// action. The double press also registers two drag-resizes without
+				// motion. They move no width, so they take no width control.
 				event.stopPropagation()
 
-				resize.reset(id)
+				resize.autoSizeColumn(id)
 
 				announceSettledWidth()
 			}}

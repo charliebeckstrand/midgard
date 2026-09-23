@@ -71,10 +71,12 @@ type GridContextMenuProps<T> = {
 	 * off. Backs the menu's "Group by …" / "Ungroup" item.
 	 */
 	groupBy: GridGroupByMenu | null
-	/** Auto-sizes resizable columns to fill the width, or `null` when the grid is not resizable. */
+	/** Sizes every data column to its content ("Auto-size all columns"), or `null` when the grid is not resizable. */
 	autoSizeColumns: (() => void) | null
-	/** Re-fits a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
+	/** Sizes a single column to its content ("Auto-size this column"), or `null` when the grid is not resizable. */
 	autoSizeColumn: ((column: string | number) => void) | null
+	/** Gives the widths back to the automatic fit ("Reset column widths"), or `null` when the grid is not resizable. */
+	resetColumnWidths: (() => void) | null
 	/** Opens the column-manager dialog ("Manage columns"), or `null` when none is reachable. */
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
@@ -165,6 +167,7 @@ export function GridContextMenu<T>({
 	groupBy,
 	autoSizeColumns,
 	autoSizeColumn,
+	resetColumnWidths,
 	chooseColumns,
 	exportActions,
 	rowGroupMenu,
@@ -230,6 +233,7 @@ export function GridContextMenu<T>({
 				groupBy,
 				autoSizeColumns,
 				autoSizeColumn,
+				resetColumnWidths,
 				chooseColumns,
 				exportActions,
 				filter,
@@ -253,6 +257,7 @@ export function GridContextMenu<T>({
 				autoSizeColumns: autoSizeColumns ?? undefined,
 				autoSizeColumn:
 					autoSizeColumn && isDataColumn(column) ? () => autoSizeColumn(column.id) : undefined,
+				resetColumnWidths: resetColumnWidths ?? undefined,
 				chooseColumns: () => chooseColumns?.(),
 				exportActions,
 			}
@@ -269,6 +274,7 @@ export function GridContextMenu<T>({
 			groupBy,
 			autoSizeColumns,
 			autoSizeColumn,
+			resetColumnWidths,
 			chooseColumns,
 			exportActions,
 			columnFilter,

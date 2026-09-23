@@ -836,14 +836,20 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * header gains a resize handle on its trailing edge, carrying an always-visible
 	 * grip. The grip is a short centred bar that tints on hover, and turns accent
 	 * on keyboard focus or active drag. Columns auto-size to their content by default (a `px`
-	 * {@link GridColumn.width} seeds one's initial width instead). The first manual
-	 * resize takes width control, whether it is a drag or a keyboard nudge. Every
-	 * column holds where it sits, so resizing one never reflows the others. The
-	 * table then grows or shrinks freely, into trailing space or a horizontal
-	 * scroll, rather than re-fitting. Widths persist through {@link GridDataProps.columnSizing}. The
-	 * header context menu's "Auto-size all columns" clears every held width — manually
-	 * resized and `width`-seeded alike — and re-arms auto-fit. Set `false` to drop
-	 * the handles (columns still auto-size).
+	 * {@link GridColumn.width} seeds one's initial width instead), and the table fills its
+	 * container.
+	 *
+	 * The first user width change takes width control. That is a drag, a keyboard nudge,
+	 * or an action in the header menu's Auto-size submenu. Every column then holds where it
+	 * sits, so a change to one never reflows the others. The table then grows or shrinks
+	 * freely, into trailing space or a horizontal scroll, rather than re-fitting. A press on
+	 * the handle that moves nothing takes no control.
+	 *
+	 * "Auto-size this column" (also a double-click or Enter on the handle) sets one column to
+	 * its content width. "Auto-size all columns" gives each column the width that "Auto-size
+	 * this column" gives it. "Reset column widths" gives the widths back to the automatic
+	 * fit, as on a fresh mount. Widths persist through {@link GridDataProps.columnSizing}.
+	 * Set `false` to drop the handles (columns still auto-size).
 	 * @defaultValue true
 	 */
 	resizable?: boolean
@@ -886,7 +892,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Controlled/uncontrolled column-width state; pairs with
 	 * {@link GridDataProps.resizable} to persist widths. Providing a controlled
 	 * `value` stands the automatic content sizing down — the consumer owns every
-	 * width.
+	 * width. The Auto-size actions still run, and they report their widths through
+	 * `onValueChange`.
 	 */
 	columnSizing?: GridColumnSizing
 

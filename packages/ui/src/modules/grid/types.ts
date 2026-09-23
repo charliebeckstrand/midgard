@@ -204,7 +204,7 @@ export type GridColumn<T> = {
 	 * resizable grid ({@link GridProps.resizable}) a `px` value seeds the column's
 	 * initial width. The column holds it, sitting out the automatic content sizing,
 	 * until the header's "Auto-size all columns" or "Auto-size this column"
-	 * releases it to content. A manual
+	 * releases it to content. "Reset column widths" restores it. A manual
 	 * resize overrides the seed, and, like any manual resize, holds every column
 	 * where it sits. A drag can't cross the {@link GridColumn.minWidth} floor, so a
 	 * single-word header stays whole. Omit it to size to content from the first
@@ -348,14 +348,17 @@ export type GridColumnSizingState = Record<string, number>
  * {@link GridProps.resizable} to persist and restore drag-resized widths.
  *
  * @remarks `onValueChange` reports *user/consumer* width changes: a drag, a
- * keyboard nudge, a column reset, a controlled write. It settles once the
+ * keyboard nudge, an Auto-size action, a controlled write. It settles once the
  * gesture does (debounce a persist on it to "save when the resize finishes").
  * The grid's own content auto-fit does **not** fire it. The fit updates the
  * rendered widths but isn't a preference, so persisting `onValueChange` never
- * saves autosized widths, only deliberate ones. A `value`/`defaultValue`
- * seeded on mount is honoured as a manual width, so restored widths hold on
- * reload rather than being re-fit. The binding therefore round-trips: persist
- * what `onValueChange` reports, and feed it back as `defaultValue`.
+ * saves autosized widths, only deliberate ones. "Reset column widths" fires it
+ * with `{}`: the user gave the widths back to the grid.
+ *
+ * A `value`/`defaultValue` seeded on mount is honoured as a manual width. The
+ * grid mounts with the user in control, so restored widths hold on reload
+ * rather than being re-fit. The binding therefore round-trips: persist what
+ * `onValueChange` reports, and feed it back as `defaultValue`.
  */
 export type GridColumnSizing = {
 	value?: GridColumnSizingState
@@ -538,14 +541,24 @@ export type GridColumnMenuContext<T> = {
 	pinRight: () => void
 	/** Releases this column back into the scrolling area. */
 	unpin: () => void
-	/** Auto-sizes resizable columns to fill the width, or `undefined` when the grid is not resizable. */
+	/**
+	 * Sizes every data column to its content ("Auto-size all columns"), as
+	 * `autoSizeColumn` sizes each one. It is `undefined` when the grid is not
+	 * resizable.
+	 */
 	autoSizeColumns: (() => void) | undefined
 	/**
-	 * Re-fits this column to its content ("Auto-size this column"). It is
+	 * Sizes this column to its content ("Auto-size this column"). It is
 	 * `undefined` when the grid is not resizable, or for one of the non-data
 	 * columns (selection, actions, drag handle, expander). The rest of the columns hold where they sit.
 	 */
 	autoSizeColumn: (() => void) | undefined
+	/**
+	 * Gives the widths back to the grid's automatic fit ("Reset column widths"),
+	 * as on a fresh mount with no saved widths. It is `undefined` when the grid is
+	 * not resizable.
+	 */
+	resetColumnWidths: (() => void) | undefined
 	/** Opens the column-manager dialog ("Manage columns"). */
 	chooseColumns: () => void
 	/** One action per configured export type (see {@link GridProps.exportable}); empty when export is off, or held back from the menus by its {@link GridToolSurfaces.contextMenu} switch. */
@@ -563,7 +576,8 @@ export type GridColumnMenuContext<T> = {
  *   column already holds, plus Clear sort once the column is sorted).
  * - The Pin menu (Pin left / Pin right / Unpin).
  * - Group by …, when groupable.
- * - The Auto-size menu (this column, then all columns), when resizing is on.
+ * - The Auto-size menu (this column, all columns, then Reset column widths),
+ *   when resizing is on.
  * - The Export menu.
  *
  * No separator divides them.

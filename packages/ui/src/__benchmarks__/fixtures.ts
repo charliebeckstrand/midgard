@@ -7,7 +7,7 @@
 
 import type { ChatMessageData } from '../modules/chat'
 import type { GridColumn } from '../modules/grid'
-import type { ColumnSizeProfile } from '../modules/grid/engine/grid-column/allocate'
+import type { ColumnSizeProfile } from '../modules/grid/engine/grid-sizing/allocate'
 import type { QueryField, QueryGroup, QueryNode } from '../modules/query/engine/types'
 
 /** The shared LCG behind every generator here and in `browser/fixtures.ts`. */

@@ -4,12 +4,36 @@ import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridSortState } from './context'
 import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
+import type { GridWidthAction } from './grid-auto-size-confirm-dialog'
 import type { GridColumnManagerConfig } from './grid-data-types'
 import type { GridContextMenu as GridContextMenuConfig } from './types'
 import type { GridColumnResize } from './use-grid-table'
 
 /** Context menus are on by default (both header and cell); `contextMenu={false}` disables them. @internal */
 const DEFAULT_CONTEXT_MENU = { column: true, cell: true } as const
+
+/**
+ * A width action as the menu runs it: `run` outright, or a request for the
+ * confirm dialog while a sizing preference is in play. `null` when the grid
+ * offers no such action. @internal
+ */
+function confirmed(
+	action: GridWidthAction,
+	run: (() => void) | null,
+	hasSizingPreference: boolean,
+	setAction: (action: GridWidthAction) => void,
+	setOpen: (open: boolean) => void,
+): (() => void) | null {
+	if (!run) return null
+
+	if (!hasSizingPreference) return run
+
+	return () => {
+		setAction(action)
+
+		setOpen(true)
+	}
+}
 
 /**
  * Resolves the column-manager gates, lifts the dialog's open state, and derives
@@ -42,8 +66,8 @@ export function useGridMenuActions<T>({
 	hasData: boolean
 	/**
 	 * Whether a saved column-width preference is in play. "Auto-size all columns"
-	 * then confirms before running — the fit replaces the saved widths — instead
-	 * of executing outright.
+	 * and "Reset column widths" then confirm before they run, because each
+	 * discards the saved widths.
 	 */
 	hasSizingPreference: boolean
 }) {
@@ -90,21 +114,34 @@ export function useGridMenuActions<T>({
 
 	const clearSort = useCallback(() => setSort([]), [setSort])
 
-	// "Auto-size all columns" replaces any saved widths (the fitted widths persist
-	// as the new sizing), so with a sizing preference in play the action detours
-	// through a confirmation; without one it runs outright and simply establishes
-	// the preference.
-	const [autoSizeConfirmOpen, setAutoSizeConfirmOpen] = useState(false)
+	// "Auto-size all columns" and "Reset column widths" each discard the saved
+	// widths. With a sizing preference in play, each detours through a
+	// confirmation. Without one, each runs outright. The pending action outlives
+	// the close, so the dialog keeps its copy while it animates out.
+	const [widthConfirmOpen, setWidthConfirmOpen] = useState(false)
 
-	const sizeToFit = resize?.sizeToFit ?? null
+	const [widthAction, setWidthAction] = useState<GridWidthAction>('auto-size')
 
-	const autoSizeColumns = useMemo(() => {
-		if (!sizeToFit) return null
+	const autoSizeAll = resize?.autoSizeAll ?? null
 
-		if (!hasSizingPreference) return sizeToFit
+	const resetWidths = resize?.resetWidths ?? null
 
-		return () => setAutoSizeConfirmOpen(true)
-	}, [sizeToFit, hasSizingPreference])
+	const autoSizeColumns = useMemo(
+		() =>
+			confirmed('auto-size', autoSizeAll, hasSizingPreference, setWidthAction, setWidthConfirmOpen),
+		[autoSizeAll, hasSizingPreference],
+	)
+
+	const resetColumnWidths = useMemo(
+		() => confirmed('reset', resetWidths, hasSizingPreference, setWidthAction, setWidthConfirmOpen),
+		[resetWidths, hasSizingPreference],
+	)
+
+	const confirmWidthAction = useMemo(() => {
+		if (!autoSizeAll || !resetWidths) return null
+
+		return (action: GridWidthAction) => (action === 'reset' ? resetWidths() : autoSizeAll())
+	}, [autoSizeAll, resetWidths])
 
 	// Backs the menu's "Manage columns" item (the header menu's and the
 	// column-group band's alike); `null` keeps it out. Gated on the menu item
@@ -126,16 +163,19 @@ export function useGridMenuActions<T>({
 		setColumnManagerOpen: setOpen,
 		sortColumn,
 		clearSort,
-		// Header "Auto-size all columns" — only when resizing is on; detours
-		// through the confirm dialog while a sizing preference is in play.
+		// Header "Auto-size all columns" and "Reset column widths" — only when
+		// resizing is on; each detours through the confirm dialog while a sizing
+		// preference is in play.
 		autoSizeColumns,
-		// The confirm dialog's wiring: open state and the confirmed fit.
-		autoSizeConfirmOpen,
-		setAutoSizeConfirmOpen,
-		confirmAutoSize: sizeToFit,
-		// Header "Auto-size this column" — re-fits one column to its content; only
+		resetColumnWidths,
+		// The confirm dialog's wiring: open state, the pending action, and its run.
+		widthConfirmOpen,
+		setWidthConfirmOpen,
+		widthAction,
+		confirmWidthAction,
+		// Header "Auto-size this column" — sizes one column to its content; only
 		// when resizing is on.
-		autoSizeColumn: resize?.reset ?? null,
+		autoSizeColumn: resize?.autoSizeColumn ?? null,
 		chooseColumns,
 	}
 }
