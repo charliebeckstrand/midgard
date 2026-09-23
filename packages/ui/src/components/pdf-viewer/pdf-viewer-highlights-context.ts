@@ -8,8 +8,8 @@ import type { PdfViewerHighlightsResult } from './use-pdf-viewer-highlights'
  * `[PdfViewerHighlightsContext, usePdfViewerHighlightsContext]`.
  *
  * Deliberately separate from {@link PdfViewerContext}, and provided around the
- * viewport alone. Activation is the review screen's primary interaction, and
- * the toolbar and the thumbnail rail care about none of it.
+ * viewport alone. Activation is the main interaction of the overlay, and the
+ * toolbar and the thumbnail rail do not use it.
  *
  * The main context is plain React context with no selector. Putting the active
  * region in there would therefore re-render both on every click, and the rail

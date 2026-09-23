@@ -155,8 +155,8 @@ export function usePdfViewerHighlights({
 
 	useMissingExtentWarning(missingExtent, highlightUnit)
 
-	// The active region can live on a page the viewer is not showing — the field panel
-	// beside the viewer selects by field, not by page — so navigate to it. Latched on the
+	// The active region can be on a page that the viewer does not show. A list beside the
+	// viewer can select by field, not by page. Thus navigate to it. Latched on the
 	// id: goToPage fires the consumer's onPageChange even when the page is unchanged, so a
 	// consumer re-passing activeHighlightId every render would spam it.
 	const navigatedForRef = useRef<string | null>(null)
@@ -229,8 +229,8 @@ export function usePdfViewerHighlights({
  * Warns once, in development, when a physical `highlightUnit` has no page extent to divide
  * by. The regions render nothing, and silence would read as "there were none".
  *
- * @remarks A private hook rather than an inline effect, matching the package's other two
- * dev-time warnings.
+ * @remarks A private hook rather than an inline effect, the same as the package's other
+ * dev-time warning hooks.
  * @internal
  */
 function useMissingExtentWarning(missingExtent: boolean, highlightUnit: PdfViewerHighlightUnit) {

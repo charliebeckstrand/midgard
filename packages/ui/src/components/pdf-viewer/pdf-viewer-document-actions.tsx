@@ -14,8 +14,8 @@ type PdfViewerDocumentActionsProps = {
 /**
  * Download and print buttons for the source document.
  *
- * @remarks Print rasterizes through a hidden iframe and falls back to a new
- * tab when the source is cross-origin; see {@link printPdf}.
+ * @remarks Print loads the source into a hidden iframe and prints it. When the
+ * source is cross-origin, print opens the source in a new tab. See {@link printPdf}.
  * @internal
  */
 export function PdfViewerDocumentActions({
