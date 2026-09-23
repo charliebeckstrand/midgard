@@ -25,7 +25,7 @@ export const k = {
 	/** The axis baseline (`line`) and its value-axis title (`title`). */
 	axis: {
 		/** The axis baseline, a step firmer than the grid. */
-		line: ink.axisLine,
+		line: ink.axis.line,
 		/** SVG value-axis title ink: a step smaller and firmer than the ticks it names. */
 		title: ['text-xs', 'font-medium', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	},

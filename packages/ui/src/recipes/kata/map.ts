@@ -136,7 +136,7 @@ export const k = {
 		/** Meridian and parallel hairlines: the chart gridline. */
 		graticule: ink.grid,
 		/** The globe's own edge: the chart's axis baseline. */
-		sphere: ink.axisLine,
+		sphere: ink.axis.line,
 	},
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
