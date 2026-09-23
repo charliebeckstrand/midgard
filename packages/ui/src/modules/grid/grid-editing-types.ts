@@ -201,7 +201,8 @@ export type GridEditableConfig = {
 	 * of `rows`. A cell whose row a controlled `rows` declines to open is the
 	 * exception. The session then stays on the cell that it held, and your cell
 	 * waits until its row opens. Focus moves into the new editor only when focus
-	 * is already in the grid (WCAG 3.2.1). Apply a move in the same event that
+	 * is already in the grid (WCAG 3.2.1). Focus in a grid nested in a detail row
+	 * is not in this grid. Apply a move in the same event that
 	 * reports it. A later value reads as a set from outside.
 	 */
 	cell?: GridCellRef | null

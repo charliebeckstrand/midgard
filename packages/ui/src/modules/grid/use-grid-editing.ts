@@ -61,21 +61,29 @@ export type GridEditingApi = {
 }
 
 /**
+ * Whether `node` is inside `grid`, the grid's `role="grid"` tab stop. The
+ * nearest `role="grid"` ancestor of the node must be `grid` itself. A grid
+ * nested in a detail row of this one is therefore another grid.
+ *
+ * @internal
+ */
+function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
+	return grid !== null && node?.closest('[role="grid"]') === grid
+}
+
+/**
  * Reseats focus on the grid's single tab stop, `grid`, when focus sits in this
  * grid. Called before a grid-owned session exit unmounts the focused editor, so
  * the keyboard lands back on the cursor rather than falling to `<body>`.
  *
  * @remarks Focus in another grid stays where it is. That includes a grid nested
  * in a detail row of this one, because none of its elements unmount with the
- * exit. The nearest `role="grid"` ancestor of the focused element tells the two
- * apart.
+ * exit. {@link isInGrid} tells the two apart.
  *
  * @internal
  */
 function restoreGridFocus(grid: HTMLElement | null): void {
-	const active = document.activeElement
-
-	if (grid && active?.closest('[role="grid"]') === grid) grid.focus()
+	if (grid && isInGrid(document.activeElement, grid)) grid.focus()
 }
 
 /**
@@ -900,41 +908,16 @@ export function useGridEditing<T>({
 		if (pending && !isCellEditing({ ...pending, editableRows, activeEdit })) dropIntents()
 	})
 
-	// Whether focus is inside this grid. Two cells locate the grid, because either
-	// can be out of the rendered window. @internal
-	const gridHasFocus = useCallback(
-		(cells: (GridActiveEdit | null)[]) => {
-			const focused = document.activeElement
-
-			for (const cell of cells) {
-				if (!cell) continue
-
-				const row = rowKeysRef.current.indexOf(cell.rowKey)
-
-				const col = dataColumnsRef.current.findIndex((column) => column.id === cell.columnId)
-
-				const grid =
-					row < 0 || col < 0
-						? null
-						: document.getElementById(cellId(row, col))?.closest('[role="grid"]')
-
-				if (grid) return focused !== null && grid.contains(focused)
-			}
-
-			return false
-		},
-		[cellId, rowKeysRef, dataColumnsRef],
-	)
-
 	// Moves focus for one transition of a controlled binding. A value set from
 	// outside replaces the intents of any entry, and focus follows it into the
-	// grid only when focus is already there (WCAG 3.2.1). The leaving editor
+	// grid only when focus is already there (WCAG 3.2.1). Focus in a grid nested
+	// in a detail row is not in this grid (see `isInGrid`). The leaving editor
 	// blurs while it is still mounted, so a value it stages on blur reaches the
 	// draft before the sweep commits the cell. A move the grid asked for blurs
 	// where the uncontrolled path does: on a key move or an exit.
 	const settleFocus = useCallback(
-		(plan: TransitionPlan, from: SettledCell, blur: boolean) => {
-			const focused = gridHasFocus([from.cell, plan.next])
+		(plan: TransitionPlan, blur: boolean) => {
+			const focused = isInGrid(document.activeElement, tableRef.current)
 
 			if (!plan.asked) {
 				dropIntents()
@@ -944,7 +927,7 @@ export function useGridEditing<T>({
 
 			if (plan.asked ? blur : focused) restoreGridFocus(tableRef.current)
 		},
-		[gridHasFocus, dropIntents, tableRef],
+		[dropIntents, tableRef],
 	)
 
 	// Warns once for a consumer's cell that is not editable: the initial value
@@ -1201,7 +1184,7 @@ export function useGridEditing<T>({
 						}
 					: { raw, cell: plan.next }
 
-			settleFocus(plan, from, request?.blur === true)
+			settleFocus(plan, request?.blur === true)
 
 			if (plan.discard) unstageDraft(plan.discard.rowKey, plan.discard.columnId)
 

@@ -2277,6 +2277,62 @@ describe('Grid active-cell binding', () => {
 		expect(button).toHaveFocus()
 	})
 
+	it('does not take focus for a cell set from outside while focus is in a nested grid', () => {
+		function Harness() {
+			const [active, setActive] = useState<Cell>(null)
+
+			return (
+				<>
+					<button type="button" onClick={() => setActive({ rowKey: 2, columnId: 'name' })}>
+						row-2-name
+					</button>
+					<Grid
+						tableProps={{ 'aria-label': 'Outer' }}
+						columns={keyColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						editable={{
+							session: 'managed',
+							scope: 'cell',
+							onCommit: vi.fn(),
+							cell: active,
+							onCellChange: setActive,
+						}}
+						expandable={{
+							defaultValue: new Set([1]),
+							render: () => (
+								<Grid
+									tableProps={{ 'aria-label': 'Inner' }}
+									columns={sessionColumns}
+									rows={sessionRows}
+									getKey={(row) => row.id}
+									editable={{ rows: new Set([1]), onCommit: vi.fn() }}
+								/>
+							),
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const inner = getSlot<HTMLInputElement>(
+			view.getByRole('grid', { name: 'Inner' }),
+			'grid-edit-input',
+		)
+
+		inner.focus()
+
+		fireEvent.click(view.getByRole('button', { name: 'row-2-name' }))
+
+		// The nested grid is another grid, so focus in it is not focus in the
+		// outer grid. The outer editor opens and does not take focus.
+		expect(inner).toHaveFocus()
+
+		expect(view.getByRole('textbox', { name: 'Edit Name, row 2' })).not.toHaveFocus()
+	})
+
 	it('moves focus into the entered editor while focus is inside the grid', () => {
 		const view = renderControlled()
 
