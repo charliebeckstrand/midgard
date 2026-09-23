@@ -5,6 +5,16 @@ import { Form } from '../../components/form'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CurrencyInput', () => {
+	it('merges a consumer className with its own tabular-nums', () => {
+		const { container } = renderUI(<CurrencyInput className="w-full" />)
+
+		const input = getSlot(container, 'currency-input')
+
+		expect(input).toHaveClass('w-full')
+
+		expect(input).toHaveClass('tabular-nums')
+	})
+
 	it('renders an input with data-slot="currency-input"', () => {
 		const { container } = renderUI(<CurrencyInput />)
 

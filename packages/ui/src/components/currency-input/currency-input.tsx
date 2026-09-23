@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
 import { useFormValue } from '../form/use-form-value'
@@ -57,6 +57,7 @@ export function CurrencyInput({
 	onBlur,
 	onKeyDown,
 	name,
+	className,
 	ref,
 	...props
 }: CurrencyInputProps) {
@@ -100,7 +101,7 @@ export function CurrencyInput({
 			inputMode="decimal"
 			prefix={prefix ?? (symbolIsPrefix ? symbol : undefined)}
 			suffix={suffix ?? (symbolIsPrefix ? undefined : symbol)}
-			className="tabular-nums"
+			className={cn('tabular-nums', className)}
 			name={name}
 			value={text}
 			onFocus={onFocus}
