@@ -46,7 +46,7 @@ import {
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
 import { bodyRowCount } from './engine/grid-items/items'
-import { isNewRowAddColumn, withNewRowAddColumn } from './engine/grid-new-row-column'
+import { withNewRowAddColumn } from './engine/grid-new-row-column'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import {
@@ -1026,16 +1026,10 @@ export function GridData<T>({
 	// sorted model carries group headers rather than data rows. An `exportRows`
 	// source overrides both, supplying the rows the engine can't hold under
 	// server pagination. Split by surface: the toolbar's "Export" dropdown and
-	// both context menus each take the set their own switch opens. The Add
-	// column of the new-row slot is the grid's own, so no exporter sees it.
-	const exportColumns = useMemo(
-		() => visibleColumns.filter((col) => !isNewRowAddColumn(col.id)),
-		[visibleColumns],
-	)
-
+	// both context menus each take the set their own switch opens.
 	const exportActions = useGridExport<T>({
 		exportable,
-		columns: exportColumns,
+		columns: visibleColumns,
 		table,
 		exportRows,
 		grouped: groupingActive,
