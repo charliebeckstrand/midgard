@@ -28,6 +28,36 @@ function toTuple(value: unknown): [number | '', number | ''] {
 	return [lo ?? '', hi ?? '']
 }
 
+/** A set bound as a number, or `undefined` for a blank bound or one that is not a number. @internal */
+function toBound(value: number | ''): number | undefined {
+	if (value === '') return undefined
+
+	const bound = Number(value)
+
+	return Number.isFinite(bound) ? bound : undefined
+}
+
+/**
+ * The limits of each bound of a range. Each bound clamps to the field's `span`,
+ * and each bound also clamps to the other, so the pair cannot invert. A bound
+ * outside the span keeps each input's `min` at or below its `max`.
+ *
+ * @internal
+ */
+function rangeLimits(
+	span: QueryField['span'],
+	lo: number | undefined,
+	hi: number | undefined,
+): { lo: { min?: number; max?: number }; hi: { min?: number; max?: number } } {
+	const [floor, ceiling] = span ?? []
+
+	const loMax = hi === undefined ? ceiling : floor === undefined ? hi : Math.max(hi, floor)
+
+	const hiMin = lo === undefined ? floor : ceiling === undefined ? lo : Math.min(lo, ceiling)
+
+	return { lo: { min: floor, max: loMax }, hi: { min: hiMin, max: ceiling } }
+}
+
 // Serializes/parses the date by its local wall-clock components, through the
 // calendar's timezone-free `CalendarDate`. Round-tripping through
 // `toISOString().slice(0, 10)` / `new Date('YYYY-MM-DD')` would read the value
@@ -46,11 +76,55 @@ function fromIsoDate(value: string): Date | undefined {
 }
 
 /**
+ * The `[min, max]` pair of number inputs for a range rule. Each bound clamps
+ * to the field's `span` and to the other bound, and its placeholder shows the
+ * span when the field has one.
+ *
+ * @internal
+ */
+function RangeValue({
+	field,
+	value,
+	onValueChange,
+	className,
+}: Omit<QueryBuilderRuleValueProps, 'range'>) {
+	const [lo, hi] = toTuple(value)
+
+	const limits = rangeLimits(field.span, toBound(lo), toBound(hi))
+
+	const [floor, ceiling] = field.span ?? []
+
+	return (
+		<Flex gap="sm" className={cn('w-full', className)}>
+			<NumberInput
+				value={lo === '' ? null : lo}
+				placeholder={floor === undefined ? 'Min' : `Min ${floor}`}
+				aria-label={`${field.label} minimum`}
+				min={limits.lo.min}
+				max={limits.lo.max}
+				className="w-full"
+				onValueChange={(next) => onValueChange([next ?? '', hi])}
+			/>
+
+			<NumberInput
+				value={hi === '' ? null : hi}
+				placeholder={ceiling === undefined ? 'Max' : `Max ${ceiling}`}
+				aria-label={`${field.label} maximum`}
+				min={limits.hi.min}
+				max={limits.hi.max}
+				className="w-full"
+				onValueChange={(next) => onValueChange([lo, next ?? ''])}
+			/>
+		</Flex>
+	)
+}
+
+/**
  * Value input for a query rule, chosen by the field's type:
  *
  * - `select`: a {@link Select}
  * - `number`: a {@link NumberInput}, or a `[min, max]` pair of them when the
- *   operator is a range
+ *   operator is a range. The pair clamps to the field's `span` and to each other
  * - `date`: a {@link DatePicker}, round-tripped as a local-wall-clock ISO date
  * - anything else: a text {@link Input}
  */
@@ -64,26 +138,8 @@ export function QueryBuilderRuleValue({
 	const label = `${field.label} value`
 
 	if (range) {
-		const [lo, hi] = toTuple(value)
-
 		return (
-			<Flex gap="sm" className={cn('w-full', className)}>
-				<NumberInput
-					value={lo === '' ? null : lo}
-					placeholder="Min"
-					aria-label={`${field.label} minimum`}
-					className="w-full"
-					onValueChange={(next) => onValueChange([next ?? '', hi])}
-				/>
-
-				<NumberInput
-					value={hi === '' ? null : hi}
-					placeholder="Max"
-					aria-label={`${field.label} maximum`}
-					className="w-full"
-					onValueChange={(next) => onValueChange([lo, next ?? ''])}
-				/>
-			</Flex>
+			<RangeValue field={field} value={value} onValueChange={onValueChange} className={className} />
 		)
 	}
 

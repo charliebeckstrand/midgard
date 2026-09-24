@@ -12,7 +12,9 @@ import { Example } from '../../engine'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
-	{ name: 'age', label: 'Age', type: 'number' },
+	// The span a grid column filter fills from its data: a `between` rule's bounds
+	// clamp to it and show it as their placeholders.
+	{ name: 'age', label: 'Age', type: 'number', span: [18, 90] },
 	{
 		name: 'status',
 		label: 'Status',

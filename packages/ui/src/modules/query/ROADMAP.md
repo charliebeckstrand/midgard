@@ -24,6 +24,8 @@ The chip row is the second consumer of both `useQueryTree` and `summarizeQuery`,
 
 Rule reordering has landed. [`engine/query-tree.ts`](engine/query-tree.ts) adds `moveChild`, which moves a node among its siblings. Each combinator stays in its position, and only the nodes move, so a hidden combinator on the first child never becomes live. `useQueryTree` exposes it as the `move` action. `QueryBuilder` takes an opt-in `reorder` prop, named as `GridProps.reorder` is. With it, each child of a group with more than one child shows a grip. The grip reorders by pointer or by keyboard through the shared dnd-kit sortable hooks, and each group has its own drag context. The announcements name a node by its summary text and its position, from the pure builders in [`engine/query-announcements.ts`](engine/query-announcements.ts).
 
+A `between` rule now reads the span of its data. `QueryField.span` holds the `[min, max]` that a `number` field's data holds. Each bound of the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamps to it and shows it as its placeholder, and each bound also clamps to the other, so the pair cannot invert. A grid column filter fills the span from the column's faceted unique values, the facet that its `select` options already read. So a blank cell does not pull the minimum to 0, as TanStack's `getFacetedMinMaxValues` does.
+
 ## Engine — the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
@@ -37,8 +39,6 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 - **Per-field value editors.** A custom value-input slot on the rule, for a field whose value isn't a text/number/date/select/boolean primitive (a relation picker, a token input).
 
 - **Move across groups.** A drag moves a node only among its siblings today. A move into another group needs a drop target per group and a rule for the combinator that the node takes there.
-
-- **Bounds from the column's own span.** A `between` rule edits two free-form bounds, so nothing tells the user what range the data holds, and nothing stops a pair that selects no rows. TanStack Table's `getFacetedMinMaxValues` derives `[min, max]` per column and is imported nowhere today, while its sibling `getFacetedUniqueValues` is already wired in [`grid/engine/grid-table/options.ts`](../grid/engine/grid-table/options.ts) and read by [`grid-table/views.ts`](../grid/engine/grid-table/views.ts) to fill a `select` rule's options. The same edge carries the span: wire the second facet, surface it beside the unique values, and let the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamp and placeholder against it. An addition rather than a replacement, and it only pays where the query has a grid behind it — a standalone `QueryBuilder` has no facets to read.
 
 ---
 

@@ -27,19 +27,22 @@ type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'f
 /**
  * The single query field a column's filter sheet edits. A `select` field's
  * options are the column's explicit {@link GridColumn.filterOptions}, else the
- * supplied faceted values (the column's own data), else none.
+ * supplied faceted values (the column's own data), else none. A `number`
+ * field's `span` is the faceted `[min, max]` of the column's own data.
  *
  * @internal
  */
 function toQueryField(
 	column: FilterColumn,
 	options: { label: string; value: string }[] | undefined,
+	span: QueryField['span'],
 ): QueryField {
 	return {
 		name: String(column.id),
 		label: columnLabel(column),
 		type: column.filterType ?? 'text',
 		...(options ? { options } : {}),
+		...(span ? { span } : {}),
 	}
 }
 
@@ -82,16 +85,20 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 			? filter.uniqueValues(column.id)
 			: undefined
 
-	// Null-joined content key so the field below holds its identity while the
-	// faceted values are unchanged (the array itself is fresh each render).
-	const facetKey = JSON.stringify(facetValues ?? null)
+	// A `number` filter's `between` editor clamps to the column's own span.
+	const facetSpan = column.filterType === 'number' ? filter.span(column.id) : undefined
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-derives when the faceted values change via facetKey; facetValues is a fresh array each render
+	// Null-joined content key so the field below holds its identity while the
+	// faceted values and span are unchanged (each is fresh each render).
+	const facetKey = JSON.stringify([facetValues ?? null, facetSpan ?? null])
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-derives when the faceted values or span change via facetKey; each is fresh each render
 	const field = useMemo(
 		() =>
 			toQueryField(
 				column,
 				column.filterOptions ?? facetValues?.map((value) => ({ label: value, value })),
+				facetSpan,
 			),
 		[column, facetKey],
 	)

@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	createGroup,
@@ -532,6 +532,105 @@ describe('QueryBuilderRuleValue', () => {
 		fireEvent.change(min, { target: { value: '' } })
 
 		expect(onChange).toHaveBeenCalledWith(['', 10])
+	})
+
+	it('shows the field span as the range placeholders, and clamps each bound to it', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={['', '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', 'Min 18')
+
+		expect(max).toHaveAttribute('placeholder', 'Max 65')
+
+		expect(min).toHaveAttribute('min', '18')
+
+		expect(min).toHaveAttribute('max', '65')
+
+		expect(max).toHaveAttribute('min', '18')
+
+		expect(max).toHaveAttribute('max', '65')
+	})
+
+	it('clamps each range bound to the other, so the pair cannot invert', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		const onChange = vi.fn()
+
+		// NumberInput clamps its controlled value on blur, so the harness holds the
+		// tuple the way a builder does.
+		function Harness() {
+			const [value, setValue] = useState<unknown>([30, 40])
+
+			return (
+				<QueryBuilderRuleValue
+					field={field}
+					value={value}
+					range
+					onValueChange={(next) => {
+						onChange(next)
+
+						setValue(next)
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('max', '40')
+
+		expect(max).toHaveAttribute('min', '30')
+
+		// A bound typed past the other clamps to it on blur.
+		fireEvent.change(min, { target: { value: '50' } })
+
+		fireEvent.blur(min)
+
+		expect(onChange).toHaveBeenLastCalledWith([40, 40])
+	})
+
+	it('keeps each input’s min at or below its max when a saved bound sits past the span', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[80, '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		// The saved bound is not edited, so it keeps its value.
+		expect(min.value).toBe('80')
+
+		expect(max).toHaveAttribute('min', '65')
+
+		expect(max).toHaveAttribute('max', '65')
+	})
+
+	it('keeps the plain placeholders and clamps only bound to bound with no span', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', 'Min')
+
+		expect(min).not.toHaveAttribute('max')
+
+		expect(max).toHaveAttribute('placeholder', 'Max')
+
+		expect(max).toHaveAttribute('min', '5')
 	})
 
 	it('renders a Select for select fields', () => {

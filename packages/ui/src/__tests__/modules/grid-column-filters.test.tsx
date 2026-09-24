@@ -927,3 +927,61 @@ describe('Grid faceted select filter', () => {
 		expect(screen.queryByRole('option', { name: 'Developer' })).toBeNull()
 	})
 })
+
+describe('Grid faceted number span', () => {
+	type Row = { id: number; age: number | null }
+
+	const ageField: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+	const getKey = (row: Row) => row.id
+
+	const rows: Row[] = [
+		{ id: 1, age: 34 },
+		{ id: 2, age: 19 },
+		{ id: 3, age: null },
+		{ id: 4, age: 52 },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{
+			id: 'age',
+			title: 'Age',
+			cell: (row) => String(row.age ?? ''),
+			value: (row) => row.age,
+			filterable: true,
+			filterType: 'number',
+		},
+	]
+
+	const between = (): QueryGroup =>
+		createGroup('and', [{ ...createRule(ageField), operator: 'between', value: [20, ''] }])
+
+	it('clamps a between rule to the column span, and a blank cell does not pull it to 0', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'age', value: between() }] }}
+			/>,
+		)
+
+		// The applied filter makes the button a menu; "Edit filters" opens the sheet.
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Age/ }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Edit filters' }))
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', 'Min 19')
+
+		expect(max).toHaveAttribute('placeholder', 'Max 52')
+
+		// The span covers every row: a column's facets leave out its own filter.
+		expect(min).toHaveAttribute('min', '19')
+
+		expect(max).toHaveAttribute('max', '52')
+	})
+})

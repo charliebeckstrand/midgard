@@ -113,6 +113,14 @@ The keyboard uses dnd-kit's own sensor, as the grid and the dashboard do: Space 
 
 A move into another group stays in the backlog. It needs a drop target for each group, and a rule for the combinator that the node takes in its new group.
 
+### Follow-up: bounds from the column's span (2026-09-24)
+
+`QueryField.span` is the `[min, max]` that the data of a `number` field holds. The range editor of a `between` rule reads it in two ways. Each bound shows the span as its placeholder (`Min 18`, `Max 65`). Each bound also clamps to the span, through the `min` and `max` of its `NumberInput`, which clamps on blur and stops its steppers at the ends.
+
+Each bound also clamps to the other bound, with or without a span, so the pair cannot invert and select no rows. A saved bound outside the span keeps its value until the user edits it, because `NumberInput` clamps only an edit. The limits of the other input then stay in order, so no input gets a `min` above its `max`.
+
+A grid column filter fills the span. `GridColumnFilter.span` takes the numbers among the column's faceted unique values, the facet that a `select` filter already reads for its options. So it adds no second facet to the table. TanStack's `getFacetedMinMaxValues` maps each value through `Number`, which reads a null cell as 0, so a column with blank cells would get a minimum of 0. The span comes from the rows that the other filters leave, as the unique values do, and it is `undefined` under server-side filtering. A standalone `QueryBuilder` sets `span` on the field itself.
+
 ## Non-goals
 
 - **No behavior change** — every moved function moves verbatim; the tree, operator, and evaluation semantics (including the empty-value agreement and left-to-right combinator fold) are untouched.
