@@ -148,7 +148,7 @@ export function useGridCursor<T>({
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
-	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
+	scrollRowIntoViewRef: RefObject<((rowIndex: number, key?: string) => void) | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
 	scrollContainerRef: RefObject<HTMLElement | null>
 	/** The grid `<table>`, the cursor's tab stop. The editing layer reseats focus on it. */
@@ -231,6 +231,7 @@ export function useGridCursor<T>({
 		scrollRowIntoViewRef,
 		scrollContainerRef,
 		newRowRef,
+		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
 	})
 
 	/*

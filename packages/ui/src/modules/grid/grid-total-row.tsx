@@ -1,7 +1,7 @@
 'use client'
 
 import type { Table } from '@tanstack/react-table'
-import { type ReactNode, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, useMemo } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
@@ -13,6 +13,7 @@ import { NO_PADDING } from './engine/grid-constants'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
+import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
@@ -125,6 +126,11 @@ type GridTotalRowProps<T> = {
 	density?: DensityLevel
 	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
 	color?: PaletteColor
+	/**
+	 * The item key of a group total in the keyboard cursor's order. Its label cell
+	 * is then the row's one cursor stop. Ignored on the grand variant.
+	 */
+	navKey?: string
 } & GridWindowRowProps
 
 /** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
@@ -136,8 +142,11 @@ function GroupRevealCell({
 	colSpan,
 	colId,
 	className,
+	cellProps,
 	children,
 }: {
+	/** The cursor props of the cell (see {@link useGridNavStopProps}). */
+	cellProps?: ComponentProps<'td'>
 	/** Whether the reveal renders open — the row's reveal hold, not `expanded`. */
 	open: boolean
 	pad: string
@@ -151,6 +160,7 @@ function GroupRevealCell({
 }) {
 	return (
 		<td
+			{...cellProps}
 			colSpan={colSpan}
 			data-grid-col={colId}
 			className={cn(
@@ -190,6 +200,7 @@ export function GridTotalRow<T>({
 	label = 'Total',
 	density = 'snug',
 	color,
+	navKey,
 	...windowRow
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
@@ -207,6 +218,7 @@ export function GridTotalRow<T>({
 				label={label}
 				density={density}
 				color={color}
+				navKey={navKey}
 				windowRow={windowRow}
 			/>
 		)
@@ -238,8 +250,10 @@ function GridGroupTotalRow<T>({
 	label,
 	density,
 	color,
+	navKey,
 	windowRow,
 }: {
+	navKey: string | undefined
 	columns: GridColumn<T>[]
 	rows: T[]
 	/** Columns the leading label cell spans, resolved once by {@link GridTotalRow}. */
@@ -254,6 +268,8 @@ function GridGroupTotalRow<T>({
 	const reveal = useGridRevealHold(expanded)
 
 	const pad = k.rowGroup.reveal.pad({ density })
+
+	const stopProps = useGridNavStopProps(navKey ?? '')
 
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
@@ -272,8 +288,10 @@ function GridGroupTotalRow<T>({
 					rail
 					color={color}
 					colSpan={span}
+					cellProps={navKey === undefined ? undefined : stopProps}
 				>
 					{label}
+					{navKey !== undefined && <GridNavCell stop={navKey} />}
 				</GroupRevealCell>
 
 				{columns.slice(span).map((column) => (

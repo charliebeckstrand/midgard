@@ -194,6 +194,9 @@ function GridGroupLeafCell<T>({
 
 	const pinned = pinnedCellProps(pinning, col)
 
+	// The column's own cell props, such as the cursor's id and role, as on a flat row.
+	const extra = col.cellProps?.(row)
+
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
 		cellActivate,
@@ -204,6 +207,7 @@ function GridGroupLeafCell<T>({
 
 	return (
 		<td
+			{...extra}
 			data-grid-col={col.id}
 			aria-colindex={colIndex}
 			{...roving}
@@ -216,8 +220,9 @@ function GridGroupLeafCell<T>({
 				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
 				pinned.className,
+				extra?.className,
 			)}
-			style={{ ...NO_PADDING, ...pinned.style }}
+			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>

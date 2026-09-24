@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, renderUI, screen, stubMatchMedia, userEvent, within } from '../helpers'
+import { renderUI, screen, stubMatchMedia, userEvent, within } from '../helpers'
 
 type Person = { id: number; name: string; role: string }
 
@@ -165,21 +165,5 @@ describe('Grid master-detail', () => {
 		await user.click(screen.getByRole('button', { name: 'Collapse details for row 1' }))
 
 		expect(track()).not.toHaveAttribute('data-open')
-	})
-
-	it('stands the navigable cursor down while expandable (its own body)', () => {
-		const { container } = renderUI(
-			<Grid
-				columns={columns}
-				rows={people}
-				getKey={getKey}
-				navigable
-				expandable={{ render: detail }}
-			/>,
-		)
-
-		// The cursor makes the table role="grid"; master-detail stands it down, so
-		// the table stays a plain table.
-		expect(bySlot(container, 'grid')?.querySelector('table')).not.toHaveAttribute('role', 'grid')
 	})
 })

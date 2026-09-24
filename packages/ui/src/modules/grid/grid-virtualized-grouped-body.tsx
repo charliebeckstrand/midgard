@@ -12,6 +12,7 @@ import {
 	totalItemKey,
 } from './engine/grid-items/items'
 import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
+import { groupedCursorRows, useGridCursorOrder } from './grid-cursor-order'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
@@ -222,6 +223,15 @@ export function GridVirtualizedGroupedBody<T>({
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, window, record)
 
+	// The cursor walks the open rows. A scroll frame keeps the same order.
+	const cursorOrder = useMemo(() => {
+		void captured
+
+		return groupedCursorRows(groups, totalled)
+	}, [groups, totalled, captured])
+
+	useGridCursorOrder(cursorOrder)
+
 	const colorOf = (group: Row<T>) => presentation?.color(groupValueOf(group, columnId))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
@@ -276,6 +286,7 @@ export function GridVirtualizedGroupedBody<T>({
 							expanded={item.phase === 'open'}
 							density={density}
 							color={color}
+							navKey={item.reactKey}
 							{...windowRow(item, virtualItem.index)}
 						/>
 					)

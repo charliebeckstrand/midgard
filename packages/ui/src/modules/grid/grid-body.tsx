@@ -18,8 +18,9 @@ import {
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
-import { groupTotalled, groupValueOf } from './engine/grid-items/items'
+import { detailOpen, groupTotalled, groupValueOf, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
+import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
@@ -212,6 +213,7 @@ function renderGroup<T>(
 					expanded={expanded}
 					density={density}
 					color={color}
+					navKey={totalItemKey(groupRow.id)}
 				/>
 			)}
 		</Fragment>
@@ -327,6 +329,7 @@ function renderGroupedBody<T>(
 
 	return (
 		<TableBody>
+			<GridCursorOrder order={groupedCursorRows(ordered, totalled)} />
 			{ordered.map((groupRow) =>
 				renderGroup(groupRow, {
 					props,
@@ -451,8 +454,18 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// When rows are drag-reorderable, the sortable context wraps them (its
 	// `<DndContext>` sits outside the `<table>`, provided by the grid). A DOM-less
 	// fragment, so it nests inside `<tbody>` without adding an element.
+	// A master-detail body gives its panels to the cursor as rows of their own.
+	const { expansion } = props
+
 	return (
 		<TableBody>
+			{expansion && (
+				<GridCursorOrder
+					order={detailCursorRows(rows, props.rowKeys, (row, key) =>
+						detailOpen(row, key, expansion),
+					)}
+				/>
+			)}
 			{rowSortable ? (
 				<SortableContext items={rowSortable.itemIds} strategy={rowSortable.strategy}>
 					{body}

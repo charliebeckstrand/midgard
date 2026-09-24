@@ -732,10 +732,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * group-header rows interleaved with lazily fetched children.
 	 * {@link GridGroupBy.groupRow} marks each header.
 	 *
-	 * Grouping renders its own body. While active it stands the
-	 * {@link GridDataProps.navigable} cursor down. Client grouping windows its
-	 * rows under an explicit {@link GridDataProps.virtualize}, and manual grouping
-	 * stands the window down. Sorting, filtering, search, selection,
+	 * Grouping renders its own body. Under client grouping, the
+	 * {@link GridDataProps.navigable} cursor stops once on each group header and
+	 * each group total. Manual grouping stands the cursor down. Client grouping
+	 * windows its rows under an explicit {@link GridDataProps.virtualize}, and
+	 * manual grouping stands the window down. Sorting, filtering, search, selection,
 	 * resizing, and pinning still apply. Client grouping also stands
 	 * {@link GridDataProps.pagination} down; manual grouping composes with
 	 * manual pagination and forces sort/search/filter manual.
@@ -1019,9 +1020,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * column for the disclosure chevron. The panel spans the full row width and
 	 * opens over an auto-height transition.
 	 *
-	 * Renders its own body, so it stands down two things while active, as
-	 * grouping does: the {@link GridProps.navigable | cursor} and row
-	 * {@link GridProps.rowReorder | reorder}. Under an explicit
+	 * Renders its own body, so it stands row
+	 * {@link GridProps.rowReorder | reorder} down while active, as grouping
+	 * does. The {@link GridProps.navigable | cursor} stops once on each open
+	 * panel. Under an explicit
 	 * {@link GridProps.virtualize}, the body windows each row and each open panel,
 	 * and each measures its own height. Sorting, filtering, search, selection,
 	 * pagination, resizing, and pinning still apply.
@@ -1059,6 +1061,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
+	 *
+	 * A group header, a group total, and an open detail panel are one stop
+	 * each. The cursor keeps its column across a stop. On a group header, Enter
+	 * or Space toggles the group, ArrowRight opens it or steps into it, and
+	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
+	 * first control in the panel, and Escape gives focus back to the grid.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable

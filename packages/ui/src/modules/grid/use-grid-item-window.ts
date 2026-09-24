@@ -1,9 +1,17 @@
 'use client'
 
 import type { VirtualItem } from '@tanstack/react-virtual'
-import { type RefObject, type TransitionEvent, useCallback, useLayoutEffect, useRef } from 'react'
+import {
+	type RefObject,
+	type TransitionEvent,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { useVirtualWindow } from '../../hooks'
 import { windowItemEstimate } from './engine/grid-items/items'
+import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { REVEAL_PROPERTY } from './use-grid-reveal-hold'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
@@ -22,6 +30,8 @@ export type GridItemWindowOptions = {
 	fitRenderedRows: () => void
 	/** Whether the header sticks, so the window aligns a row below it. */
 	stickyHeader: boolean
+	/** The cursor's row scroller, which the body sets while it is mounted. */
+	scrollIntoViewRef?: RefObject<GridScrollRowIntoView | null>
 }
 
 /** The part of a window item that the window reads. @internal */
@@ -192,6 +202,26 @@ export function useGridItemWindow<I extends WindowItem>(
 		},
 		[items],
 	)
+
+	// The cursor names an item by its key. While this body is mounted, it scrolls
+	// the item with that key into the window before the cursor points at it.
+	const { scrollIntoViewRef } = options
+
+	const { scrollToIndex } = win
+
+	useEffect(() => {
+		if (!scrollIntoViewRef) return
+
+		scrollIntoViewRef.current = (_, key) => {
+			const index = record.current.items.findIndex((item) => item.key === key)
+
+			if (index >= 0) scrollToIndex(index, { align: 'auto' })
+		}
+
+		return () => {
+			scrollIntoViewRef.current = null
+		}
+	}, [scrollIntoViewRef, scrollToIndex, record])
 
 	return { bodyRef, revealEndItem, ...win }
 }

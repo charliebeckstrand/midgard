@@ -11,10 +11,12 @@ import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { groupValueLabel } from './engine/grid-column/label'
+import { groupItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridColumn } from './types'
+import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {
@@ -67,6 +69,10 @@ export function GridGroupRow<T>({
 
 	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
 
+	const navKey = groupItemKey(row.id)
+
+	const stopProps = useGridNavStopProps(navKey)
+
 	return (
 		// `data-group-key` (the shared value) lets the group-header context menu
 		// resolve the right-clicked group for the row manager and its color/expand items.
@@ -77,6 +83,7 @@ export function GridGroupRow<T>({
 			data-expanded={dataAttr(expanded)}
 		>
 			<TableCell
+				{...stopProps}
 				colSpan={span}
 				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}
 			>
@@ -96,6 +103,7 @@ export function GridGroupRow<T>({
 				>
 					{label}
 				</Button>
+				<GridNavCell stop={navKey} />
 			</TableCell>
 
 			{aggregated && (
