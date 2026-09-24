@@ -1,18 +1,13 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useRef } from 'react'
-import { Card } from '../../components/card'
+import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn, dataAttr } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
-import { DashboardHandle } from './dashboard-handle'
-import { DashboardTileClear } from './dashboard-tile-clear'
-import { DashboardTileContent } from './dashboard-tile-content'
-import { DashboardTileControls } from './dashboard-tile-controls'
+import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
-import { DashboardTileHeader } from './dashboard-tile-header'
 import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
@@ -215,20 +210,10 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const titleId = useId()
 
+	// Held, so a fresh placeholder element never renders the memoized card again.
+	const placeholder = useMemo(() => fallback ?? <Placeholder className="size-full" />, [fallback])
+
 	if (cell === undefined) return null
-
-	const hasHeader = hasHeaderRow(props)
-
-	const placeholder = fallback ?? <Placeholder className="size-full" />
-
-	const handle = movable && (
-		<DashboardHandle
-			{...drag.grip}
-			label={`Move ${label}`}
-			floating={!hasHeader}
-			dragging={drag.dragging}
-		/>
-	)
 
 	const carried = drag.carried
 
@@ -245,60 +230,29 @@ export function DashboardTile(props: DashboardTileProps) {
 			}}
 			className={cn(k.tile({ lifted: drag.dragging || resizing }), className)}
 		>
-			<Card
-				size="sm"
-				bg="surface"
-				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
-				{...(movable ? drag.surface : {})}
-				// The pointer drags the card itself, so the card closes the grab hand too.
-				data-dragging={dataAttr(drag.dragging)}
-				className={cn(
-					k.card({ editable: movable, dragging: drag.dragging }),
-					k.veil.overlay,
-					!editable && k.veil.fade,
-				)}
+			<DashboardTileCard
+				id={id}
+				label={label}
+				titleId={titleId}
+				title={title}
+				description={description}
+				actions={actions}
+				hasHeader={hasHeaderRow(props)}
+				editable={editable}
+				movable={movable}
+				dragging={drag.dragging}
+				grip={drag.grip}
+				surface={drag.surface}
+				mount={mount}
+				fallback={placeholder}
+				onError={onError}
+				onRemove={onRemove}
+				onDuplicate={onDuplicate}
+				expandable={expandable}
+				shell={shell}
 			>
-				{!hasHeader && handle}
-
-				{hasHeader && (
-					<DashboardTileHeader
-						titleId={titleId}
-						title={title}
-						description={description}
-						actions={actions}
-						clear={<DashboardTileClear id={id} label={label} />}
-						handle={handle}
-						controls={
-							<DashboardTileControls
-								id={id}
-								label={label}
-								title={title}
-								description={description}
-								editing={editable}
-								onRemove={onRemove}
-								onDuplicate={onDuplicate}
-								expandable={expandable}
-								fallback={placeholder}
-								onError={onError}
-								shell={shell}
-							>
-								{children}
-							</DashboardTileControls>
-						}
-					/>
-				)}
-
-				<DashboardTileContent
-					id={id}
-					label={label}
-					mount={mount}
-					inert={editable}
-					fallback={placeholder}
-					onError={onError}
-				>
-					{children}
-				</DashboardTileContent>
-			</Card>
+				{children}
+			</DashboardTileCard>
 
 			{movable && (
 				<DashboardTileEdges

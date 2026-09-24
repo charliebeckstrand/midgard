@@ -9,6 +9,7 @@ import {
 	useDashboardRows,
 	useDashboardScope,
 } from '../../modules/dashboard'
+import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 const LAYOUT: DashboardLayoutItem[] = [
@@ -225,6 +226,33 @@ describe('Dashboard', () => {
 		expect(renders.get('c')).toBeGreaterThan(0)
 
 		expect(renders.get('a')).toBeUndefined()
+	})
+
+	it('renders no card of a tile that a lift or a drop does not move', async () => {
+		renderUI(<Board editing />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		// Each render of a card calls the card recipe once, with the drag flag of its tile.
+		const cards = vi.spyOn(k, 'card')
+
+		const flags = () => cards.mock.calls.map(([variants]) => variants?.dragging)
+
+		// A lift changes the dnd-kit context, which each tile reads.
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(flags()).toEqual([true])
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		cards.mockClear()
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(flags()).toEqual([false])
 	})
 
 	it('confines an error to its tile, reports it, and retries', () => {
