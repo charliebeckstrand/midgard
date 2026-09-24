@@ -87,6 +87,24 @@ describe('Dashboard', () => {
 		expect(screen.queryByRole('button', { name: 'Move Revenue' })).not.toBeInTheDocument()
 	})
 
+	it('fades the spark veil at rest only where the pointer can hover', () => {
+		const { rerender } = renderUI(<Board />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		const fades = () => [...card.classList].filter((name) => name.includes(':not-hover:'))
+
+		// jsdom resolves no `:has()` and no hover media, so the class carries the pin.
+		// A touch screen cannot hover, so the veil must stay in view there.
+		expect(fades()).toHaveLength(2)
+
+		for (const name of fades()) expect(name.startsWith('[@media(hover:hover)]:')).toBe(true)
+
+		rerender(<Board editing />)
+
+		expect(fades()).toEqual([])
+	})
+
 	it('makes the content inert in edit mode, and keeps it live at rest', () => {
 		const { container, rerender } = renderUI(<Board />)
 

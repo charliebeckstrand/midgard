@@ -145,7 +145,8 @@ export type DashboardTileProps = {
  * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
  * through CSS. The header then becomes a veil over the top of the content, so the
  * sparkline takes the full height. At rest the veil shows on hover or focus, and
- * in edit mode it stays in view for the grip.
+ * in edit mode it stays in view for the grip. A touch screen cannot hover, so
+ * there the veil stays in view at rest too.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
