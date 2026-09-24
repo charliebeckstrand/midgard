@@ -4,7 +4,14 @@ import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
 import { JsonTree, type JsonValue } from '../../../../components/json-tree'
-import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../../../components/menu'
+import {
+	Menu,
+	MenuContent,
+	MenuDescription,
+	MenuItem,
+	MenuLabel,
+	MenuTrigger,
+} from '../../../../components/menu'
 import { Spacer } from '../../../../components/spacer'
 import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
@@ -13,6 +20,7 @@ import {
 	addSpecTile,
 	Dashboard,
 	type DashboardHandle,
+	type DashboardPreset,
 	type DashboardSpec,
 	type DashboardSpecTile,
 	DashboardTiles,
@@ -22,6 +30,7 @@ import {
 	nextSpecTileId,
 	parseDashboardSpec,
 	removeSpecTile,
+	startFromPreset,
 	useDashboardRows,
 	useDashboardScope,
 } from '../../../../modules/dashboard'
@@ -133,12 +142,60 @@ const saved: DashboardSpec = {
 	],
 }
 
+// The presets that the app offers as a start point. Two of them use the id
+// `tile-1`, so a start must key the board with the preset id.
+const presets: DashboardPreset[] = [
+	{
+		id: 'sales',
+		label: 'Sales overview',
+		description: 'Revenue by region and by month',
+		spec: {
+			tiles: [
+				{ id: 'tile-1', widget: 'bar', title: 'Revenue by region', options: { by: 'region' } },
+				{ id: 'tile-2', widget: 'trend', title: 'Revenue by month' },
+			],
+			layout: [
+				{ id: 'tile-1', x: 0, y: 0, w: 12 },
+				{ id: 'tile-2', x: 12, y: 0, w: 12, h: 27 },
+			],
+		},
+	},
+	{
+		id: 'operations',
+		label: 'Operations',
+		description: 'Units, products, and each order',
+		spec: {
+			tiles: [
+				{ id: 'tile-1', widget: 'stat', title: 'Units' },
+				{ id: 'tile-2', widget: 'bar', title: 'Revenue by product', options: { by: 'product' } },
+				{ id: 'tile-3', widget: 'orders', title: 'Orders' },
+			],
+			layout: [
+				{ id: 'tile-1', x: 0, y: 0, w: 6, h: 16 },
+				{ id: 'tile-2', x: 6, y: 0, w: 18 },
+				{ id: 'tile-3', x: 0, y: 41, w: 24, h: 44 },
+			],
+		},
+	},
+	{ id: 'blank', label: 'Blank', description: 'No tiles', spec: { tiles: [], layout: [] } },
+]
+
 export function RegistryExample() {
 	// A board read from storage passes through the parse, which repairs a stale or
 	// damaged spec. This saved board is sound, so the parse reports no issue.
 	const [spec, setSpec] = useState(() => parseDashboardSpec(saved).spec)
 
 	const [editing, setEditing] = useState(false)
+
+	// The key of the board. A start from a preset changes it, so each tile mounts
+	// again, and the selection of the old board goes with it.
+	const [started, setStarted] = useState('saved')
+
+	const start = (preset: DashboardPreset) => {
+		setSpec(startFromPreset(preset).spec)
+
+		setStarted(preset.id)
+	}
 
 	// A remove leaves a gap, because the board never packs itself. Tidy closes the
 	// gaps in one explicit move.
@@ -170,6 +227,24 @@ export function RegistryExample() {
 					<Menu placement="bottom-start">
 						<MenuTrigger>
 							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
+								Start from
+							</Button>
+						</MenuTrigger>
+
+						<MenuContent>
+							{presets.map((preset) => (
+								<MenuItem key={preset.id} onAction={() => start(preset)}>
+									<MenuLabel>{preset.label}</MenuLabel>
+
+									<MenuDescription>{preset.description}</MenuDescription>
+								</MenuItem>
+							))}
+						</MenuContent>
+					</Menu>
+
+					<Menu placement="bottom-start">
+						<MenuTrigger>
+							<Button variant="outline" suffix={<Icon icon={<ChevronDown />} />}>
 								Add tile
 							</Button>
 						</MenuTrigger>
@@ -198,6 +273,7 @@ export function RegistryExample() {
 
 				<DashboardWidgetProvider widgets={widgets}>
 					<Dashboard
+						key={started}
 						ref={board}
 						aria-label="Saved dashboard"
 						editing={editing}

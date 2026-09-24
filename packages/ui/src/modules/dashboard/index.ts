@@ -6,6 +6,7 @@ export {
 	type DashboardWidgetProviderProps,
 } from './dashboard-widget-provider'
 export type { DashboardLayoutItem, DashboardTileSize } from './engine/dashboard-layout'
+export { type DashboardPreset, startFromPreset } from './engine/dashboard-preset'
 export type { DashboardSelection, DashboardSelectOptions } from './engine/dashboard-scope'
 export {
 	addSpecTile,
