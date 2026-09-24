@@ -17,7 +17,7 @@ import {
 	describeDragStart,
 } from './engine/dashboard-announcements'
 import { dragPreview, dragTravel } from './engine/dashboard-drag'
-import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
@@ -99,6 +99,7 @@ export function useDashboardDrag({
 					partner: null,
 					width: state.width,
 					pitch: width / state.columns,
+					inline: inlineSign(canvasRef.current && getComputedStyle(canvasRef.current).direction),
 				},
 			})
 
@@ -119,7 +120,10 @@ export function useDashboardDrag({
 
 			const travel = dragTravel(gesture.snapshot, gesture.id, columns)
 
-			const x = Math.round(clamp(origin.x + event.delta.x / gesture.pitch, 0, travel.maxX))
+			// In a right-to-left board a travel to the right moves toward column 0.
+			const dx = (gesture.inline * event.delta.x) / gesture.pitch
+
+			const x = Math.round(clamp(origin.x + dx, 0, travel.maxX))
 
 			const y = Math.round(
 				clamp(origin.y + (event.delta.y * ROW_SUBDIVISION) / gesture.pitch, 0, travel.maxY),

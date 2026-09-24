@@ -53,6 +53,7 @@ describe('createDashboardStore', () => {
 				partner: null,
 				width: 0,
 				pitch: 40,
+				inline: 1,
 			},
 		})
 
@@ -105,6 +106,7 @@ describe('createDashboardStore', () => {
 				partner: null,
 				width: 1200,
 				pitch: 50,
+				inline: 1,
 			},
 		})
 

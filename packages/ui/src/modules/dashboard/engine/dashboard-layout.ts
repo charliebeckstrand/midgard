@@ -168,6 +168,16 @@ export function toLayoutItem(
 	}
 }
 
+/**
+ * The sign that turns a horizontal travel in px into columns. It is `1` in a
+ * left-to-right board. It is `-1` in a right-to-left board, where the grid puts
+ * column `0` at the right edge. The saved layout stays in columns, so one layout
+ * renders mirrored in both directions.
+ */
+export function inlineSign(direction: string | null | undefined): 1 | -1 {
+	return direction === 'rtl' ? -1 : 1
+}
+
 /** The CSS `grid-area` of a cell: the grid lines count from `1`. */
 export function gridArea(cell: DashboardCell): string {
 	return `${cell.y + 1} / ${cell.x + 1} / span ${cell.h} / span ${cell.w}`

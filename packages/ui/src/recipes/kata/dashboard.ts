@@ -156,7 +156,7 @@ const handle = defineRecipe({
 	],
 	floating: {
 		true: [
-			'absolute left-3 top-3 z-10',
+			'absolute start-3 top-3 z-10',
 			'border shadow-sm',
 			...mode('border-zinc-200 bg-white/90', 'dark:border-zinc-800 dark:bg-zinc-900/90'),
 		],
@@ -176,23 +176,24 @@ const resizeHandle = defineRecipe({
 	],
 	edge: {
 		e: [
-			'inset-y-0 right-0 w-2 cursor-ew-resize',
-			'after:inset-y-[calc(50%-1rem)] after:left-[calc(50%-1.5px)] after:w-[3px]',
+			'inset-y-0 end-0 w-2 cursor-ew-resize',
+			'after:inset-y-[calc(50%-1rem)] after:start-[calc(50%-1.5px)] after:w-[3px]',
 		],
 		s: [
 			'inset-x-0 bottom-0 h-2 cursor-ns-resize',
 			'after:inset-x-[calc(50%-1rem)] after:top-[calc(50%-1.5px)] after:h-[3px]',
 		],
 		se: [
-			'bottom-0 right-0 size-3 cursor-nwse-resize',
-			'after:bottom-[3px] after:right-[3px] after:size-1.5',
+			// The corner sits at the end edge, so a right-to-left tile slants the cursor the other way.
+			'bottom-0 end-0 size-3 cursor-nwse-resize rtl:cursor-nesw-resize',
+			'after:bottom-[3px] after:end-[3px] after:size-1.5',
 		],
 	},
 })
 
 /** The chip that shows the span of a tile while it resizes. */
 const readout = [
-	'pointer-events-none absolute bottom-3 right-3 z-30',
+	'pointer-events-none absolute bottom-3 end-3 z-30',
 	'rounded-md border px-2 py-1',
 	'text-xs tabular-nums',
 	'shadow-sm',

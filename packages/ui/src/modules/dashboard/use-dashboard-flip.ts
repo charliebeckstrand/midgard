@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
-import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 
 /** The duration of a tile glide, in ms. */
 const GLIDE_DURATION = 200
@@ -51,12 +51,14 @@ function glideFrom(
 	cell: DashboardCell,
 	snap: boolean,
 	pitch: number,
+	inline: 1 | -1,
 ): Offset | null {
 	if (snap || previous.snap) return null
 
 	if (previous.cell.w !== cell.w || previous.cell.h !== cell.h) return null
 
-	const x = (previous.cell.x - cell.x) * pitch + (previous.carried?.x ?? 0)
+	// The columns turn into px on the screen, which run the other way in a right-to-left board.
+	const x = inline * (previous.cell.x - cell.x) * pitch + (previous.carried?.x ?? 0)
 
 	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (previous.carried?.y ?? 0)
 
@@ -112,7 +114,9 @@ export function useDashboardFlip(
 		// A carried tile follows the pointer; it glides only once the pointer lets go.
 		if (element === null || previous === null || cell === undefined || carried !== null) return
 
-		const offset = glideFrom(previous, cell, snap, element.offsetWidth / cell.w)
+		const inline = inlineSign(getComputedStyle(element).direction)
+
+		const offset = glideFrom(previous, cell, snap, element.offsetWidth / cell.w, inline)
 
 		if (offset !== null) glide(element, offset)
 	}, [ref, cell, carried, snap])

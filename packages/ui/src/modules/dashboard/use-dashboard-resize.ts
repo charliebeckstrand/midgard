@@ -1,7 +1,12 @@
 'use client'
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
-import { type DashboardCell, minColumns, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import {
+	type DashboardCell,
+	inlineSign,
+	minColumns,
+	ROW_SUBDIVISION,
+} from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
 	drivesHeight,
@@ -63,6 +68,8 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 	return {
 		origin,
 		pitch,
+		// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
+		inline: inlineSign(canvas && getComputedStyle(canvas).direction),
 		snapshot: [...view.cells.values()],
 		limits: {
 			columns,
@@ -132,7 +139,7 @@ export function useDashboardResize({
 
 			event.preventDefault()
 
-			const { origin, pitch, snapshot, limits } = context
+			const { origin, pitch, inline, snapshot, limits } = context
 
 			const handle = event.currentTarget
 
@@ -154,6 +161,7 @@ export function useDashboardResize({
 					partner: null,
 					width,
 					pitch,
+					inline,
 				},
 			})
 
@@ -164,7 +172,7 @@ export function useDashboardResize({
 
 				if (gesture?.kind !== 'resize') return
 
-				const dw = drivesWidth(edge) ? (moveEvent.clientX - start.x) / pitch : 0
+				const dw = drivesWidth(edge) ? (inline * (moveEvent.clientX - start.x)) / pitch : 0
 
 				const dh = drivesHeight(edge, limits.ratio)
 					? ((moveEvent.clientY - start.y) * ROW_SUBDIVISION) / pitch
@@ -221,9 +229,10 @@ export function useDashboardResize({
 
 			if (context === null) return
 
-			const { origin, snapshot, limits } = context
+			const { origin, inline, snapshot, limits } = context
 
-			const w = drivesWidth(edge) ? origin.w + dw : origin.w
+			// The arrow keys follow the screen: in a right-to-left tile the end edge is on the left.
+			const w = drivesWidth(edge) ? origin.w + inline * dw : origin.w
 
 			const h = drivesHeight(edge, limits.ratio) ? origin.h + dh : origin.h
 
