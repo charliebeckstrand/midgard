@@ -145,6 +145,9 @@ that effective query to rows with `evaluateQuery`. The module fetches no data.
 
 ## 9. Version two: the registry
 
+> **Status.** Built. `DashboardWidgetProvider`, `DashboardTiles`, and the `mount` and
+> `defaultSize` props of `DashboardTile` ship in the `dashboard` module.
+
 The registry follows `ChatEmbedRegistry`. A widget kind is a renderer plus the demands of its
 tile. The app registers the kinds by name with `DashboardWidgetProvider`. A spec tile names a
 kind, and `DashboardTiles` renders one `DashboardTile` for each spec tile. The dashboard still
@@ -168,8 +171,7 @@ type DashboardWidget = {
   render: DashboardWidgetRenderer
   ratio?: number
   minWidth?: number
-  defaultSize?: { w: number; h?: number }
-  fallback?: ReactNode // what the tile shows while the content suspends or is held
+  defaultSize?: DashboardTileSize // { w: number; h?: number }
 }
 
 type DashboardWidgetRegistry = {
@@ -192,6 +194,10 @@ the component of that element reads the scope with the hooks, as in a JSX tile.
 
 The plan sketch had a generic `DashboardWidget<Options>`. A registry of mixed kinds erases the
 parameter at once, so the generic adds no safety. The chat pattern is also the house pattern.
+
+A widget has no `fallback` of its own. A widget that suspends can hold its own `Suspense`
+boundary inside `render`. The registry `fallback` then keeps one meaning: the renderer for a
+kind that no widget claims.
 
 ### 9.2 Composition
 
@@ -237,6 +243,10 @@ the gap: "This dashboard cannot show a “forecast” tile." A provider `fallbac
 line. A saved board that outlives a kind therefore still renders, the layout does not shift,
 and the user can remove the tile. The tile boundary does not catch it, because nothing threw.
 
+That tile demands no width. The kind that set its `minWidth` is gone, and a line of text needs
+no floor. Under the default floor of 320 px, a narrow saved span re-packed the whole board, and
+edit mode then stood down, so the user could not rearrange the board or remove the tile.
+
 ### 9.5 Mount
 
 `DashboardTile` takes `mount`, the `Mount` policy of its content:
@@ -247,6 +257,10 @@ and the user can remove the tile. The tile boundary does not catch it, because n
 
 A held tile shows its `fallback`. Its cell already holds the space, so nothing shifts when the
 content arrives. The provider `mount` applies to each spec tile.
+
+The server and the hydration render show the fallback of a held tile. `useInView` reports each
+target as visible where no observer exists, so the server alone would render the content, and
+the first client render would not. The gate therefore opens only after hydration.
 
 The default is `always`, and not the `lazy` of the chat. At load, most of a board is on screen.
 A lazy default adds an observer and a placeholder frame to each visible tile, to spare the few

@@ -18,6 +18,7 @@ import { Grid, type GridColumn } from '../../../../modules/grid'
 import { QueryBuilder, type QueryGroup, QuerySummary } from '../../../../modules/query'
 import { Example } from '../../../engine'
 import { fields, products, type Sale, sales, sumBy } from './data'
+import { RegistryExample } from './registry'
 
 const layout: DashboardLayoutItem[] = [
 	{ id: 'regions', x: 0, y: 0, w: 12 },
@@ -197,6 +198,8 @@ export function Demo() {
 					</Dashboard>
 				</Stack>
 			</Example>
+
+			<RegistryExample />
 		</Stack>
 	)
 }

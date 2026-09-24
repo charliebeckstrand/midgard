@@ -1,17 +1,18 @@
 'use client'
 
-import { type ReactNode, Suspense, useCallback, useId, useRef } from 'react'
+import { type ReactNode, useCallback, useId, useRef } from 'react'
 import { Card } from '../../components/card'
 import { Placeholder } from '../../components/placeholder'
 import { cn, dataAttr } from '../../core'
+import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardTileContext, useDashboardActions } from './context'
+import { useDashboardActions } from './context'
 import { DashboardHandle } from './dashboard-handle'
-import { DashboardTileBoundary } from './dashboard-tile-boundary'
 import { DashboardTileClear } from './dashboard-tile-clear'
+import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import { DashboardTileHeader } from './dashboard-tile-header'
-import { gridArea } from './engine/dashboard-layout'
+import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
 import { useDashboardTileCell } from './use-dashboard-tile-cell'
@@ -46,7 +47,26 @@ export type DashboardTileProps = {
 	 * @defaultValue 320
 	 */
 	minWidth?: number
-	/** What the tile shows while its content suspends. Defaults to a placeholder block. */
+	/**
+	 * The span of the tile in grid units when the layout holds no entry for it.
+	 * The tile takes a new row under the lowest tile at this span, and the first
+	 * commit writes its entry. `h` counts only for a free-form tile.
+	 * @defaultValue `{ w: 8, h: 18 }`
+	 */
+	defaultSize?: DashboardTileSize
+	/**
+	 * When the content mounts, relative to the viewport. `lazy` holds the content
+	 * back until the tile comes near the viewport, and then keeps it. `active` also
+	 * unmounts it when the tile leaves. A held tile shows its `fallback`, and its
+	 * cell keeps the space.
+	 *
+	 * @remarks
+	 * Under `lazy` and `active`, the server renders the fallback. The content
+	 * mounts on the client after hydration.
+	 * @defaultValue 'always'
+	 */
+	mount?: Mount
+	/** What the tile shows while its content suspends or is held back. Defaults to a placeholder block. */
 	fallback?: ReactNode
 	className?: string
 	/** The widget. Keep the element stable, because a move never renders it again. */
@@ -67,8 +87,9 @@ export type DashboardTileProps = {
  *
  * @remarks
  * A tile with a layout entry renders on the server at its saved cell. A tile
- * with no entry takes a new row under the lowest tile. It first renders on the
- * client, because the board must know each mounted tile to place it.
+ * with no entry takes a new row under the lowest tile, at its `defaultSize`. It
+ * first renders on the client, because the board must know each mounted tile to
+ * place it.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -83,13 +104,15 @@ export function DashboardTile({
 	actions,
 	ratio,
 	minWidth = DEFAULT_MIN_WIDTH,
+	defaultSize,
+	mount = 'always',
 	fallback,
 	className,
 	children,
 }: DashboardTileProps) {
 	const label = title ?? id
 
-	const cell = useDashboardTileCell(id, { ratio, minWidth, label })
+	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize })
 
 	const gap = useDashboardStore((_, state) => state.gap)
 
@@ -171,15 +194,16 @@ export function DashboardTile({
 					/>
 				)}
 
-				<div data-slot="dashboard-tile-content" inert={editable} className={cn(k.content)}>
-					<DashboardTileContext value={id}>
-						<DashboardTileBoundary label={label} onError={onError}>
-							<Suspense fallback={fallback ?? <Placeholder className="size-full" />}>
-								{children}
-							</Suspense>
-						</DashboardTileBoundary>
-					</DashboardTileContext>
-				</div>
+				<DashboardTileContent
+					id={id}
+					label={label}
+					mount={mount}
+					inert={editable}
+					fallback={fallback ?? <Placeholder className="size-full" />}
+					onError={onError}
+				>
+					{children}
+				</DashboardTileContent>
 			</Card>
 
 			{movable && (

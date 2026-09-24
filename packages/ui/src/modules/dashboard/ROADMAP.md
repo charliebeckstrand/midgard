@@ -16,6 +16,10 @@ A store in the engine gives each tile a subscription to its own cell. A drag pre
 
 Each tile has its own error boundary and its own Suspense boundary. The scope holds one `QueryGroup` filter that the app owns, and the cross-filter selections that the tiles make. A tile does not see its own selections.
 
+Version two adds layer 4, the widget registry. `DashboardWidgetProvider` registers widget kinds by name, on the `ChatEmbedProvider` pattern. `DashboardTiles` renders one `DashboardTile` for each tile of a `DashboardSpec`, beside any JSX tiles. A spec is plain data, so an app can add a tile, remove a tile, and save the board. A kind that no widget claims keeps its tile and states the gap.
+
+A tile takes a `mount` policy, so a long board can hold back the content of the tiles under the fold. A tile also takes a `defaultSize`, the span that it takes before the layout holds an entry for it.
+
 ## Engine — the substrate
 
 The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
@@ -24,7 +28,11 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 
 ## Backlog
 
-- **Widget registry.** Layer 4 of the plan: widget kinds on the `ChatEmbedRegistry` pattern, a serializable `DashboardSpec`, and lazy mounts through the `Mount` primitive. It enables "add tile", presets, and a saved board.
+- **Spec operations.** Pure functions that add, remove, and duplicate a spec tile. A remove also drops the layout entry of the tile; else its space stays open.
+
+- **Spec validation.** A guard for a spec that the app reads from storage.
+
+- **Presets.** Named specs that an app offers as a start point.
 
 - **Reading order.** The tab order follows the order of the tiles in the markup, not their places on the board. Sort the tiles by `(y, x)` for focus, or give the board a roving tab stop.
 

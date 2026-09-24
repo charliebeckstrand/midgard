@@ -6,6 +6,7 @@ import type { QueryGroup } from '../query/engine/types'
 import type { DashboardResizeEdge } from './engine/dashboard-resize'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import type { DashboardStore } from './engine/dashboard-store'
+import type { DashboardWidgetRegistry } from './types'
 
 /**
  * The store of the nearest `Dashboard`. A tile reads it through a selector, so a
@@ -52,4 +53,18 @@ export const [DashboardActionsContext, useDashboardActions] =
 export const [DashboardTileContext, useDashboardTileId] = createContext<string | null>(
 	'DashboardTile',
 	{ default: null },
+)
+
+/** The registry with nothing in it: each spec tile falls back. */
+const NO_WIDGETS: DashboardWidgetRegistry = { widgets: {} }
+
+/**
+ * The widget kinds in scope, as `DashboardWidgetProvider` supplied them. With
+ * no provider above, the registry is empty, and each spec tile states the gap.
+ *
+ * @internal
+ */
+export const [DashboardWidgetContext, useDashboardWidgets] = createContext<DashboardWidgetRegistry>(
+	'DashboardWidgetProvider',
+	{ default: NO_WIDGETS },
 )

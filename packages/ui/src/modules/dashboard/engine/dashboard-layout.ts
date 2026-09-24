@@ -17,12 +17,13 @@ export const ROW_SUBDIVISION = 4
 /** The default column count. It divides into halves, thirds, quarters, sixths, and eighths. */
 export const DEFAULT_COLUMNS = 24
 
-/** The column span of a tile that mounts with no layout entry. */
+/** The column span of a tile that mounts with no layout entry and no `defaultSize`. */
 export const DEFAULT_CELL_WIDTH = 8
 
 /**
- * The row span of a free-form tile with no stored height. It is the height of a
- * 16:9 tile at a third of 24 columns, so an unset tile still has a board shape.
+ * The row span of a free-form tile with no stored height and no default height.
+ * It is the height of a 16:9 tile at a third of 24 columns, so an unset tile
+ * still has a board shape.
  */
 export const DEFAULT_CELL_HEIGHT = 18
 
@@ -52,6 +53,17 @@ export type DashboardLayoutItem = {
 }
 
 /**
+ * The span of a tile in grid units, for a tile that the saved layout does not
+ * place yet.
+ */
+export type DashboardTileSize = {
+	/** The column span. */
+	w: number
+	/** The row span. Only a free-form tile reads it, because a tile with a fixed ratio derives its height. */
+	h?: number
+}
+
+/**
  * What a mounted tile demands of its cell. The tile registers these values; the
  * saved layout never stores them.
  */
@@ -62,6 +74,8 @@ export type DashboardTileDemands = {
 	minWidth?: number
 	/** The name that the live region reads for the tile. */
 	label?: string
+	/** The span of the tile when the saved layout holds no entry for it. */
+	defaultSize?: DashboardTileSize
 }
 
 /** One resolved cell in grid units. The height is always concrete. */
@@ -280,7 +294,8 @@ export function shiftCells(
 /**
  * Resolves a saved layout against the mounted tiles. An entry keeps its place.
  * A mounted tile with no entry takes a new row under the lowest tile, in mount
- * order. An entry with no mounted tile is ignored, and its space stays open.
+ * order, at its `defaultSize`. An entry with no mounted tile is ignored, and its
+ * space stays open.
  */
 export function resolveLayout(
 	items: readonly DashboardLayoutItem[],
@@ -304,7 +319,9 @@ export function resolveLayout(
 	for (const [id, demand] of demands) {
 		if (placed.has(id)) continue
 
-		const item = { id, x: 0, y: bottom(cells), w: DEFAULT_CELL_WIDTH }
+		const size = demand.defaultSize
+
+		const item = { id, x: 0, y: bottom(cells), w: size?.w ?? DEFAULT_CELL_WIDTH, h: size?.h }
 
 		cells.push(resolveCell(item, demand, columns))
 	}

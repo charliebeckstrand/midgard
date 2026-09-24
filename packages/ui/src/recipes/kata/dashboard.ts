@@ -85,6 +85,9 @@ const content = ['relative min-h-0 flex-1 overflow-auto']
 /** The error state of a tile: a centered message and a retry button. */
 const error = ['flex size-full flex-col items-center justify-center gap-2 text-center']
 
+/** The state of a spec tile whose kind no widget claims: a centered message. */
+const missing = ['flex size-full items-center justify-center p-2 text-center']
+
 /** The landing placeholder of a dragged tile. */
 const placeholder = [
 	'pointer-events-none rounded-lg',
@@ -160,6 +163,7 @@ export const k = {
 	actions,
 	content,
 	error,
+	missing,
 	placeholder,
 	handle,
 	resizeHandle,

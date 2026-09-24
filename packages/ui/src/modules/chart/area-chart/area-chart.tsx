@@ -280,6 +280,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		selectedCategories,
 		onHiddenChange,
 		formatValue,
 		className,
