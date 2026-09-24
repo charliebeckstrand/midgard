@@ -8,6 +8,7 @@
 import type { GridSortState } from '../context'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
+import type { GridHistoryStep } from './grid-edit-history'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive
@@ -111,20 +112,32 @@ function forRow(row: string | undefined): string {
 }
 
 /**
+ * What a save did to its cells: a save updates them, an undo undoes them, and
+ * a redo redoes them. @internal
+ */
+export type GridSaveOutcome = 'updated' | 'undone' | 'redone'
+
+/**
  * The polite announcement for an inline-edit commit, narrated when staged cells
  * reach the sink (WCAG 4.1.3). Under cell scope it speaks after focus has moved
  * to the next editor, so it names what saved. One cell reads by its column,
  * and more cells read as a count. The row is named when one row holds every
  * cell: `Name updated for Alice`, `3 cells updated for Alice`, or `5 cells
- * updated` across rows. The caller gates on at least one cell, so a session
- * that changed nothing stays silent.
+ * updated` across rows. An undo and a redo read the same way, with their own
+ * outcome (`Name undone for Alice`). The caller gates on at least one cell, so
+ * a session that changed nothing stays silent.
  *
  * @param columns - The column label of each saved cell.
  * @param row - The label of the one row that holds every cell.
+ * @param outcome - What the save did.
  * @internal
  */
-export function describeCommit(columns: readonly string[], row?: string): string {
-	return `${describeCells(columns, 'updated')}${forRow(row)}`
+export function describeCommit(
+	columns: readonly string[],
+	row?: string,
+	outcome: GridSaveOutcome = 'updated',
+): string {
+	return `${describeCells(columns, outcome)}${forRow(row)}`
 }
 
 /**
@@ -150,20 +163,42 @@ export function describeDiscard(changes: number): string {
  * @param saved - The column label of each accepted cell.
  * @param refused - The column label of each refused cell.
  * @param row - The label of the row of the batch.
+ * @param outcome - What the batch did to the accepted cells.
  * @internal
  */
 export function describeSettle(
 	saved: readonly string[],
 	refused: readonly string[],
 	row?: string,
+	outcome: GridSaveOutcome = 'updated',
 ): string {
-	if (refused.length === 0) return describeCommit(saved, row)
+	if (refused.length === 0) return describeCommit(saved, row, outcome)
 
 	const failed = describeCells(refused, 'not saved')
 
-	const parts = saved.length === 0 ? failed : `${describeCells(saved, 'updated')}, ${failed}`
+	const parts = saved.length === 0 ? failed : `${describeCells(saved, outcome)}, ${failed}`
 
 	return `${parts}${forRow(row)}`
+}
+
+/**
+ * The polite announcement for an undo or a redo that writes nothing (WCAG
+ * 4.1.3). `'empty'` reads `Nothing to undo`. `'blocked'` reads `Cannot undo
+ * while a cell has an edit`, because a draft of the entry's cells is open.
+ * `'stale'` reads `Cannot undo, the cells changed`, because each cell of the
+ * entry holds a new value since the save.
+ *
+ * @internal
+ */
+export function describeHistoryMiss(
+	step: GridHistoryStep,
+	status: 'empty' | 'blocked' | 'stale',
+): string {
+	if (status === 'empty') return `Nothing to ${step}`
+
+	return status === 'blocked'
+		? `Cannot ${step} while a cell has an edit`
+		: `Cannot ${step}, the cells changed`
 }
 
 /**

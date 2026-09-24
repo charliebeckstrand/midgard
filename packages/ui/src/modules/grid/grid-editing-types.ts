@@ -384,6 +384,31 @@ export type GridEditableConfig = {
 	 */
 	onReject?: (refused: GridCellChange[]) => void
 	/**
+	 * Turns on undo and redo of saved cells. With focus on the grid's tab stop,
+	 * Ctrl+Z or Cmd+Z undoes the last save. Ctrl+Shift+Z, Cmd+Shift+Z, or
+	 * Ctrl+Y redoes it. In an open editor, the keys stay with the editor, for
+	 * its own text undo. The cursor moves to the first cell that a step writes,
+	 * when the grid shows its row and its column.
+	 *
+	 * The grid does not change the rows. An undo sends the old values through
+	 * {@link GridEditableConfig.onCommit}, one batch for each row, and a redo
+	 * sends the new values again. Apply them as you apply a save. A promise
+	 * works as it does for a save: the cells show as pending, and a refused
+	 * cell keeps the value with its error. `validate` does not run, because
+	 * each value was valid when it saved.
+	 *
+	 * @remarks The history holds the last 100 saves, and a new save clears the
+	 * steps that redo can take. A step writes a cell only when the cell still
+	 * holds the value that the last save wrote. A cell that changed since, for
+	 * example through a refetch, keeps its value. A column with no `field` is
+	 * not in the history, because the grid cannot read its old value. A step
+	 * waits while one of its cells has an edit that is not saved. The history
+	 * works under both values of {@link GridEditableConfig.session}. The
+	 * new-row slot is not in it.
+	 * @defaultValue false
+	 */
+	history?: boolean
+	/**
 	 * Adds a blank editor row, pinned at the top or the bottom of the body, for
 	 * the entry of a new record. Its editable cells are always editors. Fill
 	 * them, then press Enter in the row, or its Add control, to call
