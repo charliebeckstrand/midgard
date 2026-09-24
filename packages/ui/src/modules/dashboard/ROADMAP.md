@@ -28,19 +28,19 @@ The markup follows the board: the tiles render by row, then by column, so the ke
 
 `parseDashboardSpec` reads a spec from storage. It drops each part that the board cannot use: a tile with no id or kind, a repeated id, a malformed or orphan entry, and a filter that is not a query tree. It keeps each other part, and it reports each change with its path, so the app decides whether to log, warn, or reset. It does not check the kinds against a registry, because a kind that no widget claims keeps its tile.
 
+A preset is a named spec that an app offers as a start point. `DashboardPreset` holds the id, the label, and the spec, and the app holds its own catalog. `startFromPreset` passes the spec through `parseDashboardSpec`. A start replaces the board, so the app clears the selection value and gives the preset id to the board as its `key`. Else an old selection keeps filtering the board, and a tile that keeps its id keeps the state of its widget.
+
 Tidy is the one bulk move. `tidy` on the `ref` of the board (`DashboardHandle`) packs the tiles upward and commits the result through the layout binding. Each tile keeps its column and its span, and it moves straight up until it meets a tile or the top edge, so each column keeps its order. A static tile never moves, and a tile that is not mounted keeps its saved place. The pack runs in the engine as `tidyCells`, and the live region says how many tiles moved.
 
 A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
 
 ## Engine — the substrate
 
-The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-spec-parse`, `dashboard-tidy`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
+The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-spec-parse`, `dashboard-preset`, `dashboard-tidy`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine. The store is plain JavaScript; the shell reads it through `useSyncExternalStore`.
 
 ## Backlog
-
-- **Presets.** Named specs that an app offers as a start point.
 
 - **Grid-unit limits.** Public `minW`, `maxW`, `minH`, and `maxH` beside the `minWidth` floor.
 
