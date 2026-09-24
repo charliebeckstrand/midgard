@@ -30,6 +30,7 @@ import {
 	isLocked,
 	normalizeFreeze,
 	type PinMenuChoice,
+	physicalSide,
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
 import { sortsEqual } from './engine/grid-sort/state'
@@ -258,6 +259,8 @@ type ColumnMenuDefaultArgs<T> = {
 	exportActions: GridExportAction[]
 	/** The column's filter affordance, or `null` when the grid has no column filters. */
 	filter: ColumnMenuFilter | null
+	/** Whether the grid lays out right to left, which swaps the pin labels and arrows. */
+	rtl: boolean
 }
 
 /**
@@ -321,29 +324,40 @@ function groupMenuItems<T>(column: GridColumn<T>, groupBy: GridGroupByMenu | nul
 }
 
 /**
- * Pin items for a column's menu: "Pin left" / "Pin right" for the edges it is
- * not already frozen to, and "Unpin" once it is frozen. A scrolling column
- * offers both edges; a left-pinned one offers Pin right and Unpin, and vice
- * versa. A locked column offers none — its freeze is immutable.
+ * Pin items for a column's menu: a pin to each edge it is not already frozen
+ * to, and "Unpin" once it is frozen. A scrolling column offers both edges; a
+ * left-pinned one offers the other edge and Unpin, and vice versa. A locked
+ * column offers none — its freeze is immutable. The labels and the arrows name
+ * the physical edge (see {@link pinMenuChoices}).
  *
  * @internal
  */
-function pinMenuItems<T>(column: GridColumn<T>, pinColumn: PinColumn): GridMenuItem[] {
+function pinMenuItems<T>(
+	column: GridColumn<T>,
+	pinColumn: PinColumn,
+	rtl: boolean,
+): GridMenuItem[] {
 	if (isLocked(column)) return []
 
-	return pinMenuChoices(normalizeFreeze(column.pinned)).map((choice) => ({
+	return pinMenuChoices(normalizeFreeze(column.pinned), rtl).map((choice) => ({
 		key: choice.key,
 		label: choice.label,
-		icon: pinChoiceIcon(choice.key),
+		icon: pinChoiceIcon(choice.target, rtl),
 		onAction: () => pinColumn(column.id, choice.target),
 	}))
 }
 
-/** The glyph for each pin choice — icons stay in the shell, off the engine's decision tree. @internal */
-export function pinChoiceIcon(key: PinMenuChoice['key']): ReactElement {
-	if (key === 'pin-left') return <ArrowLeftToLine />
+/**
+ * The glyph for a pin target — icons stay in the shell, off the engine's
+ * decision tree. The arrow points to the physical edge, so a right-to-left
+ * grid swaps it.
+ *
+ * @internal
+ */
+export function pinChoiceIcon(target: PinMenuChoice['target'], rtl = false): ReactElement {
+	if (target === false) return <PinOff />
 
-	return key === 'pin-right' ? <ArrowRightToLine /> : <PinOff />
+	return physicalSide(target, rtl) === 'left' ? <ArrowLeftToLine /> : <ArrowRightToLine />
 }
 
 /**
@@ -382,6 +396,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 		chooseColumns,
 		exportActions,
 		filter,
+		rtl,
 	} = args
 
 	// The menu in order, each concern contributing its rows or none: the
@@ -402,7 +417,7 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 			key: 'pin',
 			label: 'Pin',
 			icon: <Pin />,
-			items: pinMenuItems(column, pinColumn),
+			items: pinMenuItems(column, pinColumn, rtl),
 		}),
 		...groupMenuItems(column, groupBy),
 		...submenuItems({

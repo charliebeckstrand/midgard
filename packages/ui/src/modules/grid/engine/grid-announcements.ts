@@ -9,6 +9,7 @@ import type { GridSortState } from '../context'
 import type { GridColumn } from '../types'
 import { columnLabel } from './grid-column/label'
 import type { GridHistoryStep } from './grid-edit-history'
+import { physicalSide } from './grid-pin/overrides'
 
 /**
  * The polite announcement for the grid's current sort, narrated to assistive
@@ -69,12 +70,14 @@ export function describeRowReorder(name: string, position: number, total: number
 /**
  * The polite announcement for a column pin change, narrated when the header menu
  * or pin button moves a column (WCAG 4.1.3). It reads `Pinned Name to the left`,
- * `Pinned Name to the right`, or `Unpinned Name` when released.
+ * `Pinned Name to the right`, or `Unpinned Name` when released. The side is
+ * logical, and the words name the physical edge (see {@link physicalSide}).
  *
+ * @param rtl - Whether the grid lays out right to left.
  * @internal
  */
-export function describePin(label: string, side: 'left' | 'right' | false): string {
-	return side === false ? `Unpinned ${label}` : `Pinned ${label} to the ${side}`
+export function describePin(label: string, side: 'left' | 'right' | false, rtl = false): string {
+	return side === false ? `Unpinned ${label}` : `Pinned ${label} to the ${physicalSide(side, rtl)}`
 }
 
 /**

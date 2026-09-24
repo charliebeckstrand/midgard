@@ -20,6 +20,7 @@ import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
 import {
 	GridContext,
+	GridDirectionContext,
 	GridHighlightContext,
 	GridResizingContext,
 	type GridSortState,
@@ -630,7 +631,11 @@ export function GridData<T>({
 			setPinningState((prev) => ({ ...prev, [String(id)]: side === false ? 'none' : side }))
 
 			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
-			announce(describePin(labelOfColumn(id), side))
+			// The words name the physical edge, so they read the grid's direction.
+			const rtl =
+				wrapperRef.current !== null && getComputedStyle(wrapperRef.current).direction === 'rtl'
+
+			announce(describePin(labelOfColumn(id), side, rtl))
 		},
 		[setPinningState],
 	)
@@ -1099,6 +1104,21 @@ export function GridData<T>({
 			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
 
+	// The direction of the grid, read from its wrapper. The manager dialog portals
+	// out of the grid, so it takes this direction through its `dir` and through
+	// context. The read runs on mount and each time the manager opens, not on
+	// each render, because a computed-style read can force a style pass.
+	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the open state is the trigger for a fresh read, not an input.
+	useLayoutEffect(() => {
+		const wrapper = wrapperRef.current
+
+		if (!wrapper) return
+
+		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
+	}, [columnManagerOpen])
+
 	// Row manager: the per-group color / order overlay the "Manage rows" dialog
 	// edits, reachable from the group-header context menu under client grouping.
 	// The wiring (overlay resolution, dialog open state, and the group-header menu
@@ -1476,25 +1496,28 @@ export function GridData<T>({
 						<GridExportOverlay active={exportActions.pending} />
 
 						{renderDialog && (
-							<GridManagerDialog
-								open={columnManagerOpen}
-								onOpenChange={setColumnManagerOpen}
-								label={managerLabel}
-							>
-								<GridColumnManager
-									columns={managerItems}
-									filterable={columnManagerConfig?.filterable}
-									order={columnOrder}
-									onOrderChange={setColumnOrder}
-									reorderable={reorderEnabled}
-									hidden={hiddenColumns}
-									onHiddenChange={handleHiddenChange}
-									onPinChange={pinColumn}
-									groups={group.editorGroups}
-									onGroupsChange={group.editorSetGroups}
-									onSavePreset={columnManagerConfig?.onSavePreset}
-								/>
-							</GridManagerDialog>
+							<GridDirectionContext value={direction}>
+								<GridManagerDialog
+									open={columnManagerOpen}
+									onOpenChange={setColumnManagerOpen}
+									label={managerLabel}
+									dir={direction}
+								>
+									<GridColumnManager
+										columns={managerItems}
+										filterable={columnManagerConfig?.filterable}
+										order={columnOrder}
+										onOrderChange={setColumnOrder}
+										reorderable={reorderEnabled}
+										hidden={hiddenColumns}
+										onHiddenChange={handleHiddenChange}
+										onPinChange={pinColumn}
+										groups={group.editorGroups}
+										onGroupsChange={group.editorSetGroups}
+										onSavePreset={columnManagerConfig?.onSavePreset}
+									/>
+								</GridManagerDialog>
+							</GridDirectionContext>
 						)}
 
 						<GridRowManagerRegionDialog region={rowManager} />
