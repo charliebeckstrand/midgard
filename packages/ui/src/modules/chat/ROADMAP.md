@@ -149,6 +149,8 @@ It reuses rather than invents. [`useMountHold`](../../primitives/mount/mount.ts)
 
 Two rules the gate had to carry. It reports in-view where nothing can observe — server rendering, and jsdom — because the gate defers work that is otherwise correct, and the safe answer when the environment cannot tell is to draw. And a held-back block reserves its height, so a transcript pinned to its newest reply does not lurch as a reader scrolls up into one; only the caller can know that height, so `ChatEmbedPart.height` is an optional field over a default a chart runs to.
 
+The first rule broke hydration. The server drew each held-back embed, but the first client render could observe, so it deferred the embed, and React discarded the server markup. A held-back embed now waits for hydration before it reads the gate. The server markup therefore holds the reserved block, the same as the first client render. `always` still draws on the server.
+
 That default reserve is the honest weak point. A view of another height makes the transcript settle by the difference the first time a reader reaches it, and nothing measures a view before mounting it, which is the thing being deferred. A caller with views of one known size should say so on the part.
 
 This is the increment that makes virtualization optional for a dashboard chat rather than required. It does not replace it, and the entry below says where the line falls.

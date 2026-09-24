@@ -1,17 +1,19 @@
 'use client'
 
-import { type ReactNode, Suspense, useCallback, useId, useRef } from 'react'
+import { type ReactNode, useCallback, useId, useRef } from 'react'
 import { Card } from '../../components/card'
 import { Placeholder } from '../../components/placeholder'
 import { cn, dataAttr } from '../../core'
+import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardTileContext, useDashboardActions } from './context'
+import { useDashboardActions } from './context'
 import { DashboardHandle } from './dashboard-handle'
-import { DashboardTileBoundary } from './dashboard-tile-boundary'
 import { DashboardTileClear } from './dashboard-tile-clear'
+import { DashboardTileContent } from './dashboard-tile-content'
+import { DashboardTileControls } from './dashboard-tile-controls'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import { DashboardTileHeader } from './dashboard-tile-header'
-import { gridArea } from './engine/dashboard-layout'
+import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
 import { useDashboardTileCell } from './use-dashboard-tile-cell'
@@ -19,6 +21,20 @@ import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 
 /** The minimum content width of a tile, in px: about where a chart with a legend stays legible. */
 const DEFAULT_MIN_WIDTH = 320
+
+/**
+ * Whether a tile draws a header row. A tile with standard controls always has
+ * one, so its content box keeps its height when the controls swap on the switch
+ * of edit mode.
+ */
+function hasHeaderRow(props: DashboardTileProps): boolean {
+	const { title, description, actions, onRemove, onDuplicate, expandable } = props
+
+	return (
+		[title, description, actions, onRemove, onDuplicate].some((part) => part !== undefined) ||
+		expandable === true
+	)
+}
 
 /** Props for {@link DashboardTile}. */
 export type DashboardTileProps = {
@@ -46,8 +62,44 @@ export type DashboardTileProps = {
 	 * @defaultValue 320
 	 */
 	minWidth?: number
-	/** What the tile shows while its content suspends. Defaults to a placeholder block. */
+	/**
+	 * The span of the tile in grid units when the layout holds no entry for it.
+	 * The tile takes a new row under the lowest tile at this span, and the first
+	 * commit writes its entry. `h` counts only for a free-form tile.
+	 * @defaultValue `{ w: 8, h: 18 }`
+	 */
+	defaultSize?: DashboardTileSize
+	/**
+	 * When the content mounts, relative to the viewport. `lazy` holds the content
+	 * back until the tile comes near the viewport, and then keeps it. `active` also
+	 * unmounts it when the tile leaves. A held tile shows its `fallback`, and its
+	 * cell keeps the space.
+	 *
+	 * @remarks
+	 * Under `lazy` and `active`, the server renders the fallback. The content
+	 * mounts on the client after hydration.
+	 * @defaultValue 'always'
+	 */
+	mount?: Mount
+	/** What the tile shows while its content suspends or is held back. Defaults to a placeholder block. */
 	fallback?: ReactNode
+	/**
+	 * Removes the tile. When set, edit mode shows a remove control in the header
+	 * row. The app owns the tile list, so it does the remove: for a spec tile,
+	 * with `removeSpecTile`. The focus moves to the grip of a neighbour tile.
+	 */
+	onRemove?: () => void
+	/**
+	 * Duplicates the tile. When set, edit mode shows a duplicate control in the
+	 * header row. For a spec tile, do the copy with `duplicateSpecTile`.
+	 */
+	onDuplicate?: () => void
+	/**
+	 * Show an expand control at rest. It opens the content in a dialog, at a
+	 * larger size, in the scope of the same tile.
+	 * @defaultValue false
+	 */
+	expandable?: boolean
 	className?: string
 	/** The widget. Keep the element stable, because a move never renders it again. */
 	children?: ReactNode
@@ -67,8 +119,9 @@ export type DashboardTileProps = {
  *
  * @remarks
  * A tile with a layout entry renders on the server at its saved cell. A tile
- * with no entry takes a new row under the lowest tile. It first renders on the
- * client, because the board must know each mounted tile to place it.
+ * with no entry takes a new row under the lowest tile, at its `defaultSize`. It
+ * first renders on the client, because the board must know each mounted tile to
+ * place it.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -76,20 +129,27 @@ export type DashboardTileProps = {
  * </DashboardTile>
  * ```
  */
-export function DashboardTile({
-	id,
-	title,
-	description,
-	actions,
-	ratio,
-	minWidth = DEFAULT_MIN_WIDTH,
-	fallback,
-	className,
-	children,
-}: DashboardTileProps) {
+export function DashboardTile(props: DashboardTileProps) {
+	const {
+		id,
+		title,
+		description,
+		actions,
+		ratio,
+		minWidth = DEFAULT_MIN_WIDTH,
+		defaultSize,
+		mount = 'always',
+		fallback,
+		onRemove,
+		onDuplicate,
+		expandable = false,
+		className,
+		children,
+	} = props
+
 	const label = title ?? id
 
-	const cell = useDashboardTileCell(id, { ratio, minWidth, label })
+	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize })
 
 	const gap = useDashboardStore((_, state) => state.gap)
 
@@ -130,10 +190,17 @@ export function DashboardTile({
 
 	if (cell === undefined) return null
 
-	const hasHeader = title !== undefined || description !== undefined || actions !== undefined
+	const hasHeader = hasHeaderRow(props)
+
+	const placeholder = fallback ?? <Placeholder className="size-full" />
 
 	const handle = movable && (
-		<DashboardHandle {...drag.grip} label={`Move ${label}`} floating={!hasHeader} />
+		<DashboardHandle
+			{...drag.grip}
+			label={`Move ${label}`}
+			floating={!hasHeader}
+			dragging={drag.dragging}
+		/>
 	)
 
 	const carried = drag.carried
@@ -156,6 +223,8 @@ export function DashboardTile({
 				bg="surface"
 				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
 				{...(movable ? drag.surface : {})}
+				// The pointer drags the card itself, so the card closes the grab hand too.
+				data-dragging={dataAttr(drag.dragging)}
 				className={cn(k.card({ editable: movable, dragging: drag.dragging }))}
 			>
 				{!hasHeader && handle}
@@ -168,18 +237,36 @@ export function DashboardTile({
 						actions={actions}
 						clear={<DashboardTileClear id={id} label={label} />}
 						handle={handle}
+						controls={
+							<DashboardTileControls
+								id={id}
+								label={label}
+								title={title}
+								description={description}
+								editing={editable}
+								onRemove={onRemove}
+								onDuplicate={onDuplicate}
+								expandable={expandable}
+								fallback={placeholder}
+								onError={onError}
+								shell={shell}
+							>
+								{children}
+							</DashboardTileControls>
+						}
 					/>
 				)}
 
-				<div data-slot="dashboard-tile-content" inert={editable} className={cn(k.content)}>
-					<DashboardTileContext value={id}>
-						<DashboardTileBoundary label={label} onError={onError}>
-							<Suspense fallback={fallback ?? <Placeholder className="size-full" />}>
-								{children}
-							</Suspense>
-						</DashboardTileBoundary>
-					</DashboardTileContext>
-				</div>
+				<DashboardTileContent
+					id={id}
+					label={label}
+					mount={mount}
+					inert={editable}
+					fallback={placeholder}
+					onError={onError}
+				>
+					{children}
+				</DashboardTileContent>
 			</Card>
 
 			{movable && (

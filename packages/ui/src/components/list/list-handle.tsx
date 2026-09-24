@@ -24,7 +24,7 @@ export type ListHandleProps = {
 export function ListHandle({ children, className }: ListHandleProps) {
 	const { interactive, disabled, itemCount } = useListContext()
 
-	const { listeners } = useListItemContext()
+	const { listeners, dragging } = useListItemContext()
 
 	if (itemCount <= 1) return null
 
@@ -32,6 +32,7 @@ export function ListHandle({ children, className }: ListHandleProps) {
 		<span
 			aria-hidden="true"
 			data-slot="list-handle"
+			data-dragging={dataAttr(dragging)}
 			data-disabled={dataAttr(disabled)}
 			data-readonly={dataAttr(!interactive && !disabled)}
 			className={cn(k.handle, className)}

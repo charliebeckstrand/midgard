@@ -90,6 +90,32 @@ export function clearSelection(
 	)
 }
 
+/**
+ * The selections that apply: those of the board itself, and those of a tile on
+ * the board. A selection of a tile that left the board stops applying, because
+ * no Clear control is left for it. It stays in the selection value, so a tile
+ * that returns gets it back.
+ *
+ * @remarks
+ * Before any tile mounts, each selection applies. The tiles mount in a layout
+ * effect, which the server never runs. The server markup and the hydration
+ * render therefore still agree on a saved selection.
+ *
+ * @param selections - The selections of the board.
+ * @param mounted - The ids of the tiles on the board.
+ * @returns The selections that apply, or `selections` itself when each one applies.
+ */
+export function liveSelections(
+	selections: readonly DashboardSelection[],
+	mounted: { readonly size: number; has: (id: string) => boolean },
+): readonly DashboardSelection[] {
+	if (mounted.size === 0) return selections
+
+	const live = (item: DashboardSelection) => item.source === '' || mounted.has(item.source)
+
+	return selections.every(live) ? selections : selections.filter(live)
+}
+
 /** The empty selection, shared so that a miss keeps one identity. */
 const NO_VALUES: readonly string[] = []
 

@@ -112,6 +112,7 @@ function GridRowManagerZone({ group, onRecolor, colorOptions }: GridRowManagerZo
 						<button
 							type="button"
 							ref={setActivatorNodeRef}
+							data-dragging={dataAttr(dragging)}
 							className={cn(k.zone.grip)}
 							aria-label={`Reorder group ${label}`}
 							{...attributes}

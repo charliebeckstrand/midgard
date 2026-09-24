@@ -1,3 +1,4 @@
+import { act } from '@testing-library/react'
 import { Profiler, type ReactNode, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -148,6 +149,33 @@ describe('Dashboard', () => {
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 9, h: 20 })
 
 		expect(next.find((item) => item.id === 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 12 })
+	})
+
+	it('marks the grip and the card as held while a tile drags, so the grab hand closes', async () => {
+		const { container } = renderUI(<Board editing />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		const card = grip.closest('[data-slot="card"]')
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(grip).toHaveAttribute('data-dragging')
+
+		expect(card).toHaveAttribute('data-dragging')
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
 	})
 
 	it('renders only the tile whose cell changed', () => {
@@ -308,6 +336,65 @@ describe('Dashboard scope', () => {
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 
 		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
+	})
+
+	it('stops applying the selection of a tile that leaves the board, and applies it again on return', () => {
+		function Board({ regions }: { regions: boolean }) {
+			return (
+				<Dashboard aria-label="Sales">
+					{regions && (
+						<DashboardTile id="regions" title="Regions">
+							<Regions />
+						</DashboardTile>
+					)}
+
+					<DashboardTile id="total" title="Total">
+						<Total testId="total" />
+					</DashboardTile>
+				</Dashboard>
+			)
+		}
+
+		const { rerender } = renderUI(<Board regions />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'West' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// No Clear control is left for the selection, so it must stop applying.
+		rerender(<Board regions={false} />)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		// The selection value keeps it, so a tile that returns gets it back.
+		rerender(<Board regions />)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+	})
+
+	it('applies a saved selection in the server markup', () => {
+		const html = renderToString(
+			<Dashboard
+				aria-label="Sales"
+				layout={{
+					defaultValue: [
+						{ id: 'regions', x: 0, y: 0, w: 12, h: 10 },
+						{ id: 'total', x: 12, y: 0, w: 12, h: 10 },
+					],
+				}}
+				selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
+			>
+				<DashboardTile id="regions" title="Regions">
+					<Regions />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		expect(html).toMatch(/data-testid="total"[^>]*>30</)
 	})
 
 	it('applies the filter that the app owns to each tile', () => {

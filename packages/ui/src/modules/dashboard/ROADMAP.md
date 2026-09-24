@@ -16,19 +16,29 @@ A store in the engine gives each tile a subscription to its own cell. A drag pre
 
 Each tile has its own error boundary and its own Suspense boundary. The scope holds one `QueryGroup` filter that the app owns, and the cross-filter selections that the tiles make. A tile does not see its own selections.
 
+Version two adds layer 4, the widget registry. `DashboardWidgetProvider` registers widget kinds by name, on the `ChatEmbedProvider` pattern. `DashboardTiles` renders one `DashboardTile` for each tile of a `DashboardSpec`, beside any JSX tiles. A spec is plain data, so an app can add a tile, remove a tile, and save the board. A kind that no widget claims keeps its tile and states the gap.
+
+A tile takes a `mount` policy, so a long board can hold back the content of the tiles under the fold. A tile also takes a `defaultSize`, the span that it takes before the layout holds an entry for it.
+
+The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so its space does not stay open. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
+
+A tile draws the standard actions in its header row. `onRemove` and `onDuplicate` show controls in edit mode, and `expandable` shows an expand control at rest, which opens the content in a dialog in the scope of the same tile. The app owns the tile list, so it applies each action; `DashboardTiles` hands it the spec tile. A remove moves the focus to the grip of a neighbour tile, and the live region names each change.
+
+The markup follows the board: the tiles render by row, then by column, so the keyboard and assistive tech meet them as the eye reads them. The order comes from the saved entries, so the server renders it too. In edit mode the markup holds still, so a gesture never moves a focused grip in the DOM; the new order takes effect when edit mode ends. Both `DashboardTiles` and the direct `DashboardTile` children follow it. React focuses a moved element again after the commit, so a move keeps the focus.
+
+A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
+
 ## Engine — the substrate
 
-The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
+The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine. The store is plain JavaScript; the shell reads it through `useSyncExternalStore`.
 
 ## Backlog
 
-- **Widget registry.** Layer 4 of the plan: widget kinds on the `ChatEmbedRegistry` pattern, a serializable `DashboardSpec`, and lazy mounts through the `Mount` primitive. It enables "add tile", presets, and a saved board.
+- **Spec validation.** A guard for a spec that the app reads from storage.
 
-- **Reading order.** The tab order follows the order of the tiles in the markup, not their places on the board. Sort the tiles by `(y, x)` for focus, or give the board a roving tab stop.
-
-- **Tile actions.** A standard action set beside the grip: remove, duplicate, and expand to a dialog.
+- **Presets.** Named specs that an app offers as a start point.
 
 - **Tidy.** One explicit command that packs the tiles upward. It is the only bulk move on a board that never packs itself.
 

@@ -18,6 +18,7 @@ import { Grid, type GridColumn } from '../../../../modules/grid'
 import { QueryBuilder, type QueryGroup, QuerySummary } from '../../../../modules/query'
 import { Example } from '../../../engine'
 import { fields, products, type Sale, sales, sumBy } from './data'
+import { RegistryExample } from './registry'
 
 const layout: DashboardLayoutItem[] = [
 	{ id: 'regions', x: 0, y: 0, w: 12 },
@@ -159,6 +160,7 @@ export function Demo() {
 					>
 						<DashboardTile
 							id="regions"
+							expandable
 							title="Revenue by region"
 							description="Click a bar to filter the other tiles"
 							ratio={16 / 9}
@@ -168,6 +170,7 @@ export function Demo() {
 
 						<DashboardTile
 							id="mix"
+							expandable
 							title="Product mix"
 							description="Click a slice to filter the other tiles"
 							ratio={16 / 9}
@@ -181,6 +184,7 @@ export function Demo() {
 
 						<DashboardTile
 							id="trend"
+							expandable
 							title="Revenue by month"
 							actions={
 								<Badge color="green" variant="soft">
@@ -191,12 +195,14 @@ export function Demo() {
 							<Trend />
 						</DashboardTile>
 
-						<DashboardTile id="orders" title="Orders" minWidth={480}>
+						<DashboardTile id="orders" expandable title="Orders" minWidth={480}>
 							<Orders />
 						</DashboardTile>
 					</Dashboard>
 				</Stack>
 			</Example>
+
+			<RegistryExample />
 		</Stack>
 	)
 }

@@ -8,6 +8,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
@@ -159,10 +160,14 @@ type Grab = {
 
 /** What {@link usePanelResize} hands back. @internal */
 export type PanelResize = {
-	/** Spread onto the grab bar. */
+	/**
+	 * Spread onto the grab bar. `data-dragging` marks the bar while a pointer
+	 * holds it, so the grab cursors of `hannou.grab` close the hand.
+	 */
 	handleProps: {
 		onPointerDown: (event: ReactPointerEvent<HTMLElement>) => void
 		onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+		'data-dragging': '' | undefined
 	}
 	/** The share of the screen the panel covers, for the splitter's value. */
 	covers: number
@@ -476,5 +481,11 @@ export function usePanelResize({
 		)
 	}
 
-	return { handleProps: { onPointerDown, onKeyDown }, covers, resizing, size, ref }
+	return {
+		handleProps: { onPointerDown, onKeyDown, 'data-dragging': dataAttr(resizing) },
+		covers,
+		resizing,
+		size,
+		ref,
+	}
 }

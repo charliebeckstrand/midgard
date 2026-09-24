@@ -183,6 +183,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		texture = false,
 		labels,
 		onCategoryClick,
+		selectedCategories,
 		onHiddenChange,
 		formatValue,
 		className,

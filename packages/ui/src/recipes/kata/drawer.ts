@@ -76,8 +76,8 @@ export const k = {
 	 * the reader actually sees.
 	 *
 	 * The area is the full width, so the reach is the panel's rather than the
-	 * bar's. `hannou.grab` carries the rest, including the `touch-none` that makes
-	 * the gesture work at all under a finger.
+	 * bar's. `hannou.grab.default` carries the rest, including the `touch-none`
+	 * that makes the gesture work at all under a finger.
 	 */
 	handle: {
 		area: [
@@ -91,7 +91,7 @@ export const k = {
 			// slot gap — left in the flow it floats a whole step above the first thing
 			// under it. The padding above sets it off instead.
 			layout.flush,
-			...hannou.grab,
+			...hannou.grab.default,
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',

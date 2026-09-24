@@ -2,7 +2,11 @@
 
 import { DndContext } from '@dnd-kit/core'
 import {
+	Children,
 	type CSSProperties,
+	cloneElement,
+	isValidElement,
+	type ReactElement,
 	type ReactNode,
 	useCallback,
 	useLayoutEffect,
@@ -18,12 +22,14 @@ import type { AccessibleName } from '../../types'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
 import { DashboardPlaceholder } from './dashboard-placeholder'
+import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	DEFAULT_COLUMNS,
 	mergeLayout,
 	ROW_SUBDIVISION,
+	sortByOrder,
 } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import { createDashboardStore } from './engine/dashboard-store'
@@ -60,6 +66,37 @@ function canvasStyle(columns: number, gap: number): CSSProperties {
 		['--dashboard-gap' as string]: `${gap}px`,
 		['--dashboard-columns' as string]: columns,
 	}
+}
+
+/** Whether a child is a `DashboardTile` element, which the reading order can place. */
+function isTileElement(child: unknown): child is ReactElement<DashboardTileProps> {
+	return isValidElement<DashboardTileProps>(child) && child.type === DashboardTile
+}
+
+/**
+ * The children with each direct `DashboardTile` in reading order. The tiles
+ * trade their slots among themselves, and each other child keeps its slot. Each
+ * tile takes a key from its id, so a move keeps its state. React focuses a moved
+ * element again after the commit, so a move keeps the focus too.
+ */
+function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
+	const items = Children.toArray(children)
+
+	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
+
+	const tiles = sortByOrder(
+		slots.map((slot) => items[slot] as ReactElement<DashboardTileProps>),
+		order,
+		(tile) => tile.props.id,
+	)
+
+	slots.forEach((slot, index) => {
+		const tile = tiles[index]
+
+		if (tile !== undefined) items[slot] = cloneElement(tile, { key: `tile:${tile.props.id}` })
+	})
+
+	return items
 }
 
 /**
@@ -107,7 +144,12 @@ export type DashboardProps = AccessibleName & {
 	/** Receives each error that a tile boundary catches, for a log or a report. */
 	onTileError?: (id: string, error: unknown) => void
 	className?: string
-	/** The tiles: `DashboardTile` elements, in reading order. */
+	/**
+	 * The tiles: `DashboardTile` elements and `DashboardTiles`, in any order. The
+	 * board renders the tiles in reading order, by row and then by column. In
+	 * edit mode the markup holds still, and the new order takes effect when edit
+	 * mode ends.
+	 */
 	children?: ReactNode
 }
 
@@ -274,6 +316,12 @@ export function Dashboard({
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
 
+	const readOrder = () => store.getView().order
+
+	const order = useSyncExternalStore(store.subscribe, readOrder, readOrder)
+
+	const tiles = useMemo(() => inReadingOrder(children, order), [children, order])
+
 	return (
 		<DashboardStoreContext value={store}>
 			<DashboardActionsContext value={actions}>
@@ -282,6 +330,8 @@ export function Dashboard({
 						ref={containerRef}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
+						// The focus lands here when a remove takes away the last tile.
+						tabIndex={-1}
 						{...label}
 						className={cn('@container w-full', className)}
 					>
@@ -291,7 +341,7 @@ export function Dashboard({
 							style={canvasStyle(columns, gap)}
 							className={cn(k.canvas({ editable }))}
 						>
-							{children}
+							{tiles}
 
 							<DashboardPlaceholder gap={gap} />
 						</div>

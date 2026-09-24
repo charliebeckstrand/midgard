@@ -471,6 +471,20 @@ describe('Drawer drag handle', () => {
 		expect(handle.tabIndex).toBe(0)
 	})
 
+	it('marks the bar as held while a pointer drags it, so the grab hand closes', () => {
+		const { handle } = renderHandled()
+
+		expect(handle).not.toHaveAttribute('data-dragging')
+
+		fireEvent.pointerDown(handle, { pointerType: 'mouse', button: 0, clientY: 400 })
+
+		expect(handle).toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(window, { pointerType: 'mouse', clientY: 400 })
+
+		expect(handle).not.toHaveAttribute('data-dragging')
+	})
+
 	it('resizes on the arrow keys and never closes on them', async () => {
 		const onOpenChange = vi.fn()
 

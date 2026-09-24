@@ -52,3 +52,13 @@ export function describeDragEnd(
 export function describeDragCancel(label: string, cell: DashboardCell, columns: number): string {
 	return `Canceled. ${label} returned to ${describeCell(cell, columns)}.`
 }
+
+/** The text when a tile action removes a tile. */
+export function describeRemove(label: string): string {
+	return `Removed ${label}.`
+}
+
+/** The text when a tile action duplicates a tile. */
+export function describeDuplicate(label: string): string {
+	return `Duplicated ${label}.`
+}

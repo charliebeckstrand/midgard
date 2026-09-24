@@ -3,6 +3,7 @@
 import { useEffect } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { Hold, type Mount, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
 import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
@@ -104,6 +105,11 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  * Draws one `embed` block behind the viewport gate. `lazy` mounts it near the
  * viewport and keeps it. `active` also unmounts it when it scrolls away.
  *
+ * @remarks
+ * The server and the hydration render show the reserved space. An observer
+ * cannot run on the server, and the client must hydrate the same markup. The
+ * gate therefore opens only after hydration.
+ *
  * @internal
  */
 function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
@@ -115,7 +121,9 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 	// render. Its row left the window and came back, and it must not defer again.
 	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
 
-	const hold = useMountHold(inView || returning, mount)
+	const hydrated = useHydrated()
+
+	const hold = useMountHold(hydrated && (inView || returning), mount)
 
 	// Written after the commit, so a render that React discards records nothing.
 	useEffect(() => {
