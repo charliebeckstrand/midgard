@@ -61,7 +61,7 @@ export const k = {
 	chevron,
 	/** Prefix/suffix slot wrappers flanking the label. */
 	affix: 'flex flex-none items-center',
-	label: 'flex-1 truncate text-left',
+	label: 'flex-1 truncate text-start',
 	group: 'overflow-hidden',
 	/** Per-depth indent in rem when `indent` is enabled. Equals chevron width + row gap. */
 	indentStep: {

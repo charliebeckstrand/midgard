@@ -42,7 +42,7 @@ export const k = defineRecipe(
 				size.md,
 				text.muted,
 				fg.hover,
-				'text-left',
+				'text-start',
 				...mode(
 					'group-data-[open]/accordion-item:text-zinc-950',
 					'dark:group-data-[open]/accordion-item:text-white',

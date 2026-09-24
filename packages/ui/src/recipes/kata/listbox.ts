@@ -11,7 +11,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [flex.row, 'w-full', 'text-left', ...reset, 'appearance-none', ...cursor],
+		base: [flex.row, 'w-full', 'text-start', ...reset, 'appearance-none', ...cursor],
 		density,
 		size,
 		slots: {

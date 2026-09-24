@@ -167,7 +167,7 @@ function ChartLegendEntry({
 					as="span"
 					tone="muted"
 					size="sm"
-					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+					className={cn('text-start leading-tight', off && 'line-through opacity-60')}
 				>
 					{item.label}
 				</Text>
@@ -178,7 +178,7 @@ function ChartLegendEntry({
 					as="span"
 					tone="muted"
 					size="sm"
-					className={cn('text-left leading-tight tabular-nums', off && 'opacity-60')}
+					className={cn('text-start leading-tight tabular-nums', off && 'opacity-60')}
 				>
 					{item.detail}
 				</Text>
@@ -287,7 +287,7 @@ function ChartLegendOverflowSwitch({
 				as="span"
 				tone="muted"
 				size="sm"
-				className={cn('min-w-0 text-left leading-tight', off && 'line-through opacity-60')}
+				className={cn('min-w-0 text-start leading-tight', off && 'line-through opacity-60')}
 			>
 				{item.label}
 			</Text>
@@ -727,7 +727,7 @@ export function ChartLegend({
 					as="span"
 					tone="muted"
 					size="sm"
-					className={cn('text-left leading-tight', off && 'line-through opacity-60')}
+					className={cn('text-start leading-tight', off && 'line-through opacity-60')}
 				>
 					{reference.label}
 				</Text>

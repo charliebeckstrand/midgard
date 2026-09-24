@@ -57,7 +57,7 @@ export const k = {
 	hr: ['border-0 border-t', ...sen.border.defaultColor, 'my-6'],
 
 	// Emphasis rule under the header, default rule under cells.
-	table: 'my-4 w-full text-left',
+	table: 'my-4 w-full text-start',
 	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.emphasisColor],
 	td: ['border-b px-3 py-2', ...sen.border.defaultColor],
 	align: { left: 'text-left', right: 'text-right', center: 'text-center' },

@@ -106,7 +106,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			    was traded away to save. */}
 			{/* The clipping box is structural and nothing else: the off treatment stays
 			    on the label itself, which is the slot that names it. */}
-			<span ref={labelRef} className="block min-w-0 flex-1 truncate text-left">
+			<span ref={labelRef} className="block min-w-0 flex-1 truncate text-start">
 				<Text
 					as="span"
 					size="sm"
