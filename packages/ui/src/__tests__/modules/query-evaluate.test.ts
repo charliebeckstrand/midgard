@@ -94,6 +94,44 @@ describe('matchQueryRule', () => {
 
 		expect(matchQueryRule('between', 5, 7)).toBe(true)
 	})
+
+	it('imposes no constraint when a scalar operator reads a value that is not a scalar', () => {
+		expect(matchQueryRule('gt', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('contains', 'Alice', { text: 'Bob' })).toBe(true)
+
+		expect(matchQueryRule('after', '2026-01-15', new Date('2026-01-01'))).toBe(true)
+	})
+
+	it('imposes no constraint when a between bound is not a scalar', () => {
+		expect(matchQueryRule('between', 5, [[10], ''])).toBe(true)
+
+		expect(matchQueryRule('between', 5, ['', { max: 1 }])).toBe(true)
+	})
+
+	it('imposes no constraint when a between value is not a pair', () => {
+		expect(matchQueryRule('between', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('between', 5, [10, 20, 30])).toBe(true)
+	})
+
+	it('reads a whitespace-only between bound as open', () => {
+		expect(matchQueryRule('between', -5, ['  ', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 100, [10, '\t'])).toBe(true)
+	})
+
+	it('reads a null between bound as open', () => {
+		expect(matchQueryRule('between', 5, [null, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, [null, 10])).toBe(false)
+	})
+
+	it('reads a boolean value as a scalar', () => {
+		expect(matchQueryRule('equals', true, true)).toBe(true)
+
+		expect(matchQueryRule('equals', false, true)).toBe(false)
+	})
 })
 
 describe('evaluateQuery', () => {
@@ -231,6 +269,9 @@ const fieldValue = () =>
 /** A finite number, which is the domain the numeric operators state an order over. */
 const numeric = () => fc.integer({ min: -1000, max: 1000 })
 
+/** A value that is not a scalar, so it has the wrong shape for a scalar operator or a range bound. */
+const nonScalar = () => fc.oneof(fc.array(fieldValue(), { minLength: 1 }), fc.object(), fc.date())
+
 /** A rule value that survives a trim, so the empty-value rule does not stand the operator down. */
 const stated = () => fc.string({ minLength: 1, maxLength: 6 }).filter((text) => text.trim() !== '')
 
@@ -248,6 +289,39 @@ describe('matchQueryRule · properties', () => {
 			expect(matchQueryRule('notAnOperator', value, rule)).toBe(true)
 		},
 	)
+
+	// Each operator but `between` reads a scalar. An array, an object, or a
+	// `Date` has the wrong shape, so the operator stands down.
+	test.prop([
+		fc.constantFrom(...NEEDS_VALUE.filter((operator) => operator !== 'between')),
+		fieldValue(),
+		nonScalar(),
+	])(
+		'imposes no constraint when a scalar operator reads a value that is not a scalar',
+		(operator, value, rule) => {
+			expect(matchQueryRule(operator, value, rule)).toBe(true)
+		},
+	)
+
+	// Each bound of a range is blank or a scalar. A bound of a different shape,
+	// on either side, makes the range stand down.
+	test.prop([fieldValue(), nonScalar(), fc.oneof(numeric(), fc.constant('')), fc.boolean()])(
+		'imposes no constraint when a between bound is not a scalar',
+		(value, bound, other, first) => {
+			expect(matchQueryRule('between', value, first ? [bound, other] : [other, bound])).toBe(true)
+		},
+	)
+
+	// A range is a `[min, max]` pair. An array of scalar bounds with another
+	// length makes the range stand down.
+	test.prop([
+		fieldValue(),
+		fc
+			.array(fc.oneof(numeric(), fc.constant('')), { maxLength: 5 })
+			.filter((range) => range.length !== 2),
+	])('imposes no constraint when a between value is not a pair', (value, range) => {
+		expect(matchQueryRule('between', value, range)).toBe(true)
+	})
 
 	// The rule value must survive a trim. A value-requiring operator stands down
 	// on an empty value, and `isEmptyValue` reads a run of spaces as empty, so a
@@ -310,6 +384,21 @@ describe('matchQueryRule · properties', () => {
 
 		expect(matchQueryRule('between', value, ['', bound])).toBe(matchQueryRule('lte', value, bound))
 	})
+
+	// A bound of whitespace only is blank, as `isEmptyValue` reads it. So it is
+	// open, and it does not read as the number 0.
+	test.prop([numeric(), numeric(), fc.constantFrom(' ', '  ', '\t', '\n')])(
+		'opens a whitespace-only between bound',
+		(value, bound, blank) => {
+			expect(matchQueryRule('between', value, [bound, blank])).toBe(
+				matchQueryRule('gte', value, bound),
+			)
+
+			expect(matchQueryRule('between', value, [blank, bound])).toBe(
+				matchQueryRule('lte', value, bound),
+			)
+		},
+	)
 })
 
 /** One child of a generated tree: its truth, and how it joins the child before it. */

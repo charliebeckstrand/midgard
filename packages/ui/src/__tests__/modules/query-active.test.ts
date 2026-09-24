@@ -147,6 +147,25 @@ describe('the active judgement, the summary, and the evaluator', () => {
 			false,
 		],
 		['a range value that is not an array', { field: 'age', operator: 'between', value: 5 }, false],
+		[
+			'a range with a bound that is not a scalar',
+			{ field: 'age', operator: 'between', value: [[10], ''] },
+			false,
+		],
+		['a range with a null bound', { field: 'age', operator: 'between', value: [null, 10] }, true],
+		['a range with one bound', { field: 'age', operator: 'between', value: [10] }, false],
+		[
+			'a range with three bounds',
+			{ field: 'age', operator: 'between', value: [10, 20, 30] },
+			false,
+		],
+		['an array for a scalar operator', { field: 'age', operator: 'gt', value: [1, 2] }, false],
+		[
+			'an object for a scalar operator',
+			{ field: 'title', operator: 'contains', value: { text: 'x' } },
+			false,
+		],
+		['a boolean for a scalar operator', { field: 'active', operator: 'equals', value: true }, true],
 	]
 
 	it.each(cases)('gives one reading for %s', (_, patch, constrains) => {

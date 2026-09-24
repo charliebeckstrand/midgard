@@ -355,9 +355,9 @@ function like(column: string, before: string, value: unknown, after: string): Cl
 }
 
 /**
- * The `between` clause, where a blank bound is open. The value is an array,
- * because {@link imposesConstraint} reads a value of a different shape as no
- * constraint.
+ * The `between` clause, where a blank bound is open. The value is a `[min, max]`
+ * pair of blank or scalar bounds, because {@link imposesConstraint} reads a
+ * value of a different shape as no constraint.
  *
  * @internal
  */

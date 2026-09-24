@@ -31,6 +31,15 @@ export function isEmptyValue(value: unknown): boolean {
  */
 export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'])
 
+/**
+ * Operators that read a `[min, max]` range ({@link isRange}) as their value.
+ * Each other operator that reads a value reads a scalar ({@link isScalar}).
+ * Mirrors the `range` operator flag in `getOperators`.
+ *
+ * @internal
+ */
+export const RANGE_OPERATORS = new Set(['between'])
+
 /** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
 function asText(value: unknown): string {
 	return value == null ? '' : String(value)
@@ -41,9 +50,15 @@ function asNumber(value: unknown): number {
 	return typeof value === 'number' ? value : Number(value)
 }
 
-/** True for a nullish or empty-string range bound, treated as open-ended. @internal */
+/**
+ * Whether a range bound is blank, so that the bound is open-ended. A nullish
+ * bound, and a string that is empty or holds only whitespace, are blank. The
+ * evaluator, the SQL format, and the summary all read a bound through it.
+ *
+ * @internal
+ */
 export function isBlank(value: unknown): boolean {
-	return value == null || value === ''
+	return value == null || (typeof value === 'string' && value.trim() === '')
 }
 
 /**
@@ -85,28 +100,43 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
- * The value shape per operator value, for an operator that reads one shape
- * only. A rule value of a different shape puts no constraint on the rows. An
- * operator without an entry reads a value of any shape.
+ * Whether a value is a scalar that JSON can hold: a string, a number, or a
+ * boolean. An array, an object, and a `Date` are not scalars.
  *
  * @internal
  */
-const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
-	between: Array.isArray,
+function isScalar(value: unknown): boolean {
+	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+}
+
+/**
+ * Whether a value is a range: a `[min, max]` pair whose bounds are each blank
+ * ({@link isBlank}) or a scalar ({@link isScalar}). A blank bound is open.
+ *
+ * @internal
+ */
+function isRange(value: unknown): boolean {
+	return (
+		Array.isArray(value) &&
+		value.length === 2 &&
+		value.every((bound) => isBlank(bound) || isScalar(bound))
+	)
 }
 
 /**
  * Whether a rule with this operator and value puts a constraint on the rows.
  * It does when the evaluator has a matcher for the operator, and the operator
  * reads no value or its value is filled ({@link isEmptyValue}). A filled value
- * must also have the shape that the operator reads. The field set has no part
- * in the judgement, because the evaluator reads no field set.
+ * must also have the shape that the operator reads: a range for an operator in
+ * {@link RANGE_OPERATORS}, else a scalar. The field set has no part in the
+ * judgement, because the evaluator reads no field set.
  *
  * @remarks This is the one definition of an active rule. The fold, the SQL
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
- * `toString`, from reading as a matcher. A `between` value that is not an
- * array, such as `5`, reads as no constraint.
+ * `toString`, from reading as a matcher. A `between` value that is not a range
+ * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no
+ * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`.
  *
  * @internal
  */
@@ -115,7 +145,9 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
 
-	return !isEmptyValue(value) && (valueShapes[operator]?.(value) ?? true)
+	const hasShape = RANGE_OPERATORS.has(operator) ? isRange : isScalar
+
+	return !isEmptyValue(value) && hasShape(value)
 }
 
 /**
@@ -139,8 +171,8 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
  * - an unknown operator;
  * - a value-requiring operator whose value is empty (a blank text box, a
  *   cleared date, an all-blank range);
- * - a value of the wrong shape for its operator, such as a `between` value
- *   that is not an array.
+ * - a value of the wrong shape for its operator, such as `5`, `[10]`, or
+ *   `[[1], 5]` for `between`, or `[1, 2]` for `gt`.
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */

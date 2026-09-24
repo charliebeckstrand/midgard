@@ -1,4 +1,4 @@
-import { imposesConstraint, isEmptyValue, VALUELESS_OPERATORS } from './query-evaluate'
+import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
@@ -42,23 +42,23 @@ export type QuerySummaryToken =
 /**
  * Formats a range operator's `[min, max]` value: `min and max` when both bounds
  * are set, else the open bound as a `≥`/`≤` relation. Reached only for an active
- * rule, so at least one bound is set.
+ * range rule, so the value is a `[min, max]` pair with at least one bound set.
  *
  * @internal
  */
 function describeRange(
 	id: string,
 	field: string,
-	operator: QueryOperator,
+	operator: string,
 	value: unknown,
 ): QuerySummaryRuleToken {
-	const [lo, hi] = Array.isArray(value) ? value : ['', '']
+	const [lo, hi] = value as unknown[]
 
-	if (!isEmptyValue(lo) && !isEmptyValue(hi)) {
-		return { kind: 'rule', id, field, operator: operator.label, value: `${lo} and ${hi}` }
+	if (!isBlank(lo) && !isBlank(hi)) {
+		return { kind: 'rule', id, field, operator, value: `${lo} and ${hi}` }
 	}
 
-	return isEmptyValue(lo)
+	return isBlank(lo)
 		? { kind: 'rule', id, field, operator: '≤', value: `${hi}` }
 		: { kind: 'rule', id, field, operator: '≥', value: `${lo}` }
 }
@@ -77,8 +77,8 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
 /**
  * Resolves a rule against the field set: the `field` it names and the
  * `operator` from that field's set, each `undefined` when unresolved. The
- * summary reads its labels, options, and range form from them. It does not
- * read the active judgement from them.
+ * summary reads its labels and options from them. It does not read the active
+ * judgement or the form of a token from them.
  *
  * @internal
  */
@@ -99,10 +99,11 @@ function resolveRule(
  * does a rule whose operator the evaluator does not know. The summary thus
  * shows only the rules that {@link evaluateQuery} applies to the rows.
  *
- * @remarks The field set gives only the display: labels, options, and the range
- * form. A rule whose field or operator the field set does not offer still
- * constrains the rows when the evaluator applies it. Such a rule renders its
- * unresolved names verbatim.
+ * @remarks The field set gives only the labels and the options. The operator
+ * name selects the form of the token, value-less, range, or scalar, as it does
+ * in the evaluator. A rule whose field or operator the field set does not offer
+ * still constrains the rows when the evaluator applies it. Such a rule renders
+ * its unresolved names verbatim.
  *
  * @internal
  */
@@ -125,7 +126,9 @@ export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummar
 		}
 	}
 
-	if (operator?.range) return describeRange(rule.id, label, operator, rule.value)
+	if (RANGE_OPERATORS.has(rule.operator)) {
+		return describeRange(rule.id, label, operator?.label ?? rule.operator, rule.value)
+	}
 
 	return {
 		kind: 'rule',
