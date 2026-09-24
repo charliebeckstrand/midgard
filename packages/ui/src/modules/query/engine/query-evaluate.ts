@@ -95,13 +95,17 @@ function isScalar(value: unknown): boolean {
 }
 
 /**
- * Whether a value is a range: an array whose bounds are each blank
+ * Whether a value is a range: a `[min, max]` pair whose bounds are each blank
  * ({@link isBlank}) or a scalar ({@link isScalar}). A blank bound is open.
  *
  * @internal
  */
 function isRange(value: unknown): boolean {
-	return Array.isArray(value) && value.every((bound) => isBlank(bound) || isScalar(bound))
+	return (
+		Array.isArray(value) &&
+		value.length === 2 &&
+		value.every((bound) => isBlank(bound) || isScalar(bound))
+	)
 }
 
 /**
@@ -126,8 +130,8 @@ const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
  * `toString`, from reading as a matcher. A `between` value that is not a range
- * ({@link isRange}), such as `5` or `[[1], 5]`, reads as no constraint. So does
- * a `gt` value that is not a scalar, such as `[1, 2]`.
+ * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no
+ * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`.
  *
  * @internal
  */
@@ -160,8 +164,8 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
  * - an unknown operator;
  * - a value-requiring operator whose value is empty (a blank text box, a
  *   cleared date, an all-blank range);
- * - a value of the wrong shape for its operator, such as `5` or `[[1], 5]`
- *   for `between`, or `[1, 2]` for `gt`.
+ * - a value of the wrong shape for its operator, such as `5`, `[10]`, or
+ *   `[[1], 5]` for `between`, or `[1, 2]` for `gt`.
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */

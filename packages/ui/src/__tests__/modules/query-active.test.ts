@@ -153,6 +153,12 @@ describe('the active judgement, the summary, and the evaluator', () => {
 			false,
 		],
 		['a range with a null bound', { field: 'age', operator: 'between', value: [null, 10] }, true],
+		['a range with one bound', { field: 'age', operator: 'between', value: [10] }, false],
+		[
+			'a range with three bounds',
+			{ field: 'age', operator: 'between', value: [10, 20, 30] },
+			false,
+		],
 		['an array for a scalar operator', { field: 'age', operator: 'gt', value: [1, 2] }, false],
 		[
 			'an object for a scalar operator',

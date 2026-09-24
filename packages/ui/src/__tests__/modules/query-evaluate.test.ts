@@ -109,6 +109,12 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', 5, ['', { max: 1 }])).toBe(true)
 	})
 
+	it('imposes no constraint when a between value is not a pair', () => {
+		expect(matchQueryRule('between', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('between', 5, [10, 20, 30])).toBe(true)
+	})
+
 	it('reads a null between bound as open', () => {
 		expect(matchQueryRule('between', 5, [null, 10])).toBe(true)
 
@@ -299,6 +305,17 @@ describe('matchQueryRule · properties', () => {
 			expect(matchQueryRule('between', value, first ? [bound, other] : [other, bound])).toBe(true)
 		},
 	)
+
+	// A range is a `[min, max]` pair. An array of scalar bounds with another
+	// length makes the range stand down.
+	test.prop([
+		fieldValue(),
+		fc
+			.array(fc.oneof(numeric(), fc.constant('')), { maxLength: 5 })
+			.filter((range) => range.length !== 2),
+	])('imposes no constraint when a between value is not a pair', (value, range) => {
+		expect(matchQueryRule('between', value, range)).toBe(true)
+	})
 
 	// The rule value must survive a trim. A value-requiring operator stands down
 	// on an empty value, and `isEmptyValue` reads a run of spaces as empty, so a

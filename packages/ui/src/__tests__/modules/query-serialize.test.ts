@@ -316,6 +316,8 @@ describe('formatQuerySql', () => {
 		expect(sql([rule('age', 'between', [[1], 2]), rule('age', 'lt', 9, 'or')]).sql).toBe(
 			'"age" < ?',
 		)
+
+		expect(sql([rule('age', 'between', [1]), rule('age', 'lt', 9, 'or')]).sql).toBe('"age" < ?')
 	})
 
 	it('gives an empty condition for an empty query', () => {
