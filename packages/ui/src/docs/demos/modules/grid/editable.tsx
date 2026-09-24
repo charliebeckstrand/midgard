@@ -418,6 +418,35 @@ export function AsyncCommitExample() {
 	)
 }
 
+export function HistoryExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	// `history` records each save. An undo sends the old values back through
+	// the same sink, and a redo sends the new values again, so `onCommit`
+	// applies a step as it applies a save. The grid never holds the rows.
+	return (
+		<>
+			<EditHelp label="Undo help">
+				Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the
+				save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. The cursor moves to the cell that
+				changed. In an open editor, the keys undo your typing instead.
+			</EditHelp>
+			<Grid
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					history: true,
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 /**
  * The demo's check for a new person: a name is required. The row adds only
  * the cells that hold a value, so an empty name is absent from `values`.

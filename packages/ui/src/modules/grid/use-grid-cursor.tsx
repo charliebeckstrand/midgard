@@ -398,8 +398,9 @@ export function useGridCursor<T>({
 
 	const { session } = editing
 
-	// The `<table>` cursor props, with the session's keys layered ahead of
-	// navigation when the grid owns the edit session: the table (the cursor's
+	// The `<table>` cursor props, with the history keys layered ahead of
+	// navigation when the history is on, and the session's keys when the grid
+	// owns the edit session: the table (the cursor's
 	// `role="grid"` tab stop) sees every editor's keys — portaled panels
 	// included, since portal events propagate through the React tree — so no
 	// editor wires its own save or abandon. The entry keys follow, and the
@@ -411,16 +412,23 @@ export function useGridCursor<T>({
 
 		const sessionKeys = editing.sessionKeys
 
+		const historyKeys = editing.historyKeys
+
 		const sessionLeave = editing.sessionLeave
 
-		if (!base || !sessionKeys) return base
+		if (!base || (!sessionKeys && !historyKeys)) return base
 
 		return {
 			...base,
 			onKeyDown: (event) => {
-				sessionKeys(event)
+				// The history keys need no grid-owned session, so they come first.
+				historyKeys?.(event)
 
-				sessionEntryKeys(event)
+				if (sessionKeys) {
+					sessionKeys(event)
+
+					sessionEntryKeys(event)
+				}
 
 				base.onKeyDown(event)
 			},
@@ -439,7 +447,13 @@ export function useGridCursor<T>({
 					}
 				: base.onFocus,
 		}
-	}, [nav.navTableProps, editing.sessionKeys, editing.sessionLeave, sessionEntryKeys])
+	}, [
+		nav.navTableProps,
+		editing.sessionKeys,
+		editing.historyKeys,
+		editing.sessionLeave,
+		sessionEntryKeys,
+	])
 
 	const newRowSession = editing.newRow.session
 
