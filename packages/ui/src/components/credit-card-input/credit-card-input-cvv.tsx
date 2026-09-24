@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -75,11 +75,16 @@ export function CreditCardInputCvv({
 		ref,
 	})
 
-	// Latest unstable accessors / callback; the effect below reads them here
-	// and depends only on the brand-derived length and brand.
-	const latestRef = useRef({ value: masked.value, setValue: masked.setValue, onValidityChange })
+	// Re-fits the stored value to a new length, and reports validity. An effect
+	// event reads the newest value, setter, and callback, so the effect below
+	// depends only on the brand-derived length and the brand.
+	const refit = useEffectEvent((length: number, nextBrand: CreditCardBrand | undefined) => {
+		const truncated = formatCvv(masked.value, length)
 
-	latestRef.current = { value: masked.value, setValue: masked.setValue, onValidityChange }
+		if (truncated !== masked.value) masked.setValue(truncated)
+
+		onValidityChange?.(validateCardCvv(truncated, nextBrand))
+	})
 
 	// Previous brand, not a mount flag: StrictMode runs setup → cleanup → setup,
 	// so a flag set by the first setup lets the second run the body and fire one
@@ -95,13 +100,7 @@ export function CreditCardInputCvv({
 		// re-truncates the stored value to the new maxLength and re-reports
 		// validity (which also branches on brand). `maxLength` is a function of
 		// `brand` alone, so the brand is the whole of what can change here.
-		const { value, setValue, onValidityChange: onValidity } = latestRef.current
-
-		const truncated = formatCvv(value, maxLength)
-
-		if (truncated !== value) setValue(truncated)
-
-		onValidity?.(validateCardCvv(truncated, brand))
+		refit(maxLength, brand)
 	}, [maxLength, brand])
 
 	return (

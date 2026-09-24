@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { deriveStatus, type LastEdited, type Status } from './password-confirm-utilities'
 
 type PasswordConfirmStateOptions = {
@@ -54,9 +54,7 @@ export function usePasswordConfirmState({
 
 	const status: Status = disabled ? 'idle' : deriveStatus(password, confirm, lastEdited)
 
-	const onMatchChangeRef = useRef(onMatchChange)
-
-	onMatchChangeRef.current = onMatchChange
+	const reportMatch = useEffectEvent((matched: boolean) => onMatchChange?.(matched))
 
 	const prevMatchState = useRef<'match' | 'mismatch' | null>(null)
 
@@ -77,8 +75,8 @@ export function usePasswordConfirmState({
 
 		// Fire only on a definite match/mismatch transition; a return to the
 		// indeterminate `null` state (a field cleared) reports neither.
-		if (matchState === 'match') onMatchChangeRef.current?.(true)
-		else if (matchState === 'mismatch') onMatchChangeRef.current?.(false)
+		if (matchState === 'match') reportMatch(true)
+		else if (matchState === 'mismatch') reportMatch(false)
 	}, [matchState])
 
 	return { password, confirm, status, setPassword, setConfirm, setLastEdited }

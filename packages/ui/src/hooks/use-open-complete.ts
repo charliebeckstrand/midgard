@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback, useEffectEvent, useRef } from 'react'
 
 /**
  * Reports a panel's arrival exactly once, for a surface that animates it. The element
@@ -34,13 +34,12 @@ export function useOpenComplete(
 
 	if (!open) reportedRef.current = false
 
-	// A ref rather than `useEffectEvent`, which returns a fresh function per render: `report`
-	// escapes into a caller's dependency array (Drawer's arrival effect), so it must be one
-	// identity for the mount. The ref also spares a caller that binds a payload — an
-	// accordion section naming itself — from memoizing a callback only Drawer reads.
-	const onOpenCompleteRef = useRef(onOpenComplete)
-
-	onOpenCompleteRef.current = onOpenComplete
+	// An effect event, called by a `report` that stays one identity for the mount.
+	// `useEffectEvent` returns a fresh function per render, and `report` escapes
+	// into a caller's dependency array (Drawer's arrival effect). The event also
+	// spares a caller that binds a payload — an accordion section naming itself —
+	// from memoizing a callback only Drawer reads.
+	const openComplete = useEffectEvent(() => onOpenComplete?.())
 
 	// Stable for the mount: Drawer's arrival effect depends on its identity.
 	const report = useCallback(() => {
@@ -48,7 +47,7 @@ export function useOpenComplete(
 
 		reportedRef.current = true
 
-		onOpenCompleteRef.current?.()
+		openComplete()
 	}, [])
 
 	return {

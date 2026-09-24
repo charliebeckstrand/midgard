@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useRef,
 	useState,
 } from 'react'
@@ -128,17 +129,11 @@ export function useResizablePanel({
 
 	const [dragging, setDragging] = useState<number | null>(null)
 
-	const onSizesChangeRef = useRef(onSizesChange)
+	const reportSizes = useEffectEvent((next: number[]) => onSizesChange?.(next))
 
-	onSizesChangeRef.current = onSizesChange
+	const reportResizeStart = useEffectEvent((handleIndex: number) => onResizeStart?.(handleIndex))
 
-	const onResizeStartRef = useRef(onResizeStart)
-
-	onResizeStartRef.current = onResizeStart
-
-	const onResizeEndRef = useRef(onResizeEnd)
-
-	onResizeEndRef.current = onResizeEnd
+	const reportResizeEnd = useEffectEvent((handleIndex: number) => onResizeEnd?.(handleIndex))
 
 	const resize = useCallback((handleIndex: number, delta: number) => {
 		const leftIdx = handleIndex
@@ -161,7 +156,7 @@ export function useResizablePanel({
 
 		setSizes(clamped)
 
-		onSizesChangeRef.current?.(clamped)
+		reportSizes(clamped)
 	}, [])
 
 	const startDrag = useCallback(
@@ -216,7 +211,7 @@ export function useResizablePanel({
 
 			setDragging(handleIndex)
 
-			onResizeStartRef.current?.(handleIndex)
+			reportResizeStart(handleIndex)
 
 			// Pointermove can outpace the frame rate (coalesced move bursts), and each
 			// event would otherwise commit React state + fire onSizesChange, forcing a
@@ -238,7 +233,7 @@ export function useResizablePanel({
 
 				setSizes(clamped)
 
-				onSizesChangeRef.current?.(clamped)
+				reportSizes(clamped)
 			}
 
 			const onMove = (event: PointerEvent) => {
@@ -292,7 +287,7 @@ export function useResizablePanel({
 				 * callback gets a clean one. The flush above has already delivered the settled sizes
 				 * through `onSizesChange`.
 				 */
-				onResizeEndRef.current?.(handleIndex)
+				reportResizeEnd(handleIndex)
 			}
 
 			// One controller for the drag's whole listener set: `onUp` and the
@@ -318,7 +313,7 @@ export function useResizablePanel({
 
 				// The supersede and unmount exits close the bracket too. `onUp` clears
 				// `cleanupRef` before it reports, so a normal lift never reaches here.
-				onResizeEndRef.current?.(handleIndex)
+				reportResizeEnd(handleIndex)
 			}
 		},
 		[groupRef],

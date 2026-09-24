@@ -41,6 +41,9 @@ export function useControllable<T>({
 
 	valueRef.current = currentValue
 
+	// Deliberately a render-phase shadow, not an effect event. A caller can set
+	// the value during render (`useTooltipState` closes a tooltip that turns
+	// disabled), and an effect event throws when render calls it.
 	const onValueChangeRef = useRef(onValueChange)
 
 	onValueChangeRef.current = onValueChange
