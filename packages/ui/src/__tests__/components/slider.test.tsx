@@ -476,4 +476,92 @@ describe('RangeSlider + Form', () => {
 		// The root has no role, so it carries no validation state.
 		expect(getSlot(container, 'slider-range')).not.toHaveAttribute('aria-invalid')
 	})
+
+	const renderLabelled = (props: Partial<ComponentProps<typeof RangeSlider>> = {}) =>
+		renderUI(
+			<Form defaultValues={{ price: [20, 50] as [number, number] }}>
+				<Field>
+					<Label>Price</Label>
+					<RangeSlider name="price" labels={['Minimum', 'Maximum']} {...props} />
+				</Field>
+			</Form>,
+		)
+
+	it('focuses the start thumb on a click on the Field label', async () => {
+		const { container } = renderLabelled()
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		await userEvent.click(screen.getByText('Price'))
+
+		expect(lo).toHaveFocus()
+	})
+
+	it('keeps both values and starts no drag on a click on the Field label', async () => {
+		const onValueChange = vi.fn()
+		const onDragStart = vi.fn()
+
+		const { container } = renderLabelled({ onValueChange, onDragStart })
+
+		await userEvent.click(screen.getByText('Price'))
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAttribute('aria-valuenow', '20')
+
+		expect(hi).toHaveAttribute('aria-valuenow', '50')
+
+		expect(onValueChange).not.toHaveBeenCalled()
+
+		expect(onDragStart).not.toHaveBeenCalled()
+	})
+
+	it('keeps the thumb names after a click on the Field label', async () => {
+		const { container } = renderLabelled()
+
+		await userEvent.click(screen.getByText('Price'))
+
+		const [lo, hi] = allBySlot(container, 'slider-range-thumb')
+
+		expect(lo).toHaveAccessibleName('Price Minimum')
+
+		expect(hi).toHaveAccessibleName('Price Maximum')
+	})
+
+	it('focuses no thumb on a click on the label of a disabled slider', async () => {
+		renderLabelled({ disabled: true })
+
+		await userEvent.click(screen.getByText('Price'))
+
+		expect(document.body).toHaveFocus()
+	})
+
+	it('focuses the start thumb on a click on a plain label outside a Field', async () => {
+		const { container } = renderUI(
+			<>
+				<label htmlFor="band">Band</label>
+				<RangeSlider id="band" />
+			</>,
+		)
+
+		const [lo] = allBySlot(container, 'slider-range-thumb')
+
+		await userEvent.click(screen.getByText('Band'))
+
+		expect(lo).toHaveFocus()
+	})
+
+	it('ignores a click on a label for another control', async () => {
+		renderUI(
+			<>
+				<label htmlFor="other">Other</label>
+				<input id="other" />
+				<RangeSlider />
+			</>,
+		)
+
+		await userEvent.click(screen.getByText('Other'))
+
+		expect(screen.getByRole('textbox')).toHaveFocus()
+	})
 })
