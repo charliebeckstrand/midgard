@@ -106,7 +106,7 @@ describe('tag-input chip leading-pad symmetry', () => {
 		const expected = pillPx + bareP
 
 		it(`${size}: chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-			const actual = findSpacing(tagInput.badge, `data-[has-suffix]:data-[size=${size}]:pl-[`)
+			const actual = findSpacing(tagInput.badge, `data-[has-suffix]:data-[size=${size}]:ps-[`)
 
 			expect(actual).toBe(expected)
 		})
