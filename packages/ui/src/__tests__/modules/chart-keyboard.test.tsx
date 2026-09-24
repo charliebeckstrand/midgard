@@ -389,6 +389,27 @@ describe('LineChart keyboard navigation', () => {
 		expect(tip?.textContent).toContain('90')
 	})
 
+	it('claims Escape only when it clears a readout, so an overlay around it can close', () => {
+		const { container } = renderUI(line())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		plot.focus()
+
+		// `fireEvent` returns false for a press that a handler claimed with `preventDefault`.
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(true)
+
+		plot.focus()
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(false)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(document.activeElement).not.toBe(plot)
+	})
+
 	it('walks categories with the arrow keys and clears on Escape', () => {
 		const { container } = renderUI(line())
 

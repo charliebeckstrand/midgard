@@ -370,7 +370,9 @@ export type ChartKeyboardProps = {
  * - The value axis arrows step the series' value points at a category in screen
  *   order, visiting each series, coincident values included.
  * - Home / End jump to the ends.
- * - Escape drops focus.
+ * - Escape drops focus. It claims the press only when it clears a readout. A
+ *   dialog around the chart therefore closes on an Escape with nothing to clear,
+ *   and on the second Escape after a readout.
  *
  * Reference lines join the value-axis roving as their own stops. Landing on one
  * recedes the marks to it, the same emphasis pointing it applies. It also drops
@@ -485,17 +487,21 @@ export function useChartKeyboard(
 
 		if (!move.handled) return
 
-		event.preventDefault()
-
 		// Escape clears the readout and drops focus, the same exit the legend gives,
-		// then re-arms the region so the next Tab returns to it.
+		// then re-arms the region so the next Tab returns to it. It claims the press
+		// only when it clears a live readout. With nothing to clear, the press also
+		// reaches an overlay around the chart, which closes as it does for the legend.
 		if (move.cursor === null) {
+			if (cursor !== null) event.preventDefault()
+
 			show(null)
 
 			exit(event.currentTarget)
 
 			return
 		}
+
+		event.preventDefault()
 
 		// The first arrow enters at the first point rather than stepping past it;
 		// Home / End are absolute jumps and place directly.
