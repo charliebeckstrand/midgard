@@ -449,11 +449,11 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		})
 	}
 
-	// The keys move by column index until the grid reads the direction.
+	// In a right-to-left grid, ArrowLeft moves to the next column.
 	const rtlCases = [
 		// The cursor comes from the side away from the pinned column.
-		{ side: 'left', from: 'c4', target: 'c3', key: 'ArrowLeft' },
-		{ side: 'right', from: 'c3', target: 'c4', key: 'ArrowRight' },
+		{ side: 'left', from: 'c4', target: 'c3', key: 'ArrowRight' },
+		{ side: 'right', from: 'c3', target: 'c4', key: 'ArrowLeft' },
 	] as const
 
 	for (const { side, from, target, key } of rtlCases) {
@@ -475,7 +475,7 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 			await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
 
 			for (const id of side === 'left' ? ['c1', 'c2', 'c3', 'c4'] : ['c2', 'c3']) {
-				await press('ArrowRight', id)
+				await press('ArrowLeft', id)
 			}
 
 			expect(grid.querySelector('[data-active]')).toHaveAttribute('data-grid-col', from)

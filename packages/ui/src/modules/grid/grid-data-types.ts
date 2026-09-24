@@ -1071,6 +1071,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
 	 * first control in the panel, and Escape gives focus back to the grid.
 	 *
+	 * The grid reads its computed `direction`. In a right-to-left grid, ArrowLeft
+	 * moves to the next column and ArrowRight to the previous one. The group keys
+	 * mirror in the same way. Home and End still reach the start and the end of
+	 * the row.
+	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
 	 * cell content (links, buttons, the selection checkbox) stays independently
