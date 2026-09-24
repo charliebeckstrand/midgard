@@ -156,30 +156,55 @@ describe('summarizeQuery', () => {
 	})
 
 	it('returns one rule token carrying the resolved parts', () => {
-		expect(stream([rule(statusField, { operator: 'equals', value: 'active' })])).toEqual<
-			QuerySummaryToken[]
-		>([{ kind: 'rule', field: 'Status', operator: 'is', value: 'Active' }])
+		const status = rule(statusField, { operator: 'equals', value: 'active' })
+
+		expect(stream([status])).toEqual<QuerySummaryToken[]>([
+			{ kind: 'rule', id: status.id, field: 'Status', operator: 'is', value: 'Active' },
+		])
 	})
 
 	it('omits the value key for a value-less operator naming no value label', () => {
-		const [token] = stream([createRule(verifiedField)])
+		const verified = createRule(verifiedField)
 
-		expect(token).toEqual({ kind: 'rule', field: 'Verified', operator: 'is true' })
+		const [token] = stream([verified])
+
+		expect(token).toEqual({ kind: 'rule', id: verified.id, field: 'Verified', operator: 'is true' })
 	})
 
 	it('carries a value-less operator’s value label as the token value', () => {
 		const [token] = stream([rule(nameField, { operator: 'isEmpty', value: '' })])
 
-		expect(token).toEqual({ kind: 'rule', field: 'Name', operator: 'is', value: 'Empty' })
+		expect(token).toMatchObject({ kind: 'rule', field: 'Name', operator: 'is', value: 'Empty' })
 	})
 
-	it('resolves the combinator to its AND/OR label', () => {
+	it('resolves the combinator to its AND/OR label, and names the node that holds it', () => {
+		const age = rule(ageField, { operator: 'gt', value: 30, combinator: 'or' })
+
+		const tokens = stream([rule(nameField, { operator: 'contains', value: 'lee' }), age])
+
+		expect(tokens[1]).toEqual({ kind: 'combinator', id: age.id, combinator: 'or', label: 'OR' })
+	})
+
+	it('names the next active node in a combinator token, past an inactive one', () => {
+		const age = rule(ageField, { operator: 'gt', value: 30, combinator: 'and' })
+
 		const tokens = stream([
 			rule(nameField, { operator: 'contains', value: 'lee' }),
-			rule(ageField, { operator: 'gt', value: 30, combinator: 'or' }),
+			rule(nameField, { operator: 'contains', value: '', combinator: 'or' }),
+			age,
 		])
 
-		expect(tokens[1]).toEqual({ kind: 'combinator', label: 'OR' })
+		expect(tokens[1]).toEqual({ kind: 'combinator', id: age.id, combinator: 'and', label: 'AND' })
+	})
+
+	it('names the group in each bracket token', () => {
+		const group = createGroup('or', [rule(ageField, { operator: 'gt', value: 30 })])
+
+		const tokens = stream([rule(nameField, { operator: 'contains', value: 'lee' }), group])
+
+		expect(tokens.at(2)).toEqual({ kind: 'group-open', id: group.id })
+
+		expect(tokens.at(-1)).toEqual({ kind: 'group-close', id: group.id })
 	})
 
 	it('emits combinator and bracket tokens in order for a nested group', () => {

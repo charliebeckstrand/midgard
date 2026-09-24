@@ -35,6 +35,17 @@ export type QueryTreeResult = {
  * exposes immutable tree edits (add/update/remove) as referentially-stable
  * actions. The view layer wires these to controls; {@link useQueryBuilderTree}
  * composes this with the builder's focus management.
+ *
+ * @remarks `QueryBuilder` and `QueryChips` both hold their tree with this hook.
+ * Use it for a third view over the same tree, with `summarizeQuery` for the
+ * display text.
+ *
+ * @example
+ * ```tsx
+ * const { root, actions } = useQueryTree({ fields, value, onValueChange })
+ *
+ * return <button onClick={() => actions.addRule(root.id)}>Add rule</button>
+ * ```
  */
 export function useQueryTree({
 	fields,

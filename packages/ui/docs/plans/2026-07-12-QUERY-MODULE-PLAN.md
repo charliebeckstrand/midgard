@@ -87,6 +87,18 @@ No TanStack package in the tree serializes a filter tree. `react-table` filters 
 
 The same change moves one structural guard into the engine. `isQueryNode` and `isQueryGroup` in `engine/query-node.ts` replace the private guard of `dashboard-spec-parse.ts` and the `type`-only `isQueryGroup` of `grid/engine/grid-table/views.ts`. The grid's column filter now reads a malformed tree as no filter. Each tree that `createGroup`, `createRule`, or `parseQuery` makes passes the guard.
 
+### Follow-up: blank rules and the chip row (2026-09-24)
+
+A rule with no constraint now drops out of the fold, with its combinator. Before this change, `evaluateQuery` and `formatQuerySql` read such a rule as TRUE. TRUE is the identity of `AND` but it absorbs `OR`, so `A OR (blank)` matched every row, and the summary showed only `A`. A blank rule is usual in the builder: a new rule is blank until the user types a value. The fold now skips each child that puts no constraint on the rows, and a group of such children is such a child too. So the evaluator, the SQL writer, and the summary give the same reading. A `between` rule whose value is not a tuple also puts no constraint on the rows now, as the SQL writer already read it.
+
+[`query-chips.tsx`](../../src/modules/query/query-chips.tsx) is the second renderer of the `summarizeQuery` stream. Each token now carries the id of its source node. A rule token and a bracket name their own node. A combinator token names the node whose `combinator` it shows, which is the next active node. The sentence renderers ignore the ids.
+
+`QueryChips` holds its tree through `useQueryTree`, so it is controlled or uncontrolled as the builder is. An interactive row is a toolbar over the remove buttons and the combinator switches, with `useA11yRoving` for one Tab stop. It does not compose `Toolbar`, because `Toolbar` writes its own `data-slot` after the spread and takes no ref. The chart legend and the map legend make the same choice. Delete and Backspace on a remove button also remove the rule, as on a `TagInput` chip. A hidden element holds the full `formatQuerySummary` sentence as the row's description, because a screen reader hears only the focused control inside a toolbar.
+
+Focus after a removal follows the builder's ladder: the previous chip, then the next chip. After the last removal, the row itself takes focus and shows `emptyLabel`. So an interactive row stays mounted when the query has no constraint, and only a `readOnly` row renders `null`. A consumer that hides the empty row owns the focus that the row gave up.
+
+The chip row is the second consumer of `useQueryTree` and of `summarizeQuery`, which met the condition for both exports. The barrel exports `useQueryTree` with `QueryTreeActions`, `QueryTreeOptions`, and `QueryTreeResult`, and `summarizeQuery` with `QuerySummaryToken` and `QuerySummaryRuleToken`. `spacedBefore` stays internal, because a chip row spaces its tokens with the flex gap.
+
 ## Non-goals
 
 - **No behavior change** — every moved function moves verbatim; the tree, operator, and evaluation semantics (including the empty-value agreement and left-to-right combinator fold) are untouched.

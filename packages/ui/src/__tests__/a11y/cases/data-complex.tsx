@@ -12,7 +12,7 @@ import {
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { QueryBuilder, type QueryField } from '../../../modules/query'
+import { createGroup, QueryBuilder, QueryChips, type QueryField } from '../../../modules/query'
 import { noop } from '../../helpers'
 import type { Case } from './types'
 
@@ -75,6 +75,20 @@ export const dataComplexCases: readonly Case[] = [
 		// Nested group / rule editor; renders an empty root group with its controls.
 		name: 'query builder',
 		element: <QueryBuilder key="qb" fields={queryFields} />,
+	},
+	{
+		// Filter bar: a named toolbar of chip remove buttons and an AND/OR switch.
+		name: 'query chips',
+		element: (
+			<QueryChips
+				key="qc"
+				fields={queryFields}
+				defaultValue={createGroup('and', [
+					{ id: 'c1', type: 'rule', field: 'title', operator: 'contains', value: 'plan' },
+					{ id: 'c2', type: 'rule', combinator: 'or', field: 'count', operator: 'gt', value: 3 },
+				])}
+			/>
+		),
 	},
 	{
 		// Read-only board: each column and card is labelled; no reorder handlers.
