@@ -98,6 +98,7 @@ function KanbanCardImpl({
 			data-slot="kanban-card"
 			data-card-id={cardId}
 			data-active={dataAttr(dragging)}
+			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
 			data-disabled={dataAttr(disabled)}
 			data-readonly={dataAttr(!interactive && !disabled)}

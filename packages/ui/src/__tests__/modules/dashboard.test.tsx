@@ -1,3 +1,4 @@
+import { act } from '@testing-library/react'
 import { Profiler, type ReactNode, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -148,6 +149,33 @@ describe('Dashboard', () => {
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 9, h: 20 })
 
 		expect(next.find((item) => item.id === 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 12 })
+	})
+
+	it('marks the grip and the card as held while a tile drags, so the grab hand closes', async () => {
+		const { container } = renderUI(<Board editing />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		const card = grip.closest('[data-slot="card"]')
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(grip).toHaveAttribute('data-dragging')
+
+		expect(card).toHaveAttribute('data-dragging')
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
 	})
 
 	it('renders only the tile whose cell changed', () => {

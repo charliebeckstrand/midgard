@@ -1,7 +1,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, ma, narabi, omote, sen, steps } from '../kiso'
 
-const { cursor, disabled, fg, glassItem, tint, tintFilled, tintSurface } = hannou
+const { cursor, disabled, fg, glassItem, grab, tint, tintFilled, tintSurface } = hannou
 const { onWash, text } = iro
 const { size } = ji
 const { rounded } = kasane
@@ -158,8 +158,8 @@ export const k = {
 		flex.inline,
 		'flex-none justify-center',
 		'px-3 -mx-3',
-		'cursor-grab data-readonly:cursor-default data-disabled:cursor-not-allowed',
-		'touch-none select-none',
+		...grab,
+		'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		...mode(
 			'text-zinc-500 not-data-disabled:not-data-readonly:hover:text-zinc-700',
 			'dark:text-zinc-500 dark:not-data-disabled:not-data-readonly:hover:text-zinc-200',

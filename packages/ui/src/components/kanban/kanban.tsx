@@ -140,6 +140,8 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 									data-slot="kanban-card"
 									data-card-id={activeId}
 									data-overlay="true"
+									// The pointer rides the overlay, so it shows the held hand.
+									data-dragging=""
 									className={cn(k.card.base, k.card.draggable, k.card.active)}
 								>
 									{overlayMap.current.get(activeId)}

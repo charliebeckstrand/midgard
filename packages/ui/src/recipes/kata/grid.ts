@@ -9,7 +9,7 @@ import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
 import { panel } from '../kiso/panel'
 
-const { cursor, fg } = hannou
+const { cursor, fg, grab } = hannou
 const { onWash, text } = iro
 const { size, weight } = ji
 const { rounded } = kasane
@@ -426,7 +426,7 @@ export const k = {
 		// anywhere on the header lifts the column. A sortable column's sort control
 		// keeps `cursor-pointer`: set on the control itself, it out-resolves this
 		// inherited grab cursor on that child.
-		grab: ['cursor-grab', 'touch-none', 'select-none', 'data-[dragging]:cursor-grabbing'],
+		grab: [...grab],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
@@ -453,7 +453,7 @@ export const k = {
 			text.muted,
 			fg.hover,
 			focus.inset,
-			'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
+			...grab,
 		],
 	},
 	rowReorder: {
@@ -476,7 +476,7 @@ export const k = {
 				text.muted,
 				fg.hover,
 				focus.inset,
-				'cursor-grab touch-none select-none data-[dragging]:cursor-grabbing',
+				...grab,
 			],
 			// The grip while reordering is unavailable — a column sort orders the rows,
 			// or `rowReorder.disabled` is set: shown for layout stability but inert and
