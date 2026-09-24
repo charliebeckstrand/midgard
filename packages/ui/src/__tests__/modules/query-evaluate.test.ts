@@ -103,6 +103,18 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('after', '2026-01-15', new Date('2026-01-01'))).toBe(true)
 	})
 
+	it('imposes no constraint when a between bound is not a scalar', () => {
+		expect(matchQueryRule('between', 5, [[10], ''])).toBe(true)
+
+		expect(matchQueryRule('between', 5, ['', { max: 1 }])).toBe(true)
+	})
+
+	it('reads a null between bound as open', () => {
+		expect(matchQueryRule('between', 5, [null, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, [null, 10])).toBe(false)
+	})
+
 	it('reads a boolean value as a scalar', () => {
 		expect(matchQueryRule('equals', true, true)).toBe(true)
 
@@ -245,6 +257,9 @@ const fieldValue = () =>
 /** A finite number, which is the domain the numeric operators state an order over. */
 const numeric = () => fc.integer({ min: -1000, max: 1000 })
 
+/** A value that is not a scalar, so it has the wrong shape for a scalar operator or a range bound. */
+const nonScalar = () => fc.oneof(fc.array(fieldValue(), { minLength: 1 }), fc.object(), fc.date())
+
 /** A rule value that survives a trim, so the empty-value rule does not stand the operator down. */
 const stated = () => fc.string({ minLength: 1, maxLength: 6 }).filter((text) => text.trim() !== '')
 
@@ -268,11 +283,20 @@ describe('matchQueryRule · properties', () => {
 	test.prop([
 		fc.constantFrom(...NEEDS_VALUE.filter((operator) => operator !== 'between')),
 		fieldValue(),
-		fc.oneof(fc.array(fieldValue(), { minLength: 1 }), fc.object(), fc.date()),
+		nonScalar(),
 	])(
 		'imposes no constraint when a scalar operator reads a value that is not a scalar',
 		(operator, value, rule) => {
 			expect(matchQueryRule(operator, value, rule)).toBe(true)
+		},
+	)
+
+	// Each bound of a range is blank or a scalar. A bound of a different shape,
+	// on either side, makes the range stand down.
+	test.prop([fieldValue(), nonScalar(), fc.oneof(numeric(), fc.constant('')), fc.boolean()])(
+		'imposes no constraint when a between bound is not a scalar',
+		(value, bound, other, first) => {
+			expect(matchQueryRule('between', value, first ? [bound, other] : [other, bound])).toBe(true)
 		},
 	)
 

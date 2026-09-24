@@ -95,6 +95,16 @@ function isScalar(value: unknown): boolean {
 }
 
 /**
+ * Whether a value is a range: an array whose bounds are each blank
+ * ({@link isBlank}) or a scalar ({@link isScalar}). A blank bound is open.
+ *
+ * @internal
+ */
+function isRange(value: unknown): boolean {
+	return Array.isArray(value) && value.every((bound) => isBlank(bound) || isScalar(bound))
+}
+
+/**
  * The value shape per operator value, for an operator that does not read a
  * scalar ({@link isScalar}). Each other operator that reads a value reads a
  * scalar. A rule value of a different shape puts no constraint on the rows.
@@ -102,7 +112,7 @@ function isScalar(value: unknown): boolean {
  * @internal
  */
 const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
-	between: Array.isArray,
+	between: isRange,
 }
 
 /**
@@ -115,9 +125,9 @@ const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
  * @remarks This is the one definition of an active rule. The fold, the SQL
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
- * `toString`, from reading as a matcher. A `between` value that is not an
- * array, such as `5`, reads as no constraint. So does a `gt` value that is not
- * a scalar, such as `[1, 2]`.
+ * `toString`, from reading as a matcher. A `between` value that is not a range
+ * ({@link isRange}), such as `5` or `[[1], 5]`, reads as no constraint. So does
+ * a `gt` value that is not a scalar, such as `[1, 2]`.
  *
  * @internal
  */
@@ -150,8 +160,8 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
  * - an unknown operator;
  * - a value-requiring operator whose value is empty (a blank text box, a
  *   cleared date, an all-blank range);
- * - a value of the wrong shape for its operator, such as a `between` value
- *   that is not an array, or an array for `contains`.
+ * - a value of the wrong shape for its operator, such as `5` or `[[1], 5]`
+ *   for `between`, or `[1, 2]` for `gt`.
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */

@@ -107,6 +107,16 @@ describe('formatQuerySummary', () => {
 		).toBe('Name contains lee')
 	})
 
+	it('drops a range with a bound that is not a scalar, along with its combinator', () => {
+		// The evaluator reads such a value as no constraint.
+		expect(
+			line([
+				rule(nameField, { operator: 'contains', value: 'lee' }),
+				rule(ageField, { operator: 'between', value: [[10], 20], combinator: 'or' }),
+			]),
+		).toBe('Name contains lee')
+	})
+
 	it('drops a range whose value is not an array, along with its combinator', () => {
 		// The evaluator reads such a value as no constraint.
 		expect(
