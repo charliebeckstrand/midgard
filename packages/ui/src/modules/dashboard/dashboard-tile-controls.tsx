@@ -2,9 +2,9 @@
 
 import { Copy, X } from 'lucide-react'
 import type { PointerEvent, ReactNode, RefObject } from 'react'
+import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
-import { announce, cn } from '../../core'
-import { k } from '../../recipes/kata/dashboard'
+import { announce } from '../../core'
 import { DashboardTileExpand } from './dashboard-tile-expand'
 import { describeDuplicate, describeRemove } from './engine/dashboard-announcements'
 
@@ -108,11 +108,12 @@ export function DashboardTileControls({
 	return (
 		<>
 			{onDuplicate && (
-				<button
+				<Button
 					type="button"
+					variant="bare"
+					size="sm"
 					data-slot="dashboard-tile-duplicate"
 					aria-label={`Duplicate ${label}`}
-					className={cn(k.control)}
 					onPointerDown={holdDrag}
 					onClick={() => {
 						announce(describeDuplicate(label))
@@ -120,16 +121,17 @@ export function DashboardTileControls({
 						onDuplicate()
 					}}
 				>
-					<Icon icon={<Copy />} size="sm" />
-				</button>
+					<Icon icon={<Copy />} />
+				</Button>
 			)}
 
 			{onRemove && (
-				<button
+				<Button
 					type="button"
+					variant="bare"
+					size="sm"
 					data-slot="dashboard-tile-remove"
 					aria-label={`Remove ${label}`}
-					className={cn(k.control)}
 					onPointerDown={holdDrag}
 					onClick={() => {
 						handOffFocus(shell.current)
@@ -139,8 +141,8 @@ export function DashboardTileControls({
 						onRemove()
 					}}
 				>
-					<Icon icon={<X />} size="sm" />
-				</button>
+					<Icon icon={<X />} />
+				</Button>
 			)}
 		</>
 	)

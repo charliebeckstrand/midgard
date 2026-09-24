@@ -85,6 +85,21 @@ describe('DashboardTile actions', () => {
 		expect(screen.getByRole('button', { name: 'Duplicate Tile a' })).toBeInTheDocument()
 	})
 
+	it('draws each control as a bare Button', () => {
+		const { rerender } = renderUI(<Board expandable />)
+
+		expect(screen.getByRole('button', { name: 'Expand Tile a' })).toHaveAttribute(
+			'data-variant',
+			'bare',
+		)
+
+		rerender(<Board editing onRemove={vi.fn()} onDuplicate={vi.fn()} />)
+
+		for (const name of ['Remove Tile a', 'Duplicate Tile a']) {
+			expect(screen.getByRole('button', { name })).toHaveAttribute('data-variant', 'bare')
+		}
+	})
+
 	it('shows expand at rest only', () => {
 		const { rerender } = renderUI(<Board expandable />)
 

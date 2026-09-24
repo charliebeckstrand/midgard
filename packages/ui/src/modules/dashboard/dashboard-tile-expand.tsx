@@ -56,15 +56,16 @@ export function DashboardTileExpand({
 
 	return (
 		<>
-			<button
+			<Button
 				type="button"
+				variant="bare"
+				size="sm"
 				data-slot="dashboard-tile-expand"
 				aria-label={`Expand ${label}`}
-				className={cn(k.control)}
 				onClick={() => setOpen(true)}
 			>
-				<Icon icon={<Maximize2 />} size="sm" />
-			</button>
+				<Icon icon={<Maximize2 />} />
+			</Button>
 
 			<Dialog
 				open={open}

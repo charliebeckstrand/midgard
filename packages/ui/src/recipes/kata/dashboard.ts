@@ -100,20 +100,18 @@ const placeholder = [
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 ]
 
-/** A tile control in the header row: an icon button the size of the grip. */
-const control = [
-	'flex size-6 shrink-0 items-center justify-center rounded-md',
-	...text.muted,
-	...mode(
-		'hover:bg-zinc-100 hover:text-zinc-700',
-		'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-	),
-	...sen.focus.ring,
-]
-
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
-	base: [...control, 'cursor-grab touch-none select-none active:cursor-grabbing'],
+	base: [
+		'flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md',
+		'active:cursor-grabbing',
+		...text.muted,
+		...mode(
+			'hover:bg-zinc-100 hover:text-zinc-700',
+			'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
+		),
+		...sen.focus.ring,
+	],
 	floating: {
 		true: [
 			'absolute left-3 top-3 z-10',
@@ -174,7 +172,6 @@ export const k = {
 	error,
 	missing,
 	placeholder,
-	control,
 	handle,
 	resizeHandle,
 	readout,
