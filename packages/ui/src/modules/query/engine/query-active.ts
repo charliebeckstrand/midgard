@@ -4,11 +4,12 @@ import type { QueryGroup } from './types'
 /**
  * Whether a query would actually constrain its result. It is true when any rule
  * (at any depth) puts a constraint on the rows by {@link imposesConstraint}.
- * Such a rule has an operator that the evaluator applies, and a non-empty value
- * or a value-less operator (`is Empty`, `is true`, …). A tree of only blank
- * rules reads as inactive. A freshly seeded or fully cleared builder leaves
- * such a tree behind. A filter affordance can therefore reflect a real
- * constraint, rather than the mere presence of a rule.
+ * Such a rule has an operator that the evaluator applies. The operator is
+ * value-less (`is Empty`, `is true`, …), or its value is non-empty and has the
+ * correct shape, such as an array for `between`. A tree of only blank rules
+ * reads as inactive. A freshly seeded or fully cleared builder leaves such a
+ * tree behind. A filter affordance can therefore reflect a real constraint,
+ * rather than the mere presence of a rule.
  *
  * @remarks The judgement is the evaluator's, so it reads no field set. A rule
  * whose operator the evaluator does not know reads as inactive, even when its

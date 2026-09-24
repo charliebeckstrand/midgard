@@ -50,12 +50,12 @@ export function isBlank(value: unknown): boolean {
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
  * case-insensitive, date comparisons rely on ISO (`YYYY-MM-DD`) string order.
- * A predicate gives `undefined` for a rule value of the wrong shape, so that
- * rule puts no constraint on the rows.
+ * A predicate gets only a rule value that {@link imposesConstraint} accepts, so
+ * it does not check the shape of that value.
  *
  * @internal
  */
-const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => boolean | undefined> = {
+const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => boolean> = {
 	equals: (a, b) => asText(a) === asText(b),
 	notEquals: (a, b) => asText(a) !== asText(b),
 	contains: (a, b) => asText(a).toLowerCase().includes(asText(b).toLowerCase()),
@@ -68,11 +68,11 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 	lt: (a, b) => asNumber(a) < asNumber(b),
 	lte: (a, b) => asNumber(a) <= asNumber(b),
 	between: (a, b) => {
-		if (!Array.isArray(b)) return undefined
+		const [low, high] = b as unknown[]
 
 		// A blank bound is open-ended (±∞), so one-sided ranges still constrain.
-		const lo = isBlank(b[0]) ? Number.NEGATIVE_INFINITY : asNumber(b[0])
-		const hi = isBlank(b[1]) ? Number.POSITIVE_INFINITY : asNumber(b[1])
+		const lo = isBlank(low) ? Number.NEGATIVE_INFINITY : asNumber(low)
+		const hi = isBlank(high) ? Number.POSITIVE_INFINITY : asNumber(high)
 
 		const value = asNumber(a)
 
@@ -85,22 +85,37 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
+ * The value shape per operator value, for an operator that reads one shape
+ * only. A rule value of a different shape puts no constraint on the rows. An
+ * operator without an entry reads a value of any shape.
+ *
+ * @internal
+ */
+const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
+	between: Array.isArray,
+}
+
+/**
  * Whether a rule with this operator and value puts a constraint on the rows.
  * It does when the evaluator has a matcher for the operator, and the operator
- * reads no value or its value is filled ({@link isEmptyValue}). The field set
- * has no part in the judgement, because the evaluator reads no field set.
+ * reads no value or its value is filled ({@link isEmptyValue}). A filled value
+ * must also have the shape that the operator reads. The field set has no part
+ * in the judgement, because the evaluator reads no field set.
  *
  * @remarks This is the one definition of an active rule. The fold, the SQL
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
- * `toString`, from reading as a matcher.
+ * `toString`, from reading as a matcher. A `between` value that is not an
+ * array, such as `5`, reads as no constraint.
  *
  * @internal
  */
 export function imposesConstraint(operator: string, value: unknown): boolean {
 	if (!Object.hasOwn(matchers, operator)) return false
 
-	return VALUELESS_OPERATORS.has(operator) || !isEmptyValue(value)
+	if (VALUELESS_OPERATORS.has(operator)) return true
+
+	return !isEmptyValue(value) && (valueShapes[operator]?.(value) ?? true)
 }
 
 /**
@@ -119,10 +134,15 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
 
 /**
  * Tests one operator against a field value and a rule value. Three cases pass as
- * "no constraint", so a half-built or cleared rule never hides rows. Those are
- * an unknown operator, and a value-requiring operator whose value is empty (a
- * blank text box, a cleared date, an all-blank range). Value-less operators (`is Empty`,
- * `is true`, …) evaluate regardless.
+ * "no constraint", so a half-built or cleared rule never hides rows:
+ *
+ * - an unknown operator;
+ * - a value-requiring operator whose value is empty (a blank text box, a
+ *   cleared date, an all-blank range);
+ * - a value of the wrong shape for its operator, such as a `between` value
+ *   that is not an array.
+ *
+ * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */
 export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
 	return testRule(operator, fieldValue, ruleValue) ?? true

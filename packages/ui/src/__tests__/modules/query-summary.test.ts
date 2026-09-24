@@ -97,6 +97,16 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(ageField, { operator: 'between', value: ['', 65] })])).toBe('Age ≤ 65')
 	})
 
+	it('drops a range whose value is not an array, along with its combinator', () => {
+		// The evaluator reads such a value as no constraint.
+		expect(
+			line([
+				rule(nameField, { operator: 'contains', value: 'lee' }),
+				rule(ageField, { operator: 'between', value: 5, combinator: 'or' }),
+			]),
+		).toBe('Name contains lee')
+	})
+
 	it('renders a date value verbatim', () => {
 		expect(line([rule(joinedField, { operator: 'before', value: '2026-01-01' })])).toBe(
 			'Joined before 2026-01-01',
