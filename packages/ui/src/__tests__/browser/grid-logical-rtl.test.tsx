@@ -261,3 +261,18 @@ describe('grid disclosure chevrons in a right-to-left grid (real browser)', () =
 		await waitFor(() => expect(getComputedStyle(chevron).rotate).toBe('-90deg'))
 	})
 })
+
+describe('grid text alignment in a right-to-left grid (real browser)', () => {
+	it('aligns the table text to the inline start', () => {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ width: 600 }}>
+				<Grid columns={columns} rows={sales} getKey={(row) => row.id} />
+			</div>,
+		)
+
+		const table = present(container.querySelector('table'), 'the table')
+
+		// `start` aligns right in a right-to-left table. `left` would not.
+		expect(getComputedStyle(table).textAlign).toBe('start')
+	})
+})
