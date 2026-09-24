@@ -159,7 +159,11 @@ export const k = {
 		// `scrollbar-gutter: stable` reserves the scrollbar's track up front, so the
 		// bar appearing on the first overflow (an infinite-scroll viewport-fill, a
 		// grown row set) doesn't shrink the content width and reflow every column.
-		wrapper: 'overflow-auto [scrollbar-gutter:stable] [&>[data-slot=table]]:!overflow-visible',
+		// A right-to-left scroller keeps `auto`. In Chromium, a stable gutter there
+		// shifts the scroll range by the gutter width, so the scroller clips the
+		// start edge of the content and never reaches `scrollLeft` 0.
+		wrapper:
+			'overflow-auto [scrollbar-gutter:stable] rtl:[scrollbar-gutter:auto] [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
 		// scroll. Tracks the content host (see `hostSurface`) so it matches the page
 		// background on mobile and the card surface on desktop — a plain `bg.surface`
