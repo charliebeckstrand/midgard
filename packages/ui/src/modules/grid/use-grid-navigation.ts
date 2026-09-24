@@ -200,6 +200,22 @@ function navTarget(
 }
 
 /**
+ * The key that a horizontal arrow means in the column order of the cursor. In
+ * a right-to-left grid, the columns run from right to left. `ArrowLeft` then
+ * moves to the next column, and `ArrowRight` to the previous one (WAI-ARIA APG
+ * grid pattern). The group keys mirror in the same way. Other keys, `Home` and
+ * `End` among them, come back unchanged, because they already name the start
+ * and the end of the row. @internal
+ */
+export function logicalArrow(key: string, rtl: boolean): string {
+	if (!rtl) return key
+
+	if (key === 'ArrowLeft') return 'ArrowRight'
+
+	return key === 'ArrowRight' ? 'ArrowLeft' : key
+}
+
+/**
  * The cursor coord a movement key moves to from `base`, or `null` when the key
  * does not move the cursor. The move runs over places in the cursor's order
  * (see {@link toPosition}), so the new-row slot is one row of it, first or
@@ -331,7 +347,8 @@ type StopAction = 'toggle' | 'descend' | 'enter' | 'swallow'
  * takes the key.
  *
  * - A group header toggles on Enter or Space. ArrowRight opens a closed group,
- *   and it steps into an open one. ArrowLeft closes an open group.
+ *   and it steps into an open one. ArrowLeft closes an open group. The key is
+ *   logical (see {@link logicalArrow}), so a right-to-left grid mirrors it.
  * - A detail panel takes focus into its controls on Enter or F2.
  * - A one-stop row has no cells, so the other keys that act on a cell do
  *   nothing there.
@@ -376,7 +393,8 @@ function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
  * cursor is exposed to assistive tech through `aria-activedescendant`. Arrow
  * keys, Home/End (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the
  * cursor. Enter/Space activates the cell through `onCellActivate` then the row
- * through `onRowActivate`. Escape unseats it.
+ * through `onRowActivate`. Escape unseats it. In a right-to-left grid,
+ * ArrowLeft moves to the next column and ArrowRight to the previous one.
  *
  * Bounds and the active row come from `rowsRef`/`colCountRef` at event time. The
  * hook thus holds no stale counts, and its callbacks stay referentially stable
@@ -698,10 +716,10 @@ export function useGridNavigation({
 	// The keys of a one-stop row at `base` (see `stopAction`). The cursor's arrows
 	// and page keys still move off each kind. Returns whether it took the key.
 	const onStopKey = useCallback(
-		(event: KeyboardEvent<HTMLTableElement>, base: Coord): boolean => {
+		(event: KeyboardEvent<HTMLTableElement>, key: string, base: Coord): boolean => {
 			const entry = stopAt(base.row)
 
-			const action = entry ? stopAction(event.key, entry) : null
+			const action = entry ? stopAction(key, entry) : null
 
 			if (!entry || action === null) return false
 
@@ -760,12 +778,20 @@ export function useGridNavigation({
 
 			const base = activeRef.current ?? first
 
-			if (onStopKey(event, base)) return
+			// A horizontal arrow reads the direction of the grid. Other keys skip the
+			// computed-style read.
+			const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+
+			const key = horizontal
+				? logicalArrow(event.key, getComputedStyle(event.currentTarget).direction === 'rtl')
+				: event.key
+
+			if (onStopKey(event, key, base)) return
 
 			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
 			// (a no-op layout read for non-page keys, see `resolvePageStep`).
 			const target = keyTarget(
-				event.key,
+				key,
 				base,
 				order,
 				event.metaKey || event.ctrlKey,

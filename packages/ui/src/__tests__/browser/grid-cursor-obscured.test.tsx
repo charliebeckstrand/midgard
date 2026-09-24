@@ -394,35 +394,79 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		})
 	}
 
-	// A pinned column takes a physical `left` or `right` offset. In a
-	// right-to-left grid it does not stick, so it scrolls with the content. The
-	// walk holds each active cell off the pinned column and uncovered at its
-	// centre. The start column of a right-to-left grid is clipped, so the walk
-	// does not hold the whole cell inside the scroller.
+	// In a right-to-left grid, `'left'` and `'right'` name the inline start and
+	// end. A left pin therefore sticks to the physical right edge, and a right
+	// pin to the physical left edge.
 	for (const side of ['left', 'right'] as const) {
-		it(`keeps each active cell off a ${side}-pinned column in a right-to-left grid`, async () => {
-			const { grid, scroll, active, press } = renderGrid(side, 'rtl')
+		it(`holds a ${side}-pinned column at its inline edge in a right-to-left grid`, async () => {
+			const { grid, scroll } = renderGrid(side, 'rtl')
+
+			const pinned = present(
+				grid.querySelector<HTMLElement>('tbody td[data-grid-col="pin"]'),
+				'a pinned cell',
+			)
+
+			const frame = () => scroll.getBoundingClientRect()
+
+			/** The gap between the pinned cell and its inline edge of the scroller. */
+			const gap = () =>
+				side === 'left'
+					? frame().left +
+						scroll.clientLeft +
+						scroll.clientWidth -
+						pinned.getBoundingClientRect().right
+					: pinned.getBoundingClientRect().left - (frame().left + scroll.clientLeft)
+
+			// A left pin starts at its edge. A right pin gets there at the far end.
+			scroll.scrollLeft = side === 'left' ? 0 : -scroll.scrollWidth
+
+			await waitFor(() => expect(Math.abs(gap())).toBeLessThanOrEqual(1))
+
+			// Scroll the content across. The pinned cell must not move with it.
+			const before = scroll.scrollLeft
+
+			scroll.scrollLeft = side === 'left' ? -scroll.scrollWidth : 0
+
+			await waitFor(() => expect(scroll.scrollLeft).not.toBe(before))
+
+			expect(Math.abs(gap())).toBeLessThanOrEqual(1)
+
+			// The boundary rule and the edge shadow face the scrolled columns. For a
+			// left pin, they are on the physical left side of the cell.
+			const rule = getComputedStyle(pinned, '::after')
+
+			const shadow = getComputedStyle(pinned).boxShadow
+
+			if (side === 'left') {
+				expect(rule.left).toBe('0px')
+
+				expect(shadow).toContain(' -1px 0px 3px')
+			} else {
+				expect(rule.right).toBe('0px')
+
+				expect(shadow).toContain(' 1px 0px 3px')
+			}
+		})
+	}
+
+	// In a right-to-left grid, ArrowLeft moves to the next column.
+	const rtlCases = [
+		// The cursor comes from the side away from the pinned column.
+		{ side: 'left', from: 'c4', target: 'c3', key: 'ArrowRight' },
+		{ side: 'right', from: 'c3', target: 'c4', key: 'ArrowLeft' },
+	] as const
+
+	for (const { side, from, target, key } of rtlCases) {
+		it(`moves a cell out from under a ${side}-pinned column in a right-to-left grid`, async () => {
+			const { grid, scroll, press, expectUncovered } = renderGrid(side, 'rtl')
+
+			const cellOf = (id: string) =>
+				present(grid.querySelector<HTMLElement>(`tbody td[data-grid-col="${id}"]`), `a ${id} cell`)
 
 			const pinned = present(
 				grid.querySelector<HTMLElement>('th[data-grid-col="pin"]'),
 				'the pinned head',
 			)
-
-			const expectOffPin = () => {
-				const cell = active()
-
-				if (cell.dataset.gridCol === 'pin') return
-
-				const box = cell.getBoundingClientRect()
-
-				const cover = pinned.getBoundingClientRect()
-
-				expect(box.right <= cover.left + 1 || box.left >= cover.right - 1).toBe(true)
-
-				const x = box.left + box.width / 2
-
-				expect(cell.contains(document.elementFromPoint(x, box.top + box.height / 2))).toBe(true)
-			}
 
 			grid.focus()
 
@@ -430,21 +474,41 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 
 			await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
 
-			const order = side === 'left' ? ['pin', ...DATA] : [...DATA, 'pin']
-
-			for (const id of order.slice(1)) {
-				await press('ArrowRight', id)
-
-				await waitFor(expectOffPin)
-			}
-
-			expect(scroll.scrollLeft).toBeLessThan(0)
-
-			for (const id of order.slice(0, -1).reverse()) {
+			for (const id of side === 'left' ? ['c1', 'c2', 'c3', 'c4'] : ['c2', 'c3']) {
 				await press('ArrowLeft', id)
-
-				await waitFor(expectOffPin)
 			}
+
+			expect(grid.querySelector('[data-active]')).toHaveAttribute('data-grid-col', from)
+
+			// Scroll the target to the middle of the pinned column, so that it is
+			// under it in full.
+			const box = pinned.getBoundingClientRect()
+
+			const cell = cellOf(target).getBoundingClientRect()
+
+			scroll.scrollLeft += cell.left - (box.left + (box.width - cell.width) / 2)
+
+			await waitFor(() => {
+				const under = cellOf(target).getBoundingClientRect()
+
+				expect(under.left).toBeGreaterThanOrEqual(pinned.getBoundingClientRect().left - 1)
+
+				expect(under.right).toBeLessThanOrEqual(pinned.getBoundingClientRect().right + 1)
+			})
+
+			await press(key, target)
+
+			await waitFor(() => {
+				const moved = cellOf(target).getBoundingClientRect()
+
+				const cover = pinned.getBoundingClientRect()
+
+				// A left pin is at the physical right edge in a right-to-left grid.
+				if (side === 'left') expect(moved.right).toBeLessThanOrEqual(cover.left + 1)
+				else expect(moved.left).toBeGreaterThanOrEqual(cover.right - 1)
+			})
+
+			expectUncovered()
 		})
 	}
 })

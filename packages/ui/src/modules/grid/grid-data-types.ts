@@ -465,9 +465,10 @@ export type GridReorder = {
 /**
  * Runtime pin state for {@link GridPinning}, keyed by stringified column id: a
  * side freezes the column to that edge, `'none'` unpins a statically-pinned
- * one. Columns absent keep their {@link GridColumn.pinned} flag; a
- * {@link GridColumn.locked} column ignores entries entirely. Plain-object
- * shape so the state serializes for persistence.
+ * one. `'left'` is the inline start, and `'right'` the inline end. Columns
+ * absent keep their {@link GridColumn.pinned} flag; a {@link GridColumn.locked}
+ * column ignores entries entirely. Plain-object shape so the state serializes
+ * for persistence.
  */
 export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
 
@@ -1070,6 +1071,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * or Space toggles the group, ArrowRight opens it or steps into it, and
 	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
 	 * first control in the panel, and Escape gives focus back to the grid.
+	 *
+	 * The grid reads its computed `direction`. In a right-to-left grid, ArrowLeft
+	 * moves to the next column and ArrowRight to the previous one. The group keys
+	 * mirror in the same way. Home and End still reach the start and the end of
+	 * the row.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable

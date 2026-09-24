@@ -37,13 +37,13 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.left).toBe('0px')
+		expect(head?.style.insetInlineStart).toBe('0px')
 
 		const body = dataCell(container, 'name')
 
 		expect(body?.className).toContain('sticky')
 
-		expect(body?.style.left).toBe('0px')
+		expect(body?.style.insetInlineStart).toBe('0px')
 	})
 
 	it('treats pinned: true as left', () => {
@@ -54,9 +54,9 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(headCell(container, 'name')?.style.left).toBe('0px')
+		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
 
-		expect(headCell(container, 'name')?.style.right).toBe('')
+		expect(headCell(container, 'name')?.style.insetInlineEnd).toBe('')
 	})
 
 	it('pulls a right-pinned column to the right edge', () => {
@@ -72,9 +72,9 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.right).toBe('0px')
+		expect(head?.style.insetInlineEnd).toBe('0px')
 
-		expect(dataCell(container, 'status')?.style.right).toBe('0px')
+		expect(dataCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
 	})
 
 	it('stacks two left-pinned columns with cumulative offsets', () => {
@@ -97,9 +97,9 @@ describe('Grid column pinning', () => {
 		)
 
 		// The first frozen column sits at the edge; the second starts after it.
-		expect(headCell(container, 'name')?.style.left).toBe('0px')
+		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
 
-		expect(headCell(container, 'email')?.style.left).toBe('120px')
+		expect(headCell(container, 'email')?.style.insetInlineStart).toBe('120px')
 	})
 
 	it('stacks two right-pinned columns inward from the right edge', () => {
@@ -120,9 +120,9 @@ describe('Grid column pinning', () => {
 		)
 
 		// Status is rightmost (offset 0); email stacks inward by status's 100px.
-		expect(headCell(container, 'status')?.style.right).toBe('0px')
+		expect(headCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
 
-		expect(headCell(container, 'email')?.style.right).toBe('100px')
+		expect(headCell(container, 'email')?.style.insetInlineEnd).toBe('100px')
 	})
 
 	it('paints a pinned body cell with the viewport-aware content-host surface', () => {
@@ -175,21 +175,21 @@ describe('Grid column pinning', () => {
 		// The border is a 2px `::after` overlay (`after:w-0.5`) on the sticky cell, not
 		// a CSS border — a collapsed cell border would scroll away with the overflow.
 		// Left-frozen (pinned): on the right edge, header and body.
-		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+		expect(headCell(container, 'name')?.classList.contains('after:end-0')).toBe(true)
 
 		expect(headCell(container, 'name')?.classList.contains('after:w-0.5')).toBe(true)
 
-		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+		expect(dataCell(container, 'name')?.classList.contains('after:end-0')).toBe(true)
 
 		// Right-frozen (locked): on the left edge.
-		expect(headCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
+		expect(headCell(container, 'status')?.classList.contains('after:start-0')).toBe(true)
 
-		expect(dataCell(container, 'status')?.classList.contains('after:left-0')).toBe(true)
+		expect(dataCell(container, 'status')?.classList.contains('after:start-0')).toBe(true)
 
 		// A scrolling column carries no edge overlay.
-		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(false)
+		expect(headCell(container, 'email')?.classList.contains('after:end-0')).toBe(false)
 
-		expect(headCell(container, 'email')?.classList.contains('after:left-0')).toBe(false)
+		expect(headCell(container, 'email')?.classList.contains('after:start-0')).toBe(false)
 	})
 
 	it('borders only the innermost column of a combined pinned + locked group', () => {
@@ -204,13 +204,13 @@ describe('Grid column pinning', () => {
 		// Two left-frozen columns — Name locked, Email pinned. Only the innermost
 		// (Email, at the scroll boundary) carries the edge border; the outer Name does
 		// not, so the group shows one rule rather than a divider per column.
-		expect(headCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+		expect(headCell(container, 'email')?.classList.contains('after:end-0')).toBe(true)
 
-		expect(dataCell(container, 'email')?.classList.contains('after:right-0')).toBe(true)
+		expect(dataCell(container, 'email')?.classList.contains('after:end-0')).toBe(true)
 
-		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+		expect(headCell(container, 'name')?.classList.contains('after:end-0')).toBe(false)
 
-		expect(dataCell(container, 'name')?.classList.contains('after:right-0')).toBe(false)
+		expect(dataCell(container, 'name')?.classList.contains('after:end-0')).toBe(false)
 	})
 
 	it('borders the boundary column, not the auto-frozen selection column ahead of it', () => {
@@ -224,9 +224,9 @@ describe('Grid column pinning', () => {
 
 		// Selection freezes far-left ahead of Name, but only Name (the inner boundary)
 		// carries the edge border — the selection column behind it does not.
-		expect(headCell(container, 'name')?.classList.contains('after:right-0')).toBe(true)
+		expect(headCell(container, 'name')?.classList.contains('after:end-0')).toBe(true)
 
-		expect(container.querySelector('thead th')?.classList.contains('after:right-0')).toBe(false)
+		expect(container.querySelector('thead th')?.classList.contains('after:end-0')).toBe(false)
 	})
 
 	it('carries no sticky chrome when no column is pinned', () => {
@@ -241,9 +241,9 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.left).toBe('')
+		expect(head?.style.insetInlineStart).toBe('')
 
-		expect(head?.style.right).toBe('')
+		expect(head?.style.insetInlineEnd).toBe('')
 	})
 
 	it('freezes the selection column to the far left, ahead of a left-pinned column', () => {
@@ -260,19 +260,19 @@ describe('Grid column pinning', () => {
 
 		expect(selectHead?.className).toContain('sticky')
 
-		expect(selectHead?.style.left).toBe('0px')
+		expect(selectHead?.style.insetInlineStart).toBe('0px')
 
 		const selectBody = container.querySelector<HTMLElement>('tbody td')
 
 		expect(selectBody?.className).toContain('sticky')
 
-		expect(selectBody?.style.left).toBe('0px')
+		expect(selectBody?.style.insetInlineStart).toBe('0px')
 
 		// The left-pinned data column stacks just inside it, offset by the selection
 		// column's natural 48px width.
-		expect(headCell(container, 'name')?.style.left).toBe('48px')
+		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('48px')
 
-		expect(dataCell(container, 'name')?.style.left).toBe('48px')
+		expect(dataCell(container, 'name')?.style.insetInlineStart).toBe('48px')
 	})
 
 	it('leaves the selection column inline when no data column is pinned', () => {
@@ -290,7 +290,7 @@ describe('Grid column pinning', () => {
 
 		expect(selectHead?.className).not.toContain('sticky')
 
-		expect(selectHead?.style.left).toBe('')
+		expect(selectHead?.style.insetInlineStart).toBe('')
 	})
 
 	it('gives a pinned column header an unpin button and leaves scrolling headers without one', () => {
@@ -327,7 +327,7 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.left).toBe('')
+		expect(head?.style.insetInlineStart).toBe('')
 	})
 
 	it('isolates the grid stacking context so its frozen header stays scoped within it', () => {
@@ -354,13 +354,13 @@ describe('Grid column pinning', () => {
 
 		expect(headCell(container, 'name')?.className).toContain('sticky')
 
-		expect(headCell(container, 'name')?.style.left).toBe('0px')
+		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
 
-		expect(dataCell(container, 'name')?.style.left).toBe('0px')
+		expect(dataCell(container, 'name')?.style.insetInlineStart).toBe('0px')
 
 		expect(headCell(container, 'status')?.className).toContain('sticky')
 
-		expect(headCell(container, 'status')?.style.right).toBe('0px')
+		expect(headCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
 	})
 
 	it('shows no edge arrow in a locked column header (the boundary border marks it)', () => {
@@ -387,9 +387,9 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(headCell(container, 'name')?.style.left).toBe('0px')
+		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
 
-		expect(headCell(container, 'name')?.style.right).toBe('')
+		expect(headCell(container, 'name')?.style.insetInlineEnd).toBe('')
 	})
 
 	it('gives a locked column header no unpin button while a pinned one keeps it', () => {
@@ -426,7 +426,7 @@ describe('Grid column pinning', () => {
 		// its header does, so the row lines up column for column.
 		expect(cells[2]?.className).toContain('sticky')
 
-		expect(cells[2]?.style.right).toBe(headCell(container, 'status')?.style.right)
+		expect(cells[2]?.style.insetInlineEnd).toBe(headCell(container, 'status')?.style.insetInlineEnd)
 
 		expect(cells[0]?.className).not.toContain('sticky')
 	})

@@ -91,8 +91,9 @@ function obscuringInsets(cell: HTMLElement): {
 
 			const box = headCell.getBoundingClientRect()
 
-			// A pinned cell (sticky `left`/`right`) overlays that side. The top edge
-			// comes from `stickyHeadInset`, which reads each header row.
+			// A pinned cell overlays one physical side. Its offset is a logical inset,
+			// but the computed `left` or `right` is physical. The top edge comes from
+			// `stickyHeadInset`, which reads each header row.
 			if (style.left !== 'auto') left += box.width
 			else if (style.right !== 'auto') right += box.width
 		}
@@ -148,16 +149,15 @@ function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
  * Whether the horizontal correction of {@link clearStickyChrome} applies to
  * `cell`. A cell of a pinned column is the chrome itself, so it takes none. A
  * cell of the new-row slot sticks only to the top or the bottom edge, so it
- * takes one. A right-to-left scroller takes none, because a pinned column does
- * not stick there. Its offset is a physical `left` or `right`.
+ * takes one. A pinned column sticks to a logical inset, and its computed
+ * `left` or `right` is physical. The correction therefore holds in a
+ * right-to-left grid too.
  * @internal
  */
-function clearsSides(cell: HTMLElement, scroller: HTMLElement): boolean {
+function clearsSides(cell: HTMLElement): boolean {
 	const style = getComputedStyle(cell)
 
-	if (style.position === 'sticky' && (style.left !== 'auto' || style.right !== 'auto')) return false
-
-	return getComputedStyle(scroller).direction !== 'rtl'
+	return !(style.position === 'sticky' && (style.left !== 'auto' || style.right !== 'auto'))
 }
 
 /**
@@ -196,7 +196,7 @@ function clearStickyChrome(
 	else if (rect.bottom > edgeBottom)
 		scroller.scrollTop += Math.min(rect.bottom - edgeBottom, rect.top - edgeTop)
 
-	if (!clearsSides(cell, scroller)) return
+	if (!clearsSides(cell)) return
 
 	const edgeLeft = box.left + scroller.clientLeft + insets.left
 

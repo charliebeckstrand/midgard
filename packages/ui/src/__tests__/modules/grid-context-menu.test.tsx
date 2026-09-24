@@ -707,7 +707,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.left).toBe('0px')
+		expect(head?.style.insetInlineStart).toBe('0px')
 	})
 
 	it('releases a column when Unpin is chosen', () => {
@@ -725,7 +725,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.left).toBe('')
+		expect(head?.style.insetInlineStart).toBe('')
 	})
 
 	it('seeds runtime pins from the pinning binding', () => {
