@@ -19,7 +19,7 @@ export {
 	type QuerySummaryToken,
 	summarizeQuery,
 } from './engine/query-summary'
-export { addChild, mapNode, removeChild } from './engine/query-tree'
+export { addChild, mapNode, moveChild, removeChild } from './engine/query-tree'
 export type {
 	QueryCombinator,
 	QueryField,

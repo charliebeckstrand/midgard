@@ -21,6 +21,7 @@ import {
 	formatQuerySummary,
 	type QuerySummaryRuleToken,
 	type QuerySummaryToken,
+	renderToken,
 	spacedBefore,
 	summarizeQuery,
 } from './engine/query-summary'
@@ -52,13 +53,6 @@ export type QueryChipsProps = {
 	 */
 	emptyLabel?: ReactNode
 	className?: string
-}
-
-/** The plain text of a rule token, for its remove label and its announcement. @internal */
-function ruleText(token: QuerySummaryRuleToken): string {
-	return token.value == null
-		? `${token.field} ${token.operator}`
-		: `${token.field} ${token.operator} ${token.value}`
 }
 
 /**
@@ -117,7 +111,7 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 						variant="bare"
 						size="xs"
 						data-slot="query-chip-remove"
-						aria-label={`Remove ${ruleText(token)}`}
+						aria-label={`Remove ${renderToken(token)}`}
 						disabled={disabled}
 						onClick={remove}
 						onKeyDown={onKeyDown}
@@ -232,12 +226,12 @@ export function QueryChips({
 
 		actions.remove(token.id)
 
-		announce(`Removed ${ruleText(token)}`)
+		announce(`Removed ${renderToken(token)}`)
 	}
 
 	if (readOnly && tokens.length === 0) return null
 
-	const renderToken = (token: QuerySummaryToken) => {
+	const renderPart = (token: QuerySummaryToken) => {
 		if (token.kind === 'rule') {
 			return (
 				<QueryChip
@@ -283,7 +277,7 @@ export function QueryChips({
 	const body = tokens.map((token, index) => (
 		<Fragment key={`${token.kind}:${token.id}`}>
 			{spacedBefore(tokens[index - 1], token) && ' '}
-			{renderToken(token)}
+			{renderPart(token)}
 		</Fragment>
 	))
 

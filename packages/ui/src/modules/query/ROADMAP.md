@@ -6,7 +6,7 @@
 
 The engine extraction is done (this change). The Query domain — node and field types, node construction, the operator registry, immutable tree edits, the active/empty judgement, and evaluation — lives in [`engine/`](engine), a d3-shaped functional core laid out like the grid and chart engines: `types.ts`, `query-node.ts`, `query-operators.ts`, `query-tree.ts`, `query-active.ts`, `query-evaluate.ts`. Each is pure and framework-free, imported file-by-file, and covered by its own `*.test.ts` suite so a change is proven correct at the layer it changed.
 
-The builder is now one view wired over that core. `useQueryTree` (module root) holds the controlled/uncontrolled root and the five referentially-stable edit actions; `useQueryBuilderTree` composes it with the builder's focus registry, wrapping `remove` to move focus to a surviving neighbour (WCAG 2.4.3). The focus ladder is the builder's own concern in [`query-builder/query-builder-focus.ts`](query-builder/query-builder-focus.ts), not the query's. Grid's filter path reads the same core: `grid/engine/grid-table/options.ts` evaluates a column's query tree through `engine/query-evaluate`, a pure-engine-to-pure-engine edge.
+The builder is now one view wired over that core. `useQueryTree` (module root) holds the controlled/uncontrolled root and the referentially-stable edit actions; `useQueryBuilderTree` composes it with the builder's focus registry, wrapping `remove` to move focus to a surviving neighbour (WCAG 2.4.3). The focus ladder is the builder's own concern in [`query-builder/query-builder-focus.ts`](query-builder/query-builder-focus.ts), not the query's. Grid's filter path reads the same core: `grid/engine/grid-table/options.ts` evaluates a column's query tree through `engine/query-evaluate`, a pure-engine-to-pure-engine edge.
 
 The public surface was unchanged across the move — the barrel re-exports domain symbols from `./engine/*` and view symbols from `./query-builder`, so every consumer (grid, the docs demo, the a11y corpus, the boundary suite) compiled byte-unchanged. The design record for the extraction is [`docs/plans/2026-07-12-QUERY-MODULE-PLAN.md`](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
 
@@ -22,6 +22,8 @@ The chip row has landed. [`QueryChips`](query-chips.tsx) (module root) renders t
 
 The chip row is the second consumer of both `useQueryTree` and `summarizeQuery`, which is the condition that this file set for each export (CLAUDE.md §1.1). So the barrel now exports the hook with its option, result, and action types, and the token stream with its token types.
 
+Rule reordering has landed. [`engine/query-tree.ts`](engine/query-tree.ts) adds `moveChild`, which moves a node among its siblings. Each combinator stays in its position, and only the nodes move, so a hidden combinator on the first child never becomes live. `useQueryTree` exposes it as the `move` action. `QueryBuilder` takes an opt-in `reorder` prop, named as `GridProps.reorder` is. With it, each child of a group with more than one child shows a grip. The grip reorders by pointer or by keyboard through the shared dnd-kit sortable hooks, and each group has its own drag context. The announcements name a node by its summary text and its position, from the pure builders in [`engine/query-announcements.ts`](engine/query-announcements.ts).
+
 ## Engine — the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
@@ -34,7 +36,7 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 
 - **Per-field value editors.** A custom value-input slot on the rule, for a field whose value isn't a text/number/date/select/boolean primitive (a relation picker, a token input).
 
-- **Rule reordering.** Drag or keyboard reorder of a group's children, over the same immutable `engine/query-tree` edits.
+- **Move across groups.** A drag moves a node only among its siblings today. A move into another group needs a drop target per group and a rule for the combinator that the node takes there.
 
 - **Bounds from the column's own span.** A `between` rule edits two free-form bounds, so nothing tells the user what range the data holds, and nothing stops a pair that selects no rows. TanStack Table's `getFacetedMinMaxValues` derives `[min, max]` per column and is imported nowhere today, while its sibling `getFacetedUniqueValues` is already wired in [`grid/engine/grid-table/options.ts`](../grid/engine/grid-table/options.ts) and read by [`grid-table/views.ts`](../grid/engine/grid-table/views.ts) to fill a `select` rule's options. The same edge carries the span: wire the second facet, surface it beside the unique values, and let the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamp and placeholder against it. An addition rather than a replacement, and it only pays where the query has a grid behind it — a standalone `QueryBuilder` has no facets to read.
 

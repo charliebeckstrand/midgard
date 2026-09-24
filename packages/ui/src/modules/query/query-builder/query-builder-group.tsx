@@ -12,10 +12,13 @@ import { Segment, SegmentControl, SegmentItem } from '../../../components/segmen
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/query-builder'
+import { describeNode } from '../engine/query-announcements'
 import type { QueryCombinator, QueryGroup } from '../engine/types'
 import { useFocusableRef, useQueryBuilderActions, useQueryBuilderState } from './context'
 import { focusKeys } from './query-builder-focus'
 import { QueryBuilderRule } from './query-builder-rule'
+import { QueryBuilderSortable } from './query-builder-sortable'
+import { QueryBuilderSortableItem } from './query-builder-sortable-item'
 
 /** Props for {@link QueryBuilderGroup}: the group node to render and whether it is the tree root. */
 export type QueryBuilderGroupProps = {
@@ -33,13 +36,16 @@ export type QueryBuilderGroupProps = {
  * identity of untouched subtrees, so an edit re-renders only the affected group.
  */
 function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProps) {
-	const { disabled, allowGroups, requireRule } = useQueryBuilderState()
+	const { fields, disabled, allowGroups, requireRule, reorderable } = useQueryBuilderState()
 
 	const { updateCombinator, addRule, addGroup, remove } = useQueryBuilderActions()
 
 	// With `requireRule`, a group keeps its last rule: the sole remaining rule
 	// hides its remove control so the query can't be emptied.
 	const rulesRemovable = !requireRule || group.children.length > 1
+
+	// A group with one child has no order to change, so it shows no grip.
+	const sortable = reorderable && group.children.length > 1
 
 	// The focus ladder degrades to a group's "add" affordance; that is now the
 	// menu trigger, the always-mounted control that replaced the bare "Add rule"
@@ -54,6 +60,51 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 	// Tailwind preflight zeroes fieldset border/margin/padding.
 	const Wrapper = root ? 'div' : 'fieldset'
 
+	// The combinator segment sits outside the grip's node. So a drag moves the
+	// node, and each AND/OR stays in its position between the nodes.
+	const children = group.children.map((child, index) => {
+		const node =
+			child.type === 'group' ? (
+				<QueryBuilderGroup group={child} />
+			) : (
+				<QueryBuilderRule rule={child} removable={rulesRemovable} />
+			)
+
+		const separator = index > 0 && (
+			<Segment
+				size="sm"
+				value={child.combinator ?? 'and'}
+				onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
+			>
+				<SegmentControl aria-label="Combinator">
+					<SegmentItem value="and">AND</SegmentItem>
+					<SegmentItem value="or">OR</SegmentItem>
+				</SegmentControl>
+			</Segment>
+		)
+
+		return (
+			<div key={child.id} className="flex flex-col gap-3">
+				{sortable && separator ? (
+					<div className={cn(k.sortable.separator)}>{separator}</div>
+				) : (
+					separator
+				)}
+				{sortable ? (
+					<QueryBuilderSortableItem
+						id={child.id}
+						label={describeNode(child, fields)}
+						disabled={disabled}
+					>
+						{node}
+					</QueryBuilderSortableItem>
+				) : (
+					node
+				)}
+			</div>
+		)
+	})
+
 	return (
 		<Wrapper
 			data-slot="query-group"
@@ -64,28 +115,10 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 			<div className={k.group.base}>
 				{group.children.length === 0 ? (
 					<Alert severity="warning" variant="soft" title="No rules added" className="w-full" />
+				) : sortable ? (
+					<QueryBuilderSortable group={group}>{children}</QueryBuilderSortable>
 				) : (
-					group.children.map((child, index) => (
-						<div key={child.id} className="flex flex-col gap-3">
-							{index > 0 && (
-								<Segment
-									size="sm"
-									value={child.combinator ?? 'and'}
-									onValueChange={(v) => v && updateCombinator(child.id, v as QueryCombinator)}
-								>
-									<SegmentControl aria-label="Combinator">
-										<SegmentItem value="and">AND</SegmentItem>
-										<SegmentItem value="or">OR</SegmentItem>
-									</SegmentControl>
-								</Segment>
-							)}
-							{child.type === 'group' ? (
-								<QueryBuilderGroup group={child} />
-							) : (
-								<QueryBuilderRule rule={child} removable={rulesRemovable} />
-							)}
-						</div>
-					))
+					children
 				)}
 			</div>
 

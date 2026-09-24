@@ -99,6 +99,20 @@ Focus after a removal follows the builder's ladder: the previous chip, then the 
 
 The chip row is the second consumer of `useQueryTree` and of `summarizeQuery`, which met the condition for both exports. The barrel exports `useQueryTree` with `QueryTreeActions`, `QueryTreeOptions`, and `QueryTreeResult`, and `summarizeQuery` with `QuerySummaryToken` and `QuerySummaryRuleToken`. `spacedBefore` stays internal, because a chip row spaces its tokens with the flex gap.
 
+### Follow-up: rule reordering (2026-09-24)
+
+`moveChild(tree, id, toIndex)` in [`engine/query-tree.ts`](../../src/modules/query/engine/query-tree.ts) moves a node among the children of its own group. It clamps `toIndex` to the group, and it returns the same tree when nothing moves, as the other tree edits do.
+
+The combinators stay in their positions, and only the nodes move. A node's `combinator` joins it to the node before it, so the other choice, where a combinator moves with its node, changes the query in two hidden ways. A node that moves to the top hides its combinator. The node that was first then shows a combinator that the user never saw. With fixed positions, the AND/OR between two positions stays the same through a move, and each node takes the combinator of its new position. When every combinator in a group is the same, the two choices give the same tree.
+
+`QueryBuilder` takes an opt-in `reorder` prop, which defaults to `false`. The name follows `GridProps.reorder`, the closest module precedent. `List` uses `sortable`, but the grid uses `sortable` for sort order, and a builder often sits beside a grid. The grid column filter and the dashboard do not change.
+
+Each group with more than one child has its own `DndContext`, through the shared `useSortableList`. So a node moves only among its siblings, and the grips of a nested group belong to the nested context. Each child gets a grip button beside it. The grip is the only drag activator, so the selects and inputs of a rule never start a drag. The combinator segment sits outside the node that the grip moves, which keeps each AND/OR in its position on the screen too. The segments fade during a drag, because the nodes pass over them. The held node translates with no scale, because a scale distorts nodes of different heights.
+
+The keyboard uses dnd-kit's own sensor, as the grid and the dashboard do: Space or Enter picks the node up, the arrow keys move it, Space or Enter drops it, and Escape cancels. The List and Kanban handlers move focus between items with the arrow keys, but the controls of a rule take the arrow keys. The announcements replace dnd-kit's default text, which reads the generated ids. The pure builders in `engine/query-announcements.ts` name a node by its summary text and its position, as the List strings do.
+
+A move into another group stays in the backlog. It needs a drop target for each group, and a rule for the combinator that the node takes in its new group.
+
 ## Non-goals
 
 - **No behavior change** — every moved function moves verbatim; the tree, operator, and evaluation semantics (including the empty-value agreement and left-to-right combinator fold) are untouched.

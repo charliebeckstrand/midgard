@@ -81,7 +81,7 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
  *
  * @internal
  */
-function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
+export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
 	const { field, operator } = resolveRule(rule, fields)
 
 	if (!imposesConstraint(operator, rule.value)) return null
@@ -188,7 +188,7 @@ export function spacedBefore(
 }
 
 /** Renders one token as its sentence fragment. @internal */
-function renderToken(token: QuerySummaryToken): string {
+export function renderToken(token: QuerySummaryToken): string {
 	if (token.kind === 'combinator') return token.label
 
 	if (token.kind === 'group-open') return '('

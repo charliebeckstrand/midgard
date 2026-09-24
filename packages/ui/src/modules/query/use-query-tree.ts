@@ -3,7 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { useControllable } from '../../hooks'
 import { createGroup, createRule } from './engine/query-node'
-import { addChild, mapNode, removeChild } from './engine/query-tree'
+import { addChild, mapNode, moveChild, removeChild } from './engine/query-tree'
 import type { QueryCombinator, QueryField, QueryGroup, QueryRule } from './engine/types'
 
 /** Tree-edit actions over a query root; each is referentially stable across edits. */
@@ -13,6 +13,8 @@ export type QueryTreeActions = {
 	addRule: (groupId: string) => void
 	addGroup: (groupId: string) => void
 	remove: (id: string) => void
+	/** Moves a node to `toIndex` in its own group. Each combinator stays in its position. */
+	move: (id: string, toIndex: number) => void
 }
 
 /** Options for {@link useQueryTree}: the queryable `fields` and the controlled/uncontrolled root. */
@@ -104,9 +106,16 @@ export function useQueryTree({
 		[setTree, initial],
 	)
 
+	const move = useCallback<QueryTreeActions['move']>(
+		(id, toIndex) => {
+			setTree((prev) => moveChild(prev ?? initial, id, toIndex))
+		},
+		[setTree, initial],
+	)
+
 	const actions = useMemo<QueryTreeActions>(
-		() => ({ updateRule, updateCombinator, addRule, addGroup, remove }),
-		[updateRule, updateCombinator, addRule, addGroup, remove],
+		() => ({ updateRule, updateCombinator, addRule, addGroup, remove, move }),
+		[updateRule, updateCombinator, addRule, addGroup, remove, move],
 	)
 
 	return { root, actions }

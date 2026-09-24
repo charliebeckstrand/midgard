@@ -94,6 +94,21 @@ function ChipsExample() {
 	)
 }
 
+function ReorderExample() {
+	const [query, setQuery] = useState<QueryGroup>(filters)
+
+	return (
+		<Example title="Reorder">
+			<Stack gap="md">
+				{/* Drag a grip, or press Space on it and use the arrow keys. A node moves
+				    among its siblings, and each AND/OR stays in its position. */}
+				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} reorder />
+				<QuerySummary value={query} fields={fields} />
+			</Stack>
+		</Example>
+	)
+}
+
 function DisabledExample() {
 	return (
 		<Example title="Disabled">
@@ -107,6 +122,7 @@ export function Demo() {
 		<>
 			<BuilderExample />
 			<ChipsExample />
+			<ReorderExample />
 			<DisabledExample />
 		</>
 	)

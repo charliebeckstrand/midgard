@@ -77,6 +77,21 @@ export const dataComplexCases: readonly Case[] = [
 		element: <QueryBuilder key="qb" fields={queryFields} />,
 	},
 	{
+		// The editor with reorder on: a drag grip beside each of the two rules.
+		name: 'query builder reorder',
+		element: (
+			<QueryBuilder
+				key="qbr"
+				fields={queryFields}
+				defaultValue={createGroup('and', [
+					{ id: 'o1', type: 'rule', field: 'title', operator: 'contains', value: 'plan' },
+					{ id: 'o2', type: 'rule', combinator: 'or', field: 'count', operator: 'gt', value: 3 },
+				])}
+				reorder
+			/>
+		),
+	},
+	{
 		// Filter bar: a named toolbar of chip remove buttons and an AND/OR switch.
 		name: 'query chips',
 		element: (
