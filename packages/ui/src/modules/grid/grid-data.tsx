@@ -1346,6 +1346,7 @@ export function GridData<T>({
 					loading,
 					gridSemantics,
 					navigable: cursor.cursorEnabled,
+					tree: groupingActive,
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,

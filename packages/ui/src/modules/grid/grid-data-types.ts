@@ -1062,8 +1062,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
 	 *
-	 * A group header, a group total, and an open detail panel are one stop
-	 * each. The cursor keeps its column across a stop. On a group header, Enter
+	 * A client-grouped grid is a `treegrid`. Each group header row carries
+	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
+	 * `aria-level` 2. A group header, a group total, and an open detail panel
+	 * are one stop each. The cursor keeps its column across a stop. On a group header, Enter
 	 * or Space toggles the group, ArrowRight opens it or steps into it, and
 	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
 	 * first control in the panel, and Escape gives focus back to the grid.

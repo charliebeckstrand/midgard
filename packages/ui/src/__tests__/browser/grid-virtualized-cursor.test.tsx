@@ -151,7 +151,7 @@ describe('grid virtualized cursor over item bodies (real browser)', () => {
 			</div>,
 		)
 
-		const grid = screen.getByRole('grid')
+		const grid = screen.getByRole('treegrid')
 
 		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
 

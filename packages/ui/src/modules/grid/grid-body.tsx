@@ -129,6 +129,8 @@ function leafRowProps<T>(
 		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
 		color?: PaletteColor
+		/** The leaf's treegrid level; the client-grouped body sets it. */
+		level?: number
 	},
 ): ComponentProps<typeof GridGroupLeafRow<T>> {
 	const key = args.getKey(leaf.original, leaf.index)
@@ -154,6 +156,7 @@ function leafRowProps<T>(
 		pinning: props.pinning,
 		density: args.density,
 		color: args.color,
+		level: args.level,
 	}
 }
 
@@ -202,7 +205,7 @@ function renderGroup<T>(
 			{groupRow.subRows.map((leaf) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded, getKey, density, color })}
+					{...leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })}
 				/>
 			))}
 			{totalled && (
@@ -320,7 +323,7 @@ function renderGroupedBody<T>(
 				density={density}
 				presentation={rowGroupPresentation}
 				leafProps={(leaf, expanded, color) =>
-					leafRowProps(props, leaf, { expanded, getKey, density, color })
+					leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })
 				}
 				window={virtualize}
 			/>

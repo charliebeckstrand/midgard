@@ -25,6 +25,12 @@ export const DEFAULT_OVERSCAN = 10
  */
 export const FLOATING_PORTAL = '[data-floating-ui-portal]'
 
+/**
+ * The selector for the grid's cursor tab stop. A client-grouped grid is a
+ * `treegrid`, and every other grid with a cursor is a `grid`. @internal
+ */
+export const GRID_ROLE = '[role="grid"], [role="treegrid"]'
+
 /** Stable empty-set default for omitted `hidden`/`defaultHidden`. Read-only; toggles copy it. @internal */
 export const EMPTY_SET: Set<string | number> = new Set()
 

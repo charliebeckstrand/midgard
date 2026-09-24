@@ -14,6 +14,7 @@ import {
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
@@ -302,7 +303,7 @@ export function seatingCellProps<T>(args: {
 			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
 			if (inCell && !fromInteractiveContent(event.target)) {
-				event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
+				event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
 				moveTo({ row: rowIdx, col: colIdx })
 			}
@@ -335,7 +336,7 @@ export function useGridNavStopProps(key: string): ComponentProps<'td'> {
 
 			if (!inCell || fromInteractiveContent(event.target)) return
 
-			event.currentTarget.closest<HTMLElement>('[role="grid"], [role="treegrid"]')?.focus()
+			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
 			store.seatStop(key)
 		},

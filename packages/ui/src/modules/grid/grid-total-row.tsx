@@ -13,6 +13,7 @@ import { NO_PADDING } from './engine/grid-constants'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
+import { useGridNavContext } from './use-grid-navigation'
 import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
@@ -271,6 +272,10 @@ function GridGroupTotalRow<T>({
 
 	const stopProps = useGridNavStopProps(navKey ?? '')
 
+	// Under the cursor, a client-grouped grid is a treegrid, and a total sits
+	// at the level of its group's leaves.
+	const tree = useGridNavContext().enabled && navKey !== undefined
+
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
@@ -279,6 +284,7 @@ function GridGroupTotalRow<T>({
 				{...windowRow}
 				data-total-row="group"
 				aria-hidden={expanded ? undefined : true}
+				aria-level={tree ? 2 : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 			>

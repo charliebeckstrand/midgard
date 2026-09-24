@@ -52,8 +52,49 @@ describe('Grid cursor over grouped rows', () => {
 			/>,
 		)
 
-		return screen.getByRole('grid')
+		return screen.getByRole('treegrid')
 	}
+
+	it('makes a grouped grid a treegrid with a level on each row', () => {
+		const grid = renderGrouped({ groupTotalRow: true })
+
+		expect(grid).toHaveAccessibleName('Data grid')
+
+		const header = grid.querySelector('tr[data-group-row]')
+
+		expect(header).toHaveAttribute('aria-level', '1')
+
+		expect(header).toHaveAttribute('aria-expanded', 'true')
+
+		expect(grid.querySelector('tr[data-total-row="group"]')).toHaveAttribute('aria-level', '2')
+
+		const leaf = screen.getAllByText(/^West$/)[0]?.closest('tr')
+
+		expect(leaf).toHaveAttribute('aria-level', '2')
+	})
+
+	it('marks a closed group as not expanded', () => {
+		const grid = renderGrouped()
+
+		act(() => grid.focus())
+
+		press(grid, 'Enter')
+
+		expect(grid.querySelector('tr[data-group-row]')).toHaveAttribute('aria-expanded', 'false')
+	})
+
+	it('seats the cursor on a group header that is pressed', () => {
+		const grid = renderGrouped()
+
+		// The cell of the second header, pressed off its toggle button.
+		const cell = grid.querySelectorAll('tr[data-group-row]')[1]?.querySelector('td')
+
+		fireEvent.mouseDown(cell as HTMLElement)
+
+		expect(grid).toHaveFocus()
+
+		expect(activeCell(grid)).toBe(cell)
+	})
 
 	it('seats on the first group header when the grid takes focus', () => {
 		const grid = renderGrouped()
@@ -186,6 +227,16 @@ describe('Grid cursor over grouped rows', () => {
 		expect(onRowClick).toHaveBeenCalledTimes(1)
 
 		expect(onRowClick.mock.calls[0]?.[0]).toMatchObject({ region: 'West' })
+	})
+
+	it('keeps a plain grouped table free of tree attributes', () => {
+		const { container } = renderUI(
+			<Grid columns={columns} rows={sales} getKey={getKey} groupBy={{ value: 'region' }} />,
+		)
+
+		expect(container.querySelector('[aria-level]')).toBeNull()
+
+		expect(container.querySelector('tr[aria-expanded]')).toBeNull()
 	})
 
 	it("applies a column's cell props to the cells of a leaf", () => {
