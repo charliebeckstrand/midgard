@@ -344,8 +344,8 @@ export function useGridNewRow<T>({
 			return
 		}
 
-		// The pending cells replace the editors, so focus moves to the tab stop
-		// first rather than drop to the page.
+		// The editors turn inert while the add is in flight, so focus moves to
+		// the tab stop first rather than drop to the page.
 		reseat()
 
 		const flight: NewRowFlight = {

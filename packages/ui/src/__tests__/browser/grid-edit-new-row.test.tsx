@@ -271,4 +271,56 @@ describe('grid new row (real browser)', () => {
 
 		expect(screen.getByRole('button', { name: 'after' })).toHaveFocus()
 	})
+
+	it('keeps the editors in place, and out of reach, while an async add is in flight', async () => {
+		let resolve: () => void = () => {}
+
+		const onRowAdd = vi.fn(
+			() =>
+				new Promise<void>((res) => {
+					resolve = res
+				}),
+		)
+
+		const { slot } = renderGrid({ newRow: 'bottom', onRowAdd })
+
+		const name = screen.getByRole('textbox', { name: 'Edit Name, new row' })
+
+		await userEvent.click(name)
+
+		await userEvent.keyboard('Carol')
+
+		const row = present(slot().closest('tr'), 'the new row')
+
+		const height = row.getBoundingClientRect().height
+
+		await userEvent.keyboard('{Enter}')
+
+		expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+
+		expect(slot()).toHaveAttribute('aria-busy', 'true')
+
+		// The editor stays with its value, and the row keeps its height.
+		expect(name).toBeInTheDocument()
+
+		expect(name).toHaveValue('Carol')
+
+		expect(row.getBoundingClientRect().height).toBeCloseTo(height, 0)
+
+		// The editor is inert, so it takes no focus until the add settles.
+		name.focus()
+
+		expect(name).not.toHaveFocus()
+
+		resolve()
+
+		// The accepted add clears the row and puts focus on its first editable cell.
+		await waitFor(() =>
+			expect(screen.getByRole('textbox', { name: 'Edit Name, new row' })).toHaveFocus(),
+		)
+
+		expect(slot()).not.toHaveAttribute('aria-busy')
+
+		expect(screen.getByRole('textbox', { name: 'Edit Name, new row' })).toHaveValue('')
+	})
 })

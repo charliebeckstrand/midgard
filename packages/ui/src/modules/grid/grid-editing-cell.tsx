@@ -88,17 +88,11 @@ const ADD_ROW_LABEL = 'Add row'
  * settle pair, it is in the tab order. Tab does not commit in the slot, so the
  * control takes no key from an editor. It is also the keyboard route to an
  * add from a listbox, or from a slot that keeps Enter. While an add is in
- * flight it is `aria-disabled`, and a press does nothing.
+ * flight, the slot makes its editor inert, and this control with it.
  *
  * @internal
  */
-export function GridAddRowButton({
-	addRow,
-	pending = false,
-}: {
-	addRow: () => void
-	pending?: boolean
-}) {
+function GridAddRowButton({ addRow }: { addRow: () => void }) {
 	return (
 		<span className={cn(k.edit.settle)}>
 			<Button
@@ -106,7 +100,6 @@ export function GridAddRowButton({
 				variant="bare"
 				color="green"
 				aria-label={ADD_ROW_LABEL}
-				aria-disabled={pending || undefined}
 				data-slot="grid-new-row-add"
 				onMouseDown={keepFocus}
 				onClick={addRow}

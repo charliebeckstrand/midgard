@@ -4749,18 +4749,25 @@ describe('Grid new row', () => {
 
 			view.type('name', 'Carol')
 
-			view.slotEditor('name').focus()
+			const editor = view.slotEditor('name')
+
+			editor.focus()
 
 			view.press('name', 'Enter')
 
 			expect(view.slotCell('name')).toHaveAttribute('aria-busy', 'true')
 
-			expect(bySlot(view.slotCell('name'), 'grid-edit-pending')).toHaveTextContent('Carol')
+			// The editor stays mounted with its value, so the row keeps its fields.
+			expect(view.slotEditor('name')).toBe(editor)
 
-			// The editors give way to the pending cells, so focus rests on the grid.
+			expect(editor.value).toBe('Carol')
+
+			// The editors turn inert, with the Add control, so focus rests on the grid.
+			expect(editor.closest('[inert]')).not.toBeNull()
+
+			expect(view.add().closest('[inert]')).not.toBeNull()
+
 			expect(view.grid()).toHaveFocus()
-
-			expect(view.add()).toHaveAttribute('aria-disabled', 'true')
 
 			fireEvent.click(view.add())
 
@@ -4771,6 +4778,8 @@ describe('Grid new row', () => {
 			await view.resolve()
 
 			expect(view.slotCell('name')).not.toHaveAttribute('aria-busy')
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('')
 
@@ -4797,6 +4806,8 @@ describe('Grid new row', () => {
 
 			// The `rowKey` of a refusal is ignored, as the slot has no key.
 			await view.resolve([{ rowKey: 'anything', columnId: 'name', error: 'Name taken' }])
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('Carol')
 

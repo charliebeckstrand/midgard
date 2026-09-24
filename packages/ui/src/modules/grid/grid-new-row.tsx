@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type MouseEvent, type ReactNode, useMemo, useRef } from 'react'
+import { type CSSProperties, type MouseEvent, useMemo, useRef } from 'react'
 import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -9,7 +9,7 @@ import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
-import { GridAddRowButton, GridCellEditor, GridPendingCell } from './grid-editing-cell'
+import { GridCellEditor } from './grid-editing-cell'
 import { type GridNewRowSession, useGridNewRowSession } from './grid-editing-context'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
@@ -28,19 +28,6 @@ function inert(): undefined {
 /** A focus claim that the new-row slot answers through its own `claimSlot`. @internal */
 function noClaim(): boolean {
 	return false
-}
-
-/**
- * The text a pending cell of the new-row slot shows. The column's own
- * renderer reads a whole row, and the slot has only the values that the user
- * entered. The slot therefore shows the value itself. @internal
- */
-function pendingText(value: unknown): string {
-	if (value == null) return ''
-
-	if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-
-	return String(value)
 }
 
 /**
@@ -76,7 +63,8 @@ type GridNewRowProps<T> = {
  * One cell of the new-row slot. It carries the cursor's cell id and ring, and
  * a press on it seats the cursor, as a data cell does. An editable column
  * mounts its editor at all times, and the last one carries the Add control.
- * While an add is in flight, each cell shows its value as pending.
+ * While an add is in flight, each editor keeps its value and pulses, and it
+ * takes no input.
  *
  * @internal
  */
@@ -113,19 +101,13 @@ function GridNewRowCell<T>({
 		session.moveTo({ row: NEW_ROW_INDEX, col })
 	}
 
-	let content: ReactNode = null
+	const pending = editable && session.inFlight
 
-	if (editable && session.inFlight) {
-		content = (
-			<span className={cn(k.edit.host)}>
-				<GridPendingCell>
-					{pendingText(session.readDraft(NEW_ROW_KEY, column.id)?.value)}
-				</GridPendingCell>
-				{last && <GridAddRowButton addRow={session.addRow} pending />}
-			</span>
-		)
-	} else if (editable) {
-		content = (
+	// The editor stays mounted through an add, so the row keeps its fields and
+	// its height. While the add is in flight, the host is inert, and the editor
+	// pulses as a pending data cell does.
+	const content = editable ? (
+		<span inert={pending} className={cn(k.edit.host, pending && k.edit.pending)}>
 			<GridCellEditor<T>
 				key={session.generation}
 				rowIdx={NEW_ROW_INDEX}
@@ -146,8 +128,8 @@ function GridNewRowCell<T>({
 				addRow={session.addRow}
 				claimSlot={session.claimFocus}
 			/>
-		)
-	}
+		</span>
+	) : null
 
 	return (
 		<TableCell
@@ -156,6 +138,7 @@ function GridNewRowCell<T>({
 			data-grid-new-col={String(column.id)}
 			aria-colindex={colIndex}
 			aria-readonly={!editable || undefined}
+			aria-busy={pending || undefined}
 			className={className}
 			style={style}
 			onMouseDown={seat}
