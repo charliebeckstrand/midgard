@@ -4,17 +4,18 @@ import { Grid, type GridColumn } from '../../modules/grid'
 import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } from '../helpers'
 
 /**
- * The windowed grid body against the native scroll anchoring of the browser.
- * The grid scroller keeps the default `overflow-anchor: auto`. The start anchor
- * of the window holds the first row in view when an item above it changes.
- * Two corrections to one change can stack, so each case holds a row in view
- * to a drift of one pixel.
+ * The windowed grid body and the native scroll anchoring of the browser. A
+ * grouped or master-detail window sets `overflow-anchor: none` on the grid
+ * scroller. The start anchor of the window is then the only correction, and it
+ * holds the first row in view when an item above it changes. Each case holds a
+ * row in view to a drift of one pixel.
  *
  * Each case runs with and without `resizable`. A resizable grid renders a
- * `<colgroup>`, and Chromium then selects no anchor node in the table. A grid
- * that is not resizable has no `<colgroup>`, so the native correction is live.
- * The start anchor writes an absolute offset in a layout effect, so the two do
- * not stack.
+ * `<colgroup>`, and Chromium then selects the first `<col>` as its anchor node.
+ * A grid that is not resizable has no `<colgroup>`, so Chromium selects a node
+ * in the body.
+ * Either native anchor can keep a stale correction after a clamp at the scroll
+ * end, so the window turns it off.
  */
 describe('grid virtualized body under native scroll anchoring (real browser)', () => {
 	async function settle(count = 3) {
@@ -66,7 +67,7 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 				await waitFor(() => expect(body.querySelector(':scope > tr[data-index]')).not.toBeNull())
 
-				expect(getComputedStyle(scroll).overflowAnchor).toBe('auto')
+				expect(getComputedStyle(scroll).overflowAnchor).toBe('none')
 
 				expect(scroll.querySelector('colgroup') !== null).toBe(resizable)
 
@@ -146,52 +147,59 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 			{ id: 'name', title: 'Name', cell: (row) => row.name, value: (row) => row.name },
 		]
 
+		/** Renders the grid, and returns its scroller, its body, and the setter of its open keys. */
+		async function renderGrid(resizable: boolean) {
+			const control: { set: (keys: Set<string | number>) => void } = { set: () => {} }
+
+			function Harness() {
+				const [value, setValue] = useState<Set<string | number>>(new Set())
+
+				control.set = setValue
+
+				return (
+					<div style={{ width: 500 }}>
+						<Grid<Item>
+							columns={columns}
+							rows={rows}
+							getKey={(row) => row.id}
+							resizable={resizable}
+							maxHeight="400px"
+							header={{ position: 'sticky' }}
+							// A row measures 46 pixels, so each first guess is wrong.
+							virtualize={{ estimateSize: 40, overscan: 4 }}
+							expandable={{
+								value,
+								onValueChange: setValue,
+								render: (row) => <div style={{ height: row.height }}>Detail {row.name}</div>,
+							}}
+						/>
+					</div>
+				)
+			}
+
+			const view = renderUI(<Harness />)
+
+			const scroll = getSlot(view.container, 'grid-scroll')
+
+			const body = windowBody(view.container)
+
+			await waitFor(() => expect(body.querySelector(':scope > tr[data-index]')).not.toBeNull())
+
+			expect(getComputedStyle(scroll).overflowAnchor).toBe('none')
+
+			const dataRows = () =>
+				Array.from(body.querySelectorAll<HTMLElement>(':scope > tr[data-grid-row]'))
+
+			return { scroll, body, control, dataRows }
+		}
+
 		for (const resizable of [true, false]) {
 			it(`holds the view still when a panel above the viewport opens and closes (resizable: ${resizable})`, async () => {
-				const control: { set: (keys: Set<string | number>) => void } = { set: () => {} }
-
-				function Harness() {
-					const [value, setValue] = useState<Set<string | number>>(new Set())
-
-					control.set = setValue
-
-					return (
-						<div style={{ width: 500 }}>
-							<Grid<Item>
-								columns={columns}
-								rows={rows}
-								getKey={(row) => row.id}
-								resizable={resizable}
-								maxHeight="400px"
-								header={{ position: 'sticky' }}
-								// A row measures 46 pixels, so each first guess is wrong.
-								virtualize={{ estimateSize: 40, overscan: 4 }}
-								expandable={{
-									value,
-									onValueChange: setValue,
-									render: (row) => <div style={{ height: row.height }}>Detail {row.name}</div>,
-								}}
-							/>
-						</div>
-					)
-				}
-
-				const view = renderUI(<Harness />)
-
-				const scroll = getSlot(view.container, 'grid-scroll')
-
-				const body = windowBody(view.container)
-
-				await waitFor(() => expect(body.querySelector(':scope > tr[data-index]')).not.toBeNull())
-
-				expect(getComputedStyle(scroll).overflowAnchor).toBe('auto')
+				const { scroll, body, control, dataRows } = await renderGrid(resizable)
 
 				scroll.scrollTop = 2000
 
 				await settle(4)
-
-				const dataRows = () =>
-					Array.from(body.querySelectorAll<HTMLElement>(':scope > tr[data-grid-row]'))
 
 				const top = scroll.getBoundingClientRect().top
 
@@ -229,6 +237,57 @@ describe('grid virtualized body under native scroll anchoring (real browser)', (
 
 					expect(await sampleDrift(anchor, beforeClose, 20)).toBeLessThanOrEqual(1)
 				}
+			})
+
+			// A close at the scroll end clamps the offset. A native anchor kept that
+			// clamp as a correction, and the next open moved the view by the panel.
+			it(`holds the view still when a panel at the scroll end closes and opens again (resizable: ${resizable})`, async () => {
+				const { scroll, body, control, dataRows } = await renderGrid(resizable)
+
+				const toEnd = async () => {
+					for (let i = 0; i < 4; i++) {
+						scroll.scrollTop = scroll.scrollHeight
+
+						await settle(1)
+					}
+				}
+
+				await toEnd()
+
+				const key = Number(present(dataRows().at(-2), 'a row near the end').dataset.gridRow)
+
+				const target = () => body.querySelector<HTMLElement>(`:scope > tr[data-grid-row="${key}"]`)
+
+				const panel = () => body.querySelector<HTMLElement>(`tr[data-detail-row="${key}"]`)
+
+				const height = rows[key - 1]?.height ?? 0
+
+				control.set(new Set([key]))
+
+				await waitFor(() =>
+					expect(present(panel(), 'the panel').getBoundingClientRect().height).toBeGreaterThan(
+						height,
+					),
+				)
+
+				// The end moved down by the panel, so the close has room to clamp.
+				await toEnd()
+
+				const beforeClose = scroll.scrollTop
+
+				control.set(new Set())
+
+				await waitFor(() => expect(panel()).toBeNull())
+
+				await settle()
+
+				expect(scroll.scrollTop).toBeLessThan(beforeClose)
+
+				const beforeOpen = present(target(), 'the target').getBoundingClientRect().top
+
+				control.set(new Set([key]))
+
+				expect(await sampleDrift(target, beforeOpen, 30)).toBeLessThanOrEqual(1)
 			})
 		}
 	})
