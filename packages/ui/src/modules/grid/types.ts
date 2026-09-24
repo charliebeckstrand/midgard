@@ -247,7 +247,8 @@ export type GridColumn<T> = {
 	 * It marks its header with a pin button that unpins it on click. This is the column's
 	 * initial pin. The user moves it at runtime through the header context menu's
 	 * Pin left / Pin right / Unpin items, and the column manager's per-column pin
-	 * control.
+	 * control. Those labels and their arrows name the physical edge, so in a
+	 * right-to-left grid "Pin right" pins the column to `'left'`.
 	 * @see {@link GridColumn.locked} for a freeze the user can't change.
 	 */
 	pinned?: boolean | 'left' | 'right'

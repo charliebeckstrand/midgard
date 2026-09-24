@@ -11,6 +11,11 @@ type GridManagerDialogProps = {
 	label: ReactNode
 	/** The manager the dialog hosts — the column editor or the row-group editor. */
 	children: ReactNode
+	/**
+	 * The direction of the grid. The dialog portals out of the grid, so its body
+	 * takes this `dir` to lay out as the grid does.
+	 */
+	dir?: 'ltr' | 'rtl'
 }
 
 /**
@@ -24,11 +29,22 @@ type GridManagerDialogProps = {
  *
  * @internal
  */
-export function GridManagerDialog({ open, onOpenChange, label, children }: GridManagerDialogProps) {
+export function GridManagerDialog({
+	open,
+	onOpenChange,
+	label,
+	children,
+	dir,
+}: GridManagerDialogProps) {
 	return (
 		<Dialog open={open} onOpenChange={onOpenChange}>
 			<DialogTitle>{label}</DialogTitle>
-			<DialogBody>{children}</DialogBody>
+			<DialogBody>
+				{/* `contents` adds no box, and its children still inherit the direction. */}
+				<div dir={dir} className="contents">
+					{children}
+				</div>
+			</DialogBody>
 			<DialogFooter>
 				<Button type="button" variant="plain" onClick={() => onOpenChange(false)}>
 					Done
