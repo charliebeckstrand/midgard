@@ -1,5 +1,24 @@
-import { isEmptyValue } from './query-active'
 import type { QueryGroup } from './types'
+
+/**
+ * Whether a value counts as filled for an operator that needs one. Nullish,
+ * blank or whitespace-only strings, and empty arrays read as empty.
+ * {@link imposesConstraint} reads it, so an operator that needs a value puts no
+ * constraint on the rows while its value is empty.
+ *
+ * @internal
+ */
+export function isEmptyValue(value: unknown): boolean {
+	if (value == null) return true
+
+	if (typeof value === 'string') return value.trim() === ''
+
+	// A range tuple is empty only when every bound is — an open-ended range with
+	// one bound set still constrains rows.
+	if (Array.isArray(value)) return value.every((item) => isEmptyValue(item))
+
+	return false
+}
 
 /**
  * Operators that evaluate without a rule value — their matcher ignores the second
@@ -66,6 +85,25 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
+ * Whether a rule with this operator and value puts a constraint on the rows.
+ * It does when the evaluator has a matcher for the operator, and the operator
+ * reads no value or its value is filled ({@link isEmptyValue}). The field set
+ * has no part in the judgement, because the evaluator reads no field set.
+ *
+ * @remarks This is the one definition of an active rule. The fold, the SQL
+ * format, the active judgement, and the summary all read it, so they give the
+ * same reading of a rule. The own-key test stops an inherited name, such as
+ * `toString`, from reading as a matcher.
+ *
+ * @internal
+ */
+export function imposesConstraint(operator: string, value: unknown): boolean {
+	if (!Object.hasOwn(matchers, operator)) return false
+
+	return VALUELESS_OPERATORS.has(operator) || !isEmptyValue(value)
+}
+
+/**
  * Tests one operator against a field value and a rule value, or gives
  * `undefined` when the rule puts no constraint on the rows. See
  * {@link matchQueryRule} for the cases. The fold in {@link evaluateQuery} drops
@@ -74,13 +112,9 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
  * @internal
  */
 function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean | undefined {
-	const matcher = matchers[operator]
+	if (!imposesConstraint(operator, ruleValue)) return undefined
 
-	if (!matcher) return undefined
-
-	if (!VALUELESS_OPERATORS.has(operator) && isEmptyValue(ruleValue)) return undefined
-
-	return matcher(fieldValue, ruleValue)
+	return matchers[operator]?.(fieldValue, ruleValue)
 }
 
 /**

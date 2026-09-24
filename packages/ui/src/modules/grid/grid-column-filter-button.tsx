@@ -181,7 +181,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// Accent the button only when the applied query actually constrains rows — a
 	// real value, or a value-less operator like "is Empty" — not merely because a
 	// rule exists (a freshly seeded, added-then-emptied, or all-cleared query).
-	const active = query != null && isQueryActive(query, fields)
+	const active = query != null && isQueryActive(query)
 
 	// In the `'menu'` affordance the resting funnel is dropped — the filter lives in
 	// the column's right-click menu, so the header keeps its full width. `'header'`

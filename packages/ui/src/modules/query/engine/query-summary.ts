@@ -1,4 +1,5 @@
-import { imposesConstraint, isEmptyValue, resolveRule } from './query-active'
+import { imposesConstraint, isEmptyValue, VALUELESS_OPERATORS } from './query-evaluate'
+import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
@@ -74,29 +75,53 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
 }
 
 /**
+ * Resolves a rule against the field set: the `field` it names and the
+ * `operator` from that field's set, each `undefined` when unresolved. The
+ * summary reads its labels, options, and range form from them. It does not
+ * read the active judgement from them.
+ *
+ * @internal
+ */
+function resolveRule(
+	rule: QueryRule,
+	fields: QueryField[],
+): { field: QueryField | undefined; operator: QueryOperator | undefined } {
+	const field = fields.find((candidate) => candidate.name === rule.field)
+
+	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
+
+	return { field, operator }
+}
+
+/**
  * Describes one rule as a token, or `null` when the rule imposes no constraint
- * ({@link imposesConstraint}), so a blank or half-built rule drops out.
- * Unresolved field/operator names render verbatim, since such a rule can still
- * constrain the result.
+ * ({@link imposesConstraint}). A blank or half-built rule drops out, and so
+ * does a rule whose operator the evaluator does not know. The summary thus
+ * shows only the rules that {@link evaluateQuery} applies to the rows.
+ *
+ * @remarks The field set gives only the display: labels, options, and the range
+ * form. A rule whose field or operator the field set does not offer still
+ * constrains the rows when the evaluator applies it. Such a rule renders its
+ * unresolved names verbatim.
  *
  * @internal
  */
 export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
-	const { field, operator } = resolveRule(rule, fields)
+	if (!imposesConstraint(rule.operator, rule.value)) return null
 
-	if (!imposesConstraint(operator, rule.value)) return null
+	const { field, operator } = resolveRule(rule, fields)
 
 	const label = field?.label ?? rule.field
 
 	// A value-less operator carries no rule value; it renders its fixed
 	// `valueLabel` ("is Empty") when it names one, else operator alone ("is true").
-	if (operator?.noValue) {
+	if (VALUELESS_OPERATORS.has(rule.operator)) {
 		return {
 			kind: 'rule',
 			id: rule.id,
 			field: label,
-			operator: operator.label,
-			...(operator.valueLabel ? { value: operator.valueLabel } : {}),
+			operator: operator?.label ?? rule.operator,
+			...(operator?.valueLabel ? { value: operator.valueLabel } : {}),
 		}
 	}
 

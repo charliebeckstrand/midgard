@@ -148,6 +148,33 @@ describe('formatQuerySummary', () => {
 			'gone contains x',
 		)
 	})
+
+	it('renders a value-less operator that the field does not offer, verbatim', () => {
+		// The evaluator applies `isEmpty` to any field, so the rule is active.
+		expect(line([rule(verifiedField, { operator: 'isEmpty', value: undefined })])).toBe(
+			'Verified isEmpty',
+		)
+	})
+
+	it('drops a rule whose operator the evaluator does not know', () => {
+		expect(line([rule(nameField, { operator: 'custom', value: 'x' })])).toBe('')
+	})
+
+	it('drops an operator that the field offers but the evaluator does not know', () => {
+		const codeField: QueryField = {
+			name: 'code',
+			label: 'Code',
+			type: 'text',
+			operators: [{ value: 'matches', label: 'matches' }],
+		}
+
+		const group = createGroup('and', [
+			rule(nameField, { operator: 'contains', value: 'lee' }),
+			rule(codeField, { operator: 'matches', value: '^a', combinator: 'or' }),
+		])
+
+		expect(formatQuerySummary(group, [...fields, codeField])).toBe('Name contains lee')
+	})
 })
 
 describe('summarizeQuery', () => {
