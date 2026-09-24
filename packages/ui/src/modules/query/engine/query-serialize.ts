@@ -354,11 +354,15 @@ function like(column: string, before: string, value: unknown, after: string): Cl
 	return { sql: `LOWER(${column}) LIKE ${SLOT} ESCAPE '!'`, params: [`${before}${text}${after}`] }
 }
 
-/** The `between` clause, where a blank bound is open. @internal */
+/**
+ * The `between` clause, where a blank bound is open. The value is an array,
+ * because {@link imposesConstraint} reads a value of a different shape as no
+ * constraint.
+ *
+ * @internal
+ */
 function range(column: string, value: unknown): Clause {
-	if (!Array.isArray(value)) return true
-
-	const [lo, hi] = value
+	const [lo, hi] = value as unknown[]
 
 	if (isBlank(lo)) return compare(column, '<=', Number(hi))
 
@@ -370,7 +374,7 @@ function range(column: string, value: unknown): Clause {
 /**
  * The clause for one rule. A rule that {@link imposesConstraint} reads as no
  * constraint gives `true`, as it does in the evaluator. Such a rule has an
- * unknown operator, or an empty value.
+ * unknown operator, an empty value, or a value of the wrong shape.
  *
  * @internal
  */
@@ -455,10 +459,10 @@ function groupClause(group: QueryGroup, column: (field: string) => string): Clau
  *
  * @remarks Each value goes into `params`, never into `sql`. A rule with no
  * constraint on the rows drops out with its combinator, as it does in the
- * evaluator. Such a rule has an empty value, or an operator that the format
- * does not know. So `A OR (blank rule)` gives the condition for `A`. When the
- * full query puts no constraint on the rows, `sql` is `''`, so the caller omits
- * the `WHERE`.
+ * evaluator. Such a rule has an empty value, a value of the wrong shape, or an
+ * operator that the format does not know. So `A OR (blank rule)` gives the
+ * condition for `A`. When the full query puts no constraint on the rows, `sql`
+ * is `''`, so the caller omits the `WHERE`.
  * The database compares a value with its own types. So when a column type
  * differs from the value type, the rows can differ from the evaluator's rows.
  *
