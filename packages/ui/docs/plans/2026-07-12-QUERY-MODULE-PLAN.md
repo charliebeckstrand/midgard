@@ -115,11 +115,13 @@ A move into another group stays in the backlog. It needs a drop target for each 
 
 ### Follow-up: bounds from the column's span (2026-09-24)
 
-`QueryField.span` is the `[min, max]` that the data of a `number` field holds. The range editor of a `between` rule reads it in two ways. Each bound shows the span as its placeholder (`Min 18`, `Max 65`). Each bound also clamps to the span, through the `min` and `max` of its `NumberInput`, which clamps on blur and stops its steppers at the ends.
+`QueryField.span` is the `[min, max]` that the data of a `number` field holds. The range editor of a `between` rule reads it in two ways. Each bound shows its end of the span as its placeholder (`18` and `65`). The number alone fits beside the steppers of a narrow input, where `Min 18` clips. Each bound also clamps to the span, through the `min` and `max` of its `NumberInput`, which clamps on blur and stops its steppers at the ends.
 
 Each bound also clamps to the other bound, with or without a span, so the pair cannot invert and select no rows. A saved bound outside the span keeps its value until the user edits it, because `NumberInput` clamps only an edit. The limits of the other input then stay in order, so no input gets a `min` above its `max`.
 
 A grid column filter fills the span. `GridColumnFilter.span` takes the numbers among the column's faceted unique values, the facet that a `select` filter already reads for its options. So it adds no second facet to the table. TanStack's `getFacetedMinMaxValues` maps each value through `Number`, which reads a null cell as 0, so a column with blank cells would get a minimum of 0. The span comes from the rows that the other filters leave, as the unique values do, and it is `undefined` under server-side filtering. A standalone `QueryBuilder` sets `span` on the field itself.
+
+The parts of a rule row now share the row from a zero basis, and a range value takes two shares. Before, the field, the operator, and the value each took a third, so each input of a range got a sixth of the row, and most of that went to its steppers. Below `sm` the parts stack at full width, as before. A box holds the value editor as the part, because an `Input` with affixes puts its `className` on the inner `<input>`, not on the frame that the row sizes. Each part takes `min-w-0`, so the intrinsic width of an input cannot break the shares.
 
 ## Non-goals
 

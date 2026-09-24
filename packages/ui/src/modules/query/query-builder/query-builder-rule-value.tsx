@@ -77,8 +77,10 @@ function fromIsoDate(value: string): Date | undefined {
 
 /**
  * The `[min, max]` pair of number inputs for a range rule. Each bound clamps
- * to the field's `span` and to the other bound, and its placeholder shows the
- * span when the field has one.
+ * to the field's `span` and to the other bound. With a span, each placeholder
+ * is its end of the span alone (`18`), because each input's steppers leave
+ * room for a few characters only. With no span, the placeholders are `Min` and
+ * `Max`.
  *
  * @internal
  */
@@ -98,7 +100,7 @@ function RangeValue({
 		<Flex gap="sm" className={cn('w-full', className)}>
 			<NumberInput
 				value={lo === '' ? null : lo}
-				placeholder={floor === undefined ? 'Min' : `Min ${floor}`}
+				placeholder={floor === undefined ? 'Min' : String(floor)}
 				aria-label={`${field.label} minimum`}
 				min={limits.lo.min}
 				max={limits.lo.max}
@@ -108,7 +110,7 @@ function RangeValue({
 
 			<NumberInput
 				value={hi === '' ? null : hi}
-				placeholder={ceiling === undefined ? 'Max' : `Max ${ceiling}`}
+				placeholder={ceiling === undefined ? 'Max' : String(ceiling)}
 				aria-label={`${field.label} maximum`}
 				min={limits.hi.min}
 				max={limits.hi.max}

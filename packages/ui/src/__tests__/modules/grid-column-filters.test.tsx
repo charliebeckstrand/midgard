@@ -975,9 +975,9 @@ describe('Grid faceted number span', () => {
 
 		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
 
-		expect(min).toHaveAttribute('placeholder', 'Min 19')
+		expect(min).toHaveAttribute('placeholder', '19')
 
-		expect(max).toHaveAttribute('placeholder', 'Max 52')
+		expect(max).toHaveAttribute('placeholder', '52')
 
 		// The span covers every row: a column's facets leave out its own filter.
 		expect(min).toHaveAttribute('min', '19')

@@ -543,9 +543,9 @@ describe('QueryBuilderRuleValue', () => {
 
 		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
 
-		expect(min).toHaveAttribute('placeholder', 'Min 18')
+		expect(min).toHaveAttribute('placeholder', '18')
 
-		expect(max).toHaveAttribute('placeholder', 'Max 65')
+		expect(max).toHaveAttribute('placeholder', '65')
 
 		expect(min).toHaveAttribute('min', '18')
 
