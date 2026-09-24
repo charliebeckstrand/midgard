@@ -1,12 +1,15 @@
 'use client'
 
 import {
-	useVirtualizer,
+	elementScroll,
+	observeElementOffset,
+	observeElementRect,
 	type VirtualItem,
-	type Virtualizer,
+	Virtualizer,
 	type VirtualizerOptions,
 } from '@tanstack/react-virtual'
-import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef, useState } from 'react'
+import { flushSync } from 'react-dom'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
 export type VirtualWindowOptions = {
@@ -291,6 +294,105 @@ function holdStartAnchor(
 	return { count, getItemKey, rows: [] }
 }
 
+/**
+ * The state of the virtualizer that a render reads, less `isScrolling`: the
+ * visible range and the version of the measured sizes. @internal
+ */
+type WindowState = { start: number | null; end: number | null; sizes: number }
+
+/**
+ * The fields of the virtualizer that {@link windowState} reads. The size
+ * version is private in virtual-core 3.16. @internal
+ */
+type WindowFields = { itemSizeCacheVersion: number }
+
+/**
+ * The visible range and the size version of the virtualizer, as its fields
+ * hold them now. It reads the fields and computes nothing. A computation of
+ * the positions between two `resizeItem` calls of one `ResizeObserver` batch
+ * changes the positions that the second call reads. @internal
+ */
+function windowState(instance: Virtualizer<HTMLElement, Element>): WindowState {
+	return {
+		start: instance.range?.startIndex ?? null,
+		end: instance.range?.endIndex ?? null,
+		sizes: (instance as unknown as WindowFields).itemSizeCacheVersion,
+	}
+}
+
+/** Whether two window states render the same window. @internal */
+function sameWindowState(a: WindowState, b: WindowState): boolean {
+	return a.start === b.start && a.end === b.end && a.sizes === b.sizes
+}
+
+/** The options that {@link useWindowVirtualizer} passes through. @internal */
+type WindowVirtualizerOptions = Omit<
+	VirtualizerOptions<HTMLElement, Element>,
+	'observeElementRect' | 'observeElementOffset' | 'scrollToFn' | 'onChange'
+>
+
+/**
+ * Drives a virtual-core `Virtualizer` over an element scroller, as
+ * `useVirtualizer` of react-virtual does, but renders only when the window
+ * changes. The library renders on each change of `isScrolling` too. A
+ * `scroll` event sets that flag, and 150 ms later the flag clears. A scroll
+ * step that keeps the rendered items thus paid two renders of the whole list.
+ * A start-anchor move sends a `scroll` event, so it paid them as well. No
+ * caller reads `isScrolling` from a render. `measureOnAttach` reads it live
+ * from the virtualizer.
+ *
+ * A change renders when the visible range or a measured size differs from the
+ * last commit. The rendered items, their positions, and the total size follow
+ * from those and from the options, which change only in a render. A change
+ * that the virtualizer marks as synchronous renders in a `flushSync`, as in
+ * the library.
+ *
+ * @returns The virtualizer, and the callback that records the window state of
+ * a commit. Call it in a layout effect with the state that the render read.
+ * @internal
+ */
+function useWindowVirtualizer(
+	options: WindowVirtualizerOptions,
+): [Virtualizer<HTMLElement, Element>, (state: WindowState) => void] {
+	const [, rerender] = useReducer((x: number) => x + 1, 0)
+
+	// The window state of the last commit. It is written in a layout effect, so a
+	// render that React discards does not change it.
+	const shown = useRef<WindowState | null>(null)
+
+	const resolved: VirtualizerOptions<HTMLElement, Element> = {
+		observeElementRect,
+		observeElementOffset,
+		scrollToFn: elementScroll,
+		...options,
+		onChange: (instance, sync) => {
+			const last = shown.current
+
+			if (last && sameWindowState(last, windowState(instance))) return
+
+			if (sync) flushSync(rerender)
+			else rerender()
+		},
+	}
+
+	const [instance] = useState(() => new Virtualizer<HTMLElement, Element>(resolved))
+
+	instance.setOptions(resolved)
+
+	useLayoutEffect(() => instance._didMount(), [instance])
+
+	useLayoutEffect(() => instance._willUpdate())
+
+	const record = useMemo(
+		() => (state: WindowState) => {
+			shown.current = state
+		},
+		[],
+	)
+
+	return [instance, record]
+}
+
 type VirtualWindow = {
 	/**
 	 * The items currently in the viewport plus overscan, in order. Empty until the
@@ -329,9 +431,13 @@ type MeasuredVirtualWindow = VirtualWindow & {
 /**
  * Drive a vertical windowed list off `@tanstack/react-virtual`, returning the
  * visible items plus the top/bottom spacer heights that stand in for the rows
- * outside the viewport. Callers render their own row and spacer elements
- * (table rows, list divs); this owns only the virtualizer wiring and the
- * spacer math.
+ * outside the viewport. Callers render their own row and spacer
+ * elements (table rows, list divs); this owns only the virtualizer wiring and
+ * the spacer math.
+ *
+ * The hook renders only when the rendered items, their positions, or the total
+ * size change. A scroll step that keeps the rendered rows renders nothing, and
+ * neither does the `scroll` event of a start-anchor move.
  *
  * @remarks The hook has two paths, and the uniform path is the default.
  *
@@ -417,9 +523,9 @@ export function useVirtualWindow({
 	anchorTo,
 	followOnAppend,
 }: VirtualWindowOptions & Partial<MeasuredVirtualWindowOptions>): MeasuredVirtualWindow {
-	// `@tanstack/react-virtual` reads these getters off the options object each
-	// cycle; a fresh closure per render busts its internal option identity. A
-	// function estimate passes through as it is, so it keeps the caller's identity.
+	// The virtualizer reads these getters off the options object each cycle; a
+	// fresh closure per render busts its internal option identity. A function
+	// estimate passes through as it is, so it keeps the caller's identity.
 	const getSize = useMemo(
 		() => (typeof estimateSize === 'number' ? () => estimateSize : estimateSize),
 		[estimateSize],
@@ -429,7 +535,7 @@ export function useVirtualWindow({
 	// virtualizer drops undefined options rather than writing them over its
 	// defaults. The same rule keeps the start anchor and no follow on the uniform
 	// path, and a zero scroll margin and paddings where the caller gives none.
-	const virtualizer = useVirtualizer({
+	const [virtualizer, recordShown] = useWindowVirtualizer({
 		count,
 		getScrollElement,
 		estimateSize: getSize,
@@ -491,6 +597,14 @@ export function useVirtualWindow({
 	// full height. A scroller that only `maxHeight` bounds then grows to its cap.
 	// Without this it measures zero, and the window stays empty for good.
 	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
+
+	// The state that this render read. A virtualizer change that keeps it renders
+	// nothing.
+	const rendered = windowState(virtualizer)
+
+	useLayoutEffect(() => {
+		recordShown(rendered)
+	})
 
 	// Each commit records the rendered rows that end below the top edge, so a
 	// later list change can hold the first of them still. The record reads the
