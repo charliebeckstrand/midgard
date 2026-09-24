@@ -174,7 +174,7 @@ export const k = {
 		// height, which the grid measures into `--grid-band-height` on the `<thead>`.
 		// The band sticks at the top edge, so the two rows stack and do not overlap.
 		// The row selector outranks the `top-0` of each cell, and a pinned cell
-		// keeps its inline `left` or `right` offset.
+		// keeps its inline-start or inline-end offset.
 		stack: '[&>th]:top-(--grid-band-height)',
 	},
 	// The new-row slot of an editable grid. Its cells stick to the top or the
@@ -193,8 +193,8 @@ export const k = {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
 		// through, lifted just above the centre cells (below the z-10 sticky head,
 		// so a vertical scroll still tucks pinned cells under it). The fill tracks
-		// the content host across viewports (see `hostSurface`); the left/right
-		// offset is an inline style summed from the engine.
+		// the content host across viewports (see `hostSurface`); the inline-start or
+		// inline-end offset is an inline style summed from the engine.
 		cell: ['sticky z-[1]', hostSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
 		// Shares the sticky header's viewport-aware fill (see `hostSurface`) so the
@@ -202,32 +202,45 @@ export const k = {
 		// colour at every width — which, on mobile, stood out as a box against the
 		// transparent content block over the darker page.
 		head: ['sticky z-20', hostSurface],
-		// Edge border on a frozen group's scroll-facing boundary: a 2px rule on the
-		// right of a left group's innermost column, the left of a right group's. Only
-		// that boundary column carries it (see `pinnedClassName`), so a stack of pinned
-		// and/or locked columns shows one rule, not one per column. Drawn as an
-		// `::after` overlay, not a CSS `border`: the table collapses borders
-		// (`border-collapse: collapse`), so a real cell border joins the table grid and
-		// scrolls away with the overflow instead of staying on the frozen column. The
-		// overlay rides the sticky cell and holds — the same reason the edge cue below
-		// is a box-shadow. `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner
-		// edge; `pointer-events-none` keeps it inert.
+		// Edge border on a frozen group's scroll-facing boundary: a 2px rule at the
+		// inline end of a start (left) group's innermost column, and at the inline
+		// start of an end (right) group's. The edges are logical, so a right-to-left
+		// grid mirrors them. Only that boundary column carries it (see
+		// `pinnedClassName`), so a stack of pinned and/or locked columns shows one
+		// rule, not one per column. Drawn as an `::after` overlay, not a CSS
+		// `border`: the table collapses borders (`border-collapse: collapse`), so a
+		// real cell border joins the table grid and scrolls away with the overflow
+		// instead of staying on the frozen column. The overlay rides the sticky cell
+		// and holds — the same reason the edge cue below is a box-shadow.
+		// `inset-y-0`/`w-0.5` make a 2px full-height rule at the inner edge;
+		// `pointer-events-none` keeps it inert.
 		border: {
-			right: [
-				"after:pointer-events-none after:absolute after:inset-y-0 after:right-0 after:w-0.5 after:content-['']",
+			end: [
+				"after:pointer-events-none after:absolute after:inset-y-0 after:end-0 after:w-0.5 after:content-['']",
 				'after:bg-zinc-950/10',
 				'dark:after:bg-white/10',
 			],
-			left: [
-				"after:pointer-events-none after:absolute after:inset-y-0 after:left-0 after:w-0.5 after:content-['']",
+			start: [
+				"after:pointer-events-none after:absolute after:inset-y-0 after:start-0 after:w-0.5 after:content-['']",
 				'after:bg-zinc-950/10',
 				'dark:after:bg-white/10',
 			],
 		},
 		// Separating shadow at a frozen group's inner edge, cast toward the scroll.
+		// A box-shadow offset is physical, so the `rtl:` forms mirror it.
 		edge: {
-			left: ['shadow-[1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]'],
-			right: ['shadow-[-1px_0_3px_rgba(0,0,0,0.08)]', 'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]'],
+			start: [
+				'shadow-[1px_0_3px_rgba(0,0,0,0.08)]',
+				'dark:shadow-[1px_0_3px_rgba(0,0,0,0.5)]',
+				'rtl:shadow-[-1px_0_3px_rgba(0,0,0,0.08)]',
+				'dark:rtl:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]',
+			],
+			end: [
+				'shadow-[-1px_0_3px_rgba(0,0,0,0.08)]',
+				'dark:shadow-[-1px_0_3px_rgba(0,0,0,0.5)]',
+				'rtl:shadow-[1px_0_3px_rgba(0,0,0,0.08)]',
+				'dark:rtl:shadow-[1px_0_3px_rgba(0,0,0,0.5)]',
+			],
 		},
 	},
 	// The `outline` variant's cell borders, drawn in `border-collapse: separate`

@@ -5,9 +5,11 @@ import type { GridColumnPinning } from '../../use-grid-table'
 
 /**
  * Inline sticky offset for a pinned cell, or `undefined` when the column
- * scrolls. It is `left` for a left-pinned column and `right` for a right-pinned
- * one. Each offset is the summed width of the frozen columns between the cell
- * and that edge. Pairs with
+ * scrolls. A `'left'` pin names the inline start, and a `'right'` pin the inline
+ * end. The offset is therefore `insetInlineStart` or `insetInlineEnd`. A
+ * right-to-left grid then sticks a left pin to its physical right edge. Each
+ * offset is the summed width of the frozen columns between the cell and that
+ * edge. Pairs with
  * {@link pinnedClassName}, which carries the `position: sticky` itself.
  *
  * @internal
@@ -20,15 +22,18 @@ export function pinnedOffsetStyle(
 
 	if (!frozen) return undefined
 
-	return frozen.side === 'left' ? { left: frozen.offset } : { right: frozen.offset }
+	return frozen.side === 'left'
+		? { insetInlineStart: frozen.offset }
+		: { insetInlineEnd: frozen.offset }
 }
 
 /**
  * Sticky, opaque-surface, boundary-border, and boundary-shadow classes for a
  * pinned cell, or `''` when the column scrolls. Only the innermost column of each
  * frozen group — the one at the scroll-facing boundary — carries the edge border
- * and the separating shadow. That border is right for a left group, left for a
- * right group. The columns behind it get just the sticky surface. The engine's left/right sections
+ * and the separating shadow. That border is at the inline end for a left
+ * (start) group, and at the inline start for a right (end) group. The columns
+ * behind it get just the sticky surface. The engine's left/right sections
  * combine pinned and locked columns, so the boundary resolves across whichever mix
  * is frozen. `header` selects the header layer (above the sticky head).
  *
@@ -45,9 +50,9 @@ export function pinnedClassName(
 
 	const { side, boundary } = frozen
 
-	const sideBorder = boundary && (side === 'left' ? k.pinned.border.right : k.pinned.border.left)
+	const sideBorder = boundary && (side === 'left' ? k.pinned.border.end : k.pinned.border.start)
 
-	const edge = boundary && (side === 'left' ? k.pinned.edge.left : k.pinned.edge.right)
+	const edge = boundary && (side === 'left' ? k.pinned.edge.start : k.pinned.edge.end)
 
 	return cn(options.header ? k.pinned.head : k.pinned.cell, sideBorder, edge)
 }

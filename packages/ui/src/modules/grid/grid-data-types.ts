@@ -465,9 +465,10 @@ export type GridReorder = {
 /**
  * Runtime pin state for {@link GridPinning}, keyed by stringified column id: a
  * side freezes the column to that edge, `'none'` unpins a statically-pinned
- * one. Columns absent keep their {@link GridColumn.pinned} flag; a
- * {@link GridColumn.locked} column ignores entries entirely. Plain-object
- * shape so the state serializes for persistence.
+ * one. `'left'` is the inline start, and `'right'` the inline end. Columns
+ * absent keep their {@link GridColumn.pinned} flag; a {@link GridColumn.locked}
+ * column ignores entries entirely. Plain-object shape so the state serializes
+ * for persistence.
  */
 export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
 
