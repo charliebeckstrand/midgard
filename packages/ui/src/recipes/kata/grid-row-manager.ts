@@ -26,6 +26,6 @@ export const k = {
 		// The row count, sitting right beside the label.
 		count: [text.muted, 'tabular-nums', 'shrink-0'],
 		// Group-reorder grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
-		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab],
+		grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab.default],
 	},
 } as const

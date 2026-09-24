@@ -6,7 +6,7 @@
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, sen } from '../kiso'
 
-const { grab, grabCursor } = hannou
+const { grab } = hannou
 const { text } = iro
 
 /**
@@ -59,7 +59,7 @@ const card = defineRecipe({
 		true: [
 			// The cursors alone: the card keeps touch scrolling, and the grip is the
 			// handle on a touch screen.
-			...grabCursor,
+			...grab.cursor,
 			'select-none',
 			'outline-dashed',
 			...mode('outline-zinc-300', 'dark:outline-zinc-700'),
@@ -102,7 +102,7 @@ const placeholder = [
 const handle = defineRecipe({
 	base: [
 		'flex size-6 shrink-0 items-center justify-center rounded-md',
-		...grab,
+		...grab.default,
 		...text.muted,
 		...mode(
 			'hover:bg-zinc-100 hover:text-zinc-700',

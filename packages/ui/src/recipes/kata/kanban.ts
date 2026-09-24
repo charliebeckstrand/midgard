@@ -50,7 +50,7 @@ export const k = {
 			...disabled,
 			'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		],
-		draggable: [...grab],
+		draggable: [...grab.default],
 		dragging: '',
 		lifted: [...focus.lifted.raise, focus.lifted.ring],
 		active: 'z-10 shadow-lg relative opacity-95',

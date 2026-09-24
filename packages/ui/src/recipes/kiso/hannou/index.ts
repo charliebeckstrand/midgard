@@ -6,7 +6,7 @@
  */
 
 import { active } from './active'
-import { cursor, grab, grabCursor } from './cursor'
+import { cursor, grab } from './cursor'
 import { disabled } from './disabled'
 import { fg } from './fg'
 import { glassItem } from './glass-item'
@@ -24,10 +24,8 @@ export const hannou = {
 	disabled,
 	/** Cursor feedback: pointer when interactive, not-allowed when disabled. */
 	cursor,
-	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs. */
+	/** A surface the reader drags: the grab cursors (`cursor`), and with them the touch and selection rules a drag needs (`default`). */
 	grab,
-	/** The grab cursors alone, for a drag surface that keeps touch scrolling. */
-	grabCursor,
 	/** Hover/focus tint: mode-neutral wash on the active surface. */
 	tint,
 	/** {@link tint} at double strength, applied only inside a glass parent, where 5% reads as nothing. */

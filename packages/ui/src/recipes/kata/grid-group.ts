@@ -109,7 +109,7 @@ export const k = {
 			// reads as lifted above the dialog while it tracks the pointer.
 			overlay: [bg.surface, rounded.md, 'shadow-lg'],
 			// Drag grip: a grab-cursor handle, muted at rest, tinting on hover/focus.
-			grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab],
+			grip: [flex.inline, 'shrink-0', text.muted, fg.hover, focus.ring, ...grab.default],
 		},
 	},
 } as const

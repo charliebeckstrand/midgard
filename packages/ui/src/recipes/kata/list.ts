@@ -158,7 +158,7 @@ export const k = {
 		flex.inline,
 		'flex-none justify-center',
 		'px-3 -mx-3',
-		...grab,
+		...grab.default,
 		'data-readonly:cursor-default data-disabled:cursor-not-allowed',
 		...mode(
 			'text-zinc-500 not-data-disabled:not-data-readonly:hover:text-zinc-700',

@@ -6,17 +6,18 @@ import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers
 
 // Grab-cursor boundary.
 //
-// A surface the reader drags takes its cursors from `hannou.grab`, or from
-// `hannou.grabCursor` where it must keep touch scrolling. The rules lived in
-// ten places, each slightly different: some closed the hand on `:active`, some
-// on `data-dragging`, and two grips never closed it or never set `touch-none`.
+// A surface the reader drags takes its cursors from `hannou.grab.default`, or
+// from `hannou.grab.cursor` where it must keep touch scrolling. The rules lived
+// in ten places, each slightly different: some closed the hand on `:active`,
+// some on `data-dragging`, and two grips never closed it or never set
+// `touch-none`.
 //
 // Two rules keep the one source of truth:
 //
 //   1. No file but `recipes/kiso/hannou/cursor.ts` spells `cursor-grab`, which
 //      also matches `cursor-grabbing`.
 //
-//   2. The bundle closes the hand on `data-dragging`, never on `:active`. A
+//   2. Each bundle closes the hand on `data-dragging`, never on `:active`. A
 //      right-click presses an element into `:active` too, and a context menu
 //      that swallows the `pointerup` leaves an `:active` cursor stuck closed.
 
@@ -54,12 +55,12 @@ describe('grab-cursor boundary', () => {
 
 		expect(
 			violations,
-			`files spelling a grab cursor (spread \`hannou.grab\` or \`hannou.grabCursor\` instead):\n  ${violations.join('\n  ')}`,
+			`files spelling a grab cursor (spread \`hannou.grab.default\` or \`hannou.grab.cursor\` instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 
 	it('closes the hand on data-dragging, never on :active', () => {
-		for (const bundle of [hannou.grab, hannou.grabCursor]) {
+		for (const bundle of [hannou.grab.default, hannou.grab.cursor]) {
 			const classes = bundle.join(' ').split(/\s+/)
 
 			expect(classes).toContain('data-[dragging]:cursor-grabbing')
@@ -67,8 +68,8 @@ describe('grab-cursor boundary', () => {
 			expect(classes.filter((name) => name.startsWith('active:'))).toEqual([])
 		}
 
-		expect(hannou.grab.join(' ')).toContain('touch-none')
+		expect(hannou.grab.default.join(' ')).toContain('touch-none')
 
-		expect(hannou.grabCursor.join(' ')).not.toContain('touch-none')
+		expect(hannou.grab.cursor.join(' ')).not.toContain('touch-none')
 	})
 })

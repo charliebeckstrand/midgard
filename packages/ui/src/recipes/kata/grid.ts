@@ -426,7 +426,7 @@ export const k = {
 		// anywhere on the header lifts the column. A sortable column's sort control
 		// keeps `cursor-pointer`: set on the control itself, it out-resolves this
 		// inherited grab cursor on that child.
-		grab: [...grab],
+		grab: [...grab.default],
 		// Keeps the grip, title, and any sort control on one baseline. A block-level
 		// flex (not inline) fills the header width so the title between the grip and
 		// the filter button can shrink to an ellipsis instead of overrunning the cell.
@@ -453,7 +453,7 @@ export const k = {
 			text.muted,
 			fg.hover,
 			focus.inset,
-			...grab,
+			...grab.default,
 		],
 	},
 	rowReorder: {
@@ -476,7 +476,7 @@ export const k = {
 				text.muted,
 				fg.hover,
 				focus.inset,
-				...grab,
+				...grab.default,
 			],
 			// The grip while reordering is unavailable — a column sort orders the rows,
 			// or `rowReorder.disabled` is set: shown for layout stability but inert and
