@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Grid, type GridColumn } from '../../modules/grid'
+import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -143,5 +143,67 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			pinnedHeader.getBoundingClientRect().width,
 			0,
 		)
+	})
+
+	it('keeps the active cell below both sticky header rows of a grid with column groups', async () => {
+		const groups: GridColumnGroup[] = [{ id: 'work', title: 'Work', columns: ['role'] }]
+
+		renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+					columns={columns}
+					columnGroups={groups}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		const scroll = present(
+			grid.closest<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		const head = present(grid.querySelector<HTMLElement>('thead'), 'thead')
+
+		// The band and the column row stack, so the sticky chrome is the full head.
+		const cover = head.getBoundingClientRect().height
+
+		grid.focus()
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
+
+		const active = present(grid.querySelector('[data-active]'), '[data-active]')
+
+		expect(Number.parseFloat(active.style.scrollMarginTop)).toBeCloseTo(cover, 0)
+
+		const top = scroll.getBoundingClientRect().top + scroll.clientTop
+
+		/** Presses each key in turn, and holds the active cell below the full head. */
+		const press = async (keys: string[]) => {
+			for (const key of keys) {
+				fireEvent.keyDown(grid, { key })
+
+				await waitFor(() => {
+					const cell = present(grid.querySelector('[data-active]'), '[data-active]')
+
+					expect(cell.getBoundingClientRect().top).toBeGreaterThanOrEqual(top + cover - 1)
+				})
+			}
+		}
+
+		await press(Array(10).fill('ArrowDown'))
+
+		expect(scroll.scrollTop).toBeGreaterThan(0)
+
+		// Each step up past the top edge lands below the column row, not under it.
+		await press(Array(10).fill('ArrowUp'))
 	})
 })

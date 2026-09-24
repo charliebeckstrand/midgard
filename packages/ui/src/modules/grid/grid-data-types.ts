@@ -581,7 +581,8 @@ export type GridHeader = {
 	/**
 	 * Header row positioning. `'sticky'` pins the header to the top while the body
 	 * scrolls, forcing a scroll wrapper around the table; `'static'` leaves it in
-	 * normal flow.
+	 * normal flow. With {@link GridDataProps.columnGroups}, the group band sticks
+	 * at the top and the column row sticks below it.
 	 * @defaultValue 'static'
 	 */
 	position?: 'static' | 'sticky'

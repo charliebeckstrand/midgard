@@ -24,8 +24,9 @@ import { type Coord, useGridNavContext } from './use-grid-navigation'
  * the top inset for the cursor, the new-row slot, and the windowed body.
  *
  * @remarks Each header row reads its first cell, because the cells of a row
- * stick together. A row covers down to its sticky `top` plus its height. Header
- * rows that all stick at zero cover only the tallest row, not the whole head.
+ * stick together. A row covers down to its sticky `top` plus its height. The
+ * column row of a grid with column groups sticks below the band, so the inset
+ * is the full height of the head.
  *
  * @internal
  */

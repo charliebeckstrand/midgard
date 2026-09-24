@@ -1,13 +1,6 @@
 'use client'
 
-import {
-	type CSSProperties,
-	type MouseEvent,
-	type ReactNode,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-} from 'react'
+import { type CSSProperties, type MouseEvent, type ReactNode, useMemo, useRef } from 'react'
 import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
@@ -20,6 +13,7 @@ import { type GridNewRowSession, useGridNewRowSession } from './grid-editing-con
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { GridNavCell, stickyHeadInset } from './use-grid-navigation-columns'
+import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** The accessible name of the new-row slot. @internal */
@@ -51,36 +45,20 @@ function pendingText(value: unknown): string {
 /**
  * Sets the sticky offset of a new-row slot at the top of the body. The slot
  * sticks below a sticky header, so the offset is the height that the header
- * covers (see {@link stickyHeadInset}). With no sticky header it is zero. A resize of the header measures
- * again. @internal
+ * covers (see {@link stickyHeadInset}). With no sticky header it is zero.
+ * {@link useGridStickyHead} measures again on each resize of the header.
+ * @internal
  */
-function useStickyTop(
-	body: { current: HTMLTableSectionElement | null },
-	position: 'top' | 'bottom' | undefined,
-): void {
-	useLayoutEffect(() => {
-		const section = body.current
+function placeTopSlot(section: HTMLTableSectionElement, head: HTMLTableSectionElement): void {
+	const table = section.closest('table')
 
-		const table = section?.closest('table')
+	if (!table) return
 
-		const head = table?.tHead
+	// The column row sticks at the band height. Write it first, so the inset
+	// reads the current band after a resize (see `stackStickyHead`).
+	stackStickyHead(head)
 
-		if (!section || !table || !head || position !== 'top') return
-
-		const measure = () => {
-			section.style.setProperty('--grid-new-row-top', `${stickyHeadInset(table)}px`)
-		}
-
-		measure()
-
-		if (typeof ResizeObserver === 'undefined') return
-
-		const observer = new ResizeObserver(measure)
-
-		observer.observe(head)
-
-		return () => observer.disconnect()
-	}, [body, position])
+	section.style.setProperty('--grid-new-row-top', `${stickyHeadInset(table)}px`)
 }
 
 /** Props for {@link GridNewRow}. @internal */
@@ -209,7 +187,7 @@ export function GridNewRow<T>({ columns, pinning, ariaRowIndex }: GridNewRowProp
 
 	const bodyRef = useRef<HTMLTableSectionElement>(null)
 
-	useStickyTop(bodyRef, session?.position)
+	useGridStickyHead(bodyRef, session?.position === 'top' ? placeTopSlot : null)
 
 	const dataColumns = useMemo(() => columns.filter(isDataColumn), [columns])
 

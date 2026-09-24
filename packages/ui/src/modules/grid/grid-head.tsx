@@ -1,5 +1,6 @@
 'use client'
 
+import { useRef } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { TableHead, TableHeader, TableRow } from '../../components/table'
 import { cn } from '../../core'
@@ -17,6 +18,7 @@ import {
 import { GridGroupHead } from './grid-group-head'
 import type { GridColumn } from './types'
 import type { GridGroupHeader } from './use-grid-group'
+import { stackStickyHead, useGridStickyHead } from './use-grid-sticky-head'
 import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridHead}. @internal */
@@ -65,7 +67,8 @@ type GridHeadProps<T> = {
 	 * Resolved column-group band row, rendered above the column headers. When it
 	 * carries at least one group span, the header gains a leading band row. The
 	 * column headers then drop to the second row. A `null` or absent band leaves a
-	 * single row.
+	 * single row. Under a sticky header the column row sticks below the band, at
+	 * the band height that the head measures.
 	 */
 	groups?: GridGroupHeader | null
 }
@@ -75,7 +78,9 @@ type GridHeadProps<T> = {
  * selection and sort state from {@link useGrid}. When `reorderable`, visible
  * non-pinned data columns carry a drag handle backed by the column-reorder
  * sortable. When `resize` is supplied, data columns size from the engine and
- * gain a resize separator.
+ * gain a resize separator. Under a sticky header with a band row, the two rows
+ * stack. The band sticks at the top edge, and the column row sticks below it.
+ * {@link useGridStickyHead} keeps the band height current.
  *
  * @internal
  */
@@ -96,8 +101,17 @@ export function GridHead<T>({
 	// binding with no visible band leaves the header a single row.
 	const band = groups?.spans.some((span) => span.kind === 'group') ? groups : null
 
+	const { stickyHeader } = useGrid()
+
+	const headRef = useRef<HTMLTableSectionElement>(null)
+
+	// Two sticky rows stack: the column row sticks at the measured band height.
+	const stacked = stickyHeader && !!band
+
+	useGridStickyHead(headRef, stacked ? stackStickyHead : null)
+
 	return (
-		<TableHead>
+		<TableHead ref={headRef}>
 			{band && (
 				<GridGroupHead
 					header={band}
@@ -107,7 +121,10 @@ export function GridHead<T>({
 				/>
 			)}
 
-			<TableRow aria-rowindex={gridSemantics ? (band ? 2 : 1) : undefined}>
+			<TableRow
+				aria-rowindex={gridSemantics ? (band ? 2 : 1) : undefined}
+				className={cn(stacked && k.sticky.stack)}
+			>
 				{columns.map((col, colIdx) => (
 					<GridHeaderCell
 						key={col.id}
