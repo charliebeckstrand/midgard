@@ -145,14 +145,38 @@ function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
 }
 
 /**
- * Scrolls the grid's own scroll container so the cell clears the sticky chrome
- * at the top and the bottom edge. It runs after the cell's `scrollIntoView`.
- * Chromium's `block: 'nearest'` does not scroll a cell that is inside the
- * container, so it ignores the `scroll-margin` of a cell under the chrome. A
- * cell of a nested grid with no scroll container of its own is not moved.
+ * Whether the horizontal correction of {@link clearStickyChrome} applies to
+ * `cell`. A cell of a pinned column is the chrome itself, so it takes none. A
+ * cell of the new-row slot sticks only to the top or the bottom edge, so it
+ * takes one. A right-to-left scroller takes none, because a pinned column does
+ * not stick there. Its offset is a physical `left` or `right`.
  * @internal
  */
-function clearStickyChrome(cell: HTMLElement, top: number, bottom: number): void {
+function clearsSides(cell: HTMLElement, scroller: HTMLElement): boolean {
+	const style = getComputedStyle(cell)
+
+	if (style.position === 'sticky' && (style.left !== 'auto' || style.right !== 'auto')) return false
+
+	return getComputedStyle(scroller).direction !== 'rtl'
+}
+
+/**
+ * Scrolls the grid's own scroll container so the cell clears the sticky chrome
+ * at each edge. It runs after the cell's `scrollIntoView`. Chromium's
+ * `nearest` alignment does not scroll a cell that is inside the container, on
+ * either axis. It therefore ignores the `scroll-margin` of a cell under the
+ * sticky header or under a pinned column. A cell of a nested grid with no
+ * scroll container of its own is not moved.
+ *
+ * @remarks The side edges take a correction only where a pinned column can
+ * cover the cell (see {@link clearsSides}).
+ *
+ * @internal
+ */
+function clearStickyChrome(
+	cell: HTMLElement,
+	insets: { top: number; bottom: number; left: number; right: number },
+): void {
 	const table = cell.closest('table')
 
 	const scroller = table?.closest<HTMLElement>('[data-slot="grid-scroll"]')
@@ -161,9 +185,9 @@ function clearStickyChrome(cell: HTMLElement, top: number, bottom: number): void
 
 	const box = scroller.getBoundingClientRect()
 
-	const edgeTop = box.top + scroller.clientTop + top
+	const edgeTop = box.top + scroller.clientTop + insets.top
 
-	const edgeBottom = box.top + scroller.clientTop + scroller.clientHeight - bottom
+	const edgeBottom = box.top + scroller.clientTop + scroller.clientHeight - insets.bottom
 
 	const rect = cell.getBoundingClientRect()
 
@@ -171,6 +195,17 @@ function clearStickyChrome(cell: HTMLElement, top: number, bottom: number): void
 	if (rect.top < edgeTop) scroller.scrollTop -= edgeTop - rect.top
 	else if (rect.bottom > edgeBottom)
 		scroller.scrollTop += Math.min(rect.bottom - edgeBottom, rect.top - edgeTop)
+
+	if (!clearsSides(cell, scroller)) return
+
+	const edgeLeft = box.left + scroller.clientLeft + insets.left
+
+	const edgeRight = box.left + scroller.clientLeft + scroller.clientWidth - insets.right
+
+	// The left edge wins for a cell wider than the clear area.
+	if (rect.left < edgeLeft) scroller.scrollLeft -= edgeLeft - rect.left
+	else if (rect.right > edgeRight)
+		scroller.scrollLeft += Math.min(rect.right - edgeRight, rect.left - edgeLeft)
 }
 
 /**
@@ -235,19 +270,19 @@ export function GridNavCell({
 		if (isActive) {
 			// Hold the cell clear of the grid's sticky header and pinned columns as it
 			// scrolls into view, so the focus indicator is never obscured (WCAG 2.4.11).
-			const { top, bottom, left, right } = obscuringInsets(cell)
+			const insets = obscuringInsets(cell)
 
-			setScrollMargin(cell, 'scrollMarginTop', top)
+			setScrollMargin(cell, 'scrollMarginTop', insets.top)
 
-			setScrollMargin(cell, 'scrollMarginBottom', bottom)
+			setScrollMargin(cell, 'scrollMarginBottom', insets.bottom)
 
-			setScrollMargin(cell, 'scrollMarginLeft', left)
+			setScrollMargin(cell, 'scrollMarginLeft', insets.left)
 
-			setScrollMargin(cell, 'scrollMarginRight', right)
+			setScrollMargin(cell, 'scrollMarginRight', insets.right)
 
 			cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
 
-			clearStickyChrome(cell, top, bottom)
+			clearStickyChrome(cell, insets)
 		}
 
 		return () => {
