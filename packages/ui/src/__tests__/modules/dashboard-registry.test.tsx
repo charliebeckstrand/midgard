@@ -105,6 +105,21 @@ describe('DashboardTiles', () => {
 		expect(tiles[2]?.style.gridArea).toBe('28 / 1 / span 16 / span 6')
 	})
 
+	it('gives a new tile its own default size before the default size of its kind', () => {
+		const { container } = renderUI(
+			<Board
+				tiles={[
+					...TILES,
+					{ id: 'added', widget: 'stat', title: 'Added', defaultSize: { w: 10, h: 12 } },
+				]}
+			/>,
+		)
+
+		expect(allBySlot(container, 'dashboard-tile')[2]?.style.gridArea).toBe(
+			'28 / 1 / span 12 / span 10',
+		)
+	})
+
 	it('places the actions in the header of each tile', () => {
 		const actions = (tile: DashboardSpecTile) => (
 			<button type="button">{`Remove ${tile.title}`}</button>
