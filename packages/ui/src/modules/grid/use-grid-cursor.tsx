@@ -204,21 +204,18 @@ export function useGridCursor<T>({
 
 	// Enter on the cursor's active cell begins the edit session — the keyboard
 	// peer of the pointer double-click. The entry resolver needs the editing hook
-	// (which in turn needs the cursor's `cellId`), so the wrapper reads it through
-	// a ref assigned below.
-	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
+	// (which in turn needs the cursor's `cellId`), so the wrapper names
+	// `enterEditAt` before its declaration below. The cursor calls the wrapper as
+	// an effect event, at key time, when this render's resolver is in place.
+	const onCellActivateWithEdit: GridCellActivate | undefined = managed
+		? (rowIdx, colIdx, event) => {
+				// The consumer's cell click fires first — the same order the pointer path
+				// fires the single-click handlers ahead of the double-click.
+				onCellActivate?.(rowIdx, colIdx, event)
 
-	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
-		if (!managed) return onCellActivate
-
-		return (rowIdx, colIdx, event) => {
-			// The consumer's cell click fires first — the same order the pointer path
-			// fires the single-click handlers ahead of the double-click.
-			onCellActivate?.(rowIdx, colIdx, event)
-
-			if (event.key === 'Enter') enterEditAtRef.current(rowIdx, colIdx)
-		}
-	}, [managed, onCellActivate])
+				if (event.key === 'Enter') enterEditAt(rowIdx, colIdx)
+			}
+		: onCellActivate
 
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
@@ -324,8 +321,6 @@ export function useGridCursor<T>({
 		},
 		[enterEditAtCell, editing.newRow.enter, rowKeysRef, dataColumnsRef],
 	)
-
-	enterEditAtRef.current = enterEditAt
 
 	// Read at event time by the entry keys below, which stay referentially stable.
 	const activeRef = useRef(nav.active)

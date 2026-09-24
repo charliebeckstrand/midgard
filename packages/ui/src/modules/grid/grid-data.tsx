@@ -6,6 +6,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -618,20 +619,18 @@ export function GridData<T>({
 	// Resolves a column's display label at call time, read by the `[]`-stable
 	// `pinColumn` and the visibility handler so they can narrate the change without
 	// closing over (and re-creating on) the columns.
-	const columnLabelRef = useRef<(id: string | number) => string>(() => '')
-
-	columnLabelRef.current = (id) => {
+	const labelOfColumn = useEffectEvent((id: string | number) => {
 		const column = pinnedColumns.find((candidate) => candidate.id === id)
 
 		return column ? columnLabel(column) : String(id)
-	}
+	})
 
 	const pinColumn = useCallback(
 		(id: string | number, side: PinSide | false) => {
 			setPinningState((prev) => ({ ...prev, [String(id)]: side === false ? 'none' : side }))
 
 			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
-			announce(describePin(columnLabelRef.current(id), side))
+			announce(describePin(labelOfColumn(id), side))
 		},
 		[setPinningState],
 	)
@@ -663,17 +662,17 @@ export function GridData<T>({
 
 	// Selection wiring the cursor reads at key time: whether a selection column is
 	// present (gating Space-to-select) and a toggle for the active row by display
-	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
-	// them through refs, like its bounds above.
+	// index. Both resolve after the engine produces `rowKeys`. The cursor reads the
+	// first through a ref, like its bounds above. The toggle names `toggleRow`
+	// before its declaration below; the cursor calls it as an effect event, at key
+	// time, when this render's `toggleRow` is in place.
 	const selectableRef = useRef(false)
 
-	const toggleRowRef = useRef<(key: string | number) => void>(() => {})
-
-	const toggleActiveRow = useCallback((rowIdx: number) => {
+	const toggleActiveRow = (rowIdx: number) => {
 		const key = rowKeysRef.current[rowIdx]
 
-		if (key !== undefined) toggleRowRef.current(key)
-	}, [])
+		if (key !== undefined) toggleRow(key)
+	}
 
 	// Published by the virtualized body while mounted (null otherwise), so the cursor
 	// can scroll an off-window row into the rendered window before pointing
@@ -808,11 +807,11 @@ export function GridData<T>({
 			const prev = hiddenColumnsRef.current
 
 			for (const id of next) {
-				if (!prev.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), true))
+				if (!prev.has(id)) announce(describeColumnVisibility(labelOfColumn(id), true))
 			}
 
 			for (const id of prev) {
-				if (!next.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), false))
+				if (!next.has(id)) announce(describeColumnVisibility(labelOfColumn(id), false))
 			}
 
 			setHiddenColumns(next)
@@ -978,11 +977,9 @@ export function GridData<T>({
 		rowKeys,
 	})
 
-	// Feed the cursor's selection refs now that the engine has resolved them, so its
+	// Feed the cursor's selection ref now that the engine has resolved it, so its
 	// Space key toggles the active row's selection (see `useGridNavigation`).
 	selectableRef.current = hasSelectionColumn
-
-	toggleRowRef.current = toggleRow
 
 	// Narrate sort and selection changes to assistive tech without moving focus
 	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays

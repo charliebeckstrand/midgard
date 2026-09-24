@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -1430,13 +1431,14 @@ export function useGridEditing<T>({
 
 	activeEditRef.current = activeEdit
 
-	const onCommitRef = useRef(config?.onCommit)
+	// The sinks, read as effect events, so a new callback does not run the sweep
+	// again. Whether `onCommit` is present stays in the deps: a sink that went
+	// with its binding commits nothing, and nothing is announced.
+	const hasCommit = config?.onCommit !== undefined
 
-	onCommitRef.current = config?.onCommit
+	const sendCommit = useEffectEvent((changes: GridCellChange[]) => config?.onCommit(changes))
 
-	const onRejectRef = useRef(config?.onReject)
-
-	onRejectRef.current = config?.onReject
+	const sendReject = useEffectEvent((refused: GridCellChange[]) => config?.onReject?.(refused))
 
 	// The undo history, when the config turns it on.
 	const history = useGridEditHistory(enabled, config?.history)
@@ -2366,9 +2368,7 @@ export function useGridEditing<T>({
 	)
 
 	// Read by the sweep, so a new callback does not run the sweep again.
-	const trackBatchRef = useRef(trackBatch)
-
-	trackBatchRef.current = trackBatch
+	const trackInFlight = useEffectEvent((batch: InFlightBatch) => trackBatch(batch))
 
 	// Commit the cells that the session closed in the render just past. The
 	// drafts belong to the session, and this is where they land in the sink. The
@@ -2397,8 +2397,8 @@ export function useGridEditing<T>({
 			editableRows,
 			activeEdit,
 			source: editSourceRef.current,
-			onCommit: onCommitRef.current,
-			onReject: onRejectRef.current,
+			onCommit: hasCommit ? sendCommit : undefined,
+			onReject: sendReject,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
@@ -2409,8 +2409,8 @@ export function useGridEditing<T>({
 		// batch goes into the history as it settles.
 		recordEntry(saved.history)
 
-		for (const batch of inFlight) trackBatchRef.current(batch)
-	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore, recordEntry])
+		for (const batch of inFlight) trackInFlight(batch)
+	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore, recordEntry, hasCommit])
 
 	// Takes one step through the history. The step sends the values that it
 	// writes through `onCommit`, as a save does, so the consumer applies it as
@@ -2437,7 +2437,7 @@ export function useGridEditing<T>({
 				cells,
 				step,
 				source,
-				onCommit: onCommitRef.current,
+				onCommit: hasCommit ? sendCommit : undefined,
 			})
 
 			if (saved.columns.length > 0) {
@@ -2454,7 +2454,7 @@ export function useGridEditing<T>({
 
 			if (row !== -1 && col !== -1) moveTo({ row, col })
 		},
-		[editSourceRef, takeStep, drafts, trackBatch, rowKeysRef, dataColumnsRef, moveTo],
+		[editSourceRef, takeStep, drafts, hasCommit, trackBatch, rowKeysRef, dataColumnsRef, moveTo],
 	)
 
 	// The history keys act on the tab stop only. In an open editor, the input

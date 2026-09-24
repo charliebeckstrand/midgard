@@ -5,6 +5,7 @@ import {
 	type KeyboardEvent,
 	type RefObject,
 	useCallback,
+	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -465,20 +466,24 @@ export function useGridNavigation({
 
 	activeRef.current = active
 
-	// Read the row- and cell-click through refs so the key handler's deps stay
-	// stable when the consumer passes inline callbacks.
-	const onRowActivateRef = useRef(onRowActivate)
+	// Read the row- and cell-click as effect events, so the key handler's deps
+	// stay stable when the consumer passes inline callbacks. Whether each one is
+	// present stays in the deps, because Enter is claimed only when one is.
+	const hasRowActivate = onRowActivate !== undefined
 
-	onRowActivateRef.current = onRowActivate
+	const hasCellActivate = onCellActivate !== undefined
 
-	const onCellActivateRef = useRef(onCellActivate)
+	const rowActivate = useEffectEvent((row: unknown, event: KeyboardEvent<HTMLTableElement>) =>
+		onRowActivate?.(row, event),
+	)
 
-	onCellActivateRef.current = onCellActivate
+	const cellActivate = useEffectEvent(
+		(rowIdx: number, colIdx: number, event: KeyboardEvent<HTMLTableElement>) =>
+			onCellActivate?.(rowIdx, colIdx, event),
+	)
 
-	// Read selection toggling through a ref so the key handler's deps stay stable.
-	const toggleActiveRowRef = useRef(toggleActiveRow)
-
-	toggleActiveRowRef.current = toggleActiveRow
+	// Read selection toggling as an effect event, so the key handler's deps stay stable.
+	const toggleActive = useEffectEvent((rowIdx: number) => toggleActiveRow?.(rowIdx))
 
 	const { sub } = useIdScope()
 
@@ -676,21 +681,17 @@ export function useGridNavigation({
 	// click bridges — the same cell-first order a pointer click fires in.
 	const activateRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, coord: Coord) => {
-			const activate = onRowActivateRef.current
-
-			const activateCell = onCellActivateRef.current
-
 			const row = rowsRef.current[coord.row]
 
-			if ((!activate && !activateCell) || row === undefined) return
+			if ((!hasRowActivate && !hasCellActivate) || row === undefined) return
 
 			event.preventDefault()
 
-			activateCell?.(coord.row, coord.col, event)
+			cellActivate(coord.row, coord.col, event)
 
-			activate?.(row, event)
+			rowActivate(row, event)
 		},
-		[rowsRef],
+		[rowsRef, hasRowActivate, hasCellActivate],
 	)
 
 	// Space toggles the active row's selection in a selectable grid (APG grid) and
@@ -702,7 +703,7 @@ export function useGridNavigation({
 				event.preventDefault()
 
 				if (selectableRef.current) {
-					toggleActiveRowRef.current?.(coord.row)
+					toggleActive(coord.row)
 
 					return
 				}
