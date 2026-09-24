@@ -126,15 +126,90 @@ function effectiveOffset(instance: Virtualizer<HTMLElement, Element>): number {
 }
 
 /**
+ * Returns the ref callback that measures each row in the commit that attaches
+ * it. The library's `measureElement` does not measure a row that attaches
+ * while its `isScrolling` flag is set. Each `scroll` event sets that flag for
+ * 150 ms, and a start-anchor move or a scroll adjustment sends a `scroll`
+ * event. Such a row keeps its size estimate until a `ResizeObserver` callback
+ * measures it. Until then the rendered rows do not agree with the item
+ * positions. A start-anchor move then holds the row at a position that the
+ * layout does not have. A render between the commit and that callback can
+ * also attach more rows that did not measure. This callback measures the row
+ * at once. Its scroll adjustment and the render that follows it then land in
+ * the same commit.
+ *
+ * @internal
+ */
+function measureOnAttach(
+	virtualizer: Virtualizer<HTMLElement, Element>,
+): (node: Element | null) => void {
+	return (node) => {
+		virtualizer.measureElement(node)
+
+		// The library measured the row already when it did not count a scroll.
+		if (!node?.isConnected || !virtualizer.isScrolling) return
+
+		const index = virtualizer.indexFromElement(node)
+
+		virtualizer.resizeItem(index, virtualizer.options.measureElement(node, undefined, virtualizer))
+	}
+}
+
+/**
+ * The item positions after each measurement so far. `measurementsCache` is a
+ * view that the virtualizer updates only when it computes its positions again.
+ * A row that measures in a commit leaves that view stale until then.
+ * `getTotalSize` computes the positions again. @internal
+ */
+function freshMeasurements(instance: Virtualizer<HTMLElement, Element>): VirtualItem[] {
+	instance.getTotalSize()
+
+	return instance.measurementsCache
+}
+
+/**
+ * A row that the start anchor can hold: its index, its key, and its distance
+ * from the scroll offset. @internal
+ */
+type StartAnchorRow = { index: number; key: VirtualItem['key']; offset: number }
+
+/**
  * What a commit records for the start anchor. It holds the count and the key
- * getter of that render, and the scroll offset. It also holds the rendered rows
- * that end below the top edge, in order. @internal
+ * getter of that render. It also holds the rendered rows that end below the
+ * top edge, in order. The layout effect reads each distance after the rows of
+ * the commit measure. @internal
  */
 type StartAnchorRecord = {
 	count: number
 	getItemKey: (index: number) => VirtualItem['key']
-	scrollOffset: number
-	rows: readonly { index: number; key: VirtualItem['key']; start: number }[]
+	rows: readonly StartAnchorRow[]
+}
+
+/**
+ * Records the rendered rows that end below the top edge, with fresh positions.
+ * @internal
+ */
+function recordStartAnchor(
+	instance: Virtualizer<HTMLElement, Element>,
+	count: number,
+	getItemKey: (index: number) => VirtualItem['key'],
+	window: readonly VirtualItem[],
+): StartAnchorRecord {
+	const measurements = freshMeasurements(instance)
+
+	const offset = effectiveOffset(instance)
+
+	const top = offset + instance.options.scrollPaddingStart
+
+	const rows: StartAnchorRow[] = []
+
+	for (const { index, key } of window) {
+		const item = measurements[index]
+
+		if (item && item.end > top) rows.push({ index, key, offset: item.start - offset })
+	}
+
+	return { count, getItemKey, rows }
 }
 
 /**
@@ -162,13 +237,12 @@ function indexOfKey(
 }
 
 /**
- * Holds the first recorded row that is still in the list at the offset it
+ * Holds the first recorded row that is still in the list at the distance it
  * had from the scroll offset. It moves the scroller, and takes the new offset
  * into the virtualizer as its `scroll` handler does. The next render then
- * places its window at the new offset, before the paint.
+ * places its window at the new offset, before the paint. The positions include
+ * each row that measured in this commit.
  *
- * @param moved - The scroll adjustment since the render, from rows that
- *   measured as they attached.
  * @param window - The rendered items of the render.
  * @returns The record of the new list, or `null` when the list did not change.
  * @internal
@@ -178,24 +252,22 @@ function holdStartAnchor(
 	record: StartAnchorRecord,
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
-	moved: number,
 	window: readonly VirtualItem[],
 ): StartAnchorRecord | null {
 	if (record.count === count && record.getItemKey === getItemKey) return null
 
 	const element = virtualizer.scrollElement
 
+	const measurements = freshMeasurements(virtualizer)
+
 	for (const row of record.rows) {
 		const index = indexOfKey(row.key, row.index, count, getItemKey, window)
 
-		// The measurements of this render hold the new start of the row.
-		const start = index < 0 ? undefined : virtualizer.measurementsCache[index]?.start
+		const start = index < 0 ? undefined : measurements[index]?.start
 
 		if (start === undefined) continue
 
-		// `moved` is what the rows that measured in this commit moved the
-		// scroller by. The measurements of the render do not hold it yet.
-		const target = start + record.scrollOffset - row.start + moved
+		const target = start - row.offset
 
 		// A scroller that cannot move there clamps the offset, so a scroller that
 		// does not scroll takes no change.
@@ -211,12 +283,12 @@ function holdStartAnchor(
 			state._intendedScrollOffset = null
 		}
 
-		const scrollOffset = effectiveOffset(virtualizer)
+		const offset = start - effectiveOffset(virtualizer)
 
-		return { count, getItemKey, scrollOffset, rows: [{ index, key: row.key, start }] }
+		return { count, getItemKey, rows: [{ index, key: row.key, offset }] }
 	}
 
-	return { count, getItemKey, scrollOffset: effectiveOffset(virtualizer), rows: [] }
+	return { count, getItemKey, rows: [] }
 }
 
 type VirtualWindow = {
@@ -284,11 +356,14 @@ type MeasuredVirtualWindow = VirtualWindow & {
  *
  * An insert or a removal is not a resize, so a resize adjustment does not see
  * it. The measured path with the start anchor therefore holds the first row
- * in view. Each commit records the rendered rows that end below the top edge.
- * After a render with a new count or a new `getItemKey`, a layout effect finds
- * the first recorded row that is still in the list. It moves the scroll offset
- * by the change in that row's start, and renders again before the paint. A
- * recorded row that left the list, or took a new key, gives way to the next.
+ * in view. Each commit records the rendered rows that end below the top edge,
+ * with the distance of each from the scroll offset. After a render with a new
+ * count or a new `getItemKey`, a layout effect finds the first recorded row
+ * that is still in the list. It moves the scroll offset so that the row has
+ * its old distance, and renders again before the paint. A recorded row that
+ * left the list, or took a new key, gives way to the next. On this path each
+ * row measures in the commit that attaches it, also while the reader scrolls.
+ * The positions that the anchor reads thus agree with the layout.
  *
  * The anchor writes the offset into the virtualizer as its `scroll` handler
  * does. Version 3.16 of virtual-core has an anchor step of its own. It reads
@@ -378,11 +453,6 @@ export function useVirtualWindow({
 
 	const anchorRecord = useRef<StartAnchorRecord | null>(null)
 
-	// The offset that this render placed its window at.
-	const renderOffset = useRef(0)
-
-	renderOffset.current = startAnchor ? effectiveOffset(virtualizer) : 0
-
 	// Re-sync guard: the virtualizer captures its scroll element in a layout
 	// effect, which runs *before* an ancestor's ref attaches when that ancestor
 	// (re)mounted in the same commit (React commits bottom-up). It then resolves
@@ -395,6 +465,13 @@ export function useVirtualWindow({
 	useEffect(() => {
 		if (virtualizer.scrollElement !== getScrollElement()) forceResync()
 	})
+
+	// The start anchor needs each row to measure in the commit that attaches it.
+	// The end anchor keeps the library's measurement.
+	const measureRef = useMemo(
+		() => (startAnchor ? measureOnAttach(virtualizer) : virtualizer.measureElement),
+		[startAnchor, virtualizer],
+	)
 
 	const virtualItems = virtualizer.getVirtualItems()
 
@@ -432,16 +509,7 @@ export function useVirtualWindow({
 
 		const previous = anchorRecord.current
 
-		const held =
-			previous &&
-			holdStartAnchor(
-				virtualizer,
-				previous,
-				count,
-				getItemKey,
-				before - renderOffset.current,
-				virtualItems,
-			)
+		const held = previous && holdStartAnchor(virtualizer, previous, count, getItemKey, virtualItems)
 
 		if (held && Math.abs(effectiveOffset(virtualizer) - before) >= 1) {
 			anchorRecord.current = held
@@ -451,16 +519,7 @@ export function useVirtualWindow({
 			return
 		}
 
-		const top = effectiveOffset(virtualizer) + virtualizer.options.scrollPaddingStart
-
-		anchorRecord.current = {
-			count,
-			getItemKey,
-			scrollOffset: effectiveOffset(virtualizer),
-			rows: virtualItems
-				.filter((item) => item.end > top)
-				.map((item) => ({ index: item.index, key: item.key, start: item.start })),
-		}
+		anchorRecord.current = recordStartAnchor(virtualizer, count, getItemKey, virtualItems)
 	})
 
 	return {
@@ -468,6 +527,6 @@ export function useVirtualWindow({
 		topSpacer,
 		bottomSpacer,
 		scrollToIndex: virtualizer.scrollToIndex,
-		measureRef: virtualizer.measureElement,
+		measureRef,
 	}
 }

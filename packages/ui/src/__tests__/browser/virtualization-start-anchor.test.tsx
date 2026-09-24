@@ -19,7 +19,10 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		renders.count = 0
 	})
 
-	type Handle = { prepend: (ids: number[]) => void }
+	type Handle = {
+		prepend: (ids: number[]) => void
+		insertBefore: (id: number, ids: number[]) => void
+	}
 
 	const heightOf = (id: number) => 30 + ((id * 37) % 90)
 
@@ -33,6 +36,13 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		const [ids, setIds] = useState(() => Array.from({ length: 200 }, (_, i) => i))
 
 		handle.prepend = (next) => setIds((current) => [...next, ...current])
+
+		handle.insertBefore = (id, next) =>
+			setIds((current) => {
+				const at = current.indexOf(id)
+
+				return [...current.slice(0, at), ...next, ...current.slice(at)]
+			})
 
 		const getItemKey = useCallback((index: number) => ids[index] ?? index, [ids])
 
@@ -74,7 +84,7 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 	}
 
 	it('holds the first row in view still when rows are inserted above it, and then stops', async () => {
-		const handle: Handle = { prepend: () => {} }
+		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
 
 		const { container } = renderUI(<List handle={handle} bounded />)
 
@@ -128,8 +138,66 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		expect(renders.count).toBe(settled)
 	})
 
+	it('holds the first row in view in the commit of the change, while the reader scrolls', async () => {
+		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
+
+		const { container } = renderUI(<List handle={handle} bounded />)
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+
+		scroller.scrollTop = 2000
+
+		let last = -1
+
+		while (last !== scroller.scrollTop) {
+			last = scroller.scrollTop
+
+			await frames()
+		}
+
+		const rows = () => Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]'))
+
+		const edge = () => scroller.getBoundingClientRect().top
+
+		// The anchor holds the first row that ends below the top edge. The rows go
+		// in above it, where the window renders them at once.
+		const first = rows().find((row) => row.getBoundingClientRect().bottom > edge())
+
+		const anchor = rows().find((row) => row.getBoundingClientRect().top >= edge())
+
+		if (!first || !anchor) throw new Error('no row in view')
+
+		const id = anchor.dataset.row
+
+		// A scroll sets the flag of the virtualizer that tells it the reader
+		// scrolls, for 150 ms. The library does not measure a row that attaches
+		// while the flag is set.
+		const scrolled = new Promise((resolve) => {
+			scroller.addEventListener('scroll', resolve, { once: true })
+		})
+
+		scroller.scrollTop += 1
+
+		await scrolled
+
+		const before = anchor.getBoundingClientRect().top
+
+		act(() => handle.insertBefore(Number(first.dataset.row), [5000, 5001, 5002]))
+
+		// Read in the same task, before a paint or a `ResizeObserver` callback.
+		const after = scroller.querySelector<HTMLElement>(`[data-row="${id}"]`)
+
+		expect(
+			Math.abs((after?.getBoundingClientRect().top ?? Number.NaN) - before),
+		).toBeLessThanOrEqual(1)
+	})
+
 	it('does nothing in a scroller that does not scroll', async () => {
-		const handle: Handle = { prepend: () => {} }
+		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
 
 		const { container } = renderUI(<List handle={handle} bounded={false} />)
 
