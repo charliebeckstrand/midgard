@@ -15,8 +15,11 @@ import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
 import type { GridColumnPinning } from './use-grid-table'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 
-/** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
-export type GridScrollRowIntoView = (rowIndex: number) => void
+/**
+ * Scrolls a row into the rendered window. A flat body reads `rowIndex`, the
+ * data index. A grouped or master-detail body reads `key`, the item key. @internal
+ */
+export type GridScrollRowIntoView = (rowIndex: number, key?: string) => void
 
 /**
  * The single trailing row below the loaded rows for the infinite-scroll terminal

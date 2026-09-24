@@ -592,8 +592,8 @@ export function GridData<T>({
 	// down under grouping) and the body wiring the flat rows read.
 	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingMode.active)
 
-	// A self-rendering body (grouping or master-detail) stands the cursor down.
-	// Manual grouping also stands virtualization down, and the other two keep an
+	// Manual grouping stands the cursor down. Client grouping and master-detail
+	// give the cursor an order of rows. Manual grouping also stands virtualization down, and the other two keep an
 	// explicit `virtualize`. Client grouping stands pagination down, manual
 	// grouping keeps a manual one, and master-detail keeps any (see
 	// `resolveGroupingGates`).
@@ -728,8 +728,7 @@ export function GridData<T>({
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
 	const cursor = useGridCursor<T>({
-		// The navigable cursor indexes flat data rows; grouping interleaves group
-		// headers, so the cursor stands down while grouping is active (see `gated`).
+		// Manual grouping stands the navigable cursor down (see `gated`).
 		navigable: gated.navigable,
 		editable,
 		columns: pinnedColumns,
@@ -1347,6 +1346,7 @@ export function GridData<T>({
 					loading,
 					gridSemantics,
 					navigable: cursor.cursorEnabled,
+					tree: groupingActive,
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,

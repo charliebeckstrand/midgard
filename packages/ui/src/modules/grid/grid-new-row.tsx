@@ -5,6 +5,7 @@ import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
@@ -107,7 +108,7 @@ function GridNewRowCell<T>({
 
 		if (!inCell || fromInteractiveContent(event.target)) return
 
-		event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
+		event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
 		session.moveTo({ row: NEW_ROW_INDEX, col })
 	}

@@ -141,6 +141,22 @@ export function resolveInfiniteScroll(
 }
 
 /**
+ * The role that the grid gives its table when the caller gives none. A cursor
+ * makes it a `treegrid` over a client-grouped body, else a `grid`. A window
+ * with no cursor makes it a `table`. Otherwise the table keeps its native
+ * role. @internal
+ */
+function tableRole(args: {
+	navigable: boolean
+	tree: boolean
+	gridSemantics: boolean
+}): string | undefined {
+	if (args.navigable) return args.tree ? 'treegrid' : 'grid'
+
+	return args.gridSemantics ? 'table' : undefined
+}
+
+/**
  * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
  * while loading, and the role/index scheme. The role is `grid` when the table
  * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
@@ -164,6 +180,8 @@ export function resolveTableProps(args: {
 	loading: boolean
 	gridSemantics: boolean
 	navigable: boolean
+	/** Whether the body is client-grouped, which makes a cursor grid a `treegrid`. */
+	tree: boolean
 	ariaRowCount: number
 	colCount: number
 	/** The grid renders a selection column; advertise `aria-multiselectable` when it resolves to a true `role="grid"`. */
@@ -173,8 +191,9 @@ export function resolveTableProps(args: {
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
 }): TableElementProps {
-	const role =
-		args.tableProps?.role ?? (args.navigable ? 'grid' : args.gridSemantics ? 'table' : undefined)
+	const role = args.tableProps?.role ?? tableRole(args)
+
+	const gridRole = role === 'grid' || role === 'treegrid'
 
 	return {
 		...args.tableProps,
@@ -192,14 +211,14 @@ export function resolveTableProps(args: {
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one
 		// when the caller named the grid through neither `tableProps` escape hatch.
-		...(role === 'grid' &&
+		...(gridRole &&
 		args.tableProps?.['aria-label'] == null &&
 		args.tableProps?.['aria-labelledby'] == null
 			? { 'aria-label': 'Data grid' }
 			: {}),
 		// `aria-multiselectable` is a grid-only state; a windowed `role="table"` or a
 		// native table conveys selection through each row's `aria-selected` alone.
-		...(args.multiSelectable && role === 'grid' ? { 'aria-multiselectable': true } : {}),
+		...(args.multiSelectable && gridRole ? { 'aria-multiselectable': true } : {}),
 		// Withheld over a loading/error/empty placeholder (a single spanning cell),
 		// which would otherwise advertise a full row/column count that isn't rendered.
 		...(args.gridSemantics && args.bodyHasRows

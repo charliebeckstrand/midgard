@@ -24,6 +24,7 @@ import {
 import { GridCellContent } from './grid-cell-content'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
+import { useGridNavContext } from './use-grid-navigation'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -70,6 +71,11 @@ type GridGroupLeafRowProps<T> = {
 	 * @defaultValue false
 	 */
 	enter?: boolean
+	/**
+	 * The row's level in a treegrid. A client-grouped body sets it, and a
+	 * treegrid exposes it as `aria-level`. Manual grouping leaves it unset.
+	 */
+	level?: number
 } & GridWindowRowProps
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
@@ -194,6 +200,9 @@ function GridGroupLeafCell<T>({
 
 	const pinned = pinnedCellProps(pinning, col)
 
+	// The column's own cell props, such as the cursor's id and role, as on a flat row.
+	const extra = col.cellProps?.(row)
+
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
 		cellActivate,
@@ -204,6 +213,7 @@ function GridGroupLeafCell<T>({
 
 	return (
 		<td
+			{...extra}
 			data-grid-col={col.id}
 			aria-colindex={colIndex}
 			{...roving}
@@ -216,8 +226,9 @@ function GridGroupLeafCell<T>({
 				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
 				pinned.className,
+				extra?.className,
 			)}
-			style={{ ...NO_PADDING, ...pinned.style }}
+			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
@@ -275,9 +286,13 @@ export function GridGroupLeafRow<T>({
 	density,
 	color,
 	enter = false,
+	level,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
+
+	// The cursor makes a client-grouped grid a treegrid, which reads the level.
+	const tree = useGridNavContext().enabled
 
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
@@ -313,6 +328,7 @@ export function GridGroupLeafRow<T>({
 				// These cover the collapse from its first frame; the hold above covers
 				// its cost from the last one, once the reveal has finished shrinking.
 				aria-hidden={expanded ? undefined : true}
+				aria-level={tree ? level : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 				// Row roving hands the `tabIndex` to the roving hook; without it a clickable

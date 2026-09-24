@@ -18,8 +18,9 @@ import {
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
-import { groupTotalled, groupValueOf } from './engine/grid-items/items'
+import { detailOpen, groupTotalled, groupValueOf, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
+import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
@@ -128,6 +129,8 @@ function leafRowProps<T>(
 		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
 		color?: PaletteColor
+		/** The leaf's treegrid level; the client-grouped body sets it. */
+		level?: number
 	},
 ): ComponentProps<typeof GridGroupLeafRow<T>> {
 	const key = args.getKey(leaf.original, leaf.index)
@@ -153,6 +156,7 @@ function leafRowProps<T>(
 		pinning: props.pinning,
 		density: args.density,
 		color: args.color,
+		level: args.level,
 	}
 }
 
@@ -201,7 +205,7 @@ function renderGroup<T>(
 			{groupRow.subRows.map((leaf) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded, getKey, density, color })}
+					{...leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })}
 				/>
 			))}
 			{totalled && (
@@ -212,6 +216,7 @@ function renderGroup<T>(
 					expanded={expanded}
 					density={density}
 					color={color}
+					navKey={totalItemKey(groupRow.id)}
 				/>
 			)}
 		</Fragment>
@@ -318,7 +323,7 @@ function renderGroupedBody<T>(
 				density={density}
 				presentation={rowGroupPresentation}
 				leafProps={(leaf, expanded, color) =>
-					leafRowProps(props, leaf, { expanded, getKey, density, color })
+					leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })
 				}
 				window={virtualize}
 			/>
@@ -327,6 +332,7 @@ function renderGroupedBody<T>(
 
 	return (
 		<TableBody>
+			<GridCursorOrder order={groupedCursorRows(ordered, totalled)} />
 			{ordered.map((groupRow) =>
 				renderGroup(groupRow, {
 					props,
@@ -451,8 +457,18 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// When rows are drag-reorderable, the sortable context wraps them (its
 	// `<DndContext>` sits outside the `<table>`, provided by the grid). A DOM-less
 	// fragment, so it nests inside `<tbody>` without adding an element.
+	// A master-detail body gives its panels to the cursor as rows of their own.
+	const { expansion } = props
+
 	return (
 		<TableBody>
+			{expansion && (
+				<GridCursorOrder
+					order={detailCursorRows(rows, props.rowKeys, (row, key) =>
+						detailOpen(row, key, expansion),
+					)}
+				/>
+			)}
 			{rowSortable ? (
 				<SortableContext items={rowSortable.itemIds} strategy={rowSortable.strategy}>
 					{body}

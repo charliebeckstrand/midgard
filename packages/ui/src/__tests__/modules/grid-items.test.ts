@@ -37,13 +37,13 @@ describe('resolveGroupingGates', () => {
 		pagination: undefined,
 	}
 
-	it('keeps an explicit virtualize under client grouping and master-detail', () => {
+	it('keeps an explicit virtualize and the cursor under client grouping and master-detail', () => {
 		for (const active of ['groupingActive', 'expandableActive'] as const) {
 			const gates = resolveGroupingGates({ ...base, [active]: true })
 
 			expect(gates.virtualize).toBe(true)
 
-			expect(gates.navigable).toBe(false)
+			expect(gates.navigable).toBe(true)
 
 			expect(gates.infiniteScroll).toBe(false)
 		}

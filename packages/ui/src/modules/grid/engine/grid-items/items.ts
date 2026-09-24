@@ -93,6 +93,21 @@ export function totalItemKey(groupId: string): string {
 	return `total:${groupId}`
 }
 
+/** The key of a group header, which is also its React key. @internal */
+export function groupItemKey(groupId: string): string {
+	return `group:${groupId}`
+}
+
+/** The key of a data row in a master-detail body, which is also its React key. @internal */
+export function rowItemKey(rowKey: string | number): string {
+	return `row:${rowKey}`
+}
+
+/** The open key of a detail panel, which is also its React key. @internal */
+export function detailItemKey(rowKey: string | number): string {
+	return `detail:${rowKey}`
+}
+
 /** The size of a closing row in `motions`, or `undefined` when the row is not closing. @internal */
 function closingSize<K>(motions: ReadonlyMap<K, GridRowMotion>, key: K): number | undefined {
 	const motion = motions.get(key)
@@ -120,7 +135,7 @@ export function groupedWindowItems<T>(
 	const cursor = { position: 0 }
 
 	for (const group of groups) {
-		const groupKey = `group:${group.id}`
+		const groupKey = groupItemKey(group.id)
 
 		items.push({
 			kind: 'group',
@@ -243,11 +258,11 @@ export function detailWindowItems<T>(args: {
 	args.rows.forEach((row, dataIndex) => {
 		const rowKey = args.rowKeys[dataIndex] as string | number
 
-		const key = `row:${rowKey}`
+		const key = rowItemKey(rowKey)
 
 		items.push({ kind: 'row', key, reactKey: key, position: position++, phase: 'open', dataIndex })
 
-		const reactKey = `detail:${rowKey}`
+		const reactKey = detailItemKey(rowKey)
 
 		if (detailOpen(row, rowKey, args.expansion)) {
 			items.push({

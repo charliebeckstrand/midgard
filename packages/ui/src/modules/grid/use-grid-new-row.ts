@@ -13,6 +13,7 @@ import {
 import { announce } from '../../core'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeRowAdd } from './engine/grid-announcements'
+import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
 	EDITOR_FOCUSABLE,
@@ -249,7 +250,7 @@ export function useGridNewRow<T>({
 			if (!table) return null
 
 			for (const cell of table.querySelectorAll<HTMLElement>('td[data-grid-new-col]')) {
-				if (cell.closest('[role="grid"]') !== table) continue
+				if (cell.closest(GRID_ROLE) !== table) continue
 
 				if (cell.getAttribute('data-grid-new-col') === String(columnId))
 					return cell.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
@@ -414,7 +415,7 @@ export function useGridNewRow<T>({
 
 			const cell = target.closest<HTMLElement>('td[data-grid-new-col]')
 
-			if (!cell || cell.closest('[role="grid"]') !== event.currentTarget) return false
+			if (!cell || cell.closest(GRID_ROLE) !== event.currentTarget) return false
 
 			// A shortcut belongs to the editor. Tab moves through the controls of
 			// the slot in the tab order, so the browser keeps it.

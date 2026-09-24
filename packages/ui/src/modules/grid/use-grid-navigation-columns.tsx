@@ -14,6 +14,7 @@ import {
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { GRID_ROLE } from './engine/grid-constants'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
@@ -200,13 +201,16 @@ function setScrollMargin(
  * @internal
  */
 export function GridNavCell({
-	row,
-	col,
+	row = -1,
+	col = -1,
+	stop,
 	children,
 }: {
-	row: number
-	col: number
-	children: ReactNode
+	row?: number
+	col?: number
+	/** The item key of a one-stop row, whose one cell this marks in place of `row`/`col`. */
+	stop?: string
+	children?: ReactNode
 }) {
 	const store = useGridNavContext()
 
@@ -214,7 +218,10 @@ export function GridNavCell({
 
 	const isActive = useSyncExternalStore(
 		store.subscribe,
-		useCallback(() => store.isActive(row, col), [store, row, col]),
+		useCallback(
+			() => (stop === undefined ? store.isActive(row, col) : store.isStopActive(stop)),
+			[store, row, col, stop],
+		),
 		() => false,
 	)
 
@@ -296,7 +303,7 @@ export function seatingCellProps<T>(args: {
 			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
 			if (inCell && !fromInteractiveContent(event.target)) {
-				event.currentTarget.closest<HTMLElement>('[role="grid"]')?.focus()
+				event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
 				moveTo({ row: rowIdx, col: colIdx })
 			}
@@ -305,6 +312,39 @@ export function seatingCellProps<T>(args: {
 		},
 	}
 }
+
+/**
+ * The props of the one cell of a one-stop row: a group header, a group total,
+ * or a detail panel. They are the element id that `aria-activedescendant`
+ * names, the `gridcell` role, and a press that seats the cursor on the row.
+ * A press on focusable content in the cell stands down, as on a data cell.
+ * The header's toggle and a control in a panel are such content. The props
+ * are empty while the cursor is off.
+ *
+ * @internal
+ */
+export function useGridNavStopProps(key: string): ComponentProps<'td'> {
+	const store = useGridNavContext()
+
+	if (!store.enabled) return NO_STOP_PROPS
+
+	return {
+		id: store.stopId(key),
+		role: 'gridcell',
+		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
+			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+
+			if (!inCell || fromInteractiveContent(event.target)) return
+
+			event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
+
+			store.seatStop(key)
+		},
+	}
+}
+
+/** The props of a one-stop cell while the cursor is off: none. @internal */
+const NO_STOP_PROPS: ComponentProps<'td'> = {}
 
 /**
  * Projects the read-only grid's data columns into navigable ones. Each gains a

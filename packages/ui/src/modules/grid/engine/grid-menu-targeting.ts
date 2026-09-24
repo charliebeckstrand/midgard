@@ -1,5 +1,6 @@
 import type { MouseEvent, RefObject } from 'react'
 import type { GridMenuItem } from '../types'
+import { GRID_ROLE } from './grid-constants'
 
 /** Opens the menu with a point's resolved items; an empty/absent set no-ops. @internal */
 export type CommitMenu = (
@@ -92,7 +93,7 @@ export function openKeyboardMenu(
 	commit: CommitMenu,
 	returnFocus: RefObject<HTMLElement | null>,
 ): void {
-	const grid = target.closest<HTMLElement>('[role="grid"]')
+	const grid = target.closest<HTMLElement>(GRID_ROLE)
 
 	// The cursor marks its gridcell alone. An applied filter and an active group
 	// mark their header buttons with the same attribute, and the header comes

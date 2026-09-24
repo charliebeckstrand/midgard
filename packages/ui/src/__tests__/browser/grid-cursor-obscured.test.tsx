@@ -145,6 +145,51 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		)
 	})
 
+	it('keeps the pinned side inset under a column-group band', async () => {
+		// A group band never covers a pinned column. The band row puts a sticky
+		// filler over it, so the first header row still gives the pinned width.
+		const groups: GridColumnGroup[] = [
+			{ id: 'who', title: 'Who', columns: ['name'] },
+			{ id: 'work', title: 'Work', columns: ['role'] },
+		]
+
+		renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					header={{ position: 'sticky' }}
+					maxHeight="200px"
+					columns={columns}
+					columnGroups={groups}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		const pinnedHeader = present(
+			grid.querySelector<HTMLElement>('th[data-grid-col="name"]'),
+			'th[data-grid-col="name"]',
+		)
+
+		grid.focus()
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: 'ArrowRight' })
+
+		await waitFor(() => expect(grid.querySelector('[data-active]')).not.toBeNull())
+
+		const active = present(grid.querySelector('[data-active]'), '[data-active]')
+
+		expect(Number.parseFloat(active.style.scrollMarginLeft)).toBeCloseTo(
+			pinnedHeader.getBoundingClientRect().width,
+			0,
+		)
+	})
+
 	it('keeps the active cell below both sticky header rows of a grid with column groups', async () => {
 		const groups: GridColumnGroup[] = [{ id: 'work', title: 'Work', columns: ['role'] }]
 

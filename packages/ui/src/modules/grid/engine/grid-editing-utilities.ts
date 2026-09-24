@@ -1,5 +1,6 @@
 import { FOCUSABLE_SELECTOR } from '../../../utilities'
 import type { GridCellRef } from '../grid-editing-types'
+import { GRID_ROLE } from './grid-constants'
 
 /** The primitive-typed inline editor the grid mounts when a column supplies no `editCell` slot. @internal */
 export type EditorKind = 'text' | 'number' | 'boolean'
@@ -443,7 +444,7 @@ export const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable
  * @internal
  */
 export function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
-	return grid !== null && node?.closest('[role="grid"]') === grid
+	return grid !== null && node?.closest(GRID_ROLE) === grid
 }
 
 /**
