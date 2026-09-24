@@ -190,7 +190,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			{...(stopOnRow ? reorderProps : {})}
 			data-slot="list-item"
 			data-item-id={id}
-			data-active={dataAttr(dragging)}
+			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
 			data-interactive={dataAttr(interactive)}
 			className={cn(
