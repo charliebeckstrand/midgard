@@ -1,9 +1,4 @@
-import {
-	imposesConstraint,
-	isEmptyValue,
-	RANGE_OPERATORS,
-	VALUELESS_OPERATORS,
-} from './query-evaluate'
+import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
@@ -59,11 +54,11 @@ function describeRange(
 ): QuerySummaryRuleToken {
 	const [lo, hi] = value as unknown[]
 
-	if (!isEmptyValue(lo) && !isEmptyValue(hi)) {
+	if (!isBlank(lo) && !isBlank(hi)) {
 		return { kind: 'rule', id, field, operator, value: `${lo} and ${hi}` }
 	}
 
-	return isEmptyValue(lo)
+	return isBlank(lo)
 		? { kind: 'rule', id, field, operator: '≤', value: `${hi}` }
 		: { kind: 'rule', id, field, operator: '≥', value: `${lo}` }
 }

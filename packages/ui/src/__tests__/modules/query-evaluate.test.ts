@@ -115,6 +115,12 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', 5, [10, 20, 30])).toBe(true)
 	})
 
+	it('reads a whitespace-only between bound as open', () => {
+		expect(matchQueryRule('between', -5, ['  ', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 100, [10, '\t'])).toBe(true)
+	})
+
 	it('reads a null between bound as open', () => {
 		expect(matchQueryRule('between', 5, [null, 10])).toBe(true)
 
@@ -378,6 +384,21 @@ describe('matchQueryRule · properties', () => {
 
 		expect(matchQueryRule('between', value, ['', bound])).toBe(matchQueryRule('lte', value, bound))
 	})
+
+	// A bound of whitespace only is blank, as `isEmptyValue` reads it. So it is
+	// open, and it does not read as the number 0.
+	test.prop([numeric(), numeric(), fc.constantFrom(' ', '  ', '\t', '\n')])(
+		'opens a whitespace-only between bound',
+		(value, bound, blank) => {
+			expect(matchQueryRule('between', value, [bound, blank])).toBe(
+				matchQueryRule('gte', value, bound),
+			)
+
+			expect(matchQueryRule('between', value, [blank, bound])).toBe(
+				matchQueryRule('lte', value, bound),
+			)
+		},
+	)
 })
 
 /** One child of a generated tree: its truth, and how it joins the child before it. */

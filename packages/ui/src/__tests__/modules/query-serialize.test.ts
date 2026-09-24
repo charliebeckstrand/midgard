@@ -257,6 +257,7 @@ describe('formatQuerySql', () => {
 		['between', [18, 65], '"name" BETWEEN ? AND ?', [18, 65]],
 		['between', [18, ''], '"name" >= ?', [18]],
 		['between', ['', 65], '"name" <= ?', [65]],
+		['between', ['  ', 65], '"name" <= ?', [65]],
 		['before', '2026-01-01', '"name" < ?', ['2026-01-01']],
 		['after', '2026-01-01', '"name" > ?', ['2026-01-01']],
 		['isTrue', null, '"name" = ?', [true]],

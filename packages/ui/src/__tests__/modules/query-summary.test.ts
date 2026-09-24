@@ -97,6 +97,10 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(ageField, { operator: 'between', value: ['', 65] })])).toBe('Age ≤ 65')
 	})
 
+	it('renders a whitespace-only bound as open, as the evaluator reads it', () => {
+		expect(line([rule(ageField, { operator: 'between', value: ['  ', 65] })])).toBe('Age ≤ 65')
+	})
+
 	it('drops a scalar operator whose value is an array, along with its combinator', () => {
 		// The evaluator reads such a value as no constraint.
 		expect(

@@ -50,9 +50,15 @@ function asNumber(value: unknown): number {
 	return typeof value === 'number' ? value : Number(value)
 }
 
-/** True for a nullish or empty-string range bound, treated as open-ended. @internal */
+/**
+ * Whether a range bound is blank, so that the bound is open-ended. A nullish
+ * bound, and a string that is empty or holds only whitespace, are blank. The
+ * evaluator, the SQL format, and the summary all read a bound through it.
+ *
+ * @internal
+ */
 export function isBlank(value: unknown): boolean {
-	return value == null || value === ''
+	return value == null || (typeof value === 'string' && value.trim() === '')
 }
 
 /**
