@@ -255,22 +255,23 @@ export const k = {
 	// `projection.outline`, which it stops forwarding to `<Table>` when outlined.
 	//
 	// `border-spacing-0` keeps the cells flush. To avoid doubling every interior
-	// line, each cell draws only its right and bottom rule; the two open outer edges
-	// close with a top rule on the first header row (riding the sticky header) and a
-	// left rule on each row's first cell (riding a frozen leading column). All cast
+	// line, each cell draws only its inline-end and bottom rule; the two open outer
+	// edges close with a top rule on the first header row (riding the sticky header)
+	// and an inline-start rule on each row's first cell (riding a frozen leading
+	// column). The sides are logical, so a right-to-left grid mirrors them. All cast
 	// from the `<table>` onto its descendants — like the table's own outline — so
 	// cells read no context and render in RSC. Full literals for Tailwind's scanner;
 	// keep the subtle tint in step with `kata/table`'s `projection.outline`.
 	outline: {
 		// Border model: separate, flush cells.
 		table: ['border-separate', 'border-spacing-0'],
-		// Interior gridlines plus the right/bottom outer edges: every cell. The tint
-		// is an all-sides `border-color`; only the sided widths below render it, so the
-		// top/left rules inherit the same colour without repeating it.
+		// Interior gridlines plus the inline-end/bottom outer edges: every cell. The
+		// tint is an all-sides `border-color`; only the sided widths below render it,
+		// so the top/inline-start rules inherit the same colour without repeating it.
 		cell: [
-			'[&>*>tr>td]:border-r',
+			'[&>*>tr>td]:border-e',
 			'[&>*>tr>td]:border-b',
-			'[&>*>tr>th]:border-r',
+			'[&>*>tr>th]:border-e',
 			'[&>*>tr>th]:border-b',
 			'[&>*>tr>td]:border-zinc-950/5',
 			'dark:[&>*>tr>td]:border-white/5',
@@ -279,8 +280,9 @@ export const k = {
 		],
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
-		// Left outer edge: each row's first cell, riding a frozen leading column.
-		left: ['[&>*>tr>*:first-child]:border-l'],
+		// Inline-start outer edge: each row's first cell, riding a frozen leading
+		// column.
+		start: ['[&>*>tr>*:first-child]:border-s'],
 	},
 	// The toolbar region above the table — see `GridToolbar`, the single home for
 	// the grid's above-table controls. A vertical stack of the top control row and,

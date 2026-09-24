@@ -38,7 +38,7 @@ export function condensedTableClass(condensed: boolean, base: string): string {
  * @internal
  */
 export function outlineTableClass(outline: boolean | undefined): string {
-	return outline ? cn(k.outline.table, k.outline.cell, k.outline.top, k.outline.left) : ''
+	return outline ? cn(k.outline.table, k.outline.cell, k.outline.top, k.outline.start) : ''
 }
 
 /**

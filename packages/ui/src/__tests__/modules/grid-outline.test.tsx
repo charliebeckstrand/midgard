@@ -34,26 +34,27 @@ describe('Grid outline', () => {
 		expect(table).toHaveClass('border-spacing-0')
 	})
 
-	it('projects a right/bottom rule per cell plus a top/left outer frame', () => {
+	it('projects an inline-end/bottom rule per cell plus a top/inline-start outer frame', () => {
 		renderUI(<Grid outline columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = screen.getByRole('table')
 
-		// Interior gridlines + the right/bottom outer edges, on every cell.
-		expect(table).toHaveClass('[&>*>tr>td]:border-r')
+		// Interior gridlines + the inline-end/bottom outer edges, on every cell.
+		expect(table).toHaveClass('[&>*>tr>td]:border-e')
 
 		expect(table).toHaveClass('[&>*>tr>td]:border-b')
 
-		expect(table).toHaveClass('[&>*>tr>th]:border-r')
+		expect(table).toHaveClass('[&>*>tr>th]:border-e')
 
 		expect(table).toHaveClass('[&>*>tr>th]:border-b')
 
-		// Top edge on the first header row (rides the sticky header); left edge on each
-		// row's first cell (rides a frozen leading column). Together they close the two
-		// edges the right/bottom scheme leaves open, without doubling any interior line.
+		// Top edge on the first header row (rides the sticky header); inline-start edge
+		// on each row's first cell (rides a frozen leading column). Together they close
+		// the two edges the inline-end/bottom scheme leaves open, without doubling any
+		// interior line.
 		expect(table).toHaveClass('[&>thead>tr:first-child>th]:border-t')
 
-		expect(table).toHaveClass('[&>*>tr>*:first-child]:border-l')
+		expect(table).toHaveClass('[&>*>tr>*:first-child]:border-s')
 	})
 
 	it('does not forward the collapse-mode Table outline projection', () => {
@@ -71,7 +72,7 @@ describe('Grid outline', () => {
 
 		expect(table).not.toHaveClass('border-separate')
 
-		expect(table).not.toHaveClass('[&>*>tr>td]:border-r')
+		expect(table).not.toHaveClass('[&>*>tr>td]:border-e')
 	})
 
 	it('defaults a bare `striped` to odd parity when outlined', () => {
