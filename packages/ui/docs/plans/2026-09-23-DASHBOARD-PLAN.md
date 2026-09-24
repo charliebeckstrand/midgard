@@ -145,22 +145,137 @@ that effective query to rows with `evaluateQuery`. The module fetches no data.
 
 ## 9. Version two: the registry
 
-The registry follows `ChatEmbedRegistry`. A widget kind is a renderer plus its default `ratio`
-and `minWidth`. A `DashboardSpec` holds the tiles, the layout, and the scope as plain data. It
-enables "add tile", presets, and a saved board. Tiles then mount through the `Mount` primitive.
+The registry follows `ChatEmbedRegistry`. A widget kind is a renderer plus the demands of its
+tile. The app registers the kinds by name with `DashboardWidgetProvider`. A spec tile names a
+kind, and `DashboardTiles` renders one `DashboardTile` for each spec tile. The dashboard still
+imports no widget, because the app writes each renderer. The registry enables "add tile",
+presets, and a saved board.
+
+### 9.1 Types
 
 ```ts
-type DashboardWidget<Options> = {
-  render: (options: Options) => ReactNode
+type DashboardSpecTile = {
+  id: string
+  widget: string
+  title?: string
+  description?: string
+  options?: unknown // plain data that the renderer reads
+}
+
+type DashboardWidgetRenderer = (tile: DashboardSpecTile) => ReactNode
+
+type DashboardWidget = {
+  render: DashboardWidgetRenderer
   ratio?: number
   minWidth?: number
+  defaultSize?: { w: number; h?: number }
+  fallback?: ReactNode // what the tile shows while the content suspends or is held
 }
+
+type DashboardWidgetRegistry = {
+  widgets: Readonly<Record<string, DashboardWidget>>
+  fallback?: DashboardWidgetRenderer // draws a spec tile whose kind no widget claims
+  mount?: Mount
+}
+
 type DashboardSpec = {
-  tiles: { id: string; widget: string; title?: string; options: unknown }[]
+  tiles: DashboardSpecTile[]
   layout: DashboardLayoutItem[]
   filter?: QueryGroup
 }
 ```
+
+The renderer gets the spec tile whole, as a chat renderer gets its part. `options` arrives as
+`unknown`, because the dashboard cannot know what the app saved. The cast belongs at the
+registration, where the kind and the options are agreed. The renderer returns an element, and
+the component of that element reads the scope with the hooks, as in a JSX tile.
+
+The plan sketch had a generic `DashboardWidget<Options>`. A registry of mixed kinds erases the
+parameter at once, so the generic adds no safety. The chat pattern is also the house pattern.
+
+### 9.2 Composition
+
+```tsx
+const widgets = {
+  revenue: { render: (tile) => <Revenue {...(tile.options as RevenueOptions)} />, ratio: 16 / 9 },
+  units: { render: () => <Units />, minWidth: 160, defaultSize: { w: 6, h: 16 } },
+}
+
+<DashboardWidgetProvider widgets={widgets}>
+  <Dashboard
+    aria-label="Sales"
+    layout={{ value: spec.layout, onValueChange: (layout) => setSpec({ ...spec, layout }) }}
+    filter={{ value: spec.filter, onValueChange: (filter) => setSpec({ ...spec, filter }) }}
+  >
+    <DashboardTiles tiles={spec.tiles} actions={(tile) => <Remove id={tile.id} />} />
+  </Dashboard>
+</DashboardWidgetProvider>
+```
+
+`DashboardTiles` is a child of `Dashboard`, not a `spec` prop on it. A `spec` binding would bind
+the layout and the filter a second time, beside the `layout` and `filter` bindings, and the
+two could disagree. As a child, each value keeps one binding. JSX tiles and spec tiles can also
+share one board.
+
+`DashboardSpec` is therefore a type, not a binding. It names the shape of a saved board: the
+app writes the three fields to storage and reads them back.
+
+### 9.3 The provider
+
+Nesting merges, as in `ChatEmbedProvider`. An inner provider adds its widgets to the widgets of
+an outer provider, and it wins on a name that they share. Its `fallback` and its `mount` stand
+in only where it sets them. A second entry point can then ship the chart adapters, and the app
+adds its own kinds around them.
+
+Hoist `widgets` out of the render. A fresh object in each render is a fresh registry, and each
+spec tile then renders again.
+
+### 9.4 A kind that no widget claims
+
+A spec tile whose kind no widget claims keeps its cell and its chrome. Its content box states
+the gap: "This dashboard cannot show a “forecast” tile." A provider `fallback` replaces that
+line. A saved board that outlives a kind therefore still renders, the layout does not shift,
+and the user can remove the tile. The tile boundary does not catch it, because nothing threw.
+
+### 9.5 Mount
+
+`DashboardTile` takes `mount`, the `Mount` policy of its content:
+
+- `always`, the default, renders the content at once, as in version one.
+- `lazy` holds the content until the tile comes near the viewport, and then keeps it.
+- `active` also unmounts the content when the tile leaves the viewport.
+
+A held tile shows its `fallback`. Its cell already holds the space, so nothing shifts when the
+content arrives. The provider `mount` applies to each spec tile.
+
+The default is `always`, and not the `lazy` of the chat. At load, most of a board is on screen.
+A lazy default adds an observer and a placeholder frame to each visible tile, to spare the few
+tiles under the fold. A transcript is the opposite case: most of its embeds are off screen.
+
+### 9.6 A tile with no entry
+
+`DashboardTile` takes `defaultSize`: the span of the tile when the layout holds no entry for it.
+Without it, the tile takes 8 columns, and a free-form tile takes 18 rows. A widget carries a
+`defaultSize`, so an added stat takes a small span and an added grid takes the full width. The
+tile still takes a new row under the lowest tile, and the first commit writes its entry. The
+engine reads the value in `resolveLayout`, through the tile demands.
+
+### 9.7 Render cost
+
+`DashboardTiles` renders each spec tile through a memoized component, keyed by the tile `id`. A
+spec tile that keeps its object, under a registry that keeps its object, does not render again
+when the app commits a new layout. A drag preview renders no spec tile, as in version one.
+
+### 9.8 Out of scope
+
+These items stay in the backlog, and the registry enables each of them:
+
+- The tile actions: remove, duplicate, and expand to a dialog. `DashboardTiles` takes an
+  `actions` render function, so an app can place its own remove control now.
+- The pure spec operations. A remove must also drop the layout entry of the tile. Else the
+  entry stays in the saved layout, and its space stays open.
+- A validator for a spec that the app reads from storage.
+- Presets.
 
 ## 10. Verification
 
@@ -169,3 +284,7 @@ type DashboardSpec = {
   boundaries, and the scope.
 - `biome check`, `turbo run check-types`, and the boundary suites.
 - The docs demo in the browser: a drag into free space, a reorder, a resize, and a cross-filter.
+- For the registry: component tests for a registered kind, a kind that no widget claims, the
+  merge of nested providers, the demands that a widget gives its tile, the SSR markup of a spec
+  tile, each `mount` policy, and a commit that renders no unchanged spec tile. A docs demo adds
+  a tile from a menu, removes a tile, and shows the spec as plain data.
