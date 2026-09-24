@@ -14,9 +14,10 @@ import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } 
  * open then moved the rows in view up by the panel. The windowed bodies have
  * the same cases in `grid-virtualized-scroll-anchor.test.tsx`.
  *
- * The case above the viewport runs only without `resizable`. A resizable grid
- * renders a `<colgroup>`, and Chromium then selects the first `<col>` as its
- * anchor. That node does not move, so no native correction holds the view.
+ * Each case runs with and without `resizable`. A resizable grid renders a
+ * `<colgroup>`, which the native anchor skips. Before, Chromium selected the
+ * first `<col>` as its anchor. That node does not move, so no native correction
+ * held the view when a panel above the viewport opened or closed.
  */
 describe('grid master-detail body under native scroll anchoring (real browser)', () => {
 	type Item = { id: number; name: string }
@@ -131,44 +132,44 @@ describe('grid master-detail body under native scroll anchoring (real browser)',
 		})
 	}
 
-	it('holds the view still when a panel above the viewport opens and closes (resizable: false)', async () => {
-		const { scroll, body, control, dataRows } = await renderGrid(false)
+	for (const resizable of [true, false]) {
+		it(`holds the view still when a panel above the viewport opens and closes (resizable: ${resizable})`, async () => {
+			const { scroll, body, control, dataRows } = await renderGrid(resizable)
 
-		// Once in the middle, and once at the scroll end, where a close above the
-		// viewport also moves the end.
-		for (const at of [1000, scroll.scrollHeight]) {
-			scroll.scrollTop = at
+			// Once in the middle, and once at the scroll end, where a close above the
+			// viewport clamps the offset before the panel opens again.
+			for (const at of [1000, scroll.scrollHeight]) {
+				scroll.scrollTop = at
 
-			await settle(4)
+				await settle(4)
 
-			const top = scroll.getBoundingClientRect().top
+				const top = scroll.getBoundingClientRect().top
 
-			const above = present(
-				dataRows()
-					.filter((row) => row.getBoundingClientRect().bottom < top)
-					.at(-2),
-				'a row above the viewport',
-			)
+				const above = present(
+					dataRows()
+						.filter((row) => row.getBoundingClientRect().bottom < top)
+						.at(-2),
+					'a row above the viewport',
+				)
 
-			const inView = present(
-				dataRows().find((row) => row.getBoundingClientRect().top > top + 50),
-				'a row in view',
-			)
+				const inView = present(
+					dataRows().find((row) => row.getBoundingClientRect().top > top + 50),
+					'a row in view',
+				)
 
-			const anchor = () =>
-				body.querySelector<HTMLElement>(`:scope > tr[data-grid-row="${inView.dataset.gridRow}"]`)
+				const anchor = () =>
+					body.querySelector<HTMLElement>(`:scope > tr[data-grid-row="${inView.dataset.gridRow}"]`)
 
-			const beforeOpen = inView.getBoundingClientRect().top
+				const key = Number(above.dataset.gridRow)
 
-			control.set(new Set([Number(above.dataset.gridRow)]))
+				for (const open of [true, false, true]) {
+					const before = present(anchor(), 'the anchor').getBoundingClientRect().top
 
-			expect(await sampleDrift(anchor, beforeOpen, 20)).toBeLessThanOrEqual(1)
+					control.set(open ? new Set([key]) : new Set())
 
-			const beforeClose = present(anchor(), 'the anchor').getBoundingClientRect().top
-
-			control.set(new Set())
-
-			expect(await sampleDrift(anchor, beforeClose, 20)).toBeLessThanOrEqual(1)
-		}
-	})
+					expect(await sampleDrift(anchor, before, 20)).toBeLessThanOrEqual(1)
+				}
+			}
+		})
+	}
 })
