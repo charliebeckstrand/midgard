@@ -18,7 +18,7 @@ const root = defineRecipe({
 })
 
 const step = defineRecipe({
-	base: ['group relative text-left', 'outline-none', ...disabled, ...cursor],
+	base: ['group relative text-start', 'outline-none', ...disabled, ...cursor],
 	orientation: {
 		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
 		vertical: [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor],

@@ -63,7 +63,7 @@ const bubble = defineRecipe({
  */
 const tool = {
 	base: ['rounded-xl border border-current/20 px-3 py-2'],
-	head: [flex.row, 'w-full items-center gap-2 text-left', size.sm],
+	head: [flex.row, 'w-full items-center gap-2 text-start', size.sm],
 	// A disclosure head is a button: give it the pointer and the package's own
 	// focus ring rather than the UA outline. `inset` and not `ring`, because the
 	// step is a bordered box — the case `sen.focus`'s own doc names for it, and

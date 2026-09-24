@@ -36,7 +36,7 @@ const itemShell = [
 	...cursor,
 	'gap-2',
 	size.md,
-	'text-left',
+	'text-start',
 	rounded.lg,
 ]
 

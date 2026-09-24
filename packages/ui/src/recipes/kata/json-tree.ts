@@ -51,7 +51,7 @@ export const k = {
 	toggle: [
 		flex.row,
 		flex.fill,
-		'min-w-0 text-left',
+		'min-w-0 text-start',
 		...cursor,
 		'outline-none',
 		'gap-1',

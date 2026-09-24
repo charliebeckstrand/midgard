@@ -35,7 +35,7 @@ const itemBase = defineRecipe({
 		'group relative z-10',
 		flex.row,
 		'w-full',
-		'text-left',
+		'text-start',
 		mini.square,
 	],
 	size: {

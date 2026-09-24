@@ -68,7 +68,7 @@ function FitExample() {
 							<button
 								key={line}
 								type="button"
-								className="block w-full py-2 text-left text-sm"
+								className="block w-full py-2 text-start text-sm"
 								onClick={() => setOpened(line)}
 							>
 								{line}.
