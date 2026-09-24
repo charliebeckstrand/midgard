@@ -1507,6 +1507,7 @@ export function GridData<T>({
 				scrollRef={scrollRef}
 				maxHeight={maxHeight}
 				expandable={detail.active}
+				grouped={groupingMode.active}
 				virtualized={gated.virtualize}
 			>
 				{cursorContent}
