@@ -63,9 +63,25 @@ The sweep wants to land per-owner rather than as one commit, because each conver
 
    No test changed. Before and after, `test:related` over the eight files ran 43 files and 1,136 tests, and every jsdom `grid` file ran 63 files and 1,097 tests. The Chromium grid suites ran 54 files and 194 tests. A probe that is not in the tree held the presence behavior: with no handler, Enter stays unclaimed; with one, Enter reaches the newest handler; when the handler goes, Enter is free again.
 
-3. **The component state hooks** — `use-combobox-state.ts`, `use-color-state.ts`, `use-accordion-selection.ts`, `use-password-strength.ts`, `use-resizable-panel.ts`, `use-hold-button-gesture.ts`, `use-form-reducer.ts`'s two callback refs, and `toast-alert.tsx`.
+3. **The component state hooks — done.** `use-combobox-state.ts`, `use-color-state.ts`, `use-accordion-selection.ts`, `use-password-strength.ts`, `use-resizable-panel.ts`, `use-hold-button-gesture.ts`, `use-form-reducer.ts`'s two callback refs, and `toast-alert.tsx`.
 
 `use-controllable.ts`'s `onValueChangeRef` is a candidate that sits beside an excluded shadow in the same hook; convert the callback and leave `valueRef` alone.
+
+   Eighteen render-phase shadows went, over fourteen files, and the count fell from 69 to 51. Seventeen became effect events, and one went with no replacement. The list above gave eleven of them. The other seven fit the rule and are in this increment too: `use-open-complete.ts`, the PDF highlight press, `use-password-confirm-state.ts`, the range slider's two drag callbacks, the chart export menu, and the CVV input's `latestRef`.
+
+   - **`useControllable` stays, and the list above was wrong about it.** Its setter runs during render: `useTooltipState` closes a tooltip that turns disabled in its render body (`use-tooltip-state.ts:77`), through `useFloatingDisclosure`'s `setOpen`. An effect event throws when render calls it. The conversion passed the full jsdom suite, and two Chromium tests caught it: `grid-header-truncate-tooltip` and `grid-cell-truncate-tooltip` disable a tooltip during a column drag-resize. A read of every setter binding had missed the call, because it goes through a setter that the disclosure hook hands on. `onValueChangeRef` is a render-phase shadow again, with a comment that says why.
+   - **One deletion.** `use-accordion-selection.ts`'s `onValueChangeRef` fed only `useControllable`, which reads its callback off a ref behind a stable `setValue`. The shadow and its `useCallback` went, and the handler is a plain closure, as increment 1 found.
+   - **`validateRef` stays.** The form reducer runs the validators, and a reducer runs during render. That is why the list above names two callback refs in `use-form-reducer.ts`, not three.
+   - **Two changed shapes.** `onInvalidSubmit`'s effect event builds its payload itself, so the payload is still built only when a callback reads it. The CVV input's `latestRef` held a value, a setter, and a callback in one object; the effect body is now one effect event that takes the length and the brand, so the effect keeps its dependencies.
+   - **A comment that this increment corrects.** `use-open-complete.ts` kept a ref because `report` must be one identity for the mount, and an effect event is not. `report` stays a `[]`-stable `useCallback`, and it calls the effect event, so it has both properties.
+
+   No test changed. Before and after, the full jsdom suite ran 541 files and 7,862 tests, and the full Chromium suite ran 149 files and 737 tests.
+
+## What remains
+
+Six callback refs stay, each for a reason this plan records. `use-floating-disclosure.ts`'s `gateRef` and `use-keybindings.ts`'s `ignoreRef` feed a presence test, and `bindingsRef` is a map of handlers (see "Decide before converting"). `use-grid-navigation.ts`'s `storeActionsRef` is a pair of handlers that a child's layout effect calls (increment 2). `use-form-reducer.ts`'s `validateRef` and `use-controllable.ts`'s `onValueChangeRef` are called during render (increment 3).
+
+A render-phase caller is the one fault this sweep cannot see in a file by itself: the call can reach the callback through a setter that another hook hands on. A conversion therefore needs the Chromium suite as well as jsdom before it lands.
 
 ## Proof
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type PointerEvent, type RefObject, useCallback, useEffectEvent, useRef } from 'react'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
 import type { OverlapMode, ThumbButtonRefs, ThumbIndex } from './types'
@@ -125,13 +125,9 @@ export function useRangePointer(opts: {
 
 	// The handlers below run from pointer events, not from render. A new
 	// callback must not re-arm a gesture that is already in flight.
-	const onDragStartRef = useRef(onDragStart)
+	const reportDragStart = useEffectEvent((thumb: ThumbIndex) => onDragStart?.(thumb))
 
-	onDragStartRef.current = onDragStart
-
-	const onDragEndRef = useRef(onDragEnd)
-
-	onDragEndRef.current = onDragEnd
+	const reportDragEnd = useEffectEvent((thumb: ThumbIndex) => onDragEnd?.(thumb))
 
 	// One entry point for the four routes that grab a thumb. Every grab reports
 	// once, and `endDrag` always has a start to pair with.
@@ -139,7 +135,7 @@ export function useRangePointer(opts: {
 		draggingRef.current = thumb
 		gestureThumbRef.current = thumb
 
-		onDragStartRef.current?.(thumb)
+		reportDragStart(thumb)
 	}, [])
 
 	const valueFromPointer = useCallback(
@@ -275,7 +271,7 @@ export function useRangePointer(opts: {
 
 		// A press on the stack that did not move grabbed no thumb, so it closes no
 		// bracket. Every other route latched a thumb and owes one end.
-		if (grabbed !== null) onDragEndRef.current?.(grabbed)
+		if (grabbed !== null) reportDragEnd(grabbed)
 	}, [])
 
 	// `lostpointercapture` fires on every capture end: normal release,

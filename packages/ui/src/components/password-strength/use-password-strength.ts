@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useEffect, useMemo, useRef } from 'react'
+import { type ReactNode, useEffect, useEffectEvent, useMemo } from 'react'
 
 /** A single password requirement: a stable `id`, a display `label`, and a `test` predicate evaluated against the current value. */
 export type PasswordRule = {
@@ -95,12 +95,12 @@ export function usePasswordStrength({
 
 	const level: StrengthLevel = value.length === 0 ? 'empty' : deriveLevel(passedCount, rules.length)
 
-	const onChangeRef = useRef(onStrengthChange)
-
-	onChangeRef.current = onStrengthChange
+	const reportStrength = useEffectEvent((strength: PasswordStrengthChange) =>
+		onStrengthChange?.(strength),
+	)
 
 	useEffect(() => {
-		onChangeRef.current?.({
+		reportStrength({
 			score: passedCount,
 			max: rules.length,
 			level,

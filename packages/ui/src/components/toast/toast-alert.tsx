@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { announce, cn } from '../../core'
 import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/toast/types'
 import { k } from '../../recipes/kata/toast'
@@ -106,20 +106,18 @@ export function ToastAlert({
 
 	const focusHeldRef = useRef(false)
 
-	// Latest-ref: the unmount release must call the current resume without the
-	// effect keying on it — a dep change would release still-live holds mid-life.
-	const onResumeRef = useRef(onResume)
-
-	onResumeRef.current = onResume
+	// An effect event: the unmount release must call the current resume without
+	// the effect keying on it — a dep change would release still-live holds mid-life.
+	const resume = useEffectEvent(() => onResume())
 
 	// A toast removed while hovered or focused (close click, maxToasts eviction,
 	// programmatic dismiss) gets no mouseleave/blur, so release its holds here —
 	// otherwise the stuck count freezes auto-dismiss for every later toast.
 	useEffect(
 		() => () => {
-			if (hoverHeldRef.current) onResumeRef.current()
+			if (hoverHeldRef.current) resume()
 
-			if (focusHeldRef.current) onResumeRef.current()
+			if (focusHeldRef.current) resume()
 
 			// Reset so a re-show under <Activity> (effect cleanup runs while the
 			// refs persist) starts unheld — a stale flag would swallow the next

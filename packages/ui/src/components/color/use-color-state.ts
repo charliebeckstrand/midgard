@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import { useCallback, useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
 import { DEFAULT_HSVA } from './color-constants'
 import { clampHsva, sameColorValue, serializeColor, toHsva } from './color-utilities'
 import type { ColorFormat, Hsva } from './types'
@@ -61,8 +61,7 @@ export function useColorState({
 	const alphaRef = useRef(alpha)
 	alphaRef.current = alpha
 
-	const onChangeRef = useRef(onValueChange)
-	onChangeRef.current = onValueChange
+	const reportChange = useEffectEvent((external: string | Hsva) => onValueChange?.(external))
 
 	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
 	// same `value`, and the check must still run to snap the HSVA back (§7.2).
@@ -93,7 +92,7 @@ export function useColorState({
 		cacheRef.current = external
 
 		setInternal(normalized)
-		onChangeRef.current?.(external)
+		reportChange(external)
 	}, [])
 
 	return { hsva, setHsva }
