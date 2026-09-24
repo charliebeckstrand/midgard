@@ -27,7 +27,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 	// default density.
 	const ROW = 40
 
-	function renderGrid({ newRow }: { newRow?: 'top' } = {}) {
+	function renderGrid({ newRow }: { newRow?: 'top' | 'bottom' } = {}) {
 		const view = renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
@@ -74,19 +74,27 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 
 	/**
 	 * The part of the scroll container that no sticky chrome covers: below the
-	 * header and a top new-row slot, and above the horizontal scrollbar.
+	 * header and a top new-row slot, and above a bottom new-row slot and the
+	 * horizontal scrollbar.
 	 */
 	const clearBox = (scroll: HTMLElement) => {
 		const head = present(scroll.querySelector<HTMLElement>('thead'), 'thead')
 
 		const slot = scroll.querySelector<HTMLElement>('[data-slot="grid-new-row"]')
 
+		const bottomSlot = slot?.dataset.position === 'bottom'
+
 		const top = Math.max(
 			head.getBoundingClientRect().bottom,
-			slot?.getBoundingClientRect().bottom ?? 0,
+			(!bottomSlot && slot?.getBoundingClientRect().bottom) || 0,
 		)
 
-		return { top, bottom: scroll.getBoundingClientRect().top + scroll.clientHeight }
+		const edge = scroll.getBoundingClientRect().top + scroll.clientHeight
+
+		return {
+			top,
+			bottom: slot && bottomSlot ? Math.min(edge, slot.getBoundingClientRect().top) : edge,
+		}
 	}
 
 	/**
@@ -110,8 +118,8 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 		writes.length = 0
 	}
 
-	for (const newRow of [undefined, 'top'] as const) {
-		const label = newRow ? 'with a top new-row slot' : 'with no slot'
+	for (const newRow of [undefined, 'top', 'bottom'] as const) {
+		const label = newRow ? `with a ${newRow} new-row slot` : 'with no slot'
 
 		it(`keeps each cursor step clear of the sticky chrome, down and back up, ${label}`, async () => {
 			const { scroll, writes } = renderGrid({ newRow })

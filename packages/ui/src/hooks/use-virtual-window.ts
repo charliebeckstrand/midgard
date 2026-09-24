@@ -39,6 +39,14 @@ export type VirtualWindowOptions = {
 	 * @defaultValue 0
 	 */
 	scrollPaddingStart?: number
+	/**
+	 * The height in pixels of sticky content over the bottom edge of the
+	 * scroller, such as a sticky footer row. `scrollToIndex` aligns a row above
+	 * it, so the row does not go under it.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollPaddingEnd?: number
 }
 
 /**
@@ -163,8 +171,10 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * `scrollToIndex` aligns the real row. Sticky content over the top edge, such
  * as a sticky head, covers a row that aligns to the start. The caller passes
  * its height as `scrollPaddingStart`, and each alignment lands the row below
- * it. The spacers exclude the margin, so the caller renders them as before.
- * Both default to zero, and the call is then the same as before.
+ * it. Sticky content over the bottom edge passes its height as
+ * `scrollPaddingEnd`, and a row lands above it. The spacers exclude the
+ * margin, so the caller renders them as before. Each defaults to zero, and the
+ * call is then the same as before.
  *
  * The window is empty until the virtualizer measures a scroller of some
  * height. While the window is empty, `bottomSpacer` holds the height of every
@@ -192,6 +202,7 @@ export function useVirtualWindow({
 	overscan,
 	scrollMargin,
 	scrollPaddingStart,
+	scrollPaddingEnd,
 	getItemKey,
 	anchorTo,
 	followOnAppend,
@@ -207,7 +218,7 @@ export function useVirtualWindow({
 	// An undefined `getItemKey` leaves the library's index key in place: the
 	// virtualizer drops undefined options rather than writing them over its
 	// defaults. The same rule keeps the start anchor and no follow on the uniform
-	// path, and a zero scroll margin and padding where the caller gives none.
+	// path, and a zero scroll margin and paddings where the caller gives none.
 	const virtualizer = useVirtualizer({
 		count,
 		getScrollElement,
@@ -215,6 +226,7 @@ export function useVirtualWindow({
 		overscan,
 		scrollMargin,
 		scrollPaddingStart,
+		scrollPaddingEnd,
 		getItemKey,
 		anchorTo,
 		followOnAppend,

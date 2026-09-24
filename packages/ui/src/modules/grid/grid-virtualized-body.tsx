@@ -18,7 +18,7 @@ import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridSkeletonCells, GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
-import { slotInsets } from './use-grid-navigation-columns'
+import { slotInsets, stickyHeadInset } from './use-grid-navigation-columns'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
@@ -91,21 +91,21 @@ function GridInfiniteScrollTrailer<T>({
 	return null
 }
 
-/** The scroll margin and the start padding of the window, in pixels. @internal */
-type WindowOffsets = { scrollMargin: number; scrollPaddingStart: number }
+/** The scroll margin and the start and end padding of the window, in pixels. @internal */
+type WindowOffsets = { scrollMargin: number; scrollPaddingStart: number; scrollPaddingEnd: number }
 
-const NO_OFFSETS: WindowOffsets = { scrollMargin: 0, scrollPaddingStart: 0 }
+const NO_OFFSETS: WindowOffsets = { scrollMargin: 0, scrollPaddingStart: 0, scrollPaddingEnd: 0 }
 
 /**
  * Measures the content above the data body for the virtualizer. The scroll
  * margin is the distance from the top of the scroll content to the body: the
  * header and a top new-row slot. The start padding is the height of the sticky
- * part of that content, so an aligned row lands below it (WCAG 2.4.11). A
- * resize of the table measures again, and so does a new-row slot that mounts.
+ * part of that content, so an aligned row lands below it (WCAG 2.4.11). The end
+ * padding is the height of a bottom new-row slot, which sticks to the bottom
+ * edge. A resize of the table measures again, and so does a slot that mounts.
  *
- * @remarks The header position comes in as a flag, and the slot always sticks.
- * So the measure reads only boxes and no computed style, which costs a few
- * milliseconds for each header cell in jsdom.
+ * @remarks The header position comes in as a flag, so a grid with no sticky
+ * header reads no computed style. The slot always sticks.
  *
  * @internal
  */
@@ -134,16 +134,21 @@ function useWindowOffsets(
 				scroller.clientTop +
 				scroller.scrollTop
 
-			const head = stickyHeader ? (table.tHead?.getBoundingClientRect().height ?? 0) : 0
+			const slot = slotInsets(body)
 
-			const scrollPaddingStart = head + slotInsets(body).top
+			const next = {
+				scrollMargin,
+				scrollPaddingStart: (stickyHeader ? stickyHeadInset(table) : 0) + slot.top,
+				scrollPaddingEnd: slot.bottom,
+			}
 
 			// A change under one pixel moves no row, so it does not render again.
 			setOffsets((current) =>
-				Math.abs(current.scrollMargin - scrollMargin) < 1 &&
-				Math.abs(current.scrollPaddingStart - scrollPaddingStart) < 1
+				Math.abs(current.scrollMargin - next.scrollMargin) < 1 &&
+				Math.abs(current.scrollPaddingStart - next.scrollPaddingStart) < 1 &&
+				Math.abs(current.scrollPaddingEnd - next.scrollPaddingEnd) < 1
 					? current
-					: { scrollMargin, scrollPaddingStart },
+					: next,
 			)
 		}
 
@@ -208,9 +213,9 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	const bodyRef = useRef<HTMLTableSectionElement>(null)
 
 	// The header and a top new-row slot sit above the first row, and their sticky
-	// part covers the top edge. The window counts both, so `scrollToIndex` lands
-	// a row in full view below them.
-	const { scrollMargin, scrollPaddingStart } = useWindowOffsets(
+	// part covers the top edge. A bottom slot covers the bottom edge. The window
+	// counts each, so `scrollToIndex` lands a row in full view between them.
+	const { scrollMargin, scrollPaddingStart, scrollPaddingEnd } = useWindowOffsets(
 		bodyRef,
 		scrollRef,
 		props.stickyHeader,
@@ -223,6 +228,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 		overscan,
 		scrollMargin,
 		scrollPaddingStart,
+		scrollPaddingEnd,
 	})
 
 	// Fire the infinite-scroll load-more as the last rendered row nears the loaded

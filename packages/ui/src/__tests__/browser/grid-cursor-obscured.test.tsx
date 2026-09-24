@@ -63,9 +63,9 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			0,
 		)
 
-		// The margin must also take effect. Step the cursor past the bottom edge.
-		// Each active cell stays in full view, below the sticky header and above
-		// the bottom edge of the scroller.
+		// The margin must also take effect. Step the cursor past the bottom edge,
+		// then back past the top edge. Each active cell stays in full view, below
+		// the sticky header and above the bottom edge of the scroller.
 		const scroll = present(
 			grid.closest<HTMLElement>('[data-slot="grid-scroll"]'),
 			'[data-slot="grid-scroll"]',
@@ -90,6 +90,28 @@ describe('grid cursor focus not obscured (real browser)', () => {
 		}
 
 		expect(scroll.scrollTop).toBeGreaterThan(0)
+
+		// A step up can land on a cell that is inside the scroller but under the
+		// sticky header. Chromium's nearest scroll moves nothing for such a cell.
+		for (let step = 0; step < 8; step++) {
+			fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+			await waitFor(expectClear)
+		}
+
+		// The same holds on the column that does not stick. The steps above ran on
+		// the pinned column, which sticks on two axes.
+		for (const key of ['ArrowRight', 'ArrowDown', 'ArrowDown', 'ArrowDown', 'ArrowDown']) {
+			fireEvent.keyDown(grid, { key })
+
+			await waitFor(expectClear)
+		}
+
+		for (let step = 0; step < 8; step++) {
+			fireEvent.keyDown(grid, { key: 'ArrowUp' })
+
+			await waitFor(expectClear)
+		}
 	})
 
 	it('gives a cell behind a pinned column a matching side scroll-margin', async () => {

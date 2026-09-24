@@ -19,9 +19,41 @@ import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
 
 /**
+ * The height that a sticky header lays over the top edge of the scroll
+ * container, or zero when the header does not stick. It is the one source of
+ * the top inset for the cursor, the new-row slot, and the windowed body.
+ *
+ * @remarks Each header row reads its first cell, because the cells of a row
+ * stick together. A row covers down to its sticky `top` plus its height. Header
+ * rows that all stick at zero cover only the tallest row, not the whole head.
+ *
+ * @internal
+ */
+export function stickyHeadInset(table: HTMLTableElement): number {
+	let inset = 0
+
+	for (const row of table.tHead?.rows ?? []) {
+		const cell = row.cells[0]
+
+		if (!cell) continue
+
+		const style = getComputedStyle(cell)
+
+		if (style.position !== 'sticky' || style.top === 'auto') continue
+
+		const top = Number.parseFloat(style.top) || 0
+
+		inset = Math.max(inset, top + row.getBoundingClientRect().height)
+	}
+
+	return inset
+}
+
+/**
  * The insets that the grid's own sticky chrome would lay over a cell scrolled to
- * the viewport edge. Those are the sticky header's height (top) and the pinned
- * columns' widths (left/right), measured from the header row's sticky cells.
+ * the viewport edge. The top inset is the height that the sticky header covers
+ * (see {@link stickyHeadInset}). The side insets are the pinned columns' widths,
+ * measured from the first header row's sticky cells.
  * The new-row slot of an editable grid sticks too. Its height adds to the top
  * or the bottom inset of each other cell (see {@link slotInsets}). Applied as
  * the active cell's `scroll-margin` so `scrollIntoView` keeps it clear of that
@@ -42,9 +74,10 @@ function obscuringInsets(cell: HTMLElement): {
 	left: number
 	right: number
 } {
-	const headRow = cell.closest('table')?.querySelector<HTMLElement>('thead > tr')
+	const table = cell.closest('table')
 
-	let top = 0
+	const headRow = table?.querySelector<HTMLElement>('thead > tr')
+
 	let left = 0
 	let right = 0
 
@@ -56,14 +89,14 @@ function obscuringInsets(cell: HTMLElement): {
 
 			const box = headCell.getBoundingClientRect()
 
-			// A sticky-top header cell overlays the top edge; a pinned cell (sticky
-			// `left`/`right`) overlays that side — a pinned header is often both.
-			if (style.top !== 'auto') top = Math.max(top, box.height)
-
+			// A pinned cell (sticky `left`/`right`) overlays that side. The top edge
+			// comes from `stickyHeadInset`, which reads each header row.
 			if (style.left !== 'auto') left += box.width
 			else if (style.right !== 'auto') right += box.width
 		}
 	}
+
+	const top = table ? stickyHeadInset(table) : 0
 
 	const slot = slotInsets(cell)
 
@@ -88,6 +121,35 @@ export function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
 	const height = slot.getBoundingClientRect().height
 
 	return slot.dataset.position === 'top' ? { top: height, bottom: 0 } : { top: 0, bottom: height }
+}
+
+/**
+ * Scrolls the grid's own scroll container so the cell clears the sticky chrome
+ * at the top and the bottom edge. It runs after the cell's `scrollIntoView`.
+ * Chromium's `block: 'nearest'` does not scroll a cell that is inside the
+ * container, so it ignores the `scroll-margin` of a cell under the chrome. A
+ * cell of a nested grid with no scroll container of its own is not moved.
+ * @internal
+ */
+function clearStickyChrome(cell: HTMLElement, top: number, bottom: number): void {
+	const table = cell.closest('table')
+
+	const scroller = table?.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+	if (!scroller || scroller.querySelector('table') !== table) return
+
+	const box = scroller.getBoundingClientRect()
+
+	const edgeTop = box.top + scroller.clientTop + top
+
+	const edgeBottom = box.top + scroller.clientTop + scroller.clientHeight - bottom
+
+	const rect = cell.getBoundingClientRect()
+
+	// The top edge wins for a cell taller than the clear area.
+	if (rect.top < edgeTop) scroller.scrollTop -= edgeTop - rect.top
+	else if (rect.bottom > edgeBottom)
+		scroller.scrollTop += Math.min(rect.bottom - edgeBottom, rect.top - edgeTop)
 }
 
 /**
@@ -157,6 +219,8 @@ export function GridNavCell({
 			setScrollMargin(cell, 'scrollMarginRight', right)
 
 			cell.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+
+			clearStickyChrome(cell, top, bottom)
 		}
 
 		return () => {
