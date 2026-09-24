@@ -86,6 +86,8 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', 5, ['', ''])).toBe(true)
 
 		expect(matchQueryRule('between', 5, undefined)).toBe(true)
+
+		expect(matchQueryRule('between', 5, 7)).toBe(true)
 	})
 })
 
@@ -122,6 +124,51 @@ describe('evaluateQuery', () => {
 		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
 
 		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
+	})
+
+	it('drops a rule with no constraint from the fold, with its combinator', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(numberField), operator: 'gt', value: 20 },
+			{ ...createRule(textField), combinator: 'or', operator: 'contains', value: '' },
+		])
+
+		// `Age > 20 OR (blank)` reads as `Age > 20`, as the summary shows it.
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
+	})
+
+	it('drops a leading rule with no constraint, so the next rule leads', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), combinator: 'or', operator: 'gt', value: 20 },
+			{ ...createRule(textField), combinator: 'and', operator: 'contains', value: 'li' },
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Bob', age: 30 }))).toBe(false)
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
+	})
+
+	it('drops a group with no constraint from the fold', () => {
+		const blank = { ...createRule(textField), operator: 'contains', value: '' }
+
+		const tree = createGroup('and', [
+			{ ...createRule(numberField), operator: 'gt', value: 20 },
+			createGroup('or', [blank]),
+			createGroup('or'),
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
+	})
+
+	it('matches every row when no rule puts a constraint on it', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), combinator: 'or', operator: 'gt', value: '' },
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(true)
 	})
 })
 
@@ -336,6 +383,32 @@ describe('evaluateQuery · properties', () => {
 			)
 		},
 	)
+
+	// A blank rule puts no constraint on the rows. So it drops out of the fold
+	// wherever it sits, with either combinator, and the result does not change.
+	test.prop([
+		fc.array(leaf(), { minLength: 1, maxLength: 6 }),
+		fc.array(fc.record({ at: fc.nat(), combinator: fc.constantFrom<'and' | 'or'>('and', 'or') }), {
+			maxLength: 3,
+		}),
+	])('drops a blank rule wherever it sits', (leaves, blanks) => {
+		const children: QueryRule[] = leaves.map((item, index) => truthRule(item, index))
+
+		for (const [index, blank] of blanks.entries()) {
+			children.splice(blank.at % (children.length + 1), 0, {
+				id: `b${index}`,
+				type: 'rule',
+				combinator: blank.combinator,
+				field: 'blank',
+				operator: 'contains',
+				value: '',
+			})
+		}
+
+		const truths = leaves.map((item) => item.truth)
+
+		expect(evaluateQuery(createGroup('and', children), readTruths(truths))).toBe(foldLeft(leaves))
+	})
 
 	test.prop([fc.constantFrom<'and' | 'or'>('and', 'or')])(
 		'matches every row for an empty group',

@@ -325,7 +325,10 @@ export type QuerySql = {
  *
  * @internal
  */
-type Clause = true | { sql: string; params: unknown[] }
+type Clause = true | SqlClause
+
+/** A {@link Clause} that puts a constraint on the rows. @internal */
+type SqlClause = { sql: string; params: unknown[] }
 
 /** The mark for a parameter in a {@link Clause}. @internal */
 const SLOT = '\u0000'
@@ -410,31 +413,28 @@ function ruleClause(rule: QueryRule, column: string): Clause {
 	}
 }
 
-/**
- * Joins two clauses. `true` is the identity of `AND` and absorbs `OR`, so the
- * result keeps the evaluator's meaning for a node with no constraint.
- *
- * @internal
- */
-function join(left: Clause, combinator: QueryCombinator, right: Clause): Clause {
-	if (combinator === 'or' && (left === true || right === true)) return true
-
-	if (left === true) return right
-
-	if (right === true) return left
-
+/** Joins two clauses that each put a constraint on the rows. @internal */
+function join(left: SqlClause, combinator: QueryCombinator, right: SqlClause): SqlClause {
 	const keyword = combinator === 'or' ? 'OR' : 'AND'
 
 	return { sql: `(${left.sql} ${keyword} ${right.sql})`, params: [...left.params, ...right.params] }
 }
 
-/** Folds a group left to right, as the evaluator does. An empty group gives `true`. @internal */
+/**
+ * Folds a group left to right, as the evaluator does. A child with no
+ * constraint drops out with its combinator. A group with no constraint gives
+ * `true`.
+ *
+ * @internal
+ */
 function groupClause(group: QueryGroup, column: (field: string) => string): Clause {
-	let result: Clause | undefined
+	let result: SqlClause | undefined
 
 	for (const node of group.children) {
 		const clause =
 			node.type === 'group' ? groupClause(node, column) : ruleClause(node, column(node.field))
+
+		if (clause === true) continue
 
 		result = result === undefined ? clause : join(result, node.combinator ?? 'and', clause)
 	}
@@ -449,10 +449,11 @@ function groupClause(group: QueryGroup, column: (field: string) => string): Clau
  * Text matches ignore case.
  *
  * @remarks Each value goes into `params`, never into `sql`. A rule with no
- * constraint on the rows drops out, as it does in the evaluator. Such a rule
- * has an empty value, or an operator that the format does not know. So a group that joins such a
- * rule with `OR` also puts no constraint on the rows. When the full query puts
- * no constraint on the rows, `sql` is `''`, so the caller omits the `WHERE`.
+ * constraint on the rows drops out with its combinator, as it does in the
+ * evaluator. Such a rule has an empty value, or an operator that the format
+ * does not know. So `A OR (blank rule)` gives the condition for `A`. When the
+ * full query puts no constraint on the rows, `sql` is `''`, so the caller omits
+ * the `WHERE`.
  * The database compares a value with its own types. So when a column type
  * differs from the value type, the rows can differ from the evaluator's rows.
  *
