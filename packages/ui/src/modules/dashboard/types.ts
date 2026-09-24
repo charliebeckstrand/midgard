@@ -105,6 +105,10 @@ export type DashboardWidget = {
 	 * it. A stat can then take a small span, and a grid the full width.
 	 */
 	defaultSize?: DashboardTileSize
+	/** The smallest span of each tile of this kind in grid units. See the `minSize` prop of `DashboardTile`. */
+	minSize?: Partial<DashboardTileSize>
+	/** The largest span of each tile of this kind in grid units. See the `maxSize` prop of `DashboardTile`. */
+	maxSize?: Partial<DashboardTileSize>
 }
 
 /**
