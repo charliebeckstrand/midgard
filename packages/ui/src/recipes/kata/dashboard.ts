@@ -80,6 +80,44 @@ const heading = ['min-w-0 flex-1 truncate']
 const actions = ['flex shrink-0 items-center gap-1']
 
 /**
+ * The spark veil, which the card applies. A chart at the spark tier writes
+ * `data-tier="spark"` on its root, and the card reads it through `:has()`, so no
+ * code crosses the module boundary. The header then leaves the flow for a veil
+ * over the top of the content, and the sparkline takes the full height. This is
+ * the posture of the chart's own title at the spark tier.
+ */
+const veil = {
+	/**
+	 * In both modes, the header overlays the content on the popover surface. The
+	 * content box therefore keeps one height when edit mode switches.
+	 */
+	overlay: [
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:absolute',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:top-2',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:z-10',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:px-1',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:py-1',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
+		'has-[[data-tier=spark]]:*:data-[slot=card-header]:duration-150',
+		...mode(
+			'has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
+			'dark:has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
+		),
+	],
+	/**
+	 * At rest, the veil fades out and lets the pointer through, until the card is
+	 * hovered or holds focus. A tab onto a control of the header therefore shows
+	 * it. Edit mode leaves this off, so the grip stays in view.
+	 */
+	fade: [
+		'has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
+		'has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
+	],
+} as const
+
+/**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
@@ -171,6 +209,7 @@ export const k = {
 	header,
 	heading,
 	actions,
+	veil,
 	content,
 	expanded,
 	error,
