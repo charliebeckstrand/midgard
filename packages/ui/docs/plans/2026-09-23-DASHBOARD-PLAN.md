@@ -75,6 +75,7 @@ Each layer depends only on the layers under it.
 | `dashboard-responsive.ts` | The content-first re-pack, when a tile falls under its `minWidth` |
 | `dashboard-scope.ts` | Selections, the effective query for a tile, and the row predicate |
 | `dashboard-spec.ts` | The saved board as plain data, and the add, remove, and duplicate operations (version two) |
+| `dashboard-spec-parse.ts` | The guard for a stored spec: it repairs the spec and reports each change (built later) |
 | `dashboard-tidy.ts` | The tidy pack: each tile moves straight up to the tile above it or the top edge (built later) |
 | `dashboard-announcements.ts` | The live-region text for the gestures |
 | `dashboard-store.ts` | The state container, and the derived cells that the tiles paint |
@@ -303,7 +304,8 @@ These items stay in the backlog, and the registry enables each of them:
 - The pure spec operations. A remove must also drop the layout entry of the tile. Else the
   entry stays in the saved layout, and its space stays open. (Built later in
   `engine/dashboard-spec.ts`.)
-- A validator for a spec that the app reads from storage.
+- A validator for a spec that the app reads from storage. (Built later: `parseDashboardSpec` in
+  `engine/dashboard-spec-parse.ts`. It repairs the spec and reports each change.)
 - Presets.
 
 ## 10. Verification

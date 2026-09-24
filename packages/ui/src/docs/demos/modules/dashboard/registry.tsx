@@ -20,6 +20,7 @@ import {
 	DashboardWidgetProvider,
 	duplicateSpecTile,
 	nextSpecTileId,
+	parseDashboardSpec,
 	removeSpecTile,
 	useDashboardRows,
 	useDashboardScope,
@@ -133,7 +134,9 @@ const saved: DashboardSpec = {
 }
 
 export function RegistryExample() {
-	const [spec, setSpec] = useState(saved)
+	// A board read from storage passes through the parse, which repairs a stale or
+	// damaged spec. This saved board is sound, so the parse reports no issue.
+	const [spec, setSpec] = useState(() => parseDashboardSpec(saved).spec)
 
 	const [editing, setEditing] = useState(false)
 

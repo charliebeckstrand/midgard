@@ -45,7 +45,8 @@ export type DashboardSpecTile = {
  * `Dashboard`, and render `tiles` with `DashboardTiles` inside it. Each value
  * then has one binding. Change the tiles with {@link addSpecTile},
  * {@link removeSpecTile}, and {@link duplicateSpecTile}, which keep the tiles and
- * the layout in step.
+ * the layout in step. Read a stored spec through `parseDashboardSpec`, which
+ * repairs a stale or damaged spec and reports each change.
  */
 export type DashboardSpec = {
 	/**
