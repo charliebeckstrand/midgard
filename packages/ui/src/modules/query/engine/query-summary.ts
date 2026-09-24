@@ -1,5 +1,5 @@
 import { imposesConstraint, isEmptyValue, resolveRule } from './query-active'
-import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
+import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
  * One active rule as three resolved, display-ready parts: the field and
@@ -7,11 +7,11 @@ import type { QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
  * fixed `valueLabel` (`is Empty`), or none at all for a value-less operator
  * without one (`is true`). A `select` value resolves to its option label; a one-sided
  * range renders as a `≥`/`≤` bound.
- *
- * @internal
  */
-type QuerySummaryRuleToken = {
+export type QuerySummaryRuleToken = {
 	kind: 'rule'
+	/** The id of the rule, for an edit on the source tree. */
+	id: string
 	field: string
 	operator: string
 	value?: string
@@ -28,13 +28,15 @@ type QuerySummaryRuleToken = {
  * left-to-right. A chip renderer draws each rule token as a chip, and the rest
  * as separators.
  *
- * @internal
+ * @remarks Each token carries the `id` of its source node, so an interactive
+ * renderer can edit the tree. A combinator token names the node whose
+ * `combinator` it shows, which is the node after it. A bracket names its group.
  */
 export type QuerySummaryToken =
 	| QuerySummaryRuleToken
-	| { kind: 'combinator'; label: string }
-	| { kind: 'group-open' }
-	| { kind: 'group-close' }
+	| { kind: 'combinator'; id: string; combinator: QueryCombinator; label: string }
+	| { kind: 'group-open'; id: string }
+	| { kind: 'group-close'; id: string }
 
 /**
  * Formats a range operator's `[min, max]` value: `min and max` when both bounds
@@ -44,6 +46,7 @@ export type QuerySummaryToken =
  * @internal
  */
 function describeRange(
+	id: string,
 	field: string,
 	operator: QueryOperator,
 	value: unknown,
@@ -51,12 +54,12 @@ function describeRange(
 	const [lo, hi] = Array.isArray(value) ? value : ['', '']
 
 	if (!isEmptyValue(lo) && !isEmptyValue(hi)) {
-		return { kind: 'rule', field, operator: operator.label, value: `${lo} and ${hi}` }
+		return { kind: 'rule', id, field, operator: operator.label, value: `${lo} and ${hi}` }
 	}
 
 	return isEmptyValue(lo)
-		? { kind: 'rule', field, operator: '≤', value: `${hi}` }
-		: { kind: 'rule', field, operator: '≥', value: `${lo}` }
+		? { kind: 'rule', id, field, operator: '≤', value: `${hi}` }
+		: { kind: 'rule', id, field, operator: '≥', value: `${lo}` }
 }
 
 /** Resolves a rule's display value: a `select` maps to its option label, everything else stringifies. @internal */
@@ -78,7 +81,7 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
  *
  * @internal
  */
-function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
+export function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleToken | null {
 	const { field, operator } = resolveRule(rule, fields)
 
 	if (!imposesConstraint(operator, rule.value)) return null
@@ -90,16 +93,18 @@ function describeRule(rule: QueryRule, fields: QueryField[]): QuerySummaryRuleTo
 	if (operator?.noValue) {
 		return {
 			kind: 'rule',
+			id: rule.id,
 			field: label,
 			operator: operator.label,
 			...(operator.valueLabel ? { value: operator.valueLabel } : {}),
 		}
 	}
 
-	if (operator?.range) return describeRange(label, operator, rule.value)
+	if (operator?.range) return describeRange(rule.id, label, operator, rule.value)
 
 	return {
 		kind: 'rule',
+		id: rule.id,
 		field: label,
 		operator: operator?.label ?? rule.operator,
 		value: describeValue(field, rule.value),
@@ -131,13 +136,22 @@ function describeGroup(
 		if (tokens.length === 0) continue
 
 		if (body.length > 0) {
-			body.push({ kind: 'combinator', label: (child.combinator ?? 'and') === 'or' ? 'OR' : 'AND' })
+			const combinator = child.combinator ?? 'and'
+
+			body.push({
+				kind: 'combinator',
+				id: child.id,
+				combinator,
+				label: combinator === 'or' ? 'OR' : 'AND',
+			})
 		}
 
 		body.push(...tokens)
 	}
 
-	if (nested && body.length > 0) return [{ kind: 'group-open' }, ...body, { kind: 'group-close' }]
+	if (nested && body.length > 0) {
+		return [{ kind: 'group-open', id: group.id }, ...body, { kind: 'group-close', id: group.id }]
+	}
 
 	return body
 }
@@ -148,7 +162,9 @@ function describeGroup(
  * query imposes no constraint (in step with {@link isQueryActive}), so a view
  * can render nothing rather than an empty sentence.
  *
- * @internal
+ * @remarks `QuerySummary` renders the stream as a sentence, and `QueryChips`
+ * renders it as a row of chips. Use it for a third view.
+ *
  * @param group - The query group (typically the root) to describe.
  * @param fields - Field definitions resolving each rule's labels, operators, and options.
  */
@@ -172,7 +188,7 @@ export function spacedBefore(
 }
 
 /** Renders one token as its sentence fragment. @internal */
-function renderToken(token: QuerySummaryToken): string {
+export function renderToken(token: QuerySummaryToken): string {
 	if (token.kind === 'combinator') return token.label
 
 	if (token.kind === 'group-open') return '('

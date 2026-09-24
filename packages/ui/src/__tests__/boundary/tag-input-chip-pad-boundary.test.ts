@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import type { Ma } from '../../recipes'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
+import { k as queryChips } from '../../recipes/kata/query-chips'
 import { k as tagInput } from '../../recipes/kata/tag-input'
 
 // Tag-chip leading-pad symmetry invariant.
@@ -14,6 +15,9 @@ import { k as tagInput } from '../../recipes/kata/tag-input'
 // bump). This pins that sum against the live recipes across the sizes a chip
 // takes (xs/sm/md); if the badge px, the pill bump, or the bare compound
 // drifts, the assertion fails with the computed pad and names the size.
+//
+// `kata/query-chips.ts` pads its chip by the same sum. Its chip and its remove
+// button take fixed sizes in `query-chips.tsx`, so the case below names them.
 
 const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
 
@@ -72,6 +76,26 @@ function findPillPx(size: Ma): number {
 }
 
 const CHIP_SIZES = ['xs', 'sm', 'md'] as const satisfies readonly Ma[]
+
+/** The fixed sizes of a `QueryChips` chip and of its remove button, in `query-chips.tsx`. */
+const QUERY_CHIP = { chip: 'sm', button: 'xs' } as const satisfies Record<string, Ma>
+
+describe('query-chips chip leading-pad symmetry', () => {
+	const pillPx = findPillPx(QUERY_CHIP.chip)
+
+	const bareP = findBareCompoundP(QUERY_CHIP.button)
+
+	const expected = pillPx + bareP
+
+	it(`chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
+		const actual = findSpacing(
+			queryChips.chip,
+			`data-[has-suffix]:data-[size=${QUERY_CHIP.chip}]:ps-[`,
+		)
+
+		expect(actual).toBe(expected)
+	})
+})
 
 describe('tag-input chip leading-pad symmetry', () => {
 	for (const size of CHIP_SIZES) {

@@ -19,6 +19,8 @@ export type QueryBuilderStateValue = {
 	hideFieldSelector: boolean
 	/** When true, the query keeps at least one rule: a group's last rule hides its remove control. @defaultValue false */
 	requireRule: boolean
+	/** When true, each group with more than one child shows a drag grip beside each child. @defaultValue false */
+	reorderable: boolean
 }
 
 /** Tree-edit actions provided to rule/group consumers; referentially stable across edits. Aliases the headless {@link QueryTreeActions}. @internal */

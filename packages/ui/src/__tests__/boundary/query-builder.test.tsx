@@ -657,3 +657,72 @@ describe('QueryBuilder removal focus', () => {
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add' }))
 	})
 })
+
+// Reorder is opt-in. With `reorder`, each child of a group with two or more
+// children carries a grip; the drag itself runs in the browser suite, because
+// jsdom cannot drive dnd-kit's sensors.
+describe('QueryBuilder reorder grips', () => {
+	const named = (value: string) => ({ ...createRule(fields[0]), operator: 'contains', value })
+
+	const grips = () => screen.queryAllByRole('button', { name: /^Reorder / })
+
+	it('shows no grip by default', () => {
+		renderUI(
+			<QueryBuilder fields={fields} defaultValue={createGroup('and', [named('a'), named('b')])} />,
+		)
+
+		expect(grips()).toHaveLength(0)
+	})
+
+	it('labels a grip for each child by its summary text', () => {
+		renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), createGroup('or', [named('b')])])}
+				reorder
+			/>,
+		)
+
+		expect(grips().map((grip) => grip.getAttribute('aria-label'))).toEqual([
+			'Reorder Name contains a',
+			'Reorder condition group',
+		])
+	})
+
+	it('shows no grip in a group with one child', () => {
+		renderUI(
+			<QueryBuilder fields={fields} defaultValue={createGroup('and', [named('a')])} reorder />,
+		)
+
+		expect(grips()).toHaveLength(0)
+	})
+
+	it('keeps each combinator outside the node that the grip moves', () => {
+		const { container } = renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), named('b')])}
+				reorder
+			/>,
+		)
+
+		for (const node of container.querySelectorAll('[data-slot="query-sortable"]')) {
+			expect(within(node as HTMLElement).queryByRole('tablist')).toBeNull()
+		}
+
+		expect(screen.getByRole('tablist', { name: 'Combinator' })).toBeInTheDocument()
+	})
+
+	it('disables each grip when the builder is disabled', () => {
+		renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), named('b')])}
+				reorder
+				disabled
+			/>,
+		)
+
+		for (const grip of grips()) expect(grip).toBeDisabled()
+	})
+})

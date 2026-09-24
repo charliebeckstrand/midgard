@@ -13,8 +13,13 @@ export {
 	type QuerySqlOptions,
 	serializeQuery,
 } from './engine/query-serialize'
-export { formatQuerySummary } from './engine/query-summary'
-export { addChild, mapNode, removeChild } from './engine/query-tree'
+export {
+	formatQuerySummary,
+	type QuerySummaryRuleToken,
+	type QuerySummaryToken,
+	summarizeQuery,
+} from './engine/query-summary'
+export { addChild, mapNode, moveChild, removeChild } from './engine/query-tree'
 export type {
 	QueryCombinator,
 	QueryField,
@@ -36,4 +41,11 @@ export {
 	type QueryBuilderRuleValueProps,
 	useQueryBuilderContext,
 } from './query-builder'
+export { QueryChips, type QueryChipsProps } from './query-chips'
 export { QuerySummary, type QuerySummaryProps } from './query-summary'
+export {
+	type QueryTreeActions,
+	type QueryTreeOptions,
+	type QueryTreeResult,
+	useQueryTree,
+} from './use-query-tree'

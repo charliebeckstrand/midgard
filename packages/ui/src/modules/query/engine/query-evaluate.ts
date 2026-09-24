@@ -1,5 +1,5 @@
 import { isEmptyValue } from './query-active'
-import type { QueryGroup, QueryNode } from './types'
+import type { QueryGroup } from './types'
 
 /**
  * Operators that evaluate without a rule value — their matcher ignores the second
@@ -31,10 +31,12 @@ export function isBlank(value: unknown): boolean {
  * Predicate per operator value, over a field value and the rule's value. Mirrors
  * the default operator sets in {@link getOperators}; text matches are
  * case-insensitive, date comparisons rely on ISO (`YYYY-MM-DD`) string order.
+ * A predicate gives `undefined` for a rule value of the wrong shape, so that
+ * rule puts no constraint on the rows.
  *
  * @internal
  */
-const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => boolean> = {
+const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => boolean | undefined> = {
 	equals: (a, b) => asText(a) === asText(b),
 	notEquals: (a, b) => asText(a) !== asText(b),
 	contains: (a, b) => asText(a).toLowerCase().includes(asText(b).toLowerCase()),
@@ -47,7 +49,7 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 	lt: (a, b) => asNumber(a) < asNumber(b),
 	lte: (a, b) => asNumber(a) <= asNumber(b),
 	between: (a, b) => {
-		if (!Array.isArray(b)) return true
+		if (!Array.isArray(b)) return undefined
 
 		// A blank bound is open-ended (±∞), so one-sided ranges still constrain.
 		const lo = isBlank(b[0]) ? Number.NEGATIVE_INFINITY : asNumber(b[0])
@@ -64,6 +66,24 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
+ * Tests one operator against a field value and a rule value, or gives
+ * `undefined` when the rule puts no constraint on the rows. See
+ * {@link matchQueryRule} for the cases. The fold in {@link evaluateQuery} drops
+ * such a rule.
+ *
+ * @internal
+ */
+function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean | undefined {
+	const matcher = matchers[operator]
+
+	if (!matcher) return undefined
+
+	if (!VALUELESS_OPERATORS.has(operator) && isEmptyValue(ruleValue)) return undefined
+
+	return matcher(fieldValue, ruleValue)
+}
+
+/**
  * Tests one operator against a field value and a rule value. Three cases pass as
  * "no constraint", so a half-built or cleared rule never hides rows. Those are
  * an unknown operator, and a value-requiring operator whose value is empty (a
@@ -71,44 +91,48 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
  * `is true`, …) evaluate regardless.
  */
 export function matchQueryRule(operator: string, fieldValue: unknown, ruleValue: unknown): boolean {
-	const matcher = matchers[operator]
-
-	if (!matcher) return true
-
-	if (!VALUELESS_OPERATORS.has(operator) && isEmptyValue(ruleValue)) return true
-
-	return matcher(fieldValue, ruleValue)
+	return testRule(operator, fieldValue, ruleValue) ?? true
 }
 
-/** Evaluates one node — a rule via {@link matchQueryRule}, a group via {@link evaluateQuery}. @internal */
-function evaluateNode(node: QueryNode, getValue: (field: string) => unknown): boolean {
-	return node.type === 'group'
-		? evaluateQuery(node, getValue)
-		: matchQueryRule(node.operator, getValue(node.field), node.value)
+/**
+ * Folds a group's children left to right, or gives `undefined` when no child
+ * puts a constraint on the rows. A child with no constraint drops out, and its
+ * combinator drops with it.
+ *
+ * @internal
+ */
+function foldGroup(group: QueryGroup, getValue: (field: string) => unknown): boolean | undefined {
+	let result: boolean | undefined
+
+	for (const node of group.children) {
+		const value =
+			node.type === 'group'
+				? foldGroup(node, getValue)
+				: testRule(node.operator, getValue(node.field), node.value)
+
+		if (value === undefined) continue
+
+		if (result === undefined) result = value
+		else result = (node.combinator ?? 'and') === 'and' ? result && value : result || value
+	}
+
+	return result
 }
 
 /**
  * Evaluates a query tree against a row, reading each rule's field through
  * `getValue`. Children fold left-to-right by their `combinator` (no AND/OR
- * precedence — sequential, matching the builder's visual order); an empty group
- * matches everything.
+ * precedence — sequential, matching the builder's visual order).
+ *
+ * @remarks A child that puts no constraint on the rows drops out of the fold,
+ * with its combinator. Such a child is a rule that {@link matchQueryRule} passes
+ * as no constraint, or a group of such children. So `A OR (blank rule)` reads
+ * as `A`, as the summary shows it. A query with no constraint matches every row.
  *
  * @param group - The query group (typically the root) to evaluate.
  * @param getValue - Resolves a field name to that row's value.
  * @returns Whether the row satisfies the query.
  */
 export function evaluateQuery(group: QueryGroup, getValue: (field: string) => unknown): boolean {
-	const [first, ...rest] = group.children
-
-	if (!first) return true
-
-	let result = evaluateNode(first, getValue)
-
-	for (const node of rest) {
-		const value = evaluateNode(node, getValue)
-
-		result = (node.combinator ?? 'and') === 'and' ? result && value : result || value
-	}
-
-	return result
+	return foldGroup(group, getValue) ?? true
 }

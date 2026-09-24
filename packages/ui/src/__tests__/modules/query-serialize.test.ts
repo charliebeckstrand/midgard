@@ -296,13 +296,20 @@ describe('formatQuerySql', () => {
 
 		expect(sql([rule('name', 'custom', 'x'), rule('age', 'gt', 1)]).sql).toBe('"age" > ?')
 
-		// OR with a rule that constrains nothing constrains nothing.
+		// A rule that constrains nothing drops out with its combinator, so an OR
+		// with it keeps the other side.
 		expect(sql([rule('age', 'gt', 1), rule('name', 'equals', '', 'or')])).toEqual({
-			sql: '',
-			params: [],
+			sql: '"age" > ?',
+			params: [1],
 		})
 
+		expect(sql([rule('name', 'equals', ''), rule('age', 'gt', 1, 'or')]).sql).toBe('"age" > ?')
+
 		expect(sql([createGroup(), rule('age', 'gt', 1)]).sql).toBe('"age" > ?')
+
+		expect(sql([rule('age', 'gt', 1), createGroup('or')]).sql).toBe('"age" > ?')
+
+		expect(sql([rule('age', 'between', 5), rule('age', 'gt', 1, 'or')]).sql).toBe('"age" > ?')
 	})
 
 	it('gives an empty condition for an empty query', () => {
