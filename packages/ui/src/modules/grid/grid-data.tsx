@@ -7,6 +7,7 @@ import {
 	useCallback,
 	useEffect,
 	useEffectEvent,
+	useImperativeHandle,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -459,6 +460,7 @@ export function GridData<T>({
 	onActiveCellChange,
 	onCollapsedChange,
 	editable,
+	ref,
 	truncate = true,
 	rowClassName,
 	onRowClick,
@@ -749,6 +751,15 @@ export function GridData<T>({
 			editSourceRef,
 		},
 	})
+
+	// The grid's commands on its `ref` (see `GridHandle`).
+	const { stepHistory } = cursor
+
+	useImperativeHandle(
+		ref,
+		() => ({ undo: () => stepHistory('undo'), redo: () => stepHistory('redo') }),
+		[stepHistory],
+	)
 
 	// Double-click-to-edit (under `editable.session: 'managed'`) rides the
 	// built-in cell double-click event, ahead of the consumer's handler.
