@@ -20,6 +20,7 @@ export {
 	type DashboardSpecIssue,
 	type DashboardSpecIssueKind,
 	type DashboardSpecParse,
+	type DashboardSpecParseOptions,
 	parseDashboardSpec,
 } from './engine/dashboard-spec-parse'
 export type {

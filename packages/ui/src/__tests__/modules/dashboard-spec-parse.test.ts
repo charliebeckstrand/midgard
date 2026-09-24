@@ -159,6 +159,29 @@ describe('parseDashboardSpec', () => {
 		])
 	})
 
+	it('keeps the entry of each JSX tile that the options name', () => {
+		const notes = { id: 'notes', x: 12, y: 0, w: 12, h: 10 }
+
+		const input = {
+			tiles: [{ id: 'a', widget: 'bar' }],
+			layout: [{ id: 'a', x: 0, y: 0, w: 12 }, notes, { id: 'gone', x: 0, y: 40, w: 24 }],
+		}
+
+		const { spec, issues } = parseDashboardSpec(input, { tileIds: ['notes'] })
+
+		expect(spec.layout.map((entry) => entry.id)).toEqual(['a', 'notes'])
+
+		expect(spec.layout[1]).toBe(notes)
+
+		expect(issues.map((issue) => [issue.kind, issue.path])).toEqual([['orphan-entry', 'layout[2]']])
+
+		// With no options, the entry of the JSX tile is an orphan.
+		expect(found(input)).toEqual([
+			['orphan-entry', 'layout[1]'],
+			['orphan-entry', 'layout[2]'],
+		])
+	})
+
 	it('keeps the numbers of an entry as saved, for the board to clamp', () => {
 		const entry = { id: 'a', x: -3, y: 2.6, w: 40 }
 

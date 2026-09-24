@@ -28,7 +28,7 @@ export type DashboardSpecIssueKind =
 	| 'invalid-entry'
 	/** An entry repeats the `id` of an earlier entry, so the parse drops it. */
 	| 'duplicate-entry'
-	/** An entry names no tile of the spec, so the parse drops it. */
+	/** An entry names no tile of the spec and no id of `tileIds`, so the parse drops it. */
 	| 'orphan-entry'
 	/** `filter` is not a query tree, so the parse drops it. */
 	| 'invalid-filter'
@@ -41,6 +41,20 @@ export type DashboardSpecIssue = {
 	path: string
 	/** What the parse found and what it did, for a log. */
 	message: string
+}
+
+/** Options for {@link parseDashboardSpec}. */
+export type DashboardSpecParseOptions = {
+	/**
+	 * The ids of the JSX tiles that share the board with the spec tiles. The parse
+	 * keeps the entry of each of these ids, as it keeps the entry of a spec tile.
+	 *
+	 * @remarks
+	 * The layout binding saves the entries of all mounted tiles, JSX tiles included.
+	 * Without these ids, each load drops the entries of the JSX tiles as orphans,
+	 * so each JSX tile loses its saved place.
+	 */
+	tileIds?: Iterable<string>
 }
 
 /** The result of {@link parseDashboardSpec}. */
@@ -249,17 +263,24 @@ function parseLayout(
  * entry, because the board rounds and clamps each entry when it renders. A tile
  * or an entry with no issue keeps its object, unknown fields included.
  *
+ * A board that puts JSX tiles beside `DashboardTiles` saves their entries too.
+ * Pass their ids in `tileIds`, so that the parse keeps those entries.
+ *
  * @example
  * ```ts
- * const { spec, issues } = parseDashboardSpec(JSON.parse(saved))
+ * const { spec, issues } = parseDashboardSpec(JSON.parse(saved), { tileIds: ['notes'] })
  *
  * if (issues.length > 0) console.warn('Repaired the saved board', issues)
  * ```
  *
  * @param input - The stored value.
+ * @param options - The ids of the JSX tiles on the same board.
  * @returns The usable spec, and each issue that the parse repaired.
  */
-export function parseDashboardSpec(input: unknown): DashboardSpecParse {
+export function parseDashboardSpec(
+	input: unknown,
+	options: DashboardSpecParseOptions = {},
+): DashboardSpecParse {
 	const issues: DashboardSpecIssue[] = []
 
 	if (!isFields(input)) {
@@ -274,11 +295,11 @@ export function parseDashboardSpec(input: unknown): DashboardSpecParse {
 
 	const tiles = parseTiles(listOf(input, 'tiles', issues), issues)
 
-	const layout = parseLayout(
-		listOf(input, 'layout', issues),
-		new Set(tiles.map((tile) => tile.id)),
-		issues,
-	)
+	const known = new Set(tiles.map((tile) => tile.id))
+
+	for (const id of options.tileIds ?? []) known.add(id)
+
+	const layout = parseLayout(listOf(input, 'layout', issues), known, issues)
 
 	const spec: DashboardSpec = { tiles, layout }
 

@@ -59,6 +59,23 @@ describe('startFromPreset', () => {
 		expect(issues).toEqual([])
 	})
 
+	it('passes the ids of the JSX tiles to the parse', () => {
+		const notes = { id: 'notes', x: 12, y: 0, w: 12, h: 10 }
+
+		const preset: DashboardPreset = {
+			...SALES,
+			spec: { ...SALES.spec, layout: [...SALES.spec.layout, notes] },
+		}
+
+		expect(startFromPreset(preset).spec.layout).not.toContain(notes)
+
+		const { spec, issues } = startFromPreset(preset, { tileIds: ['notes'] })
+
+		expect(spec.layout).toContain(notes)
+
+		expect(issues).toEqual([])
+	})
+
 	it('gives the board new lists, so an edit never reaches the catalog', () => {
 		const { spec } = startFromPreset(OPERATIONS)
 
