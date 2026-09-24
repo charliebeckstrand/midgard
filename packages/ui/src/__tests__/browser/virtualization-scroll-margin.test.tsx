@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
-import { frames, present, renderUI, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
 
 /**
  * A window below content that sits above its first row, in a real browser.
@@ -88,10 +88,7 @@ describe('useVirtualWindow with content above the first row', () => {
 
 		const view = renderUI(<HeadedTable handle={handle} />)
 
-		const scroller = present(
-			view.container.querySelector<HTMLElement>('[data-slot="headed-scroll"]'),
-			'[data-slot="headed-scroll"]',
-		)
+		const scroller = getSlot(view.container, 'headed-scroll')
 
 		/** The box of the scroller that the sticky head does not cover. */
 		const clear = () => {

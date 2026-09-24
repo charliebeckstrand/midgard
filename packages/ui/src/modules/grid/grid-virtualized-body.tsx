@@ -18,7 +18,7 @@ import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridSkeletonCells, GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
-import { slotInsets, stickyHeadInset } from './use-grid-navigation-columns'
+import { stickyEdgeInsets } from './use-grid-navigation-columns'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
@@ -96,6 +96,8 @@ type WindowOffsets = { scrollMargin: number; scrollPaddingStart: number; scrollP
 
 const NO_OFFSETS: WindowOffsets = { scrollMargin: 0, scrollPaddingStart: 0, scrollPaddingEnd: 0 }
 
+const OFFSET_KEYS = Object.keys(NO_OFFSETS) as (keyof WindowOffsets)[]
+
 /**
  * Measures the content above the data body for the virtualizer. The scroll
  * margin is the distance from the top of the scroll content to the body: the
@@ -103,9 +105,11 @@ const NO_OFFSETS: WindowOffsets = { scrollMargin: 0, scrollPaddingStart: 0, scro
  * part of that content, so an aligned row lands below it (WCAG 2.4.11). The end
  * padding is the height of a bottom new-row slot, which sticks to the bottom
  * edge. A resize of the table measures again, and so does a slot that mounts.
+ * Both paddings come from {@link stickyEdgeInsets}, which the cursor also reads,
+ * so an aligned row and the active cell clear the same chrome.
  *
  * @remarks The header position comes in as a flag, so a grid with no sticky
- * header reads no computed style. The slot always sticks.
+ * header reads no computed style. That read costs about 8 ms on a jsdom mount.
  *
  * @internal
  */
@@ -134,21 +138,17 @@ function useWindowOffsets(
 				scroller.clientTop +
 				scroller.scrollTop
 
-			const slot = slotInsets(body)
+			const chrome = stickyEdgeInsets(body, stickyHeader)
 
-			const next = {
+			const next: WindowOffsets = {
 				scrollMargin,
-				scrollPaddingStart: (stickyHeader ? stickyHeadInset(table) : 0) + slot.top,
-				scrollPaddingEnd: slot.bottom,
+				scrollPaddingStart: chrome.top,
+				scrollPaddingEnd: chrome.bottom,
 			}
 
 			// A change under one pixel moves no row, so it does not render again.
 			setOffsets((current) =>
-				Math.abs(current.scrollMargin - next.scrollMargin) < 1 &&
-				Math.abs(current.scrollPaddingStart - next.scrollPaddingStart) < 1 &&
-				Math.abs(current.scrollPaddingEnd - next.scrollPaddingEnd) < 1
-					? current
-					: next,
+				OFFSET_KEYS.every((key) => Math.abs(current[key] - next[key]) < 1) ? current : next,
 			)
 		}
 
@@ -156,13 +156,11 @@ function useWindowOffsets(
 
 		if (typeof ResizeObserver === 'undefined') return
 
-		// The head changes the table size when it resizes, and so does a new-row
-		// slot that mounts, resizes, or unmounts.
+		// A head that resizes changes the table size, and so does a new-row slot
+		// that mounts, resizes, or unmounts.
 		const observer = new ResizeObserver(measure)
 
 		observer.observe(table)
-
-		if (table.tHead) observer.observe(table.tHead)
 
 		return () => observer.disconnect()
 	}, [bodyRef, scrollRef, stickyHeader])

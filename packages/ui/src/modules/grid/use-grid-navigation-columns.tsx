@@ -96,20 +96,39 @@ function obscuringInsets(cell: HTMLElement): {
 		}
 	}
 
-	const top = table ? stickyHeadInset(table) : 0
+	return { ...stickyEdgeInsets(cell), left, right }
+}
 
-	const slot = slotInsets(cell)
+/**
+ * The height that the grid's sticky chrome lays over the top and the bottom edge
+ * of the scroll container. The element is part of the grid, outside the new-row slot.
+ * The top is the sticky header (see {@link stickyHeadInset}) plus a top slot, and
+ * the bottom is a bottom slot (see {@link slotInsets}). The cursor clears the
+ * active cell of it, and the windowed body pads its alignment by it.
+ *
+ * @param stickyHead - Whether to read the header. A caller that knows the header
+ * does not stick passes `false`, and skips the computed-style reads.
+ * @internal
+ */
+export function stickyEdgeInsets(
+	element: HTMLElement,
+	stickyHead = true,
+): { top: number; bottom: number } {
+	const table = element.closest('table')
 
-	return { top: top + slot.top, bottom: slot.bottom, left, right }
+	const head = table && stickyHead ? stickyHeadInset(table) : 0
+
+	const slot = slotInsets(element)
+
+	return { top: head + slot.top, bottom: slot.bottom }
 }
 
 /**
  * The height that the sticky new-row slot lays over the top or the bottom edge
  * of the scroll container, for a cell outside the slot. The slot is the one of
- * this table, not of a grid nested in a detail row. The windowed body also
- * passes its data body as `cell`, and reads the top inset. @internal
+ * this table, not of a grid nested in a detail row. @internal
  */
-export function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
+function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
 	// The body sections of the table are few, so the walk reads a handful of
 	// elements, not the rows of the data body.
 	const bodies = cell.closest('table')?.tBodies ?? []

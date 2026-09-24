@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, present, renderUI, screen, waitFor } from '../helpers'
+import { frames, getSlot, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The keyboard cursor over a virtualized grid with a sticky header, in a real
@@ -45,10 +45,7 @@ describe('grid virtualized cursor under a sticky header (real browser)', () => {
 			</div>,
 		)
 
-		const scroll = present(
-			view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]'),
-			'[data-slot="grid-scroll"]',
-		)
+		const scroll = getSlot(view.container, 'grid-scroll')
 
 		// The virtualizer scrolls through `scrollTo`, and the cell's own scroll
 		// does not. Record each offset that the virtualizer writes.

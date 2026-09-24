@@ -232,6 +232,11 @@ export function useVirtualWindow({
 		followOnAppend,
 	})
 
+	// A row above the viewport that measures while the reader scrolls up must not
+	// move the rows in view. The library default skips that adjustment, so the
+	// measured path replaces it. The uniform path writes nothing here.
+	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
+
 	// Re-sync guard: the virtualizer captures its scroll element in a layout
 	// effect, which runs *before* an ancestor's ref attaches when that ancestor
 	// (re)mounted in the same commit (React commits bottom-up). It then resolves
@@ -239,11 +244,6 @@ export function useVirtualWindow({
 	// recovers. This passive effect runs after every commit (refs all attached
 	// by then) and forces one re-render whenever the virtualizer's captured
 	// element diverges from the live one, letting it re-attach and measure.
-	// A row above the viewport that measures while the reader scrolls up must not
-	// move the rows in view. The library default skips that adjustment, so the
-	// measured path replaces it. The uniform path writes nothing here.
-	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
-
 	const [, forceResync] = useReducer((x: number) => x + 1, 0)
 
 	useEffect(() => {

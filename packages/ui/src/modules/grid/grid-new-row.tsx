@@ -61,13 +61,11 @@ function useStickyTop(
 	useLayoutEffect(() => {
 		const section = body.current
 
-		const head = section?.closest('table')?.tHead
+		const table = section?.closest('table')
 
-		if (!section || !head || position !== 'top') return
+		const head = table?.tHead
 
-		const table = head.parentElement
-
-		if (!(table instanceof HTMLTableElement)) return
+		if (!section || !table || !head || position !== 'top') return
 
 		const measure = () => {
 			section.style.setProperty('--grid-new-row-top', `${stickyHeadInset(table)}px`)
