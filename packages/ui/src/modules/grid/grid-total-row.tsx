@@ -10,6 +10,7 @@ import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING } from './engine/grid-constants'
+import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridColumn } from './types'
 import { useGridRevealHold } from './use-grid-reveal-hold'
@@ -95,7 +96,7 @@ export function GridGrandTotalBody<T>({
 				columns={columns}
 				rows={grandTotal.rows}
 				variant="grand"
-				ariaRowIndex={gridSemantics && ariaRowCount > 0 ? ariaRowCount : undefined}
+				aria-rowindex={gridSemantics && ariaRowCount > 0 ? ariaRowCount : undefined}
 			/>
 		</TableBody>
 	)
@@ -122,11 +123,9 @@ type GridTotalRowProps<T> = {
 	label?: ReactNode
 	/** Density padding for the group variant's collapsible cells. */
 	density?: DensityLevel
-	/** Global `aria-rowindex` under grid semantics; omitted on a plain table. */
-	ariaRowIndex?: number
 	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
 	color?: PaletteColor
-}
+} & GridWindowRowProps
 
 /** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
 function GroupRevealCell({
@@ -190,8 +189,8 @@ export function GridTotalRow<T>({
 	expanded = true,
 	label = 'Total',
 	density = 'snug',
-	ariaRowIndex,
 	color,
+	...windowRow
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
 
@@ -208,12 +207,13 @@ export function GridTotalRow<T>({
 				label={label}
 				density={density}
 				color={color}
+				windowRow={windowRow}
 			/>
 		)
 	}
 
 	return (
-		<TableRow data-total-row="grand" aria-rowindex={ariaRowIndex}>
+		<TableRow data-total-row="grand" {...windowRow}>
 			<TableCell colSpan={span} className={cn(k.aggregate.label)}>
 				{label}
 			</TableCell>
@@ -238,6 +238,7 @@ function GridGroupTotalRow<T>({
 	label,
 	density,
 	color,
+	windowRow,
 }: {
 	columns: GridColumn<T>[]
 	rows: T[]
@@ -247,6 +248,8 @@ function GridGroupTotalRow<T>({
 	label: ReactNode
 	density: DensityLevel
 	color?: PaletteColor
+	/** The props that a windowed body gives the row. */
+	windowRow: GridWindowRowProps
 }) {
 	const reveal = useGridRevealHold(expanded)
 
@@ -257,6 +260,7 @@ function GridGroupTotalRow<T>({
 	return (
 		<Hold hold={reveal.hold} name="grid-total-row">
 			<TableRow
+				{...windowRow}
 				data-total-row="group"
 				aria-hidden={expanded ? undefined : true}
 				inert={!expanded}

@@ -8,6 +8,7 @@ import { cn, dataAttr } from '../../core'
 import { Hold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
+import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
@@ -80,7 +81,14 @@ type GridDetailRowProps = {
 	expanded: boolean
 	/** The detail content for the row. */
 	children: ReactNode
-}
+	/**
+	 * Whether an open panel mounts at the closed track and then opens over the
+	 * transition. A windowed body mounts a panel only when it opens, so it sets
+	 * this for a panel that opens in view. A mounted panel ignores it.
+	 * @defaultValue false
+	 */
+	enter?: boolean
+} & GridWindowRowProps
 
 /**
  * A master-detail panel row: a full-width `<tr>` whose single cell nests the
@@ -96,14 +104,22 @@ type GridDetailRowProps = {
  *
  * @internal
  */
-export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetailRowProps) {
+export function GridDetailRow({
+	rowKey,
+	colSpan,
+	expanded,
+	children,
+	enter = false,
+	...windowRow
+}: GridDetailRowProps) {
 	// A detail panel holds whatever the caller put in it — a nested grid, a chart
 	// — so a closed one is the most expensive row the flat body keeps live.
-	const reveal = useGridRevealHold(expanded)
+	const reveal = useGridRevealHold(expanded, enter)
 
 	return (
 		<Hold hold={reveal.hold} name="grid-detail-row">
 			<tr
+				{...windowRow}
 				data-detail-row={String(rowKey)}
 				aria-hidden={expanded ? undefined : true}
 				inert={!expanded}

@@ -13,12 +13,12 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
-import { hasAggregation } from './engine/grid-aggregate'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
+import { groupTotalled, groupValueOf } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -29,6 +29,8 @@ import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridLoadingBody } from './grid-skeleton-cells'
 import { GridTotalRow } from './grid-total-row'
 import { type GridScrollRowIntoView, GridVirtualizedBody } from './grid-virtualized-body'
+import { GridVirtualizedDetailBody } from './grid-virtualized-detail-body'
+import { GridVirtualizedGroupedBody } from './grid-virtualized-grouped-body'
 import { applyRowKeyOrder, type GridRowGroupPresentation } from './use-grid-row-manager'
 
 /** The vertical row sortable's items and strategy, spread onto the body's `SortableContext`. @internal */
@@ -183,7 +185,7 @@ function renderGroup<T>(
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const groupKey = groupRow.getGroupingValue(String(columnId)) as string | number
+	const groupKey = groupValueOf(groupRow, columnId)
 
 	const color = presentation?.color(groupKey)
 
@@ -277,6 +279,70 @@ function renderManualSegment<T>(
 }
 
 /**
+ * The client-grouped body: each group's header row, its leaf rows, and its
+ * total row. Under `virtualize` it windows those rows as one item list (see
+ * {@link GridVirtualizedGroupedBody}). Without a window every leaf stays
+ * mounted and animates open and closed with its group. Split out of
+ * {@link GridBody} for its complexity budget.
+ *
+ * @internal
+ */
+function renderGroupedBody<T>(
+	props: GridBodyProps<T>,
+	groupedRows: Row<T>[],
+	groupColumnId: string | number,
+): ReactElement {
+	const { visibleColumns, groupRenderHeader, getKey, density, rowGroupPresentation, virtualize } =
+		props
+
+	// Apply the manual group order while the overlay covers every group.
+	// Otherwise the engine's group order stands.
+	const ordered = applyRowKeyOrder(
+		groupedRows,
+		rowGroupPresentation?.groupOrder ?? undefined,
+		(groupRow) => groupValueOf(groupRow, groupColumnId),
+	)
+
+	// The per-group total is meaningful only once a column aggregates; the gate
+	// is body-wide, so resolve it once here rather than per group in renderGroup.
+	const totalled = groupTotalled(props.groupTotalRow, visibleColumns)
+
+	if (virtualize) {
+		return (
+			<GridVirtualizedGroupedBody<T>
+				rowsProps={props}
+				groups={ordered}
+				columnId={groupColumnId}
+				renderHeader={groupRenderHeader}
+				totalled={totalled}
+				density={density}
+				presentation={rowGroupPresentation}
+				leafProps={(leaf, expanded, color) =>
+					leafRowProps(props, leaf, { expanded, getKey, density, color })
+				}
+				window={virtualize}
+			/>
+		)
+	}
+
+	return (
+		<TableBody>
+			{ordered.map((groupRow) =>
+				renderGroup(groupRow, {
+					props,
+					columnId: groupColumnId,
+					renderHeader: groupRenderHeader,
+					getKey,
+					density,
+					totalled,
+					presentation: rowGroupPresentation,
+				}),
+			)}
+		</TableBody>
+	)
+}
+
+/**
  * Body for {@link Grid}. It branches between the loading skeleton, the error
  * slot, the `empty` slot, the grouped body, the virtualized window, and the
  * plain row map. It threads per-row state to each {@link GridRow}.
@@ -301,7 +367,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		groupRenderHeader,
 		getKey,
 		density,
-		rowGroupPresentation,
 		virtualize,
 		pinning,
 	} = props
@@ -353,46 +418,23 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
-	// Grouping renders its own body: each group's header row followed by all its
-	// leaf rows, which stay mounted and animate open/closed with the group via a
-	// CSS reveal (see `renderGroup` / `GridGroupLeafRow`). It stands down
-	// virtualization / pagination / grid semantics (see `GridData`), so this
-	// precedes the virtualized branch and needs no aria-row bookkeeping.
+	// Grouping renders its own body (see `renderGroupedBody`). It stands down
+	// pagination (see `GridData`), so this precedes the flat virtualized branch.
 	if (groupedRows && groupColumnId != null) {
-		// Apply the manual group order while the overlay covers every group.
-		// Otherwise the engine's group order stands.
-		const ordered = applyRowKeyOrder(
-			groupedRows,
-			rowGroupPresentation?.groupOrder ?? undefined,
-			(groupRow) => groupRow.getGroupingValue(String(groupColumnId)) as string | number,
-		)
-
-		// The per-group total is meaningful only once a column aggregates; the gate
-		// is body-wide, so resolve it once here rather than per group in renderGroup.
-		const totalled = props.groupTotalRow === true && hasAggregation(visibleColumns)
-
-		return (
-			<TableBody>
-				{ordered.map((groupRow) =>
-					renderGroup(groupRow, {
-						props,
-						columnId: groupColumnId,
-						renderHeader: groupRenderHeader,
-						getKey,
-						density,
-						totalled,
-						presentation: rowGroupPresentation,
-					}),
-				)}
-			</TableBody>
-		)
+		return renderGroupedBody(props, groupedRows, groupColumnId)
 	}
 
 	// The windowed body carries the loading skeleton on from the branch above while
 	// its window resolves, so `loading` clearing as the rows land doesn't flash a
-	// headers-only, rowless table (see `GridVirtualizedBody`).
+	// headers-only, rowless table (see `GridVirtualizedBody`). Master-detail under
+	// a window renders each data row and each open panel as an item of one
+	// measured window (see `GridVirtualizedDetailBody`).
 	if (virtualize) {
-		return <GridVirtualizedBody<T> {...props} {...virtualize} />
+		return props.expansion ? (
+			<GridVirtualizedDetailBody<T> {...props} {...virtualize} />
+		) : (
+			<GridVirtualizedBody<T> {...props} {...virtualize} />
+		)
 	}
 
 	// Global row indices only under grid semantics (a plain table conveys them

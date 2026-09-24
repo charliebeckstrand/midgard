@@ -1,5 +1,6 @@
 'use client'
 
+import type { ExpandedState, Row } from '@tanstack/react-table'
 import { useReducedMotion } from 'motion/react'
 import {
 	type ReactNode,
@@ -41,6 +42,7 @@ import {
 	resolveGroupingMode,
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
+import { bodyRowCount } from './engine/grid-items/items'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import {
@@ -200,6 +202,53 @@ function rowReorderPermitted(args: {
 		!args.sorted &&
 		args.renderedCount === args.sourceCount
 	)
+}
+
+/**
+ * {@link bodyRowCount}, memoized. A windowed grouped or master-detail body
+ * walks each group or row to count its rows. The count therefore runs again
+ * only when the rows, the columns, or an expansion change. Kept a hook so the memo stays
+ * off {@link GridData}'s complexity budget. @internal
+ */
+function useBodyRowCount<T>(args: {
+	virtualize: boolean
+	rows: T[]
+	rowKeys: (string | number)[]
+	groupedRows: Row<T>[] | null
+	/** The engine's expansion state. The group rows can stay the same object when it changes. */
+	groupExpanded: ExpandedState
+	groupTotalRow: boolean | undefined
+	columns: GridColumn<T>[]
+	expanded: Set<string | number> | undefined
+	rowExpandable: ((row: T) => boolean) | undefined
+}): number {
+	const { virtualize, rows, rowKeys, groupedRows, groupExpanded, groupTotalRow, columns } = args
+
+	const { expanded, rowExpandable } = args
+
+	return useMemo(() => {
+		void groupExpanded
+
+		return bodyRowCount({
+			virtualize,
+			rows,
+			rowKeys,
+			groupedRows,
+			groupTotalRow,
+			columns,
+			expansion: expanded && rowExpandable ? { expanded, rowExpandable } : null,
+		})
+	}, [
+		virtualize,
+		rows,
+		rowKeys,
+		groupedRows,
+		groupExpanded,
+		groupTotalRow,
+		columns,
+		expanded,
+		rowExpandable,
+	])
 }
 
 /**
@@ -513,8 +562,8 @@ export function GridData<T>({
 	// Row grouping: resolve the `groupBy` binding to a groupable data column (a
 	// stray id leaves the grid ungrouped), plus the expansion state — the engine's
 	// under client grouping, the binding's key set under manual. Grouping renders
-	// its own body, so it stands down the cursor, pagination, and virtualization
-	// below.
+	// its own body, so it stands down the cursor and pagination below. Manual
+	// grouping also stands virtualization down.
 	const isGroupableColumn = useCallback(
 		(id: string | number) => isGroupableColumnId(pinnedColumns, id),
 		[pinnedColumns],
@@ -543,9 +592,10 @@ export function GridData<T>({
 	// down under grouping) and the body wiring the flat rows read.
 	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingMode.active)
 
-	// A self-rendering body (grouping or master-detail) stands the cursor and
-	// virtualization down; client grouping also stands pagination down, manual
-	// grouping keeps a manual one, master-detail keeps any (see
+	// A self-rendering body (grouping or master-detail) stands the cursor down.
+	// Manual grouping also stands virtualization down, and the other two keep an
+	// explicit `virtualize`. Client grouping stands pagination down, manual
+	// grouping keeps a manual one, and master-detail keeps any (see
 	// `resolveGroupingGates`).
 	const gated = resolveGroupingGates({
 		groupingActive,
@@ -553,14 +603,15 @@ export function GridData<T>({
 		expandableActive: detail.active,
 		navigable,
 		virtualize: virtualizeEnabled,
+		virtualizeProp: virtualize,
 		pagination: paginationConfig,
 	})
 
-	// Infinite scroll layers on the virtualized window — so it stands down with
-	// virtualization under grouping (`gated.virtualize`). Its `threshold` defaults
-	// to the window's `overscan`, so the fetch leads the viewport by that margin;
-	// the source `rows` length derives `hasMore` when a `totalRows` is supplied.
-	const infiniteScroll = gated.virtualize
+	// Infinite scroll layers on the flat virtualized window, so it stands down
+	// under a self-rendering body (`gated.infiniteScroll`). Its `threshold`
+	// defaults to the window's `overscan`, so the fetch leads the viewport by that
+	// margin; the source `rows` length derives `hasMore` when a `totalRows` is supplied.
+	const infiniteScroll = gated.infiniteScroll
 		? resolveInfiniteScroll(infiniteScrollConfig, overscan, rows.length)
 		: null
 
@@ -1148,9 +1199,21 @@ export function GridData<T>({
 	// counts too. It shows only over a body that shows data or its empty state.
 	const newRowPlace = placeNewRow(cursor.newRow, loading, showingError)
 
+	// A windowed grouped or master-detail body counts its headers, totals, and
+	// open detail panels as rows (see `bodyRowCount`).
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
-		renderRows.length,
+		useBodyRowCount({
+			virtualize: gated.virtualize,
+			rows: renderRows,
+			rowKeys,
+			groupedRows,
+			groupExpanded,
+			groupTotalRow,
+			columns: visibleColumns,
+			expanded: detail.body?.expanded,
+			rowExpandable: detail.body?.rowExpandable,
+		}),
 		groupRowOffset + Number(grandTotal.active) + Number(newRowPlace !== null),
 		infiniteScroll,
 	)

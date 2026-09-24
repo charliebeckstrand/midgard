@@ -11,6 +11,7 @@ import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { groupValueLabel } from './engine/grid-column/label'
+import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridColumn } from './types'
@@ -27,7 +28,7 @@ type GridGroupRowProps<T> = {
 	renderHeader: GridGroupBy['renderHeader']
 	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
 	color?: PaletteColor
-}
+} & GridWindowRowProps
 
 /**
  * A group-header row carrying a bare disclosure button that toggles the group's
@@ -48,6 +49,7 @@ export function GridGroupRow<T>({
 	columnId,
 	renderHeader,
 	color,
+	...windowRow
 }: GridGroupRowProps<T>) {
 	const expanded = row.getIsExpanded()
 
@@ -68,7 +70,12 @@ export function GridGroupRow<T>({
 	return (
 		// `data-group-key` (the shared value) lets the group-header context menu
 		// resolve the right-clicked group for the row manager and its color/expand items.
-		<TableRow data-group-row data-group-key={String(value)} data-expanded={dataAttr(expanded)}>
+		<TableRow
+			{...windowRow}
+			data-group-row
+			data-group-key={String(value)}
+			data-expanded={dataAttr(expanded)}
+		>
 			<TableCell
 				colSpan={span}
 				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}

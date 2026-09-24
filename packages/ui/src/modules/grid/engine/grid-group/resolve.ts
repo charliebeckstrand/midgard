@@ -1,6 +1,6 @@
 import { isDataColumn } from '../../../../utilities'
 import type { GridSortState } from '../../context'
-import type { GridGroupHeaderRow } from '../../grid-data-types'
+import type { GridGroupHeaderRow, GridVirtualize } from '../../grid-data-types'
 import type { GridGroupByContextValue } from '../../grid-group-by-button'
 import type { GridRowsProps } from '../../grid-row'
 import type { GridColumn, GridPagination } from '../../types'
@@ -130,16 +130,29 @@ export function resolveGroupByContext(args: {
 
 /**
  * Zeroes the grid features that a self-rendering body stands over. Grouping,
- * client or manual, renders its own plain body. It therefore stands the
- * navigable cursor and virtualization down. Client grouping is a whole-set body,
- * so it also stands pagination down. Manual grouping keeps *manual* pagination,
- * where the backend pages the grouped sequence. It drops only a client one,
- * whose arbitrary slice boundaries would tear children from their group headers.
- * Master-detail interleaves auto-height detail rows into the flat body, so it
- * stands the cursor and virtualization down. A window assumes uniform row
- * heights. It keeps pagination, because the two compose. Each flag passes through
- * when none is active. Split out so {@link GridData} stays within its
- * complexity budget.
+ * client or manual, renders its own body, and so does master-detail. Each
+ * stands the navigable cursor down, because its rows do not map to the cursor
+ * index space.
+ *
+ * Client grouping and master-detail keep `virtualize` when the consumer sets
+ * it. Their bodies then window a list of items through the measured path of
+ * `useVirtualWindow`. A group header, a leaf, a total, and a detail panel do
+ * not share one height. Manual grouping stands virtualization down.
+ * Its segment keys are positional, so they do not give each row a stable key.
+ * Infinite scroll implies `virtualize`, but an implied window does not lift
+ * the gate. A grouped or master-detail grid thus renders as before unless the
+ * consumer sets `virtualize` itself.
+ *
+ * Infinite scroll runs only over the flat window. It reads the last data row
+ * of the window, and a self-rendering body has no such index.
+ *
+ * Client grouping is a whole-set body, so it also stands pagination down.
+ * Manual grouping keeps *manual* pagination, where the backend pages the
+ * grouped sequence. It drops only a client one, whose arbitrary slice
+ * boundaries would tear children from their group headers. Master-detail keeps
+ * pagination, because the two compose. Each flag passes through when no
+ * self-rendering body is active. Split out so {@link GridData} stays within
+ * its complexity budget.
  *
  * @internal
  */
@@ -148,11 +161,28 @@ export function resolveGroupingGates(args: {
 	manualGroupingActive: boolean
 	expandableActive: boolean
 	navigable: boolean
+	/** The resolved window flag, which infinite scroll can imply. */
 	virtualize: boolean
+	/** The consumer's own `virtualize` prop, before infinite scroll implies it. */
+	virtualizeProp: GridVirtualize | undefined
 	pagination: GridPagination | undefined
-}): { navigable: boolean; virtualize: boolean; pagination: GridPagination | undefined } {
-	// Any self-rendering body stands the cursor and virtualization down.
+}): {
+	navigable: boolean
+	virtualize: boolean
+	infiniteScroll: boolean
+	pagination: GridPagination | undefined
+} {
+	// Any self-rendering body stands the cursor and infinite scroll down.
 	const ownBody = args.groupingActive || args.manualGroupingActive || args.expandableActive
+
+	// Client grouping and master-detail window only on an explicit request.
+	const requested = args.virtualizeProp != null && args.virtualizeProp !== false
+
+	const virtualize = args.manualGroupingActive
+		? false
+		: ownBody
+			? args.virtualize && requested
+			: args.virtualize
 
 	const pagination = args.manualGroupingActive
 		? isManualPagination(args.pagination)
@@ -164,7 +194,8 @@ export function resolveGroupingGates(args: {
 
 	return {
 		navigable: ownBody ? false : args.navigable,
-		virtualize: ownBody ? false : args.virtualize,
+		virtualize,
+		infiniteScroll: virtualize && !ownBody,
 		pagination,
 	}
 }

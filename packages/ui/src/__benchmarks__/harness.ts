@@ -175,3 +175,77 @@ export function rerenderBench(
 		},
 	})
 }
+
+/**
+ * The geometry a bench models for a windowed list in jsdom, which lays nothing
+ * out. `isScroller` picks the scroll container, and `rowHeight` gives each
+ * other element its height. `scrollHeight`, when given, gives the scroller its
+ * content height, and a scroll write then clamps to it.
+ */
+export type LayoutModel = {
+	isScroller: (element: HTMLElement) => boolean
+	viewport: number
+	width: number
+	rowHeight: (element: HTMLElement) => number
+	scrollHeight?: (element: HTMLElement) => number
+}
+
+/** The scroll offset of each element, as the modelled layout stores it. */
+const modelledOffsets = new WeakMap<Element, number>()
+
+/**
+ * Gives a windowed list the geometry a browser would, on the prototype of
+ * every element in the file.
+ *
+ * @remarks The model is small on purpose. The scroller has a fixed viewport,
+ * and each row has the height the model names. A scroll write stores the
+ * offset and fires `scroll` in a microtask, which is the event the virtualizer
+ * reads. A browser fires `scroll` after the write, never inside it. The event
+ * re-renders the window, so it goes through `act` as a mount does. The model
+ * patches `HTMLElement.prototype`, so a file that calls it measures nothing
+ * else against the plain jsdom layout.
+ */
+export function modelLayout(model: LayoutModel): void {
+	const define = (key: string, get: (element: HTMLElement) => number) => {
+		Object.defineProperty(HTMLElement.prototype, key, {
+			configurable: true,
+			get(this: HTMLElement) {
+				return get(this)
+			},
+		})
+	}
+
+	define('offsetHeight', (element) =>
+		model.isScroller(element) ? model.viewport : model.rowHeight(element),
+	)
+
+	define('offsetWidth', (element) => (model.isScroller(element) ? model.width : 0))
+
+	define('clientHeight', (element) => (model.isScroller(element) ? model.viewport : 0))
+
+	const { scrollHeight } = model
+
+	if (scrollHeight) {
+		define('scrollHeight', (element) => (model.isScroller(element) ? scrollHeight(element) : 0))
+	}
+
+	Object.defineProperty(HTMLElement.prototype, 'scrollTop', {
+		configurable: true,
+		get(this: HTMLElement) {
+			return modelledOffsets.get(this) ?? 0
+		},
+		set(this: HTMLElement, value: number) {
+			modelledOffsets.set(this, value)
+		},
+	})
+
+	HTMLElement.prototype.scrollTo = function scrollTo(this: HTMLElement, options?: ScrollToOptions) {
+		const top = Math.max(options?.top ?? 0, 0)
+
+		const max = scrollHeight ? Math.max(this.scrollHeight - this.clientHeight, 0) : top
+
+		this.scrollTop = Math.min(top, max)
+
+		queueMicrotask(() => act(() => void this.dispatchEvent(new Event('scroll'))))
+	} as HTMLElement['scrollTo']
+}

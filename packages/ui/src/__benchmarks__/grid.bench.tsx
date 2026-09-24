@@ -8,12 +8,10 @@
 
 import { describe } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../modules/grid'
-import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from './fixtures'
+import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { mountBench, mountBenches, rerenderBench } from './harness'
 
-const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
-	id,
-	title,
+const COLUMNS = shipmentColumns((id) => ({
 	sortable: id === 'origin' || id === 'destination' || id === 'loads',
 }))
 

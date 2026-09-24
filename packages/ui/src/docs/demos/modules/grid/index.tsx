@@ -1076,6 +1076,42 @@ const ClientPaginationExample = () => (
 	/>
 )
 
+// `virtualize` on a grouped grid windows the group headers, the leaves, and the totals as
+// one list. Each row measures its own height. A row outside the window unmounts, and a
+// group expands with a short animation over the rows that fit in one viewport.
+const GroupedWindowExample = () => (
+	<Grid
+		columns={columns}
+		rows={manyPeople}
+		getKey={(row) => row.id}
+		groupBy={{ value: 'role' }}
+		header={{ position: 'sticky' }}
+		virtualize
+		maxHeight="320px"
+	/>
+)
+
+// `virtualize` on a master-detail grid windows each row and each open detail panel. A
+// closed panel is not rendered, so it keeps no state between one open and the next.
+const DetailWindowExample = () => (
+	<Grid
+		columns={masterDetailColumns}
+		rows={manyPeople}
+		getKey={(row) => row.id}
+		rowLabel={(row) => row.name}
+		header={{ position: 'sticky' }}
+		virtualize
+		maxHeight="320px"
+		expandable={{
+			render: (row) => (
+				<Text size="sm" tone="muted">
+					{row.email} · {row.role} · currently {row.status}
+				</Text>
+			),
+		}}
+	/>
+)
+
 // Client-side infinite scroll: the whole set is held in memory, and the grid renders a
 // growing slice of it through the virtual window. `onLoadMore` lifts the slice
 // synchronously as the scroll nears the loaded end; `hasMore` stops it once the
@@ -1718,6 +1754,20 @@ export function Demo() {
 								<Stack gap="xl">
 									<Example title="Client infinite scroll" code={code`<Grid virtualize />`}>
 										<ClientInfiniteScrollExample />
+									</Example>
+
+									<Example
+										title="Grouped window"
+										code={code`<Grid groupBy={{ value: 'role' }} virtualize maxHeight="320px" />`}
+									>
+										<GroupedWindowExample />
+									</Example>
+
+									<Example
+										title="Master-detail window"
+										code={code`<Grid expandable={{ render }} virtualize maxHeight="320px" />`}
+									>
+										<DetailWindowExample />
 									</Example>
 								</Stack>
 							</TabContent>

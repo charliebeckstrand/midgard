@@ -731,9 +731,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * group-header rows interleaved with lazily fetched children.
 	 * {@link GridGroupBy.groupRow} marks each header.
 	 *
-	 * Grouping renders its own body. While active it takes precedence over
-	 * {@link GridDataProps.virtualize} and the {@link GridDataProps.navigable}
-	 * cursor, and stands both down. Sorting, filtering, search, selection,
+	 * Grouping renders its own body. While active it stands the
+	 * {@link GridDataProps.navigable} cursor down. Client grouping windows its
+	 * rows under an explicit {@link GridDataProps.virtualize}, and manual grouping
+	 * stands the window down. Sorting, filtering, search, selection,
 	 * resizing, and pinning still apply. Client grouping also stands
 	 * {@link GridDataProps.pagination} down; manual grouping composes with
 	 * manual pagination and forces sort/search/filter manual.
@@ -1017,12 +1018,12 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * column for the disclosure chevron. The panel spans the full row width and
 	 * opens over an auto-height transition.
 	 *
-	 * Renders in the plain flat body, so it stands down three things while active,
-	 * as grouping does: {@link GridProps.virtualize | virtualization}, the
-	 * {@link GridProps.navigable | cursor}, and row
-	 * {@link GridProps.rowReorder | reorder}. Detail rows break the uniform row
-	 * height a window assumes. Sorting, filtering, search, selection, pagination,
-	 * resizing, and pinning still apply.
+	 * Renders its own body, so it stands down two things while active, as
+	 * grouping does: the {@link GridProps.navigable | cursor} and row
+	 * {@link GridProps.rowReorder | reorder}. Under an explicit
+	 * {@link GridProps.virtualize}, the body windows each row and each open panel,
+	 * and each measures its own height. Sorting, filtering, search, selection,
+	 * pagination, resizing, and pinning still apply.
 	 *
 	 * @see {@link GridExpandable}
 	 */
@@ -1229,12 +1230,33 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 *
 	 * Pass `true` for defaults, or an object to tune. The defaults are 10 overscan
 	 * and a row-height estimate that scales with {@link GridDataProps.density}:
-	 * 36, 44, or 52px for compact, snug, or loose. Assumes uniform row
-	 * heights.
+	 * 36, 44, or 52px for compact, snug, or loose. The flat body assumes uniform
+	 * row heights.
 	 *
 	 * Without virtualization every row in `rows` renders to the DOM; past
 	 * ~500 rows initial render and column-state changes become slow. Enable
 	 * virtualization at that scale.
+	 *
+	 * @remarks A client-grouped grid ({@link GridDataProps.groupBy}) and a
+	 * master-detail grid ({@link GridDataProps.expandable}) also take a window.
+	 * Each row then measures its own height, so a group header, a total, and a
+	 * detail panel can differ from the estimate. The window changes these
+	 * behaviours of those two grids:
+	 *
+	 * - A row outside the window unmounts.
+	 * - A closed detail panel unmounts, so it loses its state.
+	 * - Keyboard focus uses one static Tab stop per clickable row, as on the flat
+	 *   windowed body. The roving focus stands down.
+	 * - The table gets `role="table"`, with `aria-rowcount` over every row and an
+	 *   `aria-rowindex` on each rendered row.
+	 * - A group expands with an animation only over the rows that fit in one
+	 *   viewport. The other rows show at once.
+	 * - A detail panel above the viewport opens and closes at once.
+	 *
+	 * Manual grouping stays unwindowed, and the keyboard cursor
+	 * ({@link GridDataProps.navigable}) stays off under all three. Infinite scroll
+	 * implies a window, but only on a flat grid. It does not window a grouped
+	 * or master-detail grid.
 	 */
 	virtualize?: GridVirtualize
 
@@ -1251,7 +1273,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * window and `virtualize={false}` throws. It still needs `maxHeight`, which sizes the
 	 * windowed scroll container, and replaces the paged
 	 * {@link GridDataProps.pagination} footer; passing both throws. Stands down
-	 * with virtualization under {@link GridDataProps.groupBy | grouping}.
+	 * under {@link GridDataProps.groupBy | grouping} and under master-detail
+	 * ({@link GridDataProps.expandable}), with or without `virtualize`.
 	 *
 	 * @see {@link GridInfiniteScroll} for the binding — including the firing
 	 * invariant (once per scroll interaction, bounded viewport-fill) and
