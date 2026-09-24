@@ -32,6 +32,8 @@ A preset is a named spec that an app offers as a start point. `DashboardPreset` 
 
 A tile takes grid-unit limits: `minSize` and `maxSize`, each with an optional `w` and `h`, in the shape of `defaultSize`. A widget kind can set them too. A resize clamps into them, and a new tile takes its `defaultSize` within them. A saved entry renders as saved, so the board never resizes a tile by itself. The width floor is the larger of `minSize.w` and the span that `minWidth` needs. A tile with a fixed ratio ignores the height limits, because its width sets its height.
 
+A tile veils its header when its chart reports the spark tier. The chart writes `data-tier="spark"`, and a `:has()` rule on the card reads it, so no code crosses the module boundary. The header leaves the flow for a veil over the top of the content, as the title of a spark chart does. At rest it shows on hover or focus, so the title and the controls stay reachable. In edit mode it stays in view for the grip, and the content box keeps one height in both modes.
+
 Tidy is the one bulk move. `tidy` on the `ref` of the board (`DashboardHandle`) packs the tiles upward and commits the result through the layout binding. Each tile keeps its column and its span, and it moves straight up until it meets a tile or the top edge, so each column keeps its order. A static tile never moves, and a tile that is not mounted keeps its saved place. The pack runs in the engine as `tidyCells`, and the live region says how many tiles moved.
 
 A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
@@ -43,7 +45,5 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine. The store is plain JavaScript; the shell reads it through `useSyncExternalStore`.
 
 ## Backlog
-
-- **Spark tier.** Hide the tile header when the widget reports `data-tier="spark"`, with a `:has()` rule on the tile.
 
 - **RTL.** Mirror the drag delta and the resize edges.

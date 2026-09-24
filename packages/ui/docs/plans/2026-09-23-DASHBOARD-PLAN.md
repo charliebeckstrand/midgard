@@ -30,7 +30,8 @@ Three mechanisms keep the rule:
 - **The platform does the edit-mode standby.** In edit mode the tile sets `inert` on its content.
   The attribute stops pointer, focus, and assistive-tech access for any content.
 - **CSS reads the widget state.** The chart writes `data-tier` on its root. A tile can co-style
-  against it with `:has()`, and no code crosses the boundary.
+  against it with `:has()`, and no code crosses the boundary. (Built later: at the spark tier,
+  the tile header becomes a veil over the content.)
 
 ## 3. What carries over from the old design
 

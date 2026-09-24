@@ -24,6 +24,8 @@ const layout: DashboardLayoutItem[] = [
 	{ id: 'regions', x: 0, y: 0, w: 12 },
 	{ id: 'mix', x: 12, y: 0, w: 12 },
 	{ id: 'units', x: 0, y: 27, w: 6, h: 16 },
+	{ id: 'units-trend', x: 0, y: 43, w: 3, h: 14 },
+	{ id: 'revenue-trend', x: 3, y: 43, w: 3, h: 14 },
 	{ id: 'trend', x: 6, y: 27, w: 18, h: 30 },
 	{ id: 'orders', x: 0, y: 57, w: 24, h: 44 },
 ]
@@ -89,6 +91,21 @@ function Trend() {
 			aria-label="Revenue by month"
 			data={data}
 			series={[{ xKey: 'key', yKey: 'total', yName: 'Revenue' }]}
+			aspectRatio={false}
+		/>
+	)
+}
+
+// A narrow tile gives its chart the spark tier. The tile reads the tier through
+// CSS and veils its header, so the sparkline takes the full height of the tile.
+function Sparkline({ value }: { value: 'revenue' | 'units' }) {
+	const data = sumBy(useDashboardRows(sales), 'month', value)
+
+	return (
+		<LineChart
+			aria-label={`${value === 'units' ? 'Units' : 'Revenue'} by month`}
+			data={data}
+			series={[{ xKey: 'key', yKey: 'total', yName: value === 'units' ? 'Units' : 'Revenue' }]}
 			aspectRatio={false}
 		/>
 	)
@@ -180,6 +197,14 @@ export function Demo() {
 
 						<DashboardTile id="units" title="Units" minWidth={160}>
 							<Units />
+						</DashboardTile>
+
+						<DashboardTile id="units-trend" expandable title="Units trend" minWidth={0}>
+							<Sparkline value="units" />
+						</DashboardTile>
+
+						<DashboardTile id="revenue-trend" expandable title="Revenue trend" minWidth={0}>
+							<Sparkline value="revenue" />
 						</DashboardTile>
 
 						<DashboardTile

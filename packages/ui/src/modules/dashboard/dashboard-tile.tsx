@@ -141,6 +141,11 @@ export type DashboardTileProps = {
  * with no entry takes a new row under the lowest tile, at its `defaultSize`. It
  * first renders on the client, because the board must know each mounted tile to
  * place it.
+ *
+ * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
+ * through CSS. The header then becomes a veil over the top of the content, so the
+ * sparkline takes the full height. At rest the veil shows on hover or focus, and
+ * in edit mode it stays in view for the grip.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -246,7 +251,11 @@ export function DashboardTile(props: DashboardTileProps) {
 				{...(movable ? drag.surface : {})}
 				// The pointer drags the card itself, so the card closes the grab hand too.
 				data-dragging={dataAttr(drag.dragging)}
-				className={cn(k.card({ editable: movable, dragging: drag.dragging }))}
+				className={cn(
+					k.card({ editable: movable, dragging: drag.dragging }),
+					k.veil.overlay,
+					!editable && k.veil.fade,
+				)}
 			>
 				{!hasHeader && handle}
 
