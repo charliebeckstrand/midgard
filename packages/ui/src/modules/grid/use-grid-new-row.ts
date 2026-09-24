@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useMemo,
 	useReducer,
 	useRef,
@@ -166,9 +167,7 @@ export function useGridNewRow<T>({
 } {
 	useNewRowWarning(config, managed)
 
-	const onRowAddRef = useRef(config?.onRowAdd)
-
-	onRowAddRef.current = config?.onRowAdd
+	const onRowAdd = useEffectEvent((values: Record<string, unknown>) => config?.onRowAdd?.(values))
 
 	const positionRef = useRef(position)
 
@@ -337,7 +336,7 @@ export function useGridNewRow<T>({
 			return
 		}
 
-		const result = onRowAddRef.current?.(values)
+		const result = onRowAdd(values)
 
 		if (!isThenable(result)) {
 			accept(true)

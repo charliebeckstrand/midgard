@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffect, useRef } from 'react'
+import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 
 /**
  * Pixels the scroll viewport can grow between viewport-fill fetches before the
@@ -307,8 +307,8 @@ type GridInfiniteScrollParams = {
  * scrolls back to the top and resets the latch and arm. Such a swap comes from
  * a sort, filter, or search under `keepPreviousData`. A scroll position deep in
  * the old set then can't cascade fetches against the new one.
- * Inert when `infiniteScroll` is `null`. Reads `onLoadMore` through a ref so an
- * inline consumer callback doesn't re-arm the effect.
+ * Inert when `infiniteScroll` is `null`. Reads `onLoadMore` as an effect event,
+ * so an inline consumer callback does not arm the effect again.
  *
  * @internal
  */
@@ -318,9 +318,7 @@ export function useGridInfiniteScroll({
 	infiniteScroll,
 	scrollRef,
 }: GridInfiniteScrollParams): void {
-	const onLoadMoreRef = useRef<(() => void) | null>(null)
-
-	onLoadMoreRef.current = infiniteScroll?.onLoadMore ?? null
+	const onLoadMore = useEffectEvent(() => infiniteScroll?.onLoadMore())
 
 	// The cross-run bookkeeping (latch, arm, fill base, replacement counter); one
 	// object so the evaluation helpers above mutate a single seam.
@@ -382,7 +380,7 @@ export function useGridInfiniteScroll({
 			hasMore,
 			loadingMore,
 			threshold,
-			onLoadMore: onLoadMoreRef.current,
+			onLoadMore,
 		})
 	}, [active, lastRenderedIndex, count, hasMore, loadingMore, threshold, scrollRef])
 }
