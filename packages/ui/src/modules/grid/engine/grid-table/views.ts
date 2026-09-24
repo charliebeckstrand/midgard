@@ -8,7 +8,7 @@ import {
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
-import type { QueryField, QueryGroup } from '../../../query/engine/types'
+import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
@@ -326,21 +326,6 @@ export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
 }
 
 /**
- * The single-field {@link QueryField} the active-filter test resolves a column's
- * operators against. Only `name` (matched to each rule's field) and `type` bear
- * on {@link isQueryActive}. `type` selects the operator set, so a value-less
- * operator like "is empty" reads as a real constraint. The faceted `options` a
- * `select` editor needs are therefore skipped here.
- *
- * @internal
- */
-function activeFilterField<T>(id: string, table: Table<T>): QueryField {
-	const gridColumn = table.getColumn(id)?.columnDef.meta?.gridColumn
-
-	return { name: id, label: id, type: gridColumn?.filterType ?? 'text' }
-}
-
-/**
  * The half of {@link GridColumnFilter} a table instance can answer on its own.
  * That is everything but the affordance and the open-request, which are React
  * state the hook owns. Split out so that default is spelled once, at the hook.
@@ -380,11 +365,7 @@ export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 		hasActive: () =>
 			table
 				.getState()
-				.columnFilters.some(
-					(entry) =>
-						isQueryGroup(entry.value) &&
-						isQueryActive(entry.value, [activeFilterField(entry.id, table)]),
-				),
+				.columnFilters.some((entry) => isQueryGroup(entry.value) && isQueryActive(entry.value)),
 		// Replace the whole applied set with an empty one; it flows through the
 		// engine's `onColumnFiltersChange` like any other filter edit.
 		clear: () => table.setColumnFilters([]),

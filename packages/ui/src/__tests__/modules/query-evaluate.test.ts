@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
+import { isQueryActive } from '../../modules/query/engine/query-active'
 import { evaluateQuery, matchQueryRule } from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
+import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
 
 describe('matchQueryRule', () => {
@@ -33,6 +35,9 @@ describe('matchQueryRule', () => {
 
 		// An unknown (half-built) operator imposes no constraint.
 		expect(matchQueryRule('???', 'x', 'y')).toBe(true)
+
+		// An inherited object key is not a matcher, so it does not run.
+		expect(matchQueryRule('valueOf', 'x', 'y')).toBe(true)
 	})
 
 	it('imposes no constraint when a value-requiring operator has an empty value', () => {
@@ -193,6 +198,15 @@ const OPERATORS = [
 	'after',
 	'isTrue',
 	'isFalse',
+]
+
+/** One field of each type, so the summary reads each default operator set. */
+const FIELDS: QueryField[] = [
+	{ name: 'name', label: 'Name', type: 'text' },
+	{ name: 'age', label: 'Age', type: 'number' },
+	{ name: 'joined', label: 'Joined', type: 'date' },
+	{ name: 'status', label: 'Status', type: 'select', options: [{ value: 'a', label: 'A' }] },
+	{ name: 'verified', label: 'Verified', type: 'boolean' },
 ]
 
 /** Operators that read no rule value, so an empty value never stands them down. */
@@ -416,4 +430,22 @@ describe('evaluateQuery · properties', () => {
 			expect(evaluateQuery(createGroup(combinator), () => undefined)).toBe(true)
 		},
 	)
+
+	// The filter accent reads `isQueryActive`, and the summary and chips read
+	// `summarizeQuery`. Both read a rule through the evaluator's own judgement.
+	// So when they read a rule as inactive, the rule drops out of the fold.
+	test.prop([
+		fc.constantFrom(...OPERATORS, 'custom', 'toString', 'valueOf', ''),
+		fc.oneof(emptyValue(), stated(), fieldValue()),
+		fc.constantFrom(...FIELDS),
+		fieldValue(),
+	])('reads a rule as the active judgement and the summary do', (operator, value, field, cell) => {
+		const group = createGroup('and', [{ ...createRule(field), operator, value }])
+
+		const active = isQueryActive(group)
+
+		expect(summarizeQuery(group, FIELDS).length > 0).toBe(active)
+
+		if (!active) expect(evaluateQuery(group, () => cell)).toBe(true)
+	})
 })

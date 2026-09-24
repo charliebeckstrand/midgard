@@ -1,5 +1,4 @@
-import { isEmptyValue } from './query-active'
-import { isBlank, VALUELESS_OPERATORS } from './query-evaluate'
+import { imposesConstraint, isBlank } from './query-evaluate'
 import { createGroup, createRule } from './query-node'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './types'
@@ -368,11 +367,17 @@ function range(column: string, value: unknown): Clause {
 	return { sql: `${column} BETWEEN ${SLOT} AND ${SLOT}`, params: [Number(lo), Number(hi)] }
 }
 
-/** The clause for one rule. An unknown operator, or an empty value, gives `true`. @internal */
+/**
+ * The clause for one rule. A rule that {@link imposesConstraint} reads as no
+ * constraint gives `true`, as it does in the evaluator. Such a rule has an
+ * unknown operator, or an empty value.
+ *
+ * @internal
+ */
 function ruleClause(rule: QueryRule, column: string): Clause {
 	const { operator, value } = rule
 
-	if (!VALUELESS_OPERATORS.has(operator) && isEmptyValue(value)) return true
+	if (!imposesConstraint(operator, value)) return true
 
 	switch (operator) {
 		case 'equals':
