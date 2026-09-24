@@ -7,6 +7,7 @@ import {
 } from '@tanstack/react-table'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
+import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryField, QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
@@ -151,11 +152,6 @@ export type GridGlobalFilterView = {
 	value: string
 	setValue: (value: string) => void
 	placeholder: string
-}
-
-/** Narrows an unknown filter value to a query tree. @internal */
-export function isQueryGroup(value: unknown): value is QueryGroup {
-	return value != null && typeof value === 'object' && (value as { type?: string }).type === 'group'
 }
 
 /**

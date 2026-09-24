@@ -10,7 +10,7 @@ import type { QueryGroup, QueryNode } from './types'
  *
  * @internal
  */
-const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'])
+export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'])
 
 /** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
 function asText(value: unknown): string {
@@ -23,7 +23,7 @@ function asNumber(value: unknown): number {
 }
 
 /** True for a nullish or empty-string range bound, treated as open-ended. @internal */
-function isBlank(value: unknown): boolean {
+export function isBlank(value: unknown): boolean {
 	return value == null || value === ''
 }
 
