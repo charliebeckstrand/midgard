@@ -196,6 +196,43 @@ describe('formatQuerySummary', () => {
 		)
 	})
 
+	it('renders a range on an unknown field as a range', () => {
+		expect(line([rule(ageField, { field: 'gone', operator: 'between', value: [10, 20] })])).toBe(
+			'gone between 10 and 20',
+		)
+
+		expect(line([rule(ageField, { field: 'gone', operator: 'between', value: [10, ''] })])).toBe(
+			'gone ≥ 10',
+		)
+	})
+
+	it('renders between as a range when the field set does not flag it as one', () => {
+		const scoreField: QueryField = {
+			name: 'score',
+			label: 'Score',
+			type: 'number',
+			operators: [{ value: 'between', label: 'in' }],
+		}
+
+		const group = createGroup('and', [rule(scoreField, { operator: 'between', value: [1, 2] })])
+
+		expect(formatQuerySummary(group, [scoreField])).toBe('Score in 1 and 2')
+	})
+
+	it('renders a scalar operator as a scalar when the field set flags it as a range', () => {
+		// The evaluator reads `gt` as a scalar comparison, whatever the flag says.
+		const scoreField: QueryField = {
+			name: 'score',
+			label: 'Score',
+			type: 'number',
+			operators: [{ value: 'gt', label: 'more than', range: true }],
+		}
+
+		const group = createGroup('and', [rule(scoreField, { operator: 'gt', value: 5 })])
+
+		expect(formatQuerySummary(group, [scoreField])).toBe('Score more than 5')
+	})
+
 	it('drops a rule whose operator the evaluator does not know', () => {
 		expect(line([rule(nameField, { operator: 'custom', value: 'x' })])).toBe('')
 	})

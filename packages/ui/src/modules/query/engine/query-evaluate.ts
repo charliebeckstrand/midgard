@@ -31,6 +31,15 @@ export function isEmptyValue(value: unknown): boolean {
  */
 export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse'])
 
+/**
+ * Operators that read a `[min, max]` range ({@link isRange}) as their value.
+ * Each other operator that reads a value reads a scalar ({@link isScalar}).
+ * Mirrors the `range` operator flag in `getOperators`.
+ *
+ * @internal
+ */
+export const RANGE_OPERATORS = new Set(['between'])
+
 /** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
 function asText(value: unknown): string {
 	return value == null ? '' : String(value)
@@ -109,22 +118,12 @@ function isRange(value: unknown): boolean {
 }
 
 /**
- * The value shape per operator value, for an operator that does not read a
- * scalar ({@link isScalar}). Each other operator that reads a value reads a
- * scalar. A rule value of a different shape puts no constraint on the rows.
- *
- * @internal
- */
-const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
-	between: isRange,
-}
-
-/**
  * Whether a rule with this operator and value puts a constraint on the rows.
  * It does when the evaluator has a matcher for the operator, and the operator
  * reads no value or its value is filled ({@link isEmptyValue}). A filled value
- * must also have the shape that the operator reads. The field set has no part
- * in the judgement, because the evaluator reads no field set.
+ * must also have the shape that the operator reads: a range for an operator in
+ * {@link RANGE_OPERATORS}, else a scalar. The field set has no part in the
+ * judgement, because the evaluator reads no field set.
  *
  * @remarks This is the one definition of an active rule. The fold, the SQL
  * format, the active judgement, and the summary all read it, so they give the
@@ -140,7 +139,9 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
 
-	return !isEmptyValue(value) && (valueShapes[operator] ?? isScalar)(value)
+	const hasShape = RANGE_OPERATORS.has(operator) ? isRange : isScalar
+
+	return !isEmptyValue(value) && hasShape(value)
 }
 
 /**
