@@ -74,6 +74,7 @@ Each layer depends only on the layers under it.
 | `dashboard-resize.ts` | The resize clamp: a tile grows until it meets a neighbour or an edge |
 | `dashboard-responsive.ts` | The content-first re-pack, when a tile falls under its `minWidth` |
 | `dashboard-scope.ts` | Selections, the effective query for a tile, and the row predicate |
+| `dashboard-spec.ts` | The saved board as plain data, and the add, remove, and duplicate operations (version two) |
 | `dashboard-announcements.ts` | The live-region text for the gestures |
 | `dashboard-store.ts` | The state container, and the derived cells that the tiles paint |
 
@@ -287,7 +288,8 @@ These items stay in the backlog, and the registry enables each of them:
 - The tile actions: remove, duplicate, and expand to a dialog. `DashboardTiles` takes an
   `actions` render function, so an app can place its own remove control now.
 - The pure spec operations. A remove must also drop the layout entry of the tile. Else the
-  entry stays in the saved layout, and its space stays open.
+  entry stays in the saved layout, and its space stays open. (Built later in
+  `engine/dashboard-spec.ts`.)
 - A validator for a spec that the app reads from storage.
 - Presets.
 

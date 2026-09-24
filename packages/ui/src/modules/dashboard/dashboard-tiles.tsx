@@ -7,7 +7,8 @@ import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardWidgets } from './context'
 import { DashboardTile } from './dashboard-tile'
-import type { DashboardSpecTile, DashboardWidget, DashboardWidgetRenderer } from './types'
+import type { DashboardSpecTile } from './engine/dashboard-spec'
+import type { DashboardWidget, DashboardWidgetRenderer } from './types'
 
 /**
  * The line that a spec tile shows when no widget claims its kind. It names the
@@ -38,9 +39,10 @@ export type DashboardTilesProps = {
  * JSX tiles.
  *
  * The kind gives the tile its `ratio`, its `minWidth`, and its `defaultSize`. The
- * spec tile gives the title and the description. The provider `mount` applies to
- * each tile. A kind that no widget claims keeps its tile, and the content box
- * states the gap. That tile demands no width, so it never re-packs the board.
+ * spec tile gives the title and the description, and its own `defaultSize`
+ * replaces the one of the kind. The provider `mount` applies to each tile. A
+ * kind that no widget claims keeps its tile, and the content box states the gap.
+ * That tile demands no width, so it never re-packs the board.
  *
  * Each spec tile renders through a memoized component. A spec tile that keeps its
  * object, under a registry that keeps its widget, does not render again when the
@@ -113,7 +115,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 			// A tile with no widget shows a line of text. It demands no width, so a
 			// narrow saved span never re-packs the board or stops edit mode.
 			minWidth={widget === undefined ? 0 : widget.minWidth}
-			defaultSize={widget?.defaultSize}
+			defaultSize={tile.defaultSize ?? widget?.defaultSize}
 			mount={mount}
 		>
 			{render(tile)}

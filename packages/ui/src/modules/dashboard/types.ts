@@ -3,6 +3,7 @@ import type { Mount } from '../../primitives/mount'
 import type { QueryGroup } from '../query/engine/types'
 import type { DashboardLayoutItem, DashboardTileSize } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
+import type { DashboardSpecTile } from './engine/dashboard-spec'
 
 /**
  * A value that the app can control, on the house `value` / `defaultValue` /
@@ -54,27 +55,6 @@ export type DashboardGestureEndEvent = {
 }
 
 /**
- * One tile of a {@link DashboardSpec}: plain data that names a widget kind. The
- * tile renders through the widget that the nearest `DashboardWidgetProvider`
- * registers under that name.
- */
-export type DashboardSpecTile = {
-	/** The stable id that joins the tile to its layout entry. */
-	id: string
-	/** The name of the widget kind that draws the tile. */
-	widget: string
-	/** The heading of the tile. */
-	title?: string
-	/** A muted line under the title. */
-	description?: string
-	/**
-	 * The options that the renderer reads. Keep them plain data, so the spec
-	 * survives a save and a load.
-	 */
-	options?: unknown
-}
-
-/**
  * Draws the content of one spec tile. The tile reaches the renderer whole, so
  * a renderer reads `options` as its own shape.
  *
@@ -123,22 +103,4 @@ export type DashboardWidgetRegistry = {
 	 * @defaultValue 'always'
 	 */
 	mount?: Mount
-}
-
-/**
- * A saved board as plain data: the spec tiles, their layout, and the filter.
- *
- * @remarks
- * The spec is a type and not a binding. Bind `layout` and `filter` on
- * `Dashboard`, and render `tiles` with `DashboardTiles` inside it. Each value
- * then has one binding. When you remove a tile, also remove its layout entry.
- * Else the entry stays in the saved layout, and its space stays open.
- */
-export type DashboardSpec = {
-	/** The tiles, in reading order. */
-	tiles: DashboardSpecTile[]
-	/** The saved layout of the tiles. */
-	layout: DashboardLayoutItem[]
-	/** The filter that the app owns. */
-	filter?: QueryGroup
 }

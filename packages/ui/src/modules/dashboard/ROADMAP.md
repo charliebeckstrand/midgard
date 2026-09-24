@@ -20,15 +20,15 @@ Version two adds layer 4, the widget registry. `DashboardWidgetProvider` registe
 
 A tile takes a `mount` policy, so a long board can hold back the content of the tiles under the fold. A tile also takes a `defaultSize`, the span that it takes before the layout holds an entry for it.
 
+The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so its space does not stay open. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
+
 ## Engine — the substrate
 
-The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
+The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine. The store is plain JavaScript; the shell reads it through `useSyncExternalStore`.
 
 ## Backlog
-
-- **Spec operations.** Pure functions that add, remove, and duplicate a spec tile. A remove also drops the layout entry of the tile; else its space stays open.
 
 - **Spec validation.** A guard for a spec that the app reads from storage.
 

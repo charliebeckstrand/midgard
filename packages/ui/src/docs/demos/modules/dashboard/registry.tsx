@@ -1,5 +1,5 @@
-import { ChevronDown, X } from 'lucide-react'
-import { useCallback, useMemo, useRef, useState } from 'react'
+import { ChevronDown, Copy, X } from 'lucide-react'
+import { useCallback, useMemo, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
@@ -10,12 +10,16 @@ import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { BarChart, LineChart } from '../../../../modules/chart'
 import {
+	addSpecTile,
 	Dashboard,
 	type DashboardSpec,
 	type DashboardSpecTile,
 	DashboardTiles,
 	type DashboardWidget,
 	DashboardWidgetProvider,
+	duplicateSpecTile,
+	nextSpecTileId,
+	removeSpecTile,
 	useDashboardRows,
 	useDashboardScope,
 } from '../../../../modules/dashboard'
@@ -132,30 +136,30 @@ export function RegistryExample() {
 
 	const [editing, setEditing] = useState(false)
 
-	const next = useRef(saved.tiles.length + 1)
+	const add = (tile: Omit<DashboardSpecTile, 'id'>) =>
+		setSpec((current) => addSpecTile(current, { ...tile, id: nextSpecTileId(current) }))
 
-	const add = (tile: Omit<DashboardSpecTile, 'id'>) => {
-		const id = `tile-${next.current++}`
-
-		setSpec((current) => ({ ...current, tiles: [...current.tiles, { ...tile, id }] }))
-	}
-
-	// A remove drops the layout entry too, so its space does not stay open.
+	// The spec operations keep the tiles and the layout in step: a remove drops
+	// the layout entry too, and a copy takes the span of its source.
 	const actions = useCallback(
 		(tile: DashboardSpecTile) => (
-			<Button
-				variant="plain"
-				aria-label={`Remove ${tile.title ?? tile.id}`}
-				onClick={() =>
-					setSpec((current) => ({
-						...current,
-						tiles: current.tiles.filter((item) => item.id !== tile.id),
-						layout: current.layout.filter((item) => item.id !== tile.id),
-					}))
-				}
-			>
-				<Icon icon={<X />} size="sm" />
-			</Button>
+			<>
+				<Button
+					variant="plain"
+					aria-label={`Duplicate ${tile.title ?? tile.id}`}
+					onClick={() => setSpec((current) => duplicateSpecTile(current, tile.id))}
+				>
+					<Icon icon={<Copy />} size="sm" />
+				</Button>
+
+				<Button
+					variant="plain"
+					aria-label={`Remove ${tile.title ?? tile.id}`}
+					onClick={() => setSpec((current) => removeSpecTile(current, tile.id))}
+				>
+					<Icon icon={<X />} size="sm" />
+				</Button>
+			</>
 		),
 		[],
 	)

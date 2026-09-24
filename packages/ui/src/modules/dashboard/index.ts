@@ -7,14 +7,20 @@ export {
 } from './dashboard-widget-provider'
 export type { DashboardLayoutItem, DashboardTileSize } from './engine/dashboard-layout'
 export type { DashboardSelection, DashboardSelectOptions } from './engine/dashboard-scope'
+export {
+	addSpecTile,
+	type DashboardSpec,
+	type DashboardSpecTile,
+	duplicateSpecTile,
+	nextSpecTileId,
+	removeSpecTile,
+} from './engine/dashboard-spec'
 export type {
 	DashboardFilterBinding,
 	DashboardGestureEndEvent,
 	DashboardGestureStartEvent,
 	DashboardLayoutBinding,
 	DashboardSelectionBinding,
-	DashboardSpec,
-	DashboardSpecTile,
 	DashboardWidget,
 	DashboardWidgetRegistry,
 	DashboardWidgetRenderer,
