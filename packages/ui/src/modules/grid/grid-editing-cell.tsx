@@ -483,10 +483,10 @@ const CELL_HELD = 'held'
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
- * renders the column's display content through {@link GridNavCell}, which carries
- * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
- * to the one cell it names. A cell whose commit is in flight shows the value
- * as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
+ * renders the column's display content. Both render through {@link GridNavCell},
+ * which carries the active-cursor ring. A cell-scoped session (`scope: 'cell'`)
+ * narrows that to the one cell it names. A cell whose commit is in flight shows
+ * the value as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
  * through its own flag, so a session move re-renders the two cells whose flag
  * flipped. The editable set flips only on a session transition, so cells don't
  * re-render as the user types.
@@ -551,24 +551,29 @@ export function GridEditingCell<T>({
 		)
 	}
 
+	// The editor keeps the cursor ring. Under the default `commitOn`, focus can
+	// leave the grid with the editor open. When focus comes back, the cursor can
+	// seat on this cell, and the ring is then the only mark of it (WCAG 2.4.7).
 	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
-			<GridCellEditor
-				rowIdx={rowIdx}
-				rowKey={rowKey}
-				row={row}
-				column={column}
-				stageDraft={stageDraft}
-				unstageDraft={unstageDraft}
-				readDraft={readDraft}
-				endSession={endSession}
-				entrySeed={entrySeed}
-				claimFocus={claimFocus}
-				resumeCell={resumeCell}
-				managed={managed}
-				settle={flag === CELL_HELD ? 'none' : flag}
-				held={flag === CELL_HELD}
-			/>
+			<GridNavCell row={rowIdx} col={colIdx}>
+				<GridCellEditor
+					rowIdx={rowIdx}
+					rowKey={rowKey}
+					row={row}
+					column={column}
+					stageDraft={stageDraft}
+					unstageDraft={unstageDraft}
+					readDraft={readDraft}
+					endSession={endSession}
+					entrySeed={entrySeed}
+					claimFocus={claimFocus}
+					resumeCell={resumeCell}
+					managed={managed}
+					settle={flag === CELL_HELD ? 'none' : flag}
+					held={flag === CELL_HELD}
+				/>
+			</GridNavCell>
 		)
 	}
 

@@ -98,16 +98,33 @@ export function describeResize(label: string, width: number): string {
 }
 
 /**
+ * The subject of a save announcement: one cell by its column label, else a
+ * count of cells, then the outcome (`Name updated`, `2 cells not saved`).
+ */
+function describeCells(columns: readonly string[], outcome: string): string {
+	return columns.length === 1 ? `${columns[0]} ${outcome}` : `${columns.length} cells ${outcome}`
+}
+
+/** The row part of a save announcement, when one row holds every cell. */
+function forRow(row: string | undefined): string {
+	return row === undefined ? '' : ` for ${row}`
+}
+
+/**
  * The polite announcement for an inline-edit commit, narrated when staged cells
- * reach the sink (WCAG 4.1.3). It counts the cells saved across the batches of
- * one session transition (`3 cells updated`). A cell-scoped session saves one
- * cell at a time, so it usually speaks the singular. The caller gates on a
- * non-zero count, so a session that changed nothing stays silent.
+ * reach the sink (WCAG 4.1.3). Under cell scope it speaks after focus has moved
+ * to the next editor, so it names what saved. One cell reads by its column,
+ * and more cells read as a count. The row is named when one row holds every
+ * cell: `Name updated for Alice`, `3 cells updated for Alice`, or `5 cells
+ * updated` across rows. The caller gates on at least one cell, so a session
+ * that changed nothing stays silent.
  *
+ * @param columns - The column label of each saved cell.
+ * @param row - The label of the one row that holds every cell.
  * @internal
  */
-export function describeCommit(cells: number): string {
-	return `${cells} ${cells === 1 ? 'cell' : 'cells'} updated`
+export function describeCommit(columns: readonly string[], row?: string): string {
+	return `${describeCells(columns, 'updated')}${forRow(row)}`
 }
 
 /**
@@ -124,19 +141,29 @@ export function describeDiscard(changes: number): string {
 
 /**
  * The polite announcement for an async inline-edit commit as it settles (WCAG
- * 4.1.3). An accepted batch reads as {@link describeCommit} does (`2 cells
- * updated`). A refused batch counts the refused cells (`1 cell not saved`). A
- * partial acceptance speaks both parts in one message. The caller announces
- * once for each batch.
+ * 4.1.3). A batch holds one row. An accepted batch reads as
+ * {@link describeCommit} does (`Name updated for Alice`). A refused batch names
+ * the refused cells the same way (`Name not saved for Alice`). A partial
+ * acceptance speaks both parts in one message (`Name updated, 2 cells not
+ * saved for Alice`). The caller announces once for each batch.
  *
+ * @param saved - The column label of each accepted cell.
+ * @param refused - The column label of each refused cell.
+ * @param row - The label of the row of the batch.
  * @internal
  */
-export function describeSettle(saved: number, refused: number): string {
-	if (refused === 0) return describeCommit(saved)
+export function describeSettle(
+	saved: readonly string[],
+	refused: readonly string[],
+	row?: string,
+): string {
+	if (refused.length === 0) return describeCommit(saved, row)
 
-	const failed = `${refused} ${refused === 1 ? 'cell' : 'cells'} not saved`
+	const failed = describeCells(refused, 'not saved')
 
-	return saved === 0 ? failed : `${describeCommit(saved)}, ${failed}`
+	const parts = saved.length === 0 ? failed : `${describeCells(saved, 'updated')}, ${failed}`
+
+	return `${parts}${forRow(row)}`
 }
 
 /**

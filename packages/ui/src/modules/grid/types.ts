@@ -120,6 +120,10 @@ export type GridColumn<T> = {
 	 * Opts this data column out of editing in an {@link GridProps.editable | editable}
 	 * grid: the cursor still visits its cells, but they never enter edit mode. Has
 	 * no effect on a non-editable grid.
+	 *
+	 * @remarks In an editable grid, each cell that cannot enter edit mode carries
+	 * `aria-readonly`. That is a cell of a `readOnly` column, and a cell of a
+	 * column with no `field` and no `editCell`.
 	 * @defaultValue false
 	 */
 	readOnly?: boolean

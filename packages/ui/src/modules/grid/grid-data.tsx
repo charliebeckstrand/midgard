@@ -655,7 +655,7 @@ export function GridData<T>({
 	// The editing layer's commit path resolves a staged draft against the grid's
 	// own inputs, not against the refs above: those narrow to what the window
 	// renders, and a draft can outlive that window.
-	const editSource: GridEditSource<T> = { rows, columns, getKey }
+	const editSource: GridEditSource<T> = { rows, columns, getKey, rowLabel }
 
 	const editSourceRef = useRef(editSource)
 
