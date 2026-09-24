@@ -1,6 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, getSlot, present, renderUI, screen, waitFor } from '../helpers'
+import {
+	frames,
+	getSlot,
+	present,
+	renderUI,
+	sampleDrift,
+	screen,
+	waitFor,
+	watchReveals,
+	windowBody,
+} from '../helpers'
 
 /**
  * The client-grouped body over a measured window, in a real browser. Each row
@@ -60,12 +70,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		const scroll = getSlot(view.container, 'grid-scroll')
 
-		const body = present<HTMLTableSectionElement>(
-			scroll.querySelector('table > tbody'),
-			'the data body',
-		)
-
-		return { ...view, scroll, body }
+		return { ...view, scroll, body: windowBody(view.container) }
 	}
 
 	/** The rendered item rows of the window, in DOM order. */
@@ -181,11 +186,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
 
-		const runs: (EventTarget | null)[] = []
-
-		body.addEventListener('transitionrun', (event) => {
-			if ((event as TransitionEvent).propertyName === 'grid-template-rows') runs.push(event.target)
-		})
+		const runs = watchReveals(body, (row) => row)
 
 		const leavesBefore = body.querySelectorAll(':scope > tr[data-grid-row]').length
 
@@ -220,19 +221,14 @@ describe('grid virtualized grouped body (real browser)', () => {
 		// Person 1 is the first leaf of Alpha. It leaves once its reveal lands.
 		await waitFor(() => expect(body.querySelector('tr[data-grid-row="1"]')).toBeNull())
 
-		const animated = new Set<Element>()
+		const reveals = watchReveals(body, (row) => row)
 
-		body.addEventListener('transitionrun', (event) => {
-			if ((event as TransitionEvent).propertyName !== 'grid-template-rows') return
-
-			const row = (event.target as Element).closest('tr')
-
-			if (row) animated.add(row)
-		})
+		// The rows that animated, once each.
+		const animated = () => new Set(reveals.filter((row) => row !== null)).size
 
 		screen.getByRole('button', { name: 'Expand group Alpha' }).click()
 
-		await waitFor(() => expect(animated.size).toBeGreaterThan(0))
+		await waitFor(() => expect(animated()).toBeGreaterThan(0))
 
 		await settle(20)
 
@@ -243,7 +239,7 @@ describe('grid virtualized grouped body (real browser)', () => {
 			(row) => row.hasAttribute('data-grid-row') || row.dataset.totalRow === 'group',
 		)
 
-		expect(animated.size).toBeLessThanOrEqual(bound)
+		expect(animated()).toBeLessThanOrEqual(bound)
 
 		// The window renders more rows than the bound, and those mount open.
 		expect(rendered.length).toBeGreaterThan(bound)
@@ -291,31 +287,6 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		expect(kinds).toEqual(new Set(['group', 'leaf', 'total']))
 	})
-
-	/**
-	 * Samples the anchor's offset from its first position after each of `count`
-	 * paints. A task that a frame callback queues runs after that frame paints.
-	 * `start` is read before the change.
-	 * The anchor is found again on each sample, and a missing anchor has left the
-	 * window, which is an infinite drift.
-	 */
-	async function sampleDrift(
-		anchor: () => HTMLElement | null,
-		start: number,
-		count: number,
-	): Promise<number> {
-		let drift = 0
-
-		for (let i = 0; i < count; i++) {
-			await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
-
-			const top = anchor()?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY
-
-			drift = Math.max(drift, Math.abs(top - start))
-		}
-
-		return drift
-	}
 
 	/** Opens the group menu on `header` and picks the item with `name`. */
 	async function groupMenu(header: HTMLElement, name: string) {

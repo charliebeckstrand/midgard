@@ -123,6 +123,16 @@ export const SHIPMENT_FIELDS = [
 /** The row identity every grid scenario keys on. */
 export const shipmentKey = (row: Shipment) => row.id
 
+/**
+ * One grid column per shipment field, titled from {@link SHIPMENT_FIELDS}.
+ * `extra` adds props to the column of each field.
+ */
+export function shipmentColumns(
+	extra?: (id: (typeof SHIPMENT_FIELDS)[number][0]) => Partial<GridColumn<Shipment>>,
+): GridColumn<Shipment>[] {
+	return SHIPMENT_FIELDS.map(([id, title]) => ({ id, title, ...extra?.(id) }))
+}
+
 type Json = string | number | boolean | null | Json[] | { [k: string]: Json }
 
 /**

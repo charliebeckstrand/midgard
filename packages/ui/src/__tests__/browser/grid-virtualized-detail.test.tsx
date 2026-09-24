@@ -1,7 +1,16 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, getSlot, present, renderUI, waitFor } from '../helpers'
+import {
+	frames,
+	getSlot,
+	present,
+	renderUI,
+	sampleDrift,
+	waitFor,
+	watchReveals,
+	windowBody,
+} from '../helpers'
 
 /**
  * The master-detail body over a measured window, in a real browser. Each open
@@ -58,10 +67,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		const scroll = getSlot(view.container, 'grid-scroll')
 
-		const body = present<HTMLTableSectionElement>(
-			scroll.querySelector('table > tbody'),
-			'the data body',
-		)
+		const body = windowBody(view.container)
 
 		await waitFor(() => expect(body.querySelector(':scope > tr[data-index]')).not.toBeNull())
 
@@ -92,46 +98,20 @@ describe('grid virtualized master-detail body (real browser)', () => {
 		)
 	}
 
-	/** Records the reveal transitions that start under `root`. */
-	function watchReveals(root: HTMLElement): string[] {
-		const runs: string[] = []
+	/** Records the panel key of each reveal transition that starts under `root`. */
+	const watchPanels = (root: HTMLElement) =>
+		watchReveals(root, (row) => row?.getAttribute('data-detail-row') ?? '')
 
-		root.addEventListener('transitionrun', (event) => {
-			if ((event as TransitionEvent).propertyName === 'grid-template-rows') {
-				runs.push((event.target as Element).closest('tr')?.getAttribute('data-detail-row') ?? '')
-			}
-		})
-
-		return runs
-	}
-
-	/**
-	 * Samples the anchor's offset from its first position after each of `count`
-	 * paints. A task that a frame callback queues runs after that frame paints.
-	 * A read inside the frame callback would see a layout that the browser
-	 * corrects before the paint: the virtualizer moves the scroll offset from a
-	 * `ResizeObserver` callback, which runs after layout and before paint.
-	 */
-	async function sampleDrift(anchor: HTMLElement, count: number): Promise<number> {
-		const start = anchor.getBoundingClientRect().top
-
-		let drift = 0
-
-		for (let i = 0; i < count; i++) {
-			await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
-
-			drift = Math.max(drift, Math.abs(anchor.getBoundingClientRect().top - start))
-		}
-
-		return drift
-	}
+	/** Samples the drift of `anchor` from where it is now, after each of `count` paints. */
+	const drift = (anchor: HTMLElement, count: number) =>
+		sampleDrift(() => anchor, anchor.getBoundingClientRect().top, count)
 
 	const keyOf = (row: HTMLElement) => Number(row.getAttribute('data-grid-row'))
 
 	it('animates a panel open and closed in view, and holds the row above it still', async () => {
 		const { scroll, body } = await renderGrid()
 
-		const runs = watchReveals(body)
+		const runs = watchPanels(body)
 
 		const [anchor, target] = rowsInView(scroll, body) as [HTMLElement, HTMLElement]
 
@@ -139,7 +119,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		control.set(new Set([key]))
 
-		const openDrift = await sampleDrift(anchor, 20)
+		const openDrift = await drift(anchor, 20)
 
 		expect(runs).toContain(String(key))
 
@@ -151,7 +131,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		control.set(new Set())
 
-		const closeDrift = await sampleDrift(anchor, 20)
+		const closeDrift = await drift(anchor, 20)
 
 		expect(runs).toContain(String(key))
 
@@ -166,7 +146,7 @@ describe('grid virtualized master-detail body (real browser)', () => {
 	it('opens and closes a panel above the viewport at once, with no jump', async () => {
 		const { scroll, body } = await renderGrid()
 
-		const runs = watchReveals(body)
+		const runs = watchPanels(body)
 
 		const above = present(rowsAbove(scroll, body).at(-1), 'a row above the viewport')
 
@@ -176,13 +156,13 @@ describe('grid virtualized master-detail body (real browser)', () => {
 
 		control.set(new Set([key]))
 
-		const openDrift = await sampleDrift(anchor, 20)
+		const openDrift = await drift(anchor, 20)
 
 		expect(present(body.querySelector(`tr[data-detail-row="${key}"]`), 'the panel')).toBeTruthy()
 
 		control.set(new Set())
 
-		const closeDrift = await sampleDrift(anchor, 20)
+		const closeDrift = await drift(anchor, 20)
 
 		expect(body.querySelector(`tr[data-detail-row="${key}"]`)).toBeNull()
 

@@ -214,7 +214,10 @@ type DetailWiring<T> = {
 	rowExpandable: (row: T) => boolean
 }
 
-/** Whether the detail panel of `row` is open: its key is expanded, and the row can expand. @internal */
+/**
+ * Whether the detail panel of `row` is open: its key is expanded, and the row
+ * can expand. @internal
+ */
 export function detailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>): boolean {
 	return expansion.expanded.has(key) && expansion.rowExpandable(row)
 }

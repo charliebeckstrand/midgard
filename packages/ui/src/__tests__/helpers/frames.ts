@@ -10,3 +10,15 @@ export function frames(): Promise<void> {
 		requestAnimationFrame(() => requestAnimationFrame(() => resolve()))
 	})
 }
+
+/**
+ * Waits until the next frame has painted. A task that a frame callback queues
+ * runs after that frame paints. A read inside the frame callback would see a
+ * layout that the browser can correct before the paint, such as a scroll move
+ * from a `ResizeObserver` callback.
+ */
+export function nextPaint(): Promise<void> {
+	return new Promise((resolve) => {
+		requestAnimationFrame(() => setTimeout(resolve, 0))
+	})
+}

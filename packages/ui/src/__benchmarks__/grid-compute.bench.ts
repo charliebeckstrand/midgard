@@ -9,8 +9,8 @@ import { allocateColumnWidths } from '../modules/grid/engine/grid-sizing/allocat
 import {
 	makeColumnSizeProfiles,
 	makeEscapeHeavyRows,
-	SHIPMENT_FIELDS,
 	type Shipment,
+	shipmentColumns,
 	shipments,
 } from './fixtures'
 
@@ -45,7 +45,7 @@ describe('grid-layout · allocateColumnWidths', () => {
 	}
 })
 
-const CSV_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({ id, title }))
+const CSV_COLUMNS = shipmentColumns()
 
 const NOISY_COLUMNS: GridColumn<Record<string, string>>[] = (
 	['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h'] as const

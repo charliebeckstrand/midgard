@@ -167,7 +167,8 @@ function indexOfKey(
  * into the virtualizer as its `scroll` handler does. The next render then
  * places its window at the new offset, before the paint.
  *
- * @param moved - The scroll adjustment since the render, from rows that measured as they attached.
+ * @param moved - The scroll adjustment since the render, from rows that
+ *   measured as they attached.
  * @param window - The rendered items of the render.
  * @returns The record of the new list, or `null` when the list did not change.
  * @internal

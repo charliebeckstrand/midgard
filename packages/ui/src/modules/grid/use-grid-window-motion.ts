@@ -45,7 +45,10 @@ export type GridMotionSource<L, S, K> = {
 	) => GridMotionChange<K>
 }
 
-/** The state of {@link useGridWindowMotion}: the last snapshot and the motion of each row. @internal */
+/**
+ * The state of {@link useGridWindowMotion}: the last snapshot and the motion
+ * of each row. @internal
+ */
 type MotionState<S, K> = { captured: S; motions: ReadonlyMap<K, GridRowMotion> }
 
 /** Whether any row in `motions` has `phase`. @internal */
