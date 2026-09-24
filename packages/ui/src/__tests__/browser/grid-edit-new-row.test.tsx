@@ -317,6 +317,99 @@ describe('grid new row (real browser)', () => {
 		}
 	})
 
+	describe('the width of the Add column', () => {
+		/** The Add cell of the slot, its last cell. */
+		const addCellOf = (slot: () => HTMLElement) =>
+			present(slot().closest('tr')?.lastElementChild as HTMLElement | null, 'the Add cell')
+
+		it('sizes the column to a wide control of a render slot', async () => {
+			const { slot } = renderGrid({
+				newRow: 'bottom',
+				newRowAdd: {
+					render: ({ add }) => (
+						<button type="button" style={{ width: 120 }} onClick={add}>
+							Add a person
+						</button>
+					),
+				},
+			})
+
+			const control = screen.getByRole('button', { name: 'Add a person' })
+
+			// The control fits inside its cell, and the cell is not much wider.
+			await waitFor(() =>
+				expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
+					addCellOf(slot).getBoundingClientRect().right,
+				),
+			)
+
+			expect(addCellOf(slot).getBoundingClientRect().width).toBeLessThan(120 + 48)
+		})
+
+		it('fixes the column at newRowAdd.width', async () => {
+			const { slot } = renderGrid({ newRow: 'bottom', newRowAdd: { width: 120 } })
+
+			await waitFor(() =>
+				expect(Math.abs(addCellOf(slot).getBoundingClientRect().width - 120)).toBeLessThanOrEqual(
+					1,
+				),
+			)
+		})
+
+		it('holds the width while an add is in flight', async () => {
+			let resolve: () => void = () => {}
+
+			const onRowAdd = vi.fn(
+				() =>
+					new Promise<void>((res) => {
+						resolve = res
+					}),
+			)
+
+			const { slot } = renderGrid({
+				newRow: 'bottom',
+				onRowAdd,
+				newRowAdd: {
+					render: ({ add, pending }) => (
+						<button type="button" onClick={add}>
+							{pending ? 'Saving the new person' : 'Add'}
+						</button>
+					),
+				},
+			})
+
+			await userEvent.click(screen.getByRole('textbox', { name: 'Edit Name, new row' }))
+
+			await userEvent.keyboard('Carol')
+
+			// The column fits the resting label first.
+			const control = screen.getByRole('button', { name: 'Add' })
+
+			await waitFor(() =>
+				expect(control.getBoundingClientRect().right).toBeLessThanOrEqual(
+					addCellOf(slot).getBoundingClientRect().right,
+				),
+			)
+
+			const width = addCellOf(slot).getBoundingClientRect().width
+
+			await userEvent.keyboard('{Enter}')
+
+			await waitFor(() =>
+				expect(screen.getByRole('button', { name: /Saving/ })).toBeInTheDocument(),
+			)
+
+			// The wider pending label does not grow the column.
+			await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
+
+			expect(addCellOf(slot).getBoundingClientRect().width).toBe(width)
+
+			resolve()
+
+			await waitFor(() => expect(screen.getByRole('button', { name: 'Add' })).toBeInTheDocument())
+		})
+	})
+
 	it('keeps the cursor cell of the row clear of the sticky Add cell', async () => {
 		const { slot } = renderGrid(
 			{ newRow: 'bottom' },

@@ -1,18 +1,29 @@
 'use client'
 
-import { type CSSProperties, type MouseEvent, type ReactNode, useMemo, useRef } from 'react'
+import {
+	type CSSProperties,
+	type MouseEvent,
+	type ReactNode,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
-import { isNewRowAddColumn, NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
+import {
+	isNewRowAddColumn,
+	measureNewRowAddCell,
+	NEW_ROW_ADD_COLUMN_ID,
+} from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import { GridAddRowButton, GridCellEditor } from './grid-editing-cell'
 import { type GridNewRowSession, useGridNewRowSession } from './grid-editing-context'
-import type { GridEditableConfig, GridNewRowAddContext } from './grid-editing-types'
+import type { GridNewRowAdd, GridNewRowAddContext } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { GridNavCell, stickyHeadInset } from './use-grid-navigation-columns'
@@ -59,8 +70,13 @@ type GridNewRowProps<T> = {
 	pinning: GridColumnPinning | null
 	/** The slot's `aria-rowindex`, or `undefined` where the grid sets no row indexes. */
 	ariaRowIndex: number | undefined
-	/** The consumer's {@link GridEditableConfig.newRowAdd}, which sets the Add control. */
-	addControl: GridEditableConfig['newRowAdd']
+	/**
+	 * The consumer's {@link GridEditableConfig.newRowAdd}, which sets the Add
+	 * control. The Add cell renders only where the grid added its column.
+	 */
+	add: GridNewRowAdd | undefined
+	/** Takes the width that the Add cell needs, when no fixed width holds the column. */
+	onMeasureAdd: (width: number) => void
 }
 
 /**
@@ -151,9 +167,14 @@ function GridNewRowCell<T>({
 
 /**
  * The cell of the Add column in the new-row slot. It holds the built-in Add
- * control, or the consumer's {@link GridEditableConfig.newRowAdd} slot. It
- * sticks to the inline end. While an add is in flight, its content is inert
- * and pulses, as the editors do.
+ * control, or the consumer's {@link GridNewRowAdd.render} slot. It sticks to
+ * the inline end. While an add is in flight, its content is inert and pulses,
+ * as the editors do.
+ *
+ * Without a fixed {@link GridNewRowAdd.width}, the cell reports the width that
+ * its control needs through `onMeasure`, and the grid sets the column to it.
+ * It measures again when the control changes size. While an add is in flight
+ * it holds the width, so a pending label does not move the columns.
  *
  * @remarks The cell carries `data-grid-new-col`, so the slot's key handler
  * takes the keys of its control. Escape and F2 then leave the slot, and do
@@ -164,27 +185,63 @@ function GridNewRowCell<T>({
  */
 function GridNewRowAddCell({
 	session,
-	addControl,
+	render,
+	onMeasure,
 	colIndex,
 	className,
 }: {
 	session: GridNewRowSession
-	addControl: ((context: GridNewRowAddContext) => ReactNode) | undefined
+	render: ((context: GridNewRowAddContext) => ReactNode) | undefined
+	/** Takes the width that the cell needs, or is `undefined` under a fixed width. */
+	onMeasure: ((width: number) => void) | undefined
 	colIndex: number | undefined
 	className: string
 }) {
 	const pending = session.inFlight
 
+	const cellRef = useRef<HTMLTableCellElement>(null)
+
+	const controlRef = useRef<HTMLSpanElement>(null)
+
+	useLayoutEffect(() => {
+		const cell = cellRef.current
+
+		const control = controlRef.current
+
+		if (!onMeasure || pending || !cell || !control) return
+
+		const report = () => {
+			const width = measureNewRowAddCell(cell, control)
+
+			if (width !== null) onMeasure(width)
+		}
+
+		report()
+
+		if (typeof ResizeObserver === 'undefined') return
+
+		const observer = new ResizeObserver(report)
+
+		observer.observe(control)
+
+		return () => observer.disconnect()
+	}, [onMeasure, pending])
+
 	return (
 		<TableCell
+			ref={cellRef}
 			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
 			aria-colindex={colIndex}
 			aria-busy={pending || undefined}
 			className={cn(className, k.newRow.add)}
 		>
-			<span inert={pending} className={cn(pending && k.edit.pending)}>
-				{addControl ? (
-					addControl({ add: session.addRow, pending })
+			<span
+				ref={controlRef}
+				inert={pending}
+				className={cn(k.newRow.control, pending && k.edit.pending)}
+			>
+				{render ? (
+					render({ add: session.addRow, pending })
 				) : (
 					<GridAddRowButton addRow={session.addRow} />
 				)}
@@ -209,7 +266,13 @@ function GridNewRowAddCell({
  *
  * @internal
  */
-export function GridNewRow<T>({ columns, pinning, ariaRowIndex, addControl }: GridNewRowProps<T>) {
+export function GridNewRow<T>({
+	columns,
+	pinning,
+	ariaRowIndex,
+	add,
+	onMeasureAdd,
+}: GridNewRowProps<T>) {
 	const session = useGridNewRowSession()
 
 	const bodyRef = useRef<HTMLTableSectionElement>(null)
@@ -256,7 +319,8 @@ export function GridNewRow<T>({ columns, pinning, ariaRowIndex, addControl }: Gr
 							<GridNewRowAddCell
 								key={column.id}
 								session={session}
-								addControl={addControl || undefined}
+								render={add?.render}
+								onMeasure={add?.width === undefined ? onMeasureAdd : undefined}
 								colIndex={colIndex}
 								className={className}
 							/>

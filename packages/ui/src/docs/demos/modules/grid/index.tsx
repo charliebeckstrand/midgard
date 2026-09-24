@@ -1835,7 +1835,7 @@ export function Demo() {
 
 						<Example
 							title="New row"
-							code={code`<Grid editable={{ session: 'managed', newRow: 'bottom', newRowAdd, onRowAdd, onCommit }} />`}
+							code={code`<Grid editable={{ session: 'managed', newRow: 'bottom', newRowAdd: { render }, onRowAdd, onCommit }} />`}
 						>
 							<NewRowExample />
 						</Example>

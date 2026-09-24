@@ -12,6 +12,7 @@ import {
 } from 'react'
 import { flushSync } from 'react-dom'
 import type { DensityLevel } from '../../providers/density/context'
+import { isDataColumn } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { measureColumns } from './engine/grid-sizing/measure'
 import {
@@ -240,8 +241,13 @@ export function useGridColumnSizing<T>({
 	// every mount of every resizable-by-default grid.
 	const rowsSig = rowsSignature
 
+	// A non-data column holds the width it declares, and the fit shares the rest.
+	// That width is part of the structure, so a new one (the new-row slot's Add
+	// column, as it measures its control) re-fits the other columns, even under
+	// frozen widths.
 	const structSig = useMemo(
-		() => `${columns.map((col) => String(col.id)).join('')}|${density ?? ''}`,
+		() =>
+			`${columns.map((col) => (isDataColumn(col) ? String(col.id) : `${col.id}:${col.width ?? ''}`)).join('')}|${density ?? ''}`,
 		[columns, density],
 	)
 

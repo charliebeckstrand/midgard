@@ -194,6 +194,9 @@ export const k = {
 		// scrolled cell of the slot, like a pinned cell. The column is empty in the
 		// other rows, so only this cell sticks there.
 		add: 'end-0 z-[3] w-px whitespace-nowrap',
+		// The box around the control of the Add cell. It is as wide as the
+		// control at any width of the cell, so the cell can measure it.
+		control: 'inline-flex w-max align-middle',
 	},
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show

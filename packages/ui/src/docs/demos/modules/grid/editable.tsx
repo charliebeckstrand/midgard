@@ -490,19 +490,28 @@ const addControlOptions = [
 type AddControl = (typeof addControlOptions)[number]['value']
 
 /**
- * The `newRowAdd` setting for each choice: the built-in button, a slot with
- * the demo's own icon button, or no control.
+ * The `newRowAdd` setting for each choice: the built-in button, a `render`
+ * slot with the demo's own labelled button, or no control. The Add column
+ * takes the width of the control, so the labelled button gets a wider column.
  */
 function resolveAddControl(choice: AddControl): GridEditableConfig['newRowAdd'] {
 	if (choice === 'none') return false
 
 	if (choice === 'button') return undefined
 
-	return ({ add }) => (
-		<Button variant="bare" color="blue" aria-label="Add person" onClick={add}>
-			<Icon icon={<UserPlus />} />
-		</Button>
-	)
+	return {
+		render: ({ add }) => (
+			<Button
+				variant="soft"
+				color="blue"
+				size="sm"
+				prefix={<Icon icon={<UserPlus />} />}
+				onClick={add}
+			>
+				Add
+			</Button>
+		),
+	}
 }
 
 export function NewRowExample() {
