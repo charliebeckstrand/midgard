@@ -105,6 +105,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		infiniteScroll: ResolvedInfiniteScroll | null
 		/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
 		fitRenderedRows: () => void
+		/** Whether the header sticks, so the window aligns a row below it. */
+		stickyHeader: boolean
 	} | null
 }
 

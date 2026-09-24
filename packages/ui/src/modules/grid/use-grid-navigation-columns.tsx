@@ -73,9 +73,10 @@ function obscuringInsets(cell: HTMLElement): {
 /**
  * The height that the sticky new-row slot lays over the top or the bottom edge
  * of the scroll container, for a cell outside the slot. The slot is the one of
- * this table, not of a grid nested in a detail row. @internal
+ * this table, not of a grid nested in a detail row. The windowed body also
+ * passes its data body as `cell`, and reads the top inset. @internal
  */
-function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
+export function slotInsets(cell: HTMLElement): { top: number; bottom: number } {
 	// The body sections of the table are few, so the walk reads a handful of
 	// elements, not the rows of the data body.
 	const bodies = cell.closest('table')?.tBodies ?? []

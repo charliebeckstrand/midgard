@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactElement, type RefObject, useCallback, useEffect, useLayoutEffect } from 'react'
+import {
+	type ReactElement,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
 import { TableBody, TableCell } from '../../components/table'
 import { Text } from '../../components/text'
 import { useVirtualWindow } from '../../hooks'
@@ -10,6 +18,7 @@ import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridSkeletonCells, GridSkeletonRows } from './grid-skeleton-cells'
 import type { GridColumn } from './types'
 import { useGridInfiniteScroll } from './use-grid-infinite-scroll'
+import { slotInsets } from './use-grid-navigation-columns'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Scrolls the data row at `rowIndex` (cursor index space) into the rendered window. @internal */
@@ -82,6 +91,80 @@ function GridInfiniteScrollTrailer<T>({
 	return null
 }
 
+/** The scroll margin and the start padding of the window, in pixels. @internal */
+type WindowOffsets = { scrollMargin: number; scrollPaddingStart: number }
+
+const NO_OFFSETS: WindowOffsets = { scrollMargin: 0, scrollPaddingStart: 0 }
+
+/**
+ * Measures the content above the data body for the virtualizer. The scroll
+ * margin is the distance from the top of the scroll content to the body: the
+ * header and a top new-row slot. The start padding is the height of the sticky
+ * part of that content, so an aligned row lands below it (WCAG 2.4.11). A
+ * resize of the table measures again, and so does a new-row slot that mounts.
+ *
+ * @remarks The header position comes in as a flag, and the slot always sticks.
+ * So the measure reads only boxes and no computed style, which costs a few
+ * milliseconds for each header cell in jsdom.
+ *
+ * @internal
+ */
+function useWindowOffsets(
+	bodyRef: RefObject<HTMLTableSectionElement | null>,
+	scrollRef: RefObject<HTMLDivElement | null>,
+	stickyHeader: boolean,
+): WindowOffsets {
+	const [offsets, setOffsets] = useState(NO_OFFSETS)
+
+	useLayoutEffect(() => {
+		const body = bodyRef.current
+
+		// The scroll ref of an ancestor attaches after this effect on the commit
+		// that mounts both, so the body finds its own scroller as a fallback.
+		const scroller = scrollRef.current ?? body?.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+		const table = body?.closest('table')
+
+		if (!body || !scroller || !table) return
+
+		const measure = () => {
+			const scrollMargin =
+				body.getBoundingClientRect().top -
+				scroller.getBoundingClientRect().top -
+				scroller.clientTop +
+				scroller.scrollTop
+
+			const head = stickyHeader ? (table.tHead?.getBoundingClientRect().height ?? 0) : 0
+
+			const scrollPaddingStart = head + slotInsets(body).top
+
+			// A change under one pixel moves no row, so it does not render again.
+			setOffsets((current) =>
+				Math.abs(current.scrollMargin - scrollMargin) < 1 &&
+				Math.abs(current.scrollPaddingStart - scrollPaddingStart) < 1
+					? current
+					: { scrollMargin, scrollPaddingStart },
+			)
+		}
+
+		measure()
+
+		if (typeof ResizeObserver === 'undefined') return
+
+		// The head changes the table size when it resizes, and so does a new-row
+		// slot that mounts, resizes, or unmounts.
+		const observer = new ResizeObserver(measure)
+
+		observer.observe(table)
+
+		if (table.tHead) observer.observe(table.tHead)
+
+		return () => observer.disconnect()
+	}, [bodyRef, scrollRef, stickyHeader])
+
+	return offsets
+}
+
 /** Props for {@link GridVirtualizedBody}. @internal */
 type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	scrollRef: RefObject<HTMLDivElement | null>
@@ -97,6 +180,8 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	 * the widths land before those rows paint; a no-op once a fit has read rows.
 	 */
 	fitRenderedRows: () => void
+	/** Whether the header sticks to the top edge, so an aligned row must land below it. */
+	stickyHeader: boolean
 }
 
 /**
@@ -120,11 +205,24 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	// Stable getter for the scroll element; the ref object never changes.
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
+	const bodyRef = useRef<HTMLTableSectionElement>(null)
+
+	// The header and a top new-row slot sit above the first row, and their sticky
+	// part covers the top edge. The window counts both, so `scrollToIndex` lands
+	// a row in full view below them.
+	const { scrollMargin, scrollPaddingStart } = useWindowOffsets(
+		bodyRef,
+		scrollRef,
+		props.stickyHeader,
+	)
+
 	const { virtualItems, topSpacer, bottomSpacer, scrollToIndex } = useVirtualWindow({
 		count: rows.length,
 		getScrollElement,
 		estimateSize,
 		overscan,
+		scrollMargin,
+		scrollPaddingStart,
 	})
 
 	// Fire the infinite-scroll load-more as the last rendered row nears the loaded
@@ -186,7 +284,7 @@ export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {
 	const warming = rows.length > 0 && virtualItems.length === 0
 
 	return (
-		<TableBody>
+		<TableBody ref={bodyRef}>
 			{topSpacer > 0 && (
 				// biome-ignore lint/a11y/noAriaHiddenOnFocusable: the spacer is an empty, non-focusable layout filler that must not be exposed as a table row
 				<tr data-slot="grid-spacer" aria-hidden="true">

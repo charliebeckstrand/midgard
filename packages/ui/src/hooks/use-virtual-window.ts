@@ -23,6 +23,22 @@ export type VirtualWindowOptions = {
 	estimateSize: number | ((index: number) => number)
 	/** Rows to render outside the viewport on each side. */
 	overscan: number
+	/**
+	 * The distance in pixels from the top of the scroll content to the first
+	 * item. Content above the list, such as a table head, sets it. Without it,
+	 * `scrollToIndex` misplaces each row by that distance.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollMargin?: number
+	/**
+	 * The height in pixels of sticky content over the top edge of the scroller,
+	 * such as a sticky table head. `scrollToIndex` aligns a row below it, so the
+	 * row does not go under it.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollPaddingStart?: number
 }
 
 /**
@@ -142,6 +158,14 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * row holds the pin through the virtualizer. It does not write `scrollTop` from
  * outside, because the total height moves as rows measure.
  *
+ * Content above the first item, such as a table head, moves every row down
+ * by its height. The caller passes that height as `scrollMargin`, so
+ * `scrollToIndex` aligns the real row. Sticky content over the top edge, such
+ * as a sticky head, covers a row that aligns to the start. The caller passes
+ * its height as `scrollPaddingStart`, and each alignment lands the row below
+ * it. The spacers exclude the margin, so the caller renders them as before.
+ * Both default to zero, and the call is then the same as before.
+ *
  * The window is empty until the virtualizer measures a scroller of some
  * height. While the window is empty, `bottomSpacer` holds the height of every
  * row: `count` times a number estimate, or the sum of a function estimate. A
@@ -166,6 +190,8 @@ export function useVirtualWindow({
 	getScrollElement,
 	estimateSize,
 	overscan,
+	scrollMargin,
+	scrollPaddingStart,
 	getItemKey,
 	anchorTo,
 	followOnAppend,
@@ -180,12 +206,15 @@ export function useVirtualWindow({
 
 	// An undefined `getItemKey` leaves the library's index key in place: the
 	// virtualizer drops undefined options rather than writing them over its
-	// defaults. The same rule keeps the start anchor and no follow on the uniform path.
+	// defaults. The same rule keeps the start anchor and no follow on the uniform
+	// path, and a zero scroll margin and padding where the caller gives none.
 	const virtualizer = useVirtualizer({
 		count,
 		getScrollElement,
 		estimateSize: getSize,
 		overscan,
+		scrollMargin,
+		scrollPaddingStart,
 		getItemKey,
 		anchorTo,
 		followOnAppend,
@@ -215,14 +244,18 @@ export function useVirtualWindow({
 	// spacers read it on each render, so they follow the rows as they measure.
 	const totalSize = virtualizer.getTotalSize()
 
-	const topSpacer = virtualItems[0]?.start ?? 0
+	// An item's start and end include the scroll margin, and the total size does
+	// not. The spacers sit below the content above the list, so they subtract it.
+	const margin = scrollMargin ?? 0
+
+	const topSpacer = (virtualItems[0]?.start ?? margin) - margin
 
 	const lastItem = virtualItems.at(-1)
 
 	// An empty window has no row to measure from, so the bottom spacer holds the
 	// full height. A scroller that only `maxHeight` bounds then grows to its cap.
 	// Without this it measures zero, and the window stays empty for good.
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : totalSize
+	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
 
 	return {
 		virtualItems,

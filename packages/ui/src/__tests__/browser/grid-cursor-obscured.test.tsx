@@ -62,6 +62,34 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			header.getBoundingClientRect().height,
 			0,
 		)
+
+		// The margin must also take effect. Step the cursor past the bottom edge.
+		// Each active cell stays in full view, below the sticky header and above
+		// the bottom edge of the scroller.
+		const scroll = present(
+			grid.closest<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		const expectClear = () => {
+			const cell = present(grid.querySelector('[data-active]'), '[data-active]')
+
+			const box = cell.getBoundingClientRect()
+
+			expect(box.top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom - 1)
+
+			expect(box.bottom).toBeLessThanOrEqual(
+				scroll.getBoundingClientRect().top + scroll.clientHeight + 1,
+			)
+		}
+
+		for (let step = 0; step < 8; step++) {
+			fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+			await waitFor(expectClear)
+		}
+
+		expect(scroll.scrollTop).toBeGreaterThan(0)
 	})
 
 	it('gives a cell behind a pinned column a matching side scroll-margin', async () => {
