@@ -539,8 +539,9 @@ export const k = {
 		tint: rowGroupTint,
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
-		// beside the label.
-		chevron: 'shrink-0',
+		// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
+		// points to the inline end. The mirror leaves the down chevron as it is.
+		chevron: ['shrink-0', 'rtl:-scale-x-100'],
 		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
 		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
 		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
@@ -579,13 +580,17 @@ export const k = {
 		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. The
 		// class rides the chevron `<svg>` directly (the expander passes `data-open`
 		// and this recipe onto the lucide element), which rotates about its own
-		// centre without a wrapper.
+		// centre without a wrapper. A right-to-left grid mirrors the chevron, so it
+		// points to the inline end, and turns it counterclockwise, so it still points
+		// down once open. CSS applies the rotate after the scale.
 		chevron: [
 			'shrink-0',
 			'transition-transform',
 			'duration-200',
 			'motion-reduce:transition-none',
 			'data-[open]:rotate-90',
+			'rtl:-scale-x-100',
+			'rtl:data-[open]:-rotate-90',
 		],
 		// The detail row's `<td>` reveal wrapper: the same one-row CSS grid the
 		// group leaves ride (`1fr` ↔ `0fr` on `data-open`), so a panel grows and

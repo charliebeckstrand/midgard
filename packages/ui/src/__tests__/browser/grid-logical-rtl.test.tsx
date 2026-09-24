@@ -208,3 +208,56 @@ describe('grid cell editor in a right-to-left grid (real browser)', () => {
 		).toBeLessThanOrEqual(1)
 	})
 })
+
+describe('grid disclosure chevrons in a right-to-left grid (real browser)', () => {
+	it('points a collapsed group chevron to the inline end', async () => {
+		const { getByRole } = renderUI(
+			<div dir="rtl" style={{ width: 600 }}>
+				<Grid
+					columns={columns}
+					rows={sales}
+					getKey={(row) => row.id}
+					groupBy={{ value: 'region' }}
+				/>
+			</div>,
+		)
+
+		const toggle = getByRole('button', { name: 'Collapse group West' })
+
+		toggle.click()
+
+		const collapsed = await waitFor(() => getByRole('button', { name: 'Expand group West' }))
+
+		const chevron = present(collapsed.querySelector('svg'), 'the group chevron')
+
+		// A right chevron mirrored by a horizontal scale of -1 points left.
+		expect(getComputedStyle(chevron).scale).toBe('-1 1')
+	})
+
+	it('turns the detail chevron from the inline end to down', async () => {
+		const { getAllByRole } = renderUI(
+			<div dir="rtl" style={{ width: 600 }}>
+				<Grid
+					columns={[{ id: 'expand', expander: true }, ...columns]}
+					rows={sales}
+					getKey={(row) => row.id}
+					expandable={{ render: (row) => <div>Detail {row.id}</div> }}
+				/>
+			</div>,
+		)
+
+		const [toggle] = getAllByRole('button', { name: /^Expand details for/ })
+
+		if (!toggle) throw new Error('no detail toggle')
+
+		const chevron = present(toggle.querySelector('svg'), 'the detail chevron')
+
+		// Closed: the right chevron is mirrored, so it points left.
+		expect(getComputedStyle(chevron).scale).toBe('-1 1')
+
+		toggle.click()
+
+		// Open: the left chevron turns a quarter-turn counterclockwise, so it points down.
+		await waitFor(() => expect(getComputedStyle(chevron).rotate).toBe('-90deg'))
+	})
+})
