@@ -125,11 +125,11 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'email')?.style.insetInlineEnd).toBe('100px')
 	})
 
-	it('paints a pinned body cell with the viewport-aware content-host surface', () => {
-		// Regression: a plain `bg.surface` (`dark:bg-zinc-900`) matched only the
-		// desktop card, so on mobile — where the content block is transparent over
-		// the darker page — the frozen columns read a shade off. The fill now tracks
-		// the host: the page background below `lg`, the card surface at `lg`.
+	it('paints a pinned body cell with the surface fill, else the viewport-aware content host', () => {
+		// Regression: a fixed fill matched only one surface. A plain `bg.surface` read
+		// a shade off on the mobile page, and the content-host fill read a shade off
+		// in a mobile card. The cell now reads `--surface-fill` from the surface that
+		// holds it. With no surface, it falls back to the content host.
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
@@ -139,16 +139,18 @@ describe('Grid column pinning', () => {
 
 		const body = dataCell(container, 'name')
 
-		expect(body?.className).toContain('dark:bg-zinc-950')
-
-		expect(body?.className).toContain('dark:lg:bg-zinc-900')
+		expect(body).toHaveClass(
+			'bg-[var(--surface-fill,var(--color-white))]',
+			'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
+			'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+		)
 	})
 
-	it('paints a pinned header cell with the viewport-aware content-host surface', () => {
+	it('paints a pinned header cell with the fill of the pinned body cell', () => {
 		// Regression: the pinned header kept a plain `bg.surface` (`dark:bg-zinc-900`)
 		// while the body cell already tracked the host, so on mobile — where the
 		// content block is transparent over the darker page — the frozen header stood
-		// out as a box. It now shares the body cell's viewport-aware fill.
+		// out as a box. It now shares the fill of the body cell.
 		const columns: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
 			{ id: 'email', title: 'Email', cell: (row) => row.email },
@@ -158,9 +160,11 @@ describe('Grid column pinning', () => {
 
 		const head = headCell(container, 'name')
 
-		expect(head?.className).toContain('dark:bg-zinc-950')
-
-		expect(head?.className).toContain('dark:lg:bg-zinc-900')
+		expect(head).toHaveClass(
+			'bg-[var(--surface-fill,var(--color-white))]',
+			'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
+			'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+		)
 	})
 
 	it('borders a frozen column on the edge facing the scroll, riding the sticky cell', () => {

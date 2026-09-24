@@ -538,11 +538,12 @@ describe('Grid', () => {
 			expect(container.querySelector('[style*="max-height"]')).toBeInTheDocument()
 		})
 
-		it('paints the sticky header with the viewport-aware content-host surface', () => {
-			// Regression: the sticky header kept a plain `bg.surface` (`dark:bg-zinc-900`),
-			// so on mobile — where the content block is transparent over the darker page —
-			// the header stood out as a box. It now tracks the host: the page background
-			// below `lg`, the card surface at `lg`.
+		it('paints the sticky header with the surface fill, else the viewport-aware content host', () => {
+			// Regression: a fixed fill matched only one surface. A plain `bg.surface`
+			// stood out on the mobile page, and the content-host fill stood out in a
+			// mobile card. The header now reads `--surface-fill` from the surface that
+			// holds it. With no surface, it falls back to the content host: the page
+			// background below `lg`, the card surface at `lg`.
 			const { container } = renderUI(
 				<Grid
 					columns={columns}
@@ -555,9 +556,11 @@ describe('Grid', () => {
 
 			const header = container.querySelector<HTMLElement>('thead th')
 
-			expect(header?.className).toContain('dark:bg-zinc-950')
-
-			expect(header?.className).toContain('dark:lg:bg-zinc-900')
+			expect(header).toHaveClass(
+				'bg-[var(--surface-fill,var(--color-white))]',
+				'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
+				'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+			)
 		})
 	})
 
