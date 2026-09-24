@@ -1,5 +1,5 @@
-import { Check, Info, Pencil, Trash2, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Check, Info, Pencil, Redo2, Trash2, Undo2, X } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
@@ -31,6 +31,8 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 	type GridEditCellContext,
+	type GridHandle,
+	type GridHistoryState,
 } from '../../../../modules/grid'
 import { useFormat } from '../../../../providers/locale'
 
@@ -421,17 +423,37 @@ export function AsyncCommitExample() {
 export function HistoryExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
+	const grid = useRef<GridHandle>(null)
+
+	const [steps, setSteps] = useState<GridHistoryState>({ canUndo: false, canRedo: false })
+
 	// `history` records each save. An undo sends the old values back through
 	// the same sink, and a redo sends the new values again, so `onCommit`
-	// applies a step as it applies a save. The grid never holds the rows.
+	// applies a step as it applies a save. The grid never holds the rows. The
+	// buttons send the same steps through the grid's `ref`, and
+	// `onHistoryChange` tells them when a step exists.
 	return (
 		<>
-			<EditHelp label="Undo help">
-				Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the
-				save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. The cursor moves to the cell that
-				changed. In an open editor, the keys undo your typing instead.
-			</EditHelp>
+			<Flex justify="between" align="center">
+				<Flex gap="sm">
+					<Button variant="soft" disabled={!steps.canUndo} onClick={() => grid.current?.undo()}>
+						<Icon icon={<Undo2 />} />
+						Undo
+					</Button>
+					<Button variant="soft" disabled={!steps.canRedo} onClick={() => grid.current?.redo()}>
+						<Icon icon={<Redo2 />} />
+						Redo
+					</Button>
+				</Flex>
+				<EditHelp label="Undo help">
+					Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the
+					save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. The cursor moves to the cell
+					that changed. The Undo and Redo buttons take the same steps. In an open editor, the keys
+					undo your typing instead.
+				</EditHelp>
+			</Flex>
 			<Grid
+				ref={grid}
 				columns={personColumns}
 				rows={people}
 				getKey={(row) => row.id}
@@ -440,6 +462,7 @@ export function HistoryExample() {
 					session: 'managed',
 					scope: 'cell',
 					history: true,
+					onHistoryChange: setSteps,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}
 			/>

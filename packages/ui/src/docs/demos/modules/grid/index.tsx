@@ -1828,7 +1828,7 @@ export function Demo() {
 
 						<Example
 							title="Undo and redo"
-							code={code`<Grid editable={{ session: 'managed', scope: 'cell', history: true, onCommit }} />`}
+							code={code`<Grid ref={grid} editable={{ session: 'managed', scope: 'cell', history: true, onHistoryChange, onCommit }} />`}
 						>
 							<HistoryExample />
 						</Example>

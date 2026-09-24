@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { createRef, type ReactNode, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -8,6 +8,8 @@ import {
 	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
+	type GridHandle,
+	type GridHistoryState,
 	type GridProps,
 } from '../../modules/grid'
 import {
@@ -5477,5 +5479,199 @@ describe('Grid undo and redo (history)', () => {
 		expect(view.onCommit).toHaveBeenCalledTimes(1)
 
 		expect(view.cell('count')).toHaveTextContent('9')
+	})
+	/** A history grid that hands its commands to a `ref`, and reports its state. */
+	function renderHandleGrid(editable: Partial<GridEditableConfig> = {}) {
+		const handle = createRef<GridHandle>()
+
+		const states: GridHistoryState[] = []
+
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState(sessionRows)
+
+			return (
+				<Grid
+					ref={handle}
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history: true,
+						onHistoryChange: (state) => states.push(state),
+						onCommit: (changes) => {
+							onCommit(changes)
+
+							setRows((prev) => applyChanges(prev, changes))
+						},
+						...editable,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const count = () =>
+			present(
+				view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
+				'the count cell',
+			)
+
+		return {
+			...view,
+			handle,
+			states,
+			onCommit,
+			count,
+			saveCount: (value: string) => {
+				fireEvent.doubleClick(count())
+
+				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+				fireEvent.change(input, { target: { value } })
+
+				fireEvent.keyDown(input, { key: 'F2' })
+			},
+			step: (step: 'undo' | 'redo') => {
+				const current = handle.current
+
+				if (!current) throw new Error('The grid handle is not set.')
+
+				let wrote = false
+
+				act(() => {
+					wrote = current[step]()
+				})
+
+				return wrote
+			},
+		}
+	}
+
+	it('undoes and redoes through the ref handle, and reports each flip of the state', async () => {
+		const view = renderHandleGrid()
+
+		view.saveCount('9')
+
+		expect(view.states).toEqual([{ canUndo: true, canRedo: false }])
+
+		expect(view.step('undo')).toBe(true)
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 2 }])
+
+		expect(view.count()).toHaveTextContent('2')
+
+		await expectAnnouncement('Count undone for Alice')
+
+		expect(view.step('redo')).toBe(true)
+
+		expect(view.count()).toHaveTextContent('9')
+
+		expect(view.states).toEqual([
+			{ canUndo: true, canRedo: false },
+			{ canUndo: false, canRedo: true },
+			{ canUndo: true, canRedo: false },
+		])
+	})
+
+	it('leaves the cursor where it is on a step from the handle', () => {
+		const view = renderHandleGrid()
+
+		view.saveCount('9')
+
+		const grid = view.getByRole('grid')
+
+		// Focus goes to a toolbar button, so the grid holds no cursor.
+		const button = attach(document.createElement('button'))
+
+		act(() => button.focus())
+
+		view.step('undo')
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		expect(view.count()).not.toHaveAttribute('data-active')
+	})
+
+	it('returns false with no step to take, and says why', async () => {
+		const view = renderHandleGrid()
+
+		expect(view.step('undo')).toBe(false)
+
+		await expectAnnouncement('Nothing to undo')
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		// No flip happened, so nothing was reported.
+		expect(view.states).toEqual([])
+	})
+
+	it('does nothing and says nothing from the handle with the history off', async () => {
+		const view = renderHandleGrid({ history: false })
+
+		view.saveCount('9')
+
+		await expectAnnouncement('Count updated for Alice')
+
+		expect(view.step('undo')).toBe(false)
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		expect(liveRegion()).toHaveTextContent('Count updated for Alice')
+
+		expect(view.states).toEqual([])
+	})
+
+	it('reports an empty state once when the history turns off', () => {
+		const handle = createRef<GridHandle>()
+
+		const states: GridHistoryState[] = []
+
+		function Harness({ history }: { history: boolean }) {
+			const [rows, setRows] = useState(sessionRows)
+
+			return (
+				<Grid
+					ref={handle}
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history,
+						onHistoryChange: (state) => states.push(state),
+						onCommit: (changes) => setRows((prev) => applyChanges(prev, changes)),
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness history />)
+
+		const count = present(
+			view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
+			'the count cell',
+		)
+
+		fireEvent.doubleClick(count)
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		fireEvent.change(input, { target: { value: '9' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		view.rerender(<Harness history={false} />)
+
+		expect(states).toEqual([
+			{ canUndo: true, canRedo: false },
+			{ canUndo: false, canRedo: false },
+		])
 	})
 })

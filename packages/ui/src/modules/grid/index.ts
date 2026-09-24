@@ -30,6 +30,7 @@ export type {
 	GridGroupBy,
 	GridGroupHeaderContext,
 	GridGroupHeaderRow,
+	GridHandle,
 	GridHeader,
 	GridInfiniteScroll,
 	GridPinning,
@@ -48,6 +49,7 @@ export type {
 	GridEditableConfig,
 	GridEditCell,
 	GridEditCellContext,
+	GridHistoryState,
 	GridRowActionsContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'

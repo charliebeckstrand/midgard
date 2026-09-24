@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { GridSortState } from './context'
@@ -648,6 +648,26 @@ export type GridFooter = {
 	 * full-text tooltip, and any wrapper around it `min-w-0`.
 	 */
 	content?: (stats: GridFooterStats) => ReactNode
+}
+
+/**
+ * The commands that an app sends to a {@link Grid} through its `ref`, for
+ * example from a toolbar above an editable grid.
+ */
+export type GridHandle = {
+	/**
+	 * Undoes the last save under {@link GridEditableConfig.history}, as Ctrl+Z
+	 * or Cmd+Z on the grid's tab stop does. It returns `true` when it wrote a
+	 * cell. It returns `false` when no step applies, and the live region says
+	 * why, as it does for the key. With the history off, it does nothing and
+	 * says nothing.
+	 *
+	 * @remarks The cursor does not move, because focus stays on the control that
+	 * sent the command. The announcement names the cell that changed.
+	 */
+	undo: () => boolean
+	/** Redoes the last undone save, in the way that {@link GridHandle.undo} undoes one. */
+	redo: () => boolean
 }
 
 /**
@@ -1329,6 +1349,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * a read-only grid.
 	 */
 	editable?: GridEditableConfig
+
+	/** Receives the commands of the grid, such as {@link GridHandle.undo}. */
+	ref?: Ref<GridHandle>
 
 	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string

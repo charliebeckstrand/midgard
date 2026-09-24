@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import {
 	EMPTY_HISTORY,
 	type GridHistory,
@@ -11,6 +11,7 @@ import {
 	recordHistory,
 	takeHistory,
 } from './engine/grid-edit-history'
+import type { GridHistoryState } from './grid-editing-types'
 
 /**
  * The undo history of an editable grid, as the editing layer reads it. The
@@ -27,19 +28,29 @@ export type GridEditHistory = {
 	take: (step: GridHistoryStep, read: GridHistoryRead) => GridHistoryResult
 }
 
+/** Whether two history states say the same. */
+function sameState(a: GridHistoryState, b: GridHistoryState): boolean {
+	return a.canUndo === b.canUndo && a.canRedo === b.canRedo
+}
+
+/** A history with no entries, as its state reads. */
+const EMPTY_STATE: GridHistoryState = { canUndo: false, canRedo: false }
+
 /**
  * Holds the undo history of an editable grid. A history that the config turns
  * off does not come back when it turns on again. `record` and `take` keep
  * their identity, so the sweep and the settle can read them without a new
- * dependency.
+ * dependency. `onChange` hears the state each time either value flips.
  *
  * @param enabled - Whether the grid is editable.
  * @param history - The {@link GridEditableConfig.history} flag.
+ * @param onChange - The {@link GridEditableConfig.onHistoryChange} callback.
  * @internal
  */
 export function useGridEditHistory(
 	enabled: boolean,
 	history: boolean | undefined,
+	onChange?: (state: GridHistoryState) => void,
 ): GridEditHistory {
 	const on = enabled && history === true
 
@@ -49,25 +60,42 @@ export function useGridEditHistory(
 
 	const ref = useRef<GridHistory>(EMPTY_HISTORY)
 
-	useEffect(() => {
-		if (!on) ref.current = EMPTY_HISTORY
-	}, [on])
+	// The state last reported, so a change that flips nothing stays silent.
+	const reportedRef = useRef(EMPTY_STATE)
 
-	const store = useMemo(
-		() => ({
+	const report = useEffectEvent((state: GridHistoryState) => onChange?.(state))
+
+	const store = useMemo(() => {
+		const set = (next: GridHistory) => {
+			ref.current = next
+
+			const state = { canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 }
+
+			if (sameState(state, reportedRef.current)) return
+
+			reportedRef.current = state
+
+			report(state)
+		}
+
+		return {
+			reset: () => set(EMPTY_HISTORY),
 			record: (entry: GridHistoryEntry) => {
-				if (onRef.current) ref.current = recordHistory(ref.current, entry)
+				if (onRef.current) set(recordHistory(ref.current, entry))
 			},
 			take: (step: GridHistoryStep, read: GridHistoryRead) => {
 				const result = takeHistory(ref.current, step, read)
 
-				ref.current = result.history
+				set(result.history)
 
 				return result
 			},
-		}),
-		[],
-	)
+		}
+	}, [])
 
-	return useMemo(() => ({ on, ...store }), [on, store])
+	useEffect(() => {
+		if (!on) store.reset()
+	}, [on, store])
+
+	return useMemo(() => ({ on, record: store.record, take: store.take }), [on, store])
 }
