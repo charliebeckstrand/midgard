@@ -14,7 +14,7 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 //
 //   2. The `calc(--spacing(v)-1px)` formula (ring-compensated padding /
 //      radius) lives only in `recipes/kiso/kasane/*`; consumers reach it
-//      through `kasane.p / px / py / pl / pr` and the radius helpers.
+//      through `kasane.p / px / py / ps / pe` and the radius helpers.
 //
 // Both rules carry an ALLOWLIST of files exempt from the check. The first
 // list is empty. The second holds kasane itself (the formula's home) plus
@@ -44,7 +44,7 @@ const RENAMED_UTILITY_ALLOWLIST = new Set<string>()
 
 /**
  * Files that spell `calc(--spacing(v)-1px)` inline: variant-prefixed
- * cases (`data-*:py-[…]`, `has-*:pl-[…]`, `autofill:ml-[…]`) must appear
+ * cases (`data-*:py-[…]`, `has-*:ps-[…]`, `autofill:ms-[…]`) must appear
  * in source; Tailwind variants can't move behind the kasane helpers.
  */
 const RAW_CALC_ALLOWLIST = new Set([
@@ -95,7 +95,7 @@ describe('spacing boundary', () => {
 
 		expect(
 			violations,
-			`new files writing inline calc(--spacing(...)) (use kasane.p / px / py / pl / pr instead):\n  ${violations.join('\n  ')}`,
+			`new files writing inline calc(--spacing(...)) (use kasane.p / px / py / ps / pe instead):\n  ${violations.join('\n  ')}`,
 		).toEqual([])
 	})
 })

@@ -7,6 +7,9 @@
  * stay inline at their call sites; Tailwind variants must appear in
  * source, not at runtime.
  *
+ * The single-side stops are logical: `ps` pads the inline start and `pe`
+ * the inline end, so they mirror in a right-to-left layout.
+ *
  * Layer: kiso · Concern: ring-compensated padding
  */
 
@@ -43,26 +46,26 @@ const pyStops = {
 	'3.5': 'py-[calc(--spacing(3.5)-1px)]',
 } as const
 
-const plStops = {
-	'0.75': 'pl-[calc(--spacing(0.75)-1px)]',
-	'1': 'pl-[calc(--spacing(1)-1px)]',
-	'1.25': 'pl-[calc(--spacing(1.25)-1px)]',
-	'1.5': 'pl-[calc(--spacing(1.5)-1px)]',
-	'2': 'pl-[calc(--spacing(2)-1px)]',
-	'2.5': 'pl-[calc(--spacing(2.5)-1px)]',
-	'3': 'pl-[calc(--spacing(3)-1px)]',
-	'3.5': 'pl-[calc(--spacing(3.5)-1px)]',
+const psStops = {
+	'0.75': 'ps-[calc(--spacing(0.75)-1px)]',
+	'1': 'ps-[calc(--spacing(1)-1px)]',
+	'1.25': 'ps-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'ps-[calc(--spacing(1.5)-1px)]',
+	'2': 'ps-[calc(--spacing(2)-1px)]',
+	'2.5': 'ps-[calc(--spacing(2.5)-1px)]',
+	'3': 'ps-[calc(--spacing(3)-1px)]',
+	'3.5': 'ps-[calc(--spacing(3.5)-1px)]',
 } as const
 
-const prStops = {
-	'0.75': 'pr-[calc(--spacing(0.75)-1px)]',
-	'1': 'pr-[calc(--spacing(1)-1px)]',
-	'1.25': 'pr-[calc(--spacing(1.25)-1px)]',
-	'1.5': 'pr-[calc(--spacing(1.5)-1px)]',
-	'2': 'pr-[calc(--spacing(2)-1px)]',
-	'2.5': 'pr-[calc(--spacing(2.5)-1px)]',
-	'3': 'pr-[calc(--spacing(3)-1px)]',
-	'3.5': 'pr-[calc(--spacing(3.5)-1px)]',
+const peStops = {
+	'0.75': 'pe-[calc(--spacing(0.75)-1px)]',
+	'1': 'pe-[calc(--spacing(1)-1px)]',
+	'1.25': 'pe-[calc(--spacing(1.25)-1px)]',
+	'1.5': 'pe-[calc(--spacing(1.5)-1px)]',
+	'2': 'pe-[calc(--spacing(2)-1px)]',
+	'2.5': 'pe-[calc(--spacing(2.5)-1px)]',
+	'3': 'pe-[calc(--spacing(3)-1px)]',
+	'3.5': 'pe-[calc(--spacing(3.5)-1px)]',
 } as const
 
 type PadStop = keyof typeof pStops
@@ -71,6 +74,6 @@ export const padding = {
 	p: (v: PadStop) => pStops[v],
 	px: (v: PadStop) => pxStops[v],
 	py: (v: PadStop) => pyStops[v],
-	pl: (v: PadStop) => plStops[v],
-	pr: (v: PadStop) => prStops[v],
+	ps: (v: PadStop) => psStops[v],
+	pe: (v: PadStop) => peStops[v],
 } as const

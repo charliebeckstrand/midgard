@@ -16,9 +16,9 @@ export const k = {
 	// `tag-input-chip-pad-boundary.test.ts`.
 	badge: [
 		focus.inset,
-		'data-[has-suffix]:data-[size=xs]:pl-[calc(--spacing(2.25)-1px)]',
-		'data-[has-suffix]:data-[size=sm]:pl-[calc(--spacing(3)-1px)]',
-		'data-[has-suffix]:data-[size=md]:pl-[calc(--spacing(3.75)-1px)]',
+		'data-[has-suffix]:data-[size=xs]:ps-[calc(--spacing(2.25)-1px)]',
+		'data-[has-suffix]:data-[size=sm]:ps-[calc(--spacing(3)-1px)]',
+		'data-[has-suffix]:data-[size=md]:ps-[calc(--spacing(3.75)-1px)]',
 	],
 	// Vertical padding for the tag row, keyed by density.
 	//
