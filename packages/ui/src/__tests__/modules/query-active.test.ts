@@ -146,6 +146,7 @@ describe('the active judgement, the summary, and the evaluator', () => {
 			{ field: 'title', operator: 'contains', value: '' },
 			false,
 		],
+		['a range value that is not an array', { field: 'age', operator: 'between', value: 5 }, false],
 	]
 
 	it.each(cases)('gives one reading for %s', (_, patch, constrains) => {
