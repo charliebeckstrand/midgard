@@ -75,6 +75,7 @@ Each layer depends only on the layers under it.
 | `dashboard-responsive.ts` | The content-first re-pack, when a tile falls under its `minWidth` |
 | `dashboard-scope.ts` | Selections, the effective query for a tile, and the row predicate |
 | `dashboard-spec.ts` | The saved board as plain data, and the add, remove, and duplicate operations (version two) |
+| `dashboard-tidy.ts` | The tidy pack: each tile moves straight up to the tile above it or the top edge (built later) |
 | `dashboard-announcements.ts` | The live-region text for the gestures |
 | `dashboard-store.ts` | The state container, and the derived cells that the tiles paint |
 
@@ -131,6 +132,11 @@ once for each edit session.
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
 under `minWidth`. The splitters also take the arrow keys.
+
+**Tidy** (built later). One explicit command on the `ref` of the board packs the tiles upward.
+Each tile keeps its column and its span, and it moves straight up until it meets a tile or the
+top edge. A static tile never moves. The pack commits once through the layout binding, so it is
+the one bulk move on a board that never packs itself.
 
 ## 8. The filter scope
 

@@ -8,6 +8,7 @@ import {
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
+	type Ref,
 	useCallback,
 	useLayoutEffect,
 	useMemo,
@@ -37,10 +38,12 @@ import type {
 	DashboardFilterBinding,
 	DashboardGestureEndEvent,
 	DashboardGestureStartEvent,
+	DashboardHandle,
 	DashboardLayoutBinding,
 	DashboardSelectionBinding,
 } from './types'
 import { useDashboardDrag } from './use-dashboard-drag'
+import { useDashboardHandle } from './use-dashboard-handle'
 import { useDashboardResize } from './use-dashboard-resize'
 
 /** The default gutter between tiles, in px. */
@@ -143,6 +146,8 @@ export type DashboardProps = AccessibleName & {
 	onResizeEnd?: (event: DashboardGestureEndEvent) => void
 	/** Receives each error that a tile boundary catches, for a log or a report. */
 	onTileError?: (id: string, error: unknown) => void
+	/** Receives the commands of the board, such as {@link DashboardHandle.tidy}. */
+	ref?: Ref<DashboardHandle>
 	className?: string
 	/**
 	 * The tiles: `DashboardTile` elements and `DashboardTiles`, in any order. The
@@ -161,7 +166,8 @@ export type DashboardProps = AccessibleName & {
  * The board never moves a tile by itself. A drag moves a tile into free cells,
  * or it reorders it against an equal tile; anything else is blocked. A resize
  * grows a tile until it meets a neighbour or an edge. What you save is what
- * renders, gaps included.
+ * renders, gaps included. To close the gaps, call `tidy` on the `ref`
+ * ({@link DashboardHandle}).
  *
  * The board is a CSS grid whose rows follow the container width. The server
  * therefore renders each tile at its saved cell, with no measurement. When the
@@ -189,6 +195,7 @@ export function Dashboard({
 	onResizeStart,
 	onResizeEnd,
 	onTileError,
+	ref,
 	className,
 	children,
 	...label
@@ -295,6 +302,8 @@ export function Dashboard({
 		onResizeStart,
 		onResizeEnd,
 	})
+
+	useDashboardHandle({ ref, store, commit })
 
 	const reporter = useRef(onTileError)
 

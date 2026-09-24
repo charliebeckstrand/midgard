@@ -19,6 +19,7 @@ export type {
 	DashboardFilterBinding,
 	DashboardGestureEndEvent,
 	DashboardGestureStartEvent,
+	DashboardHandle,
 	DashboardLayoutBinding,
 	DashboardSelectionBinding,
 	DashboardWidget,

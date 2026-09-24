@@ -62,3 +62,10 @@ export function describeRemove(label: string): string {
 export function describeDuplicate(label: string): string {
 	return `Duplicated ${label}.`
 }
+
+/** The text when a tidy packs the board, or finds nothing to move. */
+export function describeTidy(moved: number): string {
+	if (moved === 0) return 'The board is already tidy.'
+
+	return `Tidied the board. Moved ${moved} ${moved === 1 ? 'tile' : 'tiles'} up.`
+}

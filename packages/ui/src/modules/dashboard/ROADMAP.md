@@ -26,11 +26,13 @@ A tile draws the standard actions in its header row. `onRemove` and `onDuplicate
 
 The markup follows the board: the tiles render by row, then by column, so the keyboard and assistive tech meet them as the eye reads them. The order comes from the saved entries, so the server renders it too. In edit mode the markup holds still, so a gesture never moves a focused grip in the DOM; the new order takes effect when edit mode ends. Both `DashboardTiles` and the direct `DashboardTile` children follow it. React focuses a moved element again after the commit, so a move keeps the focus.
 
+Tidy is the one bulk move. `tidy` on the `ref` of the board (`DashboardHandle`) packs the tiles upward and commits the result through the layout binding. Each tile keeps its column and its span, and it moves straight up until it meets a tile or the top edge, so each column keeps its order. A static tile never moves, and a tile that is not mounted keeps its saved place. The pack runs in the engine as `tidyCells`, and the live region says how many tiles moved.
+
 A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
 
 ## Engine — the substrate
 
-The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
+The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-tidy`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
 
 [`engine-purity-boundary.test.ts`](../../__tests__/boundary/engine-purity-boundary.test.ts) holds the invariant for this engine. The store is plain JavaScript; the shell reads it through `useSyncExternalStore`.
 
@@ -39,8 +41,6 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 - **Spec validation.** A guard for a spec that the app reads from storage.
 
 - **Presets.** Named specs that an app offers as a start point.
-
-- **Tidy.** One explicit command that packs the tiles upward. It is the only bulk move on a board that never packs itself.
 
 - **Grid-unit limits.** Public `minW`, `maxW`, `minH`, and `maxH` beside the `minWidth` floor.
 

@@ -1,5 +1,5 @@
 import { ChevronDown } from 'lucide-react'
-import { useCallback, useMemo, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
@@ -12,6 +12,7 @@ import { BarChart, LineChart } from '../../../../modules/chart'
 import {
 	addSpecTile,
 	Dashboard,
+	type DashboardHandle,
 	type DashboardSpec,
 	type DashboardSpecTile,
 	DashboardTiles,
@@ -136,6 +137,10 @@ export function RegistryExample() {
 
 	const [editing, setEditing] = useState(false)
 
+	// A remove leaves a gap, because the board never packs itself. Tidy closes the
+	// gaps in one explicit move.
+	const board = useRef<DashboardHandle>(null)
+
 	const add = (tile: Omit<DashboardSpecTile, 'id'>) =>
 		setSpec((current) => addSpecTile(current, { ...tile, id: nextSpecTileId(current) }))
 
@@ -177,6 +182,12 @@ export function RegistryExample() {
 
 					<Spacer />
 
+					{editing && (
+						<Button variant="outline" onClick={() => board.current?.tidy()}>
+							Tidy
+						</Button>
+					)}
+
 					<Button color={editing ? 'zinc' : 'blue'} onClick={() => setEditing((live) => !live)}>
 						{editing ? 'Done' : 'Edit layout'}
 					</Button>
@@ -184,6 +195,7 @@ export function RegistryExample() {
 
 				<DashboardWidgetProvider widgets={widgets}>
 					<Dashboard
+						ref={board}
 						aria-label="Saved dashboard"
 						editing={editing}
 						layout={{

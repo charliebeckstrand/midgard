@@ -19,8 +19,9 @@ type DashboardBinding<T> = {
 }
 
 /**
- * The binding of the saved layout. It fires once for each committed gesture: a
- * drop or the end of a resize. A tile with a fixed `ratio` emits no `h`.
+ * The binding of the saved layout. It fires once for each committed change: a
+ * drop, the end of a resize, or a tidy that moves a tile. A tile with a fixed
+ * `ratio` emits no `h`.
  */
 export type DashboardLayoutBinding = DashboardBinding<DashboardLayoutItem[]>
 
@@ -32,6 +33,27 @@ export type DashboardFilterBinding = DashboardBinding<QueryGroup>
 
 /** The binding of the cross-filter selections that the tiles make. */
 export type DashboardSelectionBinding = DashboardBinding<DashboardSelection[]>
+
+/**
+ * The commands that an app sends to a `Dashboard` through its `ref`, for example
+ * from a toolbar next to the edit switch.
+ */
+export type DashboardHandle = {
+	/**
+	 * Packs the tiles upward, and commits the result through the layout binding.
+	 * Each tile keeps its column and its span. It moves straight up until it meets
+	 * a tile or the top edge, so each column keeps its order. A static tile never
+	 * moves. The live region says how many tiles moved.
+	 *
+	 * @remarks
+	 * The board never packs itself, so this is the one bulk move. It packs the
+	 * saved layout, also in a projection and outside edit mode. A tile that is not
+	 * mounted keeps its saved place. During a drag or a resize it does nothing.
+	 *
+	 * @returns Whether a tile moved.
+	 */
+	tidy: () => boolean
+}
 
 /** The payload when a drag or a resize starts. */
 export type DashboardGestureStartEvent = {
