@@ -18,7 +18,7 @@ import {
 	sameCell,
 } from './dashboard-layout'
 import { projectLayout } from './dashboard-responsive'
-import type { DashboardSelection } from './dashboard-scope'
+import { type DashboardSelection, liveSelections } from './dashboard-scope'
 
 /**
  * One live gesture, and the snapshot that it simulates from. The `settle` phase
@@ -82,6 +82,8 @@ export type DashboardView = {
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
 	editable: boolean
+	/** The selections that apply: those of the board, and those of a tile on the board. */
+	selections: readonly DashboardSelection[]
 }
 
 /** The store interface that the shell uses. */
@@ -189,6 +191,16 @@ function travelOf(
 	return same ? previous : travel
 }
 
+/** Returns `next`, or `previous` when the two lists hold the same selections in the same order. */
+function internSelections(
+	previous: readonly DashboardSelection[] | undefined,
+	next: readonly DashboardSelection[],
+): readonly DashboardSelection[] {
+	if (previous === undefined || previous.length !== next.length) return next
+
+	return previous.every((item, index) => item === next[index]) ? previous : next
+}
+
 /** Creates a store with the given initial state. */
 export function createDashboardStore(initial: DashboardState): DashboardStore {
 	let state = initial
@@ -214,7 +226,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	)
 
 	const derive = (previous: DashboardView | null): DashboardView => {
-		const { columns, gap, editing, layout, demands, width, gesture } = state
+		const { columns, gap, editing, layout, demands, width, gesture, selections } = state
 
 		const canonical = canonicalOf(layout, demands, columns)
 
@@ -228,6 +240,8 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			travel: travelOf(gesture, columns, previous?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
+			// Interned, so a mount that leaves the live selections as they were wakes no reader.
+			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
 		}
 	}
 

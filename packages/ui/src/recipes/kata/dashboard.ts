@@ -86,6 +86,12 @@ const actions = ['flex shrink-0 items-center gap-1']
  */
 const content = ['relative min-h-0 flex-1 overflow-auto']
 
+/**
+ * The content box of an expanded tile, in its dialog. It gives the widget a
+ * height, so a chart that fills its box has a box to fill.
+ */
+const expanded = ['flex h-[min(70dvh,40rem)] min-h-0 flex-col']
+
 /** The error state of a tile: a centered message and a retry button. */
 const error = ['flex size-full flex-col items-center justify-center gap-2 text-center']
 
@@ -166,6 +172,7 @@ export const k = {
 	heading,
 	actions,
 	content,
+	expanded,
 	error,
 	missing,
 	placeholder,

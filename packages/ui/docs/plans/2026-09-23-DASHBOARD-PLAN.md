@@ -286,7 +286,8 @@ when the app commits a new layout. A drag preview renders no spec tile, as in ve
 These items stay in the backlog, and the registry enables each of them:
 
 - The tile actions: remove, duplicate, and expand to a dialog. `DashboardTiles` takes an
-  `actions` render function, so an app can place its own remove control now.
+  `actions` render function, so an app can place its own remove control now. (Built later:
+  `onRemove`, `onDuplicate`, and `expandable` on `DashboardTile` and `DashboardTiles`.)
 - The pure spec operations. A remove must also drop the layout entry of the tile. Else the
   entry stays in the saved layout, and its space stays open. (Built later in
   `engine/dashboard-spec.ts`.)

@@ -282,6 +282,8 @@ export function Dashboard({
 						ref={containerRef}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
+						// The focus lands here when a remove takes away the last tile.
+						tabIndex={-1}
 						{...label}
 						className={cn('@container w-full', className)}
 					>

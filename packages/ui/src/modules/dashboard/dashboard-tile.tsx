@@ -10,6 +10,7 @@ import { useDashboardActions } from './context'
 import { DashboardHandle } from './dashboard-handle'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
+import { DashboardTileControls } from './dashboard-tile-controls'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import { DashboardTileHeader } from './dashboard-tile-header'
 import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
@@ -20,6 +21,20 @@ import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 
 /** The minimum content width of a tile, in px: about where a chart with a legend stays legible. */
 const DEFAULT_MIN_WIDTH = 320
+
+/**
+ * Whether a tile draws a header row. A tile with standard controls always has
+ * one, so its content box keeps its height when the controls swap on the switch
+ * of edit mode.
+ */
+function hasHeaderRow(props: DashboardTileProps): boolean {
+	const { title, description, actions, onRemove, onDuplicate, expandable } = props
+
+	return (
+		[title, description, actions, onRemove, onDuplicate].some((part) => part !== undefined) ||
+		expandable === true
+	)
+}
 
 /** Props for {@link DashboardTile}. */
 export type DashboardTileProps = {
@@ -68,6 +83,23 @@ export type DashboardTileProps = {
 	mount?: Mount
 	/** What the tile shows while its content suspends or is held back. Defaults to a placeholder block. */
 	fallback?: ReactNode
+	/**
+	 * Removes the tile. When set, edit mode shows a remove control in the header
+	 * row. The app owns the tile list, so it does the remove: for a spec tile,
+	 * with `removeSpecTile`. The focus moves to the grip of a neighbour tile.
+	 */
+	onRemove?: () => void
+	/**
+	 * Duplicates the tile. When set, edit mode shows a duplicate control in the
+	 * header row. For a spec tile, do the copy with `duplicateSpecTile`.
+	 */
+	onDuplicate?: () => void
+	/**
+	 * Show an expand control at rest. It opens the content in a dialog, at a
+	 * larger size, in the scope of the same tile.
+	 * @defaultValue false
+	 */
+	expandable?: boolean
 	className?: string
 	/** The widget. Keep the element stable, because a move never renders it again. */
 	children?: ReactNode
@@ -97,19 +129,24 @@ export type DashboardTileProps = {
  * </DashboardTile>
  * ```
  */
-export function DashboardTile({
-	id,
-	title,
-	description,
-	actions,
-	ratio,
-	minWidth = DEFAULT_MIN_WIDTH,
-	defaultSize,
-	mount = 'always',
-	fallback,
-	className,
-	children,
-}: DashboardTileProps) {
+export function DashboardTile(props: DashboardTileProps) {
+	const {
+		id,
+		title,
+		description,
+		actions,
+		ratio,
+		minWidth = DEFAULT_MIN_WIDTH,
+		defaultSize,
+		mount = 'always',
+		fallback,
+		onRemove,
+		onDuplicate,
+		expandable = false,
+		className,
+		children,
+	} = props
+
 	const label = title ?? id
 
 	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize })
@@ -153,7 +190,9 @@ export function DashboardTile({
 
 	if (cell === undefined) return null
 
-	const hasHeader = title !== undefined || description !== undefined || actions !== undefined
+	const hasHeader = hasHeaderRow(props)
+
+	const placeholder = fallback ?? <Placeholder className="size-full" />
 
 	const handle = movable && (
 		<DashboardHandle
@@ -198,6 +237,23 @@ export function DashboardTile({
 						actions={actions}
 						clear={<DashboardTileClear id={id} label={label} />}
 						handle={handle}
+						controls={
+							<DashboardTileControls
+								id={id}
+								label={label}
+								title={title}
+								description={description}
+								editing={editable}
+								onRemove={onRemove}
+								onDuplicate={onDuplicate}
+								expandable={expandable}
+								fallback={placeholder}
+								onError={onError}
+								shell={shell}
+							>
+								{children}
+							</DashboardTileControls>
+						}
 					/>
 				)}
 
@@ -206,7 +262,7 @@ export function DashboardTile({
 					label={label}
 					mount={mount}
 					inert={editable}
-					fallback={fallback ?? <Placeholder className="size-full" />}
+					fallback={placeholder}
 					onError={onError}
 				>
 					{children}

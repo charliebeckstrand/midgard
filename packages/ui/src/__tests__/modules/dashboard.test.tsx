@@ -338,6 +338,65 @@ describe('Dashboard scope', () => {
 		expect(screen.queryByRole('button', { name: /Clear the selection/ })).not.toBeInTheDocument()
 	})
 
+	it('stops applying the selection of a tile that leaves the board, and applies it again on return', () => {
+		function Board({ regions }: { regions: boolean }) {
+			return (
+				<Dashboard aria-label="Sales">
+					{regions && (
+						<DashboardTile id="regions" title="Regions">
+							<Regions />
+						</DashboardTile>
+					)}
+
+					<DashboardTile id="total" title="Total">
+						<Total testId="total" />
+					</DashboardTile>
+				</Dashboard>
+			)
+		}
+
+		const { rerender } = renderUI(<Board regions />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'West' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// No Clear control is left for the selection, so it must stop applying.
+		rerender(<Board regions={false} />)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		// The selection value keeps it, so a tile that returns gets it back.
+		rerender(<Board regions />)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+	})
+
+	it('applies a saved selection in the server markup', () => {
+		const html = renderToString(
+			<Dashboard
+				aria-label="Sales"
+				layout={{
+					defaultValue: [
+						{ id: 'regions', x: 0, y: 0, w: 12, h: 10 },
+						{ id: 'total', x: 12, y: 0, w: 12, h: 10 },
+					],
+				}}
+				selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
+			>
+				<DashboardTile id="regions" title="Regions">
+					<Regions />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		expect(html).toMatch(/data-testid="total"[^>]*>30</)
+	})
+
 	it('applies the filter that the app owns to each tile', () => {
 		renderUI(
 			<Dashboard

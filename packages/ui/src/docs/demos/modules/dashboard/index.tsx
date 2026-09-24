@@ -160,6 +160,7 @@ export function Demo() {
 					>
 						<DashboardTile
 							id="regions"
+							expandable
 							title="Revenue by region"
 							description="Click a bar to filter the other tiles"
 							ratio={16 / 9}
@@ -169,6 +170,7 @@ export function Demo() {
 
 						<DashboardTile
 							id="mix"
+							expandable
 							title="Product mix"
 							description="Click a slice to filter the other tiles"
 							ratio={16 / 9}
@@ -182,6 +184,7 @@ export function Demo() {
 
 						<DashboardTile
 							id="trend"
+							expandable
 							title="Revenue by month"
 							actions={
 								<Badge color="green" variant="soft">
@@ -192,7 +195,7 @@ export function Demo() {
 							<Trend />
 						</DashboardTile>
 
-						<DashboardTile id="orders" title="Orders" minWidth={480}>
+						<DashboardTile id="orders" expandable title="Orders" minWidth={480}>
 							<Orders />
 						</DashboardTile>
 					</Dashboard>

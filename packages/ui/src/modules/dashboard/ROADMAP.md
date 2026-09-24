@@ -22,6 +22,10 @@ A tile takes a `mount` policy, so a long board can hold back the content of the 
 
 The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so its space does not stay open. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
 
+A tile draws the standard actions in its header row. `onRemove` and `onDuplicate` show controls in edit mode, and `expandable` shows an expand control at rest, which opens the content in a dialog in the scope of the same tile. The app owns the tile list, so it applies each action; `DashboardTiles` hands it the spec tile. A remove moves the focus to the grip of a neighbour tile, and the live region names each change.
+
+A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
+
 ## Engine — the substrate
 
 The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layout`, `dashboard-drag`, `dashboard-resize`, `dashboard-responsive`, `dashboard-scope`, `dashboard-spec`, `dashboard-announcements`, and `dashboard-store`. Each file is framework-free, and each has its own test suite.
@@ -35,8 +39,6 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 - **Presets.** Named specs that an app offers as a start point.
 
 - **Reading order.** The tab order follows the order of the tiles in the markup, not their places on the board. Sort the tiles by `(y, x)` for focus, or give the board a roving tab stop.
-
-- **Tile actions.** A standard action set beside the grip: remove, duplicate, and expand to a dialog.
 
 - **Tidy.** One explicit command that packs the tiles upward. It is the only bulk move on a board that never packs itself.
 

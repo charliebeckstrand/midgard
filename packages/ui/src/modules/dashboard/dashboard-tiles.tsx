@@ -31,6 +31,21 @@ export type DashboardTilesProps = {
 	 * each spec tile again.
 	 */
 	actions?: (tile: DashboardSpecTile) => ReactNode
+	/**
+	 * Removes a spec tile. When set, edit mode shows a remove control on each
+	 * tile. Apply it with `removeSpecTile`. Hoist it or wrap it in `useCallback`.
+	 */
+	onRemove?: (tile: DashboardSpecTile) => void
+	/**
+	 * Duplicates a spec tile. When set, edit mode shows a duplicate control on
+	 * each tile. Apply it with `duplicateSpecTile`. Hoist it or wrap it in `useCallback`.
+	 */
+	onDuplicate?: (tile: DashboardSpecTile) => void
+	/**
+	 * Show an expand control on each tile at rest.
+	 * @defaultValue false
+	 */
+	expandable?: boolean
 }
 
 /**
@@ -50,12 +65,20 @@ export type DashboardTilesProps = {
  *
  * @example
  * ```tsx
+ * const remove = useCallback((tile) => setSpec((spec) => removeSpecTile(spec, tile.id)), [])
+ *
  * <Dashboard aria-label="Sales" layout={{ value: spec.layout, onValueChange: setLayout }}>
- *   <DashboardTiles tiles={spec.tiles} actions={removeAction} />
+ *   <DashboardTiles tiles={spec.tiles} onRemove={remove} expandable />
  * </Dashboard>
  * ```
  */
-export function DashboardTiles({ tiles, actions }: DashboardTilesProps) {
+export function DashboardTiles({
+	tiles,
+	actions,
+	onRemove,
+	onDuplicate,
+	expandable = false,
+}: DashboardTilesProps) {
 	const { widgets, fallback = statedFallback, mount = 'always' } = useDashboardWidgets()
 
 	return (
@@ -70,6 +93,9 @@ export function DashboardTiles({ tiles, actions }: DashboardTilesProps) {
 					fallback={fallback}
 					mount={mount}
 					actions={actions}
+					onRemove={onRemove}
+					onDuplicate={onDuplicate}
+					expandable={expandable}
 				/>
 			))}
 		</>
@@ -88,6 +114,12 @@ type DashboardSpecTileViewProps = {
 	mount: Mount
 	/** The header controls of the tile. */
 	actions?: (tile: DashboardSpecTile) => ReactNode
+	/** Removes a spec tile. */
+	onRemove?: (tile: DashboardSpecTile) => void
+	/** Duplicates a spec tile. */
+	onDuplicate?: (tile: DashboardSpecTile) => void
+	/** Whether the tile shows an expand control at rest. */
+	expandable: boolean
 }
 
 /**
@@ -102,6 +134,9 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	fallback,
 	mount,
 	actions,
+	onRemove,
+	onDuplicate,
+	expandable,
 }: DashboardSpecTileViewProps) {
 	const render = widget?.render ?? fallback
 
@@ -117,6 +152,9 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 			minWidth={widget === undefined ? 0 : widget.minWidth}
 			defaultSize={tile.defaultSize ?? widget?.defaultSize}
 			mount={mount}
+			onRemove={onRemove && (() => onRemove(tile))}
+			onDuplicate={onDuplicate && (() => onDuplicate(tile))}
+			expandable={expandable}
 		>
 			{render(tile)}
 		</DashboardTile>
