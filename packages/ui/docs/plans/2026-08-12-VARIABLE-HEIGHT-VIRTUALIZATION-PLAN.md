@@ -72,6 +72,8 @@ Increment 2 is **shipped**. The transcript windows its rows through the measured
 
 3. **The grid's self-rendering bodies.** This one starts with a probe, not a patch: `measureElement` on a `<tr>` in a fixed-layout table with spacer rows is unverified in this tree, and the whole increment rests on it. If it holds, `resolveGroupingGates` can stop standing `virtualize` down for grouping and master-detail. One blocker outlives the probe — the group collapse animation needs its leaves mounted across the `1fr`↔`0fr` transition, which a window unmounts — so this increment either says how that is kept or does not ship. Note that lifting `virtualize` does not lift `navigable`: the same gate kills the cursor, and re-arming it is its own change.
 
+   **As built, first hook change.** The probe found that a measured window drifts on a scroll up. Rows above the viewport measured, and the rows in view moved by up to 628 px. The cause is the virtual-core 3.16.0 default, which makes no scroll adjustment while `scrollDirection` is `'backward'`. The measured path now adjusts for each row above the viewport, in each direction, and the probe then measured 0 px. It is the measured default, not an option, because no measured list wants the drift. The uniform path keeps the library default, and the transcript keeps its end pin.
+
 ## Ruled out
 
 **Cap the transcript.** Rendering the last N messages behind a "load older" control costs nothing structural and removes the number entirely. It is rejected as the primary answer because it changes the product — history stops being reachable by scroll — but it is the honest fallback if increment 2's measurement proves unstable, and it is cheaper than a half-working window.

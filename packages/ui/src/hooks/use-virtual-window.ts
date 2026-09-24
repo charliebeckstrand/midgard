@@ -1,6 +1,11 @@
 'use client'
 
-import { useVirtualizer, type VirtualItem, type VirtualizerOptions } from '@tanstack/react-virtual'
+import {
+	useVirtualizer,
+	type VirtualItem,
+	type Virtualizer,
+	type VirtualizerOptions,
+} from '@tanstack/react-virtual'
 import { useEffect, useMemo, useReducer } from 'react'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
@@ -54,6 +59,21 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
 	 */
 	followOnAppend?: VirtualizerOptions<HTMLElement, Element>['followOnAppend']
 }
+
+/**
+ * Tells the virtualizer to adjust the scroll offset when a row above the
+ * viewport changes size, in each scroll direction. The library default makes
+ * no adjustment while the reader scrolls up, so the content in view drifts by
+ * the height difference. The measured path sets this, and the uniform path
+ * keeps the default.
+ *
+ * @internal
+ */
+const adjustAboveViewport = (
+	item: VirtualItem,
+	_delta: number,
+	instance: Virtualizer<HTMLElement, Element>,
+): boolean => item.start < (instance.scrollOffset ?? 0)
 
 type VirtualWindow = {
 	/**
@@ -110,6 +130,12 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * the rows as they measure. The key is required, and the hook does not guess
  * it. A height cached against an index goes stale when rows are inserted
  * above it.
+ *
+ * On the measured path a row above the viewport can measure while the reader
+ * scrolls up. The hook then moves the scroll offset by the height difference,
+ * so the rows in view do not move. The library default skips this adjustment
+ * during a scroll up, and the content drifts. The uniform path keeps the
+ * default, because its rows do not measure.
  *
  * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
@@ -172,6 +198,11 @@ export function useVirtualWindow({
 	// recovers. This passive effect runs after every commit (refs all attached
 	// by then) and forces one re-render whenever the virtualizer's captured
 	// element diverges from the live one, letting it re-attach and measure.
+	// A row above the viewport that measures while the reader scrolls up must not
+	// move the rows in view. The library default skips that adjustment, so the
+	// measured path replaces it. The uniform path writes nothing here.
+	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
+
 	const [, forceResync] = useReducer((x: number) => x + 1, 0)
 
 	useEffect(() => {
