@@ -31,7 +31,8 @@ const sortIcon = defineRecipe({
  * the friendly density level the grid forwards to `<Table>`. Two coupled
  * measures:
  *
- * - the header's trailing padding, so its label clears the handle; and
+ * - the header's trailing padding (`pe-*`, the inline end), so its label clears
+ *   the handle; and
  * - the resize handle's own width (the handle can't size itself — only the table
  *   knows the density).
  *
@@ -45,11 +46,11 @@ const sortIcon = defineRecipe({
 const resizeMetrics = defineRecipe({
 	density: {
 		compact: [
-			'[&>*>tr>th[data-resizable]]:pr-2',
+			'[&>*>tr>th[data-resizable]]:pe-2',
 			'[&>*>tr>th[data-resizable]>[role=separator]]:w-2',
 		],
-		snug: ['[&>*>tr>th[data-resizable]]:pr-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
-		loose: ['[&>*>tr>th[data-resizable]]:pr-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
+		snug: ['[&>*>tr>th[data-resizable]]:pe-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
+		loose: ['[&>*>tr>th[data-resizable]]:pe-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
 	},
 	defaults: { density: 'snug' },
 })
@@ -625,8 +626,8 @@ export const k = {
 		// projected onto resizable headers; lives on the `<table>` element.
 		metrics: resizeMetrics,
 		// Resize grab zone on a resizable header's trailing edge, anchored to the
-		// inside of that edge (`right-0`, no outward shift) and widening leftward into
-		// the cell. Its width is density-scaled (set via `metrics`, since only the
+		// inside of that edge (`end-0`, no outward shift) and widening into the cell.
+		// The edge is logical, so a right-to-left header holds it on the left. Its width is density-scaled (set via `metrics`, since only the
 		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
 		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
@@ -637,7 +638,7 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbour's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 h-full',
+			'group/grid-resize absolute top-0 end-0 z-10 h-full',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],

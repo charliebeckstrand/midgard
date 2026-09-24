@@ -850,6 +850,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * freely, into trailing space or a horizontal scroll, rather than re-fitting. A press on
 	 * the handle that moves nothing takes no control.
 	 *
+	 * The trailing edge is the inline end. In a right-to-left grid, the handle is on the
+	 * left of the header, and a drag or ArrowLeft to the left widens the column.
+	 *
 	 * "Auto-size this column" (also a double-click or Enter on the handle) sets one column to
 	 * its content width. "Auto-size all columns" gives each column the width that "Auto-size
 	 * this column" gives it. "Reset column widths" gives the widths back to the automatic
