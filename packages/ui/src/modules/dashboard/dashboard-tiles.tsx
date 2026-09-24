@@ -73,6 +73,10 @@ export type DashboardTilesProps = {
  * object, under a registry that keeps its widget, does not render again when the
  * app commits a new layout.
  *
+ * The renderer of a kind runs inside the error boundary of its tile. A renderer
+ * that throws, for example on saved `options` of an old shape, fails only its own
+ * tile, and `onTileError` receives it.
+ *
  * @example
  * ```tsx
  * const remove = useCallback((tile) => setSpec((spec) => removeSpecTile(spec, tile.id)), [])
@@ -116,6 +120,25 @@ export function DashboardTiles({
 			))}
 		</>
 	)
+}
+
+/** Props for {@link DashboardSpecTileBody}. @internal */
+type DashboardSpecTileBodyProps = {
+	/** Draws the widget of the spec tile. */
+	render: DashboardWidgetRenderer
+	/** The spec tile. */
+	tile: DashboardSpecTile
+}
+
+/**
+ * The widget of one spec tile. The renderer runs here, inside the error boundary
+ * and the Suspense boundary of its tile. A renderer that throws, for example on
+ * saved `options` of an old shape, then fails only its own tile.
+ *
+ * @internal
+ */
+function DashboardSpecTileBody({ render, tile }: DashboardSpecTileBodyProps) {
+	return render(tile)
 }
 
 /** Props for {@link DashboardSpecTileView}. @internal */
@@ -174,7 +197,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 			onDuplicate={onDuplicate && (() => onDuplicate(tile))}
 			expandable={expandable}
 		>
-			{render(tile)}
+			<DashboardSpecTileBody render={render} tile={tile} />
 		</DashboardTile>
 	)
 })

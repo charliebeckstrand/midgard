@@ -154,6 +154,46 @@ describe('DashboardTiles', () => {
 		expect(screen.getAllByRole('group')).toHaveLength(3)
 	})
 
+	it('confines a renderer that throws to its own tile, and reports it', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<DashboardWidgetProvider widgets={WIDGETS}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+					{/* A saved tile with no options: the metric renderer reads `label` and throws. */}
+					<DashboardTiles
+						tiles={[{ id: 'revenue', widget: 'metric', title: 'Revenue' }, ...TILES.slice(1)]}
+					/>
+
+					<DashboardTile id="notes" title="Notes">
+						<p>Hand-written</p>
+					</DashboardTile>
+				</Dashboard>
+			</DashboardWidgetProvider>,
+		)
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		expect(screen.getByRole('group', { name: 'Units' })).toHaveTextContent('Stat')
+
+		expect(screen.getByText('Hand-written')).toBeInTheDocument()
+
+		expect(onTileError).toHaveBeenCalledWith('revenue', expect.any(TypeError))
+	})
+
+	it('renders the other tiles on the server when a renderer throws', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const html = renderToString(
+			<Board tiles={[{ id: 'revenue', widget: 'metric', title: 'Revenue' }, ...TILES.slice(1)]} />,
+		)
+
+		// The tile Suspense boundary hands the error to a client render.
+		expect(html).toContain('Stat')
+	})
+
 	it('does not render an unchanged spec tile again when the app commits a new layout', () => {
 		const render = vi.fn((tile: DashboardSpecTile) => <p>{tile.id}</p>)
 
