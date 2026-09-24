@@ -1,8 +1,9 @@
 'use client'
 
-import { type ReactNode, Suspense, useSyncExternalStore } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { Hold, type Mount, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext } from './context'
@@ -25,9 +26,6 @@ export type DashboardTileContentProps = {
 	/** The widget. */
 	children?: ReactNode
 }
-
-/** A subscription that never fires, for a snapshot that changes only at hydration. */
-const subscribeNothing = () => () => {}
 
 /**
  * The content box of a tile: the scope of the tile, its error boundary, and its
@@ -101,11 +99,7 @@ function HeldDashboardTileContent({
 	// `active` must see the tile leave the viewport, so its observer stays connected.
 	const { ref, inView } = useInView({ once: mount !== 'active' })
 
-	const hydrated = useSyncExternalStore(
-		subscribeNothing,
-		() => true,
-		() => false,
-	)
+	const hydrated = useHydrated()
 
 	const hold = useMountHold(hydrated && inView, mount)
 

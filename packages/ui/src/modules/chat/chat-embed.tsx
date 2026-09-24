@@ -1,8 +1,9 @@
 'use client'
 
-import { useEffect, useSyncExternalStore } from 'react'
+import { useEffect } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { Hold, type Mount, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
 import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
@@ -29,9 +30,6 @@ const statedFallback: ChatEmbedRenderer = (part) => (
 		This chat cannot show a “{part.name}” block.
 	</span>
 )
-
-/** A subscription that never fires, for a snapshot that changes only at hydration. */
-const subscribeNothing = () => () => {}
 
 /** Props for {@link ChatEmbed}. @internal */
 export type ChatEmbedProps = {
@@ -123,11 +121,7 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 	// render. Its row left the window and came back, and it must not defer again.
 	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
 
-	const hydrated = useSyncExternalStore(
-		subscribeNothing,
-		() => true,
-		() => false,
-	)
+	const hydrated = useHydrated()
 
 	const hold = useMountHold(hydrated && (inView || returning), mount)
 
