@@ -85,9 +85,19 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
- * The value shape per operator value, for an operator that reads one shape
- * only. A rule value of a different shape puts no constraint on the rows. An
- * operator without an entry reads a value of any shape.
+ * Whether a value is a scalar that JSON can hold: a string, a number, or a
+ * boolean. An array, an object, and a `Date` are not scalars.
+ *
+ * @internal
+ */
+function isScalar(value: unknown): boolean {
+	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+}
+
+/**
+ * The value shape per operator value, for an operator that does not read a
+ * scalar ({@link isScalar}). Each other operator that reads a value reads a
+ * scalar. A rule value of a different shape puts no constraint on the rows.
  *
  * @internal
  */
@@ -106,7 +116,8 @@ const valueShapes: Record<string, (ruleValue: unknown) => boolean> = {
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
  * `toString`, from reading as a matcher. A `between` value that is not an
- * array, such as `5`, reads as no constraint.
+ * array, such as `5`, reads as no constraint. So does a `gt` value that is not
+ * a scalar, such as `[1, 2]`.
  *
  * @internal
  */
@@ -115,7 +126,7 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	if (VALUELESS_OPERATORS.has(operator)) return true
 
-	return !isEmptyValue(value) && (valueShapes[operator]?.(value) ?? true)
+	return !isEmptyValue(value) && (valueShapes[operator] ?? isScalar)(value)
 }
 
 /**
@@ -140,7 +151,7 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
  * - a value-requiring operator whose value is empty (a blank text box, a
  *   cleared date, an all-blank range);
  * - a value of the wrong shape for its operator, such as a `between` value
- *   that is not an array.
+ *   that is not an array, or an array for `contains`.
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */

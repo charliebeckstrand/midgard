@@ -94,6 +94,20 @@ describe('matchQueryRule', () => {
 
 		expect(matchQueryRule('between', 5, 7)).toBe(true)
 	})
+
+	it('imposes no constraint when a scalar operator reads a value that is not a scalar', () => {
+		expect(matchQueryRule('gt', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('contains', 'Alice', { text: 'Bob' })).toBe(true)
+
+		expect(matchQueryRule('after', '2026-01-15', new Date('2026-01-01'))).toBe(true)
+	})
+
+	it('reads a boolean value as a scalar', () => {
+		expect(matchQueryRule('equals', true, true)).toBe(true)
+
+		expect(matchQueryRule('equals', false, true)).toBe(false)
+	})
 })
 
 describe('evaluateQuery', () => {
@@ -246,6 +260,19 @@ describe('matchQueryRule · properties', () => {
 		'imposes no constraint for an operator it does not know',
 		(value, rule) => {
 			expect(matchQueryRule('notAnOperator', value, rule)).toBe(true)
+		},
+	)
+
+	// Each operator but `between` reads a scalar. An array, an object, or a
+	// `Date` has the wrong shape, so the operator stands down.
+	test.prop([
+		fc.constantFrom(...NEEDS_VALUE.filter((operator) => operator !== 'between')),
+		fieldValue(),
+		fc.oneof(fc.array(fieldValue(), { minLength: 1 }), fc.object(), fc.date()),
+	])(
+		'imposes no constraint when a scalar operator reads a value that is not a scalar',
+		(operator, value, rule) => {
+			expect(matchQueryRule(operator, value, rule)).toBe(true)
 		},
 	)
 

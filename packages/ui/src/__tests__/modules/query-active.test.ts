@@ -147,6 +147,13 @@ describe('the active judgement, the summary, and the evaluator', () => {
 			false,
 		],
 		['a range value that is not an array', { field: 'age', operator: 'between', value: 5 }, false],
+		['an array for a scalar operator', { field: 'age', operator: 'gt', value: [1, 2] }, false],
+		[
+			'an object for a scalar operator',
+			{ field: 'title', operator: 'contains', value: { text: 'x' } },
+			false,
+		],
+		['a boolean for a scalar operator', { field: 'active', operator: 'equals', value: true }, true],
 	]
 
 	it.each(cases)('gives one reading for %s', (_, patch, constrains) => {
