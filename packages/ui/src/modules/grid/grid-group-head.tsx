@@ -34,6 +34,8 @@ type GridGroupHeadProps = {
  * (icon + title, an optional description tooltip, and a collapse toggle when
  * {@link GridColumnGroup.collapsible}). A `plain` span is an empty spacer that
  * sticks to a pinned column's edge, so the band tracks the frozen columns.
+ * Under a sticky header the band sticks at the top edge, and the column row
+ * sticks below it (see `k.sticky.stack`).
  *
  * @internal
  */

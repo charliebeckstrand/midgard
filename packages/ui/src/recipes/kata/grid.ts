@@ -166,6 +166,12 @@ export const k = {
 		// painted the desktop card colour at every width and stood out as a box
 		// against the transparent content block on mobile.
 		head: ['sticky top-0 z-10', hostSurface],
+		// The column row below a column-group band. Its cells stick at the band
+		// height, which the grid measures into `--grid-band-height` on the `<thead>`.
+		// The band sticks at the top edge, so the two rows stack and do not overlap.
+		// The row selector outranks the `top-0` of each cell, and a pinned cell
+		// keeps its inline `left` or `right` offset.
+		stack: '[&>th]:top-(--grid-band-height)',
 	},
 	// The new-row slot of an editable grid. Its cells stick to the top or the
 	// bottom edge of the scroll container, over the data rows (`z-[1]` for a

@@ -122,7 +122,7 @@ describe('grid new row (real browser)', () => {
 		expect(head.getBoundingClientRect().top).toBeCloseTo(viewport(scroll).top, 0)
 	})
 
-	it('pins the top row to the bottom of a two-row sticky header', async () => {
+	it('pins the top row directly under the full two-row sticky header', async () => {
 		const { scroll, slot, scrollTo, container } = renderGrid(
 			{ newRow: 'top' },
 			{ sticky: true, columnGroups: [{ id: 'all', title: 'All', columns: ['name', 'count'] }] },
@@ -132,18 +132,13 @@ describe('grid new row (real browser)', () => {
 
 		scrollTo(1_500)
 
-		// Both header rows stick at the top edge, so the head covers down to the
-		// bottom of its lowest stuck cell. The slot sticks there, with no gap.
-		await waitFor(() => {
-			const cover = Math.max(
-				...Array.from(
-					container.querySelectorAll('thead th'),
-					(th) => th.getBoundingClientRect().bottom,
-				),
-			)
+		// The band sticks at the top edge and the column row sticks below it, so
+		// the head covers its full height. The slot sticks there, with no gap.
+		const cover = present(container.querySelector('thead'), 'thead').getBoundingClientRect().height
 
-			expect(slot().getBoundingClientRect().top).toBeCloseTo(cover, 0)
-		})
+		await waitFor(() =>
+			expect(slot().getBoundingClientRect().top).toBeCloseTo(viewport(scroll).top + cover, 0),
+		)
 	})
 
 	/** The cell that the cursor names through `aria-activedescendant`. */
