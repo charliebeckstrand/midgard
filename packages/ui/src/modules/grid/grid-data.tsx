@@ -1502,7 +1502,13 @@ export function GridData<T>({
 
 	const tableRegion = (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
+			<GridScrollRegion
+				active={needsScrollWrapper}
+				scrollRef={scrollRef}
+				maxHeight={maxHeight}
+				expandable={detail.active}
+				virtualized={gated.virtualize}
+			>
 				{cursorContent}
 			</GridScrollRegion>
 		</GridHighlightContext>
