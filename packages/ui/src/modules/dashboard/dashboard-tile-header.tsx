@@ -19,10 +19,13 @@ export type DashboardTileHeaderProps = {
 	clear?: ReactNode
 	/** The drag grip in edit mode, or `null`. */
 	handle: ReactNode
+	/** The standard controls of the tile, after the actions. */
+	controls?: ReactNode
 }
 
 /**
- * The header row of a tile: the drag grip, the title block, and the actions.
+ * The header row of a tile: the drag grip, the title block, the actions, and
+ * the standard controls.
  * The grip enters and leaves with edit mode on the same row. The content box
  * therefore keeps its height, and a widget never re-lays out on the switch.
  *
@@ -35,6 +38,7 @@ export function DashboardTileHeader({
 	actions,
 	clear,
 	handle,
+	controls,
 }: DashboardTileHeaderProps) {
 	return (
 		<div data-slot="card-header" className={cn(k.header)}>
@@ -56,6 +60,8 @@ export function DashboardTileHeader({
 				{clear}
 
 				{actions}
+
+				{controls}
 			</div>
 		</div>
 	)

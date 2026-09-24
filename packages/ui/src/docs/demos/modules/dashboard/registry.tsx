@@ -1,4 +1,4 @@
-import { ChevronDown, Copy, X } from 'lucide-react'
+import { ChevronDown } from 'lucide-react'
 import { useCallback, useMemo, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Flex } from '../../../../components/flex'
@@ -139,28 +139,16 @@ export function RegistryExample() {
 	const add = (tile: Omit<DashboardSpecTile, 'id'>) =>
 		setSpec((current) => addSpecTile(current, { ...tile, id: nextSpecTileId(current) }))
 
-	// The spec operations keep the tiles and the layout in step: a remove drops
-	// the layout entry too, and a copy takes the span of its source.
-	const actions = useCallback(
-		(tile: DashboardSpecTile) => (
-			<>
-				<Button
-					variant="plain"
-					aria-label={`Duplicate ${tile.title ?? tile.id}`}
-					onClick={() => setSpec((current) => duplicateSpecTile(current, tile.id))}
-				>
-					<Icon icon={<Copy />} size="sm" />
-				</Button>
+	// The tiles draw the controls, and the spec operations keep the tiles and the
+	// layout in step: a remove drops the layout entry too, and a copy takes the
+	// span of its source.
+	const remove = useCallback(
+		(tile: DashboardSpecTile) => setSpec((current) => removeSpecTile(current, tile.id)),
+		[],
+	)
 
-				<Button
-					variant="plain"
-					aria-label={`Remove ${tile.title ?? tile.id}`}
-					onClick={() => setSpec((current) => removeSpecTile(current, tile.id))}
-				>
-					<Icon icon={<X />} size="sm" />
-				</Button>
-			</>
-		),
+	const duplicate = useCallback(
+		(tile: DashboardSpecTile) => setSpec((current) => duplicateSpecTile(current, tile.id)),
 		[],
 	)
 
@@ -203,7 +191,12 @@ export function RegistryExample() {
 							onValueChange: (layout) => setSpec((current) => ({ ...current, layout })),
 						}}
 					>
-						<DashboardTiles tiles={spec.tiles} actions={actions} />
+						<DashboardTiles
+							tiles={spec.tiles}
+							onRemove={remove}
+							onDuplicate={duplicate}
+							expandable
+						/>
 					</Dashboard>
 				</DashboardWidgetProvider>
 

@@ -82,6 +82,12 @@ const actions = ['flex shrink-0 items-center gap-1']
  */
 const content = ['relative min-h-0 flex-1 overflow-auto']
 
+/**
+ * The content box of an expanded tile, in its dialog. It gives the widget a
+ * height, so a chart that fills its box has a box to fill.
+ */
+const expanded = ['flex h-[min(70dvh,40rem)] min-h-0 flex-col']
+
 /** The error state of a tile: a centered message and a retry button. */
 const error = ['flex size-full flex-col items-center justify-center gap-2 text-center']
 
@@ -94,18 +100,20 @@ const placeholder = [
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 ]
 
+/** A tile control in the header row: an icon button the size of the grip. */
+const control = [
+	'flex size-6 shrink-0 items-center justify-center rounded-md',
+	...text.muted,
+	...mode(
+		'hover:bg-zinc-100 hover:text-zinc-700',
+		'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
+	),
+	...sen.focus.ring,
+]
+
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
-	base: [
-		'flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md',
-		'active:cursor-grabbing',
-		...text.muted,
-		...mode(
-			'hover:bg-zinc-100 hover:text-zinc-700',
-			'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-		),
-		...sen.focus.ring,
-	],
+	base: [...control, 'cursor-grab touch-none select-none active:cursor-grabbing'],
 	floating: {
 		true: [
 			'absolute left-3 top-3 z-10',
@@ -162,9 +170,11 @@ export const k = {
 	heading,
 	actions,
 	content,
+	expanded,
 	error,
 	missing,
 	placeholder,
+	control,
 	handle,
 	resizeHandle,
 	readout,
