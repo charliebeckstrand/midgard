@@ -82,41 +82,42 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 ])
 
 /**
- * The group rail's 2px neutral left border — a continuous bar down the group's
- * leading edge. Shared by the padded group cells and the loading placeholder
+ * The group rail's 2px neutral inline-start border — a continuous bar down the
+ * group's leading edge. The side is logical, so a right-to-left grid draws it on
+ * the right. Shared by the padded group cells and the loading placeholder
  * rows. The cells add `py-0` and manage their own padding through the reveal
  * wrapper, while the rows keep ordinary cell padding. The rail therefore runs
  * unbroken while a group's children load.
  *
- * The neutral is a *left-side* border color (`border-l-<neutral>`), not the
+ * The neutral is an *inline-start* border color (`border-s-<neutral>`), not the
  * all-sides `border-color`. When {@link railColor} layers a palette color on
- * the same cell they land in one tailwind-merge group (`border-left-color`).
+ * the same cell they land in one tailwind-merge group (`border-color-s`).
  * The color then cleanly replaces the neutral, in both light and dark, without
  * an `!important`. (An all-sides neutral would sit in a different group and
  * survive the merge. Its `dark:` variant — one extra class under class-based
  * dark mode — would then outrank the un-variant color and win in dark mode.)
  */
-const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-white/10')]
+const railBorder = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-white/10')]
 
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
  * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
  * group's palette hue at the solid `-600` shade, when the row manager assigns
  * one. That shade matches a column group's `bandColor` underline.
- * Left-side-specific (`border-l-<color>`) with a matching `dark:` variant, so it
+ * Inline-start-specific (`border-s-<color>`) with a matching `dark:` variant, so it
  * shares the neutral rail's tailwind-merge group *and* variants. It replaces the
  * neutral outright (no `!important`, no dark-mode fallthrough). Full literals
  * for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
-	red: 'border-l-2 border-l-red-600 dark:border-l-red-600',
-	amber: 'border-l-2 border-l-amber-600 dark:border-l-amber-600',
-	green: 'border-l-2 border-l-green-600 dark:border-l-green-600',
-	blue: 'border-l-2 border-l-blue-600 dark:border-l-blue-600',
-	rose: 'border-l-2 border-l-rose-600 dark:border-l-rose-600',
-	violet: 'border-l-2 border-l-violet-600 dark:border-l-violet-600',
-	sky: 'border-l-2 border-l-sky-600 dark:border-l-sky-600',
+	zinc: 'border-s-2 border-s-zinc-600 dark:border-s-zinc-600',
+	red: 'border-s-2 border-s-red-600 dark:border-s-red-600',
+	amber: 'border-s-2 border-s-amber-600 dark:border-s-amber-600',
+	green: 'border-s-2 border-s-green-600 dark:border-s-green-600',
+	blue: 'border-s-2 border-s-blue-600 dark:border-s-blue-600',
+	rose: 'border-s-2 border-s-rose-600 dark:border-s-rose-600',
+	violet: 'border-s-2 border-s-violet-600 dark:border-s-violet-600',
+	sky: 'border-s-2 border-s-sky-600 dark:border-s-sky-600',
 }
 
 /**
@@ -518,7 +519,7 @@ export const k = {
 		],
 	},
 	rowGroup: {
-		// A 2px colored rail down the group's leading edge — carried by the leftmost
+		// A 2px colored rail down the group's leading edge — carried by the first
 		// cell of every row in the group (its header and each leaf) so it reads as one
 		// continuous bar, the row-group analog of a column group's underline rule. It
 		// takes a neutral tint by default; the row manager swaps in a per-group

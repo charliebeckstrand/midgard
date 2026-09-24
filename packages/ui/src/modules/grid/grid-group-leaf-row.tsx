@@ -147,7 +147,7 @@ type GridGroupLeafCellProps<T> = {
 	truncate: boolean
 	settleKey: number | undefined
 	pinning: GridColumnPinning | null
-	/** Whether this is the row's leftmost cell (it carries the group rail). */
+	/** Whether this is the row's first cell (it carries the group rail). */
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
@@ -217,7 +217,7 @@ function GridGroupLeafCell<T>({
 			data-grid-col={col.id}
 			aria-colindex={colIndex}
 			{...roving}
-			// The leftmost cell carries the group's rail, so it runs unbroken down the
+			// The first cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(

@@ -121,7 +121,7 @@ describe('Grid row manager', () => {
 		// solid rail and the aggregate wash.
 		const headerRow = screen.getByText('Developer (2)').closest('tr')
 
-		expect(headerRow?.querySelector('[class*="border-l-red-600"]')).not.toBeNull()
+		expect(headerRow?.querySelector('[class*="border-s-red-600"]')).not.toBeNull()
 
 		expect(headerRow?.querySelector('[class*="bg-red-500"]')).not.toBeNull()
 	})
