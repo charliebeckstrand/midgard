@@ -82,41 +82,42 @@ const draggingSurface = mode('data-[dragging]:bg-white', [
 ])
 
 /**
- * The group rail's 2px neutral left border — a continuous bar down the group's
- * leading edge. Shared by the padded group cells and the loading placeholder
+ * The group rail's 2px neutral inline-start border — a continuous bar down the
+ * group's leading edge. The side is logical, so a right-to-left grid draws it on
+ * the right. Shared by the padded group cells and the loading placeholder
  * rows. The cells add `py-0` and manage their own padding through the reveal
  * wrapper, while the rows keep ordinary cell padding. The rail therefore runs
  * unbroken while a group's children load.
  *
- * The neutral is a *left-side* border color (`border-l-<neutral>`), not the
+ * The neutral is an *inline-start* border color (`border-s-<neutral>`), not the
  * all-sides `border-color`. When {@link railColor} layers a palette color on
- * the same cell they land in one tailwind-merge group (`border-left-color`).
+ * the same cell they land in one tailwind-merge group (`border-color-s`).
  * The color then cleanly replaces the neutral, in both light and dark, without
  * an `!important`. (An all-sides neutral would sit in a different group and
  * survive the merge. Its `dark:` variant — one extra class under class-based
  * dark mode — would then outrank the un-variant color and win in dark mode.)
  */
-const railBorder = ['border-l-2', ...mode('border-l-zinc-950/5', 'dark:border-l-white/10')]
+const railBorder = ['border-s-2', ...mode('border-s-zinc-950/5', 'dark:border-s-white/10')]
 
 /**
  * A colored group rail, keyed by {@link PaletteColor} so a group reads
  * `railColor[group.color]`. Swaps the neutral {@link railBorder} tint for the
  * group's palette hue at the solid `-600` shade, when the row manager assigns
  * one. That shade matches a column group's `bandColor` underline.
- * Left-side-specific (`border-l-<color>`) with a matching `dark:` variant, so it
+ * Inline-start-specific (`border-s-<color>`) with a matching `dark:` variant, so it
  * shares the neutral rail's tailwind-merge group *and* variants. It replaces the
  * neutral outright (no `!important`, no dark-mode fallthrough). Full literals
  * for Tailwind's scanner.
  */
 const railColor: Record<PaletteColor, string> = {
-	zinc: 'border-l-2 border-l-zinc-600 dark:border-l-zinc-600',
-	red: 'border-l-2 border-l-red-600 dark:border-l-red-600',
-	amber: 'border-l-2 border-l-amber-600 dark:border-l-amber-600',
-	green: 'border-l-2 border-l-green-600 dark:border-l-green-600',
-	blue: 'border-l-2 border-l-blue-600 dark:border-l-blue-600',
-	rose: 'border-l-2 border-l-rose-600 dark:border-l-rose-600',
-	violet: 'border-l-2 border-l-violet-600 dark:border-l-violet-600',
-	sky: 'border-l-2 border-l-sky-600 dark:border-l-sky-600',
+	zinc: 'border-s-2 border-s-zinc-600 dark:border-s-zinc-600',
+	red: 'border-s-2 border-s-red-600 dark:border-s-red-600',
+	amber: 'border-s-2 border-s-amber-600 dark:border-s-amber-600',
+	green: 'border-s-2 border-s-green-600 dark:border-s-green-600',
+	blue: 'border-s-2 border-s-blue-600 dark:border-s-blue-600',
+	rose: 'border-s-2 border-s-rose-600 dark:border-s-rose-600',
+	violet: 'border-s-2 border-s-violet-600 dark:border-s-violet-600',
+	sky: 'border-s-2 border-s-sky-600 dark:border-s-sky-600',
 }
 
 /**
@@ -290,11 +291,11 @@ export const k = {
 		bar: ['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center'],
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
 		// from the search field (and stays at the end even when it stands alone).
-		actions: 'sm:ml-auto',
+		actions: 'sm:ms-auto',
 		// The consumer's own content, pushed to the end the same way. It sits ahead
 		// of the tools, so with both present the free space opens once — here — and
 		// the two clusters stay together at the row's end.
-		content: 'sm:ml-auto',
+		content: 'sm:ms-auto',
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.
@@ -361,24 +362,25 @@ export const k = {
 			label: [flex.inline, 'min-w-0', 'gap-1'],
 			// Pin button on a frozen column's header: an icon-only control that unpins the
 			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
-			// affordance it is. `-ml-1` pulls the button left by the Pin glyph's optical
-			// inset so the visible pin lands over the column's cell values rather than a
-			// step to their right. The Pin's leftmost ink sits ~4px into its `size-5` box
-			// (x=5 of lucide's 24-unit grid, scaled by 20/24) — shallower than the grip's
-			// dots at x=8 — so it takes a smaller pull than the grip's `-ml-1.5`; a shared
-			// value would over-pull one glyph or the other. That pull seats the box flush
+			// affordance it is. `-ms-1` pulls the button toward the inline start by the
+			// Pin glyph's optical inset, so the visible pin lands over the column's cell
+			// values rather than a step past their start. The Pin's leading ink sits
+			// ~4px into its `size-5` box (x=5 of lucide's 24-unit grid, scaled by 20/24)
+			// — shallower than the grip's dots at x=8 — so it takes a smaller pull than
+			// the grip's `-ms-1.5`; a shared value would over-pull one glyph or the
+			// other. That pull seats the box flush
 			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
 			// `components/table`), which clips an outset outline at its edge; the focus ring
 			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
 			// `k.sort.button`, whose outset `ring` clears the edge.
 			// The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A centered,
 			// transparent `::before` expands the *hit* area to >=24x24 without moving the
-			// glyph (so the optical `-ml` alignment and inset ring are untouched) — growing
+			// glyph (so the optical `-ms` alignment and inset ring are untouched) — growing
 			// the box itself would re-center the icon off that tuned inset.
 			button: [
 				flex.inline,
 				'shrink-0',
-				'-ml-1',
+				'-ms-1',
 				'relative',
 				"before:absolute before:-inset-1 before:content-['']",
 				text.muted,
@@ -457,9 +459,10 @@ export const k = {
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
 		// would leave that cursor stuck as if the column were still held.
-		// `-ml-1.5` pulls the grip left by the GripVertical glyph's optical inset (its
-		// dots sit a third of the way into the `size-5` box) so the visible grip lines
-		// up over the column's cell values instead of floating a step to their right.
+		// `-ms-1.5` pulls the grip toward the inline start by the GripVertical glyph's
+		// optical inset (its dots sit a third of the way into the `size-5` box), so the
+		// visible grip lines up over the column's cell values instead of floating a step
+		// past their start.
 		// That pull seats the box flush to the table's horizontal scroll wrapper
 		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
 		// `k.nav.cell` and the `k.resize.grip` colour shift — rather than the outset
@@ -467,9 +470,9 @@ export const k = {
 		handle: [
 			flex.inline,
 			'shrink-0',
-			'-ml-1.5',
+			'-ms-1.5',
 			// Expand the 20px grip's hit area to >=24x24 (WCAG 2.5.8) via a centered
-			// transparent `::before`, leaving the glyph and its `-ml` inset in place.
+			// transparent `::before`, leaving the glyph and its `-ms` inset in place.
 			'relative',
 			"before:absolute before:-inset-1 before:content-['']",
 			text.muted,
@@ -518,7 +521,7 @@ export const k = {
 		],
 	},
 	rowGroup: {
-		// A 2px colored rail down the group's leading edge — carried by the leftmost
+		// A 2px colored rail down the group's leading edge — carried by the first
 		// cell of every row in the group (its header and each leaf) so it reads as one
 		// continuous bar, the row-group analog of a column group's underline rule. It
 		// takes a neutral tint by default; the row manager swaps in a per-group
@@ -536,8 +539,9 @@ export const k = {
 		tint: rowGroupTint,
 		// Chevron at the row's trailing edge: the group row renders a right chevron
 		// when collapsed and a down chevron when expanded; `shrink-0` holds its size
-		// beside the label.
-		chevron: 'shrink-0',
+		// beside the label. A right-to-left grid mirrors it, so a collapsed chevron
+		// points to the inline end. The mirror leaves the down chevron as it is.
+		chevron: ['shrink-0', 'rtl:-scale-x-100'],
 		// The reveal wrapper inside each leaf cell: a one-row CSS grid whose `track`
 		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
 		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
@@ -576,13 +580,17 @@ export const k = {
 		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. The
 		// class rides the chevron `<svg>` directly (the expander passes `data-open`
 		// and this recipe onto the lucide element), which rotates about its own
-		// centre without a wrapper.
+		// centre without a wrapper. A right-to-left grid mirrors the chevron, so it
+		// points to the inline end, and turns it counterclockwise, so it still points
+		// down once open. CSS applies the rotate after the scale.
 		chevron: [
 			'shrink-0',
 			'transition-transform',
 			'duration-200',
 			'motion-reduce:transition-none',
 			'data-[open]:rotate-90',
+			'rtl:-scale-x-100',
+			'rtl:data-[open]:-rotate-90',
 		],
 		// The detail row's `<td>` reveal wrapper: the same one-row CSS grid the
 		// group leaves ride (`1fr` ↔ `0fr` on `data-open`), so a panel grows and
@@ -688,11 +696,11 @@ export const k = {
 		// footer row from `lg` so the controls and status order independently around
 		// the centered nav.
 		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
-		// Row-range status ("1–10 of 47"): the end track from `lg` (right-aligned),
-		// the right of the justified row below it.
-		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
-		// Page-size picker: the start track from `lg` (left-aligned), the left of the
-		// justified row below it. Always rendered so the track holds even when empty,
+		// Row-range status ("1–10 of 47"): the end track from `lg` (aligned to the
+		// inline end), the end of the justified row below it.
+		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-end'],
+		// Page-size picker: the start track from `lg` (aligned to the inline start),
+		// the start of the justified row below it. Always rendered so the track holds even when empty,
 		// keeping the nav centered.
 		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
 	},
@@ -723,13 +731,13 @@ export const k = {
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count
 	// (the selected total swaps in over the row total in place), and any custom
-	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
+	// content is pushed to the far edge by `ms-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
 		// minimum is its content width, which pinned this slot to the intrinsic width of
 		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto', 'min-w-0'],
+		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`
@@ -829,7 +837,7 @@ export const k = {
 		// of its own: `Button`'s bare icon-only floor is sized per density, and
 		// overriding it here would drop the pair under the 24x24 target minimum
 		// (WCAG 2.5.8) at every density, worst in a condensed grid.
-		settle: [flex.row, 'ml-1 shrink-0 gap-0.5'],
+		settle: [flex.row, 'ms-1 shrink-0 gap-0.5'],
 		// A cell whose async commit is in flight. It signals busy the way
 		// `body.settling` does for a server sort: a `motion-safe` pulse, or a
 		// static 50% dim for a reduced-motion user, never both.
@@ -837,7 +845,7 @@ export const k = {
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [
-			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+			'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
 			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
 			'text-white shadow',
 			...mode('bg-red-600', 'dark:bg-red-500'),
