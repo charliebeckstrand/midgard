@@ -101,6 +101,16 @@ describe('formatQuerySummary', () => {
 		expect(line([rule(ageField, { operator: 'between', value: ['  ', 65] })])).toBe('Age ≤ 65')
 	})
 
+	it('drops a numeric operator whose value is not numeric, along with its combinator', () => {
+		// The evaluator reads such a value as no constraint.
+		expect(
+			line([
+				rule(nameField, { operator: 'contains', value: 'lee' }),
+				rule(ageField, { operator: 'gt', value: 'abc', combinator: 'or' }),
+			]),
+		).toBe('Name contains lee')
+	})
+
 	it('drops a scalar operator whose value is an array, along with its combinator', () => {
 		// The evaluator reads such a value as no constraint.
 		expect(
