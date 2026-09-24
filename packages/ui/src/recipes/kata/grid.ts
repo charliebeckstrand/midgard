@@ -362,24 +362,25 @@ export const k = {
 			label: [flex.inline, 'min-w-0', 'gap-1'],
 			// Pin button on a frozen column's header: an icon-only control that unpins the
 			// column. Muted at rest, tinting on hover/focus so it reads as the actionable
-			// affordance it is. `-ml-1` pulls the button left by the Pin glyph's optical
-			// inset so the visible pin lands over the column's cell values rather than a
-			// step to their right. The Pin's leftmost ink sits ~4px into its `size-5` box
-			// (x=5 of lucide's 24-unit grid, scaled by 20/24) — shallower than the grip's
-			// dots at x=8 — so it takes a smaller pull than the grip's `-ml-1.5`; a shared
-			// value would over-pull one glyph or the other. That pull seats the box flush
+			// affordance it is. `-ms-1` pulls the button toward the inline start by the
+			// Pin glyph's optical inset, so the visible pin lands over the column's cell
+			// values rather than a step past their start. The Pin's leading ink sits
+			// ~4px into its `size-5` box (x=5 of lucide's 24-unit grid, scaled by 20/24)
+			// — shallower than the grip's dots at x=8 — so it takes a smaller pull than
+			// the grip's `-ms-1.5`; a shared value would over-pull one glyph or the
+			// other. That pull seats the box flush
 			// to the table's horizontal scroll wrapper (`overflow-x-auto`, see
 			// `components/table`), which clips an outset outline at its edge; the focus ring
 			// is therefore `inset` — clip-safe, like `k.nav.cell` and unlike the inboard
 			// `k.sort.button`, whose outset `ring` clears the edge.
 			// The 20px glyph is below the 24x24 minimum target (WCAG 2.5.8). A centered,
 			// transparent `::before` expands the *hit* area to >=24x24 without moving the
-			// glyph (so the optical `-ml` alignment and inset ring are untouched) — growing
+			// glyph (so the optical `-ms` alignment and inset ring are untouched) — growing
 			// the box itself would re-center the icon off that tuned inset.
 			button: [
 				flex.inline,
 				'shrink-0',
-				'-ml-1',
+				'-ms-1',
 				'relative',
 				"before:absolute before:-inset-1 before:content-['']",
 				text.muted,
@@ -458,9 +459,10 @@ export const k = {
 		// pointer's `:active` state: a right-click presses the grip `<button>` into
 		// `:active` too, and the context menu swallowing the matching pointerup
 		// would leave that cursor stuck as if the column were still held.
-		// `-ml-1.5` pulls the grip left by the GripVertical glyph's optical inset (its
-		// dots sit a third of the way into the `size-5` box) so the visible grip lines
-		// up over the column's cell values instead of floating a step to their right.
+		// `-ms-1.5` pulls the grip toward the inline start by the GripVertical glyph's
+		// optical inset (its dots sit a third of the way into the `size-5` box), so the
+		// visible grip lines up over the column's cell values instead of floating a step
+		// past their start.
 		// That pull seats the box flush to the table's horizontal scroll wrapper
 		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
 		// `k.nav.cell` and the `k.resize.grip` colour shift — rather than the outset
@@ -468,9 +470,9 @@ export const k = {
 		handle: [
 			flex.inline,
 			'shrink-0',
-			'-ml-1.5',
+			'-ms-1.5',
 			// Expand the 20px grip's hit area to >=24x24 (WCAG 2.5.8) via a centered
-			// transparent `::before`, leaving the glyph and its `-ml` inset in place.
+			// transparent `::before`, leaving the glyph and its `-ms` inset in place.
 			'relative',
 			"before:absolute before:-inset-1 before:content-['']",
 			text.muted,
@@ -830,7 +832,7 @@ export const k = {
 		// of its own: `Button`'s bare icon-only floor is sized per density, and
 		// overriding it here would drop the pair under the 24x24 target minimum
 		// (WCAG 2.5.8) at every density, worst in a condensed grid.
-		settle: [flex.row, 'ml-1 shrink-0 gap-0.5'],
+		settle: [flex.row, 'ms-1 shrink-0 gap-0.5'],
 		// A cell whose async commit is in flight. It signals busy the way
 		// `body.settling` does for a server sort: a `motion-safe` pulse, or a
 		// static 50% dim for a reduced-motion user, never both.
@@ -838,7 +840,7 @@ export const k = {
 		// A failed validation rings the editor and anchors a small message below it.
 		errorRing: ['ring-2 ring-inset', ...mode('ring-red-600', 'dark:ring-red-500'), 'rounded-md'],
 		error: [
-			'absolute top-full left-0 z-20 mt-0.5 max-w-xs',
+			'absolute top-full start-0 z-20 mt-0.5 max-w-xs',
 			'rounded px-1.5 py-0.5 text-xs whitespace-normal',
 			'text-white shadow',
 			...mode('bg-red-600', 'dark:bg-red-500'),

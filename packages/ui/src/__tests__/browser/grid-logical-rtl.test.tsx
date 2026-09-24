@@ -1,7 +1,7 @@
 import { beforeAll, describe, expect, it } from 'vitest'
-import { page } from 'vitest/browser'
+import { page, userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { present, renderUI } from '../helpers'
+import { fireEvent, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The grid chrome in a right-to-left grid. Each edge, margin, and alignment
@@ -131,5 +131,80 @@ describe('grid toolbar and footer layout in a right-to-left grid (real browser)'
 		)
 
 		expect(getComputedStyle(status).textAlign).toBe('end')
+	})
+})
+
+describe('grid cell editor in a right-to-left grid (real browser)', () => {
+	type Row = { id: number; name: string }
+
+	const editColumns: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			field: 'name',
+			cell: (row) => row.name,
+			validate: (value) => (value === 'bad' ? 'Enter a valid name' : null),
+		},
+	]
+
+	const rows: Row[] = [{ id: 1, name: 'Alice' }]
+
+	/** Opens the editor of the name cell, and gives it an invalid value. */
+	async function openInvalidEditor() {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ width: 600 }}>
+				<Grid
+					columns={editColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{ session: 'managed', scope: 'cell', onCommit: () => {} }}
+				/>
+			</div>,
+		)
+
+		await userEvent.dblClick(
+			present(container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'the name cell'),
+		)
+
+		const input = await waitFor(() =>
+			present<HTMLInputElement>(
+				container.querySelector('[data-slot="grid-edit-input"]'),
+				'the edit input',
+			),
+		)
+
+		fireEvent.change(input, { target: { value: 'bad' } })
+
+		const message = await waitFor(() =>
+			present(container.querySelector<HTMLElement>('[role="alert"]'), 'the error message'),
+		)
+
+		const host = present(message.parentElement, 'the editor host')
+
+		return { input, message, host }
+	}
+
+	it('spaces the settle pair from the editor at its inline start', async () => {
+		const { input, message, host } = await openInvalidEditor()
+
+		// The settle pair follows the editor, so it sits to its left.
+		const settle = present(
+			Array.from(host.children).find(
+				(child) => child !== message && child.querySelector('button') !== null,
+			) as HTMLElement | undefined,
+			'the settle pair',
+		)
+
+		const gap = input.getBoundingClientRect().left - settle.getBoundingClientRect().right
+
+		expect(gap).toBeGreaterThanOrEqual(3)
+	})
+
+	it('hangs the error message from the inline start of the editor', async () => {
+		const { message, host } = await openInvalidEditor()
+
+		expect(
+			Math.abs(message.getBoundingClientRect().right - host.getBoundingClientRect().right),
+		).toBeLessThanOrEqual(1)
 	})
 })
