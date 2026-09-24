@@ -18,7 +18,10 @@ import { useDashboardStore } from './use-dashboard-store'
 export type DashboardScope = {
 	/** The filter that the app owns. */
 	filter: QueryGroup | undefined
-	/** Each cross-filter selection on the board. */
+	/**
+	 * Each cross-filter selection that applies. A selection of a tile that left the
+	 * board stops applying, and it stays in the selection value.
+	 */
 	selections: readonly DashboardSelection[]
 	/**
 	 * The query that this reader sees: the filter, and the selections of the other
@@ -62,7 +65,7 @@ export function useDashboardScope(): DashboardScope {
 
 	const filter = useDashboardStore((_, state) => state.filter)
 
-	const selections = useDashboardStore((_, state) => state.selections)
+	const selections = useDashboardStore((view) => view.selections)
 
 	return useMemo<DashboardScope>(() => {
 		const source = tile ?? ''

@@ -4,6 +4,7 @@ import {
 	clearSelection,
 	type DashboardSelection,
 	isScopeActive,
+	liveSelections,
 	scopeQuery,
 	scopeRows,
 	selectedValues,
@@ -103,5 +104,25 @@ describe('scopeQuery and scopeRows', () => {
 		expect(isScopeActive(query)).toBe(false)
 
 		expect(scopeRows(sales, query, read)).toEqual(sales)
+	})
+})
+
+describe('liveSelections', () => {
+	const selections: DashboardSelection[] = [
+		{ source: 'map', field: 'region', values: ['North'] },
+		{ source: '', field: 'product', values: ['Tea'] },
+		{ source: 'gone', field: 'region', values: ['West'] },
+	]
+
+	it('keeps the selections of the board and of the mounted tiles', () => {
+		expect(liveSelections(selections, new Set(['map']))).toEqual(selections.slice(0, 2))
+	})
+
+	it('returns the same list when each selection applies', () => {
+		expect(liveSelections(selections, new Set(['map', 'gone']))).toBe(selections)
+	})
+
+	it('applies each selection before any tile mounts', () => {
+		expect(liveSelections(selections, new Set())).toBe(selections)
 	})
 })
