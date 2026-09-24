@@ -58,27 +58,33 @@ const resizeMetrics = defineRecipe({
 /**
  * Opaque fill behind every sticky grid surface: the sticky header bar and the
  * frozen header/body cells alike. The rows and columns scrolling under them
- * therefore stay hidden. It tracks the content host (`omote.content`), the same
- * viewport-aware surface the sidebar layout paints behind its sticky headers.
- * That is the card surface at `lg`, and the flush page background below it. A
- * plain `bg.surface` painted the desktop card colour at every width. On mobile
- * the content block is transparent over the darker page. These surfaces then
- * read a shade off, standing out as a box against the page.
+ * therefore stay hidden. The fill must match the surface under the grid, or the
+ * sticky cells show as a box of a different shade.
+ *
+ * It reads `--surface-fill`, which `omote.bg.surface` sets on a surface card and
+ * on a flat dialog, sheet, or drawer. A dashboard tile is a surface card. With
+ * no such surface around it, the grid sits on the content host
+ * (`omote.content`). The fallback tracks that host, as the sidebar layout does
+ * behind its sticky headers. That is the flush page background below `lg`, and
+ * the card surface at `lg`.
  */
-const hostSurface = mode('bg-white', ['dark:bg-zinc-950', 'dark:lg:bg-zinc-900'])
+const hostSurface = mode('bg-[var(--surface-fill,var(--color-white))]', [
+	'dark:bg-[var(--surface-fill,var(--color-zinc-950))]',
+	'dark:lg:bg-[var(--surface-fill,var(--color-zinc-900))]',
+])
 
 /**
  * Opaque fill the actively dragged reorder column paints while lifted, so the
  * sibling columns it slides over stay hidden behind it. A transparent `<th>` /
  * `<td>` let their text bleed through, and `opacity` could only soften, never
- * stop, that bleed. Tracks the same viewport-aware content host as
- * {@link hostSurface}, the table's own effective background. The lifted column
- * therefore reads as a solid slice of the table rather than a shade-off box. It
- * is gated on the `data-[dragging]` state the dragged column's cells carry.
+ * stop, that bleed. It reads the same surface fill as {@link hostSurface}, the
+ * table's own effective background. The lifted column therefore reads as a solid
+ * slice of the table rather than a shade-off box. It is gated on the
+ * `data-[dragging]` state the dragged column's cells carry.
  */
-const draggingSurface = mode('data-[dragging]:bg-white', [
-	'dark:data-[dragging]:bg-zinc-950',
-	'dark:lg:data-[dragging]:bg-zinc-900',
+const draggingSurface = mode('data-[dragging]:bg-[var(--surface-fill,var(--color-white))]', [
+	'dark:data-[dragging]:bg-[var(--surface-fill,var(--color-zinc-950))]',
+	'dark:lg:data-[dragging]:bg-[var(--surface-fill,var(--color-zinc-900))]',
 ])
 
 /**
@@ -163,10 +169,8 @@ export const k = {
 		// grown row set) doesn't shrink the content width and reflow every column.
 		wrapper: 'overflow-auto [scrollbar-gutter:stable] [&>[data-slot=table]]:!overflow-visible',
 		// Sticky header bar: an opaque fill so body rows tuck under it on a vertical
-		// scroll. Tracks the content host (see `hostSurface`) so it matches the page
-		// background on mobile and the card surface on desktop — a plain `bg.surface`
-		// painted the desktop card colour at every width and stood out as a box
-		// against the transparent content block on mobile.
+		// scroll. The fill matches the surface under the grid (see `hostSurface`): a
+		// card or dialog that holds the grid, else the content host.
 		head: ['sticky top-0 z-10', hostSurface],
 		// The column row below a column-group band. Its cells stick at the band
 		// height, which the grid measures into `--grid-band-height` on the `<thead>`.
@@ -190,15 +194,13 @@ export const k = {
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
 		// through, lifted just above the centre cells (below the z-10 sticky head,
-		// so a vertical scroll still tucks pinned cells under it). The fill tracks
-		// the content host across viewports (see `hostSurface`); the inline-start or
+		// so a vertical scroll still tucks pinned cells under it). The fill matches
+		// the surface under the grid (see `hostSurface`); the inline-start or
 		// inline-end offset is an inline style summed from the engine.
 		cell: ['sticky z-[1]', hostSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
-		// Shares the sticky header's viewport-aware fill (see `hostSurface`) so the
-		// pinned header tracks the content host instead of painting the desktop card
-		// colour at every width — which, on mobile, stood out as a box against the
-		// transparent content block over the darker page.
+		// Shares the sticky header's fill (see `hostSurface`), so the pinned header
+		// and the header bar paint one colour.
 		head: ['sticky z-20', hostSurface],
 		// Edge border on a frozen group's scroll-facing boundary: a 2px rule at the
 		// inline end of a start (left) group's innermost column, and at the inline
@@ -511,8 +513,8 @@ export const k = {
 		// Lifts the actively dragged row above its siblings on an opaque surface
 		// with a shadow, so the rows it slides over stay hidden behind it — a
 		// transparent `<tr>` would let their content bleed through. Gated on the
-		// `data-[dragging]` the row carries; the fill tracks the content host
-		// across viewports (see `hostSurface`/`draggingSurface`).
+		// `data-[dragging]` the row carries; the fill matches the surface under the
+		// grid (see `hostSurface`/`draggingSurface`).
 		dragging: [
 			'data-[dragging]:relative',
 			'data-[dragging]:z-10',
