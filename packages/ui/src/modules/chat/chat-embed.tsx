@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useSyncExternalStore } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { Hold, type Mount, useMountHold } from '../../primitives/mount'
@@ -29,6 +29,9 @@ const statedFallback: ChatEmbedRenderer = (part) => (
 		This chat cannot show a “{part.name}” block.
 	</span>
 )
+
+/** A subscription that never fires, for a snapshot that changes only at hydration. */
+const subscribeNothing = () => () => {}
 
 /** Props for {@link ChatEmbed}. @internal */
 export type ChatEmbedProps = {
@@ -104,6 +107,11 @@ type HeldChatEmbedProps = ChatEmbedProps & {
  * Draws one `embed` block behind the viewport gate. `lazy` mounts it near the
  * viewport and keeps it. `active` also unmounts it when it scrolls away.
  *
+ * @remarks
+ * The server and the hydration render show the reserved space. An observer
+ * cannot run on the server, and the client must hydrate the same markup. The
+ * gate therefore opens only after hydration.
+ *
  * @internal
  */
 function HeldChatEmbed({ part, className, mount, render, address, reached }: HeldChatEmbedProps) {
@@ -115,7 +123,13 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 	// render. Its row left the window and came back, and it must not defer again.
 	const returning = mount === 'lazy' && address !== undefined && reached?.has(address) === true
 
-	const hold = useMountHold(inView || returning, mount)
+	const hydrated = useSyncExternalStore(
+		subscribeNothing,
+		() => true,
+		() => false,
+	)
+
+	const hold = useMountHold(hydrated && (inView || returning), mount)
 
 	// Written after the commit, so a render that React discards records nothing.
 	useEffect(() => {

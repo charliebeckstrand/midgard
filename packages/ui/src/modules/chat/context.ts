@@ -53,7 +53,9 @@ export type ChatEmbedRegistry = {
 	 *
 	 * Where nothing can observe the viewport, every policy mounts eagerly. The
 	 * gate is an optimization, and the safe answer when the environment cannot
-	 * tell is to draw.
+	 * tell is to draw. The server is the exception. Under `lazy` and `active`,
+	 * the server markup holds the reserved space, because the client must
+	 * hydrate the same markup. The view draws after hydration.
 	 *
 	 * A {@link ChatTranscript} windows its rows, and a row outside the window is
 	 * not rendered. Under the window, `lazy` means "no second deferral", not

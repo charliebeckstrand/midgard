@@ -1,9 +1,12 @@
 import { act } from '@testing-library/react'
-import { useEffect } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { type ReactElement, useEffect } from 'react'
+import { hydrateRoot, type Root } from 'react-dom/client'
+import { renderToString } from 'react-dom/server'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
-import { bySlot, getSlot, renderUI, screen } from '../helpers'
+import type { Mount } from '../../primitives/mount'
+import { attach, bySlot, getSlot, renderUI, screen } from '../helpers'
 
 /**
  * A controllable `IntersectionObserver`: nothing intersects until a test says
@@ -262,5 +265,90 @@ describe('the mount policy', () => {
 		reveal?.()
 
 		expect(bySlot(container, 'chat-embed-fallback')).toBeInTheDocument()
+	})
+})
+
+/**
+ * The server markup of `element`. A server has no `IntersectionObserver`, and
+ * `useInView` reports each target as visible there, so the markup renders with
+ * none.
+ */
+function serverMarkup(element: ReactElement): string {
+	const observer = window.IntersectionObserver
+
+	Reflect.deleteProperty(window, 'IntersectionObserver')
+
+	try {
+		return renderToString(element)
+	} finally {
+		window.IntersectionObserver = observer
+	}
+}
+
+function Message({ mount }: { mount?: Mount }) {
+	return (
+		<ChatEmbedProvider renderers={renderers} mount={mount}>
+			<ChatMessage>{[embed()]}</ChatMessage>
+		</ChatEmbedProvider>
+	)
+}
+
+describe.each(['lazy', 'active'] as const)('a held-back embed on the server, under %s', (mount) => {
+	it('reserves its space in the server markup, and draws no view', () => {
+		const html = serverMarkup(<Message mount={mount} />)
+
+		expect(html).toContain('data-deferred')
+
+		expect(html).toContain('min-height:160px')
+
+		expect(html).not.toContain('drawn')
+	})
+
+	it('hydrates the server markup with no mismatch, and draws once the reader reaches it', () => {
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = serverMarkup(<Message mount={mount} />)
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, <Message mount={mount} />, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container).not.toHaveTextContent('drawn')
+
+		reveal?.()
+
+		expect(container).toHaveTextContent('drawn')
+	})
+})
+
+describe('an embed under always, on the server', () => {
+	it('draws in the server markup, and hydrates with no mismatch', () => {
+		const container = attach(document.createElement('div'))
+
+		const html = serverMarkup(<Message mount="always" />)
+
+		expect(html).toContain('drawn')
+
+		container.innerHTML = html
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, <Message mount="always" />, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
 	})
 })
