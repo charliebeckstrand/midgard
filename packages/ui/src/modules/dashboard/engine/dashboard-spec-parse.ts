@@ -8,7 +8,7 @@
  * what to do with the report.
  */
 
-import type { QueryGroup } from '../../query/engine/types'
+import { isQueryGroup } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
 
@@ -64,23 +64,6 @@ function isId(value: unknown): value is string {
 
 function isNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value)
-}
-
-/** Whether a value is a query node: a rule, or a group whose children are all nodes. */
-function isQueryNode(value: unknown): boolean {
-	if (!isFields(value) || typeof value.id !== 'string') return false
-
-	if (value.combinator !== undefined && value.combinator !== 'and' && value.combinator !== 'or') {
-		return false
-	}
-
-	if (value.type === 'rule') {
-		return typeof value.field === 'string' && typeof value.operator === 'string'
-	}
-
-	return (
-		value.type === 'group' && Array.isArray(value.children) && value.children.every(isQueryNode)
-	)
 }
 
 /** Whether a value is a span: a finite `w`, and a finite `h` when it has one. */
@@ -285,8 +268,8 @@ export function parseDashboardSpec(input: unknown): DashboardSpecParse {
 	// JSON has no `undefined`, so a saved board with no filter can hold `null`.
 	if (input.filter == null) return { spec, issues }
 
-	if (isFields(input.filter) && input.filter.type === 'group' && isQueryNode(input.filter)) {
-		spec.filter = input.filter as QueryGroup
+	if (isQueryGroup(input.filter)) {
+		spec.filter = input.filter
 	} else {
 		issues.push({
 			kind: 'invalid-filter',

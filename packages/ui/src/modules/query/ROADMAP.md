@@ -12,6 +12,10 @@ The public surface was unchanged across the move — the barrel re-exports domai
 
 The first read view has landed, proving the thesis. [`engine/query-summary.ts`](engine/query-summary.ts) turns a tree into an ordered token stream (`summarizeQuery`) or a plain line (`formatQuerySummary`), reading each rule through the same `resolveRule` seam the active/empty judgement uses, so a blank rule drops out and an inactive query summarizes to nothing. [`QuerySummary`](query-summary.tsx) (module root) renders that stream beside the edit view — each active rule as `field operator value`, joined by AND/OR and bracketed per nested group — needing the core, not the builder. This is the read view the extraction existed to make cheap. The barrel publishes the view and its plain-text form (`formatQuerySummary`); the token stream (`summarizeQuery`) stays engine-internal until a second renderer earns it, as `useQueryTree` does (CLAUDE.md §1.1).
 
+The serialization adapters have landed. [`engine/query-serialize.ts`](engine/query-serialize.ts) writes a tree as compact JSON for a URL search param (`serializeQuery`) and reads it back (`parseQuery`). The parse follows the repair-and-report model of `parseDashboardSpec`: it returns `{ value, issues }`, drops each node that it cannot read, and gives each node a new id. An optional `fields` list also drops a rule for an unknown field or operator. `formatQuerySql` writes a tree as a SQL condition with bound parameters, and keeps the meaning of `evaluateQuery`. So a query survives a reload, or goes to a backend with no builder. The design record is the follow-up section of the [plan](../../../docs/plans/2026-07-12-QUERY-MODULE-PLAN.md).
+
+One structural guard, `isQueryNode` and `isQueryGroup` in [`engine/query-node.ts`](engine/query-node.ts), now serves the parse, the dashboard spec parse, and the grid's column filter. Before this, the dashboard had a private full guard and the grid checked only `type === 'group'`.
+
 ## Engine — the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.
@@ -25,8 +29,6 @@ The [`module-filename-boundary.test.ts`](../../__tests__/boundary/module-filenam
 - **Export `useQueryTree`.** The headless hook is internal today — the builder is its only view, and grid drives a controlled `QueryBuilder` without it. Export it from the barrel once a second consumer justifies the surface (CLAUDE.md §1.1).
 
 - **Chip-row summary.** A second rendering of the same `summarizeQuery` stream — each rule token a chip, combinators and brackets the separators between them — as a filter bar over the active constraints. A read-only bar renders the display stream as-is; an interactive one (clear a chip, toggle a combinator) acts on the source node, so it adds the node ids the display stream omits.
-
-- **Serialization adapters.** URL-safe round-trip and server filter formats as `engine/` files (`query-serialize`), so a query survives a reload or reaches a backend without the builder in the loop.
 
 - **Per-field value editors.** A custom value-input slot on the rule, for a field whose value isn't a text/number/date/select/boolean primitive (a relation picker, a token input).
 

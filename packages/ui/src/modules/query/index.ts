@@ -1,7 +1,18 @@
 export { isQueryActive } from './engine/query-active'
 export { evaluateQuery, matchQueryRule } from './engine/query-evaluate'
-export { createGroup, createRule } from './engine/query-node'
+export { createGroup, createRule, isQueryGroup, isQueryNode } from './engine/query-node'
 export { getOperators } from './engine/query-operators'
+export {
+	formatQuerySql,
+	parseQuery,
+	type QueryParse,
+	type QueryParseIssue,
+	type QueryParseIssueKind,
+	type QueryParseOptions,
+	type QuerySql,
+	type QuerySqlOptions,
+	serializeQuery,
+} from './engine/query-serialize'
 export { formatQuerySummary } from './engine/query-summary'
 export { addChild, mapNode, removeChild } from './engine/query-tree'
 export type {

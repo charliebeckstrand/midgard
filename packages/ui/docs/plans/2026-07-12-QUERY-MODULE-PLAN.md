@@ -73,6 +73,20 @@ The barrel keeps every current export under its current name — `QueryBuilder` 
 
 The module gets its tracker in the map ROADMAP's shape — goal line, status, backlog — created with this extraction as its status baseline. Backlog candidates, none taken in this pass: exporting `useQueryTree` alongside a second view; a **query summary line** (the human-readable read view — a sentence or chip row over the same tree — the piece the extraction exists to make cheap); serialization adapters (URL-safe round-trip, server filter formats) as engine files; per-field custom value editors on the rule slot; rule reordering.
 
+### Follow-up: serialization adapters (2026-09-24)
+
+The serialization adapters backlog row is done. [`engine/query-serialize.ts`](../../src/modules/query/engine/query-serialize.ts) holds three pure functions, and the barrel exports each one.
+
+`serializeQuery` writes a tree as compact JSON for a URL search param: a group is `[combinator, children]`, and a rule is `[combinator, field, operator, value]`. The form has no ids, so an equal query gives an equal string.
+
+`parseQuery` reads that form back. It follows the repair-and-report model of `parseDashboardSpec`: it returns `{ value, issues }`, drops each node that it cannot read, keeps each other node, and gives each node a new id. An optional `fields` list also drops a rule whose field or operator the list does not offer. The parse reads groups to a depth of 32 levels, because the URL is input that the app does not control.
+
+`formatQuerySql` writes a tree as a SQL condition with bound parameters, for a backend. It keeps the meaning of `evaluateQuery`: the fold goes left to right with no `AND` over `OR` precedence, text matches ignore case, and a rule with no constraint drops out.
+
+No TanStack package in the tree serializes a filter tree. `react-table` filters in memory, `react-query` caches, and `react-virtual` windows rows. So the adapters use no TanStack code. The URL string is a stable part of a TanStack Query `queryKey`, and `formatQuerySql` serves the query trees that a manual-mode grid gives through its TanStack column filters.
+
+The same change moves one structural guard into the engine. `isQueryNode` and `isQueryGroup` in `engine/query-node.ts` replace the private guard of `dashboard-spec-parse.ts` and the `type`-only `isQueryGroup` of `grid/engine/grid-table/views.ts`. The grid's column filter now reads a malformed tree as no filter. Each tree that `createGroup`, `createRule`, or `parseQuery` makes passes the guard.
+
 ## Non-goals
 
 - **No behavior change** — every moved function moves verbatim; the tree, operator, and evaluation semantics (including the empty-value agreement and left-to-right combinator fold) are untouched.

@@ -51,3 +51,47 @@ function defaultValueFor(field?: QueryField): unknown {
 
 	return ''
 }
+
+/** Whether a value is a plain object, which JSON gives for `{}`. @internal */
+function isFields(value: unknown): value is Record<string, unknown> {
+	return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+/**
+ * Whether a value is a query node: a rule, or a group whose children are all
+ * nodes. Each node needs a string `id` and, when it has one, a combinator of
+ * `and` or `or`. A rule needs a string `field` and a string `operator`; its
+ * `value` can be any value.
+ *
+ * @remarks Use it on a tree from storage or from a URL, before the evaluator or
+ * the builder reads it.
+ *
+ * @param value - The value to test.
+ * @returns Whether `value` has the full structure of a {@link QueryNode}.
+ */
+export function isQueryNode(value: unknown): value is QueryNode {
+	if (!isFields(value) || typeof value.id !== 'string') return false
+
+	if (value.combinator !== undefined && value.combinator !== 'and' && value.combinator !== 'or') {
+		return false
+	}
+
+	if (value.type === 'rule') {
+		return typeof value.field === 'string' && typeof value.operator === 'string'
+	}
+
+	return (
+		value.type === 'group' && Array.isArray(value.children) && value.children.every(isQueryNode)
+	)
+}
+
+/**
+ * Whether a value is a query group with the full structure of
+ * {@link isQueryNode}.
+ *
+ * @param value - The value to test.
+ * @returns Whether `value` is a {@link QueryGroup}.
+ */
+export function isQueryGroup(value: unknown): value is QueryGroup {
+	return isQueryNode(value) && value.type === 'group'
+}
