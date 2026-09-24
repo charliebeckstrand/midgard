@@ -12,6 +12,7 @@ import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { resolveCellTooltip } from './engine/grid-row/cell'
@@ -118,6 +119,9 @@ function leafCellInner<T>(args: {
 		)
 	}
 
+	// The Add column of the new-row slot is empty in a leaf row.
+	if (isNewRowAddColumn(col.id)) return null
+
 	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	const raw = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
@@ -214,7 +218,9 @@ function GridGroupLeafCell<T>({
 	return (
 		<td
 			{...extra}
-			data-grid-col={col.id}
+			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
+			// the autosizer read it, so a non-data cell carries none.
+			data-grid-col={dataCell ? col.id : undefined}
 			aria-colindex={colIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the

@@ -50,6 +50,8 @@ export type {
 	GridEditCell,
 	GridEditCellContext,
 	GridHistoryState,
+	GridNewRowAdd,
+	GridNewRowAddContext,
 	GridRowActionsContext,
 } from './grid-editing-types'
 export type { GridColumnGroup, GridColumnGroups } from './grid-group-types'

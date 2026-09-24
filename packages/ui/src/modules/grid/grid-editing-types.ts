@@ -121,6 +121,45 @@ export type GridRowActionsContext = {
 }
 
 /**
+ * The Add control of the new row, as {@link GridEditableConfig.newRowAdd} sets
+ * it. Each field is optional, so `{}` is the built-in button at the width of
+ * that button.
+ */
+export type GridNewRowAdd = {
+	/**
+	 * Renders your own control from a {@link GridNewRowAddContext}. Omit it for
+	 * the built-in button. Render a control that focus can reach. Tab reaches it
+	 * after the last editor of the row.
+	 */
+	render?: (context: GridNewRowAddContext) => ReactNode
+	/**
+	 * The width (px) of the Add column. Omit it, and the column takes the width
+	 * of its control and the cell padding. The column then measures again when
+	 * the control changes size, but not while an add is in flight. The column
+	 * holds its width through the add. Keep the pending state of a control no
+	 * wider than its resting state.
+	 */
+	width?: number
+}
+
+/**
+ * Context handed to the {@link GridNewRowAdd.render} slot, which renders the
+ * Add control of the new row.
+ */
+export type GridNewRowAddContext = {
+	/**
+	 * Adds the row, as Enter in the row does. An add with no value does
+	 * nothing, and a second add waits while one is in flight.
+	 */
+	add: () => void
+	/**
+	 * Whether an add that {@link GridEditableConfig.onRowAdd} returned as a
+	 * promise is in flight. The grid makes the control inert until it settles.
+	 */
+	pending: boolean
+}
+
+/**
  * Editing binding for {@link GridProps.editable}: marks which rows are in edit
  * mode and sinks their committed cell values. Setting it bakes per-row editing
  * into the grid — a row in the set puts all of its editable cells into edit mode
@@ -436,9 +475,10 @@ export type GridEditableConfig = {
 	 * Adds a blank editor row, pinned at the top or the bottom of the body, for
 	 * the entry of a new record. Its editable cells are always editors. Fill
 	 * them, then press Enter in the row, or its Add control, to call
-	 * {@link GridEditableConfig.onRowAdd}. Escape clears the row, and F2 keeps
-	 * its values. Both put focus back on the grid, with the keyboard cursor on
-	 * the cell. The row also shows over an empty grid.
+	 * {@link GridEditableConfig.onRowAdd}. The Add control is in a column of
+	 * its own, which {@link GridEditableConfig.newRowAdd} sets. Escape clears
+	 * the row, and F2 keeps its values. Both put focus back on the grid, with
+	 * the keyboard cursor on the cell. The row also shows over an empty grid.
 	 *
 	 * The row is not a data row. Sort, filter, grouping, pagination, and
 	 * aggregation do not apply to it, and selection and export do not include
@@ -498,4 +538,33 @@ export type GridEditableConfig = {
 	 */
 	// biome-ignore lint/suspicious/noConfusingVoidType: `void` lets an `async` function with no `return` pass as the callback; `undefined` would refuse its `Promise<void>`.
 	onRowAdd?: (values: Record<string, unknown>) => void | Promise<void | GridCellRefusal[]>
+	/**
+	 * The Add control of the row that {@link GridEditableConfig.newRow} shows,
+	 * as one {@link GridNewRowAdd}. Omit it for the built-in button. Set
+	 * `render` for your own control, and `width` to fix the width of its
+	 * column. Pass `false` to show no control, so that only Enter in the row
+	 * adds it.
+	 *
+	 * The control is in a column that the grid adds after your columns. The
+	 * column is locked to the inline end, so it stays in view as the grid
+	 * scrolls sideways. The user cannot resize, move, or hide it. Your last
+	 * column therefore resizes on its own. The cells of the column in the
+	 * other rows are empty. Without a `width`, the column takes the width of
+	 * its control.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Your own control, with the column at the width of the control.
+	 * newRowAdd: { render: ({ add }) => <Button onClick={add}>Add person</Button> }
+	 * // The built-in button, in a column of 64 px.
+	 * newRowAdd: { width: 64 }
+	 * ```
+	 *
+	 * @remarks The column is not a data column. The column manager, export,
+	 * and the column state of {@link GridProps.preferences} do not include it.
+	 * It counts in `aria-colcount`, and its header has a name for assistive
+	 * tech only. With `false`, the grid adds no column. Before the first
+	 * measure, and in an environment with no layout, the column is 48 px wide.
+	 */
+	newRowAdd?: false | GridNewRowAdd
 }

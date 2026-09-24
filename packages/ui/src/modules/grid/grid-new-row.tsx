@@ -1,16 +1,29 @@
 'use client'
 
-import { type CSSProperties, type MouseEvent, type ReactNode, useMemo, useRef } from 'react'
+import {
+	type CSSProperties,
+	type MouseEvent,
+	type ReactNode,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+} from 'react'
 import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
 import { isColumnEditable, NEW_ROW_KEY } from './engine/grid-editing-utilities'
+import {
+	isNewRowAddColumn,
+	measureNewRowAddCell,
+	NEW_ROW_ADD_COLUMN_ID,
+} from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { fromInteractiveContent } from './engine/grid-row/cell'
-import { GridAddRowButton, GridCellEditor, GridPendingCell } from './grid-editing-cell'
+import { GridAddRowButton, GridCellEditor } from './grid-editing-cell'
 import { type GridNewRowSession, useGridNewRowSession } from './grid-editing-context'
+import type { GridNewRowAdd, GridNewRowAddContext } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
 import { GridNavCell, stickyHeadInset } from './use-grid-navigation-columns'
@@ -28,19 +41,6 @@ function inert(): undefined {
 /** A focus claim that the new-row slot answers through its own `claimSlot`. @internal */
 function noClaim(): boolean {
 	return false
-}
-
-/**
- * The text a pending cell of the new-row slot shows. The column's own
- * renderer reads a whole row, and the slot has only the values that the user
- * entered. The slot therefore shows the value itself. @internal
- */
-function pendingText(value: unknown): string {
-	if (value == null) return ''
-
-	if (typeof value === 'boolean') return value ? 'Yes' : 'No'
-
-	return String(value)
 }
 
 /**
@@ -70,13 +70,20 @@ type GridNewRowProps<T> = {
 	pinning: GridColumnPinning | null
 	/** The slot's `aria-rowindex`, or `undefined` where the grid sets no row indexes. */
 	ariaRowIndex: number | undefined
+	/**
+	 * The consumer's {@link GridEditableConfig.newRowAdd}, which sets the Add
+	 * control. The Add cell renders only where the grid added its column.
+	 */
+	add: GridNewRowAdd | undefined
+	/** Takes the width that the Add cell needs, when no fixed width holds the column. */
+	onMeasureAdd: (width: number) => void
 }
 
 /**
  * One cell of the new-row slot. It carries the cursor's cell id and ring, and
  * a press on it seats the cursor, as a data cell does. An editable column
- * mounts its editor at all times, and the last one carries the Add control.
- * While an add is in flight, each cell shows its value as pending.
+ * mounts its editor at all times. While an add is in flight, each editor
+ * keeps its value and pulses, and it takes no input.
  *
  * @internal
  */
@@ -86,7 +93,6 @@ function GridNewRowCell<T>({
 	col,
 	colIndex,
 	draftRow,
-	last,
 	className,
 	style,
 }: {
@@ -96,8 +102,6 @@ function GridNewRowCell<T>({
 	col: number
 	colIndex: number | undefined
 	draftRow: T
-	/** Whether this is the last editable column, which carries the Add control. */
-	last: boolean
 	className: string
 	style: CSSProperties | undefined
 }) {
@@ -113,19 +117,13 @@ function GridNewRowCell<T>({
 		session.moveTo({ row: NEW_ROW_INDEX, col })
 	}
 
-	let content: ReactNode = null
+	const pending = editable && session.inFlight
 
-	if (editable && session.inFlight) {
-		content = (
-			<span className={cn(k.edit.host)}>
-				<GridPendingCell>
-					{pendingText(session.readDraft(NEW_ROW_KEY, column.id)?.value)}
-				</GridPendingCell>
-				{last && <GridAddRowButton addRow={session.addRow} pending />}
-			</span>
-		)
-	} else if (editable) {
-		content = (
+	// The editor stays mounted through an add, so the row keeps its fields and
+	// its height. While the add is in flight, the host is inert, and the editor
+	// pulses as a pending data cell does.
+	const content = editable ? (
+		<span inert={pending} className={cn(k.edit.host, pending && k.edit.pending)}>
 			<GridCellEditor<T>
 				key={session.generation}
 				rowIdx={NEW_ROW_INDEX}
@@ -140,14 +138,13 @@ function GridNewRowCell<T>({
 				claimFocus={noClaim}
 				resumeCell={inert}
 				managed
-				settle={last ? 'add' : 'none'}
+				settle="none"
 				held={false}
 				kind={column.editCell ? undefined : session.editorKind(column)}
-				addRow={session.addRow}
 				claimSlot={session.claimFocus}
 			/>
-		)
-	}
+		</span>
+	) : null
 
 	return (
 		<TableCell
@@ -156,6 +153,7 @@ function GridNewRowCell<T>({
 			data-grid-new-col={String(column.id)}
 			aria-colindex={colIndex}
 			aria-readonly={!editable || undefined}
+			aria-busy={pending || undefined}
 			className={className}
 			style={style}
 			onMouseDown={seat}
@@ -163,6 +161,91 @@ function GridNewRowCell<T>({
 			<GridNavCell row={NEW_ROW_INDEX} col={col}>
 				{content}
 			</GridNavCell>
+		</TableCell>
+	)
+}
+
+/**
+ * The cell of the Add column in the new-row slot. It holds the built-in Add
+ * control, or the consumer's {@link GridNewRowAdd.render} slot. It sticks to
+ * the inline end. While an add is in flight, its content is inert and pulses,
+ * as the editors do.
+ *
+ * Without a fixed {@link GridNewRowAdd.width}, the cell reports the width that
+ * its control needs through `onMeasure`, and the grid sets the column to it.
+ * It measures again when the control changes size. While an add is in flight
+ * it holds the width, so a pending label does not move the columns.
+ *
+ * @remarks The cell carries `data-grid-new-col`, so the slot's key handler
+ * takes the keys of its control. Escape and F2 then leave the slot, and do
+ * not reach the session of the data rows. The cell is not a stop of the
+ * keyboard cursor. Tab reaches its control after the last editor.
+ *
+ * @internal
+ */
+function GridNewRowAddCell({
+	session,
+	render,
+	onMeasure,
+	colIndex,
+	className,
+}: {
+	session: GridNewRowSession
+	render: ((context: GridNewRowAddContext) => ReactNode) | undefined
+	/** Takes the width that the cell needs, or is `undefined` under a fixed width. */
+	onMeasure: ((width: number) => void) | undefined
+	colIndex: number | undefined
+	className: string
+}) {
+	const pending = session.inFlight
+
+	const cellRef = useRef<HTMLTableCellElement>(null)
+
+	const controlRef = useRef<HTMLSpanElement>(null)
+
+	useLayoutEffect(() => {
+		const cell = cellRef.current
+
+		const control = controlRef.current
+
+		if (!onMeasure || pending || !cell || !control) return
+
+		const report = () => {
+			const width = measureNewRowAddCell(cell, control)
+
+			if (width !== null) onMeasure(width)
+		}
+
+		report()
+
+		if (typeof ResizeObserver === 'undefined') return
+
+		const observer = new ResizeObserver(report)
+
+		observer.observe(control)
+
+		return () => observer.disconnect()
+	}, [onMeasure, pending])
+
+	return (
+		<TableCell
+			ref={cellRef}
+			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
+			aria-colindex={colIndex}
+			aria-busy={pending || undefined}
+			className={cn(className, k.newRow.add)}
+		>
+			<span
+				ref={controlRef}
+				inert={pending}
+				className={cn(k.newRow.control, pending && k.edit.pending)}
+			>
+				{render ? (
+					render({ add: session.addRow, pending })
+				) : (
+					<GridAddRowButton addRow={session.addRow} />
+				)}
+			</span>
 		</TableCell>
 	)
 }
@@ -183,7 +266,13 @@ function GridNewRowCell<T>({
  *
  * @internal
  */
-export function GridNewRow<T>({ columns, pinning, ariaRowIndex }: GridNewRowProps<T>) {
+export function GridNewRow<T>({
+	columns,
+	pinning,
+	ariaRowIndex,
+	add,
+	onMeasureAdd,
+}: GridNewRowProps<T>) {
 	const session = useGridNewRowSession()
 
 	const bodyRef = useRef<HTMLTableSectionElement>(null)
@@ -193,8 +282,6 @@ export function GridNewRow<T>({ columns, pinning, ariaRowIndex }: GridNewRowProp
 	const dataColumns = useMemo(() => columns.filter(isDataColumn), [columns])
 
 	if (!session) return null
-
-	const lastEditable = dataColumns.findLast((column) => isColumnEditable(column))?.id
 
 	// The row that a column's `editCell` slot and `validate` read: the field of
 	// each editable column, with the value that the user entered.
@@ -227,6 +314,18 @@ export function GridNewRow<T>({ columns, pinning, ariaRowIndex }: GridNewRowProp
 
 					const colIndex = ariaRowIndex !== undefined ? index + 1 : undefined
 
+					if (isNewRowAddColumn(column.id))
+						return (
+							<GridNewRowAddCell
+								key={column.id}
+								session={session}
+								render={add?.render}
+								onMeasure={add?.width === undefined ? onMeasureAdd : undefined}
+								colIndex={colIndex}
+								className={className}
+							/>
+						)
+
 					if (!isDataColumn(column))
 						return (
 							<TableCell
@@ -245,7 +344,6 @@ export function GridNewRow<T>({ columns, pinning, ariaRowIndex }: GridNewRowProp
 							col={dataColumns.indexOf(column)}
 							colIndex={colIndex}
 							draftRow={draftRow}
-							last={column.id === lastEditable}
 							className={className}
 							style={pinned.style}
 						/>

@@ -12,10 +12,11 @@ export type GridExportType = 'csv' | 'excel' | 'print' | (string & {})
 
 /**
  * The data an export type serializes: the visible data columns and the rows to
- * export. The rows are the selected rows when a {@link GridDataProps.selection}
- * is active, else the grid's filtered/sorted set (all pages). When
- * {@link GridDataProps.exportRows} supplies its own set, that set wins outright
- * (see there for the server-pagination case).
+ * export. The non-data columns (selection, actions, drag handle, expander) are
+ * not in `columns`. The rows are the selected rows when a
+ * {@link GridDataProps.selection} is active, else the grid's filtered/sorted
+ * set (all pages). When {@link GridDataProps.exportRows} supplies its own set,
+ * that set wins outright (see there for the server-pagination case).
  *
  * @typeParam T - Shape of a single row.
  */

@@ -1,3 +1,4 @@
+import { isDataColumn } from '../../../../utilities'
 import type { GridColumn, GridToolSurfaces } from '../../types'
 import { DEFAULT_SURFACES, resolveToolSurfaces, SURFACES_OFF } from '../grid-tools'
 import {
@@ -204,6 +205,10 @@ export function trackPending(
  * offer these actions is a separate question — see
  * {@link resolveExportSurfaces}.
  *
+ * Every exporter reads the data columns alone, as {@link GridExportContext}
+ * states. The non-data columns (selection, actions, drag handle, expander)
+ * leave the context here. Each caller then passes its columns as it holds them.
+ *
  * @typeParam T - Shape of a single row.
  * @param exportable - The grid's `exportable` prop.
  * @param getContext - Builds the {@link GridExportContext} lazily, so it only
@@ -214,5 +219,16 @@ export function resolveExportActions<T>(
 	exportable: GridExportable<T> | undefined,
 	getContext: () => GridExportContext<T> | Promise<GridExportContext<T>>,
 ): GridExportAction[] {
-	return resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getContext))
+	const getDataContext = () => {
+		const context = getContext()
+
+		return context instanceof Promise ? context.then(withDataColumns) : withDataColumns(context)
+	}
+
+	return resolveEntries(exportable).flatMap((entry) => resolveEntry(entry, getDataContext))
+}
+
+/** The context with its non-data columns dropped. @internal */
+function withDataColumns<T>(context: GridExportContext<T>): GridExportContext<T> {
+	return { ...context, columns: context.columns.filter(isDataColumn) }
 }

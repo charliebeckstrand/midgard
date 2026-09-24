@@ -160,6 +160,17 @@ describe('the active judgement, the summary, and the evaluator', () => {
 			false,
 		],
 		['an array for a scalar operator', { field: 'age', operator: 'gt', value: [1, 2] }, false],
+		['text for a numeric operator', { field: 'age', operator: 'gt', value: 'abc' }, false],
+		[
+			'a range with a bound that is not numeric',
+			{ field: 'age', operator: 'between', value: ['abc', 10] },
+			false,
+		],
+		[
+			'a numeric string for a numeric operator',
+			{ field: 'age', operator: 'gt', value: '10' },
+			true,
+		],
 		[
 			'an object for a scalar operator',
 			{ field: 'title', operator: 'contains', value: { text: 'x' } },

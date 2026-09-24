@@ -46,6 +46,7 @@ import {
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
 import { bodyRowCount } from './engine/grid-items/items'
+import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import {
@@ -845,6 +846,25 @@ export function GridData<T>({
 		[manualGroupingActive, groupRow],
 	)
 
+	// The new-row slot's Add control has a column of its own after the others
+	// (see `withNewRowAddColumn`). It joins here, after the column order and
+	// visibility state, so no saved state names it. It follows the configured
+	// slot, not the loading state, so the column set stays stable. Its width is
+	// the one the Add cell measures for its control, unless `newRowAdd.width`
+	// fixes it.
+	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
+
+	const addWidth = resolveNewRowAddWidth(
+		cursor.newRow !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
+
+	const engineColumns = useMemo(
+		() => withNewRowAddColumn(cursor.columns, addWidth),
+		[cursor.columns, addWidth],
+	)
+
 	// TanStack Table is the data engine: rows flow through its row model, which
 	// also surfaces the pagination state and handlers the footer renders from.
 	// Without an active client transform the model is bypassed, and `renderRows`
@@ -870,7 +890,7 @@ export function GridData<T>({
 		// `visibleColumns` comes back in that resolved order for the header and body.
 		// Under a cursor (navigable or editable) these carry the cursor/editor
 		// wiring (see `useGridCursor`).
-		columns: cursor.columns,
+		columns: engineColumns,
 		getKey,
 		selection,
 		columnOrder,
@@ -1348,6 +1368,8 @@ export function GridData<T>({
 				ariaRowCount,
 				grandTotal: grandTotal.active,
 			})}
+			add={editable?.newRowAdd || undefined}
+			onMeasureAdd={setMeasuredAddWidth}
 		/>
 	)
 

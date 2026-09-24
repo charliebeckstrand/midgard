@@ -15,6 +15,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
+import { NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
 import { fromInteractiveContent } from './engine/grid-row/cell'
 import type { GridColumn } from './types'
 import { type Coord, useGridNavContext } from './use-grid-navigation'
@@ -57,7 +58,8 @@ export function stickyHeadInset(table: HTMLTableElement): number {
  * (see {@link stickyHeadInset}). The side insets are the pinned columns' widths,
  * measured from the first header row's sticky cells.
  * The new-row slot of an editable grid sticks too. Its height adds to the top
- * or the bottom inset of each other cell (see {@link slotInsets}). Applied as
+ * or the bottom inset of each other cell (see {@link slotInsets}). The width
+ * of its Add cell adds to the side inset of the other cells of the slot. Applied as
  * the active cell's `scroll-margin` so `scrollIntoView` keeps it clear of that
  * chrome (WCAG 2.4.11, Focus Not Obscured). Zero on every side for a grid with
  * neither, so the margin is cleared.
@@ -80,26 +82,37 @@ function obscuringInsets(cell: HTMLElement): {
 
 	const headRow = table?.querySelector<HTMLElement>('thead > tr')
 
-	let left = 0
-	let right = 0
+	const sides = { left: 0, right: 0 }
 
-	if (headRow) {
-		for (const headCell of headRow.children) {
-			const style = getComputedStyle(headCell)
+	if (headRow) for (const headCell of headRow.children) addSideInset(sides, headCell)
 
-			if (style.position !== 'sticky') continue
+	// The Add cell of the new-row slot sticks to the inline end of its own row
+	// alone, so it covers only the other cells of that row.
+	const add = cell.parentElement?.querySelector(
+		`:scope > [data-grid-new-col="${NEW_ROW_ADD_COLUMN_ID}"]`,
+	)
 
-			const box = headCell.getBoundingClientRect()
+	if (add && add !== cell) addSideInset(sides, add)
 
-			// A pinned cell overlays one physical side. Its offset is a logical inset,
-			// but the computed `left` or `right` is physical. The top edge comes from
-			// `stickyHeadInset`, which reads each header row.
-			if (style.left !== 'auto') left += box.width
-			else if (style.right !== 'auto') right += box.width
-		}
-	}
+	return { ...stickyEdgeInsets(cell), ...sides }
+}
 
-	return { ...stickyEdgeInsets(cell), left, right }
+/**
+ * Adds the width of `element` to the side inset that it covers, when it
+ * sticks to a side edge. A pinned cell overlays one physical side. Its offset
+ * is a logical inset, but the computed `left` or `right` is physical. The top
+ * edge comes from `stickyHeadInset`, which reads each header row.
+ * @internal
+ */
+function addSideInset(sides: { left: number; right: number }, element: Element): void {
+	const style = getComputedStyle(element)
+
+	if (style.position !== 'sticky') return
+
+	const width = element.getBoundingClientRect().width
+
+	if (style.left !== 'auto') sides.left += width
+	else if (style.right !== 'auto') sides.right += width
 }
 
 /**
