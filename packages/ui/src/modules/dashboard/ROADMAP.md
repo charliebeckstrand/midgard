@@ -34,6 +34,8 @@ A tile takes grid-unit limits: `minSize` and `maxSize`, each with an optional `w
 
 A tile veils its header when its chart reports the spark tier. The chart writes `data-tier="spark"`, and a `:has()` rule on the card reads it, so no code crosses the module boundary. The header leaves the flow for a veil over the top of the content, as the title of a spark chart does. At rest it shows on hover or focus, so the title and the controls stay reachable. In edit mode it stays in view for the grip, and the content box keeps one height in both modes.
 
+A right-to-left board mirrors the saved layout. The CSS grid puts column `0` at the right edge, so the saved layout stays in columns and renders mirrored with no change. The board reads the computed `direction` of the canvas when each gesture starts, and `inlineSign` turns a horizontal travel in px into columns. A pointer drag, a carried tile, a glide, and a pointer or keyboard resize therefore follow the screen. The end splitter, the corner, the floating grip, and the size chip sit on logical insets.
+
 Tidy is the one bulk move. `tidy` on the `ref` of the board (`DashboardHandle`) packs the tiles upward and commits the result through the layout binding. Each tile keeps its column and its span, and it moves straight up until it meets a tile or the top edge, so each column keeps its order. A static tile never moves, and a tile that is not mounted keeps its saved place. The pack runs in the engine as `tidyCells`, and the live region says how many tiles moved.
 
 A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
@@ -46,4 +48,4 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 
 ## Backlog
 
-- **RTL.** Mirror the drag delta and the resize edges.
+The backlog is empty. Each item of version two is in the status above.

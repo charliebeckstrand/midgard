@@ -43,6 +43,8 @@ export type DashboardGesture = {
 	width: number
 	/** The column pitch in px at the start. It converts the pointer travel to grid units. */
 	pitch: number
+	/** The inline direction of the canvas at the start: `1` for ltr, `-1` for rtl. See `inlineSign`. */
+	inline: 1 | -1
 }
 
 /** The inputs of the store. */

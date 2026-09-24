@@ -33,20 +33,23 @@ export type DashboardTileDrag = {
 
 /**
  * The pointer offset of a dragged tile, clamped so that the tile stays on the
- * canvas and inside its travel range. It returns `null` at rest.
+ * canvas and inside its travel range. The range is in columns, so a right-to-left
+ * board flips the horizontal offset into columns and back. It returns `null` at
+ * rest.
  */
 function carriedOffset(
 	cell: DashboardCell | undefined,
 	transform: Offset | null,
 	travel: { maxX: number; maxY: number } | null,
 	pitch: number,
+	inline: 1 | -1,
 ): Offset | null {
 	if (cell === undefined || transform === null || travel === null || pitch <= 0) return null
 
 	const row = pitch / ROW_SUBDIVISION
 
 	return {
-		x: clamp(transform.x, -cell.x * pitch, (travel.maxX - cell.x) * pitch),
+		x: inline * clamp(inline * transform.x, -cell.x * pitch, (travel.maxX - cell.x) * pitch),
 		y: clamp(transform.y, -cell.y * row, (travel.maxY - cell.y) * row),
 	}
 }
@@ -71,9 +74,11 @@ export function useDashboardTileDrag(
 
 	const pitch = useDashboardStore((_, state) => (isDragging ? (state.gesture?.pitch ?? 0) : 0))
 
+	const inline = useDashboardStore((_, state) => (isDragging ? (state.gesture?.inline ?? 1) : 1))
+
 	const carried = useMemo(
-		() => (isDragging ? carriedOffset(cell, transform, travel, pitch) : null),
-		[isDragging, cell, transform, travel, pitch],
+		() => (isDragging ? carriedOffset(cell, transform, travel, pitch, inline) : null),
+		[isDragging, cell, transform, travel, pitch, inline],
 	)
 
 	// The pointer sensor rides the card and the keyboard sensor rides the grip, so

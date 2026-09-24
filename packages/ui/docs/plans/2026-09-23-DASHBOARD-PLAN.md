@@ -137,6 +137,10 @@ and on the corner. Each axis grows until it meets a neighbour or the edge, and i
 under `minWidth`. The splitters also take the arrow keys. (Built later: the grid-unit limits
 `minSize` and `maxSize` also bound each axis, and a new tile takes its `defaultSize` within them.)
 
+**Right to left** (built later). The CSS grid mirrors the saved layout, so the layout stays in
+columns. Each gesture reads the computed `direction` of the canvas, and a horizontal travel in px
+changes sign before it becomes columns. The splitters and the grip sit on logical insets.
+
 **Tidy** (built later). One explicit command on the `ref` of the board packs the tiles upward.
 Each tile keeps its column and its span, and it moves straight up until it meets a tile or the
 top edge. A static tile never moves. The pack commits once through the layout binding, so it is
