@@ -133,7 +133,8 @@ once for each edit session.
 
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
-under `minWidth`. The splitters also take the arrow keys.
+under `minWidth`. The splitters also take the arrow keys. (Built later: the grid-unit limits
+`minSize` and `maxSize` also bound each axis, and a new tile takes its `defaultSize` within them.)
 
 **Tidy** (built later). One explicit command on the `ref` of the board packs the tiles upward.
 Each tile keeps its column and its span, and it moves straight up until it meets a tile or the

@@ -5,10 +5,19 @@ import { useDashboardStoreContext } from './context'
 import {
 	type DashboardCell,
 	type DashboardTileDemands,
+	type DashboardTileSize,
 	resolveCell,
 } from './engine/dashboard-layout'
 import type { DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
+
+/** A span limit from its two axes, or `undefined` when neither axis is set. */
+function bound(
+	w: number | undefined,
+	h: number | undefined,
+): Partial<DashboardTileSize> | undefined {
+	return w === undefined && h === undefined ? undefined : { w, h }
+}
 
 /**
  * Registers the demands of the tile `id`, and returns its painted cell.
@@ -30,12 +39,20 @@ export function useDashboardTileCell(
 ): DashboardCell | undefined {
 	const store = useDashboardStoreContext()
 
-	const { ratio, minWidth, label, defaultSize } = demands
+	const { ratio, minWidth, label, defaultSize, minSize, maxSize } = demands
 
-	// The span registers as two numbers, so a fresh size object from the app is no change.
+	// Each span registers as numbers, so a fresh size object from the app is no change.
 	const defaultW = defaultSize?.w
 
 	const defaultH = defaultSize?.h
+
+	const minW = minSize?.w
+
+	const minH = minSize?.h
+
+	const maxW = maxSize?.w
+
+	const maxH = maxSize?.h
 
 	const latest = useRef(demands)
 
@@ -49,8 +66,10 @@ export function useDashboardTileCell(
 			minWidth,
 			label,
 			defaultSize: defaultW === undefined ? undefined : { w: defaultW, h: defaultH },
+			minSize: bound(minW, minH),
+			maxSize: bound(maxW, maxH),
 		})
-	}, [store, id, ratio, minWidth, label, defaultW, defaultH])
+	}, [store, id, ratio, minWidth, label, defaultW, defaultH, minW, minH, maxW, maxH])
 
 	const registered = useDashboardStore(
 		useCallback((view: DashboardView) => view.cells.get(id), [id]),

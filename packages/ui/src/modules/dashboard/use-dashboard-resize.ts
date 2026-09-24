@@ -54,13 +54,24 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 
 	const demand = demands.get(id)
 
-	const minW = demand?.minWidth === undefined ? 1 : minColumns(demand.minWidth, gap, pitch, columns)
+	const floor =
+		demand?.minWidth === undefined ? 1 : minColumns(demand.minWidth, gap, pitch, columns)
+
+	// The legible width in px and the grid-unit minimum both floor the span, so the larger wins.
+	const minW = Math.max(floor, demand?.minSize?.w ?? 1)
 
 	return {
 		origin,
 		pitch,
 		snapshot: [...view.cells.values()],
-		limits: { columns, minW, ratio: demand?.ratio },
+		limits: {
+			columns,
+			minW,
+			maxW: demand?.maxSize?.w,
+			minH: demand?.minSize?.h,
+			maxH: demand?.maxSize?.h,
+			ratio: demand?.ratio,
+		},
 	}
 }
 

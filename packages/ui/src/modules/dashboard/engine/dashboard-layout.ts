@@ -54,7 +54,7 @@ export type DashboardLayoutItem = {
 
 /**
  * The span of a tile in grid units, for a tile that the saved layout does not
- * place yet.
+ * place yet. With each axis optional, it is also a span limit.
  */
 export type DashboardTileSize = {
 	/** The column span. */
@@ -76,6 +76,10 @@ export type DashboardTileDemands = {
 	label?: string
 	/** The span of the tile when the saved layout holds no entry for it. */
 	defaultSize?: DashboardTileSize
+	/** The smallest span that a resize or a new placement gives the tile. */
+	minSize?: Partial<DashboardTileSize>
+	/** The largest span that a resize or a new placement gives the tile. */
+	maxSize?: Partial<DashboardTileSize>
 }
 
 /** One resolved cell in grid units. The height is always concrete. */
@@ -99,6 +103,16 @@ export type DashboardCell = {
  */
 export function deriveHeight(w: number, ratio: number): number {
 	return Math.max(1, Math.round((ROW_SUBDIVISION * w) / ratio))
+}
+
+/**
+ * `value` within `[min, max]`. An absent bound does not apply. When the minimum
+ * is larger than the maximum, the minimum wins, as CSS `min-width` does.
+ */
+export function clampSpan(value: number, min: number | undefined, max: number | undefined): number {
+	const capped = max === undefined ? value : Math.min(value, max)
+
+	return min === undefined ? capped : Math.max(capped, min)
 }
 
 /**
@@ -294,8 +308,8 @@ export function shiftCells(
 /**
  * Resolves a saved layout against the mounted tiles. An entry keeps its place.
  * A mounted tile with no entry takes a new row under the lowest tile, in mount
- * order, at its `defaultSize`. An entry with no mounted tile is ignored, and its
- * space stays open.
+ * order, at its `defaultSize` within its `minSize` and `maxSize`. An entry with
+ * no mounted tile is ignored, and its space stays open.
  */
 export function resolveLayout(
 	items: readonly DashboardLayoutItem[],
@@ -319,9 +333,15 @@ export function resolveLayout(
 	for (const [id, demand] of demands) {
 		if (placed.has(id)) continue
 
-		const size = demand.defaultSize
+		const { defaultSize: size, minSize: min, maxSize: max } = demand
 
-		const item = { id, x: 0, y: bottom(cells), w: size?.w ?? DEFAULT_CELL_WIDTH, h: size?.h }
+		const item = {
+			id,
+			x: 0,
+			y: bottom(cells),
+			w: clampSpan(size?.w ?? DEFAULT_CELL_WIDTH, min?.w, max?.w),
+			h: clampSpan(size?.h ?? DEFAULT_CELL_HEIGHT, min?.h, max?.h),
+		}
 
 		cells.push(resolveCell(item, demand, columns))
 	}

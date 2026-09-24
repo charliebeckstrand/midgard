@@ -114,8 +114,21 @@ const widgets: Readonly<Record<string, DashboardWidget>> = {
 		defaultSize: { w: 12 },
 	},
 	trend: { render: () => <RevenueTrend />, defaultSize: { w: 12, h: 27 } },
-	stat: { render: () => <Units />, minWidth: 160, defaultSize: { w: 6, h: 16 } },
-	orders: { render: () => <Orders />, minWidth: 480, defaultSize: { w: 24, h: 44 } },
+	// A stat stays small, and a grid stays big enough to show rows: each kind
+	// bounds a resize in grid units.
+	stat: {
+		render: () => <Units />,
+		minWidth: 160,
+		defaultSize: { w: 6, h: 16 },
+		minSize: { h: 12 },
+		maxSize: { w: 12, h: 24 },
+	},
+	orders: {
+		render: () => <Orders />,
+		minWidth: 480,
+		defaultSize: { w: 24, h: 44 },
+		minSize: { w: 12, h: 24 },
+	},
 }
 
 /** What the "Add tile" menu offers: a kind, and the title and options of a new tile. */

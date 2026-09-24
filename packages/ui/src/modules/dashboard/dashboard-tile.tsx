@@ -70,6 +70,25 @@ export type DashboardTileProps = {
 	 */
 	defaultSize?: DashboardTileSize
 	/**
+	 * The smallest span of the tile in grid units. A resize never goes under it,
+	 * and a new tile takes at least this span. Each axis is optional. A tile with
+	 * a fixed `ratio` ignores `h`, because its width sets its height.
+	 *
+	 * @remarks
+	 * The saved layout renders as saved, so an entry under the limit keeps its
+	 * span until a resize. The width floor is the larger of `minSize.w` and the
+	 * span that `minWidth` needs. The re-pack of a narrow container ignores the
+	 * limits, because it fills each shelf.
+	 */
+	minSize?: Partial<DashboardTileSize>
+	/**
+	 * The largest span of the tile in grid units. A resize never goes over it, and
+	 * a new tile takes at most this span. Each axis is optional. A tile with a
+	 * fixed `ratio` ignores `h`. When a minimum is larger than its maximum, the
+	 * minimum wins.
+	 */
+	maxSize?: Partial<DashboardTileSize>
+	/**
 	 * When the content mounts, relative to the viewport. `lazy` holds the content
 	 * back until the tile comes near the viewport, and then keeps it. `active` also
 	 * unmounts it when the tile leaves. A held tile shows its `fallback`, and its
@@ -138,6 +157,8 @@ export function DashboardTile(props: DashboardTileProps) {
 		ratio,
 		minWidth = DEFAULT_MIN_WIDTH,
 		defaultSize,
+		minSize,
+		maxSize,
 		mount = 'always',
 		fallback,
 		onRemove,
@@ -149,7 +170,7 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const label = title ?? id
 
-	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize })
+	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize, minSize, maxSize })
 
 	const gap = useDashboardStore((_, state) => state.gap)
 

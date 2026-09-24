@@ -2,6 +2,7 @@
 import { describe, expect, it } from 'vitest'
 import {
 	bottom,
+	clampSpan,
 	collides,
 	type DashboardCell,
 	deriveHeight,
@@ -225,5 +226,49 @@ describe('sortByOrder', () => {
 		const items = [{ id: 'a' }, { id: 'b' }, { id: 'new' }]
 
 		expect(sortByOrder(items, ['a', 'b'], id)).toBe(items)
+	})
+})
+
+describe('clampSpan', () => {
+	it('clamps into the bounds, and skips an absent bound', () => {
+		expect(clampSpan(20, 4, 12)).toBe(12)
+
+		expect(clampSpan(2, 4, 12)).toBe(4)
+
+		expect(clampSpan(20, undefined, undefined)).toBe(20)
+
+		expect(clampSpan(2, undefined, 12)).toBe(2)
+	})
+
+	it('lets the minimum win over a smaller maximum', () => {
+		expect(clampSpan(6, 10, 4)).toBe(10)
+	})
+})
+
+describe('resolveLayout with grid-unit limits', () => {
+	it('places a new tile at its default size within its limits', () => {
+		const demands = new Map([
+			['wide', { defaultSize: { w: 20, h: 40 }, maxSize: { w: 12, h: 30 } }],
+			['narrow', { minSize: { w: 10, h: 24 } }],
+		])
+
+		expect(resolveLayout([], demands, 24)).toEqual([
+			cell('wide', 0, 0, 12, 30),
+			cell('narrow', 0, 30, 10, 24),
+		])
+	})
+
+	it('keeps a saved entry as saved, outside the limits', () => {
+		const demands = new Map([['a', { maxSize: { w: 6 } }]])
+
+		expect(resolveLayout([{ id: 'a', x: 0, y: 0, w: 12, h: 10 }], demands, 24)).toEqual([
+			cell('a', 0, 0, 12, 10),
+		])
+	})
+
+	it('gives a new tile with a fixed ratio the height of its clamped width', () => {
+		const demands = new Map([['a', { ratio: 16 / 9, maxSize: { w: 6, h: 4 } }]])
+
+		expect(resolveLayout([], demands, 24)).toEqual([cell('a', 0, 0, 6, 14)])
 	})
 })

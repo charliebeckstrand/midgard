@@ -76,3 +76,65 @@ describe('edges', () => {
 		expect(drivesHeight('e', undefined)).toBe(false)
 	})
 })
+
+describe('resizePreview with grid-unit limits', () => {
+	const board = [cell('a', 0, 0, 8, 10), cell('b', 20, 0, 4, 10)]
+
+	it('stops a width at maxW, before the neighbour', () => {
+		const next = resizePreview(board, 'a', 20, 10, { columns: 24, minW: 1, maxW: 10 })
+
+		expect(find(next, 'a')).toMatchObject({ w: 10 })
+	})
+
+	it('holds a width at minW, the larger of the two floors', () => {
+		expect(resizePreview(board, 'a', 2, 10, { columns: 24, minW: 6 })).toMatchObject([
+			{ id: 'a', w: 6 },
+			{ id: 'b' },
+		])
+	})
+
+	it('clamps the height of a free-form tile into minH and maxH', () => {
+		const limits = { columns: 24, minW: 1, minH: 6, maxH: 14 }
+
+		expect(find(resizePreview(board, 'a', 8, 40, limits), 'a')).toMatchObject({ h: 14 })
+
+		expect(find(resizePreview(board, 'a', 8, 2, limits), 'a')).toMatchObject({ h: 6 })
+	})
+
+	it('ignores the height limits of a tile with a fixed ratio', () => {
+		const next = resizePreview([cell('a', 0, 0, 8, 18)], 'a', 12, 0, {
+			columns: 24,
+			minW: 1,
+			minH: 30,
+			maxH: 20,
+			ratio: 16 / 9,
+		})
+
+		expect(find(next, 'a')).toMatchObject({ w: 12, h: 27 })
+	})
+
+	it('lets a minimum win over a smaller maximum', () => {
+		const next = resizePreview(board, 'a', 20, 10, { columns: 24, minW: 9, maxW: 4 })
+
+		expect(find(next, 'a')).toMatchObject({ w: 9 })
+	})
+
+	it('snaps a saved span over the maximum back to it on the first step', () => {
+		const next = resizePreview([cell('a', 0, 0, 16, 10)], 'a', 17, 10, {
+			columns: 24,
+			minW: 1,
+			maxW: 12,
+		})
+
+		expect(find(next, 'a')).toMatchObject({ w: 12 })
+	})
+
+	it('keeps the right edge over a larger minimum', () => {
+		const next = resizePreview([cell('a', 20, 0, 2, 10)], 'a', 3, 10, {
+			columns: 24,
+			minW: 8,
+		})
+
+		expect(find(next, 'a')).toMatchObject({ x: 20, w: 4 })
+	})
+})
