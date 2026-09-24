@@ -64,6 +64,12 @@ const gridColumns: GridColumn<GridRow>[] = [
 	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
 ]
 
+// No field and no slot, so this column can never edit.
+const cellScopedColumns: GridColumn<GridRow>[] = [
+	...gridColumns,
+	{ id: 'id', title: 'ID', cell: (row) => String(row.id) },
+]
+
 /** Complex, interactive data surfaces: trees, grids, boards, and query UIs. */
 export const dataComplexCases: readonly Case[] = [
 	{
@@ -121,6 +127,25 @@ export const dataComplexCases: readonly Case[] = [
 				rows={gridRows}
 				getKey={(row) => row.id}
 				editable={{ rows: new Set([1]), onCommit: noop }}
+			/>
+		),
+	},
+	{
+		// Cell-scoped editable grid with a session open: one editor in a narrowed
+		// row, beside a display-only column that reads as read-only.
+		name: 'editable grid, cell scope',
+		element: (
+			<Grid
+				key="egc"
+				columns={cellScopedColumns}
+				rows={gridRows}
+				getKey={(row) => row.id}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					defaultCell: { rowKey: 1, columnId: 'name' },
+					onCommit: noop,
+				}}
 			/>
 		),
 	},

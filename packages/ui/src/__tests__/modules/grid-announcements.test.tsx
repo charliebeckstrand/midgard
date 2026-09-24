@@ -195,4 +195,25 @@ describe('Grid announcement builders', () => {
 
 		expect(describeRowReorder('Bob', 3, 8)).toBe('Moved Bob to position 3 of 8')
 	})
+
+	it('describes a commit by its column and its row', async () => {
+		const { describeCommit } = await import('../../modules/grid/engine/grid-announcements')
+
+		expect(describeCommit(['Name'], 'Alice')).toBe('Name updated for Alice')
+
+		expect(describeCommit(['Name', 'Age'], 'Alice')).toBe('2 cells updated for Alice')
+
+		// Cells across rows name no row.
+		expect(describeCommit(['Name', 'Name', 'Age'])).toBe('3 cells updated')
+	})
+
+	it('describes a settled batch, accepted, refused, or both', async () => {
+		const { describeSettle } = await import('../../modules/grid/engine/grid-announcements')
+
+		expect(describeSettle(['Name'], [], 'row 1')).toBe('Name updated for row 1')
+
+		expect(describeSettle([], ['Name', 'Age'], 'row 1')).toBe('2 cells not saved for row 1')
+
+		expect(describeSettle(['Age'], ['Name'], 'row 1')).toBe('Age updated, Name not saved for row 1')
+	})
 })

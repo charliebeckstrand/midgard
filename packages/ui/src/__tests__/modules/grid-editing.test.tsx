@@ -13,6 +13,7 @@ import {
 import {
 	act,
 	allBySlot,
+	attach,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -95,7 +96,10 @@ describe('Grid per-row editing', () => {
 		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
-	function renderGrid(cols: GridColumn<SessionRow>[] = columns) {
+	function renderGrid(
+		cols: GridColumn<SessionRow>[] = columns,
+		rowLabel?: (row: SessionRow) => string,
+	) {
 		const onCommit = vi.fn()
 
 		function Harness() {
@@ -113,6 +117,7 @@ describe('Grid per-row editing', () => {
 						columns={cols}
 						rows={sessionRows}
 						getKey={(row) => row.id}
+						rowLabel={rowLabel}
 						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
 					/>
 				</>
@@ -327,7 +332,68 @@ describe('Grid per-row editing', () => {
 		// so the grid's debounced row-count status doesn't fire mid-test.
 		await Promise.resolve()
 
-		expect(liveRegion()).toHaveTextContent('1 cell updated')
+		expect(liveRegion()).toHaveTextContent('Name updated for row 1')
+	})
+
+	it('names the row by its label, and counts the cells of a row save', async () => {
+		const { container, editRow1, save } = renderGrid(columns, (row) => row.name)
+
+		editRow1()
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-number-input'), {
+			target: { value: '9' },
+		})
+
+		save()
+
+		await Promise.resolve()
+
+		// The label reads the row that the save commits into, not the draft.
+		expect(liveRegion()).toHaveTextContent(/^2 cells updated for Alice$/)
+	})
+
+	it('names no row when one save spans rows', async () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1, 2]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						rowLabel={(row) => row.name}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const [alice, bob] = allBySlot(view.container, 'grid-edit-input')
+
+		fireEvent.change(present(alice, 'the first name editor'), { target: { value: 'Alicia' } })
+
+		fireEvent.change(present(bob, 'the second name editor'), { target: { value: 'Bobby' } })
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		await Promise.resolve()
+
+		// One batch for each row, and one announcement for the sweep.
+		expect(onCommit).toHaveBeenCalledTimes(2)
+
+		expect(liveRegion()).toHaveTextContent(/^2 cells updated$/)
 	})
 
 	/**
@@ -471,7 +537,7 @@ describe('Grid per-row editing', () => {
 
 		// The sink went with the binding, so nothing committed. Announcing a save
 		// here would tell assistive tech something that did not happen.
-		expect(liveRegion()?.textContent ?? '').not.toContain('cell updated')
+		expect(liveRegion()?.textContent ?? '').not.toContain('updated')
 	})
 
 	it('lets a row action discard a row without committing it', () => {
@@ -1019,7 +1085,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// one row below rather than handing focus back to the grid.
 		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name', 1).id)
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('commits the editors a narrowing closes together, in one batch', () => {
@@ -1409,6 +1475,69 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// Inert rather than wrong, so it fails silently — which is what the
 		// development warning is for.
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
+	})
+
+	it('marks each cell that cannot enter edit mode as read-only', () => {
+		const { cell } = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [
+				...sessionColumns,
+				// No field and no slot, so no editor can open here.
+				{ id: 'label', title: 'Label', cell: (row) => row.name.toUpperCase() },
+				{ id: 'id', title: 'ID', field: 'id', cell: (row) => String(row.id), readOnly: true },
+			],
+		})
+
+		// A cell-scoped session mounts one editor, so the attribute is how a
+		// screen reader user finds the cells that can edit (WCAG 4.1.2).
+		expect(cell('label')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(cell('id')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(cell('name')).not.toHaveAttribute('aria-readonly')
+	})
+
+	it('keeps the cursor ring on the cell that the session holds', () => {
+		const { container, cell, getByRole } = renderCellGrid()
+
+		// A browser sends the press before the double-click, and the press seats
+		// the cursor.
+		fireEvent.mouseDown(cell('name'))
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
+
+		expect(input).toHaveFocus()
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		// Under the default `commitOn`, the editor and its draft stay when focus
+		// leaves the grid, and the cursor goes.
+		const outside = attach(document.createElement('button'), 'prepend')
+
+		act(() => outside.focus())
+
+		expect(input).toBeInTheDocument()
+
+		// Tab back in seats the cursor on the first cell, which is the held one.
+		// Its ring is the only mark of the cursor in the grid (WCAG 2.4.7).
+		fireEvent.focus(getByRole('grid'), { relatedTarget: outside })
+
+		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name').id)
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		// The ring moves with the session, and the cell it leaves keeps none.
+		act(() => input.focus())
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+
+		expect(cell('count')).toHaveAttribute('data-active')
+
+		expect(cell('name')).not.toHaveAttribute('data-active')
 	})
 })
 
@@ -3267,7 +3396,7 @@ describe('Grid session-owned drafts', () => {
 
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 
 		expect(warn).not.toHaveBeenCalled()
 
@@ -3732,7 +3861,7 @@ describe('Grid async commit', () => {
 
 		expect(bySlot(container, 'grid-edit-pending')).toBeNull()
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('shows a pending cell busy, with the committed value, and lets no entry open it', () => {
@@ -3791,7 +3920,7 @@ describe('Grid async commit', () => {
 
 		expect(view.cell('name')).toHaveTextContent('Alicia')
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('accepts a batch that resolves with an empty list', async () => {
@@ -3807,7 +3936,7 @@ describe('Grid async commit', () => {
 
 		expect(editorIn(view, view.cell('name'))).toBeUndefined()
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('refuses only the cells a resolve names, and restores their drafts with the error', async () => {
@@ -3866,7 +3995,7 @@ describe('Grid async commit', () => {
 		// A server refusal is not a `validate` refusal.
 		expect(view.onReject).not.toHaveBeenCalled()
 
-		await expectAnnouncement('1 cell updated, 1 cell not saved')
+		await expectAnnouncement('Count updated, Name not saved for row 1')
 	})
 
 	it('refuses the whole batch on a rejection, with the error message', async () => {
@@ -3893,7 +4022,7 @@ describe('Grid async commit', () => {
 			'Server down',
 		])
 
-		await expectAnnouncement('2 cells not saved')
+		await expectAnnouncement('2 cells not saved for row 1')
 	})
 
 	it.each([
@@ -4290,13 +4419,13 @@ describe('Grid async commit', () => {
 
 		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Count updated for row 1')
 
 		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
 
 		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
 
-		await expectAnnouncement('1 cell not saved')
+		await expectAnnouncement('Name not saved for row 1')
 	})
 
 	it('keeps a later cell move working while an earlier cell is pending', async () => {
