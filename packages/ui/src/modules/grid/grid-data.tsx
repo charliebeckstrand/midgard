@@ -1359,6 +1359,7 @@ export function GridData<T>({
 									scrollIntoViewRef: scrollRowIntoViewRef,
 									infiniteScroll,
 									fitRenderedRows,
+									stickyHeader,
 								}
 							: null
 					}

@@ -2,7 +2,7 @@ import { useCallback, useRef, useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { act, renderUI, waitFor } from '../helpers'
+import { act, frames, renderUI, waitFor } from '../helpers'
 
 /**
  * Virtualization windowing (real browser). With a real layout engine the
@@ -120,7 +120,15 @@ const MIXED_ESTIMATE = 45
 type MeasuredListHandle = { prepend: (ids: number[]) => void }
 
 /** Minimal measured list over `useVirtualWindow`: mixed-height rows keyed by their ids. */
-function MeasuredList({ count, handle }: { count: number; handle?: MeasuredListHandle }) {
+function MeasuredList({
+	count,
+	handle,
+	estimate = MIXED_ESTIMATE,
+}: {
+	count: number
+	handle?: MeasuredListHandle
+	estimate?: number
+}) {
 	const scrollRef = useRef<HTMLDivElement>(null)
 
 	const [ids, setIds] = useState(() => Array.from({ length: count }, (_, i) => i))
@@ -132,7 +140,7 @@ function MeasuredList({ count, handle }: { count: number; handle?: MeasuredListH
 	const { virtualItems, topSpacer, bottomSpacer, measureRef } = useVirtualWindow({
 		count: ids.length,
 		getScrollElement: () => scrollRef.current,
-		estimateSize: MIXED_ESTIMATE,
+		estimateSize: estimate,
 		overscan: 2,
 		getItemKey,
 	})
@@ -264,6 +272,54 @@ describe('useVirtualWindow measured windowing', () => {
 
 			expect(first?.start).toBe(MIXED_ESTIMATE + realOffset(id))
 		})
+	})
+
+	it('holds a row in view still while rows above it measure taller on a scroll up', async () => {
+		// Every row measures 30, 60 or 90 pixels against an estimate of 30.
+		const { container } = renderUI(<MeasuredList count={500} estimate={30} />)
+
+		await waitFor(() => expect(placements(container).length).toBeGreaterThan(0))
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="measured-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		// A jump skips the rows above the new window, so they keep the estimate.
+		scroller.scrollTop = 6000
+
+		await waitFor(() => expect(placements(container)[0]?.text).not.toBe('Row 0'))
+
+		await frames()
+
+		let steps = 0
+
+		while (scroller.scrollTop > 400 && steps < 40) {
+			const top = scroller.getBoundingClientRect().top
+
+			const anchor = Array.from(
+				container.querySelectorAll<HTMLElement>('[data-slot="measured-row"]'),
+			).find((row) => row.getBoundingClientRect().top - top > 60)
+
+			if (!anchor) throw new Error('no row in view')
+
+			const before = anchor.getBoundingClientRect().top
+
+			scroller.scrollTop -= 100
+
+			await frames()
+
+			await frames()
+
+			// The anchor moves down by the 100 pixels of the scroll and no more.
+			// A row above it that measured taller must not push it further.
+			expect(anchor.isConnected).toBe(true)
+
+			expect(Math.abs(anchor.getBoundingClientRect().top - before - 100)).toBeLessThanOrEqual(1)
+
+			steps++
+		}
+
+		expect(steps).toBeGreaterThan(10)
 	})
 })
 

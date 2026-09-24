@@ -19,7 +19,7 @@ import { GridAddRowButton, GridCellEditor, GridPendingCell } from './grid-editin
 import { type GridNewRowSession, useGridNewRowSession } from './grid-editing-context'
 import type { GridColumn } from './types'
 import { NEW_ROW_INDEX } from './use-grid-navigation'
-import { GridNavCell } from './use-grid-navigation-columns'
+import { GridNavCell, stickyHeadInset } from './use-grid-navigation-columns'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** The accessible name of the new-row slot. @internal */
@@ -50,8 +50,8 @@ function pendingText(value: unknown): string {
 
 /**
  * Sets the sticky offset of a new-row slot at the top of the body. The slot
- * sticks below a sticky header, so the offset is the height of the header
- * rows. With no sticky header it is zero. A resize of the header measures
+ * sticks below a sticky header, so the offset is the height that the header
+ * covers (see {@link stickyHeadInset}). With no sticky header it is zero. A resize of the header measures
  * again. @internal
  */
 function useStickyTop(
@@ -61,18 +61,14 @@ function useStickyTop(
 	useLayoutEffect(() => {
 		const section = body.current
 
-		const head = section?.closest('table')?.tHead
+		const table = section?.closest('table')
 
-		if (!section || !head || position !== 'top') return
+		const head = table?.tHead
+
+		if (!section || !table || !head || position !== 'top') return
 
 		const measure = () => {
-			const cell = head.querySelector('th')
-
-			const style = cell ? getComputedStyle(cell) : null
-
-			const sticky = style?.position === 'sticky' && style.top !== 'auto'
-
-			section.style.setProperty('--grid-new-row-top', `${sticky ? head.offsetHeight : 0}px`)
+			section.style.setProperty('--grid-new-row-top', `${stickyHeadInset(table)}px`)
 		}
 
 		measure()

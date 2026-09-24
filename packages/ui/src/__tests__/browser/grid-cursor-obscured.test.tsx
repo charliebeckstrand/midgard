@@ -62,6 +62,49 @@ describe('grid cursor focus not obscured (real browser)', () => {
 			header.getBoundingClientRect().height,
 			0,
 		)
+
+		// The margin must also take effect. Step the cursor past the bottom edge,
+		// then back past the top edge. Each active cell stays in full view, below
+		// the sticky header and above the bottom edge of the scroller.
+		const scroll = present(
+			grid.closest<HTMLElement>('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		const expectClear = () => {
+			const cell = present(grid.querySelector('[data-active]'), '[data-active]')
+
+			const box = cell.getBoundingClientRect()
+
+			expect(box.top).toBeGreaterThanOrEqual(header.getBoundingClientRect().bottom - 1)
+
+			expect(box.bottom).toBeLessThanOrEqual(
+				scroll.getBoundingClientRect().top + scroll.clientHeight + 1,
+			)
+		}
+
+		/** Presses each key in turn, and checks the active cell after each one. */
+		const press = async (keys: string[]) => {
+			for (const key of keys) {
+				fireEvent.keyDown(grid, { key })
+
+				await waitFor(expectClear)
+			}
+		}
+
+		await press(Array(8).fill('ArrowDown'))
+
+		expect(scroll.scrollTop).toBeGreaterThan(0)
+
+		// A step up can land on a cell that is inside the scroller but under the
+		// sticky header. Chromium's nearest scroll moves nothing for such a cell.
+		await press(Array(8).fill('ArrowUp'))
+
+		// The same holds on the column that does not stick. The steps above ran on
+		// the pinned column, which sticks on two axes.
+		await press(['ArrowRight', ...Array(4).fill('ArrowDown')])
+
+		await press(Array(8).fill('ArrowUp'))
 	})
 
 	it('gives a cell behind a pinned column a matching side scroll-margin', async () => {

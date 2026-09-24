@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
-import { Grid, type GridColumn, type GridEditableConfig } from '../../modules/grid'
+import {
+	Grid,
+	type GridColumn,
+	type GridColumnGroup,
+	type GridEditableConfig,
+} from '../../modules/grid'
 import { fireEvent, present, renderUI, screen, waitFor } from '../helpers'
 
 /**
@@ -24,19 +29,26 @@ describe('grid new row (real browser)', () => {
 
 	function renderGrid(
 		editable: Partial<GridEditableConfig>,
-		{ sticky = false, virtualize = true }: { sticky?: boolean; virtualize?: boolean } = {},
+		{
+			sticky = false,
+			virtualize = true,
+			columnGroups,
+		}: { sticky?: boolean; virtualize?: boolean; columnGroups?: GridColumnGroup[] } = {},
 	) {
 		const onRowAdd = vi.fn()
 
 		const view = renderUI(
 			<div style={{ width: '360px' }}>
 				<Grid
-					virtualize={virtualize ? { estimateSize: 36 } : undefined}
+					// A row measures 40 pixels at the default density, and the uniform
+					// window needs the real height.
+					virtualize={virtualize ? { estimateSize: 40 } : undefined}
 					maxHeight="220px"
 					header={sticky ? { position: 'sticky' } : undefined}
 					columns={columns}
 					rows={rows}
 					getKey={(row) => row.id}
+					columnGroups={columnGroups}
 					editable={{ session: 'managed', onRowAdd, onCommit: vi.fn(), ...editable }}
 				/>
 				<button type="button">after</button>
@@ -110,6 +122,30 @@ describe('grid new row (real browser)', () => {
 		expect(head.getBoundingClientRect().top).toBeCloseTo(viewport(scroll).top, 0)
 	})
 
+	it('pins the top row to the bottom of a two-row sticky header', async () => {
+		const { scroll, slot, scrollTo, container } = renderGrid(
+			{ newRow: 'top' },
+			{ sticky: true, columnGroups: [{ id: 'all', title: 'All', columns: ['name', 'count'] }] },
+		)
+
+		await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+
+		scrollTo(1_500)
+
+		// Both header rows stick at the top edge, so the head covers down to the
+		// bottom of its lowest stuck cell. The slot sticks there, with no gap.
+		await waitFor(() => {
+			const cover = Math.max(
+				...Array.from(
+					container.querySelectorAll('thead th'),
+					(th) => th.getBoundingClientRect().bottom,
+				),
+			)
+
+			expect(slot().getBoundingClientRect().top).toBeCloseTo(cover, 0)
+		})
+	})
+
 	/** The cell that the cursor names through `aria-activedescendant`. */
 	const activeCell = () => {
 		const id = screen.getByRole('grid').getAttribute('aria-activedescendant')
@@ -153,6 +189,51 @@ describe('grid new row (real browser)', () => {
 			),
 		)
 	})
+
+	for (const virtualize of [false, true]) {
+		const label = virtualize ? 'a virtualized body' : 'a body that is not virtualized'
+
+		it(`keeps each cursor step clear of a bottom row, down to the last rows, in ${label}`, async () => {
+			const { slot, scroll } = renderGrid({ newRow: 'bottom' }, { sticky: true, virtualize })
+
+			await waitFor(() => expect(scroll.querySelector('tr[data-row-index="0"]')).not.toBeNull())
+
+			screen.getByRole('grid').focus()
+
+			const expectClear = () => {
+				// A cell of the bottom row itself sits on the chrome, not under it.
+				if (activeCell().closest('[data-slot="grid-new-row"]')) return
+
+				const cell = activeCell().getBoundingClientRect()
+
+				const head = present(scroll.querySelector('thead'), 'thead').getBoundingClientRect()
+
+				expect(cell.top).toBeGreaterThanOrEqual(head.bottom - 1)
+
+				expect(cell.bottom).toBeLessThanOrEqual(slot().getBoundingClientRect().top + 1)
+			}
+
+			// Each step lands on a row inside the scroller, under the bottom row.
+			for (let step = 0; step < 8; step++) {
+				await userEvent.keyboard('{ArrowDown}')
+
+				await waitFor(expectClear)
+			}
+
+			// The last data rows sit directly above the bottom row at the end. The
+			// jump lands in the last data row or in the bottom row, and the steps
+			// down from three rows above it pass the last data rows.
+			await userEvent.keyboard('{Control>}{End}{/Control}')
+
+			await userEvent.keyboard('{ArrowUp}{ArrowUp}{ArrowUp}')
+
+			for (let step = 0; step < 3; step++) {
+				await userEvent.keyboard('{ArrowDown}')
+
+				await waitFor(expectClear)
+			}
+		})
+	}
 
 	it('moves real Tab focus across the row, to the Add control, and out', async () => {
 		const { onRowAdd } = renderGrid({ newRow: 'bottom' })

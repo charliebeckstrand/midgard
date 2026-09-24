@@ -1,6 +1,11 @@
 'use client'
 
-import { useVirtualizer, type VirtualItem, type VirtualizerOptions } from '@tanstack/react-virtual'
+import {
+	useVirtualizer,
+	type VirtualItem,
+	type Virtualizer,
+	type VirtualizerOptions,
+} from '@tanstack/react-virtual'
 import { useEffect, useMemo, useReducer } from 'react'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
@@ -18,6 +23,30 @@ export type VirtualWindowOptions = {
 	estimateSize: number | ((index: number) => number)
 	/** Rows to render outside the viewport on each side. */
 	overscan: number
+	/**
+	 * The distance in pixels from the top of the scroll content to the first
+	 * item. Content above the list, such as a table head, sets it. Without it,
+	 * `scrollToIndex` misplaces each row by that distance.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollMargin?: number
+	/**
+	 * The height in pixels of sticky content over the top edge of the scroller,
+	 * such as a sticky table head. `scrollToIndex` aligns a row below it, so the
+	 * row does not go under it.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollPaddingStart?: number
+	/**
+	 * The height in pixels of sticky content over the bottom edge of the
+	 * scroller, such as a sticky footer row. `scrollToIndex` aligns a row above
+	 * it, so the row does not go under it.
+	 *
+	 * @defaultValue 0
+	 */
+	scrollPaddingEnd?: number
 }
 
 /**
@@ -54,6 +83,21 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
 	 */
 	followOnAppend?: VirtualizerOptions<HTMLElement, Element>['followOnAppend']
 }
+
+/**
+ * Tells the virtualizer to adjust the scroll offset when a row above the
+ * viewport changes size, in each scroll direction. The library default makes
+ * no adjustment while the reader scrolls up, so the content in view drifts by
+ * the height difference. The measured path sets this, and the uniform path
+ * keeps the default.
+ *
+ * @internal
+ */
+const adjustAboveViewport = (
+	item: VirtualItem,
+	_delta: number,
+	instance: Virtualizer<HTMLElement, Element>,
+): boolean => item.start < (instance.scrollOffset ?? 0)
 
 type VirtualWindow = {
 	/**
@@ -111,10 +155,26 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * it. A height cached against an index goes stale when rows are inserted
  * above it.
  *
+ * On the measured path a row above the viewport can measure while the reader
+ * scrolls up. The hook then moves the scroll offset by the height difference,
+ * so the rows in view do not move. The library default skips this adjustment
+ * during a scroll up, and the content drifts. The uniform path keeps the
+ * default, because its rows do not measure.
+ *
  * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
  * row holds the pin through the virtualizer. It does not write `scrollTop` from
  * outside, because the total height moves as rows measure.
+ *
+ * Content above the first item, such as a table head, moves every row down
+ * by its height. The caller passes that height as `scrollMargin`, so
+ * `scrollToIndex` aligns the real row. Sticky content over the top edge, such
+ * as a sticky head, covers a row that aligns to the start. The caller passes
+ * its height as `scrollPaddingStart`, and each alignment lands the row below
+ * it. Sticky content over the bottom edge passes its height as
+ * `scrollPaddingEnd`, and a row lands above it. The spacers exclude the
+ * margin, so the caller renders them as before. Each defaults to zero, and the
+ * call is then the same as before.
  *
  * The window is empty until the virtualizer measures a scroller of some
  * height. While the window is empty, `bottomSpacer` holds the height of every
@@ -140,6 +200,9 @@ export function useVirtualWindow({
 	getScrollElement,
 	estimateSize,
 	overscan,
+	scrollMargin,
+	scrollPaddingStart,
+	scrollPaddingEnd,
 	getItemKey,
 	anchorTo,
 	followOnAppend,
@@ -154,16 +217,25 @@ export function useVirtualWindow({
 
 	// An undefined `getItemKey` leaves the library's index key in place: the
 	// virtualizer drops undefined options rather than writing them over its
-	// defaults. The same rule keeps the start anchor and no follow on the uniform path.
+	// defaults. The same rule keeps the start anchor and no follow on the uniform
+	// path, and a zero scroll margin and paddings where the caller gives none.
 	const virtualizer = useVirtualizer({
 		count,
 		getScrollElement,
 		estimateSize: getSize,
 		overscan,
+		scrollMargin,
+		scrollPaddingStart,
+		scrollPaddingEnd,
 		getItemKey,
 		anchorTo,
 		followOnAppend,
 	})
+
+	// A row above the viewport that measures while the reader scrolls up must not
+	// move the rows in view. The library default skips that adjustment, so the
+	// measured path replaces it. The uniform path writes nothing here.
+	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
 
 	// Re-sync guard: the virtualizer captures its scroll element in a layout
 	// effect, which runs *before* an ancestor's ref attaches when that ancestor
@@ -184,14 +256,18 @@ export function useVirtualWindow({
 	// spacers read it on each render, so they follow the rows as they measure.
 	const totalSize = virtualizer.getTotalSize()
 
-	const topSpacer = virtualItems[0]?.start ?? 0
+	// An item's start and end include the scroll margin, and the total size does
+	// not. The spacers sit below the content above the list, so they subtract it.
+	const margin = scrollMargin ?? 0
+
+	const topSpacer = (virtualItems[0]?.start ?? margin) - margin
 
 	const lastItem = virtualItems.at(-1)
 
 	// An empty window has no row to measure from, so the bottom spacer holds the
 	// full height. A scroller that only `maxHeight` bounds then grows to its cap.
 	// Without this it measures zero, and the window stays empty for good.
-	const bottomSpacer = lastItem ? totalSize - lastItem.end : totalSize
+	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
 
 	return {
 		virtualItems,
