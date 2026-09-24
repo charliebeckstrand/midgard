@@ -146,6 +146,9 @@ export type DashboardTileProps = {
  * through CSS. The header then becomes a veil over the top of the content, so the
  * sparkline takes the full height. At rest the veil shows on hover or focus, and
  * in edit mode it stays in view for the grip.
+ *
+ * At rest, a truncated title shows its full text in a tooltip on hover. The veil
+ * is narrow, so the title of a spark tile truncates first.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -267,6 +270,7 @@ export function DashboardTile(props: DashboardTileProps) {
 						actions={actions}
 						clear={<DashboardTileClear id={id} label={label} />}
 						handle={handle}
+						editing={editable}
 						controls={
 							<DashboardTileControls
 								id={id}
