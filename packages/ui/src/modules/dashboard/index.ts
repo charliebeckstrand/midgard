@@ -15,6 +15,12 @@ export {
 	nextSpecTileId,
 	removeSpecTile,
 } from './engine/dashboard-spec'
+export {
+	type DashboardSpecIssue,
+	type DashboardSpecIssueKind,
+	type DashboardSpecParse,
+	parseDashboardSpec,
+} from './engine/dashboard-spec-parse'
 export type {
 	DashboardFilterBinding,
 	DashboardGestureEndEvent,
