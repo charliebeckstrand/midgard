@@ -49,3 +49,6 @@ council-report-*.html
 debate-*.md
 deliberate-*.md
 deliberate-*.html
+
+# tsup (the transient config bundle that a build writes and deletes)
+tsup.config.bundled_*
