@@ -52,6 +52,7 @@ const RAW_CALC_ALLOWLIST = new Set([
 	'recipes/kiso/kasane/radius.ts',
 	'recipes/kiso/control/affix.ts',
 	'recipes/kata/button.ts',
+	'recipes/kata/query-chips.ts',
 	'recipes/kata/tag-input.ts',
 ])
 
