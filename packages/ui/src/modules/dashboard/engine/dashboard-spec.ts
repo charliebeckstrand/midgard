@@ -48,7 +48,10 @@ export type DashboardSpecTile = {
  * the layout in step.
  */
 export type DashboardSpec = {
-	/** The tiles, in reading order. */
+	/**
+	 * The tiles. The board renders them by their place, not in this order. The
+	 * order places the tiles that have no layout entry yet, one row each.
+	 */
 	tiles: DashboardSpecTile[]
 	/** The saved layout of the tiles. */
 	layout: DashboardLayoutItem[]

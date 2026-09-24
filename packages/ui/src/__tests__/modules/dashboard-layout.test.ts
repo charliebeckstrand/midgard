@@ -7,10 +7,12 @@ import {
 	deriveHeight,
 	fits,
 	minColumns,
+	readingOrder,
 	resolveCell,
 	resolveLayout,
 	sameGeometry,
 	shiftCells,
+	sortByOrder,
 	swapCells,
 	toLayoutItem,
 } from '../../modules/dashboard/engine/dashboard-layout'
@@ -194,5 +196,34 @@ describe('resolveLayout', () => {
 		expect(sameGeometry(a, [...a].reverse())).toBe(true)
 
 		expect(sameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
+	})
+})
+
+describe('readingOrder', () => {
+	it('orders by row, then by column, and keeps the input order at one origin', () => {
+		const items = [
+			{ id: 'c', x: 0, y: 27 },
+			{ id: 'b', x: 12, y: 0 },
+			{ id: 'a', x: 0, y: 0 },
+			{ id: 'twin', x: 0, y: 27 },
+		]
+
+		expect(readingOrder(items)).toEqual(['a', 'b', 'c', 'twin'])
+	})
+})
+
+describe('sortByOrder', () => {
+	const id = (item: { id: string }) => item.id
+
+	it('sorts by rank, and puts an unranked item last in its input order', () => {
+		const items = [{ id: 'new-1' }, { id: 'b' }, { id: 'new-2' }, { id: 'a' }]
+
+		expect(sortByOrder(items, ['a', 'b'], id).map(id)).toEqual(['a', 'b', 'new-1', 'new-2'])
+	})
+
+	it('returns the same array when the order does not change', () => {
+		const items = [{ id: 'a' }, { id: 'b' }, { id: 'new' }]
+
+		expect(sortByOrder(items, ['a', 'b'], id)).toBe(items)
 	})
 })

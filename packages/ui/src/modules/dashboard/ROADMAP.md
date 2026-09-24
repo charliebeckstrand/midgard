@@ -24,6 +24,8 @@ The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` kee
 
 A tile draws the standard actions in its header row. `onRemove` and `onDuplicate` show controls in edit mode, and `expandable` shows an expand control at rest, which opens the content in a dialog in the scope of the same tile. The app owns the tile list, so it applies each action; `DashboardTiles` hands it the spec tile. A remove moves the focus to the grip of a neighbour tile, and the live region names each change.
 
+The markup follows the board: the tiles render by row, then by column, so the keyboard and assistive tech meet them as the eye reads them. The order comes from the saved entries, so the server renders it too. In edit mode the markup holds still, so a gesture never moves a focused grip in the DOM; the new order takes effect when edit mode ends. Both `DashboardTiles` and the direct `DashboardTile` children follow it. React focuses a moved element again after the commit, so a move keeps the focus.
+
 A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
 
 ## Engine — the substrate
@@ -37,8 +39,6 @@ The domain lives in [`engine/`](engine), a pure functional core: `dashboard-layo
 - **Spec validation.** A guard for a spec that the app reads from storage.
 
 - **Presets.** Named specs that an app offers as a start point.
-
-- **Reading order.** The tab order follows the order of the tiles in the markup, not their places on the board. Sort the tiles by `(y, x)` for focus, or give the board a roving tab stop.
 
 - **Tidy.** One explicit command that packs the tiles upward. It is the only bulk move on a board that never packs itself.
 

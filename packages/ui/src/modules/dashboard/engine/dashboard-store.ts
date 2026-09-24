@@ -14,6 +14,7 @@ import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
+	readingOrder,
 	resolveLayout,
 	sameCell,
 } from './dashboard-layout'
@@ -84,6 +85,12 @@ export type DashboardView = {
 	editable: boolean
 	/** The selections that apply: those of the board, and those of a tile on the board. */
 	selections: readonly DashboardSelection[]
+	/**
+	 * The ids of the saved entries in reading order, which the tiles take in the
+	 * markup. It holds still in edit mode, so a gesture never moves a tile in the
+	 * DOM. When edit mode ends, it takes the new order.
+	 */
+	order: readonly string[]
 }
 
 /** The store interface that the shell uses. */
@@ -201,6 +208,16 @@ function internSelections(
 	return previous.every((item, index) => item === next[index]) ? previous : next
 }
 
+/** Returns `next`, or `previous` when the two orders hold the same ids in the same order. */
+function internOrder(
+	previous: readonly string[] | undefined,
+	next: readonly string[],
+): readonly string[] {
+	if (previous === undefined || previous.length !== next.length) return next
+
+	return previous.every((id, index) => id === next[index]) ? previous : next
+}
+
 /** Creates a store with the given initial state. */
 export function createDashboardStore(initial: DashboardState): DashboardStore {
 	let state = initial
@@ -214,6 +231,8 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	)
 
 	const canonicalOf = memo(resolveLayout)
+
+	const orderOf = memo(readingOrder)
 
 	const projectionOf = memo(
 		(
@@ -242,6 +261,11 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
 			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
+			// The saved entries give the order, so the server renders the tiles in it too.
+			order:
+				editing && previous !== null
+					? previous.order
+					: internOrder(previous?.order, orderOf(layout)),
 		}
 	}
 
