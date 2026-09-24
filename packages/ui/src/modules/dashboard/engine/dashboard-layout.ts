@@ -329,6 +329,39 @@ export function resolveLayout(
 	return cells
 }
 
+/**
+ * The ids of `items` in reading order: by row, then by column. The keyboard and
+ * assistive tech then meet the tiles in the order that the eye reads them.
+ * Items at the same origin keep their input order.
+ */
+export function readingOrder(items: readonly { id: string; x: number; y: number }[]): string[] {
+	return items
+		.map((item, index) => ({ item, index }))
+		.sort((a, b) => a.item.y - b.item.y || a.item.x - b.item.x || a.index - b.index)
+		.map(({ item }) => item.id)
+}
+
+/**
+ * `items` sorted by the rank of each id in `order`. An item whose id `order` does
+ * not hold goes after the ranked items, in its input order. It returns `items`
+ * itself when the order does not change, so a caller can compare by identity.
+ */
+export function sortByOrder<T>(
+	items: readonly T[],
+	order: readonly string[],
+	idOf: (item: T) => string,
+): readonly T[] {
+	const rank = new Map(order.map((id, index) => [id, index]))
+
+	const sorted = items
+		.map((item, index) => ({ item, index, rank: rank.get(idOf(item)) ?? order.length + index }))
+		.sort((a, b) => a.rank - b.rank)
+
+	return sorted.every(({ index }, position) => index === position)
+		? items
+		: sorted.map(({ item }) => item)
+}
+
 /** Whether two layouts place each cell in the same place, id by id. */
 export function sameGeometry(a: readonly DashboardCell[], b: readonly DashboardCell[]): boolean {
 	if (a.length !== b.length) return false

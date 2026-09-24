@@ -1,14 +1,16 @@
 'use client'
 
-import { memo, type ReactNode } from 'react'
+import { memo, type ReactNode, useMemo } from 'react'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardWidgets } from './context'
 import { DashboardTile } from './dashboard-tile'
+import { sortByOrder } from './engine/dashboard-layout'
 import type { DashboardSpecTile } from './engine/dashboard-spec'
 import type { DashboardWidget, DashboardWidgetRenderer } from './types'
+import { useDashboardStore } from './use-dashboard-store'
 
 /**
  * The line that a spec tile shows when no widget claims its kind. It names the
@@ -23,7 +25,10 @@ const statedFallback: DashboardWidgetRenderer = (tile) => (
 
 /** Props for {@link DashboardTiles}. */
 export type DashboardTilesProps = {
-	/** The spec tiles, in reading order. Each `id` must be unique on the board. */
+	/**
+	 * The spec tiles. Each `id` must be unique on the board. The board renders
+	 * them by their place, and this order places a tile that has no entry yet.
+	 */
 	tiles: readonly DashboardSpecTile[]
 	/**
 	 * The controls at the far end of the header row of each tile, for example a
@@ -59,6 +64,10 @@ export type DashboardTilesProps = {
  * kind that no widget claims keeps its tile, and the content box states the gap.
  * That tile demands no width, so it never re-packs the board.
  *
+ * The tiles render in reading order, by row and then by column, and not in the
+ * order of `tiles`. In edit mode the markup holds still, and the new order takes
+ * effect when edit mode ends.
+ *
  * Each spec tile renders through a memoized component. A spec tile that keeps its
  * object, under a registry that keeps its widget, does not render again when the
  * app commits a new layout.
@@ -81,9 +90,15 @@ export function DashboardTiles({
 }: DashboardTilesProps) {
 	const { widgets, fallback = statedFallback, mount = 'always' } = useDashboardWidgets()
 
+	const order = useDashboardStore((view) => view.order)
+
+	// The markup follows the board, so the keyboard and assistive tech meet the
+	// tiles as the eye reads them. A tile with no entry yet goes last, in spec order.
+	const ordered = useMemo(() => sortByOrder(tiles, order, (tile) => tile.id), [tiles, order])
+
 	return (
 		<>
-			{tiles.map((tile) => (
+			{ordered.map((tile) => (
 				<DashboardSpecTileView
 					key={tile.id}
 					tile={tile}

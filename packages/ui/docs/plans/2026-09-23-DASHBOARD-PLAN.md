@@ -122,6 +122,12 @@ A tile can travel one row band below the lowest tile, so a drag can open a new r
 always free, so a free origin always exists. In edit mode a pointer drag starts anywhere on the
 card, because the content is inert; the grip is the keyboard activator and the touch handle.
 
+The markup follows the board (built later). The tiles render by row, then by column, from the
+saved entries, so the server renders the order too. In edit mode the markup holds still, and the
+new order takes effect when edit mode ends. A move in the DOM therefore never happens under a
+gesture. A move costs an iframe its document and a scroll box its offset, so it happens at most
+once for each edit session.
+
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
 under `minWidth`. The splitters also take the arrow keys.
