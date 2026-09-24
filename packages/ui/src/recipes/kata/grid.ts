@@ -291,11 +291,11 @@ export const k = {
 		bar: ['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center'],
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
 		// from the search field (and stays at the end even when it stands alone).
-		actions: 'sm:ml-auto',
+		actions: 'sm:ms-auto',
 		// The consumer's own content, pushed to the end the same way. It sits ahead
 		// of the tools, so with both present the free space opens once — here — and
 		// the two clusters stay together at the row's end.
-		content: 'sm:ml-auto',
+		content: 'sm:ms-auto',
 	},
 	// Group-by icon button in a column header (see `GridGroupByButton`): press to
 	// group the rows by the column, press again to ungroup.
@@ -689,11 +689,11 @@ export const k = {
 		// footer row from `lg` so the controls and status order independently around
 		// the centered nav.
 		meta: ['flex', 'items-center', 'justify-between', 'gap-3', 'lg:contents'],
-		// Row-range status ("1–10 of 47"): the end track from `lg` (right-aligned),
-		// the right of the justified row below it.
-		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-right'],
-		// Page-size picker: the start track from `lg` (left-aligned), the left of the
-		// justified row below it. Always rendered so the track holds even when empty,
+		// Row-range status ("1–10 of 47"): the end track from `lg` (aligned to the
+		// inline end), the end of the justified row below it.
+		status: [size.md, text.muted, 'whitespace-nowrap', 'lg:order-3', 'lg:flex-1', 'lg:text-end'],
+		// Page-size picker: the start track from `lg` (aligned to the inline start),
+		// the start of the justified row below it. Always rendered so the track holds even when empty,
 		// keeping the nav centered.
 		controls: [flex.inline, 'items-center', 'gap-4', 'lg:order-1', 'lg:flex-1'],
 	},
@@ -724,13 +724,13 @@ export const k = {
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count
 	// (the selected total swaps in over the row total in place), and any custom
-	// content is pushed to the far edge by `ml-auto` in the trailing cluster.
+	// content is pushed to the far edge by `ms-auto` in the trailing cluster.
 	summary: {
 		bar: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', size.md, text.muted],
 		// `min-w-0` so the cluster can shrink past its content: a flex item's automatic
 		// minimum is its content width, which pinned this slot to the intrinsic width of
 		// whatever the consumer rendered, overflowing the bar instead of clipping inside it.
-		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ml-auto', 'min-w-0'],
+		trailing: ['flex', 'flex-wrap', 'items-center', 'gap-x-4', 'gap-y-1', 'ms-auto', 'min-w-0'],
 		item: 'whitespace-nowrap',
 	},
 	// Data-body state washes projected from the `<table>` onto its data `<tbody>`

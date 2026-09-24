@@ -48,3 +48,88 @@ describe('grid group rail in a right-to-left grid (real browser)', () => {
 		expect(style.borderLeftWidth).toBe('0px')
 	})
 })
+
+describe('grid toolbar and footer layout in a right-to-left grid (real browser)', () => {
+	const rows: Sale[] = Array.from({ length: 30 }, (_, i) => ({
+		id: i + 1,
+		region: i % 2 ? 'West' : 'East',
+		units: i,
+	}))
+
+	/** The distance from the inline end of `box` to the inline end of `row`: the physical left. */
+	const fromEnd = (box: HTMLElement, row: HTMLElement) =>
+		box.getBoundingClientRect().left - row.getBoundingClientRect().left
+
+	it('pushes the toolbar content to the inline end', () => {
+		const { getByText } = renderUI(
+			<div dir="rtl" style={{ width: 900 }}>
+				<Grid columns={columns} rows={rows} getKey={(row) => row.id} toolbar={<span>Extra</span>} />
+			</div>,
+		)
+
+		const content = present(getByText('Extra').parentElement, 'the toolbar content')
+
+		const bar = present(content.parentElement, 'the toolbar row')
+
+		expect(Math.abs(fromEnd(content, bar))).toBeLessThanOrEqual(1)
+	})
+
+	it('pushes the table tools to the inline end', () => {
+		const { getByRole } = renderUI(
+			<div dir="rtl" style={{ width: 900 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					columnManager={{ toolbar: true }}
+				/>
+			</div>,
+		)
+
+		const tools = getByRole('toolbar', { name: 'Table tools' })
+
+		const bar = present(tools.parentElement, 'the toolbar row')
+
+		expect(Math.abs(fromEnd(tools, bar))).toBeLessThanOrEqual(1)
+	})
+
+	it('pushes the footer content to the inline end', () => {
+		const { getByText } = renderUI(
+			<div dir="rtl" style={{ width: 900 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					footer={{ rowTotal: true, content: () => <span>Extra</span> }}
+				/>
+			</div>,
+		)
+
+		const trailing = present(getByText('Extra').parentElement, 'the footer content')
+
+		const bar = present(trailing.parentElement, 'the footer bar')
+
+		expect(Math.abs(fromEnd(trailing, bar))).toBeLessThanOrEqual(1)
+	})
+
+	it('aligns the page status to the inline end', () => {
+		const { getAllByRole } = renderUI(
+			<div dir="rtl" style={{ width: 1100 }}>
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={(row) => row.id}
+					pagination={{ defaultValue: { pageIndex: 0, pageSize: 5 } }}
+				/>
+			</div>,
+		)
+
+		// The page status names the row range, such as "1–5 of 30".
+		const status = present(
+			getAllByRole('status').find((element) => / of 30/.test(element.textContent ?? '')),
+			'the page status',
+		)
+
+		expect(getComputedStyle(status).textAlign).toBe('end')
+	})
+})
