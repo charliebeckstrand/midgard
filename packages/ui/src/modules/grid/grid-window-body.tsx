@@ -40,22 +40,6 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
 }
 
 /**
- * An empty, `aria-hidden` row of 0 pixels that stands for a dropping item for
- * one commit. It carries no reveal, so no transition starts, and no measure
- * ref, because the drop step sets its height (see `useGridItemWindow`).
- *
- * @internal
- */
-export function GridWindowDropRow({ dataIndex, colSpan }: { dataIndex: number; colSpan: number }) {
-	return (
-		// biome-ignore lint/a11y/noAriaHiddenOnFocusable: an empty, non-focusable row that stands for a dropping item for one commit
-		<tr data-index={dataIndex} aria-hidden="true">
-			<td colSpan={colSpan} style={{ height: 0, padding: 0, border: 0 }} />
-		</tr>
-	)
-}
-
-/**
  * The `<tbody>` of a windowed grouped or master-detail body. It puts a spacer
  * above and below the rendered rows, as the flat windowed body does. Until
  * the window resolves it holds the loading skeleton, and the bottom spacer

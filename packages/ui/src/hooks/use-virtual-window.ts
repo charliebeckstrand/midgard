@@ -6,7 +6,7 @@ import {
 	type Virtualizer,
 	type VirtualizerOptions,
 } from '@tanstack/react-virtual'
-import { useCallback, useEffect, useMemo, useReducer } from 'react'
+import { useEffect, useLayoutEffect, useMemo, useReducer, useRef } from 'react'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
 export type VirtualWindowOptions = {
@@ -65,7 +65,8 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
 	 * The edge the window holds when rows change size or the list changes
 	 * length. With `'end'`, a row that grows while the reader sits at the end
 	 * keeps the end in view. A list that is pinned to its newest row, such as a
-	 * chat transcript, sets it.
+	 * chat transcript, sets it. With `'start'`, the first row in view holds
+	 * still when rows above it are inserted or removed.
 	 *
 	 * @remarks The anchor has no mount arm. A list that must open at its end
 	 * calls `scrollToIndex(count - 1, { align: 'end' })` once its window holds rows.
@@ -101,9 +102,110 @@ const adjustAboveViewport = (
 	_delta: number,
 	instance: Virtualizer<HTMLElement, Element>,
 ): boolean => {
-	const top = (instance.scrollOffset ?? 0) + instance.options.scrollPaddingStart
+	const top = viewTop(instance)
 
 	return item.start < top || item.end <= top
+}
+
+/** The top edge of the part of the scroller that the reader sees. @internal */
+function viewTop(instance: Virtualizer<HTMLElement, Element>): number {
+	return (instance.scrollOffset ?? 0) + instance.options.scrollPaddingStart
+}
+
+/**
+ * The fields of the virtualizer that its `scroll` handler writes. A scroll
+ * adjustment moves the scroller at once, but the virtualizer reads the new
+ * offset only from the next `scroll` event. Until then `scrollAdjustments`
+ * holds the moves. @internal
+ */
+type ScrollState = { scrollAdjustments: number; _intendedScrollOffset: number | null }
+
+/** Where the scroller is once the pending adjustments land. @internal */
+function effectiveOffset(instance: Virtualizer<HTMLElement, Element>): number {
+	return (instance.scrollOffset ?? 0) + (instance as unknown as ScrollState).scrollAdjustments
+}
+
+/**
+ * What a commit records for the start anchor. It holds the count and the key
+ * getter of that render, and the scroll offset. It also holds the rendered rows
+ * that end below the top edge, in order. @internal
+ */
+type StartAnchorRecord = {
+	count: number
+	getItemKey: (index: number) => VirtualItem['key']
+	scrollOffset: number
+	rows: readonly { index: number; key: VirtualItem['key']; start: number }[]
+}
+
+/** The index of `key` in the new list, tried at its old index first. @internal */
+function indexOfKey(
+	key: VirtualItem['key'],
+	oldIndex: number,
+	count: number,
+	getItemKey: (index: number) => VirtualItem['key'],
+): number {
+	if (oldIndex < count && getItemKey(oldIndex) === key) return oldIndex
+
+	for (let index = 0; index < count; index++) {
+		if (getItemKey(index) === key) return index
+	}
+
+	return -1
+}
+
+/**
+ * Holds the first recorded row that is still in the list at the offset it
+ * had from the scroll offset. It moves the scroller, and takes the new offset
+ * into the virtualizer as its `scroll` handler does. The next render then
+ * places its window at the new offset, before the paint.
+ *
+ * @param moved - The scroll adjustment since the render, from rows that measured as they attached.
+ * @returns The record of the new list, or `null` when the list did not change.
+ * @internal
+ */
+function holdStartAnchor(
+	virtualizer: Virtualizer<HTMLElement, Element>,
+	record: StartAnchorRecord,
+	count: number,
+	getItemKey: (index: number) => VirtualItem['key'],
+	moved: number,
+): StartAnchorRecord | null {
+	if (record.count === count && record.getItemKey === getItemKey) return null
+
+	const element = virtualizer.scrollElement
+
+	for (const row of record.rows) {
+		const index = indexOfKey(row.key, row.index, count, getItemKey)
+
+		// The measurements of this render hold the new start of the row.
+		const start = index < 0 ? undefined : virtualizer.measurementsCache[index]?.start
+
+		if (start === undefined) continue
+
+		// `moved` is what the rows that measured in this commit moved the
+		// scroller by. The measurements of the render do not hold it yet.
+		const target = start + record.scrollOffset - row.start + moved
+
+		// A scroller that cannot move there clamps the offset, so a scroller that
+		// does not scroll takes no change.
+		if (element && Math.abs(target - effectiveOffset(virtualizer)) >= 1) {
+			element.scrollTop = target
+
+			const state = virtualizer as unknown as ScrollState
+
+			virtualizer.scrollOffset = element.scrollTop
+
+			state.scrollAdjustments = 0
+
+			state._intendedScrollOffset = null
+		}
+
+		const scrollOffset = effectiveOffset(virtualizer)
+
+		return { count, getItemKey, scrollOffset, rows: [{ index, key: row.key, start }] }
+	}
+
+	return { count, getItemKey, scrollOffset: effectiveOffset(virtualizer), rows: [] }
 }
 
 type VirtualWindow = {
@@ -139,26 +241,6 @@ type MeasuredVirtualWindow = VirtualWindow & {
 	 * row. It measures the row when it attaches and again on each resize.
 	 */
 	measureRef: (node: Element | null) => void
-	/**
-	 * Sets the cached height of the row at `index`, as a measurement does. A
-	 * row above the viewport moves the scroll offset by the difference, so the
-	 * rows in view do not move. Set a row to 0 before it leaves the list, and
-	 * the removal then moves nothing.
-	 */
-	resizeItem: (index: number, size: number) => void
-	/**
-	 * Returns the start in pixels of the row at `index` in the last render, or
-	 * `undefined` past the end. It includes the scroll margin, as the scroll
-	 * offset does. A caller reads it to hold a row still across a list change.
-	 */
-	getItemStart: (index: number) => number | undefined
-	/**
-	 * Moves the scroll offset to `offset` at once. The virtualizer takes the new
-	 * offset without the wait for a `scroll` event, so the next render places
-	 * its window there. Call it from a layout effect, and the move lands before
-	 * the paint.
-	 */
-	setScrollOffset: (offset: number) => void
 }
 
 /**
@@ -185,16 +267,25 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * On the measured path a row above the viewport can measure while the reader
  * scrolls up. The hook then moves the scroll offset by the height difference,
  * so the rows in view do not move. A row under the sticky content that
- * `scrollPaddingStart` names counts as above the viewport. The library default skips this adjustment
- * during a scroll up, and the content drifts. The uniform path keeps the
- * default, because its rows do not measure.
+ * `scrollPaddingStart` names counts as above the viewport. The library default
+ * skips this adjustment during a scroll up, and the content drifts. The
+ * uniform path keeps the default, because its rows do not measure.
  *
- * An insert or a removal is not a resize, so the virtualizer does not move
- * the scroll offset for it. A caller that removes a row above the viewport
- * first sets its height to 0 through `resizeItem`, and the offset then moves.
- * A caller that inserts rows above the viewport reads the new start of the
- * first row in view through `getItemStart`. It then moves the offset by the
- * difference through `setScrollOffset`.
+ * An insert or a removal is not a resize, so a resize adjustment does not see
+ * it. The measured path with the start anchor therefore holds the first row
+ * in view. Each commit records the rendered rows that end below the top edge.
+ * After a render with a new count or a new `getItemKey`, a layout effect finds
+ * the first recorded row that is still in the list. It moves the scroll offset
+ * by the change in that row's start, and renders again before the paint. A
+ * recorded row that left the list, or took a new key, gives way to the next.
+ *
+ * The anchor writes the offset into the virtualizer as its `scroll` handler
+ * does. Version 3.16 of virtual-core has an anchor step of its own. It reads
+ * the new offset only from the next `scroll` event. A render before that event
+ * paints the window at the old offset, and a second list change in that gap
+ * anchors against a stale offset. A scroller that does not scroll takes no
+ * change, and the render after a move holds no anchor, so a move never starts
+ * another.
  *
  * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
@@ -220,8 +311,9 @@ type MeasuredVirtualWindow = VirtualWindow & {
  *
  * The flat grid body stays on the uniform path. The client-grouped body and
  * the master-detail body take the measured path under `virtualize`. Their
- * headers, totals, and detail panels do not share one height. Each keeps the rows of a collapsing group as items until their
- * reveal lands, so the collapse animation still plays.
+ * headers, totals, and detail panels do not share one height. Each keeps a
+ * closing row, a group row or a detail panel, as an item until its reveal
+ * lands, so the close animation still plays.
  */
 export function useVirtualWindow(options: VirtualWindowOptions): VirtualWindow
 
@@ -269,6 +361,17 @@ export function useVirtualWindow({
 	// measured path replaces it. The uniform path writes nothing here.
 	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
 
+	// The start anchor. virtual-core 3.16 holds only the end edge. The measured
+	// path holds the start edge in a layout effect below.
+	const startAnchor = getItemKey != null && anchorTo !== 'end'
+
+	const anchorRecord = useRef<StartAnchorRecord | null>(null)
+
+	// The offset that this render placed its window at.
+	const renderOffset = useRef(0)
+
+	renderOffset.current = startAnchor ? effectiveOffset(virtualizer) : 0
+
 	// Re-sync guard: the virtualizer captures its scroll element in a layout
 	// effect, which runs *before* an ancestor's ref attaches when that ancestor
 	// (re)mounted in the same commit (React commits bottom-up). It then resolves
@@ -301,26 +404,46 @@ export function useVirtualWindow({
 	// Without this it measures zero, and the window stays empty for good.
 	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
 
-	// A `scroll` event reaches the virtualizer a frame later. A render before it
-	// would place the window at the old offset, so the offset is written here too.
-	const setScrollOffset = useCallback(
-		(offset: number) => {
-			const element = virtualizer.scrollElement
+	// Each commit records the rendered rows that end below the top edge, so a
+	// later list change can hold the first of them still. The record reads the
+	// virtualizer alone, not the DOM.
+	useLayoutEffect(() => {
+		if (!startAnchor || !getItemKey) {
+			anchorRecord.current = null
 
-			if (!element) return
+			return
+		}
 
-			element.scrollTop = offset
+		// A render with a new list holds the first recorded row still. The move
+		// renders once more before the paint. The new record names the new list,
+		// so that render holds nothing, and the move does not start another one.
+		const before = effectiveOffset(virtualizer)
 
-			virtualizer.scrollOffset = element.scrollTop
-		},
-		[virtualizer],
-	)
+		const previous = anchorRecord.current
 
-	// The measurements of the last render. A row outside the window has one too.
-	const getItemStart = useCallback(
-		(index: number) => virtualizer.measurementsCache[index]?.start,
-		[virtualizer],
-	)
+		const held =
+			previous &&
+			holdStartAnchor(virtualizer, previous, count, getItemKey, before - renderOffset.current)
+
+		if (held && Math.abs(effectiveOffset(virtualizer) - before) >= 1) {
+			anchorRecord.current = held
+
+			forceResync()
+
+			return
+		}
+
+		const top = effectiveOffset(virtualizer) + virtualizer.options.scrollPaddingStart
+
+		anchorRecord.current = {
+			count,
+			getItemKey,
+			scrollOffset: effectiveOffset(virtualizer),
+			rows: virtualItems
+				.filter((item) => item.end > top)
+				.map((item) => ({ index: item.index, key: item.key, start: item.start })),
+		}
+	})
 
 	return {
 		virtualItems,
@@ -328,8 +451,5 @@ export function useVirtualWindow({
 		bottomSpacer,
 		scrollToIndex: virtualizer.scrollToIndex,
 		measureRef: virtualizer.measureElement,
-		resizeItem: virtualizer.resizeItem,
-		getItemStart,
-		setScrollOffset,
 	}
 }

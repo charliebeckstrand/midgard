@@ -6,6 +6,7 @@ import {
 	bodyRowCount,
 	detailWindowItems,
 	detailWindowRowCount,
+	type GridRowMotion,
 	groupedWindowItems,
 	groupedWindowRowCount,
 	windowItemEstimate,
@@ -23,7 +24,7 @@ function group(id: string, open: boolean, leafIds: string[]): Row<Person> {
 	} as unknown as Row<Person>
 }
 
-const NO_CLOSING = new Map<string, Set<string>>()
+const NO_MOTIONS = new Map<string, GridRowMotion>()
 
 describe('resolveGroupingGates', () => {
 	const base = {
@@ -81,7 +82,7 @@ describe('groupedWindowItems', () => {
 	const groups = [group('role:A', true, ['1', '2']), group('role:B', false, ['3'])]
 
 	it('prefixes the key of each item kind', () => {
-		const items = groupedWindowItems(groups, { totalled: true, closing: NO_CLOSING })
+		const items = groupedWindowItems(groups, { totalled: true, motions: NO_MOTIONS })
 
 		expect(items.map((item) => item.key)).toEqual([
 			'group:role:A',
@@ -97,52 +98,41 @@ describe('groupedWindowItems', () => {
 	it('keeps a key that looks like a group id apart from the group', () => {
 		const items = groupedWindowItems([group('7', true, ['7'])], {
 			totalled: false,
-			closing: NO_CLOSING,
+			motions: NO_MOTIONS,
 		})
 
 		expect(new Set(items.map((item) => item.key)).size).toBe(items.length)
 	})
 
 	it('keeps the closing rows of a collapsed group under their own keys', () => {
-		const closing = new Map([['role:B', new Set(['leaf:3', 'total:role:B'])]])
+		const motions = new Map<string, GridRowMotion>([
+			['leaf:3', { phase: 'closing', size: 40 }],
+			['total:role:B', { phase: 'closing', size: 30 }],
+		])
 
-		const items = groupedWindowItems(groups, { totalled: true, closing })
+		const items = groupedWindowItems(groups, { totalled: true, motions })
 
 		const closed = items.slice(5)
 
-		expect(closed.map((item) => [item.key, item.reactKey, item.position])).toEqual([
-			['closing:3', 'leaf:3', -1],
-			['closing-total:role:B', 'total:role:B', -1],
+		expect(
+			closed.map((item) => [item.key, item.reactKey, item.position, item.phase, item.size]),
+		).toEqual([
+			['closing:3', 'leaf:3', -1, 'closing', 40],
+			['closing-total:role:B', 'total:role:B', -1, 'closing', 30],
 		])
 	})
 
-	it('drops the other rows of a collapsed group under their open keys', () => {
-		const closing = new Map([['role:B', new Set(['total:role:B'])]])
+	it('leaves out the rows of a collapsed group that are not closing', () => {
+		const motions = new Map<string, GridRowMotion>([['leaf:3', { phase: 'entering' }]])
 
-		const items = groupedWindowItems(groups, {
-			totalled: true,
-			closing,
-			dropping: new Set(['role:B']),
-		})
+		const items = groupedWindowItems(groups, { totalled: true, motions })
 
-		expect(
-			items
-				.slice(5)
-				.map((item) => [
-					item.key,
-					item.position,
-					item.kind !== 'group' && item.closing,
-					item.dropping,
-				]),
-		).toEqual([
-			['leaf:3', -1, true, true],
-			['closing-total:role:B', -1, true, false],
-		])
+		expect(items.slice(5)).toEqual([])
 	})
 
 	it('counts the exposed items without the list', () => {
 		for (const totalled of [false, true]) {
-			const items = groupedWindowItems(groups, { totalled, closing: NO_CLOSING })
+			const items = groupedWindowItems(groups, { totalled, motions: NO_MOTIONS })
 
 			expect(groupedWindowRowCount(groups, totalled)).toBe(items.length)
 		}
@@ -157,7 +147,7 @@ describe('detailWindowItems', () => {
 	const expansion = { expanded: new Set<string | number>([2]), rowExpandable: () => true }
 
 	it('follows each open row with its panel, under prefixed keys', () => {
-		const items = detailWindowItems({ rows, rowKeys, expansion, closing: new Set() })
+		const items = detailWindowItems({ rows, rowKeys, expansion, motions: new Map() })
 
 		expect(items.map((item) => item.key)).toEqual(['row:1', 'row:2', 'detail:2', 'row:3'])
 
@@ -166,22 +156,21 @@ describe('detailWindowItems', () => {
 		expect(detailWindowRowCount(rows, rowKeys, expansion)).toBe(items.length)
 	})
 
-	it('keeps a dropping panel as an item for one commit', () => {
+	it('keeps a closing panel as an item that assistive tech does not count', () => {
 		const items = detailWindowItems({
 			rows,
 			rowKeys,
 			expansion,
-			closing: new Set(),
-			dropping: new Set([1]),
+			motions: new Map([[3, { phase: 'closing', size: 80 }]]),
 		})
 
-		expect(items[1]).toMatchObject({ key: 'detail:1', closing: true, dropping: true, position: -1 })
-	})
-
-	it('keeps a closing panel as an item that assistive tech does not count', () => {
-		const items = detailWindowItems({ rows, rowKeys, expansion, closing: new Set([3]) })
-
-		expect(items.at(-1)).toMatchObject({ key: 'detail:3', closing: true, position: -1 })
+		expect(items.at(-1)).toMatchObject({
+			key: 'closing:3',
+			reactKey: 'detail:3',
+			phase: 'closing',
+			size: 80,
+			position: -1,
+		})
 	})
 
 	it('gives no panel to a row that cannot expand', () => {
@@ -189,7 +178,7 @@ describe('detailWindowItems', () => {
 			rows,
 			rowKeys,
 			expansion: { ...expansion, rowExpandable: () => false },
-			closing: new Set(),
+			motions: new Map(),
 		})
 
 		expect(items.map((item) => item.kind)).toEqual(['row', 'row', 'row'])
@@ -197,12 +186,14 @@ describe('detailWindowItems', () => {
 })
 
 describe('windowItemEstimate', () => {
-	it('guesses 0 pixels for a detail panel and the row height for each other kind', () => {
-		expect(windowItemEstimate('detail', 44)).toBe(0)
-
-		for (const kind of ['group', 'leaf', 'total', 'row']) {
-			expect(windowItemEstimate(kind, 44)).toBe(44)
+	it('guesses the row height for each kind', () => {
+		for (const kind of ['group', 'leaf', 'total', 'row', 'detail']) {
+			expect(windowItemEstimate({ kind }, 44)).toBe(44)
 		}
+	})
+
+	it('guesses the height that a closing row had in view', () => {
+		expect(windowItemEstimate({ kind: 'leaf', size: 112 }, 44)).toBe(112)
 	})
 })
 

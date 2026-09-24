@@ -4,8 +4,8 @@ import { type TransitionEvent, useLayoutEffect, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { type MountHold, useMountHold } from '../../primitives/mount'
 
-/** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. */
-const REVEAL_PROPERTY = 'grid-template-rows'
+/** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
+export const REVEAL_PROPERTY = 'grid-template-rows'
 
 /** What {@link useGridRevealHold} hands a collapsible row. */
 export type GridRevealHold = {

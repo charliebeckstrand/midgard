@@ -1,6 +1,6 @@
 import { useMemo, useRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { NO_WINDOW_SNAPSHOT, useGridItemWindow } from '../../modules/grid/use-grid-item-window'
+import { NO_WINDOW_RECORD, useGridItemWindow } from '../../modules/grid/use-grid-item-window'
 import { frames, present, renderUI, waitFor } from '../helpers'
 
 /**
@@ -20,7 +20,7 @@ describe('useGridItemWindow (real browser)', () => {
 	function Harness({ handle }: { handle: Handle }) {
 		const scrollRef = useRef<HTMLDivElement>(null)
 
-		const snapshot = useRef(NO_WINDOW_SNAPSHOT)
+		const snapshot = useRef(NO_WINDOW_RECORD)
 
 		const items = useMemo(
 			() => Array.from({ length: 300 }, (_, i) => ({ key: `leaf:${i}`, kind: 'leaf' })),
@@ -37,7 +37,6 @@ describe('useGridItemWindow (real browser)', () => {
 				stickyHeader: true,
 			},
 			snapshot,
-			{ dropped: null, anchored: null },
 		)
 
 		handle.scrollToIndex = win.scrollToIndex
