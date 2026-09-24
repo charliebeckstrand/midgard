@@ -17,7 +17,7 @@ import { control } from '../../recipes/kiso/control'
 // notch down per host step, and both scales grow 0.5 per notch; the
 // per-step deltas cancel, leaving only the 0.5 inset:
 //
-//   affix.pl(has-chip) = input.px − child.p[affixStepDown(step)] + 0.5 = 1.5
+//   affix.ps(has-chip) = input.px − child.p[affixStepDown(step)] + 0.5 = 1.5
 //
 // The test parses live recipe values rather than the literal `1.5`; if
 // any of (input.px, button.p, affixStepDown, or the 0.5 inset) drifts,
@@ -61,7 +61,7 @@ describe('control affix has-button compensation', () => {
 		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.prefix[step],
-				'has-[[data-slot=button]:not([data-variant=bare])]:pl-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:ps-[',
 			)
 
 			expect(actual).toBe(expected)
@@ -70,7 +70,7 @@ describe('control affix has-button compensation', () => {
 		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.suffix[step],
-				'has-[[data-slot=button]:not([data-variant=bare])]:pr-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:pe-[',
 			)
 
 			expect(actual).toBe(expected)
@@ -116,13 +116,13 @@ describe('control affix has-badge compensation', () => {
 		const expected = hostPx - badgePx + CHIP_INSET
 
 		it(`${step}: affix.prefix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(control.affix.prefix[step], 'has-[[data-slot=badge]]:pl-[')
+			const actual = findSpacing(control.affix.prefix[step], 'has-[[data-slot=badge]]:ps-[')
 
 			expect(actual).toBe(expected)
 		})
 
 		it(`${step}: affix.suffix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(control.affix.suffix[step], 'has-[[data-slot=badge]]:pr-[')
+			const actual = findSpacing(control.affix.suffix[step], 'has-[[data-slot=badge]]:pe-[')
 
 			expect(actual).toBe(expected)
 		})
@@ -153,7 +153,7 @@ describe('control affix has-badge compensation', () => {
 // compound padding (`not-data-[has-label]:p-…` in `kata/button.ts`) from
 // `density.px`:
 //
-//   affix.pl(has-bare) = input.px − bare.compound.p[affixStepDown(step)]
+//   affix.ps(has-bare) = input.px − bare.compound.p[affixStepDown(step)]
 //
 // Unlike the non-bare arm this cannot collapse to a constant: the bare compound
 // scale grows 0.25 per notch (half of `density.px`'s 0.5), so the per-step
@@ -194,7 +194,7 @@ describe('control affix has-bare-button compensation', () => {
 		it(`${step}: affix.prefix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.prefix[step],
-				'has-[[data-variant=bare]:not([data-has-label])]:pl-[',
+				'has-[[data-variant=bare]:not([data-has-label])]:ps-[',
 			)
 
 			expect(actual).toBe(expected)
@@ -203,7 +203,7 @@ describe('control affix has-bare-button compensation', () => {
 		it(`${step}: affix.suffix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
 			const actual = findSpacing(
 				control.affix.suffix[step],
-				'has-[[data-variant=bare]:not([data-has-label])]:pr-[',
+				'has-[[data-variant=bare]:not([data-has-label])]:pe-[',
 			)
 
 			expect(actual).toBe(expected)
@@ -237,7 +237,7 @@ describe('control affix has-bare-button compensation', () => {
 // `density.px` on the affixed side only, gated on the slot's `data-slot`
 // via `group-has` against the frame group:
 //
-//   autofill.ml(has-prefix) = autofill.mr(has-suffix) = input.px
+//   autofill.ms(has-prefix) = autofill.me(has-suffix) = input.px
 //
 // The margins ride the `density` axis so every control input carries
 // them without per-kata wiring. The test parses the live values; if
@@ -249,19 +249,19 @@ describe('control affix autofill margin', () => {
 		const hostPx = findSpacing(control.density[step], 'px-[')
 
 		it(`${step}: autofill margins track input.px (${hostPx}) beside the affixed side`, () => {
-			const ml = findSpacing(
+			const ms = findSpacing(
 				[control.affix.autofill.prefix[step]],
-				'group-has-[[data-slot=prefix]]/control:autofill:ml-[',
+				'group-has-[[data-slot=prefix]]/control:autofill:ms-[',
 			)
 
-			const mr = findSpacing(
+			const me = findSpacing(
 				[control.affix.autofill.suffix[step]],
-				'group-has-[[data-slot=suffix]]/control:autofill:mr-[',
+				'group-has-[[data-slot=suffix]]/control:autofill:me-[',
 			)
 
-			expect(ml).toBe(hostPx)
+			expect(ms).toBe(hostPx)
 
-			expect(mr).toBe(hostPx)
+			expect(me).toBe(hostPx)
 		})
 
 		it(`${step}: the density axis carries both autofill margins`, () => {

@@ -16,6 +16,12 @@
  * boundary test at `__tests__/boundary/affix-compensation-boundary.test.ts`
  * pins both against the live recipes.
  *
+ * The frame is a flex row, so a prefix sits at the inline start and a
+ * suffix at the inline end. In a right-to-left control the slots mirror.
+ * Thus every pad and margin here is logical (`ps` / `pe`, `ms` / `me`),
+ * and mirrors with its slot. The browser test at
+ * `__tests__/browser/input-affix-rtl.test.tsx` pins the pad side.
+ *
  * An icon-only bare `<Button>` carries no outer chrome, so its glyph
  * aligns to the text line rather than the chip-content line. The override
  * subtracts the button's stepped-down compound padding (`kata/button.ts`)
@@ -48,8 +54,8 @@
  * highlight paints the inner input's full box, which sits flush against
  * an affix slot. The slot's padding faces the frame edge, not the input,
  * so the fill dead-ends into the slot content. Each entry insets the
- * highlight by `density.px` on the affixed side only: `autofill:ml`
- * beside a prefix, `autofill:mr` beside a suffix. It is gated on the
+ * highlight by `density.px` on the affixed side only: `autofill:ms`
+ * beside a prefix, `autofill:me` beside a suffix. It is gated on the
  * slot's presence via `group-has` against the frame's `group/control`. The
  * margins ride the `density` axis (`./density.ts`), so every control
  * input carries them. On elements that can't match `:autofill` (the
@@ -69,66 +75,66 @@ const { icon } = shaku
 export const affix = {
 	prefix: {
 		sm: [
-			padding.pl('2.5'),
+			padding.ps('2.5'),
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(1.75)-1px)]',
+			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
-			padding.pl('3'),
+			padding.ps('3'),
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
-			padding.pl('3.5'),
+			padding.ps('3.5'),
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:pl-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pl-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pl-[calc(--spacing(2.25)-1px)]',
+			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(2.25)-1px)]',
 		],
 	},
 	suffix: {
 		sm: [
-			padding.pr('2.5'),
+			padding.pe('2.5'),
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(1.75)-1px)]',
+			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(1.75)-1px)]',
 		],
 		md: [
-			padding.pr('3'),
+			padding.pe('3'),
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(2)-1px)]',
 		],
 		lg: [
-			padding.pr('3.5'),
+			padding.pe('3.5'),
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:pr-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pr-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pr-[calc(--spacing(2.25)-1px)]',
+			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(2.25)-1px)]',
 		],
 	},
 	autofill: {
 		prefix: {
-			sm: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(2.5)-1px)]',
-			md: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(3)-1px)]',
-			lg: 'group-has-[[data-slot=prefix]]/control:autofill:ml-[calc(--spacing(3.5)-1px)]',
+			sm: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(2.5)-1px)]',
+			md: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(3)-1px)]',
+			lg: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(3.5)-1px)]',
 		},
 		suffix: {
-			sm: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(2.5)-1px)]',
-			md: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(3)-1px)]',
-			lg: 'group-has-[[data-slot=suffix]]/control:autofill:mr-[calc(--spacing(3.5)-1px)]',
+			sm: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(2.5)-1px)]',
+			md: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(3)-1px)]',
+			lg: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(3.5)-1px)]',
 		},
 	},
 } as const

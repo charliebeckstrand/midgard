@@ -5,7 +5,7 @@
  *   - `layers`: the signature inset-fill-plus-rings stack (base /
  *     inset / overlay / hover / focus / validation / disabled / all).
  *   - `padding`: ring-compensated padding helpers
- *     (p / px / py / pl / pr). Each `padding.px('2')` returns the
+ *     (p / px / py / ps / pe). Each `padding.px('2')` returns the
  *     padding class with 1 px subtracted, landing inside the outer ring.
  *   - `radius`: ring-compensated corner radii (r / ri / ro / all).
  *   - `rounded`: pass-through to Tailwind's named radius scale
