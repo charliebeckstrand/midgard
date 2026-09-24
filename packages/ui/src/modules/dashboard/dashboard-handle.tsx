@@ -3,7 +3,7 @@
 import type { DraggableAttributes, DraggableSyntheticListeners } from '@dnd-kit/core'
 import { GripVertical } from 'lucide-react'
 import { Icon } from '../../components/icon'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 
 /** Props for {@link DashboardHandle}. @internal */
@@ -18,6 +18,8 @@ export type DashboardHandleProps = {
 	label: string
 	/** Float the grip on the corner of a tile that has no header row. */
 	floating?: boolean
+	/** Whether the tile is held now, which closes the grab hand. */
+	dragging?: boolean
 }
 
 /**
@@ -33,10 +35,12 @@ export function DashboardHandle({
 	setActivatorNodeRef,
 	label,
 	floating = false,
+	dragging = false,
 }: DashboardHandleProps) {
 	return (
 		<button
 			data-slot="dashboard-handle"
+			data-dragging={dataAttr(dragging)}
 			ref={setActivatorNodeRef}
 			className={cn(k.handle({ floating }))}
 			{...attributes}

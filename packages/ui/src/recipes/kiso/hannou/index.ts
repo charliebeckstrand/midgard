@@ -24,7 +24,7 @@ export const hannou = {
 	disabled,
 	/** Cursor feedback: pointer when interactive, not-allowed when disabled. */
 	cursor,
-	/** A surface the reader drags: the grab cursors, and the touch and selection rules a drag needs. */
+	/** A surface the reader drags: the grab cursors (`cursor`), and with them the touch and selection rules a drag needs (`default`). */
 	grab,
 	/** Hover/focus tint: mode-neutral wash on the active surface. */
 	tint,

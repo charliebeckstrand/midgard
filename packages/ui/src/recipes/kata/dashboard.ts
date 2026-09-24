@@ -4,8 +4,9 @@
  * The widgets inside a tile keep their own recipes.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { iro, sen } from '../kiso'
+import { hannou, iro, sen } from '../kiso'
 
+const { grab } = hannou
 const { text } = iro
 
 /**
@@ -56,7 +57,10 @@ const card = defineRecipe({
 	base: ['relative flex size-full min-h-0 flex-col'],
 	editable: {
 		true: [
-			'cursor-grab select-none active:cursor-grabbing',
+			// The cursors alone: the card keeps touch scrolling, and the grip is the
+			// handle on a touch screen.
+			...grab.cursor,
+			'select-none',
 			'outline-dashed',
 			...mode('outline-zinc-300', 'dark:outline-zinc-700'),
 		],
@@ -97,8 +101,8 @@ const placeholder = [
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
 	base: [
-		'flex size-6 shrink-0 cursor-grab touch-none select-none items-center justify-center rounded-md',
-		'active:cursor-grabbing',
+		'flex size-6 shrink-0 items-center justify-center rounded-md',
+		...grab.default,
 		...text.muted,
 		...mode(
 			'hover:bg-zinc-100 hover:text-zinc-700',

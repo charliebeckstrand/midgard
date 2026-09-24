@@ -291,6 +291,7 @@ function GridGroupManagerGroupZone(props: GridGroupManagerZoneViewProps) {
 		<button
 			type="button"
 			ref={setActivatorNodeRef}
+			data-dragging={dataAttr(dragging)}
 			className={cn(k.manager.row.grip)}
 			aria-label={`Reorder group ${props.zone.group ? columnLabel(props.zone.group) : ''}`}
 			{...attributes}
@@ -492,6 +493,7 @@ function GridGroupManagerColumnRow({
 			<button
 				type="button"
 				ref={setActivatorNodeRef}
+				data-dragging={dataAttr(dragging)}
 				className={cn(k.manager.row.grip)}
 				aria-label={`Reorder ${label}`}
 				{...attributes}
@@ -564,7 +566,8 @@ function GridGroupManagerColumnRowOverlay({
 
 	return (
 		<div className={cn(k.manager.row.root, k.manager.row.overlay)} data-dragging="">
-			<span className={cn(k.manager.row.grip)}>
+			{/* The pointer rides the overlay, so its grip shows the held hand. */}
+			<span data-dragging="" className={cn(k.manager.row.grip)}>
 				<Icon icon={<GripVertical />} />
 			</span>
 

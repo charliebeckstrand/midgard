@@ -156,7 +156,12 @@ export function DashboardTile({
 	const hasHeader = title !== undefined || description !== undefined || actions !== undefined
 
 	const handle = movable && (
-		<DashboardHandle {...drag.grip} label={`Move ${label}`} floating={!hasHeader} />
+		<DashboardHandle
+			{...drag.grip}
+			label={`Move ${label}`}
+			floating={!hasHeader}
+			dragging={drag.dragging}
+		/>
 	)
 
 	const carried = drag.carried
@@ -179,6 +184,8 @@ export function DashboardTile({
 				bg="surface"
 				{...(title === undefined ? {} : { role: 'group', 'aria-labelledby': titleId })}
 				{...(movable ? drag.surface : {})}
+				// The pointer drags the card itself, so the card closes the grab hand too.
+				data-dragging={dataAttr(drag.dragging)}
 				className={cn(k.card({ editable: movable, dragging: drag.dragging }))}
 			>
 				{!hasHeader && handle}

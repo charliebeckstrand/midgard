@@ -104,8 +104,8 @@ export const k = {
 	 * docked to a side, the area is the full height, so the reach is the panel's
 	 * rather than the bar's. A sheet docked across gets a strip on its edge, not
 	 * a cover over the whole panel.
-	 * `hannou.grab` carries the rest, including the `touch-none` that makes the
-	 * gesture work at all under a finger.
+	 * `hannou.grab.default` carries the rest, including the `touch-none` that
+	 * makes the gesture work at all under a finger.
 	 *
 	 * `side` puts it on the edge that faces the screen: a right-hand sheet grows
 	 * leftward, so its grip is on the left.
@@ -117,7 +117,7 @@ export const k = {
 			// a `w-1.5` bar is the `py-3` around its `h-1.5` one, so both panels are
 			// grabbed by a strip of the same thickness.
 			'absolute z-10 px-3 items-center justify-center',
-			...hannou.grab,
+			...hannou.grab.default,
 			// The stroke goes on the bar, not here — see the archetype's grip. This
 			// suppresses the browser's own, which would draw around the whole reach.
 			'outline-hidden',
