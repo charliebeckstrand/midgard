@@ -100,6 +100,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 		reference,
 		labels,
 		onCategoryClick,
+		selectedCategories,
 		onHiddenChange,
 		formatValue,
 		className,
