@@ -1506,7 +1506,8 @@ export function GridData<T>({
 				active={needsScrollWrapper}
 				scrollRef={scrollRef}
 				maxHeight={maxHeight}
-				clampAnchor={detail.active && !gated.virtualize}
+				expandable={detail.active}
+				virtualized={gated.virtualize}
 			>
 				{cursorContent}
 			</GridScrollRegion>
