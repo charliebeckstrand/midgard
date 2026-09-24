@@ -6,7 +6,7 @@ import {
 	type Virtualizer,
 	type VirtualizerOptions,
 } from '@tanstack/react-virtual'
-import { useEffect, useMemo, useReducer } from 'react'
+import { useCallback, useEffect, useMemo, useReducer } from 'react'
 
 /** Options for {@link useVirtualWindow}: the item count, the size estimate, and the overscan. */
 export type VirtualWindowOptions = {
@@ -89,7 +89,10 @@ export type MeasuredVirtualWindowOptions = VirtualWindowOptions & {
  * viewport changes size, in each scroll direction. The library default makes
  * no adjustment while the reader scrolls up, so the content in view drifts by
  * the height difference. The measured path sets this, and the uniform path
- * keeps the default.
+ * keeps the default. A row under sticky content at the top edge, which
+ * `scrollPaddingStart` names, is above the viewport too, because the reader
+ * cannot see it. An empty row that ends at the top edge is above it as well.
+ * Rows that an insert adds there at 0 pixels sit before the first row in view.
  *
  * @internal
  */
@@ -97,7 +100,11 @@ const adjustAboveViewport = (
 	item: VirtualItem,
 	_delta: number,
 	instance: Virtualizer<HTMLElement, Element>,
-): boolean => item.start < (instance.scrollOffset ?? 0)
+): boolean => {
+	const top = (instance.scrollOffset ?? 0) + instance.options.scrollPaddingStart
+
+	return item.start < top || item.end <= top
+}
 
 type VirtualWindow = {
 	/**
@@ -139,6 +146,19 @@ type MeasuredVirtualWindow = VirtualWindow & {
 	 * the removal then moves nothing.
 	 */
 	resizeItem: (index: number, size: number) => void
+	/**
+	 * Returns the start in pixels of the row at `index` in the last render, or
+	 * `undefined` past the end. It includes the scroll margin, as the scroll
+	 * offset does. A caller reads it to hold a row still across a list change.
+	 */
+	getItemStart: (index: number) => number | undefined
+	/**
+	 * Moves the scroll offset to `offset` at once. The virtualizer takes the new
+	 * offset without the wait for a `scroll` event, so the next render places
+	 * its window there. Call it from a layout effect, and the move lands before
+	 * the paint.
+	 */
+	setScrollOffset: (offset: number) => void
 }
 
 /**
@@ -164,13 +184,17 @@ type MeasuredVirtualWindow = VirtualWindow & {
  *
  * On the measured path a row above the viewport can measure while the reader
  * scrolls up. The hook then moves the scroll offset by the height difference,
- * so the rows in view do not move. The library default skips this adjustment
+ * so the rows in view do not move. A row under the sticky content that
+ * `scrollPaddingStart` names counts as above the viewport. The library default skips this adjustment
  * during a scroll up, and the content drifts. The uniform path keeps the
  * default, because its rows do not measure.
  *
  * An insert or a removal is not a resize, so the virtualizer does not move
  * the scroll offset for it. A caller that removes a row above the viewport
  * first sets its height to 0 through `resizeItem`, and the offset then moves.
+ * A caller that inserts rows above the viewport reads the new start of the
+ * first row in view through `getItemStart`. It then moves the offset by the
+ * difference through `setScrollOffset`.
  *
  * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
@@ -277,6 +301,27 @@ export function useVirtualWindow({
 	// Without this it measures zero, and the window stays empty for good.
 	const bottomSpacer = lastItem ? totalSize - (lastItem.end - margin) : totalSize
 
+	// A `scroll` event reaches the virtualizer a frame later. A render before it
+	// would place the window at the old offset, so the offset is written here too.
+	const setScrollOffset = useCallback(
+		(offset: number) => {
+			const element = virtualizer.scrollElement
+
+			if (!element) return
+
+			element.scrollTop = offset
+
+			virtualizer.scrollOffset = element.scrollTop
+		},
+		[virtualizer],
+	)
+
+	// The measurements of the last render. A row outside the window has one too.
+	const getItemStart = useCallback(
+		(index: number) => virtualizer.measurementsCache[index]?.start,
+		[virtualizer],
+	)
+
 	return {
 		virtualItems,
 		topSpacer,
@@ -284,5 +329,7 @@ export function useVirtualWindow({
 		scrollToIndex: virtualizer.scrollToIndex,
 		measureRef: virtualizer.measureElement,
 		resizeItem: virtualizer.resizeItem,
+		getItemStart,
+		setScrollOffset,
 	}
 }

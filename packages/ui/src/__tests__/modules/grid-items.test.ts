@@ -116,6 +116,30 @@ describe('groupedWindowItems', () => {
 		])
 	})
 
+	it('drops the other rows of a collapsed group under their open keys', () => {
+		const closing = new Map([['role:B', new Set(['total:role:B'])]])
+
+		const items = groupedWindowItems(groups, {
+			totalled: true,
+			closing,
+			dropping: new Set(['role:B']),
+		})
+
+		expect(
+			items
+				.slice(5)
+				.map((item) => [
+					item.key,
+					item.position,
+					item.kind !== 'group' && item.closing,
+					item.dropping,
+				]),
+		).toEqual([
+			['leaf:3', -1, true, true],
+			['closing-total:role:B', -1, true, false],
+		])
+	})
+
 	it('counts the exposed items without the list', () => {
 		for (const totalled of [false, true]) {
 			const items = groupedWindowItems(groups, { totalled, closing: NO_CLOSING })
@@ -140,6 +164,18 @@ describe('detailWindowItems', () => {
 		expect(items.map((item) => item.position)).toEqual([0, 1, 2, 3])
 
 		expect(detailWindowRowCount(rows, rowKeys, expansion)).toBe(items.length)
+	})
+
+	it('keeps a dropping panel as an item for one commit', () => {
+		const items = detailWindowItems({
+			rows,
+			rowKeys,
+			expansion,
+			closing: new Set(),
+			dropping: new Set([1]),
+		})
+
+		expect(items[1]).toMatchObject({ key: 'detail:1', closing: true, dropping: true, position: -1 })
 	})
 
 	it('keeps a closing panel as an item that assistive tech does not count', () => {

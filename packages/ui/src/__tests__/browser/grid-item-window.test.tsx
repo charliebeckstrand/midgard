@@ -37,6 +37,7 @@ describe('useGridItemWindow (real browser)', () => {
 				stickyHeader: true,
 			},
 			snapshot,
+			{ dropped: null, anchored: null },
 		)
 
 		handle.scrollToIndex = win.scrollToIndex

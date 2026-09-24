@@ -31,14 +31,24 @@ describe('grid virtualized grouped body (real browser)', () => {
 	/** The count of items with every group open: 8 headers, 400 leaves, 8 totals. */
 	const ITEMS = ROLES.length + people.length + ROLES.length
 
-	function renderGrid({ virtualize = true, overscan = 4 } = {}) {
+	/**
+	 * Many small groups: 40 groups of 20 rows. Their collapsed headers alone
+	 * still overflow the viewport, so a collapse of every group can keep the
+	 * view where it is.
+	 */
+	const manyGroups: Person[] = people.map((person, i) => ({
+		...person,
+		role: `Team ${String(Math.floor(i / 10) % 40).padStart(2, '0')}`,
+	}))
+
+	function renderGrid({ virtualize = true, overscan = 4, rows = people, expanded = true } = {}) {
 		const view = renderUI(
 			<div style={{ width: 560 }}>
 				<Grid<Person>
 					columns={columns}
-					rows={people}
+					rows={rows}
 					getKey={(r) => r.id}
-					groupBy={{ value: 'role' }}
+					groupBy={{ value: 'role', defaultExpanded: expanded }}
 					groupTotalRow
 					truncate={false}
 					maxHeight="400px"
@@ -280,5 +290,138 @@ describe('grid virtualized grouped body (real browser)', () => {
 		)
 
 		expect(kinds).toEqual(new Set(['group', 'leaf', 'total']))
+	})
+
+	/**
+	 * Samples the anchor's offset from its first position after each of `count`
+	 * paints. A task that a frame callback queues runs after that frame paints.
+	 * `start` is read before the change.
+	 * The anchor is found again on each sample, and a missing anchor has left the
+	 * window, which is an infinite drift.
+	 */
+	async function sampleDrift(
+		anchor: () => HTMLElement | null,
+		start: number,
+		count: number,
+	): Promise<number> {
+		let drift = 0
+
+		for (let i = 0; i < count; i++) {
+			await new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve, 0)))
+
+			const top = anchor()?.getBoundingClientRect().top ?? Number.POSITIVE_INFINITY
+
+			drift = Math.max(drift, Math.abs(top - start))
+		}
+
+		return drift
+	}
+
+	/** Opens the group menu on `header` and picks the item with `name`. */
+	async function groupMenu(header: HTMLElement, name: string) {
+		const box = header.getBoundingClientRect()
+
+		header.dispatchEvent(
+			new MouseEvent('contextmenu', {
+				bubbles: true,
+				cancelable: true,
+				clientX: box.left + 10,
+				clientY: box.top + 5,
+			}),
+		)
+
+		const item = await waitFor(() => screen.getByRole('menuitem', { name }))
+
+		item.click()
+	}
+
+	it('holds the view still when groups above the viewport collapse and expand', async () => {
+		const { scroll, body } = renderGrid({ rows: manyGroups })
+
+		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+
+		const head = present(scroll.querySelector('thead th'), 'a head cell')
+
+		// Find a group header in the middle of the list, with several groups above.
+		let header: HTMLElement | undefined
+
+		for (let top = 8000; !header && top < scroll.scrollHeight; top += 300) {
+			scroll.scrollTop = top
+
+			await settle(2)
+
+			header = itemRows(body).find(
+				(row) =>
+					row.hasAttribute('data-group-row') &&
+					row.getBoundingClientRect().top > head.getBoundingClientRect().bottom,
+			)
+		}
+
+		const key = present(header, 'a group header in the middle').dataset.groupKey
+
+		const anchor = () => body.querySelector<HTMLElement>(`:scope > tr[data-group-key="${key}"]`)
+
+		// Put the header first in view, just below the sticky head.
+		scroll.scrollTop +=
+			present(anchor(), 'the anchor').getBoundingClientRect().top -
+			head.getBoundingClientRect().bottom
+
+		await settle(4)
+
+		// Several groups sit above the viewport.
+		expect(scroll.scrollTop).toBeGreaterThan(5000)
+
+		const top = () => present(anchor(), 'the anchor').getBoundingClientRect().top
+
+		const beforeCollapse = top()
+
+		await groupMenu(present(anchor(), 'the anchor'), 'Collapse all groups')
+
+		const collapseDrift = await sampleDrift(anchor, beforeCollapse, 30)
+
+		expect(collapseDrift).toBeLessThanOrEqual(1)
+
+		const beforeExpand = top()
+
+		await groupMenu(present(anchor(), 'the anchor'), 'Expand all groups')
+
+		const expandDrift = await sampleDrift(anchor, beforeExpand, 30)
+
+		expect(expandDrift).toBeLessThanOrEqual(1)
+	})
+
+	it('holds the view still when groups that never rendered expand above the viewport', async () => {
+		const { scroll, body } = renderGrid({ rows: manyGroups, expanded: false })
+
+		await waitFor(() => expect(itemRows(body).length).toBeGreaterThan(0))
+
+		const head = present(scroll.querySelector('thead th'), 'a head cell')
+
+		// Only the headers show, and no leaf has measured. Put a header from the
+		// middle first in view, so that half of the groups sit above it.
+		scroll.scrollTop = 800
+
+		await settle(2)
+
+		const header = present(
+			itemRows(body).find(
+				(row) => row.getBoundingClientRect().top > head.getBoundingClientRect().bottom,
+			),
+			'a group header in view',
+		)
+
+		const key = header.dataset.groupKey
+
+		const anchor = () => body.querySelector<HTMLElement>(`:scope > tr[data-group-key="${key}"]`)
+
+		scroll.scrollTop += header.getBoundingClientRect().top - head.getBoundingClientRect().bottom
+
+		await settle(4)
+
+		const before = present(anchor(), 'the anchor').getBoundingClientRect().top
+
+		await groupMenu(present(anchor(), 'the anchor'), 'Expand all groups')
+
+		expect(await sampleDrift(anchor, before, 30)).toBeLessThanOrEqual(1)
 	})
 })

@@ -17,11 +17,15 @@ import { hasAggregation } from '../grid-aggregate'
  * the open height. `position` is the 0-based place among the rows that
  * assistive tech sees, and it is `-1` for a closing row.
  *
+ * A dropping row is a row of a collapsed group that does not animate. It stays
+ * for one commit under its open key, which sets its height to 0, and then it
+ * leaves (see {@link GridWindowItemFlags}).
+ *
  * @internal
  */
 export type GridGroupedWindowItem<T> =
-	| { kind: 'group'; key: string; reactKey: string; position: number; group: Row<T> }
-	| {
+	| ({ kind: 'group'; key: string; reactKey: string; position: number; group: Row<T> } & NoFlags)
+	| ({
 			kind: 'leaf'
 			key: string
 			reactKey: string
@@ -29,15 +33,28 @@ export type GridGroupedWindowItem<T> =
 			group: Row<T>
 			leaf: Row<T>
 			closing: boolean
-	  }
-	| {
+	  } & GridWindowItemFlags)
+	| ({
 			kind: 'total'
 			key: string
 			reactKey: string
 			position: number
 			group: Row<T>
 			closing: boolean
-	  }
+	  } & GridWindowItemFlags)
+
+/**
+ * The flag that the drop step of the shared window reads from an item.
+ * `dropping` marks an item that leaves the list after this commit. The step
+ * sets its height to 0 first. A row above the viewport then moves the scroll
+ * offset, so the removal does not move the rows in view.
+ *
+ * @internal
+ */
+export type GridWindowItemFlags = { dropping: boolean }
+
+/** The flag of an item that never drops. @internal */
+type NoFlags = { dropping?: undefined }
 
 /**
  * One row of a windowed master-detail body. A data row is `row:<rowKey>`, and a
@@ -52,8 +69,10 @@ export type GridDetailWindowItem = {
 	reactKey: string
 	position: number
 	dataIndex: number
-	/** Whether a detail panel is closing. It is always `false` on a data row. */
+	/** Whether a detail panel is closing or dropping. It is always `false` on a data row. */
 	closing: boolean
+	/** Whether a detail panel leaves the list after this commit (see {@link GridWindowItemFlags}). */
+	dropping: boolean
 }
 
 /** The open key of a leaf, which is also its React key. @internal */
@@ -69,17 +88,23 @@ export function totalItemKey(groupId: string): string {
 /**
  * Builds the item list of a windowed grouped body. An expanded group gives its
  * header, its leaves, and its total. A collapsed group gives its header, plus
- * the rows that `closing` holds for it. Those are the rows that were in the
- * window when the group collapsed, and they stay until their reveal lands.
+ * the rows that `closing` holds for it. Those are the rows that were in view
+ * when the group collapsed, and they stay until their reveal lands. A group in
+ * `dropping` also gives each of its other rows, as a dropping item.
  *
  * @param groups - The group rows, in display order.
  * @param args.totalled - Whether each group shows a total row.
  * @param args.closing - For each group id, the open keys of its closing rows.
+ * @param args.dropping - The ids of the collapsed groups whose rows drop in this commit.
  * @internal
  */
 export function groupedWindowItems<T>(
 	groups: Row<T>[],
-	args: { totalled: boolean; closing: ReadonlyMap<string, ReadonlySet<string>> },
+	args: {
+		totalled: boolean
+		closing: ReadonlyMap<string, ReadonlySet<string>>
+		dropping?: ReadonlySet<string>
+	},
 ): GridGroupedWindowItem<T>[] {
 	const items: GridGroupedWindowItem<T>[] = []
 
@@ -96,11 +121,18 @@ export function groupedWindowItems<T>(
 			group,
 		})
 
-		// An open group shows every row. A collapsed group shows only its closing rows.
-		const closing = group.getIsExpanded() ? null : (args.closing.get(group.id) ?? new Set())
+		// An open group shows every row. A collapsed group shows only its closing
+		// rows, plus its dropping rows for one commit.
+		const state: RowState = group.getIsExpanded()
+			? { open: true }
+			: {
+					open: false,
+					closing: args.closing.get(group.id) ?? NO_KEYS,
+					dropping: args.dropping?.has(group.id) ?? false,
+				}
 
 		for (const leaf of group.subRows) {
-			pushRow(items, cursor, closing, {
+			pushRow(items, cursor, state, {
 				kind: 'leaf',
 				reactKey: leafItemKey(leaf.id),
 				closingKey: `closing:${leaf.id}`,
@@ -110,7 +142,7 @@ export function groupedWindowItems<T>(
 		}
 
 		if (args.totalled) {
-			pushRow(items, cursor, closing, {
+			pushRow(items, cursor, state, {
 				kind: 'total',
 				reactKey: totalItemKey(group.id),
 				closingKey: `closing-total:${group.id}`,
@@ -122,28 +154,42 @@ export function groupedWindowItems<T>(
 	return items
 }
 
+const NO_KEYS: ReadonlySet<string> = new Set()
+
+/** The state of one group's rows, as {@link pushRow} reads it. @internal */
+type RowState = { open: true } | { open: false; closing: ReadonlySet<string>; dropping: boolean }
+
 /**
- * Pushes one leaf or total of a group. `closing` is `null` for an open group,
- * and the open keys of the closing rows for a collapsed one. An open row takes
- * the next position. A closing row takes its closing key and no position. A
- * collapsed row that is not closing is not an item.
+ * Pushes one leaf or total of a group. An open row takes the next position.
+ * A closing row takes its
+ * closing key and no position. A dropping row keeps its open key, so its zero
+ * height lands in the cache of the open row. Any other collapsed row is not an
+ * item.
  *
  * @internal
  */
 function pushRow<T>(
 	items: GridGroupedWindowItem<T>[],
 	cursor: { position: number },
-	closing: ReadonlySet<string> | null,
+	state: RowState,
 	row:
 		| { kind: 'leaf'; reactKey: string; closingKey: string; group: Row<T>; leaf: Row<T> }
 		| { kind: 'total'; reactKey: string; closingKey: string; group: Row<T> },
 ): void {
 	const { closingKey, ...rest } = row
 
-	if (closing === null) {
-		items.push({ ...rest, key: row.reactKey, position: cursor.position++, closing: false })
-	} else if (closing.has(row.reactKey)) {
-		items.push({ ...rest, key: closingKey, position: -1, closing: true })
+	if (state.open) {
+		items.push({
+			...rest,
+			key: row.reactKey,
+			position: cursor.position++,
+			closing: false,
+			dropping: false,
+		})
+	} else if (state.closing.has(row.reactKey)) {
+		items.push({ ...rest, key: closingKey, position: -1, closing: true, dropping: false })
+	} else if (state.dropping) {
+		items.push({ ...rest, key: row.reactKey, position: -1, closing: true, dropping: true })
 	}
 }
 
@@ -181,9 +227,10 @@ function detailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>)
 /**
  * Builds the item list of a windowed master-detail body. Each data row is an
  * item. An open detail panel follows its row as an item. A closed one is not
- * an item, except while `closing` holds its row key.
+ * an item, except while `closing` or `dropping` holds its row key.
  *
  * @param args.closing - The row keys of the detail panels that are closing.
+ * @param args.dropping - The row keys of the detail panels that drop in this commit.
  * @internal
  */
 export function detailWindowItems<T>(args: {
@@ -191,6 +238,7 @@ export function detailWindowItems<T>(args: {
 	rowKeys: (string | number)[]
 	expansion: DetailWiring<T>
 	closing: ReadonlySet<string | number>
+	dropping?: ReadonlySet<string | number>
 }): GridDetailWindowItem[] {
 	const items: GridDetailWindowItem[] = []
 
@@ -201,11 +249,21 @@ export function detailWindowItems<T>(args: {
 
 		const key = `row:${rowKey}`
 
-		items.push({ kind: 'row', key, reactKey: key, position: position++, dataIndex, closing: false })
+		items.push({
+			kind: 'row',
+			key,
+			reactKey: key,
+			position: position++,
+			dataIndex,
+			closing: false,
+			dropping: false,
+		})
 
 		const open = detailOpen(row, rowKey, args.expansion)
 
-		if (!open && !args.closing.has(rowKey)) return
+		const dropping = !open && (args.dropping?.has(rowKey) ?? false)
+
+		if (!open && !dropping && !args.closing.has(rowKey)) return
 
 		const detailKey = `detail:${rowKey}`
 
@@ -216,6 +274,7 @@ export function detailWindowItems<T>(args: {
 			position: open ? position++ : -1,
 			dataIndex,
 			closing: !open,
+			dropping,
 		})
 	})
 

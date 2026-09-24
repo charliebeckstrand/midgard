@@ -5,6 +5,7 @@ import {
 	type ComponentProps,
 	type RefObject,
 	type TransitionEvent,
+	useCallback,
 	useEffect,
 	useMemo,
 	useRef,
@@ -25,8 +26,9 @@ import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
 import type { GridRowsProps } from './grid-row'
 import { GridTotalRow } from './grid-total-row'
-import { GridWindowBody } from './grid-window-body'
+import { GridWindowBody, GridWindowDropRow } from './grid-window-body'
 import {
+	aboveViewport,
 	type GridItemWindowOptions,
 	type GridWindowSnapshot,
 	NO_WINDOW_SNAPSHOT,
@@ -43,7 +45,7 @@ const RELEASE_FALLBACK_MS = 1000
 
 const NO_CLOSING: ReadonlyMap<string, ReadonlySet<string>> = new Map()
 
-const NO_ENTERING: ReadonlySet<string> = new Set()
+const NO_KEYS: ReadonlySet<string> = new Set()
 
 /**
  * The motion state of the windowed grouped body.
@@ -51,15 +53,28 @@ const NO_ENTERING: ReadonlySet<string> = new Set()
  * - `expanded` is the expansion of each group at the last render.
  * - `closing` holds, for each collapsing group, the open keys of the rows that
  *   stay as items until their reveal lands.
+ * - `dropping` holds the ids of the collapsed groups whose other rows drop in
+ *   the next commit (see `useGridItemWindow`).
  * - `entering` holds the open keys of the rows that mount closed and open over
  *   the transition.
+ * - `anchoring` asks the window to hold the first row in view still, because an
+ *   expand can insert rows above it.
  *
  * @internal
  */
 type GroupMotion = {
 	expanded: ReadonlyMap<string, boolean>
 	closing: ReadonlyMap<string, ReadonlySet<string>>
+	dropping: ReadonlySet<string>
 	entering: ReadonlySet<string>
+	anchoring: boolean
+}
+
+/** The sets that {@link applyGroupToggle} writes. @internal */
+type GroupMotionSets = {
+	closing: Map<string, ReadonlySet<string>>
+	dropping: Set<string>
+	entering: Set<string>
 }
 
 /** The expansion of each group, by group id. @internal */
@@ -82,29 +97,46 @@ type GroupMotionArgs = {
 	reducedMotion: boolean
 	snapshot: GridWindowSnapshot
 	rowHeight: number
+	/** Whether the item with a key ended above the viewport in the last commit. */
+	above: (key: string) => boolean
+}
+
+/** Whether the rendered item with `key` started at or below the visible top edge. @internal */
+function inView(snapshot: GridWindowSnapshot, key: string): boolean {
+	const item = snapshot.items.get(key)
+
+	return item != null && item.start >= snapshot.viewTop
 }
 
 /**
- * Applies one group's toggle to the closing and entering sets. A collapse keeps
- * the group's rows that the last window rendered. An expand makes the first
- * rows that fit in one viewport enter. Reduced motion keeps no closing rows and
- * makes no row enter.
+ * Applies one group's toggle to the motion sets.
+ *
+ * - A collapse keeps the group's rows in view as closing rows. Every other row
+ *   drops, so a row above the viewport goes to 0 pixels before it leaves.
+ * - An expand below the viewport top makes the first rows that fit in one
+ *   viewport enter.
+ * - An expand of a group whose header is above the viewport inserts its rows
+ *   above the viewport. They do not animate, and the anchor step of the window
+ *   holds the rows in view still.
+ * - Reduced motion keeps no closing rows and makes no row enter.
  *
  * @internal
  */
 function applyGroupToggle<T>(
 	group: Row<T>,
 	open: boolean,
-	sets: { closing: Map<string, ReadonlySet<string>>; entering: Set<string> },
+	sets: GroupMotionSets,
 	args: GroupMotionArgs,
 ): void {
 	sets.closing.delete(group.id)
 
-	if (args.reducedMotion) return
+	sets.dropping.delete(group.id)
 
 	const keys = rowKeysOf(group, args.totalled)
 
 	if (open) {
+		if (args.reducedMotion || args.above(`group:${group.id}`)) return
+
 		// The rows that fit in one viewport. Only these animate open.
 		const bound = Math.ceil(args.snapshot.viewport / Math.max(args.rowHeight, 1))
 
@@ -113,7 +145,11 @@ function applyGroupToggle<T>(
 		return
 	}
 
-	const shown = new Set(keys.filter((key) => args.snapshot.items.has(key)))
+	sets.dropping.add(group.id)
+
+	if (args.reducedMotion) return
+
+	const shown = new Set(keys.filter((key) => inView(args.snapshot, key)))
 
 	if (shown.size > 0) sets.closing.set(group.id, shown)
 }
@@ -137,7 +173,11 @@ function nextGroupMotion<T>(
 
 	if (!changed) return null
 
-	const sets = { closing: new Map(motion.closing), entering: new Set(motion.entering) }
+	const sets: GroupMotionSets = {
+		closing: new Map(motion.closing),
+		dropping: new Set(motion.dropping),
+		entering: new Set(motion.entering),
+	}
 
 	for (const group of groups) {
 		const was = motion.expanded.get(group.id)
@@ -147,7 +187,12 @@ function nextGroupMotion<T>(
 		if (was !== undefined && was !== now) applyGroupToggle(group, now, sets, args)
 	}
 
-	return { expanded, ...sets }
+	// An expand can insert rows above the first row in view.
+	const anchoring = groups.some(
+		(group) => motion.expanded.get(group.id) === false && expanded.get(group.id) === true,
+	)
+
+	return { expanded, ...sets, anchoring: motion.anchoring || anchoring }
 }
 
 /**
@@ -166,7 +211,9 @@ function useGroupMotion<T>(
 	const [motion, setMotion] = useState<GroupMotion>(() => ({
 		expanded: expansionOf(groups),
 		closing: NO_CLOSING,
-		entering: NO_ENTERING,
+		dropping: NO_KEYS,
+		entering: NO_KEYS,
+		anchoring: false,
 	}))
 
 	const next = nextGroupMotion(motion, groups, {
@@ -174,6 +221,7 @@ function useGroupMotion<T>(
 		reducedMotion,
 		snapshot: args.snapshot.current,
 		rowHeight: args.rowHeight,
+		above: aboveViewport(args.snapshot.current),
 	})
 
 	if (next) setMotion(next)
@@ -181,7 +229,7 @@ function useGroupMotion<T>(
 	// The entering rows mounted in the commit that the expand started. A row that
 	// mounts later, as the reader scrolls, mounts open.
 	useEffect(() => {
-		if (motion.entering.size > 0) setMotion((current) => ({ ...current, entering: NO_ENTERING }))
+		if (motion.entering.size > 0) setMotion((current) => ({ ...current, entering: NO_KEYS }))
 	}, [motion.entering])
 
 	// A closing row that left the window sends no `transitionend`.
@@ -207,7 +255,11 @@ function useGroupMotion<T>(
 			return { ...current, closing }
 		})
 
-	return { motion, release }
+	const dropped = useCallback(() => setMotion((current) => ({ ...current, dropping: NO_KEYS })), [])
+
+	const anchored = useCallback(() => setMotion((current) => ({ ...current, anchoring: false })), [])
+
+	return { motion, release, dropped, anchored }
 }
 
 /** Props for {@link GridVirtualizedGroupedBody}. @internal */
@@ -237,11 +289,17 @@ type GridVirtualizedGroupedBodyProps<T> = {
  * view plus overscan. Each row measures its own height.
  *
  * @remarks A collapsed group gives no leaf items. A collapse keeps the group's
- * rendered rows as items until their reveal lands. Each takes a virtual key of
- * its own meanwhile, so the open height stays cached. The React key stays the open key, so
- * each row keeps its node and its transition. An expand makes only the rows
- * that fit in one viewport mount closed and open over the transition. The
- * other rows mount open. Reduced motion keeps neither.
+ * rows in view as items until their reveal lands. Each takes a virtual key of
+ * its own meanwhile, so the open height stays cached. The React key stays the
+ * open key, so each row keeps its node and its transition. Every other row of
+ * the group goes through the drop step of `useGridItemWindow`. A row above the
+ * viewport then goes to 0 pixels before it leaves, so the rows in view hold
+ * still.
+ *
+ * An expand makes only the rows that fit in one viewport mount closed and open
+ * over the transition. The other rows mount open. An expand also runs the
+ * anchor step, so rows inserted above the viewport do not move the rows in
+ * view. Reduced motion keeps no closing rows and makes no row enter.
  *
  * Each exposed row carries `aria-rowindex` over the item list. A closing row is
  * hidden from assistive tech, and it carries no index.
@@ -264,7 +322,7 @@ export function GridVirtualizedGroupedBody<T>({
 	// The last commit's window, which the motion reads when a group toggles.
 	const snapshot = useRef(NO_WINDOW_SNAPSHOT)
 
-	const { motion, release } = useGroupMotion(groups, {
+	const { motion, release, dropped, anchored } = useGroupMotion(groups, {
 		totalled,
 		snapshot,
 		rowHeight: window.estimateSize,
@@ -272,16 +330,19 @@ export function GridVirtualizedGroupedBody<T>({
 
 	// The engine can keep the group rows when a group toggles, so the list also
 	// rebuilds on each new expansion snapshot.
-	const { expanded, closing } = motion
+	const { expanded, closing, dropping, anchoring } = motion
 
 	const items = useMemo(() => {
 		void expanded
 
-		return groupedWindowItems(groups, { totalled, closing })
-	}, [groups, totalled, closing, expanded])
+		return groupedWindowItems(groups, { totalled, closing, dropping })
+	}, [groups, totalled, closing, dropping, expanded])
 
 	const { bodyRef, revealEndIndex, virtualItems, topSpacer, bottomSpacer, measureRef } =
-		useGridItemWindow(items, window, snapshot)
+		useGridItemWindow(items, window, snapshot, {
+			dropped: dropping.size > 0 ? dropped : null,
+			anchored: anchoring ? anchored : null,
+		})
 
 	const colorOf = (group: Row<T>) =>
 		presentation?.color(group.getGroupingValue(String(columnId)) as string | number)
@@ -311,6 +372,16 @@ export function GridVirtualizedGroupedBody<T>({
 				const item = items[virtualItem.index] as GridGroupedWindowItem<T>
 
 				const color = colorOf(item.group)
+
+				if (item.dropping) {
+					return (
+						<GridWindowDropRow
+							key={item.reactKey}
+							dataIndex={virtualItem.index}
+							colSpan={columns.length}
+						/>
+					)
+				}
 
 				if (item.kind === 'group') {
 					return (

@@ -5,7 +5,6 @@ import {
 	type TransitionEvent,
 	useCallback,
 	useEffect,
-	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -15,7 +14,7 @@ import { detailWindowItems, type GridDetailWindowItem } from './engine/grid-item
 import { ariaRowIndex } from './engine/grid-row/shell'
 import { GridDetailRow } from './grid-detail-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
-import { GridWindowBody } from './grid-window-body'
+import { GridWindowBody, GridWindowDropRow } from './grid-window-body'
 import {
 	type GridItemWindowOptions,
 	type GridWindowSnapshot,
@@ -56,15 +55,15 @@ type DetailMotion = {
 }
 
 /**
- * Whether the rendered item with `key` has its `edge` at or below the scroll
- * offset. A change in the height of such an item does not move the offset.
+ * Whether the rendered item with `key` has its `edge` at or below the visible
+ * top edge. A change in the height of such an item does not move the offset.
  *
  * @internal
  */
 function inView(snapshot: GridWindowSnapshot, key: string, edge: 'start' | 'end'): boolean {
 	const item = snapshot.items.get(key)
 
-	return item != null && item[edge] >= snapshot.scrollTop
+	return item != null && item[edge] >= snapshot.viewTop
 }
 
 /** Whether two key sets hold the same keys. @internal */
@@ -198,9 +197,9 @@ type GridVirtualizedDetailBodyProps<T> = GridRowsProps<T> & GridItemWindowOption
  * each frame of its reveal would move the rows in view.
  *
  * A removal is not a resize either. A panel that closes at once therefore stays
- * as an item for one commit. A layout effect sets its height to 0, which moves
- * the scroll offset when the panel is above the viewport, and then drops it.
- * The panel renders as an empty row in that commit, so no reveal starts.
+ * as a dropping item for one commit. The drop step of `useGridItemWindow` sets
+ * it to 0 pixels before it leaves. The panel renders as an empty row in
+ * that commit, so no reveal starts.
  *
  * Each exposed row carries `aria-rowindex` over the item list. A closing panel
  * is hidden from assistive tech, and it carries no index.
@@ -224,37 +223,24 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 				rows,
 				rowKeys,
 				expansion: { expanded, rowExpandable: rowExpandable ?? NEVER_EXPANDABLE },
-				closing:
-					motion.dropping.size > 0
-						? new Set([...motion.closing, ...motion.dropping])
-						: motion.closing,
+				closing: motion.closing,
+				dropping: motion.dropping,
 			}),
 		[rows, rowKeys, expanded, rowExpandable, motion.closing, motion.dropping],
 	)
 
-	const { bodyRef, revealEndIndex, virtualItems, topSpacer, bottomSpacer, measureRef, resizeItem } =
-		useGridItemWindow(items, props, snapshot)
-
-	// Sets each dropping panel to 0 pixels, then drops it. Both land before the
-	// paint, so the rows in view do not move.
-	useLayoutEffect(() => {
-		if (motion.dropping.size === 0) return
-
-		items.forEach((item, index) => {
-			if (item.closing && motion.dropping.has(rowKeys[item.dataIndex] as string | number)) {
-				resizeItem(index, 0)
-			}
+	const { bodyRef, revealEndIndex, virtualItems, topSpacer, bottomSpacer, measureRef } =
+		useGridItemWindow(items, props, snapshot, {
+			dropped: motion.dropping.size > 0 ? dropped : null,
+			anchored: null,
 		})
-
-		dropped()
-	}, [motion.dropping, items, rowKeys, resizeItem, dropped])
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const index = revealEndIndex(event)
 
 		const item = index == null ? undefined : items[index]
 
-		if (item?.closing) release(rowKeys[item.dataIndex] as string | number)
+		if (item?.closing && !item.dropping) release(rowKeys[item.dataIndex] as string | number)
 	}
 
 	const aria = (item: GridDetailWindowItem) =>
@@ -291,12 +277,13 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 					)
 				}
 
-				if (motion.dropping.has(rowKey)) {
+				if (item.dropping) {
 					return (
-						// biome-ignore lint/a11y/noAriaHiddenOnFocusable: an empty, non-focusable row that stands for a dropping panel for one commit
-						<tr key={item.reactKey} data-index={virtualItem.index} aria-hidden="true">
-							<td colSpan={columns.length} style={{ height: 0, padding: 0, border: 0 }} />
-						</tr>
+						<GridWindowDropRow
+							key={item.reactKey}
+							dataIndex={virtualItem.index}
+							colSpan={columns.length}
+						/>
 					)
 				}
 
