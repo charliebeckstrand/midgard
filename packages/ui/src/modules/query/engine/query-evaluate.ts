@@ -40,6 +40,15 @@ export const VALUELESS_OPERATORS = new Set(['isEmpty', 'isNotEmpty', 'isTrue', '
  */
 export const RANGE_OPERATORS = new Set(['between'])
 
+/**
+ * Operators that compare a field value and the rule value as numbers. The
+ * rule value, or each set bound of a range, must convert to a finite number
+ * ({@link isNumeric}).
+ *
+ * @internal
+ */
+const NUMERIC_OPERATORS = new Set(['gt', 'gte', 'lt', 'lte', 'between'])
+
 /** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
 function asText(value: unknown): string {
 	return value == null ? '' : String(value)
@@ -124,19 +133,34 @@ function isRange(value: unknown): boolean {
 }
 
 /**
+ * Whether a value converts to a finite number, as a numeric operator reads it.
+ * For a range, each bound must convert, or be blank. So `18` and `'18'` are
+ * numeric, and `'abc'` and `NaN` are not.
+ *
+ * @internal
+ */
+function isNumeric(value: unknown): boolean {
+	const items = Array.isArray(value) ? value : [value]
+
+	return items.every((item) => isBlank(item) || Number.isFinite(asNumber(item)))
+}
+
+/**
  * Whether a rule with this operator and value puts a constraint on the rows.
  * It does when the evaluator has a matcher for the operator, and the operator
  * reads no value or its value is filled ({@link isEmptyValue}). A filled value
  * must also have the shape that the operator reads: a range for an operator in
- * {@link RANGE_OPERATORS}, else a scalar. The field set has no part in the
- * judgement, because the evaluator reads no field set.
+ * {@link RANGE_OPERATORS}, else a scalar. For an operator in
+ * {@link NUMERIC_OPERATORS}, the value must also be numeric. The field set has
+ * no part in the judgement, because the evaluator reads no field set.
  *
  * @remarks This is the one definition of an active rule. The fold, the SQL
  * format, the active judgement, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
  * `toString`, from reading as a matcher. A `between` value that is not a range
  * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no
- * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`.
+ * constraint. So does a `gt` value that is not a scalar, such as `[1, 2]`, or
+ * a `gt` value that is not numeric, such as `'abc'`.
  *
  * @internal
  */
@@ -147,7 +171,9 @@ export function imposesConstraint(operator: string, value: unknown): boolean {
 
 	const hasShape = RANGE_OPERATORS.has(operator) ? isRange : isScalar
 
-	return !isEmptyValue(value) && hasShape(value)
+	if (isEmptyValue(value) || !hasShape(value)) return false
+
+	return !NUMERIC_OPERATORS.has(operator) || isNumeric(value)
 }
 
 /**
@@ -165,14 +191,16 @@ function testRule(operator: string, fieldValue: unknown, ruleValue: unknown): bo
 }
 
 /**
- * Tests one operator against a field value and a rule value. Three cases pass as
+ * Tests one operator against a field value and a rule value. Four cases pass as
  * "no constraint", so a half-built or cleared rule never hides rows:
  *
  * - an unknown operator;
  * - a value-requiring operator whose value is empty (a blank text box, a
  *   cleared date, an all-blank range);
  * - a value of the wrong shape for its operator, such as `5`, `[10]`, or
- *   `[[1], 5]` for `between`, or `[1, 2]` for `gt`.
+ *   `[[1], 5]` for `between`, or `[1, 2]` for `gt`;
+ * - a value that is not numeric for a numeric operator, such as `'abc'` for
+ *   `gt`, or `['abc', 10]` for `between`.
  *
  * Value-less operators (`is Empty`, `is true`, …) evaluate regardless.
  */

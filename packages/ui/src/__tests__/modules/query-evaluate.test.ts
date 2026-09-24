@@ -127,6 +127,24 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', 50, [null, 10])).toBe(false)
 	})
 
+	it('imposes no constraint when a numeric operator reads a value that is not numeric', () => {
+		expect(matchQueryRule('gt', 5, 'abc')).toBe(true)
+
+		expect(matchQueryRule('lte', 5, Number.NaN)).toBe(true)
+
+		expect(matchQueryRule('between', 5, ['abc', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, [1, 'abc'])).toBe(true)
+	})
+
+	it('reads a numeric string as a number', () => {
+		expect(matchQueryRule('gt', 5, '3')).toBe(true)
+
+		expect(matchQueryRule('gt', 5, '7')).toBe(false)
+
+		expect(matchQueryRule('between', 50, ['1', '10'])).toBe(false)
+	})
+
 	it('reads a boolean value as a scalar', () => {
 		expect(matchQueryRule('equals', true, true)).toBe(true)
 
@@ -397,6 +415,24 @@ describe('matchQueryRule · properties', () => {
 			expect(matchQueryRule('between', value, [blank, bound])).toBe(
 				matchQueryRule('lte', value, bound),
 			)
+		},
+	)
+
+	// A numeric operator reads its value as a number. Text that does not convert
+	// to a finite number, as the value or as either bound, makes it stand down.
+	test.prop([
+		fc.constantFrom('gt', 'gte', 'lt', 'lte'),
+		fieldValue(),
+		stated().filter((text) => !Number.isFinite(Number(text))),
+		fc.oneof(numeric(), fc.constant('')),
+	])(
+		'imposes no constraint when a numeric operator reads text that is not a number',
+		(operator, value, text, other) => {
+			expect(matchQueryRule(operator, value, text)).toBe(true)
+
+			expect(matchQueryRule('between', value, [text, other])).toBe(true)
+
+			expect(matchQueryRule('between', value, [other, text])).toBe(true)
 		},
 	)
 })

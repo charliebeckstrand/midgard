@@ -356,8 +356,8 @@ function like(column: string, before: string, value: unknown, after: string): Cl
 
 /**
  * The `between` clause, where a blank bound is open. The value is a `[min, max]`
- * pair of blank or scalar bounds, because {@link imposesConstraint} reads a
- * value of a different shape as no constraint.
+ * pair of blank or numeric bounds, because {@link imposesConstraint} reads a
+ * value of a different shape or content as no constraint.
  *
  * @internal
  */
@@ -460,9 +460,11 @@ function groupClause(group: QueryGroup, column: (field: string) => string): Clau
  * @remarks Each value goes into `params`, never into `sql`. A rule with no
  * constraint on the rows drops out with its combinator, as it does in the
  * evaluator. Such a rule has an empty value, a value of the wrong shape, or an
- * operator that the format does not know. So `A OR (blank rule)` gives the
- * condition for `A`. When the full query puts no constraint on the rows, `sql`
- * is `''`, so the caller omits the `WHERE`.
+ * operator that the format does not know. A numeric operator with a value that
+ * is not numeric also drops out. So `A OR (blank rule)` gives the condition
+ * for `A`.
+ * When the full query puts no constraint on the rows, `sql` is `''`, so the
+ * caller omits the `WHERE`.
  * The database compares a value with its own types. So when a column type
  * differs from the value type, the rows can differ from the evaluator's rows.
  *
