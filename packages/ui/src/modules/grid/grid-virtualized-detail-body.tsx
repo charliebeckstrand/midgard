@@ -2,7 +2,7 @@
 
 import { Fragment, type TransitionEvent, useMemo, useRef } from 'react'
 import { detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
-import { ariaRowIndex } from './engine/grid-row/shell'
+import { itemAriaRowIndex } from './engine/grid-row/shell'
 import { GridDetailRow } from './grid-detail-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
@@ -125,9 +125,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 	}
 
 	const aria = (item: GridDetailWindowItem) =>
-		props.gridSemantics && item.position >= 0
-			? ariaRowIndex(props.rowIndexOffset, item.position)
-			: undefined
+		itemAriaRowIndex(props.gridSemantics, props.rowIndexOffset, item.position)
 
 	return (
 		<GridWindowBody<T>
@@ -136,7 +134,8 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 			pinning={pinning}
 			topSpacer={topSpacer}
 			bottomSpacer={bottomSpacer}
-			warming={items.length > 0 && virtualItems.length === 0}
+			itemCount={items.length}
+			windowCount={virtualItems.length}
 			onTransitionEnd={onTransitionEnd}
 		>
 			{virtualItems.map((virtualItem) => {
@@ -151,8 +150,8 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 					return (
 						<Fragment key={item.reactKey}>
 							{renderGridRow(props, row, item.dataIndex, aria(item), {
-								measureRef,
-								itemIndex: virtualItem.index,
+								ref: measureRef,
+								'data-index': virtualItem.index,
 							})}
 						</Fragment>
 					)
@@ -165,9 +164,9 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 						colSpan={columns.length}
 						expanded={item.phase === 'open'}
 						enter={motions.get(rowKey)?.phase === 'entering'}
-						measureRef={measureRef}
-						dataIndex={virtualItem.index}
-						ariaRowIndex={aria(item)}
+						ref={measureRef}
+						data-index={virtualItem.index}
+						aria-rowindex={aria(item)}
 					>
 						{expansion?.render(row)}
 					</GridDetailRow>

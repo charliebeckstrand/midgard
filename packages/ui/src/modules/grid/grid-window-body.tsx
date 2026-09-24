@@ -15,9 +15,13 @@ type GridWindowBodyProps<T> = {
 	topSpacer: number
 	/** The height of the rows below the window, in pixels. */
 	bottomSpacer: number
-	/** Whether the body has items but the window has none yet, so it shows the loading skeleton. */
-	warming: boolean
+	/** The count of items in the whole list. */
+	itemCount: number
+	/** The count of items that the window renders. */
+	windowCount: number
 	onTransitionEnd?: TransitionEventHandler<HTMLTableSectionElement>
+	/** A row after the bottom spacer, such as the infinite-scroll trailer. */
+	trailer?: ReactNode
 	/** The rendered rows of the window. */
 	children: ReactNode
 }
@@ -40,10 +44,20 @@ function GridWindowSpacer({ height, colSpan }: { height: number; colSpan: number
 }
 
 /**
- * The `<tbody>` of a windowed grouped or master-detail body. It puts a spacer
- * above and below the rendered rows, as the flat windowed body does. Until
- * the window resolves it holds the loading skeleton, and the bottom spacer
- * stays out. See {@link GridVirtualizedBody} for why.
+ * The `<tbody>` of each windowed grid body. It puts a spacer above and below
+ * the rendered rows, and an optional trailer row after them.
+ *
+ * @remarks The body can hold items while its window holds none. The window is
+ * empty until the virtualizer has resolved and measured its scroll element. That
+ * happens a commit or two after the rows arrive, because the virtualizer
+ * re-attaches only once the refs are in place (see `useVirtualWindow`). The
+ * window also stays empty while the element measures zero, such as in a
+ * `display: none` panel or a server render. The body then holds the loading
+ * skeleton, not an empty body. The grid's own skeleton leaves in those frames,
+ * because `loading` goes false with the rows. The skeleton therefore keeps the
+ * swap to rows in one commit, with the fit that sizes their columns. The
+ * skeleton also gives the scroller its height, so the bottom spacer stays out
+ * until rows render.
  *
  * @internal
  */
@@ -53,15 +67,20 @@ export function GridWindowBody<T>({
 	pinning,
 	topSpacer,
 	bottomSpacer,
-	warming,
+	itemCount,
+	windowCount,
 	onTransitionEnd,
+	trailer,
 	children,
 }: GridWindowBodyProps<T>) {
+	const warming = itemCount > 0 && windowCount === 0
+
 	return (
 		<TableBody ref={bodyRef} onTransitionEnd={onTransitionEnd}>
 			<GridWindowSpacer height={topSpacer} colSpan={columns.length} />
 			{warming ? <GridSkeletonRows columns={columns} pinning={pinning} /> : children}
 			{!warming && <GridWindowSpacer height={bottomSpacer} colSpan={columns.length} />}
+			{trailer}
 		</TableBody>
 	)
 }

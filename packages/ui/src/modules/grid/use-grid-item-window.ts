@@ -4,6 +4,7 @@ import type { VirtualItem } from '@tanstack/react-virtual'
 import { type RefObject, type TransitionEvent, useCallback, useLayoutEffect, useRef } from 'react'
 import { useVirtualWindow } from '../../hooks'
 import { windowItemEstimate } from './engine/grid-items/items'
+import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { REVEAL_PROPERTY } from './use-grid-reveal-hold'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
 
@@ -124,8 +125,8 @@ export function gridWindowView(
  * @remarks Each item has a prefixed key, and the virtualizer caches each
  * measured height against it. The first guess comes from
  * {@link windowItemEstimate}. The scroll margin and the paddings come from
- * {@link useGridWindowOffsets}, as on the flat windowed body. The columns
- * re-fit from a layout effect once rows render, also as on the flat body.
+ * {@link useGridWindowOffsets}, and the columns fit again through
+ * {@link useGridFitRenderedRows}, as on the flat windowed body.
  *
  * An insert or a removal above the first row in view does not move that row.
  * The start anchor of `useVirtualWindow` holds it still.
@@ -163,14 +164,8 @@ export function useGridItemWindow<I extends WindowItem>(
 		getItemKey,
 	})
 
-	// The autosizer measures the rendered cells. A grid whose rows arrive after
-	// mount fits against an empty window first, so the fit runs again once rows
-	// render, before they paint (see `GridVirtualizedBody`).
-	useLayoutEffect(() => {
-		void win.virtualItems.length
-
-		fitRenderedRows()
-	}, [win.virtualItems.length, fitRenderedRows])
+	// The autosizer fits the columns again once the window's rows render.
+	useGridFitRenderedRows(win.virtualItems.length, fitRenderedRows)
 
 	// Each commit records its window by reference. A toggle reads it later
 	// through `gridWindowView`, so a commit with no toggle reads nothing.

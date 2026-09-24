@@ -55,7 +55,7 @@ export type GridGroupedWindowItem<T> = ItemBase &
 	(
 		| { kind: 'group'; group: Row<T> }
 		| { kind: 'leaf'; group: Row<T>; leaf: Row<T> }
-		| { kind: 'total'; group: Row<T> }
+		| { kind: 'total'; group: Row<T>; rows: T[] }
 	)
 
 /**
@@ -66,6 +66,22 @@ export type GridGroupedWindowItem<T> = ItemBase &
  * @internal
  */
 export type GridDetailWindowItem = ItemBase & { kind: 'row' | 'detail'; dataIndex: number }
+
+/** The value of a group row on the grouped column, which keys its color and its order. @internal */
+export function groupValueOf<T>(group: Row<T>, columnId: string | number): string | number {
+	return group.getGroupingValue(String(columnId)) as string | number
+}
+
+/**
+ * Whether each group shows a total row: `groupTotalRow` is set, and a visible
+ * column aggregates. @internal
+ */
+export function groupTotalled<T>(
+	groupTotalRow: boolean | undefined,
+	columns: GridColumn<T>[],
+): boolean {
+	return groupTotalRow === true && hasAggregation(columns)
+}
 
 /** The open key of a leaf, which is also its React key. @internal */
 export function leafItemKey(leafId: string): string {
@@ -133,6 +149,7 @@ export function groupedWindowItems<T>(
 				reactKey: totalItemKey(group.id),
 				closingKey: `closing-total:${group.id}`,
 				group,
+				rows: group.subRows.map((leaf) => leaf.original),
 			})
 		}
 	}
@@ -154,7 +171,7 @@ function pushRow<T>(
 	motions: ReadonlyMap<string, GridRowMotion>,
 	row:
 		| { kind: 'leaf'; reactKey: string; closingKey: string; group: Row<T>; leaf: Row<T> }
-		| { kind: 'total'; reactKey: string; closingKey: string; group: Row<T> },
+		| { kind: 'total'; reactKey: string; closingKey: string; group: Row<T>; rows: T[] },
 ): void {
 	const { closingKey, ...rest } = row
 
@@ -197,8 +214,8 @@ type DetailWiring<T> = {
 	rowExpandable: (row: T) => boolean
 }
 
-/** Whether the detail panel of `row` is open. @internal */
-function detailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>): boolean {
+/** Whether the detail panel of `row` is open: its key is expanded, and the row can expand. @internal */
+export function detailOpen<T>(row: T, key: string | number, expansion: DetailWiring<T>): boolean {
 	return expansion.expanded.has(key) && expansion.rowExpandable(row)
 }
 
@@ -320,9 +337,7 @@ export function bodyRowCount<T>(args: {
 	if (!args.virtualize) return args.rows.length
 
 	if (args.groupedRows) {
-		const totalled = args.groupTotalRow === true && hasAggregation(args.columns)
-
-		return groupedWindowRowCount(args.groupedRows, totalled)
+		return groupedWindowRowCount(args.groupedRows, groupTotalled(args.groupTotalRow, args.columns))
 	}
 
 	if (args.expansion) return detailWindowRowCount(args.rows, args.rowKeys, args.expansion)

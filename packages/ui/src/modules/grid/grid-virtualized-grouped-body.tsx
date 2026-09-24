@@ -7,10 +7,11 @@ import type { DensityLevel } from '../../providers/density'
 import {
 	type GridGroupedWindowItem,
 	groupedWindowItems,
+	groupValueOf,
 	leafItemKey,
 	totalItemKey,
 } from './engine/grid-items/items'
-import { ariaRowIndex } from './engine/grid-row/shell'
+import { type GridWindowRowProps, itemAriaRowIndex } from './engine/grid-row/shell'
 import type { GridGroupBy } from './grid-data-types'
 import { GridGroupLeafRow } from './grid-group-leaf-row'
 import { GridGroupRow } from './grid-group-row'
@@ -221,8 +222,7 @@ export function GridVirtualizedGroupedBody<T>({
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, window, record)
 
-	const colorOf = (group: Row<T>) =>
-		presentation?.color(group.getGroupingValue(String(columnId)) as string | number)
+	const colorOf = (group: Row<T>) => presentation?.color(groupValueOf(group, columnId))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = revealEndItem(event)
@@ -230,8 +230,11 @@ export function GridVirtualizedGroupedBody<T>({
 		if (item?.phase === 'closing') release(item.reactKey)
 	}
 
-	const aria = (item: GridGroupedWindowItem<T>) =>
-		gridSemantics && item.position >= 0 ? ariaRowIndex(rowIndexOffset, item.position) : undefined
+	const windowRow = (item: GridGroupedWindowItem<T>, index: number): GridWindowRowProps => ({
+		ref: measureRef,
+		'data-index': index,
+		'aria-rowindex': itemAriaRowIndex(gridSemantics, rowIndexOffset, item.position),
+	})
 
 	return (
 		<GridWindowBody<T>
@@ -240,7 +243,8 @@ export function GridVirtualizedGroupedBody<T>({
 			pinning={pinning}
 			topSpacer={topSpacer}
 			bottomSpacer={bottomSpacer}
-			warming={items.length > 0 && virtualItems.length === 0}
+			itemCount={items.length}
+			windowCount={virtualItems.length}
 			onTransitionEnd={onTransitionEnd}
 		>
 			{virtualItems.map((virtualItem) => {
@@ -257,9 +261,7 @@ export function GridVirtualizedGroupedBody<T>({
 							columnId={columnId}
 							renderHeader={renderHeader}
 							color={color}
-							measureRef={measureRef}
-							dataIndex={virtualItem.index}
-							ariaRowIndex={aria(item)}
+							{...windowRow(item, virtualItem.index)}
 						/>
 					)
 				}
@@ -269,14 +271,12 @@ export function GridVirtualizedGroupedBody<T>({
 						<GridTotalRow<T>
 							key={item.reactKey}
 							columns={columns}
-							rows={item.group.subRows.map((leaf) => leaf.original)}
+							rows={item.rows}
 							variant="group"
 							expanded={item.phase === 'open'}
 							density={density}
 							color={color}
-							measureRef={measureRef}
-							dataIndex={virtualItem.index}
-							ariaRowIndex={aria(item)}
+							{...windowRow(item, virtualItem.index)}
 						/>
 					)
 				}
@@ -286,9 +286,7 @@ export function GridVirtualizedGroupedBody<T>({
 						key={item.reactKey}
 						{...leafProps(item.leaf, item.phase === 'open', color)}
 						enter={motions.get(item.reactKey)?.phase === 'entering'}
-						measureRef={measureRef}
-						dataIndex={virtualItem.index}
-						ariaRowIndex={aria(item)}
+						{...windowRow(item, virtualItem.index)}
 					/>
 				)
 			})}

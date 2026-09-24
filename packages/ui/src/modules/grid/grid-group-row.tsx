@@ -2,7 +2,7 @@
 
 import type { Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
@@ -11,6 +11,7 @@ import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { groupValueLabel } from './engine/grid-column/label'
+import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridColumn } from './types'
@@ -27,13 +28,7 @@ type GridGroupRowProps<T> = {
 	renderHeader: GridGroupBy['renderHeader']
 	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
 	color?: PaletteColor
-	/** The measure ref of a windowed body, which reads the row height. */
-	measureRef?: Ref<HTMLTableRowElement>
-	/** The row's index in the item list of a windowed body, written as `data-index`. */
-	dataIndex?: number
-	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
-	ariaRowIndex?: number
-}
+} & GridWindowRowProps
 
 /**
  * A group-header row carrying a bare disclosure button that toggles the group's
@@ -54,9 +49,7 @@ export function GridGroupRow<T>({
 	columnId,
 	renderHeader,
 	color,
-	measureRef,
-	dataIndex,
-	ariaRowIndex,
+	...windowRow
 }: GridGroupRowProps<T>) {
 	const expanded = row.getIsExpanded()
 
@@ -78,9 +71,7 @@ export function GridGroupRow<T>({
 		// `data-group-key` (the shared value) lets the group-header context menu
 		// resolve the right-clicked group for the row manager and its color/expand items.
 		<TableRow
-			ref={measureRef}
-			data-index={dataIndex}
-			aria-rowindex={ariaRowIndex}
+			{...windowRow}
 			data-group-row
 			data-group-key={String(value)}
 			data-expanded={dataAttr(expanded)}

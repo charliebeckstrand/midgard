@@ -1,5 +1,6 @@
 'use client'
 
+import type { ExpandedState, Row } from '@tanstack/react-table'
 import { useReducedMotion } from 'motion/react'
 import {
 	type ReactNode,
@@ -201,6 +202,53 @@ function rowReorderPermitted(args: {
 		!args.sorted &&
 		args.renderedCount === args.sourceCount
 	)
+}
+
+/**
+ * {@link bodyRowCount}, memoized. A windowed grouped or master-detail body
+ * walks each group or row to count its rows. The count therefore runs again
+ * only when the rows, the columns, or an expansion change. Kept a hook so the memo stays
+ * off {@link GridData}'s complexity budget. @internal
+ */
+function useBodyRowCount<T>(args: {
+	virtualize: boolean
+	rows: T[]
+	rowKeys: (string | number)[]
+	groupedRows: Row<T>[] | null
+	/** The engine's expansion state. The group rows can stay the same object when it changes. */
+	groupExpanded: ExpandedState
+	groupTotalRow: boolean | undefined
+	columns: GridColumn<T>[]
+	expanded: Set<string | number> | undefined
+	rowExpandable: ((row: T) => boolean) | undefined
+}): number {
+	const { virtualize, rows, rowKeys, groupedRows, groupExpanded, groupTotalRow, columns } = args
+
+	const { expanded, rowExpandable } = args
+
+	return useMemo(() => {
+		void groupExpanded
+
+		return bodyRowCount({
+			virtualize,
+			rows,
+			rowKeys,
+			groupedRows,
+			groupTotalRow,
+			columns,
+			expansion: expanded && rowExpandable ? { expanded, rowExpandable } : null,
+		})
+	}, [
+		virtualize,
+		rows,
+		rowKeys,
+		groupedRows,
+		groupExpanded,
+		groupTotalRow,
+		columns,
+		expanded,
+		rowExpandable,
+	])
 }
 
 /**
@@ -1155,14 +1203,16 @@ export function GridData<T>({
 	// open detail panels as rows (see `bodyRowCount`).
 	const ariaRowCount = resolveAriaRowCount(
 		pagination,
-		bodyRowCount({
+		useBodyRowCount({
 			virtualize: gated.virtualize,
 			rows: renderRows,
 			rowKeys,
 			groupedRows,
+			groupExpanded,
 			groupTotalRow,
 			columns: visibleColumns,
-			expansion: detail.body,
+			expanded: detail.body?.expanded,
+			rowExpandable: detail.body?.rowExpandable,
 		}),
 		groupRowOffset + Number(grandTotal.active) + Number(newRowPlace !== null),
 		infiniteScroll,

@@ -6,6 +6,7 @@ import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { groupValueLabel } from './engine/grid-column/label'
+import { groupValueOf } from './engine/grid-items/items'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 import type { GridMenuItem } from './types'
@@ -100,7 +101,7 @@ export function buildRowManagerGroups<T>(
 	return groupedRows
 		.filter((row) => row.getIsGrouped())
 		.map((row) => {
-			const value = row.getGroupingValue(String(columnId)) as string | number
+			const value = groupValueOf(row, columnId)
 
 			return { key: value, label: groupValueLabel(value), count: row.subRows.length }
 		})

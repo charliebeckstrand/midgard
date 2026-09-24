@@ -137,14 +137,22 @@ type StartAnchorRecord = {
 	rows: readonly { index: number; key: VirtualItem['key']; start: number }[]
 }
 
-/** The index of `key` in the new list, tried at its old index first. @internal */
+/**
+ * The index of `key` in the new list. It tries the old index, then the
+ * rendered window, and only then the whole list. @internal
+ */
 function indexOfKey(
 	key: VirtualItem['key'],
 	oldIndex: number,
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
+	window: readonly VirtualItem[],
 ): number {
 	if (oldIndex < count && getItemKey(oldIndex) === key) return oldIndex
+
+	const rendered = window.find((item) => item.key === key)
+
+	if (rendered) return rendered.index
 
 	for (let index = 0; index < count; index++) {
 		if (getItemKey(index) === key) return index
@@ -160,6 +168,7 @@ function indexOfKey(
  * places its window at the new offset, before the paint.
  *
  * @param moved - The scroll adjustment since the render, from rows that measured as they attached.
+ * @param window - The rendered items of the render.
  * @returns The record of the new list, or `null` when the list did not change.
  * @internal
  */
@@ -169,13 +178,14 @@ function holdStartAnchor(
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
 	moved: number,
+	window: readonly VirtualItem[],
 ): StartAnchorRecord | null {
 	if (record.count === count && record.getItemKey === getItemKey) return null
 
 	const element = virtualizer.scrollElement
 
 	for (const row of record.rows) {
-		const index = indexOfKey(row.key, row.index, count, getItemKey)
+		const index = indexOfKey(row.key, row.index, count, getItemKey, window)
 
 		// The measurements of this render hold the new start of the row.
 		const start = index < 0 ? undefined : virtualizer.measurementsCache[index]?.start
@@ -423,7 +433,14 @@ export function useVirtualWindow({
 
 		const held =
 			previous &&
-			holdStartAnchor(virtualizer, previous, count, getItemKey, before - renderOffset.current)
+			holdStartAnchor(
+				virtualizer,
+				previous,
+				count,
+				getItemKey,
+				before - renderOffset.current,
+				virtualItems,
+			)
 
 		if (held && Math.abs(effectiveOffset(virtualizer) - before) >= 1) {
 			anchorRecord.current = held

@@ -5,22 +5,16 @@ import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
 import { GripVertical } from 'lucide-react'
 import { motion } from 'motion/react'
-import {
-	type CSSProperties,
-	Fragment,
-	memo,
-	type ReactElement,
-	type ReactNode,
-	type Ref,
-} from 'react'
+import { type CSSProperties, Fragment, memo, type ReactElement, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { detailOpen } from './engine/grid-items/items'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
-import { rowClickableClass, rowShellProps } from './engine/grid-row/shell'
+import { type GridWindowRowProps, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
@@ -124,20 +118,16 @@ export type GridRowsProps<T> = {
 }
 
 /**
- * The item wiring of a windowed master-detail body for one data row: the
- * measure ref and the row's index in the item list. The body renders the detail
- * panel as an item of its own. @internal
+ * The window props of a data row. Its `aria-rowindex` comes from `rowIndex`,
+ * which also sets the cell indexes. @internal
  */
-export type GridRowWindowItem = {
-	measureRef: Ref<HTMLTableRowElement>
-	itemIndex: number
-}
+type GridRowWindowProps = Pick<GridWindowRowProps, 'ref' | 'data-index'>
 
 /**
  * Renders one engine row through {@link GridRow}, resolving its cells, key, and
  * per-row flags from the shared body wiring. `rowIndex` is the 1-based aria
- * position. It is set only under grid semantics. With `item`, the row is one
- * item of a windowed master-detail body, and it renders without its detail
+ * position. It is set only under grid semantics. With `windowRow`, the row is
+ * one item of a windowed master-detail body, and it renders without its detail
  * panel.
  *
  * @internal
@@ -147,7 +137,7 @@ export function renderGridRow<T>(
 	row: T,
 	dataRowIndex: number,
 	rowIndex?: number,
-	item?: GridRowWindowItem,
+	windowRow?: GridRowWindowProps,
 ): ReactElement {
 	// `rowKeys` is built parallel to `rows` (see `Grid`), so the index is always present.
 	const key = props.rowKeys[dataRowIndex] as string | number
@@ -156,7 +146,7 @@ export function renderGridRow<T>(
 	// open. Both flow to the row as primitives so the memoized row still holds.
 	const expandable = props.expansion?.rowExpandable(row) ?? false
 
-	const expanded = expandable && (props.expansion?.expanded.has(key) ?? false)
+	const expanded = props.expansion ? detailOpen(row, key, props.expansion) : false
 
 	const rowProps = {
 		columns: props.visibleColumns,
@@ -186,8 +176,7 @@ export function renderGridRow<T>(
 		expanded,
 		rowExpandable: expandable,
 		toggleExpand: props.expansion?.toggle,
-		measureRef: item?.measureRef,
-		itemIndex: item?.itemIndex,
+		...windowRow,
 	} satisfies GridRowProps<T>
 
 	// A row-reorderable grid renders each row as a vertical dnd-kit sortable; the
@@ -201,7 +190,7 @@ export function renderGridRow<T>(
 	// An expandable grid follows each row with its master-detail panel row, which
 	// stays mounted and reveals open/closed from `expanded` (see `GridDetailRow`).
 	// A windowed body renders the panel as an item of its own.
-	if (!props.expansion || item) return rowNode
+	if (!props.expansion || windowRow) return rowNode
 
 	return (
 		<Fragment key={key}>
@@ -335,11 +324,7 @@ type GridRowProps<T> = {
 	rowExpandable?: boolean
 	/** Stable master-detail toggle from the expansion hook; safe through `memo`. @internal */
 	toggleExpand?: (key: string | number) => void
-	/** The measure ref of a windowed master-detail body, which reads the row height. */
-	measureRef?: Ref<HTMLTableRowElement>
-	/** The row's index in the item list of a windowed master-detail body, written as `data-index`. */
-	itemIndex?: number
-}
+} & GridRowWindowProps
 
 /**
  * A `TableRow` that can carry Framer's `layout` prop. A sort-animated row thus
@@ -385,8 +370,8 @@ function GridRowImpl<T>({
 	expanded = false,
 	rowExpandable = false,
 	toggleExpand,
-	measureRef,
-	itemIndex,
+	ref,
+	'data-index': dataIndex,
 }: GridRowProps<T>) {
 	// A sort-animated row renders through `MotionTableRow`, so Framer's `layout`
 	// FLIPs it from its old slot to its new one when a sort reorders the rows. A
@@ -407,8 +392,8 @@ function GridRowImpl<T>({
 			// transform/transition ride the inline style, and `data-dragging` lifts it.
 			// A windowed master-detail body measures the row. Row reorder, which
 			// owns the node ref of a sortable row, stands down under a window.
-			ref={sortable?.setNodeRef ?? measureRef}
-			data-index={itemIndex}
+			ref={sortable?.setNodeRef ?? ref}
+			data-index={dataIndex}
 			style={sortable?.style}
 			data-dragging={sortable ? dataAttr(sortable.dragging) : undefined}
 			// The shared row shell: identifying/state attributes, pointer handlers

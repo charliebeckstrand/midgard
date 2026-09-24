@@ -1,4 +1,4 @@
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, Ref } from 'react'
 import { dataAttr } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import type { GridColumn } from '../../types'
@@ -164,6 +164,35 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
  */
 export function ariaRowIndex(rowIndexOffset: number, index: number): number {
 	return rowIndexOffset + index + 2
+}
+
+/**
+ * The `aria-rowindex` of an item of a windowed grouped or master-detail body.
+ * `position` is its place among the rows that assistive tech sees. A closing
+ * row has position `-1`, and it carries no index. A table with no grid
+ * semantics carries none either.
+ *
+ * @internal
+ */
+export function itemAriaRowIndex(
+	gridSemantics: boolean,
+	rowIndexOffset: number,
+	position: number,
+): number | undefined {
+	return gridSemantics && position >= 0 ? ariaRowIndex(rowIndexOffset, position) : undefined
+}
+
+/**
+ * The props that a windowed body gives each row, spread onto its `<tr>`. They
+ * are the measure ref, the row's index in the item list, and its
+ * `aria-rowindex`. Each is absent outside a window.
+ *
+ * @internal
+ */
+export type GridWindowRowProps = {
+	ref?: Ref<HTMLTableRowElement>
+	'data-index'?: number
+	'aria-rowindex'?: number
 }
 
 /**

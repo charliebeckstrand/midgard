@@ -1,13 +1,14 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import { Hold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
+import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
@@ -87,13 +88,7 @@ type GridDetailRowProps = {
 	 * @defaultValue false
 	 */
 	enter?: boolean
-	/** The measure ref of a windowed body, which reads the row height. */
-	measureRef?: Ref<HTMLTableRowElement>
-	/** The row's index in the item list of a windowed body, written as `data-index`. */
-	dataIndex?: number
-	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
-	ariaRowIndex?: number
-}
+} & GridWindowRowProps
 
 /**
  * A master-detail panel row: a full-width `<tr>` whose single cell nests the
@@ -115,9 +110,7 @@ export function GridDetailRow({
 	expanded,
 	children,
 	enter = false,
-	measureRef,
-	dataIndex,
-	ariaRowIndex,
+	...windowRow
 }: GridDetailRowProps) {
 	// A detail panel holds whatever the caller put in it — a nested grid, a chart
 	// — so a closed one is the most expensive row the flat body keeps live.
@@ -126,9 +119,7 @@ export function GridDetailRow({
 	return (
 		<Hold hold={reveal.hold} name="grid-detail-row">
 			<tr
-				ref={measureRef}
-				data-index={dataIndex}
-				aria-rowindex={ariaRowIndex}
+				{...windowRow}
 				data-detail-row={String(rowKey)}
 				aria-hidden={expanded ? undefined : true}
 				inert={!expanded}

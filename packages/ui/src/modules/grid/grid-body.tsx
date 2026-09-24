@@ -13,12 +13,12 @@ import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
-import { hasAggregation } from './engine/grid-aggregate'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
+import { groupTotalled, groupValueOf } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
@@ -185,7 +185,7 @@ function renderGroup<T>(
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const groupKey = groupRow.getGroupingValue(String(columnId)) as string | number
+	const groupKey = groupValueOf(groupRow, columnId)
 
 	const color = presentation?.color(groupKey)
 
@@ -300,12 +300,12 @@ function renderGroupedBody<T>(
 	const ordered = applyRowKeyOrder(
 		groupedRows,
 		rowGroupPresentation?.groupOrder ?? undefined,
-		(groupRow) => groupRow.getGroupingValue(String(groupColumnId)) as string | number,
+		(groupRow) => groupValueOf(groupRow, groupColumnId),
 	)
 
 	// The per-group total is meaningful only once a column aggregates; the gate
 	// is body-wide, so resolve it once here rather than per group in renderGroup.
-	const totalled = props.groupTotalRow === true && hasAggregation(visibleColumns)
+	const totalled = groupTotalled(props.groupTotalRow, visibleColumns)
 
 	if (virtualize) {
 		return (

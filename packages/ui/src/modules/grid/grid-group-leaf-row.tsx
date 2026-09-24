@@ -2,7 +2,7 @@
 
 import { type Cell, flexRender } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
-import type { ReactNode, Ref } from 'react'
+import type { ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -15,7 +15,12 @@ import { NO_PADDING } from './engine/grid-constants'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { resolveCellTooltip } from './engine/grid-row/cell'
-import { cellRovingAttrs, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
+import {
+	cellRovingAttrs,
+	type GridWindowRowProps,
+	rowClickableClass,
+	rowShellProps,
+} from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
@@ -65,13 +70,7 @@ type GridGroupLeafRowProps<T> = {
 	 * @defaultValue false
 	 */
 	enter?: boolean
-	/** The measure ref of a windowed body, which reads the row height. */
-	measureRef?: Ref<HTMLTableRowElement>
-	/** The row's index in the item list of a windowed body, written as `data-index`. */
-	dataIndex?: number
-	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
-	ariaRowIndex?: number
-}
+} & GridWindowRowProps
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
 function leafCellInner<T>(args: {
@@ -276,9 +275,7 @@ export function GridGroupLeafRow<T>({
 	density,
 	color,
 	enter = false,
-	measureRef,
-	dataIndex,
-	ariaRowIndex,
+	...windowRow
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
 
@@ -294,9 +291,7 @@ export function GridGroupLeafRow<T>({
 	return (
 		<Hold hold={reveal.hold} name="grid-group-leaf-row">
 			<tr
-				ref={measureRef}
-				data-index={dataIndex}
-				aria-rowindex={ariaRowIndex}
+				{...windowRow}
 				// The shared row shell (attributes, pointer handlers, Enter / Space
 				// activation). Row-mode roving marks an expanded leaf an item the roving
 				// hook owns the `tabIndex` of; a collapsed leaf is `inert` and excluded
@@ -351,7 +346,7 @@ export function GridGroupLeafRow<T>({
 							pad={pad}
 							cellRoving={cellRoving}
 							cellActivate={cellActivate}
-							colIndex={ariaRowIndex !== undefined ? colIdx + 1 : undefined}
+							colIndex={windowRow['aria-rowindex'] !== undefined ? colIdx + 1 : undefined}
 						/>
 					)
 				})}
