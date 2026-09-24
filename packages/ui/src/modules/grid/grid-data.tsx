@@ -46,7 +46,7 @@ import {
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
 import { bodyRowCount } from './engine/grid-items/items'
-import { isNewRowAddColumn, withNewRowAddColumn } from './engine/grid-new-row-column'
+import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import {
@@ -849,12 +849,20 @@ export function GridData<T>({
 	// The new-row slot's Add control has a column of its own after the others
 	// (see `withNewRowAddColumn`). It joins here, after the column order and
 	// visibility state, so no saved state names it. It follows the configured
-	// slot, not the loading state, so the column set stays stable.
-	const showAddColumn = cursor.newRow !== null && editable?.newRowAdd !== false
+	// slot, not the loading state, so the column set stays stable. Its width is
+	// the one the Add cell measures for its control, unless `newRowAdd.width`
+	// fixes it.
+	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
+
+	const addWidth = resolveNewRowAddWidth(
+		cursor.newRow !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
 
 	const engineColumns = useMemo(
-		() => withNewRowAddColumn(cursor.columns, showAddColumn),
-		[cursor.columns, showAddColumn],
+		() => withNewRowAddColumn(cursor.columns, addWidth),
+		[cursor.columns, addWidth],
 	)
 
 	// TanStack Table is the data engine: rows flow through its row model, which
@@ -1026,16 +1034,10 @@ export function GridData<T>({
 	// sorted model carries group headers rather than data rows. An `exportRows`
 	// source overrides both, supplying the rows the engine can't hold under
 	// server pagination. Split by surface: the toolbar's "Export" dropdown and
-	// both context menus each take the set their own switch opens. The Add
-	// column of the new-row slot is the grid's own, so no exporter sees it.
-	const exportColumns = useMemo(
-		() => visibleColumns.filter((col) => !isNewRowAddColumn(col.id)),
-		[visibleColumns],
-	)
-
+	// both context menus each take the set their own switch opens.
 	const exportActions = useGridExport<T>({
 		exportable,
-		columns: exportColumns,
+		columns: visibleColumns,
 		table,
 		exportRows,
 		grouped: groupingActive,
@@ -1366,7 +1368,8 @@ export function GridData<T>({
 				ariaRowCount,
 				grandTotal: grandTotal.active,
 			})}
-			addControl={editable?.newRowAdd}
+			add={editable?.newRowAdd || undefined}
+			onMeasureAdd={setMeasuredAddWidth}
 		/>
 	)
 

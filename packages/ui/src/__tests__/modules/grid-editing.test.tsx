@@ -13,7 +13,11 @@ import {
 	type GridNewRowAddContext,
 	type GridProps,
 } from '../../modules/grid'
-import { NEW_ROW_ADD_COLUMN_ID as ADD_COLUMN } from '../../modules/grid/engine/grid-new-row-column'
+import {
+	NEW_ROW_ADD_COLUMN_ID as ADD_COLUMN,
+	NEW_ROW_ADD_COLUMN_SIZE,
+	resolveNewRowAddWidth,
+} from '../../modules/grid/engine/grid-new-row-column'
 import {
 	act,
 	allBySlot,
@@ -4683,6 +4687,36 @@ describe('Grid new row', () => {
 			}
 		})
 
+		/** The width that the colgroup gives the Add column, the last one. */
+		const addColWidth = (container: HTMLElement) =>
+			present(container.querySelector<HTMLElement>('colgroup col:last-child'), 'the Add col').style
+				.width
+
+		it('fixes the column at newRowAdd.width', () => {
+			const view = renderNewRow({ newRowAdd: { width: 90 } })
+
+			expect(addColWidth(view.container)).toBe('90px')
+		})
+
+		it('keeps the fallback width where the control measures nothing', () => {
+			// jsdom has no layout, so the Add cell reports no width.
+			const view = renderNewRow()
+
+			expect(addColWidth(view.container)).toBe(`${NEW_ROW_ADD_COLUMN_SIZE}px`)
+		})
+
+		it('resolves the width: none, fixed, measured, then the fallback', () => {
+			expect(resolveNewRowAddWidth(false, undefined, 70)).toBeNull()
+
+			expect(resolveNewRowAddWidth(true, false, 70)).toBeNull()
+
+			expect(resolveNewRowAddWidth(true, { width: 90 }, 70)).toBe(90)
+
+			expect(resolveNewRowAddWidth(true, {}, 70)).toBe(70)
+
+			expect(resolveNewRowAddWidth(true, undefined, null)).toBe(NEW_ROW_ADD_COLUMN_SIZE)
+		})
+
 		it('adds no column with newRowAdd false, and Enter still adds', () => {
 			const view = renderNewRow({ newRowAdd: false })
 
@@ -4697,7 +4731,7 @@ describe('Grid new row', () => {
 			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
 		})
 
-		it('renders a newRowAdd slot with the add and the pending state', async () => {
+		it('renders a newRowAdd render slot with the add and the pending state', async () => {
 			let resolve: () => void = () => {}
 
 			const onRowAdd = vi.fn(
@@ -4707,13 +4741,13 @@ describe('Grid new row', () => {
 					}),
 			)
 
-			const newRowAdd = vi.fn(({ add, pending }: GridNewRowAddContext) => (
+			const render = vi.fn(({ add, pending }: GridNewRowAddContext) => (
 				<button type="button" onClick={add}>
 					{pending ? 'Saving' : 'Save person'}
 				</button>
 			))
 
-			const view = renderNewRow({ onRowAdd, newRowAdd })
+			const view = renderNewRow({ onRowAdd, newRowAdd: { render } })
 
 			expect(view.queryByRole('button', { name: 'Add row' })).toBeNull()
 

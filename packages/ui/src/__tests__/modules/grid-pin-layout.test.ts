@@ -172,7 +172,7 @@ describe('the Add column of the new-row slot', () => {
 
 	it('turns the freeze on, but does not pull the selection column to the left edge', () => {
 		const { state, hasPinned } = toColumnPinningState(
-			withNewRowAddColumn([select, name, status], true),
+			withNewRowAddColumn([select, name, status], 48),
 		)
 
 		expect(hasPinned).toBe(true)
@@ -182,7 +182,7 @@ describe('the Add column of the new-row slot', () => {
 
 	it('keeps the selection column first when another column is frozen too', () => {
 		const { state } = toColumnPinningState(
-			withNewRowAddColumn([select, name, { ...status, locked: 'right' }], true),
+			withNewRowAddColumn([select, name, { ...status, locked: 'right' }], 48),
 		)
 
 		// The Add column is the last column of the right edge.

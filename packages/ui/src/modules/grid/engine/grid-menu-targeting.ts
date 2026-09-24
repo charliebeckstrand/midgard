@@ -85,6 +85,10 @@ export function tryCellMenu(
  * cell, records the grid to restore focus to on close, and opens below the cell
  * (WCAG 2.1.1). No-ops when no cell is active.
  *
+ * @remarks Only an event on the grid element itself retargets. A right-click
+ * in a cell with no menu of its own, such as a selection or actions cell,
+ * keeps the native menu. It does not open the menu of the cursor's cell.
+ *
  * @internal
  */
 export function openKeyboardMenu(
@@ -95,10 +99,12 @@ export function openKeyboardMenu(
 ): void {
 	const grid = target.closest<HTMLElement>(GRID_ROLE)
 
+	if (grid !== target) return
+
 	// The cursor marks its gridcell alone. An applied filter and an active group
 	// mark their header buttons with the same attribute, and the header comes
 	// first in the grid.
-	const active = grid?.querySelector<HTMLElement>('[role="gridcell"][data-active]')
+	const active = grid.querySelector<HTMLElement>('[role="gridcell"][data-active]')
 
 	if (!active) return
 

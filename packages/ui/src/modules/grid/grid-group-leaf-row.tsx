@@ -218,7 +218,9 @@ function GridGroupLeafCell<T>({
 	return (
 		<td
 			{...extra}
-			data-grid-col={col.id}
+			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
+			// the autosizer read it, so a non-data cell carries none.
+			data-grid-col={dataCell ? col.id : undefined}
 			aria-colindex={colIndex}
 			{...roving}
 			// The first cell carries the group's rail, so it runs unbroken down the
