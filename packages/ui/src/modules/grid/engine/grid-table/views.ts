@@ -11,6 +11,7 @@ import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
+import { isNewRowAddColumn } from '../grid-new-row-column'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 
@@ -176,6 +177,10 @@ export type GridGlobalFilterView = {
  * boundary shadow). The freeze only resolves once a data column is pinned or
  * locked.
  *
+ * The Add column of the new-row slot (see `withNewRowAddColumn`) is locked,
+ * so it turns `hasPinned` on. It does not pull the selection column
+ * to the left edge, because nothing else is frozen for it to lead.
+ *
  * @internal
  */
 export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
@@ -192,8 +197,10 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 		.filter((col) => !col.selectable && frozenSide(col) === 'right')
 		.map((col) => String(col.id))
 
+	const leads = left.length > 0 || right.some((id) => !isNewRowAddColumn(id))
+
 	return {
-		state: { left: [...select, ...left], right },
+		state: { left: leads ? [...select, ...left] : left, right },
 		hasPinned: left.length > 0 || right.length > 0,
 	}
 }
@@ -327,9 +334,19 @@ function withResizeDirection<T>(
 	}
 }
 
-/** Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}. @internal */
+/**
+ * Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}.
+ *
+ * @remarks The Add column of the new-row slot reads as a column that scrolls.
+ * Its cells are empty outside the slot, so they draw no sticky surface, rule,
+ * or shadow, and the row washes show through them. The layout still holds
+ * its offset, so a frozen column of the consumer sticks inside it. The cell
+ * of the slot sticks through its own class.
+ *
+ * @internal
+ */
 export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
-	return { column: (id) => layout.get(String(id)) }
+	return { column: (id) => (isNewRowAddColumn(id) ? undefined : layout.get(String(id))) }
 }
 
 /**

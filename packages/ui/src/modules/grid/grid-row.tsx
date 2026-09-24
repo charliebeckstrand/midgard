@@ -12,6 +12,7 @@ import { TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { detailOpen } from './engine/grid-items/items'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { type GridWindowRowProps, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
@@ -488,6 +489,12 @@ function GridRowImpl<T>({
 							)}
 						</TableCell>
 					)
+				}
+
+				// The Add column of the new-row slot is empty in a data row, so its
+				// cell reads no editing session.
+				if (isNewRowAddColumn(col.id)) {
+					return <TableCell key={col.id} aria-colindex={colIndex} className={cn(k.cell.actions)} />
 				}
 
 				if (col.actions) {

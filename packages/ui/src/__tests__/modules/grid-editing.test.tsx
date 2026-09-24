@@ -10,8 +10,10 @@ import {
 	type GridEditableConfig,
 	type GridHandle,
 	type GridHistoryState,
+	type GridNewRowAddContext,
 	type GridProps,
 } from '../../modules/grid'
+import { NEW_ROW_ADD_COLUMN_ID as ADD_COLUMN } from '../../modules/grid/engine/grid-new-row-column'
 import {
 	act,
 	allBySlot,
@@ -23,6 +25,7 @@ import {
 	liveRegion,
 	present,
 	renderUI,
+	userEvent,
 } from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
@@ -4640,7 +4643,7 @@ describe('Grid new row', () => {
 		await expectAnnouncement('Row added')
 	})
 
-	it('adds through the Add control on the last editable cell', () => {
+	it('adds through the Add control in a column of its own', () => {
 		const view = renderNewRow()
 
 		view.type('name', 'Carol')
@@ -4649,11 +4652,147 @@ describe('Grid new row', () => {
 
 		const add = view.getByRole('button', { name: 'Add row' })
 
-		expect(view.slotCell('count')).toContainElement(add)
+		// The control is in the grid's own last column, not in the last editor's cell.
+		expect(view.slotCell(ADD_COLUMN)).toContainElement(add)
+
+		expect(view.slotCell('count')).not.toContainElement(add)
 
 		fireEvent.click(add)
 
 		expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', count: 7 })
+	})
+
+	describe('the Add column', () => {
+		/** The text of each header cell, the empty Add header as its screen-reader name. */
+		const headers = (container: HTMLElement) =>
+			Array.from(container.querySelectorAll('thead th')).map((th) => th.textContent)
+
+		it('adds an empty, named last column to the header and to each data row', () => {
+			const view = renderNewRow({}, { navigable: true })
+
+			expect(headers(view.container)).toEqual(['Name', 'Count', 'Add row'])
+
+			expect(view.grid()).toHaveAttribute('aria-colcount', '3')
+
+			for (const row of view.dataRows()) {
+				const cells = row.querySelectorAll('td')
+
+				expect(cells).toHaveLength(3)
+
+				expect(cells[2]).toBeEmptyDOMElement()
+			}
+		})
+
+		it('adds no column with newRowAdd false, and Enter still adds', () => {
+			const view = renderNewRow({ newRowAdd: false })
+
+			expect(headers(view.container)).toEqual(['Name', 'Count'])
+
+			expect(view.queryByRole('button', { name: 'Add row' })).toBeNull()
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+		})
+
+		it('renders a newRowAdd slot with the add and the pending state', async () => {
+			let resolve: () => void = () => {}
+
+			const onRowAdd = vi.fn(
+				() =>
+					new Promise<void>((res) => {
+						resolve = res
+					}),
+			)
+
+			const newRowAdd = vi.fn(({ add, pending }: GridNewRowAddContext) => (
+				<button type="button" onClick={add}>
+					{pending ? 'Saving' : 'Save person'}
+				</button>
+			))
+
+			const view = renderNewRow({ onRowAdd, newRowAdd })
+
+			expect(view.queryByRole('button', { name: 'Add row' })).toBeNull()
+
+			const save = view.getByRole('button', { name: 'Save person' })
+
+			expect(view.slotCell(ADD_COLUMN)).toContainElement(save)
+
+			view.type('name', 'Carol')
+
+			fireEvent.click(save)
+
+			expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+
+			// The slot reads the add in flight, and its cell is inert until it settles.
+			expect(save).toHaveTextContent('Saving')
+
+			expect(save.closest('[inert]')).not.toBeNull()
+
+			await act(async () => resolve())
+
+			expect(view.getByRole('button', { name: 'Save person' }).closest('[inert]')).toBeNull()
+		})
+
+		it('leaves the slot on Escape from the Add control, and keeps a data edit open', () => {
+			const view = renderNewRow({ scope: 'cell' })
+
+			fireEvent.doubleClick(
+				present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name cell'),
+			)
+
+			view.type('name', 'Carol')
+
+			const add = view.getByRole('button', { name: 'Add row' })
+
+			fireEvent.keyDown(add, { key: 'Escape' })
+
+			// The data row's editor stays: Escape in the slot is the slot's.
+			expect(editorsIn(view.container)).toHaveLength(3)
+
+			expect(view.slotEditor('name').value).toBe('')
+
+			// The cursor sits on the last data column of the slot, next to the control.
+			expect(view.grid()).toHaveAttribute('aria-activedescendant', view.slotCell('count').id)
+		})
+
+		it('keeps the column out of export and out of a saved preset', async () => {
+			const onExport = vi.fn()
+
+			const onSavePreset = vi.fn()
+
+			const view = renderNewRow(
+				{},
+				{
+					exportable: [{ csv: { onExport } }],
+					columnManager: { toolbar: true, onSavePreset },
+				},
+			)
+
+			const user = userEvent.setup()
+
+			await user.click(view.getByRole('button', { name: 'Manage columns' }))
+
+			await user.click(view.getByRole('button', { name: 'Save as preset' }))
+
+			expect(onSavePreset).toHaveBeenCalledWith(
+				expect.objectContaining({ order: ['name', 'count'] }),
+			)
+
+			fireEvent.contextMenu(view.getAllByRole('columnheader')[0] as HTMLElement)
+
+			fireEvent.click(view.getByRole('menuitem', { name: 'Export to CSV' }))
+
+			const context = onExport.mock.calls[0]?.[0]
+
+			expect(context.columns.map((column: GridColumn<SessionRow>) => column.id)).toEqual([
+				'name',
+				'count',
+			])
+		})
 	})
 
 	it('does nothing on an add with no value', () => {
@@ -4751,18 +4890,25 @@ describe('Grid new row', () => {
 
 			view.type('name', 'Carol')
 
-			view.slotEditor('name').focus()
+			const editor = view.slotEditor('name')
+
+			editor.focus()
 
 			view.press('name', 'Enter')
 
 			expect(view.slotCell('name')).toHaveAttribute('aria-busy', 'true')
 
-			expect(bySlot(view.slotCell('name'), 'grid-edit-pending')).toHaveTextContent('Carol')
+			// The editor stays mounted with its value, so the row keeps its fields.
+			expect(view.slotEditor('name')).toBe(editor)
 
-			// The editors give way to the pending cells, so focus rests on the grid.
+			expect(editor.value).toBe('Carol')
+
+			// The editors turn inert, with the Add control, so focus rests on the grid.
+			expect(editor.closest('[inert]')).not.toBeNull()
+
+			expect(view.add().closest('[inert]')).not.toBeNull()
+
 			expect(view.grid()).toHaveFocus()
-
-			expect(view.add()).toHaveAttribute('aria-disabled', 'true')
 
 			fireEvent.click(view.add())
 
@@ -4773,6 +4919,8 @@ describe('Grid new row', () => {
 			await view.resolve()
 
 			expect(view.slotCell('name')).not.toHaveAttribute('aria-busy')
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('')
 
@@ -4799,6 +4947,8 @@ describe('Grid new row', () => {
 
 			// The `rowKey` of a refusal is ignored, as the slot has no key.
 			await view.resolve([{ rowKey: 'anything', columnId: 'name', error: 'Name taken' }])
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('Carol')
 
