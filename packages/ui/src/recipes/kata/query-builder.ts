@@ -4,8 +4,8 @@
  * `group.base` and `group.nested` condition boxes, a `rule` row, and its
  * `remove` control. The rest are the fixed `value` text standing in for a
  * value-less operator's input, the AND/OR `separator`, and the `actions` cluster.
- * The `sortable` slots hold a node and its drag `handle` when the builder
- * reorders.
+ * The `part` and `rangePart` slots size the parts of a rule row. The
+ * `sortable` slots hold a node and its drag `handle` when the builder reorders.
  */
 import { mode } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, sen } from '../kiso'
@@ -24,6 +24,12 @@ export const k = {
 		nested: ['p-3', ...mode('bg-zinc-50', 'dark:bg-zinc-900/40'), border.default, rounded.lg],
 	},
 	rule: ['p-2.5', border.default, rounded.lg],
+	// The field, operator, and value of a rule share the row from a zero basis.
+	// A range value holds two number inputs, each with its steppers, so it takes
+	// two shares. `min-w-0` lets a part shrink past the intrinsic width of an
+	// input, so the shares hold. Below `sm` the parts stack, each at full width.
+	part: 'w-full sm:min-w-0 sm:flex-1',
+	rangePart: 'w-full sm:min-w-0 sm:flex-2',
 	remove: 'flex-none',
 	value: ['px-3', size.sm, ...text.muted],
 	separator: [size.xs, weight.medium, ...text.muted, 'uppercase'],

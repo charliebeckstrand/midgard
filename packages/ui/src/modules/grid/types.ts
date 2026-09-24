@@ -58,7 +58,9 @@ export type GridColumn<T> = {
 	 * input, a {@link GridColumn.filterOptions} select, a date picker, or a
 	 * boolean is-true/is-false toggle. The column's {@link GridColumn.value} must
 	 * return a value the matching operators compare against — an ISO `YYYY-MM-DD`
-	 * string for `date`, a boolean for `boolean`.
+	 * string for `date`, a boolean for `boolean`. A `number` filter's `between`
+	 * bounds clamp to the `[min, max]` of the column's own values, among the rows
+	 * that other filters leave. Unavailable under server-side filtering.
 	 * @defaultValue 'text'
 	 */
 	filterType?: QueryFieldType

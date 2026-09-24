@@ -57,4 +57,10 @@ export type QueryField = {
 	operators?: QueryOperator[]
 	/** Required when `type === 'select'`. */
 	options?: { label: string; value: string }[]
+	/**
+	 * The `[min, max]` that the data of a `number` field holds. Each bound of a
+	 * `between` rule clamps to it, and its placeholder shows it. A grid column
+	 * filter fills it from the column's own values.
+	 */
+	span?: readonly [min: number, max: number]
 }

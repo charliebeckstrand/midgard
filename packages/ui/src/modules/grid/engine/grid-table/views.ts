@@ -93,6 +93,13 @@ export type GridColumnFilter = {
 	 */
 	uniqueValues: (id: string | number) => string[]
 	/**
+	 * The `[min, max]` of the column's numeric cell values (faceted), or
+	 * `undefined` when it has none. A `number` filter's `between` editor clamps
+	 * to it. It is `undefined` under server-side (manual) filtering, as
+	 * `uniqueValues` is empty there.
+	 */
+	span: (id: string | number) => readonly [number, number] | undefined
+	/**
 	 * Whether any column carries a filter that actually constrains rows. It is the
 	 * same row-constraining test the header buttons read for their active accent
 	 * (a real value or a value-less operator, not a merely-seeded rule). Drives the
@@ -352,6 +359,34 @@ export type GridColumnFilterEngine = Omit<
 	'affordance' | 'openColumn' | 'requestOpen'
 >
 
+/**
+ * The `[min, max]` of the numbers among a column's faceted values, or
+ * `undefined` when there is no number. A number or a numeric string counts. A
+ * blank cell is no number, so it does not pull the minimum to 0, as
+ * `getFacetedMinMaxValues` does.
+ *
+ * @internal
+ */
+export function facetSpan(values: Iterable<unknown>): readonly [number, number] | undefined {
+	let min = Number.POSITIVE_INFINITY
+
+	let max = Number.NEGATIVE_INFINITY
+
+	for (const value of values) {
+		if (typeof value !== 'number' && (typeof value !== 'string' || value.trim() === '')) continue
+
+		const number = Number(value)
+
+		if (!Number.isFinite(number)) continue
+
+		if (number < min) min = number
+
+		if (number > max) max = number
+	}
+
+	return min <= max ? [min, max] : undefined
+}
+
 /** Assembles the engine-backed {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
 export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 	return {
@@ -372,6 +407,11 @@ export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 				.map((value) => String(value))
 
 			return [...new Set(values)].sort((a, b) => a.localeCompare(b))
+		},
+		span: (id) => {
+			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+
+			return facets ? facetSpan(facets.keys()) : undefined
 		},
 		// Test each applied column filter the same way its header button does, so
 		// the toolbar affordance appears exactly when a header accent does — a
