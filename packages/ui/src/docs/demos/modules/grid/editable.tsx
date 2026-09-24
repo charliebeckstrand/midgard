@@ -1,4 +1,4 @@
-import { Check, Info, Pencil, Trash2, X } from 'lucide-react'
+import { Check, Info, Pencil, Trash2, UserPlus, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
@@ -457,10 +457,37 @@ function refuseNewPerson(values: Record<string, unknown>): GridCellRefusal[] {
 	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'A name is required' }] : []
 }
 
+/** The Add controls the new-row example offers, with the label each segment shows. */
+const addControlOptions = [
+	{ value: 'button', label: 'Button' },
+	{ value: 'custom', label: 'Custom' },
+	{ value: 'none', label: 'Enter only' },
+] as const
+
+type AddControl = (typeof addControlOptions)[number]['value']
+
+/**
+ * The `newRowAdd` setting for each choice: the built-in button, a slot with
+ * the demo's own icon button, or no control.
+ */
+function resolveAddControl(choice: AddControl): GridEditableConfig['newRowAdd'] {
+	if (choice === 'none') return false
+
+	if (choice === 'button') return undefined
+
+	return ({ add }) => (
+		<Button variant="bare" color="blue" aria-label="Add person" onClick={add}>
+			<Icon icon={<UserPlus />} />
+		</Button>
+	)
+}
+
 export function NewRowExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
 	const [position, setPosition] = useState<'top' | 'bottom'>('bottom')
+
+	const [addControl, setAddControl] = useState<AddControl>('button')
 
 	// The add takes a moment, as a save to a server does. A refusal keeps the
 	// values in the row, with the reason under the cell.
@@ -487,24 +514,40 @@ export function NewRowExample() {
 
 	// `newRow` pins one blank editor row to the body, outside the row model. The
 	// data rows keep their cell-scoped session and their batch sink. The new row
-	// has its own sink, because a new record has no row key yet.
+	// has its own sink, because a new record has no row key yet. `newRowAdd`
+	// sets its Add control, in a locked column of its own at the end.
 	return (
 		<>
 			<Flex justify="between" align="center">
-				<Segment
-					value={position}
-					onValueChange={(next) => setPosition((next as 'top' | 'bottom' | null) ?? 'bottom')}
-				>
-					<SegmentControl aria-label="New row position">
-						<SegmentItem value="top">Top</SegmentItem>
-						<SegmentItem value="bottom">Bottom</SegmentItem>
-					</SegmentControl>
-				</Segment>
+				<Flex gap="sm">
+					<Segment
+						value={position}
+						onValueChange={(next) => setPosition((next as 'top' | 'bottom' | null) ?? 'bottom')}
+					>
+						<SegmentControl aria-label="New row position">
+							<SegmentItem value="top">Top</SegmentItem>
+							<SegmentItem value="bottom">Bottom</SegmentItem>
+						</SegmentControl>
+					</Segment>
+					<Segment
+						value={addControl}
+						onValueChange={(next) => setAddControl((next as AddControl | null) ?? 'button')}
+					>
+						<SegmentControl aria-label="Add control">
+							{addControlOptions.map((option) => (
+								<SegmentItem key={option.value} value={option.value}>
+									{option.label}
+								</SegmentItem>
+							))}
+						</SegmentControl>
+					</Segment>
+				</Flex>
 				<EditHelp label="New row help">
-					The blank row adds a person. Fill its cells, then press Enter or the Add control. Escape
-					clears the row, and F2 goes back to the grid. Moving away never adds the row. It stays in
-					view while the grid scrolls, and the arrow keys reach it from the row next to it. A name
-					is required.
+					The blank row adds a person. Fill its cells, then press Enter or the Add control at the
+					end of the row. Escape clears the row, and F2 goes back to the grid. Moving away never
+					adds the row. It stays in view while the grid scrolls, and the arrow keys reach it from
+					the row next to it. A name is required. The second segment sets the Add control: the
+					built-in button, a custom one, or none, so that only Enter adds the row.
 				</EditHelp>
 			</Flex>
 			<Grid
@@ -517,6 +560,7 @@ export function NewRowExample() {
 					session: 'managed',
 					scope: 'cell',
 					newRow: position,
+					newRowAdd: resolveAddControl(addControl),
 					onRowAdd,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

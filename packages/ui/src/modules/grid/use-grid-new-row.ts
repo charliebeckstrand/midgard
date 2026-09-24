@@ -29,6 +29,7 @@ import {
 	NEW_ROW_KEY,
 	readNewRowRefusals,
 } from './engine/grid-editing-utilities'
+import { NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
 import type { GridEditSource } from './grid-data-types'
 import type { GridNewRowSession } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -76,6 +77,22 @@ function useNewRowWarning(config: GridEditableConfig | undefined, managed: boole
 				'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row — pass `onRowAdd` to show it.',
 			)
 	}, [manual, sinkless])
+}
+
+/**
+ * The data column whose cursor cell a key from a cell of the slot leaves on,
+ * from the cell's `data-grid-new-col`. The Add column is not a stop of the
+ * cursor. A key from its control therefore leaves on the last data column.
+ *
+ * @internal
+ */
+function slotColumnOf(
+	attr: string | null,
+	columns: readonly { id: string | number }[],
+): string | number | undefined {
+	if (attr === NEW_ROW_ADD_COLUMN_ID) return columns.at(-1)?.id
+
+	return columns.find((column) => String(column.id) === attr)?.id
 }
 
 /** An add that `onRowAdd` returned as a promise, with the drafts it holds as pending. @internal */
@@ -420,9 +437,7 @@ export function useGridNewRow<T>({
 			// the slot in the tab order, so the browser keeps it.
 			if (event.ctrlKey || event.metaKey || event.altKey) return true
 
-			const attr = cell.getAttribute('data-grid-new-col')
-
-			const columnId = dataColumnsRef.current.find((column) => String(column.id) === attr)?.id
+			const columnId = slotColumnOf(cell.getAttribute('data-grid-new-col'), dataColumnsRef.current)
 
 			if (columnId === undefined) return true
 

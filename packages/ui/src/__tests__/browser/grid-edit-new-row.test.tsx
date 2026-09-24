@@ -33,7 +33,13 @@ describe('grid new row (real browser)', () => {
 			sticky = false,
 			virtualize = true,
 			columnGroups,
-		}: { sticky?: boolean; virtualize?: boolean; columnGroups?: GridColumnGroup[] } = {},
+			columns: cols = columns,
+		}: {
+			sticky?: boolean
+			virtualize?: boolean
+			columnGroups?: GridColumnGroup[]
+			columns?: GridColumn<Row>[]
+		} = {},
 	) {
 		const onRowAdd = vi.fn()
 
@@ -45,7 +51,7 @@ describe('grid new row (real browser)', () => {
 					virtualize={virtualize ? { estimateSize: 40 } : undefined}
 					maxHeight="220px"
 					header={sticky ? { position: 'sticky' } : undefined}
-					columns={columns}
+					columns={cols}
 					rows={rows}
 					getKey={(row) => row.id}
 					columnGroups={columnGroups}
@@ -270,6 +276,72 @@ describe('grid new row (real browser)', () => {
 		await userEvent.keyboard('{Tab}{Tab}{Tab}')
 
 		expect(screen.getByRole('button', { name: 'after' })).toHaveFocus()
+	})
+
+	it('sticks the Add control to the inline end while the grid scrolls sideways', async () => {
+		const { scroll, slot } = renderGrid(
+			{ newRow: 'bottom' },
+			{
+				columns: [
+					{ ...(columns[0] as GridColumn<Row>), width: 300 },
+					{ ...(columns[1] as GridColumn<Row>), width: 300 },
+				],
+			},
+		)
+
+		const addCell = () => present(slot().closest('tr')?.lastElementChild, 'the Add cell')
+
+		// The slot's first cell, the editor of Name.
+		const nameCell = slot
+
+		expect(scroll.scrollWidth).toBeGreaterThan(scroll.clientWidth)
+
+		expect(addCell()).toContainElement(screen.getByRole('button', { name: 'Add row' }))
+
+		// The cell is in view at the inline end, not at the end of the wide table.
+		const edge = addCell().getBoundingClientRect().right
+
+		expect(edge).toBeLessThanOrEqual(scroll.getBoundingClientRect().right)
+
+		for (const left of [120, scroll.scrollWidth]) {
+			const before = nameCell().getBoundingClientRect().left
+
+			scroll.scrollLeft = left
+
+			fireEvent.scroll(scroll)
+
+			// The editors scroll with the content, and the Add cell keeps its edge.
+			await waitFor(() => expect(nameCell().getBoundingClientRect().left).toBeLessThan(before))
+
+			expect(addCell().getBoundingClientRect().right).toBeCloseTo(edge, 0)
+		}
+	})
+
+	it('keeps the cursor cell of the row clear of the sticky Add cell', async () => {
+		const { slot } = renderGrid(
+			{ newRow: 'bottom' },
+			{
+				columns: [
+					{ ...(columns[0] as GridColumn<Row>), width: 300 },
+					{ ...(columns[1] as GridColumn<Row>), width: 300 },
+				],
+			},
+		)
+
+		const addCell = () => present(slot().closest('tr')?.lastElementChild, 'the Add cell')
+
+		screen.getByRole('grid').focus()
+
+		// The last cell of the cursor order is the last editor of the row.
+		await userEvent.keyboard('{Control>}{End}{/Control}')
+
+		await waitFor(() => expect(activeCell().closest('[data-slot="grid-new-row"]')).not.toBeNull())
+
+		await waitFor(() =>
+			expect(activeCell().getBoundingClientRect().right).toBeLessThanOrEqual(
+				addCell().getBoundingClientRect().left + 1,
+			),
+		)
 	})
 
 	it('keeps the editors in place, and out of reach, while an async add is in flight', async () => {

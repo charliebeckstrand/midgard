@@ -31,10 +31,9 @@ export type GridActiveEditStore = {
 /**
  * The settle controls beside an open editor. `'both'` is the save and discard
  * pair, `'discard'` is the discard control alone, and `'none'` shows no
- * control. `'add'` is the Add control of the new-row slot, on its last
- * editable cell. @internal
+ * control. @internal
  */
-export type GridSettleControls = 'none' | 'discard' | 'both' | 'add'
+export type GridSettleControls = 'none' | 'discard' | 'both'
 
 /**
  * The editing session shared with the data cells. A row in `editableRows` puts
