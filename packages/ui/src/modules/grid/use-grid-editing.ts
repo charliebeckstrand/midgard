@@ -97,6 +97,12 @@ export type GridEditingApi = {
 	 */
 	historyKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
 	/**
+	 * One step through the history, for the grid's `ref` handle
+	 * ({@link GridHandle}). It returns whether it wrote a cell, and it leaves
+	 * the cursor where it is. With the history off, it does nothing.
+	 */
+	stepHistory: (step: GridHistoryStep) => boolean
+	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
 	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
 	 * editor, or out of the grid, against `commitOn`. When the move leaves what
@@ -1441,7 +1447,7 @@ export function useGridEditing<T>({
 	const sendReject = useEffectEvent((refused: GridCellChange[]) => config?.onReject?.(refused))
 
 	// The undo history, when the config turns it on.
-	const history = useGridEditHistory(enabled, config?.history)
+	const history = useGridEditHistory(enabled, config?.history, config?.onHistoryChange)
 
 	const { record: recordEntry, take: takeStep } = history
 
@@ -2412,12 +2418,28 @@ export function useGridEditing<T>({
 		for (const batch of inFlight) trackInFlight(batch)
 	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore, recordEntry, hasCommit])
 
-	// Takes one step through the history. The step sends the values that it
-	// writes through `onCommit`, as a save does, so the consumer applies it as
-	// it applies a save. The cursor moves to the first cell that the step
-	// writes, when the grid shows its row and its column.
+	// Moves the cursor to a cell that a history step wrote, when the grid shows
+	// its row and its column.
+	const moveToCell = useCallback(
+		(cell: GridHistoryCell | undefined) => {
+			const row = cell ? rowKeysRef.current.indexOf(cell.rowKey) : -1
+
+			const col = dataColumnsRef.current.findIndex((column) => column.id === cell?.columnId)
+
+			if (row !== -1 && col !== -1) moveTo({ row, col })
+		},
+		[rowKeysRef, dataColumnsRef, moveTo],
+	)
+
+	// Takes one step through the history, and returns whether it wrote a cell.
+	// The step sends the values that it writes through `onCommit`, as a save
+	// does, so the consumer applies it as it applies a save. From a key, the
+	// cursor moves to the first cell that the step writes, when the grid shows
+	// its row and its column. With the history off, nothing happens.
 	const stepHistory = useCallback(
-		(step: GridHistoryStep) => {
+		(step: GridHistoryStep, moveCursor: boolean): boolean => {
+			if (!history.on) return false
+
 			const source = editSourceRef.current
 
 			const result = takeStep(step, {
@@ -2428,7 +2450,7 @@ export function useGridEditing<T>({
 			if (result.status !== 'applied') {
 				announce(describeHistoryMiss(step, result.status))
 
-				return
+				return false
 			}
 
 			const { cells } = result
@@ -2446,15 +2468,18 @@ export function useGridEditing<T>({
 
 			for (const batch of inFlight) trackBatch(batch)
 
-			const [first] = cells
+			if (moveCursor) moveToCell(cells[0])
 
-			const row = first ? rowKeysRef.current.indexOf(first.rowKey) : -1
-
-			const col = dataColumnsRef.current.findIndex((column) => column.id === first?.columnId)
-
-			if (row !== -1 && col !== -1) moveTo({ row, col })
+			return true
 		},
-		[editSourceRef, takeStep, drafts, hasCommit, trackBatch, rowKeysRef, dataColumnsRef, moveTo],
+		[history.on, editSourceRef, takeStep, drafts, hasCommit, trackBatch, moveToCell],
+	)
+
+	// The step of the grid's `ref` handle. Focus is on the control that sent it,
+	// so the cursor stays where it is.
+	const stepFromHandle = useCallback(
+		(step: GridHistoryStep) => stepHistory(step, false),
+		[stepHistory],
 	)
 
 	// The history keys act on the tab stop only. In an open editor, the input
@@ -2471,7 +2496,7 @@ export function useGridEditing<T>({
 
 			event.preventDefault()
 
-			stepHistory(step)
+			stepHistory(step, true)
 		}
 	}, [history.on, stepHistory])
 
@@ -2509,6 +2534,7 @@ export function useGridEditing<T>({
 		enterEdit,
 		sessionKeys: managed ? sessionKeys : undefined,
 		historyKeys,
+		stepHistory: stepFromHandle,
 		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,

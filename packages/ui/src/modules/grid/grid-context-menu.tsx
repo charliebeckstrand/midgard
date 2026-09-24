@@ -206,7 +206,7 @@ export function GridContextMenu<T>({
 	)
 
 	const resolveColumnItems = useCallback(
-		(columnId: string): GridMenuItem[] | null => {
+		(columnId: string, rtl: boolean): GridMenuItem[] | null => {
 			if (!config.column) return null
 
 			const column = columnById.get(columnId)
@@ -237,6 +237,7 @@ export function GridContextMenu<T>({
 				chooseColumns,
 				exportActions,
 				filter,
+				rtl,
 			})
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
@@ -317,9 +318,16 @@ export function GridContextMenu<T>({
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
 	// alone), so a no-data grid stands its menus down without unmounting this
 	// wrapper — see the prop's remark.
+	// The pin items name the physical edge, so the column items read the direction
+	// of the header the menu opens on. The menu itself portals out of the grid.
 	const resolveItems = useCallback(
-		(target: HTMLElement): GridMenuItem[] | null =>
-			enabled ? resolveTarget(target, resolveColumnItems, resolveCellItems) : null,
+		(target: HTMLElement): GridMenuItem[] | null => {
+			if (!enabled) return null
+
+			const rtl = getComputedStyle(target).direction === 'rtl'
+
+			return resolveTarget(target, (id) => resolveColumnItems(id, rtl), resolveCellItems)
+		},
 		[enabled, resolveColumnItems, resolveCellItems],
 	)
 

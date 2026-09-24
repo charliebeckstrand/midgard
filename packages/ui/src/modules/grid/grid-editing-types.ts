@@ -40,6 +40,22 @@ export type GridCellRefusal = GridCellRef & {
 }
 
 /**
+ * Whether the undo history of an editable grid holds a step each way, as
+ * {@link GridEditableConfig.onHistoryChange} reports it. A toolbar disables its
+ * Undo and Redo buttons with it.
+ *
+ * @remarks `canUndo` means that the stack holds an entry. A step can still
+ * write nothing, when each of its cells changed since the save. The grid then
+ * says so, and drops the entry.
+ */
+export type GridHistoryState = {
+	/** The undo stack holds an entry. */
+	canUndo: boolean
+	/** The redo stack holds an entry. */
+	canRedo: boolean
+}
+
+/**
  * Context handed to a column's {@link GridColumn.editCell} slot when its cell
  * enters edit mode. The grid owns the draft buffer and the commit/cancel
  * lifecycle. The slot decides how to render the control, and when to stage or
@@ -425,6 +441,14 @@ export type GridEditableConfig = {
 	 * @defaultValue false
 	 */
 	history?: boolean
+	/**
+	 * Fires when the undo history gains its first step in a direction, or loses
+	 * its last. Hold the state to enable a toolbar's Undo and Redo buttons, which
+	 * call {@link GridHandle.undo} and {@link GridHandle.redo}. It fires while
+	 * {@link GridEditableConfig.history} is on, and once more with both values
+	 * `false` when the history turns off.
+	 */
+	onHistoryChange?: (state: GridHistoryState) => void
 	/**
 	 * Adds a blank editor row, pinned at the top or the bottom of the body, for
 	 * the entry of a new record. Its editable cells are always editors. Fill

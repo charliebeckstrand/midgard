@@ -35,7 +35,7 @@ const SCAN_ROOTS = [
 ].filter((root) => existsSync(root))
 
 const RENAMED_UTILITY =
-	/\b(?:p|px|py|pt|pb|pl|pr|m|mx|my|mt|mb|ml|mr|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b/
+	/\b(?:p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|ms|me|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b/
 
 const RAW_CALC = /calc\(--spacing\(/
 

@@ -175,6 +175,8 @@ export function useGridCursor<T>({
 	wrap: (children: ReactNode) => ReactNode
 	/** Where the new-row slot shows, or `null` when the grid shows none. */
 	newRow: GridNewRowPosition
+	/** One step through the undo history, for the grid's `ref` handle. */
+	stepHistory: (step: 'undo' | 'redo') => boolean
 } {
 	const editingEnabled = editable != null
 
@@ -473,5 +475,6 @@ export function useGridCursor<T>({
 		editOnCellDoubleClick,
 		wrap,
 		newRow: newRowPosition,
+		stepHistory: editing.stepHistory,
 	}
 }
