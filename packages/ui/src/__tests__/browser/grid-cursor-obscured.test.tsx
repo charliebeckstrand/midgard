@@ -394,61 +394,6 @@ describe('grid cursor clear of a pinned column after a horizontal scroll (real b
 		})
 	}
 
-	// In a right-to-left grid, `'left'` and `'right'` name the inline start and
-	// end. A left pin therefore sticks to the physical right edge, and a right
-	// pin to the physical left edge.
-	for (const side of ['left', 'right'] as const) {
-		it(`holds a ${side}-pinned column at its inline edge in a right-to-left grid`, async () => {
-			const { grid, scroll } = renderGrid(side, 'rtl')
-
-			const pinned = present(
-				grid.querySelector<HTMLElement>('tbody td[data-grid-col="pin"]'),
-				'a pinned cell',
-			)
-
-			const frame = () => scroll.getBoundingClientRect()
-
-			/** The gap between the pinned cell and its inline edge of the scroller. */
-			const gap = () =>
-				side === 'left'
-					? frame().left +
-						scroll.clientLeft +
-						scroll.clientWidth -
-						pinned.getBoundingClientRect().right
-					: pinned.getBoundingClientRect().left - (frame().left + scroll.clientLeft)
-
-			// A left pin starts at its edge. A right pin gets there at the far end.
-			scroll.scrollLeft = side === 'left' ? 0 : -scroll.scrollWidth
-
-			await waitFor(() => expect(Math.abs(gap())).toBeLessThanOrEqual(1))
-
-			// Scroll the content across. The pinned cell must not move with it.
-			const before = scroll.scrollLeft
-
-			scroll.scrollLeft = side === 'left' ? -scroll.scrollWidth : 0
-
-			await waitFor(() => expect(scroll.scrollLeft).not.toBe(before))
-
-			expect(Math.abs(gap())).toBeLessThanOrEqual(1)
-
-			// The boundary rule and the edge shadow face the scrolled columns. For a
-			// left pin, they are on the physical left side of the cell.
-			const rule = getComputedStyle(pinned, '::after')
-
-			const shadow = getComputedStyle(pinned).boxShadow
-
-			if (side === 'left') {
-				expect(rule.left).toBe('0px')
-
-				expect(shadow).toContain(' -1px 0px 3px')
-			} else {
-				expect(rule.right).toBe('0px')
-
-				expect(shadow).toContain(' 1px 0px 3px')
-			}
-		})
-	}
-
 	// In a right-to-left grid, ArrowLeft moves to the next column.
 	const rtlCases = [
 		// The cursor comes from the side away from the pinned column.

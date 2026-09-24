@@ -92,8 +92,9 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
 
 /**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
- * into two instances along the `@floating-ui/react` mock boundary — the mock
- * is a setup-file `vi.mock`, so it can only toggle per instance, not per file:
+ * into instances along the `@floating-ui/react` mock boundary — the mock is a
+ * setup-file `vi.mock`, so it can only toggle per instance, not per file — and
+ * along the scrollbar mode of the browser:
  *
  * - `browser`: layout, geometry, and computed colour the jsdom suite can't
  *   see — the `color-contrast` / `target-size` axe rules (helpers/axe.ts) and
@@ -107,7 +108,14 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  *   variant that leaves `@floating-ui/react` real (motion stays mocked for
  *   determinism).
  *
- * `pnpm test:browser` runs both; `--project <name>` scopes to one.
+ * - `scrollbars` (browser/scrollbars/): the cases that measure a scroll range.
+ *   Playwright starts headless Chromium with `--hide-scrollbars`. In that mode a
+ *   `scrollbar-gutter: stable` scroller reserves the gutter, but it computes
+ *   the scroll range as if the scrollbar had no width, so the range is 15 px
+ *   short. This instance drops the flag, so its scrollers have real scrollbars.
+ *   Its mocks are the ones `browser` uses.
+ *
+ * `pnpm test:browser` runs all three; `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
@@ -247,7 +255,18 @@ export default defineConfig({
 					name: 'browser',
 					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
 					include: ['src/__tests__/browser/**/*.test.{ts,tsx}'],
-					exclude: [...configDefaults.exclude, 'src/__tests__/browser/floating-ui/**'],
+					exclude: [
+						...configDefaults.exclude,
+						'src/__tests__/browser/floating-ui/**',
+						'src/__tests__/browser/scrollbars/**',
+					],
+				},
+				{
+					browser: 'chromium',
+					name: 'scrollbars',
+					provider: playwright({ launchOptions: { ignoreDefaultArgs: ['--hide-scrollbars'] } }),
+					setupFiles: [resolve(import.meta.dirname, 'src/__tests__/browser/setup/module-mocks.ts')],
+					include: ['src/__tests__/browser/scrollbars/**/*.test.{ts,tsx}'],
 				},
 				{
 					browser: 'chromium',
