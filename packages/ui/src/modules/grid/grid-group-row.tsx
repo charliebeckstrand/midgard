@@ -2,7 +2,7 @@
 
 import type { Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
@@ -27,6 +27,12 @@ type GridGroupRowProps<T> = {
 	renderHeader: GridGroupBy['renderHeader']
 	/** The group's overlay color: colors the leading rail and washes the header's aggregate cells; `undefined` leaves them neutral. */
 	color?: PaletteColor
+	/** The measure ref of a windowed body, which reads the row height. */
+	measureRef?: Ref<HTMLTableRowElement>
+	/** The row's index in the item list of a windowed body, written as `data-index`. */
+	dataIndex?: number
+	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
+	ariaRowIndex?: number
 }
 
 /**
@@ -48,6 +54,9 @@ export function GridGroupRow<T>({
 	columnId,
 	renderHeader,
 	color,
+	measureRef,
+	dataIndex,
+	ariaRowIndex,
 }: GridGroupRowProps<T>) {
 	const expanded = row.getIsExpanded()
 
@@ -68,7 +77,14 @@ export function GridGroupRow<T>({
 	return (
 		// `data-group-key` (the shared value) lets the group-header context menu
 		// resolve the right-clicked group for the row manager and its color/expand items.
-		<TableRow data-group-row data-group-key={String(value)} data-expanded={dataAttr(expanded)}>
+		<TableRow
+			ref={measureRef}
+			data-index={dataIndex}
+			aria-rowindex={ariaRowIndex}
+			data-group-row
+			data-group-key={String(value)}
+			data-expanded={dataAttr(expanded)}
+		>
 			<TableCell
 				colSpan={span}
 				className={cn(k.rowGroup.rail.padded, color && k.rowGroup.rail.color[color])}

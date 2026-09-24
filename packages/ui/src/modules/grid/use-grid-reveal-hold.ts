@@ -26,8 +26,8 @@ export type GridRevealHold = {
  * `<Activity mode="hidden">` instead of rendering behind a zero-height reveal.
  *
  * @remarks
- * A grouped or master-detail body stands virtualization down. Every leaf, total,
- * and detail row is therefore mounted whatever its expansion. Each body render walks all of
+ * A grouped or master-detail body with no window mounts every leaf, total,
+ * and detail row whatever its expansion. Each body render walks all of
  * them. Resting the collapsed ones moves that work off the visible commit. It
  * still runs, at the lower priority a hidden Activity renders under. The commit
  * the user waits on carries the expanded rows alone.
@@ -57,16 +57,22 @@ export type GridRevealHold = {
  * starts from is on screen already. An open under reduced motion does the same,
  * since it has no transition to prime.
  *
+ * A windowed body mounts a row only when it is in the window. A row that
+ * mounts open therefore has no closed style to run from. With `enter`, an open
+ * row mounts at the closed track and then takes the same wake as a row that
+ * comes back from a rest. The flag acts only at the mount.
+ *
  * @param expanded - Whether the row's group is open.
+ * @param enter - Whether an open row mounts closed and opens over the transition.
  * @returns The row's {@link GridRevealHold}.
  * @internal
  */
-export function useGridRevealHold(expanded: boolean): GridRevealHold {
+export function useGridRevealHold(expanded: boolean, enter = false): GridRevealHold {
 	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
 
 	const hold = useMountHold(expanded, 'always', { defer: !reducedMotion })
 
-	const [open, setOpen] = useState(expanded)
+	const [open, setOpen] = useState(expanded && !enter)
 
 	// A collapse closes the track in the commit the toggle lands in, so the reveal
 	// starts to shrink from the row's first closed frame — the same edge that

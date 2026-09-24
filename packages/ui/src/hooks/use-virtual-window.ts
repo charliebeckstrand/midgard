@@ -132,6 +132,13 @@ type MeasuredVirtualWindow = VirtualWindow & {
 	 * row. It measures the row when it attaches and again on each resize.
 	 */
 	measureRef: (node: Element | null) => void
+	/**
+	 * Sets the cached height of the row at `index`, as a measurement does. A
+	 * row above the viewport moves the scroll offset by the difference, so the
+	 * rows in view do not move. Set a row to 0 before it leaves the list, and
+	 * the removal then moves nothing.
+	 */
+	resizeItem: (index: number, size: number) => void
 }
 
 /**
@@ -161,6 +168,10 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * during a scroll up, and the content drifts. The uniform path keeps the
  * default, because its rows do not measure.
  *
+ * An insert or a removal is not a resize, so the virtualizer does not move
+ * the scroll offset for it. A caller that removes a row above the viewport
+ * first sets its height to 0 through `resizeItem`, and the offset then moves.
+ *
  * The measured path also takes the virtualizer's end anchor. `anchorTo: 'end'`
  * and `followOnAppend` pass through as they are, so a list pinned to its newest
  * row holds the pin through the virtualizer. It does not write `scrollTop` from
@@ -183,13 +194,10 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * window can resolve. A caller that draws stand-in rows while the window is
  * empty, such as a skeleton, can leave this spacer out until rows render.
  *
- * The grid stays on the uniform path. `resolveGroupingGates` stands
- * virtualization down whenever grouping or master-detail is active, because
- * each renders its own body of mixed-height rows. The measured path does not
- * lift that gate by itself. `measureElement` on a `<tr>` in a fixed-layout
- * table with spacer rows is unverified. The group collapse animation also
- * needs its leaves mounted across the `1fr`↔`0fr` transition, which a window
- * unmounts.
+ * The flat grid body stays on the uniform path. The client-grouped body and
+ * the master-detail body take the measured path under `virtualize`. Their
+ * headers, totals, and detail panels do not share one height. Each keeps the rows of a collapsing group as items until their
+ * reveal lands, so the collapse animation still plays.
  */
 export function useVirtualWindow(options: VirtualWindowOptions): VirtualWindow
 
@@ -275,5 +283,6 @@ export function useVirtualWindow({
 		bottomSpacer,
 		scrollToIndex: virtualizer.scrollToIndex,
 		measureRef: virtualizer.measureElement,
+		resizeItem: virtualizer.resizeItem,
 	}
 }

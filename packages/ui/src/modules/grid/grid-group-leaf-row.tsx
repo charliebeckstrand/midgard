@@ -2,7 +2,7 @@
 
 import { type Cell, flexRender } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -58,6 +58,19 @@ type GridGroupLeafRowProps<T> = {
 	density: DensityLevel
 	/** The group's overlay color, coloring each leaf's leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
+	/**
+	 * Whether an open leaf mounts at the closed track and then opens over the
+	 * transition. A windowed body sets it on the leaves that fit in one viewport
+	 * when their group expands. A leaf that is already mounted ignores it.
+	 * @defaultValue false
+	 */
+	enter?: boolean
+	/** The measure ref of a windowed body, which reads the row height. */
+	measureRef?: Ref<HTMLTableRowElement>
+	/** The row's index in the item list of a windowed body, written as `data-index`. */
+	dataIndex?: number
+	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
+	ariaRowIndex?: number
 }
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
@@ -141,6 +154,8 @@ type GridGroupLeafCellProps<T> = {
 	cellRoving?: boolean
 	/** Stable focused-cell activation for cell roving. */
 	cellActivate?: GridCellRovingActivate<T>
+	/** The 1-based `aria-colindex`, set when the row carries an `aria-rowindex`. */
+	colIndex?: number
 }
 
 /**
@@ -170,6 +185,7 @@ function GridGroupLeafCell<T>({
 	pad,
 	cellRoving = false,
 	cellActivate,
+	colIndex,
 }: GridGroupLeafCellProps<T>) {
 	const chrome = leafCellChrome(col)
 
@@ -190,6 +206,7 @@ function GridGroupLeafCell<T>({
 	return (
 		<td
 			data-grid-col={col.id}
+			aria-colindex={colIndex}
 			{...roving}
 			// The leftmost cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
@@ -258,12 +275,17 @@ export function GridGroupLeafRow<T>({
 	pinning,
 	density,
 	color,
+	enter = false,
+	measureRef,
+	dataIndex,
+	ariaRowIndex,
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
 
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
-	// leaves stop riding the visible commit.
-	const reveal = useGridRevealHold(expanded)
+	// leaves stop riding the visible commit. A windowed leaf that enters mounts
+	// at the closed track and opens over the transition.
+	const reveal = useGridRevealHold(expanded, enter)
 
 	// The pointer handlers speak GridColumn (shared with the flat body's rows);
 	// recover the list once from the engine cells this grouped row renders by.
@@ -272,6 +294,9 @@ export function GridGroupLeafRow<T>({
 	return (
 		<Hold hold={reveal.hold} name="grid-group-leaf-row">
 			<tr
+				ref={measureRef}
+				data-index={dataIndex}
+				aria-rowindex={ariaRowIndex}
 				// The shared row shell (attributes, pointer handlers, Enter / Space
 				// activation). Row-mode roving marks an expanded leaf an item the roving
 				// hook owns the `tabIndex` of; a collapsed leaf is `inert` and excluded
@@ -326,6 +351,7 @@ export function GridGroupLeafRow<T>({
 							pad={pad}
 							cellRoving={cellRoving}
 							cellActivate={cellActivate}
+							colIndex={ariaRowIndex !== undefined ? colIdx + 1 : undefined}
 						/>
 					)
 				})}

@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -80,6 +80,19 @@ type GridDetailRowProps = {
 	expanded: boolean
 	/** The detail content for the row. */
 	children: ReactNode
+	/**
+	 * Whether an open panel mounts at the closed track and then opens over the
+	 * transition. A windowed body mounts a panel only when it opens, so it sets
+	 * this for a panel that opens in view. A mounted panel ignores it.
+	 * @defaultValue false
+	 */
+	enter?: boolean
+	/** The measure ref of a windowed body, which reads the row height. */
+	measureRef?: Ref<HTMLTableRowElement>
+	/** The row's index in the item list of a windowed body, written as `data-index`. */
+	dataIndex?: number
+	/** The 1-based `aria-rowindex` under grid semantics; omitted on a plain table. */
+	ariaRowIndex?: number
 }
 
 /**
@@ -96,14 +109,26 @@ type GridDetailRowProps = {
  *
  * @internal
  */
-export function GridDetailRow({ rowKey, colSpan, expanded, children }: GridDetailRowProps) {
+export function GridDetailRow({
+	rowKey,
+	colSpan,
+	expanded,
+	children,
+	enter = false,
+	measureRef,
+	dataIndex,
+	ariaRowIndex,
+}: GridDetailRowProps) {
 	// A detail panel holds whatever the caller put in it — a nested grid, a chart
 	// — so a closed one is the most expensive row the flat body keeps live.
-	const reveal = useGridRevealHold(expanded)
+	const reveal = useGridRevealHold(expanded, enter)
 
 	return (
 		<Hold hold={reveal.hold} name="grid-detail-row">
 			<tr
+				ref={measureRef}
+				data-index={dataIndex}
+				aria-rowindex={ariaRowIndex}
 				data-detail-row={String(rowKey)}
 				aria-hidden={expanded ? undefined : true}
 				inert={!expanded}

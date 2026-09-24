@@ -1,7 +1,7 @@
 'use client'
 
 import type { Table } from '@tanstack/react-table'
-import { type ReactNode, useMemo } from 'react'
+import { type ReactNode, type Ref, useMemo } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
@@ -126,6 +126,10 @@ type GridTotalRowProps<T> = {
 	ariaRowIndex?: number
 	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
 	color?: PaletteColor
+	/** The measure ref of a windowed body, which reads the row height. The group variant only. */
+	measureRef?: Ref<HTMLTableRowElement>
+	/** The row's index in the item list of a windowed body, written as `data-index`. The group variant only. */
+	dataIndex?: number
 }
 
 /** A group total cell's collapsible body: the same CSS-grid reveal the group's leaf cells ride. @internal */
@@ -192,6 +196,8 @@ export function GridTotalRow<T>({
 	density = 'snug',
 	ariaRowIndex,
 	color,
+	measureRef,
+	dataIndex,
 }: GridTotalRowProps<T>) {
 	const span = aggregateLabelSpan(columns)
 
@@ -208,6 +214,9 @@ export function GridTotalRow<T>({
 				label={label}
 				density={density}
 				color={color}
+				measureRef={measureRef}
+				dataIndex={dataIndex}
+				ariaRowIndex={ariaRowIndex}
 			/>
 		)
 	}
@@ -238,6 +247,9 @@ function GridGroupTotalRow<T>({
 	label,
 	density,
 	color,
+	measureRef,
+	dataIndex,
+	ariaRowIndex,
 }: {
 	columns: GridColumn<T>[]
 	rows: T[]
@@ -247,6 +259,9 @@ function GridGroupTotalRow<T>({
 	label: ReactNode
 	density: DensityLevel
 	color?: PaletteColor
+	measureRef?: Ref<HTMLTableRowElement>
+	dataIndex?: number
+	ariaRowIndex?: number
 }) {
 	const reveal = useGridRevealHold(expanded)
 
@@ -257,6 +272,9 @@ function GridGroupTotalRow<T>({
 	return (
 		<Hold hold={reveal.hold} name="grid-total-row">
 			<TableRow
+				ref={measureRef}
+				data-index={dataIndex}
+				aria-rowindex={ariaRowIndex}
 				data-total-row="group"
 				aria-hidden={expanded ? undefined : true}
 				inert={!expanded}
