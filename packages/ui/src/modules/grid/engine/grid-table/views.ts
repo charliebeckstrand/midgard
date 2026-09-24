@@ -262,7 +262,9 @@ export function buildColumnResize<T>(
 
 			handlerById.clear()
 
-			for (const header of headers) handlerById.set(header.column.id, header.getResizeHandler())
+			for (const header of headers) {
+				handlerById.set(header.column.id, withResizeDirection(table, header.getResizeHandler()))
+			}
 		}
 
 		return handlerById.get(String(id))
@@ -287,6 +289,34 @@ export function buildColumnResize<T>(
 
 			table.setColumnSizing((prev) => ({ ...prev, [String(id)]: next }))
 		},
+	}
+}
+
+/**
+ * Wraps an engine resize handler so the drag reads the direction of the handle.
+ * The engine adds the pointer delta to the width, and `columnResizeDirection:
+ * 'rtl'` negates it. The trailing edge of a right-to-left header is on the
+ * left, so a drag to the left must widen the column. The direction comes from
+ * the computed style of the pressed element at the start of each drag. The
+ * engine reads the option on each move.
+ *
+ * @internal
+ */
+function withResizeDirection<T>(
+	table: Table<T>,
+	handler: (event: unknown) => void,
+): (event: unknown) => void {
+	return (event) => {
+		const target = (event as { currentTarget?: unknown }).currentTarget
+
+		const direction =
+			target instanceof Element && getComputedStyle(target).direction === 'rtl' ? 'rtl' : 'ltr'
+
+		if (table.options.columnResizeDirection !== direction) {
+			table.setOptions((prev) => ({ ...prev, columnResizeDirection: direction }))
+		}
+
+		handler(event)
 	}
 }
 

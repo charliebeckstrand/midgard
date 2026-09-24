@@ -31,7 +31,8 @@ const sortIcon = defineRecipe({
  * the friendly density level the grid forwards to `<Table>`. Two coupled
  * measures:
  *
- * - the header's trailing padding, so its label clears the handle; and
+ * - the header's trailing padding (`pe-*`, the inline end), so its label clears
+ *   the handle; and
  * - the resize handle's own width (the handle can't size itself — only the table
  *   knows the density).
  *
@@ -45,11 +46,11 @@ const sortIcon = defineRecipe({
 const resizeMetrics = defineRecipe({
 	density: {
 		compact: [
-			'[&>*>tr>th[data-resizable]]:pr-2',
+			'[&>*>tr>th[data-resizable]]:pe-2',
 			'[&>*>tr>th[data-resizable]>[role=separator]]:w-2',
 		],
-		snug: ['[&>*>tr>th[data-resizable]]:pr-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
-		loose: ['[&>*>tr>th[data-resizable]]:pr-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
+		snug: ['[&>*>tr>th[data-resizable]]:pe-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
+		loose: ['[&>*>tr>th[data-resizable]]:pe-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
 	},
 	defaults: { density: 'snug' },
 })
@@ -254,22 +255,23 @@ export const k = {
 	// `projection.outline`, which it stops forwarding to `<Table>` when outlined.
 	//
 	// `border-spacing-0` keeps the cells flush. To avoid doubling every interior
-	// line, each cell draws only its right and bottom rule; the two open outer edges
-	// close with a top rule on the first header row (riding the sticky header) and a
-	// left rule on each row's first cell (riding a frozen leading column). All cast
+	// line, each cell draws only its inline-end and bottom rule; the two open outer
+	// edges close with a top rule on the first header row (riding the sticky header)
+	// and an inline-start rule on each row's first cell (riding a frozen leading
+	// column). The sides are logical, so a right-to-left grid mirrors them. All cast
 	// from the `<table>` onto its descendants — like the table's own outline — so
 	// cells read no context and render in RSC. Full literals for Tailwind's scanner;
 	// keep the subtle tint in step with `kata/table`'s `projection.outline`.
 	outline: {
 		// Border model: separate, flush cells.
 		table: ['border-separate', 'border-spacing-0'],
-		// Interior gridlines plus the right/bottom outer edges: every cell. The tint
-		// is an all-sides `border-color`; only the sided widths below render it, so the
-		// top/left rules inherit the same colour without repeating it.
+		// Interior gridlines plus the inline-end/bottom outer edges: every cell. The
+		// tint is an all-sides `border-color`; only the sided widths below render it,
+		// so the top/inline-start rules inherit the same colour without repeating it.
 		cell: [
-			'[&>*>tr>td]:border-r',
+			'[&>*>tr>td]:border-e',
 			'[&>*>tr>td]:border-b',
-			'[&>*>tr>th]:border-r',
+			'[&>*>tr>th]:border-e',
 			'[&>*>tr>th]:border-b',
 			'[&>*>tr>td]:border-zinc-950/5',
 			'dark:[&>*>tr>td]:border-white/5',
@@ -278,8 +280,9 @@ export const k = {
 		],
 		// Top outer edge: the first header row, riding the sticky header.
 		top: ['[&>thead>tr:first-child>th]:border-t'],
-		// Left outer edge: each row's first cell, riding a frozen leading column.
-		left: ['[&>*>tr>*:first-child]:border-l'],
+		// Inline-start outer edge: each row's first cell, riding a frozen leading
+		// column.
+		start: ['[&>*>tr>*:first-child]:border-s'],
 	},
 	// The toolbar region above the table — see `GridToolbar`, the single home for
 	// the grid's above-table controls. A vertical stack of the top control row and,
@@ -625,8 +628,8 @@ export const k = {
 		// projected onto resizable headers; lives on the `<table>` element.
 		metrics: resizeMetrics,
 		// Resize grab zone on a resizable header's trailing edge, anchored to the
-		// inside of that edge (`right-0`, no outward shift) and widening leftward into
-		// the cell. Its width is density-scaled (set via `metrics`, since only the
+		// inside of that edge (`end-0`, no outward shift) and widening into the cell.
+		// The edge is logical, so a right-to-left header holds it on the left. Its width is density-scaled (set via `metrics`, since only the
 		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
 		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
@@ -637,7 +640,7 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbour's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 right-0 z-10 h-full',
+			'group/grid-resize absolute top-0 end-0 z-10 h-full',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],

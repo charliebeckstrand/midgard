@@ -192,9 +192,10 @@ function GridGroupBand({ group, collapsed, onToggleCollapse }: GridGroupBandProp
 				aria-label={collapsed ? `Expand ${label}` : `Collapse ${label}`}
 				onClick={() => onToggleCollapse(group.id)}
 			>
-				{/* A column group folds horizontally: a caret left while collapsed, a caret
-				    right once expanded (revealing its columns to the right). */}
-				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} />
+				{/* A column group folds horizontally: a caret to the inline start while
+				    collapsed, and to the inline end once expanded (where its columns show).
+				    The caret mirrors in a right-to-left grid. */}
+				<Icon icon={collapsed ? <ChevronLeft /> : <ChevronRight />} className={cn(k.band.caret)} />
 			</Button>
 
 			{collapsed && hiddenCount > 0 && <span className={cn(k.count)}>+{hiddenCount}</span>}

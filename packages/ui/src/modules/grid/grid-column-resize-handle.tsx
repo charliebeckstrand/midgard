@@ -9,6 +9,7 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
+import { logicalArrow } from './use-grid-navigation'
 import type { GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
@@ -55,9 +56,17 @@ export function GridColumnResizeHandle({
 	function handleKeyDown(event: KeyboardEvent<HTMLSpanElement>) {
 		// Arrow nudges, PageUp/Down coarse steps, Home/End to the bounds, and Enter to
 		// auto-size the column to its content — the window-splitter key set (WCAG 4.1.2).
+		// The arrows move the trailing edge on screen. That edge is on the left of a
+		// right-to-left header, so ArrowLeft widens the column there.
 		const size = resize.getSize(id)
 
-		switch (event.key) {
+		const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+
+		const key = horizontal
+			? logicalArrow(event.key, getComputedStyle(event.currentTarget).direction === 'rtl')
+			: event.key
+
+		switch (key) {
 			case 'ArrowLeft':
 				resize.nudge(id, -COLUMN_RESIZE_STEP)
 				break
