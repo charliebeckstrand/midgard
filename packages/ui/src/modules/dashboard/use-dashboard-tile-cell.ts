@@ -15,6 +15,7 @@ import { useDashboardStore } from './use-dashboard-store'
  *
  * Mount registers and unmount unregisters. A change of the demands updates them
  * in place, so the tile keeps its mount order, which places a tile with no entry.
+ * Such a tile takes its `defaultSize`.
  *
  * A tile registers in a layout effect, so the server never sees it register. Until
  * then, the tile resolves its cell from its own layout entry and its own demands. The server
@@ -29,7 +30,12 @@ export function useDashboardTileCell(
 ): DashboardCell | undefined {
 	const store = useDashboardStoreContext()
 
-	const { ratio, minWidth, label } = demands
+	const { ratio, minWidth, label, defaultSize } = demands
+
+	// The span registers as two numbers, so a fresh size object from the app is no change.
+	const defaultW = defaultSize?.w
+
+	const defaultH = defaultSize?.h
 
 	const latest = useRef(demands)
 
@@ -38,8 +44,13 @@ export function useDashboardTileCell(
 	useLayoutEffect(() => store.register(id, latest.current), [store, id])
 
 	useLayoutEffect(() => {
-		store.register(id, { ratio, minWidth, label })
-	}, [store, id, ratio, minWidth, label])
+		store.register(id, {
+			ratio,
+			minWidth,
+			label,
+			defaultSize: defaultW === undefined ? undefined : { w: defaultW, h: defaultH },
+		})
+	}, [store, id, ratio, minWidth, label, defaultW, defaultH])
 
 	const registered = useDashboardStore(
 		useCallback((view: DashboardView) => view.cells.get(id), [id]),
