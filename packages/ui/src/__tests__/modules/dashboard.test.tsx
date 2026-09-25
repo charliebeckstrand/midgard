@@ -16,7 +16,7 @@ import {
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
 import { k } from '../../recipes/kata/dashboard'
-import { allBySlot, bySlot, fireEvent, renderUI, screen, within } from '../helpers'
+import { allBySlot, bySlot, deferred, fireEvent, renderUI, screen, within } from '../helpers'
 import {
 	ControlledDashboard,
 	pressSplitter,
@@ -852,6 +852,44 @@ describe('Dashboard', () => {
 		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
+	})
+
+	it('shows the placeholder in a tile whose widget suspends, and keeps the other tiles', async () => {
+		const gate = deferred()
+
+		function Slow(): ReactNode {
+			use(gate.promise)
+
+			return <p>Loaded</p>
+		}
+
+		// A child that suspends needs an awaited act.
+		await act(async () => {
+			renderUI(
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+					<DashboardTile id="a" title="Revenue">
+						<Slow />
+					</DashboardTile>
+
+					<DashboardTile id="b" title="Traffic">
+						<p>Fine</p>
+					</DashboardTile>
+				</Dashboard>,
+			)
+		})
+
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		// The Suspense boundary of the tile holds the wait, so the board stays drawn.
+		expect(bySlot(revenue, 'placeholder')).toBeInTheDocument()
+
+		expect(screen.getByRole('group', { name: 'Traffic' })).toHaveTextContent('Fine')
+
+		await act(async () => gate.resolve())
+
+		expect(revenue).toHaveTextContent('Loaded')
+
+		expect(bySlot(revenue, 'placeholder')).toBeNull()
 	})
 })
 
