@@ -14,22 +14,22 @@ export type MapToggle = {
 	toggle: (id: string) => void
 	/** Moves the legend emphasis (`null` clears it). */
 	setFocus: (id: string | null) => void
-	/** The emphasised id while it is still visible; other marks dim against it. */
+	/** The emphasized id while it is still visible; other marks dim against it. */
 	emphasis: string | null
 }
 
 /**
  * Owns the map legend's interactions. It tracks which entries — region
  * categories and overlays alike — are toggled off, and which one a hovered or
- * focused legend entry emphasises. The chart's series switchboard re-keyed by string
+ * focused legend entry emphasizes. The chart's series switchboard re-keyed by string
  * id, since the map's legend merges two entry sources. A hidden entry can't
  * hold the emphasis — dimming everything against an invisible entry would
  * read as a broken map.
  *
  * @remarks Nor can an entry still arriving. Under `animate` a toggled-on entry
- * washes its colour back in, and the emphasis would cover that wash the moment
- * it landed. The layer recedes and the emphasised marks redraw above it at full
- * strength, painted at the colour the marks beneath are still travelling to. The
+ * washes its color back in, and the emphasis would cover that wash the moment
+ * it landed. The layer recedes and the emphasized marks redraw above it at full
+ * strength, painted at the color the marks beneath are still traveling to. The
  * toggle that turned it on is also the click that put the pointer on its legend
  * entry, so the two always coincide. The wash would never be seen in that
  * direction. Toggling off clears the emphasis by hiding the entry, so it plays
@@ -45,7 +45,7 @@ export type MapToggle = {
  *
  * It is skipped where there is no wash to protect: a static map, and a
  * reduced-motion reader. That reader's `motion-reduce` fallback drops the
- * transition, so the colour is already there and the wait would be dead time. That preference
+ * transition, so the color is already there and the wait would be dead time. That preference
  * is read live rather than sampled at mount, so turning it on mid-session takes
  * effect on the next toggle.
  *

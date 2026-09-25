@@ -76,7 +76,7 @@ describe('ShinyText', () => {
 		// observable here.
 		expect(el?.style.backgroundImage).toContain('red')
 
-		// jsdom normalises `200% auto` to `200%`.
+		// jsdom normalizes `200% auto` to `200%`.
 		expect(el?.style.backgroundSize).toContain('200%')
 	})
 
@@ -107,7 +107,7 @@ describe('ShinyText', () => {
 		expect(animate).not.toHaveBeenCalled()
 	})
 
-	// Pause on hover is side behaviour, so a consumer `preventDefault()` skips it
+	// Pause on hover is side behavior, so a consumer `preventDefault()` skips it
 	// (CONVENTIONS.md §3.9).
 	it('keeps the sweep running when a consumer onMouseEnter prevents the default', async () => {
 		const { container } = renderUI(

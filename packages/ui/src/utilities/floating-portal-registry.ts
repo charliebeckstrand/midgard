@@ -44,7 +44,7 @@ export function closestFloatingPortal(node: Node | null | undefined): Element | 
 
 /**
  * Publishes a panel's reference against its portal node, so another surface's
- * outside-press test can recognise it. Returns the teardown.
+ * outside-press test can recognize it. Returns the teardown.
  *
  * @internal
  */

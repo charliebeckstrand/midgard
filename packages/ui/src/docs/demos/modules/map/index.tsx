@@ -45,7 +45,7 @@ import {
 } from './data'
 
 // Every map demo renders in the same fixed-width, resizable frame so its
-// responsive behaviour is visible at a glance. Wrapping the engine Example once
+// responsive behavior is visible at a glance. Wrapping the engine Example once
 // here injects those defaults into all the `<Example>` call sites below —
 // including AnimatedExample's — without repeating the props on each. A call site
 // can still override either default by passing its own `width`/`resize`.
@@ -368,7 +368,7 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 
 	// The state's own geometry stands in until its counties land, so the drill
 	// reframes on the click rather than holding the nation until the data arrives.
-	// Memoised on the pick for the reason every frame here is: a fresh collection
+	// Memoized on the pick for the reason every frame here is: a fresh collection
 	// each render would refit the map on every hover elsewhere on the page.
 	const held = useMemo(() => stateFrame(geography, drilled?.name ?? null), [geography, drilled])
 
@@ -382,7 +382,7 @@ function CountyDrill({ geography }: { geography: MapFeatureCollection | null }) 
 	// draws no legend — a switchboard needs two entries to tell apart — which leaves
 	// the readout to say which county this is.
 	//
-	// Memoised on the cut the map draws, for the reason every frame here is: a fresh
+	// Memoized on the cut the map draws, for the reason every frame here is: a fresh
 	// array each render would re-join every county on each hover elsewhere on the page.
 	const rows = useMemo<CountyRow[]>(() => {
 		const state = drilled?.name ?? ''
@@ -529,7 +529,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
 		[holders],
 	)
 
-	// Memoised on the pick: the plat caches its decode and its fit against the
+	// Memoized on the pick: the plat caches its decode and its fit against the
 	// geography's identity, so a fresh collection each render would re-fit the map
 	// on every keystroke elsewhere on the page.
 	const frame = useMemo(() => stateFrame(geography, picked), [geography, picked])
@@ -598,7 +598,7 @@ function DeliveryRounds({ geography }: { geography: MapFeatureCollection | null 
  * way. That one hands the plat another geography and the fit reframes; this one
  * leaves the fit alone and moves a transform over what the projection already
  * placed, so no path is reprojected and every mark holds its size. The rounds
- * that summarise at the national frame separate into their own stops as the view
+ * that summarize at the national frame separate into their own stops as the view
  * closes on them, because a merge distance is a pixel distance and the transform
  * spreads the dots across those pixels.
  *
@@ -641,7 +641,7 @@ function ZoomableRounds({ geography }: { geography: MapFeatureCollection | null 
  * boundary and never over its fill, so a zone never swallows the marks it holds.
  */
 function TexasTriangle({ geography }: { geography: MapFeatureCollection | null }) {
-	// Memoised on the atlas: the plat caches its decode and its fit against the
+	// Memoized on the atlas: the plat caches its decode and its fit against the
 	// geography's identity, so a fresh collection each render would refit the map.
 	const frame = useMemo(() => stateFrame(geography, 'Texas'), [geography])
 
@@ -893,8 +893,8 @@ function MapDemo() {
 							    over its own wash rather than under it — and each pair names one
 							    `group`, so the legend lists the three places the map shows
 							    rather than the six marks drawn to make them. The group takes the
-							    catchment's colour, since it registers first, and the depot needs
-							    no colour of its own. */}
+							    catchment's color, since it registers first, and the depot needs
+							    no color of its own. */}
 							<Example title="Depot catchments">
 								<MapPlat
 									aria-label="Depot catchments"

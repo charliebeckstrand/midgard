@@ -9,11 +9,11 @@
  * The circle is built on `d3-geo`'s own rather than on plane trigonometry. A
  * circle on the ground is a small circle of the sphere. A ring stepped in
  * degrees of longitude and latitude therefore reads as an ellipse away from the
- * equator, and breaks at a pole. `geoCircle` steps around the centre instead,
- * so the ring holds its shape wherever the centre sits.
+ * equator, and breaks at a pole. `geoCircle` steps around the center instead,
+ * so the ring holds its shape wherever the center sits.
  *
  * The budget is the zone part of the hit-target rule. Its siblings are
- * `map-cluster/crowd.ts`, which holds the neighbour part and the list of
+ * `map-cluster/crowd.ts`, which holds the neighbor part and the list of
  * claimants, and `map-region/spare.ts` for the region under the dot. All three
  * are frame arithmetic with no React in them, which is why they sit here and not
  * beside the mark that registers them.
@@ -29,25 +29,25 @@ import {
 import { areaReach, type MapAreaBox, type MapAreaRing, ringsNear } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
 
-/** Degrees in one radian — metres of arc become the angle `geoCircle` takes. @internal */
+/** Degrees in one radian — meters of arc become the angle `geoCircle` takes. @internal */
 const DEGREES_PER_RADIAN = 180 / Math.PI
 
 /** Half the sphere in degrees: a ring this wide covers everything and has no boundary. @internal */
 const HALF_SPHERE_DEGREES = 180
 
 /**
- * A closed ring of lon/lat around a centre, every point one ground distance from
+ * A closed ring of lon/lat around a center, every point one ground distance from
  * it. The ring repeats its first position at the end, which is what a GeoJSON
  * ring is and what {@link ringAnchor} reads.
  *
- * The radius is a ground distance in metres, measured on the mean-radius sphere
+ * The radius is a ground distance in meters, measured on the mean-radius sphere
  * a cluster's span reads on. One map therefore never holds two ideas of how far
- * a metre is. It is not a frame distance: a geofence covers the same ground
+ * a meter is. It is not a frame distance: a geofence covers the same ground
  * however far out the map sits. Every other mark in this module holds its size
  * in device pixels.
  *
- * @param at - The circle's centre.
- * @param radius - The ground radius, in metres.
+ * @param at - The circle's center.
+ * @param radius - The ground radius, in meters.
  * @returns The ring, or an empty list where the arguments describe no circle —
  * a radius at or below zero, or one that wraps the sphere. The mark draws
  * nothing from an empty ring, which is the silence a `MapRoute` with no stops
@@ -66,7 +66,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 		.center(at)
 		.radius(degrees)
 		// The step between adjacent ring points, in degrees of rotation about the
-		// centre — so the count holds whatever the radius is.
+		// center — so the count holds whatever the radius is.
 		.precision(360 / GEOFENCE_CIRCLE_STEPS)()
 
 	// GeoJSON positions are `number[]` to the types, and a lon/lat pair in fact;

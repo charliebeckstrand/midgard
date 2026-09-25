@@ -4,7 +4,7 @@ import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, bySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
- * A callout-labelled pie reserves a wide horizontal band for its two label
+ * A callout-labeled pie reserves a wide horizontal band for its two label
  * columns; in a narrow box that band used to starve the pie to a zero radius, the
  * content frame collapsing to a sliver that drew nothing at all — an empty tile.
  * Where the callouts would drive the frame under the spark floor they now drop,

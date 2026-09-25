@@ -13,7 +13,7 @@ export const MAX_CLUSTER_RADIUS: number = CLUSTER_RADIUS_STEPS.at(-1)?.radius ??
 /**
  * The radius a group draws at: {@link POINT_RADIUS} for a lone dot, then one
  * step up per grade of {@link CLUSTER_RADIUS_STEPS}. The size carries the
- * magnitude, so a reader grades a summary against its neighbours before reading
+ * magnitude, so a reader grades a summary against its neighbors before reading
  * the count inside it.
  *
  * @internal

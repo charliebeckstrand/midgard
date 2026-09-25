@@ -11,7 +11,7 @@ import { type ResizeObserverStub, stubResizeObserver } from '../helpers/stub-res
  * `browser/chart-resize-tracking.test.tsx` — where the host genuinely resizes.
  * This case is the one a browser cannot stage: a notification reporting a size
  * the frame already holds. A real `ResizeObserver` does not fire for a box that
- * did not change, so the redundant notification has to be synthesised, and the
+ * did not change, so the redundant notification has to be synthesized, and the
  * stub is the subject here rather than a stand-in for layout.
  */
 

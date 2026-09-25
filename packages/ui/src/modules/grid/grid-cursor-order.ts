@@ -37,7 +37,7 @@ export type GridCursorRow =
  */
 export function groupedCursorRows<T>(
 	groups: GridGroup<T>[],
-	totalled: boolean,
+	totaled: boolean,
 	toggle: (id: string) => void,
 ): GridCursorRow[] {
 	const rows: GridCursorRow[] = []
@@ -55,7 +55,7 @@ export function groupedCursorRows<T>(
 			rows.push({ key: leafItemKey(leaf.id), kind: 'data', row: leaf.row, parent: key })
 		}
 
-		if (totalled) rows.push({ key: totalItemKey(group.id), kind: 'total', parent: key })
+		if (totaled) rows.push({ key: totalItemKey(group.id), kind: 'total', parent: key })
 	}
 
 	return rows

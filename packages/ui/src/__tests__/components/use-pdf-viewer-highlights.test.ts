@@ -50,7 +50,7 @@ describe('usePdfViewerHighlights', () => {
 		expect(result.current.regions.map((region) => region.id)).toEqual(['total', 'tax'])
 	})
 
-	it('fills the default colour, and keeps the one a region named', () => {
+	it('fills the default color, and keeps the one a region named', () => {
 		const { result } = renderHook(() =>
 			usePdfViewerHighlights({ highlights, activePage: letter, safePage: 1, goToPage: noop }),
 		)

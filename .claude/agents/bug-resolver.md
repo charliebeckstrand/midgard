@@ -26,7 +26,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 2.1 The step id, the row ids, the scope id, and the step's file set. The findings for that scope: the rows, the mechanism paragraph of each row the step closes, the step paragraph, and the settled questions.
 
-2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; the `vitest` skill for the test; the `git-workflow` skill for the branch and the commit; the attribution lines from the session. The package that owns the step's file set supplies the commitlint scope, the test filter, and the surface docs; never assume `ui`.
+2.2 The rules: `CONVENTIONS.md` §3.9, §7.2, §10, and §12; the `vitest` skill for the test; `CLAUDE.md` §4 for the commit; the attribution lines from the session. The package that owns the step's file set supplies the commitlint scope, the test filter, and the surface docs; never assume `ui`.
 
 2.3 The `Status` cell takes two forms. A fix on a branch reads `◐ FIXED`. A merged row reads `✅ RESOLVED ([#NNN](https://github.com/charliebeckstrand/midgard/pull/NNN))`. `CONVENTIONS.md` §12.4 closes a row against a pull request, and a branch commit dangles after a squash merge, so you write `◐ FIXED` and never `✅ RESOLVED`. The caller stamps the second form onto your branch after the pull request opens, so the squash carries it to `main`.
 
@@ -46,13 +46,13 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.6 When no seam exists, skip the test with a stated reason. Put the reason in the pull request body: the seam you tried, and why it does not exist. Land the fix all the same.
 
-3.7 Make the change the step states, and no more. When a public export changes, update its TSDoc and the owning package's surface index in the same commit (§12.1, §12.2); consult the `jsdoc-tsdoc` skill for the TSDoc.
+3.7 Make the change the step states, and no more. When a public export changes, update its TSDoc and the owning package's surface index in the same commit (§12.1, §12.2).
 
 3.8 Run the gates `CLAUDE.md` §3.4 names, with the test filter scoped to the owning package. Prove the test passes after the change, and keep the red log and the green log.
 
 3.9 Set the `Status` cell of each row the step closes to `◐ FIXED`, in the record that holds it, on the same branch. Change no other cell and no prose. Report the count of rows closed and the count outstanding; the caller owns any state above the row.
 
-3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(ui): <subject>` with a body that says what and why, names the scope and the rows closed, and ends with the attribution lines. One logical change for each commit; the test and the fix can share one.
+3.10 Stage each file by name and read `git diff --staged` before you commit. Commit as `fix(<package>): <subject>`, with the commitlint scope of §2.2, and a body that says what and why, names the scope and the rows closed, and ends with the attribution lines. One logical change for each commit; the test and the fix can share one.
 
 3.11 Delete each probe, each scratch file, and each temporary harness that you made. Then run `git status` and confirm that the worktree is clean. A scratch file that stays fails the pre-push gate: `biome check .` and the boundary scans read the tree, not the index.
 
@@ -92,4 +92,4 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 ---
 
-**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md` §10, §12](../../CONVENTIONS.md) · [`git-workflow`](../skills/git-workflow/SKILL.md).
+**See also:** [`CLAUDE.md`](../../CLAUDE.md) · [`CONVENTIONS.md` §10, §12](../../CONVENTIONS.md).

@@ -108,9 +108,9 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		/** Opt the panel and backdrop into the translucent glass surface, resolved against the ambient Glass provider. */
 		glass?: boolean
 		/**
-		 * Drain the colour from whatever shows through the backdrop. Both scrims are
+		 * Drain the color from whatever shows through the backdrop. Both scrims are
 		 * translucent, so the page behind stays legible while the drawer is up. This
-		 * renders it in grey, marking it as the inert surface rather than merely the
+		 * renders it in gray, marking it as the inert surface rather than merely the
 		 * dimmed one.
 		 *
 		 * @defaultValue false

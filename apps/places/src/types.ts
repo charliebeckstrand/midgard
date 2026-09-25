@@ -37,7 +37,7 @@ export type Place = {
 export type PlaceDraft = Omit<Place, 'id' | 'createdAt'>
 
 /**
- * A hue both palettes carry, so one category colour drives the map dot, the
+ * A hue both palettes carry, so one category color drives the map dot, the
  * filter swatch, and the badge alike.
  *
  * The map draws from the chart module's slots and Badge from the extended `iro`
@@ -68,7 +68,7 @@ export type VisitScope = (typeof VISIT_SCOPES)[number]
 /** Every visited region, by the name its own atlas gives it. */
 export type Visits = Record<VisitScope, string[]>
 
-/** One category's presentation: the name the reader reads, and the colour its dots take. */
+/** One category's presentation: the name the reader reads, and the color its dots take. */
 export type PlaceCategoryMeta = {
 	value: PlaceCategory
 	label: string

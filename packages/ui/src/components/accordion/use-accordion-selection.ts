@@ -58,7 +58,7 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * @returns `isOpen(value)` and `toggle(value)` over the current open set.
  *
  * @remarks
- * Single mode keeps at most one value open (honouring `collapsible`); multiple
+ * Single mode keeps at most one value open (honoring `collapsible`); multiple
  * mode adds and removes freely. Controlled `value` and uncontrolled
  * `defaultValue` are normalized through {@link useControllable}, and
  * `onValueChange` is read from a ref so a changing callback never resets the

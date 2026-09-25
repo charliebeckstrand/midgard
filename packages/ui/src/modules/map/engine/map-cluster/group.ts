@@ -2,7 +2,7 @@
  * Pure clustering math for the map module: which dots fall close enough on the
  * frame to draw as one summary, and where that summary sits. React-free like
  * the rest of the engine, so the grouping is unit-testable without a frame.
- * Three neighbours carry the parts this one does not:
+ * Three neighbors carry the parts this one does not:
  *
  * - `grid.ts` — the spatial index both passes bucket into.
  * - `radius.ts` — the size a summary draws at.
@@ -116,7 +116,7 @@ type MapClusterMark = {
  * the same beat.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
- * is a property of the drawn picture. The same round summarises in a small
+ * is a property of the drawn picture. The same round summarizes in a small
  * frame and separates in a large one, without its coordinates changing.
  *
  * Every point reaches exactly one group, in the caller's own order. A `gap` of
@@ -142,7 +142,7 @@ export function clusterPoints(
 	// mark's radius to match.
 	const seeds = seedGroups(positions, project, (POINT_RADIUS * 2 + gap) * unitsPerPixel)
 
-	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarise)
+	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarize)
 }
 
 /**
@@ -204,7 +204,7 @@ function seedGroups(
 /**
  * Merges the groups whose marks draw within `gap` of one another, until none do.
  *
- * A merge moves a group's centre and grades its mark up, so the overlapping
+ * A merge moves a group's center and grades its mark up, so the overlapping
  * pairs change as merges land. The rule is a fixpoint, not a single sweep. Each
  * round folds every overlapping group into the first it meets, so the count
  * strictly falls and the rounds run out. In practice one settles it, and a set
@@ -274,7 +274,7 @@ function mergeRound(
 
 		marks[host] = grown
 
-		// The centre moved and the mark grew, so the slot can belong to another
+		// The center moved and the mark grew, so the slot can belong to another
 		// cell now; index it there too. The entry left behind costs at most a
 		// repeated test, never a missed pair, because every test reads the live
 		// mark rather than the cell it was filed under.
@@ -366,7 +366,7 @@ function nearestSeed(
  * @internal
  */
 function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
-	const at = centre(group)
+	const at = center(group)
 
 	return at === null ? null : { at, radius: clusterRadius(group.members.length) * unitsPerPixel }
 }
@@ -388,11 +388,11 @@ function marksOverlap(a: MapClusterMark, b: MapClusterMark, gap: number): boolea
 }
 
 /** Where a group draws: the mean of its members' projected positions. @internal */
-function centre({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | null {
+function center({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | null {
 	return seed === null ? null : { x: sumX / members.length, y: sumY / members.length }
 }
 
 /** Resolves a built group to the dots it holds and the point it draws at. @internal */
-function summarise(group: MapClusterSeed): MapPointCluster {
-	return { members: group.members, at: centre(group) }
+function summarize(group: MapClusterSeed): MapPointCluster {
+	return { members: group.members, at: center(group) }
 }

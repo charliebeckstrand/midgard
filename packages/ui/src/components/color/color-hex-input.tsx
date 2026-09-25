@@ -12,7 +12,7 @@ import { useColorPanelContext } from './context'
 import { useColorField } from './use-color-field'
 
 /**
- * Hex entry with a copy affordance, two-way bound to the panel's colour.
+ * Hex entry with a copy affordance, two-way bound to the panel's color.
  *
  * @remarks The hex input and its label are sub-parts, not the field control.
  * They opt out of an enclosing `<Control>` / `<Field>`, so they do not take

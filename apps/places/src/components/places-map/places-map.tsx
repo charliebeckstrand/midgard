@@ -13,7 +13,7 @@ import {
 } from 'ui/modules/map'
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
-import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
+import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
 import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
 import { placeStops } from './places-map-utilities'
 
@@ -82,9 +82,9 @@ export type PlacesMapProps = {
  * The map: every place as a dot over the regions that hold them.
  *
  * One mark for the whole set, so dots that land on the same pixels merge however
- * they are categorised — clustering is per-mark, and a mark per category left
+ * they are categorized — clustering is per-mark, and a mark per category left
  * one category's dot sitting on another's summary badge. Each dot still carries
- * its own category colour; a summary keeps the mark's, because it stands for
+ * its own category color; a summary keeps the mark's, because it stands for
  * several categories at once. The filter's swatches are the key to both.
  *
  * A click on any region drills into it, and a drilled region stops answering
@@ -110,7 +110,7 @@ export function PlacesMap({
 	const framed = viewFrame(view)
 
 	// The geography to draw: the whole atlas, or the one region a drill opened.
-	// Memoised on the cut, because the map keys its decode, its fit, and its paths
+	// Memoized on the cut, because the map keys its decode, its fit, and its paths
 	// on the geography's identity — a fresh collection each render would refit the
 	// map on every pointer move.
 	const geography = useMemo(() => regionFrame(regions, cut), [regions, cut])
@@ -134,7 +134,7 @@ export function PlacesMap({
 	// screen nearer 1.8, so it letterboxes far less and the dots are larger.
 	//
 	// It also settles the map into one family. A drilled region already draws under
-	// a centred mercator, so the frame no longer changes its kind on the way in.
+	// a centered mercator, so the frame no longer changes its kind on the way in.
 	//
 	// Stated once, because the skeleton reserves this frame and the plat then takes
 	// it. Written out at both, the two could disagree and the skeleton would
@@ -143,16 +143,16 @@ export function PlacesMap({
 	const atlasProjection: MapProjection = viewAtlas(view) === 'states' ? 'albers-usa' : 'mercator'
 
 	// The whole atlas draws under its own projection; one region cut out of it
-	// draws under a mercator centred on itself.
+	// draws under a mercator centered on itself.
 	//
-	// Centred rather than plain, because a plain mercator sits on the prime
+	// Centered rather than plain, because a plain mercator sits on the prime
 	// meridian: Alaska's Aleutians cross the antimeridian, so its bounds read as
 	// most of the globe and the region fitted to a fraction of the frame.
 	//
 	// Held rather than rebuilt, because the plat fits a passed instance directly
 	// and keys that fit on the projection's identity.
 	const projection = useMemo<MapProjection>(
-		() => (cut === null ? atlasProjection : (centredProjection(geography) ?? 'mercator')),
+		() => (cut === null ? atlasProjection : (centeredProjection(geography) ?? 'mercator')),
 		[geography, cut, atlasProjection],
 	)
 
@@ -190,13 +190,13 @@ export function PlacesMap({
 	// mark drawn per category left a dot of one category sitting on top of another
 	// category's summary badge, which reads as a bug and is unpickable besides.
 	//
-	// A dot keeps its category's colour through it: the mark's slot is what a
+	// A dot keeps its category's color through it: the mark's slot is what a
 	// summary wears, since a merged dot stands for several categories and any one
 	// of theirs would name it wrongly.
 	//
 	// Built here rather than in the JSX because `MapPoints` keys its whole
 	// pipeline on the identity of `points`: the clustering, the crowding, the
-	// readout rows, and the memoised dot layer that exists to stop hundreds of
+	// readout rows, and the memoized dot layer that exists to stop hundreds of
 	// dots rebuilding. A fresh array per render would redo all of it on every
 	// click, drawer, and filter change, to produce what it already had.
 	const stops = useMemo(() => placeStops(places), [places])

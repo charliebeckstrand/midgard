@@ -53,8 +53,8 @@ export type SectorLabels = {
  * plus the single series they slice by share and the label switches.
  *
  * @remarks Left unset, `aspectRatio` reads a plain pie square and fits a
- * callout-labelled one to its own content; see {@link ChartBaseProps.aspectRatio}.
- * The legend defaults on for two or more slices — the identity channel colour
+ * callout-labeled one to its own content; see {@link ChartBaseProps.aspectRatio}.
+ * The legend defaults on for two or more slices — the identity channel color
  * alone must never carry.
  */
 export type SectorBaseProps<T> = ChartBaseProps<T> & {
@@ -82,7 +82,7 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * Fires when a click lands on a slice, with the slice's `xKey` label and its
 	 * data index. The target is its gap-spanning hit wedge, the same generous
 	 * target the tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
-	 * clicked slice and narrows its neighbours. Coexists with the tooltip on
+	 * clicked slice and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
 	 * cursor over the slices so they read as clickable.
 	 */
@@ -97,10 +97,10 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	selectedCategories?: readonly string[]
 	/**
 	 * Every category that the data can hold, by `xKey` label, in palette order. A
-	 * slice takes the colour of its place in this list, not of its row. A filter
-	 * that removes a category therefore never moves the colours of the rest, so
+	 * slice takes the color of its place in this list, not of its row. A filter
+	 * that removes a category therefore never moves the colors of the rest, so
 	 * Coffee stays orange when it is the only slice left. Omitted, each slice
-	 * takes the colour of its row position.
+	 * takes the color of its row position.
 	 */
 	categories?: readonly string[]
 }
@@ -361,8 +361,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			overlay={
 				innerRatio > 0 && children ? (
 					<div data-slot="chart-center" className="pointer-events-none absolute inset-0">
-						{/* Centre the content on the ring's hole, not the plot box. Callouts
-						    shift the pie centre off `frameWidth / 2` to balance the two label
+						{/* Center the content on the ring's hole, not the plot box. Callouts
+						    shift the pie center off `frameWidth / 2` to balance the two label
 						    columns. The content follows it, rather than drifting out of the hole. */}
 						<div
 							className="absolute -translate-x-1/2 -translate-y-1/2"

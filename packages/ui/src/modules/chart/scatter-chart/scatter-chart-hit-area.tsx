@@ -16,7 +16,7 @@ export type ScatterChartHitAreaProps = {
 	/**
 	 * The chart's point hit test: the disc under the point that isolation lifts and
 	 * the others recede behind. It is `null` off every disc, where the tooltip
-	 * stays shut. `held` carries the disc currently emphasised, for sticky
+	 * stays shut. `held` carries the disc currently emphasized, for sticky
 	 * resolution within overlapping discs. The `index` carries the resolved
 	 * column, so a snapping chart can hand the emphasis to the stop the tooltip
 	 * anchors there.
@@ -47,7 +47,7 @@ export type ScatterChartHitAreaProps = {
 
 /**
  * The scatter counterpart of the band charts' hit layer. It shares the same
- * {@link useChartPointer} hover, scroll rescue, and click-to-pin behaviour. It
+ * {@link useChartPointer} hover, scroll rescue, and click-to-pin behavior. It
  * resolves the index to the nearest unique-x column, rather than an evenly
  * spaced band. Unique x values arrive at whatever spacing the data has.
  *

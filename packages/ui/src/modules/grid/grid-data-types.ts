@@ -286,7 +286,7 @@ export type GridGroupBy<T = unknown> = {
 	 * stand down, since the backend owns the figures. Sorting the grouped column
 	 * reorders the group blocks client-side, by group value, and each header's
 	 * children move with it. Sorting any other column stays manual, emitted
-	 * through the `sort` binding for the backend to honour.
+	 * through the `sort` binding for the backend to honor.
 	 * @defaultValue false
 	 */
 	manual?: boolean
@@ -859,7 +859,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Enables drag- and keyboard-resizing of data columns through the grid's
 	 * TanStack Table engine, over the automatic content sizing. Each data column's
 	 * header gains a resize handle on its trailing edge, carrying an always-visible
-	 * grip. The grip is a short centred bar that tints on hover, and turns accent
+	 * grip. The grip is a short centered bar that tints on hover, and turns accent
 	 * on keyboard focus or active drag. Columns auto-size to their content by default (a `px`
 	 * {@link GridColumn.width} seeds one's initial width instead), and the table fills its
 	 * container.
@@ -1284,7 +1284,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * master-detail grid ({@link GridDataProps.expandable}) also take a window.
 	 * Each row then measures its own height, so a group header, a total, and a
 	 * detail panel can differ from the estimate. The window changes these
-	 * behaviours of those two grids:
+	 * behaviors of those two grids:
 	 *
 	 * - A row outside the window unmounts.
 	 * - A closed detail panel unmounts, so it loses its state.

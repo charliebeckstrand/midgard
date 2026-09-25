@@ -19,20 +19,20 @@ export type ColorState = {
 }
 
 /**
- * Controlled/uncontrolled colour state. Keeps HSVA internally regardless of
- * the consumer's wire format; hex drops hue at greyscale and black.
+ * Controlled/uncontrolled color state. Keeps HSVA internally regardless of
+ * the consumer's wire format; hex drops hue at grayscale and black.
  *
  * Owns the HSVA and reconciles against the `value` prop, skipping echoes of
- * its own emission, compared on the serialised form.
+ * its own emission, compared on the serialized form.
  *
  * @returns The live `hsva` and a `setHsva` accepting a value or an updater.
  * `setHsva` clamps, pins alpha to `1` when `alpha` is off, and emits the
- * serialised value through `onValueChange`.
+ * serialized value through `onValueChange`.
  * @remarks
  * A controlled `value` wins (CONVENTIONS §7.2). Reconciliation runs in a
  * layout effect keyed on `value` and `hsva`, before paint. A `value` that
  * differs from the last emission snaps the HSVA back, so an owner that does
- * not adopt an emission keeps its colour. An owner that echoes the emission
+ * not adopt an emission keeps its color. An owner that echoes the emission
  * is skipped, so the HSVA keeps the hue that hex drops. An owner that adopts
  * after a delay sees each change snap back until its value arrives.
  * `format`/`alpha`/`onValueChange` are read through refs, keeping `setHsva`

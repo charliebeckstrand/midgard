@@ -18,7 +18,7 @@ export type ComposeEventHandlersOptions = {
  * is `false`.
  *
  * The caller's handler always runs, and keeps the first chance to cancel the
- * default behaviour. That is the convention for layering behaviour onto a
+ * default behavior. That is the convention for layering behavior onto a
  * forwarded handler.
  *
  * @param theirs - The caller's forwarded handler, if any.

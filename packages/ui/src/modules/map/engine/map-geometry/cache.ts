@@ -49,7 +49,7 @@ import { rewindFeatures } from './winding'
 /**
  * The mount-critical geometry a {@link MapPlat} draws from on its first,
  * measurement-free commit: the decoded features and the canonical fit (`null`
- * with nothing to fit). The paths that fit draws are memoised beside it rather
+ * with nothing to fit). The paths that fit draws are memoized beside it rather
  * than on it ({@link cachedCanonicalPaths}), because a deferred map wants the
  * fit and never the paths. Shared across instances, so treat every field as
  * read-only.
@@ -150,7 +150,7 @@ export function computeStaticMapGeometry(
 }
 
 /**
- * The {@link StaticMapGeometry} for an atlas + object + projection, memoised
+ * The {@link StaticMapGeometry} for an atlas + object + projection, memoized
  * across {@link MapPlat} instances and mounts. Absent or `null` geography yields
  * the empty geometry; a passed d3 projection instance (mutable, unkeyable) is
  * computed fresh and left out of the cache.
@@ -176,7 +176,7 @@ export function staticMapGeometry(
 	// (the "first object" default): `geographyFeatures` decodes those to
 	// different features, and a `${geographyObject ?? ''}` key would fold them
 	// to one entry. `projection` is a string here (the instance branch returned
-	// above), and JSON serialises `undefined` in an array slot to `null`.
+	// above), and JSON serializes `undefined` in an array slot to `null`.
 	const key = JSON.stringify([geographyObject, projection])
 
 	let geometry = byKey.get(key)
@@ -212,7 +212,7 @@ const measuredPaths = new WeakMap<
 const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
 
 /**
- * The regions' lon/lat centroids, memoised on the decoded feature list and
+ * The regions' lon/lat centroids, memoized on the decoded feature list and
  * computed on the first read. Callers gate that read on keyboard navigation
  * being live, so a map nobody tabs into never pays the pass.
  *
@@ -238,7 +238,7 @@ const chrome = new WeakMap<
 >()
 
 /**
- * The chrome paths under a fit, memoised on the fitted projection by frame box
+ * The chrome paths under a fit, memoized on the fitted projection by frame box
  * and graticule step. Chrome off yields {@link EMPTY_CHROME} without touching
  * the cache, so the default map pays neither the pass nor a slot.
  *
@@ -286,7 +286,7 @@ export function cachedChromePaths(
 const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
 
 /**
- * Region paths under the canonical fit, memoised on the shared
+ * Region paths under the canonical fit, memoized on the shared
  * {@link StaticMapGeometry} entry — one pass per atlas, object, and projection,
  * however many plats draw it. Empty where there was nothing to fit.
  *
@@ -313,7 +313,7 @@ function projectedPaths(geometry: StaticMapGeometry, fitted: GeoProjection): (st
 }
 
 /**
- * Region paths under a measured fit, memoised on the shared
+ * Region paths under a measured fit, memoized on the shared
  * {@link StaticMapGeometry} entry by frame box. A geometry computed outside
  * the cache (a passed d3 instance) is a fresh object each time. It therefore
  * misses here and pays the projection directly. Its stateful projection

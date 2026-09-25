@@ -39,7 +39,7 @@ export type ScatterChartMarksProps = {
 
 /**
  * A disc's presentation: series fill under a surface ring, translucent once
- * sized. A palette slot fills through its class; a raw colour fills inline, as
+ * sized. A palette slot fills through its class; a raw color fills inline, as
  * the bar and line marks do.
  *
  * @internal
@@ -66,7 +66,7 @@ function markProps(paint: ChartPaint, sized: boolean) {
  * Isolation stays per-datum without re-drawing a plain cloud. The pointed disc
  * recedes every other, so the whole series path dims. The one lit disc re-draws
  * at full strength over it, as a single overlay circle rather than a rebuild.
- * That reads identically to dimming every sibling. The series paths are memoised
+ * That reads identically to dimming every sibling. The series paths are memoized
  * on `list`. A pointer crossing only re-runs this component through the emphasis
  * context, never the chart body, so it rebuilds nothing. It swaps a dim class
  * and one overlay disc, not the ten thousand marks under it.

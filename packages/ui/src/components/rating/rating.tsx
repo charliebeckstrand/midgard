@@ -102,7 +102,7 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
  * per star. Arrow keys, focus, and the announced position therefore come from
  * the platform, rather than from key handlers of its own. It is `Slider`'s
  * bargain, for the same reason. `readOnly` drops the inputs and renders one `role="img"`
- * carrying the readout, because colour and shape alone do not carry a score
+ * carrying the readout, because color and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
@@ -110,8 +110,8 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
  * `size` from the Density cascade.
  *
  * @remarks A click on the current score clears it while `clearable` holds. The
- * click is cancelled rather than handled after the fact. A radio restores its
- * own checkedness when its activation is cancelled. The clear therefore never
+ * click is canceled rather than handled after the fact. A radio restores its
+ * own checkedness when its activation is canceled. The clear therefore never
  * races the `change` that would otherwise set the same star again.
  *
  * The display form draws a fractional score — an average of reviews is not a
@@ -236,7 +236,7 @@ export function Rating({
 		)
 	}
 
-	// A click on the current score clears it. Cancelling the activation is what
+	// A click on the current score clears it. Canceling the activation is what
 	// keeps the two halves from fighting: the radio restores its own checkedness,
 	// and the `change` that would set this same star again never fires.
 	function handleClick(event: MouseEvent<HTMLInputElement>, star: number) {

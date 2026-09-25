@@ -214,8 +214,8 @@ describe('spark tier is non-interactive (real browser)', () => {
 		expect(lifted(container)).toBe(false)
 
 		// The hit layer covers the plot and takes the pointer, so the hover goes
-		// through it — aimed at the bar's own centre, so that bar is the pointed
-		// datum rather than a neighbour.
+		// through it — aimed at the bar's own center, so that bar is the pointed
+		// datum rather than a neighbor.
 		const barBox = mark.getBoundingClientRect()
 
 		const hitBox = hit.getBoundingClientRect()
@@ -304,7 +304,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 	})
 
 	it('spark drops the standing value and reference labels the wider tiers draw', () => {
-		const labelled = (width: number, height: number) => (
+		const labeled = (width: number, height: number) => (
 			<LineChart
 				aria-label="Revenue by month"
 				data={MONTHS}
@@ -316,7 +316,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 			/>
 		)
 
-		const spark = renderUI(labelled(140, 100))
+		const spark = renderUI(labeled(140, 100))
 
 		// The rule's ink survives; every label stands down with the chrome.
 		expect(bySlot(spark.container, 'chart-reference-line')).not.toBeNull()
@@ -325,7 +325,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(bySlot(spark.container, 'chart-value-labels')).toBeNull()
 
-		const framed = renderUI(labelled(520, 320))
+		const framed = renderUI(labeled(520, 320))
 
 		expect(bySlot(framed.container, 'chart-reference-label')).not.toBeNull()
 

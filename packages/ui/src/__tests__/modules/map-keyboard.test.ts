@@ -172,7 +172,7 @@ describe('stepNearest', () => {
 
 		expect(stepNearest(ROW, 0, 'west')).toBeNull()
 
-		// A row has no vertical neighbour in either direction.
+		// A row has no vertical neighbor in either direction.
 		expect(stepNearest(ROW, 1, 'north')).toBeNull()
 	})
 

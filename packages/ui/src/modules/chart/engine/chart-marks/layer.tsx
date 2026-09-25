@@ -35,7 +35,7 @@ export type ChartMarksLayerProps = {
  * reverse reveal fully, before the incoming generation reveals the new data.
  * Each mark's `exit` target is the `initial` it drew from. A reduced-motion
  * preference pins the key to {@link STATIC_GENERATION}, so the generation never
- * swaps and the new data snaps in place. The mount reveal still honours the
+ * swaps and the new data snaps in place. The mount reveal still honors the
  * preference through the surrounding {@link ReducedMotion}. The current
  * generation is surfaced as `data-generation` for tests and debugging.
  *

@@ -17,7 +17,7 @@ import { allBySlot, bySlot, getSlot, present, renderUI, waitFor } from '../helpe
 describe('chart stacked legend row cap (real browser)', () => {
 	beforeAll(() => page.viewport(1000, 700))
 
-	// Ten short-labelled series over a narrow, short frame: the plot resolves to a
+	// Ten short-labeled series over a narrow, short frame: the plot resolves to a
 	// one-row legend budget, and ten switches can't sit on one row of a 360px box,
 	// so the cap must bite and chip the overflow.
 	const names = [

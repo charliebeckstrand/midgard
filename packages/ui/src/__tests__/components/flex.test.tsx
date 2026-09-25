@@ -3,7 +3,7 @@ import { Flex } from '../../components/flex'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Flex', () => {
-	it('centres children on the cross axis by default for rows', () => {
+	it('centers children on the cross axis by default for rows', () => {
 		const { container } = renderUI(<Flex>content</Flex>)
 
 		expect(bySlot(container, 'flex')).toHaveClass('items-center')

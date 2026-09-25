@@ -9,7 +9,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * reference, so its `domReference` stays null. When that menu opens inside a
  * Dialog — itself a floating-ui portal — an outside press within the dialog
  * lands in a different portal than the menu's own. The ancestor-vs-descendant
- * portal test must recognise the dialog as an ANCESTOR (it contains the menu's
+ * portal test must recognize the dialog as an ANCESTOR (it contains the menu's
  * anchor) and let the press dismiss the menu; reading only `domReference` (null
  * here) misreads it as a nested descendant and strands the menu open. The jsdom
  * suite mocks `@floating-ui/react` away, so only this project can assert it.

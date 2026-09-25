@@ -6,9 +6,9 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
 /**
  * The legend's side rail: every entry holds one line inside the reserved column,
- * its keys centred on the name beside them, and a name too wide for the column
+ * its keys centered on the name beside them, and a name too wide for the column
  * clips to an ellipsis and hands itself back through a reveal tooltip. Each claim
- * is a computed-layout one — the reserved width, the clip, the optical centre —
+ * is a computed-layout one — the reserved width, the clip, the optical center —
  * that jsdom cannot measure with no layout engine, so they ride the real browser.
  */
 describe('map legend rail (real browser)', () => {
@@ -71,7 +71,7 @@ describe('map legend rail (real browser)', () => {
 		}
 	})
 
-	it('centres an entry’s keys on the name beside them', async () => {
+	it('centers an entry’s keys on the name beside them', async () => {
 		const { container } = depots([{ city: 'Dallas', detail: 'Next day' }])
 
 		await waitFor(() => expect(allBySlot(container, 'map-legend-item')).toHaveLength(1))
@@ -82,7 +82,7 @@ describe('map legend rail (real browser)', () => {
 
 		// The name's own painted box, through a Range over its contents — the label
 		// span stretches to the column, so its bounding rect is not what the keys read
-		// as centred against.
+		// as centered against.
 		const range = document.createRange()
 
 		range.selectNodeContents(label)

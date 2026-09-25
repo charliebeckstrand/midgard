@@ -80,7 +80,7 @@ export const k = defineRecipe({
 			plain: [extendedPalette.plain.text, extendedPalette.plain.hover],
 			bare: [extendedPalette.bare.text, extendedPalette.bare.hover],
 		},
-		// Synthetic colour entry: inherits parent text colour with a hover wash on non-disabled elements.
+		// Synthetic color entry: inherits parent text color with a hover wash on non-disabled elements.
 		{ inherit: ['text-inherit', 'not-disabled:not-data-disabled:hover:bg-current/15'] },
 	),
 	// Icon-only floor: a square pad per size keeps an icon-only bare button

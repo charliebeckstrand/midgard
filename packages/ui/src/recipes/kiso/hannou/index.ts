@@ -36,6 +36,6 @@ export const hannou = {
 	tintSurface,
 	/** Roved-item wash: `data-active` background at `tint`'s intensity, for listbox keyboard cursors. */
 	active,
-	/** Foreground (text-colour) feedback on hover / focus / disabled / current. */
+	/** Foreground (text-color) feedback on hover / focus / disabled / current. */
 	fg,
 } as const

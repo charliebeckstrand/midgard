@@ -128,14 +128,14 @@ export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string):
 	// subscription per navigation would only measure a second time for an answer
 	// the first already had.
 	useLayoutEffect(() => {
-		let cancelled = false
+		let canceled = false
 
 		document.fonts?.ready.then(() => {
-			if (!cancelled) measure()
+			if (!canceled) measure()
 		})
 
 		return () => {
-			cancelled = true
+			canceled = true
 		}
 	}, [])
 

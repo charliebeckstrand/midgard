@@ -218,7 +218,7 @@ describe('Listbox', () => {
 	// matters: the open trigger (so a press released off-target stays navigable)
 	// and the default chevron in the suffix slot. A closed trigger and a
 	// caller-supplied suffix own their own pointer behavior and stay intact.
-	// `notCancelled` is false when preventDefault ran.
+	// `notCanceled` is false when preventDefault ran.
 	it.each<[string, () => ReactElement, string, boolean]>([
 		[
 			'suppresses the trigger mousedown default while open so focus stays on the panel',
@@ -267,9 +267,9 @@ describe('Listbox', () => {
 	])('%s', (_name, ui, slot, expected) => {
 		const { container } = renderUI(ui())
 
-		const notCancelled = fireEvent.mouseDown(getSlot(container, slot))
+		const notCanceled = fireEvent.mouseDown(getSlot(container, slot))
 
-		expect(notCancelled).toBe(expected)
+		expect(notCanceled).toBe(expected)
 	})
 
 	it('shows a clear button only when clearable and a value is selected', () => {
@@ -662,10 +662,10 @@ describe('Listbox onBlur', () => {
 		expect(onBlur).toHaveBeenCalledOnce()
 	})
 
-	// The panel is portalled, so focus moving into it reads as leaving the
+	// The panel is portaled, so focus moving into it reads as leaving the
 	// trigger. That is not a departure, and it is the part a native onBlur on the
 	// trigger would get wrong.
-	it('says nothing for a blur into the portalled panel', () => {
+	it('says nothing for a blur into the portaled panel', () => {
 		const onBlur = vi.fn()
 
 		const { container } = renderUI(

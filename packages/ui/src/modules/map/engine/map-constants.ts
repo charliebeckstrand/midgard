@@ -6,7 +6,7 @@
  * one family. The motion timings live in `map-motion.ts`.
  */
 
-/** Region boundary stroke width; the seam takes the surface colour. @internal */
+/** Region boundary stroke width; the seam takes the surface color. @internal */
 export const REGION_STROKE_WIDTH = 1
 
 /**
@@ -19,7 +19,7 @@ export const REGION_SELECTED_STROKE_WIDTH = 2.5
 /**
  * Decimal places kept in a region path's `d` string. Region geometry draws in
  * frame units (canonical 1000-wide or measured px), where one decimal is
- * sub-pixel — d3-geo's default of three serialises detail no display resolves.
+ * sub-pixel — d3-geo's default of three serializes detail no display resolves.
  * Trimming to one shrinks the strings (~27% on a US states atlas). They
  * therefore cost less to build on the mount critical path, and less for the
  * browser to parse.
@@ -85,7 +85,7 @@ export const POINT_HIT_RADIUS = 22
 /**
  * How much of a drawn shape's own inscribed reach a dot standing on it can take.
  * Half, so the shape keeps at least as much room as it gives. A dot at the
- * centre of a circular catchment takes half the radius and leaves the rest. The
+ * center of a circular catchment takes half the radius and leaves the rest. The
  * band the boundary answers on ({@link ROUTE_HIT_WIDTH}) stays clear at any zone
  * wide enough to have one.
  *
@@ -112,7 +112,7 @@ export const AREA_SPARE_FRACTION = 0.5
  * {@link POINT_RADIUS} exactly, an 11px target. A mouse aims at one pixel, so it
  * needs no part of the reach a finger takes. That reach is what makes a dot
  * swallow the marks around it. A `MapGeofence` drawn small around a `MapPoint`
- * sits entirely inside the coarse circle. A depot at a catchment's centre
+ * sits entirely inside the coarse circle. A depot at a catchment's center
  * claimed the middle of its own zone at 24px as well. Nothing takes a target
  * under this. A target inside its own dot would leave the mark a reader can see
  * a dead rim. The zone therefore gives way where the two cannot both fit.
@@ -121,7 +121,7 @@ export const AREA_SPARE_FRACTION = 0.5
  * its datum: its legend row, the keyboard cursor's stop, and its `MapTable` row.
  * The dot is therefore never the only route to it. What the dot gives its pixels
  * back to has no such second route. A zone under it answers the pointer or
- * nothing does. A neighbouring dot swallowed by the reach reports another
+ * nothing does. A neighboring dot swallowed by the reach reports another
  * mark's readout in place of its own. A dot clear of every claimant keeps the
  * full {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing
  * from is only reach taken from them. `markTargets` weighs the claims, and
@@ -146,12 +146,12 @@ export const POINT_HIT_RADIUS_FINE = 5.5
 
 /**
  * The clear space, in frame units, two point marks keep between their edges
- * before they draw as one. Measured edge to edge rather than centre to centre,
+ * before they draw as one. Measured edge to edge rather than center to center,
  * so one number holds however wide the marks grow. Two dots merge under
  * `POINT_RADIUS * 2 + this`, and two summaries under their own radii plus it.
  *
  * Frame units are device pixels wherever the frame is measured, so this is a
- * pixel distance. One round summarises as the map shrinks, and separates as it
+ * pixel distance. One round summarizes as the map shrinks, and separates as it
  * grows. That is what makes the grouping a reading of how far out the map sits,
  * rather than of the data.
  *
@@ -180,7 +180,7 @@ export const CLUSTER_RADIUS_STEPS = [
 	{ from: 25, radius: 15 },
 ] as const
 
-/** Mean Earth radius in metres — turns a summary's spherical spread into a distance. @internal */
+/** Mean Earth radius in meters — turns a summary's spherical spread into a distance. @internal */
 export const EARTH_RADIUS_METERS = 6371008.8
 
 /**

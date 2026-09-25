@@ -56,7 +56,7 @@ const bubble = defineRecipe({
  * with the recipe function's own `name`. Nesting puts it on a plain object,
  * where it is just a key.
  *
- * Nothing here sets a foreground colour. The bubble's fill differs by speaker,
+ * Nothing here sets a foreground color. The bubble's fill differs by speaker,
  * and a neutral that clears AA against one does not clear it against another.
  * That is the defect the embed fallback shipped with. The rule rides `currentColor` at
  * a low alpha, and the summary de-emphasizes by weight and truncation instead.
@@ -69,7 +69,7 @@ const tool = {
 	// step is a bordered box — the case `sen.focus`'s own doc names for it, and
 	// the reason `Collapse`'s bare trigger takes the outset one instead.
 	//
-	// The colour reset is load-bearing. The collapse kata paints its trigger
+	// The color reset is load-bearing. The collapse kata paints its trigger
 	// `text.muted` with a `fg.hover`, which is right on the page and wrong in
 	// here for the third time in this file: zinc-500 on the assistant bubble's
 	// fill is 3.8:1. These classes land after the collapse kata's, so the head
@@ -104,7 +104,7 @@ export const k = defineRecipe(
 			embed: 'max-w-full',
 			// The line a block draws when no renderer claims its name. Quiet, because
 			// it reports a gap rather than an error the reader can act on — but quiet
-			// by slant, never by colour. `text.muted` is `onSurface.zinc`, which
+			// by slant, never by color. `text.muted` is `onSurface.zinc`, which
 			// clears AA against the page and the card and says nothing about a tinted
 			// bubble: it lands at 3.8:1 on the assistant fill and worse on the user
 			// bubble's blue. This inherits the bubble's foreground instead, the same

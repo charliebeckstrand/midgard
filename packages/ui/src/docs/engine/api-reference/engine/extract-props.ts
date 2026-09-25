@@ -284,7 +284,7 @@ function joinArms(arms: { text: string; fn: boolean }[]): string {
  * rendered text; the kept arms are still emitted through `formatPropType`, so
  * named aliases (`Config`, `ReactNode`) survive intact. The merged superset is
  * collected first, so it is the one evaluated against the arm slices, and
- * dropped in favour of them. A narrower arm whose members aren't covered
+ * dropped in favor of them. A narrower arm whose members aren't covered
  * elsewhere is always kept.
  *
  * A multi-arm prop therefore formats twice, deliberately: the two renderings

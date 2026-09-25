@@ -259,7 +259,7 @@ export function usePanelResize({
 	const [grow, shrink] = sign === 1 ? keys : [keys[1], keys[0]]
 
 	// The panel, as state rather than a ref, so its arrival is something an effect
-	// can wait for. It is portalled and mounts on a later commit than the one that
+	// can wait for. It is portaled and mounts on a later commit than the one that
 	// opens the panel, so an effect keyed on `open` alone runs while there is
 	// still nothing to measure — which is how the splitter came to report a panel
 	// covering none of the screen.
@@ -440,7 +440,7 @@ export function usePanelResize({
 
 		window.addEventListener('pointerup', release, { signal })
 
-		// A cancelled pointer — an OS gesture, a pen leaving range — never fires
+		// A canceled pointer — an OS gesture, a pen leaving range — never fires
 		// `pointerup`, and without this the panel would follow a pointer that is gone.
 		window.addEventListener('pointercancel', release, { signal })
 

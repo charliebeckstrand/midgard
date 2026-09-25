@@ -1,13 +1,13 @@
 /**
- * The categorical palette: which colour a series draws in. A series takes its
- * explicit `color` when set: a palette slot or a raw CSS colour. Without one it
+ * The categorical palette: which color a series draws in. A series takes its
+ * explicit `color` when set: a palette slot or a raw CSS color. Without one it
  * takes its slot in the fixed, CVD-validated categorical order, cycling past
- * the eighth series. The order lives here once, so a colourless series, a scatter point,
+ * the eighth series. The order lives here once, so a colorless series, a scatter point,
  * and a pie slice all read the same slot for the same index. Resolution ends in
  * a {@link ChartSeriesPaint}, the value the marks and swatches paint through.
  *
- * The ordinal half of the chart's colour system; its sequential counterpart —
- * continuous range/bin colour — would join as `chart-color/range`.
+ * The ordinal half of the chart's color system; its sequential counterpart —
+ * continuous range/bin color — would join as `chart-color/range`.
  */
 
 import { type ChartColorSlot, k } from '../../../../recipes/kata/chart'
@@ -15,8 +15,8 @@ import type { ChartSeries } from '../types'
 import { type ChartColor, type ChartPaint, resolvePaint } from './paint'
 
 /**
- * A series' colour: a named palette slot or a raw CSS colour. The
- * series-domain name for the generic {@link ChartColor}; other coloured
+ * A series' color: a named palette slot or a raw CSS color. The
+ * series-domain name for the generic {@link ChartColor}; other colored
  * elements (labels, annotations) can name their own alias the same way.
  */
 export type ChartSeriesColor = ChartColor
@@ -38,7 +38,7 @@ export function paletteSlot(index: number): ChartColorSlot {
  * The palette slot of each category in `labels`. Without `categories`, a label
  * takes the slot of its position, the default order. With `categories`, a label
  * takes the slot of its place in that list. A filter that removes a category
- * therefore never moves the colours of the rest. A label outside the list takes
+ * therefore never moves the colors of the rest. A label outside the list takes
  * a slot after the listed ones.
  *
  * @internal
@@ -57,8 +57,8 @@ export function categorySlots(
 }
 
 /**
- * Resolves a series' colour: its explicit `color` — a palette slot or a raw CSS
- * colour — else its slot in the fixed categorical order.
+ * Resolves a series' color: its explicit `color` — a palette slot or a raw CSS
+ * color — else its slot in the fixed categorical order.
  *
  * @internal
  */

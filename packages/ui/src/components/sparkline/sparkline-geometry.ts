@@ -136,7 +136,7 @@ export function sparklineGeometry(
 	// boundary datum is non-finite the drawn line stops short of the edge, and
 	// closing on the corner would paint a wedge with no line above it. A lone
 	// drawn point is forced full-width (above), so it closes on the box edges to
-	// read as a band rather than collapsing to a vertical line at its centre.
+	// read as a band rather than collapsing to a vertical line at its center.
 	const area =
 		first && last && drawn.length > 1
 			? `${line} L ${last.x} ${baseline} L ${first.x} ${baseline} Z`

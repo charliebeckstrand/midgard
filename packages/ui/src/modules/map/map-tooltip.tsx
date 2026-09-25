@@ -29,7 +29,7 @@ const VALUE_INK = cn(...k.value)
 export type MapTooltipEntry = {
 	label: string
 	swatch: MapSwatchShape
-	/** currentColor class carrying the entry's colour. */
+	/** currentColor class carrying the entry's color. */
 	swatchClass: string
 	detail?: string
 	/** Per-dot readouts for a plural mark; absent on a singular one. */
@@ -57,7 +57,7 @@ export type MapTooltipProps = {
 /** What the tooltip shows for the current target: a title and an optional swatch row. @internal */
 type MapTooltipContent = {
 	title: string
-	/** The swatch reads a currentColor class (`swatchClass`) or an inline CSS colour (`swatchColor`, numeric bins). */
+	/** The swatch reads a currentColor class (`swatchClass`) or an inline CSS color (`swatchColor`, numeric bins). */
 	row?: {
 		swatch: MapSwatchShape
 		swatchClass?: string
@@ -126,7 +126,7 @@ function resolve(
 			swatch: 'rect',
 			swatchClass: paintText(paint),
 			swatchColor: paintColor(paint),
-			// A region's own value in numeric mode (its bin only drives the colour);
+			// A region's own value in numeric mode (its bin only drives the color);
 			// the category label otherwise.
 			text: regionValues[target.index] ?? meta.label,
 		},

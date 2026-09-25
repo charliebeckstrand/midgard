@@ -1,24 +1,24 @@
 /**
  * WCAG contrast utilities: measure the accessibility contrast between two
- * colours and pick a readable ink.
+ * colors and pick a readable ink.
  *
- * The maths is WCAG 2.1 (1.4.3): a colour's relative luminance from its
+ * The maths is WCAG 2.1 (1.4.3): a color's relative luminance from its
  * gamma-decoded sRGB channels, then the `(L₁ + 0.05) / (L₂ + 0.05)` ratio of
  * the lighter over the darker. An input parses from the forms the design system
  * writes — `#rrggbb`, `rgb(…)`, and the OKLCH of the Tailwind theme
  * (`oklch(…)`) — or from an {@link Srgb} triple.
  *
- * The maths treats every colour as opaque and ignores its alpha channel.
+ * The maths treats every color as opaque and ignores its alpha channel.
  * Composite a translucent wash over its surface before you measure it.
  */
 
 import { clamp } from './clamp'
 
-/** An sRGB colour as three gamma-encoded channels in `[0, 1]` — the space CSS colours live in. */
+/** An sRGB color as three gamma-encoded channels in `[0, 1]` — the space CSS colors live in. */
 export type Srgb = readonly [r: number, g: number, b: number]
 
 /**
- * A colour to measure: a CSS string (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`,
+ * A color to measure: a CSS string (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`,
  * or the keywords `white` / `black`) or an {@link Srgb} triple.
  */
 export type ColorInput = string | Srgb
@@ -39,7 +39,7 @@ const encodeGamma = (channel: number): number =>
 const decodeGamma = (channel: number): number =>
 	channel <= 0.04045 ? channel / 12.92 : ((channel + 0.055) / 1.055) ** 2.4
 
-/** Split the inside of a `fn(a b c / d)` colour into its component tokens. */
+/** Split the inside of a `fn(a b c / d)` color into its component tokens. */
 function fields(inside: string): string[] {
 	return inside.split(/[\s,/]+/).filter(Boolean)
 }
@@ -130,7 +130,7 @@ function parseOklch(css: string): Srgb | null {
 /**
  * Resolve a {@link ColorInput} to gamma-encoded {@link Srgb}.
  *
- * @throws If a string can't be parsed as a supported colour form.
+ * @throws If a string can't be parsed as a supported color form.
  */
 export function parseColor(color: ColorInput): Srgb {
 	if (typeof color !== 'string') return [clamp01(color[0]), clamp01(color[1]), clamp01(color[2])]
@@ -142,12 +142,12 @@ export function parseColor(color: ColorInput): Srgb {
 
 	const parsed = parseHex(css) ?? parseRgb(css) ?? parseOklch(css)
 
-	if (!parsed) throw new Error(`unparseable colour: ${color}`)
+	if (!parsed) throw new Error(`unparseable color: ${color}`)
 
 	return parsed
 }
 
-/** The WCAG relative luminance of a colour, in `[0, 1]`. */
+/** The WCAG relative luminance of a color, in `[0, 1]`. */
 export function relativeLuminance(color: ColorInput): number {
 	const [r, g, b] = parseColor(color)
 
@@ -160,7 +160,7 @@ function luminanceRatio(a: number, b: number): number {
 }
 
 /**
- * The WCAG contrast ratio between two colours, from `1` (identical) to `21`
+ * The WCAG contrast ratio between two colors, from `1` (identical) to `21`
  * (black on white). Order-independent.
  */
 export function contrastRatio(a: ColorInput, b: ColorInput): number {

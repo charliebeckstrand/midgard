@@ -1,10 +1,10 @@
 /**
- * Map-shaped adapters over the shared sequential colour scale
- * ({@link ../../../../utilities/color-scale}). They quantise a `valueKey` into
+ * Map-shaped adapters over the shared sequential color scale
+ * ({@link ../../../../utilities/color-scale}). They quantize a `valueKey` into
  * equal-interval or equal-count (quantile) bins. They emit the bins as the map's
  * {@link MapCategoryMeta} shape, a `value`-kind paint. The region fills, legend,
  * tooltip, and table then read them the way they read categorical slots. The
- * numeric analogue of `category.ts`. The colour maths itself — sampling the
+ * numeric analogue of `category.ts`. The color maths itself — sampling the
  * ramp, binning the domain — lives in the shared utility, so the choropleth and
  * the heatmap share one scale.
  */
@@ -37,9 +37,9 @@ export function resolveValueFormat(
 
 /** Options a choropleth resolves its bins with. @internal */
 export type ValueScaleOptions = {
-	/** The ordered CSS colour stops the bins sample, low → high. */
+	/** The ordered CSS color stops the bins sample, low → high. */
 	colorRange: string[]
-	/** Bin count; defaults to one bin per colour stop. */
+	/** Bin count; defaults to one bin per color stop. */
 	bins?: number
 	/** Fixed `[min, max]`; derived from the data extent when omitted. */
 	domain?: [number, number]
@@ -56,11 +56,11 @@ export type ValueScaleOptions = {
 }
 
 /**
- * Resolves the choropleth bins: one {@link MapCategoryMeta} per bucket, labelled
- * by its value range and painted a colour sampled from `colorRange`. Returns the
+ * Resolves the choropleth bins: one {@link MapCategoryMeta} per bucket, labeled
+ * by its value range and painted a color sampled from `colorRange`. Returns the
  * resolved domain (for the range legend's extent), plus an `assign` that maps a
  * raw value to its bin. The `assign` is equal-interval or quantile per
- * `binning`. {@link regionValueJoin} therefore colours regions through the same
+ * `binning`. {@link regionValueJoin} therefore colors regions through the same
  * scale the legend describes. Empty (with a `null` domain and a no-op `assign`) when no row
  * carries a finite value.
  *
@@ -121,7 +121,7 @@ export function resolveValueBins<T>(
 
 /** The per-region readout {@link regionValueJoin} resolves, index-aligned with the region ids. @internal */
 export type RegionValueJoin = {
-	/** Each region's bin index — its colour — or `null` off data. */
+	/** Each region's bin index — its color — or `null` off data. */
 	regionCategory: (number | null)[]
 	/** Each region's own formatted value — the tooltip and table readout, not the bin's range label. */
 	regionValues: (string | null)[]
@@ -133,7 +133,7 @@ export type RegionValueJoin = {
  * Matches each region to its row in one pass. The row whose `regionKey` equals
  * the region's id yields:
  *
- * - the bin its colour reads from, through `assign` (the
+ * - the bin its color reads from, through `assign` (the
  *   {@link resolveValueBins} scale, equal-interval or quantile alike);
  * - its own formatted value: the tooltip and table show "2,088", not the bin's
  *   "1–135";

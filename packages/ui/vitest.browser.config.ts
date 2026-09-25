@@ -29,7 +29,7 @@ const COMPONENT_MODULES = 'virtual:component-modules'
  * container: eight packages arrived that way, two of them after the first test
  * started, and each arrival re-runs the optimizer and reloads the page.
  * `@vitest/browser` names the cost in its own warning — "Vite unexpectedly
- * reloaded a test. This may cause tests to fail, lead to flaky behaviour or
+ * reloaded a test. This may cause tests to fail, lead to flaky behavior or
  * duplicated test runs."
  *
  * A stub rather than the real `docsPlugin` the node config gives `unit` and
@@ -96,7 +96,7 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  * setup-file `vi.mock`, so it can only toggle per instance, not per file — and
  * along the scrollbar mode of the browser:
  *
- * - `browser`: layout, geometry, and computed colour the jsdom suite can't
+ * - `browser`: layout, geometry, and computed color the jsdom suite can't
  *   see — the `color-contrast` / `target-size` axe rules (helpers/axe.ts) and
  *   react-virtual windowing, which renders zero rows under jsdom's zero-size
  *   viewport. `@floating-ui/react` is mocked (browser/setup/module-mocks.ts)

@@ -92,7 +92,7 @@ describe('Sheet', () => {
 		expect(document.querySelector('[data-slot="overlay-backdrop"]')).toBeNull()
 	})
 
-	it('greys out what shows through the backdrop when desaturate is set', () => {
+	it('grays out what shows through the backdrop when desaturate is set', () => {
 		renderUI(
 			<Sheet open desaturate onOpenChange={() => {}} aria-label="Filters">
 				Filter content

@@ -78,7 +78,7 @@ export function usePanelFit({
 	transition,
 }: PanelFitOptions): RefCallback<HTMLDivElement> {
 	// The panel as state rather than a ref, for the reason the gesture holds it
-	// that way: it is portalled and mounts on a later commit than the one that
+	// that way: it is portaled and mounts on a later commit than the one that
 	// opens the drawer, so an effect keyed on anything else runs with nothing to
 	// observe.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)
@@ -106,7 +106,7 @@ export function usePanelFit({
 		// The box the panel last rested at, and `null` until it has rested at one.
 		// The observer delivers once for a newly observed element, and that first
 		// reading has no width to match — which is the case below that adopts a size
-		// rather than travelling to it, and so is also how the baseline is taken.
+		// rather than traveling to it, and so is also how the baseline is taken.
 		let rested: BorderBox | null = null
 
 		let travel: AnimationPlaybackControls | null = null

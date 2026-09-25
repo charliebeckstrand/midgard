@@ -15,7 +15,7 @@ import { sou } from '../../recipes/kiso/sou'
  * covered by a tooltip anchored to the region it was magnifying.
  */
 describe('sou', () => {
-	/** In ladder order, bottom to top. The names are the contract; the numbers are an artefact. */
+	/** In ladder order, bottom to top. The names are the contract; the numbers are an artifact. */
 	const LADDER = ['overlay', 'chrome', 'float', 'lens', 'toast'] as const
 
 	function rung(name: (typeof LADDER)[number]): number {

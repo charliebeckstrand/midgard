@@ -18,7 +18,7 @@ import {
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
-import { detailOpen, groupTotalled, groupValueOf, totalItemKey } from './engine/grid-items/items'
+import { detailOpen, groupTotaled, groupValueOf, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
 import type { ResolvedInfiniteScroll } from './grid-data-resolvers'
@@ -174,12 +174,12 @@ function renderGroup<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		density: DensityLevel
 		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
-		totalled: boolean
+		totaled: boolean
 		/** The row-manager overlay presentation (per-group color), or `null` when off. */
 		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, density, totalled, presentation } = args
+	const { props, columnId, renderHeader, density, totaled, presentation } = args
 
 	const { expanded } = group
 
@@ -203,7 +203,7 @@ function renderGroup<T>(
 					{...leafRowProps(props, leaf, { expanded, density, color, level: 2 })}
 				/>
 			))}
-			{totalled && (
+			{totaled && (
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
 					rows={group.rows}
@@ -303,7 +303,7 @@ function renderGroupedBody<T>(
 
 	// The per-group total is meaningful only once a column aggregates; the gate
 	// is body-wide, so resolve it once here rather than per group in renderGroup.
-	const totalled = groupTotalled(props.groupTotalRow, visibleColumns)
+	const totaled = groupTotaled(props.groupTotalRow, visibleColumns)
 
 	if (virtualize) {
 		return (
@@ -313,7 +313,7 @@ function renderGroupedBody<T>(
 				toggleGroup={props.toggleGroup}
 				columnId={groupColumnId}
 				renderHeader={groupRenderHeader}
-				totalled={totalled}
+				totaled={totaled}
 				density={density}
 				presentation={rowGroupPresentation}
 				leafProps={(leaf, expanded, color) =>
@@ -326,14 +326,14 @@ function renderGroupedBody<T>(
 
 	return (
 		<TableBody>
-			<GridCursorOrder order={groupedCursorRows(ordered, totalled, props.toggleGroup)} />
+			<GridCursorOrder order={groupedCursorRows(ordered, totaled, props.toggleGroup)} />
 			{ordered.map((group) =>
 				renderGroup(group, {
 					props,
 					columnId: groupColumnId,
 					renderHeader: groupRenderHeader,
 					density,
-					totalled,
+					totaled,
 					presentation: rowGroupPresentation,
 				}),
 			)}

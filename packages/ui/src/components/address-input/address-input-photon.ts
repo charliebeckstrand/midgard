@@ -96,7 +96,7 @@ export type PhotonProviderOptions = {
 	 * Rank matches near this point first. A geocoder asked for "Clearwater" with
 	 * no bias answers with the largest match on the planet. A field that knows
 	 * roughly where its reader is must therefore say so. That is the map's own
-	 * centre, or a coarse location the reader already gave.
+	 * center, or a coarse location the reader already gave.
 	 */
 	bias?: { latitude: number; longitude: number }
 	/** Keep only these layers; every layer otherwise. See {@link PhotonLayer}. */

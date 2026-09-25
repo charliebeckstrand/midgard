@@ -39,10 +39,10 @@ function withinBounds(
 	return withinLon && lat >= south - pad && lat <= north + pad
 }
 
-/** Kilometres along a degree of latitude, which is the scale the local frame below measures in. */
+/** Kilometers along a degree of latitude, which is the scale the local frame below measures in. */
 const KM_PER_DEGREE = 111.195
 
-/** Degrees of latitude in a kilometre, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads — the box only decides who is worth measuring. */
+/** Degrees of latitude in a kilometer, for padding a box by a distance. Longitude is narrower away from the equator, so this over-pads rather than under-pads — the box only decides who is worth measuring. */
 const DEGREES_PER_KM = 1 / KM_PER_DEGREE
 
 /** A longitude difference read the short way round, so a pair either side of the antimeridian is two degrees apart rather than 358. */
@@ -51,14 +51,14 @@ function longitudeDelta(from: number, to: number): number {
 }
 
 /**
- * How far a position lies from one edge of a ring, in kilometres.
+ * How far a position lies from one edge of a ring, in kilometers.
  *
  * Measured on a plane tangent at the position, with longitude scaled by its
- * cosine. The tolerances this serves are tens of kilometres, where that frame
+ * cosine. The tolerances this serves are tens of kilometers, where that frame
  * and the sphere agree to well under a percent — and unlike a distance to the
  * ring's vertices, it holds however far apart a generalized atlas spaces them.
- * A coastline drawn at 110m runs hundreds of kilometres between vertices, so a
- * harbour off the middle of one edge reads as far from both of its ends and no
+ * A coastline drawn at 110m runs hundreds of kilometers between vertices, so a
+ * harbor off the middle of one edge reads as far from both of its ends and no
  * distance from the edge itself.
  */
 function edgeKm(
@@ -105,7 +105,7 @@ function rings(geometry: NonNullable<MapFeature['geometry']>): [number, number][
  * The drawn region nearest a position, where one lies within `withinKm`.
  *
  * It exists because an atlas is a drawing and not a survey. `world-atlas` at
- * 110m generalizes a coastline into a line that runs inland of the harbours,
+ * 110m generalizes a coastline into a line that runs inland of the harbors,
  * piers and beach towns a travel log is full of, so `geoContains` answers `false`
  * for a place plainly inside the country — Newport, Oregon sits 3.1 km outside
  * the United States as that atlas draws it.
@@ -195,19 +195,19 @@ export function decodeRegions(
 }
 
 /**
- * A projection centred on what it is about to draw.
+ * A projection centered on what it is about to draw.
  *
- * Mercator centres on the prime meridian, so a subject far from it is fitted
+ * Mercator centers on the prime meridian, so a subject far from it is fitted
  * across a span it does not occupy. Alaska is the case that shows it: the
  * Aleutians cross the antimeridian, so its bounds read as most of the globe and
  * the state fits to a fraction of the frame. Rotating the projection to the
  * subject's own centroid puts it on the meridian, which un-wraps Alaska and
  * takes the shear off every other region as a bonus.
  *
- * `null` for nothing to centre on, which the caller reads as the plain named
+ * `null` for nothing to center on, which the caller reads as the plain named
  * projection.
  */
-export function centredProjection(geography: MapFeatureCollection | null): GeoProjection | null {
+export function centeredProjection(geography: MapFeatureCollection | null): GeoProjection | null {
 	if (geography === null || geography.features.length === 0) return null
 
 	const [longitude] = geoCentroid(geography as Parameters<typeof geoCentroid>[0])
@@ -258,7 +258,7 @@ export type GroupPlacesOptions = {
 	known?: (place: Place) => string | undefined
 	/**
 	 * How far a position may sit outside every region and still be rescued by the
-	 * nearest one, in kilometres. Omit for no rescue, which is what an atlas fine
+	 * nearest one, in kilometers. Omit for no rescue, which is what an atlas fine
 	 * enough to contain its own coastline wants. See {@link nearestRegion}.
 	 */
 	snapKm?: number

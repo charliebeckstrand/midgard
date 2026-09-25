@@ -22,9 +22,9 @@ const regionClasses = new Map<string, string>()
 /**
  * The region's classes for one `(color, active)` pair, computed once.
  *
- * @remarks `cn` memoises only when every argument is a string, and these arguments are
+ * @remarks `cn` memoizes only when every argument is a string, and these arguments are
  * arrays (`shades()` returns `string[]`). Each call would otherwise run the full
- * clsx + tailwind-merge over ~14 tokens. There are five colours and two states, so ten
+ * clsx + tailwind-merge over ~14 tokens. There are five colors and two states, so ten
  * results cover every document. Measured, this cuts ~142 µs per layer render at 40 regions
  * to ~4.5 µs. The layer re-renders on every zoom step and every resize frame. The
  * `dimmed` axis doubles the table to twenty entries, which is still every combination a
@@ -170,7 +170,7 @@ function PdfViewerHighlightLayer() {
 
 	/*
 	 * Whether anything is selected at all. While something is, every other region drops its
-	 * colour — one wash among twenty reads as a field of colour rather than as a selection.
+	 * color — one wash among twenty reads as a field of color rather than as a selection.
 	 *
 	 * It is read off `activeLabel`, which the provider already derives with the same scan. A
 	 * label is required of every highlight, so a name in hand and a selected region are the same
@@ -509,7 +509,7 @@ type PdfViewerActiveNameHandle = {
  *
  * @remarks A component of its own, holding the one piece of state the layer would otherwise
  * hold for it. The name is a standing object over a layer of pressable boxes, and on a dense
- * page it lands on its neighbours. It takes no pointer events, so the hover and the press
+ * page it lands on its neighbors. It takes no pointer events, so the hover and the press
  * reach the box beneath it either way. This is the half the reader sees. The name goes faint
  * over the box they are pointing at, which is the page saying the press will land there.
  *

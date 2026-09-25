@@ -114,7 +114,7 @@ export type ScatterFrameProps = {
 export type ScatterChartProps<T = never> = AccessibleName &
 	Omit<ChartBaseProps<T>, 'texture' | 'aria-label' | 'aria-labelledby'> &
 	ScatterFrameProps & {
-		/** The series to plot, one disc per parseable row; slot colours follow this order. */
+		/** The series to plot, one disc per parseable row; slot colors follow this order. */
 		series: ScatterChartSeries<T>[]
 		/**
 		 * Fires when a click lands on a point, with the point's series index and
@@ -144,7 +144,7 @@ type ScatterMeta = {
 /**
  * Every series parsed and resolved: paint, points, and the bubble radius
  * scaling. A series takes its explicit `color` (a palette slot or a raw CSS
- * colour), else its slot in the fixed order.
+ * color), else its slot in the fixed order.
  *
  * @internal
  */
@@ -270,7 +270,7 @@ function scatterLegendItems(
 		swatchColor: rawColor(meta.paint),
 		swatch: 'rect',
 		// The slot alone, so a textured swatch mirrors the mark's tile; a raw
-		// colour carries no tile and inks through `swatchColor` instead.
+		// color carries no tile and inks through `swatchColor` instead.
 		color: meta.paint.kind === 'slot' ? meta.paint.slot : undefined,
 	}))
 }

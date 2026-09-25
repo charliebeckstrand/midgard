@@ -29,9 +29,9 @@ export const k = {
 	],
 	card: 'w-80 max-sm:w-full',
 	motion: toast,
-	/** Neighbour re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
+	/** Neighbor re-pack after a dismissal: the FLIP `layout` spring the stack reflows on. */
 	spring: spring.reflow,
-	/** Inter-toast gap (px), animated to 0 on dismiss; neighbours slide in. */
+	/** Inter-toast gap (px), animated to 0 on dismiss; neighbors slide in. */
 	gap: 8,
 }
 

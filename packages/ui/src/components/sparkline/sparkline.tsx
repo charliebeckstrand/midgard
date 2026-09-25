@@ -58,7 +58,7 @@ export type SparklineProps = AccessibleName & {
 	/**
 	 * Animate the marks in on mount with Framer Motion. The line draws itself
 	 * (`pathLength`), the area wash fades in behind it, the end-point pops, and
-	 * bars rise from the baseline in sequence. Honours `prefers-reduced-motion`
+	 * bars rise from the baseline in sequence. Honors `prefers-reduced-motion`
 	 * through {@link ReducedMotion}. Off by default — a static grid of many
 	 * sparklines stays a plain-SVG leaf with no motion runtime.
 	 * @defaultValue false

@@ -204,7 +204,7 @@ describe('dot hit targets', () => {
 		expect(fine(bySlot(container, 'map-point-hit'))).toBe(false)
 	})
 
-	it('holds a dot precise while a neighbour stands inside its coarse reach', () => {
+	it('holds a dot precise while a neighbor stands inside its coarse reach', () => {
 		const { container } = renderUI(
 			// Two stops 16px apart in a 400px frame, which is the middle of the window
 			// this case needs: past the 14px merge distance, so each draws its own dot,
@@ -432,7 +432,7 @@ describe('crowded marks divide their targets', () => {
  * full finger target on every pin: they take no county pick, because a pick could only be read back
  * onto one of them.
  *
- * The third claimant on the same ground the zones and the neighbours claim, arriving through the same
+ * The third claimant on the same ground the zones and the neighbors claim, arriving through the same
  * budget — which is why `markTargets` needed to learn nothing for it.
  */
 describe('a dot over regions that answer the pointer', () => {

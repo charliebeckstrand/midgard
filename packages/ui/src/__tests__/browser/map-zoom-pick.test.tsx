@@ -15,8 +15,8 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
  * stops opening anything.
  *
  * The input has to be the browser's own — `userEvent` from `vitest/browser`,
- * which drives Playwright — not the DOM-synthesising library of the same name.
- * A synthesised click is dispatched straight at its target, so the retarget the
+ * which drives Playwright — not the DOM-synthesizing library of the same name.
+ * A synthesized click is dispatched straight at its target, so the retarget the
  * real engine performs never happens and the case passes against the break. That
  * blind spot is shared with jsdom, where `setPointerCapture` is a stub, and it is
  * what let this ship behind a green suite.

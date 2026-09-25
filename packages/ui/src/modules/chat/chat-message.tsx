@@ -8,7 +8,7 @@ import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
 /**
- * The visually hidden author label per role. Bubble side and colour alone
+ * The visually hidden author label per role. Bubble side and color alone
  * convey the speaker visually; this names it for assistive technology. System
  * messages are status lines, not an utterance, so they get a plain "System".
  *
@@ -25,7 +25,7 @@ const AUTHOR = {
  * cannot reach the bubble undrawn. The compiler asks for its arm, as it does
  * for the projection and the emptiness rule.
  *
- * A text block lexes on its own rather than joined to its neighbours. Each
+ * A text block lexes on its own rather than joined to its neighbors. Each
  * `Markdown` is then memoized on its own string, so a settled block above a
  * streaming one skips its re-lex on every chunk.
  *

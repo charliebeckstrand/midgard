@@ -1,5 +1,5 @@
 /**
- * Swatch kata: the colour key that stands in for a mark. Three independent
+ * Swatch kata: the color key that stands in for a mark. Three independent
  * axes:
  *
  * - `shape`: the mark geometry — `square` box, `circle` dot, `line` bar

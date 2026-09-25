@@ -61,7 +61,7 @@ describe('scrollWithin against a real scroller', () => {
 		)
 	})
 
-	it('centres the target in the scroller for block center', async () => {
+	it('centers the target in the scroller for block center', async () => {
 		const { scroller, target, go } = mounted({ block: 'center' })
 
 		go()

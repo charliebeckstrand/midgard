@@ -22,7 +22,7 @@ describe('Glass item wash (real browser)', () => {
 
 	/**
 	 * Alpha of an element's painted background. Chromium resolves the recipe's
-	 * `bg-zinc-950/5` and `/10` to the same `oklab()` colour and separates them
+	 * `bg-zinc-950/5` and `/10` to the same `oklab()` color and separates them
 	 * only by alpha, which is exactly the difference under test.
 	 */
 	function washOf(element: Element): number {

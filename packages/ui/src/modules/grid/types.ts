@@ -367,7 +367,7 @@ export type GridColumnSizingState = Record<string, number>
  * saves autosized widths, only deliberate ones. "Reset column widths" fires it
  * with `{}`: the user gave the widths back to the grid.
  *
- * A `value`/`defaultValue` seeded on mount is honoured as a manual width. The
+ * A `value`/`defaultValue` seeded on mount is honored as a manual width. The
  * grid mounts with the user in control, so restored widths hold on reload
  * rather than being re-fit. The binding therefore round-trips: persist what
  * `onValueChange` reports, and feed it back as `defaultValue`.

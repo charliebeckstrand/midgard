@@ -46,7 +46,7 @@ describe('ChatTool', () => {
 		['running', 'Running'],
 		['done', 'Done'],
 		['failed', 'Failed'],
-	] as const)('names the %s state for a reader, because colour alone does not', (status, label) => {
+	] as const)('names the %s state for a reader, because color alone does not', (status, label) => {
 		// The dot encodes the state in hue; a reader who cannot see hue gets the
 		// word through its accessible name (WCAG 1.4.1).
 		renderTool(tool({ status }))

@@ -15,8 +15,8 @@ export type LocaleProviderProps = LocaleConfig & {
  *
  * @remarks
  * This is a formatting provider, not a translation layer. It holds no string
- * catalogue, and it never supplies the text a component renders. Control
- * strings stay hardcoded English until a second locale lands; a catalogue
+ * catalog, and it never supplies the text a component renders. Control
+ * strings stay hardcoded English until a second locale lands; a catalog
  * waits for that locale, so its keys answer to a real consumer.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing

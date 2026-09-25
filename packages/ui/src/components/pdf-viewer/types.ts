@@ -64,7 +64,7 @@ export type PdfViewerHighlight = {
 	 */
 	label: string
 	/**
-	 * Decorative paint, from the shared five-colour palette.
+	 * Decorative paint, from the shared five-color palette.
 	 * @defaultValue `'amber'`
 	 */
 	color?: Color

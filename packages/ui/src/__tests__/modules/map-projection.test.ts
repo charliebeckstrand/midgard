@@ -116,7 +116,7 @@ describe('scaleCanonicalFit', () => {
 		for (const [width, height] of frames) {
 			const derived = scaleCanonicalFit(spec, canonical, width, height)
 
-			// The geography sits inside the frame, centred, filling one axis edge
+			// The geography sits inside the frame, centered, filling one axis edge
 			// to edge — the fit contract itself.
 			const [[x0, y0], [x1, y1]] = geoPath(derived).bounds(
 				shape as unknown as Parameters<ReturnType<typeof geoPath>['bounds']>[0],
@@ -285,13 +285,13 @@ describe('frameToClient', () => {
 		expect(frameToClient({ x: 100, y: 50 }, box, 800, 400)).toEqual({ x: 150, y: 75 })
 	})
 
-	it('centres the letterbox, the SVG default preserveAspectRatio', () => {
+	it('centers the letterbox, the SVG default preserveAspectRatio', () => {
 		// Canonical state: a 400x100 view frame inside a 400x200 box fits at scale
-		// 1 and centres, leaving 50px of gap above it.
+		// 1 and centers, leaving 50px of gap above it.
 		expect(frameToClient({ x: 0, y: 0 }, box, 400, 100)).toEqual({ x: 100, y: 100 })
 
 		// A frame narrower than the box fits on its height (scale 1, not 4) and
-		// centres horizontally, leaving 150px of gap either side.
+		// centers horizontally, leaving 150px of gap either side.
 		expect(frameToClient({ x: 0, y: 0 }, box, 100, 200)).toEqual({ x: 250, y: 50 })
 	})
 

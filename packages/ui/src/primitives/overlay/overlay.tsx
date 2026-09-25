@@ -94,7 +94,7 @@ export type OverlayProps = {
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
- * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
+ * Portaled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
  * Drawer). Manages focus trapping, body scroll lock, dismissal, and the
  * dimming backdrop; consumers render the panel as `children`.
  *
@@ -229,7 +229,7 @@ function OverlayFocus({
 	// the registered regions through as part of the surface, exempting them.
 	//
 	// Read at render rather than hoisted: with nothing registered the trap stays
-	// strict, which is the whole behaviour on a page that declares no chrome.
+	// strict, which is the whole behavior on a page that declares no chrome.
 	const chrome = chromeRegions()
 
 	// `guards={false}` alone already forces the `inert` marking in 0.27, so this

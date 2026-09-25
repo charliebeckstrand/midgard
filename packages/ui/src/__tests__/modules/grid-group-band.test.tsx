@@ -68,7 +68,7 @@ describe('Grid column groups', () => {
 			<Grid columns={columns} rows={rows} getKey={getKey} columnGroups={groups} />,
 		)
 
-		// The rule stays (a colorless group keeps a grey underline, like a row rail),
+		// The rule stays (a colorless group keeps a gray underline, like a row rail),
 		// just without a palette color.
 		const rule = bandRule(container)
 
@@ -181,7 +181,7 @@ describe('Grid column groups', () => {
 
 		fireEvent.click(screen.getByRole('menuitem', { name: 'Clear color' }))
 
-		// The color is gone but the underline stays — now a neutral grey.
+		// The color is gone but the underline stays — now a neutral gray.
 		const rule = bandRule(container)
 
 		expect(rule?.className).not.toContain('bg-blue-600')

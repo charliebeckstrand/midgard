@@ -82,7 +82,7 @@ export type MapKeyboardOptions = {
  * and Escape leaves through the shared {@link usePlotTabStop} exit.
  *
  * A zooming map answers three more keys on that one stop. `+` and `-` step the
- * scale about the frame's centre, and `0` returns to the fit. The cursor takes
+ * scale about the frame's center, and `0` returns to the fit. The cursor takes
  * the view with it: a step onto a stop the zoom put off-frame pans the map to
  * show it. Navigation therefore never points a reader at something the plot
  * does not draw.

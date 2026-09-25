@@ -34,7 +34,7 @@ function nodeEnvironmentFiles(): string[] {
 					files.push(relative(import.meta.dirname, file))
 				}
 			},
-			new Set(['browser', 'boundary']),
+			new Set(['browser', 'boundary', 'compiler']),
 		)
 	}
 
@@ -173,14 +173,17 @@ export default defineConfig({
 						'src/__tests__/**/*.test.{ts,tsx}',
 						'src/docs/engine/__tests__/**/*.test.{ts,tsx}',
 					],
-					// The browser suite (vitest.browser.config.ts) verifies behaviour
-					// jsdom can't — layout/colour geometry and, in its floating-ui
+					// The browser suite (vitest.browser.config.ts) verifies behavior
+					// jsdom can't — layout/color geometry and, in its floating-ui
 					// project, real-floating-engine focus trapping — so it may not
-					// run under this jsdom config. The boundary/ suites run in the
-					// two projects below, and the node-docblock files in `pure`.
+					// run under this jsdom config. The compiler/ suite runs only in
+					// the compiled run (vitest.compiler.config.ts). The boundary/
+					// suites run in the two projects below, and the node-docblock
+					// files in `pure`.
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/**',
+						'src/__tests__/compiler/**',
 						'src/__tests__/boundary/**',
 						...nodeFiles,
 					],

@@ -13,7 +13,7 @@ const CONTROL_SLOTS = {
 export type A11yControl = {
 	/** Composed `aria-describedby`: registered slot ids only, or undefined when none are rendered. */
 	describedBy: string | undefined
-	/** Composed `aria-labelledby`: the Label's id once it registers, else undefined. Lets a portalled popup (e.g. a listbox) name itself from the field's Label. */
+	/** Composed `aria-labelledby`: the Label's id once it registers, else undefined. Lets a portaled popup (e.g. a listbox) name itself from the field's Label. */
 	labelledBy: string | undefined
 	/** Id the Label slot renders with. */
 	labelId: string
@@ -32,7 +32,7 @@ export type A11yControl = {
 }
 
 /**
- * Field a11y scaffolding: `useA11yScope` specialized for a labelled control.
+ * Field a11y scaffolding: `useA11yScope` specialized for a labeled control.
  * Derives the Label / Description / error-Message ids from the control id,
  * tracks whether each slot is rendered, and composes `aria-describedby` /
  * `aria-labelledby` from only the registered ids. Id shape: `${id}-label`,

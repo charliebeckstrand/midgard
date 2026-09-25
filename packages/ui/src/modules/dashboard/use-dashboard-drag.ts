@@ -92,7 +92,7 @@ function currentCell(store: DashboardStore, id: string): DashboardCell | null {
  * keyboard, and the live region. The policy is the pure {@link dragPreview}, and
  * it reads only the snapshot from the start of the drag.
  *
- * The travelling tile decides the target, not the pointer. The target is the
+ * The traveling tile decides the target, not the pointer. The target is the
  * start cell plus the pointer delta in grid units, rounded and clamped to the
  * travel range. Nothing re-simulates until the target changes by a whole unit.
  *
@@ -259,7 +259,7 @@ export function useDashboardDrag({
 		finishDrag(false)
 	}, [finishDrag])
 
-	// One arrow press moves one column, or one row, of the travelling tile.
+	// One arrow press moves one column, or one row, of the traveling tile.
 	const coordinateGetter = useCallback<KeyboardCoordinateGetter>(
 		(event, { currentCoordinates }) => {
 			const pitch = store.getState().gesture?.pitch ?? 0

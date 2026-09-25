@@ -2,7 +2,7 @@
 export type Deferred<T> = {
 	/** The promise the subject awaits. */
 	promise: Promise<T>
-	/** Fulfils {@link Deferred.promise} with `value`. */
+	/** Fulfills {@link Deferred.promise} with `value`. */
 	resolve: (value: T) => void
 	/** Rejects {@link Deferred.promise} with `reason`. */
 	reject: (reason: unknown) => void
@@ -39,8 +39,8 @@ export function deferred<T = void>(): Deferred<T> {
 
 	let reject!: (reason: unknown) => void
 
-	const promise = new Promise<T>((fulfil, fail) => {
-		resolve = fulfil
+	const promise = new Promise<T>((fulfill, fail) => {
+		resolve = fulfill
 
 		reject = fail
 	})

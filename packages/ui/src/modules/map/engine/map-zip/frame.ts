@@ -6,21 +6,21 @@
  *
  * Each covered code is placed rather than the merged territory, and that is the
  * whole reason this pass reads `MapZipArea.features` instead of its polygons. A
- * territory along a state line is one shape whose centre sits in one state. Its
+ * territory along a state line is one shape whose center sits in one state. Its
  * codes sit in both, and a broker working that line covers both. Placing the
  * codes names both states, and placing the merged shape would name one.
  *
  * Most codes are placed without being measured at all. Every region whose box
  * meets a code's box is a region that code could sit in. Where all of them
  * agree on one state, no measurement can name another. The code is therefore
- * settled for the cost of two boxes. Only a code whose neighbourhood spans two
+ * settled for the cost of two boxes. Only a code whose neighborhood spans two
  * states
  * reaches the exact placement below. Against the 2010 Illinois ZCTA file, 1,187
  * of 1,384 codes settle on the box alone.
  *
  * That is not only the faster path, it is the sounder one. The exact placement
  * reads a code's centroid, and a centroid is a point. It can land on water the
- * region atlas does not draw: Chicago's 60611 centres in Lake Michigan. A ring
+ * region atlas does not draw: Chicago's 60611 centers in Lake Michigan. A ring
  * degenerate at the atlas's own precision has no centroid at all (61625
  * measures `NaN`). Both place correctly on their boxes, and both would otherwise
  * place nowhere.
@@ -69,7 +69,7 @@ export function coverageGroups(
 		}
 
 		// The area centroid, which is what places a code against the ground it
-		// covers. A code shaped around another one can centre outside its own ring,
+		// covers. A code shaped around another one can center outside its own ring,
 		// and it still lands in the right state, which is all this asks.
 		//
 		// Wound here, on this one code, rather than over the whole territory up
@@ -111,7 +111,7 @@ export function coverageGroups(
  * over every vertex of a code's rings. That is the most expensive thing in the
  * pass by an order of magnitude. A code near no border, which is most of them,
  * is also decided here for the cost of a box. It also answers for the two kinds
- * of code a centroid cannot place at all. One centres on water outside every
+ * of code a centroid cannot place at all. One centers on water outside every
  * region, and one has rings degenerate enough to have no centroid.
  *
  * @internal

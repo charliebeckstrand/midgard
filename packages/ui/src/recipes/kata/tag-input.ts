@@ -22,8 +22,8 @@ export const k = {
 	],
 	// Vertical padding for the tag row, keyed by density.
 	//
-	// A chip nearly fills the host Input's text-line box, so centred against
-	// the bare input it clears the frame by only the centring gap and reads
+	// A chip nearly fills the host Input's text-line box, so centered against
+	// the bare input it clears the frame by only the centering gap and reads
 	// squished. Padding the row one step above the control's `py` insets the
 	// chips and lets the frame grow to fit the row.
 	tags: {

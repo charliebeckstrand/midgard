@@ -161,10 +161,10 @@ function isNumeric(value: unknown): boolean {
  * must also have the shape that the operator reads: a range for an operator in
  * {@link RANGE_OPERATORS}, else a scalar. For an operator in
  * {@link NUMERIC_OPERATORS}, the value must also be numeric. The field set has
- * no part in the judgement, because the evaluator reads no field set.
+ * no part in the judgment, because the evaluator reads no field set.
  *
  * @remarks This is the one definition of an active rule. The fold, the SQL
- * format, the active judgement, and the summary all read it, so they give the
+ * format, the active judgment, and the summary all read it, so they give the
  * same reading of a rule. The own-key test stops an inherited name, such as
  * `toString`, from reading as a matcher. A `between` value that is not a range
  * ({@link isRange}), such as `5`, `[10]`, or `[[1], 5]`, reads as no

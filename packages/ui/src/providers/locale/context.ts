@@ -10,7 +10,7 @@ import { createContext } from '../../core'
  *
  * @remarks
  * Every field feeds an `Intl.*` formatter. The type carries no string
- * catalogue, and it is not a translation layer. A catalogue waits for a real
+ * catalog, and it is not a translation layer. A catalog waits for a real
  * second locale.
  */
 export type LocaleConfig = {

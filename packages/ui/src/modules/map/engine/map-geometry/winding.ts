@@ -1,5 +1,5 @@
 /**
- * Ring normalisation, between an atlas as it arrives and the rings `d3-geo` can
+ * Ring normalization, between an atlas as it arrives and the rings `d3-geo` can
  * draw. Two jobs share the pass:
  *
  * - Winding, the guard on a raw-GeoJSON atlas. There a mis-wound exterior reads
@@ -305,7 +305,7 @@ function rewindFeature(feature: MapFeature): MapFeature {
  * `world-atlas`'s `countries-110m` — no ring is reversed.
  *
  * The drop is not inert, which is why a TopoJSON atlas is not a case this pass
- * can be skipped for. Quantisation collapses a sliver to a ring of no area, and
+ * can be skipped for. Quantization collapses a sliver to a ring of no area, and
  * a decoded atlas arrives carrying them. `counties-10m` yields 15 polygons and 7
  * holes to drop, and `states-10m` and `countries-110m` a polygon each. Almost
  * all of those sit inside a multipolygon that keeps its other parts, so the

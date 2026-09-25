@@ -11,8 +11,6 @@ allowed-tools: Read, Grep, Glob, Write, Edit
 ---
 # WCAG 2.2 Accessibility
 
-> **Deep Knowledge**: Use `mcp__documentation__fetch_docs` with technology: `wcag` for comprehensive WCAG guidelines, success criteria, and techniques.
-
 ## When NOT to Use This Skill
 
 - **Automated testing setup** - Use the `axe-core` skill for integrating axe testing tools

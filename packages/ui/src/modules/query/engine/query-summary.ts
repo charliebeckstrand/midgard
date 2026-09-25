@@ -80,7 +80,7 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
  * of that field first. Then it comes from the default set of the field type,
  * and then from the other built-in sets ({@link findBuiltInOperator}). For an
  * unknown field, it comes from the built-in sets. The summary reads its labels
- * and options from them. It does not read the active judgement or the form of a
+ * and options from them. It does not read the active judgment or the form of a
  * token from them.
  *
  * @internal

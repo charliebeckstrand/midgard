@@ -13,7 +13,7 @@ const ROWS: Row[] = [
 const round = (value: number) => value.toFixed(0)
 
 describe('resolveValueBins', () => {
-	it('quantises the extent into one bin per colour stop, painting each a CSS value', () => {
+	it('quantizes the extent into one bin per color stop, painting each a CSS value', () => {
 		const { metas, domain } = resolveValueBins(ROWS, 'v', {
 			colorRange: ['#0a0a0a', '#f5f5f5'],
 			format: round,
@@ -47,7 +47,7 @@ describe('resolveValueBins', () => {
 		expect(metas[2]?.paint).toEqual({ kind: 'value', color: '#ffffff' })
 	})
 
-	it('honours an explicit domain over the data extent', () => {
+	it('honors an explicit domain over the data extent', () => {
 		const { domain } = resolveValueBins(ROWS, 'v', {
 			colorRange: ['#000000', '#ffffff'],
 			domain: [0, 200],

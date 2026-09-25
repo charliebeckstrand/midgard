@@ -5,7 +5,7 @@
  * projection alone, and no atlas feature reaches them. One pass therefore draws
  * the pair, and both cost the same whatever the geography frames. The lines
  * span the globe, and the frame clips what falls outside it. Held apart from
- * `region.ts` for that reason, and memoised a layer above (`cache.ts`) like the
+ * `region.ts` for that reason, and memoized a layer above (`cache.ts`) like the
  * region paths, because the pass re-runs per fit.
  */
 
@@ -54,11 +54,11 @@ function drawn(d: string | null): string | null {
  * The chrome under one fit: the meridians and parallels at `step` degrees
  * (`null` where the graticule is off), and the frame the projection draws.
  *
- * The graticule serialises as one multi-line path rather than one per line, so a
+ * The graticule serializes as one multi-line path rather than one per line, so a
  * world map's fifty-odd hairlines cost one element and one ink. Its lines cover
  * the globe whatever the geography frames: a regional map draws the same set
  * and clips the rest at the viewBox. The pass therefore costs what it costs on
- * a world map, which is why it is opt-in and memoised.
+ * a world map, which is why it is opt-in and memoized.
  *
  * The frame is the globe's edge where the projection has one, and a composite's
  * three clip boxes where it has none. Under `albers-usa` those are the
@@ -72,7 +72,7 @@ function drawn(d: string | null): string | null {
  * the projection draws.
  *
  * Both parts ride one `geoPath`, whose one decimal is the region paths'. Chrome
- * draws in the same frame units, where a second decimal serialises detail no
+ * draws in the same frame units, where a second decimal serializes detail no
  * display resolves.
  *
  * @internal

@@ -161,7 +161,7 @@ describe('ListItem', () => {
 
 	it('reads a conditional handler by its value, not by the key it leaves behind', () => {
 		// `onClick={enabled ? open : undefined}` keeps the key on an inert row, so a
-		// key-presence test would promise a pointer the row never honours.
+		// key-presence test would promise a pointer the row never honors.
 		const { container } = renderUI(
 			<List items={items.slice(0, 1)} getKey={(i) => i.id}>
 				{(item) => (
@@ -230,7 +230,7 @@ describe('ListItem', () => {
 		}
 	})
 
-	it('steps a card to the neighbouring shade rather than washing its surface away', () => {
+	it('steps a card to the neighboring shade rather than washing its surface away', () => {
 		const cls = washOf('separated')
 
 		// An alpha wash replaces `omote.bg.surface` instead of darkening it, so the

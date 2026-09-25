@@ -47,7 +47,7 @@ export type PopoverContentProps = {
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
 	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`;
-	 * focus is not trapped. Omit both to render it as an unlabelled generic
+	 * focus is not trapped. Omit both to render it as an unlabeled generic
 	 * surface.
 	 */
 	'aria-label'?: string

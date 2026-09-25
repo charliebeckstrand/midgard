@@ -24,7 +24,7 @@
  * vertices its own fit resolved. A larger frame would have earned more of them,
  * and a smaller one fewer. A geography whose own vertices already sit inside
  * that tolerance is refined at no fit, and so matches at every one. Every real
- * atlas is such a geography, being a quantised topology. `states-10m` matches
+ * atlas is such a geography, being a quantized topology. `states-10m` matches
  * the direct walk from a third of its canonical width to sixteen times it, where
  * a four-vertex polygon parts from it. Both are pinned in
  * `map-geometry-projected`.
@@ -68,7 +68,7 @@ import type { LngLat, MapFeature, MapProjection } from '../types'
  * arrays of arrays. The emit below also walks it once per fit, and never
  * searches it.
  *
- * Shared across instances like the geometry it is memoised beside, so treat
+ * Shared across instances like the geometry it is memoized beside, so treat
  * every field as read-only.
  *
  * @internal
@@ -320,7 +320,7 @@ export function projectAtlas(
  * The ratio is `MAP_CANONICAL_WIDTH` over the probe span, and the probe span is
  * what the walk is running to find. Four covers the built-in projections, where
  * `albers-usa` spans ~117 units at probe scale. It costs a real atlas nothing,
- * because a quantised topology's own vertices already sit inside the finer
+ * because a quantized topology's own vertices already sit inside the finer
  * tolerance. `counties-10m` streams the same 63,888 points at this precision as
  * at the default, in the same time.
  */

@@ -86,7 +86,7 @@ function beginScrollbarDrag(
 
 	window.addEventListener('pointermove', onMove, { signal })
 	window.addEventListener('pointerup', cleanup, { signal })
-	// A cancelled pointer (OS gesture, pen leaving range) never fires pointerup;
+	// A canceled pointer (OS gesture, pen leaving range) never fires pointerup;
 	// without this the drag keeps scrolling on buttonless moves.
 	window.addEventListener('pointercancel', cleanup, { signal })
 

@@ -23,7 +23,7 @@ describe('map legend registry', () => {
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(1)
 	})
 
-	it('keeps a relabelled entry in place, holding its slot colour', () => {
+	it('keeps a relabeled entry in place, holding its slot color', () => {
 		function plat(firstLabel: string) {
 			return (
 				<MapPlat aria-label="Test map" geography={FIXTURE_GEOJSON} width={400}>
@@ -48,7 +48,7 @@ describe('map legend registry', () => {
 			'Yard',
 		])
 
-		// The relabelled entry keeps its first-slot blue; its sibling stays orange.
+		// The relabeled entry keeps its first-slot blue; its sibling stays orange.
 		const dots = allBySlot(container, 'map-point')
 
 		expect(dots[0]?.getAttribute('class')).toContain('stroke-blue-600')

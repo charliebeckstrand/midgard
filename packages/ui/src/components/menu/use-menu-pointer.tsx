@@ -104,7 +104,7 @@ export type MenuPointerValue = {
 	closeSubmenu: (subKey: string) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
-	 * ({@link inCorridor}) a travelling pointer is measured against. Called with
+	 * ({@link inCorridor}) a traveling pointer is measured against. Called with
 	 * `null` as the panel unmounts.
 	 */
 	registerPanel: (subKey: string, node: HTMLElement | null) => void
@@ -260,7 +260,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 	 * at. An unplaced panel — one opened a frame ago, still measuring 0×0 — has no
 	 * corridor to be in yet.
 	 */
-	const travelling = useCallback((point: Point): boolean => {
+	const traveling = useCallback((point: Point): boolean => {
 		const from = anchor.current
 
 		const key = openKeyRef.current
@@ -281,8 +281,8 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 			const open = openKeyRef.current
 
 			// Mid-sweep into the open panel: this row is being crossed, not chosen.
-			// `travelling` reads the open key back itself, and says no when none is.
-			if (subKey !== open && travelling(point)) return
+			// `traveling` reads the open key back itself, and says no when none is.
+			if (subKey !== open && traveling(point)) return
 
 			anchor.current = point
 
@@ -297,7 +297,7 @@ export function MenuPointerLevel({ virtual = false, owner, children }: MenuPoint
 
 			if (next !== open) setOpen(next)
 		},
-		[moveCursor, setOpen, travelling],
+		[moveCursor, setOpen, traveling],
 	)
 
 	const enterSubmenu = useCallback((key: string) => {

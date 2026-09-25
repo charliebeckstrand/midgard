@@ -75,7 +75,7 @@ export const k = {
 		body,
 	},
 	// Relative variant: the preset list and custom-range affordance in the
-	// popover, plus the chip row inside the trigger. Colour comes from the
+	// popover, plus the chip row inside the trigger. Color comes from the
 	// Button/Badge recipes; these are layout-only.
 	relative: {
 		// A two-column grid filled column-major (`grid-flow-col`): the component

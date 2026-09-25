@@ -33,7 +33,7 @@ const AREA_EDGE_SLACK = 4
  * How decisively a challenger must out-close the held mark to take the
  * emphasis within overlapping catches: to under half its distance. Nearest-mark
  * resolution alone flips at the exact midline between two close marks: a knife
- * edge. The mark already emphasised therefore holds until the pointer commits
+ * edge. The mark already emphasized therefore holds until the pointer commits
  * to another, which turns the flip point into a deadband.
  *
  * @internal
@@ -68,7 +68,7 @@ function withinBar(
  * every bar. A bar's own body wins first, so the pointer isolates the bar it
  * truly covers. Only where no body catches it does the widened `gap` pass close
  * the thin gaps between a group's bars. Each bar's slack reaches its
- * neighbour's edge. A pointer sweeping across a group therefore never falls
+ * neighbor's edge. A pointer sweeping across a group therefore never falls
  * between them and flickers the tooltip. The wider between-group padding stays
  * uncovered. The band axis is x when vertical and y when horizontal, so the
  * slack follows the orientation.
@@ -83,7 +83,7 @@ export function barMarkAt(
 	orientation: ChartOrientation = 'vertical',
 ): { series: number; datum: number } | null {
 	// Two passes: the exact bodies first so a hovered bar isolates itself rather
-	// than a gap-widened neighbour, then the widened spans to bridge the gaps.
+	// than a gap-widened neighbor, then the widened spans to bridge the gaps.
 	for (const slack of gap > 0 ? [0, gap] : [0]) {
 		for (let series = 0; series < marks.length; series++) {
 			const row = marks[series] as (BarMark | null)[]
@@ -140,7 +140,7 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  * The series whose line runs nearest the pointer, within `tolerance`, or `null`
  * off every line. The nearest wins where two overlap, so the isolation lifts
  * the line the pointer truly follows rather than whichever drew first. A `held`
- * series — the one already emphasised — keeps the win while it stays within the
+ * series — the one already emphasized — keeps the win while it stays within the
  * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
  * resolution is sticky across the midline between two close strokes, rather
  * than flipping on the knife edge. Each series brings its gap-split runs, so

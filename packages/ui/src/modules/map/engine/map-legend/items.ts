@@ -18,16 +18,16 @@ import type { MapSwatchShape } from '../types'
 
 /**
  * One key an entry draws: the swatch mirroring a mark's own shape, carrying that
- * mark's colour. An entry holds one of these per distinct shape it stands for.
+ * mark's color. An entry holds one of these per distinct shape it stands for.
  *
  * @internal
  */
 export type MapLegendSwatch = {
 	/** Swatch shape, mirroring the mark: `rect` for a region and a geofence, the two that draw an area. */
 	shape: MapSwatchShape
-	/** currentColor class carrying the colour (categorical slots and overlays). */
+	/** currentColor class carrying the color (categorical slots and overlays). */
 	className?: string
-	/** Inline CSS colour carrying it instead (numeric choropleth bins). */
+	/** Inline CSS color carrying it instead (numeric choropleth bins). */
 	color?: string
 }
 
@@ -118,7 +118,7 @@ export function legendItems(
 			// One key per distinct shape, not per member: the swatches state what KINDS
 			// of mark the group holds, so a catchment with five depots on it still reads
 			// as an area and a point rather than six keys wide. Shape alone decides it,
-			// because a group's members share one colour by construction (`slots.ts`).
+			// because a group's members share one color by construction (`slots.ts`).
 			if (!open.swatches.some((held) => held.shape === swatch.shape)) open.swatches.push(swatch)
 
 			continue

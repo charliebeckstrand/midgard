@@ -21,8 +21,8 @@ export type CategoryPickerProps = {
  * The category picker, wherever categories are narrowed — the bar over the map,
  * and the list inside a drawer.
  *
- * Each option carries its category's colour, which is the only key the map has:
- * the dots are painted by category and nothing else names those colours.
+ * Each option carries its category's color, which is the only key the map has:
+ * the dots are painted by category and nothing else names those colors.
  *
  * An empty pick is not "admit nothing". A reader who clears the last category
  * means to stop filtering, so both callers read empty as unfiltered and the

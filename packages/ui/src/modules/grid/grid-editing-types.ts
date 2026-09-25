@@ -416,7 +416,7 @@ export type GridEditableConfig = {
 	 * a held cell; the next session transition drops it. Under server-side
 	 * pagination a held cell on another page drops too.
 	 *
-	 * @remarks A synchronous return keeps the synchronous behaviour: the cells
+	 * @remarks A synchronous return keeps the synchronous behavior: the cells
 	 * commit, and the grid announces them, in the same pass. A promise that
 	 * settles after the grid unmounts changes nothing.
 	 */

@@ -57,10 +57,10 @@ export type ChartValueLabelConfig = {
  * feeds this a lone series. A multi-series plot would crowd its labels between
  * lines with no reliable place to put them. Those charts fall back to the
  * tooltip (see {@link resolveValueLabels}). Placement measures every label
- * first, and keeps each centred on its own point. One that would overshoot the
+ * first, and keeps each centered on its own point. One that would overshoot the
  * top or bottom flips to the point's other side, still pinned to its mark. One
  * that would have to slide sideways to fit the plot hides instead, since a slid
- * label lands on the neighbouring marks. Overlaps resolve by priority: extremes
+ * label lands on the neighboring marks. Overlaps resolve by priority: extremes
  * outrank endpoints, and a label whose box meets one already placed is dropped
  * rather than stacked. The placement is pure and unit-testable; the
  * `ChartValueLabels` component at the foot only draws the result.
@@ -146,9 +146,9 @@ export function labelPoints(
 
 /** One series' labelable points and the ink its labels take. @internal */
 export type ValueLabelSeries = {
-	/** The SVG-fill class the labels render in for a slot; empty for a raw colour, which inks inline. */
+	/** The SVG-fill class the labels render in for a slot; empty for a raw color, which inks inline. */
 	fill: string
-	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
+	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
 	color?: string
 	/** Every finite point, in draw order. */
 	points: ValueLabelPoint[]
@@ -200,7 +200,7 @@ export type PlacedValueLabel = {
 	text: string
 	anchor: 'start' | 'middle' | 'end'
 	fill: string
-	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
+	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
 	color?: string
 }
 
@@ -212,7 +212,7 @@ type Candidate = {
 	above: boolean
 	priority: number
 	fill: string
-	/** A raw series colour inked inline on the label's `fill`; unset for a slot. */
+	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
 	color?: string
 	/** The candidate's own formatter; the shared one when absent. */
 	format?: (value: number) => string
@@ -284,10 +284,10 @@ function candidatesFor(
 
 /**
  * Resolves a candidate to its placed label and collision box, or `null` where
- * it no longer fits. The label stays centred on its own point. Clipping the top
+ * it no longer fits. The label stays centered on its own point. Clipping the top
  * or bottom flips it to the point's other side, and vertically it never leaves
  * its mark. A box that would cross the plot's sides hides rather than sliding
- * inward. A slid label lands on the neighbouring marks, which is where a small
+ * inward. A slid label lands on the neighboring marks, which is where a small
  * frame forces it.
  *
  * @internal
@@ -410,12 +410,12 @@ export function resolveValueLabels(
 	})
 }
 
-/** The value labels' ink: small, semibold, tabular, in the series colour. @internal */
+/** The value labels' ink: small, semibold, tabular, in the series color. @internal */
 const LABEL_INK = 'text-xs font-semibold tabular-nums'
 
 /**
  * The placed selective value labels, drawn over the marks in each series'
- * colour. Non-interactive — the tooltip and data table own the readout — so the
+ * color. Non-interactive — the tooltip and data table own the readout — so the
  * labels never take the pointer. Under `animate` each fades in once its line has
  * drawn, the same beat as the point markers.
  *
@@ -462,7 +462,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 			y: label.y,
 			textAnchor: label.anchor,
 			dominantBaseline: 'central' as const,
-			// A raw colour inks through the `fill` attribute; a slot omits it and
+			// A raw color inks through the `fill` attribute; a slot omits it and
 			// inks through its class.
 			fill: label.color,
 			className: cn(LABEL_INK, label.fill),

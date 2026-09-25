@@ -11,7 +11,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../helpers'
  * header already sits at that shade, so the bright body dims to meet it and the
  * whole column reads as one lifted, muted slice while an idle column stays bright.
  *
- * Real focus, layout, and computed colour, so this runs in the browser suite.
+ * Real focus, layout, and computed color, so this runs in the browser suite.
  */
 describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 	type Row = { id: number; a: string; b: string }
@@ -66,7 +66,7 @@ describe('grid column reorder: keyboard lift indicator (real browser)', () => {
 
 		expect(getComputedStyle(headerA).color).toBe(dragBodyColor)
 
-		// An idle neighbour keeps the bright default: the muting tracks the drag, not
+		// An idle neighbor keeps the bright default: the muting tracks the drag, not
 		// the whole table.
 		expect(getComputedStyle(bodyB).color).toBe(restBodyColor)
 

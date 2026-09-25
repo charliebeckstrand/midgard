@@ -1,18 +1,18 @@
 /**
- * definePalette(): declares a recipe's colour × variant matrix.
+ * definePalette(): declares a recipe's color × variant matrix.
  *
  * First argument: the matrix. Each entry takes one of two shapes:
  *
- *   1. `Record<Color, string[]>`: a single per-colour record. Pass
+ *   1. `Record<Color, string[]>`: a single per-color record. Pass
  *      `iro.palette.plain.text` directly when a variant pulls from one
  *      slot.
  *   2. `readonly Record<Color, string[]>[]`: an array of records merged
- *      per colour. Pass `[solid.bg, solid.text, solid.hover]` to bundle
+ *      per color. Pass `[solid.bg, solid.text, solid.hover]` to bundle
  *      several iro.palette slots into one variant.
  *
- * Subsequent arguments: per-colour overlays. Each `{ color → class }` map
+ * Subsequent arguments: per-color overlays. Each `{ color → class }` map
  * applies its classes to every variant in the matrix; covers non-palette
- * colour values like `inherit`. Multiple overlays merge left-to-right.
+ * color values like `inherit`. Multiple overlays merge left-to-right.
  *
  * Lives on `RecipeConfig.palette` rather than on a variant axis: the
  * variant scaffold (`{ outline: 'ring-1 ring-inset', … }`) and the palette
@@ -53,11 +53,11 @@ export type PalettePairs = Map<string, Map<string, ClassValue[]>>
  * alongside the nested {@link PalettePairs} lookup the compiled call path
  * reads. The flat rules stay for `.config` introspection.
  *
- * The colour set is derived from the keys of the matrix's own entries, not a
+ * The color set is derived from the keys of the matrix's own entries, not a
  * fixed list. A kata reading the standard `iro.palette` expands over the five
- * standard colours, while one reading `iro.extendedPalette` also picks up the
+ * standard colors, while one reading `iro.extendedPalette` also picks up the
  * extended set. Overlay keys (synthetic values like `inherit`) join the axis
- * with a single class shared across every variant. A colour key carrying both
+ * with a single class shared across every variant. A color key carrying both
  * a matrix rule and an overlay rule keeps them in that order.
  */
 export function expandPalette(config: PaletteConfig): {
@@ -98,7 +98,7 @@ export function expandPalette(config: PaletteConfig): {
 	return { colorScaffold, compound, pairs }
 }
 
-/** Resolves a matrix entry to a per-colour class map, merging array entries by colour key. */
+/** Resolves a matrix entry to a per-color class map, merging array entries by color key. */
 function resolveEntry(entry: PaletteEntry): Record<string, string[]> {
 	if (!Array.isArray(entry)) return entry as Record<string, string[]>
 

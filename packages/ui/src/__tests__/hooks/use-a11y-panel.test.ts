@@ -23,7 +23,7 @@ describe('useA11yPanel', () => {
 		expect(result.current.ariaProps['aria-modal']).toBeUndefined()
 	})
 
-	it('omits labelling attributes until slots register', () => {
+	it('omits labeling attributes until slots register', () => {
 		const { result } = renderHook(() => useA11yPanel())
 
 		expect(result.current.ariaProps['aria-labelledby']).toBeUndefined()

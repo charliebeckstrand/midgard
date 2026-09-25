@@ -18,7 +18,7 @@ describe('Swatch', () => {
 
 		const el = bySlot(container, 'swatch')
 
-		// Colour alone conveys meaning: a bare swatch exposes no role or name.
+		// Color alone conveys meaning: a bare swatch exposes no role or name.
 		expect(el).not.toHaveAttribute('role')
 
 		expect(el).not.toHaveAttribute('aria-label')
@@ -91,18 +91,18 @@ describe('Swatch', () => {
 		expect(el?.getAttribute('style')).toBeFalsy()
 	})
 
-	it('inks a raw hex colour inline on currentColor', () => {
+	it('inks a raw hex color inline on currentColor', () => {
 		const { container } = renderUI(<Swatch color="#2563eb" />)
 
 		const el = bySlot(container, 'swatch')
 
 		expect(el).toHaveStyle({ color: '#2563eb' })
 
-		// A raw colour has no class form, so no text-* utility is applied.
+		// A raw color has no class form, so no text-* utility is applied.
 		expect(el?.getAttribute('class')).not.toMatch(/\btext-/)
 	})
 
-	it('inks a raw oklch colour inline on currentColor', () => {
+	it('inks a raw oklch color inline on currentColor', () => {
 		const { container } = renderUI(<Swatch color="oklch(0.62 0.19 259)" />)
 
 		const el = bySlot(container, 'swatch')
@@ -110,7 +110,7 @@ describe('Swatch', () => {
 		expect(el).toHaveStyle({ color: 'oklch(0.62 0.19 259)' })
 	})
 
-	it('lets an explicit style prop win over a raw colour', () => {
+	it('lets an explicit style prop win over a raw color', () => {
 		const { container } = renderUI(<Swatch color="#2563eb" style={{ color: 'rgb(1, 2, 3)' }} />)
 
 		expect(bySlot(container, 'swatch')).toHaveStyle({ color: 'rgb(1, 2, 3)' })

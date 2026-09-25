@@ -1,7 +1,7 @@
 /**
  * Iro extended palette: the opt-in **wide palette**. Mirrors `iro.palette`'s
  * shape (solid / soft / outline / plain / bare) but keyed by
- * {@link PaletteColor} — every standard colour plus the extended set
+ * {@link PaletteColor} — every standard color plus the extended set
  * (rose / violet / sky). A kata reading this bundle instead of `iro.palette`
  * offers the broader `color` axis; the standard palette and the components
  * that read it are untouched.
@@ -9,7 +9,7 @@
  * The extended hues' foreground roles (`onSurface`, `onTint`) are authored
  * color-major below alongside the standard ramp — same policy, same
  * `contrast.test.ts` guard. The solid / soft / outline / plain / bare fill and
- * border shades are the declared surface tables, keyed by every standard colour
+ * border shades are the declared surface tables, keyed by every standard color
  * plus the extended set. Solid fills carry white text at a shade that clears
  * text AA on the fill.
  *
@@ -47,7 +47,7 @@ export const onSurface = project(EXTENDED_RAMP, 'onSurface')
 /** Extended foreground on the 15% soft fill; plain / soft / outline text. */
 export const onTint = project(EXTENDED_RAMP, 'onTint')
 
-/** Merge a standard per-colour slot with its extended counterpart into the wide-keyed map. */
+/** Merge a standard per-color slot with its extended counterpart into the wide-keyed map. */
 function wide(
 	standard: Record<Color, string[]>,
 	extended: Record<ExtendedColor, string[]>,

@@ -79,7 +79,7 @@ export type ChatTranscriptProps = {
  * leaves the window unmounts, with the views in it. Under `lazy`, an embed the
  * reader reached draws at once when its row returns, because
  * {@link ChatEmbedProvider} remembers it. The state the view held is gone. The
- * transcript cannot honour `always`: a view mounts only while its row renders.
+ * transcript cannot honor `always`: a view mounts only while its row renders.
  *
  * The pulse is visual only, so a reader who cannot see it is told the same
  * things through the shared live region (WCAG 4.1.3). Those are that a reply

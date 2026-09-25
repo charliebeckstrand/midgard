@@ -17,13 +17,13 @@ import { Grid, type GridColumn } from '../modules/grid'
 import { type Shipment, shipmentColumns, shipmentKey, shipments } from './fixtures'
 import { modelLayout, mountBenches, persistentTree } from './harness'
 
-/** The modelled viewport of the grid scroller, in pixels. */
+/** The modeled viewport of the grid scroller, in pixels. */
 const VIEWPORT = 600
 
-/** The modelled height of each row, in pixels. It matches the snug estimate. */
+/** The modeled height of each row, in pixels. It matches the snug estimate. */
 const ROW = 44
 
-/** The modelled height of each detail panel, in pixels. */
+/** The modeled height of each detail panel, in pixels. */
 const DETAIL = 150
 
 // The scroller has a fixed viewport, each window row has the row height, and
@@ -87,7 +87,7 @@ function toggleIn(container: HTMLElement, selector: string): HTMLElement {
 	return toggle
 }
 
-describe('Grid · grouped · virtualize (modelled 600px viewport)', () => {
+describe('Grid · grouped · virtualize (modeled 600px viewport)', () => {
 	mountBenches(
 		CASES,
 		({ label }) => `mount ${label}`,
@@ -103,7 +103,7 @@ describe('Grid · grouped · virtualize (modelled 600px viewport)', () => {
 	}
 })
 
-describe('Grid · master-detail · virtualize (modelled 600px viewport)', () => {
+describe('Grid · master-detail · virtualize (modeled 600px viewport)', () => {
 	mountBenches(
 		CASES,
 		({ label }) => `mount ${label}`,

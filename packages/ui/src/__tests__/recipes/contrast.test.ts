@@ -20,7 +20,7 @@ import { contrastOf, SURFACE, tinted } from '../helpers/contrast'
 import { collectPatternViolations, srcDir } from '../helpers/walk-source'
 
 /**
- * Drift guard for the iro colour ramp. Asserts every foreground rung clears
+ * Drift guard for the iro color ramp. Asserts every foreground rung clears
  * its contrast floor against its declared surface, in both light and dark modes,
  * resolved straight from Tailwind's theme.
  *
@@ -166,12 +166,12 @@ const HOVER_WASH = {
 const MUTED = byMode(iro.onWash.muted)
 
 /**
- * A foreground class carrying a palette colour, whatever utility and state
+ * A foreground class carrying a palette color, whatever utility and state
  * prefixes it wears (`dark:has-disabled:text-zinc-400`). Filters a recipe
  * fragment down to its inks, so a fragment mixing ink with layout
  * (`hannou.nav.base` carries an icon-slot size) is measured as declared rather
  * than transcribed. The hues come off `core/recipe`'s own lists: a fourth copy
- * of them here would silently stop matching a newly added colour, and an ink
+ * of them here would silently stop matching a newly added color, and an ink
  * this filter drops is an ink the guard below never measures.
  */
 const FOREGROUND = new RegExp(
@@ -207,7 +207,7 @@ function inksByMode(surfaces: readonly ClassTree[]): Record<Mode, string[]> {
  *
  * `surfaces: []` marks a recipe that hands the wash to content it doesn't ink,
  * so no ink of its own can be measured: `toolbar` hosts Buttons carrying their
- * own variant colours, and `box` surfaces the wash for arbitrary children
+ * own variant colors, and `box` surfaces the wash for arbitrary children
  * (`<Box bg="tint">`) — the case the shared rung exists for, and the one no
  * static guard can reach.
  *

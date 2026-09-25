@@ -209,7 +209,7 @@ type HeatmapRangeLegendProps = RangeScale & {
 /**
  * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
  * wired to the grid. Its arrow marks the exact value of the pointed cell. A probe
- * of the bar emphasises the cells of that class through the focus context, and
+ * of the bar emphasizes the cells of that class through the focus context, and
  * dims the rest.
  * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
  * the bar's resolved placement — vertical beside the plot, horizontal above or
@@ -611,7 +611,7 @@ function useHeatmap<T>(
 		[cells, bins, assign],
 	)
 
-	// Fill per cell from its bin: the bin's colour, or `null` for the neutral
+	// Fill per cell from its bin: the bin's color, or `null` for the neutral
 	// no-data fill.
 	const fills = useMemo(
 		() => cellBins.map((bin) => (bin === null ? null : (bins[bin]?.color ?? null))),
@@ -695,9 +695,9 @@ function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
 
 /**
  * A heatmap: a grid of cells across two categorical axes, each shaded by a
- * numeric value along a sequential colour scale. The two-categorical member of
+ * numeric value along a sequential color scale. The two-categorical member of
  * the chart family. It reuses the shared plot frame, band scales, and axis
- * chrome, and the same data-driven colour scale the {@link ChoroplethChart}
+ * chrome, and the same data-driven color scale the {@link ChoroplethChart}
  * shades regions with. Cells with no matching row take the neutral no-data
  * fill. A hover tooltip names the pointed cell, and a visually-hidden data table
  * carries full value parity for assistive tech.

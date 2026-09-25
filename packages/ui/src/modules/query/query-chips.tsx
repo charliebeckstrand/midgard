@@ -160,7 +160,7 @@ function focusLadder(tokens: QuerySummaryToken[], id: string): string[] {
  * An interactive row is a toolbar with one Tab stop, and the arrow keys move
  * across its controls. A chip's remove button removes its rule. A combinator
  * switches between AND and OR on a click. After a removal, focus moves to a
- * neighbour chip. After the last removal, focus moves to the row, which then
+ * neighbor chip. After the last removal, focus moves to the row, which then
  * shows `emptyLabel`. The row is controlled or uncontrolled through
  * `value`/`onValueChange`. A blank or half-built rule has no chip, as in
  * `QuerySummary`.

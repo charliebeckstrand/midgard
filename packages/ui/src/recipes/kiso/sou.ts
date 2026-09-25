@@ -1,7 +1,7 @@
 /**
  * Sou (層): app-level stacking order.
  *
- * The rungs a portalled surface lands on, in one ordered table. Everything
+ * The rungs a portaled surface lands on, in one ordered table. Everything
  * here escapes the page's own stacking contexts. Each rung is read by a
  * surface that renders into the portal container or `document.body`. There
  * DOM order alone decides nothing, and the number is the whole contract.
@@ -20,7 +20,7 @@
  * paint over the very control the region keeps reachable.
  *
  * `float` is every transient anchored surface — tooltip, popover, menu,
- * select, combobox, listbox, date and colour picker. It clears the overlay
+ * select, combobox, listbox, date and color picker. It clears the overlay
  * and chrome rungs alike, because a float is routinely raised *from inside* a
  * panel or a chrome region. A tooltip that renders under the panel it describes
  * is worse than no tooltip.

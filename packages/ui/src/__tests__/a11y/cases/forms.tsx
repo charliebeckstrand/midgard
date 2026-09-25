@@ -9,7 +9,7 @@ import type { Case } from './types'
 /** Form structure: the form element, its fields, and the bound submit control. */
 export const formCases: readonly Case[] = [
 	{
-		// A form with one labelled field; a typeless Button defaults to
+		// A form with one labeled field; a typeless Button defaults to
 		// type="submit" (native semantics) and submits the surrounding Form.
 		name: 'form',
 		element: (

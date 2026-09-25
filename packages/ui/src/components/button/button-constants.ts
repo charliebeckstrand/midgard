@@ -11,7 +11,7 @@ function cancelActivation(event: MouseEvent<HTMLAnchorElement>) {
 
 /**
  * Props that gate a loading anchor: out of the tab order and with activation
- * cancelled, mirroring the disabled `<button>` branch. Shared by the standard
+ * canceled, mirroring the disabled `<button>` branch. Shared by the standard
  * and headless renderers.
  *
  * @internal

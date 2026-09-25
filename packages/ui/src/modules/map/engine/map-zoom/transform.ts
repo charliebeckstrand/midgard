@@ -58,7 +58,7 @@ export function sameTransform(a: MapTransform, b: MapTransform): boolean {
  * the scaled frame. The constraint is expressed against the fitted frame rather
  * than an arbitrary box, so the projection's own framing bounds the pan. At the
  * fit the interval collapses to a point, which is
- * how a zoomed-out map returns to centre without a separate rule.
+ * how a zoomed-out map returns to center without a separate rule.
  *
  * @remarks A fixed `aspectRatio` letterboxes the fit on one axis, and a pan can
  * reach that band at the frame's edge. It is the band the map already shows at

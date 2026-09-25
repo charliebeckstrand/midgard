@@ -36,7 +36,7 @@ export type MapOverlayProps = {
 	 * It is the overlays' twin of a region's `regionId`.
 	 *
 	 * It is also the legend key, so an explicit id survives a remount. The mark
-	 * keeps its slot colour and its toggled-off state, where a generated one would
+	 * keeps its slot color and its toggled-off state, where a generated one would
 	 * register afresh. Must be unique within the plat. Omitted, the mark generates
 	 * its own and the identity the reporters hand back is opaque but still stable
 	 * for the mount.
@@ -58,12 +58,12 @@ export type MapOverlayProps = {
 	 * draw behind the marks it holds. The entry keys itself with one swatch per
 	 * distinct mark shape in the group. A square beside a dot therefore says an
 	 * area and a point, without a word for either. Toggling it hides every member,
-	 * and pointing it emphasises them together.
+	 * and pointing it emphasizes them together.
 	 *
-	 * The group also takes ONE slot colour, its first member's. That holds whether
-	 * it is an explicit {@link color} or the slot the plat assigned. Two colours
+	 * The group also takes ONE slot color, its first member's. That holds whether
+	 * it is an explicit {@link color} or the slot the plat assigned. Two colors
 	 * under one label would read as two things. So a group needs no `color` at all
-	 * to draw as one, and naming the first member's colour names the group's.
+	 * to draw as one, and naming the first member's color names the group's.
 	 *
 	 * Omitted, the mark takes an entry of its own, which is every mark's default.
 	 * Merging is worth asking for where the marks are one thing to the reader, and
@@ -74,7 +74,7 @@ export type MapOverlayProps = {
 	 * a group. A reader pointing the zone still reads the zone.
 	 */
 	group?: string
-	/** Named mark colour override; defaults to the next slot after the region categories. */
+	/** Named mark color override; defaults to the next slot after the region categories. */
 	color?: MapSeriesColor
 	/** A trailing readout in the legend and tooltip — a count, a status, a mileage. */
 	detail?: string
@@ -165,7 +165,7 @@ export type MapOverlayHit = ReturnType<MapOverlay['hit']>
 
 /** The resolved plat state and DOM props an overlay draws itself from. @internal */
 export type MapOverlay = {
-	/** The slot colour, `undefined` until registration lands — the mark renders nothing meanwhile. */
+	/** The slot color, `undefined` until registration lands — the mark renders nothing meanwhile. */
 	slot: MapSeriesColor | undefined
 	/** Whether the legend has toggled this mark off. */
 	hidden: boolean
@@ -200,10 +200,10 @@ export type MapOverlay = {
 	 * dot-shaped mark reads it, and the pool invokes every other entry's `stopsAt`. `MapPoints`
 	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
 	 * here, every mark would trigger that pass for every other mark — M² of them. It would discard
-	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoise the result at the
+	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
 	 * call site; the resolver is stable until the plat's ledger, toggles or fit change.
 	 */
-	neighbours: () => MapPoint2D[]
+	neighbors: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
@@ -290,7 +290,7 @@ export function useMapOverlay({
 		order,
 		hidden,
 		spare,
-		neighbours,
+		neighbors,
 		emphasis,
 		animate,
 		selectedOverlay,
@@ -318,7 +318,7 @@ export function useMapOverlay({
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const neighboursOf = useCallback(() => neighbours(id), [neighbours, id])
+	const neighborsOf = useCallback(() => neighbors(id), [neighbors, id])
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
@@ -366,7 +366,7 @@ export function useMapOverlay({
 	// array's identity: an inline `points` would otherwise re-register on every
 	// render, and each registration re-renders this mark — a loop.
 	//
-	// Memoised on the array itself: a plural mark hands a memoised one, so the
+	// Memoized on the array itself: a plural mark hands a memoized one, so the
 	// join runs when its content can actually have changed rather than on each of
 	// the pointed-mark crossings that re-render this hook. An inline array is
 	// unchanged by the memo — it rebuilds either way, which is what the content
@@ -462,11 +462,11 @@ export function useMapOverlay({
 		project,
 		spare: spareHere,
 		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
-		neighbours: neighboursOf,
+		neighbors: neighborsOf,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,
-		// Spread, not passed whole: `cn` memoises on string arguments and sends an
+		// Spread, not passed whole: `cn` memoizes on string arguments and sends an
 		// array straight to the merge, and this resolves per mark on every crossing.
 		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId))),
 		selected,

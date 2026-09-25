@@ -80,7 +80,7 @@ describe('grid resize handle: right-click (real browser)', () => {
 			// No resize engaged: nothing is mid-resize and the width held.
 			expect(container.querySelector('[data-resizing]')).toBeNull()
 
-			// A further move (pointer still travelling) must not drag the column either.
+			// A further move (pointer still traveling) must not drag the column either.
 			fireEvent.mouseMove(document, { clientX: startX + 160, clientY: y })
 
 			expect(nameHeader.getBoundingClientRect().width).toBeCloseTo(startWidth, 0)

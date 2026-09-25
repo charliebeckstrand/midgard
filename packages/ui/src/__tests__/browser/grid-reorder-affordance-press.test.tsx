@@ -9,7 +9,7 @@ import { drag } from './helpers/drag'
  * drifting a few pixels past the sensor's activation distance used to lift the
  * column — and then the surface that control opened took the `pointerup` with it,
  * leaving the column held while the pointer moved on toward the sheet. The user
- * saw columns reordering under a pointer that was only travelling to the filter
+ * saw columns reordering under a pointer that was only traveling to the filter
  * they had just opened.
  *
  * Real pointer geometry against the real floating engine, so this lives in the

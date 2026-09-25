@@ -29,8 +29,8 @@ export const k = defineRecipe(
 		// Sits in the flex row, not absolutely positioned: `items-start` lands it on
 		// the first code line. The sm icon-only button (24px) overhangs the 20px
 		// text-sm line by 2px each side; `-my-0.5` cancels the overhang so the row
-		// stays one line tall, the glyph centres on the first code line, and a
-		// single-line block reads as vertically centred.
+		// stays one line tall, the glyph centers on the first code line, and a
+		// single-line block reads as vertically centered.
 		//
 		// The canvas is the fixed-dark shiki theme, so the bare button's light-mode
 		// foreground (zinc-500 rest, zinc-950 hover) is too dark to read here; force

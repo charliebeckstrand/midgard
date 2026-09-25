@@ -198,7 +198,7 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{
-		// Named list of items; the set is labelled and not sortable here.
+		// Named list of items; the set is labeled and not sortable here.
 		name: 'list',
 		element: (
 			<List key="ls" items={listTasks} aria-label="Tasks" sortable={false}>
@@ -499,7 +499,7 @@ export const dataDisplayCases: readonly Case[] = [
 		),
 	},
 	{
-		// Labelled icon: role=img with an accessible name (decorative icons stay
+		// Labeled icon: role=img with an accessible name (decorative icons stay
 		// aria-hidden and need no case).
 		name: 'icon',
 		element: <Icon key="ic" icon={<svg />} label="Information" />,

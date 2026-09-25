@@ -10,7 +10,7 @@ import states from 'us-atlas/states-10m.json'
  */
 
 /**
- * Serialised once for the process, not per request.
+ * Serialized once for the process, not per request.
  *
  * The import is a fixed object, so `Response.json` would run `JSON.stringify`
  * over its ~14k coordinate pairs on every hit — and this response is on the

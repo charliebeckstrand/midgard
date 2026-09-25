@@ -1,8 +1,8 @@
 /**
  * Choropleth demo data. A choropleth is three separable pieces — geometry
  * (fetched us-atlas TopoJSON in the demo), tidy value rows joined to it by id,
- * and a colour scale as ordered stops. This file holds the rows and the scales;
- * the consumer owns them, so the chart itself ships no baked-in colour table.
+ * and a color scale as ordered stops. This file holds the rows and the scales;
+ * the consumer owns them, so the chart itself ships no baked-in color table.
  */
 
 /** One region's datum: `state` joins to a us-atlas feature (by display name); `people` is the metric. */

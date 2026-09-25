@@ -68,11 +68,11 @@ describe('ToggleIconButton', () => {
 					event.preventDefault()
 				}}
 				icon={icon}
-				aria-label="Favourite"
+				aria-label="Favorite"
 			/>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Favourite' })
+		const button = screen.getByRole('button', { name: 'Favorite' })
 
 		fireEvent.click(button)
 
@@ -163,11 +163,11 @@ describe('ToggleIconButton', () => {
 				defaultPressed
 				onPressedChange={onPressedChange}
 				icon={icon}
-				aria-label="Favourite"
+				aria-label="Favorite"
 			/>,
 		)
 
-		const button = screen.getByRole('button', { name: 'Favourite' })
+		const button = screen.getByRole('button', { name: 'Favorite' })
 
 		expect(button).toHaveAttribute('aria-pressed', 'true')
 

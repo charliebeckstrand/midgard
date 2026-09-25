@@ -1,6 +1,6 @@
 /**
- * Slider archetype: colour palette. The shared `--slider-fill` /
- * `--slider-track` CSS-variable bundle keyed by colour. `<Slider />`
+ * Slider archetype: color palette. The shared `--slider-fill` /
+ * `--slider-track` CSS-variable bundle keyed by color. `<Slider />`
  * paints via a webkit / moz gradient on the native input;
  * `<RangeSlider />` paints a dedicated fill element. Both surfaces share
  * this table.

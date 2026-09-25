@@ -56,7 +56,7 @@ export function MapRoute({ stops, path, ...shared }: MapRouteProps) {
 			stops: () => lineAnchor(points),
 		})
 
-	// Memoised so a hover-driven re-render (the plat's pointer state churns the
+	// Memoized so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole polyline;
 	// `project` identity holds until the measured refit, and `path` / `stops`
 	// are the caller's stable refs.

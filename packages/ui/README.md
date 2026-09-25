@@ -28,6 +28,7 @@ No root barrel; the `exports` map exposes each component path.
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
 | Tests with the React Compiler on | `pnpm --filter ui test:compiler` |
+| Write the React Compiler skip ledger | `pnpm --filter ui exec vitest run --config vitest.compiler.config.ts --project skips -u` |
 | Benchmarks | `pnpm --filter ui bench` |
 | Typecheck | `pnpm --filter ui check-types` |
 | Lint | `pnpm --filter ui lint` |

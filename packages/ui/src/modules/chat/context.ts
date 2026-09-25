@@ -60,7 +60,7 @@ export type ChatEmbedRegistry = {
 	 * A {@link ChatTranscript} windows its rows, and a row outside the window is
 	 * not rendered. Under the window, `lazy` means "no second deferral", not
 	 * "held". An embed the reader reached draws at once when its row returns,
-	 * but the state the view held is gone. `always` cannot be honoured under a
+	 * but the state the view held is gone. `always` cannot be honored under a
 	 * window: a renderer mounts only while its row is rendered.
 	 *
 	 * @defaultValue 'lazy'

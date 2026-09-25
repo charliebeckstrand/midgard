@@ -7,7 +7,7 @@ import { GlassProvider } from '../../providers/glass'
 // Integration: a real ui provider barrel tags through the docs vite pipeline
 // (vitest.config.ts runs the docs plugin over ui's source), so the walker
 // renders it as a recognized wrapper and emits its nested import — rather than
-// transparently unwrapping it. The engine's agnostic walk behaviour is covered
+// transparently unwrapping it. The engine's agnostic walk behavior is covered
 // under src/docs/engine/__tests__.
 
 /** A build-time-tagged stand-in, mirroring the docs plugin's barrel decoration. */

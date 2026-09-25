@@ -151,18 +151,18 @@ describe('map stroke width through the view', () => {
 
 		const dot = present<SVGGeometryElement>(bySlot(container, 'map-point'), 'map-point')
 
-		// The dot is a zero-length subpath, so its only point is its centre — and
+		// The dot is a zero-length subpath, so its only point is its center — and
 		// the cap the browser builds around that point is the whole of the mark.
 		// Its own stroke geometry is therefore the last word on how big the dot is,
 		// where a radius derived from the stated width would agree with itself even
 		// if the cap disagreed. The probe is in the path's own units, so the
 		// device-pixel radius divides by what one unit spans.
-		const centre = dot.getPointAtLength(0)
+		const center = dot.getPointAtLength(0)
 
 		const radius = POINT_RADIUS / screenScale(dot)
 
-		expect(dot.isPointInStroke({ x: centre.x + radius * 0.9, y: centre.y })).toBe(true)
+		expect(dot.isPointInStroke({ x: center.x + radius * 0.9, y: center.y })).toBe(true)
 
-		expect(dot.isPointInStroke({ x: centre.x + radius * 1.1, y: centre.y })).toBe(false)
+		expect(dot.isPointInStroke({ x: center.x + radius * 1.1, y: center.y })).toBe(false)
 	})
 })

@@ -11,7 +11,7 @@ import type { ChatToolPart, ChatToolStatus } from './engine/chat-content/types'
 type StatusLook = { status: StatusDotProps['status']; label: string; pulse: boolean }
 
 /**
- * The look and the word per status. Colour alone conveys a status, so the dot
+ * The look and the word per status. Color alone conveys a status, so the dot
  * carries the word as its accessible name. A mute dot beside a name that does
  * not say how the step ended fails WCAG 1.4.1.
  *
@@ -44,7 +44,7 @@ export type ChatToolProps = {
  * a disclosure that opens onto nothing is a control lying about having
  * something to show.
  *
- * The step takes no colour of its own beyond the status dot's. It sits in a
+ * The step takes no color of its own beyond the status dot's. It sits in a
  * bubble whose fill differs by speaker. A muted foreground that clears AA
  * against the page does not clear it against the assistant's fill. That is the
  * defect the embed fallback shipped with. Its rule rides `currentColor` instead, so it

@@ -76,7 +76,7 @@ export function groupValueOf<T>(group: GridGroup<T>): string | number {
  * Whether each group shows a total row: `groupTotalRow` is set, and a visible
  * column aggregates. @internal
  */
-export function groupTotalled<T>(
+export function groupTotaled<T>(
 	groupTotalRow: boolean | undefined,
 	columns: GridColumn<T>[],
 ): boolean {
@@ -122,13 +122,13 @@ function closingSize<K>(motions: ReadonlyMap<K, GridRowMotion>, key: K): number 
  * view when the group collapsed, and they stay until their reveal lands.
  *
  * @param groups - The groups, in display order.
- * @param args.totalled - Whether each group shows a total row.
+ * @param args.totaled - Whether each group shows a total row.
  * @param args.motions - The motion of each row, by open key.
  * @internal
  */
 export function groupedWindowItems<T>(
 	groups: GridGroup<T>[],
-	args: { totalled: boolean; motions: ReadonlyMap<string, GridRowMotion> },
+	args: { totaled: boolean; motions: ReadonlyMap<string, GridRowMotion> },
 ): GridGroupedWindowItem<T>[] {
 	const items: GridGroupedWindowItem<T>[] = []
 
@@ -158,7 +158,7 @@ export function groupedWindowItems<T>(
 			})
 		}
 
-		if (args.totalled) {
+		if (args.totaled) {
 			pushRow(items, cursor, open, args.motions, {
 				kind: 'total',
 				reactKey: totalItemKey(group.id),
@@ -211,13 +211,13 @@ function pushRow<T>(
  *
  * @internal
  */
-export function groupedWindowRowCount<T>(groups: GridGroup<T>[], totalled: boolean): number {
+export function groupedWindowRowCount<T>(groups: GridGroup<T>[], totaled: boolean): number {
 	let count = 0
 
 	for (const group of groups) {
 		count += 1
 
-		if (group.expanded) count += group.leaves.length + Number(totalled)
+		if (group.expanded) count += group.leaves.length + Number(totaled)
 	}
 
 	return count
@@ -355,7 +355,7 @@ export function bodyRowCount<T>(args: {
 	if (!args.virtualize) return args.rows.length
 
 	if (args.groups) {
-		return groupedWindowRowCount(args.groups, groupTotalled(args.groupTotalRow, args.columns))
+		return groupedWindowRowCount(args.groups, groupTotaled(args.groupTotalRow, args.columns))
 	}
 
 	if (args.expansion) return detailWindowRowCount(args.rows, args.rowKeys, args.expansion)

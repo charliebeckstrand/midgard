@@ -58,7 +58,7 @@ export function canonicalFit(spec: MapProjection, features: MapFeature[]): MapCa
  * alone. The named projections' output is linear in `scale` and `translate`.
  * The composite `albers-usa` derives its inset offsets and clips from them
  * proportionally. Scaling the canonical parameters by the frame factor, and
- * centring the remainder, therefore frames the geography the way `fitSize`
+ * centering the remainder, therefore frames the geography the way `fitSize`
  * would. It takes no bounds pass that re-projects every coordinate, the bulk of
  * a refit's cost on every resize. It lands within `fitSize`'s
  * adaptive-resampling margin, sub-percent, from the resampling each pass runs at

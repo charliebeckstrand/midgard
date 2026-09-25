@@ -13,7 +13,7 @@ type MapRegionsLitProps = MapRegionLayer & {
 
 /**
  * The lit copies above the receded layer, the chart marks' isolation
- * pattern. The layer dims as one group, and the emphasised marks draw again
+ * pattern. The layer dims as one group, and the emphasized marks draw again
  * at full strength over it. A pointed region redraws alone; a legend focus
  * redraws its category. The copies are `pointer-events-none` and carry no
  * anchor attribute. The base paths therefore stay the hit targets, and the

@@ -85,12 +85,12 @@ export function Dropdown({
 /** One open menu a bench drives: its trigger, and the point each row sits at. */
 export type Probe = {
 	trigger: HTMLElement
-	/** The centre of each row, resolved once so no sample pays for the layout read. */
+	/** The center of each row, resolved once so no sample pays for the layout read. */
 	points: { row: HTMLElement; x: number; y: number }[]
 }
 
 /** The client point at the middle of `node`. */
-function centre(node: HTMLElement): [number, number] {
+function center(node: HTMLElement): [number, number] {
 	const rect = node.getBoundingClientRect()
 
 	return [rect.left + rect.width / 2, rect.top + rect.height / 2]
@@ -105,7 +105,7 @@ function readProbe(panel: string, skip?: HTMLElement): Probe {
 		points: rows
 			.filter((row) => row !== skip)
 			.map((row) => {
-				const [x, y] = centre(row)
+				const [x, y] = center(row)
 
 				return { row, x, y }
 			}),
@@ -137,7 +137,7 @@ export async function openDropdown(count: number, capped: boolean, panel: string
  * row to the panel's near edge. The level reads that course off the event's
  * coordinates, not off the row it lands on. So each sibling row takes one
  * arrival at a later point on the course. Each one passes the travel test, and
- * the submenu stays open for the next. An arrival at a row's own centre shares
+ * the submenu stays open for the next. An arrival at a row's own center shares
  * the parent's x, so the first of them fails the test and closes the submenu.
  * That leaves every later arrival nothing to measure.
  *
@@ -154,7 +154,7 @@ export async function openCorridor(panel: string): Promise<Probe> {
 
 	const parent = document.querySelector<HTMLElement>(`.${panel}-sub`) as HTMLElement
 
-	const [x, y] = centre(parent)
+	const [x, y] = center(parent)
 
 	pointerMove(parent, x, y)
 

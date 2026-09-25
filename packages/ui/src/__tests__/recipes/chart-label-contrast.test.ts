@@ -29,7 +29,7 @@ const MODES = [
 
 const HUES = Object.keys(k.series) as (keyof typeof k.series)[]
 
-/** The colour token behind a chart `fill-*` / `dark:fill-*` class, at `index` of its `[light, dark]` pair. */
+/** The color token behind a chart `fill-*` / `dark:fill-*` class, at `index` of its `[light, dark]` pair. */
 function tokenAt(classes: readonly string[], index: number): string {
 	const cls = classes[index]
 

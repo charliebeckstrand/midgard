@@ -483,7 +483,7 @@ describe('bandScale · properties', () => {
 			padding: fc.integer({ min: 0, max: 90 }).map((percent) => percent / 100),
 		})
 
-	test.prop([band()])('reads a band centre back as its own index', ({ count, width, padding }) => {
+	test.prop([band()])('reads a band center back as its own index', ({ count, width, padding }) => {
 		const scale = bandScale({ count, range: [0, width], padding })
 
 		for (let index = 0; index < count; index++) {
@@ -491,7 +491,7 @@ describe('bandScale · properties', () => {
 		}
 	})
 
-	test.prop([band()])('centres each band in its slot', ({ count, width, padding }) => {
+	test.prop([band()])('centers each band in its slot', ({ count, width, padding }) => {
 		const scale = bandScale({ count, range: [0, width], padding })
 
 		for (let index = 0; index < count; index++) {

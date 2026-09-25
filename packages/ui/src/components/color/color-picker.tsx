@@ -13,7 +13,7 @@ import { useColorPickerState } from './use-color-picker-state'
 
 type ColorPickerBaseProps = GroupStampProps & {
 	/**
-	 * Binds the colour to the enclosing Form field of this name (CONVENTIONS
+	 * Binds the color to the enclosing Form field of this name (CONVENTIONS
 	 * §7.2). Seed `Form.defaultValues` in the picker's own `format`; the field's
 	 * errors mark the control invalid.
 	 */
@@ -99,7 +99,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		disabled,
 	})
 
-	// The picker owns the colour and drives the inline panel as a controlled child.
+	// The picker owns the color and drives the inline panel as a controlled child.
 	// The prop bag rebuilds the format union at runtime and asserts into shape.
 	const panelProps = {
 		format,

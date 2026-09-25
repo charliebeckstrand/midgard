@@ -541,7 +541,7 @@ export function useGridColumnSizing<T>({
 	useEffect(() => {
 		if (!automatic) return
 
-		let cancelled = false
+		let canceled = false
 
 		// Web fonts reflow text after the first measure; re-measure once they settle.
 		// Subscribed once per enablement (reading the latest `refit` through
@@ -549,7 +549,7 @@ export function useGridColumnSizing<T>({
 		// `refit` identity change would re-fire immediately and redundantly.
 		document.fonts?.ready
 			.then(() => {
-				if (cancelled) return
+				if (canceled) return
 
 				sizer.forget()
 
@@ -558,7 +558,7 @@ export function useGridColumnSizing<T>({
 			.catch(() => {})
 
 		return () => {
-			cancelled = true
+			canceled = true
 		}
 	}, [automatic, sizer])
 

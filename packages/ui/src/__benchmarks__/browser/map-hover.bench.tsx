@@ -34,7 +34,7 @@ function plotTarget(host: HTMLElement): Element {
  * The per-step dispatch targets. Where the contender renders per-region hit
  * targets (the ui module), each step resolves to the region under its point —
  * by bounding box, smallest match winning, so an enclosing giant stays behind
- * its neighbours — standing in for the browser's native retargeting of a real
+ * its neighbors — standing in for the browser's native retargeting of a real
  * pointer. A contender with no region elements falls back to the plot.
  */
 function regionTargets(host: HTMLElement, xs: number[], y: number): Element[] {

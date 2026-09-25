@@ -70,7 +70,7 @@ describe('Chart export reporting', () => {
 		expect(downloadBlob).toHaveBeenCalledWith(blob, fileName)
 	})
 
-	it('reports the rejection when the rasterise throws', async () => {
+	it('reports the rejection when the rasterize throws', async () => {
 		const failure = new Error('tainted canvas')
 
 		rasterizeChartImage.mockRejectedValue(failure)
@@ -92,7 +92,7 @@ describe('Chart export reporting', () => {
 
 	// A null blob downloads nothing, so the menu looks like it worked and no file
 	// arrives. That is a failure, and it reports as one.
-	it('reports a rasterise that yields no blob as a failure', async () => {
+	it('reports a rasterize that yields no blob as a failure', async () => {
 		rasterizeChartImage.mockResolvedValue(null)
 
 		const onExport = vi.fn()

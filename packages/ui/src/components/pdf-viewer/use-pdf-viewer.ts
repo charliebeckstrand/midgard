@@ -142,7 +142,7 @@ export type PdfViewerResult = {
 	 * Whether the rail slides between open and closed.
 	 *
 	 * False until the reader presses the toggle. Where the rail starts is derived from the page
-	 * count, and that count arrives with the document. A rail that travelled on that change
+	 * count, and that count arrives with the document. A rail that traveled on that change
 	 * would announce the parse rather than the pages. The reader's press is a change they made,
 	 * and it travels.
 	 *

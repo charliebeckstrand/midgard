@@ -32,7 +32,7 @@ export const PROBE_SCALE = 150
 /**
  * d3's `fitWidth` arithmetic over bounds already measured at
  * {@link PROBE_SCALE}. The scale carries the probe factor. The horizontal
- * translate centres the span in the frame, and the vertical one lifts the
+ * translate centers the span in the frame, and the vertical one lifts the
  * geography's top edge onto y 0. Fits `projection` in place and reports the
  * height the frame comes to. It returns `null` where the bounds collapse on
  * either axis: no geography, or a lone point.

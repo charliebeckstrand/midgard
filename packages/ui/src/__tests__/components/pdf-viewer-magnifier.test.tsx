@@ -18,7 +18,7 @@ import { attach, fireEvent, renderUI, screen } from '../helpers'
  * The open state itself is deliberately not asserted here. `@floating-ui/react` is mocked away
  * in this project (`__tests__/mocks/floating-ui`), and its `useHover` contributes no reference
  * props — so nothing in jsdom can dwell, open, or track. The dwell and the tracking are
- * floating-ui's own behaviour rather than this component's; what belongs to the component is
+ * floating-ui's own behavior rather than this component's; what belongs to the component is
  * the arithmetic below, which is why it was extracted to a pure seam the way
  * `toFractionRect` was.
  */
@@ -93,7 +93,7 @@ describe('resolveMagnifier', () => {
 
 describe('lensOffset', () => {
 	/**
-	 * The whole contract: whatever the pointer is over ends up at the centre of the lens.
+	 * The whole contract: whatever the pointer is over ends up at the center of the lens.
 	 * Applying the transform by hand is what proves it — `offset + zoom * point === centre`.
 	 */
 	it('puts the pointed-at page coordinate under the crosshair', () => {

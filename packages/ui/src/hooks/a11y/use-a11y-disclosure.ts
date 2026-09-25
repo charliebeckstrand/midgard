@@ -45,7 +45,7 @@ export type A11yDisclosure = {
  * widgets: collapse, accordion, tabs, stepper. Derives a matched id pair from a
  * scoped base and hands back a prop bag for each side. Distinct from
  * `useA11yPanel` (modal dialog roots: `role` + `aria-modal`) and `useA11yScope`
- * (slot-aggregated labelling).
+ * (slot-aggregated labeling).
  *
  * Call it once where both ids are visible to both sides, e.g. the component's
  * context provider. When the trigger and panel are independent components,

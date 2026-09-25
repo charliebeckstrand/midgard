@@ -12,8 +12,8 @@ export type StatDeltaProps = StatDeltaVariants & {
  * leaf: renders in React Server Components. Compose `<StatDeltaSkeleton>` in the
  * loading tree.
  *
- * @remarks `trend` sets colour only; pair it with a textual sign or arrow in
- * `children` (e.g. `+12%`, `↓ 3`) so direction isn't conveyed by colour alone
+ * @remarks `trend` sets color only; pair it with a textual sign or arrow in
+ * `children` (e.g. `+12%`, `↓ 3`) so direction isn't conveyed by color alone
  * (WCAG 1.4.1).
  */
 export function StatDelta({ trend, className, children, ...props }: StatDeltaProps) {

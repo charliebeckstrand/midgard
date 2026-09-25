@@ -38,14 +38,14 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 
 		observer.observe(el)
 
-		let fontsCancelled = false
+		let fontsCanceled = false
 
 		document.fonts?.ready.then(() => {
-			if (!fontsCancelled) check()
+			if (!fontsCanceled) check()
 		})
 
 		return () => {
-			fontsCancelled = true
+			fontsCanceled = true
 
 			observer.disconnect()
 		}

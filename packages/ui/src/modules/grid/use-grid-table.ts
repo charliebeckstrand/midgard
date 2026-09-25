@@ -688,7 +688,7 @@ function useFilterModeMismatchWarning(args: {
 /**
  * The visible columns and their widths. The engine resolves the visible leaf
  * columns from the order, visibility, and pinning state, frozen left, then
- * centre, then frozen right. It memoizes each section on that state, so each
+ * center, then frozen right. It memoizes each section on that state, so each
  * array keeps its identity until the state changes. The widths come from the
  * sizing state that the grid owns (see {@link columnWidths}).
  *

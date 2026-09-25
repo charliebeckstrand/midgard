@@ -42,7 +42,7 @@ export type MapCoverageOptions = {
 	 *
 	 * Pass a topology wherever the outline matters. TopoJSON holds each shared
 	 * border once, so the covered codes dissolve exactly. The seams between
-	 * neighbours disappear. An uncovered code inside the territory comes out as a
+	 * neighbors disappear. An uncovered code inside the territory comes out as a
 	 * hole, and separate clusters come out as separate parts. A feature collection
 	 * repeats every shared border, and cannot be dissolved without a
 	 * polygon-clipping pass this module does not carry. It therefore draws each
@@ -120,12 +120,12 @@ const NO_PLACEMENT: { features: MapFeature[]; groups: string[] } = { features: [
  * @returns The geography to draw, the outline to fence, and what was matched.
  *
  * @remarks Keep `zips`, `regions`, `zipId`, and `regionGroup` steady across
- * renders — a fetched atlas, a module-scope function. Each stage memoises on
+ * renders — a fetched atlas, a module-scope function. Each stage memoizes on
  * them, and the decode behind the region atlas is the same order of work as
  * drawing it.
  *
  * The passes are split so the expensive ones answer the atlas rather than the
- * territory. Decoding an atlas and indexing it are memoised across instances and
+ * territory. Decoding an atlas and indexing it are memoized across instances and
  * mounts. Typing into a coverage field therefore re-cuts and re-dissolves alone.
  *
  * A code belongs to the state its own centroid lands in. Codes do cross state

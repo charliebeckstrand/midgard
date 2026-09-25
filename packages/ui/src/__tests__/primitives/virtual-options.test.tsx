@@ -7,7 +7,7 @@ import { bySlot, renderUI } from '../helpers'
 
 // jsdom has no layout; react-virtual sees a 0-height scroll container and
 // renders zero items. These tests assert boundedness and the outer container
-// slot. Correct windowing behaviour is covered by the benchmarks.
+// slot. Correct windowing behavior is covered by the benchmarks.
 
 describe('VirtualOptions', () => {
 	const items = Array.from({ length: 1_000 }, (_, i) => ({ id: i, label: `Item ${i}` }))

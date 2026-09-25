@@ -6,7 +6,7 @@
  * layered. A translucent wash over `bg-white` / `dark:bg-zinc-900` does not
  * darken the card, it *removes* it. Whatever the card was covering then shows
  * through for as long as the pointer rests on it. So this steps the surface to
- * its neighbouring shade instead: one stop off white on light, one stop off
+ * its neighboring shade instead: one stop off white on light, one stop off
  * zinc-900 on dark. The surface stays a surface.
  *
  * A surface needs no glass allowance either, so this never carries the

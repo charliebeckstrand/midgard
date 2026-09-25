@@ -3,7 +3,7 @@
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { clamp } from '../../utilities'
 
-/** Pointer position within the tracked element, each axis normalised to `0-1`. */
+/** Pointer position within the tracked element, each axis normalized to `0-1`. */
 export type DragPosition = { x: number; y: number }
 
 /** Pointer-event bindings for a draggable track; spread onto the tracked element. */
@@ -16,12 +16,12 @@ export type ColorDragHandlers = {
 }
 
 /**
- * Translates pointer drags over `ref` into normalised `0-1` positions.
+ * Translates pointer drags over `ref` into normalized `0-1` positions.
  * Captures the pointer on press; drags that leave the element keep tracking.
  * Press also focuses the element, handing off to keyboard control.
  * Shared by the 2D saturation/value area and the 1D hue/alpha tracks.
  *
- * @param ref - The tracked element; its bounding rect normalises pointer coordinates.
+ * @param ref - The tracked element; its bounding rect normalizes pointer coordinates.
  * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
  * @param disabled - When set, press is ignored and no drag begins.
  * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.

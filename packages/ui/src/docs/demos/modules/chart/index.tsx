@@ -26,7 +26,7 @@ import { code, Example as ExampleFrame } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 
 // Every chart demo renders in the same fixed-width, resizable frame so its
-// responsive behaviour is visible at a glance. Wrapping the engine Example once
+// responsive behavior is visible at a glance. Wrapping the engine Example once
 // here injects those defaults into all the `<Example>` call sites below —
 // including AnimatedExample's — without repeating the props on each. A call site
 // can still override either default by passing its own `width`/`resize`.
@@ -127,17 +127,17 @@ function useGeography(url: string): MapGeography | null {
 	const [geography, setGeography] = useState<MapGeography | null>(null)
 
 	useEffect(() => {
-		let cancelled = false
+		let canceled = false
 
 		fetch(url)
 			.then((response) => response.json())
 			.then((json: MapGeography) => {
-				if (!cancelled) setGeography(json)
+				if (!canceled) setGeography(json)
 			})
 			.catch(() => {})
 
 		return () => {
-			cancelled = true
+			canceled = true
 		}
 	}, [url])
 
@@ -398,11 +398,11 @@ export function Demo() {
 							</Example>
 
 							<Example
-								title="Custom colours"
+								title="Custom colors"
 								code={code`<LineChart series={[{ …, color: '#e11d48' }, { …, color: 'oklch(0.68 0.17 250)' }]} … />`}
 							>
 								<LineChart
-									aria-label="Revenue and margin by month, in custom colours"
+									aria-label="Revenue and margin by month, in custom colors"
 									data={months}
 									series={[
 										{ xKey: 'month', yKey: 'revenue', yName: 'Revenue', color: '#e11d48' },
@@ -521,7 +521,7 @@ export function Demo() {
 								code={code`<LineChart labels={{ endpoints: true, extremes: true }} … />`}
 							>
 								{/* Point labels are single-series only: a lone line has room to name
-								    its endpoints and extremes without crowding a neighbour. */}
+								    its endpoints and extremes without crowding a neighbor. */}
 								<LineChart
 									aria-label="Monthly change, with value labels at its endpoints and extremes"
 									data={swings}

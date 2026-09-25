@@ -35,7 +35,7 @@ export type PageScaleResult = {
 	 */
 	aspectRatio: string | undefined
 	/**
-	 * CSS `transform` centring a page-sized box in the frame and applying the rotation.
+	 * CSS `transform` centering a page-sized box in the frame and applying the rotation.
 	 *
 	 * @remarks Computed here, once, because more than one box wears it. The page image and
 	 * every layer drawn over it have to sit in exactly the same place, under exactly

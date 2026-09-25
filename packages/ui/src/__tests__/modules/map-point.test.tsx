@@ -11,7 +11,7 @@ describe('MapPoint', () => {
 
 		const dot = bySlot(container, 'map-point')
 
-		// A solid dot: a zero-length round cap in the slot colour, whose width is the
+		// A solid dot: a zero-length round cap in the slot color, whose width is the
 		// dot's own diameter converted to frame units — one to one at the fit.
 		expect(dot?.getAttribute('class')).toContain('stroke-blue-600')
 
@@ -60,7 +60,7 @@ describe('MapPoint', () => {
 		expect(tooltip?.textContent).toContain('18 loads')
 	})
 
-	it('unmounts while toggled off and keeps its slot colour beside siblings', () => {
+	it('unmounts while toggled off and keeps its slot color beside siblings', () => {
 		const { container } = renderUI(
 			overlayPlat(
 				<>

@@ -97,7 +97,7 @@ describe('reference lines', () => {
 		expect(rule(solid.container)?.getAttribute('stroke-dasharray')).toBeNull()
 	})
 
-	it('paints a named slot through its class and a raw colour inline', () => {
+	it('paints a named slot through its class and a raw color inline', () => {
 		const slot = bar([{ value: 50, color: 'red' }])
 
 		expect(rule(slot.container)?.getAttribute('class')).toContain('stroke-red-600')
@@ -113,7 +113,7 @@ describe('reference lines', () => {
 
 		expect(hexRule).not.toBeNull()
 
-		// A raw colour bypasses the slot classes entirely — no stroke-* class — and
+		// A raw color bypasses the slot classes entirely — no stroke-* class — and
 		// strokes inline instead, so the class path is never taken.
 		expect(hexRule?.getAttribute('class') ?? '').not.toContain('stroke-')
 	})
@@ -129,7 +129,7 @@ describe('reference lines', () => {
 
 		expect(list?.textContent).toContain('55')
 
-		// The unlabelled line still lists its value.
+		// The unlabeled line still lists its value.
 		expect(list?.textContent).toContain('30')
 	})
 
@@ -421,7 +421,7 @@ describe('reference lines in the legend', () => {
 		])
 	})
 
-	it('falls back to the value for an unlabelled reference', () => {
+	it('falls back to the value for an unlabeled reference', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -653,7 +653,7 @@ describe('reference lines in the legend', () => {
 		expect(cls(rules()[0])).not.toContain('opacity-25')
 	})
 
-	it('paints a slot chip through its class and a raw colour inline', () => {
+	it('paints a slot chip through its class and a raw color inline', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -672,14 +672,14 @@ describe('reference lines in the legend', () => {
 
 		const slotSwatch = slot?.querySelector('[data-slot="swatch"]')
 
-		// A named slot rides its currentColor text class, with no inline colour.
+		// A named slot rides its currentColor text class, with no inline color.
 		expect(slotSwatch?.getAttribute('class')).toContain('text-green-600')
 
 		expect(slotSwatch?.getAttribute('style')).toBeNull()
 
 		const rawSwatch = present(raw?.querySelector('[data-slot="swatch"]'), 'swatch')
 
-		// A raw colour bypasses the slot classes and paints inline instead.
+		// A raw color bypasses the slot classes and paints inline instead.
 		expect(rawSwatch?.getAttribute('class') ?? '').not.toContain('text-')
 
 		expect(rawSwatch?.style.color).toBeTruthy()
@@ -713,7 +713,7 @@ describe('reference lines in the legend', () => {
 })
 
 describe('reference value labels', () => {
-	// `labels` is a line / area prop, so the labelled rules ride the line chart;
+	// `labels` is a line / area prop, so the labeled rules ride the line chart;
 	// `labels.references` turns each rule's hover tooltip into a standing label.
 	function lineLabels(reference: ChartReferenceLine[]) {
 		return renderUI(
@@ -753,13 +753,13 @@ describe('reference value labels', () => {
 		expect(bySlot(container, 'chart-reference-line')?.querySelectorAll('line').length).toBe(1)
 	})
 
-	it('reads the value alone for an unlabelled rule', () => {
+	it('reads the value alone for an unlabeled rule', () => {
 		const { container } = lineLabels([{ value: 50 }])
 
 		expect(bySlot(container, 'chart-reference-label')?.textContent).toBe('50')
 	})
 
-	it('inks the label to match the rule — a slot through its fill class, a raw colour inline', () => {
+	it('inks the label to match the rule — a slot through its fill class, a raw color inline', () => {
 		const { container } = lineLabels([
 			{ value: 50, label: 'Floor', color: 'green' },
 			{ value: 70, label: 'Ceiling', color: '#e11d48' },
@@ -769,7 +769,7 @@ describe('reference value labels', () => {
 
 		expect(slot?.getAttribute('class')).toContain('fill-green-600')
 
-		// A raw colour bypasses the fill classes and paints inline instead.
+		// A raw color bypasses the fill classes and paints inline instead.
 		expect(raw?.getAttribute('class') ?? '').not.toContain('fill-')
 
 		expect(raw?.style.fill).toBeTruthy()
@@ -795,7 +795,7 @@ describe('reference value labels', () => {
 		const marks = () => bySlot(container, 'chart-marks')?.getAttribute('class') ?? ''
 
 		// The first arrow enters at the first point; the value-axis arrow then steps
-		// the series' points. With the rule labelled it is no longer a stop, so the
+		// the series' points. With the rule labeled it is no longer a stop, so the
 		// marks stay lit and no rule takes focus.
 		fireEvent.keyDown(plot, { key: 'ArrowRight' })
 

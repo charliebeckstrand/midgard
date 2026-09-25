@@ -12,7 +12,7 @@ const { text } = iro
 
 const { palette, ink, motion } = zu
 
-/** A named chart colour slot: the eight categorical slots plus `zinc`. */
+/** A named chart color slot: the eight categorical slots plus `zinc`. */
 export type ChartColorSlot = SeriesSlot
 
 export const k = {
@@ -33,7 +33,7 @@ export const k = {
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
 	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
 	stroke: mode('stroke-white', 'dark:stroke-white'),
-	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
+	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ink.value,

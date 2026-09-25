@@ -41,8 +41,8 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useA11yScope` | Universal a11y scope: stable id plus slot-driven `aria-labelledby`/`describedby` from only mounted slots. |
-| `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labelled control (label/description/error slots). |
-| `useA11yPanel` | Modal-panel labelling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
+| `useA11yControl` | Field a11y scaffolding: `useA11yScope` specialized for a labeled control (label/description/error slots). |
+| `useA11yPanel` | Modal-panel labeling scope: `useA11yScope` for dialog roots, setting role + `aria-modal` and title/desc ids. |
 | `useA11yDisclosure` | Non-modal trigger↔panel pairing: reciprocal `aria-controls`/`aria-labelledby` (+ optional `aria-expanded`). |
 | `useA11yRoving` | Arrow/Home/End roving over container items: focus or virtual mode, single-Tab-stop ownership, row cross-axis, or an indexed `VirtualItemSource` for windowed lists. |
 | `useA11yAutoFocus` | Moves focus to `node` whenever `when` flips true, and again when the node attaches while `when` holds. Takes the node from a callback ref, not a `RefObject`. |

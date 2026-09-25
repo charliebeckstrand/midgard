@@ -6,7 +6,7 @@ import { renderUI, waitFor } from '../helpers'
  * Real-browser check of ReadyReveal's focus rescue. When `ready` flips, the
  * deactivating layer goes `inert` and the browser drops any focus it held to
  * <body>; the primitive should hand that focus to the revealed layer instead.
- * This needs a real browser — jsdom does not model `inert`'s focus behaviour.
+ * This needs a real browser — jsdom does not model `inert`'s focus behavior.
  */
 describe('ReadyReveal focus rescue (real browser)', () => {
 	it('moves focus to the revealed layer when the focused placeholder goes inert', async () => {

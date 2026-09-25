@@ -31,7 +31,7 @@ describe('UIProvider portalContainer', () => {
 		expect(screen.getByTestId('resolved')).toHaveTextContent('none')
 	})
 
-	it('mounts a portalled overlay into the provider container', () => {
+	it('mounts a portaled overlay into the provider container', () => {
 		const target = attach(document.createElement('div'))
 
 		target.id = 'app-portal'
@@ -39,7 +39,7 @@ describe('UIProvider portalContainer', () => {
 		renderUI(
 			<UIProvider portalContainer={target}>
 				<Dialog open onOpenChange={() => {}}>
-					Portalled dialog
+					Portaled dialog
 				</Dialog>
 			</UIProvider>,
 		)

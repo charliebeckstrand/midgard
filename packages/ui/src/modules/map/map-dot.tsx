@@ -16,7 +16,7 @@ import type { MapOverlayHit } from './use-map-overlay'
 type MapDotHitSpec = {
 	/** The shape's `data-slot` name. */
 	slot: string
-	/** The dot's projected frame position; the target centres on it. */
+	/** The dot's projected frame position; the target centers on it. */
 	at: MapPoint2D
 	/** The mark's own hit props — `useMapOverlay`'s `hit()` return. */
 	hit: MapOverlayHit
@@ -27,7 +27,7 @@ type MapDotHitSpec = {
 	 * answers over everything that claims the ground under this dot:
 	 *
 	 * - A drawn zone it stands on.
-	 * - The neighbours inside its coarse reach.
+	 * - The neighbors inside its coarse reach.
 	 * - A region layer that answers the pointer.
 	 *
 	 * {@link POINT_HIT_RADIUS} where nothing does, which is what makes the fine
@@ -42,7 +42,7 @@ type MapDotHitSpec = {
 	target: number | undefined
 	/**
 	 * The id of a {@link MapDotClip} bounding this target to its own ground, or `undefined` where no
-	 * neighbour crowds it. That is almost every dot, and why the clip is opt-in rather than always
+	 * neighbor crowds it. That is almost every dot, and why the clip is opt-in rather than always
 	 * drawn.
 	 */
 	clip?: string | undefined
@@ -58,7 +58,7 @@ type MapDotProps = {
 	radius: number
 	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
 	scale: number
-	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the colour. */
+	/** The slot's stroke paint class — the cap is stroke-painted, so `stroke-*` carries the color. */
 	className: string
 	/**
 	 * Whether the dot pops in. Omitted, it paints at once — a dot that stands for a
@@ -122,11 +122,11 @@ export function MapDot({
 
 /** Props for {@link MapDotCount}. @internal */
 type MapDotCountProps = {
-	/** The dot's projected frame position; the count centres on it. */
+	/** The dot's projected frame position; the count centers on it. */
 	at: MapPoint2D
 	/** How many stops the dot stands for. */
 	count: number
-	/** The label ink — the slot's `onFill`, the one place text sits on a mark's own colour. */
+	/** The label ink — the slot's `onFill`, the one place text sits on a mark's own color. */
 	className: string
 	/** Frame units per device pixel; the count counter-scales by it to hold its size. */
 	scale: number
@@ -208,7 +208,7 @@ export function MapDotCount({
  * reach that something else needs, through `k.hitFine`. A drawn zone under the
  * dot needs it. That is what lets a `MapGeofence` drawn tight around a
  * `MapPoint` still answer, and keeps a depot off the middle of its own
- * catchment. A neighbouring dot inside the reach needs it too. Without it the
+ * catchment. A neighboring dot inside the reach needs it too. Without it the
  * target over one mark would take the readout of the mark beside it. A region
  * layer that answers the pointer needs it too, because a full target over the
  * shape puts a hole in it.
@@ -219,7 +219,7 @@ export function MapDotCount({
  * costs a mouse user reach, so the dot only pays it where the pixels have
  * somewhere to go. `markTargets` weighs the three claims and hands the answer in
  * as {@link MapDotHitSpec.target}, because each is a fact about the mark's own
- * neighbourhood. The rule about what to do with it stays here, in the one
+ * neighborhood. The rule about what to do with it stays here, in the one
  * comparison below.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
@@ -239,7 +239,7 @@ export function MapDotCount({
  * That property rides each shape rather than the zoom layer over them all, where
  * one declaration would serve every dot. An inherited custom property on the
  * atlas's own ancestor recomputes style for every region path beneath it, on each
- * notch of a gesture. That is the work that layer's memoisation prevents.
+ * notch of a gesture. That is the work that layer's memoization prevents.
  *
  * Both go on together, or neither does. A dot keeping the coarse target carries
  * no class to read the property, and no property to read. The attribute alone
@@ -270,7 +270,7 @@ export function dotHitProps({
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
-		// Independent of the radius above: the clip takes the straight cuts a neighbour's bisector
+		// Independent of the radius above: the clip takes the straight cuts a neighbor's bisector
 		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
 		// without either knowing about the other.
 		clipPath: clip === undefined ? undefined : `url(#${clip})`,
@@ -289,7 +289,7 @@ type MapDotClipProps = {
 }
 
 /**
- * The `clipPath` bounding one dot's pointer target to the ground nearer to it than to any neighbour.
+ * The `clipPath` bounding one dot's pointer target to the ground nearer to it than to any neighbor.
  *
  * A `<polygon>` and not a path. The straight cuts are all this contributes, and the arc comes from
  * the `<circle>` the clip is applied to. The target therefore stays a circle wherever nothing
@@ -298,7 +298,7 @@ type MapDotClipProps = {
  * `clipPathUnits` stays at the default `userSpaceOnUse`, since the ring is already in the frame
  * coordinates the dot draws in.
  *
- * Memoised, because the mark that draws it re-renders on every pointer crossing of every mark on
+ * Memoized, because the mark that draws it re-renders on every pointer crossing of every mark on
  * the map. Neither its id nor its ground moves. `groundPoints` therefore walked the ring and built
  * its string per crossing, for a `<polygon>` whose `points` had not changed.
  *

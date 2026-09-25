@@ -6,9 +6,9 @@ import type { MapOverlayEntry } from './engine/map-overlay/entry'
 /**
  * The plat's overlay ledger: children register their legend entries on mount
  * and unregister on unmount. Each id remembers the position it first
- * registered at. A re-registration — a relabelled overlay's effect re-running,
+ * registered at. A re-registration — a relabeled overlay's effect re-running,
  * or StrictMode's doubled mount — therefore lands back in place with its slot
- * colour held. React runs the old effect's cleanup first, and the position
+ * color held. React runs the old effect's cleanup first, and the position
  * survives it.
  *
  * @internal

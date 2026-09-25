@@ -1,7 +1,7 @@
 /**
- * Colour math for the picker family: pure conversions between HSVA (the
+ * Color math for the picker family: pure conversions between HSVA (the
  * interactive source of truth), RGBA, and hex strings. It also holds the parse /
- * serialise / equality helpers the state hook leans on. Free of React.
+ * serialize / equality helpers the state hook leans on. Free of React.
  */
 
 import { clamp } from '../../utilities'
@@ -34,9 +34,9 @@ function roundHsva({ h, s, v, a }: Hsva): Hsva {
 }
 
 /**
- * True when two colours render identically: value and alpha must match, then
+ * True when two colors render identically: value and alpha must match, then
  * hue and saturation are compared only where they show. Both collapse at zero
- * value (black), and hue additionally at zero saturation (grey).
+ * value (black), and hue additionally at zero saturation (gray).
  */
 export function equalHsva(a: Hsva, b: Hsva): boolean {
 	const ca = roundHsva(a)
@@ -49,7 +49,7 @@ export function equalHsva(a: Hsva, b: Hsva): boolean {
 
 	if (ca.s !== cb.s) return false
 
-	// Grey: hue is not visible.
+	// Gray: hue is not visible.
 	if (ca.s === 0) return true
 
 	return ca.h === cb.h
@@ -85,7 +85,7 @@ export function hsvaToRgba({ h, s, v, a }: Hsva): Rgba {
 	}
 }
 
-/** Convert RGBA to HSVA at full precision; rounding defers to the output edges. Hue is `0` for greys. */
+/** Convert RGBA to HSVA at full precision; rounding defers to the output edges. Hue is `0` for grays. */
 export function rgbaToHsva({ r, g, b, a }: Rgba): Hsva {
 	const R = clamp(r, 0, 255) / 255
 	const G = clamp(g, 0, 255) / 255
@@ -140,7 +140,7 @@ export function hexToRgba(input: string): Rgba | null {
 }
 
 /**
- * Serialise RGBA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
+ * Serialize RGBA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
  *
  * @param alpha - Append the alpha pair.
  * @defaultValue `false`
@@ -152,7 +152,7 @@ export function rgbaToHex({ r, g, b, a }: Rgba, alpha = false): string {
 }
 
 /**
- * Serialise HSVA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
+ * Serialize HSVA to a `#rrggbb` string, or `#rrggbbaa` when `alpha` is set.
  *
  * @param alpha - Append the alpha pair.
  * @defaultValue `false`

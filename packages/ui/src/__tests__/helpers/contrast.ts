@@ -1,10 +1,10 @@
 /**
- * WCAG contrast helpers for the colour ramp guard.
+ * WCAG contrast helpers for the color ramp guard.
  *
  * Reads Tailwind's `theme.css` at test time and resolves each token through
  * `utilities/contrast`, which already parses `oklch(…)` and owns the WCAG
  * maths. What lives here is what that utility does not know: the theme map, the
- * Tailwind class a guard names a colour by, and the translucent wash a surface
+ * Tailwind class a guard names a color by, and the translucent wash a surface
  * composites before anything measures it.
  *
  * Compositing runs in gamma-encoded sRGB, which mirrors how a browser (and axe)
@@ -44,7 +44,7 @@ const NEUTRAL = /\b(white|black)(?:\/(\d{1,3}))?\b/
 const alphaOf = (suffix: string | undefined): number => (suffix ? Number(suffix) / 100 : 1)
 
 /**
- * The raw `oklch(…)` string a Tailwind colour token resolves to in the theme
+ * The raw `oklch(…)` string a Tailwind color token resolves to in the theme
  * (e.g. `green-600`, `orange-600`). Lets a guard measure any token — including
  * the chart-only hues (`orange`, `sky`) outside the iro palette — with the
  * shared `contrast` utility.
@@ -52,7 +52,7 @@ const alphaOf = (suffix: string | undefined): number => (suffix ? Number(suffix)
 export function themeColor(token: string): string {
 	const oklch = THEME.get(token)
 
-	if (!oklch) throw new Error(`unknown colour token: ${token}`)
+	if (!oklch) throw new Error(`unknown color token: ${token}`)
 
 	return oklch
 }
@@ -60,12 +60,12 @@ export function themeColor(token: string): string {
 /** A `name-shade` / `white` / `black` token → gamma-encoded sRGB. */
 function srgbOf(token: string): Srgb {
 	// `parseColor` owns the keywords; the theme map owns the ramp. A miss in both
-	// surfaces as its unparseable-colour throw.
+	// surfaces as its unparseable-color throw.
 	return parseColor(THEME.get(token) ?? token)
 }
 
 /**
- * Pull the colour token (and any `/alpha`) out of a Tailwind class, ignoring
+ * Pull the color token (and any `/alpha`) out of a Tailwind class, ignoring
  * its utility + state prefixes. A shade wins over `white`/`black` wherever
  * both appear, so a joined `[light, dark]` pair resolves to its shade rather
  * than to whichever token sits leftmost.
@@ -79,7 +79,7 @@ function tokenOf(cls: string): { token: string; alpha: number } {
 
 	if (neutral?.[1]) return { token: neutral[1], alpha: alphaOf(neutral[2]) }
 
-	throw new Error(`no colour in class: ${cls}`)
+	throw new Error(`no color in class: ${cls}`)
 }
 
 /** The page / card surfaces a foreground sits on. */

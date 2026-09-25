@@ -309,7 +309,7 @@ export function swapCells(
 /**
  * Moves one tile to the slot of a partner in the same row, and shifts each
  * equal-span tile between them over by one slot. This is the sortable feel: a run
- * of neighbours shifts, and nothing outside the run moves.
+ * of neighbors shifts, and nothing outside the run moves.
  */
 export function shiftCells(
 	cells: readonly DashboardCell[],

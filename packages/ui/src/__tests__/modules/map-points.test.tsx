@@ -164,23 +164,23 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-points-dot')).toHaveLength(3)
 	})
 
-	it("draws a lone dot in its own colour and a summary in the mark's", () => {
-		const coloured = [
+	it("draws a lone dot in its own color and a summary in the mark's", () => {
+		const colored = [
 			{ at: DEPOT, label: 'Depot', color: 'green' as const },
 			{ at: [5.3, 5] as [number, number], label: 'Annex', color: 'red' as const },
 			{ at: SITE, label: 'Site', color: 'amber' as const },
 		]
 
 		const { container } = renderUI(
-			overlayPlat(<MapPoints id="fleet" label="Stops" points={coloured} />),
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={colored} />),
 		)
 
-		// The far stop stands alone, so it wears the colour it was given.
+		// The far stop stands alone, so it wears the color it was given.
 		const lone = allBySlot(container, 'map-points-dot')[0]
 
 		expect(lone?.getAttribute('class') ?? '').toContain('stroke-amber-600')
 
-		// The merged pair stands for two colours at once, so it keeps the mark's
+		// The merged pair stands for two colors at once, so it keeps the mark's
 		// own slot rather than either of theirs.
 		const summary = allBySlot(container, 'map-points-cluster')[0]
 
@@ -229,7 +229,7 @@ describe('MapPoints', () => {
 		expect(allBySlot(container, 'map-legend-item')).toHaveLength(1)
 	})
 
-	it('summarises the dots the frame draws on top of one another', () => {
+	it('summarizes the dots the frame draws on top of one another', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapPoints id="fleet" label="Stops" points={BUNCHED} />),
 		)

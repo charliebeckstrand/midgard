@@ -2,7 +2,7 @@
  * The standing pick on an overlay mark, drawn behind the mark it marks. It is
  * the mark's own shape in the selection ink, widened by
  * {@link MARK_SELECTED_HALO}, so the neutral shows as a band around the edge.
- * Behind rather than over, so the mark's colour, its count, and its geometry all
+ * Behind rather than over, so the mark's color, its count, and its geometry all
  * read through untouched. It is the region ring's `fill="none"` discipline, in
  * the one form a stroke-painted mark allows.
  *

@@ -53,7 +53,7 @@ export type MapZoomSurface = {
 export type MapZoomCursor = {
 	/** The live transform, so the cursor anchors its readout where the map draws its stop. */
 	transform: MapTransform
-	/** Steps the scale about the frame's centre. */
+	/** Steps the scale about the frame's center. */
 	stepZoom: (factor: number) => void
 	/** Returns the view to the fit. */
 	fit: () => void
@@ -80,7 +80,7 @@ export type MapZoom = {
 	/**
 	 * Whether a view gesture is in flight — a pan, a pinch, or a wheel that has
 	 * not settled. The layer stops answering the pointer while one is, so the
-	 * marks travelling under a held pointer raise no readout and fire no
+	 * marks traveling under a held pointer raise no readout and fire no
 	 * crossing.
 	 */
 	gesturing: boolean
@@ -107,7 +107,7 @@ export type MapZoomOptions = {
 	onViewChange?: (view: MapTransform) => void
 }
 
-/** A press in flight: where it landed, and whether it has travelled far enough to be a pan. */
+/** A press in flight: where it landed, and whether it has traveled far enough to be a pan. */
 type MapPress = {
 	from: MapPoint2D
 	moved: boolean
@@ -200,9 +200,9 @@ export function useMapZoom({
 
 	live.current = { transform, view, max }
 
-	// Memoised because the wheel effect below depends on it; every other handler
+	// Memoized because the wheel effect below depends on it; every other handler
 	// here lands on a freshly built object each render and feeds no dependency
-	// array, so memoising those would buy nothing.
+	// array, so memoizing those would buy nothing.
 	const commit = useCallback((next: MapTransform) => {
 		setHeld((prev) =>
 			sameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
@@ -219,7 +219,7 @@ export function useMapZoom({
 	/** The pinch's last measured spread, so a move reads the factor it asks for. */
 	const spread = useRef<number | null>(null)
 
-	/** The pinch's last midpoint, so a move reads how far the pair travelled. */
+	/** The pinch's last midpoint, so a move reads how far the pair traveled. */
 	const midpoint = useRef<MapPoint2D | null>(null)
 
 	/** Whether the gesture just ended moved the view, so the click it produced is swallowed. */
@@ -397,14 +397,14 @@ export function useMapZoom({
 
 		// Panned first, then scaled about where the midpoint now sits, so the ground
 		// under the fingers stays under them however the pair moves and spreads.
-		const travelled = panTransform(
+		const traveled = panTransform(
 			from,
 			(middle.x - previous.x) / scale,
 			(middle.y - previous.y) / scale,
 			frame,
 		)
 
-		commit(zoomTransform(travelled, focus, gap / before, frame, limit))
+		commit(zoomTransform(traveled, focus, gap / before, frame, limit))
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */
@@ -450,7 +450,7 @@ export function useMapZoom({
 		pointers.current.set(event.pointerId, at)
 
 		// One pointer pans, so the common case reads the map's size and never
-		// materialises its values; two pinch, and a second finger landing mid-drag
+		// materializes its values; two pinch, and a second finger landing mid-drag
 		// takes the gesture over rather than the two fighting for the view.
 		if (pointers.current.size < 2) {
 			drag(previous, at)
@@ -532,7 +532,7 @@ export function useMapZoom({
  * than until the key is let go. {@link takeWheelTail} answers that.
  *
  * Split out because it is the one part of the gesture set that carries a
- * dependency array. That is why `commit` above is the hook's one memoised
+ * dependency array. That is why `commit` above is the hook's one memoized
  * callback. Everything it reads per event comes off `live`, so the listener
  * binds once per frame size rather than once per gesture.
  *

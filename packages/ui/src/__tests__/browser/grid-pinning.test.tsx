@@ -196,7 +196,7 @@ describe('stacked frozen columns under auto layout (real browser)', () => {
 		return container
 	}
 
-	// Each frozen column's left edge lands on its neighbour's right edge.
+	// Each frozen column's left edge lands on its neighbor's right edge.
 	async function expectFlush(container: HTMLElement) {
 		const edges = (id: string) => (cell(container, id) as HTMLElement).getBoundingClientRect()
 

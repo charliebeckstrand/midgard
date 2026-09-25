@@ -516,12 +516,12 @@ describe('ringAnchor', () => {
 		[10, 0],
 	]
 
-	it('centres on the middle of the ring', () => {
+	it('centers on the middle of the ring', () => {
 		const [anchor] = ringAnchor(RING)
 
 		expect(anchor?.[0]).toBeCloseTo(5, 5)
 
-		// The centre is spherical, so it sits a little poleward of the arithmetic
+		// The center is spherical, so it sits a little poleward of the arithmetic
 		// mean of the latitudes — the same reading `geoCentroid` gives a region.
 		expect(anchor?.[1]).toBeCloseTo(5, 1)
 	})
@@ -546,8 +546,8 @@ describe('ringAnchor', () => {
 		expect(ringAnchor([[5, 5]])).toEqual([[5, 5]])
 	})
 
-	it('stands the first vertex in where the points cancel to no centre', () => {
-		// Two antipodal points leave no spherical centre; the anchor must still be
+	it('stands the first vertex in where the points cancel to no center', () => {
+		// Two antipodal points leave no spherical center; the anchor must still be
 		// a position the projection can draw.
 		expect(
 			ringAnchor([
@@ -716,7 +716,7 @@ describe('areaReach', () => {
 
 	it('reads a circle as its own radius', () => {
 		// `circleRing`'s form, which most zones on a map are, and the measure is exact
-		// on it: a dot at a catchment's centre has the whole radius of room around it.
+		// on it: a dot at a catchment's center has the whole radius of room around it.
 		const wheel = Array.from({ length: GEOFENCE_CIRCLE_STEPS }, (_, step): [number, number] => {
 			const turn = (step / GEOFENCE_CIRCLE_STEPS) * 2 * Math.PI
 
@@ -817,7 +817,7 @@ function ringArea(ring: number[][]): number {
 }
 
 /**
- * A closed simple ring around `centre`, drawn by an angular sweep.
+ * A closed simple ring around `center`, drawn by an angular sweep.
  *
  * Evenly spaced angles with a per-vertex radius give a star-shaped polygon,
  * which never crosses itself. That matters: the source states that a
@@ -829,8 +829,8 @@ function ringArea(ring: number[][]): number {
  * hands the ring to the spherical measure instead.
  */
 function ringAround(
-	centreLon: number,
-	centreLat: number,
+	centerLon: number,
+	centerLat: number,
 	radiusLon: number,
 	radiusLat: number,
 	jitters: number[],
@@ -840,8 +840,8 @@ function ringAround(
 		const angle = (2 * Math.PI * index) / jitters.length
 
 		return [
-			centreLon + radiusLon * jitter * Math.cos(angle),
-			centreLat + radiusLat * jitter * Math.sin(angle),
+			centerLon + radiusLon * jitter * Math.cos(angle),
+			centerLat + radiusLat * jitter * Math.sin(angle),
 		]
 	})
 
@@ -901,19 +901,19 @@ function densified(ring: number[][]): number[][] {
 	return out
 }
 
-/** A ring scaled toward `centre`, which keeps it inside the ring it came from. */
-function shrunk(ring: number[][], centreLon: number, centreLat: number): number[][] {
+/** A ring scaled toward `center`, which keeps it inside the ring it came from. */
+function shrunk(ring: number[][], centerLon: number, centerLat: number): number[][] {
 	return ring.map(([lon, lat]) => [
-		centreLon + ((lon as number) - centreLon) / 2,
-		centreLat + ((lat as number) - centreLat) / 2,
+		centerLon + ((lon as number) - centerLon) / 2,
+		centerLat + ((lat as number) - centerLat) / 2,
 	])
 }
 
 /** The parameters one generated polygon is drawn from. */
 const polygonSpec = () =>
 	fc.record({
-		centreLon: fc.integer({ min: -60, max: 60 }),
-		centreLat: fc.integer({ min: -30, max: 30 }),
+		centerLon: fc.integer({ min: -60, max: 60 }),
+		centerLat: fc.integer({ min: -30, max: 30 }),
 		// A floor of half a degree keeps every ring well clear of the degenerate
 		// band, so nothing is dropped and the rings pair up one for one.
 		radiusLon: fc.integer({ min: 5, max: 1000 }).map((tenth) => tenth / 10),
@@ -934,8 +934,8 @@ type PolygonSpec = ReturnType<typeof polygonSpec> extends fc.Arbitrary<infer T> 
 /** The rings one spec draws: an exterior, and a hole inside it when asked. */
 function ringsFor(spec: PolygonSpec): number[][][] {
 	const exterior = ringAround(
-		spec.centreLon,
-		spec.centreLat,
+		spec.centerLon,
+		spec.centerLat,
 		spec.radiusLon,
 		spec.radiusLat,
 		spec.jitters,
@@ -944,7 +944,7 @@ function ringsFor(spec: PolygonSpec): number[][][] {
 
 	if (!spec.withHole) return [densified(exterior)]
 
-	return [densified(exterior), densified(shrunk(exterior, spec.centreLon, spec.centreLat))]
+	return [densified(exterior), densified(shrunk(exterior, spec.centerLon, spec.centerLat))]
 }
 
 const polygonFeatures = () =>

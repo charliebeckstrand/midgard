@@ -118,7 +118,7 @@ export function CodeBlock({
 		// during re-tokenization.
 		setHtml(null)
 
-		let cancelled = false
+		let canceled = false
 
 		loadShiki()
 			.then(({ codeToHtml }) =>
@@ -135,7 +135,7 @@ export function CodeBlock({
 				}).then((result) => {
 					cacheSet(key, result)
 
-					if (!cancelled) setHtml(result)
+					if (!canceled) setHtml(result)
 				}),
 			)
 			// Shiki can fail to load (offline chunk fetch, post-deploy 404) or to
@@ -145,7 +145,7 @@ export function CodeBlock({
 			.catch(() => {})
 
 		return () => {
-			cancelled = true
+			canceled = true
 		}
 	}, [code, lang, theme])
 

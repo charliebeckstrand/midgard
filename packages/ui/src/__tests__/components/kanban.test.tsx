@@ -103,7 +103,7 @@ function KeyboardBoard({ onValueChange }: { onValueChange?: (next: Column[]) => 
 }
 
 describe('Kanban', () => {
-	it('renders a labelled data-slot="kanban" root with one KanbanColumn per column', () => {
+	it('renders a labeled data-slot="kanban" root with one KanbanColumn per column', () => {
 		const { container } = renderUI(<Board />)
 
 		const el = bySlot(container, 'kanban')
