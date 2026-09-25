@@ -149,13 +149,13 @@ export function resolveActiveEngineTransform(args: {
 }
 
 /**
- * Where the client row transforms of a grid run: the filters, the sort, and
- * the pagination.
+ * Where the client row transforms of a grid run: the filters, the sort, the
+ * pagination, and the grouping.
  *
  * @remarks
- * The grid runs them itself (see `useClientView`), and builds no engine row
- * for each datum. The engine runs them inside its pipeline in two cases:
- * grouped rows, and an applied filter that only the engine can apply.
+ * The grid runs them itself (see `useClientView` and `groupRows`), and builds
+ * no engine row for each datum. The engine runs them inside its pipeline in
+ * one case: an applied filter that only the engine can apply.
  *
  * @returns `offEngine`: whether the grid runs the transforms itself.
  * `filtered`: whether it also applies the client filters, which it does when
@@ -176,9 +176,6 @@ export function resolveClientView(args: {
 	columnFilters: ColumnFiltersState
 	/** Whether the grid can apply each column filter itself (see `compileColumnFilters`). */
 	columnFiltersCompile: boolean
-	grouped: boolean
-	/** Whether the consumer groups the rows (manual grouping). */
-	manualGrouped: boolean
 }): { offEngine: boolean; filtered: boolean; page: PaginationState | null } {
 	const clientFilters = args.filterMode.configured && !args.filterMode.manual
 
@@ -187,8 +184,7 @@ export function resolveClientView(args: {
 
 	const filtering = clientFilters && args.columnFilters.length > 0
 
-	const offEngine =
-		!args.grouped && !args.manualGrouped && !(filtering && !args.columnFiltersCompile)
+	const offEngine = !(filtering && !args.columnFiltersCompile)
 
 	return {
 		offEngine,

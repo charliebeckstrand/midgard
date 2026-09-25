@@ -15,6 +15,7 @@ import {
 } from '../../modules/grid/engine/grid-table/features'
 import {
 	filterOptions,
+	groupingOptions,
 	paginationOptions,
 	sortOptions,
 	toColumnDef,
@@ -30,6 +31,8 @@ export type EngineTransforms = {
 	sort?: GridSortState[]
 	/** The page, and the pagination binding of the grid. */
 	page?: { state: PaginationState; config: GridPagination }
+	/** The grouped column. */
+	grouping?: string
 }
 
 /**
@@ -66,6 +69,7 @@ export function engineTable<T>(
 			...(filters !== undefined ? { columnFilters: filters } : {}),
 			...(sort !== undefined ? { sorting: toSortingState(sort) } : {}),
 			...(page ? { pagination: page.state } : {}),
+			...(transforms.grouping !== undefined ? { grouping: [transforms.grouping] } : {}),
 		},
 		...filterOptions<T>({
 			configured: filtered,
@@ -81,6 +85,9 @@ export function engineTable<T>(
 			config: page?.config,
 			onPaginationChange: () => {},
 		}),
-		manualGrouping: true,
+		...groupingOptions<T>({
+			grouped: transforms.grouping !== undefined,
+			onGroupingChange: () => {},
+		}),
 	})
 }
