@@ -66,6 +66,10 @@ export type DashboardGestureStartEvent = {
 /**
  * The payload when a drag or a resize ends. A cancel and a gesture that changes
  * nothing both set `canceled`, so each start has exactly one end.
+ *
+ * @remarks
+ * When the layout changes from outside during a gesture, the gesture ends as
+ * canceled and commits nothing. The outside change stays on the board.
  */
 export type DashboardGestureEndEvent = {
 	/** The id of the tile that the gesture moved. */

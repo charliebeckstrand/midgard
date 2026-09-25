@@ -525,7 +525,8 @@ export function firstEntries(
  * Writes committed cells back into the saved layout. An entry of a mounted tile
  * takes its new geometry. An entry of a tile that is not mounted stays as saved,
  * so a tile that renders only sometimes keeps its place. A mounted tile with no
- * entry is appended. An entry whose geometry does not change keeps its object.
+ * entry is appended, and the cell of a tile that is not mounted adds no entry.
+ * An entry whose geometry does not change keeps its object.
  * A repeated id keeps only its first entry, so a commit removes the stale entry.
  */
 export function mergeLayout(
@@ -550,7 +551,9 @@ export function mergeLayout(
 	})
 
 	for (const cell of cells) {
-		if (!written.has(cell.id)) merged.push(toLayoutItem(cell, demands.get(cell.id)))
+		const tile = demands.get(cell.id)
+
+		if (tile !== undefined && !written.has(cell.id)) merged.push(toLayoutItem(cell, tile))
 	}
 
 	return merged

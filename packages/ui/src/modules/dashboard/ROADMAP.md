@@ -12,7 +12,7 @@ The board is a CSS grid inside an inline-size container, and its row unit is a f
 
 The board never moves a tile by itself. A drag moves a tile into free cells, or it reorders it against an equal tile; anything else is blocked. A resize grows a tile until it meets a neighbour or an edge. When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack.
 
-One gesture owns the board at a time. While a drag or a pointer resize is live, the board refuses a second gesture, a keyboard resize step, and `tidy`. An edit exit or an unmount ends a live gesture as canceled, and a pointer resize then detaches its listeners.
+One gesture owns the board at a time. While a drag or a pointer resize is live, the board refuses a second gesture, a keyboard resize step, and `tidy`. An edit exit or an unmount ends a live gesture as canceled, and a pointer resize then detaches its listeners. When the layout changes from outside during a gesture, the drop or the release ends as canceled, so the outside change stays.
 
 A store in the engine gives each tile a subscription to its own cell. A drag preview therefore renders only the tiles that it moves, and the root does not render at all. A move glides through a FLIP in grid units; a change of size snaps.
 

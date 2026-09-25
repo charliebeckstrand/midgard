@@ -585,6 +585,82 @@ describe('Dashboard gesture owner', () => {
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 8, h: 20 })
 	})
 
+	/** A board whose layout and tiles the test sets. It saves nothing by itself. */
+	function Held({
+		value,
+		withC = true,
+		onLayout,
+		onDragEnd,
+	}: {
+		value: DashboardLayoutItem[]
+		withC?: boolean
+		onLayout: (next: DashboardLayoutItem[]) => void
+		onDragEnd: DashboardProps['onDragEnd']
+	}) {
+		return (
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ value, onValueChange: onLayout }}
+				onDragEnd={onDragEnd}
+			>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+
+				<DashboardTile id="b" title="Traffic" ratio={16 / 9} />
+
+				{withC && (
+					<DashboardTile id="c">
+						<div data-testid="content-c" />
+					</DashboardTile>
+				)}
+			</Dashboard>
+		)
+	}
+
+	it('cancels a drop after an outside move, so the move stays', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 12)
+
+		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+
+		rerender(<Held value={moved} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await drop(grip)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: moved })
+
+		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+	})
+
+	it('cancels a drop after an outside remove, so the entry stays removed', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 12)
+
+		const removed = LAYOUT.filter((item) => item.id !== 'c')
+
+		rerender(<Held value={removed} withC={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await drop(grip)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: removed })
+	})
+
 	it('ends a keyboard drag as canceled when edit mode ends, so a later Space commits nothing', async () => {
 		const onLayout = vi.fn()
 

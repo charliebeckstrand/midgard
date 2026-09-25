@@ -317,6 +317,22 @@ describe('mergeLayout', () => {
 
 		expect(merged[1]).toBe(saved[1])
 	})
+
+	it('appends a mounted tile with no entry, and no cell of a tile that is not mounted', () => {
+		const saved = [{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]
+
+		const demands = new Map([
+			['a', {}],
+			['new', {}],
+		])
+
+		const cells = [cell('a', 8, 0, 8, 10), cell('gone', 0, 10, 8, 10), cell('new', 16, 0, 8, 10)]
+
+		expect(mergeLayout(saved, cells, demands)).toEqual([
+			{ id: 'a', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'new', x: 16, y: 0, w: 8, h: 10 },
+		])
+	})
 })
 
 describe('readingOrder', () => {

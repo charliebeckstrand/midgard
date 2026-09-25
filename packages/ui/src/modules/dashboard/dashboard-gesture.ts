@@ -1,6 +1,6 @@
 'use client'
 
-import { type DashboardCell, inlineSign } from './engine/dashboard-layout'
+import { type DashboardCell, inlineSign, sameGeometry } from './engine/dashboard-layout'
 import type { DashboardStore, DashboardView } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent } from './types'
 
@@ -61,6 +61,12 @@ export function measureGesture(
  * settle phase and commits. A cancel, or a gesture that changed nothing,
  * returns to the snapshot. Either way, `onEnd` receives one end event.
  *
+ * @remarks
+ * The preview comes from the snapshot at the start. When the resolved layout
+ * changed during the gesture, a commit writes the old cells back. It would undo
+ * an outside move, and it would restore the entry of a removed tile. So a
+ * gesture over a changed layout ends as canceled, and the outside change stays.
+ *
  * @internal
  */
 export function endGesture(
@@ -73,7 +79,11 @@ export function endGesture(
 
 	const preview = gesture?.preview ?? null
 
-	if (!keep || gesture === null || preview === null) {
+	// The snapshot equals the resolved layout at the start, because a gesture
+	// needs the saved layout on screen and not a projection.
+	const stale = gesture !== null && !sameGeometry(store.getView().canonical, gesture.snapshot)
+
+	if (!keep || gesture === null || preview === null || stale) {
 		store.setState({ gesture: null })
 
 		onEnd?.({ id, canceled: true, layout })

@@ -54,6 +54,21 @@ function Board({ editing = true, spies }: { editing?: boolean; spies: Spies }) {
 	)
 }
 
+/** A board whose layout the test sets. It saves nothing by itself. */
+function Held({ value, spies }: { value: DashboardLayoutItem[]; spies: Spies }) {
+	return (
+		<Dashboard
+			aria-label="Board"
+			editing
+			layout={{ value, onValueChange: spies.onLayout }}
+			onResizeStart={spies.onResizeStart}
+			onResizeEnd={spies.onResizeEnd}
+		>
+			<DashboardTile id="a" title="Revenue" minWidth={0} />
+		</Dashboard>
+	)
+}
+
 /** Fresh spies for one case. */
 function makeSpies() {
 	return { onLayout: vi.fn(), onResizeStart: vi.fn(), onResizeEnd: vi.fn() }
@@ -180,6 +195,32 @@ describe('Dashboard pointer resize', () => {
 			canceled: true,
 			layout: LAYOUT,
 		})
+	})
+
+	it('cancels a release after an outside move, so the move stays', () => {
+		const spies = makeSpies()
+
+		const { container, rerender } = renderUI(<Held value={LAYOUT} spies={spies} />)
+
+		const east = eastSplitter()
+
+		pressAndMove(east)
+
+		const moved = [{ id: 'a', x: 0, y: 30, w: 8, h: 10 }]
+
+		rerender(<Held value={moved} spies={spies} />)
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
+
+		expect(spies.onResizeEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: moved,
+		})
+
+		expect(area(container)).toBe('31 / 1 / span 10 / span 8')
 	})
 
 	it('ends a resize as canceled when edit mode ends, and detaches its listeners', () => {
