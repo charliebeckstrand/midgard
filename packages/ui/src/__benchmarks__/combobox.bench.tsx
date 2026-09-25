@@ -9,14 +9,14 @@
 import { describe } from 'vitest'
 import { Combobox } from '../components/combobox/combobox'
 import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-option'
-import { useComboboxQuery } from '../components/combobox/use-combobox-query'
+import { useComboboxDeferredQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
 import { comboboxOptions, type Option } from './fixtures'
 import { mountBenches } from './harness'
 
 /** The query filter a consumer writes, reading the combobox's own deferred query. */
 function useFiltered(all: Option[]): Option[] {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	const query = deferredQuery.toLowerCase()
 

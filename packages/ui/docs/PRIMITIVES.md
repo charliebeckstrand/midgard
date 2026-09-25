@@ -39,7 +39,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `control` | Outer chrome wrapper supplying the shared focus ring, border, and disabled state for form inputs, sized via Density. | `ControlFrame` |
 | `mount` | The shared hold behind every inactive panel. `useMountHold` resolves a `Mount` policy (`always`/`lazy`/`active`) into present, held, and hidden; `Hold` applies it through `<Activity>`. | `useMountHold`, `Hold`, `Mount`, `MountHold`, `mountsEveryPanel` |
 | `current` | Shared active-panel cascade for Tabs/Nav: the active value, the inactive-panel `mount` policy, and the auto-height cross-fade between panels. Presence and the Activity hold come from `primitives/mount`. | `CurrentContext`, `useCurrent`, `useCurrentState`, `useCurrentPanelActive`, `CurrentContent`, `CurrentContents`, `CurrentMount` |
-| `query` | Query context for type-ahead roots (Combobox, CommandPalette): shares live + deferred query text; descendants read it to filter items. | `QueryContext`, `useQuery`, `useQueryValue`, `QueryContextValue` |
+| `query` | Query context for type-ahead roots (Combobox, CommandPalette): shares live + deferred query text, and the deferred query alone for a consumer that filters items. | `QueryContext`, `useQuery`, `useQueryValue`, `QueryContextValue`, `DeferredQueryContext`, `useDeferredQuery` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
 | `toggle` | Layout primitives for toggle/switch fields: a group container and a single control-plus-label row, driven by the shared toggle recipe. | `ToggleGroup`, `ToggleField` |
 

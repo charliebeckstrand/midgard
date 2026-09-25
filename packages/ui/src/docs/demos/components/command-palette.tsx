@@ -20,7 +20,7 @@ import {
 	CommandPaletteItem,
 	CommandPaletteLabel,
 	CommandPaletteShortcut,
-	useCommandPaletteQuery,
+	useCommandPaletteDeferredQuery,
 } from '../../../components/command-palette'
 import { Icon } from '../../../components/icon'
 import { Kbd } from '../../../components/kbd'
@@ -109,7 +109,7 @@ function filterCommands(query: string) {
 }
 
 function CommandResults() {
-	const { deferredQuery } = useCommandPaletteQuery()
+	const deferredQuery = useCommandPaletteDeferredQuery()
 
 	const results = filterCommands(deferredQuery)
 
@@ -148,7 +148,7 @@ function CommandResults() {
 const manyCommands = Array.from({ length: 5_000 }, (_, i) => ({ id: i, label: `Command ${i + 1}` }))
 
 function VirtualizedCommandResults() {
-	const { deferredQuery } = useCommandPaletteQuery()
+	const deferredQuery = useCommandPaletteDeferredQuery()
 
 	const filtered = useMemo(
 		() =>
