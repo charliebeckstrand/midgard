@@ -544,7 +544,9 @@ describe('Dashboard', () => {
 
 		const listener = vi.fn()
 
-		board?.subscribe(listener)
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		board.subscribe(listener)
 
 		// One column to the right, Revenue meets Traffic and snaps back to its start cell.
 		fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
@@ -1665,7 +1667,9 @@ describe('Dashboard registration', () => {
 
 		const listener = vi.fn()
 
-		board?.subscribe(listener)
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		board.subscribe(listener)
 
 		unmount()
 
