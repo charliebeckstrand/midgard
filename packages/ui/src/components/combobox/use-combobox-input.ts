@@ -7,6 +7,7 @@ import {
 	type FocusEvent,
 	type KeyboardEvent,
 	type KeyboardEventHandler,
+	type MouseEvent,
 	type RefObject,
 	useCallback,
 } from 'react'
@@ -75,11 +76,12 @@ function arrowOpensClosedMenu(event: KeyboardEvent<HTMLInputElement>): boolean {
 /**
  * Event handlers for the combobox input element.
  *
- * @returns `{ onChange, onFocus, onBlur, onKeyDown, onPaste }` for the input. `onChange`
- *   enters editing mode, updates the query, opens the menu, and clears the value
- *   on empty when `clearOnEmpty`. `onFocus` opens once the keyboard has settled.
- *   `onBlur` ignores focus moving into the floating panel, else marks touched and
- *   closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
+ * @returns `{ onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste }` for the
+ *   input. `onChange` enters editing mode, updates the query, opens the menu, and
+ *   clears the value on empty when `clearOnEmpty`. `onFocus` opens once the
+ *   keyboard has settled. `onMouseDown` does the same for a press on the input
+ *   when it already has focus. `onBlur` ignores focus moving into the floating
+ *   panel, else marks touched and closes. `onKeyDown` handles Escape/Enter, and reserves Home/End and
  *   Shift+Arrow for native caret/selection. It opens the closed menu from an
  *   arrow key at the matching text edge: ArrowDown at the end, ArrowUp at the
  *   start. It then delegates to the roving handler.
@@ -125,6 +127,19 @@ export function useComboboxInput<T>({
 	const onFocus = useCallback(() => {
 		keyboardSettled(() => setOpen(true))
 	}, [setOpen, keyboardSettled])
+
+	// A press on the input when it already has focus. No focus event fires for it, so
+	// `onFocus` cannot open the menu. That is the state after a pick or an Escape, which
+	// close the menu but keep focus on the input. A press on an unfocused input stays
+	// with `onFocus`, which runs next and waits for the keyboard.
+	const onMouseDown = useCallback(
+		(event: MouseEvent<HTMLInputElement>) => {
+			if (open || document.activeElement !== event.currentTarget) return
+
+			keyboardSettled(() => setOpen(true))
+		},
+		[open, setOpen, keyboardSettled],
+	)
 
 	const onBlur = useCallback(
 		(event: FocusEvent<HTMLInputElement>) => {
@@ -209,5 +224,5 @@ export function useComboboxInput<T>({
 		[onPaste, setQuery, setEditing],
 	)
 
-	return { onChange, onFocus, onBlur, onKeyDown, onPaste: onPasteHandler }
+	return { onChange, onFocus, onMouseDown, onBlur, onKeyDown, onPaste: onPasteHandler }
 }

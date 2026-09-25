@@ -6,6 +6,7 @@ import type {
 	ComponentProps,
 	FocusEventHandler,
 	KeyboardEventHandler,
+	MouseEventHandler,
 	Ref,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
@@ -18,6 +19,7 @@ import { Input } from '../input'
 type ComboboxInputHandlers = {
 	onChange: ChangeEventHandler<HTMLInputElement>
 	onFocus: FocusEventHandler<HTMLInputElement>
+	onMouseDown: MouseEventHandler<HTMLInputElement>
 	onBlur: FocusEventHandler<HTMLInputElement>
 	onKeyDown: KeyboardEventHandler<HTMLInputElement>
 	onPaste: ClipboardEventHandler<HTMLInputElement>
