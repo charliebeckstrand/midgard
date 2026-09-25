@@ -1,26 +1,26 @@
 {
-  "name": "midgard",
-  "private": true,
-  "scripts": {
-    "build": "turbo run build",
-    "dev": "hlidskjalf",
-    "lint": "turbo run lint",
-    "lint:fix": "biome check --write packages/ apps/",
-    "check-types": "turbo run check-types",
-    "knip": "knip",
-    "test": "turbo run test",
-    "prepare": "lefthook install"
-  },
-  "devDependencies": {
-    "@biomejs/biome": "catalog:",
-    "@commitlint/cli": "^21.0.2",
-    "@commitlint/config-conventional": "^21.0.2",
-    "knip": "^6.26.0",
-    "lefthook": "^2.1.10",
-    "turbo": "^2.11.2"
-  },
-  "packageManager": "pnpm@12.5.1",
-  "dependencies": {
-    "hlidskjalf": "^0.4.4"
-  }
+	"name": "midgard",
+	"private": true,
+	"scripts": {
+		"build": "turbo run build",
+		"dev": "hlidskjalf",
+		"lint": "turbo run lint",
+		"lint:fix": "biome check --write packages/ apps/",
+		"check-types": "turbo run check-types",
+		"knip": "knip",
+		"test": "turbo run test",
+		"prepare": "lefthook install"
+	},
+	"devDependencies": {
+		"@biomejs/biome": "catalog:",
+		"@commitlint/cli": "^21.0.2",
+		"@commitlint/config-conventional": "^21.0.2",
+		"knip": "^6.26.0",
+		"lefthook": "^2.1.10",
+		"turbo": "^2.11.2"
+	},
+	"packageManager": "pnpm@12.5.1",
+	"dependencies": {
+		"hlidskjalf": "^0.4.4"
+	}
 }

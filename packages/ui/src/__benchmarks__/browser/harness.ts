@@ -42,6 +42,93 @@ export async function settle(count = 2) {
 	for (let index = 0; index < count; index++) await frame()
 }
 
+/** Frames that {@link withFrameClock} drains after the body, so a chain of deferred work ends inside the sample. */
+const FRAME_DRAIN = 8
+
+/**
+ * Runs `body` with a manual frame clock in place of the browser's. The table
+ * engine throttles each resize move onto an animation frame. A real frame costs
+ * about 17 ms in the headless container (README), so a sample that waits out
+ * frames reads the frame and not the work.
+ *
+ * The clock replaces `requestAnimationFrame` and `cancelAnimationFrame` with a
+ * queue, for the synchronous body only. Each call to `tick` runs the queued
+ * callbacks under `flushSync`, with `performance.now()` as the frame time. The
+ * scenario therefore gets one frame for each move, with no wait.
+ *
+ * After the body, the clock drains up to eight frames of work that the last
+ * tick queued. It then restores the browser clock, and gives each callback that
+ * stays in the queue to the real `requestAnimationFrame`.
+ */
+export function withFrameClock(body: (tick: () => void) => void) {
+	const request = window.requestAnimationFrame
+
+	const cancel = window.cancelAnimationFrame
+
+	let queue = new Map<number, FrameRequestCallback>()
+
+	// Negative ids do not collide with the ids of the real clock.
+	let next = 0
+
+	const tick = () => {
+		if (queue.size === 0) return
+
+		const due = queue
+
+		queue = new Map()
+
+		const now = performance.now()
+
+		flushSync(() => {
+			for (const callback of due.values()) callback(now)
+		})
+	}
+
+	window.requestAnimationFrame = (callback) => {
+		next -= 1
+
+		queue.set(next, callback)
+
+		return next
+	}
+
+	window.cancelAnimationFrame = (id) => {
+		if (!queue.delete(id)) cancel.call(window, id)
+	}
+
+	try {
+		body(tick)
+
+		for (let index = 0; index < FRAME_DRAIN && queue.size > 0; index++) tick()
+	} finally {
+		window.requestAnimationFrame = request
+
+		window.cancelAnimationFrame = cancel
+
+		for (const callback of queue.values()) request.call(window, callback)
+	}
+}
+
+/**
+ * Dispatches one primary-button mouse event at a client point, under
+ * `flushSync`, so the commit that the event starts lands before the call
+ * returns. The button is down for each type except `mouseup`.
+ */
+export function mouse(target: EventTarget, type: string, x: number, y: number) {
+	flushSync(() => {
+		target.dispatchEvent(
+			new MouseEvent(type, {
+				bubbles: true,
+				cancelable: true,
+				button: 0,
+				buttons: type === 'mouseup' ? 0 : 1,
+				clientX: x,
+				clientY: y,
+			}),
+		)
+	})
+}
+
 /** A fresh document-attached host, sized on whichever axes the scenario fixes. */
 export function host(size?: { width?: number; height?: number }): HTMLElement {
 	const element = document.createElement('div')

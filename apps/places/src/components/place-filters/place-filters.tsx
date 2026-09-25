@@ -1,7 +1,9 @@
 'use client'
 
+import { ControlSkeleton } from 'ui/control'
 import { DatePicker, type DatePickerRelativeValue } from 'ui/date-picker'
 import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
+import { Flex } from 'ui/flex'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import type { PlaceCategory } from '../../types'
 import {
@@ -166,5 +168,23 @@ export function PlaceFilters({
 				)}
 			</FiltersBar>
 		</Filters>
+	)
+}
+
+/**
+ * The placeholder for {@link PlaceFilters} while the places and the atlas load:
+ * one control shape for each field, at the same width and inset as the bar.
+ */
+export function PlaceFiltersSkeleton() {
+	return (
+		<Flex gap="sm" className="overflow-hidden px-6 py-3">
+			<ControlSkeleton className="w-52 shrink-0" />
+
+			<ControlSkeleton className="w-52 shrink-0" />
+
+			<ControlSkeleton className="w-52 shrink-0" />
+
+			<ControlSkeleton className="w-52 shrink-0" />
+		</Flex>
 	)
 }

@@ -40,7 +40,8 @@ const entry = {
 // output module and would mark the static (server-renderable) components as
 // client the day dist ships. Consumers import source (the exports map points
 // at ./src), where per-file directives are authoritative; dist is a build
-// artifact, not the consumption surface.
+// artifact, not the consumption surface. For the same reason, the script is
+// `build:dist` and not `build`: the turbo `build` graph skips it.
 export default defineConfig({
 	entry,
 	format: ['esm'],

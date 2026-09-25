@@ -8,6 +8,7 @@ import { Confirm } from 'ui/confirm'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
+import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
@@ -41,7 +42,7 @@ import {
 	viewUp,
 } from '../../utilities/places-view'
 import { PlaceDrawer } from '../place-drawer'
-import { PlaceFilters } from '../place-filters'
+import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
 import { PlaceTrail } from '../place-trail'
 import { PlacesIndex } from '../places-index'
@@ -385,27 +386,43 @@ export function PlacesApp() {
 				</Flex>
 			</Flex>
 
-			{places.length > 0 ? (
+			{settling || places.length > 0 ? (
 				// No padding on this wrapper: the rail carries its own, so the whole
 				// padded band sits inside the scroll container and a wheel anywhere over
 				// it scrolls — the strip above and below the controls included.
 				<div className="shrink-0 border-b border-zinc-950/10 dark:border-white/10">
-					<PlaceFilters
-						value={filter}
-						onValueChange={setFilter}
-						regionNames={regionNames}
-						regionLabel={REGION_LABEL[atlas]}
-						drilled={cut}
-						onDrill={(region) =>
-							setView(region === null ? (viewUp(view) ?? view) : drillInto(view, region))
-						}
-					/>
+					{/* A skeleton stands in for the bar until the view settles: the region
+					    picker lists the atlas, and the other fields filter the places. The
+					    bar stays mounted under the skeleton and sizes the band, so the
+					    reveal moves nothing.
+
+					    `min-w-0` goes on each layer. Without it, the grid column of the
+					    reveal takes the full width of the rail, and the rail cannot
+					    scroll. */}
+					<ReadyReveal
+						ready={!settling}
+						placeholder={<PlaceFiltersSkeleton />}
+						className="*:min-w-0"
+					>
+						<PlaceFilters
+							value={filter}
+							onValueChange={setFilter}
+							regionNames={regionNames}
+							regionLabel={REGION_LABEL[atlas]}
+							drilled={cut}
+							onDrill={(region) =>
+								setView(region === null ? (viewUp(view) ?? view) : drillInto(view, region))
+							}
+						/>
+					</ReadyReveal>
 				</div>
 			) : null}
 
 			<div className="relative min-h-0 flex-1">
 				<PlacesMap
-					regions={regions}
+					// Held back until the view settles. Otherwise the map draws the United
+					// States first and then jumps to the frame that the places ask for.
+					regions={settling ? null : regions}
 					places={shown}
 					view={view}
 					visited={visited}

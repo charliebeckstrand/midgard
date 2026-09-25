@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { rangeKeys } from '../../../utilities'
@@ -158,20 +158,56 @@ export function AnimatedScatterChartMarks({ list }: ScatterChartMarksProps) {
 	return list.map(({ index, label, paint, marks, sized }) => (
 		<g key={index} data-slot="chart-scatter-series">
 			{rangeKeys(marks.length, label).map((key, datum) => (
-				<motion.circle
+				<AnimatedDisc
 					key={key}
-					data-slot="chart-scatter-point"
 					cx={marks[datum]?.x}
 					cy={marks[datum]?.y}
-					{...markProps(paint, sized)}
-					initial={{ r: 0, opacity: 0 }}
-					// Motion owns the disc's opacity through the pop-in, so the dim rides the
-					// same channel — receding to the class dim's depth — rather than a class
-					// the inline value would override.
-					animate={{ r: marks[datum]?.r ?? 0, opacity: lit(index, datum) ? 1 : DIM_OPACITY }}
-					transition={{ ...POINT_POP, delay: 0 }}
+					r={marks[datum]?.r ?? 0}
+					paint={paint}
+					sized={sized}
+					lit={lit(index, datum)}
 				/>
 			))}
 		</g>
 	))
 }
+
+/** Props for {@link AnimatedDisc}: one disc, in plain values so the memo holds. @internal */
+type AnimatedDiscProps = {
+	cx: number | undefined
+	cy: number | undefined
+	r: number
+	paint: ChartPaint
+	sized: boolean
+	lit: boolean
+}
+
+/**
+ * One popped disc. Memoized on plain values and the series paint, so an
+ * emphasis change renders only the discs that dim or light, not each disc.
+ *
+ * @internal
+ */
+const AnimatedDisc = memo(function AnimatedDisc({
+	cx,
+	cy,
+	r,
+	paint,
+	sized,
+	lit,
+}: AnimatedDiscProps) {
+	return (
+		<motion.circle
+			data-slot="chart-scatter-point"
+			cx={cx}
+			cy={cy}
+			{...markProps(paint, sized)}
+			initial={{ r: 0, opacity: 0 }}
+			// Motion owns the disc's opacity through the pop-in, so the dim rides the
+			// same channel — receding to the class dim's depth — rather than a class
+			// the inline value would override.
+			animate={{ r, opacity: lit ? 1 : DIM_OPACITY }}
+			transition={{ ...POINT_POP, delay: 0 }}
+		/>
+	)
+})

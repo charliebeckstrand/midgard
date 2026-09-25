@@ -17,6 +17,8 @@ function setup(year: number) {
 			today: null,
 			monthLabels,
 			onNavigate: () => {},
+			open: false,
+			onOpenChange: () => {},
 		}),
 	)
 }
@@ -49,5 +51,64 @@ describe('useCalendarPicker: year grid selection', () => {
 		act(() => result.current.viewConfig.onCenter())
 
 		expect(selectedKeys(result.current.viewConfig.cells)).toEqual([2026])
+	})
+})
+
+// `@internationalized/date` holds years 1 to 9999, and it clamps a year outside
+// them. A pick of year 0 therefore showed year 1.
+describe('useCalendarPicker: year limits', () => {
+	/** Renders the picker on `year`, and opens the year grid. */
+	function yearGrid(year: number) {
+		const view = setup(year)
+
+		act(() => view.result.current.viewConfig.onCenter())
+
+		return view
+	}
+
+	function disabledKeys(cells: CalendarPickerGridCell[]) {
+		return cells.filter((cell) => cell.disabled).map((cell) => cell.key)
+	}
+
+	it('disables the year cells before year 1', () => {
+		const { result } = yearGrid(5)
+
+		expect(disabledKeys(result.current.viewConfig.cells)).toEqual([-1, 0])
+	})
+
+	it('disables the year cells after year 9999', () => {
+		const { result } = yearGrid(9995)
+
+		expect(disabledKeys(result.current.viewConfig.cells)).toEqual([10_000])
+	})
+
+	it('keeps the first decade on a step back', () => {
+		const { result } = yearGrid(5)
+
+		act(() => result.current.viewConfig.onPrev())
+
+		expect(result.current.viewConfig.cells[0]?.key).toBe(-1)
+	})
+
+	it('keeps the last decade on a step forward', () => {
+		const { result } = yearGrid(9995)
+
+		act(() => result.current.viewConfig.onNext())
+
+		expect(result.current.viewConfig.cells[0]?.key).toBe(9989)
+	})
+
+	it('keeps year 1 and year 9999 on the month grid', () => {
+		const first = setup(1)
+
+		act(() => first.result.current.viewConfig.onPrev())
+
+		expect(first.result.current.viewConfig.centerLabel).toBe(1)
+
+		const last = setup(9999)
+
+		act(() => last.result.current.viewConfig.onNext())
+
+		expect(last.result.current.viewConfig.centerLabel).toBe(9999)
 	})
 })

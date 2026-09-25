@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo } from 'react'
+import { type ReactNode, useCallback, useMemo, useSyncExternalStore } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { k } from '../../recipes/kata/accordion'
@@ -35,13 +35,22 @@ export function AccordionItem({
 	className,
 	children,
 }: AccordionItemProps) {
-	const accordion = useAccordion()
+	const { variant, openStore, toggle: toggleValue } = useAccordion()
 
-	const open = accordion.isOpen(value)
+	// The item reads its own value, so a toggle renders only the items that open
+	// or close.
+	const subscribe = useCallback(
+		(listener: () => void) => openStore.subscribe(value, listener),
+		[openStore, value],
+	)
+
+	const readOpen = () => openStore.get(value)
+
+	const open = useSyncExternalStore(subscribe, readOpen, readOpen)
 
 	const toggle = useCallback(() => {
-		if (!disabled) accordion.toggle(value)
-	}, [disabled, accordion, value])
+		if (!disabled) toggleValue(value)
+	}, [disabled, toggleValue, value])
 
 	// A generated scope per item namespaces the trigger/panel ids.
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
@@ -56,7 +65,7 @@ export function AccordionItem({
 			<div
 				data-slot="accordion-item"
 				data-open={dataAttr(open)}
-				className={cn(k.item({ variant: accordion.variant }), className)}
+				className={cn(k.item({ variant }), className)}
 			>
 				{children}
 			</div>

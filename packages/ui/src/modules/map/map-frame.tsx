@@ -29,6 +29,8 @@ type MapFrameProps = {
 	tooltip: boolean
 	/** Whether a region's category is matched and shown; the hover provider's pointed-emphasis gate. */
 	regionActive: (index: number) => boolean
+	/** The legend id under emphasis; the hover provider hands it to the marks. */
+	emphasis: string | null
 	/** Warms the region the pointer settles on; the hover provider holds the dwell. */
 	preloadRegion: ((index: number) => void) | undefined
 	table: ReactNode
@@ -48,6 +50,7 @@ export function MapFrame({
 	zoom,
 	tooltip,
 	regionActive,
+	emphasis,
 	preloadRegion,
 	table,
 	width,
@@ -80,6 +83,7 @@ export function MapFrame({
 				enabled={tooltip}
 				plotRef={plotRef}
 				regionActive={regionActive}
+				emphasis={emphasis}
 				preloadRegion={preloadRegion}
 			>
 				{aside ? (

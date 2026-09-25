@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { fireEvent, noop, present, renderUI, screen } from '../helpers'
@@ -61,6 +62,27 @@ describe('FloatingSurface', () => {
 		fireEvent.keyDown(el, { key: 'a' })
 
 		expect(onKeyDown).toHaveBeenCalled()
+	})
+
+	// `getFloatingProps` hands user props back, `ref` among them. A consumer ref
+	// must join the positioning ref, not replace it, or the engine never sees
+	// the wrapper.
+	it('hands the wrapper to setFloating when a consumer holds a ref', () => {
+		const setFloating = vi.fn()
+
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<FloatingSurface open {...baseProps} setFloating={setFloating} ref={ref} data-slot="held">
+				<span>panel</span>
+			</FloatingSurface>,
+		)
+
+		const wrapper = present(document.querySelector('[data-slot="held"]'), '[data-slot="held"]')
+
+		expect(ref.current).toBe(wrapper)
+
+		expect(setFloating).toHaveBeenCalledWith(wrapper)
 	})
 
 	it('leaves an open surface free to take input', () => {

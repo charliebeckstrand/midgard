@@ -1,18 +1,18 @@
 {
-  "$schema": "https://v2-11-2.turborepo.dev/schema.json",
-  "extends": ["//"],
-  "tasks": {
-    "test": {
-      "inputs": [
-        "$TURBO_EXTENDS$",
-        "REFERENCE.md",
-        "$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
-        "vitest.browser.config.ts",
-        "$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
-        "!$TURBO_ROOT$/apps/*/.next/**",
-        "!$TURBO_ROOT$/apps/*/node_modules/**",
-        "$TURBO_ROOT$/packages/*/src/**"
-      ]
-    }
-  }
+	"$schema": "https://v2-11-2.turborepo.dev/schema.json",
+	"extends": ["//"],
+	"tasks": {
+		"test": {
+			"inputs": [
+				"$TURBO_EXTENDS$",
+				"REFERENCE.md",
+				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
+				"vitest.browser.config.ts",
+				"$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
+				"!$TURBO_ROOT$/apps/*/.next/**",
+				"!$TURBO_ROOT$/apps/*/node_modules/**",
+				"$TURBO_ROOT$/packages/*/src/**"
+			]
+		}
+	}
 }

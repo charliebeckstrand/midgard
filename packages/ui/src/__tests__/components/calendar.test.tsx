@@ -1,9 +1,9 @@
-import { createRef } from 'react'
+import { createRef, Profiler } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
-import { act, bySlot, liveRegion, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -55,6 +55,59 @@ describe('Calendar', () => {
 		expect(typeof ref.current?.nextMonth).toBe('function')
 
 		expect(typeof ref.current?.openPicker).toBe('function')
+	})
+
+	it('mounts on the client in one commit, with today marked', () => {
+		const onRender = vi.fn()
+
+		renderUI(
+			<Profiler id="calendar" onRender={onRender}>
+				<Calendar />
+			</Profiler>,
+		)
+
+		// A render that does not hydrate reads today at once, with no second commit.
+		expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount'])
+
+		expect(
+			screen.getAllByRole('option').filter((o) => o.hasAttribute('aria-current')),
+		).toHaveLength(1)
+	})
+
+	it('names the Gregorian month, year, and days in a Buddhist-calendar locale', () => {
+		// `th-TH` defaults to the Buddhist calendar, where 2025 is 2568.
+		renderUI(<Calendar locale="th-TH" defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(screen.getByRole('listbox', { name: 'มิถุนายน 2025' })).toBeInTheDocument()
+
+		expect(screen.getAllByRole('option')[14]).toHaveAccessibleName('วันอาทิตย์ที่ 15 มิถุนายน 2025')
+	})
+
+	it('steps one month for each handle call in one event', () => {
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => {
+			ref.current?.nextMonth()
+
+			ref.current?.nextMonth()
+		})
+
+		expect(screen.getByRole('listbox', { name: 'August 2025' })).toBeInTheDocument()
+	})
+
+	it('keeps a navigated month when the parent passes an equal value again', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		// A new `Date` on each render, as a parent that derives the value inline.
+		const { rerender } = renderUI(<Calendar value={new Date(2025, 5, 15)} />)
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		rerender(<Calendar value={new Date(2025, 5, 15)} />)
+
+		expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
 	})
 
 	it('announces the new month through the polite live region on navigation', async () => {
@@ -259,6 +312,28 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('option', { name: 'Jun', selected: true })).toBeInTheDocument()
 	})
 
+	it('labels the picker panel as a dialog', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		expect(screen.getByRole('dialog', { name: 'Choose month and year' })).toBeInTheDocument()
+	})
+
+	it('names Gregorian months in a locale with another default calendar', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		// `fa-IR` defaults to the Persian calendar. Its January is "ژانویه", not
+		// "دی", the Persian month that holds January 1.
+		renderUI(<Calendar locale="fa-IR" defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'ژوئن ۲۰۲۵' }))
+
+		expect(screen.getByRole('option', { name: 'ژانویه' })).toBeInTheDocument()
+	})
+
 	it('opens the year picker from the month picker and navigates decades', async () => {
 		const user = userEvent.setup({ delay: null })
 
@@ -294,6 +369,53 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument()
 
 		expect(screen.getByRole('option', { name: 'Jan' })).toBeInTheDocument()
+	})
+
+	it('reopens from the handle on the month grid of the calendar year', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		// Step the picker away from 2025, then leave it on the year grid.
+		await user.click(screen.getByRole('button', { name: 'Next year' }))
+
+		await user.click(screen.getByRole('button', { name: '2026' }))
+
+		await user.keyboard('{Escape}')
+
+		act(() => ref.current?.openPicker())
+
+		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument()
+	})
+
+	// `@internationalized/date` clamps a year outside 1 to 9999, so a pick of
+	// year 0 showed year 1.
+	it('keeps the year picker inside years 1 to 9999', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const yearFive = new Date(2000, 0, 15)
+
+		yearFive.setFullYear(5)
+
+		renderUI(<Calendar defaultValue={yearFive} />)
+
+		await user.click(openPicker(/^January 5$/))
+
+		await user.click(screen.getByRole('button', { name: '5' }))
+
+		expect(screen.getByRole('option', { name: '0' })).toBeDisabled()
+
+		expect(screen.getByRole('option', { name: '1' })).toBeEnabled()
+
+		await user.click(screen.getByRole('button', { name: 'Previous decade' }))
+
+		expect(screen.getByRole('button', { name: /^1\s*–\s*9$/ })).toBeInTheDocument()
 	})
 })
 
@@ -552,5 +674,86 @@ describe('Calendar onMonthChange', () => {
 		await user.click(screen.getByRole('option', { name: 'Sep' }))
 
 		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 8, 1))
+	})
+})
+
+// The suite pins the zone to UTC, so local midnight is 00:00 UTC. June 2025
+// holds each day that these cases pass, so the grid stays on one month.
+describe('Calendar today', () => {
+	const todayCell = () =>
+		screen.getAllByRole('option').find((option) => option.hasAttribute('aria-current'))
+
+	/** Tells the page that the reader shows it again, as a browser does for a tab. */
+	function showPage() {
+		act(() => {
+			document.dispatchEvent(new Event('visibilitychange'))
+		})
+	}
+
+	it('moves the today mark to the next day at local midnight', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 15, 23, 59, 30))
+
+			renderUI(<Calendar />)
+
+			expect(todayCell()).toHaveTextContent(/^15$/)
+
+			await clock.advance(30_000)
+
+			expect(todayCell()).toHaveTextContent(/^16$/)
+		})
+	})
+
+	it('moves the today mark when the page shows again after a missed midnight', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 15, 12))
+
+			renderUI(<Calendar />)
+
+			// A browser holds the timers of a hidden tab. The clock moves past
+			// midnight, and the midnight timer does not run.
+			vi.setSystemTime(new Date(2025, 5, 16, 9))
+
+			showPage()
+
+			expect(todayCell()).toHaveTextContent(/^16$/)
+		})
+	})
+
+	it('commits nothing when the page shows again on the same day', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 15, 9))
+
+			const onRender = vi.fn()
+
+			renderUI(
+				<Profiler id="calendar" onRender={onRender}>
+					<Calendar />
+				</Profiler>,
+			)
+
+			vi.setSystemTime(new Date(2025, 5, 15, 21))
+
+			showPage()
+
+			expect(onRender).toHaveBeenCalledOnce()
+		})
+	})
+
+	it('marks the new month in the month picker after a month boundary', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 30, 23, 59))
+
+			renderUI(<Calendar />)
+
+			await clock.advance(60_000)
+
+			// The view stays on the month that the reader looks at.
+			await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
+
+			expect(screen.getByRole('option', { name: 'Jul' })).toHaveAttribute('aria-current', 'date')
+
+			expect(screen.getByRole('option', { name: 'Jun' })).not.toHaveAttribute('aria-current')
+		})
 	})
 })

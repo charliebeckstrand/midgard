@@ -10,7 +10,8 @@ import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
  * Each overlay mark read the whole pointed mark from context, only to decide
  * whether it dims. The pointed mark changes on each crossing, so each crossing
  * rendered each mark, also between two regions, where no mark dims or lights.
- * Each mark now reads its own answer from a store.
+ * A legend hover republished the plat context the same way, through its
+ * emphasis. Each mark now reads its own answer from one store that holds both.
  *
  * The count needs a module mock, so this suite sits in `boundary/`.
  */
@@ -82,5 +83,32 @@ describe('map singular mark renders', () => {
 
 		// From one mark to the next, one mark dims and one lights.
 		expect(cross(hits[1] as Element, 60)).toBe(2)
+	})
+
+	it('renders only the marks whose dim changes on a legend focus move', () => {
+		const { container } = renderUI(fleet())
+
+		const items = allBySlot(container, 'map-legend-item').filter((item) =>
+			item.textContent?.startsWith('Stop'),
+		)
+
+		expect(items).toHaveLength(STOPS.length)
+
+		/** Moves the legend focus onto `item`, and returns the mark renders that it caused. */
+		const focus = (item: Element) => {
+			vi.mocked(MapPoint).mockClear()
+
+			act(() => {
+				fireEvent.focus(item)
+			})
+
+			return vi.mocked(MapPoint).mock.calls.length
+		}
+
+		// The first emphasis dims each other mark, which is a real change.
+		expect(focus(items[0] as Element)).toBe(STOPS.length - 1)
+
+		// From one legend item to the next, one mark dims and one lights.
+		expect(focus(items[1] as Element)).toBe(2)
 	})
 })

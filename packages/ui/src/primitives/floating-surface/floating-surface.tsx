@@ -68,11 +68,12 @@ export function FloatingSurface({
 	className,
 	style,
 	children,
+	ref,
 	...rest
 }: FloatingSurfaceProps) {
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
-	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating)
+	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating, ref)
 
 	// A closed surface is still on screen through its exit animation, and one that
 	// closed before the engine could place it — a menu panel the pointer swept

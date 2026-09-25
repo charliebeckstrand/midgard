@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Activity, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { Activity, type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { FOCUSABLE_SELECTOR } from '../../utilities'
@@ -27,8 +27,22 @@ export type ReadyRevealProps = {
 	className?: string
 }
 
-const HIDDEN = { opacity: 0, filter: 'blur(4px)' }
-const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
+// Only the placeholder blurs. A blur repaints the whole layer on each frame, and
+// the content layer can be any size, so the content fades with opacity alone,
+// which the compositor runs without a repaint.
+const PLACEHOLDER_HIDDEN = { opacity: 0, filter: 'blur(4px)' }
+
+// The placeholder rests at `filter: none`, not `blur(0px)`. Any filter value
+// other than `none` makes the layer a stacking context, a containing block for
+// fixed descendants, and a backdrop root, and it keeps a compositing layer
+// alive. Motion reads `none` as `blur(0px)` when the next fade starts.
+const PLACEHOLDER_VISIBLE = { opacity: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }
+
+const CONTENT_HIDDEN = { opacity: 0 }
+
+const CONTENT_VISIBLE = { opacity: 1 }
+
+const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 
 // The content layer occupies the single grid cell and, as the only in-flow
 // layer, is the sole thing that sizes it. The placeholder is lifted out of flow
@@ -39,11 +53,12 @@ const CONTENT_CELL = { gridArea: '1 / 1' } as const
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
 
 /**
- * Gates content on a `ready` flag, crossfading (opacity plus blur) from
- * `placeholder` to `children` to avoid a flash of unready content. The two
- * layers stack in one grid cell. The content layer sits in flow, and the
- * placeholder is lifted out of flow over it. The content alone therefore sizes
- * the cell, and the box stays put across the swap.
+ * Gates content on a `ready` flag, crossfading from `placeholder` to
+ * `children` to avoid a flash of unready content. The placeholder fades and
+ * blurs out, and the content fades in with opacity alone. The two layers stack
+ * in one grid cell. The content layer sits in flow, and the placeholder is
+ * lifted out of flow over it. The content alone therefore sizes the cell, and
+ * the box stays put across the swap.
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honors
@@ -62,6 +77,10 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * swap holds its place to the pixel, no matter how the placeholder's silhouette
  * is sized. A skeleton drawn a shade shorter or taller than the content it fills
  * in for shifts nothing.
+ *
+ * The content layer never takes a filter. The revealed content therefore gets
+ * no stacking context, containing block, or backdrop root from the reveal, and
+ * its fade does not repaint it.
  */
 export function ReadyReveal({
 	ready,
@@ -97,6 +116,10 @@ export function ReadyReveal({
 	// focus has since moved elsewhere on the page.
 	const lastFocused = useRef<HTMLElement | null>(null)
 
+	const trackFocus = (event: FocusEvent<HTMLDivElement>) => {
+		lastFocused.current = event.target
+	}
+
 	useLayoutEffect(() => {
 		const deactivating = ready ? placeholderRef.current : contentRef.current
 
@@ -119,24 +142,19 @@ export function ReadyReveal({
 
 	return (
 		<ReducedMotion>
-			<div
-				data-slot="ready-reveal"
-				className={cn('relative grid', className)}
-				style={{ gridTemplate: '1fr / 1fr' }}
-			>
+			<div data-slot="ready-reveal" className={cn('relative grid', className)} style={ROOT_GRID}>
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
 					<motion.div
 						ref={placeholderRef}
-						// Track the last focused element per layer (focusin bubbles here),
-						// so the effect can tell whether the deactivating layer held focus.
-						onFocus={(event) => {
-							lastFocused.current = event.target as HTMLElement
-						}}
+						// Track the last focused element in each layer (focusin bubbles
+						// here), so the effect can tell whether the deactivating layer
+						// held focus.
+						onFocus={trackFocus}
 						aria-hidden={ready}
 						// `inert` keeps the hidden layer's descendants out of the Tab
 						// order and off the a11y tree, and swallows pointer events.
 						inert={ready}
-						animate={ready ? HIDDEN : VISIBLE}
+						animate={ready ? PLACEHOLDER_HIDDEN : PLACEHOLDER_VISIBLE}
 						initial={false}
 						transition={k.transition}
 						// Rest only after the fade-out that hides the placeholder lands
@@ -161,12 +179,10 @@ export function ReadyReveal({
 				    which keeps the swap free of layout shift. */}
 				<motion.div
 					ref={contentRef}
-					onFocus={(event) => {
-						lastFocused.current = event.target as HTMLElement
-					}}
+					onFocus={trackFocus}
 					aria-hidden={!ready}
 					inert={!ready}
-					animate={ready ? VISIBLE : HIDDEN}
+					animate={ready ? CONTENT_VISIBLE : CONTENT_HIDDEN}
 					initial={false}
 					transition={k.transition}
 					style={CONTENT_CELL}

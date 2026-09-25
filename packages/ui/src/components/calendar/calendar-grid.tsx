@@ -1,7 +1,6 @@
 'use client'
 
-import type { KeyboardEventHandler, RefObject } from 'react'
-import { cn } from '../../core'
+import { type KeyboardEventHandler, memo, type RefObject } from 'react'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
@@ -35,11 +34,12 @@ type CalendarGridProps = {
 /**
  * Weekday header row plus the `role="listbox"` day grid. Resolves per-cell
  * today/selected/active flags, lets `getDayProps` override styling, and offsets
- * the 1st into its locale-aware column via `gridColumnStart`.
+ * the 1st into its locale-aware column via `gridColumnStart`. Memoized: the
+ * month/year picker and the roved header control do not render the grid again.
  *
  * @internal
  */
-export function CalendarGrid({
+export const CalendarGrid = memo(function CalendarGrid({
 	gridRef,
 	onGridKeyDown,
 	size,
@@ -60,7 +60,7 @@ export function CalendarGrid({
 	return (
 		<div className={k.grid}>
 			{weekdays.map((day) => (
-				<div key={day} className={cn(k.weekday({ size }))} aria-hidden="true">
+				<div key={day} className={k.weekday({ size })} aria-hidden="true">
 					{day}
 				</div>
 			))}
@@ -117,4 +117,4 @@ export function CalendarGrid({
 			</div>
 		</div>
 	)
-}
+})
