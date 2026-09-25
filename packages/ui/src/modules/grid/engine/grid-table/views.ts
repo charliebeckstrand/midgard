@@ -454,16 +454,38 @@ export function facetSpan(values: Iterable<unknown>): readonly [number, number] 
 const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 
 /**
- * The engine actions of {@link GridColumnFilter}. Each reads or writes the
- * engine when it runs.
+ * The facets of a column from the distinct values of its cells. The facets
+ * hold each value that is not blank as sorted text, and the span of the
+ * numbers.
+ *
+ * @internal
+ */
+export function toColumnFacets(values: Iterable<unknown>): GridColumnFacets {
+	const all = [...values]
+
+	const text = all.filter((value) => value != null && value !== '').map((value) => String(value))
+
+	return {
+		values: [...new Set(text)].sort((a, b) => a.localeCompare(b)),
+		span: facetSpan(all),
+	}
+}
+
+/**
+ * The actions of {@link GridColumnFilter}. Each reads or writes the engine
+ * when it runs.
  *
  * @param manual - Whether the consumer filters. A manual grid holds only the
  *   server page, so its columns have no facets.
+ * @param facetValues - The distinct cell values that the facets of a column
+ *   read, which the grid collects off the engine (see `useFacetSource`). `null`
+ *   reads them from the faceted model of the engine.
  * @internal
  */
 export function columnFilterActions<T>(
 	table: EngineTable<T>,
 	manual: boolean,
+	facetValues: ((id: string) => Iterable<unknown>) | null,
 ): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
@@ -471,18 +493,13 @@ export function columnFilterActions<T>(
 		// engine's `onColumnFiltersChange` like any other filter edit.
 		clear: () => table.setColumnFilters([]),
 		facets: (id) => {
-			const facets = manual ? undefined : table.getColumn(String(id))?.getFacetedUniqueValues()
+			if (manual) return NO_FACETS
 
-			if (!facets) return NO_FACETS
+			if (facetValues) return toColumnFacets(facetValues(String(id)))
 
-			const values = [...facets.keys()]
-				.filter((value) => value != null && value !== '')
-				.map((value) => String(value))
+			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
 
-			return {
-				values: [...new Set(values)].sort((a, b) => a.localeCompare(b)),
-				span: facetSpan(facets.keys()),
-			}
+			return facets ? toColumnFacets(facets.keys()) : NO_FACETS
 		},
 	}
 }

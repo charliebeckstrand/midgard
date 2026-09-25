@@ -42,7 +42,13 @@ import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
-import { compileColumnFilters, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
+import {
+	type ColumnTests,
+	compileColumnFilters,
+	filterRowIndices,
+	type RowTest,
+	uniqueValues,
+} from './engine/grid-filter/filter'
 import {
 	expandGroups,
 	type GridGroup,
@@ -587,7 +593,7 @@ function useClientView<T>(args: {
 	/** The query of the quick search, or `''` when the search prunes no rows. */
 	query: string
 	/** The compiled column filters (see `compileColumnFilters`). */
-	columnTests: RowTest<T>[] | null
+	columnTests: ColumnTests<T> | null
 	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
 	columns: GridColumn<T>[]
 }): ClientView<T> | null {
@@ -623,7 +629,7 @@ function useClientView<T>(args: {
 
 		const search = compileSearch(columns, query)
 
-		const byColumn = columnTests ?? []
+		const byColumn = columnTests ? [...columnTests.values()] : []
 
 		return search ? [...byColumn, search] : byColumn
 	}, [filtered, columns, query, columnTests])
@@ -913,8 +919,10 @@ function useFilterView<T>(args: {
 	columns: GridColumn<T>[]
 	applied: GridColumnFilterState[]
 	affordance: GridColumnFilter['affordance'] | undefined
+	/** The facet values off the engine (see {@link useFacetSource}), or `null` to read the engine. */
+	facetValues: ((id: string) => Iterable<unknown>) | null
 }): GridColumnFilter | null {
-	const { table, enabled, manual, columns, applied } = args
+	const { table, enabled, manual, columns, applied, facetValues } = args
 
 	const affordance = args.affordance ?? 'header'
 
@@ -922,7 +930,10 @@ function useFilterView<T>(args: {
 	// affordance), or `null`. Lives here because a table instance holds no such state.
 	const [openColumn, setOpenColumn] = useState<string | number | null>(null)
 
-	const actions = useMemo(() => columnFilterActions(table, manual), [table, manual])
+	const actions = useMemo(
+		() => columnFilterActions(table, manual, facetValues),
+		[table, manual, facetValues],
+	)
 
 	return useMemo(
 		() =>
@@ -938,6 +949,59 @@ function useFilterView<T>(args: {
 				: null,
 		[enabled, columns, applied, actions, affordance, openColumn],
 	)
+}
+
+/**
+ * The distinct cell values that the facets of each column read, collected off
+ * the engine. `null` when a column filter reads a filter function that only
+ * the engine holds, and the engine then gives the facets.
+ *
+ * @remarks
+ * The facets of a column read the rows that pass the quick search and every
+ * other column filter. The faceted row model of the engine reads the same
+ * rows. The filter of the column itself does not apply, so its facets still
+ * offer the values that it hides. A filter sheet reads the values when it
+ * opens. The first read after a change of the rows, the filters, or the query
+ * collects them, and the grid builds no engine row for them.
+ *
+ * @internal
+ */
+function useFacetSource<T>(args: {
+	rows: T[]
+	columns: GridColumn<T>[]
+	columnTests: ColumnTests<T> | null
+	/** The query of the quick search, or `''` when the search prunes no rows. */
+	query: string
+}): ((id: string) => Iterable<unknown>) | null {
+	const { rows, columns, columnTests, query } = args
+
+	return useMemo(() => {
+		if (columnTests === null) return null
+
+		const search = compileSearch(columns, query)
+
+		const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+
+		const cache = new Map<string, Set<unknown>>()
+
+		return (id: string) => {
+			let values = cache.get(id)
+
+			if (!values) {
+				const read = byId.get(id)?.value
+
+				const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
+
+				if (search) tests.push(search)
+
+				values = read ? uniqueValues(rows, read, tests) : new Set()
+
+				cache.set(id, values)
+			}
+
+			return values
+		}
+	}, [rows, columns, columnTests, query])
 }
 
 /**
@@ -1390,6 +1454,9 @@ export function useGridTable<T>({
 
 	const materialize = (engineTransform && !clientTransforms.offEngine) || manualGroupRow != null
 
+	// A search that only marks its matches prunes no row.
+	const searchQuery = globalConfigured && !globalHighlights ? resolvedGlobalFilter : ''
+
 	// The off-engine client filter, sort, and page (otherwise the engine runs them
 	// inside its pipeline, above).
 	const clientView = useClientView({
@@ -1400,8 +1467,7 @@ export function useGridTable<T>({
 		offEngine: clientTransforms.offEngine,
 		filtered: clientTransforms.filtered,
 		page: clientTransforms.page,
-		// A search that only marks its matches prunes no row.
-		query: globalConfigured && !globalHighlights ? resolvedGlobalFilter : '',
+		query: searchQuery,
 		columnTests,
 		columns,
 	})
@@ -1504,6 +1570,8 @@ export function useGridTable<T>({
 		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],
 	)
 
+	const facetValues = useFacetSource({ rows, columns, columnTests, query: searchQuery })
+
 	const filters = useFilterView({
 		table: engine,
 		enabled: hasColumnFilters,
@@ -1511,6 +1579,7 @@ export function useGridTable<T>({
 		columns,
 		applied: resolvedColumnFilters,
 		affordance: columnFiltersConfig?.affordance,
+		facetValues,
 	})
 
 	const pinning = usePinningView({

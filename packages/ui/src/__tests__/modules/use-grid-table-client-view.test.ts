@@ -7,6 +7,7 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
+import { toColumnFacets } from '../../modules/grid/engine/grid-table/views'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
@@ -155,6 +156,50 @@ describe('engine sort of an undefined cell', () => {
 			expect(ids.at(-1)).toBe(0)
 
 			expect(gridView(rows, { sort }).ids).toEqual(ids)
+		},
+	)
+})
+
+describe('useGridTable facets', () => {
+	/** The facets of each filterable column, as the grid gives them. */
+	function gridFacets(rows: Row[], transforms: EngineTransforms) {
+		const { result } = renderHook(() =>
+			useGridTable<Row>({
+				rows,
+				columns,
+				getKey,
+				globalFilter: {
+					value: transforms.query ?? '',
+					...(transforms.highlight ? { mode: 'highlight' as const } : {}),
+				},
+				columnFilters: { value: transforms.filters ?? [] },
+			}),
+		)
+
+		const { filters } = result.current
+
+		return columns.map((col) => filters?.facets(col.id))
+	}
+
+	/** The same facets, read from the faceted model of a stock engine table. */
+	function engineFacets(rows: Row[], transforms: EngineTransforms) {
+		const table = engineTable(rows, columns, getKey, {
+			...transforms,
+			query: transforms.query ?? '',
+			filters: transforms.filters ?? [],
+		})
+
+		return columns.map((col) =>
+			toColumnFacets(table.getColumn(String(col.id))?.getFacetedUniqueValues().keys() ?? []),
+		)
+	}
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.boolean(), filtersArb], { numRuns: 60 })(
+		'gives the facets of the engine',
+		(rows, query, highlight, filters) => {
+			const transforms: EngineTransforms = { query, highlight, filters }
+
+			expect(gridFacets(rows, transforms)).toEqual(engineFacets(rows, transforms))
 		},
 	)
 })
