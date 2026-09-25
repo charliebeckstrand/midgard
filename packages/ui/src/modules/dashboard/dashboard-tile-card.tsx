@@ -5,7 +5,7 @@ import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardHandle } from './dashboard-handle'
+import { DashboardDragHandle } from './dashboard-drag-handle'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
@@ -89,7 +89,12 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	children,
 }: DashboardTileCardProps) {
 	const handle = movable && (
-		<DashboardHandle {...grip} label={`Move ${label}`} floating={!hasHeader} dragging={dragging} />
+		<DashboardDragHandle
+			{...grip}
+			label={`Move ${label}`}
+			floating={!hasHeader}
+			dragging={dragging}
+		/>
 	)
 
 	return (

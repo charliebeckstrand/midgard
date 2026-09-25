@@ -6,8 +6,8 @@ import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 
-/** Props for {@link DashboardHandle}. @internal */
-export type DashboardHandleProps = {
+/** Props for {@link DashboardDragHandle}. @internal */
+export type DashboardDragHandleProps = {
 	/** The accessibility attributes from `useDraggable`. */
 	attributes: DraggableAttributes
 	/** The pointer and keyboard listeners from `useDraggable`. */
@@ -17,9 +17,9 @@ export type DashboardHandleProps = {
 	/** The accessible name, for example "Move Revenue". */
 	label: string
 	/** Float the grip on the corner of a tile that has no header row. */
-	floating?: boolean
+	floating: boolean
 	/** Whether the tile is held now, which closes the grab hand. */
-	dragging?: boolean
+	dragging: boolean
 }
 
 /**
@@ -29,14 +29,14 @@ export type DashboardHandleProps = {
  *
  * @internal
  */
-export function DashboardHandle({
+export function DashboardDragHandle({
 	attributes,
 	listeners,
 	setActivatorNodeRef,
 	label,
-	floating = false,
-	dragging = false,
-}: DashboardHandleProps) {
+	floating,
+	dragging,
+}: DashboardDragHandleProps) {
 	return (
 		<button
 			data-slot="dashboard-handle"

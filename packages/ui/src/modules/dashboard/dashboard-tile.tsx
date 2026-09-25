@@ -2,7 +2,7 @@
 
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -251,8 +251,6 @@ export function DashboardTile(props: DashboardTileProps) {
 		<div
 			ref={setShell}
 			data-slot="dashboard-tile"
-			data-dragging={dataAttr(drag.dragging)}
-			data-static={dataAttr(cell.static)}
 			style={{
 				gridArea: gridArea(cell),
 				padding: gap / 2,
