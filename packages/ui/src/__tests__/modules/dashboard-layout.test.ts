@@ -5,6 +5,7 @@ import {
 	clampSpan,
 	collides,
 	type DashboardCell,
+	type DashboardTileDemands,
 	deriveHeight,
 	fits,
 	mergeLayout,
@@ -175,6 +176,24 @@ describe('resolveLayout', () => {
 		expect(cells[1]).toMatchObject({ x: 0, y: 27 })
 
 		expect(cells[2]).toMatchObject({ x: 0, y: 45 })
+	})
+
+	it('places the new tiles in markup order, and a tie or a tile with no rank in mount order', () => {
+		const demands = new Map<string, DashboardTileDemands>([
+			['later', { rank: [2, 0] }],
+			['none', {}],
+			['copy', { rank: [1, 3] }],
+			['source', { rank: [1, 0] }],
+			['twin', { rank: [1, 3] }],
+		])
+
+		expect(resolveLayout([], demands, 24).map((item) => [item.id, item.y])).toEqual([
+			['source', 0],
+			['copy', 18],
+			['twin', 36],
+			['later', 54],
+			['none', 72],
+		])
 	})
 
 	it('gives a new tile its default size, and derives the height of a ratio tile', () => {

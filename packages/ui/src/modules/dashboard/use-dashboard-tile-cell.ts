@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useLayoutEffect, useMemo } from 'react'
-import { useDashboardStoreContext } from './context'
+import { useDashboardStoreContext, useDashboardTileRank } from './context'
 import {
 	type DashboardCell,
 	type DashboardTileDemands,
@@ -39,10 +39,11 @@ function keyCell(id: string, key: string): DashboardCell | undefined {
 /**
  * Registers the demands of the tile `id`, and returns its painted cell.
  *
- * Mount registers and unmount unregisters. A change of the demands updates them
- * in place, so the tile keeps its mount order, which places a tile with no entry.
- * Such a tile takes its `defaultSize`. In development, a mount logs an error when
- * another tile already holds the id.
+ * Mount registers and unmount unregisters. The demands hold the rank that the
+ * nearest board child gives the tile. A tile with no entry thus takes its row in
+ * markup order, at its `defaultSize`. A change of the demands or of the rank
+ * updates them in place, so a tie keeps the mount order. In development, a mount
+ * logs an error when another tile already holds the id.
  *
  * A tile registers in a layout effect, so the server never sees it register. Until
  * then, the tile resolves its cell from its own layout entry and its own demands. The server
@@ -59,6 +60,9 @@ export function useDashboardTileCell(
 	demands: DashboardTileDemands,
 ): DashboardCell | undefined {
 	const store = useDashboardStoreContext()
+
+	// Two numbers, so a fresh pair from a render of the board is no change.
+	const [slot, index] = useDashboardTileRank()
 
 	const { ratio, minWidth, label, defaultSize, minSize, maxSize } = demands
 
@@ -97,8 +101,9 @@ export function useDashboardTileCell(
 			defaultSize: defaultW === undefined ? undefined : { w: defaultW, h: defaultH },
 			minSize: bound(minW, minH),
 			maxSize: bound(maxW, maxH),
+			rank: [slot, index],
 		})
-	}, [store, id, ratio, minWidth, label, defaultW, defaultH, minW, minH, maxW, maxH])
+	}, [store, id, ratio, minWidth, label, defaultW, defaultH, minW, minH, maxW, maxH, slot, index])
 
 	// The entry matters only until the tile registers. A registered tile stops
 	// reading it, so a new layout array from the app never renders it again.

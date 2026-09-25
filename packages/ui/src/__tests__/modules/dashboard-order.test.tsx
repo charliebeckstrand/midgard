@@ -1,13 +1,15 @@
-import { Fragment } from 'react'
+import { Fragment, StrictMode, useCallback, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
+	type DashboardSpec,
 	type DashboardSpecTile,
 	DashboardTile,
 	DashboardTiles,
 	DashboardWidgetProvider,
+	duplicateSpecTile,
 } from '../../modules/dashboard'
 import { allBySlot, fireEvent, renderUI, screen, within } from '../helpers'
 import { Counter } from '../helpers/dashboard-board'
@@ -31,6 +33,14 @@ function markupOrder(container: HTMLElement): string[] {
 	return allBySlot(container, 'dashboard-tile').map(
 		(tile) => tile.querySelector('[data-slot="card-title"]')?.textContent ?? '',
 	)
+}
+
+/** Each tile in markup order: the text of `selector` in the tile, and the top grid row of the tile. */
+function tileRows(container: HTMLElement, selector: string): [string, string][] {
+	return allBySlot(container, 'dashboard-tile').map((tile) => [
+		tile.querySelector(selector)?.textContent ?? '',
+		tile.style.gridArea.split(' / ')[0] ?? '',
+	])
 }
 
 /** The grid areas of the tiles in markup order. */
@@ -291,6 +301,41 @@ describe('Dashboard reading order', () => {
 		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
 	})
 
+	it('places a new tile with no entry in markup order, also inside a Fragment, and a new mount keeps the rows', () => {
+		function Board({ first }: { first: boolean }) {
+			return (
+				<Dashboard aria-label="Board">
+					<Fragment key="top">
+						{first && <DashboardTile id="x" title="X" />}
+
+						<DashboardTile id="y" title="Y" />
+					</Fragment>
+
+					<DashboardTile id="z" title="Z" />
+				</Dashboard>
+			)
+		}
+
+		const { container, rerender, unmount } = renderUI(<Board first={false} />)
+
+		rerender(<Board first />)
+
+		// X mounts last, but it comes first in the markup, so it takes the top row.
+		const rows = [
+			['X', '1'],
+			['Y', '19'],
+			['Z', '37'],
+		]
+
+		expect(tileRows(container, '[data-slot="card-title"]')).toEqual(rows)
+
+		unmount()
+
+		const fresh = renderUI(<Board first />)
+
+		expect(tileRows(fresh.container, '[data-slot="card-title"]')).toEqual(rows)
+	})
+
 	it('keeps the state of a tile that the new order moves', () => {
 		function Board({ layout }: { layout: DashboardLayoutItem[] }) {
 			return (
@@ -336,5 +381,68 @@ describe('DashboardTiles reading order', () => {
 		)
 
 		expect(markupOrder(container)).toEqual(['B', 'A', 'C', 'New'])
+	})
+
+	it('places the copies of two Duplicate clicks in spec order, and a new mount gives the same rows', () => {
+		const spec: DashboardSpec = {
+			tiles: [
+				{ id: 'a', widget: 'note', title: 'A' },
+				{ id: 'b', widget: 'note', title: 'B' },
+				{ id: 'c', widget: 'note', title: 'C' },
+			],
+			layout: LAYOUT,
+		}
+
+		function Board({ initial, editing = false }: { initial: DashboardSpec; editing?: boolean }) {
+			const [current, setCurrent] = useState(initial)
+
+			const duplicate = useCallback(
+				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				[],
+			)
+
+			return (
+				<DashboardWidgetProvider widgets={widgets}>
+					<Dashboard aria-label="Board" editing={editing} layout={{ value: current.layout }}>
+						<DashboardTiles tiles={current.tiles} onDuplicate={duplicate} />
+					</Dashboard>
+				</DashboardWidgetProvider>
+			)
+		}
+
+		const { container, rerender, unmount } = renderUI(<Board initial={spec} editing />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Duplicate C' }))
+
+		// The second source comes higher in the spec, so its copy comes before the first copy.
+		fireEvent.click(screen.getByRole('button', { name: 'Duplicate A' }))
+
+		const rows = [
+			['b', '1'],
+			['a', '1'],
+			['c', '11'],
+			['tile-2', '21'],
+			['tile-1', '31'],
+		]
+
+		// In edit mode the markup holds still, so the copies go last, in spec order.
+		expect(tileRows(container, 'p')).toEqual(rows)
+
+		rerender(<Board initial={spec} />)
+
+		expect(tileRows(container, 'p')).toEqual(rows)
+
+		unmount()
+
+		// The spec that the two clicks saved. No gesture ran, so the copies have no entry.
+		const saved = duplicateSpecTile(duplicateSpecTile(spec, 'c'), 'a')
+
+		const fresh = renderUI(
+			<StrictMode>
+				<Board initial={saved} />
+			</StrictMode>,
+		)
+
+		expect(tileRows(fresh.container, 'p')).toEqual(rows)
 	})
 })

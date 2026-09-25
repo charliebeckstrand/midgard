@@ -2,6 +2,7 @@
 
 import { createContext } from '../../core'
 import type { QueryGroup } from '../query/engine/types'
+import type { DashboardTileRank } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardWidgetRegistry } from './types'
@@ -45,6 +46,23 @@ export const [DashboardActionsContext, useDashboardActions] =
 export const [DashboardTileContext, useDashboardTileId] = createContext<string | null>(
 	'DashboardTile',
 	{ default: null },
+)
+
+/**
+ * The place in the markup of the tiles under the reader. `Dashboard` gives each
+ * of its children a slot, and `DashboardTiles` adds the index of each spec tile.
+ * A tile registers the rank, so the tiles with no entry take their rows in
+ * markup order.
+ *
+ * @remarks
+ * With no provider above it, as in a portal child of the board, a tile takes the
+ * rank `[0, 0]`. A tie keeps the mount order.
+ *
+ * @internal
+ */
+export const [DashboardTileRankContext, useDashboardTileRank] = createContext<DashboardTileRank>(
+	'DashboardTileRank',
+	{ default: [0, 0] },
 )
 
 /** The registry with nothing in it: each spec tile falls back. */

@@ -191,9 +191,9 @@ export type DashboardTileProps = {
  *
  * @remarks
  * A tile with a layout entry renders on the server at its saved cell. A tile
- * with no entry takes a new row under the lowest tile, at its `defaultSize`. It
- * first renders on the client, because the board must know each mounted tile to
- * place it.
+ * with no entry takes a new row under the lowest tile, at its `defaultSize` and
+ * in markup order. It first renders on the client, because the board must know
+ * each mounted tile to place it.
  *
  * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
  * through CSS. The header then becomes a veil over the top of the content, so the

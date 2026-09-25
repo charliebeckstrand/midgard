@@ -23,7 +23,12 @@ import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
 import type { QueryGroup } from '../query/engine/types'
-import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
+import {
+	type DashboardActions,
+	DashboardActionsContext,
+	DashboardStoreContext,
+	DashboardTileRankContext,
+} from './context'
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
@@ -137,25 +142,43 @@ function declaredTiles(children: ReactNode): Set<string> {
  * @remarks
  * The children flatten through each Fragment, and each other element takes a key
  * from its Fragment path. A component that renders a tile keeps its own slot.
+ *
+ * Each element goes inside a rank provider with its slot in the markup, and not
+ * with the slot that the reading order gives it. A tile with no entry thus takes
+ * its row in markup order.
  */
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
 	const items = flattenBoardChildren(children)
 
 	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
 
-	const tiles = sortByOrder(
-		slots.map((slot) => items[slot] as ReactElement<DashboardTileProps>),
+	// The markup slot of each tile, in reading order.
+	const sources = sortByOrder(
+		slots,
 		order,
-		(tile) => tile.props.id,
+		(slot) => (items[slot] as ReactElement<DashboardTileProps>).props.id,
 	)
 
-	slots.forEach((slot, index) => {
-		const tile = tiles[index]
+	// The markup slot of the element that each slot of the result holds.
+	const from = new Map(slots.map((slot, index) => [slot, sources[index] ?? slot]))
 
-		if (tile !== undefined) items[slot] = cloneElement(tile, { key: `tile:${tile.props.id}` })
+	return items.map((_, index) => {
+		const slot = from.get(index) ?? index
+
+		const child = items[slot]
+
+		if (!isValidElement(child)) return child
+
+		const tile = isTileElement(child)
+
+		const key = tile ? `tile:${child.props.id}` : child.key
+
+		return (
+			<DashboardTileRankContext key={key} value={[slot, 0]}>
+				{tile ? cloneElement(child, { key }) : child}
+			</DashboardTileRankContext>
+		)
 	})
-
-	return items
 }
 
 /**
@@ -223,6 +246,10 @@ export type DashboardProps = AccessibleName & {
 	 * The order reaches each `DashboardTile` child, also inside a Fragment. A
 	 * component that renders a tile keeps its own slot. `DashboardTiles` orders
 	 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
+	 *
+	 * The tiles with no layout entry take their new rows in markup order. That
+	 * order reads the children, then the `tiles` of each `DashboardTiles`. The
+	 * tiles that one component renders take their rows in mount order.
 	 */
 	children?: ReactNode
 }

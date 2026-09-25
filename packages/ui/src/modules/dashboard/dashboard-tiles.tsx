@@ -5,7 +5,7 @@ import { Text } from '../../components/text'
 import { cn } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { useDashboardWidgets } from './context'
+import { DashboardTileRankContext, useDashboardTileRank, useDashboardWidgets } from './context'
 import { DashboardTile } from './dashboard-tile'
 import { sortByOrder } from './engine/dashboard-layout'
 import type { DashboardSpecTile } from './engine/dashboard-spec'
@@ -106,18 +106,26 @@ export function DashboardTiles({
 	// DashboardTile defaults `mount` and `expandable`, so each passes through as given.
 	const { widgets, fallback = statedFallback, mount } = useDashboardWidgets()
 
+	// The slot of this element among the children of the board.
+	const [slot] = useDashboardTileRank()
+
 	const order = useDashboardStore((view) => view.order)
 
 	// The markup follows the board, so the keyboard and assistive tech meet the
 	// tiles as the eye reads them. A tile with no entry yet goes last, in spec order.
-	const ordered = useMemo(() => sortByOrder(tiles, order, (tile) => tile.id), [tiles, order])
+	const ordered = useMemo(
+		() => sortByOrder([...tiles.entries()], order, ([, tile]) => tile.id),
+		[tiles, order],
+	)
 
 	return (
 		<>
-			{ordered.map((tile) => (
+			{ordered.map(([index, tile]) => (
 				<DashboardSpecTileView
 					key={tile.id}
 					tile={tile}
+					slot={slot}
+					index={index}
 					// An own key only. A name from storage such as "constructor" is then no
 					// widget, and not a member of the object prototype.
 					widget={Object.hasOwn(widgets, tile.widget) ? widgets[tile.widget] : undefined}
@@ -175,6 +183,10 @@ function DashboardSpecTileActions({ actions, tile }: DashboardSpecTileActionsPro
 type DashboardSpecTileViewProps = {
 	/** The spec tile. */
 	tile: DashboardSpecTile
+	/** The slot of the `DashboardTiles` among the children of the board. */
+	slot: number
+	/** The index of the spec tile in `tiles`. With `slot`, it gives the rank of the tile. */
+	index: number
 	/** The widget of its kind, or `undefined` when no widget claims it. */
 	widget: DashboardWidget | undefined
 	/** Draws a tile whose kind no widget claims. */
@@ -193,12 +205,15 @@ type DashboardSpecTileViewProps = {
 
 /**
  * One spec tile as a `DashboardTile`. It renders again only when one of its
- * props changes by identity.
+ * props changes by identity. It gives the tile its rank in the markup, so a tile
+ * with no entry takes its row in the order of `tiles`.
  *
  * @internal
  */
 const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	tile,
+	slot,
+	index,
 	widget,
 	fallback,
 	mount,
@@ -210,24 +225,26 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	const render = widget?.render ?? fallback
 
 	return (
-		<DashboardTile
-			id={tile.id}
-			title={tile.title}
-			description={tile.description}
-			actions={actions && <DashboardSpecTileActions actions={actions} tile={tile} />}
-			ratio={widget?.ratio}
-			// A tile with no widget shows a line of text. It demands no width, so a
-			// narrow saved span never re-packs the board or stops edit mode.
-			minWidth={widget === undefined ? 0 : widget.minWidth}
-			defaultSize={tile.defaultSize ?? widget?.defaultSize}
-			minSize={widget?.minSize}
-			maxSize={widget?.maxSize}
-			mount={mount}
-			onRemove={onRemove && (() => onRemove(tile))}
-			onDuplicate={onDuplicate && (() => onDuplicate(tile))}
-			expandable={expandable}
-		>
-			<DashboardSpecTileBody render={render} tile={tile} />
-		</DashboardTile>
+		<DashboardTileRankContext value={[slot, index]}>
+			<DashboardTile
+				id={tile.id}
+				title={tile.title}
+				description={tile.description}
+				actions={actions && <DashboardSpecTileActions actions={actions} tile={tile} />}
+				ratio={widget?.ratio}
+				// A tile with no widget shows a line of text. It demands no width, so a
+				// narrow saved span never re-packs the board or stops edit mode.
+				minWidth={widget === undefined ? 0 : widget.minWidth}
+				defaultSize={tile.defaultSize ?? widget?.defaultSize}
+				minSize={widget?.minSize}
+				maxSize={widget?.maxSize}
+				mount={mount}
+				onRemove={onRemove && (() => onRemove(tile))}
+				onDuplicate={onDuplicate && (() => onDuplicate(tile))}
+				expandable={expandable}
+			>
+				<DashboardSpecTileBody render={render} tile={tile} />
+			</DashboardTile>
+		</DashboardTileRankContext>
 	)
 })
