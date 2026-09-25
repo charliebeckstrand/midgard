@@ -60,6 +60,7 @@ export const k = {
 	table: 'my-4 w-full text-start',
 	th: [weight.semibold, 'border-b px-3 py-2', ...sen.border.emphasisColor],
 	td: ['border-b px-3 py-2', ...sen.border.defaultColor],
+	// biome-ignore lint/plugin/no-text-left: a table column that `:---` marks is left-aligned by name, and the map renders that name as the author wrote it
 	align: { left: 'text-left', right: 'text-right', center: 'text-center' },
 
 	img: 'my-4 max-w-full rounded-lg',

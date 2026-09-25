@@ -460,6 +460,20 @@
 				"!**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-respelled-orientation.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/recipes/**",
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/docs/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-text-left.grit"]
 		}
 	],
 	"files": {
