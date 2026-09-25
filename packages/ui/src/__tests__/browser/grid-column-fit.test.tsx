@@ -105,7 +105,7 @@ describe('grid column auto-sizing (real browser)', () => {
 
 		await waitFor(() => expect(header('wide').getBoundingClientRect().width).toBeGreaterThan(0))
 
-		// The data-heavy column claims more width than its undemanding neighbours.
+		// The data-heavy column claims more width than its undemanding neighbors.
 		expect(header('wide').getBoundingClientRect().width).toBeGreaterThan(
 			header('a').getBoundingClientRect().width,
 		)
@@ -314,7 +314,7 @@ describe('grid column auto-sizing (real browser)', () => {
 		// The reset column drops to the smallest width its header and data need…
 		await waitFor(() => expect(header('name').getBoundingClientRect().width).toBeLessThan(150))
 
-		// …while its neighbour holds the width it had instead of re-fitting.
+		// …while its neighbor holds the width it had instead of re-fitting.
 		expect(header('role').getBoundingClientRect().width).toBeGreaterThan(250)
 	})
 

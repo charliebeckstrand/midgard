@@ -68,7 +68,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 
-4.5 Props live beside the component that takes them. A barrel reaches a type at the module that declares it, never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
+4.5 Props live beside the component that takes them. A barrel reaches a type at the module that declares it, never through a component that re-exports it. Every barreled component ships its `<Name>Props`.
 
 4.6 A barrel names each symbol that it re-exports, once for each source module. A type rides the statement of its module with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`). A module that exports only types takes `export type { … } from`. Never `export *`: a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. `barrel-export-boundary.test.ts` and Biome's `noReExportAll` gate the rule.
 

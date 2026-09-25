@@ -1,12 +1,12 @@
 /**
  * How far each drawn dot's pointer target reaches, and why it is ever less than
  * the whole. Clustering has already merged everything that draws over its
- * neighbour (`group.ts`). This reads what survived that merge, and asks a wider
+ * neighbor (`group.ts`). This reads what survived that merge, and asks a wider
  * question of it. The question is not whether two marks overlap, but how much of
  * the ground under one of them belongs to something else.
  *
- * Three things claim that ground. A neighbour inside the coarse reach claims it.
- * A target that covered a neighbour's face would take that neighbour's readout
+ * Three things claim that ground. A neighbor inside the coarse reach claims it.
+ * A target that covered a neighbor's face would take that neighbor's readout
  * with it, and the mark a reader can see would answer nothing. A drawn zone
  * under the dot claims it. And a region layer that answers the pointer at all
  * claims it — a readout, a pick, a menu. The dot is the topmost thing at its own
@@ -67,12 +67,12 @@ const INDEX_THRESHOLD = 8
 /**
  * How much reach a target centered on `mark` has before it covers the face
  * `other` paints, in device pixels. It is the gap between them less what the
- * neighbour draws. It is read one way round, rather than as an overlap. The mark
- * whose target reaches a neighbour is the one that gives ground back. A wide
+ * neighbor draws. It is read one way round, rather than as an overlap. The mark
+ * whose target reaches a neighbor is the one that gives ground back. A wide
  * summary beside a small dot is not the same case as the small dot beside it.
  *
- * `Infinity` where the neighbour is beyond that reach anyway. That is the
- * identity of the minimum a caller folds these into. A far neighbour therefore
+ * `Infinity` where the neighbor is beyond that reach anyway. That is the
+ * identity of the minimum a caller folds these into. A far neighbor therefore
  * needs no special case, and no layer below {@link markTargets} has to know what
  * the cap is.
  *
@@ -93,7 +93,7 @@ function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number):
 }
 
 /**
- * How much reach the nearest neighbour leaves each drawn dot, index for index
+ * How much reach the nearest neighbor leaves each drawn dot, index for index
  * with the marks handed in. It is `Infinity` where nothing stands inside that
  * dot's coarse reach, which {@link markTargets} then caps.
  *
@@ -110,12 +110,12 @@ function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number):
  *
  * @param marks - The drawn dots, in the order they draw.
  * @param unitsPerPixel - Frame units per device pixel under the plat's zoom.
- * @returns The reach each dot's neighbours leave it, in device pixels.
+ * @returns The reach each dot's neighbors leave it, in device pixels.
  *
  * @internal
  */
 export function neighborRoom(marks: readonly MapDotMark[], unitsPerPixel = 1): number[] {
-	// A mark alone on the frame has no neighbour to give ground to, which is every
+	// A mark alone on the frame has no neighbor to give ground to, which is every
 	// `MapPoint` and every set drawing one dot.
 	if (marks.length < 2) return marks.map(() => Number.POSITIVE_INFINITY)
 
@@ -157,13 +157,13 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
 		let room = Number.POSITIVE_INFINITY
 
 		walkNear(cells, at, reach, (slot) => {
-			// Its own entry answers itself, and a dot is never its own neighbour.
+			// Its own entry answers itself, and a dot is never its own neighbor.
 			const other = slot === index ? undefined : marks[slot]
 
 			if (other !== undefined) room = Math.min(room, roomBeside(at, other, unitsPerPixel))
 
 			// Never stops the walk, where `group.ts` reads this return to stop on its
-			// first hit: the nearest neighbour decides the reach, so every near cell has
+			// first hit: the nearest neighbor decides the reach, so every near cell has
 			// to be read before the answer is known.
 			return false
 		})
@@ -178,7 +178,7 @@ function indexed(marks: readonly MapDotMark[], unitsPerPixel: number): number[] 
  * meets.
  *
  * A dot takes the whole finger target where nothing else needs the ground under
- * it, and gives way as something does. That something is a neighbour close
+ * it, and gives way as something does. That something is a neighbor close
  * enough that the target would cover its face. It is also a zone or region it
  * stands on, with only so much room to spare. All three arrive as the same
  * measure: a reach in device pixels, `Infinity` where the claimant wants
@@ -217,12 +217,12 @@ export function markTargets(
 
 	return marks.map(({ at, radius }, index) => {
 		// It draws nothing and stands nowhere, so no zone, no region, and no
-		// neighbour can be asked about it.
+		// neighbor can be asked about it.
 		if (at === null) return POINT_HIT_RADIUS
 
 		const near = beside[index] ?? Number.POSITIVE_INFINITY
 
-		// A neighbour that has already taken the target to the mark's own paint
+		// A neighbor that has already taken the target to the mark's own paint
 		// settles it: the clamp floors there, so nothing another claimant says can
 		// move the answer. Asked anyway, `spare` is the most expensive question on
 		// the map — a grid walk over the region layer — for a figure that is

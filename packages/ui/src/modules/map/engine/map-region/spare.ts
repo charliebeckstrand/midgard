@@ -1,6 +1,6 @@
 /**
  * What the region under a dot can spare it — the region part of the hit-target
- * rule. `map-cluster/crowd.ts` holds the neighbour part and the list of
+ * rule. `map-cluster/crowd.ts` holds the neighbor part and the list of
  * claimants, `map-geofence.ts` the zone part, and `markTargets` joins them.
  *
  * The zone half learned the rule first. A figure that suits one shape blankets

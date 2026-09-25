@@ -43,7 +43,7 @@ describe('ChoroplethChart', () => {
 		)
 	})
 
-	it('reads each region its own value in the table, not the bin range it colours in', () => {
+	it('reads each region its own value in the table, not the bin range it colors in', () => {
 		const { container } = renderUI(
 			<ChoroplethChart
 				aria-label="Population"
@@ -58,7 +58,7 @@ describe('ChoroplethChart', () => {
 			(td) => td.textContent,
 		)
 
-		// A region reads its own total (its bin only drives the colour) — 0 / 50 / 100,
+		// A region reads its own total (its bin only drives the color) — 0 / 50 / 100,
 		// never the bucket range string a `format(lo)–format(hi)` bin label would emit.
 		expect(cells).toEqual(expect.arrayContaining(['0', '50', '100']))
 
@@ -291,7 +291,7 @@ describe('the default value format', () => {
 })
 
 describe('the range legend under quantile binning', () => {
-	it('emphasises the class the host assigns the probed value to', () => {
+	it('emphasizes the class the host assigns the probed value to', () => {
 		// Quantile binning puts the threshold at 2, so a probe at 50 falls in the
 		// upper class with 2 and 100. Equal intervals over 1–100 put it with 1 and 2.
 		const { container } = renderUI(

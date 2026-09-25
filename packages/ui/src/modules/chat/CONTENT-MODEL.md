@@ -1,6 +1,6 @@
 # Chat content model — design record
 
-> **Why the chat's content model has the shape it has.** [`ROADMAP.md`](ROADMAP.md) §3 planned to grow `ChatPart` into a flat, block-level union of five kinds. Four candidate models were built against the requirements the later increments place on it, and each was attacked on four lenses. This file records what the model must satisfy, the defects found in the planned shape, why the highest-scoring candidate lost, and what the judgement refuted. Read it before you add a kind.
+> **Why the chat's content model has the shape it has.** [`ROADMAP.md`](ROADMAP.md) §3 planned to grow `ChatPart` into a flat, block-level union of five kinds. Four candidate models were built against the requirements the later increments place on it, and each was attacked on four lenses. This file records what the model must satisfy, the defects found in the planned shape, why the highest-scoring candidate lost, and what the judgment refuted. Read it before you add a kind.
 
 ## Status
 
@@ -58,7 +58,7 @@ The first backlog entry said every module holds the receiving half of a shared s
 
 **D. Open envelope, closed forms.** Close the union at two *forms*, prose and block, and hold the openness in the block's `kind` string. A block is an opaque envelope that chat can always draw, project, and roll back on, and a registry entry keyed by that string supplies the renderer, the per-purpose text, the announcement, and the export form as one definition. Its own author states the condition it needs — kinds authored outside this repo — is not met by the roadmap, and that on the roadmap as written the closed union wins.
 
-## Judgement
+## Judgment
 
 Four lenses scored each candidate out of 10: streaming, projection and a11y, dependency and migration, and simplicity and altitude. B scored highest at 24.5, then A at 22.5, then C at 22, then D at 21.5 with one fatal defect.
 
@@ -86,7 +86,7 @@ Its **projection reverses an a11y guarantee**. The projection pushes `token.raw`
 
 It needs a **`renderers` prop on the shared `Markdown`**, which is a new caller-supplied rendering pattern in a static leaf with six consumers. The house forms are a per-item render prop, a builder that receives defaults, or a component through `UIProvider`.
 
-## What the judgement refuted
+## What the judgment refuted
 
 Record these, so no later increment re-proposes them without new evidence.
 
@@ -102,7 +102,7 @@ Record these, so no later increment re-proposes them without new evidence.
 
 ## The three items that hold
 
-Adopt these whatever else changes. An earlier draft of this file named a fourth, a purpose on the projection; the judgement refuted it, and the section above records why.
+Adopt these whatever else changes. An earlier draft of this file named a fourth, a purpose on the projection; the judgment refuted it, and the section above records why.
 
 1. **An id on every part.** For the string arm the engine uses a fixed `TEXT_PART_ID`, not a minted one, so the engine keeps its no-clock, no-random rule and a cumulative snapshot stays unambiguous: increment 5 replaces the text that one name points to, so a string chunk arriving after a chart can neither delete the chart nor open a second running text.
 
@@ -122,7 +122,7 @@ No change is needed to [`docs/MODULES.md`](../../../docs/MODULES.md) — it inde
 
 ## Open decisions
 
-These are calls the judgement cannot make, and each is a decision for the repo owner.
+These are calls the judgment cannot make, and each is a decision for the repo owner.
 
 **Does an id survive the client?** Settled for a message. `useChatSend` used to overwrite a seed message's id with a fresh `crypto.randomUUID()`, so a persisted conversation was re-keyed at each mount and a target written before a reload named a message that no longer existed. It now keeps the id a seed message carries, and assigns one only to a message that carries none. A part's id inside `content` was never rewritten, so a part's whole address — the message id and the part id — now survives a reload.
 

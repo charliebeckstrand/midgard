@@ -6,7 +6,7 @@ import { allBySlot, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { zoomToCeiling } from './helpers/map-zoom'
 
-/** The centre of an element's box, in client coordinates. */
+/** The center of an element's box, in client coordinates. */
 function centerOf(element: Element) {
 	const box = element.getBoundingClientRect()
 
@@ -78,7 +78,7 @@ describe('dot hit target by pointer modality', () => {
 		expect(getComputedStyle(hit).r).toBe(`${POINT_HIT_RADIUS}px`)
 	})
 
-	it('leaves a depot at a catchment’s centre pointing at the zone a few pixels out', () => {
+	it('leaves a depot at a catchment’s center pointing at the zone a few pixels out', () => {
 		renderUI(
 			// The demo's own shape: the zone draws first, so the depot's target paints
 			// over it and whatever that target does not claim falls through to the zone.
@@ -111,7 +111,7 @@ describe('dot hit target by pointer modality', () => {
 		}
 
 		// And gives back the rest of the zone's middle. Both of these answered the
-		// depot while one dot took the whole reach, so the catchment's own centre
+		// depot while one dot took the whole reach, so the catchment's own center
 		// could not be pointed at with a mouse.
 		for (const offset of [used + 4, used + 10]) {
 			expect(document.elementFromPoint(cx + offset, cy)).toBe(zone)
@@ -192,9 +192,9 @@ describe('dot hit target by pointer modality', () => {
 		expect(targets).toHaveLength(2)
 
 		// A scaling target was 43.8px per dot across a 14.9px gap, so each one covered
-		// the other's centre and the topmost took both readouts — the zoom handed the
+		// the other's center and the topmost took both readouts — the zoom handed the
 		// reader two stops and one of them answered to nothing. The pair earns the
-		// narrow target on each other rather than on a zone: a neighbour that close
+		// narrow target on each other rather than on a zone: a neighbor that close
 		// is the whole reason a dot gives its reach back.
 		for (const target of targets) {
 			const { x, y } = centerOf(target)

@@ -71,7 +71,7 @@ describe('MapRoute', () => {
 		)
 	})
 
-	it('takes an explicit colour over its slot', () => {
+	it('takes an explicit color over its slot', () => {
 		const { container } = renderUI(overlayPlat(<MapRoute label="M6" stops={STOPS} color="rose" />))
 
 		expect(bySlot(container, 'map-route')?.getAttribute('class')).toContain('stroke-rose-600')
@@ -141,7 +141,7 @@ describe('MapRoute', () => {
 
 		fireEvent.pointerEnter(getSlot<HTMLButtonElement>(container, 'map-legend-item'))
 
-		// The route is emphasised, so the regions dim against it.
+		// The route is emphasized, so the regions dim against it.
 		expect(anyDimmed()).toBe(true)
 
 		// Unmount the route while its legend button is still focused: no leave or

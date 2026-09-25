@@ -28,7 +28,7 @@ describe('CodeBlock', () => {
 		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
 	})
 
-	it('renders a plain-text fallback before shiki has tokenised', async () => {
+	it('renders a plain-text fallback before shiki has tokenized', async () => {
 		const { container } = renderUI(<CodeBlock code="raw code" />)
 
 		expect(screen.getByText('raw code')).toBeInTheDocument()

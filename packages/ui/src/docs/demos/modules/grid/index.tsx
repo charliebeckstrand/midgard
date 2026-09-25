@@ -1260,7 +1260,7 @@ const metrics: Metric[] = [
 // column's `cell` and hand it the row's series. Both chart columns declare a
 // `value` (the latest period) so their headers sort, and both `animate` — the
 // line draws itself and the area fades in, the bars rise from the baseline, each
-// honouring reduced-motion. The `key={sortKey}` re-keys every sparkline on the
+// honoring reduced-motion. The `key={sortKey}` re-keys every sparkline on the
 // active sort: a sort remounts the cells, so the marks redraw as the rows settle
 // into their new order (without it, memoized rows that keep their place — the top
 // row after a sort that doesn't move it — would hold their drawn state). Both

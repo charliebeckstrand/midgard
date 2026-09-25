@@ -68,7 +68,7 @@ function withinBar(
  * every bar. A bar's own body wins first, so the pointer isolates the bar it
  * truly covers. Only where no body catches it does the widened `gap` pass close
  * the thin gaps between a group's bars. Each bar's slack reaches its
- * neighbour's edge. A pointer sweeping across a group therefore never falls
+ * neighbor's edge. A pointer sweeping across a group therefore never falls
  * between them and flickers the tooltip. The wider between-group padding stays
  * uncovered. The band axis is x when vertical and y when horizontal, so the
  * slack follows the orientation.
@@ -83,7 +83,7 @@ export function barMarkAt(
 	orientation: ChartOrientation = 'vertical',
 ): { series: number; datum: number } | null {
 	// Two passes: the exact bodies first so a hovered bar isolates itself rather
-	// than a gap-widened neighbour, then the widened spans to bridge the gaps.
+	// than a gap-widened neighbor, then the widened spans to bridge the gaps.
 	for (const slack of gap > 0 ? [0, gap] : [0]) {
 		for (let series = 0; series < marks.length; series++) {
 			const row = marks[series] as (BarMark | null)[]

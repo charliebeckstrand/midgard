@@ -7,7 +7,7 @@ import { act, frames, renderUI, waitFor } from '../helpers'
 /**
  * Virtualization windowing (real browser). With a real layout engine the
  * virtualizer measures an actual viewport; asserts that a windowed subset
- * renders and that the window tracks scroll position, behaviour jsdom can't
+ * renders and that the window tracks scroll position, behavior jsdom can't
  * exercise (zero-size scroll container → zero rendered rows).
  *
  * Coverage spans the two production windowing seams: `useVirtualWindow` (the
@@ -18,7 +18,7 @@ import { act, frames, renderUI, waitFor } from '../helpers'
  * `max-height`, which sizes the scroller from its content.
  *
  * The full Grid component is not driven here: its render lifecycle never
- * initialises the virtualizer on an isolated headless mount (CONVENTIONS §10.3).
+ * initializes the virtualizer on an isolated headless mount (CONVENTIONS §10.3).
  * Its windowing is covered by the benchmarks; `useVirtualWindow` is the shared
  * hook exercised below.
  */
@@ -196,7 +196,7 @@ describe('useVirtualWindow measured windowing', () => {
 		return offset
 	}
 
-	it('places each row at the start its measured neighbours give it', async () => {
+	it('places each row at the start its measured neighbors give it', async () => {
 		const { container } = renderUI(<MeasuredList count={500} />)
 
 		await waitFor(() => {

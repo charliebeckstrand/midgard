@@ -13,7 +13,7 @@ describe('mode', () => {
 	})
 
 	it('flattens one level of nesting in either argument', () => {
-		// Normalises `iro`'s composed sub-arrays into a uniform `string[]`.
+		// Normalizes `iro`'s composed sub-arrays into a uniform `string[]`.
 		expect(
 			mode(['bg-white', ['hover:bg-zinc-50']], ['dark:bg-black', ['dark:hover:bg-zinc-900']]),
 		).toEqual(['bg-white', 'hover:bg-zinc-50', 'dark:bg-black', 'dark:hover:bg-zinc-900'])

@@ -122,7 +122,7 @@ function closingSize<K>(motions: ReadonlyMap<K, GridRowMotion>, key: K): number 
  * view when the group collapsed, and they stay until their reveal lands.
  *
  * @param groups - The groups, in display order.
- * @param args.totalled - Whether each group shows a total row.
+ * @param args.totaled - Whether each group shows a total row.
  * @param args.motions - The motion of each row, by open key.
  * @internal
  */

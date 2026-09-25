@@ -200,7 +200,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
 	cluster?: boolean | number
 	/**
 	 * The trailing readout a summary dot carries, from the stops it holds, how far
-	 * they spread, and what they are called. The spread is the diameter, in metres,
+	 * they spread, and what they are called. The spread is the diameter, in meters,
 	 * of the circle about the group that holds every one of them. The module
 	 * formats no distances of its own. A caller that wants it in the readout
 	 * therefore states the units it works in:
@@ -249,7 +249,7 @@ export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> 
  * Those circles are finger-sized targets. For a mouse a dot narrows to what the
  * ground around it can spare:
  *
- * - The gap to a neighbour that close.
+ * - The gap to a neighbor that close.
  * - The share a drawn {@link MapGeofence} under it leaves.
  * - The share a region layer under it takes.
  *

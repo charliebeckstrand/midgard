@@ -7,7 +7,7 @@ import type { OverlapMode, ThumbIndex } from './types'
  * Returns the shared range setter used by the keyboard and pointer hooks. It
  * snaps a raw thumb value to `step`, clamps it into `[min, max]`, writes it to
  * thumb `index`, and resolves a crossing. `swap` re-sorts the pair, and `clamp`
- * (default) pins the moved thumb to its neighbour.
+ * (default) pins the moved thumb to its neighbor.
  *
  * @remarks Snap-first, clamp-last is load-bearing (see the inline note): rounding
  * a clamped value can otherwise land past a bound.

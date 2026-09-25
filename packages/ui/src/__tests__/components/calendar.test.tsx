@@ -247,7 +247,7 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('button', { name: /March 2025/ })).toBeInTheDocument()
 	})
 
-	it('exposes the month picker as a labelled listbox with a selected option', async () => {
+	it('exposes the month picker as a labeled listbox with a selected option', async () => {
 		const user = userEvent.setup({ delay: null })
 
 		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)

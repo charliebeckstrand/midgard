@@ -13,7 +13,7 @@
  * Most codes are placed without being measured at all. Every region whose box
  * meets a code's box is a region that code could sit in. Where all of them
  * agree on one state, no measurement can name another. The code is therefore
- * settled for the cost of two boxes. Only a code whose neighbourhood spans two
+ * settled for the cost of two boxes. Only a code whose neighborhood spans two
  * states
  * reaches the exact placement below. Against the 2010 Illinois ZCTA file, 1,187
  * of 1,384 codes settle on the box alone.

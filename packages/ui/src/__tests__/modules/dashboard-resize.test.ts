@@ -29,13 +29,13 @@ const find = (cells: readonly DashboardCell[] | null, id: string) =>
 describe('resizePreview', () => {
 	const board = [cell('a', 0, 0, 8, 10), cell('b', 12, 0, 8, 10), cell('c', 0, 20, 24, 10)]
 
-	it('grows until it meets a neighbour', () => {
+	it('grows until it meets a neighbor', () => {
 		const next = resizePreview(board, 'a', 20, 10, { columns: 24, minW: 1 })
 
 		expect(find(next, 'a')).toMatchObject({ w: 12, h: 10 })
 	})
 
-	it('grows the height of a free-form tile until it meets a neighbour', () => {
+	it('grows the height of a free-form tile until it meets a neighbor', () => {
 		const next = resizePreview(board, 'a', 8, 40, { columns: 24, minW: 1 })
 
 		expect(find(next, 'a')).toMatchObject({ w: 8, h: 20 })
@@ -80,7 +80,7 @@ describe('edges', () => {
 describe('resizePreview with grid-unit limits', () => {
 	const board = [cell('a', 0, 0, 8, 10), cell('b', 20, 0, 4, 10)]
 
-	it('stops a width at maxW, before the neighbour', () => {
+	it('stops a width at maxW, before the neighbor', () => {
 		const next = resizePreview(board, 'a', 20, 10, { columns: 24, minW: 1, maxW: 10 })
 
 		expect(find(next, 'a')).toMatchObject({ w: 10 })

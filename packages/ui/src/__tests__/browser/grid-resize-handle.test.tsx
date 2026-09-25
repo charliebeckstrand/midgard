@@ -72,7 +72,7 @@ describe('grid resize handle geometry (real browser)', () => {
 		)
 
 		// The grip's trailing edge stops at the column boundary — it does not spill
-		// past it into the neighbour, whose opaque sticky header would clip it.
+		// past it into the neighbor, whose opaque sticky header would clip it.
 		expect(grip.getBoundingClientRect().right).toBeLessThanOrEqual(
 			roleHeader.getBoundingClientRect().right + 0.5,
 		)
@@ -159,7 +159,7 @@ describe('grid resize handle geometry (real browser)', () => {
 })
 
 /**
- * Grip alignment is uniform: every resizable grid centres its grip in the grab
+ * Grip alignment is uniform: every resizable grid centers its grip in the grab
  * zone — one cell-padding in from the trailing border — whether or not its cells
  * truncate. The handle only has measured geometry in a real browser.
  */
@@ -177,7 +177,7 @@ describe('grid resize grip alignment (real browser)', () => {
 	]
 
 	// Distance from the 'name' column's trailing border to its grip's right edge:
-	// about one cell-padding when the grip centres in the grab zone.
+	// about one cell-padding when the grip centers in the grab zone.
 	function gripInset(container: HTMLElement): number {
 		const header = present(
 			container.querySelector('th[data-grid-col="name"]'),
@@ -195,7 +195,7 @@ describe('grid resize grip alignment (real browser)', () => {
 		return header.getBoundingClientRect().right - grip.getBoundingClientRect().right
 	}
 
-	it('centres the grip a cell-padding inside the trailing border in a truncating grid', async () => {
+	it('centers the grip a cell-padding inside the trailing border in a truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid resizable outline columns={readOnlyColumns} rows={rows} getKey={(r) => r.id} />
@@ -212,7 +212,7 @@ describe('grid resize grip alignment (real browser)', () => {
 		expect(gripInset(container)).toBeLessThan(14)
 	})
 
-	it('centres the grip the same way in a non-truncating grid', async () => {
+	it('centers the grip the same way in a non-truncating grid', async () => {
 		const { container } = renderUI(
 			<div style={{ width: '900px' }}>
 				<Grid
@@ -230,7 +230,7 @@ describe('grid resize grip alignment (real browser)', () => {
 
 		await waitFor(() => expect(table.style.width).not.toBe(''))
 
-		// A non-truncating grid centres the grip identically — alignment no longer
+		// A non-truncating grid centers the grip identically — alignment no longer
 		// depends on truncation.
 		expect(gripInset(container)).toBeGreaterThan(3)
 

@@ -22,7 +22,7 @@ describe('shades', () => {
 		})
 	})
 
-	it("spreads a [light, dark] tuple into the colour's class array", () => {
+	it("spreads a [light, dark] tuple into the color's class array", () => {
 		const out = shades({
 			zinc: ['text-zinc-700', 'dark:text-zinc-400'],
 			red: ['text-red-700', 'dark:text-red-300'],

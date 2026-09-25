@@ -1,7 +1,7 @@
 /**
  * Sequential color-scale primitives shared by the data-driven color charts:
  * the choropleth and the heatmap. The primitives sample an ordered color ramp,
- * and quantise a numeric domain into equal-interval bins painted from it. Pure
+ * and quantize a numeric domain into equal-interval bins painted from it. Pure
  * and dependency-light so the mapping math is unit-testable in isolation and
  * both modules read one scale rather than forking it.
  *
@@ -98,7 +98,7 @@ export function valueExtent(
 }
 
 /**
- * Quantises `domain` into equal-interval {@link ColorBin}s sampled from
+ * Quantizes `domain` into equal-interval {@link ColorBin}s sampled from
  * `colorRange`, low → high. The default is one bin per color stop, or `bins`
  * buckets resampled from the stops when set. The last bin's `hi` is pinned to
  * the domain max so the top edge folds in rather than opening a bucket past it.

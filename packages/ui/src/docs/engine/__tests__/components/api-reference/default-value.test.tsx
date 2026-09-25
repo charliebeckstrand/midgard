@@ -29,7 +29,7 @@ describe('DefaultValue', () => {
 		['null', 'nullish', 'text-mist-600'],
 		['[]', 'array', 'text-sky-600'],
 		['{}', 'object', 'text-rose-600'],
-	])('colours %s as a %s', (input, _kind, hue) => {
+	])('colors %s as a %s', (input, _kind, hue) => {
 		const { container } = renderUI(<DefaultValue value={input} />)
 
 		const value = bySlot(container, 'default-value')
@@ -39,7 +39,7 @@ describe('DefaultValue', () => {
 		expect(value).toHaveClass(hue)
 	})
 
-	it('renders a quoted-literal union as prose, not one coloured string', () => {
+	it('renders a quoted-literal union as prose, not one colored string', () => {
 		const { container } = renderUI(<DefaultValue value="'start' | 'end'" />)
 
 		const value = bySlot(container, 'default-value')
@@ -75,7 +75,7 @@ describe('DefaultValue', () => {
 		expect(value?.querySelector('code')).toBeInTheDocument()
 	})
 
-	it('renders a descriptive default as prose, colouring literals and resolving links', () => {
+	it('renders a descriptive default as prose, coloring literals and resolving links', () => {
 		const { container } = renderUI(
 			<DefaultValue value="`'horizontal'` inside a {@link NavBar}, otherwise `'vertical'`" />,
 		)

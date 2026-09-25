@@ -37,7 +37,7 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * one (#1180). It also enforces a rule that nothing checked before: a test
  * removes what it leaves outside its container.
  *
- * The listener check generalises the click gate. A drag is one way to leave a
+ * The listener check generalizes the click gate. A drag is one way to leave a
  * listener on the document, and any hook that subscribes to `window` without
  * a cleanup is another. The report names the stack that added the listener,
  * so the case that fails also points at the line to fix.

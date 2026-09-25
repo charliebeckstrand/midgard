@@ -4,7 +4,7 @@
  * The continuous color-scale bar both color-scaled charts read: the heatmap
  * directly, the choropleth through the map module's `MapRangeLegend` wrapper.
  * The engine grammar wants a short kind name here, which would be `range.tsx`.
- * The neighbouring `range.ts` already holds the placement resolution. This file
+ * The neighboring `range.ts` already holds the placement resolution. This file
  * therefore carries the compound name, rather than the pair splitting across
  * two spellings of one word.
  */
@@ -204,7 +204,7 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 	const current = probe === null ? 0 : binOf(probe)
 
 	// Tied thresholds leave a class with no width, whose center reads back into
-	// a neighbour. A step walks on until it reaches a class it can land in.
+	// a neighbor. A step walks on until it reaches a class it can land in.
 	const step = (direction: 1 | -1) => {
 		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
 			const value = center(bin)
@@ -431,7 +431,7 @@ function RangeTrack({
  *
  * @remarks A slider read precisely. A pointer on the bar tracks the exact value
  * under the cursor, with a thumb that follows it and a live value readout. The
- * host, quantised into classes, emphasizes whichever class that value falls in
+ * host, quantized into classes, emphasizes whichever class that value falls in
  * through {@link RangeLegendProps.onProbe}. Its response steps at the class
  * edges, while the thumb does not. Arrow keys walk the classes once the bar has
  * focus. Up / Right step toward the max, Down / Left toward the min, and Home /
@@ -488,7 +488,7 @@ export function RangeLegend({
 	}
 
 	// Read a value: mark it and emphasize the class it falls in — the host is
-	// quantised, so its filter is per-class even while the readout stays precise.
+	// quantized, so its filter is per-class even while the readout stays precise.
 	const readValue = (value: number) => {
 		const next = Math.min(max, Math.max(min, value))
 

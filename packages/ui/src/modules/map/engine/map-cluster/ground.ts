@@ -5,13 +5,13 @@
  * The companion to `crowd.ts`, answering the same question — how much of this ground is mine — with a
  * shape instead of a radius. A radius is the right answer for a zone's claim. A `MapGeofence` is a
  * face, not a point, so there is no line to divide along. A dot standing on one can only give
- * reach back evenly. It is the wrong answer for a neighbouring DOT. Shrinking both targets to the
+ * reach back evenly. It is the wrong answer for a neighboring DOT. Shrinking both targets to the
  * gap costs each of them reach in every direction. That includes the three quarters of the compass
  * where nothing is competing for anything. Two dots twenty pixels apart therefore end up with
  * targets a reader has to aim at precisely. They pay that for an ambiguity that only ever existed
  * between them.
  *
- * A dot's ground is instead its full target MINUS whatever lies nearer to a neighbour. The boundary
+ * A dot's ground is instead its full target MINUS whatever lies nearer to a neighbor. The boundary
  * between two dots is the perpendicular bisector of the segment joining them. Each therefore keeps
  * the whole of its finger target outward. The contested middle divides once, evenly, along a line a
  * reader could have drawn themselves. It is also the only division that cannot depend on draw
@@ -21,7 +21,7 @@
  * The result is a convex polygon rather than the true circle-minus-lens. The target is a `<circle>`
  * under a `clip-path`, so the arc comes from the circle and this supplies only the straight cuts.
  * Convexity is what makes that sound. A half-plane intersection is always convex, and clipping a
- * convex region by another half-plane keeps it so, however many neighbours crowd in.
+ * convex region by another half-plane keeps it so, however many neighbors crowd in.
  *
  * Frame arithmetic, React-free, like the rest of the engine.
  */
@@ -110,14 +110,14 @@ function clipToHalf(ring: MapGround, mid: MapPoint2D, nx: number, ny: number): M
 }
 
 /**
- * The ground a dot keeps, or `null` when no neighbour is close enough to want any of it.
+ * The ground a dot keeps, or `null` when no neighbor is close enough to want any of it.
  *
  * Starts from the square bounding the dot's own target, so the ring is finite for a `clipPath` to
  * draw. Every cut lands inside it, because a bisector that contests the target at all crosses that
  * square. The circle supplies the curve; this supplies only the straight edges.
  *
  * @param at - The dot's projected frame position.
- * @param neighbours - Every other drawn dot's frame position. Far ones are filtered here rather than
+ * @param neighbors - Every other drawn dot's frame position. Far ones are filtered here rather than
  * by the caller, so a caller can hand over a whole cell's worth without measuring first.
  * @param reach - The dot's target radius, in the same frame units as the positions.
  * @returns The convex ring, or `null` to draw the target unclipped.
@@ -147,7 +147,7 @@ export function ownGround(
 
 		// The raw delta, not a unit normal: `nearer` reads only the sign of a dot product against it and
 		// `crossing` reads a ratio of two, so any positive scaling cancels out of both. Normalizing would
-		// buy a square root and a rounding step per neighbour to reach the same ring.
+		// buy a square root and a rounding step per neighbor to reach the same ring.
 		ring = clipToHalf(ring, { x: at.x + dx / 2, y: at.y + dy / 2 }, dx, dy)
 
 		// Every cut passes within `reach` of the center, so the dot's own position always survives and

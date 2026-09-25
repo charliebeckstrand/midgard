@@ -100,7 +100,7 @@ describe('isQueryActive', () => {
 // A rule constrains the rows only when the evaluator applies it. The filter
 // accent, the summary and chips, and the rows each read a rule through one of
 // these three functions. The three must give the same answer for each rule.
-describe('the active judgement, the summary, and the evaluator', () => {
+describe('the active judgment, the summary, and the evaluator', () => {
 	const codeField: QueryField = {
 		name: 'code',
 		label: 'Code',

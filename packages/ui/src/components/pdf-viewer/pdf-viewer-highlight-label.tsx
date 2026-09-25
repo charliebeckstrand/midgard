@@ -20,7 +20,7 @@ import { TooltipAnchor } from '../tooltip/tooltip-anchor'
  * The layer passes the anchor element down; nothing about the panel's position reaches it.
  *
  * **It takes no pointer events**, persisted or not. A name is not somewhere to travel to, and
- * on a dense page it lands on its neighbours. A reader who wants the box under it must be able
+ * on a dense page it lands on its neighbors. A reader who wants the box under it must be able
  * to point at the box, not at the name of another one. The layer answers for what that opens.
  * It fades the name over a box the pointer is reading. It also refuses to put the selection
  * down for a press that landed on the name and on nothing else.

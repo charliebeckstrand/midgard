@@ -214,8 +214,8 @@ describe('spark tier is non-interactive (real browser)', () => {
 		expect(lifted(container)).toBe(false)
 
 		// The hit layer covers the plot and takes the pointer, so the hover goes
-		// through it — aimed at the bar's own centre, so that bar is the pointed
-		// datum rather than a neighbour.
+		// through it — aimed at the bar's own center, so that bar is the pointed
+		// datum rather than a neighbor.
 		const barBox = mark.getBoundingClientRect()
 
 		const hitBox = hit.getBoundingClientRect()

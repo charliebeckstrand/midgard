@@ -112,7 +112,7 @@ export const dataComplexCases: readonly Case[] = [
 		),
 	},
 	{
-		// Read-only board: each column and card is labelled; no reorder handlers.
+		// Read-only board: each column and card is labeled; no reorder handlers.
 		name: 'kanban',
 		element: (
 			<Kanban key="kb" columns={kanbanColumns} getKey={(load: Load) => load.id} aria-label="Loads">

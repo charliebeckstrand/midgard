@@ -85,7 +85,7 @@ export function Dropdown({
 /** One open menu a bench drives: its trigger, and the point each row sits at. */
 export type Probe = {
 	trigger: HTMLElement
-	/** The centre of each row, resolved once so no sample pays for the layout read. */
+	/** The center of each row, resolved once so no sample pays for the layout read. */
 	points: { row: HTMLElement; x: number; y: number }[]
 }
 
@@ -137,7 +137,7 @@ export async function openDropdown(count: number, capped: boolean, panel: string
  * row to the panel's near edge. The level reads that course off the event's
  * coordinates, not off the row it lands on. So each sibling row takes one
  * arrival at a later point on the course. Each one passes the travel test, and
- * the submenu stays open for the next. An arrival at a row's own centre shares
+ * the submenu stays open for the next. An arrival at a row's own center shares
  * the parent's x, so the first of them fails the test and closes the submenu.
  * That leaves every later arrival nothing to measure.
  *

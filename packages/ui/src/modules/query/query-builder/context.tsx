@@ -43,7 +43,7 @@ const [QueryBuilderActionsContext, useQueryBuilderActions] =
 const [QueryBuilderRootContext, useQueryBuilderRoot] = createContext<QueryGroup>('QueryBuilderRoot')
 
 // Focus registry: rules/groups register their remove (and add) controls by key;
-// removal uses the registry to move focus to a surviving neighbour.
+// removal uses the registry to move focus to a surviving neighbor.
 const [QueryBuilderFocusContext, useQueryBuilderFocus] =
 	createContext<FocusRegister>('QueryBuilderFocus')
 

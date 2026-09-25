@@ -7,7 +7,7 @@ import { k } from '../../recipes/kata/pdf-viewer'
  * How a page of regions says which one is selected.
  *
  * These assert the *composed* classes rather than a rendered box, because the composition is
- * where this goes wrong: each palette colour is a light/dark pair, and an override that
+ * where this goes wrong: each palette color is a light/dark pair, and an override that
  * supplies only the base leaves the `dark:` half of the old value standing — correct in light
  * mode and silently inert in dark. That has bitten this surface twice.
  */
@@ -21,7 +21,7 @@ const selected = cn(region.base, region.activeFill.amber, region.ring.amber, reg
 const dimmed = cn(region.base, region.fill.amber, region.ring.amber, region.hover, region.dimmed)
 
 describe('a region at rest', () => {
-	it('carries its own colour, softly', () => {
+	it('carries its own color, softly', () => {
 		expect(resting).toContain('bg-amber-500/15')
 		expect(resting).toContain('ring-amber-500')
 	})
@@ -52,21 +52,21 @@ describe('the selected region', () => {
 		expect(selected).toContain('ring-4')
 	})
 
-	/** Regions paint in document order, so an overlapping neighbour could cover the emphasis. */
-	it('lifts above its neighbours', () => {
+	/** Regions paint in document order, so an overlapping neighbor could cover the emphasis. */
+	it('lifts above its neighbors', () => {
 		expect(selected).toContain('z-10')
 	})
 })
 
 describe('every other region while one is selected', () => {
-	it('loses its colour — both halves of every pair', () => {
+	it('loses its color — both halves of every pair', () => {
 		expect(dimmed).not.toContain('bg-amber-500/15')
 		expect(dimmed).not.toContain('ring-amber-500')
 		expect(dimmed).not.toContain('dark:ring-amber-600')
 	})
 
 	/**
-	 * Only the colour. Blanking them would answer "which is selected" by destroying the answer
+	 * Only the color. Blanking them would answer "which is selected" by destroying the answer
 	 * to "where is everything else".
 	 */
 	it('keeps a fill and a ring, so it is still findable', () => {
@@ -75,7 +75,7 @@ describe('every other region while one is selected', () => {
 		expect(dimmed).toContain('dark:ring-zinc-600')
 	})
 
-	it('stays at resting weight, so only the selected one is emphasised', () => {
+	it('stays at resting weight, so only the selected one is emphasized', () => {
 		expect(dimmed).not.toContain('ring-4')
 		expect(dimmed).not.toContain('z-10')
 	})

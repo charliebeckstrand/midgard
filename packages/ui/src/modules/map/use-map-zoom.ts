@@ -450,7 +450,7 @@ export function useMapZoom({
 		pointers.current.set(event.pointerId, at)
 
 		// One pointer pans, so the common case reads the map's size and never
-		// materialises its values; two pinch, and a second finger landing mid-drag
+		// materializes its values; two pinch, and a second finger landing mid-drag
 		// takes the gesture over rather than the two fighting for the view.
 		if (pointers.current.size < 2) {
 			drag(previous, at)

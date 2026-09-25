@@ -42,7 +42,7 @@ export type MapCoverageOptions = {
 	 *
 	 * Pass a topology wherever the outline matters. TopoJSON holds each shared
 	 * border once, so the covered codes dissolve exactly. The seams between
-	 * neighbours disappear. An uncovered code inside the territory comes out as a
+	 * neighbors disappear. An uncovered code inside the territory comes out as a
 	 * hole, and separate clusters come out as separate parts. A feature collection
 	 * repeats every shared border, and cannot be dissolved without a
 	 * polygon-clipping pass this module does not carry. It therefore draws each

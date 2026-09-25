@@ -330,7 +330,7 @@ describe('useScrollAreaScrollbar', () => {
 				window.dispatchEvent(new PointerEvent('pointercancel'))
 			})
 
-			// A cancelled pointer must end the drag; buttonless moves do nothing.
+			// A canceled pointer must end the drag; buttonless moves do nothing.
 			act(() => {
 				window.dispatchEvent(new PointerEvent('pointermove', { clientY: 50 }))
 			})

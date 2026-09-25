@@ -59,7 +59,7 @@ export const timezones: StateZone[] = [
 	{ state: 'Maine', zone: 'Eastern' },
 ]
 
-/** Explicit order and colours, so the legend reads west → east. */
+/** Explicit order and colors, so the legend reads west → east. */
 export const zoneCategories: MapCategory[] = [
 	{ value: 'Pacific', color: 'blue' },
 	{ value: 'Mountain', color: 'orange' },
@@ -162,9 +162,9 @@ export const ikeaDestinations: { city: string; abbreviation: string; at: LngLat 
 
 /**
  * Depot catchments for the geofence example: a next-day service radius around
- * each of three warehouses, as a distance across the ground in metres. The radii
+ * each of three warehouses, as a distance across the ground in meters. The radii
  * differ by depot, so the circles read as data rather than as chrome, and each
- * carries its own slot colour so a zone and the marks inside it read as a pair.
+ * carries its own slot color so a zone and the marks inside it read as a pair.
  */
 export const serviceAreas: {
 	city: string

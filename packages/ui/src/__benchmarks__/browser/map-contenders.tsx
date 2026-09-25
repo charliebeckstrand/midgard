@@ -41,7 +41,7 @@ import {
 
 /**
  * Explicit category order for the ui module, matching the fixed data classes
- * and pieces the rivals take, so an update recolours regions rather than also
+ * and pieces the rivals take, so an update recolors regions rather than also
  * re-deriving (and possibly reordering) the legend from the new rows.
  */
 const UI_CATEGORIES: MapCategory[] = ZONES.map((zone) => ({ value: zone }))
@@ -121,7 +121,7 @@ function hcData(rows: object[]): Highcharts.PointOptionsObject[] {
 /**
  * A Highcharts US map contender over one prepared atlas: the shared chart /
  * projection / FIPS-joined series and its in-place data update, leaving only
- * the colour scale (a zone data-class set, or a choropleth ramp) per scenario.
+ * the color scale (a zone data-class set, or a choropleth ramp) per scenario.
  * Built through the shared {@link hcContender} with `Highcharts.mapChart` as
  * the factory — the topology rides in `chart.map`, which its base-block merge
  * preserves.
@@ -163,7 +163,7 @@ function ecMapSeries(atlas: MapAtlas, data: NamedRow[]) {
 	}
 }
 
-/** An update that recolours the ECharts map in place — the same merge for zone and choropleth. */
+/** An update that recolors the ECharts map in place — the same merge for zone and choropleth. */
 function ecDataUpdate(data: { ecRows: NamedRow[] }): echarts.EChartsOption {
 	return { series: [{ data: data.ecRows }] }
 }
@@ -189,7 +189,7 @@ function ecZoneOption(atlas: MapAtlas, data: ZoneData, emphasis = false): echart
 			})),
 		},
 		// `emphasis.focus: 'self'` is a documented map option ECharts' published
-		// types omit; the cast keeps the runtime behaviour its `setOption` accepts.
+		// types omit; the cast keeps the runtime behavior its `setOption` accepts.
 		series: [emphasis ? ({ ...series, emphasis: { focus: 'self' } } as typeof series) : series],
 	}
 }

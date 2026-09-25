@@ -516,7 +516,7 @@ describe('TreeItem', () => {
 		expect(row.className).toContain('my-row')
 	})
 
-	it('honours controlled open=true and ignores defaultOpen', () => {
+	it('honors controlled open=true and ignores defaultOpen', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files">
 				<TreeItem label="Parent" open defaultOpen={false}>

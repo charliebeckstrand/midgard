@@ -97,8 +97,8 @@ describe('valueLabels', () => {
 	})
 
 	it('hides a label that would slide sideways to fit, keeping the vertical flip', () => {
-		// A label stays centred on its point: near a side edge its box would cross
-		// the plot, and it hides rather than sliding onto the neighbouring marks —
+		// A label stays centered on its point: near a side edge its box would cross
+		// the plot, and it hides rather than sliding onto the neighboring marks —
 		// the small-frame crowding this pins out.
 		const right = valueLabels({
 			series: [series([[198, 50, 12345]])],
@@ -120,7 +120,7 @@ describe('valueLabels', () => {
 
 		expect(left).toHaveLength(0)
 
-		// A fitting label anchors on its point's centre — never slid inward.
+		// A fitting label anchors on its point's center — never slid inward.
 		const [fits] = valueLabels({
 			series: [series([[100, 50, 12345]])],
 			plot: PLOT,
@@ -214,7 +214,7 @@ describe('resolveValueLabels', () => {
 
 	it('stands the point labels down when the chart has more than one series', () => {
 		// Point labels are single-series only — two series would crowd their
-		// numbers between the lines, so the config is honoured only for a lone
+		// numbers between the lines, so the config is honored only for a lone
 		// series and the tooltip carries the readout otherwise.
 		const twoSeries = [
 			...list,
@@ -258,7 +258,7 @@ describe('LineChart value labels', () => {
 
 		const drawn = allBySlot(container, 'chart-value-label').map((node) => node.textContent)
 
-		// The peak (90) and trough (40) are labelled; the middle point is not.
+		// The peak (90) and trough (40) are labeled; the middle point is not.
 		expect(drawn).toContain('90')
 
 		expect(drawn).toContain('40')

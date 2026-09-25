@@ -47,10 +47,10 @@ export function drawnRegions(regions: MapFeatureCollection | null): MapFeatureCo
 
 /**
  * How far outside the world outline a place may sit and still be rescued by the
- * nearest country, in kilometres.
+ * nearest country, in kilometers.
  *
  * It is a fact about `world-atlas` at 110m and not a preference. That drawing
- * runs a coastline inland of the harbours and beach towns a travel log is full
+ * runs a coastline inland of the harbors and beach towns a travel log is full
  * of — Newport, Oregon falls 3.1 km outside the United States as it is drawn —
  * and 50 km covers that generalization with room to spare. Whatever lies outside
  * every country of a world atlas is water, so the nearest coast is the right
@@ -219,7 +219,7 @@ export function countryOf(place: Place): string | undefined {
  * A place the states atlas can put in a state is in the United States, whatever
  * the geocoder called its country. That matters because the world is drawn at
  * 110m, where the outline generalizes away exactly the places a travel log is
- * full of: a harbour, a beach, a coastal town all sit a little outside the
+ * full of: a harbor, a beach, a coastal town all sit a little outside the
  * country that plainly holds them. Under the name alone they fell through to
  * "United States", which Natural Earth does not draw, and read as belonging
  * nowhere.

@@ -92,7 +92,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	const position = useMemo(() => project([lng, lat]), [project, lng, lat])
 
 	/*
-	 * The ground this dot keeps, once every other mark's dots are accounted for. `null` — no neighbour
+	 * The ground this dot keeps, once every other mark's dots are accounted for. `null` — no neighbor
 	 * close enough to want any — is the answer for almost every dot, and draws no clip at all.
 	 *
 	 * Memoized, and above the early return so the hook order cannot depend on visibility. This mark
@@ -110,7 +110,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 
 	/*
 	 * The shared rule, through the one dot this mark draws — memoized beside `ground` and for the
-	 * same reason. A lone dot has no neighbour of its own, so a zone or the region layer under it is
+	 * same reason. A lone dot has no neighbor of its own, so a zone or the region layer under it is
 	 * what can answer. The rule stays in one place, so a third claim reaches this mark without it
 	 * being edited.
 	 *

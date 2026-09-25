@@ -151,7 +151,7 @@ describe('map stroke width through the view', () => {
 
 		const dot = present<SVGGeometryElement>(bySlot(container, 'map-point'), 'map-point')
 
-		// The dot is a zero-length subpath, so its only point is its centre — and
+		// The dot is a zero-length subpath, so its only point is its center — and
 		// the cap the browser builds around that point is the whole of the mark.
 		// Its own stroke geometry is therefore the last word on how big the dot is,
 		// where a radius derived from the stated width would agree with itself even

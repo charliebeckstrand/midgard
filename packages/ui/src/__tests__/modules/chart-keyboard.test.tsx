@@ -514,7 +514,7 @@ describe('LineChart keyboard navigation', () => {
 		expect(tip?.textContent).toContain('40')
 	})
 
-	it('emphasises the series the cursor reads, dimming the other marks and its tooltip row', () => {
+	it('emphasizes the series the cursor reads, dimming the other marks and its tooltip row', () => {
 		const { container } = renderUI(line())
 
 		const plot = getSlot(container, 'chart-plot')
@@ -558,9 +558,9 @@ describe('LineChart keyboard navigation', () => {
 		}
 	})
 
-	it('emphasises the surviving series where a gap has shifted the stops', () => {
+	it('emphasizes the surviving series where a gap has shifted the stops', () => {
 		// Series A has no value at W2, so W2's only stop is B; landing there must
-		// emphasise B, proving the cursor's lane follows the series, not the slot.
+		// emphasize B, proving the cursor's lane follows the series, not the slot.
 		const gapped: { week: string; a?: number; b: number }[] = [
 			{ week: 'W1', a: 10, b: 90 },
 			{ week: 'W2', b: 70 },

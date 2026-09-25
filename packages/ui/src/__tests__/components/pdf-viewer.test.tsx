@@ -24,7 +24,7 @@ import { captureAppended } from '../helpers/capture-appended'
 
 beforeEach(() => {
 	// Defaults to desktop so the thumbnail sidebar renders, and drives isDesktop
-	// through matchMedia because the real `useMinBreakpoint` path is the behaviour
+	// through matchMedia because the real `useMinBreakpoint` path is the behavior
 	// under test. Keyed off the scale rather than a literal, so the two cannot drift.
 	stubMatchMedia((query) => query === `(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 })
@@ -863,7 +863,7 @@ describe('PdfViewer highlights', () => {
 
 	/*
 	 * The persisted name is a standing object over a layer of pressable boxes, and on a dense
-	 * page it lands on its neighbours. Neither name may stand in the pointer's way: a reader who
+	 * page it lands on its neighbors. Neither name may stand in the pointer's way: a reader who
 	 * wants the box under one has to be able to point at the box.
 	 *
 	 * jsdom does no hit-testing, so this is read off the rule that governs it rather than by

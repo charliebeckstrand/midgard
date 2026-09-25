@@ -49,7 +49,7 @@ describe('parseColor', () => {
 	})
 
 	it('throws on an unparseable string', () => {
-		expect(() => parseColor('not-a-colour')).toThrow(/unparseable/)
+		expect(() => parseColor('not-a-color')).toThrow(/unparseable/)
 	})
 })
 
@@ -65,7 +65,7 @@ describe('contrastRatio', () => {
 		expect(contrastRatio('white', 'black')).toBeCloseTo(21, 5)
 	})
 
-	it('is 1:1 for a colour against itself', () => {
+	it('is 1:1 for a color against itself', () => {
 		expect(contrastRatio('#336699', '#336699')).toBeCloseTo(1, 5)
 	})
 
@@ -86,17 +86,17 @@ describe('readableInk', () => {
 	})
 
 	it('skips a candidate that fails and takes the next that clears', () => {
-		// On mid-grey white fails (3.95:1) but black clears (5.32:1) — white-first, black wins.
+		// On mid-gray white fails (3.95:1) but black clears (5.32:1) — white-first, black wins.
 		expect(readableInk('#808080', ['white', 'black'])).toBe('black')
 	})
 
 	it('falls back to the highest-contrast candidate when none clears', () => {
-		// Neither clears 7:1 on mid-grey; black (5.32 vs white 3.95) is the fallback.
+		// Neither clears 7:1 on mid-gray; black (5.32 vs white 3.95) is the fallback.
 		expect(readableInk('#808080', ['white', 'black'], 7)).toBe('black')
 	})
 
 	it('respects the floor it is given', () => {
-		// At 3:1 white already clears on the same grey, so it stays first; the
+		// At 3:1 white already clears on the same gray, so it stays first; the
 		// default 4.5 fails it and flips to black.
 		expect(readableInk('#808080', ['white', 'black'], 3)).toBe('white')
 		expect(readableInk('#808080', ['white', 'black'])).toBe('black')

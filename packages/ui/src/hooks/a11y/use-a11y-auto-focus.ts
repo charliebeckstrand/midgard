@@ -9,7 +9,7 @@ import { useEffect } from 'react'
  * true focuses again.
  *
  * @param node - The target, held as state from a callback ref
- * (`ref={setNode}`) rather than read from an object ref. A portalled panel
+ * (`ref={setNode}`) rather than read from an object ref. A portaled panel
  * attaches a commit after `when` flips true. A `RefObject` reports that
  * arrival to nothing, so the probe would read `null` once and never run again.
  * @param when - Whether the target takes focus now.

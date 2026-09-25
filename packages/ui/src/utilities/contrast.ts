@@ -142,7 +142,7 @@ export function parseColor(color: ColorInput): Srgb {
 
 	const parsed = parseHex(css) ?? parseRgb(css) ?? parseOklch(css)
 
-	if (!parsed) throw new Error(`unparseable colour: ${color}`)
+	if (!parsed) throw new Error(`unparseable color: ${color}`)
 
 	return parsed
 }

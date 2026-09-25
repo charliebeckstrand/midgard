@@ -131,8 +131,8 @@ describe('clusterPoints', () => {
 
 	it('leaves no two marks drawing over one another, however the merging chains', () => {
 		// The rule the whole pass exists for, on a field dense enough to chain:
-		// merging moves a centre and grades its mark up, which can then reach a
-		// neighbour the broad phase left alone. However that settles, no pair of the
+		// merging moves a center and grades its mark up, which can then reach a
+		// neighbor the broad phase left alone. However that settles, no pair of the
 		// marks it draws may come within the gap of one another.
 		const field: LngLat[] = []
 
@@ -155,7 +155,7 @@ describe('clusterPoints', () => {
 })
 
 describe('clusterAnchor', () => {
-	it('centres a group on its members', () => {
+	it('centers a group on its members', () => {
 		const pair: LngLat[] = [
 			[0, 0],
 			[1, 0],
@@ -232,25 +232,25 @@ describe('groupsByMember', () => {
 const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS })
 
 /**
- * How much reach the nearest neighbour leaves each drawn dot. Clustering has
+ * How much reach the nearest neighbor leaves each drawn dot. Clustering has
  * already merged the marks that draw over one another; this asks the wider
  * question the hit targets read, so a pair a zoom has just parted stays
  * separately aimable.
  *
- * A dot with no neighbour inside its reach answers `Infinity` rather than the
+ * A dot with no neighbor inside its reach answers `Infinity` rather than the
  * finger target: this pass states a claim on the ground, and `markTargets` is the
  * one place that knows what a target caps at.
  */
 describe('neighborRoom', () => {
-	it('leaves a dot only the gap to a neighbour inside the coarse reach', () => {
+	it('leaves a dot only the gap to a neighbor inside the coarse reach', () => {
 		// The gap a zoom leaves the moment a summary parts: well inside 44px. Each
-		// dot reaches to the other's face and stops — 15px between the centres, less
-		// the 5.5px the neighbour paints.
+		// dot reaches to the other's face and stops — 15px between the centers, less
+		// the 5.5px the neighbor paints.
 		expect(neighborRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
 	})
 
 	it('claims nothing of dots standing clear of one another', () => {
-		// Past the reach plus the neighbour's own radius, so neither covers the face
+		// Past the reach plus the neighbor's own radius, so neither covers the face
 		// of the other and neither has anything to say about the other's target.
 		expect(neighborRoom([dot(0), dot(40)])).toEqual([Infinity, Infinity])
 	})
@@ -259,7 +259,7 @@ describe('neighborRoom', () => {
 		expect(neighborRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
 	})
 
-	it('measures the neighbour’s own width, so a summary reaches further than a dot', () => {
+	it('measures the neighbor’s own width, so a summary reaches further than a dot', () => {
 		const summary: MapDotMark = { at: { x: 30, y: 0 }, radius: MAX_CLUSTER_RADIUS }
 
 		// 30px apart: the summary's face reaches inside the dot's target, while the
@@ -304,8 +304,8 @@ describe('markTargets', () => {
 		expect(markTargets([dot(0)], 1, open)).toEqual([POINT_HIT_RADIUS])
 	})
 
-	it('takes the tighter of the zone’s budget and the neighbour’s gap', () => {
-		// The neighbour leaves 9.5px and the zone spares 14px, so the neighbour
+	it('takes the tighter of the zone’s budget and the neighbor’s gap', () => {
+		// The neighbor leaves 9.5px and the zone spares 14px, so the neighbor
 		// decides — and the reverse pairing proves the minimum runs both ways.
 		expect(markTargets([dot(0), dot(15)], 1, spares(14))).toEqual([9.5, 9.5])
 
@@ -326,7 +326,7 @@ describe('markTargets', () => {
 	})
 
 	it('gives a dot the projection dropped the whole target, unmeasured', () => {
-		// It draws nothing and stands nowhere, so no zone and no neighbour can be
+		// It draws nothing and stands nowhere, so no zone and no neighbor can be
 		// asked about it.
 		expect(markTargets([{ at: null, radius: POINT_RADIUS }], 1, spares(2))).toEqual([
 			POINT_HIT_RADIUS,

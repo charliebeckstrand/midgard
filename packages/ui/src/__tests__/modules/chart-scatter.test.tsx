@@ -46,7 +46,7 @@ describe('scatter geometry', () => {
 		).toEqual([1, 3])
 	})
 
-	it('resolves the disc under the pointer, the nearest centre where discs overlap', () => {
+	it('resolves the disc under the pointer, the nearest center where discs overlap', () => {
 		const marks = [
 			[
 				{ x: 10, y: 10, r: 5 },
@@ -65,7 +65,7 @@ describe('scatter geometry', () => {
 		expect(scatterMarkAt(marks, 100, 100, 2)).toBeNull()
 	})
 
-	it('holds the emphasised disc across the midline until a challenger decisively closes', () => {
+	it('holds the emphasized disc across the midline until a challenger decisively closes', () => {
 		// Discs at (10,10) and (40,10); the midline sits at x=25.
 		const marks = [
 			[
@@ -379,7 +379,7 @@ describe('ScatterChart', () => {
 		)
 	})
 
-	it('dims the non-emphasised tooltip row when a legend entry is focused', () => {
+	it('dims the non-emphasized tooltip row when a legend entry is focused', () => {
 		const { container } = renderUI(
 			<ScatterChart
 				aria-label="Two series"
@@ -394,7 +394,7 @@ describe('ScatterChart', () => {
 			/>,
 		)
 
-		// Pin the readout, then emphasise the first series by pointing its legend
+		// Pin the readout, then emphasize the first series by pointing its legend
 		// entry (the pointer path sets emphasis directly, unlike focus, which rides
 		// `:focus-visible`).
 		fireEvent.click(bySlot(container, 'chart-hit') as Element, { clientX: 240, clientY: 80 })
@@ -407,7 +407,7 @@ describe('ScatterChart', () => {
 
 		expect(rows).toHaveLength(2)
 
-		// The emphasised series' row stays lit; the other dims, mirroring the discs.
+		// The emphasized series' row stays lit; the other dims, mirroring the discs.
 		expect(rows[0]?.getAttribute('class') ?? '').not.toContain('opacity-25')
 
 		expect(rows[1]?.getAttribute('class') ?? '').toContain('opacity-25')

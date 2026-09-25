@@ -496,7 +496,7 @@ describe('JsonTreeNodeRow', () => {
 		expect(container.textContent).toContain('}')
 	})
 
-	it('pluralises the summary for exactly one item', () => {
+	it('pluralizes the summary for exactly one item', () => {
 		renderUI(
 			<JsonTreeNodeRow
 				index={0}

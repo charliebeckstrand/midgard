@@ -26,7 +26,7 @@ import type { Case } from './types'
 
 /**
  * Mounts a `ToastProvider`, enqueues one toast on mount, and renders the
- * portalled viewport, exercising a live toast's role/name wiring statically.
+ * portaled viewport, exercising a live toast's role/name wiring statically.
  * Used by the overlays corpus.
  */
 function ToastCase() {
@@ -40,7 +40,7 @@ function ToastCase() {
 }
 
 /**
- * Overlay corpus: components whose content is portalled to `document.body`.
+ * Overlay corpus: components whose content is portaled to `document.body`.
  * The gate (`baseline.test.tsx`) renders them open and asserts against the
  * document, not the render container. Each case is authored in its canonical
  * open state via a controlled `open`/`defaultOpen` prop.

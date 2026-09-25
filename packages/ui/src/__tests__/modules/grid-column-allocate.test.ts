@@ -95,7 +95,7 @@ describe('allocateColumnWidths', () => {
 
 		it('holds each frozen rail at content while the lone scrolling column takes the rest', () => {
 			// A left- and a right-pinned column framing one scrolling column: both rails
-			// stay at their content widths and the centre column fills what is left.
+			// stay at their content widths and the center column fills what is left.
 			const left: ColumnSizeProfile = {
 				id: 'l',
 				content: 80,

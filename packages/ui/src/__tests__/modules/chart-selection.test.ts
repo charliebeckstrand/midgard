@@ -99,7 +99,7 @@ describe('sliceGroupClass', () => {
 		expect(sliceGroupClass(0, 0, new Set([1]))).toContain('opacity-25')
 	})
 
-	it('lets the emphasised slice light alone when nothing is selected', () => {
+	it('lets the emphasized slice light alone when nothing is selected', () => {
 		expect(sliceGroupClass(0, 1, null)).toContain('opacity-25')
 
 		expect(sliceGroupClass(0, 0, null)).not.toContain('opacity-25')

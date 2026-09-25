@@ -4,7 +4,7 @@
 # The stylesheet sets Chrome and Firefox. Tailwind 4 emits `@property`, which
 # Firefox shipped in 128, and `color-mix()`, which Chrome shipped in 111. The
 # `has-[]` utilities emit `:has()`, which Firefox shipped in 121. A browser
-# below these versions renders the page with broken colours and layout, and no
+# below these versions renders the page with broken colors and layout, and no
 # build step lowers the CSS.
 #
 # Safari 16.4 is Tailwind 4's own floor. It also covers the ES2023

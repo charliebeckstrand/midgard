@@ -82,7 +82,7 @@ describe('chart textures', () => {
 
 		const cls = (allBySlot(container, 'chart-bar')[0] as HTMLElement).getAttribute('class') ?? ''
 
-		// The colour fill is not overridden on screen; the tile waits for forced-colors / print.
+		// The color fill is not overridden on screen; the tile waits for forced-colors / print.
 		expect(cls).toContain('forced-colors:[fill:var(--chart-fill)]!')
 
 		expect(cls).not.toContain(' [fill:var(--chart-fill)]!')
@@ -106,10 +106,10 @@ describe('chart textures', () => {
 		expect(off?.getAttribute('class')).toContain('forced-colors:block')
 	})
 
-	it('centres the axis-aligned lines in their legend swatches', () => {
+	it('centers the axis-aligned lines in their legend swatches', () => {
 		// Four series map to slots blue, orange, violet, green (k.order): the two
 		// diagonals, then the vertical- and horizontal-line textures — the slots
-		// whose swatches must read as one line down / across the box's centre.
+		// whose swatches must read as one line down / across the box's center.
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Four series by quarter"
@@ -132,7 +132,7 @@ describe('chart textures', () => {
 
 		const pathOf = (p: Element) => p.querySelector('path')?.getAttribute('d')
 
-		// The tile draws each axis-aligned line down its own centre (TILE/2 = 4)...
+		// The tile draws each axis-aligned line down its own center (TILE/2 = 4)...
 		const vertical = patterns.find((p) => pathOf(p) === 'M4,0 V8')
 
 		const horizontal = patterns.find((p) => pathOf(p) === 'M0,4 H8')
@@ -141,13 +141,13 @@ describe('chart textures', () => {
 
 		expect(horizontal).toBeTruthy()
 
-		// ...and the swatch shifts the narrower tile so that centre lands at the
-		// box centre (SWATCH_BOX/2 − TILE/2 = 2), not the tile's edge.
+		// ...and the swatch shifts the narrower tile so that center lands at the
+		// box center (SWATCH_BOX/2 − TILE/2 = 2), not the tile's edge.
 		expect(vertical?.getAttribute('patternTransform')).toBe('translate(2 2)')
 
 		expect(horizontal?.getAttribute('patternTransform')).toBe('translate(2 2)')
 
-		// A diagonal slot keeps its rotation and takes no centring shift.
+		// A diagonal slot keeps its rotation and takes no centering shift.
 		const diagonal = patterns.find((p) => p.getAttribute('patternTransform') === 'rotate(45)')
 
 		expect(diagonal).toBeTruthy()

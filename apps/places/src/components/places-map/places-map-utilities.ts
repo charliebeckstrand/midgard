@@ -8,8 +8,8 @@ import type { Place } from '../../types'
  *
  * Each dot carries its own name, so the tooltip, the hidden table, and the
  * keyboard cursor all say which place it is rather than numbering it within the
- * set — and its category's colour, so a lone dot says what kind of place it is.
- * A summary keeps the mark's own colour, since it stands for several.
+ * set — and its category's color, so a lone dot says what kind of place it is.
+ * A summary keeps the mark's own color, since it stands for several.
  */
 export function placeStops(places: readonly Place[]): MapPointDatum[] {
 	return places.map((place) => ({

@@ -49,7 +49,7 @@ describe('defineRecipe', () => {
 	})
 
 	it('drops unknown axis values silently', () => {
-		// Skipping unknown axis values (rather than throwing) is documented behaviour.
+		// Skipping unknown axis values (rather than throwing) is documented behavior.
 		const recipe = defineRecipe({
 			size: { sm: 'size-sm', lg: 'size-lg' },
 			defaults: { size: 'sm' },
@@ -109,7 +109,7 @@ describe('defineRecipe', () => {
 
 		expect(recipe({ variant: 'soft', interactive: false })).not.toContain('soft-interactive')
 
-		// Normalisation happens at ingestion, so `.config` introspection reads the
+		// Normalization happens at ingestion, so `.config` introspection reads the
 		// same condition the call path matches on.
 		expect(recipe.config.compound[0]?.interactive).toBe('true')
 	})
@@ -131,7 +131,7 @@ describe('defineRecipe', () => {
 		expect(out).not.toContain('p-2')
 	})
 
-	it('user compound rules win over palette compounds on the same (variant × colour)', () => {
+	it('user compound rules win over palette compounds on the same (variant × color)', () => {
 		// Palette compounds are pushed first, user `compound` last; `tailwind-merge`
 		// resolves user rules as the winner.
 		const recipe = defineRecipe({
@@ -160,7 +160,7 @@ describe('defineRecipe', () => {
 		expect(recipe.body).toBe('text-sm')
 	})
 
-	it('keeps the default colour active when only variant is overridden', () => {
+	it('keeps the default color active when only variant is overridden', () => {
 		// Guards the (variant × default-color) compound: omitting `color` must
 		// still resolve the default.
 		const classes = button({ variant: 'soft' })
@@ -169,7 +169,7 @@ describe('defineRecipe', () => {
 		expect(classes).toContain('bg-zinc-500/15')
 	})
 
-	it('palette overlay applies when caller picks the trailing colour', () => {
+	it('palette overlay applies when caller picks the trailing color', () => {
 		const recipe = defineRecipe({
 			palette: definePalette(
 				{ solid: { zinc: ['solid-zinc'], red: ['solid-red'], amber: [], green: [], blue: [] } },
@@ -181,7 +181,7 @@ describe('defineRecipe', () => {
 		expect(recipe({ color: 'inherit' })).toContain('solid-inherit')
 	})
 
-	it('memoises per variant combination without cross-talk', () => {
+	it('memoizes per variant combination without cross-talk', () => {
 		// Repeat calls read the memo; interleaved combinations must not bleed
 		// into each other's cached output.
 		const recipe = defineRecipe({
@@ -201,7 +201,7 @@ describe('defineRecipe', () => {
 		expect(first).toContain('s-lg')
 	})
 
-	it('ignores props outside the declared axes when memoising', () => {
+	it('ignores props outside the declared axes when memoizing', () => {
 		// A stray prop reads nothing in the pipeline, so it must neither perturb
 		// the output nor fork the memo key.
 		const recipe = defineRecipe({

@@ -6,7 +6,7 @@ import { fireEvent, renderUI, screen } from '../helpers'
  * Column pinning chrome in jsdom: the sticky classes and the inline offset styles
  * the cells carry. The offsets come from the engine's size model (deterministic
  * from each column's width), so they assert here even though jsdom paints no
- * sticky layout — the real frozen behaviour is covered by the browser suite.
+ * sticky layout — the real frozen behavior is covered by the browser suite.
  */
 describe('Grid column pinning', () => {
 	type Row = { id: number; name: string; email: string; status: string }

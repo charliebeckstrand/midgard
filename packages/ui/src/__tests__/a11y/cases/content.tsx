@@ -10,7 +10,7 @@ import type { Case } from './types'
 // Trusted GFM source exercising the prose tree the gate asserts: heading order
 // (h1 → h2), a named link, an emphasized run, strikethrough, a list, and a GFM
 // table with a real header row. Task lists are omitted — marked renders them as
-// unlabelled disabled checkboxes, a genuine WCAG 4.1.2 defect.
+// unlabeled disabled checkboxes, a genuine WCAG 4.1.2 defect.
 const markdownSource = `# Release notes
 
 The **Markdown** component renders trusted [GitHub-flavored Markdown](https://github.github.com/gfm/) as prose.

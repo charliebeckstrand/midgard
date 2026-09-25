@@ -17,7 +17,7 @@ The single integration point an app mounts once at its root.
 | `UIProviderProps` *(type)* | Props for `UIProvider`. |
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
-| `PortalContainer` *(type)* | DOM node to teleport portalled UI into, or `null` to defer to each portal's own fallback. |
+| `PortalContainer` *(type)* | DOM node to teleport portaled UI into, or `null` to defer to each portal's own fallback. |
 
 ## `ui/providers/density`
 
@@ -58,7 +58,7 @@ Escape hatch that strips chrome from headless-aware descendants so they render t
 
 ## `ui/providers/locale`
 
-Broadcasts `Intl` formatting defaults; explicit component props still win. This is a formatting provider, not a translation layer. It holds no string catalogue, so control strings stay hardcoded English. A catalogue waits for a real second locale.
+Broadcasts `Intl` formatting defaults; explicit component props still win. This is a formatting provider, not a translation layer. It holds no string catalog, so control strings stay hardcoded English. A catalog waits for a real second locale.
 
 | Export | Summary |
 |---|---|

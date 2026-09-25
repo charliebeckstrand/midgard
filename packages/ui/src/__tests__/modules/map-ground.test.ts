@@ -5,7 +5,7 @@ import type { MapPoint2D } from '../../modules/map/engine/types'
 
 /**
  * A dot's pointer target keeps its whole outward reach and gives up only the ground lying nearer to a
- * neighbour. These pin the two properties that matter and cannot be seen in a screenshot: the cut
+ * neighbor. These pin the two properties that matter and cannot be seen in a screenshot: the cut
  * lands exactly midway, and it is the same cut from both sides — so the overlap belongs to neither dot
  * by draw order, which is how the pin drawn underneath used to lose a crescent of its target and its
  * tooltip with it.
@@ -42,7 +42,7 @@ describe('ownGround', () => {
 		expect(ownGround({ x: 100, y: 100 }, [], REACH)).toBeNull()
 	})
 
-	it('leaves a dot unclipped when the neighbour is beyond both targets', () => {
+	it('leaves a dot unclipped when the neighbor is beyond both targets', () => {
 		// A bisector sits half the gap away, so it only reaches the target when the gap is under 2r.
 		expect(ownGround({ x: 0, y: 0 }, [{ x: 2 * REACH + 1, y: 0 }], REACH)).toBeNull()
 	})
@@ -65,7 +65,7 @@ describe('ownGround', () => {
 	it('keeps the full outward reach on the uncontested side', () => {
 		const ring = ownGround({ x: 0, y: 0 }, [{ x: 30, y: 0 }], REACH)
 
-		// The whole point of clipping rather than shrinking: away from the neighbour the target is
+		// The whole point of clipping rather than shrinking: away from the neighbor the target is
 		// untouched, so three quarters of the compass keeps its finger-sized reach.
 		expect(inside(ring ?? [], { x: -REACH + 0.5, y: 0 })).toBe(true)
 
@@ -98,7 +98,7 @@ describe('ownGround', () => {
 		}
 	})
 
-	it('cuts on the diagonal for a diagonal neighbour', () => {
+	it('cuts on the diagonal for a diagonal neighbor', () => {
 		const ring = ownGround({ x: 0, y: 0 }, [{ x: 20, y: 20 }], REACH) ?? []
 
 		// The bisector is perpendicular to the segment, so the midpoint is the boundary whatever the
@@ -111,7 +111,7 @@ describe('ownGround', () => {
 		expect(inside(ring, { x: -15, y: 15 })).toBe(true)
 	})
 
-	it('takes a cut from every crowding neighbour', () => {
+	it('takes a cut from every crowding neighbor', () => {
 		const ring =
 			ownGround(
 				{ x: 0, y: 0 },
@@ -133,7 +133,7 @@ describe('ownGround', () => {
 		expect(inside(ring, { x: 0, y: -20 })).toBe(true)
 	})
 
-	it('ignores a coincident neighbour rather than cutting in an arbitrary direction', () => {
+	it('ignores a coincident neighbor rather than cutting in an arbitrary direction', () => {
 		// A zero-length segment has no bisector, and two dots at one position are not tellable apart by
 		// any geometry. An imperceptible overlap beats a cut with no defensible direction.
 		expect(ownGround({ x: 10, y: 10 }, [{ x: 10, y: 10 }], REACH)).toBeNull()
@@ -147,7 +147,7 @@ describe('ownGround', () => {
 
 		const ring = ownGround({ x: 0, y: 0 }, crowd, REACH)
 
-		// Twelve neighbours a pixel or two away is a pathological case a real map reaches through a
+		// Twelve neighbors a pixel or two away is a pathological case a real map reaches through a
 		// zoom-out. Either a usable ring or `null` — never a two-point sliver, which would clip the
 		// target away entirely and read as a dead pin.
 		expect(ring === null || ring.length >= 3).toBe(true)

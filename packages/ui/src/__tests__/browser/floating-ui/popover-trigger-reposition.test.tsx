@@ -51,7 +51,7 @@ describe('a Popover reposition (real floating engine)', () => {
 
 		const settled = triggerRenders
 
-		// A wider panel under a centred `bottom` placement moves its left edge.
+		// A wider panel under a centered `bottom` placement moves its left edge.
 		screen.getByTestId('body').style.width = '300px'
 
 		await frames()

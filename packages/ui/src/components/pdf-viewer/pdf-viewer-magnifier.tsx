@@ -18,7 +18,7 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
  * is no second copy of that arithmetic to keep in agreement. There is no work at all beyond
  * a paint either, because the browser has the bitmap decoded already.
  *
- * Portalled into the same container every other floating surface in the package resolves.
+ * Portaled into the same container every other floating surface in the package resolves.
  * The viewport it sits over is a scroll container and would clip it. A consumer that
  * scopes portals with `<UIProvider portalContainer>` therefore does not find the lens
  * somewhere else.

@@ -50,7 +50,7 @@ function formatLicensePlate(raw: string) {
 // Static suggestion provider: the closed AddressInput never hits the network.
 const addressProvider: AddressProvider = async () => []
 
-/** Inputs & form fields, each in its canonical labelled form. */
+/** Inputs & form fields, each in its canonical labeled form. */
 export const inputCases: readonly Case[] = [
 	{
 		name: 'input in field',

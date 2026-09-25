@@ -227,7 +227,7 @@ function choroplethReadout<T>(
 export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// `contextMenu`, `title`, and `className` are the frame's, not MapPlat's; peel
 	// them off the rest that spreads onto the map. `width` is peeled to size the
-	// rasterised wrapper, then handed back to MapPlat below. `data` is peeled
+	// rasterized wrapper, then handed back to MapPlat below. `data` is peeled
 	// because it belongs to the region-data branch below, which decides whether
 	// the map carries rows at all — left in the rest it would survive the branch's
 	// spread and hand a data-less map its rows back.
@@ -256,7 +256,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// only a selected action materializes it.
 	const readout = once(() => choroplethReadout(data, primary, format))
 
-	// The rasterised root and right-click surface. MapPlat keeps its own root ref
+	// The rasterized root and right-click surface. MapPlat keeps its own root ref
 	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
 	// fixed `width` — so an image export captures the map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
@@ -271,7 +271,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 		...map,
 		width,
 		// A choropleth is always a chart tile, so default it to the board's shared
-		// 16/9 ratio (overridable) to match its neighbours, and defer the first paint:
+		// 16/9 ratio (overridable) to match its neighbors, and defer the first paint:
 		// the map then draws once at that measured aspect with its legend resolved,
 		// instead of flashing the map's canonical (auto-aspect, legend-less) fit and
 		// refitting when measured; MapPlat defers its first paint whenever the

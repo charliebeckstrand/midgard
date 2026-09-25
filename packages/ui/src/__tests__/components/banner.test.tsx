@@ -4,7 +4,7 @@ import { bySlot, renderUI } from '../helpers'
 
 describe('Banner', () => {
 	// The `sticky` prop drives whether the banner sticks to the viewport; the
-	// sticky utility is the observable for that layout behaviour.
+	// sticky utility is the observable for that layout behavior.
 	it('applies sticky positioning when sticky is set', () => {
 		const { container } = renderUI(<Banner sticky>content</Banner>)
 

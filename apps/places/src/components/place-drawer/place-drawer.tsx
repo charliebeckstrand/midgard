@@ -268,7 +268,7 @@ export function PlaceDrawer({
 				{place ? (
 					<Stack gap="md" className="pb-6">
 						{/* A plain `img`, not `next/image`: the address is whatever the reader
-						    typed, and optimising an arbitrary remote host means listing that
+						    typed, and optimizing an arbitrary remote host means listing that
 						    host first. The name is the alt text because it is the one thing
 						    known about what the picture shows.
 

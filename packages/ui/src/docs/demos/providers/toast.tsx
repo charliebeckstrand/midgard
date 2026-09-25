@@ -122,7 +122,7 @@ function ActionsExample() {
 
 // `useToast` requires a `ToastProvider` ancestor and a `<Toast />` viewport to
 // render the queue — neither shows up when the deriver walks an `<Example>`'s
-// children, so these snippets are authored. The viewport is portalled, so it
+// children, so these snippets are authored. The viewport is portaled, so it
 // can sit anywhere inside the provider; mount one per app.
 const SETUP_CODE = code`
 	import { ToastProvider, useToast } from 'ui/providers/toast'

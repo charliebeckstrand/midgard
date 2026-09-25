@@ -7,7 +7,7 @@ import { categoricalPlat } from '../helpers/map-plat'
  * The keyboard cursor's stops must stay off the mount and the resize paths.
  * `cachedRegionCentroids` runs a `geoCentroid` pass over every ring in the
  * atlas — ~30 ms across 3,000 counties, against a ~70 ms county mount — and the
- * map's three named mount optimisations exist to keep work of that size off the
+ * map's three named mount optimizations exist to keep work of that size off the
  * first commit. So the plat hands the hook a closure, and the hook resolves it
  * on the first navigation key.
  *
@@ -20,7 +20,7 @@ import { categoricalPlat } from '../helpers/map-plat'
 vi.mock('../../modules/map/engine/map-geometry/cache', async (importActual) => {
 	const actual = await importActual<typeof import('../../modules/map/engine/map-geometry/cache')>()
 
-	// Wraps the real implementation, so behaviour is unchanged and only the call
+	// Wraps the real implementation, so behavior is unchanged and only the call
 	// count is observable.
 	return { ...actual, cachedRegionCentroids: vi.fn(actual.cachedRegionCentroids) }
 })

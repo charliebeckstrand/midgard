@@ -12,7 +12,7 @@ import { fromDay, toDay } from '../../utilities/places-filter'
  *
  * A field the reader can clear is optional, because that is what the store
  * actually holds. `null` is the contract a control's `value` prop and its
- * `onValueChange` keep (CONVENTIONS §7.3); the form normalises every clear to
+ * `onValueChange` keep (CONVENTIONS §7.3); the form normalizes every clear to
  * `undefined` on the way in, so a validator that tested only for `null` read a
  * cleared field as filled and then dereferenced it.
  */

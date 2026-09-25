@@ -48,7 +48,7 @@ function monotoneTangents(run: LinePoint[]): number[] {
 	})
 
 	// Fritsch–Carlson clamp: keep each tangent inside the monotone circle so
-	// the cubic stays within the neighbouring data values.
+	// the cubic stays within the neighboring data values.
 	for (let i = 0; i < n - 1; i++) {
 		const slope = slopes[i] as number
 

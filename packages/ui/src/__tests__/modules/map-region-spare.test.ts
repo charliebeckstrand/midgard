@@ -64,7 +64,7 @@ describe('regionSpare', () => {
 	it('takes the tightest claim where a dot’s target reaches two regions', () => {
 		// A dot just inside the large region, within its own target's reach of the
 		// small one across the border. It must satisfy both, or it blankets the
-		// neighbour it does not stand on — the zone half's own reading.
+		// neighbor it does not stand on — the zone half's own reading.
 		const spare = spareOver([square('big', 0, 0, 200), square('small', 200, 0, 20)])
 
 		const atSeam = spare({ x: 200 - POINT_HIT_RADIUS / 2, y: 10 }, 1)

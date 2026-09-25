@@ -516,12 +516,12 @@ describe('ringAnchor', () => {
 		[10, 0],
 	]
 
-	it('centres on the middle of the ring', () => {
+	it('centers on the middle of the ring', () => {
 		const [anchor] = ringAnchor(RING)
 
 		expect(anchor?.[0]).toBeCloseTo(5, 5)
 
-		// The centre is spherical, so it sits a little poleward of the arithmetic
+		// The center is spherical, so it sits a little poleward of the arithmetic
 		// mean of the latitudes — the same reading `geoCentroid` gives a region.
 		expect(anchor?.[1]).toBeCloseTo(5, 1)
 	})
@@ -546,8 +546,8 @@ describe('ringAnchor', () => {
 		expect(ringAnchor([[5, 5]])).toEqual([[5, 5]])
 	})
 
-	it('stands the first vertex in where the points cancel to no centre', () => {
-		// Two antipodal points leave no spherical centre; the anchor must still be
+	it('stands the first vertex in where the points cancel to no center', () => {
+		// Two antipodal points leave no spherical center; the anchor must still be
 		// a position the projection can draw.
 		expect(
 			ringAnchor([
@@ -716,7 +716,7 @@ describe('areaReach', () => {
 
 	it('reads a circle as its own radius', () => {
 		// `circleRing`'s form, which most zones on a map are, and the measure is exact
-		// on it: a dot at a catchment's centre has the whole radius of room around it.
+		// on it: a dot at a catchment's center has the whole radius of room around it.
 		const wheel = Array.from({ length: GEOFENCE_CIRCLE_STEPS }, (_, step): [number, number] => {
 			const turn = (step / GEOFENCE_CIRCLE_STEPS) * 2 * Math.PI
 

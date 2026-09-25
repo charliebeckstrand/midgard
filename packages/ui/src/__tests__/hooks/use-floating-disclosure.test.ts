@@ -21,7 +21,7 @@ describe('useFloatingDisclosure', () => {
 		})
 	})
 
-	it('honours defaultOpen on first render', () => {
+	it('honors defaultOpen on first render', () => {
 		const { result } = renderHook(() =>
 			useFloatingDisclosure({ placement: 'bottom', role: 'dialog', defaultOpen: true }),
 		)

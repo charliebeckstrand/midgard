@@ -85,7 +85,7 @@ describe('projectAtlas + emitRegionPaths', () => {
 		// in frame units, so the buffer holds the vertices its own fit earned and a
 		// distant frame would have earned others. Nothing on a drawn atlas reaches
 		// that — the case above proves `states-10m` matches from a third of its
-		// canonical width to sixteen times it, being a quantised topology whose own
+		// canonical width to sixteen times it, being a quantized topology whose own
 		// vertices already sit inside the tolerance — so the bound is pinned on
 		// geography sparse enough to show it: four corners spanning the lower 48,
 		// every edge a long arc under the composite.

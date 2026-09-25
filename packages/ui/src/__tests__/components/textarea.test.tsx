@@ -49,7 +49,7 @@ describe('Textarea', () => {
 	})
 
 	it('coerces a null controlled value to an empty string and stays controlled', async () => {
-		// §7.3: a wrapper signalling "empty" with value={null} keeps the textarea
+		// §7.3: a wrapper signaling "empty" with value={null} keeps the textarea
 		// controlled rather than silently flipping it to uncontrolled.
 		const { container } = renderUI(<Textarea value={null} onChange={() => {}} />)
 

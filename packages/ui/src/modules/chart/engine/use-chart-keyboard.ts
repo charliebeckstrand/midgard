@@ -297,7 +297,7 @@ function stepStop(
 
 /**
  * Resolves a keypress to the next cursor. The band axis arrows move to the
- * neighbouring category. They keep the value lane where it exists, and slide a
+ * neighboring category. They keep the value lane where it exists, and slide a
  * parked reference line along to the new band. The value axis arrows step
  * through the current category's stops in screen order. That is every visible
  * series, coincident values included, with the reference lines interspersed
