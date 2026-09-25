@@ -28,7 +28,10 @@ export type DashboardScope = {
 	 * tiles. Show it with `QuerySummary`, or apply it with `evaluateQuery`.
 	 */
 	query: QueryGroup
-	/** Whether the query holds a condition. */
+	/**
+	 * Whether the query puts a constraint on the rows. A filter of only blank
+	 * rules, or of empty groups, leaves it false, because it matches each row.
+	 */
 	active: boolean
 	/** Replaces the filter. */
 	setFilter: (filter: QueryGroup) => void
