@@ -20,12 +20,13 @@ function classLists(node: object, prefix: string): [string, unknown][] {
 }
 
 /**
- * `cn` memoizes a call only when each argument is a string, a boolean, or
- * nullish. An array sends the call to the plain merge. The shell passes these
- * lists to `cn` on each render of a tile.
+ * `cn` walks its memo one string at a time, also through an array. A list as
+ * one string thus takes one memo node and one lookup. A list as an array takes
+ * one node and one lookup for each item. The shell passes these lists to `cn` on
+ * each render of a tile.
  */
 describe('the dashboard kata', () => {
-	it.each(classLists(k, 'k'))('declares %s as one string, so cn memoizes it', (_, value) => {
+	it.each(classLists(k, 'k'))('declares %s as one string, so cn keys it once', (_, value) => {
 		expect(typeof value).toBe('string')
 	})
 })

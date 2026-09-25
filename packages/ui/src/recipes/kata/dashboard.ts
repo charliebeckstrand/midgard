@@ -4,8 +4,9 @@
  * The widgets inside a tile keep their own recipes.
  *
  * Each class list that is not a recipe is one string, joined once at module load.
- * `cn` memoizes only a call whose arguments are strings. An array sends the call
- * to the plain merge (`core/cn.ts`), and each tile render pays for it again.
+ * `cn` memoizes a call by a walk over its strings (`core/cn.ts`). A string takes
+ * one memo node and one lookup on each render of a tile. An array takes one node
+ * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, kasane, omote, sen, sun } from '../kiso'
