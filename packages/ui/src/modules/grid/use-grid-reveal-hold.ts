@@ -3,6 +3,7 @@
 import { type TransitionEvent, useLayoutEffect, useState } from 'react'
 import { useMediaQuery } from '../../hooks/use-media-query'
 import { type MountHold, useMountHold } from '../../primitives/mount'
+import { forceStyleFlush } from '../../utilities'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
 export const REVEAL_PROPERTY = 'grid-template-rows'
@@ -94,10 +95,8 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 		// track — but the browser has not read that style yet, and the open one is
 		// a render away. Force the flush that records it, and the transition has a
 		// style to run from. Layout is clean for the other rows of a group that
-		// wakes together, so the flush costs one reflow for the whole toggle. The
-		// flush is a call, not a bare `offsetHeight` read: the React Compiler
-		// drops a property read whose value goes unused, and the flush with it.
-		document.documentElement.getBoundingClientRect()
+		// wakes together, so the flush costs one reflow for the whole toggle.
+		forceStyleFlush()
 
 		setOpen(true)
 	}, [opening])

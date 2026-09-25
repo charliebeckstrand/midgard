@@ -8,7 +8,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
@@ -96,52 +96,52 @@ export function useTooltipState({
 
 	prevEnabledRef.current = enabled
 
-	const wasDisabledRef = useRef(false)
-
-	// Reads the `:disabled` pseudo-class of the reference node and its subtree.
-	// The reference's own `disabled` attribute, a child `disabled` attribute, an
-	// ancestor `<fieldset disabled>`, or an external wrapper can set it, and none
-	// of these emit a React signal.
-	const checkDisabled = useEffectEvent(() => {
-		const reference = refs.reference.current
-
-		if (!(reference instanceof Element)) return
-
-		const isDisabled = isReferenceDisabled(reference)
-
-		if (isDisabled && open) {
-			setOpen(false)
-		} else if (wasDisabledRef.current && !isDisabled && reference.matches(':hover')) {
-			setOpen(true)
-		}
-
-		wasDisabledRef.current = isDisabled
-	})
-
-	// The check runs after each render, alongside whatever triggered the change.
-	useEffect(() => {
-		checkDisabled()
-	})
-
-	// A consumer that memoizes the tooltip, as the React Compiler does, skips its
-	// render when only an ancestor changes. An observer on the `disabled`
-	// attribute of the reference, its subtree, and each ancestor `<fieldset>`
-	// runs the check without a render.
+	// Whether the reference matches `:disabled`, read from the DOM as an external
+	// store. The reference's own `disabled` attribute, a child's, or an ancestor
+	// `<fieldset disabled>` can set it, and none of them is a React signal. The
+	// store subscribes to each of them, so a consumer that memoizes the tooltip,
+	// as the React Compiler does, still sees the change.
 	const domReference = context.elements.domReference
 
+	const subscribeDisabled = useCallback(
+		(onChange: () => void) => {
+			if (!domReference) return () => {}
+
+			const observer = new MutationObserver(onChange)
+
+			const watch = { attributes: true, attributeFilter: ['disabled'] }
+
+			observer.observe(domReference, { ...watch, subtree: true })
+
+			for (const fieldset of fieldsetAncestors(domReference)) observer.observe(fieldset, watch)
+
+			return () => observer.disconnect()
+		},
+		[domReference],
+	)
+
+	const disabled = useSyncExternalStore(
+		subscribeDisabled,
+		() => isReferenceDisabled(domReference),
+		() => false,
+	)
+
+	// A trigger that turns disabled closes its tooltip.
 	useEffect(() => {
-		if (!domReference) return
+		if (disabled && open) setOpen(false)
+	}, [disabled, open, setOpen])
 
-		const observer = new MutationObserver(() => checkDisabled())
+	// A trigger that turns enabled again under the pointer opens it once more, as
+	// a hover would have.
+	const wasDisabledRef = useRef(disabled)
 
-		const watch = { attributes: true, attributeFilter: ['disabled'] }
+	useEffect(() => {
+		const wasDisabled = wasDisabledRef.current
 
-		observer.observe(domReference, { ...watch, subtree: true })
+		wasDisabledRef.current = disabled
 
-		for (const fieldset of fieldsetAncestors(domReference)) observer.observe(fieldset, watch)
-
-		return () => observer.disconnect()
-	}, [domReference])
+		if (wasDisabled && !disabled && domReference?.matches(':hover')) setOpen(true)
+	}, [disabled, domReference, setOpen])
 
 	useEffect(() => {
 		if (!open) return
@@ -155,7 +155,7 @@ export function useTooltipState({
 	 * controlled `open` then overrides. Hovering off a forced-open tooltip would therefore
 	 * report a close that never happened. The committed value reports exactly what the
 	 * reader sees, on every route into it. Those routes are hover, focus, click,
-	 * `forceOpen`, `enabled`, the `:disabled` poll above, and the overlay signal.
+	 * `forceOpen`, `enabled`, the `:disabled` store above, and the overlay signal.
 	 */
 	useOpenChange(open, onOpenChange)
 

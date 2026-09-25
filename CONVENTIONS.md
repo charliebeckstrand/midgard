@@ -141,7 +141,9 @@ An assertion that reads the DOM tree runs under jsdom: roles, attributes, events
 
 10.7 The `ui` tests also run with the React Compiler on (`test:compiler`, `vitest.compiler.config.ts`), and CI runs them in a job of its own. The compiler caches a value on the identity of its inputs, so render code must not read a mutable object. The TanStack table is such an object. `use-grid-table.ts` is the engine boundary: the one grid module with `'use no memo'`, and the only one that reads the table during render. It gives the grid values and actions, never the engine; its header states the contract. The [`no-value-import-from-tanstack-table`](.biome/plugins/no-value-import-from-tanstack-table.grit) Biome plugin stops a value import from TanStack outside that module and its `engine` folder.
 
-A dependency list names what its value reads, never an extra key to force a recompute. Force a layout flush with a call such as `getBoundingClientRect()`, never with a bare property read. The compiler removes a read whose value goes unused.
+A dependency list names what its value reads, never an extra key to force a recompute. Force a style flush with `forceStyleFlush()` from `src/utilities`, never with a bare property read. The compiler removes a read whose value goes unused.
+
+10.8 The compiler skips a function that breaks one of its rules, and that function loses its memoization. The `skips` project of `test:compiler` compares each skip in `ui` with a ledger, the file snapshot [`react-compiler-skips.json`](packages/ui/src/__tests__/compiler/react-compiler-skips.json). A new skip fails the run, and so does a ledger entry that compiles now. Fix a new skip. If you cannot, write the ledger with `-u`, and commit it with the change.
 
 ## 11. Environment
 

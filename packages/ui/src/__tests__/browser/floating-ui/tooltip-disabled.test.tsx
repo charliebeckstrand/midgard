@@ -119,4 +119,38 @@ describe('Tooltip disabled gating (real browser)', () => {
 
 		await waitFor(() => expect(screen.queryByText('Show password')).not.toBeInTheDocument())
 	})
+
+	it('opens the tooltip again when the trigger under the pointer turns enabled', async () => {
+		// The consumer memoizes the tooltip, so only the DOM tells it the trigger
+		// changed. The pointer stays on the trigger through both changes.
+		function Harness({ disabled }: { disabled: boolean }) {
+			const tooltip = useMemo(
+				() => (
+					<Tooltip delay={0}>
+						<TooltipTrigger>
+							<button type="button">Toggle</button>
+						</TooltipTrigger>
+						<TooltipContent>Show password</TooltipContent>
+					</Tooltip>
+				),
+				[],
+			)
+
+			return <fieldset disabled={disabled}>{tooltip}</fieldset>
+		}
+
+		const { container, rerender } = renderUI(<Harness disabled={false} />)
+
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+
+		rerender(<Harness disabled />)
+
+		await waitFor(() => expect(screen.queryByText('Show password')).not.toBeInTheDocument())
+
+		rerender(<Harness disabled={false} />)
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+	})
 })

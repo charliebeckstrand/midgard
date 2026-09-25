@@ -19,6 +19,9 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // a job of its own. The `boundary` project reads source, not rendered output,
 // so it stays out.
 //
+// The `skips` project runs the skip ledger in src/__tests__/compiler/, which
+// only this run needs.
+//
 // The preset is written out rather than taken from `reactCompilerPreset`. That
 // helper applies only to the client environment, and the `pure` project runs in
 // node.
@@ -38,6 +41,25 @@ export default mergeConfig(base, {
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
 		env: { REACT_COMPILER: '1' },
+		// Added to the projects of the base config.
+		projects: [
+			{
+				extends: true as const,
+				test: {
+					name: 'skips',
+					environment: 'node',
+					pool: 'threads',
+					include: ['src/__tests__/compiler/*.test.ts'],
+					// The group of `unit`, so the one long file runs next to that project
+					// and not after the last group. Measured warm on four cores, it adds
+					// about 5 seconds here, and about 16 seconds as a last group.
+					sequence: { groupOrder: 0 },
+					// The file compiles about 800 modules, in about 20 seconds on four
+					// cores.
+					testTimeout: 120_000,
+				},
+			},
+		],
 		// A module cache of its own, apart from the plain run's, so a compiled
 		// module never reaches the plain run. A warm cache halves this run. The
 		// cache keys a file on its source, the plugin names, and the config, not
