@@ -125,6 +125,10 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-facets.bench.tsx`](grid-facets.bench.tsx) — a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open. AG Grid holds its set filter in the Enterprise tier, and the filter of MUI X lists no values, so the ui grid runs alone.
 
+- [`grid-resize-drag.bench.tsx`](grid-resize-drag.bench.tsx) — a drag on the resize handle of the origin column: a press, ten moves of 8px, and a release, at 10k rows with a window. Each move gets one frame from a fake frame clock (`withFrameClock` in [`harness.ts`](harness.ts)), and a read of the header rect after each frame forces layout. Three rows run: `truncate`, `truncate={false}`, and `truncate` with no layout read. The ui grid runs alone, because the fake clock must drive the frame services of AG Grid and MUI X too, and that is not verified.
+
+- [`grid-edit.bench.tsx`](grid-edit.bench.tsx) — a row edit that opens and closes, at 1k rows without a window and 10k rows with a window, and a move of the open cell under `scope: 'cell'`, at 1k rows without a window. Each sample commits through `flushSync`, reads the rect of the host, and counts the editors. The rivals open their editors through their own APIs and focus models. No toggle gives equal work in each library, so the ui grid runs alone.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -181,6 +185,23 @@ The contenders stay plain in both runs, so their change measures the noise. It r
 The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
 
 A CPU profile of that resize took 20 toggles in each build. It put the script work at 765ms plain and 785ms compiled, about 1ms a toggle. The rest of the gap was in the frames that the sample waits out. Each resize then rendered the cells of all rows again in both builds. The compiled row kept its cells in a memo block that each resize made stale, so the block added its cache work. Entry 10 of the grid log removes that cost: a resize now renders no row, and the compiled resize is level with the plain one.
+
+#### Drag and edit (2026-09-25, this container)
+
+These scenarios came with the fake frame clock, so they have no earlier baseline. The table gives the ui grid only, in mean ms per iteration. Each value is the median over three runs.
+
+| Scenario | ui |
+| --- | ---: |
+| resize drag · 10,000 · `truncate` | 53.6 |
+| resize drag · 10,000 · `truncate={false}` | 39.8 |
+| resize drag · 10,000 · script only | 26.7 |
+| edit · row open + close · 1,000 · un-windowed | 12.2 |
+| edit · row open + close · 10,000 · windowed | 3.6 |
+| edit · cell move · 1,000 · un-windowed | 9.5 |
+
+The drag runs under `withFrameClock`, which puts a manual queue in place of `requestAnimationFrame` for the sample. The table engine throttles each move onto a frame, and a real frame costs about 17 ms here. Without the clock, a drag of ten moves waits out ten frames. With the clock, each move gets one frame and no wait. Paint is outside the sample in each scenario. A drag row gives the script work and the layout that the rect reads force.
+
+Three rows are the regression sentinels. The script-only drag leaves out the layout reads, so it moves only when the script work moves. The two edit rows at 1,000 rows have no window, so each row stays mounted, and a cost that reaches each row shows there first. A scratch run against `81c2c35`, the commit before #1347 and #1348, proved the three rows. There the two edit rows were 4 to 10 times slower, and the script-only drag was 19% to 25% slower, in two interleaved rounds.
 
 ### Optimization log
 
