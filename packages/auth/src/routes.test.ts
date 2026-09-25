@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import { test } from 'node:test'
-import { isGuestRoute } from './routes.ts'
+import { isApiRoute, isGuestRoute } from './routes.ts'
 
 test('matches guest routes exactly', () => {
 	assert.equal(isGuestRoute('/login'), true)
@@ -26,4 +26,18 @@ test('does not match protected routes', () => {
 	assert.equal(isGuestRoute('/users'), false)
 
 	assert.equal(isGuestRoute('/users/123'), false)
+})
+
+test('matches the API route and its subpaths', () => {
+	assert.equal(isApiRoute('/api'), true)
+
+	assert.equal(isApiRoute('/api/users/123'), true)
+})
+
+test('does not match an API prefix without a path boundary', () => {
+	assert.equal(isApiRoute('/apis'), false)
+
+	assert.equal(isApiRoute('/users/api'), false)
+
+	assert.equal(isApiRoute('/'), false)
 })
