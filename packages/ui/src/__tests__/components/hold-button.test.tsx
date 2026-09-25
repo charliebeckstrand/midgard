@@ -425,4 +425,164 @@ describe('HoldButton', () => {
 			expect(onHoldComplete).not.toHaveBeenCalled()
 		})
 	})
+
+	// The caller's handler runs first (CONVENTIONS.md §3.9). A caller
+	// `preventDefault()` can keep a hold from starting, but never from ending: a
+	// skipped cancel would leave the timer to fire `onHoldComplete` after release.
+	describe('handler composition', () => {
+		beforeEach(() => {
+			vi.useFakeTimers()
+		})
+
+		afterEach(() => {
+			vi.useRealTimers()
+		})
+
+		it('runs the caller handler before the hold starts and before it cancels', () => {
+			const calls: string[] = []
+
+			const { container } = renderUI(
+				<HoldButton
+					onPointerDown={() => calls.push('pointerdown')}
+					onPointerUp={() => calls.push('pointerup')}
+					onKeyDown={() => calls.push('keydown')}
+					onKeyUp={() => calls.push('keyup')}
+					onHoldStart={() => calls.push('start')}
+					onHoldCancel={() => calls.push('cancel')}
+				>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			fireEvent.pointerDown(el)
+
+			fireEvent.pointerUp(el)
+
+			fireEvent.keyDown(el, { key: ' ' })
+
+			fireEvent.keyUp(el, { key: ' ' })
+
+			expect(calls).toEqual([
+				'pointerdown',
+				'start',
+				'pointerup',
+				'cancel',
+				'keydown',
+				'start',
+				'keyup',
+				'cancel',
+			])
+		})
+
+		it.each([
+			['a pointer press', 'onPointerDown', (el: HTMLElement) => fireEvent.pointerDown(el)],
+			['a Space keydown', 'onKeyDown', (el: HTMLElement) => fireEvent.keyDown(el, { key: ' ' })],
+		] as const)(
+			'lets a caller preventDefault() on %s keep the hold from starting',
+			(_, prop, press) => {
+				const onHoldStart = vi.fn()
+
+				const onHoldComplete = vi.fn()
+
+				const prevent = {
+					[prop]: (event: { preventDefault: () => void }) => event.preventDefault(),
+				}
+
+				const { container } = renderUI(
+					<HoldButton
+						duration={500}
+						onHoldStart={onHoldStart}
+						onHoldComplete={onHoldComplete}
+						{...prevent}
+					>
+						Hold
+					</HoldButton>,
+				)
+
+				press(getSlot(container, 'hold-button'))
+
+				act(() => {
+					vi.advanceTimersByTime(600)
+				})
+
+				expect(onHoldStart).not.toHaveBeenCalled()
+
+				expect(onHoldComplete).not.toHaveBeenCalled()
+			},
+		)
+
+		it.each([
+			['onPointerUp', 'pointer', (el: HTMLElement) => fireEvent.pointerUp(el)],
+			['onPointerCancel', 'pointer', (el: HTMLElement) => fireEvent.pointerCancel(el)],
+			['onPointerLeave', 'pointer', (el: HTMLElement) => fireEvent.pointerLeave(el)],
+			['onKeyUp', 'key', (el: HTMLElement) => fireEvent.keyUp(el, { key: ' ' })],
+			['onBlur', 'key', (el: HTMLElement) => fireEvent.blur(el)],
+		] as const)('still cancels when the caller prevents %s', (prop, press, release) => {
+			const onHoldCancel = vi.fn()
+
+			const onHoldComplete = vi.fn()
+
+			const prevent = { [prop]: (event: { preventDefault: () => void }) => event.preventDefault() }
+
+			const { container } = renderUI(
+				<HoldButton
+					duration={500}
+					onHoldCancel={onHoldCancel}
+					onHoldComplete={onHoldComplete}
+					{...prevent}
+				>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			if (press === 'pointer') fireEvent.pointerDown(el)
+			else fireEvent.keyDown(el, { key: ' ' })
+
+			release(el)
+
+			act(() => {
+				vi.advanceTimersByTime(600)
+			})
+
+			expect(onHoldCancel).toHaveBeenCalledOnce()
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+		})
+
+		it.each([
+			['onKeyUp', (el: HTMLElement) => fireEvent.keyUp(el, { key: ' ' })],
+			['onBlur', (el: HTMLElement) => fireEvent.blur(el)],
+		] as const)('clears the held key when the caller prevents %s', (prop, release) => {
+			const onHoldComplete = vi.fn()
+
+			const prevent = { [prop]: (event: { preventDefault: () => void }) => event.preventDefault() }
+
+			const { container } = renderUI(
+				<HoldButton duration={500} onHoldComplete={onHoldComplete} {...prevent}>
+					Hold
+				</HoldButton>,
+			)
+
+			const el = getSlot(container, 'hold-button')
+
+			fireEvent.keyDown(el, { key: ' ' })
+
+			release(el)
+
+			// A stale Space would make the Enter release below cancel nothing.
+			fireEvent.keyDown(el, { key: 'Enter' })
+
+			fireEvent.keyUp(el, { key: 'Enter' })
+
+			act(() => {
+				vi.advanceTimersByTime(600)
+			})
+
+			expect(onHoldComplete).not.toHaveBeenCalled()
+		})
+	})
 })
