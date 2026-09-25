@@ -5,8 +5,8 @@ language js
 //
 // The type-check holds most of the floor: `lib: ["ES2023"]` stops each newer
 // ECMAScript built-in. It does not stop a DOM API, because `lib.dom` has no
-// version. It also passes an older built-in that a browser shipped late, such
-// as `Intl.Segmenter`. This plugin holds those calls.
+// version. It also passes an older built-in that a browser shipped late. This
+// plugin holds those calls.
 //
 // Each entry is a call or a construction that throws below the floor. MDN
 // browser-compat data is the source for each version. An optional call such
@@ -19,7 +19,6 @@ or {
 	`AbortSignal.any($...)`,
 	`URL.canParse($...)`,
 	`URL.parse($...)`,
-	`new Intl.Segmenter($...)`,
 	`new CloseWatcher($...)`,
 	`requestIdleCallback($...)`,
 	`$_.requestIdleCallback($...)`,
