@@ -11,20 +11,23 @@ const userRewrite = { source: '/old', destination: '/new' }
 
 describe('withAuth', () => {
 	it('adds the gateway rewrites to a config without rewrites', async () => {
-		await expect(withAuth().rewrites?.()).resolves.toEqual(gatewayRewrites)
+		await expect(withAuth().rewrites?.()).resolves.toEqual({ fallback: gatewayRewrites })
 	})
 
 	it('keeps the other fields of the config', () => {
 		expect(withAuth({ devIndicators: false }).devIndicators).toBe(false)
 	})
 
-	it('puts the gateway rewrites after an array of rewrites', async () => {
+	it('keeps an array of rewrites in afterFiles and puts the gateway rewrites in fallback', async () => {
 		const config = withAuth({ rewrites: async () => [userRewrite] })
 
-		await expect(config.rewrites?.()).resolves.toEqual([userRewrite, ...gatewayRewrites])
+		await expect(config.rewrites?.()).resolves.toEqual({
+			afterFiles: [userRewrite],
+			fallback: gatewayRewrites,
+		})
 	})
 
-	it('puts the gateway rewrites in the afterFiles of the object form', async () => {
+	it('puts the gateway rewrites after the fallback of the object form', async () => {
 		const config = withAuth({
 			rewrites: async () => ({
 				beforeFiles: [userRewrite],
@@ -35,17 +38,17 @@ describe('withAuth', () => {
 
 		await expect(config.rewrites?.()).resolves.toEqual({
 			beforeFiles: [userRewrite],
-			afterFiles: [userRewrite, ...gatewayRewrites],
-			fallback: [userRewrite],
+			afterFiles: [userRewrite],
+			fallback: [userRewrite, ...gatewayRewrites],
 		})
 	})
 
-	it('adds afterFiles when the object form has none', async () => {
-		const config = withAuth({ rewrites: async () => ({ fallback: [userRewrite] }) })
+	it('adds fallback when the object form has none', async () => {
+		const config = withAuth({ rewrites: async () => ({ afterFiles: [userRewrite] }) })
 
 		await expect(config.rewrites?.()).resolves.toEqual({
-			afterFiles: gatewayRewrites,
-			fallback: [userRewrite],
+			afterFiles: [userRewrite],
+			fallback: gatewayRewrites,
 		})
 	})
 })

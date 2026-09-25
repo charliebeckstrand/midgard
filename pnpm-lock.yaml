@@ -318,6 +318,9 @@ importers:
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.101.2(react@19.2.7)
+      auth:
+        specifier: workspace:*
+        version: link:../../packages/auth
       d3-geo:
         specifier: 'catalog:'
         version: 3.1.1

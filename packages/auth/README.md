@@ -26,7 +26,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 ## 3. Consumers
 
-[`apps/admin`](../../apps/admin/README.md) uses this package.
+[`apps/admin`](../../apps/admin/README.md) and [`apps/places`](../../apps/places/README.md) use this package.
 
 ---
 

@@ -1,0 +1,39 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy to DigitalOcean
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v7
+
+      # Without a project ID, the action creates the app in the default project
+      # of the account. Stop before that happens.
+      - name: Check the DigitalOcean project ID
+        if: vars.DIGITALOCEAN_PROJECT_ID == ''
+        run: |
+          echo "::error::Set the DIGITALOCEAN_PROJECT_ID variable to the ID of the Ivory Image project."
+          exit 1
+
+      # Creates the app from .do/app.yaml on the first run, in the Ivory Image
+      # project, then updates it and waits for the deployment to go live. The
+      # action reads `project_id` only when it creates the app.
+      - uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          project_id: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
+          print_build_logs: true
+          print_deploy_logs: true
