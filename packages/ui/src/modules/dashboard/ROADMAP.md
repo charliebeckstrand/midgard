@@ -44,7 +44,9 @@ A right-to-left board mirrors the saved layout. The CSS grid puts column `0` at 
 
 Tidy is the one bulk move. `tidy` on the `ref` of the board (`DashboardHandle`) packs the tiles upward and commits the result through the layout binding. Each tile keeps its column and its span, and it moves straight up until it meets a tile or the top edge, so each column keeps its order. A static tile never moves, and a tile that is not mounted keeps its saved place. The pack runs in the engine as `tidyCells`, and the live region says how many tiles moved.
 
-A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back. The server cannot see which tiles mount, so it applies a selection while its tile has a saved entry or the children of the board declare that tile. The board reads each `DashboardTile` child, also inside a Fragment, and each spec tile of a `DashboardTiles` child. Each hydration render reads the same state as the server.
+A selection applies while the tile that made it is on the board. A remove therefore never leaves a filter that no Clear control can release. The selection stays in the selection value, so a tile that returns gets it back.
+
+The server cannot see which tiles mount. It therefore applies a selection while its tile has a saved entry or the children of the board declare that tile. The board reads each `DashboardTile` child, also inside a Fragment, and each spec tile of a `DashboardTiles` child. Each hydration render reads the same state as the server.
 
 ## Engine — the substrate
 
