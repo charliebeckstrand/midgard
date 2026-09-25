@@ -1,11 +1,12 @@
 'use client'
 
-import type { ExpandedState, Row } from '@tanstack/react-table'
+import type { ExpandedState } from '@tanstack/react-table'
 import { Ban, ChevronsDownUp, ChevronsUpDown, ListTree } from 'lucide-react'
 import { type ReactNode, useCallback, useMemo, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
 import { groupValueLabel } from './engine/grid-column/label'
+import type { GridGroup } from './engine/grid-group/tree'
 import { groupValueOf } from './engine/grid-items/items'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
@@ -85,26 +86,19 @@ export function applyRowKeyOrder<I>(
 }
 
 /**
- * Builds the row manager's natural-order view model from the engine's grouped
- * rows. There is one entry per group header: its shared value, formatted label,
- * and leaf count. Empty outside client grouping. The overlay's color and ordering are
- * layered on later by {@link useGridRowManager}.
+ * Builds the row manager's natural-order view model from the groups. There is
+ * one entry per group: its shared value, formatted label, and leaf count. Empty
+ * outside client grouping. The overlay's color and ordering are layered on
+ * later by {@link useGridRowManager}.
  *
  * @internal
  */
-export function buildRowManagerGroups<T>(
-	groupedRows: Row<T>[] | null,
-	columnId: string | number | null,
-): GridRowManagerGroup[] {
-	if (!groupedRows || columnId == null) return []
+export function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
+	return (groups ?? []).map((group) => {
+		const value = groupValueOf(group)
 
-	return groupedRows
-		.filter((row) => row.getIsGrouped())
-		.map((row) => {
-			const value = groupValueOf(row, columnId)
-
-			return { key: value, label: groupValueLabel(value), count: row.subRows.length }
-		})
+		return { key: value, label: groupValueLabel(value), count: group.leaves.length }
+	})
 }
 
 /** Options for {@link useGridRowManager}. @internal */
@@ -293,10 +287,10 @@ type GridRowManagerRegionOptions<T> = {
 	groupByConfig: GridGroupBy<T> | undefined
 	/** Whether client grouping is active — the row manager runs under it alone. */
 	groupingActive: boolean
-	/** The engine's grouped rows, or `null` when ungrouped. */
-	groupedRows: Row<T>[] | null
-	/** The grouped column id, or `null`. */
-	grouping: string | number | null
+	/** The groups, or `null` when ungrouped. */
+	groups: GridGroup<T>[] | null
+	/** Opens or closes a group, by its id. */
+	toggleGroup: (id: string) => void
 	/** Whether the header context menu is live — the manager's only entry point. */
 	contextMenuActive: boolean
 	/** Commits an engine expansion change (backs Expand all / Collapse all). */
@@ -317,17 +311,14 @@ type GridRowManagerRegionOptions<T> = {
 export function useGridRowManagerRegion<T>({
 	groupByConfig,
 	groupingActive,
-	groupedRows,
-	grouping,
+	groups,
+	toggleGroup,
 	contextMenuActive,
 	setGroupExpanded,
 }: GridRowManagerRegionOptions<T>): GridRowManagerRegionResult {
 	const enabled = groupingActive && (groupByConfig?.rowManager ?? true)
 
-	const naturalGroups = useMemo(
-		() => buildRowManagerGroups(groupedRows, grouping),
-		[groupedRows, grouping],
-	)
+	const naturalGroups = useMemo(() => buildRowManagerGroups(groups), [groups])
 
 	const manager = useGridRowManager({ config: groupByConfig?.rowGroups, naturalGroups })
 
@@ -336,16 +327,11 @@ export function useGridRowManagerRegion<T>({
 	// Reached only through the group-header menu, so it needs the context menu live.
 	const reachable = enabled && contextMenuActive
 
-	// Group-row lookup (by stringified value) for the menu's per-group expand toggle.
-	const groupRowByKey = useMemo(() => {
-		const rows = grouping == null ? undefined : groupedRows
-
-		return new Map(
-			(rows ?? [])
-				.filter((row) => row.getIsGrouped())
-				.map((row) => [String(row.getGroupingValue(String(grouping))), row]),
-		)
-	}, [groupedRows, grouping])
+	// Group lookup (by stringified value) for the menu's per-group expand toggle.
+	const groupByKey = useMemo(
+		() => new Map((groups ?? []).map((group) => [String(group.value), group])),
+		[groups],
+	)
 
 	const { color } = manager.presentation
 
@@ -355,20 +341,22 @@ export function useGridRowManagerRegion<T>({
 		(key: string): GridMenuItem[] | null => {
 			if (!reachable) return null
 
-			const row = groupRowByKey.get(key)
+			const group = groupByKey.get(key)
 
 			return buildRowGroupMenu({
-				expanded: row?.getIsExpanded() ?? false,
+				expanded: group?.expanded ?? false,
 				color: color(key),
 				manageLabel: 'Manage rows',
 				onManage: () => setOpen(true),
-				onToggle: () => row?.toggleExpanded(),
+				onToggle: () => {
+					if (group) toggleGroup(group.id)
+				},
 				onExpandAll: () => setGroupExpanded(true),
 				onCollapseAll: () => setGroupExpanded({}),
 				onClearColor: () => recolor(key, undefined),
 			})
 		},
-		[reachable, groupRowByKey, color, recolor, setGroupExpanded],
+		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded],
 	)
 
 	return {

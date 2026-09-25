@@ -5,10 +5,8 @@ import {
 	type ColumnPinningState,
 	type ColumnSizingInfoState,
 	type ColumnSizingState,
-	type ExpandedState,
 	type FilterFn,
 	type GroupingState,
-	getExpandedRowModel,
 	getFacetedRowModel,
 	getFacetedUniqueValues,
 	getFilteredRowModel,
@@ -390,24 +388,22 @@ export function sortOptions<T>(args: {
 
 /**
  * Row-grouping slice of the table options, or `{}` when grouping is off: the
- * grouped and expanded row models plus their change handlers. Client-side only
+ * grouped row model and its change handler. Client-side only
  * (`manualGrouping: false`), so the engine collects the groups from the filtered
- * rows itself.
+ * rows itself. It has no expanded row model: the grid opens the groups itself,
+ * so the engine's display rows are the group rows alone.
  *
  * @internal
  */
 export function groupingOptions<T>(args: {
 	grouped: boolean
 	onGroupingChange: OnChangeFn<GroupingState>
-	onExpandedChange: OnChangeFn<ExpandedState>
 }): Partial<TableOptions<T>> {
 	if (!args.grouped) return {}
 
 	return {
 		getGroupedRowModel: getGroupedRowModel(),
-		getExpandedRowModel: getExpandedRowModel(),
 		onGroupingChange: args.onGroupingChange,
-		onExpandedChange: args.onExpandedChange,
 		manualGrouping: false,
 	}
 }
@@ -483,7 +479,6 @@ type GridControlledState = {
 	columnPinning?: ColumnPinningState
 	rowSelection?: RowSelectionState
 	grouping?: GroupingState
-	expanded?: ExpandedState
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 }
@@ -507,7 +502,6 @@ export function buildState(args: {
 	rowSelection: RowSelectionState
 	grouped: boolean
 	grouping: GroupingState
-	expanded: ExpandedState
 	columnOrder: ColumnOrderState
 	columnVisibility: VisibilityState
 }): GridControlledState {
@@ -528,11 +522,7 @@ export function buildState(args: {
 
 	if (args.columnFiltered) state.columnFilters = args.columnFilters
 
-	if (args.grouped) {
-		state.grouping = args.grouping
-
-		state.expanded = args.expanded
-	}
+	if (args.grouped) state.grouping = args.grouping
 
 	if (args.sortClient) state.sorting = args.sorting
 

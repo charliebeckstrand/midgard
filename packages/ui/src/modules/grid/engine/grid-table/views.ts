@@ -7,8 +7,8 @@ import {
 	functionalUpdate,
 	type PaginationState,
 	type Table,
-	type Updater,
 } from '@tanstack/react-table'
+import type { SetStateAction } from 'react'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
@@ -176,7 +176,7 @@ export type GridPaginationView = {
 	 * against an explicit `pageCount`, which client mode never sets, so the view
 	 * clamps it.
 	 */
-	setPageIndex: (index: Updater<number>) => void
+	setPageIndex: (index: SetStateAction<number>) => void
 	setPageSize: (size: number) => void
 }
 

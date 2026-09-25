@@ -1,6 +1,5 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import type { Row } from '@tanstack/react-table'
 import { describe, expect, it } from 'vitest'
 import type { GridGroupHeaderRow } from '../../modules/grid'
 import {
@@ -8,13 +7,14 @@ import {
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from '../../modules/grid/engine/grid-group/segments'
+import type { GridLeaf } from '../../modules/grid/engine/grid-group/tree'
 
 /** A manual display row: a group header when it carries `group`, else a leaf. */
 type Item = { id: string; group?: GridGroupHeaderRow }
 
-/** The engine reads `original` alone, so a row needs nothing else. */
-function rows(items: Item[]): Row<Item>[] {
-	return items.map((original) => ({ original }) as Row<Item>)
+/** The display rows as leaves, each keyed by its item id. */
+function rows(items: Item[]): GridLeaf<Item>[] {
+	return items.map((row) => ({ id: row.id, key: row.id, row }))
 }
 
 const groupRow = (item: Item) => item.group ?? null
@@ -29,8 +29,8 @@ const leaf = (id: string): Item => ({ id })
 /** Each segment as its header id (or `null`) and its leaf ids, for a readable assertion. */
 function shape(segments: GridManualGroupSegment<Item>[]) {
 	return segments.map((segment) => [
-		segment.header?.original.id ?? null,
-		segment.leaves.map((row) => row.original.id),
+		segment.header?.row.id ?? null,
+		segment.leaves.map((row) => row.row.id),
 	])
 }
 
@@ -147,7 +147,7 @@ describe('segmentManualGroupRows: properties', () => {
 			...segment.leaves,
 		])
 
-		expect(flat.map((row) => row.original.id)).toEqual(list.map((item) => item.id))
+		expect(flat.map((row) => row.row.id)).toEqual(list.map((item) => item.id))
 	})
 
 	test.prop([items()])(
@@ -156,7 +156,7 @@ describe('segmentManualGroupRows: properties', () => {
 			const segments = segmentManualGroupRows(rows(list), groupRow)
 
 			for (const [index, segment] of segments.entries()) {
-				expect(segment.leaves.every((row) => groupRow(row.original) === null)).toBe(true)
+				expect(segment.leaves.every((row) => groupRow(row.row) === null)).toBe(true)
 
 				if (segment.header === null) expect(index).toBe(0)
 			}

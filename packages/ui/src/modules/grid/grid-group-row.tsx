@@ -1,6 +1,5 @@
 'use client'
 
-import type { Row } from '@tanstack/react-table'
 import { ChevronDown, ChevronRight } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
@@ -11,6 +10,7 @@ import type { PaletteColor } from '../../core/recipe'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation } from './engine/grid-aggregate'
 import { groupValueLabel } from './engine/grid-column/label'
+import type { GridGroup } from './engine/grid-group/tree'
 import { groupItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
 import { GridAggregateCells } from './grid-aggregate-cells'
@@ -21,11 +21,13 @@ import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 
 /** Props for {@link GridGroupRow}. @internal */
 type GridGroupRowProps<T> = {
-	/** The engine's group-header row (`row.getIsGrouped()`). */
-	row: Row<T>
+	/** The group this row heads. */
+	group: GridGroup<T>
+	/** Opens or closes a group, by its id. */
+	onToggle: (id: string) => void
 	/** The visible columns, in render order — the label span and aggregate cells derive from them. */
 	columns: GridColumn<T>[]
-	/** The grouped column id, read for the group's shared value. */
+	/** The grouped column id, which a `renderHeader` override receives. */
 	columnId: string | number
 	/** Header-label override; falls back to `value (count)`. */
 	renderHeader: GridGroupBy['renderHeader']
@@ -47,20 +49,18 @@ type GridGroupRowProps<T> = {
  * @internal
  */
 export function GridGroupRow<T>({
-	row,
+	group,
+	onToggle,
 	columns,
 	columnId,
 	renderHeader,
 	color,
 	...windowRow
 }: GridGroupRowProps<T>) {
-	const expanded = row.getIsExpanded()
+	const { expanded, value } = group
 
-	// Single-level grouping: the group's immediate sub-rows are its leaf rows, so
-	// their count is the group size (post-filter, since filtering prunes sub-rows).
-	const count = row.subRows.length
-
-	const value = row.getGroupingValue(String(columnId))
+	// The group size, after the filters, since filtering prunes the leaves.
+	const count = group.leaves.length
 
 	const label: ReactNode = renderHeader
 		? renderHeader({ columnId, value, count })
@@ -70,7 +70,7 @@ export function GridGroupRow<T>({
 
 	const span = aggregated ? aggregateLabelSpan(columns) : columns.length
 
-	const navKey = groupItemKey(row.id)
+	const navKey = groupItemKey(group.id)
 
 	const stopProps = useGridNavStopProps(navKey)
 
@@ -96,7 +96,7 @@ export function GridGroupRow<T>({
 				<Button
 					type="button"
 					variant="bare"
-					onClick={row.getToggleExpandedHandler()}
+					onClick={() => onToggle(group.id)}
 					aria-expanded={expanded}
 					aria-label={`${expanded ? 'Collapse' : 'Expand'} group ${groupValueLabel(value)}`}
 					className="p-0"
@@ -113,12 +113,7 @@ export function GridGroupRow<T>({
 			</TableCell>
 
 			{aggregated && (
-				<GridAggregateCells
-					columns={columns}
-					rows={row.subRows.map((leaf) => leaf.original)}
-					from={span}
-					color={color}
-				/>
+				<GridAggregateCells columns={columns} rows={group.rows} from={span} color={color} />
 			)}
 		</TableRow>
 	)
