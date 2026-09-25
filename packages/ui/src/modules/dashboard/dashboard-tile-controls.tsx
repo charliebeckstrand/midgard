@@ -28,7 +28,7 @@ export type DashboardTileControlsProps = {
 	expandable: boolean
 	/** What the expand dialog shows while the content suspends. */
 	fallback: ReactNode
-	/** Receives each error that the boundary in the expand dialog catches. */
+	/** Receives each error that a boundary in the expand dialog catches. */
 	onError: (error: unknown) => void
 	/** The tile shell, which finds the tile that takes the focus after a remove. */
 	shell: RefObject<HTMLElement | null>

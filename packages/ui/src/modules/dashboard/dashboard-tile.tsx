@@ -40,9 +40,26 @@ export type DashboardTileProps = {
 	 * live region. A widget inside a titled tile needs no title of its own.
 	 */
 	title?: string
-	/** A muted line under the title: a unit, a period, or a caveat. */
+	/**
+	 * A muted line under the title: a unit, a period, or a caveat.
+	 *
+	 * @remarks
+	 * The description has its own error boundary and Suspense boundary, in the
+	 * header row and in the expand dialog. When it throws, it goes away, and
+	 * `onTileError` receives the error. A new element does not bring it back. A
+	 * render with no `description`, or a new mount of the tile, does. The expand
+	 * dialog tries it again each time it opens. While it suspends, it shows nothing.
+	 */
 	description?: ReactNode
-	/** Controls at the far end of the header row, for example a menu or a badge. They stay live in edit mode. */
+	/**
+	 * Controls at the far end of the header row, for example a menu or a badge. They stay live in edit mode.
+	 *
+	 * @remarks
+	 * The controls have their own error boundary and Suspense boundary. When they
+	 * throw, they go away, and `onTileError` receives the error. A new element does
+	 * not bring them back. A render with no `actions`, or a new mount of the tile,
+	 * does. While they suspend, they show nothing.
+	 */
 	actions?: ReactNode
 	/**
 	 * Fixes the `width / height` ratio of the tile, for example `16 / 9` for a chart.
@@ -130,6 +147,7 @@ export type DashboardTileProps = {
  * The tile renders again only when its own cell or its own flags change. A move
  * glides, and each change of size snaps. Each tile has its own error boundary and
  * its own Suspense boundary, so a widget that fails or waits affects only its tile.
+ * The description and the actions each have a pair of their own.
  *
  * @remarks
  * A tile with a layout entry renders on the server at its saved cell. A tile

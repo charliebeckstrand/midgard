@@ -110,6 +110,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 
 			{hasHeader && (
 				<DashboardTileHeader
+					label={label}
 					titleId={titleId}
 					title={title}
 					description={description}
@@ -117,6 +118,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 					clear={<DashboardTileClear id={id} label={label} />}
 					handle={handle}
 					editing={editable}
+					onError={onError}
 					controls={
 						<DashboardTileControls
 							id={id}

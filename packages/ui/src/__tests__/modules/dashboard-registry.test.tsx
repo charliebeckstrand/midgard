@@ -7,6 +7,7 @@ import {
 	type DashboardSpecTile,
 	DashboardTile,
 	DashboardTiles,
+	type DashboardTilesProps,
 	type DashboardWidget,
 	DashboardWidgetProvider,
 	type DashboardWidgetRenderer,
@@ -61,11 +62,22 @@ const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'units', x: 12, y: 0, w: 6, h: 16 },
 ]
 
-function Board({ tiles = TILES }: { tiles?: DashboardSpecTile[] }) {
+/** Header controls that read `options`, as the metric renderer does. A tile with none throws. */
+const optionActions = (tile: DashboardSpecTile) => (
+	<button type="button">{`Menu for ${(tile.options as { label: string }).label}`}</button>
+)
+
+function Board({
+	tiles = TILES,
+	actions,
+}: {
+	tiles?: DashboardSpecTile[]
+	actions?: DashboardTilesProps['actions']
+}) {
 	return (
 		<DashboardWidgetProvider widgets={WIDGETS}>
 			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-				<DashboardTiles tiles={tiles} />
+				<DashboardTiles tiles={tiles} actions={actions} />
 			</Dashboard>
 		</DashboardWidgetProvider>
 	)
@@ -194,6 +206,63 @@ describe('DashboardTiles', () => {
 		// The tile Suspense boundary hands the error to a client render. The dev
 		// error text names components, so match the markup of the sibling tile.
 		expect(html).toContain('<p>Stat</p>')
+	})
+
+	it('confines an actions callback that throws to the controls of its tile, and reports it', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<DashboardWidgetProvider widgets={WIDGETS}>
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+					<DashboardTiles tiles={TILES} actions={optionActions} />
+
+					<DashboardTile id="notes" title="Notes">
+						<p>Hand-written</p>
+					</DashboardTile>
+				</Dashboard>
+			</DashboardWidgetProvider>,
+		)
+
+		// The units tile keeps its title and its widget. Only its controls go away.
+		const units = screen.getByRole('group', { name: 'Units' })
+
+		expect(units).toHaveTextContent('Stat')
+
+		expect(bySlot(units, 'dashboard-tile-actions')).toBeEmptyDOMElement()
+
+		expect(screen.getByRole('button', { name: 'Menu for Revenue' })).toBeInTheDocument()
+
+		expect(screen.getByText('Hand-written')).toBeInTheDocument()
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(onTileError).toHaveBeenCalledWith('units', expect.any(TypeError))
+	})
+
+	it('draws a header row on each tile when the actions callback is set, also for undefined', () => {
+		const untitled: DashboardSpecTile[] = [{ id: 'units', widget: 'stat' }]
+
+		const { container, rerender } = renderUI(<Board tiles={untitled} />)
+
+		expect(bySlot(container, 'card-header')).toBeNull()
+
+		// The board cannot read the result outside the boundary of the actions.
+		rerender(<Board tiles={untitled} actions={() => undefined} />)
+
+		expect(bySlot(container, 'card-header')).toBeInTheDocument()
+	})
+
+	it('renders the board on the server when an actions callback throws', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const html = renderToString(<Board actions={optionActions} />)
+
+		// The Suspense boundary of the actions hands the error to a client render.
+		expect(html).toContain('<p>Stat</p>')
+
+		expect(html).toContain('Menu for Revenue')
 	})
 
 	it('types a renderer that returns a promise as an error', () => {

@@ -34,6 +34,14 @@ export type DashboardTilesProps = {
 	 * The controls at the far end of the header row of each tile, for example a
 	 * remove button. Hoist it or wrap it in `useCallback`: a fresh function renders
 	 * each spec tile again.
+	 *
+	 * @remarks
+	 * The callback runs inside the actions boundary of its tile. When it throws,
+	 * the controls of that tile go away, and `onTileError` receives the error. A new
+	 * spec tile or a new callback does not bring them back. A new mount of the tile does.
+	 *
+	 * When you set the callback, each tile draws a header row, also for a result of
+	 * `undefined`. A tile with no title then shows its grip in that row.
 	 */
 	actions?: (tile: DashboardSpecTile) => ReactNode
 	/**
@@ -75,7 +83,8 @@ export type DashboardTilesProps = {
  *
  * The renderer of a kind runs inside the error boundary of its tile. A renderer
  * that throws, for example on saved `options` of an old shape, fails only its own
- * tile, and `onTileError` receives it.
+ * tile, and `onTileError` receives it. The `actions` callback runs inside the
+ * boundary of the header controls, so a throw there hides only those controls.
  *
  * @example
  * ```tsx
@@ -141,6 +150,25 @@ function DashboardSpecTileBody({ render, tile }: DashboardSpecTileBodyProps) {
 	return render(tile)
 }
 
+/** Props for {@link DashboardSpecTileActions}. @internal */
+type DashboardSpecTileActionsProps = {
+	/** Draws the header controls of the spec tile. */
+	actions: (tile: DashboardSpecTile) => ReactNode
+	/** The spec tile. */
+	tile: DashboardSpecTile
+}
+
+/**
+ * The header controls of one spec tile. The callback runs here, inside the error
+ * boundary and the Suspense boundary of the actions slot. A callback that throws
+ * then hides only the controls of its tile.
+ *
+ * @internal
+ */
+function DashboardSpecTileActions({ actions, tile }: DashboardSpecTileActionsProps) {
+	return actions(tile)
+}
+
 /** Props for {@link DashboardSpecTileView}. @internal */
 type DashboardSpecTileViewProps = {
 	/** The spec tile. */
@@ -184,7 +212,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 			id={tile.id}
 			title={tile.title}
 			description={tile.description}
-			actions={actions?.(tile)}
+			actions={actions && <DashboardSpecTileActions actions={actions} tile={tile} />}
 			ratio={widget?.ratio}
 			// A tile with no widget shows a line of text. It demands no width, so a
 			// narrow saved span never re-packs the board or stops edit mode.

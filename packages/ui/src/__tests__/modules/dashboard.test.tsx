@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { Profiler, type ReactNode, useState } from 'react'
+import { Profiler, type ReactNode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -316,6 +316,133 @@ describe('Dashboard', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
+	})
+
+	it('confines an error in the actions to the header controls, and reports it', () => {
+		const onTileError = vi.fn()
+
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue" actions={<Broken />}>
+					<p>Chart</p>
+				</DashboardTile>
+
+				<DashboardTile id="b" title="Traffic" actions={<button type="button">Menu</button>}>
+					<p>Fine</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		// The controls go away with no error state, and the rest of the tile stays.
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByRole('button', { name: 'Menu' })).toBeInTheDocument()
+
+		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
+	})
+
+	it('confines an error in the description to the header, and reports it', () => {
+		const onTileError = vi.fn()
+
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+					<p>Chart</p>
+				</DashboardTile>
+
+				<DashboardTile id="b" title="Traffic" description="This year">
+					<p>Fine</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		// The description goes away with its element, and the title and the widget stay.
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'card-description')).toBeNull()
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByRole('group', { name: 'Traffic' })).toHaveTextContent('This year')
+
+		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
+	})
+
+	it('renders the board on the server when a description throws', () => {
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const html = renderToString(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+					<p>Chart</p>
+				</DashboardTile>
+
+				<DashboardTile id="b" title="Traffic">
+					<p>Fine</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		// The Suspense boundary of the guard hands the error to a client render. The dev
+		// error text names components, so match the markup of each widget.
+		expect(html).toContain('<p>Chart</p>')
+
+		expect(html).toContain('<p>Fine</p>')
+	})
+
+	it('shows nothing in place of actions that suspend, and keeps the board', async () => {
+		const never = new Promise<never>(() => {})
+
+		function Waiting(): ReactNode {
+			return use(never)
+		}
+
+		// A child that suspends needs an awaited act.
+		await act(async () => {
+			renderUI(
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+					<DashboardTile id="a" title="Revenue" actions={<Waiting />}>
+						<p>Chart</p>
+					</DashboardTile>
+
+					<DashboardTile id="b" title="Traffic">
+						<p>Fine</p>
+					</DashboardTile>
+				</Dashboard>,
+			)
+		})
+
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
+
+		expect(screen.getByText('Fine')).toBeInTheDocument()
 	})
 })
 
