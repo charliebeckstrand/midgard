@@ -10,6 +10,12 @@ import { k } from '../../recipes/kata/dashboard'
 export type DashboardTileBoundaryProps = {
 	/** The name of the tile, for the error text. */
 	label: string
+	/**
+	 * Show no error state. The part that failed goes away. The actions slot uses
+	 * this, because the header row has no space for an error state.
+	 * @defaultValue false
+	 */
+	quiet?: boolean
 	/** Receives each error that the boundary catches. */
 	onError: (error: unknown) => void
 	children: ReactNode
@@ -22,6 +28,9 @@ type DashboardTileBoundaryState = { error: unknown }
  * The error boundary of one tile. A widget that throws replaces only its own
  * content with an error state, and the rest of the board keeps working. The retry
  * button renders the content again.
+ *
+ * A quiet boundary shows nothing in place of the failed part. It has no retry,
+ * so the part stays hidden until the tile mounts again.
  *
  * @internal
  */
@@ -45,6 +54,8 @@ export class DashboardTileBoundary extends Component<
 
 	render(): ReactNode {
 		if (this.state.error === null) return this.props.children
+
+		if (this.props.quiet) return null
 
 		return (
 			<div data-slot="dashboard-tile-error" role="alert" className={cn(k.error)}>

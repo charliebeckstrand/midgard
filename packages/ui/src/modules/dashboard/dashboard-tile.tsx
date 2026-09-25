@@ -42,7 +42,14 @@ export type DashboardTileProps = {
 	title?: string
 	/** A muted line under the title: a unit, a period, or a caveat. */
 	description?: ReactNode
-	/** Controls at the far end of the header row, for example a menu or a badge. They stay live in edit mode. */
+	/**
+	 * Controls at the far end of the header row, for example a menu or a badge. They stay live in edit mode.
+	 *
+	 * @remarks
+	 * The controls have their own error boundary and Suspense boundary. When they
+	 * throw, they go away until the tile mounts again, and `onTileError` receives
+	 * the error. While they suspend, they show nothing.
+	 */
 	actions?: ReactNode
 	/**
 	 * Fixes the `width / height` ratio of the tile, for example `16 / 9` for a chart.
