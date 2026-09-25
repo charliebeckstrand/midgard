@@ -115,7 +115,7 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-scroll.bench.tsx`](grid-scroll.bench.tsx) — a top-to-bottom-and-back sweep in 12 even jumps, one settled frame per step plus a fully-painted probe at each end — the virtualization stress, at 10k / 100k.
 
-- [`grid-filter.bench.tsx`](grid-filter.bench.tsx) — a quick-filter term applied and then cleared, settled on painted survivors at each end, so one sample covers the narrowing a keystroke produces and the widening a backspace does, at 10k / 100k. Each library takes its own quick filter (the ui module's `search` binding, AG's `quickFilterText`, MUI's `filterModel.quickFilterValues`) and all three scan the same eight columns — the ui grid searches the columns declaring a `value` accessor, so every bench column declares one.
+- [`grid-filter.bench.tsx`](grid-filter.bench.tsx) — a quick-filter term applied and then cleared, settled on painted survivors at each end, so one sample covers the narrowing a keystroke produces and the widening a backspace does, at 10k / 100k. Each library takes its own quick filter (the ui module's `search` binding, AG's `quickFilterText`, MUI's `filterModel.quickFilterValues`) and all three scan the same eight columns — the ui grid searches the columns declaring a `value` accessor, so every bench column declares one. A second pair of scenarios runs the same cycle on a grid that sorts on `id` in descending order, so the search and the sort work together.
 
 - [`grid-column-filter.bench.tsx`](grid-column-filter.bench.tsx) — a `contains` filter on the carrier column, applied and then cleared, at 10k / 100k. It settles on painted survivors at each end, as the quick-filter scenario does. Each library takes its own column filter: the ui module's `columnFilters` binding, AG's filter model, and MUI's `filterModel.items`. Only this scenario mounts the carrier column as filterable, so no filter affordance adds to the cost of the others.
 
@@ -269,6 +269,19 @@ Each entry names the change and the scenarios it moved.
     | facets · 10,000 · mount + open · compiled | 47.3 | 32.3 | −37%, −32%, −26% |
 
     The quick filter stayed within noise in both builds. The plain 100k column filter read +2%, +4%, and +9%, and the compiled one was mixed. The first build of this change gave the filter view a new identity on each search keystroke, and the compiled 100k quick filter read +2% to +5%. The stable facet function closed that.
+
+16. **Cached haystack and a filtered sort order** ([`search.ts`](../../modules/grid/engine/grid-search/search.ts) `compileSearch`, [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useClientView`, 2026-09-25, this container). The quick search read, stringified, and lowercased each searched cell of each row on each keystroke. Each row now keeps its searched text as one lowercase haystack for each row array and column set, so a keystroke makes one substring check for each row. A search next to a sort also sorted the kept rows again on each keystroke. With the smart comparison, the grid now filters the cached full order instead. Property tests hold the rows equal to those of the engine. Median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | filter · 100,000 · plain | 105.6 | 70.0 | −32%, −34%, −34% |
+    | filter · 100,000 · compiled | 95.2 | 63.1 | −33%, −36%, −33% |
+    | filter · 100,000 · sorted · plain | 107.6 | 63.1 | −42%, −40%, −43% |
+    | filter · 100,000 · sorted · compiled | 99.1 | 60.1 | −39%, −42%, −38% |
+    | filter · 10,000 · plain | 45.9 | 42.6 | −8%, −5%, −6% |
+    | filter · 10,000 · sorted · plain | 42.1 | 37.4 | −11%, −5%, −14% |
+
+    At 100k the module now runs the search in about a third of the time of AG (219.1ms) and under half of that of MUI (171.5ms), sorted or not. The sort flips and the column filters stayed within noise.
 
 ## Maps
 
