@@ -16,7 +16,7 @@
       "inputs": [
         "src/**",
         "app/**",
-        "*.config.ts",
+        "*.ts",
         "tsconfig.json",
         "tsconfig.scripts.json",
         "tsconfig.docs.json",
@@ -47,7 +47,7 @@
       "inputs": [
         "src/**",
         "app/**",
-        "*.config.ts",
+        "*.ts",
         "$TURBO_ROOT$/biome.json",
         "$TURBO_ROOT$/.biome/plugins/**"
       ]
