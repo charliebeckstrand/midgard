@@ -1,6 +1,6 @@
 'use client'
 
-import type { KeyboardEvent } from 'react'
+import { type KeyboardEvent, useLayoutEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -34,9 +34,10 @@ const STEPS: Record<string, readonly [number, number]> = {
 /**
  * One resize splitter of a tile in edit mode. A pointer drag resizes the tile
  * live; the arrow keys on a focused splitter step it by one grid unit and commit
- * at once. The corner takes the pointer only, because the two edges already
- * serve the keyboard. Each edge reports the span on its axis, and the range that
- * the limits of the tile allow.
+ * at once. After each step, the focused splitter scrolls into view, so its focus
+ * ring stays on screen. The corner takes the pointer only, because the two edges
+ * already serve the keyboard. Each edge reports the span on its axis, and the
+ * range that the limits of the tile allow.
  *
  * @remarks
  * A saved span can be outside the limits, because the saved layout renders as
@@ -63,6 +64,20 @@ export function DashboardResizeHandle({
 
 	// The south edge of a free-form tile has no most height unless the tile sets one.
 	const most = horizontal ? range.maxH : range.maxW
+
+	const ref = useRef<HTMLDivElement>(null)
+
+	// A keyboard step changes the span and not the scroll, so a step can push the focused
+	// splitter past the fold. A pointer resize skips the scroll, because its edge follows the
+	// pointer through a scroll, and the scroll then changes the span again.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: a change of `span` is the trigger. The body reads the focus and `resizing` at that time.
+	useLayoutEffect(() => {
+		const node = ref.current
+
+		if (resizing || node === null || node !== document.activeElement) return
+
+		node.scrollIntoView({ block: 'nearest', inline: 'nearest' })
+	}, [span])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		const step = STEPS[event.key]
@@ -94,6 +109,7 @@ export function DashboardResizeHandle({
 
 	return (
 		<div
+			ref={ref}
 			data-slot="dashboard-resize-handle"
 			data-edge={edge}
 			data-resizing={dataAttr(resizing)}

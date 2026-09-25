@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
+import { userEvent } from 'vitest/browser'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { fireEvent, frames, getSlot, present, renderUI, screen } from '../helpers'
 import { lastEntry, useControlledLayout } from '../helpers/dashboard-board'
@@ -11,14 +12,19 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 	// At 384 px, a column is 16 px and a row is 4 px.
 	const LAYOUT: DashboardLayoutItem[] = [{ id: 'a', x: 0, y: 0, w: 24, h: 20 }]
 
-	function Board({ onLayout }: { onLayout?: (next: DashboardLayoutItem[]) => void }) {
+	type BoardProps = {
+		initial?: DashboardLayoutItem[]
+		onLayout?: (next: DashboardLayoutItem[]) => void
+	}
+
+	function Board({ initial = LAYOUT, onLayout }: BoardProps) {
 		return (
 			<div data-testid="scroller" style={{ width: 384, height: 300, overflowY: 'auto' }}>
 				<Dashboard
 					aria-label="Board"
 					editing
 					gap={0}
-					layout={useControlledLayout(LAYOUT, onLayout)}
+					layout={useControlledLayout(initial, onLayout)}
 				>
 					<DashboardTile id="a" title="A" minWidth={0} />
 				</Dashboard>
@@ -73,5 +79,32 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 		fireEvent.pointerUp(south, { ...pointer, clientY: y + 60 })
 
 		expect(lastEntry(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 24, h: 60 })
+	})
+
+	it('keeps a focused south splitter in the scroll box through its keyboard steps', async () => {
+		// The splitter starts at 240 px of the 300 px box, and 30 steps put it at 360 px.
+		renderUI(<Board initial={[{ id: 'a', x: 0, y: 0, w: 24, h: 60 }]} />)
+
+		const south = southSplitter()
+
+		const scroller = screen.getByTestId('scroller')
+
+		south.focus()
+
+		for (let step = 0; step < 30; step++) await userEvent.keyboard('{ArrowDown}')
+
+		expect(south).toHaveAttribute('aria-valuenow', '90')
+
+		expect(south).toHaveFocus()
+
+		const view = scroller.getBoundingClientRect()
+
+		const box = south.getBoundingClientRect()
+
+		expect(scroller.scrollTop).toBeGreaterThan(0)
+
+		expect(box.top).toBeGreaterThanOrEqual(view.top)
+
+		expect(box.bottom).toBeLessThanOrEqual(view.bottom)
 	})
 })

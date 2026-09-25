@@ -121,6 +121,33 @@ describe('Dashboard pointer resize', () => {
 		expect(area(container)).toBe('1 / 1 / span 10 / span 10')
 	})
 
+	it('scrolls a focused splitter into view after a keyboard step, and not during a pointer resize', () => {
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		renderUI(<Board spies={makeSpies()} />)
+
+		const east = eastSplitter()
+
+		act(() => east.focus())
+
+		// The edge follows the pointer through a scroll, so a scroll here changes the span again.
+		pressAndMove(east)
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		expect(east).toHaveAttribute('aria-valuenow', '10')
+
+		expect(scroll).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(east, { key: 'ArrowRight' })
+
+		expect(east).toHaveAttribute('aria-valuenow', '11')
+
+		expect(scroll).toHaveBeenCalledExactlyOnceWith({ block: 'nearest', inline: 'nearest' })
+
+		expect(scroll.mock.contexts[0]).toBe(east)
+	})
+
 	it('reverts the preview on Escape, and ends as canceled', () => {
 		const spies = makeSpies()
 
