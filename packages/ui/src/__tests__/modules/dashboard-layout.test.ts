@@ -34,6 +34,15 @@ const cell = (
 	static: fixed,
 })
 
+/** The ids of each pair of cells that overlap. */
+const overlaps = (cells: readonly DashboardCell[]) =>
+	cells.flatMap((a, index) =>
+		cells
+			.slice(index + 1)
+			.filter((b) => collides(a, b))
+			.map((b) => [a.id, b.id]),
+	)
+
 describe('deriveHeight', () => {
 	it('gives equal tiles equal heights', () => {
 		expect(deriveHeight(8, 16 / 9)).toBe(deriveHeight(8, 16 / 9))
@@ -198,6 +207,82 @@ describe('resolveLayout', () => {
 
 		// The span clamps to the columns, and the height falls to the default.
 		expect(cells[3]).toMatchObject({ id: 'wide', x: 0, y: 67, w: 24, h: 18 })
+	})
+
+	it('moves each entry that a smaller column count puts on another entry to a new row', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+			['new', {}],
+		])
+
+		// Saved at 24 columns and shown at 12, the clamp puts b and c on columns 4 to 11.
+		const cells = resolveLayout(
+			[
+				{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+				{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+				{ id: 'c', x: 16, y: 0, w: 8, h: 10 },
+			],
+			demands,
+			12,
+		)
+
+		expect(overlaps(cells)).toEqual([])
+
+		// The moved entries go under the lowest tile, and a tile with no entry goes last.
+		expect(cells).toEqual([
+			cell('a', 0, 0, 8, 10),
+			cell('b', 0, 10, 8, 10),
+			cell('c', 0, 20, 8, 10),
+			cell('new', 0, 30, 8, 18),
+		])
+	})
+
+	it('moves an entry past an edge to a new row when its clamp covers another entry', () => {
+		const demands = new Map([
+			['b', {}],
+			['c', {}],
+		])
+
+		const b = { id: 'b', x: 16, y: 0, w: 4, h: 10 }
+
+		// The clamp moves c from x 22 to x 18, onto columns 18 and 19 of b.
+		const c = { id: 'c', x: 22, y: 0, w: 6, h: 10 }
+
+		const expected = [cell('b', 16, 0, 4, 10), cell('c', 0, 10, 6, 10)]
+
+		expect(resolveLayout([b, c], demands, 24)).toEqual(expected)
+
+		// The entry as saved keeps its place, so the order of the entries does not matter.
+		expect(resolveLayout([c, b], demands, 24)).toEqual(expected)
+
+		// An entry above the top edge clamps to row 0, onto b.
+		expect(resolveLayout([b, { ...c, x: 16, y: -10 }], demands, 24)).toEqual(expected)
+	})
+
+	it('keeps an entry that overlaps another as saved, and a clamped entry on free cells', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const cells = resolveLayout(
+			[
+				{ id: 'a', x: 0, y: 0, w: 12, h: 10 },
+				{ id: 'b', x: 6, y: 5, w: 12, h: 10 },
+				{ id: 'c', x: 30, y: 20, w: 6, h: 10 },
+			],
+			demands,
+			24,
+		)
+
+		expect(cells).toEqual([
+			cell('a', 0, 0, 12, 10),
+			cell('b', 6, 5, 12, 10),
+			cell('c', 18, 20, 6, 10),
+		])
 	})
 
 	it('compares geometry id by id', () => {

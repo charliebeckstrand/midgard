@@ -127,7 +127,9 @@ export type DashboardProps = AccessibleName & {
 	editing?: boolean
 	/**
 	 * The column count. The default divides into halves, thirds, quarters, sixths,
-	 * and eighths.
+	 * and eighths. A saved entry that does not fit the count clamps into it. When
+	 * the clamp puts a tile on another tile, the tile takes a new row under the
+	 * lowest tile. The next commit saves that place.
 	 * @defaultValue 24
 	 */
 	columns?: number
