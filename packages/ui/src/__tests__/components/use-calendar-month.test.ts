@@ -45,9 +45,6 @@ describe('useCalendarMonth: initial viewDate', () => {
 
 describe('useCalendarMonth: navigation', () => {
 	it('prevMonth steps to the previous month', () => {
-		// Inline `new Date()` inside renderHook re-runs every render and would
-		// re-trigger the value→viewDate re-anchor; hoisting the instance keeps
-		// the hook's `value !== prevValueRef.current` check false.
 		const value = new Date(2026, 4, 1)
 
 		const { result } = renderHook(() => useCalendarMonth({ value, activeGridDate: null }))
@@ -65,6 +62,35 @@ describe('useCalendarMonth: navigation', () => {
 		act(() => result.current.nextMonth())
 
 		expect(result.current.month).toBe(5)
+	})
+
+	it('steps once for each call in one batch', () => {
+		const value = new Date(2026, 4, 1)
+
+		const { result } = renderHook(() => useCalendarMonth({ value, activeGridDate: null }))
+
+		// Each step applies to the last one, not to the month of the render.
+		act(() => {
+			result.current.nextMonth()
+
+			result.current.nextMonth()
+		})
+
+		expect(result.current.month).toBe(6)
+	})
+
+	it('keeps the steppers across a month change', () => {
+		const value = new Date(2026, 4, 1)
+
+		const { result } = renderHook(() => useCalendarMonth({ value, activeGridDate: null }))
+
+		const { prevMonth, nextMonth } = result.current
+
+		act(() => nextMonth())
+
+		expect(result.current.prevMonth).toBe(prevMonth)
+
+		expect(result.current.nextMonth).toBe(nextMonth)
 	})
 
 	it('navigateTo jumps to an explicit year and month', () => {
@@ -127,6 +153,40 @@ describe('useCalendarMonth: re-anchoring', () => {
 		expect(result.current.year).toBe(2027)
 
 		expect(result.current.month).toBe(0)
+	})
+
+	it('keeps a stepped view when the value comes again as an equal Date', () => {
+		// A new `Date` on each render, as a parent that derives the value inline.
+		const { result, rerender } = renderHook(() =>
+			useCalendarMonth({ value: new Date(2026, 4, 1), activeGridDate: null }),
+		)
+
+		act(() => result.current.nextMonth())
+
+		rerender()
+
+		expect(result.current.month).toBe(5)
+	})
+
+	it('snaps back for a new activeGridDate object on the same day', () => {
+		const { result, rerender } = renderHook(
+			(props: { activeGridDate: Date | null }) =>
+				useCalendarMonth({
+					value: undefined,
+					defaultValue: new Date(2026, 4, 1),
+					activeGridDate: props.activeGridDate,
+				}),
+			{ initialProps: { activeGridDate: new Date(2026, 4, 31) } },
+		)
+
+		act(() => result.current.nextMonth())
+
+		expect(result.current.month).toBe(5)
+
+		// A keyboard move that the parent clamps to the same day is still a move.
+		rerender({ activeGridDate: new Date(2026, 4, 31) })
+
+		expect(result.current.month).toBe(4)
 	})
 
 	it('does not snap when the new value is in the same month already shown', () => {
