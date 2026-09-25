@@ -460,6 +460,67 @@
 				"!**/__benchmarks__/**"
 			],
 			"plugins": ["./.biome/plugins/no-respelled-orientation.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/recipes/**",
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/docs/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-text-left.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/recipes/**",
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-renamed-spacing-utility.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/recipes/**",
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/layouts/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!packages/ui/src/recipes/kiso/kasane/**",
+				"!packages/ui/src/recipes/kiso/control/affix.ts",
+				"!packages/ui/src/recipes/kata/button.ts",
+				"!packages/ui/src/recipes/kata/query-chips.ts",
+				"!packages/ui/src/recipes/kata/tag-input.ts"
+			],
+			"plugins": ["./.biome/plugins/no-inline-spacing-calc.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-value-import-from-recipes-barrel.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/recipes/kata/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
+			"plugins": ["./.biome/plugins/no-value-import-from-sibling-kata.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
+			"plugins": ["./.biome/plugins/no-whole-floating-context-dep.grit"]
 		}
 	],
 	"files": {

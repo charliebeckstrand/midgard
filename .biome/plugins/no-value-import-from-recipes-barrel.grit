@@ -1,0 +1,26 @@
+language js
+
+// Every consuming layer reaches the recipe layer through its owning kata. The
+// `recipes` barrel is types-only. It surfaces `Step`, `Ma`, `Color`, `Ji`,
+// `GroupOrientation`, and `GroupPosition` for prop-union derivation. A value
+// import from it would bypass the kata curation.
+//
+// An `import type`, or a named import whose every specifier is `type`, is
+// exempt. The other half of the contract, no import at all from
+// `recipes/katakana` or `recipes/kiso`, is `noRestrictedImports` in
+// `biome.json`. That rule reads an `import type` as a value import, so it
+// cannot express this exemption.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the component,
+// module, and primitive layers, minus tests and benchmarks. `layouts` stays
+// out, because `layouts/sidebar/variants.ts` value-imports kiso and nothing
+// forbids it.
+`import $clause from $source` as $import where {
+	$source <: r"['\"][\s\S]*/recipes['\"]",
+	not $import <: r"import\s+type\b[\s\S]*",
+	not $import <: r"import\s*\{\s*type\s[^,}]*(?:,\s*type\s[^,}]*)*,?\s*\}[\s\S]*",
+	register_diagnostic(
+		span = $import,
+		message = "take recipe values from the owning kata (`recipes/kata/<name>`): the `recipes` barrel surfaces types alone"
+	)
+}
