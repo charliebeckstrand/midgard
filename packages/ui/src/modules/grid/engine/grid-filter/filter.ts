@@ -2,8 +2,8 @@ import { compileQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridColumn, GridColumnFilterState } from '../../types'
 
-/** A test that one row passes or fails. @internal */
-export type RowTest<T> = (row: T) => boolean
+/** A test that one row passes or fails. `index` is the position of the row in its data. @internal */
+export type RowTest<T> = (row: T, index: number) => boolean
 
 /** The compiled column filters, by column id. @internal */
 export type ColumnTests<T> = ReadonlyMap<string, RowTest<T>>
@@ -85,16 +85,16 @@ export function filterRowIndices<T>(rows: readonly T[], tests: readonly RowTest<
 	for (let index = 0; index < rows.length; index++) {
 		const row = rows[index] as T
 
-		if (passes(row, tests)) kept.push(index)
+		if (passes(row, index, tests)) kept.push(index)
 	}
 
 	return kept
 }
 
 /** Whether a row passes every test. It stops at the first test that fails. @internal */
-function passes<T>(row: T, tests: readonly RowTest<T>[]): boolean {
+function passes<T>(row: T, index: number, tests: readonly RowTest<T>[]): boolean {
 	for (const test of tests) {
-		if (!test(row)) return false
+		if (!test(row, index)) return false
 	}
 
 	return true
@@ -118,8 +118,10 @@ export function uniqueValues<T>(
 ): Set<unknown> {
 	const values = new Set<unknown>()
 
-	for (const row of rows) {
-		if (passes(row, tests)) values.add(read(row))
+	for (let index = 0; index < rows.length; index++) {
+		const row = rows[index] as T
+
+		if (passes(row, index, tests)) values.add(read(row))
 	}
 
 	return values

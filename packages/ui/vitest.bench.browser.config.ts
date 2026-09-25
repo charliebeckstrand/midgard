@@ -1,6 +1,6 @@
-import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import { defineConfig } from 'vitest/config'
+import { servedTailwind } from './vitest.browser.config'
 
 /**
  * Competitive benchmarks in real Chromium (`pnpm bench:browser`) — the ui
@@ -16,7 +16,7 @@ import { defineConfig } from 'vitest/config'
  * iteration, so a vsync'd browser would quantize every such sample to ~16ms.
  */
 export default defineConfig({
-	plugins: [tailwindcss()],
+	plugins: [servedTailwind()],
 	// Measure the React the module actually ships: production, not the
 	// development build Vite serves by default. The dev build's invariant checks
 	// and warnings run several times the work per render, so a dev-React number

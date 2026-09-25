@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useMemo } from 'react'
+import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
@@ -149,6 +149,53 @@ export function litOverlay(
 	return { dimmed: true, overlay: lit.length > 0 ? lit.join(' ') : null }
 }
 
+/** Props for {@link AnimatedBar}: one bar, in plain values so the memo holds. @internal */
+type AnimatedBarProps = {
+	d: string
+	positive: boolean
+	orientation: ChartOrientation
+	/** The bar's place in its series, for the grow stagger. */
+	index: number
+	fill: string | undefined
+	/** The texture tile fill URL, if any. */
+	tile: string | undefined
+	className: string
+}
+
+/**
+ * One grown bar. Memoized on plain values, so an emphasis change renders only
+ * the bars whose dim class changed, not each bar of the chart.
+ *
+ * @internal
+ */
+const AnimatedBar = memo(function AnimatedBar({
+	d,
+	positive,
+	orientation,
+	index,
+	fill,
+	tile,
+	className,
+}: AnimatedBarProps) {
+	const grow = barGrow(orientation, positive)
+
+	return (
+		<motion.path
+			data-slot="chart-bar"
+			d={d}
+			fill={fill}
+			className={className}
+			initial={grow.initial}
+			animate={grow.animate}
+			// The bar shrinks back to the same baseline end it grew from — the
+			// reveal in reverse — when a data change swaps the marks generation.
+			exit={{ ...grow.initial, transition: BAR_SHRINK }}
+			style={{ ...grow.style, ...textureStyle(tile) }}
+			transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
+		/>
+	)
+})
+
 /** The Framer Motion bars, growing from the baseline along the value axis in sequence — and shrinking back to it on a data change. @internal */
 export function AnimatedChartBarMarks({
 	marks,
@@ -168,22 +215,16 @@ export function AnimatedChartBarMarks({
 		return row.map((mark, index) => {
 			if (!mark) return null
 
-			const grow = barGrow(orientation, mark.positive)
-
 			return (
-				<motion.path
+				<AnimatedBar
 					key={mark.key}
-					data-slot="chart-bar"
 					d={mark.d}
+					positive={mark.positive}
+					orientation={orientation}
+					index={index}
 					fill={paint && rawColor(paint)}
+					tile={fills?.[seriesIndex]}
 					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
-					initial={grow.initial}
-					animate={grow.animate}
-					// The bar shrinks back to the same baseline end it grew from — the
-					// reveal in reverse — when a data change swaps the marks generation.
-					exit={{ ...grow.initial, transition: BAR_SHRINK }}
-					style={{ ...grow.style, ...textureStyle(fills?.[seriesIndex]) }}
-					transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
 				/>
 			)
 		})

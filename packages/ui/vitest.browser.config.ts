@@ -1,4 +1,5 @@
 import { resolve } from 'node:path'
+import { optimize } from '@tailwindcss/node'
 import tailwindcss from '@tailwindcss/vite'
 import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
@@ -51,6 +52,45 @@ function componentModulesStub(): Plugin {
 				? 'export default { packageName: "", names: {} }'
 				: null,
 	}
+}
+
+/** The CSS of this package, and not the CSS of a dependency. */
+const PACKAGE_CSS = /^(?!.*[\\/]node_modules[\\/]).*\.css(?:\?(?!.*\b(?:raw|url)\b).*)?$/
+
+/**
+ * Tailwind for the browser suites, with the served CSS lowered as a build
+ * lowers it.
+ *
+ * @remarks
+ * `@tailwindcss/vite` runs Lightning CSS (`optimize`) in `build` only. In
+ * `serve`, which Vitest browser mode uses, the CSS keeps its native nesting. A
+ * variant such as `**:data-[slot=label]:font-medium` then reaches the browser as
+ * `.x { :is(& *) { &[data-slot=label] { … } } }`. Chromium matches that form
+ * much more slowly than the flat selector that a build ships. Each grid cell
+ * carries `data-slot`, so each style recalculation paid for these rules. A
+ * restyle of 1,000 plain cells took 46ms with the nested CSS and 17.5ms with
+ * the flat CSS.
+ *
+ * The last plugin runs the same `optimize` step on the CSS of this package
+ * after Tailwind generates it. The suites therefore read the CSS that an app
+ * ships, and a benchmark times the style cost of that CSS. The CSS of a
+ * dependency, such as the stylesheet of a contender grid, stays as it ships.
+ */
+export function servedTailwind(): Plugin[] {
+	return [
+		...tailwindcss(),
+		{
+			name: 'ui:flatten-served-css',
+			apply: 'serve',
+			enforce: 'pre',
+			transform: {
+				filter: { id: PACKAGE_CSS },
+				handler(code) {
+					return { code: optimize(code, { minify: false }).code, map: null }
+				},
+			},
+		},
+	]
 }
 
 /**
@@ -125,7 +165,7 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  * config, unlike project-level paths which Vite resolves normally.
  */
 export default defineConfig({
-	plugins: [tailwindcss(), componentModulesStub()],
+	plugins: [servedTailwind(), componentModulesStub()],
 	// The floor, not the whole set: the scan above finds these on its own, and
 	// this list still covers the heavy graph if a later edit breaks it. The cost
 	// of a package the optimizer finds late is written above the stub.
