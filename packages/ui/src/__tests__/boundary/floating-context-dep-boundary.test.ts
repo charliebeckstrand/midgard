@@ -23,8 +23,8 @@ import { srcDir, stripSourceComments, walkSource } from '../helpers/walk-source'
 //
 // Scope: the identifier `context`, which is what every floating call site in
 // the package names it, in a file that calls a `useFloating*` hook. A binding
-// under another name is out of reach here, and `hook-type-name-boundary.test.ts`
-// is the precedent for pinning a name rather than a shape.
+// under another name is out of reach here, and the `no-use-prefixed-type-name`
+// Biome plugin is the precedent for pinning a name rather than a shape.
 
 /** Hooks whose last argument is a dependency array. */
 const HOOKS = ['useCallback', 'useMemo', 'useEffect', 'useLayoutEffect', 'useInsertionEffect']
