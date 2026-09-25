@@ -11,7 +11,7 @@ import {
 	Combobox,
 	ComboboxLabel,
 	ComboboxOption,
-	useComboboxQuery,
+	useComboboxDeferredQuery,
 } from '../../../components/combobox'
 import { ControlSkeleton } from '../../../components/control/control-skeleton'
 import { Flex } from '../../../components/flex'
@@ -73,9 +73,9 @@ const skeletonVariants = [
 ]
 
 // Combobox filtering is consumer-driven: read the deferred query from context
-// via `useComboboxQuery` and narrow the option list against the variant name.
+// via `useComboboxDeferredQuery` and narrow the option list against the variant name.
 function FilteredVariants() {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	return skeletonVariants
 		.filter((v) => !deferredQuery || v.name.toLowerCase().includes(deferredQuery.toLowerCase()))

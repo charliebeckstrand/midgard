@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { ComboboxOption } from './combobox-option'
-import { useComboboxQuery } from './use-combobox-query'
+import { useComboboxDeferredQuery } from './use-combobox-query'
 
 /** Props for {@link ComboboxCreateOption}. */
 export type ComboboxCreateOptionProps = {
@@ -57,7 +57,7 @@ export type ComboboxCreateOptionProps = {
  * in, and the highlight lands on it rather than trailing a frame behind.
  */
 export function ComboboxCreateOption({ taken, children, className }: ComboboxCreateOptionProps) {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	const name = deferredQuery.trim()
 
