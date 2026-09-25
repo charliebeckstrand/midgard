@@ -28,9 +28,13 @@ ARG BIFROST_URL
 ENV BIFROST_URL=${BIFROST_URL}
 ENV NEXT_TELEMETRY_DISABLED=1
 COPY --from=prune /app/out/json/ ./
-# The only install script in the tree is the `prepare` of the root, which
-# installs git hooks. The image has no git repository, so skip the scripts.
-RUN pnpm install --frozen-lockfile --ignore-scripts
+# The install scripts of the tree are the `prepare` of the root and the
+# `postinstall` of lefthook, which install git hooks. The image has no git, so
+# skip the scripts. An environment variable, not a flag, because a later `pnpm`
+# command can run an install of its own: on App Platform, `pnpm turbo` ran one
+# and failed on `lefthook install`. A script that a command names still runs.
+ENV pnpm_config_ignore_scripts=true
+RUN pnpm install --frozen-lockfile
 COPY --from=prune /app/out/full/ ./
 # `turbo prune` copies the workspaces, not the shared configs at the root.
 COPY tsconfig.base.json tsconfig.nextjs.json postcss.config.mjs .browserslistrc ./
