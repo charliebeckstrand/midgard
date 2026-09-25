@@ -55,7 +55,8 @@ export type DashboardTileProps = {
 	 */
 	description?: ReactNode
 	/**
-	 * Controls at the far end of the header row, for example a menu or a badge. They stay live in edit mode.
+	 * Controls at the far end of the header row, for example a menu or a badge. They
+	 * stay live in edit mode, and a press on them or in their portal starts no drag.
 	 *
 	 * @remarks
 	 * The controls have their own error boundary and Suspense boundary. When they

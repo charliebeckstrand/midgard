@@ -9,6 +9,7 @@ import { DashboardDragHandle } from './dashboard-drag-handle'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
+import { DashboardTileExpand } from './dashboard-tile-expand'
 import { DashboardTileHeader } from './dashboard-tile-header'
 import type { DashboardTileDrag } from './use-dashboard-tile-drag'
 
@@ -97,6 +98,29 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		/>
 	)
 
+	// Edit mode swaps the edit controls in for the expand control.
+	const controls = editable ? (
+		<DashboardTileControls
+			label={label}
+			onRemove={onRemove}
+			onDuplicate={onDuplicate}
+			shell={shell}
+		/>
+	) : (
+		expandable && (
+			<DashboardTileExpand
+				id={id}
+				label={label}
+				title={title}
+				description={description}
+				fallback={fallback}
+				onError={onError}
+			>
+				{children}
+			</DashboardTileExpand>
+		)
+	)
+
 	return (
 		<Card
 			size="sm"
@@ -124,23 +148,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 					handle={handle}
 					editing={editable}
 					onError={onError}
-					controls={
-						<DashboardTileControls
-							id={id}
-							label={label}
-							title={title}
-							description={description}
-							editing={editable}
-							onRemove={onRemove}
-							onDuplicate={onDuplicate}
-							expandable={expandable}
-							fallback={fallback}
-							onError={onError}
-							shell={shell}
-						>
-							{children}
-						</DashboardTileControls>
-					}
+					controls={controls}
 				/>
 			)}
 

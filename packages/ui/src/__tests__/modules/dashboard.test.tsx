@@ -1,5 +1,6 @@
 import { act } from '@testing-library/react'
 import { createRef, Profiler, type ReactNode, StrictMode, use, useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
@@ -17,6 +18,7 @@ import type { QueryGroup } from '../../modules/query/engine/types'
 import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 import {
+	ControlledDashboard,
 	pressSplitter,
 	StoreProbe,
 	settleKeyboardLifts,
@@ -356,6 +358,67 @@ describe('Dashboard', () => {
 		expect(screen.getByRole('group', { name: 'Revenue' })).not.toHaveAttribute('data-dragging')
 
 		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		await teardown()
+	})
+
+	it.each([
+		['an app action', 'Menu'],
+		['the portal of an app action', 'Item'],
+		['Clear', 'Clear the selection in Revenue'],
+	])('starts no drag from a press on %s that moves, and runs its click', async (_, name) => {
+		const onDragStart = vi.fn()
+
+		const onPress = vi.fn()
+
+		// A menu of the app renders its items in a portal, and React bubbles their events to the card.
+		const actions = (
+			<>
+				<button type="button" onClick={onPress}>
+					Menu
+				</button>
+
+				{createPortal(
+					<button type="button" onClick={onPress}>
+						Item
+					</button>,
+					document.body,
+				)}
+			</>
+		)
+
+		renderUI(
+			<ControlledDashboard
+				aria-label="Sales"
+				editing
+				initial={GRID}
+				selection={{
+					defaultValue: [{ source: 'a', field: 'region', values: ['West'] }],
+					onValueChange: onPress,
+				}}
+				onDragStart={onDragStart}
+			>
+				<DashboardTile id="a" title="Revenue" actions={actions} />
+
+				<DashboardTile id="b" title="Traffic" />
+			</ControlledDashboard>,
+		)
+
+		const control = screen.getByRole('button', { name })
+
+		// A travel of 4 px passes the 3 px at which the pointer sensor lifts a tile.
+		fireEvent.pointerDown(control, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+
+		// A lift stops the next click on the document, so the control runs only when no drag starts.
+		fireEvent.click(control)
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(onPress).toHaveBeenCalledTimes(1)
 
 		await teardown()
 	})

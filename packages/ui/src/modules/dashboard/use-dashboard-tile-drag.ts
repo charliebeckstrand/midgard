@@ -13,6 +13,20 @@ import { useDashboardStore } from './use-dashboard-store'
 /** A pointer offset in px. */
 type Offset = { x: number; y: number }
 
+/** The row at the far end of the header: the clear control, the app actions, and the standard controls. */
+const ACTIONS = '[data-slot="dashboard-tile-actions"]'
+
+/**
+ * Whether a press on the card belongs to a control, so that it starts no drag.
+ * The press lands in the actions row, or in a portal that a control opens, such
+ * as the items of a menu. React sends the events of a portal to the card too.
+ */
+function pressesControl({ currentTarget, target }: ReactPointerEvent<HTMLElement>): boolean {
+	if (!(target instanceof Element) || !currentTarget.contains(target)) return true
+
+	return target.closest(ACTIONS) !== null
+}
+
 /** What {@link useDashboardTileDrag} returns. @internal */
 export type DashboardTileDrag = {
 	/** Whether the store gesture drags this tile. */
@@ -27,7 +41,10 @@ export type DashboardTileDrag = {
 		listeners: DraggableSyntheticListeners
 		setActivatorNodeRef: (element: HTMLElement | null) => void
 	}
-	/** The pointer listener for the card, so a drag can start anywhere on the tile. */
+	/**
+	 * The pointer listener for the card, so a drag can start anywhere on the tile.
+	 * A press in the actions row of the header, or in a portal of a control, starts no drag.
+	 */
 	surface: { onPointerDown?: PointerEventHandler<HTMLElement> }
 }
 
@@ -48,11 +65,11 @@ function carriedOffset(
 }
 
 /**
- * The drag state of one tile. A pointer starts a drag anywhere on the card, and
- * the keyboard starts one from the grip. During a drag, the
- * tile reads the travel range and the pitch of the gesture from the store. It
- * clamps the pointer offset with them. The tile lifts only while the store
- * gesture drags it, and not for each drag that dnd-kit runs.
+ * The drag state of one tile. A pointer starts a drag anywhere on the card
+ * outside the actions row, and the keyboard starts one from the grip. During a
+ * drag, the tile reads the travel range and the pitch of the gesture from the
+ * store. It clamps the pointer offset with them. The tile lifts only while the
+ * store gesture drags it, and not for each drag that dnd-kit runs.
  *
  * @remarks
  * The `Dashboard` holds the Escape layer and the grabbing cursor of a drag. They
@@ -105,7 +122,13 @@ export function useDashboardTileDrag(
 
 		if (onPointerDown === undefined) return {}
 
-		return { onPointerDown: (event: ReactPointerEvent<HTMLElement>) => onPointerDown(event) }
+		// The guard sends no stopPropagation, so a press in the row still reaches the
+		// outside-press listener of an open popover.
+		return {
+			onPointerDown: (event: ReactPointerEvent<HTMLElement>) => {
+				if (!pressesControl(event)) onPointerDown(event)
+			},
+		}
 	}, [listeners])
 
 	return { dragging, carried, setNodeRef, grip, surface }
