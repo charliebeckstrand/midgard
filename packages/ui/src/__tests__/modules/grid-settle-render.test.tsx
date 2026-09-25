@@ -4,10 +4,8 @@ import { renderUI } from '../helpers'
 
 /**
  * A column resize moves the widths through the `<colgroup>`, and a visited cell
- * of the resized column measures its overflow through the settle store. The
- * sticky offsets of the frozen columns move through CSS variables on the
- * `<table>`. No row renders again, so no cell renderer runs, whatever the number
- * of rows.
+ * of the resized column measures its overflow through the settle store. No row
+ * renders again, so no cell renderer runs, whatever the number of rows.
  */
 describe('Grid column resize', () => {
 	type Row = { id: number; city: string; name: string }
@@ -18,25 +16,19 @@ describe('Grid column resize', () => {
 		name: `Name ${id}`,
 	}))
 
-	// Counts each call of a cell renderer.
-	function counter() {
-		const count = { calls: 0 }
+	it('renders no row again when a column width settles', () => {
+		let calls = 0
 
+		// Counts each call of a cell renderer.
 		const counted = (text: string) => {
-			count.calls++
+			calls++
 
 			return text
 		}
 
-		return { count, counted }
-	}
-
-	function settle(pinned: boolean) {
-		const { count, counted } = counter()
-
 		const columns: GridColumn<Row>[] = [
-			{ id: 'city', title: 'City', cell: (row) => counted(row.city), pinned: pinned || undefined },
-			{ id: 'name', title: 'Name', cell: (row) => counted(row.name), pinned: pinned || undefined },
+			{ id: 'city', title: 'City', cell: (row) => counted(row.city) },
+			{ id: 'name', title: 'Name', cell: (row) => counted(row.name) },
 		]
 
 		const grid = (width: number) => (
@@ -50,27 +42,14 @@ describe('Grid column resize', () => {
 			/>
 		)
 
-		const { container, rerender } = renderUI(grid(120))
+		const { rerender } = renderUI(grid(120))
 
-		expect(count.calls).toBeGreaterThan(0)
+		expect(calls).toBeGreaterThan(0)
 
-		count.calls = 0
+		calls = 0
 
 		rerender(grid(60))
 
-		return { calls: count.calls, table: container.querySelector('table') }
-	}
-
-	it('renders no row again when a column width settles', () => {
-		expect(settle(false).calls).toBe(0)
-	})
-
-	it('renders no row again when the width of a frozen column settles', () => {
-		const { calls, table } = settle(true)
-
 		expect(calls).toBe(0)
-
-		// The column after the resized one sticks at the new width.
-		expect(table?.style.getPropertyValue('--grid-pin-l-1')).toBe('60px')
 	})
 })

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { present, renderUI, screen, stickyInset, waitFor } from '../../helpers'
+import { present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * The column manager of a right-to-left grid, against the real floating
@@ -56,13 +56,8 @@ describe('grid column manager in a right-to-left grid (real browser)', () => {
 
 		await waitFor(() =>
 			expect(
-				stickyInset(
-					present(
-						container.querySelector<HTMLElement>('th[data-grid-col="role"]'),
-						'the role header',
-					),
-					'start',
-				),
+				present(container.querySelector<HTMLElement>('th[data-grid-col="role"]'), 'the role header')
+					.style.insetInlineStart,
 			).toBe('0px'),
 		)
 	})

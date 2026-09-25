@@ -9,7 +9,7 @@
  * `createElement` rather than JSX so this stays a non-component file.
  */
 
-import { type CSSProperties, createElement, type ReactNode } from 'react'
+import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core'
 import type { DensityLevel } from '../../providers/density/context'
@@ -189,8 +189,6 @@ export function resolveTableProps(args: {
 	bodyHasRows: boolean
 	/** Fixed-layout table width (px) when resizable, sized to the `<colgroup>`. */
 	tableWidth: number | undefined
-	/** The sticky offsets of the frozen columns, as CSS variables that each frozen cell reads. */
-	pinOffsets?: CSSProperties | undefined
 }): TableElementProps {
 	const role = args.tableProps?.role ?? tableRole(args)
 
@@ -206,14 +204,8 @@ export function resolveTableProps(args: {
 		// indicator); merge it onto any caller className so it reaches the `<table>`.
 		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),
 		...(args.loading ? { 'aria-busy': true } : {}),
-		...(args.tableWidth != null || args.pinOffsets
-			? {
-					style: {
-						...args.tableProps?.style,
-						...args.pinOffsets,
-						...(args.tableWidth != null ? { width: args.tableWidth } : null),
-					},
-				}
+		...(args.tableWidth != null
+			? { style: { ...args.tableProps?.style, width: args.tableWidth } }
 			: {}),
 		...(role ? { role } : {}),
 		// A `role="grid"` needs an accessible name (WCAG 1.3.1 / 4.1.2); default one

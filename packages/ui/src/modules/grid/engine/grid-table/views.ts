@@ -14,7 +14,7 @@ import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridColumnFilterState, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
-import type { FrozenCell, FrozenLayout } from '../grid-pin/layout'
+import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 import type { EngineColumn, EngineTable } from './features'
 
@@ -66,17 +66,15 @@ export type GridColumnResizeActions = Pick<
 /**
  * Frozen-column controls: one lookup from a column id to the chrome it draws.
  *
- * @remarks It reads the {@link FrozenCell} facts of a resolved
- * {@link FrozenLayout}. The pinned chrome rides `memo` boundaries, so a cell
- * that holds on its props sees a change of those facts only through this
- * object's identity. The sticky offsets are not in it: they reach the cells as
- * CSS variables, so a width change does not replace this object.
+ * @remarks It reads a resolved {@link FrozenLayout} snapshot. The pinned
+ * chrome rides `memo` boundaries, so a cell that holds on its props sees a
+ * frozen-layout change only through this object's identity.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen chrome — edge, slot, and boundary — or `undefined` when it scrolls. */
-	column: (id: string | number) => FrozenCell | undefined
+	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	column: (id: string | number) => FrozenColumn | undefined
 }
 
 /**
@@ -413,7 +411,7 @@ function withResizeDirection<T>(
  *
  * @internal
  */
-export function buildColumnPinning(layout: ReadonlyMap<string, FrozenCell>): GridColumnPinning {
+export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
 	return { column: (id) => (isNewRowAddColumn(id) ? undefined : layout.get(String(id))) }
 }
 
