@@ -1,6 +1,20 @@
 import { act, renderHook } from '@testing-library/react'
+import { createElement } from 'react'
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { useCalendarMonth } from '../../components/calendar/use-calendar-month'
+
+type MonthSeed = { value?: Date | null; defaultValue?: Date }
+
+/** Renders whether the hook shows the month, as the text `true` or `false`. */
+function ShownProbe({ value, defaultValue }: MonthSeed) {
+	return String(useCalendarMonth({ value, defaultValue, activeGridDate: null }).shown)
+}
+
+/** The server markup of {@link ShownProbe} for one seed. */
+function shownOnServer(seed: MonthSeed): string {
+	return renderToString(createElement(ShownProbe, seed))
+}
 
 describe('useCalendarMonth: initial viewDate', () => {
 	it('seeds from value when one is supplied', () => {
@@ -198,5 +212,33 @@ describe('useCalendarMonth: re-anchoring', () => {
 		rerender({ value: new Date(2026, 4, 20), activeGridDate: null })
 
 		expect(result.current.month).toBe(4)
+	})
+})
+
+describe('useCalendarMonth: shown', () => {
+	it('holds a clock-seeded month back on the server', () => {
+		expect(shownOnServer({})).toBe('false')
+
+		expect(shownOnServer({ value: null })).toBe('false')
+	})
+
+	it('shows a seeded month on the server', () => {
+		expect(shownOnServer({ value: new Date(2026, 4, 15) })).toBe('true')
+
+		expect(shownOnServer({ defaultValue: new Date(2026, 2, 1) })).toBe('true')
+	})
+
+	it('shows a clock-seeded month at once in a render that does not hydrate', () => {
+		const seen: boolean[] = []
+
+		renderHook(() => {
+			const result = useCalendarMonth({ value: undefined, activeGridDate: null })
+
+			seen.push(result.shown)
+
+			return result
+		})
+
+		expect(seen).toEqual([true])
 	})
 })
