@@ -44,6 +44,10 @@ function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean
  * @internal
  */
 export function useVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
+	// The engine's leaf columns read live state that `table` carries under a
+	// stable identity. The React Compiler would read them once, so it skips this hook.
+	'use no memo'
+
 	return useStableValue(deriveVisibleColumns(table), sameElements)
 }
 
@@ -94,6 +98,10 @@ export function useFrozenLayout<T>(
 	table: Table<T>,
 	measured: FrozenOffsets | null,
 ): FrozenLayout {
+	// The engine's pin state and widths read live under a stable `table`. The
+	// React Compiler would read them once, so it skips this hook.
+	'use no memo'
+
 	return useStableValue(
 		frozen ? frozenLayout(table, measured) : EMPTY_FROZEN_LAYOUT,
 		sameFrozenLayout,
