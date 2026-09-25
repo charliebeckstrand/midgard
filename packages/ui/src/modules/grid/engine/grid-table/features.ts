@@ -11,7 +11,6 @@ import {
 	columnVisibilityFeature,
 	createFacetedRowModel,
 	createFacetedUniqueValues,
-	createFilteredRowModel,
 	createGroupedRowModel,
 	createPaginatedRowModel,
 	createSortedRowModel,
@@ -27,6 +26,7 @@ import {
 	tableFeatures,
 } from '@tanstack/react-table'
 import type { GridColumn } from '../../types'
+import { createLeanFilteredRowModel } from './filtered'
 
 /**
  * The engine features of the grid, and the row models that they use.
@@ -56,7 +56,7 @@ export const gridFeatures = tableFeatures({
 	rowPaginationFeature,
 	rowSelectionFeature,
 	rowSortingFeature,
-	filteredRowModel: createFilteredRowModel(),
+	filteredRowModel: createLeanFilteredRowModel(),
 	facetedRowModel: createFacetedRowModel(),
 	facetedUniqueValues: createFacetedUniqueValues(),
 	groupedRowModel: createGroupedRowModel(),
