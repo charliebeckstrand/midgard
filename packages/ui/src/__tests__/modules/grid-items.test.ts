@@ -1,7 +1,7 @@
 // @vitest-environment node
-import type { Row } from '@tanstack/react-table'
 import { describe, expect, it } from 'vitest'
 import { resolveGroupingGates } from '../../modules/grid/engine/grid-group/resolve'
+import type { GridGroup } from '../../modules/grid/engine/grid-group/tree'
 import {
 	bodyRowCount,
 	detailWindowItems,
@@ -15,13 +15,15 @@ import type { GridColumn } from '../../modules/grid/types'
 
 type Person = { id: number }
 
-/** A group row as the item builders read it: an id, an expansion flag, and leaves. */
-function group(id: string, open: boolean, leafIds: string[]): Row<Person> {
-	return {
-		id,
-		getIsExpanded: () => open,
-		subRows: leafIds.map((leafId) => ({ id: leafId, original: { id: Number(leafId) } })),
-	} as unknown as Row<Person>
+/** A group as the item builders read it: an id, an expansion flag, and leaves. */
+function group(id: string, open: boolean, leafIds: string[]): GridGroup<Person> {
+	const leaves = leafIds.map((leafId) => ({
+		id: leafId,
+		key: Number(leafId),
+		row: { id: Number(leafId) },
+	}))
+
+	return { id, value: id, expanded: open, leaves, rows: leaves.map((leaf) => leaf.row) }
 }
 
 const NO_MOTIONS = new Map<string, GridRowMotion>()
@@ -208,7 +210,7 @@ describe('bodyRowCount', () => {
 				virtualize: false,
 				rows,
 				rowKeys: [1, 2, 3],
-				groupedRows: [group('role:A', true, ['1', '2', '3'])],
+				groups: [group('role:A', true, ['1', '2', '3'])],
 				groupTotalRow: true,
 				columns,
 				expansion: null,
@@ -222,7 +224,7 @@ describe('bodyRowCount', () => {
 				virtualize: true,
 				rows,
 				rowKeys: [1, 2, 3],
-				groupedRows: [group('role:A', true, ['1', '2']), group('role:B', false, ['3'])],
+				groups: [group('role:A', true, ['1', '2']), group('role:B', false, ['3'])],
 				groupTotalRow: true,
 				columns,
 				expansion: null,

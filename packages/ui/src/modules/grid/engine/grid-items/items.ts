@@ -1,6 +1,6 @@
-import type { Row } from '@tanstack/react-table'
 import type { GridColumn } from '../../types'
 import { hasAggregation } from '../grid-aggregate'
+import type { GridGroup, GridLeaf } from '../grid-group/tree'
 
 /**
  * The phase of a leaf, a total, or a detail panel in a window. An open row is
@@ -44,18 +44,18 @@ type ItemBase = {
  * One row of a windowed grouped body. Each kind has a prefixed key, because a
  * consumer key can look like a group id.
  *
- * - A group header is `group:<groupRow.id>`.
+ * - A group header is `group:<group.id>`.
  * - An open leaf is `leaf:<leaf.id>`, and a closing leaf is `closing:<leaf.id>`.
- * - An open group total is `total:<groupRow.id>`, and a closing one is
- *   `closing-total:<groupRow.id>`.
+ * - An open group total is `total:<group.id>`, and a closing one is
+ *   `closing-total:<group.id>`.
  *
  * @internal
  */
 export type GridGroupedWindowItem<T> = ItemBase &
 	(
-		| { kind: 'group'; group: Row<T> }
-		| { kind: 'leaf'; group: Row<T>; leaf: Row<T> }
-		| { kind: 'total'; group: Row<T>; rows: T[] }
+		| { kind: 'group'; group: GridGroup<T> }
+		| { kind: 'leaf'; group: GridGroup<T>; leaf: GridLeaf<T> }
+		| { kind: 'total'; group: GridGroup<T>; rows: T[] }
 	)
 
 /**
@@ -67,9 +67,9 @@ export type GridGroupedWindowItem<T> = ItemBase &
  */
 export type GridDetailWindowItem = ItemBase & { kind: 'row' | 'detail'; dataIndex: number }
 
-/** The value of a group row on the grouped column, which keys its color and its order. @internal */
-export function groupValueOf<T>(group: Row<T>, columnId: string | number): string | number {
-	return group.getGroupingValue(String(columnId)) as string | number
+/** The value of a group on the grouped column, which keys its color and its order. @internal */
+export function groupValueOf<T>(group: GridGroup<T>): string | number {
+	return group.value as string | number
 }
 
 /**
@@ -121,13 +121,13 @@ function closingSize<K>(motions: ReadonlyMap<K, GridRowMotion>, key: K): number 
  * the rows that `motions` marks as closing. Those are the rows that were in
  * view when the group collapsed, and they stay until their reveal lands.
  *
- * @param groups - The group rows, in display order.
+ * @param groups - The groups, in display order.
  * @param args.totalled - Whether each group shows a total row.
  * @param args.motions - The motion of each row, by open key.
  * @internal
  */
 export function groupedWindowItems<T>(
-	groups: Row<T>[],
+	groups: GridGroup<T>[],
 	args: { totalled: boolean; motions: ReadonlyMap<string, GridRowMotion> },
 ): GridGroupedWindowItem<T>[] {
 	const items: GridGroupedWindowItem<T>[] = []
@@ -146,9 +146,9 @@ export function groupedWindowItems<T>(
 			group,
 		})
 
-		const open = group.getIsExpanded()
+		const open = group.expanded
 
-		for (const leaf of group.subRows) {
+		for (const leaf of group.leaves) {
 			pushRow(items, cursor, open, args.motions, {
 				kind: 'leaf',
 				reactKey: leafItemKey(leaf.id),
@@ -164,7 +164,7 @@ export function groupedWindowItems<T>(
 				reactKey: totalItemKey(group.id),
 				closingKey: `closing-total:${group.id}`,
 				group,
-				rows: group.subRows.map((leaf) => leaf.original),
+				rows: group.rows,
 			})
 		}
 	}
@@ -185,8 +185,8 @@ function pushRow<T>(
 	open: boolean,
 	motions: ReadonlyMap<string, GridRowMotion>,
 	row:
-		| { kind: 'leaf'; reactKey: string; closingKey: string; group: Row<T>; leaf: Row<T> }
-		| { kind: 'total'; reactKey: string; closingKey: string; group: Row<T>; rows: T[] },
+		| { kind: 'leaf'; reactKey: string; closingKey: string; group: GridGroup<T>; leaf: GridLeaf<T> }
+		| { kind: 'total'; reactKey: string; closingKey: string; group: GridGroup<T>; rows: T[] },
 ): void {
 	const { closingKey, ...rest } = row
 
@@ -211,13 +211,13 @@ function pushRow<T>(
  *
  * @internal
  */
-export function groupedWindowRowCount<T>(groups: Row<T>[], totalled: boolean): number {
+export function groupedWindowRowCount<T>(groups: GridGroup<T>[], totalled: boolean): number {
 	let count = 0
 
 	for (const group of groups) {
 		count += 1
 
-		if (group.getIsExpanded()) count += group.subRows.length + Number(totalled)
+		if (group.expanded) count += group.leaves.length + Number(totalled)
 	}
 
 	return count
@@ -343,8 +343,8 @@ export function bodyRowCount<T>(args: {
 	virtualize: boolean
 	rows: T[]
 	rowKeys: (string | number)[]
-	/** The client group rows, or `null` outside client grouping. */
-	groupedRows: Row<T>[] | null
+	/** The client groups, or `null` outside client grouping. */
+	groups: GridGroup<T>[] | null
 	/** The `groupTotalRow` flag, which gives each group a total row while a column aggregates. */
 	groupTotalRow: boolean | undefined
 	/** The visible columns. */
@@ -354,8 +354,8 @@ export function bodyRowCount<T>(args: {
 }): number {
 	if (!args.virtualize) return args.rows.length
 
-	if (args.groupedRows) {
-		return groupedWindowRowCount(args.groupedRows, groupTotalled(args.groupTotalRow, args.columns))
+	if (args.groups) {
+		return groupedWindowRowCount(args.groups, groupTotalled(args.groupTotalRow, args.columns))
 	}
 
 	if (args.expansion) return detailWindowRowCount(args.rows, args.rowKeys, args.expansion)

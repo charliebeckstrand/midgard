@@ -1,7 +1,6 @@
 'use client'
 
 import { SortableContext } from '@dnd-kit/sortable'
-import type { Row } from '@tanstack/react-table'
 import {
 	type ComponentProps,
 	Fragment,
@@ -18,6 +17,7 @@ import {
 	orderManualGroupSegments,
 	segmentManualGroupRows,
 } from './engine/grid-group/segments'
+import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import { detailOpen, groupTotalled, groupValueOf, totalItemKey } from './engine/grid-items/items'
 import { ariaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, GridCursorOrder, groupedCursorRows } from './grid-cursor-order'
@@ -53,17 +53,19 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	 */
 	rowSortable: GridRowSortableContext | null
 	/**
-	 * The top-level group-header rows in display order, each with all its leaves
-	 * on `subRows`, when grouping is active; `null` otherwise. Rendered in place of
-	 * the flat row map, group headers as full-width disclosure rows.
+	 * The groups in display order, each with all of its leaves, when grouping is
+	 * active; `null` otherwise. Rendered in place of the flat row map, group
+	 * headers as full-width disclosure rows.
 	 */
-	groupedRows: Row<T>[] | null
+	groups: GridGroup<T>[] | null
+	/** Opens or closes a group, by its id. */
+	toggleGroup: (id: string) => void
 	/**
 	 * The consumer-supplied display rows (group headers interleaved with
 	 * children, in supplied order) under manual grouping; `null` otherwise.
 	 * Rendered in place of the flat row map through the positional segmentation.
 	 */
-	manualRows: Row<T>[] | null
+	manualRows: GridLeaf<T>[] | null
 	/**
 	 * Manual-grouping body wiring, or `null` outside manual grouping: the
 	 * group-header resolver, the expanded key set, and the toggle that writes it
@@ -88,8 +90,6 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */
 	groupTotalRow: boolean | undefined
-	/** Row-key resolver, so grouped leaf rows derive their key straight from the engine row. */
-	getKey: (row: T, index: number) => string | number
 	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
 	density: DensityLevel
 	/**
@@ -123,27 +123,24 @@ type GridBodyProps<T> = GridRowsProps<T> & {
  */
 function leafRowProps<T>(
 	props: GridBodyProps<T>,
-	leaf: Row<T>,
+	leaf: GridLeaf<T>,
 	args: {
 		expanded: boolean
-		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
 		color?: PaletteColor
 		/** The leaf's treegrid level; the client-grouped body sets it. */
 		level?: number
 	},
 ): ComponentProps<typeof GridGroupLeafRow<T>> {
-	const key = args.getKey(leaf.original, leaf.index)
-
 	return {
 		expanded: args.expanded,
-		cells: leaf.getVisibleCells(),
-		row: leaf.original,
-		rowKey: key,
-		selected: props.selection.has(key),
+		columns: props.visibleColumns,
+		row: leaf.row,
+		rowKey: leaf.key,
+		selected: props.selection.has(leaf.key),
 		toggleRow: props.toggleRow,
 		selectable: props.selectable,
-		rowLabel: props.rowLabel?.(leaf.original),
+		rowLabel: props.rowLabel?.(leaf.row),
 		onRowClick: props.onRowClick,
 		onCellClick: props.onCellClick,
 		onRowDoubleClick: props.onRowDoubleClick,
@@ -165,17 +162,16 @@ function leafRowProps<T>(
  * of its leaves ({@link GridGroupLeafRow}). The leaves stay mounted whatever the
  * group's expansion, and each animates open/closed from the `expanded` flag. The
  * collapse therefore plays reliably, rather than relying on `AnimatePresence` to
- * track a table row's exit. Resolved from the shared body wiring, keyed by engine row id.
+ * track a table row's exit. Resolved from the shared body wiring, keyed by group id.
  *
  * @internal
  */
 function renderGroup<T>(
-	groupRow: Row<T>,
+	group: GridGroup<T>,
 	args: {
 		props: GridBodyProps<T>
 		columnId: string | number
 		renderHeader: GridGroupBy['renderHeader']
-		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
 		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
 		totalled: boolean
@@ -183,40 +179,39 @@ function renderGroup<T>(
 		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density, totalled, presentation } = args
+	const { props, columnId, renderHeader, density, totalled, presentation } = args
 
-	const expanded = groupRow.getIsExpanded()
+	const { expanded } = group
 
 	// The group's row-manager color tints its header aggregates, total footer, and
 	// rail; the leaves render in the engine's natural order (row order isn't managed).
-	const groupKey = groupValueOf(groupRow, columnId)
-
-	const color = presentation?.color(groupKey)
+	const color = presentation?.color(groupValueOf(group))
 
 	return (
-		<Fragment key={groupRow.id}>
+		<Fragment key={group.id}>
 			<GridGroupRow<T>
-				row={groupRow}
+				group={group}
+				onToggle={props.toggleGroup}
 				columns={props.visibleColumns}
 				columnId={columnId}
 				renderHeader={renderHeader}
 				color={color}
 			/>
-			{groupRow.subRows.map((leaf) => (
+			{group.leaves.map((leaf) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })}
+					{...leafRowProps(props, leaf, { expanded, density, color, level: 2 })}
 				/>
 			))}
 			{totalled && (
 				<GridTotalRow<T>
 					columns={props.visibleColumns}
-					rows={groupRow.subRows.map((leaf) => leaf.original)}
+					rows={group.rows}
 					variant="group"
 					expanded={expanded}
 					density={density}
 					color={color}
-					navKey={totalItemKey(groupRow.id)}
+					navKey={totalItemKey(group.id)}
 				/>
 			)}
 		</Fragment>
@@ -241,11 +236,10 @@ function renderManualSegment<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		expanded: ReadonlySet<string | number>
 		toggle: (key: string | number) => void
-		getKey: (row: T, index: number) => string | number
 		density: DensityLevel
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, getKey, density } = args
+	const { props, columnId, renderHeader, density } = args
 
 	const open = segment.info ? args.expanded.has(segment.info.key) : true
 
@@ -253,7 +247,7 @@ function renderManualSegment<T>(
 		<Fragment key={segment.header ? segment.header.id : `leading:${index}`}>
 			{segment.header && segment.info && (
 				<GridManualGroupRow<T>
-					row={segment.header.original}
+					row={segment.header.row}
 					info={segment.info}
 					columns={props.visibleColumns}
 					columnId={columnId}
@@ -265,7 +259,7 @@ function renderManualSegment<T>(
 			{segment.leaves.map((leaf) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded: open, getKey, density })}
+					{...leafRowProps(props, leaf, { expanded: open, density })}
 				/>
 			))}
 			{/* Expanded, but its children aren't loaded yet (the consumer's
@@ -294,18 +288,17 @@ function renderManualSegment<T>(
  */
 function renderGroupedBody<T>(
 	props: GridBodyProps<T>,
-	groupedRows: Row<T>[],
+	groups: GridGroup<T>[],
 	groupColumnId: string | number,
 ): ReactElement {
-	const { visibleColumns, groupRenderHeader, getKey, density, rowGroupPresentation, virtualize } =
-		props
+	const { visibleColumns, groupRenderHeader, density, rowGroupPresentation, virtualize } = props
 
 	// Apply the manual group order while the overlay covers every group.
 	// Otherwise the engine's group order stands.
 	const ordered = applyRowKeyOrder(
-		groupedRows,
+		groups,
 		rowGroupPresentation?.groupOrder ?? undefined,
-		(groupRow) => groupValueOf(groupRow, groupColumnId),
+		groupValueOf,
 	)
 
 	// The per-group total is meaningful only once a column aggregates; the gate
@@ -317,13 +310,14 @@ function renderGroupedBody<T>(
 			<GridVirtualizedGroupedBody<T>
 				rowsProps={props}
 				groups={ordered}
+				toggleGroup={props.toggleGroup}
 				columnId={groupColumnId}
 				renderHeader={groupRenderHeader}
 				totalled={totalled}
 				density={density}
 				presentation={rowGroupPresentation}
 				leafProps={(leaf, expanded, color) =>
-					leafRowProps(props, leaf, { expanded, getKey, density, color, level: 2 })
+					leafRowProps(props, leaf, { expanded, density, color, level: 2 })
 				}
 				window={virtualize}
 			/>
@@ -332,13 +326,12 @@ function renderGroupedBody<T>(
 
 	return (
 		<TableBody>
-			<GridCursorOrder order={groupedCursorRows(ordered, totalled)} />
-			{ordered.map((groupRow) =>
-				renderGroup(groupRow, {
+			<GridCursorOrder order={groupedCursorRows(ordered, totalled, props.toggleGroup)} />
+			{ordered.map((group) =>
+				renderGroup(group, {
 					props,
 					columnId: groupColumnId,
 					renderHeader: groupRenderHeader,
-					getKey,
 					density,
 					totalled,
 					presentation: rowGroupPresentation,
@@ -365,13 +358,12 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		gridSemantics,
 		rowIndexOffset,
 		rowSortable,
-		groupedRows,
+		groups,
 		manualRows,
 		manualGroup,
 		groupColumnId,
 		manualGroupSort,
 		groupRenderHeader,
-		getKey,
 		density,
 		virtualize,
 		pinning,
@@ -414,7 +406,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 						renderHeader: groupRenderHeader,
 						expanded: manualGroup.expanded,
 						toggle: manualGroup.toggle,
-						getKey,
 						density,
 					}),
 				)}
@@ -426,8 +417,8 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	// Grouping renders its own body (see `renderGroupedBody`). It stands down
 	// pagination (see `GridData`), so this precedes the flat virtualized branch.
-	if (groupedRows && groupColumnId != null) {
-		return renderGroupedBody(props, groupedRows, groupColumnId)
+	if (groups && groupColumnId != null) {
+		return renderGroupedBody(props, groups, groupColumnId)
 	}
 
 	// The windowed body carries the loading skeleton on from the branch above while
