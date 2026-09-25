@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { getOperators } from '../../modules/query/engine/query-operators'
+import { findBuiltInOperator, getOperators } from '../../modules/query/engine/query-operators'
 import type { QueryField } from '../../modules/query/engine/types'
 
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
@@ -25,5 +25,19 @@ describe('getOperators', () => {
 		const between = getOperators(numberField).find((o) => o.value === 'between')
 
 		expect(between?.range).toBe(true)
+	})
+})
+
+describe('findBuiltInOperator', () => {
+	it('finds an operator that one default set holds, with its value label', () => {
+		expect(findBuiltInOperator('isEmpty')).toMatchObject({ label: 'is', valueLabel: 'Empty' })
+	})
+
+	it('takes the first match in the default sets, which is the text set', () => {
+		expect(findBuiltInOperator('notEquals')?.label).toBe('does not equal')
+	})
+
+	it('finds no operator that no default set holds', () => {
+		expect(findBuiltInOperator('custom')).toBeUndefined()
 	})
 })

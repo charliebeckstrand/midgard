@@ -46,8 +46,10 @@ function SummaryToken({ token }: { token: QuerySummaryToken }) {
  *
  * @remarks
  * A blank or half-built rule drops out, mirroring the evaluator; a `select`
- * value shows its option label and a one-sided range a `≥`/`≤` bound. For a
- * plain string (a `title`, an aria-label, a log), reach for `formatQuerySummary`.
+ * value shows its option label and a one-sided range a `≥`/`≤` bound. An
+ * operator that the field does not offer shows its built-in label, so `isEmpty`
+ * on a `number` field reads `is Empty`. For a plain string (a `title`, an
+ * aria-label, a log), reach for `formatQuerySummary`.
  */
 export function QuerySummary({ value, fields, className }: QuerySummaryProps) {
 	const tokens = summarizeQuery(value, fields)

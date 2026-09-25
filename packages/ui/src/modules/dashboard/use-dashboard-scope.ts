@@ -26,7 +26,8 @@ export type DashboardScope = {
 	/**
 	 * The query that this reader sees: the filter, and the selections of the other
 	 * tiles. Show it with `QuerySummary`, or apply it with `evaluateQuery`. An empty
-	 * selection value shows as `isEmpty` unless the field offers that operator.
+	 * selection value shows as `is Empty`, also on a field that does not offer
+	 * `isEmpty`.
 	 */
 	query: QueryGroup
 	/**
