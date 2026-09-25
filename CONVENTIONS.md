@@ -117,6 +117,8 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 10.6 A browser test arrives at the viewport `vitest.browser.config.ts` declares, and Vitest resets the page to it before each file, so a file inherits no size from the file before it. A file whose geometry needs another size states it once, as `beforeAll(() => page.viewport(w, h))`; `test-isolation-boundary.test.ts` holds that placement, because a call inside an `it` reaches the file's later cases and nothing restores it there.
 
+10.7 The grid tests also run with the React Compiler on (`test:compiler`, `vitest.compiler.config.ts`), and CI runs them in the gate job. The compiler caches a value on the identity of its inputs, so a component or hook must not read a mutable object during render; the TanStack table is one. Read the engine in `useGridTable`, which the compiler skips, or open the hook with `'use no memo'`. Force a layout flush with a call such as `getBoundingClientRect()`, never a bare property read, because the compiler removes a read whose value goes unused.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge — today the sole reader is the `auth` package's `env.ts` (`BIFROST_URL`); apps reach env through `auth`, not scattered through features. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
