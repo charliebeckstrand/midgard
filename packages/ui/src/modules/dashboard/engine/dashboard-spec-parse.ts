@@ -54,7 +54,7 @@ export type DashboardSpecParseOptions = {
 	 * Without these ids, each load drops the entries of the JSX tiles as orphans,
 	 * so each JSX tile loses its saved place.
 	 */
-	tileIds?: Iterable<string>
+	tileIds?: readonly string[] | ReadonlySet<string>
 }
 
 /** The result of {@link parseDashboardSpec}. */
