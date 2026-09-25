@@ -103,10 +103,11 @@ const veil = {
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:top-2',
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:px-1',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:py-1',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:duration-150',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:p-1',
+		// The fade stays under the spark variant. On the header alone, it also fades the header
+		// in each time a chart leaves the spark tier, as on mount. It takes the motion-safe
+		// gate of `ugoki.css.opacity`, and the default duration of 150 ms.
+		'motion-safe:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
 		...mode(
 			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
 			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
@@ -186,7 +187,7 @@ const handle = defineRecipe({
 const resizeHandle = defineRecipe({
 	base: [
 		'absolute z-10 touch-none select-none',
-		"after:absolute after:rounded-full after:opacity-0 after:transition-opacity after:content-['']",
+		"after:absolute after:rounded-full after:opacity-0 motion-safe:after:transition-opacity after:content-['']",
 		'hover:after:opacity-100 focus-visible:after:opacity-100 data-[resizing]:after:opacity-100',
 		'pointer-coarse:after:opacity-100',
 		...mode('after:bg-zinc-400', 'dark:after:bg-zinc-600'),

@@ -17,7 +17,16 @@ import {
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import type { QueryGroup } from '../../modules/query/engine/types'
 import { k } from '../../recipes/kata/dashboard'
-import { allBySlot, bySlot, deferred, fireEvent, renderUI, screen, within } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	deferred,
+	fireEvent,
+	nonEmpty,
+	renderUI,
+	screen,
+	within,
+} from '../helpers'
 import {
 	ControlledDashboard,
 	pressSplitter,
@@ -158,6 +167,23 @@ describe('Dashboard', () => {
 		rerender(<Board editing />)
 
 		expect(fades()).toEqual([])
+	})
+
+	it('fades the veil and the splitter bars only where the reader allows motion', () => {
+		const { container } = renderUI(<Board editing />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		const transitions = (element: Element) =>
+			[...element.classList].filter((name) => name.includes('transition'))
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. The card fades
+		// the veil, and each splitter fades its bar.
+		for (const element of [card, ...allBySlot(container, 'dashboard-resize-handle')]) {
+			for (const name of nonEmpty(transitions(element), 'transition class')) {
+				expect(name.startsWith('motion-safe:')).toBe(true)
+			}
+		}
 	})
 
 	it('makes the content inert in edit mode, and keeps it live at rest', () => {
