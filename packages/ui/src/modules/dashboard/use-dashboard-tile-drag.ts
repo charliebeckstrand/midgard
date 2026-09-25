@@ -12,13 +12,14 @@ import {
 	useCallback,
 	useMemo,
 } from 'react'
-import { type DashboardDragTravel, travelOffset } from './engine/dashboard-drag'
+import {
+	type DashboardDragTravel,
+	type DashboardOffset,
+	travelOffset,
+} from './engine/dashboard-drag'
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
-
-/** A pointer offset in px. */
-type Offset = { x: number; y: number }
 
 /** The row at the far end of the header: the clear control, the app actions, and the standard controls. */
 const ACTIONS = '[data-slot="dashboard-tile-actions"]'
@@ -39,7 +40,7 @@ export type DashboardTileDrag = {
 	/** Whether the store gesture drags this tile. */
 	dragging: boolean
 	/** The clamped pointer offset while the tile is dragged, else `null`. */
-	carried: Offset | null
+	carried: DashboardOffset | null
 	/** The ref for the tile shell. */
 	setNodeRef: (element: HTMLElement | null) => void
 	/** The tile shell, which `setNodeRef` holds. */
@@ -63,11 +64,11 @@ export type DashboardTileDrag = {
  */
 function carriedOffset(
 	cell: DashboardCell | undefined,
-	transform: Offset | null,
+	transform: DashboardOffset | null,
 	travel: DashboardDragTravel | null,
 	pitch: number,
 	inline: 1 | -1,
-): Offset | null {
+): DashboardOffset | null {
 	if (cell === undefined || transform === null || travel === null || pitch <= 0) return null
 
 	return travelOffset(cell, transform, travel, pitch, inline)

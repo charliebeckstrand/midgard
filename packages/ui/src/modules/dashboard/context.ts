@@ -1,12 +1,11 @@
 'use client'
 
-import type { PointerEvent as ReactPointerEvent } from 'react'
 import { createContext } from '../../core'
 import type { QueryGroup } from '../query/engine/types'
-import type { DashboardResizeEdge } from './engine/dashboard-resize'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardWidgetRegistry } from './types'
+import type { DashboardResizeHandlers } from './use-dashboard-resize'
 
 /**
  * The store of the nearest `Dashboard`. A tile reads it through a selector, so a
@@ -18,22 +17,13 @@ export const [DashboardStoreContext, useDashboardStoreContext] =
 	createContext<DashboardStore>('Dashboard')
 
 /**
- * The commands that a tile sends to the nearest `Dashboard`. The object keeps its
- * identity for the life of the dashboard.
+ * The commands that a tile sends to the nearest `Dashboard`: the resize
+ * handlers, and the scope and error commands. The object keeps its identity for
+ * the life of the dashboard.
  *
  * @internal
  */
-export type DashboardActions = {
-	/** Starts a pointer resize from the `pointerdown` of a handle. */
-	beginResize: (
-		id: string,
-		edge: DashboardResizeEdge,
-		event: ReactPointerEvent<HTMLElement>,
-	) => void
-	/** Applies one keyboard resize step, and commits it. */
-	resizeBy: (id: string, edge: DashboardResizeEdge, dw: number, dh: number) => void
-	/** Ends the live pointer resize of the tile `id` as canceled. It does nothing for another tile. */
-	cancelResize: (id: string) => void
+export type DashboardActions = DashboardResizeHandlers & {
 	/** Replaces the filter. */
 	setFilter: (filter: QueryGroup) => void
 	/** Replaces the selections through an update function. */

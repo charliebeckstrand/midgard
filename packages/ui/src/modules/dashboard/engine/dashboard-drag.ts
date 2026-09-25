@@ -40,6 +40,9 @@ export type DashboardDragPreview = {
 	partner?: string
 }
 
+/** An offset on the screen, in px. */
+export type DashboardOffset = { x: number; y: number }
+
 /**
  * The range of origins that a dragged tile can reach. A tile can go one row band
  * under the lowest other tile, so a drag can open a new row.
@@ -79,11 +82,11 @@ export function dragTravel(
  */
 export function travelOffset(
 	origin: DashboardCell,
-	offset: { x: number; y: number },
+	offset: DashboardOffset,
 	travel: DashboardDragTravel,
 	pitch: number,
 	inline: 1 | -1,
-): { x: number; y: number } {
+): DashboardOffset {
 	const row = pitch / ROW_SUBDIVISION
 
 	return {

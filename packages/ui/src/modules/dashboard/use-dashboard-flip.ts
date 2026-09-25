@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
+import type { DashboardOffset } from './engine/dashboard-drag'
 import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 
 /** The duration of a tile glide, in ms. */
@@ -9,21 +10,18 @@ const GLIDE_DURATION = 200
 /** The easing of a tile glide: a fast start that settles softly. */
 const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
-/** A pointer offset in px. */
-type Offset = { x: number; y: number }
-
 /** Options for {@link useDashboardFlip}. @internal */
 export type DashboardFlipOptions = {
 	/** The cell that the tile paints now. */
 	cell: DashboardCell | undefined
 	/** The pointer offset while the tile is dragged, else `null`. */
-	carried: Offset | null
+	carried: DashboardOffset | null
 	/** Snap instead of glide, for a responsive re-pack. */
 	snap: boolean
 }
 
 /** The translate that an element paints now, which a running animation can hold. */
-function paintedOffset(element: HTMLElement): Offset {
+function paintedOffset(element: HTMLElement): DashboardOffset {
 	const transform = getComputedStyle(element).transform
 
 	if (!transform || transform === 'none') return { x: 0, y: 0 }
@@ -39,7 +37,7 @@ function prefersReducedMotion(): boolean {
 }
 
 /** What the tile painted at its last commit. */
-type Painted = { cell: DashboardCell; carried: Offset | null; snap: boolean }
+type Painted = { cell: DashboardCell; carried: DashboardOffset | null; snap: boolean }
 
 /**
  * The offset in px from the new cell back to where the tile was painted, or
@@ -52,7 +50,7 @@ function glideFrom(
 	snap: boolean,
 	pitch: number,
 	inline: 1 | -1,
-): Offset | null {
+): DashboardOffset | null {
 	if (snap || previous.snap) return null
 
 	if (previous.cell.w !== cell.w || previous.cell.h !== cell.h) return null
@@ -66,7 +64,7 @@ function glideFrom(
 }
 
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
-function glide(element: HTMLElement, offset: Offset): void {
+function glide(element: HTMLElement, offset: DashboardOffset): void {
 	if (typeof element.animate !== 'function' || prefersReducedMotion()) return
 
 	const running = paintedOffset(element)
