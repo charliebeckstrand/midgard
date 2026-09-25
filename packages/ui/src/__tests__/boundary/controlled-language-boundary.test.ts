@@ -3,6 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
 	extractComments,
+	fileBreaks,
 	LIVING_MARKDOWN,
 	markdownBreaks,
 	packageDir,
@@ -16,7 +17,7 @@ import {
 // good, because nothing held the tree to the result. Rule 10 went from 41 sites
 // back to 89 in six weeks, and the missing gate was the reason.
 //
-// This test is that gate, in four shapes:
+// This test is that gate, in five shapes:
 //
 //   1. Rule 10 is pinned at zero. The rule admits no judgment — "must" states a
 //      requirement and "can" states a possibility — so any site is a break.
@@ -25,6 +26,9 @@ import {
 //   3. The curated surface docs carry no debt at all, in either rule.
 //   4. Neither do the rule documents at the repository root. A rule document
 //      that breaks the standard it sets teaches the break.
+//   5. Rule 3 holds one spelling, the American one that the identifiers use.
+//      The comments held both forms in about equal numbers, so a search for
+//      `color` missed more than half of the prose about color.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional — the rule
@@ -51,6 +55,17 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
+	it('no comment uses a British spelling (STE.md rule 3)', () => {
+		const violations = breaks
+			.filter((item) => item.rule === 3)
+			.map((item) => `${item.file}:${item.line} — ${item.text}`)
+
+		expect(
+			violations,
+			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
 	it('no comment runs past the sentence cap (STE.md rule 6)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 6)
@@ -62,7 +77,7 @@ describe('controlled-language boundary', () => {
 		).toEqual([])
 	})
 
-	it('the living Markdown keeps rules 6 and 10 (CONVENTIONS.md §12.2)', () => {
+	it('the living Markdown keeps rules 3, 6, and 10 (CONVENTIONS.md §12.2)', () => {
 		const violations: string[] = []
 
 		for (const file of LIVING_MARKDOWN) {
@@ -73,11 +88,11 @@ describe('controlled-language boundary', () => {
 
 		expect(
 			violations,
-			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, or drop the modal (STE.md rules 6 and 10):\n${violations.join('\n')}`,
+			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 
-	it('the rule documents keep rules 6 and 10 (CLAUDE.md §2.5)', () => {
+	it('the rule documents keep rules 3, 6, and 10 (CLAUDE.md §2.5)', () => {
 		const violations: string[] = []
 
 		for (const file of RULE_DOCUMENTS) {
@@ -88,7 +103,7 @@ describe('controlled-language boundary', () => {
 
 		expect(
 			violations,
-			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, or drop the modal (STE.md rules 6 and 10):\n${violations.join('\n')}`,
+			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 })
@@ -120,5 +135,25 @@ describe('comment reader', () => {
 		].join('\n')
 
 		expect(texts('probe.tsx', source)).toEqual([])
+	})
+})
+
+// The rule 3 gate reads prose only, so a code span that names a key keeps its
+// own spelling.
+describe('spelling reader', () => {
+	const flagged = (source: string) =>
+		fileBreaks('probe.ts', source)
+			.filter((item) => item.rule === 3)
+			.map((item) => item.text)
+
+	it('reports a British form, and a British form with a prefix', () => {
+		expect(flagged('// The row keeps its colour.\n// The cell stays unlabelled.\n')).toEqual([
+			'colour: The row keeps its colour.',
+			'unlabelled: The cell stays unlabelled.',
+		])
+	})
+
+	it('reads no code span, and passes the American form', () => {
+		expect(flagged('// The `colour` key keeps the color of the row.\n')).toEqual([])
 	})
 })

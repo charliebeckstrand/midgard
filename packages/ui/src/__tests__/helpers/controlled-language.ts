@@ -4,8 +4,8 @@ import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**
  * The controlled-language scan, once run by hand, as a reusable reader. It
- * reports the rule 6 and rule 10 breaks in the comments of the shipped tree
- * (STE.md).
+ * reports the rule 3, rule 6, and rule 10 breaks in the comments of the
+ * shipped tree (STE.md).
  *
  * @remarks
  * The scan reads comments only. Code is never prose, and a rule that bans a
@@ -214,8 +214,41 @@ export function wordLimit(sentence: string): number {
 /** Rule 10 bans these three modals outright; `must` and `can` replace them. */
 export const MODAL = /\b(?:may|shall|should)\b/i
 
+// The British stems that the tree has held. Each one has an American form.
+const BRITISH_STEMS = [
+	'behaviours?',
+	'colours?',
+	'coloured',
+	'colouring',
+	'centres?',
+	'centred',
+	'centring',
+	'greys?',
+	'greyed',
+	'favour\\w*',
+	'honour\\w*',
+	'artefacts?',
+	'cancell(?:ed|ing)',
+	'labell(?:ed|ing)',
+	'modell(?:ed|ing)',
+	'travell(?:ed|ing)',
+	'focuss(?:ed|ing)',
+	'judgement',
+	'analys(?:e|ed|es|ing)',
+	'(?:normal|serial|initial|organ|recogn|optim|custom|real|minim|maxim|priorit|summar|memo|stabil|synchron|visual|categor|util|standard|special|general|parameter|author|emphas|final|capital|apolog|critic|local|global|token|sanit)is(?:e|ed|es|ing|ation|ations|er|ers)',
+]
+
+/**
+ * Rule 3 asks for one term for each thing, so the prose keeps one spelling.
+ * The spelling is American, because the identifiers use it: `color`,
+ * `normalize`, and `memo`. A search for one form then finds the code and the
+ * prose together. This matches a British form, with a prefix such as `re` or
+ * `un` where one occurs.
+ */
+export const BRITISH = new RegExp(`\\b(?:re|un|pre|de)?(?:${BRITISH_STEMS.join('|')})\\b`, 'i')
+
 /** One rule break, located well enough to fix without a second scan. */
-export type Break = { file: string; line: number; rule: 6 | 10; text: string }
+export type Break = { file: string; line: number; rule: 3 | 6 | 10; text: string }
 
 /** Every rule break in one source text, reported against `file`. */
 export function fileBreaks(file: string, source: string): Break[] {
@@ -230,6 +263,12 @@ export function fileBreaks(file: string, source: string): Break[] {
 
 				if (MODAL.test(sentence)) {
 					breaks.push({ file, line: comment.line, rule: 10, text: sentence })
+				}
+
+				const british = BRITISH.exec(sentence)
+
+				if (british) {
+					breaks.push({ file, line: comment.line, rule: 3, text: `${british[0]}: ${sentence}` })
 				}
 			}
 		}
@@ -299,7 +338,7 @@ export const RULE_DOCUMENTS = [
 ]
 
 /**
- * Every rule 6 and rule 10 break in one Markdown document.
+ * Every rule 3, rule 6, and rule 10 break in one Markdown document.
  *
  * @remarks
  * A table cell is its own descriptive unit. A reader that measures the whole
@@ -341,6 +380,12 @@ export function markdownBreaks(file: string, source: string): Break[] {
 
 				if (MODAL.test(sentence)) {
 					breaks.push({ file, line: index + 1, rule: 10, text: sentence })
+				}
+
+				const british = BRITISH.exec(sentence)
+
+				if (british) {
+					breaks.push({ file, line: index + 1, rule: 3, text: `${british[0]}: ${sentence}` })
 				}
 			}
 		}
