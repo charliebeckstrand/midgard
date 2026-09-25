@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import { createRef } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardHandle,
@@ -8,18 +8,9 @@ import {
 	DashboardTile,
 } from '../../modules/dashboard'
 import { fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import { stubCanvasWidth } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 // a sits under a gap, b has a gap over it, and c is already packed under a.
 const GAPPY: DashboardLayoutItem[] = [

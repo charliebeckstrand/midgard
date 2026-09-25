@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -10,18 +9,7 @@ import {
 	DashboardWidgetProvider,
 } from '../../modules/dashboard'
 import { allBySlot, fireEvent, renderUI, screen } from '../helpers'
-
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+import { Counter } from '../helpers/dashboard-board'
 
 // The board reads, left to right and top to bottom: b, a, then c.
 const LAYOUT: DashboardLayoutItem[] = [
@@ -198,16 +186,6 @@ describe('Dashboard reading order', () => {
 	})
 
 	it('keeps the state of a tile that the new order moves', () => {
-		function Counter() {
-			const [count, setCount] = useState(0)
-
-			return (
-				<button type="button" onClick={() => setCount((value) => value + 1)}>
-					{`Count ${count}`}
-				</button>
-			)
-		}
-
 		function Board({ layout }: { layout: DashboardLayoutItem[] }) {
 			return (
 				<Dashboard aria-label="Board" layout={{ value: layout }}>

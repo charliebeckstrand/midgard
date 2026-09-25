@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, onTestFinished, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import {
 	Dashboard,
@@ -14,6 +14,7 @@ import {
 } from '../../modules/dashboard'
 import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { stubCanvasWidth } from '../helpers/dashboard-board'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -21,17 +22,7 @@ const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'c', x: 0, y: 27, w: 8, h: 20 },
 ]
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 function Board({
 	editing = false,

@@ -1,21 +1,12 @@
 import { act } from '@testing-library/react'
 import { useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { inlineSign } from '../../modules/dashboard/engine/dashboard-layout'
 import { fireEvent, renderUI, screen } from '../helpers'
+import { stubCanvasWidth } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 describe('inlineSign', () => {
 	it('is -1 for a right-to-left direction, and 1 for each other value', () => {

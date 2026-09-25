@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -14,18 +14,9 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { stubCanvasWidth } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 /** A widget whose component reads the scope, as app code does. */
 function Metric({ label }: { label: string }) {
@@ -342,20 +333,30 @@ describe('DashboardWidgetProvider', () => {
 	})
 
 	it('demands no width for a kind that no widget claims, so edit mode stays live', () => {
-		renderUI(
+		const board = (tile: DashboardSpecTile) => (
 			<DashboardWidgetProvider widgets={WIDGETS}>
 				<Dashboard
 					aria-label="Sales"
 					editing
 					layout={{ defaultValue: [{ id: 'f', x: 0, y: 0, w: 2, h: 10 }] }}
 				>
-					<DashboardTiles tiles={[{ id: 'f', widget: 'forecast', title: 'Forecast' }]} />
+					<DashboardTiles tiles={[tile]} />
 				</Dashboard>
-			</DashboardWidgetProvider>,
+			</DashboardWidgetProvider>
 		)
+
+		const { rerender } = renderUI(board({ id: 'f', widget: 'forecast', title: 'Forecast' }))
 
 		// At a 50 px pitch, the default 320 px floor needs 7 columns. The tile has 2.
 		expect(screen.getByRole('button', { name: 'Move Forecast' })).toBeInTheDocument()
+
+		// A claimed kind with no minWidth takes that floor, so edit mode stands down. This
+		// control fails when the canvas has no width, which also hides a revert of the case above.
+		rerender(board({ id: 'f', widget: 'metric', title: 'Metric', options: { label: 'Metric' } }))
+
+		expect(screen.getByRole('group', { name: 'Metric' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument()
 	})
 
 	it('states the gap for a kind named after a member of the object prototype', () => {

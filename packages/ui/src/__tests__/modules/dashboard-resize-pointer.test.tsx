@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
 import { createRef, type Ref, useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardGestureEndEvent,
@@ -10,18 +10,9 @@ import {
 	DashboardTile,
 } from '../../modules/dashboard'
 import { fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { stubCanvasWidth } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 const LAYOUT: DashboardLayoutItem[] = [{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]
 
