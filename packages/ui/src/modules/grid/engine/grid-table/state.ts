@@ -139,10 +139,43 @@ export function resolveActiveEngineTransform(args: {
 		paginationManual: args.paginationManual,
 		filtersConfigured: args.filterMode.configured && filtering,
 		filtersManual: args.filterMode.manual,
-		// Sort is handled by the off-engine fast path (`useSortView`), so it never
+		// Sort is handled by the off-engine fast path (`useClientView`), so it never
 		// forces the engine model on its own — only a filter, client pagination,
 		// or grouping does.
 		sortClient: false,
 		grouped: args.grouped,
 	})
+}
+
+/**
+ * Whether the quick search runs off the engine. It does when the query prunes
+ * rows on the client, and no other transform needs the engine row model. Such
+ * a transform is pagination, an active column filter, or grouping. The grid
+ * then searches its rows itself (see `searchRowIndices`), and builds no engine
+ * row for each datum.
+ *
+ * @internal
+ */
+export function resolveOffEngineSearch(args: {
+	paginated: boolean
+	paginationManual: boolean
+	filterMode: { configured: boolean; manual: boolean }
+	/** Whether the grid has a quick search. */
+	globalFiltered: boolean
+	globalFilter: string
+	globalHighlights: boolean
+	columnFilters: ColumnFiltersState
+	grouped: boolean
+	/** Whether the consumer groups the rows (manual grouping). */
+	manualGrouped: boolean
+}): boolean {
+	const searching =
+		args.globalFiltered &&
+		!args.globalHighlights &&
+		!args.filterMode.manual &&
+		args.globalFilter !== ''
+
+	if (!searching || args.paginated || args.manualGrouped) return false
+
+	return !resolveActiveEngineTransform({ ...args, globalFilter: '' })
 }

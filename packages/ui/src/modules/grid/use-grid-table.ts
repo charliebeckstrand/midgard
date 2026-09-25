@@ -56,6 +56,7 @@ import {
 	frozenLayout,
 	sameFrozenLayout,
 } from './engine/grid-pin/layout'
+import { searchRowIndices } from './engine/grid-search/search'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
 	buildState,
@@ -82,6 +83,7 @@ import {
 	EMPTY_VISIBILITY,
 	IDLE_SIZING_INFO,
 	resolveActiveEngineTransform,
+	resolveOffEngineSearch,
 	resolveTransformModes,
 	rowsSignatureOf,
 } from './engine/grid-table/state'
@@ -429,14 +431,14 @@ function useGridRowModel<T>(args: {
 	grouped: boolean
 	/** Manual-grouping group-header predicate; splits the display rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
-	/** The off-engine sorted view (rows + keys) when a sort is the grid's sole transform, else `null`. */
-	sortView: { rows: T[]; keys: (string | number)[] } | null
+	/** The off-engine view (rows + keys) when a search or a sort is the grid's sole transform, else `null`. */
+	clientView: { rows: T[]; keys: (string | number)[] } | null
 }): {
 	manualRows: GridLeaf<T>[] | null
 	renderRows: T[]
 	rowKeys: (string | number)[]
 } {
-	const { displayRows, rows, getKey, grouped, manualGroupRow, sortView } = args
+	const { displayRows, rows, getKey, grouped, manualGroupRow, clientView } = args
 
 	// Under client grouping the display rows are the group rows, which expand to
 	// their leaves. Under manual grouping they are the consumer's grouped
@@ -453,19 +455,19 @@ function useGridRowModel<T>(args: {
 		[manualGroupRow, displayRows, getKey],
 	)
 
-	// Engine leaves when materialized; else the off-engine sorted view; else the
+	// Engine leaves when materialized; else the off-engine view; else the
 	// rows straight through. Each key is taken at the row's original data index,
 	// so a sorted-position key never diverges from `getRowId`.
 	const renderRows = useMemo(
-		() => (leafRows ? leafRows.map((leaf) => leaf.original) : (sortView?.rows ?? rows)),
-		[leafRows, sortView, rows],
+		() => (leafRows ? leafRows.map((leaf) => leaf.original) : (clientView?.rows ?? rows)),
+		[leafRows, clientView, rows],
 	)
 
 	const rowKeys = useMemo<(string | number)[]>(() => {
 		if (leafRows) return leafRows.map((leaf) => getKey(leaf.original, leaf.index))
 
-		return sortView?.keys ?? rows.map((row, index) => getKey(row, index))
-	}, [leafRows, sortView, rows, getKey])
+		return clientView?.keys ?? rows.map((row, index) => getKey(row, index))
+	}, [leafRows, clientView, rows, getKey])
 
 	return { manualRows, renderRows, rowKeys }
 }
@@ -522,13 +524,18 @@ function useGroupTree<T>(args: {
 }
 
 /**
- * The off-engine client sort. When a sort is the grid's *only* transform, it
- * orders `rows` directly through {@link cachedSortOrder} and
- * {@link materializeSort}, which match the engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
+ * The off-engine client view: the quick search and the sort, when they are the
+ * grid's *only* transforms. A plain searched or sorted grid therefore never
  * materializes the engine's Row-per-datum model. That is the same win the
- * lite-cell body buys mount and update, extended to sort. `null` when inactive
- * (no sort, or a filter / pagination / grouping is also live and the engine
- * sorts inside its pipeline).
+ * lite-cell body buys mount and update, extended to search and sort. `null`
+ * when inactive (no search and no sort, or a filter / pagination / grouping is
+ * also live, and the engine searches and sorts inside its pipeline).
+ *
+ * The search keeps the rows that {@link searchRowIndices} gives, which match
+ * the engine's global filter. The sort then orders those rows through
+ * {@link cachedSortOrder}, and {@link materializeSort} reads each kept row at
+ * its original index. The result matches the engine's `getSortedRowModel`
+ * after its filter.
  *
  * The sort columns are resolved to {@link SmartSortField}s in their own memo,
  * keyed on the sort and columns. A data change therefore re-sorts without
@@ -536,7 +543,7 @@ function useGroupTree<T>(args: {
  *
  * @internal
  */
-function useSortView<T>(args: {
+function useClientView<T>(args: {
 	rows: T[]
 	getKey: (row: T, index: number) => string | number
 	sort: GridSortState[] | undefined
@@ -544,10 +551,12 @@ function useSortView<T>(args: {
 	clientSort: boolean
 	/** Whether the engine model is already materialized for another transform, which then sorts inside its pipeline. */
 	materialize: boolean
+	/** The query of an off-engine search (see `resolveOffEngineSearch`), else `null`. */
+	search: string | null
 	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
 	columns: GridColumn<T>[]
 }): { rows: T[]; keys: (string | number)[] } | null {
-	const { rows, getKey, sort, clientSort, materialize, columns } = args
+	const { rows, getKey, sort, clientSort, materialize, search, columns } = args
 
 	// The sort columns as fields, or `null` unless a sort is the sole transform (a
 	// client sort with entries and no engine transform already reshaping the rows).
@@ -571,19 +580,41 @@ function useSortView<T>(args: {
 		})
 	}, [clientSort, materialize, sort, columns])
 
+	// The original indices of the rows that the search keeps, and those rows.
+	// Both are `null` with no off-engine search.
+	const kept = useMemo(
+		() => (search === null ? null : searchRowIndices(rows, columns, search)),
+		[rows, columns, search],
+	)
+
+	const keptRows = useMemo(
+		() => (kept ? kept.map((index) => rows[index] as T) : null),
+		[kept, rows],
+	)
+
 	// The permutation depends only on the rows and the sort spec, never on
 	// `getKey`, so `cachedSortOrder` reuses it for a spec already seen. Its cache
-	// is scoped to the current rows and columns, so a stale order can never
-	// outlive the data or the accessors that it was computed against.
+	// is scoped to the rows that it sorts and to the columns, so a stale order can
+	// never outlive the data or the accessors that it was computed against.
 	return useMemo(() => {
-		if (!fields || !sort?.length) return null
+		const sorting = fields !== null && sort !== undefined && sort.length > 0
 
-		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+		if (!sorting && !kept) return null
 
-		const order = cachedSortOrder(rows, columns, sig, fields)
+		let order = kept ?? []
+
+		if (sorting) {
+			const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+
+			const local = cachedSortOrder(keptRows ?? rows, columns, sig, fields)
+
+			// A sort of the kept rows gives positions among them. Each maps back to
+			// the original index of its row.
+			order = kept ? local.map((position) => kept[position] as number) : local
+		}
 
 		return materializeSort(rows, order, getKey)
-	}, [fields, rows, getKey, sort, columns])
+	}, [fields, kept, keptRows, rows, getKey, sort, columns])
 }
 
 /**
@@ -1204,8 +1235,9 @@ export function useGridTable<T>({
 	// entries reshape nothing, and materializing anyway would build the engine's
 	// Row-per-datum model on every plain mount, the linear term the windowed body
 	// exists to avoid. Sort is deliberately absent: a sort that is the grid's only
-	// transform runs off the engine through `useSortView` below, so it never
-	// forces the model. The row-model derivation (display rows, grouped display
+	// transform runs off the engine through `useClientView` below, so it never
+	// forces the model. A search that is the only transform runs there too (see
+	// `resolveOffEngineSearch`). The row-model derivation (display rows, grouped display
 	// list, flat leaf rows, and the `renderRows`/`rowKeys` the body reads) lives
 	// in `useGridRowModel`.
 	const engineTransform = resolveActiveEngineTransform({
@@ -1218,11 +1250,31 @@ export function useGridTable<T>({
 		grouped,
 	})
 
-	const materialize = paginated || engineTransform || manualGroupRow != null
+	const searchOffEngine = resolveOffEngineSearch({
+		paginated,
+		paginationManual: manual,
+		filterMode,
+		globalFiltered: globalConfigured,
+		globalFilter: resolvedGlobalFilter,
+		globalHighlights,
+		columnFilters: resolvedColumnFilters,
+		grouped,
+		manualGrouped: manualGroupRow != null,
+	})
 
-	// The off-engine client sort, active only when a sort is the grid's *sole*
-	// transform (otherwise the engine sorts inside its pipeline, above).
-	const sortView = useSortView({ rows, getKey, sort, clientSort, materialize, columns })
+	const materialize = paginated || (engineTransform && !searchOffEngine) || manualGroupRow != null
+
+	// The off-engine client search and sort, active only when they are the grid's
+	// *sole* transforms (otherwise the engine runs them inside its pipeline, above).
+	const clientView = useClientView({
+		rows,
+		getKey,
+		sort,
+		clientSort,
+		materialize,
+		search: searchOffEngine ? resolvedGlobalFilter : null,
+		columns,
+	})
 
 	// Manual grouping materializes the (untransformed) core model too: the
 	// manual body segments it by position.
@@ -1234,7 +1286,7 @@ export function useGridTable<T>({
 		getKey,
 		grouped,
 		manualGroupRow,
-		sortView,
+		clientView,
 	})
 
 	const { groups, toggleGroup } = useGroupTree({
