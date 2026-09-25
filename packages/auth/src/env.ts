@@ -11,6 +11,15 @@ if (!url) {
 	)
 }
 
+// `localhost:4000` parses as a URL with the scheme `localhost:`, so check the scheme too.
+const protocol = URL.parse(url)?.protocol
+
+if (protocol !== 'http:' && protocol !== 'https:') {
+	throw new Error(
+		'BIFROST_URL is not an absolute http or https URL, such as `http://localhost:4000`',
+	)
+}
+
 /**
  * Origin of the bifrost gateway, resolved at module load.
  *
@@ -20,6 +29,9 @@ if (!url) {
  * build` writes the origin into the rewrites, and `next start` serves them as
  * built, so the build and the server both need the value.
  *
+ * A value that is not an absolute http or https URL throws at load. The value
+ * has no trailing slash, so a gateway path such as `/auth/user` appends to it.
+ *
  * @internal
  */
-export const BIFROST_URL = url
+export const BIFROST_URL = url.replace(/\/+$/, '')
