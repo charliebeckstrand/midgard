@@ -88,6 +88,9 @@ const actions = ['flex shrink-0 cursor-default items-center gap-1']
  * code crosses the module boundary. The header then leaves the flow for a veil
  * over the top of the content, and the sparkline takes the full height. This is
  * the posture of the chart's own title at the spark tier.
+ *
+ * The rule reads only the content box, at any depth in it. A spark chart in the
+ * actions of the header therefore veils nothing.
  */
 const veil = {
 	/**
@@ -95,18 +98,18 @@ const veil = {
 	 * content box therefore keeps one height when edit mode switches.
 	 */
 	overlay: [
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:absolute',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:top-2',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:z-10',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:px-1',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:py-1',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:duration-150',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:absolute',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:top-2',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:px-1',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:py-1',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:duration-150',
 		...mode(
-			'has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
-			'dark:has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
+			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
+			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
 		),
 	],
 	/**
@@ -119,8 +122,8 @@ const veil = {
 	 * the card either. The veil therefore stays in view there, as in edit mode.
 	 */
 	fade: [
-		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
-		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
+		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
+		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
 	],
 } as const
 
