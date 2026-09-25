@@ -35,7 +35,7 @@ export function Demo() {
 
 	const [variant, setVariant] = useState<Variant>('solid')
 
-	const [status, setStatus] = useState<'idle' | 'holding' | 'cancelled' | 'confirmed'>('idle')
+	const [status, setStatus] = useState<'idle' | 'holding' | 'canceled' | 'confirmed'>('idle')
 
 	return (
 		<>
@@ -74,7 +74,7 @@ export function Demo() {
 					<HoldButton
 						color="amber"
 						onHoldStart={() => setStatus('holding')}
-						onHoldCancel={() => setStatus('cancelled')}
+						onHoldCancel={() => setStatus('canceled')}
 						onHoldComplete={() => setStatus('confirmed')}
 					>
 						Hold me
