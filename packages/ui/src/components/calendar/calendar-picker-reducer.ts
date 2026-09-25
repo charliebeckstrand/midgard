@@ -1,21 +1,7 @@
 /** Which grid the picker shows: the 12-month grid or the 12-cell decade grid. @internal */
 type CalendarPickerView = 'months' | 'years'
 
-/**
- * The first year that the calendar can show. `@internationalized/date` holds
- * years 1 to 9999, and a `CalendarDate` clamps a year outside them.
- *
- * @internal
- */
-export const MIN_YEAR = 1
-
-/** The last year that the calendar can show. See {@link MIN_YEAR}. @internal */
-export const MAX_YEAR = 9999
-
-/** Whether the calendar can show `year`. @internal */
-export function isYearInRange(year: number): boolean {
-	return year >= MIN_YEAR && year <= MAX_YEAR
-}
+import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 
 /** The year in the range of the calendar that is nearest to `year`. @internal */
 function clampYear(year: number): number {

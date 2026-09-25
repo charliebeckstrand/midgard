@@ -7,6 +7,22 @@ import {
 } from '@internationalized/date'
 
 /**
+ * The first year that the calendar can show. `@internationalized/date` holds
+ * years 1 to 9999, and a `CalendarDate` clamps a year outside them.
+ *
+ * @internal
+ */
+export const MIN_YEAR = 1
+
+/** The last year that the calendar can show. See {@link MIN_YEAR}. @internal */
+export const MAX_YEAR = 9999
+
+/** Whether the calendar can show `year`. @internal */
+export function isYearInRange(year: number): boolean {
+	return year >= MIN_YEAR && year <= MAX_YEAR
+}
+
+/**
  * Converts a native `Date` to a timezone-free `CalendarDate` using its local
  * year/month/day. This mirrors the wall-clock-day semantics the calendar uses
  * everywhere (`getFullYear`/`getMonth`/`getDate`) and sidesteps the DST and

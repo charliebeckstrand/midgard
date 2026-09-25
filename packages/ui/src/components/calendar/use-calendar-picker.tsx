@@ -11,13 +11,8 @@ import {
 	useState,
 } from 'react'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
-import {
-	calendarPickerReducer,
-	initialCalendarPickerState,
-	isYearInRange,
-	MAX_YEAR,
-	MIN_YEAR,
-} from './calendar-picker-reducer'
+import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
+import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 
 /** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the open state. @internal */

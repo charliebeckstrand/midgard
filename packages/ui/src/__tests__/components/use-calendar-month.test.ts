@@ -1,7 +1,7 @@
 import { act, renderHook } from '@testing-library/react'
 import { createElement } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { useCalendarMonth } from '../../components/calendar/use-calendar-month'
 
 type MonthSeed = { value?: Date | null; defaultValue?: Date }
@@ -240,5 +240,45 @@ describe('useCalendarMonth: shown', () => {
 		})
 
 		expect(seen).toEqual([true])
+	})
+})
+
+/** A local date in `year`, past the two-digit-year mapping of the `Date` constructor. */
+function at(year: number, month: number, day: number) {
+	const date = new Date(2000, month, day)
+
+	date.setFullYear(year)
+
+	return date
+}
+
+// `@internationalized/date` holds years 1 to 9999.
+describe('useCalendarMonth: year limits', () => {
+	it('prevMonth does nothing at January 0001', () => {
+		const onMonthChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useCalendarMonth({ value: at(1, 0, 15), activeGridDate: null, onMonthChange }),
+		)
+
+		act(() => result.current.prevMonth())
+
+		expect([result.current.year, result.current.month]).toEqual([1, 0])
+
+		expect(onMonthChange).not.toHaveBeenCalled()
+	})
+
+	it('nextMonth does nothing at December 9999', () => {
+		const onMonthChange = vi.fn()
+
+		const { result } = renderHook(() =>
+			useCalendarMonth({ value: at(9999, 11, 15), activeGridDate: null, onMonthChange }),
+		)
+
+		act(() => result.current.nextMonth())
+
+		expect(result.current.viewDate).toEqual(at(9999, 11, 1))
+
+		expect(onMonthChange).not.toHaveBeenCalled()
 	})
 })

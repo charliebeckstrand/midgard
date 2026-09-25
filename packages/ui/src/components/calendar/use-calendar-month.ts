@@ -5,7 +5,7 @@ import { useCallback, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
 import { useReportedChange } from '../../hooks/use-reported-change'
 
-import { firstOfMonth } from './calendar-utilities'
+import { firstOfMonth, isYearInRange } from './calendar-utilities'
 
 /** Whether two rendered months are the same instant; `firstOfMonth` mints a fresh `Date` each call. @internal */
 function sameInstant(a: Date, b: Date): boolean {
@@ -36,6 +36,22 @@ function sameValue(a: Date | null | undefined, b: Date | null | undefined): bool
 	if (a == null || b == null) return a == null && b == null
 
 	return sameInstant(a, b)
+}
+
+/**
+ * The first of the month `delta` months from `month`. Past year 1 or year 9999
+ * it returns `month` itself, so a step at a limit changes no state and reports
+ * nothing. Without the check, a `CalendarDate` clamps the year, and a step back
+ * from January 0001 shows year 0.
+ *
+ * @internal
+ */
+function stepMonth(month: Date, delta: number): Date {
+	const index = month.getFullYear() * 12 + month.getMonth() + delta
+
+	const year = Math.floor(index / 12)
+
+	return isYearInRange(year) ? firstOfMonth(year, index - year * 12) : month
 }
 
 /** The month that `date` moves the view to, or `null` when the view shows it already. @internal */
@@ -88,11 +104,11 @@ export function useCalendarMonth({
 	const month = viewDate.getMonth()
 
 	const prevMonth = useCallback(() => {
-		setViewDate((prev) => firstOfMonth(prev.getFullYear(), prev.getMonth() - 1))
+		setViewDate((prev) => stepMonth(prev, -1))
 	}, [])
 
 	const nextMonth = useCallback(() => {
-		setViewDate((prev) => firstOfMonth(prev.getFullYear(), prev.getMonth() + 1))
+		setViewDate((prev) => stepMonth(prev, 1))
 	}, [])
 
 	const navigateTo = useCallback((y: number, m: number) => {
