@@ -109,7 +109,7 @@ describe('grid-sort · parseNumeric (per-value)', () => {
 })
 
 // The whole-function sort cost, split into the two halves the render path caches
-// apart (see `useSortView`): `computeSortOrder` is the costly decode-and-sort that
+// apart (see `useClientView`): `computeSortOrder` is the costly decode-and-sort that
 // a re-sort of unchanged rows by a seen spec reuses; `materializeSort` is the cheap
 // projection paid on every flip regardless. The ratio between them is what the
 // permutation cache trades on — a flip skips the former and pays only the latter —
