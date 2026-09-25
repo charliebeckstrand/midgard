@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { dragPreview } from '../../modules/dashboard/engine/dashboard-drag'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
+import type { DashboardSelection } from '../../modules/dashboard/engine/dashboard-scope'
 import {
 	createDashboardStore,
 	type DashboardState,
@@ -190,6 +191,37 @@ describe('createDashboardStore', () => {
 		expect(entries.get('b')).toStrictEqual({ id: 'b', x: 0, y: 28, w: 8 })
 
 		expect(order).toEqual(['a', 'c', 'b'])
+	})
+
+	it('applies the selection of a tile with an entry until a tile registers, then of a registered tile', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'a', field: 'region', values: ['North'] },
+			{ source: 'gone', field: 'region', values: ['West'] },
+			{ source: '', field: 'product', values: ['Tea'] },
+		]
+
+		const store = createDashboardStore(initial({ demands: new Map(), selections }))
+
+		// No tile registers on the server, so the saved entries stand for the tiles.
+		expect(store.getView().selections).toEqual([selections[0], selections[2]])
+
+		store.register('a', {})
+
+		store.register('b', {})
+
+		store.unregister('a')
+
+		expect(store.getView().selections).toEqual([selections[2]])
+
+		store.unregister('b')
+
+		// No tile is left, so only the selection of the board applies.
+		expect(store.getView().selections).toEqual([selections[2]])
+
+		// A hydration render reads the view that the server rendered.
+		expect(store.getInitialView().selections).toEqual([selections[0], selections[2]])
+
+		expect(store.getInitialState()).toMatchObject({ selections, demands: new Map() })
 	})
 
 	it('registers and unregisters demands, and notifies each change', () => {

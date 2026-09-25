@@ -1681,6 +1681,40 @@ describe('Dashboard scope', () => {
 		expect(screen.getByTestId('total')).toHaveTextContent('30')
 	})
 
+	it('applies no selection of a tile to a board reader once the last tile leaves', () => {
+		function Summary() {
+			return <p>{useDashboardScope().active ? 'Filtered' : 'Whole'}</p>
+		}
+
+		function Board({ tiles }: { tiles: string[] }) {
+			return (
+				<Dashboard
+					aria-label="Sales"
+					selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
+				>
+					<Summary />
+
+					{tiles.map((id) => (
+						<DashboardTile key={id} id={id} title={id} />
+					))}
+				</Dashboard>
+			)
+		}
+
+		const { rerender } = renderUI(<Board tiles={['regions', 'total']} />)
+
+		expect(screen.getByText('Filtered')).toBeInTheDocument()
+
+		rerender(<Board tiles={['total']} />)
+
+		expect(screen.getByText('Whole')).toBeInTheDocument()
+
+		// An empty board is no reason to apply the selection of a tile that left.
+		rerender(<Board tiles={[]} />)
+
+		expect(screen.getByText('Whole')).toBeInTheDocument()
+	})
+
 	it('applies a saved selection in the server markup', () => {
 		const html = renderToString(
 			<Dashboard

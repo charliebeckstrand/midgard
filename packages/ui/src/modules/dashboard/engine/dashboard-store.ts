@@ -90,7 +90,11 @@ export type DashboardView = {
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
 	editable: boolean
-	/** The selections that apply: those of the board, and those of a tile on the board. */
+	/**
+	 * The selections that apply: those of the board, and those of a tile on the
+	 * board. Until the first tile registers, as on the server, a tile with a saved
+	 * entry counts as on the board.
+	 */
 	selections: readonly DashboardSelection[]
 	/**
 	 * The ids of the tiles in reading order, which the tiles take in the markup. A
@@ -108,6 +112,13 @@ export type DashboardStore = {
 	getState: () => DashboardState
 	/** The current view. The same state always returns the same object. */
 	getView: () => DashboardView
+	/** The state that the store started with. No effect runs on the server, so the server renders it. */
+	getInitialState: () => DashboardState
+	/**
+	 * The view of the initial state. A hydration render reads it, so a boundary
+	 * that hydrates after the tiles register still matches the server markup.
+	 */
+	getInitialView: () => DashboardView
 	/** Merges `patch` into the state, and notifies the listeners while the store is open. */
 	setState: (patch: Partial<DashboardState>) => void
 	/**
@@ -241,6 +252,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	let closed = false
 
+	// Whether a tile has registered. An empty set of demands then means that no tile is left.
+	let registered = false
+
 	const listeners = new Set<() => void>()
 
 	// The first entry of each id, placed with provisional heights. A tile that has not registered
@@ -283,16 +297,21 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const placed = placedOf(layout, columns)
 
+		const entries = entriesOf(placed)
+
+		// No tile registers on the server, so until then each saved entry stands for a tile.
+		const mounted = registered || demands.size > 0 ? demands : entries
+
 		return {
 			canonical,
 			cells: paintedCells(gesture, projection.cells, previous?.cells),
-			entries: entriesOf(placed),
+			entries,
 			placeholder: landingCell(gesture, previous?.placeholder),
 			travel: travelOf(gesture, columns, previous?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
-			selections: internList(previous?.selections, liveSelections(selections, demands)),
+			selections: internList(previous?.selections, liveSelections(selections, mounted)),
 			order:
 				editing && previous !== null
 					? previous.order
@@ -323,11 +342,18 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		if (!closed) notify()
 	}
 
+	// The server renders the view of the initial state, so the store keeps that view.
+	const first = current()
+
 	return {
 		getState: () => state,
 		getView: current,
+		getInitialState: () => initial,
+		getInitialView: () => first,
 		setState: (patch) => replace({ ...state, ...patch }),
 		register: (id, demands) => {
+			registered = true
+
 			replace({ ...state, demands: new Map(state.demands).set(id, usableDemands(demands)) })
 		},
 		unregister: (id) => {

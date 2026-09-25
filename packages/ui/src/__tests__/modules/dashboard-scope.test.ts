@@ -205,7 +205,7 @@ describe('liveSelections', () => {
 		expect(liveSelections(selections, new Set(['map', 'gone']))).toBe(selections)
 	})
 
-	it('applies each selection before any tile mounts', () => {
-		expect(liveSelections(selections, new Set())).toBe(selections)
+	it('applies only the selections of the board when no tile is on the board', () => {
+		expect(liveSelections(selections, new Set())).toEqual([selections[1]])
 	})
 })

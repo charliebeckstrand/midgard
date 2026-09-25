@@ -97,9 +97,10 @@ export function clearSelection(
  * that returns gets it back.
  *
  * @remarks
- * Before any tile mounts, each selection applies. The tiles mount in a layout
- * effect, which the server never runs. The server markup and the hydration
- * render therefore still agree on a saved selection.
+ * The caller decides which tiles are on the board. The tiles register in a
+ * layout effect, which the server never runs. So until the first tile
+ * registers, the store passes the ids of the saved entries. After that, it
+ * passes the registered ids, also when no tile is left.
  *
  * @param selections - The selections of the board.
  * @param mounted - The ids of the tiles on the board.
@@ -107,10 +108,8 @@ export function clearSelection(
  */
 export function liveSelections(
 	selections: readonly DashboardSelection[],
-	mounted: { readonly size: number; has: (id: string) => boolean },
+	mounted: { has: (id: string) => boolean },
 ): readonly DashboardSelection[] {
-	if (mounted.size === 0) return selections
-
 	const live = (item: DashboardSelection) => item.source === '' || mounted.has(item.source)
 
 	return selections.every(live) ? selections : selections.filter(live)
