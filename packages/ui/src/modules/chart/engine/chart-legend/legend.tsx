@@ -206,7 +206,7 @@ function ChartLegendEntry({
 			onPointerEnter={() => onPointerEmphasis(item.index)}
 			onPointerLeave={() => onPointerEmphasis(null)}
 			// Focus and blur resolve through the same path as hover: a keyboard focus
-			// (`:focus-visible`, the same gate the ring rides) emphasises, while a
+			// (`:focus-visible`, the same gate the ring rides) emphasizes, while a
 			// pointer click's ring-less focus — or the focus a backgrounded tab re-fires
 			// on return — resolves to nothing.
 			onFocus={onFocusEmphasis}
@@ -300,13 +300,13 @@ export type ChartLegendItem = {
 	/**
 	 * The series' own index. The toggle, emphasis, and `hidden` set key off it, not
 	 * the entry's position. The legend can therefore list its switches in a
-	 * different order than the series, without misrouting a click or a colour.
+	 * different order than the series, without misrouting a click or a color.
 	 */
 	index: number
 	label: string
-	/** currentColor class carrying the series colour; empty for a raw colour, which inks inline. */
+	/** currentColor class carrying the series color; empty for a raw color, which inks inline. */
 	swatchClass: string
-	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	/** A raw series color inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
 	/** Swatch shape, mirroring the mark: `rect` for bars and slices, `line` for lines. */
 	swatch: 'rect' | 'line'
@@ -317,7 +317,7 @@ export type ChartLegendItem = {
 	 * @defaultValue false
 	 */
 	dashed?: boolean
-	/** The slot colour, so a textured legend swatch mirrors the mark's tile; unset for a raw colour. */
+	/** The slot color, so a textured legend swatch mirrors the mark's tile; unset for a raw color. */
 	color?: ChartColorSlot
 	/** A trailing readout — the side panel carries each slice's live share. */
 	detail?: string
@@ -326,7 +326,7 @@ export type ChartLegendItem = {
 /**
  * One legend entry for a reference line, a switch keyed to the rule the way a
  * series entry keys to its marks. It is the rule's label (or its value,
- * unlabelled) beside a line swatch in the rule's colour. Clicking it toggles the
+ * unlabeled) beside a line swatch in the rule's color. Clicking it toggles the
  * rule off, pulling it from the plot, the domain, and the keyboard roving.
  * Pointing or keyboard-focusing a still-shown chip recedes the marks to its rule,
  * the same emphasis as pointing the rule itself. {@link ChartReferenceList}
@@ -343,9 +343,9 @@ export type ChartLegendReference = {
 	 */
 	index: number
 	label: string
-	/** currentColor class carrying a palette slot's colour; empty when {@link color} is set. */
+	/** currentColor class carrying a palette slot's color; empty when {@link color} is set. */
 	swatchClass: string
-	/** A raw CSS colour applied inline as currentColor; absent for a palette slot. */
+	/** A raw CSS color applied inline as currentColor; absent for a palette slot. */
 	color?: string
 	/**
 	 * Whether the rule is dashed, so the chip's line swatch mirrors it — dashed by
@@ -374,7 +374,7 @@ export type ChartLegendProps = {
 	onToggle: (index: number) => void
 	/** Toggles a reference rule on or off by its index; omitted, the chips are static. */
 	onToggleReference?: (index: number) => void
-	/** Emphasises an item's series (`null` clears); other marks dim while set. */
+	/** Emphasizes an item's series (`null` clears); other marks dim while set. */
 	onFocus: (index: number | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
@@ -453,7 +453,7 @@ function splitLegend(
  * series switchboard. Pointing (or keyboard-focusing) an entry dims every other
  * series, and clicking toggles its series off. The switches are plain HTML
  * buttons outside the `role="img"` region, so assistive tech reads and operates
- * them. Swatches carry the colour, and the text stays in ink. Every entry
+ * them. Swatches carry the color, and the text stays in ink. Every entry
  * switches, a lone series included. Toggling the only one off empties the chart
  * by design, with the forced-on legend holding the switch that brings it back.
  * Emphasis is a no-op with no sibling marks to dim.
@@ -669,7 +669,7 @@ export function ChartLegend({
 	// recedes the marks to it through the shared reference emphasis. An off chip
 	// strikes its label and dims its swatch — the same off treatment a series entry
 	// takes — and its pointer / focus path recedes nothing, since its rule is gone.
-	// The slot colour rides its currentColor class; a raw colour rides an inline
+	// The slot color rides its currentColor class; a raw color rides an inline
 	// style; and the line swatch dashes to match the rule unless it is drawn solid.
 	// The ghost copy measures width alone, so it drops the handlers its inert row
 	// would never fire and takes a distinct slot so it never double-counts.
@@ -691,7 +691,7 @@ export function ChartLegend({
 								onToggleReference?.(reference.index)
 
 								// Drive the recede to the toggle's resulting state directly: off
-								// pulls the rule so nothing recedes, on emphasises the chip the
+								// pulls the rule so nothing recedes, on emphasizes the chip the
 								// pointer or keyboard focus still holds. Setting it here — rather
 								// than through syncReference — sidesteps the toggle's
 								// not-yet-applied hidden set.

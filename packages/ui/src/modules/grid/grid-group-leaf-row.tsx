@@ -262,7 +262,7 @@ function GridGroupLeafCell<T>({
  * content in a CSS `grid-template-rows: 1fr↔0fr` reveal (see
  * {@link GridGroupLeafCell}). The row therefore grows and shrinks with its group
  * over a CSS transition. That is reliable in a `<table>` where a JS height tween
- * on a `<td>` is not, and it honours `prefers-reduced-motion` through
+ * on a `<td>` is not, and it honors `prefers-reduced-motion` through
  * `motion-reduce`. The row
  * stays mounted whatever the group's expansion; a closed group's leaves are
  * `inert` and hidden from assistive tech. Kept apart from the plain

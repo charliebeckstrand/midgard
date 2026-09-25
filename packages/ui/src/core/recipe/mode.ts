@@ -4,9 +4,9 @@
  *
  * `mode()` fuses a scalar light/dark pair into a flat `string[]` (the shape
  * the recipe engine consumes). `defineColors()` does the same across a
- * multi-key map. That is useful for kata-specific colour palettes outside
+ * multi-key map. That is useful for kata-specific color palettes outside
  * the iro.palette × iro.colors matrix, e.g. checkbox / radio / switch
- * exposing CSS-variable bundles per colour.
+ * exposing CSS-variable bundles per color.
  *
  * Authoring style: the dark string carries its own `dark:` prefix, one per
  * class; a single entry can bundle several variable-setters. Use `shades()`

@@ -16,7 +16,7 @@ export const spring = {
 	/** Snappy, lightly-damped glide — settles fast with a touch of give, not a bounce. */
 	snap: { type: 'spring', stiffness: 600, damping: 38 },
 	/**
-	 * A panel travelling between two content heights — the drawer growing or
+	 * A panel traveling between two content heights — the drawer growing or
 	 * shrinking to what it now holds.
 	 *
 	 * Overdamped, where most of the vocabulary gives. The edge carries the

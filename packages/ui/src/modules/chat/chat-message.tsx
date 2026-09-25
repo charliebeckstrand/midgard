@@ -8,7 +8,7 @@ import type { ChatPart } from './engine/chat-content/types'
 import type { ChatMessageData } from './engine/types'
 
 /**
- * The visually hidden author label per role. Bubble side and colour alone
+ * The visually hidden author label per role. Bubble side and color alone
  * convey the speaker visually; this names it for assistive technology. System
  * messages are status lines, not an utterance, so they get a plain "System".
  *

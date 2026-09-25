@@ -12,7 +12,7 @@
 import { mode } from '../../../core/recipe'
 
 /**
- * Base ring under the other layers. The ring uses solid colours, not
+ * Base ring under the other layers. The ring uses solid colors, not
  * translucent like `sen.ring.inset`. Adjacent rings in a group overlap
  * by 1 px without alpha-stacking into a darker line at the join. Radius
  * is not bundled; composers add `radius(v)` (or `r(v)` for the
@@ -36,7 +36,7 @@ const overlay = [
 	'after:absolute after:inset-0 after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
-/** Outer ring colour on hover: one shade darker / lighter than resting. */
+/** Outer ring color on hover: one shade darker / lighter than resting. */
 const hover = mode(
 	'not-has-[>:disabled]:hover:ring-zinc-400',
 	'not-has-[>:disabled]:dark:hover:ring-zinc-600',

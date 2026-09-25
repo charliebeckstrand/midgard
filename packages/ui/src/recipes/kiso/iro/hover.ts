@@ -1,6 +1,6 @@
 /**
  * Iro hover: low-alpha hover wash shared by soft / outline / plain
- * palette variants. Each tint is the colour at 15% opacity; the wash
+ * palette variants. Each tint is the color at 15% opacity; the wash
  * sits in front of any base fill without re-tinting.
  *
  * **Gated on both spellings of disabled, and it has to be.** `not-disabled:`

@@ -16,7 +16,7 @@ type Channel = 'r' | 'g' | 'b' | 'a'
 const RGB: ReadonlyArray<'r' | 'g' | 'b'> = ['r', 'g', 'b']
 
 /**
- * Per-channel RGB(A) numeric entry, two-way bound to the panel's colour.
+ * Per-channel RGB(A) numeric entry, two-way bound to the panel's color.
  *
  * @remarks The channel inputs are sub-parts, not the field control. They opt
  * out of an enclosing `<Control>` / `<Field>`, so they do not take its
@@ -31,7 +31,7 @@ export function ColorChannelInputs() {
 
 	const rgba = hsvaToRgba(hsva)
 
-	// What each field shows at rest, derived from the live colour.
+	// What each field shows at rest, derived from the live color.
 	const derived = {
 		r: String(rgba.r),
 		g: String(rgba.g),

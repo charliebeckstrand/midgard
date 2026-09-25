@@ -36,7 +36,7 @@ export const [GridGroupByContext, useGridGroupByButton] =
  * grouped (single-level, so only one column is ever grouped). The active button
  * holds a blue accent (like an applied column filter) and swaps its
  * {@link Group} icon for {@link Ungroup}. Its state therefore reads by shape and
- * label, not colour alone.
+ * label, not color alone.
  * Renders nothing while the feature is off, on a non-`groupable` column, or on
  * an empty grid.
  *
@@ -67,7 +67,7 @@ export function GridGroupByButton({
 					variant="bare"
 					// The blue accent marks the active group, matching an applied filter's
 					// button; `idle` is the resting muted tint, dropped once accented so it
-					// doesn't override the colour.
+					// doesn't override the color.
 					color={grouped ? 'blue' : undefined}
 					data-active={dataAttr(grouped)}
 					aria-label={action}

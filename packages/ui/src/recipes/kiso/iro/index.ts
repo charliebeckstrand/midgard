@@ -1,8 +1,8 @@
 /**
- * Iro (色): colour. The palette matrix, keyed by variant
- * (solid / soft / outline / plain / bare) × colour × slot
+ * Iro (色): color. The palette matrix, keyed by variant
+ * (solid / soft / outline / plain / bare) × color × slot
  * (bg / text / hover / ring / border). Beside it sit the semantic
- * intent-colour text bundle, the `marker` shade for chromatic dots / glyphs,
+ * intent-color text bundle, the `marker` shade for chromatic dots / glyphs,
  * and the `onWash` rung for the neutral wash. One file per palette
  * variant; this barrel assembles the named bundle that every kata reads.
  *
@@ -10,12 +10,12 @@
  * they ink, so they sit beside it rather than inside it. `onWash` is then
  * keyed by purpose in turn, since what varies on that ground is emphasis.
  *
- * `palette` is the standard five-colour set (zinc / red / amber / green /
+ * `palette` is the standard five-color set (zinc / red / amber / green /
  * blue). `extendedPalette` is the opt-in wide palette: the same shape keyed
- * by every standard colour plus the extended set (rose / violet / sky). A
+ * by every standard color plus the extended set (rose / violet / sky). A
  * kata reads it in place of `palette` to offer the broader `color` axis.
  *
- * Surfaces live in `omote`. Interaction-state text colours live in
+ * Surfaces live in `omote`. Interaction-state text colors live in
  * `hannou.fg`. Slot-specific composites live in their kata.
  */
 

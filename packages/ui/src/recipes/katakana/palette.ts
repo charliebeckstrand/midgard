@@ -1,6 +1,6 @@
 import type { Color } from '../../core/recipe'
 
-/** One palette slot: a class list per colour. Generic over the colour set. */
+/** One palette slot: a class list per color. Generic over the color set. */
 type Slot<C extends string = Color> = Record<C, string[]>
 
 /** The iro palette slots every chromatic surface shares. */
@@ -16,8 +16,8 @@ type ChromaticPalette<C extends string = Color> = {
  * `plain` is absent; avatar has no plain variant. Surfaces with a plain
  * variant spread `plain: palette.plain.text` into their own matrix.
  *
- * Generic over the colour set: handed the standard `iro.palette` it returns
- * the five-colour matrix. Handed `iro.extendedPalette` it carries the extended keys
+ * Generic over the color set: handed the standard `iro.palette` it returns
+ * the five-color matrix. Handed `iro.extendedPalette` it carries the extended keys
  * through, which widens the kata's `color` axis (Badge).
  */
 export function basePalette<C extends string = Color>(

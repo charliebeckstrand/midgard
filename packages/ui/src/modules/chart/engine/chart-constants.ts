@@ -27,7 +27,7 @@ export const BAR_MAX_WIDTH = 24
 /** Radius of a bar's rounded data end; the baseline end stays square. @internal */
 export const BAR_END_RADIUS = 4
 
-/** Surface-colour gap between touching marks: adjacent bars, pie slices. @internal */
+/** Surface-color gap between touching marks: adjacent bars, pie slices. @internal */
 export const MARK_GAP = 4
 
 /** Line series stroke width. @internal */
@@ -36,7 +36,7 @@ export const LINE_STROKE_WIDTH = 2
 /** Line point-marker radius (≥ 5.5 so the dot stays legible). @internal */
 export const MARKER_RADIUS = 5.5
 
-/** Surface-colour ring around point markers crossing other marks. @internal */
+/** Surface-color ring around point markers crossing other marks. @internal */
 export const MARKER_RING_WIDTH = 2
 
 /** The area wash's opacity, sitting the fill under its line without muddying it. @internal */

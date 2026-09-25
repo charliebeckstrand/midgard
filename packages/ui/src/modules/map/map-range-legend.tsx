@@ -50,10 +50,10 @@ function RangeHoverArrow({
 /**
  * The choropleth's range legend: the shared {@link RangeLegend} scale-bar
  * slider, wired to the map. Its hover arrow tracks the pointed region's value,
- * and probing the bar emphasises that class's regions through `onFocus`, dimming
+ * and probing the bar emphasizes that class's regions through `onFocus`, dimming
  * the rest. The `map-range` slot keeps the map's part names. `orientation`
  * follows the resolved placement — vertical beside the plot, horizontal above or
- * below — the wrapper centring a horizontal bar in its stacked row.
+ * below — the wrapper centering a horizontal bar in its stacked row.
  *
  * @internal
  */

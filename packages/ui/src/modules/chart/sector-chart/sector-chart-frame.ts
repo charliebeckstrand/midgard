@@ -28,10 +28,10 @@ export function sliceActivation(
 }
 
 /**
- * The inline position that centres a donut's overlay on the ring's hole rather
- * than the plot box. Callouts shift the pie centre off `frameWidth / 2` to
+ * The inline position that centers a donut's overlay on the ring's hole rather
+ * than the plot box. Callouts shift the pie center off `frameWidth / 2` to
  * balance the two label columns, so the content follows `center` into the hole.
- * Falls back to the box centre before the frame is measured.
+ * Falls back to the box center before the frame is measured.
  *
  * @internal
  */
@@ -82,7 +82,7 @@ export function sectorAspectRatio(
  * defaults, the frame instead fits its height to the pie's own footprint:
  * twice the width-bound radius plus the vertical margin. A wide callout label
  * thus never leaves an empty band the aspect ratio didn't need. `radius`
- * refines that footprint once a real width lands, to a callout-labelled pie's
+ * refines that footprint once a real width lands, to a callout-labeled pie's
  * tight, asymmetric fit. Every other chart frame falls back to the flat
  * `hMargin`.
  *

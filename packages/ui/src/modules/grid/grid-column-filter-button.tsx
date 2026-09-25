@@ -215,7 +215,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 							type="button"
 							variant="bare"
 							color="blue"
-							// Name carries the applied state so it isn't conveyed by colour
+							// Name carries the applied state so it isn't conveyed by color
 							// alone (WCAG 1.4.1 / 4.1.2); the menu's open state rides
 							// aria-expanded, wired by MenuTrigger.
 							aria-label={`Filter ${label}, active`}
@@ -223,7 +223,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 							className={cn(k.filter.button)}
 						>
 							{/* The active icon adds a "+" so the applied state reads by shape,
-							    not the accent colour alone (WCAG 1.4.1). */}
+							    not the accent color alone (WCAG 1.4.1). */}
 							<Icon icon={<ListFilterPlus />} />
 						</Button>
 					</MenuTrigger>

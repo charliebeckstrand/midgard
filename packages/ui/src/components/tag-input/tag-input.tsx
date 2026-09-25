@@ -85,7 +85,7 @@ export type TagInputProps = Omit<
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (the inner text input stays
  * nameless). At the cap the field switches to read-only rather than disabled,
- * so the tags stay removable and the control isn't greyed. Announces each
+ * so the tags stay removable and the control isn't grayed. Announces each
  * add/remove/duplicate/limit outcome to the live region and returns focus to
  * the input after a removal (WCAG 4.1.3, 2.4.3).
  *
@@ -252,7 +252,7 @@ export function TagInput({
 			size={size}
 			disabled={disabled}
 			// At the cap the field is read-only, not disabled: a disabled child trips
-			// the frame's has-[>:disabled] chrome and greys the whole control, so
+			// the frame's has-[>:disabled] chrome and grays the whole control, so
 			// read-only blocks new entries while existing tags stay removable.
 			readOnly={atMax || undefined}
 			// Field error forces invalid; otherwise the Input inherits ambient

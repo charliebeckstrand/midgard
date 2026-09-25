@@ -25,7 +25,7 @@ export type MapStopRow = {
 
 /**
  * One overlay mark's registration: what the legend draws for it, and what the
- * keyboard cursor needs to stand on it. The plat resolves slot colours across
+ * keyboard cursor needs to stand on it. The plat resolves slot colors across
  * the registered order, after the region categories.
  *
  * The ledger is one list rather than two. A second registry for the cursor would
@@ -45,11 +45,11 @@ export type MapOverlayEntry = {
 	/**
 	 * The legend entry this mark shares with its siblings — see
 	 * {@link MapOverlayProps.group}. Marks naming one group merge into a single
-	 * entry, take one slot colour, and answer that entry's toggle and emphasis
+	 * entry, take one slot color, and answer that entry's toggle and emphasis
 	 * together. Absent, the mark holds an entry of its own.
 	 */
 	group?: string
-	/** Named mark colour override; defaults to the next slot after the categories. */
+	/** Named mark color override; defaults to the next slot after the categories. */
 	color?: MapSeriesColor
 	/** A trailing readout — a route's mileage, a point's value. */
 	detail?: string

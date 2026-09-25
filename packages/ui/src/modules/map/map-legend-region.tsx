@@ -58,7 +58,7 @@ function MapLegendSlot({ show, aside, items, hidden, onToggle, onFocus }: MapLeg
 
 /** Props for {@link MapLegendRegion}: the binned switchboard, or the range scale bar when `range` is set. @internal */
 type MapLegendRegionProps = MapLegendSlotProps & {
-	/** When set, paint the continuous colour-scale bar (range mode) instead of the switchboard. */
+	/** When set, paint the continuous color-scale bar (range mode) instead of the switchboard. */
 	range: MapRangeLegendProps | null
 }
 

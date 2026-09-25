@@ -31,7 +31,7 @@ export type QueryBuilderGroupProps = {
 /**
  * Renders one query group: its child rules and nested groups, each joined by an
  * AND/OR combinator segment, plus "add rule"/"add group" actions. The root
- * renders as a plain `<div>`; nested groups render as a labelled `<fieldset>`
+ * renders as a plain `<div>`; nested groups render as a labeled `<fieldset>`
  * with a hold-to-remove control. Memoized: the tree-edit helpers preserve the
  * identity of untouched subtrees, so an edit re-renders only the affected group.
  */

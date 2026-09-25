@@ -45,7 +45,7 @@ class PrimaryPointerSensor extends PointerSensor {
 /**
  * Pointer travel (px) before a drag activates: far enough to survive a click's
  * jitter, near enough to feel immediate. Held as the whole options object, at
- * module scope, because `useSensor` memoises on option identity. A fresh literal
+ * module scope, because `useSensor` memoizes on option identity. A fresh literal
  * per render misses that memo, and hands `<DndContext>` a new sensor array every
  * time.
  */
@@ -84,7 +84,7 @@ export function useSortableSensors({
 }: SortableSensorsOptions = {}) {
 	const pointer = useSensor(PrimaryPointerSensor, POINTER_ACTIVATION)
 
-	// Memoised for the same reason as `POINTER_ACTIVATION`: a fresh literal misses the `useSensor` memo.
+	// Memoized for the same reason as `POINTER_ACTIVATION`: a fresh literal misses the `useSensor` memo.
 	const keyboardOptions = useMemo(
 		() => ({ coordinateGetter: keyboardCoordinateGetter }),
 		[keyboardCoordinateGetter],

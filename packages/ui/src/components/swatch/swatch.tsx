@@ -7,12 +7,12 @@ import { k, type SwatchVariants } from '../../recipes/kata/swatch'
  * Resolves a {@link SwatchProps.color} to its `currentColor` carrier:
  *
  * - a `kata/chart` palette slot name, to its CVD-validated `text-*` class;
- * - a raw hex or `oklch()` colour, to an inline `color` style;
+ * - a raw hex or `oklch()` color, to an inline `color` style;
  * - anything else — a caller-supplied `text-*` utility — through unchanged as a
  *   class.
  *
  * Mirrors the chart's own `ChartColor` model (`chart-color/paint.ts`): a named
- * slot paints through a class, a raw colour paints inline.
+ * slot paints through a class, a raw color paints inline.
  *
  * @internal
  */
@@ -28,7 +28,7 @@ function resolveSwatchColor(color: string | undefined): {
 		return { colorClass: cn(chart.series[color as ChartColorSlot].text), colorStyle: undefined }
 	}
 
-	// A hex or `oklch()` is a raw CSS colour with no class form, so it inks inline
+	// A hex or `oklch()` is a raw CSS color with no class form, so it inks inline
 	// on `currentColor`; any other string is a caller-supplied `text-*` utility.
 	if (color.startsWith('#') || /^oklch\(/i.test(color)) {
 		return { colorClass: undefined, colorStyle: { color } }
@@ -49,12 +49,12 @@ export type SwatchProps = SwatchVariants & {
 	 *   `kata/chart`'s `series[c].text`) or an `iro.marker` shade.
 	 *
 	 * `solid` fills with it, `outline` frames with it, `soft` tints with it,
-	 * `dashed` strokes it. Omitted, the swatch inherits the ambient text colour.
+	 * `dashed` strokes it. Omitted, the swatch inherits the ambient text color.
 	 */
 	color?: ChartColorSlot | (string & {})
 	className?: string
 	/**
-	 * Accessible name. Colour alone conveys meaning, so a *standalone* swatch
+	 * Accessible name. Color alone conveys meaning, so a *standalone* swatch
 	 * needs a text alternative: when set, the swatch renders as `role="img"`
 	 * with this label (WCAG 1.4.1 / 1.1.1). Omit it when the swatch is
 	 * decorative and paired with adjacent visible text — a legend or tooltip
@@ -70,7 +70,7 @@ export type SwatchProps = SwatchVariants & {
 } & Omit<ComponentProps<'span'>, 'className' | 'color'>
 
 /**
- * The colour key that stands in for a mark: a `square` box, a `circle` dot, or
+ * The color key that stands in for a mark: a `square` box, a `circle` dot, or
  * a `line` bar. `color` inks it `solid`-filled, `soft`-tinted, `outline`-framed,
  * or `dashed`, at any `size` from `xs` to `xl`. A `dashed` swatch draws a dashed
  * run on a `line` and a dashed border on a `square` or `circle`, for a dashed
@@ -81,11 +81,11 @@ export type SwatchProps = SwatchVariants & {
  * The fill rides on `currentColor`, which `color` sets three ways:
  *
  * - a `kata/chart` palette slot name, inked through its CVD-validated class;
- * - a raw hex / `oklch()` colour, inked inline;
+ * - a raw hex / `oklch()` color, inked inline;
  * - a `text-*` utility, passed through.
  *
  * The CVD-validated data-viz palette stays in `kata/chart` and never forks, and
- * StatusDot composes this with its marker hues. Colour alone conveys meaning:
+ * StatusDot composes this with its marker hues. Color alone conveys meaning:
  * pass `label` for a standalone swatch to name it via `role="img"`, and omit it
  * when the swatch sits beside visible text.
  */

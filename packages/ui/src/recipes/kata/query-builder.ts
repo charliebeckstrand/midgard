@@ -46,7 +46,7 @@ export const k = {
 			'data-[dragging]:rounded-lg data-[dragging]:shadow-lg',
 			...mode('data-[dragging]:bg-white', 'dark:data-[dragging]:bg-zinc-900'),
 		],
-		// The grip centres on the first control line of a rule: the rule's border
+		// The grip centers on the first control line of a rule: the rule's border
 		// and `p-2.5`, then half a control. Beside a group, it sits at the same
 		// height.
 		handle: [

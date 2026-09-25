@@ -1,6 +1,6 @@
 /**
  * Pure series plumbing shared by the chart kinds: numeric coercion and the
- * readout the tooltip and hidden table render. Colour resolution lives in the
+ * readout the tooltip and hidden table render. Color resolution lives in the
  * `chart-color` namespace.
  */
 
@@ -69,11 +69,11 @@ export function formatChartValueCompact(value: number): string {
 
 /** One series with everything the frame parts need to draw it. @internal */
 export type SeriesMeta = {
-	/** The series' position in the caller's list — slot colours and toggles key off it. */
+	/** The series' position in the caller's list — slot colors and toggles key off it. */
 	index: number
 	label: string
 	paint: ChartSeriesPaint
-	/** The resolved slot the texture tile keys off, or `null` for a raw colour. */
+	/** The resolved slot the texture tile keys off, or `null` for a raw color. */
 	slot: ChartColorSlot | null
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'
@@ -91,7 +91,7 @@ export type SeriesMeta = {
  * `formatCategory` overrides the default `String` coercion of each row's
  * category. A time axis passes a date formatter, so the tooltip and table read
  * the same dates the axis labels do. The swatch takes the series' slot class
- * or, for a raw colour, an inline `currentColor`.
+ * or, for a raw color, an inline `currentColor`.
  *
  * @internal
  */

@@ -249,7 +249,7 @@ function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | nul
 
 /**
  * Publishes this panel's reference against its portal node while it is open, so
- * a sibling panel's outside-press test can recognise it.
+ * a sibling panel's outside-press test can recognize it.
  *
  * @internal
  */

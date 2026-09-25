@@ -9,8 +9,8 @@
  * The circle is built on `d3-geo`'s own rather than on plane trigonometry. A
  * circle on the ground is a small circle of the sphere. A ring stepped in
  * degrees of longitude and latitude therefore reads as an ellipse away from the
- * equator, and breaks at a pole. `geoCircle` steps around the centre instead,
- * so the ring holds its shape wherever the centre sits.
+ * equator, and breaks at a pole. `geoCircle` steps around the center instead,
+ * so the ring holds its shape wherever the center sits.
  *
  * The budget is the zone part of the hit-target rule. Its siblings are
  * `map-cluster/crowd.ts`, which holds the neighbour part and the list of
@@ -36,7 +36,7 @@ const DEGREES_PER_RADIAN = 180 / Math.PI
 const HALF_SPHERE_DEGREES = 180
 
 /**
- * A closed ring of lon/lat around a centre, every point one ground distance from
+ * A closed ring of lon/lat around a center, every point one ground distance from
  * it. The ring repeats its first position at the end, which is what a GeoJSON
  * ring is and what {@link ringAnchor} reads.
  *
@@ -46,7 +46,7 @@ const HALF_SPHERE_DEGREES = 180
  * however far out the map sits. Every other mark in this module holds its size
  * in device pixels.
  *
- * @param at - The circle's centre.
+ * @param at - The circle's center.
  * @param radius - The ground radius, in metres.
  * @returns The ring, or an empty list where the arguments describe no circle —
  * a radius at or below zero, or one that wraps the sphere. The mark draws
@@ -66,7 +66,7 @@ export function circleRing(at: LngLat, radius: number): LngLat[] {
 		.center(at)
 		.radius(degrees)
 		// The step between adjacent ring points, in degrees of rotation about the
-		// centre — so the count holds whatever the radius is.
+		// center — so the count holds whatever the radius is.
 		.precision(360 / GEOFENCE_CIRCLE_STEPS)()
 
 	// GeoJSON positions are `number[]` to the types, and a lon/lat pair in fact;

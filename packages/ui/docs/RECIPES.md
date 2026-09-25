@@ -18,7 +18,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 
 | Token | Concern |
 |---|---|
-| `iro` 色 | Variant × colour × slot palette matrix plus the semantic intent-colour text bundle. `palette` is the standard five-colour set; `extendedPalette` is the opt-in wide palette (standard + rose / violet / sky). |
+| `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extendedPalette` is the opt-in wide palette (standard + rose / violet / sky). |
 | `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. `stepSize` is the three-step (`sm` / `md` / `lg`) size axis. |
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
@@ -28,7 +28,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
 | `kasane` 重ね | The signature 4-layer chrome stack plus ring-compensated padding / radius / rounded / gap helpers. |
-| `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and colour-stripped. |
+| `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portalled surface lands on. |
 | `sun` 寸 | Named density steps (`sm` / `md` / `lg`) and the per-step token table. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
@@ -41,9 +41,9 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 |---|---|---|
 | `control` | Field archetype: frame + surface + input + reset + density + size + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
 | `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker. |
-| `segment` | Segmented control — `control` / `item` size maps plus `indicator` colour fragments. | `bridge.segment`. |
+| `segment` | Segmented control — `control` / `item` size maps plus `indicator` color fragments. | `bridge.segment`. |
 | `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip`. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel. |
-| `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per colour. *No bridge.* | `kata/slider`, `kata/slider-range`. |
+| `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 
 ## Katakana — bridges
 
@@ -56,7 +56,7 @@ Each bridge is a pure function `(<tokens>, overlay?) => k`, reached through the 
 | `popover` | `kiso/popover` | `trigger` / `portal` / `text` / `panel` bundle. | `popover` |
 | `segment` | `kiso/segment` | `control` / `item` recipes + `indicator` fragment. | `segment`, `tabs` |
 | `panel` | `kiso/panel` | Caller `panel` / `backdrop` recipes + standard slot bundle. | `dialog`, `drawer`, `sheet` |
-| `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`) and a `desaturate` axis (grey out what shows through). *Shared recipe, not an archetype.* | `drawer`, `sheet` |
+| `backdrop` | `omote.backdrop` | Full-bleed scrim recipe with a `surface` axis (`flat` / `glass`) and a `desaturate` axis (gray out what shows through). *Shared recipe, not an archetype.* | `drawer`, `sheet` |
 
 ## Kata — shape
 
@@ -75,13 +75,13 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 | Export | Summary |
 |---|---|
 | `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). A slot or extra name that collides with a recipe property throws. |
-| `definePalette` | Declares a recipe's colour × variant matrix (single or merged per-colour records, plus per-colour overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.extendedPalette` bundle gains the extended colours with no engine change. |
+| `definePalette` | Declares a recipe's color × variant matrix (single or merged per-color records, plus per-color overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.extendedPalette` bundle gains the extended colors with no engine change. |
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |
-| `shades` | Builds a `Record<C, string[]>` from per-colour light/dark shade pairs; generic over the colour set, defaulting to `Color` and widening to the extended set in `iro/extended-palette`. |
+| `shades` | Builds a `Record<C, string[]>` from per-color light/dark shade pairs; generic over the color set, defaulting to `Color` and widening to the extended set in `iro/extended-palette`. |
 | `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. A `compound` condition coerces to its axis key, so a rule on a `true` / `false` axis accepts `{ interactive: true }` and `{ interactive: 'true' }` alike. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
-| `Color` *(type)* | The standard palette colour set — `zinc` · `red` · `amber` · `green` · `blue`. |
+| `Color` *(type)* | The standard palette color set — `zinc` · `red` · `amber` · `green` · `blue`. |
 | `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `rose` · `violet` · `sky` — and the union of standard plus extended. A kata surfaces the union when it reads `iro.extendedPalette`. |
 
 ## Barrel surface

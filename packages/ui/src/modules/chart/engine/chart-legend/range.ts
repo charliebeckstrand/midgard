@@ -1,5 +1,5 @@
 /**
- * Placement and orientation resolution for a colour-scaled chart's range
+ * Placement and orientation resolution for a color-scaled chart's range
  * legend, kept React-free beside `chart-tier.ts` so the breakpoint math is
  * unit-testable in isolation. The heatmap keys its continuous scale bar off its
  * `legend` prop. The choropleth keys it off `'range'` or the object form. The
@@ -14,7 +14,7 @@ import { COMPACT_WIDTH, isSparkBox } from '../chart-tier'
 import { type ChartLegendPlacement, legendAside } from './schema'
 
 /**
- * The object form of a colour-scaled chart's `legend` prop: the scale bar's
+ * The object form of a color-scaled chart's `legend` prop: the scale bar's
  * `placement`, which drives its orientation. A `'left'` / `'right'` placement
  * stands the bar vertical beside the plot, and a `'top'` / `'bottom'` one lays
  * it horizontal above or below. On the heatmap, the prop also takes a bare
@@ -63,7 +63,7 @@ function requestedPlacement(
 }
 
 /**
- * Resolves a colour-scaled chart's `legend` prop against its measured box to the
+ * Resolves a color-scaled chart's `legend` prop against its measured box to the
  * range legend's placement, orientation, and whether it shows. The prop names a
  * placement: a bare boolean at the default, a bare string, or `{ placement }`.
  * The box then adjusts it the way a categorical legend adjusts. The bar sheds at

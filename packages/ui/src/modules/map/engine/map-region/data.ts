@@ -11,7 +11,7 @@ import type { DataKey, MapCategory } from '../types'
 
 /**
  * Show the legend. Defaults to on when there are two or more categories or any
- * registered overlay — the identity channel colour alone must never carry. A
+ * registered overlay — the identity channel color alone must never carry. A
  * placement moves the centered row under the plot (`'bottom'`) or above it
  * (`'top'`). It can also move it to a column panel beside the plot (`'left'` /
  * `'right'`), side by side from `lg` and under the map below that. The default
@@ -37,9 +37,9 @@ type MapSwitchboardLegend = {
 	legend?: Exclude<MapLegendInput, MapRangeLegendInput>
 }
 
-/** The rows and the field that matches each to a region; shared by both colour modes. @internal */
+/** The rows and the field that matches each to a region; shared by both color modes. @internal */
 type MapRegionRows<T> = {
-	/** The rows to colour regions by. */
+	/** The rows to color regions by. */
 	data: T[]
 	/** The field matching a row to a region's id (see `regionId`). */
 	regionKey: DataKey<T>
@@ -56,14 +56,14 @@ type MapNumericAbsent = {
 	colorName?: undefined
 }
 
-/** Regions coloured by a categorical field, its slot colours resolved in a fixed order. @internal */
+/** Regions colored by a categorical field, its slot colors resolved in a fixed order. @internal */
 type MapCategoricalData<T> = MapRegionRows<T> &
 	MapNumericAbsent &
 	MapSwitchboardLegend & {
 		/** The field holding the row's category value. */
 		categoryKey: DataKey<T>
 		/**
-		 * Explicit category order, labels, and colours; derived from the data in
+		 * Explicit category order, labels, and colors; derived from the data in
 		 * first-appearance order when omitted.
 		 */
 		categories?: MapCategory[]
@@ -71,9 +71,9 @@ type MapCategoricalData<T> = MapRegionRows<T> &
 
 /** Regions shaded along a sequential ramp by a numeric field — a choropleth. @internal */
 type MapNumericData<T> = MapRegionRows<T> & {
-	/** The field holding the row's numeric value; shades regions along the colour range. */
+	/** The field holding the row's numeric value; shades regions along the color range. */
 	valueKey: DataKey<T>
-	/** Ordered CSS colour stops the bins sample, low → high — the data-driven scale. */
+	/** Ordered CSS color stops the bins sample, low → high — the data-driven scale. */
 	colorRange: string[]
 	/**
 	 * Bin count for the ramp and its legend.
@@ -85,7 +85,7 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * value span. `'quantile'` divides by rank, so each shade covers a similar
 	 * number of regions. Quantile is the reading for skewed data, where an
 	 * equal-interval ramp leaves most regions in the lowest bucket. The range legend shows the
-	 * ramp and the data extent either way. Under `'quantile'` the colour-to-value
+	 * ramp and the data extent either way. Under `'quantile'` the color-to-value
 	 * mapping is non-linear, so the bar reads as an approximation of where the
 	 * breaks fall.
 	 * @defaultValue 'linear'
@@ -105,7 +105,7 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * Show the legend, in any form. This is the branch that carries a scale, so it
 	 * is the branch that can paint one. Beyond the switchboard's boolean and
 	 * placement, `'range'` swaps the binned switchboard for a continuous
-	 * colour-scale bar, the heatmap legend. The object form `{ placement }` places
+	 * color-scale bar, the heatmap legend. The object form `{ placement }` places
 	 * that bar explicitly. The bar follows its placement's orientation (vertical
 	 * beside the plot, horizontal above or below) and the chart's tier. It sheds
 	 * at the spark size and, in a box too narrow for a side rail, drops to a
@@ -129,7 +129,7 @@ type MapNoData = MapNumericAbsent &
 	}
 
 /**
- * The region-data the map colours by: a categorical field, a numeric field (a
+ * The region-data the map colors by: a categorical field, a numeric field (a
  * choropleth), or nothing. The category and value keys are mutually exclusive;
  * each mode's fields travel together or not at all.
  *

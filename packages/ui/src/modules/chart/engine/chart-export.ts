@@ -24,7 +24,7 @@ const LEGEND_SELECTOR =
 /**
  * Copies a source element's full computed style inline onto its clone.
  * Rasterising through a `foreignObject` renders the clone detached from the
- * document's stylesheets. Every class-driven and inherited value — colour,
+ * document's stylesheets. Every class-driven and inherited value — color,
  * layout, and font — therefore has to travel on the element itself.
  *
  * @internal

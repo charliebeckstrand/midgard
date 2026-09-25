@@ -15,7 +15,7 @@ const DOT = 1.6
 
 /**
  * One slot's texture tile: an optional rotation of the whole tiling and either
- * a line path (`d`, optionally `dash`ed) or a centred `dot`.
+ * a line path (`d`, optionally `dash`ed) or a centered `dot`.
  *
  * @internal
  */
@@ -25,7 +25,7 @@ type Texture = { transform?: string; d?: string; dash?: boolean; dot?: boolean }
  * The texture ladder, keyed to the categorical slot order: two hatch angles,
  * the axis-aligned lines, two crosses, then dots and a dashed diagonal. The
  * eight shapes are distinct enough that a series reads by its fill alone when
- * colour can't carry it (forced-colors, print, severe CVD). The `zinc`
+ * color can't carry it (forced-colors, print, severe CVD). The `zinc`
  * de-emphasis slot sits outside the order and falls back to the first hatch.
  *
  * @internal
@@ -33,8 +33,8 @@ type Texture = { transform?: string; d?: string; dash?: boolean; dot?: boolean }
 const TEXTURES: readonly Texture[] = [
 	{ transform: 'rotate(45)', d: `M0,0 V${TILE}` },
 	{ transform: 'rotate(-45)', d: `M0,0 V${TILE}` },
-	// The axis-aligned marks ride the tile's centre line, not its edge, so a
-	// single line sits dead-centre in the legend swatch (ChartSwatch shifts the
+	// The axis-aligned marks ride the tile's center line, not its edge, so a
+	// single line sits dead-center in the legend swatch (ChartSwatch shifts the
 	// tile to suit); on a mark the phase is invisible and the hatch still tiles.
 	{ d: `M${TILE / 2},0 V${TILE}` },
 	{ d: `M0,${TILE / 2} H${TILE}` },
@@ -53,7 +53,7 @@ function textureFor(color: ChartColorSlot): Texture {
 
 /**
  * The hatch drawn over a tile's hue wash. White in both modes so it reads as a
- * streak across the 500/600 fills. `CanvasText` applies under forced colours,
+ * streak across the 500/600 fills. `CanvasText` applies under forced colors,
  * where the wash drops to `Canvas` and the shape's angle carries the identity.
  *
  * @internal
@@ -106,8 +106,8 @@ export function ChartPatternDefs({ entries }: { entries: ChartPatternEntry[] }) 
 						height={TILE}
 						patternTransform={texture.transform}
 					>
-						{/* The hue wash reads as the series colour normally, dropping to the
-						    system background under forced colours so the hatch stays legible. */}
+						{/* The hue wash reads as the series color normally, dropping to the
+						    system background under forced colors so the hatch stays legible. */}
 						<rect
 							width={TILE}
 							height={TILE}
@@ -126,7 +126,7 @@ export function ChartPatternDefs({ entries }: { entries: ChartPatternEntry[] }) 
 export type ChartTexture = {
 	/** The `<defs>` to mount inside the SVG — the tiles for the slots in use. */
 	defs: ReactNode
-	/** The tile fill URL for a slot, or `undefined` for a raw colour, which takes no tile. */
+	/** The tile fill URL for a slot, or `undefined` for a raw color, which takes no tile. */
 	fillFor: (slot: ChartColorSlot | null) => string | undefined
 	/** The `texture` prop: tiles paint in every mode, not only forced-colors / print. */
 	active: boolean
@@ -135,10 +135,10 @@ export type ChartTexture = {
 /**
  * Assembles a chart's texture tiles and a slot-keyed fill resolver. The
  * `<defs>` and URLs are always built. A mark applies them in every mode when
- * `active`, or only where colour is gone (forced colours, print). A chart thus
+ * `active`, or only where color is gone (forced colors, print). A chart thus
  * survives High Contrast Mode without opting in. Tiles de-dupe to the distinct
  * slots, so a two-series chart defines two, not eight. Pass every visible
- * series's slot so a combo's bars and areas both resolve. A raw-coloured series
+ * series's slot so a combo's bars and areas both resolve. A raw-colored series
  * carries a `null` slot: it opts out of the categorical palette and takes no
  * tile. `fillFor` hands it back `undefined` so the mark fills flat.
  *
@@ -164,14 +164,14 @@ export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[
 	}
 }
 
-/** The legend swatch's texture-overlay viewBox — a small tile over the colour key. @internal */
+/** The legend swatch's texture-overlay viewBox — a small tile over the color key. @internal */
 const SWATCH_BOX = 12
 
 /**
- * Shifts the swatch's tile so a centred mark — the axis-aligned lines and the
- * dot — lands at the box's centre instead of the tile's. The tile is narrower
- * than the box, so its own centre sits off to one side; this nudges it back.
- * Rotated tiles (the hatches) skip the shift: a diagonal has no centre line to
+ * Shifts the swatch's tile so a centered mark — the axis-aligned lines and the
+ * dot — lands at the box's center instead of the tile's. The tile is narrower
+ * than the box, so its own center sits off to one side; this nudges it back.
+ * Rotated tiles (the hatches) skip the shift: a diagonal has no center line to
  * place. A phased hatch still reads as a hatch.
  *
  * @internal
@@ -179,12 +179,12 @@ const SWATCH_BOX = 12
 const SWATCH_TILE_SHIFT = (SWATCH_BOX - TILE) / 2
 
 /**
- * A legend swatch that mirrors a textured mark: the shared colour key, with the
+ * A legend swatch that mirrors a textured mark: the shared color key, with the
  * slot's hatch laid over a square (bar / slice) swatch. The hatch applies always
- * when the `texture` prop is on, else only under forced colours and print. There
- * the legend's colour key collapses to one system colour. A `line` swatch is only
+ * when the `texture` prop is on, else only under forced colors and print. There
+ * the legend's color key collapses to one system color. A `line` swatch is only
  * 2px tall — too thin to hatch — and its stroke mark carries no fill, so it
- * stays colour-only.
+ * stays color-only.
  *
  * @internal
  */
@@ -199,7 +199,7 @@ export function ChartSwatch({
 }: {
 	swatch: 'rect' | 'line'
 	swatchClass: string
-	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	/** A raw series color inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
 	color?: ChartColorSlot
 	/** Dash the `line` swatch, mirroring a dashed series stroke; ignored for a `rect`. */
@@ -209,7 +209,7 @@ export function ChartSwatch({
 }) {
 	const id = `chart-sw-${useId()}`
 
-	// A raw colour carries no slot, so it never hatches — it inks its
+	// A raw color carries no slot, so it never hatches — it inks its
 	// `currentColor` inline on a plain swatch, the same opt-out as a raw mark. A
 	// dashed line swatch mirrors the stroke here too — the line never routes
 	// through the textured path below, so this is its only paint.
@@ -228,8 +228,8 @@ export function ChartSwatch({
 	const texture = textureFor(color)
 
 	// The overlay rides inside the swatch box, keeping the swatch's DOM slot; it
-	// shows on screen only when the prop is on, else waits for forced colours and
-	// print, where the legend's colour key collapses to one system colour.
+	// shows on screen only when the prop is on, else waits for forced colors and
+	// print, where the legend's color key collapses to one system color.
 	return (
 		<Swatch
 			shape="square"
@@ -286,9 +286,9 @@ export function textureStyle(fill: string | undefined): CSSProperties | undefine
 
 /**
  * Fill classes for a textured mark. The tile fill wins with `!` over the slot's
- * colour class: always when `active`, else only under forced colours and print.
- * There the colour channel is already gone. `forced-color-adjust-none` keeps
- * the browser from overriding the tile fill with a system colour.
+ * color class: always when `active`, else only under forced colors and print.
+ * There the color channel is already gone. `forced-color-adjust-none` keeps
+ * the browser from overriding the tile fill with a system color.
  *
  * @internal
  */

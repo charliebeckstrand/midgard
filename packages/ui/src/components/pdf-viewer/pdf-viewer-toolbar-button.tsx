@@ -23,7 +23,7 @@ type PdfViewerToolbarButtonProps = {
 	 *
 	 * @remarks The quietest fill that still reads as held down. It leaves the button the same
 	 * size, so the bar does not reflow as a control flips. Left on the default zinc, because
-	 * this bar is chrome. The regions on the page below own the colour vocabulary, and a blue
+	 * this bar is chrome. The regions on the page below own the color vocabulary, and a blue
 	 * toolbar button would compete with the very highlights it switches.
 	 *
 	 * Needed because every control in this bar keeps its glyph, and names the *action* rather

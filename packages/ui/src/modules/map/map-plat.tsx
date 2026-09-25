@@ -184,7 +184,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * summary's count stays inside the dot it sits in.
 		 *
 		 * `MapPoints` regroups as it goes, because a merge distance is a pixel
-		 * distance. The rounds a national frame summarises separate into their own
+		 * distance. The rounds a national frame summarizes separate into their own
 		 * dots as the view closes on them.
 		 *
 		 * The view returns to the fit whenever the geography changes, since a new
@@ -250,11 +250,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		regionPointer?: boolean
 		/**
 		 * Animate the map in on mount. The neutral geography paints at once, then
-		 * category colour washes in region by region. Routes draw themselves, and
+		 * category color washes in region by region. Routes draw themselves, and
 		 * points pop once their route lands. The geography itself never fades, so the
-		 * map is legible immediately and only the data animates on. Honours
+		 * map is legible immediately and only the data animates on. Honors
 		 * `prefers-reduced-motion` through the `ReducedMotion` primitive and the
-		 * colour wash's `motion-reduce` fallback. Off by default — a static map
+		 * color wash's `motion-reduce` fallback. Off by default — a static map
 		 * stays a plain-SVG tree with no motion runtime work.
 		 * @defaultValue false
 		 */
@@ -305,7 +305,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * come from.
 		 *
 		 * The callback owns the work — the map stays agnostic to what loads, and
-		 * never waits on it. Warming is an optimisation and nothing more: it takes
+		 * never waits on it. Warming is an optimization and nothing more: it takes
 		 * no cursor, and every region it warms would have loaded on the click
 		 * regardless. It earns no tab stop either, so the keyboard half rides
 		 * whatever stop a readout, a pick, or a zoom already earned. A map carrying
@@ -314,7 +314,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * @remarks
 		 * Regions sit edge to edge, so the report is held behind a short dwell.
-		 * A pointer travelling to the far side of the map crosses every region on the
+		 * A pointer traveling to the far side of the map crosses every region on the
 		 * way. Warming each would spend a dozen requests to answer one. Only
 		 * a region the reader rests on warms, and leaving before the dwell elapses
 		 * warms nothing.
@@ -352,7 +352,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * The shapes pulse while it holds, and a reader who asked for reduced motion
 		 * gets a standing dim in place of the pulse. A choropleth with no data takes
-		 * the no-data fill on every region, and a fully grey map reads as "nobody
+		 * the no-data fill on every region, and a fully gray map reads as "nobody
 		 * covers anywhere". That is a statement about the subject rather than about a
 		 * request in flight.
 		 *
@@ -374,7 +374,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 *
 		 * The picked mark takes a foreground-ink halo behind it, outside the hover
 		 * recede. A pick made before the pointer arrived is therefore still marked
-		 * while the pointer isolates elsewhere. Behind rather than over: the mark's own colour
+		 * while the pointer isolates elsewhere. Behind rather than over: the mark's own color
 		 * reads through, as a ringed region keeps its fill. The stop's row in the
 		 * data table reads as the current one, so the selection is in the accessible
 		 * readout and not the pixels alone.
@@ -388,7 +388,7 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 * other group dims — what hovering a legend entry sets on its own.
 		 *
 		 * Passing it hands that state to the caller, so ONE legend rendered outside
-		 * the plat can emphasise across SEVERAL of them at once. Give each plat
+		 * the plat can emphasize across SEVERAL of them at once. Give each plat
 		 * `legend={false}` and this prop, and drive it from whatever holds the shared
 		 * legend. That is any control that emits a bin id ({@link binEmphasisId}),
 		 * for example a range legend that the caller renders.
@@ -404,12 +404,12 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		emphasis?: string | null
 		/**
-		 * Fires with the legend id this plat's own legend emphasises, or `null` when
+		 * Fires with the legend id this plat's own legend emphasizes, or `null` when
 		 * the emphasis clears.
 		 *
 		 * The plat's legend writes that state on hover and on focus, and reported
 		 * nothing. A caller could therefore either read the emphasis or keep the
-		 * plat's own legend behaviour, never both. Passing
+		 * plat's own legend behavior, never both. Passing
 		 * {@link MapPlatProps.emphasis} silently takes the plat's legend out of the
 		 * decision. This reports what that legend wants whether or not `emphasis` is
 		 * controlled, which is the other half of the §7.3 triad. It carries only ids
@@ -470,7 +470,7 @@ function MapMarksLayer({ animate, children }: { animate: boolean; children: Reac
  * of the zoom's contribution to the tree behind one condition.
  *
  * It stops answering the pointer for the length of any view gesture: a pan, a
- * pinch, or a wheel that has not settled. The geography travelling under a held
+ * pinch, or a wheel that has not settled. The geography traveling under a held
  * pointer therefore raises no readout and fires no crossing. A gesture moves the
  * map, and nothing else. Without this a wheel would drag a tooltip across every
  * dot the scaling frame swept past the pointer.
@@ -620,7 +620,7 @@ const NO_CENTROIDS: (LngLat | null)[] = []
 
 /**
  * An SVG geography map on the chart module's interaction grammar. Regions take
- * their colour by category from typed rows. One merged legend dims everything
+ * their color by category from typed rows. One merged legend dims everything
  * outside a pointed entry's group, and a click toggles that group off. Pointing
  * a region or overlay on the map isolates it behind the same recede. A
  * pointer-anchored Tooltip carries the readout. A ring marks the region the
@@ -728,9 +728,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const { entries, register } = useMapLegendRegistry()
 
-	// Overlay slot colours continue the fixed order after the categories, by
+	// Overlay slot colors continue the fixed order after the categories, by
 	// registration order, one slot per legend entry — so a merged group's members
-	// share their first member's colour rather than each drawing one.
+	// share their first member's color rather than each drawing one.
 	const colors = useMemo<ReadonlyMap<string, MapSeriesColor>>(
 		() => overlaySlotColors(entries, categoryMetas.length),
 		[entries, categoryMetas.length],
@@ -748,7 +748,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// A map with no group hands `switched` straight back rather than a copy of it,
 	// for its identity and not the allocation: `regionActive` is the one reader that
 	// does not already depend on `entries`, so a fresh set here would re-key the
-	// memoised region layer on every overlay registration.
+	// memoized region layer on every overlay registration.
 	const hidden = useMemo<ReadonlySet<string>>(() => {
 		const members = entries.flatMap((entry) =>
 			entry.group !== undefined && switched.has(groupLegendId(entry.group)) ? [entry.id] : [],
@@ -758,8 +758,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	}, [switched, entries])
 
 	// The region layer reports the index it resolved off the pointed path's anchor;
-	// the props report identity. Bridge them here, memoised like this component's
-	// sibling derivations so the memoised region layer holds across the legend and
+	// the props report identity. Bridge them here, memoized like this component's
+	// sibling derivations so the memoized region layer holds across the legend and
 	// resize commits.
 	const clickRegion = useMemo(
 		() => bridgeRegionIdentity(onRegionClick, regionIds),
@@ -808,7 +808,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// region that produced it. An id naming no feature resolves to nothing
 	// rather than to region 0, the miss `indexOf` would otherwise report as -1.
 	//
-	// Memoised like every sibling derivation here, and for the reason `hasReadout`
+	// Memoized like every sibling derivation here, and for the reason `hasReadout`
 	// below states: this component re-renders on each legend point and leave, each
 	// toggle, each overlay registration, and each resize commit, and the scan is
 	// linear in the atlas. A counties map holding a pick read three thousand ids
@@ -831,7 +831,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	const numeric = valueKey !== undefined
 
-	// The entries the legend draws. Memoised like the sibling derivations
+	// The entries the legend draws. Memoized like the sibling derivations
 	// (`colors`, `tooltipEntries`, the table): the plat re-renders per legend
 	// focus, toggle, and resize commit, in none of which the items change —
 	// without the memo each such render rebuilds every item object and its class
@@ -850,7 +850,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// Read off the drawn entries rather than re-derived from the categories and the
 	// ledger: the emphasis is only ever an id the legend published, and re-deriving
 	// admitted ids it never publishes. A grouped mark's own id was one — the legend
-	// emphasises its GROUP, so that id passed the gate and then dimmed every mark
+	// emphasizes its GROUP, so that id passed the gate and then dimmed every mark
 	// including the one it named, which is the failure this gate exists to prevent.
 	// Taken from the items, any entry kind added later is gated by construction.
 	const legendIds = useMemo(() => new Set(items.map((item) => item.id)), [items])
@@ -868,7 +868,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	const emphasis = live(focused)
 
 	/*
-	 * What this plat's OWN legend emphasises, past the same live-id gate.
+	 * What this plat's OWN legend emphasizes, past the same live-id gate.
 	 *
 	 * Reported rather than `emphasis`, because a controlled plat would otherwise
 	 * echo the caller's own prop back at it. This is the half of the §7.3 triad
@@ -895,7 +895,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// no rows do — the tooltip resolves nothing for an unmatched region, and the
 	// pointed-emphasis gate above lights nothing there either. Toggled-off
 	// categories still count: a legend toggle must not take the table or the tab
-	// stop away under the reader. Memoised on the join, so the scan a map with no
+	// stop away under the reader. Memoized on the join, so the scan a map with no
 	// match pays in full runs once per readout rather than once per render.
 	//
 	// The region layer gates on this — through `regionPointerState` below — rather
@@ -933,7 +933,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 	// How much room the region under a dot can spare it, rebuilt only as the
 	// geography, the fit, or the layer's answering changes — so the per-region
-	// measurements it memoises survive every pointer crossing and every legend
+	// measurements it memoizes survive every pointer crossing and every legend
 	// toggle, and a map whose regions answer nothing never measures a shape.
 	//
 	// Whether they answer is this component's own policy, so it is stated here and
@@ -1234,7 +1234,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// county atlas — and none of it is mount-critical: defer it off the urgent
 	// render the way the chart frame defers its data table, so the geography
 	// commits first and the table hydrates a low-priority beat behind. The
-	// table rides as one memoised element, so the deferred render can't tear
+	// table rides as one memoized element, so the deferred render can't tear
 	// across a data change. Parity is unchanged — the table always converges
 	// on the current readout, one low-priority commit behind.
 	const table = useMemo(
@@ -1320,7 +1320,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				svgRef,
 				// A plat handed another atlas fits that one, so a transform made
 				// against the last has nothing left to mean. `shape.features` is the
-				// decode's own memoised identity, so it changes exactly when the
+				// decode's own memoized identity, so it changes exactly when the
 				// geography does and never on a resize.
 				subject: shape.features,
 				onViewChange,

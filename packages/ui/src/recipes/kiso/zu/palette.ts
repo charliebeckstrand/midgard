@@ -1,6 +1,6 @@
 /**
  * Zu palette: the categorical series palette every data-viz module reads, eight
- * fixed slots plus the `zinc` de-emphasis colour. The chart and map kata both
+ * fixed slots plus the `zinc` de-emphasis color. The chart and map kata both
  * take it from here, so the CVD-validated slot order cannot fork.
  *
  * Slot shades track `kata/progress` and `kata/sparkline` (600 light / 500
@@ -26,14 +26,14 @@
 import { mode } from '../../../core/recipe'
 
 /**
- * Per-colour mark classes:
+ * Per-color mark classes:
  *
  * - `stroke` for lines and markers.
  * - `fill` for bars, areas, slices, and SVG text.
  * - `text` (a currentColor class) for HTML swatches (legend keys, tooltip rows
  *   — `<Swatch>` fills from it).
  * - `onFill` for label text set inside the mark's own fill, the one place text
- *   sits on a series colour.
+ *   sits on a series color.
  *
  * `onFill` is white-first. The percent label is a redundant graphical
  * annotation, since the tooltip and hidden data table carry the authoritative
@@ -45,7 +45,7 @@ import { mode } from '../../../core/recipe'
  * `__tests__/recipes/chart-label-contrast` guard re-derives each pick from
  * Tailwind's theme with the `readableInk` utility and fails on drift. The eight
  * slot hues carry the categorical palette; `zinc` sits outside the slot order
- * as the de-emphasis colour for context series.
+ * as the de-emphasis color for context series.
  */
 const series = {
 	blue: {
@@ -104,7 +104,7 @@ const series = {
 	},
 }
 
-/** A named data-viz colour slot: the eight categorical slots plus `zinc`. */
+/** A named data-viz color slot: the eight categorical slots plus `zinc`. */
 export type SeriesSlot = keyof typeof series
 
 /** The fixed categorical slot order; a series keeps its slot when siblings toggle. */

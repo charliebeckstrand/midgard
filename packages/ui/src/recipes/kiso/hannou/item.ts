@@ -2,7 +2,7 @@
  * Hannou item: menu/option item chrome shared by `kata/option`,
  * `kata/menu`, and `kata/command-palette`. Composes interaction state
  * primitives (`disabled`, `cursor`, `tint`, the glass-parent state)
- * with text colour, type size, and rounded corners.
+ * with text color, type size, and rounded corners.
  *
  * Layer: kiso · Concern: item interaction surface
  */

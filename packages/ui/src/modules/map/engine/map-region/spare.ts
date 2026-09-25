@@ -69,7 +69,7 @@ type MeasuredRegion = { whole: MapFrameBox | null; boxes: MapAreaBox[]; reach: n
 
 /**
  * The lon/lat box a dot's widest possible target covers, from the frame box
- * around it. Both corners invert rather than the centre alone, because the
+ * around it. Both corners invert rather than the center alone, because the
  * conversion from pixels to degrees is the projection's own and varies with
  * latitude. An inset composite changes it outright.
  *
@@ -236,7 +236,7 @@ export function regionSpare(
 		// The atlas index is read here rather than at build time, so a map that draws
 		// no dot-shaped mark never builds one — indexing walks every coordinate in the
 		// atlas, which on a county one is the same order of work as drawing it. It
-		// memoises on the feature list itself, so the lookup is all this costs.
+		// memoizes on the feature list itself, so the lookup is all this costs.
 		for (const region of regionsMeeting(cachedRegionIndex(features), box)) {
 			if (seen.has(region)) continue
 

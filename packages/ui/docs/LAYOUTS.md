@@ -14,7 +14,7 @@ Static frame for sign-in, registration, and other single-card pages.
 
 | Export | Summary |
 |---|---|
-| `AuthLayout` | Full-viewport layout that centres its content on both axes; the frame for unauthenticated single-card pages. |
+| `AuthLayout` | Full-viewport layout that centers its content on both axes; the frame for unauthenticated single-card pages. |
 
 ## `StackedLayout` — vertical page scaffold
 

@@ -219,7 +219,7 @@ export function subscribeDocument(src: string | undefined, listener: () => void)
  * How a rasterizer reports progress back into the cache as it works.
  *
  * @remarks Page-at-a-time rather than one array at the end, so a long document reveals itself
- * as it renders. The old behaviour showed nothing until the last page landed, which is what the
+ * as it renders. The old behavior showed nothing until the last page landed, which is what the
  * hook did with `setPages` before the pages outlived it.
  * @internal
  */
@@ -239,9 +239,9 @@ export type PdfLoadRun = (report: PdfLoadReport) => Promise<void>
  * the pages already there and runs nothing. A second viewer on the same `src` joins the first
  * one's load, instead of fetching the file twice.
  *
- * A load is **not** cancelled when the viewer that started it unmounts. Parking
+ * A load is **not** canceled when the viewer that started it unmounts. Parking
  * mid-rasterization therefore keeps rasterizing, and the maximize finds a finished document
- * where cancelling meant starting over. The doc on `sharedWorker` shows that this window is
+ * where canceling meant starting over. The doc on `sharedWorker` shows that this window is
  * reachable. The cost is CPU spent on a document nobody is watching, for as long as the park
  * lasts. That is the right trade for a scan the reader is on their way back to.
  *

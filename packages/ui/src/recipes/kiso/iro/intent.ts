@@ -1,10 +1,10 @@
 /**
- * Iro intent: the semantic intent-colour bundle. Default text colour
+ * Iro intent: the semantic intent-color bundle. Default text color
  * plus the named intents (`primary` / `success` / `warning` / `error` /
- * `muted`) that consumers reach by purpose rather than colour axis.
+ * `muted`) that consumers reach by purpose rather than color axis.
  * Surfaced through the barrel as `iro.text`.
  *
- * Each intent projects the ramp's `onSurface` role for its colour: the
+ * Each intent projects the ramp's `onSurface` role for its color: the
  * foreground shade that clears AA on the page / card surface. `default` is
  * the max-emphasis neutral foreground.
  *

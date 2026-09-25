@@ -1,5 +1,5 @@
 /**
- * The palette colour sets.
+ * The palette color sets.
  *
  * `colors` is the **standard** palette every chromatic kata carries by
  * default. `extendedColors` is an **opt-in** set a kata pulls in through
@@ -9,14 +9,14 @@
  * matrix it's handed (`engine/palette.ts`). A kata that reads the wider bundle
  * therefore gains the extra values with no engine change.
  *
- * Adding a standard colour: append to `colors`, then add a row to every
- * per-colour map in `iro/*`. Adding an extended colour: append to
+ * Adding a standard color: append to `colors`, then add a row to every
+ * per-color map in `iro/*`. Adding an extended color: append to
  * `extendedColors` and add its rows to `iro/extended-palette.ts`.
  */
 
 export const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const
 
-/** A standard palette colour, available on every chromatic component. */
+/** A standard palette color, available on every chromatic component. */
 export type Color = (typeof colors)[number]
 
 /**
@@ -27,8 +27,8 @@ export type Color = (typeof colors)[number]
  */
 export const extendedColors = ['rose', 'violet', 'sky'] as const
 
-/** An extended palette colour. @see {@link extendedColors} */
+/** An extended palette color. @see {@link extendedColors} */
 export type ExtendedColor = (typeof extendedColors)[number]
 
-/** The full opt-in palette: every standard colour plus the extended set. */
+/** The full opt-in palette: every standard color plus the extended set. */
 export type PaletteColor = Color | ExtendedColor

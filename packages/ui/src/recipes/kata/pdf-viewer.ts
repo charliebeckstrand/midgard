@@ -17,7 +17,7 @@ const { flex } = narabi
 const { bg, skeleton } = omote
 const { border, focus } = sen
 
-// The page image and every layer drawn over it must sit in the same place, so the centring
+// The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home — the rotation half of the same invariant is the `transform` string
 // `usePdfViewerPageScale` computes once.
 const centred = 'absolute top-1/2 left-1/2 origin-center'
@@ -214,7 +214,7 @@ export const k = {
 				},
 				region: {
 					base: ['absolute block', 'ring-1 ring-inset', ...cursor, ...focus.inset],
-					/** Translucent per-colour wash, from the shared palette. */
+					/** Translucent per-color wash, from the shared palette. */
 					fill: palette.soft.bg,
 					/**
 					 * The selected region's wash — the palette's doubled rung.
@@ -242,7 +242,7 @@ export const k = {
 					 * find out. The cursor already changes, but only a pointer user sees that, and
 					 * only once they are over it.
 					 *
-					 * A width step rather than a colour or a fill. `activeFill` is what *selected*
+					 * A width step rather than a color or a fill. `activeFill` is what *selected*
 					 * looks like, and a hover that previewed it would say the region is chosen a
 					 * moment before it is. This lands between `ring-1` and the selection's `ring-4`,
 					 * which is the order the three states must read in.
@@ -257,17 +257,17 @@ export const k = {
 					 * Every *other* region, while one is selected: the same highlight in neutral.
 					 *
 					 * On a page carrying twenty-odd washes, making one heavier is not enough to
-					 * pick it out — the eye still reads a field of colour. Taking the *colour* off
-					 * the rest leaves exactly one thing coloured.
+					 * pick it out — the eye still reads a field of color. Taking the *color* off
+					 * the rest leaves exactly one thing colored.
 					 *
-					 * Only the colour, though. These keep the palette's own zinc fill and ring, at
+					 * Only the color, though. These keep the palette's own zinc fill and ring, at
 					 * the same weight as any resting region. A reader can therefore still see where
 					 * every other field sits on the page. Blanking them would answer "which one is
 					 * selected" by destroying the answer to "where is everything else".
 					 *
-					 * Both halves of each pair come from the palette for a reason. The colours being
+					 * Both halves of each pair come from the palette for a reason. The colors being
 					 * overridden are light/dark pairs, and supplying only a base leaves the `dark:`
-					 * half of the old colour standing.
+					 * half of the old color standing.
 					 */
 					dimmed: [palette.soft.bg.zinc, ...palette.outline.ring.zinc],
 				},

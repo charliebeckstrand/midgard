@@ -152,7 +152,7 @@ export type CartesianConfig<T> = {
 	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
 	 * which is what a chart whose marks stand on that zero wants. That is bars, and
 	 * the bar half of a combo. `'edge'`, the default, leaves the rule at the plot
-	 * floor. `'zero'` is honoured only where {@link CartesianConfig.zeroBaseline}
+	 * floor. `'zero'` is honored only where {@link CartesianConfig.zeroBaseline}
 	 * put zero in the domain. Without it the scale clamps `map(0)` to whichever end
 	 * is nearer, and an all-negative domain would rule across the plot ceiling.
 	 * @defaultValue 'edge'
@@ -238,7 +238,7 @@ export type CartesianChart = {
 	hidden: ReadonlySet<number>
 	/** Toggles a series on or off by its index. */
 	toggleSeries: (index: number) => void
-	/** The legend-emphasised series, when it is visible; other marks dim. */
+	/** The legend-emphasized series, when it is visible; other marks dim. */
 	emphasis: number | null
 	/** Moves the legend emphasis (`null` clears it). */
 	setEmphasis: (index: number | null) => void
@@ -264,7 +264,7 @@ export type CartesianChart = {
 	/**
 	 * Per category, the series index behind each {@link CartesianChart.snapPoints}
 	 * stop, in the same order. The keyboard cursor maps its value lane back through
-	 * this to the series it sits on. It can then emphasise that one, and recede the
+	 * this to the series it sits on. It can then emphasize that one, and recede the
 	 * rest.
 	 */
 	snapSeries: number[][]
@@ -869,7 +869,7 @@ export function useChartCartesian<T>(
 
 	const metas = seriesMetas(data, series, config.swatch, stack)
 
-	// Toggled-off series leave the scales and readout; slot colours stay put
+	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
 

@@ -10,7 +10,7 @@ import { ChatListContext } from './context'
 export type ChatListProps = {
 	/** Accessible name for the list (e.g. `"Conversations"`). */
 	'aria-label'?: string
-	/** Points at a visible heading labelling the list, in place of `aria-label`. */
+	/** Points at a visible heading labeling the list, in place of `aria-label`. */
 	'aria-labelledby'?: string
 	/** {@link ChatListItem} rows. */
 	children?: ReactNode

@@ -2,7 +2,7 @@
  * Any run of whitespace, comma or semicolon between tokens.
  *
  * Comma is already the field's declared commit key. A split on it is therefore the existing
- * contract applied to a second input channel, rather than new behaviour. Whitespace joins it
+ * contract applied to a second input channel, rather than new behavior. Whitespace joins it
  * because the commonest thing anyone pastes into a token field is a spreadsheet column.
  * Semicolon joins it because that is what a locale using comma as a decimal separator exports
  * instead. A single-line token

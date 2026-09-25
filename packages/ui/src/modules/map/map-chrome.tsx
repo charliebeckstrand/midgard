@@ -81,7 +81,7 @@ function ChromeLine({ part, d, clip }: ChromeLineProps) {
  * The graticule draws under the sphere outline, so the globe's edge reads as
  * the frame's own line over the hairlines that meet it.
  *
- * Memoised like the region layer beside it. The plat re-renders on every legend
+ * Memoized like the region layer beside it. The plat re-renders on every legend
  * focus, toggle, overlay registration, and resize commit. The two paths move in
  * none of those. Both props hold their identity across those. The paths come
  * from the cross-instance memo, and the shared empty value stands in while the

@@ -55,7 +55,7 @@ export function useFiltersAxis(): {
 		rail,
 		// One row at every width on a rail, a column on a narrow screen otherwise.
 		direction: rail ? 'row' : ({ initial: 'col', sm: 'row' } as const),
-		// A rail's controls are all the same height, so they centre. A stack lines
+		// A rail's controls are all the same height, so they center. A stack lines
 		// its fields up on their baselines once it is a row.
 		align: rail ? 'center' : ({ initial: 'start', md: 'end' } as const),
 	}

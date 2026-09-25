@@ -79,7 +79,7 @@ export function resolveLegend(
 /**
  * Whether a resolved `legend` value shows the legend. An explicit boolean or
  * placement forces it. It otherwise defaults on for two or more entries, the
- * identity channel colour alone must never carry. The one show rule every
+ * identity channel color alone must never carry. The one show rule every
  * engine reads.
  *
  * @internal

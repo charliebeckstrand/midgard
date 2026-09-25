@@ -104,7 +104,7 @@ export type MenuPointerValue = {
 	closeSubmenu: (subKey: string) => void
 	/**
 	 * Registers `subKey`'s floating panel, whose rect is the corridor
-	 * ({@link inCorridor}) a travelling pointer is measured against. Called with
+	 * ({@link inCorridor}) a traveling pointer is measured against. Called with
 	 * `null` as the panel unmounts.
 	 */
 	registerPanel: (subKey: string, node: HTMLElement | null) => void

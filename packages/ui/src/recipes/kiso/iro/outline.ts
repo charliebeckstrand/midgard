@@ -1,7 +1,7 @@
 /**
- * Iro outline: bordered palette. No fill; the colour shows as a border
+ * Iro outline: bordered palette. No fill; the color shows as a border
  * (and ring, for kata that paint with rings). Text and hover share the
- * colour-axis sources.
+ * color-axis sources.
  *
  * Layer: kiso · Concern: outline palette
  */

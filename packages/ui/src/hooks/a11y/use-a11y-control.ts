@@ -32,7 +32,7 @@ export type A11yControl = {
 }
 
 /**
- * Field a11y scaffolding: `useA11yScope` specialized for a labelled control.
+ * Field a11y scaffolding: `useA11yScope` specialized for a labeled control.
  * Derives the Label / Description / error-Message ids from the control id,
  * tracks whether each slot is rendered, and composes `aria-describedby` /
  * `aria-labelledby` from only the registered ids. Id shape: `${id}-label`,

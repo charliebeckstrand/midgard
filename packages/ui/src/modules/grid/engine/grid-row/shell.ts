@@ -14,7 +14,7 @@ import {
 /**
  * Runs `activate` when Enter or Space lands on the element itself, and
  * suppresses the default (a Space scroll, an Enter click) first. A descendant is
- * exempt, so interactive inner content keeps its own key behaviour. The one
+ * exempt, so interactive inner content keeps its own key behavior. The one
  * keyboard-activation gate the row shell and the roving cells share.
  *
  * @internal
@@ -148,7 +148,7 @@ export function rowShellProps<T>(args: GridRowShellArgs<T>): {
 			onCell: onCellDoubleClick,
 		}),
 		// A clickable row activates on Enter / Space, gated to the row itself so
-		// inner controls keep their own key behaviour.
+		// inner controls keep their own key behavior.
 		onKeyDown: onRowClick
 			? (event) => activateOnEnterSpace(event, (e) => onRowClick(row, e))
 			: undefined,
@@ -199,7 +199,7 @@ export type GridWindowRowProps = {
  * The roving attributes a focusable data cell carries in cell mode. They are the
  * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
  * Enter / Space handler that activates the cell. That handler is gated to the
- * cell itself, so an inner control keeps its own key behaviour. `null` outside
+ * cell itself, so an inner control keeps its own key behavior. `null` outside
  * cell roving.
  *
  * @internal

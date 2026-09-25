@@ -391,7 +391,7 @@ export type CartesianLayoutInput = {
 	/**
 	 * How the band axis presents at the frame's resolved tier:
 	 *
-	 * - `'thinned'` — every fitting label. The default, and today's behaviour.
+	 * - `'thinned'` — every fitting label. The default, and today's behavior.
 	 * - `'ends'` — only the first and last, in a compact frame.
 	 * - `'off'` — no band row at all, in a short frame.
 	 *
@@ -632,7 +632,7 @@ function bandTicksOf(
  * full run of thinned labels would crowd a narrow plot. Each end anchors inward
  * (`'start'` first, `'end'` last) from its band center. It therefore reads away
  * from the frame edge and clears it without a width estimate. The vertical
- * x-axis honours the anchor, while the horizontal y-axis right-aligns its gutter
+ * x-axis honors the anchor, while the horizontal y-axis right-aligns its gutter
  * labels and ignores it. A single category reads as one centered label; an empty
  * axis none.
  *
@@ -1022,7 +1022,7 @@ function probeOf(
 
 /**
  * Insets a horizontal value axis's screen range so its end tick labels fit
- * inside the frame instead of overhanging it. Those labels draw centred on their
+ * inside the frame instead of overhanging it. Those labels draw centered on their
  * axis bands. The right end borders the frame edge, so it always reserves the
  * last label's half-width. The left end reserves the first label's only when the
  * category gutter can't already absorb it.
@@ -1186,7 +1186,7 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 	// axis runs across and the band down, the transpose of the vertical layout's.
 	const markPad = markPadOf(input)
 
-	// The value labels centre on their ticks, so without axes there is nothing to
+	// The value labels center on their ticks, so without axes there is nothing to
 	// reserve for and the scales fill the whole span, less the marks' own reach.
 	const range = axes ? valueAxisRange(probes, span) : markInsetRange(span, markPad)
 

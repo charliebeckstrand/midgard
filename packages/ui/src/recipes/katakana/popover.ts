@@ -34,7 +34,7 @@ type PopoverConfig = {
  *
  *   - `trigger`: anchor element class
  *   - `portal`: z-stacked portal container
- *   - `text`: body text colour (caller override or bundle default)
+ *   - `text`: body text color (caller override or bundle default)
  *   - `panel`: slot bundle (base, surface, glass, ring, motion)
  */
 export function popover<T extends PopoverTokens>(

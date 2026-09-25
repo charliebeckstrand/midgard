@@ -25,14 +25,14 @@ export type A11yPanelProviderValue = {
 
 /** Return shape of {@link useA11yPanel}. */
 export type A11yPanel = {
-	/** Spread onto the panel root: role, `aria-modal`, and the labelling refs. */
+	/** Spread onto the panel root: role, `aria-modal`, and the labeling refs. */
 	ariaProps: AriaProps
 	/** Feed into `PanelProviders` so Title / Description slots register and adopt their ids. */
 	a11y: A11yPanelProviderValue
 }
 
 /**
- * Modal-panel labelling scope: `useA11yScope` specialized for dialog roots
+ * Modal-panel labeling scope: `useA11yScope` specialized for dialog roots
  * (dialog, drawer, sheet). Sets `role` + `aria-modal`, derives the Title /
  * Description ids, and only wires `aria-labelledby` / `aria-describedby` once
  * those slots register. Non-modal panels omit `aria-modal` so AT keeps the
@@ -43,7 +43,7 @@ export type A11yPanel = {
  * @param modal - Whether the panel traps AT to its subtree (`aria-modal`); pass
  * `false` for non-modal surfaces. Defaults to `true`.
  * @returns An `A11yPanel` with two fields. `ariaProps` spreads onto the panel
- * root (role, `aria-modal`, labelling refs). `a11y` is the
+ * root (role, `aria-modal`, labeling refs). `a11y` is the
  * `A11yPanelProviderValue` to feed `PanelProviders`, so the Title / Description
  * slots register and adopt their ids.
  * @see {@link useA11yScope}

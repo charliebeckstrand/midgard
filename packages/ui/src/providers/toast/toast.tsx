@@ -30,7 +30,7 @@ export type ToastProviderProps = {
 
 /**
  * App-root toast state. Manages the toast queue, timers, and pause/resume
- * behaviour, and exposes `useToast()` to any descendant. Render a `<Toast>`
+ * behavior, and exposes `useToast()` to any descendant. Render a `<Toast>`
  * viewport (from `ui/toast`) anywhere inside the provider to display the
  * queued toasts.
  *

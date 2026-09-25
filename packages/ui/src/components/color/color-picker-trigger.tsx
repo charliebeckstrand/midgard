@@ -30,7 +30,7 @@ type ColorPickerTriggerProps = GroupStampProps & {
 }
 
 /**
- * Control-framed button showing the current colour swatch and its hex value,
+ * Control-framed button showing the current color swatch and its hex value,
  * opening the picker dialog.
  *
  * @internal

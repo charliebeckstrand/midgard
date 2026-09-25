@@ -65,7 +65,7 @@ export type MapDotMark = {
 const INDEX_THRESHOLD = 8
 
 /**
- * How much reach a target centred on `mark` has before it covers the face
+ * How much reach a target centered on `mark` has before it covers the face
  * `other` paints, in device pixels. It is the gap between them less what the
  * neighbour draws. It is read one way round, rather than as an overlap. The mark
  * whose target reaches a neighbour is the one that gives ground back. A wide

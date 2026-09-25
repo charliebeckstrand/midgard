@@ -185,7 +185,7 @@ function exportCsv(readout: ChartReadoutSource): string {
  *
  * @remarks Image export draws the chart through an SVG `foreignObject`, so its
  * HTML chrome and SVG marks capture together. It inlines computed styles, so
- * the bitmap carries its colours. `contextMenu={false}` renders the chart
+ * the bitmap carries its colors. `contextMenu={false}` renders the chart
  * untouched, leaving the browser's native menu. Inside the fullscreen dialog it
  * renders the chart untouched for a structural reason instead. There it is its
  * own re-mounted copy, so it refuses to wrap itself and no chart nests a second

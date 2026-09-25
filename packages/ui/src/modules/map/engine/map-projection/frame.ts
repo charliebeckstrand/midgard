@@ -20,8 +20,8 @@ export type MapClientBox = {
  * with no area.
  *
  * This is the SVG default `preserveAspectRatio="xMidYMid meet"`: the view frame
- * scales to fit inside the box, and centres in the remainder. It is the
- * fit-and-centre `scaleCanonicalFit` (`fit.ts`) applies to a projection's scale
+ * scales to fit inside the box, and centers in the remainder. It is the
+ * fit-and-center `scaleCanonicalFit` (`fit.ts`) applies to a projection's scale
  * and translate, here applied to the box the frame draws into.
  *
  * @internal

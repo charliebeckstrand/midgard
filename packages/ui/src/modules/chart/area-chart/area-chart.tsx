@@ -128,7 +128,7 @@ function focusPoints(
 
 /**
  * The reference lines' keyboard stops, or none when `labels.references` draws
- * their values beside them instead. A labelled rule reads its value without the
+ * their values beside them instead. A labeled rule reads its value without the
  * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
  *
  * @internal

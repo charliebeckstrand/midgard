@@ -4,7 +4,7 @@ import type { AriaAttributes, AriaRole } from 'react'
  * A spreadable bag of accessibility-identity props to apply to an element: every
  * `aria-*` attribute, plus `role` and `id` (the anchor that `aria-controls` /
  * `aria-labelledby` / `aria-describedby` reference). The shape a hook returns
- * once it has resolved an element's role and labelling/relationship refs, for
+ * once it has resolved an element's role and labeling/relationship refs, for
  * the consumer to spread wholesale (`<div {...ariaProps} />`). All fields are
  * optional; each producer fills only the parts it owns. Intersect with required
  * fields (`AriaProps & { id: string }`) where a relationship must be guaranteed.

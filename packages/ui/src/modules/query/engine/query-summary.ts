@@ -78,7 +78,7 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
  * Resolves a rule against the field set: the `field` it names and the
  * `operator` from that field's set, each `undefined` when unresolved. The
  * summary reads its labels and options from them. It does not read the active
- * judgement or the form of a token from them.
+ * judgment or the form of a token from them.
  *
  * @internal
  */

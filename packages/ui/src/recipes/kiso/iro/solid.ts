@@ -1,5 +1,5 @@
 /**
- * Iro solid: opaque fill palette. The colour paints the background;
+ * Iro solid: opaque fill palette. The color paints the background;
  * text is white (amber-950 against amber).
  * Hover darkens the fill by one step.
  *

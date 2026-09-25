@@ -20,7 +20,7 @@ import type { DataKey, MapCategory } from '../types'
  * (`fill` for the region, `text` for the `<Swatch>` currentColor). A numeric
  * choropleth bin carries a single CSS `color` value from the consumer's
  * `colorRange`. It applies as the region's `fill` attribute, or the swatch's
- * inline colour.
+ * inline color.
  *
  * The three projections below it are the map's half of what `chart-color/paint`
  * names for the union it mirrors from here. Without them every reader spelled
@@ -34,7 +34,7 @@ export type MapReadoutPaint =
 
 /**
  * The region fill a paint carries as a class, `undefined` for a bin. A bin's
- * colour is a value the consumer's `colorRange` produced, and can only ride the
+ * color is a value the consumer's `colorRange` produced, and can only ride the
  * `fill` attribute.
  *
  * The raw list rather than a joined string, unlike the two below it. Its one
@@ -57,7 +57,7 @@ export function paintText(paint: MapReadoutPaint): string | undefined {
 }
 
 /**
- * A bin's own CSS colour, `undefined` for a categorical slot. It is an
+ * A bin's own CSS color, `undefined` for a categorical slot. It is an
  * arbitrary value out of the consumer's ramp, so it can never become a class.
  * Every reader of it passes it as an inline style beside the class channel.
  *
@@ -125,15 +125,15 @@ export function regionGroupId(
 	return meta === null ? null : categoryLegendId(meta.value)
 }
 
-/** The slot colour for the series at `index`, in the fixed categorical order. @internal */
+/** The slot color for the series at `index`, in the fixed categorical order. @internal */
 export function slotColor(index: number): MapSeriesColor {
 	return k.order[index % k.order.length] ?? 'blue'
 }
 
 /**
  * Resolves the region categories: the explicit list's order, labels, and
- * colour overrides win; omitted, categories derive from the rows in
- * first-appearance order. Slot colours follow the resolved order and hold
+ * color overrides win; omitted, categories derive from the rows in
+ * first-appearance order. Slot colors follow the resolved order and hold
  * fixed when siblings toggle.
  *
  * @internal

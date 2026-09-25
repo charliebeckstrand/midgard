@@ -115,7 +115,7 @@ type MapRangeScale = {
 export type MapLegendRange = RangeScale & {
 	/** Each region's raw value (`null` = no data), feature-index aligned — the arrow marks the hovered region's. */
 	regionNumbers: (number | null)[]
-	/** Emphasises a bin's regions (`null` clears); other regions dim while set — the filter. */
+	/** Emphasizes a bin's regions (`null` clears); other regions dim while set — the filter. */
 	onFocus: (id: string | null) => void
 	/**
 	 * Which way the bar runs — vertical beside the plot, horizontal above or

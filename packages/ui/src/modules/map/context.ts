@@ -100,10 +100,10 @@ export const [MapZoomScaleContext, useMapZoomScale] = createContext<number>('Map
 
 /**
  * What {@link MapPlat} provides its overlay children: the fitted projection
- * as a closure, legend registration, and the resolved slot colour per
+ * as a closure, legend registration, and the resolved slot color per
  * registered entry. It also provides the legend's toggle / emphasis state, and
  * the standing pick. An
- * overlay renders nothing until its id gains a colour — the beat after its
+ * overlay renders nothing until its id gains a color — the beat after its
  * registration effect runs.
  *
  * @internal
@@ -113,7 +113,7 @@ export type MapPlatContextValue = {
 	project: (position: LngLat) => MapPoint2D | null
 	/** Registers an overlay's legend entry; returns the unregister cleanup. */
 	register: (entry: MapOverlayEntry) => () => void
-	/** Resolved slot colour per registered entry id; marks derive their paint from it. */
+	/** Resolved slot color per registered entry id; marks derive their paint from it. */
 	colors: ReadonlyMap<string, MapSeriesColor>
 	/** Registration ordinal per entry id, so a mount reveal can stagger by it. */
 	order: ReadonlyMap<string, number>

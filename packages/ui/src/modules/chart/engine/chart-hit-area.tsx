@@ -19,7 +19,7 @@ export type ChartHitAreaProps = {
 	 * The chart's mark hit test: the mark under the point, a bar or a line, that
 	 * isolation lifts and every other mark recedes behind. It is `null` off the
 	 * marks, which is also where the tooltip stays shut. `held` carries the mark
-	 * currently emphasised, so a bounded catch can stay sticky across the midline
+	 * currently emphasized, so a bounded catch can stay sticky across the midline
 	 * between two overlapping catches. The `index` carries the resolved category,
 	 * so a snapping chart can hand the emphasis to the stop the tooltip anchors in
 	 * that column.

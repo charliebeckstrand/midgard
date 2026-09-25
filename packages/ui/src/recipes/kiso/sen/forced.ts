@@ -1,6 +1,6 @@
 /**
  * Sen forced: Windows High Contrast Mode safety nets. Restore visible
- * edges and semantic colour when the browser strips author colours.
+ * edges and semantic color when the browser strips author colors.
  *
  * Layer: kiso · Concern: forced-colors fallbacks
  */
@@ -8,9 +8,9 @@
 export const forced = {
 	/** Panel outline: restores a visible edge when backgrounds are stripped. */
 	outline: 'forced-colors:outline',
-	/** Item text: preserves semantic foreground colour. */
+	/** Item text: preserves semantic foreground color. */
 	text: 'forced-color-adjust-none forced-colors:text-[CanvasText]',
-	/** Focus state: maps to system highlight colours. */
+	/** Focus state: maps to system highlight colors. */
 	focus: 'forced-colors:focus:bg-[Highlight] forced-colors:focus:text-[HighlightText]',
 	/** Form control: restores native appearance and checked-state visibility. */
 	control:

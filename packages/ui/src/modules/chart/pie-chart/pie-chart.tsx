@@ -11,12 +11,12 @@ export type PieChartProps<T = never> = SectorBaseProps<T>
 
 /**
  * A pie chart: one dataset's positive shares swept clockwise from the top
- * into full slices, separated by surface-colour gaps. It carries a legend
+ * into full slices, separated by surface-color gaps. It carries a legend
  * naming every slice, a per-slice hover tooltip, optional fit-gated segment
  * labels, and a visually-hidden data table. For a ring with center content, use
  * {@link DonutChart}.
  *
- * @remarks Slice colours follow the fixed categorical slot order. Rows with
+ * @remarks Slice colors follow the fixed categorical slot order. Rows with
  * non-positive values take no slice but keep their true value in the table;
  * missing values show an em-dash there. Focus the plot to read it by keyboard —
  * the arrow keys walk the slices, the tooltip riding each centroid.

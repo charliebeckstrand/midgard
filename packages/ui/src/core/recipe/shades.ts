@@ -1,7 +1,7 @@
 /**
  * Pair-form mode declarations.
  *
- * Build a `Record<Color, string[]>` from per-colour light/dark shade pairs.
+ * Build a `Record<Color, string[]>` from per-color light/dark shade pairs.
  * The dark class must carry its own `dark:` prefix; Tailwind's content
  * scanner only picks up class strings that exist as full literals in source.
  * Pass a single string for tokens that don't change between modes.
@@ -18,7 +18,7 @@ import type { Color } from './colors'
 type ShadeSpec<C extends string> = Record<C, string | readonly [light: string, dark: string]>
 
 /**
- * Generic over the colour set: defaults to {@link Color} (the standard
+ * Generic over the color set: defaults to {@link Color} (the standard
  * palette) and widens to the extended set when called with an extended-keyed
  * spec, e.g. `shades<ExtendedColor>({ rose: …, sky: … })` in `iro/extended-palette`.
  */

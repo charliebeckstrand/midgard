@@ -78,7 +78,7 @@ export function nearestValue(candidates: number[] | undefined, value: number): n
 /**
  * The series behind the snapped stop nearest `coord` in category `index`'s
  * column, or `null` off every stop (an empty column, or no category). The same
- * resolution the tooltip anchors with ({@link nearestValue}), so the emphasised
+ * resolution the tooltip anchors with ({@link nearestValue}), so the emphasized
  * mark and the snapped readout can never disagree. Moving along the rule toward
  * another series' point hands both to it at the midpoint between the stops. The
  * tooltip therefore always re-anchors ahead of the pointer, never under it.

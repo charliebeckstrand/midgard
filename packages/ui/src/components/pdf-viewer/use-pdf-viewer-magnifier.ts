@@ -119,7 +119,7 @@ export type MagnifierPoint = { x: number; y: number }
  * @param size - The lens's diameter.
  * @returns The copy's translation, for a transform whose origin is its top-left corner.
  * @remarks With the origin pinned there, a point `p` maps to `offset + zoom * p`; solving for
- * the offset that puts it at the lens's centre gives `centre - zoom * p`.
+ * the offset that puts it at the lens's center gives `centre - zoom * p`.
  *
  * Pure, and exported for the same reason {@link toFractionRect} is. It is the one seam where
  * this arithmetic is provable without a measured DOM and a real floating engine, neither of
@@ -256,7 +256,7 @@ export function usePdfViewerMagnifier(
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		open: enabled && open,
 		onOpenChange: handleOpenChange,
-		// Beside the cursor rather than under it: a lens centred on the pointer would cover the
+		// Beside the cursor rather than under it: a lens centered on the pointer would cover the
 		// very ink the reader is pointing at.
 		placement: 'right-start',
 		// Fixed, unlike the package's anchored surfaces, because the reference here is the

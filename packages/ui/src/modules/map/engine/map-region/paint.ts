@@ -1,5 +1,5 @@
 /**
- * The region layer's paint table — what colour, class, and wash timing each
+ * The region layer's paint table — what color, class, and wash timing each
  * category resolves to — and the input shape every layer draws it through. A
  * county atlas shares a handful of paints across thousands of regions, so this
  * runs per category and the layers read it per region. Both the base tree and
@@ -16,14 +16,14 @@ import { k } from '../../../../recipes/kata/map'
 import { REGION_FADE, REGION_STAGGER, REGION_STAGGER_MAX } from '../map-motion'
 import { categoryLegendId, type MapCategoryMeta, paintColor, paintFill } from './category'
 
-/** The colour wash's transition classes under `animate`; static maps colour without one. */
+/** The color wash's transition classes under `animate`; static maps color without one. */
 const WASH = 'transition-colors ease-out motion-reduce:transition-none'
 
 const WASH_DURATION = `${REGION_FADE.duration * 1000}ms`
 
 // The wash's per-region timing, shared where the stagger caps: beyond the cap
 // every region carries the same delay, so one frozen object serves them all —
-// and the memoised Region sees a stable style identity instead of a fresh
+// and the memoized Region sees a stable style identity instead of a fresh
 // object per render.
 const CAPPED_WASH_STYLE: CSSProperties = {
 	transitionDuration: WASH_DURATION,
@@ -40,7 +40,7 @@ const STAGGERED_WASH_STYLES: CSSProperties[] = Array.from(
 
 // The wash past the reveal: the fade alone, with no delay. Every region shares
 // it, so a settled layer holds one style identity across the whole tree — and
-// the memoised Region compares the same reference it did before the stagger
+// the memoized Region compares the same reference it did before the stagger
 // retired.
 const SETTLED_WASH_STYLE: CSSProperties = { transitionDuration: WASH_DURATION }
 
@@ -74,7 +74,7 @@ export function washStyle(index: number, wash: MapWash): CSSProperties | undefin
 type RegionPaint = {
 	/** The emphasis / toggle group the region belongs to, `null` when inactive. */
 	groupId: string | null
-	/** The `fill` attribute colour for a numeric bin, `undefined` for a class fill. */
+	/** The `fill` attribute color for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
 	/** The path's classes. */
 	className: string
@@ -103,10 +103,10 @@ export type MapRegionLayer = {
 /**
  * One category's paint. The toggle / emphasis key is the category's stable
  * value ({@link categoryLegendId}), not its index. A reorder or removal
- * therefore can't re-point a hidden or emphasised entry at a different
+ * therefore can't re-point a hidden or emphasized entry at a different
  * category. The
  * neutral fill covers no-data (`null`), a toggled-off category, and the
- * pre-reveal beat, so the colour — not the geometry — animates on.
+ * pre-reveal beat, so the color — not the geometry — animates on.
  *
  * @internal
  */

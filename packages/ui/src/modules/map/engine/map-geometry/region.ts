@@ -2,7 +2,7 @@
  * What the region layer draws and what the keyboard cursor stands on. That is
  * one SVG path per feature under a fitted projection, and one spherical centroid
  * per feature under none. Both passes walk every ring in the atlas, so both are
- * memoised a layer above (`cache.ts`) rather than re-run per mount.
+ * memoized a layer above (`cache.ts`) rather than re-run per mount.
  *
  * The path pass answers one fit at a time, which is why it is no longer the
  * ordinary route. A map draws the atlas under several, and `projected.ts` walks
@@ -30,13 +30,13 @@ export function regionPaths(features: MapFeature[], projection: GeoProjection): 
 /**
  * Each region's spherical centroid as `[lon, lat]`, index-aligned with the
  * features; `null` where a feature carries no geometry, or where its rings
- * cancel to no centre. The keyboard cursor anchors its readout to these, and
+ * cancel to no center. The keyboard cursor anchors its readout to these, and
  * steps by the compass bearing between them.
  *
  * Deliberately in lon/lat, not in frame units. A centroid is a property of the
  * geography, so one pass per atlas serves every fit. A resize re-projects the
  * result instead of measuring the rings again. `geoCentroid` is spherical, so a
- * region that crosses the antimeridian centres correctly where a mean of its
+ * region that crosses the antimeridian centers correctly where a mean of its
  * projected coordinates would not.
  *
  * @internal
@@ -47,7 +47,7 @@ export function regionCentroids(features: MapFeature[]): (LngLat | null)[] {
 
 		const [lon, lat] = geoCentroid(entry.geometry)
 
-		// A degenerate feature — empty rings, or rings that cancel — centres on
+		// A degenerate feature — empty rings, or rings that cancel — centers on
 		// NaN; drop it rather than let the cursor step onto a point that projects
 		// nowhere.
 		return Number.isFinite(lon) && Number.isFinite(lat) ? [lon, lat] : null

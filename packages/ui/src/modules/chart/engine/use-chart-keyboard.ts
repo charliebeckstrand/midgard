@@ -25,7 +25,7 @@ import type { ChartHover } from './context'
  *
  * `series` names the series behind each of `points`' stops, in the same order.
  * The cursor's value lane therefore resolves to the series it sits on, the one
- * it emphasises while the rest recede. Omitted on a chart whose stops don't map
+ * it emphasizes while the rest recede. Omitted on a chart whose stops don't map
  * to a single series, where a scatter column stacks several. Such a chart reads
  * no active series, and leaves the emphasis alone.
  *
@@ -379,7 +379,7 @@ export type ChartKeyboardProps = {
  * the series readout, so the rule reads against a quieted field. Stepping off
  * restores it.
  *
- * Landing on a series point emphasises that series the way hovering its legend
+ * Landing on a series point emphasizes that series the way hovering its legend
  * entry does. The other series recede to a quarter opacity, and the tooltip dims
  * their rows. The dataset the cursor reads therefore stands alone. Stepping to
  * another series moves the emphasis with it, and leaving or reaching a rule
@@ -447,7 +447,7 @@ export function useChartKeyboard(
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
 	// the whole field and drop the series readout so the rule reads alone — no one
 	// series is active. Anywhere else, carry the hover to the cursor's anchor and
-	// emphasise the series it sits on so the rest recede, or clear both.
+	// emphasize the series it sits on so the rest recede, or clear both.
 	const show = (next: ChartCursor | null) => {
 		setCursor(next)
 

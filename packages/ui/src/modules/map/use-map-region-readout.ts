@@ -85,7 +85,7 @@ export function useMapRegionReadout<T>(
 	)
 
 	// One resolution: the numeric branch bins by value along a ramp, the
-	// categorical branch resolves slot colours, and a data-less map leaves every
+	// categorical branch resolves slot colors, and a data-less map leaves every
 	// region on the neutral fill. Both branches emit the same meta + index shape,
 	// so the regions, legend, tooltip, and table read either unchanged.
 	const {
@@ -135,7 +135,7 @@ export function useMapRegionReadout<T>(
 				format,
 			})
 
-			// One joined pass: each region's bin (its colour), its own formatted
+			// One joined pass: each region's bin (its color), its own formatted
 			// readout (the tooltip and table show "2,088", not the bin's "1–135"),
 			// and its raw number (the range legend's arrow).
 			return {

@@ -1,10 +1,10 @@
 /**
  * Pure geometry for the {@link HeatmapChart}: a row-major value matrix
  * projected onto a grid of axis-aligned cells, one band scale per axis.
- * Framework- and colour-free, so the cell math is unit-testable in isolation.
- * The component resolves each cell's fill from the sequential colour scale by
+ * Framework- and color-free, so the cell math is unit-testable in isolation.
+ * The component resolves each cell's fill from the sequential color scale by
  * its value. That is the way the bar geometry emits shapes and leaves the slot
- * colour to the render. Both axes are band scales, so a heatmap is the two-categorical
+ * color to the render. Both axes are band scales, so a heatmap is the two-categorical
  * twin of the cartesian frame rather than a value-axis chart.
  */
 
@@ -16,7 +16,7 @@ const CELL_RADIUS = 2
 
 /**
  * One drawable cell: its rect, corner radius, grid position, and raw value.
- * Colour-free — the component paints it from the value through the sequential
+ * Color-free — the component paints it from the value through the sequential
  * scale, and a `null` value takes the neutral no-data fill.
  *
  * @internal

@@ -29,7 +29,7 @@ export const item = {
 		'select-none',
 		// The selected item steps to full-strength ink and the rest stay muted — the
 		// muted/`data-current` pairing the underline tab carries, which this had no counterpart
-		// for: every item rendered at one colour, so the indicator behind the active one was the
+		// for: every item rendered at one color, so the indicator behind the active one was the
 		// only thing marking it. That reads as a highlight sitting on the strip rather than as a
 		// selected item, and it leaves the distinction resting entirely on a fill (WCAG 1.4.1).
 		//

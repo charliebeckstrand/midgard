@@ -48,11 +48,11 @@ A skeleton variant is a static leaf ([`packages/ui/REFERENCE.md`](packages/ui/RE
 
 A `data-slot` anchor binds by who reads it. The library selects some anchors itself, through a roving `itemSelector` or a kata `has-[]` rule. A leaf writes such an anchor after the spread and locks it, as `accordion-trigger.tsx` does. Every other leaf writes its anchor before the spread, so a wrapper can re-anchor the leaf it renders.
 
-A key that holds a handler or an object needs both sides, and a spread position keeps only one. So the component destructures the key and resolves it. A handler composes through `composeEventHandlers`: the consumer's handler runs first, and its `preventDefault()` cancels the component's handler. A `style` object merges: `props.style` spreads in first, then the keys that carry the behaviour of the component. `menu-item-utilities.ts` is the example for a handler, and `slider.tsx` for a `style` object.
+A key that holds a handler or an object needs both sides, and a spread position keeps only one. So the component destructures the key and resolves it. A handler composes through `composeEventHandlers`: the consumer's handler runs first, and its `preventDefault()` cancels the component's handler. A `style` object merges: `props.style` spreads in first, then the keys that carry the behavior of the component. `menu-item-utilities.ts` is the example for a handler, and `slider.tsx` for a `style` object.
 
-Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be cancelled, so the default would let a consumer switch that wiring off.
+Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be canceled, so the default would let a consumer switch that wiring off.
 
-Side behaviour, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case.
+Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case.
 
 `spread-order-boundary.test.ts` gates the position rules. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
@@ -133,9 +133,9 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 
 10.4 While you edit, run a scoped subset (`test:changed` or `test:related`), as [CLAUDE.md](CLAUDE.md) §3.4 requires.
 
-10.5 A guarantee that holds for every component of a kind goes in the shared corpus (`a11y/cases`), and a sweep gate asserts it. One new corpus entry then buys every gate. Behaviour specific to one component goes in its own test file.
+10.5 A guarantee that holds for every component of a kind goes in the shared corpus (`a11y/cases`), and a sweep gate asserts it. One new corpus entry then buys every gate. Behavior specific to one component goes in its own test file.
 
-An assertion that reads the DOM tree runs under jsdom: roles, attributes, events, and focus order. An assertion that reads layout, computed style, or colour runs in the browser suite (`test:browser`): contrast, target size, geometry, and focus traps. A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window. `node-environment-boundary.test.ts` holds the docblock and the DOM use of the file in step.
+An assertion that reads the DOM tree runs under jsdom: roles, attributes, events, and focus order. An assertion that reads layout, computed style, or color runs in the browser suite (`test:browser`): contrast, target size, geometry, and focus traps. A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window. `node-environment-boundary.test.ts` holds the docblock and the DOM use of the file in step.
 
 10.6 A browser test starts at the viewport that `vitest.browser.config.ts` declares. Vitest resets the page to it before each file, so a file inherits no size from the file before it. A file whose geometry needs another size states it once, as `beforeAll(() => page.viewport(w, h))`. `test-isolation-boundary.test.ts` holds that placement. A call inside an `it` reaches the later cases of the file, and nothing restores the size there.
 

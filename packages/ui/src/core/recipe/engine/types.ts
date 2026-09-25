@@ -59,7 +59,7 @@ type AxesOf<C> = {
 /**
  * The expanded config, exposed as `recipe.config` for introspection: axes
  * spliced with the palette, and compound rules flattened with their
- * conditions normalised to axis keys. The call path reads a compiled plan
+ * conditions normalized to axis keys. The call path reads a compiled plan
  * derived from this, not the object itself.
  */
 export type ResolvedConfig = {

@@ -20,7 +20,7 @@ type MapLegendEntryProps = {
 	panel: boolean
 	/** Toggles this entry on or off. */
 	onToggle: (id: string) => void
-	/** Emphasises this entry's marks (`null` clears). */
+	/** Emphasizes this entry's marks (`null` clears). */
 	onFocus: (id: string | null) => void
 }
 
@@ -40,12 +40,12 @@ type MapLegendEntryProps = {
  * closed (unclipped) tooltip renders no surface, so an entry that fits adds no
  * DOM.
  *
- * Memoised, because the plat re-renders on every legend point and leave, and
+ * Memoized, because the plat re-renders on every legend point and leave, and
  * the entry is no longer a bare button. It now carries the truncation measure
  * and the floating stack behind the reveal, both of which run per commit. Every
- * prop holds across those renders: the items are memoised, and the two handlers
+ * prop holds across those renders: the items are memoized, and the two handlers
  * are `useMapToggle`'s own. The whole legend therefore bails out of a crossing
- * that changed nothing but which entry is emphasised.
+ * that changed nothing but which entry is emphasized.
  * @internal
  */
 const MapLegendEntry = memo(function MapLegendEntry({
@@ -70,7 +70,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			data-slot="map-legend-item"
 			aria-pressed={!off}
 			// The panel's entries stretch to the rail so the readouts share one right
-			// edge rather than each entry centring its own content; the row under the
+			// edge rather than each entry centering its own content; the row under the
 			// map keeps every entry its own width.
 			className={cn('gap-2', panel && 'lg:w-full lg:justify-start')}
 			onClick={() => onToggle(item.id)}
@@ -154,7 +154,7 @@ export type MapLegendProps = {
 	hidden: ReadonlySet<string>
 	/** Toggles an entry on or off. */
 	onToggle: (id: string) => void
-	/** Emphasises an entry's marks (`null` clears); other marks dim while set. */
+	/** Emphasizes an entry's marks (`null` clears); other marks dim while set. */
 	onFocus: (id: string | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
@@ -168,7 +168,7 @@ export type MapLegendProps = {
  * registered overlay. Pointing (or keyboard-focusing) an entry dims all marks
  * outside its group, and clicking toggles it off. Plain HTML buttons outside the
  * `role="img"` region, so assistive tech reads and operates them; swatches
- * carry the colour, the text stays in ink.
+ * carry the color, the text stays in ink.
  *
  * @remarks The row is one Tab stop; the arrow keys rove between entries
  * (Home / End jump to the ends) and Escape drops focus, clearing the

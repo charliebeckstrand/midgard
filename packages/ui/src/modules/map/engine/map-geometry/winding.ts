@@ -1,5 +1,5 @@
 /**
- * Ring normalisation, between an atlas as it arrives and the rings `d3-geo` can
+ * Ring normalization, between an atlas as it arrives and the rings `d3-geo` can
  * draw. Two jobs share the pass:
  *
  * - Winding, the guard on a raw-GeoJSON atlas. There a mis-wound exterior reads

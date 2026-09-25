@@ -46,7 +46,7 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * the cell, and the box stays put across the swap.
  *
  * @remarks
- * Wraps its layers in {@link ReducedMotion}, so the crossfade honours
+ * Wraps its layers in {@link ReducedMotion}, so the crossfade honors
  * `prefers-reduced-motion`. The inactive layer is `inert` and `aria-hidden`,
  * which keeps it out of the tab order and accessibility tree. If it held focus
  * when it deactivates, focus moves to the revealed layer, so keyboard users

@@ -1,17 +1,17 @@
 /**
- * Iro projection: turn a colour-major ramp into the role-major
- * `[light, dark]` map the recipe engine consumes. The colour-major ramp holds
- * one row per colour, each naming the `[light, dark]` shades it plays per
+ * Iro projection: turn a color-major ramp into the role-major
+ * `[light, dark]` map the recipe engine consumes. The color-major ramp holds
+ * one row per color, each naming the `[light, dark]` shades it plays per
  * foreground role. Shared by the
  * standard `ramp` and the extended ramp in `extended-palette.ts`, which differ
- * only in their colour key set.
+ * only in their color key set.
  *
- * Layer: kiso · Concern: colour projection
+ * Layer: kiso · Concern: color projection
  */
 
 export type Pair = readonly [light: string, dark: string]
 
-/** Project one `role` across every colour of `ramp` into the engine's `[light, dark]` map. */
+/** Project one `role` across every color of `ramp` into the engine's `[light, dark]` map. */
 export function project<K extends string, R extends Record<string, Pair>>(
 	ramp: Record<K, R>,
 	role: keyof R,

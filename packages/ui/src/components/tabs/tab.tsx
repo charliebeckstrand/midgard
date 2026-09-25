@@ -157,7 +157,7 @@ export function Tab({
 		onPreload?.(value)
 	}
 
-	// The preload is side behaviour, so a consumer's preventDefault() skips it.
+	// The preload is side behavior, so a consumer's preventDefault() skips it.
 	const handlePointerEnter = composeEventHandlers(onPointerEnter, preload)
 
 	const handleFocus = composeEventHandlers(onFocus, preload)
