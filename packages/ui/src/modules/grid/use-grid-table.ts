@@ -188,8 +188,8 @@ type GridTableParams<T> = {
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
 	density?: DensityLevel
 	/**
-	 * Whether a grand total aggregates the filtered rows. Only then does the
-	 * engine build its filtered model for {@link GridTableResult.grandTotalRows}.
+	 * Whether a grand total aggregates the filtered rows. Only then does the grid
+	 * collect {@link GridTableResult.grandTotalRows}.
 	 */
 	grandTotal?: boolean
 }
@@ -673,12 +673,23 @@ function useClientView<T>(args: {
 
 		const shown = bounds ? sliceOrder(order, total, bounds) : (order ?? identityOrder(total))
 
-		return { ...materializeSort(rows, shown, getKey), total }
-	}, [offEngine, order, pageIndex, pageSize, rows, getKey])
+		return { ...materializeSort(rows, shown, getKey), total, filtered: keptRows }
+	}, [offEngine, order, pageIndex, pageSize, rows, getKey, keptRows])
 }
 
-/** The rows of a {@link useClientView}, their keys, and the count before the page slice. @internal */
-type ClientView<T> = { rows: T[]; keys: (string | number)[]; total: number }
+/**
+ * The rows of a {@link useClientView}, their keys, and the count before the
+ * page slice. `filtered` holds the rows that the filters keep, in data order,
+ * or `null` when the view applies no filter.
+ *
+ * @internal
+ */
+type ClientView<T> = {
+	rows: T[]
+	keys: (string | number)[]
+	total: number
+	filtered: T[] | null
+}
 
 /** The indices `0` to `count - 1`, in order. @internal */
 function identityOrder(count: number): number[] {
@@ -980,22 +991,36 @@ function usePinningView<T>(args: {
 }
 
 /**
- * The full filtered row set, for a grand total. The engine memoizes its filtered
- * model on the rows and the filters, so the model keeps its identity until one
- * of them changes. It is built only for a grand total, since an inactive one
- * must not force the whole filtered set. Manual grouping carries the consumer's
- * group headers as rows, so it has no grand total (see `resolveGrandTotal`).
+ * The full filtered row set, for a grand total, in data order. It is built
+ * only for a grand total. Manual grouping carries the consumer's group headers
+ * as rows, so it has no grand total (see `resolveGrandTotal`).
+ *
+ * @remarks
+ * The rows come from the client view, which already holds the rows that its
+ * filters keep, so a plain or filtered grid builds no engine row for them.
+ * When a transform materializes the engine model, the rows come from the
+ * engine's filtered model, which the engine memoizes on the rows and the
+ * filters.
  *
  * @internal
  */
-function useGrandTotalRows<T>(
-	table: EngineTable<T>,
-	grandTotal: boolean,
-	manualGrouped: boolean,
-): T[] {
-	const model = grandTotal && !manualGrouped ? table.getFilteredRowModel() : null
+function useGrandTotalRows<T>(args: {
+	table: EngineTable<T>
+	grandTotal: boolean
+	manualGrouped: boolean
+	materialize: boolean
+	clientView: ClientView<T> | null
+	rows: T[]
+}): T[] {
+	const active = args.grandTotal && !args.manualGrouped
 
-	return useMemo<T[]>(() => model?.rows.map((row) => row.original) ?? NO_ROWS, [model])
+	const model = active && args.materialize ? args.table.getFilteredRowModel() : null
+
+	const fromEngine = useMemo(() => model?.rows.map((row) => row.original) ?? null, [model])
+
+	if (!active) return NO_ROWS
+
+	return fromEngine ?? args.clientView?.filtered ?? args.rows
 }
 
 /**
@@ -1499,7 +1524,14 @@ export function useGridTable<T>({
 		widths,
 	})
 
-	const grandTotalRows = useGrandTotalRows(table, grandTotal, manualGroupRow != null)
+	const grandTotalRows = useGrandTotalRows({
+		table,
+		grandTotal,
+		manualGrouped: manualGroupRow != null,
+		materialize,
+		clientView,
+		rows,
+	})
 
 	const rowsForExport = useCallback(
 		() => exportLeaves(engine, grouped, manualGroupRow, selection),
