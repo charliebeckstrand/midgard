@@ -170,6 +170,28 @@ type GridHeaderCellProps<T> = {
 }
 
 /**
+ * The width and the resize facts of one header. They are plain values and the
+ * stable actions, not the resize snapshot, which is new on each frame of a
+ * drag. The memoized header then holds unless its own width or state changed.
+ * Engine-driven widths and the resize handle apply to data columns only.
+ *
+ * @internal
+ */
+function headerSizing<T>(resize: GridColumnResize | null, column: GridColumn<T>) {
+	const sizing = resize && isDataColumn(column) ? resize : null
+
+	const bounds = sizing?.bounds(column.id)
+
+	return {
+		width: sizing ? sizing.getSize(column.id) : column.width,
+		resizing: sizing ? sizing.resizing === String(column.id) : false,
+		resizeActions: sizing?.canResize(column.id) ? sizing.actions : null,
+		minWidth: bounds?.min ?? 0,
+		maxWidth: bounds?.max ?? Number.MAX_SAFE_INTEGER,
+	}
+}
+
+/**
  * Routes one column to its header cell:
  *
  * - the select-all checkbox, for the selectable column;
@@ -238,13 +260,6 @@ function GridHeaderCell<T>({
 
 	const { sorted, direction, priority: sortPriority } = columnSort(sort, column.id)
 
-	// Engine-driven width and the resize handle apply to data columns only.
-	const sizing = resize && isDataColumn(column) ? resize : null
-
-	const width = sizing ? sizing.getSize(column.id) : column.width
-
-	const resizing = sizing ? sizing.resizing === String(column.id) : false
-
 	const shared = {
 		column,
 		colIndex,
@@ -254,9 +269,7 @@ function GridHeaderCell<T>({
 		sortPriority,
 		stickyHeader,
 		toggleSort,
-		width,
-		resize: sizing,
-		resizing,
+		...headerSizing(resize, column),
 		// Sort/resize/filter affordances stand down with no source data: there's
 		// nothing to order, size to, or filter until rows exist (a filter that
 		// empties the *view* keeps them — `interactive` tracks source data).
