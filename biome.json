@@ -13,6 +13,9 @@
 		"lineWidth": 100
 	},
 	"css": {
+		"formatter": {
+			"quoteStyle": "single"
+		},
 		"parser": {
 			"tailwindDirectives": true
 		}
@@ -547,11 +550,16 @@
 		"includes": [
 			"**/*.ts",
 			"**/*.tsx",
+			"**/*.json",
+			"**/*.jsonc",
+			"**/*.css",
 			"!**/dist",
 			"!**/.next",
+			"!**/.turbo",
 			"!**/next-env.d.ts",
 			"!.mcp-servers",
-			"!.claude/worktrees"
+			"!.claude/worktrees",
+			"!.claude/skills"
 		],
 		"ignoreUnknown": true
 	},

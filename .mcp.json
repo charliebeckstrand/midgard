@@ -1,9 +1,9 @@
 {
-  "mcpServers": {
-    "code-quality": {
-      "command": "node",
-      "args": [".mcp-servers/code-quality/index.mjs"],
-      "env": {}
-    }
-  }
+	"mcpServers": {
+		"code-quality": {
+			"command": "node",
+			"args": [".mcp-servers/code-quality/index.mjs"],
+			"env": {}
+		}
+	}
 }
