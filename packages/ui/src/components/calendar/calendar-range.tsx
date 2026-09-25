@@ -4,6 +4,7 @@ import { type Ref, type RefObject, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
+import { memoWeak } from '../../utilities'
 import {
 	Calendar,
 	type CalendarActive,
@@ -83,6 +84,41 @@ function computeRangeDayFlags(
 	return { isEdge, isInnerRange: inRange && !isEdge, isLeftEdge, isRightEdge }
 }
 
+/** The enter handler of each day, for each `onHoverDate`. */
+const enterHandlers = new WeakMap<(date: Date | null) => void, Map<number, () => void>>()
+
+/** The leave handler, for each `onHoverDate`. */
+const leaveHandlers = new WeakMap<(date: Date | null) => void, () => void>()
+
+/**
+ * The hover handlers of a day cell. Each handler keeps its identity for the same
+ * `onHoverDate` and the same day. A memoized cell then holds when the band moves
+ * past it.
+ */
+function hoverHandlers(
+	onHoverDate: ((date: Date | null) => void) | undefined,
+	date: Date,
+): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
+	if (!onHoverDate) return {}
+
+	const byDay = memoWeak(enterHandlers, onHoverDate, () => new Map<number, () => void>())
+
+	const time = date.getTime()
+
+	let onMouseEnter = byDay.get(time)
+
+	if (!onMouseEnter) {
+		onMouseEnter = () => onHoverDate(date)
+
+		byDay.set(time, onMouseEnter)
+	}
+
+	return {
+		onMouseEnter,
+		onMouseLeave: memoWeak(leaveHandlers, onHoverDate, (report) => () => report(null)),
+	}
+}
+
 /**
  * Range-aware variant of {@link Calendar}. Drives the underlying calendar's
  * per-day styling through `getDayProps`. It paints the band between
@@ -132,8 +168,7 @@ export function CalendarRange({
 					isLeftEdge && k.day.range.leftEdge,
 					isRightEdge && k.day.range.rightEdge,
 				),
-				onMouseEnter: () => onHoverDate?.(date),
-				onMouseLeave: () => onHoverDate?.(null),
+				...hoverHandlers(onHoverDate, date),
 			}
 		},
 		[rangeStart, effectiveEnd, onHoverDate],
