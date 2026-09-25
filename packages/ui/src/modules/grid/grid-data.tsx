@@ -777,9 +777,9 @@ export function GridData<T>({
 	// a `MotionConfig` alone would not, since it leaves `layout` animations running.
 	const reduceMotion = useReducedMotion()
 
-	// Selection state lives above the engine so the table can mirror it into its
-	// own `state.rowSelection`; the row-derived flags and toggles come after the
-	// engine produces `rowKeys` (see `useGridSelectionActions` below).
+	// Selection state lives above the engine, so an export can read it; the
+	// row-derived flags and toggles come after the engine produces `rowKeys` (see
+	// `useGridSelectionActions` below).
 	const { selection, setSelection } = useGridSelectionState(selectionConfig)
 
 	const batchActions = selectionConfig?.batchActions
