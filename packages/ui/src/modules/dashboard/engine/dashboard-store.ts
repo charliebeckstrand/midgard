@@ -99,7 +99,8 @@ export type DashboardView = {
 	travel: DashboardDragTravel | null
 	/**
 	 * Whether the responsive projection replaces the saved layout on screen. It
-	 * stays until the width passes the threshold by `PROJECTION_HOLD`.
+	 * stays until the width passes the threshold by `PROJECTION_HOLD`. A change of
+	 * the layout, the demands, or the grid ends the hold.
 	 */
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
@@ -322,7 +323,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const heldOf = memo(project)
 
-	const derive = (previous: DashboardView | null): DashboardView => {
+	const derive = (previous: DashboardView | null, from: DashboardState | null): DashboardView => {
 		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
 		const canonical = canonicalOf(layout, demands, columns)
@@ -331,9 +332,18 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const full = projectionOf(canonical, measured, gap, columns, demands)
 
+		// The hold keeps a projection on screen only while the layout, the demands, and the
+		// grid stay the same. After a change of one of them, the view is that of a new store.
+		const sameBoard =
+			from !== null &&
+			from.layout === layout &&
+			from.demands === demands &&
+			from.columns === columns &&
+			from.gap === gap
+
 		// A projection on screen reads the held width. The first projected frame reads it
-		// too, so a later change of another input moves no tile.
-		const held = measured > 0 && (previous?.projected === true || !full.identity)
+		// too, so a later change of a selection or of edit mode moves no tile.
+		const held = measured > 0 && ((sameBoard && previous?.projected === true) || !full.identity)
 
 		const projection = held
 			? heldOf(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
@@ -370,7 +380,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	/** The view of the current state. */
 	const current = (): DashboardView => {
 		if (view === null || viewed !== state) {
-			view = derive(view)
+			view = derive(view, viewed)
 
 			viewed = state
 		}

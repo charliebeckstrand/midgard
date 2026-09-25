@@ -121,6 +121,55 @@ describe('createDashboardStore', () => {
 		expect(store.getView().projected).toBe(false)
 	})
 
+	it('drops the hold when the starved tile leaves at the same width', () => {
+		// With no gutter, tile a at 8 of 24 columns starves under 600 px, and tile b under 570 px.
+		const demands = new Map([
+			['a', { minWidth: 200 }],
+			['b', { minWidth: 190 }],
+			['c', {}],
+		])
+
+		const store = createDashboardStore(initial({ gap: 0, demands, width: 580 }))
+
+		expect(store.getView().projected).toBe(true)
+
+		store.unregister('a')
+
+		// Tile b fits at 580 px and starves at the held width of 556 px.
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
+	})
+
+	it('drops the hold when the minWidth of the starved tile drops so that it fits', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 580 }),
+		)
+
+		expect(store.getView().projected).toBe(true)
+
+		// A floor of 190 px fits at 580 px and starves at the held width of 556 px.
+		store.register('a', { minWidth: 190 })
+
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
+	})
+
+	it('keeps the hold through a change of the selections', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
+		)
+
+		store.setState({ width: 610 })
+
+		expect(store.getView().projected).toBe(true)
+
+		store.setState({ selections: [{ source: 'b', field: 'region', values: ['North'] }] })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+	})
+
 	it('holds the start width through a gesture', () => {
 		const store = createDashboardStore(
 			initial({ demands: new Map([['a', { minWidth: 300 }]]), width: 1200 }),
