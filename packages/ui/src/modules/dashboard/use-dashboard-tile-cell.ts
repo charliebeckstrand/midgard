@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
+import { useCallback, useLayoutEffect, useMemo } from 'react'
 import { useDashboardStoreContext } from './context'
 import {
 	type DashboardCell,
@@ -75,10 +75,8 @@ export function useDashboardTileCell(
 
 	const maxH = maxSize?.h
 
-	const latest = useRef(demands)
-
-	latest.current = demands
-
+	// The effect below registers the tile, and this cleanup unregisters it on an unmount
+	// or a new id. So a change of the demands keeps the registration in its place.
 	useLayoutEffect(() => {
 		// The store keys a registration by id alone, so two tiles with one id share one registration.
 		// Each cleanup runs before the next effect, so StrictMode and a swap in one commit stay silent.
@@ -88,7 +86,7 @@ export function useDashboardTileCell(
 			)
 		}
 
-		return store.register(id, latest.current)
+		return () => store.unregister(id)
 	}, [store, id])
 
 	useLayoutEffect(() => {

@@ -199,14 +199,39 @@ describe('createDashboardStore', () => {
 
 		store.subscribe(listener)
 
-		const unregister = store.register('a', { ratio: 16 / 9 })
+		store.register('a', { ratio: 16 / 9 })
 
 		expect(store.getView().cells.get('a')).toMatchObject({ w: 8, h: 18 })
 
-		unregister()
+		store.unregister('a')
 
 		expect(store.getView().cells.has('a')).toBe(false)
 
 		expect(listener).toHaveBeenCalledTimes(2)
+	})
+
+	it('notifies no listener while closed, and catches up once when it opens', () => {
+		const store = createDashboardStore(initial())
+
+		const listener = vi.fn()
+
+		store.subscribe(listener)
+
+		store.close()
+
+		store.unregister('a')
+
+		store.unregister('b')
+
+		expect(listener).not.toHaveBeenCalled()
+
+		// A read of a closed store still sees the current state.
+		expect([...store.getView().cells.keys()]).toEqual(['c'])
+
+		store.open()
+
+		expect(listener).toHaveBeenCalledOnce()
+
+		expect([...store.getView().cells.keys()]).toEqual(['c'])
 	})
 })

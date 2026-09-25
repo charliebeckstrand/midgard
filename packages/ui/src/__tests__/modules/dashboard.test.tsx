@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import {
 	Dashboard,
@@ -12,10 +12,12 @@ import {
 	useDashboardRows,
 	useDashboardScope,
 } from '../../modules/dashboard'
+import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 import {
 	pressSplitter,
+	StoreProbe,
 	settleKeyboardLifts,
 	stubCanvasWidth,
 	useControlledLayout,
@@ -1363,6 +1365,56 @@ describe('Dashboard tile ids', () => {
 		expect(screen.getByRole('group', { name: 'a' })).toBeInTheDocument()
 
 		expect(screen.getByRole('group', { name: 'b' })).toBeInTheDocument()
+	})
+})
+
+describe('Dashboard registration', () => {
+	it('registers each tile once on mount', () => {
+		let register: MockInstance<DashboardStore['register']> | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<StoreProbe
+					onStore={(store) => {
+						register = vi.spyOn(store, 'register')
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+			</Dashboard>,
+		)
+
+		expect(register?.mock.calls.map(([id]) => id)).toEqual(['a', 'b'])
+	})
+
+	it('wakes no reader of the store while the board unmounts', () => {
+		let board: DashboardStore | undefined
+
+		const { unmount } = renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const listener = vi.fn()
+
+		board?.subscribe(listener)
+
+		unmount()
+
+		expect(listener).not.toHaveBeenCalled()
 	})
 })
 

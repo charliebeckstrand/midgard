@@ -108,13 +108,26 @@ export type DashboardStore = {
 	getState: () => DashboardState
 	/** The current view. The same state always returns the same object. */
 	getView: () => DashboardView
-	/** Merges `patch` into the state, and notifies the listeners. */
+	/** Merges `patch` into the state, and notifies the listeners while the store is open. */
 	setState: (patch: Partial<DashboardState>) => void
 	/**
-	 * Registers the demands of a tile, and returns the function that unregisters it.
-	 * A `ratio` or a `minWidth` that is not a usable number registers as absent.
+	 * Registers the demands of a tile, or updates them in place. A `ratio` or a
+	 * `minWidth` that is not a usable number registers as absent.
 	 */
-	register: (id: string, demands: DashboardTileDemands) => () => void
+	register: (id: string, demands: DashboardTileDemands) => void
+	/** Removes the demands of a tile. */
+	unregister: (id: string) => void
+	/**
+	 * Opens a closed store. It derives the view of the current state, and it
+	 * notifies the listeners. A new store is open.
+	 */
+	open: () => void
+	/**
+	 * Closes the store. A change then updates the state and notifies no listener,
+	 * so an unmount of the board wakes no reader for each tile that goes. A read
+	 * of the view still derives it.
+	 */
+	close: () => void
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 }
@@ -236,6 +249,11 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	let view: DashboardView | null = null
 
+	// The state that `view` comes from. It falls behind only while the store is closed.
+	let viewed: DashboardState | null = null
+
+	let closed = false
+
 	const listeners = new Set<() => void>()
 
 	// The first entry of each id, placed with provisional heights. A tile that has not registered
@@ -295,32 +313,52 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		}
 	}
 
-	const replace = (next: DashboardState) => {
-		state = next
+	/** The view of the current state. */
+	const current = (): DashboardView => {
+		if (view === null || viewed !== state) {
+			view = derive(view)
 
-		view = derive(view)
+			viewed = state
+		}
+
+		return view
+	}
+
+	const notify = () => {
+		current()
 
 		for (const listener of listeners) listener()
 	}
 
+	const replace = (next: DashboardState) => {
+		state = next
+
+		if (!closed) notify()
+	}
+
 	return {
 		getState: () => state,
-		getView: () => {
-			view ??= derive(null)
-
-			return view
-		},
+		getView: current,
 		setState: (patch) => replace({ ...state, ...patch }),
 		register: (id, demands) => {
 			replace({ ...state, demands: new Map(state.demands).set(id, usableDemands(demands)) })
+		},
+		unregister: (id) => {
+			const rest = new Map(state.demands)
 
-			return () => {
-				const rest = new Map(state.demands)
+			rest.delete(id)
 
-				rest.delete(id)
+			replace({ ...state, demands: rest })
+		},
+		open: () => {
+			if (!closed) return
 
-				replace({ ...state, demands: rest })
-			}
+			closed = false
+
+			notify()
+		},
+		close: () => {
+			closed = true
 		},
 		subscribe: (listener) => {
 			listeners.add(listener)

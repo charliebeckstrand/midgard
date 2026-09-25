@@ -243,6 +243,15 @@ export function Dashboard({
 		}),
 	)
 
+	// On an unmount, this cleanup runs first and closes the store, so each tile that
+	// unregisters after it wakes no reader. When the effects mount again, as under
+	// StrictMode, the tiles register before the board, and the open catches up.
+	useLayoutEffect(() => {
+		store.open()
+
+		return store.close
+	}, [store])
+
 	useLayoutEffect(() => store.setState({ columns, gap, editing }), [store, columns, gap, editing])
 
 	useLayoutEffect(

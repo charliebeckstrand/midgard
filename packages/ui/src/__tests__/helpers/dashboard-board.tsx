@@ -1,5 +1,5 @@
 import { act, fireEvent, screen } from '@testing-library/react'
-import { useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { afterEach, beforeEach, type Mock } from 'vitest'
 import {
 	Dashboard,
@@ -7,6 +7,8 @@ import {
 	type DashboardLayoutItem,
 	type DashboardProps,
 } from '../../modules/dashboard'
+import { useDashboardStoreContext } from '../../modules/dashboard/context'
+import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
 import { present } from './present'
 
 /**
@@ -141,6 +143,25 @@ export function pressSplitter(name: string, edge: 0 | 1, key: string): void {
 	const splitter = screen.getAllByRole('separator', { name: `Resize ${name}` })[edge]
 
 	fireEvent.keyDown(present(splitter, `splitter ${edge} of ${name}`), { key })
+}
+
+/**
+ * Gives the store of the board to `onStore` once, in a layout effect.
+ *
+ * @remarks
+ * Put the probe first among the children of the board. Its effect then runs
+ * before the effects of the tiles, so a spy on the store sees each registration.
+ */
+export function StoreProbe({ onStore }: { onStore: (store: DashboardStore) => void }) {
+	const store = useDashboardStoreContext()
+
+	const first = useRef(onStore)
+
+	useLayoutEffect(() => {
+		first.current(store)
+	}, [store])
+
+	return null
 }
 
 /** A widget with its own state, as a grid holds its sort. Each click counts up. */
