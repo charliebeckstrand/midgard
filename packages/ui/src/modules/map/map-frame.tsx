@@ -89,11 +89,13 @@ export function MapFrame({
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
-					// the row instead of moving in the DOM.
+					// the row instead of moving in the DOM. The stack stretches its
+					// children, because the plot reserves its height from its own
+					// width and a centered plot has no width to reserve from.
 					<div
 						className={cn(
-							'flex flex-col gap-4 items-center',
-							legendPlacement === 'left' ? 'flex-row-reverse' : 'flex-row',
+							'flex flex-col gap-4 lg:items-center',
+							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
 						)}
 					>
 						{plot}

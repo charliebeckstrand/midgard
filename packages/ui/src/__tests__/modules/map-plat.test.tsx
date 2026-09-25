@@ -235,6 +235,24 @@ describe('MapPlat', () => {
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
 	})
 
+	it('stacks a side panel under the map below lg and beside it from lg', () => {
+		for (const [legend, row] of [
+			['right', 'lg:flex-row'],
+			['left', 'lg:flex-row-reverse'],
+		] as const) {
+			const { container } = renderUI(categoricalPlat({ legend }))
+
+			const stack = bySlot(container, 'map-legend-box')?.parentElement
+
+			expect(stack).toHaveClass('flex-col', row)
+
+			expect(stack).not.toHaveClass('flex-row', 'flex-row-reverse')
+
+			// The legend follows the plot in the DOM, so the column puts it under the map.
+			expect(stack?.lastElementChild).toBe(bySlot(container, 'map-legend-box'))
+		}
+	})
+
 	it('lays the under-map legend out as a centered grid', () => {
 		const { container } = renderUI(categoricalPlat())
 
