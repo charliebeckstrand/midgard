@@ -2,7 +2,7 @@
 
 import { useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
-import type { CSSProperties } from 'react'
+import { type CSSProperties, useMemo } from 'react'
 
 /** Options for {@link useSortableItem}: the item's id and whether it takes a drag. */
 export type SortableItemOptions = {
@@ -21,6 +21,8 @@ export type SortableItemOptions = {
  * @returns `{ setNodeRef, setActivatorNodeRef, attributes, listeners, style,
  * dragging }`: dnd-kit's node and activator refs, the spreadable `attributes`
  * and `listeners`, the composed `style`, and `dragging` for the active item.
+ * `style` keeps its identity while its transform, transition, and drag state
+ * hold.
  */
 export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 	const {
@@ -33,11 +35,15 @@ export function useSortableItem({ id, disabled = false }: SortableItemOptions) {
 		isDragging: dragging,
 	} = useSortable({ id, disabled })
 
-	const style: CSSProperties = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-		opacity: dragging ? 0 : 1,
-	}
+	// dnd-kit renders each sortable item again when the item under the pointer
+	// changes. The style keeps its identity while its values hold, so a memoized
+	// consumer of an item that did not move holds too.
+	const translate = CSS.Transform.toString(transform)
+
+	const style = useMemo<CSSProperties>(
+		() => ({ transform: translate, transition, opacity: dragging ? 0 : 1 }),
+		[translate, transition, dragging],
+	)
 
 	return { setNodeRef, setActivatorNodeRef, attributes, listeners, style, dragging }
 }
