@@ -1,3 +1,5 @@
+import { createKeyedStore } from '../../../../utilities'
+
 /**
  * The settled width of each column, as a store that a cell subscribes to for
  * its own column only.
@@ -36,33 +38,15 @@ export type GridSettleStore = {
 
 /** A new, empty {@link GridSettleStore}. @internal */
 export function createSettleStore(): GridSettleStore {
-	let current: ReadonlyMap<string, number | undefined> = new Map()
+	const widths = createKeyedStore<string, number | undefined>(() => undefined)
 
 	let dragging = false
-
-	const listeners = new Map<string, Set<() => void>>()
 
 	const resizingListeners = new Set<() => void>()
 
 	return {
-		get: (columnId) => current.get(columnId),
-		subscribe: (columnId, listener) => {
-			let set = listeners.get(columnId)
-
-			if (!set) {
-				set = new Set()
-
-				listeners.set(columnId, set)
-			}
-
-			set.add(listener)
-
-			return () => {
-				set.delete(listener)
-
-				if (set.size === 0) listeners.delete(columnId)
-			}
-		},
+		get: widths.get,
+		subscribe: widths.subscribe,
 		resizing: () => dragging,
 		subscribeResizing: (listener) => {
 			resizingListeners.add(listener)
@@ -71,22 +55,14 @@ export function createSettleStore(): GridSettleStore {
 				resizingListeners.delete(listener)
 			}
 		},
-		publish: (widths, resizing) => {
-			const previous = current
-
+		publish: (next, resizing) => {
 			const wasResizing = dragging
-
-			current = widths
 
 			dragging = resizing
 
 			if (wasResizing !== resizing) for (const listener of [...resizingListeners]) listener()
 
-			for (const [columnId, set] of listeners) {
-				if (Object.is(previous.get(columnId), widths.get(columnId))) continue
-
-				for (const listener of [...set]) listener()
-			}
+			widths.publish((columnId) => next.get(columnId))
 		},
 	}
 }
