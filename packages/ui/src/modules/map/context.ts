@@ -166,7 +166,7 @@ export type MapPlatContextValue = {
 	 * drawn form already. Excludes hidden marks and every mark that draws no dot, so a route's waypoints
 	 * and a zone's ring never contest ground they paint nothing on.
 	 */
-	neighbours: (exclude: string) => MapPoint2D[]
+	neighbors: (exclude: string) => MapPoint2D[]
 	/** The legend id under emphasis; marks outside its group dim. */
 	emphasis: string | null
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */

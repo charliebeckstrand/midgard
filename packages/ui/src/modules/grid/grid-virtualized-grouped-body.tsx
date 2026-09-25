@@ -36,10 +36,10 @@ import {
 type GroupExpansion = { ids: string[]; open: boolean[] }
 
 /** The open keys of a group's rows, in display order: its leaves, then its total. @internal */
-function rowKeysOf<T>(group: GridGroup<T>, totalled: boolean): string[] {
+function rowKeysOf<T>(group: GridGroup<T>, totaled: boolean): string[] {
 	const keys = group.leaves.map((leaf) => leafItemKey(leaf.id))
 
-	if (totalled) keys.push(totalItemKey(group.id))
+	if (totaled) keys.push(totalItemKey(group.id))
 
 	return keys
 }
@@ -58,13 +58,13 @@ function groupToggle<T>(
 	context: {
 		view: () => GridWindowView
 		reducedMotion: boolean
-		totalled: boolean
+		totaled: boolean
 		rowHeight: number
 	},
 ): void {
 	const { view, reducedMotion } = context
 
-	const keys = rowKeysOf(group, context.totalled)
+	const keys = rowKeysOf(group, context.totaled)
 
 	if (open) {
 		change.opened.push(...keys)
@@ -101,7 +101,7 @@ function groupToggle<T>(
  * @internal
  */
 function groupMotionSource<T>(
-	totalled: boolean,
+	totaled: boolean,
 	rowHeight: number,
 ): GridMotionSource<GridGroup<T>[], GroupExpansion, string> {
 	return {
@@ -133,7 +133,7 @@ function groupMotionSource<T>(
 				const before = was.get(group.id)
 
 				if (before !== undefined && before !== open) {
-					groupToggle(group, open, change, { ...context, totalled, rowHeight })
+					groupToggle(group, open, change, { ...context, totaled, rowHeight })
 				}
 			}
 
@@ -152,7 +152,7 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	columnId: string | number
 	renderHeader: GridGroupBy['renderHeader']
 	/** Whether each group shows a total row. */
-	totalled: boolean
+	totaled: boolean
 	density: DensityLevel
 	/** The row-manager overlay presentation (per-group color), or `null` when off. */
 	presentation: GridRowGroupPresentation | null
@@ -192,7 +192,7 @@ export function GridVirtualizedGroupedBody<T>({
 	toggleGroup,
 	columnId,
 	renderHeader,
-	totalled,
+	totaled,
 	density,
 	presentation,
 	leafProps,
@@ -204,16 +204,16 @@ export function GridVirtualizedGroupedBody<T>({
 	const record = useRef(NO_WINDOW_RECORD)
 
 	const source = useMemo(
-		() => groupMotionSource<T>(totalled, window.estimateSize),
-		[totalled, window.estimateSize],
+		() => groupMotionSource<T>(totaled, window.estimateSize),
+		[totaled, window.estimateSize],
 	)
 
 	const { motions, release } = useGridWindowMotion(groups, source, record, window.scrollRef)
 
 	// A toggle gives a new list of groups, so the item list rebuilds with it.
 	const items = useMemo(
-		() => groupedWindowItems(groups, { totalled, motions }),
-		[groups, totalled, motions],
+		() => groupedWindowItems(groups, { totaled, motions }),
+		[groups, totaled, motions],
 	)
 
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
@@ -221,8 +221,8 @@ export function GridVirtualizedGroupedBody<T>({
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
 	const cursorOrder = useMemo(
-		() => groupedCursorRows(groups, totalled, toggleGroup),
-		[groups, totalled, toggleGroup],
+		() => groupedCursorRows(groups, totaled, toggleGroup),
+		[groups, totaled, toggleGroup],
 	)
 
 	useGridCursorOrder(cursorOrder)

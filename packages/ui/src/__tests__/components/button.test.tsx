@@ -121,9 +121,9 @@ describe('Button', () => {
 
 		// Activation is canceled: the default navigation is prevented and the
 		// consumer's handler never fires.
-		const notCancelled = fireEvent.click(link)
+		const notCanceled = fireEvent.click(link)
 
-		expect(notCancelled).toBe(false)
+		expect(notCanceled).toBe(false)
 
 		expect(onClick).not.toHaveBeenCalled()
 	})

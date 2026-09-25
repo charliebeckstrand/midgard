@@ -69,7 +69,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		dim,
 		selected,
 		onPointerLeave,
-		neighbours,
+		neighbors,
 		hit,
 	} = useMapOverlay({
 		...shared,
@@ -104,10 +104,8 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	 */
 	const ground = useMemo(
 		() =>
-			position === null
-				? null
-				: ownGround(position, neighbours(), POINT_HIT_RADIUS * unitsPerPixel),
-		[position, neighbours, unitsPerPixel],
+			position === null ? null : ownGround(position, neighbors(), POINT_HIT_RADIUS * unitsPerPixel),
+		[position, neighbors, unitsPerPixel],
 	)
 
 	/*

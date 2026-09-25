@@ -142,7 +142,7 @@ export function clusterPoints(
 	// mark's radius to match.
 	const seeds = seedGroups(positions, project, (POINT_RADIUS * 2 + gap) * unitsPerPixel)
 
-	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarise)
+	return consolidate(seeds, gap * unitsPerPixel, unitsPerPixel).map(summarize)
 }
 
 /**
@@ -366,7 +366,7 @@ function nearestSeed(
  * @internal
  */
 function markOf(group: MapClusterSeed, unitsPerPixel: number): MapClusterMark | null {
-	const at = centre(group)
+	const at = center(group)
 
 	return at === null ? null : { at, radius: clusterRadius(group.members.length) * unitsPerPixel }
 }
@@ -388,11 +388,11 @@ function marksOverlap(a: MapClusterMark, b: MapClusterMark, gap: number): boolea
 }
 
 /** Where a group draws: the mean of its members' projected positions. @internal */
-function centre({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | null {
+function center({ members, seed, sumX, sumY }: MapClusterSeed): MapPoint2D | null {
 	return seed === null ? null : { x: sumX / members.length, y: sumY / members.length }
 }
 
 /** Resolves a built group to the dots it holds and the point it draws at. @internal */
-function summarise(group: MapClusterSeed): MapPointCluster {
-	return { members: group.members, at: centre(group) }
+function summarize(group: MapClusterSeed): MapPointCluster {
+	return { members: group.members, at: center(group) }
 }

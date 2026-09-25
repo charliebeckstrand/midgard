@@ -208,7 +208,7 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
  *
  * @internal
  */
-function LabelledReferenceRule({
+function LabeledReferenceRule({
 	line,
 	index,
 	start,
@@ -390,7 +390,7 @@ function SparkReferenceRule({ line, start, end, rise }: ReferenceRuleProps) {
  *
  * - The bare {@link SparkReferenceRule} at the spark tier, read through
  *   {@link ChartTierContext} so the frame decides and no chart gates it.
- * - The standing {@link LabelledReferenceRule} under `labels`.
+ * - The standing {@link LabeledReferenceRule} under `labels`.
  * - The interactive {@link HoverReferenceRule} otherwise.
  *
  * All draw the same dashed rule; they differ only in whether the value reads
@@ -403,7 +403,7 @@ function ReferenceRule(props: ReferenceRuleProps) {
 
 	if (spark) return <SparkReferenceRule {...props} />
 
-	return props.labels ? <LabelledReferenceRule {...props} /> : <HoverReferenceRule {...props} />
+	return props.labels ? <LabeledReferenceRule {...props} /> : <HoverReferenceRule {...props} />
 }
 
 /**

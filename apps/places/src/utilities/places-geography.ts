@@ -207,7 +207,7 @@ export function decodeRegions(
  * `null` for nothing to center on, which the caller reads as the plain named
  * projection.
  */
-export function centredProjection(geography: MapFeatureCollection | null): GeoProjection | null {
+export function centeredProjection(geography: MapFeatureCollection | null): GeoProjection | null {
 	if (geography === null || geography.features.length === 0) return null
 
 	const [longitude] = geoCentroid(geography as Parameters<typeof geoCentroid>[0])

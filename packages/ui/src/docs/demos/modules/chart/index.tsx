@@ -127,17 +127,17 @@ function useGeography(url: string): MapGeography | null {
 	const [geography, setGeography] = useState<MapGeography | null>(null)
 
 	useEffect(() => {
-		let cancelled = false
+		let canceled = false
 
 		fetch(url)
 			.then((response) => response.json())
 			.then((json: MapGeography) => {
-				if (!cancelled) setGeography(json)
+				if (!canceled) setGeography(json)
 			})
 			.catch(() => {})
 
 		return () => {
-			cancelled = true
+			canceled = true
 		}
 	}, [url])
 

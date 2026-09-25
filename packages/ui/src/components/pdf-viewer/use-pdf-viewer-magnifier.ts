@@ -128,9 +128,9 @@ export type MagnifierPoint = { x: number; y: number }
  * @internal
  */
 export function lensOffset(point: MagnifierPoint, zoom: number, size: number): MagnifierPoint {
-	const centre = size / 2
+	const center = size / 2
 
-	return { x: centre - zoom * point.x, y: centre - zoom * point.y }
+	return { x: center - zoom * point.x, y: center - zoom * point.y }
 }
 
 /** @internal */

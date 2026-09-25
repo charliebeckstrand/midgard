@@ -157,12 +157,12 @@ describe('map stroke width through the view', () => {
 		// where a radius derived from the stated width would agree with itself even
 		// if the cap disagreed. The probe is in the path's own units, so the
 		// device-pixel radius divides by what one unit spans.
-		const centre = dot.getPointAtLength(0)
+		const center = dot.getPointAtLength(0)
 
 		const radius = POINT_RADIUS / screenScale(dot)
 
-		expect(dot.isPointInStroke({ x: centre.x + radius * 0.9, y: centre.y })).toBe(true)
+		expect(dot.isPointInStroke({ x: center.x + radius * 0.9, y: center.y })).toBe(true)
 
-		expect(dot.isPointInStroke({ x: centre.x + radius * 1.1, y: centre.y })).toBe(false)
+		expect(dot.isPointInStroke({ x: center.x + radius * 1.1, y: center.y })).toBe(false)
 	})
 })

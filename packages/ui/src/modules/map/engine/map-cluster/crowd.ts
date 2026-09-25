@@ -114,7 +114,7 @@ function roomBeside(mark: MapPoint2D, other: MapDotMark, unitsPerPixel: number):
  *
  * @internal
  */
-export function neighbourRoom(marks: readonly MapDotMark[], unitsPerPixel = 1): number[] {
+export function neighborRoom(marks: readonly MapDotMark[], unitsPerPixel = 1): number[] {
 	// A mark alone on the frame has no neighbor to give ground to, which is every
 	// `MapPoint` and every set drawing one dot.
 	if (marks.length < 2) return marks.map(() => Number.POSITIVE_INFINITY)
@@ -213,7 +213,7 @@ export function markTargets(
 	unitsPerPixel: number,
 	spare: (at: MapPoint2D) => number,
 ): number[] {
-	const beside = neighbourRoom(marks, unitsPerPixel)
+	const beside = neighborRoom(marks, unitsPerPixel)
 
 	return marks.map(({ at, radius }, index) => {
 		// It draws nothing and stands nowhere, so no zone, no region, and no

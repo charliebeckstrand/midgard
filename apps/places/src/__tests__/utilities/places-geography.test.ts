@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest'
 import type { Place } from '../../types'
 import {
 	boundRegions,
-	centredProjection,
+	centeredProjection,
 	decodeRegions,
 	groupPlacesByRegion,
 	nearestRegion,
@@ -112,18 +112,18 @@ describe('regionFrame', () => {
 	})
 })
 
-describe('centredProjection', () => {
+describe('centeredProjection', () => {
 	it('answers with nothing to center on for an empty atlas', () => {
-		expect(centredProjection(null)).toBeNull()
+		expect(centeredProjection(null)).toBeNull()
 
-		expect(centredProjection({ type: 'FeatureCollection', features: [] })).toBeNull()
+		expect(centeredProjection({ type: 'FeatureCollection', features: [] })).toBeNull()
 	})
 
 	// The rotation is what un-wraps Alaska and takes the shear off every other
 	// state: the subject goes on the meridian rather than being fitted across a
 	// span it does not occupy.
 	it('rotates the projection onto the subject its own centroid names', () => {
-		const projection = centredProjection({ type: 'FeatureCollection', features: [OREGON] })
+		const projection = centeredProjection({ type: 'FeatureCollection', features: [OREGON] })
 
 		expect(projection).not.toBeNull()
 

@@ -32,7 +32,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 		fireEvent.pointerMove(row, { pointerType: 'mouse', clientX: x, clientY: y })
 
 	/** A row's center in client coordinates. */
-	const centre = (el: HTMLElement) => {
+	const center = (el: HTMLElement) => {
 		const rect = el.getBoundingClientRect()
 
 		return { x: rect.x + rect.width / 2, y: rect.y + rect.height / 2 }
@@ -55,7 +55,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		const sort = item('Sort')
 
-		const from = centre(sort)
+		const from = center(sort)
 
 		// Cursor and panel both land with the pointer, neither waiting on a clock.
 		settle(sort, from.x, from.y)
@@ -83,7 +83,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 		// passing over it, not arriving at it.
 		const edge = rect.left >= from.x ? rect.left : rect.right
 
-		const crossing = { x: from.x + (edge - from.x) * 0.8, y: centre(pin).y }
+		const crossing = { x: from.x + (edge - from.x) * 0.8, y: center(pin).y }
 
 		settle(pin, crossing.x, crossing.y)
 
@@ -93,7 +93,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 
 		// Straight down the menu instead, away from the panel: Pin takes the cursor
 		// and its own submenu replaces the one open, both in the same frame.
-		settle(pin, from.x, centre(pin).y)
+		settle(pin, from.x, center(pin).y)
 
 		expect(pin).toHaveFocus()
 

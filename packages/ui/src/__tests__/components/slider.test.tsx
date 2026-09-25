@@ -477,7 +477,7 @@ describe('RangeSlider + Form', () => {
 		expect(getSlot(container, 'slider-range')).not.toHaveAttribute('aria-invalid')
 	})
 
-	const renderLabelled = (props: Partial<ComponentProps<typeof RangeSlider>> = {}) =>
+	const renderLabeled = (props: Partial<ComponentProps<typeof RangeSlider>> = {}) =>
 		renderUI(
 			<Form defaultValues={{ price: [20, 50] as [number, number] }}>
 				<Field>
@@ -488,7 +488,7 @@ describe('RangeSlider + Form', () => {
 		)
 
 	it('focuses the start thumb on a click on the Field label', async () => {
-		const { container } = renderLabelled()
+		const { container } = renderLabeled()
 
 		const [lo] = allBySlot(container, 'slider-range-thumb')
 
@@ -501,7 +501,7 @@ describe('RangeSlider + Form', () => {
 		const onValueChange = vi.fn()
 		const onDragStart = vi.fn()
 
-		const { container } = renderLabelled({ onValueChange, onDragStart })
+		const { container } = renderLabeled({ onValueChange, onDragStart })
 
 		await userEvent.click(screen.getByText('Price'))
 
@@ -517,7 +517,7 @@ describe('RangeSlider + Form', () => {
 	})
 
 	it('keeps the thumb names after a click on the Field label', async () => {
-		const { container } = renderLabelled()
+		const { container } = renderLabeled()
 
 		await userEvent.click(screen.getByText('Price'))
 
@@ -529,7 +529,7 @@ describe('RangeSlider + Form', () => {
 	})
 
 	it('focuses no thumb on a click on the label of a disabled slider', async () => {
-		renderLabelled({ disabled: true })
+		renderLabeled({ disabled: true })
 
 		await userEvent.click(screen.getByText('Price'))
 

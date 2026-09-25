@@ -13,7 +13,7 @@ import {
 } from 'ui/modules/map'
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
-import { centredProjection, regionFrame, regionName } from '../../utilities/places-geography'
+import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
 import { type PlaceView, viewAtlas, viewFrame, viewRegion } from '../../utilities/places-view'
 import { placeStops } from './places-map-utilities'
 
@@ -152,7 +152,7 @@ export function PlacesMap({
 	// Held rather than rebuilt, because the plat fits a passed instance directly
 	// and keys that fit on the projection's identity.
 	const projection = useMemo<MapProjection>(
-		() => (cut === null ? atlasProjection : (centredProjection(geography) ?? 'mercator')),
+		() => (cut === null ? atlasProjection : (centeredProjection(geography) ?? 'mercator')),
 		[geography, cut, atlasProjection],
 	)
 
