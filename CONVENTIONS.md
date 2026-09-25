@@ -125,7 +125,7 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 | App | `apps/<app>/src/__tests__/**/*.test.ts` |
 | `ui` component | `packages/ui/src/__tests__/` |
 | `ui` docs engine | `packages/ui/src/docs/engine/__tests__/` |
-| `auth` | Beside the source (`packages/auth/src/*.test.ts`), under `node --test` |
+| `auth`, `shared` | `packages/<package>/src/__tests__/` |
 
 10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
 

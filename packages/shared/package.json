@@ -6,16 +6,15 @@
 	"exports": {
 		"./auth": {
 			"types": "./src/auth/index.ts",
-			"import": "./dist/auth.js",
-			"default": "./dist/auth.js"
+			"default": "./src/auth/index.ts"
 		},
-		"./theme.css": "./src/theme.css",
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {
-		"build": "tsup",
-		"dev": "tsup --watch",
 		"check-types": "tsc --noEmit",
+		"test": "vitest run",
+		"test:changed": "vitest run",
+		"test:related": "vitest related --run",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write ."
@@ -33,7 +32,7 @@
 		"@types/react": "catalog:",
 		"next": "catalog:",
 		"react": "catalog:",
-		"tsup": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

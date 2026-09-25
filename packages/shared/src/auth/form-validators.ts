@@ -44,7 +44,7 @@ export const minLength =
  * Validator factory: fails when the value differs from another field's value.
  *
  * @internal
- * @param field - Name of the sibling field to compare against (e.g. `password`).
+ * @param field - Name of the sibling field to compare against (such as `password`).
  * @param label - Human label for `field`, used in the `Must match ${label}` message.
  */
 export const matches =

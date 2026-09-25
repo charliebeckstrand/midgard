@@ -1,7 +1,7 @@
 'use client'
 
 import { skipToken, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import type { User } from 'auth/user'
+import type { User } from 'auth'
 import type { Chat } from './[userId]/types'
 import {
 	deleteChat,

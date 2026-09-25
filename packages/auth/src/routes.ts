@@ -1,17 +1,24 @@
 const guestRoutes = ['/login', '/register']
 
-/**
- * True when `pathname` is a guest route (`/login`, `/register`) or one of their
- * subpaths. Matches on path boundaries so `/login-help` is not treated as `/login`.
- */
-export function isGuestRoute(pathname: string): boolean {
-	return guestRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`))
+// Matches on a path boundary, so `/login-help` is not within `/login`.
+function isWithin(pathname: string, route: string): boolean {
+	return pathname === route || pathname.startsWith(`${route}/`)
 }
 
 /**
- * True when `pathname` is a same-origin API route (`/api`) or one of its
- * subpaths. Matches on path boundaries, so `/apis` is not an API route.
+ * True when `pathname` is a guest route (`/login`, `/register`) or a subpath of one.
+ *
+ * @internal
+ */
+export function isGuestRoute(pathname: string): boolean {
+	return guestRoutes.some((route) => isWithin(pathname, route))
+}
+
+/**
+ * True when `pathname` is the same-origin API route (`/api`) or a subpath of it.
+ *
+ * @internal
  */
 export function isApiRoute(pathname: string): boolean {
-	return pathname === '/api' || pathname.startsWith('/api/')
+	return isWithin(pathname, '/api')
 }

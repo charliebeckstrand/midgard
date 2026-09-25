@@ -406,6 +406,9 @@ importers:
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
 
   packages/shared:
     dependencies:
@@ -428,12 +431,12 @@ importers:
       react:
         specifier: 'catalog:'
         version: 19.2.7
-      tsup:
-        specifier: 'catalog:'
-        version: 8.5.1(jiti@2.7.0)(postcss@8.5.28)(supports-color@7.2.0)(tsx@4.22.3)(typescript@6.0.3)(yaml@2.9.0)
       typescript:
         specifier: 'catalog:'
         version: 6.0.3
+      vitest:
+        specifier: 'catalog:'
+        version: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
 
   packages/ui:
     dependencies:
@@ -5899,7 +5902,7 @@ snapshots:
   '@vitest/browser-playwright@4.1.11(playwright@1.56.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(vitest@4.1.11)':
     dependencies:
       '@vitest/browser': 4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(vitest@4.1.11)
-      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
       playwright: 1.56.1
       tinyrainbow: 3.1.0
       vitest: 4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
@@ -5912,7 +5915,7 @@ snapshots:
   '@vitest/browser@4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))(vitest@4.1.11)':
     dependencies:
       '@blazediff/core': 1.9.1
-      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
       '@vitest/utils': 4.1.11
       magic-string: 0.30.21
       pngjs: 7.0.0
@@ -5951,7 +5954,7 @@ snapshots:
       chai: 6.2.2
       tinyrainbow: 3.1.0
 
-  '@vitest/mocker@4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))':
+  '@vitest/mocker@4.1.11(vite@8.0.16(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))':
     dependencies:
       '@vitest/spy': 4.1.11
       estree-walker: 3.0.3
@@ -7594,7 +7597,7 @@ snapshots:
   vitest@4.1.11(@types/node@25.9.1)(@vitest/browser-playwright@4.1.11)(@vitest/coverage-v8@4.1.11)(jsdom@29.1.1)(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0)):
     dependencies:
       '@vitest/expect': 4.1.11
-      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(esbuild@0.28.2)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
+      '@vitest/mocker': 4.1.11(vite@8.0.16(@types/node@25.9.1)(jiti@2.7.0)(tsx@4.22.3)(yaml@2.9.0))
       '@vitest/pretty-format': 4.1.11
       '@vitest/runner': 4.1.11
       '@vitest/snapshot': 4.1.11

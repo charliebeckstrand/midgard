@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { Suspense, useState } from 'react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
@@ -21,12 +21,12 @@ type RegisterValues = {
 }
 
 /**
- * Registration form: posts to `/auth/register`, then redirects to `/login?registered=true`.
+ * Registration page: posts the new account to `/auth/register`, and goes to
+ * `/login?registered=true` on success.
  *
- * @internal
- * @remarks Validates that `confirmPassword` matches `password` before submit.
+ * @remarks The form checks that `confirmPassword` matches `password` before it submits.
  */
-function RegisterForm() {
+export function RegisterPage() {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
@@ -110,14 +110,5 @@ function RegisterForm() {
 				</div>
 			</Form>
 		</AuthLayout>
-	)
-}
-
-/** Registration page: the sign-up form under a `Suspense` boundary. */
-export function RegisterPage() {
-	return (
-		<Suspense>
-			<RegisterForm />
-		</Suspense>
 	)
 }

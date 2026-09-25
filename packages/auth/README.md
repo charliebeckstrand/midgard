@@ -10,10 +10,9 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `auth` | Package barrel — `bifrost` (gateway fetch) and `getUser`. |
-| `auth/config` | `withAuth` — wraps a Next config with the gateway rewrites. |
-| `auth/proxy` | Gateway proxy handler for same-origin API routes. |
-| `auth/user` | Current-user accessor for Server Components and route handlers. |
+| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getUser`, and the `User` type. |
+| `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites. |
+| `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports. |
 
 ## 2. Commands
 
@@ -27,7 +26,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 ## 3. Consumers
 
-Used by [`apps/admin`](../../apps/admin/README.md) and re-exported in part by [`packages/shared`](../shared/README.md).
+[`apps/admin`](../../apps/admin/README.md) uses this package.
 
 ---
 

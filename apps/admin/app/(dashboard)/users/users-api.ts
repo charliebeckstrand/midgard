@@ -1,4 +1,4 @@
-import type { User } from 'auth/user'
+import type { User } from 'auth'
 import type { ChatMessageData } from 'ui/modules/chat'
 import type { Chat } from './[userId]/types'
 

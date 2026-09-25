@@ -1,9 +1,6 @@
-@import './theme.css';
 @import './fonts.css';
 
-@variant dark (@media (prefers-color-scheme: dark));
-
 :root {
-    height: 100%;
-    overscroll-behavior: none;
+	height: 100%;
+	overscroll-behavior: none;
 }

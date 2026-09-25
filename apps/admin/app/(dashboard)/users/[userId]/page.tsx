@@ -1,5 +1,4 @@
-import { bifrost } from 'auth'
-import type { User } from 'auth/user'
+import { bifrost, type User } from 'auth'
 import { UserDetailsClient } from './client'
 import type { Chat } from './types'
 

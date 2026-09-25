@@ -33,7 +33,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | [`apps/places`](apps/places/README.md) | Next.js map of the places you have been (App Router, Turbopack). |
 | [`packages/ui`](packages/ui/README.md) | Design system: components, primitives, hooks, providers, recipes. |
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
-| [`packages/shared`](packages/shared/README.md) | Shared auth/chat utilities and CSS themes. |
+| [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
 
 ---
 
