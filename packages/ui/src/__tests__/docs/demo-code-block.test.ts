@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
-import ts from 'typescript'
+import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 import { defaultRegistry, type ImportFact } from '../../docs/engine/derive-code'
 import {

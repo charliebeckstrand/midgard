@@ -1,7 +1,7 @@
 import fs from 'node:fs'
 import path from 'node:path'
+import ts from '@typescript/typescript6'
 import { Node, Project, SyntaxKind } from 'ts-morph'
-import ts from 'typescript'
 import type { Plugin } from 'vite'
 import { type ApiExtractor, createApiExtractor } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
