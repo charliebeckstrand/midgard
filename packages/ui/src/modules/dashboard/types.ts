@@ -1,7 +1,8 @@
 import type { ReactNode } from 'react'
 import type { Mount } from '../../primitives/mount'
 import type { QueryGroup } from '../query/engine/types'
-import type { DashboardLayoutItem, DashboardTileSize } from './engine/dashboard-layout'
+import type { DashboardTileProps } from './dashboard-tile'
+import type { DashboardLayoutItem } from './engine/dashboard-layout'
 import type { DashboardSelection } from './engine/dashboard-scope'
 import type { DashboardSpecTile } from './engine/dashboard-spec'
 
@@ -128,29 +129,17 @@ export type DashboardWidgetRenderer = (
 	tile: DashboardSpecTile,
 ) => Exclude<ReactNode, Promise<unknown>>
 
-/** One widget kind: the renderer, and the demands that its tiles make of their cells. */
-export type DashboardWidget = {
+/**
+ * One widget kind: the renderer, and the demands that its tiles make of their
+ * cells. Each demand is the `DashboardTile` prop of the same name, with the same
+ * default. A kind with no `minWidth` thus gets the floor of 320 px.
+ */
+export type DashboardWidget = Pick<
+	DashboardTileProps,
+	'ratio' | 'minWidth' | 'defaultSize' | 'minSize' | 'maxSize'
+> & {
 	/** Draws the content of each tile of this kind. */
 	render: DashboardWidgetRenderer
-	/**
-	 * The fixed `width / height` ratio of each tile of this kind. Omit it for a
-	 * free-form tile. A value that is not a finite number above 0 counts as no ratio.
-	 */
-	ratio?: number
-	/**
-	 * The narrowest content width in px at which the content stays legible. A value
-	 * that is not a finite number of 0 or more puts no floor on the width.
-	 */
-	minWidth?: number
-	/**
-	 * The span of a new tile of this kind, before the layout holds an entry for
-	 * it. A stat can then take a small span, and a grid the full width.
-	 */
-	defaultSize?: DashboardTileSize
-	/** The smallest span of each tile of this kind in grid units. See the `minSize` prop of `DashboardTile`. */
-	minSize?: Partial<DashboardTileSize>
-	/** The largest span of each tile of this kind in grid units. See the `maxSize` prop of `DashboardTile`. */
-	maxSize?: Partial<DashboardTileSize>
 }
 
 /**
