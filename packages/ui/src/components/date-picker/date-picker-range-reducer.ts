@@ -1,4 +1,5 @@
 import type { CalendarActive } from '../calendar'
+import { isSameDay } from '../calendar/calendar-utilities'
 
 /**
  * In-progress range selection: the pinned first endpoint, the hovered/keyboard
@@ -28,6 +29,13 @@ type DatePickerRangeAction =
 	| { type: 'hover'; date: Date | null }
 	| { type: 'setActive'; active: CalendarActive | null }
 
+/** Whether two hover dates are the same day, or both empty. */
+function sameHoverDate(a: Date | null, b: Date | null): boolean {
+	if (a === null || b === null) return a === b
+
+	return isSameDay(a, b)
+}
+
 /** Advances the {@link DatePickerRangeState} for a selection action. @internal */
 export function datePickerRangeReducer(
 	state: DatePickerRangeState,
@@ -39,7 +47,13 @@ export function datePickerRangeReducer(
 		case 'startRange':
 			return { ...state, rangeStart: action.date, hoverDate: null }
 		case 'pinEndpoint':
+			return { ...state, hoverDate: action.date }
 		case 'hover':
+			// A hover before the first endpoint shows no band, and a hover on the
+			// same day changes nothing. Both keep the state, so the picker does not
+			// render again for them.
+			if (state.rangeStart === null || sameHoverDate(state.hoverDate, action.date)) return state
+
 			return { ...state, hoverDate: action.date }
 		case 'setActive':
 			return { ...state, active: action.active }
