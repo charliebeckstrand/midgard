@@ -1,7 +1,8 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
+import { KNOWN_OPERATORS } from '../../modules/query/engine/query-evaluate'
 import { findBuiltInOperator, getOperators } from '../../modules/query/engine/query-operators'
-import type { QueryField } from '../../modules/query/engine/types'
+import type { QueryField, QueryFieldType } from '../../modules/query/engine/types'
 
 const numberField: QueryField = { name: 'age', label: 'Age', type: 'number' }
 
@@ -54,5 +55,32 @@ describe('findBuiltInOperator', () => {
 
 	it('finds no operator that no default set holds', () => {
 		expect(findBuiltInOperator('custom')).toBeUndefined()
+	})
+})
+
+// Each operator that the evaluator applies has a built-in label. So the summary
+// never shows the raw name of an operator that constrains the rows.
+describe('the built-in operator sets and the evaluator', () => {
+	// The compiler rejects this record when a field type has no entry.
+	const types = {
+		text: true,
+		number: true,
+		date: true,
+		select: true,
+		boolean: true,
+	} satisfies Record<QueryFieldType, true>
+
+	const builtIn = new Set(
+		(Object.keys(types) as QueryFieldType[]).flatMap((type) =>
+			getOperators({ name: type, label: type, type }).map((operator) => operator.value),
+		),
+	)
+
+	it('define each operator that the evaluator knows', () => {
+		expect([...KNOWN_OPERATORS].filter((value) => !builtIn.has(value))).toEqual([])
+	})
+
+	it('hold only operators that the evaluator knows', () => {
+		expect([...builtIn].filter((value) => !KNOWN_OPERATORS.has(value))).toEqual([])
 	})
 })
