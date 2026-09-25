@@ -1,6 +1,7 @@
 'use client'
 
 import type { ChangeEvent, ChangeEventHandler } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useFormField } from './context'
 import { hasIssues } from './form-reducer'
 
@@ -27,8 +28,9 @@ export type FormToggleResult = {
  * @returns A {@link FormToggleResult} carrying the effective `checked`,
  * `onChange`, and `invalid`.
  * @remarks Resolution runs in order. An explicit `checked` prop wins. Otherwise
- * a form field with this `name` drives the state, where `onChange` writes it,
- * marks touched, then chains the caller's `onChange`. Otherwise the input stays
+ * a form field with this `name` drives the state, where `onChange` runs the
+ * caller's `onChange` first, then writes the field and marks it touched. A
+ * caller `preventDefault()` skips neither. Otherwise the input stays
  * native uncontrolled (`defaultChecked`). Alongside an explicit `checked`, a bound
  * field still supplies `invalid` but overrides neither the prop nor `onChange`.
  * Subscribes through {@link useFormField}, re-rendering only on this field's
@@ -40,13 +42,17 @@ export function useFormToggle({ name, checked, onChange }: FormToggleOptions): F
 
 	const bound = checked === undefined && field !== undefined
 
-	const handleBoundChange = (event: ChangeEvent<HTMLInputElement>) => {
-		field?.setValue(event.target.checked)
+	// The field write and the touched mark run whatever the caller does
+	// (CONVENTIONS.md §3.9).
+	const handleBoundChange = composeEventHandlers(
+		onChange,
+		(event: ChangeEvent<HTMLInputElement>) => {
+			field?.setValue(event.target.checked)
 
-		field?.setTouched()
-
-		onChange?.(event)
-	}
+			field?.setTouched()
+		},
+		{ checkForDefaultPrevented: false },
+	)
 
 	return {
 		checked: bound ? field?.value === true : checked,

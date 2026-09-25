@@ -62,6 +62,15 @@ export const inputCases: readonly Case[] = [
 		),
 		density: [{ render: (size) => <Input size={size} />, slot: 'input' }],
 		textInput: [{ render: (props) => <Input {...props} />, slot: 'input' }],
+		touchOnBlur: [{ render: (props) => <Input {...props} />, defaultValue: '', slot: 'input' }],
+		writeOnChange: [
+			{
+				render: (props) => <Input {...props} />,
+				defaultValue: '',
+				slot: 'input',
+				kind: 'text',
+			},
+		],
 	},
 	{
 		name: 'input in field (warning)',
@@ -93,6 +102,17 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <TextareaSkeleton />, absentSlot: 'textarea' }],
 		textInput: [{ render: (props) => <Textarea {...props} />, slot: 'textarea' }],
+		touchOnBlur: [
+			{ render: (props) => <Textarea {...props} />, defaultValue: '', slot: 'textarea' },
+		],
+		writeOnChange: [
+			{
+				render: (props) => <Textarea {...props} />,
+				defaultValue: '',
+				slot: 'textarea',
+				kind: 'text',
+			},
+		],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -142,6 +162,14 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <CheckboxSkeleton />, absentSlot: 'checkbox' }],
 		density: [{ render: (size) => <Checkbox size={size} />, slot: 'control' }],
+		writeOnChange: [
+			{
+				render: (props) => <Checkbox {...props} />,
+				defaultValue: false,
+				slot: 'checkbox',
+				kind: 'toggle',
+			},
+		],
 	},
 	{
 		name: 'switch',
@@ -153,6 +181,14 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <SwitchSkeleton />, absentSlot: 'switch' }],
 		density: [{ render: (size) => <Switch size={size} />, slot: 'control' }],
+		writeOnChange: [
+			{
+				render: (props) => <Switch {...props} />,
+				defaultValue: false,
+				slot: 'switch',
+				kind: 'toggle',
+			},
+		],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -391,6 +427,14 @@ export const inputCases: readonly Case[] = [
 		textInput: [{ render: (props) => <SearchInput {...props} />, slot: 'search-input' }],
 		touchOnBlur: [
 			{ render: (props) => <SearchInput {...props} />, defaultValue: '', slot: 'search-input' },
+		],
+		writeOnChange: [
+			{
+				render: (props) => <SearchInput {...props} />,
+				defaultValue: '',
+				slot: 'search-input',
+				kind: 'text',
+			},
 		],
 	},
 	{

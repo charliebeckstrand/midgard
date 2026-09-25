@@ -1,7 +1,7 @@
 'use client'
 
 import { Search, X } from 'lucide-react'
-import { type ChangeEvent, type ReactNode, useCallback, useRef } from 'react'
+import { type ChangeEvent, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { clearNativeInput } from '../../utilities'
@@ -95,14 +95,18 @@ export function SearchInput({
 
 	const currentValue = current ?? ''
 
-	const handleChange = useCallback(
-		(event: ChangeEvent<HTMLInputElement>) => {
-			setCurrentValue(event.target.value)
+	// The value write runs whatever the caller does (CONVENTIONS.md §3.9).
+	const handleChange = useMemo(
+		() =>
+			composeEventHandlers(
+				onChange,
+				(event: ChangeEvent<HTMLInputElement>) => {
+					setCurrentValue(event.target.value)
 
-			onChange?.(event)
-
-			if (event.target.value === '') onClear?.()
-		},
+					if (event.target.value === '') onClear?.()
+				},
+				{ checkForDefaultPrevented: false },
+			),
 		[onChange, onClear, setCurrentValue],
 	)
 

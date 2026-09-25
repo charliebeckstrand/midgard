@@ -1,4 +1,4 @@
-import type { FocusEvent, ReactElement } from 'react'
+import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form, useFormField } from '../../components/form'
 import { composeEventHandlers } from '../../core'
@@ -11,6 +11,7 @@ import type {
 	SkeletonSubject,
 	TextInputSubject,
 	TouchOnBlurSubject,
+	WriteOnChangeSubject,
 } from '../a11y/cases/types'
 import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
@@ -63,7 +64,14 @@ const touches = corpus.flatMap((entry) =>
 	})),
 )
 
-/** The field each touch-on-blur subject binds to. */
+const writes = corpus.flatMap((entry) =>
+	(entry.writeOnChange ?? []).map((subject) => ({
+		...subject,
+		title: `${entry.name} (${subject.slot})`,
+	})),
+)
+
+/** The field each touch-on-blur and write-on-change subject binds to. */
 const FIELD = 'swept'
 
 const textInputs = corpus.flatMap((entry) =>
@@ -114,6 +122,30 @@ function touchesOnBlur({ render, defaultValue, slot }: TouchOnBlurSubject) {
 	expect(onBlur).toHaveBeenCalledOnce()
 
 	expect(getFieldProbe(FIELD)).toHaveAttribute('data-touched', 'true')
+}
+
+/**
+ * The write-on-change sweep: the caller's `onChange` runs, and its
+ * `preventDefault()` does not skip the field write (CONVENTIONS.md §3.9).
+ */
+function writesOnChange({ render, defaultValue, slot, kind }: WriteOnChangeSubject) {
+	const onChange = vi.fn((event: ChangeEvent<HTMLElement>) => event.preventDefault())
+
+	const { container } = renderUI(
+		<Form defaultValues={{ [FIELD]: defaultValue }}>
+			{render({ name: FIELD, onChange })}
+			<FieldProbe name={FIELD} />
+		</Form>,
+	)
+
+	const element = getSlot(container, slot)
+
+	if (kind === 'text') fireEvent.change(element, { target: { value: 'swept' } })
+	else fireEvent.click(element)
+
+	expect(onChange).toHaveBeenCalledOnce()
+
+	expect(getFieldProbe(FIELD).textContent).toBe(kind === 'text' ? 'swept' : 'true')
 }
 
 /** The link sweep: the subject's slot becomes an anchor to the href it sets. */
@@ -253,6 +285,51 @@ describe('component blur binding', () => {
 	})
 })
 
+describe('component change binding', () => {
+	for (const subject of writes) {
+		it(`${subject.title} writes its field when the caller's onChange prevents the default`, () =>
+			writesOnChange(subject))
+	}
+
+	it('has subjects to sweep', () => {
+		expect(writes).not.toHaveLength(0)
+	})
+})
+
+/** A bound input that composes its change with the default, so a caller's `preventDefault()` skips the write. */
+function SkippableWrite({
+	name,
+	onChange,
+}: {
+	name: string
+	onChange: (event: ChangeEvent<HTMLElement>) => void
+}) {
+	const field = useFormField(name)
+
+	return (
+		<input
+			data-slot="skippable-write"
+			value={String(field?.value ?? '')}
+			onChange={composeEventHandlers(onChange, (event: ChangeEvent<HTMLInputElement>) =>
+				field?.setValue(event.target.value),
+			)}
+		/>
+	)
+}
+
+/** A bound input that writes its field but never calls the caller's `onChange`. */
+function DeafWrite({ name }: { name: string }) {
+	const field = useFormField(name)
+
+	return (
+		<input
+			data-slot="deaf-write"
+			value={String(field?.value ?? '')}
+			onChange={(event) => field?.setValue(event.target.value)}
+		/>
+	)
+}
+
 /** A bound input that composes its blur with the default, so a caller's `preventDefault()` skips the touched mark. */
 function SkippableTouch({
 	name,
@@ -346,6 +423,28 @@ describe('capability sweeps: teeth checks', () => {
 	it('fails a subject that falls back to a size other than md', () => {
 		expect(() =>
 			fallsBackToMd({ render: () => <div data-slot="large" data-size="lg" />, slot: 'large' }),
+		).toThrow()
+	})
+
+	it('fails a control whose caller can skip the field write', () => {
+		expect(() =>
+			writesOnChange({
+				render: (props) => <SkippableWrite {...props} />,
+				defaultValue: '',
+				slot: 'skippable-write',
+				kind: 'text',
+			}),
+		).toThrow()
+	})
+
+	it('fails a control that drops the caller onChange', () => {
+		expect(() =>
+			writesOnChange({
+				render: (props) => <DeafWrite {...props} />,
+				defaultValue: '',
+				slot: 'deaf-write',
+				kind: 'text',
+			}),
 		).toThrow()
 	})
 
