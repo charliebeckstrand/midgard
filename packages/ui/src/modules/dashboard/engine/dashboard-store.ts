@@ -61,6 +61,17 @@ export type DashboardState = {
 	layout: readonly DashboardLayoutItem[]
 	/** The demands of the mounted tiles, in mount order. */
 	demands: ReadonlyMap<string, DashboardTileDemands>
+	/**
+	 * The ids of the tiles that the children of the board declare when the board
+	 * mounts. Until the first tile registers, each of them counts as on the board.
+	 *
+	 * @remarks
+	 * The board reads each `DashboardTile` child, also inside a Fragment, and each
+	 * spec tile of a `DashboardTiles` child. A component that renders a tile hides
+	 * its id. Each declared tile registers in the first commit, so the board reads
+	 * the ids once.
+	 */
+	declared: ReadonlySet<string>
 	/** The container width in px, or `0` before the first measurement. */
 	width: number
 	/** The live gesture, or `null` at rest. */
@@ -93,7 +104,7 @@ export type DashboardView = {
 	/**
 	 * The selections that apply: those of the board, and those of a tile on the
 	 * board. Until the first tile registers, as on the server, a tile with a saved
-	 * entry counts as on the board.
+	 * entry or a declared tile counts as on the board.
 	 */
 	selections: readonly DashboardSelection[]
 	/**
@@ -292,7 +303,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	)
 
 	const derive = (previous: DashboardView | null): DashboardView => {
-		const { columns, gap, editing, layout, demands, width, gesture, selections } = state
+		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
 		const canonical = canonicalOf(layout, demands, columns)
 
@@ -302,8 +313,12 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const entries = entriesOf(placed)
 
-		// No tile registers on the server, so until then each saved entry stands for a tile.
-		const mounted = registered || demands.size > 0 ? demands : entries
+		// No tile registers on the server, so until then each saved entry and each declared tile
+		// stands for a tile.
+		const mounted =
+			registered || demands.size > 0
+				? demands
+				: { has: (id: string) => entries.has(id) || declared.has(id) }
 
 		return {
 			canonical,

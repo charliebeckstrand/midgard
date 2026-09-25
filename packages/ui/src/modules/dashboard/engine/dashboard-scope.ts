@@ -99,8 +99,9 @@ export function clearSelection(
  * @remarks
  * The caller decides which tiles are on the board. The tiles register in a
  * layout effect, which the server never runs. So until the first tile
- * registers, the store passes the ids of the saved entries. After that, it
- * passes the registered ids, also when no tile is left.
+ * registers, the store passes the ids of the saved entries. It adds the ids of
+ * the tiles that the children of the board declare. After that, it passes the
+ * registered ids, also when no tile is left.
  *
  * @param selections - The selections of the board.
  * @param mounted - The ids of the tiles on the board.

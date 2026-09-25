@@ -22,6 +22,7 @@ const initial = (patch: Partial<DashboardState> = {}): DashboardState => ({
 		['b', {}],
 		['c', {}],
 	]),
+	declared: new Set(),
 	width: 0,
 	gesture: null,
 	filter: undefined,
@@ -222,6 +223,27 @@ describe('createDashboardStore', () => {
 		expect(store.getInitialView().selections).toEqual([selections[0], selections[2]])
 
 		expect(store.getInitialState()).toMatchObject({ selections, demands: new Map() })
+	})
+
+	it('applies the selection of a declared tile with no entry until a tile registers', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'new', field: 'region', values: ['North'] },
+			{ source: 'gone', field: 'region', values: ['West'] },
+		]
+
+		const store = createDashboardStore(
+			initial({ demands: new Map(), declared: new Set(['new']), selections }),
+		)
+
+		// The children of the board declare the tile, so the server counts it with no saved entry.
+		expect(store.getView().selections).toEqual([selections[0]])
+
+		store.register('a', {})
+
+		// The registered tiles take over, so a declared tile that has not registered stops counting.
+		expect(store.getView().selections).toEqual([])
+
+		expect(store.getInitialView().selections).toEqual([selections[0]])
 	})
 
 	it('registers and unregisters demands, and notifies each change', () => {

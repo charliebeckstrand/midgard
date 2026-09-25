@@ -26,6 +26,7 @@ import { type DashboardActions, DashboardActionsContext, DashboardStoreContext }
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
+import { DashboardTiles, type DashboardTilesProps } from './dashboard-tiles'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
@@ -76,6 +77,29 @@ function canvasStyle(columns: number, gap: number): CSSProperties {
 /** Whether a child is a `DashboardTile` element, which the reading order can place. */
 function isTileElement(child: unknown): child is ReactElement<DashboardTileProps> {
 	return isValidElement<DashboardTileProps>(child) && child.type === DashboardTile
+}
+
+/** Whether a child is a `DashboardTiles` element, whose spec tiles the board can name. */
+function isSpecTilesElement(child: unknown): child is ReactElement<DashboardTilesProps> {
+	return isValidElement<DashboardTilesProps>(child) && child.type === DashboardTiles
+}
+
+/**
+ * The ids of the tiles that the children declare: each `DashboardTile` child,
+ * also inside a Fragment, and each spec tile of a `DashboardTiles` child. A
+ * component that renders a tile hides its id from the board. The same limit
+ * keeps that component in its own slot of the reading order.
+ */
+function declaredTiles(children: ReactNode): Set<string> {
+	const ids = new Set<string>()
+
+	for (const { node } of flattenChildren(children)) {
+		if (isTileElement(node)) ids.add(node.props.id)
+
+		if (isSpecTilesElement(node)) for (const tile of node.props.tiles) ids.add(tile.id)
+	}
+
+	return ids
 }
 
 /**
@@ -253,6 +277,8 @@ export function Dashboard({
 			editing,
 			layout: layoutValue ?? EMPTY_LAYOUT,
 			demands: new Map(),
+			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
+			declared: declaredTiles(children),
 			width: 0,
 			gesture: null,
 			filter: filterValue,

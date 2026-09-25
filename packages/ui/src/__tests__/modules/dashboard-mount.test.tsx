@@ -1,11 +1,12 @@
 import { act } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { Fragment, type ReactElement, type ReactNode, useEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
 	DashboardTile,
+	DashboardTiles,
 	useDashboardRows,
 } from '../../modules/dashboard'
 import type { Mount } from '../../primitives/mount'
@@ -191,30 +192,46 @@ describe('DashboardTile mount', () => {
 	})
 })
 
-describe('a saved selection of a tile that is not on the board', () => {
+describe('a saved selection before the tiles register', () => {
 	const sales = [
 		{ region: 'North', amount: 10 },
 		{ region: 'West', amount: 30 },
 	]
 
+	/** Each total that a commit of the reader showed, in order. */
+	let totals: number[]
+
+	beforeEach(() => {
+		totals = []
+	})
+
 	function Total() {
 		const rows = useDashboardRows(sales)
 
-		return <output>Total {rows.reduce((sum, row) => sum + row.amount, 0)}</output>
+		const total = rows.reduce((sum, row) => sum + row.amount, 0)
+
+		useEffect(() => {
+			totals.push(total)
+		}, [total])
+
+		return <output>Total {total}</output>
 	}
 
 	const TOTAL: DashboardLayoutItem = { id: 'total', x: 0, y: 0, w: 12, h: 10 }
 
-	function Board({ layout }: { layout: DashboardLayoutItem[] }) {
+	/** A board with a saved selection of the tile `regions`. The children add other tiles. */
+	function Board({ layout, children }: { layout: DashboardLayoutItem[]; children?: ReactNode }) {
 		return (
 			<Dashboard
 				aria-label="Sales"
 				layout={{ defaultValue: layout }}
-				selection={{ defaultValue: [{ source: 'gone', field: 'region', values: ['West'] }] }}
+				selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
 			>
 				<DashboardTile id="total" title="Total">
 					<Total />
 				</DashboardTile>
+
+				{children}
 			</Dashboard>
 		)
 	}
@@ -240,7 +257,7 @@ describe('a saved selection of a tile that is not on the board', () => {
 		return { server, container, onRecoverableError }
 	}
 
-	it('applies no selection of a tile with no entry, on the server or after hydration', () => {
+	it('applies no selection of a removed tile with no entry, on the server or after hydration', () => {
 		// A remove drops the entry of the tile, so the saved layout names only the other tile.
 		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL]} />)
 
@@ -249,11 +266,13 @@ describe('a saved selection of a tile that is not on the board', () => {
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
 		expect(container).toHaveTextContent('Total 40')
+
+		expect(totals).toEqual([40])
 	})
 
 	it('hydrates the selection of a tile whose entry outlives it, then stops applying it', () => {
 		// A JSX board keeps the entry of a tile that left, so the server counts that tile as present.
-		const gone: DashboardLayoutItem = { id: 'gone', x: 12, y: 0, w: 12, h: 10 }
+		const gone: DashboardLayoutItem = { id: 'regions', x: 12, y: 0, w: 12, h: 10 }
 
 		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL, gone]} />)
 
@@ -263,6 +282,34 @@ describe('a saved selection of a tile that is not on the board', () => {
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
 		expect(container).toHaveTextContent('Total 40')
+	})
+
+	it.each([
+		['a tile child', <DashboardTile key="regions" id="regions" title="Regions" />],
+		[
+			'a tile inside a Fragment',
+			<Fragment key="regions">
+				<DashboardTile id="regions" title="Regions" />
+			</Fragment>,
+		],
+		[
+			'a spec tile',
+			<DashboardTiles key="regions" tiles={[{ id: 'regions', widget: 'map', title: 'Regions' }]} />,
+		],
+	])('applies the selection of %s with no entry from the server markup on', (_, tile) => {
+		// A tile that the app added after the save has no entry, and the board still sees it.
+		const { server, container, onRecoverableError } = hydrate(
+			<Board layout={[TOTAL]}>{tile}</Board>,
+		)
+
+		expect(server).toContain('Total 30')
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container).toHaveTextContent('Total 30')
+
+		// The first client commit shows the server total, so the total never jumps.
+		expect(totals).toEqual([30])
 	})
 })
 
