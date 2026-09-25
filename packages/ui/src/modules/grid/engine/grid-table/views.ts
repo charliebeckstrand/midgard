@@ -1,5 +1,9 @@
 import {
+	type Column,
 	type ColumnPinningState,
+	type ColumnSizingColumnDef,
+	type ColumnSizingState,
+	defaultColumnSizing,
 	functionalUpdate,
 	type PaginationState,
 	type Table,
@@ -9,34 +13,35 @@ import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { QueryGroup } from '../../../query/engine/types'
-import type { GridColumn, GridPagination } from '../../types'
+import type { GridColumn, GridColumnFilterState, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 
 /**
- * Column-resize controls the header renders from: the live width, drag/keyboard
- * handlers, and per-column bounds. Methods read the engine live, so the object
- * itself is stable across renders.
+ * Column-resize controls the header renders from.
+ *
+ * @remarks A value with actions. The widths, the bounds, and the drag are a
+ * snapshot, and the grid gives a new object each time one of them changes. A
+ * memoized cell can therefore read them during render. The actions write to the
+ * engine, and the render code calls them only from an event.
  *
  * @internal
  */
 export type GridColumnResize = {
-	/** Current clamped width (px) for a column. */
+	/** The column's width (px). */
 	getSize: (id: string | number) => number
-	/** Total width (px) of every column — the width of the fixed-layout table. */
-	totalSize: () => number
+	/** The summed width (px) of the visible columns — the width of the fixed-layout table. */
+	totalSize: number
 	/** Whether the column can be resized (data columns only). */
 	canResize: (id: string | number) => boolean
-	/** Whether the column is mid drag-resize. */
-	isResizing: (id: string | number) => boolean
-	/** Whether any column is mid drag-resize — a pointer drag is in flight. */
-	isResizingAny: () => boolean
-	/** Pointer handler (mouse + touch) that begins a drag-resize. */
-	getResizeHandler: (id: string | number) => ((event: unknown) => void) | undefined
+	/** The column mid drag-resize, or `null` when no pointer drag is in flight. */
+	resizing: string | null
 	/** Resize bounds for the column, for the separator's `aria-valuemin`/`max`. */
 	bounds: (id: string | number) => { min: number; max: number }
+	/** Starts a drag-resize of the column from a mouse or touch press. */
+	startResize: (id: string | number, event: unknown) => void
 	/** Adjust a column's width by `delta` px (keyboard), clamped to its bounds. */
 	nudge: (id: string | number, delta: number) => void
 	/**
@@ -53,17 +58,18 @@ export type GridColumnResize = {
 	resetWidths: () => void
 }
 
-/** The width actions that the sizing hook adds to {@link buildColumnResize}'s controls. @internal */
-type GridColumnWidthActions = 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'
+/** The actions of {@link GridColumnResize}. @internal */
+export type GridColumnResizeActions = Pick<
+	GridColumnResize,
+	'startResize' | 'nudge' | 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'
+>
 
 /**
  * Frozen-column controls: one lookup from a column id to the chrome it draws.
  *
- * @remarks Unlike its two siblings here, this one reads a resolved
- * {@link FrozenLayout} snapshot rather than the engine. The pinned chrome rides
- * `memo` boundaries, so a cell that holds on its props sees a frozen-layout
- * change only through this object's identity. A snapshot changes that identity,
- * and a live reader does not.
+ * @remarks It reads a resolved {@link FrozenLayout} snapshot. The pinned
+ * chrome rides `memo` boundaries, so a cell that holds on its props sees a
+ * frozen-layout change only through this object's identity.
  *
  * @internal
  */
@@ -73,10 +79,33 @@ export type GridColumnPinning = {
 }
 
 /**
- * Per-column filter controls the header filter sheets render from. The engine
- * methods read the table live. The {@link GridColumnFilterEngine} half is
- * therefore stable across renders. The affordance and open-request ride React
- * state, and re-identify the composed object when either changes.
+ * The faceted values of a column: the values its cells hold in the rows that the
+ * other filters leave.
+ *
+ * @internal
+ */
+export type GridColumnFacets = {
+	/**
+	 * The distinct cell values, sorted and de-duplicated — what a `select` filter
+	 * offers when it declares no explicit `filterOptions`. Empty under
+	 * server-side (manual) filtering or for a column without a value accessor.
+	 */
+	values: string[]
+	/**
+	 * The `[min, max]` of the numeric cell values, or `undefined` when there is
+	 * none. A `number` filter's `between` editor clamps to it. It is `undefined`
+	 * under server-side (manual) filtering, as `values` is empty there.
+	 */
+	span: readonly [number, number] | undefined
+}
+
+/**
+ * Per-column filter controls the header filter sheets render from.
+ *
+ * @remarks A value with actions. The applied queries, the affordance, and the
+ * open-request are a snapshot, and the grid gives a new object each time one
+ * of them changes. The actions read or write the engine, so the render code
+ * calls them only from an event or an effect.
  *
  * @internal
  */
@@ -85,30 +114,23 @@ export type GridColumnFilter = {
 	canFilter: (id: string | number) => boolean
 	/** Current query tree for the column, or `undefined` when unfiltered. */
 	getQuery: (id: string | number) => QueryGroup | undefined
-	/** Set (or, with `undefined`, clear) the column's query tree. */
-	setQuery: (id: string | number, query: QueryGroup | undefined) => void
-	/**
-	 * The column's distinct cell values (faceted), sorted and de-duplicated — what
-	 * a `select` filter offers when it declares no explicit `filterOptions`. Empty
-	 * under server-side (manual) filtering or for a column without a value accessor.
-	 */
-	uniqueValues: (id: string | number) => string[]
-	/**
-	 * The `[min, max]` of the column's numeric cell values (faceted), or
-	 * `undefined` when it has none. A `number` filter's `between` editor clamps
-	 * to it. It is `undefined` under server-side (manual) filtering, as
-	 * `uniqueValues` is empty there.
-	 */
-	span: (id: string | number) => readonly [number, number] | undefined
 	/**
 	 * Whether any column carries a filter that actually constrains rows. It is the
 	 * same row-constraining test the header buttons read for their active accent
 	 * (a real value or a value-less operator, not a merely-seeded rule). Drives the
 	 * toolbar's "Clear filters" affordance.
 	 */
-	hasActive: () => boolean
+	active: boolean
+	/** Set (or, with `undefined`, clear) the column's query tree. */
+	setQuery: (id: string | number, query: QueryGroup | undefined) => void
 	/** Lift every column's applied filter at once, recovering all hidden rows. */
 	clear: () => void
+	/**
+	 * Reads the column's {@link GridColumnFacets} from the engine. The facets
+	 * change with the rows and the other filters, so a sheet reads them when it
+	 * opens.
+	 */
+	facets: (id: string | number) => GridColumnFacets
 	/**
 	 * How a filterable column surfaces its filter. `'header'` (default) shows the
 	 * funnel button in every filterable column header. `'menu'` drops the resting
@@ -122,6 +144,9 @@ export type GridColumnFilter = {
 	/** Ask a column's filter sheet to open (or clear the request with `null`). */
 	requestOpen: (id: string | number | null) => void
 }
+
+/** The actions of {@link GridColumnFilter} that reach the engine. @internal */
+export type GridColumnFilterActions = Pick<GridColumnFilter, 'setQuery' | 'clear' | 'facets'>
 
 /**
  * Resolved pagination view model the footer renders from — page coordinate,
@@ -219,85 +244,122 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
 }
 
 /**
- * The grid columns to render, resolved by the engine from its `columnOrder`,
- * `columnVisibility`, and `columnPinning` state. They are the visible leaf
- * columns in pinned-edge order (left, then centre, then right), each mapped
- * back to its source {@link GridColumn} through `meta`. This is the single
- * source of column order and visibility the header, body, and `<colgroup>` all
- * read.
+ * Maps the engine's visible leaf columns back to their source
+ * {@link GridColumn}s, in order, through `meta`.
  *
  * @internal
  */
-export function deriveVisibleColumns<T>(table: Table<T>): GridColumn<T>[] {
-	return [
-		table.getLeftVisibleLeafColumns(),
-		table.getCenterVisibleLeafColumns(),
-		table.getRightVisibleLeafColumns(),
-	]
-		.flat()
-		.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
+export function toGridColumns<T>(leaves: readonly Column<T, unknown>[]): GridColumn<T>[] {
+	return leaves.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
 }
+
 /**
- * Assembles the table-backed {@link GridColumnResize} controls (all but the
- * width actions, which the hook adds); every method reads it live. `columnFloors`
- * carries the autosizer's per-column hard floor, so the resize `min` matches the
- * width the header needs. A single-word header reports (and can't be dragged
- * below) its full width, and a multi-word one its icons. A column the autosizer
- * hasn't measured falls back to the engine's `minSize`.
+ * A column's width (px): its sized width, else its declared size, clamped to its
+ * bounds. It is the engine's `column.getSize()`, read from the sizing state that
+ * the grid owns. The grid can therefore hold each width as a value.
+ *
+ * @param def - The engine's column definition, which carries the declared size and bounds.
+ * @param sized - The column's entry in the sizing state, or `undefined`.
+ * @internal
+ */
+export function columnWidth(def: ColumnSizingColumnDef, sized: number | undefined): number {
+	return Math.min(
+		Math.max(
+			def.minSize ?? defaultColumnSizing.minSize,
+			sized ?? def.size ?? defaultColumnSizing.size,
+		),
+		def.maxSize ?? defaultColumnSizing.maxSize,
+	)
+}
+
+/**
+ * Each column's {@link columnWidth}, by id.
  *
  * @internal
  */
-export function buildColumnResize<T>(
-	table: Table<T>,
-	columnFloors: ReadonlyMap<string, number>,
-): Omit<GridColumnResize, GridColumnWidthActions> {
-	const bounds = (id: string | number) => {
-		const column = table.getColumn(String(id))
+export function columnWidths<T>(
+	columns: readonly Column<T, unknown>[],
+	sizing: ColumnSizingState,
+): ReadonlyMap<string, number> {
+	return new Map(
+		columns.map((column) => [column.id, columnWidth(column.columnDef, sizing[column.id])]),
+	)
+}
 
-		return {
-			min: columnFloors.get(String(id)) ?? column?.columnDef.minSize ?? DEFAULT_MIN_COLUMN_SIZE,
-			max: column?.columnDef.maxSize ?? Number.MAX_SAFE_INTEGER,
-		}
-	}
+/**
+ * Assembles the {@link GridColumnResize} value over the visible columns and
+ * their widths. `floors` carries the autosizer's per-column hard floor, so the
+ * resize `min` matches the width the header needs. A single-word header reports
+ * (and can't be dragged below) its full width, and a multi-word one its icons. A
+ * column the autosizer hasn't measured falls back to the engine's `minSize`.
+ *
+ * @internal
+ */
+export function buildColumnResize<T>(args: {
+	/** The visible leaf columns, in render order. */
+	columns: readonly Column<T, unknown>[]
+	widths: ReadonlyMap<string, number>
+	floors: ReadonlyMap<string, number>
+	resizing: string | null
+	actions: GridColumnResizeActions
+}): GridColumnResize {
+	const { widths, floors } = args
 
-	// Resolve resize handlers through a lookup keyed by column id, rebuilt only when
-	// the engine's header set changes (`getFlatHeaders()` is reference-stable until
-	// then). Wiring N columns' handles is then O(cols) across a header row, not the
-	// O(cols²) a linear `.find()` per column would cost.
-	let cachedHeaders: ReturnType<Table<T>['getFlatHeaders']> | null = null
+	const defs = new Map(args.columns.map((column) => [column.id, column.columnDef]))
 
-	const handlerById = new Map<string, (event: unknown) => void>()
+	let totalSize = 0
 
-	const getResizeHandler = (id: string | number) => {
-		const headers = table.getFlatHeaders()
-
-		if (headers !== cachedHeaders) {
-			cachedHeaders = headers
-
-			handlerById.clear()
-
-			for (const header of headers) {
-				handlerById.set(header.column.id, withResizeDirection(table, header.getResizeHandler()))
-			}
-		}
-
-		return handlerById.get(String(id))
-	}
+	for (const width of widths.values()) totalSize += width
 
 	return {
-		getSize: (id) => table.getColumn(String(id))?.getSize() ?? DEFAULT_COLUMN_SIZE,
-		totalSize: () => table.getTotalSize(),
-		canResize: (id) => table.getColumn(String(id))?.getCanResize() ?? false,
-		isResizing: (id) => table.getState().columnSizingInfo.isResizingColumn === String(id),
-		isResizingAny: () => Boolean(table.getState().columnSizingInfo.isResizingColumn),
-		getResizeHandler,
-		bounds,
+		getSize: (id) => widths.get(String(id)) ?? DEFAULT_COLUMN_SIZE,
+		totalSize,
+		// The engine's `getCanResize`: a column resizes unless its definition opts out.
+		canResize: (id) => {
+			const def = defs.get(String(id))
+
+			return def != null && def.enableResizing !== false
+		},
+		resizing: args.resizing,
+		bounds: (id) => resizeBounds(defs.get(String(id)), floors.get(String(id))),
+		...args.actions,
+	}
+}
+
+/** A column's resize bounds: its measured floor, else its `minSize`, up to its `maxSize`. @internal */
+function resizeBounds(
+	def: ColumnSizingColumnDef | undefined,
+	floor: number | undefined,
+): { min: number; max: number } {
+	return {
+		min: floor ?? def?.minSize ?? DEFAULT_MIN_COLUMN_SIZE,
+		max: def?.maxSize ?? Number.MAX_SAFE_INTEGER,
+	}
+}
+
+/**
+ * The engine actions of {@link GridColumnResize}. Each reads the engine when it
+ * runs, so two presses in one frame see each other's width.
+ *
+ * @param floors - The autosizer's live floors, read when a nudge runs.
+ * @internal
+ */
+export function columnResizeActions<T>(
+	table: Table<T>,
+	floors: ReadonlyMap<string, number>,
+): Pick<GridColumnResizeActions, 'startResize' | 'nudge'> {
+	return {
+		startResize: (id, event) => {
+			const header = table.getFlatHeaders().find((entry) => entry.column.id === String(id))
+
+			if (header) withResizeDirection(table, header.getResizeHandler())(event)
+		},
 		nudge: (id, delta) => {
 			const column = table.getColumn(String(id))
 
 			if (!column) return
 
-			const limit = bounds(id)
+			const limit = resizeBounds(column.columnDef, floors.get(String(id)))
 
 			const next = clamp(column.getSize() + delta, limit.min, limit.max)
 
@@ -350,18 +412,6 @@ export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
 }
 
 /**
- * The half of {@link GridColumnFilter} a table instance can answer on its own.
- * That is everything but the affordance and the open-request, which are React
- * state the hook owns. Split out so that default is spelled once, at the hook.
- *
- * @internal
- */
-export type GridColumnFilterEngine = Omit<
-	GridColumnFilter,
-	'affordance' | 'openColumn' | 'requestOpen'
->
-
-/**
  * The `[min, max]` of the numbers among a column's faceted values, or
  * `undefined` when there is no number. A number or a numeric string counts. A
  * blank cell is no number, so it does not pull the minimum to 0, as
@@ -389,43 +439,73 @@ export function facetSpan(values: Iterable<unknown>): readonly [number, number] 
 	return min <= max ? [min, max] : undefined
 }
 
-/** Assembles the engine-backed {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
-export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
-	return {
-		canFilter: (id) => table.getColumn(String(id))?.getCanFilter() ?? false,
-		getQuery: (id) => {
-			const value = table.getColumn(String(id))?.getFilterValue()
+/** The facets of a column with none. @internal */
+const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 
-			return isQueryGroup(value) ? value : undefined
-		},
+/**
+ * The engine actions of {@link GridColumnFilter}. Each reads or writes the
+ * engine when it runs.
+ *
+ * @internal
+ */
+export function columnFilterActions<T>(table: Table<T>): GridColumnFilterActions {
+	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
-		uniqueValues: (id) => {
+		// Replace the whole applied set with an empty one; it flows through the
+		// engine's `onColumnFiltersChange` like any other filter edit.
+		clear: () => table.setColumnFilters([]),
+		facets: (id) => {
 			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
 
-			if (!facets) return []
+			if (!facets) return NO_FACETS
 
 			const values = [...facets.keys()]
 				.filter((value) => value != null && value !== '')
 				.map((value) => String(value))
 
-			return [...new Set(values)].sort((a, b) => a.localeCompare(b))
+			return {
+				values: [...new Set(values)].sort((a, b) => a.localeCompare(b)),
+				span: facetSpan(facets.keys()),
+			}
 		},
-		span: (id) => {
-			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+	}
+}
 
-			return facets ? facetSpan(facets.keys()) : undefined
-		},
-		// Test each applied column filter the same way its header button does, so
-		// the toolbar affordance appears exactly when a header accent does — a
-		// seeded-but-blank query (present in state, constraining nothing) reads
-		// inactive here just as it does there.
-		hasActive: () =>
-			table
-				.getState()
-				.columnFilters.some((entry) => isQueryGroup(entry.value) && isQueryActive(entry.value)),
-		// Replace the whole applied set with an empty one; it flows through the
-		// engine's `onColumnFiltersChange` like any other filter edit.
-		clear: () => table.setColumnFilters([]),
+/**
+ * Assembles the {@link GridColumnFilter} value over the applied filters.
+ *
+ * @internal
+ */
+export function buildColumnFilters<T>(args: {
+	columns: readonly GridColumn<T>[]
+	applied: readonly GridColumnFilterState[]
+	actions: GridColumnFilterActions
+	affordance: GridColumnFilter['affordance']
+	openColumn: string | number | null
+	requestOpen: (id: string | number | null) => void
+}): GridColumnFilter {
+	const filterable = new Set(
+		args.columns.filter((col) => col.filterable && col.value).map((col) => String(col.id)),
+	)
+
+	// A controlled binding can carry any value, so each entry is checked as a query.
+	const queries = new Map<string, QueryGroup>()
+
+	for (const entry of args.applied) {
+		if (isQueryGroup(entry.value)) queries.set(entry.id, entry.value)
+	}
+
+	return {
+		canFilter: (id) => filterable.has(String(id)),
+		getQuery: (id) => queries.get(String(id)),
+		// The same test each header button reads for its accent, so the toolbar
+		// affordance shows exactly when a header accent does. A seeded but blank
+		// query constrains nothing and reads inactive in both places.
+		active: [...queries.values()].some(isQueryActive),
+		...args.actions,
+		affordance: args.affordance,
+		openColumn: args.openColumn,
+		requestOpen: args.requestOpen,
 	}
 }
 

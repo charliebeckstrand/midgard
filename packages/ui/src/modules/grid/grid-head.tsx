@@ -243,7 +243,7 @@ function GridHeaderCell<T>({
 
 	const width = sizing ? sizing.getSize(column.id) : column.width
 
-	const resizing = sizing ? sizing.isResizing(column.id) : false
+	const resizing = sizing ? sizing.resizing === String(column.id) : false
 
 	const shared = {
 		column,

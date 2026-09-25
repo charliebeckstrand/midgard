@@ -9,7 +9,6 @@
  * `createElement` rather than JSX so this stays a non-component file.
  */
 
-import type { Table } from '@tanstack/react-table'
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core'
@@ -257,19 +256,19 @@ export function resolveAriaRowCount(
 }
 
 /**
- * Live {@link GridFooterStats} for the summary footer, or `null` when no `footer`
+ * The {@link GridFooterStats} for the summary footer, or `null` when no `footer`
  * is configured (so {@link GridData} renders no bar). `total` is the pre-filter
  * source count only when it exceeds the filtered extent, where a client filter
  * is narrowing the set. Under server-side filtering the core model is one page.
  * It then collapses to the filtered count, and the footer shows a bare total
  * rather than a misleading "N of pageSize". An infinite-scroll `totalRows`
  * supersedes the filtered extent: the footer then reports the real (server) set
- * rather than the loaded window. Read live off `table` (not memoized) so the counts
- * track client-side search/filtering. @internal
+ * rather than the loaded window. @internal
  */
-export function resolveFooterStats<T>(args: {
+export function resolveFooterStats(args: {
 	footer: GridFooter | undefined
-	table: Table<T>
+	/** The supplied row count, before any filter. */
+	sourceCount: number
 	/** Full filtered row extent across all pages (the grid's `dataRowCount`). */
 	filteredCount: number
 	selected: number
@@ -282,7 +281,7 @@ export function resolveFooterStats<T>(args: {
 
 	return {
 		rows,
-		total: Math.max(args.table.getCoreRowModel().rows.length, rows),
+		total: Math.max(args.sourceCount, rows),
 		selected: args.selected,
 	}
 }
@@ -324,7 +323,7 @@ export function resolveGridSemantics(
 }
 
 /**
- * Whether the grid paints the shared {@link Table} `hover` wash. It paints when
+ * Whether the grid paints the shared `Table` `hover` wash. It paints when
  * the consumer opts in with `hover`. It also paints implicitly for a clickable
  * grid (any of the row- or cell-level click `handlers` set), whose rows then
  * read as actionable. It never paints through a column drag-resize
@@ -395,8 +394,8 @@ export function resolveResizeLayout<T>(args: {
 			),
 		),
 		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
-		tableWidth: resize.totalSize(),
-		resizing: resize.isResizingAny(),
+		tableWidth: resize.totalSize,
+		resizing: resize.resizing != null,
 	}
 }
 
@@ -425,7 +424,7 @@ export function resolveActionable(args: {
 }): { hasRows: boolean; hasData: boolean } {
 	const hasRows = args.sourceCount > 0 && !args.showingError
 
-	const narrowed = (args.filters?.hasActive() ?? false) || (args.globalFilter?.value ?? '') !== ''
+	const narrowed = (args.filters?.active ?? false) || (args.globalFilter?.value ?? '') !== ''
 
 	return { hasRows, hasData: hasRows || (narrowed && !args.showingError) }
 }

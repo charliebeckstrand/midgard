@@ -31,6 +31,7 @@ type GridColumnSizingOptions<T> = {
 	 * down, and each auto-size action reports its widths through `onValueChange`.
 	 */
 	controlled: boolean
+	/** The engine. The hook reads and writes it only from its callbacks and effects. */
 	table: Table<T>
 	/** Visible columns in render order. */
 	columns: GridColumn<T>[]
@@ -52,11 +53,14 @@ type GridColumnSizingOptions<T> = {
 	 * @see {@link GridDataProps.width}
 	 */
 	fitContent: boolean
+	/** The column mid drag-resize, or `null`. A drag that moves its column takes width control. */
+	resizing: string | null
 	/**
-	 * Per-column hard floor (px). Each measurement merges into it, and the drag
-	 * bounds and the sizing clamp read it. A manual resize therefore honors the
+	 * Per-column hard floor (px). Each measurement merges into it, and the sizing
+	 * clamp and a keyboard nudge read it. A manual resize therefore honors the
 	 * minimum that the fit honors, and a single-word header never truncates. A
-	 * stable map that the caller owns.
+	 * stable map that the caller owns. The drag bounds read the copy that the hook
+	 * returns as {@link GridColumnSizingResult.floors}.
 	 */
 	columnFloors: Map<string, number>
 	/**
@@ -96,6 +100,22 @@ type GridColumnSizingResult = {
 	fitRenderedRows: () => void
 	/** Whether the first width pass has happened; the table paints once it has. */
 	settled: boolean
+	/**
+	 * The measured floors as a value: a copy of `columnFloors` that changes
+	 * identity when a measurement moves a floor. The drag bounds render from it.
+	 */
+	floors: ReadonlyMap<string, number>
+}
+
+/** Whether two floor maps hold the same floors. @internal */
+function sameFloors(a: ReadonlyMap<string, number>, b: ReadonlyMap<string, number>): boolean {
+	if (a.size !== b.size) return false
+
+	for (const [id, floor] of a) {
+		if (b.get(id) !== floor) return false
+	}
+
+	return true
 }
 
 /**
@@ -199,6 +219,7 @@ export function useGridColumnSizing<T>({
 	rowsSignature,
 	density,
 	fitContent,
+	resizing,
 	columnFloors,
 	freezeOnRowChange = false,
 	initialSizing,
@@ -232,6 +253,15 @@ export function useGridColumnSizing<T>({
 	// restored `columnSizing` mounts it in manual mode, with those columns held.
 	const [sizer] = useState(() =>
 		createColumnSizer({ floors: columnFloors, seeded: Object.keys(initialSizing ?? {}) }),
+	)
+
+	// The floors as a value. Each sizer command can merge a measurement into
+	// `columnFloors`, so each one publishes the floors after it runs.
+	const [floors, setFloors] = useState<ReadonlyMap<string, number>>(() => new Map(columnFloors))
+
+	const publishFloors = useCallback(
+		() => setFloors((prev) => (sameFloors(prev, columnFloors) ? prev : new Map(columnFloors))),
+		[columnFloors],
 	)
 
 	// Rendered rows' fingerprint — count and end keys — so a page turn, filter,
@@ -319,6 +349,8 @@ export function useGridColumnSizing<T>({
 
 			const write = sizer.refit(env, fresh)
 
+			publishFloors()
+
 			// Settled only once a pass has read real body cells. A provisional pass — the
 			// floor-only fit made against a loading skeleton, before the rows arrive — is
 			// the one `freezeOnRowChange` below already refuses to trust, and revealing on
@@ -328,7 +360,7 @@ export function useGridColumnSizing<T>({
 
 			commit(write)
 		},
-		[automatic, envOf, table, sizer, commit],
+		[automatic, envOf, table, sizer, commit, publishFloors],
 	)
 
 	// Runs one auto-size action. The actions run under a controlled binding too:
@@ -337,11 +369,15 @@ export function useGridColumnSizing<T>({
 		(command: (env: ColumnSizerEnv<T>) => ColumnSizingWrite | null) => {
 			const env = resizable ? envOf() : null
 
-			const write = env ? command(env) : null
+			if (!env) return
+
+			const write = command(env)
+
+			publishFloors()
 
 			if (write) commit(write)
 		},
-		[resizable, envOf, commit],
+		[resizable, envOf, commit, publishFloors],
 	)
 
 	const autoSizeColumn = useCallback(
@@ -359,18 +395,18 @@ export function useGridColumnSizing<T>({
 	// A press that moved nothing does not: each click of a double-click registers as
 	// a drag, and a click is not a resize. A layout effect, so the control lands in
 	// the commit that ends the drag, before a ResizeObserver tick can fit again.
-	const resizingColumn = table.getState().columnSizingInfo.isResizingColumn
-
 	const dragRef = useRef<{ id: string; start: number } | null>(null)
 
 	useLayoutEffect(() => {
-		if (typeof resizingColumn === 'string') {
-			dragRef.current ??= {
-				id: resizingColumn,
-				start:
-					table.getState().columnSizingInfo.startSize ??
-					table.getColumn(resizingColumn)?.getSize() ??
-					0,
+		if (resizing) {
+			if (!dragRef.current) {
+				dragRef.current = {
+					id: resizing,
+					start:
+						table.getState().columnSizingInfo.startSize ??
+						table.getColumn(resizing)?.getSize() ??
+						0,
+				}
 			}
 
 			return
@@ -383,7 +419,7 @@ export function useGridColumnSizing<T>({
 		dragRef.current = null
 
 		if (table.getColumn(drag.id)?.getSize() !== drag.start) sizer.takeControl(columns)
-	}, [resizingColumn, table, sizer, columns])
+	}, [resizing, table, sizer, columns])
 
 	// Keep the latest `refit` reachable from the ResizeObserver without listing it in
 	// the observer effect's deps: its identity shifts whenever the columns or density
@@ -526,5 +562,5 @@ export function useGridColumnSizing<T>({
 		}
 	}, [automatic, sizer])
 
-	return { autoSizeColumn, autoSizeAll, resetWidths, takeControl, fitRenderedRows, settled }
+	return { autoSizeColumn, autoSizeAll, resetWidths, takeControl, fitRenderedRows, settled, floors }
 }

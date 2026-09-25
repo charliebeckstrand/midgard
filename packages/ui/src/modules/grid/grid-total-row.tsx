@@ -1,7 +1,6 @@
 'use client'
 
-import type { Table } from '@tanstack/react-table'
-import { type ComponentProps, type ReactNode, useMemo } from 'react'
+import type { ComponentProps, ReactNode } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
@@ -17,25 +16,24 @@ import { useGridNavContext } from './use-grid-navigation'
 import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
-/** Stable empty row model read while the grand total is inactive, so its memo doesn't rebuild. @internal */
+/** Stable empty row set for an inactive grand total. @internal */
 const NO_ROWS: never[] = []
 
 /**
  * Resolves the grand-total row's state off the grid's: whether it renders, and
  * the rows it aggregates. It renders when `grandTotalRow` is set, a visible
  * aggregating column exists, and rows are actually shown. Those rows are the
- * full filtered set, read from the engine's filtered row model. It holds all
- * pages, because filtering precedes pagination, and the flat leaves, because it
- * precedes grouping. One source therefore serves the grouped, paginated, and
- * flat cases alike. Under server pagination the supplied page is all the grid
- * holds, so the total sums that page. That is the ceiling of what a client-side
- * aggregate can see. Manual grouping stands the row down entirely
+ * full filtered set that `useGridTable` reads from the engine. It holds all
+ * pages and the flat leaves. One source therefore serves the grouped,
+ * paginated, and flat cases alike. Under server pagination the supplied page is
+ * all the grid holds, so the total sums that page. That is the ceiling of what
+ * a client-side aggregate can see. Manual grouping stands the row down entirely
  * (`manualGrouped`). The engine's filtered model there carries the consumer's
  * group-header rows as data, and the backend owns the figures.
  *
  * @internal
  */
-export function useGridGrandTotal<T>(args: {
+export function resolveGrandTotal<T>(args: {
 	grandTotalRow: boolean | undefined
 	columns: GridColumn<T>[]
 	hasRows: boolean
@@ -43,9 +41,10 @@ export function useGridGrandTotal<T>(args: {
 	showingError: boolean
 	/** Whether manual (server-side) grouping is active, which stands the grand total down. */
 	manualGrouped?: boolean
-	table: Table<T>
+	/** The full filtered row set (`GridTableResult.grandTotalRows`). */
+	rows: T[]
 }): { active: boolean; rows: T[] } {
-	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, table } = args
+	const { grandTotalRow, columns, hasRows, loading, showingError, manualGrouped, rows } = args
 
 	const active =
 		grandTotalRow === true &&
@@ -55,18 +54,12 @@ export function useGridGrandTotal<T>(args: {
 		!manualGrouped &&
 		hasAggregation(columns)
 
-	// Only materialize the filtered model when the row actually shows; an inactive
-	// grand total must not force the whole filtered set to compute each render.
-	const filtered = active ? table.getFilteredRowModel().rows : NO_ROWS
-
-	const rows = useMemo(() => filtered.map((row) => row.original), [filtered])
-
-	return { active, rows }
+	return { active, rows: active ? rows : NO_ROWS }
 }
 
 /** Props for {@link GridGrandTotalBody}. @internal */
 type GridGrandTotalBodyProps<T> = {
-	/** Resolved grand-total state from {@link useGridGrandTotal}. */
+	/** Resolved grand-total state from {@link resolveGrandTotal}. */
 	grandTotal: { active: boolean; rows: T[] }
 	columns: GridColumn<T>[]
 	/** Whether the grid runs `role="grid"` semantics, gating the global row index. */

@@ -34,9 +34,17 @@ export function GridColumnResizeHandle({
 	resize,
 	resizing,
 }: GridColumnResizeHandleProps) {
-	const onPointer = resize.getResizeHandler(id)
+	const size = resize.getSize(id)
 
 	const { min, max } = resize.bounds(id)
+
+	// The width of the latest commit. A nudge or an auto-size lands in a later
+	// commit than the key press, so the announcement reads the width from here.
+	const sizeRef = useRef(size)
+
+	useEffect(() => {
+		sizeRef.current = size
+	}, [size])
 
 	// Debounce the post-resize announcement so a run of keyboard nudges settles into
 	// one polite message rather than chattering on every keystroke (WCAG 4.1.3).
@@ -48,7 +56,7 @@ export function GridColumnResizeHandle({
 		clearTimeout(announceTimer.current)
 
 		announceTimer.current = setTimeout(
-			() => announce(describeResize(label, resize.getSize(id))),
+			() => announce(describeResize(label, sizeRef.current)),
 			GRID_STATUS_DEBOUNCE_MS,
 		)
 	}
@@ -58,8 +66,6 @@ export function GridColumnResizeHandle({
 		// auto-size the column to its content — the window-splitter key set (WCAG 4.1.2).
 		// The arrows move the trailing edge on screen. That edge is on the left of a
 		// right-to-left header, so ArrowLeft widens the column there.
-		const size = resize.getSize(id)
-
 		const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
 
 		const key = horizontal
@@ -107,8 +113,8 @@ export function GridColumnResizeHandle({
 			role="separator"
 			aria-orientation="vertical"
 			aria-label={`Resize ${label}`}
-			aria-valuenow={Math.round(resize.getSize(id))}
-			aria-valuetext={`${Math.round(resize.getSize(id))} pixels`}
+			aria-valuenow={Math.round(size)}
+			aria-valuetext={`${Math.round(size)} pixels`}
 			aria-valuemin={min}
 			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
 			tabIndex={0}
@@ -126,12 +132,12 @@ export function GridColumnResizeHandle({
 
 				event.stopPropagation()
 
-				onPointer?.(event)
+				resize.startResize(id, event)
 			}}
 			onTouchStart={(event) => {
 				event.stopPropagation()
 
-				onPointer?.(event)
+				resize.startResize(id, event)
 			}}
 			// The engine drives the resize off mouse/touch (above); dnd-kit's pointer
 			// sensor rides `pointerdown`. When the whole header is a reorder drag
@@ -143,7 +149,7 @@ export function GridColumnResizeHandle({
 
 				// The same press gate as `onMouseDown`, which the browser fires after
 				// this event. Only a press that starts a drag-resize takes the capture.
-				if (!onPointer || event.button !== 0 || event.ctrlKey) return
+				if (event.button !== 0 || event.ctrlKey) return
 
 				// Capture holds the handle as the pointer target for the whole drag. The
 				// handle then keeps its resize cursor over a cell or a control with its

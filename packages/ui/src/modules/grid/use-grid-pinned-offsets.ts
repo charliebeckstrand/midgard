@@ -1,8 +1,8 @@
 'use client'
 
-import type { Table } from '@tanstack/react-table'
+import type { ColumnPinningState } from '@tanstack/react-table'
 import { type RefObject, useCallback, useLayoutEffect, useRef, useState } from 'react'
-import { columnPinSide } from './engine/grid-pin/layout'
+import { pinSide } from './engine/grid-pin/layout'
 import {
 	type FrozenCell,
 	type FrozenOffsets,
@@ -22,7 +22,8 @@ type GridPinnedOffsetsOptions<T> = {
 	 * sums are then already exact, so the measurement stands down.
 	 */
 	engineSized: boolean
-	table: Table<T>
+	/** The engine's pin state, which names the columns frozen to each edge. */
+	pinning: ColumnPinningState
 	/** Visible columns in render order — one rendered header cell each. */
 	columns: GridColumn<T>[]
 	/** Grid wrapper holding the rendered header. */
@@ -54,7 +55,7 @@ type GridPinnedOffsetsOptions<T> = {
 export function useGridPinnedOffsets<T>({
 	frozen,
 	engineSized,
-	table,
+	pinning,
 	columns,
 	containerRef,
 }: GridPinnedOffsetsOptions<T>): FrozenOffsets | null {
@@ -71,8 +72,8 @@ export function useGridPinnedOffsets<T>({
 
 		if (!enabled || !container) return []
 
-		return frozenHeaderCells(container, columns, (id) => columnPinSide(table, id))
-	}, [enabled, table, columns, containerRef])
+		return frozenHeaderCells(container, columns, (id) => pinSide(pinning, id))
+	}, [enabled, pinning, columns, containerRef])
 
 	const publish = useCallback((scan: FrozenCell[]) => {
 		// No frozen cell resolved: the header hasn't rendered, or its row is mid column
