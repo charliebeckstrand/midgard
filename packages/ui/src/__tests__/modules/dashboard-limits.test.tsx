@@ -7,7 +7,7 @@ import {
 	type DashboardWidget,
 	DashboardWidgetProvider,
 } from '../../modules/dashboard'
-import { getSlot, renderUI } from '../helpers'
+import { getSlot, renderUI, screen } from '../helpers'
 import {
 	ControlledDashboard,
 	lastEntry,
@@ -111,6 +111,59 @@ describe('DashboardTile limits', () => {
 		expect(onLayout).toHaveBeenCalledTimes(1)
 
 		expect(lastEntry(onLayout, 'a')).toMatchObject({ w: 7 })
+	})
+
+	it('reports the range of the limits on each splitter, where the arrow keys stop', () => {
+		renderUI(
+			<ControlledDashboard
+				aria-label="Board"
+				editing
+				initial={[{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]}
+			>
+				<DashboardTile id="a" minWidth={0} minSize={{ w: 6, h: 4 }} maxSize={{ w: 10, h: 30 }} />
+			</ControlledDashboard>,
+		)
+
+		const splitter = (edge: 0 | 1) => screen.getAllByRole('separator', { name: 'Resize a' })[edge]
+
+		expect(splitter(0)).toHaveAttribute('aria-valuemin', '6')
+
+		expect(splitter(0)).toHaveAttribute('aria-valuemax', '10')
+
+		expect(splitter(1)).toHaveAttribute('aria-valuemin', '4')
+
+		expect(splitter(1)).toHaveAttribute('aria-valuemax', '30')
+
+		for (let press = 0; press < 4; press += 1) pressSplitter('a', 0, 'ArrowLeft')
+
+		expect(splitter(0)).toHaveAttribute('aria-valuenow', '6')
+
+		for (let press = 0; press < 6; press += 1) pressSplitter('a', 0, 'ArrowRight')
+
+		expect(splitter(0)).toHaveAttribute('aria-valuenow', '10')
+	})
+
+	it('reports the minWidth floor as the least width, and the right edge as the most', () => {
+		// At a 50 px pitch and a 12 px gap, the default minWidth of 320 px needs 7 columns.
+		renderUI(
+			<Dashboard
+				aria-label="Board"
+				editing
+				layout={{ value: [{ id: 'a', x: 4, y: 0, w: 8, h: 10 }] }}
+			>
+				<DashboardTile id="a" />
+			</Dashboard>,
+		)
+
+		const [east, south] = screen.getAllByRole('separator', { name: 'Resize a' })
+
+		expect(east).toHaveAttribute('aria-valuemin', '7')
+
+		expect(east).toHaveAttribute('aria-valuemax', '20')
+
+		expect(south).toHaveAttribute('aria-valuemin', '1')
+
+		expect(south).not.toHaveAttribute('aria-valuemax')
 	})
 
 	it('places a new tile within its limits', () => {

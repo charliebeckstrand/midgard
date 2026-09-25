@@ -2,11 +2,13 @@
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
-import { type DashboardCell, minColumns, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
 	drivesHeight,
 	drivesWidth,
+	resizeFloor,
+	resizeLimits,
 	resizePreview,
 	samePreview,
 } from './engine/dashboard-resize'
@@ -59,26 +61,9 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 
 	const demand = demands.get(id)
 
-	const floor =
-		demand?.minWidth === undefined ? 1 : minColumns(demand.minWidth, gap, pitch, columns)
+	const limits = resizeLimits(demand, columns, resizeFloor(demand, { columns, gap, pitch }))
 
-	// The legible width in px and the grid-unit minimum both floor the span, so the larger wins.
-	const minW = Math.max(floor, demand?.minSize?.w ?? 1)
-
-	return {
-		origin,
-		pitch,
-		inline,
-		snapshot,
-		limits: {
-			columns,
-			minW,
-			maxW: demand?.maxSize?.w,
-			minH: demand?.minSize?.h,
-			maxH: demand?.maxSize?.h,
-			ratio: demand?.ratio,
-		},
-	}
+	return { origin, pitch, inline, snapshot, limits }
 }
 
 /**

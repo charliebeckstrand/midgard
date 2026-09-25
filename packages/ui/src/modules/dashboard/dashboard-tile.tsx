@@ -215,8 +215,6 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const gap = useDashboardStore((_, state) => state.gap)
 
-	const columns = useDashboardStore((_, state) => state.columns)
-
 	const editable = useDashboardStore((view) => view.editable)
 
 	const projected = useDashboardStore((view) => view.projected)
@@ -296,7 +294,6 @@ export function DashboardTile(props: DashboardTileProps) {
 				<DashboardTileEdges
 					id={id}
 					cell={cell}
-					columns={columns}
 					label={label}
 					freeHeight={ratio === undefined}
 					resizing={resizing}
