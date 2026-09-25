@@ -12,7 +12,7 @@
 import {
 	type DashboardCell,
 	type DashboardTileDemands,
-	deriveHeight,
+	heightAt,
 	minColumns,
 } from './dashboard-layout'
 
@@ -65,9 +65,7 @@ function placeShelf(
 
 		if (remainder > 0) remainder -= 1
 
-		const ratio = demands.get(cell.id)?.ratio
-
-		const h = ratio === undefined ? cell.h : deriveHeight(w, ratio)
+		const h = heightAt(w, cell.h, demands.get(cell.id)?.ratio)
 
 		into.set(cell.id, { ...cell, x, y, w, h })
 

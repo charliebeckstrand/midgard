@@ -18,14 +18,14 @@ export const ROW_SUBDIVISION = 4
 export const DEFAULT_COLUMNS = 24
 
 /** The column span of a tile that mounts with no layout entry and no `defaultSize`. */
-export const DEFAULT_CELL_WIDTH = 8
+const DEFAULT_CELL_WIDTH = 8
 
 /**
  * The row span of a free-form tile with no stored height and no default height.
  * It is the height of a 16:9 tile at a third of 24 columns, so an unset tile
  * still has a board shape.
  */
-export const DEFAULT_CELL_HEIGHT = 18
+const DEFAULT_CELL_HEIGHT = 18
 
 /**
  * One saved tile: its geometry in integer grid units. A saved layout holds only
@@ -139,6 +139,14 @@ export function deriveHeight(w: number, ratio: number): number {
 }
 
 /**
+ * The row span of a tile at `w` columns. A tile with a fixed ratio derives its
+ * height, and a free-form tile keeps `free`.
+ */
+export function heightAt(w: number, free: number, ratio: number | undefined): number {
+	return ratio === undefined ? free : deriveHeight(w, ratio)
+}
+
+/**
  * `value` within `[min, max]`. An absent bound does not apply. When the minimum
  * is larger than the maximum, the minimum wins, as CSS `min-width` does.
  */
@@ -172,10 +180,7 @@ export function resolveCell(
 	// A tile that has not registered passes its raw props, so the ratio gets the check here too.
 	const ratio = usableRatio(demands?.ratio)
 
-	const h =
-		ratio === undefined
-			? Math.max(1, Math.round(item.h ?? DEFAULT_CELL_HEIGHT))
-			: deriveHeight(w, ratio)
+	const h = heightAt(w, Math.max(1, Math.round(item.h ?? DEFAULT_CELL_HEIGHT)), ratio)
 
 	return {
 		id: item.id,
@@ -444,6 +449,9 @@ export function resolveLayout(
 
 	const placed = new Set(cells.map((cell) => cell.id))
 
+	// The first row under all cells. Each tile with no entry takes the row there.
+	let edge = bottom(cells)
+
 	for (const [id, demand] of demands) {
 		if (placed.has(id)) continue
 
@@ -452,12 +460,16 @@ export function resolveLayout(
 		const item = {
 			id,
 			x: 0,
-			y: bottom(cells),
+			y: edge,
 			w: clampSpan(size?.w ?? DEFAULT_CELL_WIDTH, min?.w, max?.w),
 			h: clampSpan(size?.h ?? DEFAULT_CELL_HEIGHT, min?.h, max?.h),
 		}
 
-		cells.push(resolveCell(item, demand, columns))
+		const cell = resolveCell(item, demand, columns)
+
+		cells.push(cell)
+
+		edge = cell.y + cell.h
 	}
 
 	return cells
@@ -469,10 +481,7 @@ export function resolveLayout(
  * Items at the same origin keep their input order.
  */
 export function readingOrder(items: readonly { id: string; x: number; y: number }[]): string[] {
-	return items
-		.map((item, index) => ({ item, index }))
-		.sort((a, b) => a.item.y - b.item.y || a.item.x - b.item.x || a.index - b.index)
-		.map(({ item }) => item.id)
+	return items.toSorted((a, b) => a.y - b.y || a.x - b.x).map((item) => item.id)
 }
 
 /**

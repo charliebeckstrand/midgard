@@ -223,24 +223,11 @@ function travelOf(
 	return same ? previous : travel
 }
 
-/** Returns `next`, or `previous` when the two lists hold the same selections in the same order. */
-function internSelections(
-	previous: readonly DashboardSelection[] | undefined,
-	next: readonly DashboardSelection[],
-): readonly DashboardSelection[] {
+/** Returns `next`, or `previous` when the two lists hold the same items in the same order. */
+function internList<T>(previous: readonly T[] | undefined, next: readonly T[]): readonly T[] {
 	if (previous === undefined || previous.length !== next.length) return next
 
 	return previous.every((item, index) => item === next[index]) ? previous : next
-}
-
-/** Returns `next`, or `previous` when the two orders hold the same ids in the same order. */
-function internOrder(
-	previous: readonly string[] | undefined,
-	next: readonly string[],
-): readonly string[] {
-	if (previous === undefined || previous.length !== next.length) return next
-
-	return previous.every((id, index) => id === next[index]) ? previous : next
 }
 
 /** Creates a store with the given initial state. */
@@ -305,11 +292,11 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
-			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
+			selections: internList(previous?.selections, liveSelections(selections, demands)),
 			order:
 				editing && previous !== null
 					? previous.order
-					: internOrder(previous?.order, orderOf(canonical, placed, demands)),
+					: internList(previous?.order, orderOf(canonical, placed, demands)),
 		}
 	}
 

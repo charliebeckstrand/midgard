@@ -4,7 +4,7 @@
  * span. A resize changes the resized tile only; it never pushes a neighbor.
  */
 
-import { clampSpan, type DashboardCell, deriveHeight, fits, sameGeometry } from './dashboard-layout'
+import { clampSpan, type DashboardCell, fits, heightAt, sameGeometry } from './dashboard-layout'
 
 /** The edge that a resize handle drives. The corner drives both axes. */
 export type DashboardResizeEdge = 'e' | 's' | 'se'
@@ -64,19 +64,16 @@ export function resizePreview(
 
 	const maxH = ratio === undefined ? limits.maxH : undefined
 
-	const heightAt = (width: number, height: number) =>
-		ratio === undefined ? height : deriveHeight(width, ratio)
-
 	let width = Math.min(room, clampSpan(Math.round(w), minW, limits.maxW))
 
 	while (
 		width > minW &&
-		!fits(snapshot, { ...origin, w: width, h: heightAt(width, origin.h) }, columns)
+		!fits(snapshot, { ...origin, w: width, h: heightAt(width, origin.h, ratio) }, columns)
 	) {
 		width -= 1
 	}
 
-	let height = heightAt(width, clampSpan(Math.round(h), minH, maxH))
+	let height = heightAt(width, clampSpan(Math.round(h), minH, maxH), ratio)
 
 	if (ratio === undefined) {
 		while (height > minH && !fits(snapshot, { ...origin, w: width, h: height }, columns)) {

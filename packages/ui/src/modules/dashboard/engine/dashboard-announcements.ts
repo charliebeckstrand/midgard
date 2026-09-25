@@ -7,7 +7,7 @@ import type { DashboardDragKind } from './dashboard-drag'
 import type { DashboardCell } from './dashboard-layout'
 
 /** The position of a cell in words: its first column and its width in columns. */
-export function describeCell(cell: DashboardCell, columns: number): string {
+function describeCell(cell: DashboardCell, columns: number): string {
 	return `column ${cell.x + 1} of ${columns}, row ${cell.y + 1}, ${cell.w} columns wide`
 }
 
