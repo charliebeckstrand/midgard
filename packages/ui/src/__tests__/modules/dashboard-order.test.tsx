@@ -470,7 +470,7 @@ describe('DashboardTiles reading order', () => {
 			</DashboardWidgetProvider>,
 		)
 
-		// The component holds one slot, so its four tiles tie and take their rows in mount order.
+		// The component holds one slot. The DashboardTiles takes the first group and j the next, so the spec tiles come first in spec order.
 		expect(tileRows(container, 'p')).toEqual([
 			['s1', '1'],
 			['s2', '19'],

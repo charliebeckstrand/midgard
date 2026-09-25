@@ -257,8 +257,9 @@ export type DashboardProps = AccessibleName & {
 	 * order reads the children, then the `tiles` of each `DashboardTiles`. In one
 	 * component, each `DashboardTiles` and each `DashboardTile` takes its place when
 	 * it mounts, and the elements of one commit keep their markup order. An element
-	 * that mounts after the others of its component goes after them until a
-	 * reload. A new spec tile keeps its place in `tiles`.
+	 * that mounts after the others of its component goes after them. A reload gives
+	 * the markup order only when they all mount in one commit. A new spec tile keeps
+	 * its place in `tiles`.
 	 */
 	children?: ReactNode
 }

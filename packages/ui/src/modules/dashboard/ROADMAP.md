@@ -22,7 +22,7 @@ Version two adds layer 4, the widget registry. `DashboardWidgetProvider` registe
 
 A tile takes a `mount` policy, so a long board can hold back the content of the tiles under the fold. A tile also takes a `defaultSize`, the span that it takes before the layout holds an entry for it.
 
-The tiles with no entry take their new rows in markup order. That order reads a JSX tile by its place among the children, and a spec tile by its place in the spec. A reload therefore gives each of them the same row. In a component, each `DashboardTiles` and each JSX tile takes its place in mount order, and a spec tile keeps its place in the spec. React mounts the elements of one commit in markup order. Only an element that mounts after the others of its component can take another row on a reload.
+The tiles with no entry take their new rows in markup order. That order reads a JSX tile by its place among the children, and a spec tile by its place in the spec. A reload therefore gives each of them the same row. In a component, each `DashboardTiles` and each JSX tile takes its place in mount order, and a spec tile keeps its place in the spec. React mounts the elements of one commit in markup order. When an element mounts after the others of its component, the tiles of that component can take other rows on a reload.
 
 The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so a later tile with that id does not take its stale place. The space of the tile stays open, because the board never packs itself. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
 
