@@ -34,6 +34,12 @@ describe('MapPlat', () => {
 		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 	})
 
+	it('keeps a long press on the plot from starting a text selection', () => {
+		const { container } = renderUI(categoricalPlat())
+
+		expect(bySlot(container, 'map-plot')).toHaveClass('select-none', '[-webkit-touch-callout:none]')
+	})
+
 	it('decodes a TopoJSON topology to the same regions', () => {
 		const { container } = renderUI(categoricalPlat({ geography: FIXTURE_TOPOLOGY }))
 

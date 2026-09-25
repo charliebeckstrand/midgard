@@ -172,6 +172,11 @@ export function MapPlotRegion({
 			// height rather than the zero its own reserve would feed back.
 			className={cn(
 				'relative',
+				// A touch reader holds a finger on a region to read its tooltip. Without
+				// these, that long press also starts a text selection that spreads across
+				// the whole map and the text around it, and iOS shows its callout menu.
+				// The tooltip and the tap to pick do not use selection, so nothing is lost.
+				'select-none [-webkit-touch-callout:none]',
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
 				// Joined at module scope: nested inline, the whole call is unkeyable
