@@ -1,0 +1,20 @@
+language js
+
+// `ma` maps the semantic sizes (xs, sm, md, lg, xl) to Tailwind spacing
+// tokens. A class in the `p-{ma}`, `m-{ma}`, or `gap-{ma}` shape is not a
+// Tailwind utility. Compose the natives (`p-3`, `gap-2`) from the values of
+// `ma` through a static `Record<Ma, string>` lookup.
+//
+// The plugin matches the class in a string, a JSX string, or a template
+// chunk. A mention in a comment is not a violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the recipe,
+// component, module, primitive, and layout layers of `ui`, minus tests and
+// benchmarks.
+or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $class where {
+	$class <: r"[\s\S]*\b(?:p|px|py|pt|pb|pl|pr|ps|pe|m|mx|my|mt|mb|ml|mr|ms|me|gap|gap-x|gap-y)-(?:xs|sm|md|lg|xl)\b[\s\S]*",
+	register_diagnostic(
+		span = $class,
+		message = "compose the Tailwind native (`p-3`, `gap-2`) from `ma`: a `p-{ma}` class is no utility"
+	)
+}
