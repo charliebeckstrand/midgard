@@ -2,6 +2,7 @@ export {
 	type KanbanColumnContextValue,
 	type KanbanContextValue,
 	type KanbanDragStateValue,
+	useKanbanCardLifted,
 	useKanbanColumnContext,
 	useKanbanContext,
 	useKanbanDragState,

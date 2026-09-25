@@ -5,6 +5,37 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import type { KanbanColumnBase } from './types'
 
+/**
+ * The card ids of each column, keyed by column id. A column whose ids equal its
+ * `previous` ids keeps the `previous` array.
+ *
+ * @returns `previous` itself when no column changed.
+ * @internal
+ */
+function reuseColumnIds<T>(
+	previous: Record<string, string[]>,
+	columns: KanbanColumnBase<T>[],
+	getKey: (item: T) => string,
+): Record<string, string[]> {
+	let changed = Object.keys(previous).length !== columns.length
+
+	const next: Record<string, string[]> = {}
+
+	for (const column of columns) {
+		const ids = column.items.map(getKey)
+
+		const prior = previous[column.id]
+
+		const same = prior?.length === ids.length && ids.every((id, index) => prior[index] === id)
+
+		next[column.id] = same && prior ? prior : ids
+
+		if (!same) changed = true
+	}
+
+	return changed ? next : previous
+}
+
 /** Dependencies threaded to {@link applyKanbanDragOver}. @internal */
 type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
 	onReorder: ((next: C[]) => void) | undefined
@@ -105,10 +136,18 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 
 	const overlayMap = useRef(new Map<string, ReactNode>())
 
-	const columnItemIds = useMemo<Record<string, string[]>>(
-		() => Object.fromEntries(columns.map((c) => [c.id, c.items.map(getKey)])),
-		[columns, getKey],
-	)
+	// A column whose card ids do not change keeps its array. The array is the
+	// `items` of the column's `SortableContext`, so a new array renders each card
+	// of the column. A move then renders no card in a column it does not touch.
+	const [columnItemIds, setColumnItemIds] = useState(() => reuseColumnIds({}, columns, getKey))
+
+	const [idsColumns, setIdsColumns] = useState(columns)
+
+	if (idsColumns !== columns) {
+		setIdsColumns(columns)
+
+		setColumnItemIds((previous) => reuseColumnIds(previous, columns, getKey))
+	}
 
 	// Card-to-column index for `dragOver`, which fires per pointer move.
 	const cardIndex = useMemo(() => {

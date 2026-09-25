@@ -3,6 +3,7 @@
 import { memo, type ReactNode, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
+import { useLifted } from '../../hooks/use-lifted-store'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
 
@@ -41,7 +42,7 @@ function KanbanCardImpl({
 	children,
 	className,
 }: KanbanCardProps) {
-	const { interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur } =
+	const { interactive, disabled, liftedStore, overlayMap, onCardKeyDown, onCardBlur } =
 		useKanbanContext()
 
 	// Surfaces the column context for use within this card.
@@ -65,7 +66,8 @@ function KanbanCardImpl({
 		disabled: !interactive,
 	})
 
-	const lifted = liftedCardId === cardId
+	// The card reads its own lift, so a lift renders only the cards that lift and drop.
+	const lifted = useLifted(liftedStore, cardId)
 
 	// Keep the drag-overlay content in sync with the card's latest children.
 	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;

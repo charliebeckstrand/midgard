@@ -1,7 +1,7 @@
 'use client'
 
 import { arrayMove } from '@dnd-kit/sortable'
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { Orientation } from '../../types'
@@ -108,7 +108,9 @@ function handleLiftedNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
  * Keyboard reordering for flat sortable lists. Space toggles "lifted" state,
  * arrow keys focus neighbors (or move the lifted item), Escape/Enter drops.
  * Pairs with a disabled dnd-kit keyboard sensor, keeping the original item
- * visible during a keyboard move; mirrors `useKanbanKeyboard`.
+ * visible during a keyboard move; mirrors `useKanbanKeyboard`. `onItemKeyDown`
+ * keeps its identity: it reads the lift and the items of the last commit
+ * through a ref.
  */
 export function useListKeyboard<T>({
 	items,
@@ -197,16 +199,39 @@ export function useListKeyboard<T>({
 		[items, getKey],
 	)
 
+	// The state of the last commit, for a key handler that keeps its identity. With
+	// the lifted id or `items` in its dependencies, the handler, and through it the
+	// list context, took a new identity for each lift and each move, and each item
+	// rendered.
+	const latest = useRef({ liftedId, orientation, locate, focusNeighbor, moveByDirection })
+
+	useEffect(() => {
+		latest.current = { liftedId, orientation, locate, focusNeighbor, moveByDirection }
+	})
+
+	// Writes the ref before the commit too, so a second key in the same tick reads
+	// the lift of the first.
+	const setLifted = useCallback(
+		(id: string | null) => {
+			latest.current.liftedId = id
+
+			setLiftedId(id)
+		},
+		[setLiftedId],
+	)
+
 	const onItemKeyDown = useCallback(
 		(id: string, event: KeyboardEvent) => {
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
+
+			const { liftedId, orientation, locate, focusNeighbor, moveByDirection } = latest.current
 
 			const primaryKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
 			const secondaryKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp'
 
 			const deps: ListKeyDeps = {
 				liftedId,
-				setLiftedId,
+				setLiftedId: setLifted,
 				containerRef,
 				locate,
 				focusNeighbor,
@@ -229,8 +254,8 @@ export function useListKeyboard<T>({
 
 			handleLiftedNav(id, event, deps)
 		},
-		[liftedId, setLiftedId, orientation, focusNeighbor, moveByDirection, locate, containerRef],
+		[setLifted, containerRef],
 	)
 
-	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
+	return { liftedId, setLiftedId: setLifted, onItemKeyDown, onItemBlur }
 }

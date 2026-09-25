@@ -2,6 +2,7 @@
 
 import type { ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
+import { useLifted } from '../../hooks/use-lifted-store'
 import { useDensity } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
@@ -110,14 +111,15 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		variant,
 		sortable,
 		interactive: reorderable,
-		liftedId,
+		liftedStore,
 		onItemKeyDown,
 		onItemBlur,
 	} = useListContext()
 
 	const { space } = useDensity()
 
-	const lifted = liftedId === id
+	// The row reads its own lift, so a lift renders only the rows that lift and drop.
+	const lifted = useLifted(liftedStore, id)
 
 	// Whether the content area itself acts on activation. Read the handler's
 	// value, not its key: `onClick={enabled ? open : undefined}` leaves the key on

@@ -2,9 +2,11 @@
 
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
+import { useLifted } from '../../hooks/use-lifted-store'
+import type { KeyedStore } from '../../utilities'
 
 /**
- * Card-facing board state: interactivity, keyboard-lifted card, the overlay map,
+ * Card-facing board state: interactivity, the keyboard-lift store, the overlay map,
  * and card event handlers. Deliberately excludes the pointer-drag `activeId`
  * and per-column ordering; see {@link KanbanDragStateValue}. A pointer drag
  * churns those every move, and must not re-render every card on the board.
@@ -14,11 +16,20 @@ export type KanbanContextValue = {
 	interactive: boolean
 	/** Whether the board is explicitly disabled (vs. merely non-interactive / read-only). */
 	disabled: boolean
-	/** Card id currently lifted via keyboard, if any. */
-	liftedCardId: string | null
+	/**
+	 * Whether each card id is lifted via keyboard. Read one card with
+	 * `useKanbanCardLifted(cardId)`.
+	 *
+	 * @remarks
+	 * It replaces `liftedCardId`. A lifted id in the context gave the context a
+	 * new value for each lift, and each card on the board rendered. The store
+	 * keeps its identity, and a card that subscribes to its own id renders only
+	 * when its own lift changes.
+	 */
+	liftedStore: KeyedStore<string, boolean>
 	/** Live map of card content keyed by card id, used by the drag overlay. */
 	overlayMap: RefObject<Map<string, ReactNode>>
-	/** Keyboard handler for cards. */
+	/** Keyboard handler for cards. It keeps its identity. */
 	onCardKeyDown: (cardId: string, event: KeyboardEvent) => void
 	/** Blur handler; clears lifted state when focus leaves a card. */
 	onCardBlur: () => void
@@ -32,6 +43,17 @@ export type KanbanContextValue = {
  * @throws When no `<Kanban>` is mounted above the caller.
  */
 export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValue>('Kanban')
+
+/**
+ * Whether the card `cardId` of the enclosing `<Kanban>` is lifted via keyboard.
+ *
+ * @returns `true` while the card is lifted. The caller renders only when the
+ * lift of this card changes, not for the lift of another card.
+ * @throws When no `<Kanban>` is mounted above the caller.
+ */
+export function useKanbanCardLifted(cardId: string): boolean {
+	return useLifted(useKanbanContext().liftedStore, cardId)
+}
 
 /** Column-facing pointer-drag state: the active card and per-column ordering, both of which change every drag-over move. */
 export type KanbanDragStateValue = {

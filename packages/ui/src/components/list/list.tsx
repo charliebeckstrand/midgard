@@ -4,6 +4,7 @@ import { DndContext, DragOverlay, type DragStartEvent } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import { useLiftedStore } from '../../hooks/use-lifted-store'
 import { k, type ListVariant } from '../../recipes/kata/list'
 import type { Orientation } from '../../types'
 import { ListContext, ListItemContext } from './context'
@@ -109,6 +110,10 @@ export function List<T>({
 		containerRef,
 	})
 
+	// Each item reads its own lift from the store, so a lift renders only the item
+	// that lifts and the item that drops.
+	const liftedStore = useLiftedStore(liftedId)
+
 	// Clear keyboard-lifted state when a pointer drag begins.
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
@@ -123,13 +128,22 @@ export function List<T>({
 			variant,
 			interactive,
 			disabled: !!disabled,
-			liftedId,
+			liftedStore,
 			itemCount: items.length,
 			sortable,
 			onItemKeyDown,
 			onItemBlur,
 		}),
-		[variant, interactive, disabled, liftedId, items.length, sortable, onItemKeyDown, onItemBlur],
+		[
+			variant,
+			interactive,
+			disabled,
+			liftedStore,
+			items.length,
+			sortable,
+			onItemKeyDown,
+			onItemBlur,
+		],
 	)
 
 	// Memoized so an active-drag change (which only drives the overlay below) does

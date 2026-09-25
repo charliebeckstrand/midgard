@@ -1,7 +1,7 @@
 'use client'
 
 import { arrayMove } from '@dnd-kit/sortable'
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
 import type { KanbanColumnBase } from './types'
@@ -166,7 +166,8 @@ function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanK
  * announcements; while lifted, arrows move it within and across columns; while
  * not lifted, arrows/Home/End move focus between cards. Emits the next columns
  * through `onReorder`. Returns the lifted-card state and the card
- * `keydown`/`blur` handlers.
+ * `keydown`/`blur` handlers. The handlers keep their identity: `onCardKeyDown`
+ * reads the lift and the columns of the last commit through a ref.
  */
 export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -319,13 +320,36 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		[columns, getKey, onReorder, findColumnByCardId, refocusCard, containerRef],
 	)
 
+	// The state of the last commit, for a key handler that keeps its identity. With
+	// the lifted id or `columns` in its dependencies, the handler, and through it the
+	// board context, took a new identity for each lift and each move, and each card
+	// on the board rendered.
+	const latest = useRef({ liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn })
+
+	useEffect(() => {
+		latest.current = { liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn }
+	})
+
+	// Writes the ref before the commit too, so a second key in the same tick reads
+	// the lift of the first.
+	const setLifted = useCallback(
+		(cardId: string | null) => {
+			latest.current.liftedCardId = cardId
+
+			setLiftedCardId(cardId)
+		},
+		[setLiftedCardId],
+	)
+
 	const onCardKeyDown = useCallback(
 		(cardId: string, event: KeyboardEvent) => {
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
+			const { liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn } = latest.current
+
 			const deps: KanbanKeyDeps = {
 				liftedCardId,
-				setLiftedCardId,
+				setLiftedCardId: setLifted,
 				containerRef,
 				locate,
 				focusNeighbor,
@@ -347,16 +371,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			handleCardLiftedNav(cardId, event, deps)
 		},
-		[
-			liftedCardId,
-			setLiftedCardId,
-			moveWithinColumn,
-			moveToColumn,
-			focusNeighbor,
-			locate,
-			containerRef,
-		],
+		[setLifted, containerRef],
 	)
 
-	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }
+	return { liftedCardId, setLiftedCardId: setLifted, onCardKeyDown, onCardBlur }
 }

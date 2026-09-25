@@ -3,6 +3,7 @@ export {
 	type ListItemContextValue,
 	useListContext,
 	useListItemContext,
+	useListItemLifted,
 } from './context'
 export { List, type ListProps } from './list'
 export { ListDescription, type ListDescriptionProps } from './list-description'
