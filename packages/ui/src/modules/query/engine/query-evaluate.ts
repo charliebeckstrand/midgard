@@ -49,8 +49,13 @@ export const RANGE_OPERATORS = new Set(['between'])
  */
 const NUMERIC_OPERATORS = new Set(['gt', 'gte', 'lt', 'lte', 'between'])
 
-/** Coerces any value to a string for text operators; nullish becomes `''`. @internal */
-function asText(value: unknown): string {
+/**
+ * Coerces any value to a string for text operators; nullish becomes `''`. The
+ * dashboard scope stores a selected value in this form, as `equals` reads it.
+ *
+ * @internal
+ */
+export function asText(value: unknown): string {
 	return value == null ? '' : String(value)
 }
 

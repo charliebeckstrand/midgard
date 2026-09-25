@@ -9,7 +9,7 @@
  */
 
 import { isQueryActive } from '../../query/engine/query-active'
-import { evaluateQuery } from '../../query/engine/query-evaluate'
+import { asText, evaluateQuery } from '../../query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../query/engine/types'
 
 /**
@@ -40,11 +40,6 @@ export type DashboardSelectOptions = {
 	additive?: boolean
 }
 
-/** The text form of a value, as the `equals` operator reads it. */
-export function selectionText(value: unknown): string {
-	return value == null ? '' : String(value)
-}
-
 /**
  * The selections after `source` selects `value` in `field`. Each source keeps at
  * most one selection for each field. A selection with no values goes away.
@@ -56,7 +51,7 @@ export function selectValue(
 	value: unknown,
 	{ additive = false }: DashboardSelectOptions = {},
 ): DashboardSelection[] {
-	const text = selectionText(value)
+	const text = asText(value)
 
 	const index = selections.findIndex((item) => item.source === source && item.field === field)
 
