@@ -148,34 +148,37 @@ export function resolveActiveEngineTransform(args: {
 }
 
 /**
- * Whether the quick search runs off the engine. It does when the query prunes
- * rows on the client, and no other transform needs the engine row model. Such
- * a transform is pagination, an active column filter, or grouping. The grid
- * then searches its rows itself (see `searchRowIndices`), and builds no engine
- * row for each datum.
+ * Whether the client filters run off the engine. They do when the quick
+ * search prunes rows or a column filter is applied, and no other transform
+ * needs the engine row model. Such a transform is pagination or grouping. The
+ * grid then filters its rows itself (see `filterRowIndices`), and builds no
+ * engine row for each datum.
  *
  * @internal
  */
-export function resolveOffEngineSearch(args: {
+export function resolveOffEngineFilter(args: {
 	paginated: boolean
-	paginationManual: boolean
 	filterMode: { configured: boolean; manual: boolean }
 	/** Whether the grid has a quick search. */
 	globalFiltered: boolean
 	globalFilter: string
 	globalHighlights: boolean
 	columnFilters: ColumnFiltersState
+	/** Whether the grid can apply each column filter itself (see `compileColumnFilters`). */
+	columnFiltersCompile: boolean
 	grouped: boolean
 	/** Whether the consumer groups the rows (manual grouping). */
 	manualGrouped: boolean
 }): boolean {
-	const searching =
-		args.globalFiltered &&
-		!args.globalHighlights &&
-		!args.filterMode.manual &&
-		args.globalFilter !== ''
+	if (!args.filterMode.configured || args.filterMode.manual) return false
 
-	if (!searching || args.paginated || args.manualGrouped) return false
+	if (args.paginated || args.grouped || args.manualGrouped) return false
 
-	return !resolveActiveEngineTransform({ ...args, globalFilter: '' })
+	const searching = args.globalFiltered && !args.globalHighlights && args.globalFilter !== ''
+
+	const filtering = args.columnFilters.length > 0
+
+	if (filtering && !args.columnFiltersCompile) return false
+
+	return searching || filtering
 }

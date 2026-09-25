@@ -1,9 +1,10 @@
 import type { GridColumn } from '../../types'
+import { filterRowIndices, type RowTest } from '../grid-filter/filter'
 
 /**
- * The indices of the rows that the quick search keeps, in data order. A row
- * stays when the text of one of its searched cells contains the query, with
- * the case ignored.
+ * Compiles the quick search into a row test, or gives `null` when the search
+ * keeps every row. A row passes when the text of one of its searched cells
+ * contains the query, with the case ignored.
  *
  * @remarks
  * It gives the same rows as the global filter of the engine, which the grid
@@ -12,8 +13,33 @@ import type { GridColumn } from '../../types'
  * `null` or `undefined` matches nothing. A grid with no searched column keeps
  * every row. `grid-search.test.ts` holds the parity with the engine.
  *
- * The grid calls it when the search is the only transform, so the search does
- * not build an engine row for each datum.
+ * @param query - The search text. An empty query keeps every row.
+ * @internal
+ */
+export function compileSearch<T>(
+	columns: readonly GridColumn<T>[],
+	query: string,
+): RowTest<T> | null {
+	const readers = columns.flatMap((col) => (col.value ? [col.value] : []))
+
+	if (query === '' || readers.length === 0) return null
+
+	const needle = query.toLowerCase()
+
+	return (row) => {
+		for (const read of readers) {
+			const value = read(row)
+
+			if (value != null && String(value).toLowerCase().includes(needle)) return true
+		}
+
+		return false
+	}
+}
+
+/**
+ * The indices of the rows that the quick search keeps, in data order. See
+ * {@link compileSearch} for the rows that stay.
  *
  * @param query - The search text. An empty query keeps every row.
  * @internal
@@ -23,29 +49,7 @@ export function searchRowIndices<T>(
 	columns: readonly GridColumn<T>[],
 	query: string,
 ): number[] {
-	const readers = columns.flatMap((col) => (col.value ? [col.value] : []))
+	const test = compileSearch(columns, query)
 
-	const all = () => rows.map((_, index) => index)
-
-	if (query === '' || readers.length === 0) return all()
-
-	const needle = query.toLowerCase()
-
-	const kept: number[] = []
-
-	for (let index = 0; index < rows.length; index++) {
-		const row = rows[index] as T
-
-		for (const read of readers) {
-			const value = read(row)
-
-			if (value != null && String(value).toLowerCase().includes(needle)) {
-				kept.push(index)
-
-				break
-			}
-		}
-	}
-
-	return kept
+	return filterRowIndices(rows, test ? [test] : [])
 }

@@ -2,10 +2,15 @@
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
 import { isQueryActive } from '../../modules/query/engine/query-active'
-import { evaluateQuery, matchQueryRule } from '../../modules/query/engine/query-evaluate'
+import {
+	compileQuery,
+	evaluateQuery,
+	matchQueryRule,
+} from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
+import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 describe('matchQueryRule', () => {
 	it('matches text operators case-insensitively', () => {
@@ -572,5 +577,28 @@ describe('evaluateQuery · properties', () => {
 		expect(summarizeQuery(group, FIELDS).length > 0).toBe(active)
 
 		if (!active) expect(evaluateQuery(group, () => cell)).toBe(true)
+	})
+})
+
+describe('compileQuery', () => {
+	const fields = ['a', 'b', 'c'] as const
+
+	test.prop([queryGroup(fields), fc.tuple(queryValue(), queryValue(), queryValue())])(
+		'gives the result of evaluateQuery',
+		(tree, [a, b, c]) => {
+			const values: Record<string, unknown> = { a, b, c }
+
+			const getValue = (field: string) => values[field]
+
+			expect(compileQuery(tree)?.(getValue) ?? true).toBe(evaluateQuery(tree, getValue))
+		},
+	)
+
+	it('gives null for a tree that puts no constraint on the rows', () => {
+		const blank = createRule({ name: 'a', label: 'A', type: 'text' })
+
+		expect(compileQuery(createGroup('and', []))).toBeNull()
+
+		expect(compileQuery(createGroup('and', [blank]))).toBeNull()
 	})
 })

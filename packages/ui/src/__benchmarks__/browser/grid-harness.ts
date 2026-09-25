@@ -19,6 +19,7 @@ import {
 	GRID_WIDTH,
 	gridContenders,
 	type MountedGrid,
+	type MountOptions,
 	painted,
 } from './grid-contenders'
 import { host, type Prepared } from './harness'
@@ -56,17 +57,19 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions) {
  * Mounts every contender on `rows` into its own fixed box, settles the first
  * paint, then closes each over the drive `scenario` returns. A contender the
  * scenario cannot run returns `null` and leaves the report.
+ * `options` sets how each grid mounts.
  */
 export async function prepareGrids(
 	rows: Shipment[],
 	scenario: (grid: MountedGrid, box: HTMLElement) => (() => Promise<void>) | null,
+	options?: MountOptions,
 ): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
 	for (const contender of gridContenders()) {
 		const box = host(BOX)
 
-		const grid = contender.mount(box, rows)
+		const grid = contender.mount(box, rows, options)
 
 		await painted(box, [rows[0]?.id ?? ''])
 

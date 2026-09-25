@@ -42,6 +42,7 @@ import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
+import { compileColumnFilters, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
 import {
 	expandGroups,
 	type GridGroup,
@@ -57,7 +58,7 @@ import {
 	frozenLayout,
 	sameFrozenLayout,
 } from './engine/grid-pin/layout'
-import { searchRowIndices } from './engine/grid-search/search'
+import { compileSearch } from './engine/grid-search/search'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
@@ -85,7 +86,7 @@ import {
 	EMPTY_VISIBILITY,
 	IDLE_SIZING_INFO,
 	resolveActiveEngineTransform,
-	resolveOffEngineSearch,
+	resolveOffEngineFilter,
 	resolveTransformModes,
 	rowsSignatureOf,
 } from './engine/grid-table/state'
@@ -434,7 +435,7 @@ function useGridRowModel<T>(args: {
 	grouped: boolean
 	/** Manual-grouping group-header predicate; splits the display rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
-	/** The off-engine view (rows + keys) when a search or a sort is the grid's sole transform, else `null`. */
+	/** The off-engine view (rows + keys) when the filters or a sort are the grid's sole transforms, else `null`. */
 	clientView: { rows: T[]; keys: (string | number)[] } | null
 }): {
 	manualRows: GridLeaf<T>[] | null
@@ -527,18 +528,19 @@ function useGroupTree<T>(args: {
 }
 
 /**
- * The off-engine client view: the quick search and the sort, when they are the
- * grid's *only* transforms. A plain searched or sorted grid therefore never
- * materializes the engine's Row-per-datum model. That is the same win the
- * lite-cell body buys mount and update, extended to search and sort. `null`
- * when inactive (no search and no sort, or a filter / pagination / grouping is
- * also live, and the engine searches and sorts inside its pipeline).
+ * The off-engine client view: the client filters and the sort, when they are
+ * the grid's *only* transforms. A plain filtered or sorted grid therefore
+ * never materializes the engine's Row-per-datum model. That is the same win
+ * the lite-cell body buys mount and update, extended to filter and sort.
+ * `null` when inactive (no filter and no sort, or pagination / grouping is
+ * also live, and the engine filters and sorts inside its pipeline).
  *
- * The search keeps the rows that {@link searchRowIndices} gives, which match
- * the engine's global filter. The sort then orders those rows through
- * {@link cachedSortOrder}, and {@link materializeSort} reads each kept row at
- * its original index. The result matches the engine's `getSortedRowModel`
- * after its filter.
+ * The filter keeps the rows that pass the compiled column filters and the
+ * quick search (see {@link compileColumnFilters} and {@link compileSearch}),
+ * in one pass over the rows. These rows match the engine's filtered model.
+ * The sort then orders those rows through {@link cachedSortOrder}, and
+ * {@link materializeSort} reads each kept row at its original index. The
+ * result matches the engine's `getSortedRowModel` after its filter.
  *
  * The sort columns are resolved to {@link SmartSortField}s in their own memo,
  * keyed on the sort and columns. A data change therefore re-sorts without
@@ -554,12 +556,17 @@ function useClientView<T>(args: {
 	clientSort: boolean
 	/** Whether the engine model is already materialized for another transform, which then sorts inside its pipeline. */
 	materialize: boolean
-	/** The query of an off-engine search (see `resolveOffEngineSearch`), else `null`. */
-	search: string | null
+	/** Whether the client filters run off the engine (see `resolveOffEngineFilter`). */
+	filtered: boolean
+	/** The query of the quick search, or `''` when the search prunes no rows. */
+	query: string
+	/** The compiled column filters (see `compileColumnFilters`). */
+	columnTests: RowTest<T>[] | null
 	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
 	columns: GridColumn<T>[]
 }): { rows: T[]; keys: (string | number)[] } | null {
-	const { rows, getKey, sort, clientSort, materialize, search, columns } = args
+	const { rows, getKey, sort, clientSort, materialize, filtered, query, columnTests, columns } =
+		args
 
 	// The sort columns as fields, or `null` unless a sort is the sole transform (a
 	// client sort with entries and no engine transform already reshaping the rows).
@@ -583,12 +590,21 @@ function useClientView<T>(args: {
 		})
 	}, [clientSort, materialize, sort, columns])
 
-	// The original indices of the rows that the search keeps, and those rows.
-	// Both are `null` with no off-engine search.
-	const kept = useMemo(
-		() => (search === null ? null : searchRowIndices(rows, columns, search)),
-		[rows, columns, search],
-	)
+	// The row tests of an off-engine filter, or `null` with none. The search
+	// comes last, because it reads more cells than a column filter.
+	const tests = useMemo<RowTest<T>[] | null>(() => {
+		if (!filtered) return null
+
+		const search = compileSearch(columns, query)
+
+		const byColumn = columnTests ?? []
+
+		return search ? [...byColumn, search] : byColumn
+	}, [filtered, columns, query, columnTests])
+
+	// The original indices of the rows that the filter keeps, and those rows.
+	// Both are `null` with no off-engine filter.
+	const kept = useMemo(() => (tests ? filterRowIndices(rows, tests) : null), [rows, tests])
 
 	const keptRows = useMemo(
 		() => (kept ? kept.map((index) => rows[index] as T) : null),
@@ -1252,8 +1268,9 @@ export function useGridTable<T>({
 	// Row-per-datum model on every plain mount, the linear term the windowed body
 	// exists to avoid. Sort is deliberately absent: a sort that is the grid's only
 	// transform runs off the engine through `useClientView` below, so it never
-	// forces the model. A search that is the only transform runs there too (see
-	// `resolveOffEngineSearch`). The row-model derivation (display rows, grouped display
+	// forces the model. A search and the column filters run there too, when no
+	// other transform is live (see `resolveOffEngineFilter`). The row-model
+	// derivation (display rows, grouped display
 	// list, flat leaf rows, and the `renderRows`/`rowKeys` the body reads) lives
 	// in `useGridRowModel`.
 	const engineTransform = resolveActiveEngineTransform({
@@ -1266,21 +1283,30 @@ export function useGridTable<T>({
 		grouped,
 	})
 
-	const searchOffEngine = resolveOffEngineSearch({
+	// The column filters that reach the engine. A grid with no filterable column
+	// gives the engine no filter state, so its filters apply to no row.
+	const appliedColumnFilters = hasColumnFilters ? resolvedColumnFilters : EMPTY_COLUMN_FILTERS
+
+	const columnTests = useMemo(
+		() => compileColumnFilters(columns, appliedColumnFilters),
+		[columns, appliedColumnFilters],
+	)
+
+	const filterOffEngine = resolveOffEngineFilter({
 		paginated,
-		paginationManual: manual,
 		filterMode,
 		globalFiltered: globalConfigured,
 		globalFilter: resolvedGlobalFilter,
 		globalHighlights,
-		columnFilters: resolvedColumnFilters,
+		columnFilters: appliedColumnFilters,
+		columnFiltersCompile: columnTests !== null,
 		grouped,
 		manualGrouped: manualGroupRow != null,
 	})
 
-	const materialize = paginated || (engineTransform && !searchOffEngine) || manualGroupRow != null
+	const materialize = paginated || (engineTransform && !filterOffEngine) || manualGroupRow != null
 
-	// The off-engine client search and sort, active only when they are the grid's
+	// The off-engine client filter and sort, active only when they are the grid's
 	// *sole* transforms (otherwise the engine runs them inside its pipeline, above).
 	const clientView = useClientView({
 		rows,
@@ -1288,7 +1314,10 @@ export function useGridTable<T>({
 		sort,
 		clientSort,
 		materialize,
-		search: searchOffEngine ? resolvedGlobalFilter : null,
+		filtered: filterOffEngine,
+		// A search that only marks its matches prunes no row.
+		query: globalConfigured && !globalHighlights ? resolvedGlobalFilter : '',
+		columnTests,
 		columns,
 	})
 

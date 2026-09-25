@@ -1,4 +1,4 @@
-import type { QueryGroup } from './types'
+import type { QueryGroup, QueryNode } from './types'
 
 /**
  * Whether a value counts as filled for an operator that needs one. Nullish,
@@ -258,4 +258,84 @@ function foldGroup(group: QueryGroup, getValue: (field: string) => unknown): boo
  */
 export function evaluateQuery(group: QueryGroup, getValue: (field: string) => unknown): boolean {
 	return foldGroup(group, getValue) ?? true
+}
+
+/**
+ * A compiled query: it tests one row, and reads each field of the row through
+ * `getValue`.
+ *
+ * @internal
+ */
+export type CompiledQuery = (getValue: (field: string) => unknown) => boolean
+
+/** One constrained child of a compiled group, and the combinator that joins it. @internal */
+type CompiledStep = { and: boolean; test: CompiledQuery }
+
+/**
+ * Compiles one node, or gives `null` when the node puts no constraint on the
+ * rows. {@link imposesConstraint} reads only the operator and the rule value,
+ * so the compile makes that judgment one time, not one time for each row.
+ *
+ * @internal
+ */
+function compileNode(node: QueryNode): CompiledQuery | null {
+	if (node.type === 'group') return compileGroup(node)
+
+	if (!imposesConstraint(node.operator, node.value)) return null
+
+	const match = matchers[node.operator] as (fieldValue: unknown, ruleValue: unknown) => boolean
+
+	const { field, value } = node
+
+	return (getValue) => match(getValue(field), value)
+}
+
+/**
+ * Compiles a group into one test. The steps fold left to right, as in
+ * {@link foldGroup}. A step whose result cannot change the fold does not run:
+ * `false` stays `false` under `and`, and `true` stays `true` under `or`.
+ *
+ * @internal
+ */
+function compileGroup(group: QueryGroup): CompiledQuery | null {
+	const steps: CompiledStep[] = []
+
+	for (const node of group.children) {
+		const test = compileNode(node)
+
+		if (test) steps.push({ and: (node.combinator ?? 'and') === 'and', test })
+	}
+
+	const [first, ...rest] = steps
+
+	if (!first) return null
+
+	if (rest.length === 0) return first.test
+
+	return (getValue) => {
+		let result = first.test(getValue)
+
+		for (const step of rest) {
+			if (step.and === result) result = step.test(getValue)
+		}
+
+		return result
+	}
+}
+
+/**
+ * Compiles a query tree into a test that gives the result of
+ * {@link evaluateQuery}. It gives `null` when the tree puts no constraint on
+ * the rows.
+ *
+ * @remarks
+ * Use it to test many rows against one tree. The compile drops each child
+ * that puts no constraint on the rows. The test then walks only the rules that
+ * remain, and reads the matcher of each rule directly.
+ *
+ * @param group - The query group (typically the root) to compile.
+ * @internal
+ */
+export function compileQuery(group: QueryGroup): CompiledQuery | null {
+	return compileGroup(group)
 }
