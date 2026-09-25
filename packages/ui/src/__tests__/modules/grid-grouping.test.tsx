@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen, userEvent, within } from '../helpers'
+import { bySlot, fireEvent, renderUI, screen, userEvent, within } from '../helpers'
 
 /**
  * Row grouping (`groupBy` + a grouped column): the engine's grouped/expanded row
@@ -168,5 +168,28 @@ describe('Grid row grouping', () => {
 		expect(screen.queryByRole('button', { name: /group/ })).not.toBeInTheDocument()
 
 		expect(screen.getByText('Wade')).toBeInTheDocument()
+	})
+
+	it('counts each leaf once while every group is open', async () => {
+		const user = userEvent.setup()
+
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={people}
+				getKey={getKey}
+				groupBy={{ value: 'role' }}
+				footer={{ rowTotal: true }}
+			/>,
+		)
+
+		// An open group's leaves were counted twice: once as leaves of the group,
+		// and once as the rows the open group shows.
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent('5 rows')
+
+		// A collapse changes which rows show, not how many rows the grid holds.
+		await user.click(screen.getByRole('button', { name: 'Collapse group Developer' }))
+
+		expect(bySlot(container, 'grid-footer')).toHaveTextContent('5 rows')
 	})
 })

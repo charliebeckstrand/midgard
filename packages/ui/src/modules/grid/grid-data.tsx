@@ -1,6 +1,5 @@
 'use client'
 
-import type { ExpandedState, Row } from '@tanstack/react-table'
 import { useReducedMotion } from 'motion/react'
 import {
 	type ReactNode,
@@ -45,6 +44,7 @@ import {
 	resolveGroupingMode,
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
+import type { GridGroup } from './engine/grid-group/tree'
 import { bodyRowCount } from './engine/grid-items/items'
 import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
@@ -217,41 +217,30 @@ function useBodyRowCount<T>(args: {
 	virtualize: boolean
 	rows: T[]
 	rowKeys: (string | number)[]
-	groupedRows: Row<T>[] | null
-	/** The engine's expansion state. The group rows can stay the same object when it changes. */
-	groupExpanded: ExpandedState
+	/** The client groups. A toggle gives a new list, so the count follows it. */
+	groups: GridGroup<T>[] | null
 	groupTotalRow: boolean | undefined
 	columns: GridColumn<T>[]
 	expanded: Set<string | number> | undefined
 	rowExpandable: ((row: T) => boolean) | undefined
 }): number {
-	const { virtualize, rows, rowKeys, groupedRows, groupExpanded, groupTotalRow, columns } = args
+	const { virtualize, rows, rowKeys, groups, groupTotalRow, columns } = args
 
 	const { expanded, rowExpandable } = args
 
-	return useMemo(() => {
-		void groupExpanded
-
-		return bodyRowCount({
-			virtualize,
-			rows,
-			rowKeys,
-			groupedRows,
-			groupTotalRow,
-			columns,
-			expansion: expanded && rowExpandable ? { expanded, rowExpandable } : null,
-		})
-	}, [
-		virtualize,
-		rows,
-		rowKeys,
-		groupedRows,
-		groupExpanded,
-		groupTotalRow,
-		columns,
-		expanded,
-		rowExpandable,
-	])
+	return useMemo(
+		() =>
+			bodyRowCount({
+				virtualize,
+				rows,
+				rowKeys,
+				groups,
+				groupTotalRow,
+				columns,
+				expansion: expanded && rowExpandable ? { expanded, rowExpandable } : null,
+			}),
+		[virtualize, rows, rowKeys, groups, groupTotalRow, columns, expanded, rowExpandable],
+	)
 }
 
 /**
@@ -872,7 +861,8 @@ export function GridData<T>({
 		visibleColumns,
 		renderRows,
 		rowKeys,
-		groupedRows,
+		groups,
+		toggleGroup: toggleClientGroup,
 		manualRows,
 		pagination,
 		resize,
@@ -1152,8 +1142,8 @@ export function GridData<T>({
 	const rowManager = useGridRowManagerRegion<T>({
 		groupByConfig,
 		groupingActive,
-		groupedRows,
-		grouping,
+		groups,
+		toggleGroup: toggleClientGroup,
 		contextMenuActive: resolvedContextMenu != null,
 		setGroupExpanded,
 	})
@@ -1249,8 +1239,7 @@ export function GridData<T>({
 			virtualize: gated.virtualize,
 			rows: renderRows,
 			rowKeys,
-			groupedRows,
-			groupExpanded,
+			groups,
 			groupTotalRow,
 			columns: visibleColumns,
 			expanded: detail.body?.expanded,
@@ -1444,7 +1433,8 @@ export function GridData<T>({
 					rowReorderActive={rowReorderActive}
 					animateSortRows={animateSortRows}
 					rowSortable={rowReorder.sortableContext}
-					groupedRows={groupedRows}
+					groups={groups}
+					toggleGroup={toggleClientGroup}
 					manualRows={manualRows}
 					manualGroup={manualGroupBody}
 					groupColumnId={grouping}
@@ -1453,7 +1443,6 @@ export function GridData<T>({
 					rowGroupPresentation={rowManager.presentation}
 					groupTotalRow={groupTotalRow}
 					expansion={detail.body}
-					getKey={getKey}
 					density={density}
 					truncate={truncate}
 					settleWidths={settleWidths}

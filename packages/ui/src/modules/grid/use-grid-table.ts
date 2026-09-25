@@ -11,7 +11,6 @@
 'use no memo'
 
 import {
-	type CellContext,
 	type Column,
 	type ColumnDef,
 	type ColumnFiltersState,
@@ -34,8 +33,9 @@ import {
 	type VisibilityState,
 } from '@tanstack/react-table'
 import {
-	type ReactNode,
+	type Dispatch,
 	type RefObject,
+	type SetStateAction,
 	useCallback,
 	useEffect,
 	useEffectEvent,
@@ -48,6 +48,14 @@ import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
+import {
+	expandGroups,
+	type GridGroup,
+	type GridLeaf,
+	toGridGroups,
+	toGridLeaf,
+	toggleGroupExpanded,
+} from './engine/grid-group/tree'
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import {
 	EMPTY_FROZEN_LAYOUT,
@@ -130,9 +138,8 @@ export type {
 } from './engine/grid-table/views'
 
 declare module '@tanstack/react-table' {
-	// Carries the source GridColumn on each ColumnDef so the body renderer reads a
-	// column's chrome (selectable / actions / pinned / className / cellProps)
-	// straight off the engine's cell model.
+	// Carries the source GridColumn on each ColumnDef, so the engine's visible
+	// columns map back to the grid's own columns (see `toGridColumns`).
 	interface ColumnMeta<TData extends RowData, TValue> {
 		gridColumn: GridColumn<TData>
 	}
@@ -155,10 +162,10 @@ type GridTableParams<T> = {
 	sortManual?: boolean
 	/** The single column id the rows are grouped by, or `null`/absent for no grouping. */
 	grouping?: (string | number) | null
-	/** Engine expansion state for the grouped rows (which groups are open). */
+	/** Which groups are open. The grid owns this state, and the engine never reads it. */
 	expanded?: ExpandedState
-	/** Commits an engine-driven expansion change (a group header toggle) as a resolved value. */
-	onExpandedChange?: (next: ExpandedState) => void
+	/** Writes the expansion state; a group toggle writes through it as an update. */
+	onExpandedChange?: Dispatch<SetStateAction<ExpandedState>>
 	/**
 	 * Marks a row as a manual-grouping group header, or `null`/absent outside
 	 * manual grouping. When set, the supplied rows are a consumer-shaped grouped
@@ -212,12 +219,14 @@ type GridTableResult<T> = {
 	/** Whether row grouping is active (a valid `grouping` column is set). */
 	grouped: boolean
 	/**
-	 * The top-level group-header rows in display order, each with all its leaves on
-	 * `subRows`, for the grouped body to render. `null` when grouping is off. The
-	 * body keeps the leaves mounted and animates them open/closed. {@link renderRows}
-	 * / {@link rowKeys} still carry the flat leaf set for selection and counts.
+	 * The groups in display order, each with all of its leaves, for the grouped
+	 * body to render. `null` when grouping is off. The body keeps the leaves
+	 * mounted and animates them open and closed. {@link renderRows} and
+	 * {@link rowKeys} still carry the flat leaf set for selection and counts.
 	 */
-	groupedRows: Row<T>[] | null
+	groups: GridGroup<T>[] | null
+	/** Opens or closes a group, by its id. */
+	toggleGroup: (id: string) => void
 	/**
 	 * The full display list — consumer-supplied group headers interleaved with
 	 * leaves, in supplied order — under manual grouping, or `null` otherwise.
@@ -225,7 +234,7 @@ type GridTableResult<T> = {
 	 * {@link rowKeys} carry only the leaves, so selection and the data counts
 	 * never see a header row.
 	 */
-	manualRows: Row<T>[] | null
+	manualRows: GridLeaf<T>[] | null
 	/** Footer view model, or `null` when pagination is not configured. */
 	pagination: GridPaginationView | null
 	/** Column-resize controls, or `null` when `resizable` is off. */
@@ -302,77 +311,29 @@ function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean
 }
 
 /**
- * Builds the engine `ColumnDef[]` with referentially-stable per-id cell
- * renderers. `flexRender(columnDef.cell, …)` makes the cell's component type the
- * `cell` function itself, so a fresh function each render would remount every
- * cell. That drops editor focus and selection, and floods reconciliation. Each
- * id's renderer is created once and reads the latest column from a ref, so cell
- * content stays current while its identity holds. The rest of the def rebuilds
- * freely (only `cell`'s identity drives mounting); `meta` carries the source
- * column for the body's chrome.
+ * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
+ * column, so the engine's visible columns map back to it.
  *
  * @internal
  */
-function useStableColumnDefs<T>(
+function toColumnDefs<T>(
 	columns: GridColumn<T>[],
 	smartSortingFn: SortingFn<unknown>,
 ): ColumnDef<T>[] {
-	const columnsById = useMemo(
-		() => new Map(columns.map((col) => [String(col.id), col] as const)),
-		[columns],
-	)
-
-	const columnsByIdRef = useRef(columnsById)
-
-	columnsByIdRef.current = columnsById
-
-	const cellRenderers = useRef(new Map<string, (info: CellContext<T, unknown>) => ReactNode>())
-
-	return useMemo<ColumnDef<T>[]>(() => {
-		const defs = columns.map((col) => {
-			const id = String(col.id)
-
-			let renderCell = cellRenderers.current.get(id)
-
-			if (!renderCell) {
-				renderCell = (info) => columnsByIdRef.current.get(id)?.cell?.(info.row.original) ?? null
-
-				cellRenderers.current.set(id, renderCell)
-			}
-
-			return {
-				...toColumnDef(col, smartSortingFn),
-				meta: { gridColumn: col },
-				...(col.cell ? { cell: renderCell } : {}),
-			}
-		})
-
-		// Drop renderers for columns no longer present, so the cache doesn't grow
-		// unbounded across the mount as the column set changes.
-		for (const id of cellRenderers.current.keys()) {
-			if (!columnsById.has(id)) cellRenderers.current.delete(id)
-		}
-
-		return defs
-	}, [columns, columnsById, smartSortingFn])
+	return columns.map((col) => ({ ...toColumnDef(col, smartSortingFn), meta: { gridColumn: col } }))
 }
 
 /**
- * Resolves the engine's row-grouping slice from the grouped column id and the
- * expansion state. It yields the `grouped` flag and TanStack's `GroupingState`
- * (a one-element array of the grouped column id, or empty). It also yields the
- * resolved `expanded` state (defaulting to all-expanded), and the change
- * handlers. Grouping is driven only
- * by the `groupBy` binding, so `onGroupingChange` is a no-op keeping the
- * controlled state stable; expansion writes back through `onExpandedChange`.
+ * Resolves the engine's row-grouping slice from the grouped column id. It gives
+ * the `grouped` flag and TanStack's `GroupingState`, which is a one-element
+ * array of the grouped column id, or empty. Grouping is driven only by the `groupBy`
+ * binding, so `onGroupingChange` is a no-op keeping the controlled state stable.
+ * The engine gets no expansion state: the grid opens its groups itself (see
+ * {@link useGroupTree}).
  *
  * @internal
  */
-function useGroupingSlice(
-	grouping: (string | number) | null,
-	expanded: ExpandedState | undefined,
-	onExpandedChange: ((next: ExpandedState) => void) | undefined,
-) {
+function useGroupingSlice(grouping: (string | number) | null) {
 	const grouped = grouping != null
 
 	const groupingState = useMemo<GroupingState>(
@@ -380,16 +341,9 @@ function useGroupingSlice(
 		[grouped, grouping],
 	)
 
-	const resolvedExpanded = expanded ?? true
-
 	const onGroupingChange = useCallback<OnChangeFn<GroupingState>>(() => {}, [])
 
-	const onExpanded = useCallback<OnChangeFn<ExpandedState>>(
-		(updater) => onExpandedChange?.(functionalUpdate(updater, resolvedExpanded)),
-		[onExpandedChange, resolvedExpanded],
-	)
-
-	return { grouped, groupingState, resolvedExpanded, onGroupingChange, onExpanded }
+	return { grouped, groupingState, onGroupingChange }
 }
 
 /**
@@ -463,21 +417,17 @@ function exportLeaves<T>(
 }
 
 /**
- * Derives the row-model views the body reads. One is the grouped display list
- * (`groupedRows`, the top-level group-header rows with their leaves on
- * `subRows`, or `null` when ungrouped). The other is the flat `renderRows`/`rowKeys` backing
- * selection identity and the data count. `getRowModel().rows` is
- * reference-stable until the sort, filter, pagination, or grouping state
- * changes. Memoizing on it
- * therefore keeps these stable across unrelated re-renders (resize-drag frames,
- * selection toggles, search keystrokes), along with the `rowIndexMap` GridData
- * derives from them.
+ * Derives the flat row views the body reads: the manual display list, and the
+ * flat `renderRows`/`rowKeys` backing selection identity and the data count.
+ * `getRowModel().rows` is reference-stable until the sort, filter, pagination,
+ * or grouping state changes. Memoizing on it therefore keeps these stable
+ * across unrelated re-renders (resize-drag frames, selection toggles, search
+ * keystrokes), along with the `rowIndexMap` GridData derives from them.
  *
  * Each key is taken from the engine's original-data row index (`leaf.index`,
  * the index `getRowId` saw), not the rendered position. A client transform
  * reorders rows while their engine ids stay fixed to the original order. A
- * rendered-index key would therefore diverge from `getRowId`, and miss the
- * body's `table.getRow(key)` lookups.
+ * rendered-index key would therefore diverge from `getRowId`.
  *
  * @internal
  */
@@ -492,30 +442,26 @@ function useGridRowModel<T>(args: {
 	/** The off-engine sorted view (rows + keys) when a sort is the grid's sole transform, else `null`. */
 	sortView: { rows: T[]; keys: (string | number)[] } | null
 }): {
-	groupedRows: Row<T>[] | null
-	manualRows: Row<T>[] | null
+	manualRows: GridLeaf<T>[] | null
 	renderRows: T[]
 	rowKeys: (string | number)[]
 } {
 	const { displayRows, rows, getKey, grouped, manualGroupRow, sortView } = args
 
-	// Under manual grouping the display rows are the consumer's grouped sequence;
-	// the leaf set drops the group-header rows so selection identity and the data
-	// counts track the actual data rows.
+	// Under client grouping the display rows are the group rows, which expand to
+	// their leaves. Under manual grouping they are the consumer's grouped
+	// sequence, and the leaf set drops the group-header rows. Selection identity
+	// and the data counts therefore track the actual data rows.
 	const leafRows = useMemo<Row<T>[] | null>(
 		() => deriveLeafRows(displayRows, grouped, manualGroupRow),
 		[displayRows, grouped, manualGroupRow],
 	)
 
-	// The top-level group-header rows, in display order. Each carries every one of
-	// its leaves on `subRows` (regardless of expansion), so the body can keep the
-	// leaves mounted and animate them open/closed rather than mount/unmount them.
-	const groupedRows = useMemo<Row<T>[] | null>(
-		() => (grouped && displayRows ? displayRows.filter((row) => row.getIsGrouped()) : null),
-		[grouped, displayRows],
+	const manualRows = useMemo(
+		() =>
+			manualGroupRow && displayRows ? displayRows.map((row) => toGridLeaf(row, getKey)) : null,
+		[manualGroupRow, displayRows, getKey],
 	)
-
-	const manualRows = manualGroupRow ? displayRows : null
 
 	// Engine leaves when materialized; else the off-engine sorted view; else the
 	// rows straight through. Each key is taken at the row's original data index,
@@ -531,7 +477,58 @@ function useGridRowModel<T>(args: {
 		return sortView?.keys ?? rows.map((row, index) => getKey(row, index))
 	}, [leafRows, sortView, rows, getKey])
 
-	return { groupedRows, manualRows, renderRows, rowKeys }
+	return { manualRows, renderRows, rowKeys }
+}
+
+/**
+ * The groups of a client-grouped grid as values, and the action that opens or
+ * closes one.
+ *
+ * @remarks
+ * The engine collects the groups, and the grid opens them. The engine gets no
+ * expansion state, so its display rows under grouping are the group rows alone,
+ * each with all of its leaves on `subRows`. The groups build once for each new
+ * set of group rows. A toggle then only swaps the value of the group it toggles
+ * (see {@link expandGroups}).
+ *
+ * @internal
+ */
+function useGroupTree<T>(args: {
+	/** The engine's display rows under grouping: its group rows. */
+	displayRows: Row<T>[] | null
+	/** The grouped column, or `null` when ungrouped. */
+	grouping: string | number | null
+	/** The expansion state; absent opens every group. */
+	expanded: ExpandedState | undefined
+	onExpandedChange: Dispatch<SetStateAction<ExpandedState>> | undefined
+	getKey: (row: T, index: number) => string | number
+}): { groups: GridGroup<T>[] | null; toggleGroup: (id: string) => void } {
+	const { displayRows, grouping, onExpandedChange, getKey } = args
+
+	const columnId = grouping == null ? null : String(grouping)
+
+	const expanded = args.expanded ?? true
+
+	const closed = useMemo(
+		() => (columnId != null && displayRows ? toGridGroups(displayRows, columnId, getKey) : null),
+		[columnId, displayRows, getKey],
+	)
+
+	const groups = useMemo(() => (closed ? expandGroups(closed, expanded) : null), [closed, expanded])
+
+	const toggleGroup = useCallback(
+		(id: string) =>
+			onExpandedChange?.((previous) =>
+				toggleGroupExpanded(
+					previous,
+					id,
+					(closed ?? []).map((group) => group.id),
+				),
+			),
+		[onExpandedChange, closed],
+	)
+
+	return { groups, toggleGroup }
 }
 
 /**
@@ -956,7 +953,7 @@ export function useGridTable<T>({
 		[],
 	)
 
-	const columnDefs = useStableColumnDefs(columns, smartSortingFn)
+	const columnDefs = useMemo(() => toColumnDefs(columns, smartSortingFn), [columns, smartSortingFn])
 
 	const paginated = paginationConfig != null
 
@@ -1097,8 +1094,7 @@ export function useGridTable<T>({
 
 	// Row grouping slice (grouped flag, engine `GroupingState`, expansion state and
 	// handlers); factored out to keep this hook within its complexity budget.
-	const { grouped, groupingState, resolvedExpanded, onGroupingChange, onExpanded } =
-		useGroupingSlice(grouping, expanded, onExpandedChange)
+	const { grouped, groupingState, onGroupingChange } = useGroupingSlice(grouping)
 
 	// Frozen columns, keyed off each column's `locked` or `pinned` flag. The engine pulls them
 	// to their edge via `columnPinning`, so these id lists drive the sticky order.
@@ -1144,7 +1140,6 @@ export function useGridTable<T>({
 			rowSelection,
 			grouped,
 			grouping: groupingState,
-			expanded: resolvedExpanded,
 			columnOrder: engineColumnOrder,
 			columnVisibility,
 		}),
@@ -1152,7 +1147,7 @@ export function useGridTable<T>({
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 		...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
 		...sortOptions<T>({ clientSort, onSortingChange }),
-		...groupingOptions<T>({ grouped, onGroupingChange, onExpandedChange: onExpanded }),
+		...groupingOptions<T>({ grouped, onGroupingChange }),
 		...filterOptions<T>({
 			configured: filterMode.configured,
 			manual: filterMode.manual,
@@ -1196,15 +1191,25 @@ export function useGridTable<T>({
 	// transform (otherwise the engine sorts inside its pipeline, above).
 	const sortView = useSortView({ rows, getKey, sort, clientSort, materialize, columns })
 
-	const { groupedRows, manualRows, renderRows, rowKeys } = useGridRowModel({
-		// Manual grouping materializes the (untransformed) core model too: the
-		// grouped body reads each leaf's engine cells.
-		displayRows: engineDisplayRows(table, materialize),
+	// Manual grouping materializes the (untransformed) core model too: the
+	// manual body segments it by position.
+	const displayRows = engineDisplayRows(table, materialize)
+
+	const { manualRows, renderRows, rowKeys } = useGridRowModel({
+		displayRows,
 		rows,
 		getKey,
 		grouped,
 		manualGroupRow,
 		sortView,
+	})
+
+	const { groups, toggleGroup } = useGroupTree({
+		displayRows,
+		grouping,
+		expanded,
+		onExpandedChange,
+		getKey,
 	})
 
 	// Read from the engine on each render, so the totals follow client-side
@@ -1315,7 +1320,8 @@ export function useGridTable<T>({
 		renderRows,
 		rowKeys,
 		grouped,
-		groupedRows,
+		groups,
+		toggleGroup,
 		manualRows,
 		pagination,
 		resize,

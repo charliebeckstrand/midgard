@@ -9,13 +9,12 @@ import { frames, present, renderUI, waitFor, windowBody } from '../helpers'
  * microtask, before the next animation frame. The count holds the work that a
  * reader waits on before the first paint.
  *
- * A toggle commits once, and then once more as a nested commit. After a
- * collapse, the nested commit renders nothing of the body. After an expand,
- * each entering row opens its track in it, and the motion state drops the
- * entering rows. The two updates batch into one commit. A later commit before
- * the frame is a no-op render of the virtualizer after the rows measure. The
- * test holds such a commit to a quarter of the toggle commit, so that a second
- * render of the body fails.
+ * A collapse commits once. An expand commits once, and then once more as a
+ * nested commit: each entering row opens its track in it, and the motion state
+ * drops the entering rows. The two updates batch into one commit. A later
+ * commit before the frame is a no-op render of the virtualizer after the rows
+ * measure. The test holds such a commit to a quarter of the toggle commit, so
+ * that one more render of the body fails.
  */
 describe('grid virtualized grouped body commits (real browser)', () => {
 	type Person = { id: number; name: string; team: string }
@@ -78,17 +77,20 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 			return [...commits]
 		}
 
-		/** Holds the commits of one toggle to the toggle, one nested commit, and no-op renders. */
-		const expectCommits = (toggled: typeof commits) => {
-			const [first, second, ...rest] = toggled
+		/**
+		 * Holds the commits of one toggle to the toggle, the nested commit of an
+		 * expand, and no-op renders.
+		 */
+		const expectCommits = (toggled: typeof commits, expand: boolean) => {
+			const [first, ...later] = toggled
 
 			expect(first?.phase).toBe('update')
 
-			expect(second?.phase).toBe('nested-update')
+			if (expand) expect(later.shift()?.phase).toBe('nested-update')
 
 			const budget = (first?.duration ?? 0) / 4
 
-			for (const commit of rest) {
+			for (const commit of later) {
 				expect(commit.phase).toBe('update')
 
 				expect(commit.duration).toBeLessThan(budget)
@@ -115,13 +117,13 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		for (let run = 0; run < 2; run++) {
 			expect(toggle()).toHaveAccessibleName(/^Collapse group/)
 
-			expectCommits(await click())
+			expectCommits(await click(), false)
 
 			await rest()
 
 			expect(toggle()).toHaveAccessibleName(/^Expand group/)
 
-			expectCommits(await click())
+			expectCommits(await click(), true)
 
 			await rest()
 		}

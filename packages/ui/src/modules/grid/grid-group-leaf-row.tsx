@@ -1,6 +1,5 @@
 'use client'
 
-import { type Cell, flexRender } from '@tanstack/react-table'
 import { GripVertical } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
@@ -42,7 +41,8 @@ function leafCellChrome<T>(col: GridColumn<T>): { td: string; inner: string } {
 type GridGroupLeafRowProps<T> = {
 	/** Whether the row's group is expanded — drives the open/collapsed reveal and hides it from AT when closed. */
 	expanded: boolean
-	cells: Cell<T, unknown>[]
+	/** The visible columns, in render order. */
+	columns: GridColumn<T>[]
 	row: T
 	rowKey: string | number
 	selected: boolean
@@ -82,7 +82,6 @@ type GridGroupLeafRowProps<T> = {
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
 function leafCellInner<T>(args: {
 	col: GridColumn<T>
-	cell: Cell<T, unknown>
 	row: T
 	rowKey: string | number
 	selected: boolean
@@ -91,7 +90,7 @@ function leafCellInner<T>(args: {
 	truncate: boolean
 	settleKey: number | undefined
 }): ReactNode {
-	const { col, cell, row, rowKey, selected, toggleRow, rowLabel, truncate, settleKey } = args
+	const { col, row, rowKey, selected, toggleRow, rowLabel, truncate, settleKey } = args
 
 	const name = rowLabel ?? `row ${rowKey}`
 
@@ -124,7 +123,8 @@ function leafCellInner<T>(args: {
 
 	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
-	const raw = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
+	// The column renders the cell as a flat row does.
+	const raw = col.cell ? (col.cell(row) ?? null) : null
 
 	if (truncate && raw != null) {
 		return (
@@ -142,7 +142,6 @@ function leafCellInner<T>(args: {
 /** Props for {@link GridGroupLeafCell}. @internal */
 type GridGroupLeafCellProps<T> = {
 	col: GridColumn<T>
-	cell: Cell<T, unknown>
 	row: T
 	rowKey: string | number
 	selected: boolean
@@ -179,7 +178,6 @@ type GridGroupLeafCellProps<T> = {
  */
 function GridGroupLeafCell<T>({
 	col,
-	cell,
 	row,
 	rowKey,
 	selected,
@@ -241,7 +239,6 @@ function GridGroupLeafCell<T>({
 					<div className={cn(pad, chrome.inner)}>
 						{leafCellInner({
 							col,
-							cell,
 							row,
 							rowKey,
 							selected,
@@ -272,7 +269,7 @@ function GridGroupLeafCell<T>({
  */
 export function GridGroupLeafRow<T>({
 	expanded,
-	cells,
+	columns,
 	row,
 	rowKey,
 	selected,
@@ -304,10 +301,6 @@ export function GridGroupLeafRow<T>({
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
 	// at the closed track and opens over the transition.
 	const reveal = useGridRevealHold(expanded, enter)
-
-	// The pointer handlers speak GridColumn (shared with the flat body's rows);
-	// recover the list once from the engine cells this grouped row renders by.
-	const columns = cells.flatMap((cell) => cell.column.columnDef.meta?.gridColumn ?? [])
 
 	return (
 		<Hold hold={reveal.hold} name="grid-group-leaf-row">
@@ -344,16 +337,11 @@ export function GridGroupLeafRow<T>({
 					rowClickableClass({ onRowClick, onCellClick, onRowDoubleClick, onCellDoubleClick }),
 				)}
 			>
-				{cells.map((cell, colIdx) => {
-					const col = cell.column.columnDef.meta?.gridColumn
-
-					if (!col) return null
-
+				{columns.map((col, colIdx) => {
 					return (
 						<GridGroupLeafCell<T>
 							key={col.id}
 							col={col}
-							cell={cell}
 							row={row}
 							rowKey={rowKey}
 							selected={selected}

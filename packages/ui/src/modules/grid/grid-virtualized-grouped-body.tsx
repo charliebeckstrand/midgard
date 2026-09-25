@@ -1,9 +1,9 @@
 'use client'
 
-import type { Row } from '@tanstack/react-table'
 import { type ComponentProps, type TransitionEvent, useMemo, useRef } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import type { DensityLevel } from '../../providers/density'
+import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
 	type GridGroupedWindowItem,
 	groupedWindowItems,
@@ -36,8 +36,8 @@ import {
 type GroupExpansion = { ids: string[]; open: boolean[] }
 
 /** The open keys of a group's rows, in display order: its leaves, then its total. @internal */
-function rowKeysOf<T>(group: Row<T>, totalled: boolean): string[] {
-	const keys = group.subRows.map((leaf) => leafItemKey(leaf.id))
+function rowKeysOf<T>(group: GridGroup<T>, totalled: boolean): string[] {
+	const keys = group.leaves.map((leaf) => leafItemKey(leaf.id))
 
 	if (totalled) keys.push(totalItemKey(group.id))
 
@@ -52,7 +52,7 @@ function rowKeysOf<T>(group: Row<T>, totalled: boolean): string[] {
  * @internal
  */
 function groupToggle<T>(
-	group: Row<T>,
+	group: GridGroup<T>,
 	open: boolean,
 	change: GridMotionChange<string>,
 	context: {
@@ -103,21 +103,21 @@ function groupToggle<T>(
 function groupMotionSource<T>(
 	totalled: boolean,
 	rowHeight: number,
-): GridMotionSource<Row<T>[], GroupExpansion, string> {
+): GridMotionSource<GridGroup<T>[], GroupExpansion, string> {
 	return {
 		capture: (groups) => ({
 			ids: groups.map((group) => group.id),
-			open: groups.map((group) => group.getIsExpanded()),
+			open: groups.map((group) => group.expanded),
 		}),
 		same: (captured, groups) => {
 			if (captured.ids.length !== groups.length) return false
 
 			for (let index = 0; index < groups.length; index++) {
-				const group = groups[index] as Row<T>
+				const group = groups[index] as GridGroup<T>
 
 				if (captured.ids[index] !== group.id) return false
 
-				if (captured.open[index] !== group.getIsExpanded()) return false
+				if (captured.open[index] !== group.expanded) return false
 			}
 
 			return true
@@ -128,7 +128,7 @@ function groupMotionSource<T>(
 			const was = new Map(previous.ids.map((id, index) => [id, previous.open[index]]))
 
 			for (const group of groups) {
-				const open = group.getIsExpanded()
+				const open = group.expanded
 
 				const before = was.get(group.id)
 
@@ -145,8 +145,10 @@ function groupMotionSource<T>(
 /** Props for {@link GridVirtualizedGroupedBody}. @internal */
 type GridVirtualizedGroupedBodyProps<T> = {
 	rowsProps: GridRowsProps<T>
-	/** The group rows, in display order. */
-	groups: Row<T>[]
+	/** The groups, in display order. */
+	groups: GridGroup<T>[]
+	/** Opens or closes a group, by its id. */
+	toggleGroup: (id: string) => void
 	columnId: string | number
 	renderHeader: GridGroupBy['renderHeader']
 	/** Whether each group shows a total row. */
@@ -156,7 +158,7 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	presentation: GridRowGroupPresentation | null
 	/** The leaf row props from the shared body wiring. */
 	leafProps: (
-		leaf: Row<T>,
+		leaf: GridLeaf<T>,
 		expanded: boolean,
 		color: PaletteColor | undefined,
 	) => ComponentProps<typeof GridGroupLeafRow<T>>
@@ -187,6 +189,7 @@ type GridVirtualizedGroupedBodyProps<T> = {
 export function GridVirtualizedGroupedBody<T>({
 	rowsProps,
 	groups,
+	toggleGroup,
 	columnId,
 	renderHeader,
 	totalled,
@@ -205,34 +208,26 @@ export function GridVirtualizedGroupedBody<T>({
 		[totalled, window.estimateSize],
 	)
 
-	const { motions, captured, release } = useGridWindowMotion(
-		groups,
-		source,
-		record,
-		window.scrollRef,
+	const { motions, release } = useGridWindowMotion(groups, source, record, window.scrollRef)
+
+	// A toggle gives a new list of groups, so the item list rebuilds with it.
+	const items = useMemo(
+		() => groupedWindowItems(groups, { totalled, motions }),
+		[groups, totalled, motions],
 	)
-
-	// The engine can keep the group rows when a group toggles, so the list also
-	// rebuilds on each new expansion snapshot.
-	const items = useMemo(() => {
-		void captured
-
-		return groupedWindowItems(groups, { totalled, motions })
-	}, [groups, totalled, motions, captured])
 
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, window, record)
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
-	const cursorOrder = useMemo(() => {
-		void captured
-
-		return groupedCursorRows(groups, totalled)
-	}, [groups, totalled, captured])
+	const cursorOrder = useMemo(
+		() => groupedCursorRows(groups, totalled, toggleGroup),
+		[groups, totalled, toggleGroup],
+	)
 
 	useGridCursorOrder(cursorOrder)
 
-	const colorOf = (group: Row<T>) => presentation?.color(groupValueOf(group, columnId))
+	const colorOf = (group: GridGroup<T>) => presentation?.color(groupValueOf(group))
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = revealEndItem(event)
@@ -266,7 +261,8 @@ export function GridVirtualizedGroupedBody<T>({
 					return (
 						<GridGroupRow<T>
 							key={item.reactKey}
-							row={item.group}
+							group={item.group}
+							onToggle={toggleGroup}
 							columns={columns}
 							columnId={columnId}
 							renderHeader={renderHeader}

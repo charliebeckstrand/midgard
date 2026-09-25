@@ -55,9 +55,7 @@ jobs:
             ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
-      # `test:compiler` runs the grid tests with the React Compiler on; see
-      # packages/ui/vitest.compiler.config.ts.
-      - run: pnpm turbo run lint check-types test test:compiler knip build bundle:budget --summarize
+      - run: pnpm turbo run lint check-types test knip build bundle:budget --summarize
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
@@ -118,3 +116,50 @@ jobs:
           key: ${{ runner.os }}-playwright-${{ steps.playwright.outputs.version }}
       - run: pnpm --filter ui exec playwright install --with-deps chromium
       - run: pnpm turbo run test:browser
+
+  # A separate job, not a step in `gate`: the compiled run repeats the ui suite.
+  # On the gate's four cores it ran beside the plain suite, the type-check, and
+  # the build, and it outlasted them all. `test:compiler` runs the ui tests with
+  # the React Compiler on; see packages/ui/vitest.compiler.config.ts and
+  # CONVENTIONS.md §10.7.
+  compiler:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          # Namespaced per job, as in `browser`.
+          key: ${{ runner.os }}-turbo-compiler-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-compiler-
+      - run: pnpm install --frozen-lockfile
+      # The compiled run's own module cache (vitest.compiler.config.ts), apart
+      # from the plain run's cache in `gate`. The keys follow the gate's cache,
+      # for the reasons given there, and add the compiler config.
+      - uses: actions/cache@v6
+        with:
+          path: node_modules/.experimental-vitest-cache-compiler-*
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-vitest-compiler-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
+      # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
+      # the `^build` of each package without it, and builds for nothing.
+      - run: pnpm turbo run test:compiler --filter=ui --summarize
+      # The same pruning as in `gate`, for the same reason.
+      - name: Prune the Turbo cache to this run's tasks
+        run: |
+          keep=$(jq -r '.tasks[].hash' .turbo/runs/*.json | sort -u)
+          for entry in .turbo/cache/*; do
+            hash=$(basename "$entry")
+            hash=${hash%%[-.]*}
+            grep -qxF "$hash" <<< "$keep" || rm -f "$entry"
+          done
+          rm -rf .turbo/runs
+          du -sh .turbo/cache
