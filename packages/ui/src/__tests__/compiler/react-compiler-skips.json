@@ -1,0 +1,334 @@
+{
+	"components/accordion/accordion.tsx": {
+		"Accordion": "PreserveManualMemo"
+	},
+	"components/calendar/use-calendar-month.ts": {
+		"useCalendarMonth": "Refs"
+	},
+	"components/calendar/use-calendar-picker.tsx": {
+		"useCalendarPicker": "Refs"
+	},
+	"components/collapse/collapse.tsx": {
+		"Collapse": "PreserveManualMemo"
+	},
+	"components/color/use-color-state.ts": {
+		"useColorState": "Refs"
+	},
+	"components/combobox/combobox.tsx": {
+		"Combobox": "Todo"
+	},
+	"components/combobox/use-combobox-state.ts": {
+		"useComboboxState": "PreserveManualMemo"
+	},
+	"components/command-palette/use-command-palette-state.ts": {
+		"useCommandPaletteState": "Refs"
+	},
+	"components/copy-button/use-copy-button-state.ts": {
+		"useCopyButtonState": "PreserveManualMemo"
+	},
+	"components/credit-card-input/credit-card-input-cvv.tsx": {
+		"CreditCardInputCvv": "Refs"
+	},
+	"components/credit-card-input/credit-card-input-expiry.tsx": {
+		"CreditCardInputExpiry": "Todo"
+	},
+	"components/credit-card-input/credit-card-input.tsx": {
+		"CreditCardInput": "Refs"
+	},
+	"components/date-input/date-input.tsx": {
+		"DateInput": "Refs"
+	},
+	"components/date-picker/date-picker-range.tsx": {
+		"DatePickerRange": "Refs"
+	},
+	"components/date-picker/date-picker.tsx": {
+		"DatePickerSingle": "Refs"
+	},
+	"components/date-picker/use-date-picker-controlled.ts": {
+		"useDatePickerControlled": "Refs"
+	},
+	"components/date-picker/use-date-picker-range-state.ts": {
+		"useDatePickerRangeState": "PreserveManualMemo"
+	},
+	"components/date-picker/use-date-picker-relative-state.ts": {
+		"useDatePickerRelativeState": "Refs"
+	},
+	"components/date-picker/use-date-picker-state.ts": {
+		"useDatePickerState": "PreserveManualMemo"
+	},
+	"components/filters/filters-field.tsx": {
+		"FiltersField": "Immutability"
+	},
+	"components/form/use-form-reducer.ts": {
+		"useFormReducer": "Todo"
+	},
+	"components/form/use-form-store.ts": {
+		"useFormStore": "Refs"
+	},
+	"components/group/use-group.ts": {
+		"useGroup": "Immutability"
+	},
+	"components/hold-button/hold-button.tsx": {
+		"HoldButton": "Todo"
+	},
+	"components/json-tree/json-tree-node.tsx": {
+		"JsonTreeNode": "Invariant"
+	},
+	"components/listbox/listbox.tsx": {
+		"Listbox": "Todo"
+	},
+	"components/mask-input/mask-input.tsx": {
+		"MaskInput": "Refs"
+	},
+	"components/menu/menu-sub.tsx": {
+		"MenuSub": "Refs"
+	},
+	"components/menu/menu-trigger.tsx": {
+		"MenuTrigger": "Refs"
+	},
+	"components/menu/use-menu-state.ts": {
+		"useMenuState": "PreserveManualMemo"
+	},
+	"components/nav/nav-item.tsx": {
+		"NavItem": "Refs"
+	},
+	"components/pagination/pagination-page.tsx": {
+		"PaginationPage": "Refs"
+	},
+	"components/pdf-viewer/pdf-viewer-highlights.tsx": {
+		"PdfViewerActiveName": "Refs"
+	},
+	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
+		"PdfViewerMagnifier": "Refs"
+	},
+	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
+		"PdfViewerThumbnails": "Refs"
+	},
+	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
+		"PdfViewerViewport": "Refs"
+	},
+	"components/pdf-viewer/pdf-viewer.tsx": {
+		"PdfViewer": "Refs"
+	},
+	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
+		"usePdfViewerHighlights": "Refs"
+	},
+	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
+		"usePdfViewerMagnifier": "Refs"
+	},
+	"components/pdf-viewer/use-pdf-viewer-page-rotation.ts": {
+		"usePdfViewerPageRotation": "Refs"
+	},
+	"components/pdf-viewer/use-pdf-viewer-page-size.ts": {
+		"usePdfViewerPageSize": "Refs"
+	},
+	"components/pdf-viewer/use-pdf-viewer.ts": {
+		"useDocumentKey": "Refs",
+		"usePdfViewer": "PreserveManualMemo"
+	},
+	"components/popover/popover-trigger.tsx": {
+		"PopoverTrigger": "Refs"
+	},
+	"components/resizable/resizable-group.tsx": {
+		"ResizableGroup": "Todo"
+	},
+	"components/resizable/use-resizable-panel.ts": {
+		"useResizablePanel": "Refs"
+	},
+	"components/shiny-text/shiny-text.tsx": {
+		"ShinyText": "Refs"
+	},
+	"components/sidebar/sidebar-item.tsx": {
+		"SidebarItem": "Refs"
+	},
+	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
+		"useSignaturePadCanvasSizing": "Refs"
+	},
+	"components/slider/range/use-range-pointer.ts": {
+		"useRangePointer": "PreserveManualMemo"
+	},
+	"components/table/table-empty.tsx": {
+		"TableEmpty": "Todo"
+	},
+	"components/tabs/tab.tsx": {
+		"Tab": "Refs"
+	},
+	"components/tooltip/tooltip-trigger.tsx": {
+		"TooltipTrigger": "Refs"
+	},
+	"components/tooltip/use-tooltip-state.ts": {
+		"useTooltipState": "Refs"
+	},
+	"hooks/a11y/use-a11y-control.ts": {
+		"useA11yControl": "UseMemo"
+	},
+	"hooks/a11y/use-a11y-roving.ts": {
+		"useA11yRoving": "PreserveManualMemo"
+	},
+	"hooks/a11y/use-a11y-scope.ts": {
+		"useA11yScope": "Todo"
+	},
+	"hooks/use-controllable.ts": {
+		"useControllable": "Refs"
+	},
+	"hooks/use-enter-animation.ts": {
+		"useEnterAnimation": "Refs"
+	},
+	"hooks/use-floating-disclosure.ts": {
+		"useFloatingDisclosure": "Refs"
+	},
+	"hooks/use-frozen-on-close.ts": {
+		"useFrozenOnClose": "Refs"
+	},
+	"hooks/use-keybindings.ts": {
+		"useKeybindings": "Refs"
+	},
+	"hooks/use-open-complete.ts": {
+		"useOpenComplete": "Refs"
+	},
+	"hooks/use-panel-fit.ts": {
+		"usePanelFit": "Immutability"
+	},
+	"hooks/use-panel-resize.ts": {
+		"usePanelResize": "Immutability"
+	},
+	"hooks/use-truncation.ts": {
+		"useTruncation": "Refs"
+	},
+	"hooks/use-virtual-window.ts": {
+		"useWindowVirtualizer": "Refs",
+		"useVirtualWindow": "Immutability"
+	},
+	"modules/chart/engine/chart-context-menu.tsx": {
+		"ChartContextMenu": "PreserveManualMemo"
+	},
+	"modules/chart/engine/chart-frame/cartesian.tsx": {
+		"ChartCartesianFrame": "Refs"
+	},
+	"modules/chart/engine/chart-tooltip.tsx": {
+		"ChartTooltip": "Refs"
+	},
+	"modules/chart/engine/use-chart-cartesian.ts": {
+		"useChartCartesian": "PreserveManualMemo"
+	},
+	"modules/chat/use-chat-send.ts": {
+		"useChatSend": "Todo"
+	},
+	"modules/chat/use-chat-transcript-item-key.ts": {
+		"useChatTranscriptItemKey": "Refs"
+	},
+	"modules/dashboard/dashboard.tsx": {
+		"Dashboard": "Refs"
+	},
+	"modules/dashboard/use-dashboard-drag.ts": {
+		"useDashboardDrag": "Refs"
+	},
+	"modules/dashboard/use-dashboard-resize.ts": {
+		"useDashboardResize": "Refs"
+	},
+	"modules/dashboard/use-dashboard-tile-cell.ts": {
+		"useDashboardTileCell": "Refs"
+	},
+	"modules/grid/grid-context-menu.tsx": {
+		"GridContextMenu": "PreserveManualMemo"
+	},
+	"modules/grid/grid-cursor-order.ts": {
+		"useGridCursorOrder": "Refs"
+	},
+	"modules/grid/grid-data.tsx": {
+		"useStableHandler": "Refs",
+		"useTableRevealed": "Refs",
+		"GridData": "Todo"
+	},
+	"modules/grid/grid-group-head.tsx": {
+		"GridGroupHead": "Immutability"
+	},
+	"modules/grid/grid-reorder.ts": {
+		"useColumnReorderShift": "Todo"
+	},
+	"modules/grid/grid-row.tsx": {
+		"GridRowDragHandle": "Refs"
+	},
+	"modules/grid/use-grid-cursor.tsx": {
+		"useGridCursor": "Refs"
+	},
+	"modules/grid/use-grid-edit-history.ts": {
+		"useGridEditHistory": "Refs"
+	},
+	"modules/grid/use-grid-editing.ts": {
+		"useActiveCell": "Refs",
+		"useGridEditing": "Todo"
+	},
+	"modules/grid/use-grid-group.ts": {
+		"useGridGroup": "Todo"
+	},
+	"modules/grid/use-grid-infinite-scroll.ts": {
+		"useGridInfiniteScroll": "Todo"
+	},
+	"modules/grid/use-grid-item-window.ts": {
+		"useGridItemWindow": "Immutability"
+	},
+	"modules/grid/use-grid-navigation.ts": {
+		"useGridNavigation": "Refs"
+	},
+	"modules/grid/use-grid-new-row.ts": {
+		"useGridNewRow": "Refs"
+	},
+	"modules/grid/use-grid-row-grouping.ts": {
+		"useGridRowGrouping": "Refs"
+	},
+	"modules/grid/use-grid-selection.ts": {
+		"useGridSelectionActions": "Refs"
+	},
+	"modules/grid/use-grid-table.ts": {
+		"(module)": "use no memo"
+	},
+	"modules/grid/use-grid-window-motion.ts": {
+		"useGridWindowMotion": "Refs"
+	},
+	"modules/map/map-frame.tsx": {
+		"MapPlotRegion": "Refs"
+	},
+	"modules/map/map-hover-provider.tsx": {
+		"MapHoverProvider": "Refs"
+	},
+	"modules/map/map-plat.tsx": {
+		"MapPlat": "Refs"
+	},
+	"modules/map/map-points.tsx": {
+		"MapPoints": "Immutability"
+	},
+	"modules/map/use-map-coverage.ts": {
+		"useMapCoverage": "PreserveManualMemo"
+	},
+	"modules/map/use-map-keyboard.ts": {
+		"useMapKeyboard": "Refs"
+	},
+	"modules/map/use-map-overlay.ts": {
+		"useMapOverlay": "Refs"
+	},
+	"modules/map/use-map-zoom.ts": {
+		"useMapZoom": "Todo"
+	},
+	"modules/query/query-builder/use-query-builder-tree.ts": {
+		"useQueryBuilderTree": "Refs"
+	},
+	"primitives/current/current-content.tsx": {
+		"CurrentContent": "Todo"
+	},
+	"primitives/mount/mount.ts": {
+		"useMountHold": "Refs"
+	},
+	"primitives/polymorphic/polymorphic-static.tsx": {
+		"PolymorphicStatic": "Refs"
+	},
+	"primitives/polymorphic/polymorphic.tsx": {
+		"Polymorphic": "Refs"
+	},
+	"providers/toast/toast.tsx": {
+		"ToastProvider": "Refs"
+	},
+	"providers/toast/use-toast-timer.ts": {
+		"useToastTimer": "Immutability"
+	}
+}

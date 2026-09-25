@@ -50,7 +50,7 @@ Rule 4 is not gated, and a count of it misleads. The descriptive half is conditi
 
 Rule 5 stays out of scope until this repository holds Part 2. The `-ing` category runs to about 7,000 sites in the `ui` comments alone. Most are participial adjectives — "the enclosing dialog", "the underlying seam" — and Part 2 approves a subset of them. A rewrite without the Dictionary degrades the prose it touches.
 
-An audit and a plan stay in their authored voice. An audit is a point-in-time record, which [`CONVENTIONS.md` §12.4](CONVENTIONS.md) deletes once its findings close. A plan is a permanent record of one decision. Neither is a living surface document, so neither is worth the churn.
+An audit and a plan stay in their authored voice. An audit is a point-in-time record, which [`CONVENTIONS.md` §12.4](CONVENTIONS.md) deletes once its findings close. A plan is a permanent record of one decision ([`CONVENTIONS.md` §12.5](CONVENTIONS.md)). Neither is a living surface document, so neither is worth the churn.
 
 Chat is exempt. The repository does not keep it, so the cost of the rules buys nothing there ([`CLAUDE.md`](CLAUDE.md) §2.5).
 

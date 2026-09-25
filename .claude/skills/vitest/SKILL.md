@@ -11,8 +11,6 @@ allowed-tools: Read, Grep, Glob, Write, Edit
 ---
 # Vitest Core Knowledge
 
-> **Deep Knowledge**: Use `mcp__documentation__fetch_docs` with technology: `vitest` for comprehensive documentation.
-
 ## When NOT to Use This Skill
 
 - **E2E Testing** - Use `playwright` or `cypress` for browser-based end-to-end tests

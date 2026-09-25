@@ -28,5 +28,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 
 	const userDetails = await getUserDetails(userId)
 
-	return <UserDetailsClient details={userDetails.details} chats={userDetails.chats} />
+	return (
+		<UserDetailsClient userId={userId} details={userDetails.details} chats={userDetails.chats} />
+	)
 }

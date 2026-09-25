@@ -83,6 +83,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 |---|---|
 | `measureBox` | An element's border box, not `contentRect`, which excludes its own padding and border. It comes from a `ResizeObserver` entry where the caller has one, and from a measurement where the caller does not. The entry is already measured, where `getBoundingClientRect` forces a layout. |
 | `BorderBox` *(type)* | An element's border box, on the two axes a resize is read along: `inline` and `block`. |
+| `forceStyleFlush` | Makes the browser compute styles and layout now, so a CSS transition has a style to start from. It is a call, not a bare `offsetHeight` read, which the React Compiler removes. |
 
 ## Keyboard navigation
 
