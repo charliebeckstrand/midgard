@@ -95,6 +95,7 @@ function GridNewRowCell<T>({
 	draftRow,
 	className,
 	style,
+	pin,
 }: {
 	session: GridNewRowSession
 	column: GridColumn<T>
@@ -104,6 +105,8 @@ function GridNewRowCell<T>({
 	draftRow: T
 	className: string
 	style: CSSProperties | undefined
+	/** The `data-grid-pin` value of a frozen cell (see `pinnedCellProps`). */
+	pin: string | undefined
 }) {
 	const editable = isColumnEditable(column)
 
@@ -156,6 +159,7 @@ function GridNewRowCell<T>({
 			aria-busy={pending || undefined}
 			className={className}
 			style={style}
+			data-grid-pin={pin}
 			onMouseDown={seat}
 		>
 			<GridNavCell row={NEW_ROW_INDEX} col={col}>
@@ -333,6 +337,7 @@ export function GridNewRow<T>({
 								aria-colindex={colIndex}
 								className={className}
 								style={pinned.style}
+								data-grid-pin={pinned.pin}
 							/>
 						)
 
@@ -346,6 +351,7 @@ export function GridNewRow<T>({
 							draftRow={draftRow}
 							className={className}
 							style={pinned.style}
+							pin={pinned.pin}
 						/>
 					)
 				})}

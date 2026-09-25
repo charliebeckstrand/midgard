@@ -99,6 +99,7 @@ export function GridDragHandleHeaderCell<T>({
 			aria-colindex={colIndex}
 			className={cn(k.rowReorder.cell, stickyHeader && k.sticky.head, pinned.className)}
 			style={pinned.style}
+			data-grid-pin={pinned.pin}
 		>
 			<span className="sr-only">Reorder rows</span>
 		</TableHeader>
@@ -418,6 +419,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				pinned.className,
 			)}
 			style={pinned.style}
+			data-grid-pin={pinned.pin}
 		>
 			{/* `data-grid-header` marks the header's flex row so the autosizer can
 			    subtract its justified free space and measure the title + affordances. */}

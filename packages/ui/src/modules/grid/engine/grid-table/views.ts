@@ -16,6 +16,7 @@ import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import { pageCountOf } from '../grid-pagination-utilities'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
+import type { FrozenOffsetStore } from '../grid-pin/offsets'
 import { frozenSide } from '../grid-pin/overrides'
 import type { EngineColumn, EngineTable } from './features'
 
@@ -72,15 +73,25 @@ export type GridColumnResizeActions = Pick<
 /**
  * Frozen-column controls: one lookup from a column id to the chrome it draws.
  *
- * @remarks It reads a resolved {@link FrozenLayout} snapshot. The pinned
- * chrome rides `memo` boundaries, so a cell that holds on its props sees a
- * frozen-layout change only through this object's identity.
+ * @remarks It reads a resolved {@link FrozenLayout} snapshot of the frozen
+ * structure: the edge and the boundary role of each column. The pinned chrome
+ * rides `memo` boundaries, so a cell that holds on its props sees a structure
+ * change only through this object's identity. An offset move keeps the
+ * identity. The grid writes the moved offsets to the frozen cells, and
+ * {@link GridColumnPinning.offset} gives the committed offset to a cell that
+ * renders.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	/**
+	 * The column's frozen chrome — edge, sticky offset, and boundary — or
+	 * `undefined` when it scrolls. The offset is the one of the structure
+	 * snapshot. Read {@link GridColumnPinning.offset} for the committed offset.
+	 */
 	column: (id: string | number) => FrozenColumn | undefined
+	/** The committed sticky offset (px) of the column, or `undefined` when it scrolls. */
+	offset: (id: string | number) => number | undefined
 }
 
 /**
@@ -416,10 +427,29 @@ function withResizeDirection<T>(
  * its offset, so a frozen column of the consumer sticks inside it. The cell
  * of the slot sticks through its own class.
  *
+ * The offset comes from `offsets`, the committed layout, while it freezes the
+ * column to the same edge. Otherwise it comes from `layout`, which is then the
+ * newer of the two.
+ *
  * @internal
  */
-export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
-	return { column: (id) => (isNewRowAddColumn(id) ? undefined : layout.get(String(id))) }
+export function buildColumnPinning(
+	layout: FrozenLayout,
+	offsets: FrozenOffsetStore,
+): GridColumnPinning {
+	const column = (id: string | number) =>
+		isNewRowAddColumn(id) ? undefined : layout.get(String(id))
+
+	return {
+		column,
+		offset: (id) => {
+			const frozen = column(id)
+
+			if (!frozen) return undefined
+
+			return offsets.get(String(id), frozen.side) ?? frozen.offset
+		},
+	}
 }
 
 /**

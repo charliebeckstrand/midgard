@@ -60,6 +60,7 @@ function GridSkeletonCellsImpl<T>({
 						key={col.id}
 						className={index === 0 ? cn(leadingClassName, pinned.className) : pinned.className}
 						style={pinned.style}
+						data-grid-pin={pinned.pin}
 					>
 						{/* The Add column of the new-row slot holds no data, so it draws no placeholder. */}
 						{!isNewRowAddColumn(col.id) && <TextSkeleton />}
