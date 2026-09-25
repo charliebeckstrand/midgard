@@ -32,6 +32,8 @@ import {
 	ChartMarkEmphasisContext,
 	type ChartMarkRef,
 	type ChartPoint,
+	ChartSeriesEmphasisContext,
+	ChartSeriesFocusContext,
 	ChartTierContext,
 	chartMarkEmphasis,
 	sameMark,
@@ -48,8 +50,11 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
-/** The stable no-op a chart without a series-emphasis channel hands the keyboard. @internal */
+/** The stable no-op the keyboard takes when its stops name no single series. @internal */
 function ignoreActiveSeries(_series: number | null): void {}
+
+/** The default for a chart that hides no series. @internal */
+const NONE_HIDDEN: ReadonlySet<number> = new Set()
 
 /**
  * The header, spark veil, and legend a framed chart draws at its resolved tier.
@@ -102,6 +107,23 @@ function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean, fi
 			fill && 'min-h-0',
 		),
 	}
+}
+
+/**
+ * The series emphasis of a frame: the series that a legend entry, the keyboard
+ * cursor, or a pie slice points at, and its setter.
+ *
+ * @param hidden - The series that cannot hold the emphasis.
+ * @returns The emphasis, or `null` while the pointed series is hidden, and the
+ * setter, which keeps its identity.
+ * @internal
+ */
+function useSeriesEmphasis(
+	hidden: ReadonlySet<number>,
+): [number | null, (index: number | null) => void] {
+	const [focus, setFocus] = useState<number | null>(null)
+
+	return [focus !== null && !hidden.has(focus) ? focus : null, setFocus]
 }
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
@@ -184,11 +206,20 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	readoutOrder?: number[]
 	/**
-	 * The emphasized series' index, when one is — a legend entry or the keyboard
-	 * cursor picking a series. The tooltip dims every other row against it, mirroring
-	 * the marks; `null` (the default) reads every row at full strength.
+	 * The series that cannot hold the series emphasis: the series the legend
+	 * toggled off, and for a pie the rows that draw no slice. An emphasis on one of
+	 * them resolves to `null`, because to dim each mark against an invisible series
+	 * would read as a broken chart. Empty by default.
 	 */
-	emphasis?: number | null
+	hidden?: ReadonlySet<number>
+	/**
+	 * The series emphasis joins the {@link ChartMarkEmphasis} that the marks and the
+	 * tooltip read. The tooltip then dims each other row, as the marks do. A chart
+	 * whose marks read {@link ChartSeriesEmphasisContext} themselves, such as the
+	 * pie, leaves it off.
+	 * @defaultValue false
+	 */
+	emphasizeMarks?: boolean
 	/** Mount the hover tooltip. */
 	tooltip: boolean
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
@@ -200,12 +231,13 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	focus?: ChartFocusTargets
 	/**
-	 * Emphasizes the series the keyboard cursor lands on (`null` off any), so the
-	 * marks recede the rest and the tooltip dims their rows. Pass the chart's
-	 * legend-emphasis setter to share one channel with the legend. Omitted, keyboard
-	 * navigation leaves the emphasis alone: a chart whose stops name no single series.
+	 * The keyboard cursor emphasizes the series it lands on (`null` off any), in
+	 * the same channel as the legend. The marks then recede the rest and the
+	 * tooltip dims their rows. Off, keyboard navigation leaves the emphasis alone:
+	 * a chart whose stops name no single series.
+	 * @defaultValue false
 	 */
-	onActiveSeries?: (series: number | null) => void
+	keyboardEmphasis?: boolean
 	/**
 	 * The data indices of the held category selection, or `null`. Their marks keep
 	 * full strength and the others recede, until a hover takes the emphasis.
@@ -242,7 +274,10 @@ export type ChartFrameProps = AccessibleName & {
  * HTML around a `role="img"` plot region holding the `aria-hidden` SVG and
  * the tooltip overlay. Owns the hover index and provides it through
  * `ChartHoverContext`, so pointer movement re-renders the overlays — never
- * the marks.
+ * the marks. Owns the series emphasis too, and provides it through
+ * `ChartSeriesFocusContext` and `ChartSeriesEmphasisContext`. A legend hover
+ * therefore renders the frame and the readers of the emphasis, not the chart
+ * body. The readout thunk and the data table keep their identity.
  *
  * @internal
  */
@@ -261,11 +296,12 @@ export function ChartFrame({
 	legendPlacement = 'bottom',
 	readout,
 	readoutOrder,
-	emphasis: seriesEmphasis = null,
+	hidden = NONE_HIDDEN,
+	emphasizeMarks = false,
 	tooltip,
 	snap,
 	focus,
-	onActiveSeries = ignoreActiveSeries,
+	keyboardEmphasis = false,
 	selected = null,
 	orientation,
 	className,
@@ -324,6 +360,11 @@ export function ChartFrame({
 		[pointed],
 	)
 
+	// The frame owns the series emphasis, not the chart body: a legend hover then
+	// does not run the body, which would make a new readout thunk and format the
+	// data table again.
+	const [seriesEmphasis, setSeriesFocus] = useSeriesEmphasis(hidden)
+
 	const [pointerReference, setPointerReference] = useState<number | null>(null)
 
 	const [activeReference, setActiveReference] = useState<number | null>(null)
@@ -363,7 +404,7 @@ export function ChartFrame({
 		tooltipShown && readout !== null,
 		hover.set,
 		setActiveReference,
-		onActiveSeries,
+		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 	)
 
 	// The marks recede when either input emphasizes a reference: the pointer over a
@@ -381,11 +422,13 @@ export function ChartFrame({
 	)
 
 	// The mark emphasis the marks and tooltip both read: the pointed mark, else the
-	// series the legend or keyboard passed down, lifted to a whole-series reference.
+	// series the legend or keyboard emphasizes, lifted to a whole-series reference.
 	// The held category selection lights only its own data under either.
+	const markSeries = emphasizeMarks ? seriesEmphasis : null
+
 	const markEmphasis = useMemo(
-		() => chartMarkEmphasis(pointedMark, seriesEmphasis, pointMark, selected),
-		[pointedMark, seriesEmphasis, pointMark, selected],
+		() => chartMarkEmphasis(pointedMark, markSeries, pointMark, selected),
+		[pointedMark, markSeries, pointMark, selected],
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
@@ -484,17 +527,21 @@ export function ChartFrame({
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
 					<ChartMarkEmphasisContext value={markEmphasis}>
-						<ChartHoverContext value={hover}>
-							<ChartFigure
-								plot={plotRegion}
-								header={header}
-								legend={legendFrame}
-								legendPlacement={legendPlacement}
-								aside={aside}
-								containerFill={containerFill}
-								aspect={aspect}
-							/>
-						</ChartHoverContext>
+						<ChartSeriesFocusContext value={setSeriesFocus}>
+							<ChartSeriesEmphasisContext value={seriesEmphasis}>
+								<ChartHoverContext value={hover}>
+									<ChartFigure
+										plot={plotRegion}
+										header={header}
+										legend={legendFrame}
+										legendPlacement={legendPlacement}
+										aside={aside}
+										containerFill={containerFill}
+										aspect={aspect}
+									/>
+								</ChartHoverContext>
+							</ChartSeriesEmphasisContext>
+						</ChartSeriesFocusContext>
 					</ChartMarkEmphasisContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>

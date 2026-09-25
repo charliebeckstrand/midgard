@@ -15,8 +15,7 @@ export type ChartToggleSet = {
 /**
  * A set of hidden indexes with an index toggle — the shared core of the series
  * and reference switchboards. Neither the series entries nor the reference chips
- * differ in how they hide their mark. They part only in the emphasis the series
- * layers on top.
+ * differ in how they hide their mark.
  *
  * @internal
  */
@@ -31,18 +30,13 @@ function useChartToggleSet(): ChartToggleSet {
 }
 
 /** The legend's series switchboard state. @internal */
-export type ChartSeriesToggle = ChartToggleSet & {
-	/** Moves the legend emphasis (`null` clears it). */
-	setFocus: (index: number | null) => void
-	/** The emphasized index while it is still visible; other marks dim against it. */
-	emphasis: number | null
-}
+export type ChartSeriesToggle = ChartToggleSet
 
 /**
- * Owns the legend interactions every chart shares: which series are toggled
- * off, and which one is emphasized by a hovered or focused legend entry. A
- * hidden series can't hold the emphasis — dimming everything against an
- * invisible series would read as a broken chart.
+ * Owns which series are toggled off, the legend interaction that every chart
+ * shares. The emphasis of a hovered or focused legend entry is not here. The
+ * frame owns it, so a legend hover does not run the chart body. The chart gives
+ * the hidden set to the frame, because a hidden series cannot hold the emphasis.
  *
  * @param onHiddenChange - Reports each committed hidden set to the caller.
  * @internal
@@ -52,18 +46,11 @@ export function useChartSeriesToggle(
 ): ChartSeriesToggle {
 	const { hidden, toggle } = useChartToggleSet()
 
-	const [focus, setFocus] = useState<number | null>(null)
-
 	// Read from the committed set rather than from `toggle`, because the set is
 	// written through an updater. A chart with every series shown says nothing.
 	useReportedChange(hidden, onHiddenChange)
 
-	return {
-		hidden,
-		toggle,
-		setFocus,
-		emphasis: focus !== null && !hidden.has(focus) ? focus : null,
-	}
+	return { hidden, toggle }
 }
 
 /** The reference switchboard's toggle state. @internal */

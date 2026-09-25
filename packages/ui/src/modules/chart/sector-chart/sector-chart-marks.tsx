@@ -10,7 +10,7 @@ import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/ch
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
-import { useChartHover } from '../engine/context'
+import { useChartHover, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -51,8 +51,6 @@ type SectorSegmentLabelsProps = {
 	items: SectorSegmentLabel[]
 	paints: SlotPaint[]
 	animate: boolean
-	/** The legend-emphasized slice; other labels dim with their slices. */
-	emphasis: number | null
 	/** The held selection, or `null`; unselected labels dim with their slices. */
 	selected?: ReadonlySet<number> | null
 }
@@ -62,7 +60,8 @@ type SectorSegmentLabelsProps = {
  * the one place ink follows the series color. Each hue's `onFill` pick is
  * white-first, dropping to near-black only where white can't clear the 3:1
  * graphical floor against that fill (see `kata/chart`). Under `animate` a label
- * fades in as the sweep uncovers its slice.
+ * fades in as the sweep uncovers its slice. A label dims with its slice under
+ * the series emphasis of the frame.
  *
  * @internal
  */
@@ -70,9 +69,10 @@ export function SectorSegmentLabels({
 	items,
 	paints,
 	animate,
-	emphasis,
 	selected = null,
 }: SectorSegmentLabelsProps) {
+	const emphasis = useChartSeriesEmphasis()
+
 	return (
 		<g data-slot="chart-segment-labels" pointerEvents="none">
 			{items.map(({ slice, text }) => {
@@ -146,8 +146,6 @@ type SectorChartMarksProps = {
 	center: { x: number; y: number }
 	/** The outer radius the sweep mask must cover. */
 	radius: number
-	/** The legend-emphasized slice; the others dim against it. */
-	emphasis: number | null
 	/** The held selection, or `null`; unselected slices dim until an emphasis wins. */
 	selected?: ReadonlySet<number> | null
 	/** Per-slice texture-tile fill URLs, indexed like `paints`; a flat mode leaves the slot empty. */
@@ -167,12 +165,6 @@ type SectorChartMarksProps = {
 	 * trigger's own pin/dismiss) and gives the slices a pointer cursor.
 	 */
 	onIndexClick?: (index: number) => void
-	/**
-	 * Emphasizes a slice while the pointer sits on it (`null` clears). It is the
-	 * same channel the legend hover drives. A hovered slice isolates itself and
-	 * recedes the rest, exactly as its legend chip does.
-	 */
-	onEmphasis?: (index: number | null) => void
 }
 
 /**
@@ -199,15 +191,19 @@ export function SectorChartMarks({
 	animate,
 	center,
 	radius,
-	emphasis,
 	selected = null,
 	fills,
 	textureActive = false,
 	trigger = 'hover',
 	onIndexClick,
-	onEmphasis,
 }: SectorChartMarksProps) {
 	const { index: active, set } = useChartHover()
+
+	// The frame's series emphasis, the same channel the legend hover drives. A
+	// hovered slice isolates itself and recedes the rest, as its legend chip does.
+	const emphasis = useChartSeriesEmphasis()
+
+	const onEmphasis = useChartSeriesFocus()
 
 	const sweepId = useId()
 
@@ -221,7 +217,7 @@ export function SectorChartMarks({
 			// Leaving the pie clears the isolation whichever way the tooltip opens; the
 			// hover-tracked readout clears with it, a click-pinned one stays put.
 			onPointerLeave={() => {
-				onEmphasis?.(null)
+				onEmphasis(null)
 
 				if (!click) set(null, null)
 			}}
@@ -266,7 +262,7 @@ export function SectorChartMarks({
 
 					// Pointing a slice isolates it either way the tooltip opens; the hover
 					// trigger also tracks the readout onto it.
-					const emphasize = () => onEmphasis?.(slice.index)
+					const emphasize = () => onEmphasis(slice.index)
 
 					const handlers = click
 						? {

@@ -169,6 +169,32 @@ export const [ChartEmphasisContext, useChartEmphasis] =
 	createContext<ChartEmphasis>('ChartEmphasis')
 
 /**
+ * The frame's setter of the series emphasis: the series that a legend entry, a
+ * keyboard cursor, or a pie slice points at (`null` clears it). The frame owns
+ * the emphasis, so a legend hover renders the frame and the readers of the
+ * emphasis, not the chart body. The setter keeps its identity. A no-op outside
+ * a frame.
+ *
+ * @internal
+ */
+export const [ChartSeriesFocusContext, useChartSeriesFocus] = createContext<
+	(index: number | null) => void
+>('ChartSeriesFocus', { default: () => {} })
+
+/**
+ * The series emphasis that the frame resolves: the pointed series while the
+ * chart can emphasize it, else `null`. A hidden series cannot hold the
+ * emphasis. The marks of a chart that does not read {@link ChartMarkEmphasis},
+ * such as the pie, read it here. `null` outside a frame.
+ *
+ * @internal
+ */
+export const [ChartSeriesEmphasisContext, useChartSeriesEmphasis] = createContext<number | null>(
+	'ChartSeriesEmphasis',
+	{ default: null },
+)
+
+/**
  * Whether the chart is rendering inside the fullscreen dialog. The chart the
  * menu re-mounts there is a live, interactive copy, so {@link ChartContextMenu}
  * reads this and renders its children bare. The enlarged chart is a child of

@@ -6,8 +6,7 @@ import { type ChartLegendPlacement, legendAside } from './schema'
 type ChartCartesianLegendProps = {
 	/**
 	 * The resolved cartesian model — the series switches and reference chips, the
-	 * hidden sets and their toggles, the emphasis setter, and the tier's
-	 * legend-row budget.
+	 * hidden sets and their toggles, and the tier's legend-row budget.
 	 */
 	chart: CartesianChart
 	/**
@@ -43,7 +42,6 @@ export function ChartCartesianLegend({ chart, legend, inert, texture }: ChartCar
 			referenceHidden={chart.referenceHidden}
 			onToggle={chart.toggleSeries}
 			onToggleReference={chart.toggleReference}
-			onFocus={chart.setEmphasis}
 			panel={legendAside(legend)}
 			maxRows={chart.legendRows}
 			texture={texture}
