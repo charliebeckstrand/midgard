@@ -5,12 +5,11 @@ import { pause } from './helpers/wall-clock'
 
 /**
  * Resize-settle reconciliation for the grid's overflow detector. A column
- * drag-resize moves a cell's width through the `<colgroup>` without re-rendering
- * the memoized cell on its own, so the body takes a settled-width snapshot whose
- * change re-renders the cell to re-measure. Should the width land a frame after
- * the synchronous read, the hook's deferred backstop re-measures on the next
- * frame whenever its re-measure key (the grid's per-column settle width) changes
- * — which this test drives directly with `signal`.
+ * drag-resize moves a cell's width through the `<colgroup>` without rendering
+ * the cell again, so a visited cell subscribes to its column's settle and
+ * measures when it fires. Should the width land a frame after that synchronous
+ * read, the hook's deferred backstop re-measures on the next frame. This test
+ * fires the settle directly through `settle`.
  *
  * Real layout is required (jsdom reports zero overflow). The clip is flipped by
  * squeezing the *content* (`letter-spacing`) rather than resizing the box, so
@@ -22,8 +21,24 @@ import { pause } from './helpers/wall-clock'
  * before the flag is expected to reflect anything — the same contact the reveal
  * tooltip it gates always begins with.
  */
-function Leaf({ signal }: { signal: number }) {
-	const [ref, truncated] = useGridTruncation<HTMLDivElement>(signal)
+/** A settle subscription that the test fires by hand. */
+function createSettle() {
+	const listeners = new Set<() => void>()
+
+	return {
+		subscribe: (listener: () => void) => {
+			listeners.add(listener)
+
+			return () => listeners.delete(listener)
+		},
+		fire: () => {
+			for (const listener of listeners) listener()
+		},
+	}
+}
+
+function Leaf({ settle }: { settle: ReturnType<typeof createSettle> }) {
+	const [ref, truncated] = useGridTruncation<HTMLDivElement>(settle.subscribe)
 
 	return (
 		<>
@@ -40,8 +55,10 @@ function Leaf({ signal }: { signal: number }) {
 }
 
 describe('useGridTruncation resize-settle reconciliation (real browser)', () => {
-	it('clears a stale truncated flag on the next frame after the settle key flips', async () => {
-		const { getByTestId, rerender } = renderUI(<Leaf signal={0} />)
+	it('clears a stale truncated flag on the next frame after the column settles', async () => {
+		const settle = createSettle()
+
+		const { getByTestId } = renderUI(<Leaf settle={settle} />)
 
 		const leaf = getByTestId('leaf')
 
@@ -57,9 +74,9 @@ describe('useGridTruncation resize-settle reconciliation (real browser)', () => 
 		await waitFor(() => expect(flag()).toBe('truncated'))
 
 		await act(async () => {
-			// Flip the settle key: the commit measure runs while the content still
+			// Fire the settle: the synchronous measure runs while the content still
 			// overflows, so the flag stays truncated.
-			rerender(<Leaf signal={1} />)
+			settle.fire()
 
 			// Now squeeze the content to fit *after* that commit — as a column width
 			// settling a frame late would shrink the overflow. The box stays 60px so

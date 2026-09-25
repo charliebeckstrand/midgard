@@ -60,7 +60,6 @@ type GridGroupLeafRowProps<T> = {
 	/** Stable focused-cell activation for cell roving (see {@link GridRowsProps.cellActivate}). */
 	cellActivate?: GridCellRovingActivate<T>
 	truncate: boolean
-	settleWidths: (number | undefined)[]
 	pinning: GridColumnPinning | null
 	density: DensityLevel
 	/** The group's overlay color, coloring each leaf's leading rail; `undefined` keeps it neutral. */
@@ -88,9 +87,8 @@ function leafCellInner<T>(args: {
 	toggleRow: (key: string | number) => void
 	rowLabel: string | undefined
 	truncate: boolean
-	settleKey: number | undefined
 }): ReactNode {
-	const { col, row, rowKey, selected, toggleRow, rowLabel, truncate, settleKey } = args
+	const { col, row, rowKey, selected, toggleRow, rowLabel, truncate } = args
 
 	const name = rowLabel ?? `row ${rowKey}`
 
@@ -131,7 +129,7 @@ function leafCellInner<T>(args: {
 			<GridCellContent
 				content={raw}
 				tooltip={resolveCellTooltip(col, row)}
-				resizeSettleKey={settleKey}
+				columnId={String(col.id)}
 			/>
 		)
 	}
@@ -148,7 +146,6 @@ type GridGroupLeafCellProps<T> = {
 	toggleRow: (key: string | number) => void
 	rowLabel: string | undefined
 	truncate: boolean
-	settleKey: number | undefined
 	pinning: GridColumnPinning | null
 	/** Whether this is the row's first cell (it carries the group rail). */
 	leading: boolean
@@ -184,7 +181,6 @@ function GridGroupLeafCell<T>({
 	toggleRow,
 	rowLabel,
 	truncate,
-	settleKey,
 	pinning,
 	leading,
 	color,
@@ -245,7 +241,6 @@ function GridGroupLeafCell<T>({
 							toggleRow,
 							rowLabel,
 							truncate,
-							settleKey,
 						})}
 					</div>
 				</div>
@@ -284,7 +279,6 @@ export function GridGroupLeafRow<T>({
 	cellRoving = false,
 	cellActivate,
 	truncate,
-	settleWidths,
 	pinning,
 	density,
 	color,
@@ -348,7 +342,6 @@ export function GridGroupLeafRow<T>({
 							toggleRow={toggleRow}
 							rowLabel={rowLabel}
 							truncate={truncate}
-							settleKey={settleWidths[colIdx]}
 							pinning={pinning}
 							leading={colIdx === 0}
 							color={color}

@@ -26,13 +26,13 @@ import { NEW_ROW_ADD_COLUMN_LABEL } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { ariaSortValue } from './engine/grid-sort/state'
-import { showsFilterButton } from './engine/grid-table/views'
+import { type GridColumnResizeActions, showsFilterButton } from './engine/grid-table/views'
 import { GridColumnFilterButton } from './grid-column-filter-button'
 import { GridColumnResizeHandle } from './grid-column-resize-handle'
 import { GridGroupByButton } from './grid-group-by-button'
 import { useColumnReorderShift } from './grid-reorder'
 import type { GridColumn } from './types'
-import type { GridColumnFilter, GridColumnPinning, GridColumnResize } from './use-grid-table'
+import type { GridColumnFilter, GridColumnPinning } from './use-grid-table'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -150,8 +150,15 @@ type GridColumnHeaderProps = {
 	toggleSort: (column: string | number, additive: boolean) => void
 	/** Resolved width: engine size (px) when resizable, else the column's CSS `width`. */
 	width: number | string | undefined
-	/** Resize controls for this column, or `null` when it is not resizable. */
-	resize: GridColumnResize | null
+	/**
+	 * The resize actions, or `null` when this column is not resizable. The
+	 * object keeps its identity across the frames of a drag, so a drag renders
+	 * again only the header whose width changed.
+	 */
+	resizeActions: GridColumnResizeActions | null
+	/** The resize bounds of the column (px), for the separator. */
+	minWidth: number
+	maxWidth: number
 	/** Whether this column is mid drag-resize. */
 	resizing: boolean
 	/** Whether the header's sort/resize/filter affordances are live (false on an empty grid). */
@@ -201,16 +208,29 @@ function headerAffordances({
  * @internal
  */
 function headerResizeHandle(
-	{ column, resize, resizing }: Pick<GridColumnHeaderProps, 'column' | 'resize' | 'resizing'>,
+	{
+		column,
+		width,
+		resizeActions,
+		minWidth,
+		maxWidth,
+		resizing,
+	}: Pick<
+		GridColumnHeaderProps,
+		'column' | 'width' | 'resizeActions' | 'minWidth' | 'maxWidth' | 'resizing'
+	>,
 	canResize: boolean,
 ): ReactNode {
-	if (!canResize || !resize) return null
+	if (!canResize || !resizeActions || typeof width !== 'number') return null
 
 	return (
 		<GridColumnResizeHandle
 			id={column.id}
 			label={columnLabel(column)}
-			resize={resize}
+			size={width}
+			min={minWidth}
+			max={maxWidth}
+			actions={resizeActions}
 			resizing={resizing}
 		/>
 	)
@@ -354,7 +374,9 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	stickyHeader,
 	toggleSort,
 	width,
-	resize,
+	resizeActions,
+	minWidth,
+	maxWidth,
 	resizing,
 	interactive,
 	gridCol,
@@ -364,7 +386,7 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 	pinColumn,
 	locked,
 }: GridColumnHeaderProps) {
-	const canResize = (resize?.canResize(column.id) ?? false) && interactive
+	const canResize = resizeActions !== null && interactive
 
 	// This column's frozen edge, or `undefined` when it scrolls. A pinned header
 	// leads its title with an unpin button; a locked one shows no indicator (its
@@ -407,7 +429,10 @@ export const GridColumnHeader = memo(function GridColumnHeader({
 				)}
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle({ column, resize, resizing }, canResize)}
+			{headerResizeHandle(
+				{ column, width, resizeActions, minWidth, maxWidth, resizing },
+				canResize,
+			)}
 		</TableHeader>
 	)
 })
@@ -438,7 +463,9 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 	stickyHeader,
 	toggleSort,
 	width,
-	resize,
+	resizeActions,
+	minWidth,
+	maxWidth,
 	resizing,
 	interactive,
 	gridCol,
@@ -479,7 +506,7 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 
 	useColumnReorderShift(tableRef, columnIndex, transform?.x ?? 0, isDragging, isSorting)
 
-	const canResize = (resize?.canResize(column.id) ?? false) && interactive
+	const canResize = resizeActions !== null && interactive
 
 	// dnd-kit's activator attributes set `role="button"`, which on the `<th>` would
 	// override its columnheader role and drop `aria-sort`. Strip the role (keeping
@@ -544,7 +571,10 @@ export const GridReorderableColumnHeader = memo(function GridReorderableColumnHe
 				/>
 				{headerAffordances({ column, interactive, filter, filterQuery })}
 			</span>
-			{headerResizeHandle({ column, resize, resizing }, canResize)}
+			{headerResizeHandle(
+				{ column, width, resizeActions, minWidth, maxWidth, resizing },
+				canResize,
+			)}
 		</TableHeader>
 	)
 })

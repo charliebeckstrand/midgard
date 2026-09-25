@@ -83,13 +83,29 @@ describe('cn', () => {
 		})
 
 		it('keeps merging arguments it cannot key on', () => {
-			// Arrays, objects, and numbers bypass the memo; the result must still be
-			// the merge, including conflict resolution across the bypassed argument.
-			expect(cn('px-4', ['px-2'])).toBe('px-2')
-
+			// Objects and numbers bypass the memo; the result must still be the
+			// merge, including conflict resolution across the bypassed argument.
 			expect(cn('px-4', { 'px-2': true, 'px-8': false })).toBe('px-2')
 
+			expect(cn('px-4', ['px-2', { 'px-8': true }])).toBe('px-8')
+
 			expect(cn('px-4', 0, 'px-2')).toBe('px-2')
+		})
+
+		it('keys an array of strings as its items, as the merge flattens it', () => {
+			// A recipe keeps many class lists as arrays of strings. The memo walks
+			// each item, so a repeat call records nothing new.
+			const list = ['gap-md', ['p-4', false], 'p-2']
+
+			expect(cn('flex', list)).toBe('flex gap-md p-2')
+
+			const before = cnMemoNodes()
+
+			expect(cn('flex', list)).toBe('flex gap-md p-2')
+
+			expect(cn('flex', ['gap-md', 'p-4', false, 'p-2'])).toBe('flex gap-md p-2')
+
+			expect(cnMemoNodes()).toBe(before)
 		})
 
 		it('records nothing for a call it cannot key', () => {

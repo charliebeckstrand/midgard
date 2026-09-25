@@ -1,14 +1,14 @@
 import { act, renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /**
- * `settleWidths` is the heart of the body cells' resize-truncation re-measure.
- * It hands each column a width that is `undefined` while a drag is in flight, so
- * the memoized cells hold frame to frame, and the settled width otherwise. Its
- * reference holds while the widths are unchanged. A change after a settle or a
- * keyboard nudge is what re-renders a column's cells to re-measure overflow.
+ * The settle store is the heart of the body cells' resize-truncation re-measure.
+ * It holds each column's width, `undefined` while a drag is in flight and the
+ * settled width otherwise. A visited cell subscribes to its own column. A change
+ * after a settle or a keyboard nudge calls only the listeners of that column, so
+ * no row renders again.
  */
 type Row = { id: number; name: string }
 
@@ -34,51 +34,74 @@ function pressHandle(
 	act(() => result.current.resize?.startResize(id, new MouseEvent('mousedown', { clientX })))
 }
 
-describe('settleWidths', () => {
-	it('reports the settled width per data column at rest, undefined for non-data', () => {
+/** The settled widths of the two columns, as the store holds them. */
+function widths(result: { current: ReturnType<typeof useGridTable<Row>> }) {
+	return [result.current.settle.get('name'), result.current.settle.get('select')]
+}
+
+describe('the settle store', () => {
+	it('holds the settled width per data column at rest, undefined for non-data', () => {
 		const { result } = renderGrid()
 
 		// `name` is a data column; the selection column carries no truncation.
-		expect(result.current.settleWidths).toEqual([200, undefined])
+		expect(widths(result)).toEqual([200, undefined])
 	})
 
 	it('is undefined throughout when the grid is not resizable', () => {
 		const { result } = renderGrid(false)
 
-		expect(result.current.settleWidths).toEqual([undefined, undefined])
+		expect(widths(result)).toEqual([undefined, undefined])
 	})
 
-	it('holds a stable reference while the widths are unchanged (no per-frame churn)', () => {
+	it('keeps one identity, and calls no listener while the widths are unchanged', () => {
 		const { result, rerender } = renderGrid()
 
-		const first = result.current.settleWidths
+		const store = result.current.settle
+
+		const listener = vi.fn()
+
+		store.subscribe('name', listener)
 
 		rerender()
 
-		expect(result.current.settleWidths).toBe(first)
+		expect(result.current.settle).toBe(store)
+
+		expect(listener).not.toHaveBeenCalled()
 	})
 
-	it('yields a fresh snapshot when a column width changes (a nudge)', () => {
+	it('calls the listeners of the changed column only (a nudge)', () => {
 		const { result } = renderGrid()
 
-		const first = result.current.settleWidths
+		const name = vi.fn()
+
+		const select = vi.fn()
+
+		result.current.settle.subscribe('name', name)
+
+		result.current.settle.subscribe('select', select)
 
 		// A keyboard nudge moves the width with no drag.
 		act(() => result.current.resize?.nudge('name', 40))
 
-		expect(result.current.settleWidths).not.toBe(first)
+		expect(widths(result)).toEqual([240, undefined])
 
-		expect(result.current.settleWidths).toEqual([240, undefined])
+		expect(name).toHaveBeenCalledTimes(1)
+
+		expect(select).not.toHaveBeenCalled()
 	})
 
 	it('freezes every column while a drag is in flight, and thaws when it ends', () => {
 		const { result } = renderGrid()
 
+		const name = vi.fn()
+
+		result.current.settle.subscribe('name', name)
+
 		pressHandle(result, 'name', 100)
 
 		expect(result.current.resize?.resizing).toBe('name')
 
-		expect(result.current.settleWidths).toEqual([undefined, undefined])
+		expect(widths(result)).toEqual([undefined, undefined])
 
 		act(() => {
 			document.dispatchEvent(new MouseEvent('mousemove', { clientX: 130 }))
@@ -88,6 +111,38 @@ describe('settleWidths', () => {
 
 		expect(result.current.resize?.resizing).toBeNull()
 
-		expect(result.current.settleWidths).toEqual([230, undefined])
+		expect(widths(result)).toEqual([230, undefined])
+
+		// Once as the drag froze the width, and once as it settled: never per frame.
+		expect(name).toHaveBeenCalledTimes(2)
+	})
+
+	it('flags the drag, and publishes the flag before the widths', () => {
+		const { result } = renderGrid()
+
+		const flags: boolean[] = []
+
+		const resizing = vi.fn()
+
+		result.current.settle.subscribeResizing(resizing)
+
+		// A cell measures in its column listener, so the flag must be current there.
+		result.current.settle.subscribe('name', () => flags.push(result.current.settle.resizing()))
+
+		pressHandle(result, 'name', 100)
+
+		expect(result.current.settle.resizing()).toBe(true)
+
+		act(() => {
+			document.dispatchEvent(new MouseEvent('mousemove', { clientX: 130 }))
+
+			document.dispatchEvent(new MouseEvent('mouseup', { clientX: 130 }))
+		})
+
+		expect(result.current.settle.resizing()).toBe(false)
+
+		expect(resizing).toHaveBeenCalledTimes(2)
+
+		expect(flags).toEqual([true, false])
 	})
 })

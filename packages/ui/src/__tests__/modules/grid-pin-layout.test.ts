@@ -204,7 +204,7 @@ describe('the Add column of the new-row slot', () => {
 
 		expect(hasPinned).toBe(true)
 
-		expect(state).toEqual({ left: [], right: [NEW_ROW_ADD_COLUMN_ID] })
+		expect(state).toEqual({ start: [], end: [NEW_ROW_ADD_COLUMN_ID] })
 	})
 
 	it('keeps the selection column first when another column is frozen too', () => {
@@ -213,7 +213,7 @@ describe('the Add column of the new-row slot', () => {
 		)
 
 		// The Add column is the last column of the right edge.
-		expect(state).toEqual({ left: ['select'], right: ['status', NEW_ROW_ADD_COLUMN_ID] })
+		expect(state).toEqual({ start: ['select'], end: ['status', NEW_ROW_ADD_COLUMN_ID] })
 	})
 
 	it('reads as a column that scrolls, while a frozen column sticks inside it', () => {

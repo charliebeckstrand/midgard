@@ -31,7 +31,13 @@ import {
 import { AllCommunityModule, createGrid, type GridApi, ModuleRegistry } from 'ag-grid-community'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
-import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
+import {
+	Grid,
+	type GridColumn,
+	type GridColumnFilterState,
+	type GridSortState,
+} from '../../modules/grid'
+import type { QueryGroup } from '../../modules/query'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey } from '../fixtures'
 
 // AG Grid draws nothing until its feature modules register; the community
@@ -53,15 +59,30 @@ export type MountedGrid = {
 	sort: (direction: SortDirection) => void
 	/** Applies a quick filter across every column; `''` clears it. */
 	search: (query: string) => void
+	/** Applies a `contains` filter to the carrier column; `''` clears it. The grid must mount with {@link MountOptions.filterable}. */
+	filter: (text: string) => void
+	/** Shows the page at `index`. The grid must mount with {@link MountOptions.paginated}. */
+	page: (index: number) => void
 	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
 	scroller: () => HTMLElement | null
 	destroy: () => void
 }
 
+/** How a scenario mounts a grid. */
+export type MountOptions = {
+	/** Makes the carrier column filterable, for the column-filter scenario. The other scenarios leave it off, so no filter affordance adds to their cost. */
+	filterable?: boolean
+	/** Pages the rows {@link PAGE_SIZE} at a time, for the pagination scenario. */
+	paginated?: boolean
+}
+
+/** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
+export const PAGE_SIZE = 100
+
 /** One library's entry in a scenario: a name for the report and a mount. */
 export type GridContender = {
 	name: string
-	mount: (host: HTMLElement, rows: Shipment[]) => MountedGrid
+	mount: (host: HTMLElement, rows: Shipment[], options?: MountOptions) => MountedGrid
 }
 
 /**
@@ -97,6 +118,20 @@ const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => 
 	value: (row) => row[id],
 }))
 
+/** {@link UI_COLUMNS} with a filterable carrier column. */
+const UI_FILTER_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
+	col.id === 'carrier' ? { ...col, filterable: true } : col,
+)
+
+/** The applied filters of a `contains` rule on the carrier column, or none for `''`. */
+function carrierFilter(text: string): GridColumnFilterState[] {
+	if (!text) return []
+
+	const rule = { id: 'rule', type: 'rule', field: 'carrier', operator: 'contains', value: text }
+
+	return [{ id: 'carrier', value: { id: 'root', type: 'group', children: [rule] } as QueryGroup }]
+}
+
 const AG_COLUMNS = SHIPMENT_FIELDS.map(([field, headerName]) => ({ field, headerName, width: 120 }))
 
 const MUI_COLUMNS: GridColDef<Shipment>[] = SHIPMENT_FIELDS.map(([field, headerName]) => ({
@@ -129,7 +164,7 @@ function fillBox(host: HTMLElement): HTMLElement {
 function uiContender(): GridContender {
 	return {
 		name: 'ui Grid',
-		mount(host, rows) {
+		mount(host, rows, options) {
 			const box = fillBox(host)
 
 			const root = createRoot(box)
@@ -140,17 +175,27 @@ function uiContender(): GridContender {
 
 			let search = ''
 
+			let filters: GridColumnFilterState[] = []
+
+			let pageIndex = 0
+
+			const filterable = options?.filterable ?? false
+
+			const paginated = options?.paginated ?? false
+
 			const draw = () =>
 				flushSync(() =>
 					root.render(
 						<Grid
-							columns={UI_COLUMNS}
+							columns={filterable ? UI_FILTER_COLUMNS : UI_COLUMNS}
 							rows={current}
 							getKey={shipmentKey}
 							virtualize
 							maxHeight={`${GRID_HEIGHT}px`}
 							sort={{ value: sort }}
 							search={{ value: search }}
+							columnFilters={filterable ? { value: filters } : undefined}
+							pagination={paginated ? { value: { pageIndex, pageSize: PAGE_SIZE } } : undefined}
 						/>,
 					),
 				)
@@ -173,6 +218,16 @@ function uiContender(): GridContender {
 
 					draw()
 				},
+				filter(text) {
+					filters = carrierFilter(text)
+
+					draw()
+				},
+				page(index) {
+					pageIndex = index
+
+					draw()
+				},
 				scroller: () => mustFind(box, '[data-slot="grid-scroll"]'),
 				destroy: () => {
 					root.unmount()
@@ -188,11 +243,14 @@ function uiContender(): GridContender {
 function agContender(): GridContender {
 	return {
 		name: 'AG Grid',
-		mount(host, rows) {
+		mount(host, rows, options) {
 			const box = fillBox(host)
 
 			const api: GridApi<Shipment> = createGrid<Shipment>(box, {
-				columnDefs: AG_COLUMNS,
+				columnDefs: options?.filterable
+					? AG_COLUMNS.map((col) => (col.field === 'carrier' ? { ...col, filter: true } : col))
+					: AG_COLUMNS,
+				...(options?.paginated ? { pagination: true, paginationPageSize: PAGE_SIZE } : {}),
 				rowData: rows,
 				getRowId: ({ data }) => data.id,
 				animateRows: false,
@@ -207,6 +265,11 @@ function agContender(): GridContender {
 					})
 				},
 				search: (query) => api.setGridOption('quickFilterText', query),
+				filter: (text) =>
+					api.setFilterModel(
+						text ? { carrier: { filterType: 'text', type: 'contains', filter: text } } : null,
+					),
+				page: (index) => api.paginationGoToPage(index),
 				scroller: () => mustFind(box, '.ag-grid-viewport'),
 				destroy: () => {
 					api.destroy()
@@ -222,7 +285,7 @@ function agContender(): GridContender {
 function muiContender(): GridContender {
 	return {
 		name: 'MUI X DataGrid',
-		mount(host, rows) {
+		mount(host, rows, options) {
 			const box = fillBox(host)
 
 			const root = createRoot(box)
@@ -230,6 +293,8 @@ function muiContender(): GridContender {
 			let current = rows
 
 			let sortModel: GridSortModel = []
+
+			let page = 0
 
 			let filterModel: GridFilterModel = { items: [] }
 
@@ -241,6 +306,7 @@ function muiContender(): GridContender {
 							rows={current}
 							sortModel={sortModel}
 							filterModel={filterModel}
+							{...(options?.paginated ? { paginationModel: { page, pageSize: PAGE_SIZE } } : {})}
 						/>,
 					),
 				)
@@ -263,6 +329,18 @@ function muiContender(): GridContender {
 					// which ANDs the terms across every bound field — the same scan
 					// AG's `quickFilterText` and the ui grid's `search` run.
 					filterModel = { items: [], quickFilterValues: query ? [query] : [] }
+
+					draw()
+				},
+				filter(text) {
+					filterModel = {
+						items: text ? [{ field: 'carrier', operator: 'contains', value: text }] : [],
+					}
+
+					draw()
+				},
+				page(index) {
+					page = index
 
 					draw()
 				},

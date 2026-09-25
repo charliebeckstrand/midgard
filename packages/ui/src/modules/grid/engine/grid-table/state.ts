@@ -1,12 +1,13 @@
 import type {
 	ColumnFiltersState,
-	ColumnSizingInfoState,
+	ColumnVisibilityState,
+	columnResizingState,
 	GroupingState,
-	Row,
-	VisibilityState,
+	PaginationState,
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
+import type { EngineRow } from './features'
 import { resolveFilterMode, usesClientModel } from './options'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
@@ -19,7 +20,7 @@ export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
 export const EMPTY_SIZING: GridColumnSizingState = {}
 
 /** The engine's drag state with no drag in flight; read-only, replaced wholesale on change. @internal */
-export const IDLE_SIZING_INFO: ColumnSizingInfoState = {
+export const IDLE_SIZING_INFO: columnResizingState = {
 	startOffset: null,
 	startSize: null,
 	deltaOffset: null,
@@ -35,7 +36,7 @@ export const EMPTY_COLUMN_FILTERS: GridColumnFilterState[] = []
 export const EMPTY_COLUMN_ORDER: (string | number)[] = []
 
 /** Stable empty column-visibility default (all visible); read-only. @internal */
-export const EMPTY_VISIBILITY: VisibilityState = {}
+export const EMPTY_VISIBILITY: ColumnVisibilityState = {}
 
 /** Stable empty grouping default (ungrouped); read-only. @internal */
 export const EMPTY_GROUPING: GroupingState = []
@@ -59,10 +60,10 @@ export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
  * @internal
  */
 export function deriveLeafRows<T>(
-	rows: Row<T>[] | null,
+	rows: EngineRow<T>[] | null,
 	grouped: boolean,
 	manualGroupRow?: ((row: T) => boolean) | null,
-): Row<T>[] | null {
+): EngineRow<T>[] | null {
 	if (!rows) return null
 
 	if (manualGroupRow) return rows.filter((row) => !manualGroupRow(row.original))
@@ -139,10 +140,59 @@ export function resolveActiveEngineTransform(args: {
 		paginationManual: args.paginationManual,
 		filtersConfigured: args.filterMode.configured && filtering,
 		filtersManual: args.filterMode.manual,
-		// Sort is handled by the off-engine fast path (`useSortView`), so it never
+		// Sort is handled by the off-engine fast path (`useClientView`), so it never
 		// forces the engine model on its own — only a filter, client pagination,
 		// or grouping does.
 		sortClient: false,
 		grouped: args.grouped,
 	})
+}
+
+/**
+ * Where the client row transforms of a grid run: the filters, the sort, and
+ * the pagination.
+ *
+ * @remarks
+ * The grid runs them itself (see `useClientView`), and builds no engine row
+ * for each datum. The engine runs them inside its pipeline in two cases:
+ * grouped rows, and an applied filter that only the engine can apply.
+ *
+ * @returns `offEngine`: whether the grid runs the transforms itself.
+ * `filtered`: whether it also applies the client filters, which it does when
+ * the quick search prunes rows or a column filter is applied. `page`: the page
+ * that the grid slices, which is `null` unless the grid paginates on the
+ * client.
+ * @internal
+ */
+export function resolveClientView(args: {
+	paginated: boolean
+	paginationManual: boolean
+	pagination: PaginationState
+	filterMode: { configured: boolean; manual: boolean }
+	/** Whether the grid has a quick search. */
+	globalFiltered: boolean
+	globalFilter: string
+	globalHighlights: boolean
+	columnFilters: ColumnFiltersState
+	/** Whether the grid can apply each column filter itself (see `compileColumnFilters`). */
+	columnFiltersCompile: boolean
+	grouped: boolean
+	/** Whether the consumer groups the rows (manual grouping). */
+	manualGrouped: boolean
+}): { offEngine: boolean; filtered: boolean; page: PaginationState | null } {
+	const clientFilters = args.filterMode.configured && !args.filterMode.manual
+
+	const searching =
+		clientFilters && args.globalFiltered && !args.globalHighlights && args.globalFilter !== ''
+
+	const filtering = clientFilters && args.columnFilters.length > 0
+
+	const offEngine =
+		!args.grouped && !args.manualGrouped && !(filtering && !args.columnFiltersCompile)
+
+	return {
+		offEngine,
+		filtered: offEngine && (searching || filtering),
+		page: offEngine && args.paginated && !args.paginationManual ? args.pagination : null,
+	}
 }

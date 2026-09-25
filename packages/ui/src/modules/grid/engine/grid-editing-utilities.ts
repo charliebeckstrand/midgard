@@ -506,7 +506,7 @@ export function isSameCell(coord: GridActiveEdit | null, cell: GridActiveEdit): 
 export function isCellEditing(args: {
 	rowKey: string | number
 	columnId: string | number
-	editableRows: Set<string | number>
+	editableRows: ReadonlySet<string | number>
 	activeEdit: GridActiveEdit | null
 }): boolean {
 	if (!args.editableRows.has(args.rowKey)) return false

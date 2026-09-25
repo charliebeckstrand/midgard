@@ -85,6 +85,28 @@ describe('Grid client sorting', () => {
 		expect(order()).toEqual(['Charlie', 'Alice', ''])
 	})
 
+	it('keeps empty values at the end when the engine sorts, in each direction', () => {
+		// Pagination is a second transform, so the engine sorts inside its own
+		// pipeline. Its comparator reads the direction from the engine.
+		const grid = (direction: 'asc' | 'desc') => (
+			<Grid
+				columns={columns}
+				rows={withBlank}
+				getKey={getKey}
+				sort={{ value: [{ column: 'name', direction }] }}
+				pagination={{ defaultValue: { pageIndex: 0, pageSize: 10 } }}
+			/>
+		)
+
+		const { rerender } = renderUI(grid('asc'))
+
+		expect(order()).toEqual(['Alice', 'Charlie', ''])
+
+		rerender(grid('desc'))
+
+		expect(order()).toEqual(['Charlie', 'Alice', ''])
+	})
+
 	it('leaves row order to the consumer in manual (server) mode', () => {
 		renderUI(
 			<Grid

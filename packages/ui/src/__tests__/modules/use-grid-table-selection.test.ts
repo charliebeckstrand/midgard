@@ -4,11 +4,10 @@ import type { GridColumn } from '../../modules/grid'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /**
- * The selection Set is mirrored into the engine's `state.rowSelection`, so the
- * engine's selected-row model tracks the grid's selection. The Set stays
- * authoritative. An export reads that model: the selected rows, else every row.
+ * An export reads the grid's selection Set: the selected rows, else every row.
+ * The engine keeps no selection state.
  */
-describe('useGridTable selection mirror', () => {
+describe('useGridTable export selection', () => {
 	type Row = { id: number; name: string }
 
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
@@ -27,11 +26,11 @@ describe('useGridTable selection mirror', () => {
 		return result.current.rowsForExport().map((row) => row.id)
 	}
 
-	it('reflects the selection Set in the engine selected-row model', () => {
+	it('takes the rows in the selection Set', () => {
 		expect(exported(new Set([1, 3]))).toEqual([1, 3])
 	})
 
-	it('marks the matching engine rows selected, keyed by the stringified row id', () => {
+	it('matches the keys against the stringified row ids', () => {
 		expect(exported(new Set([2]))).toEqual([2])
 	})
 

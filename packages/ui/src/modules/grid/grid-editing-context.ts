@@ -9,17 +9,20 @@ import type {
 } from './engine/grid-editing-utilities'
 
 /**
- * An external store over the one cell a cell-scoped session edits. Each data
- * cell subscribes to its own flag through `useSyncExternalStore`, the way
- * `GridNavCell` reads the cursor. A session move therefore re-renders the cell
- * it leaves and the cell it enters, not the whole mounted window. The store
- * also notifies when a draft changes status, as a commit goes pending or
- * settles. Each cell then reads its own status again.
+ * An external store over the rows in edit mode, and the one cell a cell-scoped
+ * session edits. Each data cell subscribes to its own flag through
+ * `useSyncExternalStore`, the way `GridNavCell` reads the cursor. A session
+ * move therefore re-renders the cell it leaves and the cell it enters, not the
+ * whole mounted window. A row that opens or closes re-renders only the cells of
+ * that row. The store also notifies when a draft changes status, as a commit
+ * goes pending or settles. Each cell then reads its own status again.
  *
  * @internal
  */
 export type GridActiveEditStore = {
 	subscribe: (listener: () => void) => () => void
+	/** Row keys currently in edit mode; a cell whose row key is here renders its editor. */
+	rows: () => ReadonlySet<string | number>
 	/**
 	 * The one cell a cell-scoped session edits (`scope: 'cell'`), narrowing the
 	 * row's editors to it. `null` under the default row scope, where every
@@ -36,24 +39,22 @@ export type GridActiveEditStore = {
 export type GridSettleControls = 'none' | 'discard' | 'both'
 
 /**
- * The editing session shared with the data cells. A row in `editableRows` puts
- * every editable cell of that row into edit mode at once. A cell-scoped session
- * (`scope: 'cell'`) narrows that to the cell in `activeEditStore`. The row still
- * enters the set, but only the named cell mounts an editor. Each editor
+ * The editing session shared with the data cells. A row in the set of
+ * {@link GridActiveEditStore.rows} puts every editable cell of that row into
+ * edit mode at once. A cell-scoped session (`scope: 'cell'`) narrows that to
+ * the cell in `activeEditStore`. The row still enters the set, but only the
+ * named cell mounts an editor. Each editor
  * stages its pending value through `stageDraft`, held in the grid rather than
  * re-rendering it. The staged values belong to the session, not to the
  * editors, and commit when the session closes their cell. An editor that
  * unmounts while its cell is open keeps its draft, and shows it when it mounts
- * again. The set flips only on a session transition, so cells read it without
- * churning as the user types. The cell rides a store, so a move along a row
- * leaves this context unchanged.
+ * again. The set and the cell ride a store, so a session transition leaves
+ * this context unchanged.
  *
  * @internal
  */
 export type GridEditingSession = {
-	/** Row keys currently in edit mode; a cell whose row key is here renders its editor. */
-	editableRows: Set<string | number>
-	/** The cell a cell-scoped session edits, as a store each data cell subscribes to. */
+	/** The rows in edit mode and the cell a cell-scoped session edits, as a store each data cell subscribes to. */
 	activeEditStore: GridActiveEditStore
 	/**
 	 * Stage a cell's pending value, against the row object the editor shows.

@@ -1,10 +1,10 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGridResizing } from './context'
+import { useGridResizing, useGridSettle } from './context'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -21,11 +21,11 @@ type GridCellContentProps = {
 	content: ReactNode
 	tooltip: CellTooltip
 	/**
-	 * This cell's column width, frozen to `undefined` while a drag is in flight
-	 * and the settled engine width otherwise. A change after a resize settles (or
-	 * a keyboard nudge) re-renders the memoized cell and re-measures overflow.
+	 * The id of this cell's column. A visited cell subscribes to that column's
+	 * settled width (see {@link useGridSettle}), and measures its overflow again
+	 * when a resize or a keyboard nudge settles it.
 	 */
-	resizeSettleKey: number | undefined
+	columnId: string
 }
 
 /**
@@ -47,10 +47,17 @@ type GridCellContentProps = {
  * the settle re-measures.
  * @internal
  */
-export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
-	const resizing = useGridResizing()
+export function GridCellContent({ content, tooltip, columnId }: GridCellContentProps) {
+	const settle = useGridSettle()
 
-	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(resizeSettleKey, resizing)
+	const onSettle = useMemo(
+		() => (settle ? (listener: () => void) => settle.subscribe(columnId, listener) : undefined),
+		[settle, columnId],
+	)
+
+	// The drag state is read when the cell measures, not rendered, so the start
+	// and the end of a drag do not render each cell again.
+	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, settle?.resizing)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
@@ -69,14 +76,28 @@ export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellC
 	// measures untruncated, so it stays a bare span through any contact.
 	if (tooltip.kind === 'none' || !contacted || !truncated) return span
 
-	const node = tooltip.kind === 'custom' ? tooltip.node : content
+	return (
+		<GridCellReveal node={tooltip.kind === 'custom' ? tooltip.node : content}>
+			{span}
+		</GridCellReveal>
+	)
+}
+
+/**
+ * The truncation tooltip of a visited, clipped cell. It alone subscribes to the
+ * drag state, so a drag renders again only the cells that show a reveal.
+ *
+ * @internal
+ */
+function GridCellReveal({ node, children }: { node: ReactNode; children: ReactNode }) {
+	const resizing = useGridResizing()
 
 	return (
-		// `!resizing` holds the tooltip closed through a column drag-resize: the
+		// `resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the column, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
-		<Tooltip disabled={!truncated || resizing}>
-			<TooltipTrigger>{span}</TooltipTrigger>
+		<Tooltip disabled={resizing}>
+			<TooltipTrigger>{children}</TooltipTrigger>
 
 			<TooltipContent className={TOOLTIP_CLASS}>{node}</TooltipContent>
 		</Tooltip>

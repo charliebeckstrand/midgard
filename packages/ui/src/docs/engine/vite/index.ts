@@ -93,6 +93,7 @@ export function defineDocsConfig({
 				'@dnd-kit/utilities',
 				'@floating-ui/react',
 				'@tanstack/react-table',
+				'@tanstack/react-table/static-functions',
 				'@tanstack/react-virtual',
 				'lucide-react',
 				'motion',
