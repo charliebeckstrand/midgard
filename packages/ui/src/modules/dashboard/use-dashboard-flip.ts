@@ -1,6 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
+import { matchesMediaQuery } from '../../utilities'
 import type { DashboardOffset } from './engine/dashboard-drag'
 import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 
@@ -9,6 +10,9 @@ const GLIDE_DURATION = 200
 
 /** The easing of a tile glide: a fast start that settles softly. */
 const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
+
+/** The query that matches when the reader asks the platform for reduced motion. */
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
 /** Options for {@link useDashboardFlip}. @internal */
 export type DashboardFlipOptions = {
@@ -31,41 +35,44 @@ function paintedOffset(element: HTMLElement): DashboardOffset {
 	return { x: matrix.m41, y: matrix.m42 }
 }
 
-/** Whether the reader asks the platform for reduced motion. */
-function prefersReducedMotion(): boolean {
-	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-}
-
 /** What the tile painted at its last commit. */
 type Painted = { cell: DashboardCell; carried: DashboardOffset | null; snap: boolean }
 
 /**
  * The offset in px from the new cell back to where the tile was painted, or
  * `null` when the change snaps. A change of size snaps, and so does each change
- * that starts or ends a snap phase.
+ * that starts or ends a snap phase. Only a change that can glide reads the
+ * width and the direction of the tile.
  */
 function glideFrom(
 	previous: Painted,
 	cell: DashboardCell,
 	snap: boolean,
-	pitch: number,
-	inline: 1 | -1,
+	element: HTMLElement,
 ): DashboardOffset | null {
 	if (snap || previous.snap) return null
 
 	if (previous.cell.w !== cell.w || previous.cell.h !== cell.h) return null
 
-	// The columns turn into px on the screen, which run the other way in a right-to-left board.
-	const x = inline * (previous.cell.x - cell.x) * pitch + (previous.carried?.x ?? 0)
+	const { carried } = previous
 
-	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (previous.carried?.y ?? 0)
+	if (previous.cell.x === cell.x && previous.cell.y === cell.y && carried === null) return null
+
+	const pitch = element.offsetWidth / cell.w
+
+	// The columns turn into px on the screen, which run the other way in a right-to-left board.
+	const inline = inlineSign(getComputedStyle(element).direction)
+
+	const x = inline * (previous.cell.x - cell.x) * pitch + (carried?.x ?? 0)
+
+	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (carried?.y ?? 0)
 
 	return x === 0 && y === 0 ? null : { x, y }
 }
 
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
 function glide(element: HTMLElement, offset: DashboardOffset): void {
-	if (typeof element.animate !== 'function' || prefersReducedMotion()) return
+	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION)) return
 
 	const running = paintedOffset(element)
 
@@ -112,9 +119,7 @@ export function useDashboardFlip(
 		// A carried tile follows the pointer; it glides only once the pointer lets go.
 		if (element === null || previous === null || cell === undefined || carried !== null) return
 
-		const inline = inlineSign(getComputedStyle(element).direction)
-
-		const offset = glideFrom(previous, cell, snap, element.offsetWidth / cell.w, inline)
+		const offset = glideFrom(previous, cell, snap, element)
 
 		if (offset !== null) glide(element, offset)
 	}, [ref, cell, carried, snap])
