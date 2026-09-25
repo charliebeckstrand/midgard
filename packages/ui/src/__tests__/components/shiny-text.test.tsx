@@ -107,6 +107,20 @@ describe('ShinyText', () => {
 		expect(animate).not.toHaveBeenCalled()
 	})
 
+	// Pause on hover is side behaviour, so a consumer `preventDefault()` skips it
+	// (CONVENTIONS.md §3.9).
+	it('keeps the sweep running when a consumer onMouseEnter prevents the default', async () => {
+		const { container } = renderUI(
+			<ShinyText pauseOnHover onMouseEnter={(event) => event.preventDefault()}>
+				Shine
+			</ShinyText>,
+		)
+
+		await userEvent.setup().hover(getSlot(container, 'shiny-text'))
+
+		expect(pauseSpy).not.toHaveBeenCalled()
+	})
+
 	it('runs a consumer hover handler without clobbering pauseOnHover', async () => {
 		const onMouseEnter = vi.fn()
 

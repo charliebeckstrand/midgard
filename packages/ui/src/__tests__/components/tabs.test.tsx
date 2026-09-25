@@ -721,3 +721,52 @@ describe('scrollIntoViewOffset', () => {
 		expect(scrollIntoViewOffset({ viewport: 100, current: 0, extent: 40, leading: 60 })).toBe(0)
 	})
 })
+
+// Selection is the activation a tab exists to perform, so a consumer
+// `preventDefault()` does not cancel it. The preload is side behaviour, so it
+// does (CONVENTIONS.md §3.9).
+describe('Tab handler composition', () => {
+	function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Tabs value="a" onValueChange={onValueChange}>
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+					<Tab value="b" onPreload={props.onPreload} {...extra}>
+						B
+					</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		return { onValueChange, inactive: screen.getByRole('tab', { name: 'B' }) }
+	}
+
+	it('selects the tab when a consumer onClick prevents the default', () => {
+		const { onValueChange, inactive } = twoTabs(
+			{},
+			{ onClick: (event: { preventDefault: () => void }) => event.preventDefault() },
+		)
+
+		fireEvent.click(inactive)
+
+		expect(onValueChange).toHaveBeenCalledWith('b')
+	})
+
+	it.each([
+		['onPointerEnter', (el: HTMLElement) => fireEvent.pointerEnter(el)],
+		['onFocus', (el: HTMLElement) => fireEvent.focus(el)],
+	] as const)('skips the preload when a consumer %s prevents the default', (prop, intent) => {
+		const onPreload = vi.fn()
+
+		const { inactive } = twoTabs(
+			{ onPreload },
+			{ [prop]: (event: { preventDefault: () => void }) => event.preventDefault() },
+		)
+
+		intent(inactive)
+
+		expect(onPreload).not.toHaveBeenCalled()
+	})
+})

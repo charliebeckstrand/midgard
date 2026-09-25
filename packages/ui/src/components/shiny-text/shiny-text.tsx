@@ -3,7 +3,7 @@
 import { type AnimationPlaybackControls, animate } from 'motion'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 
 /** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
 export type ShinyTextProps = {
@@ -140,17 +140,14 @@ export function ShinyText({
 				backgroundPosition,
 			}}
 			// Composed after the spread so a consumer handler can't clobber
-			// `pauseOnHover`; both run.
-			onMouseEnter={(event) => {
-				onMouseEnter?.(event)
-
+			// `pauseOnHover`. The pause is side behaviour, so a consumer's
+			// preventDefault() skips it (CONVENTIONS.md §3.9).
+			onMouseEnter={composeEventHandlers(onMouseEnter, () => {
 				if (pauseOnHover) controlsRef.current?.pause()
-			}}
-			onMouseLeave={(event) => {
-				onMouseLeave?.(event)
-
+			})}
+			onMouseLeave={composeEventHandlers(onMouseLeave, () => {
 				if (pauseOnHover) controlsRef.current?.play()
-			}}
+			})}
 		>
 			{children}
 		</motion.span>

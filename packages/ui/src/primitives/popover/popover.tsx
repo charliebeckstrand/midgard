@@ -8,7 +8,7 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { ReducedMotion } from '../reduced-motion'
@@ -134,10 +134,11 @@ export function PopoverPanel({
 				aria-multiselectable={role === 'listbox' ? multiselectable : undefined}
 				tabIndex={-1}
 				{...k.panel.motion}
-				onKeyDown={(event) => {
-					handleKeyDown(event)
-					onKeyDownProp?.(event)
-				}}
+				// Roving is a keyboard model no consumer switches off, so a consumer's
+				// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+				onKeyDown={composeEventHandlers(onKeyDownProp, handleKeyDown, {
+					checkForDefaultPrevented: false,
+				})}
 				className={cn(
 					glass ? ['group/glass', k.panel.glass, k.panel.ring] : k.panel.surface,
 					k.panel.base,
