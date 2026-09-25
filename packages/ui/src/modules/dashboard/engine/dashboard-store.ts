@@ -97,7 +97,10 @@ export type DashboardView = {
 	placeholder: DashboardCell | null
 	/** The travel range of the dragged tile, or `null` at rest. */
 	travel: DashboardDragTravel | null
-	/** Whether the responsive projection replaces the saved layout on screen. */
+	/**
+	 * Whether the responsive projection replaces the saved layout on screen. It
+	 * stays until the width passes the threshold by `PROJECTION_HOLD`.
+	 */
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
 	editable: boolean
@@ -153,6 +156,20 @@ export type DashboardStore = {
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 }
+
+/**
+ * The hold of the responsive projection, in px. A projection on screen reads the
+ * container width less the hold, so the saved layout returns only past the
+ * threshold plus the hold.
+ *
+ * @remarks
+ * In a scroll box with a classic scrollbar, the width of the board can follow its
+ * height. When the saved layout overflows the box and the projection fits it, the
+ * scrollbar comes and goes with the projection. With no hold, the board then
+ * switches between the two on each frame. The hold is wider than a classic
+ * scrollbar, so one of the two states holds.
+ */
+const PROJECTION_HOLD = 24
 
 /** One memo slot: the result for the last inputs. */
 type Memo<A extends readonly unknown[], R> = (...args: A) => R
@@ -292,22 +309,35 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		) => readingOrder([...canonical, ...placed.filter((item) => !demands.has(item.id))]),
 	)
 
-	const projectionOf = memo(
-		(
-			cells: readonly DashboardCell[],
-			width: number,
-			gap: number,
-			columns: number,
-			demands: ReadonlyMap<string, DashboardTileDemands>,
-		) => projectLayout(cells, { width, gap, columns, demands }),
-	)
+	const project = (
+		cells: readonly DashboardCell[],
+		width: number,
+		gap: number,
+		columns: number,
+		demands: ReadonlyMap<string, DashboardTileDemands>,
+	) => projectLayout(cells, { width, gap, columns, demands })
+
+	// One slot for the full width and one for the held width, so that the two keep their results.
+	const projectionOf = memo(project)
+
+	const heldOf = memo(project)
 
 	const derive = (previous: DashboardView | null): DashboardView => {
 		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
 		const canonical = canonicalOf(layout, demands, columns)
 
-		const projection = projectionOf(canonical, gesture?.width ?? width, gap, columns, demands)
+		const measured = gesture?.width ?? width
+
+		const full = projectionOf(canonical, measured, gap, columns, demands)
+
+		// A projection on screen reads the held width. The first projected frame reads it
+		// too, so a later change of another input moves no tile.
+		const held = measured > 0 && (previous?.projected === true || !full.identity)
+
+		const projection = held
+			? heldOf(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
+			: full
 
 		const placed = placedOf(layout, columns)
 

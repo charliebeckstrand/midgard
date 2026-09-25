@@ -5,8 +5,9 @@
  * Each shelf stretches to the full span, and a narrow board becomes a stack.
  *
  * The projection is a view. It never writes to the saved layout, and the saved
- * layout returns exactly when the container is wide enough again. There is no
- * breakpoint: the demands of the tiles decide.
+ * layout returns when the container is wide enough again. There is no
+ * breakpoint: the demands of the tiles decide. The projection holds no state,
+ * and the store adds a hold of 24 px to the return (`PROJECTION_HOLD`).
  */
 
 import {

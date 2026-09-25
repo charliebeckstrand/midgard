@@ -95,6 +95,32 @@ describe('createDashboardStore', () => {
 		expect(store.getView()).toMatchObject({ projected: true, editable: false })
 	})
 
+	it('holds the projection on screen until the width passes the threshold by 24 px', () => {
+		// With no gutter, tile a at 8 of 24 columns starves under 600 px.
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 600 }),
+		)
+
+		expect(store.getView().projected).toBe(false)
+
+		store.setState({ width: 599 })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+
+		store.setState({ width: 623 })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+
+		store.setState({ width: 624 })
+
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		// The hold applies only to a projection on screen, so the saved layout stays at 623 px.
+		store.setState({ width: 623 })
+
+		expect(store.getView().projected).toBe(false)
+	})
+
 	it('holds the start width through a gesture', () => {
 		const store = createDashboardStore(
 			initial({ demands: new Map([['a', { minWidth: 300 }]]), width: 1200 }),
