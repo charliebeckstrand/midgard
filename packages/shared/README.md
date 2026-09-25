@@ -13,7 +13,7 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 | Path | Purpose |
 |---|---|
 | `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`. They post to the same-origin `/auth/*` paths, which `withAuth` rewrites to the gateway. |
-| `shared/globals.css` | Global stylesheet: the `white` theme color, the Google Sans Flex font, and the root styles. |
+| `shared/globals.css` | Global stylesheet: the Google Sans Flex font and the root styles. |
 
 An app that renders `shared/auth` must add `packages/shared/src` as a Tailwind `@source`, so that Tailwind generates the classes of the auth UI.
 

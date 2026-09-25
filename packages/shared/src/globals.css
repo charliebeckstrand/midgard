@@ -1,9 +1,5 @@
 @import './fonts.css';
 
-@theme {
-	--color-white: hsla(0, 0%, 98%, 1);
-}
-
 :root {
 	height: 100%;
 	overscroll-behavior: none;
