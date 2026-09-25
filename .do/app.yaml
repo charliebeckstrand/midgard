@@ -1,0 +1,100 @@
+# App Platform spec for midgard: one app that serves the admin app, the places
+# app, and the docs site of `ui`, each on its own subdomain. The deploy workflow
+# applies it on each push to main, and the first run creates the app. The two
+# Next apps build from the Dockerfile at the repository root, which gets each
+# build-time variable below as a build argument. The docs site builds from
+# Dockerfile.docs.
+name: midgard
+region: nyc
+
+alerts:
+  - rule: DEPLOYMENT_FAILED
+  - rule: DOMAIN_FAILED
+
+# `zone` lets App Platform manage the DNS records in the ivoryimage.dev domain.
+domains:
+  - domain: admin.ivoryimage.dev
+    type: PRIMARY
+    zone: ivoryimage.dev
+  - domain: places.ivoryimage.dev
+    type: ALIAS
+    zone: ivoryimage.dev
+  - domain: docs.ivoryimage.dev
+    type: ALIAS
+    zone: ivoryimage.dev
+
+# Each rule sends one subdomain to one component. The `authority` match reads
+# the host of the request.
+ingress:
+  rules:
+    - component:
+        name: admin
+      match:
+        authority:
+          exact: admin.ivoryimage.dev
+        path:
+          prefix: /
+    - component:
+        name: places
+      match:
+        authority:
+          exact: places.ivoryimage.dev
+        path:
+          prefix: /
+    - component:
+        name: docs
+      match:
+        authority:
+          exact: docs.ivoryimage.dev
+        path:
+          prefix: /
+
+services:
+  - name: admin
+    github:
+      repo: charliebeckstrand/midgard
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: APP
+        scope: BUILD_TIME
+        value: admin
+      # `next build` writes the gateway origin into the rewrites, and the server
+      # reads it at start, so the build and the run both need it.
+      - key: BIFROST_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://auth.ivoryimage.dev
+
+  - name: places
+    github:
+      repo: charliebeckstrand/midgard
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: Dockerfile
+    http_port: 3000
+    instance_count: 1
+    instance_size_slug: apps-s-1vcpu-1gb
+    envs:
+      - key: APP
+        scope: BUILD_TIME
+        value: places
+      # The same reason as for admin.
+      - key: BIFROST_URL
+        scope: RUN_AND_BUILD_TIME
+        value: https://auth.ivoryimage.dev
+
+static_sites:
+  # The site routes by the URL hash, so each page is `index.html` and no path
+  # needs a catch-all document.
+  - name: docs
+    github:
+      repo: charliebeckstrand/midgard
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: Dockerfile.docs
+    # The path in the built image.
+    output_dir: /app/packages/ui/src/docs/dist

@@ -48,10 +48,19 @@ Both apps get auth and API responses from the bifrost gateway. [`withAuth`](pack
 
 ## 5. Deploy
 
-Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform specs in [`.do/`](.do). The `admin` app serves `admin.ivoryimage.dev`, and the `places` app serves `places.ivoryimage.dev`. App Platform builds each app from the [`Dockerfile`](Dockerfile) at the root, with `output: 'standalone'`. To build one image locally:
+Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml). The spec holds one app, `midgard`, with one component for each subdomain:
+
+| Subdomain | Component | Build |
+|---|---|---|
+| `admin.ivoryimage.dev` | `apps/admin` | [`Dockerfile`](Dockerfile), with `APP=admin` |
+| `places.ivoryimage.dev` | `apps/places` | [`Dockerfile`](Dockerfile), with `APP=places` |
+| `docs.ivoryimage.dev` | The docs site of `ui`, a static site | [`Dockerfile.docs`](Dockerfile.docs) |
+
+The Next apps build with `output: 'standalone'`. To build one image locally:
 
 ```sh
 docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryimage.dev .
+docker build --file Dockerfile.docs .
 ```
 
 ---

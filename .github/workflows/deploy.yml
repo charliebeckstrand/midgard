@@ -13,15 +13,10 @@ jobs:
     uses: ./.github/workflows/ci.yml
 
   deploy:
-    name: Deploy ${{ matrix.app }} to DigitalOcean
+    name: Deploy to DigitalOcean
     needs: ci
     runs-on: ubuntu-latest
     environment: production
-    strategy:
-      # A failed deploy of one app does not stop the deploy of the other.
-      fail-fast: false
-      matrix:
-        app: [admin, places]
     steps:
       - uses: actions/checkout@v7
 
@@ -33,13 +28,12 @@ jobs:
           echo "::error::Set the DIGITALOCEAN_PROJECT_ID variable to the ID of the Ivory Image project."
           exit 1
 
-      # Creates the app from its spec on the first run, in the Ivory Image
+      # Creates the app from .do/app.yaml on the first run, in the Ivory Image
       # project, then updates it and waits for the deployment to go live. The
       # action reads `project_id` only when it creates the app.
       - uses: digitalocean/app_action/deploy@v2
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
-          app_spec_location: .do/${{ matrix.app }}.yaml
           project_id: ${{ vars.DIGITALOCEAN_PROJECT_ID }}
           print_build_logs: true
           print_deploy_logs: true

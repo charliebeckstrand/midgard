@@ -1,5 +1,5 @@
-# One image recipe for each Next app in `apps/`. The App Platform specs in
-# `.do/` set `APP` to the name of the app. Build one app locally with:
+# One image recipe for each Next app in `apps/`. The App Platform spec in
+# `.do/app.yaml` sets `APP` to the name of the app. Build one app locally with:
 #
 #   docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryimage.dev .
 #
