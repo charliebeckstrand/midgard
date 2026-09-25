@@ -40,7 +40,7 @@ The three render claims of the plan hold for a preview. A preview frame renders 
 
 The rows fall into change sets that share files and tests. Each set is one pull request. The order puts the P1 rows and the cheapest guards first.
 
-1. **The registry boundary: S02, then S01.** S02 is a ten-line internal component, and it restores the boundary contract of plan §4 for spec tiles. S01 adds an optional argument to `parseDashboardSpec`, so it updates `docs/MODULES.md` in the same change (`CLAUDE.md` §3.5).
+1. **The registry boundary: S02, then S01.** S02 is a ten-line internal component, and it restores the boundary contract of plan §4 for spec tiles. S01 adds an optional argument to `parseDashboardSpec` and a public options type, each with its TSDoc (`CLAUDE.md` §3.5).
 
 2. **The touch affordances: S03 and S32, with S31.** All three edit literals in `recipes/kata/dashboard.ts`, and one browser case under touch emulation pins S03 and S32.
 
@@ -90,7 +90,7 @@ A Chromium probe under the CDP call `Emulation.setTouchEmulationEnabled` gave `(
 
 The fix prefixes the two `veil.fade` literals with `[@media(hover:hover)]:`, so the nested `@media not (hover: hover)` branch cannot match and touch screens keep the veil in view. Update the fade comment (`recipes/kata/dashboard.ts:109-113`), the `DashboardTile` remark (`dashboard-tile.tsx:145-148`), and `ROADMAP.md:35` to match. Add one case to `__tests__/browser/dashboard-spark.test.tsx` that turns on touch emulation through `cdp()` and resets it in `afterEach`. Estimate: two class literals, about 3 doc lines, and one browser case of about 15 lines.
 
-*Open. P1; severity medium; verified by probe.*
+*Open. P1; severity medium; verified by probe. The browser case above cannot run in the shared suite, because touch emulation does not turn off again (`__tests__/browser/touch-target-geometry.test.tsx:15-19`). Pin the class in jsdom, as that suite does.*
 
 **P01 · `DashboardTile` builds its whole card inline under the dnd-kit consumer, so each lift and each drop render the chrome of every tile again.** Each tile calls `useDraggable` through `useDashboardTileDrag` (`use-dashboard-tile-drag.ts:70-71`), which reads the dnd-kit `InternalContext`, a memo over `active`, `activatorEvent`, and `activeNodeRect`. A lift changes that value twice, because `useRect` measures the active node in a layout effect, and a drop or a cancel changes it again. `DashboardTile` builds the card, the header, the Clear control, the edit controls, the content box, and the edges inline, with no memo (`dashboard-tile.tsx:234-313`). Each change therefore renders the full chrome of every tile, which contradicts the tile TSDoc at `dashboard-tile.tsx:135`. The dragged tile also renders its chrome on each carry move, through `ActiveDraggableContext`, but that cost is below the measurement noise. The cost falls once at each lift and once at each drop or cancel, and it grows linearly with the tile count.
 
