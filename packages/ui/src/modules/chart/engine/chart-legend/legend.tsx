@@ -13,7 +13,7 @@ import { useA11yRoving } from '../../../../hooks/a11y'
 import { useTruncation } from '../../../../hooks/use-truncation'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
-import { useChartEmphasis } from '../context'
+import { useChartEmphasis, useChartSeriesFocus } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
 
 /** Entries per page once a side panel's switches would clip vertically. @internal */
@@ -374,8 +374,6 @@ export type ChartLegendProps = {
 	onToggle: (index: number) => void
 	/** Toggles a reference rule on or off by its index; omitted, the chips are static. */
 	onToggleReference?: (index: number) => void
-	/** Emphasizes an item's series (`null` clears); other marks dim while set. */
-	onFocus: (index: number | null) => void
 	/**
 	 * Lay the entries out as a single column rather than the centered wrap
 	 * row — the side rail beside a pie or donut. Reserves a rail that scales with
@@ -481,7 +479,6 @@ export function ChartLegend({
 	referenceHidden = EMPTY_HIDDEN,
 	onToggle,
 	onToggleReference,
-	onFocus,
 	panel = false,
 	texture = false,
 	maxRows,
@@ -536,6 +533,10 @@ export function ChartLegend({
 	// keyboard focus together, so the two inputs share the one slot instead of
 	// clobbering it.
 	const hovered = useRef<number | null>(null)
+
+	// The frame owns the series emphasis, so a hover renders the frame and not the
+	// chart body. The setter keeps its identity.
+	const onFocus = useChartSeriesFocus()
 
 	// Emphasis follows whichever input is live: the pointed-at entry wins, else
 	// the keyboard-focused one. The keyboard side reads `:focus-visible` from the

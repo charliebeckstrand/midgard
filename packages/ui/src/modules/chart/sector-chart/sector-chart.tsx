@@ -211,7 +211,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		fill: frameSizing.mode === 'fill',
 	})
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(onHiddenChange)
+	const { hidden, toggle } = useChartSeriesToggle(onHiddenChange)
 
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
@@ -248,9 +248,12 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// A legend entry for a non-positive (or toggled-off) row carries no slice, so
 	// an emphasis landing on it would recede every real slice with nothing lifted
-	// against them. Clamp the mark emphasis to a slice-bearing row — the keyboard
-	// cursor already steps over the rest.
-	const sliceEmphasis = slices.some((slice) => slice.index === emphasis) ? emphasis : null
+	// against them. The frame therefore takes each row without a slice as hidden,
+	// and clamps the emphasis to a slice-bearing row. The keyboard cursor already
+	// steps over the rest.
+	const drawn = new Set(slices.map((slice) => slice.index))
+
+	const sliceless = new Set(values.flatMap((_, index) => (drawn.has(index) ? [] : [index])))
 
 	// The held selection keys off the same label that a slice click reports.
 	const selectedSlices = selectedIndices(sliceLabels, selectedCategories)
@@ -297,13 +300,11 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 				animate={animate}
 				center={center}
 				radius={radius}
-				emphasis={sliceEmphasis}
 				selected={selectedSlices}
 				fills={sliceFills}
 				textureActive={tex.active}
 				trigger={trigger}
 				onIndexClick={sliceActivation(onCategoryClick, sliceLabels)}
-				onEmphasis={setFocus}
 			/>
 
 			{labelItems.length > 0 && (
@@ -311,18 +312,12 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 					items={labelItems}
 					paints={paints}
 					animate={animate}
-					emphasis={sliceEmphasis}
 					selected={selectedSlices}
 				/>
 			)}
 
 			{calloutItems.length > 0 && (
-				<SectorChartCallouts
-					items={calloutItems}
-					animate={animate}
-					emphasis={sliceEmphasis}
-					selected={selectedSlices}
-				/>
+				<SectorChartCallouts items={calloutItems} animate={animate} selected={selectedSlices} />
 			)}
 		</>
 	)
@@ -345,7 +340,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 						items={legendItems}
 						hidden={hidden}
 						onToggle={toggle}
-						onFocus={setFocus}
 						panel={aside}
 						maxRows={policy.legendRows}
 						texture={tex.active}
@@ -355,6 +349,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			}
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
+			hidden={sliceless}
 			tooltip={showTooltip}
 			focus={{ points: focusPoints }}
 			className={className}

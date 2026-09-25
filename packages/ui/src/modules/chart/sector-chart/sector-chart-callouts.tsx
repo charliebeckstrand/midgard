@@ -19,6 +19,7 @@ import {
 } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
 import { isSparkBox } from '../engine/chart-tier'
+import { useChartSeriesEmphasis } from '../engine/context'
 import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
 
 /** A placed callout with its resolved label text. @internal */
@@ -187,7 +188,6 @@ export function buildCallouts(
 type SectorChartCalloutsProps = {
 	items: CalloutLabel[]
 	animate: boolean
-	emphasis: number | null
 	/** The held selection, or `null`; unselected callouts dim with their slices. */
 	selected?: ReadonlySet<number> | null
 }
@@ -200,12 +200,9 @@ type SectorChartCalloutsProps = {
  *
  * @internal
  */
-export function SectorChartCallouts({
-	items,
-	animate,
-	emphasis,
-	selected = null,
-}: SectorChartCalloutsProps) {
+export function SectorChartCallouts({ items, animate, selected = null }: SectorChartCalloutsProps) {
+	const emphasis = useChartSeriesEmphasis()
+
 	return (
 		<g data-slot="chart-callouts" pointerEvents="none">
 			{items.map((item) => {

@@ -238,10 +238,6 @@ export type CartesianChart = {
 	hidden: ReadonlySet<number>
 	/** Toggles a series on or off by its index. */
 	toggleSeries: (index: number) => void
-	/** The legend-emphasized series, when it is visible; other marks dim. */
-	emphasis: number | null
-	/** Moves the legend emphasis (`null` clears it). */
-	setEmphasis: (index: number | null) => void
 	readout: ChartReadoutSource | null
 	/**
 	 * The series indices the hover tooltip lists {@link readout}'s rows in — the
@@ -861,7 +857,7 @@ export function useChartCartesian<T>(
 	// gate on this downstream.
 	const drawAxes = draw && policy.tier !== 'spark'
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(props.onHiddenChange)
+	const { hidden, toggle } = useChartSeriesToggle(props.onHiddenChange)
 
 	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
 
@@ -997,8 +993,6 @@ export function useChartCartesian<T>(
 		visible,
 		hidden,
 		toggleSeries: toggle,
-		emphasis,
-		setEmphasis: setFocus,
 		readout,
 		readoutOrder,
 		legendItems: cartesianLegendItems(metas, legend, config.legendByValue),

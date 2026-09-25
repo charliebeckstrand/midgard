@@ -662,7 +662,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const formatX = axesConfig.x?.format ?? formatChartValue
 
-	const { hidden, toggle, setFocus, emphasis } = useChartSeriesToggle(onHiddenChange)
+	const { hidden, toggle } = useChartSeriesToggle(onHiddenChange)
 
 	const metas = scatterMetas(data, series)
 
@@ -756,7 +756,6 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 						items={legendItems}
 						hidden={hidden}
 						onToggle={toggle}
-						onFocus={setFocus}
 						panel={aside}
 						maxRows={policy.legendRows}
 						inert={resolvedLegend.inert}
@@ -765,7 +764,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			}
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
-			emphasis={emphasis}
+			hidden={hidden}
+			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
 			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}

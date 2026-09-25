@@ -82,11 +82,12 @@ export function ChartCartesianFrame({
 			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
-			emphasis={chart.emphasis}
+			hidden={chart.hidden}
+			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snap}
 			focus={focus}
-			onActiveSeries={chart.setEmphasis}
+			keyboardEmphasis
 			selected={chart.selected}
 			orientation={chart.orientation}
 			className={className}
