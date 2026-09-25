@@ -15,9 +15,11 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 	type BoardProps = {
 		initial?: DashboardLayoutItem[]
 		onLayout?: (next: DashboardLayoutItem[]) => void
+		/** The height in px of the content under the board. */
+		tail?: number
 	}
 
-	function Board({ initial = LAYOUT, onLayout }: BoardProps) {
+	function Board({ initial = LAYOUT, onLayout, tail = 1000 }: BoardProps) {
 		return (
 			<div data-testid="scroller" style={{ width: 384, height: 300, overflowY: 'auto' }}>
 				<Dashboard
@@ -29,7 +31,7 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 					<DashboardTile id="a" title="A" minWidth={0} />
 				</Dashboard>
 
-				<div style={{ height: 1000 }} />
+				<div style={{ height: tail }} />
 			</div>
 		)
 	}
@@ -79,6 +81,99 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 		fireEvent.pointerUp(south, { ...pointer, clientY: y + 60 })
 
 		expect(lastEntry(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 24, h: 60 })
+	})
+
+	it('reads no scroll clamp from its own shrink as travel under a still pointer', async () => {
+		const onLayout = vi.fn()
+
+		// The tile is 400 px tall in the 300 px box, and no content follows it.
+		renderUI(
+			<Board initial={[{ id: 'a', x: 0, y: 0, w: 24, h: 100 }]} onLayout={onLayout} tail={0} />,
+		)
+
+		const scroller = screen.getByTestId('scroller')
+
+		scroller.scrollTop = scroller.scrollHeight
+
+		await frames()
+
+		expect(scroller.scrollTop).toBe(100)
+
+		const south = southSplitter()
+
+		const box = south.getBoundingClientRect()
+
+		const x = box.left + box.width / 2
+
+		const y = box.top + box.height / 2
+
+		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+
+		fireEvent.pointerDown(south, { ...pointer, clientY: y })
+
+		// 8 px is 2 rows. A shorter canvas at the end of the box makes the browser clamp the scroll.
+		fireEvent.pointerMove(south, { ...pointer, clientY: y - 8 })
+
+		const readout = getSlot(present(scroller, 'the scroller'), 'dashboard-resize-readout')
+
+		// The pointer holds still. Each clamp that the shrink causes must add no travel.
+		for (let frame = 0; frame < 8; frame++) {
+			await frames()
+
+			expect(readout).toHaveTextContent('24 × 98')
+		}
+
+		fireEvent.pointerUp(south, { ...pointer, clientY: y - 8 })
+
+		expect(lastEntry(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 24, h: 98 })
+	})
+
+	it('reads no scroll clamp as travel after a scroll past the start range of the gesture', async () => {
+		renderUI(<Board initial={[{ id: 'a', x: 0, y: 0, w: 24, h: 100 }]} tail={0} />)
+
+		const scroller = screen.getByTestId('scroller')
+
+		scroller.scrollTop = scroller.scrollHeight
+
+		await frames()
+
+		const south = southSplitter()
+
+		const box = south.getBoundingClientRect()
+
+		const x = box.left + box.width / 2
+
+		const y = box.top + box.height / 2
+
+		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+
+		fireEvent.pointerDown(south, { ...pointer, clientY: y })
+
+		// 40 px is 10 rows, so the box can scroll 40 px more.
+		fireEvent.pointerMove(south, { ...pointer, clientY: y + 40 })
+
+		await frames()
+
+		// The edge follows the scroll by 10 rows more, so the tile is 480 px tall.
+		scroller.scrollTop = 140
+
+		await frames()
+
+		const readout = getSlot(present(scroller, 'the scroller'), 'dashboard-resize-readout')
+
+		expect(readout).toHaveTextContent('24 × 120')
+
+		// 48 px up is 12 rows, so the tile is 432 px tall. A canvas held at its start height of
+		// 400 px also gets shorter than the scroll of 140 px needs, and the browser clamps it.
+		fireEvent.pointerMove(south, { ...pointer, clientY: y - 8 })
+
+		for (let frame = 0; frame < 8; frame++) {
+			await frames()
+
+			expect(readout).toHaveTextContent('24 × 108')
+		}
+
+		fireEvent.pointerUp(south, { ...pointer, clientY: y - 8 })
 	})
 
 	it('keeps a focused south splitter in the scroll box through its keyboard steps', async () => {

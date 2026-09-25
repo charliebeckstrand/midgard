@@ -71,7 +71,8 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
  * arrow-key step on a focused splitter. The pure {@link resizePreview} decides
  * each preview, so a tile grows until it meets a neighbor or an edge. A pointer
  * drag counts its travel in the canvas, so a scroll during the drag keeps the
- * edge under the pointer.
+ * edge under the pointer. The canvas does not get shorter during the drag, so a
+ * shrink never clamps a scroll into more travel.
  *
  * @internal
  */
@@ -118,6 +119,26 @@ export function useDashboardResize({
 
 			const start = inCanvas(event.clientX, event.clientY)
 
+			// The canvas does not get shorter during the gesture. At the end of a scroll box, a
+			// shorter canvas makes the browser clamp the scroll. The scroll listener then reads
+			// the clamp as travel, and a still pointer shrinks the tile again on each frame.
+			const restMinHeight = canvas.style.minHeight
+
+			let held = 0
+
+			// The hold only rises: each read takes the height that the last preview painted.
+			const holdHeight = () => {
+				const { height } = canvas.getBoundingClientRect()
+
+				if (height <= held) return
+
+				held = height
+
+				canvas.style.minHeight = `${height}px`
+			}
+
+			holdHeight()
+
 			// The last pointer point in the viewport. A scroll reads it again against the canvas.
 			let pointer = { x: event.clientX, y: event.clientY }
 
@@ -146,6 +167,8 @@ export function useDashboardResize({
 
 				if (gesture?.kind !== 'resize') return
 
+				holdHeight()
+
 				const { x, y } = inCanvas(pointer.x, pointer.y)
 
 				// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
@@ -173,6 +196,9 @@ export function useDashboardResize({
 				if (listening.signal.aborted) return
 
 				listening.abort()
+
+				// No listener is left, so a clamp that the release causes moves no edge.
+				canvas.style.minHeight = restMinHeight
 
 				live.current = null
 
