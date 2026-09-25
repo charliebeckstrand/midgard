@@ -64,6 +64,17 @@
         "package.json"
       ]
     },
+    "test:compiler": {
+      "dependsOn": ["^build"],
+      "inputs": [
+        "src/**",
+        "vitest.config.ts",
+        "vitest.compiler.config.ts",
+        "tsconfig.json",
+        "$TURBO_ROOT$/tsconfig.base.json",
+        "package.json"
+      ]
+    },
     "test:browser": {
       "dependsOn": ["^build"],
       "inputs": [
