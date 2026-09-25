@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" class="h-full antialiased">
+<html lang="en" class="antialiased">
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
@@ -9,8 +9,13 @@
 		     styles until the whole module graph loads. See engine/README.md. -->
 		<link rel="stylesheet" href="./app.css" />
 	</head>
-	<body class="h-full bg-zinc-100 dark:bg-zinc-900 text-zinc-950 dark:text-white">
-		<div id="root" class="h-full"></div>
+	<!-- No full height here. The sidebar layout sets its own height to the small
+	     viewport. On iOS a full-height html element takes the large viewport, which
+	     is taller while the browser bars show. The page then scrolls the navbar out
+	     of view and shows the body under the layout. The body color matches the
+	     layout, so an overscroll shows no band. -->
+	<body class="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
+		<div id="root"></div>
 		<script>
 			// Pre-hydration theme paint. Must resolve the stored preference the
 			// same way `AppearanceProvider` and `AppearanceScript` do, or a dark-OS visitor
