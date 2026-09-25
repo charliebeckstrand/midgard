@@ -92,7 +92,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 
-6.4 Shared client fetches use the data-hook pattern. A module-scoped cache and a deduped in-flight promise, keyed by a serialized input, sit behind `use<Thing>()`, which returns `{ data, loading, error }`. An `active` flag guards `setState`.
+6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, give it to the query as `initialData`. A mutation writes its result into the cache with `setQueryData`.
 
 ## 7. Forms
 
@@ -125,7 +125,7 @@ From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus
 | App | `apps/<app>/src/__tests__/**/*.test.ts` |
 | `ui` component | `packages/ui/src/__tests__/` |
 | `ui` docs engine | `packages/ui/src/docs/engine/__tests__/` |
-| `auth` | Beside the source (`packages/auth/src/*.test.ts`), under `node --test` |
+| `auth`, `shared` | `packages/<package>/src/__tests__/` |
 
 10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
 
@@ -166,6 +166,12 @@ A change that adds, removes, or renames an export updates the matching doc in th
 12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
 
 12.4 An audit is a living record while it holds an open finding: resolve each row in place, against the pull request that closed it. Cite the pull request, not a branch commit, because a squash merge discards the branch. Delete the file once every finding is resolved, because the pull requests it names hold the history. Never name an audit from code, or from a document that outlives it; the reference dangles when the audit goes.
+
+A resolution changes the status of the row and cites the pull request, and nothing else. The outcome belongs in the pull request and its commit, which outlive the audit. Change the prose of a row only when a fact in it no longer holds. A mechanism that moved on `main` is such a fact.
+
+12.5 A plan under [`packages/ui/docs/plans/`](packages/ui/docs/plans) records one decision, named `{date}-{TOPIC}-PLAN.md`. It stays after the work lands, unlike an audit. Progress lives in the pull requests that carry the work, not in the plan.
+
+Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. When the last step lands, add one closing note that names the pull requests.
 
 ---
 

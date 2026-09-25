@@ -1,23 +1,24 @@
 'use client'
 
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import type { User } from 'auth/user'
-import { useCallback, useEffect, useState } from 'react'
+import type { User } from 'auth'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
 import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
-import type { ChatMessageData } from 'ui/modules/chat'
 import { ChatTranscript } from 'ui/modules/chat'
 import { Placeholder } from 'ui/placeholder'
 import { Sheet, SheetBody, SheetClose, SheetDescription, SheetTitle } from 'ui/sheet'
 import { Stack } from 'ui/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import { useChatMessages, useDeleteChat, useUserChats } from '../users-queries'
 import type { Chat } from './types'
 
 type UserDetailsClientProps = {
+	userId: string
 	details: User | null
 	chats: Chat[] | null
 }
@@ -26,47 +27,21 @@ type UserDetailsClientProps = {
  * User detail view: the user's chats, with read-only history and delete.
  *
  * @remarks
- * Opening a chat lazily fetches its messages from `/api/chat/:id` into a sheet;
- * delete calls `DELETE /api/chat/:id` and prunes local state on success.
+ * The server page seeds the `useUserChats` query. Opening a chat fetches its
+ * messages from `/api/chat/:id` into a sheet, keyed by the chat id, so a late
+ * response for one chat never shows under another. Delete calls
+ * `DELETE /api/chat/:id` and removes the chat from the cached list on success.
  */
-export function UserDetailsClient({ details, chats: initialChats }: UserDetailsClientProps) {
-	const [chats, setChats] = useState(initialChats)
+export function UserDetailsClient({
+	userId,
+	details,
+	chats: initialChats,
+}: UserDetailsClientProps) {
+	const { data: chats } = useUserChats(userId, initialChats)
+	const { mutate: deleteChat, isPending: deleting } = useDeleteChat(userId)
 	const [confirmDeleteChat, setConfirmDeleteChat] = useState<string | null>(null)
 	const [viewChat, setViewChat] = useState<string | null>(null)
-	const [chatMessages, setChatMessages] = useState<ChatMessageData[]>([])
-	const [loadingMessages, setLoadingMessages] = useState(false)
-
-	const fetchChatMessages = useCallback(async (chatId: string) => {
-		setLoadingMessages(true)
-
-		setChatMessages([])
-
-		const res = await fetch(`/api/chat/${chatId}`).catch(() => null)
-
-		if (res?.ok) {
-			const { messages } = (await res.json()) as { messages: ChatMessageData[] }
-
-			setChatMessages(messages ?? [])
-		}
-
-		setLoadingMessages(false)
-	}, [])
-
-	useEffect(() => {
-		if (viewChat) {
-			fetchChatMessages(viewChat)
-		}
-	}, [viewChat, fetchChatMessages])
-
-	const deleteChat = async (chatId: string) => {
-		const res = await fetch(`/api/chat/${chatId}`, { method: 'DELETE' }).catch(() => null)
-
-		if (res?.ok) {
-			setChats((prev) => prev?.filter((chat) => chat.id !== chatId) ?? null)
-		}
-
-		setConfirmDeleteChat(null)
-	}
+	const { data: messages, isError: messagesFailed } = useChatMessages(viewChat)
 
 	return (
 		<>
@@ -137,10 +112,14 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					</SheetClose>
 				</Flex>
 				<SheetBody>
-					{loadingMessages ? (
-						<Placeholder />
-					) : chatMessages.length > 0 ? (
-						<ChatTranscript messages={chatMessages} />
+					{messages === undefined ? (
+						messagesFailed ? (
+							<Text className="text-red-600">Couldn't load this chat.</Text>
+						) : (
+							<Placeholder />
+						)
+					) : messages.length > 0 ? (
+						<ChatTranscript messages={messages} />
 					) : (
 						<Text className="text-zinc-500">No messages in this chat.</Text>
 					)}
@@ -162,7 +141,14 @@ export function UserDetailsClient({ details, chats: initialChats }: UserDetailsC
 					<Button variant="outline" onClick={() => setConfirmDeleteChat(null)}>
 						Cancel
 					</Button>
-					<Button color="red" onClick={() => confirmDeleteChat && deleteChat(confirmDeleteChat)}>
+					<Button
+						color="red"
+						disabled={deleting}
+						onClick={() =>
+							confirmDeleteChat &&
+							deleteChat(confirmDeleteChat, { onSettled: () => setConfirmDeleteChat(null) })
+						}
+					>
 						Delete
 					</Button>
 				</DialogFooter>

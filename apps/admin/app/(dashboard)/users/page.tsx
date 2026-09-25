@@ -1,5 +1,4 @@
-import { bifrost, getUser } from 'auth'
-import type { User } from 'auth/user'
+import { bifrost, getUser, type User } from 'auth'
 
 import { UsersClient } from './client'
 

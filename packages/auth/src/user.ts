@@ -1,7 +1,8 @@
+import { unstable_rethrow } from 'next/navigation'
 import { cache } from 'react'
 import { bifrost } from './fetch'
 
-/** Authenticated user record as returned by the gateway's `/auth/user`. */
+/** Authenticated user record, as the gateway's `/auth/user` returns it. */
 export type User = {
 	id: string
 	email: string
@@ -12,32 +13,28 @@ export type User = {
 }
 
 /**
- * Returns the current authenticated {@link User}, or `undefined` when unauthenticated.
+ * Returns the current authenticated {@link User}, or `undefined` when no session exists.
  *
  * @remarks
- * Server-side accessor for Server Components and route handlers; reads the
- * session via {@link bifrost}. Wrapped in React `cache`, so repeat calls within
- * one request hit the gateway once. A `401`, a non-OK status, or a thrown
- * request all resolve to `undefined` (the latter two are logged).
- *
- * @returns The user, or `undefined` if not signed in or the request failed.
+ * For Server Components and route handlers. It reads the session through
+ * {@link bifrost}. React `cache` wraps it, so repeat calls in one request hit the
+ * gateway once. A failed status or a thrown request resolves to `undefined`, and
+ * each failure except a `401` goes to the log. The control-flow errors of Next,
+ * such as the dynamic-usage signal of a prerender, propagate.
  */
 export const getUser = cache(async (): Promise<User | undefined> => {
 	try {
 		const res = await bifrost('/auth/user')
 
-		if (res.status === 401) return undefined
+		if (res.ok) return (await res.json()) as User
 
-		if (!res.ok) {
-			console.error(`auth: GET /auth/user failed (${res.status})`)
-
-			return undefined
-		}
-
-		return (await res.json()) as User
+		if (res.status !== 401) console.error(`auth: GET /auth/user failed (${res.status})`)
 	} catch (error) {
-		console.error('auth: GET /auth/user threw', error)
+		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
+		unstable_rethrow(error)
 
-		return undefined
+		console.error('auth: GET /auth/user threw', error)
 	}
+
+	return undefined
 })

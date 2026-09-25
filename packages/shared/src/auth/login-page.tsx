@@ -16,28 +16,41 @@ import { chain, email, required } from './form-validators'
 type LoginValues = { email: string; password: string }
 
 /**
- * Sign-in form: posts credentials to `/auth/login`, redirects home on success.
+ * Notice after registration: shows when the URL has `?registered=true`.
  *
  * @internal
  * @remarks
- * Reads `?registered=true` to show the post-registration notice, so it must run
- * inside a `Suspense` boundary (`useSearchParams`) — see {@link LoginPage}.
+ * The only reader of `useSearchParams` on the page. A prerender cannot read the
+ * query, so it skips the nearest `Suspense` boundary and leaves that part to the
+ * client. Keep this component in its own boundary, so that the rest of the form
+ * stays in the prerendered HTML.
  */
-function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
+function RegisteredNotice() {
+	const registered = useSearchParams().get('registered') === 'true'
+
+	return registered ? (
+		<Text tone="success">Account created successfully. Please sign in.</Text>
+	) : null
+}
+
+/**
+ * Sign-in page: posts the credentials to `/auth/login`, and goes to `/` on success.
+ *
+ * @remarks
+ * Next prerenders all of the page except the notice after registration, which
+ * renders only on the client.
+ */
+export function LoginPage() {
 	const router = useRouter()
 
-	const searchParams = useSearchParams()
-
 	const [serverError, setServerError] = useState('')
-
-	const registered = searchParams.get('registered') === 'true'
 
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
 			const res = await fetch('/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: values.email, password: values.password }),
+				body: JSON.stringify(values),
 			})
 
 			if (res.ok) {
@@ -69,7 +82,9 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 
 				{serverError && <Text tone="error">{serverError}</Text>}
 
-				{registered && <Text tone="success">Account created successfully. Please sign in.</Text>}
+				<Suspense>
+					<RegisteredNotice />
+				</Suspense>
 
 				<Field>
 					<Label>Email</Label>
@@ -87,30 +102,15 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					Sign in
 				</Button>
 
-				{showRegisterLink && (
-					<div className="text-center">
-						<Text>
-							Don't have an account?{' '}
-							<Link href="/register" underline>
-								Create one
-							</Link>
-						</Text>
-					</div>
-				)}
+				<div className="text-center">
+					<Text>
+						Don't have an account?{' '}
+						<Link href="/register" underline>
+							Create one
+						</Link>
+					</Text>
+				</div>
 			</Form>
 		</AuthLayout>
-	)
-}
-
-/**
- * Sign-in page: the login form under a `Suspense` boundary.
- *
- * @param showRegisterLink - Whether to show the "Create one" link to `/register`. Defaults to `true`.
- */
-export function LoginPage({ showRegisterLink = true }: { showRegisterLink?: boolean }) {
-	return (
-		<Suspense>
-			<LoginForm showRegisterLink={showRegisterLink} />
-		</Suspense>
 	)
 }

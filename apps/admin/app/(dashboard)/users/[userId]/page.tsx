@@ -1,5 +1,4 @@
-import { bifrost } from 'auth'
-import type { User } from 'auth/user'
+import { bifrost, type User } from 'auth'
 import { UserDetailsClient } from './client'
 import type { Chat } from './types'
 
@@ -29,5 +28,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 
 	const userDetails = await getUserDetails(userId)
 
-	return <UserDetailsClient details={userDetails.details} chats={userDetails.chats} />
+	return (
+		<UserDetailsClient userId={userId} details={userDetails.details} chats={userDetails.chats} />
+	)
 }

@@ -6,7 +6,7 @@ import {
 	Cog8ToothIcon,
 	UsersIcon,
 } from '@heroicons/react/20/solid'
-import type { User } from 'auth/user'
+import type { User } from 'auth'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Avatar } from 'ui/avatar'
