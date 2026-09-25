@@ -85,7 +85,7 @@ export function Accordion(props: AccordionProps) {
 		...rest
 	} = props
 
-	const { isOpen, toggle } = useAccordionSelection(props)
+	const { openStore, toggle } = useAccordionSelection(props)
 
 	// Wrapped so the context memo need not key on the caller's callback, which would
 	// otherwise be its one unstable member — and every item and panel reads that value.
@@ -99,11 +99,11 @@ export function Accordion(props: AccordionProps) {
 		() => ({
 			variant: variant ?? 'separated',
 			mount,
-			isOpen,
+			openStore,
 			toggle,
 			onOpenComplete: reportOpenComplete,
 		}),
-		[variant, mount, isOpen, toggle],
+		[variant, mount, openStore, toggle],
 	)
 
 	const ref = useRef<HTMLDivElement>(null)

@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useMemo } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
+import { createKeyedStore, type KeyedStore } from '../../utilities'
 
 /**
  * Single-open mode: at most one section open at a time.
@@ -36,7 +37,9 @@ export type MultipleProps = {
 
 /** The open-set query/command surface {@link Accordion} shares via context. */
 type AccordionSelection = {
-	isOpen: (value: string) => boolean
+	/** Whether each value is open. An item subscribes to its own value. */
+	openStore: KeyedStore<string, boolean>
+	/** Toggles a value. It keeps its identity across renders. */
 	toggle: (value: string) => void
 }
 
@@ -55,7 +58,8 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * Owns {@link Accordion}'s open-set state and its single-/multiple-mode toggle
  * transitions, collapsing both modes onto a shared string-array of open values.
  *
- * @returns `isOpen(value)` and `toggle(value)` over the current open set.
+ * @returns `openStore`, which holds whether each value is open, and a stable
+ * `toggle(value)` over the current open set.
  *
  * @remarks
  * Single mode keeps at most one value open (honoring `collapsible`); multiple
@@ -63,6 +67,10 @@ function toArray(value: string | string[] | null | undefined): string[] {
  * `defaultValue` are normalized through {@link useControllable}, and
  * `onValueChange` is read from a ref so a changing callback never resets the
  * controllable binding.
+ *
+ * Each item reads its own value from `openStore`, so a toggle renders only the
+ * items whose open state changed. The open set stays out of the context value,
+ * because a new set would render each item.
  *
  * @internal
  */
@@ -107,28 +115,41 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 		onValueChange: onControllableChange,
 	})
 
-	const isOpen = useCallback((value: string) => current.includes(value), [current])
+	// The open set of the last commit, for a toggle that keeps its identity.
+	const latest = useRef(current)
+
+	const [openStore] = useState(() => {
+		const open = new Set(current)
+
+		return createKeyedStore((value: string) => open.has(value))
+	})
+
+	useLayoutEffect(() => {
+		latest.current = current
+
+		const open = new Set(current)
+
+		openStore.publish((value) => open.has(value))
+	}, [openStore, current])
 
 	const toggle = useCallback(
 		(value: string) => {
-			if (isMultiple) {
-				const next = current.includes(value)
-					? current.filter((v) => v !== value)
-					: [...current, value]
+			const open = latest.current
 
-				setCurrent(next)
+			if (isMultiple) {
+				setCurrent(open.includes(value) ? open.filter((v) => v !== value) : [...open, value])
 
 				return
 			}
 
-			if (current.includes(value)) {
+			if (open.includes(value)) {
 				if (collapsible) setCurrent([])
 			} else {
 				setCurrent([value])
 			}
 		},
-		[current, collapsible, setCurrent, isMultiple],
+		[collapsible, setCurrent, isMultiple],
 	)
 
-	return { isOpen, toggle }
+	return { openStore, toggle }
 }
