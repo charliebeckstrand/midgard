@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, Suspense } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
@@ -45,13 +45,8 @@ export function DashboardTileContent({
 }: DashboardTileContentProps) {
 	const body = (
 		<DashboardTileContext value={id}>
-			<DashboardTileBoundary
-				label={label}
-				onError={onError}
-				resetKey={children}
-				fallback={fallback}
-			>
-				{children}
+			<DashboardTileBoundary label={label} onError={onError} resetKey={children}>
+				<Suspense fallback={fallback}>{children}</Suspense>
 			</DashboardTileBoundary>
 		</DashboardTileContext>
 	)

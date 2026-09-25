@@ -1,13 +1,6 @@
 'use client'
 
-import {
-	Component,
-	type ErrorInfo,
-	isValidElement,
-	type ReactNode,
-	Suspense,
-	useEffect,
-} from 'react'
+import { Component, type ErrorInfo, isValidElement, type ReactNode, Suspense } from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
@@ -31,16 +24,12 @@ export type DashboardTileBoundaryProps = {
 	 * button does.
 	 *
 	 * @remarks
-	 * When the content fails again after such a reset, the automatic resets stop.
-	 * They start again after a press on the retry button. They also start again
-	 * when the content of a reset commits, and its effects then run with no error.
+	 * The boundary keeps the element of its last automatic reset. When that element
+	 * fails, a new element does not render the content again, and only the retry
+	 * button does. A press on the retry button forgets the kept element. So does a
+	 * commit with no error of another element.
 	 */
 	resetKey?: ReactNode
-	/**
-	 * What the boundary shows while the content suspends.
-	 * @defaultValue null
-	 */
-	fallback?: ReactNode
 	children: ReactNode
 }
 
@@ -50,11 +39,6 @@ type DashboardTileBoundaryState = {
 	error: unknown
 	/** The widget element of the last render of the content. After a throw, it is the element that failed. */
 	element: ReactNode
-	/**
-	 * Whether a new `resetKey` can clear the error with no press. It is state, and
-	 * not an instance field, so that it changes in the order of the update queue.
-	 */
-	armed: boolean
 }
 
 /** Whether a value is a plain object: an object literal, or an object with no prototype. */
@@ -104,31 +88,19 @@ function sameWidget(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Calls `onRearm` from a passive effect after its mount. The boundary puts it
- * after the content, in the same Suspense boundary. The effect therefore runs
- * only when the content commits, and after each effect of the content.
- */
-function DashboardTileRearm({ onRearm }: { onRearm: () => void }): null {
-	useEffect(() => {
-		onRearm()
-	}, [onRearm])
-
-	return null
-}
-
-/**
  * The error boundary of one tile. A widget that throws replaces only its own
  * content with an error state, and the rest of the board keeps working. The retry
  * button renders the content again. So does a new `resetKey` that differs from
  * the element that failed.
  *
- * An automatic reset that fails again stops the automatic resets. A prop that
- * changes on each render, with an `onError` that sets app state, therefore
- * cannot loop. The retry button starts them again. So does a reset whose content
- * commits, and whose effects then run with no error.
+ * The boundary keeps the element of its last automatic reset. When that element
+ * fails, in a render, in an effect, or after a suspend, the automatic resets stop.
+ * A prop that changes on each render, with an `onError` that sets app state,
+ * therefore cannot loop. The retry button starts the resets again. So does a
+ * commit with no error of another element.
  *
- * The boundary holds the Suspense boundary of the content. A reset that suspends
- * therefore keeps the resets off until the content commits.
+ * The rule compares elements, and not the order of the effects. It therefore
+ * holds under StrictMode, which runs each mount effect a second time.
  *
  * A quiet boundary shows nothing in place of the failed part. It has no retry,
  * so the part stays hidden until the boundary mounts again.
@@ -139,7 +111,13 @@ export class DashboardTileBoundary extends Component<
 	DashboardTileBoundaryProps,
 	DashboardTileBoundaryState
 > {
-	state: DashboardTileBoundaryState = { error: null, element: null, armed: true }
+	state: DashboardTileBoundaryState = { error: null, element: null }
+
+	/**
+	 * The element of the last automatic reset, in a box, or `null`. The box tells a
+	 * reset to an empty element apart from no reset.
+	 */
+	private lastReset: { element: ReactNode } | null = null
 
 	static getDerivedStateFromError(error: unknown): Partial<DashboardTileBoundaryState> {
 		return { error: error ?? new Error('Unknown error') }
@@ -156,41 +134,37 @@ export class DashboardTileBoundary extends Component<
 		this.props.onError(error)
 	}
 
-	// After an error, `element` stays the element that failed, so an equal element resets nothing.
 	componentDidUpdate(): void {
-		const { error, element, armed } = this.state
+		const { error, element } = this.state
 
-		if (error === null || !armed || sameWidget(element, this.props.resetKey)) return
+		const { lastReset } = this
 
-		// The resets stay off until the rearm effect of this reset, or a press.
-		this.setState({ error: null, armed: false })
-	}
+		if (error === null) {
+			// The commit of the reset has the kept element, so only another element forgets it.
+			if (lastReset !== null && !sameWidget(element, lastReset.element)) this.lastReset = null
 
-	/**
-	 * Starts the automatic resets again after the content of a reset commits. A
-	 * throw in a layout effect or a passive effect of the content queues its error
-	 * before this update. The update therefore finds the error, and changes nothing.
-	 */
-	private rearm = (): void => {
-		this.setState(({ error, armed }) => (error === null && !armed ? { armed: true } : null))
+			return
+		}
+
+		// After an error, `element` stays the element that failed, so an equal element resets nothing.
+		if (sameWidget(element, this.props.resetKey)) return
+
+		// The element of the last automatic reset failed, so only a press resets the content.
+		if (lastReset !== null && sameWidget(element, lastReset.element)) return
+
+		this.lastReset = { element: this.props.resetKey }
+
+		this.setState({ error: null })
 	}
 
 	retry = (): void => {
-		this.setState({ error: null, armed: true })
+		this.lastReset = null
+
+		this.setState({ error: null })
 	}
 
 	render(): ReactNode {
-		const { error, armed } = this.state
-
-		if (error === null) {
-			return (
-				<Suspense fallback={this.props.fallback ?? null}>
-					{this.props.children}
-
-					{!armed && <DashboardTileRearm onRearm={this.rearm} />}
-				</Suspense>
-			)
-		}
+		if (this.state.error === null) return this.props.children
 
 		if (this.props.quiet) return null
 
@@ -227,7 +201,7 @@ export type DashboardTileGuardProps = {
 export function DashboardTileGuard({ label, onError, children }: DashboardTileGuardProps) {
 	return (
 		<DashboardTileBoundary label={label} onError={onError} quiet>
-			{children}
+			<Suspense fallback={null}>{children}</Suspense>
 		</DashboardTileBoundary>
 	)
 }
