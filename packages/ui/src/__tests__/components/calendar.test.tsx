@@ -1,4 +1,4 @@
-import { createRef } from 'react'
+import { createRef, Profiler } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
@@ -55,6 +55,50 @@ describe('Calendar', () => {
 		expect(typeof ref.current?.nextMonth).toBe('function')
 
 		expect(typeof ref.current?.openPicker).toBe('function')
+	})
+
+	it('mounts on the client in one commit, with today marked', () => {
+		const onRender = vi.fn()
+
+		renderUI(
+			<Profiler id="calendar" onRender={onRender}>
+				<Calendar />
+			</Profiler>,
+		)
+
+		// A render that does not hydrate reads today at once, with no second commit.
+		expect(onRender.mock.calls.map(([, phase]) => phase)).toEqual(['mount'])
+
+		expect(
+			screen.getAllByRole('option').filter((o) => o.hasAttribute('aria-current')),
+		).toHaveLength(1)
+	})
+
+	it('steps one month for each handle call in one event', () => {
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
+
+		act(() => {
+			ref.current?.nextMonth()
+
+			ref.current?.nextMonth()
+		})
+
+		expect(screen.getByRole('listbox', { name: 'August 2025' })).toBeInTheDocument()
+	})
+
+	it('keeps a navigated month when the parent passes an equal value again', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		// A new `Date` on each render, as a parent that derives the value inline.
+		const { rerender } = renderUI(<Calendar value={new Date(2025, 5, 15)} />)
+
+		await user.click(screen.getByLabelText('Next month'))
+
+		rerender(<Calendar value={new Date(2025, 5, 15)} />)
+
+		expect(screen.getByRole('listbox', { name: 'July 2025' })).toBeInTheDocument()
 	})
 
 	it('announces the new month through the polite live region on navigation', async () => {
@@ -294,6 +338,29 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('button', { name: '2028' })).toBeInTheDocument()
 
 		expect(screen.getByRole('option', { name: 'Jan' })).toBeInTheDocument()
+	})
+
+	it('reopens from the handle on the month grid of the calendar year', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const ref = createRef<CalendarHandle>()
+
+		renderUI(<Calendar ref={ref} defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		// Step the picker away from 2025, then leave it on the year grid.
+		await user.click(screen.getByRole('button', { name: 'Next year' }))
+
+		await user.click(screen.getByRole('button', { name: '2026' }))
+
+		await user.keyboard('{Escape}')
+
+		act(() => ref.current?.openPicker())
+
+		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
+
+		expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument()
 	})
 })
 

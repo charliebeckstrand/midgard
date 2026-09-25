@@ -13,16 +13,16 @@ type CalendarPickerProps = {
 	onNavigate: (year: number, month: number) => void
 	monthLabel: string
 	monthLabels: string[]
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
+	open: boolean
+	onOpenChange: (open: boolean) => void
 	triggerClassName?: string
 }
 
 /**
- * Popover-housed month/year picker behind the header's center trigger. State,
- * focus wiring, and the per-view cell config come from {@link useCalendarPicker};
- * this renders the trigger and the {@link CalendarPickerGrid} inside a modal
- * popover.
+ * Popover-housed month/year picker behind the header's center trigger. The
+ * calendar owns the open state. View state, focus wiring, and the per-view cell
+ * config come from {@link useCalendarPicker}; this renders the trigger and the
+ * {@link CalendarPickerGrid} inside a modal popover.
  *
  * @internal
  */
@@ -39,18 +39,11 @@ export function CalendarPicker({
 }: CalendarPickerProps) {
 	const { size } = useDensity()
 
-	const {
-		pickerOpen,
-		handlePickerOpen,
-		pickerHeaderRef,
-		pickerGridRef,
-		handleHeaderKeyDown,
-		handleGridKeyDown,
-		viewConfig,
-	} = useCalendarPicker({ year, month, today, monthLabels, onNavigate, open, onOpenChange })
+	const { pickerHeaderRef, pickerGridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
+		useCalendarPicker({ year, month, today, monthLabels, onNavigate, open, onOpenChange })
 
 	return (
-		<Popover placement="bottom" open={pickerOpen} onOpenChange={handlePickerOpen}>
+		<Popover placement="bottom" open={open} onOpenChange={onOpenChange}>
 			<PopoverTrigger>
 				<Button type="button" variant="plain" className={triggerClassName}>
 					{monthLabel}

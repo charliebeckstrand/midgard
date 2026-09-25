@@ -2,9 +2,6 @@
 	"components/accordion/accordion.tsx": {
 		"Accordion": "PreserveManualMemo"
 	},
-	"components/calendar/use-calendar-picker.tsx": {
-		"useCalendarPicker": "Refs"
-	},
 	"components/collapse/collapse.tsx": {
 		"Collapse": "PreserveManualMemo"
 	},

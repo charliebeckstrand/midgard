@@ -5,7 +5,6 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
-	useEffect,
 	useImperativeHandle,
 	useMemo,
 	useRef,
@@ -13,6 +12,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
@@ -135,8 +135,8 @@ export type CalendarProps = {
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * @remarks
- * Client component (`'use client'`). "Today" is resolved after mount only, so
- * a server-rendered today can never mismatch the client across a day boundary
+ * Client component (`'use client'`). "Today" waits for hydration, so a
+ * server-rendered today can never mismatch the client across a day boundary
  * or timezone offset. Use {@link CalendarRange} for two-endpoint selection.
  */
 export function Calendar({
@@ -175,13 +175,12 @@ export function Calendar({
 		onValueChange,
 	})
 
-	// Populated after mount only; a server-rendered "today" can mismatch the
-	// client across a day boundary or timezone offset. Null until then.
-	const [today, setToday] = useState<Date | null>(null)
+	// Null until hydration; a server-rendered "today" can mismatch the client
+	// across a day boundary or timezone offset. A client-only mount, such as a
+	// DatePicker popover, reads it in its first render and needs no second commit.
+	const [now] = useState(() => new Date())
 
-	useEffect(() => {
-		setToday(new Date())
-	}, [])
+	const today = useHydrated() ? now : null
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 

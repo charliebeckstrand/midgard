@@ -17,6 +17,8 @@ function setup(year: number) {
 			today: null,
 			monthLabels,
 			onNavigate: () => {},
+			open: false,
+			onOpenChange: () => {},
 		}),
 	)
 }

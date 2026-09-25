@@ -1,6 +1,6 @@
 'use client'
 
-import { type Ref, type RefObject, useCallback, useMemo } from 'react'
+import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
@@ -12,13 +12,7 @@ import {
 	type CalendarDayProps,
 	type CalendarHandle,
 } from './calendar'
-import {
-	fromCalendarDate,
-	isBeforeDay,
-	isBetween,
-	isSameDay,
-	toCalendarDate,
-} from './calendar-utilities'
+import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
@@ -66,22 +60,28 @@ function computeRangeDayFlags(
 	rangeStart: Date | null | undefined,
 	effectiveEnd: Date | null | undefined,
 ): { isEdge: boolean; isInnerRange: boolean; isLeftEdge: boolean; isRightEdge: boolean } {
-	const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
-	const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+	const isEdge =
+		(rangeStart != null && isSameDay(date, rangeStart)) ||
+		(effectiveEnd != null && isSameDay(date, effectiveEnd))
 
-	const isEdge = isRangeStart || isRangeEnd
+	if (rangeStart == null || effectiveEnd == null) {
+		return { isEdge, isInnerRange: false, isLeftEdge: false, isRightEdge: false }
+	}
 
-	const hasRange = rangeStart != null && effectiveEnd != null
+	// The earlier endpoint is the left edge, in either selection order.
+	const [first, last] = isBeforeDay(effectiveEnd, rangeStart)
+		? [effectiveEnd, rangeStart]
+		: [rangeStart, effectiveEnd]
 
-	const inRange = hasRange && isBetween(date, rangeStart, effectiveEnd)
+	// A range of one day has no band, so its cell keeps each corner round.
+	const spans = isBeforeDay(first, last)
 
-	const startBeforeEnd = hasRange && isBeforeDay(rangeStart, effectiveEnd)
-	const endBeforeStart = hasRange && isBeforeDay(effectiveEnd, rangeStart)
-
-	const isLeftEdge = (startBeforeEnd && isRangeStart) || (endBeforeStart && isRangeEnd)
-	const isRightEdge = (startBeforeEnd && isRangeEnd) || (endBeforeStart && isRangeStart)
-
-	return { isEdge, isInnerRange: inRange && !isEdge, isLeftEdge, isRightEdge }
+	return {
+		isEdge,
+		isInnerRange: isBetween(date, first, last),
+		isLeftEdge: spans && isSameDay(date, first),
+		isRightEdge: spans && isSameDay(date, last),
+	}
 }
 
 /** The enter handler of each day, for each `onHoverDate`. */
@@ -174,19 +174,12 @@ export function CalendarRange({
 		[rangeStart, effectiveEnd, onHoverDate],
 	)
 
-	const defaultValue = useMemo(() => {
-		if (rangeStart) return fromCalendarDate(toCalendarDate(rangeStart))
-
-		if (rangeEnd) return fromCalendarDate(toCalendarDate(rangeEnd))
-
-		return undefined
-	}, [rangeStart, rangeEnd])
-
 	return (
 		<Calendar
 			ref={ref}
 			value={undefined}
-			defaultValue={defaultValue}
+			// Read on mount only: the view opens on the first endpoint.
+			defaultValue={rangeStart ?? rangeEnd ?? undefined}
 			onValueChange={(date) => date && onValueChange?.(date)}
 			min={min}
 			max={max}

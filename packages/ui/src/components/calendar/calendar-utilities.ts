@@ -3,7 +3,6 @@ import {
 	endOfMonth,
 	getDayOfWeek,
 	getLocalTimeZone,
-	isSameDay as isSameCalendarDay,
 	startOfWeek,
 } from '@internationalized/date'
 
@@ -43,14 +42,26 @@ export function firstOfMonth(year: number, month: number): Date {
 	return fromCalendarDate(new CalendarDate(year, 1, 1).add({ months: month }))
 }
 
+/**
+ * The wall-clock day of `date` as one sortable number, from its local year,
+ * month, and day. Two dates compare by this number as their calendar days do,
+ * whatever the time of day. The grid compares several times for each day cell
+ * on each render, so the compare builds no `CalendarDate`.
+ *
+ * @internal
+ */
+function dayNumber(date: Date): number {
+	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
+}
+
 /** Wall-clock-day equality, ignoring time-of-day and timezone. @internal */
 export function isSameDay(a: Date, b: Date): boolean {
-	return isSameCalendarDay(toCalendarDate(a), toCalendarDate(b))
+	return dayNumber(a) === dayNumber(b)
 }
 
 /** True when `a`'s calendar day strictly precedes `b`'s. @internal */
 export function isBeforeDay(a: Date, b: Date): boolean {
-	return toCalendarDate(a).compare(toCalendarDate(b)) < 0
+	return dayNumber(a) < dayNumber(b)
 }
 
 /** True when `date` falls strictly between the endpoints (exclusive); the caller can give the endpoints in either order. @internal */
@@ -83,6 +94,28 @@ export function getFirstDayColumn(year: number, month: number, locale: string): 
 // depend only on the locale, never on the current date; output stays
 // deterministic across server and client renders.
 const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
+
+// A new `Intl.DateTimeFormat` for each day cell is measurable on each month
+// change, so the day-name formatter is cached by locale.
+const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
+
+/** Accessible name of a day in `locale`, such as "Sunday, June 15, 2025". @internal */
+export function formatDayName(date: Date, locale: string): string {
+	let formatter = dayNameFormatters.get(locale)
+
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(locale, {
+			weekday: 'long',
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric',
+		})
+
+		dayNameFormatters.set(locale, formatter)
+	}
+
+	return formatter.format(date)
+}
 
 /** Short weekday labels ordered by the locale's first day of the week. */
 export function getWeekdayLabels(locale: string): string[] {

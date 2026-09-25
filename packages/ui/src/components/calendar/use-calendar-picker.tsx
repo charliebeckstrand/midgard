@@ -8,21 +8,22 @@ import {
 	useEffect,
 	useReducer,
 	useRef,
+	useState,
 } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
 import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
 
-/** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the controllable open state. @internal */
+/** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the open state. @internal */
 type CalendarPickerOptions = {
 	year: number
 	month: number
 	today: Date | null
 	monthLabels: string[]
 	onNavigate: (year: number, month: number) => void
-	open?: boolean
-	onOpenChange?: (open: boolean) => void
+	/** The calendar owns the open state, so its `openPicker` handle can open the picker. */
+	open: boolean
+	onOpenChange: (open: boolean) => void
 }
 
 /** Per-view render config for {@link CalendarPickerGrid}: toolbar labels/handlers, center label, the cell list, and whether cells render full-width. @internal */
@@ -38,10 +39,8 @@ type CalendarPickerViewConfig = {
 	cellBlock: boolean
 }
 
-/** Return shape of {@link useCalendarPicker}. It holds open state and setter, the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
+/** Return shape of {@link useCalendarPicker}. It holds the header/grid refs, their roving-focus keydown handlers, and the active view's render config. @internal */
 type CalendarPickerResult = {
-	pickerOpen: boolean | undefined
-	handlePickerOpen: (open: boolean) => void
 	pickerHeaderRef: RefObject<HTMLDivElement | null>
 	pickerGridRef: RefObject<HTMLDivElement | null>
 	handleHeaderKeyDown: (event: KeyboardEvent<HTMLElement>) => void
@@ -51,15 +50,16 @@ type CalendarPickerResult = {
 
 /**
  * Drives the month/year picker behind {@link CalendarPicker}: owns the
- * controllable open state, the month/decade view reducer, and the sealed
- * roving-focus wiring. It derives the per-view cell list and toolbar config.
+ * month/decade view reducer and the sealed roving-focus wiring. It derives the
+ * cell list and toolbar config of the view on screen.
  *
- * @returns A {@link CalendarPickerResult}: `pickerOpen` and `handlePickerOpen`,
- * the `pickerHeaderRef`/`pickerGridRef` zone refs, their `handleHeaderKeyDown`/
- * `handleGridKeyDown` handlers, and the active-view `viewConfig`.
- * @remarks Opening reseeds the view to the current year and focuses the grid
- * (selected cell first) after a frame. The focus model is sealed
- * (`stopPropagation`), so arrows don't leak to the calendar underneath.
+ * @returns A {@link CalendarPickerResult}: the `pickerHeaderRef`/`pickerGridRef`
+ * zone refs, their `handleHeaderKeyDown`/`handleGridKeyDown` handlers, and the
+ * active-view `viewConfig`.
+ * @remarks Each open reseeds the view to the current year during render, so the
+ * first open frame shows the fresh view. It then focuses the grid (selected cell
+ * first) after a frame. The focus model is sealed (`stopPropagation`), so arrows
+ * don't leak to the calendar underneath.
  */
 export function useCalendarPicker({
 	year,
@@ -67,27 +67,23 @@ export function useCalendarPicker({
 	today,
 	monthLabels,
 	onNavigate,
-	open: openProp,
+	open,
 	onOpenChange,
 }: CalendarPickerOptions): CalendarPickerResult {
-	const handleOpenChange = useCallback(
-		(value: boolean | null) => {
-			if (value != null) onOpenChange?.(value)
-		},
-		[onOpenChange],
-	)
-
-	const [pickerOpen, setPickerOpen] = useControllable({
-		value: openProp,
-		defaultValue: false,
-		onValueChange: handleOpenChange,
-	})
-
 	const [state, dispatch] = useReducer(calendarPickerReducer, year, initialCalendarPickerState)
 
-	const { view, pickerYear, decadeYear } = state
+	// Each open transition reseeds the view on the calendar's year, during render.
+	// The trigger and the `openPicker` handle both pass here, so the first frame
+	// of each open shows a fresh view.
+	const [wasOpen, setWasOpen] = useState(open)
 
-	const decadeStart = Math.floor(decadeYear / 10) * 10
+	if (open !== wasOpen) {
+		setWasOpen(open)
+
+		if (open) dispatch({ type: 'open', year })
+	}
+
+	const { view, pickerYear, decadeYear } = state
 
 	const pickerHeaderRef = useRef<HTMLDivElement>(null)
 	const pickerGridRef = useRef<HTMLDivElement>(null)
@@ -111,111 +107,78 @@ export function useCalendarPicker({
 		})
 	}, [])
 
-	const prevPickerOpenRef = useRef(false)
-
-	// A ref mirrors `year`, keeping it out of the open effect's deps; year
-	// changes while the picker is open do not refocus the grid.
-	const yearRef = useRef(year)
-
-	yearRef.current = year
-
 	useEffect(() => {
-		const wasOpen = prevPickerOpenRef.current
+		if (open) focusPickerGrid()
+	}, [open, focusPickerGrid])
 
-		prevPickerOpenRef.current = pickerOpen ?? false
+	let viewConfig: CalendarPickerViewConfig
 
-		if (!pickerOpen) return
-
-		// Resets the view/year on every open transition, including imperative
-		// (`openPicker()`) and controlled opens that bypass handlePickerOpen; the
-		// picker reopens with a fresh view and navigates from the current year.
-		if (!wasOpen) dispatch({ type: 'open', year: yearRef.current })
-
-		focusPickerGrid()
-	}, [pickerOpen, focusPickerGrid])
-
-	const handlePickerOpen = useCallback(
-		(open: boolean) => {
-			setPickerOpen(open)
-
-			if (open) dispatch({ type: 'open', year })
-		},
-		[year, setPickerOpen],
-	)
-
-	const selectMonth = useCallback(
-		(m: number) => {
-			onNavigate(pickerYear, m)
-
-			setPickerOpen(false)
-		},
-		[pickerYear, onNavigate, setPickerOpen],
-	)
-
-	const monthCells: CalendarPickerGridCell[] = monthLabels.map((label, i) => ({
-		key: label,
-		label,
-		selected: i === month && pickerYear === year,
-		current: today != null && i === today.getMonth() && pickerYear === today.getFullYear(),
-		onSelect: () => selectMonth(i),
-	}))
-
-	const yearCells: CalendarPickerGridCell[] = Array.from({ length: 12 }, (_, i) => {
-		const y = decadeStart - 1 + i
-
-		return {
-			key: y,
-			label: y,
-			selected: y === pickerYear,
-			current: today != null && y === today.getFullYear(),
-			onSelect: () => {
-				dispatch({ type: 'selectYear', year: y })
+	if (view === 'months') {
+		viewConfig = {
+			gridLabel: 'Select month',
+			prevLabel: 'Previous year',
+			nextLabel: 'Next year',
+			centerLabel: pickerYear,
+			onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
+			onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
+			onCenter: () => {
+				dispatch({ type: 'showYears' })
 
 				focusPickerGrid()
 			},
+			cells: monthLabels.map((label, i) => ({
+				key: label,
+				label,
+				selected: i === month && pickerYear === year,
+				current: today != null && i === today.getMonth() && pickerYear === today.getFullYear(),
+				onSelect: () => {
+					onNavigate(pickerYear, i)
+
+					onOpenChange(false)
+				},
+			})),
+			cellBlock: true,
 		}
-	})
+	} else {
+		const decadeStart = Math.floor(decadeYear / 10) * 10
 
-	const viewConfig: CalendarPickerViewConfig =
-		view === 'months'
-			? {
-					gridLabel: 'Select month',
-					prevLabel: 'Previous year',
-					nextLabel: 'Next year',
-					centerLabel: pickerYear,
-					onPrev: () => dispatch({ type: 'stepYear', delta: -1 }),
-					onNext: () => dispatch({ type: 'stepYear', delta: 1 }),
-					onCenter: () => {
-						dispatch({ type: 'showYears' })
+		viewConfig = {
+			gridLabel: 'Select year',
+			prevLabel: 'Previous decade',
+			nextLabel: 'Next decade',
+			centerLabel: (
+				<>
+					{decadeStart}&ndash;{decadeStart + 9}
+				</>
+			),
+			onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
+			onNext: () => dispatch({ type: 'stepDecade', delta: 10 }),
+			onCenter: () => {
+				dispatch({ type: 'showMonths' })
 
-						focusPickerGrid()
-					},
-					cells: monthCells,
-					cellBlock: true,
-				}
-			: {
-					gridLabel: 'Select year',
-					prevLabel: 'Previous decade',
-					nextLabel: 'Next decade',
-					centerLabel: (
-						<>
-							{decadeStart}&ndash;{decadeStart + 9}
-						</>
-					),
-					onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
-					onNext: () => dispatch({ type: 'stepDecade', delta: 10 }),
-					onCenter: () => {
-						dispatch({ type: 'showMonths' })
+				focusPickerGrid()
+			},
+			// The decade and one year on each side.
+			cells: Array.from({ length: 12 }, (_, i) => {
+				const y = decadeStart - 1 + i
+
+				return {
+					key: y,
+					label: y,
+					selected: y === pickerYear,
+					current: today != null && y === today.getFullYear(),
+					onSelect: () => {
+						dispatch({ type: 'selectYear', year: y })
 
 						focusPickerGrid()
 					},
-					cells: yearCells,
-					cellBlock: false,
 				}
+			}),
+			cellBlock: false,
+		}
+	}
 
 	return {
-		pickerOpen,
-		handlePickerOpen,
 		pickerHeaderRef,
 		pickerGridRef,
 		handleHeaderKeyDown,

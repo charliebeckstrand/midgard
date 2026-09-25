@@ -50,6 +50,25 @@ describe('CalendarRange', () => {
 		expect(inside?.className).toContain('rounded-none')
 	})
 
+	it('squares the inner corners of both edges in either selection order', () => {
+		// The later day first, as a reader who picks the end before the start.
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 10)} rangeEnd={d(2024, 3, 5)} />)
+
+		expect(findDay(5)?.className).toContain('rounded-r-none')
+
+		expect(findDay(10)?.className).toContain('rounded-l-none')
+
+		expect(findDay(7)?.className).toContain('rounded-none')
+	})
+
+	it('keeps each corner of a one-day range round', () => {
+		renderUI(<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 5)} />)
+
+		expect(findDay(5)).toHaveAttribute('aria-selected', 'true')
+
+		expect(findDay(5)?.className).not.toMatch(/rounded-[lr]-none/)
+	})
+
 	it('calls onHoverDate on mouse enter and leave of a day cell', () => {
 		const onHoverDate = vi.fn()
 

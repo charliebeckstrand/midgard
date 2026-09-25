@@ -1,10 +1,9 @@
-import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
-import { Icon } from '../icon'
+import { CalendarToolbar } from './calendar-toolbar'
 
 /**
  * One `role="option"` cell in a picker grid (a month or a year). `selected`
@@ -38,8 +37,8 @@ type CalendarPickerGridProps = {
 }
 
 /**
- * View-agnostic picker layout: a `role="toolbar"` row (prev / center / next)
- * over a `role="listbox"` cell grid. Both the month and year views render
+ * View-agnostic picker layout: a {@link CalendarToolbar} row (prev / center /
+ * next) over a `role="listbox"` cell grid. Both the month and year views render
  * through it; the caller supplies labels, handlers, and cells per view.
  *
  * @internal
@@ -62,37 +61,26 @@ export function CalendarPickerGrid({
 }: CalendarPickerGridProps) {
 	return (
 		<>
-			<div
-				ref={headerRef}
-				role="toolbar"
-				aria-label="Calendar navigation"
+			<CalendarToolbar
+				toolbarRef={headerRef}
+				label="Calendar navigation"
 				onKeyDown={onHeaderKeyDown}
-				className={cn(k.header({ size }))}
+				size={size}
+				prevLabel={prevLabel}
+				nextLabel={nextLabel}
+				onPrev={onPrev}
+				onNext={onNext}
 			>
-				<Button
-					type="button"
-					variant="plain"
-					onClick={onPrev}
-					aria-label={prevLabel}
-					prefix={<Icon icon={<ChevronLeft />} />}
-				/>
 				<Button type="button" variant="plain" onClick={onCenter}>
 					{centerLabel}
 				</Button>
-				<Button
-					type="button"
-					variant="plain"
-					onClick={onNext}
-					aria-label={nextLabel}
-					prefix={<Icon icon={<ChevronRight />} />}
-				/>
-			</div>
+			</CalendarToolbar>
 			<div
 				ref={gridRef}
 				role="listbox"
 				aria-label={gridLabel}
 				onKeyDown={onGridKeyDown}
-				className={cn(k.picker.grid({ size }))}
+				className={k.picker.grid({ size })}
 			>
 				{cells.map((cell) => (
 					<Button
