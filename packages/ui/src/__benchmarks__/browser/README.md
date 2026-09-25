@@ -20,6 +20,8 @@ pnpm bench:browser -- --outputJson bench-baseline.json
 pnpm bench:browser -- --compare bench-baseline.json
 ```
 
+`pnpm bench:browser:compiler` runs the same suite with the React Compiler on the `ui` source ([`vitest.bench.browser.compiler.config.ts`](../../../vitest.bench.browser.compiler.config.ts)). An app with `reactCompiler: true` ships the modules in this form. The harness and the contenders stay plain, so the two runs differ only in the `ui` modules. To see what the compiler gains or costs, write a plain run with `--outputJson`, and then give that file to the compiled run with `--compare`. The run stops at setup if the compiler did not compile the `ui` source.
+
 When a competitive scenario regresses or lags, the jsdom benches (`pnpm bench`) are the ladder down to the responsible layer. Their pure cores sit directly under these scenarios, drawing the same fixtures with no React and no DOM: `chart-scale` and per-chart `*-geometry` for the numbers going in and the paths coming out, `chart-layout` for the axis/tick/date/hit-test pass between them, `map-compute` for the projection fit, the region paths, and the region joins (with `map-render`'s cold/warm split for the geometry cache), `grid-compute` and `grid-sorting` for column allocation, export, and sort, `grid-group` for grouping and aggregation, `query-evaluate` for the filter walk, and `recipe` for the style resolution every one of them pays per element.
 
 ## Charts
