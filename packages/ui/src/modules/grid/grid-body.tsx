@@ -149,7 +149,6 @@ function leafRowProps<T>(
 		cellRoving: props.cellRoving,
 		cellActivate: props.cellActivate,
 		truncate: props.truncate,
-		settleWidths: props.settleWidths,
 		pinning: props.pinning,
 		density: args.density,
 		color: args.color,

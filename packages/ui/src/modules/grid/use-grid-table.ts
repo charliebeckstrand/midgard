@@ -32,6 +32,7 @@ import {
 	type SetStateAction,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 	useState,
@@ -57,6 +58,7 @@ import {
 	sameFrozenLayout,
 } from './engine/grid-pin/layout'
 import { searchRowIndices } from './engine/grid-search/search'
+import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
 	buildState,
@@ -233,15 +235,16 @@ type GridTableResult<T> = {
 	/** Column-resize controls, or `null` when `resizable` is off. */
 	resize: GridColumnResize | null
 	/**
-	 * Each visible column's settled width, for the body cells' truncation
-	 * detector. It is `undefined` for a column the grid does not size. It is also
-	 * `undefined` for every column while a drag is in flight, so the memoized
-	 * cells hold frame to frame. The settled width then re-renders only that
-	 * column's cells, which measure their overflow again. A keyboard `nudge` moves the width with no
-	 * drag, and counts the same. It holds its reference while element-wise
-	 * unchanged.
+	 * The store of each visible column's settled width, for the body cells'
+	 * truncation detector. A width is `undefined` for a column the grid does not
+	 * size. It is also
+	 * `undefined` for every column while a drag is in flight, so the cells hold
+	 * frame to frame. A settled width then calls only the listeners of that
+	 * column, and its visited cells measure their overflow again. No row renders
+	 * again. A keyboard `nudge` moves the width with no drag, and counts the same.
+	 * The store keeps one identity.
 	 */
-	settleWidths: (number | undefined)[]
+	settle: GridSettleStore
 	/**
 	 * Re-fits the columns when the body's rendered rows change and the last fit had
 	 * none to measure. That is the windowed body's case, whose rows land in a later
@@ -723,8 +726,8 @@ function resizingColumn(resizable: boolean, info: columnResizingState): string |
 }
 
 /**
- * The {@link GridColumnResize} value and the settled widths the body cells
- * measure against (see {@link GridTableResult.settleWidths}).
+ * The {@link GridColumnResize} value and the store of settled widths that the
+ * body cells subscribe to (see {@link GridTableResult.settle}).
  *
  * @internal
  */
@@ -742,7 +745,7 @@ function useResizeView<T>(args: {
 	sizer: Pick<GridColumnResizeActions, 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'> & {
 		takeControl: () => void
 	}
-}): { resize: GridColumnResize | null; settleWidths: (number | undefined)[] } {
+}): { resize: GridColumnResize | null; settle: GridSettleStore } {
 	const { resizable, table, leaves, visibleColumns, widths, floors, columnFloors, resizing } = args
 
 	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl } = args.sizer
@@ -773,19 +776,32 @@ function useResizeView<T>(args: {
 	)
 
 	// The widths as text, so a render that resolves the same widths keeps the
-	// same array. A column with no settle width is `null` in the text.
+	// same map. A column with no settle width is `null` in the text.
 	const settleKey = JSON.stringify(
-		visibleColumns.map((col) =>
+		visibleColumns.map((col) => [
+			String(col.id),
 			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : null,
-		),
+		]),
 	)
 
 	const settleWidths = useMemo(
-		() => (JSON.parse(settleKey) as (number | null)[]).map((width) => width ?? undefined),
+		() =>
+			new Map(
+				(JSON.parse(settleKey) as [string, number | null][]).map(([id, width]) => [
+					id,
+					width ?? undefined,
+				]),
+			),
 		[settleKey],
 	)
 
-	return { resize, settleWidths }
+	const [settle] = useState(createSettleStore)
+
+	// After the commit that moves the `<colgroup>`, so a cell that measures reads
+	// the new width.
+	useLayoutEffect(() => settle.publish(settleWidths), [settle, settleWidths])
+
+	return { resize, settle }
 }
 
 /**
@@ -1343,7 +1359,7 @@ export function useGridTable<T>({
 		clearPreference: clearSizingPreference,
 	})
 
-	const { resize, settleWidths } = useResizeView({
+	const { resize, settle } = useResizeView({
 		resizable,
 		table: engine,
 		leaves,
@@ -1411,7 +1427,7 @@ export function useGridTable<T>({
 		manualRows,
 		pagination,
 		resize,
-		settleWidths,
+		settle,
 		fitRenderedRows,
 		widthsSettled,
 		globalFilter,

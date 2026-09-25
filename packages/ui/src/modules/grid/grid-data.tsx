@@ -23,6 +23,7 @@ import {
 	GridDirectionContext,
 	GridHighlightContext,
 	GridResizingContext,
+	GridSettleContext,
 	type GridSortState,
 } from './context'
 import {
@@ -866,7 +867,7 @@ export function GridData<T>({
 		manualRows,
 		pagination,
 		resize,
-		settleWidths,
+		settle,
 		fitRenderedRows,
 		widthsSettled,
 		globalFilter,
@@ -1445,7 +1446,6 @@ export function GridData<T>({
 					expansion={detail.body}
 					density={density}
 					truncate={truncate}
-					settleWidths={settleWidths}
 					pinning={pinning}
 					virtualize={
 						gated.virtualize
@@ -1503,112 +1503,114 @@ export function GridData<T>({
 		<GridContext value={context}>
 			<GridOverlayDensityContext value={overlayDensity}>
 				<GridResizingContext value={resizing}>
-					<div
-						ref={wrapperRef}
-						data-slot="grid"
-						// Flags an in-flight column drag-resize on the grid root. The resize
-						// cursor comes from the handle, which captures the pointer for the drag.
-						// Head and cells read the matching `resizing` context flag to drop their
-						// hover wash and truncation tooltips.
-						data-resizing={dataAttr(resizing)}
-						className={gridWrapperClass(maxHeight === 'fill')}
-					>
-						<GridBusyStatus loading={loading} rowCount={dataRowCount} />
+					<GridSettleContext value={settle}>
+						<div
+							ref={wrapperRef}
+							data-slot="grid"
+							// Flags an in-flight column drag-resize on the grid root. The resize
+							// cursor comes from the handle, which captures the pointer for the drag.
+							// Head and cells read the matching `resizing` context flag to drop their
+							// hover wash and truncation tooltips.
+							data-resizing={dataAttr(resizing)}
+							className={gridWrapperClass(maxHeight === 'fill')}
+						>
+							<GridBusyStatus loading={loading} rowCount={dataRowCount} />
 
-						{/* Covers the grid — toolbar included — while an async export resolves
+							{/* Covers the grid — toolbar included — while an async export resolves
 						    its rows, whichever surface started it. */}
-						<GridExportOverlay active={exportActions.pending} />
+							<GridExportOverlay active={exportActions.pending} />
 
-						{renderDialog && (
-							<GridDirectionContext value={direction}>
-								<GridManagerDialog
-									open={columnManagerOpen}
-									onOpenChange={setColumnManagerOpen}
-									label={managerLabel}
-									dir={direction}
-								>
-									<GridColumnManager
-										columns={managerItems}
-										filterable={columnManagerConfig?.filterable}
-										order={columnOrder}
-										onOrderChange={setColumnOrder}
-										reorderable={reorderEnabled}
-										hidden={hiddenColumns}
-										onHiddenChange={handleHiddenChange}
-										onPinChange={pinColumn}
-										groups={group.editorGroups}
-										onGroupsChange={group.editorSetGroups}
-										onSavePreset={columnManagerConfig?.onSavePreset}
-									/>
-								</GridManagerDialog>
-							</GridDirectionContext>
-						)}
+							{renderDialog && (
+								<GridDirectionContext value={direction}>
+									<GridManagerDialog
+										open={columnManagerOpen}
+										onOpenChange={setColumnManagerOpen}
+										label={managerLabel}
+										dir={direction}
+									>
+										<GridColumnManager
+											columns={managerItems}
+											filterable={columnManagerConfig?.filterable}
+											order={columnOrder}
+											onOrderChange={setColumnOrder}
+											reorderable={reorderEnabled}
+											hidden={hiddenColumns}
+											onHiddenChange={handleHiddenChange}
+											onPinChange={pinColumn}
+											groups={group.editorGroups}
+											onGroupsChange={group.editorSetGroups}
+											onSavePreset={columnManagerConfig?.onSavePreset}
+										/>
+									</GridManagerDialog>
+								</GridDirectionContext>
+							)}
 
-						<GridRowManagerRegionDialog region={rowManager} />
+							<GridRowManagerRegionDialog region={rowManager} />
 
-						{confirmWidthAction && (
-							<GridAutoSizeConfirmDialog
-								open={widthConfirmOpen}
-								onOpenChange={setWidthConfirmOpen}
-								action={widthAction}
-								onConfirm={confirmWidthAction}
+							{confirmWidthAction && (
+								<GridAutoSizeConfirmDialog
+									open={widthConfirmOpen}
+									onOpenChange={setWidthConfirmOpen}
+									action={widthAction}
+									onConfirm={confirmWidthAction}
+								/>
+							)}
+
+							<GridToolbar
+								filter={globalFilter}
+								content={toolbar}
+								showColumnManager={showButton}
+								columnManagerLabel={managerLabel}
+								onManageColumns={() => setColumnManagerOpen(true)}
+								exportActions={exportActions.toolbar}
+								exporting={exportActions.pending}
+								columnFilters={filters}
+								batchActions={batchActions}
+								hasSelection={someSelected}
+								selection={selection}
+								setSelection={setSelection}
 							/>
-						)}
 
-						<GridToolbar
-							filter={globalFilter}
-							content={toolbar}
-							showColumnManager={showButton}
-							columnManagerLabel={managerLabel}
-							onManageColumns={() => setColumnManagerOpen(true)}
-							exportActions={exportActions.toolbar}
-							exporting={exportActions.pending}
-							columnFilters={filters}
-							batchActions={batchActions}
-							hasSelection={someSelected}
-							selection={selection}
-							setSelection={setSelection}
-						/>
-
-						<GridGroupByContext value={groupByContext}>
-							<GridRegion
-								canReorder={reorderActive}
-								dndContextProps={dndContextProps}
-								itemIds={itemIds}
-								strategy={strategy}
-								activeReorderId={activeId}
-								contextMenu={resolvedContextMenu}
-								contextMenuEnabled={contextMenuEnabled}
-								columns={visibleColumns}
-								rows={renderRows}
-								rowKeys={rowKeys}
-								sort={sort}
-								sortColumn={sortColumn}
-								clearSort={clearSort}
-								pinColumn={pinColumn}
-								groupBy={groupByContext}
-								autoSizeColumns={autoSizeColumns}
-								autoSizeColumn={autoSizeColumn}
-								resetColumnWidths={resetColumnWidths}
-								chooseColumns={chooseColumns}
-								exportActions={exportActions.contextMenu}
-								rowGroupMenu={rowManager.rowGroupMenu}
-								columnGroupMenu={columnGroupMenu}
-								columnFilter={filters}
-							>
-								<GridRowReorderRegion
-									active={rowReorderActive}
-									dndContextProps={rowReorder.dndContextProps}
+							<GridGroupByContext value={groupByContext}>
+								<GridRegion
+									canReorder={reorderActive}
+									dndContextProps={dndContextProps}
+									itemIds={itemIds}
+									strategy={strategy}
+									activeReorderId={activeId}
+									contextMenu={resolvedContextMenu}
+									contextMenuEnabled={contextMenuEnabled}
+									columns={visibleColumns}
+									rows={renderRows}
+									rowKeys={rowKeys}
+									sort={sort}
+									sortColumn={sortColumn}
+									clearSort={clearSort}
+									pinColumn={pinColumn}
+									groupBy={groupByContext}
+									autoSizeColumns={autoSizeColumns}
+									autoSizeColumn={autoSizeColumn}
+									resetColumnWidths={resetColumnWidths}
+									chooseColumns={chooseColumns}
+									exportActions={exportActions.contextMenu}
+									rowGroupMenu={rowManager.rowGroupMenu}
+									columnGroupMenu={columnGroupMenu}
+									columnFilter={filters}
 								>
-									<DensityCascade level={density}>{tableRegion}</DensityCascade>
-								</GridRowReorderRegion>
-							</GridRegion>
-						</GridGroupByContext>
+									<GridRowReorderRegion
+										active={rowReorderActive}
+										dndContextProps={rowReorder.dndContextProps}
+									>
+										<DensityCascade level={density}>{tableRegion}</DensityCascade>
+									</GridRowReorderRegion>
+								</GridRegion>
+							</GridGroupByContext>
 
-						<GridFooterBar config={footer} stats={footerStats} />
+							<GridFooterBar config={footer} stats={footerStats} />
 
-						{pagination && <GridPaginationFooter pagination={pagination} />}
-					</div>
+							{pagination && <GridPaginationFooter pagination={pagination} />}
+						</div>
+					</GridSettleContext>
 				</GridResizingContext>
 			</GridOverlayDensityContext>
 		</GridContext>

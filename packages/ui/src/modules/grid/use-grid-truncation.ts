@@ -1,26 +1,31 @@
 'use client'
 
-import { type RefCallback, useEffect, useRef } from 'react'
+import { type RefCallback, useEffect } from 'react'
 import { useTruncation } from '../../hooks/use-truncation'
 
 /**
+ * A subscription to the settle of one column: it calls `listener` each time the
+ * settled width of the column changes, and returns the unsubscribe.
+ *
+ * @internal
+ */
+export type GridSettleSubscription = (listener: () => void) => () => void
+
+/**
  * Grid truncation tracking: {@link useTruncation}'s eager overflow measure, plus
- * a resize-settle backstop. A column resize can move a cell's width through the
- * `<colgroup>` alone. The backstop re-reads overflow there, even where the
- * memoized body cell does not re-render on its own.
+ * a resize-settle re-measure. A column resize can move a cell's width through
+ * the `<colgroup>` alone, and no cell renders again. The settle re-measure
+ * reads the overflow again there.
  *
  * Shared by the data-cell ({@link GridCellContent}) and column-header
  * (`GridHeaderTitle`) truncation surfaces.
  *
- * @param resizeSettleKey - A per-column width snapshot whose change re-measures
- * truncation. The data cell passes the engine width frozen to `undefined` while
- * a drag is in flight. It passes the settled width once the drag ends, or a
- * keyboard nudge lands. A column resize moves the cell's width through the
- * `<colgroup>` alone, and the body cell is memoized. The commit measure
- * therefore does not re-run on its own. The key's change re-renders the cell,
- * which re-runs the commit measure. This hook backs that up with a deferred
- * frame, in case the layout settled after the synchronous read. The header omits it — it already re-renders on its
- * own `width` prop.
+ * @param onSettle - A subscription to the settle of the cell's column (see
+ * `GridSettleStore`). A visited cell subscribes, and measures when its column
+ * settles. It measures at once, and again on the next frame, in case the layout
+ * settled after the synchronous read. A cell with no contact does not subscribe,
+ * because it keeps no live `truncated` flag. The header omits it — it already
+ * renders again on its own `width` prop.
  * @param suspended - Stands the measure down entirely (a drag-resize in flight,
  * whose reveal the cell holds closed anyway); the first commit after it lifts
  * re-measures.
@@ -31,46 +36,37 @@ import { useTruncation } from '../../hooks/use-truncation'
  * @internal
  */
 export function useGridTruncation<E extends HTMLElement>(
-	resizeSettleKey?: unknown,
+	onSettle?: GridSettleSubscription,
 	suspended?: boolean,
 ): [RefCallback<E>, boolean, boolean] {
 	const [ref, truncated, measure, contacted] = useTruncation<E>({ suspended })
 
-	// Deferred backstop for the settle re-measure: the `resizeSettleKey` change
-	// already re-renders the cell (re-running the commit measure in `useTruncation`),
-	// but a width that lands a frame late would read stale; re-measure once more on
-	// the next frame. No-op where `requestAnimationFrame` is absent (SSR / jsdom),
-	// matching the observer's own fallback; the same-value bail keeps it from
-	// looping.
-	const mounted = useRef(false)
-
+	// Only a visited cell has a live `truncated` flag to keep current; before
+	// contact `measure` bails. A subscription for each cell of a wide, un-windowed
+	// grid would add the mass-truncation cost that this re-measure must not add,
+	// so the first contact subscribes. The frame is a no-op where
+	// `requestAnimationFrame` is absent (SSR / jsdom).
 	useEffect(() => {
-		// Read here so a `resizeSettleKey` change re-runs this effect (it gates the
-		// deferred pass; the frame callback itself doesn't reference it).
-		void resizeSettleKey
+		if (!contacted || !onSettle) return
 
-		// Skip the mount run — the layout effect has just measured, and a fresh rAF
-		// per cell on mount is needless work in a wide / virtualized grid.
-		if (!mounted.current) {
-			mounted.current = true
+		let frame = 0
 
-			return
+		const unsubscribe = onSettle(() => {
+			measure()
+
+			if (typeof requestAnimationFrame !== 'function') return
+
+			cancelAnimationFrame(frame)
+
+			frame = requestAnimationFrame(measure)
+		})
+
+		return () => {
+			unsubscribe()
+
+			if (frame !== 0) cancelAnimationFrame(frame)
 		}
-
-		// Only an armed cell (one visited by pointer/focus) has a live `truncated`
-		// flag to keep current; before contact `measure` bails, so scheduling a
-		// per-cell frame on every resize would queue thousands of no-op callbacks in
-		// a wide, un-windowed grid — the mass-truncation cost this backstop must not
-		// add. The first contact arms the cell and takes its own read; from there
-		// this backstop runs.
-		if (!contacted) return
-
-		if (typeof requestAnimationFrame !== 'function') return
-
-		const frame = requestAnimationFrame(measure)
-
-		return () => cancelAnimationFrame(frame)
-	}, [measure, resizeSettleKey, contacted])
+	}, [contacted, onSettle, measure])
 
 	return [ref, truncated, contacted]
 }
