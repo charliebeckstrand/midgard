@@ -200,7 +200,9 @@ export type GridColumn<T> = {
 	 * Per-row props spread onto the underlying `<td>`. Use to wire ARIA, data
 	 * attributes, or handlers (e.g. `role="gridcell"` + `onMouseDown` for a
 	 * composite-widget wrapper like the navigable/editable cursor). Returned
-	 * `className` is merged with the column's static `className`.
+	 * `className` is merged with the column's static `className`. Under
+	 * `navigable` or `editable`, a returned `onMouseDown` runs before the cursor
+	 * seats, and its `preventDefault()` does not stop the seat.
 	 */
 	cellProps?: (row: T) => Omit<ComponentProps<'td'>, 'children'>
 	className?: string

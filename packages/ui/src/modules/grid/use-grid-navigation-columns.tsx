@@ -11,7 +11,7 @@ import {
 	useRef,
 	useSyncExternalStore,
 } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
@@ -319,6 +319,8 @@ export function GridNavCell({
  * content: links, buttons, an editor. It also stands down for a press in a
  * portal that the cell renders. Merged over the consumer's own `cellProps` and any `extra`
  * attributes the caller layers on (the editable projection adds `aria-readonly`).
+ * A column's own `onMouseDown` runs first, and its `preventDefault()` does not
+ * stop the seat, because the cursor is a roving model (CONVENTIONS.md §3.9).
  *
  * @internal
  */
@@ -344,20 +346,22 @@ export function seatingCellProps<T>(args: {
 		...extra,
 		id: cellId(rowIdx, colIdx),
 		role: 'gridcell',
-		onMouseDown: (event: MouseEvent<HTMLTableCellElement>) => {
-			// A press in a portal that the cell renders, such as an editor's open
-			// listbox, reaches the cell through the React tree. It is not a press
-			// on the cell, so it must not pull focus onto the grid.
-			const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
+		onMouseDown: composeEventHandlers(
+			prev?.onMouseDown,
+			(event: MouseEvent<HTMLTableCellElement>) => {
+				// A press in a portal that the cell renders, such as an editor's open
+				// listbox, reaches the cell through the React tree. It is not a press
+				// on the cell, so it must not pull focus onto the grid.
+				const inCell = event.target instanceof Node && event.currentTarget.contains(event.target)
 
-			if (inCell && !fromInteractiveContent(event.target)) {
-				event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
+				if (inCell && !fromInteractiveContent(event.target)) {
+					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
-				moveTo({ row: rowIdx, col: colIdx })
-			}
-
-			prev?.onMouseDown?.(event)
-		},
+					moveTo({ row: rowIdx, col: colIdx })
+				}
+			},
+			{ checkForDefaultPrevented: false },
+		),
 	}
 }
 

@@ -1,0 +1,36 @@
+language js
+
+// A component that sets an event handler the consumer can also pass composes
+// the two through `composeEventHandlers` (CONVENTIONS §3.9). A hand-composed
+// handler runs the component first, and it ignores a consumer
+// `preventDefault()`, so the option §3.9 asks for is never chosen.
+//
+// The plugin matches a JSX attribute with a DOM event name whose inline arrow
+// passes its own event to the consumer's handler of the same name. A
+// value-callback adapter, such as `onValueChange={(next) => onValueChange(next)}`,
+// has no DOM event name, so it passes. A handler that passes something other
+// than its event, such as `onFocus={() => onFocus(id)}`, also passes. A handler
+// composed in a named function, or under another name, is out of reach.
+//
+// The arrow is matched as the direct value of the attribute, not searched for.
+// A search inside every JSX attribute of the package made the lint about four
+// seconds slower.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` and
+// `shared` source, minus tests and benchmarks.
+JsxAttribute(
+	name = $name,
+	initializer = JsxAttributeInitializerClause(
+		value = JsxExpressionAttributeValue(
+			expression = JsArrowFunctionExpression(parameters = $params, body = $body)
+		)
+	)
+) as $attribute where {
+	$name <: r"on(?:Click|DoubleClick|ContextMenu|KeyDown|KeyUp|Blur|Focus|Change|Input|Submit|Pointer[A-Z]\w*|Mouse[A-Z]\w*|Touch[A-Z]\w*|Drag\w*|Drop|Scroll|Wheel|Paste|Copy|Cut|Animation[A-Z]\w*|Transition[A-Z]\w*)",
+	$params <: contains JsIdentifierBinding() as $event,
+	$body <: contains or { `$name?.($event)`, `$name($event)` },
+	register_diagnostic(
+		span = $attribute,
+		message = "compose the consumer's handler through `composeEventHandlers`: it runs first, and the option decides whether its preventDefault() cancels (CONVENTIONS §3.9)"
+	)
+}
