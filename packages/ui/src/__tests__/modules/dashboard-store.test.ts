@@ -153,6 +153,24 @@ describe('createDashboardStore', () => {
 		}
 	})
 
+	it('reads the first entry of a repeated id before a tile registers, as the board resolves it', () => {
+		// No tile registers on the server, so the entries and the order paint the server markup.
+		const store = createDashboardStore(
+			initial({
+				demands: new Map(),
+				layout: [
+					{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+					{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+					{ id: 'a', x: 16, y: 20, w: 8, h: 10 },
+				],
+			}),
+		)
+
+		expect(store.getView().entries.get('a')).toMatchObject({ x: 0, y: 0 })
+
+		expect(store.getView().order).toEqual(['a', 'b'])
+	})
+
 	it('registers and unregisters demands, and notifies each change', () => {
 		const store = createDashboardStore(initial({ demands: new Map() }))
 

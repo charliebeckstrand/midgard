@@ -14,6 +14,7 @@ import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
+	firstEntries,
 	readingOrder,
 	resolveLayout,
 	sameCell,
@@ -76,7 +77,7 @@ export type DashboardView = {
 	canonical: readonly DashboardCell[]
 	/** The painted cell of each mounted tile. A dragged tile keeps its start cell. */
 	cells: ReadonlyMap<string, DashboardCell>
-	/** The saved entries by id, for a tile that has not registered yet. */
+	/** The first saved entry of each id, for a tile that has not registered yet. */
 	entries: ReadonlyMap<string, DashboardLayoutItem>
 	/** The cell where a dragged tile lands, which is its start cell when a drop changes nothing. */
 	placeholder: DashboardCell | null
@@ -232,6 +233,10 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const listeners = new Set<() => void>()
 
+	// The first entry of each id, as resolveLayout reads it. A tile that has not registered
+	// and the DOM order follow it too, so the server markup matches the board.
+	const firstOf = memo(firstEntries)
+
 	const entriesOf = memo(
 		(layout: readonly DashboardLayoutItem[]) => new Map(layout.map((item) => [item.id, item])),
 	)
@@ -257,10 +262,12 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const projection = projectionOf(canonical, gesture?.width ?? width, gap, columns, demands)
 
+		const first = firstOf(layout)
+
 		return {
 			canonical,
 			cells: paintedCells(gesture, projection.cells, previous?.cells),
-			entries: entriesOf(layout),
+			entries: entriesOf(first),
 			placeholder: landingCell(gesture, previous?.placeholder),
 			travel: travelOf(gesture, columns, previous?.travel),
 			projected: !projection.identity,
@@ -271,7 +278,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			order:
 				editing && previous !== null
 					? previous.order
-					: internOrder(previous?.order, orderOf(layout)),
+					: internOrder(previous?.order, orderOf(first)),
 		}
 	}
 

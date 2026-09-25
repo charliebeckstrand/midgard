@@ -7,6 +7,7 @@ import {
 	type DashboardCell,
 	deriveHeight,
 	fits,
+	mergeLayout,
 	minColumns,
 	readingOrder,
 	resolveCell,
@@ -291,6 +292,30 @@ describe('resolveLayout', () => {
 		expect(sameGeometry(a, [...a].reverse())).toBe(true)
 
 		expect(sameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
+	})
+})
+
+describe('mergeLayout', () => {
+	it('drops each entry of an id that an earlier entry holds, and keeps the first', () => {
+		const saved = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'a', x: 16, y: 20, w: 8, h: 10 },
+			{ id: 'gone', x: 0, y: 40, w: 8, h: 10 },
+			{ id: 'gone', x: 8, y: 40, w: 8, h: 10 },
+		]
+
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+		])
+
+		const merged = mergeLayout(saved, [cell('a', 0, 10, 8, 10), cell('b', 8, 0, 8, 10)], demands)
+
+		// The first entry of a takes the commit, and a tile that is not mounted keeps its first entry.
+		expect(merged).toEqual([{ id: 'a', x: 0, y: 10, w: 8, h: 10 }, saved[1], saved[3]])
+
+		expect(merged[1]).toBe(saved[1])
 	})
 })
 

@@ -501,10 +501,32 @@ function sameItem(a: DashboardLayoutItem, b: DashboardLayoutItem): boolean {
 }
 
 /**
+ * The first entry of each id in `items`, which is the entry that
+ * {@link resolveLayout} reads. It returns `items` itself when no id repeats, so a
+ * caller can compare by identity.
+ */
+export function firstEntries(
+	items: readonly DashboardLayoutItem[],
+): readonly DashboardLayoutItem[] {
+	const seen = new Set<string>()
+
+	const first = items.filter((item) => {
+		if (seen.has(item.id)) return false
+
+		seen.add(item.id)
+
+		return true
+	})
+
+	return first.length === items.length ? items : first
+}
+
+/**
  * Writes committed cells back into the saved layout. An entry of a mounted tile
  * takes its new geometry. An entry of a tile that is not mounted stays as saved,
  * so a tile that renders only sometimes keeps its place. A mounted tile with no
  * entry is appended. An entry whose geometry does not change keeps its object.
+ * A repeated id keeps only its first entry, so a commit removes the stale entry.
  */
 export function mergeLayout(
 	saved: readonly DashboardLayoutItem[],
@@ -515,10 +537,10 @@ export function mergeLayout(
 
 	const written = new Set<string>()
 
-	const merged = saved.map((item) => {
+	const merged = firstEntries(saved).map((item) => {
 		const cell = byId.get(item.id)
 
-		if (cell === undefined || written.has(item.id)) return item
+		if (cell === undefined) return item
 
 		written.add(item.id)
 

@@ -77,6 +77,18 @@ describe('Dashboard reading order', () => {
 		expect(html.indexOf('Inside a')).toBeLessThan(html.indexOf('Inside c'))
 	})
 
+	it('renders the first entry of a repeated id on the server, at its cell and in its order', () => {
+		const html = renderToString(
+			<JsxBoard layout={[...SWAPPED, { id: 'a', x: 0, y: 30, w: 24, h: 10 }]} />,
+		)
+
+		expect(html.indexOf('Inside a')).toBeLessThan(html.indexOf('Inside b'))
+
+		expect(html).toContain('grid-area:1 / 1 / span 10 / span 12')
+
+		expect(html).not.toContain('grid-area:31 /')
+	})
+
 	it('keeps each other child in its slot', () => {
 		const { container } = renderUI(
 			<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
