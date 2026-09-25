@@ -275,6 +275,32 @@ describe('Dashboard', () => {
 		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
 	})
 
+	it('gives the grip the violet focus ring of a lift while the keyboard carries the tile', async () => {
+		renderUI(<Board editing />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin.
+		expect(grip).toHaveClass('focus-visible:outline-blue-600')
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(grip).toHaveClass('focus-visible:outline-violet-600')
+
+		expect(grip).not.toHaveClass('focus-visible:outline-blue-600')
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(grip).toHaveClass('focus-visible:outline-blue-600')
+
+		expect(grip).not.toHaveClass('focus-visible:outline-violet-600')
+	})
+
 	it('cancels a drag on Escape, and keeps the dialog around the board open', async () => {
 		const onOpenChange = vi.fn()
 

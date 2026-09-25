@@ -18,7 +18,7 @@ export type DashboardDragHandleProps = {
 	label: string
 	/** Float the grip on the corner of a tile that has no header row. */
 	floating: boolean
-	/** Whether the tile is held now, which closes the grab hand. */
+	/** Whether the tile is held now, which closes the grab hand and turns the focus ring violet. */
 	dragging: boolean
 }
 
@@ -43,7 +43,7 @@ export function DashboardDragHandle({
 			data-slot="dashboard-handle"
 			data-dragging={dataAttr(dragging)}
 			ref={setActivatorNodeRef}
-			className={cn(k.handle({ floating }))}
+			className={cn(k.handle({ floating, dragging }))}
 			{...attributes}
 			{...listeners}
 			type="button"

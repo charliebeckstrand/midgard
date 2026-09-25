@@ -178,7 +178,11 @@ const handle = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { floating: false },
+	// A lifted grip keeps its focus ring in the violet accent of a lift. The tile
+	// shell keeps its own raise, because the z-10 of the kiso raise ties with the
+	// chrome of the later tiles.
+	dragging: { true: sen.focus.lifted.outline, false: '' },
+	defaults: { floating: false, dragging: false },
 })
 
 /**
