@@ -7,13 +7,16 @@ language js
 // calls. Every other module gets values and actions from the boundary, and
 // takes no value from `@tanstack/react-table`.
 //
+// The engine is `@tanstack/react-table`, each of its subpath entries (such as
+// `static-functions`), and `@tanstack/table-core`, which it re-exports.
+//
 // An `import type`, or a named import whose every specifier is `type`, carries
 // no value, so it is exempt.
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
 // minus the boundary module, the `engine` folder, tests, and benchmarks.
 `import $clause from $source` as $import where {
-	$source <: r"['\"]@tanstack/react-table['\"]",
+	$source <: r"['\"]@tanstack/(?:react-table|table-core)(?:/[^'\"]*)?['\"]",
 	not $import <: r"import\s+type\b[\s\S]*",
 	not $import <: r"import\s*\{\s*type\s[^,}]*(?:,\s*type\s[^,}]*)*,?\s*\}[\s\S]*",
 	register_diagnostic(

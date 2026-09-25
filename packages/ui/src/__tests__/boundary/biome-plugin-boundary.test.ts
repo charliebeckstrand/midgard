@@ -182,11 +182,15 @@ export { k, sen, type K }
 		{
 			file: 'grid.tsx',
 			source: `import { flexRender } from '@tanstack/react-table' // flag
-import { type Table, getCoreRowModel } from '@tanstack/react-table' // flag
+import { type Table, useTable } from '@tanstack/react-table' // flag
+import { table_getRowModel } from '@tanstack/react-table/static-functions' // flag
+import { constructTable } from '@tanstack/table-core' // flag
 import type { Row } from '@tanstack/react-table'
 import { type Cell, type Column } from '@tanstack/react-table'
+import type { TableState } from '@tanstack/table-core'
+import { useVirtualizer } from '@tanstack/react-virtual'
 import { useState } from 'react'
-export { flexRender, getCoreRowModel, useState, type Table, type Row, type Cell, type Column }
+export { flexRender, useTable, table_getRowModel, constructTable, useVirtualizer, useState, type Table, type Row, type Cell, type Column, type TableState }
 `,
 		},
 	],

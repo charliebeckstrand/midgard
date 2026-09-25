@@ -4,16 +4,17 @@ import type { PinSide } from './overrides'
 
 /**
  * A column's frozen edge in the engine's pin state, or `undefined` when it
- * scrolls.
+ * scrolls. The engine names its sections `start` and `end`. The `start`
+ * section comes first in the column order, which is the left edge of the grid.
  *
  * @internal
  */
 export function pinSide(pinning: ColumnPinningState, id: string | number): PinSide | undefined {
 	const key = String(id)
 
-	if (pinning.left?.includes(key)) return 'left'
+	if (pinning.start?.includes(key)) return 'left'
 
-	if (pinning.right?.includes(key)) return 'right'
+	if (pinning.end?.includes(key)) return 'right'
 
 	return undefined
 }

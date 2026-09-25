@@ -1,11 +1,12 @@
 // @vitest-environment node
-import {
-	type ColumnDef,
-	type ColumnSizingState,
-	createTable,
-	getCoreRowModel,
-} from '@tanstack/react-table'
+import { type ColumnSizingState, constructTable } from '@tanstack/react-table'
+import { storeReactivityBindings } from '@tanstack/table-core/store-reactivity-bindings'
 import { describe, expect, it } from 'vitest'
+import {
+	type EngineColumnDef,
+	type GridFeatures,
+	gridFeatures,
+} from '../../modules/grid/engine/grid-table/features'
 import { columnWidth, columnWidths } from '../../modules/grid/engine/grid-table/views'
 
 /**
@@ -15,7 +16,7 @@ import { columnWidth, columnWidths } from '../../modules/grid/engine/grid-table/
  */
 type Row = { name: string }
 
-const defs: ColumnDef<Row>[] = [
+const defs: EngineColumnDef<Row>[] = [
 	{ id: 'plain' },
 	{ id: 'sized', size: 240 },
 	{ id: 'floored', size: 30, minSize: 60 },
@@ -24,18 +25,16 @@ const defs: ColumnDef<Row>[] = [
 ]
 
 function engineOf(sizing: ColumnSizingState) {
-	const table = createTable<Row>({
-		data: [],
+	// Outside React, the engine takes its reactivity from TanStack Store. In the
+	// grid, `useTable` adds this feature.
+	const features = { ...gridFeatures, coreReactivityFeature: storeReactivityBindings() }
+
+	return constructTable({
+		features: features as GridFeatures,
+		data: [] as Row[],
 		columns: defs,
-		getCoreRowModel: getCoreRowModel(),
 		state: { columnSizing: sizing },
-		onStateChange: () => {},
-		renderFallbackValue: null,
 	})
-
-	table.setOptions((prev) => ({ ...prev, state: { ...table.initialState, columnSizing: sizing } }))
-
-	return table
 }
 
 describe('columnWidth', () => {

@@ -1,6 +1,5 @@
 'use client'
 
-import type { Table } from '@tanstack/react-table'
 import {
 	type RefObject,
 	useCallback,
@@ -21,6 +20,7 @@ import {
 	createColumnSizer,
 	type GridColumnSizer,
 } from './engine/grid-sizing/sizer'
+import type { EngineTable } from './engine/grid-table/features'
 import type { GridColumn } from './types'
 
 /** Options for {@link useGridColumnSizing}. @internal */
@@ -32,7 +32,7 @@ type GridColumnSizingOptions<T> = {
 	 */
 	controlled: boolean
 	/** The engine. The hook reads and writes it only from its callbacks and effects. */
-	table: Table<T>
+	table: EngineTable<T>
 	/** Visible columns in render order. */
 	columns: GridColumn<T>[]
 	/** Grid wrapper whose width the columns fill (and which holds the rendered cells). */
@@ -345,7 +345,7 @@ export function useGridColumnSizing<T>({
 			}
 
 			// A drag-resize owns the widths while it's in flight; don't fight it.
-			if (table.getState().columnSizingInfo.isResizingColumn) return
+			if (table.atoms.columnResizing.get().isResizingColumn) return
 
 			const write = sizer.refit(env, fresh)
 
@@ -403,9 +403,7 @@ export function useGridColumnSizing<T>({
 				dragRef.current = {
 					id: resizing,
 					start:
-						table.getState().columnSizingInfo.startSize ??
-						table.getColumn(resizing)?.getSize() ??
-						0,
+						table.atoms.columnResizing.get().startSize ?? table.getColumn(resizing)?.getSize() ?? 0,
 				}
 			}
 

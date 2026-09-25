@@ -1,13 +1,11 @@
 import {
-	type Column,
+	type ColumnDef_ColumnSizing,
 	type ColumnPinningState,
-	type ColumnSizingColumnDef,
 	type ColumnSizingState,
-	defaultColumnSizing,
 	functionalUpdate,
 	type PaginationState,
-	type Table,
 } from '@tanstack/react-table'
+import { getDefaultColumnSizingColumnDef } from '@tanstack/react-table/static-functions'
 import type { SetStateAction } from 'react'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
@@ -18,6 +16,7 @@ import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
+import type { EngineColumn, EngineTable } from './features'
 
 /**
  * Column-resize controls the header renders from.
@@ -191,7 +190,8 @@ export type GridGlobalFilterView = {
  * Derives the engine's `columnPinning` state from each column's effective frozen
  * edge, plus whether any column is frozen at all. That edge is
  * {@link frozenSide}: its `locked` side, else its `pinned` side, `true` being
- * left.
+ * left. The left edge goes in the `start` section of the engine, and the right
+ * edge goes in the `end` section.
  *
  * @remarks The selection column always leads the left edge, ahead of every
  * left-frozen data column. The row checkboxes therefore stay anchored to the
@@ -225,7 +225,7 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 	const leads = left.length > 0 || right.some((id) => !isNewRowAddColumn(id))
 
 	return {
-		state: { left: leads ? [...select, ...left] : left, right },
+		state: { start: leads ? [...select, ...left] : left, end: right },
 		hasPinned: left.length > 0 || right.length > 0,
 	}
 }
@@ -249,9 +249,12 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
  *
  * @internal
  */
-export function toGridColumns<T>(leaves: readonly Column<T, unknown>[]): GridColumn<T>[] {
+export function toGridColumns<T>(leaves: readonly EngineColumn<T>[]): GridColumn<T>[] {
 	return leaves.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
 }
+
+/** The default size and bounds of an engine column. @internal */
+const SIZING_DEFAULTS = getDefaultColumnSizingColumnDef()
 
 /**
  * A column's width (px): its sized width, else its declared size, clamped to its
@@ -262,13 +265,10 @@ export function toGridColumns<T>(leaves: readonly Column<T, unknown>[]): GridCol
  * @param sized - The column's entry in the sizing state, or `undefined`.
  * @internal
  */
-export function columnWidth(def: ColumnSizingColumnDef, sized: number | undefined): number {
+export function columnWidth(def: ColumnDef_ColumnSizing, sized: number | undefined): number {
 	return Math.min(
-		Math.max(
-			def.minSize ?? defaultColumnSizing.minSize,
-			sized ?? def.size ?? defaultColumnSizing.size,
-		),
-		def.maxSize ?? defaultColumnSizing.maxSize,
+		Math.max(def.minSize ?? SIZING_DEFAULTS.minSize, sized ?? def.size ?? SIZING_DEFAULTS.size),
+		def.maxSize ?? SIZING_DEFAULTS.maxSize,
 	)
 }
 
@@ -278,7 +278,7 @@ export function columnWidth(def: ColumnSizingColumnDef, sized: number | undefine
  * @internal
  */
 export function columnWidths<T>(
-	columns: readonly Column<T, unknown>[],
+	columns: readonly EngineColumn<T>[],
 	sizing: ColumnSizingState,
 ): ReadonlyMap<string, number> {
 	return new Map(
@@ -297,7 +297,7 @@ export function columnWidths<T>(
  */
 export function buildColumnResize<T>(args: {
 	/** The visible leaf columns, in render order. */
-	columns: readonly Column<T, unknown>[]
+	columns: readonly EngineColumn<T>[]
 	widths: ReadonlyMap<string, number>
 	floors: ReadonlyMap<string, number>
 	resizing: string | null
@@ -328,7 +328,7 @@ export function buildColumnResize<T>(args: {
 
 /** A column's resize bounds: its measured floor, else its `minSize`, up to its `maxSize`. @internal */
 function resizeBounds(
-	def: ColumnSizingColumnDef | undefined,
+	def: ColumnDef_ColumnSizing | undefined,
 	floor: number | undefined,
 ): { min: number; max: number } {
 	return {
@@ -345,7 +345,7 @@ function resizeBounds(
  * @internal
  */
 export function columnResizeActions<T>(
-	table: Table<T>,
+	table: EngineTable<T>,
 	floors: ReadonlyMap<string, number>,
 ): Pick<GridColumnResizeActions, 'startResize' | 'nudge'> {
 	return {
@@ -379,7 +379,7 @@ export function columnResizeActions<T>(
  * @internal
  */
 function withResizeDirection<T>(
-	table: Table<T>,
+	table: EngineTable<T>,
 	handler: (event: unknown) => void,
 ): (event: unknown) => void {
 	return (event) => {
@@ -388,9 +388,13 @@ function withResizeDirection<T>(
 		const direction =
 			target instanceof Element && getComputedStyle(target).direction === 'rtl' ? 'rtl' : 'ltr'
 
-		if (table.options.columnResizeDirection !== direction) {
-			table.setOptions((prev) => ({ ...prev, columnResizeDirection: direction }))
-		}
+		// The updater reads the current options of the engine. The table object of
+		// a past render holds the options of that render.
+		table.setOptions((prev) =>
+			prev.columnResizeDirection === direction
+				? prev
+				: { ...prev, columnResizeDirection: direction },
+		)
 
 		handler(event)
 	}
@@ -446,16 +450,21 @@ const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
  * The engine actions of {@link GridColumnFilter}. Each reads or writes the
  * engine when it runs.
  *
+ * @param manual - Whether the consumer filters. A manual grid holds only the
+ *   server page, so its columns have no facets.
  * @internal
  */
-export function columnFilterActions<T>(table: Table<T>): GridColumnFilterActions {
+export function columnFilterActions<T>(
+	table: EngineTable<T>,
+	manual: boolean,
+): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
 		// Replace the whole applied set with an empty one; it flows through the
 		// engine's `onColumnFiltersChange` like any other filter edit.
 		clear: () => table.setColumnFilters([]),
 		facets: (id) => {
-			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+			const facets = manual ? undefined : table.getColumn(String(id))?.getFacetedUniqueValues()
 
 			if (!facets) return NO_FACETS
 
@@ -511,7 +520,7 @@ export function buildColumnFilters<T>(args: {
 
 /** Builds the {@link GridPaginationView} the footer renders from. @internal */
 export function buildPaginationView<T>(args: {
-	table: Table<T>
+	table: EngineTable<T>
 	pagination: PaginationState
 	manual: boolean
 	config: GridPagination
@@ -524,7 +533,7 @@ export function buildPaginationView<T>(args: {
 	// Pre-pagination count reflects any client-side filtering; server mode trusts the supplied total.
 	const total = args.manual
 		? args.config.rowCount
-		: args.table.getPrePaginationRowModel().rows.length
+		: args.table.getPrePaginatedRowModel().rows.length
 
 	return {
 		pageIndex,
