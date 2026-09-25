@@ -8,7 +8,7 @@ export type LabeledOption<T extends string> = { value: T; label: string }
 type OptionsListboxProps<T extends string> = {
 	options: readonly LabeledOption<T>[]
 	value: T
-	placement?: 'bottom-start' | 'bottom-end'
+	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
 	onValueChange: (value: T) => void
 }
 
@@ -23,7 +23,7 @@ type OptionsListboxProps<T extends string> = {
 export function OptionsListbox<T extends string>({
 	options,
 	value,
-	placement = 'bottom-end',
+	placement = 'bottom-auto',
 	onValueChange,
 }: OptionsListboxProps<T>) {
 	const labelFor = (v: T) => options.find((option) => option.value === v)?.label ?? v

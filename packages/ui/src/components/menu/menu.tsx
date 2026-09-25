@@ -1,8 +1,8 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import type { FloatingPlacement } from '../../hooks'
 import type { Step } from '../../recipes'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
@@ -30,8 +30,11 @@ export type MenuProps = {
 	 * flips on collision. Its presence is what selects dropdown mode. Omit it and
 	 * the wrapper instead opens as a right-click context menu, or, with
 	 * `defaultOpen`, a static inline menu. Dropdowns fall back to `'bottom-start'`.
+	 * A `<side>-auto` value, such as `'bottom-auto'`, aligns the panel to the
+	 * edge of the trigger that is nearer to the edge of the viewport. Use it when
+	 * a responsive layout moves the trigger from one side to the other.
 	 */
-	placement?: Placement
+	placement?: FloatingPlacement
 	/**
 	 * Size step that drives menu item padding and text size.
 	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.

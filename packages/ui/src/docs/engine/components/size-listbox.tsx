@@ -14,7 +14,7 @@ export const sizeLabels: Record<string, string> = {
 type SizeListboxProps<T extends string> = {
 	sizes: readonly T[]
 	value: T
-	placement?: 'bottom-start' | 'bottom-end'
+	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
 	onValueChange: (value: T) => void
 }
 

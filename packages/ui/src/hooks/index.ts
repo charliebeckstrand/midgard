@@ -38,6 +38,7 @@ export {
 export {
 	type FloatingPanelOptions,
 	type FloatingPanelResult,
+	type FloatingPlacement,
 	type FloatingUIOptions,
 	type FloatingUIResult,
 	useFloatingPanel,

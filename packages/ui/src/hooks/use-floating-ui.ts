@@ -10,6 +10,7 @@ import {
 	offset,
 	type Placement,
 	type ReferenceType,
+	type Side,
 	shift,
 	size,
 	useDismiss,
@@ -55,6 +56,53 @@ export type FloatingUIResult = FloatingPanelResult & {
 	getFloatingProps: (userProps?: HTMLProps<HTMLElement>) => Record<string, unknown>
 }
 
+/**
+ * Placement of a floating panel. It is a floating-ui `Placement`, or a side with
+ * the `auto` alignment. The `auto` alignment follows the reference. When the
+ * center of the reference is in the first half of the viewport, the panel aligns
+ * to the start edge. In the second half, it aligns to the end edge. The check
+ * occurs at each reposition, so the alignment follows a layout that moves the
+ * reference to the other side.
+ */
+export type FloatingPlacement = Placement | `${Side}-auto`
+
+/** The side of an `auto` placement, or `undefined` for a floating-ui placement. @internal */
+function autoSide(placement: FloatingPlacement): Side | undefined {
+	return placement.endsWith('-auto') ? (placement.slice(0, -'-auto'.length) as Side) : undefined
+}
+
+/**
+ * Sets the alignment of the current placement from the position of the
+ * reference in the viewport. It acts one time in each position pass, and
+ * reads the side from the current placement. Thus a later `flip` keeps the
+ * placement that it selects, and causes no reset loop.
+ *
+ * @internal
+ */
+const autoAlignMiddleware: Middleware = {
+	name: 'autoAlign',
+	async fn({ placement, elements, platform, middlewareData }) {
+		if (middlewareData.autoAlign) return {}
+
+		const [side] = placement.split('-') as [Side]
+		const vertical = side === 'top' || side === 'bottom'
+		const rect = elements.reference.getBoundingClientRect()
+		const viewport = elements.floating.ownerDocument.documentElement
+
+		const firstHalf = vertical
+			? rect.left + rect.width / 2 < viewport.clientWidth / 2
+			: rect.top + rect.height / 2 < viewport.clientHeight / 2
+
+		// In a right-to-left context, floating-ui puts the `start` edge of a top or
+		// bottom placement on the right.
+		const rtl = vertical && Boolean(await platform.isRTL?.(elements.floating))
+
+		const next: Placement = `${side}-${firstHalf !== rtl ? 'start' : 'end'}`
+
+		return next === placement ? { data: {} } : { data: {}, reset: { placement: next } }
+	},
+}
+
 /** Sizes the floating element's min-width to the reference width. @internal */
 const matchReferenceWidthMiddleware = size({
 	apply({ rects, elements }) {
@@ -74,7 +122,8 @@ function buildMiddleware(offsetPx: number, matchReferenceWidth: boolean): Middle
 
 /** Options for {@link useFloatingPanel}: placement, offset, and the middleware the surface positions through. */
 export type FloatingPanelOptions = {
-	placement: Placement
+	/** Side and alignment of the panel. A `<side>-auto` value aligns the panel to the edge that is nearer to the reference (see {@link FloatingPlacement}). */
+	placement: FloatingPlacement
 	open: boolean
 	/**
 	 * Notified on every floating-ui-routed open-state change. Optional: a
@@ -157,10 +206,15 @@ export function useFloatingPanel({
 	strategy,
 	reference,
 }: FloatingPanelOptions): FloatingPanelResult {
-	const resolvedMiddleware = useMemo(
-		() => middleware ?? buildMiddleware(offsetPx, matchReferenceWidth),
-		[middleware, offsetPx, matchReferenceWidth],
-	)
+	const side = autoSide(placement)
+
+	// An `auto` placement starts at the start alignment. The alignment middleware
+	// goes first, so `flip` and `shift` act on the alignment that it selects.
+	const resolvedMiddleware = useMemo(() => {
+		const chain = middleware ?? buildMiddleware(offsetPx, matchReferenceWidth)
+
+		return side ? [autoAlignMiddleware, ...chain] : chain
+	}, [middleware, offsetPx, matchReferenceWidth, side])
 
 	// Reason of the pending close request; the focus-return effect reads it.
 	// Every close that flows through floating-ui's `context.onOpenChange`
@@ -180,7 +234,7 @@ export function useFloatingPanel({
 	}
 
 	const { refs, floatingStyles, context } = useFloating({
-		placement,
+		placement: side ? `${side}-start` : (placement as Placement),
 		open,
 		onOpenChange: handleOpenChange,
 		...(strategy ? { strategy } : {}),

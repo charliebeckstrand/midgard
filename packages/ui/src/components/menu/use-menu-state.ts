@@ -1,8 +1,8 @@
 'use client'
 
-import { type Placement, useClick, useInteractions } from '@floating-ui/react'
+import { useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
-import { useFloatingDisclosure } from '../../hooks'
+import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
 import { useDensity } from '../../primitives/density'
 import type { Step } from '../../recipes'
@@ -23,7 +23,7 @@ type MenuStateOptions = {
 	open?: boolean
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
-	placement?: Placement
+	placement?: FloatingPlacement
 	size?: Step
 }
 
