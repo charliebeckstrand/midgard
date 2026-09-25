@@ -40,7 +40,7 @@ export function withAuth(config: NextConfig = {}): NextConfig {
 
 			return {
 				...existing,
-				fallback: [...(existing.fallback || []), ...authRewrites],
+				fallback: [...(existing.fallback ?? []), ...authRewrites],
 			}
 		},
 	}

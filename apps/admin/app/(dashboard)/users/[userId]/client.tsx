@@ -1,7 +1,7 @@
 'use client'
 
 import { XMarkIcon } from '@heroicons/react/20/solid'
-import type { User } from 'auth/user'
+import type { User } from 'auth'
 import { useCallback, useEffect, useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from 'ui/dialog'
