@@ -48,11 +48,11 @@ The rows fall into change sets that share files and tests. Each set is one pull 
 
 3. **The tile render boundary: P01, with P02 and T10.** [#1301](https://github.com/charliebeckstrand/midgard/pull/1301) applied P01 with a memoized card body. The single-key cell selector of P02 and the preview render-count case of T10 guard the same claim of plan §5.2.
 
-4. **The gesture owner: S10, S07, S08, and S06, on the shared open and close of R01.** Land S10 first or with S07, because S07 alone makes the stuck settle phase of S10 permanent. T05, T06, T07, and T09 are the tests of this set. The set changes the drag hook, the resize hook, and the board, so surface the approach first (`CLAUDE.md` §3.1).
+4. **The gesture owner: S10, S07, S08, and S06, on the shared open and close of R01.** Land S10 first or with S07, because S07 alone makes the stuck settle phase of S10 permanent. T05, T06, T07, and T09 are the tests of this set. The set changes the drag hook, the resize hook, and the board, so surface the approach first (`CLAUDE.md` §3.1). [#1337](https://github.com/charliebeckstrand/midgard/pull/1337) applied the set.
 
-5. **The Escape layer and the cursor: S04 and S05.** Each is a few lines in `use-dashboard-tile-drag.ts` or `dashboard-tile.tsx`, and each can ride with set 4.
+5. **The Escape layer and the cursor: S04 and S05.** Each is a few lines in `use-dashboard-tile-drag.ts` or `dashboard-tile.tsx`, and each can ride with set 4. [#1337](https://github.com/charliebeckstrand/midgard/pull/1337) applied S04 and S05.
 
-6. **The engine inputs: S16, S18, S17, S19, S21, and S15.** S16 and S18 close a frozen tab. The others close overlaps, stale entries, and a parse that throws. [#1323](https://github.com/charliebeckstrand/midgard/pull/1323) applied S16 and S18. S17, S19, S21, and S15 stay open.
+6. **The engine inputs: S16, S18, S17, S19, S21, and S15.** S16 and S18 close a frozen tab. The others close overlaps, stale entries, and a parse that throws. [#1323](https://github.com/charliebeckstrand/midgard/pull/1323) applied S16 and S18, and [#1337](https://github.com/charliebeckstrand/midgard/pull/1337) applied S17, S19, S21, and S15.
 
 7. **The scope: S22 and S23, with S40 and S41.** They share `engine/dashboard-scope.ts` and the scope tests. [#1312](https://github.com/charliebeckstrand/midgard/pull/1312) applied S23 and S40. S22 and S41 stay open.
 
@@ -112,7 +112,7 @@ The verifier held a board in edit mode inside `<Dialog open onOpenChange={spy}>`
 
 Call `useEscapeLayer({ open: isDragging, onDismiss: noop })` in `useDashboardTileDrag` (`use-dashboard-tile-drag.ts:70-71`), with `noop` from `utilities`. The live drag is then the top layer, so the surface around the board ignores the press, and dnd-kit still cancels the drag. Pin it in `__tests__/modules/dashboard.test.tsx` with a keyboard drag in a Dialog, then Escape, and no `onOpenChange` call. Estimate: +3 lines (two imports and one call), plus a test of about 20 lines.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **S05 · The dragged card shows the closed hand only under the pointer, and `useGrabbingCursor` exists for this case.** The card takes the scoped `cursor-grab` and `data-[dragging]:cursor-grabbing` pair (`recipes/kiso/hannou/cursor.ts:15`, through `recipes/kata/dashboard.ts:62`). dnd-kit sets no cursor and captures no pointer, so the element under the pointer decides the cursor. `carriedOffset` clamps the tile to its travel range (`use-dashboard-tile-drag.ts:51-54`), so at an edge of that range the tile stops and the pointer goes on. The cursor then shows the default arrow over the page, the open hand over another movable card, or a resize cursor over a splitter. `useGrabbingCursor` documents this failure (`hooks/use-grabbing-cursor.ts:49-59`), and `modules/grid/grid-group-manager.tsx:171` and `modules/grid/grid-row-manager.tsx:65` use it.
 
@@ -120,7 +120,7 @@ The verifier pressed the pointer on tile `a` at `x=0, y=0` and moved it by −30
 
 Call `useGrabbingCursor(drag.dragging)` in `DashboardTile` after `useDashboardTileDrag` (`dashboard-tile.tsx:194`), with the import from `'../../hooks'`. The global rule then holds for the whole drag, a keyboard drag included, as in the grid managers. Pin it with a case in `__tests__/modules/dashboard.test.tsx` that lifts a tile and expects `style[data-grabbing-cursor]` in `document.head`. Estimate: +2 lines (the import and the call).
 
-*Open. P2; severity low; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity low; verified by probe.*
 
 **S06 · A gesture commit writes the whole snapshot from the gesture start, so it reverts outside layout changes and restores the entry of a removed tile.** `handleDragEnd` (`use-dashboard-drag.ts:171`) and `settleResize` (`use-dashboard-resize.ts:109`) commit the full preview, which is the start snapshot with one change. `mergeLayout` (`engine/dashboard-layout.ts:440-454`) writes each preview cell over the current saved entry, and it appends each cell with no entry without a check of `demands`. The sync effect (`dashboard.tsx:239-242`) updates `state.layout` during the gesture, but `paintedCells` reads only the snapshot or the preview (`engine/dashboard-store.ts:151`). So when the app moves a tile during a drag or a pointer resize, the commit writes the old cell back. When the app removes a tile during the gesture, the commit appends its entry again, and `nextSpecTileId` then skips that id. The trigger is an outside change during a live gesture: a remote sync, or a mouse Remove during a keyboard pickup.
 
@@ -128,7 +128,7 @@ In the verifier's probe, a keyboard drop reverted an app move of `c` to y 40, an
 
 In `handleDragEnd` and `settleResize`, end as canceled, with no commit, when `!sameGeometry(store.getView().canonical, gesture.snapshot)`. The snapshot equals `canonical` at the start, because a gesture needs projection identity (`engine/dashboard-responsive.ts:90`, `109`). In `mergeLayout`, append a cell only when `demands.has(cell.id)`, as its TSDoc states (`engine/dashboard-layout.ts:425-430`). Estimate: about +5 lines, plus about 30 lines of tests for an app move and an app remove during a drag.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **S07 · Gestures do not exclude each other, so a resize during a keyboard drag commits two tiles on one cell, and the drag gets no `onDragEnd`.** `handleDragStart` (`use-dashboard-drag.ts:78-107`) and `resizeContext` (`use-dashboard-resize.ts:47-83`), which serves `beginResize` and `resizeBy`, do not check `state.gesture`. A resize takes its snapshot from `view.cells` (`use-dashboard-resize.ts:73`). During a drag, `paintedCells` pins the dragged tile to its start cell, and a shift partner already paints at that cell (`engine/dashboard-store.ts:151-163`). The dnd-kit KeyboardSensor listens only for keydown, resize, and visibilitychange (`core.esm.js:1154-1158`), so a mouse resize or a Tab to a splitter leaves the drag live. The resize start overwrites the drag gesture, and its commit writes both tiles on one cell into the saved layout. `handleDragEnd` then finds no drag gesture and returns (`use-dashboard-drag.ts:155`), so `onDragEnd` never fires, against `types.ts:66-69`.
 
@@ -136,7 +136,7 @@ The verifier lifted `a` with Space, pressed ArrowRight four times into a shift w
 
 In `handleDragStart`, return before the `setState` when `store.getState().gesture !== null`. At the top of `resizeContext`, return `null` on the same check, as `tidy` does at `use-dashboard-handle.ts:33`. A refused dnd-kit drag then stays active and does nothing until release, as the `!view.editable` path does now. Estimate: about +4 lines, plus a 25-line test in which a keyboard drag, a splitter arrow, and Space give no overlap and one `onDragEnd`.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity high; verified by probe.*
 
 **S08 · Nothing ends a live gesture when edit mode ends or the board unmounts, so a stranded resize leaks its listeners and a drag still commits.** `beginResize` puts pointer listeners on the splitter and a capture keydown listener on `window` (`use-dashboard-resize.ts:188-221`), and only those listeners end the gesture. When `movable` turns false (`dashboard-tile.tsx:192`, `302-311`), the splitter unmounts, and a browser sends `lostpointercapture` to the document, not to the splitter. The store keeps the `resize` gesture, so the board paints the unsaved preview, ignores new layout values, and refuses `tidy` (`use-dashboard-handle.ts:33`). `handleDragMove` and `handleDragEnd` never read `editable` (`use-dashboard-drag.ts:111-174`), and the dnd-kit KeyboardSensor stays on the document until an end key (`core.esm.js:1147-1158`). So after a keyboard pickup, a click on the app's Done control or an unmount leaves a drag that the next Space commits. A mouse alone cannot strand a gesture, because pointer capture sends its release to the splitter.
 
@@ -144,7 +144,7 @@ In the verifier's jsdom probe, `editing=false` during a resize of `a` to span 14
 
 Give `useDashboardResize` a `cancelResize` over the `finish` in a ref, and `useDashboardDrag` a `cancelDrag` that ends a drag as canceled. In `Dashboard`, add a layout effect on `editable` that calls both when `editable` is false and on cleanup. Pin it with jsdom cases for an edit exit and an unmount during a resize and during a keyboard drag. Estimate: about +20 lines across `use-dashboard-resize.ts`, `use-dashboard-drag.ts`, and `dashboard.tsx`, plus about 50 lines of jsdom test.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity high; verified by probe.*
 
 **S09 · The resize limits of a tile have no one home, and the splitter reports an ARIA range that ignores `minWidth`, `minSize`, and `maxSize`.** `DashboardResizeHandle` hard-codes `aria-valuemin` 1 and `aria-valuemax` `columns - cell.x`, and it gives the south edge no maximum (`dashboard-resize-handle.tsx:68-80`). The real clamp is `resizeContext` (`use-dashboard-resize.ts:60-81`), then `resizePreview` (`engine/dashboard-resize.ts:57-70`). There the width runs from the larger of the `minWidth` floor and `minSize.w` to `maxSize.w`, inside `columns - x`, and `minH` is `minSize.h`. `DashboardTile` gives each tile a `minWidth` of 320 by default (`dashboard-tile.tsx:163`), so at usual widths each splitter announces a false minimum. A screen reader therefore reads one range, and the arrow keys stop at another. The prop TSDoc still calls `columns` the upper bound of the width (`dashboard-resize-handle.tsx:18-19`), which was true before [#1262](https://github.com/charliebeckstrand/midgard/pull/1262) added the limits.
 
@@ -160,7 +160,7 @@ The verifier threw from `onValueChange` on a keyboard shift of `a` onto `b`, and
 
 In `commit` (`dashboard.tsx:266-279`), call `setSettled((count) => count + 1)` before `setLayoutValue(next)`, with a comment that says why. Land it before S07 or in the same change. Pin it in `__tests__/modules/dashboard.test.tsx`: after a drop whose `onValueChange` throws, the saved layout and an outside change paint. Estimate: net 0 (two lines reordered), +1 comment line, and about +20 lines of test.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity high; verified by probe.*
 
 **S11 · A classic scrollbar at the starvation threshold switches the board between saved and projected on each frame, with one ResizeObserver loop error per frame.** `projectLayout` sets `starved` on a strict `span > cell.w` test with no memory (`engine/dashboard-responsive.ts:98-109`, `engine/dashboard-layout.ts:122-126`). The canvas ResizeObserver writes `clientWidth` into the store at once (`dashboard.tsx:287-294`), and `derive` projects at that width (`engine/dashboard-store.ts:254`). Inside a scroll box with a classic scrollbar, the canvas width depends on the board height. When the saved layout overflows the box and the re-pack fits, no width from the threshold T to T plus the bar width is stable. In edit mode `editable` toggles each frame, so the grips and the splitters mount and unmount on each frame. With edit mode off, the tile widths still alternate on each frame, and the loop error still fires.
 
@@ -202,7 +202,7 @@ A jsdom probe (React 19.2.7) with two JSX tiles `a` rendered 2 tiles, then 0 aft
 
 In effect 1 at `use-dashboard-tile-cell.ts:61`, log a development `console.error` that names the id when `store.getState().demands.has(id)` is already true. StrictMode and a swap in one commit stay silent, because the cleanup of the old tile runs first. One test of two tiles with one id pins the warning; a count or a token waits until the board supports duplicate ids. Estimate: about +4 lines and one test; the count variant needs a split of `register` from an update call, about +15 lines.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **S16 · `nearestFit` builds and sorts each origin down to the lowest tile on each snap step, so one far entry freezes a drag.** When a drag target is not free and has no equal-span partner, `dragPreview` calls `nearestFit` (`engine/dashboard-drag.ts:185`). `candidatesByDistance` (`engine/dashboard-drag.ts:102-126`) builds `(maxX + 1) × (maxY + 1)` objects, sorts them all, and maps them to a second array. `maxY` is the bottom of the lowest other tile (`engine/dashboard-drag.ts:63-66`), and `fits`, which is O(n), then tests each candidate in order. `handleDragMove` pays this cost on each whole-unit change of the target (`use-dashboard-drag.ts:121-138`), about once per frame in a pointer drag. The parse accepts any finite `y` (`engine/dashboard-spec-parse.ts:65-67`, `engine/dashboard-spec-parse.ts:104`), and `resolveCell` bounds `y` only at 0 (`engine/dashboard-layout.ts:149`). One far entry therefore makes each snap step scale with its `y`, even when the answer is the start cell.
 
@@ -218,7 +218,7 @@ A jsdom probe put a, b, and c at x 0, 8, and 16 (w 8, h 10) and changed `columns
 
 In `resolveLayout`, hold back an entry whose clamp moves it onto a cell that an earlier entry already holds. Place it after the valid entries in a new row under the lowest tile, at its resolved span. An entry that overlaps as saved stays as saved, and a case that goes from 24 to 12 columns pins no overlap. The fix removes the overlap, but it does not keep the positions of the old column count, because the next commit saves the resolved cells. Estimate: about +12 lines in `resolveLayout` and about 25 lines of test.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **S18 · No layer checks the `ratio` and `minWidth` of a tile, so ratio 0 crashes a drag and a NaN width reaches the saved layout.** `deriveHeight` at `engine/dashboard-layout.ts:104-106` divides by `ratio`, so ratio 0 gives an Infinity height and ratio NaN gives a NaN height. `store.register` (`engine/dashboard-store.ts:290`) and `resolveCell` (`engine/dashboard-layout.ts:139-144`) take the values of `DashboardTile` or a widget kind (`types.ts:100-102`) as given. With ratio 0, each tile that the board places after it gets `y` Infinity, and `dragTravel` of each other tile returns `maxY` Infinity (`engine/dashboard-drag.ts:63-66`). A blocked drag then reaches `nearestFit`, and the loop on `cy <= maxY` (`engine/dashboard-drag.ts:111`) never ends, so the tab freezes and crashes. With `minWidth` NaN, `resizeContext` sets `minW` to NaN (`use-dashboard-resize.ts:62-66`), and a resize commits `w: NaN`, which JSON saves as `null`. The trigger is a computed value, such as an image ratio before the image loads (0/0 gives NaN) or with a zero width.
 
@@ -234,7 +234,7 @@ A probe with the layout `[a 0,0 8x10, b 8,0, a 16,20]` rendered b first and a at
 
 In `createDashboardStore`, add a memo that drops a repeated id and keeps the first entry. Pass its result to `entriesOf` and `orderOf` in place of the raw `layout` (`engine/dashboard-store.ts:259`, `engine/dashboard-store.ts:270`). In `mergeLayout`, drop an id that an earlier saved entry holds, so the first commit removes the stale entry. Estimate: about +8 source lines and about 20 lines for two tests, one for the store view and one for `mergeLayout`.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **S20 · The docs give the wrong reason to drop the layout entry on a remove, and `ROADMAP.md:23` contradicts the tidy docs.** The `removeSpecTile` TSDoc (`engine/dashboard-spec.ts:110-112`) and plan §9.8 say that a kept entry leaves its space open. `ROADMAP.md:23` says that a remove drops the entry "so its space does not stay open". Both reasons are false: `resolveLayout` ignores an entry with no mounted tile (`engine/dashboard-layout.ts:318-341`), and no gesture or tidy reads it. A remove leaves the same gap with the entry or without it, as `engine/dashboard-tidy.ts:4-5` and `docs/demos/modules/dashboard/registry.tsx:213-214` say. The real hazard is the one that the `addSpecTile` TSDoc names (`engine/dashboard-spec.ts:91-94`): a later tile with the same id takes the stale place. `mergeLayout` keeps the entry of an unmounted tile (`engine/dashboard-layout.ts:425-429`), but the `onRemove` TSDoc (`dashboard-tile.tsx:105-110`) gives advice for spec tiles only.
 
@@ -250,7 +250,7 @@ On a main-thread stack (tsx, about 984 KB), the parse threw from about 3,860 lev
 
 Give `isQueryNode` a depth argument and a named cap, for example 64 levels, far below both overflow points. Past the cap it returns false, so the current `invalid-filter` branch reports the issue and drops the filter. A case in `__tests__/modules/dashboard-spec-parse.test.ts` pins a filter one level past the cap, and a TSDoc line names the cap. Estimate: about +5 lines in `engine/dashboard-spec-parse.ts`, 1 TSDoc line, and a test of about 10 lines.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity high; verified by probe.*
 
 *Changed on main. [#1268](https://github.com/charliebeckstrand/midgard/pull/1268) moved the guard, unchanged, into the query module as the public `isQueryNode` (`modules/query/engine/query-node.ts:72-86`). The parse now calls `isQueryGroup`, and the grid column filter calls the same guard. Put the cap in `query-node.ts`, so that one fix closes the dashboard, the grid, and each app. Use the house cap `MAX_DEPTH` (32) of `parseQuery`, and move it into `query-node.ts` to avoid an import cycle. Carry the depth in an internal helper, because `every` passes the child index as a second argument. Name the cap in the `isQueryNode` TSDoc, and amend line 88 of the query module plan, because a builder tree deeper than the cap then fails the guard. The overflow depth varies with the stack and the JIT state, so the figures above are not thresholds.*
 
@@ -370,7 +370,7 @@ The store TSDoc documents one settle phase for all gestures (`engine/dashboard-s
 
 Extract a shell `measureGesture(store, canvas)` that returns `{ view, pitch, inline, snapshot }` or `null`, and call it from `handleDragStart` and `resizeContext`. Turn `settleResize` into `endGesture(store, id, keep, { commit, onEnd })` in a shell module that both hooks import. Each drag handler calls it after its `kind` gate and its `targetRef` reset, and `DashboardGesture` stays one type. Estimate: 15 to 20 fewer net lines across the two hooks, with T05 and T07 as the tests that pin both ends.
 
-*Open. P2; severity low; verified by trace.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity low; verified by trace.*
 
 **R02 · `DashboardTileControls` takes seven props only for the at-rest branch that renders `DashboardTileExpand`, and each hop declares them again.** `DashboardTile` passes 12 props to `DashboardTileControls` (`dashboard-tile.tsx:271-285`). Controls uses `id`, `title`, `description`, `expandable`, `fallback`, `onError`, and `children` only in its at-rest branch, where it passes them unchanged to `DashboardTileExpand` (`dashboard-tile-controls.tsx:91-105`). The edit branch uses only `label`, `onDuplicate`, `onRemove`, and `shell`. `DashboardTile` also passes the same `placeholder`, `onError`, and `children` to `DashboardTileContent` (`dashboard-tile.tsx:290-299`). The props types of Controls (`dashboard-tile-controls.tsx:12-37`) and Expand (`dashboard-tile-expand.tsx:21-36`) each declare the shared fields again, with their own TSDoc. So one `editable ? edit : expand` switch joins two components that share nothing else.
 
@@ -430,7 +430,7 @@ With the `clientWidth` stub, a jsdom probe moved the east splitter 100 px and co
 
 Add one jsdom resize suite that drives the east splitter with `fireEvent` pointer events under the current `clientWidth` stub. Pin an ltr commit with one start and one end, and no second end on a later `pointerup` or `lostpointercapture`. Pin the Escape revert, the two cancel events, and button 2; add the unmount case with the fix of S08. Estimate: 70 to 80 lines of test, and no change to shipped code.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **T06 · No test drives a pointer drag, and no test runs `holdDrag`, the guard that keeps a control press from a lift.** Plan §7 makes the card the pointer drag surface in edit mode, but no jsdom or browser case presses a card and moves it. Coverage shows that the `onPointerDown` wrapper of the surface (`use-dashboard-tile-drag.ts:96-102`) and `holdDrag` (`dashboard-tile-controls.tsx:43-45`) never run. `holdDrag` stops a press on Duplicate or Remove from a lift of the tile (`dashboard-tile-controls.tsx:117`, `dashboard-tile-controls.tsx:135`). A regression in the surface listener, the sensor setup, or `holdDrag` therefore passes the whole gate. That regression takes away the main mouse gesture of the module.
 
@@ -438,7 +438,7 @@ A jsdom probe with the real `PrimaryPointerSensor` pressed the card, moved 10 px
 
 Add two jsdom cases beside the keyboard-drag case at `__tests__/modules/dashboard.test.tsx:154`, with `fireEvent` pointer events. The first drags a card into free cells and expects the new `x` and one `onDragEnd` with `canceled: false`. The second moves a press on Remove 10 px and expects no `data-dragging` and no `onDragStart`. Estimate: about 40 lines of test and no change to shipped code; each case ends with a 60 ms `act` wait for the dnd-kit teardown.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **T07 · No test pins the drag paths of the shell or the text of any drag announcement.** The keyboard cases cover a lift and an Escape with no preview (`__tests__/modules/dashboard.test.tsx:154-179`, `__tests__/modules/dashboard-handle.test.tsx:168-195`) and horizontal moves on a one-tile board in the rtl suite. Nothing covers a reorder with a partner, a drop that changes nothing, Escape after a live preview, or a vertical arrow step (`use-dashboard-drag.ts:199-200`). No case passes `onDragStart` or `onDragEnd`, although `types.ts:66-69` promises exactly one end for each start. No test asserts the text of `describeDragStart`, `describeDragMove`, `describeDragEnd`, or `describeDragCancel` (`engine/dashboard-announcements.ts:14-54`). These sentences are the only feedback that a keyboard or screen-reader user gets during a drag. A regression in the narration or in the end-event contract therefore passes the whole gate.
 
@@ -446,7 +446,7 @@ Coverage confirms the gap: `use-dashboard-drag.ts:160-164`, `use-dashboard-drag.
 
 Add a node suite, `__tests__/modules/dashboard-announcements.test.ts`, for the four drag functions and each branch of `describeDragMove` and `describeDragEnd`. Add three jsdom keyboard cases with spies: a drop that changes nothing, Escape after a preview, and an ArrowDown swap. Each case asserts one end for each start and needs no harness, and the node suite makes the claim at `ROADMAP.md:45` true. Estimate: about 60 lines of test, 25 in node and 35 in jsdom, and no change to shipped code.
 
-*Open. P2; severity medium; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity medium; verified by probe.*
 
 **T08 · No case suspends a tile, so nothing pins the Suspense boundary of each tile.** `DashboardTileContent` wraps each widget in one `Suspense` boundary (`dashboard-tile-content.tsx:49`), and the expand dialog reuses that component. Plan §4 defect 4, plan §10, and `ROADMAP.md:17` promise the boundary, but no dashboard case holds a child that suspends. The only boundary case is the error case at `__tests__/modules/dashboard.test.tsx:212-248`. A refactor that drops or hoists the boundary blanks the whole board until the promise settles, which is defect 4 of the plan. The suite stays green under that refactor.
 
@@ -462,7 +462,7 @@ In a probe, a default board with a saved selection and a tile with no entry hydr
 
 Add a declined-drag case to `__tests__/modules/dashboard.test.tsx` with a controlled layout, a `vi.fn` `onValueChange`, a lift, an arrow, and a drop. Assert that the grid area of the tile equals its saved cell and that `tidy()` then returns true. Add a `hydrateRoot` case of the probe board to `__tests__/modules/dashboard-mount.test.tsx`, and assert no `onRecoverableError`. Estimate: about 40 lines of test, with `active` as a two-line `it.each` on the server case at `__tests__/modules/dashboard-mount.test.tsx:139-145`.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1337](https://github.com/charliebeckstrand/midgard/pull/1337). P2; severity high; verified by probe.*
 
 **T10 · The only render-count case counts a commit, so nothing pins the renders of a drag preview frame.** The only `Profiler` case (`__tests__/modules/dashboard.test.tsx:181-210`) counts renders across a keyboard resize. `resizeBy` (`use-dashboard-resize.ts:226-242`) commits at once and sets no gesture, so the case never enters a preview. `ROADMAP.md:15`, plan §4 defect 3, and plan §5.2 promise that a drag preview renders only the tiles that it moves, and never the root. A regression of that promise costs one tile render for each tile on each preview frame, 50 renders a frame at 50 tiles.
 
