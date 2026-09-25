@@ -19,9 +19,10 @@ import {
 
 const testsDir = join(srcDir, '__tests__')
 
-// The trees the `unit` and `pure` projects share. `browser/` has its own
-// config, and the `boundary/` files run in the node and forks projects.
-const SCAN_SKIP = new Set(['browser', 'boundary'])
+// The trees the `unit` and `pure` projects share. `browser/` and `compiler/`
+// have their own configs, and the `boundary/` files run in the node and forks
+// projects.
+const SCAN_SKIP = new Set(['browser', 'boundary', 'compiler'])
 
 const SCANS = [
 	{ dir: testsDir, skip: SCAN_SKIP },

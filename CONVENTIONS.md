@@ -143,6 +143,8 @@ An assertion that reads the DOM tree runs under jsdom: roles, attributes, events
 
 A dependency list names what its value reads, never an extra key to force a recompute. Force a style flush with `forceStyleFlush()` from `src/utilities`, never with a bare property read. The compiler removes a read whose value goes unused.
 
+10.8 The compiler skips a function that breaks one of its rules, and that function loses its memoization. The `skips` project of `test:compiler` compares each skip in `ui` with a ledger, the file snapshot [`react-compiler-skips.json`](packages/ui/src/__tests__/compiler/react-compiler-skips.json). A new skip fails the run, and so does a ledger entry that compiles now. Fix a new skip. If you cannot, write the ledger with `-u`, and commit it with the change.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the only reader is `env.ts` in the `auth` package (`BIFROST_URL`), and apps reach env through `auth`. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
