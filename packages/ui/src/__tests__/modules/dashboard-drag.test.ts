@@ -1,6 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { dragPreview, dragTravel, nearestFit } from '../../modules/dashboard/engine/dashboard-drag'
+import {
+	dragPreview,
+	dragTravel,
+	nearestFit,
+	travelOffset,
+} from '../../modules/dashboard/engine/dashboard-drag'
 import {
 	type DashboardCell,
 	fits,
@@ -93,6 +98,29 @@ describe('dragTravel', () => {
 		expect(dragTravel(board, 'a', 24)).toEqual({ maxX: 16, maxY: 20 })
 
 		expect(dragTravel(board, 'c', 24)).toEqual({ maxX: 8, maxY: 10 })
+	})
+})
+
+describe('travelOffset', () => {
+	const origin = cell('a', 2, 4, 8, 10)
+
+	const travel = { maxX: 16, maxY: 20 }
+
+	it('keeps an offset inside the travel range as it is', () => {
+		expect(travelOffset(origin, { x: 120, y: -30 }, travel, 50, 1)).toEqual({ x: 120, y: -30 })
+	})
+
+	it('stops the tile at column 0, at the last column, and at row 0', () => {
+		expect(travelOffset(origin, { x: -400, y: -400 }, travel, 50, 1)).toEqual({ x: -100, y: -50 })
+
+		expect(travelOffset(origin, { x: 900, y: 0 }, travel, 50, 1)).toEqual({ x: 700, y: 0 })
+	})
+
+	it('reads a travel to the right as a travel toward column 0 in a right-to-left board', () => {
+		// Column 0 is two columns to the right, 100 px at a 50 px pitch.
+		expect(travelOffset(origin, { x: 400, y: 0 }, travel, 50, -1)).toEqual({ x: 100, y: 0 })
+
+		expect(travelOffset(origin, { x: -900, y: 0 }, travel, 50, -1)).toEqual({ x: -700, y: 0 })
 	})
 })
 

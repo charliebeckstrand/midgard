@@ -450,6 +450,48 @@ describe('Dashboard', () => {
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 	})
 
+	it('wakes no reader of the store for a drag step that still changes nothing', async () => {
+		let board: DashboardStore | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		const listener = vi.fn()
+
+		board?.subscribe(listener)
+
+		// One column to the right, Revenue meets Traffic and snaps back to its start cell.
+		fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
+
+		expect(dragNarration()).toBe('Revenue cannot go here. A drop now changes nothing.')
+
+		expect(listener).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+	})
+
 	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
 		const onValueChange = vi.fn()
 

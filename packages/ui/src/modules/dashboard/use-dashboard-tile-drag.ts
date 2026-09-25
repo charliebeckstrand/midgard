@@ -6,8 +6,8 @@ import {
 	useDraggable,
 } from '@dnd-kit/core'
 import { type PointerEventHandler, type PointerEvent as ReactPointerEvent, useMemo } from 'react'
-import { clamp } from '../../utilities'
-import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import { type DashboardDragTravel, travelOffset } from './engine/dashboard-drag'
+import type { DashboardCell } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** A pointer offset in px. */
@@ -33,25 +33,18 @@ export type DashboardTileDrag = {
 
 /**
  * The pointer offset of a dragged tile, clamped so that the tile stays on the
- * canvas and inside its travel range. The range is in columns, so a right-to-left
- * board flips the horizontal offset into columns and back. It returns `null` at
- * rest.
+ * canvas and inside its travel range. It returns `null` at rest.
  */
 function carriedOffset(
 	cell: DashboardCell | undefined,
 	transform: Offset | null,
-	travel: { maxX: number; maxY: number } | null,
+	travel: DashboardDragTravel | null,
 	pitch: number,
 	inline: 1 | -1,
 ): Offset | null {
 	if (cell === undefined || transform === null || travel === null || pitch <= 0) return null
 
-	const row = pitch / ROW_SUBDIVISION
-
-	return {
-		x: inline * clamp(inline * transform.x, -cell.x * pitch, (travel.maxX - cell.x) * pitch),
-		y: clamp(transform.y, -cell.y * row, (travel.maxY - cell.y) * row),
-	}
+	return travelOffset(cell, transform, travel, pitch, inline)
 }
 
 /**

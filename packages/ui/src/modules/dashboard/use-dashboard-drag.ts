@@ -9,7 +9,6 @@ import type {
 } from '@dnd-kit/core'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
-import { clamp } from '../../utilities'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
@@ -17,7 +16,7 @@ import {
 	describeDragMove,
 	describeDragStart,
 } from './engine/dashboard-announcements'
-import { dragPreview, dragTravel } from './engine/dashboard-drag'
+import { dragPreview, travelOffset } from './engine/dashboard-drag'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
@@ -179,20 +178,21 @@ export function useDashboardDrag({
 
 			if (gesture?.kind !== 'drag' || gesture.pitch <= 0) return
 
-			const origin = gesture.snapshot.find((cell) => cell.id === gesture.id)
+			// The view paints the dragged tile at its start cell, and it holds the travel range.
+			const { cells, travel } = store.getView()
 
-			if (origin === undefined) return
+			const origin = cells.get(gesture.id)
 
-			const travel = dragTravel(gesture.snapshot, gesture.id, columns)
+			if (origin === undefined || travel === null) return
+
+			const { pitch, inline } = gesture
+
+			const offset = travelOffset(origin, event.delta, travel, pitch, inline)
 
 			// In a right-to-left board a travel to the right moves toward column 0.
-			const dx = (gesture.inline * event.delta.x) / gesture.pitch
+			const x = Math.round(origin.x + (inline * offset.x) / pitch)
 
-			const x = Math.round(clamp(origin.x + dx, 0, travel.maxX))
-
-			const y = Math.round(
-				clamp(origin.y + (event.delta.y * ROW_SUBDIVISION) / gesture.pitch, 0, travel.maxY),
-			)
+			const y = Math.round(origin.y + (offset.y * ROW_SUBDIVISION) / pitch)
 
 			const last = targetRef.current
 
@@ -201,6 +201,9 @@ export function useDashboardDrag({
 			targetRef.current = { x, y }
 
 			const preview = dragPreview(gesture.snapshot, gesture.id, x, y, columns)
+
+			// A step from no change to no change changes nothing that a reader sees.
+			if (preview === null && gesture.preview === null) return
 
 			store.setState({
 				gesture: {
@@ -281,17 +284,9 @@ export function useDashboardDrag({
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: coordinateGetter })
 
+	// The live region of dnd-kit writes a text only when it changes, so a repeated
+	// sentence is not spoken again.
 	const announcements = useMemo<Announcements>(() => {
-		const spoken = { last: '' }
-
-		const say = (text: string) => {
-			if (text === spoken.last) return undefined
-
-			spoken.last = text
-
-			return text
-		}
-
 		// A drag that the store does not own moves nothing, so it says nothing.
 		const owns = (id: string) => sensed.current?.owned === true && sensed.current.id === id
 
@@ -303,10 +298,8 @@ export function useDashboardDrag({
 
 				const cell = currentCell(store, id)
 
-				spoken.last = ''
-
 				return cell
-					? say(describeDragStart(labelOf(store, id), cell, store.getState().columns))
+					? describeDragStart(labelOf(store, id), cell, store.getState().columns)
 					: undefined
 			},
 			onDragMove: ({ active }) => {
@@ -320,9 +313,7 @@ export function useDashboardDrag({
 
 				const partner = gesture?.partner ? labelOf(store, gesture.partner) : null
 
-				return say(
-					describeDragMove(labelOf(store, id), cell, columns, gesture?.change ?? null, partner),
-				)
+				return describeDragMove(labelOf(store, id), cell, columns, gesture?.change ?? null, partner)
 			},
 			onDragOver: () => undefined,
 			onDragEnd: ({ active }) => {
