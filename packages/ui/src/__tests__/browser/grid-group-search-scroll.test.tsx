@@ -121,7 +121,19 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 
 		scroll.scrollTop = 2000
 
-		await settle(5)
+		// The rows around the new offset measure over a few frames. Wait until
+		// the offset and the first row in view hold still.
+		let last = ''
+
+		for (let i = 0; i < 60; i++) {
+			await frames()
+
+			const now = `${scroll.scrollTop}:${firstInView().textContent}`
+
+			if (now === last) break
+
+			last = now
+		}
 
 		const anchor = firstInView()
 
@@ -138,6 +150,8 @@ describe('grid grouped virtualized body after a search clears (real browser)', (
 
 		act(() => search.set(''))
 
-		expect(await sampleDrift(row, before, 20)).toBeLessThanOrEqual(1)
+		const drift = await sampleDrift(row, before, 20)
+
+		expect(drift, `${id} at the offset ${scroll.scrollTop}`).toBeLessThanOrEqual(1)
 	})
 })
