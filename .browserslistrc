@@ -1,34 +1,39 @@
-# The floor the source already stands on, written down rather than inferred.
+# The floor the shipped code already stands on, written down rather than
+# inferred.
 #
-# The binding constraint is the ES2023 change-by-copy array methods —
-# `toSorted`, `toReversed`, `toSpliced`, and `with` — which `packages/ui` uses
-# on render paths (the toast viewport, the query tree, the pdf-viewer zoom
-# ladder, the map geometry). No build step can lower it: esbuild and SWC
-# downlevel syntax, never instance methods, so these ship as written whatever a
-# target says. Supporting anything older means a core-js polyfill or giving the
-# methods up, not a config change.
+# The stylesheet sets Chrome and Firefox. Tailwind 4 emits `@property`, which
+# Firefox shipped in 128, and `color-mix()`, which Chrome shipped in 111. The
+# `has-[]` utilities emit `:has()`, which Firefox shipped in 121. A browser
+# below these versions renders the page with broken colours and layout, and no
+# build step lowers the CSS.
 #
-# `tsconfig.base.json` already compiles to ES2023 and `packages/ui` consumes
-# source, so these versions are what the published surface has required since
-# the first `.with()` call landed. Raising the floor is free; lowering it is the
-# decision this file exists to make visible.
+# Safari 16.4 is Tailwind 4's own floor. It also covers the ES2023
+# change-by-copy array methods — `toSorted`, `toReversed`, `toSpliced`, and
+# `with` — that `packages/ui` uses on render paths. esbuild and SWC downlevel
+# syntax, never instance methods, so these ship as written whatever a target
+# says.
+#
+# A higher floor costs nothing; a lower floor is the decision this file exists
+# to make visible. A lower floor needs a polyfill for the array methods and a
+# fallback for the CSS, not a config change.
 #
 # When the floor moves, update the API list in
 # `.biome/plugins/no-api-above-browser-floor.grit`. It names each call that the
 # type-check passes but the floor does not cover.
 #
 # caniuse has no feature id for the change-by-copy methods, so the versions are
-# spelled out. Each is the release that shipped them. The mobile ids are listed
-# in their own right: caniuse scores them separately, and dropping `and_chr`
-# alone takes the query from 91 percent of global usage to 47.
+# spelled out. Each derived id sits on the same engine: Edge, Opera 97, Samsung
+# Internet 22, and Android WebView 111 each ship Chromium 111. The mobile ids
+# are listed in their own right: caniuse scores them separately, and dropping
+# `and_chr` alone takes the query from 92 percent of global usage to 48.
 
-chrome >= 110
-edge >= 110
-firefox >= 115
+chrome >= 111
+edge >= 111
+firefox >= 128
 safari >= 16.4
 ios_saf >= 16.4
-opera >= 96
-samsung >= 21
-and_chr >= 110
-and_ff >= 115
-android >= 110
+opera >= 97
+samsung >= 22
+and_chr >= 111
+and_ff >= 128
+android >= 111

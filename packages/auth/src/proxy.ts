@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { BIFROST_URL } from './env'
-import { isGuestRoute } from './routes'
+import { isApiRoute, isGuestRoute } from './routes'
 
 /** Options controlling {@link proxy} redirects. */
 export type ProxyOptions = {
@@ -11,7 +11,9 @@ export type ProxyOptions = {
 	 */
 	homepage?: string
 	/**
-	 * Whether to redirect unauthenticated users away from non-guest routes to `/login`.
+	 * Whether to redirect unauthenticated users away from non-guest routes to
+	 * `/login`. An unauthenticated API request gets a `401` in place of the
+	 * redirect.
 	 *
 	 * @defaultValue true
 	 */
@@ -56,9 +58,14 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
  * a protected route are sent to `/login` when `protect` is set. All other
  * requests pass through.
  *
+ * An unauthenticated request to an API route ({@link isApiRoute}) gets a `401`
+ * JSON response, not the redirect. A `fetch` follows a redirect, and the login
+ * page answers `200`, so the caller would read a rejected write as a success.
+ *
  * @param request - The incoming request; its cookies resolve the session.
  * @param options - See {@link ProxyOptions}.
- * @returns A redirect `NextResponse`, or `NextResponse.next()` to continue.
+ * @returns A redirect `NextResponse`, a `401` `NextResponse` for an API route,
+ *   or `NextResponse.next()` to continue.
  */
 export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
 	const { homepage = '/', protect = true } = options
@@ -73,6 +80,10 @@ export async function proxy(request: NextRequest, options: ProxyOptions = {}) {
 	}
 
 	if (protect && !guest && !authenticated) {
+		if (isApiRoute(pathname)) {
+			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+		}
+
 		return NextResponse.redirect(new URL('/login', request.url))
 	}
 
