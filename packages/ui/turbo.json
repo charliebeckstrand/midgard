@@ -6,6 +6,7 @@
       "inputs": [
         "$TURBO_EXTENDS$",
         "REFERENCE.md",
+        "$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
         "vitest.browser.config.ts",
         "$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
         "!$TURBO_ROOT$/apps/*/.next/**",

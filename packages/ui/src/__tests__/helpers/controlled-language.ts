@@ -282,6 +282,22 @@ export const LIVING_MARKDOWN = [
 /** Absolute path of the package root, which the living Markdown sits under. */
 export const packageDir = join(srcDir, '..')
 
+/** Absolute path of the repository root, which the rule documents sit under. */
+export const rootDir = join(packageDir, '..', '..')
+
+/**
+ * The rule documents at the repository root. Every package follows them, so
+ * they carry no debt in rules 6 and 10, and they keep the cadence (CLAUDE.md
+ * §2.5, §3.6). Paths are relative to the repository root.
+ */
+export const RULE_DOCUMENTS = [
+	'CLAUDE.md',
+	'CONVENTIONS.md',
+	'CADENCE.md',
+	'STE.md',
+	'REFERENCE.md',
+]
+
 /**
  * Every rule 6 and rule 10 break in one Markdown document.
  *

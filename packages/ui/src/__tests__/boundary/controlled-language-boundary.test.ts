@@ -6,6 +6,8 @@ import {
 	LIVING_MARKDOWN,
 	markdownBreaks,
 	packageDir,
+	RULE_DOCUMENTS,
+	rootDir,
 	scanPackage,
 } from '../helpers/controlled-language'
 
@@ -14,13 +16,15 @@ import {
 // good, because nothing held the tree to the result. Rule 10 went from 41 sites
 // back to 89 in six weeks, and the missing gate was the reason.
 //
-// This test is that gate, in three shapes:
+// This test is that gate, in four shapes:
 //
 //   1. Rule 10 is pinned at zero. The rule admits no judgment — "must" states a
 //      requirement and "can" states a possibility — so any site is a break.
 //   2. Rule 6 is pinned at zero. It held a per-file ledger while the tree paid
 //      the debt down, and the last of it closed in this branch.
 //   3. The curated surface docs carry no debt at all, in either rule.
+//   4. Neither do the rule documents at the repository root. A rule document
+//      that breaks the standard it sets teaches the break.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional — the rule
@@ -70,6 +74,21 @@ describe('controlled-language boundary', () => {
 		expect(
 			violations,
 			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, or drop the modal (STE.md rules 6 and 10):\n${violations.join('\n')}`,
+		).toEqual([])
+	})
+
+	it('the rule documents keep rules 6 and 10 (CLAUDE.md §2.5)', () => {
+		const violations: string[] = []
+
+		for (const file of RULE_DOCUMENTS) {
+			for (const item of markdownBreaks(file, readFileSync(join(rootDir, file), 'utf8'))) {
+				violations.push(`${item.file}:${item.line} rule ${item.rule} — ${item.text}`)
+			}
+		}
+
+		expect(
+			violations,
+			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, or drop the modal (STE.md rules 6 and 10):\n${violations.join('\n')}`,
 		).toEqual([])
 	})
 })
