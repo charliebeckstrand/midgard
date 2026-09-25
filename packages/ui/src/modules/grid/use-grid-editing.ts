@@ -216,20 +216,26 @@ function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
 
 /**
  * Builds the store behind {@link GridActiveEditStore}. `seat` moves the coord
- * without a notice, for the render that resolves it. The cells that render in
- * that pass then read the new coord. `set` moves the coord and notifies the
- * rest. It notifies only when the coord names another cell than the listeners
- * last heard, so a write that repeats the held cell renders nothing. `notify`
- * tells every listener that a draft changed status. @internal
+ * and the editable rows without a notice, for the render that resolves them.
+ * The cells that render in that pass then read the new values. `set` moves the
+ * coord and notifies the rest. It notifies only when the coord names another
+ * cell than the listeners last heard, so a write that repeats the held cell
+ * renders nothing. `setRows` does the same for the set of editable rows.
+ * `notify` tells every listener that a draft changed status. @internal
  */
 function createActiveEditStore(): GridActiveEditStore & {
-	seat: (next: GridActiveEdit | null) => void
+	seat: (next: GridActiveEdit | null, rows: ReadonlySet<string | number>) => void
 	set: (next: GridActiveEdit | null) => void
+	setRows: (next: ReadonlySet<string | number>) => void
 	notify: () => void
 } {
 	let coord: GridActiveEdit | null = null
 
 	let told: GridActiveEdit | null = null
+
+	let rows: ReadonlySet<string | number> = EMPTY_SET
+
+	let toldRows: ReadonlySet<string | number> = EMPTY_SET
 
 	const listeners = new Set<() => void>()
 
@@ -242,8 +248,11 @@ function createActiveEditStore(): GridActiveEditStore & {
 			}
 		},
 		get: () => coord,
-		seat: (next) => {
+		rows: () => rows,
+		seat: (next, nextRows) => {
 			coord = next
+
+			rows = nextRows
 		},
 		set: (next) => {
 			coord = next
@@ -251,6 +260,15 @@ function createActiveEditStore(): GridActiveEditStore & {
 			if (sameCell(told, next)) return
 
 			told = next
+
+			for (const listener of listeners) listener()
+		},
+		setRows: (next) => {
+			rows = next
+
+			if (toldRows === next) return
+
+			toldRows = next
 
 			for (const listener of listeners) listener()
 		},
@@ -1418,15 +1436,17 @@ export function useGridEditing<T>({
 
 	const activeEditStore = storeRef.current
 
-	// Seat the resolved coord for the cells that render in this pass, such as the
-	// window that a change to the set re-renders. The other cells hear of it in
-	// the layout effect below. An uncontrolled write reached the store at event
-	// time already, so both are no-ops for it.
-	activeEditStore.seat(activeEdit)
+	// Seat the resolved coord and rows for the cells that render in this pass.
+	// The other cells hear of them in the layout effect below. An uncontrolled
+	// write of the coord reached the store at event time already, so both are
+	// no-ops for it.
+	activeEditStore.seat(activeEdit, editableRows)
 
 	useLayoutEffect(() => {
+		activeEditStore.setRows(editableRows)
+
 		activeEditStore.set(activeEdit)
-	}, [activeEdit, activeEditStore])
+	}, [activeEdit, editableRows, activeEditStore])
 
 	// Read by the [] -stable session callbacks at event time.
 	const editableRowsRef = useRef(editableRows)
@@ -2502,7 +2522,6 @@ export function useGridEditing<T>({
 
 	const session = useMemo<GridEditingSession>(
 		() => ({
-			editableRows,
 			activeEditStore,
 			stageDraft,
 			unstageDraft,
@@ -2515,7 +2534,6 @@ export function useGridEditing<T>({
 			managed,
 		}),
 		[
-			editableRows,
 			activeEditStore,
 			stageDraft,
 			unstageDraft,

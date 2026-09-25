@@ -93,6 +93,10 @@ describe('grid column filter sheet (real browser)', () => {
 
 		if (!panel) throw new Error('no sheet panel')
 
+		// The focus manager moves focus into the sheet after the sheet mounts. A
+		// Tab before that leaves from the trigger, outside the trap.
+		await waitFor(() => expect(panel.contains(document.activeElement)).toBe(true))
+
 		// Cycle past every control; the modal focus manager keeps focus inside.
 		for (let i = 0; i < 6; i++) {
 			await userEvent.tab()

@@ -39,8 +39,10 @@ export function cnMemoNodes(): number {
 
 /**
  * Whether every argument can branch the memo. Strings branch by value; booleans
- * and nullish all render as nothing, so they share the `''` branch. Arrays,
- * objects, and numbers cannot, and send the whole call to the plain merge.
+ * and nullish all render as nothing, so they share the `''` branch. An array
+ * branches on each of its items in turn, as `clsx` flattens it. A recipe keeps
+ * many class lists as arrays of strings, so these calls keep the memo. Objects
+ * and numbers cannot branch, and send the whole call to the plain merge.
  *
  * @remarks Asked before the walk, not during it. A walk that tested as it went
  * would branch on the leading arguments, and only then meet one it cannot key.
@@ -48,12 +50,62 @@ export function cnMemoNodes(): number {
  *
  * @internal
  */
-function keyable(inputs: ClassValue[]): boolean {
+function keyable(inputs: readonly ClassValue[]): boolean {
 	for (const input of inputs) {
-		if (input != null && typeof input !== 'string' && typeof input !== 'boolean') return false
+		if (input == null || typeof input === 'string' || typeof input === 'boolean') continue
+
+		if (Array.isArray(input) && keyable(input)) continue
+
+		return false
 	}
 
 	return true
+}
+
+/**
+ * Walks the memo from `node` along `inputs`, and creates each missing node. An
+ * array walks its items in place. Returns `null` when the walk must create a
+ * node past {@link MEMO_CAP}.
+ *
+ * @internal
+ */
+function walk(node: MemoNode, inputs: readonly ClassValue[]): MemoNode | null {
+	let at = node
+
+	for (const input of inputs) {
+		if (Array.isArray(input)) {
+			const inner = walk(at, input)
+
+			if (!inner) return null
+
+			at = inner
+
+			continue
+		}
+
+		const key = typeof input === 'string' ? input : ''
+
+		let branch = at.next?.get(key)
+
+		if (!branch) {
+			// Asked here rather than once at entry: this is the only place a node is
+			// created, so the hit path — every call on a mounted tree — never reads
+			// the counter at all.
+			if (nodes >= MEMO_CAP) return null
+
+			branch = {}
+
+			nodes++
+
+			at.next ??= new Map()
+
+			at.next.set(key, branch)
+		}
+
+		at = branch
+	}
+
+	return at
 }
 
 /**
@@ -73,8 +125,9 @@ function keyable(inputs: ClassValue[]): boolean {
  * a couple of `Map` reads. Measured at ~20× the un-memoized call, and
  * ~13% off a ten-thousand-row grid mount.
  *
- * Only string, boolean, and nullish arguments are memoized; arrays, objects,
- * and numbers take the plain merge, carrying no stable identity to branch on.
+ * Only string, boolean, and nullish arguments, and arrays of them, are
+ * memoized. Objects and numbers take the plain merge, carrying no stable
+ * identity to branch on.
  *
  * The memo is resident for the process lifetime and never invalidates. That is
  * safe because the merge is pure: the same arguments always yield the same
@@ -83,30 +136,9 @@ function keyable(inputs: ClassValue[]): boolean {
 export function cn(...inputs: ClassValue[]): string {
 	if (!keyable(inputs)) return twMerge(clsx(inputs))
 
-	let node = root
+	const node = walk(root, inputs)
 
-	for (const input of inputs) {
-		const key = typeof input === 'string' ? input : ''
-
-		let branch = node.next?.get(key)
-
-		if (!branch) {
-			// Asked here rather than once at entry: this is the only place a node is
-			// created, so the hit path — every call on a mounted tree — never reads
-			// the counter at all.
-			if (nodes >= MEMO_CAP) return twMerge(clsx(inputs))
-
-			branch = {}
-
-			nodes++
-
-			node.next ??= new Map()
-
-			node.next.set(key, branch)
-		}
-
-		node = branch
-	}
+	if (!node) return twMerge(clsx(inputs))
 
 	if (node.value !== undefined) return node.value
 

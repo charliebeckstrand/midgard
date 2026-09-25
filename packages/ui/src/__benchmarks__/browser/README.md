@@ -211,6 +211,8 @@ Each entry names the change and the scenarios it moved.
 
     At 100k the module now leads both contenders in one run on the same machine (AG 119.0ms, MUI 102.5ms). At 10k all three sit near 45ms. The quick filter and the sort flips stayed within noise in both builds. A filter next to pagination or grouping still runs in the engine.
 
+12. **Build the row index map only for a cursor** ([`grid-data.tsx`](../../modules/grid/grid-data.tsx), 2026-09-25, this container). The grid built a map from each row to its index on each change of the rows, and only the cursor reads it. A grid with no cursor now skips it. Medians of three interleaved pairs: mount 100,000 rows 57.3 → 44.5 ms (−22%), update 100,000 rows 39.4 → 25.9 ms (−34%), and the 10,000-row mount and update 10% to 12% faster. The contenders held level or got slower in the same pairs. A run without this change put the 100,000-row mount back at 58 ms and the update at 36 ms, so this change carries the mount, and most of the update. The same change set removed three render fan-outs, which no bench here times. The start and the end of a drag no longer render each truncating cell. A row that opens for edit renders only its own cells. The engine no longer holds a copy of the selection.
+
 ## Maps
 
 ### Methodology

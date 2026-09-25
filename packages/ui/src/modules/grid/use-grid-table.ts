@@ -71,7 +71,6 @@ import {
 	resolveFilterMode,
 	sortOptions,
 	toColumnDef,
-	toRowSelectionState,
 	toSortingState,
 	toSortState,
 } from './engine/grid-table/options'
@@ -147,7 +146,7 @@ type GridTableParams<T> = {
 	/** The full column set; the engine resolves which render (and in what order) from the order/visibility/pinning state below. */
 	columns: GridColumn<T>[]
 	getKey: (row: T, index: number) => string | number
-	/** Selected row keys; mirrored into the engine's `state.rowSelection` so its selected-row model tracks the grid's `Set`. */
+	/** Selected row keys. An export takes the selected rows when there are any (see `rowsForExport`). */
 	selection?: Set<string | number>
 	/** Display order of the column ids; feeds the engine's `columnOrder`. Columns absent from it append in definition order. */
 	columnOrder?: (string | number)[]
@@ -392,9 +391,8 @@ function engineDisplayRows<T>(table: EngineTable<T>, materialize: boolean): Engi
  * before sorting in the engine's pipeline, so the sorted row model is the
  * group-header rows. A group header's `original` is its first leaf's datum. To
  * export that model directly yields one row per group. Group-header ids are
- * also absent from the mirrored selection state, so an active selection reads
- * as empty and silently falls back to the full set. Collapsing to leaves first
- * answers both.
+ * also absent from the selection, so an active selection reads as empty and
+ * silently falls back to the full set. Collapsing to leaves first answers both.
  *
  * @internal
  */
@@ -402,12 +400,16 @@ function exportLeaves<T>(
 	table: EngineTable<T>,
 	grouped: boolean,
 	manualGroupRow: ((row: T) => boolean) | null,
+	selection: ReadonlySet<string | number> | undefined,
 ): T[] {
 	// `deriveLeafRows` owns both grouping modes. The sorted rows are never null, so
 	// the coalesce only satisfies its nullable return.
 	const leaves = deriveLeafRows(table.getSortedRowModel().rows, grouped, manualGroupRow) ?? []
 
-	const selected = leaves.filter((row) => row.getIsSelected())
+	// A row id is the key that `getRowId` stringified, so the keys compare as text.
+	const keys = new Set(Array.from(selection ?? [], String))
+
+	const selected = keys.size > 0 ? leaves.filter((row) => keys.has(row.id)) : []
 
 	return (selected.length > 0 ? selected : leaves).map((row) => row.original)
 }
@@ -815,7 +817,9 @@ function useResizeView<T>(args: {
 
 	// After the commit that moves the `<colgroup>`, so a cell that measures reads
 	// the new width.
-	useLayoutEffect(() => settle.publish(settleWidths), [settle, settleWidths])
+	const dragging = resizing != null
+
+	useLayoutEffect(() => settle.publish(settleWidths, dragging), [settle, settleWidths, dragging])
 
 	return { resize, settle }
 }
@@ -1145,12 +1149,6 @@ export function useGridTable<T>({
 		[columns],
 	)
 
-	// The grid's selection `Set` is the source of truth; mirror it into the engine
-	// so its selected-row model tracks it (the checkboxes still write the `Set`).
-	const selectable = selection != null
-
-	const rowSelection = useMemo(() => toRowSelectionState(selection), [selection])
-
 	// Engine column-order state: the display order as string ids (columns absent
 	// from it append in definition order). Visibility defaults to all-visible.
 	const engineColumnOrder = useMemo<ColumnOrderState>(() => columnOrder.map(String), [columnOrder])
@@ -1184,14 +1182,11 @@ export function useGridTable<T>({
 				sorting,
 				pinned: hasPinned,
 				columnPinning,
-				selectable,
-				rowSelection,
 				grouped,
 				grouping: groupingState,
 				columnOrder: engineColumnOrder,
 				columnVisibility,
 			}),
-			...(selectable ? { enableRowSelection: true } : {}),
 			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
 			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
 			...sortOptions<T>({ clientSort, onSortingChange }),
@@ -1221,8 +1216,6 @@ export function useGridTable<T>({
 			sorting,
 			hasPinned,
 			columnPinning,
-			selectable,
-			rowSelection,
 			grouped,
 			groupingState,
 			engineColumnOrder,
@@ -1442,8 +1435,8 @@ export function useGridTable<T>({
 	const grandTotalRows = useGrandTotalRows(table, grandTotal, manualGroupRow != null)
 
 	const rowsForExport = useCallback(
-		() => exportLeaves(engine, grouped, manualGroupRow),
-		[engine, grouped, manualGroupRow],
+		() => exportLeaves(engine, grouped, manualGroupRow, selection),
+		[engine, grouped, manualGroupRow, selection],
 	)
 
 	return {

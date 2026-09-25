@@ -11,7 +11,6 @@ import type {
 	PaginationState,
 	Row,
 	RowData,
-	RowSelectionState,
 	SortFn,
 	SortingState,
 } from '@tanstack/react-table'
@@ -40,24 +39,6 @@ export function toSortingState(sort: GridSortState[] | undefined): SortingState 
 /** Adapts a TanStack `SortingState` back to the grid's ordered {@link GridSortState} list. @internal */
 export function toSortState(sorting: SortingState): GridSortState[] {
 	return sorting.map((entry) => ({ column: entry.id, direction: entry.desc ? 'desc' : 'asc' }))
-}
-
-/**
- * Mirrors the grid's selection `Set<key>` into TanStack's `RowSelectionState`
- * (`{ [rowId]: true }`), keyed by the stringified row id `getRowId` produces.
- * One-way: the `Set` stays the source of truth (the grid's checkboxes write it),
- * and the engine reads this for its selected-row model.
- *
- * @internal
- */
-export function toRowSelectionState(
-	selection: Set<string | number> | undefined,
-): RowSelectionState {
-	const state: RowSelectionState = {}
-
-	for (const key of selection ?? []) state[String(key)] = true
-
-	return state
 }
 
 /** Resolves the table-wide filter mode shared by the global and per-column filters. @internal */
@@ -491,7 +472,6 @@ type GridControlledState = {
 	columnFilters?: ColumnFiltersState
 	sorting?: SortingState
 	columnPinning?: ColumnPinningState
-	rowSelection?: RowSelectionState
 	grouping?: GroupingState
 	columnOrder: ColumnOrderState
 	columnVisibility: ColumnVisibilityState
@@ -512,8 +492,6 @@ export function buildState(args: {
 	sorting: SortingState
 	pinned: boolean
 	columnPinning: ColumnPinningState
-	selectable: boolean
-	rowSelection: RowSelectionState
 	grouped: boolean
 	grouping: GroupingState
 	columnOrder: ColumnOrderState
@@ -541,8 +519,6 @@ export function buildState(args: {
 	if (args.sortClient) state.sorting = args.sorting
 
 	if (args.pinned) state.columnPinning = args.columnPinning
-
-	if (args.selectable) state.rowSelection = args.rowSelection
 
 	return state
 }

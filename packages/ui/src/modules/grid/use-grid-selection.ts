@@ -24,10 +24,9 @@ type GridSelectionActions = {
 
 /**
  * Owns the controllable selection `Set<key>` and its setter. Nothing here
- * depends on the rendered rows, so it sits above the engine, letting the table
- * mirror the selection into its own `state.rowSelection`. See
- * {@link useGridTable}. The `Set` stays the source of truth; the engine is a
- * read-only consumer for its selected-row model.
+ * depends on the rendered rows, so it sits above the engine. An export reads
+ * the `Set` to take the selected rows (see {@link useGridTable}). The engine
+ * keeps no selection state.
  *
  * @internal
  */

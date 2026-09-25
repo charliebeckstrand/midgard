@@ -116,4 +116,33 @@ describe('the settle store', () => {
 		// Once as the drag froze the width, and once as it settled: never per frame.
 		expect(name).toHaveBeenCalledTimes(2)
 	})
+
+	it('flags the drag, and publishes the flag before the widths', () => {
+		const { result } = renderGrid()
+
+		const flags: boolean[] = []
+
+		const resizing = vi.fn()
+
+		result.current.settle.subscribeResizing(resizing)
+
+		// A cell measures in its column listener, so the flag must be current there.
+		result.current.settle.subscribe('name', () => flags.push(result.current.settle.resizing()))
+
+		pressHandle(result, 'name', 100)
+
+		expect(result.current.settle.resizing()).toBe(true)
+
+		act(() => {
+			document.dispatchEvent(new MouseEvent('mousemove', { clientX: 130 }))
+
+			document.dispatchEvent(new MouseEvent('mouseup', { clientX: 130 }))
+		})
+
+		expect(result.current.settle.resizing()).toBe(false)
+
+		expect(resizing).toHaveBeenCalledTimes(2)
+
+		expect(flags).toEqual([true, false])
+	})
 })
