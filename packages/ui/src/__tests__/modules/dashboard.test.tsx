@@ -1117,6 +1117,41 @@ describe('Dashboard gesture owner', () => {
 		)
 	})
 
+	it('ends a keyboard lift that an edit exit cancels in the same task, and holds no key', async () => {
+		const onDragEnd = vi.fn()
+
+		// Enter lifts the grip, and the same keydown ends edit mode in a handler on an ancestor.
+		function ExitOnEnter() {
+			const [editing, setEditing] = useState(true)
+
+			return (
+				<fieldset onKeyDown={(event) => event.key === 'Enter' && setEditing(false)}>
+					<Controlled editing={editing} onLayout={vi.fn()} onDragEnd={onDragEnd} />
+				</fieldset>
+			)
+		}
+
+		renderUI(<ExitOnEnter />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
+
+		await teardown()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		// No keyboard sensor holds the document, so a page key goes through.
+		const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
+			code: 'Space',
+			key: ' ',
+		})
+
+		expect(passed).toBe(true)
+	})
+
 	it('ends a pointer drag with the board when edit mode ends, so the next drag starts', async () => {
 		const onLayout = vi.fn()
 

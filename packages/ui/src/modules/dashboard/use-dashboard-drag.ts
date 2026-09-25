@@ -57,6 +57,20 @@ type SensedDrag = {
 	live: boolean
 	/** The window of the canvas, where the dnd-kit sensors listen. */
 	view: Window | null
+	/** Whether the task of the lift is over, so the sensor can cancel at once. */
+	attached: boolean
+	/** Whether the board canceled the drag in the task of the lift, so the sensor cancels later. */
+	pending: boolean
+}
+
+/**
+ * Ends the dnd-kit drag through its own cancel path. The library has no cancel for
+ * a caller outside its sensors, but each sensor cancels on a resize of its window.
+ * The sensor then lets go of the keys and the pointer of the page. Each other
+ * resize listener of the window also receives the event.
+ */
+function cancelSensor(drag: SensedDrag): void {
+	if (drag.live) drag.view?.dispatchEvent(new Event('resize'))
 }
 
 /** The name that the live region reads for a tile. */
@@ -112,7 +126,25 @@ export function useDashboardDrag({
 
 			const view = canvas?.ownerDocument.defaultView ?? null
 
-			sensed.current = { id, owned: measure !== null, live: true, view }
+			const drag: SensedDrag = {
+				id,
+				owned: measure !== null,
+				live: true,
+				view,
+				attached: false,
+				pending: false,
+			}
+
+			sensed.current = drag
+
+			// The keyboard sensor queues its keydown listener in a timer after this call. A cancel
+			// in this task would detach the sensor before that timer, and the late listener would
+			// hold the next end key. So such a cancel waits for a timer after the timer of the sensor.
+			setTimeout(() => {
+				drag.attached = true
+
+				if (drag.pending) setTimeout(() => cancelSensor(drag))
+			})
 
 			if (measure === null) return
 
@@ -216,14 +248,13 @@ export function useDashboardDrag({
 	const cancelDrag = useCallback(() => {
 		const drag = sensed.current
 
-		// dnd-kit has no cancel for a caller outside its sensors. Each sensor cancels
-		// on a resize of its window, so this event ends the drag through its own
-		// cancel path. The sensor then lets go of the keys and the pointer of the page.
-		// Each other resize listener of the window also receives the event.
-		if (drag?.live) drag.view?.dispatchEvent(new Event('resize'))
+		if (drag !== null) {
+			if (drag.attached) cancelSensor(drag)
+			else drag.pending = true
 
-		// A dnd-kit drag that outlives the cancel belongs to no gesture.
-		if (drag !== null) drag.owned = false
+			// A dnd-kit drag that outlives the cancel belongs to no gesture.
+			drag.owned = false
+		}
 
 		finishDrag(false)
 	}, [finishDrag])
