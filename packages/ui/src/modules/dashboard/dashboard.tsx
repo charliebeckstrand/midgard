@@ -2,8 +2,10 @@
 
 import { DndContext } from '@dnd-kit/core'
 import {
+	Children,
 	type CSSProperties,
 	cloneElement,
+	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
@@ -20,7 +22,6 @@ import { useControllable, useEscapeLayer, useGrabbingCursor, useResizeObserver }
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
-import { flattenChildren } from '../../utilities/flatten-children'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
 import type { DashboardCommit } from './dashboard-gesture'
@@ -85,6 +86,31 @@ function isSpecTilesElement(child: unknown): child is ReactElement<DashboardTile
 }
 
 /**
+ * The children in one flat list, through each Fragment. Each element takes a key
+ * that is unique in the list, and that stays with the element.
+ *
+ * @remarks
+ * `Children.toArray` escapes each key, so a key of the app never meets the key
+ * of an index. A Fragment adds its own key to the key of each child. A keyed
+ * Fragment therefore keeps the state of its children when it moves.
+ */
+function flattenBoardChildren(children: ReactNode, prefix = ''): ReactNode[] {
+	return Children.toArray(children).flatMap((child) => {
+		if (!isValidElement(child)) return [child]
+
+		const key = `${prefix}${child.key}`
+
+		// `Children.toArray` escapes each colon in a key of the app, and each of its keys
+		// starts with a period. Thus a colon meets a period only at the join of a Fragment path.
+		if (child.type === Fragment) {
+			return flattenBoardChildren((child.props as { children?: ReactNode }).children, `${key}:`)
+		}
+
+		return [cloneElement(child, { key })]
+	})
+}
+
+/**
  * The ids of the tiles that the children declare: each `DashboardTile` child,
  * also inside a Fragment, and each spec tile of a `DashboardTiles` child. A
  * component that renders a tile hides its id from the board. The same limit
@@ -93,7 +119,7 @@ function isSpecTilesElement(child: unknown): child is ReactElement<DashboardTile
 function declaredTiles(children: ReactNode): Set<string> {
 	const ids = new Set<string>()
 
-	for (const { node } of flattenChildren(children)) {
+	for (const node of flattenBoardChildren(children)) {
 		if (isTileElement(node)) ids.add(node.props.id)
 
 		if (isSpecTilesElement(node)) for (const tile of node.props.tiles) ids.add(tile.id)
@@ -113,10 +139,7 @@ function declaredTiles(children: ReactNode): Set<string> {
  * from its Fragment path. A component that renders a tile keeps its own slot.
  */
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
-	// A tile takes its key below, from its id.
-	const items = flattenChildren(children).map(({ node, key }) =>
-		isValidElement(node) && !isTileElement(node) ? cloneElement(node, { key }) : node,
-	)
+	const items = flattenBoardChildren(children)
 
 	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
 

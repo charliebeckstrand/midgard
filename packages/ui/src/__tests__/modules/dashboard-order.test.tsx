@@ -1,5 +1,6 @@
+import { Fragment } from 'react'
 import { renderToString } from 'react-dom/server'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -8,7 +9,7 @@ import {
 	DashboardTiles,
 	DashboardWidgetProvider,
 } from '../../modules/dashboard'
-import { allBySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, fireEvent, renderUI, screen, within } from '../helpers'
 import { Counter } from '../helpers/dashboard-board'
 
 // The board reads, left to right and top to bottom: b, a, then c.
@@ -186,6 +187,56 @@ describe('Dashboard reading order', () => {
 		rerender(<Board layout={SWAPPED} show={false} />)
 
 		expect(markupOrder(container)).toEqual(['C'])
+	})
+
+	it('keeps the state of the children of a keyed Fragment when the Fragments trade places', () => {
+		function Board({ groups }: { groups: string[] }) {
+			return (
+				<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
+					{groups.map((group) => (
+						<Fragment key={group}>
+							<DashboardTile id={group} title={group.toUpperCase()} />
+
+							<section aria-label={`Notes ${group}`}>
+								<Counter />
+							</section>
+						</Fragment>
+					))}
+				</Dashboard>
+			)
+		}
+
+		const { rerender } = renderUI(<Board groups={['a', 'b']} />)
+
+		const notes = (group: string) => within(screen.getByRole('region', { name: `Notes ${group}` }))
+
+		fireEvent.click(notes('a').getByRole('button', { name: 'Count 0' }))
+
+		rerender(<Board groups={['b', 'a']} />)
+
+		expect(notes('a').getByRole('button', { name: 'Count 1' })).toBeInTheDocument()
+
+		expect(notes('b').getByRole('button', { name: 'Count 0' })).toBeInTheDocument()
+	})
+
+	it('gives a child with a key of its own and a child with no key distinct keys', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
+				<p>First</p>
+
+				<p key="0">Second</p>
+
+				<DashboardTile id="a" title="A" />
+			</Dashboard>,
+		)
+
+		expect(error).not.toHaveBeenCalled()
+
+		expect(screen.getByText('First')).toBeInTheDocument()
+
+		expect(screen.getByText('Second')).toBeInTheDocument()
 	})
 
 	it('keeps a component that renders a tile in its own slot', () => {
