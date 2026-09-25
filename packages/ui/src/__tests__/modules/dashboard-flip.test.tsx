@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
-import { fireEvent, present, renderUI, screen, stubMatchMedia } from '../helpers'
+import { fireEvent, nonEmpty, present, renderUI, screen, stubMatchMedia } from '../helpers'
 import {
 	ControlledDashboard,
 	pressSplitter,
@@ -80,6 +80,9 @@ function watchGlides(name: string): { glides: Glide[]; widthReads: () => number 
 	return { glides, widthReads: () => reads }
 }
 
+/** The press of the main mouse button, which the pointer sensor needs. */
+const PRIMARY = { isPrimary: true, button: 0 }
+
 /** Lets the keyboard sensor attach its keys, one timer after a lift. */
 const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
 
@@ -138,5 +141,51 @@ describe('the glide of a dashboard tile', () => {
 		await carryRevenue('ArrowRight')
 
 		expect(traffic.glides).toEqual([])
+	})
+
+	it('raises a glide over the chrome of the later tiles, and under the lifted tile', async () => {
+		renderUI(<Board />)
+
+		const traffic = watchGlides('Traffic')
+
+		await carryRevenue('ArrowRight')
+
+		expect(traffic.glides.at(-1)?.keyframes.map((frame) => frame.zIndex)).toEqual([20, 20])
+	})
+
+	it('ends a glide that runs when a pickup lifts the tile, so the tile follows at once', async () => {
+		renderUI(<Board />)
+
+		const traffic = watchGlides('Traffic')
+
+		const grip = await carryRevenue('ArrowRight')
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await settle()
+
+		// The swap moves Traffic once, so it plays one glide, and the drop leaves it alone.
+		expect(traffic.glides).toHaveLength(1)
+
+		const [glide] = nonEmpty(traffic.glides, 'glide of Traffic')
+
+		expect(glide.cancel).not.toHaveBeenCalled()
+
+		const card = screen.getByRole('group', { name: 'Traffic' })
+
+		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		// The pointer sensor lifts the tile after 3 px of travel.
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		// Read before the drop, because the glide of a drop ends each glide too.
+		const cancels = glide.cancel.mock.calls.length
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		// dnd-kit removes its click guard from the document 50 ms after a release.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 60)))
+
+		expect(cancels).toBe(1)
 	})
 })

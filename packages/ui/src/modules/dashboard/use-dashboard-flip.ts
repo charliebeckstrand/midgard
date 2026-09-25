@@ -11,6 +11,13 @@ const GLIDE_DURATION = 200
 /** The easing of a tile glide: a fast start that settles softly. */
 const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
+/**
+ * The z-index of a tile while it glides. It is over the chrome of the later
+ * tiles at 10, and under the lifted tile at 30. A dropped tile has lost its
+ * raise, so without it the later tiles paint over the glide.
+ */
+const GLIDE_LAYER = 20
+
 /** The query that matches when the reader asks the platform for reduced motion. */
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
@@ -70,18 +77,26 @@ function glideFrom(
 	return x === 0 && y === 0 ? null : { x, y }
 }
 
+/** Ends each glide that runs on the tile. A host with no Web Animations API runs none. */
+function endGlides(element: HTMLElement): void {
+	for (const animation of element.getAnimations?.() ?? []) animation.cancel()
+}
+
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
 function glide(element: HTMLElement, offset: DashboardOffset): void {
 	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION)) return
 
 	const running = paintedOffset(element)
 
-	for (const animation of element.getAnimations()) animation.cancel()
+	endGlides(element)
 
 	element.animate(
 		[
-			{ transform: `translate(${offset.x + running.x}px, ${offset.y + running.y}px)` },
-			{ transform: 'translate(0px, 0px)' },
+			{
+				transform: `translate(${offset.x + running.x}px, ${offset.y + running.y}px)`,
+				zIndex: GLIDE_LAYER,
+			},
+			{ transform: 'translate(0px, 0px)', zIndex: GLIDE_LAYER },
 		],
 		{ duration: GLIDE_DURATION, easing: GLIDE_EASING },
 	)
@@ -99,7 +114,11 @@ function glide(element: HTMLElement, offset: DashboardOffset): void {
  *
  * Only a move glides. A change of size snaps, a responsive re-pack snaps, and so
  * does each change under reduced motion. A new glide starts from the painted
- * position of a glide that runs, so a quick run of previews never jumps.
+ * position of a glide that runs, so a quick run of previews never jumps. A
+ * pickup ends a glide that runs, so the tile follows the pointer at once.
+ *
+ * While it glides, a tile sits at z-index 20 in the stacking context of the
+ * board. Outside edit mode, a glide can therefore pass over app chrome at 10 to 19.
  *
  * @internal
  */
@@ -116,8 +135,15 @@ export function useDashboardFlip(
 
 		if (cell !== undefined) last.current = { cell, carried, snap }
 
-		// A carried tile follows the pointer; it glides only once the pointer lets go.
-		if (element === null || previous === null || cell === undefined || carried !== null) return
+		if (element === null || previous === null || cell === undefined) return
+
+		// A carried tile follows the pointer, and it glides only once the pointer lets
+		// go. A glide overrides the transform of the carry, so a pickup ends it.
+		if (carried !== null) {
+			if (previous.carried === null) endGlides(element)
+
+			return
+		}
 
 		const offset = glideFrom(previous, cell, snap, element)
 
