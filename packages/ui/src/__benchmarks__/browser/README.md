@@ -150,6 +150,28 @@ The suite's second open scenario, and the only one besides sort where the module
 
 Sort took the off-engine path too and closed most of its gap — 100k sort fell from 162 to 40ms (from 7× behind AG to 1.7×, from 5× behind MUI to 1.3×), and 10k from 25 to 9.5ms (now edging AG, still behind MUI's 6.5). A sort that is the grid's only transform now orders `rows` directly, off the engine, like mount and update — but it still trails both rivals at 100k, the suite's one open scenario. The 40-vs-23 residual is the decode: an asc↔desc flip re-derives every row's `SortKey` (the `parseNumeric` regex work) even though only the direction changed. The next lever is caching the decoded keys per (rows, column) so a flip re-sorts without re-decoding — a `WeakMap` keyed on the `rows` array, no manual invalidation — which should close the AG gap. Below that, the per-cell render is the last rung — a cell-tree diet (`GridDataCell` → `TableCell` → span) for the residual per-row constant.
 
+#### React Compiler (2026-09-25, this container)
+
+`pnpm bench:browser:compiler` runs the suite with the React Compiler on the `ui` source. This entry compares it with the plain run, after the engine boundary compiled in full. The table gives the ui grid only, in ms per iteration. Each value is the median over interleaved pairs of runs: four pairs for the grouped body and resize, and two pairs for the rest.
+
+The contenders stay plain in both runs, so their change measures the noise. It reached ±43% between runs, so read only a change that each pair shows.
+
+| Scenario | plain | compiled | change | each pair |
+| --- | ---: | ---: | ---: | --- |
+| mount · 1,000 × 8 | 24.3 | 24.0 | −1% | same sign |
+| mount · 100,000 × 8 | 58.6 | 56.2 | −4% | mixed |
+| update · 10,000 × 8 | 10.7 | 11.2 | +5% | same sign |
+| update · 100,000 × 8 | 37.6 | 36.7 | −2% | mixed |
+| sort · 10,000 · flip | 26.4 | 22.5 | −15% | same sign |
+| sort · 100,000 · flip | 50.3 | 51.0 | +1% | mixed |
+| filter · 100,000 · apply + clear | 226 | 228 | +1% | mixed |
+| grouped body · collapsed rows live | 6.06 | 6.38 | +5% | mixed |
+| grouped body · all expanded · rested | 6.39 | 6.64 | +4% | mixed |
+| resize · 1,000 · `truncate` | 109 | 118 | +8% | same sign |
+| resize · 3,000 · `truncate` | 219 | 228 | +4% | mixed |
+
+The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
+
 ### Optimization log
 
 Each entry names the change and the scenarios it moved.
