@@ -163,6 +163,11 @@ describe('DashboardTile actions', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(screen.queryByRole('dialog', { name: 'Tile b' })).not.toBeInTheDocument()
+
+		// The dialog mounts on the first open, and it stays for the next open.
+		fireEvent.click(expand)
+
+		expect(screen.getByRole('dialog', { name: 'Tile b' })).toHaveTextContent('Content b')
 	})
 
 	/** The board beside a control of the page, which can hold the focus. */

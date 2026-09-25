@@ -78,6 +78,9 @@ export function DashboardTileExpand({
 }: DashboardTileExpandProps) {
 	const [open, setOpen] = useState(false)
 
+	// The dialog mounts on the first open. Until then, a render of the tile runs none of its hooks.
+	const [seen, setSeen] = useState(false)
+
 	// The cleanup of an unmount reads the open state that the last render committed.
 	const openRef = useRef(false)
 
@@ -93,7 +96,14 @@ export function DashboardTileExpand({
 
 	return (
 		<>
-			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+			<DialogTrigger
+				open={open}
+				onClick={() => {
+					setSeen(true)
+
+					setOpen(true)
+				}}
+			>
 				<Button
 					type="button"
 					variant="bare"
@@ -105,47 +115,49 @@ export function DashboardTileExpand({
 				</Button>
 			</DialogTrigger>
 
-			<Dialog
-				open={open}
-				onOpenChange={setOpen}
-				width="5xl"
-				{...(title === undefined ? { 'aria-label': label } : {})}
-			>
-				{(title !== undefined || description !== undefined) && (
-					<DialogHeader>
-						{title !== undefined && <DialogTitle>{title}</DialogTitle>}
+			{seen && (
+				<Dialog
+					open={open}
+					onOpenChange={setOpen}
+					width="5xl"
+					{...(title === undefined ? { 'aria-label': label } : {})}
+				>
+					{(title !== undefined || description !== undefined) && (
+						<DialogHeader>
+							{title !== undefined && <DialogTitle>{title}</DialogTitle>}
 
-						{description !== undefined && (
-							// The guard holds the whole slot. A failed description then leaves no empty
-							// element for the `aria-describedby` of the dialog.
-							<DashboardTileGuard label={label} onError={onError}>
-								<DialogDescription>{description}</DialogDescription>
-							</DashboardTileGuard>
-						)}
-					</DialogHeader>
-				)}
+							{description !== undefined && (
+								// The guard holds the whole slot. A failed description then leaves no empty
+								// element for the `aria-describedby` of the dialog.
+								<DashboardTileGuard label={label} onError={onError}>
+									<DialogDescription>{description}</DialogDescription>
+								</DashboardTileGuard>
+							)}
+						</DialogHeader>
+					)}
 
-				<DialogBody>
-					<div data-slot="dashboard-tile-expanded" className={cn(k.expanded)}>
-						<DashboardTileContent
-							id={id}
-							label={label}
-							mount="always"
-							inert={false}
-							fallback={fallback}
-							onError={onError}
-						>
-							{children}
-						</DashboardTileContent>
-					</div>
-				</DialogBody>
+					<DialogBody>
+						<div data-slot="dashboard-tile-expanded" className={cn(k.expanded)}>
+							<DashboardTileContent
+								id={id}
+								label={label}
+								mount="always"
+								inert={false}
+								fallback={fallback}
+								onError={onError}
+							>
+								{children}
+							</DashboardTileContent>
+						</div>
+					</DialogBody>
 
-				<DialogFooter>
-					<DialogClose>
-						<Button type="button">Close</Button>
-					</DialogClose>
-				</DialogFooter>
-			</Dialog>
+					<DialogFooter>
+						<DialogClose>
+							<Button type="button">Close</Button>
+						</DialogClose>
+					</DialogFooter>
+				</Dialog>
+			)}
 		</>
 	)
 }
