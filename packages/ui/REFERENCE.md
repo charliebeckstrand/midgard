@@ -14,9 +14,9 @@
 | Providers | [`docs/PROVIDERS.md`](docs/PROVIDERS.md) | `ui/providers/*` — density, glass, headless, locale, toast, and the app-root `UIProvider`. |
 | Recipes | [`docs/RECIPES.md`](docs/RECIPES.md) | The design layer — Kiso tokens → Katakana bridge → Kata, plus the recipe engine. |
 | Core | [`docs/CORE.md`](docs/CORE.md) | `ui/core` — `cn`, `createContext`, `createSlot`, `announce`, and friends. |
-| Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, colour contrast, caret, dismiss-layers, keyboard navigation). |
+| Utilities | [`docs/UTILITIES.md`](docs/UTILITIES.md) | Internal pure helpers (numeric, color contrast, caret, dismiss-layers, keyboard navigation). |
 
-Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm docs`) renders them beside live demos through the shared [`docs`](../docs) engine. Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
+Per-symbol behavior, props, and defaults live in each symbol's TSDoc. The docs site (`pnpm docs`) renders them beside live demos through the [docs engine](src/docs/engine). Keep these docs current per [`../../CONVENTIONS.md`](../../CONVENTIONS.md) §12.
 
 ## 2. Server and client boundaries
 
@@ -61,8 +61,14 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | Build | root | `turbo run build` |
 | Typecheck | root | `turbo run check-types` |
 | Lint | root | `biome check .` |
-| Tests (scoped) | `packages/ui` | `pnpm test:related` / `pnpm test:changed` |
+| Tests for the change you edit | `packages/ui` | `pnpm test:related <file>` / `pnpm test:changed` |
+| Layout, computed style, or color ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:browser` |
+| Grid code under the React Compiler ([CONVENTIONS.md](../../CONVENTIONS.md) §10.7) | `packages/ui` | `pnpm test:compiler` |
+| The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
+| Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
+
+`test:changed` also runs the whole `boundary` project, so each gate runs before a push. CI runs each suite except the benchmarks.
 
 ## 5. Where to look
 
