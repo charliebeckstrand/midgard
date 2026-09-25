@@ -165,6 +165,12 @@ A change that adds, removes, or renames an export updates the matching doc in th
 
 12.4 An audit is a living record while it holds an open finding: resolve each row in place, against the pull request that closed it. Cite the pull request, not a branch commit, because a squash merge discards the branch. Delete the file once every finding is resolved, because the pull requests it names hold the history. Never name an audit from code, or from a document that outlives it; the reference dangles when the audit goes.
 
+A resolution changes the status of the row and cites the pull request, and nothing else. The outcome belongs in the pull request and its commit, which outlive the audit. Change the prose of a row only when a fact in it no longer holds. A mechanism that moved on `main` is such a fact.
+
+12.5 A plan under [`packages/ui/docs/plans/`](packages/ui/docs/plans) records one decision, named `{date}-{TOPIC}-PLAN.md`. It stays after the work lands, unlike an audit. Progress lives in the pull requests that carry the work, not in the plan.
+
+Do not mark a step done in the plan. Do not add the result of a step. Edit the plan only when the decision changes. When the last step lands, add one closing note that names the pull requests.
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md), [STE.md](STE.md).
