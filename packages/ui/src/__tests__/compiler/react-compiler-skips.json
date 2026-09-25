@@ -280,9 +280,6 @@
 	"modules/grid/use-grid-selection.ts": {
 		"useGridSelectionActions": "Refs"
 	},
-	"modules/grid/use-grid-table.ts": {
-		"(module)": "use no memo"
-	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
 	},

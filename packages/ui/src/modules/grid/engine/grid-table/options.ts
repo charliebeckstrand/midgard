@@ -189,7 +189,7 @@ function rowSortKey(row: Row<GridFeatures, RowData>, columnId: string): SortKey 
  * @internal
  */
 export function makeSmartSortingFn(
-	isDescending: (columnId: string) => boolean,
+	isDescending: (row: Row<GridFeatures, RowData>, columnId: string) => boolean,
 ): SortFn<GridFeatures, RowData> {
 	return (rowA, rowB, columnId) => {
 		const a = rowSortKey(rowA, columnId)
@@ -200,14 +200,25 @@ export function makeSmartSortingFn(
 
 		// Empties order the same regardless of direction; pre-invert so the engine's
 		// desc negation lands them last either way.
-		if (a.empty || b.empty) return isDescending(columnId) ? -result : result
+		if (a.empty || b.empty) return isDescending(rowA, columnId) ? -result : result
 
 		return result
 	}
 }
 
-/** Direction-agnostic smart sort backing direct {@link toColumnDef} callers; the Grid supplies a direction-aware one. @internal */
-const defaultSmartSortingFn = makeSmartSortingFn(() => false)
+/**
+ * Whether a column sorts descending in the engine that holds `row`. Each engine
+ * row holds its table, and the table reads the sort state of the render in
+ * progress.
+ *
+ * @internal
+ */
+function sortsDescending(row: Row<GridFeatures, RowData>, columnId: string): boolean {
+	return row.table.atoms.sorting.get().some((entry) => entry.id === columnId && entry.desc)
+}
+
+/** The smart sort of each data column, with the direction read from the engine. @internal */
+const smartSortFn = makeSmartSortingFn(sortsDescending)
 
 /**
  * Resolves a column's engine behaviors from its declaration:
@@ -275,21 +286,16 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
  * Maps a grid column to its engine `ColumnDef`: identity, the capability gates,
  * the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds.
  *
- * @param smartSortingFn - The direction-aware default sort (see
- *   {@link makeSmartSortingFn}); direct callers get a direction-agnostic one.
  * @internal
  */
-export function toColumnDef<T>(
-	col: GridColumn<T>,
-	smartSortingFn: SortFn<GridFeatures, RowData> = defaultSmartSortingFn,
-): EngineColumnDef<T> {
+export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection,
 	// drag-handle, and expander columns instead hold a natural affordance width so
 	// they aren't that wide. (The non-resizable auto layout already sizes them to
 	// content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
-	const { accessorFn, engineSortFn, filterFn } = deriveColumnBehavior(col, smartSortingFn)
+	const { accessorFn, engineSortFn, filterFn } = deriveColumnBehavior(col, smartSortFn)
 
 	return {
 		id: String(col.id),

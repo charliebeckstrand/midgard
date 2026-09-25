@@ -3,13 +3,13 @@
 // The engine boundary. TanStack keeps one core table for the life of the grid,
 // and its rows, columns, and headers also keep their identity. Their reads are
 // live. The React Compiler caches a value on the identity of its inputs, so a
-// compiled read of one of these objects goes stale. This module is therefore the
-// one grid module that the compiler does not transform, and the only one that
-// reads the table during render. It gives the grid values and actions only. A
-// value is immutable, and a new value comes with each change. An action reads
-// or writes the engine when it runs, and the render code calls it only from an
-// event or an effect.
-'use no memo'
+// compiled read of one of these objects goes stale. This module is the only
+// grid module that reads the table during render, and it reads the table object
+// of the render. `useTable` gives a new table object when its options or its
+// state change, so a compiled read of that object stays current. It gives the
+// grid values and actions only. A value is immutable, and a new value comes with
+// each change. An action reads or writes the engine when it runs, and the render
+// code calls it only from an event or an effect.
 
 import {
 	type ColumnFiltersState,
@@ -23,8 +23,6 @@ import {
 	type GroupingState,
 	type OnChangeFn,
 	type PaginationState,
-	type RowData,
-	type SortFn,
 	type SortingState,
 	useTable,
 } from '@tanstack/react-table'
@@ -34,7 +32,6 @@ import {
 	type SetStateAction,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useMemo,
 	useRef,
 	useState,
@@ -59,17 +56,12 @@ import {
 	frozenLayout,
 	sameFrozenLayout,
 } from './engine/grid-pin/layout'
-import {
-	computeSortOrder,
-	materializeSort,
-	type SmartSortField,
-} from './engine/grid-sort/utilities'
+import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
 	buildState,
 	clampSizingToFloors,
 	filterOptions,
 	groupingOptions,
-	makeSmartSortingFn,
 	paginationOptions,
 	resizeOptions,
 	resolveFilterMode,
@@ -293,18 +285,20 @@ const NO_ROWS: never[] = []
  * render that resolved the same facts therefore hands the memos below it the
  * identity they already hold.
  *
- * @remarks It writes a ref during render, which the React Compiler does not
- * allow. The hold is safe here: it keeps a value equal to the new one, so a
- * render that React discards leaves nothing wrong behind.
+ * @remarks The held value is state. A value that `same` rejects updates the
+ * state during render, so React renders the component again at once with the
+ * new value, before it commits.
  *
  * @internal
  */
 function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
-	const ref = useRef(candidate)
+	const [stable, setStable] = useState(() => candidate)
 
-	const stable = same(ref.current, candidate) ? ref.current : candidate
+	if (stable !== candidate && !same(stable, candidate)) {
+		setStable(() => candidate)
 
-	ref.current = stable
+		return candidate
+	}
 
 	return stable
 }
@@ -315,11 +309,8 @@ function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean
  *
  * @internal
  */
-function toColumnDefs<T>(
-	columns: GridColumn<T>[],
-	smartSortingFn: SortFn<GridFeatures, RowData>,
-): EngineColumnDef<T>[] {
-	return columns.map((col) => ({ ...toColumnDef(col, smartSortingFn), meta: { gridColumn: col } }))
+function toColumnDefs<T>(columns: GridColumn<T>[]): EngineColumnDef<T>[] {
+	return columns.map((col) => ({ ...toColumnDef(col), meta: { gridColumn: col } }))
 }
 
 /**
@@ -532,7 +523,7 @@ function useGroupTree<T>(args: {
 
 /**
  * The off-engine client sort. When a sort is the grid's *only* transform, it
- * orders `rows` directly through {@link computeSortOrder} and
+ * orders `rows` directly through {@link cachedSortOrder} and
  * {@link materializeSort}, which match the engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
  * materializes the engine's Row-per-datum model. That is the same win the
  * lite-cell body buys mount and update, extended to sort. `null` when inactive
@@ -580,39 +571,16 @@ function useSortView<T>(args: {
 		})
 	}, [clientSort, materialize, sort, columns])
 
-	// The decode-and-sort produces a permutation that depends only on the rows and
-	// the sort spec (each column's id + direction), never on `getKey` — so a re-sort
-	// of unchanged rows by a spec already seen (an asc/desc flip, the module's
-	// costliest gesture; or an unrelated re-render) reuses the cached permutation
-	// and pays only the linear materialize. The cache is scoped to the current rows
-	// and columns — either identity changing drops it — so a stale order can never
-	// outlive the data or the accessors it was computed against.
-	const orderCacheRef = useRef<{
-		rows: T[]
-		columns: GridColumn<T>[]
-		orders: Map<string, number[]>
-	} | null>(null)
-
+	// The permutation depends only on the rows and the sort spec, never on
+	// `getKey`, so `cachedSortOrder` reuses it for a spec already seen. Its cache
+	// is scoped to the current rows and columns, so a stale order can never
+	// outlive the data or the accessors that it was computed against.
 	return useMemo(() => {
 		if (!fields || !sort?.length) return null
 
-		let cache = orderCacheRef.current
-
-		if (!cache || cache.rows !== rows || cache.columns !== columns) {
-			cache = { rows, columns, orders: new Map() }
-
-			orderCacheRef.current = cache
-		}
-
 		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
 
-		let order = cache.orders.get(sig)
-
-		if (!order) {
-			order = computeSortOrder(rows, fields)
-
-			cache.orders.set(sig, order)
-		}
+		const order = cachedSortOrder(rows, columns, sig, fields)
 
 		return materializeSort(rows, order, getKey)
 	}, [fields, rows, getKey, sort, columns])
@@ -773,11 +741,17 @@ function useResizeView<T>(args: {
 		[resizable, leaves, widths, floors, resizing, actions],
 	)
 
-	const settleWidths = useStableValue(
+	// The widths as text, so a render that resolves the same widths keeps the
+	// same array. A column with no settle width is `null` in the text.
+	const settleKey = JSON.stringify(
 		visibleColumns.map((col) =>
-			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : null,
 		),
-		sameElements,
+	)
+
+	const settleWidths = useMemo(
+		() => (JSON.parse(settleKey) as (number | null)[]).map((width) => width ?? undefined),
+		[settleKey],
 	)
 
 	return { resize, settleWidths }
@@ -947,22 +921,9 @@ export function useGridTable<T>({
 	// then keeps its columns, and every column-derived value keeps its identity.
 	const columns = useStableValue(suppliedColumns, sameElements)
 
-	// A live map of column id -> descending, read by the smart comparator at
-	// compare time so empties sink under both directions. Held in a ref refreshed
-	// each render so a sort-direction flip doesn't rebuild the column defs.
-	const sortDescByIdRef = useRef<Record<string, boolean>>({})
-
-	sortDescByIdRef.current = useMemo(
-		() => Object.fromEntries((sort ?? []).map((e) => [String(e.column), e.direction === 'desc'])),
-		[sort],
-	)
-
-	const smartSortingFn = useMemo(
-		() => makeSmartSortingFn((columnId) => sortDescByIdRef.current[columnId] ?? false),
-		[],
-	)
-
-	const columnDefs = useMemo(() => toColumnDefs(columns, smartSortingFn), [columns, smartSortingFn])
+	// The smart comparator reads the sort direction from the engine when it runs,
+	// so a direction flip does not rebuild the column definitions.
+	const columnDefs = useMemo(() => toColumnDefs(columns), [columns])
 
 	const paginated = paginationConfig != null
 
@@ -1006,14 +967,23 @@ export function useGridTable<T>({
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
-	// the saved widths without a new callback on each render.
-	const clearSizing = useEffectEvent(() => columnSizingConfig?.onValueChange?.({}))
+	// the saved widths without a new callback on each render. The effect keeps the
+	// latest binding, and the callback reads it only when it runs.
+	const sizingChangeRef = useRef(columnSizingConfig?.onValueChange)
 
-	const clearSizingPreference = useCallback(() => clearSizing(), [])
+	const onSizingChange = columnSizingConfig?.onValueChange
+
+	useEffect(() => {
+		sizingChangeRef.current = onSizingChange
+	}, [onSizingChange])
+
+	const clearSizingPreference = useCallback(() => sizingChangeRef.current?.({}), [])
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
-	const initialSizingRef = useRef(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue)
+	const [initialSizing] = useState(
+		() => columnSizingConfig?.value ?? columnSizingConfig?.defaultValue,
+	)
 
 	// Per-column hard floors the autosizer measures (a single-word header's full
 	// width, a multi-word one's icons). The autosizer writes each measurement into
@@ -1315,7 +1285,7 @@ export function useGridTable<T>({
 		freezeOnRowChange: stableColumnWidths,
 		// Restored/persisted widths start held, and the autosizer flags its own
 		// writes so they stay off the consumer's `onValueChange`.
-		initialSizing: initialSizingRef.current,
+		initialSizing,
 		autoSizingRef,
 		clearPreference: clearSizingPreference,
 	})

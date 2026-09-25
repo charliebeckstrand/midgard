@@ -301,6 +301,58 @@ export function computeSortOrder<T>(rows: T[], fields: SmartSortField<T>[]): num
 }
 
 /**
+ * The sort orders already computed, by the rows, then by the columns, then by
+ * the sort signature. A `WeakMap` holds no rows or columns alive, so an order
+ * goes with the data or the accessors that it was computed against.
+ *
+ * @internal
+ */
+const sortOrders = new WeakMap<object, WeakMap<object, Map<string, number[]>>>()
+
+/**
+ * The {@link computeSortOrder} permutation of `rows`, computed one time for
+ * each sort signature. A re-sort by a signature already seen reuses the order,
+ * and pays only the linear materialize. An asc/desc flip and an unrelated
+ * re-render are two such re-sorts.
+ *
+ * @param columns - The column set that the fields read. A new set drops the orders.
+ * @param signature - The column id and the direction of each sort entry.
+ * @internal
+ */
+export function cachedSortOrder<T>(
+	rows: T[],
+	columns: object,
+	signature: string,
+	fields: SmartSortField<T>[],
+): number[] {
+	let byColumns = sortOrders.get(rows)
+
+	if (!byColumns) {
+		byColumns = new WeakMap()
+
+		sortOrders.set(rows, byColumns)
+	}
+
+	let orders = byColumns.get(columns)
+
+	if (!orders) {
+		orders = new Map()
+
+		byColumns.set(columns, orders)
+	}
+
+	let order = orders.get(signature)
+
+	if (!order) {
+		order = computeSortOrder(rows, fields)
+
+		orders.set(signature, order)
+	}
+
+	return order
+}
+
+/**
  * The cheap half of {@link sortRowsSmart}. It projects a sort permutation (from
  * {@link computeSortOrder}) into the reordered rows and their keys in one
  * O(rows) pass. Each key is taken at the row's *original* index (the identity

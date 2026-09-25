@@ -1,10 +1,10 @@
 language js
 
-// The grid's engine boundary (CONVENTIONS.md §10.7). TanStack's table is a
-// mutable object that keeps its identity, and the React Compiler caches a read
-// of it on that identity. `use-grid-table.ts` is therefore the one module that
-// reads the table during render, and the `engine` folder holds the helpers it
-// calls. Every other module gets values and actions from the boundary, and
+// The grid's engine boundary (CONVENTIONS.md §10.7). TanStack keeps one core
+// table, and its rows and columns, for the life of a grid, and their reads are
+// live. The React Compiler caches a read on the identity of its inputs.
+// `use-grid-table.ts` is therefore the one module that reads the table during
+// render, and the `engine` folder holds the helpers it calls. Every other module gets values and actions from the boundary, and
 // takes no value from `@tanstack/react-table`.
 //
 // The engine is `@tanstack/react-table`, each of its subpath entries (such as
