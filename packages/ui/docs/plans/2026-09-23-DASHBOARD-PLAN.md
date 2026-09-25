@@ -1,7 +1,8 @@
 # Dashboard module — a board that composes widgets it does not know
 
-> **Status.** Version one is in build on `feat/dashboard-redesign`. It replaces the design on
-> `feat/dashboard-module`, which stays as a reference and is not merged.
+> **Status.** Closed. Version one landed in [#1243](https://github.com/charliebeckstrand/midgard/pull/1243),
+> and version two landed in [#1250](https://github.com/charliebeckstrand/midgard/pull/1250). This design
+> replaces the one on `feat/dashboard-module`, which stays as a reference and is not merged.
 >
 > **Read §2 first.** The decoupling rule is the reason for this redesign. Each other decision
 > follows from it.
@@ -134,7 +135,8 @@ once for each edit session.
 
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
-under `minWidth`. The splitters also take the arrow keys. (Built later: the grid-unit limits
+under `minWidth`. The two edge splitters also take the arrow keys. The corner takes the pointer
+only, because the two edges already serve the keyboard. (Built later: the grid-unit limits
 `minSize` and `maxSize` also bound each axis, and a new tile takes its `defaultSize` within them.)
 
 **Right to left** (built later). The CSS grid mirrors the saved layout, so the layout stays in
