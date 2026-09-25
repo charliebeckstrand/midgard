@@ -2,6 +2,7 @@ import { act } from '@testing-library/react'
 import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { Dialog } from '../../components/dialog'
 import {
 	Dashboard,
 	type DashboardHandle,
@@ -199,6 +200,72 @@ describe('Dashboard', () => {
 		expect(grip).not.toHaveAttribute('data-dragging')
 
 		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
+	})
+
+	it('cancels a drag on Escape, and keeps the dialog around the board open', async () => {
+		const onOpenChange = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Board editing onDragEnd={onDragEnd} />
+			</Dialog>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: true }),
+		)
+	})
+
+	it('shows the grabbing cursor on the whole page while a tile drags, until the drop or the cancel', async () => {
+		renderUI(<Board editing />)
+
+		const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(cursor()).not.toBeNull()
+
+		await settle()
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(cursor()).toBeNull()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(cursor()).not.toBeNull()
+
+		await settle()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await settle()
+
+		expect(cursor()).toBeNull()
 	})
 
 	it('renders only the tile whose cell changed', () => {

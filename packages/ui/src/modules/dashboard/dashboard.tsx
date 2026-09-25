@@ -170,8 +170,9 @@ export type DashboardProps = AccessibleName & {
  * or it reorders it against an equal tile; anything else is blocked. A resize
  * grows a tile until it meets a neighbour or an edge. One gesture owns the board
  * at a time, so the board refuses a second gesture until the first one ends.
- * What you save is what renders, gaps included. To close the gaps, call `tidy`
- * on the `ref` ({@link DashboardHandle}).
+ * Escape cancels a live gesture, and a dialog, sheet, or drawer around the
+ * board stays open. What you save is what renders, gaps included. To close the
+ * gaps, call `tidy` on the `ref` ({@link DashboardHandle}).
  *
  * The board is a CSS grid whose rows follow the container width. The server
  * therefore renders each tile at its saved cell, with no measurement. When the

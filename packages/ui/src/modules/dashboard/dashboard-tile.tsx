@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn, dataAttr } from '../../core'
+import { useGrabbingCursor } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -150,6 +151,9 @@ export type DashboardTileProps = {
  * the tile sets `inert` on the content box. No widget then takes a pointer, a
  * focus, or an assistive-tech read while the user arranges the board.
  *
+ * While the tile drags, the whole page shows the grabbing cursor. The hand thus
+ * stays closed when the carried tile stops at an edge and the pointer goes on.
+ *
  * The tile renders again only when its own cell or its own flags change. A move
  * glides, and each change of size snaps. Each tile has its own error boundary and
  * its own Suspense boundary, so a widget that fails or waits affects only its tile.
@@ -215,6 +219,10 @@ export function DashboardTile(props: DashboardTileProps) {
 	const movable = editable && cell !== undefined && !cell.static
 
 	const drag = useDashboardTileDrag(id, cell, movable)
+
+	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
+	// holds the closed hand on the whole page until the drop or the cancel.
+	useGrabbingCursor(drag.dragging)
 
 	const shell = useRef<HTMLDivElement | null>(null)
 
