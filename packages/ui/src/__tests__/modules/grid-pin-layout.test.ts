@@ -5,8 +5,16 @@ import {
 	NEW_ROW_ADD_COLUMN_ID,
 	withNewRowAddColumn,
 } from '../../modules/grid/engine/grid-new-row-column'
-import { frozenLayout, sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
+import {
+	frozenLayout,
+	sameFrozenLayout,
+	sameFrozenStructure,
+} from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
+import {
+	createFrozenOffsetStore,
+	writeFrozenOffsets,
+} from '../../modules/grid/engine/grid-pin/offsets'
 import {
 	buildColumnPinning,
 	toColumnPinningState,
@@ -107,10 +115,11 @@ describe('frozen column layout', () => {
 })
 
 /**
- * The grid carries the layout across `memo` boundaries through the identity of
- * its `pinning` value. It must hold that reference while the frozen columns are
- * where they were — a drag on a scrolling column must not re-render every row —
- * and yield a fresh one the moment one of them moves.
+ * The grid carries the frozen structure across `memo` boundaries through the
+ * identity of its `pinning` value. It holds that reference while each frozen
+ * column keeps its edge and its boundary role, so a drag re-renders no row. It
+ * gives a fresh one when a column joins the group, leaves it, or changes edge.
+ * An offset move reaches the cells through the offset store.
  */
 describe('the pinning value of useGridTable', () => {
 	type Row = { id: number; name: string; email: string; status: string }
@@ -146,16 +155,18 @@ describe('the pinning value of useGridTable', () => {
 		expect(result.current.pinning).toBe(first)
 	})
 
-	it('yields a fresh layout when a frozen column moves', () => {
+	it('holds its reference when a frozen offset moves, and gives the committed offset', () => {
 		const { result } = renderGrid([name, { ...email, pinned: true }, status])
 
 		const first = result.current.pinning
 
+		expect(first?.offset('email')).toBe(160)
+
 		act(() => result.current.resize?.nudge('name', 40))
 
-		expect(result.current.pinning).not.toBe(first)
+		expect(result.current.pinning).toBe(first)
 
-		expect(result.current.pinning?.column('email')?.offset).toBe(200)
+		expect(result.current.pinning?.offset('email')).toBe(200)
 	})
 
 	it('yields a fresh layout when a column joins the group and takes the boundary', () => {
@@ -225,10 +236,141 @@ describe('the Add column of the new-row slot', () => {
 			],
 		)
 
-		const pinning = buildColumnPinning(layout)
+		const pinning = buildColumnPinning(layout, createFrozenOffsetStore(layout))
 
 		expect(pinning.column(NEW_ROW_ADD_COLUMN_ID)).toBeUndefined()
 
 		expect(pinning.column('status')).toEqual({ side: 'right', offset: 48, boundary: true })
+
+		expect(pinning.offset(NEW_ROW_ADD_COLUMN_ID)).toBeUndefined()
+
+		expect(pinning.offset('status')).toBe(48)
+	})
+})
+
+/**
+ * The structure of the layout keys the `pinning` view. The offsets travel apart
+ * from it: the store holds the committed layout, and the grid writes the moved
+ * offsets to the frozen cells.
+ */
+describe('frozen offsets apart from the structure', () => {
+	const before = layoutOf([
+		['name', 160],
+		['email', 200],
+	])
+
+	const after = layoutOf([
+		['name', 240],
+		['email', 200],
+	])
+
+	/** A frozen cell of `id`, with an inline offset on `property`. */
+	function frozenCell(id: string, property: string, value: string): HTMLElement {
+		const cell = document.createElement('td')
+
+		cell.setAttribute('data-grid-pin', id)
+
+		cell.style.setProperty(property, value)
+
+		return cell
+	}
+
+	it('reads two layouts as one structure when only an offset moved', () => {
+		expect(sameFrozenStructure(before, after)).toBe(true)
+
+		expect(sameFrozenLayout(before, after)).toBe(false)
+	})
+
+	it('reads a new structure when the boundary moves or a column changes edge', () => {
+		expect(sameFrozenStructure(before, layoutOf([['name', 160]]))).toBe(false)
+
+		expect(sameFrozenStructure(before, layoutOf([['name', 160]], [['email', 200]]))).toBe(false)
+	})
+
+	it('gives the committed offset only for the edge that the layout commits', () => {
+		const store = createFrozenOffsetStore(before)
+
+		expect(store.get('email', 'left')).toBe(160)
+
+		expect(store.commit(after)).toBe(before)
+
+		expect(store.get('email', 'left')).toBe(240)
+
+		expect(store.get('email', 'right')).toBeUndefined()
+
+		expect(store.get('status', 'left')).toBeUndefined()
+	})
+
+	it('prefers the committed offset over the one of the structure snapshot', () => {
+		const store = createFrozenOffsetStore(before)
+
+		const pinning = buildColumnPinning(before, store)
+
+		store.commit(after)
+
+		expect(pinning.column('email')?.offset).toBe(160)
+
+		expect(pinning.offset('email')).toBe(240)
+	})
+
+	it('writes the new offset to the cells of each moved column only', () => {
+		const container = document.createElement('table')
+
+		const name = frozenCell('name', 'inset-inline-start', '0px')
+
+		const email = frozenCell('email', 'inset-inline-start', '160px')
+
+		container.append(name, email)
+
+		writeFrozenOffsets(container, before, after)
+
+		expect(email.style.getPropertyValue('inset-inline-start')).toBe('240px')
+
+		expect(name.style.getPropertyValue('inset-inline-start')).toBe('0px')
+	})
+
+	it('writes the inline-end offset of a right-frozen column', () => {
+		const from = layoutOf(
+			[],
+			[
+				['status', 120],
+				['actions', 80],
+			],
+		)
+
+		const to = layoutOf(
+			[],
+			[
+				['status', 120],
+				['actions', 100],
+			],
+		)
+
+		const container = document.createElement('table')
+
+		const status = frozenCell('status', 'inset-inline-end', '80px')
+
+		container.append(status)
+
+		writeFrozenOffsets(container, from, to)
+
+		expect(status.style.getPropertyValue('inset-inline-end')).toBe('100px')
+	})
+
+	it('writes nothing when no offset moved', () => {
+		const container = document.createElement('table')
+
+		const email = frozenCell('email', 'inset-inline-start', '999px')
+
+		container.append(email)
+
+		const same = layoutOf([
+			['name', 160],
+			['email', 200],
+		])
+
+		writeFrozenOffsets(container, before, same)
+
+		expect(email.style.getPropertyValue('inset-inline-start')).toBe('999px')
 	})
 })

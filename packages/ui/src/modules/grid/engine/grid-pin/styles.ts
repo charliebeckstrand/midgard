@@ -12,6 +12,10 @@ import type { GridColumnPinning } from '../../use-grid-table'
  * edge. Pairs with
  * {@link pinnedClassName}, which carries the `position: sticky` itself.
  *
+ * The offset is the committed one. When an offset moves, the grid writes the new
+ * offset to the cells that carry {@link pinnedCellAttribute}. A cell with this
+ * style must therefore carry that attribute too.
+ *
  * @internal
  */
 export function pinnedOffsetStyle(
@@ -20,11 +24,25 @@ export function pinnedOffsetStyle(
 ): CSSProperties | undefined {
 	const frozen = pinning?.column(id)
 
-	if (!frozen) return undefined
+	const offset = pinning?.offset(id)
 
-	return frozen.side === 'left'
-		? { insetInlineStart: frozen.offset }
-		: { insetInlineEnd: frozen.offset }
+	if (!frozen || offset === undefined) return undefined
+
+	return frozen.side === 'left' ? { insetInlineStart: offset } : { insetInlineEnd: offset }
+}
+
+/**
+ * The value of the `data-grid-pin` attribute for a frozen cell: its column id,
+ * or `undefined` when the column scrolls. The grid finds the cells of a moved
+ * column through it, and writes their new offset without a render.
+ *
+ * @internal
+ */
+export function pinnedCellAttribute(
+	pinning: GridColumnPinning | null,
+	id: string | number,
+): string | undefined {
+	return pinning?.column(id) ? String(id) : undefined
 }
 
 /**
@@ -59,25 +77,28 @@ export function pinnedClassName(
 
 /**
  * The pinned chrome a body cell merges: the sticky/boundary classes joined with
- * the column's own `className`, and the sticky-offset style. One call per cell
- * in place of the class/style pair every renderer repeated.
+ * the column's own `className`, and the sticky-offset style. It also gives the
+ * `pin` value for the `data-grid-pin` attribute of the cell. One call per cell
+ * in place of the chrome every renderer repeated.
  *
  * @internal
  */
 export function pinnedCellProps(
 	pinning: GridColumnPinning | null,
 	col: { id: string | number; className?: string },
-): { className: string; style: CSSProperties | undefined } {
+): { className: string; style: CSSProperties | undefined; pin: string | undefined } {
 	return {
 		className: cn(pinnedClassName(pinning, col.id), col.className),
 		style: pinnedOffsetStyle(pinning, col.id),
+		pin: pinnedCellAttribute(pinning, col.id),
 	}
 }
 
 /**
  * The header-cell counterpart of {@link pinnedCellProps}: the header-layer
  * pinned classes joined with the column's `headerClassName`, and the fixed
- * width (when set) merged under the sticky offset.
+ * width (when set) merged under the sticky offset. It also gives the `pin`
+ * value.
  *
  * @internal
  */
@@ -85,12 +106,13 @@ export function pinnedHeaderProps(
 	pinning: GridColumnPinning | null,
 	column: { id: string | number; headerClassName?: string },
 	width: string | number | undefined,
-): { className: string; style: CSSProperties } {
+): { className: string; style: CSSProperties; pin: string | undefined } {
 	return {
 		className: cn(pinnedClassName(pinning, column.id, { header: true }), column.headerClassName),
 		style: {
 			...(width !== undefined ? { width } : null),
 			...pinnedOffsetStyle(pinning, column.id),
 		},
+		pin: pinnedCellAttribute(pinning, column.id),
 	}
 }

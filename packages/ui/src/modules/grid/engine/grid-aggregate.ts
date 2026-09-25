@@ -79,6 +79,44 @@ export function aggregateColumn<T>(column: GridColumn<T>, rows: T[]): unknown {
 }
 
 /**
+ * The aggregates already computed, by the rows, then by the column. A
+ * `WeakMap` holds no rows or columns alive, so an entry goes with the row
+ * array or the column that it was computed from.
+ *
+ * @internal
+ */
+const aggregates = new WeakMap<readonly unknown[], WeakMap<object, unknown>>()
+
+/**
+ * {@link aggregateColumn}, computed one time for each row array and column.
+ *
+ * @remarks
+ * The grid gives a new row array when the rows of an aggregate change. The
+ * data, the filters, and the leaves of a group each change them. A render
+ * that changes none of them reads the cached value. A custom aggregate
+ * function must therefore read only its rows.
+ *
+ * @internal
+ */
+export function cachedAggregate<T>(column: GridColumn<T>, rows: T[]): unknown {
+	let byColumn = aggregates.get(rows)
+
+	if (!byColumn) {
+		byColumn = new WeakMap()
+
+		aggregates.set(rows, byColumn)
+	}
+
+	if (byColumn.has(column)) return byColumn.get(column)
+
+	const value = aggregateColumn(column, rows)
+
+	byColumn.set(column, value)
+
+	return value
+}
+
+/**
  * Default aggregate formatting, where a column has no
  * {@link GridColumn.aggCell}:
  *
@@ -131,7 +169,7 @@ export function renderAggregate<T>(column: GridColumn<T>, rows: T[], headerRow?:
 	if (column.aggFunc === undefined) return null
 
 	const value =
-		headerRow !== undefined ? columnAccessor(column)(headerRow) : aggregateColumn(column, rows)
+		headerRow !== undefined ? columnAccessor(column)(headerRow) : cachedAggregate(column, rows)
 
 	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value)
 }

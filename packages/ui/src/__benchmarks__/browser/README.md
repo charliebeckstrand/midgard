@@ -121,6 +121,10 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-paginate.bench.tsx`](grid-paginate.bench.tsx) — client pagination with 100 rows on each page, the cap of MUI's MIT tier, at 10k / 100k. Three scenarios run: a mount, a flip to the second page and back, and an asc/desc sort flip on `id`. Each library pages through its own pagination: the ui module's `pagination` binding, AG's `pagination` option, and MUI's `paginationModel`. Only this scenario mounts the grids paginated.
 
+- [`grid-total.bench.tsx`](grid-total.bench.tsx) — a grand total that sums the loads and the weight, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. AG Grid holds its grand-total row in the Enterprise tier, and MUI X holds its aggregation in the Premium tier, so the ui grid runs alone. A contender names the mount options that it cannot run (`unsupported` in [`grid-contenders.tsx`](grid-contenders.tsx)), and the harness leaves it out of those scenarios.
+
+- [`grid-facets.bench.tsx`](grid-facets.bench.tsx) — a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open. AG Grid holds its set filter in the Enterprise tier, and the filter of MUI X lists no values, so the ui grid runs alone.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -213,6 +217,19 @@ Each entry names the change and the scenarios it moved.
 
     At 100k the module now leads both contenders in one run on the same machine (AG 119.0ms, MUI 102.5ms). At 10k all three sit near 45ms. The quick filter and the sort flips stayed within noise in both builds. A filter next to pagination or grouping still runs in the engine.
 
+12. **Frozen offsets without a render of the rows** ([`offsets.ts`](../../modules/grid/engine/grid-pin/offsets.ts) `FrozenOffsetStore`, [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `usePinningView`, 2026-09-25, this container). A width change of a frozen column moves the sticky offsets of the frozen columns behind it. The `pinning` view then got a new reference, so each row rendered again. The view now keys on the edge and the boundary role of each column only. A layout effect writes the moved offsets to the cells that carry `data-grid-pin`, and a cell that renders later reads the committed offset from the store. The resize bench adds a frozen contender, which freezes `origin` and the column after it. Median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | resize · 1,000 · frozen · plain | 236.2 | 167.3 | −24%, −32%, −24% |
+    | resize · 3,000 · frozen · plain | 928.8 | 415.1 | −29%, −56%, −55% |
+    | resize · 1,000 · frozen · compiled | 196.4 | 170.9 | −3%, −13%, −17% |
+    | resize · 3,000 · frozen · compiled | 520.8 | 519.9 | −2%, −7%, +4% |
+
+    The compiled row holds its cells in a memo block, so the compiled `main` rendered few cells already, and the 3,000-row case stays level. The resizes with no frozen column stayed within noise in both builds.
+
+    A trace of the plain 1,000-row resize gives the rest of the cost. Sticky cells add about 40ms of paint, pre-paint, and composite work, whether an offset moves or not. Each sticky cell is a paint layer of its own. The offset move then restyles the cells of the moved column. The served Tailwind CSS keeps its native nesting, because the Vite plugin flattens the CSS only in a build. The nested `**:` rules make each restyle about two times slower in this suite than in a build. The restyle numbers above therefore overstate the shipped cost.
+
 12. **Build the row index map only for a cursor** ([`grid-data.tsx`](../../modules/grid/grid-data.tsx), 2026-09-25, this container). The grid built a map from each row to its index on each change of the rows, and only the cursor reads it. A grid with no cursor now skips it. Medians of three interleaved pairs: mount 100,000 rows 57.3 → 44.5 ms (−22%), update 100,000 rows 39.4 → 25.9 ms (−34%), and the 10,000-row mount and update 10% to 12% faster. The contenders held level or got slower in the same pairs. A run without this change put the 100,000-row mount back at 58 ms and the update at 36 ms, so this change carries the mount, and most of the update. The same change set removed three render fan-outs, which no bench here times. The start and the end of a drag no longer render each truncating cell. A row that opens for edit renders only its own cells. The engine no longer holds a copy of the selection.
 
 13. **Off-engine client pagination** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useClientView`, [`views.ts`](../../modules/grid/engine/grid-table/views.ts) `buildPaginationView`, [`grid-pagination-utilities.ts`](../../modules/grid/engine/grid-pagination-utilities.ts) `pageCountOf`, 2026-09-25, this container). Pagination forced the engine row model, so a paginated grid built a `Row` for each datum on mount and sorted through the engine. The grid now slices the page from its own view, after the filters and the sort. The footer counts the pages itself, by the rules of the engine. A manual pagination no longer builds the engine model either. Only grouping, or a filter that only the engine can apply, still builds it. A property test drives `useGridTable` against a stock engine table with random rows, filters, sorts, and pages, and holds the rows, the keys, and the page totals equal. The new pagination scenario gives the median of three interleaved pairs against `main`:
@@ -227,6 +244,31 @@ Each entry names the change and the scenarios it moved.
     | paginate · 10,000 · sort flip · plain | 29.1 | 22.2 | −20%, −26%, −22% |
 
     The page flips stayed within noise, since both paths slice a cached order. At 100k the module now leads both contenders on the paginated mount (AG 160.3ms, MUI 84.2ms) and the paginated sort flip (AG 68.1ms, MUI 89.7ms). The quick filter and the column filter stayed within noise over seven pairs, with a median change of 4% or less.
+
+14. **Off-engine grand total** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useGrandTotalRows`, [`grid-aggregate.ts`](../../modules/grid/engine/grid-aggregate.ts) `cachedAggregate`, 2026-09-25, this container). A grand total read the filtered model of the engine, so a grid with a total built a `Row` for each datum on mount, even with no filter. Each render of the total row also parsed every cell of each summed column again. The total now reads the rows that the client view already keeps, and each aggregate is computed one time for each row array and column. A property test holds the rows of the total equal to the filtered rows of the engine. The new grand-total scenario gives the median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | total · 100,000 · mount · plain | 204.0 | 49.2 | −77%, −78%, −75% |
+    | total · 100,000 · mount · compiled | 198.0 | 46.6 | −77%, −76%, −77% |
+    | total · 100,000 · filter + clear · plain | 250.2 | 106.7 | −52%, −57%, −63% |
+    | total · 100,000 · filter + clear · compiled | 227.9 | 99.3 | −57%, −54%, −60% |
+    | total · 100,000 · sort flip · plain | 44.6 | 35.6 | −17%, −21%, −24% |
+    | total · 100,000 · sort flip · compiled | 38.7 | 34.7 | −10%, −27%, −10% |
+    | total · 10,000 · mount · plain | 39.6 | 27.1 | −43%, −28%, −26% |
+
+    The sort flips and the quick filters with no total stayed within noise in both builds. A grouped grid still reads the total from the engine, which builds its model for the groups.
+
+15. **Off-engine facets** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useFacetSource`, [`filter.ts`](../../modules/grid/engine/grid-filter/filter.ts) `uniqueValues`, 2026-09-25, this container). The facets of a filter sheet read the faceted row model of the engine, so the first open built a `Row` for each datum, also on a grid with no transform. The grid now collects the distinct cell values itself, from the rows that pass the quick search and every other column filter. The facet function keeps one identity, so a search keystroke renders no filter button again. A property test holds the facets of each column equal to those of the engine. The new facet scenario gives the median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | facets · 100,000 · mount + open · plain | 253.0 | 57.5 | −77%, −81%, −77% |
+    | facets · 100,000 · mount + open · compiled | 271.5 | 55.8 | −80%, −75%, −78% |
+    | facets · 10,000 · mount + open · plain | 47.7 | 35.8 | −17%, −42%, −24% |
+    | facets · 10,000 · mount + open · compiled | 47.3 | 32.3 | −37%, −32%, −26% |
+
+    The quick filter stayed within noise in both builds. The plain 100k column filter read +2%, +4%, and +9%, and the compiled one was mixed. The first build of this change gave the filter view a new identity on each search keystroke, and the compiled 100k quick filter read +2% to +5%. The stable facet function closed that.
 
 ## Maps
 

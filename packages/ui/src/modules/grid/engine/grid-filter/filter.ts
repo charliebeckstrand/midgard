@@ -5,6 +5,9 @@ import type { GridColumn, GridColumnFilterState } from '../../types'
 /** A test that one row passes or fails. @internal */
 export type RowTest<T> = (row: T) => boolean
 
+/** The compiled column filters, by column id. @internal */
+export type ColumnTests<T> = ReadonlyMap<string, RowTest<T>>
+
 /**
  * Compiles the applied column filters into row tests, one for each filter
  * that puts a constraint on the rows. The compile runs one time for each
@@ -25,19 +28,20 @@ export type RowTest<T> = (row: T) => boolean
  * and the engine filters the rows. `grid-column-filter.test.ts` holds the
  * parity with the engine.
  *
- * @returns The row tests, or `null` when only the engine can apply a filter.
+ * @returns The row tests by column id, or `null` when only the engine can
+ * apply a filter.
  * @internal
  */
 export function compileColumnFilters<T>(
 	columns: readonly GridColumn<T>[],
 	filters: readonly GridColumnFilterState[],
-): RowTest<T>[] | null {
+): ColumnTests<T> | null {
 	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
 
 	// The last filter for an id wins, as the engine writes one flag per id.
 	const last = new Map(filters.map((filter) => [filter.id, filter.value as unknown] as const))
 
-	const tests: RowTest<T>[] = []
+	const tests = new Map<string, RowTest<T>>()
 
 	for (const [id, value] of last) {
 		const col = byId.get(id)
@@ -57,7 +61,7 @@ export function compileColumnFilters<T>(
 
 		const getCell = () => cell
 
-		tests.push((row) => {
+		tests.set(id, (row) => {
 			cell = read(row)
 
 			return query(getCell)
@@ -94,4 +98,29 @@ function passes<T>(row: T, tests: readonly RowTest<T>[]): boolean {
 	}
 
 	return true
+}
+
+/**
+ * The distinct values that `read` gives for the rows that pass every test.
+ * Two values are the same when a `Set` holds them as one.
+ *
+ * @remarks
+ * `useFacetSource` in `use-grid-table.ts` passes the filters that the facets
+ * of a column read. The result then holds the keys of the faceted unique
+ * values of the engine.
+ *
+ * @internal
+ */
+export function uniqueValues<T>(
+	rows: readonly T[],
+	read: (row: T) => unknown,
+	tests: readonly RowTest<T>[],
+): Set<unknown> {
+	const values = new Set<unknown>()
+
+	for (const row of rows) {
+		if (passes(row, tests)) values.add(read(row))
+	}
+
+	return values
 }

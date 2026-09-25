@@ -431,6 +431,7 @@ function GridRowImpl<T>({
 							aria-colindex={colIndex}
 							className={cn(k.rowReorder.cell, pinned.className)}
 							style={pinned.style}
+							data-grid-pin={pinned.pin}
 						>
 							<GridRowDragHandle sortable={sortable} rowLabel={rowLabel} rowKey={rowKey} />
 						</TableCell>
@@ -446,6 +447,7 @@ function GridRowImpl<T>({
 							aria-colindex={colIndex}
 							className={cn(k.cell.select, pinned.className)}
 							style={pinned.style}
+							data-grid-pin={pinned.pin}
 						>
 							<Checkbox
 								checked={selected}
@@ -465,6 +467,7 @@ function GridRowImpl<T>({
 							aria-colindex={colIndex}
 							className={cn(k.cell.expander, pinned.className)}
 							style={pinned.style}
+							data-grid-pin={pinned.pin}
 						>
 							{toggleExpand && (
 								<GridExpandToggle
@@ -494,6 +497,7 @@ function GridRowImpl<T>({
 							aria-colindex={colIndex}
 							className={cn(k.cell.actions, pinned.className)}
 							style={pinned.style}
+							data-grid-pin={pinned.pin}
 						>
 							<GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 						</TableCell>

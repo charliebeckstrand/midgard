@@ -229,6 +229,7 @@ function GridGroupLeafCell<T>({
 				extra?.className,
 			)}
 			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
+			data-grid-pin={pinned.pin}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>

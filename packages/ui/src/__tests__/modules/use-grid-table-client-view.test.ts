@@ -7,6 +7,7 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
+import { toColumnFacets } from '../../modules/grid/engine/grid-table/views'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
@@ -75,15 +76,17 @@ function gridView(rows: Row[], transforms: EngineTransforms) {
 			columnFilters: { value: transforms.filters ?? [] },
 			sort: transforms.sort ?? [],
 			setSort: () => {},
+			grandTotal: true,
 			...(page ? { pagination: { ...page.config, value: page.state } } : {}),
 		}),
 	)
 
-	const { renderRows, rowKeys, pagination } = result.current
+	const { renderRows, rowKeys, pagination, grandTotalRows } = result.current
 
 	return {
 		ids: renderRows.map((row) => row.id),
 		keys: rowKeys,
+		totalIds: grandTotalRows.map((row) => row.id),
 		totals: pagination && {
 			pageCount: pagination.pageCount,
 			rowCount: pagination.rowCount,
@@ -112,6 +115,8 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 	return {
 		ids: shown.map((row) => row.original.id),
 		keys: shown.map((row) => getKey(row.original)),
+		// A grand total reads every row that the filters keep, in data order.
+		totalIds: table.getFilteredRowModel().rows.map((row) => row.original.id),
 		totals: page
 			? {
 					pageCount: table.getPageCount(),
@@ -125,7 +130,7 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 
 describe('useGridTable client view', () => {
 	test.prop([rowsArb, fc.string({ maxLength: 2 }), filtersArb, sortArb, pageArb], { numRuns: 60 })(
-		'gives the rows, keys, and page totals of the engine',
+		'gives the rows, keys, grand-total rows, and page totals of the engine',
 		(rows, query, filters, sort, page) => {
 			const transforms: EngineTransforms = { query, filters, sort, ...(page ? { page } : {}) }
 
@@ -153,4 +158,77 @@ describe('engine sort of an undefined cell', () => {
 			expect(gridView(rows, { sort }).ids).toEqual(ids)
 		},
 	)
+})
+
+describe('useGridTable facets', () => {
+	/** The facets of each filterable column, as the grid gives them. */
+	function gridFacets(rows: Row[], transforms: EngineTransforms) {
+		const { result } = renderHook(() =>
+			useGridTable<Row>({
+				rows,
+				columns,
+				getKey,
+				globalFilter: {
+					value: transforms.query ?? '',
+					...(transforms.highlight ? { mode: 'highlight' as const } : {}),
+				},
+				columnFilters: { value: transforms.filters ?? [] },
+			}),
+		)
+
+		const { filters } = result.current
+
+		return columns.map((col) => filters?.facets(col.id))
+	}
+
+	/** The same facets, read from the faceted model of a stock engine table. */
+	function engineFacets(rows: Row[], transforms: EngineTransforms) {
+		const table = engineTable(rows, columns, getKey, {
+			...transforms,
+			query: transforms.query ?? '',
+			filters: transforms.filters ?? [],
+		})
+
+		return columns.map((col) =>
+			toColumnFacets(table.getColumn(String(col.id))?.getFacetedUniqueValues().keys() ?? []),
+		)
+	}
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.boolean(), filtersArb], { numRuns: 60 })(
+		'gives the facets of the engine',
+		(rows, query, highlight, filters) => {
+			const transforms: EngineTransforms = { query, highlight, filters }
+
+			expect(gridFacets(rows, transforms)).toEqual(engineFacets(rows, transforms))
+		},
+	)
+})
+
+describe('useGridTable filter view', () => {
+	it('keeps its identity across a search and a data change, and reads the latest facets', () => {
+		const first: Row[] = [
+			{ id: 0, name: 'a', amount: 1 },
+			{ id: 1, name: 'b', amount: 2 },
+		]
+
+		const { result, rerender } = renderHook(
+			({ rows, query }: { rows: Row[]; query: string }) =>
+				useGridTable<Row>({ rows, columns, getKey, globalFilter: { value: query } }),
+			{ initialProps: { rows: first, query: '' } },
+		)
+
+		const view = result.current.filters
+
+		rerender({ rows: first, query: 'b' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['b'])
+
+		rerender({ rows: [...first, { id: 2, name: 'c', amount: 3 }], query: '' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['a', 'b', 'c'])
+	})
 })

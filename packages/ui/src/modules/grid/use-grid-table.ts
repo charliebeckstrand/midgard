@@ -42,7 +42,13 @@ import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
-import { compileColumnFilters, filterRowIndices, type RowTest } from './engine/grid-filter/filter'
+import {
+	type ColumnTests,
+	compileColumnFilters,
+	filterRowIndices,
+	type RowTest,
+	uniqueValues,
+} from './engine/grid-filter/filter'
 import {
 	expandGroups,
 	type GridGroup,
@@ -57,7 +63,9 @@ import {
 	type FrozenLayout,
 	frozenLayout,
 	sameFrozenLayout,
+	sameFrozenStructure,
 } from './engine/grid-pin/layout'
+import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
 import { compileSearch } from './engine/grid-search/search'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
@@ -188,8 +196,8 @@ type GridTableParams<T> = {
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
 	density?: DensityLevel
 	/**
-	 * Whether a grand total aggregates the filtered rows. Only then does the
-	 * engine build its filtered model for {@link GridTableResult.grandTotalRows}.
+	 * Whether a grand total aggregates the filtered rows. Only then does the grid
+	 * collect {@link GridTableResult.grandTotalRows}.
 	 */
 	grandTotal?: boolean
 }
@@ -587,7 +595,7 @@ function useClientView<T>(args: {
 	/** The query of the quick search, or `''` when the search prunes no rows. */
 	query: string
 	/** The compiled column filters (see `compileColumnFilters`). */
-	columnTests: RowTest<T>[] | null
+	columnTests: ColumnTests<T> | null
 	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
 	columns: GridColumn<T>[]
 }): ClientView<T> | null {
@@ -623,7 +631,7 @@ function useClientView<T>(args: {
 
 		const search = compileSearch(columns, query)
 
-		const byColumn = columnTests ?? []
+		const byColumn = columnTests ? [...columnTests.values()] : []
 
 		return search ? [...byColumn, search] : byColumn
 	}, [filtered, columns, query, columnTests])
@@ -673,12 +681,23 @@ function useClientView<T>(args: {
 
 		const shown = bounds ? sliceOrder(order, total, bounds) : (order ?? identityOrder(total))
 
-		return { ...materializeSort(rows, shown, getKey), total }
-	}, [offEngine, order, pageIndex, pageSize, rows, getKey])
+		return { ...materializeSort(rows, shown, getKey), total, filtered: keptRows }
+	}, [offEngine, order, pageIndex, pageSize, rows, getKey, keptRows])
 }
 
-/** The rows of a {@link useClientView}, their keys, and the count before the page slice. @internal */
-type ClientView<T> = { rows: T[]; keys: (string | number)[]; total: number }
+/**
+ * The rows of a {@link useClientView}, their keys, and the count before the
+ * page slice. `filtered` holds the rows that the filters keep, in data order,
+ * or `null` when the view applies no filter.
+ *
+ * @internal
+ */
+type ClientView<T> = {
+	rows: T[]
+	keys: (string | number)[]
+	total: number
+	filtered: T[] | null
+}
 
 /** The indices `0` to `count - 1`, in order. @internal */
 function identityOrder(count: number): number[] {
@@ -902,8 +921,10 @@ function useFilterView<T>(args: {
 	columns: GridColumn<T>[]
 	applied: GridColumnFilterState[]
 	affordance: GridColumnFilter['affordance'] | undefined
+	/** The facet values off the engine (see {@link useFacetSource}). */
+	facetValues: (id: string) => Iterable<unknown> | null
 }): GridColumnFilter | null {
-	const { table, enabled, manual, columns, applied } = args
+	const { table, enabled, manual, columns, applied, facetValues } = args
 
 	const affordance = args.affordance ?? 'header'
 
@@ -911,7 +932,10 @@ function useFilterView<T>(args: {
 	// affordance), or `null`. Lives here because a table instance holds no such state.
 	const [openColumn, setOpenColumn] = useState<string | number | null>(null)
 
-	const actions = useMemo(() => columnFilterActions(table, manual), [table, manual])
+	const actions = useMemo(
+		() => columnFilterActions(table, manual, facetValues),
+		[table, manual, facetValues],
+	)
 
 	return useMemo(
 		() =>
@@ -930,6 +954,91 @@ function useFilterView<T>(args: {
 }
 
 /**
+ * The facet values of each column over one set of rows, filters, and query.
+ * Each column collects its values on its first read, and keeps them.
+ *
+ * @remarks
+ * A plain function, not a hook body, so that the cache of the values lives
+ * with the source that fills it. The React Compiler can memoize an allocation
+ * in a hook body on its own, which would share one cache among sources.
+ *
+ * @internal
+ */
+function facetSource<T>(
+	rows: readonly T[],
+	columns: readonly GridColumn<T>[],
+	columnTests: ColumnTests<T>,
+	query: string,
+): (id: string) => Set<unknown> {
+	const search = compileSearch(columns, query)
+
+	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+
+	const cache = new Map<string, Set<unknown>>()
+
+	return (id) => {
+		let values = cache.get(id)
+
+		if (!values) {
+			const read = byId.get(id)?.value
+
+			const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
+
+			if (search) tests.push(search)
+
+			values = read ? uniqueValues(rows, read, tests) : new Set()
+
+			cache.set(id, values)
+		}
+
+		return values
+	}
+}
+
+/**
+ * The distinct cell values that the facets of each column read, collected off
+ * the engine. `null` when a column filter reads a filter function that only
+ * the engine holds, and the engine then gives the facets.
+ *
+ * @remarks
+ * The facets of a column read the rows that pass the quick search and every
+ * other column filter. The faceted row model of the engine reads the same
+ * rows. The filter of the column itself does not apply, so its facets still
+ * offer the values that it hides. A filter sheet reads the values when it
+ * opens. The first read after a change of the rows, the filters, or the query
+ * collects them, and the grid builds no engine row for them.
+ *
+ * The function keeps one identity. It reads the source of the last commit, so
+ * a search keystroke or a data change renders no filter button again.
+ *
+ * @returns A function that gives the values of a column, or `null` when the
+ * engine must give them.
+ * @internal
+ */
+function useFacetSource<T>(args: {
+	rows: T[]
+	columns: GridColumn<T>[]
+	columnTests: ColumnTests<T> | null
+	/** The query of the quick search, or `''` when the search prunes no rows. */
+	query: string
+}): (id: string) => Iterable<unknown> | null {
+	const { rows, columns, columnTests, query } = args
+
+	const source = useMemo(
+		() => (columnTests ? facetSource(rows, columns, columnTests, query) : null),
+		[rows, columns, columnTests, query],
+	)
+
+	const latest = useRef(source)
+
+	useLayoutEffect(() => {
+		latest.current = source
+	}, [source])
+
+	return useCallback((id: string) => latest.current?.(id) ?? null, [])
+}
+
+/**
  * The {@link GridColumnPinning} value, or `null` when no column is frozen.
  *
  * @remarks
@@ -940,9 +1049,12 @@ function useFilterView<T>(args: {
  * rendered header instead. Without that, a stack of frozen columns spreads apart
  * by the difference, and the scrolling columns show through the gaps.
  *
- * The layout holds its reference while every frozen column lands where it did.
- * A drag on a scrolling column then moves no frozen offset and re-renders no
- * row. A drag that shifts the frozen stack re-renders it frame by frame.
+ * The view holds its reference while each frozen column keeps its edge and
+ * its boundary role. A drag on a scrolling column therefore re-renders no row.
+ * A drag that shifts the frozen stack also re-renders no row. The layout effect
+ * commits the new layout to the offset store, and writes the moved offsets to
+ * the frozen cells before the browser paints. A new render of the full view
+ * cost about half of a frozen resize, over 1,000 rows or more.
  *
  * @internal
  */
@@ -976,26 +1088,57 @@ function usePinningView<T>(args: {
 		sameFrozenLayout,
 	)
 
-	return useMemo(() => (hasPinned ? buildColumnPinning(layout) : null), [hasPinned, layout])
+	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
+
+	const [offsets] = useState(() => createFrozenOffsetStore(layout))
+
+	const { containerRef } = args
+
+	useLayoutEffect(() => {
+		const previous = offsets.commit(layout)
+
+		const container = containerRef?.current
+
+		if (container && previous !== layout) writeFrozenOffsets(container, previous, layout)
+	}, [offsets, layout, containerRef])
+
+	return useMemo(
+		() => (hasPinned ? buildColumnPinning(structure, offsets) : null),
+		[hasPinned, structure, offsets],
+	)
 }
 
 /**
- * The full filtered row set, for a grand total. The engine memoizes its filtered
- * model on the rows and the filters, so the model keeps its identity until one
- * of them changes. It is built only for a grand total, since an inactive one
- * must not force the whole filtered set. Manual grouping carries the consumer's
- * group headers as rows, so it has no grand total (see `resolveGrandTotal`).
+ * The full filtered row set, for a grand total, in data order. It is built
+ * only for a grand total. Manual grouping carries the consumer's group headers
+ * as rows, so it has no grand total (see `resolveGrandTotal`).
+ *
+ * @remarks
+ * The rows come from the client view, which already holds the rows that its
+ * filters keep. A plain or filtered grid therefore builds no engine row.
+ * When a transform materializes the engine model, the rows come from the
+ * engine's filtered model, which the engine memoizes on the rows and the
+ * filters.
  *
  * @internal
  */
-function useGrandTotalRows<T>(
-	table: EngineTable<T>,
-	grandTotal: boolean,
-	manualGrouped: boolean,
-): T[] {
-	const model = grandTotal && !manualGrouped ? table.getFilteredRowModel() : null
+function useGrandTotalRows<T>(args: {
+	table: EngineTable<T>
+	grandTotal: boolean
+	manualGrouped: boolean
+	materialize: boolean
+	clientView: ClientView<T> | null
+	rows: T[]
+}): T[] {
+	const active = args.grandTotal && !args.manualGrouped
 
-	return useMemo<T[]>(() => model?.rows.map((row) => row.original) ?? NO_ROWS, [model])
+	const model = active && args.materialize ? args.table.getFilteredRowModel() : null
+
+	const fromEngine = useMemo(() => model?.rows.map((row) => row.original) ?? null, [model])
+
+	if (!active) return NO_ROWS
+
+	return fromEngine ?? args.clientView?.filtered ?? args.rows
 }
 
 /**
@@ -1365,6 +1508,9 @@ export function useGridTable<T>({
 
 	const materialize = (engineTransform && !clientTransforms.offEngine) || manualGroupRow != null
 
+	// A search that only marks its matches prunes no row.
+	const searchQuery = globalConfigured && !globalHighlights ? resolvedGlobalFilter : ''
+
 	// The off-engine client filter, sort, and page (otherwise the engine runs them
 	// inside its pipeline, above).
 	const clientView = useClientView({
@@ -1375,8 +1521,7 @@ export function useGridTable<T>({
 		offEngine: clientTransforms.offEngine,
 		filtered: clientTransforms.filtered,
 		page: clientTransforms.page,
-		// A search that only marks its matches prunes no row.
-		query: globalConfigured && !globalHighlights ? resolvedGlobalFilter : '',
+		query: searchQuery,
 		columnTests,
 		columns,
 	})
@@ -1479,6 +1624,8 @@ export function useGridTable<T>({
 		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],
 	)
 
+	const facetValues = useFacetSource({ rows, columns, columnTests, query: searchQuery })
+
 	const filters = useFilterView({
 		table: engine,
 		enabled: hasColumnFilters,
@@ -1486,6 +1633,7 @@ export function useGridTable<T>({
 		columns,
 		applied: resolvedColumnFilters,
 		affordance: columnFiltersConfig?.affordance,
+		facetValues,
 	})
 
 	const pinning = usePinningView({
@@ -1499,7 +1647,14 @@ export function useGridTable<T>({
 		widths,
 	})
 
-	const grandTotalRows = useGrandTotalRows(table, grandTotal, manualGroupRow != null)
+	const grandTotalRows = useGrandTotalRows({
+		table,
+		grandTotal,
+		manualGrouped: manualGroupRow != null,
+		materialize,
+		clientView,
+		rows,
+	})
 
 	const rowsForExport = useCallback(
 		() => exportLeaves(engine, grouped, manualGroupRow, selection),

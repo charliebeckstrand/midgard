@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
 
@@ -123,6 +123,101 @@ describe('Grid column pinning', () => {
 		expect(headCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
 
 		expect(headCell(container, 'email')?.style.insetInlineEnd).toBe('100px')
+	})
+
+	it('moves the offsets behind a resized frozen column, and renders no row for it', () => {
+		const renders = vi.fn((row: Row) => row.status)
+
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'left' },
+			{ id: 'status', title: 'Status', cell: renders },
+		]
+
+		const view = (name: number) => (
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ value: { name, email: 200, status: 100 } }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(view(120))
+
+		renders.mockClear()
+
+		rerender(view(180))
+
+		// The column behind the widened one moves in the header and in each row.
+		expect(headCell(container, 'email')?.style.insetInlineStart).toBe('180px')
+
+		for (const cell of container.querySelectorAll<HTMLElement>('td[data-grid-col="email"]')) {
+			expect(cell.style.insetInlineStart).toBe('180px')
+		}
+
+		// The move reaches the cells without a render of the rows.
+		expect(renders).not.toHaveBeenCalled()
+	})
+
+	it('keeps the moved offset when a row renders again for another reason', () => {
+		const columns = (suffix: string): GridColumn<Row>[] => [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email + suffix, pinned: 'left' },
+			{ id: 'status', title: 'Status', cell: (row) => row.status },
+		]
+
+		const view = (name: number, suffix: string) => (
+			<Grid
+				resizable
+				columns={columns(suffix)}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ value: { name, email: 200, status: 100 } }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(view(120, ''))
+
+		rerender(view(180, ''))
+
+		// New column definitions render each row again, which reads the committed offset.
+		rerender(view(180, '!'))
+
+		expect(dataCell(container, 'email')?.textContent).toBe('ada@example.com!')
+
+		expect(dataCell(container, 'email')?.style.insetInlineStart).toBe('180px')
+
+		rerender(view(120, '!'))
+
+		expect(dataCell(container, 'email')?.style.insetInlineStart).toBe('120px')
+	})
+
+	it('moves the inline-end offset of a right-frozen stack', () => {
+		const columns: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{ id: 'email', title: 'Email', cell: (row) => row.email, pinned: 'right' },
+			{ id: 'status', title: 'Status', cell: (row) => row.status, pinned: 'right' },
+		]
+
+		const view = (status: number) => (
+			<Grid
+				resizable
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnSizing={{ value: { name: 120, email: 200, status } }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(view(100))
+
+		rerender(view(140))
+
+		expect(headCell(container, 'email')?.style.insetInlineEnd).toBe('140px')
+
+		expect(dataCell(container, 'email')?.style.insetInlineEnd).toBe('140px')
 	})
 
 	it('paints a pinned body cell with the surface fill, else the viewport-aware content host', () => {

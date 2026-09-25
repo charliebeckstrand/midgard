@@ -26,4 +26,17 @@ describe('useSortableItem', () => {
 
 		expect(result.current.style.opacity).toBe(1)
 	})
+
+	it('keeps the style identity while its values hold', () => {
+		const { result, rerender } = renderHook(() => useSortableItem({ id: 'a' }), { wrapper })
+
+		// dnd-kit sets the transition on the render after the mount.
+		rerender()
+
+		const settled = result.current.style
+
+		rerender()
+
+		expect(result.current.style).toBe(settled)
+	})
 })
