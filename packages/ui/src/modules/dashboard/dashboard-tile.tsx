@@ -198,9 +198,10 @@ export type DashboardTileProps = {
  * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
  * through CSS. The header then becomes a veil over the top of the content, so the
  * sparkline takes the full height. A spark chart anywhere in the content box
- * veils the header, and a spark chart in the actions does not. At rest the veil shows on hover or focus, and
- * in edit mode it stays in view for the grip. Where the primary pointer cannot
- * hover, as on a phone or a tablet, the veil stays in view at rest too.
+ * veils the header, and a spark chart in the actions does not. At rest the veil
+ * shows on hover or focus, and in edit mode it stays in view for the grip. Where
+ * the primary pointer cannot hover, as on a phone or a tablet, the veil stays in
+ * view at rest too.
  *
  * At rest, a truncated title shows its full text in a tooltip on hover. The veil
  * is narrow, so the title of a spark tile truncates first.

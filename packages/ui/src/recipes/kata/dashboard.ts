@@ -78,7 +78,10 @@ const card = defineRecipe({
 /** The header row: the grip, the title block, and the actions. */
 const header = 'flex min-w-0 items-center gap-2'
 
-/** The title block, which shrinks before it pushes the actions out. Each line in it truncates. */
+/**
+ * The title block, which shrinks before it pushes the actions out. Each line in
+ * it truncates on its own.
+ */
 const heading = 'min-w-0 flex-1'
 
 /**
@@ -109,9 +112,10 @@ const veil = {
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
 		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:p-1',
-		// The fade stays under the spark variant. On the header alone, it also fades the header
-		// in each time a chart leaves the spark tier, as on mount. It takes the motion-safe
-		// gate of `ugoki.css.opacity`, and the default duration of 150 ms.
+		// The fade stays under the spark variant. A transition on the header at all times
+		// also fades the header in when a chart leaves the spark tier, as it does on mount.
+		// The fade takes the motion-safe gate of `ugoki.css.opacity`, and the default
+		// duration of 150 ms.
 		'motion-safe:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
 		...mode(
 			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
@@ -182,9 +186,9 @@ const handle = defineRecipe({
 		],
 		false: '',
 	},
-	// A lifted grip keeps its focus ring in the violet accent of a lift. The tile
-	// shell keeps its own raise, because the z-10 of the kiso raise ties with the
-	// chrome of the later tiles.
+	// A lifted grip takes the violet focus ring of a lift. The tile shell keeps its
+	// own raise, because the z-10 of the kiso raise ties with the chrome of the
+	// later tiles.
 	dragging: { true: sen.focus.lifted.outline, false: '' },
 	defaults: { floating: false, dragging: false },
 })

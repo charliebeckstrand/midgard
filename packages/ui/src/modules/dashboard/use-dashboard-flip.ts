@@ -117,8 +117,8 @@ function glide(element: HTMLElement, offset: DashboardOffset): void {
  * position of a glide that runs, so a quick run of previews never jumps. A
  * pickup ends a glide that runs, so the tile follows the pointer at once.
  *
- * While it glides, a tile sits at z-index 20 in the stacking context of the
- * board. Outside edit mode, a glide can therefore pass over app chrome at 10 to 19.
+ * While it glides, a tile sits at z-index 20. The board opens no stacking
+ * context, so a glide can pass over app chrome at 10 to 19 for its 200 ms.
  *
  * @internal
  */
