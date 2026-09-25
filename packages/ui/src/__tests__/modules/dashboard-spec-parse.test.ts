@@ -150,6 +150,21 @@ describe('parseDashboardSpec', () => {
 		])
 	})
 
+	it('names a static that is not a boolean in the message of a malformed entry', () => {
+		const { issues } = parseDashboardSpec({
+			tiles: [{ id: 'a', widget: 'bar' }],
+			layout: [{ id: 'a', x: 0, y: 0, w: 12, static: 'yes' }],
+		})
+
+		expect(issues).toEqual([
+			{
+				kind: 'invalid-entry',
+				path: 'layout[0]',
+				message: expect.stringContaining('a `static` that is not a boolean'),
+			},
+		])
+	})
+
 	it('checks the entries against the tiles that survive the parse', () => {
 		expect(
 			found({

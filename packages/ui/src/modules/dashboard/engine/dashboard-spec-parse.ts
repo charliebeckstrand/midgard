@@ -24,7 +24,10 @@ export type DashboardSpecIssueKind =
 	| 'duplicate-tile'
 	/** An optional field of a tile has the wrong shape, so the parse drops the field. */
 	| 'invalid-field'
-	/** An entry has no string `id`, or a number that is not finite, so the parse drops it. */
+	/**
+	 * An entry has no string `id`, a number that is not finite, or a `static` that
+	 * is not a boolean. The parse drops it.
+	 */
 	| 'invalid-entry'
 	/** An entry repeats the `id` of an earlier entry, so the parse drops it. */
 	| 'duplicate-entry'
@@ -72,7 +75,13 @@ function isFields(value: unknown): value is Fields {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-function isId(value: unknown): value is string {
+/**
+ * Whether a value is a tile id: a string that is not empty. The scope reads the
+ * empty source as the board, so an empty id names no tile.
+ *
+ * @internal
+ */
+export function isId(value: unknown): value is string {
 	return typeof value === 'string' && value !== ''
 }
 
@@ -80,7 +89,10 @@ function isNumber(value: unknown): value is number {
 	return typeof value === 'number' && Number.isFinite(value)
 }
 
-/** Whether a value is a span: a finite `w`, and a finite `h` when it has one. */
+/**
+ * Whether a value is a span: a finite `w`, and a finite `h` when it has one. A
+ * layout entry holds its span in the same two fields.
+ */
 function isSize(value: unknown): boolean {
 	return isFields(value) && isNumber(value.w) && (value.h === undefined || isNumber(value.h))
 }
@@ -99,8 +111,7 @@ function isEntry(value: unknown): value is DashboardLayoutItem {
 		isId(value.id) &&
 		isNumber(value.x) &&
 		isNumber(value.y) &&
-		isNumber(value.w) &&
-		(value.h === undefined || isNumber(value.h)) &&
+		isSize(value) &&
 		(value.static === undefined || typeof value.static === 'boolean')
 	)
 }
@@ -196,7 +207,7 @@ function parseLayout(
 				kind: 'invalid-entry',
 				path,
 				message:
-					'The entry has no string `id`, or a number that is not finite. The parse dropped it.',
+					'The entry has no string `id`, a number that is not finite, or a `static` that is not a boolean. The parse dropped it.',
 			})
 
 			return
