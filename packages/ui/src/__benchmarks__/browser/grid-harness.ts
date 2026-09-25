@@ -21,6 +21,7 @@ import {
 	type MountedGrid,
 	type MountOptions,
 	painted,
+	supports,
 } from './grid-contenders'
 import { host, type Prepared } from './harness'
 
@@ -32,17 +33,22 @@ export function viewportMarkers(rows: Shipment[]): string[] {
 	return [rows[0]?.id ?? '', rows[8]?.id ?? '']
 }
 
-/** Registers one full mount-to-painted-rows-plus-teardown bench per contender. */
-export function mountGridBenches(rows: Shipment[], options?: BenchOptions) {
+/**
+ * Registers one full mount-to-painted-rows-plus-teardown bench per contender.
+ * `mount` sets how each grid mounts.
+ */
+export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount?: MountOptions) {
 	const markers = viewportMarkers(rows)
 
 	const mountHost = host(BOX)
 
 	for (const contender of gridContenders()) {
+		if (!supports(contender, mount)) continue
+
 		bench(
 			contender.name,
 			async () => {
-				const grid = contender.mount(mountHost, rows)
+				const grid = contender.mount(mountHost, rows, mount)
 
 				await painted(mountHost, markers)
 
@@ -56,7 +62,8 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions) {
 /**
  * Mounts every contender on `rows` into its own fixed box, settles the first
  * paint, then closes each over the drive `scenario` returns. A contender the
- * scenario cannot run returns `null` and leaves the report.
+ * scenario cannot run returns `null` and leaves the report. A contender that
+ * cannot mount with `options` leaves it too (see `supports`).
  * `options` sets how each grid mounts.
  */
 export async function prepareGrids(
@@ -67,6 +74,8 @@ export async function prepareGrids(
 	const prepared: Prepared[] = []
 
 	for (const contender of gridContenders()) {
+		if (!supports(contender, options)) continue
+
 		const box = host(BOX)
 
 		const grid = contender.mount(box, rows, options)

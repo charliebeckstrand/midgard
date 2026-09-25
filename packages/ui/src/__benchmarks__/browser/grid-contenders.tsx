@@ -61,6 +61,8 @@ export type MountedGrid = {
 	search: (query: string) => void
 	/** Applies a `contains` filter to the carrier column; `''` clears it. The grid must mount with {@link MountOptions.filterable}. */
 	filter: (text: string) => void
+	/** Shows the page at `index`. The grid must mount with {@link MountOptions.paginated}. */
+	page: (index: number) => void
 	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
 	scroller: () => HTMLElement | null
 	destroy: () => void
@@ -70,12 +72,26 @@ export type MountedGrid = {
 export type MountOptions = {
 	/** Makes the carrier column filterable, for the column-filter scenario. The other scenarios leave it off, so no filter affordance adds to their cost. */
 	filterable?: boolean
+	/** Pages the rows {@link PAGE_SIZE} at a time, for the pagination scenario. */
+	paginated?: boolean
+	/** Sums the loads and the weight in a grand-total row, for the grand-total scenario. */
+	grandTotal?: boolean
 }
+
+/** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
+export const PAGE_SIZE = 100
 
 /** One library's entry in a scenario: a name for the report and a mount. */
 export type GridContender = {
 	name: string
 	mount: (host: HTMLElement, rows: Shipment[], options?: MountOptions) => MountedGrid
+	/** The mount options that the free tier of the library cannot run. A scenario that sets one leaves the contender out. */
+	unsupported?: (keyof MountOptions)[]
+}
+
+/** Whether `contender` can run a scenario that mounts with `options`. */
+export function supports(contender: GridContender, options: MountOptions | undefined): boolean {
+	return !contender.unsupported?.some((option) => options?.[option])
 }
 
 /**
@@ -110,6 +126,14 @@ const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => 
 	// column declares one and all three search the same eight.
 	value: (row) => row[id],
 }))
+
+/** The columns that a grand total sums. */
+const TOTALED = new Set(['loads', 'weight'])
+
+/** {@link UI_COLUMNS} with a sum on the loads and the weight. */
+const UI_TOTAL_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
+	TOTALED.has(String(col.id)) ? { ...col, aggFunc: 'sum' } : col,
+)
 
 /** {@link UI_COLUMNS} with a filterable carrier column. */
 const UI_FILTER_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
@@ -170,13 +194,22 @@ function uiContender(): GridContender {
 
 			let filters: GridColumnFilterState[] = []
 
+			let pageIndex = 0
+
 			const filterable = options?.filterable ?? false
+
+			const paginated = options?.paginated ?? false
+
+			const grandTotal = options?.grandTotal ?? false
+
+			const columns = filterable ? UI_FILTER_COLUMNS : grandTotal ? UI_TOTAL_COLUMNS : UI_COLUMNS
 
 			const draw = () =>
 				flushSync(() =>
 					root.render(
 						<Grid
-							columns={filterable ? UI_FILTER_COLUMNS : UI_COLUMNS}
+							columns={columns}
+							grandTotalRow={grandTotal || undefined}
 							rows={current}
 							getKey={shipmentKey}
 							virtualize
@@ -184,6 +217,7 @@ function uiContender(): GridContender {
 							sort={{ value: sort }}
 							search={{ value: search }}
 							columnFilters={filterable ? { value: filters } : undefined}
+							pagination={paginated ? { value: { pageIndex, pageSize: PAGE_SIZE } } : undefined}
 						/>,
 					),
 				)
@@ -211,6 +245,11 @@ function uiContender(): GridContender {
 
 					draw()
 				},
+				page(index) {
+					pageIndex = index
+
+					draw()
+				},
 				scroller: () => mustFind(box, '[data-slot="grid-scroll"]'),
 				destroy: () => {
 					root.unmount()
@@ -226,6 +265,8 @@ function uiContender(): GridContender {
 function agContender(): GridContender {
 	return {
 		name: 'AG Grid',
+		// The grand-total row of AG Grid is an Enterprise feature.
+		unsupported: ['grandTotal'],
 		mount(host, rows, options) {
 			const box = fillBox(host)
 
@@ -233,6 +274,7 @@ function agContender(): GridContender {
 				columnDefs: options?.filterable
 					? AG_COLUMNS.map((col) => (col.field === 'carrier' ? { ...col, filter: true } : col))
 					: AG_COLUMNS,
+				...(options?.paginated ? { pagination: true, paginationPageSize: PAGE_SIZE } : {}),
 				rowData: rows,
 				getRowId: ({ data }) => data.id,
 				animateRows: false,
@@ -251,6 +293,7 @@ function agContender(): GridContender {
 					api.setFilterModel(
 						text ? { carrier: { filterType: 'text', type: 'contains', filter: text } } : null,
 					),
+				page: (index) => api.paginationGoToPage(index),
 				scroller: () => mustFind(box, '.ag-grid-viewport'),
 				destroy: () => {
 					api.destroy()
@@ -266,7 +309,9 @@ function agContender(): GridContender {
 function muiContender(): GridContender {
 	return {
 		name: 'MUI X DataGrid',
-		mount(host, rows) {
+		// The aggregation of MUI X is a Premium feature.
+		unsupported: ['grandTotal'],
+		mount(host, rows, options) {
 			const box = fillBox(host)
 
 			const root = createRoot(box)
@@ -274,6 +319,8 @@ function muiContender(): GridContender {
 			let current = rows
 
 			let sortModel: GridSortModel = []
+
+			let page = 0
 
 			let filterModel: GridFilterModel = { items: [] }
 
@@ -285,6 +332,7 @@ function muiContender(): GridContender {
 							rows={current}
 							sortModel={sortModel}
 							filterModel={filterModel}
+							{...(options?.paginated ? { paginationModel: { page, pageSize: PAGE_SIZE } } : {})}
 						/>,
 					),
 				)
@@ -314,6 +362,11 @@ function muiContender(): GridContender {
 					filterModel = {
 						items: text ? [{ field: 'carrier', operator: 'contains', value: text }] : [],
 					}
+
+					draw()
+				},
+				page(index) {
+					page = index
 
 					draw()
 				},
