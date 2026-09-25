@@ -23,6 +23,7 @@ import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
+import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
 import {
@@ -269,8 +270,10 @@ export function Dashboard({
 		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, gesture: null })
 	}, [store, settled, layoutValue])
 
+	const controlled = layout?.value !== undefined
+
 	const commit = useCallback(
-		(cells: readonly DashboardCell[]) => {
+		(cells: readonly DashboardCell[]): DashboardCommit => {
 			const { layout: saved, demands } = store.getState()
 
 			const next = mergeLayout(saved, cells, demands)
@@ -278,11 +281,19 @@ export function Dashboard({
 			// The count goes up first, so an onValueChange that throws still ends the settle phase.
 			setSettled((count) => count + 1)
 
-			setLayoutValue(next)
+			try {
+				setLayoutValue(next)
+			} catch (error) {
+				// useControllable writes its own state before it calls onValueChange. So an
+				// uncontrolled board keeps the layout, and a controlled board keeps its value.
+				return controlled
+					? { layout: saved, kept: false, failure: { error } }
+					: { layout: next, kept: true, failure: { error } }
+			}
 
-			return next
+			return { layout: next, kept: true }
 		},
-		[store, setLayoutValue],
+		[store, setLayoutValue, controlled],
 	)
 
 	const containerRef = useRef<HTMLElement>(null)

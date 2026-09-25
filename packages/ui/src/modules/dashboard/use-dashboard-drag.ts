@@ -10,7 +10,7 @@ import type {
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { clamp } from '../../utilities'
-import { endGesture, measureGesture } from './dashboard-gesture'
+import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
 	describeDragEnd,
@@ -28,8 +28,8 @@ export type DashboardDragOptions = {
 	store: DashboardStore
 	/** The canvas element, which gives the column pitch at the start of a drag. */
 	canvasRef: RefObject<HTMLElement | null>
-	/** Commits the cells of a preview, and returns the saved layout. */
-	commit: (cells: readonly DashboardCell[]) => DashboardGestureEndEvent['layout']
+	/** Commits the cells of a preview, and returns what the commit leaves. */
+	commit: (cells: readonly DashboardCell[]) => DashboardCommit
 	/** Receives the start of each drag. */
 	onDragStart?: (event: DashboardGestureStartEvent) => void
 	/** Receives the end of each drag. */

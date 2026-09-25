@@ -2,6 +2,7 @@
 
 import { type Ref, useImperativeHandle } from 'react'
 import { announce } from '../../core'
+import type { DashboardCommit } from './dashboard-gesture'
 import { describeTidy } from './engine/dashboard-announcements'
 import type { DashboardCell } from './engine/dashboard-layout'
 import type { DashboardStore } from './engine/dashboard-store'
@@ -15,7 +16,7 @@ export type DashboardHandleOptions = {
 	/** The store of the board. */
 	store: DashboardStore
 	/** Writes cells into the saved layout through the layout binding. */
-	commit: (cells: readonly DashboardCell[]) => unknown
+	commit: (cells: readonly DashboardCell[]) => DashboardCommit
 }
 
 /**
@@ -43,7 +44,9 @@ export function useDashboardHandle({ ref, store, commit }: DashboardHandleOption
 
 				if (moved === 0) return false
 
-				commit(cells)
+				const { failure } = commit(cells)
+
+				if (failure !== undefined) throw failure.error
 
 				return true
 			},

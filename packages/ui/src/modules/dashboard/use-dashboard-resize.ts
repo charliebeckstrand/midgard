@@ -1,7 +1,7 @@
 'use client'
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
-import { endGesture, measureGesture } from './dashboard-gesture'
+import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import { type DashboardCell, minColumns, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
@@ -19,8 +19,8 @@ export type DashboardResizeOptions = {
 	store: DashboardStore
 	/** The canvas element, which gives the column pitch. */
 	canvasRef: RefObject<HTMLElement | null>
-	/** Commits the cells of a preview, and returns the saved layout. */
-	commit: (cells: readonly DashboardCell[]) => DashboardGestureEndEvent['layout']
+	/** Commits the cells of a preview, and returns what the commit leaves. */
+	commit: (cells: readonly DashboardCell[]) => DashboardCommit
 	/** Receives the start of each pointer resize. */
 	onResizeStart?: (event: DashboardGestureStartEvent) => void
 	/** Receives the end of each pointer resize. */
@@ -226,7 +226,11 @@ export function useDashboardResize({
 
 			const preview = resizePreview(snapshot, id, w, h, limits)
 
-			if (preview !== null) callbacks.current.commit(preview)
+			if (preview === null) return
+
+			const { failure } = callbacks.current.commit(preview)
+
+			if (failure !== undefined) throw failure.error
 		},
 		[store, canvasRef],
 	)

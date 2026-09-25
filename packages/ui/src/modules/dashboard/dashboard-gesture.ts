@@ -1,8 +1,28 @@
 'use client'
 
-import { type DashboardCell, inlineSign, sameGeometry } from './engine/dashboard-layout'
+import {
+	type DashboardCell,
+	type DashboardLayoutItem,
+	inlineSign,
+	sameGeometry,
+} from './engine/dashboard-layout'
 import type { DashboardStore, DashboardView } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent } from './types'
+
+/**
+ * What a commit leaves. The layout binding runs app code, so a commit catches
+ * its error, and the caller throws it again after its own report.
+ *
+ * @internal
+ */
+export type DashboardCommit = {
+	/** The saved layout after the commit. */
+	layout: readonly DashboardLayoutItem[]
+	/** Whether the saved layout took the cells. */
+	kept: boolean
+	/** The error that the layout binding threw, or `undefined` when it did not throw. */
+	failure?: { error: unknown }
+}
 
 /** What {@link measureGesture} reads at the start of a gesture. @internal */
 export type DashboardGestureMeasure = {
@@ -18,8 +38,8 @@ export type DashboardGestureMeasure = {
 
 /** The callbacks of {@link endGesture}. @internal */
 export type DashboardGestureEndCallbacks = {
-	/** Commits the cells of a preview, and returns the saved layout. */
-	commit: (cells: readonly DashboardCell[]) => DashboardGestureEndEvent['layout']
+	/** Commits the cells of a preview, and returns what the commit leaves. */
+	commit: (cells: readonly DashboardCell[]) => DashboardCommit
 	/** Receives the end of the gesture. */
 	onEnd?: (event: DashboardGestureEndEvent) => void
 }
@@ -61,6 +81,9 @@ export function measureGesture(
  * settle phase and commits. A cancel, or a gesture that changed nothing,
  * returns to the snapshot. Either way, `onEnd` receives one end event.
  *
+ * When the layout binding throws, the end event tells whether the saved layout
+ * took the preview. The function then throws the error of the binding.
+ *
  * @remarks
  * The preview comes from the snapshot at the start. When the resolved layout
  * changed during the gesture, a commit writes the old cells back. It would undo
@@ -95,7 +118,10 @@ export function endGesture(
 	// start cell, until the committed layout arrives.
 	store.setState({ gesture: { ...gesture, kind: 'settle' } })
 
-	const next = commit(preview)
+	const { layout: next, kept, failure } = commit(preview)
 
-	onEnd?.({ id, canceled: false, layout: next })
+	onEnd?.({ id, canceled: !kept, layout: next })
+
+	// The app gets its error after the end event, so each start still has one end.
+	if (failure !== undefined) throw failure.error
 }

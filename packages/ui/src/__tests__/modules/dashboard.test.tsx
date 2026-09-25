@@ -694,14 +694,8 @@ describe('Dashboard gesture owner', () => {
 		)
 	}
 
-	it('ends the settle phase of a drop whose onValueChange throws', async () => {
-		const failure = new Error('The save failed.')
-
-		const onValueChange = vi.fn(() => {
-			throw failure
-		})
-
-		// dnd-kit runs the drop in an async handler, so the throw escapes as a rejection.
+	/** Collects the unhandled rejections of one case. */
+	function collectRejections(): unknown[] {
 		const rejections: unknown[] = []
 
 		const onRejection = (reason: unknown) => {
@@ -714,7 +708,24 @@ describe('Dashboard gesture owner', () => {
 			process.off('unhandledRejection', onRejection)
 		})
 
-		const { rerender } = renderUI(<Board editing layout={{ value: LAYOUT, onValueChange }} />)
+		return rejections
+	}
+
+	it('ends the settle phase of a drop whose onValueChange throws, and ends the drag once as canceled', async () => {
+		const failure = new Error('The save failed.')
+
+		const onValueChange = vi.fn(() => {
+			throw failure
+		})
+
+		const onDragEnd = vi.fn()
+
+		// dnd-kit runs the drop in an async handler, so the throw escapes as a rejection.
+		const rejections = collectRejections()
+
+		const { rerender } = renderUI(
+			<Board editing layout={{ value: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+		)
 
 		// Twelve columns to the right, Revenue covers the cell of Traffic.
 		await drop(await lift('Move Revenue', 'ArrowRight', 12))
@@ -722,6 +733,9 @@ describe('Dashboard gesture owner', () => {
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 
 		expect(rejections).toEqual([failure])
+
+		// The app keeps its value, so the drop saved nothing.
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
 
 		// The app kept its layout, so each tile paints its saved cell.
 		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
@@ -732,9 +746,40 @@ describe('Dashboard gesture owner', () => {
 
 		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
 
-		rerender(<Board editing layout={{ value: moved, onValueChange }} />)
+		rerender(<Board editing layout={{ value: moved, onValueChange }} onDragEnd={onDragEnd} />)
 
 		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+	})
+
+	it('ends a drop as saved when the onValueChange of an uncontrolled layout throws', async () => {
+		const failure = new Error('The save failed.')
+
+		const onValueChange = vi.fn((_: DashboardLayoutItem[]) => {
+			throw failure
+		})
+
+		const onDragEnd = vi.fn()
+
+		const rejections = collectRejections()
+
+		renderUI(
+			<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+		)
+
+		await drop(await lift('Move Revenue', 'ArrowRight', 12))
+
+		expect(rejections).toEqual([failure])
+
+		// The board holds its own layout, so it keeps the drop.
+		const saved = onValueChange.mock.lastCall?.[0]
+
+		expect(saved).toContainEqual({ id: 'a', x: 12, y: 0, w: 12 })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: false, layout: saved })
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'1 / 13 / span 27 / span 12',
+		)
 	})
 
 	it('refuses a splitter step during a drag, so the drop commits alone and ends once', async () => {

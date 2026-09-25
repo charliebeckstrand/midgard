@@ -70,6 +70,10 @@ export type DashboardGestureStartEvent = {
  * @remarks
  * When the layout changes from outside during a gesture, the gesture ends as
  * canceled and commits nothing. The outside change stays on the board.
+ *
+ * When the `onValueChange` of the layout throws, the gesture still ends once,
+ * and the board then throws the error again. An uncontrolled board keeps the new
+ * layout. A controlled board keeps its `value`, so the end is canceled.
  */
 export type DashboardGestureEndEvent = {
 	/** The id of the tile that the gesture moved. */
