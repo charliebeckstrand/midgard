@@ -59,7 +59,10 @@ export type DashboardHandle = {
 export type DashboardGestureStartEvent = {
 	/** The id of the tile that the gesture moves. */
 	id: string
-	/** The saved layout at the start. A cancel returns to it. */
+	/**
+	 * The saved layout at the start. A cancel commits nothing, so a change from
+	 * outside during the gesture stays.
+	 */
 	layout: readonly DashboardLayoutItem[]
 }
 

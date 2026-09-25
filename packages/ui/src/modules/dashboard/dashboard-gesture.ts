@@ -86,9 +86,10 @@ export function measureGesture(
  *
  * @remarks
  * The preview comes from the snapshot at the start. When the resolved layout
- * changed during the gesture, a commit writes the old cells back. It would undo
- * an outside move, and it would restore the entry of a removed tile. So a
- * gesture over a changed layout ends as canceled, and the outside change stays.
+ * changed during the gesture, a commit of the preview writes the old cells back.
+ * Such a commit undoes an outside move, and it restores the entry of a removed
+ * tile. So a gesture over a changed layout ends as canceled, and the outside
+ * change stays.
  *
  * @internal
  */
