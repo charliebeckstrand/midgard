@@ -1,9 +1,10 @@
 'use client'
 
-import { type Ref, type RefObject, useCallback, useMemo } from 'react'
+import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
+import { memoWeak } from '../../utilities'
 import {
 	Calendar,
 	type CalendarActive,
@@ -11,13 +12,7 @@ import {
 	type CalendarDayProps,
 	type CalendarHandle,
 } from './calendar'
-import {
-	fromCalendarDate,
-	isBeforeDay,
-	isBetween,
-	isSameDay,
-	toCalendarDate,
-} from './calendar-utilities'
+import { isBeforeDay, isBetween, isSameDay } from './calendar-utilities'
 
 /** Props for {@link CalendarRange}: the controlled `rangeStart`/`rangeEnd` endpoints, hover-date tracking, bounds, locale/size, and `ref`. */
 export type CalendarRangeProps = {
@@ -65,22 +60,58 @@ function computeRangeDayFlags(
 	rangeStart: Date | null | undefined,
 	effectiveEnd: Date | null | undefined,
 ): { isEdge: boolean; isInnerRange: boolean; isLeftEdge: boolean; isRightEdge: boolean } {
-	const isRangeStart = rangeStart != null && isSameDay(date, rangeStart)
-	const isRangeEnd = effectiveEnd != null && isSameDay(date, effectiveEnd)
+	const isEdge =
+		(rangeStart != null && isSameDay(date, rangeStart)) ||
+		(effectiveEnd != null && isSameDay(date, effectiveEnd))
 
-	const isEdge = isRangeStart || isRangeEnd
+	if (rangeStart == null || effectiveEnd == null) {
+		return { isEdge, isInnerRange: false, isLeftEdge: false, isRightEdge: false }
+	}
 
-	const hasRange = rangeStart != null && effectiveEnd != null
+	// The earlier endpoint is the left edge, in either selection order.
+	const [first, last] = isBeforeDay(effectiveEnd, rangeStart)
+		? [effectiveEnd, rangeStart]
+		: [rangeStart, effectiveEnd]
 
-	const inRange = hasRange && isBetween(date, rangeStart, effectiveEnd)
+	// A range of one day has no band, so its cell keeps each corner round.
+	const spans = isBeforeDay(first, last)
 
-	const startBeforeEnd = hasRange && isBeforeDay(rangeStart, effectiveEnd)
-	const endBeforeStart = hasRange && isBeforeDay(effectiveEnd, rangeStart)
+	return {
+		isEdge,
+		isInnerRange: isBetween(date, first, last),
+		isLeftEdge: spans && isSameDay(date, first),
+		isRightEdge: spans && isSameDay(date, last),
+	}
+}
 
-	const isLeftEdge = (startBeforeEnd && isRangeStart) || (endBeforeStart && isRangeEnd)
-	const isRightEdge = (startBeforeEnd && isRangeEnd) || (endBeforeStart && isRangeStart)
+/**
+ * The enter handler of each rendered day, for each `onHoverDate`. The inner map
+ * keys each handler on the `Date` of its cell, not on the day number. The
+ * calendar keeps one `Date` for each day while it renders that month. When the
+ * month leaves the view, its `Date`s and their handlers go too.
+ */
+const enterHandlers = new WeakMap<(date: Date | null) => void, WeakMap<Date, () => void>>()
 
-	return { isEdge, isInnerRange: inRange && !isEdge, isLeftEdge, isRightEdge }
+/** The leave handler, for each `onHoverDate`. */
+const leaveHandlers = new WeakMap<(date: Date | null) => void, () => void>()
+
+/**
+ * The hover handlers of a day cell. Each handler keeps its identity for the same
+ * `onHoverDate` and the same day while that month renders. A memoized cell then
+ * holds when the band moves past it.
+ */
+function hoverHandlers(
+	onHoverDate: ((date: Date | null) => void) | undefined,
+	date: Date,
+): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
+	if (!onHoverDate) return {}
+
+	const byDay = memoWeak(enterHandlers, onHoverDate, () => new WeakMap<Date, () => void>())
+
+	return {
+		onMouseEnter: memoWeak(byDay, date, (day) => () => onHoverDate(day)),
+		onMouseLeave: memoWeak(leaveHandlers, onHoverDate, (report) => () => report(null)),
+	}
 }
 
 /**
@@ -88,10 +119,11 @@ function computeRangeDayFlags(
  * per-day styling through `getDayProps`. It paints the band between
  * `rangeStart` and the effective end, marks both endpoints selected, and rounds
  * the leading and trailing edges in either selection order. The effective end
- * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day reports it through `onHoverDate`
- * for live in-progress feedback. Endpoint state is fully controlled by the
- * parent; forwards `locale`, `size`, bounds, and the imperative `ref` to
- * `Calendar`.
+ * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day
+ * reports it through `onHoverDate` for live in-progress feedback. Endpoint
+ * state is fully controlled by the parent. When the parent moves `rangeStart`
+ * (else `rangeEnd`) to another month, the view follows it. Forwards `locale`,
+ * `size`, bounds, and the imperative `ref` to `Calendar`.
  *
  * @remarks Client component (`'use client'`).
  */
@@ -132,26 +164,18 @@ export function CalendarRange({
 					isLeftEdge && k.day.range.leftEdge,
 					isRightEdge && k.day.range.rightEdge,
 				),
-				onMouseEnter: () => onHoverDate?.(date),
-				onMouseLeave: () => onHoverDate?.(null),
+				...hoverHandlers(onHoverDate, date),
 			}
 		},
 		[rangeStart, effectiveEnd, onHoverDate],
 	)
 
-	const defaultValue = useMemo(() => {
-		if (rangeStart) return fromCalendarDate(toCalendarDate(rangeStart))
-
-		if (rangeEnd) return fromCalendarDate(toCalendarDate(rangeEnd))
-
-		return undefined
-	}, [rangeStart, rangeEnd])
-
 	return (
 		<Calendar
 			ref={ref}
-			value={undefined}
-			defaultValue={defaultValue}
+			// The first endpoint anchors the view, so the grid follows a parent that
+			// moves the range to another month. `getDayProps` owns the selection.
+			value={rangeStart ?? rangeEnd ?? null}
 			onValueChange={(date) => date && onValueChange?.(date)}
 			min={min}
 			max={max}

@@ -4,7 +4,7 @@ import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
-import { useCurrent } from '../../primitives/current'
+import { useCurrentItem } from '../../primitives/current/current'
 import { useDensity } from '../../primitives/density'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
@@ -58,12 +58,12 @@ function resolveTabState(opts: {
 	id: string | undefined
 	value: string | undefined
 	currentProp: boolean | undefined
-	contextValue: string | null | undefined
+	contextCurrent: boolean
 	baseId: string | undefined
 	isSegment: boolean
 	disclosure: { triggerId: string; panelId: string }
 }): { current: boolean; tabId: string | undefined; controlsId: string | undefined } {
-	const current = opts.currentProp ?? (opts.value !== undefined && opts.contextValue === opts.value)
+	const current = opts.currentProp ?? opts.contextCurrent
 
 	const auto =
 		!opts.isSegment &&
@@ -100,7 +100,9 @@ export function Tab({
 	onFocus,
 	...rest
 }: TabProps) {
-	const context = useCurrent()
+	// The tab reads its own value, so a switch renders only the tab that stops
+	// being current and the tab that becomes current.
+	const item = useCurrentItem(value)
 
 	const tabsContext = useTabsContext()
 
@@ -126,7 +128,7 @@ export function Tab({
 		id,
 		value,
 		currentProp,
-		contextValue: context?.value,
+		contextCurrent: item.current,
 		baseId: tabsContext?.baseId,
 		isSegment,
 		disclosure,
@@ -138,7 +140,7 @@ export function Tab({
 		onClick,
 		() => {
 			if (value !== undefined) {
-				context?.onValueChange?.(value)
+				item.onValueChange?.(value)
 			}
 		},
 		{ checkForDefaultPrevented: false },

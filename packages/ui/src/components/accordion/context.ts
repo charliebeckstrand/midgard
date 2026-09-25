@@ -4,11 +4,13 @@ import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { Mount } from '../../primitives/mount'
 import type { AccordionVariants } from '../../recipes/kata/accordion'
+import type { KeyedStore } from '../../utilities'
 
 type AccordionContextValue = {
 	variant: NonNullable<AccordionVariants['variant']>
 	mount: Mount
-	isOpen: (value: string) => boolean
+	/** Whether each value is open. An item subscribes to its own value. */
+	openStore: KeyedStore<string, boolean>
 	toggle: (value: string) => void
 	/** The root's arrival callback, raised by the section panel that owns the motion. */
 	onOpenComplete?: (value: string) => void
@@ -16,7 +18,7 @@ type AccordionContextValue = {
 
 /**
  * Reads the enclosing {@link Accordion} context: resolved `variant` plus the
- * shared `isOpen`/`toggle` operating on the open set. Throws outside an accordion.
+ * shared `openStore`/`toggle` operating on the open set. Throws outside an accordion.
  * @internal
  */
 export const [AccordionContext, useAccordion] = createContext<AccordionContextValue>('Accordion')

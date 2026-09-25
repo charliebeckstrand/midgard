@@ -63,6 +63,8 @@ export type MountedGrid = {
 	filter: (text: string) => void
 	/** Shows the page at `index`. The grid must mount with {@link MountOptions.paginated}. */
 	page: (index: number) => void
+	/** Opens the filter of the carrier column, which lists its values. Only a grid that mounts with {@link MountOptions.facets} has it. */
+	openFacets?: () => void
 	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
 	scroller: () => HTMLElement | null
 	destroy: () => void
@@ -74,6 +76,12 @@ export type MountOptions = {
 	filterable?: boolean
 	/** Pages the rows {@link PAGE_SIZE} at a time, for the pagination scenario. */
 	paginated?: boolean
+	/** Sums the loads and the weight in a grand-total row, for the grand-total scenario. */
+	grandTotal?: boolean
+	/** Gives the carrier column a filter that lists its values, for the facet scenario. */
+	facets?: boolean
+	/** Groups the rows by carrier, with every group open, for the grouping scenario. */
+	grouped?: boolean
 }
 
 /** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
@@ -83,6 +91,13 @@ export const PAGE_SIZE = 100
 export type GridContender = {
 	name: string
 	mount: (host: HTMLElement, rows: Shipment[], options?: MountOptions) => MountedGrid
+	/** The mount options that the free tier of the library cannot run. A scenario that sets one leaves the contender out. */
+	unsupported?: (keyof MountOptions)[]
+}
+
+/** Whether `contender` can run a scenario that mounts with `options`. */
+export function supports(contender: GridContender, options: MountOptions | undefined): boolean {
+	return !contender.unsupported?.some((option) => options?.[option])
 }
 
 /**
@@ -117,6 +132,19 @@ const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => 
 	// column declares one and all three search the same eight.
 	value: (row) => row[id],
 }))
+
+/** The columns that a grand total sums. */
+const TOTALED = new Set(['loads', 'weight'])
+
+/** {@link UI_COLUMNS} with a sum on the loads and the weight. */
+const UI_TOTAL_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
+	TOTALED.has(String(col.id)) ? { ...col, aggFunc: 'sum' } : col,
+)
+
+/** {@link UI_COLUMNS} with a carrier filter that lists the carriers of the rows. */
+const UI_FACET_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
+	col.id === 'carrier' ? { ...col, filterable: true, filterType: 'select' } : col,
+)
 
 /** {@link UI_COLUMNS} with a filterable carrier column. */
 const UI_FILTER_COLUMNS: GridColumn<Shipment>[] = UI_COLUMNS.map((col) =>
@@ -183,11 +211,25 @@ function uiContender(): GridContender {
 
 			const paginated = options?.paginated ?? false
 
+			const grandTotal = options?.grandTotal ?? false
+
+			const facets = options?.facets ?? false
+
+			const columns = facets
+				? UI_FACET_COLUMNS
+				: filterable
+					? UI_FILTER_COLUMNS
+					: grandTotal
+						? UI_TOTAL_COLUMNS
+						: UI_COLUMNS
+
 			const draw = () =>
 				flushSync(() =>
 					root.render(
 						<Grid
-							columns={filterable ? UI_FILTER_COLUMNS : UI_COLUMNS}
+							columns={columns}
+							grandTotalRow={grandTotal || undefined}
+							groupBy={options?.grouped ? { value: 'carrier' } : undefined}
 							rows={current}
 							getKey={shipmentKey}
 							virtualize
@@ -228,6 +270,13 @@ function uiContender(): GridContender {
 
 					draw()
 				},
+				openFacets() {
+					const button = box.querySelector<HTMLElement>('button[aria-label="Filter Carrier"]')
+
+					if (!button) throw new Error('grid bench found no carrier filter button')
+
+					flushSync(() => button.click())
+				},
 				scroller: () => mustFind(box, '[data-slot="grid-scroll"]'),
 				destroy: () => {
 					root.unmount()
@@ -243,6 +292,9 @@ function uiContender(): GridContender {
 function agContender(): GridContender {
 	return {
 		name: 'AG Grid',
+		// The grand-total row, the set filter, and the row grouping of AG Grid are
+		// Enterprise features.
+		unsupported: ['grandTotal', 'facets', 'grouped'],
 		mount(host, rows, options) {
 			const box = fillBox(host)
 
@@ -285,6 +337,9 @@ function agContender(): GridContender {
 function muiContender(): GridContender {
 	return {
 		name: 'MUI X DataGrid',
+		// The aggregation and the row grouping of MUI X are Premium features, and
+		// its filter lists no values.
+		unsupported: ['grandTotal', 'facets', 'grouped'],
 		mount(host, rows, options) {
 			const box = fillBox(host)
 

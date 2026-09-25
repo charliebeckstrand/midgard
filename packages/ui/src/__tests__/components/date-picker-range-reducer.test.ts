@@ -75,6 +75,24 @@ describe('datePickerRangeReducer', () => {
 		expect(next.hoverDate).toBeNull()
 	})
 
+	it('hover keeps the state before the first endpoint', () => {
+		const state: DatePickerRangeState = { rangeStart: null, hoverDate: null, active: null }
+
+		expect(datePickerRangeReducer(state, { type: 'hover', date: hover })).toBe(state)
+	})
+
+	it('hover keeps the state for the same day', () => {
+		const state: DatePickerRangeState = { rangeStart: start, hoverDate: hover, active: null }
+
+		const sameDay = new Date(2024, 0, 5, 12)
+
+		expect(datePickerRangeReducer(state, { type: 'hover', date: sameDay })).toBe(state)
+
+		const cleared: DatePickerRangeState = { rangeStart: start, hoverDate: null, active: null }
+
+		expect(datePickerRangeReducer(cleared, { type: 'hover', date: null })).toBe(cleared)
+	})
+
 	it('setActive replaces active without touching the range fields', () => {
 		const active = { date: start, zone: 'grid' as const }
 

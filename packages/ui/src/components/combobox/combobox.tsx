@@ -29,7 +29,7 @@ import {
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
 import { useControlSize } from '../../primitives/density'
-import { QueryContext, useQueryValue } from '../../primitives/query'
+import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
@@ -176,9 +176,10 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	/** Root slot identifier. Wrappers override it to stamp their own name. */
 	'data-slot'?: string
 	/**
-	 * Items to render inside the panel. Read the live and deferred query with
-	 * `useComboboxQuery()`; filter heavy lists against `deferredQuery` to keep
-	 * typing responsive.
+	 * Items to render inside the panel. Read the deferred query with
+	 * `useComboboxDeferredQuery()`, and filter heavy lists against it to keep
+	 * typing responsive. `useComboboxQuery()` also gives the live query, but its
+	 * consumer renders again for each keystroke.
 	 */
 	children: ReactNode
 }
@@ -646,78 +647,82 @@ export function Combobox<T>({
 	return (
 		<ComboboxContext value={contextValue}>
 			<QueryContext value={queryValue}>
-				<SelectTrigger
-					open={open}
-					setReference={refs.setReference}
-					getReferenceProps={getReferenceProps}
-					glass={glass}
-					size={resolvedSize}
-					className={className}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					data-slot={slot}
-					prefix={prefix}
-					suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
-					suffixProps={{
-						// Mouse-only toggle affordance; the input carries combobox
-						// semantics. Only the default chevron is decorative enough to
-						// hide from assistive tech — custom suffix content (e.g. a live
-						// LoadingSpinner) owns its own semantics. Interactive suffix
-						// content (the clear button) stops propagation to opt out.
-						'aria-hidden': suffix || showClear ? undefined : true,
-						onMouseDown:
-							resolvedDisabled || resolvedReadOnly ? undefined : triggerHandlers.onMouseDown,
-					}}
-				>
-					<ComboboxInput
-						id={id}
-						ref={inputRef}
-						type="text"
-						autoComplete={autoComplete}
-						aria-label={ariaLabel}
-						aria-labelledby={ariaLabelledby}
-						// Passed raw: the `<Input>` beneath runs the same `useControlProps`
-						// merge, so resolving it here would join the field's ids twice.
-						aria-describedby={ariaDescribedBy}
+				{/* A filtering consumer reads the deferred query alone, so a keystroke
+				    renders it one time and not also on the pass of the live query. */}
+				<DeferredQueryContext value={menuDeferredQuery}>
+					<SelectTrigger
 						open={open}
-						controlsId={comboboxId}
-						disabled={resolvedDisabled}
-						readOnly={resolvedReadOnly}
-						required={resolvedRequired}
-						invalid={resolvedInvalid}
-						value={inputDisplay}
-						placeholder={placeholder}
-						title={inputTitle}
+						setReference={refs.setReference}
+						getReferenceProps={getReferenceProps}
+						glass={glass}
+						size={resolvedSize}
+						className={className}
+						data-group={dataGroup}
+						data-group-orientation={dataGroupOrientation}
+						data-slot={slot}
+						prefix={prefix}
+						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
+						suffixProps={{
+							// Mouse-only toggle affordance; the input carries combobox
+							// semantics. Only the default chevron is decorative enough to
+							// hide from assistive tech — custom suffix content (e.g. a live
+							// LoadingSpinner) owns its own semantics. Interactive suffix
+							// content (the clear button) stops propagation to opt out.
+							'aria-hidden': suffix || showClear ? undefined : true,
+							onMouseDown:
+								resolvedDisabled || resolvedReadOnly ? undefined : triggerHandlers.onMouseDown,
+						}}
+					>
+						<ComboboxInput
+							id={id}
+							ref={inputRef}
+							type="text"
+							autoComplete={autoComplete}
+							aria-label={ariaLabel}
+							aria-labelledby={ariaLabelledby}
+							// Passed raw: the `<Input>` beneath runs the same `useControlProps`
+							// merge, so resolving it here would join the field's ids twice.
+							aria-describedby={ariaDescribedBy}
+							open={open}
+							controlsId={comboboxId}
+							disabled={resolvedDisabled}
+							readOnly={resolvedReadOnly}
+							required={resolvedRequired}
+							invalid={resolvedInvalid}
+							value={inputDisplay}
+							placeholder={placeholder}
+							title={inputTitle}
+							editing={editing}
+							capitalize={capitalize}
+							density={token.space}
+							size={token.size}
+							handlers={inputHandlers}
+						/>
+					</SelectTrigger>
+
+					<ComboboxPanel
+						id={comboboxId}
+						open={open}
 						editing={editing}
-						capitalize={capitalize}
+						multiple={multiple}
+						glass={glass}
 						density={token.space}
 						size={token.size}
-						handlers={inputHandlers}
-					/>
-				</SelectTrigger>
-
-				<ComboboxPanel
-					id={comboboxId}
-					open={open}
-					editing={editing}
-					multiple={multiple}
-					glass={glass}
-					density={token.space}
-					size={token.size}
-					ariaLabel={ariaLabel}
-					// Names the listbox from the input's name: an explicit aria-label
-					// wins, else aria-labelledby, else the field's Label (via Control).
-					ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
-					floatingStyles={floatingStyles}
-					getFloatingProps={getFloatingProps}
-					optionsRef={optionsRef}
-					setFloating={refs.setFloating}
-					scrollToSelected={scrollToSelected}
-					flushPending={flushPending}
-					onClose={close}
-				>
-					<VirtualItemSourceContext value={virtualSourceRef}>{children}</VirtualItemSourceContext>
-				</ComboboxPanel>
+						ariaLabel={ariaLabel}
+						// Names the listbox from the input's name: an explicit aria-label
+						// wins, else aria-labelledby, else the field's Label (via Control).
+						ariaLabelledby={ariaLabel ? undefined : (ariaLabelledby ?? control?.labelledBy)}
+						floatingStyles={floatingStyles}
+						getFloatingProps={getFloatingProps}
+						optionsRef={optionsRef}
+						setFloating={refs.setFloating}
+						scrollToSelected={scrollToSelected}
+						flushPending={flushPending}
+						onClose={close}
+					>
+						<VirtualItemSourceContext value={virtualSourceRef}>{children}</VirtualItemSourceContext>
+					</ComboboxPanel>
+				</DeferredQueryContext>
 			</QueryContext>
 		</ComboboxContext>
 	)

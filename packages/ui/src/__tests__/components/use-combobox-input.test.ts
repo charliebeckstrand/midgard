@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react'
 import type { KeyboardEvent } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { useComboboxInput } from '../../components/combobox/use-combobox-input'
-import { makeChangeEvent, makeFocusEvent, makeKeyEvent } from '../helpers'
+import { makeChangeEvent, makeFocusEvent, makeKeyEvent, makePointerEvent } from '../helpers'
 
 /**
  * Build a closed-menu arrow key event whose `currentTarget` reports the input's
@@ -132,6 +132,52 @@ describe('useComboboxInput onFocus', () => {
 		result.current.onFocus()
 
 		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+})
+
+describe('useComboboxInput onMouseDown', () => {
+	function focusedInput() {
+		const input = document.createElement('input')
+
+		document.body.appendChild(input)
+
+		input.focus()
+
+		return input
+	}
+
+	it('opens the closed menu on a press into the focused input', () => {
+		const { result, setOpen } = setup<string>({ open: false })
+
+		const input = focusedInput()
+
+		result.current.onMouseDown(makePointerEvent<HTMLInputElement>({ currentTarget: input }))
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+
+		input.remove()
+	})
+
+	it('leaves a press into an unfocused input to onFocus', () => {
+		const { result, setOpen } = setup<string>({ open: false })
+
+		const input = document.createElement('input')
+
+		result.current.onMouseDown(makePointerEvent<HTMLInputElement>({ currentTarget: input }))
+
+		expect(setOpen).not.toHaveBeenCalled()
+	})
+
+	it('does nothing while the menu is open', () => {
+		const { result, setOpen } = setup<string>({ open: true })
+
+		const input = focusedInput()
+
+		result.current.onMouseDown(makePointerEvent<HTMLInputElement>({ currentTarget: input }))
+
+		expect(setOpen).not.toHaveBeenCalled()
+
+		input.remove()
 	})
 })
 

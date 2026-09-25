@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { rangeKeys } from '../../../utilities'
 import type { ChartReadoutSource } from './types'
 
@@ -15,9 +16,13 @@ export type ChartTableProps = {
  * frame's deferred low-priority pass, so the cell formatting lands off the
  * mount-critical commit (and warms the cache the tooltip shares).
  *
+ * The table is memoized on the thunk. A pointer move renders the frame again,
+ * but the thunk keeps its identity, so the table holds. It renders again only
+ * when the chart body gives a new readout.
+ *
  * @internal
  */
-export function ChartTable({ readout: source }: ChartTableProps) {
+export const ChartTable = memo(function ChartTable({ readout: source }: ChartTableProps) {
 	const readout = source()
 
 	if (readout === null) return null
@@ -55,4 +60,4 @@ export function ChartTable({ readout: source }: ChartTableProps) {
 			</table>
 		</div>
 	)
-}
+})

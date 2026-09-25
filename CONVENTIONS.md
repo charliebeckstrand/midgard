@@ -50,11 +50,13 @@ A `data-slot` anchor binds by who reads it. The library selects some anchors its
 
 A key that holds a handler or an object needs both sides, and a spread position keeps only one. So the component destructures the key and resolves it. A handler composes through `composeEventHandlers`: the consumer's handler runs first, and its `preventDefault()` cancels the component's handler. A `style` object merges: `props.style` spreads in first, then the keys that carry the behavior of the component. `menu-item-utilities.ts` is the example for a handler, and `slider.tsx` for a `style` object.
 
+A `ref` is such a key. The component destructures it and joins it to its own ref through `useComposedRef`. Then the consumer ref and the internal ref both get the node, as in `tab-list.tsx`.
+
 Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be canceled, so the default would let a consumer switch that wiring off.
 
 Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case.
 
-`spread-order-boundary.test.ts` gates the position rules. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
+`spread-order-boundary.test.ts` gates the position rules and the internal `ref`. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
 ## 4. TypeScript
 

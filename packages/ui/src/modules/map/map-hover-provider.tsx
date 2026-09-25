@@ -1,6 +1,14 @@
 'use client'
 
-import { type ReactNode, type RefObject, useCallback, useMemo, useRef, useState } from 'react'
+import {
+	type ReactNode,
+	type RefObject,
+	useCallback,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import {
 	type MapHoverSet,
@@ -8,6 +16,7 @@ import {
 	type MapHoverState,
 	MapHoverStateContext,
 	MapPointedMarkContext,
+	type MapPointedStore,
 } from './context'
 import { markAnchorAt, regionIndexAt } from './engine/map-hover/anchor'
 import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
@@ -21,9 +30,43 @@ type MapHoverProviderProps = {
 	plotRef: RefObject<HTMLDivElement | null>
 	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
 	regionActive: (index: number) => boolean
+	/** The legend id under emphasis. It rides the pointed-mark store, so a legend hover renders only the marks it dims or lights. */
+	emphasis: string | null
 	/** Warms the region the pointer settles on; `undefined` on a plat that asked for no warming. */
 	preloadRegion: ((index: number) => void) | undefined
 	children: ReactNode
+}
+
+/** A {@link MapPointedStore} and its writer. @internal */
+function createPointedStore(): MapPointedStore & {
+	publish: (next: MapHoverTarget | null, emphasis: string | null) => void
+} {
+	let current: MapHoverTarget | null = null
+
+	let focus: string | null = null
+
+	const listeners = new Set<() => void>()
+
+	return {
+		get: () => current,
+		emphasis: () => focus,
+		subscribe: (listener) => {
+			listeners.add(listener)
+
+			return () => {
+				listeners.delete(listener)
+			}
+		},
+		publish: (next, emphasis) => {
+			if (next === current && emphasis === focus) return
+
+			current = next
+
+			focus = emphasis
+
+			for (const listener of [...listeners]) listener()
+		},
+	}
 }
 
 /** Whether two hover points coincide, so a redundant hover write can bail. @internal */
@@ -53,6 +96,7 @@ export function MapHoverProvider({
 	enabled,
 	plotRef,
 	regionActive,
+	emphasis,
 	preloadRegion,
 	children,
 }: MapHoverProviderProps) {
@@ -104,6 +148,13 @@ export function MapHoverProvider({
 		return next
 	}, [target, regionActive])
 
+	// The marks read the pointed mark from a store, each for its own answer. The
+	// store keeps one identity, so the context holds and a crossing renders only
+	// the marks whose answer changed.
+	const [pointedStore] = useState(createPointedStore)
+
+	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
+
 	const clear = useCallback(() => set(null, null), [set])
 
 	// A scroll slides the marks under a stationary pointer without firing a pointer
@@ -152,7 +203,7 @@ export function MapHoverProvider({
 
 	return (
 		<MapHoverSetContext value={set}>
-			<MapPointedMarkContext value={pointed}>
+			<MapPointedMarkContext value={pointedStore}>
 				<MapHoverStateContext value={state}>{children}</MapHoverStateContext>
 			</MapPointedMarkContext>
 		</MapHoverSetContext>

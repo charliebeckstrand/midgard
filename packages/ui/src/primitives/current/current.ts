@@ -1,8 +1,17 @@
 'use client'
 
-import { type RefObject, useMemo } from 'react'
+import {
+	type RefObject,
+	use,
+	useCallback,
+	useLayoutEffect,
+	useMemo,
+	useState,
+	useSyncExternalStore,
+} from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
+import { createKeyedStore, type KeyedStore } from '../../utilities'
 import type { Mount } from '../mount'
 
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
@@ -58,6 +67,97 @@ export function useCurrentState(props: {
 		() => ({ value: contextValue, onValueChange: setValue }),
 		[contextValue, setValue],
 	)
+}
+
+/**
+ * The current-item store that a root gives to its items, next to
+ * {@link CurrentContext}.
+ *
+ * @internal
+ */
+export type CurrentStore = {
+	/** Whether each value is the current value. An item subscribes to its own value. */
+	current: KeyedStore<string, boolean>
+	/** The change handler of the root. */
+	onValueChange: ((value: string | null) => void) | undefined
+}
+
+/**
+ * Carries the {@link CurrentStore} of the nearest root. The value keeps its
+ * identity when the current value changes, so a change does not render each
+ * item. `undefined` outside a root that gives a store.
+ *
+ * @internal
+ */
+export const [CurrentStoreContext] = createContext<CurrentStore | undefined>('CurrentStore', {
+	default: undefined,
+})
+
+/**
+ * Makes the {@link CurrentStore} of a root from its {@link CurrentContextValue}.
+ *
+ * @returns A store that keeps its identity while `onValueChange` keeps its
+ * identity. Pass it into {@link CurrentStoreContext}.
+ *
+ * @remarks
+ * The hook publishes the current value in a layout effect. A change therefore
+ * calls only the listeners of the value that stops being current and of the
+ * value that becomes current.
+ *
+ * @internal
+ */
+export function useCurrentStore(state: CurrentContextValue): CurrentStore {
+	const { value, onValueChange } = state
+
+	const [current] = useState(() => createKeyedStore((key: string) => key === value))
+
+	useLayoutEffect(() => {
+		current.publish((key) => key === value)
+	}, [current, value])
+
+	return useMemo(() => ({ current, onValueChange }), [current, onValueChange])
+}
+
+const noSubscription = () => () => {}
+
+/**
+ * Reads whether `value` is the current value, and the change handler of the
+ * root.
+ *
+ * @returns `current`, which is `false` for an unvalued item, and `onValueChange`.
+ *
+ * @remarks
+ * Under a root that gives a {@link CurrentStore}, the item subscribes to its own
+ * value. It then renders only when its own `current` changes. Under a
+ * {@link CurrentContext} alone, the item reads the context.
+ *
+ * @internal
+ */
+export function useCurrentItem(value: string | undefined): {
+	current: boolean
+	onValueChange: ((value: string | null) => void) | undefined
+} {
+	const store = use(CurrentStoreContext)
+
+	const subscribe = useCallback(
+		(listener: () => void) =>
+			store && value !== undefined ? store.current.subscribe(value, listener) : noSubscription(),
+		[store, value],
+	)
+
+	const read = () => (store && value !== undefined ? store.current.get(value) : false)
+
+	const stored = useSyncExternalStore(subscribe, read, read)
+
+	if (store) return { current: stored, onValueChange: store.onValueChange }
+
+	// Without a store, the item reads the context. `use` can run in a condition.
+	const context = use(CurrentContext)
+
+	return {
+		current: value !== undefined && context?.value === value,
+		onValueChange: context?.onValueChange,
+	}
 }
 
 /**

@@ -25,6 +25,21 @@ export const [QueryContext, useQuery] = createContext<QueryContextValue>('Query'
 })
 
 /**
+ * Deferred-query context for type-ahead roots (Combobox, CommandPalette). The
+ * root gives the same text as `deferredQuery` of {@link QueryContextValue}, and
+ * descendants read it through {@link useDeferredQuery}.
+ *
+ * @remarks
+ * A consumer of {@link QueryContext} renders when the live query changes and
+ * again when the deferred query follows it. A consumer that filters on the
+ * deferred query reads this context, so it renders one time for each change of
+ * the deferred query.
+ */
+export const [DeferredQueryContext, useDeferredQuery] = createContext<string>('DeferredQuery', {
+	error: 'useDeferredQuery must be used within a query-scoped root (Combobox, CommandPalette)',
+})
+
+/**
  * Memoizes a {@link QueryContextValue} for a root to pass to {@link QueryContext}.
  *
  * @param query - Live query text, updated on every keystroke.

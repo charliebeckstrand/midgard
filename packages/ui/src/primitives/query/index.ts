@@ -1,1 +1,8 @@
-export { QueryContext, type QueryContextValue, useQuery, useQueryValue } from './query'
+export {
+	DeferredQueryContext,
+	QueryContext,
+	type QueryContextValue,
+	useDeferredQuery,
+	useQuery,
+	useQueryValue,
+} from './query'

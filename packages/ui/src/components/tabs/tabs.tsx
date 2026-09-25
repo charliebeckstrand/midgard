@@ -3,6 +3,7 @@
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
+import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
@@ -44,6 +45,10 @@ export function Tabs({
 }: TabsProps) {
 	const context = useCurrentState({ value, defaultValue, onValueChange })
 
+	// Each item reads its own value from the store, so a change renders only the
+	// item that stops being current and the item that becomes current.
+	const store = useCurrentStore(context)
+
 	const inherited = useDensity()
 
 	const resolvedSize: TabsSize = size ?? inherited.size
@@ -81,16 +86,18 @@ export function Tabs({
 
 	return (
 		<CurrentContext value={context}>
-			<TabsContext value={tabsContext}>
-				<div
-					data-slot="tab-group"
-					data-orientation={resolvedOrientation}
-					className={cn(k.group({ orientation: resolvedOrientation }), className)}
-					{...props}
-				>
-					{children}
-				</div>
-			</TabsContext>
+			<CurrentStoreContext value={store}>
+				<TabsContext value={tabsContext}>
+					<div
+						data-slot="tab-group"
+						data-orientation={resolvedOrientation}
+						className={cn(k.group({ orientation: resolvedOrientation }), className)}
+						{...props}
+					>
+						{children}
+					</div>
+				</TabsContext>
+			</CurrentStoreContext>
 		</CurrentContext>
 	)
 }

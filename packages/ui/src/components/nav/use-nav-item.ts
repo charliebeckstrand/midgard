@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
-import { useCurrent } from '../../primitives/current'
+import { useCurrentItem } from '../../primitives/current/current'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
@@ -69,12 +69,14 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 	const indicator = useActiveIndicator()
 	const inherited = useDensity()
 	const offcanvas = use(OffcanvasContext)
-	const context = useCurrent()
+	// The item reads its own value, so a change renders only the item that stops
+	// being current and the item that becomes current.
+	const item = useCurrentItem(value)
 	const scrollWithin = useScrollWithin()
 
 	const resolvedSize = size ?? inherited.size
 
-	const isCurrent = current ?? (value !== undefined && context?.value === value)
+	const isCurrent = current ?? item.current
 
 	// Scroll once per becoming-current edge, tracked in a ref. The effect also
 	// re-fires without an edge: StrictMode's dev double-invoke replays layout
@@ -101,7 +103,7 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 		onClick?.(event as MouseEvent<HTMLButtonElement> & MouseEvent<HTMLAnchorElement>)
 
 		if (value !== undefined) {
-			context?.onValueChange?.(value)
+			item.onValueChange?.(value)
 		}
 
 		if (!preventClose) {

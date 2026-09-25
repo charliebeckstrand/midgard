@@ -100,6 +100,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `memoWeak` | The value under a key in a `WeakMap`, computed and stored on the first read — the one get-or-compute step every per-object memo spells. |
+| `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. A consumer reads its own key through `useSyncExternalStore`, so a change to one entry does not render the consumers of the others. The grid settle store builds on it. |
+| `KeyedStore` *(type)* | The store that `createKeyedStore` returns: `get`, `subscribe` for one key, and `publish` of a new reader. |
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |

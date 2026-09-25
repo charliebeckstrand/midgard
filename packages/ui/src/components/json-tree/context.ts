@@ -2,6 +2,7 @@
 
 import type { RefObject } from 'react'
 import { createContext } from '../../core'
+import type { KeyedStore } from '../../utilities'
 import type { SearchIndex } from './json-tree-utilities'
 
 type JsonTreeContextValue = {
@@ -11,8 +12,17 @@ type JsonTreeContextValue = {
 	filter: boolean
 	searchIndex: SearchIndex
 	path: string
-	expanded?: Set<string>
-	onExpandedChange?: (expanded: Set<string>) => void
+	/** Whether the tree runs from a controlled `expanded` set. */
+	controlled: boolean
+	/**
+	 * Whether each path is in the controlled `expanded` set. A node subscribes to
+	 * its own path, so a toggle renders only the nodes whose open state changed.
+	 * The set itself stays out of the context value, because a new set would
+	 * render each node of the tree.
+	 */
+	expansion: KeyedStore<string, boolean>
+	/** Toggles a path in the controlled set. It keeps its identity across renders. */
+	toggleExpanded: (path: string) => void
 	/**
 	 * Uncontrolled toggles, keyed by node path, owned above every node so they
 	 * outlive one. Collapsing a branch unmounts its descendants and takes their

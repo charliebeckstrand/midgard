@@ -7,6 +7,7 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
+import { toColumnFacets } from '../../modules/grid/engine/grid-table/views'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
@@ -75,15 +76,17 @@ function gridView(rows: Row[], transforms: EngineTransforms) {
 			columnFilters: { value: transforms.filters ?? [] },
 			sort: transforms.sort ?? [],
 			setSort: () => {},
+			grandTotal: true,
 			...(page ? { pagination: { ...page.config, value: page.state } } : {}),
 		}),
 	)
 
-	const { renderRows, rowKeys, pagination } = result.current
+	const { renderRows, rowKeys, pagination, grandTotalRows } = result.current
 
 	return {
 		ids: renderRows.map((row) => row.id),
 		keys: rowKeys,
+		totalIds: grandTotalRows.map((row) => row.id),
 		totals: pagination && {
 			pageCount: pagination.pageCount,
 			rowCount: pagination.rowCount,
@@ -112,6 +115,8 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 	return {
 		ids: shown.map((row) => row.original.id),
 		keys: shown.map((row) => getKey(row.original)),
+		// A grand total reads every row that the filters keep, in data order.
+		totalIds: table.getFilteredRowModel().rows.map((row) => row.original.id),
 		totals: page
 			? {
 					pageCount: table.getPageCount(),
@@ -125,7 +130,7 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 
 describe('useGridTable client view', () => {
 	test.prop([rowsArb, fc.string({ maxLength: 2 }), filtersArb, sortArb, pageArb], { numRuns: 60 })(
-		'gives the rows, keys, and page totals of the engine',
+		'gives the rows, keys, grand-total rows, and page totals of the engine',
 		(rows, query, filters, sort, page) => {
 			const transforms: EngineTransforms = { query, filters, sort, ...(page ? { page } : {}) }
 
@@ -151,6 +156,153 @@ describe('engine sort of an undefined cell', () => {
 			expect(ids.at(-1)).toBe(0)
 
 			expect(gridView(rows, { sort }).ids).toEqual(ids)
+		},
+	)
+})
+
+describe('useGridTable facets', () => {
+	/** The facets of each filterable column, as the grid gives them. */
+	function gridFacets(rows: Row[], transforms: EngineTransforms) {
+		const { result } = renderHook(() =>
+			useGridTable<Row>({
+				rows,
+				columns,
+				getKey,
+				globalFilter: {
+					value: transforms.query ?? '',
+					...(transforms.highlight ? { mode: 'highlight' as const } : {}),
+				},
+				columnFilters: { value: transforms.filters ?? [] },
+			}),
+		)
+
+		const { filters } = result.current
+
+		return columns.map((col) => filters?.facets(col.id))
+	}
+
+	/** The same facets, read from the faceted model of a stock engine table. */
+	function engineFacets(rows: Row[], transforms: EngineTransforms) {
+		const table = engineTable(rows, columns, getKey, {
+			...transforms,
+			query: transforms.query ?? '',
+			filters: transforms.filters ?? [],
+		})
+
+		return columns.map((col) =>
+			toColumnFacets(table.getColumn(String(col.id))?.getFacetedUniqueValues().keys() ?? []),
+		)
+	}
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.boolean(), filtersArb], { numRuns: 60 })(
+		'gives the facets of the engine',
+		(rows, query, highlight, filters) => {
+			const transforms: EngineTransforms = { query, highlight, filters }
+
+			expect(gridFacets(rows, transforms)).toEqual(engineFacets(rows, transforms))
+		},
+	)
+})
+
+describe('useGridTable filter view', () => {
+	it('keeps its identity across a search and a data change, and reads the latest facets', () => {
+		const first: Row[] = [
+			{ id: 0, name: 'a', amount: 1 },
+			{ id: 1, name: 'b', amount: 2 },
+		]
+
+		const { result, rerender } = renderHook(
+			({ rows, query }: { rows: Row[]; query: string }) =>
+				useGridTable<Row>({ rows, columns, getKey, globalFilter: { value: query } }),
+			{ initialProps: { rows: first, query: '' } },
+		)
+
+		const view = result.current.filters
+
+		rerender({ rows: first, query: 'b' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['b'])
+
+		rerender({ rows: [...first, { id: 2, name: 'c', amount: 3 }], query: '' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['a', 'b', 'c'])
+	})
+})
+
+describe('useGridTable search and custom sort', () => {
+	// A custom comparator that is no consistent order. It is not antisymmetric,
+	// so a sort of a subset can differ from the full order with rows taken out.
+	const skewed: GridColumn<Row> = {
+		id: 'amount',
+		title: 'Amount',
+		value: (row) => row.amount,
+		sortable: true,
+		sortFn: (a, b) => ((a.id * 7 + b.id * 3) % 5) - 2,
+	}
+
+	// A custom comparator that orders by the length of the name text.
+	const byLength: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			value: (row) => row.name,
+			sortable: true,
+			sortFn: (a, b) => String(a.name).length - String(b.name).length,
+		},
+		{ id: 'amount', title: 'Amount', value: (row) => row.amount, sortable: true },
+	]
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
+		'gives the rows of the engine',
+		(rows, query, direction) => {
+			const sort: GridSortState[] = [{ column: 'name', direction }]
+
+			const { result } = renderHook(() =>
+				useGridTable<Row>({
+					rows,
+					columns: byLength,
+					getKey,
+					globalFilter: { value: query },
+					sort,
+					setSort: () => {},
+				}),
+			)
+
+			const shown = engineTable(rows, byLength, getKey, { query, sort }).getRowModel().rows
+
+			expect(result.current.renderRows.map((row) => row.id)).toEqual(
+				shown.map((row) => row.original.id),
+			)
+		},
+	)
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
+		'gives the rows of the engine for a comparator that is no consistent order',
+		(rows, query, direction) => {
+			const cols = [byLength[0] as GridColumn<Row>, skewed]
+
+			const sort: GridSortState[] = [{ column: 'amount', direction }]
+
+			const { result } = renderHook(() =>
+				useGridTable<Row>({
+					rows,
+					columns: cols,
+					getKey,
+					globalFilter: { value: query },
+					sort,
+					setSort: () => {},
+				}),
+			)
+
+			const shown = engineTable(rows, cols, getKey, { query, sort }).getRowModel().rows
+
+			expect(result.current.renderRows.map((row) => row.id)).toEqual(
+				shown.map((row) => row.original.id),
+			)
 		},
 	)
 })

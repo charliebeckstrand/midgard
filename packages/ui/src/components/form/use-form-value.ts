@@ -1,5 +1,6 @@
 'use client'
 
+import { useCallback } from 'react'
 import { type SetValue, useControllable } from '../../hooks/use-controllable'
 import { useFormField } from './context'
 import { hasIssues } from './form-reducer'
@@ -40,7 +41,7 @@ export type FormValueResult<T> = {
  * source of truth, `defaultValue` is ignored, and writes chain `onValueChange`.
  * Without either, the hook is plain controlled/uncontrolled state.
  * Subscribes through {@link useFormField}, re-rendering only on this field's
- * change.
+ * change. `setValue` and `setTouched` keep their identity across renders.
  */
 export function useFormValue<T>(
 	name: string | undefined,
@@ -66,10 +67,17 @@ export function useFormValue<T>(
 			: onValueChange,
 	})
 
+	// The field gives a stable `setTouched`, so this one keeps its identity too.
+	// A new function on each render breaks the memo of each row that takes it,
+	// such as a calendar day cell.
+	const touchField = field?.setTouched
+
+	const setTouched = useCallback(() => touchField?.(), [touchField])
+
 	return {
 		value: current,
 		setValue: setCurrent,
-		setTouched: () => field?.setTouched(),
+		setTouched,
 		invalid: field && hasIssues(field.errors),
 	}
 }

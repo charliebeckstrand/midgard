@@ -16,4 +16,4 @@ export {
 	CommandPaletteShortcut,
 	type CommandPaletteShortcutProps,
 } from './slots'
-export { useCommandPaletteQuery } from './use-command-palette-query'
+export { useCommandPaletteDeferredQuery, useCommandPaletteQuery } from './use-command-palette-query'

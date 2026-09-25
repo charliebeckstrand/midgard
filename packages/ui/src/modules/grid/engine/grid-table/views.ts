@@ -16,6 +16,7 @@ import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
 import { pageCountOf } from '../grid-pagination-utilities'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
+import type { FrozenOffsetStore } from '../grid-pin/offsets'
 import { frozenSide } from '../grid-pin/overrides'
 import type { EngineColumn, EngineTable } from './features'
 
@@ -72,15 +73,25 @@ export type GridColumnResizeActions = Pick<
 /**
  * Frozen-column controls: one lookup from a column id to the chrome it draws.
  *
- * @remarks It reads a resolved {@link FrozenLayout} snapshot. The pinned
- * chrome rides `memo` boundaries, so a cell that holds on its props sees a
- * frozen-layout change only through this object's identity.
+ * @remarks It reads a resolved {@link FrozenLayout} snapshot of the frozen
+ * structure: the edge and the boundary role of each column. The pinned chrome
+ * rides `memo` boundaries, so a cell that holds on its props sees a structure
+ * change only through this object's identity. An offset move keeps the
+ * identity. The grid writes the moved offsets to the frozen cells, and
+ * {@link GridColumnPinning.offset} gives the committed offset to a cell that
+ * renders.
  *
  * @internal
  */
 export type GridColumnPinning = {
-	/** The column's frozen chrome — edge, sticky offset, and boundary — or `undefined` when it scrolls. */
+	/**
+	 * The column's frozen chrome — edge, sticky offset, and boundary — or
+	 * `undefined` when it scrolls. The offset is the one of the structure
+	 * snapshot. Read {@link GridColumnPinning.offset} for the committed offset.
+	 */
 	column: (id: string | number) => FrozenColumn | undefined
+	/** The committed sticky offset (px) of the column, or `undefined` when it scrolls. */
+	offset: (id: string | number) => number | undefined
 }
 
 /**
@@ -416,10 +427,29 @@ function withResizeDirection<T>(
  * its offset, so a frozen column of the consumer sticks inside it. The cell
  * of the slot sticks through its own class.
  *
+ * The offset comes from `offsets`, the committed layout, while it freezes the
+ * column to the same edge. Otherwise it comes from `layout`, which is then the
+ * newer of the two.
+ *
  * @internal
  */
-export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
-	return { column: (id) => (isNewRowAddColumn(id) ? undefined : layout.get(String(id))) }
+export function buildColumnPinning(
+	layout: FrozenLayout,
+	offsets: FrozenOffsetStore,
+): GridColumnPinning {
+	const column = (id: string | number) =>
+		isNewRowAddColumn(id) ? undefined : layout.get(String(id))
+
+	return {
+		column,
+		offset: (id) => {
+			const frozen = column(id)
+
+			if (!frozen) return undefined
+
+			return offsets.get(String(id), frozen.side) ?? frozen.offset
+		},
+	}
 }
 
 /**
@@ -454,16 +484,38 @@ export function facetSpan(values: Iterable<unknown>): readonly [number, number] 
 const NO_FACETS: GridColumnFacets = { values: [], span: undefined }
 
 /**
- * The engine actions of {@link GridColumnFilter}. Each reads or writes the
- * engine when it runs.
+ * The facets of a column from the distinct values of its cells. The facets
+ * hold each value that is not blank as sorted text, and the span of the
+ * numbers.
+ *
+ * @internal
+ */
+export function toColumnFacets(values: Iterable<unknown>): GridColumnFacets {
+	const all = [...values]
+
+	const text = all.filter((value) => value != null && value !== '').map((value) => String(value))
+
+	return {
+		values: [...new Set(text)].sort((a, b) => a.localeCompare(b)),
+		span: facetSpan(all),
+	}
+}
+
+/**
+ * The actions of {@link GridColumnFilter}. Each reads or writes the engine
+ * when it runs.
  *
  * @param manual - Whether the consumer filters. A manual grid holds only the
  *   server page, so its columns have no facets.
+ * @param facetValues - The distinct cell values that the facets of a column
+ *   read, which the grid collects off the engine (see `useFacetSource`). A
+ *   `null` result reads them from the faceted model of the engine.
  * @internal
  */
 export function columnFilterActions<T>(
 	table: EngineTable<T>,
 	manual: boolean,
+	facetValues: (id: string) => Iterable<unknown> | null,
 ): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
@@ -471,18 +523,15 @@ export function columnFilterActions<T>(
 		// engine's `onColumnFiltersChange` like any other filter edit.
 		clear: () => table.setColumnFilters([]),
 		facets: (id) => {
-			const facets = manual ? undefined : table.getColumn(String(id))?.getFacetedUniqueValues()
+			if (manual) return NO_FACETS
 
-			if (!facets) return NO_FACETS
+			const values = facetValues(String(id))
 
-			const values = [...facets.keys()]
-				.filter((value) => value != null && value !== '')
-				.map((value) => String(value))
+			if (values) return toColumnFacets(values)
 
-			return {
-				values: [...new Set(values)].sort((a, b) => a.localeCompare(b)),
-				span: facetSpan(facets.keys()),
-			}
+			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+
+			return facets ? toColumnFacets(facets.keys()) : NO_FACETS
 		},
 	}
 }

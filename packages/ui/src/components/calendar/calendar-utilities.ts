@@ -3,9 +3,24 @@ import {
 	endOfMonth,
 	getDayOfWeek,
 	getLocalTimeZone,
-	isSameDay as isSameCalendarDay,
 	startOfWeek,
 } from '@internationalized/date'
+
+/**
+ * The first year that the calendar can show. `@internationalized/date` holds
+ * years 1 to 9999, and a `CalendarDate` clamps a year outside them.
+ *
+ * @internal
+ */
+export const MIN_YEAR = 1
+
+/** The last year that the calendar can show. See {@link MIN_YEAR}. @internal */
+export const MAX_YEAR = 9999
+
+/** Whether the calendar can show `year`. @internal */
+export function isYearInRange(year: number): boolean {
+	return year >= MIN_YEAR && year <= MAX_YEAR
+}
 
 /**
  * Converts a native `Date` to a timezone-free `CalendarDate` using its local
@@ -43,14 +58,26 @@ export function firstOfMonth(year: number, month: number): Date {
 	return fromCalendarDate(new CalendarDate(year, 1, 1).add({ months: month }))
 }
 
+/**
+ * The wall-clock day of `date` as one sortable number, from its local year,
+ * month, and day. Two dates compare by this number as their calendar days do,
+ * whatever the time of day. The grid compares several times for each day cell
+ * on each render, so the compare builds no `CalendarDate`.
+ *
+ * @internal
+ */
+function dayNumber(date: Date): number {
+	return date.getFullYear() * 10_000 + date.getMonth() * 100 + date.getDate()
+}
+
 /** Wall-clock-day equality, ignoring time-of-day and timezone. @internal */
 export function isSameDay(a: Date, b: Date): boolean {
-	return isSameCalendarDay(toCalendarDate(a), toCalendarDate(b))
+	return dayNumber(a) === dayNumber(b)
 }
 
 /** True when `a`'s calendar day strictly precedes `b`'s. @internal */
 export function isBeforeDay(a: Date, b: Date): boolean {
-	return toCalendarDate(a).compare(toCalendarDate(b)) < 0
+	return dayNumber(a) < dayNumber(b)
 }
 
 /** True when `date` falls strictly between the endpoints (exclusive); the caller can give the endpoints in either order. @internal */
@@ -84,6 +111,39 @@ export function getFirstDayColumn(year: number, month: number, locale: string): 
 // deterministic across server and client renders.
 const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
 
+// The grid is Gregorian, so each label names a Gregorian month and year. A
+// locale such as `th-TH` or `fa-IR` defaults to another calendar, and its
+// labels then name a month that the grid does not show.
+const GREGORIAN = { calendar: 'gregory' } as const
+
+// A new `Intl.DateTimeFormat` for each day cell is measurable on each month
+// change, so the day-name formatter is cached by locale.
+const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
+
+/** Accessible name of a day in `locale`, such as "Sunday, June 15, 2025". @internal */
+export function formatDayName(date: Date, locale: string): string {
+	let formatter = dayNameFormatters.get(locale)
+
+	if (!formatter) {
+		formatter = new Intl.DateTimeFormat(locale, {
+			...GREGORIAN,
+			weekday: 'long',
+			day: 'numeric',
+			month: 'long',
+			year: 'numeric',
+		})
+
+		dayNameFormatters.set(locale, formatter)
+	}
+
+	return formatter.format(date)
+}
+
+/** Name of the month of `date` with its year in `locale`, such as "June 2025". @internal */
+export function formatMonthName(date: Date, locale: string): string {
+	return date.toLocaleDateString(locale, { ...GREGORIAN, month: 'long', year: 'numeric' })
+}
+
 /** Short weekday labels ordered by the locale's first day of the week. */
 export function getWeekdayLabels(locale: string): string[] {
 	const formatter = new Intl.DateTimeFormat(locale, { weekday: 'short' })
@@ -97,7 +157,7 @@ export function getWeekdayLabels(locale: string): string[] {
 
 /** Short month labels (Jan through Dec), in calendar order, for the locale. */
 export function getMonthLabels(locale: string): string[] {
-	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
+	const formatter = new Intl.DateTimeFormat(locale, { ...GREGORIAN, month: 'short' })
 
 	// Same fixed-reference rule as the weekday labels, through the file's own
 	// month helper: output depends on the locale, never on the current date.

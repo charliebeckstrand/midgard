@@ -15,6 +15,7 @@ import {
 } from '../../modules/grid/engine/grid-table/features'
 import {
 	filterOptions,
+	groupingOptions,
 	paginationOptions,
 	sortOptions,
 	toColumnDef,
@@ -24,10 +25,14 @@ import {
 /** The client transforms of a stock engine table. Each one that is absent is off. */
 export type EngineTransforms = {
 	query?: string
+	/** Whether the quick search only marks its matches, and prunes no row. */
+	highlight?: boolean
 	filters?: GridColumnFilterState[]
 	sort?: GridSortState[]
 	/** The page, and the pagination binding of the grid. */
 	page?: { state: PaginationState; config: GridPagination }
+	/** The grouped column. */
+	grouping?: string
 }
 
 /**
@@ -64,10 +69,12 @@ export function engineTable<T>(
 			...(filters !== undefined ? { columnFilters: filters } : {}),
 			...(sort !== undefined ? { sorting: toSortingState(sort) } : {}),
 			...(page ? { pagination: page.state } : {}),
+			...(transforms.grouping !== undefined ? { grouping: [transforms.grouping] } : {}),
 		},
 		...filterOptions<T>({
 			configured: filtered,
 			manual: false,
+			globalHighlight: transforms.highlight ?? false,
 			onGlobalFilterChange: () => {},
 			onColumnFiltersChange: () => {},
 		}),
@@ -78,6 +85,9 @@ export function engineTable<T>(
 			config: page?.config,
 			onPaginationChange: () => {},
 		}),
-		manualGrouping: true,
+		...groupingOptions<T>({
+			grouped: transforms.grouping !== undefined,
+			onGroupingChange: () => {},
+		}),
 	})
 }

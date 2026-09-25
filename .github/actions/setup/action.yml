@@ -1,0 +1,24 @@
+name: Setup
+description: Install pnpm, Node, and the workspace dependencies.
+
+# Each job in ci.yml and pr-title.yml starts with these steps. One copy keeps
+# the pnpm, Node, and install settings the same in every job. The job must
+# check out the repository first, because GitHub reads a local action from the
+# checkout.
+inputs:
+  install-args:
+    description: The arguments for `pnpm install`.
+    default: --frozen-lockfile
+
+runs:
+  using: composite
+  steps:
+    - uses: pnpm/action-setup@v6
+    # .node-version at the repository root is the one statement of the Node
+    # version. Local version managers read the same file.
+    - uses: actions/setup-node@v7
+      with:
+        node-version-file: .node-version
+        cache: pnpm
+    - run: pnpm install ${{ inputs.install-args }}
+      shell: bash

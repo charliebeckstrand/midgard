@@ -2,6 +2,7 @@
 
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ReducedMotion } from '../reduced-motion'
 import {
 	CurrentFadeContext,
@@ -56,7 +57,7 @@ export type CurrentContentsProps = ComponentProps<'div'> & {
  * resolved {@link CurrentMount} policy, so `CurrentContent` knows whether to
  * keep, lazily mount, or unmount unmatched children. A fading container also
  * broadcasts its post-mount latch, so late-mounting panels enter from
- * transparent.
+ * transparent. A consumer `ref` reaches the container element.
  */
 export function CurrentContents({
 	slotPrefix,
@@ -64,9 +65,14 @@ export function CurrentContents({
 	mount = 'active',
 	className,
 	children,
+	ref,
 	...props
 }: CurrentContentsProps) {
 	const containerRef = useRef<HTMLDivElement>(null)
+
+	// The morph hook reads `containerRef`, so a consumer `ref` joins it rather
+	// than replaces it.
+	const setContainer = useComposedRef(containerRef, ref)
 
 	useCurrentContentsMorph(containerRef, fade)
 
@@ -85,7 +91,7 @@ export function CurrentContents({
 			// nested inside a fading one render the plain branch.
 			<CurrentFadeContext value={false}>
 				<CurrentMountContext value={mount}>
-					<div data-slot={`${slotPrefix}-contents`} className={className} {...props}>
+					<div ref={ref} data-slot={`${slotPrefix}-contents`} className={className} {...props}>
 						{children}
 					</div>
 				</CurrentMountContext>
@@ -102,7 +108,7 @@ export function CurrentContents({
 						    itself, outside React. No render can therefore stamp the resting
 						    `auto` back over an in-flight morph. */}
 						<div
-							ref={containerRef}
+							ref={setContainer}
 							data-slot={`${slotPrefix}-contents`}
 							className={cn('relative overflow-hidden', className)}
 							{...props}

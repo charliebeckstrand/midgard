@@ -1,10 +1,11 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useMemo, useState } from 'react'
+import { memo, useCallback, useMemo, useState, useSyncExternalStore } from 'react'
 import { dataAttr } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/json-tree'
+import { noop } from '../../utilities'
 import { JsonTreeContext, useJsonTreeContext } from './context'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
@@ -18,7 +19,6 @@ import {
 	matchesSearch,
 } from './json-tree-utilities'
 import type { JsonValue } from './types'
-import { toggleExpandedSet } from './use-json-tree-expansion'
 
 /** Props for {@link JsonTreeNode}. @internal */
 type JsonNodeProps = {
@@ -70,16 +70,26 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 		filter,
 		searchIndex,
 		path,
-		expanded,
-		onExpandedChange,
+		controlled,
+		expansion,
+		toggleExpanded,
 		userOpen: userOpenMemory,
 	} = useJsonTreeContext()
 
 	const nodePath = path ? joinPath(path, keyName ?? '$') : encodePathSegment(keyName ?? '$')
 
-	const controlled = expanded !== undefined
-
 	const branch = isBranch(value)
+
+	// Only a controlled branch reads the expanded set, and it reads its own path.
+	const subscribeExpanded = useCallback(
+		(listener: () => void) =>
+			controlled && branch ? expansion.subscribe(nodePath, listener) : noop,
+		[controlled, branch, expansion, nodePath],
+	)
+
+	const readExpanded = () => controlled && branch && expansion.get(nodePath)
+
+	const expandedHas = useSyncExternalStore(subscribeExpanded, readExpanded, readExpanded)
 
 	const entries = useMemo(() => getEntries(value), [value])
 
@@ -103,7 +113,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const open = resolveNodeOpen({
 		controlled,
-		expandedHas: controlled ? expanded.has(nodePath) : false,
+		expandedHas,
 		search,
 		filter,
 		empty,
@@ -121,8 +131,9 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			filter,
 			searchIndex,
 			path: nodePath,
-			expanded,
-			onExpandedChange,
+			controlled,
+			expansion,
+			toggleExpanded,
 			userOpen: userOpenMemory,
 		}),
 		[
@@ -132,8 +143,9 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			filter,
 			searchIndex,
 			nodePath,
-			expanded,
-			onExpandedChange,
+			controlled,
+			expansion,
+			toggleExpanded,
 			userOpenMemory,
 		],
 	)
@@ -152,10 +164,9 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 
 	const toggle = () => {
 		if (controlled) {
-			// Controlled without a handler is read-only (a controlled input with no
-			// onChange): no dead local state that would surface as a surprise jump
-			// if the consumer later dropped `expanded`.
-			if (onExpandedChange) toggleExpandedSet(expanded, nodePath, onExpandedChange)
+			// No local state here: it would surface as a surprise jump if the
+			// consumer later dropped `expanded`.
+			toggleExpanded(nodePath)
 		} else {
 			// Write through to the tree-level memory as well as local state: local
 			// state drives this render, the memory outlives an ancestor's collapse.

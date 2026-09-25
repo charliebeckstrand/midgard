@@ -4,8 +4,14 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
-// two halves — the load-bearing attributes, and the `data-slot` anchor — and
-// §3.9 states both. This suite holds them; it does not restate them.
+// three parts — the load-bearing attributes, the `data-slot` anchor, and the
+// internal `ref` — and §3.9 states each. This suite holds them; it does not
+// restate them.
+//
+// The `ref` part needs to know whether the consumer spread can still carry a
+// `ref`. A component that destructures `ref` from its props has taken it out of
+// the spread, so the scan reads the parameter patterns of the enclosing
+// functions.
 //
 // The anchor half needs the set of anchors the library selects on. The scan
 // computes that set from every `[data-slot=…]` selector in the shipped tree,
@@ -43,7 +49,7 @@ const LOAD_BEARING =
 const BUTTON_HOST = /^(?:button|Button|ToggleIconButton|Element|Polymorphic\w*)$/
 
 /** A rule this file does not hold yet, and how many violations it still has. */
-type Waiver = { order?: number; anchor?: number; keep?: true; note: string }
+type Waiver = { order?: number; anchor?: number; ref?: number; keep?: true; note: string }
 
 /**
  * Files a rule does not hold yet, pinned to the violation count each one
@@ -89,11 +95,15 @@ const WAIVERS = new Map<string, Waiver>([
 /** One JSX attribute written before the consumer spread. */
 type Attribute = { name: string; value?: string }
 
-/** One JSX element that takes a consumer spread, and the attributes above it. */
-type Site = { file: string; line: number; tag: string; before: Attribute[] }
+/**
+ * One JSX element that takes a consumer spread, and the attributes above it.
+ * `refTaken` is true when an enclosing function destructures `ref` from its
+ * props, so the spread cannot carry one.
+ */
+type Site = { file: string; line: number; tag: string; before: Attribute[]; refTaken: boolean }
 
 /** The rules this suite holds, and the keys a waiver pins a count against. */
-const RULES = ['order', 'anchor'] as const
+const RULES = ['order', 'anchor', 'ref'] as const
 
 /** One rule's complaint about one attribute. */
 type Violation = { file: string; rule: (typeof RULES)[number]; text: string }
@@ -113,7 +123,14 @@ function sitesIn(file: string, source: string): Site[] {
 	// it, an attribute below a comment reads as the comment plus its own name.
 	const text = (node: ts.Node) => source.slice(node.getStart(parsed), node.end)
 
+	// How many enclosing functions destructure `ref` from their first parameter.
+	let refTakers = 0
+
 	const visit = (node: ts.Node): void => {
+		const takesRef = ts.isFunctionLike(node) && destructuresRef(node.parameters[0])
+
+		if (takesRef) refTakers += 1
+
 		if (ts.isJsxOpeningElement(node) || ts.isJsxSelfClosingElement(node)) {
 			const before: Attribute[] = []
 
@@ -137,6 +154,7 @@ function sitesIn(file: string, source: string): Site[] {
 						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart(parsed)).line + 1,
 						tag: text(node.tagName),
 						before,
+						refTaken: refTakers > 0,
 					})
 
 					break
@@ -145,11 +163,24 @@ function sitesIn(file: string, source: string): Site[] {
 		}
 
 		ts.forEachChild(node, visit)
+
+		if (takesRef) refTakers -= 1
 	}
 
 	visit(parsed)
 
 	return sites
+}
+
+/** Whether a parameter is an object pattern that binds `ref`, under its own name or an alias. */
+function destructuresRef(parameter: ts.ParameterDeclaration | undefined): boolean {
+	if (!parameter || !ts.isObjectBindingPattern(parameter.name)) return false
+
+	return parameter.name.elements.some((element) => {
+		const key = element.propertyName ?? element.name
+
+		return ts.isIdentifier(key) && key.text === 'ref'
+	})
 }
 
 /** One walk: the pre-spread sites to judge, and the anchors the library reads. */
@@ -217,6 +248,10 @@ describe('spread order boundary', () => {
 			: undefined,
 	)
 
+	const refs = collect(sites, 'ref', (site, attribute) =>
+		attribute.name === 'ref' && !site.refTaken ? `<${site.tag}> ref` : undefined,
+	)
+
 	it('no element outside the waivers writes a load-bearing attribute before its spread', () => {
 		const violations = ordered.filter((v) => !waived(v))
 
@@ -235,6 +270,31 @@ describe('spread order boundary', () => {
 		).toEqual([])
 	})
 
+	it('no element outside the waivers writes a ref that a consumer ref replaces', () => {
+		const violations = refs.filter((v) => !waived(v))
+
+		expect(
+			violations,
+			`internal refs a consumer ref replaces (destructure \`ref\` and join it through useComposedRef, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
+		).toEqual([])
+	})
+
+	it('reads a ref taken out of the props, under an alias too', () => {
+		const [taken] = sitesIn(
+			'taken.tsx',
+			`function A({ ref: outer, ...props }) { return <div ref={inner} {...props} /> }`,
+		)
+
+		const [open] = sitesIn(
+			'open.tsx',
+			`function B(props) { return <div ref={inner} {...props} /> }`,
+		)
+
+		expect(taken?.refTaken).toBe(true)
+
+		expect(open?.refTaken).toBe(false)
+	})
+
 	it('reads a consumer spread behind a cast', () => {
 		const [site] = sitesIn('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
 
@@ -244,7 +304,7 @@ describe('spread order boundary', () => {
 	it('pins every waiver to the violation count it still covers', () => {
 		const live = new Map<string, number>()
 
-		for (const violation of [...ordered, ...anchored]) {
+		for (const violation of [...ordered, ...anchored, ...refs]) {
 			const key = `${violation.file} ${violation.rule}`
 
 			live.set(key, (live.get(key) ?? 0) + 1)

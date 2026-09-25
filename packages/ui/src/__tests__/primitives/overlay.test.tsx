@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Overlay } from '../../primitives/overlay'
 import { attach, fireEvent, present, renderUI, screen } from '../helpers'
@@ -271,6 +272,26 @@ describe('Overlay', () => {
 		fireEvent.pointerDown(screen.getByRole('button', { name: 'inside' }))
 
 		expect(onOpenChange).not.toHaveBeenCalled()
+	})
+
+	// Outside-press dismissal reads the panel through the overlay's own ref. A
+	// consumer ref must join it, or no press ever dismisses.
+	it('dismisses on a press outside when a consumer holds a ref', () => {
+		const onOpenChange = vi.fn()
+
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<Overlay open modal={false} onOpenChange={onOpenChange} ref={ref}>
+				<span>content</span>
+			</Overlay>,
+		)
+
+		expect(ref.current?.dataset.slot).toBe('overlay')
+
+		fireEvent.pointerDown(document.body)
+
+		expect(onOpenChange).toHaveBeenCalledWith(false)
 	})
 
 	it('still dismisses on Escape when modal=false', () => {

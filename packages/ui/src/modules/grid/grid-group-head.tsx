@@ -12,7 +12,7 @@ import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { useGrid } from './context'
 import { columnLabel } from './engine/grid-column/label'
-import { pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
+import { pinnedCellAttribute, pinnedClassName, pinnedOffsetStyle } from './engine/grid-pin/styles'
 import type { GridColumnGroup, GridGroupSpan } from './grid-group-types'
 import type { GridGroupHeader } from './use-grid-group'
 import type { GridColumnPinning } from './use-grid-table'
@@ -122,6 +122,7 @@ function GridGroupHeadCell({
 				pinned && pinnedClassName(pinning, span.leadColumnId, { header: true }),
 			)}
 			style={pinned ? pinnedOffsetStyle(pinning, span.leadColumnId) : undefined}
+			data-grid-pin={pinned ? pinnedCellAttribute(pinning, span.leadColumnId) : undefined}
 		>
 			{span.kind === 'group' && (
 				<div className={cn(k.content)}>

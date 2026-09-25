@@ -1,3 +1,4 @@
+import { createRef, type Ref } from 'react'
 import { beforeEach, describe, expect, it } from 'vitest'
 import { CurrentContent, CurrentContents, CurrentContext } from '../../primitives/current'
 import { act, bySlot, renderUI } from '../helpers'
@@ -35,10 +36,10 @@ describe('CurrentContents morph pin arithmetic', () => {
 		observers = stubResizeObserver()
 	})
 
-	function mount(value: string) {
+	function mount(value: string, ref?: Ref<HTMLDivElement>) {
 		return renderUI(
 			<CurrentContext value={{ value, onValueChange: undefined }}>
-				<CurrentContents slotPrefix="test" fade mount="always">
+				<CurrentContents slotPrefix="test" fade mount="always" ref={ref}>
 					<CurrentContent slotPrefix="test" value="a">
 						Panel A
 					</CurrentContent>
@@ -106,5 +107,27 @@ describe('CurrentContents morph pin arithmetic', () => {
 		fire({ inline: 640, block: 500 })
 
 		expect(contents.style.height).toBe('320px')
+	})
+
+	// The morph hook reads the container through its own ref. A consumer ref
+	// must join that ref, not replace it, or the box snaps with no morph at all.
+	it('still morphs when a consumer holds a ref to the container', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = mount('a', ref)
+
+		const contents = bySlot(container, 'test-contents')
+
+		if (!contents) throw new Error('no contents box rendered')
+
+		expect(ref.current).toBe(contents)
+
+		mockRect(contents, { width: 600, height: 300 })
+
+		fire({ inline: 600, block: 300 })
+
+		fire({ inline: 600, block: 420 })
+
+		expect(contents.style.height).toBe('300px')
 	})
 })

@@ -1,9 +1,10 @@
 'use client'
 
-import { memo, useCallback, useMemo } from 'react'
+import { memo, useCallback } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button, type ButtonVariants } from '../button'
+import { formatDayName } from './calendar-utilities'
 
 type DayCellProps = {
 	date: Date
@@ -51,24 +52,13 @@ export const CalendarDayCell = memo(function CalendarDayCell({
 		if (!disabled) onSelect(date)
 	}, [disabled, onSelect, date])
 
-	const label = useMemo(
-		() =>
-			date.toLocaleDateString(localeTag, {
-				weekday: 'long',
-				day: 'numeric',
-				month: 'long',
-				year: 'numeric',
-			}),
-		[date, localeTag],
-	)
-
 	return (
 		<Button
 			type="button"
 			id={id}
 			role="option"
 			aria-selected={selected}
-			aria-label={label}
+			aria-label={formatDayName(date, localeTag)}
 			aria-current={isToday ? 'date' : undefined}
 			variant={variant ?? (selected ? 'solid' : isToday ? 'soft' : 'plain')}
 			color={color ?? (selected || isToday ? 'blue' : undefined)}
