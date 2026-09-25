@@ -828,22 +828,6 @@ describe('Dashboard', () => {
 		)
 	}
 
-	/**
-	 * A widget that throws while `switched.fail` is set. The switch is outside the
-	 * props, so an equal element can fail at one time and render at another.
-	 */
-	function flakyWidget() {
-		const switched = { fail: true }
-
-		function Flaky(_: { rows: number[] }) {
-			if (switched.fail) throw new Error('boom')
-
-			return <p>Recovered</p>
-		}
-
-		return { switched, Flaky }
-	}
-
 	/** A board with one tile that holds `widget`, and that reports each error to `onTileError`. */
 	function errorBoard(widget: ReactNode, onTileError: DashboardProps['onTileError']) {
 		return (
@@ -855,146 +839,23 @@ describe('Dashboard', () => {
 		)
 	}
 
-	it('renders a new widget element again after an error, with no click, and reports each failed element once', () => {
+	it('keeps the error state for a new widget element until Retry', () => {
 		const onTileError = vi.fn()
 
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
 
-		expect(onTileError).toHaveBeenCalledTimes(1)
-
-		// An equal element tries nothing again.
-		rerender(errorBoard(<Widget fail />, onTileError))
-
-		expect(onTileError).toHaveBeenCalledTimes(1)
-
-		rerender(errorBoard(<Widget fail={false} />, onTileError))
-
-		expect(screen.queryByRole('alert')).toBeNull()
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-	})
-
-	it('stops the automatic reset when a new element fails again, until Retry', () => {
-		const onTileError = vi.fn()
-
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
-
-		// Other props try once, and the widget still throws.
-		rerender(errorBoard(<Widget fail rows={[1]} />, onTileError))
-
-		expect(onTileError).toHaveBeenCalledTimes(2)
-
+		// A fixed element renders nothing again on its own.
 		rerender(errorBoard(<Widget fail={false} />, onTileError))
 
 		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
 
-		expect(onTileError).toHaveBeenCalledTimes(2)
+		expect(onTileError).toHaveBeenCalledTimes(1)
 
 		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		// The press turned the automatic reset on again.
-		rerender(errorBoard(<Widget fail />, onTileError))
-
-		rerender(errorBoard(<Widget fail={false} />, onTileError))
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-	})
-
-	it('starts the automatic reset again after a reset commits with no error, with no Retry', () => {
-		const onTileError = vi.fn()
-
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
-
-		// A fixed prop clears the error with no press, and the reset commits with no error.
-		rerender(errorBoard(<Widget fail={false} />, onTileError))
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		rerender(errorBoard(<Widget fail />, onTileError))
-
-		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
-
-		rerender(errorBoard(<Widget fail={false} />, onTileError))
-
-		expect(screen.queryByRole('alert')).toBeNull()
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		expect(onTileError).toHaveBeenCalledTimes(2)
-	})
-
-	it('starts the automatic reset again after another element commits with no error', () => {
-		const onTileError = vi.fn()
-
-		const { switched, Flaky } = flakyWidget()
-
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		const { rerender } = renderUI(errorBoard(<Flaky rows={[0]} />, onTileError))
-
-		switched.fail = false
-
-		rerender(errorBoard(<Flaky rows={[1]} />, onTileError))
-
-		// Another element commits with no error after the reset.
-		rerender(errorBoard(<Flaky rows={[2]} />, onTileError))
-
-		// The element of the reset fails again, and a new element clears it with no press.
-		switched.fail = true
-
-		rerender(errorBoard(<Flaky rows={[1]} />, onTileError))
-
-		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
-
-		switched.fail = false
-
-		rerender(errorBoard(<Flaky rows={[3]} />, onTileError))
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		expect(onTileError).toHaveBeenCalledTimes(2)
-	})
-
-	it('starts the automatic reset again after Retry, when the element of the reset fails later', () => {
-		const onTileError = vi.fn()
-
-		const { switched, Flaky } = flakyWidget()
-
-		vi.spyOn(console, 'error').mockImplementation(() => {})
-
-		const { rerender } = renderUI(errorBoard(<Flaky rows={[0]} />, onTileError))
-
-		// The reset to a new element fails too, so the resets stop.
-		rerender(errorBoard(<Flaky rows={[1]} />, onTileError))
-
-		switched.fail = false
-
-		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		// The element of the reset fails again, and a new element clears it with no press.
-		switched.fail = true
-
-		rerender(errorBoard(<Flaky rows={[1]} />, onTileError))
-
-		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
-
-		switched.fail = false
-
-		rerender(errorBoard(<Flaky rows={[2]} />, onTileError))
-
-		expect(screen.getByText('Recovered')).toBeInTheDocument()
-
-		expect(onTileError).toHaveBeenCalledTimes(3)
 	})
 
 	it.each([
@@ -1090,7 +951,7 @@ describe('Dashboard', () => {
 			true,
 		],
 	])(
-		'reports an error at most twice when onTileError sets app state, and the widget %s',
+		'reports an error once when onTileError sets app state, and the widget %s',
 		(_, make, widget, reactStrictMode) => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -1098,13 +959,13 @@ describe('Dashboard', () => {
 				reactStrictMode,
 			})
 
-			// One automatic reset runs, and it fails, so the resets stop.
-			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+			// The render that the report causes gives a new element, and it renders nothing again.
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
 
-			// A fixed widget waits for Retry, because the resets stopped.
+			// A fixed widget waits for Retry.
 			rerender(<ReportingApp fail={false} make={make} widget={widget} />)
 
-			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
 
 			fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
@@ -1116,7 +977,7 @@ describe('Dashboard', () => {
 		['suspends before it throws', SuspendingWidget],
 		['suspends in its own Suspense boundary before it throws', NestedSuspenseWidget],
 	])(
-		'reports an error at most twice when onTileError sets app state, and the widget %s',
+		'reports an error once when onTileError sets app state, and the widget %s',
 		async (_, widget) => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -1125,12 +986,12 @@ describe('Dashboard', () => {
 				renderUI(<ReportingApp fail make={reportsMap} widget={widget} />)
 			})
 
-			// Each new Map suspends once, so the reset commits a fallback before the throw.
+			// Each new Map suspends once. The report renders the app again, and the tile renders nothing again.
 			for (let round = 0; round < 5; round++) {
 				await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
 			}
 
-			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
 		},
 	)
 

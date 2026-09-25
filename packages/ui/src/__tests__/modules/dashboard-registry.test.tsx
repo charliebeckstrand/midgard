@@ -12,7 +12,7 @@ import {
 	type DashboardWidgetRenderer,
 	useDashboardScope,
 } from '../../modules/dashboard'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
 import { serverMarkup } from '../helpers/controlled-intersection'
 import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
@@ -187,7 +187,7 @@ describe('DashboardTiles', () => {
 		expect(onTileError).toHaveBeenCalledWith('revenue', expect.any(TypeError))
 	})
 
-	it('renders a spec tile again when an options edit fixes its renderer, with no click', () => {
+	it('renders a spec tile again after an options edit fixes its renderer and Retry', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
 		const { rerender } = renderUI(
@@ -196,9 +196,12 @@ describe('DashboardTiles', () => {
 
 		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
 
+		// The edit alone renders nothing again, and Retry renders the fixed tile.
 		rerender(<Board />)
 
-		expect(screen.queryByRole('alert')).toBeNull()
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
 		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveTextContent('Revenue whole')
 	})

@@ -45,7 +45,7 @@ export function DashboardTileContent({
 }: DashboardTileContentProps) {
 	const body = (
 		<DashboardTileContext value={id}>
-			<DashboardTileBoundary label={label} onError={onError} resetKey={children}>
+			<DashboardTileBoundary label={label} onError={onError}>
 				<Suspense fallback={fallback}>{children}</Suspense>
 			</DashboardTileBoundary>
 		</DashboardTileContext>
