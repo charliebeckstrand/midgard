@@ -1,12 +1,8 @@
 'use client'
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
-import {
-	type DashboardCell,
-	inlineSign,
-	minColumns,
-	ROW_SUBDIVISION,
-} from './engine/dashboard-layout'
+import { endGesture, measureGesture } from './dashboard-gesture'
+import { type DashboardCell, minColumns, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
 	type DashboardResizeEdge,
 	drivesHeight,
@@ -45,17 +41,15 @@ export type DashboardResizeHandlers = {
 
 /** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
 function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: string) {
-	const view = store.getView()
+	const measure = measureGesture(store, canvas)
+
+	const origin = measure?.view.cells.get(id)
+
+	if (measure === null || origin === undefined || origin.static) return null
+
+	const { pitch, inline, snapshot } = measure
 
 	const { columns, gap, demands } = store.getState()
-
-	const origin = view.cells.get(id)
-
-	const width = canvas?.clientWidth ?? 0
-
-	if (!view.editable || origin === undefined || origin.static || width <= 0) return null
-
-	const pitch = width / columns
 
 	const demand = demands.get(id)
 
@@ -68,9 +62,8 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 	return {
 		origin,
 		pitch,
-		// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
-		inline: inlineSign(canvas && getComputedStyle(canvas).direction),
-		snapshot: [...view.cells.values()],
+		inline,
+		snapshot,
 		limits: {
 			columns,
 			minW,
@@ -80,35 +73,6 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 			ratio: demand?.ratio,
 		},
 	}
-}
-
-/**
- * Ends a pointer resize. A kept preview enters the settle phase and commits; a
- * cancel, or a resize that changed nothing, returns to the snapshot.
- */
-function settleResize(
-	store: DashboardStore,
-	id: string,
-	keep: boolean,
-	callbacks: Pick<DashboardResizeOptions, 'commit' | 'onResizeEnd'>,
-): void {
-	const { gesture, layout } = store.getState()
-
-	const preview = gesture?.kind === 'resize' ? gesture.preview : null
-
-	if (!keep || gesture === null || preview === null) {
-		store.setState({ gesture: null })
-
-		callbacks.onResizeEnd?.({ id, canceled: true, layout })
-
-		return
-	}
-
-	store.setState({ gesture: { ...gesture, kind: 'settle' } })
-
-	const next = callbacks.commit(preview)
-
-	callbacks.onResizeEnd?.({ id, canceled: false, layout: next })
 }
 
 /**
@@ -172,6 +136,7 @@ export function useDashboardResize({
 
 				if (gesture?.kind !== 'resize') return
 
+				// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
 				const dw = drivesWidth(edge) ? (inline * (moveEvent.clientX - start.x)) / pitch : 0
 
 				const dh = drivesHeight(edge, limits.ratio)
@@ -195,7 +160,13 @@ export function useDashboardResize({
 
 				if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId)
 
-				settleResize(store, id, keep, callbacks.current)
+				// A resize that another gesture replaced commits nothing.
+				const live = store.getState().gesture?.kind === 'resize'
+
+				endGesture(store, id, keep && live, {
+					commit: callbacks.current.commit,
+					onEnd: callbacks.current.onResizeEnd,
+				})
 			}
 
 			const onKey = (keyEvent: KeyboardEvent) => {

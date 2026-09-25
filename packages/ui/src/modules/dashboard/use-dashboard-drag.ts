@@ -10,6 +10,7 @@ import type {
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
 import { clamp } from '../../utilities'
+import { endGesture, measureGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
 	describeDragEnd,
@@ -17,7 +18,7 @@ import {
 	describeDragStart,
 } from './engine/dashboard-announcements'
 import { dragPreview, dragTravel } from './engine/dashboard-drag'
-import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
+import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import type { DashboardStore } from './engine/dashboard-store'
 import type { DashboardGestureEndEvent, DashboardGestureStartEvent } from './types'
 
@@ -79,31 +80,31 @@ export function useDashboardDrag({
 		(event: DragStartEvent) => {
 			const id = String(event.active.id)
 
-			const view = store.getView()
+			const measure = measureGesture(store, canvasRef.current)
 
-			const state = store.getState()
+			if (measure === null) return
 
-			const width = canvasRef.current?.clientWidth ?? 0
-
-			if (!view.editable || width <= 0) return
+			const { snapshot, pitch, inline } = measure
 
 			targetRef.current = null
+
+			const { width, layout } = store.getState()
 
 			store.setState({
 				gesture: {
 					kind: 'drag',
 					id,
-					snapshot: [...view.cells.values()],
+					snapshot,
 					preview: null,
 					change: null,
 					partner: null,
-					width: state.width,
-					pitch: width / state.columns,
-					inline: inlineSign(canvasRef.current && getComputedStyle(canvasRef.current).direction),
+					width,
+					pitch,
+					inline,
 				},
 			})
 
-			callbacks.current.onDragStart?.({ id, layout: state.layout })
+			callbacks.current.onDragStart?.({ id, layout })
 		},
 		[store, canvasRef],
 	)
@@ -149,41 +150,26 @@ export function useDashboardDrag({
 		[store],
 	)
 
-	const handleDragEnd = useCallback(() => {
-		const { gesture, layout } = store.getState()
+	/** Ends the live drag: `keep` commits its preview, else it returns to the snapshot. */
+	const finishDrag = useCallback(
+		(keep: boolean) => {
+			const gesture = store.getState().gesture
 
-		if (gesture?.kind !== 'drag') return
+			if (gesture?.kind !== 'drag') return
 
-		targetRef.current = null
+			targetRef.current = null
 
-		if (gesture.preview === null) {
-			store.setState({ gesture: null })
+			endGesture(store, gesture.id, keep, {
+				commit: callbacks.current.commit,
+				onEnd: callbacks.current.onDragEnd,
+			})
+		},
+		[store],
+	)
 
-			callbacks.current.onDragEnd?.({ id: gesture.id, canceled: true, layout })
+	const handleDragEnd = useCallback(() => finishDrag(true), [finishDrag])
 
-			return
-		}
-
-		// The settle phase paints the preview, with the tile no longer pinned to its
-		// start cell, until the committed layout arrives.
-		store.setState({ gesture: { ...gesture, kind: 'settle' } })
-
-		const next = callbacks.current.commit(gesture.preview)
-
-		callbacks.current.onDragEnd?.({ id: gesture.id, canceled: false, layout: next })
-	}, [store])
-
-	const handleDragCancel = useCallback(() => {
-		const { gesture, layout } = store.getState()
-
-		if (gesture?.kind !== 'drag') return
-
-		targetRef.current = null
-
-		store.setState({ gesture: null })
-
-		callbacks.current.onDragEnd?.({ id: gesture.id, canceled: true, layout })
-	}, [store])
+	const handleDragCancel = useCallback(() => finishDrag(false), [finishDrag])
 
 	// One arrow press moves one column, or one row, of the travelling tile.
 	const coordinateGetter = useCallback<KeyboardCoordinateGetter>(
