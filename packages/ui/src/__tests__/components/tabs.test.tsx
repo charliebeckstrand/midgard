@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import { createRef, type ReactNode } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../components/tabs'
 import { scrollIntoViewOffset } from '../../components/tabs/use-tab-list-scroll'
@@ -530,6 +530,29 @@ describe('TabContent (idiomatic)', () => {
 		const tab = screen.getByRole('tab', { name: 'A' })
 
 		const panel = document.getElementById(tab.getAttribute('aria-controls') as string)
+
+		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
+	})
+
+	it('forwards a consumer ref without losing the tabIndex probe', async () => {
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<Tabs defaultValue="a">
+				<TabList aria-label="Sections">
+					<Tab value="a">A</Tab>
+				</TabList>
+				<TabContents>
+					<TabContent value="a" ref={ref}>
+						<button type="button">Inside</button>
+					</TabContent>
+				</TabContents>
+			</Tabs>,
+		)
+
+		const panel = screen.getByRole('tabpanel')
+
+		expect(ref.current).toBe(panel)
 
 		await waitFor(() => expect(panel).not.toHaveAttribute('tabindex'))
 	})

@@ -3,6 +3,7 @@
 import { type ComponentProps, useEffect, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { CurrentContent, CurrentContents } from '../../primitives/current'
 import { k } from '../../recipes/kata/tabs'
 import { useTabsContext } from './context'
@@ -63,7 +64,7 @@ export function TabContents({ mount, ...props }: TabContentsProps) {
  * panel that becomes tab-focusable signals focus with the design-system blue
  * ring rather than the browser default.
  */
-export function TabContent({ value, className, ...props }: TabContentProps) {
+export function TabContent({ value, className, ref: consumerRef, ...props }: TabContentProps) {
 	const tabsContext = useTabsContext()
 
 	const { panelProps } = useA11yDisclosure({ id: tabsContext?.baseId, key: value })
@@ -77,9 +78,12 @@ export function TabContent({ value, className, ...props }: TabContentProps) {
 	// `0` only when the panel has no focusable child (APG).
 	const tabIndex = useTabPanelTabIndex(panel)
 
+	// A consumer ref joins the probe ref instead of replacing it (CONVENTIONS.md §3.9).
+	const composedRef = useComposedRef(setPanel, consumerRef)
+
 	return (
 		<CurrentContent
-			ref={setPanel}
+			ref={composedRef}
 			slotPrefix="tab"
 			value={value}
 			className={cn(k.panel, className)}
