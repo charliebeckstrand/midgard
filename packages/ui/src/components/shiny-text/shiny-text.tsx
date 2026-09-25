@@ -5,7 +5,14 @@ import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/r
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 
-/** Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`. */
+/**
+ * Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`.
+ *
+ * @remarks
+ * The span is a motion element, and motion gives its own meaning to `onDrag`,
+ * `onDragStart`, `onDragEnd`, and `onAnimationStart`. The props omit these
+ * four keys, because a DOM handler under one of them does not get to the DOM.
+ */
 export type ShinyTextProps = {
 	/**
 	 * Halt the sweep, leaving the shine parked off-screen so only the base color shows.
@@ -48,7 +55,10 @@ export type ShinyTextProps = {
 	 */
 	sweep?: 'left' | 'right'
 	className?: string
-} & Omit<ComponentProps<'span'>, 'className' | 'color'>
+} & Omit<
+	ComponentProps<'span'>,
+	'className' | 'color' | 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
+>
 
 // Background-position percentages that park the shine past each edge.
 const OFF_RIGHT = 150
@@ -129,10 +139,7 @@ export function ShinyText({
 				'[--shiny-text-color:var(--color-zinc-600)] dark:[--shiny-text-color:var(--color-zinc-400)]',
 				className,
 			)}
-			{...(props as Omit<
-				ComponentProps<'span'>,
-				'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
-			>)}
+			{...props}
 			style={{
 				...style,
 				backgroundImage: `linear-gradient(${spread}deg, ${color} 0%, ${color} 35%, ${shineColor} 50%, ${color} 65%, ${color} 100%)`,

@@ -96,8 +96,10 @@ export function CreditCardInputExpiry({
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
 				value={masked.value}
-				// The touched mark and the verdict run whatever the caller does
-				// (CONVENTIONS.md §3.9).
+				{...props}
+				// The masking wiring sits after the spread, so a stray `onChange`
+				// does not replace it. The touched mark and the verdict run
+				// whatever the caller does (CONVENTIONS.md §3.9).
 				onBlur={composeEventHandlers(
 					onBlur,
 					() => {
@@ -128,7 +130,6 @@ export function CreditCardInputExpiry({
 
 					report(formatExpiry(raw))
 				}}
-				{...props}
 			/>
 
 			{/* Visible feedback gated on the component's own detection, not the

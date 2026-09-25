@@ -79,7 +79,10 @@ export function CreditCardInput({
 			suffix={suffix ?? (brand ? brand.label : undefined)}
 			name={name}
 			value={masked.value}
-			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			{...props}
+			// The masking wiring sits after the spread, so a stray `onChange`
+			// does not replace it. The touched mark runs whatever the caller
+			// does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
 				checkForDefaultPrevented: false,
 			})}
@@ -92,7 +95,6 @@ export function CreditCardInput({
 
 				onValidityChange?.(validateCardNumber(next.digits))
 			}}
-			{...props}
 		/>
 	)
 }
