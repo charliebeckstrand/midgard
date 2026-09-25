@@ -367,6 +367,9 @@ importers:
       '@types/topojson-client':
         specifier: 'catalog:'
         version: 3.1.5
+      babel-plugin-react-compiler:
+        specifier: 'catalog:'
+        version: 1.0.0
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.0
