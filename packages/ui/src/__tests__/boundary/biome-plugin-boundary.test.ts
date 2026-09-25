@@ -75,6 +75,25 @@ export const d = () => fetch('/auth/logout', { method: 'POST' })
 		},
 		{ file: 'server.tsx', source: `import { bifrost } from 'auth'\n\nexport const a = bifrost\n` },
 	],
+	'no-hand-composed-handler': [
+		{
+			file: 'compose.tsx',
+			source: `declare const toggle: () => void
+declare const id: string
+declare function onClick(event: unknown): void
+declare function onBlur(event: unknown): void
+declare function onFocus(value: string): void
+declare function onValueChange(value: string): void
+declare function composeEventHandlers(...args: unknown[]): () => void
+export const a = <button onClick={(event) => { toggle(); onClick?.(event) }} /> // flag
+export const b = <input onBlur={(e) => onBlur(e)} /> // flag
+export const c = <button onClick={composeEventHandlers(onClick, toggle)} />
+export const d = <li onFocus={() => onFocus(id)} />
+export const e = <Picker onValueChange={(next) => onValueChange(next ?? '')} />
+// onClick={(event) => onClick(event)} in a comment
+`,
+		},
+	],
 	'no-inline-spacing-calc': [
 		{
 			file: 'calc.ts',

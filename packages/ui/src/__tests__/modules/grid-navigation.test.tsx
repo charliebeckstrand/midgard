@@ -86,6 +86,43 @@ describe('Grid navigable cursor', () => {
 		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
 	})
 
+	// Seating the cursor is the grid's roving model, which no column switches
+	// off, so a column's `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
+	it('runs a column onMouseDown first, and seats the cursor when it prevents the default', () => {
+		const sawGridFocus: boolean[] = []
+
+		const withHandler: GridColumn<Row>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name },
+			{
+				id: 'role',
+				title: 'Role',
+				cell: (row) => row.role,
+				cellProps: () => ({
+					onMouseDown: (event) => {
+						sawGridFocus.push(document.activeElement === screen.getByRole('grid'))
+
+						event.preventDefault()
+					},
+				}),
+			},
+		]
+
+		renderUI(<Grid columns={withHandler} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
+
+		// The column saw the press before the grid took focus.
+		expect(sawGridFocus).toEqual([false])
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+
+		expect(grid).toHaveFocus()
+	})
+
 	it('moves the active cell with the arrow keys', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
 

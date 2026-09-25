@@ -83,7 +83,7 @@ Each increment is one pull request. Its proof is its own suites, plus new tests 
 
    The sweep found one site this plan missed. `cellProps` in `modules/grid/use-grid-navigation-columns.tsx` runs the grid cursor, and then the column's own `onMouseDown`. It is a named prop getter, so the gate pattern cannot see it. The cursor is a roving model, so the site takes `false`, with the column's handler first. Increment 5 carries it.
 
-5. **The gate.** Add `no-hand-composed-handler.grit` once the count is zero. The pattern matches a JSX attribute with a DOM event name whose inline arrow passes its own event to the consumer handler of the same name:
+5. **The gate — done.** Add `no-hand-composed-handler.grit` once the count is zero. The pattern matches a JSX attribute with a DOM event name whose inline arrow passes its own event to the consumer handler of the same name:
 
    ```grit
    JsxAttribute(name = $name, initializer = $init) where {
@@ -95,6 +95,10 @@ Each increment is one pull request. Its proof is its own suites, plus new tests 
    ```
 
    On the tree of this plan's date, it finds the 22 sites and none of the 14 adapters. Add its fixtures to `biome-plugin-boundary.test.ts`, and replace the "not gated yet" sentence in §3.9. The named handlers stay out of its reach. This plan is their review.
+
+   The plugin shipped as `no-hand-composed-handler.grit`, with one change to the pattern above. It matches the arrow as the direct value of the attribute, where the pattern above searched each attribute for one. The search made `biome check .` take 9 s in place of 5 s. On the tree of this plan's date, the shipped pattern still finds the same 22 sites, and on the tree after increment 4 it finds none. Its reach is the `ui` and `shared` source. Its fixtures flag the two hand-composed forms, and pass a composed handler, a value-callback adapter, a call that passes something other than the event, and a comment.
+
+   The grid site that increment 4 found is fixed in the same change. `seatingCellProps` now runs a column's own `onMouseDown` first, and its `preventDefault()` does not stop the seat. A grid test pins the order, and it failed before the change. The TSDoc of `GridColumn.cellProps` states the new order. §3.9 now names the plugin, and keeps the part of the composed-key rule it cannot see, an object key such as `ref` or `style`, as not gated yet.
 
 ## Out of scope
 

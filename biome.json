@@ -521,6 +521,15 @@
 		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
 			"plugins": ["./.biome/plugins/no-whole-floating-context-dep.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"packages/shared/src/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-hand-composed-handler.grit"]
 		}
 	],
 	"files": {
