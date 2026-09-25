@@ -196,6 +196,28 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		).toBeLessThanOrEqual(1)
 	})
 
+	it('keeps the top when rows are inserted above the first row at the offset zero', async () => {
+		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
+
+		const { container } = renderUI(<List handle={handle} bounded />)
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+
+		act(() => handle.prepend([3000, 3001, 3002]))
+
+		await frames()
+
+		await frames()
+
+		expect(scroller.scrollTop).toBe(0)
+
+		expect(scroller.querySelector('[data-row]')?.getAttribute('data-row')).toBe('3000')
+	})
+
 	it('does nothing in a scroller that does not scroll', async () => {
 		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
 

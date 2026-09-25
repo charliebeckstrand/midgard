@@ -190,6 +190,10 @@ type StartAnchorRecord = {
 
 /**
  * Records the rendered rows that end below the top edge, with fresh positions.
+ * At the offset zero it records no row, so the next list change keeps the top.
+ * The native scroll anchoring of the browser keeps no anchor there too. A
+ * reader at the top of a filtered list then sees the top of the full list when
+ * the filter clears. The first row in view does not stay at the top.
  * @internal
  */
 function recordStartAnchor(
@@ -205,6 +209,8 @@ function recordStartAnchor(
 	const top = offset + instance.options.scrollPaddingStart
 
 	const rows: StartAnchorRow[] = []
+
+	if (offset < 1) return { count, getItemKey, rows }
 
 	for (const { index, key } of window) {
 		const item = measurements[index]
@@ -470,6 +476,10 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * left the list, or took a new key, gives way to the next. On this path each
  * row measures in the commit that attaches it, also while the reader scrolls.
  * The positions that the anchor reads thus agree with the layout.
+ *
+ * At the offset zero the anchor holds no row, so the window keeps the top. The
+ * native scroll anchoring of the browser does the same. A reader at the top of
+ * a filtered list thus sees the top of the full list when the filter clears.
  *
  * The anchor writes the offset into the virtualizer as its `scroll` handler
  * does. Version 3.16 of virtual-core has an anchor step of its own. It reads
