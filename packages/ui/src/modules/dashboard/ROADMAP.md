@@ -10,7 +10,7 @@ The dashboard imports no chart, grid, or map, and none of them imports the dashb
 
 The board is a CSS grid inside an inline-size container, and its row unit is a fraction of `100cqi`. Each content box is an inline-size container too, so a container query in a widget reads its tile. The server renders each tile that has a layout entry at its saved cell, with no measurement.
 
-The board never moves a tile by itself. A drag moves a tile into free cells, or it reorders it against an equal tile; anything else is blocked. A resize grows a tile until it meets a neighbor or an edge. When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack.
+The board never moves a tile by itself. A drag moves a tile into free cells, or it reorders it against an equal tile. Else the tile snaps to the nearest free cell, and a drop changes nothing only when that cell is its start cell. A resize grows a tile until it meets a neighbor or an edge. When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack.
 
 One gesture owns the board at a time. While a drag or a pointer resize is live, the board refuses a second gesture, a keyboard resize step, and `tidy`. Escape cancels only the live gesture, so a dialog, a sheet, or a drawer around the board stays open. During a drag, the whole page shows the grabbing cursor. An edit exit or an unmount ends a live gesture as canceled, and a pointer resize then detaches its listeners. When the layout changes from outside during a gesture, the drop or the release ends as canceled, so the outside change stays.
 

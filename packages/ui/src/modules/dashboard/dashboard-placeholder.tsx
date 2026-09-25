@@ -6,8 +6,9 @@ import { gridArea } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
 
 /**
- * The landing cell of a dragged tile. It shows where a drop now puts the tile,
- * and it goes away when a drop there changes nothing.
+ * The landing cell of a dragged tile. It shows where a drop now puts the tile:
+ * the start cell when a drop changes nothing. It renders nothing when no drag is
+ * live, also during a resize.
  *
  * @internal
  */

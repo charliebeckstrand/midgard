@@ -260,9 +260,10 @@ export type DashboardProps = AccessibleName & {
  * each `DashboardTile` owns its chrome, and the scope hooks carry the filter.
  *
  * The board never moves a tile by itself. A drag moves a tile into free cells,
- * or it reorders it against an equal tile; anything else is blocked. A resize
- * grows a tile until it meets a neighbor or an edge. What you save is what
- * renders, gaps included. To close the gaps, call `tidy` on the `ref`
+ * or it reorders it against an equal tile. Else the tile snaps to the nearest
+ * free cell, and a drop changes nothing only when that cell is its start cell.
+ * A resize grows a tile until it meets a neighbor or an edge. What you save is
+ * what renders, gaps included. To close the gaps, call `tidy` on the `ref`
  * ({@link DashboardHandle}).
  *
  * One gesture owns the board at a time, so the board refuses a second gesture
