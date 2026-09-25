@@ -1,12 +1,12 @@
 import type {
 	ColumnFiltersState,
-	ColumnSizingInfoState,
+	ColumnVisibilityState,
+	columnResizingState,
 	GroupingState,
-	Row,
-	VisibilityState,
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
+import type { EngineRow } from './features'
 import { resolveFilterMode, usesClientModel } from './options'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
@@ -19,7 +19,7 @@ export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
 export const EMPTY_SIZING: GridColumnSizingState = {}
 
 /** The engine's drag state with no drag in flight; read-only, replaced wholesale on change. @internal */
-export const IDLE_SIZING_INFO: ColumnSizingInfoState = {
+export const IDLE_SIZING_INFO: columnResizingState = {
 	startOffset: null,
 	startSize: null,
 	deltaOffset: null,
@@ -35,7 +35,7 @@ export const EMPTY_COLUMN_FILTERS: GridColumnFilterState[] = []
 export const EMPTY_COLUMN_ORDER: (string | number)[] = []
 
 /** Stable empty column-visibility default (all visible); read-only. @internal */
-export const EMPTY_VISIBILITY: VisibilityState = {}
+export const EMPTY_VISIBILITY: ColumnVisibilityState = {}
 
 /** Stable empty grouping default (ungrouped); read-only. @internal */
 export const EMPTY_GROUPING: GroupingState = []
@@ -59,10 +59,10 @@ export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
  * @internal
  */
 export function deriveLeafRows<T>(
-	rows: Row<T>[] | null,
+	rows: EngineRow<T>[] | null,
 	grouped: boolean,
 	manualGroupRow?: ((row: T) => boolean) | null,
-): Row<T>[] | null {
+): EngineRow<T>[] | null {
 	if (!rows) return null
 
 	if (manualGroupRow) return rows.filter((row) => !manualGroupRow(row.original))

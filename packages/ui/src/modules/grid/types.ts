@@ -305,7 +305,7 @@ export type GridColumnManagerItem = {
 /**
  * Active page coordinate: the zero-based `pageIndex` and the `pageSize`.
  * Structurally identical to TanStack Table's `PaginationState`, so it threads
- * straight into a `useReactTable` instance.
+ * straight into a `useTable` instance.
  */
 export type GridPaginationState = {
 	pageIndex: number

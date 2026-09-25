@@ -1,36 +1,30 @@
 'use client'
 
-// The engine boundary. TanStack's table is one mutable object that keeps its
-// identity across renders, and its reads are live. The React Compiler caches a
-// value on the identity of its inputs, so a compiled read of the table goes
-// stale. This module is therefore the one grid module that the compiler does not
-// transform, and the only one that reads the table during render. It gives the
+// The engine boundary. TanStack keeps one core table for the life of the grid,
+// and its rows, columns, and headers also keep their identity. Their reads are
+// live. The React Compiler caches a value on the identity of its inputs, so a
+// compiled read of one of these objects goes stale. This module is the only
+// grid module that reads the table during render, and it reads the table object
+// of the render. `useTable` gives a new table object when its options or its
+// state change, so a compiled read of that object stays current. It gives the
 // grid values and actions only. A value is immutable, and a new value comes with
 // each change. An action reads or writes the engine when it runs, and the render
 // code calls it only from an event or an effect.
-'use no memo'
 
 import {
-	type Column,
-	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnPinningState,
-	type ColumnSizingInfoState,
 	type ColumnSizingState,
+	type ColumnVisibilityState,
+	type columnResizingState,
 	type ExpandedState,
 	functionalUpdate,
 	type GroupingState,
-	getCoreRowModel,
 	type OnChangeFn,
 	type PaginationState,
-	type Row,
-	type RowData,
-	type SortingFn,
 	type SortingState,
-	type Table,
-	useReactTable,
-	type VisibilityState,
+	useTable,
 } from '@tanstack/react-table'
 import {
 	type Dispatch,
@@ -38,7 +32,6 @@ import {
 	type SetStateAction,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useMemo,
 	useRef,
 	useState,
@@ -63,17 +56,12 @@ import {
 	frozenLayout,
 	sameFrozenLayout,
 } from './engine/grid-pin/layout'
-import {
-	computeSortOrder,
-	materializeSort,
-	type SmartSortField,
-} from './engine/grid-sort/utilities'
+import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
 import {
 	buildState,
 	clampSizingToFloors,
 	filterOptions,
 	groupingOptions,
-	makeSmartSortingFn,
 	paginationOptions,
 	resizeOptions,
 	resolveFilterMode,
@@ -137,13 +125,16 @@ export type {
 	GridPaginationView,
 } from './engine/grid-table/views'
 
-declare module '@tanstack/react-table' {
-	// Carries the source GridColumn on each ColumnDef, so the engine's visible
-	// columns map back to the grid's own columns (see `toGridColumns`).
-	interface ColumnMeta<TData extends RowData, TValue> {
-		gridColumn: GridColumn<TData>
-	}
-}
+import {
+	type EngineColumn,
+	type EngineColumnDef,
+	type EngineData,
+	type EngineOptions,
+	type EngineRow,
+	type EngineTable,
+	type GridFeatures,
+	gridFeatures,
+} from './engine/grid-table/features'
 
 /** Parameters for {@link useGridTable}. @internal */
 type GridTableParams<T> = {
@@ -156,7 +147,7 @@ type GridTableParams<T> = {
 	/** Display order of the column ids; feeds the engine's `columnOrder`. Columns absent from it append in definition order. */
 	columnOrder?: (string | number)[]
 	/** Hidden-column map (`{ id: false }`) feeding the engine's `columnVisibility`. */
-	columnVisibility?: VisibilityState
+	columnVisibility?: ColumnVisibilityState
 	sort?: GridSortState[]
 	setSort?: (sort: GridSortState[]) => void
 	sortManual?: boolean
@@ -294,18 +285,20 @@ const NO_ROWS: never[] = []
  * render that resolved the same facts therefore hands the memos below it the
  * identity they already hold.
  *
- * @remarks It writes a ref during render, which the React Compiler does not
- * allow. The hold is safe here: it keeps a value equal to the new one, so a
- * render that React discards leaves nothing wrong behind.
+ * @remarks The held value is state. A value that `same` rejects updates the
+ * state during render, so React renders the component again at once with the
+ * new value, before it commits.
  *
  * @internal
  */
 function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
-	const ref = useRef(candidate)
+	const [stable, setStable] = useState(() => candidate)
 
-	const stable = same(ref.current, candidate) ? ref.current : candidate
+	if (stable !== candidate && !same(stable, candidate)) {
+		setStable(() => candidate)
 
-	ref.current = stable
+		return candidate
+	}
 
 	return stable
 }
@@ -316,11 +309,8 @@ function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean
  *
  * @internal
  */
-function toColumnDefs<T>(
-	columns: GridColumn<T>[],
-	smartSortingFn: SortingFn<unknown>,
-): ColumnDef<T>[] {
-	return columns.map((col) => ({ ...toColumnDef(col, smartSortingFn), meta: { gridColumn: col } }))
+function toColumnDefs<T>(columns: GridColumn<T>[]): EngineColumnDef<T>[] {
+	return columns.map((col) => ({ ...toColumnDef(col), meta: { gridColumn: col } }))
 }
 
 /**
@@ -350,7 +340,7 @@ function useGroupingSlice(grouping: (string | number) | null) {
  * The engine's drag state, held by the grid and updated at once.
  *
  * @remarks
- * A drag move fills the new widths inside the engine's `columnSizingInfo`
+ * A drag move fills the new widths inside the engine's `columnResizing`
  * updater, and then writes them through `onColumnSizingChange`. The width
  * binding applies its updater at once. React can defer an updater of the
  * engine's own state to the next render. That write then carries no width, so
@@ -361,12 +351,12 @@ function useGroupingSlice(grouping: (string | number) | null) {
  * @returns The drag state and the handler that the engine writes it through.
  * @internal
  */
-function useEagerSizingInfo(): [ColumnSizingInfoState, OnChangeFn<ColumnSizingInfoState>] {
+function useEagerSizingInfo(): [columnResizingState, OnChangeFn<columnResizingState>] {
 	const [info, setInfo] = useState(IDLE_SIZING_INFO)
 
 	const infoRef = useRef(info)
 
-	const onChange = useCallback<OnChangeFn<ColumnSizingInfoState>>((updater) => {
+	const onChange = useCallback<OnChangeFn<columnResizingState>>((updater) => {
 		const next = functionalUpdate(updater, infoRef.current)
 
 		infoRef.current = next
@@ -383,7 +373,7 @@ function useEagerSizingInfo(): [ColumnSizingInfoState, OnChangeFn<ColumnSizingIn
  *
  * @internal
  */
-function engineDisplayRows<T>(table: Table<T>, materialize: boolean): Row<T>[] | null {
+function engineDisplayRows<T>(table: EngineTable<T>, materialize: boolean): EngineRow<T>[] | null {
 	return materialize ? table.getRowModel().rows : null
 }
 
@@ -403,7 +393,7 @@ function engineDisplayRows<T>(table: Table<T>, materialize: boolean): Row<T>[] |
  * @internal
  */
 function exportLeaves<T>(
-	table: Table<T>,
+	table: EngineTable<T>,
 	grouped: boolean,
 	manualGroupRow: ((row: T) => boolean) | null,
 ): T[] {
@@ -433,7 +423,7 @@ function exportLeaves<T>(
  */
 function useGridRowModel<T>(args: {
 	/** The engine's display rows when a transform materializes them, else `null`. */
-	displayRows: Row<T>[] | null
+	displayRows: EngineRow<T>[] | null
 	rows: T[]
 	getKey: (row: T, index: number) => string | number
 	grouped: boolean
@@ -452,7 +442,7 @@ function useGridRowModel<T>(args: {
 	// their leaves. Under manual grouping they are the consumer's grouped
 	// sequence, and the leaf set drops the group-header rows. Selection identity
 	// and the data counts therefore track the actual data rows.
-	const leafRows = useMemo<Row<T>[] | null>(
+	const leafRows = useMemo<EngineRow<T>[] | null>(
 		() => deriveLeafRows(displayRows, grouped, manualGroupRow),
 		[displayRows, grouped, manualGroupRow],
 	)
@@ -495,7 +485,7 @@ function useGridRowModel<T>(args: {
  */
 function useGroupTree<T>(args: {
 	/** The engine's display rows under grouping: its group rows. */
-	displayRows: Row<T>[] | null
+	displayRows: EngineRow<T>[] | null
 	/** The grouped column, or `null` when ungrouped. */
 	grouping: string | number | null
 	/** The expansion state; absent opens every group. */
@@ -533,7 +523,7 @@ function useGroupTree<T>(args: {
 
 /**
  * The off-engine client sort. When a sort is the grid's *only* transform, it
- * orders `rows` directly through {@link computeSortOrder} and
+ * orders `rows` directly through {@link cachedSortOrder} and
  * {@link materializeSort}, which match the engine's `getSortedRowModel` exactly. A plain sorted grid therefore never
  * materializes the engine's Row-per-datum model. That is the same win the
  * lite-cell body buys mount and update, extended to sort. `null` when inactive
@@ -581,39 +571,16 @@ function useSortView<T>(args: {
 		})
 	}, [clientSort, materialize, sort, columns])
 
-	// The decode-and-sort produces a permutation that depends only on the rows and
-	// the sort spec (each column's id + direction), never on `getKey` — so a re-sort
-	// of unchanged rows by a spec already seen (an asc/desc flip, the module's
-	// costliest gesture; or an unrelated re-render) reuses the cached permutation
-	// and pays only the linear materialize. The cache is scoped to the current rows
-	// and columns — either identity changing drops it — so a stale order can never
-	// outlive the data or the accessors it was computed against.
-	const orderCacheRef = useRef<{
-		rows: T[]
-		columns: GridColumn<T>[]
-		orders: Map<string, number[]>
-	} | null>(null)
-
+	// The permutation depends only on the rows and the sort spec, never on
+	// `getKey`, so `cachedSortOrder` reuses it for a spec already seen. Its cache
+	// is scoped to the current rows and columns, so a stale order can never
+	// outlive the data or the accessors that it was computed against.
 	return useMemo(() => {
 		if (!fields || !sort?.length) return null
 
-		let cache = orderCacheRef.current
-
-		if (!cache || cache.rows !== rows || cache.columns !== columns) {
-			cache = { rows, columns, orders: new Map() }
-
-			orderCacheRef.current = cache
-		}
-
 		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
 
-		let order = cache.orders.get(sig)
-
-		if (!order) {
-			order = computeSortOrder(rows, fields)
-
-			cache.orders.set(sig, order)
-		}
+		const order = cachedSortOrder(rows, columns, sig, fields)
 
 		return materializeSort(rows, order, getKey)
 	}, [fields, rows, getKey, sort, columns])
@@ -694,15 +661,19 @@ function useFilterModeMismatchWarning(args: {
  *
  * @internal
  */
-function useColumnLayout<T>(table: Table<T>, resizable: boolean, sizingState: ColumnSizingState) {
+function useColumnLayout<T>(
+	table: EngineTable<T>,
+	resizable: boolean,
+	sizingState: ColumnSizingState,
+) {
 	// The engine reads no sizing state for a grid that does not resize.
 	const sizing = resizable ? sizingState : EMPTY_SIZING
 
-	const left = table.getLeftVisibleLeafColumns()
+	const left = table.getStartVisibleLeafColumns()
 
 	const center = table.getCenterVisibleLeafColumns()
 
-	const right = table.getRightVisibleLeafColumns()
+	const right = table.getEndVisibleLeafColumns()
 
 	const leaves = useMemo(() => [...left, ...center, ...right], [left, center, right])
 
@@ -716,7 +687,7 @@ function useColumnLayout<T>(table: Table<T>, resizable: boolean, sizingState: Co
 }
 
 /** The column mid drag-resize in the drag state, or `null`. @internal */
-function resizingColumn(resizable: boolean, info: ColumnSizingInfoState): string | null {
+function resizingColumn(resizable: boolean, info: columnResizingState): string | null {
 	return resizable && info.isResizingColumn ? info.isResizingColumn : null
 }
 
@@ -728,8 +699,8 @@ function resizingColumn(resizable: boolean, info: ColumnSizingInfoState): string
  */
 function useResizeView<T>(args: {
 	resizable: boolean
-	table: Table<T>
-	leaves: readonly Column<T, unknown>[]
+	table: EngineTable<T>
+	leaves: readonly EngineColumn<T>[]
 	visibleColumns: GridColumn<T>[]
 	widths: ReadonlyMap<string, number>
 	/** The published floors, for the bounds. */
@@ -770,11 +741,17 @@ function useResizeView<T>(args: {
 		[resizable, leaves, widths, floors, resizing, actions],
 	)
 
-	const settleWidths = useStableValue(
+	// The widths as text, so a render that resolves the same widths keeps the
+	// same array. A column with no settle width is `null` in the text.
+	const settleKey = JSON.stringify(
 		visibleColumns.map((col) =>
-			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : null,
 		),
-		sameElements,
+	)
+
+	const settleWidths = useMemo(
+		() => (JSON.parse(settleKey) as (number | null)[]).map((width) => width ?? undefined),
+		[settleKey],
 	)
 
 	return { resize, settleWidths }
@@ -786,13 +763,15 @@ function useResizeView<T>(args: {
  * @internal
  */
 function useFilterView<T>(args: {
-	table: Table<T>
+	table: EngineTable<T>
 	enabled: boolean
+	/** Whether the consumer filters, so the columns have no facets. */
+	manual: boolean
 	columns: GridColumn<T>[]
 	applied: GridColumnFilterState[]
 	affordance: GridColumnFilter['affordance'] | undefined
 }): GridColumnFilter | null {
-	const { table, enabled, columns, applied } = args
+	const { table, enabled, manual, columns, applied } = args
 
 	const affordance = args.affordance ?? 'header'
 
@@ -800,7 +779,7 @@ function useFilterView<T>(args: {
 	// affordance), or `null`. Lives here because a table instance holds no such state.
 	const [openColumn, setOpenColumn] = useState<string | number | null>(null)
 
-	const actions = useMemo(() => columnFilterActions(table), [table])
+	const actions = useMemo(() => columnFilterActions(table, manual), [table, manual])
 
 	return useMemo(
 		() =>
@@ -841,8 +820,8 @@ function usePinningView<T>(args: {
 	columnPinning: ColumnPinningState
 	visibleColumns: GridColumn<T>[]
 	containerRef: RefObject<HTMLElement | null> | undefined
-	left: readonly Column<T, unknown>[]
-	right: readonly Column<T, unknown>[]
+	left: readonly EngineColumn<T>[]
+	right: readonly EngineColumn<T>[]
 	widths: ReadonlyMap<string, number>
 }): GridColumnPinning | null {
 	const { hasPinned, left, right, widths } = args
@@ -877,7 +856,11 @@ function usePinningView<T>(args: {
  *
  * @internal
  */
-function useGrandTotalRows<T>(table: Table<T>, grandTotal: boolean, manualGrouped: boolean): T[] {
+function useGrandTotalRows<T>(
+	table: EngineTable<T>,
+	grandTotal: boolean,
+	manualGrouped: boolean,
+): T[] {
 	const model = grandTotal && !manualGrouped ? table.getFilteredRowModel() : null
 
 	return useMemo<T[]>(() => model?.rows.map((row) => row.original) ?? NO_ROWS, [model])
@@ -938,22 +921,9 @@ export function useGridTable<T>({
 	// then keeps its columns, and every column-derived value keeps its identity.
 	const columns = useStableValue(suppliedColumns, sameElements)
 
-	// A live map of column id -> descending, read by the smart comparator at
-	// compare time so empties sink under both directions. Held in a ref refreshed
-	// each render so a sort-direction flip doesn't rebuild the column defs.
-	const sortDescByIdRef = useRef<Record<string, boolean>>({})
-
-	sortDescByIdRef.current = useMemo(
-		() => Object.fromEntries((sort ?? []).map((e) => [String(e.column), e.direction === 'desc'])),
-		[sort],
-	)
-
-	const smartSortingFn = useMemo(
-		() => makeSmartSortingFn((columnId) => sortDescByIdRef.current[columnId] ?? false),
-		[],
-	)
-
-	const columnDefs = useMemo(() => toColumnDefs(columns, smartSortingFn), [columns, smartSortingFn])
+	// The smart comparator reads the sort direction from the engine when it runs,
+	// so a direction flip does not rebuild the column definitions.
+	const columnDefs = useMemo(() => toColumnDefs(columns), [columns])
 
 	const paginated = paginationConfig != null
 
@@ -997,14 +967,23 @@ export function useGridTable<T>({
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
-	// the saved widths without a new callback on each render.
-	const clearSizing = useEffectEvent(() => columnSizingConfig?.onValueChange?.({}))
+	// the saved widths without a new callback on each render. The effect keeps the
+	// latest binding, and the callback reads it only when it runs.
+	const sizingChangeRef = useRef(columnSizingConfig?.onValueChange)
 
-	const clearSizingPreference = useCallback(() => clearSizing(), [])
+	const onSizingChange = columnSizingConfig?.onValueChange
+
+	useEffect(() => {
+		sizingChangeRef.current = onSizingChange
+	}, [onSizingChange])
+
+	const clearSizingPreference = useCallback(() => sizingChangeRef.current?.({}), [])
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
-	const initialSizingRef = useRef(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue)
+	const [initialSizing] = useState(
+		() => columnSizingConfig?.value ?? columnSizingConfig?.defaultValue,
+	)
 
 	// Per-column hard floors the autosizer measures (a single-word header's full
 	// width, a multi-word one's icons). The autosizer writes each measurement into
@@ -1115,47 +1094,100 @@ export function useGridTable<T>({
 
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
-	const table = useReactTable<T>({
-		data: rows,
-		columns: columnDefs,
-		getRowId,
-		getCoreRowModel: getCoreRowModel(),
-		// The page coordinate, widths, and query are owned by controllable bindings.
-		autoResetPageIndex: false,
-		state: buildState({
+	const sorting = useMemo(() => toSortingState(sort), [sort])
+
+	// The engine options, as one value. The engine copies the table into a new
+	// table object each time the options change, so a render that changes no
+	// input keeps the options and skips that copy.
+	const options = useMemo<EngineOptions<T>>(
+		() => ({
+			features: gridFeatures,
+			data: rows as EngineData<T>[],
+			columns: columnDefs,
+			getRowId,
+			// The page coordinate, widths, and query are owned by controllable bindings.
+			autoResetPageIndex: false,
+			state: buildState({
+				paginated,
+				pagination: resolvedPagination,
+				resizable,
+				sizing: resolvedSizing,
+				sizingInfo: columnSizingInfo,
+				globalFiltered: globalConfigured,
+				globalFilter: resolvedGlobalFilter,
+				columnFiltered: hasColumnFilters,
+				columnFilters: resolvedColumnFilters,
+				sortClient: clientSort,
+				sorting,
+				pinned: hasPinned,
+				columnPinning,
+				selectable,
+				rowSelection,
+				grouped,
+				grouping: groupingState,
+				columnOrder: engineColumnOrder,
+				columnVisibility,
+			}),
+			...(selectable ? { enableRowSelection: true } : {}),
+			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
+			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
+			...sortOptions<T>({ clientSort, onSortingChange }),
+			...groupingOptions<T>({ grouped, onGroupingChange }),
+			...filterOptions<T>({
+				configured: filterMode.configured,
+				manual: filterMode.manual,
+				globalHighlight: globalHighlights,
+				onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
+				onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
+			}),
+		}),
+		[
+			rows,
+			columnDefs,
+			getRowId,
 			paginated,
-			pagination: resolvedPagination,
+			resolvedPagination,
 			resizable,
-			sizing: resolvedSizing,
-			sizingInfo: columnSizingInfo,
-			globalFiltered: globalConfigured,
-			globalFilter: resolvedGlobalFilter,
-			columnFiltered: hasColumnFilters,
-			columnFilters: resolvedColumnFilters,
-			sortClient: clientSort,
-			sorting: toSortingState(sort),
-			pinned: hasPinned,
+			resolvedSizing,
+			columnSizingInfo,
+			globalConfigured,
+			resolvedGlobalFilter,
+			hasColumnFilters,
+			resolvedColumnFilters,
+			clientSort,
+			sorting,
+			hasPinned,
 			columnPinning,
 			selectable,
 			rowSelection,
 			grouped,
-			grouping: groupingState,
-			columnOrder: engineColumnOrder,
+			groupingState,
+			engineColumnOrder,
 			columnVisibility,
-		}),
-		...(selectable ? { enableRowSelection: true } : {}),
-		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
-		...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
-		...sortOptions<T>({ clientSort, onSortingChange }),
-		...groupingOptions<T>({ grouped, onGroupingChange }),
-		...filterOptions<T>({
-			configured: filterMode.configured,
-			manual: filterMode.manual,
-			globalHighlight: globalHighlights,
-			onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
-			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
-		}),
-	})
+			manual,
+			paginationConfig,
+			onPaginationChange,
+			onColumnSizingChange,
+			onColumnSizingInfoChange,
+			onSortingChange,
+			onGroupingChange,
+			filterMode.configured,
+			filterMode.manual,
+			globalHighlights,
+			onGlobalFilterChange,
+			onColumnFiltersChange,
+		],
+	)
+
+	// The table of this render. Its identity changes with its options and its
+	// state, so the render reads below read it.
+	const table = useTable<GridFeatures, EngineData<T>>(options)
+
+	// The engine: a table object that keeps one identity. Its methods act on the
+	// one core table, so an action or an effect reads it when it runs. Its
+	// `options` and `state` fields are those of the first render, so no code
+	// reads them.
+	const [engine] = useState(() => table)
 
 	const { left, right, leaves, visibleColumns, widths } = useColumnLayout(
 		table,
@@ -1238,7 +1270,7 @@ export function useGridTable<T>({
 	} = useGridColumnSizing<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
-		table,
+		table: engine,
 		// Fit distributes width across the *visible* data columns, not the hidden ones.
 		columns: visibleColumns,
 		containerRef,
@@ -1253,14 +1285,14 @@ export function useGridTable<T>({
 		freezeOnRowChange: stableColumnWidths,
 		// Restored/persisted widths start held, and the autosizer flags its own
 		// writes so they stay off the consumer's `onValueChange`.
-		initialSizing: initialSizingRef.current,
+		initialSizing,
 		autoSizingRef,
 		clearPreference: clearSizingPreference,
 	})
 
 	const { resize, settleWidths } = useResizeView({
 		resizable,
-		table,
+		table: engine,
 		leaves,
 		visibleColumns,
 		widths,
@@ -1282,16 +1314,17 @@ export function useGridTable<T>({
 			globalConfigured
 				? {
 						value: resolvedGlobalFilter,
-						setValue: (value: string) => table.setGlobalFilter(value),
+						setValue: (value: string) => engine.setGlobalFilter(value),
 						placeholder: globalFilterConfig?.placeholder ?? DEFAULT_SEARCH_PLACEHOLDER,
 					}
 				: null,
-		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, table],
+		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, engine],
 	)
 
 	const filters = useFilterView({
-		table,
+		table: engine,
 		enabled: hasColumnFilters,
+		manual: filterMode.manual,
 		columns,
 		applied: resolvedColumnFilters,
 		affordance: columnFiltersConfig?.affordance,
@@ -1311,8 +1344,8 @@ export function useGridTable<T>({
 	const grandTotalRows = useGrandTotalRows(table, grandTotal, manualGroupRow != null)
 
 	const rowsForExport = useCallback(
-		() => exportLeaves(table, grouped, manualGroupRow),
-		[table, grouped, manualGroupRow],
+		() => exportLeaves(engine, grouped, manualGroupRow),
+		[engine, grouped, manualGroupRow],
 	)
 
 	return {

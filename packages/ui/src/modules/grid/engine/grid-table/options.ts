@@ -1,26 +1,19 @@
-import {
-	type ColumnDef,
-	type ColumnFiltersState,
-	type ColumnOrderState,
-	type ColumnPinningState,
-	type ColumnSizingInfoState,
-	type ColumnSizingState,
-	type FilterFn,
-	type GroupingState,
-	getFacetedRowModel,
-	getFacetedUniqueValues,
-	getFilteredRowModel,
-	getGroupedRowModel,
-	getPaginationRowModel,
-	getSortedRowModel,
-	type OnChangeFn,
-	type PaginationState,
-	type Row,
-	type RowSelectionState,
-	type SortingFn,
-	type SortingState,
-	type TableOptions,
-	type VisibilityState,
+import type {
+	ColumnFiltersState,
+	ColumnOrderState,
+	ColumnPinningState,
+	ColumnSizingState,
+	ColumnVisibilityState,
+	columnResizingState,
+	FilterFn,
+	GroupingState,
+	OnChangeFn,
+	PaginationState,
+	Row,
+	RowData,
+	RowSelectionState,
+	SortFn,
+	SortingState,
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
@@ -34,6 +27,7 @@ import {
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
+import type { EngineColumnDef, EngineData, EngineOptions, GridFeatures } from './features'
 
 /** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
 export function toSortingState(sort: GridSortState[] | undefined): SortingState {
@@ -125,8 +119,11 @@ export function parsePxWidth(width: number | string | undefined): number | undef
  *
  * @internal
  */
-const queryFilterFn: FilterFn<unknown> = (row: Row<unknown>, columnId, filterValue) =>
-	!isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
+const queryFilterFn: FilterFn<GridFeatures, RowData> = (
+	row: Row<GridFeatures, RowData>,
+	columnId,
+	filterValue,
+) => !isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
 
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
 
@@ -138,7 +135,7 @@ queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.len
  *
  * @internal
  */
-const passThroughGlobalFilterFn: FilterFn<unknown> = () => true
+const passThroughGlobalFilterFn: FilterFn<GridFeatures, RowData> = () => true
 
 /**
  * Each row's decorated {@link SortKey}, cached per column on the row. A sort
@@ -150,10 +147,10 @@ const passThroughGlobalFilterFn: FilterFn<unknown> = () => true
  *
  * @internal
  */
-const sortKeyCache = new WeakMap<Row<unknown>, Map<string, SortKey>>()
+const sortKeyCache = new WeakMap<Row<GridFeatures, RowData>, Map<string, SortKey>>()
 
 /** This row's {@link SortKey} for `columnId`, decoded once on first use and reused across the sort's comparisons. @internal */
-function rowSortKey(row: Row<unknown>, columnId: string): SortKey {
+function rowSortKey(row: Row<GridFeatures, RowData>, columnId: string): SortKey {
 	let perColumn = sortKeyCache.get(row)
 
 	if (!perColumn) {
@@ -192,8 +189,8 @@ function rowSortKey(row: Row<unknown>, columnId: string): SortKey {
  * @internal
  */
 export function makeSmartSortingFn(
-	isDescending: (columnId: string) => boolean,
-): SortingFn<unknown> {
+	isDescending: (row: Row<GridFeatures, RowData>, columnId: string) => boolean,
+): SortFn<GridFeatures, RowData> {
 	return (rowA, rowB, columnId) => {
 		const a = rowSortKey(rowA, columnId)
 
@@ -203,21 +200,32 @@ export function makeSmartSortingFn(
 
 		// Empties order the same regardless of direction; pre-invert so the engine's
 		// desc negation lands them last either way.
-		if (a.empty || b.empty) return isDescending(columnId) ? -result : result
+		if (a.empty || b.empty) return isDescending(rowA, columnId) ? -result : result
 
 		return result
 	}
 }
 
-/** Direction-agnostic smart sort backing direct {@link toColumnDef} callers; the Grid supplies a direction-aware one. @internal */
-const defaultSmartSortingFn = makeSmartSortingFn(() => false)
+/**
+ * Whether a column sorts descending in the engine that holds `row`. Each engine
+ * row holds its table, and the table reads the sort state of the render in
+ * progress.
+ *
+ * @internal
+ */
+function sortsDescending(row: Row<GridFeatures, RowData>, columnId: string): boolean {
+	return row.table.atoms.sorting.get().some((entry) => entry.id === columnId && entry.desc)
+}
+
+/** The smart sort of each data column, with the direction read from the engine. @internal */
+const smartSortFn = makeSmartSortingFn(sortsDescending)
 
 /**
  * Resolves a column's engine behaviors from its declaration:
  *
  * - The sort/filter value `accessorFn` (an explicit `value`, else the row field
  *   named by a data column's id, so columns sort client-side out of the box).
- * - The `sortingFn` (a column's manual `sortFn`, else the smart default; data
+ * - The engine `sortFn` (a column's manual `sortFn`, else the smart default; data
  *   columns only).
  * - The query `filterFn` (a filterable column with a value).
  *
@@ -227,23 +235,26 @@ const defaultSmartSortingFn = makeSmartSortingFn(() => false)
  *
  * @internal
  */
-function deriveColumnBehavior<T>(col: GridColumn<T>, smartSortingFn: SortingFn<unknown>) {
+function deriveColumnBehavior<T>(
+	col: GridColumn<T>,
+	smartSortingFn: SortFn<GridFeatures, RowData>,
+) {
 	const { value, sortFn } = col
 
 	// Data columns read through the shared accessor (value or id field); a
 	// non-data column has no default accessor, only its explicit `value`.
 	const accessorFn = isDataColumn(col) ? columnAccessor(col) : value
 
-	const sortingFn: SortingFn<T> | undefined = !isDataColumn(col)
+	const engineSortFn: SortFn<GridFeatures, EngineData<T>> | undefined = !isDataColumn(col)
 		? undefined
 		: sortFn
 			? (rowA, rowB) => sortFn(rowA.original, rowB.original)
-			: (smartSortingFn as SortingFn<T>)
+			: (smartSortingFn as SortFn<GridFeatures, EngineData<T>>)
 
-	const filterFn: FilterFn<T> | undefined =
-		col.filterable && value ? (queryFilterFn as FilterFn<T>) : undefined
+	const filterFn: FilterFn<GridFeatures, EngineData<T>> | undefined =
+		col.filterable && value ? (queryFilterFn as FilterFn<GridFeatures, EngineData<T>>) : undefined
 
-	return { accessorFn, sortingFn, filterFn }
+	return { accessorFn, engineSortFn, filterFn }
 }
 
 /**
@@ -275,21 +286,16 @@ function affordanceColumnSize<T>(col: GridColumn<T>): number | undefined {
  * Maps a grid column to its engine `ColumnDef`: identity, the capability gates,
  * the resolved behaviors (see {@link deriveColumnBehavior}), and sizing bounds.
  *
- * @param smartSortingFn - The direction-aware default sort (see
- *   {@link makeSmartSortingFn}); direct callers get a direction-agnostic one.
  * @internal
  */
-export function toColumnDef<T>(
-	col: GridColumn<T>,
-	smartSortingFn: SortingFn<unknown> = defaultSmartSortingFn,
-): ColumnDef<T> {
+export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 	// A width-less column takes the engine's 150px default; the selection,
 	// drag-handle, and expander columns instead hold a natural affordance width so
 	// they aren't that wide. (The non-resizable auto layout already sizes them to
 	// content via `w-px`.)
 	const size = parsePxWidth(col.width) ?? affordanceColumnSize(col)
 
-	const { accessorFn, sortingFn, filterFn } = deriveColumnBehavior(col, smartSortingFn)
+	const { accessorFn, engineSortFn, filterFn } = deriveColumnBehavior(col, smartSortFn)
 
 	return {
 		id: String(col.id),
@@ -304,7 +310,7 @@ export function toColumnDef<T>(
 		enableGrouping: isDataColumn(col),
 		// The accessor feeds sort/filter without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
-		...(sortingFn ? { sortingFn } : {}),
+		...(engineSortFn ? { sortFn: engineSortFn } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
@@ -323,24 +329,34 @@ function manualTotals(
 	return undefined
 }
 
-/** Pagination slice of the table options, or `{}` when pagination is off. @internal */
+/**
+ * Pagination slice of the table options. When pagination is off, the slice
+ * sets `manualPagination`, so the registered paginated row model passes every
+ * row through (see `gridFeatures`).
+ *
+ * @internal
+ */
 export function paginationOptions<T>(args: {
 	paginated: boolean
 	manual: boolean
 	config: GridPagination | undefined
 	onPaginationChange: OnChangeFn<PaginationState>
-}): Partial<TableOptions<T>> {
-	if (!args.paginated) return {}
+}): Partial<EngineOptions<T>> {
+	if (!args.paginated) return { manualPagination: true }
 
 	return {
 		onPaginationChange: args.onPaginationChange,
-		...(args.manual
-			? { manualPagination: true, ...manualTotals(args.config) }
-			: { getPaginationRowModel: getPaginationRowModel() }),
+		...(args.manual ? { manualPagination: true, ...manualTotals(args.config) } : {}),
 	}
 }
 
-/** Global-filter slice of the table options, or `{}` when filtering is off. @internal */
+/**
+ * Filter slice of the table options. When filtering is off or manual, the
+ * slice sets `manualFiltering`, so the registered filtered row model passes
+ * every row through (see `gridFeatures`).
+ *
+ * @internal
+ */
 export function filterOptions<T>(args: {
 	configured: boolean
 	manual: boolean
@@ -348,37 +364,35 @@ export function filterOptions<T>(args: {
 	globalHighlight?: boolean
 	onGlobalFilterChange?: OnChangeFn<string>
 	onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>
-}): Partial<TableOptions<T>> {
-	if (!args.configured) return {}
+}): Partial<EngineOptions<T>> {
+	if (!args.configured) return { manualFiltering: true }
 
 	return {
 		globalFilterFn: args.globalHighlight
-			? (passThroughGlobalFilterFn as FilterFn<T>)
+			? (passThroughGlobalFilterFn as FilterFn<GridFeatures, EngineData<T>>)
 			: 'includesString',
 		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
 		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
-		// Client filtering also faceted: a select filter can offer the column's own
-		// values (unique values reflect the rows left by *other* filters). Manual
-		// mode sees only the server page, so faceting stands down there.
-		...(args.manual
-			? { manualFiltering: true }
-			: {
-					getFilteredRowModel: getFilteredRowModel(),
-					getFacetedRowModel: getFacetedRowModel(),
-					getFacetedUniqueValues: getFacetedUniqueValues(),
-				}),
+		// Manual mode sees only the server page, so the facets stand down there too
+		// (see `columnFilterActions`).
+		...(args.manual ? { manualFiltering: true } : {}),
 	}
 }
 
-/** Client-sort slice of the table options, or `{}` when sorting stays consumer-driven. @internal */
+/**
+ * Client-sort slice of the table options. When the consumer sorts, the slice
+ * sets `manualSorting`, so the registered sorted row model passes every row
+ * through (see `gridFeatures`).
+ *
+ * @internal
+ */
 export function sortOptions<T>(args: {
 	clientSort: boolean
 	onSortingChange: OnChangeFn<SortingState>
-}): Partial<TableOptions<T>> {
-	if (!args.clientSort) return {}
+}): Partial<EngineOptions<T>> {
+	if (!args.clientSort) return { manualSorting: true }
 
 	return {
-		getSortedRowModel: getSortedRowModel(),
 		onSortingChange: args.onSortingChange,
 		// The grid owns the additive Shift-click model, so the engine must honor a
 		// multi-column sorting state rather than collapse it to one column.
@@ -387,22 +401,22 @@ export function sortOptions<T>(args: {
 }
 
 /**
- * Row-grouping slice of the table options, or `{}` when grouping is off: the
- * grouped row model and its change handler. Client-side only
- * (`manualGrouping: false`), so the engine collects the groups from the filtered
- * rows itself. It has no expanded row model: the grid opens the groups itself,
- * so the engine's display rows are the group rows alone.
+ * Row-grouping slice of the table options. Grouping is client-side only
+ * (`manualGrouping: false`), so the engine collects the groups from the
+ * filtered rows itself. When grouping is off, the slice sets `manualGrouping`,
+ * so the registered grouped row model passes every row through. The engine has
+ * no expanded row model: the grid opens the groups itself, so the display rows
+ * of the engine are the group rows alone.
  *
  * @internal
  */
 export function groupingOptions<T>(args: {
 	grouped: boolean
 	onGroupingChange: OnChangeFn<GroupingState>
-}): Partial<TableOptions<T>> {
-	if (!args.grouped) return {}
+}): Partial<EngineOptions<T>> {
+	if (!args.grouped) return { manualGrouping: true }
 
 	return {
-		getGroupedRowModel: getGroupedRowModel(),
 		onGroupingChange: args.onGroupingChange,
 		manualGrouping: false,
 	}
@@ -412,15 +426,15 @@ export function groupingOptions<T>(args: {
 export function resizeOptions<T>(args: {
 	resizable: boolean
 	onColumnSizingChange: OnChangeFn<ColumnSizingState>
-	onColumnSizingInfoChange: OnChangeFn<ColumnSizingInfoState>
-}): Partial<TableOptions<T>> {
+	onColumnSizingInfoChange: OnChangeFn<columnResizingState>
+}): Partial<EngineOptions<T>> {
 	if (!args.resizable) return {}
 
 	return {
 		enableColumnResizing: true,
 		columnResizeMode: 'onChange',
 		onColumnSizingChange: args.onColumnSizingChange,
-		onColumnSizingInfoChange: args.onColumnSizingInfoChange,
+		onColumnResizingChange: args.onColumnSizingInfoChange,
 	}
 }
 
@@ -472,7 +486,7 @@ export function clampSizingToFloors(
 type GridControlledState = {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
-	columnSizingInfo?: ColumnSizingInfoState
+	columnResizing?: columnResizingState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
 	sorting?: SortingState
@@ -480,7 +494,7 @@ type GridControlledState = {
 	rowSelection?: RowSelectionState
 	grouping?: GroupingState
 	columnOrder: ColumnOrderState
-	columnVisibility: VisibilityState
+	columnVisibility: ColumnVisibilityState
 }
 
 /** The controlled state slices the active features own. @internal */
@@ -489,7 +503,7 @@ export function buildState(args: {
 	pagination: PaginationState
 	resizable: boolean
 	sizing: ColumnSizingState
-	sizingInfo: ColumnSizingInfoState
+	sizingInfo: columnResizingState
 	globalFiltered: boolean
 	globalFilter: string
 	columnFiltered: boolean
@@ -503,7 +517,7 @@ export function buildState(args: {
 	grouped: boolean
 	grouping: GroupingState
 	columnOrder: ColumnOrderState
-	columnVisibility: VisibilityState
+	columnVisibility: ColumnVisibilityState
 }): GridControlledState {
 	const state: GridControlledState = {
 		columnOrder: args.columnOrder,
@@ -515,7 +529,7 @@ export function buildState(args: {
 	if (args.resizable) {
 		state.columnSizing = args.sizing
 
-		state.columnSizingInfo = args.sizingInfo
+		state.columnResizing = args.sizingInfo
 	}
 
 	if (args.globalFiltered) state.globalFilter = args.globalFilter

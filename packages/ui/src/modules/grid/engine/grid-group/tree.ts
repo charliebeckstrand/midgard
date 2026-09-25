@@ -1,4 +1,5 @@
-import type { ExpandedState, Row } from '@tanstack/react-table'
+import type { ExpandedState } from '@tanstack/react-table'
+import type { EngineRow } from '../grid-table/features'
 
 /**
  * One row of the source data, as a value the grouped bodies render from.
@@ -36,7 +37,7 @@ export type GridGroup<T> = {
 
 /** The {@link GridLeaf} of an engine row. @internal */
 export function toGridLeaf<T>(
-	row: Row<T>,
+	row: EngineRow<T>,
 	getKey: (row: T, index: number) => string | number,
 ): GridLeaf<T> {
 	return { id: row.id, key: getKey(row.original, row.index), row: row.original }
@@ -63,7 +64,7 @@ export function isGroupExpanded(expanded: ExpandedState, id: string): boolean {
  * @internal
  */
 export function toGridGroups<T>(
-	rows: readonly Row<T>[],
+	rows: readonly EngineRow<T>[],
 	columnId: string,
 	getKey: (row: T, index: number) => string | number,
 ): GridGroup<T>[] {
