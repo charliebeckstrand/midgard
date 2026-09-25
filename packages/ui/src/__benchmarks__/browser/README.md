@@ -127,6 +127,8 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-facets.bench.tsx`](grid-facets.bench.tsx) — a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open. AG Grid holds its set filter in the Enterprise tier, and the filter of MUI X lists no values, so the ui grid runs alone.
 
+- [`grid-group.bench.tsx`](grid-group.bench.tsx) — client grouping by carrier, with every group open, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. The clear settles on the row count of the toolbar, because a grouped window that grows back keeps its scroll offset. AG Grid holds its row grouping in the Enterprise tier, and MUI X holds it in the Premium tier, so the ui grid runs alone.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -284,6 +286,19 @@ Each entry names the change and the scenarios it moved.
     | filter · 10,000 · sorted · plain | 42.1 | 37.4 | −11%, −5%, −14% |
 
     At 100k the module now runs the search in about a third of the time of AG (219.1ms) and under half of that of MUI (171.5ms), sorted or not. The sort flips and the column filters stayed within noise.
+
+17. **Off-engine client grouping** ([`client.ts`](../../modules/grid/engine/grid-group/client.ts) `groupRows`, [`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useGroupTree`, 2026-09-25, this container). A grouped grid built the row model of the engine: a `Row` for each datum, then the grouped and the sorted models over them. The grid now groups the rows of its client view itself, with the rules of the engine. Manual grouping and the export read the client view too. A property test holds the groups, the rows, the grand total, and the export equal to those of a grouped stock engine table. The new grouping scenario gives the median of interleaved pairs against `main`. At 100k, one iteration of `main` took up to 800ms, so a 2-second window sometimes gave no sample:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | group · 100,000 · mount · plain | 707.7 | 233.2 | −60% (one pair) |
+    | group · 100,000 · mount · compiled | 587.7 | 190.1 | −77%, −65% |
+    | group · 100,000 · filter + clear · plain | 776.3 | 270.1 | −58%, −68% |
+    | group · 100,000 · sort flip · plain | 488.9 | 222.6 | −49%, −56%, −57% |
+    | group · 100,000 · sort flip · compiled | 395.4 | 186.8 | −58%, −63%, −46% |
+    | group · 10,000 · mount · plain | 83.4 | 44.4 | −36%, −49%, −47% |
+
+    The sort flips with no grouping stayed within noise. The ungrouped quick filter was noisy: over seven plain pairs at 100k, the change was +38%, +3%, +22%, +33%, −5%, −4%, and +41%. The compiled pairs were mixed. The ungrouped path gained only three fields on the view object.
 
 ## Maps
 
