@@ -11,6 +11,7 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import { useDeleteUser, useSaveUserEmail, useUsers } from './users-queries'
 
 type UsersClientProps = {
 	users: User[]
@@ -20,43 +21,33 @@ type UsersClientProps = {
 type EditUserDialogProps = {
 	user: User | null
 	onClose: () => void
-	onSave: (userId: string, email: string) => Promise<boolean>
 }
 
 /**
  * Modal for editing a user's email; id and timestamps shown read-only.
  *
  * @internal
- * @remarks Open while `user` is non-null. Surfaces a retry message when `onSave`
- *   resolves `false`; closes on success.
+ * @remarks Open while `user` is non-null. Surfaces a retry message when the
+ *   save fails; closes on success.
  */
-function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
+function EditUserDialog({ user, onClose }: EditUserDialogProps) {
 	const [email, setEmail] = useState(user?.email ?? '')
-	const [saving, setSaving] = useState(false)
-	const [failed, setFailed] = useState(false)
+	const { mutate: save, reset, isPending: saving, isError: failed } = useSaveUserEmail()
 
 	useEffect(() => {
 		if (user) {
 			setEmail(user.email)
-			setFailed(false)
-		}
-	}, [user])
 
-	const handleSave = async () => {
+			// The reset also detaches a save that is still in flight, so its
+			// `onSuccess` cannot close the dialog of the next user.
+			reset()
+		}
+	}, [user, reset])
+
+	const handleSave = () => {
 		if (!user) return
 
-		setSaving(true)
-		setFailed(false)
-
-		const ok = await onSave(user.id, email)
-
-		setSaving(false)
-
-		if (ok) {
-			onClose()
-		} else {
-			setFailed(true)
-		}
+		save({ userId: user.id, email }, { onSuccess: onClose })
 	}
 
 	return (
@@ -121,37 +112,15 @@ function EditUserDialog({ user, onClose, onSave }: EditUserDialogProps) {
  * Users table with edit and delete actions over the seeded user list.
  *
  * @remarks
- * Mutations call `/api/users/:id` (PATCH/DELETE) and update local state
- * optimistically on success. Deleting `currentUser` is disabled.
+ * The server page seeds the `useUsers` query. Mutations call `/api/users/:id`
+ * (PATCH/DELETE) and write the result into the cached list on success.
+ * Deleting `currentUser` is disabled.
  */
 export function UsersClient({ users: initialUsers, currentUser }: UsersClientProps) {
-	const [users, setUsers] = useState(initialUsers)
+	const { data: users } = useUsers(initialUsers)
+	const { mutate: deleteUser } = useDeleteUser()
 	const [editingUser, setEditingUser] = useState<User | null>(null)
 	const [confirmDeleteUser, setConfirmDeleteUser] = useState<User | null>(null)
-
-	const saveUser = async (userId: string, email: string): Promise<boolean> => {
-		const res = await fetch(`/api/users/${userId}`, {
-			method: 'PATCH',
-			headers: { 'Content-Type': 'application/json' },
-			body: JSON.stringify({ email }),
-		}).catch(() => null)
-
-		if (!res?.ok) return false
-
-		setUsers((prev) => prev.map((user) => (user.id === userId ? { ...user, email } : user)))
-
-		return true
-	}
-
-	const deleteUser = async (userId: string) => {
-		const res = await fetch(`/api/users/${userId}`, { method: 'DELETE' }).catch(() => null)
-
-		if (res?.ok) {
-			setUsers((prev) => prev.filter((user) => user.id !== userId))
-		}
-
-		setConfirmDeleteUser(null)
-	}
 
 	return (
 		<>
@@ -209,7 +178,7 @@ export function UsersClient({ users: initialUsers, currentUser }: UsersClientPro
 				</TableBody>
 			</Table>
 
-			<EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} onSave={saveUser} />
+			<EditUserDialog user={editingUser} onClose={() => setEditingUser(null)} />
 
 			<Dialog
 				open={confirmDeleteUser !== null}
@@ -226,7 +195,13 @@ export function UsersClient({ users: initialUsers, currentUser }: UsersClientPro
 					<Button variant="outline" onClick={() => setConfirmDeleteUser(null)}>
 						Cancel
 					</Button>
-					<Button color="red" onClick={() => confirmDeleteUser && deleteUser(confirmDeleteUser.id)}>
+					<Button
+						color="red"
+						onClick={() =>
+							confirmDeleteUser &&
+							deleteUser(confirmDeleteUser.id, { onSettled: () => setConfirmDeleteUser(null) })
+						}
+					>
 						Delete
 					</Button>
 				</DialogFooter>
