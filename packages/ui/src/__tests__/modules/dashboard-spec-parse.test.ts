@@ -227,4 +227,22 @@ describe('parseDashboardSpec', () => {
 			issues: [],
 		})
 	})
+
+	it('drops a filter deeper than 32 levels with an issue, and does not throw', () => {
+		/** A filter of `levels` nested groups, read from JSON as storage gives it. */
+		const nested = (levels: number): unknown =>
+			JSON.parse(`${'{"id":"g","type":"group","children":['.repeat(levels)}${']}'.repeat(levels)}`)
+
+		for (const levels of [33, 100_000]) {
+			const { spec, issues } = parseDashboardSpec({ tiles: [], layout: [], filter: nested(levels) })
+
+			expect(spec.filter === undefined).toBe(true)
+
+			expect(issues.map((issue) => [issue.kind, issue.path])).toEqual([
+				['invalid-filter', 'filter'],
+			])
+		}
+
+		expect(parseDashboardSpec({ tiles: [], layout: [], filter: nested(32) }).issues).toEqual([])
+	})
 })

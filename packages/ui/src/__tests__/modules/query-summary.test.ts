@@ -197,17 +197,58 @@ describe('formatQuerySummary', () => {
 		).toBe('Name contains lee')
 	})
 
-	it('renders an unresolved field and operator verbatim', () => {
+	it('renders an unknown field by its name, and its operator by the built-in label', () => {
 		expect(line([rule(nameField, { field: 'gone', operator: 'contains', value: 'x' })])).toBe(
 			'gone contains x',
 		)
+
+		expect(line([rule(ageField, { field: 'gone', operator: 'gt', value: 30 })])).toBe('gone > 30')
 	})
 
-	it('renders a value-less operator that the field does not offer, verbatim', () => {
+	it('renders a value-less operator that the field does not offer by its built-in label', () => {
 		// The evaluator applies `isEmpty` to any field, so the rule is active.
 		expect(line([rule(verifiedField, { operator: 'isEmpty', value: undefined })])).toBe(
-			'Verified isEmpty',
+			'Verified is Empty',
 		)
+	})
+
+	it('renders isEmpty on a number, date, or select field by its built-in label', () => {
+		// A blank dashboard selection makes an `isEmpty` rule on a field of any type.
+		expect(line([rule(ageField, { operator: 'isEmpty', value: null })])).toBe('Age is Empty')
+
+		expect(line([rule(joinedField, { operator: 'isEmpty', value: null })])).toBe('Joined is Empty')
+
+		expect(line([rule(statusField, { operator: 'isNotEmpty', value: null })])).toBe(
+			'Status is not Empty',
+		)
+	})
+
+	it('takes the first built-in label for an operator that more than one set holds', () => {
+		// The text set comes first, so `notEquals` reads as it does on a text field.
+		expect(line([rule(verifiedField, { operator: 'notEquals', value: 'x' })])).toBe(
+			'Verified does not equal x',
+		)
+	})
+
+	it('renders an operator that the field does not offer by the default label of its type', () => {
+		// The custom operators leave out `equals`, but the evaluator applies it.
+		const dayField: QueryField = {
+			...joinedField,
+			operators: [{ value: 'before', label: 'before' }],
+		}
+
+		const stateField: QueryField = {
+			...statusField,
+			operators: [{ value: 'notEquals', label: 'is not' }],
+		}
+
+		const day = createGroup('and', [rule(dayField, { operator: 'equals', value: '2026-01-01' })])
+
+		const state = createGroup('and', [rule(stateField, { operator: 'equals', value: 'active' })])
+
+		expect(formatQuerySummary(day, [dayField])).toBe('Joined on 2026-01-01')
+
+		expect(formatQuerySummary(state, [stateField])).toBe('Status is Active')
 	})
 
 	it('renders a range on an unknown field as a range', () => {
@@ -293,6 +334,12 @@ describe('summarizeQuery', () => {
 		const [token] = stream([rule(nameField, { operator: 'isEmpty', value: '' })])
 
 		expect(token).toMatchObject({ kind: 'rule', field: 'Name', operator: 'is', value: 'Empty' })
+	})
+
+	it('carries the built-in value label when the field does not offer the operator', () => {
+		const [token] = stream([rule(ageField, { operator: 'isEmpty', value: null })])
+
+		expect(token).toMatchObject({ kind: 'rule', field: 'Age', operator: 'is', value: 'Empty' })
 	})
 
 	it('resolves the combinator to its AND/OR label, and names the node that holds it', () => {

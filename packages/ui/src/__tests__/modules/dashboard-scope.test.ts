@@ -10,7 +10,8 @@ import {
 	selectedValues,
 	selectValue,
 } from '../../modules/dashboard/engine/dashboard-scope'
-import type { QueryGroup } from '../../modules/query/engine/types'
+import { formatQuerySummary } from '../../modules/query/engine/query-summary'
+import type { QueryField, QueryGroup } from '../../modules/query/engine/types'
 
 type Sale = { region: string; product: string; amount: number }
 
@@ -169,6 +170,23 @@ describe('a blank selection', () => {
 		for (const selections of [westFirst, blankFirst]) {
 			expect(rows(selections)).toEqual({ active: true, regions: ['West', null, ''] })
 		}
+	})
+
+	it('shows with the isEmpty label of the field, else as is Empty', () => {
+		const query = scopeQuery(undefined, selectValue([], 'map', 'region', ''), null)
+
+		const offered: QueryField = {
+			name: 'region',
+			label: 'Region',
+			type: 'text',
+			operators: [{ value: 'isEmpty', label: 'has no value', noValue: true }],
+		}
+
+		const plain: QueryField = { name: 'region', label: 'Region', type: 'select' }
+
+		expect(formatQuerySummary(query, [offered])).toBe('(Region has no value)')
+
+		expect(formatQuerySummary(query, [plain])).toBe('(Region is Empty)')
 	})
 })
 

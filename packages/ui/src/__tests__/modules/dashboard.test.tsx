@@ -1,10 +1,13 @@
 import { act } from '@testing-library/react'
-import { Profiler, type ReactNode, use, useState } from 'react'
+import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { Dialog } from '../../components/dialog'
 import {
 	Dashboard,
+	type DashboardHandle,
 	type DashboardLayoutItem,
+	type DashboardProps,
 	DashboardTile,
 	useDashboardRows,
 	useDashboardScope,
@@ -33,14 +36,16 @@ afterEach(() => {
 function Board({
 	editing = false,
 	layout = { defaultValue: LAYOUT },
+	onDragEnd,
 	children,
 }: {
 	editing?: boolean
-	layout?: Parameters<typeof Dashboard>[0]['layout']
+	layout?: DashboardProps['layout']
+	onDragEnd?: DashboardProps['onDragEnd']
 	children?: ReactNode
 }) {
 	return (
-		<Dashboard aria-label="Sales" editing={editing} layout={layout}>
+		<Dashboard aria-label="Sales" editing={editing} layout={layout} onDragEnd={onDragEnd}>
 			<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
 				<button type="button">Inside a</button>
 			</DashboardTile>
@@ -57,6 +62,60 @@ function Board({
 		</Dashboard>
 	)
 }
+
+/** Three free-form tiles of one span: two in the first row, and one under the first. */
+const GRID: DashboardLayoutItem[] = [
+	{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+	{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+	{ id: 'c', x: 0, y: 10, w: 8, h: 10 },
+]
+
+/** The spies of one drag case on {@link Grid}. */
+type GridSpies = {
+	onLayout?: (next: DashboardLayoutItem[]) => void
+	onDragStart?: DashboardProps['onDragStart']
+	onDragEnd?: DashboardProps['onDragEnd']
+	onRemove?: () => void
+}
+
+/** A controlled board in edit mode with the {@link GRID} layout. It saves each commit. */
+function Grid({ onLayout, onDragStart, onDragEnd, onRemove }: GridSpies) {
+	const [value, setValue] = useState(GRID)
+
+	return (
+		<Dashboard
+			aria-label="Sales"
+			editing
+			layout={{
+				value,
+				onValueChange: (next) => {
+					onLayout?.(next)
+
+					setValue(next)
+				},
+			}}
+			onDragStart={onDragStart}
+			onDragEnd={onDragEnd}
+		>
+			<DashboardTile id="a" title="Revenue" onRemove={onRemove} />
+
+			<DashboardTile id="b" title="Traffic" />
+
+			<DashboardTile id="c" title="Orders" />
+		</Dashboard>
+	)
+}
+
+/** The text of the dnd-kit live region, which narrates each drag. */
+function dragNarration(): string {
+	return document.querySelector('[id^="DndLiveRegion"]')?.textContent ?? ''
+}
+
+/** The press of the main mouse button, which the pointer sensor needs. */
+const PRIMARY = { isPrimary: true, button: 0 }
+
+/** Lets dnd-kit remove its click guard from the document, 50 ms after a release. */
+const teardown = () => act(() => new Promise((resolve) => setTimeout(resolve, 60)))
 
 describe('Dashboard', () => {
 	it('renders each tile with a layout entry on the server, at its saved cell', () => {
@@ -195,6 +254,134 @@ describe('Dashboard', () => {
 		expect(grip).not.toHaveAttribute('data-dragging')
 
 		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
+	})
+
+	it('cancels a drag on Escape, and keeps the dialog around the board open', async () => {
+		const onOpenChange = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Board editing onDragEnd={onDragEnd} />
+			</Dialog>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(grip).not.toHaveAttribute('data-dragging')
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: true }),
+		)
+	})
+
+	it('shows the grabbing cursor on the whole page while a tile drags, until the drop or the cancel', async () => {
+		renderUI(<Board editing />)
+
+		const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(cursor()).not.toBeNull()
+
+		await settle()
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(cursor()).toBeNull()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(cursor()).not.toBeNull()
+
+		await settle()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await settle()
+
+		expect(cursor()).toBeNull()
+	})
+
+	it('drags a card with the pointer into free cells, and ends the drop once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { container } = renderUI(
+			<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />,
+		)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		// The pointer sensor lifts the tile after 3 px of travel.
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(card).toHaveAttribute('data-dragging')
+
+		// At a 50 px pitch, 800 px is 16 columns: the free cells at the end of the first row.
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+		expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
+			'1 / 17 / span 10 / span 8',
+		)
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		expect(onLayout.mock.lastCall?.[0]).toContainEqual({ id: 'a', x: 16, y: 0, w: 8, h: 10 })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: false }),
+		)
+
+		await teardown()
+	})
+
+	it('starts no drag from a press on a tile control that moves', async () => {
+		const onDragStart = vi.fn()
+
+		renderUI(<Grid onDragStart={onDragStart} onRemove={vi.fn()} />)
+
+		const remove = screen.getByRole('button', { name: 'Remove Revenue' })
+
+		fireEvent.pointerDown(remove, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).not.toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		await teardown()
 	})
 
 	it('renders only the tile whose cell changed', () => {
@@ -443,6 +630,717 @@ describe('Dashboard', () => {
 		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
+	})
+})
+
+describe('Dashboard gesture owner', () => {
+	/** Lets the keyboard sensor attach its keys after a lift, and lets dnd-kit tear down after a drop. */
+	const tick = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+	/** Lifts the tile of the grip `name` with Space, then presses `code` `steps` times. */
+	async function lift(name: string, code = 'ArrowRight', steps = 0): Promise<HTMLElement> {
+		const grip = screen.getByRole('button', { name })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		for (let step = 0; step < steps; step++) fireEvent.keyDown(grip, { code, key: code })
+
+		return grip
+	}
+
+	/** Drops the drag of `grip` with Space. */
+	async function drop(grip: HTMLElement): Promise<void> {
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await tick()
+	}
+
+	/** The painted grid area of the tile that holds `element`. */
+	function areaOf(element: HTMLElement): string {
+		const shell = element.closest<HTMLElement>('[data-slot="dashboard-tile"]')
+
+		return shell?.style.gridArea ?? ''
+	}
+
+	/** A controlled board that saves each commit, and reports it to `onLayout`. */
+	function Controlled({
+		editing = true,
+		onLayout,
+		onDragEnd,
+	}: {
+		editing?: boolean
+		onLayout: (next: DashboardLayoutItem[]) => void
+		onDragEnd?: DashboardProps['onDragEnd']
+	}) {
+		const [value, setValue] = useState(LAYOUT)
+
+		return (
+			<Board
+				editing={editing}
+				onDragEnd={onDragEnd}
+				layout={{
+					value,
+					onValueChange: (next) => {
+						onLayout(next)
+
+						setValue(next)
+					},
+				}}
+			/>
+		)
+	}
+
+	/** Collects the unhandled rejections of one case. */
+	function collectRejections(): unknown[] {
+		const rejections: unknown[] = []
+
+		const onRejection = (reason: unknown) => {
+			rejections.push(reason)
+		}
+
+		process.on('unhandledRejection', onRejection)
+
+		onTestFinished(() => {
+			process.off('unhandledRejection', onRejection)
+		})
+
+		return rejections
+	}
+
+	it('ends the settle phase of a drop whose onValueChange throws, and ends the drag once as canceled', async () => {
+		const failure = new Error('The save failed.')
+
+		const onValueChange = vi.fn(() => {
+			throw failure
+		})
+
+		const onDragEnd = vi.fn()
+
+		// dnd-kit runs the drop in an async handler, so the throw escapes as a rejection.
+		const rejections = collectRejections()
+
+		const { rerender } = renderUI(
+			<Board editing layout={{ value: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+		)
+
+		// Twelve columns to the right, Revenue covers the cell of Traffic.
+		await drop(await lift('Move Revenue', 'ArrowRight', 12))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(rejections).toEqual([failure])
+
+		// The app keeps its value, so the drop saved nothing.
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		// The app kept its layout, so each tile paints its saved cell.
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+
+		expect(areaOf(screen.getByRole('group', { name: 'Traffic' }))).toBe(
+			'1 / 13 / span 27 / span 12',
+		)
+
+		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+
+		rerender(<Board editing layout={{ value: moved, onValueChange }} onDragEnd={onDragEnd} />)
+
+		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+	})
+
+	it('ends a drop as saved when the onValueChange of an uncontrolled layout throws', async () => {
+		const failure = new Error('The save failed.')
+
+		const onValueChange = vi.fn((_: DashboardLayoutItem[]) => {
+			throw failure
+		})
+
+		const onDragEnd = vi.fn()
+
+		const rejections = collectRejections()
+
+		renderUI(
+			<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} onDragEnd={onDragEnd} />,
+		)
+
+		await drop(await lift('Move Revenue', 'ArrowRight', 12))
+
+		expect(rejections).toEqual([failure])
+
+		// The board holds its own layout, so it keeps the drop.
+		const saved = onValueChange.mock.lastCall?.[0]
+
+		expect(saved).toContainEqual({ id: 'a', x: 12, y: 0, w: 12 })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: false, layout: saved })
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe(
+			'1 / 13 / span 27 / span 12',
+		)
+	})
+
+	it('refuses a splitter step during a drag, so the drop commits alone and ends once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		// Eight columns to the right, Revenue shifts against Traffic.
+		const grip = await lift('Move Revenue', 'ArrowRight', 8)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
+
+		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowLeft' })
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		await drop(grip)
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+
+		expect(onDragEnd).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', canceled: false }))
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		const next = onLayout.mock.lastCall?.[0] as DashboardLayoutItem[]
+
+		// Revenue and Traffic have one size, so two tiles on one cell share an origin.
+		expect(new Set(next.map((item) => `${item.x},${item.y}`)).size).toBe(next.length)
+
+		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 8, h: 20 })
+	})
+
+	it('paints the saved cell after a declined drop, and then lets tidy commit', async () => {
+		const board = createRef<DashboardHandle>()
+
+		const onValueChange = vi.fn()
+
+		// Revenue sits under a gap, so tidy has a move to make.
+		const saved: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 8, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		]
+
+		renderUI(
+			<Dashboard ref={board} aria-label="Sales" editing layout={{ value: saved, onValueChange }}>
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+			</Dashboard>,
+		)
+
+		// The app keeps its value, so it declines the drop.
+		await drop(await lift('Move Revenue', 'ArrowDown', 4))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('9 / 1 / span 10 / span 8')
+
+		let moved = false
+
+		act(() => {
+			moved = board.current?.tidy() ?? false
+		})
+
+		expect(moved).toBe(true)
+
+		expect(onValueChange).toHaveBeenLastCalledWith([
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		])
+	})
+
+	/** A board whose layout and tiles the test sets. It saves nothing by itself. */
+	function Held({
+		value,
+		withC = true,
+		onLayout,
+		onDragEnd,
+	}: {
+		value: DashboardLayoutItem[]
+		withC?: boolean
+		onLayout: (next: DashboardLayoutItem[]) => void
+		onDragEnd: DashboardProps['onDragEnd']
+	}) {
+		return (
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ value, onValueChange: onLayout }}
+				onDragEnd={onDragEnd}
+			>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+
+				<DashboardTile id="b" title="Traffic" ratio={16 / 9} />
+
+				{withC && (
+					<DashboardTile id="c">
+						<div data-testid="content-c" />
+					</DashboardTile>
+				)}
+			</Dashboard>
+		)
+	}
+
+	it('cancels a drop after an outside move, so the move stays', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 12)
+
+		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+
+		rerender(<Held value={moved} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await drop(grip)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: moved })
+
+		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+	})
+
+	it('cancels a drop after an outside remove, so the entry stays removed', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Held value={LAYOUT} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 12)
+
+		const removed = LAYOUT.filter((item) => item.id !== 'c')
+
+		rerender(<Held value={removed} withC={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await drop(grip)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: removed })
+	})
+
+	it('ends a keyboard drag as canceled when edit mode ends, so a later Space commits nothing', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await lift('Move Revenue', 'ArrowRight', 12)
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+
+		// The grip left with edit mode, and the keyboard sensor still listens on the document.
+		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+	})
+
+	it('ends a keyboard drag as canceled when the board unmounts, so a later Space commits nothing', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { unmount } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await lift('Move Revenue', 'ArrowRight', 12)
+
+		unmount()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+	})
+
+	/** The page-wide rule that holds the grabbing cursor. */
+	const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+
+	it('lifts the grabbing cursor when edit mode ends a drag, so one Escape closes the dialog', async () => {
+		const onOpenChange = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const inDialog = (editing: boolean) => (
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Board editing={editing} onDragEnd={onDragEnd} />
+			</Dialog>
+		)
+
+		const { rerender } = renderUI(inDialog(true))
+
+		await lift('Move Revenue', 'ArrowRight', 2)
+
+		expect(cursor()).not.toBeNull()
+
+		rerender(inDialog(false))
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: true }),
+		)
+
+		expect(cursor()).toBeNull()
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
+	})
+
+	it('keeps the dialog open on Escape after the carried tile leaves, and ends the drag once', async () => {
+		const onOpenChange = vi.fn()
+
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const inDialog = (withC: boolean) => (
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Held value={LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
+			</Dialog>
+		)
+
+		const { rerender } = renderUI(inDialog(true))
+
+		await lift('Move c', 'ArrowRight', 2)
+
+		rerender(inDialog(false))
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'c', canceled: true }),
+		)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(cursor()).toBeNull()
+	})
+
+	it('lifts no tile and narrates nothing for a drag that a live resize refuses', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const { container } = renderUI(
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ value: LAYOUT, onValueChange: onLayout }}
+				onDragStart={onDragStart}
+			>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize Orders' })
+
+		if (east === undefined) throw new Error('Orders has no east splitter.')
+
+		fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0 })
+
+		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 2)
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[data-dragging]')).toBeNull()
+
+		expect(grip).not.toHaveAttribute('aria-pressed')
+
+		expect(dragNarration()).toBe('')
+
+		// The release ends the resize, so the next Escape reaches the dnd-kit drag.
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(dragNarration()).toBe('')
+	})
+
+	it('ends the dnd-kit drag with the board when edit mode ends, so the page keys work again', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />,
+		)
+
+		await lift('Move Revenue', 'ArrowRight', 2)
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		expect(container.querySelector('[data-dragging]')).toBeNull()
+
+		const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
+			code: 'Space',
+			key: ' ',
+		})
+
+		expect(passed).toBe(true)
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+
+		expect(dragNarration()).toBe(
+			'Canceled. Revenue returned to column 1 of 24, row 1, 12 columns wide.',
+		)
+	})
+
+	it('ends a keyboard lift that an edit exit cancels in the same task, and holds no key', async () => {
+		const onDragEnd = vi.fn()
+
+		// Enter lifts the grip, and the same keydown ends edit mode in a handler on an ancestor.
+		function ExitOnEnter() {
+			const [editing, setEditing] = useState(true)
+
+			return (
+				<fieldset onKeyDown={(event) => event.key === 'Enter' && setEditing(false)}>
+					<Controlled editing={editing} onLayout={vi.fn()} onDragEnd={onDragEnd} />
+				</fieldset>
+			)
+		}
+
+		renderUI(<ExitOnEnter />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Enter', key: 'Enter' })
+
+		await teardown()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		// No keyboard sensor holds the document, so a page key goes through.
+		const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
+			code: 'Space',
+			key: ' ',
+		})
+
+		expect(passed).toBe(true)
+	})
+
+	it('ends a pointer drag with the board when edit mode ends, so the next drag starts', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		/** Presses the card of Revenue, and moves past the 3 px that lift it. */
+		const press = () => {
+			fireEvent.pointerDown(screen.getByRole('group', { name: 'Revenue' }), {
+				...PRIMARY,
+				clientX: 0,
+				clientY: 0,
+			})
+
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+		}
+
+		press()
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		await teardown()
+
+		rerender(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		press()
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragEnd).toHaveBeenCalledTimes(2)
+
+		await teardown()
+	})
+
+	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// One column to the right, Revenue covers Traffic, and the nearest free origin is its start.
+		const grip = await lift('Move Revenue', 'ArrowRight', 1)
+
+		expect(dragNarration()).toBe('Revenue cannot go here. A drop now changes nothing.')
+
+		await drop(grip)
+
+		expect(dragNarration()).toBe('Dropped Revenue. The board did not change.')
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: GRID })
+	})
+
+	it('narrates Escape after a preview, and ends the drag once as canceled', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// Eight columns to the right, Revenue covers Traffic in its own row, so the two shift.
+		const grip = await lift('Move Revenue', 'ArrowRight', 8)
+
+		expect(dragNarration()).toBe(
+			'Revenue moves before or after Traffic, to column 9 of 24, row 1, 8 columns wide.',
+		)
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(dragNarration()).toBe(
+			'Canceled. Revenue returned to column 1 of 24, row 1, 8 columns wide.',
+		)
+
+		expect(areaOf(grip)).toBe('1 / 1 / span 10 / span 8')
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: GRID })
+	})
+
+	it('narrates an ArrowDown swap, and ends the drop once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// Ten rows down, Revenue covers Orders in another row, so the two swap.
+		const grip = await lift('Move Revenue', 'ArrowDown', 10)
+
+		expect(dragNarration()).toBe(
+			'Revenue swaps with Orders, to column 1 of 24, row 11, 8 columns wide.',
+		)
+
+		await drop(grip)
+
+		expect(dragNarration()).toBe('Dropped Revenue at column 1 of 24, row 11, 8 columns wide.')
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		const next = onLayout.mock.lastCall?.[0] as DashboardLayoutItem[]
+
+		expect(next).toContainEqual({ id: 'a', x: 0, y: 10, w: 8, h: 10 })
+
+		expect(next).toContainEqual({ id: 'c', x: 0, y: 0, w: 8, h: 10 })
+
+		expect(areaOf(grip)).toBe('11 / 1 / span 10 / span 8')
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: false }),
+		)
+	})
+})
+
+describe('Dashboard tile ids', () => {
+	/** The development error for a repeated id `a`. */
+	const repeated = expect.stringContaining('Dashboard: two tiles share the id "a"')
+
+	/** A tile that the board does not key by its id, so a change of the id keeps the instance. */
+	function Tile({ id }: { id: string }) {
+		return <DashboardTile id={id} title={id} />
+	}
+
+	/** Two wrapped tiles, with the ids and the keys that a test gives. */
+	function Pair({ ids, keys = ['1', '2'] }: { ids: [string, string]; keys?: [string, string] }) {
+		return (
+			<Dashboard aria-label="Sales">
+				<Tile key={keys[0]} id={ids[0]} />
+
+				<Tile key={keys[1]} id={ids[1]} />
+			</Dashboard>
+		)
+	}
+
+	it('logs an error in development that names the id of two mounted tiles', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(<Pair ids={['a', 'a']} />)
+
+		expect(error).toHaveBeenCalledWith(repeated)
+	})
+
+	it('stays silent under StrictMode, which runs each effect a second time', () => {
+		const error = vi.spyOn(console, 'error')
+
+		renderUI(
+			<StrictMode>
+				<Board />
+			</StrictMode>,
+		)
+
+		expect(error).not.toHaveBeenCalled()
+	})
+
+	it('stays silent when two tiles swap their ids, or a tile replaces another, in one commit', () => {
+		const error = vi.spyOn(console, 'error')
+
+		const { rerender } = renderUI(<Pair ids={['a', 'b']} />)
+
+		// The cleanup of each old registration runs before each new one.
+		rerender(<Pair ids={['b', 'a']} />)
+
+		rerender(<Pair ids={['b', 'a']} keys={['3', '2']} />)
+
+		expect(error).not.toHaveBeenCalled()
+
+		// A tile with no entry paints only while it is registered, so both tiles stay registered.
+		expect(screen.getByRole('group', { name: 'a' })).toBeInTheDocument()
+
+		expect(screen.getByRole('group', { name: 'b' })).toBeInTheDocument()
 	})
 })
 

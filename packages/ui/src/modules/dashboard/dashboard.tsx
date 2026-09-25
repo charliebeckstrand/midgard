@@ -17,11 +17,13 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useControllable, useResizeObserver } from '../../hooks'
+import { useControllable, useEscapeLayer, useGrabbingCursor, useResizeObserver } from '../../hooks'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
+import { noop } from '../../utilities'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
+import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
 import {
@@ -121,13 +123,16 @@ export type DashboardProps = AccessibleName & {
 	 * splitters, and the content of each tile goes inert. Edit mode never changes
 	 * a tile size, so no widget re-lays out on the switch. While the responsive
 	 * projection is on screen, edit mode stands down, because a gesture edits the
-	 * saved layout and not the re-pack.
+	 * saved layout and not the re-pack. When edit mode ends or stands down, or when
+	 * the board unmounts, a live drag or resize ends as canceled.
 	 * @defaultValue false
 	 */
 	editing?: boolean
 	/**
 	 * The column count. The default divides into halves, thirds, quarters, sixths,
-	 * and eighths.
+	 * and eighths. A saved entry that does not fit the count clamps into it. When
+	 * the clamp puts a tile on another tile, the tile takes a new row under the
+	 * lowest tile. The next commit saves that place.
 	 * @defaultValue 24
 	 */
 	columns?: number
@@ -168,6 +173,10 @@ export type DashboardProps = AccessibleName & {
  * grows a tile until it meets a neighbor or an edge. What you save is what
  * renders, gaps included. To close the gaps, call `tidy` on the `ref`
  * ({@link DashboardHandle}).
+ *
+ * One gesture owns the board at a time, so the board refuses a second gesture
+ * until the first one ends. Escape cancels a live gesture, and a dialog, sheet,
+ * or drawer around the board stays open.
  *
  * The board is a CSS grid whose rows follow the container width. The server
  * therefore renders each tile at its saved cell, with no measurement. When the
@@ -263,19 +272,30 @@ export function Dashboard({
 		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, gesture: null })
 	}, [store, settled, layoutValue])
 
+	const controlled = layout?.value !== undefined
+
 	const commit = useCallback(
-		(cells: readonly DashboardCell[]) => {
+		(cells: readonly DashboardCell[]): DashboardCommit => {
 			const { layout: saved, demands } = store.getState()
 
 			const next = mergeLayout(saved, cells, demands)
 
-			setLayoutValue(next)
-
+			// The count goes up first, so an onValueChange that throws still ends the settle phase.
 			setSettled((count) => count + 1)
 
-			return next
+			try {
+				setLayoutValue(next)
+			} catch (error) {
+				// useControllable writes its own state before it calls onValueChange. So an
+				// uncontrolled board keeps the layout, and a controlled board keeps its value.
+				return controlled
+					? { layout: saved, kept: false, failure: { error } }
+					: { layout: next, kept: true, failure: { error } }
+			}
+
+			return { layout: next, kept: true }
 		},
-		[store, setLayoutValue],
+		[store, setLayoutValue, controlled],
 	)
 
 	const containerRef = useRef<HTMLElement>(null)
@@ -293,9 +313,15 @@ export function Dashboard({
 		}, [store]),
 	)
 
-	const dndContextProps = useDashboardDrag({ store, canvasRef, commit, onDragStart, onDragEnd })
+	const { context: dndContextProps, cancelDrag } = useDashboardDrag({
+		store,
+		canvasRef,
+		commit,
+		onDragStart,
+		onDragEnd,
+	})
 
-	const { beginResize, resizeBy } = useDashboardResize({
+	const { beginResize, resizeBy, cancelResize } = useDashboardResize({
 		store,
 		canvasRef,
 		commit,
@@ -313,17 +339,45 @@ export function Dashboard({
 		() => ({
 			beginResize,
 			resizeBy,
+			cancelResize,
 			setFilter: (next) => setFilterValue(next),
 			updateSelections: (update) => setSelectionValue((current) => update(current ?? [])),
 			reportError: (id, error) => reporter.current?.(id, error),
 		}),
-		[beginResize, resizeBy, setFilterValue, setSelectionValue],
+		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue],
 	)
 
-	// The root reads one flag, so a preview never renders the root again.
+	// The root reads flags only, so a preview never renders the root again.
 	const readEditable = () => store.getView().editable
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+
+	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
+	// gesture after an edit exit, and the tile can unmount before the drag ends.
+	const readDragging = () => store.getState().gesture?.kind === 'drag'
+
+	const dragging = useSyncExternalStore(store.subscribe, readDragging, readDragging)
+
+	// The layer only takes the press from the surfaces under it. dnd-kit cancels the drag.
+	useEscapeLayer({ open: dragging, onDismiss: noop })
+
+	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
+	// holds the closed hand on the whole page until the drop or the cancel.
+	useGrabbingCursor(dragging)
+
+	// A gesture needs edit mode, and its listeners outlive the splitter and the
+	// board. So an edit exit or an unmount ends a live gesture as canceled.
+	useLayoutEffect(() => {
+		const cancel = () => {
+			cancelResize()
+
+			cancelDrag()
+		}
+
+		if (!editable) cancel()
+
+		return cancel
+	}, [editable, cancelResize, cancelDrag])
 
 	const readOrder = () => store.getView().order
 

@@ -8,7 +8,7 @@
  * what to do with the report.
  */
 
-import { isQueryGroup } from '../../query/engine/query-node'
+import { isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
 
@@ -30,7 +30,7 @@ export type DashboardSpecIssueKind =
 	| 'duplicate-entry'
 	/** An entry names no tile of the spec and no id of `tileIds`, so the parse drops it. */
 	| 'orphan-entry'
-	/** `filter` is not a query tree, so the parse drops it. */
+	/** `filter` is not a query tree, or it is deeper than 32 levels, so the parse drops it. */
 	| 'invalid-filter'
 
 /** One problem that {@link parseDashboardSpec} found, and repaired. */
@@ -238,7 +238,7 @@ function parseLayout(
  * It drops a tile with no string `id` or `widget`, and a tile that repeats an id.
  * It drops an optional field of a tile that has the wrong shape. It drops an
  * entry that is malformed, repeats an id, or names no tile. It drops a `filter`
- * that is not a query tree.
+ * that is not a query tree, or that is deeper than 32 levels.
  *
  * @remarks
  * The parse does not check the widget kinds, because a kind that no widget
@@ -295,7 +295,7 @@ export function parseDashboardSpec(
 		issues.push({
 			kind: 'invalid-filter',
 			path: 'filter',
-			message: 'The filter is not a query tree. The parse dropped it.',
+			message: `The filter is not a query tree, or it is deeper than ${MAX_DEPTH} levels. The parse dropped it.`,
 		})
 	}
 

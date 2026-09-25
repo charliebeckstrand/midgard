@@ -59,13 +59,24 @@ export type DashboardHandle = {
 export type DashboardGestureStartEvent = {
 	/** The id of the tile that the gesture moves. */
 	id: string
-	/** The saved layout at the start. A cancel returns to it. */
+	/**
+	 * The saved layout at the start. A cancel commits nothing, so a change from
+	 * outside during the gesture stays.
+	 */
 	layout: readonly DashboardLayoutItem[]
 }
 
 /**
  * The payload when a drag or a resize ends. A cancel and a gesture that changes
  * nothing both set `canceled`, so each start has exactly one end.
+ *
+ * @remarks
+ * When the layout changes from outside during a gesture, the gesture ends as
+ * canceled and commits nothing. The outside change stays on the board.
+ *
+ * When the `onValueChange` of the layout throws, the gesture still ends once,
+ * and the board then throws the error again. An uncontrolled board keeps the new
+ * layout. A controlled board keeps its `value`, so the end is canceled.
  */
 export type DashboardGestureEndEvent = {
 	/** The id of the tile that the gesture moved. */

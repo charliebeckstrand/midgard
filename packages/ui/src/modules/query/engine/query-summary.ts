@@ -1,5 +1,5 @@
 import { imposesConstraint, isBlank, RANGE_OPERATORS, VALUELESS_OPERATORS } from './query-evaluate'
-import { getOperators } from './query-operators'
+import { findBuiltInOperator, getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryOperator, QueryRule } from './types'
 
 /**
@@ -75,10 +75,13 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
 }
 
 /**
- * Resolves a rule against the field set: the `field` it names and the
- * `operator` from that field's set, each `undefined` when unresolved. The
- * summary reads its labels and options from them. It does not read the active
- * judgment or the form of a token from them.
+ * Resolves a rule against the field set: the `field` it names and its
+ * `operator`, each `undefined` when unresolved. The operator comes from the set
+ * of that field first. Then it comes from the default set of the field type,
+ * and then from the other built-in sets ({@link findBuiltInOperator}). For an
+ * unknown field, it comes from the built-in sets. The summary reads its labels
+ * and options from them. It does not read the active judgment or the form of a
+ * token from them.
  *
  * @internal
  */
@@ -88,9 +91,9 @@ function resolveRule(
 ): { field: QueryField | undefined; operator: QueryOperator | undefined } {
 	const field = fields.find((candidate) => candidate.name === rule.field)
 
-	const operator = field && getOperators(field).find((option) => option.value === rule.operator)
+	const offered = field && getOperators(field).find((option) => option.value === rule.operator)
 
-	return { field, operator }
+	return { field, operator: offered ?? findBuiltInOperator(rule.operator, field?.type) }
 }
 
 /**
@@ -99,11 +102,15 @@ function resolveRule(
  * does a rule whose operator the evaluator does not know. The summary thus
  * shows only the rules that {@link evaluateQuery} applies to the rows.
  *
- * @remarks The field set gives only the labels and the options. The operator
- * name selects the form of the token, value-less, range, or scalar, as it does
- * in the evaluator. A rule whose field or operator the field set does not offer
- * still constrains the rows when the evaluator applies it. Such a rule renders
- * its unresolved names verbatim.
+ * @remarks The field set gives only the labels and the options, and the
+ * built-in operator sets give only labels. The operator name selects the form
+ * of the token, value-less, range, or scalar, as it does in the evaluator. A
+ * rule whose field or operator the field set does not offer still constrains
+ * the rows when the evaluator applies it. Such a rule renders an unknown field
+ * by its name, and the operator by the built-in label that
+ * {@link resolveRule} finds. So `isEmpty` on a `number` field reads `is Empty`.
+ * The raw operator name is a fallback for an operator that no built-in set
+ * holds.
  *
  * @internal
  */

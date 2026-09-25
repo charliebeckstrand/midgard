@@ -109,6 +109,15 @@ const matchers: Record<string, (fieldValue: unknown, ruleValue: unknown) => bool
 }
 
 /**
+ * The name of each operator that the evaluator knows, one for each matcher. A
+ * parity test holds it equal to the built-in operator sets, so the summary
+ * finds a label for each operator that the evaluator applies.
+ *
+ * @internal
+ */
+export const KNOWN_OPERATORS: ReadonlySet<string> = new Set(Object.keys(matchers))
+
+/**
  * Whether a value is a scalar that JSON can hold: a string, a number, or a
  * boolean. An array, an object, and a `Date` are not scalars.
  *

@@ -33,7 +33,10 @@ function hasHeaderRow(props: DashboardTileProps): boolean {
 
 /** Props for {@link DashboardTile}. */
 export type DashboardTileProps = {
-	/** The stable id that joins the tile to its layout entry. */
+	/**
+	 * The stable id that joins the tile to its layout entry. It must be unique on
+	 * the board, spec tiles included. In development, a repeated id logs an error.
+	 */
 	id: string
 	/**
 	 * The heading of the tile. It names the tile for assistive tech and in the
@@ -146,6 +149,9 @@ export type DashboardTileProps = {
  * and the drag grip, so a widget inside it needs no dashboard code. In edit mode
  * the tile sets `inert` on the content box. No widget then takes a pointer, a
  * focus, or an assistive-tech read while the user arranges the board.
+ *
+ * While the tile drags, the whole page shows the grabbing cursor. The hand thus
+ * stays closed when the carried tile stops at an edge and the pointer goes on.
  *
  * The tile renders again only when its own cell or its own flags change. A move
  * glides, and each change of size snaps. Each tile has its own error boundary and

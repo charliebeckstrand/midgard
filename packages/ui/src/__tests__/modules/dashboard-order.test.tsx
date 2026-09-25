@@ -44,15 +44,22 @@ function markupOrder(container: HTMLElement): string[] {
 	)
 }
 
+/** The grid areas of the tiles in markup order. */
+function gridAreas(html: string): string[] {
+	return [...html.matchAll(/grid-area:([^;"]+)/g)].map((match) => match[1] ?? '')
+}
+
 function JsxBoard({
 	layout,
 	editing = false,
+	columns,
 }: {
 	layout: DashboardLayoutItem[]
 	editing?: boolean
+	columns?: number
 }) {
 	return (
-		<Dashboard aria-label="Board" editing={editing} layout={{ value: layout }}>
+		<Dashboard aria-label="Board" editing={editing} columns={columns} layout={{ value: layout }}>
 			{['a', 'b', 'c'].map((id) => (
 				<DashboardTile key={id} id={id} title={id.toUpperCase()}>
 					<button type="button">{`Inside ${id}`}</button>
@@ -75,6 +82,86 @@ describe('Dashboard reading order', () => {
 		expect(html.indexOf('Inside b')).toBeLessThan(html.indexOf('Inside a'))
 
 		expect(html.indexOf('Inside a')).toBeLessThan(html.indexOf('Inside c'))
+	})
+
+	it('renders the first entry of a repeated id on the server, at its cell and in its order', () => {
+		const html = renderToString(
+			<JsxBoard layout={[...SWAPPED, { id: 'a', x: 0, y: 30, w: 24, h: 10 }]} />,
+		)
+
+		expect(html.indexOf('Inside a')).toBeLessThan(html.indexOf('Inside b'))
+
+		expect(html).toContain('grid-area:1 / 1 / span 10 / span 12')
+
+		expect(html).not.toContain('grid-area:31 /')
+	})
+
+	it('renders each clamped entry that covers another entry on a new row on the server', () => {
+		// Saved at 24 columns and shown at 12, the clamp puts b and c on a.
+		const html = renderToString(
+			<JsxBoard
+				columns={12}
+				layout={[
+					{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+					{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+					{ id: 'c', x: 16, y: 0, w: 8, h: 10 },
+				]}
+			/>,
+		)
+
+		expect(gridAreas(html)).toEqual([
+			'1 / 1 / span 10 / span 8',
+			'11 / 1 / span 10 / span 8',
+			'21 / 1 / span 10 / span 8',
+		])
+	})
+
+	it('renders the tiles in the order of the rows that the clamp gives them', () => {
+		// At 12 columns, the clamp puts b on a, so b takes the row under c.
+		const layout: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 16, y: 0, w: 8, h: 10 },
+			{ id: 'c', x: 0, y: 10, w: 12, h: 10 },
+		]
+
+		const html = renderToString(<JsxBoard columns={12} layout={layout} />)
+
+		expect(html.indexOf('Inside a')).toBeLessThan(html.indexOf('Inside c'))
+
+		expect(html.indexOf('Inside c')).toBeLessThan(html.indexOf('Inside b'))
+
+		expect(gridAreas(html).map((area) => area.split(' / ')[0])).toEqual(['1', '11', '21'])
+
+		const { container } = renderUI(<JsxBoard columns={12} layout={layout} />)
+
+		expect(markupOrder(container)).toEqual(['A', 'C', 'B'])
+	})
+
+	it('takes the order from the painted rows once the tiles register', () => {
+		// Before a registers, it takes 18 rows, and b moves under c. Its ratio gives it 16 rows, so b fits at row 17.
+		const layout: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 0, w: 8 },
+			{ id: 'b', x: 16, y: 16, w: 8, h: 10 },
+			{ id: 'c', x: 0, y: 30, w: 12, h: 10 },
+		]
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Board" columns={12} layout={{ value: layout }}>
+				<DashboardTile id="a" title="A" ratio={2} />
+
+				<DashboardTile id="b" title="B" />
+
+				<DashboardTile id="c" title="C" />
+			</Dashboard>,
+		)
+
+		const rows = allBySlot(container, 'dashboard-tile').map(
+			(tile) => tile.style.gridArea.split(' / ')[0],
+		)
+
+		expect(rows).toEqual(['1', '17', '31'])
+
+		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
 	})
 
 	it('keeps each other child in its slot', () => {

@@ -15,7 +15,7 @@ type Offset = { x: number; y: number }
 
 /** What {@link useDashboardTileDrag} returns. @internal */
 export type DashboardTileDrag = {
-	/** Whether this tile is the dragged tile. */
+	/** Whether the store gesture drags this tile. */
 	dragging: boolean
 	/** The clamped pointer offset while the tile is dragged, else `null`. */
 	carried: Offset | null
@@ -58,7 +58,12 @@ function carriedOffset(
  * The drag state of one tile. A pointer starts a drag anywhere on the card, and
  * the keyboard starts one from the grip. During a drag, the
  * tile reads the travel range and the pitch of the gesture from the store. It
- * clamps the pointer offset with them.
+ * clamps the pointer offset with them. The tile lifts only while the store
+ * gesture drags it, and not for each drag that dnd-kit runs.
+ *
+ * @remarks
+ * The `Dashboard` holds the Escape layer and the grabbing cursor of a drag. They
+ * stay until the gesture ends, also when the tile unmounts first.
  *
  * @internal
  */
@@ -70,28 +75,37 @@ export function useDashboardTileDrag(
 	const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, isDragging } =
 		useDraggable({ id, disabled: !movable })
 
-	const travel = useDashboardStore((view) => (isDragging ? view.travel : null))
+	const owned = useDashboardStore(
+		(_, state) => state.gesture?.kind === 'drag' && state.gesture.id === id,
+	)
 
-	const pitch = useDashboardStore((_, state) => (isDragging ? (state.gesture?.pitch ?? 0) : 0))
+	// The store gesture owns the drag. A dnd-kit drag that the board refused or
+	// canceled lifts nothing.
+	const dragging = isDragging && owned
 
-	const inline = useDashboardStore((_, state) => (isDragging ? (state.gesture?.inline ?? 1) : 1))
+	const travel = useDashboardStore((view) => (dragging ? view.travel : null))
+
+	const pitch = useDashboardStore((_, state) => (dragging ? (state.gesture?.pitch ?? 0) : 0))
+
+	const inline = useDashboardStore((_, state) => (dragging ? (state.gesture?.inline ?? 1) : 1))
 
 	const carried = useMemo(
-		() => (isDragging ? carriedOffset(cell, transform, travel, pitch, inline) : null),
-		[isDragging, cell, transform, travel, pitch, inline],
+		() => (dragging ? carriedOffset(cell, transform, travel, pitch, inline) : null),
+		[dragging, cell, transform, travel, pitch, inline],
 	)
 
 	// The pointer sensor rides the card and the keyboard sensor rides the grip, so
-	// neither event reaches the same sensor twice.
+	// neither event reaches the same sensor twice. dnd-kit presses the grip for
+	// each of its drags, so the pressed state follows the gesture.
 	const grip = useMemo(() => {
 		const onKeyDown = listeners?.onKeyDown
 
 		return {
-			attributes,
+			attributes: { ...attributes, 'aria-pressed': dragging || undefined },
 			listeners: onKeyDown === undefined ? undefined : { onKeyDown },
 			setActivatorNodeRef,
 		}
-	}, [attributes, listeners, setActivatorNodeRef])
+	}, [attributes, dragging, listeners, setActivatorNodeRef])
 
 	const surface = useMemo(() => {
 		const onPointerDown = listeners?.onPointerDown
@@ -101,5 +115,5 @@ export function useDashboardTileDrag(
 		return { onPointerDown: (event: ReactPointerEvent<HTMLElement>) => onPointerDown(event) }
 	}, [listeners])
 
-	return { dragging: isDragging, carried, setNodeRef, grip, surface }
+	return { dragging, carried, setNodeRef, grip, surface }
 }

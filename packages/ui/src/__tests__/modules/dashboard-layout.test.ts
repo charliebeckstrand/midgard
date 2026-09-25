@@ -7,7 +7,9 @@ import {
 	type DashboardCell,
 	deriveHeight,
 	fits,
+	mergeLayout,
 	minColumns,
+	placeEntries,
 	readingOrder,
 	resolveCell,
 	resolveLayout,
@@ -33,6 +35,15 @@ const cell = (
 	h,
 	static: fixed,
 })
+
+/** The ids of each pair of cells that overlap. */
+const overlaps = (cells: readonly DashboardCell[]) =>
+	cells.flatMap((a, index) =>
+		cells
+			.slice(index + 1)
+			.filter((b) => collides(a, b))
+			.map((b) => [a.id, b.id]),
+	)
 
 describe('deriveHeight', () => {
 	it('gives equal tiles equal heights', () => {
@@ -200,12 +211,203 @@ describe('resolveLayout', () => {
 		expect(cells[3]).toMatchObject({ id: 'wide', x: 0, y: 67, w: 24, h: 18 })
 	})
 
+	it('moves each entry that a smaller column count puts on another entry to a new row', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+			['new', {}],
+		])
+
+		// Saved at 24 columns and shown at 12, the clamp puts b and c on columns 4 to 11.
+		const cells = resolveLayout(
+			[
+				{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+				{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+				{ id: 'c', x: 16, y: 0, w: 8, h: 10 },
+			],
+			demands,
+			12,
+		)
+
+		expect(overlaps(cells)).toEqual([])
+
+		// The moved entries go under the lowest tile, and a tile with no entry goes last.
+		expect(cells).toEqual([
+			cell('a', 0, 0, 8, 10),
+			cell('b', 0, 10, 8, 10),
+			cell('c', 0, 20, 8, 10),
+			cell('new', 0, 30, 8, 18),
+		])
+	})
+
+	it('moves an entry past an edge to a new row when its clamp covers another entry', () => {
+		const demands = new Map([
+			['b', {}],
+			['c', {}],
+		])
+
+		const b = { id: 'b', x: 16, y: 0, w: 4, h: 10 }
+
+		// The clamp moves c from x 22 to x 18, onto columns 18 and 19 of b.
+		const c = { id: 'c', x: 22, y: 0, w: 6, h: 10 }
+
+		const expected = [cell('b', 16, 0, 4, 10), cell('c', 0, 10, 6, 10)]
+
+		expect(resolveLayout([b, c], demands, 24)).toEqual(expected)
+
+		// The entry as saved keeps its place, so the order of the entries does not matter.
+		expect(resolveLayout([c, b], demands, 24)).toEqual(expected)
+
+		// An entry above the top edge clamps to row 0, onto b.
+		expect(resolveLayout([b, { ...c, x: 16, y: -10 }], demands, 24)).toEqual(expected)
+	})
+
+	it('keeps an entry that overlaps another as saved, and a clamped entry on free cells', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const cells = resolveLayout(
+			[
+				{ id: 'a', x: 0, y: 0, w: 12, h: 10 },
+				{ id: 'b', x: 6, y: 5, w: 12, h: 10 },
+				{ id: 'c', x: 30, y: 20, w: 6, h: 10 },
+			],
+			demands,
+			24,
+		)
+
+		expect(cells).toEqual([
+			cell('a', 0, 0, 12, 10),
+			cell('b', 6, 5, 12, 10),
+			cell('c', 18, 20, 6, 10),
+		])
+	})
+
+	it('reads the moved entries by their saved place, and not by their order in the layout', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const a = { id: 'a', x: 0, y: 0, w: 8, h: 10 }
+
+		const b = { id: 'b', x: 8, y: 0, w: 8, h: 10 }
+
+		const c = { id: 'c', x: 16, y: 0, w: 8, h: 10 }
+
+		const byId = (cells: readonly DashboardCell[]) =>
+			[...cells].sort((p, q) => p.id.localeCompare(q.id))
+
+		// At 12 columns, the clamp puts b and c on a. The new rows follow the saved places.
+		const expected = [cell('a', 0, 0, 8, 10), cell('b', 0, 10, 8, 10), cell('c', 0, 20, 8, 10)]
+
+		expect(byId(resolveLayout([a, b, c], demands, 12))).toEqual(expected)
+
+		expect(byId(resolveLayout([a, c, b], demands, 12))).toEqual(expected)
+
+		// The clamp puts d and e on columns 18 to 23. The entry that reads first keeps that place.
+		const d = { id: 'd', x: 30, y: 0, w: 6, h: 10 }
+
+		const e = { id: 'e', x: 28, y: 0, w: 6, h: 10 }
+
+		const edges = new Map([
+			['d', {}],
+			['e', {}],
+		])
+
+		const clamped = [cell('d', 0, 10, 6, 10), cell('e', 18, 0, 6, 10)]
+
+		expect(byId(resolveLayout([d, e], edges, 24))).toEqual(clamped)
+
+		expect(byId(resolveLayout([e, d], edges, 24))).toEqual(clamped)
+	})
+
 	it('compares geometry id by id', () => {
 		const a = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10)]
 
 		expect(sameGeometry(a, [...a].reverse())).toBe(true)
 
 		expect(sameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
+	})
+})
+
+describe('placeEntries', () => {
+	it('places each entry where resolveLayout places a free-form tile', () => {
+		const layout = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'c', x: 16, y: 0, w: 8 },
+			{ id: 'a', x: 0, y: 40, w: 8, h: 10 },
+		]
+
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const placed = placeEntries(layout, 12)
+
+		expect(placed.map((item) => resolveCell(item, {}, 12))).toEqual(
+			resolveLayout(layout, demands, 12),
+		)
+
+		// The entry takes the new x, y, and w, and it keeps no h, as saved.
+		expect(placed[2]).toStrictEqual({ id: 'c', x: 0, y: 20, w: 8 })
+	})
+
+	it('returns the same array when no entry moves and no id repeats', () => {
+		const layout = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		]
+
+		expect(placeEntries(layout, 24)).toBe(layout)
+	})
+})
+
+describe('mergeLayout', () => {
+	it('drops each entry of an id that an earlier entry holds, and keeps the first', () => {
+		const saved = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'a', x: 16, y: 20, w: 8, h: 10 },
+			{ id: 'gone', x: 0, y: 40, w: 8, h: 10 },
+			{ id: 'gone', x: 8, y: 40, w: 8, h: 10 },
+		]
+
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+		])
+
+		const merged = mergeLayout(saved, [cell('a', 0, 10, 8, 10), cell('b', 8, 0, 8, 10)], demands)
+
+		// The first entry of a takes the commit, and a tile that is not mounted keeps its first entry.
+		expect(merged).toEqual([{ id: 'a', x: 0, y: 10, w: 8, h: 10 }, saved[1], saved[3]])
+
+		expect(merged[1]).toBe(saved[1])
+	})
+
+	it('appends a mounted tile with no entry, and no cell of a tile that is not mounted', () => {
+		const saved = [{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]
+
+		const demands = new Map([
+			['a', {}],
+			['new', {}],
+		])
+
+		const cells = [cell('a', 8, 0, 8, 10), cell('gone', 0, 10, 8, 10), cell('new', 16, 0, 8, 10)]
+
+		expect(mergeLayout(saved, cells, demands)).toEqual([
+			{ id: 'a', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'new', x: 16, y: 0, w: 8, h: 10 },
+		])
 	})
 })
 

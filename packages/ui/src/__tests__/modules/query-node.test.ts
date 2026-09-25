@@ -1,7 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { createGroup, createRule } from '../../modules/query/engine/query-node'
-import type { QueryField } from '../../modules/query/engine/types'
+import {
+	createGroup,
+	createRule,
+	isQueryGroup,
+	isQueryNode,
+} from '../../modules/query/engine/query-node'
+import { parseQuery } from '../../modules/query/engine/query-serialize'
+import type { QueryField, QueryGroup } from '../../modules/query/engine/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
 
@@ -84,5 +90,32 @@ describe('createGroup', () => {
 		expect(group.combinator).toBe('or')
 
 		expect(group.children).toEqual([child])
+	})
+})
+
+/** A chain of `levels` nested groups, from the root down, with a rule in the last group. */
+function chain(levels: number): QueryGroup {
+	let group = createGroup('and', [createRule(textField)])
+
+	for (let level = 1; level < levels; level++) group = createGroup('and', [group])
+
+	return group
+}
+
+describe('isQueryNode depth', () => {
+	it('accepts a tree at the cap of 32 levels, which is the depth that parseQuery reads', () => {
+		expect(isQueryNode(chain(32))).toBe(true)
+
+		expect(isQueryGroup(chain(32))).toBe(true)
+
+		const deep = parseQuery(`${'["and",['.repeat(40)}${']]'.repeat(40)}`).value
+
+		expect(isQueryGroup(deep)).toBe(true)
+	})
+
+	it('rejects a tree one level past the cap', () => {
+		expect(isQueryNode(chain(33))).toBe(false)
+
+		expect(isQueryGroup(chain(33))).toBe(false)
 	})
 })

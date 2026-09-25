@@ -1,0 +1,128 @@
+'use client'
+
+import {
+	type DashboardCell,
+	type DashboardLayoutItem,
+	inlineSign,
+	sameGeometry,
+} from './engine/dashboard-layout'
+import type { DashboardStore, DashboardView } from './engine/dashboard-store'
+import type { DashboardGestureEndEvent } from './types'
+
+/**
+ * What a commit leaves. The layout binding runs app code, so a commit catches
+ * its error, and the caller throws it again after its own report.
+ *
+ * @internal
+ */
+export type DashboardCommit = {
+	/** The saved layout after the commit. */
+	layout: readonly DashboardLayoutItem[]
+	/** Whether the saved layout took the cells. */
+	kept: boolean
+	/** The error that the layout binding threw, or `undefined` when it did not throw. */
+	failure?: { error: unknown }
+}
+
+/** What {@link measureGesture} reads at the start of a gesture. @internal */
+export type DashboardGestureMeasure = {
+	/** The view at the start. */
+	view: DashboardView
+	/** The column pitch in px. */
+	pitch: number
+	/** The inline direction of the canvas: `1` for ltr, `-1` for rtl. */
+	inline: 1 | -1
+	/** The painted cells at the start. A cancel returns to them. */
+	snapshot: DashboardCell[]
+}
+
+/** The callbacks of {@link endGesture}. @internal */
+export type DashboardGestureEndCallbacks = {
+	/** Commits the cells of a preview, and returns what the commit leaves. */
+	commit: (cells: readonly DashboardCell[]) => DashboardCommit
+	/** Receives the end of the gesture. */
+	onEnd?: (event: DashboardGestureEndEvent) => void
+}
+
+/**
+ * Reads the board at the start of a drag or a resize: the column pitch, the
+ * inline direction, and a snapshot of the painted cells. It returns `null` when
+ * a gesture is live, when the board is not editable, or when the canvas has no
+ * width.
+ *
+ * @remarks
+ * A live gesture owns the board until it ends. A second gesture reads the
+ * cells that the first one paints, so its commit writes an unsaved preview.
+ *
+ * @internal
+ */
+export function measureGesture(
+	store: DashboardStore,
+	canvas: HTMLElement | null,
+): DashboardGestureMeasure | null {
+	const view = store.getView()
+
+	const width = canvas?.clientWidth ?? 0
+
+	if (canvas === null || store.getState().gesture !== null) return null
+
+	if (!view.editable || width <= 0) return null
+
+	return {
+		view,
+		pitch: width / store.getState().columns,
+		inline: inlineSign(getComputedStyle(canvas).direction),
+		snapshot: [...view.cells.values()],
+	}
+}
+
+/**
+ * Ends the live drag or resize of the tile `id`. A kept preview enters the
+ * settle phase and commits. A cancel, or a gesture that changed nothing,
+ * returns to the snapshot. Either way, `onEnd` receives one end event.
+ *
+ * When the layout binding throws, the end event tells whether the saved layout
+ * took the preview. The function then throws the error of the binding.
+ *
+ * @remarks
+ * The preview comes from the snapshot at the start. When the resolved layout
+ * changed during the gesture, a commit of the preview writes the old cells back.
+ * Such a commit undoes an outside move, and it restores the entry of a removed
+ * tile. So a gesture over a changed layout ends as canceled, and the outside
+ * change stays.
+ *
+ * @internal
+ */
+export function endGesture(
+	store: DashboardStore,
+	id: string,
+	keep: boolean,
+	{ commit, onEnd }: DashboardGestureEndCallbacks,
+): void {
+	const { gesture, layout } = store.getState()
+
+	const preview = gesture?.preview ?? null
+
+	// The snapshot equals the resolved layout at the start, because a gesture
+	// needs the saved layout on screen and not a projection.
+	const stale = gesture !== null && !sameGeometry(store.getView().canonical, gesture.snapshot)
+
+	if (!keep || gesture === null || preview === null || stale) {
+		store.setState({ gesture: null })
+
+		onEnd?.({ id, canceled: true, layout })
+
+		return
+	}
+
+	// The settle phase paints the preview, with the tile no longer pinned to its
+	// start cell, until the committed layout arrives.
+	store.setState({ gesture: { ...gesture, kind: 'settle' } })
+
+	const { layout: next, kept, failure } = commit(preview)
+
+	onEnd?.({ id, canceled: !kept, layout: next })
+
+	// The app gets its error after the end event, so each start still has one end.
+	if (failure !== undefined) throw failure.error
+}

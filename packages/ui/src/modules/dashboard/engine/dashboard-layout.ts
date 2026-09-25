@@ -29,7 +29,9 @@ export const DEFAULT_CELL_HEIGHT = 18
 
 /**
  * One saved tile: its geometry in integer grid units. A saved layout holds only
- * these four numbers for each tile, and it renders exactly as saved.
+ * these four numbers for each tile. It renders as saved within the columns. An
+ * entry that the clamp moves onto another tile takes a new row, as the `columns`
+ * prop of `Dashboard` describes.
  */
 export type DashboardLayoutItem = {
 	/** The `id` of the `DashboardTile` that this entry places. */
@@ -347,18 +349,57 @@ export function shiftCells(
 	return patchCells(cells, patch)
 }
 
+/** One saved entry and the cell that the clamp of {@link resolveCell} gives it. */
+type ClampedEntry = { item: DashboardLayoutItem; cell: DashboardCell }
+
+/** Whether the clamp moves the cell off the saved origin or the saved span of the entry. */
+function clampMoves({ item, cell }: ClampedEntry): boolean {
+	return cell.x !== item.x || cell.y !== item.y || cell.w !== item.w
+}
+
+/** Compares two saved entries by row, then by column, then by id. */
+function bySavedPlace(a: ClampedEntry, b: ClampedEntry): number {
+	const id = a.item.id < b.item.id ? -1 : a.item.id > b.item.id ? 1 : 0
+
+	return a.item.y - b.item.y || a.item.x - b.item.x || id
+}
+
 /**
- * Resolves a saved layout against the mounted tiles. An entry keeps its place.
- * A mounted tile with no entry takes a new row under the lowest tile, in mount
- * order, at its `defaultSize` within its `minSize` and `maxSize`. An entry with
- * no mounted tile is ignored, and its space stays open.
+ * The cells of `entries`. A cell that the clamp moves onto another tile goes to a
+ * new row, and {@link resolveLayout} states the rule. The result keeps the order
+ * of `entries`, and the cells on new rows go last.
  */
-export function resolveLayout(
+function holdBack(entries: readonly ClampedEntry[]): DashboardCell[] {
+	const moved = entries.filter(clampMoves).sort(bySavedPlace)
+
+	const held = entries.filter((entry) => !clampMoves(entry)).map(({ cell }) => cell)
+
+	const back = new Set<ClampedEntry>()
+
+	for (const entry of moved) {
+		if (held.some((other) => collides(other, entry.cell))) back.add(entry)
+		else held.push(entry.cell)
+	}
+
+	const cells = entries.filter((entry) => !back.has(entry)).map(({ cell }) => cell)
+
+	for (const entry of moved) {
+		if (back.has(entry)) cells.push({ ...entry.cell, x: 0, y: bottom(cells) })
+	}
+
+	return cells
+}
+
+/**
+ * The cells of the saved entries of the mounted tiles, from the first entry of
+ * each id. An entry that the clamp moves onto another entry goes to a new row.
+ */
+function entryCells(
 	items: readonly DashboardLayoutItem[],
 	demands: ReadonlyMap<string, DashboardTileDemands>,
 	columns: number,
 ): DashboardCell[] {
-	const cells: DashboardCell[] = []
+	const entries: ClampedEntry[] = []
 
 	const placed = new Set<string>()
 
@@ -369,8 +410,39 @@ export function resolveLayout(
 
 		placed.add(item.id)
 
-		cells.push(resolveCell(item, demand, columns))
+		entries.push({ item, cell: resolveCell(item, demand, columns) })
 	}
+
+	return holdBack(entries)
+}
+
+/**
+ * Resolves a saved layout against the mounted tiles. An entry keeps its place.
+ * A mounted tile with no entry takes a new row under the lowest tile, in mount
+ * order, at its `defaultSize` within its `minSize` and `maxSize`. An entry with
+ * no mounted tile is ignored, and its space stays open.
+ *
+ * @remarks
+ * The clamp of {@link resolveCell} can move an entry, for example after a change
+ * of `columns`, or when `x` is past the edge. An entry that the clamp does not
+ * move keeps its place, also when it overlaps another entry as saved. Then each
+ * moved entry gets a place in the order of its saved row, its saved column, and
+ * its id. A moved entry keeps its clamped cell when no entry with a place covers
+ * that cell. If not, it takes a new row under the lowest tile, at column 0 and at
+ * its resolved span.
+ *
+ * The new rows go in the same order, after the entries that keep their place, and
+ * before the tiles with no entry. Thus the order of `items` changes no cell, but
+ * the first entry of a repeated id wins.
+ */
+export function resolveLayout(
+	items: readonly DashboardLayoutItem[],
+	demands: ReadonlyMap<string, DashboardTileDemands>,
+	columns: number,
+): DashboardCell[] {
+	const cells = entryCells(items, demands, columns)
+
+	const placed = new Set(cells.map((cell) => cell.id))
 
 	for (const [id, demand] of demands) {
 		if (placed.has(id)) continue
@@ -455,10 +527,69 @@ function sameItem(a: DashboardLayoutItem, b: DashboardLayoutItem): boolean {
 }
 
 /**
+ * The first entry of each id in `items`, which is the entry that
+ * {@link resolveLayout} reads. It returns `items` itself when no id repeats, so a
+ * caller can compare by identity.
+ */
+export function firstEntries(
+	items: readonly DashboardLayoutItem[],
+): readonly DashboardLayoutItem[] {
+	const seen = new Set<string>()
+
+	const first = items.filter((item) => {
+		if (seen.has(item.id)) return false
+
+		seen.add(item.id)
+
+		return true
+	})
+
+	return first.length === items.length ? items : first
+}
+
+/**
+ * The first entry of each id in `items`, placed by the rule of {@link resolveLayout}
+ * with provisional heights. A tile that has not registered paints this entry.
+ *
+ * @remarks
+ * The ratios are not known before the tiles register, so each cell takes `h`, or
+ * {@link DEFAULT_CELL_HEIGHT} when `h` is absent. A tile with a ratio can thus
+ * still overlap another tile, or move, when it registers. An entry that moves
+ * takes the new `x`, `y`, and `w`, and it keeps its other fields. It returns
+ * `items` itself when no entry moves and no id repeats.
+ */
+export function placeEntries(
+	items: readonly DashboardLayoutItem[],
+	columns: number,
+): readonly DashboardLayoutItem[] {
+	const first = firstEntries(items)
+
+	const cells = holdBack(
+		first.map((item) => ({ item, cell: resolveCell(item, undefined, columns) })),
+	)
+
+	const byId = new Map(cells.map((cell) => [cell.id, cell]))
+
+	const placed = first.map((item) => {
+		const cell = byId.get(item.id)
+
+		if (cell === undefined || (cell.x === item.x && cell.y === item.y && cell.w === item.w)) {
+			return item
+		}
+
+		return { ...item, x: cell.x, y: cell.y, w: cell.w }
+	})
+
+	return placed.every((item, index) => item === first[index]) ? first : placed
+}
+
+/**
  * Writes committed cells back into the saved layout. An entry of a mounted tile
  * takes its new geometry. An entry of a tile that is not mounted stays as saved,
  * so a tile that renders only sometimes keeps its place. A mounted tile with no
- * entry is appended. An entry whose geometry does not change keeps its object.
+ * entry is appended, and the cell of a tile that is not mounted adds no entry.
+ * An entry whose geometry does not change keeps its object.
+ * A repeated id keeps only its first entry, so a commit removes the stale entry.
  */
 export function mergeLayout(
 	saved: readonly DashboardLayoutItem[],
@@ -469,10 +600,10 @@ export function mergeLayout(
 
 	const written = new Set<string>()
 
-	const merged = saved.map((item) => {
+	const merged = firstEntries(saved).map((item) => {
 		const cell = byId.get(item.id)
 
-		if (cell === undefined || written.has(item.id)) return item
+		if (cell === undefined) return item
 
 		written.add(item.id)
 
@@ -482,7 +613,9 @@ export function mergeLayout(
 	})
 
 	for (const cell of cells) {
-		if (!written.has(cell.id)) merged.push(toLayoutItem(cell, demands.get(cell.id)))
+		const tile = demands.get(cell.id)
+
+		if (tile !== undefined && !written.has(cell.id)) merged.push(toLayoutItem(cell, tile))
 	}
 
 	return merged

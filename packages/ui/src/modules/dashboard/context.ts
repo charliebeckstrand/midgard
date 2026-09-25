@@ -32,6 +32,8 @@ export type DashboardActions = {
 	) => void
 	/** Applies one keyboard resize step, and commits it. */
 	resizeBy: (id: string, edge: DashboardResizeEdge, dw: number, dh: number) => void
+	/** Ends the live pointer resize of the tile `id` as canceled. It does nothing for another tile. */
+	cancelResize: (id: string) => void
 	/** Replaces the filter. */
 	setFilter: (filter: QueryGroup) => void
 	/** Replaces the selections through an update function. */

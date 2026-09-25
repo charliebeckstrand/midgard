@@ -28,6 +28,8 @@ Rule reordering has landed. [`engine/query-tree.ts`](engine/query-tree.ts) adds 
 
 A `between` rule now reads the span of its data. `QueryField.span` holds the `[min, max]` that a `number` field's data holds. Each bound of the range editor in [`query-builder-rule-value.tsx`](query-builder/query-builder-rule-value.tsx) clamps to it and shows its end of the span as its placeholder, and each bound also clamps to the other, so the pair cannot invert. A range value takes two shares of the rule row, so its two inputs have room beside their steppers. A grid column filter fills the span from the column's faceted unique values, the facet that its `select` options already read. So a blank cell does not pull the minimum to 0, as TanStack's `getFacetedMinMaxValues` does.
 
+The summary now names an operator that the field does not offer. Before, [`describeRule`](engine/query-summary.ts) read the label only from the operator set of the field. A blank dashboard selection makes an `isEmpty` rule on a field of each type, so a `number` field showed the raw `isEmpty`. Now the label comes from the set of the field, then from the default set of the field type, then from the other built-in sets. So `isEmpty` on a `number` field reads `is Empty`, and `equals` on a `date` field whose custom operators leave out `equals` reads `on`. A parity test holds the evaluator operators and the built-in sets equal, so no active rule shows a raw operator name.
+
 ## Engine — the substrate
 
 Every domain concept lands in [`engine/`](engine), the module's pure functional core: no `'use client'`, no runtime `react` / `motion` / `@dnd-kit` / `@floating-ui` imports, no `index` barrel (the engine is imported file-by-file), no runtime imports from the module root.

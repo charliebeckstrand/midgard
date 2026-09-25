@@ -1,5 +1,5 @@
 import { imposesConstraint, isBlank } from './query-evaluate'
-import { createGroup, createRule } from './query-node'
+import { createGroup, createRule, MAX_DEPTH } from './query-node'
 import { getOperators } from './query-operators'
 import type { QueryCombinator, QueryField, QueryGroup, QueryNode, QueryRule } from './types'
 
@@ -98,15 +98,6 @@ export type QueryParse = {
 	/** Each problem that the parse repaired, in input order. It is empty for a sound query. */
 	issues: QueryParseIssue[]
 }
-
-/**
- * The deepest group that {@link parseQuery} reads. The URL is input that the
- * app does not control, so the limit keeps a hostile string from exhausting the
- * stack.
- *
- * @internal
- */
-const MAX_DEPTH = 32
 
 /** The walk state that {@link parseQuery} passes down. @internal */
 type ParseContext = {

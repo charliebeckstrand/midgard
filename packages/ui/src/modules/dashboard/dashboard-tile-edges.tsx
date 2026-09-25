@@ -1,8 +1,9 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useLayoutEffect } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
+import { useDashboardActions } from './context'
 import { DashboardResizeHandle } from './dashboard-resize-handle'
 import type { DashboardCell } from './engine/dashboard-layout'
 
@@ -28,6 +29,11 @@ export type DashboardTileEdgesProps = {
  * on a free-form tile. The cell keeps its object while its geometry holds, so a
  * drag renders no splitter of a tile that it does not move.
  *
+ * @remarks
+ * A pointer resize listens on its splitter. When the splitters unmount, for
+ * example with a tile that the app removes, a live resize of the tile ends as
+ * canceled.
+ *
  * @internal
  */
 export const DashboardTileEdges = memo(function DashboardTileEdges({
@@ -38,6 +44,11 @@ export const DashboardTileEdges = memo(function DashboardTileEdges({
 	freeHeight,
 	resizing,
 }: DashboardTileEdgesProps) {
+	const { cancelResize } = useDashboardActions()
+
+	// A detached splitter gets no release, so the gesture ends here, before the board paints.
+	useLayoutEffect(() => () => cancelResize(id), [cancelResize, id])
+
 	const shared = { id, cell, columns, label, resizing }
 
 	return (
