@@ -22,8 +22,9 @@ export type DashboardSelection = {
 	/** The field that the selection filters. */
 	field: string
 	/**
-	 * The selected values. A row matches when its field equals one of them. A
-	 * blank value `''` matches a row whose field is empty: `null`, `undefined`, or `''`.
+	 * The selected values. A row matches when its field equals one of them. An
+	 * empty value `''` matches a row whose field is empty: `null`, `undefined`, or `''`.
+	 * A value of only whitespace puts no constraint on the rows.
 	 */
 	values: readonly string[]
 }
@@ -139,8 +140,8 @@ export function selectedValues(
 
 /**
  * One selection as a query group: a rule for each value, joined with `or`. A
- * value takes an `equals` rule, and a blank value takes an `isEmpty` rule. The
- * evaluator reads an `equals` rule with a blank value as no constraint. That
+ * value takes an `equals` rule, and an empty value `''` takes an `isEmpty` rule.
+ * The evaluator reads an `equals` rule with an empty value as no constraint. That
  * rule then drops out of the fold, and the blank rows drop with it.
  */
 function selectionGroup(selection: DashboardSelection): QueryGroup {
@@ -166,6 +167,11 @@ function selectionGroup(selection: DashboardSelection): QueryGroup {
  * The query that the tile `viewer` sees: the filter, and each selection that
  * another tile made. Pass `null` for a reader outside any tile, which sees each
  * selection. The result is an ordinary `QueryGroup`, so `QuerySummary` can show it.
+ *
+ * @remarks
+ * An empty selection value becomes an `isEmpty` rule. `QuerySummary` names that
+ * rule only when the field offers `isEmpty`, as a text field does. For another
+ * field, list `isEmpty` in its `operators`, or the summary shows the raw name.
  */
 export function scopeQuery(
 	filter: QueryGroup | undefined,
