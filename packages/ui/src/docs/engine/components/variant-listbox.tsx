@@ -5,7 +5,7 @@ import { OptionsListbox } from './options-listbox'
 type VariantListboxProps<T extends string> = {
 	variants: readonly T[]
 	value: T
-	placement?: 'bottom-start' | 'bottom-end'
+	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
 	onValueChange: (value: T) => void
 }
 

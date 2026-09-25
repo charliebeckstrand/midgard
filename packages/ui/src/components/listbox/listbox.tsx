@@ -1,6 +1,5 @@
 'use client'
 
-import type { Placement } from '@floating-ui/react'
 import { ChevronsUpDown, X } from 'lucide-react'
 import {
 	type FocusEvent,
@@ -11,7 +10,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { useFloatingUI, useSelectableValueChange } from '../../hooks'
+import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { useControlSize } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
@@ -31,7 +30,13 @@ import { useListboxState } from './use-listbox-state'
 type ListboxBaseProps = GroupStampProps & {
 	name?: string
 	placeholder?: string
-	placement?: Placement
+	/**
+	 * Side and alignment of the panel. A `<side>-auto` value, such as
+	 * `'bottom-auto'`, aligns the panel to the edge of the trigger that is nearer
+	 * to the edge of the viewport.
+	 * @defaultValue 'bottom-start'
+	 */
+	placement?: FloatingPlacement
 	prefix?: ReactNode
 	suffix?: ReactNode
 	size?: ControlSize
