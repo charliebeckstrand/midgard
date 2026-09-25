@@ -87,7 +87,7 @@ describe('dashboard right to left (real browser)', () => {
 
 		const frame = rect(board)
 
-		// Two columns to the left of the splitter's centre, on the board.
+		// Two columns to the left of the splitter's center, on the board.
 		await userEvent.dragAndDrop(end as Element, board, {
 			sourcePosition: { x: from.width / 2, y: from.height / 2 },
 			targetPosition: {

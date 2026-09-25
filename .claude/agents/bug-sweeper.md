@@ -76,7 +76,7 @@ tools: Read, Grep
 
 5.2 Never search for a consumer or a call site; reach is a question inside `bug-verifier`. A test you quote under §3.4 is not a consumer search: quote the test that sits beside the code you read, and never count it as reach.
 
-5.3 Never read a record of a prior judgement: an audit, a plan, a benchmark, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
+5.3 Never read a record of a prior judgment: an audit, a plan, a benchmark, or another scope's verdicts. A benchmark holds the answer key that scores you, so a run that opens one proves nothing. Scope every search to the file list, because a search from the repository root reaches a benchmark and prints its text before you can refuse it.
 
 5.4 Never raise a claim on a file outside the list; the sweep of the scope that holds it owns that file, and the `leads` line carries what you saw to the caller.
 

@@ -18,7 +18,7 @@ const openAutoSizeMenu = () => {
  * Column resizing against a real layout engine: the handle's header height, the
  * always-visible grip, and its trailing-edge alignment only resolve in a browser
  * (jsdom paints no layout, so its `getBoundingClientRect` is empty and computed
- * `opacity`/colour never settle). Here the grid renders with real geometry, so the
+ * `opacity`/color never settle). Here the grid renders with real geometry, so the
  * header-anchored handle can be measured and a pointer drag begun on it.
  */
 describe('grid column resizing (real browser)', () => {
@@ -85,7 +85,7 @@ describe('grid column resizing (real browser)', () => {
 		expect(separator.getBoundingClientRect().height).toBeLessThan(tableHeight / 2)
 	})
 
-	it('shows a short grip at rest, centred in the header trailing edge', async () => {
+	it('shows a short grip at rest, centered in the header trailing edge', async () => {
 		const { container, separator } = setup()
 
 		const grip = present(
@@ -106,7 +106,7 @@ describe('grid column resizing (real browser)', () => {
 
 		expect(gripRect.height).toBeLessThan(headerRect.height)
 
-		// Centred in the grab zone (`justify-center`), so it sits a cell-padding inside
+		// Centered in the grab zone (`justify-center`), so it sits a cell-padding inside
 		// the trailing edge — not flush against the border.
 		expect(headerRect.right - gripRect.right).toBeGreaterThan(3)
 	})
@@ -237,7 +237,7 @@ describe('grid column resizing (real browser)', () => {
 		await waitFor(() => expect(wrapper.hasAttribute('data-resizing')).toBe(true))
 
 		// Both grips stay visible (always-on); the dragged column's reads accent (its
-		// own `data-resizing`) while the idle column keeps its muted rest colour.
+		// own `data-resizing`) while the idle column keeps its muted rest color.
 		expect(getComputedStyle(nameGrip).opacity).toBe('1')
 
 		expect(getComputedStyle(ageGrip).opacity).toBe('1')
@@ -334,7 +334,7 @@ describe('grid resize handle with reorder active (real browser)', () => {
  * A resize is confined to the dragged column. The auto-sizer fills the frame with
  * width-less columns on mount, but once the user takes width control the layout
  * holds: resizing one column must not reflow the others (the space it frees or
- * takes is the table's, not its neighbours'). Real geometry, so the browser.
+ * takes is the table's, not its neighbors'). Real geometry, so the browser.
  */
 describe('grid column resize holds the other columns (real browser)', () => {
 	type Row = { id: number; a: string; b: string; c: string }
@@ -367,7 +367,7 @@ describe('grid column resize holds the other columns (real browser)', () => {
 		return { container, handle, rerender }
 	}
 
-	it('widens only the dragged column, leaving its neighbours where they are', async () => {
+	it('widens only the dragged column, leaving its neighbors where they are', async () => {
 		const { container, handle, rerender } = setup()
 
 		// The three width-less columns fill the 600px frame before any manual resize.

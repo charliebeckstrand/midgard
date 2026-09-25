@@ -83,7 +83,7 @@ describe('constrainTransform', () => {
 		expect(constrainTransform({ x: 0, y: 0, k: 100 }, VIEW, MAX).k).toBe(MAX)
 	})
 
-	it('pins the offset to nothing at the fit, so a zoomed-out map re-centres itself', () => {
+	it('pins the offset to nothing at the fit, so a zoomed-out map re-centers itself', () => {
 		const out = constrainTransform({ x: -120, y: 40, k: 1 }, VIEW, MAX)
 
 		expect(out).toEqual(MAP_FIT_TRANSFORM)
@@ -139,7 +139,7 @@ describe('zoomTransform', () => {
 		expect(out).toEqual(at)
 	})
 
-	it('returns to the fit as the scale does, however far the view had travelled', () => {
+	it('returns to the fit as the scale does, however far the view had traveled', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 400, y: 200 }, 6, VIEW, MAX)
 
 		expect(at.x).toBeLessThan(0)
@@ -193,7 +193,7 @@ describe('showTransform', () => {
 		expect(drawn.y).toBeLessThanOrEqual(VIEW.height - INSET + 1e-9)
 	})
 
-	it('never leaves the pan limits to honour the margin', () => {
+	it('never leaves the pan limits to honor the margin', () => {
 		const at = zoomTransform(MAP_FIT_TRANSFORM, { x: 200, y: 100 }, 2, VIEW, MAX)
 
 		// The frame's own corner cannot be brought a margin clear of the edge — the

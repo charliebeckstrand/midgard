@@ -210,7 +210,7 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('honours a custom base URL and profile', async () => {
+	it('honors a custom base URL and profile', async () => {
 		const mock = stubFetch({ ok: true, json: PAYLOAD })
 
 		await fetchOsrmRoute(WAYPOINTS, { baseUrl: 'https://osrm.internal', profile: 'cycling' })

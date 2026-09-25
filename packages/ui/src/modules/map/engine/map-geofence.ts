@@ -13,7 +13,7 @@
  * so the ring holds its shape wherever the center sits.
  *
  * The budget is the zone part of the hit-target rule. Its siblings are
- * `map-cluster/crowd.ts`, which holds the neighbour part and the list of
+ * `map-cluster/crowd.ts`, which holds the neighbor part and the list of
  * claimants, and `map-region/spare.ts` for the region under the dot. All three
  * are frame arithmetic with no React in them, which is why they sit here and not
  * beside the mark that registers them.
@@ -29,7 +29,7 @@ import {
 import { areaReach, type MapAreaBox, type MapAreaRing, ringsNear } from './map-geometry/mark'
 import type { LngLat, MapPoint2D } from './types'
 
-/** Degrees in one radian — metres of arc become the angle `geoCircle` takes. @internal */
+/** Degrees in one radian — meters of arc become the angle `geoCircle` takes. @internal */
 const DEGREES_PER_RADIAN = 180 / Math.PI
 
 /** Half the sphere in degrees: a ring this wide covers everything and has no boundary. @internal */
@@ -40,14 +40,14 @@ const HALF_SPHERE_DEGREES = 180
  * it. The ring repeats its first position at the end, which is what a GeoJSON
  * ring is and what {@link ringAnchor} reads.
  *
- * The radius is a ground distance in metres, measured on the mean-radius sphere
+ * The radius is a ground distance in meters, measured on the mean-radius sphere
  * a cluster's span reads on. One map therefore never holds two ideas of how far
- * a metre is. It is not a frame distance: a geofence covers the same ground
+ * a meter is. It is not a frame distance: a geofence covers the same ground
  * however far out the map sits. Every other mark in this module holds its size
  * in device pixels.
  *
  * @param at - The circle's center.
- * @param radius - The ground radius, in metres.
+ * @param radius - The ground radius, in meters.
  * @returns The ring, or an empty list where the arguments describe no circle —
  * a radius at or below zero, or one that wraps the sphere. The mark draws
  * nothing from an empty ring, which is the silence a `MapRoute` with no stops

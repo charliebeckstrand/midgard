@@ -4,7 +4,7 @@ import { vi } from 'vitest'
  * Browser-suite module mocks. `@floating-ui/react` is mocked: overlay panels
  * render inline and settled (the real autoUpdate/ref-callback cycle loops under
  * a headless, act-less render, causing "Maximum update depth exceeded"), and the
- * contrast check needs the panel's colours, not its position. `motion/react` is
+ * contrast check needs the panel's colors, not its position. `motion/react` is
  * mocked; a half-played fade must not present a transient opacity to
  * `color-contrast`.
  */

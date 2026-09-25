@@ -2,7 +2,7 @@
  * Pure clustering math for the map module: which dots fall close enough on the
  * frame to draw as one summary, and where that summary sits. React-free like
  * the rest of the engine, so the grouping is unit-testable without a frame.
- * Three neighbours carry the parts this one does not:
+ * Three neighbors carry the parts this one does not:
  *
  * - `grid.ts` — the spatial index both passes bucket into.
  * - `radius.ts` — the size a summary draws at.

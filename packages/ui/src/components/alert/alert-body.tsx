@@ -4,7 +4,7 @@ import { k } from '../../recipes/kata/alert'
 /**
  * Default content slot for {@link Alert}, wrapping its loose children.
  *
- * Not barrelled. The title and description are props on `Alert`, so no slot
+ * Not barreled. The title and description are props on `Alert`, so no slot
  * trio remains for this to complete. A caller passes children, and the alert
  * wraps them here.
  *

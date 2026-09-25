@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { accessibleName } from '../../core/accessible-name'
 import { attach } from '../helpers'
 
-// aria-labelledby resolves through ownerDocument.getElementById, so labelled
+// aria-labelledby resolves through ownerDocument.getElementById, so labeled
 // fixtures must live in the document.
 function mount(html: string): HTMLElement {
 	const host = attach(document.createElement('div'))
@@ -25,16 +25,16 @@ describe('accessibleName', () => {
 
 	it('prefers aria-label over aria-labelledby', () => {
 		const host = mount(
-			'<span id="lbl">Labelled</span><button aria-label="Direct" aria-labelledby="lbl">x</button>',
+			'<span id="lbl">Labeled</span><button aria-label="Direct" aria-labelledby="lbl">x</button>',
 		)
 
 		expect(accessibleName(host.querySelector('button'))).toBe('Direct')
 	})
 
 	it('falls back to the trimmed aria-labelledby target text', () => {
-		const host = mount('<span id="lbl">  Labelled  </span><button aria-labelledby="lbl">x</button>')
+		const host = mount('<span id="lbl">  Labeled  </span><button aria-labelledby="lbl">x</button>')
 
-		expect(accessibleName(host.querySelector('button'))).toBe('Labelled')
+		expect(accessibleName(host.querySelector('button'))).toBe('Labeled')
 	})
 
 	it('joins the trimmed text of every aria-labelledby target in list order', () => {
@@ -47,10 +47,10 @@ describe('accessibleName', () => {
 
 	it('skips an aria-labelledby id that does not resolve', () => {
 		const host = mount(
-			'<span id="lbl">Labelled</span><button aria-labelledby="absent lbl">x</button>',
+			'<span id="lbl">Labeled</span><button aria-labelledby="absent lbl">x</button>',
 		)
 
-		expect(accessibleName(host.querySelector('button'))).toBe('Labelled')
+		expect(accessibleName(host.querySelector('button'))).toBe('Labeled')
 	})
 
 	it('falls back to its own text when no aria-labelledby id in a list resolves', () => {

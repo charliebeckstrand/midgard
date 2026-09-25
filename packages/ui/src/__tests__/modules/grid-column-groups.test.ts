@@ -217,9 +217,9 @@ describe('buildGroupSpans · properties', () => {
 		},
 	)
 
-	// A run is maximal, so two neighbours never carry one group between them.
+	// A run is maximal, so two neighbors never carry one group between them.
 	test.prop([columnIds(), groupList(), pinning()])(
-		'never splits one group across two neighbouring bands',
+		'never splits one group across two neighboring bands',
 		(visible, groups, pinnedSide) => {
 			const spans = buildGroupSpans(visible, groupByColumn(groups), pinnedSide)
 

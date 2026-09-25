@@ -82,7 +82,7 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * Fires when a click lands on a slice, with the slice's `xKey` label and its
 	 * data index. The target is its gap-spanning hit wedge, the same generous
 	 * target the tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
-	 * clicked slice and narrows its neighbours. Coexists with the tooltip on
+	 * clicked slice and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins), and points the
 	 * cursor over the slices so they read as clickable.
 	 */

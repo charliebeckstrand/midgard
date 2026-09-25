@@ -151,7 +151,7 @@ function writesOnChange({ render, defaultValue, slot, kind }: WriteOnChangeSubje
 /** The link sweep: the subject's slot becomes an anchor to the href it sets. */
 function becomesLink({ render, slot }: LinkSubject) {
 	// `baseElement` is the document body, which holds the render container and
-	// anything portalled out of it alike.
+	// anything portaled out of it alike.
 	const { baseElement } = renderUI(render(LINK_HREF))
 
 	const anchor = getSlot(baseElement, slot)
@@ -163,7 +163,7 @@ function becomesLink({ render, slot }: LinkSubject) {
 
 /** Renders `element` and reads the `data-size` its slot publishes. */
 function publishedSize(element: ReactElement, slot: string) {
-	// `baseElement` is the document body, so a portalled overlay is in reach.
+	// `baseElement` is the document body, so a portaled overlay is in reach.
 	const { baseElement } = renderUI(element)
 
 	return getSlot(baseElement, slot).getAttribute('data-size')

@@ -119,7 +119,7 @@ describe('Button', () => {
 		// Removed from the tab order, mirroring the disabled <button> branch.
 		expect(link).toHaveAttribute('tabindex', '-1')
 
-		// Activation is cancelled: the default navigation is prevented and the
+		// Activation is canceled: the default navigation is prevented and the
 		// consumer's handler never fires.
 		const notCancelled = fireEvent.click(link)
 

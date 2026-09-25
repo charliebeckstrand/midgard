@@ -90,7 +90,7 @@ describe('Rating', () => {
 
 		expect(onValueChange).toHaveBeenCalledWith(null)
 
-		// The cancelled activation restores the radio, so no `change` set the same
+		// The canceled activation restores the radio, so no `change` set the same
 		// star straight back.
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 	})
@@ -190,7 +190,7 @@ describe('Rating', () => {
 	})
 
 	describe('read-only', () => {
-		it('renders one labelled image and takes no input', () => {
+		it('renders one labeled image and takes no input', () => {
 			const { container } = renderUI(<Rating readOnly value={4} />)
 
 			const group = bySlot(container, 'rating')

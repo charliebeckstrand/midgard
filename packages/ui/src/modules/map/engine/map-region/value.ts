@@ -1,6 +1,6 @@
 /**
  * Map-shaped adapters over the shared sequential color scale
- * ({@link ../../../../utilities/color-scale}). They quantise a `valueKey` into
+ * ({@link ../../../../utilities/color-scale}). They quantize a `valueKey` into
  * equal-interval or equal-count (quantile) bins. They emit the bins as the map's
  * {@link MapCategoryMeta} shape, a `value`-kind paint. The region fills, legend,
  * tooltip, and table then read them the way they read categorical slots. The

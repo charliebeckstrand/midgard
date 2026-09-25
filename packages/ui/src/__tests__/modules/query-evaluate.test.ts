@@ -557,14 +557,14 @@ describe('evaluateQuery · properties', () => {
 	)
 
 	// The filter accent reads `isQueryActive`, and the summary and chips read
-	// `summarizeQuery`. Both read a rule through the evaluator's own judgement.
+	// `summarizeQuery`. Both read a rule through the evaluator's own judgment.
 	// So when they read a rule as inactive, the rule drops out of the fold.
 	test.prop([
 		fc.constantFrom(...OPERATORS, 'custom', 'toString', 'valueOf', ''),
 		fc.oneof(emptyValue(), stated(), fieldValue()),
 		fc.constantFrom(...FIELDS),
 		fieldValue(),
-	])('reads a rule as the active judgement and the summary do', (operator, value, field, cell) => {
+	])('reads a rule as the active judgment and the summary do', (operator, value, field, cell) => {
 		const group = createGroup('and', [{ ...createRule(field), operator, value }])
 
 		const active = isQueryActive(group)

@@ -43,7 +43,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `sampleRange` | The color a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
-| `resolveColorBins` | Quantises a `[min, max]` domain into equal-interval `ColorBin`s sampled from a color range, the last bin pinned to the max. |
+| `resolveColorBins` | Quantizes a `[min, max]` domain into equal-interval `ColorBin`s sampled from a color range, the last bin pinned to the max. |
 | `binIndex` | The equal-interval bin a value falls in — top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
 | `resolveQuantileBins` | Splits values into equal-count (quantile) `ColorBin`s by rank — the skew-aware counterpart to `resolveColorBins` — with the thresholds rows assign by. |
 | `quantileThresholds` | The `count - 1` interior cut points splitting values into equal-count quantile buckets; empty for a flat domain (a single bin). |

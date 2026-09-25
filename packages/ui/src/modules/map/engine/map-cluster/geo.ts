@@ -1,6 +1,6 @@
 /**
  * What a cluster reads out on the ground: where the group sits in lon/lat, and
- * how far its stops spread in metres. Held apart from `group.ts`, which
+ * how far its stops spread in meters. Held apart from `group.ts`, which
  * carries frame arithmetic alone. This half is spherical, costs a `d3-geo`
  * pass per group, and is wanted by one caller each. It therefore resolves where
  * it is read, rather than on every grouping pass.
@@ -37,7 +37,7 @@ export function clusterAnchor(members: readonly number[], positions: readonly Ln
 }
 
 /**
- * How far a group spreads, in metres: the diameter of the circle about its
+ * How far a group spreads, in meters: the diameter of the circle about its
  * {@link clusterAnchor} that holds every member. `0` for a lone dot, which
  * spreads over nothing and must not pay a spherical pass to say so.
  *

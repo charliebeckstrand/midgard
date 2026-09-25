@@ -7,7 +7,7 @@ import { useGridTable } from '../../modules/grid/use-grid-table'
  * Column order, visibility, and pinning now resolve on the engine: `useGridTable`
  * receives the full column set plus `columnOrder` / `columnVisibility` state and
  * returns the rendered `visibleColumns` (the engine's visible leaf columns in
- * pinned-edge order). These cover that derivation — the behaviour that used to
+ * pinned-edge order). These cover that derivation — the behavior that used to
  * live in the bespoke `buildVisibleColumns` / `partitionByPin`.
  */
 describe('useGridTable column resolution', () => {

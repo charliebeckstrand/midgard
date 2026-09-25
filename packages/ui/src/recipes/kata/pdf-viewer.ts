@@ -226,7 +226,7 @@ export const k = {
 					activeFill: palette.soft.strong,
 					ring: palette.outline.ring,
 					/**
-					 * The selected region: a heavier stroke, and lifted above its neighbours.
+					 * The selected region: a heavier stroke, and lifted above its neighbors.
 					 *
 					 * `z-10` matters on a dense page. Regions paint in document order. Without it, a
 					 * later region overlapping the selected one covers the very emphasis that says

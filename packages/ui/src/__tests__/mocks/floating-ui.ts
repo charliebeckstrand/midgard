@@ -106,7 +106,7 @@ function mergeProps(list: (MockProps | undefined)[]): MockProps {
 const floatingUIMock = {
 	autoUpdate: noop,
 	FloatingFocusManager: MockFloatingFocusManager,
-	// Honour `root` like the real portal (teleport into the given node, resolving a
+	// Honor `root` like the real portal (teleport into the given node, resolving a
 	// ref); without one, render inline so content stays in the query tree. Overlays
 	// that target a scoped/provider container rely on this to mount there.
 	FloatingPortal: ({ children, root }: { children: ReactNode; root?: MockPortalRoot }) => {

@@ -31,7 +31,7 @@ describe('grid context menu pointer travel (real browser)', () => {
 	const settle = (row: HTMLElement, x: number, y: number) =>
 		fireEvent.pointerMove(row, { pointerType: 'mouse', clientX: x, clientY: y })
 
-	/** A row's centre in client coordinates. */
+	/** A row's center in client coordinates. */
 	const centre = (el: HTMLElement) => {
 		const rect = el.getBoundingClientRect()
 

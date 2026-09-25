@@ -45,7 +45,7 @@ const fields: QueryField[] = [
 ]
 
 // "Add rule"/"Add group" live behind a per-group "Add" menu trigger. Opening it
-// mounts the items (portalled) as `role="menuitem"`. Scope the trigger lookup to
+// mounts the items (portaled) as `role="menuitem"`. Scope the trigger lookup to
 // a specific group with `within(...)`; the items themselves portal to the body,
 // so query them from `screen`.
 const openAddMenu = (scope: { getByRole: typeof screen.getByRole } = screen) =>
@@ -417,7 +417,7 @@ describe('QueryBuilderGroup', () => {
 		if (!nested) throw new Error('expected a nested query-group')
 
 		// Open only the nested group's menu, so its "Add group" item is the sole
-		// one mounted and the body-portalled lookup is unambiguous.
+		// one mounted and the body-portaled lookup is unambiguous.
 		openAddMenu(within(nested))
 
 		fireEvent.click(addGroupItem())

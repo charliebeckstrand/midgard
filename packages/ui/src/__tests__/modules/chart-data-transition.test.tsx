@@ -8,7 +8,7 @@ import { bySlot, renderUI, stubMatchMedia } from '../helpers'
  * The data-change transition: an animated chart replays its reveal out-then-in
  * when the resolved data changes, and holds still otherwise. The mechanism is a
  * generation key on the marks group — {@link seriesDataKey} — surfaced as
- * `data-generation`; this asserts the key's behaviour, which is what decides
+ * `data-generation`; this asserts the key's behavior, which is what decides
  * whether the reveal replays. The exit/enter frames themselves are not asserted:
  * `motion/react` is mocked in every suite here (jsdom and browser alike, for
  * determinism), so the played transition is verified in-app instead. The key

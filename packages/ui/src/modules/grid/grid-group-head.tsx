@@ -97,7 +97,7 @@ function GridGroupHeadCell({
 
 	// A group draws a 2px rule under its Badge, spanning the cell's content width —
 	// inset by the header padding, so it aligns with the column titles and splits
-	// from the neighbouring group. Colored in the group's hue, or a neutral gray
+	// from the neighboring group. Colored in the group's hue, or a neutral gray
 	// when it has none (matching a colorless row group's rail), so clearing a color
 	// leaves the underline in place rather than dropping it.
 	const ruleColor =

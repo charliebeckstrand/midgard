@@ -297,7 +297,7 @@ describe('TagInput', () => {
 		const input = getInput(container)
 
 		// At the cap the field is read-only rather than disabled, so the control
-		// isn't greyed and the tags stay removable; the Add button is disabled.
+		// isn't grayed and the tags stay removable; the Add button is disabled.
 		expect(input).toHaveAttribute('readonly')
 
 		expect(input).not.toBeDisabled()

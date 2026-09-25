@@ -22,8 +22,8 @@ function firstLine(container: HTMLElement): Element | null {
 	return allBySlot(container, 'chart-line')[0] ?? null
 }
 
-describe('series colour', () => {
-	it('fills a bar through the slot class for a named colour and inline for a raw one', () => {
+describe('series color', () => {
+	it('fills a bar through the slot class for a named color and inline for a raw one', () => {
 		const slot = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -51,13 +51,13 @@ describe('series colour', () => {
 
 		const raw = firstBar(hex.container)
 
-		// A raw colour fills inline and takes no slot fill class.
+		// A raw color fills inline and takes no slot fill class.
 		expect(raw?.getAttribute('fill')).toBe(HEX)
 
 		expect(raw?.getAttribute('class') ?? '').not.toContain('fill-')
 	})
 
-	it('strokes a line inline for a raw oklch colour and through the class for a slot', () => {
+	it('strokes a line inline for a raw oklch color and through the class for a slot', () => {
 		const raw = renderUI(
 			<LineChart
 				aria-label="Revenue by month"
@@ -89,7 +89,7 @@ describe('series colour', () => {
 		expect(named?.getAttribute('stroke')).toBeNull()
 	})
 
-	it('gives a raw-coloured series no texture tile, the same opt-out as a raw reference line', () => {
+	it('gives a raw-colored series no texture tile, the same opt-out as a raw reference line', () => {
 		const { container } = renderUI(
 			<BarChart
 				aria-label="Revenue by month"
@@ -100,12 +100,12 @@ describe('series colour', () => {
 			/>,
 		)
 
-		// A raw colour opts out of the categorical palette, so it defines no tile.
+		// A raw color opts out of the categorical palette, so it defines no tile.
 		expect(container.querySelectorAll('[data-slot="chart-patterns"] pattern')).toHaveLength(0)
 
 		const bar = firstBar(container)
 
-		// And with no tile the bar fills flat with its raw colour, not a `var(--chart-fill)` tile.
+		// And with no tile the bar fills flat with its raw color, not a `var(--chart-fill)` tile.
 		expect(bar?.getAttribute('fill')).toBe(HEX)
 
 		expect(bar?.getAttribute('class') ?? '').not.toContain('[fill:var(--chart-fill)]')

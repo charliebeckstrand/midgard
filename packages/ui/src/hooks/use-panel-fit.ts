@@ -78,7 +78,7 @@ export function usePanelFit({
 	transition,
 }: PanelFitOptions): RefCallback<HTMLDivElement> {
 	// The panel as state rather than a ref, for the reason the gesture holds it
-	// that way: it is portalled and mounts on a later commit than the one that
+	// that way: it is portaled and mounts on a later commit than the one that
 	// opens the drawer, so an effect keyed on anything else runs with nothing to
 	// observe.
 	const [panel, setPanel] = useState<HTMLDivElement | null>(null)

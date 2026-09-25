@@ -142,7 +142,7 @@ describe('Popover open/close control', () => {
 describe('Popover non-modal semantics', () => {
 	const content = () => document.querySelector<HTMLElement>('[data-slot="popover-content"]')
 
-	it('exposes a labelled, non-modal dialog with no aria-modal', () => {
+	it('exposes a labeled, non-modal dialog with no aria-modal', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>

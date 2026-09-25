@@ -21,7 +21,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * route in it, which is how an in-app tab keeps a half-finished view alive.
  *
  * The assertion is on the *surface's own* state rather than on node identity, because
- * identity is the mechanism and this is the behaviour it buys: a remount is observable as a
+ * identity is the mechanism and this is the behavior it buys: a remount is observable as a
  * `useState` that went back to its initial value.
  */
 function Harness({ hidden }: { hidden: boolean }) {

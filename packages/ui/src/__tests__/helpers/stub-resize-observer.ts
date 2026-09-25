@@ -37,7 +37,7 @@ export function stubResizeObserver(): ResizeObserverStub[] {
 		})
 
 		// Not a spy: no suite asserts on it, and every subject tears down with
-		// `disconnect`. It stays so the stub still honours the interface.
+		// `disconnect`. It stays so the stub still honors the interface.
 		unobserve(target: Element) {
 			this.targets = this.targets.filter((held) => held !== target)
 		}

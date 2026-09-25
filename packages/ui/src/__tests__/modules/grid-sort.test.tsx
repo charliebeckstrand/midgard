@@ -296,7 +296,7 @@ describe('Grid sort header: reorder-drag hover hold', () => {
 	// While a column drag lifts and mutes its header, the sortable title must not
 	// brighten under the dragging pointer. The hold is a `[data-dragging]`-ancestor
 	// override of `fg.hover` on the sort control; assert it rides the sort button
-	// (computed `:hover` colour is unreliable in tests — mirror `list.test.tsx`).
+	// (computed `:hover` color is unreliable in tests — mirror `list.test.tsx`).
 	it('holds the sortable title muted on hover under a dragging ancestor', () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} reorder />)
 

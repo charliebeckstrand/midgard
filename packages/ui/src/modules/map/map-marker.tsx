@@ -98,7 +98,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	const to = useMemo(() => project([endLng, endLat]), [project, endLng, endLat])
 
 	// The shared rule, over the pair at once: the pins are each other's
-	// neighbours, so a short leg is this mark's own crowding case — a target on one
+	// neighbors, so a short leg is this mark's own crowding case — a target on one
 	// end covering the other would take that pin's readout with it.
 	//
 	// Memoized above the guard rather than resolved below it. Below, a toggled-off

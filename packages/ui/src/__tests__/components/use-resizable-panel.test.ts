@@ -658,7 +658,7 @@ describe('useResizablePanel', () => {
 			expect(onResizeEnd).toHaveBeenCalledExactlyOnceWith(0)
 		})
 
-		it('reports the end once when a cancelled pointer also fires pointerup', () => {
+		it('reports the end once when a canceled pointer also fires pointerup', () => {
 			const onResizeEnd = vi.fn()
 
 			const { result } = renderHook(() =>

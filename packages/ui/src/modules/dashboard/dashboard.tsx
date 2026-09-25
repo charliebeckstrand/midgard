@@ -165,7 +165,7 @@ export type DashboardProps = AccessibleName & {
  *
  * The board never moves a tile by itself. A drag moves a tile into free cells,
  * or it reorders it against an equal tile; anything else is blocked. A resize
- * grows a tile until it meets a neighbour or an edge. What you save is what
+ * grows a tile until it meets a neighbor or an edge. What you save is what
  * renders, gaps included. To close the gaps, call `tidy` on the `ref`
  * ({@link DashboardHandle}).
  *

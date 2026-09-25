@@ -1,5 +1,5 @@
 /**
- * Legend-emphasis cost on a live map: one iteration emphasises the first
+ * Legend-emphasis cost on a live map: one iteration emphasizes the first
  * category — every region outside it recedes — settles two frames, releases,
  * and settles again. Each contender drives its idiomatic recede: the ui
  * module and Highcharts take real pointer events on their legend UI (the ui
@@ -17,7 +17,7 @@ import { countiesAtlas, makeZones, ZONES } from './map-fixtures'
 
 const data = makeZones(countiesAtlas)
 
-/** Row indexes of the emphasised zone — ECharts' highlight target. */
+/** Row indexes of the emphasized zone — ECharts' highlight target. */
 const zoneIndexes = data.rows.flatMap((row, index) => (row.zone === ZONES[0] ? [index] : []))
 
 /** The pointer pair the ui legend chip listens for; `enter`/`leave` do not bubble. */
@@ -47,7 +47,7 @@ async function mountLegend(index: number, selector: string): Promise<Element> {
 	return box.querySelector(selector) as Element
 }
 
-/** One hold-and-release cycle: emphasise, settle, release, settle. */
+/** One hold-and-release cycle: emphasize, settle, release, settle. */
 function cycle(hold: (over: 'over' | 'out') => void) {
 	return async () => {
 		hold('over')

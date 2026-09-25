@@ -8,12 +8,12 @@
 export type PieSlice = {
 	/** The datum's index in the source data — colors and readouts key off it. */
 	index: number
-	/** The drawn wedge, its straight edges offset inward to part from neighbours. */
+	/** The drawn wedge, its straight edges offset inward to part from neighbors. */
 	d: string
 	/**
 	 * The gapless full-wedge path behind {@link d} — the pointer hit target. Its
 	 * edges fall on each channel's own center line. A slice therefore claims
-	 * exactly half of every neighbouring gap. A pointer that crosses the channel
+	 * exactly half of every neighboring gap. A pointer that crosses the channel
 	 * keeps the tooltip instead of falling through to the bare surface.
 	 */
 	hit: string
@@ -39,9 +39,9 @@ export type PieSlicesOptions = {
 	 */
 	innerRadius?: number
 	/**
-	 * The constant gap between neighbouring slices, in px. Each slice is the true
+	 * The constant gap between neighboring slices, in px. Each slice is the true
 	 * inward offset of its wedge. Its straight edges recede half the gap and stay
-	 * parallel to a neighbour's. The channel therefore holds exactly this width at
+	 * parallel to a neighbor's. The channel therefore holds exactly this width at
 	 * every radius. It shows the real surface through, with no painted separator
 	 * to mismatch a tinted card. On a pie the channels cross at the
 	 * middle the way knife cuts through a real pie do; a donut's ring never
@@ -110,7 +110,7 @@ function fullCircle(cx: number, cy: number, radius: number, inner: number): stri
 /**
  * A point on the radial edge at `angle`, `along` out from the center and
  * shifted `perp` sideways along the edge's tangent. Both of a slice's edges
- * shift inward by half the gap, which keeps neighbouring edges parallel. The
+ * shift inward by half the gap, which keeps neighboring edges parallel. The
  * result is a constant-width channel at every radius, never a wedge that
  * pinches shut at the center. @internal
  */
@@ -185,7 +185,7 @@ function pieBack(cx: number, cy: number, start: number, end: number, half: numbe
 
 /**
  * One slice's path between two angles, its straight edges offset inward by
- * `half` the gap so the channel to each neighbour holds a constant width. A
+ * `half` the gap so the channel to each neighbor holds a constant width. A
  * donut rides its inner ring; a pie runs its offset edges to their natural
  * meeting near the center. @internal
  */
@@ -269,7 +269,7 @@ function sliceAngles(values: (number | null)[]): SliceAngle[] {
  * half arcs — one 360° arc command collapses to nothing). Each slice also
  * carries a gapless {@link PieSlice.hit} wedge for pointer testing. The visible
  * gap is a channel centered on the boundary between two slices. A full wedge
- * therefore hands each neighbour exactly half of it, and the tooltip never
+ * therefore hands each neighbor exactly half of it, and the tooltip never
  * drops into the channel.
  * @internal
  */
@@ -281,7 +281,7 @@ export function pieSlices(
 
 	const positive = angles.length
 
-	// A lone full circle has no neighbour to part from, so it takes no gap channel
+	// A lone full circle has no neighbor to part from, so it takes no gap channel
 	// and one shared hit target — skipping the per-slice pinch math entirely rather
 	// than computing an offset it would discard.
 	if (positive === 1) {

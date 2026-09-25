@@ -190,7 +190,7 @@ export const navigationCases: readonly Case[] = [
 		],
 	},
 	{
-		// tablist/tab/tabpanel: the selected tab is named and its panel labelled by
+		// tablist/tab/tabpanel: the selected tab is named and its panel labeled by
 		// the tab via aria-labelledby.
 		name: 'tabs',
 		element: (

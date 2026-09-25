@@ -112,9 +112,9 @@ describe('a11y focus order (real browser): PersistentChrome', () => {
 		expect(sealed().closest('[inert]')).not.toBeNull()
 	})
 
-	// The drawer is asked for nothing. A surface does not opt in to honouring a
+	// The drawer is asked for nothing. A surface does not opt in to honoring a
 	// region, which is the whole point of registering it at the region instead.
-	it('honours the region through Drawer, with no prop passed', async () => {
+	it('honors the region through Drawer, with no prop passed', async () => {
 		renderUI(
 			<Page>
 				<Drawer open onOpenChange={noop} aria-label="Resolve">

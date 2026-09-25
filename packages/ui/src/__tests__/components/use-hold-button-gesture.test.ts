@@ -194,7 +194,7 @@ describe('useHoldButtonGesture', () => {
 		expect(result.current.fill.style.transition).toBe('transform 500ms linear')
 	})
 
-	it('writes a scaleX(0) reset when cancelling mid-hold', () => {
+	it('writes a scaleX(0) reset when canceling mid-hold', () => {
 		const { result } = renderGesture({ duration: 500, disabled: false })
 
 		act(() => result.current.start())

@@ -123,7 +123,7 @@ describe('PieChart', () => {
 		expect(dimmed).toEqual([true, false, true])
 	})
 
-	it('keeps a slice colour when a filter removes the other slices', () => {
+	it('keeps a slice color when a filter removes the other slices', () => {
 		const categories = DATA.map((row) => row.source)
 
 		const whole = renderUI(chart({ categories }))
@@ -186,7 +186,7 @@ describe('PieChart', () => {
 
 		expect(hits).toHaveLength(3)
 
-		// Gapless: the wedge runs to the frame centre (150, 100) where the visible
+		// Gapless: the wedge runs to the frame center (150, 100) where the visible
 		// slice stops short, so the channel between slices still reads as a slice.
 		expect(hits[0]?.getAttribute('d')).toContain('L 150 100')
 
@@ -551,7 +551,7 @@ describe('pieSlices', () => {
 		expect(pieSlices([0, null, -3], FRAME)).toHaveLength(0)
 	})
 
-	it('parts neighbours with a parallel-offset edge, not a pinch', () => {
+	it('parts neighbors with a parallel-offset edge, not a pinch', () => {
 		const flush = pieSlices([50, 50], FRAME)
 
 		const padded = pieSlices([50, 50], { ...FRAME, pad: 6 })
@@ -592,7 +592,7 @@ describe('pieSlices', () => {
 		const [first] = pieSlices([1, 1, 1, 1], { ...FRAME, pad: 6 })
 
 		// The visible wedge stops at its knife-cut tip short of the middle; the hit
-		// wedge has no gap, so it runs its straight edges to the exact centre —
+		// wedge has no gap, so it runs its straight edges to the exact center —
 		// claiming the slice's half of every channel, no dead zone in the gap.
 		expect(first?.hit).toContain(`L ${FRAME.cx} ${FRAME.cy}`)
 

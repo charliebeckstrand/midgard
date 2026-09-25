@@ -25,7 +25,7 @@ import { k as button } from '../recipes/kata/button'
  * the bars that first justified that memo are one rung down in the diff that
  * added it, not here.
  *
- * `Button` stands in for a real kata throughout: three axes, an eight-colour
+ * `Button` stands in for a real kata throughout: three axes, an eight-color
  * palette, four compound rules, and a base of a dozen classes.
  */
 
@@ -176,7 +176,7 @@ describe('recipe · defineRecipe (creation, once per module load)', () => {
 		defineRecipe({ base: 'inline-flex', size: { sm: 'p-1', md: 'p-2' }, defaults: { size: 'md' } })
 	})
 
-	bench('button-shaped (3 axes + 8-colour palette + 4 compounds)', () => {
+	bench('button-shaped (3 axes + 8-color palette + 4 compounds)', () => {
 		defineRecipe({
 			base: config.base,
 			variant: config.variants.variant,

@@ -201,7 +201,7 @@ describe('useDatePickerState', () => {
 			expect(result.current.open).toBe(false)
 		})
 
-		it('materialises grid focus on the first arrow press after opening', () => {
+		it('materializes grid focus on the first arrow press after opening', () => {
 			const { result } = renderHook(() => useDatePickerState({ defaultValue: Jan15 }))
 
 			act(() => {
@@ -222,7 +222,7 @@ describe('useDatePickerState', () => {
 				useDatePickerState({ min: Jan15, max: new Date(2025, 11, 31) }),
 			)
 
-			// Open and trigger a grid materialisation to expose the initial active date.
+			// Open and trigger a grid materialization to expose the initial active date.
 			const fakeKey = (k: string) => makeKeyEvent<HTMLElement>(k)
 
 			act(() => {

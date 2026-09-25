@@ -25,7 +25,7 @@ const ZONE: LngLat[] = [
 ]
 
 /**
- * The great-circle distance between two positions, in metres — measured the way
+ * The great-circle distance between two positions, in meters — measured the way
  * the module measures a cluster's own spread (`clusterSpan`), so the assertions
  * below read `circleRing` against the sphere the map already works on.
  */
@@ -146,7 +146,7 @@ describe('MapGeofence', () => {
 		expect(order).toEqual(['map-geofence-wash', 'map-geofence', 'map-geofence-hit'])
 	})
 
-	it('draws a circle from a centre and a ground radius', () => {
+	it('draws a circle from a center and a ground radius', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapGeofence label="Depot" at={[8, 5]} radius={200_000} />),
 		)
@@ -180,7 +180,7 @@ describe('MapGeofence', () => {
 		expect(bySlot(items[0] as HTMLElement, 'swatch')?.getAttribute('data-shape')).toBe('square')
 	})
 
-	it('takes an explicit colour over its slot', () => {
+	it('takes an explicit color over its slot', () => {
 		const { container } = renderUI(
 			overlayPlat(<MapGeofence label="Zone A" boundary={ZONE} color="rose" />),
 		)
@@ -474,7 +474,7 @@ describe('MapGeofence group', () => {
 		expect(keys.map((key) => key.getAttribute('data-shape'))).toEqual(['square', 'circle'])
 	})
 
-	it('paints every member in the colour its first member takes', () => {
+	it('paints every member in the color its first member takes', () => {
 		const { container } = renderUI(
 			overlayPlat(
 				<>
@@ -487,8 +487,8 @@ describe('MapGeofence group', () => {
 
 		expect(bySlot(container, 'map-geofence')?.getAttribute('class')).toContain('stroke-rose-600')
 
-		// The depot names no colour of its own and takes the group's rather than the
-		// next slot — two colours under one label would read as two things. A dot
+		// The depot names no color of its own and takes the group's rather than the
+		// next slot — two colors under one label would read as two things. A dot
 		// strokes where a zone fills, so the shared hue reads off the stroke here.
 		expect(bySlot(container, 'map-point')?.getAttribute('class')).toContain('stroke-rose-600')
 	})
@@ -509,7 +509,7 @@ describe('MapGeofence group', () => {
 		expect(bySlot(container, 'map-point')).not.toBeNull()
 	})
 
-	it('emphasises the group together and dims what stands outside it', () => {
+	it('emphasizes the group together and dims what stands outside it', () => {
 		const { container } = renderUI(
 			overlayPlat(
 				<>

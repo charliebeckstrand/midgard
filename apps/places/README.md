@@ -25,7 +25,7 @@ question about the map is asked of it: which atlas to draw, which region the
 frame is cut to, and what the breadcrumb trail says.
 
 The world draws under Mercator, one country or one state under a mercator
-centred on itself, and the United States whole under the composite that is only
+centered on itself, and the United States whole under the composite that is only
 that country. Mercator is not the honest choice about area — it is the honest
 choice about shape, which is what a reader checks a coastline against, and area
 is not what a map of places you have been is for.

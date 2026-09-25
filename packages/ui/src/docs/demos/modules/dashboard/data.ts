@@ -14,7 +14,7 @@ const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun']
 
 const regions = ['North', 'South', 'East', 'West']
 
-/** Every product, in palette order, so a filter never moves a product's colour. */
+/** Every product, in palette order, so a filter never moves a product's color. */
 export const products = ['Tea', 'Coffee', 'Cocoa']
 
 /** A deterministic set of sales, so the demo renders the same on each load. */

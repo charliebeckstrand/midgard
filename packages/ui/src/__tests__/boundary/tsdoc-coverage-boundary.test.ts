@@ -26,7 +26,7 @@ import { srcDir } from '../helpers/walk-source'
 // margin — ~1.4s against a 72ms median — so it reads no more than it resolves
 // (see `packageHost`), and the project's own `testTimeout` in `vitest.config.ts`
 // is sized for it. It stays in the boundary project because it pins a
-// convention, not a behaviour.
+// convention, not a behavior.
 
 /** Barrel globs that form the package's public surface, per `package.json` `exports`. */
 const BARREL_PATTERNS: readonly (readonly [dir: string, nested: boolean])[] = [

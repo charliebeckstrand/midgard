@@ -30,7 +30,7 @@ vi.mock('../../modules/map/map-dot', async (importActual) => {
 	return { ...actual, MapDot: vi.fn(actual.MapDot) }
 })
 
-/** Three stops far enough apart that the frame never summarises them. */
+/** Three stops far enough apart that the frame never summarizes them. */
 const STOPS = [
 	{ at: [5, 5] as [number, number], label: 'Depot' },
 	{ at: [15, 5] as [number, number], label: 'Yard' },

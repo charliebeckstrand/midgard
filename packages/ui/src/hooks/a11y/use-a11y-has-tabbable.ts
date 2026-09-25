@@ -10,7 +10,7 @@ import { FOCUSABLE_SELECTOR } from '../../utilities'
  *
  * @param node - The measured element, held as state from a callback ref
  * (`ref={setNode}`) rather than read from an object ref. Observation must
- * follow the node React attaches, and a portalled surface mounts its content a
+ * follow the node React attaches, and a portaled surface mounts its content a
  * commit after the consumer renders. A `RefObject` reports that arrival to
  * nothing, so the probe would read `null` once and never re-run.
  * @returns `false` until the post-mount effect measures, so a surface that

@@ -494,7 +494,7 @@ describe('Grid', () => {
 		})
 	})
 
-	describe('header customisation', () => {
+	describe('header customization', () => {
 		it('applies headerClassName and width to sortable and selectable headers', () => {
 			const columnsWithChrome = [
 				{ id: 'select', selectable: true, headerClassName: 'sel-head', width: '40px' },

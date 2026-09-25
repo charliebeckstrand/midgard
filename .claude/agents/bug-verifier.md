@@ -52,7 +52,7 @@ tools: Read, Grep, Glob
 
 3.6 Search the consumer roots once for each claim and keep the sites you find; §3.8 answers reach from that same search. A trigger no consumer in those roots can construct does not restate a claim; it refutes it. A consumer outside the roots never answers reach; cite one only to show that a trigger is not constructed, and mark it out-of-root.
 
-3.7 Check documented intent. When the TSDoc, a comment, a convention, or a test shows deliberate behaviour, rule REFUTED and quote the source.
+3.7 Check documented intent. When the TSDoc, a comment, a convention, or a test shows deliberate behavior, rule REFUTED and quote the source.
 
 3.8 For each claim that survives, name the call sites §3.6 found as `path:line`. Record NONE with the roots and the terms you searched when no site exists. Mark a test-only site as such.
 

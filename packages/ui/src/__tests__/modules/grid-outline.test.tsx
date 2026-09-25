@@ -9,7 +9,7 @@ import { renderUI, screen } from '../helpers'
  * out from under the sticky header and frozen columns, opening a seam above the
  * header and shifting a frozen column's leading rule. Separate borders ride the
  * cell, so the sticky/frozen frame holds; these assert the projection is applied
- * (the frozen behaviour itself is a browser-suite concern).
+ * (the frozen behavior itself is a browser-suite concern).
  */
 describe('Grid outline', () => {
 	type Row = { id: number; name: string; email: string }

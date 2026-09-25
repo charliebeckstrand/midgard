@@ -34,14 +34,14 @@ describe('sampleRange', () => {
 		expect(sampleRange(['#123456'], 0.7)).toBe('#123456')
 	})
 
-	it('interpolates non-hex stops through the shared colour parser', () => {
+	it('interpolates non-hex stops through the shared color parser', () => {
 		// rgb() stops mix the same as their hex equivalents — the parser folds both.
 		expect(sampleRange(['rgb(0 0 0)', 'rgb(255 255 255)'], 0.5)).toBe('rgb(128 128 128)')
 	})
 })
 
 describe('binColors', () => {
-	it('samples n colours across the range, ends inclusive', () => {
+	it('samples n colors across the range, ends inclusive', () => {
 		expect(binColors(['#000000', '#ffffff'], 3)).toEqual(['#000000', 'rgb(128 128 128)', '#ffffff'])
 	})
 
@@ -55,7 +55,7 @@ describe('valueExtent', () => {
 		expect(valueExtent([3, Number.NaN, 1, 9])).toEqual([1, 9])
 	})
 
-	it('honours an explicit override and reads null when nothing is finite', () => {
+	it('honors an explicit override and reads null when nothing is finite', () => {
 		expect(valueExtent([1, 2], [0, 100])).toEqual([0, 100])
 
 		expect(valueExtent([Number.NaN])).toBeNull()
@@ -71,7 +71,7 @@ describe('valueExtent', () => {
 })
 
 describe('resolveColorBins', () => {
-	it('quantises the domain into equal-interval bins pinned to the max', () => {
+	it('quantizes the domain into equal-interval bins pinned to the max', () => {
 		const bins = resolveColorBins([0, 100], ['#000000', '#ffffff'])
 
 		expect(bins).toHaveLength(2)

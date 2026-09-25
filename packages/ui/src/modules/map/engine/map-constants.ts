@@ -121,7 +121,7 @@ export const AREA_SPARE_FRACTION = 0.5
  * its datum: its legend row, the keyboard cursor's stop, and its `MapTable` row.
  * The dot is therefore never the only route to it. What the dot gives its pixels
  * back to has no such second route. A zone under it answers the pointer or
- * nothing does. A neighbouring dot swallowed by the reach reports another
+ * nothing does. A neighboring dot swallowed by the reach reports another
  * mark's readout in place of its own. A dot clear of every claimant keeps the
  * full {@link POINT_HIT_RADIUS} instead, since precision a reader gains nothing
  * from is only reach taken from them. `markTargets` weighs the claims, and
@@ -180,7 +180,7 @@ export const CLUSTER_RADIUS_STEPS = [
 	{ from: 25, radius: 15 },
 ] as const
 
-/** Mean Earth radius in metres — turns a summary's spherical spread into a distance. @internal */
+/** Mean Earth radius in meters — turns a summary's spherical spread into a distance. @internal */
 export const EARTH_RADIUS_METERS = 6371008.8
 
 /**

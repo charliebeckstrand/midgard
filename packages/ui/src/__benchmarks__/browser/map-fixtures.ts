@@ -83,10 +83,10 @@ export const countiesAtlas = prepareAtlas(countiesRaw, 'counties', 'bench-us-cou
 /** The categorical zones, in the explicit order every contender's legend shows. */
 export const ZONES = ['Pacific', 'Mountain', 'Central', 'Eastern'] as const
 
-/** One explicit colour per zone, shared by the Highcharts and ECharts scales. */
+/** One explicit color per zone, shared by the Highcharts and ECharts scales. */
 export const ZONE_COLORS = ['#2563eb', '#16a34a', '#d97706', '#dc2626'] as const
 
-/** The five-stop sequential ramp every contender's numeric colour scale samples. */
+/** The five-stop sequential ramp every contender's numeric color scale samples. */
 export const VALUE_RAMP = ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a']
 
 /** The numeric values' fixed domain ceiling. */

@@ -17,7 +17,7 @@ import { categoricalPlat } from '../helpers/map-plat'
  * pays exactly one whatever it draws — which is the other half of this gate,
  * because a second would mean the fold had come apart and the fit was measuring
  * its own bounds again. The emit is what `cachedCanonicalPaths` holds off: the
- * paths are memoised beside the geometry entry rather than on it, so a caller
+ * paths are memoized beside the geometry entry rather than on it, so a caller
  * that does not want them simply does not call, and there is no field for a
  * spread or a key walk to force. `regionPaths` is the fallback the built-in
  * projections never take, so it stays at zero on both.
@@ -32,7 +32,7 @@ vi.mock('../../modules/map/engine/map-geometry/projected', async (importActual) 
 	const actual =
 		await importActual<typeof import('../../modules/map/engine/map-geometry/projected')>()
 
-	// Wraps the real implementations, so behaviour is unchanged and only the call
+	// Wraps the real implementations, so behavior is unchanged and only the call
 	// counts are observable.
 	return {
 		...actual,
@@ -50,7 +50,7 @@ vi.mock('../../modules/map/engine/map-geometry/region', async (importActual) => 
 /**
  * Deliberately without a `width`: an explicit one measures the frame on the
  * first commit, which is the state after the deferral rather than the one under
- * test. A fresh atlas per call, because the static geometry is memoised on the
+ * test. A fresh atlas per call, because the static geometry is memoized on the
  * atlas object and a shared fixture would hand the second case the first's
  * entry — paths and all.
  */

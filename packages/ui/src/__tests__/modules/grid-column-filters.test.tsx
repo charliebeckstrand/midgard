@@ -226,7 +226,7 @@ describe('Grid per-column filters', () => {
 		expect(button.className).not.toMatch(/text-zinc-500/)
 
 		// The icon also swaps to the "+" variant, so the applied state reads by shape,
-		// not the accent colour alone (WCAG 1.4.1).
+		// not the accent color alone (WCAG 1.4.1).
 		expect(button.querySelector('.lucide-list-filter-plus')).toBeInTheDocument()
 	})
 
@@ -412,7 +412,7 @@ describe('Grid per-column filters', () => {
 
 		expect(button.className).toMatch(/text-blue/)
 
-		// The applied state is in the accessible name too, not conveyed by colour alone.
+		// The applied state is in the accessible name too, not conveyed by color alone.
 		expect(button).toHaveAccessibleName('Filter Name, active')
 	})
 
@@ -756,7 +756,7 @@ describe('Grid date and boolean filters', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Filter Done' }))
 
 		// The operator select shows, but a value-less operator suppresses the value
-		// editor entirely (no input of any kind labelled for the field).
+		// editor entirely (no input of any kind labeled for the field).
 		expect(screen.getByRole('combobox', { name: 'Operator' })).toBeInTheDocument()
 
 		expect(screen.queryByLabelText('Done value')).toBeNull()

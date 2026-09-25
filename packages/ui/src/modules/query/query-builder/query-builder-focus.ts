@@ -7,8 +7,8 @@ import type { QueryGroup } from '../engine/types'
 export type FocusTarget = { kind: 'node'; id: string } | { kind: 'add'; groupId: string }
 
 /**
- * Ordered focus candidates for the neighbourhood around node `id`, used when
- * removal takes `id` out of the tree. Focus then moves to a neighbour instead
+ * Ordered focus candidates for the neighborhood around node `id`, used when
+ * removal takes `id` out of the tree. Focus then moves to a neighbor instead
  * of dropping to <body> (WCAG 2.4.3).
  *
  * Returns several candidates, best first, and leaves the choice to the

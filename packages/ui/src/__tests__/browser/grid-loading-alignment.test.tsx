@@ -7,7 +7,7 @@ import { renderUI, waitFor } from '../helpers'
  * skeleton cell must sit in its own column, frozen columns included. Sticky
  * positioning only resolves in a browser (jsdom paints no layout), and the
  * regression this covers is geometric — a frozen column's placeholder that
- * doesn't stick lands under a scrolling neighbour, so the trailing column reads
+ * doesn't stick lands under a scrolling neighbor, so the trailing column reads
  * as pushed aside while the grid loads.
  */
 describe('grid loading row alignment (real browser)', () => {

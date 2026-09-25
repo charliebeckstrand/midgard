@@ -17,7 +17,7 @@ type RowPlatProps = Parameters<typeof MapPlat<Row>>[0]
 
 /**
  * The fixture geography as a categorical map: the `zone` of each fixture row
- * colours the region that its `state` names, in a frame 400px wide.
+ * colors the region that its `state` names, in a frame 400px wide.
  *
  * @remarks
  * `extra` replaces any single prop, the width and the geography included. An

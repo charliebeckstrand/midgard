@@ -22,7 +22,7 @@ import { FIXTURE_GEOJSON, FIXTURE_TOPOLOGY } from '../helpers/map-geography'
 import { categoricalPlat } from '../helpers/map-plat'
 
 describe('MapPlat', () => {
-	it('draws one region per feature under a labelled role="img" plot', () => {
+	it('draws one region per feature under a labeled role="img" plot', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		expect(allRegions(container)).toHaveLength(3)
@@ -108,12 +108,12 @@ describe('MapPlat', () => {
 		expect(box).toHaveStyle({ aspectRatio: '1.709' })
 	})
 
-	it('washes colour in over solid geography under animate, never fading the paths', () => {
+	it('washes color in over solid geography under animate, never fading the paths', () => {
 		const { container } = renderUI(categoricalPlat({ animate: true }))
 
 		const [alpha] = allRegions(container)
 
-		// A plain <path> carrying the colour transition — not a motion opacity
+		// A plain <path> carrying the color transition — not a motion opacity
 		// fade — so the geometry is legible at once and only the fill animates on.
 		expect(alpha?.tagName.toLowerCase()).toBe('path')
 
@@ -121,7 +121,7 @@ describe('MapPlat', () => {
 
 		expect(alpha?.getAttribute('style') ?? '').not.toContain('opacity')
 
-		// The category colour resolves once the reveal flag flips post-mount.
+		// The category color resolves once the reveal flag flips post-mount.
 		expect(alpha?.getAttribute('class')).toContain('fill-blue-600')
 	})
 
@@ -139,7 +139,7 @@ describe('MapPlat', () => {
 
 			// Past the reveal the stagger is gone. Left standing it delays every later
 			// fill change, and on an atlas of any size nearly every region sits at the
-			// cap — so a legend toggle would pay that beat before its colour so much as
+			// cap — so a legend toggle would pay that beat before its color so much as
 			// began to move.
 			expect(region()).not.toContain('transition-delay')
 
@@ -148,7 +148,7 @@ describe('MapPlat', () => {
 		})
 	})
 
-	it('colours matched regions by category slot and leaves the rest neutral', () => {
+	it('colors matched regions by category slot and leaves the rest neutral', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		const [alpha, beta, gamma] = allRegions(container)
@@ -161,7 +161,7 @@ describe('MapPlat', () => {
 		expect(gamma?.getAttribute('class')).toContain('fill-zinc-200')
 	})
 
-	it('honours explicit category order, colour, and label', () => {
+	it('honors explicit category order, color, and label', () => {
 		const { container } = renderUI(
 			categoricalPlat({
 				categories: [{ value: 'West', label: 'Western zone', color: 'rose' }, { value: 'East' }],
@@ -353,8 +353,8 @@ describe('MapPlat', () => {
 
 			fireEvent.click(east as HTMLButtonElement)
 
-			// The colour is restored and washing back in. The emphasis waits it out:
-			// a lit copy mounted now would paint the category's landed colour over the
+			// The color is restored and washing back in. The emphasis waits it out:
+			// a lit copy mounted now would paint the category's landed color over the
 			// very wash bringing it there, and the reader would never see it move.
 			expect(allRegions(container)[0]?.getAttribute('class')).toContain('fill-blue-600')
 
@@ -383,8 +383,8 @@ describe('MapPlat', () => {
 		fireEvent.click(east as HTMLButtonElement)
 	}
 
-	it('emphasises a toggled-on category at once on a static map', () => {
-		// `animate` is what arms the transition, so a static map paints the colour
+	it('emphasizes a toggled-on category at once on a static map', () => {
+		// `animate` is what arms the transition, so a static map paints the color
 		// outright and the hold above would be dead time.
 		const { container } = renderUI(categoricalPlat())
 
@@ -393,7 +393,7 @@ describe('MapPlat', () => {
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
 
-	it('emphasises a toggled-on category at once for a reduced-motion reader', () => {
+	it('emphasizes a toggled-on category at once for a reduced-motion reader', () => {
 		// `motion-reduce` drops the transition, so an animated plat has no wash to
 		// protect either. The preference is read live, so a session that turns it on
 		// mid-flight takes it on the next toggle.
@@ -695,13 +695,13 @@ describe('MapPlat choropleth mode', () => {
 		)
 	})
 
-	it('fills regions with the colorRange colour for their bin, as a fill attribute', () => {
+	it('fills regions with the colorRange color for their bin, as a fill attribute', () => {
 		const { container } = renderUI(choropleth())
 
 		const [alpha, , gamma] = allRegions(container)
 
 		// A=0 lands in the first (pale) bin, C=100 in the last (deep) one: distinct
-		// inline fills (the exact colour → bin mapping is unit-tested in map-value-scale).
+		// inline fills (the exact color → bin mapping is unit-tested in map-value-scale).
 		expect(fillOf(alpha)).toBeTruthy()
 
 		expect(fillOf(gamma)).toBeTruthy()
@@ -726,7 +726,7 @@ describe('MapPlat choropleth mode', () => {
 		expect(fillOf(beta)).toBeNull()
 	})
 
-	it('shows one legend entry per bin, largest first, labelled by value range', () => {
+	it('shows one legend entry per bin, largest first, labeled by value range', () => {
 		const { container } = renderUI(choropleth())
 
 		const items = allBySlot(container, 'map-legend-item')
@@ -774,7 +774,7 @@ describe('MapPlat choropleth mode', () => {
 		expect(bar?.textContent).toContain('100')
 	})
 
-	it('emphasises the pointed bin on range-legend hover, dimming the rest', () => {
+	it('emphasizes the pointed bin on range-legend hover, dimming the rest', () => {
 		const { container } = renderUI(choropleth({ legend: 'range' }))
 
 		const track = bySlot(container, 'map-range-track')
@@ -824,7 +824,7 @@ describe('MapPlat choropleth mode', () => {
 		expect(arrowTop()).toBe(0)
 	})
 
-	it('marks the hovered region at its exact value on the range bar, not its bin centre', () => {
+	it('marks the hovered region at its exact value on the range bar, not its bin center', () => {
 		const { container } = renderUI(choropleth({ legend: 'range' }))
 
 		const arrowTop = () => {
@@ -836,7 +836,7 @@ describe('MapPlat choropleth mode', () => {
 		const [alpha, beta, gamma] = allRegions(container)
 
 		// A = 0, the domain floor: the arrow reads the value itself — flush to the
-		// bottom (100% from the top), not seated at the lowest bin's band centre.
+		// bottom (100% from the top), not seated at the lowest bin's band center.
 		fireEvent.pointerEnter(alpha as Element, { clientX: 40, clientY: 20 })
 
 		expect(arrowTop()).toBe(100)
@@ -1023,7 +1023,7 @@ describe('MapPlat selected region', () => {
 		expect(ring?.getAttribute('d')).toBe(allRegions(container)[1]?.getAttribute('d'))
 
 		// It marks the region rather than repainting it: the fill reads through, so
-		// a selected region still shows its category colour.
+		// a selected region still shows its category color.
 		expect(ring).toHaveAttribute('fill', 'none')
 
 		rerender(categoricalPlat({ selectedRegion: 'C' }))
@@ -1214,7 +1214,7 @@ describe('MapPlat legend reporting', () => {
 		expect(hidden.size).toBe(2)
 	})
 
-	it('reports the id the legend emphasises, and null when it clears', () => {
+	it('reports the id the legend emphasizes, and null when it clears', () => {
 		const onEmphasisChange = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ onEmphasisChange }))
@@ -1251,8 +1251,8 @@ describe('MapPlat legend reporting', () => {
 	})
 
 	// A hidden entry cannot hold the emphasis, so switching one off while it is
-	// emphasised clears the emphasis too.
-	it('clears the emphasis when the emphasised entry is switched off', () => {
+	// emphasized clears the emphasis too.
+	it('clears the emphasis when the emphasized entry is switched off', () => {
 		const onEmphasisChange = vi.fn()
 
 		const { container } = renderUI(categoricalPlat({ onEmphasisChange }))

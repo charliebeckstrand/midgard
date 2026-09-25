@@ -39,7 +39,7 @@ describe('ProgressBar', () => {
 		expect(bySlot(container, 'progress-bar')).toHaveAttribute('aria-valuenow', '100')
 	})
 
-	it('honours aria-labelledby instead of aria-label', () => {
+	it('honors aria-labelledby instead of aria-label', () => {
 		const { container } = renderUI(
 			<>
 				<span id="lbl">Progress</span>

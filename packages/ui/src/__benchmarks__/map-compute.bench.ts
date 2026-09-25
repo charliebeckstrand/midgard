@@ -23,7 +23,7 @@ import {
 
 /**
  * The map's pure compute: the projection fit, and the joins that decide every
- * region's colour. `map-render.bench.tsx` times the React mount and its
+ * region's color. `map-render.bench.tsx` times the React mount and its
  * static-geometry cache one rung up; the competitive browser suite scores the
  * module against Highcharts Maps and ECharts one rung above that. This one
  * isolates the passes underneath both — each linear in the region count, and a

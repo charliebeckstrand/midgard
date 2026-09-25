@@ -30,7 +30,7 @@ function renderList() {
 }
 
 describe('ChatList', () => {
-	it('renders a labelled list with its items as list items', () => {
+	it('renders a labeled list with its items as list items', () => {
 		const { container } = renderList()
 
 		const list = bySlot(container, 'chat-list')

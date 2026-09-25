@@ -349,7 +349,7 @@ describe('FiltersClear', () => {
 		expect(onChange).toHaveBeenCalledWith(defaults)
 	})
 
-	it('preserves the child element onClick alongside the clear behaviour', async () => {
+	it('preserves the child element onClick alongside the clear behavior', async () => {
 		const onChange = vi.fn()
 
 		const childClick = vi.fn()

@@ -2,7 +2,7 @@
  * Redraw cost on a live map — the dashboard refresh path, the chart update
  * bench's shape over regions. Each scenario mounts every contender once
  * (top-level await; the maps stay up for the whole run) and each iteration
- * swaps in the other of two same-shape datasets, so every redraw recolours
+ * swaps in the other of two same-shape datasets, so every redraw recolors
  * real regions and never bails on an equality guard. The ui module re-renders
  * through its React root; Highcharts and ECharts take their in-place data
  * updates. Geometry never changes — an update moves data, not the atlas.

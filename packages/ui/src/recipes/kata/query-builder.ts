@@ -38,7 +38,7 @@ export const k = {
 		// The children of a group while they reorder. The box adds no layout, and
 		// it marks a drag in progress for the separators below.
 		list: 'group/sortable contents',
-		// A held node sits over its neighbours on an opaque surface, so the nodes
+		// A held node sits over its neighbors on an opaque surface, so the nodes
 		// it passes do not show through it.
 		base: [
 			'flex items-start gap-1.5',

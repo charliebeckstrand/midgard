@@ -87,7 +87,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	/**
 	 * Fires when a Download PNG or Download JPG action finishes, either way.
 	 *
-	 * The rasterise runs behind the menu and a failure went into a bare `catch`. A
+	 * The rasterize runs behind the menu and a failure went into a bare `catch`. A
 	 * reader whose export silently produced nothing had no way to learn why, and neither
 	 * did the caller. An image the browser refuses to decode, a tainted canvas, and a
 	 * canvas that yields no blob all arrive as `{ ok: false }`. Use it to report the
@@ -132,7 +132,7 @@ export type ChartContextMenuProps = {
 	 * `false` suppresses the menu; `undefined` shows the defaults alone.
 	 */
 	contextMenu: ChartContextMenuConfig | false | undefined
-	/** The chart root, read on an image-export action to rasterise the whole chart. */
+	/** The chart root, read on an image-export action to rasterize the whole chart. */
 	rootRef: RefObject<HTMLDivElement | null>
 	/**
 	 * The values behind the marks as a cached thunk, backing the CSV actions;
@@ -180,7 +180,7 @@ function exportCsv(readout: ChartReadoutSource): string {
  * {@link ChartContextMenuConfig}. Those actions are Fullscreen, Download PNG /
  * JPG, and (with a readout) Download CSV / Copy data. Fullscreen opens a large
  * dialog holding a live, re-mounted copy of the chart, centered at its aspect
- * ratio. Image downloads rasterise the whole chart, legend included, unless
+ * ratio. Image downloads rasterize the whole chart, legend included, unless
  * `downloadLegend` is off.
  *
  * @remarks Image export draws the chart through an SVG `foreignObject`, so its
@@ -280,7 +280,7 @@ export function ChartContextMenu({
 
 				reportExport({ ok: true, type, fileName })
 			} catch (error) {
-				// A failed rasterise (image decode) has no retry affordance to drive,
+				// A failed rasterize (image decode) has no retry affordance to drive,
 				// so the menu shows nothing. The caller hears about it instead.
 				reportExport({ ok: false, type, error })
 			}

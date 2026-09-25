@@ -214,28 +214,42 @@ export function wordLimit(sentence: string): number {
 /** Rule 10 bans these three modals outright; `must` and `can` replace them. */
 export const MODAL = /\b(?:may|shall|should)\b/i
 
-// The British stems that the tree has held. Each one has an American form.
+// The British forms that the tree has held, by pattern. Each one has an
+// American form.
 const BRITISH_STEMS = [
-	'behaviours?',
-	'colours?',
-	'coloured',
-	'colouring',
-	'centres?',
+	// -our, where American English writes -or.
+	'(?:behaviour|colour|neighbour|honour|favour|harbour|flavour|humour|labour|rumour|armour|endeavour|savour|odour|rigour|vigour|clamour|splendour)(?:s|ed|ing|hood|hoods|ite|ites|able|ably|less|ful|blind)?',
+	// -re, where American English writes -er.
+	'(?:centre|metre|kilometre|millimetre|centimetre|litre|fibre|theatre|amphitheatre|calibre|spectre|lustre|sombre|meagre|sabre)s?',
 	'centred',
 	'centring',
-	'greys?',
-	'greyed',
-	'favour\\w*',
-	'honour\\w*',
+	// A doubled l before a suffix, where American English keeps one.
+	'(?:label|cancel|model|travel|total|portal|signal|level|fuel|channel|tunnel|dial|equal|unravel|spiral|swivel|panel|marshal|barrel|jewel|marvel|quarrel|rival|shovel|pedal|duel|libel|revel)l(?:ed|ing|er|ers)',
+	'grey(?:s|ed|ing|ish|ness|scale)?',
+	// Single words.
+	'judgements?',
+	'acknowledgements?',
+	'catalogue[sd]?',
+	'cataloguing',
+	'fulfil',
+	'fulfils',
+	'fulfilment',
+	'enrol',
+	'enrols',
+	'enrolment',
+	'defences?',
+	'offences?',
+	'licences?',
+	'pretences?',
+	'learnt',
+	'spelt',
+	'programmes?',
 	'artefacts?',
-	'cancell(?:ed|ing)',
-	'labell(?:ed|ing)',
-	'modell(?:ed|ing)',
-	'travell(?:ed|ing)',
 	'focuss(?:ed|ing)',
-	'judgement',
-	'analys(?:e|ed|es|ing)',
-	'(?:normal|serial|initial|organ|recogn|optim|custom|real|minim|maxim|priorit|summar|memo|stabil|synchron|visual|categor|util|standard|special|general|parameter|author|emphas|final|capital|apolog|critic|local|global|token|sanit)is(?:e|ed|es|ing|ation|ations|er|ers)',
+	'(?:anal|paral|catal)ys(?:e|ed|es|ing)',
+	// -ise, where American English writes -ize. The stems are explicit, because
+	// promise, exercise, and advertise end in -ise in both spellings.
+	'(?:normal|serial|initial|organ|recogn|optim|custom|real|minim|maxim|priorit|summar|memo|stabil|synchron|visual|categor|util|standard|special|general|parameter|author|emphas|final|capital|apolog|critic|local|global|token|sanit|raster|quant|synthes|material|internal|plural|central|personal|rational|neutral|equal|harmon|modern|vector|virtual|symbol|character|hypothes|theor|memor|familiar|random|digit|discret|linear|canonical|polar|privat|social|trivial|verbal|ideal|external|marginal|natural|operational|anonym|fantas|jeopard|patron|scrutin|subsid|sympath|mobil|monet|penal|legitim|steril|fertil)is(?:e|ed|es|ing|ation|ations|able|er|ers)',
 ]
 
 /**

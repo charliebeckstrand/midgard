@@ -116,9 +116,9 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(
 			<Control required>
 				<Field severity="error">
-					<Label>Brand colour</Label>
+					<Label>Brand color</Label>
 					<ColorPanel defaultValue="#3b82f6" />
-					<Message>Pick a colour</Message>
+					<Message>Pick a color</Message>
 				</Field>
 			</Control>,
 		)
@@ -142,9 +142,9 @@ describe('ColorPanel', () => {
 		const { container } = renderUI(
 			<Control required>
 				<Field severity="error">
-					<Label>Brand colour</Label>
+					<Label>Brand color</Label>
 					<ColorPanel defaultValue="#3b82f6" />
-					<Message>Pick a colour</Message>
+					<Message>Pick a color</Message>
 				</Field>
 			</Control>,
 		)
@@ -255,7 +255,7 @@ describe('ColorPanel', () => {
 })
 
 describe('ColorPicker', () => {
-	it('renders a dialog trigger with a colour swatch', () => {
+	it('renders a dialog trigger with a color swatch', () => {
 		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 
 		const button = bySlot(container, 'color-picker-button')
@@ -339,7 +339,7 @@ describe('useColorState', () => {
 		expect(result.current.hsva).toMatchObject({ h: 0, s: 100, v: 100 })
 	})
 
-	it('keeps the hue when an adopting owner echoes a greyscale emission', () => {
+	it('keeps the hue when an adopting owner echoes a grayscale emission', () => {
 		const { result } = renderHook(() => {
 			const [value, setValue] = useState<string | Hsva>('#ff0000')
 

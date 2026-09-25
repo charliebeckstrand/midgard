@@ -244,7 +244,7 @@ function memoKey(plan: Plan, props: Record<string, unknown> | undefined): string
 	return key
 }
 
-/** Materialises the resolved values map for a memo miss. @internal */
+/** Materializes the resolved values map for a memo miss. @internal */
 function buildRecipeValues(
 	plan: Plan,
 	props: Record<string, unknown> | undefined,

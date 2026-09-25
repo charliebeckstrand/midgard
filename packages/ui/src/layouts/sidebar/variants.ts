@@ -35,7 +35,7 @@ const floatingHotZone = defineRecipe({
 	base: ['absolute inset-y-0 left-0 z-30 w-2 max-lg:hidden'],
 })
 
-// Portalled to the body, so it escapes the layout's stacking context and needs a
+// Portaled to the body, so it escapes the layout's stacking context and needs a
 // ladder rung rather than a local `z-30` like the hot zone above. It is the
 // sidebar's own furniture, which is the `chrome` rung's other inhabitant.
 const floatingBuffer = defineRecipe({

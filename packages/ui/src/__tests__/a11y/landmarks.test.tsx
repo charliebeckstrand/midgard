@@ -27,7 +27,7 @@ import { axePage } from '../helpers/axe'
  * Page/layout landmark compliance. Renders whole layouts and runs axe at
  * document scope (`axePage` enables `region` and the landmark rules), exercising
  * the structural concerns that only exist at the page level: a single `<main>`,
- * content contained in landmarks, uniquely-labelled landmarks. Each page is
+ * content contained in landmarks, uniquely-labeled landmarks. Each page is
  * rendered in its canonical, complete form.
  */
 

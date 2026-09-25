@@ -62,7 +62,7 @@ describe('ChatTranscript scroll confinement', () => {
 	})
 
 	it('still jumps its own container to the newest message', () => {
-		// The confinement must not cost the behaviour it guards: a transcript that
+		// The confinement must not cost the behavior it guards: a transcript that
 		// does overflow still opens at the bottom.
 		const { container } = renderUI(page(long, 'h-[200px]'))
 
