@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
 import type { DensityLevel } from '../../providers/density'
 import type { GridSortState } from './context'
@@ -465,9 +465,10 @@ export type GridReorder = {
 /**
  * Runtime pin state for {@link GridPinning}, keyed by stringified column id: a
  * side freezes the column to that edge, `'none'` unpins a statically-pinned
- * one. Columns absent keep their {@link GridColumn.pinned} flag; a
- * {@link GridColumn.locked} column ignores entries entirely. Plain-object
- * shape so the state serializes for persistence.
+ * one. `'left'` is the inline start, and `'right'` the inline end. Columns
+ * absent keep their {@link GridColumn.pinned} flag; a {@link GridColumn.locked}
+ * column ignores entries entirely. Plain-object shape so the state serializes
+ * for persistence.
  */
 export type GridPinningState = Record<string, 'left' | 'right' | 'none'>
 
@@ -650,15 +651,36 @@ export type GridFooter = {
 }
 
 /**
+ * The commands that an app sends to a {@link Grid} through its `ref`, for
+ * example from a toolbar above an editable grid.
+ */
+export type GridHandle = {
+	/**
+	 * Undoes the last save under {@link GridEditableConfig.history}, as Ctrl+Z
+	 * or Cmd+Z on the grid's tab stop does. It returns `true` when it wrote a
+	 * cell. It returns `false` when no step applies, and the live region says
+	 * why, as it does for the key. With the history off, it does nothing and
+	 * says nothing.
+	 *
+	 * @remarks The cursor does not move, because focus stays on the control that
+	 * sent the command. The announcement names the cell that changed.
+	 */
+	undo: () => boolean
+	/** Redoes the last undone save, in the way that {@link GridHandle.undo} undoes one. */
+	redo: () => boolean
+}
+
+/**
  * The grid's own rows and columns, before the render window narrows them. The
  * editing layer's commit path reads these because a draft can outlive the view
  * that its editor mounted in. A row can page out, a filter can drop it, or a
  * column can hide, and the rendered set no longer holds it. A row or column that
- * the consumer removed is absent here too, so its draft still drops.
+ * the consumer removed is absent here too, so its draft still drops. The
+ * `rowLabel` names a row in the save announcement.
  *
  * @internal
  */
-export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'getKey'>
+export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'getKey' | 'rowLabel'>
 
 /**
  * Props for a data {@link Grid}. `T` is the row datum type;
@@ -732,10 +754,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * group-header rows interleaved with lazily fetched children.
 	 * {@link GridGroupBy.groupRow} marks each header.
 	 *
-	 * Grouping renders its own body. While active it stands the
-	 * {@link GridDataProps.navigable} cursor down. Client grouping windows its
-	 * rows under an explicit {@link GridDataProps.virtualize}, and manual grouping
-	 * stands the window down. Sorting, filtering, search, selection,
+	 * Grouping renders its own body. Under client grouping, the
+	 * {@link GridDataProps.navigable} cursor stops once on each group header and
+	 * each group total. Manual grouping stands the cursor down. Client grouping
+	 * windows its rows under an explicit {@link GridDataProps.virtualize}, and
+	 * manual grouping stands the window down. Sorting, filtering, search, selection,
 	 * resizing, and pinning still apply. Client grouping also stands
 	 * {@link GridDataProps.pagination} down; manual grouping composes with
 	 * manual pagination and forces sort/search/filter manual.
@@ -846,6 +869,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * sits, so a change to one never reflows the others. The table then grows or shrinks
 	 * freely, into trailing space or a horizontal scroll, rather than re-fitting. A press on
 	 * the handle that moves nothing takes no control.
+	 *
+	 * The trailing edge is the inline end. In a right-to-left grid, the handle is on the
+	 * left of the header, and a drag or ArrowLeft to the left widens the column.
 	 *
 	 * "Auto-size this column" (also a double-click or Enter on the handle) sets one column to
 	 * its content width. "Auto-size all columns" gives each column the width that "Auto-size
@@ -1019,9 +1045,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * column for the disclosure chevron. The panel spans the full row width and
 	 * opens over an auto-height transition.
 	 *
-	 * Renders its own body, so it stands down two things while active, as
-	 * grouping does: the {@link GridProps.navigable | cursor} and row
-	 * {@link GridProps.rowReorder | reorder}. Under an explicit
+	 * Renders its own body, so it stands row
+	 * {@link GridProps.rowReorder | reorder} down while active, as grouping
+	 * does. The {@link GridProps.navigable | cursor} stops once on each open
+	 * panel. Under an explicit
 	 * {@link GridProps.virtualize}, the body windows each row and each open panel,
 	 * and each measures its own height. Sorting, filtering, search, selection,
 	 * pagination, resizing, and pinning still apply.
@@ -1059,6 +1086,19 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Enter/Space activates the active cell's {@link GridDataProps.onCellClick}
 	 * and the active row's {@link GridDataProps.onRowClick}, in that order;
 	 * clicking a cell seats the cursor there.
+	 *
+	 * A client-grouped grid is a `treegrid`. Each group header row carries
+	 * `aria-level` 1 and `aria-expanded`, and each leaf and total carries
+	 * `aria-level` 2. A group header, a group total, and an open detail panel
+	 * are one stop each. The cursor keeps its column across a stop. On a group header, Enter
+	 * or Space toggles the group, ArrowRight opens it or steps into it, and
+	 * ArrowLeft closes it. On a detail panel, Enter or F2 moves focus to the
+	 * first control in the panel, and Escape gives focus back to the grid.
+	 *
+	 * The grid reads its computed `direction`. In a right-to-left grid, ArrowLeft
+	 * moves to the next column and ArrowRight to the previous one. The group keys
+	 * mirror in the same way. Home and End still reach the start and the end of
+	 * the row.
 	 *
 	 * Off by default, so a static table keeps the browser/screen-reader's native
 	 * table navigation; opt in for a spreadsheet-style read-only grid. Focusable
@@ -1164,7 +1204,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 
 	/**
 	 * Human-readable name for a row; labels its selection checkbox
-	 * ("Select {label}"). Falls back to the raw row key.
+	 * ("Select {label}"). An editable grid also names the row with it when a
+	 * save is announced ("Name updated for {label}"). Without it, the grid names
+	 * the row by its key.
 	 */
 	rowLabel?: (row: T) => string
 
@@ -1307,6 +1349,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * a read-only grid.
 	 */
 	editable?: GridEditableConfig
+
+	/** Receives the commands of the grid, such as {@link GridHandle.undo}. */
+	ref?: Ref<GridHandle>
 
 	/** Extra class merged onto the underlying `<table>` element. */
 	className?: string

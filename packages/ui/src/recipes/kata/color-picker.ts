@@ -10,7 +10,7 @@ const { reset, density, size, surface } = control
 const { portal, panel } = popover
 
 const button = defineRecipe({
-	base: ['flex items-center gap-2', ...reset, 'text-left', 'appearance-none', ...cursor],
+	base: ['flex items-center gap-2', ...reset, 'text-start', 'appearance-none', ...cursor],
 	density,
 	size,
 	defaults: { density: 'md', size: 'md' },

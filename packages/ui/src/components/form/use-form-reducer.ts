@@ -4,6 +4,7 @@ import {
 	type SyntheticEvent,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -136,17 +137,24 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	// on each sync and cannot serve this role.
 	const initialDefaultsRef = useRef(defaultValues)
 
+	// A ref, not an effect event: the reducer runs the validators during render,
+	// and an effect event throws when render calls it.
 	const validateRef = useRef(validate)
 
 	validateRef.current = validate
 
-	const onSettledRef = useRef(onSettled)
+	const reportSettled = useEffectEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
 
-	onSettledRef.current = onSettled
+	// The payload is built only when a callback reads it.
+	const reportInvalid = useEffectEvent((errors: Errors) => {
+		if (!onInvalidSubmit) return
 
-	const onInvalidSubmitRef = useRef(onInvalidSubmit)
-
-	onInvalidSubmitRef.current = onInvalidSubmit
+		onInvalidSubmit(
+			Object.fromEntries(
+				Object.entries(errors).filter(([, issues]) => hasIssues(issues)),
+			) as Partial<Record<keyof T, string[]>>,
+		)
+	})
 
 	// Monotonic token identifying the current submit. Reset, unmount, and newer
 	// submits bump it; an in-flight handler compares against it to detect
@@ -278,11 +286,7 @@ export function useFormReducer<T extends Record<string, unknown>>({
 			// circuits and the payload is built only on the path that needs it, so a
 			// valid submit walks no further than the first clean field.
 			if (refused) {
-				onInvalidSubmitRef.current?.(
-					Object.fromEntries(
-						Object.entries(submitErrors).filter(([, issues]) => hasIssues(issues)),
-					) as Partial<Record<keyof T, string[]>>,
-				)
+				reportInvalid(submitErrors)
 
 				return
 			}
@@ -301,13 +305,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 				// Field errors: mid-flow, not a terminal outcome; does not fire `onSettled`.
 				if (fieldErrors) setErrorsExternal(fieldErrors)
-				else onSettledRef.current?.({ ok: true, values: valuesRef.current })
+				else reportSettled({ ok: true, values: valuesRef.current })
 			}
 
 			const applyError = (err: unknown) => {
 				if (submitTokenRef.current !== token) return
 
-				onSettledRef.current?.({
+				reportSettled({
 					ok: false,
 					error: err instanceof Error ? err : new Error(String(err)),
 				})

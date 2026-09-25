@@ -40,6 +40,22 @@ export type GridCellRefusal = GridCellRef & {
 }
 
 /**
+ * Whether the undo history of an editable grid holds a step each way, as
+ * {@link GridEditableConfig.onHistoryChange} reports it. A toolbar disables its
+ * Undo and Redo buttons with it.
+ *
+ * @remarks `canUndo` means that the stack holds an entry. A step can still
+ * write nothing, when each of its cells changed since the save. The grid then
+ * says so, and drops the entry.
+ */
+export type GridHistoryState = {
+	/** The undo stack holds an entry. */
+	canUndo: boolean
+	/** The redo stack holds an entry. */
+	canRedo: boolean
+}
+
+/**
  * Context handed to a column's {@link GridColumn.editCell} slot when its cell
  * enters edit mode. The grid owns the draft buffer and the commit/cancel
  * lifecycle. The slot decides how to render the control, and when to stage or
@@ -102,6 +118,45 @@ export type GridRowActionsContext = {
 	save: () => void
 	/** Close the row, dropping its staged cells. Nothing reaches `onCommit`. */
 	discard: () => void
+}
+
+/**
+ * The Add control of the new row, as {@link GridEditableConfig.newRowAdd} sets
+ * it. Each field is optional, so `{}` is the built-in button at the width of
+ * that button.
+ */
+export type GridNewRowAdd = {
+	/**
+	 * Renders your own control from a {@link GridNewRowAddContext}. Omit it for
+	 * the built-in button. Render a control that focus can reach. Tab reaches it
+	 * after the last editor of the row.
+	 */
+	render?: (context: GridNewRowAddContext) => ReactNode
+	/**
+	 * The width (px) of the Add column. Omit it, and the column takes the width
+	 * of its control and the cell padding. The column then measures again when
+	 * the control changes size, but not while an add is in flight. The column
+	 * holds its width through the add. Keep the pending state of a control no
+	 * wider than its resting state.
+	 */
+	width?: number
+}
+
+/**
+ * Context handed to the {@link GridNewRowAdd.render} slot, which renders the
+ * Add control of the new row.
+ */
+export type GridNewRowAddContext = {
+	/**
+	 * Adds the row, as Enter in the row does. An add with no value does
+	 * nothing, and a second add waits while one is in flight.
+	 */
+	add: () => void
+	/**
+	 * Whether an add that {@link GridEditableConfig.onRowAdd} returned as a
+	 * promise is in flight. The grid makes the control inert until it settles.
+	 */
+	pending: boolean
 }
 
 /**
@@ -384,12 +439,46 @@ export type GridEditableConfig = {
 	 */
 	onReject?: (refused: GridCellChange[]) => void
 	/**
+	 * Turns on undo and redo of saved cells. With focus on the grid's tab stop,
+	 * Ctrl+Z or Cmd+Z undoes the last save. Ctrl+Shift+Z, Cmd+Shift+Z, or
+	 * Ctrl+Y redoes it. In an open editor, the keys stay with the editor, for
+	 * its own text undo. The cursor moves to the first cell that a step writes,
+	 * when the grid shows its row and its column.
+	 *
+	 * The grid does not change the rows. An undo sends the old values through
+	 * {@link GridEditableConfig.onCommit}, one batch for each row, and a redo
+	 * sends the new values again. Apply them as you apply a save. A promise
+	 * works as it does for a save: the cells show as pending, and a refused
+	 * cell keeps the value with its error. `validate` does not run, because
+	 * each value was valid when it saved.
+	 *
+	 * @remarks The history holds the last 100 saves, and a new save clears the
+	 * steps that redo can take. A step writes a cell only when the cell still
+	 * holds the value that the last save wrote. A cell that changed since, for
+	 * example through a refetch, keeps its value. A column with no `field` is
+	 * not in the history, because the grid cannot read its old value. A step
+	 * waits while one of its cells has an edit that is not saved. The history
+	 * works under both values of {@link GridEditableConfig.session}. The
+	 * new-row slot is not in it.
+	 * @defaultValue false
+	 */
+	history?: boolean
+	/**
+	 * Fires when the undo history gains its first step in a direction, or loses
+	 * its last. Hold the state to enable a toolbar's Undo and Redo buttons, which
+	 * call {@link GridHandle.undo} and {@link GridHandle.redo}. It fires while
+	 * {@link GridEditableConfig.history} is on, and once more with both values
+	 * `false` when the history turns off.
+	 */
+	onHistoryChange?: (state: GridHistoryState) => void
+	/**
 	 * Adds a blank editor row, pinned at the top or the bottom of the body, for
 	 * the entry of a new record. Its editable cells are always editors. Fill
 	 * them, then press Enter in the row, or its Add control, to call
-	 * {@link GridEditableConfig.onRowAdd}. Escape clears the row, and F2 keeps
-	 * its values. Both put focus back on the grid, with the keyboard cursor on
-	 * the cell. The row also shows over an empty grid.
+	 * {@link GridEditableConfig.onRowAdd}. The Add control is in a column of
+	 * its own, which {@link GridEditableConfig.newRowAdd} sets. Escape clears
+	 * the row, and F2 keeps its values. Both put focus back on the grid, with
+	 * the keyboard cursor on the cell. The row also shows over an empty grid.
 	 *
 	 * The row is not a data row. Sort, filter, grouping, pagination, and
 	 * aggregation do not apply to it, and selection and export do not include
@@ -449,4 +538,33 @@ export type GridEditableConfig = {
 	 */
 	// biome-ignore lint/suspicious/noConfusingVoidType: `void` lets an `async` function with no `return` pass as the callback; `undefined` would refuse its `Promise<void>`.
 	onRowAdd?: (values: Record<string, unknown>) => void | Promise<void | GridCellRefusal[]>
+	/**
+	 * The Add control of the row that {@link GridEditableConfig.newRow} shows,
+	 * as one {@link GridNewRowAdd}. Omit it for the built-in button. Set
+	 * `render` for your own control, and `width` to fix the width of its
+	 * column. Pass `false` to show no control, so that only Enter in the row
+	 * adds it.
+	 *
+	 * The control is in a column that the grid adds after your columns. The
+	 * column is locked to the inline end, so it stays in view as the grid
+	 * scrolls sideways. The user cannot resize, move, or hide it. Your last
+	 * column therefore resizes on its own. The cells of the column in the
+	 * other rows are empty. Without a `width`, the column takes the width of
+	 * its control.
+	 *
+	 * @example
+	 * ```tsx
+	 * // Your own control, with the column at the width of the control.
+	 * newRowAdd: { render: ({ add }) => <Button onClick={add}>Add person</Button> }
+	 * // The built-in button, in a column of 64 px.
+	 * newRowAdd: { width: 64 }
+	 * ```
+	 *
+	 * @remarks The column is not a data column. The column manager, export,
+	 * and the column state of {@link GridProps.preferences} do not include it.
+	 * It counts in `aria-colcount`, and its header has a name for assistive
+	 * tech only. With `false`, the grid adds no column. Before the first
+	 * measure, and in an environment with no layout, the column is 48 px wide.
+	 */
+	newRowAdd?: false | GridNewRowAdd
 }

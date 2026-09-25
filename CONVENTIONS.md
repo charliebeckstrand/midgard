@@ -123,7 +123,7 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
-11.3 The supported browser floor is [`.browserslistrc`](.browserslistrc), and the ES2023 change-by-copy array methods set it. A build target does not enforce it: esbuild and SWC downlevel syntax, never instance methods, so a method the floor doesn't cover ships and throws. Reaching below the floor costs a polyfill, not a config change.
+11.3 The supported browser floor is [`.browserslistrc`](.browserslistrc), and the ES2023 change-by-copy array methods set it. A build target does not enforce it: esbuild and SWC downlevel syntax, never instance methods, so a method the floor doesn't cover ships and throws. Reaching below the floor costs a polyfill, not a config change. `lib: ["ES2023"]` stops a newer ECMAScript built-in at type-check; the [`no-api-above-browser-floor`](.biome/plugins/no-api-above-browser-floor.grit) Biome plugin stops a call that the type-check passes, such as a DOM API.
 
 ## 12. Documentation
 

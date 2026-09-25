@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect } from 'react'
+import { type ReactNode, useEffect, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	createGroup,
@@ -534,6 +534,105 @@ describe('QueryBuilderRuleValue', () => {
 		expect(onChange).toHaveBeenCalledWith(['', 10])
 	})
 
+	it('shows the field span as the range placeholders, and clamps each bound to it', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={['', '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', '18')
+
+		expect(max).toHaveAttribute('placeholder', '65')
+
+		expect(min).toHaveAttribute('min', '18')
+
+		expect(min).toHaveAttribute('max', '65')
+
+		expect(max).toHaveAttribute('min', '18')
+
+		expect(max).toHaveAttribute('max', '65')
+	})
+
+	it('clamps each range bound to the other, so the pair cannot invert', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		const onChange = vi.fn()
+
+		// NumberInput clamps its controlled value on blur, so the harness holds the
+		// tuple the way a builder does.
+		function Harness() {
+			const [value, setValue] = useState<unknown>([30, 40])
+
+			return (
+				<QueryBuilderRuleValue
+					field={field}
+					value={value}
+					range
+					onValueChange={(next) => {
+						onChange(next)
+
+						setValue(next)
+					}}
+				/>
+			)
+		}
+
+		renderUI(<Harness />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('max', '40')
+
+		expect(max).toHaveAttribute('min', '30')
+
+		// A bound typed past the other clamps to it on blur.
+		fireEvent.change(min, { target: { value: '50' } })
+
+		fireEvent.blur(min)
+
+		expect(onChange).toHaveBeenLastCalledWith([40, 40])
+	})
+
+	it('keeps each input’s min at or below its max when a saved bound sits past the span', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number', span: [18, 65] }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[80, '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' }) as HTMLInputElement
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		// The saved bound is not edited, so it keeps its value.
+		expect(min.value).toBe('80')
+
+		expect(max).toHaveAttribute('min', '65')
+
+		expect(max).toHaveAttribute('max', '65')
+	})
+
+	it('keeps the plain placeholders and clamps only bound to bound with no span', () => {
+		const field: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+		renderUI(<QueryBuilderRuleValue field={field} value={[5, '']} range onValueChange={vi.fn()} />)
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', 'Min')
+
+		expect(min).not.toHaveAttribute('max')
+
+		expect(max).toHaveAttribute('placeholder', 'Max')
+
+		expect(max).toHaveAttribute('min', '5')
+	})
+
 	it('renders a Select for select fields', () => {
 		const field: QueryField = {
 			name: 'status',
@@ -655,5 +754,74 @@ describe('QueryBuilder removal focus', () => {
 		expect(screen.queryAllByRole('button', { name: 'Remove rule' })).toHaveLength(0)
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Add' }))
+	})
+})
+
+// Reorder is opt-in. With `reorder`, each child of a group with two or more
+// children carries a grip; the drag itself runs in the browser suite, because
+// jsdom cannot drive dnd-kit's sensors.
+describe('QueryBuilder reorder grips', () => {
+	const named = (value: string) => ({ ...createRule(fields[0]), operator: 'contains', value })
+
+	const grips = () => screen.queryAllByRole('button', { name: /^Reorder / })
+
+	it('shows no grip by default', () => {
+		renderUI(
+			<QueryBuilder fields={fields} defaultValue={createGroup('and', [named('a'), named('b')])} />,
+		)
+
+		expect(grips()).toHaveLength(0)
+	})
+
+	it('labels a grip for each child by its summary text', () => {
+		renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), createGroup('or', [named('b')])])}
+				reorder
+			/>,
+		)
+
+		expect(grips().map((grip) => grip.getAttribute('aria-label'))).toEqual([
+			'Reorder Name contains a',
+			'Reorder condition group',
+		])
+	})
+
+	it('shows no grip in a group with one child', () => {
+		renderUI(
+			<QueryBuilder fields={fields} defaultValue={createGroup('and', [named('a')])} reorder />,
+		)
+
+		expect(grips()).toHaveLength(0)
+	})
+
+	it('keeps each combinator outside the node that the grip moves', () => {
+		const { container } = renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), named('b')])}
+				reorder
+			/>,
+		)
+
+		for (const node of container.querySelectorAll('[data-slot="query-sortable"]')) {
+			expect(within(node as HTMLElement).queryByRole('tablist')).toBeNull()
+		}
+
+		expect(screen.getByRole('tablist', { name: 'Combinator' })).toBeInTheDocument()
+	})
+
+	it('disables each grip when the builder is disabled', () => {
+		renderUI(
+			<QueryBuilder
+				fields={fields}
+				defaultValue={createGroup('and', [named('a'), named('b')])}
+				reorder
+				disabled
+			/>,
+		)
+
+		for (const grip of grips()) expect(grip).toBeDisabled()
 	})
 })

@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
+import { isQueryActive } from '../../modules/query/engine/query-active'
 import { evaluateQuery, matchQueryRule } from '../../modules/query/engine/query-evaluate'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
+import { summarizeQuery } from '../../modules/query/engine/query-summary'
 import type { QueryField, QueryRule } from '../../modules/query/engine/types'
 
 describe('matchQueryRule', () => {
@@ -33,6 +35,9 @@ describe('matchQueryRule', () => {
 
 		// An unknown (half-built) operator imposes no constraint.
 		expect(matchQueryRule('???', 'x', 'y')).toBe(true)
+
+		// An inherited object key is not a matcher, so it does not run.
+		expect(matchQueryRule('valueOf', 'x', 'y')).toBe(true)
 	})
 
 	it('imposes no constraint when a value-requiring operator has an empty value', () => {
@@ -86,6 +91,64 @@ describe('matchQueryRule', () => {
 		expect(matchQueryRule('between', 5, ['', ''])).toBe(true)
 
 		expect(matchQueryRule('between', 5, undefined)).toBe(true)
+
+		expect(matchQueryRule('between', 5, 7)).toBe(true)
+	})
+
+	it('imposes no constraint when a scalar operator reads a value that is not a scalar', () => {
+		expect(matchQueryRule('gt', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('contains', 'Alice', { text: 'Bob' })).toBe(true)
+
+		expect(matchQueryRule('after', '2026-01-15', new Date('2026-01-01'))).toBe(true)
+	})
+
+	it('imposes no constraint when a between bound is not a scalar', () => {
+		expect(matchQueryRule('between', 5, [[10], ''])).toBe(true)
+
+		expect(matchQueryRule('between', 5, ['', { max: 1 }])).toBe(true)
+	})
+
+	it('imposes no constraint when a between value is not a pair', () => {
+		expect(matchQueryRule('between', 5, [10])).toBe(true)
+
+		expect(matchQueryRule('between', 5, [10, 20, 30])).toBe(true)
+	})
+
+	it('reads a whitespace-only between bound as open', () => {
+		expect(matchQueryRule('between', -5, ['  ', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 100, [10, '\t'])).toBe(true)
+	})
+
+	it('reads a null between bound as open', () => {
+		expect(matchQueryRule('between', 5, [null, 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, [null, 10])).toBe(false)
+	})
+
+	it('imposes no constraint when a numeric operator reads a value that is not numeric', () => {
+		expect(matchQueryRule('gt', 5, 'abc')).toBe(true)
+
+		expect(matchQueryRule('lte', 5, Number.NaN)).toBe(true)
+
+		expect(matchQueryRule('between', 5, ['abc', 10])).toBe(true)
+
+		expect(matchQueryRule('between', 50, [1, 'abc'])).toBe(true)
+	})
+
+	it('reads a numeric string as a number', () => {
+		expect(matchQueryRule('gt', 5, '3')).toBe(true)
+
+		expect(matchQueryRule('gt', 5, '7')).toBe(false)
+
+		expect(matchQueryRule('between', 50, ['1', '10'])).toBe(false)
+	})
+
+	it('reads a boolean value as a scalar', () => {
+		expect(matchQueryRule('equals', true, true)).toBe(true)
+
+		expect(matchQueryRule('equals', false, true)).toBe(false)
 	})
 })
 
@@ -123,6 +186,51 @@ describe('evaluateQuery', () => {
 
 		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
 	})
+
+	it('drops a rule with no constraint from the fold, with its combinator', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(numberField), operator: 'gt', value: 20 },
+			{ ...createRule(textField), combinator: 'or', operator: 'contains', value: '' },
+		])
+
+		// `Age > 20 OR (blank)` reads as `Age > 20`, as the summary shows it.
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
+	})
+
+	it('drops a leading rule with no constraint, so the next rule leads', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), combinator: 'or', operator: 'gt', value: 20 },
+			{ ...createRule(textField), combinator: 'and', operator: 'contains', value: 'li' },
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Bob', age: 30 }))).toBe(false)
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 30 }))).toBe(true)
+	})
+
+	it('drops a group with no constraint from the fold', () => {
+		const blank = { ...createRule(textField), operator: 'contains', value: '' }
+
+		const tree = createGroup('and', [
+			{ ...createRule(numberField), operator: 'gt', value: 20 },
+			createGroup('or', [blank]),
+			createGroup('or'),
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(false)
+	})
+
+	it('matches every row when no rule puts a constraint on it', () => {
+		const tree = createGroup('and', [
+			{ ...createRule(textField), operator: 'contains', value: '' },
+			{ ...createRule(numberField), combinator: 'or', operator: 'gt', value: '' },
+		])
+
+		expect(evaluateQuery(tree, getValue({ name: 'Alice', age: 10 }))).toBe(true)
+	})
 })
 
 // The tables above hold the documented examples. The properties below read the
@@ -148,6 +256,15 @@ const OPERATORS = [
 	'isFalse',
 ]
 
+/** One field of each type, so the summary reads each default operator set. */
+const FIELDS: QueryField[] = [
+	{ name: 'name', label: 'Name', type: 'text' },
+	{ name: 'age', label: 'Age', type: 'number' },
+	{ name: 'joined', label: 'Joined', type: 'date' },
+	{ name: 'status', label: 'Status', type: 'select', options: [{ value: 'a', label: 'A' }] },
+	{ name: 'verified', label: 'Verified', type: 'boolean' },
+]
+
 /** Operators that read no rule value, so an empty value never stands them down. */
 const VALUELESS = ['isEmpty', 'isNotEmpty', 'isTrue', 'isFalse']
 
@@ -170,6 +287,9 @@ const fieldValue = () =>
 /** A finite number, which is the domain the numeric operators state an order over. */
 const numeric = () => fc.integer({ min: -1000, max: 1000 })
 
+/** A value that is not a scalar, so it has the wrong shape for a scalar operator or a range bound. */
+const nonScalar = () => fc.oneof(fc.array(fieldValue(), { minLength: 1 }), fc.object(), fc.date())
+
 /** A rule value that survives a trim, so the empty-value rule does not stand the operator down. */
 const stated = () => fc.string({ minLength: 1, maxLength: 6 }).filter((text) => text.trim() !== '')
 
@@ -187,6 +307,39 @@ describe('matchQueryRule · properties', () => {
 			expect(matchQueryRule('notAnOperator', value, rule)).toBe(true)
 		},
 	)
+
+	// Each operator but `between` reads a scalar. An array, an object, or a
+	// `Date` has the wrong shape, so the operator stands down.
+	test.prop([
+		fc.constantFrom(...NEEDS_VALUE.filter((operator) => operator !== 'between')),
+		fieldValue(),
+		nonScalar(),
+	])(
+		'imposes no constraint when a scalar operator reads a value that is not a scalar',
+		(operator, value, rule) => {
+			expect(matchQueryRule(operator, value, rule)).toBe(true)
+		},
+	)
+
+	// Each bound of a range is blank or a scalar. A bound of a different shape,
+	// on either side, makes the range stand down.
+	test.prop([fieldValue(), nonScalar(), fc.oneof(numeric(), fc.constant('')), fc.boolean()])(
+		'imposes no constraint when a between bound is not a scalar',
+		(value, bound, other, first) => {
+			expect(matchQueryRule('between', value, first ? [bound, other] : [other, bound])).toBe(true)
+		},
+	)
+
+	// A range is a `[min, max]` pair. An array of scalar bounds with another
+	// length makes the range stand down.
+	test.prop([
+		fieldValue(),
+		fc
+			.array(fc.oneof(numeric(), fc.constant('')), { maxLength: 5 })
+			.filter((range) => range.length !== 2),
+	])('imposes no constraint when a between value is not a pair', (value, range) => {
+		expect(matchQueryRule('between', value, range)).toBe(true)
+	})
 
 	// The rule value must survive a trim. A value-requiring operator stands down
 	// on an empty value, and `isEmptyValue` reads a run of spaces as empty, so a
@@ -249,6 +402,39 @@ describe('matchQueryRule · properties', () => {
 
 		expect(matchQueryRule('between', value, ['', bound])).toBe(matchQueryRule('lte', value, bound))
 	})
+
+	// A bound of whitespace only is blank, as `isEmptyValue` reads it. So it is
+	// open, and it does not read as the number 0.
+	test.prop([numeric(), numeric(), fc.constantFrom(' ', '  ', '\t', '\n')])(
+		'opens a whitespace-only between bound',
+		(value, bound, blank) => {
+			expect(matchQueryRule('between', value, [bound, blank])).toBe(
+				matchQueryRule('gte', value, bound),
+			)
+
+			expect(matchQueryRule('between', value, [blank, bound])).toBe(
+				matchQueryRule('lte', value, bound),
+			)
+		},
+	)
+
+	// A numeric operator reads its value as a number. Text that does not convert
+	// to a finite number, as the value or as either bound, makes it stand down.
+	test.prop([
+		fc.constantFrom('gt', 'gte', 'lt', 'lte'),
+		fieldValue(),
+		stated().filter((text) => !Number.isFinite(Number(text))),
+		fc.oneof(numeric(), fc.constant('')),
+	])(
+		'imposes no constraint when a numeric operator reads text that is not a number',
+		(operator, value, text, other) => {
+			expect(matchQueryRule(operator, value, text)).toBe(true)
+
+			expect(matchQueryRule('between', value, [text, other])).toBe(true)
+
+			expect(matchQueryRule('between', value, [other, text])).toBe(true)
+		},
+	)
 })
 
 /** One child of a generated tree: its truth, and how it joins the child before it. */
@@ -337,10 +523,54 @@ describe('evaluateQuery · properties', () => {
 		},
 	)
 
+	// A blank rule puts no constraint on the rows. So it drops out of the fold
+	// wherever it sits, with either combinator, and the result does not change.
+	test.prop([
+		fc.array(leaf(), { minLength: 1, maxLength: 6 }),
+		fc.array(fc.record({ at: fc.nat(), combinator: fc.constantFrom<'and' | 'or'>('and', 'or') }), {
+			maxLength: 3,
+		}),
+	])('drops a blank rule wherever it sits', (leaves, blanks) => {
+		const children: QueryRule[] = leaves.map((item, index) => truthRule(item, index))
+
+		for (const [index, blank] of blanks.entries()) {
+			children.splice(blank.at % (children.length + 1), 0, {
+				id: `b${index}`,
+				type: 'rule',
+				combinator: blank.combinator,
+				field: 'blank',
+				operator: 'contains',
+				value: '',
+			})
+		}
+
+		const truths = leaves.map((item) => item.truth)
+
+		expect(evaluateQuery(createGroup('and', children), readTruths(truths))).toBe(foldLeft(leaves))
+	})
+
 	test.prop([fc.constantFrom<'and' | 'or'>('and', 'or')])(
 		'matches every row for an empty group',
 		(combinator) => {
 			expect(evaluateQuery(createGroup(combinator), () => undefined)).toBe(true)
 		},
 	)
+
+	// The filter accent reads `isQueryActive`, and the summary and chips read
+	// `summarizeQuery`. Both read a rule through the evaluator's own judgement.
+	// So when they read a rule as inactive, the rule drops out of the fold.
+	test.prop([
+		fc.constantFrom(...OPERATORS, 'custom', 'toString', 'valueOf', ''),
+		fc.oneof(emptyValue(), stated(), fieldValue()),
+		fc.constantFrom(...FIELDS),
+		fieldValue(),
+	])('reads a rule as the active judgement and the summary do', (operator, value, field, cell) => {
+		const group = createGroup('and', [{ ...createRule(field), operator, value }])
+
+		const active = isQueryActive(group)
+
+		expect(summarizeQuery(group, FIELDS).length > 0).toBe(active)
+
+		if (!active) expect(evaluateQuery(group, () => cell)).toBe(true)
+	})
 })

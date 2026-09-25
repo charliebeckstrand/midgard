@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -15,8 +16,21 @@ import {
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
-import { describeCommit, describeDiscard, describeSettle } from './engine/grid-announcements'
+import {
+	describeCommit,
+	describeDiscard,
+	describeHistoryMiss,
+	describeSettle,
+	type GridSaveOutcome,
+} from './engine/grid-announcements'
+import { columnLabel } from './engine/grid-column/label'
 import { EMPTY_SET, FLOATING_PORTAL } from './engine/grid-constants'
+import {
+	type GridHistoryCell,
+	type GridHistoryStep,
+	historyStep,
+	historyValue,
+} from './engine/grid-edit-history'
 import {
 	COMMIT_REFUSED,
 	createDraftStore,
@@ -45,6 +59,7 @@ import type {
 } from './grid-editing-context'
 import type { GridCellChange, GridCellRefusal, GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
+import { useGridEditHistory } from './use-grid-edit-history'
 import type { Coord, GridNewRowPosition } from './use-grid-navigation'
 import { resolveNewRow, useGridNewRow } from './use-grid-new-row'
 
@@ -74,6 +89,19 @@ export type GridEditingApi = {
 	 * `undefined` unless the grid owns the session (`session: 'managed'`).
 	 */
 	sessionKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
+	/**
+	 * The undo and redo keys, layered onto the grid `<table>`'s key handler by
+	 * {@link useGridCursor} under either session. They act on the tab stop only,
+	 * so an open editor keeps its own text undo. `undefined` unless
+	 * {@link GridEditableConfig.history} is on.
+	 */
+	historyKeys: ((event: ReactKeyboardEvent<HTMLTableElement>) => void) | undefined
+	/**
+	 * One step through the history, for the grid's `ref` handle
+	 * ({@link GridHandle}). It returns whether it wrote a cell, and it leaves
+	 * the cursor where it is. With the history off, it does nothing.
+	 */
+	stepHistory: (step: GridHistoryStep) => boolean
 	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
 	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
@@ -278,7 +306,7 @@ function flushRow<T>(
 	rowKey: string | number,
 	drafts: RowDrafts,
 	source: GridEditSource<T>,
-): { changes: GridCellChange[]; refused: GridCellChange[] } {
+): { row: T | undefined; changes: GridCellChange[]; refused: GridCellChange[] } {
 	const { rows, columns, getKey } = source
 
 	// Keyed over the source rows exactly as `use-grid-table` keys them, so the
@@ -313,7 +341,94 @@ function flushRow<T>(
 		else changes.push(cell)
 	}
 
-	return { changes, refused }
+	return { row: live ?? (drafts.values().next().value?.row as T | undefined), changes, refused }
+}
+
+/**
+ * The name of a row in a save announcement: its {@link GridEditSource.rowLabel},
+ * else `row` and its key, as the reorder announcement names it. @internal
+ */
+function rowName<T>(
+	source: GridEditSource<T>,
+	rowKey: string | number,
+	row: T | undefined,
+): string {
+	return (row !== undefined && source.rowLabel?.(row)) || `row ${rowKey}`
+}
+
+/** The label of a column in a save announcement, else its id. @internal */
+function cellLabel<T>(source: GridEditSource<T>, columnId: string | number): string {
+	const col = source.columns.find((candidate) => candidate.id === columnId)
+
+	return col ? columnLabel(col) : String(columnId)
+}
+
+/**
+ * The history cells of one row's changes, read before they reach the sink.
+ * Each holds the value of its cell, and the value that the change writes. A
+ * column with no `field` has no value that the grid can read, so its change
+ * is not in the history. @internal
+ */
+function historyOf<T>(
+	changes: GridCellChange[],
+	row: T | undefined,
+	source: GridEditSource<T>,
+): GridHistoryCell[] {
+	if (row == null) return []
+
+	const cells: GridHistoryCell[] = []
+
+	for (const change of changes) {
+		const col = source.columns.find((candidate) => candidate.id === change.columnId)
+
+		if (col?.field == null) continue
+
+		const { rowKey, columnId, value } = change
+
+		cells.push({ rowKey, columnId, before: row[col.field], after: value })
+	}
+
+	return cells
+}
+
+/**
+ * The live row with `rowKey`, keyed over the source rows as `use-grid-table`
+ * keys them, or `undefined` when the rows hold none. @internal
+ */
+function liveRow<T>(source: GridEditSource<T>, rowKey: string | number): T | undefined {
+	return source.rows.find((candidate, index) => source.getKey(candidate, index) === rowKey)
+}
+
+/**
+ * The live value of a history cell, or `null` when its row or its column is
+ * gone, or when the column cannot edit now. A locked column keeps its value
+ * through an undo, as it does through a save. @internal
+ */
+function readHistoryCell<T>(
+	source: GridEditSource<T>,
+	cell: GridHistoryCell,
+): { value: unknown } | null {
+	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+
+	if (col?.field == null || !isColumnEditable(col)) return null
+
+	const row = liveRow(source, cell.rowKey)
+
+	return row == null ? null : { value: row[col.field] }
+}
+
+/** The cells of `cells`, grouped by row in their first order. @internal */
+function byRow(cells: readonly GridHistoryCell[]): Map<string | number, GridHistoryCell[]> {
+	const rows = new Map<string | number, GridHistoryCell[]>()
+
+	for (const cell of cells) {
+		const row = rows.get(cell.rowKey)
+
+		if (row) row.push(cell)
+		else rows.set(cell.rowKey, [cell])
+	}
+
+	return rows
 }
 
 /** The sink of a commit, {@link GridEditableConfig.onCommit}. @internal */
@@ -322,23 +437,72 @@ type CommitSink = GridEditableConfig['onCommit']
 /**
  * One `onCommit` batch that returned a promise: the row, the drafts of its
  * changed cells, and the promise. The drafts go back to the store as pending
- * until the promise settles. @internal
+ * until the promise settles. The row name and the column labels are read at
+ * the commit, so the settle announcement names what the user edited. @internal
  */
 type InFlightBatch = {
 	rowKey: string | number
 	drafts: RowDrafts
 	result: PromiseLike<unknown>
+	row: string
+	labels: Map<string | number, string>
+	/** What the batch does: a save, an undo, or a redo. */
+	outcome: GridSaveOutcome
+	/** The history cells that an accepted save records. An undo and a redo record none. */
+	history: GridHistoryCell[]
+}
+
+/**
+ * The cells that one sweep saved, with the column label of each and the
+ * history cells of the sweep. `row` names the row when one row holds all the
+ * cells. @internal
+ */
+type SavedCells = { columns: string[]; row: string | undefined; history: GridHistoryCell[] }
+
+/**
+ * The in-flight record of one row's batch, whose sink returned a promise: the
+ * drafts of its changed cells, and the label of each. @internal
+ */
+function inFlightBatch<T>(
+	batch: {
+		rowKey: string | number
+		rowDrafts: RowDrafts
+		changes: GridCellChange[]
+		result: PromiseLike<unknown>
+		row: string
+		outcome: GridSaveOutcome
+		history: GridHistoryCell[]
+	},
+	source: GridEditSource<T>,
+): InFlightBatch {
+	const drafts: RowDrafts = new Map()
+
+	const labels = new Map<string | number, string>()
+
+	for (const change of batch.changes) {
+		const draft = batch.rowDrafts.get(change.columnId)
+
+		if (!draft) continue
+
+		drafts.set(change.columnId, draft)
+
+		labels.set(change.columnId, cellLabel(source, change.columnId))
+	}
+
+	const { rowKey, result, row, outcome, history } = batch
+
+	return { rowKey, drafts, result, row, labels, outcome, history }
 }
 
 /**
  * Commits every staged cell that the session closed, one `onCommit` batch per
  * row. It hands the cells `validate` refused to `onReject`, and returns the
- * cells saved across them (for the commit announcement). A row with no sink to
- * reach counts nothing, so the announcement never speaks a commit that did
- * not happen. Each closed draft leaves the store. A draft of a cell that is
- * still open stays staged. A batch whose sink returns a promise is not saved
- * yet, so it is not counted. It returns in `inFlight`, with the drafts of its
- * changed cells.
+ * cells saved across them as {@link SavedCells}, for the commit announcement.
+ * A row with no sink to reach counts nothing, so the announcement never speaks
+ * a commit that did not happen. Each closed draft leaves the store. A draft of
+ * a cell that is still open stays staged. A batch whose sink returns a promise
+ * is not saved yet, so it is not counted. It returns in `inFlight`, with the
+ * drafts of its changed cells.
  *
  * @remarks One rule covers every way a session ends, because each is the same
  * event seen from the cell. A consumer's save and a grid-owned exit close a whole
@@ -362,8 +526,15 @@ function flushClosedCells<T>(args: {
 	source: GridEditSource<T>
 	onCommit: CommitSink | undefined
 	onReject: ((refused: GridCellChange[]) => void) | undefined
-}): { saved: number; inFlight: InFlightBatch[] } {
-	let saved = 0
+}): { saved: SavedCells; inFlight: InFlightBatch[] } {
+	const saved: string[] = []
+
+	const history: GridHistoryCell[] = []
+
+	// The name of the last row that saved, and how many rows saved.
+	let savedRow: string | undefined
+
+	let savedRows = 0
 
 	const inFlight: InFlightBatch[] = []
 
@@ -383,7 +554,7 @@ function flushClosedCells<T>(args: {
 	for (const [rowKey, rowDrafts] of closed) {
 		if (rowKey === NEW_ROW_KEY) continue
 
-		const { changes, refused } = flushRow(rowKey, rowDrafts, args.source)
+		const { row, changes, refused } = flushRow(rowKey, rowDrafts, args.source)
 
 		// Reported per row, like the commit batch beside it, and independent of it:
 		// a row whose every cell was refused reaches no sink at all otherwise.
@@ -391,45 +562,138 @@ function flushClosedCells<T>(args: {
 
 		if (!changes.length || !args.onCommit) continue
 
+		// Read before the sink runs, because a sink can write the row in place.
+		const cells = historyOf(changes, row, args.source)
+
 		const result = args.onCommit(changes)
 
+		const name = rowName(args.source, rowKey, row)
+
 		if (!isThenable(result)) {
-			saved += changes.length
+			for (const change of changes) saved.push(cellLabel(args.source, change.columnId))
+
+			history.push(...cells)
+
+			savedRow = name
+
+			savedRows++
 
 			continue
 		}
 
-		const drafts: RowDrafts = new Map()
-
-		for (const change of changes) {
-			const draft = rowDrafts.get(change.columnId)
-
-			if (draft) drafts.set(change.columnId, draft)
-		}
-
-		inFlight.push({ rowKey, drafts, result })
+		inFlight.push(
+			inFlightBatch(
+				{ rowKey, rowDrafts, changes, result, row: name, outcome: 'updated', history: cells },
+				args.source,
+			),
+		)
 	}
 
-	return { saved, inFlight }
+	const row = savedRows === 1 ? savedRow : undefined
+
+	return { saved: { columns: saved, row, history }, inFlight }
+}
+
+/** What a step through the history does to its cells. @internal */
+function historyOutcome(step: GridHistoryStep): GridSaveOutcome {
+	return step === 'undo' ? 'undone' : 'redone'
+}
+
+/**
+ * Sends the cells of one history step through the sink, one batch for each
+ * row, as a save sends them. It returns the cells that saved at once, and each
+ * batch whose sink returned a promise. That batch pends as a save does, and
+ * its settle speaks the step. A step writes a value that was valid, so no
+ * `validate` runs. @internal
+ */
+function sendHistory<T>(args: {
+	cells: readonly GridHistoryCell[]
+	step: GridHistoryStep
+	source: GridEditSource<T>
+	onCommit: CommitSink | undefined
+}): { saved: SavedCells; inFlight: InFlightBatch[] } {
+	const { step, source, onCommit } = args
+
+	const columns: string[] = []
+
+	const names: string[] = []
+
+	const inFlight: InFlightBatch[] = []
+
+	// With no sink, nothing saves, so nothing is announced.
+	if (!onCommit) return { saved: { columns, row: undefined, history: [] }, inFlight }
+
+	for (const [rowKey, cells] of byRow(args.cells)) {
+		const row = liveRow(source, rowKey)
+
+		const changes = cells.map((cell) => ({
+			rowKey,
+			columnId: cell.columnId,
+			value: historyValue(cell, step),
+		}))
+
+		const result = onCommit(changes)
+
+		const name = rowName(source, rowKey, row)
+
+		if (!isThenable(result)) {
+			for (const change of changes) columns.push(cellLabel(source, change.columnId))
+
+			names.push(name)
+
+			continue
+		}
+
+		const rowDrafts: RowDrafts = new Map()
+
+		for (const change of changes) {
+			const draft: GridDraft = {
+				value: change.value,
+				status: 'staged',
+				row,
+				error: undefined,
+				reopened: false,
+			}
+
+			rowDrafts.set(change.columnId, draft)
+		}
+
+		const outcome = historyOutcome(step)
+
+		inFlight.push(
+			inFlightBatch(
+				{ rowKey, rowDrafts, changes, result, row: name, outcome, history: [] },
+				source,
+			),
+		)
+	}
+
+	const row = names.length === 1 ? names[0] : undefined
+
+	return { saved: { columns, row, history: [] }, inFlight }
 }
 
 /**
  * Settles each draft of `batch` in the store: accepted, or refused with the
  * error that `refused` names for its column. `reopen` answers whether a
  * refused cell opens beside the session. A draft that the cell no longer holds
- * counts nothing. It returns the counts, for the announcement. @internal
+ * counts nothing. It returns the column labels of the accepted and the refused
+ * cells, for the announcement. It also returns the ids of the accepted cells,
+ * for the history. @internal
  */
 function settleDrafts(args: {
 	batch: InFlightBatch
 	refused: Map<string | number, string>
 	drafts: GridDraftStore
 	reopen: (columnId: string | number) => boolean
-}): { saved: number; failed: number } {
+}): { saved: string[]; failed: string[]; accepted: Set<string | number> } {
 	const { batch, refused, drafts } = args
 
-	let saved = 0
+	const saved: string[] = []
 
-	let failed = 0
+	const failed: string[] = []
+
+	const accepted = new Set<string | number>()
 
 	for (const [columnId, draft] of batch.drafts) {
 		const error = refused.get(columnId)
@@ -438,11 +702,20 @@ function settleDrafts(args: {
 
 		if (!drafts.settle(batch.rowKey, columnId, draft, refusal)) continue
 
-		if (refusal === null) saved++
-		else failed++
+		const label = batch.labels.get(columnId) ?? String(columnId)
+
+		if (refusal !== null) {
+			failed.push(label)
+
+			continue
+		}
+
+		saved.push(label)
+
+		accepted.add(columnId)
 	}
 
-	return { saved, failed }
+	return { saved, failed, accepted }
 }
 
 /**
@@ -1164,13 +1437,19 @@ export function useGridEditing<T>({
 
 	activeEditRef.current = activeEdit
 
-	const onCommitRef = useRef(config?.onCommit)
+	// The sinks, read as effect events, so a new callback does not run the sweep
+	// again. Whether `onCommit` is present stays in the deps: a sink that went
+	// with its binding commits nothing, and nothing is announced.
+	const hasCommit = config?.onCommit !== undefined
 
-	onCommitRef.current = config?.onCommit
+	const sendCommit = useEffectEvent((changes: GridCellChange[]) => config?.onCommit(changes))
 
-	const onRejectRef = useRef(config?.onReject)
+	const sendReject = useEffectEvent((refused: GridCellChange[]) => config?.onReject?.(refused))
 
-	onRejectRef.current = config?.onReject
+	// The undo history, when the config turns it on.
+	const history = useGridEditHistory(enabled, config?.history, config?.onHistoryChange)
+
+	const { record: recordEntry, take: takeStep } = history
 
 	// The open state that the last commit sweep saw. A cell that it saw open
 	// has not committed yet, so a write to it still counts.
@@ -2051,13 +2330,19 @@ export function useGridEditing<T>({
 					activeEdit: activeEditRef.current,
 				})
 
-			const { saved, failed } = settleDrafts({ batch, refused, drafts, reopen })
+			const { saved, failed, accepted } = settleDrafts({ batch, refused, drafts, reopen })
 
-			if (saved + failed === 0) return
+			if (saved.length + failed.length === 0) return
 
 			activeEditStore.notify()
 
-			if (failed > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
+			// An accepted save goes into the history. An undo or a redo moved its
+			// entry when it was sent.
+			if (batch.outcome === 'updated') {
+				recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
+			}
+
+			if (failed.length > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
 				awaitingReopenRef.current.add(rowKey)
 
 				setEditableRows((prev) => new Set(prev ?? EMPTY_SET).add(rowKey))
@@ -2067,9 +2352,9 @@ export function useGridEditing<T>({
 				rerender()
 			}
 
-			announce(describeSettle(saved, failed))
+			announce(describeSettle(saved, failed, batch.row, batch.outcome))
 		},
-		[cellScoped, drafts, activeEditStore, setEditableRows],
+		[cellScoped, drafts, activeEditStore, setEditableRows, recordEntry],
 	)
 
 	// Puts the drafts of an async batch back as pending, and settles them when
@@ -2089,9 +2374,7 @@ export function useGridEditing<T>({
 	)
 
 	// Read by the sweep, so a new callback does not run the sweep again.
-	const trackBatchRef = useRef(trackBatch)
-
-	trackBatchRef.current = trackBatch
+	const trackInFlight = useEffectEvent((batch: InFlightBatch) => trackBatch(batch))
 
 	// Commit the cells that the session closed in the render just past. The
 	// drafts belong to the session, and this is where they land in the sink. The
@@ -2120,16 +2403,102 @@ export function useGridEditing<T>({
 			editableRows,
 			activeEdit,
 			source: editSourceRef.current,
-			onCommit: onCommitRef.current,
-			onReject: onRejectRef.current,
+			onCommit: hasCommit ? sendCommit : undefined,
+			onReject: sendReject,
 		})
 
 		// Announce the commit politely, without moving focus (WCAG 4.1.3). An
 		// async batch announces as it settles.
-		if (saved > 0) announce(describeCommit(saved))
+		if (saved.columns.length > 0) announce(describeCommit(saved.columns, saved.row))
 
-		for (const batch of inFlight) trackBatchRef.current(batch)
-	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore])
+		// One sweep is one user action, so its cells are one entry. An async
+		// batch goes into the history as it settles.
+		recordEntry(saved.history)
+
+		for (const batch of inFlight) trackInFlight(batch)
+	}, [drafts, editableRows, activeEdit, editSourceRef, activeEditStore, recordEntry, hasCommit])
+
+	// Moves the cursor to a cell that a history step wrote, when the grid shows
+	// its row and its column.
+	const moveToCell = useCallback(
+		(cell: GridHistoryCell | undefined) => {
+			const row = cell ? rowKeysRef.current.indexOf(cell.rowKey) : -1
+
+			const col = dataColumnsRef.current.findIndex((column) => column.id === cell?.columnId)
+
+			if (row !== -1 && col !== -1) moveTo({ row, col })
+		},
+		[rowKeysRef, dataColumnsRef, moveTo],
+	)
+
+	// Takes one step through the history, and returns whether it wrote a cell.
+	// The step sends the values that it writes through `onCommit`, as a save
+	// does, so the consumer applies it as it applies a save. From a key, the
+	// cursor moves to the first cell that the step writes, when the grid shows
+	// its row and its column. With the history off, nothing happens.
+	const stepHistory = useCallback(
+		(step: GridHistoryStep, moveCursor: boolean): boolean => {
+			if (!history.on) return false
+
+			const source = editSourceRef.current
+
+			const result = takeStep(step, {
+				current: (cell) => readHistoryCell(source, cell),
+				drafted: (cell) => drafts.read(cell.rowKey, cell.columnId) !== undefined,
+			})
+
+			if (result.status !== 'applied') {
+				announce(describeHistoryMiss(step, result.status))
+
+				return false
+			}
+
+			const { cells } = result
+
+			const { saved, inFlight } = sendHistory({
+				cells,
+				step,
+				source,
+				onCommit: hasCommit ? sendCommit : undefined,
+			})
+
+			if (saved.columns.length > 0) {
+				announce(describeCommit(saved.columns, saved.row, historyOutcome(step)))
+			}
+
+			for (const batch of inFlight) trackBatch(batch)
+
+			if (moveCursor) moveToCell(cells[0])
+
+			return true
+		},
+		[history.on, editSourceRef, takeStep, drafts, hasCommit, trackBatch, moveToCell],
+	)
+
+	// The step of the grid's `ref` handle. Focus is on the control that sent it,
+	// so the cursor stays where it is.
+	const stepFromHandle = useCallback(
+		(step: GridHistoryStep) => stepHistory(step, false),
+		[stepHistory],
+	)
+
+	// The history keys act on the tab stop only. In an open editor, the input
+	// keeps Ctrl+Z for its own text. The keys are absent while the history is off.
+	const historyKeys = useMemo(() => {
+		if (!history.on) return undefined
+
+		return (event: ReactKeyboardEvent<HTMLTableElement>) => {
+			if (event.target !== event.currentTarget || event.defaultPrevented) return
+
+			const step = historyStep({ ...readKeyPress(event), shiftKey: event.shiftKey })
+
+			if (step === null) return
+
+			event.preventDefault()
+
+			stepHistory(step, true)
+		}
+	}, [history.on, stepHistory])
 
 	const session = useMemo<GridEditingSession>(
 		() => ({
@@ -2164,6 +2533,8 @@ export function useGridEditing<T>({
 		session,
 		enterEdit,
 		sessionKeys: managed ? sessionKeys : undefined,
+		historyKeys,
+		stepHistory: stepFromHandle,
 		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,

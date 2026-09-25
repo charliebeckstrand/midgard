@@ -26,6 +26,7 @@ import {
 	CellScopeExample,
 	EditableExample,
 	EditorTypesExample,
+	HistoryExample,
 	NewRowExample,
 } from './editable'
 import { ServerGroupingExample } from './server-grouping'
@@ -1826,8 +1827,15 @@ export function Demo() {
 						</Example>
 
 						<Example
+							title="Undo and redo"
+							code={code`<Grid ref={grid} editable={{ session: 'managed', scope: 'cell', history: true, onHistoryChange, onCommit }} />`}
+						>
+							<HistoryExample />
+						</Example>
+
+						<Example
 							title="New row"
-							code={code`<Grid editable={{ session: 'managed', newRow: 'bottom', onRowAdd, onCommit }} />`}
+							code={code`<Grid editable={{ session: 'managed', newRow: 'bottom', newRowAdd: { render }, onRowAdd, onCommit }} />`}
 						>
 							<NewRowExample />
 						</Example>

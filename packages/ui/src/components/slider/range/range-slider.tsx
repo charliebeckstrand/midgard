@@ -1,6 +1,6 @@
 'use client'
 
-import { type CSSProperties, type FocusEvent, type Ref, useRef } from 'react'
+import { type CSSProperties, type FocusEvent, type Ref, useEffect, useRef } from 'react'
 import { cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
 import { useDensity } from '../../../primitives/density'
@@ -92,6 +92,9 @@ export type RangeSliderProps = {
  * The root takes `id`, else the id of the enclosing Control. In a Field with a Label, each
  * thumb takes `aria-labelledby`. It points at the Label, then at a hidden span with the
  * `labels` entry. Without a Field Label, each thumb takes its `labels` entry as `aria-label`.
+ *
+ * A click on a label for the root focuses the start thumb and keeps both values. The Field
+ * Label is such a label. A disabled slider takes no focus from the click.
  */
 export function RangeSlider({
 	id,
@@ -174,6 +177,27 @@ export function RangeSlider({
 
 	// One tuple for both hooks, so the pair cannot drift between them.
 	const thumbRefs: ThumbButtonRefs = [loThumbRef, hiThumbRef]
+
+	// The root is a `<div>`, and a `<div>` is not labelable. A click on a label for the root
+	// thus does nothing natively. This listener focuses the start thumb, as a label click
+	// focuses the native input of `Slider`. The focus does not change a value.
+	useEffect(() => {
+		const root = loThumbRef.current?.ownerDocument
+
+		if (!root || resolvedDisabled) return
+
+		const handleClick = (event: MouseEvent) => {
+			if (event.defaultPrevented || !(event.target instanceof Element)) return
+
+			const label = event.target.closest('label')
+
+			if (label?.htmlFor === scope.id) loThumbRef.current?.focus()
+		}
+
+		root.addEventListener('click', handleClick)
+
+		return () => root.removeEventListener('click', handleClick)
+	}, [resolvedDisabled, scope.id])
 
 	const overlap = allowCross ? 'swap' : 'clamp'
 

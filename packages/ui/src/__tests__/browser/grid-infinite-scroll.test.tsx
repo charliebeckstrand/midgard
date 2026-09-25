@@ -93,6 +93,8 @@ describe('grid infinite scroll (real browser)', () => {
 		// has grown from 50 to the full 200) renders.
 		await waitFor(
 			() => {
+				// A pass at the bottom leaves scrollTop as it is, and then the write sends
+				// no native scroll event. The synthetic event is that pass's only scroll.
 				scroll.scrollTop = scroll.scrollHeight
 
 				fireEvent.scroll(scroll)
@@ -169,9 +171,9 @@ describe('grid infinite scroll (real browser)', () => {
 			'[data-slot="grid-scroll"]',
 		)
 
+		// The write sends one native scroll event. A synthetic one on top would be
+		// a second scroll, which can land after the fetch and re-arm it.
 		scroll.scrollTop = scroll.scrollHeight
-
-		fireEvent.scroll(scroll)
 
 		// One scroll interaction, one fire — the 10-row append lands still within
 		// the 30-row threshold, but the next fetch waits for the next scroll.
@@ -436,6 +438,8 @@ describe('grid infinite scroll — stable column widths (real browser)', () => {
 
 		await waitFor(
 			() => {
+				// A pass at the bottom leaves scrollTop as it is, and then the write sends
+				// no native scroll event. The synthetic event is that pass's only scroll.
 				scroll.scrollTop = scroll.scrollHeight
 
 				fireEvent.scroll(scroll)

@@ -25,6 +25,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useMemo,
 	useRef,
 	useState,
@@ -645,11 +646,9 @@ export function useGridTable<T>({
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
 	// the saved widths without a new callback on each render.
-	const onSizingValueChangeRef = useRef(columnSizingConfig?.onValueChange)
+	const clearSizing = useEffectEvent(() => columnSizingConfig?.onValueChange?.({}))
 
-	onSizingValueChangeRef.current = columnSizingConfig?.onValueChange
-
-	const clearSizingPreference = useCallback(() => onSizingValueChangeRef.current?.({}), [])
+	const clearSizingPreference = useCallback(() => clearSizing(), [])
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.

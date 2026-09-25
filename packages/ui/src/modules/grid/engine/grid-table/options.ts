@@ -25,6 +25,7 @@ import {
 } from '@tanstack/react-table'
 import { isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
+import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridSortState } from '../../context'
 import type { GridColumn, GridPagination } from '../../types'
 import { columnAccessor } from '../grid-column/accessor'
@@ -34,7 +35,6 @@ import {
 	SELECT_COLUMN_SIZE,
 } from '../grid-constants'
 import { compareSortKeys, type SortKey, toSortKey } from '../grid-sort/utilities'
-import { isQueryGroup } from './views'
 
 /** Adapts the grid's ordered {@link GridSortState} list to a TanStack `SortingState`, priority order preserved. @internal */
 export function toSortingState(sort: GridSortState[] | undefined): SortingState {

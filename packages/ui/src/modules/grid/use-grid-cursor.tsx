@@ -148,7 +148,7 @@ export function useGridCursor<T>({
 	/** Toggles the active row's selection by display index, for the cursor's Space key. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
 	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
-	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
+	scrollRowIntoViewRef: RefObject<((rowIndex: number, key?: string) => void) | null>
 	/** The grid's scroll container, measured for the cursor's viewport-relative PageUp/Down step. */
 	scrollContainerRef: RefObject<HTMLElement | null>
 	/** The grid `<table>`, the cursor's tab stop. The editing layer reseats focus on it. */
@@ -175,6 +175,8 @@ export function useGridCursor<T>({
 	wrap: (children: ReactNode) => ReactNode
 	/** Where the new-row slot shows, or `null` when the grid shows none. */
 	newRow: GridNewRowPosition
+	/** One step through the undo history, for the grid's `ref` handle. */
+	stepHistory: (step: 'undo' | 'redo') => boolean
 } {
 	const editingEnabled = editable != null
 
@@ -204,21 +206,18 @@ export function useGridCursor<T>({
 
 	// Enter on the cursor's active cell begins the edit session — the keyboard
 	// peer of the pointer double-click. The entry resolver needs the editing hook
-	// (which in turn needs the cursor's `cellId`), so the wrapper reads it through
-	// a ref assigned below.
-	const enterEditAtRef = useRef<(rowIdx: number, colIdx: number) => void>(() => {})
+	// (which in turn needs the cursor's `cellId`), so the wrapper names
+	// `enterEditAt` before its declaration below. The cursor calls the wrapper as
+	// an effect event, at key time, when this render's resolver is in place.
+	const onCellActivateWithEdit: GridCellActivate | undefined = managed
+		? (rowIdx, colIdx, event) => {
+				// The consumer's cell click fires first — the same order the pointer path
+				// fires the single-click handlers ahead of the double-click.
+				onCellActivate?.(rowIdx, colIdx, event)
 
-	const onCellActivateWithEdit = useMemo<GridCellActivate | undefined>(() => {
-		if (!managed) return onCellActivate
-
-		return (rowIdx, colIdx, event) => {
-			// The consumer's cell click fires first — the same order the pointer path
-			// fires the single-click handlers ahead of the double-click.
-			onCellActivate?.(rowIdx, colIdx, event)
-
-			if (event.key === 'Enter') enterEditAtRef.current(rowIdx, colIdx)
-		}
-	}, [managed, onCellActivate])
+				if (event.key === 'Enter') enterEditAt(rowIdx, colIdx)
+			}
+		: onCellActivate
 
 	const nav = useGridNavigation({
 		enabled: cursorEnabled,
@@ -231,6 +230,7 @@ export function useGridCursor<T>({
 		scrollRowIntoViewRef,
 		scrollContainerRef,
 		newRowRef,
+		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
 	})
 
 	/*
@@ -324,8 +324,6 @@ export function useGridCursor<T>({
 		[enterEditAtCell, editing.newRow.enter, rowKeysRef, dataColumnsRef],
 	)
 
-	enterEditAtRef.current = enterEditAt
-
 	// Read at event time by the entry keys below, which stay referentially stable.
 	const activeRef = useRef(nav.active)
 
@@ -397,8 +395,9 @@ export function useGridCursor<T>({
 
 	const { session } = editing
 
-	// The `<table>` cursor props, with the session's keys layered ahead of
-	// navigation when the grid owns the edit session: the table (the cursor's
+	// The `<table>` cursor props, with the history keys layered ahead of
+	// navigation when the history is on, and the session's keys when the grid
+	// owns the edit session: the table (the cursor's
 	// `role="grid"` tab stop) sees every editor's keys — portaled panels
 	// included, since portal events propagate through the React tree — so no
 	// editor wires its own save or abandon. The entry keys follow, and the
@@ -410,16 +409,23 @@ export function useGridCursor<T>({
 
 		const sessionKeys = editing.sessionKeys
 
+		const historyKeys = editing.historyKeys
+
 		const sessionLeave = editing.sessionLeave
 
-		if (!base || !sessionKeys) return base
+		if (!base || (!sessionKeys && !historyKeys)) return base
 
 		return {
 			...base,
 			onKeyDown: (event) => {
-				sessionKeys(event)
+				// The history keys need no grid-owned session, so they come first.
+				historyKeys?.(event)
 
-				sessionEntryKeys(event)
+				if (sessionKeys) {
+					sessionKeys(event)
+
+					sessionEntryKeys(event)
+				}
 
 				base.onKeyDown(event)
 			},
@@ -438,7 +444,13 @@ export function useGridCursor<T>({
 					}
 				: base.onFocus,
 		}
-	}, [nav.navTableProps, editing.sessionKeys, editing.sessionLeave, sessionEntryKeys])
+	}, [
+		nav.navTableProps,
+		editing.sessionKeys,
+		editing.historyKeys,
+		editing.sessionLeave,
+		sessionEntryKeys,
+	])
 
 	const newRowSession = editing.newRow.session
 
@@ -463,5 +475,6 @@ export function useGridCursor<T>({
 		editOnCellDoubleClick,
 		wrap,
 		newRow: newRowPosition,
+		stepHistory: editing.stepHistory,
 	}
 }

@@ -474,6 +474,31 @@ describe('Grid export', () => {
 		expect(context.columns.map((column: GridColumn<Row>) => column.id)).toEqual(['name', 'role'])
 	})
 
+	it('hands onExport the data columns alone, as the built-in exporters read them', () => {
+		const onExport = vi.fn()
+
+		renderUI(
+			<Grid
+				exportable={[{ csv: { onExport } }]}
+				columns={[
+					{ id: 'select', selectable: true },
+					...columns,
+					{ id: 'actions', actions: () => null },
+				]}
+				rows={rows}
+				getKey={getKey}
+			/>,
+		)
+
+		rightClickHeader('Name')
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Export to CSV' }))
+
+		const context = onExport.mock.calls[0]?.[0]
+
+		expect(context.columns.map((column: GridColumn<Row>) => column.id)).toEqual(['name', 'role'])
+	})
+
 	it('supports a custom export type via onExport, labeled generically', () => {
 		const onExport = vi.fn()
 
@@ -971,9 +996,10 @@ describe('useGridExportActions', () => {
 	function Probe(props: {
 		exportRows: GridExportRows<Row>
 		onExport: (context: { rows: Row[] }) => void
+		columns?: GridColumn<Row>[]
 	}) {
 		const { actions, pending } = useGridExportActions<Row>({
-			columns,
+			columns: props.columns ?? columns,
 			exportRows: props.exportRows,
 			exportable: [{ csv: { onExport: props.onExport } }],
 		})
@@ -1026,5 +1052,25 @@ describe('useGridExportActions', () => {
 		await waitFor(() => expect(screen.getByTestId('pending')).toHaveTextContent('false'))
 
 		expect(onExport).toHaveBeenCalledWith(expect.objectContaining({ rows }))
+	})
+
+	it('hands onExport the data columns alone, after an async round-trip too', async () => {
+		const server = deferred<Row[]>()
+
+		const onExport = vi.fn()
+
+		renderUI(
+			<Probe
+				columns={[{ id: 'select', selectable: true }, ...columns]}
+				exportRows={() => server.promise}
+				onExport={onExport}
+			/>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Export to CSV' }))
+
+		server.resolve(rows)
+
+		await waitFor(() => expect(onExport).toHaveBeenCalledWith({ columns, rows }))
 	})
 })

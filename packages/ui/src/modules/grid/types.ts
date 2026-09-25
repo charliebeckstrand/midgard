@@ -58,7 +58,9 @@ export type GridColumn<T> = {
 	 * input, a {@link GridColumn.filterOptions} select, a date picker, or a
 	 * boolean is-true/is-false toggle. The column's {@link GridColumn.value} must
 	 * return a value the matching operators compare against — an ISO `YYYY-MM-DD`
-	 * string for `date`, a boolean for `boolean`.
+	 * string for `date`, a boolean for `boolean`. A `number` filter's `between`
+	 * bounds clamp to the `[min, max]` of the column's own values, among the rows
+	 * that other filters leave. Unavailable under server-side filtering.
 	 * @defaultValue 'text'
 	 */
 	filterType?: QueryFieldType
@@ -120,6 +122,10 @@ export type GridColumn<T> = {
 	 * Opts this data column out of editing in an {@link GridProps.editable | editable}
 	 * grid: the cursor still visits its cells, but they never enter edit mode. Has
 	 * no effect on a non-editable grid.
+	 *
+	 * @remarks In an editable grid, each cell that cannot enter edit mode carries
+	 * `aria-readonly`. That is a cell of a `readOnly` column, and a cell of a
+	 * column with no `field` and no `editCell`.
 	 * @defaultValue false
 	 */
 	readOnly?: boolean
@@ -234,12 +240,15 @@ export type GridColumn<T> = {
 	/**
 	 * Freezes the column against a horizontal scroll, pulling it to that edge and
 	 * sticking it there. `'left'` / `'right'` pick the edge; `true` is `'left'`.
-	 * A pinned column can't be reordered or hidden. It shows in the column
+	 * The names are logical: `'left'` is the inline start, and `'right'` the
+	 * inline end. A right-to-left grid therefore sticks a `'left'` column to its
+	 * physical right edge. A pinned column can't be reordered or hidden. It shows in the column
 	 * manager's matching pinned group, left columns prepended and right appended.
 	 * It marks its header with a pin button that unpins it on click. This is the column's
 	 * initial pin. The user moves it at runtime through the header context menu's
 	 * Pin left / Pin right / Unpin items, and the column manager's per-column pin
-	 * control.
+	 * control. Those labels and their arrows name the physical edge, so in a
+	 * right-to-left grid "Pin right" pins the column to `'left'`.
 	 * @see {@link GridColumn.locked} for a freeze the user can't change.
 	 */
 	pinned?: boolean | 'left' | 'right'
@@ -248,7 +257,7 @@ export type GridColumn<T> = {
 	 * can't release it. There is no unpin button on its header, and no Pin / Unpin
 	 * items in its context menu. The column manager shows a non-interactive edge
 	 * arrow for it, rather than a pin control. `'left'` / `'right'` pick the edge; `true`
-	 * is `'left'`. It still lists in the column manager's matching pinned group,
+	 * is `'left'`. As for `pinned`, the edge names are logical. It still lists in the column manager's matching pinned group,
 	 * left columns prepended and right appended. It is excluded from reorder and
 	 * hide like a pinned column. Takes precedence over `pinned` and any runtime pin
 	 * change.
@@ -271,6 +280,7 @@ export type GridColumnManagerItem = {
 	title: ReactNode
 	/**
 	 * The edge the column is currently frozen to, or `undefined` when it scrolls.
+	 * `'left'` is the inline start, and `'right'` the inline end.
 	 * A frozen column lists in the manager's matching group — `'left'` prepended,
 	 * `'right'` appended — and can't be reordered or hidden. The per-column pin
 	 * control writes the change back through {@link GridColumnManagerProps.onPinChange}.
@@ -527,7 +537,10 @@ export type GridColumnMenuContext<T> = {
 	sortDescending: () => void
 	/** Clears the grid's active sort. */
 	clearSort: () => void
-	/** This column's frozen edge, or `undefined` when it scrolls. */
+	/**
+	 * This column's frozen edge, or `undefined` when it scrolls. `'left'` is the
+	 * inline start, and `'right'` the inline end.
+	 */
 	pinned: 'left' | 'right' | undefined
 	/**
 	 * The edge this column is locked to, or `undefined` when it isn't locked. A
@@ -535,9 +548,9 @@ export type GridColumnMenuContext<T> = {
 	 * move it — and its default menu offers no pin items.
 	 */
 	locked: 'left' | 'right' | undefined
-	/** Freezes this column against the left edge. */
+	/** Freezes this column against the left edge, which is the inline start. */
 	pinLeft: () => void
-	/** Freezes this column against the right edge. */
+	/** Freezes this column against the right edge, which is the inline end. */
 	pinRight: () => void
 	/** Releases this column back into the scrolling area. */
 	unpin: () => void

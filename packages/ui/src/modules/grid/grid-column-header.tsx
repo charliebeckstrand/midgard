@@ -22,6 +22,7 @@ import { k } from '../../recipes/kata/grid'
 import type { QueryGroup } from '../query'
 import { useGridResizing } from './context'
 import { columnLabel } from './engine/grid-column/label'
+import { NEW_ROW_ADD_COLUMN_LABEL } from './engine/grid-new-row-column'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import { ariaSortValue } from './engine/grid-sort/state'
@@ -100,6 +101,34 @@ export function GridDragHandleHeaderCell<T>({
 			style={pinned.style}
 		>
 			<span className="sr-only">Reorder rows</span>
+		</TableHeader>
+	)
+}
+
+/**
+ * Header cell for the Add column of the new-row slot: an empty `<th>` at the
+ * column's fixed width, since the control lives in the slot. It carries a
+ * screen-reader label, so the column still names itself. It does not stick
+ * to the inline end (see `buildColumnPinning`).
+ *
+ * @internal
+ */
+export function GridNewRowAddHeaderCell<T>({
+	column,
+	colIndex,
+	stickyHeader,
+}: {
+	column: GridColumn<T>
+	colIndex: number | undefined
+	stickyHeader: boolean
+}) {
+	return (
+		<TableHeader
+			aria-colindex={colIndex}
+			className={cn(k.cell.actions, stickyHeader && k.sticky.head)}
+			style={{ width: column.width }}
+		>
+			<span className="sr-only">{NEW_ROW_ADD_COLUMN_LABEL}</span>
 		</TableHeader>
 	)
 }

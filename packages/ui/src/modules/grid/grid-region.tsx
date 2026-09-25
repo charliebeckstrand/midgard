@@ -21,6 +21,7 @@ import { GridManagerDialog } from './grid-manager-dialog'
 import { GridReorderContext } from './grid-reorder'
 import { GridRowManager } from './grid-row-manager'
 import type { GridColumn, GridContextMenu as GridContextMenuConfig, GridMenuItem } from './types'
+import { useGridClampAnchor } from './use-grid-clamp-anchor'
 import type { GridRowManagerRegionResult } from './use-grid-row-manager'
 import type { GridColumnFilter } from './use-grid-table'
 
@@ -277,6 +278,12 @@ type GridScrollRegionProps = {
 	active: boolean
 	scrollRef: RefObject<HTMLDivElement | null>
 	maxHeight: string | undefined
+	/** Whether the table holds a master-detail body. */
+	expandable: boolean
+	/** Whether the table holds a grouped body, under client or manual grouping. */
+	grouped: boolean
+	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). */
+	virtualized: boolean
 	children: ReactNode
 }
 
@@ -291,8 +298,13 @@ export function GridScrollRegion({
 	active,
 	scrollRef,
 	maxHeight,
+	expandable,
+	grouped,
+	virtualized,
 	children,
 }: GridScrollRegionProps) {
+	useGridClampAnchor(scrollRef, active && (expandable || grouped) && !virtualized)
+
 	if (!active) return children
 
 	const fillHeight = maxHeight === 'fill'

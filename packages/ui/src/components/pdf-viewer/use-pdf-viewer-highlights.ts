@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useCallback, useEffect, useRef } from 'react'
+import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import type { Color } from '../../core/recipe'
 import { useControllable, useScrollWithin } from '../../hooks'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
@@ -206,13 +206,11 @@ export function usePdfViewerHighlights({
 
 	const clear = useCallback(() => setActiveId(null), [setActiveId])
 
-	// Read through a ref so a consumer that rebuilds the handler each render — the common case
-	// for an inline arrow — does not change the layer's props and re-render every region.
-	const onPressRef = useRef(onHighlightPress)
+	// Read as an effect event so a consumer that rebuilds the handler each render — the common
+	// case for an inline arrow — does not change the layer's props and re-render every region.
+	const reportPress = useEffectEvent((id: string) => onHighlightPress?.(id))
 
-	onPressRef.current = onHighlightPress
-
-	const press = useCallback((id: string) => onPressRef.current?.(id), [])
+	const press = useCallback((id: string) => reportPress(id), [])
 
 	return {
 		regions,

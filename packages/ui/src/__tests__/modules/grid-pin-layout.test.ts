@@ -1,9 +1,17 @@
 import type { Table } from '@tanstack/react-table'
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
+import type { GridColumn } from '../../modules/grid'
+import {
+	NEW_ROW_ADD_COLUMN_ID,
+	withNewRowAddColumn,
+} from '../../modules/grid/engine/grid-new-row-column'
 import { frozenLayout, sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
-import { buildColumnPinning } from '../../modules/grid/engine/grid-table/views'
+import {
+	buildColumnPinning,
+	toColumnPinningState,
+} from '../../modules/grid/engine/grid-table/views'
 import { useFrozenLayout } from '../../modules/grid/grid-table-views'
 
 /** One frozen column as the engine reports it: its id and its offset from its edge. */
@@ -146,5 +154,57 @@ describe('useFrozenLayout', () => {
 		expect(result.current.size).toBe(0)
 
 		expect(buildColumnPinning(result.current).column('name')).toBeUndefined()
+	})
+})
+
+/**
+ * The Add column of the new-row slot is locked to the inline end, but it stays
+ * quiet: it pins no other column, and its cells draw no frozen chrome.
+ */
+describe('the Add column of the new-row slot', () => {
+	type Row = { id: number; name: string; status: string }
+
+	const name: GridColumn<Row> = { id: 'name', field: 'name' }
+
+	const status: GridColumn<Row> = { id: 'status', field: 'status' }
+
+	const select: GridColumn<Row> = { id: 'select', selectable: true }
+
+	it('turns the freeze on, but does not pull the selection column to the left edge', () => {
+		const { state, hasPinned } = toColumnPinningState(
+			withNewRowAddColumn([select, name, status], 48),
+		)
+
+		expect(hasPinned).toBe(true)
+
+		expect(state).toEqual({ left: [], right: [NEW_ROW_ADD_COLUMN_ID] })
+	})
+
+	it('keeps the selection column first when another column is frozen too', () => {
+		const { state } = toColumnPinningState(
+			withNewRowAddColumn([select, name, { ...status, locked: 'right' }], 48),
+		)
+
+		// The Add column is the last column of the right edge.
+		expect(state).toEqual({ left: ['select'], right: ['status', NEW_ROW_ADD_COLUMN_ID] })
+	})
+
+	it('reads as a column that scrolls, while a frozen column sticks inside it', () => {
+		const layout = frozenLayout(
+			makeTable(
+				[],
+				[
+					{ id: 'status', offset: 48 },
+					{ id: NEW_ROW_ADD_COLUMN_ID, offset: 0 },
+				],
+			),
+			null,
+		)
+
+		const pinning = buildColumnPinning(layout)
+
+		expect(pinning.column(NEW_ROW_ADD_COLUMN_ID)).toBeUndefined()
+
+		expect(pinning.column('status')).toEqual({ side: 'right', offset: 48, boundary: true })
 	})
 })

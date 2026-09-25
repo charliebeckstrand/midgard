@@ -5,6 +5,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useMemo,
 	useReducer,
 	useRef,
@@ -13,6 +14,7 @@ import {
 import { announce } from '../../core'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeRowAdd } from './engine/grid-announcements'
+import { GRID_ROLE } from './engine/grid-constants'
 import {
 	collectNewRow,
 	EDITOR_FOCUSABLE,
@@ -27,6 +29,7 @@ import {
 	NEW_ROW_KEY,
 	readNewRowRefusals,
 } from './engine/grid-editing-utilities'
+import { NEW_ROW_ADD_COLUMN_ID } from './engine/grid-new-row-column'
 import type { GridEditSource } from './grid-data-types'
 import type { GridNewRowSession } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
@@ -74,6 +77,22 @@ function useNewRowWarning(config: GridEditableConfig | undefined, managed: boole
 				'Grid: `editable.newRow` needs `editable.onRowAdd` to take the row. The grid renders no new row — pass `onRowAdd` to show it.',
 			)
 	}, [manual, sinkless])
+}
+
+/**
+ * The data column whose cursor cell a key from a cell of the slot leaves on,
+ * from the cell's `data-grid-new-col`. The Add column is not a stop of the
+ * cursor. A key from its control therefore leaves on the last data column.
+ *
+ * @internal
+ */
+function slotColumnOf(
+	attr: string | null,
+	columns: readonly { id: string | number }[],
+): string | number | undefined {
+	if (attr === NEW_ROW_ADD_COLUMN_ID) return columns.at(-1)?.id
+
+	return columns.find((column) => String(column.id) === attr)?.id
 }
 
 /** An add that `onRowAdd` returned as a promise, with the drafts it holds as pending. @internal */
@@ -165,9 +184,7 @@ export function useGridNewRow<T>({
 } {
 	useNewRowWarning(config, managed)
 
-	const onRowAddRef = useRef(config?.onRowAdd)
-
-	onRowAddRef.current = config?.onRowAdd
+	const onRowAdd = useEffectEvent((values: Record<string, unknown>) => config?.onRowAdd?.(values))
 
 	const positionRef = useRef(position)
 
@@ -249,7 +266,7 @@ export function useGridNewRow<T>({
 			if (!table) return null
 
 			for (const cell of table.querySelectorAll<HTMLElement>('td[data-grid-new-col]')) {
-				if (cell.closest('[role="grid"]') !== table) continue
+				if (cell.closest(GRID_ROLE) !== table) continue
 
 				if (cell.getAttribute('data-grid-new-col') === String(columnId))
 					return cell.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
@@ -336,7 +353,7 @@ export function useGridNewRow<T>({
 			return
 		}
 
-		const result = onRowAddRef.current?.(values)
+		const result = onRowAdd(values)
 
 		if (!isThenable(result)) {
 			accept(true)
@@ -344,8 +361,8 @@ export function useGridNewRow<T>({
 			return
 		}
 
-		// The pending cells replace the editors, so focus moves to the tab stop
-		// first rather than drop to the page.
+		// The editors turn inert while the add is in flight, so focus moves to
+		// the tab stop first rather than drop to the page.
 		reseat()
 
 		const flight: NewRowFlight = {
@@ -414,15 +431,13 @@ export function useGridNewRow<T>({
 
 			const cell = target.closest<HTMLElement>('td[data-grid-new-col]')
 
-			if (!cell || cell.closest('[role="grid"]') !== event.currentTarget) return false
+			if (!cell || cell.closest(GRID_ROLE) !== event.currentTarget) return false
 
 			// A shortcut belongs to the editor. Tab moves through the controls of
 			// the slot in the tab order, so the browser keeps it.
 			if (event.ctrlKey || event.metaKey || event.altKey) return true
 
-			const attr = cell.getAttribute('data-grid-new-col')
-
-			const columnId = dataColumnsRef.current.find((column) => String(column.id) === attr)?.id
+			const columnId = slotColumnOf(cell.getAttribute('data-grid-new-col'), dataColumnsRef.current)
 
 			if (columnId === undefined) return true
 

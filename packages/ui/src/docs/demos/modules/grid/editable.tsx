@@ -1,5 +1,5 @@
-import { Check, Info, Pencil, Trash2, X } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { Check, Info, Pencil, Redo2, Trash2, Undo2, UserPlus, X } from 'lucide-react'
+import { useMemo, useRef, useState } from 'react'
 import { Alert } from '../../../../components/alert'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
@@ -31,6 +31,8 @@ import {
 	type GridColumn,
 	type GridEditableConfig,
 	type GridEditCellContext,
+	type GridHandle,
+	type GridHistoryState,
 } from '../../../../modules/grid'
 import { useFormat } from '../../../../providers/locale'
 
@@ -418,6 +420,56 @@ export function AsyncCommitExample() {
 	)
 }
 
+export function HistoryExample() {
+	const [people, setPeople] = useState<Person[]>(initialPeople)
+
+	const grid = useRef<GridHandle>(null)
+
+	const [steps, setSteps] = useState<GridHistoryState>({ canUndo: false, canRedo: false })
+
+	// `history` records each save. An undo sends the old values back through
+	// the same sink, and a redo sends the new values again, so `onCommit`
+	// applies a step as it applies a save. The grid never holds the rows. The
+	// buttons send the same steps through the grid's `ref`, and
+	// `onHistoryChange` tells them when a step exists.
+	return (
+		<>
+			<Flex justify="between" align="center">
+				<Flex gap="sm">
+					<Button variant="soft" disabled={!steps.canUndo} onClick={() => grid.current?.undo()}>
+						<Icon icon={<Undo2 />} />
+						Undo
+					</Button>
+					<Button variant="soft" disabled={!steps.canRedo} onClick={() => grid.current?.redo()}>
+						<Icon icon={<Redo2 />} />
+						Redo
+					</Button>
+				</Flex>
+				<EditHelp label="Undo help">
+					Edit a cell and save it. Then, with focus on the grid, press Ctrl+Z or Cmd+Z to undo the
+					save, and Ctrl+Shift+Z, Cmd+Shift+Z, or Ctrl+Y to redo it. The cursor moves to the cell
+					that changed. The Undo and Redo buttons take the same steps. In an open editor, the keys
+					undo your typing instead.
+				</EditHelp>
+			</Flex>
+			<Grid
+				ref={grid}
+				columns={personColumns}
+				rows={people}
+				getKey={(row) => row.id}
+				rowLabel={(row) => row.name}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					history: true,
+					onHistoryChange: setSteps,
+					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
+				}}
+			/>
+		</>
+	)
+}
+
 /**
  * The demo's check for a new person: a name is required. The row adds only
  * the cells that hold a value, so an empty name is absent from `values`.
@@ -428,10 +480,46 @@ function refuseNewPerson(values: Record<string, unknown>): GridCellRefusal[] {
 	return name === '' ? [{ rowKey: 'new', columnId: 'name', error: 'A name is required' }] : []
 }
 
+/** The Add controls the new-row example offers, with the label each segment shows. */
+const addControlOptions = [
+	{ value: 'button', label: 'Button' },
+	{ value: 'custom', label: 'Custom' },
+	{ value: 'none', label: 'Enter only' },
+] as const
+
+type AddControl = (typeof addControlOptions)[number]['value']
+
+/**
+ * The `newRowAdd` setting for each choice: the built-in button, a `render`
+ * slot with the demo's own labelled button, or no control. The Add column
+ * takes the width of the control, so the labelled button gets a wider column.
+ */
+function resolveAddControl(choice: AddControl): GridEditableConfig['newRowAdd'] {
+	if (choice === 'none') return false
+
+	if (choice === 'button') return undefined
+
+	return {
+		render: ({ add }) => (
+			<Button
+				variant="soft"
+				color="blue"
+				size="sm"
+				prefix={<Icon icon={<UserPlus />} />}
+				onClick={add}
+			>
+				Add
+			</Button>
+		),
+	}
+}
+
 export function NewRowExample() {
 	const [people, setPeople] = useState<Person[]>(initialPeople)
 
 	const [position, setPosition] = useState<'top' | 'bottom'>('bottom')
+
+	const [addControl, setAddControl] = useState<AddControl>('button')
 
 	// The add takes a moment, as a save to a server does. A refusal keeps the
 	// values in the row, with the reason under the cell.
@@ -458,24 +546,40 @@ export function NewRowExample() {
 
 	// `newRow` pins one blank editor row to the body, outside the row model. The
 	// data rows keep their cell-scoped session and their batch sink. The new row
-	// has its own sink, because a new record has no row key yet.
+	// has its own sink, because a new record has no row key yet. `newRowAdd`
+	// sets its Add control, in a locked column of its own at the end.
 	return (
 		<>
 			<Flex justify="between" align="center">
-				<Segment
-					value={position}
-					onValueChange={(next) => setPosition((next as 'top' | 'bottom' | null) ?? 'bottom')}
-				>
-					<SegmentControl aria-label="New row position">
-						<SegmentItem value="top">Top</SegmentItem>
-						<SegmentItem value="bottom">Bottom</SegmentItem>
-					</SegmentControl>
-				</Segment>
+				<Flex gap="sm">
+					<Segment
+						value={position}
+						onValueChange={(next) => setPosition((next as 'top' | 'bottom' | null) ?? 'bottom')}
+					>
+						<SegmentControl aria-label="New row position">
+							<SegmentItem value="top">Top</SegmentItem>
+							<SegmentItem value="bottom">Bottom</SegmentItem>
+						</SegmentControl>
+					</Segment>
+					<Segment
+						value={addControl}
+						onValueChange={(next) => setAddControl((next as AddControl | null) ?? 'button')}
+					>
+						<SegmentControl aria-label="Add control">
+							{addControlOptions.map((option) => (
+								<SegmentItem key={option.value} value={option.value}>
+									{option.label}
+								</SegmentItem>
+							))}
+						</SegmentControl>
+					</Segment>
+				</Flex>
 				<EditHelp label="New row help">
-					The blank row adds a person. Fill its cells, then press Enter or the Add control. Escape
-					clears the row, and F2 goes back to the grid. Moving away never adds the row. It stays in
-					view while the grid scrolls, and the arrow keys reach it from the row next to it. A name
-					is required.
+					The blank row adds a person. Fill its cells, then press Enter or the Add control at the
+					end of the row. Escape clears the row, and F2 goes back to the grid. Moving away never
+					adds the row. It stays in view while the grid scrolls, and the arrow keys reach it from
+					the row next to it. A name is required. The second segment sets the Add control: the
+					built-in button, a custom one, or none, so that only Enter adds the row.
 				</EditHelp>
 			</Flex>
 			<Grid
@@ -488,6 +592,7 @@ export function NewRowExample() {
 					session: 'managed',
 					scope: 'cell',
 					newRow: position,
+					newRowAdd: resolveAddControl(addControl),
 					onRowAdd,
 					onCommit: (changes) => setPeople((prev) => applyChanges(prev, changes)),
 				}}

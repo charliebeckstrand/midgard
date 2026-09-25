@@ -121,4 +121,28 @@ describe('useQueryTree', () => {
 
 		expect(result.current.root).toBe(value)
 	})
+
+	it('moves a node in its group via the move action', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useQueryTree({ fields, onValueChange }))
+
+		act(() => {
+			result.current.actions.addRule(result.current.root.id)
+		})
+
+		act(() => {
+			result.current.actions.addRule(result.current.root.id)
+		})
+
+		const [first, second] = onValueChange.mock.calls.at(-1)?.[0].children ?? []
+
+		act(() => {
+			result.current.actions.move(first.id, 1)
+		})
+
+		const next = onValueChange.mock.calls.at(-1)?.[0]
+
+		expect(next.children.map((child: { id: string }) => child.id)).toEqual([second.id, first.id])
+	})
 })

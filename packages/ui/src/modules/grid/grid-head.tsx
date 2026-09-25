@@ -7,12 +7,14 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { useGrid } from './context'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { isFrozen, isLocked } from './engine/grid-pin/overrides'
 import { pinnedHeaderProps } from './engine/grid-pin/styles'
 import { columnSort } from './engine/grid-sort/state'
 import {
 	GridColumnHeader,
 	GridDragHandleHeaderCell,
+	GridNewRowAddHeaderCell,
 	GridReorderableColumnHeader,
 } from './grid-column-header'
 import { GridGroupHead } from './grid-group-head'
@@ -225,6 +227,12 @@ function GridHeaderCell<T>({
 				stickyHeader={stickyHeader}
 				pinning={pinning}
 			/>
+		)
+	}
+
+	if (isNewRowAddColumn(column.id)) {
+		return (
+			<GridNewRowAddHeaderCell column={column} colIndex={colIndex} stickyHeader={stickyHeader} />
 		)
 	}
 

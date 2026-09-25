@@ -1,7 +1,7 @@
 'use client'
 
 import { useReducedMotion } from 'motion/react'
-import { useEffect, useRef } from 'react'
+import { useEffect, useEffectEvent, useRef } from 'react'
 import { RESET_DURATION } from './hold-button-constants'
 
 /**
@@ -45,10 +45,6 @@ export function useHoldButtonGesture({
 
 	const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-	// Always points at the latest `cancel` closure; read by the window guards
-	// and the disabled effect below. Neither re-binds per render.
-	const cancelRef = useRef<() => void>(() => {})
-
 	// The fill animates unconditionally: it gates an irreversible action in
 	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
 	// decorative and collapses to an instant under prefers-reduced-motion.
@@ -85,12 +81,12 @@ export function useHoldButtonGesture({
 
 		guardsRef.current = controller
 
-		window.addEventListener('blur', () => cancelRef.current(), { signal: controller.signal })
+		window.addEventListener('blur', () => cancelLatest(), { signal: controller.signal })
 
 		document.addEventListener(
 			'visibilitychange',
 			() => {
-				if (document.hidden) cancelRef.current()
+				if (document.hidden) cancelLatest()
 			},
 			{ signal: controller.signal },
 		)
@@ -151,12 +147,15 @@ export function useHoldButtonGesture({
 		[],
 	)
 
-	cancelRef.current = cancel
+	// The latest `cancel` closure, as an effect event. The window guards above
+	// name it before this declaration and call it at event time. The disabled
+	// effect below reads it too, so neither re-binds per render.
+	const cancelLatest = useEffectEvent(() => cancel())
 
-	// Cancels any in-progress hold when `disabled` changes. The effect reads
-	// `cancel` from the ref and depends only on `disabled`, not on `onHoldCancel`.
+	// Cancels any in-progress hold when `disabled` changes. The effect depends
+	// only on `disabled`, not on `onHoldCancel`.
 	useEffect(() => {
-		if (disabled) cancelRef.current()
+		if (disabled) cancelLatest()
 	}, [disabled])
 
 	return { fillRef, start, cancel }

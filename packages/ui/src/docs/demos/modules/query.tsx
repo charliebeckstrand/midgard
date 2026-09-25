@@ -3,6 +3,7 @@ import { JsonTree, type JsonValue } from '../../../components/json-tree'
 import { Stack } from '../../../components/stack'
 import {
 	QueryBuilder,
+	QueryChips,
 	type QueryField,
 	type QueryGroup,
 	QuerySummary,
@@ -11,7 +12,9 @@ import { Example } from '../../engine'
 
 const fields: QueryField[] = [
 	{ name: 'name', label: 'Name', type: 'text' },
-	{ name: 'age', label: 'Age', type: 'number' },
+	// The span a grid column filter fills from its data: a `between` rule's bounds
+	// clamp to it and show it as their placeholders.
+	{ name: 'age', label: 'Age', type: 'number', span: [18, 90] },
 	{
 		name: 'status',
 		label: 'Status',
@@ -52,6 +55,62 @@ function BuilderExample() {
 	)
 }
 
+// Two active rules and a nested OR group, so the chips show each separator.
+const filters: QueryGroup = {
+	id: 'root',
+	type: 'group',
+	combinator: 'and',
+	children: [
+		{ id: 'r1', type: 'rule', field: 'status', operator: 'equals', value: 'active' },
+		{
+			id: 'g1',
+			type: 'group',
+			combinator: 'and',
+			children: [
+				{ id: 'r2', type: 'rule', field: 'age', operator: 'gte', value: '18' },
+				{
+					id: 'r3',
+					type: 'rule',
+					combinator: 'or',
+					field: 'verified',
+					operator: 'isTrue',
+					value: null,
+				},
+			],
+		},
+	],
+}
+
+function ChipsExample() {
+	const [query, setQuery] = useState<QueryGroup>(filters)
+
+	return (
+		<Example title="Chips">
+			<Stack gap="md">
+				{/* A filter bar over the same tree: remove a chip to drop its rule, or
+				    click AND/OR to switch it. The builder follows each edit. */}
+				<QueryChips value={query} fields={fields} onValueChange={setQuery} />
+				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} />
+			</Stack>
+		</Example>
+	)
+}
+
+function ReorderExample() {
+	const [query, setQuery] = useState<QueryGroup>(filters)
+
+	return (
+		<Example title="Reorder">
+			<Stack gap="md">
+				{/* Drag a grip, or press Space on it and use the arrow keys. A node moves
+				    among its siblings, and each AND/OR stays in its position. */}
+				<QueryBuilder fields={fields} value={query} onValueChange={setQuery} reorder />
+				<QuerySummary value={query} fields={fields} />
+			</Stack>
+		</Example>
+	)
+}
+
 function DisabledExample() {
 	return (
 		<Example title="Disabled">
@@ -64,6 +123,8 @@ export function Demo() {
 	return (
 		<>
 			<BuilderExample />
+			<ChipsExample />
+			<ReorderExample />
 			<DisabledExample />
 		</>
 	)

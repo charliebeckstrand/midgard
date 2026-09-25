@@ -97,7 +97,6 @@ function KanbanCardImpl({
 			aria-label={ariaLabel}
 			data-slot="kanban-card"
 			data-card-id={cardId}
-			data-active={dataAttr(dragging)}
 			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
 			data-disabled={dataAttr(disabled)}

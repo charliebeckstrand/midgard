@@ -8,7 +8,9 @@ import { cn, dataAttr } from '../../core'
 import { Hold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
+import { detailItemKey } from './engine/grid-items/items'
 import type { GridWindowRowProps } from './engine/grid-row/shell'
+import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
@@ -116,6 +118,10 @@ export function GridDetailRow({
 	// — so a closed one is the most expensive row the flat body keeps live.
 	const reveal = useGridRevealHold(expanded, enter)
 
+	const navKey = detailItemKey(rowKey)
+
+	const stopProps = useGridNavStopProps(navKey)
+
 	return (
 		<Hold hold={reveal.hold} name="grid-detail-row">
 			<tr
@@ -125,7 +131,7 @@ export function GridDetailRow({
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 			>
-				<td colSpan={colSpan} style={NO_PADDING}>
+				<td {...stopProps} colSpan={colSpan} style={NO_PADDING}>
 					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>
 						<div className={cn(k.detail.reveal.clip)}>
 							<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
@@ -133,6 +139,7 @@ export function GridDetailRow({
 							</section>
 						</div>
 					</div>
+					<GridNavCell stop={navKey} />
 				</td>
 			</tr>
 		</Hold>

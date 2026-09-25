@@ -1,4 +1,4 @@
-import { type ReactNode, useState } from 'react'
+import { createRef, type ReactNode, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -8,11 +8,20 @@ import {
 	type GridCellRefusal,
 	type GridColumn,
 	type GridEditableConfig,
+	type GridHandle,
+	type GridHistoryState,
+	type GridNewRowAddContext,
 	type GridProps,
 } from '../../modules/grid'
 import {
+	NEW_ROW_ADD_COLUMN_ID as ADD_COLUMN,
+	NEW_ROW_ADD_COLUMN_SIZE,
+	resolveNewRowAddWidth,
+} from '../../modules/grid/engine/grid-new-row-column'
+import {
 	act,
 	allBySlot,
+	attach,
 	bySlot,
 	expectAnnouncement,
 	fireEvent,
@@ -20,6 +29,7 @@ import {
 	liveRegion,
 	present,
 	renderUI,
+	userEvent,
 } from '../helpers'
 
 type SessionRow = { id: number; name: string; count: number; done: boolean }
@@ -33,6 +43,20 @@ const sessionColumns: GridColumn<SessionRow>[] = [
 	{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
 	{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
 ]
+
+/** `rows` with each change applied, as a consumer's `onCommit` applies it. */
+function applyChanges(rows: SessionRow[], changes: GridCellChange[]): SessionRow[] {
+	return rows.map((row) => {
+		const mine = changes.filter((change) => change.rowKey === row.id)
+
+		if (mine.length === 0) return row
+
+		return Object.assign(
+			{ ...row },
+			Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
+		)
+	})
+}
 
 /** The text and number editors mounted in the grid; the fixtures mount no other. */
 function editorsIn(container: HTMLElement) {
@@ -95,7 +119,10 @@ describe('Grid per-row editing', () => {
 		{ id: 'done', title: 'Done', field: 'done', cell: (row) => (row.done ? 'Yes' : 'No') },
 	]
 
-	function renderGrid(cols: GridColumn<SessionRow>[] = columns) {
+	function renderGrid(
+		cols: GridColumn<SessionRow>[] = columns,
+		rowLabel?: (row: SessionRow) => string,
+	) {
 		const onCommit = vi.fn()
 
 		function Harness() {
@@ -113,6 +140,7 @@ describe('Grid per-row editing', () => {
 						columns={cols}
 						rows={sessionRows}
 						getKey={(row) => row.id}
+						rowLabel={rowLabel}
 						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
 					/>
 				</>
@@ -327,7 +355,68 @@ describe('Grid per-row editing', () => {
 		// so the grid's debounced row-count status doesn't fire mid-test.
 		await Promise.resolve()
 
-		expect(liveRegion()).toHaveTextContent('1 cell updated')
+		expect(liveRegion()).toHaveTextContent('Name updated for row 1')
+	})
+
+	it('names the row by its label, and counts the cells of a row save', async () => {
+		const { container, editRow1, save } = renderGrid(columns, (row) => row.name)
+
+		editRow1()
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.change(getSlot<HTMLInputElement>(container, 'grid-edit-number-input'), {
+			target: { value: '9' },
+		})
+
+		save()
+
+		await Promise.resolve()
+
+		// The label reads the row that the save commits into, not the draft.
+		expect(liveRegion()).toHaveTextContent(/^2 cells updated for Alice$/)
+	})
+
+	it('names no row when one save spans rows', async () => {
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [editing, setEditing] = useState<Set<string | number>>(new Set([1, 2]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setEditing(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={sessionRows}
+						getKey={(row) => row.id}
+						rowLabel={(row) => row.name}
+						editable={{ rows: editing, onRowsChange: setEditing, onCommit }}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const [alice, bob] = allBySlot(view.container, 'grid-edit-input')
+
+		fireEvent.change(present(alice, 'the first name editor'), { target: { value: 'Alicia' } })
+
+		fireEvent.change(present(bob, 'the second name editor'), { target: { value: 'Bobby' } })
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		await Promise.resolve()
+
+		// One batch for each row, and one announcement for the sweep.
+		expect(onCommit).toHaveBeenCalledTimes(2)
+
+		expect(liveRegion()).toHaveTextContent(/^2 cells updated$/)
 	})
 
 	/**
@@ -471,7 +560,7 @@ describe('Grid per-row editing', () => {
 
 		// The sink went with the binding, so nothing committed. Announcing a save
 		// here would tell assistive tech something that did not happen.
-		expect(liveRegion()?.textContent ?? '').not.toContain('cell updated')
+		expect(liveRegion()?.textContent ?? '').not.toContain('updated')
 	})
 
 	it('lets a row action discard a row without committing it', () => {
@@ -1019,7 +1108,7 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// one row below rather than handing focus back to the grid.
 		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name', 1).id)
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('commits the editors a narrowing closes together, in one batch', () => {
@@ -1409,6 +1498,69 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// Inert rather than wrong, so it fails silently — which is what the
 		// development warning is for.
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("editable.scope: 'cell'"))
+	})
+
+	it('marks each cell that cannot enter edit mode as read-only', () => {
+		const { cell } = renderSessionGrid({
+			editable: { scope: 'cell' },
+			cols: [
+				...sessionColumns,
+				// No field and no slot, so no editor can open here.
+				{ id: 'label', title: 'Label', cell: (row) => row.name.toUpperCase() },
+				{ id: 'id', title: 'ID', field: 'id', cell: (row) => String(row.id), readOnly: true },
+			],
+		})
+
+		// A cell-scoped session mounts one editor, so the attribute is how a
+		// screen reader user finds the cells that can edit (WCAG 4.1.2).
+		expect(cell('label')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(cell('id')).toHaveAttribute('aria-readonly', 'true')
+
+		expect(cell('name')).not.toHaveAttribute('aria-readonly')
+	})
+
+	it('keeps the cursor ring on the cell that the session holds', () => {
+		const { container, cell, getByRole } = renderCellGrid()
+
+		// A browser sends the press before the double-click, and the press seats
+		// the cursor.
+		fireEvent.mouseDown(cell('name'))
+
+		fireEvent.doubleClick(cell('name'))
+
+		const input = getSlot<HTMLInputElement>(container, 'grid-edit-input')
+
+		expect(input).toHaveFocus()
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		// Under the default `commitOn`, the editor and its draft stay when focus
+		// leaves the grid, and the cursor goes.
+		const outside = attach(document.createElement('button'), 'prepend')
+
+		act(() => outside.focus())
+
+		expect(input).toBeInTheDocument()
+
+		// Tab back in seats the cursor on the first cell, which is the held one.
+		// Its ring is the only mark of the cursor in the grid (WCAG 2.4.7).
+		fireEvent.focus(getByRole('grid'), { relatedTarget: outside })
+
+		expect(getByRole('grid')).toHaveAttribute('aria-activedescendant', cell('name').id)
+
+		expect(cell('name')).toHaveAttribute('data-active')
+
+		// The ring moves with the session, and the cell it leaves keeps none.
+		act(() => input.focus())
+
+		fireEvent.keyDown(input, { key: 'Tab' })
+
+		expect(bySlot(container, 'grid-edit-number-input')).toHaveFocus()
+
+		expect(cell('count')).toHaveAttribute('data-active')
+
+		expect(cell('name')).not.toHaveAttribute('data-active')
 	})
 })
 
@@ -3267,7 +3419,7 @@ describe('Grid session-owned drafts', () => {
 
 		expect(onCommit).toHaveBeenCalledExactlyOnceWith(NAME_EDIT)
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 
 		expect(warn).not.toHaveBeenCalled()
 
@@ -3542,19 +3694,6 @@ describe('Grid async commit', () => {
 		reject: (reason: unknown) => Promise<void>
 	}
 
-	function applyChanges(rows: SessionRow[], changes: GridCellChange[]): SessionRow[] {
-		return rows.map((row) => {
-			const mine = changes.filter((change) => change.rowKey === row.id)
-
-			if (mine.length === 0) return row
-
-			return Object.assign(
-				{ ...row },
-				Object.fromEntries(mine.map((change) => [change.columnId, change.value])),
-			)
-		})
-	}
-
 	/**
 	 * Renders the async harness. With `controlRows`, the harness binds `rows`,
 	 * and `declineWhen` decides which rows writes of the grid it refuses.
@@ -3732,7 +3871,7 @@ describe('Grid async commit', () => {
 
 		expect(bySlot(container, 'grid-edit-pending')).toBeNull()
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('shows a pending cell busy, with the committed value, and lets no entry open it', () => {
@@ -3791,7 +3930,7 @@ describe('Grid async commit', () => {
 
 		expect(view.cell('name')).toHaveTextContent('Alicia')
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('accepts a batch that resolves with an empty list', async () => {
@@ -3807,7 +3946,7 @@ describe('Grid async commit', () => {
 
 		expect(editorIn(view, view.cell('name'))).toBeUndefined()
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Name updated for row 1')
 	})
 
 	it('refuses only the cells a resolve names, and restores their drafts with the error', async () => {
@@ -3866,7 +4005,7 @@ describe('Grid async commit', () => {
 		// A server refusal is not a `validate` refusal.
 		expect(view.onReject).not.toHaveBeenCalled()
 
-		await expectAnnouncement('1 cell updated, 1 cell not saved')
+		await expectAnnouncement('Count updated, Name not saved for row 1')
 	})
 
 	it('refuses the whole batch on a rejection, with the error message', async () => {
@@ -3893,7 +4032,7 @@ describe('Grid async commit', () => {
 			'Server down',
 		])
 
-		await expectAnnouncement('2 cells not saved')
+		await expectAnnouncement('2 cells not saved for row 1')
 	})
 
 	it.each([
@@ -4290,13 +4429,13 @@ describe('Grid async commit', () => {
 
 		expect(view.cell('name')).toHaveAttribute('aria-busy', 'true')
 
-		await expectAnnouncement('1 cell updated')
+		await expectAnnouncement('Count updated for row 1')
 
 		await view.flights[0]?.refuse([{ rowKey: 1, columnId: 'name', error: 'Name taken' }])
 
 		expect(editorAt(view, view.cell('name')).value).toBe('Alicia')
 
-		await expectAnnouncement('1 cell not saved')
+		await expectAnnouncement('Name not saved for row 1')
 	})
 
 	it('keeps a later cell move working while an earlier cell is pending', async () => {
@@ -4508,7 +4647,7 @@ describe('Grid new row', () => {
 		await expectAnnouncement('Row added')
 	})
 
-	it('adds through the Add control on the last editable cell', () => {
+	it('adds through the Add control in a column of its own', () => {
 		const view = renderNewRow()
 
 		view.type('name', 'Carol')
@@ -4517,11 +4656,177 @@ describe('Grid new row', () => {
 
 		const add = view.getByRole('button', { name: 'Add row' })
 
-		expect(view.slotCell('count')).toContainElement(add)
+		// The control is in the grid's own last column, not in the last editor's cell.
+		expect(view.slotCell(ADD_COLUMN)).toContainElement(add)
+
+		expect(view.slotCell('count')).not.toContainElement(add)
 
 		fireEvent.click(add)
 
 		expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol', count: 7 })
+	})
+
+	describe('the Add column', () => {
+		/** The text of each header cell, the empty Add header as its screen-reader name. */
+		const headers = (container: HTMLElement) =>
+			Array.from(container.querySelectorAll('thead th')).map((th) => th.textContent)
+
+		it('adds an empty, named last column to the header and to each data row', () => {
+			const view = renderNewRow({}, { navigable: true })
+
+			expect(headers(view.container)).toEqual(['Name', 'Count', 'Add row'])
+
+			expect(view.grid()).toHaveAttribute('aria-colcount', '3')
+
+			for (const row of view.dataRows()) {
+				const cells = row.querySelectorAll('td')
+
+				expect(cells).toHaveLength(3)
+
+				expect(cells[2]).toBeEmptyDOMElement()
+			}
+		})
+
+		/** The width that the colgroup gives the Add column, the last one. */
+		const addColWidth = (container: HTMLElement) =>
+			present(container.querySelector<HTMLElement>('colgroup col:last-child'), 'the Add col').style
+				.width
+
+		it('fixes the column at newRowAdd.width', () => {
+			const view = renderNewRow({ newRowAdd: { width: 90 } })
+
+			expect(addColWidth(view.container)).toBe('90px')
+		})
+
+		it('keeps the fallback width where the control measures nothing', () => {
+			// jsdom has no layout, so the Add cell reports no width.
+			const view = renderNewRow()
+
+			expect(addColWidth(view.container)).toBe(`${NEW_ROW_ADD_COLUMN_SIZE}px`)
+		})
+
+		it('resolves the width: none, fixed, measured, then the fallback', () => {
+			expect(resolveNewRowAddWidth(false, undefined, 70)).toBeNull()
+
+			expect(resolveNewRowAddWidth(true, false, 70)).toBeNull()
+
+			expect(resolveNewRowAddWidth(true, { width: 90 }, 70)).toBe(90)
+
+			expect(resolveNewRowAddWidth(true, {}, 70)).toBe(70)
+
+			expect(resolveNewRowAddWidth(true, undefined, null)).toBe(NEW_ROW_ADD_COLUMN_SIZE)
+		})
+
+		it('adds no column with newRowAdd false, and Enter still adds', () => {
+			const view = renderNewRow({ newRowAdd: false })
+
+			expect(headers(view.container)).toEqual(['Name', 'Count'])
+
+			expect(view.queryByRole('button', { name: 'Add row' })).toBeNull()
+
+			view.type('name', 'Carol')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+		})
+
+		it('renders a newRowAdd render slot with the add and the pending state', async () => {
+			let resolve: () => void = () => {}
+
+			const onRowAdd = vi.fn(
+				() =>
+					new Promise<void>((res) => {
+						resolve = res
+					}),
+			)
+
+			const render = vi.fn(({ add, pending }: GridNewRowAddContext) => (
+				<button type="button" onClick={add}>
+					{pending ? 'Saving' : 'Save person'}
+				</button>
+			))
+
+			const view = renderNewRow({ onRowAdd, newRowAdd: { render } })
+
+			expect(view.queryByRole('button', { name: 'Add row' })).toBeNull()
+
+			const save = view.getByRole('button', { name: 'Save person' })
+
+			expect(view.slotCell(ADD_COLUMN)).toContainElement(save)
+
+			view.type('name', 'Carol')
+
+			fireEvent.click(save)
+
+			expect(onRowAdd).toHaveBeenCalledExactlyOnceWith({ name: 'Carol' })
+
+			// The slot reads the add in flight, and its cell is inert until it settles.
+			expect(save).toHaveTextContent('Saving')
+
+			expect(save.closest('[inert]')).not.toBeNull()
+
+			await act(async () => resolve())
+
+			expect(view.getByRole('button', { name: 'Save person' }).closest('[inert]')).toBeNull()
+		})
+
+		it('leaves the slot on Escape from the Add control, and keeps a data edit open', () => {
+			const view = renderNewRow({ scope: 'cell' })
+
+			fireEvent.doubleClick(
+				present(view.container.querySelector<HTMLElement>('td[data-grid-col="name"]'), 'name cell'),
+			)
+
+			view.type('name', 'Carol')
+
+			const add = view.getByRole('button', { name: 'Add row' })
+
+			fireEvent.keyDown(add, { key: 'Escape' })
+
+			// The data row's editor stays: Escape in the slot is the slot's.
+			expect(editorsIn(view.container)).toHaveLength(3)
+
+			expect(view.slotEditor('name').value).toBe('')
+
+			// The cursor sits on the last data column of the slot, next to the control.
+			expect(view.grid()).toHaveAttribute('aria-activedescendant', view.slotCell('count').id)
+		})
+
+		it('keeps the column out of export and out of a saved preset', async () => {
+			const onExport = vi.fn()
+
+			const onSavePreset = vi.fn()
+
+			const view = renderNewRow(
+				{},
+				{
+					exportable: [{ csv: { onExport } }],
+					columnManager: { toolbar: true, onSavePreset },
+				},
+			)
+
+			const user = userEvent.setup()
+
+			await user.click(view.getByRole('button', { name: 'Manage columns' }))
+
+			await user.click(view.getByRole('button', { name: 'Save as preset' }))
+
+			expect(onSavePreset).toHaveBeenCalledWith(
+				expect.objectContaining({ order: ['name', 'count'] }),
+			)
+
+			fireEvent.contextMenu(view.getAllByRole('columnheader')[0] as HTMLElement)
+
+			fireEvent.click(view.getByRole('menuitem', { name: 'Export to CSV' }))
+
+			const context = onExport.mock.calls[0]?.[0]
+
+			expect(context.columns.map((column: GridColumn<SessionRow>) => column.id)).toEqual([
+				'name',
+				'count',
+			])
+		})
 	})
 
 	it('does nothing on an add with no value', () => {
@@ -4619,18 +4924,25 @@ describe('Grid new row', () => {
 
 			view.type('name', 'Carol')
 
-			view.slotEditor('name').focus()
+			const editor = view.slotEditor('name')
+
+			editor.focus()
 
 			view.press('name', 'Enter')
 
 			expect(view.slotCell('name')).toHaveAttribute('aria-busy', 'true')
 
-			expect(bySlot(view.slotCell('name'), 'grid-edit-pending')).toHaveTextContent('Carol')
+			// The editor stays mounted with its value, so the row keeps its fields.
+			expect(view.slotEditor('name')).toBe(editor)
 
-			// The editors give way to the pending cells, so focus rests on the grid.
+			expect(editor.value).toBe('Carol')
+
+			// The editors turn inert, with the Add control, so focus rests on the grid.
+			expect(editor.closest('[inert]')).not.toBeNull()
+
+			expect(view.add().closest('[inert]')).not.toBeNull()
+
 			expect(view.grid()).toHaveFocus()
-
-			expect(view.add()).toHaveAttribute('aria-disabled', 'true')
 
 			fireEvent.click(view.add())
 
@@ -4641,6 +4953,8 @@ describe('Grid new row', () => {
 			await view.resolve()
 
 			expect(view.slotCell('name')).not.toHaveAttribute('aria-busy')
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('')
 
@@ -4667,6 +4981,8 @@ describe('Grid new row', () => {
 
 			// The `rowKey` of a refusal is ignored, as the slot has no key.
 			await view.resolve([{ rowKey: 'anything', columnId: 'name', error: 'Name taken' }])
+
+			expect(view.slotEditor('name').closest('[inert]')).toBeNull()
 
 			expect(view.slotEditor('name').value).toBe('Carol')
 
@@ -4981,5 +5297,565 @@ describe('Grid new row', () => {
 
 			expect(warn).not.toHaveBeenCalledWith(expect.stringContaining('newRow'))
 		})
+	})
+})
+
+/**
+ * Undo and redo of saved cells (`history: true`). The consumer applies each
+ * step through `onCommit`, as it applies a save, so the harness binds `rows`
+ * and writes every batch into them. The keys act on the tab stop.
+ */
+describe('Grid undo and redo (history)', () => {
+	function renderHistoryGrid(editable: Partial<GridEditableConfig> = {}) {
+		const onCommit = vi.fn()
+
+		let setRows: (update: (rows: SessionRow[]) => SessionRow[]) => void = () => {}
+
+		function Harness() {
+			const [rows, set] = useState(sessionRows)
+
+			setRows = set
+
+			return (
+				<Grid
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history: true,
+						onCommit: (changes) => {
+							onCommit(changes)
+
+							set((prev) => applyChanges(prev, changes))
+						},
+						...editable,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const grid = view.getByRole('grid')
+
+		const cell = (col: string, rowIndex = 0) =>
+			view.container.querySelectorAll<HTMLElement>(`td[data-grid-col="${col}"]`)[
+				rowIndex
+			] as HTMLElement
+
+		return {
+			...view,
+			grid,
+			cell,
+			onCommit,
+			setRows: (update: (rows: SessionRow[]) => SessionRow[]) => act(() => setRows(update)),
+			/** Types `value` into the count cell of the first row, and saves it with F2. */
+			saveCount: (value: string) => {
+				fireEvent.doubleClick(cell('count'))
+
+				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+				fireEvent.change(input, { target: { value } })
+
+				fireEvent.keyDown(input, { key: 'F2' })
+			},
+			press: (key: string, extra: { shiftKey?: boolean; metaKey?: boolean } = {}) =>
+				fireEvent.keyDown(grid, { key, ctrlKey: !extra.metaKey, ...extra }),
+		}
+	}
+
+	it('undoes the last save through onCommit, and moves the cursor to the cell', async () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 9 }])
+
+		// Away from the cell, so the move back is visible.
+		fireEvent.keyDown(view.grid, { key: 'ArrowDown' })
+
+		view.press('z')
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 2 }])
+
+		expect(view.cell('count')).toHaveTextContent('2')
+
+		expect(view.grid).toHaveAttribute('aria-activedescendant', view.cell('count').id)
+
+		await expectAnnouncement('Count undone for Alice')
+	})
+
+	it('redoes an undone save with Shift+Z, Cmd, or Y', async () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		view.press('z')
+
+		view.press('Z', { shiftKey: true })
+
+		expect(view.cell('count')).toHaveTextContent('9')
+
+		await expectAnnouncement('Count redone for Alice')
+
+		view.press('z', { metaKey: true })
+
+		expect(view.cell('count')).toHaveTextContent('2')
+
+		view.press('y')
+
+		expect(view.cell('count')).toHaveTextContent('9')
+
+		// Each step is one more batch: the save, then four steps.
+		expect(view.onCommit).toHaveBeenCalledTimes(5)
+	})
+
+	it('leaves Ctrl+Z to an open editor', () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		fireEvent.doubleClick(view.cell('name'))
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-input')
+
+		fireEvent.keyDown(input, { key: 'z', ctrlKey: true })
+
+		// Only the save reached the sink; the key stayed with the input.
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		expect(input).toBeInTheDocument()
+	})
+
+	it('waits while a cell of the step has an edit that is not saved', async () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		fireEvent.doubleClick(view.cell('count'))
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input'), {
+			target: { value: '4' },
+		})
+
+		// A press on the tab stop, with the editor and its draft still open.
+		view.press('z')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		await expectAnnouncement('Cannot undo while a cell has an edit')
+	})
+
+	it('keeps a value that changed since the save', async () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		// A refetch writes a new value.
+		view.setRows((rows) => applyChanges(rows, [{ rowKey: 1, columnId: 'count', value: 7 }]))
+
+		view.press('z')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		expect(view.cell('count')).toHaveTextContent('7')
+
+		await expectAnnouncement('Cannot undo, the cells changed')
+
+		// The stale entry is gone, so the stack is empty now.
+		view.press('z')
+
+		await expectAnnouncement('Nothing to undo')
+	})
+
+	it('clears the redo steps on a new save', async () => {
+		const view = renderHistoryGrid()
+
+		view.saveCount('9')
+
+		view.press('z')
+
+		view.saveCount('5')
+
+		view.press('y')
+
+		expect(view.cell('count')).toHaveTextContent('5')
+
+		await expectAnnouncement('Nothing to redo')
+	})
+
+	it('records a save under a consumer-owned session', async () => {
+		function Harness() {
+			const [rows, setRows] = useState(sessionRows)
+
+			const [open, setOpen] = useState<Set<string | number>>(new Set([1]))
+
+			return (
+				<>
+					<button type="button" onClick={() => setOpen(new Set())}>
+						save
+					</button>
+					<Grid
+						columns={sessionColumns}
+						rows={rows}
+						getKey={(row) => row.id}
+						editable={{
+							rows: open,
+							onRowsChange: setOpen,
+							history: true,
+							onCommit: (changes) => setRows((prev) => applyChanges(prev, changes)),
+						}}
+					/>
+				</>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		fireEvent.change(getSlot<HTMLInputElement>(view.container, 'grid-edit-input'), {
+			target: { value: 'Alicia' },
+		})
+
+		fireEvent.click(view.getByRole('button', { name: 'save' }))
+
+		fireEvent.keyDown(view.getByRole('grid'), { key: 'z', ctrlKey: true })
+
+		expect(view.getByRole('grid')).toHaveTextContent('Alice')
+
+		await expectAnnouncement('Name undone for row 1')
+	})
+
+	/**
+	 * A history grid whose sink answers later from the moment `later` turns on.
+	 * `resolve` applies the last batch and settles it; `refuse` refuses it.
+	 */
+	function renderLaterGrid({ later = false } = {}) {
+		const state = {
+			later,
+			resolve: () => {},
+			refuse: (_refusals: GridCellRefusal[]) => {},
+		}
+
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState(sessionRows)
+
+			return (
+				<Grid
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history: true,
+						onCommit: (changes) => {
+							onCommit(changes)
+
+							const apply = () => setRows((prev) => applyChanges(prev, changes))
+
+							if (!state.later) return apply()
+
+							return new Promise<GridCellRefusal[] | undefined>((done) => {
+								state.resolve = () => {
+									apply()
+
+									done(undefined)
+								}
+
+								state.refuse = done
+							})
+						},
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const count = () =>
+			present(
+				view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
+				'the count cell',
+			)
+
+		return {
+			...view,
+			state,
+			onCommit,
+			count,
+			saveCount: (value: string) => {
+				fireEvent.doubleClick(count())
+
+				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+				fireEvent.change(input, { target: { value } })
+
+				fireEvent.keyDown(input, { key: 'F2' })
+			},
+			undo: () => fireEvent.keyDown(view.getByRole('grid'), { key: 'z', ctrlKey: true }),
+		}
+	}
+
+	it('pends an async step as a save pends, and speaks the step as it settles', async () => {
+		const view = renderLaterGrid()
+
+		view.saveCount('9')
+
+		view.state.later = true
+
+		view.undo()
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 2 }])
+
+		expect(view.count()).toHaveAttribute('aria-busy', 'true')
+
+		await act(async () => view.state.resolve())
+
+		expect(view.count()).not.toHaveAttribute('aria-busy')
+
+		expect(view.count()).toHaveTextContent('2')
+
+		await expectAnnouncement('Count undone for Alice')
+	})
+
+	it('records an async save when it is accepted, and not when it is refused', async () => {
+		const view = renderLaterGrid({ later: true })
+
+		view.saveCount('9')
+
+		// Not saved yet, so there is nothing to undo.
+		view.undo()
+
+		await expectAnnouncement('Nothing to undo')
+
+		await act(async () => view.state.resolve())
+
+		view.undo()
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 2 }])
+
+		await act(async () => view.state.resolve())
+
+		// A refused save leaves the history as it was: the undo above is the
+		// newest entry, on the redo stack.
+		view.saveCount('4')
+
+		await act(async () => view.state.refuse([{ rowKey: 1, columnId: 'count', error: 'No' }]))
+
+		fireEvent.keyDown(view.getByRole('grid'), { key: 'z', ctrlKey: true })
+
+		await expectAnnouncement('Nothing to undo')
+	})
+
+	it('does nothing without the flag', () => {
+		const view = renderHistoryGrid({ history: false })
+
+		view.saveCount('9')
+
+		view.press('z')
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		expect(view.cell('count')).toHaveTextContent('9')
+	})
+	/** A history grid that hands its commands to a `ref`, and reports its state. */
+	function renderHandleGrid(editable: Partial<GridEditableConfig> = {}) {
+		const handle = createRef<GridHandle>()
+
+		const states: GridHistoryState[] = []
+
+		const onCommit = vi.fn()
+
+		function Harness() {
+			const [rows, setRows] = useState(sessionRows)
+
+			return (
+				<Grid
+					ref={handle}
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					rowLabel={(row) => row.name}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history: true,
+						onHistoryChange: (state) => states.push(state),
+						onCommit: (changes) => {
+							onCommit(changes)
+
+							setRows((prev) => applyChanges(prev, changes))
+						},
+						...editable,
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness />)
+
+		const count = () =>
+			present(
+				view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
+				'the count cell',
+			)
+
+		return {
+			...view,
+			handle,
+			states,
+			onCommit,
+			count,
+			saveCount: (value: string) => {
+				fireEvent.doubleClick(count())
+
+				const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+				fireEvent.change(input, { target: { value } })
+
+				fireEvent.keyDown(input, { key: 'F2' })
+			},
+			step: (step: 'undo' | 'redo') => {
+				const current = handle.current
+
+				if (!current) throw new Error('The grid handle is not set.')
+
+				let wrote = false
+
+				act(() => {
+					wrote = current[step]()
+				})
+
+				return wrote
+			},
+		}
+	}
+
+	it('undoes and redoes through the ref handle, and reports each flip of the state', async () => {
+		const view = renderHandleGrid()
+
+		view.saveCount('9')
+
+		expect(view.states).toEqual([{ canUndo: true, canRedo: false }])
+
+		expect(view.step('undo')).toBe(true)
+
+		expect(view.onCommit).toHaveBeenLastCalledWith([{ rowKey: 1, columnId: 'count', value: 2 }])
+
+		expect(view.count()).toHaveTextContent('2')
+
+		await expectAnnouncement('Count undone for Alice')
+
+		expect(view.step('redo')).toBe(true)
+
+		expect(view.count()).toHaveTextContent('9')
+
+		expect(view.states).toEqual([
+			{ canUndo: true, canRedo: false },
+			{ canUndo: false, canRedo: true },
+			{ canUndo: true, canRedo: false },
+		])
+	})
+
+	it('leaves the cursor where it is on a step from the handle', () => {
+		const view = renderHandleGrid()
+
+		view.saveCount('9')
+
+		const grid = view.getByRole('grid')
+
+		// Focus goes to a toolbar button, so the grid holds no cursor.
+		const button = attach(document.createElement('button'))
+
+		act(() => button.focus())
+
+		view.step('undo')
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		expect(view.count()).not.toHaveAttribute('data-active')
+	})
+
+	it('returns false with no step to take, and says why', async () => {
+		const view = renderHandleGrid()
+
+		expect(view.step('undo')).toBe(false)
+
+		await expectAnnouncement('Nothing to undo')
+
+		expect(view.onCommit).not.toHaveBeenCalled()
+
+		// No flip happened, so nothing was reported.
+		expect(view.states).toEqual([])
+	})
+
+	it('does nothing and says nothing from the handle with the history off', async () => {
+		const view = renderHandleGrid({ history: false })
+
+		view.saveCount('9')
+
+		await expectAnnouncement('Count updated for Alice')
+
+		expect(view.step('undo')).toBe(false)
+
+		expect(view.onCommit).toHaveBeenCalledTimes(1)
+
+		expect(liveRegion()).toHaveTextContent('Count updated for Alice')
+
+		expect(view.states).toEqual([])
+	})
+
+	it('reports an empty state once when the history turns off', () => {
+		const handle = createRef<GridHandle>()
+
+		const states: GridHistoryState[] = []
+
+		function Harness({ history }: { history: boolean }) {
+			const [rows, setRows] = useState(sessionRows)
+
+			return (
+				<Grid
+					ref={handle}
+					columns={sessionColumns}
+					rows={rows}
+					getKey={(row) => row.id}
+					editable={{
+						session: 'managed',
+						scope: 'cell',
+						history,
+						onHistoryChange: (state) => states.push(state),
+						onCommit: (changes) => setRows((prev) => applyChanges(prev, changes)),
+					}}
+				/>
+			)
+		}
+
+		const view = renderUI(<Harness history />)
+
+		const count = present(
+			view.container.querySelector<HTMLElement>('td[data-grid-col="count"]'),
+			'the count cell',
+		)
+
+		fireEvent.doubleClick(count)
+
+		const input = getSlot<HTMLInputElement>(view.container, 'grid-edit-number-input')
+
+		fireEvent.change(input, { target: { value: '9' } })
+
+		fireEvent.keyDown(input, { key: 'F2' })
+
+		view.rerender(<Harness history={false} />)
+
+		expect(states).toEqual([
+			{ canUndo: true, canRedo: false },
+			{ canUndo: false, canRedo: false },
+		])
 	})
 })

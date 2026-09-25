@@ -125,20 +125,49 @@ export type PinMenuChoice = {
 }
 
 /**
- * The pin choices a column's menu offers, from its current frozen edge. They are
- * "Pin left" / "Pin right" for the edges it is not already frozen to, and
- * "Unpin" once it is frozen. A scrolling column offers both edges; a left-pinned one
- * offers Pin right and Unpin, and vice versa. The one decision tree behind the
- * header context menu's pin items and the column manager's pin control.
+ * The physical edge that a pin side names in a grid of the given direction. A
+ * pin side is logical: `'left'` is the inline start. In a right-to-left grid,
+ * the start is the right edge. The menu labels, the arrows, and the
+ * announcement name the physical edge, because that is where the column goes.
  *
  * @internal
  */
-export function pinMenuChoices(side: PinSide | undefined): PinMenuChoice[] {
+export function physicalSide(side: PinSide, rtl: boolean): PinSide {
+	if (!rtl) return side
+
+	return side === 'left' ? 'right' : 'left'
+}
+
+/** The label of a pin choice, from the physical edge. @internal */
+const PIN_LABEL: Record<PinSide, string> = { left: 'Pin left', right: 'Pin right' }
+
+/**
+ * The pin choices a column's menu offers, from its current frozen edge. They are
+ * a pin to each edge it is not already frozen to, and "Unpin" once it is
+ * frozen. A scrolling column offers both edges; a left-pinned one offers the
+ * right edge and Unpin, and vice versa. The one decision tree behind the
+ * header context menu's pin items and the column manager's pin control.
+ *
+ * The keys and the targets are logical. The labels name the physical edge, so
+ * in a right-to-left grid the `'left'` target reads "Pin right".
+ *
+ * @param rtl - Whether the grid lays out right to left.
+ * @internal
+ */
+export function pinMenuChoices(side: PinSide | undefined, rtl = false): PinMenuChoice[] {
 	const choices: PinMenuChoice[] = []
 
-	if (side !== 'left') choices.push({ key: 'pin-left', label: 'Pin left', target: 'left' })
+	if (side !== 'left') {
+		choices.push({ key: 'pin-left', label: PIN_LABEL[physicalSide('left', rtl)], target: 'left' })
+	}
 
-	if (side !== 'right') choices.push({ key: 'pin-right', label: 'Pin right', target: 'right' })
+	if (side !== 'right') {
+		choices.push({
+			key: 'pin-right',
+			label: PIN_LABEL[physicalSide('right', rtl)],
+			target: 'right',
+		})
+	}
 
 	if (side) choices.push({ key: 'unpin', label: 'Unpin', target: false })
 

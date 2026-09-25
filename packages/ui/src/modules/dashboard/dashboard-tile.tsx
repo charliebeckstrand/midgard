@@ -142,6 +142,9 @@ export type DashboardTileProps = {
  * sparkline takes the full height. At rest the veil shows on hover or focus, and
  * in edit mode it stays in view for the grip. Where the primary pointer cannot
  * hover, as on a phone or a tablet, the veil stays in view at rest too.
+ *
+ * At rest, a truncated title shows its full text in a tooltip on hover. The veil
+ * is narrow, so the title of a spark tile truncates first.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>

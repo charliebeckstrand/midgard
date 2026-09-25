@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { createGroup, createRule, type QueryField } from '../../modules/query'
+import {
+	createGroup,
+	createRule,
+	parseQuery,
+	type QueryField,
+	type QueryGroup,
+	serializeQuery,
+} from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
 import { fireEvent, getAllSlots, renderUI, screen } from '../helpers'
 
@@ -444,6 +451,47 @@ describe('Grid per-column filters', () => {
 		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
 	})
 
+	it('applies a column query that made a round trip through the URL form', () => {
+		// A saved view restores through `parseQuery`, which gives new ids. The filter
+		// guard checks the full tree, so the restored tree must still pass it.
+		const { value } = parseQuery(serializeQuery(nameContains('Bob')), { fields: [nameField] })
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={value ? { value: [{ id: 'name', value }] } : undefined}
+			/>,
+		)
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+
+		expect(screen.queryByText('Alice')).not.toBeInTheDocument()
+	})
+
+	it('reads a malformed column query as no filter', () => {
+		// A group whose rule has no field is not a query tree, so the grid keeps every row.
+		const malformed = {
+			id: 'root',
+			type: 'group',
+			children: [{ id: 'r', type: 'rule', operator: 'contains', value: 'Bob' }],
+		} as unknown as QueryGroup
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'name', value: malformed }] }}
+			/>,
+		)
+
+		expect(screen.getByText('Alice')).toBeInTheDocument()
+
+		expect(screen.getByText('Bob')).toBeInTheDocument()
+	})
+
 	it('does not filter client-side in manual (server) mode', () => {
 		renderUI(
 			<Grid
@@ -877,5 +925,63 @@ describe('Grid faceted select filter', () => {
 		expect(screen.getByRole('option', { name: 'Engineer' })).toBeInTheDocument()
 
 		expect(screen.queryByRole('option', { name: 'Developer' })).toBeNull()
+	})
+})
+
+describe('Grid faceted number span', () => {
+	type Row = { id: number; age: number | null }
+
+	const ageField: QueryField = { name: 'age', label: 'Age', type: 'number' }
+
+	const getKey = (row: Row) => row.id
+
+	const rows: Row[] = [
+		{ id: 1, age: 34 },
+		{ id: 2, age: 19 },
+		{ id: 3, age: null },
+		{ id: 4, age: 52 },
+	]
+
+	const columns: GridColumn<Row>[] = [
+		{
+			id: 'age',
+			title: 'Age',
+			cell: (row) => String(row.age ?? ''),
+			value: (row) => row.age,
+			filterable: true,
+			filterType: 'number',
+		},
+	]
+
+	const between = (): QueryGroup =>
+		createGroup('and', [{ ...createRule(ageField), operator: 'between', value: [20, ''] }])
+
+	it('clamps a between rule to the column span, and a blank cell does not pull it to 0', () => {
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				columnFilters={{ value: [{ id: 'age', value: between() }] }}
+			/>,
+		)
+
+		// The applied filter makes the button a menu; "Edit filters" opens the sheet.
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Age/ }))
+
+		fireEvent.click(screen.getByRole('menuitem', { name: 'Edit filters' }))
+
+		const min = screen.getByRole('spinbutton', { name: 'Age minimum' })
+
+		const max = screen.getByRole('spinbutton', { name: 'Age maximum' })
+
+		expect(min).toHaveAttribute('placeholder', '19')
+
+		expect(max).toHaveAttribute('placeholder', '52')
+
+		// The span covers every row: a column's facets leave out its own filter.
+		expect(min).toHaveAttribute('min', '19')
+
+		expect(max).toHaveAttribute('max', '52')
 	})
 })

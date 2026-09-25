@@ -20,7 +20,7 @@ export const ink = {
 		line: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	},
 	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
-	label: ['text-sm text-left', 'leading-tight', ...text.muted],
+	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],
 } as const

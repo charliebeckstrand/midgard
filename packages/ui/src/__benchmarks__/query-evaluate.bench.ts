@@ -125,11 +125,11 @@ describe('query-active · isQueryActive (per render of the affordance)', () => {
 		const blank = blanked(tree)
 
 		bench(`${label} · active (exits on the first rule)`, () => {
-			isQueryActive(tree, QUERY_FIELDS)
+			isQueryActive(tree)
 		})
 
 		bench(`${label} · all rules blank (walks the tree)`, () => {
-			isQueryActive(blank, QUERY_FIELDS)
+			isQueryActive(blank)
 		})
 	}
 })

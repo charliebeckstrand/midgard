@@ -5,14 +5,17 @@ import {
 	type KeyboardEvent,
 	type RefObject,
 	useCallback,
+	useEffectEvent,
 	useLayoutEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
-import { clamp } from '../../utilities'
+import { clamp, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
+import type { GridCursorRow } from './grid-cursor-order'
 
 /**
  * Zero-based cursor position over the grid's data cells, in display order.
@@ -98,16 +101,43 @@ export type GridCellActivate = (
  * @internal
  */
 export type GridNavStore = {
+	/** Whether the cursor runs, so the rows of the grid carry its cell ids and seats. */
+	enabled: boolean
 	subscribe: (listener: () => void) => () => void
 	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
 	isActive: (row: number, col: number) => boolean
+	/** Whether the cursor sits on the one-stop row with this item key. */
+	isStopActive: (key: string) => boolean
+	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */
+	stopId: (key: string) => string
+	/** Seats the cursor on the one-stop row with this item key, as a click on it does. */
+	seatStop: (key: string) => void
+	/**
+	 * Hands the cursor the order of a body that renders more than data rows, or
+	 * `null` for a body of data rows only. A body calls it from a layout effect
+	 * each time its order changes (see {@link GridCursorRow}).
+	 */
+	publish: (order: readonly GridCursorRow[] | null) => void
 }
 
-/** Provides the read-only cursor store to the cell markers under a `navigable` grid. @internal */
-export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav')
-
 /** Inert store for a non-navigable grid, so the hook can return a stable shape unconditionally. @internal */
-const INERT_STORE: GridNavStore = { subscribe: () => () => {}, isActive: () => false }
+const INERT_STORE: GridNavStore = {
+	enabled: false,
+	subscribe: () => () => {},
+	isActive: () => false,
+	isStopActive: () => false,
+	stopId: (key) => key,
+	seatStop: () => {},
+	publish: () => {},
+}
+
+/**
+ * Provides the read-only cursor store to the cell markers under a `navigable`
+ * grid. A row outside a grid reads the inert store. @internal
+ */
+export const [GridNavContext, useGridNavContext] = createContext<GridNavStore>('GridNav', {
+	default: INERT_STORE,
+})
 
 /**
  * The cursor props merged onto a `navigable` grid's `<table>`: the single tab
@@ -168,6 +198,22 @@ function navTarget(
 		default:
 			return null
 	}
+}
+
+/**
+ * The key that a horizontal arrow means in the column order of the cursor. In
+ * a right-to-left grid, the columns run from right to left. `ArrowLeft` then
+ * moves to the next column, and `ArrowRight` to the previous one (WAI-ARIA APG
+ * grid pattern). The group keys mirror in the same way. Other keys, `Home` and
+ * `End` among them, come back unchanged, because they already name the start
+ * and the end of the row. @internal
+ */
+export function logicalArrow(key: string, rtl: boolean): string {
+	if (!rtl) return key
+
+	if (key === 'ArrowLeft') return 'ArrowRight'
+
+	return key === 'ArrowRight' ? 'ArrowLeft' : key
 }
 
 /**
@@ -245,12 +291,111 @@ function resolvePageStep(key: string, container: HTMLElement | null, table: HTML
 }
 
 /**
+ * Maps each data row index to its place in a published order. A data row that
+ * the order does not show has no place. @internal
+ */
+function cursorOfDataRows(
+	order: readonly GridCursorRow[] | null,
+	rowIndexMap: Map<unknown, number>,
+): Map<number, number> {
+	const cursorOfData = new Map<number, number>()
+
+	order?.forEach((entry, row) => {
+		if (entry.kind !== 'data') return
+
+		const data = rowIndexMap.get(entry.row)
+
+		if (data !== undefined) cursorOfData.set(data, row)
+	})
+
+	return cursorOfData
+}
+
+/**
+ * Finds the cursor's place again in a new order. The same row is found by key.
+ * A row that left the order, such as a leaf of a group that closed, gives way
+ * to its parent row. Else the place clamps into the order. A body that stops
+ * publishing clears the cursor, because its places mean nothing now. @internal
+ */
+function reseat(
+	current: Coord | null,
+	order: readonly GridCursorRow[] | null,
+	seated: { key: string; parent: string | undefined } | null,
+): Coord | null {
+	if (current === null || current.row === NEW_ROW_INDEX) return current
+
+	if (order === null) return null
+
+	const find = (key: string | undefined) =>
+		key === undefined ? -1 : order.findIndex((entry) => entry.key === key)
+
+	let row = find(seated?.key)
+
+	if (row === -1) row = find(seated?.parent)
+
+	if (row === -1 && order.length > 0) row = clamp(current.row, 0, order.length - 1)
+
+	if (row === -1) return null
+
+	return row === current.row ? current : { row, col: current.col }
+}
+
+/** What a key does on a one-stop row (see `onStopKey`). @internal */
+type StopAction = 'toggle' | 'descend' | 'enter' | 'swallow'
+
+/**
+ * Resolves the action of a key on a one-stop row, or `null` when the cursor
+ * takes the key.
+ *
+ * - A group header toggles on Enter or Space. ArrowRight opens a closed group,
+ *   and it steps into an open one. ArrowLeft closes an open group. The key is
+ *   logical (see {@link logicalArrow}), so a right-to-left grid mirrors it.
+ * - A detail panel takes focus into its controls on Enter or F2.
+ * - A one-stop row has no cells, so the other keys that act on a cell do
+ *   nothing there.
+ *
+ * @internal
+ */
+function stopAction(key: string, entry: GridCursorRow): StopAction | null {
+	const open = entry.kind === 'group' && entry.expanded
+
+	if (entry.kind === 'group' && (key === 'Enter' || key === ' ')) return 'toggle'
+
+	if (entry.kind === 'group' && key === 'ArrowRight') return open ? 'descend' : 'toggle'
+
+	if (open && key === 'ArrowLeft') return 'toggle'
+
+	if (entry.kind === 'detail' && (key === 'Enter' || key === 'F2')) return 'enter'
+
+	const cellKey = key === 'ArrowLeft' || key === 'ArrowRight' || key === 'Enter' || key === ' '
+
+	return cellKey ? 'swallow' : null
+}
+
+/**
+ * Gives focus back to the grid on an Escape from a control in one of its
+ * detail panels. An Escape that the control took stays with it. @internal
+ */
+function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
+	if (event.key !== 'Escape' || event.defaultPrevented) return
+
+	const panel = event.target instanceof Element ? event.target.closest('[data-detail-row]') : null
+
+	if (panel?.closest('table') !== event.currentTarget) return
+
+	event.preventDefault()
+
+	event.currentTarget.focus()
+}
+
+/**
  * Owns the read-only grid's keyboard cursor: a single active cell mirrored into
  * an external store. Only the cells whose active flag flips re-render, and the
  * cursor is exposed to assistive tech through `aria-activedescendant`. Arrow
  * keys, Home/End (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the
  * cursor. Enter/Space activates the cell through `onCellActivate` then the row
- * through `onRowActivate`. Escape unseats it.
+ * through `onRowActivate`. Escape unseats it. In a right-to-left grid,
+ * ArrowLeft moves to the next column and ArrowRight to the previous one.
  *
  * Bounds and the active row come from `rowsRef`/`colCountRef` at event time. The
  * hook thus holds no stale counts, and its callbacks stay referentially stable
@@ -280,6 +425,7 @@ export function useGridNavigation({
 	scrollRowIntoViewRef,
 	scrollContainerRef,
 	newRowRef,
+	rowIndexMapRef,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -294,12 +440,17 @@ export function useGridNavigation({
 	selectableRef: RefObject<boolean>
 	/** Toggles the active row's selection by display index, when selectable. */
 	toggleActiveRow: ((rowIdx: number) => void) | undefined
-	/** Scrolls a row into the virtualized window before the cursor lands on it; null when unwindowed. */
-	scrollRowIntoViewRef: RefObject<((rowIndex: number) => void) | null>
+	/**
+	 * Scrolls a row into the virtualized window before the cursor lands on it; null
+	 * when unwindowed. A body with a published order also receives the row's item key.
+	 */
+	scrollRowIntoViewRef: RefObject<((rowIndex: number, key?: string) => void) | null>
 	/** The grid's scroll container, measured for the viewport-relative PageUp/Down step; null when the grid doesn't scroll. */
 	scrollContainerRef: RefObject<HTMLElement | null>
 	/** Where the new-row slot sits in the cursor's order, read at event time. */
 	newRowRef: RefObject<GridNewRowPosition>
+	/** Live row → data index map; turns a data row of a published order into a data index. */
+	rowIndexMapRef: RefObject<Map<unknown, number>>
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -315,20 +466,24 @@ export function useGridNavigation({
 
 	activeRef.current = active
 
-	// Read the row- and cell-click through refs so the key handler's deps stay
-	// stable when the consumer passes inline callbacks.
-	const onRowActivateRef = useRef(onRowActivate)
+	// Read the row- and cell-click as effect events, so the key handler's deps
+	// stay stable when the consumer passes inline callbacks. Whether each one is
+	// present stays in the deps, because Enter is claimed only when one is.
+	const hasRowActivate = onRowActivate !== undefined
 
-	onRowActivateRef.current = onRowActivate
+	const hasCellActivate = onCellActivate !== undefined
 
-	const onCellActivateRef = useRef(onCellActivate)
+	const rowActivate = useEffectEvent((row: unknown, event: KeyboardEvent<HTMLTableElement>) =>
+		onRowActivate?.(row, event),
+	)
 
-	onCellActivateRef.current = onCellActivate
+	const cellActivate = useEffectEvent(
+		(rowIdx: number, colIdx: number, event: KeyboardEvent<HTMLTableElement>) =>
+			onCellActivate?.(rowIdx, colIdx, event),
+	)
 
-	// Read selection toggling through a ref so the key handler's deps stay stable.
-	const toggleActiveRowRef = useRef(toggleActiveRow)
-
-	toggleActiveRowRef.current = toggleActiveRow
+	// Read selection toggling as an effect event, so the key handler's deps stay stable.
+	const toggleActive = useEffectEvent((rowIdx: number) => toggleActiveRow?.(rowIdx))
 
 	const { sub } = useIdScope()
 
@@ -345,6 +500,56 @@ export function useGridNavigation({
 
 	const internal = internalRef.current
 
+	// The order of a body that renders more than data rows, or `null` for data rows
+	// only. Inside this hook `active.row` is a place in that order. The public API
+	// speaks data row indexes either way, so no caller learns of the order.
+	const orderRef = useRef<readonly GridCursorRow[] | null>(null)
+
+	const cursorOfDataRef = useRef<Map<number, number>>(new Map())
+
+	// The item key and parent of the active row, read against the order it was
+	// seated in, so a new order can find the same row again.
+	const activeKeyRef = useRef<{ key: string; parent: string | undefined } | null>(null)
+
+	const count = useCallback(() => orderRef.current?.length ?? rowsRef.current.length, [rowsRef])
+
+	/** The data row index of a cursor row, or -1 for a row that holds no data. */
+	const dataRowOf = useCallback(
+		(row: number): number => {
+			const order = orderRef.current
+
+			if (!order || row === NEW_ROW_INDEX) return row
+
+			const entry = order[row]
+
+			return entry?.kind === 'data' ? (rowIndexMapRef.current.get(entry.row) ?? -1) : -1
+		},
+		[rowIndexMapRef],
+	)
+
+	/** The cursor row of a data row index, or -1 for a data row the order does not show. */
+	const cursorRowOf = useCallback((row: number): number => {
+		if (!orderRef.current || row === NEW_ROW_INDEX) return row
+
+		return cursorOfDataRef.current.get(row) ?? -1
+	}, [])
+
+	/** The one-stop entry at a cursor row, or `undefined` for a data row or the new-row slot. */
+	const stopAt = useCallback((row: number): GridCursorRow | undefined => {
+		const entry = row === NEW_ROW_INDEX ? undefined : orderRef.current?.[row]
+
+		return entry && entry.kind !== 'data' ? entry : undefined
+	}, [])
+
+	const stopId = useCallback((key: string) => sub(`stop-${key}`), [sub])
+
+	// The store is built once, so its members that need later callbacks read them
+	// through this ref.
+	const storeActionsRef = useRef<{
+		seatStop: (key: string) => void
+		publish: (order: readonly GridCursorRow[] | null) => void
+	}>({ seatStop: () => {}, publish: () => {} })
+
 	useLayoutEffect(() => {
 		internal.active = active
 
@@ -355,6 +560,7 @@ export function useGridNavigation({
 
 	if (storeRef.current === null) {
 		storeRef.current = {
+			enabled: true,
 			subscribe: (listener) => {
 				internal.listeners.add(listener)
 
@@ -362,15 +568,33 @@ export function useGridNavigation({
 					internal.listeners.delete(listener)
 				}
 			},
-			isActive: (row, col) => internal.active?.row === row && internal.active?.col === col,
+			isActive: (row, col) => {
+				const current = internal.active
+
+				if (current === null || current.col !== col) return false
+
+				const data = dataRowOf(current.row)
+
+				return data !== -1 && data === row
+			},
+			isStopActive: (key) => {
+				const current = internal.active
+
+				return current !== null && stopAt(current.row)?.key === key
+			},
+			stopId,
+			seatStop: (key) => storeActionsRef.current.seatStop(key),
+			publish: (order) => storeActionsRef.current.publish(order),
 		}
 	}
 
-	const moveTo = useCallback(
+	// Moves the cursor to a place in its order. A one-stop row keeps the column
+	// the cursor came from, so a later step onto a data row lands in it again.
+	const moveToCursor = useCallback(
 		(coord: Coord) => {
 			const colCount = colCountRef.current
 
-			const row = clampRow(coord.row, rowsRef.current.length, newRowRef.current)
+			const row = clampRow(coord.row, count(), newRowRef.current)
 
 			if (row === null || colCount === 0) return
 
@@ -379,12 +603,55 @@ export function useGridNavigation({
 			// Bring the target row into the virtualized window so its cell mounts
 			// before `aria-activedescendant` points at it; a no-op when unwindowed.
 			// The new-row slot sits outside the window, and is always mounted.
-			if (row !== NEW_ROW_INDEX) scrollRowIntoViewRef.current?.(row)
+			if (row !== NEW_ROW_INDEX) scrollRowIntoViewRef.current?.(row, orderRef.current?.[row]?.key)
 
 			setActive({ row, col })
 		},
-		[rowsRef, colCountRef, scrollRowIntoViewRef, newRowRef],
+		[colCountRef, count, scrollRowIntoViewRef, newRowRef],
 	)
+
+	// The public move takes a data row index, as every caller outside this hook
+	// speaks it. A data row that a published order does not show is not moved to.
+	const moveTo = useCallback(
+		(coord: Coord) => {
+			const row = cursorRowOf(coord.row)
+
+			if (row === -1) return
+
+			moveToCursor({ row, col: coord.col })
+		},
+		[cursorRowOf, moveToCursor],
+	)
+
+	// Records the key of each row the cursor seats on, against the order it was
+	// seated in. A later order looks the row up by that key.
+	useLayoutEffect(() => {
+		const entry =
+			active && active.row !== NEW_ROW_INDEX ? orderRef.current?.[active.row] : undefined
+
+		activeKeyRef.current = entry
+			? { key: entry.key, parent: entry.kind === 'group' ? undefined : entry.parent }
+			: null
+	}, [active])
+
+	storeActionsRef.current = {
+		seatStop: (key) => {
+			const row = orderRef.current?.findIndex((entry) => entry.key === key) ?? -1
+
+			if (row !== -1) moveToCursor({ row, col: activeRef.current?.col ?? 0 })
+		},
+		publish: (order) => {
+			if (order === orderRef.current) return
+
+			orderRef.current = order
+
+			cursorOfDataRef.current = cursorOfDataRows(order, rowIndexMapRef.current)
+
+			const seated = activeKeyRef.current
+
+			setActive((current) => reseat(current, order, seated))
+		},
+	}
 
 	// Re-clamp the cursor to the current bounds when the data shrinks (filter,
 	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
@@ -395,7 +662,10 @@ export function useGridNavigation({
 			setActive((current) => {
 				if (current === null) return null
 
-				const row = clampRow(current.row, rowCount, newRowRef.current)
+				// A published order holds its own bounds; `rowCount` counts data rows.
+				const rows = orderRef.current ? orderRef.current.length : rowCount
+
+				const row = clampRow(current.row, rows, newRowRef.current)
 
 				if (row === null || colCount === 0) return null
 
@@ -411,21 +681,17 @@ export function useGridNavigation({
 	// click bridges — the same cell-first order a pointer click fires in.
 	const activateRow = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>, coord: Coord) => {
-			const activate = onRowActivateRef.current
-
-			const activateCell = onCellActivateRef.current
-
 			const row = rowsRef.current[coord.row]
 
-			if ((!activate && !activateCell) || row === undefined) return
+			if ((!hasRowActivate && !hasCellActivate) || row === undefined) return
 
 			event.preventDefault()
 
-			activateCell?.(coord.row, coord.col, event)
+			cellActivate(coord.row, coord.col, event)
 
-			activate?.(row, event)
+			rowActivate(row, event)
 		},
-		[rowsRef],
+		[rowsRef, hasRowActivate, hasCellActivate],
 	)
 
 	// Space toggles the active row's selection in a selectable grid (APG grid) and
@@ -437,7 +703,7 @@ export function useGridNavigation({
 				event.preventDefault()
 
 				if (selectableRef.current) {
-					toggleActiveRowRef.current?.(coord.row)
+					toggleActive(coord.row)
 
 					return
 				}
@@ -448,15 +714,59 @@ export function useGridNavigation({
 		[activateRow, selectableRef],
 	)
 
+	// The keys of a one-stop row at `base` (see `stopAction`). The cursor's arrows
+	// and page keys still move off each kind. Returns whether it took the key.
+	const onStopKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, key: string, base: Coord): boolean => {
+			const entry = stopAt(base.row)
+
+			const action = entry ? stopAction(key, entry) : null
+
+			if (!entry || action === null) return false
+
+			event.preventDefault()
+
+			if (action === 'toggle' && entry.kind === 'group') entry.toggle()
+			else if (action === 'descend') moveToCursor({ row: base.row + 1, col: base.col })
+			else if (action === 'enter') {
+				const cell = document.getElementById(stopId(entry.key))
+
+				cell?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR)?.focus()
+			}
+
+			return true
+		},
+		[moveToCursor, stopAt, stopId],
+	)
+
+	// Enter and Space act on the active cell, and Escape unseats the cursor.
+	const onCellKey = useCallback(
+		(event: KeyboardEvent<HTMLTableElement>, base: Coord) => {
+			if (event.key === 'Enter' || event.key === ' ') {
+				activateOrSelectRow(event, { row: dataRowOf(base.row), col: base.col })
+			} else if (event.key === 'Escape' && activeRef.current) {
+				event.preventDefault()
+
+				setActive(null)
+			}
+		},
+		[activateOrSelectRow, dataRowOf],
+	)
+
 	const onKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTableElement>) => {
 			// Only keys landing on the `<table>` tab stop drive the cursor; a keystroke
 			// bubbling up from a focusable descendant (an inline editor, a link) belongs
 			// to that control — hijacking it freezes the caret and jumps the cursor.
-			if (event.target !== event.currentTarget) return
+			// One exception: Escape from a control in one of this grid's detail panels.
+			if (event.target !== event.currentTarget) {
+				escapeFromPanel(event)
+
+				return
+			}
 
 			const order = {
-				count: rowsRef.current.length,
+				count: count(),
 				slot: newRowRef.current,
 				colCount: colCountRef.current,
 			}
@@ -469,29 +779,37 @@ export function useGridNavigation({
 
 			const base = activeRef.current ?? first
 
+			// A horizontal arrow reads the direction of the grid. Other keys skip the
+			// computed-style read.
+			const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
+
+			const key = horizontal
+				? logicalArrow(event.key, getComputedStyle(event.currentTarget).direction === 'rtl')
+				: event.key
+
+			if (onStopKey(event, key, base)) return
+
 			// `event.currentTarget` is the `<table>`; the page step is viewport-relative
 			// (a no-op layout read for non-page keys, see `resolvePageStep`).
 			const target = keyTarget(
-				event.key,
+				key,
 				base,
 				order,
 				event.metaKey || event.ctrlKey,
 				resolvePageStep(event.key, scrollContainerRef.current, event.currentTarget),
 			)
 
-			if (target) {
-				event.preventDefault()
+			if (!target) {
+				onCellKey(event, base)
 
-				moveTo(target)
-			} else if (event.key === 'Enter' || event.key === ' ') {
-				activateOrSelectRow(event, base)
-			} else if (event.key === 'Escape' && activeRef.current) {
-				event.preventDefault()
-
-				setActive(null)
+				return
 			}
+
+			event.preventDefault()
+
+			moveToCursor(target)
 		},
-		[moveTo, activateOrSelectRow, rowsRef, colCountRef, scrollContainerRef, newRowRef],
+		[moveToCursor, onCellKey, count, colCountRef, scrollContainerRef, newRowRef, onStopKey],
 	)
 
 	const onFocus = useCallback(
@@ -516,14 +834,14 @@ export function useGridNavigation({
 				!!(event.currentTarget.compareDocumentPosition(rel) & Node.DOCUMENT_POSITION_FOLLOWING)
 
 			const seed = seedCoord(cameFromAfter, {
-				count: rowsRef.current.length,
+				count: count(),
 				slot: newRowRef.current,
 				colCount: colCountRef.current,
 			})
 
 			if (seed) setActive(seed)
 		},
-		[rowsRef, colCountRef, newRowRef],
+		[count, colCountRef, newRowRef],
 	)
 
 	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
@@ -541,10 +859,27 @@ export function useGridNavigation({
 		setActive(null)
 	}, [])
 
+	const activeStop = active ? stopAt(active.row) : undefined
+
+	const activeDescendant = active
+		? activeStop
+			? stopId(activeStop.key)
+			: cellId(dataRowOf(active.row), active.col)
+		: undefined
+
+	// The public cursor speaks data row indexes. On a one-stop row it names no cell.
+	const publicActive = useMemo<Coord | null>(() => {
+		if (!active || activeStop) return null
+
+		const row = dataRowOf(active.row)
+
+		return row === active.row ? active : { row, col: active.col }
+	}, [active, activeStop, dataRowOf])
+
 	const navTableProps: GridNavTableProps | undefined = enabled
 		? {
 				tabIndex: 0,
-				'aria-activedescendant': active ? cellId(active.row, active.col) : undefined,
+				'aria-activedescendant': activeDescendant,
 				onKeyDown,
 				onFocus,
 				onBlur,
@@ -552,7 +887,7 @@ export function useGridNavigation({
 		: undefined
 
 	return {
-		active: enabled ? active : null,
+		active: enabled ? publicActive : null,
 		store: enabled ? storeRef.current : INERT_STORE,
 		cellId,
 		moveTo,

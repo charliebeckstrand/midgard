@@ -12,7 +12,7 @@ export type Profile = 'driving' | 'walking' | 'cycling'
 
 /**
  * The signal to hand `fetch`: the caller's, a fresh timeout, or both combined
- * through {@link AbortSignal.any}. `AbortSignal.timeout(undefined)` throws, so a
+ * through {@link anySignal}. `AbortSignal.timeout(undefined)` throws, so a
  * timeout signal is built only when `timeoutMs` is given. A fired timeout
  * rejects the fetch, which {@link routeFetch} reads back as its own failure kind.
  *
@@ -26,7 +26,33 @@ export function requestSignal(
 
 	const timeout = AbortSignal.timeout(timeoutMs)
 
-	return signal === undefined ? timeout : AbortSignal.any([signal, timeout])
+	return signal === undefined ? timeout : anySignal([signal, timeout])
+}
+
+/**
+ * A signal that aborts when the first of `signals` aborts, with that signal's
+ * reason. It does the work of `AbortSignal.any`, which the `.browserslistrc`
+ * floor does not cover. Each listener is bound to the combined signal, so the
+ * first abort removes all of them.
+ *
+ * @internal
+ */
+function anySignal(signals: readonly AbortSignal[]): AbortSignal {
+	const controller = new AbortController()
+
+	for (const source of signals) {
+		if (source.aborted) {
+			controller.abort(source.reason)
+
+			break
+		}
+
+		source.addEventListener('abort', () => controller.abort(source.reason), {
+			signal: controller.signal,
+		})
+	}
+
+	return controller.signal
 }
 
 /**

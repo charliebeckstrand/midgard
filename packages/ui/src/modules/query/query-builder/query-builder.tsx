@@ -38,6 +38,13 @@ export type QueryBuilderProps = {
 	 * @defaultValue false
 	 */
 	requireRule?: boolean
+	/**
+	 * Let the user reorder the children of each group, by drag or by keyboard.
+	 * Each child shows a grip when its group has more than one child. A node
+	 * moves only among its siblings, and each AND/OR stays in its position.
+	 * @defaultValue false
+	 */
+	reorder?: boolean
 	className?: string
 }
 
@@ -56,6 +63,7 @@ export function QueryBuilder({
 	allowGroups = true,
 	hideFieldSelector = false,
 	requireRule = false,
+	reorder = false,
 	className,
 }: QueryBuilderProps) {
 	const { root, actions, register } = useQueryBuilderTree({
@@ -68,8 +76,16 @@ export function QueryBuilder({
 	const getField = useCallback((name: string) => fields.find((f) => f.name === name), [fields])
 
 	const state = useMemo<QueryBuilderStateValue>(
-		() => ({ fields, getField, disabled, allowGroups, hideFieldSelector, requireRule }),
-		[fields, getField, disabled, allowGroups, hideFieldSelector, requireRule],
+		() => ({
+			fields,
+			getField,
+			disabled,
+			allowGroups,
+			hideFieldSelector,
+			requireRule,
+			reorderable: reorder,
+		}),
+		[fields, getField, disabled, allowGroups, hideFieldSelector, requireRule, reorder],
 	)
 
 	return (

@@ -7,6 +7,7 @@ import { TextSkeleton } from '../../components/text'
 import { cn } from '../../core'
 import { rangeKeys } from '../../utilities'
 import { GRID_LOADING_ROWS } from './engine/grid-constants'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
@@ -60,7 +61,8 @@ function GridSkeletonCellsImpl<T>({
 						className={index === 0 ? cn(leadingClassName, pinned.className) : pinned.className}
 						style={pinned.style}
 					>
-						<TextSkeleton />
+						{/* The Add column of the new-row slot holds no data, so it draws no placeholder. */}
+						{!isNewRowAddColumn(col.id) && <TextSkeleton />}
 					</TableCell>
 				)
 			})}

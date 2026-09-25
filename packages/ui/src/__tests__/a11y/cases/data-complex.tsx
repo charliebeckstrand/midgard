@@ -12,7 +12,7 @@ import {
 } from '../../../components/kanban'
 import { PivotTable } from '../../../components/pivot-table'
 import { Grid, type GridColumn } from '../../../modules/grid'
-import { QueryBuilder, type QueryField } from '../../../modules/query'
+import { createGroup, QueryBuilder, QueryChips, type QueryField } from '../../../modules/query'
 import { noop } from '../../helpers'
 import type { Case } from './types'
 
@@ -64,6 +64,12 @@ const gridColumns: GridColumn<GridRow>[] = [
 	{ id: 'email', title: 'Email', field: 'email', cell: (row) => row.email },
 ]
 
+// No field and no slot, so this column can never edit.
+const cellScopedColumns: GridColumn<GridRow>[] = [
+	...gridColumns,
+	{ id: 'id', title: 'ID', cell: (row) => String(row.id) },
+]
+
 /** Complex, interactive data surfaces: trees, grids, boards, and query UIs. */
 export const dataComplexCases: readonly Case[] = [
 	{
@@ -75,6 +81,35 @@ export const dataComplexCases: readonly Case[] = [
 		// Nested group / rule editor; renders an empty root group with its controls.
 		name: 'query builder',
 		element: <QueryBuilder key="qb" fields={queryFields} />,
+	},
+	{
+		// The editor with reorder on: a drag grip beside each of the two rules.
+		name: 'query builder reorder',
+		element: (
+			<QueryBuilder
+				key="qbr"
+				fields={queryFields}
+				defaultValue={createGroup('and', [
+					{ id: 'o1', type: 'rule', field: 'title', operator: 'contains', value: 'plan' },
+					{ id: 'o2', type: 'rule', combinator: 'or', field: 'count', operator: 'gt', value: 3 },
+				])}
+				reorder
+			/>
+		),
+	},
+	{
+		// Filter bar: a named toolbar of chip remove buttons and an AND/OR switch.
+		name: 'query chips',
+		element: (
+			<QueryChips
+				key="qc"
+				fields={queryFields}
+				defaultValue={createGroup('and', [
+					{ id: 'c1', type: 'rule', field: 'title', operator: 'contains', value: 'plan' },
+					{ id: 'c2', type: 'rule', combinator: 'or', field: 'count', operator: 'gt', value: 3 },
+				])}
+			/>
+		),
 	},
 	{
 		// Read-only board: each column and card is labelled; no reorder handlers.
@@ -121,6 +156,25 @@ export const dataComplexCases: readonly Case[] = [
 				rows={gridRows}
 				getKey={(row) => row.id}
 				editable={{ rows: new Set([1]), onCommit: noop }}
+			/>
+		),
+	},
+	{
+		// Cell-scoped editable grid with a session open: one editor in a narrowed
+		// row, beside a display-only column that reads as read-only.
+		name: 'editable grid, cell scope',
+		element: (
+			<Grid
+				key="egc"
+				columns={cellScopedColumns}
+				rows={gridRows}
+				getKey={(row) => row.id}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					defaultCell: { rowKey: 1, columnId: 'name' },
+					onCommit: noop,
+				}}
 			/>
 		),
 	},

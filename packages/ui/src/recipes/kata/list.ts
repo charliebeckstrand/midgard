@@ -118,12 +118,12 @@ const item = defineRecipe({
 // activation — navigate (`href`) or fire an `onClick` (cf. breadcrumb's
 // non-current link).
 const content = defineRecipe({
-	// `text-left` is for the `as="button"` content area: the UA centres button
+	// `text-start` is for the `as="button"` content area: the UA centres button
 	// text, and a row's label/description column never wants that. `focus.ring`
 	// paints the keyboard-focus indicator for the whole row: an activatable content
 	// area is natively focusable, so it — not the `<li>` around it — is the row's
 	// one focus target, reorderable or not.
-	base: [flex.col, 'flex-1 min-w-0 text-left', focus.ring],
+	base: [flex.col, 'flex-1 min-w-0 text-start', focus.ring],
 	// One rung across the whole axis, not a `variant` × `interactive` compound:
 	// `onWash.muted` is legal on the page surface and on `solid`'s wash alike.
 	interactive: {

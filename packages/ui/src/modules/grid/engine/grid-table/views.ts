@@ -7,9 +7,11 @@ import {
 } from '@tanstack/react-table'
 import { clamp } from '../../../../utilities'
 import { isQueryActive } from '../../../query/engine/query-active'
-import type { QueryField, QueryGroup } from '../../../query/engine/types'
+import { isQueryGroup } from '../../../query/engine/query-node'
+import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
+import { isNewRowAddColumn } from '../grid-new-row-column'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 
@@ -92,6 +94,13 @@ export type GridColumnFilter = {
 	 */
 	uniqueValues: (id: string | number) => string[]
 	/**
+	 * The `[min, max]` of the column's numeric cell values (faceted), or
+	 * `undefined` when it has none. A `number` filter's `between` editor clamps
+	 * to it. It is `undefined` under server-side (manual) filtering, as
+	 * `uniqueValues` is empty there.
+	 */
+	span: (id: string | number) => readonly [number, number] | undefined
+	/**
 	 * Whether any column carries a filter that actually constrains rows. It is the
 	 * same row-constraining test the header buttons read for their active accent
 	 * (a real value or a value-less operator, not a merely-seeded rule). Drives the
@@ -153,11 +162,6 @@ export type GridGlobalFilterView = {
 	placeholder: string
 }
 
-/** Narrows an unknown filter value to a query tree. @internal */
-export function isQueryGroup(value: unknown): value is QueryGroup {
-	return value != null && typeof value === 'object' && (value as { type?: string }).type === 'group'
-}
-
 /**
  * Derives the engine's `columnPinning` state from each column's effective frozen
  * edge, plus whether any column is frozen at all. That edge is
@@ -172,6 +176,10 @@ export function isQueryGroup(value: unknown): value is QueryGroup {
  * with nothing frozen keeps the selection column inline (no sticky offset or
  * boundary shadow). The freeze only resolves once a data column is pinned or
  * locked.
+ *
+ * The Add column of the new-row slot (see `withNewRowAddColumn`) is locked,
+ * so it turns `hasPinned` on. It does not pull the selection column
+ * to the left edge, because nothing else is frozen for it to lead.
  *
  * @internal
  */
@@ -189,8 +197,10 @@ export function toColumnPinningState<T>(columns: GridColumn<T>[]): {
 		.filter((col) => !col.selectable && frozenSide(col) === 'right')
 		.map((col) => String(col.id))
 
+	const leads = left.length > 0 || right.some((id) => !isNewRowAddColumn(id))
+
 	return {
-		state: { left: [...select, ...left], right },
+		state: { left: leads ? [...select, ...left] : left, right },
 		hasPinned: left.length > 0 || right.length > 0,
 	}
 }
@@ -266,7 +276,9 @@ export function buildColumnResize<T>(
 
 			handlerById.clear()
 
-			for (const header of headers) handlerById.set(header.column.id, header.getResizeHandler())
+			for (const header of headers) {
+				handlerById.set(header.column.id, withResizeDirection(table, header.getResizeHandler()))
+			}
 		}
 
 		return handlerById.get(String(id))
@@ -294,24 +306,47 @@ export function buildColumnResize<T>(
 	}
 }
 
-/** Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}. @internal */
-export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
-	return { column: (id) => layout.get(String(id)) }
-}
-
 /**
- * The single-field {@link QueryField} the active-filter test resolves a column's
- * operators against. Only `name` (matched to each rule's field) and `type` bear
- * on {@link isQueryActive}. `type` selects the operator set, so a value-less
- * operator like "is empty" reads as a real constraint. The faceted `options` a
- * `select` editor needs are therefore skipped here.
+ * Wraps an engine resize handler so the drag reads the direction of the handle.
+ * The engine adds the pointer delta to the width, and `columnResizeDirection:
+ * 'rtl'` negates it. The trailing edge of a right-to-left header is on the
+ * left, so a drag to the left must widen the column. The direction comes from
+ * the computed style of the pressed element at the start of each drag. The
+ * engine reads the option on each move.
  *
  * @internal
  */
-function activeFilterField<T>(id: string, table: Table<T>): QueryField {
-	const gridColumn = table.getColumn(id)?.columnDef.meta?.gridColumn
+function withResizeDirection<T>(
+	table: Table<T>,
+	handler: (event: unknown) => void,
+): (event: unknown) => void {
+	return (event) => {
+		const target = (event as { currentTarget?: unknown }).currentTarget
 
-	return { name: id, label: id, type: gridColumn?.filterType ?? 'text' }
+		const direction =
+			target instanceof Element && getComputedStyle(target).direction === 'rtl' ? 'rtl' : 'ltr'
+
+		if (table.options.columnResizeDirection !== direction) {
+			table.setOptions((prev) => ({ ...prev, columnResizeDirection: direction }))
+		}
+
+		handler(event)
+	}
+}
+
+/**
+ * Assembles the {@link GridColumnPinning} lookup over a resolved {@link FrozenLayout}.
+ *
+ * @remarks The Add column of the new-row slot reads as a column that scrolls.
+ * Its cells are empty outside the slot, so they draw no sticky surface, rule,
+ * or shadow, and the row washes show through them. The layout still holds
+ * its offset, so a frozen column of the consumer sticks inside it. The cell
+ * of the slot sticks through its own class.
+ *
+ * @internal
+ */
+export function buildColumnPinning(layout: FrozenLayout): GridColumnPinning {
+	return { column: (id) => (isNewRowAddColumn(id) ? undefined : layout.get(String(id))) }
 }
 
 /**
@@ -325,6 +360,34 @@ export type GridColumnFilterEngine = Omit<
 	GridColumnFilter,
 	'affordance' | 'openColumn' | 'requestOpen'
 >
+
+/**
+ * The `[min, max]` of the numbers among a column's faceted values, or
+ * `undefined` when there is no number. A number or a numeric string counts. A
+ * blank cell is no number, so it does not pull the minimum to 0, as
+ * `getFacetedMinMaxValues` does.
+ *
+ * @internal
+ */
+export function facetSpan(values: Iterable<unknown>): readonly [number, number] | undefined {
+	let min = Number.POSITIVE_INFINITY
+
+	let max = Number.NEGATIVE_INFINITY
+
+	for (const value of values) {
+		if (typeof value !== 'number' && (typeof value !== 'string' || value.trim() === '')) continue
+
+		const number = Number(value)
+
+		if (!Number.isFinite(number)) continue
+
+		if (number < min) min = number
+
+		if (number > max) max = number
+	}
+
+	return min <= max ? [min, max] : undefined
+}
 
 /** Assembles the engine-backed {@link GridColumnFilter} controls over a table instance; methods read it live. @internal */
 export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
@@ -347,6 +410,11 @@ export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 
 			return [...new Set(values)].sort((a, b) => a.localeCompare(b))
 		},
+		span: (id) => {
+			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
+
+			return facets ? facetSpan(facets.keys()) : undefined
+		},
 		// Test each applied column filter the same way its header button does, so
 		// the toolbar affordance appears exactly when a header accent does — a
 		// seeded-but-blank query (present in state, constraining nothing) reads
@@ -354,11 +422,7 @@ export function buildColumnFilters<T>(table: Table<T>): GridColumnFilterEngine {
 		hasActive: () =>
 			table
 				.getState()
-				.columnFilters.some(
-					(entry) =>
-						isQueryGroup(entry.value) &&
-						isQueryActive(entry.value, [activeFilterField(entry.id, table)]),
-				),
+				.columnFilters.some((entry) => isQueryGroup(entry.value) && isQueryActive(entry.value)),
 		// Replace the whole applied set with an empty one; it flows through the
 		// engine's `onColumnFiltersChange` like any other filter edit.
 		clear: () => table.setColumnFilters([]),

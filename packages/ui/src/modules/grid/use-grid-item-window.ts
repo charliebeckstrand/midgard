@@ -1,9 +1,17 @@
 'use client'
 
 import type { VirtualItem } from '@tanstack/react-virtual'
-import { type RefObject, type TransitionEvent, useCallback, useLayoutEffect, useRef } from 'react'
+import {
+	type RefObject,
+	type TransitionEvent,
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+} from 'react'
 import { useVirtualWindow } from '../../hooks'
 import { windowItemEstimate } from './engine/grid-items/items'
+import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import { useGridFitRenderedRows } from './use-grid-fit-rendered-rows'
 import { REVEAL_PROPERTY } from './use-grid-reveal-hold'
 import { useGridWindowOffsets } from './use-grid-window-offsets'
@@ -22,6 +30,8 @@ export type GridItemWindowOptions = {
 	fitRenderedRows: () => void
 	/** Whether the header sticks, so the window aligns a row below it. */
 	stickyHeader: boolean
+	/** The cursor's row scroller, which the body sets while it is mounted. */
+	scrollIntoViewRef?: RefObject<GridScrollRowIntoView | null>
 }
 
 /** The part of a window item that the window reads. @internal */
@@ -131,6 +141,11 @@ export function gridWindowView(
  * An insert or a removal above the first row in view does not move that row.
  * The start anchor of `useVirtualWindow` holds it still.
  *
+ * While the window is mounted, the scroller has `overflow-anchor: none`, so
+ * the start anchor is the only correction. The native scroll anchoring of the
+ * browser can keep a stale correction after a clamp at the scroll end. A panel
+ * that opens there then moves the rows in view by its height.
+ *
  * @internal
  */
 export function useGridItemWindow<I extends WindowItem>(
@@ -145,6 +160,25 @@ export function useGridItemWindow<I extends WindowItem>(
 	const getScrollElement = useCallback(() => scrollRef.current, [scrollRef])
 
 	const offsets = useGridWindowOffsets(bodyRef, scrollRef, stickyHeader)
+
+	// The start anchor holds the rows in view, so the native anchor of the
+	// scroller stands down while this window is mounted. A clamp at the scroll
+	// end does not clear the native anchor. It then keeps a correction that the
+	// end blocks, and the next item that grows releases it.
+	useLayoutEffect(() => {
+		const scroller =
+			scrollRef.current ?? bodyRef.current?.closest<HTMLElement>('[data-slot="grid-scroll"]')
+
+		if (!scroller) return
+
+		const previous = scroller.style.overflowAnchor
+
+		scroller.style.overflowAnchor = 'none'
+
+		return () => {
+			scroller.style.overflowAnchor = previous
+		}
+	}, [scrollRef])
 
 	// Each new item list gives a new key getter and a new estimate. The
 	// virtualizer then rebuilds the row positions, which a new list needs.
@@ -192,6 +226,26 @@ export function useGridItemWindow<I extends WindowItem>(
 		},
 		[items],
 	)
+
+	// The cursor names an item by its key. While this body is mounted, it scrolls
+	// the item with that key into the window before the cursor points at it.
+	const { scrollIntoViewRef } = options
+
+	const { scrollToIndex } = win
+
+	useEffect(() => {
+		if (!scrollIntoViewRef) return
+
+		scrollIntoViewRef.current = (_, key) => {
+			const index = record.current.items.findIndex((item) => item.key === key)
+
+			if (index >= 0) scrollToIndex(index, { align: 'auto' })
+		}
+
+		return () => {
+			scrollIntoViewRef.current = null
+		}
+	}, [scrollIntoViewRef, scrollToIndex, record])
 
 	return { bodyRef, revealEndItem, ...win }
 }

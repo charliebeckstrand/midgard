@@ -4,6 +4,7 @@ import { type ComponentProps, type ReactNode, type RefObject, useMemo } from 're
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
+import { isColumnEditable } from './engine/grid-editing-utilities'
 import { GridEditingCell } from './grid-editing-cell'
 import type { GridColumn } from './types'
 import type { Coord } from './use-grid-navigation'
@@ -60,8 +61,9 @@ export function useGridEditingColumns<T>({
 						colIndexMapRef,
 						cellId,
 						moveTo,
-						// Editable cells expose their read-only state programmatically.
-						extra: { 'aria-readonly': col.readOnly || undefined },
+						// A cell that cannot enter edit mode says so, whether `readOnly`
+						// locks it or it has no field and no slot (WCAG 4.1.2).
+						extra: { 'aria-readonly': !isColumnEditable(col) || undefined },
 					}),
 				cell: (row: T): ReactNode => {
 					const rowIdx = rowIndexMapRef.current.get(row) ?? -1

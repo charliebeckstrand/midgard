@@ -74,6 +74,10 @@ export const k = {
 		// collapsible, then the `+N` count. `min-w-0` lets the Badge label truncate
 		// within the band rather than overrun.
 		row: [flex.inline, 'items-center', 'gap-1', 'min-w-0'],
+		// The fold caret. An open group points it to the inline end, and a folded
+		// group to the inline start. The glyphs are physical, so a right-to-left
+		// grid mirrors them.
+		caret: 'rtl:-scale-x-100',
 		// Fill for a group's underline rule in its color (see {@link bandColor}).
 		color: bandColor,
 		// Neutral fill for a colorless group's underline rule (see {@link bandNeutral}).

@@ -12,6 +12,7 @@ import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
+import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { resolveCellTooltip } from './engine/grid-row/cell'
@@ -24,6 +25,7 @@ import {
 import { GridCellContent } from './grid-cell-content'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
+import { useGridNavContext } from './use-grid-navigation'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -70,6 +72,11 @@ type GridGroupLeafRowProps<T> = {
 	 * @defaultValue false
 	 */
 	enter?: boolean
+	/**
+	 * The row's level in a treegrid. A client-grouped body sets it, and a
+	 * treegrid exposes it as `aria-level`. Manual grouping leaves it unset.
+	 */
+	level?: number
 } & GridWindowRowProps
 
 /** Resolves a leaf cell's inner content by column kind — checkbox, actions, inert drag grip, or the rendered value. @internal */
@@ -112,6 +119,9 @@ function leafCellInner<T>(args: {
 		)
 	}
 
+	// The Add column of the new-row slot is empty in a leaf row.
+	if (isNewRowAddColumn(col.id)) return null
+
 	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	const raw = col.cell ? flexRender(cell.column.columnDef.cell, cell.getContext()) : null
@@ -141,7 +151,7 @@ type GridGroupLeafCellProps<T> = {
 	truncate: boolean
 	settleKey: number | undefined
 	pinning: GridColumnPinning | null
-	/** Whether this is the row's leftmost cell (it carries the group rail). */
+	/** Whether this is the row's first cell (it carries the group rail). */
 	leading: boolean
 	/** The group's overlay color, coloring the leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
@@ -194,6 +204,9 @@ function GridGroupLeafCell<T>({
 
 	const pinned = pinnedCellProps(pinning, col)
 
+	// The column's own cell props, such as the cursor's id and role, as on a flat row.
+	const extra = col.cellProps?.(row)
+
 	const roving = cellRovingAttrs({
 		cellRoving: cellRoving && dataCell,
 		cellActivate,
@@ -204,10 +217,13 @@ function GridGroupLeafCell<T>({
 
 	return (
 		<td
-			data-grid-col={col.id}
+			{...extra}
+			// Marks a data cell, as on a flat row. The cell menu, the cell click, and
+			// the autosizer read it, so a non-data cell carries none.
+			data-grid-col={dataCell ? col.id : undefined}
 			aria-colindex={colIndex}
 			{...roving}
-			// The leftmost cell carries the group's rail, so it runs unbroken down the
+			// The first cell carries the group's rail, so it runs unbroken down the
 			// group's leaf rows and joins the header's segment above — in the group's
 			// color when the row manager assigns one, else the neutral tint.
 			className={cn(
@@ -216,8 +232,9 @@ function GridGroupLeafCell<T>({
 				leading && color && k.rowGroup.rail.color[color],
 				chrome.td,
 				pinned.className,
+				extra?.className,
 			)}
-			style={{ ...NO_PADDING, ...pinned.style }}
+			style={{ ...extra?.style, ...NO_PADDING, ...pinned.style }}
 		>
 			<div className={cn(k.rowGroup.reveal.track)} data-open={dataAttr(open)}>
 				<div className={cn(k.rowGroup.reveal.clip)}>
@@ -275,9 +292,13 @@ export function GridGroupLeafRow<T>({
 	density,
 	color,
 	enter = false,
+	level,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
 	const pad = k.rowGroup.reveal.pad({ density })
+
+	// The cursor makes a client-grouped grid a treegrid, which reads the level.
+	const tree = useGridNavContext().enabled
 
 	// Rests the row once its reveal has shrunk to nothing, so a collapsed group's
 	// leaves stop riding the visible commit. A windowed leaf that enters mounts
@@ -313,6 +334,7 @@ export function GridGroupLeafRow<T>({
 				// These cover the collapse from its first frame; the hold above covers
 				// its cost from the last one, once the reveal has finished shrinking.
 				aria-hidden={expanded ? undefined : true}
+				aria-level={tree ? level : undefined}
 				inert={!expanded}
 				onTransitionEnd={reveal.onTransitionEnd}
 				// Row roving hands the `tabIndex` to the roving hook; without it a clickable

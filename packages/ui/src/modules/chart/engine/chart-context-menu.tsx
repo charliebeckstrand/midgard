@@ -8,6 +8,7 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useEffectEvent,
 	useMemo,
 	useRef,
 	useState,
@@ -247,12 +248,10 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
-	// Read through a ref, not a dep: `exportImage` feeds the `defaults` memo this
+	// Read as an effect event, not a dep: `exportImage` feeds the `defaults` memo this
 	// file keeps because it re-renders on every pointer move across the plot, and an
 	// inline `contextMenu={{ onExport }}` would rebuild it and its five icons.
-	const onExportRef = useRef(config?.onExport)
-
-	onExportRef.current = config?.onExport
+	const reportExport = useEffectEvent((outcome: ChartExportOutcome) => config?.onExport?.(outcome))
 
 	const exportImage = useCallback(
 		async (type: ChartImageType, extension: string): Promise<void> => {
@@ -266,7 +265,7 @@ export function ChartContextMenu({
 				// A null blob is a failure too: the canvas rasterized and then yielded
 				// nothing, so no file is downloaded and the menu looks like it worked.
 				if (!blob) {
-					onExportRef.current?.({
+					reportExport({
 						ok: false,
 						type,
 						error: new Error('The chart produced no image.'),
@@ -279,11 +278,11 @@ export function ChartContextMenu({
 
 				downloadBlob(blob, fileName)
 
-				onExportRef.current?.({ ok: true, type, fileName })
+				reportExport({ ok: true, type, fileName })
 			} catch (error) {
 				// A failed rasterise (image decode) has no retry affordance to drive,
 				// so the menu shows nothing. The caller hears about it instead.
-				onExportRef.current?.({ ok: false, type, error })
+				reportExport({ ok: false, type, error })
 			}
 		},
 		[rootRef, includeLegend, title],

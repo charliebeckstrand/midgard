@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen } from '../helpers'
 
 describe('Grid context menus', () => {
 	type Row = { id: number; name: string; role: string }
@@ -225,6 +225,75 @@ describe('Grid context menus', () => {
 		fireEvent.keyDown(grid, { key: 'ArrowDown' })
 
 		fireEvent.contextMenu(grid)
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	// A right-click on a cell with no menu of its own fell back to the keyboard
+	// path, and opened the menu of the cursor's cell there instead.
+	it('keeps the native menu on a right-click in a non-data cell, with a cursor cell seated', () => {
+		renderUI(
+			<Grid
+				columns={[
+					{ id: 'select', selectable: true },
+					...columns,
+					{ id: 'actions', actions: () => <button type="button">Edit</button> },
+				]}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				contextMenu={{ cell: true }}
+			/>,
+		)
+
+		fireEvent.keyDown(screen.getByRole('grid'), { key: 'ArrowDown' })
+
+		fireEvent.contextMenu(screen.getAllByRole('button', { name: 'Edit' })[0] as HTMLElement)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		fireEvent.contextMenu(screen.getAllByRole('checkbox', { name: /Select/ })[1] as HTMLElement)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// The keyboard event on the grid itself still opens the cursor cell's menu.
+		fireEvent.contextMenu(screen.getByRole('grid'))
+
+		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
+	})
+
+	// A grouped leaf row marked every cell as a data cell, so an actions cell
+	// opened a Copy menu with nothing to copy.
+	it('keeps the native menu on a right-click in a non-data cell of a grouped leaf row', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={[
+					...columns,
+					{ id: 'actions', actions: () => <button type="button">Edit</button> },
+				]}
+				rows={rows}
+				getKey={getKey}
+				groupBy={{ value: 'role', onValueChange: () => {} }}
+				contextMenu={{ cell: true }}
+			/>,
+		)
+
+		const actionsCell = present(
+			screen.getAllByRole('button', { name: 'Edit' })[0]?.closest('td'),
+			'a leaf actions cell',
+		)
+
+		fireEvent.contextMenu(actionsCell)
+
+		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+
+		// A data cell of the same row still opens its Copy menu.
+		const name = present(
+			container.querySelector<HTMLElement>('tr[data-grid-row] td[data-grid-col="name"]'),
+			'a leaf Name cell',
+		)
+
+		fireEvent.contextMenu(name)
 
 		expect(screen.getByRole('menuitem', { name: 'Copy' })).toBeInTheDocument()
 	})
@@ -707,7 +776,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.left).toBe('0px')
+		expect(head?.style.insetInlineStart).toBe('0px')
 	})
 
 	it('releases a column when Unpin is chosen', () => {
@@ -725,7 +794,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.left).toBe('')
+		expect(head?.style.insetInlineStart).toBe('')
 	})
 
 	it('seeds runtime pins from the pinning binding', () => {

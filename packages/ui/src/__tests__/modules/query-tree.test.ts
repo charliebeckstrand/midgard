@@ -1,8 +1,14 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
-import { addChild, hasRules, mapNode, removeChild } from '../../modules/query/engine/query-tree'
-import type { QueryField, QueryNode, QueryRule } from '../../modules/query/engine/types'
+import {
+	addChild,
+	hasRules,
+	mapNode,
+	moveChild,
+	removeChild,
+} from '../../modules/query/engine/query-tree'
+import type { QueryField, QueryGroup, QueryNode, QueryRule } from '../../modules/query/engine/types'
 
 const textField: QueryField = { name: 'title', label: 'Title', type: 'text' }
 
@@ -207,5 +213,83 @@ describe('removeChild', () => {
 		const inner = next.children[1] as { children: QueryNode[] }
 
 		expect(inner.children).toHaveLength(0)
+	})
+})
+
+describe('moveChild', () => {
+	/** A rule with a fixed id and combinator, so a test reads the order at a glance. */
+	const rule = (id: string, combinator?: 'and' | 'or'): QueryRule => ({
+		id,
+		type: 'rule',
+		...(combinator ? { combinator } : {}),
+		field: 'title',
+		operator: 'contains',
+		value: id,
+	})
+
+	const ids = (group: QueryGroup) => group.children.map((child) => child.id)
+
+	const combinators = (group: QueryGroup) => group.children.map((child) => child.combinator)
+
+	it('moves a node down and up among its siblings', () => {
+		const tree = createGroup('and', [rule('a'), rule('b', 'and'), rule('c', 'and')])
+
+		expect(ids(moveChild(tree, 'a', 2))).toEqual(['b', 'c', 'a'])
+
+		expect(ids(moveChild(tree, 'c', 0))).toEqual(['c', 'a', 'b'])
+	})
+
+	it('keeps each combinator in its position, so only the nodes move', () => {
+		const tree = createGroup('and', [rule('a'), rule('b', 'or'), rule('c', 'and')])
+
+		const next = moveChild(tree, 'c', 0)
+
+		expect(ids(next)).toEqual(['c', 'a', 'b'])
+
+		// The first position keeps no combinator, so the one that c held stays at
+		// position 2 and no hidden combinator becomes live.
+		expect(combinators(next)).toEqual([undefined, 'or', 'and'])
+
+		expect(next.children[0]).not.toHaveProperty('combinator')
+	})
+
+	it('keeps the identity of a node whose combinator does not change', () => {
+		const b = rule('b', 'and')
+
+		const tree = createGroup('and', [rule('a', 'and'), b, rule('c', 'and')])
+
+		const next = moveChild(tree, 'a', 2)
+
+		expect(next.children[0]).toBe(b)
+	})
+
+	it('clamps the target index to the group', () => {
+		const tree = createGroup('and', [rule('a'), rule('b', 'and')])
+
+		expect(ids(moveChild(tree, 'a', 99))).toEqual(['b', 'a'])
+
+		expect(ids(moveChild(tree, 'b', -5))).toEqual(['b', 'a'])
+	})
+
+	it('moves a node inside a nested group, and keeps the other subtrees', () => {
+		const head = rule('head')
+
+		const inner = createGroup('or', [rule('x'), rule('y', 'and')])
+
+		const tree = createGroup('and', [head, inner])
+
+		const next = moveChild(tree, 'y', 0)
+
+		expect(next.children[0]).toBe(head)
+
+		expect(ids(next.children[1] as QueryGroup)).toEqual(['y', 'x'])
+	})
+
+	it('returns the same tree when the id is not found or the move changes nothing', () => {
+		const tree = createGroup('and', [rule('a'), rule('b', 'and')])
+
+		expect(moveChild(tree, 'missing', 0)).toBe(tree)
+
+		expect(moveChild(tree, 'a', 0)).toBe(tree)
 	})
 })

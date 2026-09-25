@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { fetchOsrmRoute } from '../../modules/map/engine/map-routing/osrm'
+import { requestSignal } from '../../modules/map/engine/map-routing/request'
 import { fetchValhallaRoute } from '../../modules/map/engine/map-routing/valhalla'
 import type { LngLat } from '../../modules/map/engine/types'
 
@@ -325,5 +326,54 @@ describe('fetchValhallaRoute', () => {
 			ok: false,
 			failure: { kind: 'http', status: 503, retryable: true },
 		})
+	})
+})
+
+describe('requestSignal', () => {
+	it('combines the two signals without `AbortSignal.any`, which the browser floor lacks', () => {
+		// `.browserslistrc` admits browsers that ship no `AbortSignal.any`, and a
+		// call there throws before the request goes out.
+		const any = vi.spyOn(AbortSignal, 'any').mockImplementation(() => {
+			throw new TypeError('AbortSignal.any is not a function')
+		})
+
+		const caller = new AbortController()
+
+		const signal = requestSignal(caller.signal, 5000)
+
+		expect(signal?.aborted).toBe(false)
+
+		caller.abort()
+
+		expect(signal?.aborted).toBe(true)
+		expect(any).not.toHaveBeenCalled()
+	})
+
+	it('passes on the reason of the signal that fired', async () => {
+		// `thrownFailure` reads the reason's name to tell a timeout from an abort.
+		const caller = new AbortController()
+
+		const reason = new DOMException('The operation was aborted', 'AbortError')
+
+		const aborted = requestSignal(caller.signal, 5000)
+
+		caller.abort(reason)
+
+		expect(aborted?.reason).toBe(reason)
+
+		const timed = requestSignal(new AbortController().signal, 1)
+
+		await new Promise((resolve) => timed?.addEventListener('abort', resolve, { once: true }))
+
+		expect((timed?.reason as DOMException | undefined)?.name).toBe('TimeoutError')
+	})
+
+	it('is aborted at once when the caller`s signal already is', () => {
+		const reason = new DOMException('The operation was aborted', 'AbortError')
+
+		const signal = requestSignal(AbortSignal.abort(reason), 5000)
+
+		expect(signal?.aborted).toBe(true)
+		expect(signal?.reason).toBe(reason)
 	})
 })

@@ -6,6 +6,8 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useEffectEvent,
+	useImperativeHandle,
 	useLayoutEffect,
 	useMemo,
 	useRef,
@@ -19,6 +21,7 @@ import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
 import {
 	GridContext,
+	GridDirectionContext,
 	GridHighlightContext,
 	GridResizingContext,
 	type GridSortState,
@@ -43,6 +46,7 @@ import {
 	resolveManualGroupBody,
 } from './engine/grid-group/resolve'
 import { bodyRowCount } from './engine/grid-items/items'
+import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import { applyPinOverrides, type PinSide, toPinOverrides } from './engine/grid-pin/overrides'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
 import {
@@ -458,6 +462,7 @@ export function GridData<T>({
 	onActiveCellChange,
 	onCollapsedChange,
 	editable,
+	ref,
 	truncate = true,
 	rowClassName,
 	onRowClick,
@@ -592,8 +597,8 @@ export function GridData<T>({
 	// down under grouping) and the body wiring the flat rows read.
 	const detail = resolveDetailExpansion(useGridExpansion<T>(expandableConfig), groupingMode.active)
 
-	// A self-rendering body (grouping or master-detail) stands the cursor down.
-	// Manual grouping also stands virtualization down, and the other two keep an
+	// Manual grouping stands the cursor down. Client grouping and master-detail
+	// give the cursor an order of rows. Manual grouping also stands virtualization down, and the other two keep an
 	// explicit `virtualize`. Client grouping stands pagination down, manual
 	// grouping keeps a manual one, and master-detail keeps any (see
 	// `resolveGroupingGates`).
@@ -618,20 +623,22 @@ export function GridData<T>({
 	// Resolves a column's display label at call time, read by the `[]`-stable
 	// `pinColumn` and the visibility handler so they can narrate the change without
 	// closing over (and re-creating on) the columns.
-	const columnLabelRef = useRef<(id: string | number) => string>(() => '')
-
-	columnLabelRef.current = (id) => {
+	const labelOfColumn = useEffectEvent((id: string | number) => {
 		const column = pinnedColumns.find((candidate) => candidate.id === id)
 
 		return column ? columnLabel(column) : String(id)
-	}
+	})
 
 	const pinColumn = useCallback(
 		(id: string | number, side: PinSide | false) => {
 			setPinningState((prev) => ({ ...prev, [String(id)]: side === false ? 'none' : side }))
 
 			// Narrate the pin change; the header gives no visible text cue (WCAG 4.1.3).
-			announce(describePin(columnLabelRef.current(id), side))
+			// The words name the physical edge, so they read the grid's direction.
+			const rtl =
+				wrapperRef.current !== null && getComputedStyle(wrapperRef.current).direction === 'rtl'
+
+			announce(describePin(labelOfColumn(id), side, rtl))
 		},
 		[setPinningState],
 	)
@@ -655,7 +662,7 @@ export function GridData<T>({
 	// The editing layer's commit path resolves a staged draft against the grid's
 	// own inputs, not against the refs above: those narrow to what the window
 	// renders, and a draft can outlive that window.
-	const editSource: GridEditSource<T> = { rows, columns, getKey }
+	const editSource: GridEditSource<T> = { rows, columns, getKey, rowLabel }
 
 	const editSourceRef = useRef(editSource)
 
@@ -663,17 +670,17 @@ export function GridData<T>({
 
 	// Selection wiring the cursor reads at key time: whether a selection column is
 	// present (gating Space-to-select) and a toggle for the active row by display
-	// index. Both resolve after the engine produces `rowKeys`, so the cursor reads
-	// them through refs, like its bounds above.
+	// index. Both resolve after the engine produces `rowKeys`. The cursor reads the
+	// first through a ref, like its bounds above. The toggle names `toggleRow`
+	// before its declaration below; the cursor calls it as an effect event, at key
+	// time, when this render's `toggleRow` is in place.
 	const selectableRef = useRef(false)
 
-	const toggleRowRef = useRef<(key: string | number) => void>(() => {})
-
-	const toggleActiveRow = useCallback((rowIdx: number) => {
+	const toggleActiveRow = (rowIdx: number) => {
 		const key = rowKeysRef.current[rowIdx]
 
-		if (key !== undefined) toggleRowRef.current(key)
-	}, [])
+		if (key !== undefined) toggleRow(key)
+	}
 
 	// Published by the virtualized body while mounted (null otherwise), so the cursor
 	// can scroll an off-window row into the rendered window before pointing
@@ -728,8 +735,7 @@ export function GridData<T>({
 	// props, the cursor store, and the row-editing-context wrapper. Inert for a
 	// static grid.
 	const cursor = useGridCursor<T>({
-		// The navigable cursor indexes flat data rows; grouping interleaves group
-		// headers, so the cursor stands down while grouping is active (see `gated`).
+		// Manual grouping stands the navigable cursor down (see `gated`).
 		navigable: gated.navigable,
 		editable,
 		columns: pinnedColumns,
@@ -751,6 +757,15 @@ export function GridData<T>({
 			editSourceRef,
 		},
 	})
+
+	// The grid's commands on its `ref` (see `GridHandle`).
+	const { stepHistory } = cursor
+
+	useImperativeHandle(
+		ref,
+		() => ({ undo: () => stepHistory('undo'), redo: () => stepHistory('redo') }),
+		[stepHistory],
+	)
 
 	// Double-click-to-edit (under `editable.session: 'managed'`) rides the
 	// built-in cell double-click event, ahead of the consumer's handler.
@@ -809,11 +824,11 @@ export function GridData<T>({
 			const prev = hiddenColumnsRef.current
 
 			for (const id of next) {
-				if (!prev.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), true))
+				if (!prev.has(id)) announce(describeColumnVisibility(labelOfColumn(id), true))
 			}
 
 			for (const id of prev) {
-				if (!next.has(id)) announce(describeColumnVisibility(columnLabelRef.current(id), false))
+				if (!next.has(id)) announce(describeColumnVisibility(labelOfColumn(id), false))
 			}
 
 			setHiddenColumns(next)
@@ -829,6 +844,25 @@ export function GridData<T>({
 	const manualGroupRow = useMemo(
 		() => manualGroupPredicate(manualGroupingActive, groupRow),
 		[manualGroupingActive, groupRow],
+	)
+
+	// The new-row slot's Add control has a column of its own after the others
+	// (see `withNewRowAddColumn`). It joins here, after the column order and
+	// visibility state, so no saved state names it. It follows the configured
+	// slot, not the loading state, so the column set stays stable. Its width is
+	// the one the Add cell measures for its control, unless `newRowAdd.width`
+	// fixes it.
+	const [measuredAddWidth, setMeasuredAddWidth] = useState<number | null>(null)
+
+	const addWidth = resolveNewRowAddWidth(
+		cursor.newRow !== null,
+		editable?.newRowAdd,
+		measuredAddWidth,
+	)
+
+	const engineColumns = useMemo(
+		() => withNewRowAddColumn(cursor.columns, addWidth),
+		[cursor.columns, addWidth],
 	)
 
 	// TanStack Table is the data engine: rows flow through its row model, which
@@ -856,7 +890,7 @@ export function GridData<T>({
 		// `visibleColumns` comes back in that resolved order for the header and body.
 		// Under a cursor (navigable or editable) these carry the cursor/editor
 		// wiring (see `useGridCursor`).
-		columns: cursor.columns,
+		columns: engineColumns,
 		getKey,
 		selection,
 		columnOrder,
@@ -979,11 +1013,9 @@ export function GridData<T>({
 		rowKeys,
 	})
 
-	// Feed the cursor's selection refs now that the engine has resolved them, so its
+	// Feed the cursor's selection ref now that the engine has resolved it, so its
 	// Space key toggles the active row's selection (see `useGridNavigation`).
 	selectableRef.current = hasSelectionColumn
-
-	toggleRowRef.current = toggleRow
 
 	// Narrate sort and selection changes to assistive tech without moving focus
 	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays
@@ -1102,6 +1134,21 @@ export function GridData<T>({
 		hasSizingPreference:
 			Object.keys(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue ?? {}).length > 0,
 	})
+
+	// The direction of the grid, read from its wrapper. The manager dialog portals
+	// out of the grid, so it takes this direction through its `dir` and through
+	// context. The read runs on mount and each time the manager opens, not on
+	// each render, because a computed-style read can force a style pass.
+	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the open state is the trigger for a fresh read, not an input.
+	useLayoutEffect(() => {
+		const wrapper = wrapperRef.current
+
+		if (!wrapper) return
+
+		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
+	}, [columnManagerOpen])
 
 	// Row manager: the per-group color / order overlay the "Manage rows" dialog
 	// edits, reachable from the group-header context menu under client grouping.
@@ -1321,6 +1368,8 @@ export function GridData<T>({
 				ariaRowCount,
 				grandTotal: grandTotal.active,
 			})}
+			add={editable?.newRowAdd || undefined}
+			onMeasureAdd={setMeasuredAddWidth}
 		/>
 	)
 
@@ -1347,6 +1396,7 @@ export function GridData<T>({
 					loading,
 					gridSemantics,
 					navigable: cursor.cursorEnabled,
+					tree: groupingActive,
 					ariaRowCount,
 					colCount: visibleColumns.length,
 					multiSelectable: hasSelectionColumn,
@@ -1452,7 +1502,14 @@ export function GridData<T>({
 
 	const tableRegion = (
 		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion active={needsScrollWrapper} scrollRef={scrollRef} maxHeight={maxHeight}>
+			<GridScrollRegion
+				active={needsScrollWrapper}
+				scrollRef={scrollRef}
+				maxHeight={maxHeight}
+				expandable={detail.active}
+				grouped={groupingMode.active}
+				virtualized={gated.virtualize}
+			>
 				{cursorContent}
 			</GridScrollRegion>
 		</GridHighlightContext>
@@ -1479,25 +1536,28 @@ export function GridData<T>({
 						<GridExportOverlay active={exportActions.pending} />
 
 						{renderDialog && (
-							<GridManagerDialog
-								open={columnManagerOpen}
-								onOpenChange={setColumnManagerOpen}
-								label={managerLabel}
-							>
-								<GridColumnManager
-									columns={managerItems}
-									filterable={columnManagerConfig?.filterable}
-									order={columnOrder}
-									onOrderChange={setColumnOrder}
-									reorderable={reorderEnabled}
-									hidden={hiddenColumns}
-									onHiddenChange={handleHiddenChange}
-									onPinChange={pinColumn}
-									groups={group.editorGroups}
-									onGroupsChange={group.editorSetGroups}
-									onSavePreset={columnManagerConfig?.onSavePreset}
-								/>
-							</GridManagerDialog>
+							<GridDirectionContext value={direction}>
+								<GridManagerDialog
+									open={columnManagerOpen}
+									onOpenChange={setColumnManagerOpen}
+									label={managerLabel}
+									dir={direction}
+								>
+									<GridColumnManager
+										columns={managerItems}
+										filterable={columnManagerConfig?.filterable}
+										order={columnOrder}
+										onOrderChange={setColumnOrder}
+										reorderable={reorderEnabled}
+										hidden={hiddenColumns}
+										onHiddenChange={handleHiddenChange}
+										onPinChange={pinColumn}
+										groups={group.editorGroups}
+										onGroupsChange={group.editorSetGroups}
+										onSavePreset={columnManagerConfig?.onSavePreset}
+									/>
+								</GridManagerDialog>
+							</GridDirectionContext>
 						)}
 
 						<GridRowManagerRegionDialog region={rowManager} />

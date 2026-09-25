@@ -130,9 +130,10 @@ export function resolveGroupByContext(args: {
 
 /**
  * Zeroes the grid features that a self-rendering body stands over. Grouping,
- * client or manual, renders its own body, and so does master-detail. Each
- * stands the navigable cursor down, because its rows do not map to the cursor
- * index space.
+ * client or manual, renders its own body, and so does master-detail. Client
+ * grouping and master-detail keep the navigable cursor. Their bodies give the
+ * cursor an order of rows (see `useGridCursorOrder`). Manual grouping stands
+ * the cursor down, because its segment keys are positional.
  *
  * Client grouping and master-detail keep `virtualize` when the consumer sets
  * it. Their bodies then window a list of items through the measured path of
@@ -172,7 +173,7 @@ export function resolveGroupingGates(args: {
 	infiniteScroll: boolean
 	pagination: GridPagination | undefined
 } {
-	// Any self-rendering body stands the cursor and infinite scroll down.
+	// Any self-rendering body stands infinite scroll down.
 	const ownBody = args.groupingActive || args.manualGroupingActive || args.expandableActive
 
 	// Client grouping and master-detail window only on an explicit request.
@@ -193,7 +194,7 @@ export function resolveGroupingGates(args: {
 			: args.pagination
 
 	return {
-		navigable: ownBody ? false : args.navigable,
+		navigable: args.manualGroupingActive ? false : args.navigable,
 		virtualize,
 		infiniteScroll: virtualize && !ownBody,
 		pagination,

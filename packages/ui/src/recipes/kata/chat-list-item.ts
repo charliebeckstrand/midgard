@@ -37,7 +37,7 @@ export const k = defineRecipe({
 		// as the sole positioned ancestor for the overlay `::after` below — giving the
 		// button `relative` here would make it that pseudo-element's containing block
 		// instead, shrinking the overlay down to the button's own `flex-1` box.
-		select: [flex.col, 'min-w-0 flex-1', 'text-left', 'outline-none', 'z-10', ...cursor],
+		select: [flex.col, 'min-w-0 flex-1', 'text-start', 'outline-none', 'z-10', ...cursor],
 		// Stretches the select button's hit area over the whole `relative` row via a
 		// pointer-capturing `::after` (the inverse of `layers.overlay`, which adds
 		// `pointer-events-none` to *stop* this). The button only spans `flex-1`, so

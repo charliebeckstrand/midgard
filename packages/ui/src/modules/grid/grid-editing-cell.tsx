@@ -28,6 +28,7 @@ import {
 	isColumnEditable,
 	NEW_ROW_KEY,
 } from './engine/grid-editing-utilities'
+import { NEW_ROW_ADD_COLUMN_LABEL } from './engine/grid-new-row-column'
 import { GridEditInputs } from './grid-edit-inputs'
 import {
 	type GridEditingSession,
@@ -56,8 +57,6 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx' 
 	rowKey: GridDraftKey
 	/** The editor to infer, where the row holds no value to infer it from, as in the new-row slot. */
 	kind?: EditorKind
-	/** Adds the new-row slot, for its Add control. */
-	addRow?: () => void
 	/** Whether the editor of this column of the new-row slot takes focus now. */
 	claimSlot?: (columnId: string | number) => boolean
 } & Pick<
@@ -80,40 +79,28 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx' 
 		held: boolean
 	}
 
-/** The Add control of the new-row slot. @internal */
-const ADD_ROW_LABEL = 'Add row'
-
 /**
- * The Add control of the new-row slot, on its last editable cell. Unlike the
- * settle pair, it is in the tab order. Tab does not commit in the slot, so the
- * control takes no key from an editor. It is also the keyboard route to an
- * add from a listbox, or from a slot that keeps Enter. While an add is in
- * flight it is `aria-disabled`, and a press does nothing.
+ * The built-in Add control of the new-row slot, in the slot's Add column.
+ * Unlike the settle pair, it is in the tab order. Tab does not commit in the
+ * slot, so the control takes no key from an editor. It is also the keyboard
+ * route to an add from a listbox, or from a slot that keeps Enter. While an
+ * add is in flight, the slot makes its cell inert.
  *
  * @internal
  */
-export function GridAddRowButton({
-	addRow,
-	pending = false,
-}: {
-	addRow: () => void
-	pending?: boolean
-}) {
+export function GridAddRowButton({ addRow }: { addRow: () => void }) {
 	return (
-		<span className={cn(k.edit.settle)}>
-			<Button
-				type="button"
-				variant="bare"
-				color="green"
-				aria-label={ADD_ROW_LABEL}
-				aria-disabled={pending || undefined}
-				data-slot="grid-new-row-add"
-				onMouseDown={keepFocus}
-				onClick={addRow}
-			>
-				<Icon icon={<Plus />} />
-			</Button>
-		</span>
+		<Button
+			type="button"
+			variant="bare"
+			color="green"
+			aria-label={NEW_ROW_ADD_COLUMN_LABEL}
+			data-slot="grid-new-row-add"
+			onMouseDown={keepFocus}
+			onClick={addRow}
+		>
+			<Icon icon={<Plus />} />
+		</Button>
 	)
 }
 
@@ -161,11 +148,9 @@ function GridSettleControls({
 	label: string
 	/** Which controls show; `'none'` renders nothing. */
 	controls: SettleControls
-	settle: (outcome: 'save' | 'discard' | 'add') => void
+	settle: (outcome: 'save' | 'discard') => void
 }) {
 	if (controls === 'none') return null
-
-	if (controls === 'add') return <GridAddRowButton addRow={() => settle('add')} />
 
 	const actions =
 		controls === 'both' ? SETTLE_ACTIONS : SETTLE_ACTIONS.filter((a) => a.outcome === 'discard')
@@ -224,7 +209,6 @@ export function GridCellEditor<T>({
 	settle,
 	held,
 	kind,
-	addRow,
 	claimSlot,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
@@ -403,9 +387,7 @@ export function GridCellEditor<T>({
 			<GridSettleControls
 				label={label}
 				controls={settle}
-				settle={(outcome) =>
-					outcome === 'add' ? addRow?.() : dataKey !== null && endSession(dataKey, outcome)
-				}
+				settle={(outcome) => dataKey !== null && endSession(dataKey, outcome)}
 			/>
 
 			{error && (
@@ -483,10 +465,10 @@ const CELL_HELD = 'held'
 /**
  * One data cell of an editable grid. When its row key is in the editable set and
  * the column binds an editor, it mounts {@link GridCellEditor}. Otherwise it
- * renders the column's display content through {@link GridNavCell}, which carries
- * the active-cursor ring. A cell-scoped session (`scope: 'cell'`) narrows that
- * to the one cell it names. A cell whose commit is in flight shows the value
- * as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
+ * renders the column's display content. Both render through {@link GridNavCell},
+ * which carries the active-cursor ring. A cell-scoped session (`scope: 'cell'`)
+ * narrows that to the one cell it names. A cell whose commit is in flight shows
+ * the value as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
  * through its own flag, so a session move re-renders the two cells whose flag
  * flipped. The editable set flips only on a session transition, so cells don't
  * re-render as the user types.
@@ -551,24 +533,29 @@ export function GridEditingCell<T>({
 		)
 	}
 
+	// The editor keeps the cursor ring. Under the default `commitOn`, focus can
+	// leave the grid with the editor open. When focus comes back, the cursor can
+	// seat on this cell, and the ring is then the only mark of it (WCAG 2.4.7).
 	if (flag !== CELL_READING && isColumnEditable(column)) {
 		return (
-			<GridCellEditor
-				rowIdx={rowIdx}
-				rowKey={rowKey}
-				row={row}
-				column={column}
-				stageDraft={stageDraft}
-				unstageDraft={unstageDraft}
-				readDraft={readDraft}
-				endSession={endSession}
-				entrySeed={entrySeed}
-				claimFocus={claimFocus}
-				resumeCell={resumeCell}
-				managed={managed}
-				settle={flag === CELL_HELD ? 'none' : flag}
-				held={flag === CELL_HELD}
-			/>
+			<GridNavCell row={rowIdx} col={colIdx}>
+				<GridCellEditor
+					rowIdx={rowIdx}
+					rowKey={rowKey}
+					row={row}
+					column={column}
+					stageDraft={stageDraft}
+					unstageDraft={unstageDraft}
+					readDraft={readDraft}
+					endSession={endSession}
+					entrySeed={entrySeed}
+					claimFocus={claimFocus}
+					resumeCell={resumeCell}
+					managed={managed}
+					settle={flag === CELL_HELD ? 'none' : flag}
+					held={flag === CELL_HELD}
+				/>
+			</GridNavCell>
 		)
 	}
 

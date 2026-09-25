@@ -10,7 +10,15 @@
 import { mode } from '../../../core/recipe'
 
 export const bg = {
-	surface: mode('bg-white', 'dark:bg-zinc-900'),
+	/**
+	 * The opaque surface fill. It also sets `--surface-fill` to the same colour in
+	 * each mode. The property inherits, so a sticky descendant (a grid header or a
+	 * frozen column) reads the fill of the surface that holds it.
+	 */
+	surface: mode(
+		['bg-white', '[--surface-fill:var(--color-white)]'],
+		['dark:bg-zinc-900', 'dark:[--surface-fill:var(--color-zinc-900)]'],
+	),
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),

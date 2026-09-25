@@ -1,4 +1,4 @@
-import type { QueryGroup, QueryNode } from './types'
+import type { QueryCombinator, QueryGroup, QueryNode } from './types'
 
 /** Returns true when the group (or any nested group) contains at least one rule. */
 export function hasRules(group: QueryGroup): boolean {
@@ -74,6 +74,67 @@ export function removeChild(tree: QueryGroup, id: string): QueryGroup {
 
 			if (mapped !== child) return { ...tree, children: children.with(i, mapped) }
 		}
+	}
+
+	return tree
+}
+
+/**
+ * Gives `node` the combinator `combinator`, or the same `node` when it already
+ * has it. An `undefined` combinator drops the key. @internal
+ */
+function withCombinator(node: QueryNode, combinator: QueryCombinator | undefined): QueryNode {
+	if (node.combinator === combinator) return node
+
+	if (combinator !== undefined) return { ...node, combinator }
+
+	const { combinator: _, ...rest } = node
+
+	return rest
+}
+
+/**
+ * Returns a new tree with the node identified by `id` moved to `toIndex` among
+ * the children of its own group. `toIndex` clamps to the group. Returns the same
+ * `tree` reference when `id` is not found or the move changes nothing.
+ *
+ * @remarks Each combinator stays in its position, and only the nodes move. So
+ * the AND/OR between two positions does not change, and a hidden combinator on
+ * the first child never becomes live. A node that moves takes the combinator of
+ * its new position.
+ *
+ * @param tree - The query tree, usually the root group.
+ * @param id - The node to move.
+ * @param toIndex - The position of the node in its group after the move.
+ */
+export function moveChild(tree: QueryGroup, id: string, toIndex: number): QueryGroup {
+	const { children } = tree
+
+	const from = children.findIndex((child) => child.id === id)
+
+	if (from !== -1) {
+		const to = Math.min(Math.max(toIndex, 0), children.length - 1)
+
+		if (to === from) return tree
+
+		const node = children[from] as QueryNode
+
+		const moved = children.toSpliced(from, 1).toSpliced(to, 0, node)
+
+		// The combinators keep their positions, so each node takes the combinator
+		// of the position it now holds.
+		return {
+			...tree,
+			children: moved.map((child, index) => withCombinator(child, children[index]?.combinator)),
+		}
+	}
+
+	for (const [i, child] of children.entries()) {
+		if (child.type !== 'group') continue
+
+		const mapped = moveChild(child, id, toIndex)
+
+		if (mapped !== child) return { ...tree, children: children.with(i, mapped) }
 	}
 
 	return tree

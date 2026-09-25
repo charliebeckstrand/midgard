@@ -1,7 +1,7 @@
 'use client'
 
 import type { ExpandedState } from '@tanstack/react-table'
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffectEvent, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 
@@ -77,15 +77,14 @@ export function useGridRowGrouping<T>(
 		onValueChange: (next) => config?.onExpandedChange?.(new Set(next ?? [])),
 	})
 
-	// The toggle reads the live set (and the lazy-load callback) through refs so
-	// its identity holds across expansion changes and the group rows stay memoizable.
+	// The toggle reads the live set through a ref, and the lazy-load callback as
+	// an effect event, so its identity holds across expansion changes and the
+	// group rows stay memoizable.
 	const manualExpandedRef = useRef(manualExpanded)
 
 	manualExpandedRef.current = manualExpanded
 
-	const onGroupExpandRef = useRef(config?.onGroupExpand)
-
-	onGroupExpandRef.current = config?.onGroupExpand
+	const onGroupExpand = useEffectEvent((key: string | number) => config?.onGroupExpand?.(key))
 
 	const toggleGroup = useCallback(
 		(key: string | number) => {
@@ -100,7 +99,7 @@ export function useGridRowGrouping<T>(
 
 			// The lazy-load hook fires only as a group opens — collapse keeps the
 			// already-fetched children in place.
-			if (expanding) onGroupExpandRef.current?.(key)
+			if (expanding) onGroupExpand(key)
 		},
 		[setManualExpanded],
 	)

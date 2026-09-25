@@ -1,8 +1,9 @@
 'use client'
 
 import { Fragment, type TransitionEvent, useMemo, useRef } from 'react'
-import { detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
+import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
 import { itemAriaRowIndex } from './engine/grid-row/shell'
+import { detailCursorRows, useGridCursorOrder } from './grid-cursor-order'
 import { GridDetailRow } from './grid-detail-row'
 import { type GridRowsProps, renderGridRow } from './grid-row'
 import { GridWindowBody } from './grid-window-body'
@@ -117,6 +118,17 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
 		useGridItemWindow(items, props, record)
+
+	// The cursor walks each data row and each open panel.
+	const cursorOrder = useMemo(
+		() =>
+			detailCursorRows(rows, rowKeys, (row, key) =>
+				detailOpen(row, key, { expanded, rowExpandable: rowExpandable ?? NEVER_EXPANDABLE }),
+			),
+		[rows, rowKeys, expanded, rowExpandable],
+	)
+
+	useGridCursorOrder(cursorOrder)
 
 	const onTransitionEnd = (event: TransitionEvent<HTMLTableSectionElement>) => {
 		const item = revealEndItem(event)

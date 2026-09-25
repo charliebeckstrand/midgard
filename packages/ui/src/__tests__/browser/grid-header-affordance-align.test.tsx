@@ -48,6 +48,38 @@ describe('grid header affordance alignment (real browser)', () => {
 		return point.matrixTransform(ctm).x
 	}
 
+	// Rightmost visible ink x (client px) of the affordance svg, for a
+	// right-to-left header, where the glyph leads from the right.
+	function inkRight(container: HTMLElement, columnId: string): number {
+		const svg = present<SVGGraphicsElement>(
+			container.querySelector(`th[data-grid-col="${columnId}"] svg`),
+			'the header glyph',
+		)
+
+		const bbox = svg.getBBox()
+
+		const ctm = svg.getScreenCTM()
+
+		if (!ctm) return svg.getBoundingClientRect().right
+
+		const point = (svg.ownerSVGElement ?? (svg as unknown as SVGSVGElement)).createSVGPoint()
+
+		point.x = bbox.x + bbox.width
+
+		point.y = bbox.y
+
+		return point.matrixTransform(ctm).x
+	}
+
+	function valueRight(container: HTMLElement, columnId: string): number {
+		const span = present(
+			container.querySelector(`td[data-grid-col="${columnId}"] span`),
+			'the cell value',
+		)
+
+		return span.getBoundingClientRect().right
+	}
+
 	function valueLeft(container: HTMLElement, columnId: string): number {
 		const span = present(
 			container.querySelector(`td[data-grid-col="${columnId}"] span`),
@@ -100,5 +132,47 @@ describe('grid header affordance alignment (real browser)', () => {
 		expect(Math.abs(inkLeft(container, 'name') - valueLeft(container, 'name'))).toBeLessThanOrEqual(
 			1.5,
 		)
+	})
+
+	// In a right-to-left grid the affordance leads from the right, so its pull is
+	// toward the inline start. The glyph's right ink then meets the right edge of
+	// the value.
+	it('aligns the reorder grip with the column cell values in a right-to-left grid', async () => {
+		const { container } = renderUI(
+			<div dir="rtl" style={{ width: '640px' }}>
+				<Grid
+					reorder
+					columns={columns}
+					rows={people}
+					getKey={(row) => row.id}
+					columnOrder={{ defaultValue: ['name', 'email'] }}
+				/>
+			</div>,
+		)
+
+		await waitFor(() => expect(container.querySelector('td[data-grid-col="name"]')).not.toBeNull())
+
+		for (const id of ['name', 'email']) {
+			expect(Math.abs(inkRight(container, id) - valueRight(container, id))).toBeLessThanOrEqual(1.5)
+		}
+	})
+
+	it('aligns a pinned column pin button with the column cell values in a right-to-left grid', async () => {
+		const pinned: GridColumn<Person>[] = [
+			{ id: 'name', title: 'Name', cell: (row) => row.name, pinned: 'left' },
+			{ id: 'email', title: 'Email', cell: (row) => row.email },
+		]
+
+		const { container } = renderUI(
+			<div dir="rtl" style={{ width: '640px' }}>
+				<Grid columns={pinned} rows={people} getKey={(row) => row.id} />
+			</div>,
+		)
+
+		await waitFor(() => expect(container.querySelector('td[data-grid-col="name"]')).not.toBeNull())
+
+		expect(
+			Math.abs(inkRight(container, 'name') - valueRight(container, 'name')),
+		).toBeLessThanOrEqual(1.5)
 	})
 })

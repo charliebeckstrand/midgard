@@ -19,6 +19,7 @@ const stateValue = {
 	allowGroups: true,
 	hideFieldSelector: false,
 	requireRule: false,
+	reorderable: false,
 }
 
 const actionsValue: QueryBuilderActions = {
@@ -27,6 +28,7 @@ const actionsValue: QueryBuilderActions = {
 	addRule: () => {},
 	addGroup: () => {},
 	remove: () => {},
+	move: () => {},
 }
 
 function wrapper({ children }: { children: React.ReactNode }) {

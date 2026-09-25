@@ -107,7 +107,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 						onValueChange={onFieldChange}
 						placeholder="Field"
 						aria-label="Field"
-						className="w-full"
+						className={cn(k.part)}
 					>
 						{fields.map((f) => (
 							<ListboxOption key={f.name} value={f.name}>
@@ -123,7 +123,7 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					onValueChange={onOperatorChange}
 					placeholder="Operator"
 					aria-label="Operator"
-					className="w-full"
+					className={cn(k.part)}
 				>
 					{operators.map((op) => (
 						<ListboxOption key={op.value} value={op.value}>
@@ -132,21 +132,26 @@ function QueryBuilderRuleImpl({ rule, removable = true, className }: QueryBuilde
 					))}
 				</Select>
 
+				{/* A box holds the value editor as the row's part. An input with
+				    affixes puts its `className` on the inner `<input>`, not on the
+				    frame that the row sizes. */}
 				{field && !selectedOperator?.noValue && (
-					<QueryBuilderRuleValue
-						field={field}
-						value={rule.value}
-						onValueChange={onValueChange}
-						range={selectedOperator?.range}
-						className="w-full"
-					/>
+					<div className={cn(selectedOperator?.range ? k.rangePart : k.part)}>
+						<QueryBuilderRuleValue
+							field={field}
+							value={rule.value}
+							onValueChange={onValueChange}
+							range={selectedOperator?.range}
+							className="w-full"
+						/>
+					</div>
 				)}
 
 				{/* A value-less operator naming a fixed subject ("is" · "Empty") shows it
 				    as static text in the value column. The rule then still reads as a
 				    sentence. There is nothing to edit, hence no control. */}
 				{selectedOperator?.noValue && selectedOperator.valueLabel && (
-					<Flex align="center" full className={cn(k.value)}>
+					<Flex align="center" full className={cn(k.value, k.part)}>
 						{selectedOperator.valueLabel}
 					</Flex>
 				)}
