@@ -119,6 +119,8 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-column-filter.bench.tsx`](grid-column-filter.bench.tsx) — a `contains` filter on the carrier column, applied and then cleared, at 10k / 100k. It settles on painted survivors at each end, as the quick-filter scenario does. Each library takes its own column filter: the ui module's `columnFilters` binding, AG's filter model, and MUI's `filterModel.items`. Only this scenario mounts the carrier column as filterable, so no filter affordance adds to the cost of the others.
 
+- [`grid-paginate.bench.tsx`](grid-paginate.bench.tsx) — client pagination with 100 rows on each page, the cap of MUI's MIT tier, at 10k / 100k. Three scenarios run: a mount, a flip to the second page and back, and an asc/desc sort flip on `id`. Each library pages through its own pagination: the ui module's `pagination` binding, AG's `pagination` option, and MUI's `paginationModel`. Only this scenario mounts the grids paginated.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -210,6 +212,19 @@ Each entry names the change and the scenarios it moved.
     | column filter · 10,000 · compiled | 47.7 | 47.6 | mixed |
 
     At 100k the module now leads both contenders in one run on the same machine (AG 119.0ms, MUI 102.5ms). At 10k all three sit near 45ms. The quick filter and the sort flips stayed within noise in both builds. A filter next to pagination or grouping still runs in the engine.
+
+12. **Off-engine client pagination** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useClientView`, [`views.ts`](../../modules/grid/engine/grid-table/views.ts) `buildPaginationView`, [`grid-pagination-utilities.ts`](../../modules/grid/engine/grid-pagination-utilities.ts) `pageCountOf`, 2026-09-25, this container). Pagination forced the engine row model, so a paginated grid built a `Row` for each datum on mount and sorted through the engine. The grid now slices the page from its own view, after the filters and the sort. The footer counts the pages itself, by the rules of the engine. A manual pagination no longer builds the engine model either. Only grouping, or a filter that only the engine can apply, still builds it. A property test drives `useGridTable` against a stock engine table with random rows, filters, sorts, and pages, and holds the rows, the keys, and the page totals equal. The new pagination scenario gives the median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | paginate · 100,000 · mount · plain | 159.5 | 28.1 | −83%, −83%, −81% |
+    | paginate · 100,000 · mount · compiled | 172.6 | 26.7 | −84%, −85%, −85% |
+    | paginate · 100,000 · sort flip · plain | 140.5 | 21.2 | −84%, −86%, −84% |
+    | paginate · 100,000 · sort flip · compiled | 126.5 | 21.0 | −81%, −83%, −84% |
+    | paginate · 10,000 · mount · plain | 42.0 | 28.1 | −32%, −35%, −32% |
+    | paginate · 10,000 · sort flip · plain | 29.1 | 22.2 | −20%, −26%, −22% |
+
+    The page flips stayed within noise, since both paths slice a cached order. At 100k the module now leads both contenders on the paginated mount (AG 160.3ms, MUI 84.2ms) and the paginated sort flip (AG 68.1ms, MUI 89.7ms). The quick filter and the column filter stayed within noise over seven pairs, with a median change of 4% or less.
 
 ## Maps
 

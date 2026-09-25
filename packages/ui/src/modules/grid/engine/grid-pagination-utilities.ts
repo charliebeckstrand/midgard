@@ -29,3 +29,48 @@ export function getVisiblePages(current: number, total: number): GridPageItem[] 
 export function isManualPagination(config: GridPagination | undefined): boolean {
 	return config?.manual ?? (config?.rowCount != null || config?.pageCount != null)
 }
+
+/**
+ * The page count of a grid, as the engine counts it (`getPageCount`).
+ *
+ * @remarks
+ * A supplied `pageCount` wins. Else the count divides the rows by the page
+ * size, and rounds up. The rows are the supplied `rowCount`, else the rows
+ * before pagination. An unbounded page size gives one page when there is a
+ * row.
+ *
+ * @param args.pageCount - The page count that the consumer supplies, if any.
+ * @param args.rowCount - The row count that the consumer supplies, if any.
+ * @param args.rows - The count of the rows before pagination.
+ * @param args.pageSize - The rows on each page.
+ * @internal
+ */
+export function pageCountOf(args: {
+	pageCount?: number | undefined
+	rowCount?: number | undefined
+	rows: number
+	pageSize: number
+}): number {
+	if (args.pageCount != null) return args.pageCount
+
+	const rows = args.rowCount ?? args.rows
+
+	if (args.pageSize === Infinity && Number.isFinite(rows) && rows > 0) return 1
+
+	return Math.ceil(rows / args.pageSize)
+}
+
+/**
+ * The bounds of a page: the position of its first row, and the position
+ * after its last row. The paginated row model of the engine slices the same
+ * bounds. `null` keeps every row: the first page of an unbounded page size.
+ *
+ * @internal
+ */
+export function pageBounds(pageIndex: number, pageSize: number): [number, number] | null {
+	if (pageSize === Infinity && pageIndex === 0) return null
+
+	const start = pageSize * pageIndex
+
+	return [start, start + pageSize]
+}

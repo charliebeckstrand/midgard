@@ -7,7 +7,7 @@ import type { GridColumn } from '../../modules/grid'
 import { searchRowIndices } from '../../modules/grid/engine/grid-search/search'
 import { type GridFeatures, gridFeatures } from '../../modules/grid/engine/grid-table/features'
 import { filterOptions, toColumnDef } from '../../modules/grid/engine/grid-table/options'
-import { resolveOffEngineFilter } from '../../modules/grid/engine/grid-table/state'
+import { resolveClientView } from '../../modules/grid/engine/grid-table/state'
 
 /**
  * When the quick search is the only transform, the grid searches its rows
@@ -87,9 +87,13 @@ describe('searchRowIndices', () => {
 	})
 })
 
-describe('resolveOffEngineFilter', () => {
+describe('resolveClientView', () => {
+	const page = { pageIndex: 2, pageSize: 10 }
+
 	const base = {
 		paginated: false,
+		paginationManual: false,
+		pagination: page,
 		filterMode: { configured: true, manual: false },
 		globalFiltered: true,
 		globalFilter: 'ab',
@@ -101,14 +105,18 @@ describe('resolveOffEngineFilter', () => {
 	}
 
 	it.each([
-		['a search that is the only transform', {}],
+		['a search', {}],
 		['an active column filter', { columnFilters: [{ id: 'name', value: 'x' }] }],
 		[
 			'a column filter next to a search that only marks',
 			{ globalHighlights: true, columnFilters: [{ id: 'name', value: 'x' }] },
 		],
-	])('runs the filters off the engine with %s', (_, change) => {
-		expect(resolveOffEngineFilter({ ...base, ...change })).toBe(true)
+		['a search and a client page', { paginated: true }],
+	])('filters off the engine with %s', (_, change) => {
+		expect(resolveClientView({ ...base, ...change })).toMatchObject({
+			offEngine: true,
+			filtered: true,
+		})
 	})
 
 	it.each([
@@ -117,14 +125,40 @@ describe('resolveOffEngineFilter', () => {
 		['a manual filter', { filterMode: { configured: true, manual: true } }],
 		['a grid with no filter surface', { filterMode: { configured: false, manual: false } }],
 		['a grid with no search', { globalFiltered: false }],
-		['pagination', { paginated: true }],
+	])('runs off the engine with no filter, with %s', (_, change) => {
+		expect(resolveClientView({ ...base, ...change })).toEqual({
+			offEngine: true,
+			filtered: false,
+			page: null,
+		})
+	})
+
+	it.each([
 		[
 			'a column filter that only the engine applies',
 			{ columnFilters: [{ id: 'name', value: 'x' }], columnFiltersCompile: false },
 		],
-		['client grouping', { grouped: true }],
-		['manual grouping', { manualGrouped: true }],
-	])('leaves the filters to the engine, or to no one, with %s', (_, change) => {
-		expect(resolveOffEngineFilter({ ...base, ...change })).toBe(false)
+		['client grouping', { grouped: true, paginated: true }],
+		['manual grouping', { manualGrouped: true, paginated: true }],
+	])('leaves the transforms to the engine with %s', (_, change) => {
+		expect(resolveClientView({ ...base, ...change })).toEqual({
+			offEngine: false,
+			filtered: false,
+			page: null,
+		})
+	})
+
+	it('slices the page of a client pagination only', () => {
+		expect(resolveClientView({ ...base, paginated: true }).page).toBe(page)
+
+		expect(resolveClientView({ ...base, paginated: true, paginationManual: true }).page).toBeNull()
+	})
+
+	it('keeps a manual filter off the engine, which then filters no row', () => {
+		const manual = { filterMode: { configured: true, manual: true } }
+
+		expect(
+			resolveClientView({ ...base, ...manual, columnFilters: [{ id: 'name', value: 'x' }] }),
+		).toMatchObject({ offEngine: true, filtered: false })
 	})
 })

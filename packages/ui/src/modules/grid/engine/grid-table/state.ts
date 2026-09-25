@@ -3,6 +3,7 @@ import type {
 	ColumnVisibilityState,
 	columnResizingState,
 	GroupingState,
+	PaginationState,
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
@@ -148,16 +149,25 @@ export function resolveActiveEngineTransform(args: {
 }
 
 /**
- * Whether the client filters run off the engine. They do when the quick
- * search prunes rows or a column filter is applied, and no other transform
- * needs the engine row model. Such a transform is pagination or grouping. The
- * grid then filters its rows itself (see `filterRowIndices`), and builds no
- * engine row for each datum.
+ * Where the client row transforms of a grid run: the filters, the sort, and
+ * the pagination.
  *
+ * @remarks
+ * The grid runs them itself (see `useClientView`), and builds no engine row
+ * for each datum. The engine runs them inside its pipeline in two cases:
+ * grouped rows, and an applied filter that only the engine can apply.
+ *
+ * @returns `offEngine`: whether the grid runs the transforms itself.
+ * `filtered`: whether it also applies the client filters, which it does when
+ * the quick search prunes rows or a column filter is applied. `page`: the page
+ * that the grid slices, which is `null` unless the grid paginates on the
+ * client.
  * @internal
  */
-export function resolveOffEngineFilter(args: {
+export function resolveClientView(args: {
 	paginated: boolean
+	paginationManual: boolean
+	pagination: PaginationState
 	filterMode: { configured: boolean; manual: boolean }
 	/** Whether the grid has a quick search. */
 	globalFiltered: boolean
@@ -169,16 +179,20 @@ export function resolveOffEngineFilter(args: {
 	grouped: boolean
 	/** Whether the consumer groups the rows (manual grouping). */
 	manualGrouped: boolean
-}): boolean {
-	if (!args.filterMode.configured || args.filterMode.manual) return false
+}): { offEngine: boolean; filtered: boolean; page: PaginationState | null } {
+	const clientFilters = args.filterMode.configured && !args.filterMode.manual
 
-	if (args.paginated || args.grouped || args.manualGrouped) return false
+	const searching =
+		clientFilters && args.globalFiltered && !args.globalHighlights && args.globalFilter !== ''
 
-	const searching = args.globalFiltered && !args.globalHighlights && args.globalFilter !== ''
+	const filtering = clientFilters && args.columnFilters.length > 0
 
-	const filtering = args.columnFilters.length > 0
+	const offEngine =
+		!args.grouped && !args.manualGrouped && !(filtering && !args.columnFiltersCompile)
 
-	if (filtering && !args.columnFiltersCompile) return false
-
-	return searching || filtering
+	return {
+		offEngine,
+		filtered: offEngine && (searching || filtering),
+		page: offEngine && args.paginated && !args.paginationManual ? args.pagination : null,
+	}
 }

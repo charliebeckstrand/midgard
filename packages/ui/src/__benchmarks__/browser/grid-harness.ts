@@ -32,8 +32,11 @@ export function viewportMarkers(rows: Shipment[]): string[] {
 	return [rows[0]?.id ?? '', rows[8]?.id ?? '']
 }
 
-/** Registers one full mount-to-painted-rows-plus-teardown bench per contender. */
-export function mountGridBenches(rows: Shipment[], options?: BenchOptions) {
+/**
+ * Registers one full mount-to-painted-rows-plus-teardown bench per contender.
+ * `mount` sets how each grid mounts.
+ */
+export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount?: MountOptions) {
 	const markers = viewportMarkers(rows)
 
 	const mountHost = host(BOX)
@@ -42,7 +45,7 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions) {
 		bench(
 			contender.name,
 			async () => {
-				const grid = contender.mount(mountHost, rows)
+				const grid = contender.mount(mountHost, rows, mount)
 
 				await painted(mountHost, markers)
 
