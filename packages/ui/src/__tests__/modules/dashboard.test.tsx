@@ -1,9 +1,10 @@
 import { act } from '@testing-library/react'
-import { Profiler, type ReactNode, StrictMode, use, useState } from 'react'
+import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
+	type DashboardHandle,
 	type DashboardLayoutItem,
 	type DashboardProps,
 	DashboardTile,
@@ -583,6 +584,46 @@ describe('Dashboard gesture owner', () => {
 		expect(new Set(next.map((item) => `${item.x},${item.y}`)).size).toBe(next.length)
 
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 8, h: 20 })
+	})
+
+	it('paints the saved cell after a declined drop, and then lets tidy commit', async () => {
+		const board = createRef<DashboardHandle>()
+
+		const onValueChange = vi.fn()
+
+		// Revenue sits under a gap, so tidy has a move to make.
+		const saved: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 8, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		]
+
+		renderUI(
+			<Dashboard ref={board} aria-label="Sales" editing layout={{ value: saved, onValueChange }}>
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+			</Dashboard>,
+		)
+
+		// The app keeps its value, so it declines the drop.
+		await drop(await lift('Move Revenue', 'ArrowDown', 4))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('9 / 1 / span 10 / span 8')
+
+		let moved = false
+
+		act(() => {
+			moved = board.current?.tidy() ?? false
+		})
+
+		expect(moved).toBe(true)
+
+		expect(onValueChange).toHaveBeenLastCalledWith([
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		])
 	})
 
 	/** A board whose layout and tiles the test sets. It saves nothing by itself. */

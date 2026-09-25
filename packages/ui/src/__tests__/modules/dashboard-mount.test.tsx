@@ -3,7 +3,12 @@ import type { ReactElement } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
-import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
+import {
+	Dashboard,
+	type DashboardLayoutItem,
+	DashboardTile,
+	useDashboardRows,
+} from '../../modules/dashboard'
 import type { Mount } from '../../primitives/mount'
 import { attach, getSlot, renderUI, screen } from '../helpers'
 
@@ -136,12 +141,93 @@ describe('DashboardTile mount', () => {
 		expect(screen.getByText('Waiting')).toBeInTheDocument()
 	})
 
-	it('renders the fallback of a held tile on the server, and the content of an always tile', () => {
-		expect(serverMarkup(<Board mount="lazy" />)).toContain('Waiting')
+	it.each(['lazy', 'active'] as const)(
+		'renders the fallback of a %s tile on the server',
+		(mount) => {
+			const html = serverMarkup(<Board mount={mount} />)
 
-		expect(serverMarkup(<Board mount="lazy" />)).not.toContain('Drawn')
+			expect(html).toContain('Waiting')
 
+			expect(html).not.toContain('Drawn')
+		},
+	)
+
+	it('renders the content of an always tile on the server', () => {
 		expect(serverMarkup(<Board />)).toContain('Drawn')
+	})
+
+	it('hydrates a board with a saved selection and a tile with no entry, with no mismatch', () => {
+		const sales = [
+			{ region: 'North', amount: 10 },
+			{ region: 'West', amount: 30 },
+		]
+
+		function Total() {
+			const rows = useDashboardRows(sales)
+
+			return <output>Total {rows.reduce((sum, row) => sum + row.amount, 0)}</output>
+		}
+
+		function Selected() {
+			const rows = useDashboardRows(sales)
+
+			return <p>Regions {rows.length}</p>
+		}
+
+		const layout: DashboardLayoutItem[] = [
+			{ id: 'regions', x: 0, y: 0, w: 12, h: 10 },
+			{ id: 'total', x: 12, y: 0, w: 12, h: 10 },
+		]
+
+		const selection = [{ source: 'regions', field: 'region', values: ['West'] }]
+
+		const board = (
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: layout }}
+				selection={{ defaultValue: selection }}
+			>
+				<DashboardTile id="regions" title="Regions">
+					<Selected />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total />
+				</DashboardTile>
+
+				<DashboardTile id="notes" title="Notes">
+					<p>Notes</p>
+				</DashboardTile>
+			</Dashboard>
+		)
+
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = serverMarkup(board)
+
+		// The server filters the other tiles, and it draws no tile with no entry.
+		expect(container).toHaveTextContent('Total 30')
+
+		expect(container).not.toHaveTextContent('Notes')
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, board, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		// The source keeps its whole list, the other tile stays filtered, and the new tile draws.
+		expect(container).toHaveTextContent('Regions 2')
+
+		expect(container).toHaveTextContent('Total 30')
+
+		expect(container).toHaveTextContent('Notes')
 	})
 
 	it('hydrates the server markup of a held tile with no mismatch', () => {
