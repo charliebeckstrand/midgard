@@ -62,7 +62,7 @@
 		"bench:docs": "vitest bench --run --config vitest.bench.docs.config.ts",
 		"bench:docs:vite": "tsx src/__benchmarks__/docs/vite-metrics.ts",
 		"bundle:budget": "tsx src/__benchmarks__/docs/bundle-budget.ts",
-		"check-types": "tsc --noEmit && tsc --noEmit -p tsconfig.scripts.json && tsc --noEmit -p tsconfig.docs.json",
+		"check-types": "tsgo --noEmit && tsgo --noEmit -p tsconfig.scripts.json && tsgo --noEmit -p tsconfig.docs.json",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write ."
 	},
@@ -113,6 +113,7 @@
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",
 		"@types/react-dom": "catalog:",
+		"@typescript/native-preview": "7.0.0-dev.20260707.2",
 		"@vitejs/plugin-react": "^6.0.1",
 		"@vitest/browser": "4.1.11",
 		"@vitest/browser-playwright": "4.1.11",
