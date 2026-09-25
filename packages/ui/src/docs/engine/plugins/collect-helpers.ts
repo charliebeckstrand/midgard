@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from '@typescript/typescript6'
 import type { ImportFact } from '../derive-code/types'
 import { isPascalCase, wordRe } from '../identifiers'
 import { parseSource } from './ts-source'

@@ -1,5 +1,5 @@
 import { join } from 'node:path'
-import ts from 'typescript'
+import ts from '@typescript/typescript6'
 import { srcDir, srcRelative, walkSource } from './walk-source'
 
 /**

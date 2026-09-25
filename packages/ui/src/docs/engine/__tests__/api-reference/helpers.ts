@@ -1,20 +1,28 @@
-import { createRequire } from 'node:module'
 import path from 'node:path'
+import { getLibFiles } from '@ts-morph/common'
 import { ts } from 'ts-morph'
 
 const PROJECT_ROOT = '/project'
 
-// The real `typescript` package's lib directory (`…/typescript/lib`). ts-morph's
-// own `ts.getDefaultLibFilePath` points at its bundled `@ts-morph/common/dist`
-// libs, which aren't emitted to disk — so lib files never load and every global
-// (`Array`, `string[]`, …) resolves to `{}`. Resolving the installed typescript
-// (a direct dependency, version-matched to ts-morph's bundled compiler) gives a
-// real on-disk lib dir the compiler host can read through its `ts.sys` fallback.
-const TS_LIB_DIR = path.dirname(createRequire(import.meta.url).resolve('typescript'))
+// A virtual directory for the standard library files. The `typescript` package
+// is the native TypeScript 7 compiler, which ships no JavaScript API and no
+// `lib.*.d.ts` files that this compiler host can read. ts-morph's own
+// `ts.getDefaultLibFilePath` points at libs that are not on the disk, so every
+// global (`Array`, `string[]`, …) resolves to `{}`. `getLibFiles` gives the lib
+// text that matches ts-morph's bundled compiler, and the host serves it here.
+const LIB_DIR = '/lib'
+
+const libFiles = new Map(
+	getLibFiles().map(({ fileName, text }) => [path.posix.join(LIB_DIR, fileName), text]),
+)
+
+function readFile(filename: string): string | undefined {
+	return libFiles.get(filename) ?? ts.sys.readFile(filename)
+}
 
 /**
- * Caches lib and other on-disk `.d.ts` SourceFiles once per worker, reused
- * across every `createInMemoryProgram` call.
+ * Caches the lib SourceFiles and the other `.d.ts` SourceFiles once per worker.
+ * Each `createInMemoryProgram` call uses the cache again.
  */
 const diskSourceFileCache = new Map<string, ts.SourceFile>()
 
@@ -26,7 +34,7 @@ function readDiskSourceFile(
 
 	if (cached) return cached
 
-	const text = ts.sys.readFile(filename)
+	const text = readFile(filename)
 
 	if (text === undefined) return undefined
 
@@ -40,9 +48,10 @@ function readDiskSourceFile(
 /**
  * Builds a TS Program covering a tiny in-memory project plus the standard
  * library. Sources are placed under `/project/<name>.ts`; the TypeChecker
- * resolves both the in-memory files and `lib.*.d.ts` via the real filesystem
- * (`React.ReactNode`, `HTMLAttributes`, etc. resolve without bundling type
- * definitions into the test).
+ * reads the project files and the `lib.*.d.ts` files from memory, and the
+ * other type definitions from the real filesystem (`React.ReactNode`,
+ * `HTMLAttributes`, etc. resolve without bundling type definitions into the
+ * test).
  *
  * Returns each in-memory file's SourceFile under `sourceFiles`.
  */
@@ -60,9 +69,10 @@ export function createInMemoryProgram(files: Record<string, string>): {
 	}
 
 	const host: ts.CompilerHost = {
-		fileExists: (filename) => projectFiles.has(filename) || ts.sys.fileExists(filename),
+		fileExists: (filename) =>
+			projectFiles.has(filename) || libFiles.has(filename) || ts.sys.fileExists(filename),
 		readFile: (filename) =>
-			projectFiles.has(filename) ? projectFiles.get(filename) : ts.sys.readFile(filename),
+			projectFiles.has(filename) ? projectFiles.get(filename) : readFile(filename),
 		writeFile: () => {},
 		getSourceFile: (filename, languageVersion) => {
 			const projectText = projectFiles.get(filename)
@@ -73,7 +83,7 @@ export function createInMemoryProgram(files: Record<string, string>): {
 
 			return readDiskSourceFile(filename, languageVersion)
 		},
-		getDefaultLibFileName: (opts) => path.join(TS_LIB_DIR, ts.getDefaultLibFileName(opts)),
+		getDefaultLibFileName: (opts) => path.posix.join(LIB_DIR, ts.getDefaultLibFileName(opts)),
 		getCurrentDirectory: () => PROJECT_ROOT,
 		getCanonicalFileName: (filename) => filename,
 		useCaseSensitiveFileNames: () => true,

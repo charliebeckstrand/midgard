@@ -1,4 +1,4 @@
-import ts from 'typescript'
+import ts from '@typescript/typescript6'
 
 /** Parse `code` into a full-fidelity source file (parent pointers set) for the plugins' syntactic passes. */
 export function parseSource(
