@@ -1,0 +1,39 @@
+language js
+
+// `.browserslistrc` sets the browser floor. A call to an API above that floor
+// throws there, and no build step lowers the call (CONVENTIONS §11.3).
+//
+// The type-check holds most of the floor: `lib: ["ES2023"]` stops each newer
+// ECMAScript built-in. It does not stop a DOM API, because `lib.dom` has no
+// version. It also passes an older built-in that a browser shipped late, such
+// as `Intl.Segmenter`. This plugin holds those calls.
+//
+// Each entry is a call or a construction that throws below the floor. MDN
+// browser-compat data is the source for each version. An optional call such
+// as `el.checkVisibility?.()` does not match, because it is the guard. When the
+// floor rises, delete each entry that the new floor covers.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the source that
+// ships to a browser, minus tests, benchmarks, and server-only code.
+or {
+	`AbortSignal.any($...)`,
+	`URL.canParse($...)`,
+	`URL.parse($...)`,
+	`new Intl.Segmenter($...)`,
+	`new CloseWatcher($...)`,
+	`requestIdleCallback($...)`,
+	`$_.requestIdleCallback($...)`,
+	`$_.checkVisibility($...)`,
+	`$_.startViewTransition($...)`,
+	`$_.showPopover($...)`,
+	`$_.hidePopover($...)`,
+	`$_.togglePopover($...)`,
+	`$_.moveBefore($...)`,
+	`$_.setHTMLUnsafe($...)`,
+	`$_.caretPositionFromPoint($...)`
+} as $call where {
+	register_diagnostic(
+		span = $call,
+		message = "a browser at the `.browserslistrc` floor lacks this API, so the call throws there: use a fallback, or guard it as an optional call"
+	)
+}
