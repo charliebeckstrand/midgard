@@ -64,13 +64,16 @@ export type DashboardTileProps = {
 	/**
 	 * Fixes the `width / height` ratio of the tile, for example `16 / 9` for a chart.
 	 * The saved layout then stores no height, because the height follows the width.
-	 * Omit it for a free-form tile, which resizes on both axes.
+	 * Omit it for a free-form tile, which resizes on both axes. A value that is not
+	 * a finite number above 0, such as the 0/0 of an image before it loads, counts
+	 * as no ratio.
 	 */
 	ratio?: number
 	/**
 	 * The narrowest content width in px at which the content stays legible. A
 	 * resize never goes under it. When the container renders the tile narrower,
-	 * the board re-packs so that the tile gets this width.
+	 * the board re-packs so that the tile gets this width. A value that is not a
+	 * finite number of 0 or more puts no floor on the width. It does not take the default.
 	 * @defaultValue 320
 	 */
 	minWidth?: number

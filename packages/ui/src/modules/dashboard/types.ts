@@ -105,9 +105,15 @@ export type DashboardWidgetRenderer = (
 export type DashboardWidget = {
 	/** Draws the content of each tile of this kind. */
 	render: DashboardWidgetRenderer
-	/** The fixed `width / height` ratio of each tile of this kind. Omit it for a free-form tile. */
+	/**
+	 * The fixed `width / height` ratio of each tile of this kind. Omit it for a
+	 * free-form tile. A value that is not a finite number above 0 counts as no ratio.
+	 */
 	ratio?: number
-	/** The narrowest content width in px at which the content stays legible. */
+	/**
+	 * The narrowest content width in px at which the content stays legible. A value
+	 * that is not a finite number of 0 or more puts no floor on the width.
+	 */
 	minWidth?: number
 	/**
 	 * The span of a new tile of this kind, before the layout holds an entry for

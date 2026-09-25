@@ -1,7 +1,11 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { dragPreview, dragTravel, nearestFit } from '../../modules/dashboard/engine/dashboard-drag'
-import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
+import {
+	type DashboardCell,
+	fits,
+	ROW_SUBDIVISION,
+} from '../../modules/dashboard/engine/dashboard-layout'
 
 const cell = (
 	id: string,
@@ -123,4 +127,87 @@ describe('nearestFit', () => {
 
 		expect(nearestFit(board, 'a', 20, 0, 24)).toEqual({ x: 20, y: 40 })
 	})
+
+	it('snaps home at once when one entry lies far under the board', { timeout: 1_000 }, () => {
+		// The search stops at the distance of the start cell, not at the lowest tile.
+		const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('far', 0, 1e6, 8, 10)]
+
+		// Column 1 overlaps b, and the start cell is the nearest free origin.
+		expect(nearestFit(board, 'a', 1, 0, 24)).toBeNull()
+	})
+
+	it('gives a tie to the upper row, also from a farther row', () => {
+		// Columns 9 and 11 of row 10, and column 10 of rows 6 and 14, are each 16 away.
+		const board = [cell('a', 0, 20, 1, 1), cell('wall', 10, 7, 1, 7)]
+
+		expect(nearestFit(board, 'a', 10, 10, 24)).toEqual({ x: 10, y: 6 })
+	})
+
+	it('gives the answer of a sort of each origin, for each target', () => {
+		const boards = [
+			[cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('c', 0, 10, 16, 10)],
+			[cell('a', 0, 0, 4, 4), cell('wall', 4, 0, 20, 40)],
+			[
+				cell('a', 0, 0, 6, 8),
+				cell('b', 6, 0, 6, 12),
+				cell('c', 12, 0, 12, 6),
+				cell('d', 0, 8, 6, 6),
+				cell('e', 12, 6, 4, 10),
+				cell('f', 16, 6, 8, 4, true),
+				cell('g', 6, 16, 10, 5),
+			],
+		]
+
+		for (const board of boards) {
+			for (const tile of board) {
+				const { maxX, maxY } = dragTravel(board, tile.id, 24)
+
+				for (let y = 0; y <= maxY; y++) {
+					for (let x = 0; x <= maxX; x++) {
+						expect(nearestFit(board, tile.id, x, y, 24)).toEqual(sortedFit(board, tile.id, x, y))
+					}
+				}
+			}
+		}
+	})
 })
+
+/**
+ * The reference search: it sorts each origin in the travel range by distance, and
+ * takes the first that fits. The sort is stable, so a tie goes to the upper row,
+ * then to the left column. The start cell wins a tie at its distance.
+ */
+function sortedFit(
+	board: readonly DashboardCell[],
+	id: string,
+	x: number,
+	y: number,
+): { x: number; y: number } | null {
+	const origin = board.find((item) => item.id === id)
+
+	if (origin === undefined) return null
+
+	const { maxX, maxY } = dragTravel(board, id, 24)
+
+	const candidates: { x: number; y: number; distance: number }[] = []
+
+	for (let cy = 0; cy <= maxY; cy++) {
+		for (let cx = 0; cx <= maxX; cx++) {
+			const home = cx === origin.x && cy === origin.y ? -0.5 : 0
+
+			candidates.push({
+				x: cx,
+				y: cy,
+				distance: ((cx - x) * ROW_SUBDIVISION) ** 2 + (cy - y) ** 2 + home,
+			})
+		}
+	}
+
+	candidates.sort((a, b) => a.distance - b.distance)
+
+	const hit = candidates.find((item) => fits(board, { ...origin, x: item.x, y: item.y }, 24))
+
+	if (hit === undefined || (hit.x === origin.x && hit.y === origin.y)) return null
+
+	return { x: hit.x, y: hit.y }
+}

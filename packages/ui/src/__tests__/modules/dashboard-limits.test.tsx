@@ -90,6 +90,20 @@ describe('DashboardTile limits', () => {
 		expect(last(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 10, h: 11 })
 	})
 
+	it('reads a minWidth that is not a usable number as no floor, so a resize commits a width', () => {
+		const onLayout = vi.fn()
+
+		renderUI(
+			<Controlled initial={[{ id: 'a', x: 0, y: 0, w: 5, h: 9 }]} onLayout={onLayout}>
+				<DashboardTile id="a" minWidth={Number.NaN} />
+			</Controlled>,
+		)
+
+		step('a', 0, 'ArrowRight')
+
+		expect(last(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 6, h: 9 })
+	})
+
 	it('stops a keyboard resize at minSize', () => {
 		const onLayout = vi.fn()
 

@@ -98,6 +98,37 @@ export type DashboardCell = {
 }
 
 /**
+ * `ratio`, or `undefined` when it is not a finite number above 0. The tile is then
+ * free-form. A ratio of 0 would give an infinite height, and NaN a NaN height.
+ */
+function usableRatio(ratio: number | undefined): number | undefined {
+	return ratio !== undefined && Number.isFinite(ratio) && ratio > 0 ? ratio : undefined
+}
+
+/**
+ * `demands` without a `ratio` or a `minWidth` that the engine cannot use. A
+ * `minWidth` that is not a finite number of 0 or more puts no floor on the width.
+ *
+ * @remarks
+ * The values come from app props, and a computed value can be bad for a moment.
+ * For example, the ratio of an image before it loads is 0/0. The store checks each
+ * registration, so no NaN or infinite cell reaches a gesture or the saved layout.
+ *
+ * @returns `demands` itself when each value is usable.
+ */
+export function usableDemands(demands: DashboardTileDemands): DashboardTileDemands {
+	const ratio = usableRatio(demands.ratio)
+
+	const width = demands.minWidth
+
+	const minWidth = width !== undefined && Number.isFinite(width) && width >= 0 ? width : undefined
+
+	if (ratio === demands.ratio && minWidth === width) return demands
+
+	return { ...demands, ratio, minWidth }
+}
+
+/**
  * The row span of a tile with a fixed ratio, at `w` columns. The result depends
  * only on `w` and `ratio`, so two equal tiles get the same height by construction.
  */
@@ -136,7 +167,8 @@ export function resolveCell(
 ): DashboardCell {
 	const w = Math.min(columns, Math.max(1, Math.round(item.w)))
 
-	const ratio = demands?.ratio
+	// A tile that has not registered passes its raw props, so the ratio gets the check here too.
+	const ratio = usableRatio(demands?.ratio)
 
 	const h =
 		ratio === undefined
