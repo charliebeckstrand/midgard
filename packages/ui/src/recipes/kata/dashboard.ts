@@ -178,12 +178,17 @@ const handle = defineRecipe({
 	defaults: { floating: false },
 })
 
-/** A resize splitter on one edge of a tile. The bar shows on hover, focus, and drag. */
+/**
+ * A resize splitter on one edge of a tile. The bar shows on hover, focus, and
+ * drag. Where the primary pointer is coarse, the bar stays in view, because a
+ * touch screen matches no hover, and a tap matches no focus-visible.
+ */
 const resizeHandle = defineRecipe({
 	base: [
 		'absolute z-10 touch-none select-none',
 		"after:absolute after:rounded-full after:opacity-0 after:transition-opacity after:content-['']",
 		'hover:after:opacity-100 focus-visible:after:opacity-100 data-[resizing]:after:opacity-100',
+		'pointer-coarse:after:opacity-100',
 		...mode('after:bg-zinc-400', 'dark:after:bg-zinc-600'),
 		...sen.focus.ring,
 	],

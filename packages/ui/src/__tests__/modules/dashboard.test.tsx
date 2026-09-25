@@ -188,6 +188,20 @@ describe('Dashboard', () => {
 		expect(screen.getAllByRole('separator', { name: 'Resize c' })).toHaveLength(2)
 	})
 
+	it('shows each splitter bar at rest where the primary pointer is coarse', () => {
+		const { container } = renderUI(<Board editing />)
+
+		const splitters = allBySlot(container, 'dashboard-resize-handle')
+
+		// Two edges on each of two ratio tiles, and three on the free-form tile.
+		expect(splitters).toHaveLength(7)
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. A touch screen
+		// matches no hover, and a tap matches no focus-visible.
+		for (const splitter of splitters)
+			expect(splitter).toHaveClass('pointer-coarse:after:opacity-100')
+	})
+
 	it('commits a keyboard resize, and emits a ratio tile without h', () => {
 		const onValueChange = vi.fn()
 
