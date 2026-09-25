@@ -9,7 +9,6 @@ import {
 	columnSizingFeature,
 	columnVisibilityFeature,
 	globalFilteringFeature,
-	type Row,
 	type RowData,
 	rowPaginationFeature,
 	rowSortingFeature,
@@ -63,9 +62,6 @@ export type EngineData<T> = T & RowData
 
 /** The engine table of a grid. @internal */
 export type EngineTable<T> = Table<GridFeatures, EngineData<T>>
-
-/** An engine row of a grid. @internal */
-export type EngineRow<T> = Row<GridFeatures, EngineData<T>>
 
 /** An engine column of a grid. @internal */
 export type EngineColumn<T> = Column<GridFeatures, EngineData<T>, unknown>
