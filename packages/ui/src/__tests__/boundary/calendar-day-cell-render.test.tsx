@@ -1,7 +1,8 @@
-import { memo } from 'react'
+import { createRef, memo } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Calendar } from '../../components/calendar'
+import { Calendar, type CalendarHandle, CalendarRange } from '../../components/calendar'
 import { CalendarDayCell } from '../../components/calendar/calendar-day-cell'
+import { isSameDay } from '../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../components/date-picker'
 import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -18,7 +19,13 @@ import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers
  * crossing therefore rendered the month once or more. Now it renders only the
  * cells at the moved end of the band.
  *
- * The count needs a module mock, so this suite sits in `boundary/`.
+ * The cache that keeps those handlers kept one for each day of each month that
+ * the reader visited, for the life of the `onHoverDate` callback. It now keys
+ * each handler on the `Date` of its cell, so a month off screen frees its
+ * handlers.
+ *
+ * The count and the handler reads need a module mock, so this suite sits in
+ * `boundary/`.
  */
 vi.mock('../../components/calendar/calendar-day-cell', async (importActual) => {
 	const actual = await importActual<typeof import('../../components/calendar/calendar-day-cell')>()
@@ -98,5 +105,49 @@ describe('calendar day cell renders', () => {
 
 		// Day 10 leaves the edge of the band, and day 11 becomes the edge.
 		expect(vi.mocked(CalendarDayCell.type).mock.calls.length).toBeLessThanOrEqual(2)
+	})
+
+	/** The enter handler that the last render of the cell for June 5, 2025 took. */
+	function enterOfJuneFifth(): (() => void) | undefined {
+		return vi
+			.mocked(CalendarDayCell.type)
+			.mock.calls.findLast(([props]) => isSameDay(props.date, new Date(2025, 5, 5)))?.[0]
+			.onMouseEnter
+	}
+
+	it('gives a month that the reader revisits new hover handlers', () => {
+		const ref = createRef<CalendarHandle>()
+
+		// One identity for the life of the range, as the DatePicker callback has.
+		const onHoverDate = () => {}
+
+		const june = (rangeEnd: Date | null) => (
+			<CalendarRange
+				ref={ref}
+				rangeStart={new Date(2025, 5, 1)}
+				rangeEnd={rangeEnd}
+				onHoverDate={onHoverDate}
+			/>
+		)
+
+		const { rerender } = renderUI(june(null))
+
+		const first = enterOfJuneFifth()
+
+		expect(first).toBeTypeOf('function')
+
+		// Day 5 moves into the band and renders again. While June shows, its
+		// handler keeps its identity.
+		rerender(june(new Date(2025, 5, 10)))
+
+		expect(enterOfJuneFifth()).toBe(first)
+
+		act(() => ref.current?.nextMonth())
+
+		act(() => ref.current?.prevMonth())
+
+		// The cache keys each handler on the `Date` of its cell, not on the day
+		// number. A revisited month has new `Date`s, so it takes new handlers.
+		expect(enterOfJuneFifth()).not.toBe(first)
 	})
 })

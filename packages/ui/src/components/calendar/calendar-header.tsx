@@ -1,13 +1,11 @@
 'use client'
 
-import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { KeyboardEventHandler, RefObject } from 'react'
+import { type KeyboardEventHandler, memo, type RefObject } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
-import { Button } from '../button'
-import { Icon } from '../icon'
 import { CalendarPicker } from './calendar-picker'
+import { CalendarToolbar } from './calendar-toolbar'
 
 type CalendarHeaderProps = {
 	headerRef: RefObject<HTMLDivElement | null>
@@ -30,11 +28,13 @@ type CalendarHeaderProps = {
 /**
  * `role="toolbar"` row of prev/next month chevrons flanking the month/year
  * picker trigger. `activeIndex` paints the roving-focus highlight on the
- * matching control (0 prev, 1 picker, 2 next).
+ * matching control (0 prev, 1 picker, 2 next). Memoized: a move of the roved
+ * day, a new selection, or a range preview does not render the header or its
+ * picker again.
  *
  * @internal
  */
-export function CalendarHeader({
+export const CalendarHeader = memo(function CalendarHeader({
 	headerRef,
 	onHeaderKeyDown,
 	size,
@@ -51,21 +51,18 @@ export function CalendarHeader({
 	onNextMonth,
 }: CalendarHeaderProps) {
 	return (
-		<div
-			ref={headerRef}
-			role="toolbar"
-			aria-label="Month navigation"
+		<CalendarToolbar
+			toolbarRef={headerRef}
+			label="Month navigation"
 			onKeyDown={onHeaderKeyDown}
-			className={cn(k.header({ size }))}
+			size={size}
+			prevLabel="Previous month"
+			nextLabel="Next month"
+			onPrev={onPrevMonth}
+			onNext={onNextMonth}
+			prevClassName={cn(activeIndex === 0 && k.day.active.base)}
+			nextClassName={cn(activeIndex === 2 && k.day.active.base)}
 		>
-			<Button
-				type="button"
-				variant="plain"
-				onClick={onPrevMonth}
-				aria-label="Previous month"
-				prefix={<Icon icon={<ChevronLeft />} />}
-				className={cn(activeIndex === 0 && k.day.active.base)}
-			/>
 			<CalendarPicker
 				year={year}
 				month={month}
@@ -77,14 +74,6 @@ export function CalendarHeader({
 				onOpenChange={onPickerOpenChange}
 				triggerClassName={cn(activeIndex === 1 && k.day.active.base)}
 			/>
-			<Button
-				type="button"
-				variant="plain"
-				onClick={onNextMonth}
-				aria-label="Next month"
-				prefix={<Icon icon={<ChevronRight />} />}
-				className={cn(activeIndex === 2 && k.day.active.base)}
-			/>
-		</div>
+		</CalendarToolbar>
 	)
-}
+})

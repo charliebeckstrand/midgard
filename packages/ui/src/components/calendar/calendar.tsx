@@ -5,7 +5,6 @@ import {
 	type Ref,
 	type RefObject,
 	useCallback,
-	useEffect,
 	useImperativeHandle,
 	useMemo,
 	useRef,
@@ -23,6 +22,7 @@ import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import {
+	formatMonthName,
 	getCalendarDays,
 	getFirstDayColumn,
 	getMonthLabels,
@@ -31,6 +31,10 @@ import {
 } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
+import { useCalendarToday } from './use-calendar-today'
+
+/** The day cells of a calendar that shows no month yet. @internal */
+const NO_DAYS: Date[] = []
 
 /** Identifies the currently active (roving-focus) cell across the calendar's header, grid, or footer zones. */
 export type CalendarActive =
@@ -84,7 +88,9 @@ export type CalendarProps = {
 	 * selection rather than a view. A consumer that fetches per-month data therefore
 	 * had to reverse-derive the month from `getDayProps` calls. The header arrows, the
 	 * month and year pickers, keyboard roving across a month edge, and a `value`
-	 * that lands elsewhere all report here. Mounting reports nothing.
+	 * that lands elsewhere all report here. Mounting reports nothing. That
+	 * includes the month that a calendar with no `value` and no `defaultValue`
+	 * shows after hydration.
 	 */
 	onMonthChange?: (month: Date) => void
 	/** Per-cell decorator invoked for every day; returns selection, button variant/color, hover handlers, and classes. @see {@link CalendarDayProps} */
@@ -106,8 +112,10 @@ export type CalendarProps = {
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
-	 * month labels. Resolution order: explicit prop, then enclosing
-	 * `LocaleProvider`, then the runtime default.
+	 * month labels. The labels name Gregorian months and years, as the grid
+	 * does, also for a locale that defaults to another calendar. Resolution
+	 * order: explicit prop, then enclosing `LocaleProvider`, then the runtime
+	 * default.
 	 *
 	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
@@ -135,9 +143,16 @@ export type CalendarProps = {
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).
  *
  * @remarks
- * Client component (`'use client'`). "Today" is resolved after mount only, so
- * a server-rendered today can never mismatch the client across a day boundary
- * or timezone offset. Use {@link CalendarRange} for two-endpoint selection.
+ * Client component (`'use client'`). "Today" waits for hydration, so a
+ * server-rendered today can never mismatch the client across a day boundary
+ * or timezone offset. It moves to the new day at local midnight. Use
+ * {@link CalendarRange} for two-endpoint selection.
+ *
+ * With no `value` and no `defaultValue`, the month waits for hydration too.
+ * The server and the hydration render draw the header and the weekday row,
+ * with no month label and no days. The month of the client clock follows in
+ * the next render, and it reports and announces nothing. A client-only mount,
+ * such as a DatePicker popover, shows the month in its first render.
  */
 export function Calendar({
 	name,
@@ -175,17 +190,12 @@ export function Calendar({
 		onValueChange,
 	})
 
-	// Populated after mount only; a server-rendered "today" can mismatch the
-	// client across a day boundary or timezone offset. Null until then.
-	const [today, setToday] = useState<Date | null>(null)
-
-	useEffect(() => {
-		setToday(new Date())
-	}, [])
+	// The day is null until hydration, and it moves at each local midnight.
+	const today = useCalendarToday()
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
-	const { viewDate, year, month, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
+	const { viewDate, year, month, shown, prevMonth, nextMonth, navigateTo } = useCalendarMonth({
 		value,
 		defaultValue,
 		activeGridDate,
@@ -242,15 +252,19 @@ export function Calendar({
 		[year, month, localeTag],
 	)
 
-	const monthLabel = useMemo(
-		() => viewDate.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' }),
-		[viewDate, localeTag],
-	)
+	const monthLabel = useMemo(() => formatMonthName(viewDate, localeTag), [viewDate, localeTag])
 
 	// Month navigation (header chevrons, picker, arrowing across a boundary)
 	// re-renders the grid silently; this announces the new view to screen
 	// readers (WCAG 4.1.3). The hook skips the initial value.
 	useA11yAnnouncements(monthLabel)
+
+	// A clock-seeded calendar draws no month on the server or in the hydration
+	// render, so the two agree. The announcement above reads the month in state,
+	// which stays the same when the markup shows it.
+	const shownLabel = shown ? monthLabel : ''
+
+	const shownDays = shown ? days : NO_DAYS
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
@@ -269,7 +283,7 @@ export function Calendar({
 					year={year}
 					month={month}
 					today={today}
-					monthLabel={monthLabel}
+					monthLabel={shownLabel}
 					monthLabels={monthLabels}
 					pickerOpen={pickerOpen}
 					onPickerOpenChange={setPickerOpen}
@@ -283,7 +297,7 @@ export function Calendar({
 					onGridKeyDown={handleGridKeyDown}
 					size={resolvedSize}
 					weekdays={weekdays}
-					days={days}
+					days={shownDays}
 					firstDayColumn={firstDayColumn}
 					today={today}
 					value={value}
@@ -291,7 +305,7 @@ export function Calendar({
 					isDisabled={isDisabled}
 					getDayProps={getDayProps}
 					onSelect={handleSelect}
-					monthLabel={monthLabel}
+					monthLabel={shownLabel}
 					localeTag={localeTag}
 					listboxId={listboxId}
 					activeDescendantId={activeDescendantId}
