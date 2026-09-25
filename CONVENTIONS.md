@@ -92,7 +92,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 
-6.4 Shared client fetches use the data-hook pattern. A module-scoped cache and a deduped in-flight promise, keyed by a serialized input, sit behind `use<Thing>()`, which returns `{ data, loading, error }`. An `active` flag guards `setState`.
+6.4 A client request to `/api/*` goes through TanStack Query. A `<feature>-api.ts` file holds the requests, and a `<feature>-queries.ts` file holds the query keys and the `use<Thing>()` hooks. When a server page fetches the data first, give it to the query as `initialData`. A mutation writes its result into the cache with `setQueryData`.
 
 ## 7. Forms
 
