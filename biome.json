@@ -43,6 +43,7 @@
 				}
 			},
 			"suspicious": {
+				"noExplicitAny": "error",
 				"noReactForwardRef": "error"
 			}
 		}
