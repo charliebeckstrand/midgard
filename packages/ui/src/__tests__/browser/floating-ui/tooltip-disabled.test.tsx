@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -76,6 +77,36 @@ describe('Tooltip disabled gating (real browser)', () => {
 					</Tooltip>
 				</fieldset>
 			)
+		}
+
+		const { container, rerender } = renderUI(<Harness disabled={false} />)
+
+		await userEvent.hover(getSlot(container, 'tooltip-trigger'))
+
+		await waitFor(() => expect(screen.getByText('Show password')).toBeInTheDocument())
+
+		rerender(<Harness disabled />)
+
+		await waitFor(() => expect(screen.queryByText('Show password')).not.toBeInTheDocument())
+	})
+
+	it('closes an open tooltip when a memoized consumer disables its fieldset', async () => {
+		// The consumer memoizes the tooltip, as the React Compiler does. The fieldset
+		// then changes with no render of the tooltip, so no render-time check sees it.
+		function Harness({ disabled }: { disabled: boolean }) {
+			const tooltip = useMemo(
+				() => (
+					<Tooltip delay={0}>
+						<TooltipTrigger>
+							<button type="button">Toggle</button>
+						</TooltipTrigger>
+						<TooltipContent>Show password</TooltipContent>
+					</Tooltip>
+				),
+				[],
+			)
+
+			return <fieldset disabled={disabled}>{tooltip}</fieldset>
 		}
 
 		const { container, rerender } = renderUI(<Harness disabled={false} />)

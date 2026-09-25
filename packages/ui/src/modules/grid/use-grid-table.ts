@@ -5,6 +5,7 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
+	type ColumnSizingInfoState,
 	type ColumnSizingState,
 	type ExpandedState,
 	functionalUpdate,
@@ -64,6 +65,7 @@ import {
 	EMPTY_GROUPING,
 	EMPTY_SIZING,
 	EMPTY_VISIBILITY,
+	IDLE_SIZING_INFO,
 	resolveActiveEngineTransform,
 	resolveTransformModes,
 	rowsSignatureOf,
@@ -316,6 +318,47 @@ function useGroupingSlice(
 }
 
 /**
+ * The engine's drag state, held by the grid and updated at once.
+ *
+ * @remarks
+ * A drag move fills the new widths inside the engine's `columnSizingInfo`
+ * updater, and then writes them through `onColumnSizingChange`. The width
+ * binding applies its updater at once. React can defer an updater of the
+ * engine's own state to the next render. That write then carries no width, so
+ * the drag stays where it started. Held here, each drag update runs before the
+ * width write reads it. The React Compiler changes which renders React defers,
+ * which is how the fault showed.
+ *
+ * @returns The drag state and the handler that the engine writes it through.
+ * @internal
+ */
+function useEagerSizingInfo(): [ColumnSizingInfoState, OnChangeFn<ColumnSizingInfoState>] {
+	const [info, setInfo] = useState(IDLE_SIZING_INFO)
+
+	const infoRef = useRef(info)
+
+	const onChange = useCallback<OnChangeFn<ColumnSizingInfoState>>((updater) => {
+		const next = functionalUpdate(updater, infoRef.current)
+
+		infoRef.current = next
+
+		setInfo(next)
+	}, [])
+
+	return [info, onChange]
+}
+
+/**
+ * The engine's display rows when a transform materializes them, else `null`.
+ * It reads the engine live, so only {@link useGridTable} calls it.
+ *
+ * @internal
+ */
+function engineDisplayRows<T>(table: Table<T>, materialize: boolean): Row<T>[] | null {
+	return materialize ? table.getRowModel().rows : null
+}
+
+/**
  * Derives the row-model views the body reads. One is the grouped display list
  * (`groupedRows`, the top-level group-header rows with their leaves on
  * `subRows`, or `null` when ungrouped). The other is the flat `renderRows`/`rowKeys` backing
@@ -335,14 +378,13 @@ function useGroupingSlice(
  * @internal
  */
 function useGridRowModel<T>(args: {
-	table: Table<T>
+	/** The engine's display rows when a transform materializes them, else `null`. */
+	displayRows: Row<T>[] | null
 	rows: T[]
 	getKey: (row: T, index: number) => string | number
 	grouped: boolean
 	/** Manual-grouping group-header predicate; splits the display rows into headers and leaves. */
 	manualGroupRow: ((row: T) => boolean) | null
-	/** Whether an engine transform (filter/pagination/grouping) is active, so the engine model is read. */
-	materialize: boolean
 	/** The off-engine sorted view (rows + keys) when a sort is the grid's sole transform, else `null`. */
 	sortView: { rows: T[]; keys: (string | number)[] } | null
 }): {
@@ -351,9 +393,7 @@ function useGridRowModel<T>(args: {
 	renderRows: T[]
 	rowKeys: (string | number)[]
 } {
-	const { table, rows, getKey, grouped, manualGroupRow, materialize, sortView } = args
-
-	const displayRows = materialize ? table.getRowModel().rows : null
+	const { displayRows, rows, getKey, grouped, manualGroupRow, sortView } = args
 
 	// Under manual grouping the display rows are the consumer's grouped sequence;
 	// the leaf set drops the group-header rows so selection identity and the data
@@ -490,13 +530,13 @@ function useSortView<T>(args: {
  *
  * @internal
  */
-function useColumnResizeLifecycle<T>(
-	table: Table<T>,
+function useColumnResizeLifecycle(
 	resizable: boolean,
+	isResizingColumn: string | false,
 	onResizeStart: ((id: string) => void) | undefined,
 	onResizeEnd: ((id: string) => void) | undefined,
 ): void {
-	const resizingColumnId = resizable ? table.getState().columnSizingInfo.isResizingColumn : false
+	const resizingColumnId = resizable ? isResizingColumn : false
 
 	const prevResizingRef = useRef<string | false>(false)
 
@@ -660,6 +700,8 @@ export function useGridTable<T>({
 	// `onColumnSizingChange` catch a drag below the floor before it lands.
 	const columnFloorsRef = useRef<Map<string, number>>(new Map())
 
+	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo()
+
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
 			setColumnSizingState((prev) =>
@@ -779,6 +821,7 @@ export function useGridTable<T>({
 			pagination: resolvedPagination,
 			resizable,
 			sizing: resolvedSizing,
+			sizingInfo: columnSizingInfo,
 			globalFiltered: globalConfigured,
 			globalFilter: resolvedGlobalFilter,
 			columnFiltered: hasColumnFilters,
@@ -797,7 +840,7 @@ export function useGridTable<T>({
 		}),
 		...(selectable ? { enableRowSelection: true } : {}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
-		...resizeOptions<T>({ resizable, onColumnSizingChange }),
+		...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
 		...sortOptions<T>({ clientSort, onSortingChange }),
 		...groupingOptions<T>({ grouped, onGroupingChange, onExpandedChange: onExpanded }),
 		...filterOptions<T>({
@@ -838,14 +881,13 @@ export function useGridTable<T>({
 	const sortView = useSortView({ rows, getKey, sort, clientSort, materialize, columns })
 
 	const { groupedRows, manualRows, renderRows, rowKeys } = useGridRowModel({
-		table,
+		// Manual grouping materializes the (untransformed) core model too: the
+		// grouped body reads each leaf's engine cells.
+		displayRows: engineDisplayRows(table, materialize),
 		rows,
 		getKey,
 		grouped,
 		manualGroupRow,
-		// Manual grouping materializes the (untransformed) core model too: the
-		// grouped body reads each leaf's engine cells.
-		materialize,
 		sortView,
 	})
 
@@ -894,6 +936,9 @@ export function useGridTable<T>({
 		clearPreference: clearSizingPreference,
 	})
 
+	// The view's getters read the widths, the drag state, and the column set live.
+	// Each is a dependency, so a compiled reader re-reads when one changes.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the engine state that the getters read
 	const resize = useMemo<GridColumnResize | null>(() => {
 		if (!resizable) return null
 
@@ -913,11 +958,21 @@ export function useGridTable<T>({
 			autoSizeAll,
 			resetWidths,
 		}
-	}, [resizable, table, autoSizeColumn, autoSizeAll, resetWidths, takeControl])
+	}, [
+		resizable,
+		table,
+		autoSizeColumn,
+		autoSizeAll,
+		resetWidths,
+		takeControl,
+		resolvedSizing,
+		columnSizingInfo,
+		visibleColumns,
+	])
 
 	useColumnResizeLifecycle(
-		table,
 		resizable,
+		columnSizingInfo.isResizingColumn,
 		columnSizingConfig?.onResizeStart,
 		columnSizingConfig?.onResizeEnd,
 	)
@@ -934,6 +989,9 @@ export function useGridTable<T>({
 		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, table],
 	)
 
+	// The getters read the applied filters and the facets of the rows live. Each
+	// is a dependency, so a compiled reader re-reads when one changes.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: the engine state that the getters read
 	const filters = useMemo<GridColumnFilter | null>(
 		() =>
 			hasColumnFilters
@@ -944,7 +1002,14 @@ export function useGridTable<T>({
 						requestOpen: setOpenFilterColumn,
 					}
 				: null,
-		[hasColumnFilters, table, columnFiltersConfig?.affordance, openFilterColumn],
+		[
+			hasColumnFilters,
+			table,
+			columnFiltersConfig?.affordance,
+			openFilterColumn,
+			resolvedColumnFilters,
+			rows,
+		],
 	)
 
 	// A frozen column sticks at the summed width of the frozen columns ahead of it,

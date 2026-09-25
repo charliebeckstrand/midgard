@@ -1182,8 +1182,16 @@ describe("Grid cell-scoped editing (scope: 'cell')", () => {
 		// The cell the session left reads again, and the one it entered mounts an
 		// editor, which calls no display renderer. Every other cell keeps its
 		// render: the session's cell rides a store each cell subscribes to, not
-		// the context the whole window reads.
-		expect(display).toHaveBeenCalledExactlyOnceWith(sessionRows[0], 'name')
+		// the context the whole window reads. Under the React Compiler, the cell
+		// that the session left can reuse the display it rendered before the edit.
+		// So the check allows at most one call, and only from that cell.
+		for (const call of display.mock.calls) expect(call).toEqual([sessionRows[0], 'name'])
+
+		expect(display.mock.calls.length).toBeLessThanOrEqual(1)
+
+		expect(cell('name')).toHaveTextContent('Alice')
+
+		expect(cell('name').querySelector('input')).toBeNull()
 	})
 
 	it('holds one row in the set, committing the row the session leaves', () => {
@@ -2623,8 +2631,17 @@ describe('Grid active-cell binding', () => {
 		fireEvent.doubleClick(present(cells[1], 'the count cell'))
 
 		// The consumer's render reaches the grid, but the cells read the session's
-		// cell from the store, so only the cell the move left reads again.
-		expect(display).toHaveBeenCalledExactlyOnceWith(sessionRows[0], 'name')
+		// cell from the store, so only the cell the move left reads again. Under the
+		// React Compiler, that cell can reuse the display it rendered before the edit.
+		for (const call of display.mock.calls) expect(call).toEqual([sessionRows[0], 'name'])
+
+		expect(display.mock.calls.length).toBeLessThanOrEqual(1)
+
+		const left = present(cells[0], 'the name cell')
+
+		expect(left).toHaveTextContent('Alice')
+
+		expect(left.querySelector('input')).toBeNull()
 	})
 
 	it('reads the cell as null when a controlled rows binding declines its row', () => {
