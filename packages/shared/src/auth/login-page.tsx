@@ -16,21 +16,34 @@ import { chain, email, required } from './form-validators'
 type LoginValues = { email: string; password: string }
 
 /**
- * Sign-in form: posts the credentials to `/auth/login`, and goes to `/` on success.
+ * Notice after registration: shows when the URL has `?registered=true`.
  *
  * @internal
  * @remarks
- * It reads `?registered=true` to show the notice after registration. That read
- * (`useSearchParams`) must run inside a `Suspense` boundary, which {@link LoginPage} supplies.
+ * The only reader of `useSearchParams` on the page. A prerender cannot read the
+ * query, so it skips the nearest `Suspense` boundary and leaves that part to the
+ * client. Keep this component in its own boundary, so that the rest of the form
+ * stays in the prerendered HTML.
  */
-function LoginForm() {
+function RegisteredNotice() {
+	const registered = useSearchParams().get('registered') === 'true'
+
+	return registered ? (
+		<Text tone="success">Account created successfully. Please sign in.</Text>
+	) : null
+}
+
+/**
+ * Sign-in page: posts the credentials to `/auth/login`, and goes to `/` on success.
+ *
+ * @remarks
+ * Next prerenders all of the page except the notice after registration, which
+ * renders only on the client.
+ */
+export function LoginPage() {
 	const router = useRouter()
 
-	const searchParams = useSearchParams()
-
 	const [serverError, setServerError] = useState('')
-
-	const registered = searchParams.get('registered') === 'true'
 
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
@@ -69,7 +82,9 @@ function LoginForm() {
 
 				{serverError && <Text tone="error">{serverError}</Text>}
 
-				{registered && <Text tone="success">Account created successfully. Please sign in.</Text>}
+				<Suspense>
+					<RegisteredNotice />
+				</Suspense>
 
 				<Field>
 					<Label>Email</Label>
@@ -97,14 +112,5 @@ function LoginForm() {
 				</div>
 			</Form>
 		</AuthLayout>
-	)
-}
-
-/** Sign-in page: the login form inside a `Suspense` boundary. */
-export function LoginPage() {
-	return (
-		<Suspense>
-			<LoginForm />
-		</Suspense>
 	)
 }
