@@ -1,5 +1,15 @@
 import { act } from '@testing-library/react'
-import { createRef, Profiler, type ReactNode, StrictMode, use, useEffect, useState } from 'react'
+import {
+	type ComponentType,
+	createRef,
+	Profiler,
+	type ReactNode,
+	StrictMode,
+	use,
+	useEffect,
+	useLayoutEffect,
+	useState,
+} from 'react'
 import { createPortal } from 'react-dom'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
@@ -724,15 +734,52 @@ describe('Dashboard', () => {
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
 	})
 
-	/** A widget that throws while `fail` is set. */
-	function Widget({
-		fail,
-	}: {
+	/** The props of the test widgets. Only `fail` changes the output. */
+	type WidgetProps = {
 		fail: boolean
 		rows?: number[]
 		onPick?: () => void
 		value?: unknown
-	}) {
+	}
+
+	/** A widget that throws while `fail` is set. */
+	function Widget({ fail }: WidgetProps) {
+		if (fail) throw new Error('boom')
+
+		return <p>Recovered</p>
+	}
+
+	/** A widget that renders, and then throws in a layout effect while `fail` is set. */
+	function LayoutEffectWidget({ fail }: WidgetProps) {
+		useLayoutEffect(() => {
+			if (fail) throw new Error('boom')
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/** A widget that renders, and then throws in a passive effect while `fail` is set. */
+	function PassiveEffectWidget({ fail }: WidgetProps) {
+		useEffect(() => {
+			if (fail) throw new Error('boom')
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/** The promise of each `value` of {@link SuspendingWidget}. */
+	const loads = new WeakMap<object, Promise<void>>()
+
+	/** A widget that suspends once for each new object `value`, and then throws while `fail` is set. */
+	function SuspendingWidget({ fail, value }: WidgetProps) {
+		const key = Object(value)
+
+		const load = loads.get(key) ?? Promise.resolve()
+
+		loads.set(key, load)
+
+		use(load)
+
 		if (fail) throw new Error('boom')
 
 		return <p>Recovered</p>
@@ -792,12 +839,37 @@ describe('Dashboard', () => {
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
 
-		// The commit with no error turns the automatic reset on again.
+		// The press turned the automatic reset on again.
 		rerender(errorBoard(<Widget fail />, onTileError))
 
 		rerender(errorBoard(<Widget fail={false} />, onTileError))
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
+	})
+
+	it('starts the automatic reset again after a reset commits with no error, with no Retry', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
+
+		// A fixed prop clears the error with no press, and the reset commits with no error.
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
+
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+
+		rerender(errorBoard(<Widget fail />, onTileError))
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+
+		expect(onTileError).toHaveBeenCalledTimes(2)
 	})
 
 	it.each([
@@ -839,10 +911,18 @@ describe('Dashboard', () => {
 	)
 
 	/**
-	 * An app that sets state in each report, and gives the widget a prop value
-	 * from `make` on each render. The reports count holds the renders apart.
+	 * An app that sets state in each report, and gives `widget` a prop value from
+	 * `make` on each render. The reports count holds the renders apart.
 	 */
-	function ReportingApp({ fail, make }: { fail: boolean; make: (reports: number) => unknown }) {
+	function ReportingApp({
+		fail,
+		make,
+		widget: Shown,
+	}: {
+		fail: boolean
+		make: (reports: number) => unknown
+		widget: ComponentType<WidgetProps>
+	}) {
 		const [reports, setReports] = useState(0)
 
 		return (
@@ -852,28 +932,37 @@ describe('Dashboard', () => {
 				onTileError={() => setReports((current) => current + 1)}
 			>
 				<DashboardTile id="a" title={`Revenue ${reports}`}>
-					<Widget fail={fail} value={make(reports)} />
+					<Shown fail={fail} value={make(reports)} />
 				</DashboardTile>
 			</Dashboard>
 		)
 	}
 
+	/** A new `Map` that holds the reports count. */
+	const reportsMap = (reports: number) => new Map([['west', reports]])
+
 	it.each([
-		['a new Map', () => new Map([['west', 1]])],
-		['a new Intl formatter', () => new Intl.NumberFormat('en-US')],
-		['a stamp that changes on each render', (reports: number) => 1_700_000_000_000 + reports],
+		['takes a new Map', () => new Map([['west', 1]]), Widget],
+		['takes a new Intl formatter', () => new Intl.NumberFormat('en-US'), Widget],
+		[
+			'takes a stamp that changes on each render',
+			(reports: number) => 1_700_000_000_000 + reports,
+			Widget,
+		],
+		['throws in a layout effect', reportsMap, LayoutEffectWidget],
+		['throws in a passive effect', reportsMap, PassiveEffectWidget],
 	])(
-		'reports an error at most twice when onTileError sets app state, and the widget takes %s',
-		(_, make) => {
+		'reports an error at most twice when onTileError sets app state, and the widget %s',
+		(_, make, widget) => {
 			vi.spyOn(console, 'error').mockImplementation(() => {})
 
-			const { rerender } = renderUI(<ReportingApp fail make={make} />)
+			const { rerender } = renderUI(<ReportingApp fail make={make} widget={widget} />)
 
 			// One automatic reset runs, and it fails, so the resets stop.
 			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
 
 			// A fixed widget waits for Retry, because the resets stopped.
-			rerender(<ReportingApp fail={false} make={make} />)
+			rerender(<ReportingApp fail={false} make={make} widget={widget} />)
 
 			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
 
@@ -882,6 +971,22 @@ describe('Dashboard', () => {
 			expect(screen.getByText('Recovered')).toBeInTheDocument()
 		},
 	)
+
+	it('reports an error at most twice when onTileError sets app state, and the widget suspends before it throws', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		// A child that suspends needs an awaited act.
+		await act(async () => {
+			renderUI(<ReportingApp fail make={reportsMap} widget={SuspendingWidget} />)
+		})
+
+		// Each new Map suspends once, so the reset commits the placeholder before the throw.
+		for (let round = 0; round < 5; round++) {
+			await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		}
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+	})
 
 	it('confines an error in the actions to the header controls, and reports it', () => {
 		const onTileError = vi.fn()

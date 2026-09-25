@@ -163,11 +163,11 @@ export type DashboardTileProps = {
 	 * nothing. It reads each other object by reference, for example a `Map` or a
 	 * class instance. A new such object on each render therefore counts as a change.
 	 *
-	 * The tile clears an error with no press one time, and then waits for a render
-	 * of the widget with no error. When the widget throws again first, the error
-	 * stays until a press on the retry button. A prop that changes on each render
-	 * therefore cannot loop. In edit mode the content is inert, so the retry button
-	 * works only at rest.
+	 * The tile clears an error with no press one time. It then waits until the
+	 * widget commits and its effects run with no error. When the widget throws again
+	 * first, in a render or in an effect, the error stays until a press on the retry
+	 * button. A prop that changes on each render therefore cannot loop. In edit mode
+	 * the content is inert, so the retry button works only at rest.
 	 */
 	children?: ReactNode
 }

@@ -1,6 +1,13 @@
 'use client'
 
-import { Component, type ErrorInfo, isValidElement, type ReactNode, Suspense } from 'react'
+import {
+	Component,
+	type ErrorInfo,
+	isValidElement,
+	type ReactNode,
+	Suspense,
+	useEffect,
+} from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
@@ -25,10 +32,15 @@ export type DashboardTileBoundaryProps = {
 	 *
 	 * @remarks
 	 * When the content fails again after such a reset, the automatic resets stop.
-	 * They start again after a press on the retry button, or after a commit with
-	 * no error.
+	 * They start again after a press on the retry button. They also start again
+	 * when the content of a reset commits, and its effects then run with no error.
 	 */
 	resetKey?: ReactNode
+	/**
+	 * What the boundary shows while the content suspends.
+	 * @defaultValue null
+	 */
+	fallback?: ReactNode
 	children: ReactNode
 }
 
@@ -38,6 +50,11 @@ type DashboardTileBoundaryState = {
 	error: unknown
 	/** The widget element of the last render of the content. After a throw, it is the element that failed. */
 	element: ReactNode
+	/**
+	 * Whether a new `resetKey` can clear the error with no press. It is state, and
+	 * not an instance field, so that it changes in the order of the update queue.
+	 */
+	armed: boolean
 }
 
 /** Whether a value is a plain object: an object literal, or an object with no prototype. */
@@ -87,6 +104,19 @@ function sameWidget(a: unknown, b: unknown): boolean {
 }
 
 /**
+ * Calls `onSettle` from a passive effect after its mount. The boundary puts it
+ * after the content, in the same Suspense boundary. The effect therefore runs
+ * only when the content commits, and after each effect of the content.
+ */
+function DashboardTileSettle({ onSettle }: { onSettle: () => void }): null {
+	useEffect(() => {
+		onSettle()
+	}, [onSettle])
+
+	return null
+}
+
+/**
  * The error boundary of one tile. A widget that throws replaces only its own
  * content with an error state, and the rest of the board keeps working. The retry
  * button renders the content again. So does a new `resetKey` that differs from
@@ -94,7 +124,11 @@ function sameWidget(a: unknown, b: unknown): boolean {
  *
  * An automatic reset that fails again stops the automatic resets. A prop that
  * changes on each render, with an `onError` that sets app state, therefore
- * cannot loop. The retry button, or a commit with no error, starts them again.
+ * cannot loop. The retry button starts them again. So does a reset whose content
+ * commits, and whose effects then run with no error.
+ *
+ * The boundary holds the Suspense boundary of the content. A reset that suspends
+ * therefore keeps the resets off until the content commits.
  *
  * A quiet boundary shows nothing in place of the failed part. It has no retry,
  * so the part stays hidden until the boundary mounts again.
@@ -105,10 +139,7 @@ export class DashboardTileBoundary extends Component<
 	DashboardTileBoundaryProps,
 	DashboardTileBoundaryState
 > {
-	state: DashboardTileBoundaryState = { error: null, element: null }
-
-	/** Whether a new `resetKey` can clear the error with no press. It changes only in a commit or a press. */
-	private autoReset = true
+	state: DashboardTileBoundaryState = { error: null, element: null, armed: true }
 
 	static getDerivedStateFromError(error: unknown): Partial<DashboardTileBoundaryState> {
 		return { error: error ?? new Error('Unknown error') }
@@ -127,30 +158,39 @@ export class DashboardTileBoundary extends Component<
 
 	// After an error, `element` stays the element that failed, so an equal element resets nothing.
 	componentDidUpdate(): void {
-		const { error, element } = this.state
+		const { error, element, armed } = this.state
 
-		if (error === null) {
-			this.autoReset = true
+		if (error === null || !armed || sameWidget(element, this.props.resetKey)) return
 
-			return
-		}
+		// The resets stay off until the settle effect of this reset, or a press.
+		this.setState({ error: null, armed: false })
+	}
 
-		if (!this.autoReset || sameWidget(element, this.props.resetKey)) return
-
-		// Until the content commits with no error, a new throw finds the resets off.
-		this.autoReset = false
-
-		this.setState({ error: null })
+	/**
+	 * Starts the automatic resets again after a reset settles. A throw in a layout
+	 * effect or a passive effect of the content queues its error before this
+	 * update. The update therefore finds the error, and changes nothing.
+	 */
+	private settle = (): void => {
+		this.setState(({ error, armed }) => (error === null && !armed ? { armed: true } : null))
 	}
 
 	retry = (): void => {
-		this.autoReset = true
-
-		this.setState({ error: null })
+		this.setState({ error: null, armed: true })
 	}
 
 	render(): ReactNode {
-		if (this.state.error === null) return this.props.children
+		const { error, armed } = this.state
+
+		if (error === null) {
+			return (
+				<Suspense fallback={this.props.fallback ?? null}>
+					{this.props.children}
+
+					{!armed && <DashboardTileSettle onSettle={this.settle} />}
+				</Suspense>
+			)
+		}
 
 		if (this.props.quiet) return null
 
@@ -187,7 +227,7 @@ export type DashboardTileGuardProps = {
 export function DashboardTileGuard({ label, onError, children }: DashboardTileGuardProps) {
 	return (
 		<DashboardTileBoundary label={label} onError={onError} quiet>
-			<Suspense fallback={null}>{children}</Suspense>
+			{children}
 		</DashboardTileBoundary>
 	)
 }
