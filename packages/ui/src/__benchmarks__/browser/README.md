@@ -123,6 +123,8 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-total.bench.tsx`](grid-total.bench.tsx) — a grand total that sums the loads and the weight, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. AG Grid holds its grand-total row in the Enterprise tier, and MUI X holds its aggregation in the Premium tier, so the ui grid runs alone. A contender names the mount options that it cannot run (`unsupported` in [`grid-contenders.tsx`](grid-contenders.tsx)), and the harness leaves it out of those scenarios.
 
+- [`grid-facets.bench.tsx`](grid-facets.bench.tsx) — a mount, then the first open of a `select` filter on the carrier column, which lists the carriers of the rows, at 10k / 100k. A reopen on the same data reads a cached list, so the scenario times the first open. AG Grid holds its set filter in the Enterprise tier, and the filter of MUI X lists no values, so the ui grid runs alone.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -243,6 +245,17 @@ Each entry names the change and the scenarios it moved.
     | total · 10,000 · mount · plain | 39.6 | 27.1 | −43%, −28%, −26% |
 
     The sort flips and the quick filters with no total stayed within noise in both builds. A grouped grid still reads the total from the engine, which builds its model for the groups.
+
+15. **Off-engine facets** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useFacetSource`, [`filter.ts`](../../modules/grid/engine/grid-filter/filter.ts) `uniqueValues`, 2026-09-25, this container). The facets of a filter sheet read the faceted row model of the engine, so the first open built a `Row` for each datum, also on a grid with no transform. The grid now collects the distinct cell values itself, from the rows that pass the quick search and every other column filter. The facet function keeps one identity, so a search keystroke renders no filter button again. A property test holds the facets of each column equal to those of the engine. The new facet scenario gives the median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | facets · 100,000 · mount + open · plain | 253.0 | 57.5 | −77%, −81%, −77% |
+    | facets · 100,000 · mount + open · compiled | 271.5 | 55.8 | −80%, −75%, −78% |
+    | facets · 10,000 · mount + open · plain | 47.7 | 35.8 | −17%, −42%, −24% |
+    | facets · 10,000 · mount + open · compiled | 47.3 | 32.3 | −37%, −32%, −26% |
+
+    The quick filter stayed within noise in both builds. The plain 100k column filter read +2%, +4%, and +9%, and the compiled one was mixed. The first build of this change gave the filter view a new identity on each search keystroke, and the compiled 100k quick filter read +2% to +5%. The stable facet function closed that.
 
 ## Maps
 
