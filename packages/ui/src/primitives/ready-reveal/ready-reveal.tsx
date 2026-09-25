@@ -27,13 +27,20 @@ export type ReadyRevealProps = {
 	className?: string
 }
 
-const HIDDEN = { opacity: 0, filter: 'blur(4px)' }
+// Only the placeholder blurs. A blur repaints the whole layer on each frame, and
+// the content layer can be any size, so the content fades with opacity alone,
+// which the compositor runs without a repaint.
+const PLACEHOLDER_HIDDEN = { opacity: 0, filter: 'blur(4px)' }
 
-// A visible layer rests at `filter: none`, not `blur(0px)`. Any filter value
+// The placeholder rests at `filter: none`, not `blur(0px)`. Any filter value
 // other than `none` makes the layer a stacking context, a containing block for
 // fixed descendants, and a backdrop root, and it keeps a compositing layer
 // alive. Motion reads `none` as `blur(0px)` when the next fade starts.
-const VISIBLE = { opacity: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }
+const PLACEHOLDER_VISIBLE = { opacity: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }
+
+const CONTENT_HIDDEN = { opacity: 0 }
+
+const CONTENT_VISIBLE = { opacity: 1 }
 
 const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 
@@ -46,11 +53,12 @@ const CONTENT_CELL = { gridArea: '1 / 1' } as const
 const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
 
 /**
- * Gates content on a `ready` flag, crossfading (opacity plus blur) from
- * `placeholder` to `children` to avoid a flash of unready content. The two
- * layers stack in one grid cell. The content layer sits in flow, and the
- * placeholder is lifted out of flow over it. The content alone therefore sizes
- * the cell, and the box stays put across the swap.
+ * Gates content on a `ready` flag, crossfading from `placeholder` to
+ * `children` to avoid a flash of unready content. The placeholder fades and
+ * blurs out, and the content fades in with opacity alone. The two layers stack
+ * in one grid cell. The content layer sits in flow, and the placeholder is
+ * lifted out of flow over it. The content alone therefore sizes the cell, and
+ * the box stays put across the swap.
  *
  * @remarks
  * Wraps its layers in {@link ReducedMotion}, so the crossfade honors
@@ -70,9 +78,9 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * is sized. A skeleton drawn a shade shorter or taller than the content it fills
  * in for shifts nothing.
  *
- * A visible layer rests at `filter: none`. The blur therefore leaves no
- * stacking context, containing block, or backdrop root on the revealed content
- * after the fade.
+ * The content layer never takes a filter. The revealed content therefore gets
+ * no stacking context, containing block, or backdrop root from the reveal, and
+ * its fade does not repaint it.
  */
 export function ReadyReveal({
 	ready,
@@ -146,7 +154,7 @@ export function ReadyReveal({
 						// `inert` keeps the hidden layer's descendants out of the Tab
 						// order and off the a11y tree, and swallows pointer events.
 						inert={ready}
-						animate={ready ? HIDDEN : VISIBLE}
+						animate={ready ? PLACEHOLDER_HIDDEN : PLACEHOLDER_VISIBLE}
 						initial={false}
 						transition={k.transition}
 						// Rest only after the fade-out that hides the placeholder lands
@@ -174,7 +182,7 @@ export function ReadyReveal({
 					onFocus={trackFocus}
 					aria-hidden={!ready}
 					inert={!ready}
-					animate={ready ? VISIBLE : HIDDEN}
+					animate={ready ? CONTENT_VISIBLE : CONTENT_HIDDEN}
 					initial={false}
 					transition={k.transition}
 					style={CONTENT_CELL}
