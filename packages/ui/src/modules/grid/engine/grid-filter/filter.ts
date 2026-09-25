@@ -14,28 +14,25 @@ export type ColumnTests<T> = ReadonlyMap<string, RowTest<T>>
  * change of the filters, not one time for each row.
  *
  * @remarks
- * The tests keep the same rows as the filtered row model of the engine, which
- * reads each filter as the grid registers it (see `options.ts`):
+ * The rules for each applied filter:
  *
  * - A filter on a filterable column with a `value` tests the query against
  *   the cell, which it reads through that `value`.
  * - A filter whose value is not a query puts no constraint on the rows.
- * - A filter whose id names no column puts no constraint on the rows.
+ * - A filter on a column that is not filterable, or whose id names no column,
+ *   puts no constraint on the rows.
  * - When two filters have the same id, the last one applies.
  *
- * A filter on a column that is not filterable goes to the automatic filter of
- * the engine, which the grid does not copy. The compile then gives `null`,
- * and the engine filters the rows. `grid-column-filter.test.ts` holds the
- * parity with the engine.
+ * `grid-column-filter.test.ts` holds the parity with the filtered row model
+ * of a stock engine table.
  *
- * @returns The row tests by column id, or `null` when only the engine can
- * apply a filter.
+ * @returns The row tests by column id.
  * @internal
  */
 export function compileColumnFilters<T>(
 	columns: readonly GridColumn<T>[],
 	filters: readonly GridColumnFilterState[],
-): ColumnTests<T> | null {
+): ColumnTests<T> {
 	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
 
 	// The last filter for an id wins, as the engine writes one flag per id.
@@ -46,11 +43,9 @@ export function compileColumnFilters<T>(
 	for (const [id, value] of last) {
 		const col = byId.get(id)
 
-		if (!col) continue
+		const read = col?.filterable ? col.value : undefined
 
-		const read = col.filterable ? col.value : undefined
-
-		if (!read) return null
+		if (!read) continue
 
 		const query = isQueryGroup(value) ? compileQuery(value) : null
 

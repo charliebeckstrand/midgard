@@ -1,7 +1,5 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import { constructTable } from '@tanstack/react-table'
-import { storeReactivityBindings } from '@tanstack/table-core/store-reactivity-bindings'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn, GridColumnFilterState } from '../../modules/grid'
 import {
@@ -9,16 +7,14 @@ import {
 	filterRowIndices,
 } from '../../modules/grid/engine/grid-filter/filter'
 import { compileSearch } from '../../modules/grid/engine/grid-search/search'
-import { type GridFeatures, gridFeatures } from '../../modules/grid/engine/grid-table/features'
-import { filterOptions, toColumnDef } from '../../modules/grid/engine/grid-table/options'
 import type { QueryGroup } from '../../modules/query/engine/types'
+import { engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 /**
- * When the client filters are the only transform, the grid filters its rows
- * itself, off the engine. The engine filters every other grid. Both must keep
- * the same rows, or a filter gives a different result when a second transform
- * starts.
+ * The grid filters its rows itself, and the engine builds no row model. The
+ * rows that the filters keep must equal those of the filtered row model of a
+ * stock engine table, which the grid read before.
  */
 type Row = { name: unknown; code: unknown; note: unknown }
 
@@ -36,34 +32,16 @@ const columns: GridColumn<Row>[] = [
 	{ id: 'note', title: 'Note' },
 ]
 
-/** The indices of the rows that the engine keeps for the filters and the query. */
+/** The indices of the rows that a stock engine table keeps for the filters and the query. */
 function engineFilter(rows: Row[], filters: GridColumnFilterState[], query: string): number[] {
-	// Outside React, the engine takes its reactivity from TanStack Store. In the
-	// grid, `useTable` adds this feature.
-	const features = { ...gridFeatures, coreReactivityFeature: storeReactivityBindings() }
-
-	const table = constructTable({
-		features: features as GridFeatures,
-		data: rows,
-		columns: columns.map((col) => toColumnDef(col)),
-		getRowId: (_, index) => String(index),
-		state: { columnFilters: filters, globalFilter: query },
-		...filterOptions<Row>({
-			configured: true,
-			manual: false,
-			onGlobalFilterChange: () => {},
-			onColumnFiltersChange: () => {},
-		}),
-	})
-
-	return table.getFilteredRowModel().rows.map((row) => row.index)
+	return engineTable(rows, columns, (_, index) => index, { query, filters })
+		.getFilteredRowModel()
+		.rows.map((row) => row.index)
 }
 
-/** The indices of the rows that the grid keeps off the engine. */
+/** The indices of the rows that the grid keeps itself. */
 function offEngineFilter(rows: Row[], filters: GridColumnFilterState[], query: string): number[] {
 	const tests = compileColumnFilters(columns, filters)
-
-	if (tests === null) throw new Error('the filters did not compile')
 
 	const search = compileSearch(rows, columns, query)
 
@@ -118,9 +96,20 @@ describe('compileColumnFilters', () => {
 		expect(engineFilter(rows, filters, '')).toEqual([1])
 	})
 
-	it('gives null for a filter on a column that is not filterable', () => {
-		const filters = [{ id: 'note', value: { id: 'g', type: 'group', children: [] } as QueryGroup }]
+	it('applies no constraint for a filter on a column that is not filterable', () => {
+		const rule = { id: 'r', type: 'rule', field: 'note', operator: 'contains', value: 'x' } as const
 
-		expect(compileColumnFilters(columns, filters)).toBeNull()
+		const filters = [
+			{ id: 'note', value: { id: 'g', type: 'group', children: [rule] } as QueryGroup },
+		]
+
+		expect(compileColumnFilters(columns, filters).size).toBe(0)
+
+		const rows: Row[] = [
+			{ name: 'a', code: 1, note: 'x' },
+			{ name: 'b', code: 2, note: 'y' },
+		]
+
+		expect(offEngineFilter(rows, filters, '')).toEqual([0, 1])
 	})
 })

@@ -13,9 +13,9 @@ import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 /**
- * Without grouping, the grid filters, sorts, and pages its rows itself. The
- * engine runs the same transforms for a grouped grid. Both must give the same
- * rows in the same order, the same keys, and the same page totals.
+ * The grid filters, sorts, and pages its rows itself. Its rows must equal
+ * those of the row models of a stock engine table, in the same order, with the
+ * same keys and the same page totals.
  */
 type Row = { id: number; name: unknown; amount: unknown }
 

@@ -1,19 +1,15 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
-import { constructTable } from '@tanstack/react-table'
-import { storeReactivityBindings } from '@tanstack/table-core/store-reactivity-bindings'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import { searchRowIndices } from '../../modules/grid/engine/grid-search/search'
-import { type GridFeatures, gridFeatures } from '../../modules/grid/engine/grid-table/features'
-import { filterOptions, toColumnDef } from '../../modules/grid/engine/grid-table/options'
 import { resolveClientView } from '../../modules/grid/engine/grid-table/state'
+import { engineTable } from '../helpers/grid-engine'
 
 /**
- * When the quick search is the only transform, the grid searches its rows
- * itself, off the engine. The engine searches every other grid. Both must keep
- * the same rows, or a search gives a different result when a second transform
- * starts.
+ * The grid searches its rows itself, and the engine builds no row model. The
+ * rows that the search keeps must equal those of the global filter of a stock
+ * engine table, which the grid read before.
  */
 type Row = { name: unknown; code: unknown; note: unknown }
 
@@ -26,22 +22,11 @@ const columns: GridColumn<Row>[] = [
 	{ id: 'note', title: 'Note' },
 ]
 
-/** The indices of the rows that the engine keeps for `query`. */
+/** The indices of the rows that a stock engine table keeps for `query`. */
 function engineSearch(rows: Row[], query: string): number[] {
-	// Outside React, the engine takes its reactivity from TanStack Store. In the
-	// grid, `useTable` adds this feature.
-	const features = { ...gridFeatures, coreReactivityFeature: storeReactivityBindings() }
-
-	const table = constructTable({
-		features: features as GridFeatures,
-		data: rows,
-		columns: columns.map((col) => toColumnDef(col)),
-		getRowId: (_, index) => String(index),
-		state: { globalFilter: query },
-		...filterOptions<Row>({ configured: true, manual: false, onGlobalFilterChange: () => {} }),
-	})
-
-	return table.getFilteredRowModel().rows.map((row) => row.index)
+	return engineTable(rows, columns, (_, index) => index, { query })
+		.getFilteredRowModel()
+		.rows.map((row) => row.index)
 }
 
 const cell = fc.oneof(
@@ -111,7 +96,6 @@ describe('resolveClientView', () => {
 		globalFilter: 'ab',
 		globalHighlights: false,
 		columnFilters: [],
-		columnFiltersCompile: true,
 	}
 
 	it.each([
@@ -121,12 +105,8 @@ describe('resolveClientView', () => {
 			'a column filter next to a search that only marks',
 			{ globalHighlights: true, columnFilters: [{ id: 'name', value: 'x' }] },
 		],
-		['a search and a client page', { paginated: true }],
-	])('filters off the engine with %s', (_, change) => {
-		expect(resolveClientView({ ...base, ...change })).toMatchObject({
-			offEngine: true,
-			filtered: true,
-		})
+	])('filters the rows with %s', (_, change) => {
+		expect(resolveClientView({ ...base, ...change }).filtered).toBe(true)
 	})
 
 	it.each([
@@ -135,38 +115,22 @@ describe('resolveClientView', () => {
 		['a manual filter', { filterMode: { configured: true, manual: true } }],
 		['a grid with no filter surface', { filterMode: { configured: false, manual: false } }],
 		['a grid with no search', { globalFiltered: false }],
-	])('runs off the engine with no filter, with %s', (_, change) => {
-		expect(resolveClientView({ ...base, ...change })).toEqual({
-			offEngine: true,
-			filtered: false,
-			page: null,
-		})
-	})
-
-	it.each([
 		[
-			'a column filter that only the engine applies',
-			{ columnFilters: [{ id: 'name', value: 'x' }], columnFiltersCompile: false },
+			'a manual column filter',
+			{
+				filterMode: { configured: true, manual: true },
+				columnFilters: [{ id: 'name', value: 'x' }],
+			},
 		],
-	])('leaves the transforms to the engine with %s', (_, change) => {
-		expect(resolveClientView({ ...base, ...change })).toEqual({
-			offEngine: false,
-			filtered: false,
-			page: null,
-		})
+	])('filters no row with %s', (_, change) => {
+		expect(resolveClientView({ ...base, ...change }).filtered).toBe(false)
 	})
 
 	it('slices the page of a client pagination only', () => {
+		expect(resolveClientView(base).page).toBeNull()
+
 		expect(resolveClientView({ ...base, paginated: true }).page).toBe(page)
 
 		expect(resolveClientView({ ...base, paginated: true, paginationManual: true }).page).toBeNull()
-	})
-
-	it('keeps a manual filter off the engine, which then filters no row', () => {
-		const manual = { filterMode: { configured: true, manual: true } }
-
-		expect(
-			resolveClientView({ ...base, ...manual, columnFilters: [{ id: 'name', value: 'x' }] }),
-		).toMatchObject({ offEngine: true, filtered: false })
 	})
 })

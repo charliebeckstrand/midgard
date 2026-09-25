@@ -5,9 +5,9 @@ import { useGridTable } from '../../modules/grid/use-grid-table'
 import { engineTable } from '../helpers/grid-engine'
 
 /**
- * Without grouping, the grid searches and sorts its rows off the engine. The
- * engine runs the same search inside its pipeline for a grouped grid. The two
- * paths must give the same rows in the same order, with the same keys.
+ * The grid searches and sorts its rows itself. Its rows must equal those of
+ * the filtered and sorted row models of a stock engine table, in the same
+ * order, with the same keys.
  */
 describe('useGridTable search', () => {
 	type Row = { id: number; name: string | null; city: string }
