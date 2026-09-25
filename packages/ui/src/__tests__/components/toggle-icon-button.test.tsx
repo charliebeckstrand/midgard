@@ -54,6 +54,33 @@ describe('ToggleIconButton', () => {
 		expect(onClick).toHaveBeenCalledOnce()
 	})
 
+	// The toggle is the activation the button exists to perform, so a consumer's
+	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
+	it('runs the user onClick first, and toggles when it prevents the default', () => {
+		const calls: string[] = []
+
+		renderUI(
+			<ToggleIconButton
+				onPressedChange={(next) => calls.push(`pressed ${next}`)}
+				onClick={(event) => {
+					calls.push('consumer')
+
+					event.preventDefault()
+				}}
+				icon={icon}
+				aria-label="Favourite"
+			/>,
+		)
+
+		const button = screen.getByRole('button', { name: 'Favourite' })
+
+		fireEvent.click(button)
+
+		expect(calls).toEqual(['consumer', 'pressed true'])
+
+		expect(button).toHaveAttribute('aria-pressed', 'true')
+	})
+
 	it('renders a single icon when animate is false and pressed is false', () => {
 		const { container } = renderUI(
 			<ToggleIconButton

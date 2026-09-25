@@ -1,3 +1,4 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	CreditCardInput,
@@ -363,6 +364,27 @@ describe('CreditCardInputCvv', () => {
 		const user = userEvent.setup({ delay: null })
 
 		await user.type(input, typed)
+
+		expect(input.value).toBe(expected)
+	})
+})
+
+describe('Credit card masking', () => {
+	// A stray `onChange` that a cast lets past the props type. The masking
+	// `onChange` sits after the spread, so the stray one does not replace it
+	// (CONVENTIONS.md §3.9).
+	const stray = { onChange: vi.fn() } as object
+
+	it.each<[string, () => ReactElement, string, string]>([
+		['credit-card-input', () => <CreditCardInput {...stray} />, '42424242', '4242 4242'],
+		['credit-card-input-expiry', () => <CreditCardInputExpiry {...stray} />, '1225', '12/25'],
+		['credit-card-input-cvv', () => <CreditCardInputCvv {...stray} />, '1a23', '123'],
+	])('keeps the %s masking under a stray onChange', async (slot, render, typed, expected) => {
+		const { container } = renderUI(render())
+
+		const input = getSlot<HTMLInputElement>(container, slot)
+
+		await userEvent.setup({ delay: null }).type(input, typed)
 
 		expect(input.value).toBe(expected)
 	})

@@ -46,6 +46,10 @@ export type ToggleIconButtonProps = AccessibleName & {
  * Two-state icon Button reflecting `pressed` via `aria-pressed`. Swaps `icon`
  * for `pressedIcon` and, unless `animate` is false, cross-fades between the two.
  * Requires `aria-label` or `aria-labelledby`.
+ *
+ * @remarks
+ * A consumer `onClick` runs before the toggle. Its `preventDefault()` does not
+ * cancel the toggle, because the toggle is the activation of the button.
  */
 export function ToggleIconButton({
 	pressed: pressedProp,
@@ -65,9 +69,11 @@ export function ToggleIconButton({
 		onValueChange: (next) => onPressedChange?.(next ?? false),
 	})
 
-	// Toggling stays on the button's own click so a consumer's handler still
-	// runs; composeEventHandlers keeps both without the caller re-wiring state.
-	const handleClick = composeEventHandlers(onClick, () => setPressed(!pressed))
+	// The toggle is the activation the button exists to perform, so a
+	// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+	const handleClick = composeEventHandlers(onClick, () => setPressed(!pressed), {
+		checkForDefaultPrevented: false,
+	})
 
 	// Animated: both icons ride the `prefix` slot and cross-fade. Instant: the
 	// current icon is the sole child and `prefix` stays absent. Cross-fade

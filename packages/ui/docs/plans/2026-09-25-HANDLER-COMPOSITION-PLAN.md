@@ -102,9 +102,11 @@ Each increment is one pull request. Its proof is its own suites, plus new tests 
 
 ## Out of scope
 
-These came up in the sweep. Each needs its own decision:
+These came up in the sweep. A follow-up change fixed all four:
 
-- `toggle-icon-button.tsx` gates its own toggle with the default, against the case-1 reading of the menu and panel precedents.
-- `shiny-text.tsx` spreads `(props as Omit<…>)`, so the spread-order gate never reads the element. Assign `const rest = props as …` and spread `{...rest}`.
-- The props type of ShinyText accepts `onDragStart` and `onAnimationStart`, but motion takes both, and they never reach the DOM.
-- The `onChange` arrows of the three credit-card fields come before `{...props}`. Only the props type stops an `onChange` passed through a cast from replacing the masking.
+- `toggle-icon-button.tsx` gated its own toggle with the default, against the case-1 reading of the menu and panel precedents. The toggle now takes `false`. A test records `['consumer', 'pressed true']` under a consumer `preventDefault()`, and it fails when the site takes the default.
+- `shiny-text.tsx` spread `(props as Omit<…>)`, so the spread-order gate never read the element. The props type now omits the four motion keys, so the element spreads `{...props}` with no cast. A `role` written before the spread now fails the gate. This fix replaced the `const rest = props as …` assignment that the sweep proposed, because the correct type removes the need for a cast.
+- The props type of ShinyText accepted `onDrag`, `onDragStart`, `onDragEnd`, and `onAnimationStart`, but motion takes all four, and they never got to the DOM. The props type now omits them, and its TSDoc gives the reason.
+- The `onChange` arrows of the three credit-card fields came before `{...props}`. Only the props type stopped an `onChange` passed through a cast from replacing the masking. The `onChange` and the `onBlur` of each field now come after the spread. An `it.each` gives each field a stray `onChange`, and each case failed before the change.
+
+The follow-up found the same defect in one more file. `current-content.tsx` spreads `(props as HTMLMotionProps<'div'>)`, and its props type accepts the four motion keys. The spread-order scan still reads no spread behind a cast, and `button.tsx`, `button-headless.tsx`, and `polymorphic.tsx` also spread through one.
