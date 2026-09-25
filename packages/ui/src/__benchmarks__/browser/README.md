@@ -10,6 +10,8 @@ AG Charts and ECharts draw to real canvases, the grids virtualize against real s
 
 React runs in **production** mode ([`vitest.bench.browser.config.ts`](../../../vitest.bench.browser.config.ts) forces `NODE_ENV=production`): the modules ship the production build, and the vanilla contenders carry no dev/prod split, so a dev-React number would score the modules' diagnostics rather than their shipped speed. The gap is real — dev React runs several times the work per render — so this is a correctness condition, not a thumb on the scale.
 
+The utility CSS is **flat**, as a build ships it (`servedTailwind` in [`vitest.browser.config.ts`](../../../vitest.browser.config.ts)). `@tailwindcss/vite` lowers the native nesting of the CSS in `build` only, and Vitest serves the CSS. A nested `**:data-[slot=…]` rule restyles each element that carries `data-slot` much more slowly than its flat form, and each grid cell carries one. A restyle of 1,000 plain grid cells took 46ms with the nested CSS and 17.5ms with the flat CSS. Suite numbers from before 2026-09-25 carry the nested cost. On the resize bench, the median of three interleaved pairs moved the 3,000-row frozen resize from 606.2 to 541.3ms (−14%, −5%, −11%), and the 3,000-row resize with truncation from 234.2 to 195.2ms (mixed pairs). The 1,000-row resizes stayed within noise.
+
 ## Reading and driving improvements
 
 Each `describe` groups one scenario's three contenders, so the `BENCH Summary` prints the head-to-head ratios directly. To hold a before/after line through an optimization, snapshot then compare:
