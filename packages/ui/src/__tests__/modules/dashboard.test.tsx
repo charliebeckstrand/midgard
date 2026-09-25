@@ -95,8 +95,8 @@ describe('Dashboard', () => {
 
 		const fades = () => [...card.classList].filter((name) => name.includes(':not-hover:'))
 
-		// jsdom resolves no `:has()` and no hover media, so the class carries the pin.
-		// A touch screen cannot hover, so the veil must stay in view there.
+		// jsdom applies no Tailwind CSS, so the class carries the pin. Where the
+		// primary pointer cannot hover, the veil must stay in view.
 		expect(fades()).toHaveLength(2)
 
 		for (const name of fades()) expect(name.startsWith('[@media(hover:hover)]:')).toBe(true)
@@ -228,8 +228,10 @@ describe('Dashboard', () => {
 		expect(renders.get('a')).toBeUndefined()
 	})
 
-	it('renders no card of a tile that a lift or a drop does not move', async () => {
-		renderUI(<Board editing />)
+	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
+		const onValueChange = vi.fn()
+
+		renderUI(<Board editing layout={{ defaultValue: LAYOUT, onValueChange }} />)
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
@@ -240,17 +242,40 @@ describe('Dashboard', () => {
 
 		const flags = () => cards.mock.calls.map(([variants]) => variants?.dragging)
 
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
 		// A lift changes the dnd-kit context, which each tile reads.
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
 		expect(flags()).toEqual([true])
 
-		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await settle()
 
 		cards.mockClear()
 
+		// Escape cancels the drag.
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(flags()).toEqual([false])
+
+		// Space drops the drag, and the drop commits a reorder with Traffic.
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await settle()
+
+		// Twelve columns to the right, Revenue covers the cell of Traffic.
+		for (let step = 0; step < 12; step++) {
+			fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
+		}
+
+		cards.mockClear()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await settle()
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
 
 		expect(flags()).toEqual([false])
 	})
