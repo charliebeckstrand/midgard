@@ -65,7 +65,7 @@ function offEngineFilter(rows: Row[], filters: GridColumnFilterState[], query: s
 
 	if (tests === null) throw new Error('the filters did not compile')
 
-	const search = compileSearch(columns, query)
+	const search = compileSearch(rows, columns, query)
 
 	const byColumn = [...tests.values()]
 

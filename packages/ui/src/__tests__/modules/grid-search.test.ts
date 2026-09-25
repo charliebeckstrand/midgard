@@ -47,18 +47,18 @@ function engineSearch(rows: Row[], query: string): number[] {
 const cell = fc.oneof(
 	fc.string({ maxLength: 6 }),
 	fc.integer({ min: -50, max: 500 }),
-	fc.constantFrom(null, undefined, true, 0, 'Ärger', 'MIXED case'),
+	fc.constantFrom(null, undefined, true, 0, 'Ärger', 'MIXED case', 'ΟΔΟΣ', 'a\u0000b'),
 )
 
 const rowsArb = fc.array(fc.record({ name: cell, code: cell, note: cell }), { maxLength: 30 })
 
 describe('searchRowIndices', () => {
-	test.prop([rowsArb, fc.string({ maxLength: 3 })])(
-		'keeps the rows the engine keeps',
-		(rows, query) => {
-			expect(searchRowIndices(rows, columns, query)).toEqual(engineSearch(rows, query))
-		},
-	)
+	test.prop([
+		rowsArb,
+		fc.oneof(fc.string({ maxLength: 3 }), fc.constantFrom('\u0000', 'a\u0000', 'σ', 'ς')),
+	])('keeps the rows the engine keeps', (rows, query) => {
+		expect(searchRowIndices(rows, columns, query)).toEqual(engineSearch(rows, query))
+	})
 
 	test.prop([rowsArb.filter((rows) => rows.length > 0), fc.nat(), fc.nat(), fc.boolean()])(
 		'keeps the rows the engine keeps, for a query cut from a cell',
@@ -74,6 +74,18 @@ describe('searchRowIndices', () => {
 			expect(searchRowIndices(rows, columns, query)).toEqual(engineSearch(rows, query))
 		},
 	)
+
+	it('matches no text across two cells, with or without the separator in the query', () => {
+		const rows: Row[] = [{ name: 'ab', code: null, note: null }]
+
+		const split: Row[] = [{ name: 'a', code: 'b', note: null }]
+
+		expect(searchRowIndices(split, columns, 'a#b')).toEqual([])
+
+		expect(searchRowIndices(split, columns, 'a\u0000#b')).toEqual(engineSearch(split, 'a\u0000#b'))
+
+		expect(searchRowIndices(rows, columns, 'ab')).toEqual([0])
+	})
 
 	it('keeps every row for a grid with no searched column', () => {
 		const rows: Row[] = [

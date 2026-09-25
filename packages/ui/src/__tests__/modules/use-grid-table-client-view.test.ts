@@ -232,3 +232,77 @@ describe('useGridTable filter view', () => {
 		expect(view?.facets('name').values).toEqual(['a', 'b', 'c'])
 	})
 })
+
+describe('useGridTable search and custom sort', () => {
+	// A custom comparator that is no consistent order. It is not antisymmetric,
+	// so a sort of a subset can differ from the full order with rows taken out.
+	const skewed: GridColumn<Row> = {
+		id: 'amount',
+		title: 'Amount',
+		value: (row) => row.amount,
+		sortable: true,
+		sortFn: (a, b) => ((a.id * 7 + b.id * 3) % 5) - 2,
+	}
+
+	// A custom comparator that orders by the length of the name text.
+	const byLength: GridColumn<Row>[] = [
+		{
+			id: 'name',
+			title: 'Name',
+			value: (row) => row.name,
+			sortable: true,
+			sortFn: (a, b) => String(a.name).length - String(b.name).length,
+		},
+		{ id: 'amount', title: 'Amount', value: (row) => row.amount, sortable: true },
+	]
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
+		'gives the rows of the engine',
+		(rows, query, direction) => {
+			const sort: GridSortState[] = [{ column: 'name', direction }]
+
+			const { result } = renderHook(() =>
+				useGridTable<Row>({
+					rows,
+					columns: byLength,
+					getKey,
+					globalFilter: { value: query },
+					sort,
+					setSort: () => {},
+				}),
+			)
+
+			const shown = engineTable(rows, byLength, getKey, { query, sort }).getRowModel().rows
+
+			expect(result.current.renderRows.map((row) => row.id)).toEqual(
+				shown.map((row) => row.original.id),
+			)
+		},
+	)
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
+		'gives the rows of the engine for a comparator that is no consistent order',
+		(rows, query, direction) => {
+			const cols = [byLength[0] as GridColumn<Row>, skewed]
+
+			const sort: GridSortState[] = [{ column: 'amount', direction }]
+
+			const { result } = renderHook(() =>
+				useGridTable<Row>({
+					rows,
+					columns: cols,
+					getKey,
+					globalFilter: { value: query },
+					sort,
+					setSort: () => {},
+				}),
+			)
+
+			const shown = engineTable(rows, cols, getKey, { query, sort }).getRowModel().rows
+
+			expect(result.current.renderRows.map((row) => row.id)).toEqual(
+				shown.map((row) => row.original.id),
+			)
+		},
+	)
+})

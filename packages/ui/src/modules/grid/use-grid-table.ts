@@ -629,12 +629,12 @@ function useClientView<T>(args: {
 	const tests = useMemo<RowTest<T>[] | null>(() => {
 		if (!filtered) return null
 
-		const search = compileSearch(columns, query)
+		const search = compileSearch(rows, columns, query)
 
 		const byColumn = columnTests ? [...columnTests.values()] : []
 
 		return search ? [...byColumn, search] : byColumn
-	}, [filtered, columns, query, columnTests])
+	}, [filtered, rows, columns, query, columnTests])
 
 	// The original indices of the rows that the filter keeps, and those rows.
 	// Both are `null` with no off-engine filter.
@@ -657,11 +657,22 @@ function useClientView<T>(args: {
 
 		const sig = sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
 
+		// The smart comparison is a total order, with the data index as the last
+		// key. The order of a subset is then the full order with the other rows
+		// taken out. The full order stays cached across the keystrokes of a
+		// search, so a search filters it and sorts nothing. A custom `sortFn` can
+		// break that rule, so its fields sort the kept rows.
+		if (!kept || fields.every((field) => field.sortFn === null)) {
+			const full = cachedSortOrder(rows, columns, sig, fields)
+
+			return kept ? keepInOrder(full, kept, rows.length) : full
+		}
+
 		const local = cachedSortOrder(keptRows ?? rows, columns, sig, fields)
 
 		// A sort of the kept rows gives positions among them. Each maps back to
 		// the original index of its row.
-		return kept ? local.map((position) => kept[position] as number) : local
+		return local.map((position) => kept[position] as number)
 	}, [fields, kept, keptRows, rows, sort, columns])
 
 	const pageIndex = page?.pageIndex
@@ -697,6 +708,20 @@ type ClientView<T> = {
 	keys: (string | number)[]
 	total: number
 	filtered: T[] | null
+}
+
+/**
+ * The indices of `order` that `kept` holds, in the sequence of `order`.
+ *
+ * @param count - The count of the rows that the indices point into.
+ * @internal
+ */
+function keepInOrder(order: readonly number[], kept: readonly number[], count: number): number[] {
+	const mask = new Uint8Array(count)
+
+	for (const index of kept) mask[index] = 1
+
+	return order.filter((index) => mask[index] === 1)
 }
 
 /** The indices `0` to `count - 1`, in order. @internal */
@@ -970,7 +995,7 @@ function facetSource<T>(
 	columnTests: ColumnTests<T>,
 	query: string,
 ): (id: string) => Set<unknown> {
-	const search = compileSearch(columns, query)
+	const search = compileSearch(rows, columns, query)
 
 	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
 
