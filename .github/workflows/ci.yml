@@ -22,6 +22,59 @@ jobs:
           key: ${{ runner.os }}-turbo-gate-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-gate-
+      # One Biome run over the whole repository, not the `lint` task of each
+      # package. The package tasks miss the files at the root, such as
+      # turbo.json and knip.json. `biome ci` also writes its findings as
+      # annotations on the pull request.
+      - run: pnpm biome ci .
+      # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
+      # orders them; see bundle-budget.ts for what it asserts and why. The
+      # tests run in the `test` job below.
+      - run: pnpm turbo run check-types knip build bundle:budget --summarize
+        env:
+          # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
+          BIFROST_URL: https://bifrost.invalid
+      # Turbo never evicts from its local cache, and the restore key above
+      # carries every entry forward, so each run saved all the entries before
+      # it plus its own. It reached 1.4 GB, which the job downloads and
+      # uploads each run. Keep only the entries this run hit or wrote: those
+      # are the ones the next run can hit. The run summary names their hashes.
+      - name: Prune the Turbo cache to this run's tasks
+        run: |
+          keep=$(jq -r '.tasks[].hash' .turbo/runs/*.json | sort -u)
+          for entry in .turbo/cache/*; do
+            hash=$(basename "$entry")
+            hash=${hash%%[-.]*}
+            grep -qxF "$hash" <<< "$keep" || rm -f "$entry"
+          done
+          rm -rf .turbo/runs
+          du -sh .turbo/cache
+
+  # A separate job, not a step in `gate`. In `gate` the ui suite shared four
+  # cores with the type-check and the Next builds, and it took 158s. Alone on a
+  # four-core container it took 71s, and each half of it took about 36s. Each
+  # shard runs half of the ui test files, so each pull request still runs each
+  # test.
+  test:
+    name: test (${{ matrix.shard }}/2)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      # Let the other shard finish, so that one run shows each failure.
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - uses: actions/cache@v6
+        with:
+          path: .turbo
+          # Namespaced per shard, as in `browser`. Turbo hashes the `--shard`
+          # argument into the task, so a shard can hit only its own entries.
+          key: ${{ runner.os }}-turbo-test-${{ matrix.shard }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-turbo-test-${{ matrix.shard }}-
       # Vitest's disk module cache (vitest.config.ts, `experimental.fsModuleCache`).
       # Vitest writes it under the workspace root's node_modules, not the
       # package's. Restored after install so the directory lands inside a
@@ -42,28 +95,20 @@ jobs:
       # docs engine made it useless, and each run transformed the suite cold.
       # The second hash starts a new cache when those files change, and the
       # SHA makes each run save what it wrote for the next run to restore.
+      # Each shard transforms a different half of the suite, so each shard
+      # keeps its own cache.
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache
-          key: ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
-      # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
-      # orders them; see bundle-budget.ts for what it asserts and why.
-      # One Biome run over the whole repository, not the `lint` task of each
-      # package. The package tasks miss the files at the root, such as
-      # turbo.json and knip.json. `biome ci` also writes its findings as
-      # annotations on the pull request.
-      - run: pnpm biome ci .
-      - run: pnpm turbo run check-types test knip build bundle:budget --summarize
-        env:
-          # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
-          BIFROST_URL: https://bifrost.invalid
-      # Turbo never evicts from its local cache, and the restore key above
-      # carries every entry forward, so each run saved all the entries before
-      # it plus its own. It reached 1.4 GB, which the job downloads and
-      # uploads each run. Keep only the entries this run hit or wrote: those
-      # are the ones the next run can hit. The run summary names their hashes.
+            ${{ runner.os }}-vitest-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
+      - run: pnpm turbo run test --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
+      # The other packages have few test files, and a shard of them can be
+      # empty. The first shard runs them whole.
+      - if: matrix.shard == 1
+        run: pnpm turbo run test --filter='!ui' --summarize
+      # The same pruning as in `gate`, for the same reason.
       - name: Prune the Turbo cache to this run's tasks
         run: |
           keep=$(jq -r '.tasks[].hash' .turbo/runs/*.json | sort -u)
