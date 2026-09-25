@@ -4,9 +4,9 @@
  * The widgets inside a tile keep their own recipes.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, sen, sun } from '../kiso'
+import { hannou, iro, kasane, omote, sen, sun } from '../kiso'
 
-const { grab } = hannou
+const { fg, grab } = hannou
 const { text } = iro
 const { rounded } = kasane
 
@@ -74,8 +74,8 @@ const card = defineRecipe({
 /** The header row: the grip, the title block, and the actions. */
 const header = ['flex min-w-0 items-center gap-2']
 
-/** The title block, which truncates before it pushes the actions out. */
-const heading = ['min-w-0 flex-1 truncate']
+/** The title block, which shrinks before it pushes the actions out. Each line in it truncates. */
+const heading = ['min-w-0 flex-1']
 
 /**
  * The action row at the far end of the header. A press in it starts no drag,
@@ -167,17 +167,14 @@ const handle = defineRecipe({
 		'flex size-6 shrink-0 items-center justify-center rounded-md',
 		...grab.default,
 		...text.muted,
-		...mode(
-			'hover:bg-zinc-100 hover:text-zinc-700',
-			'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-		),
+		...fg.hover,
 		...sen.focus.ring,
 	],
 	floating: {
 		true: [
-			'absolute start-3 top-3 z-10',
-			'border shadow-sm',
-			...mode('border-zinc-200 bg-white/90', 'dark:border-zinc-800 dark:bg-zinc-900/90'),
+			'absolute start-3 top-3 z-10 shadow-sm',
+			...sen.border.default,
+			...mode('bg-white/90', 'dark:bg-zinc-900/90'),
 		],
 		false: '',
 	},
@@ -218,13 +215,12 @@ const resizeHandle = defineRecipe({
 /** The chip that shows the span of a tile while it resizes. */
 const readout = [
 	'pointer-events-none absolute bottom-3 end-3 z-30',
-	'rounded-md border px-2 py-1',
+	'rounded-md px-2 py-1',
 	'text-xs tabular-nums',
 	'shadow-sm',
-	...mode(
-		'border-zinc-200 bg-white text-zinc-700',
-		'dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
-	),
+	...sen.border.default,
+	...omote.bg.surface,
+	...mode('text-zinc-700', 'dark:text-zinc-300'),
 ]
 
 export const k = {
