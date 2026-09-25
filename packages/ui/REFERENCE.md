@@ -63,7 +63,7 @@ Enforced by boundary tests (`packages/ui/src/__tests__/boundary/`). Add a demo a
 | Lint | root | `biome check .` |
 | Tests for the change you edit | `packages/ui` | `pnpm test:related <file>` / `pnpm test:changed` |
 | Layout, computed style, or color ([CONVENTIONS.md](../../CONVENTIONS.md) §10.5) | `packages/ui` | `pnpm test:browser` |
-| Grid code under the React Compiler ([CONVENTIONS.md](../../CONVENTIONS.md) §10.7) | `packages/ui` | `pnpm test:compiler` |
+| Code under the React Compiler ([CONVENTIONS.md](../../CONVENTIONS.md) §10.7) | `packages/ui` | `pnpm test:compiler` |
 | The accessibility corpus and its sweeps | `packages/ui` | `pnpm test:a11y` |
 | Benchmarks | `packages/ui` | `pnpm bench` / `pnpm bench:browser` |
 | Dev (docs site) | `packages/ui` | `pnpm docs` |
