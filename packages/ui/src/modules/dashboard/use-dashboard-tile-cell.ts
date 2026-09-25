@@ -62,7 +62,9 @@ export function useDashboardTileCell(
 	const store = useDashboardStoreContext()
 
 	// Two numbers, so a fresh pair from a render of the board is no change.
-	const [slot, index] = useDashboardTileRank()
+	const {
+		rank: [slot, index],
+	} = useDashboardTileRank()
 
 	const { ratio, minWidth, label, defaultSize, minSize, maxSize } = demands
 

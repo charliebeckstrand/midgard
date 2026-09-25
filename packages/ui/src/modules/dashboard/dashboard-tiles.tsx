@@ -107,8 +107,12 @@ export function DashboardTiles({
 	// DashboardTile defaults `mount` and `expandable`, so each passes through as given.
 	const { widgets, fallback = statedFallback, mount } = useDashboardWidgets()
 
-	// The slot of this element among the children of the board.
-	const [slot] = useDashboardTileRank()
+	// A child of the board adds the index of each spec tile to its slot. In a component, each
+	// tile takes the rank of that component, so the tiles there keep their mount order.
+	const {
+		rank: [slot, shared],
+		indexed,
+	} = useDashboardTileRank()
 
 	const order = useDashboardStore((view) => view.order)
 
@@ -126,7 +130,7 @@ export function DashboardTiles({
 					key={tile.id}
 					tile={tile}
 					slot={slot}
-					index={index}
+					index={indexed ? index : shared}
 					// An own key only. A name from storage such as "constructor" is then no
 					// widget, and not a member of the object prototype.
 					widget={Object.hasOwn(widgets, tile.widget) ? widgets[tile.widget] : undefined}
@@ -184,9 +188,16 @@ function DashboardSpecTileActions({ actions, tile }: DashboardSpecTileActionsPro
 type DashboardSpecTileViewProps = {
 	/** The spec tile. */
 	tile: DashboardSpecTile
-	/** The slot of the `DashboardTiles` among the children of the board. */
+	/**
+	 * The slot of the `DashboardTiles` among the children of the board, or the slot
+	 * of the component that renders it.
+	 */
 	slot: number
-	/** The index of the spec tile in `tiles`. With `slot`, it gives the rank of the tile. */
+	/**
+	 * The index of the spec tile in `tiles` when the `DashboardTiles` is a child of
+	 * the board. Else it is the index of the rank above the `DashboardTiles`. With
+	 * `slot`, it gives the rank of the tile.
+	 */
 	index: number
 	/** The widget of its kind, or `undefined` when no widget claims it. */
 	widget: DashboardWidget | undefined
@@ -207,7 +218,7 @@ type DashboardSpecTileViewProps = {
 /**
  * One spec tile as a `DashboardTile`. It renders again only when one of its
  * props changes by identity. It gives the tile its rank in the markup, so a tile
- * with no entry takes its row in the order of `tiles`.
+ * with no entry takes its row in markup order.
  *
  * @internal
  */
@@ -226,7 +237,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	const render = widget?.render ?? fallback
 
 	return (
-		<DashboardTileRankContext value={[slot, index]}>
+		<DashboardTileRankContext value={{ rank: [slot, index], indexed: false }}>
 			<DashboardTile
 				id={tile.id}
 				title={tile.title}

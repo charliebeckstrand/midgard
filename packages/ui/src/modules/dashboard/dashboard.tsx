@@ -145,7 +145,9 @@ function declaredTiles(children: ReactNode): Set<string> {
  *
  * Each element goes inside a rank provider with its slot in the markup, and not
  * with the slot that the reading order gives it. A tile with no entry thus takes
- * its row in markup order.
+ * its row in markup order. The provider of a `DashboardTiles` child lets it add
+ * the index of each spec tile. A `DashboardTiles` in a component shares the slot
+ * of that component.
  */
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
 	const items = flattenBoardChildren(children)
@@ -174,7 +176,10 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 		const key = tile ? `tile:${child.props.id}` : child.key
 
 		return (
-			<DashboardTileRankContext key={key} value={[slot, 0]}>
+			<DashboardTileRankContext
+				key={key}
+				value={{ rank: [slot, 0], indexed: isSpecTilesElement(child) }}
+			>
 				{tile ? cloneElement(child, { key }) : child}
 			</DashboardTileRankContext>
 		)
@@ -249,8 +254,9 @@ export type DashboardProps = AccessibleName & {
 	 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
 	 *
 	 * The tiles with no layout entry take their new rows in markup order. That
-	 * order reads the children, then the `tiles` of each `DashboardTiles`. The
-	 * tiles that one component renders take their rows in mount order.
+	 * order reads the children, then the `tiles` of each `DashboardTiles` child.
+	 * The tiles that one component renders take their rows in mount order, also
+	 * the spec tiles of a `DashboardTiles` in that component.
 	 */
 	children?: ReactNode
 }

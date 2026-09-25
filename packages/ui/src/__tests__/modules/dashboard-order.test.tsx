@@ -445,4 +445,69 @@ describe('DashboardTiles reading order', () => {
 
 		expect(tileRows(fresh.container, 'p')).toEqual(rows)
 	})
+
+	it('gives the spec tiles of a component the rows of their markup, before a JSX tile after them', () => {
+		const tiles: DashboardSpecTile[] = ['s1', 's2', 's3'].map((id) => ({ id, widget: 'note' }))
+
+		function Group() {
+			return (
+				<>
+					<DashboardTiles tiles={tiles} />
+
+					<DashboardTile id="j">
+						<p>j</p>
+					</DashboardTile>
+				</>
+			)
+		}
+
+		const { container } = renderUI(
+			<DashboardWidgetProvider widgets={widgets}>
+				<Dashboard aria-label="Board">
+					<Group />
+				</Dashboard>
+			</DashboardWidgetProvider>,
+		)
+
+		// The component holds one slot, so its four tiles tie and take their rows in mount order.
+		expect(tileRows(container, 'p')).toEqual([
+			['s1', '1'],
+			['s2', '19'],
+			['s3', '37'],
+			['j', '55'],
+		])
+	})
+
+	it('gives the spec tiles of two DashboardTiles in one component the rows of their markup', () => {
+		const first: DashboardSpecTile[] = ['a1', 'a2'].map((id) => ({ id, widget: 'note' }))
+
+		const second: DashboardSpecTile[] = ['b1', 'b2'].map((id) => ({ id, widget: 'note' }))
+
+		function Groups() {
+			return (
+				<>
+					<DashboardTiles tiles={first} />
+
+					<DashboardTiles tiles={second} />
+				</>
+			)
+		}
+
+		const { container } = renderUI(
+			<StrictMode>
+				<DashboardWidgetProvider widgets={widgets}>
+					<Dashboard aria-label="Board">
+						<Groups />
+					</Dashboard>
+				</DashboardWidgetProvider>
+			</StrictMode>,
+		)
+
+		expect(tileRows(container, 'p')).toEqual([
+			['a1', '1'],
+			['a2', '19'],
+			['b1', '37'],
+			['b2', '55'],
+		])
+	})
 })

@@ -67,13 +67,14 @@ export type DashboardTileSize = {
 
 /**
  * The place of a tile in the markup of the board. It is the slot of its board
- * child, then the index of a spec tile in the `tiles` of its `DashboardTiles`. A
- * JSX tile has the index `0`.
+ * child, then the index of a spec tile in the `tiles` of a `DashboardTiles` child.
+ * A JSX tile has the index `0`.
  *
  * @remarks
  * The board reads its children through each Fragment, so each child of a
  * Fragment has a slot of its own. The tiles that one component renders share the
- * slot of that component.
+ * slot of that component and the index `0`, also the spec tiles of a
+ * `DashboardTiles` in it. They take their rows in mount order.
  */
 export type DashboardTileRank = readonly [slot: number, index: number]
 

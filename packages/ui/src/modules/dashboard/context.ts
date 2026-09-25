@@ -49,21 +49,41 @@ export const [DashboardTileContext, useDashboardTileId] = createContext<string |
 )
 
 /**
- * The place in the markup of the tiles under the reader. `Dashboard` gives each
- * of its children a slot, and `DashboardTiles` adds the index of each spec tile.
- * A tile registers the rank, so the tiles with no entry take their rows in
- * markup order.
- *
- * @remarks
- * With no provider above it, as in a portal child of the board, a tile takes the
- * rank `[0, 0]`. A tie keeps the mount order.
+ * The rank of the tiles under the reader, and whether a `DashboardTiles` there
+ * adds the index of each spec tile to it.
  *
  * @internal
  */
-export const [DashboardTileRankContext, useDashboardTileRank] = createContext<DashboardTileRank>(
-	'DashboardTileRank',
-	{ default: [0, 0] },
-)
+export type DashboardTileRankScope = {
+	/** The rank that a tile under the reader registers. */
+	rank: DashboardTileRank
+	/**
+	 * Whether a `DashboardTiles` under the reader adds the index of each spec tile
+	 * to the rank. Only the scope of a `DashboardTiles` child of the board does.
+	 */
+	indexed: boolean
+}
+
+/**
+ * The place in the markup of the tiles under the reader. `Dashboard` gives each
+ * of its children a slot, and a `DashboardTiles` child adds the index of each
+ * spec tile. A tile registers the rank, so the tiles with no entry take their
+ * rows in markup order.
+ *
+ * @remarks
+ * The tiles that one component renders share its slot and the index `0`, also
+ * the spec tiles of a `DashboardTiles` in it. A tie keeps the mount order, and
+ * the tiles that mount in one commit mount in markup order.
+ *
+ * With no provider above it, as in a portal child of the board, a tile takes the
+ * rank `[0, 0]`.
+ *
+ * @internal
+ */
+export const [DashboardTileRankContext, useDashboardTileRank] =
+	createContext<DashboardTileRankScope>('DashboardTileRank', {
+		default: { rank: [0, 0], indexed: false },
+	})
 
 /** The registry with nothing in it: each spec tile falls back. */
 const NO_WIDGETS: DashboardWidgetRegistry = { widgets: {} }
