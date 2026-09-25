@@ -44,6 +44,22 @@ export function toGridLeaf<T>(
 }
 
 /**
+ * The {@link GridLeaf} of the row at `index` in the data. Its id is the
+ * stringified key, as `getRowId` gives the engine row.
+ *
+ * @internal
+ */
+export function toRowLeaf<T>(
+	row: T,
+	index: number,
+	getKey: (row: T, index: number) => string | number,
+): GridLeaf<T> {
+	const key = getKey(row, index)
+
+	return { id: String(key), key, row }
+}
+
+/**
  * Whether a group is open in the expansion state. `true` opens every group.
  *
  * @internal

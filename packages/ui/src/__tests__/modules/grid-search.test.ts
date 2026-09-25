@@ -112,8 +112,6 @@ describe('resolveClientView', () => {
 		globalHighlights: false,
 		columnFilters: [],
 		columnFiltersCompile: true,
-		grouped: false,
-		manualGrouped: false,
 	}
 
 	it.each([
@@ -150,8 +148,6 @@ describe('resolveClientView', () => {
 			'a column filter that only the engine applies',
 			{ columnFilters: [{ id: 'name', value: 'x' }], columnFiltersCompile: false },
 		],
-		['client grouping', { grouped: true, paginated: true }],
-		['manual grouping', { manualGrouped: true, paginated: true }],
 	])('leaves the transforms to the engine with %s', (_, change) => {
 		expect(resolveClientView({ ...base, ...change })).toEqual({
 			offEngine: false,

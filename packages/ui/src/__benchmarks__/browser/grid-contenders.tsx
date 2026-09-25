@@ -80,6 +80,8 @@ export type MountOptions = {
 	grandTotal?: boolean
 	/** Gives the carrier column a filter that lists its values, for the facet scenario. */
 	facets?: boolean
+	/** Groups the rows by carrier, with every group open, for the grouping scenario. */
+	grouped?: boolean
 }
 
 /** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
@@ -227,6 +229,7 @@ function uiContender(): GridContender {
 						<Grid
 							columns={columns}
 							grandTotalRow={grandTotal || undefined}
+							groupBy={options?.grouped ? { value: 'carrier' } : undefined}
 							rows={current}
 							getKey={shipmentKey}
 							virtualize
@@ -289,8 +292,9 @@ function uiContender(): GridContender {
 function agContender(): GridContender {
 	return {
 		name: 'AG Grid',
-		// The grand-total row and the set filter of AG Grid are Enterprise features.
-		unsupported: ['grandTotal', 'facets'],
+		// The grand-total row, the set filter, and the row grouping of AG Grid are
+		// Enterprise features.
+		unsupported: ['grandTotal', 'facets', 'grouped'],
 		mount(host, rows, options) {
 			const box = fillBox(host)
 
@@ -333,8 +337,9 @@ function agContender(): GridContender {
 function muiContender(): GridContender {
 	return {
 		name: 'MUI X DataGrid',
-		// The aggregation of MUI X is a Premium feature, and its filter lists no values.
-		unsupported: ['grandTotal', 'facets'],
+		// The aggregation and the row grouping of MUI X are Premium features, and
+		// its filter lists no values.
+		unsupported: ['grandTotal', 'facets', 'grouped'],
 		mount(host, rows, options) {
 			const box = fillBox(host)
 
