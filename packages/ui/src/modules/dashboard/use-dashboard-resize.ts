@@ -69,7 +69,9 @@ function resizeContext(store: DashboardStore, canvas: HTMLElement | null, id: st
 /**
  * The resize gestures of the dashboard: a pointer drag on a splitter, and one
  * arrow-key step on a focused splitter. The pure {@link resizePreview} decides
- * each preview, so a tile grows until it meets a neighbor or an edge.
+ * each preview, so a tile grows until it meets a neighbor or an edge. A pointer
+ * drag counts its travel in the canvas, so a scroll during the drag keeps the
+ * edge under the pointer.
  *
  * @internal
  */
@@ -92,9 +94,11 @@ export function useDashboardResize({
 		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
 			if (event.button !== 0) return
 
-			const context = resizeContext(store, canvasRef.current, id)
+			const canvas = canvasRef.current
 
-			if (context === null) return
+			const context = resizeContext(store, canvas, id)
+
+			if (canvas === null || context === null) return
 
 			event.preventDefault()
 
@@ -104,7 +108,18 @@ export function useDashboardResize({
 
 			const pointerId = event.pointerId
 
-			const start = { x: event.clientX, y: event.clientY }
+			// The travel counts in the canvas and not in the viewport. A scroll during the
+			// gesture moves the content under the pointer, so the edge moves with the content.
+			const inCanvas = (x: number, y: number) => {
+				const box = canvas.getBoundingClientRect()
+
+				return { x: x - box.left, y: y - box.top }
+			}
+
+			const start = inCanvas(event.clientX, event.clientY)
+
+			// The last pointer point in the viewport. A scroll reads it again against the canvas.
+			let pointer = { x: event.clientX, y: event.clientY }
 
 			handle.setPointerCapture(pointerId)
 
@@ -126,23 +141,29 @@ export function useDashboardResize({
 
 			callbacks.current.onResizeStart?.({ id, layout })
 
-			const move = (moveEvent: PointerEvent) => {
+			const update = () => {
 				const gesture = store.getState().gesture
 
 				if (gesture?.kind !== 'resize') return
 
-				// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
-				const dw = drivesWidth(edge) ? (inline * (moveEvent.clientX - start.x)) / pitch : 0
+				const { x, y } = inCanvas(pointer.x, pointer.y)
 
-				const dh = drivesHeight(edge, limits.ratio)
-					? ((moveEvent.clientY - start.y) * ROW_SUBDIVISION) / pitch
-					: 0
+				// The end edge of a right-to-left tile is its left edge, so a travel to the left grows it.
+				const dw = drivesWidth(edge) ? (inline * (x - start.x)) / pitch : 0
+
+				const dh = drivesHeight(edge, limits.ratio) ? ((y - start.y) * ROW_SUBDIVISION) / pitch : 0
 
 				const preview = resizePreview(snapshot, id, origin.w + dw, origin.h + dh, limits)
 
 				if (samePreview(preview, gesture.preview)) return
 
 				store.setState({ gesture: { ...gesture, preview } })
+			}
+
+			const move = (moveEvent: PointerEvent) => {
+				pointer = { x: moveEvent.clientX, y: moveEvent.clientY }
+
+				update()
 			}
 
 			// One signal detaches each listener that the gesture added.
@@ -184,6 +205,9 @@ export function useDashboardResize({
 			handle.addEventListener('lostpointercapture', () => finish(false), { signal })
 
 			window.addEventListener('keydown', onKey, { capture: true, signal })
+
+			// A scroll event does not bubble, so the capture phase on the window reads each scroll box.
+			window.addEventListener('scroll', update, { capture: true, passive: true, signal })
 
 			live.current = { id, finish }
 		},
