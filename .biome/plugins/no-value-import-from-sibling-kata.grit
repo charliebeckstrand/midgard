@@ -1,0 +1,21 @@
+language js
+
+// A kata never imports a value from a sibling kata (`recipes/kata/README.md`).
+// Shared data promotes to a kiso bundle, and shared wiring to a katakana
+// bridge. The chart and map kata share their palette through the kiso `zu`
+// bundle, not through each other.
+//
+// A sibling is a `./` path, or a path through `kata/`. An `import type`, or a
+// named import whose every specifier is `type`, carries no value, so it is
+// exempt.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: `recipes/kata`.
+`import $clause from $source` as $import where {
+	$source <: or { r"['\"]\./[\s\S]*", r"['\"][\s\S]*/kata(?:/[\s\S]*)?['\"]" },
+	not $import <: r"import\s+type\b[\s\S]*",
+	not $import <: r"import\s*\{\s*type\s[^,}]*(?:,\s*type\s[^,}]*)*,?\s*\}[\s\S]*",
+	register_diagnostic(
+		span = $import,
+		message = "take no value from a sibling kata: promote shared data to a kiso bundle, and shared wiring to a katakana bridge"
+	)
+}

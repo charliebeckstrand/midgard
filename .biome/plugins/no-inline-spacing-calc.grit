@@ -1,0 +1,21 @@
+language js
+
+// The ring-compensated formula `calc(--spacing(v)-1px)` lives in
+// `recipes/kiso/kasane`. A consumer reaches it through `kasane.p`, `px`, `py`,
+// `ps`, and `pe`, and through the radius helpers.
+//
+// The plugin matches the formula in a string, a JSX string, or a template
+// chunk. A mention in a comment is not a violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the recipe,
+// component, module, primitive, and layout layers of `ui`, minus tests and
+// benchmarks. It leaves out kasane, and the four files whose literals carry a
+// Tailwind variant prefix (`data-*`, `has-*`, `autofill:*`). A variant must
+// appear in source, so it cannot move behind the kasane helpers.
+or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $class where {
+	$class <: r"[\s\S]*calc\(--spacing\([\s\S]*",
+	register_diagnostic(
+		span = $class,
+		message = "reach the ring-compensated spacing through `kasane.p` / `px` / `py` / `ps` / `pe`, not an inline `calc(--spacing(...))`"
+	)
+}

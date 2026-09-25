@@ -1,0 +1,41 @@
+language js
+
+// Client code reaches the gateway only through same-origin `/api/*` and
+// `/auth/*` paths, and never holds a token (CONVENTIONS §6.2, §6.3). Two
+// checks hold that.
+//
+// The first check reads the URL of each `fetch`. A string or a template must
+// start with `/api/` or `/auth/`. A URL that is not a literal, such as a
+// wrapper's `path` argument, is not a violation, because the plugin cannot
+// read its value.
+//
+// The second check finds a runtime import from `auth` in a `'use client'`
+// module. `auth` reads a server-only variable and attaches the bearer token,
+// so only its types can cross to the client. Under `verbatimModuleSyntax`, an
+// inline `type` specifier still loads the module, so only `import type` is
+// exempt.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the app and
+// `shared` source, minus tests, the server-only code, and the route files,
+// which render on the server (§2.2) and fetch through `bifrost`.
+or {
+	`fetch($url, $...)` where {
+		$url <: or { JsStringLiteralExpression(), JsTemplateExpression() },
+		not $url <: r"['\"`]/(?:api|auth)/[\s\S]*",
+		register_diagnostic(
+			span = $url,
+			message = "fetch a same-origin `/api/` or `/auth/` path: the rewrites reach the gateway, so client code never names its origin"
+		)
+	},
+	`import $clause from $source` as $import where {
+		$source <: r"['\"]auth(?:/[^'\"]*)?['\"]",
+		not $import <: r"import\s+type\b[\s\S]*",
+		$program <: contains JsDirective() as $directive where {
+			$directive <: r"['\"]use client['\"];?"
+		},
+		register_diagnostic(
+			span = $import,
+			message = "take only types from `auth` in a client module (`import type`): its values read server-only config and attach the bearer token"
+		)
+	}
+}
