@@ -9,6 +9,7 @@ import { type ChartMarkRef, useChartHover, useChartMarkEmphasis } from './contex
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
 	ref: RefObject<SVGRectElement | null>
+	onPointerEnter?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerMove?: (event: PointerEvent<SVGRectElement>) => void
 	onPointerLeave?: () => void
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
@@ -24,7 +25,9 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * shared hover index, and records the exact frame point the tooltip tracks. The
  * index is the category `resolveIndex` returns for the frame point. That is a
  * band for the cartesian charts, or the nearest unique-x column for a scatter.
- * Leaving the layer clears both. The chart's `onData`
+ * Entry resolves the same way as movement. A held touch fires no move until
+ * the finger travels. Entry alone therefore opens the readout under a long
+ * press, as on the map. Leaving the layer clears both. The chart's `onData`
  * hit test rides along, gating the
  * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
@@ -266,16 +269,21 @@ export function useChartPointer(
 		}
 	}
 
+	// Entry tracks as movement does: a held touch fires no move until the finger
+	// travels, so the entry alone opens the readout under a long press.
+	const follow = (event: PointerEvent<SVGRectElement>) => {
+		pointerInside.current = true
+
+		track(event.clientX, event.clientY, false)
+	}
+
 	return {
 		ref,
 		// Activation only — the tracked readout stays hover-owned.
 		onClick:
 			onIndexClick || onMarkClick ? (event) => activate(event.clientX, event.clientY) : undefined,
-		onPointerMove: (event) => {
-			pointerInside.current = true
-
-			track(event.clientX, event.clientY, false)
-		},
+		onPointerEnter: follow,
+		onPointerMove: follow,
 		onPointerLeave: () => {
 			pointerInside.current = false
 

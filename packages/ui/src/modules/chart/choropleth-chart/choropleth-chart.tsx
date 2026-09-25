@@ -305,7 +305,13 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			<div
 				ref={rootRef}
 				data-slot="choropleth"
-				className={cn(width === undefined && 'w-full', className)}
+				// A long press opens the readout, so the whole chart, legend included,
+				// selects no text under a hold, as the chart frame does.
+				className={cn(
+					'select-none **:select-none [-webkit-touch-callout:none]',
+					width === undefined && 'w-full',
+					className,
+				)}
 				style={width === undefined ? undefined : { width }}
 				// Capture runs before the region layer's bubbled report: an off-region
 				// right-click stays null, an on-region one overwrites with its index.
