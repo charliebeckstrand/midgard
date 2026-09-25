@@ -235,7 +235,10 @@ function travelOf(
 }
 
 /** Returns `next`, or `previous` when the two lists hold the same items in the same order. */
-function internList<T>(previous: readonly T[] | undefined, next: readonly T[]): readonly T[] {
+export function internList<T>(
+	previous: readonly T[] | undefined,
+	next: readonly T[],
+): readonly T[] {
 	if (previous === undefined || previous.length !== next.length) return next
 
 	return previous.every((item, index) => item === next[index]) ? previous : next

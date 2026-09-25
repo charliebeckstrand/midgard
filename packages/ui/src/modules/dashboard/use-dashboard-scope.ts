@@ -12,6 +12,7 @@ import {
 	selectedValues,
 	selectValue,
 } from './engine/dashboard-scope'
+import { type DashboardView, internList } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** What {@link useDashboardScope} returns. */
@@ -27,7 +28,8 @@ export type DashboardScope = {
 	 * The query that this reader sees: the filter, and the selections of the other
 	 * tiles. Show it with `QuerySummary`, or apply it with `evaluateQuery`. An empty
 	 * selection value shows with the `isEmpty` label of the field. When the field
-	 * does not offer `isEmpty`, it shows as `is Empty`.
+	 * does not offer `isEmpty`, it shows as `is Empty`. It keeps its identity
+	 * until the filter or a selection of another tile changes.
 	 */
 	query: QueryGroup
 	/**
@@ -46,6 +48,24 @@ export type DashboardScope = {
 	select: (field: string, value: unknown, options?: DashboardSelectOptions) => void
 	/** Clears the selection of this reader in `field`, or in each field. */
 	clear: (field?: string) => void
+}
+
+/**
+ * A store selector of the selections that the query of `viewer` applies: each
+ * one that another source made. It keeps its last list while the items stay the
+ * same. So a select by the viewer keeps the query, and the rows keep their identity.
+ */
+function appliedTo(viewer: string | null): (view: DashboardView) => readonly DashboardSelection[] {
+	let last: readonly DashboardSelection[] | undefined
+
+	return (view) => {
+		last = internList(
+			last,
+			view.selections.filter((item) => item.source !== viewer),
+		)
+
+		return last
+	}
 }
 
 /**
@@ -72,10 +92,12 @@ export function useDashboardScope(): DashboardScope {
 
 	const selections = useDashboardStore((view) => view.selections)
 
+	const applied = useDashboardStore(useMemo(() => appliedTo(tile), [tile]))
+
+	const query = useMemo(() => scopeQuery(filter, applied, tile), [filter, applied, tile])
+
 	return useMemo<DashboardScope>(() => {
 		const source = tile ?? ''
-
-		const query = scopeQuery(filter, selections, tile)
 
 		return {
 			filter,
@@ -88,5 +110,5 @@ export function useDashboardScope(): DashboardScope {
 				updateSelections((current) => selectValue(current, source, field, value, options)),
 			clear: (field) => updateSelections((current) => clearSelection(current, source, field)),
 		}
-	}, [tile, filter, selections, setFilter, updateSelections])
+	}, [tile, filter, selections, query, setFilter, updateSelections])
 }

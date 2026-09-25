@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
+import { createRef, Profiler, type ReactNode, StrictMode, use, useEffect, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
@@ -1545,6 +1545,47 @@ describe('Dashboard scope', () => {
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 
 		expect(onValueChange).toHaveBeenLastCalledWith([])
+	})
+
+	it('keeps the rows of the source tile when it selects, so a chart that takes them sees no change', () => {
+		const onRows = vi.fn()
+
+		function Source() {
+			const scope = useDashboardScope()
+
+			const rows = useDashboardRows(sales)
+
+			useEffect(() => {
+				onRows(rows)
+			}, [rows])
+
+			return (
+				<button type="button" onClick={() => scope.select('region', 'West')}>
+					Select West
+				</button>
+			)
+		}
+
+		renderUI(
+			<Dashboard aria-label="Sales">
+				<DashboardTile id="regions" title="Regions">
+					<Source />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		onRows.mockClear()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Select West' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// The query of the source leaves out its own selection, so its rows keep their identity.
+		expect(onRows).not.toHaveBeenCalled()
 	})
 
 	it('records a selection in the expand dialog as the tile, and filters the board', () => {
