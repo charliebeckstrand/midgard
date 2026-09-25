@@ -13,8 +13,9 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
+import type { QueryGroup } from '../../modules/query/engine/types'
 import { k } from '../../recipes/kata/dashboard'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { allBySlot, bySlot, fireEvent, renderUI, screen, within } from '../helpers'
 import {
 	pressSplitter,
 	StoreProbe,
@@ -1481,6 +1482,12 @@ describe('Dashboard scope', () => {
 						{row.region}
 					</button>
 				))}
+
+				<output data-testid="selected">{scope.selected('region').join(' ')}</output>
+
+				<button type="button" onClick={() => scope.clear('region')}>
+					Release region
+				</button>
 			</div>
 		)
 	}
@@ -1515,6 +1522,8 @@ describe('Dashboard scope', () => {
 		// The source keeps each region, so the user can change the selection.
 		expect(screen.getAllByRole('button', { name: /North|South|West/ })).toHaveLength(3)
 
+		expect(screen.getByTestId('selected')).toHaveTextContent('South')
+
 		expect(onValueChange).toHaveBeenLastCalledWith([
 			{ source: 'regions', field: 'region', values: ['South'] },
 		])
@@ -1522,6 +1531,94 @@ describe('Dashboard scope', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'South' }))
 
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		expect(screen.getByTestId('selected')).toBeEmptyDOMElement()
+
+		fireEvent.click(screen.getByRole('button', { name: 'West' }))
+
+		expect(screen.getByTestId('selected')).toHaveTextContent('West')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Release region' }))
+
+		expect(screen.getByTestId('selected')).toBeEmptyDOMElement()
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		expect(onValueChange).toHaveBeenLastCalledWith([])
+	})
+
+	it('records a selection in the expand dialog as the tile, and filters the board', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Dashboard aria-label="Sales" selection={{ onValueChange }}>
+				<DashboardTile id="regions" title="Regions" expandable>
+					<Regions />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Regions' }))
+
+		const dialog = within(screen.getByRole('dialog', { name: 'Regions' }))
+
+		fireEvent.click(dialog.getByRole('button', { name: 'West' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith([
+			{ source: 'regions', field: 'region', values: ['West'] },
+		])
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// The dialog reads the scope of its tile, so it keeps each region too.
+		expect(dialog.getAllByRole('button', { name: /North|South|West/ })).toHaveLength(3)
+
+		expect(dialog.getByTestId('selected')).toHaveTextContent('West')
+	})
+
+	it('replaces the filter from a tile, and filters each tile with it', () => {
+		const onValueChange = vi.fn()
+
+		const filter: QueryGroup = {
+			id: 'f',
+			type: 'group',
+			children: [{ id: 'r', type: 'rule', field: 'amount', operator: 'gte', value: 20 }],
+		}
+
+		function Narrow() {
+			const scope = useDashboardScope()
+
+			return (
+				<button type="button" onClick={() => scope.setFilter(filter)}>
+					{scope.active ? 'Narrowed' : 'Narrow'}
+				</button>
+			)
+		}
+
+		renderUI(
+			<Dashboard aria-label="Sales" filter={{ onValueChange }}>
+				<DashboardTile id="narrow" title="Narrow">
+					<Narrow />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Narrow' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith(filter)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('50')
+
+		// Unlike a selection, the filter applies to the tile that set it.
+		expect(screen.getByRole('button', { name: 'Narrowed' })).toBeInTheDocument()
 	})
 
 	it('offers a clear control on the tile that holds a selection', () => {
