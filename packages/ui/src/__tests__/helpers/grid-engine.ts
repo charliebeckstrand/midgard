@@ -24,6 +24,8 @@ import {
 /** The client transforms of a stock engine table. Each one that is absent is off. */
 export type EngineTransforms = {
 	query?: string
+	/** Whether the quick search only marks its matches, and prunes no row. */
+	highlight?: boolean
 	filters?: GridColumnFilterState[]
 	sort?: GridSortState[]
 	/** The page, and the pagination binding of the grid. */
@@ -68,6 +70,7 @@ export function engineTable<T>(
 		...filterOptions<T>({
 			configured: filtered,
 			manual: false,
+			globalHighlight: transforms.highlight ?? false,
 			onGlobalFilterChange: () => {},
 			onColumnFiltersChange: () => {},
 		}),

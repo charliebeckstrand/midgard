@@ -7,6 +7,7 @@ import type {
 	GridPagination,
 	GridSortState,
 } from '../../modules/grid'
+import { toColumnFacets } from '../../modules/grid/engine/grid-table/views'
 import { useGridTable } from '../../modules/grid/use-grid-table'
 import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
@@ -157,4 +158,77 @@ describe('engine sort of an undefined cell', () => {
 			expect(gridView(rows, { sort }).ids).toEqual(ids)
 		},
 	)
+})
+
+describe('useGridTable facets', () => {
+	/** The facets of each filterable column, as the grid gives them. */
+	function gridFacets(rows: Row[], transforms: EngineTransforms) {
+		const { result } = renderHook(() =>
+			useGridTable<Row>({
+				rows,
+				columns,
+				getKey,
+				globalFilter: {
+					value: transforms.query ?? '',
+					...(transforms.highlight ? { mode: 'highlight' as const } : {}),
+				},
+				columnFilters: { value: transforms.filters ?? [] },
+			}),
+		)
+
+		const { filters } = result.current
+
+		return columns.map((col) => filters?.facets(col.id))
+	}
+
+	/** The same facets, read from the faceted model of a stock engine table. */
+	function engineFacets(rows: Row[], transforms: EngineTransforms) {
+		const table = engineTable(rows, columns, getKey, {
+			...transforms,
+			query: transforms.query ?? '',
+			filters: transforms.filters ?? [],
+		})
+
+		return columns.map((col) =>
+			toColumnFacets(table.getColumn(String(col.id))?.getFacetedUniqueValues().keys() ?? []),
+		)
+	}
+
+	test.prop([rowsArb, fc.string({ maxLength: 2 }), fc.boolean(), filtersArb], { numRuns: 60 })(
+		'gives the facets of the engine',
+		(rows, query, highlight, filters) => {
+			const transforms: EngineTransforms = { query, highlight, filters }
+
+			expect(gridFacets(rows, transforms)).toEqual(engineFacets(rows, transforms))
+		},
+	)
+})
+
+describe('useGridTable filter view', () => {
+	it('keeps its identity across a search and a data change, and reads the latest facets', () => {
+		const first: Row[] = [
+			{ id: 0, name: 'a', amount: 1 },
+			{ id: 1, name: 'b', amount: 2 },
+		]
+
+		const { result, rerender } = renderHook(
+			({ rows, query }: { rows: Row[]; query: string }) =>
+				useGridTable<Row>({ rows, columns, getKey, globalFilter: { value: query } }),
+			{ initialProps: { rows: first, query: '' } },
+		)
+
+		const view = result.current.filters
+
+		rerender({ rows: first, query: 'b' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['b'])
+
+		rerender({ rows: [...first, { id: 2, name: 'c', amount: 3 }], query: '' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['a', 'b', 'c'])
+	})
 })

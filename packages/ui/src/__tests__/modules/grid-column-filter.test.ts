@@ -67,7 +67,9 @@ function offEngineFilter(rows: Row[], filters: GridColumnFilterState[], query: s
 
 	const search = compileSearch(columns, query)
 
-	return filterRowIndices(rows, search ? [...tests, search] : tests)
+	const byColumn = [...tests.values()]
+
+	return filterRowIndices(rows, search ? [...byColumn, search] : byColumn)
 }
 
 const rowsArb = fc.array(
