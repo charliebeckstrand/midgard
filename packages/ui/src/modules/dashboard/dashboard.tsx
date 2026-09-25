@@ -121,7 +121,8 @@ export type DashboardProps = AccessibleName & {
 	 * splitters, and the content of each tile goes inert. Edit mode never changes
 	 * a tile size, so no widget re-lays out on the switch. While the responsive
 	 * projection is on screen, edit mode stands down, because a gesture edits the
-	 * saved layout and not the re-pack.
+	 * saved layout and not the re-pack. When edit mode ends or stands down, or when
+	 * the board unmounts, a live drag or resize ends as canceled.
 	 * @defaultValue false
 	 */
 	editing?: boolean
@@ -297,9 +298,15 @@ export function Dashboard({
 		}, [store]),
 	)
 
-	const dndContextProps = useDashboardDrag({ store, canvasRef, commit, onDragStart, onDragEnd })
+	const { context: dndContextProps, cancelDrag } = useDashboardDrag({
+		store,
+		canvasRef,
+		commit,
+		onDragStart,
+		onDragEnd,
+	})
 
-	const { beginResize, resizeBy } = useDashboardResize({
+	const { beginResize, resizeBy, cancelResize } = useDashboardResize({
 		store,
 		canvasRef,
 		commit,
@@ -328,6 +335,20 @@ export function Dashboard({
 	const readEditable = () => store.getView().editable
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+
+	// A gesture needs edit mode, and its listeners outlive the splitter and the
+	// board. So an edit exit or an unmount ends a live gesture as canceled.
+	useLayoutEffect(() => {
+		const cancel = () => {
+			cancelResize()
+
+			cancelDrag()
+		}
+
+		if (!editable) cancel()
+
+		return cancel
+	}, [editable, cancelResize, cancelDrag])
 
 	const readOrder = () => store.getView().order
 

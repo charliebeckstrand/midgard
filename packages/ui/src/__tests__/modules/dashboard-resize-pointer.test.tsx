@@ -182,6 +182,59 @@ describe('Dashboard pointer resize', () => {
 		})
 	})
 
+	it('ends a resize as canceled when edit mode ends, and detaches its listeners', () => {
+		const spies = makeSpies()
+
+		const { container, rerender } = renderUI(<Board spies={spies} />)
+
+		const east = eastSplitter()
+
+		pressAndMove(east)
+
+		// The splitter unmounts, so its own listeners can no longer end the gesture.
+		rerender(<Board editing={false} spies={spies} />)
+
+		expect(east).not.toBeInTheDocument()
+
+		expect(area(container)).toBe('1 / 1 / span 10 / span 8')
+
+		expect(east.hasPointerCapture(1)).toBe(false)
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
+
+		expect(spies.onResizeEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: LAYOUT,
+		})
+
+		expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true)
+	})
+
+	it('ends a resize as canceled when the board unmounts, and detaches its listeners', () => {
+		const spies = makeSpies()
+
+		const { unmount } = renderUI(<Board spies={spies} />)
+
+		const east = eastSplitter()
+
+		pressAndMove(east)
+
+		unmount()
+
+		expect(east.hasPointerCapture(1)).toBe(false)
+
+		expect(spies.onLayout).not.toHaveBeenCalled()
+
+		expect(spies.onResizeEnd).toHaveBeenCalledExactlyOnceWith({
+			id: 'a',
+			canceled: true,
+			layout: LAYOUT,
+		})
+
+		expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true)
+	})
+
 	it('starts nothing on a secondary button', () => {
 		const spies = makeSpies()
 

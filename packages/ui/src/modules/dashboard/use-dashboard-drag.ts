@@ -36,6 +36,17 @@ export type DashboardDragOptions = {
 	onDragEnd?: (event: DashboardGestureEndEvent) => void
 }
 
+/** What {@link useDashboardDrag} returns. @internal */
+export type DashboardDragHandlers = {
+	/** The props for `DndContext`. */
+	context: DndContextProps
+	/**
+	 * Ends the live drag as canceled. It does nothing when no drag is live. The
+	 * dnd-kit drag stays active until its release, and its end then does nothing.
+	 */
+	cancelDrag: () => void
+}
+
 /** The name that the live region reads for a tile. */
 function labelOf(store: DashboardStore, id: string): string {
 	return store.getState().demands.get(id)?.label ?? id
@@ -59,7 +70,7 @@ function currentCell(store: DashboardStore, id: string): DashboardCell | null {
  * start cell plus the pointer delta in grid units, rounded and clamped to the
  * travel range. Nothing re-simulates until the target changes by a whole unit.
  *
- * @returns The props for `DndContext`.
+ * @returns The props for `DndContext`, and the cancel of the live drag.
  * @internal
  */
 export function useDashboardDrag({
@@ -68,7 +79,7 @@ export function useDashboardDrag({
 	commit,
 	onDragStart,
 	onDragEnd,
-}: DashboardDragOptions): DndContextProps {
+}: DashboardDragOptions): DashboardDragHandlers {
 	/** The last target, so a move inside one unit does nothing. */
 	const targetRef = useRef<{ x: number; y: number } | null>(null)
 
@@ -253,7 +264,7 @@ export function useDashboardDrag({
 		}
 	}, [store])
 
-	return useMemo<DndContextProps>(
+	const context = useMemo<DndContextProps>(
 		() => ({
 			sensors,
 			accessibility: { announcements },
@@ -264,4 +275,6 @@ export function useDashboardDrag({
 		}),
 		[sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
 	)
+
+	return { context, cancelDrag: handleDragCancel }
 }

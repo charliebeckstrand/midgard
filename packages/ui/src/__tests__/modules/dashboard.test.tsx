@@ -484,9 +484,11 @@ describe('Dashboard gesture owner', () => {
 
 	/** A controlled board that saves each commit, and reports it to `onLayout`. */
 	function Controlled({
+		editing = true,
 		onLayout,
 		onDragEnd,
 	}: {
+		editing?: boolean
 		onLayout: (next: DashboardLayoutItem[]) => void
 		onDragEnd?: DashboardProps['onDragEnd']
 	}) {
@@ -494,7 +496,7 @@ describe('Dashboard gesture owner', () => {
 
 		return (
 			<Board
-				editing
+				editing={editing}
 				onDragEnd={onDragEnd}
 				layout={{
 					value,
@@ -581,6 +583,53 @@ describe('Dashboard gesture owner', () => {
 		expect(new Set(next.map((item) => `${item.x},${item.y}`)).size).toBe(next.length)
 
 		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 8, h: 20 })
+	})
+
+	it('ends a keyboard drag as canceled when edit mode ends, so a later Space commits nothing', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await lift('Move Revenue', 'ArrowRight', 12)
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+
+		// The grip left with edit mode, and the keyboard sensor still listens on the document.
+		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+	})
+
+	it('ends a keyboard drag as canceled when the board unmounts, so a later Space commits nothing', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { unmount } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		await lift('Move Revenue', 'ArrowRight', 12)
+
+		unmount()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
 	})
 })
 
