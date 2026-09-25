@@ -939,9 +939,13 @@ export function GridData<T>({
 		dataColCount: dataColumns.length,
 	})
 
+	// Only the cursor reads the row indices, so a grid with no cursor skips the
+	// map, which is one entry for each row.
+	const { cursorEnabled } = cursor
+
 	const rowIndexMap = useMemo(
-		() => new Map(renderRows.map((row, i) => [row, i] as const)),
-		[renderRows],
+		() => new Map(cursorEnabled ? renderRows.map((row, i) => [row, i] as const) : undefined),
+		[cursorEnabled, renderRows],
 	)
 
 	const colIndexMap = useMemo(
