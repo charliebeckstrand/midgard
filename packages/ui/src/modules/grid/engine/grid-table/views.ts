@@ -56,6 +56,11 @@ export type GridColumnResize = {
 	autoSizeAll: () => void
 	/** "Reset column widths": gives the widths back to the grid's automatic fit, as on a fresh mount. */
 	resetWidths: () => void
+	/**
+	 * The actions alone. The object keeps its identity across the frames of a
+	 * drag, so a memoized header that takes it, and not this snapshot, holds.
+	 */
+	actions: GridColumnResizeActions
 }
 
 /** The actions of {@link GridColumnResize}. @internal */
@@ -324,6 +329,7 @@ export function buildColumnResize<T>(args: {
 		resizing: args.resizing,
 		bounds: (id) => resizeBounds(defs.get(String(id)), floors.get(String(id))),
 		...args.actions,
+		actions: args.actions,
 	}
 }
 

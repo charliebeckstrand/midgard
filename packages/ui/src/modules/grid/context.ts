@@ -1,5 +1,6 @@
 'use client'
 
+import { useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { GridSettleStore } from './engine/grid-sizing/settle'
 
@@ -54,22 +55,6 @@ export type GridContextValue = {
 export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
 
 /**
- * Reads whether a column drag-resize is in flight, mirroring
- * {@link GridContextValue.resizing} on a narrower channel. The grid's truncation
- * surfaces (head titles and body cells) read it to suppress their tooltips for
- * the duration. A resize reflows the columns, and the overflow tooltip would
- * otherwise flash open over the content the drag is reshaping.
- *
- * @remarks A dedicated context, so the per-cell truncation reveal subscribes to
- * this flag alone, not the table-wide {@link GridContextValue}. A sort or a
- * select-all churns that value, but no longer re-renders every visible
- * truncating cell. Returns `false` outside a `<Grid>`.
- */
-export const [GridResizingContext, useGridResizing] = createContext<boolean>('GridResizing', {
-	default: false,
-})
-
-/**
  * Reads the store of settled column widths (see {@link GridSettleStore}). A
  * visited body cell subscribes to its own column in it, and measures its
  * overflow again when that width settles.
@@ -83,6 +68,34 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore 
 	{ default: null },
 )
 
+/** Subscribes to nothing, for a read outside a `<Grid>`. @internal */
+const subscribeNone = () => () => {}
+
+/** Reads no drag, for a read outside a `<Grid>` and on the server. @internal */
+const notResizing = () => false
+
+/**
+ * Reads whether a column drag-resize is in flight, mirroring
+ * {@link GridContextValue.resizing} on a narrower channel. The grid's truncation
+ * surfaces (head titles and body cells) read it to suppress their tooltips for
+ * the duration. A resize reflows the columns, and the overflow tooltip would
+ * otherwise flash open over the content the drag is reshaping.
+ *
+ * @remarks It subscribes to the drag state of the {@link GridSettleStore}, not
+ * to the table-wide {@link GridContextValue}. Only a surface that calls it
+ * renders again when a drag starts or ends. A body cell calls it only while it
+ * shows a reveal. Returns `false` outside a `<Grid>`.
+ */
+export function useGridResizing(): boolean {
+	const settle = useGridSettle()
+
+	return useSyncExternalStore(
+		settle?.subscribeResizing ?? subscribeNone,
+		settle?.resizing ?? notResizing,
+		notResizing,
+	)
+}
+
 /**
  * The active quick-search query when the grid searches in highlight mode
  * ({@link GridSearch.mode} `'highlight'`). It is `null` when the grid filters, has no
@@ -90,7 +103,7 @@ export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore 
  * substring in the columns the search scans. A query change re-renders only the
  * cells that subscribe, so the default (filtering, or unsearched) grid pays nothing.
  *
- * @remarks A dedicated context, like {@link GridResizingContext}, so the marking
+ * @remarks A dedicated context, like {@link GridSettleContext}, so the marking
  * subscribes to the query alone rather than the table-wide {@link GridContextValue}.
  * Returns `null` outside a `<Grid>`.
  */
