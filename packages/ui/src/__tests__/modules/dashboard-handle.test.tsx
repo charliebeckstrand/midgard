@@ -8,9 +8,11 @@ import {
 	DashboardTile,
 } from '../../modules/dashboard'
 import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
-import { stubCanvasWidth } from '../helpers/dashboard-board'
+import { settleKeyboardLifts, stubCanvasWidth } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
+
+settleKeyboardLifts()
 
 // a sits under a gap, b has a gap over it, and c is already packed under a.
 const GAPPY: DashboardLayoutItem[] = [

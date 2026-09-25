@@ -14,7 +14,12 @@ import {
 } from '../../modules/dashboard'
 import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
-import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
+import {
+	pressSplitter,
+	settleKeyboardLifts,
+	stubCanvasWidth,
+	useControlledLayout,
+} from '../helpers/dashboard-board'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -23,6 +28,8 @@ const LAYOUT: DashboardLayoutItem[] = [
 ]
 
 stubCanvasWidth()
+
+settleKeyboardLifts()
 
 function Board({
 	editing = false,

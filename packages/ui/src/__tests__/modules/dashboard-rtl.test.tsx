@@ -6,11 +6,14 @@ import { fireEvent, renderUI, screen } from '../helpers'
 import {
 	lastEntry,
 	pressSplitter,
+	settleKeyboardLifts,
 	stubCanvasWidth,
 	useControlledLayout,
 } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
+
+settleKeyboardLifts()
 
 describe('inlineSign', () => {
 	it('is -1 for a right-to-left direction, and 1 for each other value', () => {

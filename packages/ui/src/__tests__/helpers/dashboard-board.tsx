@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react'
+import { act, fireEvent, screen } from '@testing-library/react'
 import { useState } from 'react'
 import { afterEach, beforeEach, type Mock } from 'vitest'
 import {
@@ -48,6 +48,25 @@ export function stubCanvasWidth(width = 1200): void {
 	afterEach(() => {
 		if (original) Object.defineProperty(Element.prototype, 'clientWidth', original)
 	})
+}
+
+/**
+ * Lets a keyboard lift attach its sensor before the cleanup of each case, so
+ * that the unmount of the board ends the lift at once.
+ *
+ * @remarks
+ * dnd-kit adds the keydown listener of the keyboard sensor to the document one
+ * timer after a lift. When an assertion fails before that timer, the cleanup
+ * unmounts the board first. The listener then attaches after the case, and it
+ * lives into the next case. This `afterEach` runs before the cleanup, and its
+ * wait runs that timer. The board then cancels the attached sensor when it
+ * unmounts, and the sensor removes its listeners.
+ *
+ * Call it once at the top level of each suite that lifts a tile with the
+ * keyboard.
+ */
+export function settleKeyboardLifts(): void {
+	afterEach(() => act(() => new Promise((resolve) => setTimeout(resolve, 0))))
 }
 
 /**
