@@ -1023,22 +1023,10 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			hidden,
 			spare,
 			neighbors,
-			emphasis,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[
-			shape.project,
-			register,
-			colors,
-			order,
-			hidden,
-			spare,
-			neighbors,
-			emphasis,
-			animate,
-			markSelection,
-		],
+		[shape.project, register, colors, order, hidden, spare, neighbors, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(
@@ -1328,6 +1316,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			containerRef={containerRef}
 			tooltip={readable}
 			regionActive={regionActive}
+			emphasis={emphasis}
 			preloadRegion={preloadRegion}
 			table={deferredTable}
 			width={width}

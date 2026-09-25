@@ -30,6 +30,8 @@ type MapHoverProviderProps = {
 	plotRef: RefObject<HTMLDivElement | null>
 	/** Whether a region's category is matched and shown — the pointed-emphasis gate, the same silence the tooltip keeps off data. */
 	regionActive: (index: number) => boolean
+	/** The legend id under emphasis. It rides the pointed-mark store, so a legend hover renders only the marks it dims or lights. */
+	emphasis: string | null
 	/** Warms the region the pointer settles on; `undefined` on a plat that asked for no warming. */
 	preloadRegion: ((index: number) => void) | undefined
 	children: ReactNode
@@ -37,14 +39,17 @@ type MapHoverProviderProps = {
 
 /** A {@link MapPointedStore} and its writer. @internal */
 function createPointedStore(): MapPointedStore & {
-	publish: (next: MapHoverTarget | null) => void
+	publish: (next: MapHoverTarget | null, emphasis: string | null) => void
 } {
 	let current: MapHoverTarget | null = null
+
+	let focus: string | null = null
 
 	const listeners = new Set<() => void>()
 
 	return {
 		get: () => current,
+		emphasis: () => focus,
 		subscribe: (listener) => {
 			listeners.add(listener)
 
@@ -52,10 +57,12 @@ function createPointedStore(): MapPointedStore & {
 				listeners.delete(listener)
 			}
 		},
-		publish: (next) => {
-			if (next === current) return
+		publish: (next, emphasis) => {
+			if (next === current && emphasis === focus) return
 
 			current = next
+
+			focus = emphasis
 
 			for (const listener of [...listeners]) listener()
 		},
@@ -89,6 +96,7 @@ export function MapHoverProvider({
 	enabled,
 	plotRef,
 	regionActive,
+	emphasis,
 	preloadRegion,
 	children,
 }: MapHoverProviderProps) {
@@ -145,7 +153,7 @@ export function MapHoverProvider({
 	// the marks whose answer changed.
 	const [pointedStore] = useState(createPointedStore)
 
-	useLayoutEffect(() => pointedStore.publish(pointed), [pointedStore, pointed])
+	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
 
 	const clear = useCallback(() => set(null, null), [set])
 

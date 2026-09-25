@@ -58,27 +58,32 @@ export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('
 export type MapPointedStore = {
 	/** The pointed mark, or `null` when the pointer sits on no mark. */
 	get: () => MapHoverTarget | null
-	/** Calls `listener` each time the pointed mark changes, and returns the unsubscribe. */
+	/** The legend id under emphasis, or `null`. It rides the same store, so a mark reads one answer from both. */
+	emphasis: () => string | null
+	/** Calls `listener` each time the pointed mark or the emphasis changes, and returns the unsubscribe. */
 	subscribe: (listener: () => void) => () => void
 }
 
 /** The store outside a provider: no mark is pointed, so a mark reads lit. */
-const NO_POINTED: MapPointedStore = { get: () => null, subscribe: () => noop }
+const NO_POINTED: MapPointedStore = { get: () => null, emphasis: () => null, subscribe: () => noop }
 
 export const [MapPointedMarkContext] = createContext<MapPointedStore>('MapPointedMark', {
 	default: NO_POINTED,
 })
 
 /**
- * Reads one answer from the pointed mark. The reader renders again only when
- * that answer changes, so `select` must return a primitive or a stable value.
+ * Reads one answer from the pointed mark and the legend emphasis. The reader
+ * renders again only when that answer changes, so `select` must return a
+ * primitive or a stable value.
  *
  * @internal
  */
-export function useMapPointed<T>(select: (pointed: MapHoverTarget | null) => T): T {
+export function useMapPointed<T>(
+	select: (pointed: MapHoverTarget | null, emphasis: string | null) => T,
+): T {
 	const store = use(MapPointedMarkContext)
 
-	const read = () => select(store.get())
+	const read = () => select(store.get(), store.emphasis())
 
 	return useSyncExternalStore(store.subscribe, read, read)
 }
@@ -204,8 +209,6 @@ export type MapPlatContextValue = {
 	 * and a zone's ring never contest ground they paint nothing on.
 	 */
 	neighbors: (exclude: string) => MapPoint2D[]
-	/** The legend id under emphasis; marks outside its group dim. */
-	emphasis: string | null
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
 	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */

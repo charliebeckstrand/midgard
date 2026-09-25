@@ -283,24 +283,14 @@ export function useMapOverlay({
 	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
 
-	const {
-		project,
-		register,
-		colors,
-		order,
-		hidden,
-		spare,
-		neighbors,
-		emphasis,
-		animate,
-		selectedOverlay,
-	} = useMapPlat()
+	const { project, register, colors, order, hidden, spare, neighbors, animate, selectedOverlay } =
+		useMapPlat()
 
 	const set = useMapHoverSet()
 
-	// Only whether this mark dims. A crossing that leaves the answer as it was,
-	// such as one between two regions, renders no overlay mark.
-	const dimmed = useMapPointed((pointed) =>
+	// Only whether this mark dims. A crossing or a legend hover that leaves the
+	// answer as it was, such as one between two regions, renders no overlay mark.
+	const dimmed = useMapPointed((pointed, emphasis) =>
 		mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
 	)
 
