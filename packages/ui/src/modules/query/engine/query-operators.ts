@@ -46,12 +46,19 @@ export function getOperators(field: QueryField): QueryOperator[] {
 
 /**
  * Finds a built-in operator by its value, or gives `undefined` when no default
- * set holds it. The first match wins, and the text set comes first, so
- * `notEquals` reads `does not equal`. The summary reads it for an operator that
- * the field does not offer.
+ * set holds it. The default set of `type` comes first, so `equals` for the
+ * `date` type reads `on`. Then the first match in the other sets wins, and the
+ * text set comes first, so `notEquals` for the `boolean` type reads
+ * `does not equal`. The summary reads it for an operator that the field does
+ * not offer.
  *
  * @internal
  */
-export function findBuiltInOperator(value: string): QueryOperator | undefined {
-	return builtInOperators.find((operator) => operator.value === value)
+export function findBuiltInOperator(
+	value: string,
+	type?: QueryFieldType,
+): QueryOperator | undefined {
+	const own = type && defaultOperators[type]?.find((operator) => operator.value === value)
+
+	return own ?? builtInOperators.find((operator) => operator.value === value)
 }

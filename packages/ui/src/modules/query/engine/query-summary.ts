@@ -77,10 +77,11 @@ function describeValue(field: QueryField | undefined, value: unknown): string {
 /**
  * Resolves a rule against the field set: the `field` it names and its
  * `operator`, each `undefined` when unresolved. The operator comes from the set
- * of that field. When that set does not hold it, or the field is unknown, the
- * operator comes from the built-in sets ({@link findBuiltInOperator}). The
- * summary reads its labels and options from them. It does not read the active
- * judgement or the form of a token from them.
+ * of that field first. Then it comes from the default set of the field type,
+ * and then from the other built-in sets ({@link findBuiltInOperator}). For an
+ * unknown field, it comes from the built-in sets. The summary reads its labels
+ * and options from them. It does not read the active judgement or the form of a
+ * token from them.
  *
  * @internal
  */
@@ -92,7 +93,7 @@ function resolveRule(
 
 	const offered = field && getOperators(field).find((option) => option.value === rule.operator)
 
-	return { field, operator: offered ?? findBuiltInOperator(rule.operator) }
+	return { field, operator: offered ?? findBuiltInOperator(rule.operator, field?.type) }
 }
 
 /**
@@ -106,9 +107,10 @@ function resolveRule(
  * of the token, value-less, range, or scalar, as it does in the evaluator. A
  * rule whose field or operator the field set does not offer still constrains
  * the rows when the evaluator applies it. Such a rule renders an unknown field
- * by its name, and the operator by its built-in label. So `isEmpty` on a
- * `number` field reads `is Empty`. The raw operator name is a fallback for an
- * operator that no built-in set holds.
+ * by its name, and the operator by the built-in label that
+ * {@link resolveRule} finds. So `isEmpty` on a `number` field reads `is Empty`.
+ * The raw operator name is a fallback for an operator that no built-in set
+ * holds.
  *
  * @internal
  */

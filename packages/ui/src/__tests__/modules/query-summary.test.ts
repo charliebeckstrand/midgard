@@ -230,6 +230,27 @@ describe('formatQuerySummary', () => {
 		)
 	})
 
+	it('renders an operator that the field does not offer by the default label of its type', () => {
+		// The custom operators leave out `equals`, but the evaluator applies it.
+		const dayField: QueryField = {
+			...joinedField,
+			operators: [{ value: 'before', label: 'before' }],
+		}
+
+		const stateField: QueryField = {
+			...statusField,
+			operators: [{ value: 'notEquals', label: 'is not' }],
+		}
+
+		const day = createGroup('and', [rule(dayField, { operator: 'equals', value: '2026-01-01' })])
+
+		const state = createGroup('and', [rule(stateField, { operator: 'equals', value: 'active' })])
+
+		expect(formatQuerySummary(day, [dayField])).toBe('Joined on 2026-01-01')
+
+		expect(formatQuerySummary(state, [stateField])).toBe('Status is Active')
+	})
+
 	it('renders a range on an unknown field as a range', () => {
 		expect(line([rule(ageField, { field: 'gone', operator: 'between', value: [10, 20] })])).toBe(
 			'gone between 10 and 20',

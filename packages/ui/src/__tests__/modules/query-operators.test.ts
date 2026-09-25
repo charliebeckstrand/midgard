@@ -37,6 +37,21 @@ describe('findBuiltInOperator', () => {
 		expect(findBuiltInOperator('notEquals')?.label).toBe('does not equal')
 	})
 
+	it('takes the default set of the given type before the other sets', () => {
+		expect(findBuiltInOperator('equals', 'date')?.label).toBe('on')
+
+		expect(findBuiltInOperator('equals', 'select')?.label).toBe('is')
+
+		expect(findBuiltInOperator('notEquals', 'number')?.label).toBe('≠')
+	})
+
+	it('takes the first match in the other sets when the set of the type does not hold it', () => {
+		expect(findBuiltInOperator('isEmpty', 'number')).toMatchObject({
+			label: 'is',
+			valueLabel: 'Empty',
+		})
+	})
+
 	it('finds no operator that no default set holds', () => {
 		expect(findBuiltInOperator('custom')).toBeUndefined()
 	})
