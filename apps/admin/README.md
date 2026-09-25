@@ -33,7 +33,7 @@ See ([CONVENTIONS](../../CONVENTIONS.md) §11).
 
 ## 5. Dependencies
 
-Consumes the design system ([`ui`](../../packages/ui/README.md)), shared utilities ([`shared`](../../packages/shared/README.md)), and the auth library ([`auth`](../../packages/auth/README.md)).
+Consumes the design system ([`ui`](../../packages/ui/README.md)), the auth pages and the global stylesheet ([`shared`](../../packages/shared/README.md)), and the auth library ([`auth`](../../packages/auth/README.md)).
 
 ---
 
