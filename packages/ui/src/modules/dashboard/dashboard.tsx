@@ -432,7 +432,7 @@ export function Dashboard({
 						>
 							{tiles}
 
-							<DashboardPlaceholder gap={gap} />
+							<DashboardPlaceholder />
 						</div>
 					</section>
 				</DndContext>

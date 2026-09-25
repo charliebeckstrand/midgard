@@ -5,7 +5,12 @@ import {
 	type DraggableSyntheticListeners,
 	useDraggable,
 } from '@dnd-kit/core'
-import { type PointerEventHandler, type PointerEvent as ReactPointerEvent, useMemo } from 'react'
+import {
+	type PointerEventHandler,
+	type PointerEvent as ReactPointerEvent,
+	type RefObject,
+	useMemo,
+} from 'react'
 import { type DashboardDragTravel, travelOffset } from './engine/dashboard-drag'
 import type { DashboardCell } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
@@ -35,6 +40,8 @@ export type DashboardTileDrag = {
 	carried: Offset | null
 	/** The ref for the tile shell. */
 	setNodeRef: (element: HTMLElement | null) => void
+	/** The tile shell, which `setNodeRef` holds. */
+	node: RefObject<HTMLElement | null>
 	/** The props for the drag grip: the keyboard activator. */
 	grip: {
 		attributes: DraggableAttributes
@@ -82,7 +89,7 @@ export function useDashboardTileDrag(
 	cell: DashboardCell | undefined,
 	movable: boolean,
 ): DashboardTileDrag {
-	const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, isDragging } =
+	const { attributes, listeners, setNodeRef, node, setActivatorNodeRef, transform, isDragging } =
 		useDraggable({ id, disabled: !movable })
 
 	const owned = useDashboardStore(
@@ -131,5 +138,5 @@ export function useDashboardTileDrag(
 		}
 	}, [listeners])
 
-	return { dragging, carried, setNodeRef, grip, surface }
+	return { dragging, carried, setNodeRef, node, grip, surface }
 }

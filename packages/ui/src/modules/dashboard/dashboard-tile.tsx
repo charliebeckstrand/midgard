@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
+import { type ReactNode, useCallback, useId, useMemo } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import type { Mount } from '../../primitives/mount'
@@ -216,8 +216,6 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize, minSize, maxSize })
 
-	const gap = useDashboardStore((_, state) => state.gap)
-
 	const editable = useDashboardStore((view) => view.editable)
 
 	const projected = useDashboardStore((view) => view.projected)
@@ -230,20 +228,9 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const drag = useDashboardTileDrag(id, cell, movable)
 
-	const shell = useRef<HTMLDivElement | null>(null)
+	const { node, setNodeRef } = drag
 
-	const { setNodeRef } = drag
-
-	const setShell = useCallback(
-		(element: HTMLDivElement | null) => {
-			shell.current = element
-
-			setNodeRef(element)
-		},
-		[setNodeRef],
-	)
-
-	useDashboardFlip(shell, { cell, carried: drag.carried, snap: projected })
+	useDashboardFlip(node, { cell, carried: drag.carried, snap: projected })
 
 	const { reportError } = useDashboardActions()
 
@@ -260,11 +247,12 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	return (
 		<div
-			ref={setShell}
+			ref={setNodeRef}
 			data-slot="dashboard-tile"
 			style={{
 				gridArea: gridArea(cell),
-				padding: gap / 2,
+				// The canvas publishes the gutter, and the tile insets half of it on each side.
+				padding: 'calc(var(--dashboard-gap) / 2)',
 				transform: carried ? `translate3d(${carried.x}px, ${carried.y}px, 0)` : undefined,
 			}}
 			className={cn(k.tile({ lifted: drag.dragging || resizing }), className)}
@@ -288,7 +276,7 @@ export function DashboardTile(props: DashboardTileProps) {
 				onRemove={onRemove}
 				onDuplicate={onDuplicate}
 				expandable={expandable}
-				shell={shell}
+				shell={node}
 			>
 				{children}
 			</DashboardTileCard>
