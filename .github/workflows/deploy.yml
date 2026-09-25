@@ -32,6 +32,8 @@ jobs:
       # project, then updates it and waits for the deployment to go live. The
       # action reads `project_id` only when it creates the app.
       - uses: digitalocean/app_action/deploy@v2
+        env:
+          PROXY_SECRET: ${{ secrets.PROXY_SECRET }}
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           project_id: ${{ vars.DIGITALOCEAN_PROJECT_ID }}

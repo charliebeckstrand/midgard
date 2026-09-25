@@ -46,6 +46,8 @@ Both apps get auth and API responses from the bifrost gateway. [`withAuth`](pack
 
 `next build` writes the value into the rewrites, so set it for the build and for the server. In production, a build or a server start without it fails.
 
+The gateway rate-limits sign-in and register by client address. On App Platform, each hop writes its own address into `do-connecting-ip`, so the gateway sees the address of the app. The proxy of an app sends the address of the browser in `x-client-ip`, with `PROXY_SECRET` in `x-proxy-secret`. The gateway uses that address only when the secret agrees with its own `PROXY_SECRET`. Set the same value in the `PROXY_SECRET` repository secret of midgard and of asgard.
+
 ## 5. Deploy
 
 Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform spec in [`.do/app.yaml`](.do/app.yaml). The spec holds one app, `midgard`, with one component for each subdomain:
