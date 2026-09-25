@@ -10,8 +10,11 @@ import type { DashboardSpecTile } from './engine/dashboard-spec'
  * `onValueChange` triad. Omit `value` to let the dashboard hold the state.
  */
 type DashboardBinding<T> = {
-	/** The controlled value. `undefined` leaves the dashboard uncontrolled. */
-	value?: T
+	/**
+	 * The controlled value. `undefined` leaves the dashboard uncontrolled, and
+	 * `null` keeps it controlled with no value.
+	 */
+	value?: T | null
 	/** The initial value when uncontrolled. */
 	defaultValue?: T
 	/** Receives each committed change. */
@@ -28,6 +31,11 @@ export type DashboardLayoutBinding = DashboardBinding<DashboardLayoutItem[]>
 /**
  * The binding of the filter that the app owns. Edit it with `QueryBuilder`, and
  * each tile reads it through `useDashboardScope` or `useDashboardRows`.
+ *
+ * @remarks
+ * Bind an optional filter as `value: spec.filter ?? null`. An `undefined` value
+ * lets the board hold the filter itself. A filter that a tile set then stays
+ * when the app clears its own filter.
  */
 export type DashboardFilterBinding = DashboardBinding<QueryGroup>
 

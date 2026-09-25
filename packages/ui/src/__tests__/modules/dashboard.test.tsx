@@ -1844,6 +1844,57 @@ describe('Dashboard scope', () => {
 		expect(screen.getByRole('button', { name: 'Narrowed' })).toBeInTheDocument()
 	})
 
+	it('clears a filter that a tile set when the app binds an absent filter as null', () => {
+		const filter: QueryGroup = {
+			id: 'f',
+			type: 'group',
+			children: [{ id: 'r', type: 'rule', field: 'amount', operator: 'gte', value: 20 }],
+		}
+
+		function Narrow() {
+			const scope = useDashboardScope()
+
+			return (
+				<button type="button" onClick={() => scope.setFilter(filter)}>
+					Narrow
+				</button>
+			)
+		}
+
+		// The filter of a spec is optional, so the app holds it as a value or undefined.
+		function App() {
+			const [saved, setSaved] = useState<QueryGroup | undefined>(undefined)
+
+			return (
+				<>
+					<button type="button" onClick={() => setSaved(undefined)}>
+						Reset
+					</button>
+
+					<Dashboard aria-label="Sales" filter={{ value: saved ?? null, onValueChange: setSaved }}>
+						<DashboardTile id="narrow" title="Narrow">
+							<Narrow />
+						</DashboardTile>
+
+						<DashboardTile id="total" title="Total">
+							<Total testId="total" />
+						</DashboardTile>
+					</Dashboard>
+				</>
+			)
+		}
+
+		renderUI(<App />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Narrow' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('50')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+	})
+
 	it('offers a clear control on the tile that holds a selection', () => {
 		renderUI(
 			<Dashboard aria-label="Sales">

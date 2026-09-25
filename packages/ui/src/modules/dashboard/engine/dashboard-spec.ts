@@ -58,7 +58,10 @@ export type DashboardSpec = {
 	tiles: DashboardSpecTile[]
 	/** The saved layout of the tiles. */
 	layout: DashboardLayoutItem[]
-	/** The filter that the app owns. */
+	/**
+	 * The filter that the app owns. Absent means no filter, so bind it as
+	 * `value: spec.filter ?? null`.
+	 */
 	filter?: QueryGroup
 }
 
