@@ -105,6 +105,71 @@ describe('scopeQuery and scopeRows', () => {
 
 		expect(scopeRows(sales, query, read)).toEqual(sales)
 	})
+
+	it('reads a filter of blank rules, empty groups, or malformed values as inactive', () => {
+		const filters: QueryGroup[] = [
+			{
+				id: 'f',
+				type: 'group',
+				children: [{ id: 'r', type: 'rule', field: 'region', operator: 'equals', value: '' }],
+			},
+			{ id: 'f', type: 'group', children: [{ id: 'g', type: 'group', children: [] }] },
+			{
+				id: 'f',
+				type: 'group',
+				children: [{ id: 'r', type: 'rule', field: 'amount', operator: 'gt', value: 'abc' }],
+			},
+		]
+
+		for (const filter of filters) {
+			const query = scopeQuery(filter, [], null)
+
+			// The evaluator reads each of them as no constraint, so the scope does too.
+			expect(isScopeActive(query)).toBe(false)
+
+			expect(scopeRows(sales, query, read)).toEqual(sales)
+		}
+	})
+})
+
+describe('a blank selection', () => {
+	type Place = { region: string | null | undefined }
+
+	const places: Place[] = [{ region: 'West' }, { region: 'East' }, { region: null }, { region: '' }]
+
+	const regionOf = (row: Place, field: string) => row[field as keyof Place]
+
+	const rows = (selections: DashboardSelection[]) => {
+		const query = scopeQuery(undefined, selections, null)
+
+		return {
+			active: isScopeActive(query),
+			regions: scopeRows(places, query, regionOf).map((row) => row.region),
+		}
+	}
+
+	it('selects the rows whose field is empty, and reads as active', () => {
+		for (const value of ['', null, undefined]) {
+			expect(rows(selectValue([], 'map', 'region', value))).toEqual({
+				active: true,
+				regions: [null, ''],
+			})
+		}
+	})
+
+	it('adds the empty rows to a selected value, in either order', () => {
+		const westFirst = selectValue(selectValue([], 'map', 'region', 'West'), 'map', 'region', '', {
+			additive: true,
+		})
+
+		const blankFirst = selectValue(selectValue([], 'map', 'region', ''), 'map', 'region', 'West', {
+			additive: true,
+		})
+
+		for (const selections of [westFirst, blankFirst]) {
+			expect(rows(selections)).toEqual({ active: true, regions: ['West', null, ''] })
+		}
+	})
 })
 
 describe('liveSelections', () => {

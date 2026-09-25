@@ -8,6 +8,7 @@
  * chart therefore does not filter itself down to the bar that the user clicked.
  */
 
+import { isQueryActive } from '../../query/engine/query-active'
 import { evaluateQuery } from '../../query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../query/engine/types'
 
@@ -20,7 +21,11 @@ export type DashboardSelection = {
 	source: string
 	/** The field that the selection filters. */
 	field: string
-	/** The selected values. A row matches when its field equals one of them. */
+	/**
+	 * The selected values. A row matches when its field equals one of them. An
+	 * empty value `''` matches a row whose field is empty: `null`, `undefined`, or `''`.
+	 * A value of only whitespace puts no constraint on the rows.
+	 */
 	values: readonly string[]
 }
 
@@ -133,7 +138,12 @@ export function selectedValues(
 	)
 }
 
-/** One selection as a query group: an `equals` rule for each value, joined with `or`. */
+/**
+ * One selection as a query group: a rule for each value, joined with `or`. A
+ * value takes an `equals` rule, and an empty value `''` takes an `isEmpty` rule.
+ * The evaluator reads an `equals` rule with an empty value as no constraint. That
+ * rule then drops out of the fold, and the blank rows drop with it.
+ */
 function selectionGroup(selection: DashboardSelection): QueryGroup {
 	const prefix = `dashboard-selection:${selection.source}:${selection.field}`
 
@@ -147,8 +157,7 @@ function selectionGroup(selection: DashboardSelection): QueryGroup {
 				type: 'rule',
 				combinator: index === 0 ? undefined : 'or',
 				field: selection.field,
-				operator: 'equals',
-				value,
+				...(value === '' ? { operator: 'isEmpty', value: null } : { operator: 'equals', value }),
 			}),
 		),
 	}
@@ -158,6 +167,11 @@ function selectionGroup(selection: DashboardSelection): QueryGroup {
  * The query that the tile `viewer` sees: the filter, and each selection that
  * another tile made. Pass `null` for a reader outside any tile, which sees each
  * selection. The result is an ordinary `QueryGroup`, so `QuerySummary` can show it.
+ *
+ * @remarks
+ * An empty selection value becomes an `isEmpty` rule. `QuerySummary` names that
+ * rule only when the field offers `isEmpty`, as a text field does. For another
+ * field, list `isEmpty` in its `operators`, or the summary shows the raw name.
  */
 export function scopeQuery(
 	filter: QueryGroup | undefined,
@@ -179,9 +193,13 @@ export function scopeQuery(
 	return { id: 'dashboard-scope', type: 'group', children }
 }
 
-/** Whether a query holds a condition. An empty query matches each row. */
+/**
+ * Whether a query puts a constraint on the rows, as the evaluator reads it. An
+ * empty query matches each row, and so does a query of blank rules or empty
+ * groups. The reading is the one of `isQueryActive`.
+ */
 export function isScopeActive(query: QueryGroup): boolean {
-	return query.children.length > 0
+	return isQueryActive(query)
 }
 
 /** The rows that match `query`, read through `getValue`. */
