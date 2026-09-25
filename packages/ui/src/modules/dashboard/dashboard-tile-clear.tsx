@@ -4,6 +4,7 @@ import { useCallback } from 'react'
 import { Button } from '../../components/button'
 import { useDashboardActions } from './context'
 import { clearSelection } from './engine/dashboard-scope'
+import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** Props for {@link DashboardTileClear}. @internal */
@@ -23,8 +24,12 @@ export type DashboardTileClearProps = {
  * @internal
  */
 export function DashboardTileClear({ id, label }: DashboardTileClearProps) {
-	const selecting = useDashboardStore((_, state) =>
-		state.selections.some((item) => item.source === id),
+	const selecting = useDashboardStore(
+		useCallback(
+			(_: DashboardView, state: DashboardState) =>
+				state.selections.some((item) => item.source === id),
+			[id],
+		),
 	)
 
 	const { updateSelections } = useDashboardActions()

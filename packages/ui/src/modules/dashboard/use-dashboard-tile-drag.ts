@@ -9,10 +9,12 @@ import {
 	type PointerEventHandler,
 	type PointerEvent as ReactPointerEvent,
 	type RefObject,
+	useCallback,
 	useMemo,
 } from 'react'
 import { type DashboardDragTravel, travelOffset } from './engine/dashboard-drag'
 import type { DashboardCell } from './engine/dashboard-layout'
+import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** A pointer offset in px. */
@@ -93,18 +95,34 @@ export function useDashboardTileDrag(
 		useDraggable({ id, disabled: !movable })
 
 	const owned = useDashboardStore(
-		(_, state) => state.gesture?.kind === 'drag' && state.gesture.id === id,
+		useCallback(
+			(_: DashboardView, state: DashboardState) =>
+				state.gesture?.kind === 'drag' && state.gesture.id === id,
+			[id],
+		),
 	)
 
 	// The store gesture owns the drag. A dnd-kit drag that the board refused or
 	// canceled lifts nothing.
 	const dragging = isDragging && owned
 
-	const travel = useDashboardStore((view) => (dragging ? view.travel : null))
+	const travel = useDashboardStore(
+		useCallback((view: DashboardView) => (dragging ? view.travel : null), [dragging]),
+	)
 
-	const pitch = useDashboardStore((_, state) => (dragging ? (state.gesture?.pitch ?? 0) : 0))
+	const pitch = useDashboardStore(
+		useCallback(
+			(_: DashboardView, state: DashboardState) => (dragging ? (state.gesture?.pitch ?? 0) : 0),
+			[dragging],
+		),
+	)
 
-	const inline = useDashboardStore((_, state) => (dragging ? (state.gesture?.inline ?? 1) : 1))
+	const inline = useDashboardStore(
+		useCallback(
+			(_: DashboardView, state: DashboardState) => (dragging ? (state.gesture?.inline ?? 1) : 1),
+			[dragging],
+		),
+	)
 
 	const carried = useMemo(
 		() => (dragging ? carriedOffset(cell, transform, travel, pitch, inline) : null),

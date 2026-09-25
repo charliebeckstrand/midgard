@@ -9,6 +9,7 @@ import { useDashboardActions } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
 import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
+import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
 import { useDashboardTileCell } from './use-dashboard-tile-cell'
@@ -16,6 +17,12 @@ import { useDashboardTileDrag } from './use-dashboard-tile-drag'
 
 /** The minimum content width of a tile, in px: about where a chart with a legend stays legible. */
 const DEFAULT_MIN_WIDTH = 320
+
+/** Whether the gestures of the board are live. */
+const selectEditable = (view: DashboardView) => view.editable
+
+/** Whether the board paints the responsive re-pack. */
+const selectProjected = (view: DashboardView) => view.projected
 
 /**
  * Whether a tile draws a header row. A tile with standard controls always has
@@ -216,12 +223,16 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const cell = useDashboardTileCell(id, { ratio, minWidth, label, defaultSize, minSize, maxSize })
 
-	const editable = useDashboardStore((view) => view.editable)
+	const editable = useDashboardStore(selectEditable)
 
-	const projected = useDashboardStore((view) => view.projected)
+	const projected = useDashboardStore(selectProjected)
 
 	const resizing = useDashboardStore(
-		(_, state) => state.gesture?.kind === 'resize' && state.gesture.id === id,
+		useCallback(
+			(_: DashboardView, state: DashboardState) =>
+				state.gesture?.kind === 'resize' && state.gesture.id === id,
+			[id],
+		),
 	)
 
 	const movable = editable && cell !== undefined && !cell.static
