@@ -84,16 +84,21 @@ function computeRangeDayFlags(
 	}
 }
 
-/** The enter handler of each day, for each `onHoverDate`. */
-const enterHandlers = new WeakMap<(date: Date | null) => void, Map<number, () => void>>()
+/**
+ * The enter handler of each rendered day, for each `onHoverDate`. The inner map
+ * keys each handler on the `Date` of its cell, not on the day number. The
+ * calendar keeps one `Date` for each day while it renders that month. When the
+ * month leaves the view, its `Date`s and their handlers go too.
+ */
+const enterHandlers = new WeakMap<(date: Date | null) => void, WeakMap<Date, () => void>>()
 
 /** The leave handler, for each `onHoverDate`. */
 const leaveHandlers = new WeakMap<(date: Date | null) => void, () => void>()
 
 /**
  * The hover handlers of a day cell. Each handler keeps its identity for the same
- * `onHoverDate` and the same day. A memoized cell then holds when the band moves
- * past it.
+ * `onHoverDate` and the same day while that month renders. A memoized cell then
+ * holds when the band moves past it.
  */
 function hoverHandlers(
 	onHoverDate: ((date: Date | null) => void) | undefined,
@@ -101,20 +106,10 @@ function hoverHandlers(
 ): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
 	if (!onHoverDate) return {}
 
-	const byDay = memoWeak(enterHandlers, onHoverDate, () => new Map<number, () => void>())
-
-	const time = date.getTime()
-
-	let onMouseEnter = byDay.get(time)
-
-	if (!onMouseEnter) {
-		onMouseEnter = () => onHoverDate(date)
-
-		byDay.set(time, onMouseEnter)
-	}
+	const byDay = memoWeak(enterHandlers, onHoverDate, () => new WeakMap<Date, () => void>())
 
 	return {
-		onMouseEnter,
+		onMouseEnter: memoWeak(byDay, date, (day) => () => onHoverDate(day)),
 		onMouseLeave: memoWeak(leaveHandlers, onHoverDate, (report) => () => report(null)),
 	}
 }
