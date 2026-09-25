@@ -1,0 +1,43 @@
+language js
+
+// `useFloating` rebuilds its `context` object on every reposition. A hook that
+// names the whole object as a dependency therefore changes identity on each
+// `autoUpdate` tick, and everything downstream of that identity renders again.
+// `context.onOpenChange` is the own effect event of floating-ui, one identity
+// for the whole mount, so it is safe to name alone (`hooks/use-floating-ui.ts`).
+//
+// A dependency array that names bare `context`, in a callback whose body only
+// reads `context.<member>`, is a break: the member is the dependency. A body
+// that passes `context` on as a value (an argument, a spread, a shorthand
+// property, a destructure) needs the object, so it passes.
+//
+// Scope is the identifier `context`, which every floating call site in the
+// package uses, in a file that calls a `useFloating*` hook. A binding under
+// another name is out of reach.
+//
+// The clauses run in order, and the search of the whole file for a
+// `useFloating*` call is the costly one. It comes after the check of the
+// dependency array, so it runs only for an array that names bare `context`.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests and benchmarks.
+`$hook($callback, $deps)` where {
+	$hook <: or { `useCallback`, `useMemo`, `useEffect`, `useLayoutEffect`, `useInsertionEffect` },
+	$deps <: JsArrayExpression(elements = $elements),
+	$elements <: some JsIdentifierExpression() as $dependency where { $dependency <: `context` },
+	$program <: contains JsCallExpression(callee = $floating) where {
+		$floating <: r"useFloating\w*"
+	},
+	$callback <: contains JsStaticMemberExpression(object = $read) where { $read <: `context` },
+	not $callback <: contains JsIdentifierExpression() as $bare where {
+		$bare <: `context`,
+		not $bare <: within JsStaticMemberExpression(object = $bare)
+	},
+	not $callback <: contains JsShorthandPropertyObjectMember() as $shorthand where {
+		$shorthand <: `context`
+	},
+	register_diagnostic(
+		span = $deps,
+		message = "depend on the `context` member the callback reads, not on `context`: floating-ui rebuilds it on every reposition"
+	)
+}
