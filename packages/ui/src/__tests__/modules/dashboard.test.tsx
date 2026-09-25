@@ -63,6 +63,60 @@ function Board({
 	)
 }
 
+/** Three free-form tiles of one span: two in the first row, and one under the first. */
+const GRID: DashboardLayoutItem[] = [
+	{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+	{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+	{ id: 'c', x: 0, y: 10, w: 8, h: 10 },
+]
+
+/** The spies of one drag case on {@link Grid}. */
+type GridSpies = {
+	onLayout?: (next: DashboardLayoutItem[]) => void
+	onDragStart?: DashboardProps['onDragStart']
+	onDragEnd?: DashboardProps['onDragEnd']
+	onRemove?: () => void
+}
+
+/** A controlled board in edit mode with the {@link GRID} layout. It saves each commit. */
+function Grid({ onLayout, onDragStart, onDragEnd, onRemove }: GridSpies) {
+	const [value, setValue] = useState(GRID)
+
+	return (
+		<Dashboard
+			aria-label="Sales"
+			editing
+			layout={{
+				value,
+				onValueChange: (next) => {
+					onLayout?.(next)
+
+					setValue(next)
+				},
+			}}
+			onDragStart={onDragStart}
+			onDragEnd={onDragEnd}
+		>
+			<DashboardTile id="a" title="Revenue" onRemove={onRemove} />
+
+			<DashboardTile id="b" title="Traffic" />
+
+			<DashboardTile id="c" title="Orders" />
+		</Dashboard>
+	)
+}
+
+/** The text of the dnd-kit live region, which narrates each drag. */
+function dragNarration(): string {
+	return document.querySelector('[id^="DndLiveRegion"]')?.textContent ?? ''
+}
+
+/** The press of the main mouse button, which the pointer sensor needs. */
+const PRIMARY = { isPrimary: true, button: 0 }
+
+/** Lets dnd-kit remove its click guard from the document, 50 ms after a release. */
+const teardown = () => act(() => new Promise((resolve) => setTimeout(resolve, 60)))
+
 describe('Dashboard', () => {
 	it('renders each tile with a layout entry on the server, at its saved cell', () => {
 		const html = renderToString(<Board />)
@@ -266,6 +320,68 @@ describe('Dashboard', () => {
 		await settle()
 
 		expect(cursor()).toBeNull()
+	})
+
+	it('drags a card with the pointer into free cells, and ends the drop once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { container } = renderUI(
+			<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />,
+		)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		fireEvent.pointerDown(card, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		// The pointer sensor lifts the tile after 3 px of travel.
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(card).toHaveAttribute('data-dragging')
+
+		// At a 50 px pitch, 800 px is 16 columns: the free cells at the end of the first row.
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+		expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
+			'1 / 17 / span 10 / span 8',
+		)
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 800, clientY: 0 })
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		expect(onLayout.mock.lastCall?.[0]).toContainEqual({ id: 'a', x: 16, y: 0, w: 8, h: 10 })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: false }),
+		)
+
+		await teardown()
+	})
+
+	it('starts no drag from a press on a tile control that moves', async () => {
+		const onDragStart = vi.fn()
+
+		renderUI(<Grid onDragStart={onDragStart} onRemove={vi.fn()} />)
+
+		const remove = screen.getByRole('button', { name: 'Remove Revenue' })
+
+		fireEvent.pointerDown(remove, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).not.toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		await teardown()
 	})
 
 	it('renders only the tile whose cell changed', () => {
@@ -814,6 +930,99 @@ describe('Dashboard gesture owner', () => {
 		expect(onLayout).not.toHaveBeenCalled()
 
 		expect(onDragEnd).toHaveBeenCalledTimes(1)
+	})
+
+	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// One column to the right, Revenue covers Traffic, and the nearest free origin is its start.
+		const grip = await lift('Move Revenue', 'ArrowRight', 1)
+
+		expect(dragNarration()).toBe('Revenue cannot go here. A drop now changes nothing.')
+
+		await drop(grip)
+
+		expect(dragNarration()).toBe('Dropped Revenue. The board did not change.')
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: GRID })
+	})
+
+	it('narrates Escape after a preview, and ends the drag once as canceled', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// Eight columns to the right, Revenue covers Traffic in its own row, so the two shift.
+		const grip = await lift('Move Revenue', 'ArrowRight', 8)
+
+		expect(dragNarration()).toBe(
+			'Revenue moves before or after Traffic, to column 9 of 24, row 1, 8 columns wide.',
+		)
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(dragNarration()).toBe(
+			'Canceled. Revenue returned to column 1 of 24, row 1, 8 columns wide.',
+		)
+
+		expect(areaOf(grip)).toBe('1 / 1 / span 10 / span 8')
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: GRID })
+	})
+
+	it('narrates an ArrowDown swap, and ends the drop once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Grid onLayout={onLayout} onDragStart={onDragStart} onDragEnd={onDragEnd} />)
+
+		// Ten rows down, Revenue covers Orders in another row, so the two swap.
+		const grip = await lift('Move Revenue', 'ArrowDown', 10)
+
+		expect(dragNarration()).toBe(
+			'Revenue swaps with Orders, to column 1 of 24, row 11, 8 columns wide.',
+		)
+
+		await drop(grip)
+
+		expect(dragNarration()).toBe('Dropped Revenue at column 1 of 24, row 11, 8 columns wide.')
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		const next = onLayout.mock.lastCall?.[0] as DashboardLayoutItem[]
+
+		expect(next).toContainEqual({ id: 'a', x: 0, y: 10, w: 8, h: 10 })
+
+		expect(next).toContainEqual({ id: 'c', x: 0, y: 0, w: 8, h: 10 })
+
+		expect(areaOf(grip)).toBe('11 / 1 / span 10 / span 8')
+
+		expect(onDragStart).toHaveBeenCalledExactlyOnceWith({ id: 'a', layout: GRID })
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: false }),
+		)
 	})
 })
 
