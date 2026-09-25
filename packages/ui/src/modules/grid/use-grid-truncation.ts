@@ -27,8 +27,9 @@ export type GridSettleSubscription = (listener: () => void) => () => void
  * because it keeps no live `truncated` flag. The header omits it — it already
  * renders again on its own `width` prop.
  * @param suspended - Stands the measure down entirely (a drag-resize in flight,
- * whose reveal the cell holds closed anyway); the first commit after it lifts
- * re-measures.
+ * whose reveal the cell holds closed anyway). A flag re-measures on the first
+ * commit after it lifts. A body cell passes a function instead, read at each
+ * measure. The settle at the end of the drag then measures it again.
  * @returns `[ref, truncated, contacted]`. Attach `ref` to the single-line
  * element. Read `truncated` to gate the reveal tooltip. Read `contacted` to
  * defer mounting the reveal machinery until the first contact that could open
@@ -37,7 +38,7 @@ export type GridSettleSubscription = (listener: () => void) => () => void
  */
 export function useGridTruncation<E extends HTMLElement>(
 	onSettle?: GridSettleSubscription,
-	suspended?: boolean,
+	suspended?: boolean | (() => boolean),
 ): [RefCallback<E>, boolean, boolean] {
 	const [ref, truncated, measure, contacted] = useTruncation<E>({ suspended })
 

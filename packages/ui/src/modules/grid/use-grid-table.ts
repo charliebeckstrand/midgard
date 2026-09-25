@@ -808,7 +808,9 @@ function useResizeView<T>(args: {
 
 	// After the commit that moves the `<colgroup>`, so a cell that measures reads
 	// the new width.
-	useLayoutEffect(() => settle.publish(settleWidths), [settle, settleWidths])
+	const dragging = resizing != null
+
+	useLayoutEffect(() => settle.publish(settleWidths, dragging), [settle, settleWidths, dragging])
 
 	return { resize, settle }
 }

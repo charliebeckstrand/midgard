@@ -205,7 +205,8 @@ export function focusWithoutReveal(el: HTMLElement): void {
  * measured element (a legend entry around its label span). It defaults to the
  * measured element itself. `suspended` stands every measure down (a column
  * drag-resize, whose reveal is held closed anyway); the first commit after suspension lifts
- * re-measures armed elements.
+ * re-measures armed elements. A function form is read at each measure, so a
+ * change of it renders nothing, and the caller measures again when it lifts.
  * @returns `[ref, truncated, measure, contacted]`:
  *
  * - Attach `ref` to the single-line element. It is a callback ref, so it
@@ -220,7 +221,7 @@ export function focusWithoutReveal(el: HTMLElement): void {
  */
 export function useTruncation<E extends HTMLElement>(options?: {
 	armRef?: RefObject<HTMLElement | null>
-	suspended?: boolean
+	suspended?: boolean | (() => boolean)
 }): [RefCallback<E>, boolean, () => void, boolean] {
 	const { armRef, suspended = false } = options ?? {}
 
@@ -243,7 +244,9 @@ export function useTruncation<E extends HTMLElement>(options?: {
 	// Setting the same value bails out of a re-render, so measuring on every
 	// commit can't loop.
 	const measure = useCallback(() => {
-		if (!armed.current || suspendedRef.current) return
+		const stood = suspendedRef.current
+
+		if (!armed.current || (typeof stood === 'function' ? stood() : stood)) return
 
 		const el = elRef.current
 

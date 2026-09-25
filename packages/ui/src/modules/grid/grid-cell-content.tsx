@@ -48,8 +48,6 @@ type GridCellContentProps = {
  * @internal
  */
 export function GridCellContent({ content, tooltip, columnId }: GridCellContentProps) {
-	const resizing = useGridResizing()
-
 	const settle = useGridSettle()
 
 	const onSettle = useMemo(
@@ -57,7 +55,9 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 		[settle, columnId],
 	)
 
-	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, resizing)
+	// The drag state is read when the cell measures, not rendered, so the start
+	// and the end of a drag do not render each cell again.
+	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, settle?.resizing)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can
@@ -76,14 +76,28 @@ export function GridCellContent({ content, tooltip, columnId }: GridCellContentP
 	// measures untruncated, so it stays a bare span through any contact.
 	if (tooltip.kind === 'none' || !contacted || !truncated) return span
 
-	const node = tooltip.kind === 'custom' ? tooltip.node : content
+	return (
+		<GridCellReveal node={tooltip.kind === 'custom' ? tooltip.node : content}>
+			{span}
+		</GridCellReveal>
+	)
+}
+
+/**
+ * The truncation tooltip of a visited, clipped cell. It alone subscribes to the
+ * drag state, so a drag renders again only the cells that show a reveal.
+ *
+ * @internal
+ */
+function GridCellReveal({ node, children }: { node: ReactNode; children: ReactNode }) {
+	const resizing = useGridResizing()
 
 	return (
-		// `!resizing` holds the tooltip closed through a column drag-resize: the
+		// `resizing` holds the tooltip closed through a column drag-resize: the
 		// drag reflows the column, and the overflow tooltip would otherwise flash
 		// open over the content the resize is reshaping.
-		<Tooltip disabled={!truncated || resizing}>
-			<TooltipTrigger>{span}</TooltipTrigger>
+		<Tooltip disabled={resizing}>
+			<TooltipTrigger>{children}</TooltipTrigger>
 
 			<TooltipContent className={TOOLTIP_CLASS}>{node}</TooltipContent>
 		</Tooltip>
