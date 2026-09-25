@@ -1186,7 +1186,8 @@ export function useGridTable<T>({
 	// The engine: a table object that keeps one identity. Its methods act on the
 	// one core table, so an action or an effect reads it when it runs. Its
 	// `options` and `state` fields are those of the first render, so no code
-	// reads them.
+	// reads them. `engine-handle-boundary.test.ts` holds that only an action or
+	// an effect reads it.
 	const [engine] = useState(() => table)
 
 	const { left, right, leaves, visibleColumns, widths } = useColumnLayout(
