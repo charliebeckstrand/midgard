@@ -16,7 +16,6 @@ import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
 import { type GridWindowRowProps, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
-import { GridCellContent } from './grid-cell-content'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
 import { GridRowActions } from './grid-row-actions'
@@ -91,13 +90,6 @@ export type GridRowsProps<T> = {
 	animateSortRows?: boolean
 	/** Truncate overflowing cell content with an ellipsis and an on-hover tooltip. */
 	truncate: boolean
-	/**
-	 * Per-visible-column width snapshot threaded to each cell's truncation
-	 * re-measure: `undefined` while a column drags, the settled engine width
-	 * otherwise (see {@link GridCellContent}). Indexed parallel to a row's
-	 * visible cells.
-	 */
-	settleWidths: (number | undefined)[]
 	/** Frozen-column controls; pinned cells stick to an edge. `null` when none. */
 	pinning: GridColumnPinning | null
 	/** Under grid semantics (virtualization, pagination, or the navigable cursor), rows carry global `aria-rowindex`. */
@@ -169,7 +161,6 @@ export function renderGridRow<T>(
 		selectable: props.selectable,
 		reorderable: props.reorderable,
 		truncate: props.truncate,
-		settleWidths: props.settleWidths,
 		pinning: props.pinning,
 		animateSortRows: props.animateSortRows,
 		dataRowIndex,
@@ -260,8 +251,6 @@ type GridRowProps<T> = {
 	 * the tooltip.
 	 */
 	truncate: boolean
-	/** Per-visible-column settled width snapshot, indexed parallel to this row's cells (see {@link GridRowsProps.settleWidths}). */
-	settleWidths: (number | undefined)[]
 	/** Invoked when the row is clicked or activated by keyboard; `undefined` makes the row inert. */
 	onRowClick?: GridRowClick<T>
 	/** Invoked when one of the row's data cells is clicked, ahead of {@link GridRowProps.onRowClick}. */
@@ -354,7 +343,6 @@ function GridRowImpl<T>({
 	selectable,
 	reorderable = false,
 	truncate,
-	settleWidths,
 	onRowClick,
 	onCellClick,
 	onRowDoubleClick,
@@ -522,7 +510,6 @@ function GridRowImpl<T>({
 						columnIndex={colIdx}
 						reorderable={reorderable}
 						truncate={truncate}
-						resizeSettleKey={settleWidths[colIdx]}
 						pinning={pinning}
 						cellRoving={cellRoving}
 						cellActivate={cellActivate}
