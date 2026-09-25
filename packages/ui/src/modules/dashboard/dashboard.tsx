@@ -326,11 +326,12 @@ export function Dashboard({
 		() => ({
 			beginResize,
 			resizeBy,
+			cancelResize,
 			setFilter: (next) => setFilterValue(next),
 			updateSelections: (update) => setSelectionValue((current) => update(current ?? [])),
 			reportError: (id, error) => reporter.current?.(id, error),
 		}),
-		[beginResize, resizeBy, setFilterValue, setSelectionValue],
+		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue],
 	)
 
 	// The root reads flags only, so a preview never renders the root again.

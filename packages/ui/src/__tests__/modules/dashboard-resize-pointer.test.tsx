@@ -1,9 +1,11 @@
-import { useState } from 'react'
+import { act } from '@testing-library/react'
+import { createRef, type Ref, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardGestureEndEvent,
 	type DashboardGestureStartEvent,
+	type DashboardHandle,
 	type DashboardLayoutItem,
 	DashboardTile,
 } from '../../modules/dashboard'
@@ -274,6 +276,89 @@ describe('Dashboard pointer resize', () => {
 		})
 
 		expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true)
+	})
+
+	/** A board with Revenue under a gap and Traffic beside it. The test sets the layout and the tiles. */
+	function Pair({
+		value,
+		withTraffic = true,
+		board,
+		spies,
+	}: {
+		value: DashboardLayoutItem[]
+		withTraffic?: boolean
+		board: Ref<DashboardHandle>
+		spies: Spies
+	}) {
+		return (
+			<Dashboard
+				ref={board}
+				aria-label="Board"
+				editing
+				layout={{ value, onValueChange: spies.onLayout }}
+				onResizeStart={spies.onResizeStart}
+				onResizeEnd={spies.onResizeEnd}
+			>
+				<DashboardTile id="a" title="Revenue" minWidth={0} />
+
+				{withTraffic && <DashboardTile id="b" title="Traffic" minWidth={0} />}
+			</Dashboard>
+		)
+	}
+
+	it('ends a resize as canceled when the app removes its tile, and frees the board', () => {
+		const spies = makeSpies()
+
+		const board = createRef<DashboardHandle>()
+
+		const pair: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 10, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		]
+
+		const { container, rerender } = renderUI(<Pair value={pair} board={board} spies={spies} />)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize Traffic' })
+
+		if (east === undefined) throw new Error('Traffic has no east splitter.')
+
+		pressAndMove(east)
+
+		const removed = pair.filter((item) => item.id !== 'b')
+
+		rerender(<Pair value={removed} withTraffic={false} board={board} spies={spies} />)
+
+		expect(spies.onResizeEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'b', canceled: true }),
+		)
+
+		expect(east.hasPointerCapture(1)).toBe(false)
+
+		expect(fireEvent.keyDown(document.body, { key: 'Escape' })).toBe(true)
+
+		let moved = false
+
+		act(() => {
+			moved = board.current?.tidy() ?? false
+		})
+
+		expect(moved).toBe(true)
+
+		expect(spies.onLayout).toHaveBeenCalledExactlyOnceWith([{ id: 'a', x: 0, y: 0, w: 8, h: 10 }])
+
+		// The app keeps its own layout, and moves Revenue down.
+		rerender(
+			<Pair
+				value={[{ id: 'a', x: 0, y: 30, w: 8, h: 10 }]}
+				withTraffic={false}
+				board={board}
+				spies={spies}
+			/>,
+		)
+
+		expect(area(container)).toBe('31 / 1 / span 10 / span 8')
+
+		expect(spies.onResizeEnd).toHaveBeenCalledTimes(1)
 	})
 
 	it('starts nothing on a secondary button', () => {

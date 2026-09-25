@@ -38,10 +38,11 @@ export type DashboardResizeHandlers = {
 	/** Applies one keyboard step, and commits it at once. */
 	resizeBy: (id: string, edge: DashboardResizeEdge, dw: number, dh: number) => void
 	/**
-	 * Ends the live pointer resize as canceled, and detaches its listeners. It
-	 * does nothing when no pointer resize is live.
+	 * Ends the live pointer resize as canceled, and detaches its listeners. With an
+	 * `id`, it ends only a resize of that tile. It does nothing when no such resize
+	 * is live.
 	 */
-	cancelResize: () => void
+	cancelResize: (id?: string) => void
 }
 
 /** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
@@ -98,9 +99,9 @@ export function useDashboardResize({
 
 	callbacks.current = { commit, onResizeStart, onResizeEnd }
 
-	// The end of the live pointer resize. A splitter that unmounts takes its own
-	// listeners away, so the board ends the gesture through this ref.
-	const live = useRef<((keep: boolean) => void) | null>(null)
+	// The tile and the end of the live pointer resize. A splitter that unmounts
+	// takes its own listeners away, so the board ends the gesture through this ref.
+	const live = useRef<{ id: string; finish: (keep: boolean) => void } | null>(null)
 
 	const beginResize = useCallback(
 		(id: string, edge: DashboardResizeEdge, event: ReactPointerEvent<HTMLElement>) => {
@@ -199,12 +200,16 @@ export function useDashboardResize({
 
 			window.addEventListener('keydown', onKey, { capture: true, signal })
 
-			live.current = finish
+			live.current = { id, finish }
 		},
 		[store, canvasRef],
 	)
 
-	const cancelResize = useCallback(() => live.current?.(false), [])
+	const cancelResize = useCallback((id?: string) => {
+		const resize = live.current
+
+		if (resize !== null && (id === undefined || resize.id === id)) resize.finish(false)
+	}, [])
 
 	const resizeBy = useCallback(
 		(id: string, edge: DashboardResizeEdge, dw: number, dh: number) => {
