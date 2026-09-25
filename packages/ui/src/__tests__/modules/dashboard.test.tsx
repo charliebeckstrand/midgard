@@ -14,7 +14,7 @@ import {
 } from '../../modules/dashboard'
 import { k } from '../../recipes/kata/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
-import { stubCanvasWidth } from '../helpers/dashboard-board'
+import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -71,20 +71,11 @@ type GridSpies = {
 
 /** A controlled board in edit mode with the {@link GRID} layout. It saves each commit. */
 function Grid({ onLayout, onDragStart, onDragEnd, onRemove }: GridSpies) {
-	const [value, setValue] = useState(GRID)
-
 	return (
 		<Dashboard
 			aria-label="Sales"
 			editing
-			layout={{
-				value,
-				onValueChange: (next) => {
-					onLayout?.(next)
-
-					setValue(next)
-				},
-			}}
+			layout={useControlledLayout(GRID, onLayout)}
 			onDragStart={onDragStart}
 			onDragEnd={onDragEnd}
 		>
@@ -188,28 +179,12 @@ describe('Dashboard', () => {
 		const onValueChange = vi.fn()
 
 		function Controlled() {
-			const [value, setValue] = useState(LAYOUT)
-
-			return (
-				<Board
-					editing
-					layout={{
-						value,
-						onValueChange: (next) => {
-							onValueChange(next)
-
-							setValue(next)
-						},
-					}}
-				/>
-			)
+			return <Board editing layout={useControlledLayout(LAYOUT, onValueChange)} />
 		}
 
 		renderUI(<Controlled />)
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowRight' })
+		pressSplitter('c', 0, 'ArrowRight')
 
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 
@@ -394,12 +369,7 @@ describe('Dashboard', () => {
 
 		renders.clear()
 
-		fireEvent.keyDown(
-			screen.getAllByRole('separator', { name: 'Resize Orders' })[0] as HTMLElement,
-			{
-				key: 'ArrowRight',
-			},
-		)
+		pressSplitter('Orders', 0, 'ArrowRight')
 
 		expect(renders.get('c')).toBeGreaterThan(0)
 
@@ -667,20 +637,11 @@ describe('Dashboard gesture owner', () => {
 		onLayout: (next: DashboardLayoutItem[]) => void
 		onDragEnd?: DashboardProps['onDragEnd']
 	}) {
-		const [value, setValue] = useState(LAYOUT)
-
 		return (
 			<Board
 				editing={editing}
 				onDragEnd={onDragEnd}
-				layout={{
-					value,
-					onValueChange: (next) => {
-						onLayout(next)
-
-						setValue(next)
-					},
-				}}
+				layout={useControlledLayout(LAYOUT, onLayout)}
 			/>
 		)
 	}
@@ -783,9 +744,7 @@ describe('Dashboard gesture owner', () => {
 		// Eight columns to the right, Revenue shifts against Traffic.
 		const grip = await lift('Move Revenue', 'ArrowRight', 8)
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowLeft' })
+		pressSplitter('c', 0, 'ArrowLeft')
 
 		expect(onLayout).not.toHaveBeenCalled()
 

@@ -1,10 +1,14 @@
 import { act } from '@testing-library/react'
-import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { inlineSign } from '../../modules/dashboard/engine/dashboard-layout'
 import { fireEvent, renderUI, screen } from '../helpers'
-import { stubCanvasWidth } from '../helpers/dashboard-board'
+import {
+	lastEntry,
+	pressSplitter,
+	stubCanvasWidth,
+	useControlledLayout,
+} from '../helpers/dashboard-board'
 
 stubCanvasWidth()
 
@@ -28,33 +32,15 @@ function Board({
 	dir: 'ltr' | 'rtl'
 	onLayout: (next: DashboardLayoutItem[]) => void
 }) {
-	const [value, setValue] = useState<DashboardLayoutItem[]>([{ id: 'a', x: 4, y: 0, w: 8, h: 10 }])
+	const layout = useControlledLayout([{ id: 'a', x: 4, y: 0, w: 8, h: 10 }], onLayout)
 
 	return (
 		<div dir={dir}>
-			<Dashboard
-				aria-label="Board"
-				editing
-				layout={{
-					value,
-					onValueChange: (next) => {
-						onLayout(next)
-
-						setValue(next)
-					},
-				}}
-			>
+			<Dashboard aria-label="Board" editing layout={layout}>
 				<DashboardTile id="a" title="A" minWidth={0} />
 			</Dashboard>
 		</div>
 	)
-}
-
-/** The entry of `a` in the last layout that the board committed. */
-function last(onLayout: ReturnType<typeof vi.fn>): DashboardLayoutItem | undefined {
-	const layout = onLayout.mock.lastCall?.[0] as DashboardLayoutItem[] | undefined
-
-	return layout?.find((item) => item.id === 'a')
 }
 
 describe('a right-to-left board', () => {
@@ -63,17 +49,15 @@ describe('a right-to-left board', () => {
 
 		renderUI(<Board dir="rtl" onLayout={onLayout} />)
 
-		const [end] = screen.getAllByRole('separator', { name: 'Resize A' })
+		pressSplitter('A', 0, 'ArrowLeft')
 
-		fireEvent.keyDown(end as HTMLElement, { key: 'ArrowLeft' })
+		expect(lastEntry(onLayout, 'a')).toMatchObject({ x: 4, w: 9 })
 
-		expect(last(onLayout)).toMatchObject({ x: 4, w: 9 })
+		pressSplitter('A', 0, 'ArrowRight')
 
-		fireEvent.keyDown(end as HTMLElement, { key: 'ArrowRight' })
+		pressSplitter('A', 0, 'ArrowRight')
 
-		fireEvent.keyDown(end as HTMLElement, { key: 'ArrowRight' })
-
-		expect(last(onLayout)).toMatchObject({ x: 4, w: 7 })
+		expect(lastEntry(onLayout, 'a')).toMatchObject({ x: 4, w: 7 })
 	})
 
 	it('keeps the arrow keys of a left-to-right board', () => {
@@ -81,11 +65,9 @@ describe('a right-to-left board', () => {
 
 		renderUI(<Board dir="ltr" onLayout={onLayout} />)
 
-		const [end] = screen.getAllByRole('separator', { name: 'Resize A' })
+		pressSplitter('A', 0, 'ArrowRight')
 
-		fireEvent.keyDown(end as HTMLElement, { key: 'ArrowRight' })
-
-		expect(last(onLayout)).toMatchObject({ x: 4, w: 9 })
+		expect(lastEntry(onLayout, 'a')).toMatchObject({ x: 4, w: 9 })
 	})
 
 	it.each([
@@ -113,6 +95,6 @@ describe('a right-to-left board', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		expect(last(onLayout)).toMatchObject({ x, y: 0, w: 8 })
+		expect(lastEntry(onLayout, 'a')).toMatchObject({ x, y: 0, w: 8 })
 	})
 })

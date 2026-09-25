@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { createRef, type Ref, useState } from 'react'
+import { createRef, type Ref } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
@@ -10,7 +10,7 @@ import {
 	DashboardTile,
 } from '../../modules/dashboard'
 import { fireEvent, getSlot, renderUI, screen } from '../helpers'
-import { stubCanvasWidth } from '../helpers/dashboard-board'
+import { stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
 
@@ -25,20 +25,11 @@ type Spies = {
 
 /** A controlled board with one free-form tile and no width floor. */
 function Board({ editing = true, spies }: { editing?: boolean; spies: Spies }) {
-	const [value, setValue] = useState(LAYOUT)
-
 	return (
 		<Dashboard
 			aria-label="Board"
 			editing={editing}
-			layout={{
-				value,
-				onValueChange: (next) => {
-					spies.onLayout(next)
-
-					setValue(next)
-				},
-			}}
+			layout={useControlledLayout(LAYOUT, spies.onLayout)}
 			onResizeStart={spies.onResizeStart}
 			onResizeEnd={spies.onResizeEnd}
 		>

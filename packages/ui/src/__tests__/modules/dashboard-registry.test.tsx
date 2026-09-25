@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -13,8 +12,8 @@ import {
 	type DashboardWidgetRenderer,
 	useDashboardScope,
 } from '../../modules/dashboard'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
-import { stubCanvasWidth } from '../helpers/dashboard-board'
+import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
 
@@ -276,25 +275,17 @@ describe('DashboardTiles', () => {
 		const onValueChange = vi.fn()
 
 		function App() {
-			const [layout, setLayout] = useState<DashboardLayoutItem[]>([
-				{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
-				{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
-			])
+			const layout = useControlledLayout(
+				[
+					{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+					{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+				],
+				onValueChange,
+			)
 
 			return (
 				<DashboardWidgetProvider widgets={widgets}>
-					<Dashboard
-						aria-label="Sales"
-						editing
-						layout={{
-							value: layout,
-							onValueChange: (next) => {
-								onValueChange(next)
-
-								setLayout(next)
-							},
-						}}
-					>
+					<Dashboard aria-label="Sales" editing layout={layout}>
 						<DashboardTiles tiles={tiles} />
 					</Dashboard>
 				</DashboardWidgetProvider>
@@ -305,9 +296,7 @@ describe('DashboardTiles', () => {
 
 		render.mockClear()
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize B' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowRight' })
+		pressSplitter('B', 0, 'ArrowRight')
 
 		// The app rendered again with the new layout, and no spec tile rendered.
 		expect(onValueChange).toHaveBeenCalledTimes(1)

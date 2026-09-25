@@ -1,4 +1,3 @@
-import { act } from '@testing-library/react'
 import { type ReactNode, useCallback, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -12,20 +11,13 @@ import {
 	duplicateSpecTile,
 	removeSpecTile,
 } from '../../modules/dashboard'
-import { bySlot, fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import { bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
 	{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
 	{ id: 'c', x: 16, y: 0, w: 8, h: 10 },
 ]
-
-/** Lets the announcer write the region, which it does in a microtask. */
-async function flushAnnouncer(): Promise<void> {
-	await act(async () => {
-		await Promise.resolve()
-	})
-}
 
 describe('DashboardTile actions', () => {
 	function Board({
@@ -109,9 +101,7 @@ describe('DashboardTile actions', () => {
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Tile c' }))
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Removed Tile b.')
+		await expectAnnouncement('Removed Tile b.')
 	})
 
 	it('moves the focus to the previous grip after the last tile, and to the board after the only tile', () => {
@@ -147,9 +137,7 @@ describe('DashboardTile actions', () => {
 
 		expect(document.activeElement).toBe(control)
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Duplicated Tile a.')
+		await expectAnnouncement('Duplicated Tile a.')
 	})
 
 	it('expands a tile into a dialog named by its title', () => {

@@ -1,8 +1,8 @@
-import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { renderUI, screen } from '../helpers'
+import { useControlledLayout } from '../helpers/dashboard-board'
 
 /**
  * A right-to-left board mirrors the saved layout in CSS: the grid puts column 0
@@ -17,22 +17,13 @@ describe('dashboard right to left (real browser)', () => {
 	]
 
 	function Board({ onLayout }: { onLayout?: (next: DashboardLayoutItem[]) => void }) {
-		const [value, setValue] = useState(LAYOUT)
-
 		return (
 			<div dir="rtl" style={{ width: 960 }}>
 				<Dashboard
 					aria-label="Board"
 					editing
 					gap={0}
-					layout={{
-						value,
-						onValueChange: (next) => {
-							onLayout?.(next)
-
-							setValue(next)
-						},
-					}}
+					layout={useControlledLayout(LAYOUT, onLayout)}
 				>
 					<DashboardTile id="a" title="A" minWidth={0} />
 

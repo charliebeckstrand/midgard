@@ -7,7 +7,7 @@ import {
 	type DashboardLayoutItem,
 	DashboardTile,
 } from '../../modules/dashboard'
-import { fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 import { stubCanvasWidth } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
@@ -18,13 +18,6 @@ const GAPPY: DashboardLayoutItem[] = [
 	{ id: 'b', x: 12, y: 20, w: 12, h: 10 },
 	{ id: 'c', x: 0, y: 16, w: 12, h: 8 },
 ]
-
-/** Lets the announcer write the region, which it does in a microtask. */
-async function flushAnnouncer(): Promise<void> {
-	await act(async () => {
-		await Promise.resolve()
-	})
-}
 
 function Board({
 	layout,
@@ -75,9 +68,7 @@ describe('DashboardHandle.tidy', () => {
 			{ id: 'c', x: 0, y: 10, w: 12, h: 8 },
 		])
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Tidied the board. Moved 3 tiles up.')
+		await expectAnnouncement('Tidied the board. Moved 3 tiles up.')
 	})
 
 	it('changes nothing on a packed board, and says so', async () => {
@@ -103,9 +94,7 @@ describe('DashboardHandle.tidy', () => {
 
 		expect(onLayout).not.toHaveBeenCalled()
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('The board is already tidy.')
+		await expectAnnouncement('The board is already tidy.')
 	})
 
 	it('keeps the saved place of a tile that is not mounted', () => {
