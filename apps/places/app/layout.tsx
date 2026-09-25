@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import { AppearanceScript } from 'ui/providers/appearance'
 
 import './globals.css'
 import { Providers } from './providers'
@@ -15,7 +16,10 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className="h-full">
+		<html lang="en" className="h-full" suppressHydrationWarning>
+			<head>
+				<AppearanceScript />
+			</head>
 			{/* The map fills the screen, so the page never scrolls: the body is the
 			    frame every panel docks against. */}
 			<body className="h-full overflow-hidden bg-white dark:bg-zinc-900 antialiased">

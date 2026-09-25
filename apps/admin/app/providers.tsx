@@ -3,10 +3,12 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
 import { type ReactNode, useState } from 'react'
+import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 
 /**
- * App-wide client providers: `UIProvider` wired to Next's `Link`, and one
+ * App-wide client providers: `UIProvider` wired to Next's `Link`,
+ * `AppearanceProvider` for the persisted theme and density, and one
  * `QueryClient` for the whole app.
  *
  * @remarks Top-level context per CONVENTIONS.md §6.1; rendered from the root
@@ -29,7 +31,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
 	return (
 		<QueryClientProvider client={client}>
-			<UIProvider link={NextLink}>{children}</UIProvider>
+			<UIProvider link={NextLink}>
+				<AppearanceProvider>{children}</AppearanceProvider>
+			</UIProvider>
 		</QueryClientProvider>
 	)
 }

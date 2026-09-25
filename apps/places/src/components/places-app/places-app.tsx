@@ -9,6 +9,7 @@ import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
+import { AppearanceSettings } from 'ui/providers/appearance'
 import { Text } from 'ui/text'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
@@ -383,6 +384,8 @@ export function PlacesApp() {
 					<Button prefix={<Icon icon={<Plus />} />} onClick={() => setAdding(true)}>
 						Add place
 					</Button>
+
+					<AppearanceSettings />
 				</Flex>
 			</Flex>
 

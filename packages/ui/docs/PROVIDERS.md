@@ -1,8 +1,9 @@
 # Providers
 
-> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They broadcast ambient state — density, glass, locale, motion, toasts, and link/portal integration — through React context to descendant client components. A static (server-renderable) component ignores context and takes explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
+> **Quick-glance index of `ui/providers/*`.** Providers configure the **client** tier. They broadcast ambient state — appearance, density, glass, locale, motion, toasts, and link/portal integration — through React context to descendant client components. A static (server-renderable) component ignores context and takes explicit props; see [`../REFERENCE.md`](../REFERENCE.md) §2 for the server/client boundary.
 
 ```ts
+import { AppearanceProvider } from 'ui/providers/appearance'
 import { DensityProvider } from 'ui/providers/density'
 import { UIProvider } from 'ui/providers/ui'
 ```
@@ -18,6 +19,21 @@ The single integration point an app mounts once at its root.
 | `useLink` | Reads the app-registered framework link component from `<UIProvider>`. |
 | `usePortalContainer` | Resolves a portal's container: explicit per-call value, then ambient `<UIProvider>` value, then `null`. |
 | `PortalContainer` *(type)* | DOM node to teleport portaled UI into, or `null` to defer to each portal's own fallback. |
+
+## `ui/providers/appearance`
+
+Holds the persisted theme and density of an app, and gives the settings button that edits them. An app mounts `AppearanceProvider` once at its root. The stylesheet of the app must key its `dark` variant on the `.dark` class.
+
+| Export | Summary |
+|---|---|
+| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage`, toggles the root `.dark` class, and broadcasts the density through `DensityProvider`. |
+| `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
+| `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. |
+| `AppearanceScript` | Inline head script that applies the stored theme before the first paint. It has no `'use client'`, so a server layout can render it. |
+| `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
+| `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
+| `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |
+| `themeModes` | Selectable theme modes with display labels, for theme pickers. |
 
 ## `ui/providers/density`
 
