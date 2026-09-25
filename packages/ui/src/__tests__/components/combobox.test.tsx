@@ -521,6 +521,60 @@ describe('Combobox active-descendant keyboard model', () => {
 		expect(screen.getByRole('listbox')).toBeInTheDocument()
 	})
 
+	// A pick keeps focus on the input, so a click that follows gets no focus event
+	// to open the menu from. The press on the focused input must open it.
+	it('reopens the closed menu on a click after a selection', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await user.click(screen.getByRole('option', { name: 'Apricot' }))
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		expect(document.activeElement).toBe(input)
+
+		await user.click(input)
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('reopens the menu on a click after Escape closes it', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await user.keyboard('{Escape}')
+
+		expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+
+		await user.click(input)
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
+	it('keeps the menu open on a click into the input while it is open', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderTwoOptions()
+
+		const input = screen.getByRole('combobox')
+
+		await user.click(input)
+
+		await user.click(input)
+
+		expect(screen.getByRole('listbox')).toBeInTheDocument()
+	})
+
 	it('seats the highlight on the selected option when ArrowDown reopens a single-mode menu', async () => {
 		const user = userEvent.setup({ delay: null })
 
