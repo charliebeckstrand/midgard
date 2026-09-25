@@ -115,6 +115,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				description={description}
 				fallback={fallback}
 				onError={onError}
+				shell={shell}
 			>
 				{children}
 			</DashboardTileExpand>

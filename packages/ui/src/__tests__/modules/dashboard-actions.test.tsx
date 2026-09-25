@@ -11,7 +11,7 @@ import {
 	duplicateSpecTile,
 	removeSpecTile,
 } from '../../modules/dashboard'
-import { bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import { act, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
@@ -163,6 +163,80 @@ describe('DashboardTile actions', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(screen.queryByRole('dialog', { name: 'Tile b' })).not.toBeInTheDocument()
+	})
+
+	/** The board beside a control of the page, which can hold the focus. */
+	function Page({ editing = false }: { editing?: boolean }) {
+		return (
+			<>
+				<button type="button">Outside</button>
+
+				<Board editing={editing} expandable />
+			</>
+		)
+	}
+
+	it('hands the focus to the grip of the tile when edit mode closes an open expand dialog', async () => {
+		const { rerender } = renderUI(<Board expandable />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+
+		screen.getByRole('button', { name: 'Close' }).focus()
+
+		rerender(<Board editing expandable />)
+
+		// The hand-off runs in a microtask.
+		await act(async () => {})
+
+		expect(screen.queryByRole('dialog')).toBeNull()
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Tile b' }))
+	})
+
+	it('hands the focus to the board when the tile has no grip', async () => {
+		const board = (editing: boolean) => (
+			<Dashboard
+				aria-label="Sales"
+				editing={editing}
+				layout={{ defaultValue: [{ id: 'a', x: 0, y: 0, w: 8, h: 10, static: true }] }}
+			>
+				<DashboardTile id="a" title="Tile a" expandable>
+					<p>Content a</p>
+				</DashboardTile>
+			</Dashboard>
+		)
+
+		const { rerender } = renderUI(board(false))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile a' }))
+
+		screen.getByRole('button', { name: 'Close' }).focus()
+
+		rerender(board(true))
+
+		await act(async () => {})
+
+		expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Sales' }))
+	})
+
+	it('keeps the focus when edit mode starts after the expand dialog closed', async () => {
+		const { rerender } = renderUI(<Page />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+		await act(async () => {})
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		rerender(<Page editing />)
+
+		await act(async () => {})
+
+		expect(document.activeElement).toBe(outside)
 	})
 
 	it('names the dialog of an untitled tile by its id', () => {

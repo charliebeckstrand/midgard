@@ -134,7 +134,8 @@ export type DashboardTileProps = {
 	onDuplicate?: () => void
 	/**
 	 * Show an expand control at rest. It opens the content in a dialog, at a
-	 * larger size, in the scope of the same tile.
+	 * larger size, in the scope of the same tile. When edit mode starts, an open
+	 * dialog closes, and the focus moves to the grip of the tile.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
