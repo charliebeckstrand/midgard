@@ -37,8 +37,11 @@ export type DashboardTilesProps = {
 	 *
 	 * @remarks
 	 * The callback runs inside the actions boundary of its tile. When it throws,
-	 * the controls of that tile go away, and `onTileError` receives the error. When
-	 * you set the callback, each tile draws a header row, also for a result of `undefined`.
+	 * the controls of that tile go away, and `onTileError` receives the error. A new
+	 * spec tile or a new callback does not bring them back. A new mount of the tile does.
+	 *
+	 * When you set the callback, each tile draws a header row, also for a result of
+	 * `undefined`. A tile with no title then shows its grip in that row.
 	 */
 	actions?: (tile: DashboardSpecTile) => ReactNode
 	/**

@@ -340,7 +340,11 @@ describe('Dashboard', () => {
 		)
 
 		// The controls go away with no error state, and the rest of the tile stays.
-		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveTextContent('Chart')
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.queryByRole('alert')).toBeNull()
 
@@ -371,7 +375,11 @@ describe('Dashboard', () => {
 			)
 		})
 
-		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveTextContent('Chart')
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
 	})

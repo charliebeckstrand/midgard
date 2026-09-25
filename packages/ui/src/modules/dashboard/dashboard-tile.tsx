@@ -47,8 +47,9 @@ export type DashboardTileProps = {
 	 *
 	 * @remarks
 	 * The controls have their own error boundary and Suspense boundary. When they
-	 * throw, they go away until the tile mounts again, and `onTileError` receives
-	 * the error. While they suspend, they show nothing.
+	 * throw, they go away, and `onTileError` receives the error. A new element does
+	 * not bring them back. A render with no `actions`, or a new mount of the tile,
+	 * does. While they suspend, they show nothing.
 	 */
 	actions?: ReactNode
 	/**

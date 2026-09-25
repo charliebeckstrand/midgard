@@ -226,7 +226,11 @@ describe('DashboardTiles', () => {
 		)
 
 		// The units tile keeps its title and its widget. Only its controls go away.
-		expect(screen.getByRole('group', { name: 'Units' })).toHaveTextContent('Stat')
+		const units = screen.getByRole('group', { name: 'Units' })
+
+		expect(units).toHaveTextContent('Stat')
+
+		expect(bySlot(units, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByRole('button', { name: 'Menu for Revenue' })).toBeInTheDocument()
 
@@ -235,6 +239,19 @@ describe('DashboardTiles', () => {
 		expect(screen.queryByRole('alert')).toBeNull()
 
 		expect(onTileError).toHaveBeenCalledWith('units', expect.any(TypeError))
+	})
+
+	it('draws a header row on each tile when the actions callback is set, also for undefined', () => {
+		const untitled: DashboardSpecTile[] = [{ id: 'units', widget: 'stat' }]
+
+		const { container, rerender } = renderUI(<Board tiles={untitled} />)
+
+		expect(bySlot(container, 'card-header')).toBeNull()
+
+		// The board cannot read the result outside the boundary of the actions.
+		rerender(<Board tiles={untitled} actions={() => undefined} />)
+
+		expect(bySlot(container, 'card-header')).toBeInTheDocument()
 	})
 
 	it('renders the board on the server when an actions callback throws', () => {

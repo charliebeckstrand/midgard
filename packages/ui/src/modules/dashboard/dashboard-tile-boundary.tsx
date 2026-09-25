@@ -30,7 +30,7 @@ type DashboardTileBoundaryState = { error: unknown }
  * button renders the content again.
  *
  * A quiet boundary shows nothing in place of the failed part. It has no retry,
- * so the part stays hidden until the tile mounts again.
+ * so the part stays hidden until the boundary mounts again.
  *
  * @internal
  */
