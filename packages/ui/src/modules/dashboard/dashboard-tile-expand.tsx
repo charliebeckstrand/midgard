@@ -62,7 +62,8 @@ function handBackFocus(shell: HTMLElement | null): void {
  * board, and a selection that it makes there records the same tile.
  *
  * Edit mode unmounts the control. When the dialog is open then, it closes, and
- * the focus goes to the grip of the tile.
+ * the focus goes to the grip of the tile. A tile with no grip, such as a static
+ * tile, gives the focus to the board.
  *
  * @internal
  */

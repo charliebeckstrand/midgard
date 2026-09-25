@@ -142,7 +142,8 @@ export type DashboardTileProps = {
 	/**
 	 * Show an expand control at rest. It opens the content in a dialog, at a
 	 * larger size, in the scope of the same tile. When edit mode starts, an open
-	 * dialog closes, and the focus moves to the grip of the tile.
+	 * dialog closes. The focus then moves to the grip of the tile. A tile with no
+	 * grip, such as a tile with a `static` layout entry, gives the focus to the board.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
