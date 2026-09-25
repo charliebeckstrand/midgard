@@ -43,6 +43,31 @@ describe('TabList', () => {
 		expect(document.activeElement).toBe(tabs[1])
 	})
 
+	// Roving reads the list through its own ref. A consumer ref must join it, or
+	// the arrow keys stop moving focus.
+	it('keeps roving when a consumer holds a ref to the list', async () => {
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(
+			<Tabs value="a" onValueChange={() => {}}>
+				<TabList aria-label="Sections" ref={ref}>
+					<Tab value="a">A</Tab>
+					<Tab value="b">B</Tab>
+				</TabList>
+			</Tabs>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'tab-list'))
+
+		const tabs = screen.getAllByRole('tab')
+
+		tabs[0]?.focus()
+
+		await userEvent.keyboard('{ArrowRight}')
+
+		expect(document.activeElement).toBe(tabs[1])
+	})
+
 	it('forwards the full button surface to the tab', () => {
 		renderUI(
 			<Tabs value="a" onValueChange={() => {}}>

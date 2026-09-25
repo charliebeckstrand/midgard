@@ -3,6 +3,7 @@
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { useDensity } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
@@ -22,9 +23,16 @@ export type TabListProps = AccessibleName &
  * single Tab stop itself comes from each `<Tab>`'s roving `tabIndex`. The
  * underline variant sits in an overflow viewport, so an over-long tab row
  * scrolls in place rather than widening the page. The active tab is scrolled
- * into view on mount and as focus roves.
+ * into view on mount and as focus roves. A consumer `ref` reaches the
+ * `role="tablist"` element.
  */
-export function TabList({ className, children, onKeyDown, ...props }: TabListProps) {
+export function TabList({
+	className,
+	children,
+	onKeyDown,
+	ref: consumerRef,
+	...props
+}: TabListProps) {
 	const tabsContext = useTabsContext()
 
 	const isSegment = tabsContext?.variant === 'segment'
@@ -38,6 +46,9 @@ export function TabList({ className, children, onKeyDown, ...props }: TabListPro
 	const size = tabsContext?.size ?? inherited.size
 
 	const ref = useRef<HTMLDivElement>(null)
+
+	// Roving and the tabbable floor read `ref`, so a consumer `ref` joins it.
+	const setList = useComposedRef(ref, consumerRef)
 
 	const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -81,7 +92,7 @@ export function TabList({ className, children, onKeyDown, ...props }: TabListPro
 
 	const list = (
 		<div
-			ref={ref}
+			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
 			className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}

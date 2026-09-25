@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { chromeRegions, PersistentChrome, registerChrome } from '../../primitives/chrome'
 import { renderUI, screen } from '../helpers'
@@ -21,6 +22,22 @@ describe('PersistentChrome', () => {
 		unmount()
 
 		expect(chromeRegions()).toEqual([])
+	})
+
+	// A consumer ref must join the registration, not replace it, or the region
+	// stays sealed behind every modal surface.
+	it('registers the region when a consumer holds a ref to it', () => {
+		const ref = createRef<HTMLDivElement>()
+
+		renderUI(
+			<PersistentChrome ref={ref}>
+				<span>chrome</span>
+			</PersistentChrome>,
+		)
+
+		expect(ref.current).not.toBeNull()
+
+		expect(chromeRegions()).toEqual([ref.current])
 	})
 
 	it('registers each region separately, so an app can name more than one', () => {

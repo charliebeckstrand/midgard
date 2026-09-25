@@ -120,6 +120,7 @@ export function Overlay({
 	animateOnMount = true,
 	className,
 	onClick,
+	ref,
 	...props
 }: OverlayProps) {
 	const { refs, context } = useFloating({ open, onOpenChange })
@@ -133,7 +134,7 @@ export function Overlay({
 
 	const containerRef = useRef<HTMLDivElement>(null)
 
-	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef)
+	const setPanel = useComposedRef<HTMLDivElement>(refs.setFloating, containerRef, ref)
 
 	useDismissable({
 		open,

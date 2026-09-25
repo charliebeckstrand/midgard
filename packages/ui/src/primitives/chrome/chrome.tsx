@@ -2,6 +2,7 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chrome'
 import { registerChrome } from './chrome-registry'
 
@@ -52,10 +53,13 @@ function registerRegion(node: HTMLDivElement | null) {
  * </PersistentChrome>
  * ```
  */
-export function PersistentChrome({ className, children, ...props }: PersistentChromeProps) {
+export function PersistentChrome({ className, children, ref, ...props }: PersistentChromeProps) {
+	// A consumer `ref` joins the registration rather than replaces it.
+	const setRegion = useComposedRef<HTMLDivElement>(registerRegion, ref)
+
 	return (
 		<div
-			ref={registerRegion}
+			ref={setRegion}
 			data-slot="persistent-chrome"
 			className={cn(k.region, className)}
 			{...props}
