@@ -126,9 +126,11 @@ export function useDashboardResize({
 
 			let held = 0
 
-			// The hold only rises: each read takes the height that the last preview painted.
+			// The hold only rises: each read takes the height that the last preview painted. The
+			// read is in layout px, as the min-height is. A client rect has the zoom and the
+			// transforms of the ancestors, so a hold from it grows the canvas on each read.
 			const holdHeight = () => {
-				const { height } = canvas.getBoundingClientRect()
+				const height = Number.parseFloat(getComputedStyle(canvas).height)
 
 				if (height <= held) return
 

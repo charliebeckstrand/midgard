@@ -176,6 +176,48 @@ describe('dashboard resize in a scroll box (real browser)', () => {
 		fireEvent.pointerUp(south, { ...pointer, clientY: y - 8 })
 	})
 
+	it('holds the canvas at its layout height under a zoom of an ancestor', async () => {
+		// The zoom scales each client rect by 1.25. The min-height of the canvas is in layout px.
+		renderUI(
+			<div style={{ zoom: 1.25 }}>
+				<Board />
+			</div>,
+		)
+
+		const scroller = screen.getByTestId('scroller')
+
+		const canvas = getSlot(present(scroller, 'the scroller'), 'dashboard-canvas')
+
+		const rest = canvas.offsetHeight
+
+		const south = southSplitter()
+
+		const box = south.getBoundingClientRect()
+
+		const x = box.left + box.width / 2
+
+		const y = box.top + box.height / 2
+
+		const pointer = { pointerId: 1, isPrimary: true, button: 0, clientX: x }
+
+		fireEvent.pointerDown(south, { ...pointer, clientY: y })
+
+		// Six small moves grow the tile. The hold of each move reads the height of the last paint.
+		for (let step = 1; step <= 6; step++) {
+			fireEvent.pointerMove(south, { ...pointer, clientY: y + 4 * step })
+
+			await frames()
+		}
+
+		// The tile grows by 24 layout px at most. The canvas follows the tile, and the hold adds
+		// nothing to it.
+		expect(canvas.offsetHeight).toBeGreaterThan(rest)
+
+		expect(canvas.offsetHeight).toBeLessThanOrEqual(rest + 24)
+
+		fireEvent.pointerUp(south, { ...pointer, clientY: y + 24 })
+	})
+
 	it('keeps a focused south splitter in the scroll box through its keyboard steps', async () => {
 		// The splitter starts at 240 px of the 300 px box, and 30 steps put it at 360 px.
 		renderUI(<Board initial={[{ id: 'a', x: 0, y: 0, w: 24, h: 60 }]} />)
