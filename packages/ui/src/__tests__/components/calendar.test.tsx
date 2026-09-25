@@ -393,6 +393,30 @@ describe('Calendar month/year picker', () => {
 
 		expect(screen.getByRole('button', { name: '2025' })).toBeInTheDocument()
 	})
+
+	// `@internationalized/date` clamps a year outside 1 to 9999, so a pick of
+	// year 0 showed year 1.
+	it('keeps the year picker inside years 1 to 9999', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		const yearFive = new Date(2000, 0, 15)
+
+		yearFive.setFullYear(5)
+
+		renderUI(<Calendar defaultValue={yearFive} />)
+
+		await user.click(openPicker(/^January 5$/))
+
+		await user.click(screen.getByRole('button', { name: '5' }))
+
+		expect(screen.getByRole('option', { name: '0' })).toBeDisabled()
+
+		expect(screen.getByRole('option', { name: '1' })).toBeEnabled()
+
+		await user.click(screen.getByRole('button', { name: 'Previous decade' }))
+
+		expect(screen.getByRole('button', { name: /^1\s*–\s*9$/ })).toBeInTheDocument()
+	})
 })
 
 // Keyboard nav: roving focus through the day grid (WAI-ARIA grid pattern),

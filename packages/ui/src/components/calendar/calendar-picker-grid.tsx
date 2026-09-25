@@ -15,6 +15,8 @@ export type CalendarPickerGridCell = {
 	label: ReactNode
 	selected: boolean
 	current: boolean
+	/** Marks a year that the calendar cannot show. */
+	disabled?: boolean
 	onSelect: () => void
 }
 
@@ -91,6 +93,7 @@ export function CalendarPickerGrid({
 						aria-current={cell.current ? 'date' : undefined}
 						variant={cell.selected ? 'solid' : 'plain'}
 						data-selected={dataAttr(cell.selected)}
+						disabled={cell.disabled}
 						onClick={cell.onSelect}
 						className={cn(
 							cellBlock && 'w-full',

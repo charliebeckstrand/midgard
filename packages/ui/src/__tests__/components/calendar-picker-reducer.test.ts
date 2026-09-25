@@ -76,3 +76,51 @@ describe('calendarPickerReducer', () => {
 		})
 	})
 })
+
+// `@internationalized/date` holds years 1 to 9999, and it clamps a year outside
+// them. The picker therefore stays inside that range.
+describe('calendarPickerReducer: year limits', () => {
+	it('stepYear stops at year 1 and at year 9999', () => {
+		const first: CalendarPickerState = { view: 'months', pickerYear: 1, decadeYear: 1 }
+
+		expect(calendarPickerReducer(first, { type: 'stepYear', delta: -1 })).toBe(first)
+
+		const last: CalendarPickerState = { view: 'months', pickerYear: 9999, decadeYear: 9999 }
+
+		expect(calendarPickerReducer(last, { type: 'stepYear', delta: 1 })).toBe(last)
+	})
+
+	it('stepDecade holds decadeYear inside years 1 to 9999', () => {
+		const early: CalendarPickerState = { view: 'years', pickerYear: 5, decadeYear: 5 }
+
+		// The first decade holds years 1 to 9, and a step back reaches it from each year.
+		expect(calendarPickerReducer(early, { type: 'stepDecade', delta: -10 })).toEqual({
+			...early,
+			decadeYear: 1,
+		})
+
+		const first: CalendarPickerState = { ...early, decadeYear: 1 }
+
+		expect(calendarPickerReducer(first, { type: 'stepDecade', delta: -10 })).toBe(first)
+
+		const last: CalendarPickerState = { view: 'years', pickerYear: 9999, decadeYear: 9999 }
+
+		expect(calendarPickerReducer(last, { type: 'stepDecade', delta: 10 })).toBe(last)
+	})
+
+	it('selectYear ignores a year outside 1 to 9999', () => {
+		const start: CalendarPickerState = { view: 'years', pickerYear: 5, decadeYear: 5 }
+
+		expect(calendarPickerReducer(start, { type: 'selectYear', year: 0 })).toBe(start)
+
+		expect(calendarPickerReducer(start, { type: 'selectYear', year: 10_000 })).toBe(start)
+	})
+
+	it('open anchors a year outside the range on the nearest limit', () => {
+		expect(initialCalendarPickerState(0)).toEqual({
+			view: 'months',
+			pickerYear: 1,
+			decadeYear: 1,
+		})
+	})
+})

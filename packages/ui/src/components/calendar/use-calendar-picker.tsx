@@ -11,7 +11,13 @@ import {
 	useState,
 } from 'react'
 import type { CalendarPickerGridCell } from './calendar-picker-grid'
-import { calendarPickerReducer, initialCalendarPickerState } from './calendar-picker-reducer'
+import {
+	calendarPickerReducer,
+	initialCalendarPickerState,
+	isYearInRange,
+	MAX_YEAR,
+	MIN_YEAR,
+} from './calendar-picker-reducer'
 import { useCalendarFocus } from './use-calendar-focus'
 
 /** Options for {@link useCalendarPicker}: the calendar's current `year`/`month`, `today` for the current-marker, locale `monthLabels`, the `onNavigate` commit callback, and the open state. @internal */
@@ -103,7 +109,7 @@ export function useCalendarPicker({
 
 			const selected = grid.querySelector<HTMLElement>('[data-selected]')
 
-			;(selected ?? grid.querySelector<HTMLElement>('button'))?.focus()
+			;(selected ?? grid.querySelector<HTMLElement>('button:not(:disabled)'))?.focus()
 		})
 	}, [])
 
@@ -146,9 +152,10 @@ export function useCalendarPicker({
 			gridLabel: 'Select year',
 			prevLabel: 'Previous decade',
 			nextLabel: 'Next decade',
+			// The label names only the years that the calendar can show.
 			centerLabel: (
 				<>
-					{decadeStart}&ndash;{decadeStart + 9}
+					{Math.max(decadeStart, MIN_YEAR)}&ndash;{Math.min(decadeStart + 9, MAX_YEAR)}
 				</>
 			),
 			onPrev: () => dispatch({ type: 'stepDecade', delta: -10 }),
@@ -158,7 +165,9 @@ export function useCalendarPicker({
 
 				focusPickerGrid()
 			},
-			// The decade and one year on each side.
+			// The decade and one year on each side. A year outside 1 to 9999 stays in
+			// the grid as a disabled cell. The grid then keeps its three columns and
+			// four rows, and the arrow keys skip the cell.
 			cells: Array.from({ length: 12 }, (_, i) => {
 				const y = decadeStart - 1 + i
 
@@ -167,6 +176,7 @@ export function useCalendarPicker({
 					label: y,
 					selected: y === pickerYear,
 					current: today != null && y === today.getFullYear(),
+					disabled: !isYearInRange(y),
 					onSelect: () => {
 						dispatch({ type: 'selectYear', year: y })
 
