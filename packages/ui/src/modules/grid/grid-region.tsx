@@ -280,7 +280,9 @@ type GridScrollRegionProps = {
 	maxHeight: string | undefined
 	/** Whether the table holds a master-detail body. */
 	expandable: boolean
-	/** Whether the body is a window. A flat master-detail body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). */
+	/** Whether the table holds a grouped body, under client or manual grouping. */
+	grouped: boolean
+	/** Whether the body is a window. A flat master-detail or grouped body clears the native scroll anchor after a clamp (see {@link useGridClampAnchor}). */
 	virtualized: boolean
 	children: ReactNode
 }
@@ -297,10 +299,11 @@ export function GridScrollRegion({
 	scrollRef,
 	maxHeight,
 	expandable,
+	grouped,
 	virtualized,
 	children,
 }: GridScrollRegionProps) {
-	useGridClampAnchor(scrollRef, active && expandable && !virtualized)
+	useGridClampAnchor(scrollRef, active && (expandable || grouped) && !virtualized)
 
 	if (!active) return children
 

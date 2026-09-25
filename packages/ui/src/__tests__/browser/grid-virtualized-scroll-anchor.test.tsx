@@ -11,10 +11,9 @@ import { frames, getSlot, present, renderUI, sampleDrift, waitFor, windowBody } 
  * row in view to a drift of one pixel.
  *
  * Each case runs with and without `resizable`. A resizable grid renders a
- * `<colgroup>`, and Chromium then selects the first `<col>` as its anchor node.
- * A grid that is not resizable has no `<colgroup>`, so Chromium selects a node
- * in the body.
- * Either native anchor can keep a stale correction after a clamp at the scroll
+ * `<colgroup>`, which the native anchor skips. So in both modes, Chromium
+ * selects a node in the body.
+ * The native anchor can keep a stale correction after a clamp at the scroll
  * end, so the window turns it off.
  */
 describe('grid virtualized body under native scroll anchoring (real browser)', () => {

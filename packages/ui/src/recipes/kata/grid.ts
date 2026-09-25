@@ -631,6 +631,11 @@ export const k = {
 		// redistributing across siblings; the table scrolls horizontally past its
 		// container in the Table's own overflow wrapper.
 		fixed: 'table-fixed',
+		// The `<colgroup>` of a resizable grid. Chromium can select a `<col>` as
+		// the scroll anchor, and a `<col>` does not move when a row above the
+		// viewport opens or closes. So the anchor skips the `<colgroup>`, and it
+		// selects a body row, as it does in a grid that is not resizable.
+		colgroup: '[overflow-anchor:none]',
 		// Anchors the absolutely-positioned resize handle on a non-sticky header (a
 		// sticky header already positions itself; a reordering header's shift
 		// transform also forms a containing block, but `relative` keeps the anchor

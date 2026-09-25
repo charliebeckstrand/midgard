@@ -7,15 +7,17 @@ import { type RefObject, useEffect } from 'react'
  * scroll end.
  *
  * @remarks
- * The flat body keeps the default `overflow-anchor: auto`. In a grid that is
- * not resizable, the native anchor holds a row in view when a panel above the
- * viewport opens or closes.
+ * A flat master-detail or grouped body keeps `overflow-anchor: auto`, which is
+ * the default. The native anchor holds a row in view when a detail panel or the
+ * leaves of a group open or close above the viewport. The `<colgroup>` of a
+ * resizable grid skips the anchor (see `k.resize.colgroup`), so the anchor is a
+ * body row in both modes.
  *
- * A panel that closes at the scroll end shrinks the content, and the browser
- * clamps the scroll offset down. Chromium keeps its anchor through a clamp. The
- * anchor then holds a correction equal to the clamp, which the scroll end
- * blocks. The next panel that opens adds height, and the correction goes
- * through. The rows in view then move up by the height of the panel.
+ * A panel or a group that closes at the scroll end shrinks the content, and
+ * the browser clamps the scroll offset down. Chromium keeps its anchor through
+ * a clamp. The anchor then holds a correction equal to the clamp, which the
+ * scroll end blocks. The next row that opens adds height, and the correction
+ * goes through. The rows in view then move up by the height that closed.
  *
  * Only a change of the scroll offset clears the anchor. A write of the same
  * offset does not, and a change of `overflow-anchor` does not. So a `scroll`
@@ -28,7 +30,7 @@ import { type RefObject, useEffect } from 'react'
  * offset.
  *
  * @param scrollRef - The grid scroller.
- * @param active - Whether the scroller holds a flat master-detail body.
+ * @param active - Whether the scroller holds a flat master-detail or grouped body.
  * @internal
  */
 export function useGridClampAnchor(

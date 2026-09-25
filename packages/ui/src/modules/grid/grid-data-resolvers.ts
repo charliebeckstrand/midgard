@@ -389,7 +389,7 @@ export function resolveResizeLayout<T>(args: {
 		// `.ts` utility module under the filename convention.
 		colGroup: createElement(
 			'colgroup',
-			null,
+			{ className: cn(k.resize.colgroup) },
 			args.columns.map((col) =>
 				createElement('col', { key: col.id, style: { width: resize.getSize(col.id) } }),
 			),
