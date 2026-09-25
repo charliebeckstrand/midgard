@@ -29,7 +29,9 @@ export const DEFAULT_CELL_HEIGHT = 18
 
 /**
  * One saved tile: its geometry in integer grid units. A saved layout holds only
- * these four numbers for each tile, and it renders exactly as saved.
+ * these four numbers for each tile. It renders as saved within the columns. An
+ * entry that the clamp moves onto another tile takes a new row, as the `columns`
+ * prop of `Dashboard` describes.
  */
 export type DashboardLayoutItem = {
 	/** The `id` of the `DashboardTile` that this entry places. */
