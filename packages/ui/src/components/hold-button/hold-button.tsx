@@ -1,9 +1,16 @@
 'use client'
 
-import { type FocusEvent, type KeyboardEvent, type PointerEvent, useRef } from 'react'
-import { cn } from '../../core'
+import { useRef } from 'react'
+import { cn, composeEventHandlers } from '../../core'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
+
+/**
+ * The end of a hold runs whatever the caller does. A caller `preventDefault()`
+ * that skipped the cancel would leave the timer to fire `onHoldComplete` after
+ * the user let go (CONVENTIONS.md §3.9, the third case).
+ */
+const alwaysEnd = { checkForDefaultPrevented: false }
 
 /**
  * Props for {@link HoldButton}: the non-anchor {@link ButtonProps} branch minus
@@ -36,6 +43,11 @@ export type HoldButtonProps = Omit<
  * release mid-hold is ignored. Blur and pointer leave/cancel abort the hold, and
  * the gesture hook adds window-blur and tab-visibility guards so a backgrounded
  * tab cannot silently complete it. Left mouse button only (`button === 0`).
+ *
+ * A caller's pointer and key handlers run before the hold logic. A caller
+ * `preventDefault()` on a pointer press or an activation keydown keeps the hold
+ * from starting. It never skips the cancel on a release, a blur, or a pointer
+ * leave or cancel.
  * @see {@link useHoldButtonGesture} for the timer, fill animation, and guards.
  */
 export function HoldButton({
@@ -77,53 +89,41 @@ export function HoldButton({
 			disabled={disabled}
 			data-slot={slot}
 			className={cn('relative overflow-hidden select-none [-webkit-touch-callout:none]', className)}
-			onPointerDown={(event: PointerEvent<HTMLButtonElement>) => {
+			onPointerDown={composeEventHandlers(onPointerDown, (event) => {
 				if (event.button === 0) start()
-
-				onPointerDown?.(event)
-			}}
-			onPointerUp={(event: PointerEvent<HTMLButtonElement>) => {
-				cancel()
-
-				onPointerUp?.(event)
-			}}
-			onPointerCancel={(event: PointerEvent<HTMLButtonElement>) => {
-				cancel()
-
-				onPointerCancel?.(event)
-			}}
-			onPointerLeave={(event: PointerEvent<HTMLButtonElement>) => {
-				cancel()
-
-				onPointerLeave?.(event)
-			}}
-			onKeyDown={(event: KeyboardEvent<HTMLButtonElement>) => {
+			})}
+			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
+			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}
+			onPointerLeave={composeEventHandlers(onPointerLeave, cancel, alwaysEnd)}
+			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
 				if (!event.repeat && (event.key === ' ' || event.key === 'Enter')) {
 					heldKeyRef.current ??= event.key
 
 					start()
 				}
+			})}
+			onKeyUp={composeEventHandlers(
+				onKeyUp,
+				(event) => {
+					if (event.key === heldKeyRef.current) {
+						heldKeyRef.current = null
 
-				onKeyDown?.(event)
-			}}
-			onKeyUp={(event: KeyboardEvent<HTMLButtonElement>) => {
-				if (event.key === heldKeyRef.current) {
+						cancel()
+					}
+				},
+				alwaysEnd,
+			)}
+			onBlur={composeEventHandlers(
+				onBlur,
+				() => {
+					// Tab-away routes the keyup elsewhere; an unfocused button does not
+					// complete the hold. The gesture hook guards window/visibility loss.
 					heldKeyRef.current = null
 
 					cancel()
-				}
-
-				onKeyUp?.(event)
-			}}
-			onBlur={(event: FocusEvent<HTMLButtonElement>) => {
-				// Tab-away routes the keyup elsewhere; an unfocused button does not
-				// complete the hold. The gesture hook guards window/visibility loss.
-				heldKeyRef.current = null
-
-				cancel()
-
-				onBlur?.(event)
-			}}
+				},
+				alwaysEnd,
+			)}
 		>
 			<span
 				ref={fillRef}
