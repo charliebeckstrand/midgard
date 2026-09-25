@@ -55,6 +55,9 @@ function clusterDetail(count: number): string {
 	return `${count} places`
 }
 
+/** The box the map and its skeleton fill, with the margin that keeps the geography off the chrome. */
+const FRAME_INSET = 'size-full p-6 sm:p-10'
+
 /** The empty row list a cleared paint filter stands for, held so its identity is stable. */
 const NO_ROWS: { region: string; visited: string }[] = []
 
@@ -211,8 +214,14 @@ export function PlacesMap({
 		return index === -1 ? null : { id: MARK_ID, index }
 	}, [selected, places])
 
+	// The skeleton takes the same inset as the plat. It then reads as the map that
+	// comes, and not as one block over the full page.
 	if (geography === null) {
-		return <MapSkeleton projection={atlasProjection} aspectRatio={false} className="size-full" />
+		return (
+			<div className={FRAME_INSET}>
+				<MapSkeleton projection={atlasProjection} aspectRatio={false} className="size-full" />
+			</div>
+		)
 	}
 
 	return (
@@ -221,7 +230,7 @@ export function PlacesMap({
 		// plat fits whatever box it gets, so the margin is the box.
 		<div
 			className={cn(
-				'size-full p-6 sm:p-10',
+				FRAME_INSET,
 				// Nothing on this map recedes. The plat's emphasis reads a region and the
 				// dots on it as separate marks, so pointing one dimmed the other — and
 				// crossing between them cross-faded the two, which is the flicker a
