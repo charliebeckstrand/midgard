@@ -116,7 +116,11 @@ export type DashboardProps = AccessibleName & {
 	layout?: DashboardLayoutBinding
 	/** The filter that the app owns. The tiles read it through the scope hooks. */
 	filter?: DashboardFilterBinding
-	/** The cross-filter selections that the tiles make. Bind it to save or reset them. */
+	/**
+	 * The cross-filter selections that the tiles make. Bind it to save or reset
+	 * them. Read a saved value through `parseDashboardSelection`, which drops each
+	 * malformed selection.
+	 */
 	selection?: DashboardSelectionBinding
 	/**
 	 * Edit mode. The column guides show, each tile gets a drag grip and resize

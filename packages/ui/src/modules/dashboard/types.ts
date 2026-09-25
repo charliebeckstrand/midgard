@@ -31,7 +31,10 @@ export type DashboardLayoutBinding = DashboardBinding<DashboardLayoutItem[]>
  */
 export type DashboardFilterBinding = DashboardBinding<QueryGroup>
 
-/** The binding of the cross-filter selections that the tiles make. */
+/**
+ * The binding of the cross-filter selections that the tiles make. The board
+ * reads a value as given, so read a saved value through `parseDashboardSelection`.
+ */
 export type DashboardSelectionBinding = DashboardBinding<DashboardSelection[]>
 
 /**

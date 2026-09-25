@@ -1,22 +1,26 @@
 /**
- * The guard for a spec that the app reads from storage.
+ * The guards for a spec and a selection value that the app reads from storage.
  *
  * A saved spec can be stale or damaged: a tile can lose its kind, an id can
  * repeat, or an entry can outlive its tile. The parse repairs what it can. It
  * drops each part that the board cannot use, keeps each other part, and reports
  * each change. The board therefore always gets a usable spec, and the app decides
- * what to do with the report.
+ * what to do with the report. The parse of a selection value works the same way.
  */
 
 import { isQueryGroup, MAX_DEPTH } from '../../query/engine/query-node'
 import type { DashboardLayoutItem } from './dashboard-layout'
+import type { DashboardSelection } from './dashboard-scope'
 import type { DashboardSpec, DashboardSpecTile } from './dashboard-spec'
 
-/** The kind of problem that {@link parseDashboardSpec} found. */
+/**
+ * The kind of problem that {@link parseDashboardSpec} or
+ * {@link parseDashboardSelection} found.
+ */
 export type DashboardSpecIssueKind =
 	/** The input is not an object, so the parse returns an empty spec. */
 	| 'invalid-spec'
-	/** `tiles` or `layout` is not an array, so it becomes empty. */
+	/** `tiles`, `layout`, or a selection value is not an array, so it becomes empty. */
 	| 'invalid-list'
 	/** A tile has no string `id` or no string `widget`, so the parse drops it. */
 	| 'invalid-tile'
@@ -35,8 +39,16 @@ export type DashboardSpecIssueKind =
 	| 'orphan-entry'
 	/** `filter` is not a query tree, or it is deeper than 32 levels, so the parse drops it. */
 	| 'invalid-filter'
+	/**
+	 * A selection has no string `source`, no string `field`, or `values` that is
+	 * not a list of strings. The parse drops it.
+	 */
+	| 'invalid-selection'
 
-/** One problem that {@link parseDashboardSpec} found, and repaired. */
+/**
+ * One problem that {@link parseDashboardSpec} or {@link parseDashboardSelection}
+ * found, and repaired.
+ */
 export type DashboardSpecIssue = {
 	/** The kind of problem. */
 	kind: DashboardSpecIssueKind
@@ -65,6 +77,14 @@ export type DashboardSpecParse = {
 	/** The usable spec. */
 	spec: DashboardSpec
 	/** Each problem that the parse repaired, in input order. It is empty for a sound spec. */
+	issues: DashboardSpecIssue[]
+}
+
+/** The result of {@link parseDashboardSelection}. */
+export type DashboardSelectionParse = {
+	/** The usable selections. */
+	selections: DashboardSelection[]
+	/** Each problem that the parse repaired, in input order. It is empty for a sound value. */
 	issues: DashboardSpecIssue[]
 }
 
@@ -113,6 +133,17 @@ function isEntry(value: unknown): value is DashboardLayoutItem {
 		isNumber(value.y) &&
 		isSize(value) &&
 		(value.static === undefined || typeof value.static === 'boolean')
+	)
+}
+
+/** Whether a value is a selection that the scope can apply. */
+function isSelection(value: unknown): value is DashboardSelection {
+	return (
+		isFields(value) &&
+		typeof value.source === 'string' &&
+		typeof value.field === 'string' &&
+		Array.isArray(value.values) &&
+		value.values.every((item) => typeof item === 'string')
 	)
 }
 
@@ -311,4 +342,65 @@ export function parseDashboardSpec(
 	}
 
 	return { spec, issues }
+}
+
+/**
+ * Reads a selection value from untrusted input, such as the result of
+ * `JSON.parse`, and repairs it. It drops each selection that the scope cannot
+ * apply, keeps each other selection, and reports each change.
+ *
+ * A selection needs a string `source`, a string `field`, and `values` that is a
+ * list of strings. The board reads the selection value as given, so a malformed
+ * selection throws when a tile reads the scope. Read a saved value through this
+ * parse before you give it to the `selection` binding.
+ *
+ * @remarks
+ * An absent value, `null` or `undefined`, gives no selection and no issue. A
+ * selection with no issue keeps its object, unknown fields included.
+ *
+ * @example
+ * ```tsx
+ * const { selections, issues } = parseDashboardSelection(JSON.parse(saved))
+ *
+ * if (issues.length > 0) console.warn('Repaired the saved selection', issues)
+ *
+ * <Dashboard aria-label="Sales" selection={{ defaultValue: selections }}>…</Dashboard>
+ * ```
+ *
+ * @param input - The stored value.
+ * @returns The usable selections, and each issue that the parse repaired.
+ */
+export function parseDashboardSelection(input: unknown): DashboardSelectionParse {
+	const issues: DashboardSpecIssue[] = []
+
+	if (!Array.isArray(input)) {
+		if (input != null) {
+			issues.push({
+				kind: 'invalid-list',
+				path: '',
+				message: 'The selection value is not an array. The parse returned no selections.',
+			})
+		}
+
+		return { selections: [], issues }
+	}
+
+	const selections: DashboardSelection[] = []
+
+	input.forEach((selection: unknown, index) => {
+		if (isSelection(selection)) {
+			selections.push(selection)
+
+			return
+		}
+
+		issues.push({
+			kind: 'invalid-selection',
+			path: `[${index}]`,
+			message:
+				'The selection has no string `source`, no string `field`, or `values` that is not a list of strings. The parse dropped it.',
+		})
+	})
+
+	return { selections, issues }
 }

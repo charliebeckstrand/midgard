@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
+import type { DashboardSelection } from '../../modules/dashboard/engine/dashboard-scope'
 import type { DashboardSpec } from '../../modules/dashboard/engine/dashboard-spec'
 import {
 	type DashboardSpecParseOptions,
+	parseDashboardSelection,
 	parseDashboardSpec,
 } from '../../modules/dashboard/engine/dashboard-spec-parse'
 
@@ -259,5 +261,61 @@ describe('parseDashboardSpec', () => {
 		}
 
 		expect(parseDashboardSpec({ tiles: [], layout: [], filter: nested(32) }).issues).toEqual([])
+	})
+})
+
+describe('parseDashboardSelection', () => {
+	const SELECTION: DashboardSelection[] = [
+		{ source: 'regions', field: 'region', values: ['West', ''] },
+		{ source: '', field: 'product', values: [] },
+	]
+
+	/** The kind and the path of each issue. */
+	const issuesOf = (input: unknown) =>
+		parseDashboardSelection(input).issues.map((issue) => [issue.kind, issue.path])
+
+	it('keeps a sound selection value whole, through a JSON round trip, with no issue', () => {
+		const { selections, issues } = parseDashboardSelection(JSON.parse(JSON.stringify(SELECTION)))
+
+		expect(selections).toEqual(SELECTION)
+
+		expect(issues).toEqual([])
+	})
+
+	it('reads an absent value as no selection, and reports a value that is not an array', () => {
+		for (const input of [null, undefined]) {
+			expect(parseDashboardSelection(input)).toEqual({ selections: [], issues: [] })
+		}
+
+		expect(parseDashboardSelection({ source: 'regions' }).selections).toEqual([])
+
+		expect(issuesOf({ source: 'regions' })).toEqual([['invalid-list', '']])
+	})
+
+	it('drops each malformed selection, reports its index, and keeps each other one as it is', () => {
+		const input = [
+			null,
+			'West',
+			{ field: 'region', values: ['West'] },
+			{ source: 'regions', values: ['West'] },
+			{ source: 'regions', field: 'region', values: 'West' },
+			{ source: 'regions', field: 'region', values: [2024] },
+			SELECTION[0],
+		]
+
+		const { selections } = parseDashboardSelection(input)
+
+		expect(selections).toHaveLength(1)
+
+		expect(selections[0]).toBe(SELECTION[0])
+
+		expect(issuesOf(input)).toEqual([
+			['invalid-selection', '[0]'],
+			['invalid-selection', '[1]'],
+			['invalid-selection', '[2]'],
+			['invalid-selection', '[3]'],
+			['invalid-selection', '[4]'],
+			['invalid-selection', '[5]'],
+		])
 	})
 })
