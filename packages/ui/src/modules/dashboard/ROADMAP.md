@@ -12,6 +12,8 @@ The board is a CSS grid inside an inline-size container, and its row unit is a f
 
 The board never moves a tile by itself. A drag moves a tile into free cells, or it reorders it against an equal tile; anything else is blocked. A resize grows a tile until it meets a neighbour or an edge. When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack.
 
+One gesture owns the board at a time. While a drag or a pointer resize is live, the board refuses a second gesture, a keyboard resize step, and `tidy`.
+
 A store in the engine gives each tile a subscription to its own cell. A drag preview therefore renders only the tiles that it moves, and the root does not render at all. A move glides through a FLIP in grid units; a change of size snaps.
 
 Each tile has its own error boundary and its own Suspense boundary. The scope holds one `QueryGroup` filter that the app owns, and the cross-filter selections that the tiles make. A tile does not see its own selections.

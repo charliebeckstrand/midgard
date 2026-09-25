@@ -160,10 +160,7 @@ export function useDashboardResize({
 
 				if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId)
 
-				// A resize that another gesture replaced commits nothing.
-				const live = store.getState().gesture?.kind === 'resize'
-
-				endGesture(store, id, keep && live, {
+				endGesture(store, id, keep, {
 					commit: callbacks.current.commit,
 					onEnd: callbacks.current.onResizeEnd,
 				})

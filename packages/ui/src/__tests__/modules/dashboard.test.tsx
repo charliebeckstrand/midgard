@@ -1,10 +1,11 @@
 import { act } from '@testing-library/react'
 import { Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
+	type DashboardProps,
 	DashboardTile,
 	useDashboardRows,
 	useDashboardScope,
@@ -33,14 +34,16 @@ afterEach(() => {
 function Board({
 	editing = false,
 	layout = { defaultValue: LAYOUT },
+	onDragEnd,
 	children,
 }: {
 	editing?: boolean
-	layout?: Parameters<typeof Dashboard>[0]['layout']
+	layout?: DashboardProps['layout']
+	onDragEnd?: DashboardProps['onDragEnd']
 	children?: ReactNode
 }) {
 	return (
-		<Dashboard aria-label="Sales" editing={editing} layout={layout}>
+		<Dashboard aria-label="Sales" editing={editing} layout={layout} onDragEnd={onDragEnd}>
 			<DashboardTile id="a" title="Revenue" ratio={16 / 9}>
 				<button type="button">Inside a</button>
 			</DashboardTile>
@@ -443,6 +446,141 @@ describe('Dashboard', () => {
 		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
+	})
+})
+
+describe('Dashboard gesture owner', () => {
+	/** Lets the keyboard sensor attach its keys after a lift, and lets dnd-kit tear down after a drop. */
+	const tick = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+	/** Lifts the tile of the grip `name` with Space, then presses `code` `steps` times. */
+	async function lift(name: string, code = 'ArrowRight', steps = 0): Promise<HTMLElement> {
+		const grip = screen.getByRole('button', { name })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await tick()
+
+		for (let step = 0; step < steps; step++) fireEvent.keyDown(grip, { code, key: code })
+
+		return grip
+	}
+
+	/** Drops the drag of `grip` with Space. */
+	async function drop(grip: HTMLElement): Promise<void> {
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		await tick()
+	}
+
+	/** The painted grid area of the tile that holds `element`. */
+	function areaOf(element: HTMLElement): string {
+		const shell = element.closest<HTMLElement>('[data-slot="dashboard-tile"]')
+
+		return shell?.style.gridArea ?? ''
+	}
+
+	/** A controlled board that saves each commit, and reports it to `onLayout`. */
+	function Controlled({
+		onLayout,
+		onDragEnd,
+	}: {
+		onLayout: (next: DashboardLayoutItem[]) => void
+		onDragEnd?: DashboardProps['onDragEnd']
+	}) {
+		const [value, setValue] = useState(LAYOUT)
+
+		return (
+			<Board
+				editing
+				onDragEnd={onDragEnd}
+				layout={{
+					value,
+					onValueChange: (next) => {
+						onLayout(next)
+
+						setValue(next)
+					},
+				}}
+			/>
+		)
+	}
+
+	it('ends the settle phase of a drop whose onValueChange throws', async () => {
+		const failure = new Error('The save failed.')
+
+		const onValueChange = vi.fn(() => {
+			throw failure
+		})
+
+		// dnd-kit runs the drop in an async handler, so the throw escapes as a rejection.
+		const rejections: unknown[] = []
+
+		const onRejection = (reason: unknown) => {
+			rejections.push(reason)
+		}
+
+		process.on('unhandledRejection', onRejection)
+
+		onTestFinished(() => {
+			process.off('unhandledRejection', onRejection)
+		})
+
+		const { rerender } = renderUI(<Board editing layout={{ value: LAYOUT, onValueChange }} />)
+
+		// Twelve columns to the right, Revenue covers the cell of Traffic.
+		await drop(await lift('Move Revenue', 'ArrowRight', 12))
+
+		expect(onValueChange).toHaveBeenCalledTimes(1)
+
+		expect(rejections).toEqual([failure])
+
+		// The app kept its layout, so each tile paints its saved cell.
+		expect(areaOf(screen.getByRole('group', { name: 'Revenue' }))).toBe('1 / 1 / span 27 / span 12')
+
+		expect(areaOf(screen.getByRole('group', { name: 'Traffic' }))).toBe(
+			'1 / 13 / span 27 / span 12',
+		)
+
+		const moved = LAYOUT.map((item) => (item.id === 'c' ? { ...item, y: 40 } : item))
+
+		rerender(<Board editing layout={{ value: moved, onValueChange }} />)
+
+		expect(areaOf(screen.getByTestId('content-c'))).toBe('41 / 1 / span 20 / span 8')
+	})
+
+	it('refuses a splitter step during a drag, so the drop commits alone and ends once', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		// Eight columns to the right, Revenue shifts against Traffic.
+		const grip = await lift('Move Revenue', 'ArrowRight', 8)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
+
+		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowLeft' })
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		await drop(grip)
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+
+		expect(onDragEnd).toHaveBeenCalledWith(expect.objectContaining({ id: 'a', canceled: false }))
+
+		expect(onLayout).toHaveBeenCalledTimes(1)
+
+		const next = onLayout.mock.lastCall?.[0] as DashboardLayoutItem[]
+
+		// Revenue and Traffic have one size, so two tiles on one cell share an origin.
+		expect(new Set(next.map((item) => `${item.x},${item.y}`)).size).toBe(next.length)
+
+		expect(next.find((item) => item.id === 'c')).toEqual({ id: 'c', x: 0, y: 27, w: 8, h: 20 })
 	})
 })
 

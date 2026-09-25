@@ -27,7 +27,12 @@ export type DashboardGestureEndCallbacks = {
 /**
  * Reads the board at the start of a drag or a resize: the column pitch, the
  * inline direction, and a snapshot of the painted cells. It returns `null` when
- * the board is not editable or the canvas has no width.
+ * a gesture is live, when the board is not editable, or when the canvas has no
+ * width.
+ *
+ * @remarks
+ * A live gesture owns the board until it ends. A second gesture reads the
+ * cells that the first one paints, so its commit writes an unsaved preview.
  *
  * @internal
  */
@@ -39,7 +44,9 @@ export function measureGesture(
 
 	const width = canvas?.clientWidth ?? 0
 
-	if (canvas === null || !view.editable || width <= 0) return null
+	if (canvas === null || store.getState().gesture !== null) return null
+
+	if (!view.editable || width <= 0) return null
 
 	return {
 		view,
