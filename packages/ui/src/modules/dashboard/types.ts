@@ -23,8 +23,8 @@ type DashboardBinding<T> = {
 
 /**
  * The binding of the saved layout. It fires once for each committed change: a
- * drop, the end of a resize, or a tidy that moves a tile. A tile with a fixed
- * `ratio` emits no `h`.
+ * drop, a pointer resize, a keyboard resize step, or a tidy that moves a tile. A
+ * tile with a fixed `ratio` emits no `h`.
  *
  * @remarks
  * Apply each value in `onValueChange` itself, in the same event. The board ends
