@@ -170,7 +170,7 @@ The contenders stay plain in both runs, so their change measures the noise. It r
 | resize · 1,000 · `truncate` | 109 | 118 | +8% | same sign |
 | resize · 3,000 · `truncate` | 219 | 228 | +4% | mixed |
 
-The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
+The compiler is about neutral for the grid in this suite. Two changes held in each pair. The 10,000-row sort flip was 15% faster, over two pairs only. The 1,000-row resize with truncation was 8% slower, over four pairs. Entry 10 of the grid log removes that cost: a resize now renders no row, and the compiled resize is level with the plain one. The first two pairs showed the grouped body slower, but the next two pairs reversed it.
 
 ### Optimization log
 
