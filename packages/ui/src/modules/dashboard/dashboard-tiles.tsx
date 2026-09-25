@@ -101,9 +101,10 @@ export function DashboardTiles({
 	actions,
 	onRemove,
 	onDuplicate,
-	expandable = false,
+	expandable,
 }: DashboardTilesProps) {
-	const { widgets, fallback = statedFallback, mount = 'always' } = useDashboardWidgets()
+	// DashboardTile defaults `mount` and `expandable`, so each passes through as given.
+	const { widgets, fallback = statedFallback, mount } = useDashboardWidgets()
 
 	const order = useDashboardStore((view) => view.order)
 
@@ -179,7 +180,7 @@ type DashboardSpecTileViewProps = {
 	/** Draws a tile whose kind no widget claims. */
 	fallback: DashboardWidgetRenderer
 	/** The mount policy of the content. */
-	mount: Mount
+	mount?: Mount
 	/** The header controls of the tile. */
 	actions?: (tile: DashboardSpecTile) => ReactNode
 	/** Removes a spec tile. */
@@ -187,7 +188,7 @@ type DashboardSpecTileViewProps = {
 	/** Duplicates a spec tile. */
 	onDuplicate?: (tile: DashboardSpecTile) => void
 	/** Whether the tile shows an expand control at rest. */
-	expandable: boolean
+	expandable?: boolean
 }
 
 /**
