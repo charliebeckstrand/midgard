@@ -102,7 +102,7 @@ function errorName(error: unknown): string {
 /**
  * The failure a thrown request carries. A signal names itself in the reason it
  * aborts with. `AbortSignal.timeout` throws a `TimeoutError`, and a caller's
- * own controller an `AbortError`. `AbortSignal.any` passes on the reason of
+ * own controller an `AbortError`. The combined signal passes on the reason of
  * whichever of the two fired. The timeout the client set and the abort the
  * caller asked for therefore stay apart. Anything else takes `fallback`: a
  * request that

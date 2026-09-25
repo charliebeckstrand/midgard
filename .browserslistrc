@@ -13,6 +13,10 @@
 # the first `.with()` call landed. Raising the floor is free; lowering it is the
 # decision this file exists to make visible.
 #
+# When the floor moves, update the API list in
+# `.biome/plugins/no-api-above-browser-floor.grit`. It names each call that the
+# type-check passes but the floor does not cover.
+#
 # caniuse has no feature id for the change-by-copy methods, so the versions are
 # spelled out. Each is the release that shipped them. The mobile ids are listed
 # in their own right: caniuse scores them separately, and dropping `and_chr`

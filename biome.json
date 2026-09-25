@@ -290,6 +290,19 @@
 		{
 			"includes": ["packages/ui/src/**", "!packages/ui/src/**/*.d.ts"],
 			"plugins": ["./.biome/plugins/no-camel-case-data-slot.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
+				"packages/shared/src/**",
+				"apps/*/app/**",
+				"apps/*/src/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!apps/*/app/api/**",
+				"!apps/*/src/server/**"
+			],
+			"plugins": ["./.biome/plugins/no-api-above-browser-floor.grit"]
 		}
 	],
 	"files": {
