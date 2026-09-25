@@ -133,3 +133,24 @@ describe('useGridTable client view', () => {
 		},
 	)
 })
+
+describe('engine sort of an undefined cell', () => {
+	test.prop([fc.constantFrom<'asc' | 'desc'>('asc', 'desc')])(
+		'puts a literal undefined last in both directions, as the grid does',
+		(direction) => {
+			const rows: Row[] = [
+				{ id: 0, name: undefined, amount: 1 },
+				{ id: 1, name: 'b', amount: 2 },
+				{ id: 2, name: 'a', amount: 3 },
+			]
+
+			const sort: GridSortState[] = [{ column: 'name', direction }]
+
+			const ids = engineView(rows, { sort }).ids
+
+			expect(ids.at(-1)).toBe(0)
+
+			expect(gridView(rows, { sort }).ids).toEqual(ids)
+		},
+	)
+})

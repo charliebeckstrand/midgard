@@ -291,7 +291,10 @@ export function toColumnDef<T>(col: GridColumn<T>): EngineColumnDef<T> {
 		enableGrouping: isDataColumn(col),
 		// The accessor feeds sort/filter without changing how the cell renders.
 		...(accessorFn ? { accessorFn } : {}),
-		...(engineSortFn ? { sortFn: engineSortFn } : {}),
+		// The engine sorts a literal `undefined` itself, before the sort function,
+		// and its desc negation then puts it first. With this off, the sort
+		// function orders it, as the off-engine sort does.
+		...(engineSortFn ? { sortFn: engineSortFn, sortUndefined: false as const } : {}),
 		...(filterFn ? { filterFn } : {}),
 		...(size != null ? { size } : {}),
 		...(col.minWidth != null ? { minSize: col.minWidth } : {}),
