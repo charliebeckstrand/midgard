@@ -14,6 +14,10 @@ export const k = defineRecipe({
 	base: [
 		'relative isolate',
 		'touch-manipulation',
+		// A long press on iOS selects the label text. iOS Safari can select the
+		// text in a child span of a `select-none` button, so the children also
+		// set it. HoldButton, which the user presses and holds, shows this most.
+		'select-none *:select-none',
 		flex.inline,
 		'justify-center',
 		'w-fit shrink-0',
