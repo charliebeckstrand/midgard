@@ -11,6 +11,7 @@ import {
 	DialogFooter,
 	DialogHeader,
 	DialogTitle,
+	DialogTrigger,
 } from '../../components/dialog'
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
@@ -57,16 +58,17 @@ export function DashboardTileExpand({
 
 	return (
 		<>
-			<Button
-				type="button"
-				variant="bare"
-				size="sm"
-				data-slot="dashboard-tile-expand"
-				aria-label={`Expand ${label}`}
-				onClick={() => setOpen(true)}
-			>
-				<Icon icon={<Maximize2 />} />
-			</Button>
+			<DialogTrigger open={open} onClick={() => setOpen(true)}>
+				<Button
+					type="button"
+					variant="bare"
+					size="sm"
+					data-slot="dashboard-tile-expand"
+					aria-label={`Expand ${label}`}
+				>
+					<Icon icon={<Maximize2 />} />
+				</Button>
+			</DialogTrigger>
 
 			<Dialog
 				open={open}

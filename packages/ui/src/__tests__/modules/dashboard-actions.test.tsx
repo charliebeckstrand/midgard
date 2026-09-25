@@ -143,7 +143,15 @@ describe('DashboardTile actions', () => {
 	it('expands a tile into a dialog named by its title', () => {
 		renderUI(<Board expandable />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+		const expand = screen.getByRole('button', { name: 'Expand Tile b' })
+
+		expect(expand).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(expand).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.click(expand)
+
+		expect(expand).toHaveAttribute('aria-expanded', 'true')
 
 		const dialog = screen.getByRole('dialog', { name: 'Tile b' })
 
