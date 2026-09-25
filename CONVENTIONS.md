@@ -72,7 +72,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit same-origin `/api/*` paths; the `withAuth` rewrites proxy them to the gateway and the app's `proxy.ts` gates the session. They never call the gateway or handle tokens directly.
+6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway; the app's `proxy.ts` gates `/api/*` by session and leaves `/auth/*` open, because sign-in and register run before a session exists. An app without `withAuth` serves `/api/*` from its own route handlers. Pinned by the `no-client-gateway-access` Biome plugin, which also keeps a runtime `auth` import out of a `'use client'` module.
 
 6.4 Shared client fetches use the data-hook pattern: a module-scoped cache and a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, keyed by a serialized input; `setState` is guarded by an `active` flag.
 

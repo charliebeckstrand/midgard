@@ -414,6 +414,23 @@
 		{
 			"includes": ["packages/ui/src/hooks/**", "!packages/ui/src/hooks/**/index.ts"],
 			"plugins": ["./.biome/plugins/require-client-directive-in-hooks.grit"]
+		},
+		{
+			"includes": [
+				"apps/*/app/**",
+				"apps/*/src/**",
+				"packages/shared/src/**",
+				"!**/__tests__/**",
+				"!apps/*/app/api/**",
+				"!apps/*/src/server/**",
+				"!apps/*/app/**/page.tsx",
+				"!apps/*/app/**/layout.tsx",
+				"!apps/*/app/**/template.tsx",
+				"!apps/*/app/**/loading.tsx",
+				"!apps/*/app/**/not-found.tsx",
+				"!apps/*/app/**/default.tsx"
+			],
+			"plugins": ["./.biome/plugins/no-client-gateway-access.grit"]
 		}
 	],
 	"files": {
