@@ -41,10 +41,22 @@ export type DashboardDragHandlers = {
 	/** The props for `DndContext`. */
 	context: DndContextProps
 	/**
-	 * Ends the live drag as canceled. It does nothing when no drag is live. The
-	 * dnd-kit drag stays active until its release, and its end then does nothing.
+	 * Ends the live drag as canceled, and ends the dnd-kit drag with it. It does
+	 * nothing when no drag is live.
 	 */
 	cancelDrag: () => void
+}
+
+/** The last drag that dnd-kit started. */
+type SensedDrag = {
+	/** The id of the dragged tile. */
+	id: string
+	/** Whether the store gesture owns the drag. A drag that the board refused or canceled does not. */
+	owned: boolean
+	/** Whether dnd-kit still runs the drag. */
+	live: boolean
+	/** The window of the canvas, where the dnd-kit sensors listen. */
+	view: Window | null
 }
 
 /** The name that the live region reads for a tile. */
@@ -87,11 +99,20 @@ export function useDashboardDrag({
 
 	callbacks.current = { commit, onDragStart, onDragEnd }
 
+	// The announcements read it after the end of the drag, so it stays until the next start.
+	const sensed = useRef<SensedDrag | null>(null)
+
 	const handleDragStart = useCallback(
 		(event: DragStartEvent) => {
 			const id = String(event.active.id)
 
-			const measure = measureGesture(store, canvasRef.current)
+			const canvas = canvasRef.current
+
+			const measure = measureGesture(store, canvas)
+
+			const view = canvas?.ownerDocument.defaultView ?? null
+
+			sensed.current = { id, owned: measure !== null, live: true, view }
 
 			if (measure === null) return
 
@@ -178,9 +199,34 @@ export function useDashboardDrag({
 		[store],
 	)
 
-	const handleDragEnd = useCallback(() => finishDrag(true), [finishDrag])
+	/** Receives the end of the dnd-kit drag: `keep` for a drop, else a cancel. */
+	const handleSensorEnd = useCallback(
+		(keep: boolean) => {
+			if (sensed.current !== null) sensed.current.live = false
 
-	const handleDragCancel = useCallback(() => finishDrag(false), [finishDrag])
+			finishDrag(keep)
+		},
+		[finishDrag],
+	)
+
+	const handleDragEnd = useCallback(() => handleSensorEnd(true), [handleSensorEnd])
+
+	const handleDragCancel = useCallback(() => handleSensorEnd(false), [handleSensorEnd])
+
+	const cancelDrag = useCallback(() => {
+		const drag = sensed.current
+
+		// dnd-kit has no cancel for a caller outside its sensors. Each sensor cancels
+		// on a resize of its window, so this event ends the drag through its own
+		// cancel path. The sensor then lets go of the keys and the pointer of the page.
+		// Each other resize listener of the window also receives the event.
+		if (drag?.live) drag.view?.dispatchEvent(new Event('resize'))
+
+		// A dnd-kit drag that outlives the cancel belongs to no gesture.
+		if (drag !== null) drag.owned = false
+
+		finishDrag(false)
+	}, [finishDrag])
 
 	// One arrow press moves one column, or one row, of the travelling tile.
 	const coordinateGetter = useCallback<KeyboardCoordinateGetter>(
@@ -215,9 +261,14 @@ export function useDashboardDrag({
 			return text
 		}
 
+		// A drag that the store does not own moves nothing, so it says nothing.
+		const owns = (id: string) => sensed.current?.owned === true && sensed.current.id === id
+
 		return {
 			onDragStart: ({ active }) => {
 				const id = String(active.id)
+
+				if (!owns(id)) return undefined
 
 				const cell = currentCell(store, id)
 
@@ -229,6 +280,8 @@ export function useDashboardDrag({
 			},
 			onDragMove: ({ active }) => {
 				const id = String(active.id)
+
+				if (!owns(id)) return undefined
 
 				const { gesture, columns } = store.getState()
 
@@ -244,6 +297,8 @@ export function useDashboardDrag({
 			onDragEnd: ({ active }) => {
 				const id = String(active.id)
 
+				if (!owns(id)) return undefined
+
 				const settled = store.getState().gesture?.kind === 'settle'
 
 				const cell = settled ? currentCell(store, id) : (store.getView().cells.get(id) ?? null)
@@ -254,6 +309,8 @@ export function useDashboardDrag({
 			},
 			onDragCancel: ({ active }) => {
 				const id = String(active.id)
+
+				if (!owns(id)) return undefined
 
 				const cell = store.getView().cells.get(id)
 
@@ -276,5 +333,5 @@ export function useDashboardDrag({
 		[sensors, announcements, handleDragStart, handleDragMove, handleDragEnd, handleDragCancel],
 	)
 
-	return { context, cancelDrag: handleDragCancel }
+	return { context, cancelDrag }
 }

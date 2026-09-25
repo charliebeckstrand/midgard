@@ -997,6 +997,120 @@ describe('Dashboard gesture owner', () => {
 		expect(cursor()).toBeNull()
 	})
 
+	it('lifts no tile and narrates nothing for a drag that a live resize refuses', async () => {
+		const onLayout = vi.fn()
+
+		const onDragStart = vi.fn()
+
+		const { container } = renderUI(
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ value: LAYOUT, onValueChange: onLayout }}
+				onDragStart={onDragStart}
+			>
+				<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const [east] = screen.getAllByRole('separator', { name: 'Resize Orders' })
+
+		if (east === undefined) throw new Error('Orders has no east splitter.')
+
+		fireEvent.pointerDown(east, { pointerId: 1, button: 0, clientX: 400, clientY: 0 })
+
+		fireEvent.pointerMove(east, { pointerId: 1, clientX: 500, clientY: 0 })
+
+		const grip = await lift('Move Revenue', 'ArrowRight', 2)
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(container.querySelector('[data-dragging]')).toBeNull()
+
+		expect(grip).not.toHaveAttribute('aria-pressed')
+
+		expect(dragNarration()).toBe('')
+
+		// The release ends the resize, so the next Escape reaches the dnd-kit drag.
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(dragNarration()).toBe('')
+	})
+
+	it('ends the dnd-kit drag with the board when edit mode ends, so the page keys work again', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />,
+		)
+
+		await lift('Move Revenue', 'ArrowRight', 2)
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		expect(container.querySelector('[data-dragging]')).toBeNull()
+
+		const passed = fireEvent.keyDown(screen.getByRole('button', { name: 'Inside a' }), {
+			code: 'Space',
+			key: ' ',
+		})
+
+		expect(passed).toBe(true)
+
+		expect(onDragEnd).toHaveBeenCalledTimes(1)
+
+		expect(dragNarration()).toBe(
+			'Canceled. Revenue returned to column 1 of 24, row 1, 12 columns wide.',
+		)
+	})
+
+	it('ends a pointer drag with the board when edit mode ends, so the next drag starts', async () => {
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const { rerender } = renderUI(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		/** Presses the card of Revenue, and moves past the 3 px that lift it. */
+		const press = () => {
+			fireEvent.pointerDown(screen.getByRole('group', { name: 'Revenue' }), {
+				...PRIMARY,
+				clientX: 0,
+				clientY: 0,
+			})
+
+			fireEvent.pointerMove(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+		}
+
+		press()
+
+		rerender(<Controlled editing={false} onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith({ id: 'a', canceled: true, layout: LAYOUT })
+
+		await teardown()
+
+		rerender(<Controlled onLayout={onLayout} onDragEnd={onDragEnd} />)
+
+		press()
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveAttribute('data-dragging')
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 10, clientY: 0 })
+
+		expect(onDragEnd).toHaveBeenCalledTimes(2)
+
+		await teardown()
+	})
+
 	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {
 		const onLayout = vi.fn()
 
