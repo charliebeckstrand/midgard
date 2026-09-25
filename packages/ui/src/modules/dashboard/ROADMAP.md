@@ -22,7 +22,7 @@ Version two adds layer 4, the widget registry. `DashboardWidgetProvider` registe
 
 A tile takes a `mount` policy, so a long board can hold back the content of the tiles under the fold. A tile also takes a `defaultSize`, the span that it takes before the layout holds an entry for it. The tiles with no entry take their new rows in markup order: a JSX tile by its place among the children, and a spec tile by its place in the spec. A reload therefore gives each of them the same row.
 
-The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so its space does not stay open. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
+The spec operations `addSpecTile`, `removeSpecTile`, and `duplicateSpecTile` keep the tiles and the layout in step, and `nextSpecTileId` mints a free id. A remove drops the layout entry of the tile, so a later tile with that id does not take its stale place. The space of the tile stays open, because the board never packs itself. A copy goes right after its source, and it takes the span of its source through its own `defaultSize`.
 
 A tile draws the standard actions in its header row. `onRemove` and `onDuplicate` show controls in edit mode, and `expandable` shows an expand control at rest, which opens the content in a dialog in the scope of the same tile. The app owns the tile list, so it applies each action; `DashboardTiles` hands it the spec tile. A remove moves the focus to the grip of a neighbor tile, and the live region names each change.
 

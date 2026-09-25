@@ -114,7 +114,9 @@ export function addSpecTile(spec: DashboardSpec, tile: DashboardSpecTile): Dashb
 
 /**
  * The spec without the tile `id` and without its layout entry. The entry must go
- * too: else it stays in the saved layout, and its space stays open.
+ * too: else it stays in the saved layout, and a later tile with that id takes
+ * its stale place. The space of the tile stays open either way, because the board
+ * never packs itself.
  *
  * @param spec - The spec to change.
  * @param id - The id of the tile to remove.
