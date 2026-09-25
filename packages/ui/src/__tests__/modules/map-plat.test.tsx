@@ -454,7 +454,9 @@ describe('MapPlat', () => {
 
 		expect(copy?.getAttribute('class')).toContain('fill-orange-600')
 
-		expect(copy?.getAttribute('class')).toContain('brightness-110')
+		expect(copy?.getAttribute('class')).toContain('brightness-90')
+
+		expect(copy?.getAttribute('class')).toContain('dark:brightness-110')
 
 		expect(bySlot(container, 'map-regions-lit')?.querySelectorAll('path')).toHaveLength(1)
 	})
@@ -969,9 +971,11 @@ describe('MapPlat region click', () => {
 			'cursor-pointer',
 		)
 
-		expect(allRegions(clickable.container)[2]?.getAttribute('class')).toContain(
-			'hover:brightness-110',
-		)
+		const gamma = allRegions(clickable.container)[2]?.getAttribute('class')
+
+		expect(gamma).toContain('hover:brightness-90')
+
+		expect(gamma).toContain('dark:hover:brightness-110')
 	})
 
 	it('reports the right-clicked region, and nothing when the right-click misses one', () => {

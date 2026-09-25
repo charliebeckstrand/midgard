@@ -84,8 +84,12 @@ export const k = {
 		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
 		/** Region boundary seam: the surface color, so shared borders read as gaps. */
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
-		/** Pointer emphasis on the hovered region. */
-		hover: 'hover:brightness-110',
+		/**
+		 * Pointer emphasis on the hovered region. Light mode darkens and dark mode
+		 * brightens, so the hovered region always moves away from the surface. A
+		 * brightened light fill fades toward the white seam and the page.
+		 */
+		hover: mode('hover:brightness-90', 'dark:hover:brightness-110'),
 		/**
 		 * The pointer affordance on a clickable map's region layer. Every
 		 * region is a target, so it rides the group and inherits down rather
@@ -118,7 +122,7 @@ export const k = {
 		 * it is the hovered region by definition, and `:hover` can't reach the
 		 * pointer-events-none copy.
 		 */
-		pointed: 'brightness-110',
+		pointed: mode('brightness-90', 'dark:brightness-110'),
 		/**
 		 * The selected region's outline — the map's shared {@link k.selected} ink,
 		 * kept here so the region layer reads its selection beside its other paint.
