@@ -9,11 +9,16 @@ updates:
   # second npm pull request for each advisory, under a `chore(deps)` header
   # that commitlint rejects.
   - package-ecosystem: github-actions
-    directory: /
+    # The root entry covers the workflows. The second entry covers the local
+    # composite actions, which pin actions of their own.
+    directories:
+      - /
+      - /.github/actions/*
     schedule:
       interval: weekly
-    # One pull request for every action in ci.yml. They are pinned to major
-    # tags, which move rarely, so separate pull requests buy nothing.
+    # One pull request for every action in the workflows and the setup action.
+    # They are pinned to major tags, which move rarely, so separate pull
+    # requests buy nothing.
     groups:
       github-actions:
         patterns:

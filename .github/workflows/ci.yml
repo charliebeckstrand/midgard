@@ -15,18 +15,13 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
+      - uses: ./.github/actions/setup
       - uses: actions/cache@v6
         with:
           path: .turbo
           key: ${{ runner.os }}-turbo-gate-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-gate-
-      - run: pnpm install --frozen-lockfile
       # Vitest's disk module cache (vitest.config.ts, `experimental.fsModuleCache`).
       # Vitest writes it under the workspace root's node_modules, not the
       # package's. Restored after install so the directory lands inside a
@@ -55,7 +50,12 @@ jobs:
             ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
-      - run: pnpm turbo run lint check-types test knip build bundle:budget --summarize
+      # One Biome run over the whole repository, not the `lint` task of each
+      # package. The package tasks miss the files at the root, such as
+      # turbo.json and knip.json. `biome ci` also writes its findings as
+      # annotations on the pull request.
+      - run: pnpm biome ci .
+      - run: pnpm turbo run check-types test knip build bundle:budget --summarize
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
@@ -83,11 +83,7 @@ jobs:
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
+      - uses: ./.github/actions/setup
       - uses: actions/cache@v6
         with:
           path: .turbo
@@ -96,7 +92,6 @@ jobs:
           key: ${{ runner.os }}-turbo-browser-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-browser-
-      - run: pnpm install --frozen-lockfile
       # Chromium only: vitest.browser.config.ts declares no other browser. The
       # download is ~170MB, so key it on the one input that decides the browser
       # build: the resolved `playwright` version, which `pnpm install` above has
@@ -127,11 +122,7 @@ jobs:
     timeout-minutes: 15
     steps:
       - uses: actions/checkout@v7
-      - uses: pnpm/action-setup@v6
-      - uses: actions/setup-node@v7
-        with:
-          node-version: 22
-          cache: pnpm
+      - uses: ./.github/actions/setup
       - uses: actions/cache@v6
         with:
           path: .turbo
@@ -139,7 +130,6 @@ jobs:
           key: ${{ runner.os }}-turbo-compiler-${{ github.sha }}
           restore-keys: |
             ${{ runner.os }}-turbo-compiler-
-      - run: pnpm install --frozen-lockfile
       # The compiled run's own module cache (vitest.compiler.config.ts), apart
       # from the plain run's cache in `gate`. The keys follow the gate's cache,
       # for the reasons given there, and add the compiler config.
