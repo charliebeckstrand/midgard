@@ -171,7 +171,7 @@ function selectionGroup(selection: DashboardSelection): QueryGroup {
  * @remarks
  * An empty selection value becomes an `isEmpty` rule. When the field does not
  * offer `isEmpty`, `QuerySummary` shows the built-in label, `is Empty`. So an
- * app does not add `isEmpty` to the operators of a field.
+ * app can leave `isEmpty` out of the operators of a field.
  */
 export function scopeQuery(
 	filter: QueryGroup | undefined,
