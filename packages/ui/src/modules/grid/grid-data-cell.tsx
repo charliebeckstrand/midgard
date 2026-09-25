@@ -115,6 +115,7 @@ function GridDataCellImpl<T>({
 			data-grid-col={col.id}
 			className={cn(rovingClass, pinned.className, cellExtra?.className)}
 			style={{ ...cellExtra?.style, ...pinned.style }}
+			data-grid-pin={pinned.pin}
 		>
 			{content}
 		</TableCell>

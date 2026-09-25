@@ -135,3 +135,25 @@ export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
 
 	return true
 }
+
+/**
+ * Whether two layouts freeze the same columns to the same edges, with the
+ * boundary on the same column. The offsets can differ. The `pinning` view of the
+ * grid keys on this structure. An offset move therefore keeps the view, and the
+ * grid writes the new offsets to the frozen cells (see `writeFrozenOffsets`).
+ *
+ * @internal
+ */
+export function sameFrozenStructure(a: FrozenLayout, b: FrozenLayout): boolean {
+	if (a === b) return true
+
+	if (a.size !== b.size) return false
+
+	for (const [id, entry] of a) {
+		const other = b.get(id)
+
+		if (!other || other.side !== entry.side || other.boundary !== entry.boundary) return false
+	}
+
+	return true
+}

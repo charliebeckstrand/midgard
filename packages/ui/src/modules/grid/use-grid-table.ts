@@ -57,7 +57,9 @@ import {
 	type FrozenLayout,
 	frozenLayout,
 	sameFrozenLayout,
+	sameFrozenStructure,
 } from './engine/grid-pin/layout'
+import { createFrozenOffsetStore, writeFrozenOffsets } from './engine/grid-pin/offsets'
 import { compileSearch } from './engine/grid-search/search'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
 import { cachedSortOrder, materializeSort, type SmartSortField } from './engine/grid-sort/utilities'
@@ -940,9 +942,12 @@ function useFilterView<T>(args: {
  * rendered header instead. Without that, a stack of frozen columns spreads apart
  * by the difference, and the scrolling columns show through the gaps.
  *
- * The layout holds its reference while every frozen column lands where it did.
- * A drag on a scrolling column then moves no frozen offset and re-renders no
- * row. A drag that shifts the frozen stack re-renders it frame by frame.
+ * The view holds its reference while each frozen column keeps its edge and
+ * its boundary role. A drag on a scrolling column therefore re-renders no row.
+ * A drag that shifts the frozen stack also re-renders no row. The layout effect
+ * commits the new layout to the offset store, and writes the moved offsets to
+ * the frozen cells before the browser paints. A new render of the full view
+ * cost about half of a frozen resize, over 1,000 rows or more.
  *
  * @internal
  */
@@ -976,7 +981,24 @@ function usePinningView<T>(args: {
 		sameFrozenLayout,
 	)
 
-	return useMemo(() => (hasPinned ? buildColumnPinning(layout) : null), [hasPinned, layout])
+	const structure = useStableValue<FrozenLayout>(layout, sameFrozenStructure)
+
+	const [offsets] = useState(() => createFrozenOffsetStore(layout))
+
+	const { containerRef } = args
+
+	useLayoutEffect(() => {
+		const previous = offsets.commit(layout)
+
+		const container = containerRef?.current
+
+		if (container && previous !== layout) writeFrozenOffsets(container, previous, layout)
+	}, [offsets, layout, containerRef])
+
+	return useMemo(
+		() => (hasPinned ? buildColumnPinning(structure, offsets) : null),
+		[hasPinned, structure, offsets],
+	)
 }
 
 /**

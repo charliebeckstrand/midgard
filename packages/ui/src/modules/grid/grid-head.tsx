@@ -228,6 +228,7 @@ function GridHeaderCell<T>({
 				aria-colindex={colIndex}
 				className={cn(k.cell.select, stickyHeader && k.sticky.head, pinned.className)}
 				style={pinned.style}
+				data-grid-pin={pinned.pin}
 			>
 				{hasRows && (
 					<Checkbox

@@ -13,6 +13,10 @@
  * column between a width that truncates its city names and one that fits them,
  * then yields frames so the truncation hook's deferred re-measure backstop lands
  * inside the timed region.
+ *
+ * A third contender freezes `origin` and the column after it. The toggle then
+ * moves the sticky offset of the second frozen column in each row, so the
+ * bench also prices the frozen chrome through a resize.
  */
 
 import { createRoot } from 'react-dom/client'
@@ -31,20 +35,37 @@ const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	cell: (row) => String(row[id]),
 }))
 
+/** The columns that the frozen contender freezes to the left edge: `origin` and the column after it. */
+const FROZEN = new Set<string>(['origin', 'destination'])
+
+/** {@link COLUMNS} with the {@link FROZEN} columns pinned left. */
+const FROZEN_COLUMNS: GridColumn<Shipment>[] = COLUMNS.map((col) =>
+	FROZEN.has(String(col.id)) ? { ...col, pinned: 'left' } : col,
+)
+
 /** The narrow width truncates the origin city names; the wide one fits them. */
 const NARROW = 48
 
 const WIDE = 320
 
+/** One contender: its report name, its `truncate` setting, and its columns. */
+type Variant = { name: string; truncate: boolean; columns: GridColumn<Shipment>[] }
+
+const VARIANTS: Variant[] = [
+	{ name: 'truncate', truncate: true, columns: COLUMNS },
+	{ name: 'truncate={false}', truncate: false, columns: COLUMNS },
+	{ name: 'truncate · frozen', truncate: true, columns: FROZEN_COLUMNS },
+]
+
 /**
- * Mounts one non-virtualized grid per `truncate` setting and closes each over a
+ * Mounts one non-virtualized grid per variant and closes each over a
  * narrow/wide resize toggle, awaiting the first paint before the bench registers
  * (the browser harness races a synchronous mount during collection otherwise).
  */
 async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
-	for (const truncate of [true, false]) {
+	for (const { name, truncate, columns } of VARIANTS) {
 		const box = host({ width: 640 })
 
 		const root = createRoot(box)
@@ -54,7 +75,7 @@ async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 		const draw = () =>
 			root.render(
 				<Grid
-					columns={COLUMNS}
+					columns={columns}
 					rows={rows}
 					getKey={shipmentKey}
 					resizable
@@ -68,7 +89,7 @@ async function prepare(rows: Shipment[]): Promise<Prepared[]> {
 		await painted(box, [rows[0]?.id ?? ''])
 
 		prepared.push({
-			name: truncate ? 'truncate' : 'truncate={false}',
+			name,
 			run: async () => {
 				wide = !wide
 
