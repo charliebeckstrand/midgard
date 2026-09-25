@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Activity, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
+import { Activity, type FocusEvent, type ReactNode, useLayoutEffect, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/ready-reveal'
 import { FOCUSABLE_SELECTOR } from '../../utilities'
@@ -28,7 +28,14 @@ export type ReadyRevealProps = {
 }
 
 const HIDDEN = { opacity: 0, filter: 'blur(4px)' }
-const VISIBLE = { opacity: 1, filter: 'blur(0px)' }
+
+// A visible layer rests at `filter: none`, not `blur(0px)`. Any filter value
+// other than `none` makes the layer a stacking context, a containing block for
+// fixed descendants, and a backdrop root, and it keeps a compositing layer
+// alive. Motion reads `none` as `blur(0px)` when the next fade starts.
+const VISIBLE = { opacity: 1, filter: 'blur(0px)', transitionEnd: { filter: 'none' } }
+
+const ROOT_GRID = { gridTemplate: '1fr / 1fr' } as const
 
 // The content layer occupies the single grid cell and, as the only in-flow
 // layer, is the sole thing that sizes it. The placeholder is lifted out of flow
@@ -62,6 +69,10 @@ const PLACEHOLDER_CELL = { position: 'absolute', inset: 0 } as const
  * swap holds its place to the pixel, no matter how the placeholder's silhouette
  * is sized. A skeleton drawn a shade shorter or taller than the content it fills
  * in for shifts nothing.
+ *
+ * A visible layer rests at `filter: none`. The blur therefore leaves no
+ * stacking context, containing block, or backdrop root on the revealed content
+ * after the fade.
  */
 export function ReadyReveal({
 	ready,
@@ -97,6 +108,10 @@ export function ReadyReveal({
 	// focus has since moved elsewhere on the page.
 	const lastFocused = useRef<HTMLElement | null>(null)
 
+	const trackFocus = (event: FocusEvent<HTMLDivElement>) => {
+		lastFocused.current = event.target
+	}
+
 	useLayoutEffect(() => {
 		const deactivating = ready ? placeholderRef.current : contentRef.current
 
@@ -119,19 +134,14 @@ export function ReadyReveal({
 
 	return (
 		<ReducedMotion>
-			<div
-				data-slot="ready-reveal"
-				className={cn('relative grid', className)}
-				style={{ gridTemplate: '1fr / 1fr' }}
-			>
+			<div data-slot="ready-reveal" className={cn('relative grid', className)} style={ROOT_GRID}>
 				<Activity mode={ready && settled ? 'hidden' : 'visible'}>
 					<motion.div
 						ref={placeholderRef}
-						// Track the last focused element per layer (focusin bubbles here),
-						// so the effect can tell whether the deactivating layer held focus.
-						onFocus={(event) => {
-							lastFocused.current = event.target as HTMLElement
-						}}
+						// Track the last focused element in each layer (focusin bubbles
+						// here), so the effect can tell whether the deactivating layer
+						// held focus.
+						onFocus={trackFocus}
 						aria-hidden={ready}
 						// `inert` keeps the hidden layer's descendants out of the Tab
 						// order and off the a11y tree, and swallows pointer events.
@@ -161,9 +171,7 @@ export function ReadyReveal({
 				    which keeps the swap free of layout shift. */}
 				<motion.div
 					ref={contentRef}
-					onFocus={(event) => {
-						lastFocused.current = event.target as HTMLElement
-					}}
+					onFocus={trackFocus}
 					aria-hidden={!ready}
 					inert={!ready}
 					animate={ready ? VISIBLE : HIDDEN}
