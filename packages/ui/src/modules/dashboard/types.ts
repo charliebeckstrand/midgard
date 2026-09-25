@@ -25,6 +25,11 @@ type DashboardBinding<T> = {
  * The binding of the saved layout. It fires once for each committed change: a
  * drop, the end of a resize, or a tidy that moves a tile. A tile with a fixed
  * `ratio` emits no `h`.
+ *
+ * @remarks
+ * Apply each value in `onValueChange` itself, in the same event. The board ends
+ * the settle phase of a gesture on the next render. A value that arrives later
+ * makes the moved tiles glide back, and then forward again.
  */
 export type DashboardLayoutBinding = DashboardBinding<DashboardLayoutItem[]>
 
@@ -157,7 +162,8 @@ export type DashboardWidgetRegistry = {
 	widgets: Readonly<Record<string, DashboardWidget>>
 	/**
 	 * Draws the content of a spec tile whose kind no widget claims. The tile keeps
-	 * its cell and its chrome. Absent draws the stated line of the module.
+	 * its cell and its chrome. Absent draws the stated line of the module. A spec
+	 * tile whose content is held back or suspends shows the default placeholder.
 	 */
 	fallback?: DashboardWidgetRenderer
 	/**

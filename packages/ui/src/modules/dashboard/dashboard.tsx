@@ -118,7 +118,8 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
 export type DashboardProps = AccessibleName & {
 	/**
 	 * The saved layout. It fires once for each committed gesture. Omit it to let the
-	 * dashboard hold the layout, and each tile with no entry takes a new row.
+	 * dashboard hold the layout, and each tile with no entry takes a new row. Apply
+	 * each value in the same event, as {@link DashboardLayoutBinding} says.
 	 */
 	layout?: DashboardLayoutBinding
 	/** The filter that the app owns. The tiles read it through the scope hooks. */

@@ -71,7 +71,8 @@ export type DashboardTilesProps = {
  * and its own `defaultSize` replaces the one of the kind. The provider `mount`
  * applies to each tile. A kind that no widget claims keeps its tile, and the
  * content box states the gap.
- * That tile demands no width, so it never re-packs the board.
+ * That tile demands no width, so it never re-packs the board. While its content
+ * is held back or suspends, a spec tile shows the default placeholder.
  *
  * The tiles render in reading order, by row and then by column, and not in the
  * order of `tiles`. In edit mode the markup holds still, and the new order takes
