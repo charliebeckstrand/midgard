@@ -1,6 +1,6 @@
 # Simplified Technical English
 
-> **The project's controlled language.** [ASD-STE100](https://www.asd-ste100.org) limits the vocabulary, the grammar, and the length of each sentence, so that the text stays unambiguous. Write all authored prose in Simplified Technical English ([`CLAUDE.md`](CLAUDE.md) §2.5).
+> **The project's controlled language.** [ASD-STE100](https://www.asd-ste100.org) limits the vocabulary, the grammar, and the length of each sentence, so that the text stays unambiguous. Write the prose that the repository keeps in Simplified Technical English ([`CLAUDE.md`](CLAUDE.md) §2.5).
 
 ## What STE means
 
@@ -32,13 +32,13 @@ This document obeys the rules that it defines; read it as the reference.
 
 9. **Complete sentences.** Keep the articles "a", "an", and "the". Do not remove words to make a sentence short.
 
-10. **Precise modals.** Use "must" for a requirement and "can" for a possibility. Do not use "shall", "should", or "may".
+10. **Precise modals.** Use "must" for a requirement and "can" for a possibility. Do not use `shall`, `should`, or `may`.
 
 11. **Procedures.** Start an instruction with the verb, and write one instruction in each sentence. Put a warning or a caution before the step that it applies to. Put a complex set of conditions in a vertical list.
 
 ## Scope in this repository
 
-Rules 6 and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins both at zero across the `ui` source tree. The curated surface docs carry no debt in either rule.
+Rules 6 and 10 are gated. [`controlled-language-boundary.test.ts`](packages/ui/src/__tests__/boundary/controlled-language-boundary.test.ts) pins both at zero across the `ui` source tree. The curated surface docs and the rule documents at the repository root carry no debt in either rule.
 
 Rule 6 held a per-file ledger while the tree paid its debt down. The last of it closed, so the ledger is gone and a new break fails the gate outright.
 
@@ -49,6 +49,8 @@ Rule 4 is not gated, and a count of it misleads. The descriptive half is conditi
 Rule 5 stays out of scope until this repository holds Part 2. The `-ing` category runs to about 7,000 sites in the `ui` comments alone. Most are participial adjectives — "the enclosing dialog", "the underlying seam" — and Part 2 approves a subset of them. A rewrite without the Dictionary degrades the prose it touches.
 
 An audit and a plan stay in their authored voice. An audit is a point-in-time record, which [`CONVENTIONS.md` §12.4](CONVENTIONS.md) deletes once its findings close. A plan is a permanent record of one decision. Neither is a living surface document, so neither is worth the churn.
+
+Chat is exempt. The repository does not keep it, so the cost of the rules buys nothing there ([`CLAUDE.md`](CLAUDE.md) §2.5).
 
 ## Example
 

@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { checkFolder, listLeafFolders } from '../helpers/filename-rules'
 import { srcDir } from '../helpers/walk-source'
 
-// Enforces the file-naming convention documented in CLAUDE.md → "File naming"
+// Enforces the file-naming convention documented in CONVENTIONS.md §3.3
 // for the components tree. Feature modules follow the same grammar plus the
 // engine layout, enforced by `module-filename-boundary.test.ts`.
 //
@@ -54,7 +54,7 @@ describe('component filename boundary', () => {
 	it('every component file matches the filename convention', () => {
 		expect(
 			newViolations,
-			`filename violation(s) in packages/ui/src/components — see CLAUDE.md → "File naming":\n${newViolations
+			`filename violation(s) in packages/ui/src/components — see CONVENTIONS.md §3.3:\n${newViolations
 				.map((v) => `  ${v.path}\n    ${v.reason}`)
 				.join('\n')}`,
 		).toEqual([])

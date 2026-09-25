@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from 'node:fs'
 import { join, parse, relative, sep } from 'node:path'
 
 // Shared machinery for the filename-boundary suites: the naming grammar from
-// CLAUDE.md → "File naming", applied per leaf folder by
+// CONVENTIONS.md §3.3, applied per leaf folder by
 // `component-filename-boundary.test.ts` (components/) and
 // `module-filename-boundary.test.ts` (modules/, which layers the engine
 // layout rules on top).

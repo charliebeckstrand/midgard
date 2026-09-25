@@ -12,35 +12,49 @@
 
 2.1 App Router **only**.
 
-2.2 For [Server/Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components), keep `'use client'` on the interactive leaf; never promote it onto a layout or page that could stay server-rendered. Pinned by the `no-client-directive-in-route-file` Biome plugin, which leaves out `error.tsx` and `global-error.tsx` because Next.js requires the directive there.
+2.2 Keep `'use client'` on the interactive leaf, not on a layout or a page that can stay on the server. The `no-client-directive-in-route-file` Biome plugin gates it ([Server and Client Components](https://nextjs.org/docs/app/getting-started/server-and-client-components)).
 
 2.3 When a server page hands data to an interactive subtree, split `page.tsx` (server) + `client.tsx` (client).
 
-2.4 [`params` / `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page) — prefer the generated `PageProps` helper for typing.
+2.4 [`params` and `searchParams` are async](https://nextjs.org/docs/app/api-reference/file-conventions/page). Type them with the generated `PageProps` helper.
 
 ## 3. Components
 
-See [REFERENCE.md](REFERENCE.md).
+See [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md).
 
 3.1 Compose from the design system (`ui`).
 
 3.2 App-local components (`apps/<app>/src/components/<name>/`) hold feature logic (e.g. `<feature>-picker`, `<feature>-combobox`). Reusable presentation belongs in `ui`.
 
-3.3 One directory per unit: `<name>.tsx`, `<name>-<part>.tsx` (sub-components), `use-<name>-<hook>.ts` (hooks), `context.ts`, `types.ts`, `index.ts` (barrel, re-exports only).
+3.3 One directory per unit: `<name>.tsx`, `<name>-<part>.tsx` (sub-components), `use-<name>-<hook>.ts` (hooks), `context.ts`, `slots.ts`, `types.ts`, `variants.ts`, and `index.ts` (the barrel, re-exports only). [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §3 shows the full layout. `component-filename-boundary.test.ts` and `module-filename-boundary.test.ts` gate the names in `ui`.
 
 3.4 Named exports only. Each file's PascalCase / `useCamelCase` export matches its filename. Biome's `noDefaultExport` pins the first rule outside the Next.js route files and the tool config files, whose loaders read a default export.
 
 3.5 The barrel is the public surface. External consumers (apps, other packages) import the directory, never its internal files (§9).
 
-Within `ui`, a sibling component may reach past the barrel for a foundation's leaf module: its `context.ts`, a `use-*` hook, or a `*-utilities` or `variants` helper. That's how shared cascades like `useControl` and `useGlass` travel without pulling in the component's full surface. What a sibling must never import is another component's main `<name>.tsx`. All of this is enforced by `component-boundary.test.ts`.
+Within `ui`, a sibling can import the leaf modules of another component: its `context.ts`, a `use-*` hook, or a `*-utilities` or `variants` helper. So a shared cascade such as `useControl` or `useGlass` travels without the full surface of its component. A sibling never imports the main `<name>.tsx` of another component. `component-boundary.test.ts` gates all of this.
 
-3.6 Composition is compound components over context. The root owns state and provides it through `context.ts`; behavior-bearing sub-components consume it (`useTabsContext`, `useCollapseContext`). Inert slots, whose whole body is element + recipe classes + prop spread, use `createSlot` (`core/create-slot.ts`); the panel surfaces (Dialog, Sheet, Drawer) build their shared slot family with `createPanel` (`primitives/panel`). `children` is plain `ReactNode` everywhere: state reaches descendants through context (`useComboboxQuery`), never through render-function children on a root. Reserve render functions for per-item callbacks where a parent passes data back (a list's item renderer, `VirtualOptions`). Context composition is for client components; static-tier components style descendants through DOM projections instead (§3.8).
+3.6 Composition is compound components over context. The root owns state and provides it through `context.ts`; behavior-bearing sub-components consume it (`useTabsContext`, `useCollapseContext`). An inert slot, whose whole body is an element, recipe classes, and a prop spread, uses `createSlot` (`core/create-slot.ts`). The panel surfaces (Dialog, Sheet, Drawer) build their shared slot family with `createPanel` (`primitives/panel`). `children` is plain `ReactNode` everywhere: state reaches descendants through context (`useComboboxQuery`), never through render-function children on a root. Reserve render functions for per-item callbacks where a parent passes data back (a list's item renderer, `VirtualOptions`).
 
-3.7 Skeleton state is explicit. A skeleton-aware leaf exports a dedicated `<Name>Skeleton` from its barrel: size- or base-keyed leaves build it with `createSkeleton(k.skeleton, '<Name>Skeleton')` (`button`, `badge`, `checkbox`, `radio`, `switch`, `text`, `slider`, `segment`, `calendar`, `progress`, `toggle-icon-button`); leaves whose silhouette keys off another axis hand-write it (`heading` by level, `textarea` by rows, `tabs`/`pagination`/`stepper`/`breadcrumb` by item count). Loading trees compose the variants where the real components will render: a Suspense fallback, `loading.tsx`, or a `ReadyReveal` placeholder. Skeleton variants are static leaves ([REFERENCE.md](packages/ui/REFERENCE.md) §2): they read no context and mirror the real component's explicit props (`ControlSkeleton` stands in for the control family). A skeleton adds no `data-slot` of its own; `placeholder` is the family anchor. Silhouette dimensions live in the `kokkaku` skeleton-form layer (`recipes/kiso/kokkaku/<name>.ts`), wired into the kata as `skeleton:`. Inline display leaves (`icon`, `kbd`, `code`, `status`, `time-ago`, `odometer`, `link`) and data-heavy compositions (`grid`) deliberately have none for now; `table` ships `TableLoading`.
+Context composition is for client components; static-tier components style descendants through DOM projections instead (§3.8).
 
-3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([REFERENCE.md](packages/ui/REFERENCE.md) §2).
+3.7 Skeleton state is explicit. A skeleton-aware component exports `<Name>Skeleton` variants from its barrel. `createSkeleton` builds a variant whose silhouette follows one size or base axis. A variant whose silhouette follows another axis, such as a heading level or an item count, is written by hand. Compose the variants where the real components will render: a Suspense fallback, `loading.tsx`, or a `ReadyReveal` placeholder.
 
-3.9 Spread order decides what a consumer may override. Load-bearing structural attributes — `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 binding cascade — are written *after* `{...props}`, so a stray prop can't drop a row out of roving, turn a button into a form submit, or clobber a bound field; `menu-item.tsx` is the composite precedent and `switch.tsx` the cascade one. A `data-slot` anchor binds by who reads it: a leaf whose anchor the library itself selects on — a roving `itemSelector`, or a kata `has-[]` rule — writes it *after* the spread and locks it, as `accordion-trigger.tsx` does for Accordion's roving; every other leaf writes it *before* the spread, so a wrapper can re-anchor the leaf it renders. Presentational attributes stay overridable: `className` merges through `cn`. A key that holds a handler or an object takes the same shape, because position drops one side of it. The component destructures the key and resolves it. A handler composes through `composeEventHandlers`: the consumer's handler runs first, and `preventDefault()` cancels the component's. Pass `checkForDefaultPrevented: false` only for three cases. The first is the activation a component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the component's own state true: a form field's touched mark and value, the end of a gesture the component started, and state that tracks an event the browser cannot cancel. React's synthetic `preventDefault()` marks even a non-cancellable event, so the default would let a consumer switch that wiring off. Side behaviour, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case. A `style` object merges: `props.style` spreads in first, then the keys that carry the component's behaviour. `menu-item-utilities.ts` is the handler precedent and `slider.tsx` the style one. The position rules are enforced by `spread-order-boundary.test.ts`, which computes the read set rather than listing it, and carries the known backlog as an allowlist. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. The rest of the composed-key rule is not gated yet.
+A skeleton variant is a static leaf ([`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §2). It reads no context, and it mirrors the explicit props of the real component. It adds no `data-slot` of its own; `placeholder` is the family anchor. Fixed silhouette dimensions live in the `kokkaku` layer (`recipes/kiso/kokkaku/<name>.ts`), and the kata wires them in as `skeleton:`. Inline display leaves and data-heavy compositions have no skeleton; `table` ships `TableLoading` instead. The skeleton sweep in `sweeps/capabilities.test.tsx` holds each variant to its silhouette.
+
+3.8 Components in `ui` split into static and client tiers; ambient styling crosses the boundary through the DOM, never through React context ([`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) §2). `static-component-boundary.test.ts` gates the static tier.
+
+3.9 Spread order decides what a consumer can override. The load-bearing structural attributes come after `{...props}`: `role`, `tabIndex`, `type`, widget ARIA state, and the resolved wiring of the §7.2 cascade. Then a stray prop cannot drop a row out of roving, turn a button into a form submit, or clobber a bound field. `switch.tsx` is the example for the cascade. Presentational attributes stay open to override, and `className` merges through `cn`.
+
+A `data-slot` anchor binds by who reads it. The library selects some anchors itself, through a roving `itemSelector` or a kata `has-[]` rule. A leaf writes such an anchor after the spread and locks it, as `accordion-trigger.tsx` does. Every other leaf writes its anchor before the spread, so a wrapper can re-anchor the leaf it renders.
+
+A key that holds a handler or an object needs both sides, and a spread position keeps only one. So the component destructures the key and resolves it. A handler composes through `composeEventHandlers`: the consumer's handler runs first, and its `preventDefault()` cancels the component's handler. A `style` object merges: `props.style` spreads in first, then the keys that carry the behaviour of the component. `menu-item-utilities.ts` is the example for a handler, and `slider.tsx` for a `style` object.
+
+Pass `checkForDefaultPrevented: false` in three cases only. The first is the activation that the component exists to perform. The second is a roving keyboard model, which no consumer switches off. The third is the wiring that keeps the state of the component true. Examples are the touched mark and the value of a form field, the end of a gesture, and an event the browser cannot cancel. React's synthetic `preventDefault()` marks even an event that cannot be cancelled, so the default would let a consumer switch that wiring off.
+
+Side behaviour, such as a preload or a pause on hover, keeps the default. [`2026-09-25-HANDLER-COMPOSITION-PLAN.md`](packages/ui/docs/plans/2026-09-25-HANDLER-COMPOSITION-PLAN.md) records the sweep that found the third case.
+
+`spread-order-boundary.test.ts` gates the position rules. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
 ## 4. TypeScript
 
@@ -48,13 +62,15 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 4.2 Use `type` aliases for props and data shapes; never `interface`. Co-locate small ones, extract to `types.ts` once shared or large.
 
-4.3 `ComponentProps<'tag'>` is the only native-prop base. It carries `ref`, so a props type never declares a `ref` beside it. A component that does not forward the ref omits it (`Omit<ComponentProps<'div'>, 'ref'>`); one that renders more than one element keeps an element-agnostic base, because the arms are not mutually assignable. An imperative handle declares `ref?: Ref<<Name>Handle>` after that omit. A component takes `ref` as a prop, never through `forwardRef`. Pinned by `props-base-boundary.test.ts` and Biome's `noReactForwardRef`.
+4.3 `ComponentProps<'tag'>` is the only native-prop base. It carries `ref`, so a props type never declares a `ref` beside it. A component that does not forward the ref omits it (`Omit<ComponentProps<'div'>, 'ref'>`). A component that renders more than one element keeps an element-agnostic base, because the arms are not mutually assignable. An imperative handle declares `ref?: Ref<<Name>Handle>` after that omit. A component takes `ref` as a prop, never through `forwardRef`.
 
-4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
+`props-base-boundary.test.ts` and Biome's `noReactForwardRef` gate the rule.
 
-4.5 Props live beside the component that takes them, and a barrel reaches a type at the module that declares it — never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
+4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 
-4.6 A barrel names every symbol it re-exports, once per source module: a type rides its module's statement with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`), and a module that exports types alone takes `export type { … } from`. Never `export *` — a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. Pinned by `barrel-export-boundary.test.ts`, and by Biome's `noReExportAll` across the workspace.
+4.5 Props live beside the component that takes them. A barrel reaches a type at the module that declares it, never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
+
+4.6 A barrel names each symbol that it re-exports, once for each source module. A type rides the statement of its module with the inline `type` modifier (`export { Button, type ButtonProps } from './button'`). A module that exports only types takes `export type { … } from`. Never `export *`: a wildcard re-exports whatever the module gains next, and the barrel tests cannot read through it. `barrel-export-boundary.test.ts` and Biome's `noReExportAll` gate the rule.
 
 4.7 Module constants: `UPPER_SNAKE_CASE` for magic values, `camelCase` for keyed lookup/config objects.
 
@@ -72,9 +88,11 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway; the app's `proxy.ts` gates `/api/*` by session and leaves `/auth/*` open, because sign-in and register run before a session exists. An app without `withAuth` serves `/api/*` from its own route handlers. Pinned by the `no-client-gateway-access` Biome plugin, which also keeps a runtime `auth` import out of a `'use client'` module.
+6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The `proxy.ts` of the app gates `/api/*` by session and leaves `/auth/*` open, because sign-in and register run before a session exists. An app without `withAuth` serves `/api/*` from its own route handlers.
 
-6.4 Shared client fetches use the data-hook pattern: a module-scoped cache and a deduped in-flight promise, exposed as `use<Thing>()` → `{ data, loading, error }`, keyed by a serialized input; `setState` is guarded by an `active` flag.
+The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
+
+6.4 Shared client fetches use the data-hook pattern. A module-scoped cache and a deduped in-flight promise, keyed by a serialized input, sit behind `use<Thing>()`, which returns `{ data, loading, error }`. An `active` flag guards `setState`.
 
 ## 7. Forms
 
@@ -92,9 +110,9 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 ## 9. Imports
 
-9.1 In apps, use the `@/*` alias (`@/components/…`, `@/api/…`); never deep relative chains.
+9.1 In apps, the `@/*` alias maps to the source root: `src` in `places`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
 
-From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*`, `ui/primitives/*`, `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
+From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/primitives/*`, and `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
@@ -104,24 +122,30 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 | Scope | Location |
 |---|---|
-| App | `apps/<app>/src/__tests__/**/*.test.{ts,tsx}` |
-| Component | `packages/ui/src/__tests__/` |
+| App | `apps/<app>/src/__tests__/**/*.test.ts` |
+| `ui` component | `packages/ui/src/__tests__/` |
+| `ui` docs engine | `packages/ui/src/docs/engine/__tests__/` |
+| `auth` | Beside the source (`packages/auth/src/*.test.ts`), under `node --test` |
 
 10.2 Component tests render through the library's test renderer and query by `data-slot`. New components expose stable `data-slot` anchors and a filename-matched export.
 
-10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests — they flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness) or skip with a stated reason.
+10.3 **Don't drive third-party async lifecycles** (fetch, virtualization, floating-ui, pdfjs) in tests. They flake on CI. Test the synchronous seam (a reducer, a callback, a typed harness), or skip with a stated reason.
 
-10.4 While editing, run a scoped subset (`test:changed`, `test:related`). Prove changes pass before claiming done ([CLAUDE.md](CLAUDE.md) §3.4).
+10.4 While you edit, run a scoped subset (`test:changed` or `test:related`), as [CLAUDE.md](CLAUDE.md) §3.4 requires.
 
-10.5 Placement: a guarantee that must hold for every component of a kind goes in the shared corpus (`a11y/cases`) and is asserted by a sweep gate, so adding a corpus entry buys every gate; behaviour specific to one component goes in its own test file. An assertion that reads the DOM tree (roles, attributes, events, focus order) runs under jsdom; one that reads layout, computed style, or colour (contrast, target size, geometry invariants, focus traps) runs in the browser suite (`test:browser`). A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window; `node-environment-boundary.test.ts` holds the docblock and the file's DOM use in step.
+10.5 A guarantee that holds for every component of a kind goes in the shared corpus (`a11y/cases`), and a sweep gate asserts it. One new corpus entry then buys every gate. Behaviour specific to one component goes in its own test file.
 
-10.6 A browser test arrives at the viewport `vitest.browser.config.ts` declares, and Vitest resets the page to it before each file, so a file inherits no size from the file before it. A file whose geometry needs another size states it once, as `beforeAll(() => page.viewport(w, h))`; `test-isolation-boundary.test.ts` holds that placement, because a call inside an `it` reaches the file's later cases and nothing restores it there.
+An assertion that reads the DOM tree runs under jsdom: roles, attributes, events, and focus order. An assertion that reads layout, computed style, or colour runs in the browser suite (`test:browser`): contrast, target size, geometry, and focus traps. A test that reads no DOM at all opens with `// @vitest-environment node` and runs with no window. `node-environment-boundary.test.ts` holds the docblock and the DOM use of the file in step.
 
-10.7 The grid tests also run with the React Compiler on (`test:compiler`, `vitest.compiler.config.ts`), and CI runs them in the gate job. The compiler caches a value on the identity of its inputs, so render code must not read a mutable object; the TanStack table is one. The engine boundary is `use-grid-table.ts`: the one grid module that opens with `'use no memo'`, and the only one that reads the table during render. It gives the grid values and actions, never an engine object. A value is immutable, and each change gives a new value. An action reads or writes the engine when it runs, from an event or an effect. A dependency list names what its value reads, never an extra key to force a recompute. Force a layout flush with a call such as `getBoundingClientRect()`, never a bare property read, because the compiler removes a read whose value goes unused.
+10.6 A browser test starts at the viewport that `vitest.browser.config.ts` declares. Vitest resets the page to it before each file, so a file inherits no size from the file before it. A file whose geometry needs another size states it once, as `beforeAll(() => page.viewport(w, h))`. `test-isolation-boundary.test.ts` holds that placement. A call inside an `it` reaches the later cases of the file, and nothing restores the size there.
+
+10.7 The grid tests also run with the React Compiler on (`test:compiler`, `vitest.compiler.config.ts`), and CI runs them in the gate job. The compiler caches a value on the identity of its inputs, so render code must not read a mutable object. The TanStack table is such an object. `use-grid-table.ts` is the engine boundary: the one grid module with `'use no memo'`, and the only one that reads the table during render. It gives the grid values and actions, never the engine; its header states the contract.
+
+A dependency list names what its value reads, never an extra key to force a recompute. Force a layout flush with a call such as `getBoundingClientRect()`, never with a bare property read. The compiler removes a read whose value goes unused.
 
 ## 11. Environment
 
-11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge — today the sole reader is the `auth` package's `env.ts` (`BIFROST_URL`); apps reach env through `auth`, not scattered through features. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
+11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the only reader is `env.ts` in the `auth` package (`BIFROST_URL`), and apps reach env through `auth`. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 
@@ -129,9 +153,13 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 ## 12. Documentation
 
-12.1 Public-surface symbols carry TSDoc. Every symbol a barrel re-exports (a component and its `*Props`, each hook, primitive, provider, and `ui/core` export) opens with a summary-first doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2): the first sentence states what it is, then `@param` / `@returns` where the signature isn't self-evident, `@defaultValue` on defaulted optional fields, `@remarks` for caveats, `@see {@link …}` to cross-link, and `@internal` on a documented helper that no barrel re-exports — the tag and a barrel entry are mutually exclusive, pinned by `internal-barrel-boundary.test.ts`. Don't restate the type or document self-evident fields. Standard: [TSDoc](https://tsdoc.org).
+12.1 Public-surface symbols carry TSDoc. Each symbol that a barrel re-exports opens with a doccomment in the house voice ([CLAUDE.md](CLAUDE.md) §2). That covers a component and its `*Props`, each hook, primitive, and provider, and each `ui/core` export. The first sentence states what the symbol is. Add `@param` and `@returns` where the signature is not self-evident. Add `@defaultValue` on a defaulted optional field, `@remarks` for caveats, and `@see {@link …}` for cross-links.
 
-12.2 The curated surface docs in [`packages/ui/docs/`](packages/ui/docs) — `COMPONENTS` · `HOOKS` · `PRIMITIVES` · `PROVIDERS` · `RECIPES` · `CORE` · `UTILITIES` — are the quick-glance index of the public surface. Adding, removing, or renaming a public export updates the matching doc in the same change: a new component lands in `COMPONENTS.md` under its domain bucket; a new hook / primitive / provider / core / utility lands in its doc with a one-line summary. [`REFERENCE.md`](packages/ui/REFERENCE.md) is the hub — keep its surface map and the §2 boundary current.
+Do not restate the type or document a self-evident field. Mark a documented helper that no barrel re-exports with `@internal`; the tag and a barrel entry exclude each other. `tsdoc-coverage-boundary.test.ts` and `internal-barrel-boundary.test.ts` gate the rule. Standard: [TSDoc](https://tsdoc.org).
+
+12.2 The curated docs in [`packages/ui/docs/`](packages/ui/docs) are the quick-glance index of the `ui` surface. `COMPONENTS`, `MODULES`, `LAYOUTS`, `HOOKS`, `PRIMITIVES`, `PROVIDERS`, and `CORE` index the public surface. `RECIPES` and `UTILITIES` index the package-internal layers (§9.1).
+
+A change that adds, removes, or renames an export updates the matching doc in the same commit. A new component goes in `COMPONENTS.md` under its domain bucket; any other new export gets a one-line summary in its doc. `surface-index.test.ts` checks every doc except `RECIPES` for a missing entry. [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) is the hub, so keep its surface map and its §2 boundary current.
 
 12.3 Audits under [`packages/ui/docs/audits/`](packages/ui/docs/audits) are point-in-time, single-lens sweeps named `{date}-{LENS}-AUDIT.md`; a documentation sweep is a `{date}-DOC-AUDIT.md`.
 
@@ -139,4 +167,4 @@ From packages/ui, import per-component entries (`ui/button`, `ui/dialog`) plus `
 
 ---
 
-**See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md).
+**See also:** [CLAUDE.md](CLAUDE.md), [REFERENCE.md](REFERENCE.md), [STE.md](STE.md).
