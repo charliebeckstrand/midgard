@@ -137,6 +137,7 @@ import {
 	type EngineColumn,
 	type EngineColumnDef,
 	type EngineData,
+	type EngineOptions,
 	type EngineRow,
 	type EngineTable,
 	type GridFeatures,
@@ -1123,49 +1124,94 @@ export function useGridTable<T>({
 
 	const getRowId = useCallback((row: T, index: number) => String(getKey(row, index)), [getKey])
 
-	// The table of this render. Its identity changes with its options and its
-	// state, so the render reads below read it.
-	const table = useTable<GridFeatures, EngineData<T>>({
-		features: gridFeatures,
-		data: rows as EngineData<T>[],
-		columns: columnDefs,
-		getRowId,
-		// The page coordinate, widths, and query are owned by controllable bindings.
-		autoResetPageIndex: false,
-		state: buildState({
+	const sorting = useMemo(() => toSortingState(sort), [sort])
+
+	// The engine options, as one value. The engine copies the table into a new
+	// table object each time the options change, so a render that changes no
+	// input keeps the options and skips that copy.
+	const options = useMemo<EngineOptions<T>>(
+		() => ({
+			features: gridFeatures,
+			data: rows as EngineData<T>[],
+			columns: columnDefs,
+			getRowId,
+			// The page coordinate, widths, and query are owned by controllable bindings.
+			autoResetPageIndex: false,
+			state: buildState({
+				paginated,
+				pagination: resolvedPagination,
+				resizable,
+				sizing: resolvedSizing,
+				sizingInfo: columnSizingInfo,
+				globalFiltered: globalConfigured,
+				globalFilter: resolvedGlobalFilter,
+				columnFiltered: hasColumnFilters,
+				columnFilters: resolvedColumnFilters,
+				sortClient: clientSort,
+				sorting,
+				pinned: hasPinned,
+				columnPinning,
+				selectable,
+				rowSelection,
+				grouped,
+				grouping: groupingState,
+				columnOrder: engineColumnOrder,
+				columnVisibility,
+			}),
+			...(selectable ? { enableRowSelection: true } : {}),
+			...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
+			...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
+			...sortOptions<T>({ clientSort, onSortingChange }),
+			...groupingOptions<T>({ grouped, onGroupingChange }),
+			...filterOptions<T>({
+				configured: filterMode.configured,
+				manual: filterMode.manual,
+				globalHighlight: globalHighlights,
+				onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
+				onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
+			}),
+		}),
+		[
+			rows,
+			columnDefs,
+			getRowId,
 			paginated,
-			pagination: resolvedPagination,
+			resolvedPagination,
 			resizable,
-			sizing: resolvedSizing,
-			sizingInfo: columnSizingInfo,
-			globalFiltered: globalConfigured,
-			globalFilter: resolvedGlobalFilter,
-			columnFiltered: hasColumnFilters,
-			columnFilters: resolvedColumnFilters,
-			sortClient: clientSort,
-			sorting: toSortingState(sort),
-			pinned: hasPinned,
+			resolvedSizing,
+			columnSizingInfo,
+			globalConfigured,
+			resolvedGlobalFilter,
+			hasColumnFilters,
+			resolvedColumnFilters,
+			clientSort,
+			sorting,
+			hasPinned,
 			columnPinning,
 			selectable,
 			rowSelection,
 			grouped,
-			grouping: groupingState,
-			columnOrder: engineColumnOrder,
+			groupingState,
+			engineColumnOrder,
 			columnVisibility,
-		}),
-		...(selectable ? { enableRowSelection: true } : {}),
-		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
-		...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
-		...sortOptions<T>({ clientSort, onSortingChange }),
-		...groupingOptions<T>({ grouped, onGroupingChange }),
-		...filterOptions<T>({
-			configured: filterMode.configured,
-			manual: filterMode.manual,
-			globalHighlight: globalHighlights,
-			onGlobalFilterChange: globalConfigured ? onGlobalFilterChange : undefined,
-			onColumnFiltersChange: hasColumnFilters ? onColumnFiltersChange : undefined,
-		}),
-	})
+			manual,
+			paginationConfig,
+			onPaginationChange,
+			onColumnSizingChange,
+			onColumnSizingInfoChange,
+			onSortingChange,
+			onGroupingChange,
+			filterMode.configured,
+			filterMode.manual,
+			globalHighlights,
+			onGlobalFilterChange,
+			onColumnFiltersChange,
+		],
+	)
+
+	// The table of this render. Its identity changes with its options and its
+	// state, so the render reads below read it.
+	const table = useTable<GridFeatures, EngineData<T>>(options)
 
 	// The engine: a table object that keeps one identity. Its methods act on the
 	// one core table, so an action or an effect reads it when it runs. Its
