@@ -49,7 +49,7 @@ export function CalendarPicker({
 					{monthLabel}
 				</Button>
 			</PopoverTrigger>
-			<PopoverContent modal>
+			<PopoverContent modal aria-label="Choose month and year">
 				<CalendarPickerGrid
 					headerRef={pickerHeaderRef}
 					gridRef={pickerGridRef}

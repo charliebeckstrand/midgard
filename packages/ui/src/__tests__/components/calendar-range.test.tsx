@@ -115,6 +115,16 @@ describe('CalendarRange', () => {
 		expect(screen.getByText('May 2024')).toBeInTheDocument()
 	})
 
+	it('follows endpoints that the parent moves to another month', () => {
+		const { rerender } = renderUI(
+			<CalendarRange rangeStart={d(2024, 3, 5)} rangeEnd={d(2024, 3, 10)} />,
+		)
+
+		rerender(<CalendarRange rangeStart={d(2024, 7, 1)} rangeEnd={d(2024, 7, 31)} />)
+
+		expect(screen.getByText('July 2024')).toBeInTheDocument()
+	})
+
 	it('invokes onValueChange when a day is clicked', () => {
 		const onChange = vi.fn()
 

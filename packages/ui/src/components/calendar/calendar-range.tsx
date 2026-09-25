@@ -124,10 +124,11 @@ function hoverHandlers(
  * per-day styling through `getDayProps`. It paints the band between
  * `rangeStart` and the effective end, marks both endpoints selected, and rounds
  * the leading and trailing edges in either selection order. The effective end
- * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day reports it through `onHoverDate`
- * for live in-progress feedback. Endpoint state is fully controlled by the
- * parent; forwards `locale`, `size`, bounds, and the imperative `ref` to
- * `Calendar`.
+ * is the `hoverDate` preview when set, else `rangeEnd`. Hover over a day
+ * reports it through `onHoverDate` for live in-progress feedback. Endpoint
+ * state is fully controlled by the parent. When the parent moves `rangeStart`
+ * (else `rangeEnd`) to another month, the view follows it. Forwards `locale`,
+ * `size`, bounds, and the imperative `ref` to `Calendar`.
  *
  * @remarks Client component (`'use client'`).
  */
@@ -177,9 +178,9 @@ export function CalendarRange({
 	return (
 		<Calendar
 			ref={ref}
-			value={undefined}
-			// Read on mount only: the view opens on the first endpoint.
-			defaultValue={rangeStart ?? rangeEnd ?? undefined}
+			// The first endpoint anchors the view, so the grid follows a parent that
+			// moves the range to another month. `getDayProps` owns the selection.
+			value={rangeStart ?? rangeEnd ?? null}
 			onValueChange={(date) => date && onValueChange?.(date)}
 			min={min}
 			max={max}

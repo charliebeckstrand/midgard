@@ -74,6 +74,15 @@ describe('Calendar', () => {
 		).toHaveLength(1)
 	})
 
+	it('names the Gregorian month, year, and days in a Buddhist-calendar locale', () => {
+		// `th-TH` defaults to the Buddhist calendar, where 2025 is 2568.
+		renderUI(<Calendar locale="th-TH" defaultValue={new Date(2025, 5, 15)} />)
+
+		expect(screen.getByRole('listbox', { name: 'มิถุนายน 2025' })).toBeInTheDocument()
+
+		expect(screen.getAllByRole('option')[14]).toHaveAccessibleName('วันอาทิตย์ที่ 15 มิถุนายน 2025')
+	})
+
 	it('steps one month for each handle call in one event', () => {
 		const ref = createRef<CalendarHandle>()
 
@@ -301,6 +310,28 @@ describe('Calendar month/year picker', () => {
 		expect(screen.getByRole('listbox', { name: 'Select month' })).toBeInTheDocument()
 
 		expect(screen.getByRole('option', { name: 'Jun', selected: true })).toBeInTheDocument()
+	})
+
+	it('labels the picker panel as a dialog', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		renderUI(<Calendar defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(openPicker(/June 2025/))
+
+		expect(screen.getByRole('dialog', { name: 'Choose month and year' })).toBeInTheDocument()
+	})
+
+	it('names Gregorian months in a locale with another default calendar', async () => {
+		const user = userEvent.setup({ delay: null })
+
+		// `fa-IR` defaults to the Persian calendar. Its January is "ژانویه", not
+		// "دی", the Persian month that holds January 1.
+		renderUI(<Calendar locale="fa-IR" defaultValue={new Date(2025, 5, 15)} />)
+
+		await user.click(screen.getByRole('button', { name: 'ژوئن ۲۰۲۵' }))
+
+		expect(screen.getByRole('option', { name: 'ژانویه' })).toBeInTheDocument()
 	})
 
 	it('opens the year picker from the month picker and navigates decades', async () => {

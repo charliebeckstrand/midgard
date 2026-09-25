@@ -95,6 +95,11 @@ export function getFirstDayColumn(year: number, month: number, locale: string): 
 // deterministic across server and client renders.
 const WEEKDAY_REFERENCE = new CalendarDate(2021, 1, 3)
 
+// The grid is Gregorian, so each label names a Gregorian month and year. A
+// locale such as `th-TH` or `fa-IR` defaults to another calendar, and its
+// labels then name a month that the grid does not show.
+const GREGORIAN = { calendar: 'gregory' } as const
+
 // A new `Intl.DateTimeFormat` for each day cell is measurable on each month
 // change, so the day-name formatter is cached by locale.
 const dayNameFormatters = new Map<string, Intl.DateTimeFormat>()
@@ -105,6 +110,7 @@ export function formatDayName(date: Date, locale: string): string {
 
 	if (!formatter) {
 		formatter = new Intl.DateTimeFormat(locale, {
+			...GREGORIAN,
 			weekday: 'long',
 			day: 'numeric',
 			month: 'long',
@@ -115,6 +121,11 @@ export function formatDayName(date: Date, locale: string): string {
 	}
 
 	return formatter.format(date)
+}
+
+/** Name of the month of `date` with its year in `locale`, such as "June 2025". @internal */
+export function formatMonthName(date: Date, locale: string): string {
+	return date.toLocaleDateString(locale, { ...GREGORIAN, month: 'long', year: 'numeric' })
 }
 
 /** Short weekday labels ordered by the locale's first day of the week. */
@@ -130,7 +141,7 @@ export function getWeekdayLabels(locale: string): string[] {
 
 /** Short month labels (Jan through Dec), in calendar order, for the locale. */
 export function getMonthLabels(locale: string): string[] {
-	const formatter = new Intl.DateTimeFormat(locale, { month: 'short' })
+	const formatter = new Intl.DateTimeFormat(locale, { ...GREGORIAN, month: 'short' })
 
 	// Same fixed-reference rule as the weekday labels, through the file's own
 	// month helper: output depends on the locale, never on the current date.

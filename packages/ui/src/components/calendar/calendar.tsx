@@ -23,6 +23,7 @@ import { useFormValue } from '../form/use-form-value'
 import { CalendarGrid } from './calendar-grid'
 import { CalendarHeader } from './calendar-header'
 import {
+	formatMonthName,
 	getCalendarDays,
 	getFirstDayColumn,
 	getMonthLabels,
@@ -106,8 +107,10 @@ export type CalendarProps = {
 	ref?: Ref<CalendarHandle>
 	/**
 	 * BCP 47 locale tag driving the first day of the week and the weekday /
-	 * month labels. Resolution order: explicit prop, then enclosing
-	 * `LocaleProvider`, then the runtime default.
+	 * month labels. The labels name Gregorian months and years, as the grid
+	 * does, also for a locale that defaults to another calendar. Resolution
+	 * order: explicit prop, then enclosing `LocaleProvider`, then the runtime
+	 * default.
 	 *
 	 * @defaultValue enclosing `LocaleProvider` locale, else the runtime default
 	 */
@@ -241,10 +244,7 @@ export function Calendar({
 		[year, month, localeTag],
 	)
 
-	const monthLabel = useMemo(
-		() => viewDate.toLocaleDateString(localeTag, { month: 'long', year: 'numeric' }),
-		[viewDate, localeTag],
-	)
+	const monthLabel = useMemo(() => formatMonthName(viewDate, localeTag), [viewDate, localeTag])
 
 	// Month navigation (header chevrons, picker, arrowing across a boundary)
 	// re-renders the grid silently; this announces the new view to screen
