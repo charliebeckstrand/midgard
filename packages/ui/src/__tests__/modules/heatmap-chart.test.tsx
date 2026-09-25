@@ -107,6 +107,18 @@ describe('HeatmapChart', () => {
 		expect(bySlot(container, 'heatmap-legend-box')).toBeNull()
 	})
 
+	it('selects no text in the chart, legend included', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
+		)
+
+		expect(bySlot(container, 'heatmap')).toHaveClass(
+			'select-none',
+			'**:select-none',
+			'[-webkit-touch-callout:none]',
+		)
+	})
+
 	it('stands the scale bar vertical beside the plot by default', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
