@@ -1,6 +1,6 @@
 'use client'
 
-import { Check, MapPin, MapPinned, Plus } from 'lucide-react'
+import { MapPin, MapPinCheck, MapPinned, Plus } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
@@ -9,6 +9,8 @@ import { Flex } from 'ui/flex'
 import { Heading } from 'ui/heading'
 import { Icon } from 'ui/icon'
 import { Text } from 'ui/text'
+import { ToggleIconButton } from 'ui/toggle-icon-button'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 import {
 	useAddPlace,
 	useAtlas,
@@ -329,18 +331,32 @@ export function PlacesApp() {
 					    the reader does not check a place as visited — they mark it as such.
 					    The button's own state is the visited state, so the reader sees what
 					    they are about to do and the action is a single click rather than a
-					    check and a submit. */}
+					    check and a submit.
+
+					    An icon and not a label, so it reads as a mark on the title rather
+					    than a second title beside it. It stays on screen rather than coming
+					    in on hover, because its pressed state is an answer the reader looks
+					    for, and a touch screen has no hover to show it. The tooltip names
+					    the region, because the view does not always say it: over the United
+					    States the map draws states, and the toggle marks the country. */}
 					{mark === null ? null : (
-						<Button
-							variant={marked ? 'soft' : 'plain'}
-							color={marked ? 'green' : undefined}
-							prefix={<Icon icon={marked ? <Check /> : <MapPin />} />}
-							aria-pressed={marked}
-							className="shrink-0"
-							onClick={() => setVisit.mutate({ ...mark, visited: !marked })}
-						>
-							{marked ? 'Visited' : 'Mark visited'}
-						</Button>
+						<Tooltip>
+							<TooltipTrigger>
+								<ToggleIconButton
+									pressed={marked}
+									onPressedChange={(visited) => setVisit.mutate({ ...mark, visited })}
+									icon={<MapPin />}
+									pressedIcon={<MapPinCheck />}
+									color={marked ? 'green' : 'zinc'}
+									aria-label="Visited"
+									className="shrink-0"
+								/>
+							</TooltipTrigger>
+
+							<TooltipContent>
+								{marked ? `${mark.region} is marked visited` : `Mark ${mark.region} visited`}
+							</TooltipContent>
+						</Tooltip>
 					)}
 				</Flex>
 
