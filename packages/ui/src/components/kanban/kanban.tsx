@@ -4,6 +4,7 @@ import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useSortableSensors } from '../../hooks'
+import { useLiftedStore } from '../../hooks/use-lifted-store'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
 import { KanbanContext, KanbanDragStateContext } from './context'
@@ -88,6 +89,10 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		containerRef,
 	})
 
+	// Each card reads its own lift from the store, so a lift renders only the card
+	// that lifts and the card that drops.
+	const liftedStore = useLiftedStore(liftedCardId)
+
 	// Clear keyboard-lifted state when a pointer drag begins.
 	const handleDragStart = useCallback(
 		(event: Parameters<typeof rawDragStart>[0]) => {
@@ -103,12 +108,12 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		() => ({
 			interactive,
 			disabled: !!disabled,
-			liftedCardId,
+			liftedStore,
 			overlayMap,
 			onCardKeyDown,
 			onCardBlur,
 		}),
-		[interactive, disabled, liftedCardId, overlayMap, onCardKeyDown, onCardBlur],
+		[interactive, disabled, liftedStore, overlayMap, onCardKeyDown, onCardBlur],
 	)
 
 	// Column-facing drag state: churns every drag-over move; confined to columns.
