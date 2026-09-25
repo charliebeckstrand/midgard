@@ -16,6 +16,9 @@
 		"build": "tsup",
 		"dev": "tsup --watch",
 		"check-types": "tsc --noEmit",
+		"test": "vitest run",
+		"test:changed": "vitest run",
+		"test:related": "vitest related --run",
 		"lint": "biome check .",
 		"lint:fix": "biome check --write .",
 		"format": "biome format --write ."
@@ -34,6 +37,7 @@
 		"next": "catalog:",
 		"react": "catalog:",
 		"tsup": "catalog:",
-		"typescript": "catalog:"
+		"typescript": "catalog:",
+		"vitest": "catalog:"
 	}
 }

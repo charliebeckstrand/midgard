@@ -21,6 +21,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 |---|---|
 | Build | `pnpm --filter shared build` |
 | Watch build | `pnpm --filter shared dev` |
+| Test | `pnpm --filter shared test` |
 | Lint | `pnpm --filter shared lint` |
 | Format | `pnpm --filter shared format` |
 
