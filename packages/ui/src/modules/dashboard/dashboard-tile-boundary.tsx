@@ -104,14 +104,14 @@ function sameWidget(a: unknown, b: unknown): boolean {
 }
 
 /**
- * Calls `onSettle` from a passive effect after its mount. The boundary puts it
+ * Calls `onRearm` from a passive effect after its mount. The boundary puts it
  * after the content, in the same Suspense boundary. The effect therefore runs
  * only when the content commits, and after each effect of the content.
  */
-function DashboardTileSettle({ onSettle }: { onSettle: () => void }): null {
+function DashboardTileRearm({ onRearm }: { onRearm: () => void }): null {
 	useEffect(() => {
-		onSettle()
-	}, [onSettle])
+		onRearm()
+	}, [onRearm])
 
 	return null
 }
@@ -162,16 +162,16 @@ export class DashboardTileBoundary extends Component<
 
 		if (error === null || !armed || sameWidget(element, this.props.resetKey)) return
 
-		// The resets stay off until the settle effect of this reset, or a press.
+		// The resets stay off until the rearm effect of this reset, or a press.
 		this.setState({ error: null, armed: false })
 	}
 
 	/**
-	 * Starts the automatic resets again after a reset settles. A throw in a layout
-	 * effect or a passive effect of the content queues its error before this
-	 * update. The update therefore finds the error, and changes nothing.
+	 * Starts the automatic resets again after the content of a reset commits. A
+	 * throw in a layout effect or a passive effect of the content queues its error
+	 * before this update. The update therefore finds the error, and changes nothing.
 	 */
-	private settle = (): void => {
+	private rearm = (): void => {
 		this.setState(({ error, armed }) => (error === null && !armed ? { armed: true } : null))
 	}
 
@@ -187,7 +187,7 @@ export class DashboardTileBoundary extends Component<
 				<Suspense fallback={this.props.fallback ?? null}>
 					{this.props.children}
 
-					{!armed && <DashboardTileSettle onSettle={this.settle} />}
+					{!armed && <DashboardTileRearm onRearm={this.rearm} />}
 				</Suspense>
 			)
 		}
