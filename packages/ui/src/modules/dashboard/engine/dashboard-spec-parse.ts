@@ -41,9 +41,15 @@ export type DashboardSpecIssueKind =
 	| 'invalid-filter'
 	/**
 	 * A selection has no string `source`, no string `field`, or `values` that is
-	 * not a list of strings. The parse drops it.
+	 * not a list of strings. A selection with no values filters nothing, so it
+	 * gets this issue too. The parse drops it.
 	 */
 	| 'invalid-selection'
+	/**
+	 * A selection repeats the `source` and the `field` of an earlier selection.
+	 * The scope joins the two with `and`, so the parse drops the later one.
+	 */
+	| 'duplicate-selection'
 
 /**
  * One problem that {@link parseDashboardSpec} or {@link parseDashboardSelection}
@@ -350,13 +356,17 @@ export function parseDashboardSpec(
  * apply, keeps each other selection, and reports each change.
  *
  * A selection needs a string `source`, a string `field`, and `values` that is a
- * list of strings. The board reads the selection value as given, so a malformed
- * selection throws when a tile reads the scope. Read a saved value through this
- * parse before you give it to the `selection` binding.
+ * list of one or more strings. The board reads the selection value as given, so
+ * a malformed selection throws when a tile reads the scope. Read a saved value
+ * through this parse before you give it to the `selection` binding.
  *
  * @remarks
  * An absent value, `null` or `undefined`, gives no selection and no issue. A
- * selection with no issue keeps its object, unknown fields included.
+ * selection with no values filters nothing, but its tile still shows a Clear
+ * control, so the parse drops it. Each source keeps one selection for each
+ * field, so the parse keeps the first selection of each `source` and `field`.
+ * It drops each later one. A selection with no issue keeps its object, unknown
+ * fields included.
  *
  * @example
  * ```tsx
@@ -388,18 +398,42 @@ export function parseDashboardSelection(input: unknown): DashboardSelectionParse
 	const selections: DashboardSelection[] = []
 
 	input.forEach((selection: unknown, index) => {
-		if (isSelection(selection)) {
-			selections.push(selection)
+		const path = `[${index}]`
+
+		if (!isSelection(selection)) {
+			issues.push({
+				kind: 'invalid-selection',
+				path,
+				message:
+					'The selection has no string `source`, no string `field`, or `values` that is not a list of strings. The parse dropped it.',
+			})
 
 			return
 		}
 
-		issues.push({
-			kind: 'invalid-selection',
-			path: `[${index}]`,
-			message:
-				'The selection has no string `source`, no string `field`, or `values` that is not a list of strings. The parse dropped it.',
-		})
+		if (selection.values.length === 0) {
+			issues.push({
+				kind: 'invalid-selection',
+				path,
+				message: 'The selection has no values, so it filters nothing. The parse dropped it.',
+			})
+
+			return
+		}
+
+		const { source, field } = selection
+
+		if (selections.some((item) => item.source === source && item.field === field)) {
+			issues.push({
+				kind: 'duplicate-selection',
+				path,
+				message: `An earlier selection has the source "${source}" and the field "${field}". The parse dropped this one.`,
+			})
+
+			return
+		}
+
+		selections.push(selection)
 	})
 
 	return { selections, issues }

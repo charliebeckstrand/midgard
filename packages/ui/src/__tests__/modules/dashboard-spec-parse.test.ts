@@ -267,7 +267,7 @@ describe('parseDashboardSpec', () => {
 describe('parseDashboardSelection', () => {
 	const SELECTION: DashboardSelection[] = [
 		{ source: 'regions', field: 'region', values: ['West', ''] },
-		{ source: '', field: 'product', values: [] },
+		{ source: '', field: 'product', values: ['Tea'] },
 	]
 
 	/** The kind and the path of each issue. */
@@ -317,5 +317,41 @@ describe('parseDashboardSelection', () => {
 			['invalid-selection', '[4]'],
 			['invalid-selection', '[5]'],
 		])
+	})
+
+	it('drops and reports a selection with no values, which filters nothing', () => {
+		const input = [{ source: 'regions', field: 'region', values: [] }, SELECTION[1]]
+
+		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[1]])
+
+		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
+	})
+
+	it('drops and reports a selection that repeats the source and the field of an earlier one', () => {
+		const repeat = { source: 'regions', field: 'region', values: ['North'] }
+
+		const input = [
+			SELECTION[0],
+			{ source: 'regions', field: 'product', values: ['Tea'] },
+			{ source: 'other', field: 'region', values: ['West'] },
+			repeat,
+		]
+
+		const { selections } = parseDashboardSelection(input)
+
+		// The first one stays, so a select or a clear in the field acts on one selection only.
+		expect(selections).toEqual(input.slice(0, 3))
+
+		expect(selections).not.toContain(repeat)
+
+		expect(issuesOf(input)).toEqual([['duplicate-selection', '[3]']])
+	})
+
+	it('keeps a later selection when the earlier one with its source and field has no values', () => {
+		const input = [{ source: 'regions', field: 'region', values: [] }, SELECTION[0]]
+
+		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[0]])
+
+		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
 	})
 })
