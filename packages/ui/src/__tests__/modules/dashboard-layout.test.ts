@@ -9,6 +9,7 @@ import {
 	fits,
 	mergeLayout,
 	minColumns,
+	placeEntries,
 	readingOrder,
 	resolveCell,
 	resolveLayout,
@@ -332,6 +333,41 @@ describe('resolveLayout', () => {
 		expect(sameGeometry(a, [...a].reverse())).toBe(true)
 
 		expect(sameGeometry(a, [cell('a', 0, 0, 8, 10), cell('b', 8, 1, 8, 10)])).toBe(false)
+	})
+})
+
+describe('placeEntries', () => {
+	it('places each entry where resolveLayout places a free-form tile', () => {
+		const layout = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+			{ id: 'c', x: 16, y: 0, w: 8 },
+			{ id: 'a', x: 0, y: 40, w: 8, h: 10 },
+		]
+
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const placed = placeEntries(layout, 12)
+
+		expect(placed.map((item) => resolveCell(item, {}, 12))).toEqual(
+			resolveLayout(layout, demands, 12),
+		)
+
+		// The entry takes the new x, y, and w, and it keeps no h, as saved.
+		expect(placed[2]).toStrictEqual({ id: 'c', x: 0, y: 20, w: 8 })
+	})
+
+	it('returns the same array when no entry moves and no id repeats', () => {
+		const layout = [
+			{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+			{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+		]
+
+		expect(placeEntries(layout, 24)).toBe(layout)
 	})
 })
 

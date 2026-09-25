@@ -171,6 +171,27 @@ describe('createDashboardStore', () => {
 		expect(store.getView().order).toEqual(['a', 'b'])
 	})
 
+	it('places a clamped entry that covers another entry on a new row before a tile registers', () => {
+		// Tiles a and b have no h, as a tile with a fixed ratio saves them.
+		const layout = [
+			{ id: 'a', x: 0, y: 0, w: 8 },
+			{ id: 'b', x: 16, y: 0, w: 8 },
+			{ id: 'c', x: 0, y: 18, w: 12, h: 10 },
+		]
+
+		// At 12 columns, the clamp puts b on a. No tile registers on the server.
+		const store = createDashboardStore(initial({ columns: 12, demands: new Map(), layout }))
+
+		const { entries, order } = store.getView()
+
+		expect(entries.get('a')).toBe(layout[0])
+
+		// No ratio is known yet, so a holds the default height of 18 rows. Entry b keeps no h.
+		expect(entries.get('b')).toStrictEqual({ id: 'b', x: 0, y: 28, w: 8 })
+
+		expect(order).toEqual(['a', 'c', 'b'])
+	})
+
 	it('registers and unregisters demands, and notifies each change', () => {
 		const store = createDashboardStore(initial({ demands: new Map() }))
 

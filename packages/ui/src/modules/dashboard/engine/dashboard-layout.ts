@@ -546,6 +546,42 @@ export function firstEntries(
 }
 
 /**
+ * The first entry of each id in `items`, at the place that {@link resolveLayout}
+ * gives it before a tile registers. A tile that has not registered paints this
+ * entry, and the reading order reads it. The server markup thus shows no overlap.
+ *
+ * @remarks
+ * It applies the rule of {@link resolveLayout} to each entry. The ratios are not
+ * known yet, so each cell takes `h`, or {@link DEFAULT_CELL_HEIGHT} when `h` is
+ * absent. An entry that moves takes the new `x`, `y`, and `w`, and it keeps its
+ * other fields. It returns `items` itself when no entry moves and no id repeats.
+ */
+export function placeEntries(
+	items: readonly DashboardLayoutItem[],
+	columns: number,
+): readonly DashboardLayoutItem[] {
+	const first = firstEntries(items)
+
+	const cells = holdBack(
+		first.map((item) => ({ item, cell: resolveCell(item, undefined, columns) })),
+	)
+
+	const byId = new Map(cells.map((cell) => [cell.id, cell]))
+
+	const placed = first.map((item) => {
+		const cell = byId.get(item.id)
+
+		if (cell === undefined || (cell.x === item.x && cell.y === item.y && cell.w === item.w)) {
+			return item
+		}
+
+		return { ...item, x: cell.x, y: cell.y, w: cell.w }
+	})
+
+	return placed.every((item, index) => item === first[index]) ? first : placed
+}
+
+/**
  * Writes committed cells back into the saved layout. An entry of a mounted tile
  * takes its new geometry. An entry of a tile that is not mounted stays as saved,
  * so a tile that renders only sometimes keeps its place. A mounted tile with no

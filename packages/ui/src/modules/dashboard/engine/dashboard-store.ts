@@ -14,7 +14,7 @@ import {
 	type DashboardCell,
 	type DashboardLayoutItem,
 	type DashboardTileDemands,
-	firstEntries,
+	placeEntries,
 	readingOrder,
 	resolveLayout,
 	sameCell,
@@ -77,7 +77,10 @@ export type DashboardView = {
 	canonical: readonly DashboardCell[]
 	/** The painted cell of each mounted tile. A dragged tile keeps its start cell. */
 	cells: ReadonlyMap<string, DashboardCell>
-	/** The first saved entry of each id, for a tile that has not registered yet. */
+	/**
+	 * The first saved entry of each id, for a tile that has not registered yet. It
+	 * holds the place that `placeEntries` gives the entry.
+	 */
 	entries: ReadonlyMap<string, DashboardLayoutItem>
 	/** The cell where a dragged tile lands, which is its start cell when a drop changes nothing. */
 	placeholder: DashboardCell | null
@@ -91,8 +94,9 @@ export type DashboardView = {
 	selections: readonly DashboardSelection[]
 	/**
 	 * The ids of the saved entries in reading order, which the tiles take in the
-	 * markup. It holds still in edit mode, so a gesture never moves a tile in the
-	 * DOM. When edit mode ends, it takes the new order.
+	 * markup. It reads the places that `placeEntries` gives the entries. It holds
+	 * still in edit mode, so a gesture never moves a tile in the DOM. When edit
+	 * mode ends, it takes the new order.
 	 */
 	order: readonly string[]
 }
@@ -233,9 +237,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const listeners = new Set<() => void>()
 
-	// The first entry of each id, as resolveLayout reads it. A tile that has not registered
-	// and the DOM order follow it too, so the server markup matches the board.
-	const firstOf = memo(firstEntries)
+	// The first entry of each id, at the place that resolveLayout gives it. A tile that has not
+	// registered and the DOM order follow it too, so the server markup matches the board.
+	const placedOf = memo(placeEntries)
 
 	const entriesOf = memo(
 		(layout: readonly DashboardLayoutItem[]) => new Map(layout.map((item) => [item.id, item])),
@@ -262,23 +266,23 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const projection = projectionOf(canonical, gesture?.width ?? width, gap, columns, demands)
 
-		const first = firstOf(layout)
+		const placed = placedOf(layout, columns)
 
 		return {
 			canonical,
 			cells: paintedCells(gesture, projection.cells, previous?.cells),
-			entries: entriesOf(first),
+			entries: entriesOf(placed),
 			placeholder: landingCell(gesture, previous?.placeholder),
 			travel: travelOf(gesture, columns, previous?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
 			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
-			// The saved entries give the order, so the server renders the tiles in it too.
+			// The placed entries give the order, so the server renders the tiles in it too.
 			order:
 				editing && previous !== null
 					? previous.order
-					: internOrder(previous?.order, orderOf(first)),
+					: internOrder(previous?.order, orderOf(placed)),
 		}
 	}
 
