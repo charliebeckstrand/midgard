@@ -18,6 +18,7 @@ import {
 	readingOrder,
 	resolveLayout,
 	sameCell,
+	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
 import { projectLayout } from './dashboard-responsive'
@@ -100,7 +101,7 @@ export type DashboardView = {
 	/**
 	 * Whether the responsive projection replaces the saved layout on screen. It
 	 * stays until the width passes the threshold by `PROJECTION_HOLD`. A change of
-	 * the layout, the demands, or the grid ends the hold.
+	 * the canonical geometry, the demands, or the grid ends the hold.
 	 */
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
@@ -337,11 +338,14 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 		const full = projectionOf(canonical, measured, gap, columns, demands)
 
-		// The hold keeps a projection on screen only while the layout, the demands, and the
-		// grid stay the same. After a change of one of them, the view is that of a new store.
+		// The hold keeps a projection on screen only while the resolved cells, the demands, and
+		// the grid stay the same. After a change of one of them, the view is that of a new store.
+		// The cells compare by geometry, because a controlled app can render an equal layout in a
+		// new array on each render.
 		const sameBoard =
 			from !== null &&
-			from.layout === layout &&
+			previous !== null &&
+			(previous.canonical === canonical || sameGeometry(previous.canonical, canonical)) &&
 			from.demands === demands &&
 			from.columns === columns &&
 			from.gap === gap

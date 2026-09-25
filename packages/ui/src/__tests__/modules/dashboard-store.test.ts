@@ -170,6 +170,21 @@ describe('createDashboardStore', () => {
 		expect(store.getView()).toMatchObject({ projected: true, editable: false })
 	})
 
+	it('keeps the hold through a new layout array that holds the same geometry', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
+		)
+
+		store.setState({ width: 610 })
+
+		expect(store.getView().projected).toBe(true)
+
+		// A controlled app can render an equal layout in a new array on each render.
+		store.setState({ layout: [...store.getState().layout] })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+	})
+
 	it('holds the start width through a gesture', () => {
 		const store = createDashboardStore(
 			initial({ demands: new Map([['a', { minWidth: 300 }]]), width: 1200 }),
