@@ -1,4 +1,4 @@
-import { Fragment, StrictMode, useCallback, useState } from 'react'
+import { Fragment, type ReactNode, StrictMode, useCallback, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
@@ -8,6 +8,7 @@ import {
 	type DashboardSpecTile,
 	DashboardTile,
 	DashboardTiles,
+	type DashboardTilesProps,
 	DashboardWidgetProvider,
 	duplicateSpecTile,
 } from '../../modules/dashboard'
@@ -509,5 +510,154 @@ describe('DashboardTiles reading order', () => {
 			['b1', '37'],
 			['b2', '55'],
 		])
+	})
+
+	it('gives a copy in a component its spec place, before a JSX tile after the DashboardTiles', () => {
+		function Board({ editing = false }: { editing?: boolean }) {
+			const [current, setCurrent] = useState<DashboardSpec>({
+				tiles: ['s1', 's2'].map((id) => ({ id, widget: 'note', title: id.toUpperCase() })),
+				layout: [],
+			})
+
+			const duplicate = useCallback(
+				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				[],
+			)
+
+			return (
+				<DashboardWidgetProvider widgets={widgets}>
+					<Dashboard aria-label="Board" editing={editing}>
+						<Group tiles={current.tiles} onDuplicate={duplicate} />
+					</Dashboard>
+				</DashboardWidgetProvider>
+			)
+		}
+
+		function Group(props: DashboardTilesProps) {
+			return (
+				<>
+					<DashboardTiles {...props} />
+
+					<DashboardTile id="j">
+						<p>j</p>
+					</DashboardTile>
+				</>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Board editing />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Duplicate S1' }))
+
+		rerender(<Board />)
+
+		// The copy mounts after j, but the DashboardTiles comes first in the component.
+		expect(tileRows(container, 'p')).toEqual([
+			['s1', '1'],
+			['tile-1', '19'],
+			['s2', '37'],
+			['j', '55'],
+		])
+	})
+
+	function Wrapped(props: DashboardTilesProps) {
+		return <DashboardTiles {...props} />
+	}
+
+	// Each host puts the DashboardTiles under a board child that is not a DashboardTiles.
+	const hosts: [string, (props: DashboardTilesProps) => ReactNode][] = [
+		['in a component', (props) => <Wrapped {...props} />],
+		[
+			'under an inner DashboardWidgetProvider',
+			(props) => (
+				<DashboardWidgetProvider widgets={widgets}>
+					<DashboardTiles {...props} />
+				</DashboardWidgetProvider>
+			),
+		],
+	]
+
+	describe.each(hosts)('with the DashboardTiles %s', (_, host) => {
+		function Board({ initial, editing = false }: { initial: DashboardSpec; editing?: boolean }) {
+			const [current, setCurrent] = useState(initial)
+
+			const duplicate = useCallback(
+				(tile: DashboardSpecTile) => setCurrent((value) => duplicateSpecTile(value, tile.id)),
+				[],
+			)
+
+			return (
+				<DashboardWidgetProvider widgets={widgets}>
+					<Dashboard aria-label="Board" editing={editing} layout={{ value: current.layout }}>
+						{host({ tiles: current.tiles, onDuplicate: duplicate })}
+					</Dashboard>
+				</DashboardWidgetProvider>
+			)
+		}
+
+		/** Clicks each Duplicate control of `sources` in edit mode, and returns the rows after edit mode ends. */
+		function liveRows(spec: DashboardSpec, sources: string[]): [string, string][] {
+			const { container, rerender, unmount } = renderUI(<Board initial={spec} editing />)
+
+			for (const source of sources) {
+				fireEvent.click(screen.getByRole('button', { name: `Duplicate ${source}` }))
+			}
+
+			rerender(<Board initial={spec} />)
+
+			const rows = tileRows(container, 'p')
+
+			unmount()
+
+			return rows
+		}
+
+		/** The rows of a new mount of `spec`. */
+		function freshRows(spec: DashboardSpec): [string, string][] {
+			const { container } = renderUI(
+				<StrictMode>
+					<Board initial={spec} />
+				</StrictMode>,
+			)
+
+			return tileRows(container, 'p')
+		}
+
+		const tiles: DashboardSpecTile[] = ['a', 'b', 'c'].map((id) => ({
+			id,
+			widget: 'note',
+			title: id.toUpperCase(),
+		}))
+
+		it('places a copy after its source with no entries, and a new mount gives the same rows', () => {
+			const spec: DashboardSpec = { tiles, layout: [] }
+
+			const rows = [
+				['a', '1'],
+				['tile-1', '19'],
+				['b', '37'],
+				['c', '55'],
+			]
+
+			expect(liveRows(spec, ['A'])).toEqual(rows)
+
+			expect(freshRows(duplicateSpecTile(spec, 'a'))).toEqual(rows)
+		})
+
+		it('places the copies of two Duplicate clicks in spec order, and a new mount gives the same rows', () => {
+			const spec: DashboardSpec = { tiles, layout: LAYOUT }
+
+			const rows = [
+				['b', '1'],
+				['a', '1'],
+				['c', '11'],
+				['tile-2', '21'],
+				['tile-1', '31'],
+			]
+
+			expect(liveRows(spec, ['C', 'A'])).toEqual(rows)
+
+			expect(freshRows(duplicateSpecTile(duplicateSpecTile(spec, 'c'), 'a'))).toEqual(rows)
+		})
 	})
 })

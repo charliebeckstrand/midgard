@@ -180,19 +180,22 @@ describe('resolveLayout', () => {
 
 	it('places the new tiles in markup order, and a tie or a tile with no rank in mount order', () => {
 		const demands = new Map<string, DashboardTileDemands>([
-			['later', { rank: [2, 0] }],
+			['later', { rank: [2, 0, 0] }],
 			['none', {}],
-			['copy', { rank: [1, 3] }],
-			['source', { rank: [1, 0] }],
-			['twin', { rank: [1, 3] }],
+			['jsx', { rank: [1, 2, 0] }],
+			['copy', { rank: [1, 1, 3] }],
+			['source', { rank: [1, 1, 0] }],
+			['twin', { rank: [1, 1, 3] }],
 		])
 
+		// The group comes before the index, so a JSX tile of a later group follows each spec tile.
 		expect(resolveLayout([], demands, 24).map((item) => [item.id, item.y])).toEqual([
 			['source', 0],
 			['copy', 18],
 			['twin', 36],
-			['later', 54],
-			['none', 72],
+			['jsx', 54],
+			['later', 72],
+			['none', 90],
 		])
 	})
 

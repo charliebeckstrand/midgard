@@ -67,16 +67,21 @@ export type DashboardTileSize = {
 
 /**
  * The place of a tile in the markup of the board. It is the slot of its board
- * child, then the index of a spec tile in the `tiles` of a `DashboardTiles` child.
- * A JSX tile has the index `0`.
+ * child, then its group in that slot, then its index. A spec tile takes its index
+ * in the `tiles` of its `DashboardTiles`, and a JSX tile has the index `0`.
  *
  * @remarks
  * The board reads its children through each Fragment, so each child of a
- * Fragment has a slot of its own. The tiles that one component renders share the
- * slot of that component and the index `0`, also the spec tiles of a
- * `DashboardTiles` in it. They take their rows in mount order.
+ * Fragment has a slot of its own. A tile or a `DashboardTiles` child of the board
+ * has the group `0`.
+ *
+ * The tiles that one component renders share the slot of that component. In it,
+ * each `DashboardTiles` and each JSX tile takes a group in mount order. The
+ * elements that mount in one commit mount in markup order. A spec tile takes the
+ * group of its `DashboardTiles`, so a spec tile that mounts later keeps its place
+ * in the spec.
  */
-export type DashboardTileRank = readonly [slot: number, index: number]
+export type DashboardTileRank = readonly [slot: number, group: number, index: number]
 
 /**
  * What a mounted tile demands of its cell. The tile registers these values; the
@@ -445,7 +450,7 @@ function byRank(a: DashboardTileDemands, b: DashboardTileDemands): number {
 		return Number(a.rank === undefined) - Number(b.rank === undefined)
 	}
 
-	return a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1]
+	return a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2]
 }
 
 /**

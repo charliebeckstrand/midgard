@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react'
 import { createContext } from '../../core'
 import type { QueryGroup } from '../query/engine/types'
 import type { DashboardTileRank } from './engine/dashboard-layout'
@@ -49,8 +50,8 @@ export const [DashboardTileContext, useDashboardTileId] = createContext<string |
 )
 
 /**
- * The rank of the tiles under the reader, and whether a `DashboardTiles` there
- * adds the index of each spec tile to it.
+ * The rank of the tiles under the reader, and whether each reader there takes a
+ * group of its own.
  *
  * @internal
  */
@@ -58,32 +59,63 @@ export type DashboardTileRankScope = {
 	/** The rank that a tile under the reader registers. */
 	rank: DashboardTileRank
 	/**
-	 * Whether a `DashboardTiles` under the reader adds the index of each spec tile
-	 * to the rank. Only the scope of a `DashboardTiles` child of the board does.
+	 * Whether each `DashboardTiles` and each `DashboardTile` under the reader takes
+	 * a group of its own when it mounts. Only the scope of a board child that is
+	 * not a tile or a `DashboardTiles`, such as a component, does.
 	 */
-	indexed: boolean
+	grouped: boolean
 }
 
 /**
  * The place in the markup of the tiles under the reader. `Dashboard` gives each
- * of its children a slot, and a `DashboardTiles` child adds the index of each
- * spec tile. A tile registers the rank, so the tiles with no entry take their
- * rows in markup order.
+ * of its children a slot, and a `DashboardTiles` adds the index of each spec
+ * tile. Read it through {@link useDashboardTileRank}.
  *
  * @remarks
- * The tiles that one component renders share its slot and the index `0`, also
- * the spec tiles of a `DashboardTiles` in it. A tie keeps the mount order, and
- * the tiles that mount in one commit mount in markup order.
- *
  * With no provider above it, as in a portal child of the board, a tile takes the
- * rank `[0, 0]`.
+ * rank `[0, 0, 0]`.
  *
  * @internal
  */
-export const [DashboardTileRankContext, useDashboardTileRank] =
+export const [DashboardTileRankContext, useDashboardTileRankScope] =
 	createContext<DashboardTileRankScope>('DashboardTileRank', {
-		default: { rank: [0, 0], indexed: false },
+		default: { rank: [0, 0, 0], grouped: false },
 	})
+
+/**
+ * The last group that a reader of a grouped scope took. All boards share the
+ * sequence, because a group compares only with the groups of its own slot.
+ */
+let lastGroup = 0
+
+/** The next group. The sequence only goes up, so a new group comes after each earlier group. */
+function nextGroup(): number {
+	lastGroup += 1
+
+	return lastGroup
+}
+
+/**
+ * The rank of the reader in the markup of the board. A `DashboardTiles` adds the
+ * index of each spec tile to it, and a `DashboardTile` registers it. The tiles
+ * with no entry thus take their rows in markup order.
+ *
+ * @remarks
+ * In a grouped scope, the reader takes the next group when it mounts, and it
+ * keeps that group. React renders the elements of one commit in markup order,
+ * so their groups follow the markup. An element that mounts later takes a later
+ * group. StrictMode calls the initializer twice, which skips a group and keeps
+ * the order.
+ *
+ * @internal
+ */
+export function useDashboardTileRank(): DashboardTileRank {
+	const { rank, grouped } = useDashboardTileRankScope()
+
+	const [group] = useState(() => (grouped ? nextGroup() : 0))
+
+	return grouped ? [rank[0], group, rank[2]] : rank
+}
 
 /** The registry with nothing in it: each spec tile falls back. */
 const NO_WIDGETS: DashboardWidgetRegistry = { widgets: {} }

@@ -107,12 +107,8 @@ export function DashboardTiles({
 	// DashboardTile defaults `mount` and `expandable`, so each passes through as given.
 	const { widgets, fallback = statedFallback, mount } = useDashboardWidgets()
 
-	// A child of the board adds the index of each spec tile to its slot. In a component, each
-	// tile takes the rank of that component, so the tiles there keep their mount order.
-	const {
-		rank: [slot, shared],
-		indexed,
-	} = useDashboardTileRank()
+	// The slot and the group of this element. Each spec tile adds its index in `tiles`.
+	const [slot, group] = useDashboardTileRank()
 
 	const order = useDashboardStore((view) => view.order)
 
@@ -130,7 +126,8 @@ export function DashboardTiles({
 					key={tile.id}
 					tile={tile}
 					slot={slot}
-					index={indexed ? index : shared}
+					group={group}
+					index={index}
 					// An own key only. A name from storage such as "constructor" is then no
 					// widget, and not a member of the object prototype.
 					widget={Object.hasOwn(widgets, tile.widget) ? widgets[tile.widget] : undefined}
@@ -193,11 +190,9 @@ type DashboardSpecTileViewProps = {
 	 * of the component that renders it.
 	 */
 	slot: number
-	/**
-	 * The index of the spec tile in `tiles` when the `DashboardTiles` is a child of
-	 * the board. Else it is the index of the rank above the `DashboardTiles`. With
-	 * `slot`, it gives the rank of the tile.
-	 */
+	/** The group of the `DashboardTiles` in its slot. */
+	group: number
+	/** The index of the spec tile in `tiles`. With `slot` and `group`, it gives the rank of the tile. */
 	index: number
 	/** The widget of its kind, or `undefined` when no widget claims it. */
 	widget: DashboardWidget | undefined
@@ -225,6 +220,7 @@ type DashboardSpecTileViewProps = {
 const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	tile,
 	slot,
+	group,
 	index,
 	widget,
 	fallback,
@@ -237,7 +233,7 @@ const DashboardSpecTileView = memo(function DashboardSpecTileView({
 	const render = widget?.render ?? fallback
 
 	return (
-		<DashboardTileRankContext value={{ rank: [slot, index], indexed: false }}>
+		<DashboardTileRankContext value={{ rank: [slot, group, index], grouped: false }}>
 			<DashboardTile
 				id={tile.id}
 				title={tile.title}
