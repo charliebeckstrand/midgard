@@ -23,7 +23,8 @@ const DOT_DELAYS = [
 /**
  * Indeterminate loading indicator: three breathing dots rendered as a live
  * `<output>` with an `sr-only` `label`. Static leaf: renders in React Server
- * Components. `size` is explicit (recipe default `md`).
+ * Components. `size` is explicit (recipe default `md`). Inside a `<Button>`,
+ * the projection of the button sets the size of each `loading-dot`.
  */
 export function LoadingDots({
 	size,
@@ -38,7 +39,12 @@ export function LoadingDots({
 	return (
 		<output data-slot="loading-dots" className={cn(k({ size, color }), className)} {...props}>
 			{DOT_DELAYS.map((delay) => (
-				<span key={delay} aria-hidden="true" className={cn(dotClass, delay)} />
+				<span
+					key={delay}
+					data-slot="loading-dot"
+					aria-hidden="true"
+					className={cn(dotClass, delay)}
+				/>
 			))}
 			<span className="sr-only">{label}</span>
 		</output>
