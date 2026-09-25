@@ -162,31 +162,45 @@ jobs:
   # the build, and it outlasted them all. `test:compiler` runs the ui tests with
   # the React Compiler on; see packages/ui/vitest.compiler.config.ts and
   # CONVENTIONS.md §10.7.
+  #
+  # Two shards, each with half of the test files. The step took about 2m20s
+  # whole on warm caches. On a four-core container the run took 67s whole, and
+  # its halves took 46s and 34s.
   compiler:
+    name: compiler (${{ matrix.shard }}/2)
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    strategy:
+      # Let the other shard finish, so that one run shows each failure.
+      fail-fast: false
+      matrix:
+        shard: [1, 2]
     steps:
       - uses: actions/checkout@v7
       - uses: ./.github/actions/setup
       - uses: actions/cache@v6
         with:
           path: .turbo
-          # Namespaced per job, as in `browser`.
-          key: ${{ runner.os }}-turbo-compiler-${{ github.sha }}
+          # Namespaced per job and per shard, as in `browser`. Turbo hashes the
+          # `--shard` argument into the task, so a shard can hit only its own
+          # entries.
+          key: ${{ runner.os }}-turbo-compiler-${{ matrix.shard }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-turbo-compiler-
+            ${{ runner.os }}-turbo-compiler-${{ matrix.shard }}-
       # The compiled run's own module cache (vitest.compiler.config.ts), apart
       # from the plain run's cache in `gate`. The keys follow the gate's cache,
-      # for the reasons given there, and add the compiler config.
+      # for the reasons given there, and add the compiler config. Each shard
+      # transforms a different half of the suite, so each shard keeps its own
+      # cache.
       - uses: actions/cache@v6
         with:
           path: node_modules/.experimental-vitest-cache-compiler-*
-          key: ${{ runner.os }}-vitest-compiler-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
+          key: ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-vitest-compiler-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
+            ${{ runner.os }}-vitest-compiler-cache-${{ matrix.shard }}-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/vitest.compiler.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
       # Filtered to `ui`, the one package with the task. Unfiltered, turbo runs
       # the `^build` of each package without it, and builds for nothing.
-      - run: pnpm turbo run test:compiler --filter=ui --summarize
+      - run: pnpm turbo run test:compiler --filter=ui --summarize -- --shard=${{ matrix.shard }}/2
       # The same pruning as in `gate`, for the same reason.
       - name: Prune the Turbo cache to this run's tasks
         run: |
