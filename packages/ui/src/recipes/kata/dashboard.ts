@@ -2,6 +2,10 @@
  * Dashboard kata: the surface of the dashboard module. It styles the canvas, the
  * tile chrome, the drag grip, the resize splitters, and the landing placeholder.
  * The widgets inside a tile keep their own recipes.
+ *
+ * Each class list that is not a recipe is one string, joined once at module load.
+ * `cn` memoizes only a call whose arguments are strings. An array sends the call
+ * to the plain merge (`core/cn.ts`), and each tile render pays for it again.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { hannou, iro, kasane, omote, sen, sun } from '../kiso'
@@ -72,16 +76,16 @@ const card = defineRecipe({
 })
 
 /** The header row: the grip, the title block, and the actions. */
-const header = ['flex min-w-0 items-center gap-2']
+const header = 'flex min-w-0 items-center gap-2'
 
 /** The title block, which shrinks before it pushes the actions out. Each line in it truncates. */
-const heading = ['min-w-0 flex-1']
+const heading = 'min-w-0 flex-1'
 
 /**
  * The action row at the far end of the header. A press in it starts no drag,
  * so it takes the default cursor over the grab hand of the card.
  */
-const actions = ['flex shrink-0 cursor-default items-center gap-1']
+const actions = 'flex shrink-0 cursor-default items-center gap-1'
 
 /**
  * The spark veil, which the card applies. A chart at the spark tier writes
@@ -113,7 +117,7 @@ const veil = {
 			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
 			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
 		),
-	],
+	].join(' '),
 	/**
 	 * At rest, the veil fades out and lets the pointer through, until the card is
 	 * hovered or holds focus. A tab onto a control of the header therefore shows
@@ -126,7 +130,7 @@ const veil = {
 	fade: [
 		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
 		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
-	],
+	].join(' '),
 } as const
 
 /**
@@ -137,19 +141,19 @@ const veil = {
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = ['@container relative min-h-0 flex-1 overflow-auto']
+const content = '@container relative min-h-0 flex-1 overflow-auto'
 
 /**
  * The content box of an expanded tile, in its dialog. It gives the widget a
  * height, so a chart that fills its box has a box to fill.
  */
-const expanded = ['flex h-[min(70dvh,40rem)] min-h-0 flex-col']
+const expanded = 'flex h-[min(70dvh,40rem)] min-h-0 flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
-const error = ['flex size-full flex-col items-center justify-center gap-2 p-2 text-center']
+const error = 'flex size-full flex-col items-center justify-center gap-2 p-2 text-center'
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
-const missing = ['flex size-full items-center justify-center p-2 text-center']
+const missing = 'flex size-full items-center justify-center p-2 text-center'
 
 /**
  * The landing placeholder of a dragged tile. It takes the radius of the tile
@@ -159,7 +163,7 @@ const placeholder = [
 	'pointer-events-none',
 	rounded[sun.sm.radius],
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
-]
+].join(' ')
 
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
@@ -225,7 +229,7 @@ const readout = [
 	...sen.border.default,
 	...omote.bg.surface,
 	...mode('text-zinc-700', 'dark:text-zinc-300'),
-]
+].join(' ')
 
 export const k = {
 	canvas,
