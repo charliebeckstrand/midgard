@@ -28,6 +28,9 @@ export const k = defineRecipe({
 		plain: focus.inset,
 		bare: focus.inset,
 	},
+	// A LoadingSpinner or LoadingDots passed as an affix reads no context, so
+	// each size row projects the matching loading size onto it. The spinner
+	// follows the `shaku.icon` row, and the dots follow the same size key.
 	// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
 	// is present the component sets `data-has-label`, which overrides `py` to
 	// the matching control density step, aligning a labeled button with
@@ -40,6 +43,9 @@ export const k = defineRecipe({
 			padding.p('1.5'),
 			radius.r('1'),
 			'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+			'*:data-[slot=loading-spinner]:size-3',
+			'*:data-[slot=loading-dots]:gap-0.5',
+			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1',
 		],
 		sm: [
 			size.sm,
@@ -48,6 +54,9 @@ export const k = defineRecipe({
 			padding.p('2'),
 			radius.r('1.5'),
 			'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
+			'*:data-[slot=loading-spinner]:size-4',
+			'*:data-[slot=loading-dots]:gap-1',
+			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1.5',
 		],
 		md: [
 			size.md,
@@ -56,6 +65,9 @@ export const k = defineRecipe({
 			padding.p('2.5'),
 			radius.r('2'),
 			'data-[has-label]:py-[calc(--spacing(2)-1px)]',
+			'*:data-[slot=loading-spinner]:size-5',
+			'*:data-[slot=loading-dots]:gap-1.5',
+			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2',
 		],
 		lg: [
 			size.lg,
@@ -64,6 +76,9 @@ export const k = defineRecipe({
 			padding.p('3'),
 			radius.r('2.5'),
 			'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
+			'*:data-[slot=loading-spinner]:size-6',
+			'*:data-[slot=loading-dots]:gap-2',
+			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2.5',
 		],
 	},
 	// Opt into the wide palette: Button's `color` axis carries the standard set
