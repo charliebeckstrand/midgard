@@ -12,5 +12,5 @@ export default defineConfig({
 	sourcemap: false,
 	splitting: false,
 	banner: { js: "'use client'" },
-	external: ['next', 'react', 'react-dom', 'auth', 'ui'],
+	external: ['next', 'react', 'react-dom', 'ui'],
 })

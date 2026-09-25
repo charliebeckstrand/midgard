@@ -25,7 +25,7 @@ pnpm --filter admin dev
 | `app/login/`, `app/register/` | Unauthenticated sign-in and registration pages. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
-| `proxy.ts` | Same-origin proxy to the gateway; re-exports [`auth/proxy`](../../packages/auth/README.md). |
+| `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md), and its `matcher` leaves `/auth/*` open. |
 
 ## 4. Environment
 

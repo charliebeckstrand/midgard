@@ -10,7 +10,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `shared/auth` | Auth UI built on `auth`: `LoginPage`, `RegisterPage`. |
+| `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`. They post to the same-origin `/auth/*` paths, which `withAuth` rewrites to the gateway. |
 | `shared/chat` | Chat client: `ChatTranscript`, `useChat` / `useSendMessage` (SSE stream parser), `Chat` / `ChatContent` types. |
 | `shared/theme.css` | Theme tokens. |
 | `shared/globals.css` | Global resets and base styles. |
@@ -26,7 +26,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 ## 3. Consumers
 
-Used by [`apps/admin`](../../apps/admin/README.md). Depends on [`auth`](../auth/README.md) and [`ui`](../ui/README.md).
+Used by [`apps/admin`](../../apps/admin/README.md). Depends on [`ui`](../ui/README.md).
 
 ---
 
