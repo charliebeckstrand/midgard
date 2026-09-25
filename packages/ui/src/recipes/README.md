@@ -40,7 +40,8 @@ The contract is pinned by:
 - `biome.json`, the `recipes/kiso/**` override — kiso never reaches upward into katakana, kata, components, primitives, layouts, hooks, or providers.
 - `biome.json`, the `recipes/katakana/**` override — katakana imports nothing from kiso (neither values nor types).
 - `.biome/plugins/no-unsanctioned-define-recipe.grit` — `defineRecipe` is invoked only in `recipes/kata/*`, `recipes/katakana/*`, and `layouts/*/variants.ts`.
-- `__tests__/boundary/recipe-import-boundary.test.ts` — components, modules, and primitives import values only via `recipes/kata/<name>`, and a kata imports no value from a sibling kata.
+- `.biome/plugins/no-value-import-from-recipes-barrel.grit` — components, modules, and primitives import no value from the `recipes` barrel, so each value arrives through `recipes/kata/<name>`.
+- `.biome/plugins/no-value-import-from-sibling-kata.grit` — a kata imports no value from a sibling kata.
 
 ---
 

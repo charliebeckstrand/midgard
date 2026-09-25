@@ -503,6 +503,20 @@
 				"!packages/ui/src/recipes/kata/tag-input.ts"
 			],
 			"plugins": ["./.biome/plugins/no-inline-spacing-calc.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-value-import-from-recipes-barrel.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/recipes/kata/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
+			"plugins": ["./.biome/plugins/no-value-import-from-sibling-kata.grit"]
 		}
 	],
 	"files": {
