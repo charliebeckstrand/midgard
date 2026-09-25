@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import type { GridColumnResizeHandle } from '../../modules/grid/grid-column-resize-handle'
 import type { useGridTruncation } from '../../modules/grid/use-grid-truncation'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { act, fireEvent, frames, renderUI, screen } from '../helpers'
 
 // Counts the renders of the truncating body cells. A body cell passes a settle
 // subscription, and a header title passes none.
@@ -17,6 +18,26 @@ vi.mock('../../modules/grid/use-grid-truncation', async (importOriginal) => {
 
 			return actual.useGridTruncation(...args)
 		}) as typeof useGridTruncation,
+	}
+})
+
+// Counts the renders of each header's resize handle, by column id. A header
+// that renders again renders its handle again.
+const handleRenders = vi.hoisted(() => new Map<string, number>())
+
+vi.mock('../../modules/grid/grid-column-resize-handle', async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import('../../modules/grid/grid-column-resize-handle')>()
+
+	return {
+		...actual,
+		GridColumnResizeHandle: ((props: Parameters<typeof actual.GridColumnResizeHandle>[0]) => {
+			const id = String(props.id)
+
+			handleRenders.set(id, (handleRenders.get(id) ?? 0) + 1)
+
+			return actual.GridColumnResizeHandle(props)
+		}) as typeof GridColumnResizeHandle,
 	}
 })
 
@@ -56,5 +77,29 @@ describe('Grid column drag-resize', () => {
 		fireEvent.mouseUp(document, { clientX: 130 })
 
 		expect(cellRenders.count).toBe(0)
+	})
+
+	it('renders only the dragged header on each frame of a drag', async () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={(row) => row.id} resizable truncate />)
+
+		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+			button: 0,
+			clientX: 100,
+		})
+
+		handleRenders.clear()
+
+		for (let x = 110; x <= 150; x += 10) {
+			fireEvent.mouseMove(document, { clientX: x })
+
+			await act(frames)
+		}
+
+		// Five frames move the City width, and the Name header holds.
+		expect(handleRenders.get('city') ?? 0).toBeGreaterThanOrEqual(5)
+
+		expect(handleRenders.get('name') ?? 0).toBe(0)
+
+		fireEvent.mouseUp(document, { clientX: 150 })
 	})
 })

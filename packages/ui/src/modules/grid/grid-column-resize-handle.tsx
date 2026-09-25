@@ -9,14 +9,19 @@ import {
 	COLUMN_RESIZE_STEP,
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
+import type { GridColumnResizeActions } from './engine/grid-table/views'
 import { logicalArrow } from './use-grid-navigation'
-import type { GridColumnResize } from './use-grid-table'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
 type GridColumnResizeHandleProps = {
 	id: string | number
 	label: string
-	resize: GridColumnResize
+	/** The width of the column (px). */
+	size: number
+	/** The resize bounds of the column (px). */
+	min: number
+	max: number
+	actions: GridColumnResizeActions
 	resizing: boolean
 }
 
@@ -31,13 +36,12 @@ type GridColumnResizeHandleProps = {
 export function GridColumnResizeHandle({
 	id,
 	label,
-	resize,
+	size,
+	min,
+	max,
+	actions: resize,
 	resizing,
 }: GridColumnResizeHandleProps) {
-	const size = resize.getSize(id)
-
-	const { min, max } = resize.bounds(id)
-
 	// The width of the latest commit. A nudge or an auto-size lands in a later
 	// commit than the key press, so the announcement reads the width from here.
 	const sizeRef = useRef(size)
