@@ -35,6 +35,25 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 | [`packages/auth`](packages/auth/README.md) | Auth library: config, proxy, user. |
 | [`packages/shared`](packages/shared/README.md) | Shared auth UI and the global stylesheet. |
 
+## 4. Gateway
+
+Both apps get auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and `bifrost()` fetches from it on the server. [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
+
+| Environment | `BIFROST_URL` |
+|---|---|
+| Development | Not set. The value defaults to `http://localhost:4000`. |
+| Production | `https://auth.ivoryimage.dev`. The gateway serves `/auth/*` and `/api/*` at the root of that origin. |
+
+`next build` writes the value into the rewrites, so set it for the build and for the server. In production, a build or a server start without it fails.
+
+## 5. Deploy
+
+Each push to `main` runs [`deploy.yml`](.github/workflows/deploy.yml). It runs CI, then applies the App Platform specs in [`.do/`](.do). The `admin` app serves `admin.ivoryimage.dev`, and the `places` app serves `places.ivoryimage.dev`. App Platform builds each app from the [`Dockerfile`](Dockerfile) at the root, with `output: 'standalone'`. To build one image locally:
+
+```sh
+docker build --build-arg APP=admin --build-arg BIFROST_URL=https://auth.ivoryimage.dev .
+```
+
 ---
 
 **See also:** [CLAUDE.md](CLAUDE.md), [CONVENTIONS.md](CONVENTIONS.md), [REFERENCE.md](REFERENCE.md).

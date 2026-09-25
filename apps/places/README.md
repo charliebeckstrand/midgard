@@ -12,6 +12,10 @@ The app runs on port 3001.
 pnpm --filter places test
 ```
 
+The route handlers under `app/api` serve the places, the visits, and the atlases.
+`withAuth` sends each other `/auth/*` and `/api/*` path to the gateway at
+`BIFROST_URL` (see [`.env.example`](.env.example)).
+
 The suite covers what the app holds that is pure: the schema both edges read a
 body through, the geometry that decides which region holds a place, the filter
 the bar applies, and the atomic file mechanism the stores write through. The

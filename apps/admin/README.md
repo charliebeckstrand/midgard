@@ -29,7 +29,7 @@ pnpm --filter admin dev
 
 ## 4. Environment
 
-See ([CONVENTIONS](../../CONVENTIONS.md) §11).
+`BIFROST_URL` is the origin of the gateway. Copy [`.env.example`](.env.example) to `.env.local` for development, where the value defaults to `http://localhost:4000`. Production uses `https://auth.ivoryimage.dev`. See [CONVENTIONS](../../CONVENTIONS.md) §11.
 
 ## 5. Dependencies
 

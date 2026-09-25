@@ -6,10 +6,15 @@ import { BIFROST_URL } from './env'
  *
  * @remarks
  * These rewrites let client code hit same-origin paths while the gateway serves
- * them; session gating is the proxy's job (CONVENTIONS.md §6.3). An existing
- * `rewrites` is preserved, and the gateway rewrites follow it in `afterFiles`.
- * The array form is `afterFiles`, so both forms put the gateway rewrites in the
- * same phase.
+ * them; session gating is the proxy's job (CONVENTIONS.md §6.3). The gateway
+ * rewrites go in the `fallback` phase, which Next checks after every page and
+ * route handler of the app, dynamic routes included. Thus a route handler of
+ * the app, such as `app/api/places/[id]/route.ts`, answers its own path, and
+ * the gateway gets each path that the app does not serve. In `afterFiles`, the
+ * `/api/:path*` rewrite would take the dynamic routes before Next matched them.
+ *
+ * An existing `rewrites` is preserved. The array form stays in `afterFiles`,
+ * and the gateway rewrites follow the `fallback` of the object form.
  *
  * @param config - The base Next config to extend.
  * @returns The config with the gateway rewrites merged in.
@@ -31,17 +36,17 @@ export function withAuth(config: NextConfig = {}): NextConfig {
 				},
 			]
 
-			if (!userRewrites) return authRewrites
+			if (!userRewrites) return { fallback: authRewrites }
 
 			const existing = await userRewrites()
 
 			if (Array.isArray(existing)) {
-				return [...existing, ...authRewrites]
+				return { afterFiles: existing, fallback: authRewrites }
 			}
 
 			return {
 				...existing,
-				afterFiles: [...(existing.afterFiles ?? []), ...authRewrites],
+				fallback: [...(existing.fallback ?? []), ...authRewrites],
 			}
 		},
 	}

@@ -1,0 +1,35 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+jobs:
+  ci:
+    uses: ./.github/workflows/ci.yml
+
+  deploy:
+    name: Deploy ${{ matrix.app }} to DigitalOcean
+    needs: ci
+    runs-on: ubuntu-latest
+    environment: production
+    strategy:
+      # A failed deploy of one app does not stop the deploy of the other.
+      fail-fast: false
+      matrix:
+        app: [admin, places]
+    steps:
+      - uses: actions/checkout@v7
+
+      # Creates the app from its spec on the first run, then updates it and
+      # waits for the deployment to go live.
+      - uses: digitalocean/app_action/deploy@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+          app_spec_location: .do/${{ matrix.app }}.yaml
+          print_build_logs: true
+          print_deploy_logs: true

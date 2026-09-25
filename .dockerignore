@@ -1,0 +1,11 @@
+# The prune stage copies the build context, so leave out what it must not see.
+**/node_modules
+**/.next
+**/.turbo
+**/dist
+**/.data
+**/.env*
+!**/.env.example
+.git
+coverage
+test-results
