@@ -3,7 +3,7 @@
 import { ArrowDownAZ, ArrowUpZA } from 'lucide-react'
 import { memo, use, useCallback, useEffect, useId, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../components/button'
-import { Combobox, ComboboxOption, useComboboxQuery } from '../../../components/combobox'
+import { Combobox, ComboboxOption, useComboboxDeferredQuery } from '../../../components/combobox'
 import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
@@ -72,7 +72,7 @@ function SearchLoadMore({ onVisible }: { onVisible: () => void }) {
 }
 
 function SearchResults({ limit, onLoadMore }: { limit: number; onLoadMore: () => void }) {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	const q = deferredQuery.toLowerCase()
 

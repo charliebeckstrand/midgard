@@ -5,7 +5,7 @@ import { type ReactNode, useMemo } from 'react'
 import type { KeybindingsMap } from 'tinykeys'
 import { cn } from '../../core'
 import { useKeybindings } from '../../hooks/use-keybindings'
-import { QueryContext, useQueryValue } from '../../primitives/query'
+import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { k } from '../../recipes/kata/command-palette'
 import { Button } from '../button'
@@ -56,9 +56,10 @@ export type CommandPaletteProps = Pick<DialogPanelVariants, 'width'> & {
 	 */
 	triggerShortcut?: string | string[] | false
 	/**
-	 * Items to render in the palette. Read the live and deferred query with
-	 * {@link useCommandPaletteQuery}; filter against `deferredQuery` to keep
-	 * typing responsive. Wrap the filtered items in `VirtualOptions` with
+	 * Items to render in the palette. Read the deferred query with
+	 * {@link useCommandPaletteDeferredQuery}, and filter against it to keep
+	 * typing responsive. {@link useCommandPaletteQuery} also gives the live
+	 * query, but its consumer renders again for each keystroke. Wrap the filtered items in `VirtualOptions` with
 	 * `getOptionId` for large lists: arrow then navigates the full set by
 	 * index, reaching items outside the rendered window. Unlike
 	 * `Combobox`/`Listbox`, whose panel already carries a fixed max-height,
@@ -140,46 +141,50 @@ export function CommandPalette({
 		>
 			<CommandPaletteContext value={context}>
 				<QueryContext value={queryValue}>
-					<Flex gap="sm">
-						<Input
-							ref={inputRef}
-							prefix={<Icon icon={<Search />} />}
-							role="combobox"
-							aria-label={placeholder}
-							aria-expanded={open}
-							aria-haspopup="listbox"
-							aria-controls={listboxId}
-							aria-autocomplete="list"
-							data-slot="command-palette-input"
-							placeholder={placeholder}
-							value={query}
-							onChange={(event) => setQuery(event.target.value)}
-							onKeyDown={onKeyDown}
-						/>
-						<Button type="button" variant="plain" aria-label="Close" onClick={close}>
-							<Icon icon={<X />} />
-						</Button>
-					</Flex>
-					<DialogBody>
-						<div
-							ref={listRef}
-							id={listboxId}
-							role="listbox"
-							aria-label={placeholder}
-							data-slot="command-palette-list"
-							className={cn(k.list)}
-						>
-							<VirtualItemSourceContext value={virtualSourceRef}>
-								{children}
-							</VirtualItemSourceContext>
-						</div>
-						{/* The listbox owns only options (`aria-required-children`). The
+					{/* A filtering consumer reads the deferred query alone, so a keystroke
+					    renders it one time and not also on the pass of the live query. */}
+					<DeferredQueryContext value={deferredQuery}>
+						<Flex gap="sm">
+							<Input
+								ref={inputRef}
+								prefix={<Icon icon={<Search />} />}
+								role="combobox"
+								aria-label={placeholder}
+								aria-expanded={open}
+								aria-haspopup="listbox"
+								aria-controls={listboxId}
+								aria-autocomplete="list"
+								data-slot="command-palette-input"
+								placeholder={placeholder}
+								value={query}
+								onChange={(event) => setQuery(event.target.value)}
+								onKeyDown={onKeyDown}
+							/>
+							<Button type="button" variant="plain" aria-label="Close" onClick={close}>
+								<Icon icon={<X />} />
+							</Button>
+						</Flex>
+						<DialogBody>
+							<div
+								ref={listRef}
+								id={listboxId}
+								role="listbox"
+								aria-label={placeholder}
+								data-slot="command-palette-list"
+								className={cn(k.list)}
+							>
+								<VirtualItemSourceContext value={virtualSourceRef}>
+									{children}
+								</VirtualItemSourceContext>
+							</div>
+							{/* The listbox owns only options (`aria-required-children`). The
 					    no-results status is a sibling `<output>` that announces when the
 					    listbox filters down to empty. */}
-						<output data-slot="command-palette-no-results" className={cn(k.empty)}>
-							No results
-						</output>
-					</DialogBody>
+							<output data-slot="command-palette-no-results" className={cn(k.empty)}>
+								No results
+							</output>
+						</DialogBody>
+					</DeferredQueryContext>
 				</QueryContext>
 			</CommandPaletteContext>
 		</Dialog>

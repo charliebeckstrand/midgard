@@ -4,7 +4,7 @@ import {
 	ComboboxCreateOption,
 	ComboboxLabel,
 	ComboboxOption,
-	useComboboxQuery,
+	useComboboxDeferredQuery,
 } from '../../../components/combobox'
 import { Field, Label } from '../../../components/fieldset'
 import { VirtualOptions } from '../../../primitives/virtual-options'
@@ -20,7 +20,7 @@ const people = [
 ]
 
 function FilteredPeople() {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	return people
 		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
@@ -117,7 +117,7 @@ function CreatableExample() {
 const manyPeople = Array.from({ length: 5_000 }, (_, i) => ({ id: i, label: `Person ${i + 1}` }))
 
 function VirtualizedPeople() {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	const filtered = useMemo(
 		() =>

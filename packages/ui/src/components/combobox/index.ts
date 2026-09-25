@@ -11,4 +11,4 @@ export {
 	ComboboxOption,
 	type ComboboxOptionProps,
 } from './combobox-option'
-export { useComboboxQuery } from './use-combobox-query'
+export { useComboboxDeferredQuery, useComboboxQuery } from './use-combobox-query'

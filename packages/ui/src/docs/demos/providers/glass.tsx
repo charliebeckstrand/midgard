@@ -4,7 +4,7 @@ import {
 	Combobox,
 	ComboboxLabel,
 	ComboboxOption,
-	useComboboxQuery,
+	useComboboxDeferredQuery,
 } from '../../../components/combobox'
 import { DatePicker } from '../../../components/date-picker'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../components/dialog'
@@ -32,7 +32,7 @@ export const meta = { name: 'Glass' }
 const people = ['Wade Cooper', 'Arlene McCoy', 'Devon Webb', 'Tom Cook'] as const
 
 function FilteredPeople() {
-	const { deferredQuery } = useComboboxQuery()
+	const deferredQuery = useComboboxDeferredQuery()
 
 	return people
 		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
