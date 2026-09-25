@@ -34,7 +34,8 @@ const selectColumns = (_: DashboardView, state: DashboardState) => state.columns
  * drag renders no splitter of a tile that it does not move.
  *
  * Each splitter reports the range that a resize of the tile can reach. The
- * range comes from the limits of the tile, as the resize reads them.
+ * range comes from the limits of the tile, as the resize reads them. A saved
+ * span outside the limits widens the reported range to hold it.
  *
  * @remarks
  * A pointer resize listens on its splitter. When the splitters unmount, for

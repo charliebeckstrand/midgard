@@ -143,6 +143,45 @@ describe('DashboardTile limits', () => {
 		expect(splitter(0)).toHaveAttribute('aria-valuenow', '10')
 	})
 
+	it('widens the reported range of each splitter to hold a saved span outside the limits', () => {
+		renderUI(
+			<Dashboard
+				aria-label="Board"
+				editing
+				layout={{
+					value: [
+						{ id: 'a', x: 0, y: 0, w: 4, h: 40 },
+						{ id: 'b', x: 4, y: 0, w: 12, h: 5 },
+					],
+				}}
+			>
+				<DashboardTile id="a" minWidth={0} minSize={{ w: 6 }} maxSize={{ h: 30 }} />
+
+				<DashboardTile id="b" minWidth={0} minSize={{ h: 8 }} maxSize={{ w: 10 }} />
+			</Dashboard>,
+		)
+
+		const [eastA, southA] = screen.getAllByRole('separator', { name: 'Resize a' })
+
+		const [eastB, southB] = screen.getAllByRole('separator', { name: 'Resize b' })
+
+		expect(eastA).toHaveAttribute('aria-valuenow', '4')
+
+		expect(eastA).toHaveAttribute('aria-valuemin', '4')
+
+		expect(southA).toHaveAttribute('aria-valuenow', '40')
+
+		expect(southA).toHaveAttribute('aria-valuemax', '40')
+
+		expect(eastB).toHaveAttribute('aria-valuenow', '12')
+
+		expect(eastB).toHaveAttribute('aria-valuemax', '12')
+
+		expect(southB).toHaveAttribute('aria-valuenow', '5')
+
+		expect(southB).toHaveAttribute('aria-valuemin', '5')
+	})
+
 	it('reports the minWidth floor as the least width, and the right edge as the most', () => {
 		// At a 50 px pitch and a 12 px gap, the default minWidth of 320 px needs 7 columns.
 		renderUI(

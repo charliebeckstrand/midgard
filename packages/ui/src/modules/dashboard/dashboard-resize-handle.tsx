@@ -15,7 +15,7 @@ export type DashboardResizeHandleProps = {
 	edge: DashboardResizeEdge
 	/** The painted cell of the tile. */
 	cell: DashboardCell
-	/** The spans that a resize of the tile can reach, which the splitter reports. */
+	/** The spans that a resize of the tile can reach. The splitter reports them, widened to hold the span of the cell. */
 	range: DashboardResizeRange
 	/** The name of the tile, for the accessible name of the splitter. */
 	label: string
@@ -35,8 +35,13 @@ const STEPS: Record<string, readonly [number, number]> = {
  * One resize splitter of a tile in edit mode. A pointer drag resizes the tile
  * live; the arrow keys on a focused splitter step it by one grid unit and commit
  * at once. The corner takes the pointer only, because the two edges already
- * serve the keyboard. Each edge reports the span on its axis, inside the range
- * that the limits of the tile allow.
+ * serve the keyboard. Each edge reports the span on its axis, and the range that
+ * the limits of the tile allow.
+ *
+ * @remarks
+ * A saved span can be outside the limits, because the saved layout renders as
+ * saved. The reported range then widens to hold the span, so the value never
+ * falls outside it. The resize still clamps into the limits.
  *
  * @internal
  */
@@ -51,6 +56,13 @@ export function DashboardResizeHandle({
 	const { beginResize, resizeBy } = useDashboardActions()
 
 	const horizontal = edge === 's'
+
+	const span = horizontal ? cell.h : cell.w
+
+	const least = Math.min(horizontal ? range.minH : range.minW, span)
+
+	// The south edge of a free-form tile has no most height unless the tile sets one.
+	const most = horizontal ? range.maxH : range.maxW
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		const step = STEPS[event.key]
@@ -74,9 +86,9 @@ export function DashboardResizeHandle({
 					tabIndex: 0,
 					'aria-orientation': horizontal ? ('horizontal' as const) : ('vertical' as const),
 					'aria-label': `Resize ${label}`,
-					'aria-valuenow': horizontal ? cell.h : cell.w,
-					'aria-valuemin': horizontal ? range.minH : range.minW,
-					'aria-valuemax': horizontal ? range.maxH : range.maxW,
+					'aria-valuenow': span,
+					'aria-valuemin': least,
+					'aria-valuemax': most === undefined ? undefined : Math.max(most, span),
 					onKeyDown,
 				}
 
