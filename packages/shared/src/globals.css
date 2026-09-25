@@ -1,9 +1,10 @@
-@import './theme.css';
 @import './fonts.css';
 
-@variant dark (@media (prefers-color-scheme: dark));
+@theme {
+	--color-white: hsla(0, 0%, 98%, 1);
+}
 
 :root {
-    height: 100%;
-    overscroll-behavior: none;
+	height: 100%;
+	overscroll-behavior: none;
 }

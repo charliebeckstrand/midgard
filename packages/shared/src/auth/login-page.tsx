@@ -16,14 +16,14 @@ import { chain, email, required } from './form-validators'
 type LoginValues = { email: string; password: string }
 
 /**
- * Sign-in form: posts credentials to `/auth/login`, redirects home on success.
+ * Sign-in form: posts the credentials to `/auth/login`, and goes to `/` on success.
  *
  * @internal
  * @remarks
- * Reads `?registered=true` to show the post-registration notice, so it must run
- * inside a `Suspense` boundary (`useSearchParams`) — see {@link LoginPage}.
+ * It reads `?registered=true` to show the notice after registration. That read
+ * (`useSearchParams`) must run inside a `Suspense` boundary, which {@link LoginPage} supplies.
  */
-function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
+function LoginForm() {
 	const router = useRouter()
 
 	const searchParams = useSearchParams()
@@ -37,7 +37,7 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 			const res = await fetch('/auth/login', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: values.email, password: values.password }),
+				body: JSON.stringify(values),
 			})
 
 			if (res.ok) {
@@ -87,30 +87,24 @@ function LoginForm({ showRegisterLink }: { showRegisterLink: boolean }) {
 					Sign in
 				</Button>
 
-				{showRegisterLink && (
-					<div className="text-center">
-						<Text>
-							Don't have an account?{' '}
-							<Link href="/register" underline>
-								Create one
-							</Link>
-						</Text>
-					</div>
-				)}
+				<div className="text-center">
+					<Text>
+						Don't have an account?{' '}
+						<Link href="/register" underline>
+							Create one
+						</Link>
+					</Text>
+				</div>
 			</Form>
 		</AuthLayout>
 	)
 }
 
-/**
- * Sign-in page: the login form under a `Suspense` boundary.
- *
- * @param showRegisterLink - Whether to show the "Create one" link to `/register`. Defaults to `true`.
- */
-export function LoginPage({ showRegisterLink = true }: { showRegisterLink?: boolean }) {
+/** Sign-in page: the login form inside a `Suspense` boundary. */
+export function LoginPage() {
 	return (
 		<Suspense>
-			<LoginForm showRegisterLink={showRegisterLink} />
+			<LoginForm />
 		</Suspense>
 	)
 }
