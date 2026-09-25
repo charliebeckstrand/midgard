@@ -299,6 +299,37 @@ describe('DateInput', () => {
 		expect(input).toHaveAttribute('aria-invalid', 'true')
 	})
 
+	it('runs the caller onBlur first, and still refuses a partial entry it prevents', async () => {
+		// CONVENTIONS.md §3.9: the caller's handler runs first, and its
+		// preventDefault() cannot skip the commit that closes the entry.
+		const calls: string[] = []
+
+		const { container } = renderUI(
+			<DateInput
+				onBlur={(event) => {
+					calls.push('blur')
+
+					event.preventDefault()
+				}}
+				onValidityChange={({ isPotentiallyValid }) => {
+					if (!isPotentiallyValid) calls.push('refused')
+				}}
+			/>,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, '12/3')
+
+		await user.tab()
+
+		expect(calls).toEqual(['blur', 'refused'])
+
+		expect(input).toHaveAttribute('aria-invalid', 'true')
+	})
+
 	it('keeps a two-digit year as typed on blur and marks it invalid', async () => {
 		const onChange = vi.fn()
 

@@ -2,7 +2,7 @@
 
 import { Search, X } from 'lucide-react'
 import { type ChangeEvent, type ReactNode, useCallback, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { clearNativeInput } from '../../utilities'
 import { Button } from '../button'
@@ -150,11 +150,8 @@ export function SearchInput({
 			name={name}
 			value={currentValue}
 			onChange={handleChange}
-			onBlur={(event) => {
-				setTouched()
-
-				onBlur?.(event)
-			}}
+			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			prefix={SEARCH_PREFIX}
 			suffix={suffix}
 			className={cn('[&::-webkit-search-cancel-button]:appearance-none', className)}

@@ -301,23 +301,27 @@ export function DateInput({
 					// growing entry can still become a date.
 					settle(commit(next), next.length === format.length)
 				}}
-				onBlur={(event) => {
-					if (editingText !== null) {
-						const parsed = commit(editingText)
+				// The commit and the touched mark run whatever the caller does
+				// (CONVENTIONS.md §3.9).
+				onBlur={composeEventHandlers(
+					onBlur,
+					() => {
+						if (editingText !== null) {
+							const parsed = commit(editingText)
 
-						// A parsed entry renormalizes to the canonical zero-padded text; a
-						// partial one stays as typed and reads invalid.
-						if (parsed || editingText === '') setEditingText(null)
+							// A parsed entry renormalizes to the canonical zero-padded text; a
+							// partial one stays as typed and reads invalid.
+							if (parsed || editingText === '') setEditingText(null)
 
-						// Blur closes the entry, so a partial one is refused here where a
-						// keystroke would have left it growing.
-						settle(parsed, editingText !== '')
-					}
+							// Blur closes the entry, so a partial one is refused here where a
+							// keystroke would have left it growing.
+							settle(parsed, editingText !== '')
+						}
 
-					setTouched()
-
-					onBlur?.(event)
-				}}
+						setTouched()
+					},
+					{ checkForDefaultPrevented: false },
+				)}
 				onKeyDown={composeEventHandlers(onKeyDown, (event) => {
 					if (event.key === 'Enter') event.currentTarget.blur()
 				})}

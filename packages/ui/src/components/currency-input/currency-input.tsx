@@ -127,19 +127,23 @@ export function CurrencyInput({
 				// must not re-emit the value it already holds.
 				if (parsed !== num) setNum(parsed)
 			}}
-			onBlur={(event) => {
-				if (editingText !== null) {
-					const parsed = parseEditing(editingText, group, decimal)
+			// The commit and the touched mark run whatever the caller does
+			// (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(
+				onBlur,
+				() => {
+					if (editingText !== null) {
+						const parsed = parseEditing(editingText, group, decimal)
 
-					if (parsed !== num) setNum(parsed)
+						if (parsed !== num) setNum(parsed)
 
-					setEditingText(null)
-				}
+						setEditingText(null)
+					}
 
-				setTouched()
-
-				onBlur?.(event)
-			}}
+					setTouched()
+				},
+				{ checkForDefaultPrevented: false },
+			)}
 			{...props}
 		/>
 	)

@@ -2,6 +2,7 @@
 
 import { CreditCard } from 'lucide-react'
 import { type ReactNode, useMemo } from 'react'
+import { composeEventHandlers } from '../../core'
 import { digitsOnly } from '../../utilities'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
@@ -78,11 +79,10 @@ export function CreditCardInput({
 			suffix={suffix ?? (brand ? brand.label : undefined)}
 			name={name}
 			value={masked.value}
-			onBlur={(event) => {
-				masked.onBlur()
-
-				onBlur?.(event)
-			}}
+			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+				checkForDefaultPrevented: false,
+			})}
 			onChange={(event) => {
 				masked.onChange(event)
 

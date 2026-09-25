@@ -1,5 +1,6 @@
 'use client'
 
+import { composeEventHandlers } from '../../core'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from './use-mask-input'
 
@@ -59,11 +60,10 @@ export function MaskInput({
 			name={name}
 			value={masked.value}
 			onChange={masked.onChange}
-			onBlur={(event) => {
-				masked.onBlur()
-
-				onBlur?.(event)
-			}}
+			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+				checkForDefaultPrevented: false,
+			})}
 			{...props}
 		/>
 	)
