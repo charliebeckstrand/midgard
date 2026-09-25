@@ -120,7 +120,7 @@ export type DashboardTileProps = {
 	/**
 	 * Removes the tile. When set, edit mode shows a remove control in the header
 	 * row. The app owns the tile list, so it does the remove: for a spec tile,
-	 * with `removeSpecTile`. The focus moves to the grip of a neighbour tile.
+	 * with `removeSpecTile`. The focus moves to the grip of a neighbor tile.
 	 */
 	onRemove?: () => void
 	/**

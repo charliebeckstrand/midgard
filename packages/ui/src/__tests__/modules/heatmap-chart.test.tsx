@@ -39,7 +39,7 @@ describe('HeatmapChart', () => {
 
 		expect(fills[0]).not.toBe(fills[1])
 
-		// The missing (Tue, 10) pair takes the neutral no-data fill, not a scale colour.
+		// The missing (Tue, 10) pair takes the neutral no-data fill, not a scale color.
 		const noData = rects.find((rect) => rect.getAttribute('fill') === null)
 
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
@@ -441,7 +441,7 @@ describe('HeatmapChart cell clicks', () => {
 })
 
 describe('the range legend under quantile binning', () => {
-	it('emphasises the class the host assigns the probed value to', () => {
+	it('emphasizes the class the host assigns the probed value to', () => {
 		// Quantile binning puts the threshold at 2.5, so a probe at 3 falls in the
 		// upper class with 100. Equal intervals over 1–100 would put it with 1 and 2.
 		const { container } = renderUI(

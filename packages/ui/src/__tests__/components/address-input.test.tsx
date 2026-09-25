@@ -344,7 +344,7 @@ describe('AddressInput', () => {
 
 			// The suffix slot around the button toggles the menu on mousedown, and its
 			// handler cancels the press. The button stops the press first, so it comes
-			// back uncancelled.
+			// back uncanceled.
 			expect(fireEvent.mouseDown(clear)).toBe(true)
 
 			fireEvent.click(clear)

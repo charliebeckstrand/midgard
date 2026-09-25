@@ -53,7 +53,7 @@ describe('NavList', () => {
 		expect(bySlot(container, 'nav-list')).toHaveAttribute('data-orientation', 'vertical')
 	})
 
-	it('honours an explicit orientation prop over the contextual default', () => {
+	it('honors an explicit orientation prop over the contextual default', () => {
 		const { container } = renderUI(
 			<Nav>
 				<NavList orientation="horizontal">content</NavList>

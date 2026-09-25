@@ -190,7 +190,7 @@ export type LayoutModel = {
 	scrollHeight?: (element: HTMLElement) => number
 }
 
-/** The scroll offset of each element, as the modelled layout stores it. */
+/** The scroll offset of each element, as the modeled layout stores it. */
 const modelledOffsets = new WeakMap<Element, number>()
 
 /**

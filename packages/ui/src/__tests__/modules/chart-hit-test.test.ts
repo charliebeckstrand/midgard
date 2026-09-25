@@ -52,7 +52,7 @@ describe('barMarkAt', () => {
 		expect(barMarkAt(marks, 35, 75)).toBeNull()
 	})
 
-	it("isolates the bar whose body the pointer covers, not a widened neighbour's span", () => {
+	it("isolates the bar whose body the pointer covers, not a widened neighbor's span", () => {
 		// Bars |10..30| and |31..51| a pixel apart; the pointer sits on the second's
 		// body while the first's gap-widened span (to 32) also reaches it.
 		const group = [[bar(10, 30, 50, 100)], [bar(31, 51, 50, 100)]]
@@ -102,7 +102,7 @@ describe('nearestSeriesLine', () => {
 		expect(nearestSeriesLine(two, 50, 60)).toBeNull()
 	})
 
-	it('holds the emphasised line across the midline until a challenger decisively closes', () => {
+	it('holds the emphasized line across the midline until a challenger decisively closes', () => {
 		// Lines close enough that their catches overlap: y=100 and y=120, the
 		// midline at 110.
 		const close = [

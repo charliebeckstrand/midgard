@@ -11,7 +11,7 @@ import { present, renderUI, screen } from '../helpers'
 
 /**
  * A button that holds a label aligns its text to the inline start. The UA
- * centres button text, so each recipe sets the alignment. In a right-to-left
+ * centers button text, so each recipe sets the alignment. In a right-to-left
  * layout, the start is the right edge. Only a real browser computes the
  * alignment.
  */

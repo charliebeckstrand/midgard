@@ -746,7 +746,7 @@ describe('scrollIntoViewOffset', () => {
 })
 
 // Selection is the activation a tab exists to perform, so a consumer
-// `preventDefault()` does not cancel it. The preload is side behaviour, so it
+// `preventDefault()` does not cancel it. The preload is side behavior, so it
 // does (CONVENTIONS.md §3.9).
 describe('Tab handler composition', () => {
 	function twoTabs(props: { onPreload?: (value: string | undefined) => void }, extra = {}) {

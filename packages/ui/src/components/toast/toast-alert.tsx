@@ -7,7 +7,7 @@ import type { ToastData, ToastPosition, ToastSeverity } from '../../providers/to
 import { k } from '../../recipes/kata/toast'
 import { Alert, type AlertVariants } from '../alert'
 
-/** Fade-out for a user dismissal; the height collapse is left to the neighbours' layout spring. @internal */
+/** Fade-out for a user dismissal; the height collapse is left to the neighbors' layout spring. @internal */
 const manualDismiss = { opacity: 0, transition: k.motion.dismiss }
 
 /** Collapse for an auto-dismissal from a top viewport edge: height and the gap padding below close together. @internal */
@@ -16,7 +16,7 @@ const autoDismissTop = { height: 0, paddingBottom: 0, transition: k.motion.dismi
 /** Collapse for an auto-dismissal from a bottom viewport edge. @internal */
 const autoDismissBottom = { height: 0, paddingTop: 0, transition: k.motion.dismiss }
 
-/** The stack re-pack: neighbours FLIP into the dismissed toast's slot on the kata's layout spring. @internal */
+/** The stack re-pack: neighbors FLIP into the dismissed toast's slot on the kata's layout spring. @internal */
 const layoutTransition = { layout: k.spring }
 
 /**

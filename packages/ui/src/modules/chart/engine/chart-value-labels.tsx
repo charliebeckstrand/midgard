@@ -60,7 +60,7 @@ export type ChartValueLabelConfig = {
  * first, and keeps each centered on its own point. One that would overshoot the
  * top or bottom flips to the point's other side, still pinned to its mark. One
  * that would have to slide sideways to fit the plot hides instead, since a slid
- * label lands on the neighbouring marks. Overlaps resolve by priority: extremes
+ * label lands on the neighboring marks. Overlaps resolve by priority: extremes
  * outrank endpoints, and a label whose box meets one already placed is dropped
  * rather than stacked. The placement is pure and unit-testable; the
  * `ChartValueLabels` component at the foot only draws the result.
@@ -287,7 +287,7 @@ function candidatesFor(
  * it no longer fits. The label stays centered on its own point. Clipping the top
  * or bottom flips it to the point's other side, and vertically it never leaves
  * its mark. A box that would cross the plot's sides hides rather than sliding
- * inward. A slid label lands on the neighbouring marks, which is where a small
+ * inward. A slid label lands on the neighboring marks, which is where a small
  * frame forces it.
  *
  * @internal

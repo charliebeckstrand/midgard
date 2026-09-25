@@ -48,7 +48,7 @@ describe('TouchTarget activation region (real browser)', () => {
 	const hitsHost = (host: HTMLElement, x: number, y: number) =>
 		document.elementFromPoint(x, y)?.closest('button') === host
 
-	it('floors the activation region at 24px on a fine pointer, centred on the host', () => {
+	it('floors the activation region at 24px on a fine pointer, centered on the host', () => {
 		expect(matchMedia('(pointer: fine)').matches).toBe(true)
 
 		renderHost(16)

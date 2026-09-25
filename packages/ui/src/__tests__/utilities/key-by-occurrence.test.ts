@@ -34,7 +34,7 @@ describe('keyByOccurrence', () => {
 		expect(new Set(keys).size).toBe(keys.length)
 	})
 
-	it('produces a unique key when a value spells a synthesised key', () => {
+	it('produces a unique key when a value spells a synthesized key', () => {
 		const inputs = [
 			['a', 'a', `a${SEP}1`],
 			['a', 'a', `${SEP}1${SEP}a`],

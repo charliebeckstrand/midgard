@@ -221,7 +221,7 @@ describe('zipArea over a topology', () => {
 	/** Every code the 3x3 grid holds, in atlas order. */
 	const codes = Array.from({ length: 9 }, (_, step) => String(60600 + step))
 
-	it('dissolves the seam between two neighbours into one ring', () => {
+	it('dissolves the seam between two neighbors into one ring', () => {
 		const area = zipArea(topology, undefined, matcher('60600, 60601'))
 
 		expect(area.polygons).toHaveLength(1)

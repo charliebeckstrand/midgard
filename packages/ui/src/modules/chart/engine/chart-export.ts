@@ -1,5 +1,5 @@
 /**
- * Client-side export helpers behind the chart context menu. They rasterise the
+ * Client-side export helpers behind the chart context menu. They rasterize the
  * chart to a bitmap, build a CSV from the readout, and hand off to the download
  * plumbing. Pure DOM work run on a menu action, so they touch
  * `document` only when called.
@@ -11,7 +11,7 @@ import type { ChartReadout } from './types'
 /** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
 export type ChartImageType = 'image/png' | 'image/jpeg'
 
-/** The pixel scale a rasterised chart is drawn at, so the bitmap stays crisp on hi-dpi displays. @internal */
+/** The pixel scale a rasterized chart is drawn at, so the bitmap stays crisp on hi-dpi displays. @internal */
 const RASTER_SCALE = 2
 
 /** The JPEG quality passed to `toBlob`. @internal */
@@ -23,7 +23,7 @@ const LEGEND_SELECTOR =
 
 /**
  * Copies a source element's full computed style inline onto its clone.
- * Rasterising through a `foreignObject` renders the clone detached from the
+ * Rasterizing through a `foreignObject` renders the clone detached from the
  * document's stylesheets. Every class-driven and inherited value — color,
  * layout, and font — therefore has to travel on the element itself.
  *
@@ -135,7 +135,7 @@ async function encode(
 }
 
 /**
- * Rasterises a whole chart — plot, header, and (by default) legend — to a
+ * Rasterizes a whole chart — plot, header, and (by default) legend — to a
  * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
  * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
  * then export as one image. `includeLegend: false` hides the legend first, so the

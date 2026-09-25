@@ -119,7 +119,7 @@ describe('grid column filter sheet (real browser)', () => {
 		expect(screen.getByText('Bob')).toBeInTheDocument()
 	})
 
-	it('discards a cancelled draft, leaving the rows unfiltered', async () => {
+	it('discards a canceled draft, leaving the rows unfiltered', async () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
 		await userEvent.click(screen.getByRole('button', { name: 'Filter Name' }))
@@ -174,7 +174,7 @@ describe('grid column filter sheet: date picker layering (real browser)', () => 
 			return node
 		})
 
-		// The calendar must be the topmost element at its own centre — not covered by
+		// The calendar must be the topmost element at its own center — not covered by
 		// the sheet's backdrop or panel. A behind-the-scrim calendar fails here.
 		const rect = calendar.getBoundingClientRect()
 

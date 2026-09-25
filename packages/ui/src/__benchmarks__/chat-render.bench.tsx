@@ -26,10 +26,10 @@ import { modelLayout, mountBenches, rerenderBench } from './harness'
  * does in a browser, and the pin puts the streaming reply inside it.
  */
 
-/** The modelled viewport of the transcript, in pixels. */
+/** The modeled viewport of the transcript, in pixels. */
 const VIEWPORT = 600
 
-/** The modelled height of every row, in pixels. It matches the transcript's own estimate. */
+/** The modeled height of every row, in pixels. It matches the transcript's own estimate. */
 const ROW = 96
 
 const slot = (element: HTMLElement) => element.dataset.slot
@@ -113,7 +113,7 @@ describe(`ChatTranscript · streaming reply (${CHUNKS.length} chunks/iter)`, () 
  * deferring a renderer. The pair below is what says how much deferring is
  * worth: a mounted embed is whatever its renderer costs.
  *
- * The window now bounds both rows of the pair. Only the rows in the modelled
+ * The window now bounds both rows of the pair. Only the rows in the modeled
  * viewport render, so `always` pays for about a dozen charts at every size,
  * not one per reply. The gap between the two rows is now the handful in view.
  *

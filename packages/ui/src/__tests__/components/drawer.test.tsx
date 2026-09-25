@@ -42,7 +42,7 @@ describe('Drawer', () => {
 		expect(screen.getByRole('dialog')).toHaveAccessibleName('Filters')
 	})
 
-	it('greys out what shows through the backdrop when desaturate is set', () => {
+	it('grays out what shows through the backdrop when desaturate is set', () => {
 		renderUI(
 			<Drawer open desaturate onOpenChange={() => {}} aria-label="Resolve">
 				content
@@ -52,7 +52,7 @@ describe('Drawer', () => {
 		expect(getSlot(document.body, 'overlay-backdrop')).toHaveClass('backdrop-grayscale')
 	})
 
-	it('leaves the backdrop in colour by default', () => {
+	it('leaves the backdrop in color by default', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} aria-label="Resolve">
 				content

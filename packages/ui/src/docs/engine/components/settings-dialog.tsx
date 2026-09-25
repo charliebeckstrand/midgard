@@ -32,7 +32,7 @@ type SettingsDialogProps = {
  *
  * The listbox panels portal into a node *inside* the dialog (via `UIProvider`'s
  * `portalContainer`), not `document.body`. A modal `Dialog` runs floating-ui's
- * `markOthers`, which `aria-hidden`s every body sibling; a panel portalled to
+ * `markOthers`, which `aria-hidden`s every body sibling; a panel portaled to
  * `body` vanishes from the accessibility tree.
  *
  * The mount node sits inside `DialogBody`, a plain block with no flex `gap`,

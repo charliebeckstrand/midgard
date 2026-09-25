@@ -66,7 +66,7 @@ function keyable(inputs: ClassValue[]): boolean {
  * Memoized on its arguments, which is what makes it cheap enough to call once
  * per element per render. `tailwind-merge` caches too, but on the *joined*
  * class string. `clsx` builds that string fresh on every call, so the lookup has
- * to internalise a new key before it can read the cache. That costs more than
+ * to internalize a new key before it can read the cache. That costs more than
  * the merge it was meant to skip. Branching on the arguments sidesteps the join.
  * A call site hands down the same string objects render after render, such as a
  * recipe's memoized output or a literal `className`. A repeat call is therefore

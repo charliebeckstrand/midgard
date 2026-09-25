@@ -72,7 +72,7 @@ describe('floating sidebar menu dismissal (real browser)', () => {
 	})
 
 	// The peek also closes on `pointerleave` of its wrapper. React routes synthetic
-	// enter/leave through the React tree, so the portalled menu counts as inside it
+	// enter/leave through the React tree, so the portaled menu counts as inside it
 	// and the travel from trigger to item does not close the peek — the press path
 	// above is not the only way this gesture can break.
 	it('keeps the peek open while the pointer travels onto the menu', async () => {

@@ -1,7 +1,7 @@
 /**
- * The resize clamp of the dashboard. A tile grows until it meets a neighbour, the
+ * The resize clamp of the dashboard. A tile grows until it meets a neighbor, the
  * edge of the canvas, or its maximum span, and it never shrinks under its minimum
- * span. A resize changes the resized tile only; it never pushes a neighbour.
+ * span. A resize changes the resized tile only; it never pushes a neighbor.
  */
 
 import { clampSpan, type DashboardCell, deriveHeight, fits, sameGeometry } from './dashboard-layout'

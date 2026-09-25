@@ -6,7 +6,7 @@
  * Slot shades track `kata/progress` and `kata/sparkline` (600 light / 500
  * dark, per-hue dark steps where the 500 leaves the dark lightness band). The
  * data-viz family thus reads as one. The slot *order* is the
- * colourblind-safety mechanism, not cosmetic. It was derived by exhaustively
+ * colorblind-safety mechanism, not cosmetic. It was derived by exhaustively
  * scoring orderings on the minimum adjacent-pair Machado CVD ΔE (protan /
  * deutan / tritan, CIE76) in both modes. Blue is anchored first, and warm reds
  * are held out of the leading four slots. The six-checks palette validator then

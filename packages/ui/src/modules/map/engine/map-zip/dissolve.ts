@@ -6,7 +6,7 @@
  *
  * A topology dissolves exactly. TopoJSON stores each shared border once as an
  * arc. The `merge` therefore drops the arcs the selected codes share, and keeps
- * the ones only one of them holds. The seams between neighbouring codes
+ * the ones only one of them holds. The seams between neighboring codes
  * disappear. An uncovered code inside a covered ring comes out as a hole, and
  * two separate clusters come out as two polygons. Nothing is clipped and nothing is rounded,
  * because the operation is over the arc index rather than over coordinates.
@@ -92,7 +92,7 @@ export type MapZipArea = {
 	polygons: MapPolygons
 	/**
 	 * Whether the rings dissolved exactly. False for a feature collection, where
-	 * the interior seams between neighbouring codes stay drawn.
+	 * the interior seams between neighboring codes stay drawn.
 	 */
 	dissolved: boolean
 }

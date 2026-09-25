@@ -16,7 +16,7 @@ describe('MapMarker', () => {
 
 		const end = bySlot(container, 'map-marker-end')
 
-		// Both pins are solid dots — zero-length round caps in the slot colour, sized
+		// Both pins are solid dots — zero-length round caps in the slot color, sized
 		// by the mark rather than by a stroke space the browser resolves.
 		expect(start?.getAttribute('class')).toContain('stroke-blue-600')
 

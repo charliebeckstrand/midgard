@@ -100,7 +100,7 @@ export const specializedCases: readonly Case[] = [
 		element: <ChatTranscript key="cts" messages={toolSteps} />,
 	},
 	{
-		// Controlled prompt composer; the textarea is the labelled control.
+		// Controlled prompt composer; the textarea is the labeled control.
 		name: 'chat prompt',
 		element: (
 			<ChatPrompt key="cp" value="" onValueChange={noop} onSubmit={noop} placeholder="Message" />
@@ -124,7 +124,7 @@ export const specializedCases: readonly Case[] = [
 	},
 	{
 		// Escape hatch: renders its single child untouched, suppressing default
-		// control chrome. Wrapping a labelled input must stay axe-clean.
+		// control chrome. Wrapping a labeled input must stay axe-clean.
 		name: 'headless',
 		element: (
 			<HeadlessProvider key="hl">
@@ -133,7 +133,7 @@ export const specializedCases: readonly Case[] = [
 		),
 	},
 	{
-		// Document viewer driven by pre-rendered image pages (no pdf.js): a labelled
+		// Document viewer driven by pre-rendered image pages (no pdf.js): a labeled
 		// region with toolbar controls and alt-texted page images.
 		name: 'pdf viewer',
 		element: <PdfViewer key="pv" pages={pdfPages} aria-label="Quarterly report" />,

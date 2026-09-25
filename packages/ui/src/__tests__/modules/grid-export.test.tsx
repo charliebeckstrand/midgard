@@ -1017,7 +1017,7 @@ describe('useGridExportActions', () => {
 		)
 	}
 
-	it('resolves one action per configured type, labelled as the grid labels its own', () => {
+	it('resolves one action per configured type, labeled as the grid labels its own', () => {
 		const onExport = vi.fn()
 
 		renderUI(<Probe exportRows={() => rows} onExport={onExport} />)

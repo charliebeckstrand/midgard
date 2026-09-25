@@ -276,7 +276,7 @@ export function ChartFrame({
 	children,
 	...label
 }: ChartFrameProps) {
-	// The chart root, read by the context menu to rasterise the chart for an
+	// The chart root, read by the context menu to rasterize the chart for an
 	// image export.
 	const rootRef = useRef<HTMLDivElement>(null)
 

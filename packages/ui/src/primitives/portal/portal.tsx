@@ -3,7 +3,7 @@
 import { createContext } from '../../core'
 
 /**
- * A DOM node to teleport portalled UI into, or `null` to defer to each
+ * A DOM node to teleport portaled UI into, or `null` to defer to each
  * portal's own fallback (`document.body` / floating-ui's default root).
  */
 export type PortalContainer = HTMLElement | null

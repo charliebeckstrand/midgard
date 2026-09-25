@@ -7,12 +7,12 @@ import { renderUI } from '../helpers'
 /**
  * The fill of the sticky grid cells (real paint). The sticky header and the
  * frozen columns must paint the fill of the surface under the grid. A fixed
- * colour matched only one surface. A grid in a dashboard tile below `lg` showed
+ * color matched only one surface. A grid in a dashboard tile below `lg` showed
  * a header one shade darker than the tile. jsdom compiles no Tailwind and
  * resolves no custom property, so only a real browser reads the fill back.
  *
  * The suite runs at 414px, below `lg`, which is the width that showed the
- * defect. The suite has no dark mode, so a marker colour on an outer element
+ * defect. The suite has no dark mode, so a marker color on an outer element
  * shows which declaration the cells read.
  */
 describe('grid sticky fill (real browser)', () => {
@@ -29,7 +29,7 @@ describe('grid sticky fill (real browser)', () => {
 		email: `person${i + 1}@example.com`,
 	}))
 
-	/** A colour that no recipe paints, set as the fill of an outer element. */
+	/** A color that no recipe paints, set as the fill of an outer element. */
 	const MARKER = 'rgb(1, 2, 3)'
 
 	const marked = { '--surface-fill': MARKER } as CSSProperties

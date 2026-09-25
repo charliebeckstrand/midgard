@@ -19,7 +19,7 @@ type MapGeofenceCircle = {
 	/** The circle's center. */
 	at: LngLat
 	/**
-	 * The circle's radius, as a distance across the ground in metres — a service
+	 * The circle's radius, as a distance across the ground in meters — a service
 	 * radius, a depot's catchment, a delivery zone.
 	 *
 	 * A ground distance, not a frame one. The zone covers the same ground however

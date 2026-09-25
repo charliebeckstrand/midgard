@@ -53,11 +53,11 @@ const SCALE = 1e15
 const scaled = () => fc.double({ min: -SCALE, max: SCALE, noNaN: true })
 
 /**
- * A band where the gap between neighbouring doubles stays well under the
+ * A band where the gap between neighboring doubles stays well under the
  * rounding error, so the round trip below measures the rounding alone.
  *
  * Above about 2.2e13 the gap passes 0.005. A value there reads back as the
- * neighbouring double rather than itself, and the error is the gap, not the
+ * neighboring double rather than itself, and the error is the gap, not the
  * rounding. The cap is 1e12, where the gap is about 0.00012.
  */
 const ROUNDED = 1e12

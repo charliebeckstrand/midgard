@@ -166,7 +166,7 @@ export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
  * A click on one item of a chart — a category band, a pie slice, or a map
  * region. It carries the item's own identity and its data index. It is the
  * cross-filter hook: a dashboard toggles a filter on what was clicked, and
- * narrows its neighbours.
+ * narrows its neighbors.
  *
  * One shape across the module, so a dashboard wires every chart the same way.
  */
@@ -356,7 +356,7 @@ export type CartesianFrameProps = {
 	 * Fires when a click lands on a category's band, with the category's label and
 	 * its data index. The whole band is the target, the same generous hit the
 	 * tooltip reads. The cross-filter hook: a dashboard toggles a filter on the
-	 * clicked category and narrows its neighbours. Coexists with the tooltip on
+	 * clicked category and narrows its neighbors. Coexists with the tooltip on
 	 * either trigger (a `'click'`-triggered readout still pins). It carries a
 	 * pointer cursor across the plot, so the marks read as clickable.
 	 */

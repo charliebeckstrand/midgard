@@ -177,11 +177,11 @@ type SectorChartMarksProps = {
 
 /**
  * The slice paths — clean fills with no separator stroke. The gap between
- * neighbours is geometric, cut into the arc angles by {@link pieSlices}. The
+ * neighbors is geometric, cut into the arc angles by {@link pieSlices}. The
  * real surface behind the chart thus shows through it, with nothing painted to
  * mismatch a tinted or glass card. A gapless hit wedge behind each slice takes
  * the pointer across that channel, and splits it down the middle between the
- * two neighbours. A sweep across the gap therefore moves the hover index rather
+ * two neighbors. A sweep across the gap therefore moves the hover index rather
  * than dropping the tooltip. A grouped bar chart holds its readout across the
  * gap between bars the same way. The visible slice, drawn over its wedge, still
  * wins the pointer on its own body and keeps the hover brightness.

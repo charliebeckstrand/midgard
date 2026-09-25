@@ -14,7 +14,7 @@ import countries from 'world-atlas/countries-110m.json'
  */
 
 /**
- * Serialised once for the process, not per request. The import is a fixed
+ * Serialized once for the process, not per request. The import is a fixed
  * object, so `Response.json` would run `JSON.stringify` over it on every hit.
  */
 const BODY = JSON.stringify(countries)

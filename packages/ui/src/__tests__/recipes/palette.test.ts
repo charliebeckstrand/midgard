@@ -25,7 +25,7 @@ describe('palette', () => {
 		expect(config.overlays).toEqual({ inherit: 'second-inherit', mute: 'second-mute' })
 	})
 
-	it('scaffolds compound rules for every (variant × palette colour)', () => {
+	it('scaffolds compound rules for every (variant × palette color)', () => {
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: { zinc: ['z-solid'], red: ['r-solid'], amber: [], green: [], blue: [] },
@@ -38,8 +38,8 @@ describe('palette', () => {
 		expect(recipe({ color: 'red' })).toContain('r-solid')
 	})
 
-	it('merges per-colour entries when the matrix value is an array of records', () => {
-		// Array of records (e.g. `bg`, `text`, `hover` slots) are concatenated per colour.
+	it('merges per-color entries when the matrix value is an array of records', () => {
+		// Array of records (e.g. `bg`, `text`, `hover` slots) are concatenated per color.
 		const recipe = defineRecipe({
 			palette: definePalette({
 				solid: [
@@ -72,7 +72,7 @@ describe('palette', () => {
 		expect(recipe({ variant: 'outline' })).toContain('has-ring')
 	})
 
-	it('derives the colour axis from the matrix keys, scaffolding extended colours', () => {
+	it('derives the color axis from the matrix keys, scaffolding extended colors', () => {
 		// A wide-keyed matrix (the `iro.extendedPalette` shape) expands the `color` axis
 		// to the extended set; the engine reads keys, not a fixed list.
 		const recipe = defineRecipe({
@@ -95,11 +95,11 @@ describe('palette', () => {
 
 		expect(recipe({ color: 'violet' })).toContain('solid-violet')
 
-		// Standard colours stay intact alongside the extended ones.
+		// Standard colors stay intact alongside the extended ones.
 		expect(recipe({ color: 'blue' })).toContain('b')
 	})
 
-	it('Badge opts into the wide palette: extended colours resolve to their classes', () => {
+	it('Badge opts into the wide palette: extended colors resolve to their classes', () => {
 		expect(badge({ variant: 'solid', color: 'rose' })).toContain('bg-rose-600')
 
 		expect(badge({ variant: 'soft', color: 'violet' })).toContain('bg-violet-500/15')

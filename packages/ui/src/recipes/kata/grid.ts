@@ -361,7 +361,7 @@ export const k = {
 		// One-line header title that truncates to an ellipsis when it outgrows the
 		// column. `min-w-0` overrides the flex item's `min-width: auto` so it shrinks
 		// within the header's flex slot — and, for a sortable column, within the sort
-		// button — instead of pushing past the cell into its neighbour.
+		// button — instead of pushing past the cell into its neighbor.
 		title: ['block', 'truncate', 'min-w-0'],
 		// A frozen column's header affordances: the pin button paired with the title.
 		pinned: {
@@ -427,7 +427,7 @@ export const k = {
 		badge: ['text-xs', 'leading-none', 'tabular-nums', 'shrink-0', text.muted],
 	},
 	reorder: {
-		// Lift the actively dragged column above its neighbours and float it on its
+		// Lift the actively dragged column above its neighbors and float it on its
 		// own opaque surface so the columns it slides over stay hidden — without the
 		// fill a transparent cell let their text bleed through, and the former
 		// `opacity-70` softening could only dim that bleed, never stop it. The
@@ -655,7 +655,7 @@ export const k = {
 		// truncating header's label and body values clip — and `items-center` centers
 		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
 		// and turn accent on focus or active drag. The grab zone does not overhang the
-		// boundary: an outward overhang gets painted over by a neighbour's opaque
+		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
 			'group/grid-resize absolute top-0 end-0 z-10 h-full',

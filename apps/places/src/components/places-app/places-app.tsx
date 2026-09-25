@@ -199,7 +199,7 @@ export function PlacesApp() {
 		[regions],
 	)
 
-	// Which region holds each place, against the geometry the map draws. Memoised
+	// Which region holds each place, against the geometry the map draws. Memoized
 	// because it walks the regions for every place and this component re-renders on
 	// each drawer, filter, and drill.
 	//

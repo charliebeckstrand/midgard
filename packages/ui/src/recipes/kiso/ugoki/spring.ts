@@ -11,7 +11,7 @@ export const spring = {
 	slide: { type: 'spring', stiffness: 300, damping: 30 },
 	/** Soft settle onto a value — the progress bar and gauge sweeping to their fill. */
 	settle: { type: 'spring', stiffness: 100, damping: 20 },
-	/** Stack reflow — neighbours re-packing after a toast dismissal. */
+	/** Stack reflow — neighbors re-packing after a toast dismissal. */
 	reflow: { type: 'spring', stiffness: 500, damping: 25 },
 	/** Snappy, lightly-damped glide — settles fast with a touch of give, not a bounce. */
 	snap: { type: 'spring', stiffness: 600, damping: 38 },

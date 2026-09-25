@@ -27,7 +27,7 @@ type MapDotHitSpec = {
 	 * answers over everything that claims the ground under this dot:
 	 *
 	 * - A drawn zone it stands on.
-	 * - The neighbours inside its coarse reach.
+	 * - The neighbors inside its coarse reach.
 	 * - A region layer that answers the pointer.
 	 *
 	 * {@link POINT_HIT_RADIUS} where nothing does, which is what makes the fine
@@ -42,7 +42,7 @@ type MapDotHitSpec = {
 	target: number | undefined
 	/**
 	 * The id of a {@link MapDotClip} bounding this target to its own ground, or `undefined` where no
-	 * neighbour crowds it. That is almost every dot, and why the clip is opt-in rather than always
+	 * neighbor crowds it. That is almost every dot, and why the clip is opt-in rather than always
 	 * drawn.
 	 */
 	clip?: string | undefined
@@ -208,7 +208,7 @@ export function MapDotCount({
  * reach that something else needs, through `k.hitFine`. A drawn zone under the
  * dot needs it. That is what lets a `MapGeofence` drawn tight around a
  * `MapPoint` still answer, and keeps a depot off the middle of its own
- * catchment. A neighbouring dot inside the reach needs it too. Without it the
+ * catchment. A neighboring dot inside the reach needs it too. Without it the
  * target over one mark would take the readout of the mark beside it. A region
  * layer that answers the pointer needs it too, because a full target over the
  * shape puts a hole in it.
@@ -219,7 +219,7 @@ export function MapDotCount({
  * costs a mouse user reach, so the dot only pays it where the pixels have
  * somewhere to go. `markTargets` weighs the three claims and hands the answer in
  * as {@link MapDotHitSpec.target}, because each is a fact about the mark's own
- * neighbourhood. The rule about what to do with it stays here, in the one
+ * neighborhood. The rule about what to do with it stays here, in the one
  * comparison below.
  *
  * A props factory rather than a component, because a `MapPoints` draws one of
@@ -270,7 +270,7 @@ export function dotHitProps({
 		cy: at.y,
 		r: POINT_HIT_RADIUS * scale,
 		fill: 'transparent',
-		// Independent of the radius above: the clip takes the straight cuts a neighbour's bisector
+		// Independent of the radius above: the clip takes the straight cuts a neighbor's bisector
 		// makes, the radius takes the circle. A fine pointer narrowing inside a clipped target composes
 		// without either knowing about the other.
 		clipPath: clip === undefined ? undefined : `url(#${clip})`,
@@ -289,7 +289,7 @@ type MapDotClipProps = {
 }
 
 /**
- * The `clipPath` bounding one dot's pointer target to the ground nearer to it than to any neighbour.
+ * The `clipPath` bounding one dot's pointer target to the ground nearer to it than to any neighbor.
  *
  * A `<polygon>` and not a path. The straight cuts are all this contributes, and the arc comes from
  * the `<circle>` the clip is applied to. The target therefore stays a circle wherever nothing

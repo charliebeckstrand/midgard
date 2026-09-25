@@ -126,7 +126,7 @@ describe('Sparkline', () => {
 		expect(container.querySelector('rect')).toBeNull()
 	})
 
-	it('honours aria-labelledby instead of aria-label', () => {
+	it('honors aria-labelledby instead of aria-label', () => {
 		const { container } = renderUI(
 			<>
 				<span id="lbl">Latency</span>
@@ -214,11 +214,11 @@ describe('sparklineGeometry', () => {
 		expect(geo.bars).toHaveLength(2)
 	})
 
-	it('closes a single-point area as a full-width band, not a centre triangle', () => {
+	it('closes a single-point area as a full-width band, not a center triangle', () => {
 		const geo = sparklineGeometry([7], { ...box })
 
 		// Closes on the track edges (2 → 98) to match the forced full-width line,
-		// rather than the point's centre x, which would fill as a triangle.
+		// rather than the point's center x, which would fill as a triangle.
 		expect(geo.area).toBe('M 2 20 L 98 20 L 98 38 L 2 38 Z')
 	})
 

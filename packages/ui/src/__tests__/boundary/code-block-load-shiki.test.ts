@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
 /**
- * `loadShiki` memoises one dynamic import. Each case therefore needs a module
+ * `loadShiki` memoizes one dynamic import. Each case therefore needs a module
  * whose memo cell starts empty. The rejection case also needs `import('shiki')`
  * to fail and then to succeed in one test. Both want `vi.resetModules()` and a
  * mock of its own, which the `unit` project bars: one registry serves every
@@ -47,7 +47,7 @@ describe('loadShiki', () => {
 	// double back, so the next case reads the registry the first case reads.
 	afterEach(mockShiki)
 
-	it('memoises a resolved import so the heavy module is fetched once', async () => {
+	it('memoizes a resolved import so the heavy module is fetched once', async () => {
 		const loadShiki = await coldLoadShiki()
 
 		const first = loadShiki()

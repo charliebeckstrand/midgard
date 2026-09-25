@@ -38,7 +38,7 @@ describe('useA11yAutoFocus', () => {
 		expect(document.activeElement).toBe(el)
 	})
 
-	// A portalled panel attaches a commit after `when` flips true. The hook must
+	// A portaled panel attaches a commit after `when` flips true. The hook must
 	// follow the node that arrives, not read a ref once while it is still empty.
 	it('focuses a target that attaches after `when` flips true', () => {
 		const el = mountTarget()

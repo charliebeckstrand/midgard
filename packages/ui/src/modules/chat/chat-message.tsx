@@ -25,7 +25,7 @@ const AUTHOR = {
  * cannot reach the bubble undrawn. The compiler asks for its arm, as it does
  * for the projection and the emptiness rule.
  *
- * A text block lexes on its own rather than joined to its neighbours. Each
+ * A text block lexes on its own rather than joined to its neighbors. Each
  * `Markdown` is then memoized on its own string, so a settled block above a
  * streaming one skips its re-lex on every chunk.
  *

@@ -15,7 +15,7 @@ import { present, renderUI } from '../helpers'
  * Rides the real browser because the claim is a computed one. jsdom loads no stylesheet, so
  * `getComputedStyle(…).cursor` there is empty whatever the class list says — the only thing
  * assertable without a browser is the class string, which is the mechanism rather than the
- * behaviour and stays green through a variant rename that breaks it.
+ * behavior and stays green through a variant rename that breaks it.
  */
 describe('a disabled tooltip trigger (real browser)', () => {
 	function render(disabled: boolean) {

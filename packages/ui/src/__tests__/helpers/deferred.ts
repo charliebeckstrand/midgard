@@ -2,7 +2,7 @@
 export type Deferred<T> = {
 	/** The promise the subject awaits. */
 	promise: Promise<T>
-	/** Fulfils {@link Deferred.promise} with `value`. */
+	/** Fulfills {@link Deferred.promise} with `value`. */
 	resolve: (value: T) => void
 	/** Rejects {@link Deferred.promise} with `reason`. */
 	reject: (reason: unknown) => void

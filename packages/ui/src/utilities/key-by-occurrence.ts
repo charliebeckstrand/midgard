@@ -15,7 +15,7 @@ export function keyByOccurrence(values: readonly string[]): { key: string; value
 
 		seen.set(value, occurrence + 1)
 
-		// A value passes through only when it holds no NUL. Every synthesised key
+		// A value passes through only when it holds no NUL. Every synthesized key
 		// starts with NUL, so it cannot equal a value that passed through.
 		const plain = occurrence === 0 && !value.includes('\u0000')
 

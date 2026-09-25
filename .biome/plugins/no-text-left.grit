@@ -3,7 +3,7 @@ language js
 // A start alignment is `text-start`, not `text-left`. The two render the same
 // in a left-to-right layout. In a right-to-left layout, `text-left` aligns the
 // text to the inline end. Most sites set the alignment on a `<button>`, whose
-// default centres its text, so the class only restores the start alignment.
+// default centers its text, so the class only restores the start alignment.
 //
 // The plugin matches the class in a string, a JSX string, or a template
 // chunk. A mention in a comment is not a violation. The one physical site,

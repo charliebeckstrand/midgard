@@ -4,11 +4,11 @@ import { BarChart } from '../../modules/chart/bar-chart'
 import { allBySlot, present, renderUI, waitFor } from '../helpers'
 
 /**
- * The legend emphasises a series — dimming every other — while an entry is
+ * The legend emphasizes a series — dimming every other — while an entry is
  * pointed at or keyboard-focused. Focus and `:focus-visible` diverge only under
  * real input: a pointer click leaves the switch DOM-focused with no ring, and a
  * backgrounded tab re-fires `focus` on that retained element when the reader
- * returns. Either path would re-emphasise on raw `focus`, dimming the other
+ * returns. Either path would re-emphasize on raw `focus`, dimming the other
  * series with nothing visible to explain it. The modality that drives
  * `:focus-visible` is the browser's own, which `@testing-library/user-event`'s
  * synthetic events don't reproduce, so this rides the real Playwright input in
@@ -66,7 +66,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		await settle()
 
 		expect(revenue.matches(':focus-visible')).toBe(false)
-		// The regression: raw `focus` re-emphasised here, dimming Costs invisibly.
+		// The regression: raw `focus` re-emphasized here, dimming Costs invisibly.
 		expect(dimmed(otherSeriesBar(container))).toBe(false)
 	})
 
@@ -89,7 +89,7 @@ describe('chart legend focus persistence (real browser)', () => {
 		const revenue = allBySlot(container, 'chart-legend-item')[0] as HTMLButtonElement
 
 		// Tab into the legend from the preceding control: a keyboard focus carries
-		// the ring, so it emphasises the way a hover does.
+		// the ring, so it emphasizes the way a hover does.
 		before.focus()
 		await userEvent.tab()
 

@@ -114,7 +114,7 @@ function settleResize(
 /**
  * The resize gestures of the dashboard: a pointer drag on a splitter, and one
  * arrow-key step on a focused splitter. The pure {@link resizePreview} decides
- * each preview, so a tile grows until it meets a neighbour or an edge.
+ * each preview, so a tile grows until it meets a neighbor or an edge.
  *
  * @internal
  */

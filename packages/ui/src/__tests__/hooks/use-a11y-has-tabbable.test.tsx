@@ -87,7 +87,7 @@ describe('useA11yHasTabbable', () => {
 		expect(result.current).toBe(true)
 
 		// The measured node is a parameter, not a ref read once: swapping it
-		// re-runs the probe, which is what lets a portalled surface report the
+		// re-runs the probe, which is what lets a portaled surface report the
 		// panel it mounts a commit later.
 		rerender({ node: withoutButton })
 

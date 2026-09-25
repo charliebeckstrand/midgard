@@ -6,7 +6,7 @@ import {
 } from '../../../components/pdf-viewer'
 import { bySlot, fireEvent, noop, present, renderUI, screen, waitFor } from '../../helpers'
 
-/** The name itself. Portalled, so it is found on the document rather than in the container. */
+/** The name itself. Portaled, so it is found on the document rather than in the container. */
 const label = () => bySlot(document.body, 'pdf-viewer-highlight-label')
 
 /**
@@ -74,7 +74,7 @@ describe('pdf viewer highlight label (real browser)', () => {
 		// whole point: a name drawn over the box hides the very content being checked.
 		expect(name.bottom).toBeLessThanOrEqual(box.top + 1)
 
-		// Roughly centred on the box it names, so which region it belongs to is unambiguous
+		// Roughly centered on the box it names, so which region it belongs to is unambiguous
 		// even where two sit close together.
 		expect(Math.abs((name.left + name.right) / 2 - (box.left + box.right) / 2)).toBeLessThan(24)
 

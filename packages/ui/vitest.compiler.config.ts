@@ -28,7 +28,7 @@ export default mergeConfig(base, {
 			presets: [
 				{
 					preset: () => ({ plugins: [[reactCompiler, {}]] }),
-					// A module with no capitalised name and no `use` call holds no component
+					// A module with no capitalized name and no `use` call holds no component
 					// or hook, so Babel skips it.
 					rolldown: { filter: { code: /\b[A-Z]|\buse/ } },
 				},

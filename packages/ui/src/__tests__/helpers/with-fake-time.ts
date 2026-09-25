@@ -23,7 +23,7 @@ type FakeClock = {
  * failing assertion.
  *
  * @remarks
- * Time-driven behaviour (debounce, toast dismissal, hold-to-confirm) is
+ * Time-driven behavior (debounce, toast dismissal, hold-to-confirm) is
  * deterministic only when the test drives the clock instead of racing it:
  * `clock.advance` moves time explicitly, so machine speed can't change the
  * outcome. Waiting on real time (`waitFor` on a timer, real sleeps) is what

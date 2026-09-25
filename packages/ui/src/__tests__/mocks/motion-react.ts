@@ -12,7 +12,7 @@ import { noop } from '../helpers/noop'
  * `motion/react` mock applied globally via `setup/module-mocks.ts`.
  *
  * Replaces every animated wrapper with a plain HTML element (no animation
- * runtime required in jsdom). Animations are modelled as instant: when a
+ * runtime required in jsdom). Animations are modeled as instant: when a
  * component's `animate` target changes, `onAnimationComplete` fires on the
  * next commit, so lifecycle gated on completion (e.g. the current primitive's
  * deferred exit unmount) proceeds deterministically. Mount does not fire,

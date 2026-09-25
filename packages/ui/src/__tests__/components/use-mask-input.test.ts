@@ -8,7 +8,7 @@ import { makeFormWrapper } from '../helpers/form-wrapper'
 const upper = (raw: string) => raw.toUpperCase()
 
 describe('useMaskInput', () => {
-	it('formats the defaultValue at initialisation', () => {
+	it('formats the defaultValue at initialization', () => {
 		const { result } = renderHook(() => useMaskInput({ defaultValue: 'abc', format: upper }))
 
 		expect(result.current.value).toBe('ABC')

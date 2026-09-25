@@ -94,7 +94,7 @@ export type OverlayProps = {
 } & Omit<ComponentProps<'div'>, 'children'>
 
 /**
- * Portalled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
+ * Portaled backdrop-and-panel shell for modal surfaces (Dialog, Sheet,
  * Drawer). Manages focus trapping, body scroll lock, dismissal, and the
  * dimming backdrop; consumers render the panel as `children`.
  *

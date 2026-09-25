@@ -34,7 +34,7 @@ describe('resolveRangeLegend', () => {
 		})
 	})
 
-	it('honours an explicit default placement', () => {
+	it('honors an explicit default placement', () => {
 		expect(resolveRangeLegend(undefined, WIDE, TALL, 'bottom')).toMatchObject({
 			placement: 'bottom',
 			orientation: 'horizontal',

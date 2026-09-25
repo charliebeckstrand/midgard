@@ -162,7 +162,7 @@ export function lineAnchor(points: LngLat[]): LngLat[] {
 
 /**
  * How near two positions must be, in degrees, to count as the same point — about
- * a tenth of a millimetre on the ground. A ring's closing repeat is the literal
+ * a tenth of a millimeter on the ground. A ring's closing repeat is the literal
  * first position where a caller wrote it out, and one rounding step away where a
  * generator traced it. The test that finds it must therefore hold for both.
  *

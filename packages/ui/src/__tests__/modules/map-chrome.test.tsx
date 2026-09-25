@@ -164,7 +164,7 @@ describe('MapPlat chrome', () => {
 		expect(chrome?.compareDocumentPosition(regions as Node)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
 	})
 
-	it('honours a degree step', () => {
+	it('honors a degree step', () => {
 		const { container: fine } = renderUI(plat({ graticule: 10 }))
 
 		const { container: coarse } = renderUI(plat({ graticule: 30 }))

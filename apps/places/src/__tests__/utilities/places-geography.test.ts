@@ -113,7 +113,7 @@ describe('regionFrame', () => {
 })
 
 describe('centredProjection', () => {
-	it('answers with nothing to centre on for an empty atlas', () => {
+	it('answers with nothing to center on for an empty atlas', () => {
 		expect(centredProjection(null)).toBeNull()
 
 		expect(centredProjection({ type: 'FeatureCollection', features: [] })).toBeNull()
@@ -224,7 +224,7 @@ describe('groupPlacesByRegion', () => {
 	})
 
 	// An atlas is a generalized outline, so a coastal place can sit a few hundred
-	// metres outside the shape that plainly holds it. The geocoder's own name
+	// meters outside the shape that plainly holds it. The geocoder's own name
 	// answers where the geometry does not.
 	it('falls back to the name the geocoder gave, for a place just off the outline', () => {
 		const grouped = group([placeAt('lighthouse', [-124.08, 44.63], { state: 'Oregon' })])
@@ -279,7 +279,7 @@ describe('groupPlacesByRegion', () => {
 	})
 
 	// Omitted, nothing is rescued — which is what an atlas fine enough to contain
-	// its own coastline wants, and what keeps a border city out of its neighbour.
+	// its own coastline wants, and what keeps a border city out of its neighbor.
 	it('rescues nothing without a tolerance', () => {
 		const off = placeAt('pier', [-124.3, 44])
 

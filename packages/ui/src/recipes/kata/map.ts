@@ -43,7 +43,7 @@ export const k = {
 	 * 2.5.5's enhanced target. It is the one form an SVG shape allows, because only
 	 * CSS can read the input modality. `dotHitProps` sets the radius itself on
 	 * {@link k.hitRadius}, and carries this class on the dots that have ground to
-	 * give back. A dot standing clear of every zone and every neighbour keeps the
+	 * give back. A dot standing clear of every zone and every neighbor keeps the
 	 * coarse target on both pointers.
 	 *
 	 * It is what lets a small area mark be pointed at. A `MapGeofence` drawn tight

@@ -119,7 +119,7 @@ describe('TimelineMarker', () => {
 		expect(marker?.querySelector('[data-slot="status-dot"]')).toBeInTheDocument()
 	})
 
-	it('names the status dot so its colour is not the sole signal', () => {
+	it('names the status dot so its color is not the sole signal', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
@@ -135,7 +135,7 @@ describe('TimelineMarker', () => {
 		expect(dot).toHaveAccessibleName('Error')
 	})
 
-	it('leaves a colour-only marker decorative', () => {
+	it('leaves a color-only marker decorative', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
@@ -170,7 +170,7 @@ describe('TimelineMarker', () => {
 		expect(marker?.className).toContain('after:bg-amber-600')
 	})
 
-	it('paints a colour-only marker in the requested hue', () => {
+	it('paints a color-only marker in the requested hue', () => {
 		const { container } = renderUI(
 			<Timeline>
 				<TimelineItem>
@@ -180,8 +180,8 @@ describe('TimelineMarker', () => {
 		)
 
 		// The decorative dot paints the marker hue directly. Regression guard: it
-		// used to render a <StatusDot> whose default 'inactive' status colour
-		// overrode `color`, so every colour-only marker showed zinc.
+		// used to render a <StatusDot> whose default 'inactive' status color
+		// overrode `color`, so every color-only marker showed zinc.
 		expect(bySlot(container, 'swatch')?.className).toContain('text-blue-600')
 	})
 

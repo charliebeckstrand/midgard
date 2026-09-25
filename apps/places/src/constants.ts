@@ -2,7 +2,7 @@ import type { PlaceCategory, PlaceCategoryMeta } from './types'
 
 /**
  * The categories, in the order the filter lists them and the map assigns their
- * colours. Each carries its own slot, so a category keeps its colour whatever
+ * colors. Each carries its own slot, so a category keeps its color whatever
  * else is on the map — a legend that renumbered itself as places were added
  * would make yesterday's screenshot lie.
  */

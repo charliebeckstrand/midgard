@@ -509,7 +509,7 @@ type PdfViewerActiveNameHandle = {
  *
  * @remarks A component of its own, holding the one piece of state the layer would otherwise
  * hold for it. The name is a standing object over a layer of pressable boxes, and on a dense
- * page it lands on its neighbours. It takes no pointer events, so the hover and the press
+ * page it lands on its neighbors. It takes no pointer events, so the hover and the press
  * reach the box beneath it either way. This is the half the reader sees. The name goes faint
  * over the box they are pointing at, which is the page saying the press will land there.
  *

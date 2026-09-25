@@ -11,7 +11,7 @@ import { FIXTURE_ROWS } from '../helpers/map-geography'
 
 /**
  * The paint a category resolved from a given slot. The slot itself is spent
- * building this and kept nowhere, so the paint is where a colour assertion
+ * building this and kept nowhere, so the paint is where a color assertion
  * reads it back.
  */
 const slotPaint = (color: MapSeriesColor) => ({
@@ -45,7 +45,7 @@ describe('resolveCategories', () => {
 		expect(metas.map((meta) => meta.paint)).toEqual([slotPaint('blue'), slotPaint('orange')])
 	})
 
-	it('lets an explicit list set the order, labels, and colours', () => {
+	it('lets an explicit list set the order, labels, and colors', () => {
 		const metas = resolveCategories(FIXTURE_ROWS, 'zone', [
 			{ value: 'West', label: 'Western', color: 'rose' },
 			{ value: 'East' },
@@ -53,7 +53,7 @@ describe('resolveCategories', () => {
 
 		expect(metas[0]).toMatchObject({ value: 'West', label: 'Western', paint: slotPaint('rose') })
 
-		// An explicit colour still occupies its slot position.
+		// An explicit color still occupies its slot position.
 		expect(metas[1]).toMatchObject({ value: 'East', label: 'East', paint: slotPaint('orange') })
 	})
 })

@@ -24,7 +24,7 @@ describe('Split', () => {
 		expect(el?.className).toContain('items-center')
 	})
 
-	it('honours an explicit ratio', () => {
+	it('honors an explicit ratio', () => {
 		const { container } = renderUI(<Split ratio="1/3">a</Split>)
 
 		expect(bySlot(container, 'split')?.className).toContain('grid-cols-[1fr_2fr]')

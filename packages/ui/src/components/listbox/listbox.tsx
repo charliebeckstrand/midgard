@@ -79,9 +79,9 @@ type ListboxBaseProps = GroupStampProps & {
 	 *
 	 * The widget already computes this — it is what marks a bound field touched —
 	 * and kept it. The prop bag is closed, with no rest spread and no `ref`, so a
-	 * caller had no other way to hear it. A blur into the portalled panel is not a
+	 * caller had no other way to hear it. A blur into the portaled panel is not a
 	 * departure and never fires. That is the part a native `onBlur` on the trigger
-	 * would get wrong. The panel is portalled, so focus moving into it reads as
+	 * would get wrong. The panel is portaled, so focus moving into it reads as
 	 * leaving the trigger.
 	 */
 	onBlur?: (event: FocusEvent<HTMLButtonElement>) => void
@@ -127,7 +127,7 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
 /**
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
  * `multiple` selection, controlled or uncontrolled, with an optional clear
- * control and a portalled panel. Binds to an enclosing Form field by `name`;
+ * control and a portaled panel. Binds to an enclosing Form field by `name`;
  * an explicit `value` wins over the bound field. `size` resolves from the
  * prop, then `<Control>`, then enclosing Density.
  */
@@ -273,7 +273,7 @@ export function Listbox<T>({
 	)
 
 	// Marks the bound field touched when focus leaves the widget; a blur into the
-	// portalled panel (opening the menu) doesn't count. Mirrors the combobox
+	// portaled panel (opening the menu) doesn't count. Mirrors the combobox
 	// input's onBlur.
 	//
 	// The panel is found by its id as well as through the floating ref, because
@@ -363,7 +363,7 @@ export function Listbox<T>({
 					data-slot={slot}
 					frameProps={{
 						onClick: () => setOpenGuarded(!open),
-						// While open, focus lives on the active option in the portalled panel. A
+						// While open, focus lives on the active option in the portaled panel. A
 						// mousedown would pull it onto the button; if released off-target, no click
 						// fires, stranding focus on the trigger and killing keyboard navigation.
 						onMouseDown: open ? (event) => event.preventDefault() : undefined,

@@ -58,7 +58,7 @@ describe('fit drawer height (real browser)', () => {
 
 		// The panel takes its baseline from the observer's first delivery, which
 		// lands at the end of the frame. A swap before then has no height to leave
-		// from and rightly adopts the new one rather than travelling on the frame
+		// from and rightly adopts the new one rather than traveling on the frame
 		// the panel is still arriving on; this case is about the swaps after.
 		await frames()
 
