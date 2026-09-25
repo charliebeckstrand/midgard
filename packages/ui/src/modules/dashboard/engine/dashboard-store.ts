@@ -93,10 +93,11 @@ export type DashboardView = {
 	/** The selections that apply: those of the board, and those of a tile on the board. */
 	selections: readonly DashboardSelection[]
 	/**
-	 * The ids of the saved entries in reading order, which the tiles take in the
-	 * markup. It reads the places that `placeEntries` gives the entries. It holds
-	 * still in edit mode, so a gesture never moves a tile in the DOM. When edit
-	 * mode ends, it takes the new order.
+	 * The ids of the tiles in reading order, which the tiles take in the markup. A
+	 * registered tile ranks by its canonical cell, and an entry with no registered
+	 * tile by the place that `placeEntries` gives it. It holds still in edit mode,
+	 * so a gesture never moves a tile in the DOM. When edit mode ends, it takes the
+	 * new order.
 	 */
 	order: readonly string[]
 }
@@ -237,8 +238,8 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const listeners = new Set<() => void>()
 
-	// The first entry of each id, at the place that resolveLayout gives it. A tile that has not
-	// registered and the DOM order follow it too, so the server markup matches the board.
+	// The first entry of each id, placed with provisional heights. A tile that has not registered
+	// paints it, so the server markup shows no clamp overlap of two tiles with saved heights.
 	const placedOf = memo(placeEntries)
 
 	const entriesOf = memo(
@@ -247,7 +248,16 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 
 	const canonicalOf = memo(resolveLayout)
 
-	const orderOf = memo(readingOrder)
+	// A registered tile ranks by its canonical cell, and an entry with no registered tile by its
+	// placed entry. Before any tile registers, only the placed entries rank, so the server
+	// markup and the first client render agree. After that, the order follows the painted rows.
+	const orderOf = memo(
+		(
+			canonical: readonly DashboardCell[],
+			placed: readonly DashboardLayoutItem[],
+			demands: ReadonlyMap<string, DashboardTileDemands>,
+		) => readingOrder([...canonical, ...placed.filter((item) => !demands.has(item.id))]),
+	)
 
 	const projectionOf = memo(
 		(
@@ -278,11 +288,10 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
 			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
-			// The placed entries give the order, so the server renders the tiles in it too.
 			order:
 				editing && previous !== null
 					? previous.order
-					: internOrder(previous?.order, orderOf(placed)),
+					: internOrder(previous?.order, orderOf(canonical, placed, demands)),
 		}
 	}
 

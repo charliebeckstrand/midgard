@@ -548,15 +548,15 @@ export function firstEntries(
 }
 
 /**
- * The first entry of each id in `items`, at the place that {@link resolveLayout}
- * gives it before a tile registers. A tile that has not registered paints this
- * entry, and the reading order reads it. The server markup thus shows no overlap.
+ * The first entry of each id in `items`, placed by the rule of {@link resolveLayout}
+ * with provisional heights. A tile that has not registered paints this entry.
  *
  * @remarks
- * It applies the rule of {@link resolveLayout} to each entry. The ratios are not
- * known yet, so each cell takes `h`, or {@link DEFAULT_CELL_HEIGHT} when `h` is
- * absent. An entry that moves takes the new `x`, `y`, and `w`, and it keeps its
- * other fields. It returns `items` itself when no entry moves and no id repeats.
+ * The ratios are not known before the tiles register, so each cell takes `h`, or
+ * {@link DEFAULT_CELL_HEIGHT} when `h` is absent. A tile with a ratio can thus
+ * still overlap another tile, or move, when it registers. An entry that moves
+ * takes the new `x`, `y`, and `w`, and it keeps its other fields. It returns
+ * `items` itself when no entry moves and no id repeats.
  */
 export function placeEntries(
 	items: readonly DashboardLayoutItem[],

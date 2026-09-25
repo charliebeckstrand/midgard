@@ -137,6 +137,33 @@ describe('Dashboard reading order', () => {
 		expect(markupOrder(container)).toEqual(['A', 'C', 'B'])
 	})
 
+	it('takes the order from the painted rows once the tiles register', () => {
+		// Before a registers, it takes 18 rows, and b moves under c. Its ratio gives it 16 rows, so b fits at row 17.
+		const layout: DashboardLayoutItem[] = [
+			{ id: 'a', x: 0, y: 0, w: 8 },
+			{ id: 'b', x: 16, y: 16, w: 8, h: 10 },
+			{ id: 'c', x: 0, y: 30, w: 12, h: 10 },
+		]
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Board" columns={12} layout={{ value: layout }}>
+				<DashboardTile id="a" title="A" ratio={2} />
+
+				<DashboardTile id="b" title="B" />
+
+				<DashboardTile id="c" title="C" />
+			</Dashboard>,
+		)
+
+		const rows = allBySlot(container, 'dashboard-tile').map(
+			(tile) => tile.style.gridArea.split(' / ')[0],
+		)
+
+		expect(rows).toEqual(['1', '17', '31'])
+
+		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
+	})
+
 	it('keeps each other child in its slot', () => {
 		const { container } = renderUI(
 			<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
