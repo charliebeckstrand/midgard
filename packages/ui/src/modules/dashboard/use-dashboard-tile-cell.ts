@@ -24,7 +24,8 @@ function bound(
  *
  * Mount registers and unmount unregisters. A change of the demands updates them
  * in place, so the tile keeps its mount order, which places a tile with no entry.
- * Such a tile takes its `defaultSize`.
+ * Such a tile takes its `defaultSize`. In development, a mount logs an error when
+ * another tile already holds the id.
  *
  * A tile registers in a layout effect, so the server never sees it register. Until
  * then, the tile resolves its cell from its own layout entry and its own demands. The server
@@ -58,7 +59,17 @@ export function useDashboardTileCell(
 
 	latest.current = demands
 
-	useLayoutEffect(() => store.register(id, latest.current), [store, id])
+	useLayoutEffect(() => {
+		// The store keys a registration by id alone, so two tiles with one id share one registration.
+		// Each cleanup runs before the next effect, so StrictMode and a swap in one commit stay silent.
+		if (process.env.NODE_ENV !== 'production' && store.getState().demands.has(id)) {
+			console.error(
+				`Dashboard: two tiles share the id "${id}". The unmount of one also unregisters the other. Give each tile a unique id.`,
+			)
+		}
+
+		return store.register(id, latest.current)
+	}, [store, id])
 
 	useLayoutEffect(() => {
 		store.register(id, {

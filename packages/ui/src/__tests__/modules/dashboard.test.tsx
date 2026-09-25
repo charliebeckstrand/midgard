@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { Profiler, type ReactNode, use, useState } from 'react'
+import { Profiler, type ReactNode, StrictMode, use, useState } from 'react'
 import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
@@ -443,6 +443,65 @@ describe('Dashboard', () => {
 		expect(bySlot(revenue, 'dashboard-tile-actions')).toBeEmptyDOMElement()
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
+	})
+})
+
+describe('Dashboard tile ids', () => {
+	/** The development error for a repeated id `a`. */
+	const repeated = expect.stringContaining('Dashboard: two tiles share the id "a"')
+
+	/** A tile that the board does not key by its id, so a change of the id keeps the instance. */
+	function Tile({ id }: { id: string }) {
+		return <DashboardTile id={id} title={id} />
+	}
+
+	/** Two wrapped tiles, with the ids and the keys that a test gives. */
+	function Pair({ ids, keys = ['1', '2'] }: { ids: [string, string]; keys?: [string, string] }) {
+		return (
+			<Dashboard aria-label="Sales">
+				<Tile key={keys[0]} id={ids[0]} />
+
+				<Tile key={keys[1]} id={ids[1]} />
+			</Dashboard>
+		)
+	}
+
+	it('logs an error in development that names the id of two mounted tiles', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(<Pair ids={['a', 'a']} />)
+
+		expect(error).toHaveBeenCalledWith(repeated)
+	})
+
+	it('stays silent under StrictMode, which runs each effect a second time', () => {
+		const error = vi.spyOn(console, 'error')
+
+		renderUI(
+			<StrictMode>
+				<Board />
+			</StrictMode>,
+		)
+
+		expect(error).not.toHaveBeenCalled()
+	})
+
+	it('stays silent when two tiles swap their ids, or a tile replaces another, in one commit', () => {
+		const error = vi.spyOn(console, 'error')
+
+		const { rerender } = renderUI(<Pair ids={['a', 'b']} />)
+
+		// The cleanup of each old registration runs before each new one.
+		rerender(<Pair ids={['b', 'a']} />)
+
+		rerender(<Pair ids={['b', 'a']} keys={['3', '2']} />)
+
+		expect(error).not.toHaveBeenCalled()
+
+		// A tile with no entry paints only while it is registered, so both tiles stay registered.
+		expect(screen.getByRole('group', { name: 'a' })).toBeInTheDocument()
+
+		expect(screen.getByRole('group', { name: 'b' })).toBeInTheDocument()
 	})
 })
 

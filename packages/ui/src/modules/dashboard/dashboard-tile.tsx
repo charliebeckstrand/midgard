@@ -33,7 +33,10 @@ function hasHeaderRow(props: DashboardTileProps): boolean {
 
 /** Props for {@link DashboardTile}. */
 export type DashboardTileProps = {
-	/** The stable id that joins the tile to its layout entry. */
+	/**
+	 * The stable id that joins the tile to its layout entry. It must be unique on
+	 * the board, spec tiles included. In development, a repeated id logs an error.
+	 */
 	id: string
 	/**
 	 * The heading of the tile. It names the tile for assistive tech and in the
