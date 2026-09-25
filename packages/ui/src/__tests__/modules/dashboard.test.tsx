@@ -424,6 +424,15 @@ describe('Dashboard', () => {
 		await teardown()
 	})
 
+	it('gives the actions row the default cursor, so a badge or a gap in it shows no grab hand', () => {
+		renderUI(<Board editing />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. The row starts no drag.
+		expect(bySlot(card, 'dashboard-tile-actions')).toHaveClass('cursor-default')
+	})
+
 	it('renders only the tile whose cell changed', () => {
 		const renders = new Map<string, number>()
 

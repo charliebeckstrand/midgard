@@ -37,7 +37,7 @@ export type DashboardTileCardProps = {
 	dragging: boolean
 	/** The props for the drag grip. */
 	grip: DashboardTileDrag['grip']
-	/** The pointer listener that starts a drag anywhere on the card. */
+	/** The pointer listener that starts a drag on the card, outside the actions row. */
 	surface: DashboardTileDrag['surface']
 	/** The mount policy of the content. */
 	mount: Mount

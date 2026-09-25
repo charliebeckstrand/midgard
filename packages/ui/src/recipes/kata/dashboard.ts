@@ -76,8 +76,11 @@ const header = ['flex min-w-0 items-center gap-2']
 /** The title block, which truncates before it pushes the actions out. */
 const heading = ['min-w-0 flex-1 truncate']
 
-/** The action row at the far end of the header. */
-const actions = ['flex shrink-0 items-center gap-1']
+/**
+ * The action row at the far end of the header. A press in it starts no drag,
+ * so it takes the default cursor over the grab hand of the card.
+ */
+const actions = ['flex shrink-0 cursor-default items-center gap-1']
 
 /**
  * The spark veil, which the card applies. A chart at the spark tier writes
