@@ -84,7 +84,7 @@ describe('groupedWindowItems', () => {
 	const groups = [group('role:A', true, ['1', '2']), group('role:B', false, ['3'])]
 
 	it('prefixes the key of each item kind', () => {
-		const items = groupedWindowItems(groups, { totalled: true, motions: NO_MOTIONS })
+		const items = groupedWindowItems(groups, { totaled: true, motions: NO_MOTIONS })
 
 		expect(items.map((item) => item.key)).toEqual([
 			'group:role:A',
@@ -99,7 +99,7 @@ describe('groupedWindowItems', () => {
 
 	it('keeps a key that looks like a group id apart from the group', () => {
 		const items = groupedWindowItems([group('7', true, ['7'])], {
-			totalled: false,
+			totaled: false,
 			motions: NO_MOTIONS,
 		})
 
@@ -112,7 +112,7 @@ describe('groupedWindowItems', () => {
 			['total:role:B', { phase: 'closing', size: 30 }],
 		])
 
-		const items = groupedWindowItems(groups, { totalled: true, motions })
+		const items = groupedWindowItems(groups, { totaled: true, motions })
 
 		const closed = items.slice(5)
 
@@ -127,16 +127,16 @@ describe('groupedWindowItems', () => {
 	it('leaves out the rows of a collapsed group that are not closing', () => {
 		const motions = new Map<string, GridRowMotion>([['leaf:3', { phase: 'entering' }]])
 
-		const items = groupedWindowItems(groups, { totalled: true, motions })
+		const items = groupedWindowItems(groups, { totaled: true, motions })
 
 		expect(items.slice(5)).toEqual([])
 	})
 
 	it('counts the exposed items without the list', () => {
-		for (const totalled of [false, true]) {
-			const items = groupedWindowItems(groups, { totalled, motions: NO_MOTIONS })
+		for (const totaled of [false, true]) {
+			const items = groupedWindowItems(groups, { totaled, motions: NO_MOTIONS })
 
-			expect(groupedWindowRowCount(groups, totalled)).toBe(items.length)
+			expect(groupedWindowRowCount(groups, totaled)).toBe(items.length)
 		}
 	})
 })

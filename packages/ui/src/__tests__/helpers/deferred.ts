@@ -39,8 +39,8 @@ export function deferred<T = void>(): Deferred<T> {
 
 	let reject!: (reason: unknown) => void
 
-	const promise = new Promise<T>((fulfil, fail) => {
-		resolve = fulfil
+	const promise = new Promise<T>((fulfill, fail) => {
+		resolve = fulfill
 
 		reject = fail
 	})

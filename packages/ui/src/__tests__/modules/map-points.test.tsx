@@ -165,14 +165,14 @@ describe('MapPoints', () => {
 	})
 
 	it("draws a lone dot in its own colour and a summary in the mark's", () => {
-		const coloured = [
+		const colored = [
 			{ at: DEPOT, label: 'Depot', color: 'green' as const },
 			{ at: [5.3, 5] as [number, number], label: 'Annex', color: 'red' as const },
 			{ at: SITE, label: 'Site', color: 'amber' as const },
 		]
 
 		const { container } = renderUI(
-			overlayPlat(<MapPoints id="fleet" label="Stops" points={coloured} />),
+			overlayPlat(<MapPoints id="fleet" label="Stops" points={colored} />),
 		)
 
 		// The far stop stands alone, so it wears the colour it was given.

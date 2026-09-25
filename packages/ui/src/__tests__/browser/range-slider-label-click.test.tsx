@@ -13,7 +13,7 @@ import { allBySlot, renderUI } from '../helpers'
  * sends the full pointer sequence, so the test shows that the click moves no value.
  */
 describe('a click on the RangeSlider Field Label (real browser)', () => {
-	const renderLabelled = (disabled?: boolean) => {
+	const renderLabeled = (disabled?: boolean) => {
 		const { container, getByText } = renderUI(
 			<Field>
 				<Label>Price</Label>
@@ -27,7 +27,7 @@ describe('a click on the RangeSlider Field Label (real browser)', () => {
 	}
 
 	it('focuses the start thumb and keeps both values', async () => {
-		const { lo, hi, label } = renderLabelled()
+		const { lo, hi, label } = renderLabeled()
 
 		await userEvent.click(label)
 
@@ -39,7 +39,7 @@ describe('a click on the RangeSlider Field Label (real browser)', () => {
 	})
 
 	it('focuses no thumb when the slider is disabled', async () => {
-		const { lo, hi, label } = renderLabelled(true)
+		const { lo, hi, label } = renderLabeled(true)
 
 		await userEvent.click(label)
 

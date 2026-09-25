@@ -397,14 +397,14 @@ export function useMapZoom({
 
 		// Panned first, then scaled about where the midpoint now sits, so the ground
 		// under the fingers stays under them however the pair moves and spreads.
-		const travelled = panTransform(
+		const traveled = panTransform(
 			from,
 			(middle.x - previous.x) / scale,
 			(middle.y - previous.y) / scale,
 			frame,
 		)
 
-		commit(zoomTransform(travelled, focus, gap / before, frame, limit))
+		commit(zoomTransform(traveled, focus, gap / before, frame, limit))
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */

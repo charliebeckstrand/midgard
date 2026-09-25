@@ -20,7 +20,7 @@ const { border, focus } = sen
 // The page image and every layer drawn over it must sit in the same place, so the centering
 // has one home — the rotation half of the same invariant is the `transform` string
 // `usePdfViewerPageScale` computes once.
-const centred = 'absolute top-1/2 left-1/2 origin-center'
+const centered = 'absolute top-1/2 left-1/2 origin-center'
 
 export const k = {
 	base: ['relative', flex.col, 'overflow-hidden', bg.surface, border.default],
@@ -155,7 +155,7 @@ export const k = {
 		scrolls: '[scrollbar-gutter:stable]',
 		page: {
 			frame: ['relative shrink-0'],
-			base: [centred, 'shadow-lg', 'bg-white'],
+			base: [centered, 'shadow-lg', 'bg-white'],
 			placeholder: ['w-full h-full', skeleton],
 			empty: [flex.row, 'justify-center', 'w-full h-full', 'py-2', text.muted],
 			/**
@@ -188,7 +188,7 @@ export const k = {
 			// transform — so a region positioned in percentages of it lands on the same
 			// ink at every zoom and rotation, with no per-region math.
 			highlights: {
-				layer: [centred],
+				layer: [centered],
 				/**
 				 * The layer without `onActiveHighlightChange`. Its regions are decoration inside an
 				 * `aria-hidden` layer, so there is nothing to press. Every region still has its

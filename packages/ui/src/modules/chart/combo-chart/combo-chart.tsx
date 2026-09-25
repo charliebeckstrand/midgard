@@ -245,9 +245,9 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const areas = lineSeriesOf(areaEntries, xs, floor, interpolation, points)
 
 	// Value labels ride the line and area series only — bars read against the axis.
-	const labelled = [...areaEntries, ...lineEntries]
+	const labeled = [...areaEntries, ...lineEntries]
 
-	const labelMetas = labelled.map(({ meta }) => meta)
+	const labelMetas = labeled.map(({ meta }) => meta)
 
 	// A plot too short to afford the reserved label room sheds the point labels
 	// whole, as a `LineChart` does.

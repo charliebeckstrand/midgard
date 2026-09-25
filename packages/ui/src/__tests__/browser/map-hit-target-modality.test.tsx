@@ -7,7 +7,7 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 import { zoomToCeiling } from './helpers/map-zoom'
 
 /** The centre of an element's box, in client coordinates. */
-function centreOf(element: Element) {
+function centerOf(element: Element) {
 	const box = element.getBoundingClientRect()
 
 	return { x: box.left + box.width / 2, y: box.top + box.height / 2 }
@@ -93,7 +93,7 @@ describe('dot hit target by pointer modality', () => {
 
 		const zone = getSlot(document.body, 'map-geofence-hit')
 
-		const { x: cx, y: cy } = centreOf(dot)
+		const { x: cx, y: cy } = centerOf(dot)
 
 		// Probed off the budget the depot actually took rather than off fixed
 		// offsets, so the case reads the boundary between the two marks wherever the
@@ -197,7 +197,7 @@ describe('dot hit target by pointer modality', () => {
 		// narrow target on each other rather than on a zone: a neighbour that close
 		// is the whole reason a dot gives its reach back.
 		for (const target of targets) {
-			const { x, y } = centreOf(target)
+			const { x, y } = centerOf(target)
 
 			expect(document.elementFromPoint(x, y)).toBe(target)
 		}

@@ -191,7 +191,7 @@ export type LayoutModel = {
 }
 
 /** The scroll offset of each element, as the modelled layout stores it. */
-const modelledOffsets = new WeakMap<Element, number>()
+const modeledOffsets = new WeakMap<Element, number>()
 
 /**
  * Gives a windowed list the geometry a browser would, on the prototype of
@@ -232,10 +232,10 @@ export function modelLayout(model: LayoutModel): void {
 	Object.defineProperty(HTMLElement.prototype, 'scrollTop', {
 		configurable: true,
 		get(this: HTMLElement) {
-			return modelledOffsets.get(this) ?? 0
+			return modeledOffsets.get(this) ?? 0
 		},
 		set(this: HTMLElement, value: number) {
-			modelledOffsets.set(this, value)
+			modeledOffsets.set(this, value)
 		},
 	})
 

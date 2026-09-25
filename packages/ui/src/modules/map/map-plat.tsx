@@ -1003,7 +1003,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// A mark's own dots are its own business, and it holds them in drawn form already. Walked rather than
 	// mapped: every dot on the map is tested per asking mark, and a `flatMap` over the pool would mint an
 	// array per dot to say "keep" or "drop" before flattening them all away again.
-	const neighbours = useCallback(
+	const neighbors = useCallback(
 		(exclude: string) => {
 			const others: MapPoint2D[] = []
 
@@ -1022,7 +1022,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			order,
 			hidden,
 			spare,
-			neighbours,
+			neighbors,
 			emphasis,
 			animate,
 			selectedOverlay: markSelection,
@@ -1034,7 +1034,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			order,
 			hidden,
 			spare,
-			neighbours,
+			neighbors,
 			emphasis,
 			animate,
 			markSelection,

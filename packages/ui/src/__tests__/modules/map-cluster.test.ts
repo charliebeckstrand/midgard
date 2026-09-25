@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
 	type MapDotMark,
 	markTargets,
-	neighbourRoom,
+	neighborRoom,
 } from '../../modules/map/engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from '../../modules/map/engine/map-cluster/geo'
 import { clusterPoints, groupsByMember } from '../../modules/map/engine/map-cluster/group'
@@ -241,22 +241,22 @@ const dot = (x: number): MapDotMark => ({ at: { x, y: 0 }, radius: POINT_RADIUS 
  * finger target: this pass states a claim on the ground, and `markTargets` is the
  * one place that knows what a target caps at.
  */
-describe('neighbourRoom', () => {
+describe('neighborRoom', () => {
 	it('leaves a dot only the gap to a neighbour inside the coarse reach', () => {
 		// The gap a zoom leaves the moment a summary parts: well inside 44px. Each
 		// dot reaches to the other's face and stops — 15px between the centres, less
 		// the 5.5px the neighbour paints.
-		expect(neighbourRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
+		expect(neighborRoom([dot(0), dot(15)])).toEqual([9.5, 9.5])
 	})
 
 	it('claims nothing of dots standing clear of one another', () => {
 		// Past the reach plus the neighbour's own radius, so neither covers the face
 		// of the other and neither has anything to say about the other's target.
-		expect(neighbourRoom([dot(0), dot(40)])).toEqual([Infinity, Infinity])
+		expect(neighborRoom([dot(0), dot(40)])).toEqual([Infinity, Infinity])
 	})
 
 	it('answers for each dot rather than for the set', () => {
-		expect(neighbourRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
+		expect(neighborRoom([dot(0), dot(15), dot(400)])).toEqual([9.5, 9.5, Infinity])
 	})
 
 	it('measures the neighbour’s own width, so a summary reaches further than a dot', () => {
@@ -265,26 +265,23 @@ describe('neighbourRoom', () => {
 		// 30px apart: the summary's face reaches inside the dot's target, while the
 		// dot's own face stays clear of the summary's. Each answers for what it
 		// would swallow, not for what would swallow it.
-		expect(neighbourRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, Infinity])
+		expect(neighborRoom([dot(0), summary])).toEqual([30 - MAX_CLUSTER_RADIUS, Infinity])
 	})
 
 	it('holds every reach in device pixels through a zoom', () => {
 		// Under the transform one device pixel spans two frame units, so the pair a
 		// zoom has carried 30 frame units apart still draws 15px apart on screen.
-		expect(neighbourRoom([dot(0), dot(30)], 2)).toEqual([9.5, 9.5])
+		expect(neighborRoom([dot(0), dot(30)], 2)).toEqual([9.5, 9.5])
 	})
 
 	it('crowds nothing with a dot the projection dropped', () => {
-		expect(neighbourRoom([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([
-			Infinity,
-			Infinity,
-		])
+		expect(neighborRoom([{ at: null, radius: POINT_RADIUS }, dot(1)])).toEqual([Infinity, Infinity])
 	})
 
 	it('leaves a lone dot alone', () => {
-		expect(neighbourRoom([dot(0)])).toEqual([Infinity])
+		expect(neighborRoom([dot(0)])).toEqual([Infinity])
 
-		expect(neighbourRoom([])).toEqual([])
+		expect(neighborRoom([])).toEqual([])
 	})
 })
 

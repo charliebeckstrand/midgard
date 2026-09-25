@@ -195,7 +195,7 @@ type RangeKeyContext = {
 function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext): number | null {
 	const { min, max, bins, binOf, edgesOf } = ctx
 
-	const centre = (bin: number) => {
+	const center = (bin: number) => {
 		const [low, high] = edgesOf(Math.min(bins - 1, Math.max(0, bin)))
 
 		return (low + high) / 2
@@ -207,12 +207,12 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 	// a neighbour. A step walks on until it reaches a class it can land in.
 	const step = (direction: 1 | -1) => {
 		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
-			const value = centre(bin)
+			const value = center(bin)
 
 			if (binOf(value) !== current) return value
 		}
 
-		return centre(current)
+		return center(current)
 	}
 
 	if (key === 'ArrowUp' || key === 'ArrowRight') return step(1)

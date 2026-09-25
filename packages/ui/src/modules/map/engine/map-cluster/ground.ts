@@ -126,10 +126,10 @@ function clipToHalf(ring: MapGround, mid: MapPoint2D, nx: number, ny: number): M
  */
 export function ownGround(
 	at: MapPoint2D,
-	neighbours: readonly MapPoint2D[],
+	neighbors: readonly MapPoint2D[],
 	reach: number,
 ): MapGround | null {
-	const near = neighbours.filter((other) => contests(at, other, reach))
+	const near = neighbors.filter((other) => contests(at, other, reach))
 
 	if (near.length === 0) return null
 

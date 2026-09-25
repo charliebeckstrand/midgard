@@ -90,7 +90,7 @@ export type Probe = {
 }
 
 /** The client point at the middle of `node`. */
-function centre(node: HTMLElement): [number, number] {
+function center(node: HTMLElement): [number, number] {
 	const rect = node.getBoundingClientRect()
 
 	return [rect.left + rect.width / 2, rect.top + rect.height / 2]
@@ -105,7 +105,7 @@ function readProbe(panel: string, skip?: HTMLElement): Probe {
 		points: rows
 			.filter((row) => row !== skip)
 			.map((row) => {
-				const [x, y] = centre(row)
+				const [x, y] = center(row)
 
 				return { row, x, y }
 			}),
@@ -154,7 +154,7 @@ export async function openCorridor(panel: string): Promise<Probe> {
 
 	const parent = document.querySelector<HTMLElement>(`.${panel}-sub`) as HTMLElement
 
-	const [x, y] = centre(parent)
+	const [x, y] = center(parent)
 
 	pointerMove(parent, x, y)
 

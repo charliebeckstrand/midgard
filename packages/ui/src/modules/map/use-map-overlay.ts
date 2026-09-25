@@ -203,7 +203,7 @@ export type MapOverlay = {
 	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
 	 * call site; the resolver is stable until the plat's ledger, toggles or fit change.
 	 */
-	neighbours: () => MapPoint2D[]
+	neighbors: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
 	animate: boolean
 	/** Registration ordinal, so a mount reveal can stagger by it. */
@@ -290,7 +290,7 @@ export function useMapOverlay({
 		order,
 		hidden,
 		spare,
-		neighbours,
+		neighbors,
 		emphasis,
 		animate,
 		selectedOverlay,
@@ -318,7 +318,7 @@ export function useMapOverlay({
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
-	const neighboursOf = useCallback(() => neighbours(id), [neighbours, id])
+	const neighborsOf = useCallback(() => neighbors(id), [neighbors, id])
 
 	const spareAt = useCallback(
 		// The identity of the minimum the plat folds these into, so the fallback and
@@ -462,7 +462,7 @@ export function useMapOverlay({
 		project,
 		spare: spareHere,
 		// The resolver, left uncalled — see {@link MapOverlay.neighbours} for why it stays lazy.
-		neighbours: neighboursOf,
+		neighbors: neighborsOf,
 		unitsPerPixel,
 		animate,
 		order: order.get(id) ?? 0,
