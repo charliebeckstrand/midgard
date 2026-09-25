@@ -226,9 +226,6 @@
 	"modules/dashboard/use-dashboard-resize.ts": {
 		"useDashboardResize": "Refs"
 	},
-	"modules/dashboard/use-dashboard-tile-cell.ts": {
-		"useDashboardTileCell": "Refs"
-	},
 	"modules/grid/grid-context-menu.tsx": {
 		"GridContextMenu": "PreserveManualMemo"
 	},
