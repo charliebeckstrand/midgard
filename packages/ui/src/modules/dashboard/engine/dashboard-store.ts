@@ -17,6 +17,7 @@ import {
 	readingOrder,
 	resolveLayout,
 	sameCell,
+	usableDemands,
 } from './dashboard-layout'
 import { projectLayout } from './dashboard-responsive'
 import { type DashboardSelection, liveSelections } from './dashboard-scope'
@@ -103,7 +104,10 @@ export type DashboardStore = {
 	getView: () => DashboardView
 	/** Merges `patch` into the state, and notifies the listeners. */
 	setState: (patch: Partial<DashboardState>) => void
-	/** Registers the demands of a tile, and returns the function that unregisters it. */
+	/**
+	 * Registers the demands of a tile, and returns the function that unregisters it.
+	 * A `ratio` or a `minWidth` that is not a usable number registers as absent.
+	 */
 	register: (id: string, demands: DashboardTileDemands) => () => void
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
@@ -288,7 +292,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		},
 		setState: (patch) => replace({ ...state, ...patch }),
 		register: (id, demands) => {
-			replace({ ...state, demands: new Map(state.demands).set(id, demands) })
+			replace({ ...state, demands: new Map(state.demands).set(id, usableDemands(demands)) })
 
 			return () => {
 				const rest = new Map(state.demands)

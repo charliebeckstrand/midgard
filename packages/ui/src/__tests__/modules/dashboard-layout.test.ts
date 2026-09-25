@@ -66,6 +66,15 @@ describe('resolveCell and toLayoutItem', () => {
 		expect(resolved).toEqual(cell('a', 12, 0, 12, 27))
 	})
 
+	it('reads a ratio that is not a finite number above 0 as a free-form tile', () => {
+		for (const ratio of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+			// No ratio derives a height, so the saved height applies.
+			expect(resolveCell({ id: 'a', x: 0, y: 0, w: 8, h: 10 }, { ratio }, 24)).toEqual(
+				cell('a', 0, 0, 8, 10),
+			)
+		}
+	})
+
 	it('writes a ratio tile back without h', () => {
 		expect(toLayoutItem(cell('a', 0, 0, 12, 27), { ratio: 16 / 9 })).toEqual({
 			id: 'a',

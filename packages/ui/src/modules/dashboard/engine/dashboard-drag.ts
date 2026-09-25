@@ -72,6 +72,16 @@ export function dragTravel(
  * screen, and a tie goes to the start cell. The row under the lowest tile is
  * always free, so an origin always exists. It returns `null` when the nearest
  * origin is the start cell, where a drop changes nothing.
+ *
+ * @remarks
+ * The search walks out from row `y`, one row up and one row down at each step.
+ * No origin `d` rows away is nearer than `d²`, so the walk stops when `d²` passes
+ * the best distance. On a board with no overlap the start cell fits, so the cost
+ * follows the length of the drag, not the depth of the board. Between equal
+ * distances, the upper row wins, and then the left column.
+ *
+ * @param x - The target column, a whole number.
+ * @param y - The target row, a whole number.
  */
 export function nearestFit(
 	snapshot: readonly DashboardCell[],
@@ -86,43 +96,73 @@ export function nearestFit(
 
 	const { maxX, maxY } = dragTravel(snapshot, id, columns)
 
-	for (const candidate of candidatesByDistance(origin, x, y, maxX, maxY)) {
-		if (!fits(snapshot, { ...origin, ...candidate }, columns)) continue
+	const search: FitSearch = { snapshot, origin, x, y, maxX, columns }
 
-		return candidate.x === origin.x && candidate.y === origin.y ? null : candidate
+	let best: FitCandidate | null = null
+
+	for (let step = 0; y - step >= 0 || y + step <= maxY; step++) {
+		if (best !== null && step ** 2 > best.distance) break
+
+		for (const cy of rowsAt(y, step, maxY)) best = scanRow(search, cy, best)
 	}
 
-	return null
+	if (best === null || (best.x === origin.x && best.y === origin.y)) return null
+
+	return { x: best.x, y: best.y }
 }
 
+/** What {@link scanRow} reads: the board, the dragged tile, the target, and the travel range. */
+type FitSearch = {
+	snapshot: readonly DashboardCell[]
+	origin: DashboardCell
+	x: number
+	y: number
+	maxX: number
+	columns: number
+}
+
+/** One origin that {@link nearestFit} weighs, with its distance from the target. */
+type FitCandidate = { x: number; y: number; distance: number }
+
 /**
- * Each origin in the travel range, nearest to `(x, y)` first. The start cell
- * sorts first among the origins at its distance, so a tie snaps home.
+ * The rows `step` rows from `y`, inside `[0, maxY]`. The upper row comes first,
+ * and {@link nearer} settles a tie with a row that a later step visits.
  */
-function candidatesByDistance(
-	origin: DashboardCell,
-	x: number,
-	y: number,
-	maxX: number,
-	maxY: number,
-): { x: number; y: number }[] {
-	const candidates: { x: number; y: number; distance: number }[] = []
+function rowsAt(y: number, step: number, maxY: number): number[] {
+	const rows = step === 0 ? [y] : [y - step, y + step]
 
-	for (let cy = 0; cy <= maxY; cy++) {
-		for (let cx = 0; cx <= maxX; cx++) {
-			const home = cx === origin.x && cy === origin.y ? -0.5 : 0
+	return rows.filter((cy) => cy >= 0 && cy <= maxY)
+}
 
-			candidates.push({
-				x: cx,
-				y: cy,
-				distance: ((cx - x) * ROW_SUBDIVISION) ** 2 + (cy - y) ** 2 + home,
-			})
+/** The nearer of `best` and each origin in row `cy` where the tile fits. */
+function scanRow(search: FitSearch, cy: number, best: FitCandidate | null): FitCandidate | null {
+	const { snapshot, origin, x, y, maxX, columns } = search
+
+	let result = best
+
+	for (let cx = 0; cx <= maxX; cx++) {
+		// The start cell wins a tie at its distance, so a drop there changes nothing.
+		const home = cx === origin.x && cy === origin.y ? -0.5 : 0
+
+		const candidate = {
+			x: cx,
+			y: cy,
+			distance: ((cx - x) * ROW_SUBDIVISION) ** 2 + (cy - y) ** 2 + home,
 		}
+
+		if (result !== null && !nearer(candidate, result)) continue
+
+		if (fits(snapshot, { ...origin, x: cx, y: cy }, columns)) result = candidate
 	}
 
-	return candidates
-		.sort((a, b) => a.distance - b.distance)
-		.map(({ x: cx, y: cy }) => ({ x: cx, y: cy }))
+	return result
+}
+
+/** Whether `a` comes before `b`: by distance, then by row, then by column. */
+function nearer(a: FitCandidate, b: FitCandidate): boolean {
+	if (a.distance !== b.distance) return a.distance < b.distance
+
+	return a.y === b.y ? a.x < b.x : a.y < b.y
 }
 
 /** The peer that covers the most of `target`, or `undefined` when no peer touches it. */

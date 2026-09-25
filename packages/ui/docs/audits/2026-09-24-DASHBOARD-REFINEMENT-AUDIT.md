@@ -52,7 +52,7 @@ The rows fall into change sets that share files and tests. Each set is one pull 
 
 5. **The Escape layer and the cursor: S04 and S05.** Each is a few lines in `use-dashboard-tile-drag.ts` or `dashboard-tile.tsx`, and each can ride with set 4.
 
-6. **The engine inputs: S16, S18, S17, S19, S21, and S15.** S16 and S18 close a frozen tab. The others close overlaps, stale entries, and a parse that throws.
+6. **The engine inputs: S16, S18, S17, S19, S21, and S15.** S16 and S18 close a frozen tab. The others close overlaps, stale entries, and a parse that throws. [#1323](https://github.com/charliebeckstrand/midgard/pull/1323) applied S16 and S18. S17, S19, S21, and S15 stay open.
 
 7. **The scope: S22 and S23, with S40 and S41.** They share `engine/dashboard-scope.ts` and the scope tests. [#1312](https://github.com/charliebeckstrand/midgard/pull/1312) applied S23 and S40. S22 and S41 stay open.
 
@@ -210,7 +210,7 @@ On a mixed board (node, Xeon 2.1 GHz), 84% of the targets that are not free take
 
 In `engine/dashboard-drag.ts`, replace `candidatesByDistance` with an outward row search inside `nearestFit`. It visits rows in order of `|cy - y|` and stops when step² exceeds the best distance; a prototype matched `nearestFit` on all 4,980 snap targets. Add two cases to `__tests__/modules/dashboard-drag.test.ts`: an entry at `y` 1e6 that expects the home answer, and a tie between rows. Estimate: about +25/-25 lines and 12 test lines; measured, a far-entry step drops to 0.015 ms and a 48-tile step to 0.32 ms.
 
-*Open. P2; severity high; measured.*
+*Applied in [#1323](https://github.com/charliebeckstrand/midgard/pull/1323). `nearestFit` walks out from the target row and stops when no farther row can be nearer. A tie goes to the upper row, then to the left column, as the old stable sort gave. A case checks each target of three boards against a copy of the old search. The far-entry case took 17.6 s before the fix, and it passes under a 1 s timeout now.*
 
 **S17 · `resolveCell` clamps each entry on its own, so a column change or an out-of-range entry resolves to tiles that overlap.** `resolveCell` at `engine/dashboard-layout.ts:137-153` clamps `w` to `columns` and `x` into `[0, columns - w]` for each entry, with no collision check. `resolveLayout` places the entries in order (`engine/dashboard-layout.ts:333-341`), and the parse leaves the numbers for the board to clamp (`engine/dashboard-spec-parse.ts:248-249`). A layout saved at 24 columns and shown at 12 moves separate entries onto one cell. An entry past the edge does the same: `{x: 22, w: 6}` clamps to x 18 and covers `{x: 16, w: 4}`. The public `columns` prop can change, and nothing ties a saved layout or a preset to a column count. `mergeLayout` writes each mounted cell (`engine/dashboard-layout.ts:440-450`), so the next commit saves the clamped geometry of each tile.
 
@@ -226,7 +226,7 @@ A blocked drag with ratio 0 ran out of a 512 MB heap in about 7 s in a child pro
 
 Add one guard in `engine/dashboard-layout.ts`, and apply it in `store.register` at `engine/dashboard-store.ts:290`. The guard maps a `ratio` that is not finite or not above 0, and a `minWidth` that is not finite or below 0, to `undefined`. `resolveCell` reads the same ratio guard, so the fallback at `use-dashboard-tile-cell.ts:90` gets it, and a store test with ratio 0 and `minWidth` NaN pins both. Estimate: about 8-10 lines, one helper and two call sites, which close the out-of-memory hang and the NaN-width commit.
 
-*Open. P2; severity high; verified by probe.*
+*Applied in [#1323](https://github.com/charliebeckstrand/midgard/pull/1323). `usableDemands` drops a `ratio` that is not a finite number above 0, and a `minWidth` that is not a finite number of 0 or more. `store.register` applies it, and `resolveCell` checks the ratio. A bad `ratio` makes the tile free-form, and a bad `minWidth` puts no floor on the width. An explicit bad value does not take the `DashboardTile` default of 320.*
 
 **S19 · Duplicate layout entries resolve to the first entry, but the server render and the DOM order follow the last.** `resolveLayout` and `mergeLayout` keep the first entry of an id (`engine/dashboard-layout.ts:333-341`, `engine/dashboard-layout.ts:440-450`), as the parse does. `entriesOf` at `engine/dashboard-store.ts:231-233` builds a `Map`, where the last entry wins, and a tile that has not registered reads that map (`use-dashboard-tile-cell.ts:80-94`). The server never registers a tile, so the server markup paints the last entry. `orderOf` passes each entry to `readingOrder`, and `sortByOrder` ranks an id by its last index (`engine/dashboard-layout.ts:384`), so the DOM order follows the last entry. `mergeLayout` returns the later duplicate unchanged, so the stale entry never leaves the saved layout. The trigger is a duplicate that the app supplies, such as a stored bare layout for JSX tiles; the parse repairs only a `DashboardSpec`.
 

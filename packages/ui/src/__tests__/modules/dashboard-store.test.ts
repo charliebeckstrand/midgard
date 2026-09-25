@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { dragPreview } from '../../modules/dashboard/engine/dashboard-drag'
+import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 import {
 	createDashboardStore,
 	type DashboardState,
@@ -26,6 +27,9 @@ const initial = (patch: Partial<DashboardState> = {}): DashboardState => ({
 	selections: [],
 	...patch,
 })
+
+/** Whether each number of `cell` is finite. */
+const finite = (cell: DashboardCell) => [cell.x, cell.y, cell.w, cell.h].every(Number.isFinite)
 
 describe('createDashboardStore', () => {
 	it('returns the same view for the same state', () => {
@@ -117,6 +121,36 @@ describe('createDashboardStore', () => {
 		store.setState({ gesture: null })
 
 		expect(store.getView().projected).toBe(true)
+	})
+
+	it('reads a ratio that is not a finite number above 0 as no ratio', () => {
+		for (const ratio of [0, -1, Number.NaN, Number.POSITIVE_INFINITY]) {
+			const store = createDashboardStore(initial())
+
+			store.register('a', { ratio })
+
+			// Tile a keeps its saved height, so no tile goes to an infinite row.
+			expect(store.getView().cells.get('a')).toMatchObject({ y: 0, h: 10 })
+
+			expect([...store.getView().cells.values()].every(finite)).toBe(true)
+		}
+	})
+
+	it('reads a minWidth that is not a finite number of 0 or more as no floor', () => {
+		for (const minWidth of [-5, Number.NaN, Number.POSITIVE_INFINITY]) {
+			// Tile b starves at 400 px, so the projection runs and reads the floor of a.
+			const store = createDashboardStore(initial({ width: 400 }))
+
+			store.register('a', { minWidth })
+
+			store.register('b', { minWidth: 600 })
+
+			expect(store.getState().demands.get('a')?.minWidth).toBeUndefined()
+
+			expect(store.getView().projected).toBe(true)
+
+			expect([...store.getView().cells.values()].every(finite)).toBe(true)
+		}
 	})
 
 	it('registers and unregisters demands, and notifies each change', () => {
