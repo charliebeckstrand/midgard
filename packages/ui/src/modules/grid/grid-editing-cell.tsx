@@ -468,10 +468,10 @@ const CELL_HELD = 'held'
  * renders the column's display content. Both render through {@link GridNavCell},
  * which carries the active-cursor ring. A cell-scoped session (`scope: 'cell'`)
  * narrows that to the one cell it names. A cell whose commit is in flight shows
- * the value as pending and mounts no editor, whatever the session holds. The cell reads that coord from the session's store
- * through its own flag, so a session move re-renders the two cells whose flag
- * flipped. The editable set flips only on a session transition, so cells don't
- * re-render as the user types.
+ * the value as pending and mounts no editor, whatever the session holds. The
+ * cell reads the coord and the editable set from the session's store through
+ * its own flag. A session move therefore re-renders the two cells whose flag
+ * flipped, and a row that opens re-renders only its own cells.
  *
  * @internal
  */
@@ -484,7 +484,6 @@ export function GridEditingCell<T>({
 	render,
 }: GridEditingCellProps<T>) {
 	const {
-		editableRows,
 		activeEditStore,
 		stageDraft,
 		unstageDraft,
@@ -515,11 +514,13 @@ export function GridEditingCell<T>({
 
 		const activeEdit = activeEditStore.get()
 
+		const editableRows = activeEditStore.rows()
+
 		if (!isCellEditing({ rowKey, columnId, editableRows, activeEdit }))
 			return draft?.reopened ? CELL_HELD : CELL_READING
 
 		return settleControls(rowKey, columnId)
-	}, [activeEditStore, settleControls, readDraft, rowKey, columnId, editableRows])
+	}, [activeEditStore, settleControls, readDraft, rowKey, columnId])
 
 	const flag = useSyncExternalStore(activeEditStore.subscribe, readFlag, readFlag)
 
