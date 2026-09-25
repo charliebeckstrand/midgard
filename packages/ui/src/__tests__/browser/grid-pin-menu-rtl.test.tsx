@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, waitFor } from '../helpers'
+import { fireEvent, present, renderUI, stickyInset, waitFor } from '../helpers'
 
 /**
  * The header menu of a right-to-left grid names the physical edge of each pin
@@ -61,8 +61,13 @@ describe('grid pin menu in a right-to-left grid (real browser)', () => {
 		// The inline start of a right-to-left grid is its right edge.
 		await waitFor(() =>
 			expect(
-				present(container.querySelector<HTMLElement>('th[data-grid-col="role"]'), 'the role header')
-					.style.insetInlineStart,
+				stickyInset(
+					present(
+						container.querySelector<HTMLElement>('th[data-grid-col="role"]'),
+						'the role header',
+					),
+					'start',
+				),
 			).toBe('0px'),
 		)
 	})

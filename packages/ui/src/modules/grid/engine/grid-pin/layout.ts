@@ -20,32 +20,44 @@ export function pinSide(pinning: ColumnPinningState, id: string | number): PinSi
 }
 
 /**
- * One frozen column's resolved chrome: the edge it is frozen to, and its sticky
- * offset (px) from that edge. It also carries whether it sits at the frozen
- * group's scroll-facing boundary. The boundary is the innermost column, which
- * alone draws the edge rule and the separating shadow.
+ * The chrome of one frozen column that does not move with a width. It holds
+ * the edge that the column is frozen to, and its slot in the section of that
+ * edge. It also holds whether the column sits at the scroll-facing boundary of
+ * the frozen group. The boundary is the innermost column, which alone draws the
+ * edge rule and the separating shadow.
  *
  * @internal
  */
-export type FrozenColumn = {
+export type FrozenCell = {
 	side: PinSide
-	/** Distance (px) from the frozen edge: the summed width of the frozen columns between this one and that edge. */
-	offset: number
+	/** The place of the column in its section, counted from the frozen edge. It names the CSS variable that holds the sticky offset (see {@link pinOffsetVar}). */
+	slot: number
 	/** Whether this is the group's innermost column — the one at the scroll-facing boundary. */
 	boundary: boolean
+}
+
+/**
+ * One frozen column's resolved chrome: the {@link FrozenCell} and its sticky
+ * offset (px) from its edge.
+ *
+ * @internal
+ */
+export type FrozenColumn = FrozenCell & {
+	/** Distance (px) from the frozen edge: the summed width of the frozen columns between this one and that edge. */
+	offset: number
 }
 
 /**
  * The frozen layout as a value: each frozen column's {@link FrozenColumn}, keyed
  * by stringified column id. A column the map omits scrolls.
  *
- * @remarks A snapshot, not a live reader. The pinned chrome rides `memo`
- * boundaries, where rows, data cells, and header cells all hold on their props.
- * The facts that chrome draws from must therefore arrive as a value that changes
- * when they change. Read them through a stable object instead. A cell that does
- * not re-render for its own reasons then keeps painting the previous layout. The
- * boundary rule stays on the column a new pin displaced, and a sticky offset
- * holds its pre-drag pixels until the drag settles.
+ * @remarks The pinned chrome rides `memo` boundaries, where rows, data cells,
+ * and header cells all hold on their props. The grid therefore splits the
+ * layout in two. The {@link FrozenCell} facts reach the cells as a value that
+ * changes when they change (see {@link sameFrozenShape}). The offsets reach
+ * them as CSS variables on the `<table>` (see {@link frozenOffsetVars}). A
+ * drag on a frozen column therefore moves the sticky offsets without a render
+ * of the rows.
  *
  * @internal
  */
@@ -91,6 +103,7 @@ export function frozenLayout(
 	left.forEach((id, index) => {
 		layout.set(id, {
 			side: 'left',
+			slot: index,
 			offset: measured?.left.get(id) ?? summedWidth(left.slice(0, index), widths),
 			boundary: index === left.length - 1,
 		})
@@ -99,6 +112,7 @@ export function frozenLayout(
 	right.forEach((id, index) => {
 		layout.set(id, {
 			side: 'right',
+			slot: right.length - 1 - index,
 			offset: measured?.right.get(id) ?? summedWidth(right.slice(index + 1), widths),
 			boundary: index === 0,
 		})
@@ -108,14 +122,18 @@ export function frozenLayout(
 }
 
 /**
- * Whether two layouts freeze the same columns to the same edges, at the same
- * pixels, with the boundary on the same column. A re-resolution that moved
- * nothing can hold its previous reference, instead of re-rendering the header
- * and every row for the same chrome.
+ * Whether two layouts freeze the same columns to the same edges and slots,
+ * with the boundary on the same column. The offsets do not count, because
+ * they reach the cells through CSS variables. A drag on a frozen column
+ * therefore keeps the previous reference. The header and the rows do not
+ * render again for the same chrome.
  *
  * @internal
  */
-export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
+export function sameFrozenShape(
+	a: ReadonlyMap<string, FrozenCell>,
+	b: ReadonlyMap<string, FrozenCell>,
+): boolean {
 	if (a === b) return true
 
 	if (a.size !== b.size) return false
@@ -126,7 +144,7 @@ export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
 		if (
 			!other ||
 			other.side !== entry.side ||
-			other.offset !== entry.offset ||
+			other.slot !== entry.slot ||
 			other.boundary !== entry.boundary
 		) {
 			return false
@@ -134,4 +152,25 @@ export function sameFrozenLayout(a: FrozenLayout, b: FrozenLayout): boolean {
 	}
 
 	return true
+}
+
+/** The CSS custom-property name that holds the sticky offset of a frozen slot. @internal */
+export function pinOffsetVar(side: PinSide, slot: number): string {
+	return `--grid-pin-${side === 'left' ? 'l' : 'r'}-${slot}`
+}
+
+/**
+ * The sticky offsets of a layout as CSS variables, one for each frozen slot.
+ * The grid sets them on the `<table>`, and each frozen cell reads its own (see
+ * `pinnedOffsetStyle`).
+ *
+ * @internal
+ */
+export function frozenOffsetVars(layout: FrozenLayout): Record<string, string> {
+	const vars: Record<string, string> = {}
+
+	for (const entry of layout.values())
+		vars[pinOffsetVar(entry.side, entry.slot)] = `${entry.offset}px`
+
+	return vars
 }

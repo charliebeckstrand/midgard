@@ -27,6 +27,7 @@ import {
 	useTable,
 } from '@tanstack/react-table'
 import {
+	type CSSProperties,
 	type Dispatch,
 	type RefObject,
 	type SetStateAction,
@@ -53,9 +54,10 @@ import {
 import { isManualPagination } from './engine/grid-pagination-utilities'
 import {
 	EMPTY_FROZEN_LAYOUT,
-	type FrozenLayout,
+	type FrozenCell,
 	frozenLayout,
-	sameFrozenLayout,
+	frozenOffsetVars,
+	sameFrozenShape,
 } from './engine/grid-pin/layout'
 import { searchRowIndices } from './engine/grid-search/search'
 import { createSettleStore, type GridSettleStore } from './engine/grid-sizing/settle'
@@ -267,6 +269,13 @@ type GridTableResult<T> = {
 	filters: GridColumnFilter | null
 	/** Frozen-column controls, or `null` when no column is pinned. */
 	pinning: GridColumnPinning | null
+	/**
+	 * The sticky offsets of the frozen columns, as CSS variables for the
+	 * `<table>` style, or `undefined` when no column is pinned. A width change
+	 * replaces this object and leaves `pinning` as it is, so the rows do not
+	 * render again.
+	 */
+	pinOffsets: CSSProperties | undefined
 	/**
 	 * The rows a grand total aggregates: the full filtered set. It holds all
 	 * pages, because filtering precedes pagination, and the flat leaves, because
@@ -870,7 +879,7 @@ function usePinningView<T>(args: {
 	left: readonly EngineColumn<T>[]
 	right: readonly EngineColumn<T>[]
 	widths: ReadonlyMap<string, number>
-}): GridColumnPinning | null {
+}): { pinning: GridColumnPinning | null; pinOffsets: CSSProperties | undefined } {
 	const { hasPinned, left, right, widths } = args
 
 	const measured = useGridPinnedOffsets({
@@ -886,12 +895,18 @@ function usePinningView<T>(args: {
 		right: right.map((column) => column.id),
 	}
 
-	const layout = useStableValue<FrozenLayout>(
-		hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT,
-		sameFrozenLayout,
-	)
+	const layout = hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT
 
-	return useMemo(() => (hasPinned ? buildColumnPinning(layout) : null), [hasPinned, layout])
+	// The held shape keeps the offsets of the render that set it. The view reads
+	// only the shape facts, and the offsets below come from this render.
+	const shape = useStableValue<ReadonlyMap<string, FrozenCell>>(layout, sameFrozenShape)
+
+	const pinning = useMemo(() => (hasPinned ? buildColumnPinning(shape) : null), [hasPinned, shape])
+
+	return {
+		pinning,
+		pinOffsets: hasPinned ? (frozenOffsetVars(layout) as CSSProperties) : undefined,
+	}
 }
 
 /**
@@ -1399,7 +1414,7 @@ export function useGridTable<T>({
 		affordance: columnFiltersConfig?.affordance,
 	})
 
-	const pinning = usePinningView({
+	const { pinning, pinOffsets } = usePinningView({
 		hasPinned,
 		resizable,
 		columnPinning,
@@ -1433,6 +1448,7 @@ export function useGridTable<T>({
 		globalFilter,
 		filters,
 		pinning,
+		pinOffsets,
 		grandTotalRows,
 		rowsForExport,
 	}

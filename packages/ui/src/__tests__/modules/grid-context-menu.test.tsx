@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, type GridSortState } from '../../modules/grid'
 import { createGroup, createRule, type QueryField } from '../../modules/query'
-import { fireEvent, present, renderUI, screen } from '../helpers'
+import { fireEvent, present, renderUI, screen, stickyInset } from '../helpers'
 
 describe('Grid context menus', () => {
 	type Row = { id: number; name: string; role: string }
@@ -776,7 +776,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(head, 'start')).toBe('0px')
 	})
 
 	it('releases a column when Unpin is chosen', () => {
@@ -794,7 +794,7 @@ describe('Grid context menus', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.insetInlineStart).toBe('')
+		expect(stickyInset(head, 'start')).toBe('')
 	})
 
 	it('seeds runtime pins from the pinning binding', () => {

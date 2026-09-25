@@ -5,7 +5,11 @@ import {
 	NEW_ROW_ADD_COLUMN_ID,
 	withNewRowAddColumn,
 } from '../../modules/grid/engine/grid-new-row-column'
-import { frozenLayout, sameFrozenLayout } from '../../modules/grid/engine/grid-pin/layout'
+import {
+	frozenLayout,
+	frozenOffsetVars,
+	sameFrozenShape,
+} from '../../modules/grid/engine/grid-pin/layout'
 import type { FrozenOffsets } from '../../modules/grid/engine/grid-pin/measure'
 import {
 	buildColumnPinning,
@@ -47,9 +51,9 @@ describe('frozen column layout', () => {
 		// The boundary lands on each group's innermost column: the last of the left
 		// section, the first of the right one.
 		expect([...layoutOf(left, right)]).toEqual([
-			['name', { side: 'left', offset: 0, boundary: false }],
-			['email', { side: 'left', offset: 160, boundary: true }],
-			['status', { side: 'right', offset: 0, boundary: true }],
+			['name', { side: 'left', slot: 0, offset: 0, boundary: false }],
+			['email', { side: 'left', slot: 1, offset: 160, boundary: true }],
+			['status', { side: 'right', slot: 0, offset: 0, boundary: true }],
 		])
 	})
 
@@ -62,9 +66,9 @@ describe('frozen column layout', () => {
 			],
 		)
 
-		expect(layout.get('status')).toEqual({ side: 'right', offset: 90, boundary: true })
+		expect(layout.get('status')).toEqual({ side: 'right', slot: 1, offset: 90, boundary: true })
 
-		expect(layout.get('total')).toEqual({ side: 'right', offset: 0, boundary: false })
+		expect(layout.get('total')).toEqual({ side: 'right', slot: 0, offset: 0, boundary: false })
 	})
 
 	it('takes a measured offset over the summed widths, column by column', () => {
@@ -85,12 +89,13 @@ describe('frozen column layout', () => {
 		expect(layout.get('status')?.offset).toBe(0)
 	})
 
-	it('reads two resolutions equal only when every frozen column lands identically', () => {
+	it('reads two resolutions equal when only the offsets differ', () => {
 		const layout = layoutOf(left, right)
 
-		expect(sameFrozenLayout(layout, layoutOf(left, right))).toBe(true)
+		expect(sameFrozenShape(layout, layoutOf(left, right))).toBe(true)
 
-		// A drag on a column ahead of the stack moves the ones behind it.
+		// A drag on a column ahead of the stack moves the ones behind it. The
+		// offsets reach the cells through CSS variables, so the shape holds.
 		const dragged = layoutOf(
 			[
 				['name', 250],
@@ -99,18 +104,26 @@ describe('frozen column layout', () => {
 			right,
 		)
 
-		expect(sameFrozenLayout(layout, dragged)).toBe(false)
+		expect(sameFrozenShape(layout, dragged)).toBe(true)
 
 		// An unpin puts the boundary — and the edge rule with it — on another column.
-		expect(sameFrozenLayout(layout, layoutOf([['name', 160]], right))).toBe(false)
+		expect(sameFrozenShape(layout, layoutOf([['name', 160]], right))).toBe(false)
+	})
+
+	it('writes one offset variable for each frozen slot', () => {
+		expect(frozenOffsetVars(layoutOf(left, right))).toEqual({
+			'--grid-pin-l-0': '0px',
+			'--grid-pin-l-1': '160px',
+			'--grid-pin-r-0': '0px',
+		})
 	})
 })
 
 /**
- * The grid carries the layout across `memo` boundaries through the identity of
- * its `pinning` value. It must hold that reference while the frozen columns are
- * where they were — a drag on a scrolling column must not re-render every row —
- * and yield a fresh one the moment one of them moves.
+ * The grid carries the shape of the layout across `memo` boundaries through the
+ * identity of its `pinning` value, and the offsets through `pinOffsets`. It
+ * must hold the `pinning` reference while the frozen columns keep their edges,
+ * slots, and boundary. A width drag must not render every row again.
  */
 describe('the pinning value of useGridTable', () => {
 	type Row = { id: number; name: string; email: string; status: string }
@@ -146,16 +159,16 @@ describe('the pinning value of useGridTable', () => {
 		expect(result.current.pinning).toBe(first)
 	})
 
-	it('yields a fresh layout when a frozen column moves', () => {
+	it('holds its reference and moves the offsets when a frozen column moves', () => {
 		const { result } = renderGrid([name, { ...email, pinned: true }, status])
 
 		const first = result.current.pinning
 
 		act(() => result.current.resize?.nudge('name', 40))
 
-		expect(result.current.pinning).not.toBe(first)
+		expect(result.current.pinning).toBe(first)
 
-		expect(result.current.pinning?.column('email')?.offset).toBe(200)
+		expect(result.current.pinOffsets).toMatchObject({ '--grid-pin-l-1': '200px' })
 	})
 
 	it('yields a fresh layout when a column joins the group and takes the boundary', () => {
@@ -168,11 +181,13 @@ describe('the pinning value of useGridTable', () => {
 		expect(result.current.pinning).not.toBe(first)
 
 		// The rule follows the boundary onto the joining column, off the one it displaced.
-		expect(result.current.pinning?.column('email')).toEqual({
+		expect(result.current.pinning?.column('email')).toMatchObject({
 			side: 'left',
-			offset: 160,
+			slot: 1,
 			boundary: true,
 		})
+
+		expect(result.current.pinOffsets).toMatchObject({ '--grid-pin-l-1': '160px' })
 
 		expect(result.current.pinning?.column('name')?.boundary).toBe(false)
 	})
@@ -229,6 +244,8 @@ describe('the Add column of the new-row slot', () => {
 
 		expect(pinning.column(NEW_ROW_ADD_COLUMN_ID)).toBeUndefined()
 
-		expect(pinning.column('status')).toEqual({ side: 'right', offset: 48, boundary: true })
+		expect(pinning.column('status')).toMatchObject({ side: 'right', slot: 1, boundary: true })
+
+		expect(frozenOffsetVars(layout)['--grid-pin-r-1']).toBe('48px')
 	})
 })

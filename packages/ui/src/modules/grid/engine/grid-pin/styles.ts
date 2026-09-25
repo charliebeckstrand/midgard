@@ -2,6 +2,7 @@ import type { CSSProperties } from 'react'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/grid'
 import type { GridColumnPinning } from '../../use-grid-table'
+import { pinOffsetVar } from './layout'
 
 /**
  * Inline sticky offset for a pinned cell, or `undefined` when the column
@@ -9,8 +10,10 @@ import type { GridColumnPinning } from '../../use-grid-table'
  * end. The offset is therefore `insetInlineStart` or `insetInlineEnd`. A
  * right-to-left grid then sticks a left pin to its physical right edge. Each
  * offset is the summed width of the frozen columns between the cell and that
- * edge. Pairs with
- * {@link pinnedClassName}, which carries the `position: sticky` itself.
+ * edge. The offset is a CSS variable that the grid sets on the `<table>` (see
+ * `frozenOffsetVars`). A width change therefore moves it, and the cell does
+ * not render again. Pairs with {@link pinnedClassName}, which carries the
+ * `position: sticky` itself.
  *
  * @internal
  */
@@ -22,9 +25,9 @@ export function pinnedOffsetStyle(
 
 	if (!frozen) return undefined
 
-	return frozen.side === 'left'
-		? { insetInlineStart: frozen.offset }
-		: { insetInlineEnd: frozen.offset }
+	const offset = `var(${pinOffsetVar(frozen.side, frozen.slot)})`
+
+	return frozen.side === 'left' ? { insetInlineStart: offset } : { insetInlineEnd: offset }
 }
 
 /**

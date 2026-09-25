@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen, stickyInset } from '../helpers'
 
 /**
  * Column pinning chrome in jsdom: the sticky classes and the inline offset styles
@@ -37,13 +37,13 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(head, 'start')).toBe('0px')
 
 		const body = dataCell(container, 'name')
 
 		expect(body?.className).toContain('sticky')
 
-		expect(body?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(body, 'start')).toBe('0px')
 	})
 
 	it('treats pinned: true as left', () => {
@@ -54,9 +54,9 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(headCell(container, 'name'), 'start')).toBe('0px')
 
-		expect(headCell(container, 'name')?.style.insetInlineEnd).toBe('')
+		expect(stickyInset(headCell(container, 'name'), 'end')).toBe('')
 	})
 
 	it('pulls a right-pinned column to the right edge', () => {
@@ -72,9 +72,9 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).toContain('sticky')
 
-		expect(head?.style.insetInlineEnd).toBe('0px')
+		expect(stickyInset(head, 'end')).toBe('0px')
 
-		expect(dataCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
+		expect(stickyInset(dataCell(container, 'status'), 'end')).toBe('0px')
 	})
 
 	it('stacks two left-pinned columns with cumulative offsets', () => {
@@ -97,9 +97,9 @@ describe('Grid column pinning', () => {
 		)
 
 		// The first frozen column sits at the edge; the second starts after it.
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(headCell(container, 'name'), 'start')).toBe('0px')
 
-		expect(headCell(container, 'email')?.style.insetInlineStart).toBe('120px')
+		expect(stickyInset(headCell(container, 'email'), 'start')).toBe('120px')
 	})
 
 	it('stacks two right-pinned columns inward from the right edge', () => {
@@ -120,9 +120,9 @@ describe('Grid column pinning', () => {
 		)
 
 		// Status is rightmost (offset 0); email stacks inward by status's 100px.
-		expect(headCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
+		expect(stickyInset(headCell(container, 'status'), 'end')).toBe('0px')
 
-		expect(headCell(container, 'email')?.style.insetInlineEnd).toBe('100px')
+		expect(stickyInset(headCell(container, 'email'), 'end')).toBe('100px')
 	})
 
 	it('paints a pinned body cell with the surface fill, else the viewport-aware content host', () => {
@@ -245,9 +245,9 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.insetInlineStart).toBe('')
+		expect(stickyInset(head, 'start')).toBe('')
 
-		expect(head?.style.insetInlineEnd).toBe('')
+		expect(stickyInset(head, 'end')).toBe('')
 	})
 
 	it('freezes the selection column to the far left, ahead of a left-pinned column', () => {
@@ -264,19 +264,19 @@ describe('Grid column pinning', () => {
 
 		expect(selectHead?.className).toContain('sticky')
 
-		expect(selectHead?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(selectHead, 'start')).toBe('0px')
 
 		const selectBody = container.querySelector<HTMLElement>('tbody td')
 
 		expect(selectBody?.className).toContain('sticky')
 
-		expect(selectBody?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(selectBody, 'start')).toBe('0px')
 
 		// The left-pinned data column stacks just inside it, offset by the selection
 		// column's natural 48px width.
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('48px')
+		expect(stickyInset(headCell(container, 'name'), 'start')).toBe('48px')
 
-		expect(dataCell(container, 'name')?.style.insetInlineStart).toBe('48px')
+		expect(stickyInset(dataCell(container, 'name'), 'start')).toBe('48px')
 	})
 
 	it('leaves the selection column inline when no data column is pinned', () => {
@@ -294,7 +294,7 @@ describe('Grid column pinning', () => {
 
 		expect(selectHead?.className).not.toContain('sticky')
 
-		expect(selectHead?.style.insetInlineStart).toBe('')
+		expect(stickyInset(selectHead, 'start')).toBe('')
 	})
 
 	it('gives a pinned column header an unpin button and leaves scrolling headers without one', () => {
@@ -331,7 +331,7 @@ describe('Grid column pinning', () => {
 
 		expect(head?.className).not.toContain('sticky')
 
-		expect(head?.style.insetInlineStart).toBe('')
+		expect(stickyInset(head, 'start')).toBe('')
 	})
 
 	it('isolates the grid stacking context so its frozen header stays scoped within it', () => {
@@ -358,13 +358,13 @@ describe('Grid column pinning', () => {
 
 		expect(headCell(container, 'name')?.className).toContain('sticky')
 
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(headCell(container, 'name'), 'start')).toBe('0px')
 
-		expect(dataCell(container, 'name')?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(dataCell(container, 'name'), 'start')).toBe('0px')
 
 		expect(headCell(container, 'status')?.className).toContain('sticky')
 
-		expect(headCell(container, 'status')?.style.insetInlineEnd).toBe('0px')
+		expect(stickyInset(headCell(container, 'status'), 'end')).toBe('0px')
 	})
 
 	it('shows no edge arrow in a locked column header (the boundary border marks it)', () => {
@@ -391,9 +391,9 @@ describe('Grid column pinning', () => {
 
 		const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(headCell(container, 'name')?.style.insetInlineStart).toBe('0px')
+		expect(stickyInset(headCell(container, 'name'), 'start')).toBe('0px')
 
-		expect(headCell(container, 'name')?.style.insetInlineEnd).toBe('')
+		expect(stickyInset(headCell(container, 'name'), 'end')).toBe('')
 	})
 
 	it('gives a locked column header no unpin button while a pinned one keeps it', () => {
@@ -430,7 +430,7 @@ describe('Grid column pinning', () => {
 		// its header does, so the row lines up column for column.
 		expect(cells[2]?.className).toContain('sticky')
 
-		expect(cells[2]?.style.insetInlineEnd).toBe(headCell(container, 'status')?.style.insetInlineEnd)
+		expect(stickyInset(cells[2], 'end')).toBe(stickyInset(headCell(container, 'status'), 'end'))
 
 		expect(cells[0]?.className).not.toContain('sticky')
 	})

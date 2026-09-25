@@ -873,6 +873,7 @@ export function GridData<T>({
 		globalFilter,
 		filters,
 		pinning,
+		pinOffsets,
 		grandTotalRows,
 		rowsForExport,
 	} = useGridTable<T>({
@@ -1387,6 +1388,7 @@ export function GridData<T>({
 					multiSelectable: hasSelectionColumn,
 					bodyHasRows: hasRows && !loading && !showingError,
 					tableWidth,
+					pinOffsets,
 				})}
 			>
 				{colGroup}
