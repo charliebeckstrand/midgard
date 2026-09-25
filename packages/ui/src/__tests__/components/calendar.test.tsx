@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 
 import { Calendar, type CalendarHandle } from '../../components/calendar'
 import { Form } from '../../components/form'
-import { act, bySlot, liveRegion, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, liveRegion, renderUI, screen, userEvent, withFakeTime } from '../helpers'
 
 const selectedDay = () =>
 	screen.getAllByRole('option').find((o) => o.getAttribute('aria-selected') === 'true')
@@ -650,5 +650,86 @@ describe('Calendar onMonthChange', () => {
 		await user.click(screen.getByRole('option', { name: 'Sep' }))
 
 		expect(onMonthChange).toHaveBeenCalledExactlyOnceWith(new Date(2025, 8, 1))
+	})
+})
+
+// The suite pins the zone to UTC, so local midnight is 00:00 UTC. June 2025
+// holds each day that these cases pass, so the grid stays on one month.
+describe('Calendar today', () => {
+	const todayCell = () =>
+		screen.getAllByRole('option').find((option) => option.hasAttribute('aria-current'))
+
+	/** Tells the page that the reader shows it again, as a browser does for a tab. */
+	function showPage() {
+		act(() => {
+			document.dispatchEvent(new Event('visibilitychange'))
+		})
+	}
+
+	it('moves the today mark to the next day at local midnight', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 15, 23, 59, 30))
+
+			renderUI(<Calendar />)
+
+			expect(todayCell()).toHaveTextContent(/^15$/)
+
+			await clock.advance(30_000)
+
+			expect(todayCell()).toHaveTextContent(/^16$/)
+		})
+	})
+
+	it('moves the today mark when the page shows again after a missed midnight', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 15, 12))
+
+			renderUI(<Calendar />)
+
+			// A browser holds the timers of a hidden tab. The clock moves past
+			// midnight, and the midnight timer does not run.
+			vi.setSystemTime(new Date(2025, 5, 16, 9))
+
+			showPage()
+
+			expect(todayCell()).toHaveTextContent(/^16$/)
+		})
+	})
+
+	it('commits nothing when the page shows again on the same day', async () => {
+		await withFakeTime(() => {
+			vi.setSystemTime(new Date(2025, 5, 15, 9))
+
+			const onRender = vi.fn()
+
+			renderUI(
+				<Profiler id="calendar" onRender={onRender}>
+					<Calendar />
+				</Profiler>,
+			)
+
+			vi.setSystemTime(new Date(2025, 5, 15, 21))
+
+			showPage()
+
+			expect(onRender).toHaveBeenCalledOnce()
+		})
+	})
+
+	it('marks the new month in the month picker after a month boundary', async () => {
+		await withFakeTime(async (clock) => {
+			vi.setSystemTime(new Date(2025, 5, 30, 23, 59))
+
+			renderUI(<Calendar />)
+
+			await clock.advance(60_000)
+
+			// The view stays on the month that the reader looks at.
+			await clock.user.click(screen.getByRole('button', { name: /June 2025/ }))
+
+			expect(screen.getByRole('option', { name: 'Jul' })).toHaveAttribute('aria-current', 'date')
+
+			expect(screen.getByRole('option', { name: 'Jun' })).not.toHaveAttribute('aria-current')
+		})
 	})
 })

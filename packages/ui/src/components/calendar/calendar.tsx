@@ -12,7 +12,6 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import { useHydrated } from '../../hooks/use-hydrated'
 import { Density, useDensity } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
@@ -32,6 +31,7 @@ import {
 } from './calendar-utilities'
 import { useCalendarFocus } from './use-calendar-focus'
 import { useCalendarMonth } from './use-calendar-month'
+import { useCalendarToday } from './use-calendar-today'
 
 /** The day cells of a calendar that shows no month yet. @internal */
 const NO_DAYS: Date[] = []
@@ -145,7 +145,8 @@ export type CalendarProps = {
  * @remarks
  * Client component (`'use client'`). "Today" waits for hydration, so a
  * server-rendered today can never mismatch the client across a day boundary
- * or timezone offset. Use {@link CalendarRange} for two-endpoint selection.
+ * or timezone offset. It moves to the new day at local midnight. Use
+ * {@link CalendarRange} for two-endpoint selection.
  *
  * With no `value` and no `defaultValue`, the month waits for hydration too.
  * The server and the hydration render draw the header and the weekday row,
@@ -189,12 +190,8 @@ export function Calendar({
 		onValueChange,
 	})
 
-	// Null until hydration; a server-rendered "today" can mismatch the client
-	// across a day boundary or timezone offset. A client-only mount, such as a
-	// DatePicker popover, reads it in its first render and needs no second commit.
-	const [now] = useState(() => new Date())
-
-	const today = useHydrated() ? now : null
+	// The day is null until hydration, and it moves at each local midnight.
+	const today = useCalendarToday()
 
 	const activeGridDate = active?.zone === 'grid' ? active.date : null
 
