@@ -1,14 +1,16 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { k } from '../../recipes/kata/json-tree'
+import { createKeyedStore } from '../../utilities'
 import { JsonTreeContext } from './context'
 import { JsonTreeNode } from './json-tree-node'
 import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
 import { JsonTreeVirtualized } from './json-tree-virtualized'
 import type { JsonValue } from './types'
+import { toggleExpandedSet } from './use-json-tree-expansion'
 
 /** Row-virtualization options for {@link JsonTree}: the required scroll-container `maxHeight`, plus optional windowing tuning. */
 type JsonTreeVirtualize = { maxHeight: string; estimateSize?: number; overscan?: number }
@@ -76,6 +78,31 @@ export function JsonTree({
 
 	const { value: searchValue, filter } = normalizeSearch(search)
 
+	const controlled = expanded !== undefined
+
+	// The open state of each path in the controlled set. A node reads its own
+	// path, so a new set renders only the nodes whose open state changed.
+	const [expansion] = useState(() =>
+		createKeyedStore((path: string) => expanded?.has(path) ?? false),
+	)
+
+	// The latest set and handler, for a toggle that keeps its identity.
+	const latest = useRef({ expanded, onExpandedChange })
+
+	useLayoutEffect(() => {
+		latest.current = { expanded, onExpandedChange }
+
+		expansion.publish((path) => expanded?.has(path) ?? false)
+	}, [expansion, expanded, onExpandedChange])
+
+	// Controlled without a handler is read-only, as a controlled input with no
+	// `onChange` is.
+	const toggleExpanded = useCallback((path: string) => {
+		const { expanded: current, onExpandedChange: report } = latest.current
+
+		if (current && report) toggleExpandedSet(current, path, report)
+	}, [])
+
 	// Keyed on `data` identity, so a structurally identical value with a new
 	// identity rebuilds the whole index. Correct as written: a content equality
 	// walk would cost more than the rebuild it avoids.
@@ -85,6 +112,24 @@ export function JsonTree({
 		itemSelector: '[role="treeitem"]',
 		orientation: 'vertical',
 	})
+
+	// One identity until an input of the tree changes. A new value would render
+	// each node, because each node reads the context.
+	const contextValue = useMemo(
+		() => ({
+			depth: 0,
+			defaultExpandDepth,
+			search: searchValue,
+			filter,
+			searchIndex,
+			path: '',
+			controlled,
+			expansion,
+			toggleExpanded,
+			userOpen,
+		}),
+		[defaultExpandDepth, searchValue, filter, searchIndex, controlled, expansion, toggleExpanded],
+	)
 
 	if (virtualize != null) {
 		return (
@@ -107,19 +152,7 @@ export function JsonTree({
 	}
 
 	return (
-		<JsonTreeContext
-			value={{
-				depth: 0,
-				defaultExpandDepth,
-				search: searchValue,
-				filter,
-				searchIndex,
-				path: '',
-				expanded,
-				onExpandedChange,
-				userOpen,
-			}}
-		>
+		<JsonTreeContext value={contextValue}>
 			<div
 				ref={ref}
 				role="tree"
