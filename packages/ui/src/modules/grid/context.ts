@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
+import type { GridSettleStore } from './engine/grid-sizing/settle'
 
 /** One sorted column: its id and direction. The grid's sort is an ordered list of these. */
 export type GridSortState = {
@@ -67,6 +68,20 @@ export const [GridContext, useGrid] = createContext<GridContextValue>('Grid')
 export const [GridResizingContext, useGridResizing] = createContext<boolean>('GridResizing', {
 	default: false,
 })
+
+/**
+ * Reads the store of settled column widths (see {@link GridSettleStore}). A
+ * visited body cell subscribes to its own column in it, and measures its
+ * overflow again when that width settles.
+ *
+ * @remarks A store and not a value, so a resize does not render the rows. The
+ * store keeps one identity for the life of the grid. Returns `null` outside a
+ * `<Grid>`.
+ */
+export const [GridSettleContext, useGridSettle] = createContext<GridSettleStore | null>(
+	'GridSettle',
+	{ default: null },
+)
 
 /**
  * The active quick-search query when the grid searches in highlight mode

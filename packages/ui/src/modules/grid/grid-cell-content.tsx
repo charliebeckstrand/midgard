@@ -1,10 +1,10 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGridResizing } from './context'
+import { useGridResizing, useGridSettle } from './context'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -21,11 +21,11 @@ type GridCellContentProps = {
 	content: ReactNode
 	tooltip: CellTooltip
 	/**
-	 * This cell's column width, frozen to `undefined` while a drag is in flight
-	 * and the settled engine width otherwise. A change after a resize settles (or
-	 * a keyboard nudge) re-renders the memoized cell and re-measures overflow.
+	 * The id of this cell's column. A visited cell subscribes to that column's
+	 * settled width (see {@link useGridSettle}), and measures its overflow again
+	 * when a resize or a keyboard nudge settles it.
 	 */
-	resizeSettleKey: number | undefined
+	columnId: string
 }
 
 /**
@@ -47,10 +47,17 @@ type GridCellContentProps = {
  * the settle re-measures.
  * @internal
  */
-export function GridCellContent({ content, tooltip, resizeSettleKey }: GridCellContentProps) {
+export function GridCellContent({ content, tooltip, columnId }: GridCellContentProps) {
 	const resizing = useGridResizing()
 
-	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(resizeSettleKey, resizing)
+	const settle = useGridSettle()
+
+	const onSettle = useMemo(
+		() => (settle ? (listener: () => void) => settle.subscribe(columnId, listener) : undefined),
+		[settle, columnId],
+	)
+
+	const [ref, truncated, contacted] = useGridTruncation<HTMLSpanElement>(onSettle, resizing)
 
 	const span = (
 		// `data-grid-content` marks the truncating leaf so the column autosizer can

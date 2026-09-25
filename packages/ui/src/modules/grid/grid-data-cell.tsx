@@ -27,8 +27,6 @@ type GridDataCellProps<T> = {
 	columnIndex: number
 	reorderable: boolean
 	truncate: boolean
-	/** This column's settled width snapshot; re-renders the cell to re-measure overflow when a resize settles (see {@link GridCellContent}). */
-	resizeSettleKey: number | undefined
 	pinning: GridColumnPinning | null
 	/** Whether the cell is a roving-tabindex item (cell-mode keyboard nav): the focus ring, and Enter / Space activation. @defaultValue false */
 	cellRoving?: boolean
@@ -53,7 +51,6 @@ function GridDataCellImpl<T>({
 	columnIndex,
 	reorderable,
 	truncate,
-	resizeSettleKey,
 	pinning,
 	cellRoving = false,
 	cellActivate,
@@ -86,7 +83,7 @@ function GridDataCellImpl<T>({
 			<GridCellContent
 				content={marked}
 				tooltip={resolveCellTooltip(col, row)}
-				resizeSettleKey={resizeSettleKey}
+				columnId={String(col.id)}
 			/>
 		) : (
 			marked
