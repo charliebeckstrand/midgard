@@ -89,11 +89,13 @@ export function MapFrame({
 				{aside ? (
 					// The panel and plot sit side by side from lg; below it they stack
 					// with the panel always under the map, so a left panel reverses
-					// the row instead of moving in the DOM.
+					// the row instead of moving in the DOM. The stack stretches its
+					// children, because the plot reserves its height from its own
+					// width and a centered plot has no width to reserve from.
 					<div
 						className={cn(
-							'flex flex-col gap-4 items-center',
-							legendPlacement === 'left' ? 'flex-row-reverse' : 'flex-row',
+							'flex flex-col gap-4 lg:items-center',
+							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
 						)}
 					>
 						{plot}
@@ -172,6 +174,11 @@ export function MapPlotRegion({
 			// height rather than the zero its own reserve would feed back.
 			className={cn(
 				'relative',
+				// A touch reader holds a finger on a region to read its tooltip. Without
+				// these, that long press also starts a text selection that spreads across
+				// the whole map and the text around it, and iOS shows its callout menu.
+				// The tooltip and the tap to pick do not use selection, so nothing is lost.
+				'select-none [-webkit-touch-callout:none]',
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
 				// Joined at module scope: nested inline, the whole call is unkeyable

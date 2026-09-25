@@ -34,6 +34,12 @@ describe('MapPlat', () => {
 		expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
 	})
 
+	it('keeps a long press on the plot from starting a text selection', () => {
+		const { container } = renderUI(categoricalPlat())
+
+		expect(bySlot(container, 'map-plot')).toHaveClass('select-none', '[-webkit-touch-callout:none]')
+	})
+
 	it('decodes a TopoJSON topology to the same regions', () => {
 		const { container } = renderUI(categoricalPlat({ geography: FIXTURE_TOPOLOGY }))
 
@@ -227,6 +233,24 @@ describe('MapPlat', () => {
 		const row = renderUI(categoricalPlat({ legend: 'top' }))
 
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
+	})
+
+	it('stacks a side panel under the map below lg and beside it from lg', () => {
+		for (const [legend, row] of [
+			['right', 'lg:flex-row'],
+			['left', 'lg:flex-row-reverse'],
+		] as const) {
+			const { container } = renderUI(categoricalPlat({ legend }))
+
+			const stack = bySlot(container, 'map-legend-box')?.parentElement
+
+			expect(stack).toHaveClass('flex-col', row)
+
+			expect(stack).not.toHaveClass('flex-row', 'flex-row-reverse')
+
+			// The legend follows the plot in the DOM, so the column puts it under the map.
+			expect(stack?.lastElementChild).toBe(bySlot(container, 'map-legend-box'))
+		}
 	})
 
 	it('lays the under-map legend out as a centered grid', () => {
