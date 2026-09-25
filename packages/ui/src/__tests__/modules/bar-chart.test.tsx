@@ -74,6 +74,27 @@ describe('BarChart', () => {
 		expect(bySlot(one.container, 'chart-legend')).toBeNull()
 	})
 
+	it('opens the tooltip on a held press that does not move', () => {
+		const { container } = renderUI(chart())
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		// A touch press fires the entry and no move while the finger holds still.
+		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+
+		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('selects no text in the chart, labels included', () => {
+		const { container } = renderUI(chart())
+
+		expect(bySlot(container, 'chart')?.className).toContain('select-none')
+	})
+
 	it('lists every series in the tooltip while the pointer is on a bar', () => {
 		const { container } = renderUI(chart())
 

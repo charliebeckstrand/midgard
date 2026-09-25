@@ -518,6 +518,11 @@ export function ChartFrame({
 				// The named group scopes the spark header's hover / focus veil to the
 				// chart, so it never trips on an unnamed `group-hover` inside the marks.
 				'group/chart @container flex flex-col gap-3',
+				// A long press opens the readout, as on the map. The whole chart, labels
+				// included, therefore selects no text and opens no callout under a hold.
+				// iOS Safari can select text in a descendant of a `select-none` box, so
+				// every descendant also sets it.
+				'select-none **:select-none [-webkit-touch-callout:none]',
 				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,

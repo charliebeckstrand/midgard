@@ -341,15 +341,20 @@ function HeatmapHitLayer({
 		else set(hit.cell, hit.point)
 	}
 
+	const follow = (event: PointerEvent<SVGRectElement>) => {
+		const hit = locate(event)
+
+		if (hit !== null) set(hit.cell, hit.point)
+	}
+
+	// Entry tracks as movement does, so a held touch, which fires no move, opens
+	// the readout on the cell under it.
 	const handlers = click
 		? { onClick: handleClick }
 		: {
 				onClick: handleClick,
-				onPointerMove: (event: PointerEvent<SVGRectElement>) => {
-					const hit = locate(event)
-
-					if (hit !== null) set(hit.cell, hit.point)
-				},
+				onPointerEnter: follow,
+				onPointerMove: follow,
 				onPointerLeave: () => set(null, null),
 			}
 
