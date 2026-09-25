@@ -17,9 +17,10 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useControllable, useResizeObserver } from '../../hooks'
+import { useControllable, useEscapeLayer, useGrabbingCursor, useResizeObserver } from '../../hooks'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
+import { noop } from '../../utilities'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
 import { DashboardPlaceholder } from './dashboard-placeholder'
@@ -332,10 +333,23 @@ export function Dashboard({
 		[beginResize, resizeBy, setFilterValue, setSelectionValue],
 	)
 
-	// The root reads one flag, so a preview never renders the root again.
+	// The root reads flags only, so a preview never renders the root again.
 	const readEditable = () => store.getView().editable
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+
+	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
+	// gesture after an edit exit, and the tile can unmount before the drag ends.
+	const readDragging = () => store.getState().gesture?.kind === 'drag'
+
+	const dragging = useSyncExternalStore(store.subscribe, readDragging, readDragging)
+
+	// The layer only takes the press from the surfaces under it. dnd-kit cancels the drag.
+	useEscapeLayer({ open: dragging, onDismiss: noop })
+
+	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
+	// holds the closed hand on the whole page until the drop or the cancel.
+	useGrabbingCursor(dragging)
 
 	// A gesture needs edit mode, and its listeners outlive the splitter and the
 	// board. So an edit exit or an unmount ends a live gesture as canceled.

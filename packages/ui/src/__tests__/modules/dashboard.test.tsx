@@ -932,6 +932,71 @@ describe('Dashboard gesture owner', () => {
 		expect(onDragEnd).toHaveBeenCalledTimes(1)
 	})
 
+	/** The page-wide rule that holds the grabbing cursor. */
+	const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+
+	it('lifts the grabbing cursor when edit mode ends a drag, so one Escape closes the dialog', async () => {
+		const onOpenChange = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const inDialog = (editing: boolean) => (
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Board editing={editing} onDragEnd={onDragEnd} />
+			</Dialog>
+		)
+
+		const { rerender } = renderUI(inDialog(true))
+
+		await lift('Move Revenue', 'ArrowRight', 2)
+
+		expect(cursor()).not.toBeNull()
+
+		rerender(inDialog(false))
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'a', canceled: true }),
+		)
+
+		expect(cursor()).toBeNull()
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(false)
+	})
+
+	it('keeps the dialog open on Escape after the carried tile leaves, and ends the drag once', async () => {
+		const onOpenChange = vi.fn()
+
+		const onLayout = vi.fn()
+
+		const onDragEnd = vi.fn()
+
+		const inDialog = (withC: boolean) => (
+			<Dialog open onOpenChange={onOpenChange} aria-label="Edit the board">
+				<Held value={LAYOUT} withC={withC} onLayout={onLayout} onDragEnd={onDragEnd} />
+			</Dialog>
+		)
+
+		const { rerender } = renderUI(inDialog(true))
+
+		await lift('Move c', 'ArrowRight', 2)
+
+		rerender(inDialog(false))
+
+		fireEvent.keyDown(document.activeElement ?? document.body, { code: 'Escape', key: 'Escape' })
+
+		expect(onOpenChange).not.toHaveBeenCalled()
+
+		expect(onDragEnd).toHaveBeenCalledExactlyOnceWith(
+			expect.objectContaining({ id: 'c', canceled: true }),
+		)
+
+		expect(onLayout).not.toHaveBeenCalled()
+
+		expect(cursor()).toBeNull()
+	})
+
 	it('narrates a drop that changes nothing, and ends it once as canceled', async () => {
 		const onLayout = vi.fn()
 

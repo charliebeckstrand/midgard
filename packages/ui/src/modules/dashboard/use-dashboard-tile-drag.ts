@@ -6,8 +6,7 @@ import {
 	useDraggable,
 } from '@dnd-kit/core'
 import { type PointerEventHandler, type PointerEvent as ReactPointerEvent, useMemo } from 'react'
-import { useEscapeLayer } from '../../hooks'
-import { clamp, noop } from '../../utilities'
+import { clamp } from '../../utilities'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import { useDashboardStore } from './use-dashboard-store'
 
@@ -62,9 +61,8 @@ function carriedOffset(
  * clamps the pointer offset with them.
  *
  * @remarks
- * While the tile drags, the drag is the top dismiss layer. An Escape press
- * then cancels only the drag, and a dialog, sheet, or drawer around the board
- * stays open.
+ * The `Dashboard` holds the Escape layer and the grabbing cursor of a drag. They
+ * stay until the gesture ends, also when the tile unmounts first.
  *
  * @internal
  */
@@ -75,9 +73,6 @@ export function useDashboardTileDrag(
 ): DashboardTileDrag {
 	const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, isDragging } =
 		useDraggable({ id, disabled: !movable })
-
-	// The layer only takes the press from the surfaces under it. dnd-kit cancels the drag.
-	useEscapeLayer({ open: isDragging, onDismiss: noop })
 
 	const travel = useDashboardStore((view) => (isDragging ? view.travel : null))
 

@@ -3,7 +3,6 @@
 import { type ReactNode, useCallback, useId, useMemo, useRef } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn, dataAttr } from '../../core'
-import { useGrabbingCursor } from '../../hooks'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -219,10 +218,6 @@ export function DashboardTile(props: DashboardTileProps) {
 	const movable = editable && cell !== undefined && !cell.static
 
 	const drag = useDashboardTileDrag(id, cell, movable)
-
-	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
-	// holds the closed hand on the whole page until the drop or the cancel.
-	useGrabbingCursor(drag.dragging)
 
 	const shell = useRef<HTMLDivElement | null>(null)
 
