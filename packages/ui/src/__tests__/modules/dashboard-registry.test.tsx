@@ -9,6 +9,7 @@ import {
 	DashboardTiles,
 	type DashboardWidget,
 	DashboardWidgetProvider,
+	type DashboardWidgetRenderer,
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
@@ -190,8 +191,16 @@ describe('DashboardTiles', () => {
 			<Board tiles={[{ id: 'revenue', widget: 'metric', title: 'Revenue' }, ...TILES.slice(1)]} />,
 		)
 
-		// The tile Suspense boundary hands the error to a client render.
-		expect(html).toContain('Stat')
+		// The tile Suspense boundary hands the error to a client render. The dev
+		// error text names components, so match the markup of the sibling tile.
+		expect(html).toContain('<p>Stat</p>')
+	})
+
+	it('types a renderer that returns a promise as an error', () => {
+		// @ts-expect-error The renderer runs again on each Suspense retry, so a promise never settles.
+		const later: DashboardWidgetRenderer = async () => <p>Later</p>
+
+		expect(later).toBeTypeOf('function')
 	})
 
 	it('does not render an unchanged spec tile again when the app commits a new layout', () => {

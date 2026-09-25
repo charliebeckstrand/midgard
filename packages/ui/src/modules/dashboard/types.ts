@@ -85,12 +85,21 @@ export type DashboardGestureEndEvent = {
  * options are agreed. Return an element: its component reads the scope with
  * `useDashboardScope` or `useDashboardRows`, as in a JSX tile.
  *
+ * @remarks
+ * The renderer runs inside the error boundary and the Suspense boundary of its
+ * tile. It runs again on each Suspense retry and on each Retry of the tile, so it
+ * returns an element and never a promise. A widget that waits suspends inside
+ * the component that the renderer returns, for example through `lazy` or `use` of
+ * a cached promise.
+ *
  * @example
  * ```tsx
  * const render: DashboardWidgetRenderer = (tile) => <Revenue {...(tile.options as RevenueOptions)} />
  * ```
  */
-export type DashboardWidgetRenderer = (tile: DashboardSpecTile) => ReactNode
+export type DashboardWidgetRenderer = (
+	tile: DashboardSpecTile,
+) => Exclude<ReactNode, Promise<unknown>>
 
 /** One widget kind: the renderer, and the demands that its tiles make of their cells. */
 export type DashboardWidget = {
