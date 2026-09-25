@@ -62,6 +62,15 @@ export const inputCases: readonly Case[] = [
 		),
 		density: [{ render: (size) => <Input size={size} />, slot: 'input' }],
 		textInput: [{ render: (props) => <Input {...props} />, slot: 'input' }],
+		touchOnBlur: [{ render: (props) => <Input {...props} />, defaultValue: '', slot: 'input' }],
+		writeOnChange: [
+			{
+				render: (props) => <Input {...props} />,
+				defaultValue: '',
+				slot: 'input',
+				kind: 'text',
+			},
+		],
 	},
 	{
 		name: 'input in field (warning)',
@@ -93,6 +102,17 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <TextareaSkeleton />, absentSlot: 'textarea' }],
 		textInput: [{ render: (props) => <Textarea {...props} />, slot: 'textarea' }],
+		touchOnBlur: [
+			{ render: (props) => <Textarea {...props} />, defaultValue: '', slot: 'textarea' },
+		],
+		writeOnChange: [
+			{
+				render: (props) => <Textarea {...props} />,
+				defaultValue: '',
+				slot: 'textarea',
+				kind: 'text',
+			},
+		],
 	},
 	{
 		// No explicit id: the Field generates one and both Label and Slider read
@@ -110,6 +130,7 @@ export const inputCases: readonly Case[] = [
 			{ render: (size) => <Slider size={size} />, slot: 'slider' },
 			{ render: (size) => <RangeSlider size={size} />, slot: 'slider-range' },
 		],
+		touchOnBlur: [{ render: (props) => <Slider {...props} />, defaultValue: 30, slot: 'slider' }],
 	},
 	{
 		// The Field's Label names the radiogroup through Control context, so the
@@ -141,6 +162,14 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <CheckboxSkeleton />, absentSlot: 'checkbox' }],
 		density: [{ render: (size) => <Checkbox size={size} />, slot: 'control' }],
+		writeOnChange: [
+			{
+				render: (props) => <Checkbox {...props} />,
+				defaultValue: false,
+				slot: 'checkbox',
+				kind: 'toggle',
+			},
+		],
 	},
 	{
 		name: 'switch',
@@ -152,6 +181,14 @@ export const inputCases: readonly Case[] = [
 		),
 		skeleton: [{ element: <SwitchSkeleton />, absentSlot: 'switch' }],
 		density: [{ render: (size) => <Switch size={size} />, slot: 'control' }],
+		writeOnChange: [
+			{
+				render: (props) => <Switch {...props} />,
+				defaultValue: false,
+				slot: 'switch',
+				kind: 'toggle',
+			},
+		],
 	},
 	{
 		// Radios share a name to form a single group; each input is named by its
@@ -239,6 +276,9 @@ export const inputCases: readonly Case[] = [
 		name: 'date input',
 		element: <DateInput key="di" />,
 		textInput: [{ render: (props) => <DateInput {...props} />, slot: 'date-input' }],
+		touchOnBlur: [
+			{ render: (props) => <DateInput {...props} />, defaultValue: undefined, slot: 'date-input' },
+		],
 	},
 	{
 		// Same masked input wired to a Field: the Label names it and the default
@@ -276,6 +316,9 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <NumberInput {...props} />, slot: 'number-input' }],
+		touchOnBlur: [
+			{ render: (props) => <NumberInput {...props} />, defaultValue: 0, slot: 'number-input' },
+		],
 	},
 	{
 		name: 'currency input',
@@ -286,6 +329,13 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <CurrencyInput {...props} />, slot: 'currency-input' }],
+		touchOnBlur: [
+			{
+				render: (props) => <CurrencyInput {...props} />,
+				defaultValue: undefined,
+				slot: 'currency-input',
+			},
+		],
 	},
 	{
 		name: 'credit card input',
@@ -300,6 +350,23 @@ export const inputCases: readonly Case[] = [
 			{ render: (props) => <CreditCardInputExpiry {...props} />, slot: 'credit-card-input-expiry' },
 			{ render: (props) => <CreditCardInputCvv {...props} />, slot: 'credit-card-input-cvv' },
 		],
+		touchOnBlur: [
+			{
+				render: (props) => <CreditCardInput {...props} />,
+				defaultValue: '',
+				slot: 'credit-card-input',
+			},
+			{
+				render: (props) => <CreditCardInputExpiry {...props} />,
+				defaultValue: '',
+				slot: 'credit-card-input-expiry',
+			},
+			{
+				render: (props) => <CreditCardInputCvv {...props} />,
+				defaultValue: '',
+				slot: 'credit-card-input-cvv',
+			},
+		],
 	},
 	{
 		name: 'phone input',
@@ -310,6 +377,9 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <PhoneInput {...props} />, slot: 'phone-input' }],
+		touchOnBlur: [
+			{ render: (props) => <PhoneInput {...props} />, defaultValue: '', slot: 'phone-input' },
+		],
 	},
 	{
 		name: 'zipcode input',
@@ -320,6 +390,9 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <ZipcodeInput {...props} />, slot: 'zipcode-input' }],
+		touchOnBlur: [
+			{ render: (props) => <ZipcodeInput {...props} />, defaultValue: '', slot: 'zipcode-input' },
+		],
 	},
 	{
 		name: 'mask input',
@@ -335,6 +408,13 @@ export const inputCases: readonly Case[] = [
 				slot: 'mask-input',
 			},
 		],
+		touchOnBlur: [
+			{
+				render: (props) => <MaskInput format={formatLicensePlate} {...props} />,
+				defaultValue: '',
+				slot: 'mask-input',
+			},
+		],
 	},
 	{
 		name: 'search input',
@@ -345,6 +425,17 @@ export const inputCases: readonly Case[] = [
 			</Field>
 		),
 		textInput: [{ render: (props) => <SearchInput {...props} />, slot: 'search-input' }],
+		touchOnBlur: [
+			{ render: (props) => <SearchInput {...props} />, defaultValue: '', slot: 'search-input' },
+		],
+		writeOnChange: [
+			{
+				render: (props) => <SearchInput {...props} />,
+				defaultValue: '',
+				slot: 'search-input',
+				kind: 'text',
+			},
+		],
 	},
 	{
 		name: 'password input',

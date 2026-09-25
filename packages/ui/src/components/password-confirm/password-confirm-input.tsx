@@ -1,11 +1,12 @@
 'use client'
 
 import { type ChangeEvent, useEffect } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useAriaIds } from '../../hooks'
 import { PasswordInput, type PasswordInputProps } from '../password-input'
 import { usePasswordConfirm } from './context'
 
-/** Props for {@link PasswordConfirmInput}: {@link PasswordInputProps} with an `onChange` that runs after the coordinator records the value. */
+/** Props for {@link PasswordConfirmInput}: {@link PasswordInputProps} with an `onChange` that runs before the coordinator records the value. Its `preventDefault()` does not skip the record. */
 export type PasswordConfirmInputProps = Omit<PasswordInputProps, 'onChange'> & {
 	onChange?: (event: ChangeEvent<HTMLInputElement>) => void
 }
@@ -59,11 +60,11 @@ export function PasswordConfirmInput({
 			// this anchor to tell the confirm field from the password field, so a
 			// consumer `data-slot` must not take it (CONVENTIONS.md §3.9).
 			data-slot="password-confirm-input"
-			onChange={(event) => {
-				setConfirm(event.target.value)
-
-				onChange?.(event)
-			}}
+			// The coordinator records the value whatever the caller does
+			// (CONVENTIONS.md §3.9).
+			onChange={composeEventHandlers(onChange, (event) => setConfirm(event.target.value), {
+				checkForDefaultPrevented: false,
+			})}
 		/>
 	)
 }

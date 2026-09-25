@@ -1,6 +1,7 @@
 'use client'
 
 import { type ReactNode, useState } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useControl } from '../control/context'
 import { Message } from '../fieldset'
 import { Input, type InputProps } from '../input'
@@ -95,15 +96,19 @@ export function CreditCardInputExpiry({
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
 				value={masked.value}
-				onBlur={(event) => {
-					masked.onBlur()
+				// The touched mark and the verdict run whatever the caller does
+				// (CONVENTIONS.md §3.9).
+				onBlur={composeEventHandlers(
+					onBlur,
+					() => {
+						masked.onBlur()
 
-					// A partial or impossible entry left on blur reads invalid; an empty
-					// field doesn't (that's a required-field concern, not a format one).
-					setTypedInvalid(masked.value !== '' && !validateCardExpiry(masked.value).isValid)
-
-					onBlur?.(event)
-				}}
+						// A partial or impossible entry left on blur reads invalid; an empty
+						// field doesn't (that's a required-field concern, not a format one).
+						setTypedInvalid(masked.value !== '' && !validateCardExpiry(masked.value).isValid)
+					},
+					{ checkForDefaultPrevented: false },
+				)}
 				onChange={(event) => {
 					const raw = event.target.value
 

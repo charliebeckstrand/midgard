@@ -1,5 +1,5 @@
 import type { UserEvent } from '@testing-library/user-event'
-import type { ReactElement } from 'react'
+import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
 import type { Step } from '../../../recipes'
 
 /**
@@ -61,6 +61,40 @@ export type TextInputSubject = {
 	slot: string
 }
 
+/**
+ * A form-bound control whose blur marks its field touched, even when the
+ * caller's `onBlur` calls `preventDefault()` (CONVENTIONS.md §3.9).
+ */
+export type TouchOnBlurSubject = {
+	/** Renders the subject bound to the field `name`, with the caller's `onBlur`. */
+	render: (props: {
+		name: string
+		onBlur: (event: FocusEvent<HTMLElement>) => void
+	}) => ReactElement
+	/** The value the field starts from in `Form.defaultValues`. */
+	defaultValue: unknown
+	/** The `data-slot` of the element that takes focus. */
+	slot: string
+}
+
+/**
+ * A form-bound control whose change writes its field, even when the caller's
+ * `onChange` calls `preventDefault()` (CONVENTIONS.md §3.9).
+ */
+export type WriteOnChangeSubject = {
+	/** Renders the subject bound to the field `name`, with the caller's `onChange`. */
+	render: (props: {
+		name: string
+		onChange: (event: ChangeEvent<HTMLElement>) => void
+	}) => ReactElement
+	/** The value the field starts from in `Form.defaultValues`. */
+	defaultValue: unknown
+	/** The `data-slot` of the element that takes the change. */
+	slot: string
+	/** How the sweep changes it: `text` types a value, `toggle` clicks it on. */
+	kind: 'text' | 'toggle'
+}
+
 /** A named, canonical render a gate drives. */
 export type Scenario = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
@@ -101,6 +135,10 @@ export type Case = Scenario & {
 	density?: readonly DensitySubject[]
 	/** Text fields whose ref, placeholder, and disabled state reach the editable element. */
 	textInput?: readonly TextInputSubject[]
+	/** Form-bound controls whose blur marks the field touched, whatever the caller's `onBlur` does. */
+	touchOnBlur?: readonly TouchOnBlurSubject[]
+	/** Form-bound controls whose change writes the field, whatever the caller's `onChange` does. */
+	writeOnChange?: readonly WriteOnChangeSubject[]
 }
 
 /**

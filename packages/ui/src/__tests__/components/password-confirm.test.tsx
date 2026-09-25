@@ -23,6 +23,33 @@ describe('PasswordConfirmInput', () => {
 		expect(onChange).toHaveBeenCalled()
 	})
 
+	it('records the value when the caller onChange prevents the default', () => {
+		// CONVENTIONS.md §3.9: the caller's handler runs first, and its
+		// preventDefault() cannot keep the value from the mismatch coordinator.
+		const onChange = vi.fn((event: { preventDefault: () => void }) => event.preventDefault())
+
+		renderUI(
+			<PasswordConfirm>
+				<PasswordInput name="password" />
+				<PasswordConfirmInput name="confirm" onChange={onChange} />
+			</PasswordConfirm>,
+		)
+
+		const inputs = document.querySelectorAll<HTMLInputElement>('input[type="password"]')
+
+		const passwordInput = inputs[0] as HTMLInputElement
+
+		const confirmInput = inputs[1] as HTMLInputElement
+
+		fireEvent.input(passwordInput, { target: { value: 'abc' } })
+
+		fireEvent.change(confirmInput, { target: { value: 'abcd' } })
+
+		expect(onChange).toHaveBeenCalledOnce()
+
+		expect(confirmInput).toHaveAttribute('data-warning')
+	})
+
 	it('applies data-warning when passwords differ and the confirm was last edited', () => {
 		renderUI(
 			<PasswordConfirm>

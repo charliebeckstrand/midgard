@@ -1,8 +1,8 @@
 'use client'
 
 import { Minus, Plus } from 'lucide-react'
-import type { ChangeEvent, FocusEvent } from 'react'
-import { announce, cn } from '../../core'
+import type { ChangeEvent } from 'react'
+import { announce, cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/input'
 import { clamp } from '../../utilities'
 import { Button } from '../button'
@@ -116,15 +116,17 @@ export function NumberInput({
 		setCurrent(n)
 	}
 
-	const handleBlur = (event: FocusEvent<HTMLInputElement>) => {
-		setTouched()
+	// The consumer's onBlur runs first. Clamp, round, and the touched mark run
+	// whatever it does (CONVENTIONS.md §3.9).
+	const handleBlur = composeEventHandlers(
+		onBlur,
+		() => {
+			setTouched()
 
-		setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
-
-		// Composed, not clobbered: clamp/round-on-blur and the form's touched
-		// tracking run before the consumer's onBlur.
-		onBlur?.(event)
-	}
+			setCurrent((prev) => (prev === undefined ? undefined : clampValue(round(prev))))
+		},
+		{ checkForDefaultPrevented: false },
+	)
 
 	return (
 		<Input

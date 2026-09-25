@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useEffectEvent, useRef } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useControl } from '../control/context'
 import { Input, type InputProps } from '../input'
 import { useMaskInput } from '../mask-input/use-mask-input'
@@ -117,11 +118,10 @@ export function CreditCardInputCvv({
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}
 			value={masked.value}
-			onBlur={(event) => {
-				masked.onBlur()
-
-				onBlur?.(event)
-			}}
+			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+				checkForDefaultPrevented: false,
+			})}
 			onChange={(event) => {
 				masked.onChange(event)
 

@@ -1,6 +1,7 @@
 'use client'
 
 import type { ChangeEvent, FocusEvent } from 'react'
+import { composeEventHandlers } from '../../core'
 import { useFormField } from './context'
 import { hasIssues } from './form-reducer'
 
@@ -20,8 +21,8 @@ export type FormTextBinding<E extends HTMLInputElement | HTMLTextAreaElement = H
  *
  * @param name - Field key to bind; undefined opts out (returns undefined, e.g.
  * for an unbound control outside any `Form`).
- * @param handlers - Optional `onChange`/`onBlur` to chain after the field is
- * updated.
+ * @param handlers - The caller's optional `onChange`/`onBlur`. Each runs before
+ * the field is updated, and its `preventDefault()` does not skip the update.
  * @returns A {@link FormTextBinding} to spread onto the control, or undefined
  * when `name` is absent or there is no enclosing `Form`.
  * @typeParam E - The bound element type (`HTMLInputElement` by default,
@@ -44,14 +45,16 @@ export function useFormText<E extends HTMLInputElement | HTMLTextAreaElement = H
 
 	return {
 		value: typeof field.value === 'string' ? field.value : '',
-		onChange: (event) => {
-			field.setValue(event.target.value)
-			handlers?.onChange?.(event)
-		},
-		onBlur: (event) => {
-			field.setTouched()
-			handlers?.onBlur?.(event)
-		},
+		// The field write and the touched mark run whatever the caller does
+		// (CONVENTIONS.md §3.9).
+		onChange: composeEventHandlers(
+			handlers?.onChange,
+			(event: ChangeEvent<E>) => field.setValue(event.target.value),
+			{ checkForDefaultPrevented: false },
+		),
+		onBlur: composeEventHandlers(handlers?.onBlur, () => field.setTouched(), {
+			checkForDefaultPrevented: false,
+		}),
 		invalid: hasIssues(field.errors),
 	}
 }

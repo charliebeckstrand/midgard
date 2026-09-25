@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn, composeEventHandlers, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useDensity } from '../../primitives/density'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
@@ -116,11 +116,8 @@ export function Slider({
 			aria-valuetext={getValueText?.(current)}
 			value={current}
 			onChange={(event) => setInternal(Number(event.target.value))}
-			onBlur={(event) => {
-				setTouched()
-
-				onBlur?.(event)
-			}}
+			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
+			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
 			className={cn(k({ size: resolvedSize, color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
