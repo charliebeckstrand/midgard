@@ -152,6 +152,61 @@ describe('Dashboard reading order', () => {
 		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
 	})
 
+	it('renders a tile inside a Fragment in reading order, and keeps its state', () => {
+		function Board({ layout, show }: { layout: DashboardLayoutItem[]; show: boolean }) {
+			return (
+				<Dashboard aria-label="Board" layout={{ value: layout }}>
+					{show && (
+						<>
+							<DashboardTile id="a" title="A">
+								<Counter />
+							</DashboardTile>
+
+							<DashboardTile id="b" title="B" />
+						</>
+					)}
+
+					<DashboardTile id="c" title="C" />
+				</Dashboard>
+			)
+		}
+
+		const { container, rerender } = renderUI(<Board layout={LAYOUT} show />)
+
+		expect(markupOrder(container)).toEqual(['B', 'A', 'C'])
+
+		fireEvent.click(screen.getByRole('button', { name: 'Count 0' }))
+
+		rerender(<Board layout={SWAPPED} show />)
+
+		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
+
+		expect(screen.getByRole('button', { name: 'Count 1' })).toBeInTheDocument()
+
+		rerender(<Board layout={SWAPPED} show={false} />)
+
+		expect(markupOrder(container)).toEqual(['C'])
+	})
+
+	it('keeps a component that renders a tile in its own slot', () => {
+		function Wrapped() {
+			return <DashboardTile id="a" title="A" />
+		}
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
+				<Wrapped />
+
+				<DashboardTile id="c" title="C" />
+
+				<DashboardTile id="b" title="B" />
+			</Dashboard>,
+		)
+
+		// The board reads b before a, but the wrapper holds the first slot. b and c trade theirs.
+		expect(markupOrder(container)).toEqual(['A', 'B', 'C'])
+	})
+
 	it('keeps each other child in its slot', () => {
 		const { container } = renderUI(
 			<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>

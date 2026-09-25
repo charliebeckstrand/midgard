@@ -2,7 +2,6 @@
 
 import { DndContext } from '@dnd-kit/core'
 import {
-	Children,
 	type CSSProperties,
 	cloneElement,
 	isValidElement,
@@ -21,6 +20,7 @@ import { useControllable, useEscapeLayer, useGrabbingCursor, useResizeObserver }
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
+import { flattenChildren } from '../../utilities/flatten-children'
 import type { QueryGroup } from '../query/engine/types'
 import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
 import type { DashboardCommit } from './dashboard-gesture'
@@ -79,13 +79,20 @@ function isTileElement(child: unknown): child is ReactElement<DashboardTileProps
 }
 
 /**
- * The children with each direct `DashboardTile` in reading order. The tiles
- * trade their slots among themselves, and each other child keeps its slot. Each
- * tile takes a key from its id, so a move keeps its state. React focuses a moved
- * element again after the commit, so a move keeps the focus too.
+ * The children with each `DashboardTile` in reading order, also a tile inside a
+ * Fragment. The tiles trade their slots among themselves, and each other child
+ * keeps its slot. Each tile takes a key from its id, so a move keeps its state.
+ * React focuses a moved element again after the commit, so a move keeps the focus too.
+ *
+ * @remarks
+ * The children flatten through each Fragment, and each other element takes a key
+ * from its Fragment path. A component that renders a tile keeps its own slot.
  */
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
-	const items = Children.toArray(children)
+	// A tile takes its key below, from its id.
+	const items = flattenChildren(children).map(({ node, key }) =>
+		isValidElement(node) && !isTileElement(node) ? cloneElement(node, { key }) : node,
+	)
 
 	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
 
@@ -163,6 +170,11 @@ export type DashboardProps = AccessibleName & {
 	 * board renders the tiles in reading order, by row and then by column. In
 	 * edit mode the markup holds still, and the new order takes effect when edit
 	 * mode ends.
+	 *
+	 * @remarks
+	 * The order reaches each `DashboardTile` child, also inside a Fragment. A
+	 * component that renders a tile keeps its own slot. `DashboardTiles` orders
+	 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
 	 */
 	children?: ReactNode
 }
