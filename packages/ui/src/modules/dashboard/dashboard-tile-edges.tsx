@@ -1,5 +1,6 @@
 'use client'
 
+import { memo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardResizeHandle } from './dashboard-resize-handle'
@@ -24,11 +25,12 @@ export type DashboardTileEdgesProps = {
 /**
  * The resize splitters of a tile in edit mode, and the span chip while it
  * resizes. The east edge and the corner always show; the south edge shows only
- * on a free-form tile.
+ * on a free-form tile. The cell keeps its object while its geometry holds, so a
+ * drag renders no splitter of a tile that it does not move.
  *
  * @internal
  */
-export function DashboardTileEdges({
+export const DashboardTileEdges = memo(function DashboardTileEdges({
 	id,
 	cell,
 	columns,
@@ -53,4 +55,4 @@ export function DashboardTileEdges({
 			)}
 		</>
 	)
-}
+})

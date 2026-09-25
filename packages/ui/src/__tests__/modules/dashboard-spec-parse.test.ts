@@ -1,7 +1,10 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { describe, expect, expectTypeOf, it } from 'vitest'
 import type { DashboardSpec } from '../../modules/dashboard/engine/dashboard-spec'
-import { parseDashboardSpec } from '../../modules/dashboard/engine/dashboard-spec-parse'
+import {
+	type DashboardSpecParseOptions,
+	parseDashboardSpec,
+} from '../../modules/dashboard/engine/dashboard-spec-parse'
 
 const SOUND: DashboardSpec = {
 	tiles: [
@@ -156,6 +159,34 @@ describe('parseDashboardSpec', () => {
 		).toEqual([
 			['invalid-tile', 'tiles[0]'],
 			['orphan-entry', 'layout[0]'],
+		])
+	})
+
+	it('keeps the entry of each JSX tile that the options name', () => {
+		const notes = { id: 'notes', x: 12, y: 0, w: 12, h: 10 }
+
+		const input = {
+			tiles: [{ id: 'a', widget: 'bar' }],
+			layout: [{ id: 'a', x: 0, y: 0, w: 12 }, notes, { id: 'gone', x: 0, y: 40, w: 24 }],
+		}
+
+		const { spec, issues } = parseDashboardSpec(input, { tileIds: ['notes'] })
+
+		expect(spec.layout.map((entry) => entry.id)).toEqual(['a', 'notes'])
+
+		expect(spec.layout[1]).toBe(notes)
+
+		expect(issues.map((issue) => [issue.kind, issue.path])).toEqual([['orphan-entry', 'layout[2]']])
+
+		expect(parseDashboardSpec(input, { tileIds: new Set(['notes']) }).spec.layout).toContain(notes)
+
+		// A bare string is iterable, and a loop over it yields letters, so the type refuses it.
+		expectTypeOf<string>().not.toExtend<NonNullable<DashboardSpecParseOptions['tileIds']>>()
+
+		// With no options, the entry of the JSX tile is an orphan.
+		expect(found(input)).toEqual([
+			['orphan-entry', 'layout[1]'],
+			['orphan-entry', 'layout[2]'],
 		])
 	})
 

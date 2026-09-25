@@ -6,7 +6,11 @@
  */
 
 import type { DashboardSpec } from './dashboard-spec'
-import { type DashboardSpecParse, parseDashboardSpec } from './dashboard-spec-parse'
+import {
+	type DashboardSpecParse,
+	type DashboardSpecParseOptions,
+	parseDashboardSpec,
+} from './dashboard-spec-parse'
 
 /** A named spec that an app offers as a start point for a board. */
 export type DashboardPreset = {
@@ -46,8 +50,12 @@ export type DashboardPreset = {
  * ```
  *
  * @param preset - The preset to start from.
+ * @param options - The ids of the JSX tiles on the same board. See {@link parseDashboardSpec}.
  * @returns The spec of the new board, and each issue that the parse repaired.
  */
-export function startFromPreset(preset: DashboardPreset): DashboardSpecParse {
-	return parseDashboardSpec(preset.spec)
+export function startFromPreset(
+	preset: DashboardPreset,
+	options?: DashboardSpecParseOptions,
+): DashboardSpecParse {
+	return parseDashboardSpec(preset.spec, options)
 }

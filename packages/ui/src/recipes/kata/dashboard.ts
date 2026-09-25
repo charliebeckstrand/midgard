@@ -110,10 +110,14 @@ const veil = {
 	 * At rest, the veil fades out and lets the pointer through, until the card is
 	 * hovered or holds focus. A tab onto a control of the header therefore shows
 	 * it. Edit mode leaves this off, so the grip stays in view.
+	 *
+	 * The fade applies only where the primary pointer can hover. On a phone or a
+	 * tablet, no hover shows the veil. A tap on a spark chart moves no focus into
+	 * the card either. The veil therefore stays in view there, as in edit mode.
 	 */
 	fade: [
-		'has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
-		'has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
+		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
+		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
 	],
 } as const
 
