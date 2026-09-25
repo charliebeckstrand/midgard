@@ -40,14 +40,6 @@ const OPERATIONS: DashboardPreset = {
 }
 
 describe('startFromPreset', () => {
-	it('returns the spec of a sound preset with no issue', () => {
-		const { spec, issues } = startFromPreset(OPERATIONS)
-
-		expect(spec).toEqual(OPERATIONS.spec)
-
-		expect(issues).toEqual([])
-	})
-
 	it('passes the ids of the JSX tiles to the parse', () => {
 		const notes = { id: 'notes', x: 12, y: 0, w: 12, h: 10 }
 

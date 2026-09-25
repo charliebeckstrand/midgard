@@ -1,12 +1,13 @@
 import { describe, expect, it, vi } from 'vitest'
 import {
+	Dashboard,
 	type DashboardSpecTile,
 	DashboardTile,
 	DashboardTiles,
 	type DashboardWidget,
 	DashboardWidgetProvider,
 } from '../../modules/dashboard'
-import { renderUI } from '../helpers'
+import { getSlot, renderUI } from '../helpers'
 import {
 	ControlledDashboard,
 	lastEntry,
@@ -113,23 +114,18 @@ describe('DashboardTile limits', () => {
 	})
 
 	it('places a new tile within its limits', () => {
-		const onLayout = vi.fn()
-
-		renderUI(
-			<ControlledDashboard aria-label="Board" editing initial={[]} onLayout={onLayout}>
+		const { container } = renderUI(
+			<Dashboard aria-label="Board">
 				<DashboardTile
 					id="a"
 					minWidth={0}
 					defaultSize={{ w: 20, h: 40 }}
 					maxSize={{ w: 12, h: 30 }}
 				/>
-			</ControlledDashboard>,
+			</Dashboard>,
 		)
 
-		// A step down from the placed span commits it, so the saved entry shows the placement.
-		pressSplitter('a', 1, 'ArrowUp')
-
-		expect(lastEntry(onLayout, 'a')).toEqual({ id: 'a', x: 0, y: 0, w: 12, h: 29 })
+		expect(getSlot(container, 'dashboard-tile').style.gridArea).toBe('1 / 1 / span 30 / span 12')
 	})
 })
 
