@@ -71,6 +71,12 @@ const RECEIVERS: Receiver[] = [
 	},
 	{
 		file: 'modules/grid/engine/grid-table/views.ts',
+		fn: 'buildPaginationView',
+		binding: 'table',
+		kind: 'render',
+	},
+	{
+		file: 'modules/grid/engine/grid-table/views.ts',
 		fn: 'withResizeDirection',
 		binding: 'table',
 		kind: 'eager',

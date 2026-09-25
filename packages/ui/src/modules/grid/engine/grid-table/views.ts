@@ -14,6 +14,7 @@ import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridColumnFilterState, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
+import { pageCountOf } from '../grid-pagination-utilities'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import { frozenSide } from '../grid-pin/overrides'
 import type { EngineColumn, EngineTable } from './features'
@@ -524,44 +525,61 @@ export function buildColumnFilters<T>(args: {
 	}
 }
 
-/** Builds the {@link GridPaginationView} the footer renders from. @internal */
+/**
+ * Builds the {@link GridPaginationView} the footer renders from.
+ *
+ * @remarks
+ * The view counts the pages itself, as the engine counts them (see
+ * `pageCountOf`), so a render reads no engine row model. The engine handle
+ * serves only the actions, which run after the render.
+ *
+ * @param args.rows - The count of the rows before pagination: the rows after
+ *   the client filters.
+ * @internal
+ */
 export function buildPaginationView<T>(args: {
 	table: EngineTable<T>
 	pagination: PaginationState
 	manual: boolean
 	config: GridPagination
+	rows: number
 	pageRowCount: number
 }): GridPaginationView {
 	const { pageIndex, pageSize } = args.pagination
 
 	const onPage = args.pageRowCount
 
-	// Pre-pagination count reflects any client-side filtering; server mode trusts the supplied total.
-	const total = args.manual
-		? args.config.rowCount
-		: args.table.getPrePaginatedRowModel().rows.length
+	// A server grid supplies its totals. They reach the engine only in manual mode.
+	const pageCount = pageCountOf({
+		pageCount: args.manual ? args.config.pageCount : undefined,
+		rowCount: args.manual ? args.config.rowCount : undefined,
+		rows: args.rows,
+		pageSize,
+	})
+
+	const { table } = args
 
 	return {
 		pageIndex,
 		pageSize,
-		pageCount: args.table.getPageCount(),
-		rowCount: total,
+		pageCount,
+		// The count before pagination reflects the client filters; server mode trusts the supplied total.
+		rowCount: args.manual ? args.config.rowCount : args.rows,
 		from: onPage === 0 ? 0 : pageIndex * pageSize + 1,
 		to: onPage === 0 ? 0 : pageIndex * pageSize + onPage,
-		canPrevious: args.table.getCanPreviousPage(),
-		canNext: args.table.getCanNextPage(),
+		canPrevious: pageIndex > 0,
+		canNext: pageCount === -1 || (pageCount !== 0 && pageIndex < pageCount - 1),
 		pageSizeOptions: args.config.pageSizeOptions,
-		// The count is read when the updater runs, and `-1` (unknown) leaves the top
-		// open. The engine still clamps the floor at 0.
+		// `-1` (unknown) leaves the top open. The engine still clamps the floor at 0.
 		setPageIndex: (index) =>
-			args.table.setPageIndex((current) => {
+			table.setPageIndex((current) => {
 				const next = functionalUpdate(index, current)
 
-				const last = args.table.getPageCount() - 1
+				const last = pageCount - 1
 
 				return last >= 0 ? clamp(next, 0, last) : next
 			}),
-		setPageSize: (size) => args.table.setPageSize(size),
+		setPageSize: (size) => table.setPageSize(size),
 	}
 }
 

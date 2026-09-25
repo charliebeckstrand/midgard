@@ -61,6 +61,8 @@ export type MountedGrid = {
 	search: (query: string) => void
 	/** Applies a `contains` filter to the carrier column; `''` clears it. The grid must mount with {@link MountOptions.filterable}. */
 	filter: (text: string) => void
+	/** Shows the page at `index`. The grid must mount with {@link MountOptions.paginated}. */
+	page: (index: number) => void
 	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
 	scroller: () => HTMLElement | null
 	destroy: () => void
@@ -70,7 +72,12 @@ export type MountedGrid = {
 export type MountOptions = {
 	/** Makes the carrier column filterable, for the column-filter scenario. The other scenarios leave it off, so no filter affordance adds to their cost. */
 	filterable?: boolean
+	/** Pages the rows {@link PAGE_SIZE} at a time, for the pagination scenario. */
+	paginated?: boolean
 }
+
+/** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
+export const PAGE_SIZE = 100
 
 /** One library's entry in a scenario: a name for the report and a mount. */
 export type GridContender = {
@@ -170,7 +177,11 @@ function uiContender(): GridContender {
 
 			let filters: GridColumnFilterState[] = []
 
+			let pageIndex = 0
+
 			const filterable = options?.filterable ?? false
+
+			const paginated = options?.paginated ?? false
 
 			const draw = () =>
 				flushSync(() =>
@@ -184,6 +195,7 @@ function uiContender(): GridContender {
 							sort={{ value: sort }}
 							search={{ value: search }}
 							columnFilters={filterable ? { value: filters } : undefined}
+							pagination={paginated ? { value: { pageIndex, pageSize: PAGE_SIZE } } : undefined}
 						/>,
 					),
 				)
@@ -211,6 +223,11 @@ function uiContender(): GridContender {
 
 					draw()
 				},
+				page(index) {
+					pageIndex = index
+
+					draw()
+				},
 				scroller: () => mustFind(box, '[data-slot="grid-scroll"]'),
 				destroy: () => {
 					root.unmount()
@@ -233,6 +250,7 @@ function agContender(): GridContender {
 				columnDefs: options?.filterable
 					? AG_COLUMNS.map((col) => (col.field === 'carrier' ? { ...col, filter: true } : col))
 					: AG_COLUMNS,
+				...(options?.paginated ? { pagination: true, paginationPageSize: PAGE_SIZE } : {}),
 				rowData: rows,
 				getRowId: ({ data }) => data.id,
 				animateRows: false,
@@ -251,6 +269,7 @@ function agContender(): GridContender {
 					api.setFilterModel(
 						text ? { carrier: { filterType: 'text', type: 'contains', filter: text } } : null,
 					),
+				page: (index) => api.paginationGoToPage(index),
 				scroller: () => mustFind(box, '.ag-grid-viewport'),
 				destroy: () => {
 					api.destroy()
@@ -266,7 +285,7 @@ function agContender(): GridContender {
 function muiContender(): GridContender {
 	return {
 		name: 'MUI X DataGrid',
-		mount(host, rows) {
+		mount(host, rows, options) {
 			const box = fillBox(host)
 
 			const root = createRoot(box)
@@ -274,6 +293,8 @@ function muiContender(): GridContender {
 			let current = rows
 
 			let sortModel: GridSortModel = []
+
+			let page = 0
 
 			let filterModel: GridFilterModel = { items: [] }
 
@@ -285,6 +306,7 @@ function muiContender(): GridContender {
 							rows={current}
 							sortModel={sortModel}
 							filterModel={filterModel}
+							{...(options?.paginated ? { paginationModel: { page, pageSize: PAGE_SIZE } } : {})}
 						/>,
 					),
 				)
@@ -314,6 +336,11 @@ function muiContender(): GridContender {
 					filterModel = {
 						items: text ? [{ field: 'carrier', operator: 'contains', value: text }] : [],
 					}
+
+					draw()
+				},
+				page(index) {
+					page = index
 
 					draw()
 				},

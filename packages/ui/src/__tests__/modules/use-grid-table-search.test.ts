@@ -2,11 +2,12 @@ import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn, GridSort } from '../../modules/grid'
 import { useGridTable } from '../../modules/grid/use-grid-table'
+import { engineTable } from '../helpers/grid-engine'
 
 /**
- * A search that is the only transform runs off the engine. With pagination
- * on, the engine runs the same search inside its pipeline. The two paths must
- * give the same rows in the same order, with the same keys.
+ * Without grouping, the grid searches and sorts its rows off the engine. The
+ * engine runs the same search inside its pipeline for a grouped grid. The two
+ * paths must give the same rows in the same order, with the same keys.
  */
 describe('useGridTable search', () => {
 	type Row = { id: number; name: string | null; city: string }
@@ -26,7 +27,7 @@ describe('useGridTable search', () => {
 
 	const getKey = (row: Row) => `row-${row.id}`
 
-	function view(query: string, sort: GridSort['value'], paginated: boolean) {
+	function view(query: string, sort: GridSort['value']) {
 		const { result } = renderHook(() =>
 			useGridTable<Row>({
 				rows,
@@ -35,11 +36,20 @@ describe('useGridTable search', () => {
 				globalFilter: { value: query },
 				sort,
 				setSort: () => {},
-				...(paginated ? { pagination: { value: { pageIndex: 0, pageSize: 50 } } } : {}),
 			}),
 		)
 
 		return { ids: result.current.renderRows.map((row) => row.id), keys: result.current.rowKeys }
+	}
+
+	/** The rows and keys of a stock engine table. */
+	function engineView(query: string, sort: GridSort['value']) {
+		const shown = engineTable(rows, columns, getKey, { query, sort: sort ?? [] }).getRowModel().rows
+
+		return {
+			ids: shown.map((row) => row.original.id),
+			keys: shown.map((row) => getKey(row.original)),
+		}
 	}
 
 	it.each([
@@ -48,14 +58,14 @@ describe('useGridTable search', () => {
 		['a query and an ascending sort', 'd', [{ column: 'name', direction: 'asc' }]],
 		['a query and a descending sort', 'd', [{ column: 'name', direction: 'desc' }]],
 	] as const)('gives the rows of the engine for %s', (_, query, sort) => {
-		const off = view(query, [...sort], false)
+		const off = view(query, [...sort])
 
-		expect(off).toEqual(view(query, [...sort], true))
+		expect(off).toEqual(engineView(query, [...sort]))
 
 		expect(off.ids.length).toBeLessThan(rows.length)
 	})
 
 	it('matches without case, and skips an empty cell', () => {
-		expect(view('DEN', [], false).ids).toEqual([1, 4])
+		expect(view('DEN', []).ids).toEqual([1, 4])
 	})
 })
