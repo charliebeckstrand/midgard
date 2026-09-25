@@ -63,7 +63,12 @@ export function useChatMessages(chatId: string | null) {
 	})
 }
 
-/** Changes the email of one user, and writes the new email into the cached list. */
+/**
+ * Changes the email of one user, and writes the new email into the cached list.
+ *
+ * The gateway sets `updated_at`, and the client cannot know its value. So the
+ * list shows the new email at once, and a refetch then brings the new time.
+ */
 export function useSaveUserEmail() {
 	const client = useQueryClient()
 
@@ -74,6 +79,9 @@ export function useSaveUserEmail() {
 			client.setQueryData<User[]>(usersKeys.all, (users) =>
 				users?.map((user) => (user.id === userId ? { ...user, email } : user)),
 			)
+
+			// Exact, so the chats of each user, under the same prefix, stay cached.
+			void client.invalidateQueries({ queryKey: usersKeys.all, exact: true })
 		},
 	})
 }

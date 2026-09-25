@@ -38,7 +38,7 @@ export function UserDetailsClient({
 	chats: initialChats,
 }: UserDetailsClientProps) {
 	const { data: chats } = useUserChats(userId, initialChats)
-	const { mutate: deleteChat } = useDeleteChat(userId)
+	const { mutate: deleteChat, isPending: deleting } = useDeleteChat(userId)
 	const [confirmDeleteChat, setConfirmDeleteChat] = useState<string | null>(null)
 	const [viewChat, setViewChat] = useState<string | null>(null)
 	const { data: messages, isError: messagesFailed } = useChatMessages(viewChat)
@@ -143,6 +143,7 @@ export function UserDetailsClient({
 					</Button>
 					<Button
 						color="red"
+						disabled={deleting}
 						onClick={() =>
 							confirmDeleteChat &&
 							deleteChat(confirmDeleteChat, { onSettled: () => setConfirmDeleteChat(null) })
