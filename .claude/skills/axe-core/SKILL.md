@@ -17,8 +17,6 @@ allowed-tools: Read, Grep, Glob, Write, Edit
 - **Complex ARIA pattern implementation** - Use `wcag` skill for ARIA authoring practices
 - **Accessibility strategy planning** - This is for test automation, not accessibility consulting
 
-> **Deep Knowledge**: Use `mcp__documentation__fetch_docs` with technology: `axe-core` for comprehensive documentation on rules, configuration, and integrations.
-
 ## Setup Base
 
 ```bash
