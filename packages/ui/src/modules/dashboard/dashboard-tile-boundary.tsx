@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, type ErrorInfo, type ReactNode, Suspense } from 'react'
+import { Component, type ErrorInfo, isValidElement, type ReactNode, Suspense } from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
@@ -18,16 +18,74 @@ export type DashboardTileBoundaryProps = {
 	quiet?: boolean
 	/** Receives each error that the boundary catches. */
 	onError: (error: unknown) => void
+	/**
+	 * The widget element. After an error, a new element that differs from the
+	 * element that failed renders the content again. Without it, only the retry
+	 * button does.
+	 */
+	resetKey?: ReactNode
 	children: ReactNode
 }
 
-/** The state of {@link DashboardTileBoundary}: the caught error, or `null`. */
-type DashboardTileBoundaryState = { error: unknown }
+/** The state of {@link DashboardTileBoundary}. */
+type DashboardTileBoundaryState = {
+	/** The caught error, or `null`. */
+	error: unknown
+	/** The widget element of the last render of the content. After a throw, it is the element that failed. */
+	element: ReactNode
+}
+
+/** Whether a value is a plain object: an object literal, or an object with no prototype. */
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+	if (typeof value !== 'object' || value === null) return false
+
+	const prototype = Object.getPrototypeOf(value)
+
+	return prototype === Object.prototype || prototype === null
+}
+
+/**
+ * Whether two widget values render the same widget. Elements match on the type,
+ * the key, and the props. Arrays, plain objects, and dates compare by value, and
+ * two functions count as equal. Other objects compare by reference.
+ *
+ * @remarks
+ * A parent that renders again gives a new element, with new inline literals and
+ * new callbacks. They count as no change. A widget that still throws therefore
+ * does not throw again on each render of the parent. An app that sets state in
+ * each report then does not loop, as long as each other object in the props
+ * stays stable.
+ */
+function sameWidget(a: unknown, b: unknown): boolean {
+	if (Object.is(a, b)) return true
+
+	if (typeof a === 'function' && typeof b === 'function') return true
+
+	if (Array.isArray(a) && Array.isArray(b)) {
+		return a.length === b.length && a.every((item, index) => sameWidget(item, b[index]))
+	}
+
+	if (isValidElement(a) && isValidElement(b)) {
+		return a.type === b.type && a.key === b.key && sameWidget(a.props, b.props)
+	}
+
+	if (a instanceof Date && b instanceof Date) return a.getTime() === b.getTime()
+
+	if (!isPlainObject(a) || !isPlainObject(b)) return false
+
+	const keys = Object.keys(a)
+
+	return (
+		keys.length === Object.keys(b).length &&
+		keys.every((key) => Object.hasOwn(b, key) && sameWidget(a[key], b[key]))
+	)
+}
 
 /**
  * The error boundary of one tile. A widget that throws replaces only its own
  * content with an error state, and the rest of the board keeps working. The retry
- * button renders the content again.
+ * button renders the content again. So does a new `resetKey` that differs from
+ * the element that failed.
  *
  * A quiet boundary shows nothing in place of the failed part. It has no retry,
  * so the part stays hidden until the boundary mounts again.
@@ -38,14 +96,28 @@ export class DashboardTileBoundary extends Component<
 	DashboardTileBoundaryProps,
 	DashboardTileBoundaryState
 > {
-	state: DashboardTileBoundaryState = { error: null }
+	state: DashboardTileBoundaryState = { error: null, element: null }
 
-	static getDerivedStateFromError(error: unknown): DashboardTileBoundaryState {
+	static getDerivedStateFromError(error: unknown): Partial<DashboardTileBoundaryState> {
 		return { error: error ?? new Error('Unknown error') }
+	}
+
+	static getDerivedStateFromProps(
+		{ resetKey }: DashboardTileBoundaryProps,
+		{ error, element }: DashboardTileBoundaryState,
+	): Partial<DashboardTileBoundaryState> | null {
+		return error === null && element !== resetKey ? { element: resetKey } : null
 	}
 
 	componentDidCatch(error: unknown, _info: ErrorInfo): void {
 		this.props.onError(error)
+	}
+
+	// After an error, `element` stays the element that failed, so an equal element resets nothing.
+	componentDidUpdate(): void {
+		const { error, element } = this.state
+
+		if (error !== null && !sameWidget(element, this.props.resetKey)) this.setState({ error: null })
 	}
 
 	retry = (): void => {

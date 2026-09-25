@@ -646,6 +646,87 @@ describe('Dashboard', () => {
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
 	})
 
+	/** A widget that throws while `fail` is set. */
+	function Widget({ fail }: { fail: boolean; rows?: number[]; onPick?: () => void }) {
+		if (fail) throw new Error('boom')
+
+		return <p>Recovered</p>
+	}
+
+	it('renders a new widget element again after an error, with no click, and reports each failed element once', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const board = (widget: ReactNode) => (
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue">
+					{widget}
+				</DashboardTile>
+			</Dashboard>
+		)
+
+		const { rerender } = renderUI(board(<Widget fail />))
+
+		expect(onTileError).toHaveBeenCalledTimes(1)
+
+		// An equal element tries nothing again.
+		rerender(board(<Widget fail />))
+
+		expect(onTileError).toHaveBeenCalledTimes(1)
+
+		// Other props try once, and the widget still throws.
+		rerender(board(<Widget fail rows={[1]} />))
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		expect(onTileError).toHaveBeenCalledTimes(2)
+
+		rerender(board(<Widget fail={false} />))
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+	})
+
+	it.each([
+		['an equal element', () => <Widget fail />],
+		['an element with new inline props', () => <Widget fail rows={[1]} onPick={() => {}} />],
+	])(
+		'reports an error once when onTileError sets app state, and the parent renders %s',
+		(_, widget) => {
+			const onReport = vi.fn()
+
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			function App() {
+				const [reports, setReports] = useState<unknown[]>([])
+
+				return (
+					<Dashboard
+						aria-label="Sales"
+						layout={{ defaultValue: LAYOUT }}
+						onTileError={(_id, error) => {
+							onReport()
+
+							setReports((current) => [...current, error])
+						}}
+					>
+						<DashboardTile id="a" title={`Revenue ${reports.length}`}>
+							{widget()}
+						</DashboardTile>
+					</Dashboard>
+				)
+			}
+
+			renderUI(<App />)
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
+
+			expect(onReport).toHaveBeenCalledTimes(1)
+		},
+	)
+
 	it('confines an error in the actions to the header controls, and reports it', () => {
 		const onTileError = vi.fn()
 

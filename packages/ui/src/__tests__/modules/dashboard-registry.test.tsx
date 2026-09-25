@@ -187,6 +187,22 @@ describe('DashboardTiles', () => {
 		expect(onTileError).toHaveBeenCalledWith('revenue', expect.any(TypeError))
 	})
 
+	it('renders a spec tile again when an options edit fixes its renderer, with no click', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { rerender } = renderUI(
+			<Board tiles={[{ id: 'revenue', widget: 'metric', title: 'Revenue' }, ...TILES.slice(1)]} />,
+		)
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		rerender(<Board />)
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveTextContent('Revenue whole')
+	})
+
 	it('renders the other tiles on the server when a renderer throws', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 

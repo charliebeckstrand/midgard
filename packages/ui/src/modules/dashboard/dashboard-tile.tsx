@@ -139,7 +139,15 @@ export type DashboardTileProps = {
 	 */
 	expandable?: boolean
 	className?: string
-	/** The widget. Keep the element stable, because a move never renders it again. */
+	/**
+	 * The widget. Keep the element stable, because a move never renders it again.
+	 *
+	 * @remarks
+	 * When the widget throws, the tile shows an error state with a retry button. A
+	 * new element of another type, key, or prop value clears it, with no press. A
+	 * new inline literal or callback of the same value does not. A filter change
+	 * does not either, because the widget reads the scope through context.
+	 */
 	children?: ReactNode
 }
 
