@@ -1,0 +1,22 @@
+language js
+
+// Every module under `hooks/` is client-only and opens with `'use client'`
+// (`docs/HOOKS.md`). This plugin holds the directive in place.
+//
+// The plugin matches a directive node, not file text. A `'use client'` string
+// after the first statement is not a directive, so it does not count. The
+// diagnostic marks the first statement, which the directive must precede.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: each module
+// under `hooks/`, minus the barrels, which only re-export.
+file(body = $body) where {
+	$body <: JsModule(items = $items),
+	$items <: [$first, ...],
+	not $body <: contains JsDirective() as $directive where {
+		$directive <: r"['\"]use client['\"];?"
+	},
+	register_diagnostic(
+		span = $first,
+		message = "open the hook module with `'use client'`: every module under `hooks/` is client-only"
+	)
+}
