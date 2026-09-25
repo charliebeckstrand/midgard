@@ -4,10 +4,11 @@
  * The widgets inside a tile keep their own recipes.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, sen } from '../kiso'
+import { hannou, iro, kasane, sen, sun } from '../kiso'
 
 const { grab } = hannou
 const { text } = iro
+const { rounded } = kasane
 
 /**
  * The column guides in edit mode: a hairline on each interior column boundary,
@@ -145,14 +146,18 @@ const content = ['@container relative min-h-0 flex-1 overflow-auto']
 const expanded = ['flex h-[min(70dvh,40rem)] min-h-0 flex-col']
 
 /** The error state of a tile: a centered message and a retry button. */
-const error = ['flex size-full flex-col items-center justify-center gap-2 text-center']
+const error = ['flex size-full flex-col items-center justify-center gap-2 p-2 text-center']
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
 const missing = ['flex size-full items-center justify-center p-2 text-center']
 
-/** The landing placeholder of a dragged tile. */
+/**
+ * The landing placeholder of a dragged tile. It takes the radius of the tile
+ * card, which is a card of the `sm` step.
+ */
 const placeholder = [
-	'pointer-events-none rounded-lg',
+	'pointer-events-none',
+	rounded[sun.sm.radius],
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 ]
 
