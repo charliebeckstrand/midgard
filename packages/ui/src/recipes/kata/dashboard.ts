@@ -125,8 +125,11 @@ const veil = {
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
+ *
+ * The content box is the inline-size container of the widget. A container query
+ * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = ['relative min-h-0 flex-1 overflow-auto']
+const content = ['@container relative min-h-0 flex-1 overflow-auto']
 
 /**
  * The content box of an expanded tile, in its dialog. It gives the widget a

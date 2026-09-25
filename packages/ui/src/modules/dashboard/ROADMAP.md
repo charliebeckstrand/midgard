@@ -8,7 +8,7 @@ Version one covers layers 1 to 3 of the plan: the engine, the shell, and the sco
 
 The dashboard imports no chart, grid, or map, and none of them imports the dashboard. `DashboardTile` owns its chrome: the title, the description, the actions, and the drag grip. In edit mode the tile sets `inert` on its content box, so no widget needs edit-mode code.
 
-The board is a CSS grid inside an inline-size container, and its row unit is a fraction of `100cqi`. The server renders each tile that has a layout entry at its saved cell, with no measurement.
+The board is a CSS grid inside an inline-size container, and its row unit is a fraction of `100cqi`. Each content box is an inline-size container too, so a container query in a widget reads its tile. The server renders each tile that has a layout entry at its saved cell, with no measurement.
 
 The board never moves a tile by itself. A drag moves a tile into free cells, or it reorders it against an equal tile; anything else is blocked. A resize grows a tile until it meets a neighbor or an edge. When the container renders a tile under its `minWidth`, the board paints a re-pack of the same layout, and it never saves the re-pack.
 

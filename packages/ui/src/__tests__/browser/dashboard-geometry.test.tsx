@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
-import { allBySlot, renderUI, waitFor } from '../helpers'
+import { allBySlot, getSlot, renderUI, screen, waitFor } from '../helpers'
 
 /**
  * The dashboard derives its rows from the container width in CSS alone: a
@@ -83,6 +83,27 @@ describe('dashboard geometry (real browser)', () => {
 
 		// The default gutter stays between the two cards.
 		expect((b?.left ?? 0) - (a?.right ?? 0)).toBeCloseTo(12, 0)
+	})
+
+	it('sizes a container unit of a widget by its content box, and not by the board', () => {
+		// 6 of 24 columns on a 960 px board is a tile of 240 px.
+		const { container } = renderUI(
+			<div style={{ width: 960 }}>
+				<Dashboard aria-label="Sales" layout={{ value: [{ id: 'a', x: 0, y: 0, w: 6, h: 20 }] }}>
+					<DashboardTile id="a" minWidth={0}>
+						<div data-testid="probe" className="h-2 w-[50cqi]" />
+					</DashboardTile>
+				</Dashboard>
+			</div>,
+		)
+
+		const box = getSlot(container, 'dashboard-tile-content').getBoundingClientRect()
+
+		const probe = screen.getByTestId('probe').getBoundingClientRect()
+
+		expect(box.width).toBeLessThan(240)
+
+		expect(probe.width).toBeCloseTo(box.width / 2, 0)
 	})
 
 	it('re-packs into a stack when the container starves the tiles', async () => {

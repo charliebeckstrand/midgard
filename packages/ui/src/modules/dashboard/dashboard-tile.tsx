@@ -160,6 +160,9 @@ export type DashboardTileProps = {
  * the tile sets `inert` on the content box. No widget then takes a pointer, a
  * focus, or an assistive-tech read while the user arranges the board.
  *
+ * The content box is an inline-size container. A container query or a `cqi`
+ * unit in a widget therefore reads the tile, and not the board.
+ *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.
  *
