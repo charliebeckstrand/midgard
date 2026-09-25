@@ -4,24 +4,12 @@ import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-lay
 import {
 	drivesHeight,
 	drivesWidth,
+	resizeFloor,
+	resizeLimits,
 	resizePreview,
+	resizeRange,
 } from '../../modules/dashboard/engine/dashboard-resize'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
+import { cell } from '../helpers/dashboard-cells'
 
 const find = (cells: readonly DashboardCell[] | null, id: string) =>
 	cells?.find((item) => item.id === id)
@@ -136,5 +124,89 @@ describe('resizePreview with grid-unit limits', () => {
 		})
 
 		expect(find(next, 'a')).toMatchObject({ x: 20, w: 4 })
+	})
+})
+
+describe('resizeLimits', () => {
+	// A 50 px pitch and a 12 px gap: 320 px needs 7 columns.
+	const measure = { columns: 24, gap: 12, pitch: 50 }
+
+	it('floors the width at the larger of the minWidth span and minSize.w', () => {
+		expect(resizeFloor({ minWidth: 320 }, measure)).toBe(7)
+
+		expect(resizeFloor({ minWidth: 320, minSize: { w: 2 } }, measure)).toBe(7)
+
+		expect(resizeFloor({ minWidth: 320, minSize: { w: 9 } }, measure)).toBe(9)
+
+		expect(resizeFloor({ minSize: { w: 3 } }, measure)).toBe(3)
+
+		expect(resizeFloor(undefined, measure)).toBe(1)
+	})
+
+	it('reads the other limits from the demands of the tile', () => {
+		const demand = { minSize: { h: 8 }, maxSize: { w: 10, h: 30 }, ratio: 2 }
+
+		expect(resizeLimits(demand, 24, 6)).toEqual({
+			columns: 24,
+			minW: 6,
+			maxW: 10,
+			minH: 8,
+			maxH: 30,
+			ratio: 2,
+		})
+	})
+})
+
+describe('resizeRange', () => {
+	it('reaches from the floor to the maximum, inside the right edge', () => {
+		expect(resizeRange({ columns: 24, minW: 6, maxW: 10, minH: 4, maxH: 30 }, 0)).toEqual({
+			minW: 6,
+			maxW: 10,
+			minH: 4,
+			maxH: 30,
+		})
+
+		expect(resizeRange({ columns: 24, minW: 6 }, 20)).toMatchObject({ minW: 4, maxW: 4 })
+
+		expect(resizeRange({ columns: 24, minW: 1 }, 4)).toEqual({ minW: 1, maxW: 20, minH: 1 })
+	})
+
+	it('lets a minimum win over a smaller maximum on each axis', () => {
+		expect(resizeRange({ columns: 24, minW: 9, maxW: 4, minH: 12, maxH: 6 }, 0)).toEqual({
+			minW: 9,
+			maxW: 9,
+			minH: 12,
+			maxH: 12,
+		})
+	})
+
+	it('gives a tile with a fixed ratio no height limits', () => {
+		expect(resizeRange({ columns: 24, minW: 1, minH: 8, maxH: 20, ratio: 2 }, 0)).toEqual({
+			minW: 1,
+			maxW: 24,
+			minH: 1,
+		})
+	})
+
+	it('holds each span that resizePreview gives', () => {
+		const limits = { columns: 24, minW: 5, maxW: 11, minH: 6, maxH: 14 }
+
+		const range = resizeRange(limits, 2)
+
+		for (const w of [1, 8, 30]) {
+			for (const h of [1, 10, 40]) {
+				const next = find(resizePreview([cell('a', 2, 0, 8, 10)], 'a', w, h, limits), 'a')
+
+				const span = next ?? { w: 8, h: 10 }
+
+				expect(span.w).toBeGreaterThanOrEqual(range.minW)
+
+				expect(span.w).toBeLessThanOrEqual(range.maxW)
+
+				expect(span.h).toBeGreaterThanOrEqual(range.minH)
+
+				expect(span.h).toBeLessThanOrEqual(range.maxH ?? Number.POSITIVE_INFINITY)
+			}
+		}
 	})
 })

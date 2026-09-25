@@ -106,6 +106,43 @@ describe('dashboard spark veil (real browser)', () => {
 		await expect.poll(() => style(header).opacity).toBe('1')
 	})
 
+	it('leaves the header in the flow when a spark chart sits in the actions of a wide tile', async () => {
+		renderUI(
+			<div style={{ width: 960 }}>
+				<Dashboard
+					aria-label="Board"
+					layout={{ value: [{ id: 'wide', x: 0, y: 0, w: 12, h: 12 }] }}
+				>
+					<DashboardTile
+						id="wide"
+						title="Trend wide"
+						minWidth={0}
+						actions={
+							<div style={{ width: 96, height: 24 }}>
+								<LineChart
+									aria-label="Chart in the actions"
+									data={DATA}
+									series={[{ xKey: 'label', yKey: 'value', yName: 'Value' }]}
+									aspectRatio={false}
+								/>
+							</div>
+						}
+					>
+						<p>Body</p>
+					</DashboardTile>
+				</Dashboard>
+			</div>,
+		)
+
+		await expect.poll(() => tierOf('wide')).toBe('spark')
+
+		const { header } = parts('wide')
+
+		expect(style(header).position).toBe('static')
+
+		expect(style(header).opacity).toBe('1')
+	})
+
 	it('keeps the veil in view in edit mode, with one content height in both modes', async () => {
 		const { rerender } = renderUI(<Board />)
 

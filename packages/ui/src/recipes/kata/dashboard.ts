@@ -2,12 +2,18 @@
  * Dashboard kata: the surface of the dashboard module. It styles the canvas, the
  * tile chrome, the drag grip, the resize splitters, and the landing placeholder.
  * The widgets inside a tile keep their own recipes.
+ *
+ * Each class list that is not a recipe is one string, joined once at module load.
+ * `cn` memoizes a call by a walk over its strings (`core/cn.ts`). A string takes
+ * one memo node and one lookup on each render of a tile. An array takes one node
+ * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, sen } from '../kiso'
+import { hannou, iro, kasane, omote, sen, sun } from '../kiso'
 
-const { grab } = hannou
+const { fg, grab } = hannou
 const { text } = iro
+const { rounded } = kasane
 
 /**
  * The column guides in edit mode: a hairline on each interior column boundary,
@@ -71,13 +77,19 @@ const card = defineRecipe({
 })
 
 /** The header row: the grip, the title block, and the actions. */
-const header = ['flex min-w-0 items-center gap-2']
+const header = 'flex min-w-0 items-center gap-2'
 
-/** The title block, which truncates before it pushes the actions out. */
-const heading = ['min-w-0 flex-1 truncate']
+/**
+ * The title block, which shrinks before it pushes the actions out. Each line in
+ * it truncates on its own.
+ */
+const heading = 'min-w-0 flex-1'
 
-/** The action row at the far end of the header. */
-const actions = ['flex shrink-0 items-center gap-1']
+/**
+ * The action row at the far end of the header. A press in it starts no drag,
+ * so it takes the default cursor over the grab hand of the card.
+ */
+const actions = 'flex shrink-0 cursor-default items-center gap-1'
 
 /**
  * The spark veil, which the card applies. A chart at the spark tier writes
@@ -85,6 +97,9 @@ const actions = ['flex shrink-0 items-center gap-1']
  * code crosses the module boundary. The header then leaves the flow for a veil
  * over the top of the content, and the sparkline takes the full height. This is
  * the posture of the chart's own title at the spark tier.
+ *
+ * The rule reads only the content box, at any depth in it. A spark chart in the
+ * actions of the header therefore veils nothing.
  */
 const veil = {
 	/**
@@ -92,20 +107,22 @@ const veil = {
 	 * content box therefore keeps one height when edit mode switches.
 	 */
 	overlay: [
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:absolute',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:top-2',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:z-10',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:px-1',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:py-1',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
-		'has-[[data-tier=spark]]:*:data-[slot=card-header]:duration-150',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:absolute',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:top-2',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
+		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:p-1',
+		// The fade stays under the spark variant. A transition on the header at all times
+		// also fades the header in when a chart leaves the spark tier, as it does on mount.
+		// The fade takes the motion-safe gate of `ugoki.css.opacity`, and the default
+		// duration of 150 ms.
+		'motion-safe:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
 		...mode(
-			'has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
-			'dark:has-[[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
+			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
+			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
 		),
-	],
+	].join(' '),
 	/**
 	 * At rest, the veil fades out and lets the pointer through, until the card is
 	 * hovered or holds focus. A tab onto a control of the header therefore shows
@@ -116,35 +133,42 @@ const veil = {
 	 * the card either. The veil therefore stays in view there, as in edit mode.
 	 */
 	fade: [
-		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
-		'[@media(hover:hover)]:has-[[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
-	],
+		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
+		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
+	].join(' '),
 } as const
 
 /**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
+ *
+ * The content box is the inline-size container of the widget. A container query
+ * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = ['relative min-h-0 flex-1 overflow-auto']
+const content = '@container relative min-h-0 flex-1 overflow-auto'
 
 /**
  * The content box of an expanded tile, in its dialog. It gives the widget a
  * height, so a chart that fills its box has a box to fill.
  */
-const expanded = ['flex h-[min(70dvh,40rem)] min-h-0 flex-col']
+const expanded = 'flex h-[min(70dvh,40rem)] min-h-0 flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
-const error = ['flex size-full flex-col items-center justify-center gap-2 text-center']
+const error = 'flex size-full flex-col items-center justify-center gap-2 p-2 text-center'
 
 /** The state of a spec tile whose kind no widget claims: a centered message. */
-const missing = ['flex size-full items-center justify-center p-2 text-center']
+const missing = 'flex size-full items-center justify-center p-2 text-center'
 
-/** The landing placeholder of a dragged tile. */
+/**
+ * The landing placeholder of a dragged tile. It takes the radius of the tile
+ * card, which is a card of the `sm` step.
+ */
 const placeholder = [
-	'pointer-events-none rounded-lg',
+	'pointer-events-none',
+	rounded[sun.sm.radius],
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
-]
+].join(' ')
 
 /** The drag grip. The floating form sits on the corner of a tile that has no header row. */
 const handle = defineRecipe({
@@ -152,29 +176,35 @@ const handle = defineRecipe({
 		'flex size-6 shrink-0 items-center justify-center rounded-md',
 		...grab.default,
 		...text.muted,
-		...mode(
-			'hover:bg-zinc-100 hover:text-zinc-700',
-			'dark:hover:bg-zinc-800 dark:hover:text-zinc-300',
-		),
+		...fg.hover,
 		...sen.focus.ring,
 	],
 	floating: {
 		true: [
-			'absolute start-3 top-3 z-10',
-			'border shadow-sm',
-			...mode('border-zinc-200 bg-white/90', 'dark:border-zinc-800 dark:bg-zinc-900/90'),
+			'absolute start-3 top-3 z-10 shadow-sm',
+			...sen.border.default,
+			...mode('bg-white/90', 'dark:bg-zinc-900/90'),
 		],
 		false: '',
 	},
-	defaults: { floating: false },
+	// A lifted grip takes the violet focus ring of a lift. The tile shell keeps its
+	// own raise, because the z-10 of the kiso raise ties with the chrome of the
+	// later tiles.
+	dragging: { true: sen.focus.lifted.outline, false: '' },
+	defaults: { floating: false, dragging: false },
 })
 
-/** A resize splitter on one edge of a tile. The bar shows on hover, focus, and drag. */
+/**
+ * A resize splitter on one edge of a tile. The bar shows on hover, focus, and
+ * drag. Where the primary pointer is coarse, the bar stays in view, because a
+ * touch screen matches no hover, and a tap matches no focus-visible.
+ */
 const resizeHandle = defineRecipe({
 	base: [
 		'absolute z-10 touch-none select-none',
-		"after:absolute after:rounded-full after:opacity-0 after:transition-opacity after:content-['']",
+		"after:absolute after:rounded-full after:opacity-0 motion-safe:after:transition-opacity after:content-['']",
 		'hover:after:opacity-100 focus-visible:after:opacity-100 data-[resizing]:after:opacity-100',
+		'pointer-coarse:after:opacity-100',
 		...mode('after:bg-zinc-400', 'dark:after:bg-zinc-600'),
 		...sen.focus.ring,
 	],
@@ -198,14 +228,13 @@ const resizeHandle = defineRecipe({
 /** The chip that shows the span of a tile while it resizes. */
 const readout = [
 	'pointer-events-none absolute bottom-3 end-3 z-30',
-	'rounded-md border px-2 py-1',
+	'rounded-md px-2 py-1',
 	'text-xs tabular-nums',
 	'shadow-sm',
-	...mode(
-		'border-zinc-200 bg-white text-zinc-700',
-		'dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-300',
-	),
-]
+	...sen.border.default,
+	...omote.bg.surface,
+	...mode('text-zinc-700', 'dark:text-zinc-300'),
+].join(' ')
 
 export const k = {
 	canvas,

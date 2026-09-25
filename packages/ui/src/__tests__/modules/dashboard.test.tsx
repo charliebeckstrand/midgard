@@ -1,19 +1,52 @@
 import { act } from '@testing-library/react'
-import { createRef, Profiler, type ReactNode, StrictMode, use, useState } from 'react'
+import {
+	type ComponentType,
+	createRef,
+	Profiler,
+	type ReactNode,
+	StrictMode,
+	Suspense,
+	use,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from 'react'
+import { createPortal } from 'react-dom'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { describe, expect, it, type MockInstance, onTestFinished, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import {
 	Dashboard,
 	type DashboardHandle,
 	type DashboardLayoutItem,
 	type DashboardProps,
+	type DashboardSelection,
 	DashboardTile,
 	useDashboardRows,
 	useDashboardScope,
 } from '../../modules/dashboard'
+import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
+import type { QueryGroup } from '../../modules/query/engine/types'
 import { k } from '../../recipes/kata/dashboard'
-import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	deferred,
+	fireEvent,
+	nonEmpty,
+	renderUI,
+	screen,
+	within,
+} from '../helpers'
+import {
+	ControlledDashboard,
+	pressSplitter,
+	StoreProbe,
+	settleKeyboardLifts,
+	stubCanvasWidth,
+	useControlledLayout,
+} from '../helpers/dashboard-board'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 12 },
@@ -21,17 +54,9 @@ const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'c', x: 0, y: 27, w: 8, h: 20 },
 ]
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
+stubCanvasWidth()
 
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+settleKeyboardLifts()
 
 function Board({
 	editing = false,
@@ -80,20 +105,11 @@ type GridSpies = {
 
 /** A controlled board in edit mode with the {@link GRID} layout. It saves each commit. */
 function Grid({ onLayout, onDragStart, onDragEnd, onRemove }: GridSpies) {
-	const [value, setValue] = useState(GRID)
-
 	return (
 		<Dashboard
 			aria-label="Sales"
 			editing
-			layout={{
-				value,
-				onValueChange: (next) => {
-					onLayout?.(next)
-
-					setValue(next)
-				},
-			}}
+			layout={useControlledLayout(GRID, onLayout)}
 			onDragStart={onDragStart}
 			onDragEnd={onDragEnd}
 		>
@@ -165,6 +181,23 @@ describe('Dashboard', () => {
 		expect(fades()).toEqual([])
 	})
 
+	it('fades the veil and the splitter bars only where the reader allows motion', () => {
+		const { container } = renderUI(<Board editing />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		const transitions = (element: Element) =>
+			[...element.classList].filter((name) => name.includes('transition'))
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. The card fades
+		// the veil, and each splitter fades its bar.
+		for (const element of [card, ...allBySlot(container, 'dashboard-resize-handle')]) {
+			for (const name of nonEmpty(transitions(element), 'transition class')) {
+				expect(name.startsWith('motion-safe:')).toBe(true)
+			}
+		}
+	})
+
 	it('makes the content inert in edit mode, and keeps it live at rest', () => {
 		const { container, rerender } = renderUI(<Board />)
 
@@ -193,32 +226,30 @@ describe('Dashboard', () => {
 		expect(screen.getAllByRole('separator', { name: 'Resize c' })).toHaveLength(2)
 	})
 
+	it('shows each splitter bar at rest where the primary pointer is coarse', () => {
+		const { container } = renderUI(<Board editing />)
+
+		const splitters = allBySlot(container, 'dashboard-resize-handle')
+
+		// Two edges on each of two ratio tiles, and three on the free-form tile.
+		expect(splitters).toHaveLength(7)
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. A touch screen
+		// matches no hover, and a tap matches no focus-visible.
+		for (const splitter of splitters)
+			expect(splitter).toHaveClass('pointer-coarse:after:opacity-100')
+	})
+
 	it('commits a keyboard resize, and emits a ratio tile without h', () => {
 		const onValueChange = vi.fn()
 
 		function Controlled() {
-			const [value, setValue] = useState(LAYOUT)
-
-			return (
-				<Board
-					editing
-					layout={{
-						value,
-						onValueChange: (next) => {
-							onValueChange(next)
-
-							setValue(next)
-						},
-					}}
-				/>
-			)
+			return <Board editing layout={useControlledLayout(LAYOUT, onValueChange)} />
 		}
 
 		renderUI(<Controlled />)
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowRight' })
+		pressSplitter('c', 0, 'ArrowRight')
 
 		expect(onValueChange).toHaveBeenCalledTimes(1)
 
@@ -254,6 +285,32 @@ describe('Dashboard', () => {
 		expect(grip).not.toHaveAttribute('data-dragging')
 
 		expect(bySlot(container, 'dashboard-placeholder')).toBeNull()
+	})
+
+	it('gives the grip the violet focus ring of a lift while the keyboard carries the tile', async () => {
+		renderUI(<Board editing />)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin.
+		expect(grip).toHaveClass('focus-visible:outline-blue-600')
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		expect(grip).toHaveClass('focus-visible:outline-violet-600')
+
+		expect(grip).not.toHaveClass('focus-visible:outline-blue-600')
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+
+		expect(grip).toHaveClass('focus-visible:outline-blue-600')
+
+		expect(grip).not.toHaveClass('focus-visible:outline-violet-600')
 	})
 
 	it('cancels a drag on Escape, and keeps the dialog around the board open', async () => {
@@ -384,6 +441,76 @@ describe('Dashboard', () => {
 		await teardown()
 	})
 
+	it.each([
+		['an app action', 'Menu'],
+		['the portal of an app action', 'Item'],
+		['Clear', 'Clear the selection in Revenue'],
+	])('starts no drag from a press on %s that moves, and runs its click', async (_, name) => {
+		const onDragStart = vi.fn()
+
+		const onPress = vi.fn()
+
+		// A menu of the app renders its items in a portal, and React bubbles their events to the card.
+		const actions = (
+			<>
+				<button type="button" onClick={onPress}>
+					Menu
+				</button>
+
+				{createPortal(
+					<button type="button" onClick={onPress}>
+						Item
+					</button>,
+					document.body,
+				)}
+			</>
+		)
+
+		renderUI(
+			<ControlledDashboard
+				aria-label="Sales"
+				editing
+				initial={GRID}
+				selection={{
+					defaultValue: [{ source: 'a', field: 'region', values: ['West'] }],
+					onValueChange: onPress,
+				}}
+				onDragStart={onDragStart}
+			>
+				<DashboardTile id="a" title="Revenue" actions={actions} />
+
+				<DashboardTile id="b" title="Traffic" />
+			</ControlledDashboard>,
+		)
+
+		const control = screen.getByRole('button', { name })
+
+		// A travel of 4 px passes the 3 px at which the pointer sensor lifts a tile.
+		fireEvent.pointerDown(control, { ...PRIMARY, clientX: 0, clientY: 0 })
+
+		fireEvent.pointerMove(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+
+		fireEvent.pointerUp(document, { ...PRIMARY, clientX: 4, clientY: 0 })
+
+		// A lift stops the next click on the document, so the control runs only when no drag starts.
+		fireEvent.click(control)
+
+		expect(onDragStart).not.toHaveBeenCalled()
+
+		expect(onPress).toHaveBeenCalledTimes(1)
+
+		await teardown()
+	})
+
+	it('gives the actions row the default cursor, so a badge or a gap in it shows no grab hand', () => {
+		renderUI(<Board editing />)
+
+		const card = screen.getByRole('group', { name: 'Revenue' })
+
+		// jsdom applies no Tailwind CSS, so the class carries the pin. The row starts no drag.
+		expect(bySlot(card, 'dashboard-tile-actions')).toHaveClass('cursor-default')
+	})
+
 	it('renders only the tile whose cell changed', () => {
 		const renders = new Map<string, number>()
 
@@ -403,16 +530,120 @@ describe('Dashboard', () => {
 
 		renders.clear()
 
-		fireEvent.keyDown(
-			screen.getAllByRole('separator', { name: 'Resize Orders' })[0] as HTMLElement,
-			{
-				key: 'ArrowRight',
-			},
-		)
+		pressSplitter('Orders', 0, 'ArrowRight')
 
 		expect(renders.get('c')).toBeGreaterThan(0)
 
 		expect(renders.get('a')).toBeUndefined()
+	})
+
+	it('renders each tile once on mount, when the registered cell equals the cell of its entry', () => {
+		const renders = new Map<string, number>()
+
+		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<Profiler id="a" onRender={count('a')}>
+					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+				</Profiler>
+
+				<Profiler id="c" onRender={count('c')}>
+					<DashboardTile id="c" title="Orders" />
+				</Profiler>
+			</Dashboard>,
+		)
+
+		// Each tile paints its entry before it registers, and the registration gives the same cell.
+		expect(Object.fromEntries(renders)).toEqual({ a: 1, c: 1 })
+	})
+
+	it('renders only the dragged tile on a preview frame', async () => {
+		const renders = new Map<string, number>()
+
+		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
+				<Profiler id="a" onRender={count('a')}>
+					<DashboardTile id="a" title="Revenue" />
+				</Profiler>
+
+				<Profiler id="b" onRender={count('b')}>
+					<DashboardTile id="b" title="Traffic" />
+				</Profiler>
+
+				<Profiler id="c" onRender={count('c')}>
+					<DashboardTile id="c" title="Orders" />
+				</Profiler>
+			</Dashboard>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Traffic' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		renders.clear()
+
+		// One column to the right, Traffic moves into free cells.
+		fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
+
+		expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
+			'1 / 10 / span 10 / span 8',
+		)
+
+		expect(Object.fromEntries(renders)).toEqual({ b: 1 })
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+	})
+
+	it('wakes no reader of the store for a drag step that still changes nothing', async () => {
+		let board: DashboardStore | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Revenue' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		const listener = vi.fn()
+
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		board.subscribe(listener)
+
+		// One column to the right, Revenue meets Traffic and snaps back to its start cell.
+		fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
+
+		expect(dragNarration()).toBe('Revenue cannot go here. A drop now changes nothing.')
+
+		expect(listener).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 	})
 
 	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
@@ -504,6 +735,265 @@ describe('Dashboard', () => {
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
 	})
+
+	/** The props of the test widgets. Only `fail` changes the output. */
+	type WidgetProps = {
+		fail: boolean
+		rows?: number[]
+		onPick?: () => void
+		value?: unknown
+	}
+
+	/** A widget that throws while `fail` is set. */
+	function Widget({ fail }: WidgetProps) {
+		if (fail) throw new Error('boom')
+
+		return <p>Recovered</p>
+	}
+
+	/** A widget that renders, and then throws in a layout effect while `fail` is set. */
+	function LayoutEffectWidget({ fail }: WidgetProps) {
+		useLayoutEffect(() => {
+			if (fail) throw new Error('boom')
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/** A widget that renders, and then throws in a passive effect while `fail` is set. */
+	function PassiveEffectWidget({ fail }: WidgetProps) {
+		useEffect(() => {
+			if (fail) throw new Error('boom')
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/**
+	 * A widget that throws in a layout effect while `fail` is set, but only on the
+	 * second run of the effect. StrictMode gives the second run on each mount.
+	 */
+	function LayoutEffectRerunWidget({ fail }: WidgetProps) {
+		const ran = useRef(false)
+
+		useLayoutEffect(() => {
+			if (fail && ran.current) throw new Error('boom')
+
+			ran.current = true
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/**
+	 * A widget that throws in a passive effect while `fail` is set, but only on the
+	 * second run of the effect. StrictMode gives the second run on each mount.
+	 */
+	function PassiveEffectRerunWidget({ fail }: WidgetProps) {
+		const ran = useRef(false)
+
+		useEffect(() => {
+			if (fail && ran.current) throw new Error('boom')
+
+			ran.current = true
+		})
+
+		return <p>Recovered</p>
+	}
+
+	/** The promise of each `value` of {@link SuspendingWidget}. */
+	const loads = new WeakMap<object, Promise<void>>()
+
+	/** A widget that suspends once for each new object `value`, and then throws while `fail` is set. */
+	function SuspendingWidget({ fail, value }: WidgetProps) {
+		const key = Object(value)
+
+		const load = loads.get(key) ?? Promise.resolve()
+
+		loads.set(key, load)
+
+		use(load)
+
+		if (fail) throw new Error('boom')
+
+		return <p>Recovered</p>
+	}
+
+	/** A widget that holds {@link SuspendingWidget} in its own Suspense boundary. */
+	function NestedSuspenseWidget(props: WidgetProps) {
+		return (
+			<Suspense fallback={<p>Loading</p>}>
+				<SuspendingWidget {...props} />
+			</Suspense>
+		)
+	}
+
+	/** A board with one tile that holds `widget`, and that reports each error to `onTileError`. */
+	function errorBoard(widget: ReactNode, onTileError: DashboardProps['onTileError']) {
+		return (
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue">
+					{widget}
+				</DashboardTile>
+			</Dashboard>
+		)
+	}
+
+	it('keeps the error state for a new widget element until Retry', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
+
+		// A fixed element renders nothing again on its own.
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		expect(onTileError).toHaveBeenCalledTimes(1)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+	})
+
+	it.each([
+		['an equal element', () => <Widget fail />],
+		['an element with new inline props', () => <Widget fail rows={[1]} onPick={() => {}} />],
+	])(
+		'reports an error once when onTileError sets app state, and the parent renders %s',
+		(_, widget) => {
+			const onReport = vi.fn()
+
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			function App() {
+				const [reports, setReports] = useState<unknown[]>([])
+
+				return (
+					<Dashboard
+						aria-label="Sales"
+						layout={{ defaultValue: LAYOUT }}
+						onTileError={(_id, error) => {
+							onReport()
+
+							setReports((current) => [...current, error])
+						}}
+					>
+						<DashboardTile id="a" title={`Revenue ${reports.length}`}>
+							{widget()}
+						</DashboardTile>
+					</Dashboard>
+				)
+			}
+
+			renderUI(<App />)
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
+
+			expect(onReport).toHaveBeenCalledTimes(1)
+		},
+	)
+
+	/**
+	 * An app that sets state in each report, and gives `widget` a prop value from
+	 * `make` on each render. The reports count holds the renders apart.
+	 */
+	function ReportingApp({
+		fail,
+		make,
+		widget: Shown,
+	}: {
+		fail: boolean
+		make: (reports: number) => unknown
+		widget: ComponentType<WidgetProps>
+	}) {
+		const [reports, setReports] = useState(0)
+
+		return (
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: LAYOUT }}
+				onTileError={() => setReports((current) => current + 1)}
+			>
+				<DashboardTile id="a" title={`Revenue ${reports}`}>
+					<Shown fail={fail} value={make(reports)} />
+				</DashboardTile>
+			</Dashboard>
+		)
+	}
+
+	/** A new `Map` that holds the reports count. */
+	const reportsMap = (reports: number) => new Map([['west', reports]])
+
+	it.each([
+		['takes a new Map', () => new Map([['west', 1]]), Widget, false],
+		['takes a new Intl formatter', () => new Intl.NumberFormat('en-US'), Widget, false],
+		[
+			'takes a stamp that changes on each render',
+			(reports: number) => 1_700_000_000_000 + reports,
+			Widget,
+			false,
+		],
+		['throws in a layout effect', reportsMap, LayoutEffectWidget, false],
+		['throws in a passive effect', reportsMap, PassiveEffectWidget, false],
+		[
+			'throws in a layout effect on its second run, under StrictMode',
+			reportsMap,
+			LayoutEffectRerunWidget,
+			true,
+		],
+		[
+			'throws in a passive effect on its second run, under StrictMode',
+			reportsMap,
+			PassiveEffectRerunWidget,
+			true,
+		],
+	])(
+		'reports an error once when onTileError sets app state, and the widget %s',
+		(_, make, widget, reactStrictMode) => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			const { rerender } = renderUI(<ReportingApp fail make={make} widget={widget} />, {
+				reactStrictMode,
+			})
+
+			// The render that the report causes gives a new element, and it renders nothing again.
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
+
+			// A fixed widget waits for Retry.
+			rerender(<ReportingApp fail={false} make={make} widget={widget} />)
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
+
+			fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+			expect(screen.getByText('Recovered')).toBeInTheDocument()
+		},
+	)
+
+	it.each([
+		['suspends before it throws', SuspendingWidget],
+		['suspends in its own Suspense boundary before it throws', NestedSuspenseWidget],
+	])(
+		'reports an error once when onTileError sets app state, and the widget %s',
+		async (_, widget) => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			// A child that suspends needs an awaited act.
+			await act(async () => {
+				renderUI(<ReportingApp fail make={reportsMap} widget={widget} />)
+			})
+
+			// Each new Map suspends once. The report renders the app again, and the tile renders nothing again.
+			for (let round = 0; round < 5; round++) {
+				await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+			}
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
+		},
+	)
 
 	it('confines an error in the actions to the header controls, and reports it', () => {
 		const onTileError = vi.fn()
@@ -631,6 +1121,44 @@ describe('Dashboard', () => {
 
 		expect(screen.getByText('Fine')).toBeInTheDocument()
 	})
+
+	it('shows the placeholder in a tile whose widget suspends, and keeps the other tiles', async () => {
+		const gate = deferred()
+
+		function Slow(): ReactNode {
+			use(gate.promise)
+
+			return <p>Loaded</p>
+		}
+
+		// A child that suspends needs an awaited act.
+		await act(async () => {
+			renderUI(
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+					<DashboardTile id="a" title="Revenue">
+						<Slow />
+					</DashboardTile>
+
+					<DashboardTile id="b" title="Traffic">
+						<p>Fine</p>
+					</DashboardTile>
+				</Dashboard>,
+			)
+		})
+
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		// The Suspense boundary of the tile holds the wait, so the board stays drawn.
+		expect(bySlot(revenue, 'placeholder')).toBeInTheDocument()
+
+		expect(screen.getByRole('group', { name: 'Traffic' })).toHaveTextContent('Fine')
+
+		await act(async () => gate.resolve())
+
+		expect(revenue).toHaveTextContent('Loaded')
+
+		expect(bySlot(revenue, 'placeholder')).toBeNull()
+	})
 })
 
 describe('Dashboard gesture owner', () => {
@@ -676,20 +1204,11 @@ describe('Dashboard gesture owner', () => {
 		onLayout: (next: DashboardLayoutItem[]) => void
 		onDragEnd?: DashboardProps['onDragEnd']
 	}) {
-		const [value, setValue] = useState(LAYOUT)
-
 		return (
 			<Board
 				editing={editing}
 				onDragEnd={onDragEnd}
-				layout={{
-					value,
-					onValueChange: (next) => {
-						onLayout(next)
-
-						setValue(next)
-					},
-				}}
+				layout={useControlledLayout(LAYOUT, onLayout)}
 			/>
 		)
 	}
@@ -792,9 +1311,7 @@ describe('Dashboard gesture owner', () => {
 		// Eight columns to the right, Revenue shifts against Traffic.
 		const grip = await lift('Move Revenue', 'ArrowRight', 8)
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize c' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowLeft' })
+		pressSplitter('c', 0, 'ArrowLeft')
 
 		expect(onLayout).not.toHaveBeenCalled()
 
@@ -1344,6 +1861,88 @@ describe('Dashboard tile ids', () => {
 	})
 })
 
+describe('Dashboard registration', () => {
+	it('registers each tile once on mount', () => {
+		let register: MockInstance<DashboardStore['register']> | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<StoreProbe
+					onStore={(store) => {
+						register = vi.spyOn(store, 'register')
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+			</Dashboard>,
+		)
+
+		expect(register?.mock.calls.map(([id]) => id)).toEqual(['a', 'b'])
+	})
+
+	it('writes a commit into the store once, and ends the settle phase with that write', () => {
+		let setState: MockInstance<DashboardStore['setState']> | undefined
+
+		renderUI(
+			<ControlledDashboard
+				aria-label="Sales"
+				editing
+				initial={[{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]}
+			>
+				<StoreProbe
+					onStore={(store) => {
+						setState = vi.spyOn(store, 'setState')
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" minWidth={0} />
+			</ControlledDashboard>,
+		)
+
+		setState?.mockClear()
+
+		pressSplitter('Revenue', 0, 'ArrowRight')
+
+		const writes = setState?.mock.calls.filter(([patch]) => 'layout' in patch) ?? []
+
+		expect(writes).toHaveLength(1)
+
+		expect(writes[0]?.[0]).toMatchObject({ gesture: null })
+	})
+
+	it('wakes no reader of the store while the board unmounts', () => {
+		let board: DashboardStore | undefined
+
+		const { unmount } = renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" />
+
+				<DashboardTile id="b" title="Traffic" />
+
+				<DashboardTile id="c" title="Orders" />
+			</Dashboard>,
+		)
+
+		const listener = vi.fn()
+
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		board.subscribe(listener)
+
+		unmount()
+
+		expect(listener).not.toHaveBeenCalled()
+	})
+})
+
 describe('Dashboard scope', () => {
 	type Sale = { region: string; amount: number }
 
@@ -1365,6 +1964,12 @@ describe('Dashboard scope', () => {
 						{row.region}
 					</button>
 				))}
+
+				<output data-testid="selected">{scope.selected('region').join(' ')}</output>
+
+				<button type="button" onClick={() => scope.clear('region')}>
+					Release region
+				</button>
 			</div>
 		)
 	}
@@ -1399,11 +2004,235 @@ describe('Dashboard scope', () => {
 		// The source keeps each region, so the user can change the selection.
 		expect(screen.getAllByRole('button', { name: /North|South|West/ })).toHaveLength(3)
 
+		expect(screen.getByTestId('selected')).toHaveTextContent('South')
+
 		expect(onValueChange).toHaveBeenLastCalledWith([
 			{ source: 'regions', field: 'region', values: ['South'] },
 		])
 
 		fireEvent.click(screen.getByRole('button', { name: 'South' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		expect(screen.getByTestId('selected')).toBeEmptyDOMElement()
+
+		fireEvent.click(screen.getByRole('button', { name: 'West' }))
+
+		expect(screen.getByTestId('selected')).toHaveTextContent('West')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Release region' }))
+
+		expect(screen.getByTestId('selected')).toBeEmptyDOMElement()
+
+		expect(screen.getByTestId('total')).toHaveTextContent('60')
+
+		expect(onValueChange).toHaveBeenLastCalledWith([])
+	})
+
+	it('keeps the rows of the source tile when it selects, so a chart that takes them sees no change', () => {
+		const onRows = vi.fn()
+
+		function Source() {
+			const scope = useDashboardScope()
+
+			const rows = useDashboardRows(sales)
+
+			useEffect(() => {
+				onRows(rows)
+			}, [rows])
+
+			return (
+				<button type="button" onClick={() => scope.select('region', 'West')}>
+					Select West
+				</button>
+			)
+		}
+
+		renderUI(
+			<Dashboard aria-label="Sales">
+				<DashboardTile id="regions" title="Regions">
+					<Source />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		onRows.mockClear()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Select West' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// The query of the source leaves out its own selection, so its rows keep their identity.
+		expect(onRows).not.toHaveBeenCalled()
+	})
+
+	it('picks the selections of the other tiles once while the selection list keeps its identity', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'regions', field: 'region', values: ['West'] },
+		]
+
+		// Each reader picks the selections of the other tiles with a filter of this list.
+		const filter = vi.spyOn(selections, 'filter')
+
+		let board: DashboardStore | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" selection={{ value: selections }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="regions" title="Regions" />
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		const store = board
+
+		filter.mockClear()
+
+		// Each drag or resize frame notifies the readers, and the selections keep their identity.
+		act(() => {
+			for (const width of [900, 1000, 1100]) store.setState({ width })
+		})
+
+		expect(filter).not.toHaveBeenCalled()
+	})
+
+	it('records a selection in the expand dialog as the tile, and filters the board', () => {
+		const onValueChange = vi.fn()
+
+		renderUI(
+			<Dashboard aria-label="Sales" selection={{ onValueChange }}>
+				<DashboardTile id="regions" title="Regions" expandable>
+					<Regions />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Regions' }))
+
+		const dialog = within(screen.getByRole('dialog', { name: 'Regions' }))
+
+		fireEvent.click(dialog.getByRole('button', { name: 'West' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith([
+			{ source: 'regions', field: 'region', values: ['West'] },
+		])
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		// The dialog reads the scope of its tile, so it keeps each region too.
+		expect(dialog.getAllByRole('button', { name: /North|South|West/ })).toHaveLength(3)
+
+		expect(dialog.getByTestId('selected')).toHaveTextContent('West')
+	})
+
+	it('replaces the filter from a tile, and filters each tile with it', () => {
+		const onValueChange = vi.fn()
+
+		const filter: QueryGroup = {
+			id: 'f',
+			type: 'group',
+			children: [{ id: 'r', type: 'rule', field: 'amount', operator: 'gte', value: 20 }],
+		}
+
+		function Narrow() {
+			const scope = useDashboardScope()
+
+			return (
+				<button type="button" onClick={() => scope.setFilter(filter)}>
+					{scope.active ? 'Narrowed' : 'Narrow'}
+				</button>
+			)
+		}
+
+		renderUI(
+			<Dashboard aria-label="Sales" filter={{ onValueChange }}>
+				<DashboardTile id="narrow" title="Narrow">
+					<Narrow />
+				</DashboardTile>
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Narrow' }))
+
+		expect(onValueChange).toHaveBeenLastCalledWith(filter)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('50')
+
+		// Unlike a selection, the filter applies to the tile that set it.
+		expect(screen.getByRole('button', { name: 'Narrowed' })).toBeInTheDocument()
+	})
+
+	it('clears a filter that a tile set when the app binds an absent filter as null', () => {
+		const filter: QueryGroup = {
+			id: 'f',
+			type: 'group',
+			children: [{ id: 'r', type: 'rule', field: 'amount', operator: 'gte', value: 20 }],
+		}
+
+		function Narrow() {
+			const scope = useDashboardScope()
+
+			return (
+				<button type="button" onClick={() => scope.setFilter(filter)}>
+					Narrow
+				</button>
+			)
+		}
+
+		// The filter of a spec is optional, so the app holds it as a value or undefined.
+		function App() {
+			const [saved, setSaved] = useState<QueryGroup | undefined>(undefined)
+
+			return (
+				<>
+					<button type="button" onClick={() => setSaved(undefined)}>
+						Reset
+					</button>
+
+					<Dashboard aria-label="Sales" filter={{ value: saved ?? null, onValueChange: setSaved }}>
+						<DashboardTile id="narrow" title="Narrow">
+							<Narrow />
+						</DashboardTile>
+
+						<DashboardTile id="total" title="Total">
+							<Total testId="total" />
+						</DashboardTile>
+					</Dashboard>
+				</>
+			)
+		}
+
+		renderUI(<App />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Narrow' }))
+
+		expect(screen.getByTestId('total')).toHaveTextContent('50')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Reset' }))
 
 		expect(screen.getByTestId('total')).toHaveTextContent('60')
 	})
@@ -1466,6 +2295,40 @@ describe('Dashboard scope', () => {
 		rerender(<Board regions />)
 
 		expect(screen.getByTestId('total')).toHaveTextContent('30')
+	})
+
+	it('applies no selection of a tile to a board reader once the last tile leaves', () => {
+		function Summary() {
+			return <p>{useDashboardScope().active ? 'Filtered' : 'Whole'}</p>
+		}
+
+		function Board({ tiles }: { tiles: string[] }) {
+			return (
+				<Dashboard
+					aria-label="Sales"
+					selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
+				>
+					<Summary />
+
+					{tiles.map((id) => (
+						<DashboardTile key={id} id={id} title={id} />
+					))}
+				</Dashboard>
+			)
+		}
+
+		const { rerender } = renderUI(<Board tiles={['regions', 'total']} />)
+
+		expect(screen.getByText('Filtered')).toBeInTheDocument()
+
+		rerender(<Board tiles={['total']} />)
+
+		expect(screen.getByText('Whole')).toBeInTheDocument()
+
+		// An empty board is no reason to apply the selection of a tile that left.
+		rerender(<Board tiles={[]} />)
+
+		expect(screen.getByText('Whole')).toBeInTheDocument()
 	})
 
 	it('applies a saved selection in the server markup', () => {

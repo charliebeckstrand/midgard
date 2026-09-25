@@ -18,6 +18,7 @@ import {
 	readingOrder,
 	resolveLayout,
 	sameCell,
+	sameGeometry,
 	usableDemands,
 } from './dashboard-layout'
 import { projectLayout } from './dashboard-responsive'
@@ -61,6 +62,17 @@ export type DashboardState = {
 	layout: readonly DashboardLayoutItem[]
 	/** The demands of the mounted tiles, in mount order. */
 	demands: ReadonlyMap<string, DashboardTileDemands>
+	/**
+	 * The ids of the tiles that the children of the board declare when the board
+	 * mounts. Until the first tile registers, each of them counts as on the board.
+	 *
+	 * @remarks
+	 * The board reads each `DashboardTile` child, also inside a Fragment, and each
+	 * spec tile of a `DashboardTiles` child. A component that renders a tile hides
+	 * its id. Each declared tile registers in the first commit, so the board reads
+	 * the ids once.
+	 */
+	declared: ReadonlySet<string>
 	/** The container width in px, or `0` before the first measurement. */
 	width: number
 	/** The live gesture, or `null` at rest. */
@@ -86,11 +98,19 @@ export type DashboardView = {
 	placeholder: DashboardCell | null
 	/** The travel range of the dragged tile, or `null` at rest. */
 	travel: DashboardDragTravel | null
-	/** Whether the responsive projection replaces the saved layout on screen. */
+	/**
+	 * Whether the responsive projection replaces the saved layout on screen. It
+	 * stays until the width passes the threshold by `PROJECTION_HOLD`. A change of
+	 * the canonical geometry, the demands, or the grid ends the hold.
+	 */
 	projected: boolean
 	/** Whether the gestures are live: edit mode, and no projection. */
 	editable: boolean
-	/** The selections that apply: those of the board, and those of a tile on the board. */
+	/**
+	 * The selections that apply: those of the board, and those of a tile on the
+	 * board. Until the first tile registers, as on the server, a tile with a saved
+	 * entry or a declared tile counts as on the board.
+	 */
 	selections: readonly DashboardSelection[]
 	/**
 	 * The ids of the tiles in reading order, which the tiles take in the markup. A
@@ -108,16 +128,55 @@ export type DashboardStore = {
 	getState: () => DashboardState
 	/** The current view. The same state always returns the same object. */
 	getView: () => DashboardView
-	/** Merges `patch` into the state, and notifies the listeners. */
+	/** The state that the store started with. No effect runs on the server, so the server renders it. */
+	getInitialState: () => DashboardState
+	/**
+	 * The view of the initial state. A hydration render reads it, so a boundary
+	 * that hydrates after the tiles register still matches the server markup.
+	 */
+	getInitialView: () => DashboardView
+	/** Merges `patch` into the state, and notifies the listeners while the store is open. */
 	setState: (patch: Partial<DashboardState>) => void
 	/**
-	 * Registers the demands of a tile, and returns the function that unregisters it.
-	 * A `ratio` or a `minWidth` that is not a usable number registers as absent.
+	 * Registers the demands of a tile, or updates them in place. A `ratio` or a
+	 * `minWidth` that is not a usable number registers as absent.
 	 */
-	register: (id: string, demands: DashboardTileDemands) => () => void
+	register: (id: string, demands: DashboardTileDemands) => void
+	/** Removes the demands of a tile. */
+	unregister: (id: string) => void
+	/**
+	 * Opens a closed store. It derives the view of the current state, and it
+	 * notifies the listeners. A new store is open.
+	 */
+	open: () => void
+	/**
+	 * Closes the store. A change then updates the state and notifies no listener,
+	 * so an unmount of the board wakes no reader for each tile that goes. A read
+	 * of the view still derives it.
+	 */
+	close: () => void
 	/** Adds a listener, and returns the function that removes it. */
 	subscribe: (listener: () => void) => () => void
 }
+
+/**
+ * The hold of the responsive projection, in px. A projection on screen reads the
+ * container width less the hold, so the saved layout returns only past the
+ * threshold plus the hold.
+ *
+ * @remarks
+ * In a scroll box with a classic scrollbar, the width of the board can follow its
+ * height. When the saved layout overflows the box and the projection fits it, the
+ * scrollbar comes and goes with the projection. With no hold, the board then
+ * switches between the two on each frame. A classic scrollbar is about 15 px
+ * wide, and the hold covers a scrollbar up to 24 px wide. One of the two states
+ * therefore holds.
+ *
+ * A wider scrollbar, such as a styled `::-webkit-scrollbar` of 30 px, still
+ * switches the board on each frame. A scroll box with `scrollbar-gutter: stable`
+ * always reserves the width of its scrollbar, so no scrollbar starts the loop.
+ */
+const PROJECTION_HOLD = 24
 
 /** One memo slot: the result for the last inputs. */
 type Memo<A extends readonly unknown[], R> = (...args: A) => R
@@ -210,24 +269,14 @@ function travelOf(
 	return same ? previous : travel
 }
 
-/** Returns `next`, or `previous` when the two lists hold the same selections in the same order. */
-function internSelections(
-	previous: readonly DashboardSelection[] | undefined,
-	next: readonly DashboardSelection[],
-): readonly DashboardSelection[] {
+/** Returns `next`, or `previous` when the two lists hold the same items in the same order. */
+export function internList<T>(
+	previous: readonly T[] | undefined,
+	next: readonly T[],
+): readonly T[] {
 	if (previous === undefined || previous.length !== next.length) return next
 
 	return previous.every((item, index) => item === next[index]) ? previous : next
-}
-
-/** Returns `next`, or `previous` when the two orders hold the same ids in the same order. */
-function internOrder(
-	previous: readonly string[] | undefined,
-	next: readonly string[],
-): readonly string[] {
-	if (previous === undefined || previous.length !== next.length) return next
-
-	return previous.every((id, index) => id === next[index]) ? previous : next
 }
 
 /** Creates a store with the given initial state. */
@@ -235,6 +284,14 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	let state = initial
 
 	let view: DashboardView | null = null
+
+	// The state that `view` comes from. It falls behind only while the store is closed.
+	let viewed: DashboardState | null = null
+
+	let closed = false
+
+	// Whether a tile has registered. An empty set of demands then means that no tile is left.
+	let registered = false
 
 	const listeners = new Set<() => void>()
 
@@ -259,68 +316,129 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		) => readingOrder([...canonical, ...placed.filter((item) => !demands.has(item.id))]),
 	)
 
-	const projectionOf = memo(
-		(
-			cells: readonly DashboardCell[],
-			width: number,
-			gap: number,
-			columns: number,
-			demands: ReadonlyMap<string, DashboardTileDemands>,
-		) => projectLayout(cells, { width, gap, columns, demands }),
-	)
+	const project = (
+		cells: readonly DashboardCell[],
+		width: number,
+		gap: number,
+		columns: number,
+		demands: ReadonlyMap<string, DashboardTileDemands>,
+	) => projectLayout(cells, { width, gap, columns, demands })
 
-	const derive = (previous: DashboardView | null): DashboardView => {
-		const { columns, gap, editing, layout, demands, width, gesture, selections } = state
+	// One slot for the full width and one for the held width, so that the two keep their results.
+	const projectionOf = memo(project)
+
+	const heldOf = memo(project)
+
+	const derive = (previous: DashboardView | null, from: DashboardState | null): DashboardView => {
+		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
 
 		const canonical = canonicalOf(layout, demands, columns)
 
-		const projection = projectionOf(canonical, gesture?.width ?? width, gap, columns, demands)
+		const measured = gesture?.width ?? width
+
+		const full = projectionOf(canonical, measured, gap, columns, demands)
+
+		// The hold keeps a projection on screen only while the resolved cells, the demands, and
+		// the grid stay the same. After a change of one of them, the view is that of a new store.
+		// The cells compare by geometry, because a controlled app can render an equal layout in a
+		// new array on each render.
+		const sameBoard =
+			from !== null &&
+			previous !== null &&
+			(previous.canonical === canonical || sameGeometry(previous.canonical, canonical)) &&
+			from.demands === demands &&
+			from.columns === columns &&
+			from.gap === gap
+
+		// A projection on screen reads the held width. The first projected frame reads it
+		// too, so a later change of a selection or of edit mode moves no tile.
+		const held = measured > 0 && ((sameBoard && previous?.projected === true) || !full.identity)
+
+		const projection = held
+			? heldOf(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
+			: full
 
 		const placed = placedOf(layout, columns)
+
+		const entries = entriesOf(placed)
+
+		// No tile registers on the server, so until then each saved entry and each declared tile
+		// stands for a tile.
+		const mounted =
+			registered || demands.size > 0
+				? demands
+				: { has: (id: string) => entries.has(id) || declared.has(id) }
 
 		return {
 			canonical,
 			cells: paintedCells(gesture, projection.cells, previous?.cells),
-			entries: entriesOf(placed),
+			entries,
 			placeholder: landingCell(gesture, previous?.placeholder),
 			travel: travelOf(gesture, columns, previous?.travel),
 			projected: !projection.identity,
 			editable: editing && projection.identity,
 			// Interned, so a mount that leaves the live selections as they were wakes no reader.
-			selections: internSelections(previous?.selections, liveSelections(selections, demands)),
+			selections: internList(previous?.selections, liveSelections(selections, mounted)),
 			order:
 				editing && previous !== null
 					? previous.order
-					: internOrder(previous?.order, orderOf(canonical, placed, demands)),
+					: internList(previous?.order, orderOf(canonical, placed, demands)),
 		}
+	}
+
+	/** The view of the current state. */
+	const current = (): DashboardView => {
+		if (view === null || viewed !== state) {
+			view = derive(view, viewed)
+
+			viewed = state
+		}
+
+		return view
+	}
+
+	const notify = () => {
+		current()
+
+		for (const listener of listeners) listener()
 	}
 
 	const replace = (next: DashboardState) => {
 		state = next
 
-		view = derive(view)
-
-		for (const listener of listeners) listener()
+		if (!closed) notify()
 	}
+
+	// The server renders the view of the initial state, so the store keeps that view.
+	const first = current()
 
 	return {
 		getState: () => state,
-		getView: () => {
-			view ??= derive(null)
-
-			return view
-		},
+		getView: current,
+		getInitialState: () => initial,
+		getInitialView: () => first,
 		setState: (patch) => replace({ ...state, ...patch }),
 		register: (id, demands) => {
+			registered = true
+
 			replace({ ...state, demands: new Map(state.demands).set(id, usableDemands(demands)) })
+		},
+		unregister: (id) => {
+			const rest = new Map(state.demands)
 
-			return () => {
-				const rest = new Map(state.demands)
+			rest.delete(id)
 
-				rest.delete(id)
+			replace({ ...state, demands: rest })
+		},
+		open: () => {
+			if (!closed) return
 
-				replace({ ...state, demands: rest })
-			}
+			closed = false
+
+			notify()
+		},
+		close: () => {
+			closed = true
 		},
 		subscribe: (listener) => {
 			listeners.add(listener)

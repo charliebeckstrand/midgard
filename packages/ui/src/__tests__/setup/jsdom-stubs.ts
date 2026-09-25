@@ -29,8 +29,8 @@ if (typeof window.ResizeObserver !== 'function') {
 // wrong default: a viewport gate defers work that is otherwise correct, so a
 // silent observer hides content from every test that renders behind one. Same
 // reasoning as `useInView`'s no-observer branch — when the environment cannot
-// tell, show it. A suite that needs to drive intersection itself replaces this
-// with its own stub, as `chat-embed-lazy.test.tsx` does.
+// tell, show it. A suite that drives the intersection itself replaces this stub
+// through `installControlledObserver` in `helpers/controlled-intersection.ts`.
 if (typeof window.IntersectionObserver !== 'function') {
 	class StubIntersectionObserver implements IntersectionObserver {
 		readonly root: Element | Document | null = null

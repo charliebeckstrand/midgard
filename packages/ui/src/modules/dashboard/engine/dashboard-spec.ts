@@ -9,6 +9,7 @@
 
 import type { QueryGroup } from '../../query/engine/types'
 import type { DashboardLayoutItem, DashboardTileSize } from './dashboard-layout'
+import { isId } from './dashboard-spec-parse'
 
 /**
  * One tile of a {@link DashboardSpec}: plain data that names a widget kind. The
@@ -57,7 +58,10 @@ export type DashboardSpec = {
 	tiles: DashboardSpecTile[]
 	/** The saved layout of the tiles. */
 	layout: DashboardLayoutItem[]
-	/** The filter that the app owns. */
+	/**
+	 * The filter that the app owns. Absent means no filter, so bind it as
+	 * `value: spec.filter ?? null`.
+	 */
 	filter?: QueryGroup
 }
 
@@ -90,15 +94,16 @@ export function nextSpecTileId(spec: DashboardSpec, prefix = 'tile'): string {
  *
  * @remarks
  * A stale layout entry with the same id goes away, so the new tile does not take
- * a place that it did not earn. When a tile with the same id is in the spec, the
- * spec returns unchanged. Mint the id with {@link nextSpecTileId}.
+ * a place that it did not earn. When a tile with the same id is in the spec, or
+ * the id is empty, the spec returns unchanged. Mint the id with
+ * {@link nextSpecTileId}.
  *
  * @param spec - The spec to change.
  * @param tile - The tile to add.
- * @returns The new spec, or `spec` when the id is taken.
+ * @returns The new spec, or `spec` when the id is taken or empty.
  */
 export function addSpecTile(spec: DashboardSpec, tile: DashboardSpecTile): DashboardSpec {
-	if (spec.tiles.some((item) => item.id === tile.id)) return spec
+	if (!isId(tile.id) || spec.tiles.some((item) => item.id === tile.id)) return spec
 
 	return {
 		...spec,
@@ -109,7 +114,9 @@ export function addSpecTile(spec: DashboardSpec, tile: DashboardSpecTile): Dashb
 
 /**
  * The spec without the tile `id` and without its layout entry. The entry must go
- * too: else it stays in the saved layout, and its space stays open.
+ * too: else it stays in the saved layout, and a later tile with that id takes
+ * its stale place. The space of the tile stays open either way, because the board
+ * never packs itself.
  *
  * @param spec - The spec to change.
  * @param id - The id of the tile to remove.
@@ -140,7 +147,7 @@ export function removeSpecTile(spec: DashboardSpec, id: string): DashboardSpec {
  * @param spec - The spec to change.
  * @param id - The id of the tile to copy.
  * @param copyId - The id of the copy. Defaults to {@link nextSpecTileId}.
- * @returns The new spec, or `spec` when no tile has the id `id` or a tile has the id `copyId`.
+ * @returns The new spec, or `spec` when no tile has the id `id`, or when `copyId` is taken or empty.
  */
 export function duplicateSpecTile(
 	spec: DashboardSpec,
@@ -151,7 +158,9 @@ export function duplicateSpecTile(
 
 	const source = spec.tiles[index]
 
-	if (source === undefined || spec.tiles.some((tile) => tile.id === copyId)) return spec
+	if (source === undefined || !isId(copyId) || spec.tiles.some((tile) => tile.id === copyId)) {
+		return spec
+	}
 
 	const entry = spec.layout.find((item) => item.id === id)
 

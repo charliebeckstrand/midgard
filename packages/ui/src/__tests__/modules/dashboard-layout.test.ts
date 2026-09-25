@@ -5,6 +5,7 @@ import {
 	clampSpan,
 	collides,
 	type DashboardCell,
+	type DashboardTileDemands,
 	deriveHeight,
 	fits,
 	mergeLayout,
@@ -19,22 +20,7 @@ import {
 	swapCells,
 	toLayoutItem,
 } from '../../modules/dashboard/engine/dashboard-layout'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
+import { cell } from '../helpers/dashboard-cells'
 
 /** The ids of each pair of cells that overlap. */
 const overlaps = (cells: readonly DashboardCell[]) =>
@@ -190,6 +176,27 @@ describe('resolveLayout', () => {
 		expect(cells[1]).toMatchObject({ x: 0, y: 27 })
 
 		expect(cells[2]).toMatchObject({ x: 0, y: 45 })
+	})
+
+	it('places the new tiles in markup order, and a tie or a tile with no rank in mount order', () => {
+		const demands = new Map<string, DashboardTileDemands>([
+			['later', { rank: [2, 0, 0] }],
+			['none', {}],
+			['jsx', { rank: [1, 2, 0] }],
+			['copy', { rank: [1, 1, 3] }],
+			['source', { rank: [1, 1, 0] }],
+			['twin', { rank: [1, 1, 3] }],
+		])
+
+		// The group comes before the index, so a JSX tile of a later group follows each spec tile.
+		expect(resolveLayout([], demands, 24).map((item) => [item.id, item.y])).toEqual([
+			['source', 0],
+			['copy', 18],
+			['twin', 36],
+			['jsx', 54],
+			['later', 72],
+			['none', 90],
+		])
 	})
 
 	it('gives a new tile its default size, and derives the height of a ratio tile', () => {

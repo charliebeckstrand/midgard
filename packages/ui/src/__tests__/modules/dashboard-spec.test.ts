@@ -61,6 +61,10 @@ describe('addSpecTile', () => {
 		expect(addSpecTile(SPEC, { id: 'tile-2', widget: 'bar' })).toBe(SPEC)
 	})
 
+	it('returns the same spec for an empty id, which names no tile', () => {
+		expect(addSpecTile(SPEC, { id: '', widget: 'bar' })).toBe(SPEC)
+	})
+
 	it('keeps the filter', () => {
 		const filter = { id: 'filter', type: 'group' as const, children: [] }
 
@@ -149,5 +153,9 @@ describe('duplicateSpecTile', () => {
 		expect(duplicateSpecTile(SPEC, 'missing')).toBe(SPEC)
 
 		expect(duplicateSpecTile(SPEC, 'tile-1', 'tile-2')).toBe(SPEC)
+	})
+
+	it('returns the same spec for an empty copy id, which names no tile', () => {
+		expect(duplicateSpecTile(SPEC, 'tile-1', '')).toBe(SPEC)
 	})
 })

@@ -1,16 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
 import { projectLayout } from '../../modules/dashboard/engine/dashboard-responsive'
-
-const cell = (id: string, x: number, y: number, w: number, h: number): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: false,
-})
+import { cell } from '../helpers/dashboard-cells'
 
 const board = [cell('a', 0, 0, 8, 18), cell('b', 8, 0, 8, 18), cell('c', 16, 0, 8, 18)]
 

@@ -1,6 +1,17 @@
 # Dashboard module — a board that composes widgets it does not know
 
-> **Status.** Version one is in build on `feat/dashboard-redesign`. It replaces the design on
+> **Status.** Closed. Version one landed in [#1243](https://github.com/charliebeckstrand/midgard/pull/1243),
+> and version two landed in [#1250](https://github.com/charliebeckstrand/midgard/pull/1250). The
+> decisions that the plan marks "built later" landed in
+> [#1255](https://github.com/charliebeckstrand/midgard/pull/1255),
+> [#1256](https://github.com/charliebeckstrand/midgard/pull/1256),
+> [#1258](https://github.com/charliebeckstrand/midgard/pull/1258),
+> [#1259](https://github.com/charliebeckstrand/midgard/pull/1259),
+> [#1260](https://github.com/charliebeckstrand/midgard/pull/1260),
+> [#1261](https://github.com/charliebeckstrand/midgard/pull/1261),
+> [#1262](https://github.com/charliebeckstrand/midgard/pull/1262),
+> [#1263](https://github.com/charliebeckstrand/midgard/pull/1263), and
+> [#1265](https://github.com/charliebeckstrand/midgard/pull/1265). This design replaces the one on
 > `feat/dashboard-module`, which stays as a reference and is not merged.
 >
 > **Read §2 first.** The decoupling rule is the reason for this redesign. Each other decision
@@ -134,7 +145,8 @@ once for each edit session.
 
 **Resize.** A pointer-captured splitter on the east edge, on the south edge of a free-form tile,
 and on the corner. Each axis grows until it meets a neighbour or the edge, and it never shrinks
-under `minWidth`. The splitters also take the arrow keys. (Built later: the grid-unit limits
+under `minWidth`. The two edge splitters also take the arrow keys. The corner takes the pointer
+only, because the two edges already serve the keyboard. (Built later: the grid-unit limits
 `minSize` and `maxSize` also bound each axis, and a new tile takes its `defaultSize` within them.)
 
 **Right to left** (built later). The CSS grid mirrors the saved layout, so the layout stays in
@@ -165,9 +177,6 @@ so a chart does not filter itself down to the bar that the user clicked. `useDas
 that effective query to rows with `evaluateQuery`. The module fetches no data.
 
 ## 9. Version two: the registry
-
-> **Status.** Built. `DashboardWidgetProvider`, `DashboardTiles`, and the `mount` and
-> `defaultSize` props of `DashboardTile` ship in the `dashboard` module.
 
 The registry follows `ChatEmbedRegistry`. A widget kind is a renderer plus the demands of its
 tile. The app registers the kinds by name with `DashboardWidgetProvider`. A spec tile names a

@@ -1,14 +1,14 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
-import { useDashboardStoreContext } from './context'
+import { useCallback, useLayoutEffect, useMemo } from 'react'
+import { useDashboardStoreContext, useDashboardTileRank } from './context'
 import {
 	type DashboardCell,
 	type DashboardTileDemands,
 	type DashboardTileSize,
 	resolveCell,
 } from './engine/dashboard-layout'
-import type { DashboardView } from './engine/dashboard-store'
+import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** A span limit from its two axes, or `undefined` when neither axis is set. */
@@ -20,17 +20,38 @@ function bound(
 }
 
 /**
+ * The geometry of a cell as one string, or `''` for no cell. A selector compares
+ * the string by value, so an equal cell from a new source renders nothing.
+ */
+function cellKey(cell: DashboardCell | undefined): string {
+	return cell === undefined ? '' : `${cell.x} ${cell.y} ${cell.w} ${cell.h} ${cell.static}`
+}
+
+/** The cell of the tile `id` that `key` writes, or `undefined` for the empty key. */
+function keyCell(id: string, key: string): DashboardCell | undefined {
+	if (key === '') return undefined
+
+	const [x, y, w, h, fixed] = key.split(' ')
+
+	return { id, x: Number(x), y: Number(y), w: Number(w), h: Number(h), static: fixed === 'true' }
+}
+
+/**
  * Registers the demands of the tile `id`, and returns its painted cell.
  *
- * Mount registers and unmount unregisters. A change of the demands updates them
- * in place, so the tile keeps its mount order, which places a tile with no entry.
- * Such a tile takes its `defaultSize`. In development, a mount logs an error when
- * another tile already holds the id.
+ * Mount registers and unmount unregisters. The demands hold the rank of the tile
+ * in the markup, from {@link useDashboardTileRank}. A tile with no entry thus
+ * takes its row in markup order, at its `defaultSize`. A change of the demands
+ * or of the rank updates them in place, so a tie keeps the mount order. In
+ * development, a mount logs an error when another tile already holds the id.
  *
  * A tile registers in a layout effect, so the server never sees it register. Until
  * then, the tile resolves its cell from its own layout entry and its own demands. The server
  * markup therefore matches the first client render. A tile with no entry has no
  * cell until it registers.
+ *
+ * The cell keeps its object while its geometry holds. Thus a registration that
+ * gives the cell of the entry does not render the tile again.
  *
  * @internal
  */
@@ -39,6 +60,9 @@ export function useDashboardTileCell(
 	demands: DashboardTileDemands,
 ): DashboardCell | undefined {
 	const store = useDashboardStoreContext()
+
+	// Three numbers, so a fresh rank from a render of the board is no change.
+	const [slot, group, index] = useDashboardTileRank()
 
 	const { ratio, minWidth, label, defaultSize, minSize, maxSize } = demands
 
@@ -55,10 +79,8 @@ export function useDashboardTileCell(
 
 	const maxH = maxSize?.h
 
-	const latest = useRef(demands)
-
-	latest.current = demands
-
+	// The effect below registers the tile, and this cleanup unregisters it on an unmount
+	// or a new id. So a change of the demands keeps the registration in its place.
 	useLayoutEffect(() => {
 		// The store keys a registration by id alone, so two tiles with one id share one registration.
 		// Each cleanup runs before the next effect, so StrictMode and a swap in one commit stay silent.
@@ -68,7 +90,7 @@ export function useDashboardTileCell(
 			)
 		}
 
-		return store.register(id, latest.current)
+		return () => store.unregister(id)
 	}, [store, id])
 
 	useLayoutEffect(() => {
@@ -79,28 +101,42 @@ export function useDashboardTileCell(
 			defaultSize: defaultW === undefined ? undefined : { w: defaultW, h: defaultH },
 			minSize: bound(minW, minH),
 			maxSize: bound(maxW, maxH),
+			rank: [slot, group, index],
 		})
-	}, [store, id, ratio, minWidth, label, defaultW, defaultH, minW, minH, maxW, maxH])
-
-	const registered = useDashboardStore(
-		useCallback((view: DashboardView) => view.cells.get(id), [id]),
-	)
+	}, [
+		store,
+		id,
+		ratio,
+		minWidth,
+		label,
+		defaultW,
+		defaultH,
+		minW,
+		minH,
+		maxW,
+		maxH,
+		slot,
+		group,
+		index,
+	])
 
 	// The entry matters only until the tile registers. A registered tile stops
 	// reading it, so a new layout array from the app never renders it again.
-	const entry = useDashboardStore(
+	const key = useDashboardStore(
 		useCallback(
-			(view: DashboardView) => (view.cells.has(id) ? undefined : view.entries.get(id)),
-			[id],
+			(view: DashboardView, state: DashboardState) => {
+				const registered = view.cells.get(id)
+
+				if (registered !== undefined) return cellKey(registered)
+
+				const entry = view.entries.get(id)
+
+				// The cell reads only the ratio of the demands.
+				return entry === undefined ? '' : cellKey(resolveCell(entry, { ratio }, state.columns))
+			},
+			[id, ratio],
 		),
 	)
 
-	const columns = useDashboardStore((_, state) => state.columns)
-
-	const fallback = useMemo(
-		() => (entry === undefined ? undefined : resolveCell(entry, { ratio, minWidth }, columns)),
-		[entry, ratio, minWidth, columns],
-	)
-
-	return registered ?? fallback
+	return useMemo(() => keyCell(id, key), [id, key])
 }

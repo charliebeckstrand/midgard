@@ -1,30 +1,17 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { dragPreview, dragTravel, nearestFit } from '../../modules/dashboard/engine/dashboard-drag'
+import {
+	dragPreview,
+	dragTravel,
+	nearestFit,
+	travelOffset,
+} from '../../modules/dashboard/engine/dashboard-drag'
 import {
 	type DashboardCell,
 	fits,
 	ROW_SUBDIVISION,
 } from '../../modules/dashboard/engine/dashboard-layout'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
-
-const position = (cells: readonly DashboardCell[] | undefined) =>
-	Object.fromEntries((cells ?? []).map((item) => [item.id, [item.x, item.y]]))
+import { cell, origins } from '../helpers/dashboard-cells'
 
 describe('dragPreview', () => {
 	const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('c', 0, 10, 16, 10)]
@@ -34,7 +21,7 @@ describe('dragPreview', () => {
 
 		expect(preview?.kind).toBe('move')
 
-		expect(position(preview?.cells)).toEqual({ a: [16, 0], b: [8, 0], c: [0, 10] })
+		expect(origins(preview?.cells)).toEqual({ a: [16, 0], b: [8, 0], c: [0, 10] })
 	})
 
 	it('moves a tile below the lowest tile', () => {
@@ -46,7 +33,7 @@ describe('dragPreview', () => {
 
 		expect(preview).toMatchObject({ kind: 'shift', partner: 'b' })
 
-		expect(position(preview?.cells)).toMatchObject({ a: [8, 0], b: [0, 0] })
+		expect(origins(preview?.cells)).toMatchObject({ a: [8, 0], b: [0, 0] })
 	})
 
 	it('swaps with an equal tile in another row', () => {
@@ -56,7 +43,7 @@ describe('dragPreview', () => {
 
 		expect(preview).toMatchObject({ kind: 'swap', partner: 'b' })
 
-		expect(position(preview?.cells)).toEqual({ a: [8, 10], b: [0, 0] })
+		expect(origins(preview?.cells)).toEqual({ a: [8, 10], b: [0, 0] })
 	})
 
 	it('engages a reorder at exactly half coverage', () => {
@@ -73,7 +60,7 @@ describe('dragPreview', () => {
 
 		expect(preview?.kind).toBe('move')
 
-		expect(position(preview?.cells).a).toEqual([0, 20])
+		expect(origins(preview?.cells).a).toEqual([0, 20])
 	})
 
 	it('snaps past a static partner, and never moves it', () => {
@@ -81,7 +68,7 @@ describe('dragPreview', () => {
 
 		const preview = dragPreview(locked, 'a', 8, 0, 24)
 
-		expect(position(preview?.cells)).toEqual({ a: [8, 10], b: [8, 0] })
+		expect(origins(preview?.cells)).toEqual({ a: [8, 10], b: [8, 0] })
 	})
 
 	it('snaps home, which changes nothing, when the start cell is nearest', () => {
@@ -111,6 +98,29 @@ describe('dragTravel', () => {
 		expect(dragTravel(board, 'a', 24)).toEqual({ maxX: 16, maxY: 20 })
 
 		expect(dragTravel(board, 'c', 24)).toEqual({ maxX: 8, maxY: 10 })
+	})
+})
+
+describe('travelOffset', () => {
+	const origin = cell('a', 2, 4, 8, 10)
+
+	const travel = { maxX: 16, maxY: 20 }
+
+	it('keeps an offset inside the travel range as it is', () => {
+		expect(travelOffset(origin, { x: 120, y: -30 }, travel, 50, 1)).toEqual({ x: 120, y: -30 })
+	})
+
+	it('stops the tile at column 0, at the last column, and at row 0', () => {
+		expect(travelOffset(origin, { x: -400, y: -400 }, travel, 50, 1)).toEqual({ x: -100, y: -50 })
+
+		expect(travelOffset(origin, { x: 900, y: 0 }, travel, 50, 1)).toEqual({ x: 700, y: 0 })
+	})
+
+	it('reads a travel to the right as a travel toward column 0 in a right-to-left board', () => {
+		// Column 0 is two columns to the right, 100 px at a 50 px pitch.
+		expect(travelOffset(origin, { x: 400, y: 0 }, travel, 50, -1)).toEqual({ x: 100, y: 0 })
+
+		expect(travelOffset(origin, { x: -900, y: 0 }, travel, 50, -1)).toEqual({ x: -700, y: 0 })
 	})
 })
 

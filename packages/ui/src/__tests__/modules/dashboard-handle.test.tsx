@@ -1,25 +1,18 @@
 import { act } from '@testing-library/react'
 import { createRef } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardHandle,
 	type DashboardLayoutItem,
 	DashboardTile,
 } from '../../modules/dashboard'
-import { fireEvent, liveRegion, renderUI, screen } from '../helpers'
+import { expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import { settleKeyboardLifts, stubCanvasWidth } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
+stubCanvasWidth()
 
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+settleKeyboardLifts()
 
 // a sits under a gap, b has a gap over it, and c is already packed under a.
 const GAPPY: DashboardLayoutItem[] = [
@@ -27,13 +20,6 @@ const GAPPY: DashboardLayoutItem[] = [
 	{ id: 'b', x: 12, y: 20, w: 12, h: 10 },
 	{ id: 'c', x: 0, y: 16, w: 12, h: 8 },
 ]
-
-/** Lets the announcer write the region, which it does in a microtask. */
-async function flushAnnouncer(): Promise<void> {
-	await act(async () => {
-		await Promise.resolve()
-	})
-}
 
 function Board({
 	layout,
@@ -84,9 +70,7 @@ describe('DashboardHandle.tidy', () => {
 			{ id: 'c', x: 0, y: 10, w: 12, h: 8 },
 		])
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Tidied the board. Moved 3 tiles up.')
+		await expectAnnouncement('Tidied the board. Moved 3 tiles up.')
 	})
 
 	it('changes nothing on a packed board, and says so', async () => {
@@ -112,9 +96,7 @@ describe('DashboardHandle.tidy', () => {
 
 		expect(onLayout).not.toHaveBeenCalled()
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('The board is already tidy.')
+		await expectAnnouncement('The board is already tidy.')
 	})
 
 	it('keeps the saved place of a tile that is not mounted', () => {

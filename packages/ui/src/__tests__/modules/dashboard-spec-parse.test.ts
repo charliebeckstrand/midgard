@@ -1,8 +1,10 @@
 // @vitest-environment node
 import { describe, expect, expectTypeOf, it } from 'vitest'
+import type { DashboardSelection } from '../../modules/dashboard/engine/dashboard-scope'
 import type { DashboardSpec } from '../../modules/dashboard/engine/dashboard-spec'
 import {
 	type DashboardSpecParseOptions,
+	parseDashboardSelection,
 	parseDashboardSpec,
 } from '../../modules/dashboard/engine/dashboard-spec-parse'
 
@@ -150,6 +152,21 @@ describe('parseDashboardSpec', () => {
 		])
 	})
 
+	it('names a static that is not a boolean in the message of a malformed entry', () => {
+		const { issues } = parseDashboardSpec({
+			tiles: [{ id: 'a', widget: 'bar' }],
+			layout: [{ id: 'a', x: 0, y: 0, w: 12, static: 'yes' }],
+		})
+
+		expect(issues).toEqual([
+			{
+				kind: 'invalid-entry',
+				path: 'layout[0]',
+				message: expect.stringContaining('a `static` that is not a boolean'),
+			},
+		])
+	})
+
 	it('checks the entries against the tiles that survive the parse', () => {
 		expect(
 			found({
@@ -244,5 +261,97 @@ describe('parseDashboardSpec', () => {
 		}
 
 		expect(parseDashboardSpec({ tiles: [], layout: [], filter: nested(32) }).issues).toEqual([])
+	})
+})
+
+describe('parseDashboardSelection', () => {
+	const SELECTION: DashboardSelection[] = [
+		{ source: 'regions', field: 'region', values: ['West', ''] },
+		{ source: '', field: 'product', values: ['Tea'] },
+	]
+
+	/** The kind and the path of each issue. */
+	const issuesOf = (input: unknown) =>
+		parseDashboardSelection(input).issues.map((issue) => [issue.kind, issue.path])
+
+	it('keeps a sound selection value whole, through a JSON round trip, with no issue', () => {
+		const { selections, issues } = parseDashboardSelection(JSON.parse(JSON.stringify(SELECTION)))
+
+		expect(selections).toEqual(SELECTION)
+
+		expect(issues).toEqual([])
+	})
+
+	it('reads an absent value as no selection, and reports a value that is not an array', () => {
+		for (const input of [null, undefined]) {
+			expect(parseDashboardSelection(input)).toEqual({ selections: [], issues: [] })
+		}
+
+		expect(parseDashboardSelection({ source: 'regions' }).selections).toEqual([])
+
+		expect(issuesOf({ source: 'regions' })).toEqual([['invalid-list', '']])
+	})
+
+	it('drops each malformed selection, reports its index, and keeps each other one as it is', () => {
+		const input = [
+			null,
+			'West',
+			{ field: 'region', values: ['West'] },
+			{ source: 'regions', values: ['West'] },
+			{ source: 'regions', field: 'region', values: 'West' },
+			{ source: 'regions', field: 'region', values: [2024] },
+			SELECTION[0],
+		]
+
+		const { selections } = parseDashboardSelection(input)
+
+		expect(selections).toHaveLength(1)
+
+		expect(selections[0]).toBe(SELECTION[0])
+
+		expect(issuesOf(input)).toEqual([
+			['invalid-selection', '[0]'],
+			['invalid-selection', '[1]'],
+			['invalid-selection', '[2]'],
+			['invalid-selection', '[3]'],
+			['invalid-selection', '[4]'],
+			['invalid-selection', '[5]'],
+		])
+	})
+
+	it('drops and reports a selection with no values, which filters nothing', () => {
+		const input = [{ source: 'regions', field: 'region', values: [] }, SELECTION[1]]
+
+		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[1]])
+
+		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
+	})
+
+	it('drops and reports a selection that repeats the source and the field of an earlier one', () => {
+		const repeat = { source: 'regions', field: 'region', values: ['North'] }
+
+		const input = [
+			SELECTION[0],
+			{ source: 'regions', field: 'product', values: ['Tea'] },
+			{ source: 'other', field: 'region', values: ['West'] },
+			repeat,
+		]
+
+		const { selections } = parseDashboardSelection(input)
+
+		// The first one stays, so a select or a clear in the field acts on one selection only.
+		expect(selections).toEqual(input.slice(0, 3))
+
+		expect(selections).not.toContain(repeat)
+
+		expect(issuesOf(input)).toEqual([['duplicate-selection', '[3]']])
+	})
+
+	it('keeps a later selection when the earlier one with its source and field has no values', () => {
+		const input = [{ source: 'regions', field: 'region', values: [] }, SELECTION[0]]
+
+		expect(parseDashboardSelection(input).selections).toEqual([SELECTION[0]])
+
+		expect(issuesOf(input)).toEqual([['invalid-selection', '[0]']])
 	})
 })

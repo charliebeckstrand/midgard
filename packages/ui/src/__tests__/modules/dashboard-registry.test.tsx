@@ -1,6 +1,5 @@
-import { useState } from 'react'
 import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -14,18 +13,10 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { serverMarkup } from '../helpers/controlled-intersection'
+import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 /** A widget whose component reads the scope, as app code does. */
 function Metric({ label }: { label: string }) {
@@ -196,6 +187,25 @@ describe('DashboardTiles', () => {
 		expect(onTileError).toHaveBeenCalledWith('revenue', expect.any(TypeError))
 	})
 
+	it('renders a spec tile again after an options edit fixes its renderer and Retry', () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { rerender } = renderUI(
+			<Board tiles={[{ id: 'revenue', widget: 'metric', title: 'Revenue' }, ...TILES.slice(1)]} />,
+		)
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		// The edit alone renders nothing again, and Retry renders the fixed tile.
+		rerender(<Board />)
+
+		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
+
+		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+		expect(screen.getByRole('group', { name: 'Revenue' })).toHaveTextContent('Revenue whole')
+	})
+
 	it('renders the other tiles on the server when a renderer throws', () => {
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
@@ -285,25 +295,17 @@ describe('DashboardTiles', () => {
 		const onValueChange = vi.fn()
 
 		function App() {
-			const [layout, setLayout] = useState<DashboardLayoutItem[]>([
-				{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
-				{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
-			])
+			const layout = useControlledLayout(
+				[
+					{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
+					{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
+				],
+				onValueChange,
+			)
 
 			return (
 				<DashboardWidgetProvider widgets={widgets}>
-					<Dashboard
-						aria-label="Sales"
-						editing
-						layout={{
-							value: layout,
-							onValueChange: (next) => {
-								onValueChange(next)
-
-								setLayout(next)
-							},
-						}}
-					>
+					<Dashboard aria-label="Sales" editing layout={layout}>
 						<DashboardTiles tiles={tiles} />
 					</Dashboard>
 				</DashboardWidgetProvider>
@@ -314,9 +316,7 @@ describe('DashboardTiles', () => {
 
 		render.mockClear()
 
-		const [east] = screen.getAllByRole('separator', { name: 'Resize B' })
-
-		fireEvent.keyDown(east as HTMLElement, { key: 'ArrowRight' })
+		pressSplitter('B', 0, 'ArrowRight')
 
 		// The app rendered again with the new layout, and no spec tile rendered.
 		expect(onValueChange).toHaveBeenCalledTimes(1)
@@ -342,20 +342,30 @@ describe('DashboardWidgetProvider', () => {
 	})
 
 	it('demands no width for a kind that no widget claims, so edit mode stays live', () => {
-		renderUI(
+		const board = (tile: DashboardSpecTile) => (
 			<DashboardWidgetProvider widgets={WIDGETS}>
 				<Dashboard
 					aria-label="Sales"
 					editing
 					layout={{ defaultValue: [{ id: 'f', x: 0, y: 0, w: 2, h: 10 }] }}
 				>
-					<DashboardTiles tiles={[{ id: 'f', widget: 'forecast', title: 'Forecast' }]} />
+					<DashboardTiles tiles={[tile]} />
 				</Dashboard>
-			</DashboardWidgetProvider>,
+			</DashboardWidgetProvider>
 		)
+
+		const { rerender } = renderUI(board({ id: 'f', widget: 'forecast', title: 'Forecast' }))
 
 		// At a 50 px pitch, the default 320 px floor needs 7 columns. The tile has 2.
 		expect(screen.getByRole('button', { name: 'Move Forecast' })).toBeInTheDocument()
+
+		// A claimed kind with no minWidth takes that floor, so edit mode stands down. This
+		// control fails when the canvas has no width, which also hides a revert of the case above.
+		rerender(board({ id: 'f', widget: 'metric', title: 'Metric', options: { label: 'Metric' } }))
+
+		expect(screen.getByRole('group', { name: 'Metric' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: /^Move / })).not.toBeInTheDocument()
 	})
 
 	it('states the gap for a kind named after a member of the object prototype', () => {
@@ -415,25 +425,17 @@ describe('DashboardWidgetProvider', () => {
 	})
 
 	it('applies its mount policy to each spec tile', () => {
-		const observer = window.IntersectionObserver
-
 		// A server has no observer, so a held tile renders its fallback there.
-		Reflect.deleteProperty(window, 'IntersectionObserver')
+		const html = serverMarkup(
+			<DashboardWidgetProvider widgets={WIDGETS} mount="lazy">
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+					<DashboardTiles tiles={TILES} />
+				</Dashboard>
+			</DashboardWidgetProvider>,
+		)
 
-		try {
-			const html = renderToString(
-				<DashboardWidgetProvider widgets={WIDGETS} mount="lazy">
-					<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-						<DashboardTiles tiles={TILES} />
-					</Dashboard>
-				</DashboardWidgetProvider>,
-			)
+		expect(html).toContain('data-deferred')
 
-			expect(html).toContain('data-deferred')
-
-			expect(html).not.toContain('Revenue whole')
-		} finally {
-			window.IntersectionObserver = observer
-		}
+		expect(html).not.toContain('Revenue whole')
 	})
 })

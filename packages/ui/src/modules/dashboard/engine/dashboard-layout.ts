@@ -18,14 +18,14 @@ export const ROW_SUBDIVISION = 4
 export const DEFAULT_COLUMNS = 24
 
 /** The column span of a tile that mounts with no layout entry and no `defaultSize`. */
-export const DEFAULT_CELL_WIDTH = 8
+const DEFAULT_CELL_WIDTH = 8
 
 /**
  * The row span of a free-form tile with no stored height and no default height.
  * It is the height of a 16:9 tile at a third of 24 columns, so an unset tile
  * still has a board shape.
  */
-export const DEFAULT_CELL_HEIGHT = 18
+const DEFAULT_CELL_HEIGHT = 18
 
 /**
  * One saved tile: its geometry in integer grid units. A saved layout holds only
@@ -66,6 +66,24 @@ export type DashboardTileSize = {
 }
 
 /**
+ * The place of a tile in the markup of the board. It is the slot of its board
+ * child, then its group in that slot, then its index. A spec tile takes its index
+ * in the `tiles` of its `DashboardTiles`, and a JSX tile has the index `0`.
+ *
+ * @remarks
+ * The board reads its children through each Fragment, so each child of a
+ * Fragment has a slot of its own. A tile or a `DashboardTiles` child of the board
+ * has the group `0`.
+ *
+ * The tiles that one component renders share the slot of that component. In it,
+ * each `DashboardTiles` and each JSX tile takes a group in mount order. The
+ * elements that mount in one commit mount in markup order. A spec tile takes the
+ * group of its `DashboardTiles`, so a spec tile that mounts later keeps its place
+ * in the spec.
+ */
+export type DashboardTileRank = readonly [slot: number, group: number, index: number]
+
+/**
  * What a mounted tile demands of its cell. The tile registers these values; the
  * saved layout never stores them.
  */
@@ -82,6 +100,8 @@ export type DashboardTileDemands = {
 	minSize?: Partial<DashboardTileSize>
 	/** The largest span that a resize or a new placement gives the tile. */
 	maxSize?: Partial<DashboardTileSize>
+	/** The place of the tile in the markup. It orders the tiles that have no entry. */
+	rank?: DashboardTileRank
 }
 
 /** One resolved cell in grid units. The height is always concrete. */
@@ -139,6 +159,14 @@ export function deriveHeight(w: number, ratio: number): number {
 }
 
 /**
+ * The row span of a tile at `w` columns. A tile with a fixed ratio derives its
+ * height, and a free-form tile keeps `free`.
+ */
+export function heightAt(w: number, free: number, ratio: number | undefined): number {
+	return ratio === undefined ? free : deriveHeight(w, ratio)
+}
+
+/**
  * `value` within `[min, max]`. An absent bound does not apply. When the minimum
  * is larger than the maximum, the minimum wins, as CSS `min-width` does.
  */
@@ -172,10 +200,7 @@ export function resolveCell(
 	// A tile that has not registered passes its raw props, so the ratio gets the check here too.
 	const ratio = usableRatio(demands?.ratio)
 
-	const h =
-		ratio === undefined
-			? Math.max(1, Math.round(item.h ?? DEFAULT_CELL_HEIGHT))
-			: deriveHeight(w, ratio)
+	const h = heightAt(w, Math.max(1, Math.round(item.h ?? DEFAULT_CELL_HEIGHT)), ratio)
 
 	return {
 		id: item.id,
@@ -417,12 +442,29 @@ function entryCells(
 }
 
 /**
+ * Compares two tiles by the `rank` of their demands. A tile with no rank goes
+ * after each tile with a rank.
+ */
+function byRank(a: DashboardTileDemands, b: DashboardTileDemands): number {
+	if (a.rank === undefined || b.rank === undefined) {
+		return Number(a.rank === undefined) - Number(b.rank === undefined)
+	}
+
+	return a.rank[0] - b.rank[0] || a.rank[1] - b.rank[1] || a.rank[2] - b.rank[2]
+}
+
+/**
  * Resolves a saved layout against the mounted tiles. An entry keeps its place.
- * A mounted tile with no entry takes a new row under the lowest tile, in mount
+ * A mounted tile with no entry takes a new row under the lowest tile, in markup
  * order, at its `defaultSize` within its `minSize` and `maxSize`. An entry with
  * no mounted tile is ignored, and its space stays open.
  *
  * @remarks
+ * The markup order compares the `rank` in the demands of each tile. Two tiles
+ * with the same rank, or with no rank, keep the order of `demands`, which is the
+ * mount order. A reload can mount the tiles in another order, and the rank keeps
+ * their rows.
+ *
  * The clamp of {@link resolveCell} can move an entry, for example after a change
  * of `columns`, or when `x` is past the edge. An entry that the clamp does not
  * move keeps its place, also when it overlaps another entry as saved. Then each
@@ -444,20 +486,30 @@ export function resolveLayout(
 
 	const placed = new Set(cells.map((cell) => cell.id))
 
-	for (const [id, demand] of demands) {
-		if (placed.has(id)) continue
+	// The first row under all cells. Each tile with no entry takes the row there.
+	let edge = bottom(cells)
 
+	// The sort is stable, so a tie keeps the mount order.
+	const unplaced = [...demands]
+		.filter(([id]) => !placed.has(id))
+		.sort(([, a], [, b]) => byRank(a, b))
+
+	for (const [id, demand] of unplaced) {
 		const { defaultSize: size, minSize: min, maxSize: max } = demand
 
 		const item = {
 			id,
 			x: 0,
-			y: bottom(cells),
+			y: edge,
 			w: clampSpan(size?.w ?? DEFAULT_CELL_WIDTH, min?.w, max?.w),
 			h: clampSpan(size?.h ?? DEFAULT_CELL_HEIGHT, min?.h, max?.h),
 		}
 
-		cells.push(resolveCell(item, demand, columns))
+		const cell = resolveCell(item, demand, columns)
+
+		cells.push(cell)
+
+		edge = cell.y + cell.h
 	}
 
 	return cells
@@ -469,10 +521,7 @@ export function resolveLayout(
  * Items at the same origin keep their input order.
  */
 export function readingOrder(items: readonly { id: string; x: number; y: number }[]): string[] {
-	return items
-		.map((item, index) => ({ item, index }))
-		.sort((a, b) => a.item.y - b.item.y || a.item.x - b.item.x || a.index - b.index)
-		.map(({ item }) => item.id)
+	return items.toSorted((a, b) => a.y - b.y || a.x - b.x).map((item) => item.id)
 }
 
 /**

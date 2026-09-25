@@ -2,6 +2,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { dragPreview } from '../../modules/dashboard/engine/dashboard-drag'
 import type { DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
+import type { DashboardSelection } from '../../modules/dashboard/engine/dashboard-scope'
 import {
 	createDashboardStore,
 	type DashboardState,
@@ -21,6 +22,7 @@ const initial = (patch: Partial<DashboardState> = {}): DashboardState => ({
 		['b', {}],
 		['c', {}],
 	]),
+	declared: new Set(),
 	width: 0,
 	gesture: null,
 	filter: undefined,
@@ -89,6 +91,96 @@ describe('createDashboardStore', () => {
 		const store = createDashboardStore(
 			initial({ demands: new Map([['a', { minWidth: 600 }]]), width: 400 }),
 		)
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+	})
+
+	it('holds the projection on screen until the width passes the threshold by 24 px', () => {
+		// With no gutter, tile a at 8 of 24 columns starves under 600 px.
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 600 }),
+		)
+
+		expect(store.getView().projected).toBe(false)
+
+		store.setState({ width: 599 })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+
+		store.setState({ width: 623 })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+
+		store.setState({ width: 624 })
+
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		// The hold applies only to a projection on screen, so the saved layout stays at 623 px.
+		store.setState({ width: 623 })
+
+		expect(store.getView().projected).toBe(false)
+	})
+
+	it('drops the hold when the starved tile leaves at the same width', () => {
+		// With no gutter, tile a at 8 of 24 columns starves under 600 px, and tile b under 570 px.
+		const demands = new Map([
+			['a', { minWidth: 200 }],
+			['b', { minWidth: 190 }],
+			['c', {}],
+		])
+
+		const store = createDashboardStore(initial({ gap: 0, demands, width: 580 }))
+
+		expect(store.getView().projected).toBe(true)
+
+		store.unregister('a')
+
+		// Tile b fits at 580 px and starves at the held width of 556 px.
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
+	})
+
+	it('drops the hold when the minWidth of the starved tile drops so that it fits', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 580 }),
+		)
+
+		expect(store.getView().projected).toBe(true)
+
+		// A floor of 190 px fits at 580 px and starves at the held width of 556 px.
+		store.register('a', { minWidth: 190 })
+
+		expect(store.getView()).toMatchObject({ projected: false, editable: true })
+
+		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
+	})
+
+	it('keeps the hold through a change of the selections', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
+		)
+
+		store.setState({ width: 610 })
+
+		expect(store.getView().projected).toBe(true)
+
+		store.setState({ selections: [{ source: 'b', field: 'region', values: ['North'] }] })
+
+		expect(store.getView()).toMatchObject({ projected: true, editable: false })
+	})
+
+	it('keeps the hold through a new layout array that holds the same geometry', () => {
+		const store = createDashboardStore(
+			initial({ gap: 0, demands: new Map([['a', { minWidth: 200 }]]), width: 590 }),
+		)
+
+		store.setState({ width: 610 })
+
+		expect(store.getView().projected).toBe(true)
+
+		// A controlled app can render an equal layout in a new array on each render.
+		store.setState({ layout: [...store.getState().layout] })
 
 		expect(store.getView()).toMatchObject({ projected: true, editable: false })
 	})
@@ -192,6 +284,58 @@ describe('createDashboardStore', () => {
 		expect(order).toEqual(['a', 'c', 'b'])
 	})
 
+	it('applies the selection of a tile with an entry until a tile registers, then of a registered tile', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'a', field: 'region', values: ['North'] },
+			{ source: 'gone', field: 'region', values: ['West'] },
+			{ source: '', field: 'product', values: ['Tea'] },
+		]
+
+		const store = createDashboardStore(initial({ demands: new Map(), selections }))
+
+		// No tile registers on the server, so the saved entries stand for the tiles.
+		expect(store.getView().selections).toEqual([selections[0], selections[2]])
+
+		store.register('a', {})
+
+		store.register('b', {})
+
+		store.unregister('a')
+
+		expect(store.getView().selections).toEqual([selections[2]])
+
+		store.unregister('b')
+
+		// No tile is left, so only the selection of the board applies.
+		expect(store.getView().selections).toEqual([selections[2]])
+
+		// A hydration render reads the view that the server rendered.
+		expect(store.getInitialView().selections).toEqual([selections[0], selections[2]])
+
+		expect(store.getInitialState()).toMatchObject({ selections, demands: new Map() })
+	})
+
+	it('applies the selection of a declared tile with no entry until a tile registers', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'new', field: 'region', values: ['North'] },
+			{ source: 'gone', field: 'region', values: ['West'] },
+		]
+
+		const store = createDashboardStore(
+			initial({ demands: new Map(), declared: new Set(['new']), selections }),
+		)
+
+		// The children of the board declare the tile, so the server counts it with no saved entry.
+		expect(store.getView().selections).toEqual([selections[0]])
+
+		store.register('a', {})
+
+		// The registered tiles take over, so a declared tile that has not registered stops counting.
+		expect(store.getView().selections).toEqual([])
+
+		expect(store.getInitialView().selections).toEqual([selections[0]])
+	})
+
 	it('registers and unregisters demands, and notifies each change', () => {
 		const store = createDashboardStore(initial({ demands: new Map() }))
 
@@ -199,14 +343,39 @@ describe('createDashboardStore', () => {
 
 		store.subscribe(listener)
 
-		const unregister = store.register('a', { ratio: 16 / 9 })
+		store.register('a', { ratio: 16 / 9 })
 
 		expect(store.getView().cells.get('a')).toMatchObject({ w: 8, h: 18 })
 
-		unregister()
+		store.unregister('a')
 
 		expect(store.getView().cells.has('a')).toBe(false)
 
 		expect(listener).toHaveBeenCalledTimes(2)
+	})
+
+	it('notifies no listener while closed, and catches up once when it opens', () => {
+		const store = createDashboardStore(initial())
+
+		const listener = vi.fn()
+
+		store.subscribe(listener)
+
+		store.close()
+
+		store.unregister('a')
+
+		store.unregister('b')
+
+		expect(listener).not.toHaveBeenCalled()
+
+		// A read of a closed store still sees the current state.
+		expect([...store.getView().cells.keys()]).toEqual(['c'])
+
+		store.open()
+
+		expect(listener).toHaveBeenCalledOnce()
+
+		expect([...store.getView().cells.keys()]).toEqual(['c'])
 	})
 })

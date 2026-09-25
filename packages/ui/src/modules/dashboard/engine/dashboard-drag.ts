@@ -15,6 +15,7 @@
  * Only the tiles that the answer names move. Nothing moves on its own.
  */
 
+import { clamp } from '../../../utilities'
 import {
 	bottom,
 	type DashboardCell,
@@ -38,6 +39,9 @@ export type DashboardDragPreview = {
 	/** The tile that a shift or a swap reorders against. */
 	partner?: string
 }
+
+/** An offset on the screen, in px. */
+export type DashboardOffset = { x: number; y: number }
 
 /**
  * The range of origins that a dragged tile can reach. A tile can go one row band
@@ -63,6 +67,31 @@ export function dragTravel(
 	return {
 		maxX: Math.max(0, columns - origin.w),
 		maxY: Math.max(origin.y, bottom(snapshot, id)),
+	}
+}
+
+/**
+ * The pointer offset in px, clamped so that the tile at `origin` stays inside
+ * its travel range. The range is in columns, so a right-to-left board flips the
+ * horizontal offset into columns and back. The carried tile paints this offset,
+ * and the drag target is the origin plus this offset in grid units.
+ *
+ * @param offset - The pointer offset from the start of the drag, in px.
+ * @param pitch - The column pitch in px, above 0.
+ * @param inline - The inline direction of the canvas: `1` for ltr, `-1` for rtl.
+ */
+export function travelOffset(
+	origin: DashboardCell,
+	offset: DashboardOffset,
+	travel: DashboardDragTravel,
+	pitch: number,
+	inline: 1 | -1,
+): DashboardOffset {
+	const row = pitch / ROW_SUBDIVISION
+
+	return {
+		x: inline * clamp(inline * offset.x, -origin.x * pitch, (travel.maxX - origin.x) * pitch),
+		y: clamp(offset.y, -origin.y * row, (travel.maxY - origin.y) * row),
 	}
 }
 

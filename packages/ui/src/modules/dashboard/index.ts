@@ -17,10 +17,12 @@ export {
 	removeSpecTile,
 } from './engine/dashboard-spec'
 export {
+	type DashboardSelectionParse,
 	type DashboardSpecIssue,
 	type DashboardSpecIssueKind,
 	type DashboardSpecParse,
 	type DashboardSpecParseOptions,
+	parseDashboardSelection,
 	parseDashboardSpec,
 } from './engine/dashboard-spec-parse'
 export type {

@@ -1,6 +1,8 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
+import { matchesMediaQuery } from '../../utilities'
+import type { DashboardOffset } from './engine/dashboard-drag'
 import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 
 /** The duration of a tile glide, in ms. */
@@ -9,21 +11,28 @@ const GLIDE_DURATION = 200
 /** The easing of a tile glide: a fast start that settles softly. */
 const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
 
-/** A pointer offset in px. */
-type Offset = { x: number; y: number }
+/**
+ * The z-index of a tile while it glides. It is over the chrome of the later
+ * tiles at 10, and under the lifted tile at 30. A dropped tile has lost its
+ * raise, so without it the later tiles paint over the glide.
+ */
+const GLIDE_LAYER = 20
+
+/** The query that matches when the reader asks the platform for reduced motion. */
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
 /** Options for {@link useDashboardFlip}. @internal */
 export type DashboardFlipOptions = {
 	/** The cell that the tile paints now. */
 	cell: DashboardCell | undefined
 	/** The pointer offset while the tile is dragged, else `null`. */
-	carried: Offset | null
+	carried: DashboardOffset | null
 	/** Snap instead of glide, for a responsive re-pack. */
 	snap: boolean
 }
 
 /** The translate that an element paints now, which a running animation can hold. */
-function paintedOffset(element: HTMLElement): Offset {
+function paintedOffset(element: HTMLElement): DashboardOffset {
 	const transform = getComputedStyle(element).transform
 
 	if (!transform || transform === 'none') return { x: 0, y: 0 }
@@ -33,50 +42,61 @@ function paintedOffset(element: HTMLElement): Offset {
 	return { x: matrix.m41, y: matrix.m42 }
 }
 
-/** Whether the reader asks the platform for reduced motion. */
-function prefersReducedMotion(): boolean {
-	return window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
-}
-
 /** What the tile painted at its last commit. */
-type Painted = { cell: DashboardCell; carried: Offset | null; snap: boolean }
+type Painted = { cell: DashboardCell; carried: DashboardOffset | null; snap: boolean }
 
 /**
  * The offset in px from the new cell back to where the tile was painted, or
  * `null` when the change snaps. A change of size snaps, and so does each change
- * that starts or ends a snap phase.
+ * that starts or ends a snap phase. Only a change that can glide reads the
+ * width and the direction of the tile.
  */
 function glideFrom(
 	previous: Painted,
 	cell: DashboardCell,
 	snap: boolean,
-	pitch: number,
-	inline: 1 | -1,
-): Offset | null {
+	element: HTMLElement,
+): DashboardOffset | null {
 	if (snap || previous.snap) return null
 
 	if (previous.cell.w !== cell.w || previous.cell.h !== cell.h) return null
 
-	// The columns turn into px on the screen, which run the other way in a right-to-left board.
-	const x = inline * (previous.cell.x - cell.x) * pitch + (previous.carried?.x ?? 0)
+	const { carried } = previous
 
-	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (previous.carried?.y ?? 0)
+	if (previous.cell.x === cell.x && previous.cell.y === cell.y && carried === null) return null
+
+	const pitch = element.offsetWidth / cell.w
+
+	// The columns turn into px on the screen, which run the other way in a right-to-left board.
+	const inline = inlineSign(getComputedStyle(element).direction)
+
+	const x = inline * (previous.cell.x - cell.x) * pitch + (carried?.x ?? 0)
+
+	const y = ((previous.cell.y - cell.y) * pitch) / ROW_SUBDIVISION + (carried?.y ?? 0)
 
 	return x === 0 && y === 0 ? null : { x, y }
 }
 
+/** Ends each glide that runs on the tile. A host with no Web Animations API runs none. */
+function endGlides(element: HTMLElement): void {
+	for (const animation of element.getAnimations?.() ?? []) animation.cancel()
+}
+
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
-function glide(element: HTMLElement, offset: Offset): void {
-	if (typeof element.animate !== 'function' || prefersReducedMotion()) return
+function glide(element: HTMLElement, offset: DashboardOffset): void {
+	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION)) return
 
 	const running = paintedOffset(element)
 
-	for (const animation of element.getAnimations()) animation.cancel()
+	endGlides(element)
 
 	element.animate(
 		[
-			{ transform: `translate(${offset.x + running.x}px, ${offset.y + running.y}px)` },
-			{ transform: 'translate(0px, 0px)' },
+			{
+				transform: `translate(${offset.x + running.x}px, ${offset.y + running.y}px)`,
+				zIndex: GLIDE_LAYER,
+			},
+			{ transform: 'translate(0px, 0px)', zIndex: GLIDE_LAYER },
 		],
 		{ duration: GLIDE_DURATION, easing: GLIDE_EASING },
 	)
@@ -94,7 +114,11 @@ function glide(element: HTMLElement, offset: Offset): void {
  *
  * Only a move glides. A change of size snaps, a responsive re-pack snaps, and so
  * does each change under reduced motion. A new glide starts from the painted
- * position of a glide that runs, so a quick run of previews never jumps.
+ * position of a glide that runs, so a quick run of previews never jumps. A
+ * pickup ends a glide that runs, so the tile follows the pointer at once.
+ *
+ * While it glides, a tile sits at z-index 20. The board opens no stacking
+ * context, so a glide can pass over app chrome at 10 to 19 for its 200 ms.
  *
  * @internal
  */
@@ -111,12 +135,17 @@ export function useDashboardFlip(
 
 		if (cell !== undefined) last.current = { cell, carried, snap }
 
-		// A carried tile follows the pointer; it glides only once the pointer lets go.
-		if (element === null || previous === null || cell === undefined || carried !== null) return
+		if (element === null || previous === null || cell === undefined) return
 
-		const inline = inlineSign(getComputedStyle(element).direction)
+		// A carried tile follows the pointer, and it glides only once the pointer lets
+		// go. A glide overrides the transform of the carry, so a pickup ends it.
+		if (carried !== null) {
+			if (previous.carried === null) endGlides(element)
 
-		const offset = glideFrom(previous, cell, snap, element.offsetWidth / cell.w, inline)
+			return
+		}
+
+		const offset = glideFrom(previous, cell, snap, element)
 
 		if (offset !== null) glide(element, offset)
 	}, [ref, cell, carried, snap])

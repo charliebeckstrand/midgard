@@ -5,6 +5,7 @@ import {
 	Children,
 	type CSSProperties,
 	cloneElement,
+	Fragment,
 	isValidElement,
 	type ReactElement,
 	type ReactNode,
@@ -22,10 +23,16 @@ import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
 import type { QueryGroup } from '../query/engine/types'
-import { type DashboardActions, DashboardActionsContext, DashboardStoreContext } from './context'
+import {
+	type DashboardActions,
+	DashboardActionsContext,
+	DashboardStoreContext,
+	DashboardTileRankContext,
+} from './context'
 import type { DashboardCommit } from './dashboard-gesture'
 import { DashboardPlaceholder } from './dashboard-placeholder'
 import { DashboardTile, type DashboardTileProps } from './dashboard-tile'
+import { DashboardTiles, type DashboardTilesProps } from './dashboard-tiles'
 import {
 	type DashboardCell,
 	type DashboardLayoutItem,
@@ -78,30 +85,105 @@ function isTileElement(child: unknown): child is ReactElement<DashboardTileProps
 	return isValidElement<DashboardTileProps>(child) && child.type === DashboardTile
 }
 
+/** Whether a child is a `DashboardTiles` element, whose spec tiles the board can name. */
+function isSpecTilesElement(child: unknown): child is ReactElement<DashboardTilesProps> {
+	return isValidElement<DashboardTilesProps>(child) && child.type === DashboardTiles
+}
+
 /**
- * The children with each direct `DashboardTile` in reading order. The tiles
- * trade their slots among themselves, and each other child keeps its slot. Each
- * tile takes a key from its id, so a move keeps its state. React focuses a moved
- * element again after the commit, so a move keeps the focus too.
+ * The children in one flat list, through each Fragment. Each element takes a key
+ * that is unique in the list, and that stays with the element.
+ *
+ * @remarks
+ * `Children.toArray` escapes each key, so a key of the app never meets the key
+ * of an index. A Fragment adds its own key to the key of each child. A keyed
+ * Fragment therefore keeps the state of its children when it moves.
+ */
+function flattenBoardChildren(children: ReactNode, prefix = ''): ReactNode[] {
+	return Children.toArray(children).flatMap((child) => {
+		if (!isValidElement(child)) return [child]
+
+		const key = `${prefix}${child.key}`
+
+		// `Children.toArray` escapes each colon in a key of the app, and each of its keys
+		// starts with a period. Thus a colon meets a period only at the join of a Fragment path.
+		if (child.type === Fragment) {
+			return flattenBoardChildren((child.props as { children?: ReactNode }).children, `${key}:`)
+		}
+
+		return [cloneElement(child, { key })]
+	})
+}
+
+/**
+ * The ids of the tiles that the children declare: each `DashboardTile` child,
+ * also inside a Fragment, and each spec tile of a `DashboardTiles` child. A
+ * component that renders a tile hides its id from the board. The same limit
+ * keeps that component in its own slot of the reading order.
+ */
+function declaredTiles(children: ReactNode): Set<string> {
+	const ids = new Set<string>()
+
+	for (const node of flattenBoardChildren(children)) {
+		if (isTileElement(node)) ids.add(node.props.id)
+
+		if (isSpecTilesElement(node)) for (const tile of node.props.tiles) ids.add(tile.id)
+	}
+
+	return ids
+}
+
+/**
+ * The children with each `DashboardTile` in reading order, also a tile inside a
+ * Fragment. The tiles trade their slots among themselves, and each other child
+ * keeps its slot. Each tile takes a key from its id, so a move keeps its state.
+ * React focuses a moved element again after the commit, so a move keeps the focus too.
+ *
+ * @remarks
+ * The children flatten through each Fragment, and each other element takes a key
+ * from its Fragment path. A component that renders a tile keeps its own slot.
+ *
+ * Each element goes inside a rank provider with its slot in the markup, and not
+ * with the slot that the reading order gives it. A tile with no entry thus takes
+ * its row in markup order. The provider of each other element, such as a
+ * component, is grouped. Each `DashboardTiles` and each tile in it then takes a
+ * group of the slot when it mounts.
  */
 function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNode[] {
-	const items = Children.toArray(children)
+	const items = flattenBoardChildren(children)
 
 	const slots = items.flatMap((child, index) => (isTileElement(child) ? [index] : []))
 
-	const tiles = sortByOrder(
-		slots.map((slot) => items[slot] as ReactElement<DashboardTileProps>),
+	// The markup slot of each tile, in reading order.
+	const sources = sortByOrder(
+		slots,
 		order,
-		(tile) => tile.props.id,
+		(slot) => (items[slot] as ReactElement<DashboardTileProps>).props.id,
 	)
 
-	slots.forEach((slot, index) => {
-		const tile = tiles[index]
+	// The markup slot of the element that each slot of the result holds.
+	const from = new Map(slots.map((slot, index) => [slot, sources[index] ?? slot]))
 
-		if (tile !== undefined) items[slot] = cloneElement(tile, { key: `tile:${tile.props.id}` })
+	return items.map((_, index) => {
+		const slot = from.get(index) ?? index
+
+		const child = items[slot]
+
+		if (!isValidElement(child)) return child
+
+		const tile = isTileElement(child)
+
+		const key = tile ? `tile:${child.props.id}` : child.key
+
+		return (
+			<DashboardTileRankContext
+				key={key}
+				value={{ rank: [slot, 0, 0], grouped: !tile && !isSpecTilesElement(child) }}
+			>
+				{tile ? cloneElement(child, { key }) : child}
+			</DashboardTileRankContext>
+		)
 	})
-
-	return items
 }
 
 /**
@@ -110,13 +192,19 @@ function inReadingOrder(children: ReactNode, order: readonly string[]): ReactNod
  */
 export type DashboardProps = AccessibleName & {
 	/**
-	 * The saved layout. It fires once for each committed gesture. Omit it to let the
-	 * dashboard hold the layout, and each tile with no entry takes a new row.
+	 * The saved layout. It fires once for each committed change: a drop, a pointer
+	 * resize, a keyboard resize step, or a tidy that moves a tile. Omit it to let
+	 * the dashboard hold the layout, and each tile with no entry takes a new row.
+	 * Apply each value in the same event, as {@link DashboardLayoutBinding} says.
 	 */
 	layout?: DashboardLayoutBinding
 	/** The filter that the app owns. The tiles read it through the scope hooks. */
 	filter?: DashboardFilterBinding
-	/** The cross-filter selections that the tiles make. Bind it to save or reset them. */
+	/**
+	 * The cross-filter selections that the tiles make. Bind it to save or reset
+	 * them. Read a saved value through `parseDashboardSelection`, which drops each
+	 * malformed selection.
+	 */
 	selection?: DashboardSelectionBinding
 	/**
 	 * Edit mode. The column guides show, each tile gets a drag grip and resize
@@ -159,6 +247,19 @@ export type DashboardProps = AccessibleName & {
 	 * board renders the tiles in reading order, by row and then by column. In
 	 * edit mode the markup holds still, and the new order takes effect when edit
 	 * mode ends.
+	 *
+	 * @remarks
+	 * The order reaches each `DashboardTile` child, also inside a Fragment. A
+	 * component that renders a tile keeps its own slot. `DashboardTiles` orders
+	 * only its own tiles, so a board with JSX tiles and spec tiles orders each group apart.
+	 *
+	 * The tiles with no layout entry take their new rows in markup order. That
+	 * order reads the children, then the `tiles` of each `DashboardTiles`. In one
+	 * component, each `DashboardTiles` and each `DashboardTile` takes its place when
+	 * it mounts, and the elements of one commit keep their markup order. An element
+	 * that mounts after the others of its component goes after them. A reload gives
+	 * the markup order only when they all mount in one commit. A new spec tile keeps
+	 * its place in `tiles`.
 	 */
 	children?: ReactNode
 }
@@ -169,9 +270,10 @@ export type DashboardProps = AccessibleName & {
  * each `DashboardTile` owns its chrome, and the scope hooks carry the filter.
  *
  * The board never moves a tile by itself. A drag moves a tile into free cells,
- * or it reorders it against an equal tile; anything else is blocked. A resize
- * grows a tile until it meets a neighbor or an edge. What you save is what
- * renders, gaps included. To close the gaps, call `tidy` on the `ref`
+ * or it reorders it against an equal tile. Else the tile snaps to the nearest
+ * free cell, and a drop changes nothing only when that cell is its start cell.
+ * A resize grows a tile until it meets a neighbor or an edge. What you save is
+ * what renders, gaps included. To close the gaps, call `tidy` on the `ref`
  * ({@link DashboardHandle}).
  *
  * One gesture owns the board at a time, so the board refuses a second gesture
@@ -182,6 +284,12 @@ export type DashboardProps = AccessibleName & {
  * therefore renders each tile at its saved cell, with no measurement. When the
  * container renders a tile under its `minWidth`, the board paints a re-pack of
  * the same layout, and it never saves the re-pack.
+ *
+ * The re-pack holds for 24 px past the width at which each tile fits. A classic
+ * scrollbar up to 24 px wide that comes and goes with the re-pack therefore
+ * cannot switch the board on each frame. A wider scrollbar, such as a styled
+ * `::-webkit-scrollbar`, can switch it. Give such a scroll box
+ * `scrollbar-gutter: stable`.
  *
  * @example
  * ```tsx
@@ -236,6 +344,8 @@ export function Dashboard({
 			editing,
 			layout: layoutValue ?? EMPTY_LAYOUT,
 			demands: new Map(),
+			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
+			declared: declaredTiles(children),
 			width: 0,
 			gesture: null,
 			filter: filterValue,
@@ -243,12 +353,32 @@ export function Dashboard({
 		}),
 	)
 
+	// On an unmount, this cleanup runs first and closes the store, so each tile that
+	// unregisters after it wakes no reader. When the effects mount again, as under
+	// StrictMode, the tiles register before the board, and the open catches up.
+	useLayoutEffect(() => {
+		store.open()
+
+		return store.close
+	}, [store])
+
 	useLayoutEffect(() => store.setState({ columns, gap, editing }), [store, columns, gap, editing])
 
-	useLayoutEffect(
-		() => store.setState({ layout: layoutValue ?? EMPTY_LAYOUT }),
-		[store, layoutValue],
-	)
+	// A commit bumps this count. The effect below writes each new layout into the
+	// store. After a commit, the same write also ends the settle phase. The render
+	// then holds the committed layout, or the layout that stays when a controlled
+	// app declined it.
+	const [settled, setSettled] = useState(0)
+
+	const handled = useRef(0)
+
+	useLayoutEffect(() => {
+		const settling = settled !== handled.current
+
+		handled.current = settled
+
+		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, ...(settling ? { gesture: null } : {}) })
+	}, [store, settled, layoutValue])
 
 	useLayoutEffect(() => store.setState({ filter: filterValue }), [store, filterValue])
 
@@ -256,21 +386,6 @@ export function Dashboard({
 		() => store.setState({ selections: selectionValue ?? EMPTY_SELECTIONS }),
 		[store, selectionValue],
 	)
-
-	// A commit bumps this count. The effect below ends the settle phase once the
-	// committed layout has arrived — or, for a controlled layout that the app
-	// declined, once the render shows that it did not change.
-	const [settled, setSettled] = useState(0)
-
-	const handled = useRef(0)
-
-	useLayoutEffect(() => {
-		if (settled === handled.current) return
-
-		handled.current = settled
-
-		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, gesture: null })
-	}, [store, settled, layoutValue])
 
 	const controlled = layout?.value !== undefined
 
@@ -298,20 +413,15 @@ export function Dashboard({
 		[store, setLayoutValue, controlled],
 	)
 
-	const containerRef = useRef<HTMLElement>(null)
-
 	const canvasRef = useRef<HTMLDivElement>(null)
 
 	// The canvas is the measured box: it spans the container plus the two outer
 	// half-gutters, so its width divides into the true column pitch.
-	useResizeObserver(
-		canvasRef,
-		useCallback(() => {
-			const width = canvasRef.current?.clientWidth ?? 0
+	useResizeObserver(canvasRef, () => {
+		const width = canvasRef.current?.clientWidth ?? 0
 
-			if (width !== store.getState().width) store.setState({ width })
-		}, [store]),
-	)
+		if (width !== store.getState().width) store.setState({ width })
+	})
 
 	const { context: dndContextProps, cancelDrag } = useDashboardDrag({
 		store,
@@ -390,7 +500,6 @@ export function Dashboard({
 			<DashboardActionsContext value={actions}>
 				<DndContext {...dndContextProps}>
 					<section
-						ref={containerRef}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
 						// The focus lands here when a remove takes away the last tile.
@@ -406,7 +515,7 @@ export function Dashboard({
 						>
 							{tiles}
 
-							<DashboardPlaceholder gap={gap} />
+							<DashboardPlaceholder />
 						</div>
 					</section>
 				</DndContext>

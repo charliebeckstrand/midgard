@@ -14,6 +14,10 @@ import type { DashboardState, DashboardView } from './engine/dashboard-store'
  * stable. Do not return a fresh object or array: each read then differs, and
  * React renders the component in a loop.
  *
+ * A hydration render reads the initial state of the store, as the server did.
+ * Each tile hydrates its content in its own Suspense boundary after the tiles
+ * register. There the live state can differ from the server markup.
+ *
  * @internal
  */
 export function useDashboardStore<T>(select: (view: DashboardView, state: DashboardState) => T): T {
@@ -21,5 +25,10 @@ export function useDashboardStore<T>(select: (view: DashboardView, state: Dashbo
 
 	const read = useCallback(() => select(store.getView(), store.getState()), [store, select])
 
-	return useSyncExternalStore(store.subscribe, read, read)
+	const readInitial = useCallback(
+		() => select(store.getInitialView(), store.getInitialState()),
+		[store, select],
+	)
+
+	return useSyncExternalStore(store.subscribe, read, readInitial)
 }

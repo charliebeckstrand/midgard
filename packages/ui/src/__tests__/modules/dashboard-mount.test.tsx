@@ -1,90 +1,27 @@
 import { act } from '@testing-library/react'
-import type { ReactElement } from 'react'
+import { Fragment, type ReactElement, type ReactNode, useEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
 	DashboardTile,
+	DashboardTiles,
 	useDashboardRows,
 } from '../../modules/dashboard'
 import type { Mount } from '../../primitives/mount'
 import { attach, getSlot, renderUI, screen } from '../helpers'
+import {
+	type ControlledObserver,
+	installControlledObserver,
+	serverMarkup,
+} from '../helpers/controlled-intersection'
 
-/**
- * A controllable `IntersectionObserver`: nothing intersects until a test says
- * so. The shared jsdom stub reports each target as visible on observe, and this
- * suite must state the deferral itself.
- */
-let report: ((isIntersecting: boolean) => void) | undefined
-
-/** The number of targets that an observer watched. */
-let observed = 0
-
-const original = window.IntersectionObserver
+let observer: ControlledObserver
 
 beforeEach(() => {
-	const targets: { target: Element; callback: IntersectionObserverCallback }[] = []
-
-	observed = 0
-
-	class ControlledObserver {
-		private readonly callback: IntersectionObserverCallback
-
-		constructor(callback: IntersectionObserverCallback) {
-			this.callback = callback
-		}
-
-		observe(target: Element) {
-			observed += 1
-
-			targets.push({ target, callback: this.callback })
-		}
-
-		unobserve() {}
-		disconnect() {}
-		takeRecords() {
-			return []
-		}
-	}
-
-	window.IntersectionObserver = ControlledObserver as unknown as typeof IntersectionObserver
-
-	report = (isIntersecting) => {
-		act(() => {
-			for (const { target, callback } of targets) {
-				callback(
-					[{ target, isIntersecting } as IntersectionObserverEntry],
-					{} as IntersectionObserver,
-				)
-			}
-		})
-	}
+	observer = installControlledObserver()
 })
-
-afterEach(() => {
-	window.IntersectionObserver = original
-
-	report = undefined
-})
-
-/**
- * The server markup of `element`. A server has no `IntersectionObserver`, and
- * `useInView` reports each target as visible there, so the markup renders with
- * none.
- */
-function serverMarkup(element: ReactElement): string {
-	const observer = window.IntersectionObserver
-
-	Reflect.deleteProperty(window, 'IntersectionObserver')
-
-	try {
-		return renderToString(element)
-	} finally {
-		window.IntersectionObserver = observer
-	}
-}
 
 const LAYOUT: DashboardLayoutItem[] = [{ id: 'a', x: 0, y: 0, w: 12 }]
 
@@ -104,7 +41,7 @@ describe('DashboardTile mount', () => {
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
-		expect(observed).toBe(0)
+		expect(observer.observed()).toBe(0)
 	})
 
 	it('holds the content under lazy until the tile comes near the viewport, and keeps it', () => {
@@ -116,13 +53,13 @@ describe('DashboardTile mount', () => {
 
 		expect(getSlot(container, 'dashboard-tile-content')).toHaveAttribute('data-deferred')
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
 		expect(getSlot(container, 'dashboard-tile-content')).not.toHaveAttribute('data-deferred')
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 	})
@@ -130,11 +67,11 @@ describe('DashboardTile mount', () => {
 	it('unmounts the content under active when the tile leaves the viewport', () => {
 		renderUI(<Board mount="active" />)
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.queryByText('Drawn')).not.toBeInTheDocument()
 
@@ -249,8 +186,165 @@ describe('DashboardTile mount', () => {
 
 		expect(container).toHaveTextContent('Waiting')
 
-		report?.(true)
+		observer.report(true)
 
 		expect(container).toHaveTextContent('Drawn')
+	})
+})
+
+describe('a saved selection before the tiles register', () => {
+	const sales = [
+		{ region: 'North', amount: 10 },
+		{ region: 'West', amount: 30 },
+	]
+
+	/** Each total that a commit of the reader showed, in order. */
+	let totals: number[]
+
+	beforeEach(() => {
+		totals = []
+	})
+
+	function Total() {
+		const rows = useDashboardRows(sales)
+
+		const total = rows.reduce((sum, row) => sum + row.amount, 0)
+
+		useEffect(() => {
+			totals.push(total)
+		}, [total])
+
+		return <output>Total {total}</output>
+	}
+
+	const TOTAL: DashboardLayoutItem = { id: 'total', x: 0, y: 0, w: 12, h: 10 }
+
+	/** A board with a saved selection of the tile `regions`. The children add other tiles. */
+	function Board({ layout, children }: { layout: DashboardLayoutItem[]; children?: ReactNode }) {
+		return (
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: layout }}
+				selection={{ defaultValue: [{ source: 'regions', field: 'region', values: ['West'] }] }}
+			>
+				<DashboardTile id="total" title="Total">
+					<Total />
+				</DashboardTile>
+
+				{children}
+			</Dashboard>
+		)
+	}
+
+	/** Renders the board on the server, and hydrates that markup with an error spy. */
+	function hydrate(board: ReactElement) {
+		const container = attach(document.createElement('div'))
+
+		container.innerHTML = serverMarkup(board)
+
+		const server = container.textContent
+
+		const onRecoverableError = vi.fn()
+
+		let root: Root | undefined
+
+		act(() => {
+			root = hydrateRoot(container, board, { onRecoverableError })
+		})
+
+		onTestFinished(() => act(() => root?.unmount()))
+
+		return { server, container, onRecoverableError }
+	}
+
+	it('applies no selection of a removed tile with no entry, on the server or after hydration', () => {
+		// A remove drops the entry of the tile, so the saved layout names only the other tile.
+		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL]} />)
+
+		expect(server).toContain('Total 40')
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container).toHaveTextContent('Total 40')
+
+		expect(totals).toEqual([40])
+	})
+
+	it('hydrates the selection of a tile whose entry outlives it, then stops applying it', () => {
+		// A JSX board keeps the entry of a tile that left, so the server counts that tile as present.
+		const gone: DashboardLayoutItem = { id: 'regions', x: 12, y: 0, w: 12, h: 10 }
+
+		const { server, container, onRecoverableError } = hydrate(<Board layout={[TOTAL, gone]} />)
+
+		expect(server).toContain('Total 30')
+
+		// The content of the tile hydrates after the tiles register, and it still reads the server state.
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container).toHaveTextContent('Total 40')
+	})
+
+	it.each([
+		['a tile child', <DashboardTile key="regions" id="regions" title="Regions" />],
+		[
+			'a tile inside a Fragment',
+			<Fragment key="regions">
+				<DashboardTile id="regions" title="Regions" />
+			</Fragment>,
+		],
+		[
+			'a spec tile',
+			<DashboardTiles key="regions" tiles={[{ id: 'regions', widget: 'map', title: 'Regions' }]} />,
+		],
+	])('applies the selection of %s with no entry from the server markup on', (_, tile) => {
+		// A tile that the app added after the save has no entry, and the board still sees it.
+		const { server, container, onRecoverableError } = hydrate(
+			<Board layout={[TOTAL]}>{tile}</Board>,
+		)
+
+		expect(server).toContain('Total 30')
+
+		expect(onRecoverableError).not.toHaveBeenCalled()
+
+		expect(container).toHaveTextContent('Total 30')
+
+		// The first client commit shows the server total, so the total never jumps.
+		expect(totals).toEqual([30])
+	})
+})
+
+/**
+ * Whether an observer of `Observer` reports a target as in view when it starts
+ * to watch it. The jsdom setup stub does, and the controlled observer does not.
+ */
+function reportsOnObserve(Observer: typeof IntersectionObserver): boolean {
+	const seen: boolean[] = []
+
+	new Observer((entries) => {
+		for (const entry of entries) seen.push(entry.isIntersecting)
+	}).observe(document.createElement('div'))
+
+	return seen.includes(true)
+}
+
+// The unit project shares one window across the files of a worker. Vitest
+// unstubs a global only before the next test, so a stub that stays after its
+// case can leak into the next file.
+describe('the controlled observer', { shuffle: false }, () => {
+	it('holds each target out of view while the case runs', () => {
+		expect(reportsOnObserve(window.IntersectionObserver)).toBe(false)
+	})
+
+	describe('when that case ends', () => {
+		let between: typeof IntersectionObserver
+
+		// This hook runs before the next case starts, and so before Vitest unstubs a global.
+		beforeAll(() => {
+			between = window.IntersectionObserver
+		})
+
+		it('puts the jsdom observer back', () => {
+			expect(reportsOnObserve(between)).toBe(true)
+		})
 	})
 })

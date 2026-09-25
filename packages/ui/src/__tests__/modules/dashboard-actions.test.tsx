@@ -1,6 +1,5 @@
-import { act } from '@testing-library/react'
 import { type ReactNode, useCallback, useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -12,32 +11,13 @@ import {
 	duplicateSpecTile,
 	removeSpecTile,
 } from '../../modules/dashboard'
-import { bySlot, fireEvent, liveRegion, renderUI, screen } from '../helpers'
-
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+import { act, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
 const LAYOUT: DashboardLayoutItem[] = [
 	{ id: 'a', x: 0, y: 0, w: 8, h: 10 },
 	{ id: 'b', x: 8, y: 0, w: 8, h: 10 },
 	{ id: 'c', x: 16, y: 0, w: 8, h: 10 },
 ]
-
-/** Lets the announcer write the region, which it does in a microtask. */
-async function flushAnnouncer(): Promise<void> {
-	await act(async () => {
-		await Promise.resolve()
-	})
-}
 
 describe('DashboardTile actions', () => {
 	function Board({
@@ -121,9 +101,7 @@ describe('DashboardTile actions', () => {
 
 		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Tile c' }))
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Removed Tile b.')
+		await expectAnnouncement('Removed Tile b.')
 	})
 
 	it('moves the focus to the previous grip after the last tile, and to the board after the only tile', () => {
@@ -159,15 +137,21 @@ describe('DashboardTile actions', () => {
 
 		expect(document.activeElement).toBe(control)
 
-		await flushAnnouncer()
-
-		expect(liveRegion()).toHaveTextContent('Duplicated Tile a.')
+		await expectAnnouncement('Duplicated Tile a.')
 	})
 
 	it('expands a tile into a dialog named by its title', () => {
 		renderUI(<Board expandable />)
 
-		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+		const expand = screen.getByRole('button', { name: 'Expand Tile b' })
+
+		expect(expand).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(expand).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.click(expand)
+
+		expect(expand).toHaveAttribute('aria-expanded', 'true')
 
 		const dialog = screen.getByRole('dialog', { name: 'Tile b' })
 
@@ -179,6 +163,85 @@ describe('DashboardTile actions', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
 
 		expect(screen.queryByRole('dialog', { name: 'Tile b' })).not.toBeInTheDocument()
+
+		// The dialog mounts on the first open, and it stays for the next open.
+		fireEvent.click(expand)
+
+		expect(screen.getByRole('dialog', { name: 'Tile b' })).toHaveTextContent('Content b')
+	})
+
+	/** The board beside a control of the page, which can hold the focus. */
+	function Page({ editing = false }: { editing?: boolean }) {
+		return (
+			<>
+				<button type="button">Outside</button>
+
+				<Board editing={editing} expandable />
+			</>
+		)
+	}
+
+	it('hands the focus to the grip of the tile when edit mode closes an open expand dialog', async () => {
+		const { rerender } = renderUI(<Board expandable />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+
+		screen.getByRole('button', { name: 'Close' }).focus()
+
+		rerender(<Board editing expandable />)
+
+		// The hand-off runs in a microtask.
+		await act(async () => {})
+
+		expect(screen.queryByRole('dialog')).toBeNull()
+
+		expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Move Tile b' }))
+	})
+
+	it('hands the focus to the board when the tile has no grip', async () => {
+		const board = (editing: boolean) => (
+			<Dashboard
+				aria-label="Sales"
+				editing={editing}
+				layout={{ defaultValue: [{ id: 'a', x: 0, y: 0, w: 8, h: 10, static: true }] }}
+			>
+				<DashboardTile id="a" title="Tile a" expandable>
+					<p>Content a</p>
+				</DashboardTile>
+			</Dashboard>
+		)
+
+		const { rerender } = renderUI(board(false))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile a' }))
+
+		screen.getByRole('button', { name: 'Close' }).focus()
+
+		rerender(board(true))
+
+		await act(async () => {})
+
+		expect(document.activeElement).toBe(screen.getByRole('region', { name: 'Sales' }))
+	})
+
+	it('keeps the focus when edit mode starts after the expand dialog closed', async () => {
+		const { rerender } = renderUI(<Page />)
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile b' }))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Close' }))
+
+		await act(async () => {})
+
+		const outside = screen.getByRole('button', { name: 'Outside' })
+
+		outside.focus()
+
+		rerender(<Page editing />)
+
+		await act(async () => {})
+
+		expect(document.activeElement).toBe(outside)
 	})
 
 	it('names the dialog of an untitled tile by its id', () => {

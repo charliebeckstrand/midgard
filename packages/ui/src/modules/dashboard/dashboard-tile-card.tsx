@@ -5,10 +5,11 @@ import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
-import { DashboardHandle } from './dashboard-handle'
+import { DashboardDragHandle } from './dashboard-drag-handle'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
+import { DashboardTileExpand } from './dashboard-tile-expand'
 import { DashboardTileHeader } from './dashboard-tile-header'
 import type { DashboardTileDrag } from './use-dashboard-tile-drag'
 
@@ -36,7 +37,7 @@ export type DashboardTileCardProps = {
 	dragging: boolean
 	/** The props for the drag grip. */
 	grip: DashboardTileDrag['grip']
-	/** The pointer listener that starts a drag anywhere on the card. */
+	/** The pointer listener that starts a drag on the card, outside the actions row. */
 	surface: DashboardTileDrag['surface']
 	/** The mount policy of the content. */
 	mount: Mount
@@ -89,7 +90,36 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	children,
 }: DashboardTileCardProps) {
 	const handle = movable && (
-		<DashboardHandle {...grip} label={`Move ${label}`} floating={!hasHeader} dragging={dragging} />
+		<DashboardDragHandle
+			{...grip}
+			label={`Move ${label}`}
+			floating={!hasHeader}
+			dragging={dragging}
+		/>
+	)
+
+	// Edit mode swaps the edit controls in for the expand control.
+	const controls = editable ? (
+		<DashboardTileControls
+			label={label}
+			onRemove={onRemove}
+			onDuplicate={onDuplicate}
+			shell={shell}
+		/>
+	) : (
+		expandable && (
+			<DashboardTileExpand
+				id={id}
+				label={label}
+				title={title}
+				description={description}
+				fallback={fallback}
+				onError={onError}
+				shell={shell}
+			>
+				{children}
+			</DashboardTileExpand>
+		)
 	)
 
 	return (
@@ -119,23 +149,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 					handle={handle}
 					editing={editable}
 					onError={onError}
-					controls={
-						<DashboardTileControls
-							id={id}
-							label={label}
-							title={title}
-							description={description}
-							editing={editable}
-							onRemove={onRemove}
-							onDuplicate={onDuplicate}
-							expandable={expandable}
-							fallback={fallback}
-							onError={onError}
-							shell={shell}
-						>
-							{children}
-						</DashboardTileControls>
-					}
+					controls={controls}
 				/>
 			)}
 

@@ -1,6 +1,6 @@
 import { act } from '@testing-library/react'
-import { createRef, type Ref, useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { createRef, type Ref } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardGestureEndEvent,
@@ -10,18 +10,9 @@ import {
 	DashboardTile,
 } from '../../modules/dashboard'
 import { fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+stubCanvasWidth()
 
 const LAYOUT: DashboardLayoutItem[] = [{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]
 
@@ -34,20 +25,11 @@ type Spies = {
 
 /** A controlled board with one free-form tile and no width floor. */
 function Board({ editing = true, spies }: { editing?: boolean; spies: Spies }) {
-	const [value, setValue] = useState(LAYOUT)
-
 	return (
 		<Dashboard
 			aria-label="Board"
 			editing={editing}
-			layout={{
-				value,
-				onValueChange: (next) => {
-					spies.onLayout(next)
-
-					setValue(next)
-				},
-			}}
+			layout={useControlledLayout(LAYOUT, spies.onLayout)}
 			onResizeStart={spies.onResizeStart}
 			onResizeEnd={spies.onResizeEnd}
 		>
@@ -137,6 +119,33 @@ describe('Dashboard pointer resize', () => {
 		expect(spies.onLayout).toHaveBeenCalledTimes(1)
 
 		expect(area(container)).toBe('1 / 1 / span 10 / span 10')
+	})
+
+	it('scrolls a focused splitter into view after a keyboard step, and not during a pointer resize', () => {
+		const scroll = vi.spyOn(Element.prototype, 'scrollIntoView')
+
+		renderUI(<Board spies={makeSpies()} />)
+
+		const east = eastSplitter()
+
+		act(() => east.focus())
+
+		// The edge follows the pointer through a scroll, so a scroll here changes the span again.
+		pressAndMove(east)
+
+		fireEvent.pointerUp(east, { pointerId: 1 })
+
+		expect(east).toHaveAttribute('aria-valuenow', '10')
+
+		expect(scroll).not.toHaveBeenCalled()
+
+		fireEvent.keyDown(east, { key: 'ArrowRight' })
+
+		expect(east).toHaveAttribute('aria-valuenow', '11')
+
+		expect(scroll).toHaveBeenCalledExactlyOnceWith({ block: 'nearest', inline: 'nearest' })
+
+		expect(scroll.mock.contexts[0]).toBe(east)
 	})
 
 	it('reverts the preview on Escape, and ends as canceled', () => {

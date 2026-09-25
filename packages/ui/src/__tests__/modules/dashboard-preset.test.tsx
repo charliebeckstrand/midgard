@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import {
 	Dashboard,
 	type DashboardPreset,
@@ -12,18 +12,7 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { fireEvent, renderUI, screen } from '../helpers'
-
-const originalClientWidth = Object.getOwnPropertyDescriptor(Element.prototype, 'clientWidth')
-
-beforeEach(() => {
-	// jsdom lays nothing out, so each element reports a 1200 px width: a 50 px pitch.
-	Object.defineProperty(Element.prototype, 'clientWidth', { configurable: true, get: () => 1200 })
-})
-
-afterEach(() => {
-	if (originalClientWidth)
-		Object.defineProperty(Element.prototype, 'clientWidth', originalClientWidth)
-})
+import { Counter } from '../helpers/dashboard-board'
 
 const SALES: DashboardPreset = {
 	id: 'sales',
@@ -51,14 +40,6 @@ const OPERATIONS: DashboardPreset = {
 }
 
 describe('startFromPreset', () => {
-	it('returns the spec of a sound preset with no issue', () => {
-		const { spec, issues } = startFromPreset(OPERATIONS)
-
-		expect(spec).toEqual(OPERATIONS.spec)
-
-		expect(issues).toEqual([])
-	})
-
 	it('passes the ids of the JSX tiles to the parse', () => {
 		const notes = { id: 'notes', x: 12, y: 0, w: 12, h: 10 }
 
@@ -106,17 +87,6 @@ describe('startFromPreset', () => {
 		expect(issues.map((issue) => issue.kind)).toEqual(['duplicate-tile', 'orphan-entry'])
 	})
 })
-
-/** A widget with its own state, as a grid holds its sort. */
-function Counter() {
-	const [count, setCount] = useState(0)
-
-	return (
-		<button type="button" onClick={() => setCount((value) => value + 1)}>
-			{`Count ${count}`}
-		</button>
-	)
-}
 
 /** A widget that says whether a selection filters it. */
 function Scope() {
