@@ -1,8 +1,8 @@
 'use client'
 
 import { type ComponentProps, useRef } from 'react'
-import { cn, dataAttr } from '../../core'
-import { useA11yRoving, useMinBreakpoint } from '../../hooks'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { useA11yRoving, useComposedRef, useMinBreakpoint } from '../../hooks'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import { k } from '../../recipes/kata/sidebar'
 import { SidebarMiniContext } from './context'
@@ -39,9 +39,13 @@ export function Sidebar({
 	className,
 	children,
 	onKeyDown,
+	ref: consumerRef,
 	...props
 }: SidebarProps) {
 	const ref = useRef<HTMLElement>(null)
+
+	// A consumer ref joins the roving ref instead of replacing it (CONVENTIONS.md §3.9).
+	const composedRef = useComposedRef(ref, consumerRef)
 
 	const handleKeyDown = useA11yRoving(ref, {
 		itemSelector: '[data-slot="sidebar-item-inner"]:not(:disabled)',
@@ -71,15 +75,16 @@ export function Sidebar({
 		<ActiveIndicatorScope>
 			<SidebarMiniContext value={resolvedMini}>
 				<nav
-					ref={ref}
+					ref={composedRef}
 					data-slot="sidebar"
 					data-mini={dataAttr(mini)}
 					aria-label={ariaLabel}
 					className={cn(k.base, className)}
-					onKeyDown={(event) => {
-						handleKeyDown(event)
-						onKeyDown?.(event)
-					}}
+					// Roving is a keyboard model no consumer switches off, so a consumer's
+					// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+					onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown, {
+						checkForDefaultPrevented: false,
+					})}
 					{...props}
 				>
 					{children}

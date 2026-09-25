@@ -1,7 +1,8 @@
 'use client'
 
-import type { ComponentProps, UIEvent } from 'react'
-import { cn } from '../../core'
+import type { ComponentProps } from 'react'
+import { cn, composeEventHandlers } from '../../core'
+import { useComposedRef } from '../../hooks'
 import {
 	k,
 	type ScrollAreaViewportVariants,
@@ -36,6 +37,7 @@ export function ScrollArea({
 	className,
 	children,
 	onScroll,
+	ref,
 	...props
 }: ScrollAreaProps) {
 	const {
@@ -50,6 +52,9 @@ export function ScrollArea({
 		handleScroll,
 		startDrag,
 	} = useScrollAreaScrollbar({ orientation, scrollbar })
+
+	// A consumer ref joins the viewport ref instead of replacing it (CONVENTIONS.md §3.9).
+	const composedViewportRef = useComposedRef(viewportRef, ref)
 
 	const showScrollbar = scrollbar !== 'hidden'
 
@@ -67,16 +72,14 @@ export function ScrollArea({
 			    via props (e.g. tabIndex={-1} with role="region" + aria-label). */}
 			<div
 				data-slot="scroll-area-viewport"
-				ref={viewportRef}
+				ref={composedViewportRef}
 				tabIndex={hasVertical || hasHorizontal ? 0 : undefined}
 				className={k.viewport({ orientation, bare })}
-				// Composed, not clobbered: thumb tracking and the auto-fade run
-				// before the consumer's onScroll.
-				onScroll={(event: UIEvent<HTMLDivElement>) => {
-					handleScroll()
-
-					onScroll?.(event)
-				}}
+				// Thumb tracking and the auto-fade follow an event the browser cannot
+				// cancel, so they run whatever the consumer does (CONVENTIONS.md §3.9).
+				onScroll={composeEventHandlers(onScroll, handleScroll, {
+					checkForDefaultPrevented: false,
+				})}
 				{...props}
 			>
 				{children}

@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { ScrollArea } from '../../components/scroll-area'
 import { bySlot, fireEvent, getSlot, renderUI } from '../helpers'
@@ -21,6 +22,37 @@ describe('ScrollArea', () => {
 		fireEvent.scroll(viewport)
 
 		expect(onScroll).toHaveBeenCalledTimes(1)
+	})
+
+	// Thumb tracking is state that follows an event the browser cannot cancel,
+	// so a consumer `preventDefault()` does not skip it (CONVENTIONS.md §3.9).
+	it('shows the auto scrollbar when a consumer onScroll prevents the default', () => {
+		const { container } = renderUI(
+			<ScrollArea onScroll={(event) => event.preventDefault()}>content</ScrollArea>,
+		)
+
+		const scrollbar = getSlot(container, 'scroll-area-scrollbar')
+
+		expect(scrollbar).toHaveClass('opacity-0')
+
+		fireEvent.scroll(getSlot(container, 'scroll-area-viewport'))
+
+		expect(scrollbar).toHaveClass('opacity-100')
+	})
+
+	it('forwards a consumer ref without losing thumb tracking', () => {
+		// Content four times the viewport, so the measured thumb shows.
+		vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(400)
+
+		vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100)
+
+		const ref = createRef<HTMLDivElement>()
+
+		const { container } = renderUI(<ScrollArea ref={ref}>content</ScrollArea>)
+
+		expect(ref.current).toBe(getSlot(container, 'scroll-area-viewport'))
+
+		expect(bySlot(container, 'scroll-area-thumb')).toBeInTheDocument()
 	})
 
 	it('does not render scrollbar elements when scrollbar is hidden', () => {

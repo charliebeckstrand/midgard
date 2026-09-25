@@ -2,7 +2,7 @@
 
 import { ChevronDown } from 'lucide-react'
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/accordion'
 import { Icon } from '../icon'
@@ -55,10 +55,9 @@ export function AccordionTrigger({
 				// present, and a closed panel is present only under `mount="always"`.
 				aria-controls={open || mountsEveryPanel(mount) ? triggerProps['aria-controls'] : undefined}
 				disabled={disabled}
-				onClick={(event) => {
-					toggle()
-					onClick?.(event)
-				}}
+				// The toggle is the activation the trigger exists to perform, so a
+				// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+				onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}
 				className={cn(k.trigger, className)}
 			>
 				<span className="flex-1">{children}</span>

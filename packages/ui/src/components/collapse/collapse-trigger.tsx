@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
@@ -33,10 +33,9 @@ export function CollapseTrigger({ className, children, onClick, ...props }: Coll
 			// The reference needs its target id in the DOM. An open panel is
 			// present, and a closed panel is present only under `mount="always"`.
 			aria-controls={open || mountsEveryPanel(mount) ? triggerProps['aria-controls'] : undefined}
-			onClick={(event) => {
-				toggle()
-				onClick?.(event)
-			}}
+			// The toggle is the activation the trigger exists to perform, so a
+			// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+			onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}
 			className={cn(k.trigger, className)}
 		>
 			{children}

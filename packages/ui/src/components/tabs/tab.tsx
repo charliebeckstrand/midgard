@@ -1,13 +1,7 @@
 'use client'
 
-import {
-	type ComponentProps,
-	type FocusEvent,
-	type MouseEvent,
-	type PointerEvent,
-	useRef,
-} from 'react'
-import { cn, dataAttr } from '../../core'
+import { type ComponentProps, useRef } from 'react'
+import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrent } from '../../primitives/current'
@@ -138,13 +132,17 @@ export function Tab({
 		disclosure,
 	})
 
-	function handleClick(event: MouseEvent<HTMLButtonElement>) {
-		onClick?.(event)
-
-		if (value !== undefined) {
-			context?.onValueChange?.(value)
-		}
-	}
+	// Selection is the activation a tab exists to perform, so a consumer's
+	// preventDefault() does not cancel it (CONVENTIONS.md §3.9).
+	const handleClick = composeEventHandlers(
+		onClick,
+		() => {
+			if (value !== undefined) {
+				context?.onValueChange?.(value)
+			}
+		},
+		{ checkForDefaultPrevented: false },
+	)
 
 	// Warm intent: the first hover or focus on an inactive, enabled tab fires
 	// `onPreload` once (latched), so a caller can prefetch what the panel needs
@@ -159,17 +157,10 @@ export function Tab({
 		onPreload?.(value)
 	}
 
-	function handlePointerEnter(event: PointerEvent<HTMLButtonElement>) {
-		onPointerEnter?.(event)
+	// The preload is side behaviour, so a consumer's preventDefault() skips it.
+	const handlePointerEnter = composeEventHandlers(onPointerEnter, preload)
 
-		preload()
-	}
-
-	function handleFocus(event: FocusEvent<HTMLButtonElement>) {
-		onFocus?.(event)
-
-		preload()
-	}
+	const handleFocus = composeEventHandlers(onFocus, preload)
 
 	return (
 		<span className={k.wrapper({ stretch })} {...indicator.tapHandlers}>

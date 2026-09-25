@@ -309,7 +309,34 @@ describe('useCollapseContext in trigger children', () => {
 		expect(screen.getByText('Closed')).toBeInTheDocument()
 	})
 
-	it('forwards the user onClick after toggling', () => {
+	// The toggle is the activation the trigger exists to perform, so a consumer
+	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
+	it('runs the user onClick first, and toggles when it prevents the default', () => {
+		const calls: string[] = []
+
+		renderUI(
+			<Collapse onOpenChange={() => calls.push('change')}>
+				<CollapseTrigger
+					onClick={(event) => {
+						calls.push('consumer')
+
+						event.preventDefault()
+					}}
+				>
+					Toggle
+				</CollapseTrigger>
+				<CollapsePanel>Body</CollapsePanel>
+			</Collapse>,
+		)
+
+		fireEvent.click(screen.getByText('Toggle'))
+
+		expect(calls).toEqual(['consumer', 'change'])
+
+		expect(screen.getByText('Body')).toBeInTheDocument()
+	})
+
+	it('forwards the user onClick', () => {
 		const onClick = vi.fn()
 
 		renderUI(

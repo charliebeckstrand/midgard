@@ -31,6 +31,35 @@ describe('AccordionTrigger', () => {
 		expect(screen.getByText('Panel A')).toBeInTheDocument()
 	})
 
+	// The toggle is the activation the trigger exists to perform, so a consumer
+	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
+	it('runs a consumer onClick first, and toggles when it prevents the default', () => {
+		const calls: string[] = []
+
+		renderUI(
+			<Accordion onValueChange={() => calls.push('change')}>
+				<AccordionItem value="a">
+					<AccordionTrigger
+						onClick={(event) => {
+							calls.push('consumer')
+
+							event.preventDefault()
+						}}
+					>
+						Toggle
+					</AccordionTrigger>
+					<AccordionPanel>Panel A</AccordionPanel>
+				</AccordionItem>
+			</Accordion>,
+		)
+
+		fireEvent.click(screen.getByText('Toggle'))
+
+		expect(calls).toEqual(['consumer', 'change'])
+
+		expect(screen.getByText('Panel A')).toBeInTheDocument()
+	})
+
 	// `data-slot` is admitted on JSX but not on a props object, so widen it.
 	const triggered = (props: AccordionTriggerProps & { 'data-slot'?: string }) => (
 		<Accordion>

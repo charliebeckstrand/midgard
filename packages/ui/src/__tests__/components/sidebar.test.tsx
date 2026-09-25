@@ -1,3 +1,4 @@
+import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import {
@@ -49,6 +50,58 @@ describe('Sidebar', () => {
 
 		// The consumer's handler is chained rather than clobbered.
 		expect(onKeyDown).toHaveBeenCalledTimes(1)
+	})
+
+	// Roving is a keyboard model no consumer switches off, so a consumer
+	// `preventDefault()` does not cancel it (CONVENTIONS.md §3.9).
+	it('runs a consumer onKeyDown before roving, which still moves focus when it prevents the default', () => {
+		const seen: [boolean, Element | null][] = []
+
+		const { container } = renderUI(
+			<Sidebar
+				onKeyDown={(event) => {
+					seen.push([event.defaultPrevented, document.activeElement])
+
+					event.preventDefault()
+				}}
+			>
+				<SidebarItem>Home</SidebarItem>
+				<SidebarItem>Settings</SidebarItem>
+			</Sidebar>,
+		)
+
+		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+
+		items[0]?.focus()
+
+		fireEvent.keyDown(getSlot(container, 'sidebar'), { key: 'ArrowDown' })
+
+		expect(seen).toEqual([[false, items[0]]])
+
+		expect(items[1]).toHaveFocus()
+	})
+
+	it('forwards a consumer ref without losing roving navigation', () => {
+		const ref = createRef<HTMLElement>()
+
+		const { container } = renderUI(
+			<Sidebar ref={ref}>
+				<SidebarItem>Home</SidebarItem>
+				<SidebarItem>Settings</SidebarItem>
+			</Sidebar>,
+		)
+
+		const nav = getSlot(container, 'sidebar')
+
+		const items = container.querySelectorAll<HTMLButtonElement>('[data-slot="sidebar-item-inner"]')
+
+		expect(ref.current).toBe(nav)
+
+		items[0]?.focus()
+
+		fireEvent.keyDown(nav, { key: 'ArrowDown' })
+
+		expect(items[1]).toHaveFocus()
 	})
 
 	it('roves into affix actions with Left/Right and back to items with Up/Down', () => {
