@@ -5,6 +5,7 @@ import {
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
+	type ColumnSizingInfoState,
 	type ColumnSizingState,
 	type ExpandedState,
 	functionalUpdate,
@@ -64,6 +65,7 @@ import {
 	EMPTY_GROUPING,
 	EMPTY_SIZING,
 	EMPTY_VISIBILITY,
+	IDLE_SIZING_INFO,
 	resolveActiveEngineTransform,
 	resolveTransformModes,
 	rowsSignatureOf,
@@ -313,6 +315,37 @@ function useGroupingSlice(
 	)
 
 	return { grouped, groupingState, resolvedExpanded, onGroupingChange, onExpanded }
+}
+
+/**
+ * The engine's drag state, held by the grid and updated at once.
+ *
+ * @remarks
+ * A drag move fills the new widths inside the engine's `columnSizingInfo`
+ * updater, and then writes them through `onColumnSizingChange`. The width
+ * binding applies its updater at once. React can defer an updater of the
+ * engine's own state to the next render. That write then carries no width, so
+ * the drag stays where it started. Held here, each drag update runs before the
+ * width write reads it. The React Compiler changes which renders React defers,
+ * which is how the fault showed.
+ *
+ * @returns The drag state and the handler that the engine writes it through.
+ * @internal
+ */
+function useEagerSizingInfo(): [ColumnSizingInfoState, OnChangeFn<ColumnSizingInfoState>] {
+	const [info, setInfo] = useState(IDLE_SIZING_INFO)
+
+	const infoRef = useRef(info)
+
+	const onChange = useCallback<OnChangeFn<ColumnSizingInfoState>>((updater) => {
+		const next = functionalUpdate(updater, infoRef.current)
+
+		infoRef.current = next
+
+		setInfo(next)
+	}, [])
+
+	return [info, onChange]
 }
 
 /**
@@ -667,6 +700,8 @@ export function useGridTable<T>({
 	// `onColumnSizingChange` catch a drag below the floor before it lands.
 	const columnFloorsRef = useRef<Map<string, number>>(new Map())
 
+	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo()
+
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
 			setColumnSizingState((prev) =>
@@ -786,6 +821,7 @@ export function useGridTable<T>({
 			pagination: resolvedPagination,
 			resizable,
 			sizing: resolvedSizing,
+			sizingInfo: columnSizingInfo,
 			globalFiltered: globalConfigured,
 			globalFilter: resolvedGlobalFilter,
 			columnFiltered: hasColumnFilters,
@@ -804,7 +840,7 @@ export function useGridTable<T>({
 		}),
 		...(selectable ? { enableRowSelection: true } : {}),
 		...paginationOptions<T>({ paginated, manual, config: paginationConfig, onPaginationChange }),
-		...resizeOptions<T>({ resizable, onColumnSizingChange }),
+		...resizeOptions<T>({ resizable, onColumnSizingChange, onColumnSizingInfoChange }),
 		...sortOptions<T>({ clientSort, onSortingChange }),
 		...groupingOptions<T>({ grouped, onGroupingChange, onExpandedChange: onExpanded }),
 		...filterOptions<T>({
@@ -899,10 +935,6 @@ export function useGridTable<T>({
 		autoSizingRef,
 		clearPreference: clearSizingPreference,
 	})
-
-	// The drag state the engine keeps beside the widths. Each drag frame replaces
-	// it, so the resize view below changes identity with it.
-	const columnSizingInfo = table.getState().columnSizingInfo
 
 	// The view's getters read the widths, the drag state, and the column set live.
 	// Each is a dependency, so a compiled reader re-reads when one changes.

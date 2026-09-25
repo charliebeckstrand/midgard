@@ -1,4 +1,10 @@
-import type { ColumnFiltersState, GroupingState, Row, VisibilityState } from '@tanstack/react-table'
+import type {
+	ColumnFiltersState,
+	ColumnSizingInfoState,
+	GroupingState,
+	Row,
+	VisibilityState,
+} from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
 import { resolveFilterMode, usesClientModel } from './options'
@@ -11,6 +17,16 @@ export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
 
 /** Stable empty sizing default; read-only, replaced wholesale on change. @internal */
 export const EMPTY_SIZING: GridColumnSizingState = {}
+
+/** The engine's drag state with no drag in flight; read-only, replaced wholesale on change. @internal */
+export const IDLE_SIZING_INFO: ColumnSizingInfoState = {
+	startOffset: null,
+	startSize: null,
+	deltaOffset: null,
+	deltaPercentage: null,
+	isResizingColumn: false,
+	columnSizingStart: [],
+}
 
 /** Stable empty column-filters default; read-only, replaced wholesale on change. Typed as the public row, which the engine's own `ColumnFiltersState` accepts. @internal */
 export const EMPTY_COLUMN_FILTERS: GridColumnFilterState[] = []

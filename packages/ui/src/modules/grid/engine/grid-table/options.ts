@@ -3,6 +3,7 @@ import {
 	type ColumnFiltersState,
 	type ColumnOrderState,
 	type ColumnPinningState,
+	type ColumnSizingInfoState,
 	type ColumnSizingState,
 	type ExpandedState,
 	type FilterFn,
@@ -415,6 +416,7 @@ export function groupingOptions<T>(args: {
 export function resizeOptions<T>(args: {
 	resizable: boolean
 	onColumnSizingChange: OnChangeFn<ColumnSizingState>
+	onColumnSizingInfoChange: OnChangeFn<ColumnSizingInfoState>
 }): Partial<TableOptions<T>> {
 	if (!args.resizable) return {}
 
@@ -422,6 +424,7 @@ export function resizeOptions<T>(args: {
 		enableColumnResizing: true,
 		columnResizeMode: 'onChange',
 		onColumnSizingChange: args.onColumnSizingChange,
+		onColumnSizingInfoChange: args.onColumnSizingInfoChange,
 	}
 }
 
@@ -473,6 +476,7 @@ export function clampSizingToFloors(
 type GridControlledState = {
 	pagination?: PaginationState
 	columnSizing?: ColumnSizingState
+	columnSizingInfo?: ColumnSizingInfoState
 	globalFilter?: string
 	columnFilters?: ColumnFiltersState
 	sorting?: SortingState
@@ -490,6 +494,7 @@ export function buildState(args: {
 	pagination: PaginationState
 	resizable: boolean
 	sizing: ColumnSizingState
+	sizingInfo: ColumnSizingInfoState
 	globalFiltered: boolean
 	globalFilter: string
 	columnFiltered: boolean
@@ -513,7 +518,11 @@ export function buildState(args: {
 
 	if (args.paginated) state.pagination = args.pagination
 
-	if (args.resizable) state.columnSizing = args.sizing
+	if (args.resizable) {
+		state.columnSizing = args.sizing
+
+		state.columnSizingInfo = args.sizingInfo
+	}
 
 	if (args.globalFiltered) state.globalFilter = args.globalFilter
 
