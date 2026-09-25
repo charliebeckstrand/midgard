@@ -152,9 +152,19 @@ export type DashboardTileProps = {
 	 *
 	 * @remarks
 	 * When the widget throws, the tile shows an error state with a retry button. A
-	 * new element of another type, key, or prop value clears it, with no press. A
-	 * new inline literal or callback of the same value does not. A filter change
-	 * does not either, because the widget reads the scope through context.
+	 * new element of another type or key, or with a changed prop, clears it with no
+	 * press. A filter change does not, because the widget reads the scope through context.
+	 *
+	 * To find a changed prop, the tile reads arrays, plain objects, and dates by
+	 * value. It counts any two functions as equal, so a changed callback alone clears
+	 * nothing. It reads each other object by reference, for example a `Map` or a
+	 * class instance. A new such object on each render therefore counts as a change.
+	 *
+	 * The tile clears an error with no press one time, and then waits for a render
+	 * of the widget with no error. When the widget throws again first, the error
+	 * stays until a press on the retry button. A prop that changes on each render
+	 * therefore cannot loop. In edit mode the content is inert, so the retry button
+	 * works only at rest.
 	 */
 	children?: ReactNode
 }

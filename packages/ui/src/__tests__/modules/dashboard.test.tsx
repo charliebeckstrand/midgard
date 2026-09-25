@@ -650,10 +650,28 @@ describe('Dashboard', () => {
 	})
 
 	/** A widget that throws while `fail` is set. */
-	function Widget({ fail }: { fail: boolean; rows?: number[]; onPick?: () => void }) {
+	function Widget({
+		fail,
+	}: {
+		fail: boolean
+		rows?: number[]
+		onPick?: () => void
+		value?: unknown
+	}) {
 		if (fail) throw new Error('boom')
 
 		return <p>Recovered</p>
+	}
+
+	/** A board with one tile that holds `widget`, and that reports each error to `onTileError`. */
+	function errorBoard(widget: ReactNode, onTileError: DashboardProps['onTileError']) {
+		return (
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue">
+					{widget}
+				</DashboardTile>
+			</Dashboard>
+		)
 	}
 
 	it('renders a new widget element again after an error, with no click, and reports each failed element once', () => {
@@ -661,33 +679,48 @@ describe('Dashboard', () => {
 
 		vi.spyOn(console, 'error').mockImplementation(() => {})
 
-		const board = (widget: ReactNode) => (
-			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
-				<DashboardTile id="a" title="Revenue">
-					{widget}
-				</DashboardTile>
-			</Dashboard>
-		)
-
-		const { rerender } = renderUI(board(<Widget fail />))
+		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
 
 		expect(onTileError).toHaveBeenCalledTimes(1)
 
 		// An equal element tries nothing again.
-		rerender(board(<Widget fail />))
+		rerender(errorBoard(<Widget fail />, onTileError))
 
 		expect(onTileError).toHaveBeenCalledTimes(1)
 
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+	})
+
+	it('stops the automatic reset when a new element fails again, until Retry', () => {
+		const onTileError = vi.fn()
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { rerender } = renderUI(errorBoard(<Widget fail />, onTileError))
+
 		// Other props try once, and the widget still throws.
-		rerender(board(<Widget fail rows={[1]} />))
+		rerender(errorBoard(<Widget fail rows={[1]} />, onTileError))
+
+		expect(onTileError).toHaveBeenCalledTimes(2)
+
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
 
 		expect(screen.getByRole('alert')).toHaveTextContent('Revenue failed to render.')
 
 		expect(onTileError).toHaveBeenCalledTimes(2)
 
-		rerender(board(<Widget fail={false} />))
+		fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
 
-		expect(screen.queryByRole('alert')).toBeNull()
+		expect(screen.getByText('Recovered')).toBeInTheDocument()
+
+		// The commit with no error turns the automatic reset on again.
+		rerender(errorBoard(<Widget fail />, onTileError))
+
+		rerender(errorBoard(<Widget fail={false} />, onTileError))
 
 		expect(screen.getByText('Recovered')).toBeInTheDocument()
 	})
@@ -727,6 +760,51 @@ describe('Dashboard', () => {
 			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
 
 			expect(onReport).toHaveBeenCalledTimes(1)
+		},
+	)
+
+	/**
+	 * An app that sets state in each report, and gives the widget a prop value
+	 * from `make` on each render. The reports count holds the renders apart.
+	 */
+	function ReportingApp({ fail, make }: { fail: boolean; make: (reports: number) => unknown }) {
+		const [reports, setReports] = useState(0)
+
+		return (
+			<Dashboard
+				aria-label="Sales"
+				layout={{ defaultValue: LAYOUT }}
+				onTileError={() => setReports((current) => current + 1)}
+			>
+				<DashboardTile id="a" title={`Revenue ${reports}`}>
+					<Widget fail={fail} value={make(reports)} />
+				</DashboardTile>
+			</Dashboard>
+		)
+	}
+
+	it.each([
+		['a new Map', () => new Map([['west', 1]])],
+		['a new Intl formatter', () => new Intl.NumberFormat('en-US')],
+		['a stamp that changes on each render', (reports: number) => 1_700_000_000_000 + reports],
+	])(
+		'reports an error at most twice when onTileError sets app state, and the widget takes %s',
+		(_, make) => {
+			vi.spyOn(console, 'error').mockImplementation(() => {})
+
+			const { rerender } = renderUI(<ReportingApp fail make={make} />)
+
+			// One automatic reset runs, and it fails, so the resets stop.
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+
+			// A fixed widget waits for Retry, because the resets stopped.
+			rerender(<ReportingApp fail={false} make={make} />)
+
+			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 2 failed to render.')
+
+			fireEvent.click(screen.getByRole('button', { name: 'Retry' }))
+
+			expect(screen.getByText('Recovered')).toBeInTheDocument()
 		},
 	)
 

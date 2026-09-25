@@ -22,6 +22,11 @@ export type DashboardTileBoundaryProps = {
 	 * The widget element. After an error, a new element that differs from the
 	 * element that failed renders the content again. Without it, only the retry
 	 * button does.
+	 *
+	 * @remarks
+	 * When the content fails again after such a reset, the automatic resets stop.
+	 * They start again after a press on the retry button, or after a commit with
+	 * no error.
 	 */
 	resetKey?: ReactNode
 	children: ReactNode
@@ -52,9 +57,9 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
  * @remarks
  * A parent that renders again gives a new element, with new inline literals and
  * new callbacks. They count as no change. A widget that still throws therefore
- * does not throw again on each render of the parent. An app that sets state in
- * each report then does not loop, as long as each other object in the props
- * stays stable.
+ * does not throw again on each render of the parent. A new `Map`, a new class
+ * instance, or a changed primitive counts as a change. The boundary therefore
+ * stops its automatic resets after one reset that fails.
  */
 function sameWidget(a: unknown, b: unknown): boolean {
 	if (Object.is(a, b)) return true
@@ -87,6 +92,10 @@ function sameWidget(a: unknown, b: unknown): boolean {
  * button renders the content again. So does a new `resetKey` that differs from
  * the element that failed.
  *
+ * An automatic reset that fails again stops the automatic resets. A prop that
+ * changes on each render, with an `onError` that sets app state, therefore
+ * cannot loop. The retry button, or a commit with no error, starts them again.
+ *
  * A quiet boundary shows nothing in place of the failed part. It has no retry,
  * so the part stays hidden until the boundary mounts again.
  *
@@ -97,6 +106,9 @@ export class DashboardTileBoundary extends Component<
 	DashboardTileBoundaryState
 > {
 	state: DashboardTileBoundaryState = { error: null, element: null }
+
+	/** Whether a new `resetKey` can clear the error with no press. It changes only in a commit or a press. */
+	private autoReset = true
 
 	static getDerivedStateFromError(error: unknown): Partial<DashboardTileBoundaryState> {
 		return { error: error ?? new Error('Unknown error') }
@@ -117,10 +129,23 @@ export class DashboardTileBoundary extends Component<
 	componentDidUpdate(): void {
 		const { error, element } = this.state
 
-		if (error !== null && !sameWidget(element, this.props.resetKey)) this.setState({ error: null })
+		if (error === null) {
+			this.autoReset = true
+
+			return
+		}
+
+		if (!this.autoReset || sameWidget(element, this.props.resetKey)) return
+
+		// Until the content commits with no error, a new throw finds the resets off.
+		this.autoReset = false
+
+		this.setState({ error: null })
 	}
 
 	retry = (): void => {
+		this.autoReset = true
+
 		this.setState({ error: null })
 	}
 
