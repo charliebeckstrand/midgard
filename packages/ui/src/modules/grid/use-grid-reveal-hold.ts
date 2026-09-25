@@ -94,8 +94,10 @@ export function useGridRevealHold(expanded: boolean, enter = false): GridRevealH
 		// track — but the browser has not read that style yet, and the open one is
 		// a render away. Force the flush that records it, and the transition has a
 		// style to run from. Layout is clean for the other rows of a group that
-		// wakes together, so the flush costs one reflow for the whole toggle.
-		void document.documentElement.offsetHeight
+		// wakes together, so the flush costs one reflow for the whole toggle. The
+		// flush is a call, not a bare `offsetHeight` read: the React Compiler
+		// drops a property read whose value goes unused, and the flush with it.
+		document.documentElement.getBoundingClientRect()
 
 		setOpen(true)
 	}, [opening])
