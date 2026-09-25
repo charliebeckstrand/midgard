@@ -274,9 +274,13 @@ export type DashboardProps = AccessibleName & {
  * The board is a CSS grid whose rows follow the container width. The server
  * therefore renders each tile at its saved cell, with no measurement. When the
  * container renders a tile under its `minWidth`, the board paints a re-pack of
- * the same layout, and it never saves the re-pack. The re-pack holds for 24 px
- * past the width at which each tile fits. A scrollbar that comes and goes with
- * the re-pack therefore cannot switch the board on each frame.
+ * the same layout, and it never saves the re-pack.
+ *
+ * The re-pack holds for 24 px past the width at which each tile fits. A classic
+ * scrollbar up to 24 px wide that comes and goes with the re-pack therefore
+ * cannot switch the board on each frame. A wider scrollbar, such as a styled
+ * `::-webkit-scrollbar`, can switch it. Give such a scroll box
+ * `scrollbar-gutter: stable`.
  *
  * @example
  * ```tsx

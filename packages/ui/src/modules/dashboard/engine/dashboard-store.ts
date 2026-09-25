@@ -167,8 +167,13 @@ export type DashboardStore = {
  * In a scroll box with a classic scrollbar, the width of the board can follow its
  * height. When the saved layout overflows the box and the projection fits it, the
  * scrollbar comes and goes with the projection. With no hold, the board then
- * switches between the two on each frame. The hold is wider than a classic
- * scrollbar, so one of the two states holds.
+ * switches between the two on each frame. A classic scrollbar is about 15 px
+ * wide, and the hold covers a scrollbar up to 24 px wide. One of the two states
+ * therefore holds.
+ *
+ * A wider scrollbar, such as a styled `::-webkit-scrollbar` of 30 px, still
+ * switches the board on each frame. A scroll box with `scrollbar-gutter: stable`
+ * always reserves the width of its scrollbar, so no scrollbar starts the loop.
  */
 const PROJECTION_HOLD = 24
 
