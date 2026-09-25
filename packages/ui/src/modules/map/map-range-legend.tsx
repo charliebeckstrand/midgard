@@ -6,7 +6,7 @@ import {
 	RangeLegend,
 	type RangeOrientation,
 } from '../chart/engine/chart-legend/range-legend'
-import { useMapPointedMark } from './context'
+import { useMapPointed } from './context'
 import type { MapLegendRange } from './engine/map-legend/plan'
 import { binEmphasisId } from './engine/map-region/category'
 
@@ -21,7 +21,7 @@ export type MapRangeLegendProps = MapLegendRange
 
 /**
  * The hover arrow: a glyph on the scale bar's edge marking the exact value of
- * the region the pointer is on. Isolated as its own {@link useMapPointedMark}
+ * the region the pointer is on. Isolated as its own {@link useMapPointed}
  * consumer: the crossing-stable context, not the per-pixel hover state. Pointer
  * travel within a region therefore re-renders nothing, and only a crossing
  * moves this glyph. The gradient bar, the thumb, and the endpoint labels never
@@ -38,9 +38,9 @@ function RangeHoverArrow({
 	domain: [number, number]
 	orientation: RangeOrientation
 }) {
-	const pointed = useMapPointedMark()
-
-	const value = pointed !== null && pointed.kind === 'region' ? regionNumbers[pointed.index] : null
+	const value = useMapPointed((pointed) =>
+		pointed !== null && pointed.kind === 'region' ? regionNumbers[pointed.index] : null,
+	)
 
 	if (value == null) return null
 
