@@ -11,7 +11,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { useMapHoverSet, useMapPlat, useMapPointedMark, useMapZoomScale } from './context'
+import { useMapHoverSet, useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
 import { mapMarkDimmed } from './engine/map-hover/target'
 import { groupLegendId } from './engine/map-legend/items'
@@ -298,7 +298,11 @@ export function useMapOverlay({
 
 	const set = useMapHoverSet()
 
-	const pointed = useMapPointedMark()
+	// Only whether this mark dims. A crossing that leaves the answer as it was,
+	// such as one between two regions, renders no overlay mark.
+	const dimmed = useMapPointed((pointed) =>
+		mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId),
+	)
 
 	const unitsPerPixel = useMapZoomScale()
 
@@ -368,7 +372,7 @@ export function useMapOverlay({
 	//
 	// Memoized on the array itself: a plural mark hands a memoized one, so the
 	// join runs when its content can actually have changed rather than on each of
-	// the pointed-mark crossings that re-render this hook. An inline array is
+	// the crossings that change its dim and render this hook. An inline array is
 	// unchanged by the memo — it rebuilds either way, which is what the content
 	// key is for.
 	const rowsKey = useMemo(
@@ -468,7 +472,7 @@ export function useMapOverlay({
 		order: order.get(id) ?? 0,
 		// Spread, not passed whole: `cn` memoizes on string arguments and sends an
 		// array straight to the merge, and this resolves per mark on every crossing.
-		dim: cn(...k.group(mapMarkDimmed(pointed, { kind: 'entry', id, stop: 0 }, emphasis, groupId))),
+		dim: cn(...k.group(dimmed)),
 		selected,
 		onPointerLeave: () => set(null, null),
 		hit,

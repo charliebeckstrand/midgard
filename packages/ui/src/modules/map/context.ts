@@ -1,7 +1,9 @@
 'use client'
 
+import { use, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
+import { noop } from '../../utilities'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
@@ -42,18 +44,53 @@ export const [MapHoverSetContext, useMapHoverSet] = createContext<MapHoverSet>('
  * emphasis, so everything else on the map recedes behind it. It is the map's
  * twin of the chart's pointed-mark emphasis. Derived from the hover target but
  * held apart from {@link MapHoverState}. The hover provider pins the target's
- * identity across a same-mark move. This value — and every mark reading it —
- * therefore changes only on a discrete crossing, never as the pointer travels.
- * A region whose category is unmatched or toggled off never takes it, the
- * same silence the tooltip keeps off data. Defaults to `null` so a mark
- * rendered outside the provider reads lit.
+ * identity across a same-mark move, so the value changes only on a discrete
+ * crossing, never as the pointer travels. A region whose category is unmatched
+ * or toggled off never takes it, the same silence the tooltip keeps off data.
+ *
+ * The value lives in a store, not in the context value. Each mark reads only
+ * the answer it needs through {@link useMapPointed}, such as whether it dims. A
+ * crossing between two regions then renders no overlay mark, because the answer
+ * of each overlay mark holds.
  *
  * @internal
  */
-export const [MapPointedMarkContext, useMapPointedMark] = createContext<MapHoverTarget | null>(
-	'MapPointedMark',
-	{ default: null },
-)
+export type MapPointedStore = {
+	/** The pointed mark, or `null` when the pointer sits on no mark. */
+	get: () => MapHoverTarget | null
+	/** Calls `listener` each time the pointed mark changes, and returns the unsubscribe. */
+	subscribe: (listener: () => void) => () => void
+}
+
+/** The store outside a provider: no mark is pointed, so a mark reads lit. */
+const NO_POINTED: MapPointedStore = { get: () => null, subscribe: () => noop }
+
+export const [MapPointedMarkContext] = createContext<MapPointedStore>('MapPointedMark', {
+	default: NO_POINTED,
+})
+
+/**
+ * Reads one answer from the pointed mark. The reader renders again only when
+ * that answer changes, so `select` must return a primitive or a stable value.
+ *
+ * @internal
+ */
+export function useMapPointed<T>(select: (pointed: MapHoverTarget | null) => T): T {
+	const store = use(MapPointedMarkContext)
+
+	const read = () => select(store.get())
+
+	return useSyncExternalStore(store.subscribe, read, read)
+}
+
+/** The pointed mark itself, for a reader that draws from it. See {@link MapPointedStore}. @internal */
+export function useMapPointedMark(): MapHoverTarget | null {
+	return useMapPointed(identity)
+}
+
+function identity<T>(value: T): T {
+	return value
+}
 
 /**
  * The view transform and its gestures, or `null` on a map that does not zoom.
