@@ -1,7 +1,7 @@
 'use client'
 
 import { ListFilter, ListFilterPlus } from 'lucide-react'
-import { type SubmitEvent, useEffect, useMemo, useState } from 'react'
+import { type SubmitEvent, useEffect, useEffectEvent, useMemo, useState } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -19,7 +19,7 @@ import {
 import { columnLabel } from './engine/grid-column/label'
 import { GridOverlayDensity, useGridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
-import type { GridColumnFilter } from './use-grid-table'
+import type { GridColumnFacets, GridColumnFilter } from './use-grid-table'
 
 /** The subset of a column the filter sheet reads. @internal */
 type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'filterOptions'>
@@ -44,6 +44,35 @@ function toQueryField(
 		...(options ? { options } : {}),
 		...(span ? { span } : {}),
 	}
+}
+
+/** Whether the column's sheet offers facets: a `select` without explicit options, or a `number`. @internal */
+function takesFacets(column: FilterColumn): boolean {
+	return (column.filterType === 'select' && !column.filterOptions) || column.filterType === 'number'
+}
+
+/**
+ * The field of the column's sheet. A `select` filter without explicit options
+ * offers the column's own faceted values, and a `number` filter's `between`
+ * editor clamps to the column's faceted span.
+ *
+ * @internal
+ */
+function sheetField(column: FilterColumn, facets: GridColumnFacets | null): QueryField {
+	const options =
+		column.filterOptions ??
+		(column.filterType === 'select'
+			? facets?.values.map((value) => ({ label: value, value }))
+			: undefined)
+
+	return toQueryField(column, options, column.filterType === 'number' ? facets?.span : undefined)
+}
+
+/** The query a sheet opens on with no applied query: one empty rule, `contains` for text. @internal */
+function seedQuery(field: QueryField): QueryGroup {
+	const rule = createRule(field)
+
+	return createGroup('and', [field.type === 'text' ? { ...rule, operator: 'contains' } : rule])
 }
 
 /** Props for {@link GridColumnFilterButton}. @internal */
@@ -76,42 +105,14 @@ type GridColumnFilterButtonProps = {
  * @internal
  */
 export function GridColumnFilterButton({ column, filter, query }: GridColumnFilterButtonProps) {
-	// A `select` filter without explicit options offers the column's own values,
-	// faceted from the data; explicit `filterOptions` always win. Computed each
-	// render (cheap, engine-memoized) and keyed below so the field identity holds
-	// while the values are unchanged — a fresh render on drawer-open refreshes them.
-	const facetValues =
-		column.filterType === 'select' && !column.filterOptions
-			? filter.uniqueValues(column.id)
-			: undefined
+	// The facets the sheet offers, read from the engine as the sheet opens. They
+	// change with the rows and the other filters, so each open reads them again.
+	// They stay after a close, so the sheet keeps its options while it animates out.
+	const [facets, setFacets] = useState<GridColumnFacets | null>(null)
 
-	// A `number` filter's `between` editor clamps to the column's own span.
-	const facetSpan = column.filterType === 'number' ? filter.span(column.id) : undefined
-
-	// Null-joined content key so the field below holds its identity while the
-	// faceted values and span are unchanged (each is fresh each render).
-	const facetKey = JSON.stringify([facetValues ?? null, facetSpan ?? null])
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-derives when the faceted values or span change via facetKey; each is fresh each render
-	const field = useMemo(
-		() =>
-			toQueryField(
-				column,
-				column.filterOptions ?? facetValues?.map((value) => ({ label: value, value })),
-				facetSpan,
-			),
-		[column, facetKey],
-	)
+	const field = useMemo(() => sheetField(column, facets), [column, facets])
 
 	const fields = useMemo(() => [field], [field])
-
-	// A sheet with no applied query opens on one empty rule (text defaults to
-	// `contains`); the applied query seeds the draft instead once it exists.
-	const seeded = useMemo(() => {
-		const rule = createRule(field)
-
-		return createGroup('and', [field.type === 'text' ? { ...rule, operator: 'contains' } : rule])
-	}, [field])
 
 	const [open, setOpen] = useState(false)
 
@@ -119,7 +120,20 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// cells (see `GridOverlayDensity`).
 	const overlayDensity = useGridOverlayDensity()
 
-	const [draft, setDraft] = useState<QueryGroup>(seeded)
+	const [draft, setDraft] = useState<QueryGroup>(() => seedQuery(field))
+
+	// Open the sheet on the applied query, so editing always resumes from what's in
+	// effect. With no applied query it opens on one empty rule. An unapplied draft
+	// is dropped on close.
+	function openSheet() {
+		const next = takesFacets(column) ? filter.facets(column.id) : null
+
+		setFacets(next)
+
+		setDraft(query ?? seedQuery(sheetField(column, next)))
+
+		setOpen(true)
+	}
 
 	// Close the sheet and, if it was opened from the right-click menu (the `'menu'`
 	// affordance), consume that request so it doesn't immediately reopen.
@@ -129,27 +143,18 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		if (filter.openColumn === column.id) filter.requestOpen(null)
 	}
 
-	// Seed the draft from the applied query each time the sheet opens, so editing
-	// always resumes from what's in effect; an unapplied draft is dropped on close.
 	function handleOpenChange(next: boolean) {
-		if (next) {
-			setDraft(query ?? seeded)
-			setOpen(true)
-		} else {
-			closeSheet()
-		}
+		if (next) openSheet()
+		else closeSheet()
 	}
 
 	// The `'menu'` affordance opens this column's sheet from the context menu (there
-	// is no resting header funnel to click): open + seed when the grid requests this
-	// column. Guarded to this column so re-renders from query/seeded churn can't
-	// clobber an in-progress edit.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: opens only on a fresh open-request for this column; re-seeding on query/seeded changes would discard edits in flight
-	useEffect(() => {
-		if (filter.openColumn !== column.id) return
+	// is no resting header funnel to click). The effect runs only on a fresh
+	// request for this column, so a query change can't clobber an edit in flight.
+	const onOpenRequest = useEffectEvent(openSheet)
 
-		setDraft(query ?? seeded)
-		setOpen(true)
+	useEffect(() => {
+		if (filter.openColumn === column.id) onOpenRequest()
 	}, [filter.openColumn, column.id])
 
 	// Settle the draft onto the engine and close. A draft of only blank rules

@@ -106,9 +106,8 @@ import {
 	GridScrollRegion,
 } from './grid-region'
 import { useGridSort } from './grid-sort-state'
-import { useColumnSettleWidths } from './grid-table-views'
 import { GridToolbar } from './grid-toolbar'
-import { GridGrandTotalBody, useGridGrandTotal } from './grid-total-row'
+import { GridGrandTotalBody, resolveGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
 import type { GridColumn, GridSearch } from './types'
 import { useGridColumns } from './use-grid-columns'
@@ -870,7 +869,6 @@ export function GridData<T>({
 	// Without an active client transform the model is bypassed, and `renderRows`
 	// is the sorted view or `rows` itself.
 	const {
-		table,
 		visibleColumns,
 		renderRows,
 		rowKeys,
@@ -878,11 +876,14 @@ export function GridData<T>({
 		manualRows,
 		pagination,
 		resize,
+		settleWidths,
 		fitRenderedRows,
 		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
+		grandTotalRows,
+		rowsForExport,
 	} = useGridTable<T>({
 		rows,
 		// The engine receives the full column set and resolves which render (and
@@ -921,6 +922,8 @@ export function GridData<T>({
 		columnFilters: columnFiltersConfig,
 		containerRef: wrapperRef,
 		density,
+		// The engine builds its filtered model only for a grand total.
+		grandTotal: grandTotalRow,
 	})
 
 	// Cursor index space: rendered rows and the visible *data* columns. It skips the
@@ -1038,10 +1041,8 @@ export function GridData<T>({
 	const exportActions = useGridExport<T>({
 		exportable,
 		columns: visibleColumns,
-		table,
+		rows: rowsForExport,
 		exportRows,
-		grouped: groupingActive,
-		manualGroupRow,
 	})
 
 	// Whether the table can paint yet; holds its first frame until the widths are
@@ -1066,12 +1067,6 @@ export function GridData<T>({
 	// ever set under a manual sort, so a client-sorted grid's table class is
 	// untouched — the engine reorders it in place with no round trip.
 	const bodyStateClass = settleBodyClass(serverSortSettling)
-
-	// Per-visible-column width snapshot threaded to the body cells' truncation
-	// detector so a settled resize (or keyboard nudge) re-renders just that
-	// column's cells to re-measure overflow; frozen during a drag so the memoized
-	// cells hold frame-to-frame (see `useColumnSettleWidths`).
-	const settleWidths = useColumnSettleWidths(visibleColumns, resize, resizing)
 
 	// `resizing` stays on this table-wide value for external `useGrid()` consumers,
 	// but the grid's own truncating head/cells read it through the narrower
@@ -1224,17 +1219,17 @@ export function GridData<T>({
 	const groupRowOffset = Number(hasGroupRow)
 
 	// The grand-total row aggregates the full filtered set (see
-	// `useGridGrandTotal`); it adds a rendered row, so the aria count shifts
+	// `resolveGrandTotal`); it adds a rendered row, so the aria count shifts
 	// with it the way the group band does. Manual grouping stands it down —
 	// the engine's filtered model would sum the group-header rows as data.
-	const grandTotal = useGridGrandTotal({
+	const grandTotal = resolveGrandTotal({
 		grandTotalRow,
 		columns: visibleColumns,
 		hasRows,
 		loading,
 		showingError,
 		manualGrouped: manualGroupingActive,
-		table,
+		rows: grandTotalRows,
 	})
 
 	// The group band and grand-total row each add a rendered header/footer row, so
@@ -1269,13 +1264,13 @@ export function GridData<T>({
 	// region's result announcement; the header row the aria count adds is excluded.
 	const dataRowCount = pagination?.rowCount ?? renderRows.length
 
-	// Live counts for the optional summary footer, read live off `table` so they
-	// track client-side search/filtering (see `resolveFooterStats`); `null` when no
-	// `footer` is configured, so no bar renders. An infinite-scroll `totalRows`
-	// reports the real (server) set rather than the loaded extent.
+	// Counts for the optional summary footer, which track client-side
+	// search/filtering (see `resolveFooterStats`); `null` when no `footer` is
+	// configured, so no bar renders. An infinite-scroll `totalRows` reports the
+	// real (server) set rather than the loaded extent.
 	const footerStats = resolveFooterStats({
 		footer,
-		table,
+		sourceCount: rows.length,
 		filteredCount: dataRowCount,
 		selected: selection.size,
 		infiniteScroll,

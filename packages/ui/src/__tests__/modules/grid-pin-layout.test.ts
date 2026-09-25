@@ -1,5 +1,4 @@
-import type { Table } from '@tanstack/react-table'
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
 import {
@@ -12,27 +11,22 @@ import {
 	buildColumnPinning,
 	toColumnPinningState,
 } from '../../modules/grid/engine/grid-table/views'
-import { useFrozenLayout } from '../../modules/grid/grid-table-views'
+import { useGridTable } from '../../modules/grid/use-grid-table'
 
-/** One frozen column as the engine reports it: its id and its offset from its edge. */
-type Pin = { id: string; offset: number }
+/** One frozen column: its id and its width. */
+type Pin = [id: string, width: number]
 
 /**
- * A table stub over the two frozen sections the layout reads. The boundary is not
- * stubbed: it falls out of each column's place in its section, which is the
+ * The layout of two frozen sections, each in edge order. The offsets and the
+ * boundary fall out of each column's place in its section, which is the
  * derivation under test.
  */
-function makeTable(left: Pin[], right: Pin[] = []): Table<{ id: number }> {
-	const column = (pin: Pin) => ({
-		id: pin.id,
-		getStart: () => pin.offset,
-		getAfter: () => pin.offset,
-	})
-
-	return {
-		getLeftVisibleLeafColumns: () => left.map(column),
-		getRightVisibleLeafColumns: () => right.map(column),
-	} as unknown as Table<{ id: number }>
+function layoutOf(left: Pin[], right: Pin[] = [], measured: FrozenOffsets | null = null) {
+	return frozenLayout(
+		{ left: left.map(([id]) => id), right: right.map(([id]) => id) },
+		new Map([...left, ...right]),
+		measured,
+	)
 }
 
 /**
@@ -42,27 +36,40 @@ function makeTable(left: Pin[], right: Pin[] = []): Table<{ id: number }> {
  */
 describe('frozen column layout', () => {
 	// Name and Email freeze left, Status holds the right edge.
-	const stacked = makeTable(
-		[
-			{ id: 'name', offset: 0 },
-			{ id: 'email', offset: 160 },
-		],
-		[{ id: 'status', offset: 0 }],
-	)
+	const left: Pin[] = [
+		['name', 160],
+		['email', 200],
+	]
 
-	it("resolves both of the engine's frozen sections, in edge order", () => {
+	const right: Pin[] = [['status', 120]]
+
+	it('resolves both frozen sections, in edge order', () => {
 		// The boundary lands on each group's innermost column: the last of the left
 		// section, the first of the right one.
-		expect([...frozenLayout(stacked, null)]).toEqual([
+		expect([...layoutOf(left, right)]).toEqual([
 			['name', { side: 'left', offset: 0, boundary: false }],
 			['email', { side: 'left', offset: 160, boundary: true }],
 			['status', { side: 'right', offset: 0, boundary: true }],
 		])
 	})
 
-	it('takes a measured offset over the engine sum, column by column', () => {
+	it('sticks each right column at the summed width of the columns after it', () => {
+		const layout = layoutOf(
+			[],
+			[
+				['status', 120],
+				['total', 90],
+			],
+		)
+
+		expect(layout.get('status')).toEqual({ side: 'right', offset: 90, boundary: true })
+
+		expect(layout.get('total')).toEqual({ side: 'right', offset: 0, boundary: false })
+	})
+
+	it('takes a measured offset over the summed widths, column by column', () => {
 		// The auto-layout case: the header measurement covers the left stack, and the
-		// engine's own sum stands for the column it has no entry for.
+		// summed widths stand for the column it has no entry for.
 		const measured: FrozenOffsets = {
 			left: new Map([
 				['name', 0],
@@ -71,7 +78,7 @@ describe('frozen column layout', () => {
 			right: new Map(),
 		}
 
-		const layout = frozenLayout(stacked, measured)
+		const layout = layoutOf(left, right, measured)
 
 		expect(layout.get('email')?.offset).toBe(214)
 
@@ -79,81 +86,101 @@ describe('frozen column layout', () => {
 	})
 
 	it('reads two resolutions equal only when every frozen column lands identically', () => {
-		const layout = frozenLayout(stacked, null)
+		const layout = layoutOf(left, right)
 
-		expect(sameFrozenLayout(layout, frozenLayout(stacked, null))).toBe(true)
+		expect(sameFrozenLayout(layout, layoutOf(left, right))).toBe(true)
 
 		// A drag on a column ahead of the stack moves the ones behind it.
-		const dragged = makeTable(
+		const dragged = layoutOf(
 			[
-				{ id: 'name', offset: 0 },
-				{ id: 'email', offset: 250 },
+				['name', 250],
+				['email', 200],
 			],
-			[{ id: 'status', offset: 0 }],
+			right,
 		)
 
-		expect(sameFrozenLayout(layout, frozenLayout(dragged, null))).toBe(false)
+		expect(sameFrozenLayout(layout, dragged)).toBe(false)
 
 		// An unpin puts the boundary — and the edge rule with it — on another column.
-		const repinned = makeTable([{ id: 'name', offset: 0 }], [{ id: 'status', offset: 0 }])
-
-		expect(sameFrozenLayout(layout, frozenLayout(repinned, null))).toBe(false)
+		expect(sameFrozenLayout(layout, layoutOf([['name', 160]], right))).toBe(false)
 	})
 })
 
 /**
- * The hook that carries the layout across `memo` boundaries: it must hold its
- * reference while the frozen columns are where they were — a drag on a scrolling
- * column must not re-render every row — and yield a fresh one the moment one of
- * them moves.
+ * The grid carries the layout across `memo` boundaries through the identity of
+ * its `pinning` value. It must hold that reference while the frozen columns are
+ * where they were — a drag on a scrolling column must not re-render every row —
+ * and yield a fresh one the moment one of them moves.
  */
-describe('useFrozenLayout', () => {
-	const oneFrozen = makeTable([{ id: 'name', offset: 0 }])
+describe('the pinning value of useGridTable', () => {
+	type Row = { id: number; name: string; email: string; status: string }
+
+	const rows: Row[] = [{ id: 1, name: 'Ada', email: 'ada@example.com', status: 'Active' }]
+
+	const getKey = (row: Row) => row.id
+
+	const name: GridColumn<Row> = { id: 'name', field: 'name', width: 160, pinned: true }
+
+	const email: GridColumn<Row> = { id: 'email', field: 'email', width: 200 }
+
+	const status: GridColumn<Row> = { id: 'status', field: 'status', width: 120 }
+
+	function renderGrid(initial: GridColumn<Row>[]) {
+		return renderHook(
+			({ columns }) => useGridTable<Row>({ rows, columns, getKey, resizable: true }),
+			{ initialProps: { columns: initial } },
+		)
+	}
 
 	it('holds its reference while the frozen columns are unchanged', () => {
-		const { result, rerender } = renderHook(({ table }) => useFrozenLayout(true, table, null), {
-			initialProps: { table: oneFrozen },
-		})
+		const { result } = renderGrid([name, email, status])
 
-		const first = result.current
+		const first = result.current.pinning
 
-		// A re-render for another reason — a scrolling column's drag frame, say —
-		// resolves the same layout and must not churn the rows.
-		rerender({ table: makeTable([{ id: 'name', offset: 0 }]) })
+		// A width change on a scrolling column moves no frozen offset, and must not
+		// churn the rows.
+		act(() => result.current.resize?.nudge('status', 40))
 
-		expect(result.current).toBe(first)
+		expect(result.current.resize?.getSize('status')).toBe(160)
+
+		expect(result.current.pinning).toBe(first)
+	})
+
+	it('yields a fresh layout when a frozen column moves', () => {
+		const { result } = renderGrid([name, { ...email, pinned: true }, status])
+
+		const first = result.current.pinning
+
+		act(() => result.current.resize?.nudge('name', 40))
+
+		expect(result.current.pinning).not.toBe(first)
+
+		expect(result.current.pinning?.column('email')?.offset).toBe(200)
 	})
 
 	it('yields a fresh layout when a column joins the group and takes the boundary', () => {
-		const { result, rerender } = renderHook(({ table }) => useFrozenLayout(true, table, null), {
-			initialProps: { table: oneFrozen },
-		})
+		const { result, rerender } = renderGrid([name, email, status])
 
-		const first = result.current
+		const first = result.current.pinning
 
-		rerender({
-			table: makeTable([
-				{ id: 'name', offset: 0 },
-				{ id: 'email', offset: 160 },
-			]),
-		})
+		rerender({ columns: [name, { ...email, pinned: true }, status] })
 
-		expect(result.current).not.toBe(first)
-
-		const pinning = buildColumnPinning(result.current)
+		expect(result.current.pinning).not.toBe(first)
 
 		// The rule follows the boundary onto the joining column, off the one it displaced.
-		expect(pinning.column('email')).toEqual({ side: 'left', offset: 160, boundary: true })
+		expect(result.current.pinning?.column('email')).toEqual({
+			side: 'left',
+			offset: 160,
+			boundary: true,
+		})
 
-		expect(pinning.column('name')?.boundary).toBe(false)
+		expect(result.current.pinning?.column('name')?.boundary).toBe(false)
 	})
 
 	it('resolves nothing for a grid with no frozen column', () => {
-		const { result } = renderHook(() => useFrozenLayout(false, oneFrozen, null))
+		const { result } = renderGrid([{ ...name, pinned: undefined }, email, status])
 
-		expect(result.current.size).toBe(0)
-
-		expect(buildColumnPinning(result.current).column('name')).toBeUndefined()
+		expect(result.current.pinning).toBeNull()
 	})
 })
 
@@ -190,15 +217,12 @@ describe('the Add column of the new-row slot', () => {
 	})
 
 	it('reads as a column that scrolls, while a frozen column sticks inside it', () => {
-		const layout = frozenLayout(
-			makeTable(
-				[],
-				[
-					{ id: 'status', offset: 48 },
-					{ id: NEW_ROW_ADD_COLUMN_ID, offset: 0 },
-				],
-			),
-			null,
+		const layout = layoutOf(
+			[],
+			[
+				['status', 120],
+				[NEW_ROW_ADD_COLUMN_ID, 48],
+			],
 		)
 
 		const pinning = buildColumnPinning(layout)

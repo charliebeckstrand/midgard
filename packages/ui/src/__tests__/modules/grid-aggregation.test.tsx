@@ -206,6 +206,27 @@ describe('Grid aggregation rendering', () => {
 		expect(flat.container.querySelector('[data-total-row="grand"]')?.textContent).toContain('$1200')
 	})
 
+	it('recomputes the grand total when the rows change', () => {
+		const view = renderUI(<Grid columns={columns} rows={sales} getKey={getKey} grandTotalRow />)
+
+		const grand = () => view.container.querySelector('[data-total-row="grand"]')?.textContent
+
+		expect(grand()).toContain('$1200')
+
+		// West alone: revenue 100 + 300. The row keeps its place while the set
+		// under it changes, so it must read the new rows, not the rows it first saw.
+		view.rerender(
+			<Grid
+				columns={columns}
+				rows={sales.filter((sale) => sale.region === 'West')}
+				getKey={getKey}
+				grandTotalRow
+			/>,
+		)
+
+		expect(grand()).toContain('$400')
+	})
+
 	it('renders no total rows without an aggregating column', () => {
 		const plain: GridColumn<Sale>[] = [
 			{ id: 'region', cell: (row) => row.region, value: (row) => row.region },

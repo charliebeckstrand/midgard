@@ -1,6 +1,5 @@
 'use client'
 
-import type { Row, Table } from '@tanstack/react-table'
 import { useMemo, useState } from 'react'
 import {
 	exportRowsContext,
@@ -9,7 +8,6 @@ import {
 	trackPending,
 } from './engine/grid-export/resolve'
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
-import { deriveLeafRows } from './engine/grid-table/state'
 import type { GridColumn } from './types'
 
 export type { GridExportAction } from './engine/grid-export/types'
@@ -43,22 +41,14 @@ export type GridExportSurfaceActions = {
  * the "Export" dropdown, the menu items, or both. Each action's context builds
  * lazily at run time. It therefore always reflects the grid's current state,
  * rather than the state at the last render that changed `exportable`, `columns`,
- * `table`, or `exportRows`.
+ * `rows`, or `exportRows`.
  *
- * Without `exportRows` the rows come from the engine's sorted row model, first
- * collapsed to its leaf set. Those are the selected rows when a selection is
- * active, else the full filtered/sorted set (all pages the engine holds). With
+ * Without `exportRows` the rows come from `rows`, which reads the engine when
+ * the export runs (`GridTableResult.rowsForExport`). Those are the selected rows
+ * when a selection is active, else the full filtered and sorted set. With
  * `exportRows` set, its return value wins outright. It is the escape hatch for
  * server pagination, where the engine only ever holds the current page. The
  * awaited list is exported whole, and any selection is ignored.
- *
- * @remarks
- * The collapse is load-bearing under grouping. Client grouping runs before
- * sorting in the engine's pipeline, so the sorted row model is the group-header
- * rows. A group header's `original` is its first leaf's datum. To export that
- * model directly yields one row per group. Group-header ids are also absent
- * from the mirrored selection state, so an active selection reads as empty and
- * silently falls back to the full set. Collapsing to leaves first answers both.
  *
  * @typeParam T - Shape of a single row.
  * @internal
@@ -66,14 +56,11 @@ export type GridExportSurfaceActions = {
 export function useGridExport<T>(args: {
 	exportable: GridExportable<T> | undefined
 	columns: GridColumn<T>[]
-	table: Table<T>
+	/** Reads the rows to export when an export runs. */
+	rows: () => T[]
 	exportRows?: GridExportRows<T>
-	/** Whether client grouping is active, so group headers stand in for their leaves. */
-	grouped: boolean
-	/** Identifies a consumer-supplied group-header row under manual grouping; `null` otherwise. */
-	manualGroupRow: ((row: T) => boolean) | null
 }): GridExportSurfaceActions {
-	const { exportable, columns, table, exportRows, grouped, manualGroupRow } = args
+	const { exportable, columns, rows, exportRows } = args
 
 	// Counted, not flagged: two exports fired from different surfaces must both
 	// settle before the grid stops reading as busy.
@@ -81,22 +68,10 @@ export function useGridExport<T>(args: {
 
 	const actions = useMemo(
 		() =>
-			resolveExportActions(exportable, () => {
-				if (exportRows) return exportRowsContext(exportRows, columns)
-
-				const sorted = table.getSortedRowModel().rows
-
-				// `deriveLeafRows` owns both grouping modes; `sorted` is never null,
-				// so the coalesce only satisfies its nullable return.
-				const leaves: Row<T>[] = deriveLeafRows(sorted, grouped, manualGroupRow) ?? []
-
-				const selected = leaves.filter((row) => row.getIsSelected())
-
-				const rows = (selected.length > 0 ? selected : leaves).map((row) => row.original)
-
-				return { columns, rows }
-			}).map((action) => ({ ...action, run: trackPending(action.run, setPendingCount) })),
-		[exportable, columns, table, exportRows, grouped, manualGroupRow],
+			resolveExportActions(exportable, () =>
+				exportRows ? exportRowsContext(exportRows, columns) : { columns, rows: rows() },
+			).map((action) => ({ ...action, run: trackPending(action.run, setPendingCount) })),
+		[exportable, columns, rows, exportRows],
 	)
 
 	const surfaces = resolveExportSurfaces(exportable)

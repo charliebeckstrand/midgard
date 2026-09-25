@@ -95,7 +95,7 @@ export function GridToolbar({
 
 	const showBatch = Boolean(batchActions) && hasSelection
 
-	const hasActiveFilters = columnFilters?.hasActive() ?? false
+	const hasActiveFilters = columnFilters?.active ?? false
 
 	const showTopRow = Boolean(filter) || hasActiveFilters || showTools || Boolean(content)
 

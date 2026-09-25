@@ -1,94 +1,93 @@
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn } from '../../modules/grid'
-import { useColumnSettleWidths } from '../../modules/grid/grid-table-views'
-import type { GridColumnResize } from '../../modules/grid/use-grid-table'
+import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /**
- * `useColumnSettleWidths` is the heart of the body cells' resize-truncation
- * re-measure: it hands each column a width snapshot that is frozen to `undefined`
- * while a drag is in flight (so the memoized cells hold frame-to-frame) and the
- * settled engine width otherwise, with a stable reference while unchanged. A
- * change after a settle or a keyboard nudge is what re-renders a column's cells
- * to re-measure overflow.
+ * `settleWidths` is the heart of the body cells' resize-truncation re-measure.
+ * It hands each column a width that is `undefined` while a drag is in flight, so
+ * the memoized cells hold frame to frame, and the settled width otherwise. Its
+ * reference holds while the widths are unchanged. A change after a settle or a
+ * keyboard nudge is what re-renders a column's cells to re-measure overflow.
  */
-const columns = [
-	{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name },
-	{ id: 'select', selectable: true },
-] as unknown as GridColumn<{ name: string }>[]
+type Row = { id: number; name: string }
 
-function makeResize(widths: Record<string, number>): GridColumnResize {
-	return {
-		getSize: (id: string | number) => widths[String(id)] ?? 0,
-	} as unknown as GridColumnResize
+const rows: Row[] = [{ id: 1, name: 'Ada' }]
+
+const getKey = (row: Row) => row.id
+
+const columns: GridColumn<Row>[] = [
+	{ id: 'name', title: 'Name', field: 'name', width: 200 },
+	{ id: 'select', selectable: true },
+]
+
+function renderGrid(resizable = true) {
+	return renderHook(() => useGridTable<Row>({ rows, columns, getKey, resizable }))
 }
 
-describe('useColumnSettleWidths', () => {
-	it('freezes every column to undefined while a drag is in flight', () => {
-		const { result } = renderHook(() =>
-			useColumnSettleWidths(columns, makeResize({ name: 200 }), true),
-		)
+/** Starts a mouse drag on the column's resize handle, as a press on it does. */
+function pressHandle(
+	result: { current: ReturnType<typeof useGridTable<Row>> },
+	id: string,
+	clientX: number,
+) {
+	act(() => result.current.resize?.startResize(id, new MouseEvent('mousedown', { clientX })))
+}
 
-		expect(result.current).toEqual([undefined, undefined])
-	})
-
-	it('reports the settled engine width per data column at rest, undefined for non-data', () => {
-		const { result } = renderHook(() =>
-			useColumnSettleWidths(columns, makeResize({ name: 200 }), false),
-		)
+describe('settleWidths', () => {
+	it('reports the settled width per data column at rest, undefined for non-data', () => {
+		const { result } = renderGrid()
 
 		// `name` is a data column; the selection column carries no truncation.
-		expect(result.current).toEqual([200, undefined])
+		expect(result.current.settleWidths).toEqual([200, undefined])
 	})
 
 	it('is undefined throughout when the grid is not resizable', () => {
-		const { result } = renderHook(() => useColumnSettleWidths(columns, null, false))
+		const { result } = renderGrid(false)
 
-		expect(result.current).toEqual([undefined, undefined])
+		expect(result.current.settleWidths).toEqual([undefined, undefined])
 	})
 
 	it('holds a stable reference while the widths are unchanged (no per-frame churn)', () => {
-		const resize = makeResize({ name: 200 })
+		const { result, rerender } = renderGrid()
 
-		const { result, rerender } = renderHook(
-			({ resizing }) => useColumnSettleWidths(columns, resize, resizing),
-			{ initialProps: { resizing: false } },
-		)
+		const first = result.current.settleWidths
 
-		const first = result.current
+		rerender()
 
-		rerender({ resizing: false })
-
-		expect(result.current).toBe(first)
+		expect(result.current.settleWidths).toBe(first)
 	})
 
 	it('yields a fresh snapshot when a column width changes (a nudge)', () => {
-		const { result, rerender } = renderHook(
-			({ resize }) => useColumnSettleWidths(columns, resize, false),
-			{ initialProps: { resize: makeResize({ name: 200 }) } },
-		)
+		const { result } = renderGrid()
 
-		const first = result.current
+		const first = result.current.settleWidths
 
-		// A keyboard nudge moves the engine width with no drag.
-		rerender({ resize: makeResize({ name: 240 }) })
+		// A keyboard nudge moves the width with no drag.
+		act(() => result.current.resize?.nudge('name', 40))
 
-		expect(result.current).not.toBe(first)
-		expect(result.current).toEqual([240, undefined])
+		expect(result.current.settleWidths).not.toBe(first)
+
+		expect(result.current.settleWidths).toEqual([240, undefined])
 	})
 
-	it('thaws from the drag freeze to the settled width when resizing ends', () => {
-		const resize = makeResize({ name: 160 })
+	it('freezes every column while a drag is in flight, and thaws when it ends', () => {
+		const { result } = renderGrid()
 
-		const { result, rerender } = renderHook(
-			({ resizing }) => useColumnSettleWidths(columns, resize, resizing),
-			{ initialProps: { resizing: true } },
-		)
+		pressHandle(result, 'name', 100)
 
-		expect(result.current).toEqual([undefined, undefined])
+		expect(result.current.resize?.resizing).toBe('name')
 
-		rerender({ resizing: false })
+		expect(result.current.settleWidths).toEqual([undefined, undefined])
 
-		expect(result.current).toEqual([160, undefined])
+		act(() => {
+			document.dispatchEvent(new MouseEvent('mousemove', { clientX: 130 }))
+
+			document.dispatchEvent(new MouseEvent('mouseup', { clientX: 130 }))
+		})
+
+		expect(result.current.resize?.resizing).toBeNull()
+
+		expect(result.current.settleWidths).toEqual([230, undefined])
 	})
 })

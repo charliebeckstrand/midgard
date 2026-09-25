@@ -5,8 +5,8 @@ import { useGridTable } from '../../modules/grid/use-grid-table'
 
 /**
  * The selection Set is mirrored into the engine's `state.rowSelection`, so the
- * engine's selected-row model tracks the grid's selection (the convergence step:
- * selection state now lives on the engine, one-way, with the Set authoritative).
+ * engine's selected-row model tracks the grid's selection. The Set stays
+ * authoritative. An export reads that model: the selected rows, else every row.
  */
 describe('useGridTable selection mirror', () => {
 	type Row = { id: number; name: string }
@@ -21,32 +21,21 @@ describe('useGridTable selection mirror', () => {
 
 	const getKey = (row: Row) => row.id
 
+	const exported = (selection?: Set<number>) => {
+		const { result } = renderHook(() => useGridTable<Row>({ rows, columns, getKey, selection }))
+
+		return result.current.rowsForExport().map((row) => row.id)
+	}
+
 	it('reflects the selection Set in the engine selected-row model', () => {
-		const { result } = renderHook(() =>
-			useGridTable<Row>({ rows, columns, getKey, selection: new Set([1, 3]) }),
-		)
-
-		const selected = result.current.table
-			.getSelectedRowModel()
-			.rows.map((row) => row.original.id)
-			.sort()
-
-		expect(selected).toEqual([1, 3])
+		expect(exported(new Set([1, 3]))).toEqual([1, 3])
 	})
 
 	it('marks the matching engine rows selected, keyed by the stringified row id', () => {
-		const { result } = renderHook(() =>
-			useGridTable<Row>({ rows, columns, getKey, selection: new Set([2]) }),
-		)
-
-		expect(result.current.table.getRow('2').getIsSelected()).toBe(true)
-
-		expect(result.current.table.getRow('1').getIsSelected()).toBe(false)
+		expect(exported(new Set([2]))).toEqual([2])
 	})
 
-	it('leaves the engine selection empty when no selection is bound', () => {
-		const { result } = renderHook(() => useGridTable<Row>({ rows, columns, getKey }))
-
-		expect(result.current.table.getSelectedRowModel().rows).toHaveLength(0)
+	it('takes every row when no selection is bound', () => {
+		expect(exported()).toEqual([1, 2, 3])
 	})
 })

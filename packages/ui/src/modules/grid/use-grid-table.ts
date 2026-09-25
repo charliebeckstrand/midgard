@@ -1,10 +1,22 @@
 'use client'
 
+// The engine boundary. TanStack's table is one mutable object that keeps its
+// identity across renders, and its reads are live. The React Compiler caches a
+// value on the identity of its inputs, so a compiled read of the table goes
+// stale. This module is therefore the one grid module that the compiler does not
+// transform, and the only one that reads the table during render. It gives the
+// grid values and actions only. A value is immutable, and a new value comes with
+// each change. An action reads or writes the engine when it runs, and the render
+// code calls it only from an event or an effect.
+'use no memo'
+
 import {
 	type CellContext,
+	type Column,
 	type ColumnDef,
 	type ColumnFiltersState,
 	type ColumnOrderState,
+	type ColumnPinningState,
 	type ColumnSizingInfoState,
 	type ColumnSizingState,
 	type ExpandedState,
@@ -33,9 +45,16 @@ import {
 } from 'react'
 import { useControllable } from '../../hooks'
 import type { DensityLevel } from '../../providers/density/context'
+import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
 import { isManualPagination } from './engine/grid-pagination-utilities'
+import {
+	EMPTY_FROZEN_LAYOUT,
+	type FrozenLayout,
+	frozenLayout,
+	sameFrozenLayout,
+} from './engine/grid-pin/layout'
 import {
 	computeSortOrder,
 	materializeSort,
@@ -75,14 +94,19 @@ import {
 	buildColumnPinning,
 	buildColumnResize,
 	buildPaginationView,
+	columnFilterActions,
+	columnResizeActions,
+	columnWidths,
 	type GridColumnFilter,
 	type GridColumnPinning,
 	type GridColumnResize,
+	type GridColumnResizeActions,
 	type GridGlobalFilterView,
 	type GridPaginationView,
+	sameElements,
 	toColumnPinningState,
+	toGridColumns,
 } from './engine/grid-table/views'
-import { useFrozenLayout, useVisibleColumns } from './grid-table-views'
 import type {
 	GridColumn,
 	GridColumnFilterState,
@@ -97,6 +121,7 @@ import { useGridColumnSizing } from './use-grid-column-sizing'
 import { useGridPinnedOffsets } from './use-grid-pinned-offsets'
 
 export type {
+	GridColumnFacets,
 	GridColumnFilter,
 	GridColumnPinning,
 	GridColumnResize,
@@ -160,12 +185,15 @@ type GridTableParams<T> = {
 	containerRef?: RefObject<HTMLElement | null>
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
 	density?: DensityLevel
+	/**
+	 * Whether a grand total aggregates the filtered rows. Only then does the
+	 * engine build its filtered model for {@link GridTableResult.grandTotalRows}.
+	 */
+	grandTotal?: boolean
 }
 
-/** Result of {@link useGridTable}. @internal */
+/** Result of {@link useGridTable}: values and actions only. @internal */
 type GridTableResult<T> = {
-	/** The TanStack Table instance backing the grid. */
-	table: Table<T>
 	/**
 	 * Columns to render in resolved display order — the engine's visible leaf
 	 * columns (order + visibility + pinning applied), mapped back to their source
@@ -203,6 +231,16 @@ type GridTableResult<T> = {
 	/** Column-resize controls, or `null` when `resizable` is off. */
 	resize: GridColumnResize | null
 	/**
+	 * Each visible column's settled width, for the body cells' truncation
+	 * detector. It is `undefined` for a column the grid does not size. It is also
+	 * `undefined` for every column while a drag is in flight, so the memoized
+	 * cells hold frame to frame. The settled width then re-renders only that
+	 * column's cells, which measure their overflow again. A keyboard `nudge` moves the width with no
+	 * drag, and counts the same. It holds its reference while element-wise
+	 * unchanged.
+	 */
+	settleWidths: (number | undefined)[]
+	/**
 	 * Re-fits the columns when the body's rendered rows change and the last fit had
 	 * none to measure. That is the windowed body's case, whose rows land in a later
 	 * commit than the one that supplied them. Call from the body's layout effect,
@@ -224,6 +262,43 @@ type GridTableResult<T> = {
 	filters: GridColumnFilter | null
 	/** Frozen-column controls, or `null` when no column is pinned. */
 	pinning: GridColumnPinning | null
+	/**
+	 * The rows a grand total aggregates: the full filtered set. It holds all
+	 * pages, because filtering precedes pagination, and the flat leaves, because
+	 * it precedes grouping. Empty unless `grandTotal` is set.
+	 */
+	grandTotalRows: T[]
+	/**
+	 * Reads the rows an export takes, in display order. These are the selected
+	 * rows when a selection is active, else the full filtered and sorted set (all
+	 * pages). Both are the flat leaves, since the sorted model under grouping carries
+	 * group headers rather than data rows.
+	 */
+	rowsForExport: () => T[]
+}
+
+/** Stable empty row set, so an inactive grand total holds its identity. @internal */
+const NO_ROWS: never[] = []
+
+/**
+ * Holds a value at its previous reference while `same` reports the two equal. A
+ * render that resolved the same facts therefore hands the memos below it the
+ * identity they already hold.
+ *
+ * @remarks It writes a ref during render, which the React Compiler does not
+ * allow. The hold is safe here: it keeps a value equal to the new one, so a
+ * render that React discards leaves nothing wrong behind.
+ *
+ * @internal
+ */
+function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
+	const ref = useRef(candidate)
+
+	const stable = same(ref.current, candidate) ? ref.current : candidate
+
+	ref.current = stable
+
+	return stable
 }
 
 /**
@@ -356,6 +431,35 @@ function useEagerSizingInfo(): [ColumnSizingInfoState, OnChangeFn<ColumnSizingIn
  */
 function engineDisplayRows<T>(table: Table<T>, materialize: boolean): Row<T>[] | null {
 	return materialize ? table.getRowModel().rows : null
+}
+
+/**
+ * The rows an export takes, read from the engine when the export runs: the
+ * selected leaves in display order, else every leaf.
+ *
+ * @remarks
+ * The collapse to leaves is load-bearing under grouping. Client grouping runs
+ * before sorting in the engine's pipeline, so the sorted row model is the
+ * group-header rows. A group header's `original` is its first leaf's datum. To
+ * export that model directly yields one row per group. Group-header ids are
+ * also absent from the mirrored selection state, so an active selection reads
+ * as empty and silently falls back to the full set. Collapsing to leaves first
+ * answers both.
+ *
+ * @internal
+ */
+function exportLeaves<T>(
+	table: Table<T>,
+	grouped: boolean,
+	manualGroupRow: ((row: T) => boolean) | null,
+): T[] {
+	// `deriveLeafRows` owns both grouping modes. The sorted rows are never null, so
+	// the coalesce only satisfies its nullable return.
+	const leaves = deriveLeafRows(table.getSortedRowModel().rows, grouped, manualGroupRow) ?? []
+
+	const selected = leaves.filter((row) => row.getIsSelected())
+
+	return (selected.length > 0 ? selected : leaves).map((row) => row.original)
 }
 
 /**
@@ -585,6 +689,204 @@ function useFilterModeMismatchWarning(args: {
 }
 
 /**
+ * The visible columns and their widths. The engine resolves the visible leaf
+ * columns from the order, visibility, and pinning state, frozen left, then
+ * centre, then frozen right. It memoizes each section on that state, so each
+ * array keeps its identity until the state changes. The widths come from the
+ * sizing state that the grid owns (see {@link columnWidths}).
+ *
+ * @internal
+ */
+function useColumnLayout<T>(table: Table<T>, resizable: boolean, sizingState: ColumnSizingState) {
+	// The engine reads no sizing state for a grid that does not resize.
+	const sizing = resizable ? sizingState : EMPTY_SIZING
+
+	const left = table.getLeftVisibleLeafColumns()
+
+	const center = table.getCenterVisibleLeafColumns()
+
+	const right = table.getRightVisibleLeafColumns()
+
+	const leaves = useMemo(() => [...left, ...center, ...right], [left, center, right])
+
+	// Mapped back to their source `GridColumn`. The header, the body `<colgroup>`,
+	// and the menus all read this.
+	const visibleColumns = useMemo(() => toGridColumns(leaves), [leaves])
+
+	const widths = useMemo(() => columnWidths(leaves, sizing), [leaves, sizing])
+
+	return { left, right, leaves, visibleColumns, widths }
+}
+
+/** The column mid drag-resize in the drag state, or `null`. @internal */
+function resizingColumn(resizable: boolean, info: ColumnSizingInfoState): string | null {
+	return resizable && info.isResizingColumn ? info.isResizingColumn : null
+}
+
+/**
+ * The {@link GridColumnResize} value and the settled widths the body cells
+ * measure against (see {@link GridTableResult.settleWidths}).
+ *
+ * @internal
+ */
+function useResizeView<T>(args: {
+	resizable: boolean
+	table: Table<T>
+	leaves: readonly Column<T, unknown>[]
+	visibleColumns: GridColumn<T>[]
+	widths: ReadonlyMap<string, number>
+	/** The published floors, for the bounds. */
+	floors: ReadonlyMap<string, number>
+	/** The live floors, for a nudge. */
+	columnFloors: ReadonlyMap<string, number>
+	resizing: string | null
+	sizer: Pick<GridColumnResizeActions, 'autoSizeColumn' | 'autoSizeAll' | 'resetWidths'> & {
+		takeControl: () => void
+	}
+}): { resize: GridColumnResize | null; settleWidths: (number | undefined)[] } {
+	const { resizable, table, leaves, visibleColumns, widths, floors, columnFloors, resizing } = args
+
+	const { autoSizeColumn, autoSizeAll, resetWidths, takeControl } = args.sizer
+
+	const actions = useMemo<GridColumnResizeActions>(() => {
+		const engine = columnResizeActions(table, columnFloors)
+
+		return {
+			startResize: engine.startResize,
+			// A keyboard nudge takes manual control just like a drag: hold every column
+			// so the nudge stays confined to its own column and survives the autosizer's
+			// later triggers (container resize, page turn) instead of being re-fit away.
+			nudge: (id, delta) => {
+				engine.nudge(id, delta)
+
+				takeControl()
+			},
+			autoSizeColumn,
+			autoSizeAll,
+			resetWidths,
+		}
+	}, [table, columnFloors, takeControl, autoSizeColumn, autoSizeAll, resetWidths])
+
+	const resize = useMemo(
+		() =>
+			resizable ? buildColumnResize({ columns: leaves, widths, floors, resizing, actions }) : null,
+		[resizable, leaves, widths, floors, resizing, actions],
+	)
+
+	const settleWidths = useStableValue(
+		visibleColumns.map((col) =>
+			resize && !resizing && isDataColumn(col) ? resize.getSize(col.id) : undefined,
+		),
+		sameElements,
+	)
+
+	return { resize, settleWidths }
+}
+
+/**
+ * The {@link GridColumnFilter} value, or `null` when no column is filterable.
+ *
+ * @internal
+ */
+function useFilterView<T>(args: {
+	table: Table<T>
+	enabled: boolean
+	columns: GridColumn<T>[]
+	applied: GridColumnFilterState[]
+	affordance: GridColumnFilter['affordance'] | undefined
+}): GridColumnFilter | null {
+	const { table, enabled, columns, applied } = args
+
+	const affordance = args.affordance ?? 'header'
+
+	// Which column's filter sheet the right-click menu asked to open (the `'menu'`
+	// affordance), or `null`. Lives here because a table instance holds no such state.
+	const [openColumn, setOpenColumn] = useState<string | number | null>(null)
+
+	const actions = useMemo(() => columnFilterActions(table), [table])
+
+	return useMemo(
+		() =>
+			enabled
+				? buildColumnFilters({
+						columns,
+						applied,
+						actions,
+						affordance,
+						openColumn,
+						requestOpen: setOpenColumn,
+					})
+				: null,
+		[enabled, columns, applied, actions, affordance, openColumn],
+	)
+}
+
+/**
+ * The {@link GridColumnPinning} value, or `null` when no column is frozen.
+ *
+ * @remarks
+ * A frozen column sticks at the summed width of the frozen columns ahead of it.
+ * Those widths are the rendered ones only under the fixed-layout colgroup that
+ * a resizable grid lays out from them. A non-resizable grid lays out `auto` and
+ * sizes each column to its content, so there the offsets are measured from the
+ * rendered header instead. Without that, a stack of frozen columns spreads apart
+ * by the difference, and the scrolling columns show through the gaps.
+ *
+ * The layout holds its reference while every frozen column lands where it did.
+ * A drag on a scrolling column then moves no frozen offset and re-renders no
+ * row. A drag that shifts the frozen stack re-renders it frame by frame.
+ *
+ * @internal
+ */
+function usePinningView<T>(args: {
+	hasPinned: boolean
+	resizable: boolean
+	columnPinning: ColumnPinningState
+	visibleColumns: GridColumn<T>[]
+	containerRef: RefObject<HTMLElement | null> | undefined
+	left: readonly Column<T, unknown>[]
+	right: readonly Column<T, unknown>[]
+	widths: ReadonlyMap<string, number>
+}): GridColumnPinning | null {
+	const { hasPinned, left, right, widths } = args
+
+	const measured = useGridPinnedOffsets({
+		frozen: hasPinned,
+		engineSized: args.resizable,
+		pinning: args.columnPinning,
+		columns: args.visibleColumns,
+		containerRef: args.containerRef,
+	})
+
+	const sections = {
+		left: left.map((column) => column.id),
+		right: right.map((column) => column.id),
+	}
+
+	const layout = useStableValue<FrozenLayout>(
+		hasPinned ? frozenLayout(sections, widths, measured) : EMPTY_FROZEN_LAYOUT,
+		sameFrozenLayout,
+	)
+
+	return useMemo(() => (hasPinned ? buildColumnPinning(layout) : null), [hasPinned, layout])
+}
+
+/**
+ * The full filtered row set, for a grand total. The engine memoizes its filtered
+ * model on the rows and the filters, so the model keeps its identity until one
+ * of them changes. It is built only for a grand total, since an inactive one
+ * must not force the whole filtered set. Manual grouping carries the consumer's
+ * group headers as rows, so it has no grand total (see `resolveGrandTotal`).
+ *
+ * @internal
+ */
+function useGrandTotalRows<T>(table: Table<T>, grandTotal: boolean, manualGrouped: boolean): T[] {
+	const model = grandTotal && !manualGrouped ? table.getFilteredRowModel() : null
+
+	return useMemo<T[]>(() => model?.rows.map((row) => row.original) ?? NO_ROWS, [model])
+}
+
+/**
  * Builds the {@link https://tanstack.com/table | TanStack Table} instance that
  * powers a {@link Grid}. It adapts the grid's `GridColumn[]` to TanStack
  * `ColumnDef[]` (mapping `value` to an accessor) and `getKey` to `getRowId`. It
@@ -596,12 +898,20 @@ function useFilterModeMismatchWarning(args: {
  * and filters); resizing rides the column-sizing API. The row model is only
  * materialized when a client-side transform is active, so a plain grid renders
  * straight from `rows`. `autoResetPageIndex` is off: the page is consumer-controlled.
+ *
+ * This hook is the engine boundary (see the note at the top of this module).
+ * The grid owns every piece of table state, and the engine calculates from it.
+ * The result carries no engine object: each field is a value or an action. Each
+ * value is a `useMemo` over state the grid owns, or over a result that the
+ * engine memoizes on that state. A dependency list therefore names what the
+ * value reads.
+ *
  * @typeParam T - Shape of a single row.
  * @internal
  */
 export function useGridTable<T>({
 	rows,
-	columns,
+	columns: suppliedColumns,
 	getKey,
 	selection,
 	columnOrder = EMPTY_COLUMN_ORDER,
@@ -625,7 +935,12 @@ export function useGridTable<T>({
 	columnFilters: columnFiltersConfig,
 	containerRef,
 	density,
+	grandTotal = false,
 }: GridTableParams<T>): GridTableResult<T> {
+	// A fresh array of the same columns holds the previous reference. The engine
+	// then keeps its columns, and every column-derived value keeps its identity.
+	const columns = useStableValue(suppliedColumns, sameElements)
+
 	// A live map of column id -> descending, read by the smart comparator at
 	// compare time so empties sink under both directions. Held in a ref refreshed
 	// each render so a sort-direction flip doesn't rebuild the column defs.
@@ -695,22 +1010,21 @@ export function useGridTable<T>({
 	const initialSizingRef = useRef(columnSizingConfig?.value ?? columnSizingConfig?.defaultValue)
 
 	// Per-column hard floors the autosizer measures (a single-word header's full
-	// width, a multi-word one's icons); a stable map the resize bounds and the
-	// sizing clamp both read. Holding it here, above the engine, lets
-	// `onColumnSizingChange` catch a drag below the floor before it lands.
-	const columnFloorsRef = useRef<Map<string, number>>(new Map())
+	// width, a multi-word one's icons). The autosizer writes each measurement into
+	// this one map, and the sizing clamp and a keyboard nudge read it when they
+	// run. Holding it here, above the engine, lets `onColumnSizingChange` catch a
+	// drag below the floor before it lands. The resize bounds read the copy that
+	// the autosizer publishes.
+	const [columnFloors] = useState(() => new Map<string, number>())
 
 	const [columnSizingInfo, onColumnSizingInfoChange] = useEagerSizingInfo()
 
 	const onColumnSizingChange = useCallback<OnChangeFn<ColumnSizingState>>(
 		(updater) =>
 			setColumnSizingState((prev) =>
-				clampSizingToFloors(
-					functionalUpdate(updater, prev ?? EMPTY_SIZING),
-					columnFloorsRef.current,
-				),
+				clampSizingToFloors(functionalUpdate(updater, prev ?? EMPTY_SIZING), columnFloors),
 			),
-		[setColumnSizingState],
+		[setColumnSizingState, columnFloors],
 	)
 
 	const globalConfigured = globalFilterConfig != null
@@ -738,10 +1052,6 @@ export function useGridTable<T>({
 		defaultValue: columnFiltersConfig?.defaultValue ?? EMPTY_COLUMN_FILTERS,
 		onValueChange: (next) => columnFiltersConfig?.onValueChange?.(next ?? []),
 	})
-
-	// Which column's filter sheet the right-click menu asked to open (the `'menu'`
-	// affordance), or `null`. Lives here because a table instance holds no such state.
-	const [openFilterColumn, setOpenFilterColumn] = useState<string | number | null>(null)
 
 	const resolvedColumnFilters = columnFiltersState ?? EMPTY_COLUMN_FILTERS
 
@@ -852,7 +1162,13 @@ export function useGridTable<T>({
 		}),
 	})
 
-	const visibleColumns = useVisibleColumns(table)
+	const { left, right, leaves, visibleColumns, widths } = useColumnLayout(
+		table,
+		resizable,
+		resolvedSizing,
+	)
+
+	const resizing = resizingColumn(resizable, columnSizingInfo)
 
 	// Materialize the engine row model only when a transform that *needs* it is
 	// active — a client filter, client pagination, or grouping. Capability is not
@@ -891,9 +1207,8 @@ export function useGridTable<T>({
 		sortView,
 	})
 
-	// Computed each render (not memoized) so the total reflects live client-side
-	// filtering — read through `table`, which a deps array can't observe; the
-	// footer is cheap and re-renders with the grid regardless.
+	// Read from the engine on each render, so the totals follow client-side
+	// filtering. A new value each render is correct, and the footer is cheap.
 	const pagination =
 		paginated && paginationConfig
 			? buildPaginationView({
@@ -914,6 +1229,7 @@ export function useGridTable<T>({
 		takeControl,
 		fitRenderedRows,
 		settled: widthsSettled,
+		floors,
 	} = useGridColumnSizing<T>({
 		resizable,
 		controlled: columnSizingConfig?.value != null,
@@ -926,7 +1242,8 @@ export function useGridTable<T>({
 		rowsSignature: rowsSignatureOf(rowKeys),
 		density,
 		fitContent,
-		columnFloors: columnFloorsRef.current,
+		resizing,
+		columnFloors,
 		// Infinite scroll's stable widths hold the fit against each appended batch.
 		freezeOnRowChange: stableColumnWidths,
 		// Restored/persisted widths start held, and the autosizer flags its own
@@ -936,39 +1253,17 @@ export function useGridTable<T>({
 		clearPreference: clearSizingPreference,
 	})
 
-	// The view's getters read the widths, the drag state, and the column set live.
-	// Each is a dependency, so a compiled reader re-reads when one changes.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the engine state that the getters read
-	const resize = useMemo<GridColumnResize | null>(() => {
-		if (!resizable) return null
-
-		const base = buildColumnResize(table, columnFloorsRef.current)
-
-		return {
-			...base,
-			// A keyboard nudge takes manual control just like a drag: hold every column
-			// so the nudge stays confined to its own column and survives the autosizer's
-			// later triggers (container resize, page turn) instead of being re-fit away.
-			nudge: (id, delta) => {
-				base.nudge(id, delta)
-
-				takeControl()
-			},
-			autoSizeColumn,
-			autoSizeAll,
-			resetWidths,
-		}
-	}, [
+	const { resize, settleWidths } = useResizeView({
 		resizable,
 		table,
-		autoSizeColumn,
-		autoSizeAll,
-		resetWidths,
-		takeControl,
-		resolvedSizing,
-		columnSizingInfo,
+		leaves,
 		visibleColumns,
-	])
+		widths,
+		floors,
+		columnFloors,
+		resizing,
+		sizer: { autoSizeColumn, autoSizeAll, resetWidths, takeControl },
+	})
 
 	useColumnResizeLifecycle(
 		resizable,
@@ -989,57 +1284,33 @@ export function useGridTable<T>({
 		[globalConfigured, resolvedGlobalFilter, globalFilterConfig, table],
 	)
 
-	// The getters read the applied filters and the facets of the rows live. Each
-	// is a dependency, so a compiled reader re-reads when one changes.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the engine state that the getters read
-	const filters = useMemo<GridColumnFilter | null>(
-		() =>
-			hasColumnFilters
-				? {
-						...buildColumnFilters(table),
-						affordance: columnFiltersConfig?.affordance ?? 'header',
-						openColumn: openFilterColumn,
-						requestOpen: setOpenFilterColumn,
-					}
-				: null,
-		[
-			hasColumnFilters,
-			table,
-			columnFiltersConfig?.affordance,
-			openFilterColumn,
-			resolvedColumnFilters,
-			rows,
-		],
-	)
-
-	// A frozen column sticks at the summed width of the frozen columns ahead of it,
-	// which the engine can supply only while it also sets those widths — through the
-	// fixed-layout colgroup a resizable grid lays out from its size model. A
-	// non-resizable grid lays out `auto` and sizes each column to its content, so
-	// there the offsets are measured from the rendered header instead; without that
-	// a stack of frozen columns spreads apart by the difference and the scrolling
-	// columns show through the gaps.
-	const pinnedOffsets = useGridPinnedOffsets({
-		frozen: hasPinned,
-		engineSized: resizable,
+	const filters = useFilterView({
 		table,
-		columns: visibleColumns,
-		containerRef,
+		enabled: hasColumnFilters,
+		columns,
+		applied: resolvedColumnFilters,
+		affordance: columnFiltersConfig?.affordance,
 	})
 
-	// Resolve the frozen columns to a snapshot — each one's edge, sticky offset, and
-	// whether it holds the group's boundary — rather than let the controls below
-	// read the engine at call time, which the memoized header cells and body rows
-	// cannot see through (see `FrozenLayout`).
-	const frozen = useFrozenLayout(hasPinned, table, pinnedOffsets)
+	const pinning = usePinningView({
+		hasPinned,
+		resizable,
+		columnPinning,
+		visibleColumns,
+		containerRef,
+		left,
+		right,
+		widths,
+	})
 
-	const pinning = useMemo<GridColumnPinning | null>(
-		() => (hasPinned ? buildColumnPinning(frozen) : null),
-		[hasPinned, frozen],
+	const grandTotalRows = useGrandTotalRows(table, grandTotal, manualGroupRow != null)
+
+	const rowsForExport = useCallback(
+		() => exportLeaves(table, grouped, manualGroupRow),
+		[table, grouped, manualGroupRow],
 	)
 
 	return {
-		table,
 		visibleColumns,
 		renderRows,
 		rowKeys,
@@ -1048,10 +1319,13 @@ export function useGridTable<T>({
 		manualRows,
 		pagination,
 		resize,
+		settleWidths,
 		fitRenderedRows,
 		widthsSettled,
 		globalFilter,
 		filters,
 		pinning,
+		grandTotalRows,
+		rowsForExport,
 	}
 }
