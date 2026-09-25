@@ -1,5 +1,5 @@
 import path from 'node:path'
-import ts from 'typescript'
+import ts from '@typescript/typescript6'
 import type { DeclarationFact, ElementFact, ImportFact } from '../derive-code/types'
 import { isPascalCase, wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
