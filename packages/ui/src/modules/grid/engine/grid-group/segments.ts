@@ -1,6 +1,6 @@
-import type { Row } from '@tanstack/react-table'
 import type { GridGroupHeaderRow } from '../../grid-data-types'
 import { compareSmart } from '../grid-sort/utilities'
+import type { GridLeaf } from './tree'
 
 /**
  * One run of the manual grouped body: a group-header row (with its
@@ -11,12 +11,12 @@ import { compareSmart } from '../grid-sort/utilities'
  * @internal
  */
 export type GridManualGroupSegment<T> = {
-	/** The group-header engine row, or `null` for a leading headerless run. */
-	header: Row<T> | null
+	/** The group-header row, or `null` for a leading headerless run. */
+	header: GridLeaf<T> | null
 	/** The header's descriptor, resolved once; `null` alongside a `null` header. */
 	info: GridGroupHeaderRow | null
 	/** The leaf rows under this header, in supplied order. */
-	leaves: Row<T>[]
+	leaves: GridLeaf<T>[]
 }
 
 /**
@@ -29,7 +29,7 @@ export type GridManualGroupSegment<T> = {
  * @internal
  */
 export function segmentManualGroupRows<T>(
-	rows: Row<T>[],
+	rows: GridLeaf<T>[],
 	groupRow: (row: T) => GridGroupHeaderRow | null,
 ): GridManualGroupSegment<T>[] {
 	const segments: GridManualGroupSegment<T>[] = []
@@ -37,7 +37,7 @@ export function segmentManualGroupRows<T>(
 	let current: GridManualGroupSegment<T> | null = null
 
 	for (const row of rows) {
-		const info = groupRow(row.original)
+		const info = groupRow(row.row)
 
 		if (info) {
 			current = { header: row, info, leaves: [] }

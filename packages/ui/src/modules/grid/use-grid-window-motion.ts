@@ -94,8 +94,7 @@ function applyChange<K>(
  * as the reader scrolls, mounts open. `release` drops a closing row once its
  * reveal lands, and a fallback timer drops each closing row that sends no
  * `transitionend`. The toggle reads the last committed window from `record`,
- * and it reads reduced motion live. `captured` is the last snapshot, which
- * changes on each toggle.
+ * and it reads reduced motion live.
  *
  * @internal
  */
@@ -165,5 +164,5 @@ export function useGridWindowMotion<L, S, K>(
 		[],
 	)
 
-	return { motions, captured: state.captured, release }
+	return { motions, release }
 }

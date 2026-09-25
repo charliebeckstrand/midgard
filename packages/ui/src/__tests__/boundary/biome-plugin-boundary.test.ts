@@ -178,6 +178,18 @@ export { k, sen, type K }
 `,
 		},
 	],
+	'no-value-import-from-tanstack-table': [
+		{
+			file: 'grid.tsx',
+			source: `import { flexRender } from '@tanstack/react-table' // flag
+import { type Table, getCoreRowModel } from '@tanstack/react-table' // flag
+import type { Row } from '@tanstack/react-table'
+import { type Cell, type Column } from '@tanstack/react-table'
+import { useState } from 'react'
+export { flexRender, getCoreRowModel, useState, type Table, type Row, type Cell, type Column }
+`,
+		},
+	],
 	'no-whole-floating-context-dep': [
 		{
 			file: 'floating.ts',

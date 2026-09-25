@@ -1,5 +1,5 @@
-import type { Row } from '@tanstack/react-table'
 import { useLayoutEffect, useRef } from 'react'
+import type { GridGroup } from './engine/grid-group/tree'
 import {
 	detailItemKey,
 	groupItemKey,
@@ -32,22 +32,27 @@ export type GridCursorRow =
  * leaves and its total when the group is open. A closed group contributes its
  * header only. The groups come in the order the body renders them.
  *
+ * @param toggle - Opens or closes a group, by its id.
  * @internal
  */
-export function groupedCursorRows<T>(groups: Row<T>[], totalled: boolean): GridCursorRow[] {
+export function groupedCursorRows<T>(
+	groups: GridGroup<T>[],
+	totalled: boolean,
+	toggle: (id: string) => void,
+): GridCursorRow[] {
 	const rows: GridCursorRow[] = []
 
 	for (const group of groups) {
 		const key = groupItemKey(group.id)
 
-		const expanded = group.getIsExpanded()
+		const { expanded } = group
 
-		rows.push({ key, kind: 'group', expanded, toggle: () => group.toggleExpanded(), level: 1 })
+		rows.push({ key, kind: 'group', expanded, toggle: () => toggle(group.id), level: 1 })
 
 		if (!expanded) continue
 
-		for (const leaf of group.subRows) {
-			rows.push({ key: leafItemKey(leaf.id), kind: 'data', row: leaf.original, parent: key })
+		for (const leaf of group.leaves) {
+			rows.push({ key: leafItemKey(leaf.id), kind: 'data', row: leaf.row, parent: key })
 		}
 
 		if (totalled) rows.push({ key: totalItemKey(group.id), kind: 'total', parent: key })

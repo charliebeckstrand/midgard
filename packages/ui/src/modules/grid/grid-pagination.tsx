@@ -1,7 +1,6 @@
 'use client'
 
-import { functionalUpdate, type Updater } from '@tanstack/react-table'
-import { useLayoutEffect, useRef } from 'react'
+import { type SetStateAction, useLayoutEffect, useRef } from 'react'
 import {
 	Pagination,
 	PaginationGap,
@@ -101,8 +100,10 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	// already current changes no index, so it leaves the latch unarmed.
 	const restoreFocus = useRef(false)
 
-	const goToPage = (index: Updater<number>) => {
-		restoreFocus.current = functionalUpdate(index, pageIndex) !== pageIndex
+	const goToPage = (index: SetStateAction<number>) => {
+		const next = typeof index === 'function' ? index(pageIndex) : index
+
+		restoreFocus.current = next !== pageIndex
 
 		setPageIndex(index)
 	}

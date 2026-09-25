@@ -519,6 +519,16 @@
 			"plugins": ["./.biome/plugins/no-value-import-from-sibling-kata.grit"]
 		},
 		{
+			"includes": [
+				"packages/ui/src/**",
+				"!packages/ui/src/modules/grid/use-grid-table.ts",
+				"!packages/ui/src/modules/grid/engine/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-value-import-from-tanstack-table.grit"]
+		},
+		{
 			"includes": ["packages/ui/src/**", "!**/__tests__/**", "!**/__benchmarks__/**"],
 			"plugins": ["./.biome/plugins/no-whole-floating-context-dep.grit"]
 		},
