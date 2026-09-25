@@ -1,6 +1,6 @@
 'use client'
 
-import { type HTMLMotionProps, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { type ComponentProps, useCallback, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
@@ -14,8 +14,18 @@ import {
 	useCurrentSettled,
 } from './current'
 
-/** Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes. */
-export type CurrentContentProps = ComponentProps<'div'> & {
+/**
+ * Props for {@link CurrentContent}: the `slotPrefix` stamp, the `value` to match, and a `ref`, over `<div>` attributes.
+ *
+ * @remarks
+ * Under a fading container the panel is a motion element, and motion gives its
+ * own meaning to `onDrag`, `onDragStart`, `onDragEnd`, and `onAnimationStart`.
+ * The container sets the mode, so the props omit these four keys in both modes.
+ */
+export type CurrentContentProps = Omit<
+	ComponentProps<'div'>,
+	'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart'
+> & {
 	/** Slot prefix. It gives the default anchor `data-slot="<slotPrefix>-content"`. */
 	slotPrefix: string
 	/** Match against the surrounding `CurrentContext`. Omit to render unconditionally. */
@@ -144,9 +154,7 @@ export function CurrentContent({
 	const panel = (
 		<motion.div
 			ref={ref}
-			// Forward caller props (id, role, aria-*) in fade mode; the cast
-			// sidesteps motion's redefined animation/drag handler signatures.
-			{...(props as HTMLMotionProps<'div'>)}
+			{...props}
 			data-slot={slot}
 			data-current={dataAttr(current)}
 			animate={{ opacity: current ? 1 : 0 }}

@@ -22,6 +22,19 @@ const SCAN_ROOTS = ['components', 'primitives', 'layouts']
 // name (`{...triggerProps}`) is resolved wiring, not consumer input.
 const CONSUMER_SPREAD = /^(?:props|rest)$/
 
+/**
+ * The expression under its parentheses and casts. A cast changes the type of a
+ * spread, not the keys it carries, so `{...(props as T)}` is a consumer spread.
+ */
+function uncast(node: ts.Expression): ts.Expression {
+	return ts.isParenthesizedExpression(node) ||
+		ts.isAsExpression(node) ||
+		ts.isSatisfiesExpression(node) ||
+		ts.isNonNullExpression(node)
+		? uncast(node.expression)
+		: node
+}
+
 const LOAD_BEARING =
 	/^(?:role|tabIndex|aria-(?:checked|selected|expanded|pressed|current|orientation|disabled|invalid|required|multiselectable|activedescendant))$/
 
@@ -118,7 +131,7 @@ function sitesIn(file: string, source: string): Site[] {
 				}
 
 				// The consumer spread closes the run; a later internal bag does not.
-				if (CONSUMER_SPREAD.test(text(property.expression))) {
+				if (CONSUMER_SPREAD.test(text(uncast(property.expression)))) {
 					sites.push({
 						file,
 						line: parsed.getLineAndCharacterOfPosition(node.tagName.getStart(parsed)).line + 1,
@@ -220,6 +233,12 @@ describe('spread order boundary', () => {
 			violations,
 			`anchors the library selects on that a consumer rename takes away (move them below the spread, CONVENTIONS.md §3.9):\n  ${lines(violations)}`,
 		).toEqual([])
+	})
+
+	it('reads a consumer spread behind a cast', () => {
+		const [site] = sitesIn('cast.tsx', `export const a = <div role="row" {...(props as object)} />`)
+
+		expect(site?.before).toEqual([{ name: 'role', value: 'row' }])
 	})
 
 	it('pins every waiver to the violation count it still covers', () => {
