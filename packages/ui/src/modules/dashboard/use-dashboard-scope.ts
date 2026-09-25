@@ -54,11 +54,22 @@ export type DashboardScope = {
  * A store selector of the selections that the query of `viewer` applies: each
  * one that another source made. It keeps its last list while the items stay the
  * same. So a select by the viewer keeps the query, and the rows keep their identity.
+ *
+ * @remarks
+ * The store notifies each reader on each drag or resize frame. While the view
+ * keeps its list of selections, the selector returns its last result, and it
+ * filters nothing.
  */
 function appliedTo(viewer: string | null): (view: DashboardView) => readonly DashboardSelection[] {
+	let source: readonly DashboardSelection[] | undefined
+
 	let last: readonly DashboardSelection[] | undefined
 
 	return (view) => {
+		if (last !== undefined && view.selections === source) return last
+
+		source = view.selections
+
 		last = internList(
 			last,
 			view.selections.filter((item) => item.source !== viewer),

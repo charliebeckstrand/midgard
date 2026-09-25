@@ -9,6 +9,7 @@ import {
 	type DashboardHandle,
 	type DashboardLayoutItem,
 	type DashboardProps,
+	type DashboardSelection,
 	DashboardTile,
 	useDashboardRows,
 	useDashboardScope,
@@ -1802,6 +1803,48 @@ describe('Dashboard scope', () => {
 
 		// The query of the source leaves out its own selection, so its rows keep their identity.
 		expect(onRows).not.toHaveBeenCalled()
+	})
+
+	it('picks the selections of the other tiles once while the selection list keeps its identity', () => {
+		const selections: DashboardSelection[] = [
+			{ source: 'regions', field: 'region', values: ['West'] },
+		]
+
+		// Each reader picks the selections of the other tiles with a filter of this list.
+		const filter = vi.spyOn(selections, 'filter')
+
+		let board: DashboardStore | undefined
+
+		renderUI(
+			<Dashboard aria-label="Sales" selection={{ value: selections }}>
+				<StoreProbe
+					onStore={(store) => {
+						board = store
+					}}
+				/>
+
+				<DashboardTile id="regions" title="Regions" />
+
+				<DashboardTile id="total" title="Total">
+					<Total testId="total" />
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		expect(screen.getByTestId('total')).toHaveTextContent('30')
+
+		if (!board) throw new Error('StoreProbe gave no store')
+
+		const store = board
+
+		filter.mockClear()
+
+		// Each drag or resize frame notifies the readers, and the selections keep their identity.
+		act(() => {
+			for (const width of [900, 1000, 1100]) store.setState({ width })
+		})
+
+		expect(filter).not.toHaveBeenCalled()
 	})
 
 	it('records a selection in the expand dialog as the tile, and filters the board', () => {
