@@ -52,24 +52,22 @@ function defaultValueFor(field?: QueryField): unknown {
 	return ''
 }
 
+/**
+ * The deepest group that {@link isQueryNode} and `parseQuery` read. A tree from
+ * storage or from a URL is input that the app does not control. The limit keeps
+ * a hostile tree from exhausting the stack.
+ *
+ * @internal
+ */
+export const MAX_DEPTH = 32
+
 /** Whether a value is a plain object, which JSON gives for `{}`. @internal */
 function isFields(value: unknown): value is Record<string, unknown> {
 	return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-/**
- * Whether a value is a query node: a rule, or a group whose children are all
- * nodes. Each node needs a string `id` and, when it has one, a combinator of
- * `and` or `or`. A rule needs a string `field` and a string `operator`; its
- * `value` can be any value.
- *
- * @remarks Use it on a tree from storage or from a URL, before the evaluator or
- * the builder reads it.
- *
- * @param value - The value to test.
- * @returns Whether `value` has the full structure of a {@link QueryNode}.
- */
-export function isQueryNode(value: unknown): value is QueryNode {
+/** {@link isQueryNode} for a node that sits `depth` groups below the root. @internal */
+function isNodeAt(value: unknown, depth: number): boolean {
 	if (!isFields(value) || typeof value.id !== 'string') return false
 
 	if (value.combinator !== undefined && value.combinator !== 'and' && value.combinator !== 'or') {
@@ -81,8 +79,29 @@ export function isQueryNode(value: unknown): value is QueryNode {
 	}
 
 	return (
-		value.type === 'group' && Array.isArray(value.children) && value.children.every(isQueryNode)
+		value.type === 'group' &&
+		depth < MAX_DEPTH &&
+		Array.isArray(value.children) &&
+		value.children.every((child) => isNodeAt(child, depth + 1))
 	)
+}
+
+/**
+ * Whether a value is a query node: a rule, or a group whose children are all
+ * nodes. Each node needs a string `id` and, when it has one, a combinator of
+ * `and` or `or`. A rule needs a string `field` and a string `operator`; its
+ * `value` can be any value.
+ *
+ * @remarks Use it on a tree from storage or from a URL, before the evaluator or
+ * the builder reads it. The guard reads groups to a depth of 32 levels, as
+ * `parseQuery` does. A deeper group fails the guard, so a hostile tree cannot
+ * exhaust the stack.
+ *
+ * @param value - The value to test.
+ * @returns Whether `value` has the full structure of a {@link QueryNode}.
+ */
+export function isQueryNode(value: unknown): value is QueryNode {
+	return isNodeAt(value, 0)
 }
 
 /**

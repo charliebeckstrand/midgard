@@ -85,7 +85,7 @@ The serialization adapters backlog row is done. [`engine/query-serialize.ts`](..
 
 No TanStack package in the tree serializes a filter tree. `react-table` filters in memory, `react-query` caches, and `react-virtual` windows rows. So the adapters use no TanStack code. The URL string is a stable part of a TanStack Query `queryKey`, and `formatQuerySql` serves the query trees that a manual-mode grid gives through its TanStack column filters.
 
-The same change moves one structural guard into the engine. `isQueryNode` and `isQueryGroup` in `engine/query-node.ts` replace the private guard of `dashboard-spec-parse.ts` and the `type`-only `isQueryGroup` of `grid/engine/grid-table/views.ts`. The grid's column filter now reads a malformed tree as no filter. Each tree that `createGroup`, `createRule`, or `parseQuery` makes passes the guard.
+The same change moves one structural guard into the engine. `isQueryNode` and `isQueryGroup` in `engine/query-node.ts` replace the private guard of `dashboard-spec-parse.ts` and the `type`-only `isQueryGroup` of `grid/engine/grid-table/views.ts`. The grid's column filter now reads a malformed tree as no filter. Each tree that `parseQuery` makes passes the guard. The guard reads groups to the depth of 32 levels that `parseQuery` reads, so a tree from storage cannot exhaust the stack. A tree that `createGroup` and `createRule` make passes the guard to that depth. `QueryBuilder` sets no depth limit, so a builder tree deeper than 32 levels fails the guard.
 
 ### Follow-up: blank rules and the chip row (2026-09-24)
 
