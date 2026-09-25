@@ -220,12 +220,12 @@ export type GridGroupHeaderRow = {
  * Controlled/uncontrolled row-grouping binding for {@link GridProps.groupBy}:
  * the id of the single column that groups the rows, or `null` for no grouping.
  * A group collects the rows that share that column's value under an expandable
- * group-header row, which shows the value and a row count. The engine's grouped
- * and expanded row models back it.
+ * group-header row, which shows the value and a row count. The grid groups the
+ * rows itself.
  *
  * @remarks {@link GridGroupBy.manual} selects one of two modes — the same split
  * as the pagination, sort, and filter bindings. In client mode (the default)
- * the engine computes the groups from the in-memory `rows`. In manual (server)
+ * the grid computes the groups from the in-memory `rows`. In manual (server)
  * mode the grid computes nothing: the consumer's backend groups the data and
  * supplies `rows` as the rendered sequence. That sequence interleaves the
  * group-header rows (marked by {@link GridGroupBy.groupRow}) with their child
@@ -748,8 +748,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 * Groups rows by a single column's value, drawing an expandable group-header
 	 * row (the shared value plus a row count) above each run. Pass a
 	 * {@link GridGroupBy} binding whose `value` is the grouped column id, or `null`
-	 * to leave the grid ungrouped. Client-side by default, backed by the engine's
-	 * grouped and expanded row models. Server-side with
+	 * to leave the grid ungrouped. Client-side by default, where the grid groups
+	 * the rows itself. Server-side with
 	 * {@link GridGroupBy.manual}, where the backend groups, and `rows` carries the
 	 * group-header rows interleaved with lazily fetched children.
 	 * {@link GridGroupBy.groupRow} marks each header.

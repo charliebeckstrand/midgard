@@ -58,24 +58,6 @@ export function resolveFilterMode(args: {
 	}
 }
 
-/** Whether the engine transforms the rows itself (vs. the consumer doing it server-side). @internal */
-export function usesClientModel(args: {
-	paginated: boolean
-	paginationManual: boolean
-	filtersConfigured: boolean
-	filtersManual: boolean
-	sortClient: boolean
-	grouped: boolean
-}): boolean {
-	return (
-		(args.paginated && !args.paginationManual) ||
-		(args.filtersConfigured && !args.filtersManual) ||
-		args.sortClient ||
-		// Grouping always transforms the flat rows into group + leaf display rows.
-		args.grouped
-	)
-}
-
 /**
  * Parses a column width to px. A number passes through. A string yields a
  * number only where it is a plain `px` or unitless value. A relative or `auto`
@@ -107,16 +89,6 @@ const queryFilterFn: FilterFn<GridFeatures, RowData> = (
 ) => !isQueryGroup(filterValue) || evaluateQuery(filterValue, () => row.getValue(columnId))
 
 queryFilterFn.autoRemove = (value) => !isQueryGroup(value) || value.children.length === 0
-
-/**
- * Highlight-mode global filter: matches every row, so the quick-search query
- * marks cells (see {@link GridSearch.mode}) without pruning any row. The value
- * still lives in engine state for the highlighter to read. Column filters keep
- * their own {@link queryFilterFn}, so they prune independently of the search.
- *
- * @internal
- */
-const passThroughGlobalFilterFn: FilterFn<GridFeatures, RowData> = () => true
 
 /**
  * Each row's decorated {@link SortKey}, cached per column on the row. A sort
@@ -314,9 +286,9 @@ function manualTotals(
 }
 
 /**
- * Pagination slice of the table options. When pagination is off, the slice
- * sets `manualPagination`, so the registered paginated row model passes every
- * row through (see `gridFeatures`).
+ * Pagination slice of the table options. The grid slices its own pages (see
+ * `useClientView`), so the engine only holds the page state. A server grid
+ * gives the engine its totals, which bound `setPageIndex`.
  *
  * @internal
  */
@@ -326,47 +298,37 @@ export function paginationOptions<T>(args: {
 	config: GridPagination | undefined
 	onPaginationChange: OnChangeFn<PaginationState>
 }): Partial<EngineOptions<T>> {
-	if (!args.paginated) return { manualPagination: true }
+	if (!args.paginated) return {}
 
 	return {
 		onPaginationChange: args.onPaginationChange,
-		...(args.manual ? { manualPagination: true, ...manualTotals(args.config) } : {}),
+		...(args.manual ? manualTotals(args.config) : {}),
 	}
 }
 
 /**
- * Filter slice of the table options. When filtering is off or manual, the
- * slice sets `manualFiltering`, so the registered filtered row model passes
- * every row through (see `gridFeatures`).
+ * Filter slice of the table options. The grid filters its own rows (see
+ * `useClientView`), so the engine only holds the filter state and writes it
+ * through these handlers.
  *
  * @internal
  */
 export function filterOptions<T>(args: {
 	configured: boolean
-	manual: boolean
-	/** Highlight mode: the global search marks rather than prunes, so its filter matches every row. */
-	globalHighlight?: boolean
 	onGlobalFilterChange?: OnChangeFn<string>
 	onColumnFiltersChange?: OnChangeFn<ColumnFiltersState>
 }): Partial<EngineOptions<T>> {
-	if (!args.configured) return { manualFiltering: true }
+	if (!args.configured) return {}
 
 	return {
-		globalFilterFn: args.globalHighlight
-			? (passThroughGlobalFilterFn as FilterFn<GridFeatures, EngineData<T>>)
-			: 'includesString',
 		...(args.onGlobalFilterChange ? { onGlobalFilterChange: args.onGlobalFilterChange } : {}),
 		...(args.onColumnFiltersChange ? { onColumnFiltersChange: args.onColumnFiltersChange } : {}),
-		// Manual mode sees only the server page, so the facets stand down there too
-		// (see `columnFilterActions`).
-		...(args.manual ? { manualFiltering: true } : {}),
 	}
 }
 
 /**
- * Client-sort slice of the table options. When the consumer sorts, the slice
- * sets `manualSorting`, so the registered sorted row model passes every row
- * through (see `gridFeatures`).
+ * Client-sort slice of the table options. The grid sorts its own rows (see
+ * `useClientView`), so the engine only holds the sort state.
  *
  * @internal
  */
@@ -374,7 +336,7 @@ export function sortOptions<T>(args: {
 	clientSort: boolean
 	onSortingChange: OnChangeFn<SortingState>
 }): Partial<EngineOptions<T>> {
-	if (!args.clientSort) return { manualSorting: true }
+	if (!args.clientSort) return {}
 
 	return {
 		onSortingChange: args.onSortingChange,
@@ -385,12 +347,8 @@ export function sortOptions<T>(args: {
 }
 
 /**
- * Row-grouping slice of the table options. Grouping is client-side only
- * (`manualGrouping: false`), so the engine collects the groups from the
- * filtered rows itself. When grouping is off, the slice sets `manualGrouping`,
- * so the registered grouped row model passes every row through. The engine has
- * no expanded row model: the grid opens the groups itself, so the display rows
- * of the engine are the group rows alone.
+ * Row-grouping slice of the table options. The grid groups its own rows (see
+ * `groupRows`), so the engine only holds the grouping state.
  *
  * @internal
  */
@@ -398,12 +356,7 @@ export function groupingOptions<T>(args: {
 	grouped: boolean
 	onGroupingChange: OnChangeFn<GroupingState>
 }): Partial<EngineOptions<T>> {
-	if (!args.grouped) return { manualGrouping: true }
-
-	return {
-		onGroupingChange: args.onGroupingChange,
-		manualGrouping: false,
-	}
+	return args.grouped ? { onGroupingChange: args.onGroupingChange } : {}
 }
 
 /** Column-resize slice of the table options, or `{}` when resizing is off. @internal */

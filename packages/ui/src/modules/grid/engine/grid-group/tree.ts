@@ -1,5 +1,4 @@
 import type { ExpandedState } from '@tanstack/react-table'
-import type { EngineRow } from '../grid-table/features'
 
 /**
  * One row of the source data, as a value the grouped bodies render from.
@@ -7,7 +6,7 @@ import type { EngineRow } from '../grid-table/features'
  * @internal
  */
 export type GridLeaf<T> = {
-	/** The engine's row id: the stringified key. It keys the row's item and its React node. */
+	/** The row id: the stringified key. It keys the row's item and its React node. */
 	id: string
 	/** The row's key: the value `getKey` gives at the row's source index. It backs selection. */
 	key: string | number
@@ -23,7 +22,7 @@ export type GridLeaf<T> = {
  * @internal
  */
 export type GridGroup<T> = {
-	/** The engine's id of the group, such as `role:Developer`. It keys the expansion state and the group's items. */
+	/** The id of the group, such as `role:Developer`. It keys the expansion state and the group's items. */
 	id: string
 	/** The group's value on the grouped column. */
 	value: unknown
@@ -35,17 +34,9 @@ export type GridGroup<T> = {
 	rows: T[]
 }
 
-/** The {@link GridLeaf} of an engine row. @internal */
-export function toGridLeaf<T>(
-	row: EngineRow<T>,
-	getKey: (row: T, index: number) => string | number,
-): GridLeaf<T> {
-	return { id: row.id, key: getKey(row.original, row.index), row: row.original }
-}
-
 /**
  * The {@link GridLeaf} of the row at `index` in the data. Its id is the
- * stringified key, as `getRowId` gives the engine row.
+ * stringified key, as `getRowId` gives the id of the row.
  *
  * @internal
  */
@@ -68,37 +59,6 @@ export function isGroupExpanded(expanded: ExpandedState, id: string): boolean {
 	return expanded === true || Boolean(expanded[id])
 }
 
-/**
- * Builds the {@link GridGroup}s from the engine's group rows, in display order,
- * each closed. Each group row carries all of its leaves on `subRows`.
- * {@link expandGroups} then opens them from the expansion state that the grid
- * owns.
- *
- * @param rows - The engine's top-level group rows.
- * @param columnId - The grouped column.
- * @param getKey - The grid's row-key resolver.
- * @internal
- */
-export function toGridGroups<T>(
-	rows: readonly EngineRow<T>[],
-	columnId: string,
-	getKey: (row: T, index: number) => string | number,
-): GridGroup<T>[] {
-	return rows
-		.filter((row) => row.getIsGrouped())
-		.map((group) => {
-			const leaves = group.subRows.map((leaf) => toGridLeaf(leaf, getKey))
-
-			return {
-				id: group.id,
-				value: group.getGroupingValue(columnId),
-				expanded: false,
-				leaves,
-				rows: leaves.map((leaf) => leaf.row),
-			}
-		})
-}
-
 /** The open value of each closed group, made once. @internal */
 const openGroups = new WeakMap<GridGroup<unknown>, GridGroup<unknown>>()
 
@@ -116,7 +76,7 @@ function openGroup<T>(group: GridGroup<T>): GridGroup<T> {
 }
 
 /**
- * Opens the closed groups of {@link toGridGroups} from the expansion state.
+ * Opens the closed groups of `groupRows` from the expansion state.
  *
  * @remarks Each group has exactly two values, closed and open. A toggle
  * therefore gives a new value to the group it toggles, and every other group

@@ -2,17 +2,20 @@ import { fc, test } from '@fast-check/vitest'
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import type { GridColumn, GridColumnFilterState, GridSortState } from '../../modules/grid'
-import { toGridGroups } from '../../modules/grid/engine/grid-group/tree'
-import { deriveLeafRows } from '../../modules/grid/engine/grid-table/state'
 import { useGridTable } from '../../modules/grid/use-grid-table'
-import { type EngineTransforms, engineTable } from '../helpers/grid-engine'
+import {
+	type EngineTransforms,
+	engineTable,
+	leafRows,
+	referenceGroups,
+} from '../helpers/grid-engine'
 import { queryGroup, queryValue } from '../helpers/query-arbitrary'
 
 /**
- * The grid groups its rows itself, off the engine. The engine grouped them
- * before. Both must give the same groups, with the same ids, values, and rows
- * in the same order, or the expansion state and the display change when the
- * grid moves between them.
+ * The grid groups its rows itself. The engine grouped them before. The groups
+ * must equal those of the grouped row model of a stock engine table, with the
+ * same ids, values, and rows in the same order. Else the expansion state and
+ * the display change against the grid that the engine grouped.
  */
 type Row = { id: number; team: unknown; score: unknown }
 
@@ -110,14 +113,14 @@ function engineView(rows: Row[], transforms: EngineTransforms, selection: Set<st
 
 	const display = table.getRowModel().rows
 
-	const leaves = deriveLeafRows(display, true) ?? []
+	const leaves = leafRows(display)
 
-	const exported = deriveLeafRows(table.getSortedRowModel().rows, true) ?? []
+	const exported = leafRows(table.getSortedRowModel().rows)
 
 	const selected = exported.filter((row) => selection.has(row.id))
 
 	return {
-		groups: shape(toGridGroups(display, 'team', getKey)),
+		groups: shape(referenceGroups(display, 'team', getKey)),
 		ids: leaves.map((row) => row.original.id),
 		keys: leaves.map((row) => getKey(row.original)),
 		total: table.getFilteredRowModel().rows.map((row) => row.original.id),

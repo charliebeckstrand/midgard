@@ -1,7 +1,6 @@
 import {
 	type Column,
 	type ColumnDef,
-	columnFacetingFeature,
 	columnFilteringFeature,
 	columnGroupingFeature,
 	columnOrderingFeature,
@@ -9,12 +8,6 @@ import {
 	columnResizingFeature,
 	columnSizingFeature,
 	columnVisibilityFeature,
-	createFacetedRowModel,
-	createFacetedUniqueValues,
-	createGroupedRowModel,
-	createPaginatedRowModel,
-	createSortedRowModel,
-	filterFn_includesString,
 	globalFilteringFeature,
 	type Row,
 	type RowData,
@@ -25,25 +18,20 @@ import {
 	tableFeatures,
 } from '@tanstack/react-table'
 import type { GridColumn } from '../../types'
-import { createLeanFilteredRowModel } from './filtered'
 
 /**
- * The engine features of the grid, and the row models that they use.
+ * The engine features of the grid.
  *
  * @remarks
- * The engine reads its features one time, when it builds the table. A grid
- * therefore cannot add or remove a row model between renders. Each row model
- * stays registered, and the grid turns a transform off with its `manual*`
- * option (see `options.ts`). The engine then passes the rows of the previous
- * stage through.
- *
- * The engine gets no expanding feature. The grid opens its groups itself, so
- * the display rows under grouping are the group rows alone.
+ * The engine holds the state of the columns and of the row transforms, and
+ * the actions that write that state. It builds no row model. The grid filters,
+ * sorts, groups, and pages its rows itself (see `useClientView` and
+ * `groupRows`). The engine therefore gets no row-model factory, and makes no
+ * row object for each datum.
  *
  * @internal
  */
 export const gridFeatures = tableFeatures({
-	columnFacetingFeature,
 	columnFilteringFeature,
 	globalFilteringFeature,
 	columnGroupingFeature,
@@ -54,13 +42,6 @@ export const gridFeatures = tableFeatures({
 	columnVisibilityFeature,
 	rowPaginationFeature,
 	rowSortingFeature,
-	filteredRowModel: createLeanFilteredRowModel(),
-	facetedRowModel: createFacetedRowModel(),
-	facetedUniqueValues: createFacetedUniqueValues(),
-	groupedRowModel: createGroupedRowModel(),
-	sortedRowModel: createSortedRowModel(),
-	paginatedRowModel: createPaginatedRowModel(),
-	filterFns: { includesString: filterFn_includesString },
 	// Carries the source column on each column definition, so the visible
 	// columns of the engine map back to the columns of the grid (see
 	// `toGridColumns`). The value is a phantom; only its type is used.

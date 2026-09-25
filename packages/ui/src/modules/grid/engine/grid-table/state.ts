@@ -7,8 +7,7 @@ import type {
 } from '@tanstack/react-table'
 import type { GridColumnFilterState, GridColumnSizingState, GridPaginationState } from '../../types'
 import { DEFAULT_PAGE_SIZE } from '../grid-constants'
-import type { EngineRow } from './features'
-import { resolveFilterMode, usesClientModel } from './options'
+import { resolveFilterMode } from './options'
 
 /** First page at the default size; the fallback when no `value`/`defaultValue` page is bound. @internal */
 export const DEFAULT_PAGINATION_STATE: GridPaginationState = {
@@ -43,35 +42,6 @@ export const EMPTY_GROUPING: GroupingState = []
 
 /** Search-input placeholder when {@link GridSearch} supplies none. @internal */
 export const DEFAULT_SEARCH_PLACEHOLDER = 'Search'
-
-/**
- * Collapses a row set to its flat leaf set — the data rows, whatever the
- * grouping mode. Client grouping leaves group headers among only the expanded
- * leaves, so each header expands to its full leaf set regardless of expansion.
- * Manual grouping keeps the engine ungrouped and hands its headers through as
- * ordinary rows, so those drop by predicate. Ungrouped rows are already the
- * leaves, and `null` passes through.
- *
- * @param rows - The engine rows to collapse.
- * @param grouped - Whether client grouping is active.
- * @param manualGroupRow - Identifies a consumer-supplied header row under manual
- * grouping; absent or `null` otherwise. Wins outright — `grouped` is not
- * consulted under it, since manual grouping keeps the engine ungrouped.
- * @internal
- */
-export function deriveLeafRows<T>(
-	rows: EngineRow<T>[] | null,
-	grouped: boolean,
-	manualGroupRow?: ((row: T) => boolean) | null,
-): EngineRow<T>[] | null {
-	if (!rows) return null
-
-	if (manualGroupRow) return rows.filter((row) => !manualGroupRow(row.original))
-
-	if (!grouped) return rows
-
-	return rows.flatMap((row) => (row.getIsGrouped() ? row.getLeafRows() : [row]))
-}
 
 /**
  * Resolves the engine's sort and filter transform modes. Manual grouping forces
@@ -114,54 +84,13 @@ export function rowsSignatureOf(rowKeys: (string | number)[]): string {
 }
 
 /**
- * Whether a client transform is *actively* reshaping the rows, deciding
- * whether the engine row model materializes. Capability is not activity: an
- * empty sort list, a configured search with no query, and a filter surface
- * with no entries all transform nothing. Kept out of {@link useGridTable} for
- * its cognitive-complexity budget.
+ * Which client row transforms the grid runs itself (see `useClientView`): the
+ * client filters and the client page.
  *
- * @internal
- */
-export function resolveActiveEngineTransform(args: {
-	paginated: boolean
-	paginationManual: boolean
-	filterMode: { configured: boolean; manual: boolean }
-	globalFilter: string
-	/** Highlight mode: the search marks rather than prunes, so its query reshapes no rows and never forces the model. */
-	globalHighlights: boolean
-	columnFilters: ColumnFiltersState
-	grouped: boolean
-}): boolean {
-	const filtering =
-		(!args.globalHighlights && args.globalFilter !== '') || args.columnFilters.length > 0
-
-	return usesClientModel({
-		paginated: args.paginated,
-		paginationManual: args.paginationManual,
-		filtersConfigured: args.filterMode.configured && filtering,
-		filtersManual: args.filterMode.manual,
-		// Sort is handled by the off-engine fast path (`useClientView`), so it never
-		// forces the engine model on its own — only a filter, client pagination,
-		// or grouping does.
-		sortClient: false,
-		grouped: args.grouped,
-	})
-}
-
-/**
- * Where the client row transforms of a grid run: the filters, the sort, the
- * pagination, and the grouping.
- *
- * @remarks
- * The grid runs them itself (see `useClientView` and `groupRows`), and builds
- * no engine row for each datum. The engine runs them inside its pipeline in
- * one case: an applied filter that only the engine can apply.
- *
- * @returns `offEngine`: whether the grid runs the transforms itself.
- * `filtered`: whether it also applies the client filters, which it does when
- * the quick search prunes rows or a column filter is applied. `page`: the page
- * that the grid slices, which is `null` unless the grid paginates on the
- * client.
+ * @returns `filtered`: whether the grid applies the client filters, which it
+ * does when the quick search prunes rows or a column filter is applied.
+ * `page`: the page that the grid slices, which is `null` unless the grid
+ * paginates on the client.
  * @internal
  */
 export function resolveClientView(args: {
@@ -174,9 +103,7 @@ export function resolveClientView(args: {
 	globalFilter: string
 	globalHighlights: boolean
 	columnFilters: ColumnFiltersState
-	/** Whether the grid can apply each column filter itself (see `compileColumnFilters`). */
-	columnFiltersCompile: boolean
-}): { offEngine: boolean; filtered: boolean; page: PaginationState | null } {
+}): { filtered: boolean; page: PaginationState | null } {
 	const clientFilters = args.filterMode.configured && !args.filterMode.manual
 
 	const searching =
@@ -184,11 +111,8 @@ export function resolveClientView(args: {
 
 	const filtering = clientFilters && args.columnFilters.length > 0
 
-	const offEngine = !(filtering && !args.columnFiltersCompile)
-
 	return {
-		offEngine,
-		filtered: offEngine && (searching || filtering),
-		page: offEngine && args.paginated && !args.paginationManual ? args.pagination : null,
+		filtered: searching || filtering,
+		page: args.paginated && !args.paginationManual ? args.pagination : null,
 	}
 }

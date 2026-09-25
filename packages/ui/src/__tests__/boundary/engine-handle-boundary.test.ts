@@ -50,7 +50,6 @@ const RECEIVERS: Receiver[] = [
 	ORIGIN,
 	{ file: 'modules/grid/use-grid-table.ts', fn: 'useResizeView', binding: 'table', kind: 'render' },
 	{ file: 'modules/grid/use-grid-table.ts', fn: 'useFilterView', binding: 'table', kind: 'render' },
-	{ file: 'modules/grid/use-grid-table.ts', fn: 'exportLeaves', binding: 'table', kind: 'eager' },
 	{
 		file: 'modules/grid/use-grid-column-sizing.ts',
 		fn: 'useGridColumnSizing',

@@ -502,20 +502,19 @@ export function toColumnFacets(values: Iterable<unknown>): GridColumnFacets {
 }
 
 /**
- * The actions of {@link GridColumnFilter}. Each reads or writes the engine
- * when it runs.
+ * The actions of {@link GridColumnFilter}. The filter actions write the
+ * engine when they run.
  *
  * @param manual - Whether the consumer filters. A manual grid holds only the
  *   server page, so its columns have no facets.
  * @param facetValues - The distinct cell values that the facets of a column
- *   read, which the grid collects off the engine (see `useFacetSource`). A
- *   `null` result reads them from the faceted model of the engine.
+ *   read, which the grid collects itself (see `useFacetSource`).
  * @internal
  */
 export function columnFilterActions<T>(
 	table: EngineTable<T>,
 	manual: boolean,
-	facetValues: (id: string) => Iterable<unknown> | null,
+	facetValues: (id: string) => Iterable<unknown>,
 ): GridColumnFilterActions {
 	return {
 		setQuery: (id, query) => table.getColumn(String(id))?.setFilterValue(query),
@@ -525,13 +524,7 @@ export function columnFilterActions<T>(
 		facets: (id) => {
 			if (manual) return NO_FACETS
 
-			const values = facetValues(String(id))
-
-			if (values) return toColumnFacets(values)
-
-			const facets = table.getColumn(String(id))?.getFacetedUniqueValues()
-
-			return facets ? toColumnFacets(facets.keys()) : NO_FACETS
+			return toColumnFacets(facetValues(String(id)))
 		},
 	}
 }

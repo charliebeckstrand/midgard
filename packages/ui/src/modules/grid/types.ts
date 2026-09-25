@@ -454,13 +454,17 @@ export type GridColumnFilterState = { id: string; value: QueryGroup }
 
 /**
  * Controlled/uncontrolled per-column filter binding for
- * {@link GridProps.columnFilters}, backed by the grid's TanStack Table engine.
+ * {@link GridProps.columnFilters}.
  *
  * @remarks Columns opt in with {@link GridColumn.filterable} (which needs a
  * {@link GridColumn.value} accessor). Each filterable column shows a filter
  * button in its header. The button opens a query-builder sheet.
  * Client-side by default; `manual` defers filtering to the consumer, which
  * shares the table-wide filter mode with {@link GridSearch}.
+ *
+ * A client filter applies only to a filterable column with a `value`. An
+ * entry whose id names another column, or no column, puts no constraint on
+ * the rows. So does an entry whose value is not a query.
  */
 export type GridColumnFilters = {
 	value?: GridColumnFilterState[]
