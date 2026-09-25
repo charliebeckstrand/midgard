@@ -8,7 +8,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
 import { useFloatingDisclosure, useHasHover } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
@@ -35,6 +35,22 @@ function isReferenceDisabled(reference: unknown): boolean {
 		reference instanceof Element &&
 		(reference.matches(':disabled') || reference.querySelector(':disabled') !== null)
 	)
+}
+
+/**
+ * The `<fieldset>` ancestors of `reference`, nearest first. A `disabled` change
+ * on any of them changes whether the reference matches `:disabled`.
+ */
+function fieldsetAncestors(reference: Element): Element[] {
+	const fieldsets: Element[] = []
+
+	for (let node = reference.parentElement?.closest('fieldset'); node; ) {
+		fieldsets.push(node)
+
+		node = node.parentElement?.closest('fieldset')
+	}
+
+	return fieldsets
 }
 
 /**
@@ -82,13 +98,11 @@ export function useTooltipState({
 
 	const wasDisabledRef = useRef(false)
 
-	// Polls the reference node and its subtree for the `:disabled` pseudo-class
-	// after every render. The `:disabled` state can be set by the reference's own
-	// `disabled` attribute, a child `disabled` attribute, an ancestor
-	// `<fieldset disabled>`, or an external wrapper; none of these emit a React
-	// signal. A post-render effect fires alongside whatever triggered the change.
-	// MutationObserver cannot detect the ancestor-fieldset case.
-	useEffect(() => {
+	// Reads the `:disabled` pseudo-class of the reference node and its subtree.
+	// The reference's own `disabled` attribute, a child `disabled` attribute, an
+	// ancestor `<fieldset disabled>`, or an external wrapper can set it, and none
+	// of these emit a React signal.
+	const checkDisabled = useEffectEvent(() => {
 		const reference = refs.reference.current
 
 		if (!(reference instanceof Element)) return
@@ -103,6 +117,31 @@ export function useTooltipState({
 
 		wasDisabledRef.current = isDisabled
 	})
+
+	// The check runs after each render, alongside whatever triggered the change.
+	useEffect(() => {
+		checkDisabled()
+	})
+
+	// A consumer that memoizes the tooltip, as the React Compiler does, skips its
+	// render when only an ancestor changes. An observer on the `disabled`
+	// attribute of the reference, its subtree, and each ancestor `<fieldset>`
+	// runs the check without a render.
+	const domReference = context.elements.domReference
+
+	useEffect(() => {
+		if (!domReference) return
+
+		const observer = new MutationObserver(() => checkDisabled())
+
+		const watch = { attributes: true, attributeFilter: ['disabled'] }
+
+		observer.observe(domReference, { ...watch, subtree: true })
+
+		for (const fieldset of fieldsetAncestors(domReference)) observer.observe(fieldset, watch)
+
+		return () => observer.disconnect()
+	}, [domReference])
 
 	useEffect(() => {
 		if (!open) return
