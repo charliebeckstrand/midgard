@@ -8,7 +8,7 @@ import {
 	type DashboardTileSize,
 	resolveCell,
 } from './engine/dashboard-layout'
-import type { DashboardView } from './engine/dashboard-store'
+import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardStore } from './use-dashboard-store'
 
 /** A span limit from its two axes, or `undefined` when neither axis is set. */
@@ -17,6 +17,23 @@ function bound(
 	h: number | undefined,
 ): Partial<DashboardTileSize> | undefined {
 	return w === undefined && h === undefined ? undefined : { w, h }
+}
+
+/**
+ * The geometry of a cell as one string, or `''` for no cell. A selector compares
+ * the string by value, so an equal cell from a new source renders nothing.
+ */
+function cellKey(cell: DashboardCell | undefined): string {
+	return cell === undefined ? '' : `${cell.x} ${cell.y} ${cell.w} ${cell.h} ${cell.static}`
+}
+
+/** The cell of the tile `id` that `key` writes, or `undefined` for the empty key. */
+function keyCell(id: string, key: string): DashboardCell | undefined {
+	if (key === '') return undefined
+
+	const [x, y, w, h, fixed] = key.split(' ')
+
+	return { id, x: Number(x), y: Number(y), w: Number(w), h: Number(h), static: fixed === 'true' }
 }
 
 /**
@@ -31,6 +48,9 @@ function bound(
  * then, the tile resolves its cell from its own layout entry and its own demands. The server
  * markup therefore matches the first client render. A tile with no entry has no
  * cell until it registers.
+ *
+ * The cell keeps its object while its geometry holds. Thus a registration that
+ * gives the cell of the entry does not render the tile again.
  *
  * @internal
  */
@@ -82,25 +102,23 @@ export function useDashboardTileCell(
 		})
 	}, [store, id, ratio, minWidth, label, defaultW, defaultH, minW, minH, maxW, maxH])
 
-	const registered = useDashboardStore(
-		useCallback((view: DashboardView) => view.cells.get(id), [id]),
-	)
-
 	// The entry matters only until the tile registers. A registered tile stops
 	// reading it, so a new layout array from the app never renders it again.
-	const entry = useDashboardStore(
+	const key = useDashboardStore(
 		useCallback(
-			(view: DashboardView) => (view.cells.has(id) ? undefined : view.entries.get(id)),
-			[id],
+			(view: DashboardView, state: DashboardState) => {
+				const registered = view.cells.get(id)
+
+				if (registered !== undefined) return cellKey(registered)
+
+				const entry = view.entries.get(id)
+
+				// The cell reads only the ratio of the demands.
+				return entry === undefined ? '' : cellKey(resolveCell(entry, { ratio }, state.columns))
+			},
+			[id, ratio],
 		),
 	)
 
-	const columns = useDashboardStore((_, state) => state.columns)
-
-	const fallback = useMemo(
-		() => (entry === undefined ? undefined : resolveCell(entry, { ratio, minWidth }, columns)),
-		[entry, ratio, minWidth, columns],
-	)
-
-	return registered ?? fallback
+	return useMemo(() => keyCell(id, key), [id, key])
 }

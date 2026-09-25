@@ -383,6 +383,71 @@ describe('Dashboard', () => {
 		expect(renders.get('a')).toBeUndefined()
 	})
 
+	it('renders each tile once on mount, when the registered cell equals the cell of its entry', () => {
+		const renders = new Map<string, number>()
+
+		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<Profiler id="a" onRender={count('a')}>
+					<DashboardTile id="a" title="Revenue" ratio={16 / 9} />
+				</Profiler>
+
+				<Profiler id="c" onRender={count('c')}>
+					<DashboardTile id="c" title="Orders" />
+				</Profiler>
+			</Dashboard>,
+		)
+
+		// Each tile paints its entry before it registers, and the registration gives the same cell.
+		expect(Object.fromEntries(renders)).toEqual({ a: 1, c: 1 })
+	})
+
+	it('renders only the dragged tile on a preview frame', async () => {
+		const renders = new Map<string, number>()
+
+		const count = (id: string) => () => renders.set(id, (renders.get(id) ?? 0) + 1)
+
+		const { container } = renderUI(
+			<Dashboard aria-label="Sales" editing layout={{ defaultValue: GRID }}>
+				<Profiler id="a" onRender={count('a')}>
+					<DashboardTile id="a" title="Revenue" />
+				</Profiler>
+
+				<Profiler id="b" onRender={count('b')}>
+					<DashboardTile id="b" title="Traffic" />
+				</Profiler>
+
+				<Profiler id="c" onRender={count('c')}>
+					<DashboardTile id="c" title="Orders" />
+				</Profiler>
+			</Dashboard>,
+		)
+
+		const grip = screen.getByRole('button', { name: 'Move Traffic' })
+
+		grip.focus()
+
+		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
+
+		// The keyboard sensor attaches its keys on a timer after the lift.
+		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+
+		renders.clear()
+
+		// One column to the right, Traffic moves into free cells.
+		fireEvent.keyDown(grip, { code: 'ArrowRight', key: 'ArrowRight' })
+
+		expect(bySlot(container, 'dashboard-placeholder')?.style.gridArea).toBe(
+			'1 / 10 / span 10 / span 8',
+		)
+
+		expect(Object.fromEntries(renders)).toEqual({ b: 1 })
+
+		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
+	})
+
 	it('renders no card of a tile that a lift, a cancel, or a drop does not move', async () => {
 		const onValueChange = vi.fn()
 
