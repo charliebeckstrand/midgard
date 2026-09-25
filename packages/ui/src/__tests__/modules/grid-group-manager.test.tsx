@@ -248,8 +248,11 @@ describe('groupAwareKeyboardCoordinates', () => {
 	const arrowDown = { code: 'ArrowDown', preventDefault: () => {} } as unknown as KeyboardEvent
 
 	it('steps a lifted group to the next group, skipping the nearer column row', () => {
-		// biome-ignore lint/suspicious/noExplicitAny: hand-built minimal SensorContext
-		const coords = groupAwareKeyboardCoordinates(arrowDown, context() as any)
+		// A hand-built minimal SensorContext, cast through unknown like the event above.
+		const coords = groupAwareKeyboardCoordinates(
+			arrowDown,
+			context() as unknown as Parameters<typeof groupAwareKeyboardCoordinates>[1],
+		)
 
 		// The next group's top (110), not column "a" (30) that sits between them.
 		expect(coords?.y).toBe(110)

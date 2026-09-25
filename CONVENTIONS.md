@@ -58,7 +58,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 ## 4. TypeScript
 
-4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary.
+4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary. Biome's `noExplicitAny` gates the first rule as an error.
 
 4.2 Use `type` aliases for props and data shapes; never `interface`. Co-locate small ones, extract to `types.ts` once shared or large.
 
