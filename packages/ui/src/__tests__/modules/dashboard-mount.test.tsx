@@ -1,8 +1,6 @@
 import { act } from '@testing-library/react'
-import type { ReactElement } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
-import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -11,80 +9,17 @@ import {
 } from '../../modules/dashboard'
 import type { Mount } from '../../primitives/mount'
 import { attach, getSlot, renderUI, screen } from '../helpers'
+import {
+	type ControlledObserver,
+	installControlledObserver,
+	serverMarkup,
+} from '../helpers/controlled-intersection'
 
-/**
- * A controllable `IntersectionObserver`: nothing intersects until a test says
- * so. The shared jsdom stub reports each target as visible on observe, and this
- * suite must state the deferral itself.
- */
-let report: ((isIntersecting: boolean) => void) | undefined
-
-/** The number of targets that an observer watched. */
-let observed = 0
-
-const original = window.IntersectionObserver
+let observer: ControlledObserver
 
 beforeEach(() => {
-	const targets: { target: Element; callback: IntersectionObserverCallback }[] = []
-
-	observed = 0
-
-	class ControlledObserver {
-		private readonly callback: IntersectionObserverCallback
-
-		constructor(callback: IntersectionObserverCallback) {
-			this.callback = callback
-		}
-
-		observe(target: Element) {
-			observed += 1
-
-			targets.push({ target, callback: this.callback })
-		}
-
-		unobserve() {}
-		disconnect() {}
-		takeRecords() {
-			return []
-		}
-	}
-
-	window.IntersectionObserver = ControlledObserver as unknown as typeof IntersectionObserver
-
-	report = (isIntersecting) => {
-		act(() => {
-			for (const { target, callback } of targets) {
-				callback(
-					[{ target, isIntersecting } as IntersectionObserverEntry],
-					{} as IntersectionObserver,
-				)
-			}
-		})
-	}
+	observer = installControlledObserver()
 })
-
-afterEach(() => {
-	window.IntersectionObserver = original
-
-	report = undefined
-})
-
-/**
- * The server markup of `element`. A server has no `IntersectionObserver`, and
- * `useInView` reports each target as visible there, so the markup renders with
- * none.
- */
-function serverMarkup(element: ReactElement): string {
-	const observer = window.IntersectionObserver
-
-	Reflect.deleteProperty(window, 'IntersectionObserver')
-
-	try {
-		return renderToString(element)
-	} finally {
-		window.IntersectionObserver = observer
-	}
-}
 
 const LAYOUT: DashboardLayoutItem[] = [{ id: 'a', x: 0, y: 0, w: 12 }]
 
@@ -104,7 +39,7 @@ describe('DashboardTile mount', () => {
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
-		expect(observed).toBe(0)
+		expect(observer.observed()).toBe(0)
 	})
 
 	it('holds the content under lazy until the tile comes near the viewport, and keeps it', () => {
@@ -116,13 +51,13 @@ describe('DashboardTile mount', () => {
 
 		expect(getSlot(container, 'dashboard-tile-content')).toHaveAttribute('data-deferred')
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
 		expect(getSlot(container, 'dashboard-tile-content')).not.toHaveAttribute('data-deferred')
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 	})
@@ -130,11 +65,11 @@ describe('DashboardTile mount', () => {
 	it('unmounts the content under active when the tile leaves the viewport', () => {
 		renderUI(<Board mount="active" />)
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByText('Drawn')).toBeInTheDocument()
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.queryByText('Drawn')).not.toBeInTheDocument()
 
@@ -249,7 +184,7 @@ describe('DashboardTile mount', () => {
 
 		expect(container).toHaveTextContent('Waiting')
 
-		report?.(true)
+		observer.report(true)
 
 		expect(container).toHaveTextContent('Drawn')
 	})

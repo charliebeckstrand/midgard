@@ -1,82 +1,24 @@
 import { act } from '@testing-library/react'
-import { type ReactElement, useEffect } from 'react'
+import { useEffect } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { renderToString } from 'react-dom/server'
 import { afterEach, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { ChatEmbedProvider, ChatMessage } from '../../modules/chat'
 import type { ChatEmbedPart } from '../../modules/chat/engine/chat-content/types'
 import type { Mount } from '../../primitives/mount'
 import { attach, bySlot, getSlot, renderUI, screen } from '../helpers'
+import {
+	type ControlledObserver,
+	installControlledObserver,
+	serverMarkup,
+} from '../helpers/controlled-intersection'
 
-/**
- * A controllable `IntersectionObserver`: nothing intersects until a test says
- * so. The shared jsdom stub reports every target as visible on observe, which
- * is the right default for suites that only want their content drawn; this one
- * replaces it so the deferral itself can be stated.
- */
-let reveal: (() => void) | undefined
-
-/**
- * Reports each observed block as in or out of view, and keeps the observer
- * connected, as a scroll does. `reveal` reports once and then forgets.
- */
-let report: ((isIntersecting: boolean) => void) | undefined
-
-const original = window.IntersectionObserver
+let observer: ControlledObserver
 
 beforeEach(() => {
-	const observed: { target: Element; callback: IntersectionObserverCallback }[] = []
-
-	class ControlledObserver {
-		private readonly callback: IntersectionObserverCallback
-
-		constructor(callback: IntersectionObserverCallback) {
-			this.callback = callback
-		}
-
-		observe(target: Element) {
-			observed.push({ target, callback: this.callback })
-		}
-
-		unobserve() {}
-		disconnect() {}
-		takeRecords() {
-			return []
-		}
-	}
-
-	window.IntersectionObserver = ControlledObserver as unknown as typeof IntersectionObserver
-
-	report = (isIntersecting) => {
-		act(() => {
-			for (const { target, callback } of observed) {
-				callback(
-					[{ target, isIntersecting } as IntersectionObserverEntry],
-					{} as IntersectionObserver,
-				)
-			}
-		})
-	}
-
-	reveal = () => {
-		act(() => {
-			for (const { target, callback } of observed.splice(0)) {
-				callback(
-					[{ target, isIntersecting: true } as IntersectionObserverEntry],
-					{} as IntersectionObserver,
-				)
-			}
-		})
-	}
+	observer = installControlledObserver()
 })
 
 afterEach(() => {
-	window.IntersectionObserver = original
-
-	reveal = undefined
-
-	report = undefined
-
 	chart.mockClear()
 })
 
@@ -114,7 +56,7 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		reveal?.()
+		observer.reveal()
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
@@ -150,7 +92,7 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		reveal?.()
+		observer.reveal()
 
 		const block = getSlot(container, 'chat-embed')
 
@@ -168,9 +110,9 @@ describe('a held-back embed', () => {
 			</ChatEmbedProvider>,
 		)
 
-		report?.(true)
+		observer.report(true)
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
@@ -226,17 +168,17 @@ describe('the mount policy', () => {
 			</ChatEmbedProvider>,
 		)
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 
-		report?.(false)
+		observer.report(false)
 
 		expect(screen.queryByTestId('chart')).not.toBeInTheDocument()
 
 		expect(getSlot(container, 'chat-embed')).toHaveAttribute('data-deferred')
 
-		report?.(true)
+		observer.report(true)
 
 		expect(screen.getByTestId('chart')).toBeInTheDocument()
 	})
@@ -262,28 +204,11 @@ describe('the mount policy', () => {
 
 		expect(bySlot(container, 'chat-embed-fallback')).not.toBeInTheDocument()
 
-		reveal?.()
+		observer.reveal()
 
 		expect(bySlot(container, 'chat-embed-fallback')).toBeInTheDocument()
 	})
 })
-
-/**
- * The server markup of `element`. A server has no `IntersectionObserver`, and
- * `useInView` reports each target as visible there, so the markup renders with
- * none.
- */
-function serverMarkup(element: ReactElement): string {
-	const observer = window.IntersectionObserver
-
-	Reflect.deleteProperty(window, 'IntersectionObserver')
-
-	try {
-		return renderToString(element)
-	} finally {
-		window.IntersectionObserver = observer
-	}
-}
 
 function Message({ mount }: { mount?: Mount }) {
 	return (
@@ -323,7 +248,7 @@ describe.each(['lazy', 'active'] as const)('a held-back embed on the server, und
 
 		expect(container).not.toHaveTextContent('drawn')
 
-		reveal?.()
+		observer.reveal()
 
 		expect(container).toHaveTextContent('drawn')
 	})

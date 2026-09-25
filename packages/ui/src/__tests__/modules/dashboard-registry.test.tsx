@@ -13,6 +13,7 @@ import {
 	useDashboardScope,
 } from '../../modules/dashboard'
 import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { serverMarkup } from '../helpers/controlled-intersection'
 import { pressSplitter, stubCanvasWidth, useControlledLayout } from '../helpers/dashboard-board'
 
 stubCanvasWidth()
@@ -405,25 +406,17 @@ describe('DashboardWidgetProvider', () => {
 	})
 
 	it('applies its mount policy to each spec tile', () => {
-		const observer = window.IntersectionObserver
-
 		// A server has no observer, so a held tile renders its fallback there.
-		Reflect.deleteProperty(window, 'IntersectionObserver')
+		const html = serverMarkup(
+			<DashboardWidgetProvider widgets={WIDGETS} mount="lazy">
+				<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+					<DashboardTiles tiles={TILES} />
+				</Dashboard>
+			</DashboardWidgetProvider>,
+		)
 
-		try {
-			const html = renderToString(
-				<DashboardWidgetProvider widgets={WIDGETS} mount="lazy">
-					<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
-						<DashboardTiles tiles={TILES} />
-					</Dashboard>
-				</DashboardWidgetProvider>,
-			)
+		expect(html).toContain('data-deferred')
 
-			expect(html).toContain('data-deferred')
-
-			expect(html).not.toContain('Revenue whole')
-		} finally {
-			window.IntersectionObserver = observer
-		}
+		expect(html).not.toContain('Revenue whole')
 	})
 })
