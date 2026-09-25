@@ -121,6 +121,8 @@ Every scenario drives the same deterministic shipment rows (`shipments` in [`../
 
 - [`grid-paginate.bench.tsx`](grid-paginate.bench.tsx) — client pagination with 100 rows on each page, the cap of MUI's MIT tier, at 10k / 100k. Three scenarios run: a mount, a flip to the second page and back, and an asc/desc sort flip on `id`. Each library pages through its own pagination: the ui module's `pagination` binding, AG's `pagination` option, and MUI's `paginationModel`. Only this scenario mounts the grids paginated.
 
+- [`grid-total.bench.tsx`](grid-total.bench.tsx) — a grand total that sums the loads and the weight, at 10k / 100k. Three scenarios run: a mount, an asc/desc sort flip on `id`, and a quick filter applied and cleared. AG Grid holds its grand-total row in the Enterprise tier, and MUI X holds its aggregation in the Premium tier, so the ui grid runs alone. A contender names the mount options that it cannot run (`unsupported` in [`grid-contenders.tsx`](grid-contenders.tsx)), and the harness leaves it out of those scenarios.
+
 Fairness notes, both directions: the ui grid keeps its built-in chrome (toolbar with export, accessible announcements) that the competitors' defaults don't carry; each library runs its own defaults otherwise (AG's community module set, MUI's MIT tier). MUI's MIT tier hard-caps `pageSize` at 100 and always paginates — full-set scrolling is Pro-licensed — so MUI runs mount/update/sort in its shipped paginated shape (the full dataset still flows through its client-side model) and sits out the scroll sweep. React runs in production mode for the same reason as the charts (see above); it covers MUI symmetrically.
 
 ### Standings (2026-07-10, this workstation)
@@ -227,6 +229,20 @@ Each entry names the change and the scenarios it moved.
     | paginate · 10,000 · sort flip · plain | 29.1 | 22.2 | −20%, −26%, −22% |
 
     The page flips stayed within noise, since both paths slice a cached order. At 100k the module now leads both contenders on the paginated mount (AG 160.3ms, MUI 84.2ms) and the paginated sort flip (AG 68.1ms, MUI 89.7ms). The quick filter and the column filter stayed within noise over seven pairs, with a median change of 4% or less.
+
+14. **Off-engine grand total** ([`use-grid-table.ts`](../../modules/grid/use-grid-table.ts) `useGrandTotalRows`, [`grid-aggregate.ts`](../../modules/grid/engine/grid-aggregate.ts) `cachedAggregate`, 2026-09-25, this container). A grand total read the filtered model of the engine, so a grid with a total built a `Row` for each datum on mount, even with no filter. Each render of the total row also parsed every cell of each summed column again. The total now reads the rows that the client view already keeps, and each aggregate is computed one time for each row array and column. A property test holds the rows of the total equal to the filtered rows of the engine. The new grand-total scenario gives the median of three interleaved pairs against `main`:
+
+    | Scenario | `main` | branch | each pair |
+    | --- | ---: | ---: | --- |
+    | total · 100,000 · mount · plain | 204.0 | 49.2 | −77%, −78%, −75% |
+    | total · 100,000 · mount · compiled | 198.0 | 46.6 | −77%, −76%, −77% |
+    | total · 100,000 · filter + clear · plain | 250.2 | 106.7 | −52%, −57%, −63% |
+    | total · 100,000 · filter + clear · compiled | 227.9 | 99.3 | −57%, −54%, −60% |
+    | total · 100,000 · sort flip · plain | 44.6 | 35.6 | −17%, −21%, −24% |
+    | total · 100,000 · sort flip · compiled | 38.7 | 34.7 | −10%, −27%, −10% |
+    | total · 10,000 · mount · plain | 39.6 | 27.1 | −43%, −28%, −26% |
+
+    The sort flips and the quick filters with no total stayed within noise in both builds. A grouped grid still reads the total from the engine, which builds its model for the groups.
 
 ## Maps
 

@@ -75,15 +75,17 @@ function gridView(rows: Row[], transforms: EngineTransforms) {
 			columnFilters: { value: transforms.filters ?? [] },
 			sort: transforms.sort ?? [],
 			setSort: () => {},
+			grandTotal: true,
 			...(page ? { pagination: { ...page.config, value: page.state } } : {}),
 		}),
 	)
 
-	const { renderRows, rowKeys, pagination } = result.current
+	const { renderRows, rowKeys, pagination, grandTotalRows } = result.current
 
 	return {
 		ids: renderRows.map((row) => row.id),
 		keys: rowKeys,
+		totalIds: grandTotalRows.map((row) => row.id),
 		totals: pagination && {
 			pageCount: pagination.pageCount,
 			rowCount: pagination.rowCount,
@@ -112,6 +114,8 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 	return {
 		ids: shown.map((row) => row.original.id),
 		keys: shown.map((row) => getKey(row.original)),
+		// A grand total reads every row that the filters keep, in data order.
+		totalIds: table.getFilteredRowModel().rows.map((row) => row.original.id),
 		totals: page
 			? {
 					pageCount: table.getPageCount(),
@@ -125,7 +129,7 @@ function engineView(rows: Row[], transforms: EngineTransforms) {
 
 describe('useGridTable client view', () => {
 	test.prop([rowsArb, fc.string({ maxLength: 2 }), filtersArb, sortArb, pageArb], { numRuns: 60 })(
-		'gives the rows, keys, and page totals of the engine',
+		'gives the rows, keys, grand-total rows, and page totals of the engine',
 		(rows, query, filters, sort, page) => {
 			const transforms: EngineTransforms = { query, filters, sort, ...(page ? { page } : {}) }
 

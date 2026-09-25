@@ -184,7 +184,8 @@ export type GridColumn<T> = {
 	 * id. They are coerced to numbers, with entries that don't parse skipped.
 	 * `count` counts rows, and an otherwise empty set renders blank, never a
 	 * fabricated zero. A function receives the rows themselves and returns any
-	 * value.
+	 * value. The grid computes each aggregate one time for each set of rows, so a
+	 * function must read only its rows.
 	 * Rendered through {@link GridColumn.aggCell} when given, else locale number
 	 * formatting.
 	 */

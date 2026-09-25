@@ -3,6 +3,7 @@ import { Grid } from '../../modules/grid'
 import {
 	aggregateColumn,
 	aggregateLabelSpan,
+	cachedAggregate,
 	formatAggregate,
 	hasAggregation,
 } from '../../modules/grid/engine/grid-aggregate'
@@ -133,6 +134,48 @@ describe('grid aggregation core', () => {
 
 		// A leading aggregated column still leaves one cell for the label.
 		expect(aggregateLabelSpan([{ id: 'a', aggFunc: 'sum' }, { id: 'b' }])).toBe(1)
+	})
+})
+
+describe('cachedAggregate', () => {
+	it('computes each aggregate one time for each row array and column', () => {
+		const calls: number[][] = []
+
+		const col: GridColumn<Sale> = {
+			id: 'units',
+			aggFunc: (rows) => {
+				calls.push(rows.map((row) => row.id))
+
+				return rows.length
+			},
+		}
+
+		const rows = sales.slice()
+
+		expect(cachedAggregate(col, rows)).toBe(4)
+
+		expect(cachedAggregate(col, rows)).toBe(4)
+
+		expect(calls).toHaveLength(1)
+
+		// A new row array, such as the rows of a new filter, computes again.
+		expect(cachedAggregate(col, rows.slice(1))).toBe(3)
+
+		expect(calls).toHaveLength(2)
+	})
+
+	it('keeps each column apart, and caches an empty result', () => {
+		const rows = sales.slice()
+
+		const sum: GridColumn<Sale> = { id: 'units', value: (row) => row.units, aggFunc: 'sum' }
+
+		const max: GridColumn<Sale> = { id: 'units', value: (row) => row.units, aggFunc: 'max' }
+
+		expect(cachedAggregate(sum, rows)).toBe(aggregateColumn(sum, rows))
+
+		expect(cachedAggregate(max, rows)).toBe(aggregateColumn(max, rows))
+
+		expect(cachedAggregate(sum, [])).toBeNull()
 	})
 })
 
