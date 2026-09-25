@@ -1614,6 +1614,36 @@ describe('Dashboard registration', () => {
 		expect(register?.mock.calls.map(([id]) => id)).toEqual(['a', 'b'])
 	})
 
+	it('writes a commit into the store once, and ends the settle phase with that write', () => {
+		let setState: MockInstance<DashboardStore['setState']> | undefined
+
+		renderUI(
+			<ControlledDashboard
+				aria-label="Sales"
+				editing
+				initial={[{ id: 'a', x: 0, y: 0, w: 8, h: 10 }]}
+			>
+				<StoreProbe
+					onStore={(store) => {
+						setState = vi.spyOn(store, 'setState')
+					}}
+				/>
+
+				<DashboardTile id="a" title="Revenue" minWidth={0} />
+			</ControlledDashboard>,
+		)
+
+		setState?.mockClear()
+
+		pressSplitter('Revenue', 0, 'ArrowRight')
+
+		const writes = setState?.mock.calls.filter(([patch]) => 'layout' in patch) ?? []
+
+		expect(writes).toHaveLength(1)
+
+		expect(writes[0]?.[0]).toMatchObject({ gesture: null })
+	})
+
 	it('wakes no reader of the store while the board unmounts', () => {
 		let board: DashboardStore | undefined
 

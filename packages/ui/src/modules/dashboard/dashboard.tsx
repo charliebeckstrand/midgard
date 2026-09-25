@@ -271,10 +271,21 @@ export function Dashboard({
 
 	useLayoutEffect(() => store.setState({ columns, gap, editing }), [store, columns, gap, editing])
 
-	useLayoutEffect(
-		() => store.setState({ layout: layoutValue ?? EMPTY_LAYOUT }),
-		[store, layoutValue],
-	)
+	// A commit bumps this count. The effect below writes each new layout into the
+	// store. After a commit, the same write also ends the settle phase. The render
+	// then holds the committed layout, or the layout that stays when a controlled
+	// app declined it.
+	const [settled, setSettled] = useState(0)
+
+	const handled = useRef(0)
+
+	useLayoutEffect(() => {
+		const settling = settled !== handled.current
+
+		handled.current = settled
+
+		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, ...(settling ? { gesture: null } : {}) })
+	}, [store, settled, layoutValue])
 
 	useLayoutEffect(() => store.setState({ filter: filterValue }), [store, filterValue])
 
@@ -282,21 +293,6 @@ export function Dashboard({
 		() => store.setState({ selections: selectionValue ?? EMPTY_SELECTIONS }),
 		[store, selectionValue],
 	)
-
-	// A commit bumps this count. The effect below ends the settle phase once the
-	// committed layout has arrived — or, for a controlled layout that the app
-	// declined, once the render shows that it did not change.
-	const [settled, setSettled] = useState(0)
-
-	const handled = useRef(0)
-
-	useLayoutEffect(() => {
-		if (settled === handled.current) return
-
-		handled.current = settled
-
-		store.setState({ layout: layoutValue ?? EMPTY_LAYOUT, gesture: null })
-	}, [store, settled, layoutValue])
 
 	const controlled = layout?.value !== undefined
 
@@ -324,20 +320,15 @@ export function Dashboard({
 		[store, setLayoutValue, controlled],
 	)
 
-	const containerRef = useRef<HTMLElement>(null)
-
 	const canvasRef = useRef<HTMLDivElement>(null)
 
 	// The canvas is the measured box: it spans the container plus the two outer
 	// half-gutters, so its width divides into the true column pitch.
-	useResizeObserver(
-		canvasRef,
-		useCallback(() => {
-			const width = canvasRef.current?.clientWidth ?? 0
+	useResizeObserver(canvasRef, () => {
+		const width = canvasRef.current?.clientWidth ?? 0
 
-			if (width !== store.getState().width) store.setState({ width })
-		}, [store]),
-	)
+		if (width !== store.getState().width) store.setState({ width })
+	})
 
 	const { context: dndContextProps, cancelDrag } = useDashboardDrag({
 		store,
@@ -416,7 +407,6 @@ export function Dashboard({
 			<DashboardActionsContext value={actions}>
 				<DndContext {...dndContextProps}>
 					<section
-						ref={containerRef}
 						data-slot="dashboard"
 						data-editing={dataAttr(editable)}
 						// The focus lands here when a remove takes away the last tile.
