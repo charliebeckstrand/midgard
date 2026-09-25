@@ -203,3 +203,32 @@ describe('useGridTable facets', () => {
 		},
 	)
 })
+
+describe('useGridTable filter view', () => {
+	it('keeps its identity across a search and a data change, and reads the latest facets', () => {
+		const first: Row[] = [
+			{ id: 0, name: 'a', amount: 1 },
+			{ id: 1, name: 'b', amount: 2 },
+		]
+
+		const { result, rerender } = renderHook(
+			({ rows, query }: { rows: Row[]; query: string }) =>
+				useGridTable<Row>({ rows, columns, getKey, globalFilter: { value: query } }),
+			{ initialProps: { rows: first, query: '' } },
+		)
+
+		const view = result.current.filters
+
+		rerender({ rows: first, query: 'b' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['b'])
+
+		rerender({ rows: [...first, { id: 2, name: 'c', amount: 3 }], query: '' })
+
+		expect(result.current.filters).toBe(view)
+
+		expect(view?.facets('name').values).toEqual(['a', 'b', 'c'])
+	})
+})

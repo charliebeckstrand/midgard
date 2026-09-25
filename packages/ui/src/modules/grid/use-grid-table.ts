@@ -919,8 +919,8 @@ function useFilterView<T>(args: {
 	columns: GridColumn<T>[]
 	applied: GridColumnFilterState[]
 	affordance: GridColumnFilter['affordance'] | undefined
-	/** The facet values off the engine (see {@link useFacetSource}), or `null` to read the engine. */
-	facetValues: ((id: string) => Iterable<unknown>) | null
+	/** The facet values off the engine (see {@link useFacetSource}). */
+	facetValues: (id: string) => Iterable<unknown> | null
 }): GridColumnFilter | null {
 	const { table, enabled, manual, columns, applied, facetValues } = args
 
@@ -952,6 +952,48 @@ function useFilterView<T>(args: {
 }
 
 /**
+ * The facet values of each column over one set of rows, filters, and query.
+ * Each column collects its values on its first read, and keeps them.
+ *
+ * @remarks
+ * A plain function, not a hook body, so that the cache of the values lives
+ * with the source that fills it. The React Compiler can memoize an allocation
+ * in a hook body on its own, which would share one cache among sources.
+ *
+ * @internal
+ */
+function facetSource<T>(
+	rows: readonly T[],
+	columns: readonly GridColumn<T>[],
+	columnTests: ColumnTests<T>,
+	query: string,
+): (id: string) => Set<unknown> {
+	const search = compileSearch(columns, query)
+
+	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+
+	const cache = new Map<string, Set<unknown>>()
+
+	return (id) => {
+		let values = cache.get(id)
+
+		if (!values) {
+			const read = byId.get(id)?.value
+
+			const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
+
+			if (search) tests.push(search)
+
+			values = read ? uniqueValues(rows, read, tests) : new Set()
+
+			cache.set(id, values)
+		}
+
+		return values
+	}
+}
+
+/**
  * The distinct cell values that the facets of each column read, collected off
  * the engine. `null` when a column filter reads a filter function that only
  * the engine holds, and the engine then gives the facets.
@@ -964,6 +1006,11 @@ function useFilterView<T>(args: {
  * opens. The first read after a change of the rows, the filters, or the query
  * collects them, and the grid builds no engine row for them.
  *
+ * The function keeps one identity. It reads the source of the last commit, so
+ * a search keystroke or a data change renders no filter button again.
+ *
+ * @returns A function that gives the values of a column, or `null` when the
+ * engine must give them.
  * @internal
  */
 function useFacetSource<T>(args: {
@@ -972,36 +1019,21 @@ function useFacetSource<T>(args: {
 	columnTests: ColumnTests<T> | null
 	/** The query of the quick search, or `''` when the search prunes no rows. */
 	query: string
-}): ((id: string) => Iterable<unknown>) | null {
+}): (id: string) => Iterable<unknown> | null {
 	const { rows, columns, columnTests, query } = args
 
-	return useMemo(() => {
-		if (columnTests === null) return null
+	const source = useMemo(
+		() => (columnTests ? facetSource(rows, columns, columnTests, query) : null),
+		[rows, columns, columnTests, query],
+	)
 
-		const search = compileSearch(columns, query)
+	const latest = useRef(source)
 
-		const byId = new Map(columns.map((col) => [String(col.id), col] as const))
+	useLayoutEffect(() => {
+		latest.current = source
+	}, [source])
 
-		const cache = new Map<string, Set<unknown>>()
-
-		return (id: string) => {
-			let values = cache.get(id)
-
-			if (!values) {
-				const read = byId.get(id)?.value
-
-				const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
-
-				if (search) tests.push(search)
-
-				values = read ? uniqueValues(rows, read, tests) : new Set()
-
-				cache.set(id, values)
-			}
-
-			return values
-		}
-	}, [rows, columns, columnTests, query])
+	return useCallback((id: string) => latest.current?.(id) ?? null, [])
 }
 
 /**
