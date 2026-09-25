@@ -347,6 +347,47 @@ export function shiftCells(
 	return patchCells(cells, patch)
 }
 
+/** One saved entry and the cell that the clamp of {@link resolveCell} gives it. */
+type ClampedEntry = { item: DashboardLayoutItem; cell: DashboardCell }
+
+/** Whether the clamp moves the cell off the saved origin or the saved span of the entry. */
+function clampMoves({ item, cell }: ClampedEntry): boolean {
+	return cell.x !== item.x || cell.y !== item.y || cell.w !== item.w
+}
+
+/** Compares two saved entries by row, then by column, then by id. */
+function bySavedPlace(a: ClampedEntry, b: ClampedEntry): number {
+	const id = a.item.id < b.item.id ? -1 : a.item.id > b.item.id ? 1 : 0
+
+	return a.item.y - b.item.y || a.item.x - b.item.x || id
+}
+
+/**
+ * The cells of `entries`. A cell that the clamp moves onto another tile goes to a
+ * new row, and {@link resolveLayout} states the rule. The result keeps the order
+ * of `entries`, and the cells on new rows go last.
+ */
+function holdBack(entries: readonly ClampedEntry[]): DashboardCell[] {
+	const moved = entries.filter(clampMoves).sort(bySavedPlace)
+
+	const held = entries.filter((entry) => !clampMoves(entry)).map(({ cell }) => cell)
+
+	const back = new Set<ClampedEntry>()
+
+	for (const entry of moved) {
+		if (held.some((other) => collides(other, entry.cell))) back.add(entry)
+		else held.push(entry.cell)
+	}
+
+	const cells = entries.filter((entry) => !back.has(entry)).map(({ cell }) => cell)
+
+	for (const entry of moved) {
+		if (back.has(entry)) cells.push({ ...entry.cell, x: 0, y: bottom(cells) })
+	}
+
+	return cells
+}
+
 /**
  * The cells of the saved entries of the mounted tiles, from the first entry of
  * each id. An entry that the clamp moves onto another entry goes to a new row.
@@ -356,7 +397,7 @@ function entryCells(
 	demands: ReadonlyMap<string, DashboardTileDemands>,
 	columns: number,
 ): DashboardCell[] {
-	const resolved: { cell: DashboardCell; moved: boolean }[] = []
+	const entries: ClampedEntry[] = []
 
 	const placed = new Set<string>()
 
@@ -367,33 +408,10 @@ function entryCells(
 
 		placed.add(item.id)
 
-		const cell = resolveCell(item, demand, columns)
-
-		resolved.push({ cell, moved: cell.x !== item.x || cell.y !== item.y || cell.w !== item.w })
+		entries.push({ item, cell: resolveCell(item, demand, columns) })
 	}
 
-	// Each entry as saved holds its cells, so a moved entry cannot take them in either order.
-	const held = resolved.filter(({ moved }) => !moved).map(({ cell }) => cell)
-
-	const cells: DashboardCell[] = []
-
-	const displaced: DashboardCell[] = []
-
-	for (const { cell, moved } of resolved) {
-		if (moved && held.some((other) => collides(other, cell))) {
-			displaced.push(cell)
-
-			continue
-		}
-
-		if (moved) held.push(cell)
-
-		cells.push(cell)
-	}
-
-	for (const cell of displaced) cells.push({ ...cell, x: 0, y: bottom(cells) })
-
-	return cells
+	return holdBack(entries)
 }
 
 /**
@@ -404,10 +422,16 @@ function entryCells(
  *
  * @remarks
  * The clamp of {@link resolveCell} can move an entry, for example after a change
- * of `columns`, or when `x` is past the edge. When the moved cell covers another
- * entry, the entry takes a new row under the lowest tile, at its resolved span.
- * These entries go after the entries that keep their place, and before the tiles
- * with no entry. An entry that overlaps another entry as saved keeps its place.
+ * of `columns`, or when `x` is past the edge. An entry that the clamp does not
+ * move keeps its place, also when it overlaps another entry as saved. Then each
+ * moved entry gets a place in the order of its saved row, its saved column, and
+ * its id. A moved entry keeps its clamped cell when no entry with a place covers
+ * that cell. If not, it takes a new row under the lowest tile, at column 0 and at
+ * its resolved span.
+ *
+ * The new rows go in the same order, after the entries that keep their place, and
+ * before the tiles with no entry. Thus the order of `items` changes no cell, but
+ * the first entry of a repeated id wins.
  */
 export function resolveLayout(
 	items: readonly DashboardLayoutItem[],

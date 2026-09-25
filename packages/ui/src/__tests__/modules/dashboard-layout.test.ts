@@ -286,6 +286,46 @@ describe('resolveLayout', () => {
 		])
 	})
 
+	it('reads the moved entries by their saved place, and not by their order in the layout', () => {
+		const demands = new Map([
+			['a', {}],
+			['b', {}],
+			['c', {}],
+		])
+
+		const a = { id: 'a', x: 0, y: 0, w: 8, h: 10 }
+
+		const b = { id: 'b', x: 8, y: 0, w: 8, h: 10 }
+
+		const c = { id: 'c', x: 16, y: 0, w: 8, h: 10 }
+
+		const byId = (cells: readonly DashboardCell[]) =>
+			[...cells].sort((p, q) => p.id.localeCompare(q.id))
+
+		// At 12 columns, the clamp puts b and c on a. The new rows follow the saved places.
+		const expected = [cell('a', 0, 0, 8, 10), cell('b', 0, 10, 8, 10), cell('c', 0, 20, 8, 10)]
+
+		expect(byId(resolveLayout([a, b, c], demands, 12))).toEqual(expected)
+
+		expect(byId(resolveLayout([a, c, b], demands, 12))).toEqual(expected)
+
+		// The clamp puts d and e on columns 18 to 23. The entry that reads first keeps that place.
+		const d = { id: 'd', x: 30, y: 0, w: 6, h: 10 }
+
+		const e = { id: 'e', x: 28, y: 0, w: 6, h: 10 }
+
+		const edges = new Map([
+			['d', {}],
+			['e', {}],
+		])
+
+		const clamped = [cell('d', 0, 10, 6, 10), cell('e', 18, 0, 6, 10)]
+
+		expect(byId(resolveLayout([d, e], edges, 24))).toEqual(clamped)
+
+		expect(byId(resolveLayout([e, d], edges, 24))).toEqual(clamped)
+	})
+
 	it('compares geometry id by id', () => {
 		const a = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10)]
 
