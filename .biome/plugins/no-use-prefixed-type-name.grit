@@ -1,0 +1,23 @@
+language js
+
+// A hook's option, param, and result types carry no `Use` prefix: write
+// `TagInputOptions`, not `UseTagInputOptions`. `Use` reads like a hook name,
+// but it labels a type.
+//
+// The plugin matches the name of a `type` or an `interface` declaration, so a
+// generic or an `extends` clause does not hide it. A name must start with
+// `Use` and an uppercase letter, so `User` and `Usage` pass. A mention in a
+// comment is not a violation.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the shipped
+// source directories of `ui`, minus tests and benchmarks.
+or {
+	TsTypeAliasDeclaration(binding_identifier = $name),
+	TsInterfaceDeclaration(id = $name)
+} where {
+	$name <: r"Use[A-Z][\s\S]*",
+	register_diagnostic(
+		span = $name,
+		message = "drop the `Use` prefix from the type name: `Use` names a hook, and this is a type (e.g. UseFooOptions → FooOptions)"
+	)
+}

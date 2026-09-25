@@ -1,6 +1,6 @@
 # Hooks
 
-> **Quick-glance index of `ui/hooks`.** Shared behavioral hooks — state, floating/overlay wiring, interaction, accessibility, measurement, drag-and-drop, and formatted input. The `a11y/` family layers atop `useA11yScope`. All are client-only (`'use client'`). Full signatures and caveats live in each hook's TSDoc.
+> **Quick-glance index of `ui/hooks`.** Shared behavioral hooks — state, floating/overlay wiring, interaction, accessibility, measurement, drag-and-drop, and formatted input. The `a11y/` family layers atop `useA11yScope`. All are client-only (`'use client'`), which the `require-client-directive-in-hooks` Biome plugin pins. Full signatures and caveats live in each hook's TSDoc.
 
 ```ts
 import { useControllable, useA11yScope } from 'ui/hooks'

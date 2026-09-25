@@ -1,0 +1,28 @@
+language js
+
+// A shared axis has one definition (CONVENTIONS §4.4). A module that spells
+// the orientation union again drifts from it silently: the two types stay
+// assignable, so nothing fails until one of them gains a value. Alias
+// `Orientation` from `src/types`, or extend it as `Orientation | 'both'`.
+//
+// The plugin matches a union whose own members include both `'horizontal'`
+// and `'vertical'`, in either order and beside other members. A union of
+// objects that carry those values in a field is a discriminated union, not
+// the axis, so it passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the shipped
+// source directories of `ui`, minus tests and benchmarks. `types/` holds the
+// one definition. `recipes/` is out of reach, because `katakana` declares its
+// token contract by structure and imports nothing from `kiso`.
+TsUnionType(types = $types) as $union where {
+	$types <: some TsStringLiteralType() as $horizontal where {
+		$horizontal <: r"['\"]horizontal['\"]"
+	},
+	$types <: some TsStringLiteralType() as $vertical where {
+		$vertical <: r"['\"]vertical['\"]"
+	},
+	register_diagnostic(
+		span = $union,
+		message = "alias `Orientation` from `src/types` instead of repeating its union"
+	)
+}

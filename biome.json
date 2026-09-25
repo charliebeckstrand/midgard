@@ -30,7 +30,20 @@
 				"useExhaustiveDependencies": "error"
 			},
 			"performance": {
-				"noImgElement": "off"
+				"noImgElement": "off",
+				"noReExportAll": "error"
+			},
+			"style": {
+				"noDefaultExport": "error",
+				"useFilenamingConvention": {
+					"level": "error",
+					"options": {
+						"filenameCases": ["kebab-case"]
+					}
+				}
+			},
+			"suspicious": {
+				"noReactForwardRef": "error"
 			}
 		}
 	},
@@ -269,6 +282,89 @@
 		},
 		{
 			"includes": [
+				"apps/*/app/**/page.tsx",
+				"apps/*/app/**/layout.tsx",
+				"apps/*/app/**/template.tsx",
+				"apps/*/app/**/loading.tsx",
+				"apps/*/app/**/not-found.tsx",
+				"apps/*/app/**/error.tsx",
+				"apps/*/app/**/global-error.tsx",
+				"apps/*/app/**/default.tsx",
+				"**/*.config.ts",
+				"**/*.d.ts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["packages/ui/src/__tests__/mocks/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noDefaultExport": "off"
+					},
+					"suspicious": {
+						"noReactForwardRef": "off"
+					}
+				}
+			}
+		},
+		{
+			"includes": [
+				"apps/**",
+				"packages/auth/**",
+				"packages/shared/**",
+				"!packages/auth/src/env.ts"
+			],
+			"linter": {
+				"rules": {
+					"style": {
+						"noProcessEnv": "error"
+					}
+				}
+			}
+		},
+		{
+			"includes": ["apps/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"zustand",
+											"zustand/**",
+											"jotai",
+											"jotai/**",
+											"redux",
+											"react-redux",
+											"@reduxjs/toolkit",
+											"@reduxjs/toolkit/**",
+											"recoil",
+											"valtio",
+											"valtio/**",
+											"mobx",
+											"mobx-react-lite"
+										],
+										"message": "An app keeps no global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx` (CONVENTIONS §6.1)."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": [
 				"packages/ui/src/**",
 				"!packages/ui/src/**/__tests__/**",
 				"!packages/ui/src/**/__benchmarks__/**",
@@ -303,6 +399,67 @@
 				"!apps/*/src/server/**"
 			],
 			"plugins": ["./.biome/plugins/no-api-above-browser-floor.grit"]
+		},
+		{
+			"includes": [
+				"apps/*/app/**/page.tsx",
+				"apps/*/app/**/layout.tsx",
+				"apps/*/app/**/template.tsx",
+				"apps/*/app/**/loading.tsx",
+				"apps/*/app/**/not-found.tsx",
+				"apps/*/app/**/default.tsx"
+			],
+			"plugins": ["./.biome/plugins/no-client-directive-in-route-file.grit"]
+		},
+		{
+			"includes": ["packages/ui/src/hooks/**", "!packages/ui/src/hooks/**/index.ts"],
+			"plugins": ["./.biome/plugins/require-client-directive-in-hooks.grit"]
+		},
+		{
+			"includes": [
+				"apps/*/app/**",
+				"apps/*/src/**",
+				"packages/shared/src/**",
+				"!**/__tests__/**",
+				"!apps/*/app/api/**",
+				"!apps/*/src/server/**",
+				"!apps/*/app/**/page.tsx",
+				"!apps/*/app/**/layout.tsx",
+				"!apps/*/app/**/template.tsx",
+				"!apps/*/app/**/loading.tsx",
+				"!apps/*/app/**/not-found.tsx",
+				"!apps/*/app/**/default.tsx"
+			],
+			"plugins": ["./.biome/plugins/no-client-gateway-access.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/core/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/providers/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-use-prefixed-type-name.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/core/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/providers/**",
+				"packages/ui/src/utilities/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-respelled-orientation.grit"]
 		}
 	],
 	"files": {
