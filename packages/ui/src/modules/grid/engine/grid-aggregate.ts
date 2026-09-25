@@ -91,8 +91,8 @@ const aggregates = new WeakMap<readonly unknown[], WeakMap<object, unknown>>()
  * {@link aggregateColumn}, computed one time for each row array and column.
  *
  * @remarks
- * The grid gives a new row array for each change of the rows that an
- * aggregate reads: the data, the filters, or the leaves of a group. A render
+ * The grid gives a new row array when the rows of an aggregate change. The
+ * data, the filters, and the leaves of a group each change them. A render
  * that changes none of them reads the cached value. A custom aggregate
  * function must therefore read only its rows.
  *

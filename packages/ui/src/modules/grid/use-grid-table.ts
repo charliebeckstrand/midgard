@@ -997,7 +997,7 @@ function usePinningView<T>(args: {
  *
  * @remarks
  * The rows come from the client view, which already holds the rows that its
- * filters keep, so a plain or filtered grid builds no engine row for them.
+ * filters keep. A plain or filtered grid therefore builds no engine row.
  * When a transform materializes the engine model, the rows come from the
  * engine's filtered model, which the engine memoizes on the rows and the
  * filters.
