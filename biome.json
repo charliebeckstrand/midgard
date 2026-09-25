@@ -431,6 +431,35 @@
 				"!apps/*/app/**/default.tsx"
 			],
 			"plugins": ["./.biome/plugins/no-client-gateway-access.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/core/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/providers/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-use-prefixed-type-name.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/core/**",
+				"packages/ui/src/hooks/**",
+				"packages/ui/src/layouts/**",
+				"packages/ui/src/modules/**",
+				"packages/ui/src/primitives/**",
+				"packages/ui/src/providers/**",
+				"packages/ui/src/utilities/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**"
+			],
+			"plugins": ["./.biome/plugins/no-respelled-orientation.grit"]
 		}
 	],
 	"files": {

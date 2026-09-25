@@ -50,7 +50,7 @@ Within `ui`, a sibling component may reach past the barrel for a foundation's le
 
 4.3 `ComponentProps<'tag'>` is the only native-prop base. It carries `ref`, so a props type never declares a `ref` beside it. A component that does not forward the ref omits it (`Omit<ComponentProps<'div'>, 'ref'>`); one that renders more than one element keeps an element-agnostic base, because the arms are not mutually assignable. An imperative handle declares `ref?: Ref<<Name>Handle>` after that omit. A component takes `ref` as a prop, never through `forwardRef`. Pinned by `props-base-boundary.test.ts` and Biome's `noReactForwardRef`.
 
-4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; `variant-axis-boundary.test.ts` pins the orientation axis.
+4.4 A variant axis reaches props from the recipe that declares it — `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 
 4.5 Props live beside the component that takes them, and a barrel reaches a type at the module that declares it — never through a component that re-exports it. Every barrelled component ships its `<Name>Props`.
 
