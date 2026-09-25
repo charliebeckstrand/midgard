@@ -6,22 +6,7 @@ import {
 	drivesWidth,
 	resizePreview,
 } from '../../modules/dashboard/engine/dashboard-resize'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
+import { cell } from '../helpers/dashboard-cells'
 
 const find = (cells: readonly DashboardCell[] | null, id: string) =>
 	cells?.find((item) => item.id === id)

@@ -19,22 +19,7 @@ import {
 	swapCells,
 	toLayoutItem,
 } from '../../modules/dashboard/engine/dashboard-layout'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
+import { cell } from '../helpers/dashboard-cells'
 
 /** The ids of each pair of cells that overlap. */
 const overlaps = (cells: readonly DashboardCell[]) =>

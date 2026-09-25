@@ -1,29 +1,9 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { describeTidy } from '../../modules/dashboard/engine/dashboard-announcements'
-import { collides, type DashboardCell } from '../../modules/dashboard/engine/dashboard-layout'
+import { collides } from '../../modules/dashboard/engine/dashboard-layout'
 import { tidyCells } from '../../modules/dashboard/engine/dashboard-tidy'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
-
-/** The origin of each cell by id. */
-function origins(cells: readonly DashboardCell[]): Record<string, [number, number]> {
-	return Object.fromEntries(cells.map((item) => [item.id, [item.x, item.y]]))
-}
+import { cell, origins } from '../helpers/dashboard-cells'
 
 describe('tidyCells', () => {
 	it('moves each tile straight up to the top edge or the tile above it', () => {

@@ -6,25 +6,7 @@ import {
 	fits,
 	ROW_SUBDIVISION,
 } from '../../modules/dashboard/engine/dashboard-layout'
-
-const cell = (
-	id: string,
-	x: number,
-	y: number,
-	w: number,
-	h: number,
-	fixed = false,
-): DashboardCell => ({
-	id,
-	x,
-	y,
-	w,
-	h,
-	static: fixed,
-})
-
-const position = (cells: readonly DashboardCell[] | undefined) =>
-	Object.fromEntries((cells ?? []).map((item) => [item.id, [item.x, item.y]]))
+import { cell, origins } from '../helpers/dashboard-cells'
 
 describe('dragPreview', () => {
 	const board = [cell('a', 0, 0, 8, 10), cell('b', 8, 0, 8, 10), cell('c', 0, 10, 16, 10)]
@@ -34,7 +16,7 @@ describe('dragPreview', () => {
 
 		expect(preview?.kind).toBe('move')
 
-		expect(position(preview?.cells)).toEqual({ a: [16, 0], b: [8, 0], c: [0, 10] })
+		expect(origins(preview?.cells)).toEqual({ a: [16, 0], b: [8, 0], c: [0, 10] })
 	})
 
 	it('moves a tile below the lowest tile', () => {
@@ -46,7 +28,7 @@ describe('dragPreview', () => {
 
 		expect(preview).toMatchObject({ kind: 'shift', partner: 'b' })
 
-		expect(position(preview?.cells)).toMatchObject({ a: [8, 0], b: [0, 0] })
+		expect(origins(preview?.cells)).toMatchObject({ a: [8, 0], b: [0, 0] })
 	})
 
 	it('swaps with an equal tile in another row', () => {
@@ -56,7 +38,7 @@ describe('dragPreview', () => {
 
 		expect(preview).toMatchObject({ kind: 'swap', partner: 'b' })
 
-		expect(position(preview?.cells)).toEqual({ a: [8, 10], b: [0, 0] })
+		expect(origins(preview?.cells)).toEqual({ a: [8, 10], b: [0, 0] })
 	})
 
 	it('engages a reorder at exactly half coverage', () => {
@@ -73,7 +55,7 @@ describe('dragPreview', () => {
 
 		expect(preview?.kind).toBe('move')
 
-		expect(position(preview?.cells).a).toEqual([0, 20])
+		expect(origins(preview?.cells).a).toEqual([0, 20])
 	})
 
 	it('snaps past a static partner, and never moves it', () => {
@@ -81,7 +63,7 @@ describe('dragPreview', () => {
 
 		const preview = dragPreview(locked, 'a', 8, 0, 24)
 
-		expect(position(preview?.cells)).toEqual({ a: [8, 10], b: [8, 0] })
+		expect(origins(preview?.cells)).toEqual({ a: [8, 10], b: [8, 0] })
 	})
 
 	it('snaps home, which changes nothing, when the start cell is nearest', () => {
