@@ -5,11 +5,11 @@ const { marker } = iro
 const { flex } = narabi
 
 /**
- * Indicator colour, shared by both loading surfaces. Resolves to a `text-*`
+ * Indicator color, shared by both loading surfaces. Resolves to a `text-*`
  * class; dots (`bg-current`) and the spinner SVG (`currentColor`) both inherit
- * it. Chromatic colours use the `iro.marker` shade (600 light / 500 dark),
+ * it. Chromatic colors use the `iro.marker` shade (600 light / 500 dark),
  * which clears non-text 3:1 on the page. `current` inherits the surrounding
- * text colour; `zinc` uses its stronger neutral.
+ * text color; `zinc` uses its stronger neutral.
  */
 const color = {
 	current: 'text-current',

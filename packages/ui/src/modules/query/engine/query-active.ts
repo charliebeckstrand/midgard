@@ -14,7 +14,7 @@ import type { QueryGroup } from './types'
  * behind. A filter affordance can therefore reflect a real constraint, rather
  * than the mere presence of a rule.
  *
- * @remarks The judgement is the evaluator's, so it reads no field set. A rule
+ * @remarks The judgment is the evaluator's, so it reads no field set. A rule
  * whose operator the evaluator does not know reads as inactive, even when its
  * field offers that operator. A value-less operator reads as active, even when
  * its field does not offer it. {@link evaluateQuery} gives the same reading.

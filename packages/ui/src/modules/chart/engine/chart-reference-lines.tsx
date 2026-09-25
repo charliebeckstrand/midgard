@@ -40,10 +40,10 @@ export type ChartReferenceLine = {
 	 */
 	label?: string
 	/**
-	 * The rule's colour: a named palette slot (rendered through the CVD-safe slot
-	 * classes), or any raw CSS colour string applied inline. That is a hex like
+	 * The rule's color: a named palette slot (rendered through the CVD-safe slot
+	 * classes), or any raw CSS color string applied inline. That is a hex like
 	 * `'#e11d48'`, an `'oklch(…)'`, or any value CSS accepts. Defaults to the
-	 * neutral de-emphasis slot, so a reference reads as chrome until coloured for
+	 * neutral de-emphasis slot, so a reference reads as chrome until colored for
 	 * emphasis.
 	 * @defaultValue 'zinc'
 	 */
@@ -66,7 +66,7 @@ export type ChartReferenceLine = {
 /** Formats a reference value with its own axis's formatter. @internal */
 type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 
-/** The neutral de-emphasis slot a reference takes until coloured. @internal */
+/** The neutral de-emphasis slot a reference takes until colored. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 
 /** Props for {@link ChartReferenceLines}. @internal */
@@ -90,7 +90,7 @@ export type ChartReferenceLinesProps = {
 	 * Reveal each rule on mount by sliding it in along the value axis, from the
 	 * baseline to its value. It slides in the direction the value points, on the
 	 * same beat as the marks. That is the way the matching bar grows: up or down
-	 * (vertical), and right or left (horizontal). Honours `prefers-reduced-motion`
+	 * (vertical), and right or left (horizontal). Honors `prefers-reduced-motion`
 	 * through {@link ReducedMotion}.
 	 * @defaultValue false
 	 */
@@ -138,7 +138,7 @@ const REFERENCE_LABEL_OFFSET = 8
 const REFERENCE_LABEL_HEIGHT = 13
 const REFERENCE_LABEL_HALF = REFERENCE_LABEL_HEIGHT / 2
 
-/** The standing reference label's ink: small, semibold, tabular, in the rule's colour. @internal */
+/** The standing reference label's ink: small, semibold, tabular, in the rule's color. @internal */
 const REFERENCE_LABEL_INK = 'text-xs font-semibold tabular-nums'
 
 /** A resolved reference-label anchor: where its text sits and how it aligns. @internal */
@@ -178,8 +178,8 @@ function referenceLabelAnchor(
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
 
 /**
- * The dashed value-axis rule itself, shared by the hover and labelled
- * renderings: a named slot's stroke class, or a raw hex / `oklch()` colour
+ * The dashed value-axis rule itself, shared by the hover and labeled
+ * renderings: a named slot's stroke class, or a raw hex / `oklch()` color
  * inline. Never takes the pointer — the hover rendering lays its own transparent
  * hit line over this. @internal
  */
@@ -199,8 +199,8 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
 }
 
 /**
- * The labelled rendering: the rule under a standing label at its far end,
- * inked to match. That is a slot through its fill class, or a raw colour inline.
+ * The labeled rendering: the rule under a standing label at its far end,
+ * inked to match. That is a slot through its fill class, or a raw color inline.
  * The label shows the rule's own label when it has one, else the rule's value.
  * It floats no tooltip and lays no hit target. The label reads what pointing
  * would, so the rule drops the hover path (and the caller drops its keyboard
@@ -531,8 +531,8 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 
 /**
  * The legend entries for the reference lines: each finite rule's label, or its
- * value where it is unlabelled. Each is keyed to a line swatch in the rule's
- * colour, a palette slot through its `text` class or a raw colour inline. The
+ * value where it is unlabeled. Each is keyed to a line swatch in the rule's
+ * color, a palette slot through its `text` class or a raw color inline. The
  * swatch is dashed to match the rule, unless the rule is drawn solid. All of it
  * resolves the same way the rule itself paints. The chart legend renders these
  * as switches beside the series switches when it shows, each toggling its rule

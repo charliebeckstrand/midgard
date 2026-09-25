@@ -281,7 +281,7 @@ export function useResizablePanel({
 
 				/*
 				 * Last, and that ordering is what keeps the bracket balanced without a latch.
-				 * The abort drops all four listeners, so a cancelled pointer that also fires
+				 * The abort drops all four listeners, so a canceled pointer that also fires
 				 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the supersede and
 				 * unmount exits, so a consumer starting a fresh drag from inside this
 				 * callback gets a clean one. The flush above has already delivered the settled sizes
@@ -300,7 +300,7 @@ export function useResizablePanel({
 
 			document.addEventListener('pointermove', onMove, { signal })
 			document.addEventListener('pointerup', onUp, { signal })
-			// A cancelled pointer (OS gesture, pen leaving range) never fires
+			// A canceled pointer (OS gesture, pen leaving range) never fires
 			// pointerup; without this the drag flag stays set and buttonless
 			// movement keeps resizing.
 			document.addEventListener('pointercancel', onUp, { signal })

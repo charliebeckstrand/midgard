@@ -70,12 +70,12 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	interactive: boolean
 	/** Toggled-off legend ids; a hidden category's regions fall back to neutral. */
 	hidden: ReadonlySet<string>
-	/** The emphasised legend id; regions outside its category recede. */
+	/** The emphasized legend id; regions outside its category recede. */
 	emphasis: string | null
 	animate: boolean
 	/**
 	 * Reports the region under a click, resolved by {@link regionIndexAt}
-	 * delegation on the layer group. The memoised per-region paths therefore take
+	 * delegation on the layer group. The memoized per-region paths therefore take
 	 * no handler prop. This handler's identity — the one input here a consumer
 	 * controls — never reaches the layer the county atlas depends on. When it is
 	 * set, it also turns on the pointer cursor and lifts the hover emphasis to
@@ -109,7 +109,7 @@ export type MapRegionsProps = Omit<MapRegionLayer, 'paints'> & {
 	 * {@link MapPlat} resolves it from the public identity. It only rings the
 	 * region. The layer's clickability rides {@link onRegionClick} alone, so a
 	 * map showing a pick made elsewhere takes no pointer affordance it can't
-	 * honour.
+	 * honor.
 	 */
 	selected: number | null
 }
@@ -143,7 +143,7 @@ type RegionProps = {
 	d: string
 	index: number
 	className: string
-	/** The `fill` attribute colour for a numeric bin, `undefined` for a class fill. */
+	/** The `fill` attribute color for a numeric bin, `undefined` for a class fill. */
 	fillColor: string | undefined
 	/** The wash's transition timing under `animate`; `undefined` on static maps. */
 	style: CSSProperties | undefined
@@ -153,10 +153,10 @@ type RegionProps = {
 
 /**
  * One region path. A categorical slot fills by Tailwind class; a numeric bin
- * fills by a `fill` attribute colour from the consumer's `colorRange`.
+ * fills by a `fill` attribute color from the consumer's `colorRange`.
  * No-data — and the pre-reveal beat under `animate` — takes the neutral class.
  *
- * Memoised on its resolved primitives. A legend toggle or the reveal flip
+ * Memoized on its resolved primitives. A legend toggle or the reveal flip
  * re-renders the categories whose paint changed, and every other region holds
  * its last render. The wash styles are shared objects, so a region outside the
  * change compares equal on its timing too. That holds until the stagger
@@ -184,7 +184,7 @@ const Region = memo(function Region({
 			// anchor nothing styles by. The layer keeps its `map-regions` slot.
 			data-region-index={index}
 			d={d}
-			// A numeric bin's colour rides the `fill` presentation attribute, not
+			// A numeric bin's color rides the `fill` presentation attribute, not
 			// an inline style: per-element CSSOM style declarations priced ~a fifth
 			// of the choropleth mount. A value paint never carries a fill class, so
 			// nothing in the cascade sits above the attribute.
@@ -224,7 +224,7 @@ const MapRegionsBase = memo(function MapRegionsBase({
 
 	// One stable handler for every region, reading the pointed index off the
 	// path's own anchor attribute: a layer re-render allocates no per-region
-	// closures, and the memoised Region's props hold their identity.
+	// closures, and the memoized Region's props hold their identity.
 	const track = useCallback(
 		(event: PointerEvent<SVGPathElement>) => {
 			set(
@@ -263,33 +263,33 @@ const MapRegionsBase = memo(function MapRegionsBase({
 })
 
 /**
- * The region paths, every feature filled by its category's slot colour. The
+ * The region paths, every feature filled by its category's slot color. The
  * neutral no-data fill stands where nothing matches, or the category is toggled
  * off. A hole in a map reads broken, unlike a missing bar. Regions are their own
  * hit targets: browser SVG hit testing is the point-in-polygon test, so pointing
  * one moves the shared hover target directly.
  *
  * The shared emphasis recedes the layer as one group. The pointed mark isolates
- * itself, else the legend's focused group holds. The emphasised marks redraw lit
+ * itself, else the legend's focused group holds. The emphasized marks redraw lit
  * above it ({@link MapRegionsLit}). One element fades where thousands of
  * per-path transitions once ran, and the base tree holds its render through the
  * whole interaction. The selected region rings above both and outside the
  * recede, so the standing pick outlasts every passing emphasis. A selection made
  * before the pointer arrived must not vanish under it. That ring marks the
  * region rather than repainting it — `fill="none"` leaves the region's own
- * colour, and whatever dim it carries, reading through.
+ * color, and whatever dim it carries, reading through.
  *
  * @remarks Under `animate` the geography paints solid at once, and only the
- * category colour washes in. Each region's fill crossfades from the neutral
- * backdrop to its slot colour, with a capped per-index stagger. It is a CSS
- * colour transition on a plain `<path>`, not a motion fade. The geometry itself
+ * category color washes in. Each region's fill crossfades from the neutral
+ * backdrop to its slot color, with a capped per-index stagger. It is a CSS
+ * color transition on a plain `<path>`, not a motion fade. The geometry itself
  * therefore never fades, a many-region atlas never draws out the reveal, and the
  * region layer carries no motion runtime. `motion-reduce` drops the transition.
  * The stagger is the reveal's alone, and retires with it ({@link MapWash}). A
  * later legend toggle therefore crossfades on the same tempo, without a reveal
  * delay in front of it.
  *
- * Memoised so it repaints only when its own geometry, category, or legend
+ * Memoized so it repaints only when its own geometry, category, or legend
  * state changes. An overlay child registering its legend entry re-renders the
  * plat, but the region layer holds. The pointed mark arrives through its own
  * context, past the memo. It lands on the recede wrapper and the lit overlay
@@ -315,9 +315,9 @@ export const MapRegions = memo(function MapRegions({
 
 	const pointed = useMapPointedMark()
 
-	// The colour reveal: static maps colour at once; an animated map holds the
+	// The color reveal: static maps color at once; an animated map holds the
 	// neutral backdrop for the first beat, then flips to the category fills so
-	// the CSS colour transition washes them in over the already-painted
+	// the CSS color transition washes them in over the already-painted
 	// geography. Gated on the paths landing, not mere mount — a lazily fetched
 	// atlas mounts the region layer empty first, so keying off paths keeps the
 	// wash for the beat the regions appear. A one-way flag: it never resets, so
@@ -436,7 +436,7 @@ type MapRegionsGroupProps = {
  * The width lives on a group rather than on each path, because the layer draws
  * one path per region. That is thousands, on a ZIP or county atlas. A width
  * restated per path would put all of them through React on every notch of a
- * gesture. That is the work {@link MapRegions}' memoisation prevents. It lives
+ * gesture. That is the work {@link MapRegions}' memoization prevents. It lives
  * on *this* group rather than on the zoom layer above it, so the constant
  * governs an unzoomed map too. That map mounts no zoom group at all. The style
  * the browser recomputes when it changes is also bounded by the layer that owns

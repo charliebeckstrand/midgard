@@ -1,11 +1,11 @@
 /**
  * The {@link HeatmapChart}'s schema: the one series it reads, and the pure
  * pivot from flat rows to the row-major matrix the geometry projects. The
- * series carries two categorical keys and a value key with a data-driven colour
+ * series carries two categorical keys and a value key with a data-driven color
  * scale. It mirrors {@link ChoroplethChartSeries} — the module's other
- * sequential-colour chart — and AG Charts' heatmap series (`xKey` / `yKey` /
+ * sequential-color chart — and AG Charts' heatmap series (`xKey` / `yKey` /
  * `colorKey` / `colorRange` / `colorDomain` / `colorName`). The two
- * colour-scaled charts therefore read the same.
+ * color-scaled charts therefore read the same.
  *
  * The frame props reuse {@link ChartBaseProps}, less five props that the heatmap
  * does not wire. A heatmap adds no
@@ -19,12 +19,12 @@ import type { ChartBaseProps, DataKey } from '../engine/types'
 
 /**
  * The one series a heatmap shades cells with. It holds the two fields that
- * place a cell on the grid, and the numeric field the sequential scale colours
+ * place a cell on the grid, and the numeric field the sequential scale colors
  * it by.
  *
  * @remarks `colorKey` is read as `Number(datum[colorKey])`. A non-finite result
  * draws the cell in the neutral no-data fill and an em-dash table row, without
- * pulling on the colour domain.
+ * pulling on the color domain.
  */
 export type HeatmapChartSeries<T> = {
 	/** The field holding each row's column category — the x (band) axis. AG Charts' `xKey`. */
@@ -34,7 +34,7 @@ export type HeatmapChartSeries<T> = {
 	/** The numeric field the scale shades by. AG Charts' `colorKey`. */
 	colorKey: DataKey<T>
 	/**
-	 * The colour scale as ordered CSS colour stops, low → high — the data-driven
+	 * The color scale as ordered CSS color stops, low → high — the data-driven
 	 * range (AG Charts' `colorRange`). The bins sample it. The range legend paints
 	 * it as a continuous bar, as the choropleth's range legend does.
 	 */
@@ -56,10 +56,10 @@ export type HeatmapChartSeries<T> = {
 	 * How the bins divide the data. `'linear'` cuts the domain into equal
 	 * intervals. `'quantile'` cuts it so each bin holds about as many cells,
 	 * which separates a skewed field that a linear scale flattens into one
-	 * colour.
+	 * color.
 	 *
 	 * The choropleth takes the same option, under the same name. Under
-	 * `'quantile'` the colour-to-value mapping is non-linear, so the range legend
+	 * `'quantile'` the color-to-value mapping is non-linear, so the range legend
 	 * bar shows only an approximation of where the breaks fall.
 	 *
 	 * @defaultValue 'linear'
@@ -84,7 +84,7 @@ export type HeatmapChartProps<T = never> = Omit<
 > & {
 	/**
 	 * The one series to shade cells with. A one-element tuple, as pie and donut
-	 * take: the heatmap draws one colour scale, so a second entry had no reading.
+	 * take: the heatmap draws one color scale, so a second entry had no reading.
 	 * Empty reserves the frame and shades nothing.
 	 */
 	series: [] | [HeatmapChartSeries<T>]

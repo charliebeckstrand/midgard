@@ -38,7 +38,7 @@ const sortIcon = defineRecipe({
  *
  * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
  * 4/8/12px). The grab zone is twice that padding and anchored to the trailing
- * edge. Its centred grip (`justify-center`; see `handle`) therefore lands
+ * edge. Its centered grip (`justify-center`; see `handle`) therefore lands
  * exactly one cell-padding in from that edge. That is flush with where the
  * header label and body values truncate, so the grip meets the value instead of
  * cutting through it.
@@ -200,14 +200,14 @@ export const k = {
 	},
 	pinned: {
 		// Frozen data cell: opaque surface so the scrolling columns don't show
-		// through, lifted just above the centre cells (below the z-10 sticky head,
+		// through, lifted just above the center cells (below the z-10 sticky head,
 		// so a vertical scroll still tucks pinned cells under it). The fill matches
 		// the surface under the grid (see `hostSurface`); the inline-start or
 		// inline-end offset is an inline style summed from the engine.
 		cell: ['sticky z-[1]', hostSurface],
 		// Frozen header cell: above the sticky head so the top corner stays on top.
 		// Shares the sticky header's fill (see `hostSurface`), so the pinned header
-		// and the header bar paint one colour.
+		// and the header bar paint one color.
 		head: ['sticky z-20', hostSurface],
 		// Edge border on a frozen group's scroll-facing boundary: a 2px rule at the
 		// inline end of a start (left) group's innermost column, and at the inline
@@ -273,7 +273,7 @@ export const k = {
 		table: ['border-separate', 'border-spacing-0'],
 		// Interior gridlines plus the inline-end/bottom outer edges: every cell. The
 		// tint is an all-sides `border-color`; only the sided widths below render it,
-		// so the top/inline-start rules inherit the same colour without repeating it.
+		// so the top/inline-start rules inherit the same color without repeating it.
 		cell: [
 			'[&>*>tr>td]:border-e',
 			'[&>*>tr>td]:border-b',
@@ -311,7 +311,7 @@ export const k = {
 	groupButton: {
 		// Layout only. The active accent (this column is the group) comes from the
 		// Button's `color` prop; `idle` is the resting muted tint, dropped when
-		// active so it doesn't override that colour — mirroring the filter button.
+		// active so it doesn't override that color — mirroring the filter button.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
 	},
@@ -443,7 +443,7 @@ export const k = {
 			// until an arrow key, isn't left without a cue. Mirrors `iro.text.muted`;
 			// the header already sits at this shade (table `header` base), so the
 			// visible shift is the bright body (`text.default`) dimming to meet it.
-			// `data-[dragging]` out-specifies the cell's resting colour, so the
+			// `data-[dragging]` out-specifies the cell's resting color, so the
 			// override lands without `!`.
 			'data-[dragging]:text-zinc-500',
 			'dark:data-[dragging]:text-zinc-400',
@@ -474,7 +474,7 @@ export const k = {
 		// past their start.
 		// That pull seats the box flush to the table's horizontal scroll wrapper
 		// (`overflow-x-auto`), so its focus ring is `inset` — clip-safe, like
-		// `k.nav.cell` and the `k.resize.grip` colour shift — rather than the outset
+		// `k.nav.cell` and the `k.resize.grip` color shift — rather than the outset
 		// `ring` the wrapper would shave at the edge.
 		handle: [
 			flex.inline,
@@ -534,7 +534,7 @@ export const k = {
 		// cell of every row in the group (its header and each leaf) so it reads as one
 		// continuous bar, the row-group analog of a column group's underline rule. It
 		// takes a neutral tint by default; the row manager swaps in a per-group
-		// palette colour (`rail.color[group.color]`).
+		// palette color (`rail.color[group.color]`).
 		rail: {
 			// The padded group cells' variant (the leaf/header cells manage their own padding).
 			padded: ['py-0', ...railBorder],
@@ -555,7 +555,7 @@ export const k = {
 		// tweens `1fr` (open) ↔ `0fr` (closed) via `data-open`, the modern auto-height
 		// animation — reliable in a `<table>`, where a JS height tween on a `<td>` is not.
 		reveal: {
-			// Transitions the track over 200ms, honouring `prefers-reduced-motion`.
+			// Transitions the track over 200ms, honoring `prefers-reduced-motion`.
 			track: [
 				'grid',
 				'[grid-template-rows:0fr]',
@@ -586,10 +586,10 @@ export const k = {
 	},
 	detail: {
 		// The master-detail chevron in an expander cell: rotates a quarter-turn as
-		// the panel opens (`data-open`), honouring `prefers-reduced-motion`. The
+		// the panel opens (`data-open`), honoring `prefers-reduced-motion`. The
 		// class rides the chevron `<svg>` directly (the expander passes `data-open`
 		// and this recipe onto the lucide element), which rotates about its own
-		// centre without a wrapper. A right-to-left grid mirrors the chevron, so it
+		// center without a wrapper. A right-to-left grid mirrors the chevron, so it
 		// points to the inline end, and turns it counterclockwise, so it still points
 		// down once open. CSS applies the rotate after the scale.
 		chevron: [
@@ -652,7 +652,7 @@ export const k = {
 		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
 		// the grip one cell-padding in from the trailing edge — flush with where a
-		// truncating header's label and body values clip — and `items-center` centres
+		// truncating header's label and body values clip — and `items-center` centers
 		// the short grip vertically. `group/grid-resize` lets the grip tint on hover
 		// and turn accent on focus or active drag. The grab zone does not overhang the
 		// boundary: an outward overhang gets painted over by a neighbour's opaque
@@ -664,10 +664,10 @@ export const k = {
 		],
 		// Grip line — a short 2px rounded bar (`h-4`), its 2px width matching the
 		// `ResizableHandle` grip (`kata/resizable`) so every resize affordance reads
-		// the same, centred in the grab zone (`justify-center` on the handle) one
+		// the same, centered in the grab zone (`justify-center` on the handle) one
 		// cell-padding in from the trailing edge. Always visible: muted at rest,
 		// tinting on hover, turning accent on keyboard focus or active drag. Focus
-		// shows as a colour change, not an outset ring, so the scroll container can't
+		// shows as a color change, not an outset ring, so the scroll container can't
 		// clip it.
 		grip: [
 			'h-4 w-0.5',
@@ -689,7 +689,7 @@ export const k = {
 		slot: ['flex', 'items-center', 'justify-between', 'gap-1'],
 		// Filter icon button in a column header: layout only. The active accent comes
 		// from the Button's `color` prop; `idle` is the resting muted tint, dropped
-		// when active so it doesn't override that colour.
+		// when active so it doesn't override that color.
 		button: ['shrink-0'],
 		idle: [text.muted, fg.hover],
 	},
@@ -784,7 +784,7 @@ export const k = {
 		loading: [css.pulse, 'opacity-50'],
 	},
 	// The "Exporting" overlay: a scrim over the whole grid while an async export
-	// resolves its rows, with a centred label.
+	// resolves its rows, with a centered label.
 	//
 	// It covers the grid wrapper rather than the table alone, so the search,
 	// filters, and sort that decide *what* is being exported can't be changed out
@@ -798,7 +798,7 @@ export const k = {
 		// panel takes, so the label belongs to the library's raised surfaces rather
 		// than being a bare string over a blur.
 		label: [
-			// `flex.row` centres its items already; only the gap and box are ours.
+			// `flex.row` centers its items already; only the gap and box are ours.
 			flex.row,
 			'gap-2',
 			'px-3 py-2',

@@ -1,6 +1,6 @@
 /**
  * Omote glass: fully transparent glass surface. Blur only; the host
- * inherits its colour from whatever sits behind.
+ * inherits its color from whatever sits behind.
  *
  * Layer: kiso · Concern: glass surface
  */

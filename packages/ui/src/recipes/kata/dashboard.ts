@@ -11,7 +11,7 @@ const { text } = iro
 
 /**
  * The column guides in edit mode: a hairline on each interior column boundary,
- * at the centre of a gutter. A layer inset by half a gutter carries them, so no
+ * at the center of a gutter. A layer inset by half a gutter carries them, so no
  * guide draws on the outer edge of the board. The root sets the gutter and the
  * column count as CSS variables, because both are props.
  */

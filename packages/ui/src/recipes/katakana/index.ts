@@ -18,7 +18,7 @@
  * - `panel`, the panel bundle shared by Dialog, Drawer, and Sheet.
  *
  * `slider` has no
- * bridge; it's a pure colour token bundle the slider kata read from kiso
+ * bridge; it's a pure color token bundle the slider kata read from kiso
  * directly. Alongside the archetypes, `backdrop` is a small shared recipe
  * (not an archetype) for the drawer/sheet modal scrim.
  *

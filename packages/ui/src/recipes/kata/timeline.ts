@@ -5,7 +5,7 @@ const { marker, text } = iro
 const { size, weight } = ji
 
 /**
- * Per-colour marker appearance. `dot` uses the `iro.marker` shade, which clears
+ * Per-color marker appearance. `dot` uses the `iro.marker` shade, which clears
  * non-text 3:1 on the page. That is 600 light / 500 dark, and 500 / 400 for zinc. `line.before` / `line.after`
  * paint the inbound / outbound rail at the same shade (zinc uses a subtle
  * structural rail). The `before:` / `after:` prefixes are verbatim class

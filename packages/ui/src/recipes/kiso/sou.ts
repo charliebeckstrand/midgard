@@ -20,7 +20,7 @@
  * paint over the very control the region keeps reachable.
  *
  * `float` is every transient anchored surface — tooltip, popover, menu,
- * select, combobox, listbox, date and colour picker. It clears the overlay
+ * select, combobox, listbox, date and color picker. It clears the overlay
  * and chrome rungs alike, because a float is routinely raised *from inside* a
  * panel or a chrome region. A tooltip that renders under the panel it describes
  * is worse than no tooltip.

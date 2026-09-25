@@ -18,7 +18,7 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
 }
 
 /**
- * Samples a colour from anywhere on screen via the `EyeDropper` API. Renders
+ * Samples a color from anywhere on screen via the `EyeDropper` API. Renders
  * nothing where the API is unavailable.
  *
  * @remarks

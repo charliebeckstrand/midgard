@@ -31,7 +31,7 @@ export type MapMarkerProps = MapOverlayProps & {
  * An origin and a destination pin with the route connecting them. It is the
  * map's origin → destination mark, registered in the plat's legend as one
  * toggleable, focusable entry. Both pins are solid dots in the marker's slot
- * colour. Hovering any part raises the tooltip with the marker's name and
+ * color. Hovering any part raises the tooltip with the marker's name and
  * detail, and isolates the pair. Every other mark recedes, as under its legend
  * entry's focus. With `onClick` set, every part answers a click, and the
  * keyboard cursor picks the marker with Enter or Space. The plat's
@@ -84,14 +84,14 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		stops: () => lineAnchor(points),
 	})
 
-	// Memoised so a hover-driven re-render (the plat's pointer state churns the
+	// Memoized so a hover-driven re-render (the plat's pointer state churns the
 	// hover context) doesn't re-project and re-stringify the whole connector.
 	// `points` holds through the memo above whatever shape the caller writes, and
 	// `project` identity holds until the measured refit.
 	const d = useMemo(() => linePath(points, project), [points, project])
 
-	// Memoised rather than called inline, because `projectPoint` hands back a fresh
-	// `{ x, y }` per call — so an unmemoised pin is a new identity every render and
+	// Memoized rather than called inline, because `projectPoint` hands back a fresh
+	// `{ x, y }` per call — so an unmemoized pin is a new identity every render and
 	// the target memo below, whose deps they are, would never hold.
 	const from = useMemo(() => project([startLng, startLat]), [project, startLng, startLat])
 
@@ -101,7 +101,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 	// neighbours, so a short leg is this mark's own crowding case — a target on one
 	// end covering the other would take that pin's readout with it.
 	//
-	// Memoised above the guard rather than resolved below it. Below, a toggled-off
+	// Memoized above the guard rather than resolved below it. Below, a toggled-off
 	// marker paid nothing; the mark re-renders on every pointer crossing of every
 	// mark on the map, and `spare` is now two projection inverts and a grid walk
 	// per pin rather than the boolean read it was when that trade was made.

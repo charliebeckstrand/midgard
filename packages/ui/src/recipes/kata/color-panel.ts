@@ -11,7 +11,7 @@ import { kasane, kokkaku, sen } from '../kiso'
 const { rounded } = kasane
 const { focus } = sen
 
-// Draggable circular handle, centred on its inline-positioned coordinate.
+// Draggable circular handle, centered on its inline-positioned coordinate.
 const handle = [
 	'absolute pointer-events-none',
 	'size-4 -translate-x-1/2 -translate-y-1/2',
@@ -61,7 +61,7 @@ export const k = defineRecipe(
 		handle,
 		/** Full hue wheel laid left to right for the hue track. */
 		hue: '[background-image:linear-gradient(to_right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)]',
-		/** Alpha / preview chequerboard surfaced behind translucent colour. */
+		/** Alpha / preview chequerboard surfaced behind translucent color. */
 		checkerboard:
 			'[background-image:repeating-conic-gradient(#cbd5e1_0_25%,#fff_0_50%)] [background-size:12px_12px] dark:[background-image:repeating-conic-gradient(#3f3f46_0_25%,#52525b_0_50%)]',
 		/** Full-width stack for the hue (and optional alpha) tracks. */

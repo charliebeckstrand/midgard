@@ -4,7 +4,7 @@ import type { ComponentProps } from 'react'
 export type BreadcrumbProps = ComponentProps<'nav'>
 
 /**
- * Breadcrumb navigation landmark: renders a `<nav>` labelled
+ * Breadcrumb navigation landmark: renders a `<nav>` labeled
  * `aria-label="Breadcrumb"` (APG). Holds a `<BreadcrumbList>` of
  * `<BreadcrumbItem>`s, each wrapping a `<BreadcrumbLink>`, with
  * `<BreadcrumbSeparator>`s between crumbs. Static leaf: renders in React Server

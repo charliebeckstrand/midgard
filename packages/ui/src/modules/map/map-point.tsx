@@ -20,7 +20,7 @@ export type MapPointProps = MapOverlayProps & {
 
 /**
  * A solid circle marker at one coordinate: a warehouse, a stop, a geocoded
- * address. It is filled in its slot colour, and registered in the plat's legend
+ * address. It is filled in its slot color, and registered in the plat's legend
  * as its own toggleable, focusable entry. Hovering raises the tooltip with the
  * point's name and detail, and isolates the dot. Every other mark recedes, as
  * under its legend entry's focus, and an invisible hit circle keeps the dot
@@ -78,14 +78,14 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		stops: () => [at],
 	})
 
-	// Sanitised, because `useId` spells its output with characters a fragment reference cannot carry.
+	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.
 	const clipId = `${useId().replace(/[^\w-]/g, '')}-hit`
 
 	const [lng, lat] = at
 
 	/*
-	 * Keyed on the ordinates rather than on `at`, and memoised rather than called inline, because
-	 * `projectPoint` hands back a fresh `{ x, y }` per call. An unmemoised position is therefore a
+	 * Keyed on the ordinates rather than on `at`, and memoized rather than called inline, because
+	 * `projectPoint` hands back a fresh `{ x, y }` per call. An unmemoized position is therefore a
 	 * new identity every render, and the `ground` memo below, whose first dep it is, would never hold.
 	 * `LngLat` is a tuple, so an inline `at={[15, 5]}` is a fresh array every render too.
 	 */
@@ -95,10 +95,10 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	 * The ground this dot keeps, once every other mark's dots are accounted for. `null` — no neighbour
 	 * close enough to want any — is the answer for almost every dot, and draws no clip at all.
 	 *
-	 * Memoised, and above the early return so the hook order cannot depend on visibility. This mark
+	 * Memoized, and above the early return so the hook order cannot depend on visibility. This mark
 	 * re-renders on every pointer crossing of every mark on the map (`useMapOverlay` subscribes to the
 	 * pointed mark to resolve `dim`). None of these three inputs moves when a pointer crosses, the
-	 * same reason `MapPoints` memoises its own `targets`. Unmemoised it re-pooled every other mark's
+	 * same reason `MapPoints` memoizes its own `targets`. Unmemoized it re-pooled every other mark's
 	 * dots and re-ran the bisector clips per crossing. It also handed `MapDotClip` a fresh ring that
 	 * defeated its own memo in turn.
 	 */
@@ -111,7 +111,7 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 	)
 
 	/*
-	 * The shared rule, through the one dot this mark draws — memoised beside `ground` and for the
+	 * The shared rule, through the one dot this mark draws — memoized beside `ground` and for the
 	 * same reason. A lone dot has no neighbour of its own, so a zone or the region layer under it is
 	 * what can answer. The rule stays in one place, so a third claim reaches this mark without it
 	 * being edited.

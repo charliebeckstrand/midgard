@@ -45,7 +45,7 @@ import { cartesianFocus } from '../engine/use-chart-keyboard'
  */
 export type ComboChartProps<T = never> = ChartBaseProps<T> &
 	CartesianFrameProps & {
-		/** The series to plot, each drawn as bars, a line, or a filled area; slot colours follow this order. */
+		/** The series to plot, each drawn as bars, a line, or a filled area; slot colors follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
 		 * Mark every line and area point with a filled, surface-ringed dot.
@@ -348,7 +348,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				// A labelled rule reads its value without the rove, so it sheds its stop.
+				// A labeled rule reads its value without the rove, so it sheds its stop.
 				labels?.references ? undefined : chart.referencePositions,
 				chart.snapSeries,
 			)}

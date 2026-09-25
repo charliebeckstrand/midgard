@@ -68,7 +68,7 @@ import type { LngLat, MapFeature, MapProjection } from '../types'
  * arrays of arrays. The emit below also walks it once per fit, and never
  * searches it.
  *
- * Shared across instances like the geometry it is memoised beside, so treat
+ * Shared across instances like the geometry it is memoized beside, so treat
  * every field as read-only.
  *
  * @internal

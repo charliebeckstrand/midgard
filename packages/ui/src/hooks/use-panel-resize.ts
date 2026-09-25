@@ -440,7 +440,7 @@ export function usePanelResize({
 
 		window.addEventListener('pointerup', release, { signal })
 
-		// A cancelled pointer — an OS gesture, a pen leaving range — never fires
+		// A canceled pointer — an OS gesture, a pen leaving range — never fires
 		// `pointerup`, and without this the panel would follow a pointer that is gone.
 		window.addEventListener('pointercancel', release, { signal })
 

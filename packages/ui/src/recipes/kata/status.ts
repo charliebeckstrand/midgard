@@ -31,7 +31,7 @@ export type StatusDotVariants = {
 	 */
 	variant?: Exclude<SwatchVariants['variant'], 'soft'>
 	/**
-	 * The semantic status; sets the dot's colour.
+	 * The semantic status; sets the dot's color.
 	 * @defaultValue 'inactive'
 	 */
 	status?: keyof typeof statusColor

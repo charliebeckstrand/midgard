@@ -27,7 +27,7 @@ export type ResizableGroupProps = {
 	onResizeStart?: (handleIndex: number) => void
 	/**
 	 * Fires with the handle's index when a pointer drag-resize ends, whether the pointer
-	 * lifted, the gesture was cancelled, or a second pointer superseded it. Exactly one
+	 * lifted, the gesture was canceled, or a second pointer superseded it. Exactly one
 	 * end follows each start.
 	 *
 	 * The settled sizes have already flowed through `onSizesChange`; this only marks the

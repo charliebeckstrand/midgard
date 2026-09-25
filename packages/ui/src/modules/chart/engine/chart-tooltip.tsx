@@ -95,7 +95,7 @@ export type ChartTooltipProps = {
 	 */
 	order?: number[]
 	/**
-	 * The emphasised series' index, when one is — the keyboard cursor reading a
+	 * The emphasized series' index, when one is — the keyboard cursor reading a
 	 * dataset, or a legend entry. Its row stays at full strength while every other
 	 * row dims, mirroring the marks; `null` (the default) reads every row equally.
 	 */
@@ -137,7 +137,7 @@ const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
  * snapped category is unmistakable. Off the snap it tracks the pointer and
  * shows only over a mark.
  *
- * With a series emphasised — the keyboard cursor reading one dataset — that
+ * With a series emphasized — the keyboard cursor reading one dataset — that
  * series' row stays lit while the rest dim to a quarter opacity. It is the same
  * recede the marks take, so the readout foregrounds the row the cursor is on.
  *

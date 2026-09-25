@@ -25,7 +25,7 @@ const { flex } = narabi
 const { focus } = sen
 
 /**
- * Filled-star hue. The `current` inherits the surrounding text colour, for a
+ * Filled-star hue. The `current` inherits the surrounding text color, for a
  * rating that takes the ink of the row it sits in. Red, amber, green, and blue
  * resolve to the `marker` shade (600 light / 500 dark), which clears the
  * graphical 3:1 floor on the page surface. Zinc takes a local 600 / 400 pair.

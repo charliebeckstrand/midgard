@@ -1,6 +1,6 @@
 /**
  * The engine's entry to prop-supplied geography. TopoJSON and GeoJSON both
- * normalise to one flat feature list here, so nothing downstream asks which
+ * normalize to one flat feature list here, so nothing downstream asks which
  * form the atlas arrived in.
  */
 
@@ -29,7 +29,7 @@ export function topologyObject(
 }
 
 /**
- * Normalises what `topojson-client` hands back to a feature list. It returns a
+ * Normalizes what `topojson-client` hands back to a feature list. It returns a
  * collection for a geometry collection and a lone feature for a lone geometry,
  * and no caller cares which.
  *
@@ -42,7 +42,7 @@ export function decodedFeatures(decoded: ReturnType<typeof feature>): MapFeature
 }
 
 /**
- * Normalises prop-supplied geography to a flat feature list: a TopoJSON
+ * Normalizes prop-supplied geography to a flat feature list: a TopoJSON
  * topology decodes its named object, a GeoJSON collection passes its features
  * through. An unknown object name yields no features.
  *

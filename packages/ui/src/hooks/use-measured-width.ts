@@ -12,7 +12,7 @@ export type MeasuredWidth = {
 }
 
 /**
- * The container width a colour-scaled plot places its range bar by, shared by
+ * The container width a color-scaled plot places its range bar by, shared by
  * the map's plat and the heatmap.
  *
  * Measured off the container rather than off the plot, which is the whole
@@ -38,7 +38,7 @@ export function useMeasuredWidth(width: number | undefined): MeasuredWidth {
 
 	// Passed as a fresh closure deliberately: `useResizeObserver` raises the
 	// callback through an effect event and subscribes on `ref` alone, so
-	// memoising it would buy nothing — and it reads the live `width` for the
+	// memoizing it would buy nothing — and it reads the live `width` for the
 	// same reason.
 	useResizeObserver(ref, () => {
 		// An explicit width answers outright, so a fixed-width plot commits no

@@ -11,7 +11,7 @@ import type { ColorFormat, Hsva } from './types'
 import { useColorState } from './use-color-state'
 
 export type ColorPickerStateOptions = {
-	/** Form field name; binds the colour to an enclosing `<Form>`. */
+	/** Form field name; binds the color to an enclosing `<Form>`. */
 	name?: string
 	value?: string | Hsva
 	defaultValue?: string | Hsva
@@ -24,11 +24,11 @@ export type ColorPickerStateOptions = {
 }
 
 /**
- * Wires the popover trigger: owns the colour shared by the swatch and the
+ * Wires the popover trigger: owns the color shared by the swatch and the
  * inline panel. It resolves id / disabled / invalid from an enclosing Control,
  * and drives the floating dialog's open state.
  *
- * @returns The colour state (`hsva`, `setHsva`), the open state (`open`,
+ * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
  * `describedBy`, `disabled`, `required`, `invalid`). It also returns the
  * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
@@ -58,14 +58,14 @@ export function useColorPickerState({
 
 	const resolvedDisabled = disabled || control?.disabled === true
 
-	// The §7.2 binding sits above the colour state rather than inside it: a bound
+	// The §7.2 binding sits above the color state rather than inside it: a bound
 	// field is the value channel, and `useColorState` keeps the HSVA the swatch
 	// and the panel share. An emission round-trips through the field and comes
 	// back as `value`, which the state's own echo guard then skips.
 	const bound = useFormValue<string | Hsva>(name, {
 		value,
 		defaultValue,
-		// The picker always holds a colour — the swatch has to paint something — so
+		// The picker always holds a color — the swatch has to paint something — so
 		// the cleared `null` §7.3 admits never reaches the consumer.
 		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
 	})

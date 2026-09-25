@@ -21,7 +21,7 @@ export type SectorSegmentLabel = {
 /**
  * A slice group's dim classes — on the wrapper, so motion's inline opacity
  * composes. A held selection wins: it lights only its own slices, and a hover
- * never re-lights them. Else the emphasised slice lights alone. @internal
+ * never re-lights them. Else the emphasized slice lights alone. @internal
  */
 export function sliceGroupClass(
 	emphasis: number | null,
@@ -51,7 +51,7 @@ type SectorSegmentLabelsProps = {
 	items: SectorSegmentLabel[]
 	paints: SlotPaint[]
 	animate: boolean
-	/** The legend-emphasised slice; other labels dim with their slices. */
+	/** The legend-emphasized slice; other labels dim with their slices. */
 	emphasis: number | null
 	/** The held selection, or `null`; unselected labels dim with their slices. */
 	selected?: ReadonlySet<number> | null
@@ -59,7 +59,7 @@ type SectorSegmentLabelsProps = {
 
 /**
  * The fit-gated labels set inside the slices. Text on a mark's own fill is
- * the one place ink follows the series colour. Each hue's `onFill` pick is
+ * the one place ink follows the series color. Each hue's `onFill` pick is
  * white-first, dropping to near-black only where white can't clear the 3:1
  * graphical floor against that fill (see `kata/chart`). Under `animate` a label
  * fades in as the sweep uncovers its slice.
@@ -146,7 +146,7 @@ type SectorChartMarksProps = {
 	center: { x: number; y: number }
 	/** The outer radius the sweep mask must cover. */
 	radius: number
-	/** The legend-emphasised slice; the others dim against it. */
+	/** The legend-emphasized slice; the others dim against it. */
 	emphasis: number | null
 	/** The held selection, or `null`; unselected slices dim until an emphasis wins. */
 	selected?: ReadonlySet<number> | null
@@ -168,7 +168,7 @@ type SectorChartMarksProps = {
 	 */
 	onIndexClick?: (index: number) => void
 	/**
-	 * Emphasises a slice while the pointer sits on it (`null` clears). It is the
+	 * Emphasizes a slice while the pointer sits on it (`null` clears). It is the
 	 * same channel the legend hover drives. A hovered slice isolates itself and
 	 * recedes the rest, exactly as its legend chip does.
 	 */

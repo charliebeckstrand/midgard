@@ -108,7 +108,7 @@ export type MapGeography = MapTopology | MapFeatureCollection
 
 /**
  * One region category: the data value it matches, with optional legend text
- * and slot-colour override. Omitted entirely, categories derive from the data
+ * and slot-color override. Omitted entirely, categories derive from the data
  * in first-appearance order.
  */
 export type MapCategory = {
@@ -117,8 +117,8 @@ export type MapCategory = {
 	/** Legend and tooltip text; defaults to `value`. */
 	label?: string
 	/**
-	 * Named mark colour override. Defaults to the categorical slot palette in
-	 * fixed order, so a category keeps its colour when siblings toggle.
+	 * Named mark color override. Defaults to the categorical slot palette in
+	 * fixed order, so a category keeps its color when siblings toggle.
 	 */
 	color?: MapSeriesColor
 }

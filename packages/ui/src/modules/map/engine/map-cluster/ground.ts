@@ -146,11 +146,11 @@ export function ownGround(
 		const dy = other.y - at.y
 
 		// The raw delta, not a unit normal: `nearer` reads only the sign of a dot product against it and
-		// `crossing` reads a ratio of two, so any positive scaling cancels out of both. Normalising would
+		// `crossing` reads a ratio of two, so any positive scaling cancels out of both. Normalizing would
 		// buy a square root and a rounding step per neighbour to reach the same ring.
 		ring = clipToHalf(ring, { x: at.x + dx / 2, y: at.y + dy / 2 }, dx, dy)
 
-		// Every cut passes within `reach` of the centre, so the dot's own position always survives and
+		// Every cut passes within `reach` of the center, so the dot's own position always survives and
 		// the ring cannot empty. Bailing anyway rather than emitting a degenerate `points` list, since
 		// a ring of under three points clips the target away entirely and would read as a dead pin.
 		if (ring.length < 3) return null

@@ -14,7 +14,7 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
  * @remarks It magnifies by rendering the page a second time rather than by re-rasterizing at
  * a higher scale. The lens holds a copy of the page frame inside a wrapper scaled about the
  * pointer. The copy is the same image, at the same size, wearing the same transform. So
- * rotation, zoom and the centring all compose exactly as they do on the page itself. There
+ * rotation, zoom and the centering all compose exactly as they do on the page itself. There
  * is no second copy of that arithmetic to keep in agreement. There is no work at all beyond
  * a paint either, because the browser has the bitmap decoded already.
  *

@@ -1,6 +1,6 @@
 /**
  * JSON-tree kata: object-literal surface for the collapsible JSON viewer.
- * Carries a per-value-type syntax-colour table (`valueColor`, keyed by
+ * Carries a per-value-type syntax-color table (`valueColor`, keyed by
  * {@link JsonValueType}) authored inline with `mode()`. These editor-style
  * hues are local to this viewer, not a shared iro palette. Rows, the expand
  * toggle, chevron, and the collapse motion config round out the surface.

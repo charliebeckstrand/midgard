@@ -50,7 +50,7 @@ const viewport = defineRecipe({
 		'space-y-0.5',
 		'overflow-y-auto overscroll-contain',
 		// The panel surface is translucent glass, so an overlay gradient has no
-		// solid colour to fade into; a mask fades the scrolled content itself.
+		// solid color to fade into; a mask fades the scrolled content itself.
 		// The fade extents default to zero and open per edge while
 		// `useScrollOverflow` stamps the matching overflow attribute.
 		'[mask-image:linear-gradient(to_bottom,transparent,black_var(--menu-fade-above,0px),black_calc(100%-var(--menu-fade-below,0px)),transparent)]',
@@ -74,7 +74,7 @@ const viewport = defineRecipe({
 export const k = {
 	content: 'min-w-48',
 	// A `MenuSub` parent keeps its wash while the panel is open (`data-open`), so
-	// the row the pointer travelled from still reads as the live trail back —
+	// the row the pointer traveled from still reads as the live trail back —
 	// `hannou.item`'s hover tint alone drops the moment the pointer leaves it.
 	subTrigger: mode('data-open:bg-zinc-950/5', 'dark:data-open:bg-white/5'),
 	viewport,

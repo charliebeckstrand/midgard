@@ -1,13 +1,13 @@
 /**
- * Sequential colour-scale primitives shared by the data-driven colour charts:
- * the choropleth and the heatmap. The primitives sample an ordered colour ramp,
+ * Sequential color-scale primitives shared by the data-driven color charts:
+ * the choropleth and the heatmap. The primitives sample an ordered color ramp,
  * and quantise a numeric domain into equal-interval bins painted from it. Pure
  * and dependency-light so the mapping math is unit-testable in isolation and
  * both modules read one scale rather than forking it.
  *
- * `colorRange` is an ordered list of CSS colour stops, low → high — the
+ * `colorRange` is an ordered list of CSS color stops, low → high — the
  * data-driven scale the consumer owns (mirrors AG Charts / ECharts / Vega). An
- * exact stop passes through verbatim, so any CSS colour works when a sample
+ * exact stop passes through verbatim, so any CSS color works when a sample
  * lands on one (bins = stops). Interpolation between stops goes through
  * {@link parseColor}, so `#rgb`, `rgb(…)`, `oklch(…)`, and the `white` / `black`
  * keywords all mix.
@@ -18,7 +18,7 @@ import { clamp } from './clamp'
 import { parseColor } from './contrast'
 
 /**
- * The colour `t` (0–1) of the way along the ordered `stops`, interpolated in
+ * The color `t` (0–1) of the way along the ordered `stops`, interpolated in
  * sRGB. An exact stop is returned verbatim; a sample between two stops mixes
  * their channels and returns an `rgb(…)` string.
  *
@@ -52,16 +52,16 @@ export function sampleRange(stops: string[], t: number): string {
 	return `rgb(${mix(r1, r2)} ${mix(g1, g2)} ${mix(b1, b2)})`
 }
 
-/** `n` colours evenly sampled from `range`, low → high. */
+/** `n` colors evenly sampled from `range`, low → high. */
 export function binColors(range: string[], n: number): string[] {
 	if (n <= 1) return [sampleRange(range, 0)]
 
 	return Array.from({ length: n }, (_, i) => sampleRange(range, i / (n - 1)))
 }
 
-/** One equal-interval bin: its colour and the `[lo, hi]` value range it covers. */
+/** One equal-interval bin: its color and the `[lo, hi]` value range it covers. */
 export type ColorBin = {
-	/** The bin's fill, sampled from the colour range. */
+	/** The bin's fill, sampled from the color range. */
 	color: string
 	/** The bin's lower value edge (inclusive). */
 	lo: number
@@ -99,7 +99,7 @@ export function valueExtent(
 
 /**
  * Quantises `domain` into equal-interval {@link ColorBin}s sampled from
- * `colorRange`, low → high. The default is one bin per colour stop, or `bins`
+ * `colorRange`, low → high. The default is one bin per color stop, or `bins`
  * buckets resampled from the stops when set. The last bin's `hi` is pinned to
  * the domain max so the top edge folds in rather than opening a bucket past it.
  */
@@ -171,9 +171,9 @@ function quantileAt(sorted: number[], p: number): number {
  * equal-count (quantile) buckets — the value at each `i / count` quantile of the
  * sorted finite values. Empty when there is nothing to split (no finite values,
  * a flat domain, or `count < 2`), so the caller paints a single bin. Ties leave
- * repeated edges, the standard quantile-scale behaviour. A heavily duplicated
+ * repeated edges, the standard quantile-scale behavior. A heavily duplicated
  * value can therefore leave some buckets zero-width, rather than forcing an
- * even split that identical values can't honour.
+ * even split that identical values can't honor.
  */
 export function quantileThresholds(values: number[], count: number): number[] {
 	return sortedThresholds(sortedFinite(values), count)
@@ -218,9 +218,9 @@ export function quantileBinIndex(value: number, thresholds: number[]): number | 
  * resolveColorBins}'s equal-interval buckets. Each shade covers a similar
  * number of rows rather than a similar value span. Returns the bins and the
  * {@link quantileThresholds} rows are assigned by ({@link quantileBinIndex}).
- * `bins` buckets by default one per colour stop. Ties or a flat domain yield
+ * `bins` buckets by default one per color stop. Ties or a flat domain yield
  * fewer real buckets. The painted bin count therefore tracks the actual edges,
- * rather than mapping a colour onto a bucket the data can't fill.
+ * rather than mapping a color onto a bucket the data can't fill.
  */
 export function resolveQuantileBins(
 	values: number[],
@@ -241,7 +241,7 @@ export function resolveQuantileBins(
 
 	// The painted buckets are the edges the data actually produced: `min`, each
 	// threshold, `max` — a flat domain (no thresholds) is one bin, otherwise the
-	// requested count — so a colour never maps onto a bucket the data can't fill.
+	// requested count — so a color never maps onto a bucket the data can't fill.
 	const edges = [min, ...thresholds, max]
 
 	return {

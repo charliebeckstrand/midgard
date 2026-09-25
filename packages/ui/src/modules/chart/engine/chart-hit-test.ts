@@ -33,7 +33,7 @@ const AREA_EDGE_SLACK = 4
  * How decisively a challenger must out-close the held mark to take the
  * emphasis within overlapping catches: to under half its distance. Nearest-mark
  * resolution alone flips at the exact midline between two close marks: a knife
- * edge. The mark already emphasised therefore holds until the pointer commits
+ * edge. The mark already emphasized therefore holds until the pointer commits
  * to another, which turns the flip point into a deadband.
  *
  * @internal
@@ -140,7 +140,7 @@ function runDistanceSquared(run: LinePoint[], x: number, y: number): number {
  * The series whose line runs nearest the pointer, within `tolerance`, or `null`
  * off every line. The nearest wins where two overlap, so the isolation lifts
  * the line the pointer truly follows rather than whichever drew first. A `held`
- * series — the one already emphasised — keeps the win while it stays within the
+ * series — the one already emphasized — keeps the win while it stays within the
  * catch, unless a challenger {@link beatsHeldMark | decisively} closes. The
  * resolution is sticky across the midline between two close strokes, rather
  * than flipping on the knife edge. Each series brings its gap-split runs, so

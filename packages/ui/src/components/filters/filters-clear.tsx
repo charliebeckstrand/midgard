@@ -20,7 +20,7 @@ export type FiltersClearProps = {
 	 * treatment, and this component only lends it the clear action.
 	 */
 	variant?: ButtonVariants['variant']
-	/** Button colour for the fallback trigger. Defaults to {@link Button}'s own; ignored for an element child, as `variant` is. */
+	/** Button color for the fallback trigger. Defaults to {@link Button}'s own; ignored for an element child, as `variant` is. */
 	color?: ButtonVariants['color']
 	className?: string
 }

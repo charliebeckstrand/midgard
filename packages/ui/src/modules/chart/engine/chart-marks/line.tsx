@@ -47,7 +47,7 @@ export type ChartLineMarksProps = {
 	fill: boolean
 	/** Stroke the markers with a surface outline — set only where dots cross opaque marks (the combo bars); soft fills read cleaner without it. */
 	stroke?: boolean
-	/** Per-series texture-tile fill URLs, aligned with `list`; a raw colour or flat mode leaves the slot empty. */
+	/** Per-series texture-tile fill URLs, aligned with `list`; a raw color or flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean

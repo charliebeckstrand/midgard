@@ -48,13 +48,13 @@ export type ChartSeries<T> = {
 	 */
 	yName?: string
 	/**
-	 * Mark colour override: a named palette slot (rendered through the CVD-safe
-	 * slot classes, with its texture tile), or any raw CSS colour string applied
+	 * Mark color override: a named palette slot (rendered through the CVD-safe
+	 * slot classes, with its texture tile), or any raw CSS color string applied
 	 * inline. That is a hex like `'#e11d48'`, an `'oklch(…)'`, or any value CSS
 	 * accepts.
-	 * A raw colour opts out of the categorical palette, so it carries no texture
-	 * tile, the same as a raw-coloured reference line. Defaults to the categorical
-	 * slot palette in fixed order, so a series keeps its colour when siblings
+	 * A raw color opts out of the categorical palette, so it carries no texture
+	 * tile, the same as a raw-colored reference line. Defaults to the categorical
+	 * slot palette in fixed order, so a series keeps its color when siblings
 	 * toggle.
 	 */
 	color?: ChartSeriesColor
@@ -69,11 +69,11 @@ export type ChartSeries<T> = {
 	axis?: ChartValueAxisId
 	/**
 	 * Dash this series' connecting stroke instead of drawing it solid. It is a
-	 * second identity channel beside colour, so two lines sharing one chart tell
-	 * apart beyond hue. They stay tellable apart in print, or under colour-vision
+	 * second identity channel beside color, so two lines sharing one chart tell
+	 * apart beyond hue. They stay tellable apart in print, or under color-vision
 	 * deficiency. Reuses the reference-line dash, keeping the two dash idioms one
 	 * pattern. Only the stroke changes. The series keeps its point markers, legend
-	 * chip, tooltip, crosshair snap, and keyboard behaviour. An area series' fill
+	 * chip, tooltip, crosshair snap, and keyboard behavior. An area series' fill
 	 * wash stays solid under its dashed edge. A bar series has no stroke to
 	 * dash, so it ignores this. Under `animate` the draw-on reveal still plays.
 	 * @defaultValue false
@@ -93,7 +93,7 @@ export type ComboChartSeries<T> = ChartSeries<T> & {
 
 /**
  * The one series a pie or donut sweeps: `xKey` names each slice, `yKey` holds
- * its positive share. There is no colour override, because slice colours follow
+ * its positive share. There is no color override, because slice colors follow
  * the categories rather than the series. There is no axis binding, since a pie
  * has none. There is no dashed stroke either, since a slice is a filled wedge
  * with no connecting line.
@@ -122,10 +122,10 @@ export type ScatterChartSeries<T> = {
 	 */
 	yName?: string
 	/**
-	 * Mark colour override: a named palette slot (rendered through the CVD-safe
-	 * slot classes, with its texture tile), or any raw CSS colour string applied
+	 * Mark color override: a named palette slot (rendered through the CVD-safe
+	 * slot classes, with its texture tile), or any raw CSS color string applied
 	 * inline. Matches the cartesian series' own `color`. Defaults to the
-	 * categorical slot palette in fixed order, so a series keeps its colour when
+	 * categorical slot palette in fixed order, so a series keeps its color when
 	 * siblings toggle.
 	 */
 	color?: ChartSeriesColor
@@ -266,7 +266,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 */
 	tooltip?: boolean | ChartTooltipConfig
 	/**
-	 * Animate the marks in on mount with Framer Motion, honouring
+	 * Animate the marks in on mount with Framer Motion, honoring
 	 * `prefers-reduced-motion` through the `ReducedMotion` primitive. Where present,
 	 * the reference rules rise along the value axis to their values. Off by
 	 * default — a static dashboard of charts stays a plain-SVG tree with no
@@ -284,12 +284,12 @@ export type ChartBaseProps<T> = AccessibleName & {
 	animate?: boolean
 	/**
 	 * Hatch each series' filled marks with a slot-keyed texture. It is a second
-	 * identity channel beside colour. Bars, areas, and slices therefore stay
-	 * tellable apart in print, under severe colour-vision deficiency, or wherever
-	 * colour is unreliable. The texture also engages automatically under
+	 * identity channel beside color. Bars, areas, and slices therefore stay
+	 * tellable apart in print, under severe color-vision deficiency, or wherever
+	 * color is unreliable. The texture also engages automatically under
 	 * `forced-colors`
-	 * (Windows High Contrast) and print even when this is off, where the colour
-	 * channel is already gone. On-screen colour rendering is never changed by that
+	 * (Windows High Contrast) and print even when this is off, where the color
+	 * channel is already gone. On-screen color rendering is never changed by that
 	 * fallback. Line strokes carry no fill, so a
 	 * pure-line series is unaffected.
 	 * @defaultValue false
@@ -383,7 +383,7 @@ export type CartesianFrameProps = {
  */
 export type CartesianChartProps<T> = ChartBaseProps<T> &
 	CartesianFrameProps & {
-		/** The series to plot, one mark set each; slot colours follow this order. */
+		/** The series to plot, one mark set each; slot colors follow this order. */
 		series: ChartSeries<T>[]
 	}
 
@@ -396,16 +396,16 @@ export type CartesianChartProps<T> = ChartBaseProps<T> &
 export type ChartReadoutRow = {
 	/**
 	 * The series' index in the caller's list, so the tooltip can tell the
-	 * emphasised row from the rest. It is absent on readouts whose rows aren't
+	 * emphasized row from the rest. It is absent on readouts whose rows aren't
 	 * series — a pie's slices, a heatmap's rows — where no row is singled out.
 	 */
 	index?: number
 	label: string
-	/** Class carrying the series colour on `currentColor`; empty for a raw colour, which inks inline. */
+	/** Class carrying the series color on `currentColor`; empty for a raw color, which inks inline. */
 	swatchClass: string
-	/** A raw series colour inked inline on the swatch's `currentColor`; unset for a palette slot. */
+	/** A raw series color inked inline on the swatch's `currentColor`; unset for a palette slot. */
 	swatchColor?: string
-	/** Per-category swatch overrides — pie slices, where the colour follows the category. */
+	/** Per-category swatch overrides — pie slices, where the color follows the category. */
 	swatchClasses?: string[]
 	/** Swatch shape, mirroring the mark. */
 	swatch: 'rect' | 'line'

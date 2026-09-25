@@ -33,7 +33,7 @@ let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
  * `getDocument` is left to pdf.js's own resolution. In practice that is Node and jsdom, where
  * pdf.js pre-sets `workerSrc` itself; a browser always has `Worker`.
  * @remarks `new Worker(new URL(…, import.meta.url))` rather than a bundler-specific import.
- * Both Vite and webpack recognise that exact form and emit the worker as an asset, which a
+ * Both Vite and webpack recognize that exact form and emit the worker as an asset, which a
  * `?url` query does not. Webpack resolves an `import()` specifier statically whether or not
  * the call is reachable. A Vite-only query therefore breaks the build of any app that merely
  * renders this component.
@@ -173,7 +173,7 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 	const controller: PdfRasterController = { doc: null, renderTask: null }
 
 	try {
-		// Independent: the worker chunk and the document itself. Serialising them costs a
+		// Independent: the worker chunk and the document itself. Serializing them costs a
 		// round trip on the first open of a session.
 		const [worker, response] = await Promise.all([resolveWorker(), fetch(src)])
 

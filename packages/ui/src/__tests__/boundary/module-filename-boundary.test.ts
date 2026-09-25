@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 import { checkFolder, listLeafFolders, type Violation } from '../helpers/filename-rules'
 import { srcDir } from '../helpers/walk-source'
 
-// Enforces the file-naming convention documented in CLAUDE.md → "File naming"
+// Enforces the file-naming convention documented in CONVENTIONS.md §3.3
 // for the modules tree. Module folders follow the component grammar — files
 // prefixed with their leaf folder's name — plus the engine layout.
 //
@@ -112,7 +112,7 @@ describe('module filename boundary', () => {
 	it('every module file matches the filename convention', () => {
 		expect(
 			violations,
-			`filename violation(s) in packages/ui/src/modules — see CLAUDE.md → "File naming":\n${violations
+			`filename violation(s) in packages/ui/src/modules — see CONVENTIONS.md §3.3:\n${violations
 				.map((v) => `  ${v.path}\n    ${v.reason}`)
 				.join('\n')}`,
 		).toEqual([])

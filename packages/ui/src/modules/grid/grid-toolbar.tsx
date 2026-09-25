@@ -65,7 +65,7 @@ type GridToolbarProps = {
  * swaps the download icon for a spinner while an async export is in flight. The
  * export can start from this dropdown or from a right-click menu. A second row
  * hosts the batch actions while a row is selected, so the search stays reachable
- * beside them. The tools and batch actions are each their own labelled
+ * beside them. The tools and batch actions are each their own labeled
  * {@link Toolbar}: "Table tools" and "Batch actions". The search stays a plain
  * field, so the toolbars' roving-tabindex arrow navigation never swallows the
  * text cursor.

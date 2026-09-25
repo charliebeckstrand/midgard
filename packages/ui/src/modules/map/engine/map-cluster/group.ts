@@ -116,7 +116,7 @@ type MapClusterMark = {
  * the same beat.
  *
  * Grouping runs on the projected frame rather than on lon/lat, because overlap
- * is a property of the drawn picture. The same round summarises in a small
+ * is a property of the drawn picture. The same round summarizes in a small
  * frame and separates in a large one, without its coordinates changing.
  *
  * Every point reaches exactly one group, in the caller's own order. A `gap` of
@@ -204,7 +204,7 @@ function seedGroups(
 /**
  * Merges the groups whose marks draw within `gap` of one another, until none do.
  *
- * A merge moves a group's centre and grades its mark up, so the overlapping
+ * A merge moves a group's center and grades its mark up, so the overlapping
  * pairs change as merges land. The rule is a fixpoint, not a single sweep. Each
  * round folds every overlapping group into the first it meets, so the count
  * strictly falls and the rounds run out. In practice one settles it, and a set
@@ -274,7 +274,7 @@ function mergeRound(
 
 		marks[host] = grown
 
-		// The centre moved and the mark grew, so the slot can belong to another
+		// The center moved and the mark grew, so the slot can belong to another
 		// cell now; index it there too. The entry left behind costs at most a
 		// repeated test, never a missed pair, because every test reads the live
 		// mark rather than the cell it was filed under.

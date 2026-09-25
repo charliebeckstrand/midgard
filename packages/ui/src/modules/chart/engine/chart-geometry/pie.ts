@@ -6,13 +6,13 @@
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
 export type PieSlice = {
-	/** The datum's index in the source data — colours and readouts key off it. */
+	/** The datum's index in the source data — colors and readouts key off it. */
 	index: number
 	/** The drawn wedge, its straight edges offset inward to part from neighbours. */
 	d: string
 	/**
 	 * The gapless full-wedge path behind {@link d} — the pointer hit target. Its
-	 * edges fall on each channel's own centre line. A slice therefore claims
+	 * edges fall on each channel's own center line. A slice therefore claims
 	 * exactly half of every neighbouring gap. A pointer that crosses the channel
 	 * keeps the tooltip instead of falling through to the bare surface.
 	 */
@@ -268,7 +268,7 @@ function sliceAngles(values: (number | null)[]): SliceAngle[] {
  * chart's readout instead. A single positive value draws the full circle (two
  * half arcs — one 360° arc command collapses to nothing). Each slice also
  * carries a gapless {@link PieSlice.hit} wedge for pointer testing. The visible
- * gap is a channel centred on the boundary between two slices. A full wedge
+ * gap is a channel centered on the boundary between two slices. A full wedge
  * therefore hands each neighbour exactly half of it, and the tooltip never
  * drops into the channel.
  * @internal
@@ -316,7 +316,7 @@ export function pieSlices(
 		const h = Math.min(half, pinch)
 
 		// The gapless wedge (offset 0) runs its edges to the boundary each channel
-		// is centred on — the slice's half of it.
+		// is centered on — the slice's half of it.
 		return {
 			index,
 			d: slicePath(cx, cy, radius, innerRadius, start, start + sweep, h),
@@ -378,7 +378,7 @@ export const CALLOUT_CHAR_WIDTH = 6
 
 /** One placed callout: a leader out to a label set beside its slice. @internal */
 export type PieCallout = {
-	/** The datum's index — the label text and colour key off it. */
+	/** The datum's index — the label text and color key off it. */
 	index: number
 	/** The slice's mid-angle, so a callout can sync its reveal to the sweep. */
 	mid: number

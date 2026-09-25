@@ -55,7 +55,7 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
  * The one mark emphasis every cartesian and point chart shares: the mark the
  * pointer sits on — a bar, a line, a disc. Else it is the series the legend or
  * keyboard picks, receding all the others behind it. Its own context, so the
- * marks re-render only when the emphasised mark changes: a discrete crossing.
+ * marks re-render only when the emphasized mark changes: a discrete crossing.
  * They never re-render on the per-pixel pointer movement the hover context
  * carries. The frame holds the marks as children, so its own hover state never
  * reaches them.
@@ -68,11 +68,11 @@ function markLights(mark: ChartMarkRef, series: number, datum: number | null | u
  * @internal
  */
 export type ChartMarkEmphasis = {
-	/** The emphasised mark — the pointer's, else the legend / keyboard series — or `null` when nothing is. */
+	/** The emphasized mark — the pointer's, else the legend / keyboard series — or `null` when nothing is. */
 	mark: ChartMarkRef | null
 	/**
-	 * Whether a mark reads at full strength: nothing emphasised, or this is the
-	 * emphasised series (and datum, when one is checked). A renderer dims a mark
+	 * Whether a mark reads at full strength: nothing emphasized, or this is the
+	 * emphasized series (and datum, when one is checked). A renderer dims a mark
 	 * where this returns `false`. Omit `datum` for a whole-series group.
 	 */
 	lit: (series: number, datum?: number | null) => boolean
@@ -101,7 +101,7 @@ function selectionLights(
  * Resolves the shared {@link ChartMarkEmphasis}. The pointed mark takes the
  * emphasis, unless a category selection is held. The legend or keyboard series
  * lifts to a whole-series reference, and the held selection lights only its own
- * data. Else nothing is emphasised, and every mark reads lit. The frame builds it from its own pointer
+ * data. Else nothing is emphasized, and every mark reads lit. The frame builds it from its own pointer
  * state and the emphasis and selection that its chart passes down.
  *
  * @param selected - The data indices of the held category selection, or `null`.
@@ -147,7 +147,7 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
  * @internal
  */
 export type ChartEmphasis = {
-	/** Whether a reference rule is emphasised — pointed or keyboard-focused — so the data marks recede behind it. */
+	/** Whether a reference rule is emphasized — pointed or keyboard-focused — so the data marks recede behind it. */
 	referenceActive: boolean
 	/** Sets the pointed reference's index (`null` clears); a rule or its legend chip sets it while pointed. */
 	setReferenceActive: (index: number | null) => void
@@ -160,7 +160,7 @@ export type ChartEmphasis = {
 	/**
 	 * The reference the emphasis rests on — pointed or keyboard-focused — so its
 	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
-	 * still-held keyboard focus; `null` when nothing is emphasised.
+	 * still-held keyboard focus; `null` when nothing is emphasized.
 	 */
 	emphasizedReference: number | null
 }
@@ -192,7 +192,7 @@ export const [ChartFullscreenContext, useChartFullscreen] = createContext<boolea
  * chart gates each of them at its call site. One half of the
  * frame's spark posture; the other is the pointer veto `k.drawing` lays over
  * the drawing itself. Defaults to `'standard'`, so a layer rendered outside a
- * frame keeps its interactive behaviour.
+ * frame keeps its interactive behavior.
  *
  * @internal
  */

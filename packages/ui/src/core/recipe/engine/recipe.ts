@@ -6,7 +6,7 @@
  * the `color` axis (`palette.ts`), and `skeleton` rides through as `k.skeleton`.
  * The call path is compiled once at creation: entries hoisted, defaults
  * pre-stringified, palette pairs folded into an O(1) lookup. Its output is
- * memoised per variant combination. Render-hot call sites therefore pay a key
+ * memoized per variant combination. Render-hot call sites therefore pay a key
  * join and a map hit, after the first call with a given combination.
  */
 
@@ -43,7 +43,7 @@ const MEMO_CAP = 1024
 
 /**
  * A compound rule pre-split into its conditions and class payload. {@link
- * expand} normalised the conditions to axis-lookup strings, so {@link matches}
+ * expand} normalized the conditions to axis-lookup strings, so {@link matches}
  * compares them against the resolved values directly.
  *
  * @internal
@@ -94,7 +94,7 @@ type Expansion = {
  * The kata binds the result as `k`: `k(...)` for the variant call, `k.title`
  * for slot classes.
  *
- * @remarks Calls are memoised per resolved variant combination: the first
+ * @remarks Calls are memoized per resolved variant combination: the first
  * call with a given combination composes and merges classes, every later one
  * returns the cached string.
  *
@@ -346,7 +346,7 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
  * Splices a palette into the `variant` and `color` axes (mutating `variants`)
  * and returns its compound rules and pair lookup. Palette-matrix variant keys
  * absent from an explicit `variant:` axis join it as empty entries, valid values
- * with no structural class. The `color` axis becomes the palette's colour
+ * with no structural class. The `color` axis becomes the palette's color
  * scaffold.
  *
  * @internal
@@ -377,7 +377,7 @@ function applyPaletteToVariants(
  * lookup and the user rules pre-separated; the resolved config keeps the
  * full flat rule list for `.config` introspection.
  *
- * Rule conditions are normalised here, at the ingestion boundary, so the
+ * Rule conditions are normalized here, at the ingestion boundary, so the
  * introspected rules and the compiled ones read alike. Palette rules arrive
  * from {@link expandPalette} keyed by `Object.entries`, so they are strings
  * already.

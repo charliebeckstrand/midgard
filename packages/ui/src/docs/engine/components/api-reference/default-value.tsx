@@ -9,7 +9,7 @@ import { LinkText, Prose } from './doc-inline'
 type LiteralKind = 'string' | 'number' | 'boolean' | 'nullish' | 'array' | 'object'
 
 // Per-kind syntax hues, aligned with the JSON-tree viewer's value palette
-// (`recipes/kata/json-tree`) so a default reads with the same colour grammar:
+// (`recipes/kata/json-tree`) so a default reads with the same color grammar:
 // strings emerald, numbers amber, booleans violet, nullish muted; arrays and
 // objects borrow the structural sky / rose hues.
 const KIND_COLOR: Record<LiteralKind, string> = {
@@ -23,10 +23,10 @@ const KIND_COLOR: Record<LiteralKind, string> = {
 
 /**
  * A prop's default value, rendered inline with no surrounding badge. A
- * self-contained literal collapses to its bare value in a syntax-coloured
+ * self-contained literal collapses to its bare value in a syntax-colored
  * monospace run keyed to its kind. A descriptive `@defaultValue` — prose
  * carrying `{@link}` references and backtick literals — renders as Markdown.
- * Each link resolves to a name and each literal code span is syntax-coloured
+ * Each link resolves to a name and each literal code span is syntax-colored
  * the same way (`` `'horizontal'` `` reads emerald in flow).
  */
 export function DefaultValue({ value }: { value: string }) {
@@ -55,7 +55,7 @@ function renderDefault(value: string): ReactNode {
 	return renderProse(value)
 }
 
-/** Split a descriptive default into prose runs, `{@link}` names, and coloured literal code spans. */
+/** Split a descriptive default into prose runs, `{@link}` names, and colored literal code spans. */
 function renderProse(text: string): ReactNode[] {
 	const nodes: ReactNode[] = []
 
@@ -124,7 +124,7 @@ function classifyLiteral(raw: string): LiteralKind | null {
 	if (/^'(?:[^'\\]|\\.)*'$/.test(text) || /^"(?:[^"\\]|\\.)*"$/.test(text)) return 'string'
 
 	// A `|`-joined union isn't a single self-contained value; render it as prose
-	// rather than colouring the whole span one kind.
+	// rather than coloring the whole span one kind.
 	if (/\s\|\s/.test(text)) return null
 
 	if (text === 'true' || text === 'false') return 'boolean'

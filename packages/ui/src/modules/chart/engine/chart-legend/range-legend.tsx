@@ -1,7 +1,7 @@
 'use client'
 
 /**
- * The continuous colour-scale bar both colour-scaled charts read: the heatmap
+ * The continuous color-scale bar both color-scaled charts read: the heatmap
  * directly, the choropleth through the map module's `MapRangeLegend` wrapper.
  * The engine grammar wants a short kind name here, which would be `range.tsx`.
  * The neighbouring `range.ts` already holds the placement resolution. This file
@@ -52,9 +52,9 @@ type RangeArrowProps = {
 /**
  * The range legend's hover glyph: an arrow pinned to the bar's edge at a mark's
  * exact value. That is the same continuous position the probe thumb reads, so
- * the glyph never contradicts the axis the endpoints label. A class-centre
+ * the glyph never contradicts the axis the endpoints label. A class-center
  * placement instead drifts rimward as the class count grows. An eleven-class
- * bar seats its lowest centre below where the minimum label reads, so a
+ * bar seats its lowest center below where the minimum label reads, so a
  * small-but-real value looked pinned to the floor.
  *
  * The glyph is presentational. The host supplies the `value` from its own hover
@@ -115,7 +115,7 @@ export function RangeArrow({
  * @internal
  */
 export type RangeScale = {
-	/** The ordered CSS colour stops the scale bar paints, low → high. */
+	/** The ordered CSS color stops the scale bar paints, low → high. */
 	colorRange: string[]
 	/** The value extent the bar spans, `[low, high]`. */
 	domain: [number, number]
@@ -144,7 +144,7 @@ export type RangeLegendProps = RangeScale & {
 	slot?: string
 	/**
 	 * Reads the class the probe lands in as the pointer or caret moves, `null`
-	 * when it clears — the host emphasises that class's marks (regions, cells).
+	 * when it clears — the host emphasizes that class's marks (regions, cells).
 	 */
 	onProbe?: (bin: number | null) => void
 	/**
@@ -169,7 +169,7 @@ export type RangeLegendProps = RangeScale & {
 	orientation?: RangeOrientation
 }
 
-/** The class-centre context {@link rangeKeyValue} walks. @internal */
+/** The class-center context {@link rangeKeyValue} walks. @internal */
 type RangeKeyContext = {
 	min: number
 	max: number
@@ -203,7 +203,7 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 
 	const current = probe === null ? 0 : binOf(probe)
 
-	// Tied thresholds leave a class with no width, whose centre reads back into
+	// Tied thresholds leave a class with no width, whose center reads back into
 	// a neighbour. A step walks on until it reaches a class it can land in.
 	const step = (direction: 1 | -1) => {
 		for (let bin = current + direction; bin >= 0 && bin < bins; bin += direction) {
@@ -228,7 +228,7 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 
 /** Props for {@link RangeScaleLabels}. @internal */
 type RangeScaleLabelsProps = {
-	/** The bar's `[low, high]` extent, labelled at the ends. */
+	/** The bar's `[low, high]` extent, labeled at the ends. */
 	domain: [number, number]
 	/** Formats each endpoint and the live readout. */
 	format: (value: number) => string
@@ -327,7 +327,7 @@ type RangeTrackProps = {
 	label?: string
 	/** The axis the bar runs along: it lays out along that axis, and announces it through `aria-orientation`. */
 	orientation: RangeOrientation
-	/** The ordered CSS colour stops the gradient paints, low → high. */
+	/** The ordered CSS color stops the gradient paints, low → high. */
 	colorRange: string[]
 	/** The `[low, high]` value extent — the slider's `aria-valuemin` / `aria-valuemax`. */
 	domain: [number, number]
@@ -422,16 +422,16 @@ function RangeTrack({
 }
 
 /**
- * The shared range legend: a continuous vertical colour-scale bar with the
- * domain endpoints labelled. It paints the scheme's gradient, low at the bottom
+ * The shared range legend: a continuous vertical color-scale bar with the
+ * domain endpoints labeled. It paints the scheme's gradient, low at the bottom
  * to high at the top. It is the interactive counterpart to a binned
  * switchboard, shared by the `HeatmapChart` and the `ChoroplethChart`. The
  * choropleth reaches it through the map module's `MapRangeLegend` wrapper. The
- * two colour-scaled charts therefore share one slider and one probe behaviour.
+ * two color-scaled charts therefore share one slider and one probe behavior.
  *
  * @remarks A slider read precisely. A pointer on the bar tracks the exact value
  * under the cursor, with a thumb that follows it and a live value readout. The
- * host, quantised into classes, emphasises whichever class that value falls in
+ * host, quantised into classes, emphasizes whichever class that value falls in
  * through {@link RangeLegendProps.onProbe}. Its response steps at the class
  * edges, while the thumb does not. Arrow keys walk the classes once the bar has
  * focus. Up / Right step toward the max, Down / Left toward the min, and Home /
@@ -460,7 +460,7 @@ export function RangeLegend({
 	const horizontal = orientation === 'horizontal'
 
 	// The value under the cursor / caret, in domain units; null at rest. The
-	// pointer sets it continuously, the keyboard to a class centre.
+	// pointer sets it continuously, the keyboard to a class center.
 	const [probe, setProbe] = useState<number | null>(null)
 
 	const span = max - min
@@ -487,7 +487,7 @@ export function RangeLegend({
 		return `${format(low)}–${format(high)}`
 	}
 
-	// Read a value: mark it and emphasise the class it falls in — the host is
+	// Read a value: mark it and emphasize the class it falls in — the host is
 	// quantised, so its filter is per-class even while the readout stays precise.
 	const readValue = (value: number) => {
 		const next = Math.min(max, Math.max(min, value))

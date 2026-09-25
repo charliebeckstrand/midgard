@@ -60,7 +60,7 @@ const shell = ['relative', flex.inline, 'justify-center', focus.outline, ...curs
 const base = [...shell, ...surface]
 
 /**
- * Checked-state accent colours shared by the checkbox and radio kata: each
+ * Checked-state accent colors shared by the checkbox and radio kata: each
  * injects the foreground mark, fill, and border into `--check-mark` /
  * `--check-bg` / `--check-border` for one accent. The zinc accent diverges per
  * component (checkbox uses a neutral fill, radio a high-contrast one). Each kata

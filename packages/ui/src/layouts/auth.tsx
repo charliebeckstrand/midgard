@@ -1,10 +1,10 @@
 import type { ReactNode } from 'react'
 
-/** Props for {@link AuthLayout}: the card or cards to centre. */
+/** Props for {@link AuthLayout}: the card or cards to center. */
 export type AuthLayoutProps = { children: ReactNode }
 
 /**
- * Full-viewport layout that centres its content both axes — the frame for
+ * Full-viewport layout that centers its content both axes — the frame for
  * sign-in, registration, and other unauthenticated single-card pages. Renders
  * a `<main>` filling the dynamic viewport height with a vertical gap between
  * stacked children.

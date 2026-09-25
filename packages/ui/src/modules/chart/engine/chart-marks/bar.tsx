@@ -18,7 +18,7 @@ export type ChartBarMarksProps = {
 	paints: ChartPaint[]
 	/** Each series' own index (`meta.index`), aligned to `marks` — the identity the mark emphasis keys on. */
 	indices: number[]
-	/** Per-series texture-tile fill URLs, aligned with `paints`; a raw colour or flat mode leaves the slot empty. */
+	/** Per-series texture-tile fill URLs, aligned with `paints`; a raw color or flat mode leaves the slot empty. */
 	fills?: (string | undefined)[]
 	/** Whether the `texture` prop is on, so tiles paint in every mode, not only forced-colors / print. */
 	textureActive?: boolean
@@ -55,7 +55,7 @@ function barClass(
  * legend hover, or a held category selection can leave some bars of a series
  * unlit. The whole series path then dims, and the lit bars re-draw over it as one
  * overlay path, not a rebuild. The series paths are
- * memoised on `marks`, so an emphasis change rebuilds only the overlay. Such a
+ * memoized on `marks`, so an emphasis change rebuilds only the overlay. Such a
  * change re-runs this component through the emphasis context, never the chart
  * body.
  *

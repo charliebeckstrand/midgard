@@ -103,7 +103,7 @@ export function useDeferredFloatingReference<T extends HTMLElement>(
 	const referenceNode = useRef<HTMLElement | null>(null)
 
 	// Set once the engine holds a reference, after which a node swap forwards at
-	// once rather than waiting for another open — the behaviour registration at
+	// once rather than waiting for another open — the behavior registration at
 	// mount gave for free.
 	const registered = useRef(false)
 

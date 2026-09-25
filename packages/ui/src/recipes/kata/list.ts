@@ -118,7 +118,7 @@ const item = defineRecipe({
 // activation — navigate (`href`) or fire an `onClick` (cf. breadcrumb's
 // non-current link).
 const content = defineRecipe({
-	// `text-start` is for the `as="button"` content area: the UA centres button
+	// `text-start` is for the `as="button"` content area: the UA centers button
 	// text, and a row's label/description column never wants that. `focus.ring`
 	// paints the keyboard-focus indicator for the whole row: an activatable content
 	// area is natively focusable, so it — not the `<li>` around it — is the row's

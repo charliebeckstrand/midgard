@@ -1,6 +1,6 @@
 # Utilities
 
-> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG colour-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
+> **Quick-glance index of `src/utilities/`.** Small, dependency-free pure helpers shared across the package: numeric clamping and formatting, locale coalescing, and WCAG color-contrast maths. They also cover caret bookkeeping for formatted inputs, the Escape dismiss-layer stack, a shared document-event subscriber, and roving keyboard-navigation math. **Internal:** `utilities` is not a `package.json` export. Reach it by relative import within the package (`from '../../utilities'`), not as `ui/utilities`.
 
 ## Numeric
 
@@ -23,27 +23,27 @@
 |---|---|
 | `resolveLocale` | Coalesces an optional BCP 47 tag to a concrete one, with the runtime locale as the fallback. Resolved once, because `Intl.DateTimeFormat` construction has no cache and the process locale cannot change. |
 
-## Colour & accessibility
+## Color & accessibility
 
 | Export | Summary |
 |---|---|
-| `contrastRatio` | WCAG contrast ratio (`1`–`21`) between two colours. |
-| `relativeLuminance` | WCAG relative luminance of a colour, in `[0, 1]`. |
+| `contrastRatio` | WCAG contrast ratio (`1`–`21`) between two colors. |
+| `relativeLuminance` | WCAG relative luminance of a color, in `[0, 1]`. |
 | `readableInk` | The first candidate ink that clears a numeric floor on a background — lead with the preferred ink (e.g. white) to get it wherever it holds. Defaults to `4.5`, the AA floor for normal text. |
-| `parseColor` | Resolves a CSS colour (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
+| `parseColor` | Resolves a CSS color (`#rgb` / `#rrggbb`, `rgb(…)`, `oklch(…)`, `white` / `black`) or an `Srgb` triple to gamma-encoded `Srgb`. |
 | `WCAG_AA_TEXT` | The WCAG 1.4.3 AA contrast floor for normal-size text: `4.5`. `readableInk` defaults to it. |
 | `WCAG_NON_TEXT` | The WCAG 1.4.11 contrast floor for a non-text component or graphical object: `3`. |
-| `Srgb` *(type)* | An sRGB colour as three gamma-encoded `[0, 1]` channels. |
-| `ColorInput` *(type)* | A colour to measure: a CSS colour string or an `Srgb` triple. |
+| `Srgb` *(type)* | An sRGB color as three gamma-encoded `[0, 1]` channels. |
+| `ColorInput` *(type)* | A color to measure: a CSS color string or an `Srgb` triple. |
 
-## Colour scale
+## Color scale
 
-The sequential-scale primitives the data-driven colour charts share — the choropleth and the heatmap.
+The sequential-scale primitives the data-driven color charts share — the choropleth and the heatmap.
 
 | Export | Summary |
 |---|---|
-| `sampleRange` | The colour a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
-| `resolveColorBins` | Quantises a `[min, max]` domain into equal-interval `ColorBin`s sampled from a colour range, the last bin pinned to the max. |
+| `sampleRange` | The color a fraction `t` (`0`–`1`) of the way along an ordered stop list, exact stops verbatim and between-stops mixed in sRGB. |
+| `resolveColorBins` | Quantises a `[min, max]` domain into equal-interval `ColorBin`s sampled from a color range, the last bin pinned to the max. |
 | `binIndex` | The equal-interval bin a value falls in — top edge clamped into the last bin, flat domain to bin `0`, non-finite to `null`. |
 | `resolveQuantileBins` | Splits values into equal-count (quantile) `ColorBin`s by rank — the skew-aware counterpart to `resolveColorBins` — with the thresholds rows assign by. |
 | `quantileThresholds` | The `count - 1` interior cut points splitting values into equal-count quantile buckets; empty for a flat domain (a single bin). |

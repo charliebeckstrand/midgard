@@ -33,7 +33,7 @@ export type PlotTabStop = {
 }
 
 /**
- * The shared exit behaviour for a plot region that is one keyboard tab stop.
+ * The shared exit behavior for a plot region that is one keyboard tab stop.
  *
  * @param navigated - Whether a cursor is live, so a blur that never navigated leaves the pointer's readout alone.
  * @param clear - Drops the cursor and its readout.

@@ -54,7 +54,7 @@ export function pointPop(ordinal: number) {
 
 /**
  * A geofence's wash, held until its boundary has drawn. The outline traces the
- * zone, then the fill settles inside it, so the shape reads before the colour
+ * zone, then the fill settles inside it, so the shape reads before the color
  * does. The region fade's tempo, because the wash is the same kind of fill-in.
  *
  * @internal

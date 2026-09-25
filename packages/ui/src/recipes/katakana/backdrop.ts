@@ -3,7 +3,7 @@
  * bridge: it receives the `omote.backdrop` tokens from the calling kata and
  * returns the standard `defineRecipe` for a full-bleed backdrop. That backdrop
  * has a `surface` axis (`flat` scrim, denser `glass` fill) and a `desaturate`
- * axis (colour drained from what shows through). It references kiso in neither
+ * axis (color drained from what shows through). It references kiso in neither
  * value nor type.
  *
  * Dialog has no backdrop of this shape, so unlike `panel` this isn't wired
@@ -21,7 +21,7 @@ type BackdropTokens = {
 	base: ClassValue
 	/** Denser fill for use behind a glass panel — the `glass` surface. */
 	glass: ClassValue
-	/** Filter draining colour from what shows through — the `desaturate` axis. */
+	/** Filter draining color from what shows through — the `desaturate` axis. */
 	grayscale: ClassValue
 }
 

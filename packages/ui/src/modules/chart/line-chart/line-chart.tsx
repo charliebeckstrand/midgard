@@ -176,7 +176,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	// With reference values labelled beside their rules, the rules shed the hover
+	// With reference values labeled beside their rules, the rules shed the hover
 	// tooltip they stand in for — so they also leave the keyboard roving, dropping
 	// out of the value-axis stops.
 	const referenceLabels = labels?.references ?? false

@@ -19,7 +19,7 @@ export const ink = {
 		/** The axis baseline, a step firmer than the grid. A map's sphere outline takes it too. */
 		line: mode('stroke-zinc-300', 'dark:stroke-zinc-700'),
 	},
-	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
+	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ['text-sm text-start', 'leading-tight', ...text.muted],
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ['text-xs', 'tabular-nums', 'font-medium', ...text.default],

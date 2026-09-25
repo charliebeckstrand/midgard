@@ -151,13 +151,13 @@ export function scatterMarks(
 
 /**
  * Every disc of a series concatenated into one path `d`. Each disc is a closed
- * subfigure, two half-arcs around its centre. The fill therefore fills every
+ * subfigure, two half-arcs around its center. The fill therefore fills every
  * disc and the stroke rings each one, exactly as separate circles did. Marks
  * with a non-positive radius are skipped — a degenerate arc would paint nothing
  * and only lengthen the string.
  *
  * A plain series shares one radius across every disc. The two arc commands read
- * only the radius, not the centre, so they are identical for all of them. The
+ * only the radius, not the center, so they are identical for all of them. The
  * builder caches that suffix and rebuilds it only when a radius actually
  * changes. One move-to per disc is left as the sole per-mark formatting. At ten
  * thousand points that is the difference between fifty
@@ -329,9 +329,9 @@ function resolveHeldDisc(
 /**
  * The disc the pointer sits on — its series and datum indices — or `null` off
  * every disc, each disc caught within `slack` of its edge. The nearest disc
- * centre wins where discs overlap, so the isolation lifts the one the pointer
+ * center wins where discs overlap, so the isolation lifts the one the pointer
  * is truly on rather than whichever drew first. A `held` disc — the one
- * already emphasised — keeps the win while it stays caught, unless a
+ * already emphasized — keeps the win while it stays caught, unless a
  * challenger decisively closes ({@link beatsHeldMark}). The resolution is
  * sticky across the midline between discs, rather than flipping on it.
  *
@@ -449,7 +449,7 @@ const EDGE_EPSILON = 0.5
  * Centered there, they crowd the y-axis floor label at one corner and butt the
  * frame at the other. Reading the ends inward clears both without a width
  * estimate. That is the treatment {@link endBandTicks} gives the compact band
- * axis, and which the x axis already honours through {@link ChartAxisTick.anchor}.
+ * axis, and which the x axis already honors through {@link ChartAxisTick.anchor}.
  * A tick sitting interior to the range keeps the centered default, since only an
  * edge label crowds. That is a pinned domain whose edge carries no tick of its
  * own.

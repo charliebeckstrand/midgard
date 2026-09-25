@@ -37,7 +37,7 @@ type MapLineProps = {
 	width?: number
 	/** Frame units per device pixel under the plat's zoom; the drawn width converts through it. */
 	scale: number
-	/** The resolved currentColor stroke class carrying the mark's slot colour. */
+	/** The resolved currentColor stroke class carrying the mark's slot color. */
 	className: string
 	/** Whether the line draws itself in on mount. */
 	animate: boolean
@@ -57,7 +57,7 @@ type MapLineProps = {
  * its `transition` until its pins have popped. Nothing else varies.
  *
  * `className` rather than the kata paint object, so this file takes no
- * dependency on the series colour vocabulary and stays a shape.
+ * dependency on the series color vocabulary and stays a shape.
  *
  * @remarks The width is stated in device pixels and converted to frame units
  * here, through {@link MapLineProps.scale} — the multiply `MapDot` takes, and

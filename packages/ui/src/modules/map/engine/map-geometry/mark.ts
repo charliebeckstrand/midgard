@@ -176,14 +176,14 @@ const SAME_POSITION_EPSILON = 1e-9
  * empty where the ring has no points, so a caller passes the result straight
  * through — {@link lineAnchor}'s contract for the shape that encloses.
  *
- * The centre is the spherical centroid of the ring's own vertices, not of the
+ * The center is the spherical centroid of the ring's own vertices, not of the
  * area they enclose. It needs no winding to be right. A `Polygon` centroid
- * instead reads a backwards ring as the whole world outside it, and centres on
+ * instead reads a backwards ring as the whole world outside it, and centers on
  * the far side of the earth. A geofence stands where its outline stands, so the
  * vertices answer the question the cursor asks.
  *
  * The closing repeat is dropped first, or it would weight that one side twice.
- * Vertices that cancel — a ring about a pole — leave no centre, and the first
+ * Vertices that cancel — a ring about a pole — leave no center, and the first
  * vertex stands in, which is a position the projection can draw. A lone point
  * reads as its own repeat and falls through that same door. It therefore anchors
  * on itself exactly, rather than on a centroid round trip.

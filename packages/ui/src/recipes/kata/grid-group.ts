@@ -34,8 +34,8 @@ const bandColor: Record<PaletteColor, string> = {
 
 /**
  * The neutral fill for a colorless group's underline rule, the band analog of a
- * colorless row group's grey rail. An uncolored (or color-cleared) group therefore
- * keeps its underline in grey rather than dropping it. Full literals for Tailwind's scanner.
+ * colorless row group's gray rail. An uncolored (or color-cleared) group therefore
+ * keeps its underline in gray rather than dropping it. Full literals for Tailwind's scanner.
  */
 const bandNeutral = 'bg-zinc-950/10 dark:bg-white/15'
 

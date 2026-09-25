@@ -1,7 +1,7 @@
 /**
  * Popover archetype: floating overlay shared by popover, combobox,
  * listbox, date-picker, and color-picker kata. Owns the trigger and portal classes, the
- * default body-text colour, and the panel slot bundle (base, surface,
+ * default body-text color, and the panel slot bundle (base, surface,
  * glass, ring, motion).
  */
 
@@ -13,7 +13,7 @@ import { trigger } from './trigger'
 export const popover = {
 	trigger,
 	portal,
-	/** Default body-text colour applied inside the panel. */
+	/** Default body-text color applied inside the panel. */
 	text: iro.text.default,
 	panel,
 } as const

@@ -31,7 +31,7 @@ export type ContextMenuProps = ContextMenuConfig & {
  * `disabled` — it renders the content untouched, so the native menu still opens.
  *
  * @remarks Anchors at the cursor and tracks the right-clicked element on scroll,
- * the shared `Menu` right-click behaviour. The menu is a floating overlay that
+ * the shared `Menu` right-click behavior. The menu is a floating overlay that
  * dismisses on outside press or `Escape`.
  * @see {@link ContextMenuList} to render entries inside a bespoke right-click surface.
  */

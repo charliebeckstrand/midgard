@@ -147,7 +147,7 @@ export function ShinyText({
 				backgroundPosition,
 			}}
 			// Composed after the spread so a consumer handler can't clobber
-			// `pauseOnHover`. The pause is side behaviour, so a consumer's
+			// `pauseOnHover`. The pause is side behavior, so a consumer's
 			// preventDefault() skips it (CONVENTIONS.md §3.9).
 			onMouseEnter={composeEventHandlers(onMouseEnter, () => {
 				if (pauseOnHover) controlsRef.current?.pause()

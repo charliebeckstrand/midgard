@@ -42,7 +42,7 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
 }
 
 /**
- * The colour a stroke paints in: the explicit `strokeColor`, else the canvas's
+ * The color a stroke paints in: the explicit `strokeColor`, else the canvas's
  * own computed `color`.
  *
  * @remarks
@@ -66,7 +66,7 @@ export function resolveStrokeColor(
 }
 
 /**
- * Sets line cap, join, colour, and width on a 2D context for stroke rendering.
+ * Sets line cap, join, color, and width on a 2D context for stroke rendering.
  *
  * @internal
  */

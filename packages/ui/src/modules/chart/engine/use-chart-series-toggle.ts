@@ -34,13 +34,13 @@ function useChartToggleSet(): ChartToggleSet {
 export type ChartSeriesToggle = ChartToggleSet & {
 	/** Moves the legend emphasis (`null` clears it). */
 	setFocus: (index: number | null) => void
-	/** The emphasised index while it is still visible; other marks dim against it. */
+	/** The emphasized index while it is still visible; other marks dim against it. */
 	emphasis: number | null
 }
 
 /**
  * Owns the legend interactions every chart shares: which series are toggled
- * off, and which one is emphasised by a hovered or focused legend entry. A
+ * off, and which one is emphasized by a hovered or focused legend entry. A
  * hidden series can't hold the emphasis — dimming everything against an
  * invisible series would read as a broken chart.
  *

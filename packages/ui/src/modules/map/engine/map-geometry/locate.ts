@@ -189,7 +189,7 @@ export function regionIndex(features: MapFeature[]): MapRegionIndex {
 const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
 
 /**
- * The index over a feature list, memoised on the list and built on the first
+ * The index over a feature list, memoized on the list and built on the first
  * read. Nothing on the map's own mount path reads it, so a map that places
  * nothing never builds one.
  *

@@ -184,7 +184,7 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	readoutOrder?: number[]
 	/**
-	 * The emphasised series' index, when one is — a legend entry or the keyboard
+	 * The emphasized series' index, when one is — a legend entry or the keyboard
 	 * cursor picking a series. The tooltip dims every other row against it, mirroring
 	 * the marks; `null` (the default) reads every row at full strength.
 	 */
@@ -200,7 +200,7 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	focus?: ChartFocusTargets
 	/**
-	 * Emphasises the series the keyboard cursor lands on (`null` off any), so the
+	 * Emphasizes the series the keyboard cursor lands on (`null` off any), so the
 	 * marks recede the rest and the tooltip dims their rows. Pass the chart's
 	 * legend-emphasis setter to share one channel with the legend. Omitted, keyboard
 	 * navigation leaves the emphasis alone: a chart whose stops name no single series.
@@ -330,7 +330,7 @@ export function ChartFrame({
 
 	// The mark the pointer sits on — a bar, a line, a disc — resolved by the hit
 	// layer. It recedes every other mark behind it, and merges below with the
-	// series the legend or keyboard emphasises: the pointed mark wins while it's
+	// series the legend or keyboard emphasizes: the pointed mark wins while it's
 	// held, the coarse series emphasis stands in the rest of the time.
 	const [pointedMark, setPointedMark] = useState<ChartMarkRef | null>(null)
 
@@ -366,7 +366,7 @@ export function ChartFrame({
 		onActiveSeries,
 	)
 
-	// The marks recede when either input emphasises a reference: the pointer over a
+	// The marks recede when either input emphasizes a reference: the pointer over a
 	// rule (or its legend chip), or the keyboard cursor parked on one. The pointed
 	// index wins over a still-held keyboard focus, and the sibling rules recede to
 	// whichever it resolves to.

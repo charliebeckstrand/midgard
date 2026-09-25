@@ -81,7 +81,7 @@ export function panel<P, B = undefined>(
 	return {
 		panel: input.panel,
 		// `B` defaults to `undefined` when the caller omits backdrop; the
-		// cast normalises the optional field to match the return. When B
+		// cast normalizes the optional field to match the return. When B
 		// is inferred from a passed recipe, the cast is a no-op.
 		backdrop: input.backdrop as B,
 		title: [...layout.title, ...toArray(input.title?.extra)],

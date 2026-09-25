@@ -5,7 +5,7 @@
  * Held apart from the plat that owns the ledger, for two reasons. The answer
  * has three readers: the marks' own paint, the legend's swatches, and the
  * tooltip's. A group is also one entry rather than one mark. The rule that its
- * members share a colour is the rule that makes a merged entry read as one
+ * members share a color is the rule that makes a merged entry read as one
  * thing. It belongs beside the ledger it reads, rather than inline in the
  * assembly.
  */
@@ -15,13 +15,13 @@ import { slotColor } from '../map-region/category'
 import type { MapOverlayEntry } from './entry'
 
 /**
- * The slot colour every registered mark paints in, keyed by mark id.
+ * The slot color every registered mark paints in, keyed by mark id.
  *
  * The order advances per legend entry, not per mark. A group's first member
- * claims the slot and its siblings read that same colour back. A zone and the
- * depot inside it can therefore never sit under one label in two colours. A
+ * claims the slot and its siblings read that same color back. A zone and the
+ * depot inside it can therefore never sit under one label in two colors. A
  * group never eats a palette slot per member. An explicit `color` still occupies its
- * position, so naming one mark's colour never shifts what its siblings take.
+ * position, so naming one mark's color never shifts what its siblings take.
  *
  * @param entries - The ledger, in registration order.
  * @param offset - How many slots the region categories already hold.
@@ -33,7 +33,7 @@ export function overlaySlotColors(
 ): ReadonlyMap<string, MapSeriesColor> {
 	const colors = new Map<string, MapSeriesColor>()
 
-	// What each group has already claimed, so a later member reads the colour its
+	// What each group has already claimed, so a later member reads the color its
 	// first one set rather than drawing a slot of its own.
 	const claimed = new Map<string, MapSeriesColor>()
 

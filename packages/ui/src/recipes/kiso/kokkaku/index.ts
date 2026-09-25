@@ -2,7 +2,7 @@
  * Kokkaku (骨格): skeletal frames.
  *
  * Skeleton placeholder dimensions per component, stripped of chrome,
- * variant, and colour; placeholders track the real component's
+ * variant, and color; placeholders track the real component's
  * silhouette. One file per unit; this barrel assembles the named
  * bundle that every kata reads as `skeleton: kokkaku.<name>`.
  */

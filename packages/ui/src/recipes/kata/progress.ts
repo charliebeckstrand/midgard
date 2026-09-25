@@ -1,6 +1,6 @@
 /**
  * Progress kata: recipe-shaped surface serving both the linear `<ProgressBar>`
- * and the radial `<ProgressGauge>`. Carries a local per-colour `bg` / `stroke`
+ * and the radial `<ProgressGauge>`. Carries a local per-color `bg` / `stroke`
  * table authored inline with `mode()`, rather than the shared `iro.palette`.
  * The SVG gauge needs a `stroke` variant the palette doesn't provide. The bar
  * reads the `bg` slice, the gauge the `stroke` slice.
@@ -15,7 +15,7 @@ const { flex } = narabi
 const { spring } = ugoki
 
 /**
- * Per-colour bg / stroke classes shared between bar and gauge. The bar's `fill`
+ * Per-color bg / stroke classes shared between bar and gauge. The bar's `fill`
  * recipe reads the `bg` slice, the gauge's indicator ring the `stroke` slice.
  * The gauge's track and label use fixed tokens, not this table.
  */

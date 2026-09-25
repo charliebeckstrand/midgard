@@ -7,8 +7,8 @@
  *                 shadows, which leave an anti-aliased seam at the corners).
  *                 The offset gap exposes the surface behind. The stroke reads
  *                 against the element's own fill even when the fill IS the
- *                 accent colour. That covers a solid button, a selected day,
- *                 an arbitrary-colour swatch.
+ *                 accent color. That covers a solid button, a selected day,
+ *                 an arbitrary-color swatch.
  *   - `virtual`   the `ring` stroke without its `:focus-visible` gate, for
  *                 virtual-highlight models (the date picker grid) where the
  *                 marked element never holds DOM focus
@@ -19,7 +19,7 @@
  *                 swapped to an inset border inside scrollable ancestors,
  *                 which clip an outset outline
  *   - `indicator` background-paint marker on `::after`, in the focus-ring
- *                 colour, for a focused tab or segment item that does not
+ *                 color, for a focused tab or segment item that does not
  *                 carry `data-current`
  *   - `lifted`    z-shift + shadow for a picked-up element, plus the violet
  *                 accent that reads against the panel backdrop. Split into
@@ -39,7 +39,7 @@ export const focus = {
 		// CSS outline, not a box-shadow ring: one crisp stroke along the radius.
 		// `outline-offset` opens a transparent gap exposing the surface behind;
 		// the stroke reads against the element's fill even when the fill IS the
-		// accent colour. The accent is `blue-600` in both modes. Mouse-focus
+		// accent color. The accent is `blue-600` in both modes. Mouse-focus
 		// outlines are suppressed globally (:focus:not(:focus-visible)).
 		'focus-visible:outline-2 focus-visible:outline-offset-2',
 		'focus-visible:outline-blue-600',

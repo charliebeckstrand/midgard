@@ -2,11 +2,11 @@
  * Map kata: object-literal surface for the geography map module. The series
  * palette, frame inks, readout inks, and reveal motion come from the kiso `zu`
  * bundle, which the chart kata reads too. The two data-viz modules read as one
- * colour system, and the CVD-validated slot order must never fork. The map's
+ * color system, and the CVD-validated slot order must never fork. The map's
  * own region tokens sit beside them:
  *
  * - The no-data fill.
- * - The surface-colour boundary seam.
+ * - The surface-color boundary seam.
  * - The frame chrome.
  * - The hover and de-emphasis treatments.
  */
@@ -15,7 +15,7 @@ import { kokkaku, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
 const { palette, ink, motion } = zu
 
-/** A named map mark colour: the eight categorical data-viz slots plus `zinc`. */
+/** A named map mark color: the eight categorical data-viz slots plus `zinc`. */
 export type MapSeriesColor = SeriesSlot
 
 /** The map's one pointer affordance, shared by the region layer and the overlay marks. */
@@ -68,13 +68,13 @@ export const k = {
 	/**
 	 * The standing pick's ink, on an overlay mark's halo. It is the same token the
 	 * region ring takes (`region.selected`). One map therefore never marks its
-	 * geography and its overlays in two different colours.
+	 * geography and its overlays in two different colors.
 	 */
 	selected: SELECTED,
 	/** Shared data-viz palette from `zu`: the same slots, order, and validation as `kata/chart`. */
 	series: palette.series,
 	order: palette.order,
-	/** Legend / tooltip label ink (HTML text; marks carry the colour, text never does). */
+	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ink.value,
@@ -82,7 +82,7 @@ export const k = {
 	region: {
 		/** A region with no matching datum — and a toggled-off category's fallback. */
 		empty: mode('fill-zinc-200', 'dark:fill-zinc-800'),
-		/** Region boundary seam: the surface colour, so shared borders read as gaps. */
+		/** Region boundary seam: the surface color, so shared borders read as gaps. */
 		border: mode('stroke-white', 'dark:stroke-zinc-900'),
 		/** Pointer emphasis on the hovered region. */
 		hover: 'hover:brightness-110',
@@ -104,12 +104,12 @@ export const k = {
 		 * for less motion. It is never both, since the pulse already troughs to that
 		 * opacity. That is the pair `kata/grid`'s `body.settling` and
 		 * `kata/chat-message`'s `streaming` carry. A loading state that renders as
-		 * nothing at all for that reader is the grey map this token exists to disambiguate.
+		 * nothing at all for that reader is the gray map this token exists to disambiguate.
 		 *
 		 * Distinct from {@link MapSkeleton}, which stands in for a plat with no ATLAS.
 		 * There the frame is reserved and nothing is drawn. Here the geography is drawn,
 		 * and only the paint is pending. Without this the two are indistinguishable on
-		 * screen. A fully grey map reads as "nobody covers anywhere", which is a
+		 * screen. A fully gray map reads as "nobody covers anywhere", which is a
 		 * statement about coverage rather than about a request in flight.
 		 */
 		pending: [ugoki.css.pulse, 'motion-reduce:opacity-50'],
@@ -141,7 +141,7 @@ export const k = {
 	/**
 	 * A mark group's response to emphasis — the legend's focused group, or the
 	 * pointed mark on the map itself. Everything outside it dims, and the
-	 * emphasised mark holds. On a wrapper (an overlay's, or the whole region
+	 * emphasized mark holds. On a wrapper (an overlay's, or the whole region
 	 * layer's recede group), so motion's inline opacity composes. A county atlas
 	 * also fades as one transition, never one per path. Thousands of simultaneous
 	 * opacity transitions priced a legend focus at hundreds of milliseconds of

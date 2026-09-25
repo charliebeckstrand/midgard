@@ -1,7 +1,7 @@
 /**
  * How a region names itself: the defaults a consumer's `regionId` and
  * `regionLabel` override. They are kept apart from the category resolution,
- * because the join key is resolved before any colour mode is chosen.
+ * because the join key is resolved before any color mode is chosen.
  */
 
 import type { MapFeature } from '../types'

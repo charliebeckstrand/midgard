@@ -18,7 +18,7 @@ type SizeListboxProps<T extends string> = {
 	onValueChange: (value: T) => void
 }
 
-/** A demo control for picking a component's `size` from a fixed scale, labelled via {@link sizeLabels}. */
+/** A demo control for picking a component's `size` from a fixed scale, labeled via {@link sizeLabels}. */
 export function SizeListbox<T extends string>({ sizes, ...rest }: SizeListboxProps<T>) {
 	const options = sizes.map((value) => ({ value, label: sizeLabels[value] ?? value }))
 

@@ -1,5 +1,5 @@
 /**
- * Text kata: recipe-shaped surface for `<Text>` with two independent colour
+ * Text kata: recipe-shaped surface for `<Text>` with two independent color
  * axes plus a type scale. `tone` pulls the semantic `iro.text` tokens
  * (default / primary / success / warning / error / muted) and is the
  * meaning-bearing axis. It is an emphasis ladder, not the feedback set

@@ -99,9 +99,9 @@ export const strong: [light: string, dark: string] = ['text-zinc-950', 'dark:tex
  * Two paths deliberately not taken. Raising `muted` itself to `zinc-600` would
  * delete this fork, but `muted` has ~83 recipe call sites. `zinc-500` is the
  * correct least-emphatic rung *for the page* — a design call, not an
- * engineering one. And a fourth colour-major `RAMP` role would force red /
+ * engineering one. And a fourth color-major `RAMP` role would force red /
  * amber / green / blue rungs with no consumer to size them against. When a
- * *chromatic* ink first lands on this wash it joins here as a colour-keyed
+ * *chromatic* ink first lands on this wash it joins here as a color-keyed
  * sibling (`onWash.palette`), not as a role inside `RAMP`.
  *
  * `__tests__/recipes/contrast.test.ts` measures this rung against the wash for

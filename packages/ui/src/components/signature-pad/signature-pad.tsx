@@ -43,7 +43,7 @@ export type SignaturePadProps = {
 	 */
 	placeholder?: string
 	/**
-	 * Stroke colour, as any CSS colour the canvas context accepts.
+	 * Stroke color, as any CSS color the canvas context accepts.
 	 *
 	 * @defaultValue the pad's own computed `color` — the theme's ink, so an
 	 * unset pad draws dark on a light surface and light on a dark one

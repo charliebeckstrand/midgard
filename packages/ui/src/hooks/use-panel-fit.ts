@@ -106,7 +106,7 @@ export function usePanelFit({
 		// The box the panel last rested at, and `null` until it has rested at one.
 		// The observer delivers once for a newly observed element, and that first
 		// reading has no width to match — which is the case below that adopts a size
-		// rather than travelling to it, and so is also how the baseline is taken.
+		// rather than traveling to it, and so is also how the baseline is taken.
 		let rested: BorderBox | null = null
 
 		let travel: AnimationPlaybackControls | null = null

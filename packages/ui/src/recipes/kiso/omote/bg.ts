@@ -1,5 +1,5 @@
 /**
- * Omote bg: the colour pairs (`light`/`dark`) every surface concern
+ * Omote bg: the color pairs (`light`/`dark`) every surface concern
  * composes with its chrome. One source of truth for surface / popover /
  * tint / skeleton fills. Backdrop fills live with the backdrop chrome
  * in `backdrop.ts`.
@@ -11,7 +11,7 @@ import { mode } from '../../../core/recipe'
 
 export const bg = {
 	/**
-	 * The opaque surface fill. It also sets `--surface-fill` to the same colour in
+	 * The opaque surface fill. It also sets `--surface-fill` to the same color in
 	 * each mode. The property inherits, so a sticky descendant (a grid header or a
 	 * frozen column) reads the fill of the surface that holds it.
 	 */
@@ -22,6 +22,6 @@ export const bg = {
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
-	/** Code-block canvas: matches the shiki `github-dark` theme; fixed across colour modes. */
+	/** Code-block canvas: matches the shiki `github-dark` theme; fixed across color modes. */
 	code: 'bg-[#0d1117]',
 } as const
