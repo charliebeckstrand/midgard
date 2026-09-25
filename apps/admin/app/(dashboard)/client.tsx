@@ -10,9 +10,11 @@ import type { User } from 'auth'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Avatar } from 'ui/avatar'
+import { Flex } from 'ui/flex'
 import { SidebarLayout } from 'ui/layouts'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
+import { AppearanceSettings } from 'ui/providers/appearance'
 import {
 	Sidebar,
 	SidebarBody,
@@ -31,7 +33,8 @@ type DashboardClientProps = {
 }
 
 /**
- * Dashboard chrome: sidebar navigation and navbar around the routed content.
+ * Dashboard chrome: sidebar navigation and navbar around the routed content. The
+ * sidebar footer holds the account menu and the appearance settings.
  *
  * @remarks Highlights the active nav item from the current pathname.
  */
@@ -64,7 +67,14 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 						</SidebarSection>
 					</SidebarBody>
 					<SidebarFooter>
-						<SidebarUserMenu user={user} />
+						{/* The settings button sits beside the account menu, so it shows in
+						    the desktop sidebar and in the mobile drawer. */}
+						<Flex align="center" gap="sm">
+							<div className="min-w-0 flex-1">
+								<SidebarUserMenu user={user} />
+							</div>
+							<AppearanceSettings />
+						</Flex>
 					</SidebarFooter>
 				</Sidebar>
 			}

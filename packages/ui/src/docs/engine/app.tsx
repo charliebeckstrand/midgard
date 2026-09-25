@@ -4,14 +4,11 @@ import { Suspense, useCallback, useDeferredValue, useEffect, useRef, useState } 
 import { loadShiki } from '../../components/code'
 import { Heading } from '../../components/heading'
 import { SidebarLayout } from '../../layouts'
-import { DensityProvider } from '../../providers/density'
+import { AppearanceProvider, AppearanceSettings } from '../../providers/appearance'
 import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
-import { SettingsDialog } from './components/settings-dialog'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
-import { useDensity } from './hooks/use-density'
 import { useHash } from './hooks/use-hash'
-import { useTheme } from './hooks/use-theme'
 import { demos } from './registry'
 
 /**
@@ -25,10 +22,6 @@ export function App() {
 	// Defers the route while the next demo's chunk is in flight; the previous
 	// demo stays on screen during navigation.
 	const deferredRoute = useDeferredValue(route)
-
-	const [mode, setMode] = useTheme()
-
-	const [density, setDensity] = useDensity()
 
 	const [locked, setLocked] = useState(true)
 
@@ -61,18 +54,11 @@ export function App() {
 	}, [])
 
 	return (
-		<DensityProvider density={density}>
+		<AppearanceProvider>
 			<SidebarLayout
 				stickyHeader
 				floating={!locked}
-				actions={
-					<SettingsDialog
-						mode={mode}
-						density={density}
-						onModeChange={setMode}
-						onDensityChange={setDensity}
-					/>
-				}
+				actions={<AppearanceSettings />}
 				sidebar={<SidebarContent route={route} />}
 			>
 				<div ref={contentRef}>
@@ -98,6 +84,6 @@ export function App() {
 					</Suspense>
 				</div>
 			</SidebarLayout>
-		</DensityProvider>
+		</AppearanceProvider>
 	)
 }
