@@ -2,6 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
+import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
 
 /** Props for {@link Nav}: the active `value` and a change callback, plus native `<nav>` attributes (less `onChange`). */
 export type NavProps = Omit<ComponentProps<'nav'>, 'onChange'> & {
@@ -25,11 +26,17 @@ export function Nav({
 	// context, so controlled and uncontrolled behave identically across both.
 	const context = useCurrentState({ value, defaultValue, onValueChange })
 
+	// Each item reads its own value from the store, so a change renders only the
+	// item that stops being current and the item that becomes current.
+	const store = useCurrentStore(context)
+
 	return (
 		<CurrentContext value={context}>
-			<nav data-slot="nav" className={className} {...props}>
-				{children}
-			</nav>
+			<CurrentStoreContext value={store}>
+				<nav data-slot="nav" className={className} {...props}>
+					{children}
+				</nav>
+			</CurrentStoreContext>
 		</CurrentContext>
 	)
 }
