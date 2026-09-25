@@ -1,6 +1,6 @@
 'use client'
 
-import { Component, type ErrorInfo, type ReactNode } from 'react'
+import { Component, type ErrorInfo, type ReactNode, Suspense } from 'react'
 import { Button } from '../../components/button'
 import { Text } from '../../components/text'
 import { cn } from '../../core'
@@ -11,8 +11,8 @@ export type DashboardTileBoundaryProps = {
 	/** The name of the tile, for the error text. */
 	label: string
 	/**
-	 * Show no error state. The part that failed goes away. The actions slot uses
-	 * this, because the header row has no space for an error state.
+	 * Show no error state. The part that failed goes away. {@link DashboardTileGuard}
+	 * uses this, because the chrome of a tile has no space for an error state.
 	 * @defaultValue false
 	 */
 	quiet?: boolean
@@ -65,4 +65,32 @@ export class DashboardTileBoundary extends Component<
 			</div>
 		)
 	}
+}
+
+/** Props for {@link DashboardTileGuard}. @internal */
+export type DashboardTileGuardProps = {
+	/** The name of the tile. */
+	label: string
+	/** Receives each error that the guard catches. */
+	onError: (error: unknown) => void
+	children: ReactNode
+}
+
+/**
+ * The guard of an app part in the chrome of a tile, for example the actions or
+ * the description. The chrome is outside the boundaries of the content box. The
+ * part therefore gets a quiet error boundary and a Suspense boundary with no
+ * fallback. A throw hides only that part, and a suspend shows nothing.
+ *
+ * @remarks
+ * Put the guard around the element that holds the part, not inside it. A failed
+ * part then leaves no empty element, and no `aria-describedby` to an empty element.
+ * @internal
+ */
+export function DashboardTileGuard({ label, onError, children }: DashboardTileGuardProps) {
+	return (
+		<DashboardTileBoundary label={label} onError={onError} quiet>
+			<Suspense fallback={null}>{children}</Suspense>
+		</DashboardTileBoundary>
+	)
 }

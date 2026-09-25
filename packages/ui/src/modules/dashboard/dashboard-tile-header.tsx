@@ -6,6 +6,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { useTruncation } from '../../hooks/use-truncation'
 import { k } from '../../recipes/kata/dashboard'
+import { DashboardTileGuard } from './dashboard-tile-boundary'
 
 /** Props for {@link DashboardTileTitle}. @internal */
 type DashboardTileTitleProps = {
@@ -47,6 +48,8 @@ function DashboardTileTitle({ id, title, editing }: DashboardTileTitleProps) {
 
 /** Props for {@link DashboardTileHeader}. @internal */
 export type DashboardTileHeaderProps = {
+	/** The name of the tile. */
+	label: string
 	/** The id of the title element, which names the tile. */
 	titleId: string
 	/** The heading of the tile. */
@@ -63,6 +66,8 @@ export type DashboardTileHeaderProps = {
 	controls?: ReactNode
 	/** Edit mode is on, so the title shows no tooltip. */
 	editing: boolean
+	/** Receives each error that a guard of the row catches. */
+	onError: (error: unknown) => void
 }
 
 /**
@@ -71,9 +76,13 @@ export type DashboardTileHeaderProps = {
  * The grip enters and leaves with edit mode on the same row. The content box
  * therefore keeps its height, and a widget never re-lays out on the switch.
  *
+ * The row is outside the boundaries of the content box. The description and the
+ * actions of the app therefore each get a guard. A throw in one does not reach the board.
+ *
  * @internal
  */
 export function DashboardTileHeader({
+	label,
 	titleId,
 	title,
 	description,
@@ -82,6 +91,7 @@ export function DashboardTileHeader({
 	handle,
 	controls,
 	editing,
+	onError,
 }: DashboardTileHeaderProps) {
 	return (
 		<div data-slot="card-header" className={cn(k.header)}>
@@ -91,14 +101,20 @@ export function DashboardTileHeader({
 				{title !== undefined && <DashboardTileTitle id={titleId} title={title} editing={editing} />}
 
 				{description !== undefined && (
-					<CardDescription className="truncate">{description}</CardDescription>
+					<DashboardTileGuard label={label} onError={onError}>
+						<CardDescription className="truncate">{description}</CardDescription>
+					</DashboardTileGuard>
 				)}
 			</div>
 
 			<div data-slot="dashboard-tile-actions" className={cn(k.actions)}>
 				{clear}
 
-				{actions}
+				{actions !== undefined && (
+					<DashboardTileGuard label={label} onError={onError}>
+						{actions}
+					</DashboardTileGuard>
+				)}
 
 				{controls}
 			</div>

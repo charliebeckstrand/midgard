@@ -1,5 +1,5 @@
 import { act } from '@testing-library/react'
-import { useCallback, useState } from 'react'
+import { type ReactNode, useCallback, useState } from 'react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import {
 	Dashboard,
@@ -193,6 +193,37 @@ describe('DashboardTile actions', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Expand a' }))
 
 		expect(screen.getByRole('dialog', { name: 'a' })).toHaveTextContent('Untitled')
+	})
+
+	it('keeps the expand dialog when the description throws, and describes it by nothing', () => {
+		const onTileError = vi.fn()
+
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Tile a" description={<Broken />} expandable>
+					<p>Content a</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		onTileError.mockClear()
+
+		fireEvent.click(screen.getByRole('button', { name: 'Expand Tile a' }))
+
+		const dialog = screen.getByRole('dialog', { name: 'Tile a' })
+
+		expect(dialog).toHaveTextContent('Content a')
+
+		// No description slot mounts, so none registers as the description of the dialog.
+		expect(dialog).not.toHaveAttribute('aria-describedby')
+
+		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
 	})
 
 	it('gives a tile with controls a header row, even with no title', () => {

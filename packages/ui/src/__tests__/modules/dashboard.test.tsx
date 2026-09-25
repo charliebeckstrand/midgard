@@ -353,6 +353,67 @@ describe('Dashboard', () => {
 		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
 	})
 
+	it('confines an error in the description to the header, and reports it', () => {
+		const onTileError = vi.fn()
+
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		renderUI(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }} onTileError={onTileError}>
+				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+					<p>Chart</p>
+				</DashboardTile>
+
+				<DashboardTile id="b" title="Traffic" description="This year">
+					<p>Fine</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		// The description goes away with its element, and the title and the widget stay.
+		const revenue = screen.getByRole('group', { name: 'Revenue' })
+
+		expect(revenue).toHaveTextContent('Chart')
+
+		expect(bySlot(revenue, 'card-description')).toBeNull()
+
+		expect(screen.queryByRole('alert')).toBeNull()
+
+		expect(screen.getByRole('group', { name: 'Traffic' })).toHaveTextContent('This year')
+
+		expect(onTileError).toHaveBeenCalledWith('a', expect.any(Error))
+	})
+
+	it('renders the board on the server when a description throws', () => {
+		function Broken(): ReactNode {
+			throw new Error('boom')
+		}
+
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const html = renderToString(
+			<Dashboard aria-label="Sales" layout={{ defaultValue: LAYOUT }}>
+				<DashboardTile id="a" title="Revenue" description={<Broken />}>
+					<p>Chart</p>
+				</DashboardTile>
+
+				<DashboardTile id="b" title="Traffic">
+					<p>Fine</p>
+				</DashboardTile>
+			</Dashboard>,
+		)
+
+		// The Suspense boundary of the guard hands the error to a client render. The dev
+		// error text names components, so match the markup of each widget.
+		expect(html).toContain('<p>Chart</p>')
+
+		expect(html).toContain('<p>Fine</p>')
+	})
+
 	it('shows nothing in place of actions that suspend, and keeps the board', async () => {
 		const never = new Promise<never>(() => {})
 

@@ -1,12 +1,11 @@
 'use client'
 
-import { memo, type ReactNode, type RefObject, Suspense } from 'react'
+import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardHandle } from './dashboard-handle'
-import { DashboardTileBoundary } from './dashboard-tile-boundary'
 import { DashboardTileClear } from './dashboard-tile-clear'
 import { DashboardTileContent } from './dashboard-tile-content'
 import { DashboardTileControls } from './dashboard-tile-controls'
@@ -93,14 +92,6 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 		<DashboardHandle {...grip} label={`Move ${label}`} floating={!hasHeader} dragging={dragging} />
 	)
 
-	// The header row is outside the boundaries of the content box. The app controls
-	// therefore get their own boundaries. A throw in them does not reach the board.
-	const guarded = actions !== undefined && (
-		<DashboardTileBoundary label={label} onError={onError} quiet>
-			<Suspense fallback={null}>{actions}</Suspense>
-		</DashboardTileBoundary>
-	)
-
 	return (
 		<Card
 			size="sm"
@@ -119,13 +110,15 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 
 			{hasHeader && (
 				<DashboardTileHeader
+					label={label}
 					titleId={titleId}
 					title={title}
 					description={description}
-					actions={guarded}
+					actions={actions}
 					clear={<DashboardTileClear id={id} label={label} />}
 					handle={handle}
 					editing={editable}
+					onError={onError}
 					controls={
 						<DashboardTileControls
 							id={id}

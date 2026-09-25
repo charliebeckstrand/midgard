@@ -15,6 +15,7 @@ import {
 import { Icon } from '../../components/icon'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/dashboard'
+import { DashboardTileGuard } from './dashboard-tile-boundary'
 import { DashboardTileContent } from './dashboard-tile-content'
 
 /** Props for {@link DashboardTileExpand}. @internal */
@@ -29,7 +30,7 @@ export type DashboardTileExpandProps = {
 	description?: ReactNode
 	/** What the dialog shows while the content suspends. */
 	fallback: ReactNode
-	/** Receives each error that the boundary in the dialog catches. */
+	/** Receives each error that a boundary in the dialog catches. */
 	onError: (error: unknown) => void
 	/** The widget. */
 	children?: ReactNode
@@ -77,7 +78,13 @@ export function DashboardTileExpand({
 					<DialogHeader>
 						{title !== undefined && <DialogTitle>{title}</DialogTitle>}
 
-						{description !== undefined && <DialogDescription>{description}</DialogDescription>}
+						{description !== undefined && (
+							// The guard holds the whole slot. A failed description then leaves no empty
+							// element for the `aria-describedby` of the dialog.
+							<DashboardTileGuard label={label} onError={onError}>
+								<DialogDescription>{description}</DialogDescription>
+							</DashboardTileGuard>
+						)}
 					</DialogHeader>
 				)}
 
