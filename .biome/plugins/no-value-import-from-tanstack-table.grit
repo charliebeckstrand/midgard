@@ -1,0 +1,23 @@
+language js
+
+// The grid's engine boundary (CONVENTIONS.md §10.7). TanStack's table is a
+// mutable object that keeps its identity, and the React Compiler caches a read
+// of it on that identity. `use-grid-table.ts` is therefore the one module that
+// reads the table during render, and the `engine` folder holds the helpers it
+// calls. Every other module gets values and actions from the boundary, and
+// takes no value from `@tanstack/react-table`.
+//
+// An `import type`, or a named import whose every specifier is `type`, carries
+// no value, so it is exempt.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus the boundary module, the `engine` folder, tests, and benchmarks.
+`import $clause from $source` as $import where {
+	$source <: r"['\"]@tanstack/react-table['\"]",
+	not $import <: r"import\s+type\b[\s\S]*",
+	not $import <: r"import\s*\{\s*type\s[^,}]*(?:,\s*type\s[^,}]*)*,?\s*\}[\s\S]*",
+	register_diagnostic(
+		span = $import,
+		message = "take no value from `@tanstack/react-table` outside the grid's engine boundary: read the table in `use-grid-table.ts` or `engine/`, and give render code values and actions"
+	)
+}

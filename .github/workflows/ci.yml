@@ -55,7 +55,7 @@ jobs:
             ${{ runner.os }}-vitest-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ hashFiles('packages/ui/vitest.config.ts', 'packages/ui/src/__tests__/helpers/walk-source.ts', 'packages/ui/src/docs/engine/**/*.ts', '!packages/ui/src/docs/engine/**/__tests__/**') }}-
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why.
-      # `test:compiler` runs the grid tests with the React Compiler on; see
+      # `test:compiler` runs the ui tests with the React Compiler on; see
       # packages/ui/vitest.compiler.config.ts.
       - run: pnpm turbo run lint check-types test test:compiler knip build bundle:budget --summarize
         env:
