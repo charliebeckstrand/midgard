@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { hydrateRoot, type Root } from 'react-dom/client'
-import { beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
+import { beforeAll, beforeEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import {
 	Dashboard,
 	type DashboardLayoutItem,
@@ -263,5 +263,41 @@ describe('a saved selection of a tile that is not on the board', () => {
 		expect(onRecoverableError).not.toHaveBeenCalled()
 
 		expect(container).toHaveTextContent('Total 40')
+	})
+})
+
+/**
+ * Whether an observer of `Observer` reports a target as in view when it starts
+ * to watch it. The jsdom setup stub does, and the controlled observer does not.
+ */
+function reportsOnObserve(Observer: typeof IntersectionObserver): boolean {
+	const seen: boolean[] = []
+
+	new Observer((entries) => {
+		for (const entry of entries) seen.push(entry.isIntersecting)
+	}).observe(document.createElement('div'))
+
+	return seen.includes(true)
+}
+
+// The unit project shares one window across the files of a worker. Vitest
+// unstubs a global only before the next test, so a stub that stays after its
+// case can leak into the next file.
+describe('the controlled observer', { shuffle: false }, () => {
+	it('holds each target out of view while the case runs', () => {
+		expect(reportsOnObserve(window.IntersectionObserver)).toBe(false)
+	})
+
+	describe('when that case ends', () => {
+		let between: typeof IntersectionObserver
+
+		// This hook runs before the next case starts, and so before Vitest unstubs a global.
+		beforeAll(() => {
+			between = window.IntersectionObserver
+		})
+
+		it('puts the jsdom observer back', () => {
+			expect(reportsOnObserve(between)).toBe(true)
+		})
 	})
 })

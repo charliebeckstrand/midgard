@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { renderToString } from 'react-dom/server'
-import { vi } from 'vitest'
+import { onTestFinished, vi } from 'vitest'
 
 /**
  * A controlled `IntersectionObserver` for the suites of a mount policy, and the
@@ -31,8 +31,12 @@ export type ControlledObserver = {
  * @remarks
  * The jsdom setup reports each target as in view when an observer watches it.
  * A suite that states the deferral of a mount policy replaces that stub with
- * this one. `unstubGlobals` puts the setup stub back before the next test, so
- * no caller restores it.
+ * this one. Call it in a case or in a `beforeEach`.
+ *
+ * When the case ends, the helper puts the previous observer back, so no caller
+ * restores it. The `unstubGlobals` option restores a global only before the
+ * next test. The unit project shares one window across the files of a worker.
+ * Without this step, the stub of the last case in a file stays in the next file.
  *
  * @returns The controls of the observer.
  */
@@ -61,7 +65,13 @@ export function installControlledObserver(): ControlledObserver {
 		}
 	}
 
+	const previous = window.IntersectionObserver
+
 	vi.stubGlobal('IntersectionObserver', Observer)
+
+	onTestFinished(() => {
+		window.IntersectionObserver = previous
+	})
 
 	const send = (entries: typeof targets, isIntersecting: boolean) => {
 		act(() => {
