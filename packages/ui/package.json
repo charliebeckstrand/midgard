@@ -101,6 +101,7 @@
 		"@mui/material": "^9.2.0",
 		"@mui/x-data-grid": "^9.9.0",
 		"@rolldown/plugin-babel": "^0.2.4",
+		"@tailwindcss/node": "^4.3.0",
 		"@tailwindcss/vite": "^4.2.1",
 		"@tanstack/react-query": "catalog:",
 		"@tanstack/table-core": "^9.2.4",
