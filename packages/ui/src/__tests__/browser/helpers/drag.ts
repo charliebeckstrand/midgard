@@ -6,11 +6,14 @@ import { swallowsClicks } from '../../helpers/residue'
  * Pointer drags for the browser cases that press and travel a real sensor.
  *
  * Browser-local rather than in the shared `__tests__/helpers` barrel, because
- * only the browser cases that travel a real layout use it. The jsdom suites
- * drive the dnd-kit sensors too. They lift a tile with the KeyboardSensor, or
- * they press the PointerSensor through `fireEvent`. Each such case moves the
- * pointer by a fixed distance, because jsdom lays nothing out, and it releases
- * the drag in its own body.
+ * only the browser cases that travel a real layout use it.
+ *
+ * The jsdom suites drive the dnd-kit sensors too. They lift a tile with the
+ * KeyboardSensor, or they press the PointerSensor through `fireEvent`. Each
+ * PointerSensor case moves the pointer by a fixed distance, because jsdom lays
+ * nothing out, and it releases the drag in its own body. A keyboard case that
+ * fails can leave its lift live. `settleKeyboardLifts` in
+ * `__tests__/helpers/dashboard-board.tsx` ends that lift before the next case.
  */
 
 /** A client-space point, as a pointer event carries it. */
