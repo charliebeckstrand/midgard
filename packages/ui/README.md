@@ -27,7 +27,7 @@ No root barrel; the `exports` map exposes each component path.
 | Docs site (build) | `pnpm --filter ui docs:build` |
 | Tests | `pnpm --filter ui test` |
 | Tests (scoped) | `pnpm --filter ui test:related` / `pnpm --filter ui test:changed` |
-| Grid tests with the React Compiler on | `pnpm --filter ui test:compiler` |
+| Tests with the React Compiler on | `pnpm --filter ui test:compiler` |
 | Benchmarks | `pnpm --filter ui bench` |
 | Typecheck | `pnpm --filter ui check-types` |
 | Lint | `pnpm --filter ui lint` |
