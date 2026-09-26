@@ -149,7 +149,7 @@ A dependency list names what its value reads, never an extra key to force a reco
 
 ## 11. Environment
 
-11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the only reader is `env.ts` in the `auth` package (`BIFROST_URL`, `PROXY_SECRET`), and apps reach env through `auth`. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
+11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the only reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`), and apps reach env through `auth`. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.
 
 11.2 New variables get an `.env.example` entry and a typed declaration in the env config.
 

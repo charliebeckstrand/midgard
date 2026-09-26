@@ -59,6 +59,11 @@ services:
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
+    # The proxy fails each request when CLIENT_IP_SECRET is not set, so this
+    # check stops a deploy that lost the secret. Without a session, `/` is a
+    # redirect that the proxy sends, and the check does not call the gateway.
+    health_check:
+      http_path: /
     envs:
       - key: APP
         scope: BUILD_TIME
@@ -70,10 +75,10 @@ services:
         value: https://auth.ivoryimage.dev
       # The gateway uses the browser address that the proxy sends only with
       # this secret. The gateway holds the same value.
-      - key: PROXY_SECRET
+      - key: CLIENT_IP_SECRET
         scope: RUN_TIME
         type: SECRET
-        value: ${PROXY_SECRET}
+        value: ${CLIENT_IP_SECRET}
 
   - name: places
     github:
@@ -84,6 +89,9 @@ services:
     http_port: 3000
     instance_count: 1
     instance_size_slug: apps-s-1vcpu-0.5gb
+    # The same reason as for admin.
+    health_check:
+      http_path: /
     envs:
       - key: APP
         scope: BUILD_TIME
@@ -92,6 +100,11 @@ services:
       - key: BIFROST_URL
         scope: RUN_AND_BUILD_TIME
         value: https://auth.ivoryimage.dev
+      # The same reason as for admin.
+      - key: CLIENT_IP_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${CLIENT_IP_SECRET}
 
 static_sites:
   # The site routes by the URL hash, so each page is `index.html` and no path

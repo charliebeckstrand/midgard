@@ -1,4 +1,4 @@
-// The only reader of `BIFROST_URL` and `PROXY_SECRET` in the repository (CONVENTIONS.md §11.1).
+// The only reader of `BIFROST_URL` and `CLIENT_IP_SECRET` in the repository (CONVENTIONS.md §11.1).
 // The other workspaces get these values through this package.
 
 const fallback = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:4000'
@@ -37,13 +37,23 @@ if (protocol !== 'http:' && protocol !== 'https:') {
 export const BIFROST_URL = url.replace(/\/+$/, '')
 
 /**
- * Secret that the gateway requires before it uses the client address that the proxy sends.
+ * Returns the secret that the gateway requires before it uses the browser address that the proxy sends.
  *
  * @remarks
- * Read from `process.env.PROXY_SECRET` at run time. The gateway holds the same
- * value. When it is not set, the proxy sends no client address, and the gateway
- * uses the address of the app.
+ * Read from `process.env.CLIENT_IP_SECRET`. The gateway holds the same value.
+ * In production, an unset value throws, so a lost secret stops the app and does
+ * not put all browsers in one rate-limit bucket. Outside production, an unset
+ * value sends no browser address. A function, not a constant, because `next
+ * build` loads this module and the build does not get the secret.
  *
  * @internal
  */
-export const PROXY_SECRET = process.env.PROXY_SECRET || undefined
+export function clientIpSecret(): string | undefined {
+	const secret = process.env.CLIENT_IP_SECRET || undefined
+
+	if (!secret && process.env.NODE_ENV === 'production') {
+		throw new Error('CLIENT_IP_SECRET is not set: the gateway needs it to rate-limit by browser')
+	}
+
+	return secret
+}

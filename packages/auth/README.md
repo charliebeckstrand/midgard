@@ -12,7 +12,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 |---|---|
 | `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getSession`, `requireAdmin`, and the `Session` and `User` types. |
 | `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites. |
-| `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports. |
+| `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports, and `forwardClientIp`, the proxy of an app with no gate. Both send the browser address to the gateway. |
 
 ## 2. Commands
 
