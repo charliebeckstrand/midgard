@@ -1,39 +1,10 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { BIFROST_URL, PROXY_SECRET } from './env'
+import { PROXY_SECRET } from './env'
 import { isApiRoute, isAuthRoute, isGuestRoute } from './routes'
 
-// Every matched request waits on the session check, guest routes included, so a
-// hung gateway must not hang the app. A timeout fails closed, as an unauthenticated session.
-const sessionTimeout = 5_000
-
-/**
- * Resolves the session: calls the gateway's `/auth/session` with the cookies of the request.
- *
- * @internal
- * @returns `true` only when the gateway reports `authenticated: true`. A failed
- *   status, a thrown request, or a timeout resolves to `false`, and each failure
- *   except a `401` goes to the log.
- */
-async function isAuthenticated(request: NextRequest): Promise<boolean> {
-	try {
-		const res = await fetch(`${BIFROST_URL}/auth/session`, {
-			headers: { cookie: request.headers.get('cookie') ?? '' },
-			signal: AbortSignal.timeout(sessionTimeout),
-		})
-
-		if (res.ok) {
-			const { authenticated } = (await res.json()) as { authenticated?: boolean }
-
-			return authenticated === true
-		}
-
-		if (res.status !== 401) console.error(`auth: GET /auth/session failed (${res.status})`)
-	} catch (error) {
-		console.error('auth: GET /auth/session threw', error)
-	}
-
-	return false
-}
+// The gateway sets the session with the `__Host-` prefix. The browser then sends
+// it only over HTTPS, and a sibling subdomain cannot set it.
+const sessionCookie = '__Host-session'
 
 /**
  * Continues a request to the gateway, and adds the address of the browser.
@@ -65,38 +36,36 @@ function forwardToGateway(request: NextRequest): NextResponse {
 }
 
 /**
- * Gates a request by session, and redirects between guest and protected routes.
+ * Gates a request by the session cookie.
  *
  * @remarks
- * Export it from the `proxy.ts` of an app. An auth route (`/auth/*`) continues
- * without a session check, because sign-in and register run before a session
- * exists. An authenticated user on a guest route (`/login`, `/register`) goes to
- * `/`. An unauthenticated user on any other route goes to `/login`. All other
- * requests continue.
+ * Export it from the `proxy.ts` of an app. The proxy only finds the cookie, and
+ * sends no request to the gateway. The gateway checks the session on each
+ * `/api/*` request, and `requireAdmin` checks it for each protected page. So a
+ * cookie that is not valid gets no data.
  *
- * An unauthenticated request to an API route (`/api/*`) gets a `401` JSON response
- * in place of the redirect. A `fetch` follows a redirect, and the login page
+ * An auth route (`/auth/*`) and a guest route (`/login`, `/register`) continue
+ * without the cookie, because sign-in and register run before a session exists.
+ * A request to any other route without the cookie goes to `/login`.
+ *
+ * An API route (`/api/*`) without the cookie gets a `401` JSON response in
+ * place of the redirect. A `fetch` follows a redirect, and the login page
  * answers `200`, so the caller reads a rejected write as a success.
  *
  * An auth or API request that continues gets the address of the browser for
  * the gateway (see {@link forwardToGateway}).
  *
- * @param request - The incoming request. Its cookies resolve the session.
+ * @param request - The incoming request.
  * @returns A redirect, a `401` for an API route, or `NextResponse.next()`.
  */
-export async function proxy(request: NextRequest) {
+export function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl
 
 	if (isAuthRoute(pathname)) return forwardToGateway(request)
 
-	const guest = isGuestRoute(pathname)
-	const authenticated = await isAuthenticated(request)
+	if (isGuestRoute(pathname)) return NextResponse.next()
 
-	if (guest && authenticated) {
-		return NextResponse.redirect(new URL('/', request.url))
-	}
-
-	if (!guest && !authenticated) {
+	if (!request.cookies.has(sessionCookie)) {
 		if (isApiRoute(pathname)) {
 			return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 		}

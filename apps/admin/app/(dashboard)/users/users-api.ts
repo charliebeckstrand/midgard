@@ -1,6 +1,4 @@
 import type { User } from 'auth'
-import type { ChatMessageData } from 'ui/modules/chat'
-import type { Chat } from './[userId]/types'
 
 /**
  * The requests that the users pages send from the client. Each goes to a
@@ -32,40 +30,18 @@ export async function fetchUsers(signal?: AbortSignal): Promise<User[]> {
 	return data
 }
 
-/** Changes the email of one user. */
-export async function saveUserEmail(userId: string, email: string): Promise<void> {
-	await request(`/api/users/${encodeURIComponent(userId)}`, {
+/**
+ * Deactivates or reactivates one user, and returns the changed record.
+ *
+ * The gateway signs a deactivated user out on each device. It refuses to change
+ * an admin account with a `403`.
+ */
+export async function setUserActive(userId: string, isActive: boolean): Promise<User> {
+	const response = await request(`/api/users/${encodeURIComponent(userId)}`, {
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email }),
+		body: JSON.stringify({ is_active: isActive }),
 	})
-}
 
-/** Removes one user. */
-export async function deleteUser(userId: string): Promise<void> {
-	await request(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' })
-}
-
-/** The chats of one user. */
-export async function fetchUserChats(userId: string, signal?: AbortSignal): Promise<Chat[]> {
-	const response = await request(`/api/users/${encodeURIComponent(userId)}/chats`, { signal })
-
-	return (await response.json()) as Chat[]
-}
-
-/** The messages of one chat. */
-export async function fetchChatMessages(
-	chatId: string,
-	signal?: AbortSignal,
-): Promise<ChatMessageData[]> {
-	const response = await request(`/api/chat/${encodeURIComponent(chatId)}`, { signal })
-
-	const { messages } = (await response.json()) as { messages?: ChatMessageData[] }
-
-	return messages ?? []
-}
-
-/** Removes one chat. */
-export async function deleteChat(chatId: string): Promise<void> {
-	await request(`/api/chat/${encodeURIComponent(chatId)}`, { method: 'DELETE' })
+	return (await response.json()) as User
 }
