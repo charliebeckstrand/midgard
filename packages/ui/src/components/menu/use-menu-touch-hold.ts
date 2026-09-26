@@ -6,7 +6,7 @@ export const TOUCH_CONTEXT_MENU_DELAY = 500
 /** Travel, in px, that turns a held touch into a scroll or a drag. */
 const SLOP = 10
 
-/** Time, in ms, in which the click that ends the hold is dropped. */
+/** Time, in ms, in which the click that ends the hold is dropped, unless a new press starts first. */
 const CLICK_WINDOW = 1000
 
 /** Native pointer events that a surface has already claimed, so a nested surface does not claim them again. */
@@ -50,6 +50,10 @@ export function useMenuTouchHold() {
 	return {
 		onPointerDown: (event: PointerEvent) => {
 			cancel()
+
+			// A new press is a new gesture. Its click is not the one that ends the hold,
+			// even inside the window, such as a quick tap on an item of the open menu.
+			dropClickUntil.current = 0
 
 			if (event.pointerType !== 'touch' || !event.isPrimary) return
 

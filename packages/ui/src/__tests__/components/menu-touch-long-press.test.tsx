@@ -19,14 +19,14 @@ describe('a context Menu under a touch long press', () => {
 		vi.useRealTimers()
 	})
 
-	function renderSurface(onClick = vi.fn()) {
+	function renderSurface(onClick = vi.fn(), onEdit = vi.fn()) {
 		renderUI(
 			<Menu>
 				<button type="button" data-testid="surface" onClick={onClick}>
 					Hold me
 				</button>
 				<MenuContent>
-					<MenuItem>Edit</MenuItem>
+					<MenuItem onClick={onEdit}>Edit</MenuItem>
 				</MenuContent>
 			</Menu>,
 		)
@@ -70,6 +70,31 @@ describe('a context Menu under a touch long press', () => {
 		fireEvent.click(surface)
 
 		expect(onClick).not.toHaveBeenCalled()
+	})
+
+	it('keeps a quick tap on an item of the opened menu', () => {
+		const onEdit = vi.fn()
+
+		const surface = renderSurface(vi.fn(), onEdit)
+
+		fireEvent.pointerDown(surface, touch)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
+		})
+
+		// iOS can end a long press with no click. The next tap is a new press.
+		fireEvent.pointerUp(surface, touch)
+
+		const item = screen.getByRole('menuitem', { name: 'Edit' })
+
+		fireEvent.pointerDown(item, touch)
+
+		fireEvent.pointerUp(item, touch)
+
+		fireEvent.click(item)
+
+		expect(onEdit).toHaveBeenCalledTimes(1)
 	})
 
 	it('does not open when the touch lifts before the delay', () => {
