@@ -154,16 +154,17 @@
 	"modules/grid/grid-cursor-order.ts": {
 		"useGridCursorOrder": "Refs"
 	},
-	"modules/grid/grid-data.tsx": {
-		"useStableHandler": "Refs",
-		"useTableRevealed": "Refs",
-		"GridData": "Todo"
-	},
 	"modules/grid/grid-group-head.tsx": {
 		"GridGroupHead": "Immutability"
 	},
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"
+	},
+	"modules/grid/use-grid-data-cursor.ts": {
+		"useStableHandler": "Refs"
+	},
+	"modules/grid/use-grid-data-frame.ts": {
+		"useTableRevealed": "Refs"
 	},
 	"modules/grid/use-grid-edit-history.ts": {
 		"useGridEditHistory": "Refs"
