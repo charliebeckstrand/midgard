@@ -164,6 +164,8 @@ export function MapPlotRegion({
 		<div
 			ref={shape.ref}
 			data-slot="map-plot"
+			// A touch hold here reads a region. It does not open a context menu.
+			data-touch-readout=""
 			role="img"
 			{...name}
 			{...keyboard}

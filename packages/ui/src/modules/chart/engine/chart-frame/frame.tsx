@@ -505,6 +505,8 @@ export function ChartFrame({
 			ref={rootRef}
 			data-slot="chart"
 			data-tier={tier}
+			// A touch hold here reads the chart. It does not open the context menu.
+			data-touch-readout=""
 			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
 			onContextMenuCapture={() => setMenuIndex(pointed.index)}

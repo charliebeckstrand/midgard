@@ -3,7 +3,7 @@
 /* The `dark` variant follows the `.dark` class on the root element. `AppearanceProvider` from `ui` sets the class. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* No full height on the root. A layout sets its own height to the small viewport. On iOS a full-height root takes the large viewport, which is taller while the browser bars show. The page then scrolls the navbar out of view. */
 :root {
-	height: 100%;
 	overscroll-behavior: none;
 }
