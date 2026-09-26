@@ -27,15 +27,14 @@ import { ChartTooltip } from '../chart-tooltip'
 import {
 	type ChartEmphasis,
 	ChartEmphasisContext,
-	type ChartHover,
 	ChartHoverContext,
 	ChartMarkEmphasisContext,
 	type ChartMarkRef,
-	type ChartPoint,
 	ChartSeriesEmphasisContext,
 	ChartSeriesFocusContext,
 	ChartTierContext,
 	chartMarkEmphasis,
+	createChartHoverStore,
 	sameMark,
 } from '../context'
 import type { ChartReadoutSource } from '../types'
@@ -44,11 +43,6 @@ import {
 	type ChartKeyboardProps,
 	useChartKeyboard,
 } from '../use-chart-keyboard'
-
-/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
-function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
-	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
-}
 
 /** The stable no-op the keyboard takes when its stops name no single series. @internal */
 function ignoreActiveSeries(_series: number | null): void {}
@@ -272,9 +266,9 @@ export type ChartFrameProps = AccessibleName & {
 /**
  * The shared chart shell: legend and visually-hidden data table as plain
  * HTML around a `role="img"` plot region holding the `aria-hidden` SVG and
- * the tooltip overlay. Owns the hover index and provides it through
- * `ChartHoverContext`, so pointer movement re-renders the overlays — never
- * the marks. Owns the series emphasis too, and provides it through
+ * the tooltip overlay. Owns the hover store and provides it through
+ * `ChartHoverContext`. A pointer move renders only the readers that subscribe
+ * to it: the overlays and hit layers, not the frame or the marks. Owns the series emphasis too, and provides it through
  * `ChartSeriesFocusContext` and `ChartSeriesEmphasisContext`. A legend hover
  * therefore renders the frame and the readers of the emphasis, not the chart
  * body. The readout thunk and the data table keep their identity.
@@ -316,14 +310,13 @@ export function ChartFrame({
 	// image export.
 	const rootRef = useRef<HTMLDivElement>(null)
 
-	const [pointed, setPointed] = useState<{
-		index: number | null
-		point: ChartPoint | null
-		onData: boolean
-	}>({ index: null, point: null, onData: false })
+	// The hover lives in a store the frame makes once. A pointer move then renders
+	// only the readers that subscribe to it (tooltip, crosshair, hit layers), and
+	// not the frame, its header, its legend, or its context menu.
+	const [hoverStore] = useState(createChartHoverStore)
 
 	// The mark under the pointer at the moment the right-click landed — snapshotted on the contextmenu
-	// event, NOT read live from `pointed`. The open menu overlays the plot, so moving the pointer toward a
+	// event, NOT read live from the hover store. The open menu overlays the plot, so moving the pointer toward a
 	// menu item immediately leaves the plot and clears the hover; a live read would recompute the items
 	// mid-interaction and drop the per-mark entry the user is about to click.
 	//
@@ -345,21 +338,6 @@ export function ChartFrame({
 	// one low-priority commit behind.
 	const tableReadout = useDeferredValue(readout, null)
 
-	const hover = useMemo<ChartHover>(
-		() => ({
-			...pointed,
-			// Bail on a no-op so a scroll's repeated clears — one per frame — cost a
-			// single render, and page scrolls far from this chart cost none.
-			set: (index, point, onData = true) =>
-				setPointed((prev) =>
-					prev.index === index && prev.onData === onData && samePoint(prev.point, point)
-						? prev
-						: { index, point, onData },
-				),
-		}),
-		[pointed],
-	)
-
 	// The frame owns the series emphasis, not the chart body: a legend hover then
 	// does not run the body, which would make a new readout thunk and format the
 	// data table again.
@@ -377,7 +355,7 @@ export function ChartFrame({
 
 	const pointMark = useCallback((mark: ChartMarkRef | null) => {
 		// Bail on a no-op so sweeping within one mark — or off the marks entirely
-		// once already clear — costs no mark re-render, the same guard hover.set keeps.
+		// once already clear — costs no mark re-render, the same guard the hover store keeps.
 		setPointedMark((prev) => (sameMark(prev, mark) ? prev : mark))
 	}, [])
 
@@ -402,7 +380,7 @@ export function ChartFrame({
 		focus,
 		orientation ?? 'vertical',
 		tooltipShown && readout !== null,
-		hover.set,
+		hoverStore.set,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 	)
@@ -509,7 +487,7 @@ export function ChartFrame({
 			data-touch-readout=""
 			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
-			onContextMenuCapture={() => setMenuIndex(pointed.index)}
+			onContextMenuCapture={() => setMenuIndex(hoverStore.get().index)}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on
@@ -536,7 +514,7 @@ export function ChartFrame({
 					<ChartMarkEmphasisContext value={markEmphasis}>
 						<ChartSeriesFocusContext value={setSeriesFocus}>
 							<ChartSeriesEmphasisContext value={seriesEmphasis}>
-								<ChartHoverContext value={hover}>
+								<ChartHoverContext value={hoverStore}>
 									<ChartFigure
 										plot={plotRegion}
 										header={header}
@@ -566,7 +544,7 @@ export function ChartFrame({
 			readout={readout}
 			title={title}
 			fullscreen={fullscreen}
-			// The frame owns the hover index, and this wrapper sits outside `ChartHoverContext` (it wraps
+			// The frame owns the hover store, and this wrapper sits outside `ChartHoverContext` (it wraps
 			// the provider), so the right-clicked mark travels down as a prop for a per-mark menu item.
 			targetIndex={menuIndex}
 		>

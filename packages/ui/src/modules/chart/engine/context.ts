@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo, useSyncExternalStore } from 'react'
 import { createContext } from '../../../core'
 import type { ChartTier } from './chart-tier'
 
@@ -10,25 +11,106 @@ export type ChartPoint = {
 }
 
 /**
- * Hover state shared between a chart's hit layer and the frame's overlays. It
- * holds the pointed category (or slice) index for snapping, and the precise
- * pointer point the tooltip tracks. Confined to its own context so pointer
- * movement re-renders only the crosshair and tooltip — never the marks.
+ * The hover a chart's hit layer writes and the frame's overlays read: the
+ * pointed category (or slice) index for snapping, and the precise pointer
+ * point the tooltip tracks.
  *
  * @internal
  */
-export type ChartHover = {
+export type ChartHoverState = {
 	/** The hovered category index, or `null` when the pointer is away. */
 	index: number | null
 	/** The pointer's exact frame coordinates while hovering, `null` at rest. */
 	point: ChartPoint | null
 	/** Whether the pointer sits on a data mark — the tooltip's gate; the crosshair ignores it. */
 	onData: boolean
-	/** Moves the hover, or clears it with `null`s; `onData` defaults to on-mark. */
-	set: (index: number | null, point: ChartPoint | null, onData?: boolean) => void
 }
 
-export const [ChartHoverContext, useChartHover] = createContext<ChartHover>('ChartHover')
+/**
+ * Moves the hover, or clears it with `null`s; `onData` defaults to on-mark.
+ *
+ * @internal
+ */
+export type ChartHoverSet = (
+	index: number | null,
+	point: ChartPoint | null,
+	onData?: boolean,
+) => void
+
+/**
+ * Hover state with its writer, as {@link useChartHover} gives it.
+ *
+ * @internal
+ */
+export type ChartHover = ChartHoverState & { set: ChartHoverSet }
+
+/**
+ * The store that holds a chart's hover. The frame makes one for its mount and
+ * never renders again for a pointer move. Only the readers that subscribe
+ * through {@link useChartHover} render again, and the store identity stays the
+ * same for the life of the frame.
+ *
+ * @internal
+ */
+export type ChartHoverStore = {
+	get: () => ChartHoverState
+	set: ChartHoverSet
+	subscribe: (listener: () => void) => () => void
+}
+
+/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
+function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
+	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
+}
+
+/**
+ * A new {@link ChartHoverStore}, at rest.
+ *
+ * @remarks A write that changes nothing calls no listener, so the repeated
+ * clears of a scroll cost no render.
+ * @internal
+ */
+export function createChartHoverStore(): ChartHoverStore {
+	let current: ChartHoverState = { index: null, point: null, onData: false }
+
+	const listeners = new Set<() => void>()
+
+	return {
+		get: () => current,
+		set: (index, point, onData = true) => {
+			if (current.index === index && current.onData === onData && samePoint(current.point, point)) {
+				return
+			}
+
+			current = { index, point, onData }
+
+			for (const listener of [...listeners]) listener()
+		},
+		subscribe: (listener) => {
+			listeners.add(listener)
+
+			return () => {
+				listeners.delete(listener)
+			}
+		},
+	}
+}
+
+export const [ChartHoverContext, useChartHoverStore] = createContext<ChartHoverStore>('ChartHover')
+
+/**
+ * Reads the chart hover and its writer. The reader renders again on each hover
+ * change, and the frame around it does not.
+ *
+ * @internal
+ */
+export function useChartHover(): ChartHover {
+	const store = useChartHoverStore()
+
+	const state = useSyncExternalStore(store.subscribe, store.get, store.get)
+
+	return useMemo(() => ({ ...state, set: store.set }), [state, store])
+}
 
 /**
  * A reference to one drawn mark: its series index, and the datum within that
