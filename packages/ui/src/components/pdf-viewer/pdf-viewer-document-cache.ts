@@ -1,7 +1,7 @@
 'use client'
 
 import { clamp } from '../../utilities'
-import type { PdfViewerPage } from './types'
+import type { PdfViewerPage, PdfViewerSlot } from './types'
 
 /**
  * How many documents' rasterized pages stay resident.
@@ -26,9 +26,20 @@ const MAX_DOCUMENTS = 4
  */
 const MAX_RASTERS = 8
 
+/**
+ * How many bytes of full-raster bitmaps all the documents hold together.
+ *
+ * @remarks A bitmap is always decoded: a US-Letter page is 7.4 MiB at 2x, where its PNG was
+ * about 270 KiB. With {@link MAX_RASTERS} alone, 4 documents hold up to about 236 MiB on a 2x
+ * screen. A phone browser can stop a page that holds that much. The pages that a viewer wants stay whatever
+ * the budget. The other bitmaps go, those of the least recently used document first.
+ * @internal
+ */
+const BITMAP_BUDGET = 48 * 1024 * 1024
+
 /** What a viewer observes for one `src`: a slot for each page, with its image once it renders, a download/print URL, and load progress. @internal */
 export type PdfDocumentSnapshot = {
-	pages: PdfViewerPage[]
+	pages: PdfViewerSlot[]
 	/** Same-origin blob URL for the fetched PDF, or `null` before the fetch resolves. */
 	documentUrl: string | null
 	loading: boolean
@@ -47,7 +58,7 @@ export type PdfDocumentSnapshot = {
 const EMPTY: PdfDocumentSnapshot = Object.freeze({
 	// The array is frozen too, not just the record around it: this is a process-wide singleton
 	// handed to every miss, and one consumer pushing into it would corrupt all of them.
-	pages: Object.freeze([]) as unknown as PdfViewerPage[],
+	pages: Object.freeze([]) as unknown as PdfViewerSlot[],
 	documentUrl: null,
 	loading: false,
 	error: null,
@@ -70,15 +81,19 @@ export type PdfPageRaster = 'full' | 'thumbnail'
 /**
  * One render of one page.
  *
- * @remarks `promise` gives a blob URL, or `null` when the page cannot render (no 2D context,
- * or an encode that fails). `cancel` stops the render. The promise then rejects, and the queue
+ * @remarks `promise` gives the raster, or `null` when the page cannot render (no 2D context,
+ * or an encode that fails). A full raster is an `ImageBitmap`, or a blob URL. A thumbnail is a
+ * blob URL. `cancel` stops the render. The promise then rejects, and the queue
  * ignores that rejection.
  * @internal
  */
 export type PdfRenderJob = {
-	promise: Promise<string | null>
+	promise: Promise<PdfRasterResult>
 	cancel: () => void
 }
+
+/** What a render gives: a blob URL, a bitmap, or `null` for a page that cannot render. @internal */
+export type PdfRasterResult = string | ImageBitmap | null
 
 /** Renders the page at a 0-based index. The load gives one to the cache when the document opens. @internal */
 export type PdfPageRenderer = (index: number, raster: PdfPageRaster) => PdfRenderJob
@@ -149,9 +164,9 @@ type Held = {
 const documents = new Map<string, Held>()
 
 /**
- * Frees the blob URLs a snapshot owns.
+ * Frees the blob URLs and the bitmaps a snapshot owns.
  *
- * @remarks A snapshot owns blob URLs only. The pdf.js document that a load keeps open belongs
+ * @remarks A snapshot owns blob URLs and bitmaps only. The pdf.js document that a load keeps open belongs
  * to the entry, and {@link free} releases it. Safe on a partial snapshot too, which is what a
  * failed load leaves behind.
  * @internal
@@ -164,6 +179,8 @@ function revoke(snapshot: PdfDocumentSnapshot) {
 		if (page.src) URL.revokeObjectURL(page.src)
 
 		if (page.thumbnail) URL.revokeObjectURL(page.thumbnail)
+
+		page.bitmap?.close()
 	}
 }
 
@@ -500,7 +517,9 @@ function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPage
 	const { pages } = held.snapshot
 
 	for (const index of wanted) {
-		if (!pages[index]?.src && !held.skipped.has(`${index}:full`)) return { index, raster: 'full' }
+		if (!hasRaster(pages[index]) && !held.skipped.has(`${index}:full`)) {
+			return { index, raster: 'full' }
+		}
 	}
 
 	for (const [index, page] of pages.entries()) {
@@ -512,34 +531,109 @@ function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPage
 	return null
 }
 
+/** Whether a slot has its full raster, as a blob URL or as a bitmap. @internal */
+export function hasRaster(page: PdfViewerSlot | undefined): boolean {
+	return !!(page?.src || page?.bitmap)
+}
+
+/** The bytes that the bitmap of a slot holds. @internal */
+function bitmapBytes(page: PdfViewerSlot | undefined): number {
+	return page?.bitmap ? page.bitmap.width * page.bitmap.height * 4 : 0
+}
+
+/**
+ * Drops the full raster of the page at `index`, and frees its URL or its bitmap.
+ *
+ * @returns The pages with the slot emptied: a copy when `pages` is the published array.
+ * @internal
+ */
+function dropRaster(held: Held, pages: PdfViewerSlot[], index: number): PdfViewerSlot[] {
+	const page = pages[index]
+
+	held.rasters = held.rasters.filter((resident) => resident !== index)
+
+	if (!page) return pages
+
+	if (page.src) URL.revokeObjectURL(page.src)
+
+	page.bitmap?.close()
+
+	const next = pages === held.snapshot.pages ? [...pages] : pages
+
+	next[index] = { ...page, src: '', bitmap: undefined }
+
+	return next
+}
+
 /**
  * Drops the oldest full rasters until at most {@link MAX_RASTERS} remain.
  *
  * @remarks A page that a viewer wants keeps its raster. The page then renders again when a
  * reader comes back to it.
- * @returns The pages with the dropped rasters removed, or the same array when none dropped.
+ * @returns The pages with the dropped rasters removed.
  * @internal
  */
-function boundRasters(held: Held, pages: PdfViewerPage[], wanted: number[]): PdfViewerPage[] {
+function boundRasters(held: Held, pages: PdfViewerSlot[], wanted: number[]): PdfViewerSlot[] {
 	let next = pages
 
 	for (const index of [...held.rasters]) {
 		if (held.rasters.length <= MAX_RASTERS) break
 
-		if (wanted.includes(index)) continue
-
-		const page = next[index]
-
-		if (page?.src) URL.revokeObjectURL(page.src)
-
-		if (next === pages) next = [...pages]
-
-		if (page) next[index] = { ...page, src: '' }
-
-		held.rasters = held.rasters.filter((resident) => resident !== index)
+		if (!wanted.includes(index)) next = dropRaster(held, next, index)
 	}
 
 	return next
+}
+
+/**
+ * Drops the oldest bitmaps of all the documents until they fit {@link BITMAP_BUDGET}.
+ *
+ * @remarks The least recently used document gives up its bitmaps first. Within a document, the
+ * least recently rendered page goes first. A page that a viewer wants keeps its bitmap.
+ * @internal
+ */
+function trimBitmaps() {
+	let total = 0
+
+	for (const held of documents.values()) {
+		for (const page of held.snapshot.pages) total += bitmapBytes(page)
+	}
+
+	for (const [src, held] of documents) {
+		if (total <= BITMAP_BUDGET) return
+
+		total -= trimDocument(src, held, total - BITMAP_BUDGET)
+	}
+}
+
+/**
+ * Drops the oldest bitmaps of one document that no viewer wants, until `excess` bytes are free.
+ *
+ * @returns The bytes that it freed.
+ * @internal
+ */
+function trimDocument(src: string, held: Held, excess: number): number {
+	const wanted = wantedPages(held)
+
+	let pages = held.snapshot.pages
+
+	let freed = 0
+
+	for (const index of [...held.rasters]) {
+		if (freed >= excess) break
+
+		const bytes = bitmapBytes(pages[index])
+
+		if (bytes === 0 || wanted.includes(index)) continue
+
+		pages = dropRaster(held, pages, index)
+
+		freed += bytes
+	}
+
+	if (pages !== held.snapshot.pages) publish(src, { pages })
+
+	return freed
 }
 
 /**
@@ -549,14 +643,14 @@ function boundRasters(held: Held, pages: PdfViewerPage[], wanted: number[]): Pdf
  * is revoked here. A render that failed, and was not canceled, is a failure of the document.
  * @internal
  */
-function land(src: string, held: Held, running: RunningJob, result: string | null | Error) {
+function land(src: string, held: Held, running: RunningJob, result: PdfRasterResult | Error) {
 	// A free clears the job, so a render that it stopped is no longer the job of the entry.
 	const current = documents.get(src) === held && held.job === running && held.renderer !== null
 
 	if (held.job === running) held.job = null
 
 	if (!current) {
-		if (typeof result === 'string') URL.revokeObjectURL(result)
+		if (!(result instanceof Error)) discard(result)
 
 		return
 	}
@@ -577,22 +671,17 @@ function land(src: string, held: Held, running: RunningJob, result: string | nul
 
 	const page = held.snapshot.pages[index]
 
-	if (!page) {
-		URL.revokeObjectURL(result)
+	// A thumbnail must be a URL, because the rail shows it in an `<img>`. Anything else counts
+	// as a page that cannot render, so the queue does not ask for it again.
+	if (!page || (raster === 'thumbnail' && typeof result !== 'string')) {
+		discard(result)
+
+		held.skipped.add(`${index}:${raster}`)
 
 		return pump(src, held)
 	}
 
-	let pages = [...held.snapshot.pages]
-
-	if (raster === 'thumbnail') pages[index] = { ...page, thumbnail: result }
-	else {
-		pages[index] = { ...page, src: result }
-
-		held.rasters = [...held.rasters.filter((resident) => resident !== index), index]
-
-		pages = boundRasters(held, pages, wantedPages(held))
-	}
+	const pages = place(held, index, raster, result)
 
 	// The next job starts before the publish, so a subscriber that reads the state sees the
 	// queue busy until its last render lands.
@@ -601,6 +690,45 @@ function land(src: string, held: Held, running: RunningJob, result: string | nul
 	pump(src, held)
 
 	publish(src, {})
+
+	if (raster === 'full') trimBitmaps()
+}
+
+/**
+ * The pages of `held` with the raster of a finished render in its slot.
+ *
+ * @remarks A full raster joins the resident set, and the set then keeps its bound.
+ * @internal
+ */
+function place(
+	held: Held,
+	index: number,
+	raster: PdfPageRaster,
+	result: string | ImageBitmap,
+): PdfViewerSlot[] {
+	const pages = [...held.snapshot.pages]
+
+	const page = pages[index]
+
+	if (!page) return pages
+
+	if (raster === 'thumbnail') {
+		pages[index] = { ...page, thumbnail: result as string }
+
+		return pages
+	}
+
+	pages[index] = typeof result === 'string' ? { ...page, src: result } : { ...page, bitmap: result }
+
+	held.rasters = [...held.rasters.filter((resident) => resident !== index), index]
+
+	return boundRasters(held, pages, wantedPages(held))
+}
+
+/** Frees a raster that has no slot to go into. @internal */
+function discard(result: PdfRasterResult) {
+	if (typeof result === 'string') URL.revokeObjectURL(result)
+	else result?.close()
 }
 
 /**
@@ -696,6 +824,7 @@ export function documentCacheState(): {
 	holders: number
 	pages: number
 	rasters: number
+	bitmapBytes: number
 	thumbnails: number
 	rendering: boolean
 }[] {
@@ -703,7 +832,8 @@ export function documentCacheState(): {
 		src,
 		holders: held.listeners.size,
 		pages: held.snapshot.pages.length,
-		rasters: held.snapshot.pages.filter((page) => page.src).length,
+		rasters: held.snapshot.pages.filter(hasRaster).length,
+		bitmapBytes: held.snapshot.pages.reduce((sum, page) => sum + bitmapBytes(page), 0),
 		thumbnails: held.snapshot.pages.filter((page) => page.thumbnail).length,
 		rendering: held.job !== null,
 	}))

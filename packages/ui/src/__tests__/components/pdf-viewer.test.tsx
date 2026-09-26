@@ -332,6 +332,35 @@ describe('PdfViewer', () => {
 		resetDocumentCache()
 	})
 
+	// The `src` path keeps a full raster as a bitmap, with no encode. The viewport draws it on
+	// a canvas that carries the name of the page.
+	it('shows a page that rendered to a bitmap on a named canvas', async () => {
+		resetDocumentCache()
+
+		const bitmap = { width: 918, height: 1188, close: vi.fn() } as unknown as ImageBitmap
+
+		ensureDocumentLoad('/bitmap.pdf', (report) => {
+			report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
+
+			report.serve(() => ({ promise: Promise.resolve(bitmap), cancel: () => {} }))
+
+			return Promise.resolve()
+		})
+
+		const { container } = renderUI(<PdfViewer src="/bitmap.pdf" />)
+
+		// Lets the render land.
+		await act(async () => {})
+
+		const viewport = bySlot(container, 'pdf-viewer-viewport')
+
+		expect(viewport?.querySelector('canvas')).toHaveAttribute('aria-label', 'Page 1')
+
+		expect(viewport?.querySelector('img')).toBeNull()
+
+		resetDocumentCache()
+	})
+
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 

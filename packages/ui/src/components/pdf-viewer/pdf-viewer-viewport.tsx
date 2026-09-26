@@ -4,16 +4,18 @@ import { cn } from '../../core'
 import { useA11yLiveRegion } from '../../hooks'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
+import { hasRaster } from './pdf-viewer-document-cache'
 import { PdfViewerHighlights } from './pdf-viewer-highlights'
 import { PdfViewerMagnifier } from './pdf-viewer-magnifier'
 import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
+import { PdfViewerPageImage } from './pdf-viewer-page-image'
 
 /**
  * Renders the page surface inside the measured viewport. That is the active
  * page image, an error message, a loading placeholder, or an empty state. A
- * page shows as soon as the rasterizer reports it. The pages after it can
- * still load, and the reader does not wait for them. A page that has not
- * rendered yet shows the loading placeholder. The
+ * page shows as soon as its raster lands: an image, or a bitmap on a canvas
+ * ({@link PdfViewerPageImage}). A page that has not rendered yet shows the
+ * loading placeholder. The
  * highlight overlay sits over the image, sharing its frame and its transform.
  * The `scale` input drives the viewport's aspect ratio, and the container
  * reserves space before the image paints.
@@ -57,7 +59,7 @@ export function PdfViewerViewport() {
 					Page {safePage} of {total}
 				</div>
 			)}
-			{activePage?.src ? (
+			{hasRaster(activePage) && activePage ? (
 				<div
 					// The frame, not the image: it is the box the loupe's own copy is sized from,
 					// and it does not move under rotation the way the image inside it does.
@@ -67,9 +69,9 @@ export function PdfViewerViewport() {
 					className={cn(k.viewport.page.frame)}
 					style={{ width: frameWidth, height: frameHeight }}
 				>
-					<img
+					<PdfViewerPageImage
 						key={activePage.id ?? safePage}
-						src={activePage.src}
+						page={activePage}
 						alt={activePage.label ?? `Page ${safePage}`}
 						className={cn(k.viewport.page.base)}
 						style={{
