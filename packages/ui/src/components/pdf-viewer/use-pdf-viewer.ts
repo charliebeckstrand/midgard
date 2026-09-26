@@ -11,7 +11,7 @@ import type {
 	PdfViewerPage,
 	PdfViewerZoom,
 } from './types'
-import { usePdfViewerDocument } from './use-pdf-viewer-document'
+import { usePdfViewerDocument, usePdfViewerDocumentFocus } from './use-pdf-viewer-document'
 import {
 	type MagnifierChoice,
 	type ResolvedMagnifier,
@@ -230,8 +230,8 @@ const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
  * @returns The {@link PdfViewerResult} consumed by every viewer sub-component.
  * @remarks When `pages` is omitted but `src` is set, pages are rasterized
  * asynchronously via pdf.js ({@link usePdfViewerDocument}). The page count
- * is whole when the document opens, and `loading` stays true until the last
- * page renders. `error` tracks the load.
+ * is whole when the document opens, and `loading` is true until then. The
+ * active page renders first, then its neighbors. `error` tracks the load.
  * @internal
  */
 export function usePdfViewer({
@@ -434,6 +434,10 @@ export function usePdfViewer({
 		defaultPage,
 		onPageChange,
 	})
+
+	// Before the document opens, `safePage` is 0, so the page that the viewer will show is the
+	// one it asks for. The cache clamps it to the page count.
+	usePdfViewerDocumentFocus(shouldLoadFromSrc ? src : undefined, safePage || (page ?? defaultPage))
 
 	const [zoomValue, setZoomValue] = useState(defaultZoom)
 

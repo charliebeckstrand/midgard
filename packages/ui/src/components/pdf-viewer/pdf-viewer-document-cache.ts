@@ -1,5 +1,6 @@
 'use client'
 
+import { clamp } from '../../utilities'
 import type { PdfViewerPage } from './types'
 
 /**
@@ -14,6 +15,16 @@ import type { PdfViewerPage } from './types'
  * @internal
  */
 const MAX_DOCUMENTS = 4
+
+/**
+ * How many full rasters of one document stay resident.
+ *
+ * @remarks A reader can go back through this many pages with no render. The pages that a
+ * viewer shows, and their neighbors, stay whatever the bound, so the bound applies to the
+ * pages that the reader has left. At 1.5x a page is about 200 KiB as PNG and 4.2 MiB decoded.
+ * @internal
+ */
+const MAX_RASTERS = 8
 
 /** What a viewer observes for one `src`: a slot for each page, with its image once it renders, a download/print URL, and load progress. @internal */
 export type PdfDocumentSnapshot = {
@@ -53,6 +64,34 @@ const EMPTY: PdfDocumentSnapshot = Object.freeze({
  */
 export const EMPTY_DOCUMENT_SNAPSHOT = EMPTY
 
+/** The two rasters of a page: the image that the viewport shows, and the small one for the rail. @internal */
+export type PdfPageRaster = 'full' | 'thumbnail'
+
+/**
+ * One render of one page.
+ *
+ * @remarks `promise` gives a blob URL, or `null` when the page cannot render (no 2D context,
+ * or an encode that fails). `cancel` stops the render. The promise then rejects, and the queue
+ * ignores that rejection.
+ * @internal
+ */
+export type PdfRenderJob = {
+	promise: Promise<string | null>
+	cancel: () => void
+}
+
+/** Renders the page at a 0-based index. The load gives one to the cache when the document opens. @internal */
+export type PdfPageRenderer = (index: number, raster: PdfPageRaster) => PdfRenderJob
+
+/** The render in flight for an entry. @internal */
+type RunningJob = {
+	index: number
+	raster: PdfPageRaster
+	job: PdfRenderJob
+	/** True when the queue canceled the job, so that its rejection is not a failure. */
+	canceled: boolean
+}
+
 /**
  * One resident document: what viewers read, who is watching it, and whether a load is running.
  *
@@ -74,6 +113,20 @@ type Held = {
 	 * URLs too. A later render of any page then needs no new fetch and no new parse.
 	 */
 	release: (() => void) | null
+	/** Renders one page on request, from the document that the load keeps open. */
+	renderer: PdfPageRenderer | null
+	/**
+	 * The page that each viewer shows, as a 0-based index, keyed by a token of the viewer.
+	 *
+	 * @remarks Insertion order is the order of focus: {@link focusPage} re-inserts, so the
+	 * last entry is the viewer that moved last, and the queue serves it first.
+	 */
+	focus: Map<object, number>
+	/** The pages that have a full raster from the queue, the least recently rendered first. */
+	rasters: number[]
+	/** The rasters that the renderer could not make, as `index:raster`, so the queue does not ask again. */
+	skipped: Set<string>
+	job: RunningJob | null
 }
 
 /**
@@ -107,7 +160,11 @@ function revoke(snapshot: PdfDocumentSnapshot) {
 	if (snapshot.documentUrl) URL.revokeObjectURL(snapshot.documentUrl)
 
 	// A page that has not rendered yet has an empty `src`, and owns no URL.
-	for (const page of snapshot.pages) if (page.src) URL.revokeObjectURL(page.src)
+	for (const page of snapshot.pages) {
+		if (page.src) URL.revokeObjectURL(page.src)
+
+		if (page.thumbnail) URL.revokeObjectURL(page.thumbnail)
+	}
 }
 
 /**
@@ -117,6 +174,21 @@ function revoke(snapshot: PdfDocumentSnapshot) {
  * @internal
  */
 function free(held: Held) {
+	// Stop the queue before the release destroys the document that it renders from.
+	held.renderer = null
+
+	if (held.job) {
+		held.job.canceled = true
+
+		held.job.job.cancel()
+	}
+
+	held.job = null
+
+	held.rasters = []
+
+	held.skipped.clear()
+
 	revoke(held.snapshot)
 
 	held.release?.()
@@ -171,7 +243,17 @@ function heldFor(src: string): Held {
 
 	if (existing) return existing
 
-	const held: Held = { snapshot: EMPTY, listeners: new Set(), loading: false, release: null }
+	const held: Held = {
+		snapshot: EMPTY,
+		listeners: new Set(),
+		loading: false,
+		release: null,
+		renderer: null,
+		focus: new Map(),
+		rasters: [],
+		skipped: new Set(),
+		job: null,
+	}
 
 	documents.set(src, held)
 
@@ -264,24 +346,29 @@ export type PdfLoadReport = {
 	page: (page: PdfViewerPage, index?: number) => void
 	/** Gives the entry what to free when it leaves the cache. See `Held.release`. */
 	retain: (release: () => void) => void
+	/**
+	 * Gives the entry the renderer of its pages. From then on, the queue renders the pages
+	 * that the viewers ask for.
+	 */
+	serve: (renderer: PdfPageRenderer) => void
 }
 
 /** Rasterizes a document, reporting each page as it lands. @internal */
 export type PdfLoadRun = (report: PdfLoadReport) => Promise<void>
 
 /**
- * Starts a rasterization for `src` unless one is running or a finished document is already
+ * Opens the document at `src` unless a load is running or an open document is already
  * resident.
  *
  * @remarks The guard is what makes a park cheap and a duplicate viewer free. A maximize finds
  * the pages already there and runs nothing. A second viewer on the same `src` joins the first
  * one's load, instead of fetching the file twice.
  *
- * A load is **not** canceled when the viewer that started it unmounts. Parking
- * mid-rasterization therefore keeps rasterizing, and the maximize finds a finished document
- * where canceling meant starting over. The doc on `sharedWorker` shows that this window is
- * reachable. The cost is CPU spent on a document nobody is watching, for as long as the park
- * lasts. That is the right trade for a scan the reader is on their way back to.
+ * A load is **not** canceled when the viewer that started it unmounts. Parking mid-open
+ * therefore keeps opening, and the maximize finds an open document where canceling meant
+ * starting over. The doc on `sharedWorker` shows that this window is reachable. The pages are
+ * another matter: the queue renders only for a viewer that shows the document, so a parked
+ * document costs no render ({@link focusPage}).
  *
  * A failure is reported to current subscribers but not remembered: the record keeps its error
  * for them to render, and the next mount retries. So a transient network failure is recovered
@@ -360,11 +447,227 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 			if (current === held) held.release = release
 			else release()
 		},
+		serve: (renderer) => {
+			if (documents.get(src) !== held) return
+
+			held.renderer = renderer
+
+			pump(src, held)
+		},
 	}).then(
 		() => settle({}),
 		(reason: unknown) =>
 			settle({ error: reason instanceof Error ? reason : new Error(String(reason)) }),
 	)
+}
+
+/**
+ * The pages that the viewers of `held` want as full rasters, the most wanted first.
+ *
+ * @remarks The page that each viewer shows comes first, the viewer that moved last before
+ * the others. The page after each one follows, then the page before it. A focus past the
+ * last page counts as the last page, because the viewer asks before it knows the count.
+ * @internal
+ */
+function wantedPages(held: Held): number[] {
+	const count = held.snapshot.pages.length
+
+	if (count === 0) return []
+
+	const shown = [...held.focus.values()].reverse().map((index) => clamp(index, 0, count - 1))
+
+	const wanted = new Set(shown)
+
+	for (const index of shown) {
+		if (index + 1 < count) wanted.add(index + 1)
+
+		if (index > 0) wanted.add(index - 1)
+	}
+
+	return [...wanted]
+}
+
+/**
+ * The next render that the queue owes, or `null` when it owes nothing.
+ *
+ * @remarks The full rasters of the wanted pages come first. Then the thumbnails of the rail
+ * follow in page order. The queue does nothing while no viewer shows the document.
+ * @internal
+ */
+function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPageRaster } | null {
+	if (held.focus.size === 0 || held.snapshot.error) return null
+
+	const { pages } = held.snapshot
+
+	for (const index of wanted) {
+		if (!pages[index]?.src && !held.skipped.has(`${index}:full`)) return { index, raster: 'full' }
+	}
+
+	for (const [index, page] of pages.entries()) {
+		if (!page.thumbnail && !held.skipped.has(`${index}:thumbnail`)) {
+			return { index, raster: 'thumbnail' }
+		}
+	}
+
+	return null
+}
+
+/**
+ * Drops the oldest full rasters until at most {@link MAX_RASTERS} remain.
+ *
+ * @remarks A page that a viewer wants keeps its raster. The page then renders again when a
+ * reader comes back to it.
+ * @returns The pages with the dropped rasters removed, or the same array when none dropped.
+ * @internal
+ */
+function boundRasters(held: Held, pages: PdfViewerPage[], wanted: number[]): PdfViewerPage[] {
+	let next = pages
+
+	for (const index of [...held.rasters]) {
+		if (held.rasters.length <= MAX_RASTERS) break
+
+		if (wanted.includes(index)) continue
+
+		const page = next[index]
+
+		if (page?.src) URL.revokeObjectURL(page.src)
+
+		if (next === pages) next = [...pages]
+
+		if (page) next[index] = { ...page, src: '' }
+
+		held.rasters = held.rasters.filter((resident) => resident !== index)
+	}
+
+	return next
+}
+
+/**
+ * Puts the result of a finished render into the snapshot of `src`.
+ *
+ * @remarks A URL that lands after a free (an eviction, a reset, or a retry) has no owner, so it
+ * is revoked here. A render that failed, and was not canceled, is a failure of the document.
+ * @internal
+ */
+function land(src: string, held: Held, running: RunningJob, result: string | null | Error) {
+	// A free clears the job, so a render that it stopped is no longer the job of the entry.
+	const current = documents.get(src) === held && held.job === running && held.renderer !== null
+
+	if (held.job === running) held.job = null
+
+	if (!current) {
+		if (typeof result === 'string') URL.revokeObjectURL(result)
+
+		return
+	}
+
+	const { index, raster } = running
+
+	if (result instanceof Error) {
+		if (running.canceled) return pump(src, held)
+
+		return publish(src, { error: result })
+	}
+
+	if (result === null) {
+		held.skipped.add(`${index}:${raster}`)
+
+		return pump(src, held)
+	}
+
+	const page = held.snapshot.pages[index]
+
+	if (!page) {
+		URL.revokeObjectURL(result)
+
+		return pump(src, held)
+	}
+
+	let pages = [...held.snapshot.pages]
+
+	if (raster === 'thumbnail') pages[index] = { ...page, thumbnail: result }
+	else {
+		pages[index] = { ...page, src: result }
+
+		held.rasters = [...held.rasters.filter((resident) => resident !== index), index]
+
+		pages = boundRasters(held, pages, wantedPages(held))
+	}
+
+	// The next job starts before the publish, so a subscriber that reads the state sees the
+	// queue busy until its last render lands.
+	held.snapshot = { ...held.snapshot, pages }
+
+	pump(src, held)
+
+	publish(src, {})
+}
+
+/**
+ * Starts the next render that `held` owes, and cancels a full render that nobody wants now.
+ *
+ * @remarks One render at a time. A canceled render frees the queue when its promise rejects,
+ * and the queue then starts the page that the reader moved to.
+ * @internal
+ */
+function pump(src: string, held: Held) {
+	const { renderer } = held
+
+	if (!renderer) return
+
+	const wanted = wantedPages(held)
+
+	if (held.job) {
+		const { job } = held
+
+		if (job.raster === 'full' && !job.canceled && !wanted.includes(job.index)) {
+			job.canceled = true
+
+			job.job.cancel()
+		}
+
+		return
+	}
+
+	const next = nextJob(held, wanted)
+
+	if (!next) return
+
+	const running: RunningJob = { ...next, job: renderer(next.index, next.raster), canceled: false }
+
+	held.job = running
+
+	running.job.promise.then(
+		(url) => land(src, held, running, url),
+		(reason: unknown) =>
+			land(src, held, running, reason instanceof Error ? reason : new Error(String(reason))),
+	)
+}
+
+/**
+ * Shows the page at the 0-based `index` of `src` in the viewer that `token` names.
+ *
+ * @returns The function that removes the focus of the viewer.
+ * @remarks The queue renders the page that each viewer shows, and its neighbors, before the
+ * other pages. A focus that moves cancels a render that nobody wants now.
+ * @internal
+ */
+export function focusPage(src: string | undefined, token: object, index: number): () => void {
+	if (!src) return () => {}
+
+	const held = heldFor(src)
+
+	held.focus.delete(token)
+
+	held.focus.set(token, index)
+
+	pump(src, held)
+
+	return () => {
+		held.focus.delete(token)
+
+		if (documents.get(src) === held) pump(src, held)
+	}
 }
 
 /**
@@ -388,10 +691,20 @@ export function resetDocumentCache() {
  * keep this from being a leak, and both are invisible from a snapshot alone.
  * @internal
  */
-export function documentCacheState(): { src: string; holders: number; pages: number }[] {
+export function documentCacheState(): {
+	src: string
+	holders: number
+	pages: number
+	rasters: number
+	thumbnails: number
+	rendering: boolean
+}[] {
 	return [...documents].map(([src, held]) => ({
 		src,
 		holders: held.listeners.size,
 		pages: held.snapshot.pages.length,
+		rasters: held.snapshot.pages.filter((page) => page.src).length,
+		thumbnails: held.snapshot.pages.filter((page) => page.thumbnail).length,
+		rendering: held.job !== null,
 	}))
 }

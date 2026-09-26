@@ -287,6 +287,51 @@ describe('PdfViewer', () => {
 		resetDocumentCache()
 	})
 
+	// The queue renders the page that the viewer shows. The viewer asks for it before the
+	// document opens, so the first render is the page the reader sees.
+	it('asks the queue for the page that it shows, first and after a change', async () => {
+		resetDocumentCache()
+
+		// A render that never ends, and rejects on a cancel as a pdf.js render does.
+		const render = vi.fn(() => {
+			let cancel = () => {}
+
+			const promise = new Promise<string | null>((_, reject) => {
+				cancel = () => reject(new Error('canceled'))
+			})
+
+			return { promise, cancel }
+		})
+
+		ensureDocumentLoad('/queue.pdf', (report) => {
+			report.open(
+				[1, 2, 3, 4, 5, 6].map((id) => ({
+					id,
+					src: '',
+					label: `Page ${id}`,
+					width: 918,
+					height: 1188,
+				})),
+			)
+
+			report.serve(render)
+
+			return Promise.resolve()
+		})
+
+		const { rerender } = renderUI(<PdfViewer src="/queue.pdf" page={4} />)
+
+		expect(render).toHaveBeenNthCalledWith(1, 3, 'full')
+
+		rerender(<PdfViewer src="/queue.pdf" page={6} />)
+
+		await act(async () => {})
+
+		expect(render).toHaveBeenLastCalledWith(5, 'full')
+
+		resetDocumentCache()
+	})
+
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 
