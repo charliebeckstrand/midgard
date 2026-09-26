@@ -15,6 +15,7 @@ import {
 } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import { useFloatingUI } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useDensity } from '../../primitives/density'
@@ -37,7 +38,8 @@ import { MENUITEM_SELECTOR } from './use-menu-state'
  * Keys that open a submenu from its roved parent row. Direction keys are
  * deliberately absent. The panel takes whichever side has room
  * ({@link SUBMENU_MIDDLEWARE}), so ArrowRight would open a panel that lands on
- * the left as often as not.
+ * the left as often as not. The way back is different: ArrowLeft closes the
+ * submenu whatever side it opened on (see `handlePanelKeyDown`).
  *
  * @internal
  */
@@ -88,22 +90,24 @@ export type MenuSubProps = {
  * A menu row that opens a nested menu beside itself. It is a `role="menuitem"`
  * parent carrying `aria-haspopup="menu"` and a trailing chevron, plus the
  * floating panel its rows render in. Opens on hover, on click, and — while the
- * row is the roved one — on Enter / Space. Closes on `Escape`, an outside press, or the
- * cursor settling on another row. Selecting a row inside closes the whole menu,
+ * row is the roved one — on Enter / Space. Closes on `Escape` or ArrowLeft (ArrowRight in a
+ * right-to-left menu), an outside press, or the cursor settling on another row. Selecting a row inside closes the whole menu,
  * as any {@link MenuItem} does.
  *
  * @remarks **An open submenu owns the arrows.** However it was opened, the
  * navigation keys work its rows and wrap inside them, rather than roving on
  * through the menu the row sits in. That would leave the panel hanging open
- * behind the cursor. `Escape` closes it and hands them back, cursor on the
- * parent row. A hover open leaves focus on that row until the first such key,
+ * behind the cursor. `Escape` or ArrowLeft closes it and hands them back, cursor
+ * on the parent row. In a right-to-left menu, ArrowRight does the same (WAI-ARIA
+ * APG menu pattern). A hover open leaves focus on that row until the first such key,
  * because hover is not a commitment (APG). Enter, Space, and click seat it on
  * the panel's first row outright.
  *
  * The panel takes whichever side of the row has room
  * ({@link SUBMENU_MIDDLEWARE}), so it opens leftward near the viewport's right
- * edge rather than being clipped. That is why no direction key opens or closes
- * it. Open state is the enclosing level's, not this row's
+ * edge rather than being clipped. That is why no direction key opens it. The
+ * back arrow closes it whatever side it opened on. The APG pattern names that
+ * key, and a screen reader user cannot see the side. Open state is the enclosing level's, not this row's
  * ({@link MenuPointerLevel}), so one submenu hangs off a menu at a time. The
  * pointer reads its course against that one panel, and the row's own panel
  * provides the next level down. Tab is held inside the open panel, cycling its
@@ -289,7 +293,12 @@ export function MenuSub({
 			// `Escape` is closed out below rather than left to that layer.
 			event.stopPropagation()
 
-			if (event.key !== 'Escape') return
+			// ArrowLeft steps back out of a submenu (WAI-ARIA APG menu pattern), and
+			// ArrowRight does in a right-to-left menu. A nested submenu consumes its
+			// own press first, so this closes one level only.
+			const back = logicalArrowKey(event.key, event.currentTarget) === 'ArrowLeft'
+
+			if (event.key !== 'Escape' && !back) return
 
 			event.preventDefault()
 
