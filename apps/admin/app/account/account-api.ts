@@ -1,4 +1,5 @@
 import { startRegistration } from '@simplewebauthn/browser'
+import { fetchWithSecondStep } from 'shared/auth'
 
 /**
  * The requests that the account page sends from the client. Each goes to a
@@ -14,12 +15,14 @@ export type Passkey = {
 /**
  * Sends one same-origin request and checks its status.
  *
- * A query or a mutation reads a thrown error as a failure. On a non-OK
+ * When the gateway asks for the second step, the dialog of the app asks the
+ * user for it, and the request goes again. A query or a mutation reads a
+ * thrown error as a failure. On a non-OK
  * response, the error holds the message of the gateway, such as "Sign in again
  * to change how you sign in", so that the page can show it.
  */
 async function request(path: string, init?: RequestInit): Promise<Response> {
-	const response = await fetch(path, init)
+	const response = await fetchWithSecondStep(path, init)
 
 	if (!response.ok) {
 		const body = (await response.json().catch(() => null)) as { message?: string } | null

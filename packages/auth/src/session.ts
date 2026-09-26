@@ -24,6 +24,11 @@ export type Session = {
 	id: string
 	created_at: string
 	expires_at: string
+	/**
+	 * Whether the session passed a second step. A passkey sign-in passes it at
+	 * once. A password or a GitHub or Google sign-in passes it at `/verify`.
+	 */
+	two_step: boolean
 	user: User
 }
 
@@ -70,18 +75,22 @@ export async function requireSession(): Promise<Session> {
 }
 
 /**
- * Returns the session of an admin, or redirects.
+ * Returns the session of an admin that passed the second step, or redirects.
  *
  * @remarks
  * Call it from the layout of a segment that only admins can open. The proxy
  * only finds the cookie, so this call is the check of the session itself.
  * Without a session, the redirect goes to `/login`. A signed-in user that is
- * not an admin goes to `/account`, where the user manages the passkeys.
+ * not an admin goes to `/account`, where the user manages the passkeys. An
+ * admin session without the second step goes to `/verify`. Thus the admin
+ * gives the second step one time, after the sign-in.
  */
 export async function requireAdmin(): Promise<Session> {
 	const session = await requireSession()
 
 	if (session.user.role !== 'admin') redirect('/account')
+
+	if (!session.two_step) redirect('/verify')
 
 	return session
 }

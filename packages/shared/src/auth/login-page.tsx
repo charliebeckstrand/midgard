@@ -32,8 +32,8 @@ const signInErrors: Record<string, string> = {
 }
 
 /**
- * Notice from the query: after registration (`?registered=true`), after a
- * second step that the gateway no longer holds (`?expired=true`), or after a
+ * Notice from the query: after registration (`?registered=true`), after too
+ * many wrong tries of the second step (`?expired=true`), or after a
  * GitHub or Google sign-in that failed (`?error=<code>`).
  *
  * @internal
@@ -53,7 +53,7 @@ function QueryNotice() {
 	}
 
 	if (params.get('expired') === 'true') {
-		return <Text tone="error">Your sign-in expired. Please sign in again.</Text>
+		return <Text tone="error">Too many wrong tries. Please sign in again.</Text>
 	}
 
 	return params.get('registered') === 'true' ? (
@@ -75,13 +75,12 @@ type LoginPageProps = {
  *
  * @remarks
  * A GitHub or Google button leaves the app for the provider. The gateway sends
- * the browser back to `/`, to `/login/verify` when the user has a second
- * factor, or to `/login?error=<code>` when the sign-in fails.
+ * the browser back to `/`, or to `/login?error=<code>` when the sign-in fails.
  *
- * When the user has two-step sign-in on, the gateway answers the password with
- * `202` and sets a ticket cookie, and the page goes to `/login/verify` for the
- * second step ({@link SecondStepPage}). That page checks the ticket on the
- * server, so nobody can open it without a password step first.
+ * A sign-in with a password, GitHub, or Google has one step. A page that needs
+ * the second step asks for it later: the admin app at `/verify`, and another
+ * app in the `SecondStepDialog`. A passkey sign-in gives the second step
+ * at once.
  *
  * Next prerenders all of the page except the notices from the query, which
  * render only on the client.
@@ -91,15 +90,8 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 
 	const [serverError, setServerError] = useState('')
 
-	// Goes to `/` on success, to the second step on a `202`, and shows the message
-	// of the gateway on a failure.
+	// Goes to `/` on success, and shows the message of the gateway on a failure.
 	async function finish(res: Response) {
-		if (res.status === 202) {
-			router.push('/login/verify')
-
-			return
-		}
-
 		if (res.ok) {
 			router.push('/')
 

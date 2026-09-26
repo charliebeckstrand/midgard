@@ -3,13 +3,15 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import NextLink from 'next/link'
 import { type ReactNode, useState } from 'react'
+import { SecondStepDialog } from 'shared/auth'
 import { AppearanceProvider } from 'ui/providers/appearance'
 import { UIProvider } from 'ui/providers/ui'
 
 /**
  * App-wide client providers: `UIProvider` wired to Next's `Link`,
- * `AppearanceProvider` for the persisted theme and density, and one
- * `QueryClient` for the whole app.
+ * `AppearanceProvider` for the persisted theme and density, one
+ * `QueryClient` for the whole app, and the `SecondStepDialog` that asks for the
+ * second step when a request needs it.
  *
  * @remarks Top-level context per CONVENTIONS.md §6.1; rendered from the root
  * layout. The client is built in state rather than at module scope, so a render
@@ -32,7 +34,10 @@ export function Providers({ children }: { children: ReactNode }) {
 	return (
 		<QueryClientProvider client={client}>
 			<UIProvider link={NextLink}>
-				<AppearanceProvider>{children}</AppearanceProvider>
+				<AppearanceProvider>
+					{children}
+					<SecondStepDialog />
+				</AppearanceProvider>
 			</UIProvider>
 		</QueryClientProvider>
 	)

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { ensureSecondStep } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
@@ -24,6 +25,7 @@ const connectErrors: Record<string, string> = {
 	identity_in_use: 'That account is connected to another user.',
 	provider_linked: 'Disconnect your other account of that provider first.',
 	sign_in_again: 'Sign in again to connect an account.',
+	second_step_required: 'Confirm that it is you to connect an account.',
 	oauth_unavailable: 'That sign-in method is not available.',
 	oauth_failed: 'Connecting the account did not complete. Please try again.',
 }
@@ -35,7 +37,8 @@ const connectErrors: Record<string, string> = {
  * "Connect" leaves the app for the provider, and the gateway sends the browser
  * back to `/account`, or to `/account?error=<code>` when the connect fails. The
  * gateway accepts a connect or a disconnect only soon after the sign-in, and
- * keeps the last way to sign in. A disconnect asks for confirmation first.
+ * after the second step. It keeps the last way to sign in. Before a connect,
+ * the page asks for the second step when the session did not pass it. A disconnect asks for confirmation first.
  */
 export function ConnectedAccounts({
 	providers,
@@ -85,9 +88,11 @@ export function ConnectedAccounts({
 								variant="outline"
 								disabled={!providers.includes(provider)}
 								// A full page load: the gateway answers with a redirect to the provider.
-								onClick={() =>
+								onClick={async () => {
+									if (!(await ensureSecondStep())) return
+
 									window.location.assign(`/auth/oauth/${provider}/start?link=1&return_to=/account`)
-								}
+								}}
 							>
 								Connect
 							</Button>
