@@ -695,3 +695,7 @@ The container has a device pixel ratio of 1, so the viewer rasterizes at 1.5x.
 | WebP encode, 0.92 | 176 ms | 148 KiB |
 
 The first page paints only when the whole document settles, because the viewport shows a page only while `loading` is false. Each page after the first adds about 23 ms to that wait. The encode is about 40 % of the cost of a page, and no other encoder is cheaper than PNG.
+
+### Optimization log
+
+1. **Paint the first page as it lands** ([`pdf-viewer-viewport.tsx`](../../components/pdf-viewer/pdf-viewer-viewport.tsx)). The viewport shows the active page as soon as the rasterizer reports it, and the view controls work while the later pages load. The page navigation still waits for the settle, because the count still grows. The first page now paints in 58 / 63 / 62 / 59 ms at 1 / 3 / 14 / 50 pages, where it took 63 / 107 / 343 / 1,199 ms. The settle does not change.

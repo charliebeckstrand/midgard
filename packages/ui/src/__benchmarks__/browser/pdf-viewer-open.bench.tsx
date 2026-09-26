@@ -27,9 +27,10 @@
  * | 14 | 343 ms | 356 ms |
  * | 50 | 1,199 ms | 1,213 ms |
  *
- * The first page paints only when the whole document settles. The viewport shows the page
- * only while `loading` is false, and `loading` stays true until the last page. Each page after
- * the first adds about 23 ms. At 2x, one page renders in about 17.5 ms and encodes to PNG in
+ * In that baseline, the first page painted only when the whole document settled, because the
+ * viewport showed a page only while `loading` was false. The viewport now shows a page as it
+ * lands, and the first page paints in about 60 ms at each page count (README, optimization
+ * log). Each page after the first still adds about 23 ms to the settle. At 2x, one page renders in about 17.5 ms and encodes to PNG in
  * about 12.7 ms (269 KiB). JPEG encodes in about 16 ms (315 KiB), and WebP in about 176 ms
  * (148 KiB), so no other encoder is a cheaper path. The decoded page is 7.4 MiB.
  */
