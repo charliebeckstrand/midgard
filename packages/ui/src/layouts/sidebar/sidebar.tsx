@@ -16,6 +16,7 @@ import { Icon } from '../../components/icon'
 import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
+import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
@@ -63,6 +64,10 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * desktop panel holds text, so its width follows the `size` axis. The floating
  * sidebar is non-modal, so its peek never steals focus or locks body scroll,
  * but `backdrop` still dims the page behind it.
+ *
+ * The sidebar sits on the start edge of the reading direction. In a
+ * right-to-left page, the panel, the floating sheet, and its hover strip are
+ * on the right.
  */
 export function SidebarLayout({
 	navbar,
@@ -83,6 +88,10 @@ export function SidebarLayout({
 	}, [floating])
 
 	const scrollWithin = useScrollWithin()
+
+	// The floating sheet docks flush to the start edge. The sheet resolves `start`
+	// itself, but its flush offset is a physical class, so it keys on the same read.
+	const rtl = useIsRtl()
 
 	const { space, size } = useDensity()
 
@@ -109,13 +118,16 @@ export function SidebarLayout({
 			    blurs and dims the page behind it. */}
 			{floating && (
 				<Sheet
-					side="left"
+					side="start"
 					width="xs"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
 					modal={false}
 					backdrop
-					className="sm:top-0 sm:left-0 sm:bottom-0 sm:rounded-l-none"
+					className={cn(
+						'sm:top-0 sm:bottom-0',
+						rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
+					)}
 				>
 					<div
 						className="flex flex-col h-full"
@@ -127,7 +139,7 @@ export function SidebarLayout({
 				</Sheet>
 			)}
 
-			{/* Buffer to the right of the floating sidebar; keeps it open while the pointer lingers within 40px */}
+			{/* Buffer beside the floating sidebar; keeps it open while the pointer lingers within 40px */}
 			{floating &&
 				floatingOpen &&
 				typeof document !== 'undefined' &&

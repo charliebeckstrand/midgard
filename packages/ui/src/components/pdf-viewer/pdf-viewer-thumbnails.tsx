@@ -93,9 +93,12 @@ export function PdfViewerThumbnails() {
 					// The slide is a CSS margin transition, so its landing is the
 					// element's own `transitionend` rather than an animation callback.
 					// Hiding on the toggle instead would blank the rail before it left,
-					// since `display: none` can't slide.
+					// since `display: none` can't slide. The event names the physical
+					// margin, which is the right one in a right-to-left layout.
 					onTransitionEnd={(event) => {
-						if (event.propertyName === 'margin-left') sidebarHold.rest()
+						if (event.propertyName === 'margin-left' || event.propertyName === 'margin-right') {
+							sidebarHold.rest()
+						}
 					}}
 				>
 					<Hold hold={sidebarHold} name="pdf-viewer-sidebar">
@@ -114,7 +117,7 @@ export function PdfViewerThumbnails() {
 
 			{!isDesktop && (
 				<Sheet
-					side="left"
+					side="start"
 					open={thumbsOpen}
 					onOpenChange={setThumbsOpen}
 					container={rootRef.current}

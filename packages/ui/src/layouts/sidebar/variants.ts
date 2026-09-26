@@ -35,20 +35,20 @@ const panel = defineRecipe({
 })
 
 const floatingHotZone = defineRecipe({
-	base: ['absolute inset-y-0 left-0 z-30 w-2 max-lg:hidden'],
+	base: ['absolute inset-y-0 start-0 z-30 w-2 max-lg:hidden'],
 })
 
 // Portaled to the body, so it escapes the layout's stacking context and needs a
 // ladder rung rather than a local `z-30` like the hot zone above. It is the
 // sidebar's own furniture, which is the `chrome` rung's other inhabitant.
 const floatingBuffer = defineRecipe({
-	base: [sou.chrome, 'fixed top-0 bottom-0 left-80 w-10 max-lg:hidden'],
+	base: [sou.chrome, 'fixed top-0 bottom-0 start-80 w-10 max-lg:hidden'],
 })
 
 const contentWrapper = defineRecipe({
-	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pr-2', 'overflow-hidden'],
+	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'overflow-hidden'],
 	floating: {
-		true: 'lg:pl-2',
+		true: 'lg:ps-2',
 		false: '',
 	},
 	defaults: { floating: false },
