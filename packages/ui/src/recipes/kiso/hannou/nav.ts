@@ -17,7 +17,7 @@ const { icon } = shaku
 export const nav = {
 	/**
 	 * Identity sans surface: icon-slot size + ink. A long press on iOS selects the
-	 * label text, and iOS Safari can select the text in a child of a `select-none`
+	 * label text. On iOS, Safari can select the text in a child of a `select-none`
 	 * item, so the children also set it. The headless Button of an item drops the
 	 * `select-none` of the button recipe.
 	 */

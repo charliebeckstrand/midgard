@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { DashboardLayout } from '../../layouts'
 import { present, renderUI } from '../helpers'
@@ -14,8 +14,6 @@ import { present, renderUI } from '../helpers'
  */
 describe('the DashboardLayout filter rail (real browser)', () => {
 	beforeAll(() => page.viewport(1280, 800))
-
-	afterAll(() => page.viewport(414, 896))
 
 	it('aligns the rail to the top of a taller main column', () => {
 		const { container } = renderUI(

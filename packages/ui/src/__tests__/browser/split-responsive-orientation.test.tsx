@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Split } from '../../components/split'
 import { present, renderUI } from '../helpers'
@@ -15,8 +15,6 @@ import { present, renderUI } from '../helpers'
  */
 describe('a Split with a responsive orientation (real browser)', () => {
 	beforeAll(() => page.viewport(960, 640))
-
-	afterAll(() => page.viewport(414, 896))
 
 	function panes(container: HTMLElement) {
 		const split = present(container.querySelector('[data-slot="split"]'), 'split')

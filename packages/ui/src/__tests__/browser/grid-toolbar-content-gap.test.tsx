@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { renderUI, screen } from '../helpers'
@@ -18,8 +18,6 @@ describe('the Grid toolbar with consumer content and tools (real browser)', () =
 	const columns: GridColumn<Row>[] = [{ id: 'name', title: 'Name', cell: (row) => row.name }]
 
 	beforeAll(() => page.viewport(960, 640))
-
-	afterAll(() => page.viewport(414, 896))
 
 	it('keeps the tools beside the content at the end of the row', () => {
 		renderUI(
