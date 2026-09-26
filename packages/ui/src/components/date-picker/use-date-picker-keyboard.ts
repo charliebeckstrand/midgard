@@ -1,4 +1,5 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 import type { CalendarActive, CalendarHandle } from '../calendar'
 
@@ -189,10 +190,11 @@ const GRID_DELTAS: Record<string, number> = {
 /** Grid-zone keys: arrows move the highlight by day/week, Enter/Space selects. @internal */
 function handleGridKey(
 	event: KeyboardEvent<HTMLElement>,
+	key: string,
 	active: GridActive,
 	ctx: DatePickerKeyContext,
 ) {
-	const delta = GRID_DELTAS[event.key]
+	const delta = GRID_DELTAS[key]
 
 	if (delta !== undefined) {
 		event.preventDefault()
@@ -202,7 +204,7 @@ function handleGridKey(
 		return
 	}
 
-	if (event.key === 'Enter' || event.key === ' ') {
+	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
 		ctx.handleSelect(active.date)
@@ -212,22 +214,23 @@ function handleGridKey(
 /** Header-zone keys: Left/Right cycle the three controls, Down enters the grid, Enter/Space activates. @internal */
 function handleHeaderKey(
 	event: KeyboardEvent<HTMLElement>,
+	key: string,
 	active: HeaderActive,
 	ctx: DatePickerKeyContext,
 ) {
 	// Left/Right wrap across the three controls; `(index + delta + 3) % 3`
 	// covers both edges.
-	if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+	if (key === 'ArrowLeft' || key === 'ArrowRight') {
 		event.preventDefault()
 
-		const delta = event.key === 'ArrowLeft' ? -1 : 1
+		const delta = key === 'ArrowLeft' ? -1 : 1
 
 		ctx.setActive({ zone: 'header', index: ((active.index + delta + 3) % 3) as 0 | 1 | 2 })
 
 		return
 	}
 
-	if (event.key === 'ArrowDown') {
+	if (key === 'ArrowDown') {
 		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
@@ -235,13 +238,13 @@ function handleHeaderKey(
 		return
 	}
 
-	if (event.key === 'ArrowUp') {
+	if (key === 'ArrowUp') {
 		event.preventDefault()
 
 		return
 	}
 
-	if (event.key === 'Enter' || event.key === ' ') {
+	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
 		if (active.index === 0) ctx.calendarRef.current?.prevMonth()
@@ -253,6 +256,7 @@ function handleHeaderKey(
 /** Footer-zone keys: Left/Right wrap between buttons, Up returns to the grid, Enter/Space activates. @internal */
 function handleFooterKey(
 	event: KeyboardEvent<HTMLElement>,
+	key: string,
 	active: FooterActive,
 	ctx: DatePickerKeyContext,
 ) {
@@ -260,19 +264,19 @@ function handleFooterKey(
 
 	// Left/Right wrap symmetrically; `(index + delta + count) % count` covers
 	// both edges (0 → count-1 going left, count-1 → 0 going right).
-	if (event.key === 'ArrowLeft' || event.key === 'ArrowRight') {
+	if (key === 'ArrowLeft' || key === 'ArrowRight') {
 		event.preventDefault()
 
 		if (count === 0) return
 
-		const delta = event.key === 'ArrowLeft' ? -1 : 1
+		const delta = key === 'ArrowLeft' ? -1 : 1
 
 		ctx.setActive({ zone: 'footer', index: wrap(active.index + delta, count) })
 
 		return
 	}
 
-	if (event.key === 'ArrowUp') {
+	if (key === 'ArrowUp') {
 		event.preventDefault()
 
 		ctx.setActive({ zone: 'grid', date: ctx.getInitialActiveDate() })
@@ -280,13 +284,13 @@ function handleFooterKey(
 		return
 	}
 
-	if (event.key === 'ArrowDown') {
+	if (key === 'ArrowDown') {
 		event.preventDefault()
 
 		return
 	}
 
-	if (event.key === 'Enter' || event.key === ' ') {
+	if (key === 'Enter' || key === ' ') {
 		event.preventDefault()
 
 		const kind = ctx.footerButtons[active.index]
@@ -348,19 +352,23 @@ export function useDatePickerKeyboard({
 				return
 			}
 
+			// The day grid and the header and footer rows follow the reading order,
+			// so the arrows swap in RTL.
+			const key = logicalArrowKey(event.key, event.currentTarget)
+
 			if (active.zone === 'grid') {
-				handleGridKey(event, active, ctx)
+				handleGridKey(event, key, active, ctx)
 
 				return
 			}
 
 			if (active.zone === 'header') {
-				handleHeaderKey(event, active, ctx)
+				handleHeaderKey(event, key, active, ctx)
 
 				return
 			}
 
-			handleFooterKey(event, active, ctx)
+			handleFooterKey(event, key, active, ctx)
 		},
 		[
 			disabled,

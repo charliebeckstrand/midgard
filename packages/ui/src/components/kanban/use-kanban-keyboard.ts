@@ -4,6 +4,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import type { KanbanColumnBase } from './types'
 
 /** Accessible name of a card, for announcements. @internal */
@@ -112,15 +113,20 @@ function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: Kanba
 }
 
 /** Not lifted: arrows/Home/End move focus between cards. @internal */
-function handleCardNeighborNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
-	switch (event.key) {
+function handleCardNeighborNav(
+	cardId: string,
+	event: KeyboardEvent,
+	key: string,
+	deps: KanbanKeyDeps,
+) {
+	switch (key) {
 		case 'ArrowUp':
 		case 'ArrowDown':
 		case 'ArrowLeft':
 		case 'ArrowRight':
 		case 'Home':
 		case 'End':
-			if (deps.focusNeighbor(cardId, event.key)) event.preventDefault()
+			if (deps.focusNeighbor(cardId, key)) event.preventDefault()
 
 			break
 	}
@@ -135,8 +141,13 @@ const LIFTED_MOVES: Record<string, ['moveWithinColumn' | 'moveToColumn', -1 | 1]
 }
 
 /** Lifted: Escape/Enter drops, arrows reorder the lifted card across columns. @internal */
-function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
-	if (event.key === 'Escape' || event.key === 'Enter') {
+function handleCardLiftedNav(
+	cardId: string,
+	event: KeyboardEvent,
+	key: string,
+	deps: KanbanKeyDeps,
+) {
+	if (key === 'Escape' || key === 'Enter') {
 		event.preventDefault()
 
 		deps.setLiftedCardId(null)
@@ -149,7 +160,7 @@ function handleCardLiftedNav(cardId: string, event: KeyboardEvent, deps: KanbanK
 		return
 	}
 
-	const move = LIFTED_MOVES[event.key]
+	const move = LIFTED_MOVES[key]
 
 	if (!move) return
 
@@ -363,13 +374,16 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 				return
 			}
 
+			// The columns follow the reading order, so the arrows swap in RTL.
+			const key = logicalArrowKey(event.key, containerRef.current)
+
 			if (liftedCardId !== cardId) {
-				handleCardNeighborNav(cardId, event, deps)
+				handleCardNeighborNav(cardId, event, key, deps)
 
 				return
 			}
 
-			handleCardLiftedNav(cardId, event, deps)
+			handleCardLiftedNav(cardId, event, key, deps)
 		},
 		[setLifted, containerRef],
 	)

@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { announce, cn, dataAttr } from '../../core'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/grid'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -10,7 +11,6 @@ import {
 	GRID_STATUS_DEBOUNCE_MS,
 } from './engine/grid-constants'
 import type { GridColumnResizeActions } from './engine/grid-table/views'
-import { logicalArrow } from './use-grid-navigation'
 
 /** Props for {@link GridColumnResizeHandle}. @internal */
 type GridColumnResizeHandleProps = {
@@ -70,11 +70,7 @@ export function GridColumnResizeHandle({
 		// auto-size the column to its content — the window-splitter key set (WCAG 4.1.2).
 		// The arrows move the trailing edge on screen. That edge is on the left of a
 		// right-to-left header, so ArrowLeft widens the column there.
-		const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-
-		const key = horizontal
-			? logicalArrow(event.key, getComputedStyle(event.currentTarget).direction === 'rtl')
-			: event.key
+		const key = logicalArrowKey(event.key, event.currentTarget)
 
 		switch (key) {
 			case 'ArrowLeft':

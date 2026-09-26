@@ -13,6 +13,7 @@ import {
 } from 'react'
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { clamp, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import type { GridCursorRow } from './grid-cursor-order'
@@ -201,22 +202,6 @@ function navTarget(
 }
 
 /**
- * The key that a horizontal arrow means in the column order of the cursor. In
- * a right-to-left grid, the columns run from right to left. `ArrowLeft` then
- * moves to the next column, and `ArrowRight` to the previous one (WAI-ARIA APG
- * grid pattern). The group keys mirror in the same way. Other keys, `Home` and
- * `End` among them, come back unchanged, because they already name the start
- * and the end of the row. @internal
- */
-export function logicalArrow(key: string, rtl: boolean): string {
-	if (!rtl) return key
-
-	if (key === 'ArrowLeft') return 'ArrowRight'
-
-	return key === 'ArrowRight' ? 'ArrowLeft' : key
-}
-
-/**
  * The cursor coord a movement key moves to from `base`, or `null` when the key
  * does not move the cursor. The move runs over places in the cursor's order
  * (see {@link toPosition}), so the new-row slot is one row of it, first or
@@ -349,7 +334,7 @@ type StopAction = 'toggle' | 'descend' | 'enter' | 'swallow'
  *
  * - A group header toggles on Enter or Space. ArrowRight opens a closed group,
  *   and it steps into an open one. ArrowLeft closes an open group. The key is
- *   logical (see {@link logicalArrow}), so a right-to-left grid mirrors it.
+ *   logical (see `logicalArrowKey` in `hooks/a11y`), so a right-to-left grid mirrors it.
  * - A detail panel takes focus into its controls on Enter or F2.
  * - A one-stop row has no cells, so the other keys that act on a cell do
  *   nothing there.
@@ -779,13 +764,10 @@ export function useGridNavigation({
 
 			const base = activeRef.current ?? first
 
-			// A horizontal arrow reads the direction of the grid. Other keys skip the
-			// computed-style read.
-			const horizontal = event.key === 'ArrowLeft' || event.key === 'ArrowRight'
-
-			const key = horizontal
-				? logicalArrow(event.key, getComputedStyle(event.currentTarget).direction === 'rtl')
-				: event.key
+			// In a right-to-left grid, the columns run from right to left. ArrowLeft
+			// then moves to the next column (WAI-ARIA APG grid pattern), and the group
+			// keys mirror in the same way.
+			const key = logicalArrowKey(event.key, event.currentTarget)
 
 			if (onStopKey(event, key, base)) return
 

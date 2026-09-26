@@ -3,6 +3,7 @@
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 
 import { useA11yRoving } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { wrap } from '../../utilities'
 
 /**
@@ -134,7 +135,10 @@ function focusAdjacentFooterButton(
 
 	if (index < 0) return
 
-	const next = buttons[wrap(index + (event.key === 'ArrowRight' ? 1 : -1), buttons.length)]
+	// The buttons follow the reading order, so the arrows swap in RTL.
+	const forward = logicalArrowKey(event.key, footer) === 'ArrowRight'
+
+	const next = buttons[wrap(index + (forward ? 1 : -1), buttons.length)]
 
 	if (!next) return
 

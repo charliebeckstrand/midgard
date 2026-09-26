@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { logicalArrow } from '../../modules/grid/use-grid-navigation'
+import { logicalArrow } from '../../hooks/a11y/logical-arrow'
 
 /**
  * The cursor moves by column index. In a right-to-left grid, the columns run

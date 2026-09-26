@@ -8,6 +8,7 @@ import {
 	wrap,
 } from '../../utilities/keyboard-navigation'
 import { useScrollWithin } from '../use-scroll-within'
+import { logicalArrowKey } from './logical-arrow'
 import { isTypeaheadKey, useTypeahead } from './use-typeahead'
 
 /**
@@ -605,6 +606,7 @@ function moveTo(index: number, ctx: RovingKeyContext): void {
  */
 function processRowContext(
 	event: KeyboardEvent,
+	key: string,
 	container: HTMLElement | null,
 	active: HTMLElement | null,
 	currentIndex: number,
@@ -621,7 +623,7 @@ function processRowContext(
 
 	const index = currentIndex === -1 ? items.findIndex((it) => rowEl.contains(it)) : currentIndex
 
-	const crossDelta = crossAxisDelta(event.key, orientation ?? 'vertical')
+	const crossDelta = crossAxisDelta(key, orientation ?? 'vertical')
 
 	if (crossDelta === null || !actionSelector) return { handled: false, currentIndex: index }
 
@@ -757,6 +759,7 @@ function handleTabTrap(
 /** Main-axis arrow / Home / End navigation, after the focus-empty guard. @internal */
 function handleMainAxisNav(
 	event: KeyboardEvent,
+	key: string,
 	currentIndex: number,
 	ctx: RovingKeyContext,
 	opts: {
@@ -768,8 +771,8 @@ function handleMainAxisNav(
 	if (!ctx.isVirtual && currentIndex === -1 && !opts.focusOnEmpty) return
 
 	const nextIndex = ctx.itemSource
-		? nextIndexedKey(event.key, currentIndex, ctx.itemSource.count, opts, ctx.itemSource.isDisabled)
-		: nextIndexForKey(event.key, currentIndex, ctx.items.length, opts)
+		? nextIndexedKey(key, currentIndex, ctx.itemSource.count, opts, ctx.itemSource.isDisabled)
+		: nextIndexForKey(key, currentIndex, ctx.items.length, opts)
 
 	if (nextIndex === null) return
 
@@ -896,6 +899,10 @@ export type RovingOptions = NavigationConfig & {
  * `tabIndex` ownership, and row cross-axis roving. Pass `itemSource` (with
  * `activeIndexRef`) to navigate a windowed list by index instead, reaching
  * items the DOM query can't see.
+ *
+ * In a right-to-left container, `ArrowLeft` and `ArrowRight` swap, so each
+ * one steps the same way through the reading order in both directions. The
+ * hook reads the computed `direction` of the container on each press.
  *
  * @returns A stable `onKeyDown` handler to attach to the container; it reads
  * items from `containerRef` on each press, so the item set can change between
@@ -1029,7 +1036,11 @@ export function useA11yRoving(
 
 			const { ctx, active, currentIndex } = resolved
 
-			const rowResult = processRowContext(event, ctx.containerEl, active, currentIndex, {
+			// A horizontal arrow steps in the reading order of the container, so it
+			// mirrors in a right-to-left layout. Every arrow path below reads `key`.
+			const key = logicalArrowKey(event.key, ctx.containerEl)
+
+			const rowResult = processRowContext(event, key, ctx.containerEl, active, currentIndex, {
 				items: ctx.items,
 				itemSelector,
 				actionSelector,
@@ -1047,7 +1058,11 @@ export function useA11yRoving(
 
 			if (handleTypeahead(event, ctx, rowResult.currentIndex, typeaheadMatchers, typeahead)) return
 
-			handleMainAxisNav(event, rowResult.currentIndex, ctx, { cols, orientation, focusOnEmpty })
+			handleMainAxisNav(event, key, rowResult.currentIndex, ctx, {
+				cols,
+				orientation,
+				focusOnEmpty,
+			})
 		},
 		[
 			containerRef,

@@ -5,6 +5,7 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 
 import { validationAttrs } from '../../core'
 import { useControllable, useFloatingUI } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
@@ -387,7 +388,10 @@ export function useDatePickerRelativeState({
 
 		const currentIndex = cells.indexOf(event.target as HTMLElement)
 
-		cells[rovingTargetIndex(event.key, currentIndex, cells.length)]?.focus()
+		// The cells follow the reading order, so the arrows swap in RTL.
+		const key = logicalArrowKey(event.key, event.currentTarget)
+
+		cells[rovingTargetIndex(key, currentIndex, cells.length)]?.focus()
 	}, [])
 
 	// Custom mode runs no virtual-highlight model: the Start/End inputs, the back
