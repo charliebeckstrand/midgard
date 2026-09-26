@@ -3,7 +3,8 @@
  * measure the trigger and the query plumbing alone — what a page pays for a
  * combobox nobody has touched — and the open rungs add the rendered options.
  * The virtualized pair at the same counts is what windowing buys once the
- * panel is open.
+ * panel is open. The selection rung times a value change on an open panel
+ * alone, which is the path that re-renders each option row.
  */
 
 import { describe } from 'vitest'
@@ -12,7 +13,7 @@ import { ComboboxLabel, ComboboxOption } from '../components/combobox/combobox-o
 import { useComboboxDeferredQuery } from '../components/combobox/use-combobox-query'
 import { VirtualOptions } from '../primitives/virtual-options'
 import { comboboxOptions, type Option } from './fixtures'
-import { mountBenches } from './harness'
+import { mountBenches, rerenderBench } from './harness'
 
 /** The query filter a consumer writes, reading the combobox's own deferred query. */
 function useFiltered(all: Option[]): Option[] {
@@ -84,5 +85,29 @@ describe('Combobox · open · virtualized', () => {
 				<VirtualOptionsFor options={comboboxOptions(count)} />
 			</Combobox>
 		),
+	)
+})
+
+describe('Combobox · open · selection change', () => {
+	const options = comboboxOptions(500)
+
+	// Built once, so a rerender reaches the options only through the context.
+	const children = <OptionsFor options={options} />
+
+	const valueAt = (iteration: number) => options[iteration % options.length]?.value
+
+	rerenderBench(
+		'500 options · controlled value moves one row',
+		() => (
+			<Combobox<string> open value={valueAt(0)}>
+				{children}
+			</Combobox>
+		),
+		(rerender, iteration) =>
+			rerender(
+				<Combobox<string> open value={valueAt(iteration + 1)}>
+					{children}
+				</Combobox>,
+			),
 	)
 })

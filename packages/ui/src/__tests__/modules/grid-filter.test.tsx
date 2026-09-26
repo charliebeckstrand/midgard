@@ -94,6 +94,47 @@ describe('Grid search', () => {
 		})
 	})
 
+	it('shows an external reset of a controlled query', async () => {
+		await withFakeTime(async (clock) => {
+			const onValueChange = vi.fn()
+
+			const { rerender } = renderUI(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					search={{ value: 'Alice', onValueChange }}
+				/>,
+			)
+
+			const field = screen.getByRole<HTMLInputElement>('searchbox')
+
+			expect(field.value).toBe('Alice')
+
+			// The user starts a new query, and the owner resets the search before the
+			// debounce settles.
+			await clock.user.type(field, 'x')
+
+			rerender(
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					search={{ value: '', onValueChange }}
+				/>,
+			)
+
+			expect(field.value).toBe('')
+
+			await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+			// The pending query does not write the old text back over the reset.
+			expect(onValueChange).not.toHaveBeenCalled()
+
+			expect(screen.getByText('Bob')).toBeInTheDocument()
+		})
+	})
+
 	it('applies a cleared query immediately, recovering the hidden rows', async () => {
 		await withFakeTime(async (clock) => {
 			renderUI(<Grid columns={columns} rows={rows} getKey={getKey} search={{}} />)

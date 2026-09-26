@@ -8,9 +8,6 @@
 	"components/color/use-color-state.ts": {
 		"useColorState": "Refs"
 	},
-	"components/combobox/combobox.tsx": {
-		"Combobox": "Todo"
-	},
 	"components/combobox/use-combobox-state.ts": {
 		"useComboboxState": "PreserveManualMemo"
 	},
@@ -68,9 +65,6 @@
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
 	},
-	"components/listbox/listbox.tsx": {
-		"Listbox": "Todo"
-	},
 	"components/mask-input/mask-input.tsx": {
 		"MaskInput": "Refs"
 	},
@@ -89,9 +83,6 @@
 	"components/pagination/pagination-page.tsx": {
 		"PaginationPage": "Refs"
 	},
-	"components/pdf-viewer/pdf-viewer-highlights.tsx": {
-		"PdfViewerActiveName": "Refs"
-	},
 	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
 		"PdfViewerMagnifier": "Refs"
 	},
@@ -109,9 +100,6 @@
 	},
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
 		"usePdfViewerMagnifier": "Refs"
-	},
-	"components/pdf-viewer/use-pdf-viewer-page-rotation.ts": {
-		"usePdfViewerPageRotation": "Refs"
 	},
 	"components/pdf-viewer/use-pdf-viewer-page-size.ts": {
 		"usePdfViewerPageSize": "Refs"
@@ -170,9 +158,6 @@
 	},
 	"hooks/use-floating-disclosure.ts": {
 		"useFloatingDisclosure": "Refs"
-	},
-	"hooks/use-frozen-on-close.ts": {
-		"useFrozenOnClose": "Refs"
 	},
 	"hooks/use-keybindings.ts": {
 		"useKeybindings": "Refs"
@@ -253,9 +238,6 @@
 	"modules/grid/use-grid-group.ts": {
 		"useGridGroup": "Todo"
 	},
-	"modules/grid/use-grid-infinite-scroll.ts": {
-		"useGridInfiniteScroll": "Todo"
-	},
 	"modules/grid/use-grid-item-window.ts": {
 		"useGridItemWindow": "Immutability"
 	},
@@ -300,12 +282,6 @@
 	},
 	"modules/query/query-builder/use-query-builder-tree.ts": {
 		"useQueryBuilderTree": "Refs"
-	},
-	"primitives/current/current-content.tsx": {
-		"CurrentContent": "Todo"
-	},
-	"primitives/mount/mount.ts": {
-		"useMountHold": "Refs"
 	},
 	"primitives/polymorphic/polymorphic-static.tsx": {
 		"PolymorphicStatic": "Refs"

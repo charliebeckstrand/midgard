@@ -562,3 +562,26 @@ describe('Filters extras', () => {
 		expect(Object.hasOwn(lastCall[0], 'name')).toBe(false)
 	})
 })
+
+describe('Filters context', () => {
+	it('keeps its context value while it holds no value', () => {
+		const renders = vi.fn()
+
+		function Probe() {
+			useFilters()
+
+			renders()
+
+			return null
+		}
+
+		// Created once, so a second render of the probe comes from a context change.
+		const children = <Probe />
+
+		const { rerender } = renderUI(<Filters aria-label="Orders">{children}</Filters>)
+
+		rerender(<Filters aria-label="Open orders">{children}</Filters>)
+
+		expect(renders).toHaveBeenCalledOnce()
+	})
+})

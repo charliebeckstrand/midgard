@@ -4,8 +4,13 @@ import { type ReactNode, useMemo } from 'react'
 // LinkContext / PortalContext live in the primitives layer: the `polymorphic`
 // primitive consumes `useLink`; the `overlay` / `floating-surface` primitives
 // consume `usePortalContainer`. This provider fans out to both.
-import { type LinkComponent, LinkContext, type LinkContextValue } from '../../primitives/link'
-import { type PortalContainer, PortalContext } from '../../primitives/portal'
+import {
+	type LinkComponent,
+	LinkContext,
+	type LinkContextValue,
+	useLink,
+} from '../../primitives/link'
+import { type PortalContainer, PortalContext, usePortalContext } from '../../primitives/portal'
 
 /** Props for {@link UIProvider}: the optional framework `link` component and default `portalContainer`, plus `children`. */
 export type UIProviderProps = {
@@ -36,14 +41,21 @@ export type UIProviderProps = {
  * disturbing the outer provider's others.
  */
 export function UIProvider({ link, portalContainer, children }: UIProviderProps) {
-	const linkValue = useMemo<LinkContextValue>(() => ({ component: link ?? 'a' }), [link])
+	const outerLink = useLink()
 
-	const withLink =
-		link !== undefined ? <LinkContext value={linkValue}>{children}</LinkContext> : children
+	const outerPortal = usePortalContext()
 
-	return portalContainer != null ? (
-		<PortalContext value={portalContainer}>{withLink}</PortalContext>
-	) : (
-		withLink
+	const linkValue = useMemo<LinkContextValue>(
+		() => (link === undefined ? outerLink : { component: link }),
+		[link, outerLink],
+	)
+
+	// Both providers render each time, and an omitted binding passes the outer
+	// value through. A provider that comes and goes with its prop changes the
+	// element type at the root, and React then mounts the full subtree again.
+	return (
+		<PortalContext value={portalContainer ?? outerPortal}>
+			<LinkContext value={linkValue}>{children}</LinkContext>
+		</PortalContext>
 	)
 }

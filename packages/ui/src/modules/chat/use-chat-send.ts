@@ -247,9 +247,14 @@ export function useChatSend({
 		controllerRef.current?.abort()
 	}, [])
 
+	// A reply that outlives the chat has no reader, so the unmount stops it.
+	useEffect(() => () => controllerRef.current?.abort(), [])
+
 	const send = useCallback(
 		async (content: string) => {
-			if (streaming) return
+			// The controller and not the `streaming` state: two calls in one tick
+			// both read the state of the last render.
+			if (controllerRef.current) return
 
 			const text = draftContent(content)
 
@@ -262,11 +267,11 @@ export function useChatSend({
 
 			await runTransport(text)
 		},
-		[streaming, runTransport],
+		[runTransport],
 	)
 
 	const retry = useCallback(async () => {
-		if (streaming) return
+		if (controllerRef.current) return
 
 		const lastUser = lastUserMessage(messages)
 
@@ -275,11 +280,11 @@ export function useChatSend({
 		setMessages((prev) => truncateToLastUserMessage(prev))
 
 		await runTransport(chatContentText(lastUser.content))
-	}, [streaming, messages, runTransport])
+	}, [messages, runTransport])
 
 	const edit = useCallback(
 		async (id: string, content: string) => {
-			if (streaming) return
+			if (controllerRef.current) return
 
 			const text = draftContent(content)
 
@@ -291,7 +296,7 @@ export function useChatSend({
 
 			await runTransport(text)
 		},
-		[streaming, messages, runTransport],
+		[messages, runTransport],
 	)
 
 	return { messages, streaming, send, retry, edit, stop, setMessages }

@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest'
+import { type ComponentProps, useEffect } from 'react'
+import { describe, expect, it, vi } from 'vitest'
 import { Dialog } from '../../components/dialog'
 import { type PortalContainer, usePortalContainer } from '../../primitives/portal'
 import { UIProvider } from '../../providers/ui'
@@ -63,5 +64,55 @@ describe('UIProvider portalContainer', () => {
 		)
 
 		expect(screen.getByTestId('resolved')).toHaveTextContent('local-root')
+	})
+})
+
+describe('UIProvider bindings', () => {
+	function MountProbe({ onMount }: { onMount: () => void }) {
+		useEffect(onMount, [onMount])
+
+		return <PortalProbe />
+	}
+
+	it('keeps its subtree mounted when a binding arrives after the first render', () => {
+		const onMount = vi.fn()
+
+		const target = document.createElement('div')
+
+		target.id = 'late-root'
+
+		const link = (props: ComponentProps<'a'>) => <a {...props} />
+
+		const { rerender } = renderUI(
+			<UIProvider>
+				<MountProbe onMount={onMount} />
+			</UIProvider>,
+		)
+
+		rerender(
+			<UIProvider portalContainer={target} link={link}>
+				<MountProbe onMount={onMount} />
+			</UIProvider>,
+		)
+
+		expect(screen.getByTestId('resolved')).toHaveTextContent('late-root')
+
+		expect(onMount).toHaveBeenCalledOnce()
+	})
+
+	it('keeps the outer bindings that a nested provider omits', () => {
+		const target = document.createElement('div')
+
+		target.id = 'outer-root'
+
+		renderUI(
+			<UIProvider portalContainer={target}>
+				<UIProvider>
+					<PortalProbe />
+				</UIProvider>
+			</UIProvider>,
+		)
+
+		expect(screen.getByTestId('resolved')).toHaveTextContent('outer-root')
 	})
 })

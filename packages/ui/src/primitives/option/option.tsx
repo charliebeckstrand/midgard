@@ -1,8 +1,8 @@
 'use client'
 
 import { Check } from 'lucide-react'
-import { type ComponentProps, memo, type ReactNode, useCallback, useId } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
+import { ariaAttr, cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { memoWeak } from '../../utilities'
 import { useDensity } from '../density'
@@ -191,6 +191,12 @@ export type OptionSelectionContext<TValue = unknown> = {
 // toggle costs O(n + k), not the O(n·k) of an `includes` scan per option. The
 // host swaps in a new array on change, so a WeakMap keys cleanly and old sets
 // are collected with their arrays.
+// The host's `capitalize` flag, which each `Option` hands to its own `Label`.
+// A `Label` that reads the whole selection context re-renders on each selection
+// change. This boolean does not change with the selection, so a `Label` skips
+// that work.
+const [CapitalizeContext] = createContext('OptionCapitalize', { default: false })
+
 const membershipCache = new WeakMap<readonly unknown[], Set<unknown>>()
 
 function isOptionSelected(
@@ -257,31 +263,33 @@ export function createSelectOption<
 		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
 
 		return (
-			<BaseOption
-				id={id}
-				selected={selected}
-				disabled={disabled}
-				onSelect={handleSelect}
-				data-slot={`${config.slotPrefix}-option`}
-				className={className}
-				activeDescendant={config.activeDescendant}
-				aria-setsize={ariaSetsize}
-				aria-posinset={ariaPosinset}
-				// Focus-roving single-select only: active-descendant lists keep DOM
-				// focus on the input (the option never sees the keydown), and
-				// multi-select toggles stay put until an explicit Enter/Space/click.
-				commitOnTab={!config.activeDescendant && !multiple}
-			>
-				{label}
-			</BaseOption>
+			<CapitalizeContext value={capitalize ?? false}>
+				<BaseOption
+					id={id}
+					selected={selected}
+					disabled={disabled}
+					onSelect={handleSelect}
+					data-slot={`${config.slotPrefix}-option`}
+					className={className}
+					activeDescendant={config.activeDescendant}
+					aria-setsize={ariaSetsize}
+					aria-posinset={ariaPosinset}
+					// Focus-roving single-select only: active-descendant lists keep DOM
+					// focus on the input (the option never sees the keydown), and
+					// multi-select toggles stay put until an explicit Enter/Space/click.
+					commitOnTab={!config.activeDescendant && !multiple}
+				>
+					{label}
+				</BaseOption>
+			</CapitalizeContext>
 		)
 	}
 
 	function Label({ className, children, ...props }: OptionLabelProps) {
 		// The host's `capitalize` formats string labels at render — the same JS
 		// mechanism every select-family surface uses (custom nodes pass through
-		// as authored).
-		const { capitalize } = config.useSelection()
+		// as authored). The enclosing `Option` supplies the flag.
+		const capitalize = use(CapitalizeContext)
 
 		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
 

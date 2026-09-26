@@ -324,7 +324,7 @@ export function useGridInfiniteScroll({
 	// object so the evaluation helpers above mutate a single seam.
 	const stateRef = useRef<LoadMoreState | null>(null)
 
-	stateRef.current ??= initialLoadMoreState(count)
+	if (stateRef.current == null) stateRef.current = initialLoadMoreState(count)
 
 	const active = infiniteScroll != null
 

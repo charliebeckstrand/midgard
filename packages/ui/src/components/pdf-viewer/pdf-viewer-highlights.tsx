@@ -556,10 +556,10 @@ function PdfViewerActiveName({
 	 * the viewer. The layer used to clear this on the two paths it could see. The third left
 	 * the next name faint until the pointer moved again.
 	 */
-	const namedRef = useRef(anchor)
+	const [named, setNamed] = useState(anchor)
 
-	if (namedRef.current !== anchor) {
-		namedRef.current = anchor
+	if (named !== anchor) {
+		setNamed(anchor)
 
 		if (behind) setBehind(false)
 	}

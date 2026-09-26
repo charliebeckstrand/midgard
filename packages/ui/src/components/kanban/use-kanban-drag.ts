@@ -49,42 +49,43 @@ type KanbanDragDeps<T, C extends KanbanColumnBase<T>> = {
  * Cross-column move during drag-over: pulls the card from its column and splices
  * it into the column under the pointer. Same-column reorders wait for dragEnd.
  *
+ * @returns `true` when it reports a move through `onReorder`.
  * @internal
  */
 function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 	event: DragOverEvent,
 	deps: KanbanDragDeps<T, C>,
-): void {
+): boolean {
 	const { onReorder, columns, getKey, findColumnByCardId, findColumn } = deps
 
-	if (!onReorder) return
+	if (!onReorder) return false
 
 	const { active, over } = event
 
-	if (!over) return
+	if (!over) return false
 
 	const activeCardId = String(active.id)
 
 	const overId = String(over.id)
 
-	if (activeCardId === overId) return
+	if (activeCardId === overId) return false
 
 	const activeCol = findColumnByCardId(activeCardId)
 
 	const overCol = findColumn(overId)
 
-	if (!activeCol || !overCol) return
+	if (!activeCol || !overCol) return false
 
 	// Same-column reorders commit in dragEnd, not dragOver.
-	if (activeCol.id === overCol.id) return
+	if (activeCol.id === overCol.id) return false
 
 	const activeIdx = activeCol.items.findIndex((i) => getKey(i) === activeCardId)
 
-	if (activeIdx === -1) return
+	if (activeIdx === -1) return false
 
 	const item = activeCol.items[activeIdx]
 
-	if (item === undefined) return
+	if (item === undefined) return false
 
 	const overIsColumn = columns.some((c) => c.id === overId)
 
@@ -109,6 +110,8 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
 	}) as C[]
 
 	onReorder(next)
+
+	return true
 }
 
 /**
@@ -121,7 +124,8 @@ function applyKanbanDragOver<T, C extends KanbanColumnBase<T>>(
  * @remarks
  * Drag-end reads the column the drag started in, not the current `columns`.
  * The consumer has already re-rendered with the drag-over move by then, so
- * `columns` cannot identify a cross-column drop.
+ * `columns` cannot identify a cross-column drop. A cancel after a cross-column
+ * move reports the columns from the drag start, so the card goes back.
  */
 export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	columns,
@@ -176,20 +180,36 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 	// The column the drag started in; only the drag handlers read it.
 	const originColumnId = useRef<string | null>(null)
 
+	// The columns at the drag start. A cancel reports them again after a
+	// cross-column move. `null` when no move occurred.
+	const originColumns = useRef<C[] | null>(null)
+
+	const startColumns = useRef<C[]>(columns)
+
 	const handleDragStart = (event: DragStartEvent) => {
 		const cardId = String(event.active.id)
 
 		originColumnId.current = findColumnByCardId(cardId)?.id ?? null
 
+		startColumns.current = columns
+
+		originColumns.current = null
+
 		setActiveId(cardId)
 	}
 
 	const handleDragOver = (event: DragOverEvent) => {
-		applyKanbanDragOver(event, { onReorder, columns, getKey, findColumnByCardId, findColumn })
+		const deps = { onReorder, columns, getKey, findColumnByCardId, findColumn }
+
+		if (applyKanbanDragOver(event, deps) && originColumns.current === null) {
+			originColumns.current = startColumns.current
+		}
 	}
 
 	const handleDragEnd = (event: DragEndEvent) => {
 		setActiveId(null)
+
+		originColumns.current = null
 
 		if (!onReorder) return
 
@@ -227,7 +247,15 @@ export function useKanbanDrag<T, C extends KanbanColumnBase<T>>({
 		onReorder(next)
 	}
 
-	const handleDragCancel = () => setActiveId(null)
+	const handleDragCancel = () => {
+		setActiveId(null)
+
+		const origin = originColumns.current
+
+		originColumns.current = null
+
+		if (origin) onReorder?.(origin)
+	}
 
 	return {
 		activeId,
