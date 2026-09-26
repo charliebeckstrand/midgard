@@ -1,4 +1,4 @@
-import { createContext, type FC, type ReactNode, use } from 'react'
+import { createContext, type FC, Profiler, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Density } from '../../primitives/density'
 import { BaseOption, createSelectOption } from '../../primitives/option'
@@ -158,6 +158,7 @@ type TestSelection = {
 	value: unknown
 	multiple: boolean
 	onSelect: (value: unknown) => void
+	capitalize?: boolean
 }
 
 const SelectionContext = createContext<TestSelection>({
@@ -166,12 +167,15 @@ const SelectionContext = createContext<TestSelection>({
 	onSelect: mockSelect,
 })
 
-const TestContext: FC<{ children: ReactNode; value?: unknown; multiple?: boolean }> = ({
-	children,
-	value,
-	multiple,
-}) => (
-	<SelectionContext value={{ value, multiple: multiple ?? false, onSelect: mockSelect }}>
+const TestContext: FC<{
+	children: ReactNode
+	value?: unknown
+	multiple?: boolean
+	capitalize?: boolean
+}> = ({ children, value, multiple, capitalize }) => (
+	<SelectionContext
+		value={{ value, multiple: multiple ?? false, onSelect: mockSelect, capitalize }}
+	>
 		{children}
 	</SelectionContext>
 )
@@ -224,5 +228,49 @@ describe('createSelectOption', () => {
 		expect(el).toBeInTheDocument()
 
 		expect(screen.getByText('My Desc')).toBeInTheDocument()
+	})
+
+	it('Label capitalizes a string label when the host asks for it', () => {
+		renderUI(
+			<TestContext capitalize>
+				<Option value="a">
+					<Label>lower case</Label>
+				</Option>
+			</TestContext>,
+		)
+
+		expect(screen.getByText('Lower case')).toBeInTheDocument()
+	})
+
+	it('Label does not re-render when only the selection changes', () => {
+		const labelCommits = vi.fn()
+
+		// The option children are created once, so a commit under a Profiler
+		// comes from the Label itself and not from its parent.
+		const options = ['a', 'b', 'c'].map((value) => (
+			<Option key={value} value={value}>
+				<Profiler id={value} onRender={labelCommits}>
+					<Label>{value}</Label>
+				</Profiler>
+			</Option>
+		))
+
+		const { rerender } = renderUI(
+			<TestContext value="a" capitalize>
+				{options}
+			</TestContext>,
+		)
+
+		labelCommits.mockClear()
+
+		rerender(
+			<TestContext value="b" capitalize>
+				{options}
+			</TestContext>,
+		)
+
+		expect(labelCommits).not.toHaveBeenCalled()
+
+		expect(screen.getByRole('option', { name: 'B' })).toHaveAttribute('aria-selected', 'true')
 	})
 })
