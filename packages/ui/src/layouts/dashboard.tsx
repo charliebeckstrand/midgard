@@ -2,13 +2,13 @@
 
 import { SlidersHorizontal } from 'lucide-react'
 import type { PropsWithChildren, ReactNode } from 'react'
-import { Box } from '../components/box'
 import { Button } from '../components/button'
 import { Drawer, DrawerBody, DrawerTitle } from '../components/drawer'
-import { Flex } from '../components/flex'
 import { Icon } from '../components/icon'
-import { Stack } from '../components/stack'
 import { useOffcanvas } from '../hooks/use-offcanvas'
+import { Box } from '../structure/box'
+import { Flex } from '../structure/flex'
+import { Stack } from '../structure/stack'
 import { StackedLayout } from './stacked'
 
 /** Props for {@link DashboardLayout}: the filter panel and the main region beside it. */

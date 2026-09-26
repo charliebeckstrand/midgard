@@ -10,7 +10,6 @@ import { DatePicker } from '../../../components/date-picker'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../components/dialog'
 import { Drawer, DrawerBody, DrawerFooter, DrawerTitle } from '../../../components/drawer'
 import { Field, Label } from '../../../components/fieldset'
-import { Flex } from '../../../components/flex'
 import {
 	Menu,
 	MenuContent,
@@ -22,9 +21,10 @@ import {
 import { NumberInput } from '../../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/sheet'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { GlassProvider } from '../../../providers/glass'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export const meta = { name: 'Glass' }

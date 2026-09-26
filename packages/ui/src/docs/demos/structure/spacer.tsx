@@ -1,8 +1,8 @@
 import { Button } from '../../../components/button'
 import { Card } from '../../../components/card'
-import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
-import { Spacer } from '../../../components/spacer'
+import { Flex } from '../../../structure/flex'
+import { Spacer } from '../../../structure/spacer'
 import { Example } from '../../engine'
 
 export function Demo() {

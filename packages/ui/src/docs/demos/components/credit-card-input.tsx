@@ -6,8 +6,8 @@ import {
 	CreditCardInputExpiry,
 } from '../../../components/credit-card-input'
 import { Field, Label, Message } from '../../../components/fieldset'
-import { Flex } from '../../../components/flex'
-import { Stack } from '../../../components/stack'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function ControlledExample() {

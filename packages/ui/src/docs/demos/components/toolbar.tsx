@@ -11,8 +11,8 @@ import {
 } from 'lucide-react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
-import { Stack } from '../../../components/stack'
 import { Toolbar, ToolbarGroup, ToolbarSeparator } from '../../../components/toolbar'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function FormattingToolbarExample() {

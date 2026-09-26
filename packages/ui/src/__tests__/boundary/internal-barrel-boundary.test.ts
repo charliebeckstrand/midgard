@@ -26,6 +26,7 @@ const LAYERS = [
 	'primitives',
 	'providers',
 	'recipes',
+	'structure',
 	'types',
 	'utilities',
 ]
@@ -54,7 +55,7 @@ function barrelExports(source: string): string[] {
 }
 
 /** Layers whose units each own a barrel; the layer root holds no surface of its own. */
-const UNIT_LAYERS = new Set(['components', 'modules', 'primitives', 'providers'])
+const UNIT_LAYERS = new Set(['components', 'modules', 'primitives', 'providers', 'structure'])
 
 /**
  * True for a barrel that is a public surface (CONVENTIONS.md §3.5): the layer

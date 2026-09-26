@@ -1,8 +1,8 @@
 import { Heart, Plus, Search, Star } from 'lucide-react'
 import { Alert } from '../../../components/alert'
 import { Code } from '../../../components/code'
-import { Flex } from '../../../components/flex'
 import { Icon } from '../../../components/icon'
+import { Flex } from '../../../structure/flex'
 import { Example, LabeledColumn } from '../../engine'
 
 const sizes = ['xs', 'sm', 'md', 'lg'] as const

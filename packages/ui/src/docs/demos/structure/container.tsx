@@ -1,6 +1,6 @@
 import { Card } from '../../../components/card'
-import { Container } from '../../../components/container'
-import { Stack } from '../../../components/stack'
+import { Container } from '../../../structure/container'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

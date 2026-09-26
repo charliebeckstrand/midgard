@@ -1,10 +1,10 @@
 import { Trash } from 'lucide-react'
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { HoldButton } from '../../../components/hold-button'
 import { Icon } from '../../../components/icon'
 import { Text } from '../../../components/text'
+import { Flex } from '../../../structure/flex'
 import { Example, VariantListbox } from '../../engine'
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const

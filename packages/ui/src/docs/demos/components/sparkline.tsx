@@ -3,9 +3,9 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Icon } from '../../../components/icon'
 import { Sparkline } from '../../../components/sparkline'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import type { Color } from '../../../core/recipe'
+import { Stack } from '../../../structure/stack'
 import { capitalize, code, Example, LabeledRow, LabeledRows } from '../../engine'
 
 const colors: Color[] = ['zinc', 'red', 'amber', 'green', 'blue'] as const

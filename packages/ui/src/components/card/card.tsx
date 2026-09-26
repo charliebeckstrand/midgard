@@ -2,7 +2,7 @@ import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
-import { Box, type BoxProps } from '../box'
+import { Box, type BoxProps } from '../../structure/box'
 
 /** Props for {@link Card}: Box surface props (radius and padding are fixed per `size`) plus the section/density `size` step. */
 export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {

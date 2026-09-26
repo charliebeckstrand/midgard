@@ -1,7 +1,7 @@
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Card } from '../../../components/card'
-import { Flex } from '../../../components/flex'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 export function Demo() {

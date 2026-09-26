@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { LoadingDots, LoadingSpinner } from '../../../components/loading'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { capitalize, Example, LabeledColumn, SizeListbox } from '../../engine'
 
 const sizes = ['xs', 'sm', 'md', 'lg', 'xl'] as const

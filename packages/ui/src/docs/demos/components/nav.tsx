@@ -10,8 +10,8 @@ import {
 	NavItem,
 	NavList,
 } from '../../../components/nav'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function NavItems() {

@@ -7,11 +7,9 @@ import countiesUrl from 'us-atlas/counties-10m.json?url'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import countriesUrl from 'world-atlas/countries-110m.json?url'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
 import { Kbd } from '../../../../components/kbd'
 import { Select, SelectLabel, SelectOption } from '../../../../components/select'
-import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
@@ -29,6 +27,8 @@ import {
 	type MapRouteResult,
 	type MapTopology,
 } from '../../../../modules/map'
+import { Flex } from '../../../../structure/flex'
+import { Stack } from '../../../../structure/stack'
 import { Example as ExampleFrame } from '../../../engine'
 import {
 	corridors,

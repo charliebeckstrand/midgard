@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Flex } from '../../components/flex'
+import { Flex } from '../../structure/flex'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Flex', () => {

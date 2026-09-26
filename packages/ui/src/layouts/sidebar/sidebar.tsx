@@ -12,7 +12,6 @@ import {
 import { createPortal } from 'react-dom'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
-import { Flex } from '../../components/flex'
 import { Icon } from '../../components/icon'
 import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
@@ -21,6 +20,7 @@ import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useDensity } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { Step } from '../../recipes'
+import { Flex } from '../../structure/flex'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{

@@ -2,8 +2,8 @@ import { useState } from 'react'
 import { Button } from '../../../components/button'
 import { Heading } from '../../../components/heading'
 import { Odometer } from '../../../components/odometer'
-import { Stack } from '../../../components/stack'
 import { useFormat } from '../../../providers/locale'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function CounterExample() {

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Avatar, AvatarGroup } from '../../../components/avatar'
-import { Flex } from '../../../components/flex'
+import { Flex } from '../../../structure/flex'
 import {
 	capitalize,
 	Example,

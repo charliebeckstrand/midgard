@@ -1,10 +1,10 @@
 import { useRef, useState } from 'react'
 import { Button } from '../../../components/button'
 import { Dialog, DialogBody, DialogFooter, DialogTitle } from '../../../components/dialog'
-import { Flex } from '../../../components/flex'
 import { SignaturePad, type SignaturePadHandle } from '../../../components/signature-pad'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function DefaultExample() {

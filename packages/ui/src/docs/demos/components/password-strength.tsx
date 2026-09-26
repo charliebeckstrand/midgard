@@ -6,7 +6,7 @@ import {
 	type PasswordRule,
 	PasswordStrength,
 } from '../../../components/password-strength'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function BasicExample() {

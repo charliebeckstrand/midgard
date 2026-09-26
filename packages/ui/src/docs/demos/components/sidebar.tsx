@@ -16,7 +16,6 @@ import {
 import { type ReactNode, useState } from 'react'
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import {
@@ -40,9 +39,10 @@ import {
 	SidebarSection,
 	useSidebarMini,
 } from '../../../components/sidebar'
-import { Spacer } from '../../../components/spacer'
 import { Text } from '../../../components/text'
 import { cn } from '../../../core'
+import { Flex } from '../../../structure/flex'
+import { Spacer } from '../../../structure/spacer'
 import { Example } from '../../engine'
 
 const primary = [

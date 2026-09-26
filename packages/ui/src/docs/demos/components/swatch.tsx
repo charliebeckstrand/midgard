@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Flex } from '../../../components/flex'
 import { Listbox, ListboxOption } from '../../../components/listbox'
-import { Stack } from '../../../components/stack'
 import { Swatch } from '../../../components/swatch'
 import { Text } from '../../../components/text'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 type Shape = 'square' | 'circle' | 'line'

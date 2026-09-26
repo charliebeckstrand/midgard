@@ -1,9 +1,9 @@
 import { useState } from 'react'
 import { Alert } from '../../../components/alert'
 import { Badge } from '../../../components/badge'
-import { Flex } from '../../../components/flex'
 import { ShinyText } from '../../../components/shiny-text'
-import { Stack } from '../../../components/stack'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example, ValueStepper, VariantListbox } from '../../engine'
 
 const sweeps = ['left', 'right'] as const

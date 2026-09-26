@@ -1,7 +1,6 @@
 import { ChevronDown } from 'lucide-react'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
 import { JsonTree, type JsonValue } from '../../../../components/json-tree'
 import {
@@ -12,8 +11,6 @@ import {
 	MenuLabel,
 	MenuTrigger,
 } from '../../../../components/menu'
-import { Spacer } from '../../../../components/spacer'
-import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { BarChart, LineChart } from '../../../../modules/chart'
 import {
@@ -35,6 +32,9 @@ import {
 	useDashboardScope,
 } from '../../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../../modules/grid'
+import { Flex } from '../../../../structure/flex'
+import { Spacer } from '../../../../structure/spacer'
+import { Stack } from '../../../../structure/stack'
 import { Example } from '../../../engine'
 import { type Sale, sales, sumBy } from './data'
 

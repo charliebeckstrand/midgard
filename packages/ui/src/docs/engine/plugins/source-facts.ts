@@ -252,7 +252,7 @@ function bodyStatements(fn: ts.FunctionLikeDeclaration): readonly ts.Statement[]
 /**
  * Map a demo's relative import to the library's public module name, mirroring
  * the barrel layout `moduleNameFor` tags (`components/fieldset` → `fieldset`,
- * `providers/locale` → `providers/locale`). The `core` and `hooks` barrels and
+ * `providers/locale` → `providers/locale`, `structure/flex` → `structure/flex`). The `core` and `hooks` barrels and
  * each `primitives/<name>` map too, because `package.json` exports them. A path
  * below the `core` or `hooks` barrel has no export, so it stays unmapped.
  * Returns null for docs-internal or otherwise unmapped paths; their
@@ -266,6 +266,8 @@ function publicModuleFor(resolved: string, srcDir: string): string | null {
 	if (rel[0] === 'providers' && rel[1]) return `providers/${rel[1]}`
 
 	if (rel[0] === 'modules' && rel[1]) return `modules/${rel[1]}`
+
+	if (rel[0] === 'structure' && rel[1]) return `structure/${rel[1]}`
 
 	if (rel[0] === 'primitives' && rel[1]) return `primitives/${rel[1]}`
 

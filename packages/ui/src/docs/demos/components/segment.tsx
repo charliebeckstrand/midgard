@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
-import { Box } from '../../../components/box'
 import { Card, CardBody, CardDescription, CardTitle } from '../../../components/card'
 import { List, ListItem, ListLabel } from '../../../components/list'
 import { Segment, SegmentControl, SegmentItem } from '../../../components/segment'
-import { Stack } from '../../../components/stack'
+import { Box } from '../../../structure/box'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const items = [

@@ -1,6 +1,5 @@
 import { useState } from 'react'
 import { JsonTree, type JsonValue } from '../../../components/json-tree'
-import { Stack } from '../../../components/stack'
 import {
 	QueryBuilder,
 	QueryChips,
@@ -8,6 +7,7 @@ import {
 	type QueryGroup,
 	QuerySummary,
 } from '../../../modules/query'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const fields: QueryField[] = [

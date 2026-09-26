@@ -1,6 +1,6 @@
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { Kbd } from '../../../components/kbd'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 export function Demo() {

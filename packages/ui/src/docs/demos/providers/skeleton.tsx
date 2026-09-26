@@ -14,7 +14,6 @@ import {
 	useComboboxDeferredQuery,
 } from '../../../components/combobox'
 import { ControlSkeleton } from '../../../components/control/control-skeleton'
-import { Flex } from '../../../components/flex'
 import { Heading, HeadingSkeleton } from '../../../components/heading'
 import { Input } from '../../../components/input'
 import { PaginationSkeleton } from '../../../components/pagination'
@@ -36,6 +35,7 @@ import { Text, TextSkeleton } from '../../../components/text'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
 import { ReadyReveal } from '../../../primitives/ready-reveal'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 export const meta = { name: 'Skeleton' }

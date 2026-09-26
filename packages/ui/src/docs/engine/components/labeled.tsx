@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 
 const labelClass = 'text-zinc-500 dark:text-zinc-400'
 

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { Flex } from '../flex'
+import { Flex } from '../../structure/flex'
 import { useFiltersAxis } from './context'
 
 /** Props for {@link FiltersBar}: the row-and-actions line of a filter bar. */

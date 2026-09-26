@@ -14,13 +14,11 @@ import {
 	DialogTitle,
 } from '../../../../components/dialog'
 import { Field, Label } from '../../../../components/fieldset'
-import { Flex } from '../../../../components/flex'
 import { Form, useFormField } from '../../../../components/form'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../../../components/listbox'
 import { NumberInput } from '../../../../components/number-input'
 import { Segment, SegmentControl, SegmentItem } from '../../../../components/segment'
-import { Stack } from '../../../../components/stack'
 import { Text } from '../../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import {
@@ -35,6 +33,8 @@ import {
 	type GridHistoryState,
 } from '../../../../modules/grid'
 import { useFormat } from '../../../../providers/locale'
+import { Flex } from '../../../../structure/flex'
+import { Stack } from '../../../../structure/stack'
 
 // Applies committed cell changes onto the row state: each change patches one
 // field on the row it keys. The grid emits these (as one batch per row) through

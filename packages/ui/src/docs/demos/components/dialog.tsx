@@ -10,9 +10,9 @@ import {
 } from '../../../components/dialog'
 import { Field, Label } from '../../../components/fieldset'
 import { Input } from '../../../components/input'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { Textarea } from '../../../components/textarea'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

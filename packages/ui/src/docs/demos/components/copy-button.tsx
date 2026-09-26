@@ -1,6 +1,6 @@
 import { Copy } from 'lucide-react'
 import { CopyButton } from '../../../components/copy-button'
-import { Flex } from '../../../components/flex'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 export function Demo() {

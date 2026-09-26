@@ -3,10 +3,10 @@
 import { type ReactNode, useMemo, useRef, useState } from 'react'
 import { CodeBlock } from '../../../components/code'
 import { Collapse, CollapsePanel, CollapseTrigger } from '../../../components/collapse'
-import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
-import { Stack } from '../../../components/stack'
 import { cn } from '../../../core'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { deriveCode, hasDerivableCode, type SourceFacts } from '../derive-code'
 import {
 	ExampleResizeHandle,

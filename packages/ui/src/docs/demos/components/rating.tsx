@@ -3,8 +3,8 @@ import { Button } from '../../../components/button'
 import { Description, Field, Label } from '../../../components/fieldset'
 import { Form } from '../../../components/form'
 import { Rating, RatingSkeleton } from '../../../components/rating'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Stack } from '../../../structure/stack'
 import { capitalize, Example, LabeledRow, LabeledRows } from '../../engine'
 
 const colors = ['zinc', 'red', 'amber', 'green', 'blue'] as const

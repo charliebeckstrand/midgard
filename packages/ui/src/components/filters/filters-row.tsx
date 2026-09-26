@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { Flex } from '../flex'
+import { Flex } from '../../structure/flex'
 import { useFiltersAxis } from './context'
 
 /** Props for {@link FiltersRow}: the bar's field row, plus the `equal` and scroll knobs it owns. */

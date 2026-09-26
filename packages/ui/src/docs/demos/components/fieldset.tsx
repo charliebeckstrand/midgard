@@ -2,9 +2,9 @@ import { Description, Field, Fieldset, Label, Legend, Message } from '../../../c
 import { Input } from '../../../components/input'
 import { PasswordInput } from '../../../components/password-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

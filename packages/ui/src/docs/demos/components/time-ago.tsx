@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import { Flex } from '../../../components/flex'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
 import { TimeAgo } from '../../../components/time-ago'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const SEC = 1000

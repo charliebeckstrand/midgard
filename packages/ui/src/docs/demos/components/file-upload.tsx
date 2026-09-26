@@ -5,10 +5,10 @@ import {
 	FileUploadInput,
 	formatFileNames,
 } from '../../../components/file-upload'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function Sizer({ children }: { children: ReactNode }) {

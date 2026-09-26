@@ -21,6 +21,7 @@ const SCAN_DIRS = [
 	'primitives',
 	'providers',
 	'recipes',
+	'structure',
 	'types',
 	'utilities',
 ]

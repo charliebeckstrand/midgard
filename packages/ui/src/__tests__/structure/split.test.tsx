@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { Split } from '../../components/split'
 import { DensityProvider } from '../../providers/density'
+import { Split } from '../../structure/split'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Split', () => {

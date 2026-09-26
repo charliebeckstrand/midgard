@@ -82,6 +82,8 @@
 										"group": [
 											"**/components",
 											"**/components/**",
+											"**/structure",
+											"**/structure/**",
 											"**/layouts",
 											"**/layouts/**",
 											"**/providers",
@@ -91,7 +93,7 @@
 											"**/recipes/katakana",
 											"**/recipes/katakana/**"
 										],
-										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, layouts, providers, or recipe-layer internals (kata / katakana). Importing from primitives is allowed; hooks may read context from primitive providers."
+										"message": "Top-level hooks are reusable building blocks consumed by components, primitives, and other hooks. They must not import from components, structure, layouts, providers, or recipe-layer internals (kata / katakana). Importing from primitives is allowed; hooks may read context from primitive providers."
 									}
 								]
 							}
@@ -119,8 +121,15 @@
 										"message": "Every consuming layer reaches the recipe layer through its owning kata. An import from recipes/katakana or recipes/kiso bypasses the kata curation. It pulls applicator or substrate fragments into the consuming layer."
 									},
 									{
-										"group": ["**/components", "**/components/**", "**/layouts", "**/layouts/**"],
-										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
+										"group": [
+											"**/components",
+											"**/components/**",
+											"**/structure",
+											"**/structure/**",
+											"**/layouts",
+											"**/layouts/**"
+										],
+										"message": "Primitives are foundational React/HTML abstractions consumed by components. They must not import from components, structure, or layouts. Imports from recipes/kata/ (the recipe funnel) are permitted; kata is the curated recipe surface for both components and primitives."
 									}
 								]
 							}
@@ -146,6 +155,8 @@
 											"**/kata/**",
 											"**/components",
 											"**/components/**",
+											"**/structure",
+											"**/structure/**",
 											"**/layouts",
 											"**/layouts/**",
 											"**/primitives",
@@ -155,7 +166,7 @@
 											"**/providers",
 											"**/providers/**"
 										],
-										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from katakana, kata, components, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
+										"message": "kiso holds the design-system tokens and sits at the bottom of the recipe stack. A kiso module may compose its siblings within kiso. An import from katakana, kata, components, structure, layouts, primitives, hooks, or providers inverts the dependency direction. It can also pull stateful React context into the recipe substrate. Per-module consumer documentation is in recipes/kiso/README.md."
 									}
 								]
 							}
@@ -185,7 +196,12 @@
 			}
 		},
 		{
-			"includes": ["packages/ui/src/components/**", "!packages/ui/src/components/**/variants.ts"],
+			"includes": [
+				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
+				"!packages/ui/src/components/**/variants.ts",
+				"!packages/ui/src/structure/**/variants.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {
@@ -240,7 +256,10 @@
 			}
 		},
 		{
-			"includes": ["packages/ui/src/components/**/variants.ts"],
+			"includes": [
+				"packages/ui/src/components/**/variants.ts",
+				"packages/ui/src/structure/**/variants.ts"
+			],
 			"linter": {
 				"rules": {
 					"style": {
@@ -439,6 +458,7 @@
 		{
 			"includes": [
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/core/**",
 				"packages/ui/src/hooks/**",
 				"packages/ui/src/layouts/**",
@@ -453,6 +473,7 @@
 		{
 			"includes": [
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/core/**",
 				"packages/ui/src/hooks/**",
 				"packages/ui/src/layouts/**",
@@ -469,6 +490,7 @@
 			"includes": [
 				"packages/ui/src/recipes/**",
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
 				"packages/ui/src/layouts/**",
@@ -483,6 +505,7 @@
 			"includes": [
 				"packages/ui/src/recipes/**",
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
 				"packages/ui/src/layouts/**",
@@ -495,6 +518,7 @@
 			"includes": [
 				"packages/ui/src/recipes/**",
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
 				"packages/ui/src/layouts/**",
@@ -511,6 +535,7 @@
 		{
 			"includes": [
 				"packages/ui/src/components/**",
+				"packages/ui/src/structure/**",
 				"packages/ui/src/modules/**",
 				"packages/ui/src/primitives/**",
 				"!**/__tests__/**",

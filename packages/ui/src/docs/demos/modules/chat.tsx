@@ -4,7 +4,6 @@ import { Button } from '../../../components/button'
 import { CopyButton } from '../../../components/copy-button'
 import { Icon } from '../../../components/icon'
 import { Sparkline } from '../../../components/sparkline'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { ToggleIconButton } from '../../../components/toggle-icon-button'
 import {
@@ -17,6 +16,7 @@ import {
 	ChatPrompt,
 	ChatTranscript,
 } from '../../../modules/chat'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const conversations = [

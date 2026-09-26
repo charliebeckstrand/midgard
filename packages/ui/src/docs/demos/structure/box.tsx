@@ -1,5 +1,5 @@
-import { Box } from '../../../components/box'
-import { Stack } from '../../../components/stack'
+import { Box } from '../../../structure/box'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

@@ -1,7 +1,7 @@
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { GlassProvider } from '../../../providers/glass'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 const placements = ['left', 'top', 'bottom', 'right'] as const

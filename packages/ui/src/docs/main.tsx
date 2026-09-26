@@ -12,6 +12,7 @@ mount(
 			'./demos/providers/*.tsx',
 			'./demos/modules/*.tsx',
 			'./demos/modules/*/index.tsx',
+			'./demos/structure/*.tsx',
 		],
 		{ import: 'Demo' },
 	),

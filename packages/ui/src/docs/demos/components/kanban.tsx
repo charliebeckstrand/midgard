@@ -8,7 +8,7 @@ import {
 	KanbanColumnHeader,
 	KanbanColumnTitle,
 } from '../../../components/kanban'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 type Load = { id: string; code: string; customer: string; weight: string }

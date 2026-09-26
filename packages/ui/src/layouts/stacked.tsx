@@ -1,6 +1,6 @@
 import type { ComponentProps, PropsWithChildren } from 'react'
-import { Stack } from '../components/stack'
 import { cn, createSlot } from '../core'
+import { Stack } from '../structure/stack'
 
 /** Props for {@link StackedLayout}: the header, body, and footer slots to stack. */
 export type StackedLayoutProps = PropsWithChildren<{

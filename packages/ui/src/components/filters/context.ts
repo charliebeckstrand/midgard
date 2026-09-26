@@ -1,7 +1,7 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { ResponsiveAlign, ResponsiveDirection } from '../flex/variants'
+import type { ResponsiveAlign, ResponsiveDirection } from '../../structure/flex/variants'
 
 /**
  * How a bar answers a width that cannot hold its fields.

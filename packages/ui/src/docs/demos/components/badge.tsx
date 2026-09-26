@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { Badge } from '../../../components/badge'
-import { Flex } from '../../../components/flex'
+import { Flex } from '../../../structure/flex'
 import { Example, VariantListbox } from '../../engine'
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const

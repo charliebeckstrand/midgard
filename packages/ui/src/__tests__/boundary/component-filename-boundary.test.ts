@@ -4,7 +4,7 @@ import { checkFolder, listLeafFolders } from '../helpers/filename-rules'
 import { srcDir } from '../helpers/walk-source'
 
 // Enforces the file-naming convention documented in CONVENTIONS.md §3.3
-// for the components tree. Feature modules follow the same grammar plus the
+// for the components and structure trees. Feature modules follow the same grammar plus the
 // engine layout, enforced by `module-filename-boundary.test.ts`.
 //
 // Every `.ts` / `.tsx` file in a component folder must be one of:
@@ -24,6 +24,8 @@ import { srcDir } from '../helpers/walk-source'
 
 const componentsDir = join(srcDir, 'components')
 
+const structureDir = join(srcDir, 'structure')
+
 // Grandfathered files where renaming would break a stable public API
 // (`Field`, `Label`, etc.). Never extend this list for new files; fix the
 // file or fix the export.
@@ -39,10 +41,8 @@ const ALLOWLIST = new Set([
 ])
 
 describe('component filename boundary', () => {
-	const folders = listLeafFolders(componentsDir)
-
-	const violations = folders.flatMap((folder) =>
-		checkFolder(folder, basename(folder), componentsDir),
+	const violations = [componentsDir, structureDir].flatMap((root) =>
+		listLeafFolders(root).flatMap((folder) => checkFolder(folder, basename(folder), root)),
 	)
 
 	const newViolations = violations.filter((v) => !ALLOWLIST.has(v.path))
@@ -54,7 +54,7 @@ describe('component filename boundary', () => {
 	it('every component file matches the filename convention', () => {
 		expect(
 			newViolations,
-			`filename violation(s) in packages/ui/src/components — see CONVENTIONS.md §3.3:\n${newViolations
+			`filename violation(s) in packages/ui/src/{components,structure} — see CONVENTIONS.md §3.3:\n${newViolations
 				.map((v) => `  ${v.path}\n    ${v.reason}`)
 				.join('\n')}`,
 		).toEqual([])

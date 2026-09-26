@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Banner } from '../../../components/banner'
 import { Button } from '../../../components/button'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { capitalize, Example, VariantListbox } from '../../engine'
 
 const variants = ['solid', 'soft', 'outline', 'plain'] as const

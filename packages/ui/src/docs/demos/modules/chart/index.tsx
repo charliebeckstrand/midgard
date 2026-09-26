@@ -2,11 +2,8 @@ import { RefreshCw } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
 import { Button } from '../../../../components/button'
-import { Flex } from '../../../../components/flex'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxOption } from '../../../../components/listbox'
-import { Spacer } from '../../../../components/spacer'
-import { Stack } from '../../../../components/stack'
 import { Stat, StatLabel, StatValue } from '../../../../components/stat'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import {
@@ -22,6 +19,9 @@ import {
 	ScatterChart,
 } from '../../../../modules/chart'
 import type { MapGeography } from '../../../../modules/map'
+import { Flex } from '../../../../structure/flex'
+import { Spacer } from '../../../../structure/spacer'
+import { Stack } from '../../../../structure/stack'
 import { code, Example as ExampleFrame } from '../../../engine'
 import { activity, dailyVisits, greens, heat, statePopulation } from './data'
 

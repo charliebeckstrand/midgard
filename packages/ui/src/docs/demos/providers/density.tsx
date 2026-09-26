@@ -9,7 +9,6 @@ import {
 	FiltersRow,
 	useFilters,
 } from '../../../components/filters'
-import { Flex } from '../../../components/flex'
 import { Heading } from '../../../components/heading'
 import { Icon } from '../../../components/icon'
 import { SearchInput } from '../../../components/search-input'
@@ -22,7 +21,6 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from '../../../components/sidebar'
-import { Stack } from '../../../components/stack'
 import {
 	Table,
 	TableBody,
@@ -34,6 +32,8 @@ import {
 import { Text } from '../../../components/text'
 import { SidebarLayout, SidebarLayoutBody, SidebarLayoutHeader } from '../../../layouts'
 import { type DensityLevel, DensityProvider, densityLevels } from '../../../providers/density'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example, OptionsListbox } from '../../engine'
 
 export const meta = { name: 'Density' }

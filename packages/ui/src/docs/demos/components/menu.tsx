@@ -9,8 +9,8 @@ import {
 	MenuSub,
 	MenuTrigger,
 } from '../../../components/menu'
-import { Stack } from '../../../components/stack'
 import { GlassProvider } from '../../../providers/glass'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

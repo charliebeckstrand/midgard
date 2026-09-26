@@ -15,7 +15,7 @@ import { useControllable } from '../../hooks/use-controllable'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
-import { Stack } from '../stack'
+import { Stack } from '../../structure/stack'
 import { StepperContext, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 

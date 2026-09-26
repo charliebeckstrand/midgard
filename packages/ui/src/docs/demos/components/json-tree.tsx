@@ -2,7 +2,7 @@ import { useDeferredValue, useState } from 'react'
 import { Button } from '../../../components/button'
 import { collectJsonTreePaths, JsonTree } from '../../../components/json-tree'
 import { SearchInput } from '../../../components/search-input'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const sample = {
