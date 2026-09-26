@@ -3,6 +3,7 @@
 import type { User } from 'auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
@@ -67,7 +68,7 @@ export function AccountClient({
 					<Heading level={3}>Passkeys</Heading>
 
 					{passkeys.length === 0 ? (
-						<Text>You have no passkeys.</Text>
+						<Alert color="amber" variant="soft" title="You have no passkeys." className="w-full" />
 					) : (
 						<Table>
 							<TableHead>
@@ -99,14 +100,15 @@ export function AccountClient({
 						</Table>
 					)}
 
-					<Button disabled={add.isPending} onClick={() => add.mutate()}>
-						Add a passkey
-					</Button>
+					<div className="flex flex-wrap gap-2">
+						<Button color="blue" disabled={add.isPending} onClick={() => add.mutate()}>
+							Add a passkey
+						</Button>
+						<Button variant="outline" onClick={signOut}>
+							Sign out
+						</Button>
+					</div>
 				</TwoStep>
-
-				<Button variant="outline" onClick={signOut}>
-					Sign out
-				</Button>
 
 				{user.role === 'admin' && (
 					<Text className="text-center">
