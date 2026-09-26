@@ -14,7 +14,7 @@ import {
 	MenuTrigger,
 } from '../../components/menu'
 import { colors, extendedColors, type PaletteColor } from '../../core/recipe'
-import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
+import { capitalizeFirst } from '../../utilities'
 
 /** The palette presets offered by the color Menu: standard palette then extended. @internal */
 export const DEFAULT_COLOR_OPTIONS: PaletteColor[] = [...colors, ...extendedColors]

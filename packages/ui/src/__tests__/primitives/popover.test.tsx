@@ -42,6 +42,21 @@ describe('PopoverPanel', () => {
 		expect(second).toHaveFocus()
 	})
 
+	// A selector list takes the `[data-selected]` filter on each of its
+	// selectors, so autofocus lands on the selected row.
+	it('focuses the selected item when itemSelector is a selector list', () => {
+		renderUI(
+			<PopoverPanel itemSelector="a, button">
+				<a href="#other">Other</a>
+				<button type="button" data-selected="">
+					Selected
+				</button>
+			</PopoverPanel>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Selected' })).toHaveFocus()
+	})
+
 	it('applies custom role', () => {
 		renderUI(<PopoverPanel role="menu">items</PopoverPanel>)
 

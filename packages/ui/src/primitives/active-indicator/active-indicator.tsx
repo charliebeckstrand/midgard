@@ -103,11 +103,7 @@ export function ActiveIndicator({
 				data-slot="active-indicator"
 				layoutId={resolvedLayoutId}
 				layoutDependency={instanceId}
-				className={cn(
-					'pointer-events-none absolute inset-0',
-					'bg-zinc-200 dark:bg-zinc-700',
-					className,
-				)}
+				className={cn('pointer-events-none absolute inset-0', k.fill, className)}
 				// Motion's layout projection applies inverse-scale correction to inline
 				// `borderRadius` during the shared-element transition.
 				style={{ borderRadius: INDICATOR_RADIUS, ...style }}

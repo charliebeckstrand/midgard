@@ -1,4 +1,5 @@
 export { parseAspectRatio } from './aspect-ratio'
+export { capitalizeFirst } from './capitalize-first'
 export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export { clearNativeInput } from './clear-native-input'

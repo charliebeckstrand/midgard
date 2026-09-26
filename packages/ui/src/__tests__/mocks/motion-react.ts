@@ -1,8 +1,10 @@
 import {
 	type ComponentType,
+	createContext,
 	createElement,
 	forwardRef,
 	type ReactNode,
+	use,
 	useEffect,
 	useRef,
 } from 'react'
@@ -150,8 +152,20 @@ function LayoutGroup({ children }: { children: ReactNode }) {
 	return children
 }
 
-function MotionConfig({ children }: { children: ReactNode }) {
-	return children
+type MotionConfigValue = { reducedMotion: 'always' | 'never' | 'user' }
+
+// Real motion defaults `reducedMotion` to `never`, and `MotionConfig` merges its
+// props over the parent config. `ReducedMotion` reads the context to skip a
+// nested provider.
+const MotionConfigContext = createContext<MotionConfigValue>({ reducedMotion: 'never' })
+
+function MotionConfig({
+	children,
+	...config
+}: Partial<MotionConfigValue> & { children: ReactNode }) {
+	const parent = use(MotionConfigContext)
+
+	return createElement(MotionConfigContext, { value: { ...parent, ...config } }, children)
 }
 
 // A stable no-op, as the real hook's `animate` is stable. A `vi.fn()` here was
@@ -201,6 +215,7 @@ export default {
 	AnimatePresence,
 	LayoutGroup,
 	MotionConfig,
+	MotionConfigContext,
 	useAnimate,
 	useMotionValue,
 	useReducedMotion,

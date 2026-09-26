@@ -4,9 +4,8 @@ import { Check } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
 import { ariaAttr, cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
-import { memoWeak } from '../../utilities'
+import { capitalizeFirst, memoWeak } from '../../utilities'
 import { useDensity } from '../density'
-import { capitalizeFirst } from '../select-trigger/capitalize'
 
 /**
  * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
