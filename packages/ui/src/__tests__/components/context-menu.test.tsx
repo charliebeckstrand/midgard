@@ -256,7 +256,7 @@ describe('ContextMenuList submenus', () => {
 		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toHaveFocus()
 	})
 
-	it('leaves the direction keys alone — the panel picks its own side', () => {
+	it('opens on no direction key — the panel picks its own side — and closes on the back arrow', () => {
 		open(pinEntries())
 
 		const trigger = screen.getByRole('menuitem', { name: 'Pin' })
@@ -267,9 +267,12 @@ describe('ContextMenuList submenus', () => {
 
 		fireEvent.keyDown(trigger, { key: ' ' })
 
+		// ArrowLeft steps back out whatever side the panel took (WAI-ARIA APG).
 		fireEvent.keyDown(screen.getByRole('menuitem', { name: 'Pin left' }), { key: 'ArrowLeft' })
 
-		expect(screen.getByRole('menuitem', { name: 'Pin left' })).toBeInTheDocument()
+		expect(screen.queryByRole('menuitem', { name: 'Pin left' })).not.toBeInTheDocument()
+
+		expect(trigger).toHaveFocus()
 	})
 
 	it('closes when the roving cursor moves off the parent row', () => {
