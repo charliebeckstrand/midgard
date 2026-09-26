@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
@@ -238,6 +239,10 @@ export function useMapZoom({
 	/** Whether the gesture just ended moved the view, so the click it produced is swallowed. */
 	const panned = useRef(false)
 
+	// A pan or a pinch holds the closed hand on the page, over the regions and the
+	// marks that carry a pointer cursor of their own.
+	const cursorHold = useDragCursorHold()
+
 	// A wheel reports no end, so the gesture's is read from a gap: each notch
 	// re-arms this, and the marks answer the pointer again once it fires. A
 	// pointer gesture ends on its own release, and either can be live while the
@@ -318,6 +323,8 @@ export function useMapZoom({
 
 			gestureBox.current = null
 
+			cursorHold.end()
+
 			settleGesture()
 		}
 
@@ -341,6 +348,8 @@ export function useMapZoom({
 		if (event.currentTarget.hasPointerCapture(event.pointerId)) return
 
 		event.currentTarget.setPointerCapture(event.pointerId)
+
+		cursorHold.start()
 	}
 
 	function onPointerDown(event: PointerEvent<HTMLElement>) {

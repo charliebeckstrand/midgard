@@ -26,7 +26,7 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * the body clean by every other measure here.
  * `body.style` covers `use-scroll-lock`, which sets `overflow` and a
  * compensating `paddingRight` under a reference count. The marked head style
- * covers `use-grabbing-cursor`, which appends one under a count of its own.
+ * covers `use-drag-cursor`, which appends one under a list of holds of its own.
  * Both unbalance exactly when a holder unmounts wrongly, which is the failure
  * this guard exists for, and neither is a body child.
  *
@@ -50,8 +50,8 @@ import { type GlobalListener, liveGlobalListeners, watchGlobalListeners } from '
  * clears a node that way, which is why the browser suite never showed it.
  */
 
-/** The grabbing cursor's marker; `use-grabbing-cursor` stamps it on its style. */
-const GRABBING = '[data-grabbing-cursor]'
+/** The drag cursor's marker; `use-drag-cursor` stamps it on its style. */
+const DRAG_CURSOR = '[data-drag-cursor]'
 
 let children = new WeakSet<Element>()
 
@@ -139,7 +139,7 @@ function collect(): string[] {
 		leaks.push(`root style: "${document.documentElement.style.cssText}" (was "${rootStyle}")`)
 	}
 
-	if (document.head.querySelector(GRABBING)) leaks.push('a grabbing-cursor style, left in head')
+	if (document.head.querySelector(DRAG_CURSOR)) leaks.push('a drag-cursor style, left in head')
 
 	if (!swallowed && swallowsClicks()) {
 		leaks.push('an open pointer drag: its capture listener drops every click the page takes next')

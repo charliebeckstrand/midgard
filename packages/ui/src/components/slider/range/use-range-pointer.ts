@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { useDragCursorHold } from '../../../hooks/use-drag-cursor'
 import { useStableEvent } from '../../../hooks/use-stable-event'
 import { clamp } from '../../../utilities'
 import { snapToStep } from './range-utilities'
@@ -124,6 +125,9 @@ export function useRangePointer(opts: {
 	// does not.
 	const gestureThumbRef = useRef<ThumbIndex | null>(null)
 
+	// The track keeps its cursor on the page while the press holds, off the track too.
+	const cursorHold = useDragCursorHold('pointer')
+
 	// The handlers below run from pointer events, not from render. A new
 	// callback must not re-arm a gesture that is already in flight.
 	const reportDragStart = useStableEvent((thumb: ThumbIndex) => onDragStart?.(thumb))
@@ -179,6 +183,8 @@ export function useRangePointer(opts: {
 
 			event.currentTarget.setPointerCapture(event.pointerId)
 
+			cursorHold.start()
+
 			const raw = valueFromPointer(event.clientX)
 
 			if (current[0] === current[1]) {
@@ -226,6 +232,7 @@ export function useRangePointer(opts: {
 			step,
 			thumbRefs,
 			beginDrag,
+			cursorHold,
 		],
 	)
 
@@ -273,10 +280,12 @@ export function useRangePointer(opts: {
 		pendingStackedRef.current = null
 		gestureThumbRef.current = null
 
+		cursorHold.end()
+
 		// A press on the stack that did not move grabbed no thumb, so it closes no
 		// bracket. Every other route latched a thumb and owes one end.
 		if (grabbed !== null) reportDragEnd(grabbed)
-	}, [reportDragEnd])
+	}, [reportDragEnd, cursorHold])
 
 	// `lostpointercapture` fires on every capture end: normal release,
 	// `pointercancel` (browser-claimed gesture), or node removal. It is the

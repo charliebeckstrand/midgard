@@ -8,7 +8,7 @@ import { Icon } from '../../components/icon'
 import { Menu } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { useGrabbingCursor, useSortableList } from '../../hooks'
+import { useSortableList } from '../../hooks'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
@@ -53,16 +53,11 @@ export function GridRowManager({
 	colorOptions = DEFAULT_COLOR_OPTIONS,
 	className,
 }: GridRowManagerProps) {
-	const { itemIds, strategy, activeId, dndContextProps } = useSortableList({
+	const { itemIds, strategy, dndContextProps } = useSortableList({
 		items: groups,
 		getKey: (group) => String(group.key),
 		onReorder: (next) => onReorderGroups(next.map((group) => group.key)),
 	})
-
-	// Force the grabbing cursor across the document for the whole group drag — it
-	// sorts in place with no overlay, so mid-drag the pointer is over a reflowing
-	// sibling zone or the dialog, not the dragged card.
-	useGrabbingCursor(activeId != null)
 
 	return (
 		<div data-slot="grid-row-manager" className={cn(k.root, className)}>

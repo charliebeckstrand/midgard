@@ -18,7 +18,7 @@ import {
 	useSyncExternalStore,
 } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useControllable, useEscapeLayer, useGrabbingCursor, useResizeObserver } from '../../hooks'
+import { useControllable, useDragCursor, useEscapeLayer, useResizeObserver } from '../../hooks'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
@@ -473,7 +473,7 @@ export function Dashboard({
 
 	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
 	// holds the closed hand on the whole page until the drop or the cancel.
-	useGrabbingCursor(dragging)
+	useDragCursor(dragging)
 
 	// A gesture needs edit mode, and its listeners outlive the splitter and the
 	// board. So an edit exit or an unmount ends a live gesture as canceled.

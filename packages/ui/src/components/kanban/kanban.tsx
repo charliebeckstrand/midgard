@@ -3,7 +3,7 @@
 import { closestCorners, DndContext, DragOverlay } from '@dnd-kit/core'
 import { type ComponentProps, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn } from '../../core'
-import { useSortableSensors } from '../../hooks'
+import { useDragCursor, useSortableSensors } from '../../hooks'
 import { useLiftedStore } from '../../hooks/use-lifted-store'
 import { k } from '../../recipes/kata/kanban'
 import type { AccessibleName } from '../../types'
@@ -79,6 +79,10 @@ export function Kanban<T, C extends KanbanColumnBase<T>>({
 		handleDragEnd,
 		handleDragCancel,
 	} = useKanbanDrag({ columns, getKey, onReorder })
+
+	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
+	// holds the closed hand on the whole page until the drop or the cancel.
+	useDragCursor(activeId !== null)
 
 	const containerRef = useRef<HTMLElement>(null)
 

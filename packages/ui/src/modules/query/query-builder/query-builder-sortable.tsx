@@ -4,7 +4,7 @@ import { type Announcements, DndContext, type Modifier } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import { type ReactNode, useMemo, useRef } from 'react'
 import { cn, dataAttr } from '../../../core'
-import { useGrabbingCursor, useSortableList } from '../../../hooks'
+import { useSortableList } from '../../../hooks'
 import { k } from '../../../recipes/kata/query-builder'
 import {
 	describeDragCancel,
@@ -69,9 +69,6 @@ export function QueryBuilderSortable({ group, children }: QueryBuilderSortablePr
 			dragged.current = null
 		},
 	})
-
-	// The hand stays closed while the pointer leaves the grip during a drag.
-	useGrabbingCursor(activeId !== null)
 
 	// The announcements name a node by its summary text and its position, never
 	// by its generated id, which is what dnd-kit reads out by default.

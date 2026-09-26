@@ -31,7 +31,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 	const onPosition = ({ x }: DragPosition) =>
 		setHsva((prev) => (isHue ? { ...prev, h: x * 360 } : { ...prev, a: x }))
 
-	const drag = useColorDrag(ref, onPosition, disabled)
+	const drag = useColorDrag(ref, onPosition, disabled, 'pointer')
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (disabled) return

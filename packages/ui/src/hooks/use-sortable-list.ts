@@ -8,6 +8,7 @@ import {
 } from '@dnd-kit/sortable'
 import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
+import { useDragCursor } from './use-drag-cursor'
 import { useSortableSensors } from './use-sortable-sensors'
 
 /** Options for {@link useSortableList}: the items, the key extractor, the axis, and the reorder report. */
@@ -42,7 +43,8 @@ function sameKeys(a: readonly string[], b: readonly string[]): boolean {
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
- * `<SortableContext>` to the caller.
+ * `<SortableContext>` to the caller. It holds the grabbing cursor on the page
+ * while an item is lifted.
  *
  * @returns `{ itemIds, strategy, interactive, activeId, orientation,
  * dndContextProps }`: the keyed id list and sorting `strategy` for
@@ -70,6 +72,9 @@ export function useSortableList<T>({
 	const draggedItemRef = useRef<T | null>(null)
 
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })
+
+	// dnd-kit sets no cursor, so each sortable list holds the closed hand here.
+	useDragCursor(activeId !== null)
 
 	// The previous array while the keys do not change. `SortableContext` keys its
 	// own memo on this array, so a new array re-renders each sortable item. A

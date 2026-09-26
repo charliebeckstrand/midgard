@@ -9,6 +9,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { useDragCursor } from '../../hooks'
 import { clamp } from '../../utilities'
 import type { PanelConfig, ResizableOrientation } from './types'
 
@@ -129,6 +130,8 @@ export function useResizablePanel({
 
 	const [dragging, setDragging] = useState<number | null>(null)
 
+	useDragCursor(dragging !== null, orientation === 'horizontal' ? 'col-resize' : 'row-resize')
+
 	const reportSizes = useEffectEvent((next: number[]) => onSizesChange?.(next))
 
 	const reportResizeStart = useEffectEvent((handleIndex: number) => onResizeStart?.(handleIndex))
@@ -195,9 +198,9 @@ export function useResizablePanel({
 			cleanupRef.current?.()
 
 			// Capture holds the handle as the pointer target for the whole drag, so
-			// its resize cursor stays when the pointer leaves it for a panel, and
-			// the panel content under the pointer shows no hover. The browser
-			// releases the capture on pointerup and pointercancel.
+			// the panel content under the pointer shows no hover. `useDragCursor`
+			// holds the resize cursor. The browser releases the capture on pointerup
+			// and pointercancel.
 			event.currentTarget.setPointerCapture(event.pointerId)
 
 			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
