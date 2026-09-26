@@ -46,7 +46,7 @@ The grid module is flat, and `grid-data-cell.tsx`, `grid-data-resolvers.ts`, and
 
 Phase 3 stays one call to `useGridTable` in `GridData`. The menus, the row manager, and the two reorders are hooks now, so `GridData` calls them as it does today.
 
-The local helpers move with their callers. The pure ones (`placeNewRow`, `slotAt`, `resolveNewRowIndex`, `rowReorderPermitted`, `resolveHighlightQuery`, `widthGateClass`) go to `grid-data-resolvers.ts`. `useServerSortSettle` goes to `grid-sort-state.ts`, beside `useGridSort`. `useStableHandler` goes to the cursor file. `useBodyRowCount` and `useTableRevealed` go to the frame file.
+The local helpers move with their callers. The pure ones (`placeNewRow`, `slotAt`, `resolveNewRowIndex`, `rowReorderPermitted`, `resolveHighlightQuery`, `widthGateClass`) go to `grid-data-resolvers.ts`. `useServerSortSettle` goes to `grid-sort-state.ts`, beside `useGridSort`. `useStableHandler` goes to the cursor file. `useBodyRowCount` and `useTableRevealed` go to the frame file. `useMaxHeightGuard` stays in `grid-data.tsx`, so its effect stays the first one of `GridData`.
 
 ### Rules
 
@@ -57,7 +57,7 @@ The local helpers move with their callers. The pure ones (`placeNewRow`, `slotAt
 
 ### The back-edges
 
-- **Index state.** `useGridIndexRefs()` makes one bundle, `GridIndexRefs<T>`. It holds the seven refs the cursor reads now, `selectable`, and `toggleRow`. The edit source joins the other values, so the cursor phase writes no ref. `GridData` passes the bundle to phase 2 and to phase 4. `useGridIndexSync(refs, values)` in phase 4 writes all of them. It opens with a function-level `'use no memo'`, so it stays plain React and the ledger records it.
+- **Index state.** `useGridIndexRefs()` makes one bundle, `GridIndexRefs<T>`. It holds the seven refs the cursor reads now, `selectable`, and `toggleRow`. `GridData` passes the bundle to phase 2 and to phase 4. `useGridIndexSync(refs, values)` in phase 4 writes all of them except the edit source. The editing layer reads the edit source in render, so `useGridEditSourceSync` in phase 2 writes it before the cursor. Both hooks open with a function-level `'use no memo'`, so they stay plain React. The ledger does not list a function that opts out.
 - **`toggleRow`.** It is in the bundle. `toggleActiveRow` reads it at key time. The cursor API does not change.
 - **`wrapperRef`.** `GridData` makes it and passes it to phase 1, the engine, the dialogs, and the root `<div>`.
 - **The Add width.** The state stays in phase 2, and its setter goes to `GridDataTable` as a prop.
@@ -69,7 +69,7 @@ The grid cells read `rowIndexMapRef`, `colIndexMapRef`, and `rowKeysRef` during 
 ### Compiler result
 
 - The computed key moves to a local (`const key = String(id)`) in phase 1.
-- `useGridIndexSync` replaces eight of the nine writes and the forward reference.
+- `useGridIndexSync` and `useGridEditSourceSync` replace eight of the nine writes and the forward reference.
 - The narration in phase 1 reads the hidden set through `useStableEvent`, which replaces `hiddenColumnsRef`.
 - `bridgeCellActivate` gets the refs from the bundle, which is a hook argument in phase 2. The compiler accepts that.
 - Each phase ends at a hook boundary, and the compiler treats a hook result as frozen. The mutable ranges of the resolvers stop at the phase that calls them.
@@ -97,7 +97,7 @@ Without the compiler, the split does not change behavior. Each phase runs the sa
 ## Increments
 
 1. **Helpers and subtrees.** Move the pure helpers and `useServerSortSettle`, and extract `GridDataTable` and `GridDataDialogs`. No hook order changes. The hooks that go to a phase file move in increment 2, because each file must export the symbol of its name. `GridData` loses about 250 lines. The compiler still skips it on the computed key.
-2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData` and adds `useGridIndexSync`.
+2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData`. `useStableHandler` and `useTableRevealed` stay in it, under their new files.
 3. **Render-count bench.** Add a compiled render count for a sort and a selection change on a 1,000-row grid to `__benchmarks__`, before and after. The gain is then a number, not an inference.
 
 ## Proof
