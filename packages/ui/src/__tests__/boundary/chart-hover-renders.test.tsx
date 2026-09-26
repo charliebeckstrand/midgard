@@ -4,6 +4,9 @@ import { bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 // The header is chrome the frame builds on each of its renders. Its render count
 // thus reads the frame's own renders.
+//
+// The suite holds a per-file module mock, so it lives here and runs on a fork
+// (`test-isolation-boundary.test.ts`).
 const headerRenders = vi.hoisted(() => ({ count: 0 }))
 
 vi.mock('../../modules/chart/engine/chart-header', async (importOriginal) => {

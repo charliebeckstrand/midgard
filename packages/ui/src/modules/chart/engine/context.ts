@@ -11,9 +11,9 @@ export type ChartPoint = {
 }
 
 /**
- * The hover a chart's hit layer writes and the frame's overlays read: the
- * pointed category (or slice) index for snapping, and the precise pointer
- * point the tooltip tracks.
+ * The hover a chart's hit layer writes and the frame's overlays read. It holds
+ * the pointed category (or slice) index for snapping. It also holds the precise
+ * pointer point the tooltip tracks.
  *
  * @internal
  */
