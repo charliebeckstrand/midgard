@@ -3,6 +3,7 @@
 import { type MouseEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { useLink } from '../../primitives/link'
+import { resolveLinkRel } from '../../primitives/link/link-rel'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/command-palette'
 import { useCommandPaletteContext } from './context'
@@ -103,7 +104,11 @@ export function CommandPaletteItem(props: CommandPaletteItemProps) {
 		}
 
 		return (
-			<LinkComponent {...forwardedProps(props)} {...optionProps}>
+			<LinkComponent
+				{...forwardedProps(props)}
+				{...optionProps}
+				rel={resolveLinkRel(props.target, props.rel)}
+			>
 				{children}
 			</LinkComponent>
 		)

@@ -2,6 +2,7 @@
 
 import { cn } from '../../core'
 import { type LinkProps as PrimitiveLinkProps, useLink } from '../../primitives/link'
+import { resolveLinkRel } from '../../primitives/link/link-rel'
 import { k, type LinkVariants } from '../../recipes/kata/link'
 
 /** Props for {@link Link}: `color`/`underline` variants atop the injected link primitive's props. */
@@ -11,16 +12,12 @@ export type LinkProps = Omit<PrimitiveLinkProps, 'color'> & LinkVariants
 export function Link({ href, color, underline, className, target, rel, ...props }: LinkProps) {
 	const { component: LinkComponent } = useLink()
 
-	// Defaults `rel="noopener noreferrer"` for `target="_blank"` links unless
-	// the caller supplies their own `rel`.
-	const resolvedRel = rel ?? (target === '_blank' ? 'noopener noreferrer' : undefined)
-
 	return (
 		<LinkComponent
 			href={href}
 			data-slot="link"
 			target={target}
-			rel={resolvedRel}
+			rel={resolveLinkRel(target, rel)}
 			className={cn(k({ color, underline }), className)}
 			{...props}
 		/>

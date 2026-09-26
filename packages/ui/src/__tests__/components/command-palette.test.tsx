@@ -336,6 +336,18 @@ describe('CommandPaletteItem', () => {
 		expect(onClick).not.toHaveBeenCalled()
 	})
 
+	it('gives a link item that opens a new tab noopener noreferrer', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem href="/somewhere" target="_blank">
+					Go
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		expect(screen.getByText('Go').closest('a')).toHaveAttribute('rel', 'noopener noreferrer')
+	})
+
 	it('renders a disabled link item with no href', () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>

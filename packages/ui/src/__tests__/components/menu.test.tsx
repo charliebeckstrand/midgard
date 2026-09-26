@@ -793,6 +793,22 @@ describe('MenuItem', () => {
 		expect(onAction).not.toHaveBeenCalled()
 	})
 
+	it('gives a link row that opens a new tab noopener noreferrer', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem href="/about" target="_blank">
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByText('About').closest('a') as HTMLElement
+
+		expect(item).toHaveAttribute('rel', 'noopener noreferrer')
+	})
+
 	it('renders the disabled href variant as a non-navigable element', () => {
 		renderUI(
 			<Menu defaultOpen>

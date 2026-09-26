@@ -2,6 +2,7 @@
 
 import type { ComponentProps, ElementType, Ref } from 'react'
 import { type LinkProps, useLink } from '../link'
+import { resolveLinkRel } from '../link/link-rel'
 import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
 
 /**
@@ -31,7 +32,8 @@ export type PolymorphicProps<Fallback extends ElementType, Omitted extends Prope
  *   type constrains the fallback arm.
  * @remarks Client-only: reads the `<UIProvider>`-registered link from
  * {@link useLink}. Static leaves use {@link PolymorphicStatic}, which reads no
- * context and takes the router link per call site (REFERENCE §2).
+ * context and takes the router link per call site (REFERENCE §2). A link with
+ * `target="_blank"` and no `rel` gets `rel="noopener noreferrer"`.
  * @see {@link PolymorphicStatic}
  */
 export function Polymorphic<Fallback extends ElementType>({
@@ -46,13 +48,16 @@ export function Polymorphic<Fallback extends ElementType>({
 	const { component: LinkComponent } = useLink()
 
 	if (href !== undefined) {
+		const linkRest = rest as Omit<LinkProps, 'href' | 'className'>
+
 		return (
 			<LinkComponent
 				ref={ref as Ref<HTMLAnchorElement>}
 				data-slot={slot}
 				href={href}
 				className={className}
-				{...(rest as Omit<LinkProps, 'href' | 'className'>)}
+				{...linkRest}
+				rel={resolveLinkRel(linkRest.target, linkRest.rel)}
 			>
 				{children}
 			</LinkComponent>

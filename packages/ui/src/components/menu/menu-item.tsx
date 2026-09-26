@@ -4,6 +4,7 @@ import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'reac
 import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
+import { resolveLinkRel } from '../../primitives/link/link-rel'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
 import { useMenuActions } from './context'
@@ -110,6 +111,7 @@ export function MenuItem(props: MenuItemProps) {
 				id={id}
 				className={classes}
 				{...rest}
+				rel={resolveLinkRel(rest.target, rest.rel)}
 				// After the spread, like the composed onClick below: a consumer prop
 				// must not drop the row out of roving (role) or the tab model (tabIndex).
 				role="menuitem"
