@@ -6,12 +6,16 @@ import {
 	confirmTotp,
 	type Factors,
 	fetchFactors,
+	fetchIdentities,
 	fetchPasskeys,
 	generateRecoveryCodes,
+	type Identity,
 	type Passkey,
+	type Provider,
 	removePasskey,
 	removeTotp,
 	startTotpSetup,
+	unlinkIdentity,
 } from './account-api'
 
 /**
@@ -21,6 +25,7 @@ import {
 export const accountKeys = {
 	passkeys: ['account', 'passkeys'] as const,
 	factors: ['account', 'factors'] as const,
+	identities: ['account', 'identities'] as const,
 }
 
 /**
@@ -112,5 +117,31 @@ export function useGenerateRecoveryCodes() {
 	return useMutation({
 		mutationFn: generateRecoveryCodes,
 		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
+	})
+}
+
+/**
+ * The GitHub and Google accounts of the signed-in user. The server page seeds
+ * it, like {@link usePasskeys}.
+ */
+export function useIdentities(initialIdentities: Identity[]) {
+	return useQuery({
+		queryKey: accountKeys.identities,
+		queryFn: ({ signal }) => fetchIdentities(signal),
+		initialData: initialIdentities,
+	})
+}
+
+/** Disconnects an account, and removes it from the cached list. */
+export function useUnlinkIdentity() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: unlinkIdentity,
+		onSuccess: (_, provider: Provider) => {
+			client.setQueryData<Identity[]>(accountKeys.identities, (identities) =>
+				identities?.filter((identity) => identity.provider !== provider),
+			)
+		},
 	})
 }

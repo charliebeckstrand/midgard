@@ -16,9 +16,25 @@ import { chain, email, required } from './form-validators'
 
 type LoginValues = { email: string; password: string }
 
+/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
+export type SignInProvider = 'github' | 'google'
+
+const providerNames: Record<SignInProvider, string> = { github: 'GitHub', google: 'Google' }
+
+/** The messages of the `?error=` codes that a GitHub or Google sign-in comes back with. */
+const signInErrors: Record<string, string> = {
+	oauth_failed: 'That sign-in did not complete. Please try again.',
+	oauth_unavailable: 'That sign-in method is not available.',
+	email_unverified: 'That account has no verified email. Verify it with the provider first.',
+	account_exists:
+		'An account with that email already exists. Sign in with it, then connect this account from the account page.',
+	account_inactive: 'Account is inactive.',
+}
+
 /**
- * Notice from the query: after registration (`?registered=true`), or after a
- * second step that the gateway no longer holds (`?expired=true`).
+ * Notice from the query: after registration (`?registered=true`), after a
+ * second step that the gateway no longer holds (`?expired=true`), or after a
+ * GitHub or Google sign-in that failed (`?error=<code>`).
  *
  * @internal
  * @remarks
@@ -30,6 +46,12 @@ type LoginValues = { email: string; password: string }
 function QueryNotice() {
 	const params = useSearchParams()
 
+	const error = params.get('error')
+
+	if (error) {
+		return <Text tone="error">{signInErrors[error] ?? signInErrors.oauth_failed}</Text>
+	}
+
 	if (params.get('expired') === 'true') {
 		return <Text tone="error">Your sign-in expired. Please sign in again.</Text>
 	}
@@ -39,10 +61,23 @@ function QueryNotice() {
 	) : null
 }
 
+type LoginPageProps = {
+	/**
+	 * The providers that the gateway has set up, from `getSignInProviders` of
+	 * `auth`. Each gets a button. @defaultValue `[]`
+	 */
+	providers?: SignInProvider[]
+}
+
 /**
- * Sign-in page: signs in with a password or a passkey, and goes to `/` on success.
+ * Sign-in page: signs in with a password, a passkey, GitHub, or Google, and
+ * goes to `/` on success.
  *
  * @remarks
+ * A GitHub or Google button leaves the app for the provider. The gateway sends
+ * the browser back to `/`, to `/login/verify` when the user has a second
+ * factor, or to `/login?error=<code>` when the sign-in fails.
+ *
  * When the user has two-step sign-in on, the gateway answers the password with
  * `202` and sets a ticket cookie, and the page goes to `/login/verify` for the
  * second step ({@link SecondStepPage}). That page checks the ticket on the
@@ -51,7 +86,7 @@ function QueryNotice() {
  * Next prerenders all of the page except the notices from the query, which
  * render only on the client.
  */
-export function LoginPage() {
+export function LoginPage({ providers = [] }: LoginPageProps) {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
@@ -148,6 +183,19 @@ export function LoginPage() {
 				<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
 					Sign in with a passkey
 				</Button>
+
+				{providers.map((provider) => (
+					<Button
+						key={provider}
+						type="button"
+						variant="outline"
+						className="w-full"
+						// A full page load: the gateway answers with a redirect to the provider.
+						onClick={() => window.location.assign(`/auth/oauth/${provider}/start`)}
+					>
+						Continue with {providerNames[provider]}
+					</Button>
+				))}
 
 				<div className="text-center">
 					<Text>
