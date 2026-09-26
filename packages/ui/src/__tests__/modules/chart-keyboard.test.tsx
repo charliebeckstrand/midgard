@@ -594,6 +594,70 @@ describe('LineChart keyboard navigation', () => {
 	})
 })
 
+const WEEKS = [
+	{ week: 'W1', a: 10, b: 90 },
+	{ week: 'W2', a: 30, b: 70 },
+	{ week: 'W3', a: 50, b: 50 },
+	{ week: 'W4', a: 60, b: 40 },
+	{ week: 'W5', a: 70, b: 20 },
+]
+
+describe('LineChart keyboard cursor after a data change', () => {
+	it('drops a cursor that a shorter data set leaves past its end', () => {
+		const { container, rerender } = renderUI(
+			line({ data: WEEKS, crosshair: { x: false, y: true } }),
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		plot.focus()
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W5')
+
+		// The focus stays on the plot while the data drops to three categories.
+		rerender(line({ data: WEEKS.slice(0, 3), crosshair: { x: false, y: true } }))
+
+		// The readout closes or names a category that still exists. It must not
+		// read the series names with no category and no values.
+		const tip = bySlot(container, 'tooltip-content')
+
+		expect(tip === null || /W[123]/.test(tip.textContent ?? '')).toBe(true)
+	})
+
+	it('moves the series emphasis with the value lane when a series loses its point', () => {
+		const { container, rerender } = renderUI(
+			line({ data: WEEKS, crosshair: { x: true, y: false } }),
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		plot.focus()
+
+		// End parks the cursor on W5, in the lane of series A.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		const lit = () =>
+			allBySlot(container, 'chart-tooltip-row').find((row) => !row.className.includes('opacity-25'))
+				?.textContent
+
+		expect(lit()).toContain('A')
+
+		const before = bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')
+
+		// Series A has no point at W5 now, so the lane re-anchors on the point of B.
+		const gapped = WEEKS.map((row) => (row.week === 'W5' ? { ...row, a: Number.NaN } : row))
+
+		rerender(line({ data: gapped, crosshair: { x: true, y: false } }))
+
+		expect(bySlot(container, 'chart-crosshair-x')?.getAttribute('y1')).not.toBe(before)
+
+		// The emphasized tooltip row follows the anchor to B.
+		expect(lit()).toContain('B')
+	})
+})
+
 describe('AreaChart keyboard navigation', () => {
 	it('makes a stacked area chart focusable and reads its stacked values', () => {
 		// Stacked columns read as one whole, so the pointer tooltip floats free; the

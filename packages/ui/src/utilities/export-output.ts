@@ -40,3 +40,29 @@ export function downloadBlob(blob: Blob, filename: string): void {
 export function copyText(text: string): void {
 	navigator.clipboard?.writeText(text).catch(() => {})
 }
+
+/** A leading character a spreadsheet unconditionally reads as a formula/command start. @internal */
+const FORMULA_LEAD = /^[=@\t\r]/
+
+/** A leading sign — a formula start unless the whole field is a plain number. @internal */
+const SIGNED_LEAD = /^[+-]/
+
+/** A well-formed signed decimal (optional exponent) — legitimate data, not a formula. @internal */
+const PLAIN_NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/
+
+/**
+ * Neutralizes spreadsheet formula injection. A field a spreadsheet would
+ * evaluate on open is prefixed with a single quote, so the app imports it as
+ * literal text. Such a field is led by `=`, `@`, a tab, or a carriage return, or
+ * by `+`/`-` when the field isn't a plain number. Signed numbers (`-5`, `+1.2e3`) pass
+ * through untouched so numeric columns still parse.
+ *
+ * @internal
+ */
+export function neutralizeFormula(value: string): string {
+	if (FORMULA_LEAD.test(value)) return `'${value}`
+
+	if (SIGNED_LEAD.test(value) && !PLAIN_NUMBER.test(value)) return `'${value}`
+
+	return value
+}

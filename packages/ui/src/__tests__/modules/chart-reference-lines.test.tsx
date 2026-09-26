@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference-lines'
 import { LineChart } from '../../modules/chart/line-chart'
@@ -280,6 +280,38 @@ describe('reference lines', () => {
 		// A value below zero points its bar left, so the rule slides left from the
 		// baseline — a positive enter offset.
 		expect(Number(riseWrapper(container)?.getAttribute('data-initial-x'))).toBeGreaterThan(0)
+	})
+
+	it('draws two lines at one value on two axes, with no duplicate React key', () => {
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		try {
+			const { container } = renderUI(
+				<LineChart
+					aria-label="Dual"
+					data={[
+						{ w: 'W1', a: 10, b: 20 },
+						{ w: 'W2', a: 30, b: 40 },
+					]}
+					width={480}
+					series={[
+						{ xKey: 'w', yKey: 'a', yName: 'A' },
+						{ xKey: 'w', yKey: 'b', yName: 'B', axis: 'y2' },
+					]}
+					reference={[{ value: 25 }, { value: 25, axis: 'y2' }]}
+				/>,
+			)
+
+			expect(allBySlot(container, 'chart-reference-line')).toHaveLength(2)
+
+			const duplicate = error.mock.calls.some((call) =>
+				String(call[0]).includes('Encountered two children with the same key'),
+			)
+
+			expect(duplicate).toBe(false)
+		} finally {
+			error.mockRestore()
+		}
 	})
 
 	it('leaves the rule static without animate, no motion wrapper', () => {

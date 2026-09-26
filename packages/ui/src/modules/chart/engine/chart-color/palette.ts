@@ -53,7 +53,11 @@ export function categorySlots(
 
 	const place = new Map(categories.map((category, index) => [category, index]))
 
-	return labels.map((label, index) => paletteSlot(place.get(label) ?? categories.length + index))
+	// An unlisted label counts only among the unlisted ones. Its position among
+	// all labels skips past slots and wraps onto a listed category's color.
+	let unlisted = 0
+
+	return labels.map((label) => paletteSlot(place.get(label) ?? categories.length + unlisted++))
 }
 
 /**

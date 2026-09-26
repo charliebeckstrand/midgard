@@ -1,10 +1,17 @@
 'use client'
 
-import { type MouseEvent, type PointerEvent, type RefObject, useCallback, useRef } from 'react'
+import {
+	type MouseEvent,
+	type PointerEvent,
+	type RefObject,
+	useCallback,
+	useEffect,
+	useRef,
+} from 'react'
 import { useHoverAcrossScroll } from '../../../hooks'
 import type { PlotRect } from './chart-layout'
 import type { ChartTooltipTrigger } from './chart-tooltip'
-import { type ChartMarkRef, useChartHover, useChartMarkEmphasis } from './context'
+import { type ChartMarkRef, useChartHoverStore, useChartMarkEmphasis } from './context'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -79,7 +86,11 @@ export function useChartPointer(
 	 */
 	onMarkClick?: (mark: ChartMarkRef) => void,
 ): ChartPointerHandlers {
-	const { index: active, set } = useChartHover()
+	// The store, not a subscription: the hit layer writes the hover and reads the
+	// shown index only in a click, so a pointer move does not render it.
+	const hoverStore = useChartHoverStore()
+
+	const set = hoverStore.set
 
 	const { setPointed } = useChartMarkEmphasis()
 
@@ -123,6 +134,10 @@ export function useChartPointer(
 	// keyboard-owned one, which a scroll must leave alone.
 	const pointerInside = useRef(false)
 
+	// The last viewport point the pointer tracked. A data change or a resize under
+	// a resting pointer re-resolves from it, where no pointer event fires.
+	const lastPointer = useRef<{ x: number; y: number } | null>(null)
+
 	// Resolve hover from a viewport point against the hit element's live box, so
 	// a live pointer move and a post-scroll settle share one hit path. A live move
 	// only fires within the box; a settle can land off it after the plot slid out
@@ -157,6 +172,15 @@ export function useChartPointer(
 		[plot, resolveIndex, probe, set, point],
 	)
 
+	// A new hit path (the data, the plot, or the marks changed) re-resolves a
+	// resting pointer. Otherwise the readout and the pointed mark keep an index the
+	// new data does not have. A pinned click readout has no pointer to re-read.
+	useEffect(() => {
+		const at = lastPointer.current
+
+		if (pointerInside.current && at !== null) track(at.x, at.y, true)
+	}, [track])
+
 	// A click pins the band under it; clicking the shown band again clears it, so
 	// the same gesture toggles the readout. No guard — a click always lands inside.
 	// A resolved index also reports through `onIndexClick`, after the toggle, so
@@ -176,14 +200,14 @@ export function useChartPointer(
 			// Toggle the shown category off; and a click that would read nothing — off
 			// the marks on a chart that doesn't snap — dismisses rather than pinning a
 			// hidden one, so the next click of a real mark still opens it.
-			if (index === active || !(snaps || onDataHit)) set(null, null)
+			if (index === hoverStore.get().index || !(snaps || onDataHit)) set(null, null)
 			else set(index, { x, y }, onDataHit)
 
 			if (index !== null) onIndexClick?.(index)
 
 			if (mark !== null) onMarkClick?.(mark)
 		},
-		[plot, resolveIndex, probe, snaps, active, set, onIndexClick, onMarkClick],
+		[plot, resolveIndex, probe, snaps, hoverStore, set, onIndexClick, onMarkClick],
 	)
 
 	// The hover trigger's activation click: resolve the band under the click and
@@ -240,7 +264,11 @@ export function useChartPointer(
 	// keyboard-owned readout has no pointer to re-read and must survive the scroll.
 	const resolveAt = useCallback(
 		(clientX: number, clientY: number) => {
-			if (pointerInside.current) track(clientX, clientY, true)
+			if (!pointerInside.current) return
+
+			lastPointer.current = { x: clientX, y: clientY }
+
+			track(clientX, clientY, true)
 		},
 		[track],
 	)
@@ -273,6 +301,8 @@ export function useChartPointer(
 	// travels, so the entry alone opens the readout under a long press.
 	const follow = (event: PointerEvent<SVGRectElement>) => {
 		pointerInside.current = true
+
+		lastPointer.current = { x: event.clientX, y: event.clientY }
 
 		track(event.clientX, event.clientY, false)
 	}

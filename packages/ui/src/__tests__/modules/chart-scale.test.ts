@@ -245,6 +245,79 @@ describe('linearScale', () => {
 	})
 })
 
+/** The native `Array.prototype.push`, which {@link bounded} restores. */
+const nativePush = Array.prototype.push
+
+/**
+ * Runs `run` with a limit on the calls to `Array.prototype.push`. A tick loop
+ * that does not stop then throws, and the worker does not hang.
+ */
+function bounded<T>(run: () => T, limit = 100_000): T {
+	let calls = 0
+
+	Array.prototype.push = function (this: unknown[], ...items: unknown[]) {
+		calls += 1
+
+		if (calls > limit) throw new Error(`the tick loop ran past ${limit} pushes`)
+
+		return nativePush.apply(this, items)
+	}
+
+	try {
+		return run()
+	} finally {
+		Array.prototype.push = nativePush
+	}
+}
+
+describe('linearScale · float noise and large magnitudes', () => {
+	it('stops on values that differ only by float noise (0.3 and 0.1 + 0.2)', () => {
+		const scale = bounded(() =>
+			linearScale({ values: [0.3, 0.1 + 0.2], range: [200, 0], tickTarget: 5 }),
+		)
+
+		expect(scale?.ticks.length).toBeLessThan(20)
+	})
+
+	it('stops on a near-flat series at a large magnitude', () => {
+		const scale = bounded(() =>
+			linearScale({ values: [1e17, 1e17 + 16], range: [200, 0], tickTarget: 5 }),
+		)
+
+		expect(scale?.ticks.length).toBeLessThan(20)
+	})
+
+	it('gives a flat series at a large magnitude a finite domain', () => {
+		const scale = bounded(() =>
+			linearScale({ values: [1e17, 1e17], range: [200, 0], tickTarget: 5 }),
+		)
+
+		expect(Number.isFinite(scale?.domain[0])).toBe(true)
+
+		expect(Number.isFinite(scale?.map(1e17))).toBe(true)
+	})
+
+	it('keeps the zero floor when headroom widens a zero-baseline scale', () => {
+		// AreaChart and ComboChart add headroom for the value labels to a zero-baseline scale.
+		const scale = linearScale({
+			values: [10, 50],
+			range: [200, 0],
+			tickTarget: 5,
+			zeroBaseline: true,
+			headroom: 20,
+		})
+
+		expect(scale?.domain[0]).toBe(0)
+	})
+
+	it('puts decimal ticks on exact multiples of the step, with no float drift', () => {
+		const scale = linearScale({ values: [0, 0.7], range: [200, 0], tickTarget: 7 })
+
+		// A caller format such as `${value}%` prints the raw tick.
+		expect(scale?.ticks.map(String)).toEqual(['0', '0.1', '0.2', '0.3', '0.4', '0.5', '0.6', '0.7'])
+	})
+})
+
 describe('bandScale', () => {
 	it('splits the range into equal slots with centered bands', () => {
 		const scale = bandScale({ count: 4, range: [0, 400], padding: 0.2 })

@@ -108,16 +108,20 @@ function plotRegionProps(keyboard: ChartKeyboardProps | null, aside: boolean, fi
  * cursor, or a pie slice points at, and its setter.
  *
  * @param hidden - The series that cannot hold the emphasis.
- * @returns The emphasis, or `null` while the pointed series is hidden, and the
- * setter, which keeps its identity.
+ * @param count - The number of series, or `undefined` for no bound.
+ * @returns The emphasis, or `null` while the pointed series is hidden or past
+ * the count, and the setter, which keeps its identity.
  * @internal
  */
 function useSeriesEmphasis(
 	hidden: ReadonlySet<number>,
+	count: number | undefined,
 ): [number | null, (index: number | null) => void] {
 	const [focus, setFocus] = useState<number | null>(null)
 
-	return [focus !== null && !hidden.has(focus) ? focus : null, setFocus]
+	const held = focus !== null && !hidden.has(focus) && (count === undefined || focus < count)
+
+	return [held ? focus : null, setFocus]
 }
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
@@ -207,6 +211,12 @@ export type ChartFrameProps = AccessibleName & {
 	 */
 	hidden?: ReadonlySet<number>
 	/**
+	 * The number of series, and for a pie the number of rows. An emphasis at or
+	 * past it resolves to `null`: the data can drop the series that a still
+	 * pointer or a legend entry held. Omitted, no bound applies.
+	 */
+	seriesCount?: number
+	/**
 	 * The series emphasis joins the {@link ChartMarkEmphasis} that the marks and the
 	 * tooltip read. The tooltip then dims each other row, as the marks do. A chart
 	 * whose marks read {@link ChartSeriesEmphasisContext} themselves, such as the
@@ -291,6 +301,7 @@ export function ChartFrame({
 	readout,
 	readoutOrder,
 	hidden = NONE_HIDDEN,
+	seriesCount,
 	emphasizeMarks = false,
 	tooltip,
 	snap,
@@ -341,7 +352,7 @@ export function ChartFrame({
 	// The frame owns the series emphasis, not the chart body: a legend hover then
 	// does not run the body, which would make a new readout thunk and format the
 	// data table again.
-	const [seriesEmphasis, setSeriesFocus] = useSeriesEmphasis(hidden)
+	const [seriesEmphasis, setSeriesFocus] = useSeriesEmphasis(hidden, seriesCount)
 
 	const [pointerReference, setPointerReference] = useState<number | null>(null)
 

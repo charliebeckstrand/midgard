@@ -124,4 +124,13 @@ describe('categorySlots', () => {
 
 		expect(unlisted).not.toBe(categorySlots(['Coffee'], ['Tea', 'Coffee'])[0])
 	})
+
+	it('gives each of eight labels its own slot when two labels are outside the list', () => {
+		const slots = categorySlots(
+			['a', 'b', 'c', 'd', 'e', 'f', 'x', 'y'],
+			['a', 'b', 'c', 'd', 'e', 'f'],
+		)
+
+		expect(new Set(slots).size).toBe(8)
+	})
 })

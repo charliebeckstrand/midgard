@@ -5,6 +5,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { cn } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
+import { keyByOccurrence } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import {
 	type ChartColor,
@@ -453,6 +454,8 @@ export function ChartReferenceLines({
 
 	const resolvedFormat = format ?? formatChartValue
 
+	const keys = ruleKeys(reference)
+
 	const group = (
 		<g data-slot="chart-reference-lines">
 			{reference.map((line, index) => {
@@ -468,7 +471,7 @@ export function ChartReferenceLines({
 
 				return (
 					<ReferenceRule
-						key={`${line.value}:${line.label ?? ''}`}
+						key={keys[index]}
 						line={line}
 						index={index}
 						start={project(orientation, at, from)}
@@ -500,6 +503,19 @@ export type ChartReferenceListProps = {
 }
 
 /**
+ * One unique React key per rule: its axis, value, and label, with the
+ * occurrence added to a repeat. Two rules can share a value and a label on two
+ * axes, or on one axis.
+ *
+ * @internal
+ */
+function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
+	return keyByOccurrence(
+		lines.map((line) => `${line.axis ?? 'y'}:${line.value}:${line.label ?? ''}`),
+	).map(({ key }) => key)
+}
+
+/**
  * The reference lines' visually-hidden parity: each rule's label and value in
  * plain markup outside the `role="img"` region. Assistive tech therefore reads
  * them without the pointer. The hover tooltip stays an enhancement, the same
@@ -516,14 +532,14 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 
 	const resolvedFormat = format ?? formatChartValue
 
+	const keys = ruleKeys(lines)
+
 	const value = (line: ChartReferenceLine) => resolvedFormat(line.value, line.axis ?? 'y')
 
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
-			{lines.map((line) => (
-				<li key={`${line.value}:${line.label ?? ''}`}>
-					{line.label ? `${line.label}: ${value(line)}` : value(line)}
-				</li>
+			{lines.map((line, index) => (
+				<li key={keys[index]}>{line.label ? `${line.label}: ${value(line)}` : value(line)}</li>
 			))}
 		</ul>
 	)

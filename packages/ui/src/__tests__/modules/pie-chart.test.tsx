@@ -137,6 +137,53 @@ describe('PieChart', () => {
 		expect(allBySlot(container, 'chart-slice')[0]?.getAttribute('class')).toBe(directFill)
 	})
 
+	it('lifts every slice when the pointed slice leaves the data', () => {
+		const { container, rerender } = renderUI(chart())
+
+		const receded = () =>
+			allBySlot(container, 'chart-slice').map(
+				(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+			)
+
+		// The pointer enters Referral, the third row, and the other slices recede.
+		fireEvent.pointerEnter(allBySlot(container, 'chart-slice')[2] as Element)
+
+		expect(receded()).toEqual([true, true, false])
+
+		// The data drops to two rows under the still pointer, with no pointer leave.
+		rerender(chart({ data: DATA.slice(0, 2) }))
+
+		expect(receded()).toEqual([false, false])
+	})
+
+	it('closes a pinned readout when its slice leaves the data', () => {
+		const { container, rerender } = renderUI(chart({ tooltip: { trigger: 'click' } }))
+
+		fireEvent.click(allBySlot(container, 'chart-slice')[2] as Element)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Referral')
+
+		rerender(chart({ tooltip: { trigger: 'click' }, data: DATA.slice(0, 2) }))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('drops a keyboard cursor that a shorter data set leaves past its end', () => {
+		const { container, rerender } = renderUI(chart())
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'End' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Referral')
+
+		rerender(chart({ data: DATA.slice(0, 2) }))
+
+		// The readout closes or names a slice that still exists. It must not read
+		// the bare value label with no category and no value.
+		const tooltip = bySlot(container, 'tooltip-content')
+
+		expect(tooltip === null || /Search|Direct/.test(tooltip.textContent ?? '')).toBe(true)
+	})
+
 	it('names the pointed slice in the tooltip', () => {
 		const { container } = renderUI(chart())
 
@@ -218,6 +265,24 @@ describe('PieChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
+	it('reads a null value as missing (an em-dash) in the data table, not as 0', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Traffic by source"
+				data={[...DATA, { source: 'Unknown', visits: null as number | null }]}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				width={300}
+				height={200}
+			/>,
+		)
+
+		const cells = [...getSlot(container, 'chart-table').querySelectorAll('td')].map(
+			(cell) => cell.textContent,
+		)
+
+		expect(cells.at(-1)).toBe('—')
+	})
+
 	it('still renders the slices under animate, behind the sweep mask', () => {
 		const { container } = renderUI(chart({ animate: true }))
 
@@ -284,6 +349,59 @@ describe('PieChart', () => {
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
 		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 183')
+	})
+
+	it('keeps crowded callouts inside the SVG height', () => {
+		const rows = [
+			{ source: 'Main', visits: 200 },
+			...Array.from({ length: 16 }, (_, index) => ({ source: `Tail ${index + 1}`, visits: 1 })),
+		]
+
+		const { container } = renderUI(
+			chart({ data: rows, labels: { callouts: true }, width: 480, height: 200 }),
+		)
+
+		const height = Number(
+			getSlot(container, 'chart-plot').querySelector('svg')?.getAttribute('height'),
+		)
+
+		const ys = allBySlot(container, 'chart-callout-label').map((label) =>
+			Number(label.getAttribute('y')),
+		)
+
+		expect(ys.length).toBeGreaterThan(0)
+
+		for (const y of ys) expect(y).toBeLessThanOrEqual(height)
+	})
+
+	it('fits the disc of a callout pie at the default size inside the frame width', () => {
+		// A large middle slice between two slivers puts each mid-angle near the top
+		// or the bottom, so no callout pulls far to the side.
+		const rows = [
+			{ source: 'Low', visits: 2 },
+			{ source: 'Main', visits: 96 },
+			{ source: 'High', visits: 2 },
+		]
+
+		const { container } = renderUI(
+			chart({ data: rows, labels: { callouts: true }, width: 400, height: undefined }),
+		)
+
+		const width = Number(
+			getSlot(container, 'chart-plot').querySelector('svg')?.getAttribute('width'),
+		)
+
+		// The gapless hit wedge of the first slice starts on the rim at the top.
+		// Its move-to x is thus the center x, and its arc gives the radius.
+		const d = allBySlot(container, 'chart-slice-hit')[0]?.getAttribute('d') ?? ''
+
+		const radius = Number(d.match(/A ([\d.]+) /)?.[1])
+
+		const cx = Number(d.match(/^M ([\d.]+) /)?.[1])
+
+		expect(cx - radius).toBeGreaterThanOrEqual(0)
+
+		expect(cx + radius).toBeLessThanOrEqual(width)
 	})
 
 	it('keeps the default frame square when callouts are off', () => {
@@ -650,6 +768,21 @@ describe('pieCallouts', () => {
 
 		for (let i = 1; i < ys.length; i++) {
 			expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
+		}
+	})
+
+	it('holds crowded callouts inside the frame band', () => {
+		// One large slice and 24 slivers, which all sit right of the center.
+		const values = [100, ...Array.from({ length: 24 }, () => 1)]
+
+		const slices = pieSlices(values, { cx: 150, cy: 100, radius: 60 })
+
+		const placed = pieCallouts(slices, { cx: 150, cy: 100, radius: 60, top: 15, bottom: 185 })
+
+		for (const { y } of placed) {
+			expect(y).toBeGreaterThanOrEqual(15)
+
+			expect(y).toBeLessThanOrEqual(185)
 		}
 	})
 

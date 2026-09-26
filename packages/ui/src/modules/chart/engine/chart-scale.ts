@@ -72,6 +72,21 @@ function niceStep(raw: number): number {
 }
 
 /**
+ * The span, as a fraction of the value magnitude, at or below which a domain is
+ * flat. It is some thousands of float steps, far below any visible difference.
+ *
+ * @internal
+ */
+const FLAT_SPAN = 1e-12
+
+/**
+ * The air on each side of a large flat value, as a fraction of its magnitude.
+ *
+ * @internal
+ */
+const FLAT_AIR = 1e-9
+
+/**
  * Widens a degenerate (zero-span) domain so the scale has something to
  * divide by. An all-zero zero-baseline domain becomes `[0, 1]`, and any other
  * flat value gets a unit of air on each side.
@@ -79,11 +94,54 @@ function niceStep(raw: number): number {
  * @internal
  */
 function widen(low: number, high: number, zeroBaseline: boolean): [number, number] {
-	if (low !== high) return [low, high]
+	const magnitude = Math.max(Math.abs(low), Math.abs(high))
 
-	if (zeroBaseline && low === 0) return [0, 1]
+	// A span inside float noise (0.3 against 0.1 + 0.2) is flat. A step cut from
+	// it is below the precision of the values, and no tick loop can advance by it.
+	if (high - low > magnitude * FLAT_SPAN) return [low, high]
 
-	return [low - 1, high + 1]
+	if (zeroBaseline && magnitude === 0) return [0, 1]
+
+	// The air must survive the float precision of a large value: 1e17 + 1 is 1e17.
+	const air = Math.max(1, magnitude * FLAT_AIR)
+
+	return [low - air, low + air]
+}
+
+/**
+ * The tick `index` steps from zero. A fractional step divides by its inverse
+ * power of ten (3 / 10 is 0.3, where 3 * 0.1 is 0.30000000000000004).
+ *
+ * @internal
+ */
+function stepMultiple(index: number, step: number): number {
+	const magnitude = 10 ** Math.floor(Math.log10(step))
+
+	const unit = Math.round(step / magnitude)
+
+	const tick = magnitude < 1 ? (index * unit) / Math.round(1 / magnitude) : index * unit * magnitude
+
+	// Adds zero so a tick at -0 reads as 0.
+	return tick + 0
+}
+
+/**
+ * The ticks from `low` to `high`. Each tick is an integer multiple of the step,
+ * never a running sum. The drift of a sum thus cannot reach a tick value or its
+ * key. A tiny epsilon keeps the ceiling tick.
+ *
+ * @internal
+ */
+function stepTicks(low: number, high: number, step: number): number[] {
+	const ticks: number[] = []
+
+	const first = Math.ceil(low / step - 1e-6)
+
+	const last = Math.floor(high / step + 1e-6)
+
+	for (let index = first; index <= last; index++) ticks.push(stepMultiple(index, step))
+
+	return ticks
 }
 
 /**
@@ -217,6 +275,12 @@ export function linearScale({
 
 	for (const value of values) if (Number.isFinite(value)) fold(value)
 
+	// Zero is an anchor, not a data extreme: no value label sits on it, so the
+	// headroom must not push the domain past it when the data stays clear of it.
+	const zeroFloor = zeroBaseline && any && dataLow > 0
+
+	const zeroCeiling = zeroBaseline && any && dataHigh < 0
+
 	if (zeroBaseline) fold(0)
 
 	if (min !== undefined) fold(min)
@@ -242,21 +306,14 @@ export function linearScale({
 		rawHigh,
 		rangePx: Math.abs(range[1] - range[0]),
 		headroom: tight ? 0 : headroom,
-		pinnedLow: min !== undefined,
-		pinnedHigh: max !== undefined,
+		pinnedLow: min !== undefined || zeroFloor,
+		pinnedHigh: max !== undefined || zeroCeiling,
 	})
 
 	const span = high - low
 
-	const ticks: number[] = []
-
-	// A tiny epsilon absorbs float drift so the ceiling tick isn't dropped; a
-	// tight spark scale draws none at all.
-	if (!tight) {
-		for (let tick = Math.ceil(low / step) * step; tick <= high + step * 1e-6; tick += step) {
-			ticks.push(Math.abs(tick) < step * 1e-6 ? 0 : tick)
-		}
-	}
+	// A tight spark scale draws no ticks.
+	const ticks = tight ? [] : stepTicks(low, high, step)
 
 	const [from, to] = range
 

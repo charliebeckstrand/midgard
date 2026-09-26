@@ -188,6 +188,74 @@ describe('AreaChart', () => {
 	})
 })
 
+describe('AreaChart value domain', () => {
+	/** The y of the x-axis rule, and the y-axis ticks as `label@y`, of a one-series chart. */
+	function axisFloor(labels: boolean) {
+		const { container, unmount } = renderUI(
+			<AreaChart
+				aria-label="Revenue"
+				width={400}
+				height={240}
+				points
+				labels={labels ? { extremes: true } : undefined}
+				data={[
+					{ m: 'Jan', r: 10 },
+					{ m: 'Feb', r: 50 },
+					{ m: 'Mar', r: 30 },
+				]}
+				series={[{ xKey: 'm', yKey: 'r', yName: 'Revenue' }]}
+			/>,
+		)
+
+		const y = Number(getSlot(container, 'chart-axis-x').querySelector('line')?.getAttribute('y1'))
+
+		const ticks = [...getSlot(container, 'chart-axis-y').querySelectorAll('text')].map(
+			(node) => `${node.textContent}@${node.getAttribute('y')}`,
+		)
+
+		unmount()
+
+		return { y, ticks }
+	}
+
+	it('keeps the zero tick on the axis rule when the extreme value labels add headroom', () => {
+		const plain = axisFloor(false)
+
+		const labeled = axisFloor(true)
+
+		// The headroom widens the top of the domain only. A lower floor leaves an empty strip under the area.
+		expect(plain.ticks[0]).toBe(`0@${plain.y}`)
+
+		expect(labeled.ticks[0]).toBe(`0@${labeled.y}`)
+	})
+
+	it('keeps a stacked band of 10 inside the value axis when the next series is negative', () => {
+		const { container } = renderUI(
+			<AreaChart
+				aria-label="Stacked"
+				data={[
+					{ c: 'A', a: 10, b: -5 },
+					{ c: 'B', a: 10, b: -5 },
+				]}
+				series={[
+					{ xKey: 'c', yKey: 'a' },
+					{ xKey: 'c', yKey: 'b' },
+				]}
+				stacked
+				width={400}
+				height={300}
+			/>,
+		)
+
+		const ticks = [...getSlot(container, 'chart-axis-y').querySelectorAll('text')]
+			.map((text) => Number((text.textContent ?? '').replace(/[^\d.-]/g, '')))
+			.filter(Number.isFinite)
+
+		// The top edge of the first band is at 10 before the second band pulls it back to 5.
+		expect(Math.max(...ticks)).toBeGreaterThanOrEqual(10)
+	})
+})
+
 describe('stackedAreas', () => {
 	const xs = [0, 10, 20]
 

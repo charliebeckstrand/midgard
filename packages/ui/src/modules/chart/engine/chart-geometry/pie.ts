@@ -440,6 +440,17 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
 }
 
 /**
+ * The `count` entries of the largest slices, in their first order. @internal
+ */
+function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[] {
+	if (entries.length <= count) return entries
+
+	const kept = new Set([...entries].sort((a, b) => b.slice.share - a.slice.share).slice(0, count))
+
+	return entries.filter((entry) => kept.has(entry))
+}
+
+/**
  * Places a callout beside each slice. Each callout has three parts:
  *
  * - A short radial leader out from the edge along the slice's bisector.
@@ -448,7 +459,9 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
  *
  * Slices are split left / right of the center, and their labels declumped per
  * side. A crowded pie therefore stacks them without overlap instead of piling
- * them on one point. Pure, so the placement is unit-testable in isolation.
+ * them on one point. A side with more labels than its height holds keeps the
+ * labels of its largest slices, and the rest take no callout. The data table
+ * still reads every slice. Pure, so the placement is unit-testable in isolation.
  *
  * @internal
  */
@@ -462,8 +475,14 @@ export function pieCallouts(
 		return { slice, elbow, dir: elbow.x >= cx ? 1 : -1 }
 	})
 
+	// The labels one side holds at the declump gap, from `top` to `bottom`.
+	const capacity = Math.max(0, Math.floor((bottom - top) / CALLOUT_LINE) + 1)
+
 	return [1, -1].flatMap((dir) => {
-		const side = placed.filter((entry) => entry.dir === dir)
+		const side = largest(
+			placed.filter((entry) => entry.dir === dir),
+			capacity,
+		)
 
 		const ys = declumpLabels(
 			side.map((entry) => entry.elbow.y),
@@ -556,6 +575,8 @@ export function pieCalloutFit({
 
 	// A side's reach at `radius`: the furthest any of its callouts extends from
 	// center, mirroring `pieCallouts`' own elbow + nub + gap + text math.
+	// The disc itself is the least reach: a side whose callouts all sit near 12 or
+	// 6 o'clock still holds half the disc.
 	const reach = (dir: 1 | -1, radius: number): number =>
 		angles.reduce((max, { index, mid }) => {
 			const pull = calloutPull(mid)
@@ -571,7 +592,7 @@ export function pieCalloutFit({
 				text.length * charWidth
 
 			return Math.max(max, extent)
-		}, 0)
+		}, radius)
 
 	let lo = 0
 

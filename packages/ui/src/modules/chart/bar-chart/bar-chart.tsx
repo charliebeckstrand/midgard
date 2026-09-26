@@ -128,6 +128,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 		swatch: () => 'rect',
 		orientation,
 		stack: stacked,
+		stackPositive: true,
 	})
 
 	// Each visible series draws through its own axis's scale and grows from its

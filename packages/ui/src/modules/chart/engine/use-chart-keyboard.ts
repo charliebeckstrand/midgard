@@ -435,14 +435,26 @@ export function useChartKeyboard(
 	// The shared hover holds the frame point the last keypress resolved to; a resize
 	// (or a data change) shifts the band positions under a parked cursor, so
 	// re-anchor it rather than leave the crosshair and tooltip on a stale point until
-	// the next key. Keyed on the resolved point alone — a pointer move leaves the
-	// cursor's anchor unchanged, so it never wrests the hover back from the pointer.
-	const anchor = cursor !== null && targets ? cursorPoint(cursor, targets) : null
+	// the next key. The cursor is clamped into the current targets first: a data
+	// change can drop its category, or give its lane to another series. Keyed on
+	// the resolved stop alone — a pointer move leaves it unchanged, so it never
+	// wrests the hover back from the pointer.
+	const live = cursor !== null && targets ? clampCursor(cursor, targets) : null
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the resolved point moves; cursor/set are read fresh at fire time and targets is a new array each render
+	const anchor = live !== null && targets ? cursorPoint(live, targets) : null
+
+	const liveSeries = live !== null && targets ? cursorSeries(live, targets) : null
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the resolved stop moves; cursor/live/set are read fresh at fire time and targets is a new array each render
 	useEffect(() => {
-		if (cursor !== null && anchor !== null) set(cursor.category, anchor, true)
-	}, [anchor?.x, anchor?.y])
+		if (cursor === null || live === null || anchor === null) return
+
+		if (live.category !== cursor.category || live.value !== cursor.value) setCursor(live)
+
+		set(live.category, anchor, true)
+
+		setActiveSeries(liveSeries)
+	}, [anchor?.x, anchor?.y, live?.category, liveSeries])
 
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
 	// the whole field and drop the series readout so the rule reads alone — no one

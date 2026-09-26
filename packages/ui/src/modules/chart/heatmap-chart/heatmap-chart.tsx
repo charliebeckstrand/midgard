@@ -392,7 +392,12 @@ type HeatmapTooltipProps = {
  * @internal
  */
 function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapTooltipProps) {
-	const { cell, point } = useHeatmapHover()
+	const { cell: hovered, point } = useHeatmapHover()
+
+	// A pinned cell keeps its place when the grid shrinks under it. A cell past
+	// the grid reads nothing, so the tooltip closes.
+	const cell =
+		hovered !== null && hovered.row < rows.length && hovered.col < columns.length ? hovered : null
 
 	// `point` is already the client coordinate the pointer sat at, so the tooltip
 	// anchors to the cursor directly.

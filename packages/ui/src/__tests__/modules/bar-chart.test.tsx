@@ -246,6 +246,24 @@ describe('BarChart', () => {
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 	})
 
+	it('clears the pointed bar when its category leaves the data', () => {
+		const { container, rerender } = renderUI(chart())
+
+		const rest = allBySlot(container, 'chart-bar').map((bar) => bar.getAttribute('class'))
+
+		// The pointer rests on the revenue bar of Q3.
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 280, clientY: 100 })
+
+		expect(spots(container)).toHaveLength(1)
+
+		rerender(chart({ data: DATA.slice(0, 2) }))
+
+		// Q3 is gone, so no bar is pointed. No series recedes.
+		const after = allBySlot(container, 'chart-bar').map((bar) => bar.getAttribute('class'))
+
+		expect(after).toEqual(rest)
+	})
+
 	it('isolates the snapped nearest bar past the bars when the crosshair snaps', () => {
 		const snapped = renderUI(chart({ crosshair: { x: true, y: false, snap: true } }))
 
@@ -760,6 +778,123 @@ describe('BarChart', () => {
 		// Thick fills the band, so the bar starts further out than the centered
 		// spec-width one — proof the flag reaches the geometry.
 		expect(leftEdge(wide.container)).toBeLessThan(leftEdge(spec.container))
+	})
+})
+
+/** The numeric tick labels on the value axis. */
+function valueTicks(container: HTMLElement): number[] {
+	return [...getSlot(container, 'chart-axis-y').querySelectorAll('text')]
+		.map((text) => Number((text.textContent ?? '').replace(/[^\d.-]/g, '')))
+		.filter(Number.isFinite)
+}
+
+/** The least y that each `M`-opened subfigure of a path reaches: the drawn top of a vertical bar. */
+function subfigureTops(d: string): number[] {
+	return d
+		.split('M')
+		.filter((part) => part.trim() !== '')
+		.map((part) => {
+			// The y of each `M` and `L` point, and the end point of each arc.
+			const ys = [
+				...` M${part}`.matchAll(/[ML] (-?[\d.]+) (-?[\d.]+)/g),
+				...part.matchAll(/A (?:-?[\d.]+ ){5}(-?[\d.]+) (-?[\d.]+)/g),
+			].map((match) => Number(match[2]))
+
+			return Math.min(...ys)
+		})
+}
+
+describe('BarChart stacked with a negative value', () => {
+	it('keeps a positive segment inside the value domain', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Stack"
+				data={[
+					{ c: 'A', p: 5, n: -3 },
+					{ c: 'B', p: 1, n: 1 },
+				]}
+				series={[
+					{ xKey: 'c', yKey: 'p', yName: 'P' },
+					{ xKey: 'c', yKey: 'n', yName: 'N' },
+				]}
+				width={400}
+				height={300}
+				stacked
+			/>,
+		)
+
+		const [pPath, nPath] = allBySlot(container, 'chart-bar')
+
+		// Series P draws column A (5) as its first subfigure.
+		const [aTop] = subfigureTops(pPath?.getAttribute('d') ?? '')
+
+		// Series N draws the upper segment of column B (1 to 2). The -3 of column A takes no segment.
+		const [bTop] = subfigureTops(nPath?.getAttribute('d') ?? '')
+
+		// Column A reaches 5 and column B reaches 2, so column A is taller (a smaller y).
+		expect(aTop).toBeLessThan(bTop as number)
+
+		expect(Math.max(...valueTicks(container))).toBeGreaterThanOrEqual(5)
+	})
+
+	it('keeps a segment of 10 inside the value axis when the next series is negative', () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Stacked"
+				data={[
+					{ c: 'A', a: 10, b: -5 },
+					{ c: 'B', a: 10, b: -5 },
+				]}
+				series={[
+					{ xKey: 'c', yKey: 'a' },
+					{ xKey: 'c', yKey: 'b' },
+				]}
+				stacked
+				width={400}
+				height={300}
+			/>,
+		)
+
+		// The negative value takes no segment, so each drawn column is 10 tall.
+		expect(Math.max(...valueTicks(container))).toBeGreaterThanOrEqual(10)
+	})
+})
+
+describe('BarChart category labels', () => {
+	/** The x-axis labels of a one-series chart over `data`. */
+	function bandLabels(data: { x: string | number; v: number }[]) {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue"
+				width={600}
+				data={data}
+				series={[{ xKey: 'x', yKey: 'v', yName: 'Revenue' }]}
+			/>,
+		)
+
+		return [...getSlot(container, 'chart-axis-x').querySelectorAll('text')].map(
+			(node) => node.textContent,
+		)
+	}
+
+	it('labels numeric year categories as the years', () => {
+		const labels = bandLabels([
+			{ x: 2022, v: 1 },
+			{ x: 2023, v: 2 },
+			{ x: 2024, v: 3 },
+		])
+
+		expect(labels).toEqual(['2022', '2023', '2024'])
+	})
+
+	it('labels "Region <n>" categories as written, not as dates', () => {
+		const labels = bandLabels([
+			{ x: 'Region 1', v: 1 },
+			{ x: 'Region 2', v: 2 },
+			{ x: 'Region 3', v: 3 },
+		])
+
+		expect(labels).toEqual(['Region 1', 'Region 2', 'Region 3'])
 	})
 })
 

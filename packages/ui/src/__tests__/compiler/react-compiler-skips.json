@@ -190,6 +190,9 @@
 	"modules/chart/engine/use-chart-cartesian.ts": {
 		"useChartCartesian": "PreserveManualMemo"
 	},
+	"modules/chart/scatter-chart/scatter-chart.tsx": {
+		"useScatterReadout": "PreserveManualMemo"
+	},
 	"modules/chat/use-chat-send.ts": {
 		"useChatSend": "Todo"
 	},

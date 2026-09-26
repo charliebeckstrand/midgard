@@ -1,5 +1,6 @@
 // @vitest-environment node
-import { describe, expect, it } from 'vitest'
+import { resetLocalTimeZone, setLocalTimeZone } from '@internationalized/date'
+import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { GUTTER_GAP, TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 import {
@@ -135,6 +136,42 @@ describe('timeTicks', () => {
 		expect(ticks?.map((tick) => tick.label)).toEqual(['2024', '2025', '2026', '2027'])
 	})
 
+	it('draws calendar ticks for rows in newest-first order', () => {
+		const times = dailyTimes(30).reverse()
+
+		expect(
+			timeTicks({ times, band: band(30), tickTarget: 5, axisLength: 600, locale: 'en-US' }),
+		).not.toBeNull()
+	})
+
+	it('lands a decade interval on decade years', () => {
+		// Yearly rows from 2003 to 2042. A 40-year span at 5 ticks takes the 10-year step.
+		const times = Array.from({ length: 40 }, (_, index) => new Date(2003 + index, 0, 1).getTime())
+
+		const labels = (
+			timeTicks({ times, band: band(40), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+		).map((tick) => tick.label)
+
+		expect(labels.length).toBeGreaterThan(0)
+
+		expect(labels.every((label) => Number(label) % 10 === 0)).toBe(true)
+	})
+
+	it('lands a 12-hour interval on midnight and noon', () => {
+		// Hourly rows from 01:00, over two days.
+		const start = new Date(2026, 5, 1, 1).getTime()
+
+		const times = Array.from({ length: 48 }, (_, index) => start + index * 3_600_000)
+
+		const hours = (
+			timeTicks({ times, band: band(48), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+		).map((tick) => new Date(tick.key as number).getHours())
+
+		expect(hours.length).toBeGreaterThan(0)
+
+		expect(hours.every((hour) => hour % 12 === 0)).toBe(true)
+	})
+
 	it('never packs more ticks than the axis fits', () => {
 		const ticks = timeTicks({
 			times: dailyTimes(365),
@@ -147,6 +184,41 @@ describe('timeTicks', () => {
 		const maxFit = Math.max(1, Math.floor(240 / (7 * TICK_CHAR_WIDTH + GUTTER_GAP)))
 
 		expect(ticks?.length).toBeLessThanOrEqual(maxFit)
+	})
+})
+
+describe('timeTicks over the spring daylight-saving gap', () => {
+	// The gap needs a zone with daylight-saving time, and the suite pins UTC.
+	// Node reads a new TZ at once, and the date library keeps its own zone.
+	const zone = process.env.TZ
+
+	beforeAll(() => {
+		process.env.TZ = 'America/New_York'
+
+		setLocalTimeZone('America/New_York')
+	})
+
+	afterAll(() => {
+		process.env.TZ = zone
+
+		resetLocalTimeZone()
+	})
+
+	it('keeps one tick for each distinct instant', () => {
+		// 2026-03-08 02:00 does not exist in New York.
+		const start = new Date(2026, 2, 8, 0, 0).getTime()
+
+		const times = Array.from({ length: 7 }, (_, index) => start + index * 3_600_000)
+
+		const ticks =
+			timeTicks({ times, band: band(7, 800), tickTarget: 10, axisLength: 800, locale: 'en-US' }) ??
+			[]
+
+		const keys = ticks.map((tick) => tick.key)
+
+		expect(keys.length).toBeGreaterThan(1)
+
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 })
 
@@ -196,7 +268,7 @@ describe('dateCategoryFormat', () => {
 		expect(crossYear?.('2025-12-30')).toBe('30.12.2025')
 	})
 
-	it('reads Dates and epoch numbers, not just ISO strings', () => {
+	it('reads Dates, not just ISO strings', () => {
 		const format = dateCategoryFormat([new Date(2026, 5, 10), new Date(2026, 6, 4)], 2026, 'en-US')
 
 		expect(format?.(new Date(2026, 5, 10))).toBe('06/10')
@@ -213,5 +285,14 @@ describe('dateCategoryFormat', () => {
 		expect(dateCategoryFormat(['95190', '133300', '156600'], 2026)).toBeNull()
 
 		expect(dateCategoryFormat(['2026-06-10', '95190'], 2026)).toBeNull()
+	})
+
+	it('returns null for numeric categories, so a year axis keeps its labels', () => {
+		// A bar chart with a numeric `year` key.
+		expect(dateCategoryFormat([2021, 2022, 2023], 2026, 'en-US')).toBeNull()
+	})
+
+	it('returns null for "<word> <n>" labels, so a plain axis keeps its labels', () => {
+		expect(dateCategoryFormat(['Week 1', 'Week 2', 'Week 3', 'Week 4'], 2026, 'en-US')).toBeNull()
 	})
 })

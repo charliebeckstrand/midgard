@@ -350,6 +350,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			hidden={sliceless}
+			seriesCount={values.length}
 			tooltip={showTooltip}
 			focus={{ points: focusPoints }}
 			className={className}
