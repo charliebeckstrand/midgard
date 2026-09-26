@@ -466,6 +466,46 @@ describe('MapPlat two-finger gestures', () => {
 
 		expect(transformOf(container)).not.toBe(before)
 	})
+
+	it('keeps a two-finger move from the page by default, so the browser cannot pan it', () => {
+		// `pan-x pan-y` lets the browser take two fingers as a page pan, which
+		// cancels both pointers before the pinch moves.
+		const { plot, svg } = renderZoomable()
+
+		for (const [index, x] of [190, 210].entries()) {
+			fireEvent.pointerDown(plot, {
+				pointerId: index + 1,
+				pointerType: 'touch',
+				clientX: x,
+				clientY: 100,
+			})
+		}
+
+		// `fireEvent` returns `false` when a listener canceled the event.
+		expect(fireEvent.touchMove(svg)).toBe(false)
+
+		for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
+
+		fireEvent.pointerDown(plot, { pointerId: 3, pointerType: 'touch', clientX: 200, clientY: 100 })
+
+		// One finger is the page's scroll, so its move passes through.
+		expect(fireEvent.touchMove(svg)).toBe(true)
+	})
+
+	it('leaves a two-finger move alone on a map that does not zoom', () => {
+		const { plot, svg } = renderZoomable({ zoom: undefined })
+
+		for (const [index, x] of [190, 210].entries()) {
+			fireEvent.pointerDown(plot, {
+				pointerId: index + 1,
+				pointerType: 'touch',
+				clientX: x,
+				clientY: 100,
+			})
+		}
+
+		expect(fireEvent.touchMove(svg)).toBe(true)
+	})
 })
 
 describe('MapPlat wheel zoom', () => {

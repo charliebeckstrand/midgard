@@ -284,6 +284,8 @@ export function useMapZoom({
 
 	useMapWheelZoom(settings !== null, modifier, svgRef, view, commit, holdGesture, live, wheelStream)
 
+	useMapTouchPinch(settings !== null && modifier !== null, svgRef, view, pointers)
+
 	function release(event: PointerEvent<HTMLElement>) {
 		pointers.current.delete(event.pointerId)
 
@@ -608,6 +610,49 @@ function useMapWheelZoom(
 			svg.removeEventListener('wheel', onWheel)
 		}
 	}, [enabled, modifier, svgRef, commit, hold, live, stream, view.width, view.height])
+}
+
+/**
+ * Keeps a two-finger touch on a modifier map for the map.
+ *
+ * A modifier map leaves the page its touch scrolling (`pan-x pan-y`), so one
+ * finger scrolls past the map. That policy also lets the browser take two
+ * fingers as a page pan. When it takes them, it cancels both pointers, and the
+ * pinch stops before its first move. So while two pointers are down on the plot,
+ * each `touchmove` is canceled here, and the browser never starts that pan. One
+ * finger is never canceled, so a lone touch scrolls the page as before. The
+ * listener is native and non-passive for the reason the wheel's is: React
+ * registers `onTouchMove` passively, and a passive handler cannot cancel it.
+ *
+ * A map that claims touch outright (`touch-none`) needs none of this, because the
+ * browser takes no touch gesture from it.
+ *
+ * @internal
+ */
+function useMapTouchPinch(
+	enabled: boolean,
+	svgRef: RefObject<SVGSVGElement | null>,
+	view: MapViewFrame,
+	pointers: RefObject<Map<number, MapPoint2D>>,
+) {
+	useEffect(() => {
+		const svg = svgRef.current
+
+		// The frame's area is the beat the SVG mounts on, as in the wheel's effect.
+		if (!enabled || svg === null || view.width <= 0 || view.height <= 0) return
+
+		const onTouchMove = (event: TouchEvent) => {
+			// A pointer event arrives before its touch event, so the registry already
+			// holds the second finger when its first move comes here.
+			if (pointers.current.size > 1 && event.cancelable) event.preventDefault()
+		}
+
+		svg.addEventListener('touchmove', onTouchMove, { passive: false })
+
+		return () => {
+			svg.removeEventListener('touchmove', onTouchMove)
+		}
+	}, [enabled, svgRef, pointers, view.width, view.height])
 }
 
 /**
