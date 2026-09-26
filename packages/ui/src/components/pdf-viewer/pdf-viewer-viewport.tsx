@@ -10,7 +10,9 @@ import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
 
 /**
  * Renders the page surface inside the measured viewport. That is the active
- * page image, an error message, a loading placeholder, or an empty state. The
+ * page image, an error message, a loading placeholder, or an empty state. A
+ * page shows as soon as the rasterizer reports it. The pages after it can
+ * still load, and the reader does not wait for them. The
  * highlight overlay sits over the image, sharing its frame and its transform.
  * The `scale` input drives the viewport's aspect ratio, and the container
  * reserves space before the image paints.
@@ -54,7 +56,7 @@ export function PdfViewerViewport() {
 					Page {safePage} of {total}
 				</div>
 			)}
-			{activePage && !loading ? (
+			{activePage ? (
 				<div
 					// The frame, not the image: it is the box the loupe's own copy is sized from,
 					// and it does not move under rotation the way the image inside it does.

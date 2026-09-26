@@ -55,7 +55,9 @@ export function PdfViewerToolbar() {
 
 	const isEmpty = total === 0
 
-	const controlsDisabled = loading || isEmpty
+	// The view controls act on the page on screen, so they work while the pages after it
+	// load. The page navigation waits for the whole document, because the count still grows.
+	const controlsDisabled = isEmpty
 
 	const sidebarToggleLabel = sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'
 

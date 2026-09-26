@@ -1,6 +1,10 @@
 import { renderToString } from 'react-dom/server'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { PdfViewer, type PdfViewerHighlight, type PdfViewerPage } from '../../components/pdf-viewer'
+import {
+	ensureDocumentLoad,
+	resetDocumentCache,
+} from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewerHighlightsContext } from '../../components/pdf-viewer/pdf-viewer-highlights-context'
 import { PdfViewerHighlightsProvider } from '../../components/pdf-viewer/pdf-viewer-highlights-provider'
 import { downloadPdf, printPdf } from '../../components/pdf-viewer/pdf-viewer-utilities'
@@ -195,6 +199,43 @@ describe('PdfViewer', () => {
 		expect(html).toContain('aria-label="Loading PDF"')
 
 		expect(html).not.toContain('No pages to display')
+	})
+
+	/*
+	 * The first page is readable before the last one renders. The load is seeded through the
+	 * cache's own seam and held open, so the render sees a document that is part way in.
+	 */
+	it('shows the first page and its view controls while later pages still load', async () => {
+		resetDocumentCache()
+
+		let finish = () => {}
+
+		ensureDocumentLoad('/partial.pdf', (report) => {
+			report.page({ id: 1, src: 'page-1.png', label: 'Page 1' })
+
+			return new Promise<void>((resolve) => {
+				finish = resolve
+			})
+		})
+
+		const { container } = renderUI(<PdfViewer src="/partial.pdf" />)
+
+		expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toHaveAttribute(
+			'src',
+			'page-1.png',
+		)
+
+		expect(screen.queryByLabelText('Loading PDF')).not.toBeInTheDocument()
+
+		expect(screen.getByLabelText('Rotate')).toBeEnabled()
+
+		expect(bySlot(container, 'listbox-button')).toBeDisabled()
+
+		await act(async () => finish())
+
+		expect(bySlot(container, 'listbox-button')).toBeEnabled()
+
+		resetDocumentCache()
 	})
 
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
