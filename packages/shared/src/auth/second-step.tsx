@@ -2,8 +2,9 @@
 
 import { startAuthentication } from '@simplewebauthn/browser'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
+import { Dialog, DialogBody, DialogHeader, DialogTitle } from 'ui/dialog'
 import { Field, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
@@ -11,81 +12,97 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Text } from 'ui/text'
 import { chain, required } from './form-validators'
+import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
 
-/**
- * A way to finish a sign-in, as the gateway names it. It matches the
- * `SecondFactorMethod` of `auth`.
- */
-export type SecondFactorMethod = 'passkey' | 'totp' | 'recovery_code'
-
-/** The proof that `/auth/login/mfa` accepts. */
+/** The proof that `/auth/session/verify` accepts. */
 type SecondFactorProof =
 	| { totp: string }
 	| { recovery_code: string }
 	| { passkey: Awaited<ReturnType<typeof startAuthentication>> }
 
 type SecondStepProps = {
-	/** The methods that the gateway offers for this user. */
+	/** The methods that the user has. */
 	methods: SecondFactorMethod[]
-	/** The message of the last failure, or an empty string. */
-	error: string
-	/** Sends the proof to the gateway. */
-	onSubmit: (proof: SecondFactorProof) => Promise<void>
-	/** Shows the message of a failure that did not come from the gateway. */
-	onError: (message: string) => void
-	/** Goes back to the password step. */
+	/** Runs after the gateway accepts the proof. */
+	onVerified: () => void
+	/** Runs when the gateway ends the session after too many wrong tries. */
+	onExpired: () => void
+	/** Runs when the user does not give the second step. */
 	onCancel: () => void
+	/** The label of the cancel button. */
+	cancelLabel: string
 }
 
 type CodeValues = { code: string }
 
+const passkeyFailed = 'The passkey check did not complete. Please try again.'
+
 /**
  * Form of the second step: a code from an authenticator app, a recovery code,
- * or a passkey.
+ * or a passkey. It sends the proof to `/auth/session/verify`, which marks the
+ * current session as past the second step.
  *
  * @internal
  * @remarks
  * The form shows the authenticator app first when the user has one. A recovery
  * code is the fallback, and the user picks it with a link.
  */
-function SecondStep({ methods, error, onSubmit, onError, onCancel }: SecondStepProps) {
+function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: SecondStepProps) {
 	const hasTotp = methods.includes('totp')
 
 	const hasRecovery = methods.includes('recovery_code')
 
 	const [useRecovery, setUseRecovery] = useState(!hasTotp && !methods.includes('passkey'))
 
+	const [error, setError] = useState('')
+
 	const showCode = useRecovery || hasTotp
 
+	async function submit(proof: SecondFactorProof) {
+		try {
+			const res = await fetch('/auth/session/verify', {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify(proof),
+			})
+
+			if (res.ok) return onVerified()
+
+			if (res.status === 410) return onExpired()
+
+			const data = await res.json().catch(() => null)
+
+			setError(data?.message || 'That code was not accepted. Please try again.')
+		} catch {
+			setError('An unexpected error occurred. Please try again later.')
+		}
+	}
+
 	const handleSubmit: FormSubmitHandler<CodeValues> = async ({ code }) => {
-		await onSubmit(useRecovery ? { recovery_code: code.trim() } : { totp: code.replace(/\s/g, '') })
+		await submit(useRecovery ? { recovery_code: code.trim() } : { totp: code.replace(/\s/g, '') })
 	}
 
 	// The gateway names only the passkeys of this user. A cancel in the browser throws.
 	async function usePasskey() {
 		try {
-			const options = await fetch('/auth/login/mfa/options', { method: 'POST' })
+			const options = await fetch('/auth/session/verify/options', { method: 'POST' })
 
 			if (!options.ok) {
 				const data = await options.json().catch(() => null)
 
-				onError(data?.message || 'Passkey sign-in did not complete. Please try again.')
+				setError(data?.message || passkeyFailed)
 
 				return
 			}
 
-			const passkey = await startAuthentication({ optionsJSON: await options.json() })
-
-			await onSubmit({ passkey })
+			await submit({ passkey: await startAuthentication({ optionsJSON: await options.json() }) })
 		} catch {
-			onError('Passkey sign-in did not complete. Please try again.')
+			setError(passkeyFailed)
 		}
 	}
 
 	return (
-		<div className="grid gap-6 w-full sm:max-w-sm p-6">
-			<Heading className="text-center">Two-step sign-in</Heading>
-
+		<div className="grid gap-6">
 			{error && <Text tone="error">{error}</Text>}
 
 			{showCode && (
@@ -148,76 +165,109 @@ function SecondStep({ methods, error, onSubmit, onError, onCancel }: SecondStepP
 			)}
 
 			<Button type="button" variant="plain" className="justify-self-center" onClick={onCancel}>
-				Back to sign in
+				{cancelLabel}
 			</Button>
 		</div>
 	)
 }
 
-type SecondStepPageProps = {
-	/** The methods that the gateway offers for the pending sign-in. */
+type VerifyPageProps = {
+	/** The methods that the user has, from `secondFactorMethods`. */
 	methods: SecondFactorMethod[]
 }
 
 /**
- * Page of the second sign-in step, at `/login/verify`. It goes to `/` on success.
+ * Page of the second step, at `/verify`. It goes to `/` on success.
  *
  * @remarks
- * The page itself must call `requireSecondStep` from `auth` on the server and
- * pass the methods here. That check sends a visit without a live password
- * step to `/login`. The gateway keeps the sign-in for five minutes and five
- * attempts. After that, a try answers `410`, and the page goes to
- * `/login?expired=true`. "Back to sign in" ends the sign-in on the gateway
- * first, so the ticket cannot be used later.
+ * The page itself must call `requireSession` from `auth` on the server, and
+ * send a session that passed the second step, or a user without a second
+ * factor, somewhere else. After the fifth wrong try, the gateway ends the
+ * session, and the page goes to `/login?expired=true`. "Sign out" ends the
+ * session.
  */
-export function SecondStepPage({ methods }: SecondStepPageProps) {
+export function VerifyPage({ methods }: VerifyPageProps) {
 	const router = useRouter()
 
-	const [error, setError] = useState('')
-
-	async function submit(proof: SecondFactorProof) {
-		try {
-			const res = await fetch('/auth/login/mfa', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(proof),
-			})
-
-			if (res.ok) {
-				router.replace('/')
-
-				return
-			}
-
-			if (res.status === 410) {
-				router.replace('/login?expired=true')
-
-				return
-			}
-
-			const data = await res.json().catch(() => null)
-
-			setError(data?.message || 'That code was not accepted. Please try again.')
-		} catch {
-			setError('An unexpected error occurred. Please try again later.')
-		}
-	}
-
-	async function cancel() {
-		await fetch('/auth/login/mfa', { method: 'DELETE' }).catch(() => {})
+	async function signOut() {
+		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
 
 		router.replace('/login')
 	}
 
 	return (
 		<AuthLayout>
-			<SecondStep
-				methods={methods}
-				error={error}
-				onSubmit={submit}
-				onError={setError}
-				onCancel={cancel}
-			/>
+			<div className="grid gap-6 w-full sm:max-w-sm p-6">
+				<Heading className="text-center">Confirm that it is you</Heading>
+
+				<SecondStep
+					methods={methods}
+					onVerified={() => router.replace('/')}
+					onExpired={() => router.replace('/login?expired=true')}
+					onCancel={signOut}
+					cancelLabel="Sign out"
+				/>
+			</div>
 		</AuthLayout>
+	)
+}
+
+type Pending = {
+	methods: SecondFactorMethod[]
+	resolve: (verified: boolean) => void
+}
+
+/**
+ * Dialog of the second step, for `ensureSecondStep` and
+ * `fetchWithSecondStep`. Mount it one time, in the providers of the app.
+ *
+ * @remarks
+ * After the second step, the dialog refreshes the Server Components, so they
+ * read the new session. After the fifth wrong try, the gateway ends the
+ * session, and the page goes to `/login?expired=true`.
+ */
+export function SecondStepDialog() {
+	const router = useRouter()
+
+	const [pending, setPending] = useState<Pending>()
+
+	useEffect(() => {
+		setSecondStepDialog(
+			(methods) =>
+				new Promise<boolean>((resolve) => {
+					setPending({
+						methods,
+						resolve: (verified) => {
+							setPending(undefined)
+
+							if (verified) router.refresh()
+
+							resolve(verified)
+						},
+					})
+				}),
+		)
+
+		return () => setSecondStepDialog(undefined)
+	}, [router])
+
+	return (
+		<Dialog open={pending !== undefined} onOpenChange={(open) => open || pending?.resolve(false)}>
+			<DialogHeader>
+				<DialogTitle>Confirm that it is you</DialogTitle>
+			</DialogHeader>
+
+			<DialogBody>
+				{pending && (
+					<SecondStep
+						methods={pending.methods}
+						onVerified={() => pending.resolve(true)}
+						onExpired={() => window.location.assign('/login?expired=true')}
+						onCancel={() => pending.resolve(false)}
+						cancelLabel="Cancel"
+					/>
+				)}
+			</DialogBody>
+		</Dialog>
 	)
 }

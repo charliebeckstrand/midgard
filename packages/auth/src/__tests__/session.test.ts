@@ -20,6 +20,7 @@ const session = {
 	id: 's1',
 	created_at: '2026-09-26T00:00:00Z',
 	expires_at: '2026-10-26T00:00:00Z',
+	two_step: false,
 	user,
 }
 
@@ -126,8 +127,8 @@ describe('requireAdmin', () => {
 		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
 	})
 
-	it('returns the session of an admin', async () => {
-		const admin = { ...session, user: { ...user, role: 'admin' } }
+	it('returns the session of an admin that passed the second step', async () => {
+		const admin = { ...session, two_step: true, user: { ...user, role: 'admin' } }
 
 		stubGateway(200, admin)
 
@@ -148,5 +149,13 @@ describe('requireAdmin', () => {
 		const error = await requireAdmin().catch((thrown: unknown) => thrown)
 
 		expect(redirectTarget(error)).toBe('/account')
+	})
+
+	it('redirects an admin session without the second step to /verify', async () => {
+		stubGateway(200, { ...session, user: { ...user, role: 'admin' } })
+
+		const error = await requireAdmin().catch((thrown: unknown) => thrown)
+
+		expect(redirectTarget(error)).toBe('/verify')
 	})
 })
