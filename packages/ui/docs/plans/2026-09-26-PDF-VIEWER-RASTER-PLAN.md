@@ -1,0 +1,108 @@
+# PDF Viewer — On-Demand Rasterization — Design Plan — 2026-09-26
+
+How `PdfViewer` stops rasterizing every page of a `src` document at open, and renders the pages that the reader looks at. The [browser bench](../../src/__benchmarks__/browser/README.md#pdf-viewer) measures each increment. This plan answers the "known cost" that the [highlights plan](2026-08-26-PDF-VIEWER-HIGHLIGHTS-PLAN.md) left open: "Rasterization is eager and sequential."
+
+## Thesis
+
+A reader looks at one page at a time. The viewer must do the work for that page, and for the page that the reader will go to next. It must not do the work for the other pages until a reader asks for them. The document opens in one parse. The parse gives the page count and the size of each page, so the chrome is whole before any page renders.
+
+The `pages` prop does not change. A caller that supplies its own images gets the same viewer as before. Only the `src` path changes.
+
+## Current state (verified in tree, 2026-09-26)
+
+- **One run rasterizes the whole document.** `rasterizeDocument` (`use-pdf-viewer-document.ts`) fetches the file, parses it, and then renders and encodes each page in order. Each page becomes a PNG blob URL in the module cache (`pdf-viewer-document-cache.ts`). The run then destroys the pdf.js document. So a page that the cache does not hold cannot come back without a new parse.
+- **The first page paints early, the rest follows.** Since #1416, the viewport shows the active page as it lands. The page count in the toolbar grows as pages land, so the page navigation stays disabled until the last page.
+- **A page is known only when it renders.** The page size and the point size (`pointWidth`, `pointHeight`) come from the render. A highlight on page 40 of a 50-page document therefore has no geometry until page 40 renders.
+- **The thumbnail is the page.** The rail shows `thumbnail ?? src`, and the rasterizer sets no `thumbnail`. Each thumbnail therefore decodes the full raster, 7.4 MiB at 2x, to show a 122 × 158 box.
+- **Each landed page renders the viewer again.** Each report publishes a new snapshot, and the viewer reads it through `useSyncExternalStore`. A 50-page document renders the viewer 50 times during its load.
+- **`defaultPage` beyond the first page jumps.** The page state holds the number, and `safePage` clamps it to the pages that have landed. After #1416 a `defaultPage={10}` shows page 1, then jumps to page 10 when it lands.
+
+## Measurements
+
+Chromium 141, headless, device pixel ratio 1, a 50-page invoice from `pdf-fixtures.ts`:
+
+| Step | Cost |
+| --- | --- |
+| Open the document (`numPages`) | 1.4 ms |
+| Open, and read the size of each of the 50 pages | 6.4 ms |
+| Render one page at 1.5x | 17.4 ms |
+| Render one page at 0.2x (a thumbnail) | 17.3 ms |
+| Render at 1.5x and encode to PNG | 23.9 ms |
+| Decode a resident 1.5x PNG | 0.1 ms |
+| Longest main-thread task during one render and encode | 12 ms |
+| Thumbnail PNG at 0.2x | 6.3 KiB |
+
+The two render rows read one frame each. pdf.js paints in slices that it schedules, and a frame costs about 17 ms in this container (bench README). The 0.2x render therefore does not show its real cost. Increment 1 measures the render with a manual frame clock (`withFrameClock` in the bench harness) before any other increment depends on it.
+
+The size of every page costs 6.4 ms, against 1,213 ms for the whole raster. So the open can give the full page count and every page extent at once.
+
+## Design
+
+### The document stays open
+
+The cache holds the pdf.js document for as long as it holds the entry. The entry frees the document when it leaves the cache, which is the same rule that frees its blob URLs now. A viewer that parks and comes back finds the document open. A render for any page then needs no new fetch and no new parse.
+
+The cost is the memory of the parsed document in the worker, for up to `MAX_DOCUMENTS` (4) entries. The bench measures it in increment 2.
+
+### The snapshot has a slot for each page
+
+The open publishes one slot for each page, with its size in pixels at the raster scale and its size in points. A slot has no image until its page renders. The page count, the page navigation, the highlight geometry, and the size of the viewport before the image all read the slots. So they are whole at the open.
+
+The slot is an internal type. The public `PdfViewerPage` keeps its required `src`, because a caller's page always has an image.
+
+### A queue renders the pages in order of need
+
+One queue for each document renders one page at a time, in this order:
+
+1. The active page.
+2. The page after it, then the page before it.
+3. The thumbnails that the rail shows.
+
+A page change puts the new active page at the front. A render for a page that nobody wants now is canceled (`renderTask.cancel()`), because the next page change can come before it ends. The queue stops when it has nothing to render. A reader who stays on one page causes no more work after the neighbours are done.
+
+### The full rasters are bounded
+
+A document keeps the full rasters of the last 8 pages that the queue rendered. A page that leaves that set loses its blob URL, and the queue renders it again when a reader comes back to it. A reader can go back through 8 pages with no render.
+
+### The thumbnail is its own raster
+
+The rail shows a thumbnail raster at the width of the rail, about 0.2x (6.3 KiB as PNG). A thumbnail renders when the rail shows it, and stays for the life of the entry. The rail keeps the page number as a fallback until the thumbnail lands, as it does now for a page with no image.
+
+## Decide before building
+
+1. **When `onLoad` fires.** Its TSDoc says "once the document at `src` is rasterized". Under this plan, the document is never "rasterized" as a whole. The proposal is that `onLoad` fires when the document opens, with the page count, because that is when a consumer can show its chrome. The alternative is to fire it when the active page first paints. Either way the meaning changes, and the TSDoc changes with it.
+2. **The size of the full-raster set.** The proposal is 8 pages. Each 1.5x page is about 270 KiB as PNG and 7.4 MiB when the browser decodes it. A browser can drop the decoded image of a page that no element shows, so the blob is the cost that must stay. That is inferred, not measured, and increment 1 measures it.
+3. **The encode.** The PNG encode is about a third of the cost of a page. A `<canvas>` for each shown page would remove it, but the magnifier copies the page image, and the `pages` path shows images. The proposal is to keep the blob in this plan, and to measure a canvas path as its own change once the queue is in place.
+
+## Increments
+
+Each increment lands on its own, with its bench rows, and leaves the viewer whole.
+
+1. **Measure honestly.** Add the frame clock to the render and encode stages, a page-flip scenario (a resident page, a neighbour, a far page), and the retained memory of a document. No component change.
+2. **Open and keep the document.** The open publishes the slots and keeps the pdf.js document in the entry. The existing loop still renders every page, in the queue's order. The page count and the highlight geometry are whole at the open, and `defaultPage` no longer jumps. Decision 1 lands here.
+3. **The queue.** Render the active page and its neighbours only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document does its work for 3 pages, not 50.
+4. **Thumbnail rasters.** The rail renders its own small rasters as it shows them.
+5. **Re-render on zoom.** The active page renders again at the zoom scale above 1, so that text stays sharp. The queue makes this a change of scale on one request.
+
+## Non-goals
+
+- **Continuous scroll.** The viewer shows one page at a time, and this plan keeps that.
+- **The text layer.** It is increment 8 of the highlights plan, and it needs the page surface extraction first.
+- **A change to the `pages` prop.** A caller's images do not go through the queue.
+- **The `getOrInsertComputed` gap.** pdf.js 6 needs a method that browsers below the floor lack. It is a separate fix.
+
+## Proof
+
+The bench is the acceptance test. Each increment records its rows in the optimization log of the bench README. The targets:
+
+- The first page paints in about 60 ms at 1, 3, 14, and 50 pages, as after #1416.
+- The page count and the page navigation are whole at the open, at each page count.
+- After the neighbours are done, a reader on one page causes no render.
+- A flip to a neighbour shows a resident page. A flip to a far page costs one render.
+- The resident rasters of a document stay at or under the bound.
+
+The jsdom suite drives the cache through its loader seam, as `pdf-viewer.test.tsx` does now. The browser suite asserts the order of the queue and the cancel.
+
+---
+
+**See also:** [`2026-08-26-PDF-VIEWER-HIGHLIGHTS-PLAN.md`](2026-08-26-PDF-VIEWER-HIGHLIGHTS-PLAN.md) · [`pdf-viewer-document-cache.ts`](../../src/components/pdf-viewer/pdf-viewer-document-cache.ts) · [`use-pdf-viewer-document.ts`](../../src/components/pdf-viewer/use-pdf-viewer-document.ts).
