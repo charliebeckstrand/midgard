@@ -2,7 +2,6 @@
 
 import {
 	type ComponentProps,
-	cloneElement,
 	isValidElement,
 	type KeyboardEvent,
 	type ReactElement,
@@ -11,6 +10,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useMenuActions, useMenuState } from './context'
 import { useMenuPointer } from './use-menu-pointer'
 
@@ -71,7 +71,7 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 	// type-ahead) and activates the active row on Enter/Space — no-op while closed.
 	// Tab closes without `preventDefault`, letting the browser carry focus onward;
 	// `dismissToTab` marks the close `'focus-out'` so focus is not yanked back.
-	const handleTriggerKeyDown = (event: KeyboardEvent) => {
+	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent) => {
 		if (event.key === 'Enter' || event.key === ' ') {
 			// Swallow every auto-repeat's native click; only a fresh press arms and
 			// activates. This stops a held Enter from rapid-toggling and a key held on
@@ -95,18 +95,18 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 		rovingKeyDown(event)
 
 		if (open && event.key === 'Tab') dismissToTab(event.nativeEvent)
-	}
+	})
 
 	// Space activates a button on keyup; suppress that release when no fresh press
 	// armed the trigger (the key was held on arrival). The cycle ends here, so the
 	// next press must re-arm.
-	const handleTriggerKeyUp = (event: KeyboardEvent) => {
+	const handleTriggerKeyUp = useStableEvent((event: KeyboardEvent) => {
 		if (event.key !== 'Enter' && event.key !== ' ') return
 
 		if (!activationHeldRef.current) event.preventDefault()
 
 		activationHeldRef.current = false
-	}
+	})
 
 	// Consumer/child props route through `getReferenceProps`, which composes
 	// their event handlers with the floating interactions instead of clobbering
@@ -119,25 +119,33 @@ export function MenuTrigger({ children, className, ...props }: MenuTriggerProps)
 
 		const childOnKeyUp = child.props.onKeyUp as ((event: KeyboardEvent) => void) | undefined
 
-		return cloneElement(child, {
-			...getReferenceProps({
-				...child.props,
-				onKeyDown: (event: KeyboardEvent) => {
-					childOnKeyDown?.(event)
-					handleTriggerKeyDown(event)
-				},
-				onKeyUp: (event: KeyboardEvent) => {
-					childOnKeyUp?.(event)
-					handleTriggerKeyUp(event)
-				},
-			}),
-			ref: mergeRefs,
-			'aria-haspopup': 'menu',
-			'aria-expanded': open,
-			'aria-controls': open ? menuId : undefined,
-			'data-slot': 'menu-trigger',
-			className: cn(className, child.props.className as string | undefined),
-		})
+		// The clone renders the child's type through JSX, not through `cloneElement`.
+		// The React Compiler rejects a ref passed to a function during render.
+		const Child = child.type
+
+		return (
+			<Child
+				key={child.key}
+				{...child.props}
+				{...getReferenceProps({
+					...child.props,
+					onKeyDown: (event: KeyboardEvent) => {
+						childOnKeyDown?.(event)
+						handleTriggerKeyDown(event)
+					},
+					onKeyUp: (event: KeyboardEvent) => {
+						childOnKeyUp?.(event)
+						handleTriggerKeyUp(event)
+					},
+				})}
+				ref={mergeRefs}
+				aria-haspopup="menu"
+				aria-expanded={open}
+				aria-controls={open ? menuId : undefined}
+				data-slot="menu-trigger"
+				className={cn(className, child.props.className as string | undefined)}
+			/>
+		)
 	}
 
 	const {
