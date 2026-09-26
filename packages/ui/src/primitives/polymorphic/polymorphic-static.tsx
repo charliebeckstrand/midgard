@@ -50,7 +50,9 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 }: PolymorphicRenderProps<Fallback> & { render?: ReactElement<LinkProps> }) {
 	if (href !== undefined) {
 		const linkProps = {
-			ref: ref as Ref<HTMLAnchorElement>,
+			// An absent ref stays out of the props. A spread `ref: undefined` would
+			// clear the ref that the render element carries.
+			...(ref === undefined ? {} : { ref: ref as Ref<HTMLAnchorElement> }),
 			'data-slot': slot,
 			href,
 			className,

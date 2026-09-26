@@ -1,6 +1,6 @@
-import type { ComponentPropsWithoutRef } from 'react'
+import { type ComponentPropsWithoutRef, createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Polymorphic } from '../../primitives/polymorphic'
+import { Polymorphic, PolymorphicStatic } from '../../primitives/polymorphic'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Polymorphic', () => {
@@ -102,5 +102,48 @@ describe('Polymorphic', () => {
 		expect(el?.tagName).toBe('A')
 
 		expect(el).toHaveAttribute('href', '/path')
+	})
+})
+
+describe('PolymorphicStatic', () => {
+	it('keeps the ref of the render element when the call site passes none', () => {
+		const ref = createRef<HTMLAnchorElement>()
+
+		const { container } = renderUI(
+			<PolymorphicStatic
+				as="span"
+				href="/path"
+				data-slot="tag"
+				className="cls"
+				render={<a ref={ref} href="/ignored" />}
+			>
+				Link
+			</PolymorphicStatic>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'tag'))
+	})
+
+	it('gives the call-site ref precedence over the ref of the render element', () => {
+		const renderRef = createRef<HTMLAnchorElement>()
+
+		const ref = createRef<HTMLAnchorElement>()
+
+		const { container } = renderUI(
+			<PolymorphicStatic
+				as="span"
+				href="/path"
+				ref={ref}
+				data-slot="tag"
+				className="cls"
+				render={<a ref={renderRef} href="/ignored" />}
+			>
+				Link
+			</PolymorphicStatic>,
+		)
+
+		expect(ref.current).toBe(bySlot(container, 'tag'))
+
+		expect(renderRef.current).toBeNull()
 	})
 })
