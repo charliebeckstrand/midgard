@@ -1,8 +1,8 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import { useReportedChange } from '../../../hooks/use-reported-change'
-import { toggleItem } from '../../../utilities'
+import { keyByOccurrence, toggleItem } from '../../../utilities'
 
 /** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
 export type ChartToggleSet = {
@@ -32,23 +32,59 @@ function useChartToggleSet(): ChartToggleSet {
 /** The legend's series switchboard state. @internal */
 export type ChartSeriesToggle = ChartToggleSet
 
+/** Whether two index sets hold the same members. @internal */
+function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
+	return a.size === b.size && [...a].every((index) => b.has(index))
+}
+
 /**
  * Owns which series are toggled off, the legend interaction that every chart
  * shares. The emphasis of a hovered or focused legend entry is not here. The
  * frame owns it, so a legend hover does not run the chart body. The chart gives
  * the hidden set to the frame, because a hidden series cannot hold the emphasis.
  *
- * @param onHiddenChange - Reports each committed hidden set to the caller.
+ * @remarks The toggle keeps each series by its key, not by its position. A
+ * series list that drops or moves an entry therefore keeps each series on or
+ * off as the reader left it. The hidden set that the chart reads and reports
+ * holds the current positions of those keys. A repeated key names each
+ * occurrence apart.
+ * @param keys - The identity of each series, in series order.
+ * @param onHiddenChange - Reports each committed hidden set to the caller,
+ * also when a change to `keys` moves the positions.
  * @internal
  */
 export function useChartSeriesToggle(
+	keys: readonly string[],
 	onHiddenChange?: (hidden: ReadonlySet<number>) => void,
 ): ChartSeriesToggle {
-	const { hidden, toggle } = useChartToggleSet()
+	const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(() => new Set())
+
+	// One string for the key list, so the derived set keeps its identity across a
+	// render that hands new arrays with the same keys.
+	const signature = JSON.stringify(keyByOccurrence(keys).map(({ key }) => key))
+
+	const occurrences = useMemo(() => JSON.parse(signature) as string[], [signature])
+
+	const hidden = useMemo(
+		() =>
+			new Set(
+				occurrences.flatMap((key, index) => (hiddenKeys.has(key) ? [index] : [])),
+			) as ReadonlySet<number>,
+		[occurrences, hiddenKeys],
+	)
+
+	const toggle = useCallback(
+		(index: number) => {
+			const key = occurrences[index]
+
+			if (key !== undefined) setHiddenKeys((current) => toggleItem(current, key))
+		},
+		[occurrences],
+	)
 
 	// Read from the committed set rather than from `toggle`, because the set is
 	// written through an updater. A chart with every series shown says nothing.
-	useReportedChange(hidden, onHiddenChange)
+	useReportedChange(hidden, onHiddenChange, sameMembers)
 
 	return { hidden, toggle }
 }

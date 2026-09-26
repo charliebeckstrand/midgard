@@ -355,3 +355,36 @@ describe('the range legend domain under quantile binning', () => {
 		expect(track).toHaveAttribute('aria-valuemax', '20')
 	})
 })
+
+describe('ChoroplethChart value domain', () => {
+	type Row = { region: string; pop: number }
+
+	function fills(rows: Row[]) {
+		const { container, unmount } = renderUI(
+			<ChoroplethChart
+				aria-label="Population"
+				geography={FIXTURE_GEOJSON}
+				data={rows}
+				series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#dbeafe', '#1e3a8a'] }]}
+				width={400}
+			/>,
+		)
+
+		const out = allRegions(container).map((region) => region.getAttribute('fill'))
+
+		unmount()
+
+		return out
+	}
+
+	it('ignores a row whose id names no region on the map', () => {
+		const rows: Row[] = [
+			{ region: 'A', pop: 0 },
+			{ region: 'B', pop: 50 },
+			{ region: 'C', pop: 100 },
+		]
+
+		// A total row names no region, so it must not stretch the scale.
+		expect(fills([...rows, { region: 'TOTAL', pop: 10_000 }])).toEqual(fills(rows))
+	})
+})

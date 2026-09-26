@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import {
@@ -1245,5 +1245,61 @@ describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
 		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
 
 		expect(stackedBarSnapSeries(marks, [0, 1, 2], 1)).toEqual([[0, 2]])
+	})
+})
+
+describe('BarChart hidden series after a series change', () => {
+	const DATA = [
+		{ w: 'W1', a: 1, b: 2, c: 3 },
+		{ w: 'W2', a: 2, b: 3, c: 4 },
+	]
+
+	const ALL = [
+		{ xKey: 'w', yKey: 'a', yName: 'A' },
+		{ xKey: 'w', yKey: 'b', yName: 'B' },
+		{ xKey: 'w', yKey: 'c', yName: 'C' },
+	] as const
+
+	it('keeps each series on or off when an earlier series leaves', () => {
+		const onHiddenChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<BarChart
+				aria-label="Series"
+				data={DATA}
+				series={[...ALL]}
+				width={400}
+				onHiddenChange={onHiddenChange}
+			/>,
+		)
+
+		const b = allBySlot(container, 'chart-legend-item').find((el) => el.textContent === 'B')
+
+		fireEvent.click(b as Element)
+
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set([1]))
+
+		// The consumer drops A. B stays off, and C stays on.
+		rerender(
+			<BarChart
+				aria-label="Series"
+				data={DATA}
+				series={[ALL[1], ALL[2]]}
+				width={400}
+				onHiddenChange={onHiddenChange}
+			/>,
+		)
+
+		const pressed = Object.fromEntries(
+			allBySlot(container, 'chart-legend-item').map((el) => [
+				el.textContent,
+				el.getAttribute('aria-pressed'),
+			]),
+		)
+
+		expect(pressed).toEqual({ B: 'false', C: 'true' })
+
+		// B moved to position 0, so the report follows it.
+		expect(onHiddenChange).toHaveBeenLastCalledWith(new Set([0]))
 	})
 })

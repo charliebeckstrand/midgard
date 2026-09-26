@@ -255,7 +255,9 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * The object form has no way to spell `true`, and a single-series chart that
 	 * moved to it would lose the legend the flag forced on. An `inert` legend has
 	 * no switches and never fires. The indexes are positions in the chart's own
-	 * series or category order.
+	 * series or category order. A switch stays with its series or category, not
+	 * its position. When a change to `series` or `data` moves a hidden entry, the
+	 * callback fires again with the new positions.
 	 */
 	onHiddenChange?: (hidden: ReadonlySet<number>) => void
 	/**

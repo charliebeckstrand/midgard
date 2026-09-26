@@ -881,3 +881,46 @@ describe('the PieChart header reserve', () => {
 		expect(bySlot(container, 'chart')).toHaveAttribute('data-tier', 'spark')
 	})
 })
+
+describe('PieChart legend toggle after a filter', () => {
+	type Row = { source: string; visits: number }
+
+	const DATA: Row[] = [
+		{ source: 'Search', visits: 60 },
+		{ source: 'Direct', visits: 25 },
+		{ source: 'Referral', visits: 15 },
+	]
+
+	const categories = DATA.map((row) => row.source)
+
+	function chart(data: Row[]) {
+		return (
+			<PieChart
+				aria-label="Traffic by source"
+				data={data}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				categories={categories}
+				width={300}
+				height={200}
+			/>
+		)
+	}
+
+	it('keeps a slice off when a filter removes an earlier row', () => {
+		const { container, rerender } = renderUI(chart(DATA))
+
+		// Referral goes off.
+		fireEvent.click(allBySlot(container, 'chart-legend-item')[2] as HTMLButtonElement)
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(2)
+
+		// A filter removes Search, so Referral moves to row 1.
+		rerender(chart([DATA[1] as Row, DATA[2] as Row]))
+
+		expect(allBySlot(container, 'chart-slice')).toHaveLength(1)
+
+		fireEvent.pointerEnter(allBySlot(container, 'chart-slice')[0] as Element)
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+})

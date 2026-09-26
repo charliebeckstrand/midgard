@@ -14,7 +14,7 @@ import {
 	resolveValueBins,
 	resolveValueFormat,
 } from './engine/map-region/value'
-import type { MapFeature } from './engine/types'
+import type { DataKey, MapFeature } from './engine/types'
 
 /** The names a map with no rows resolves to: one shared array, never rebuilt. @internal */
 const EMPTY_NAMES: string[] = []
@@ -37,6 +37,19 @@ type MapRegionReadout = {
 	domain: [number, number] | null
 	/** The class edges the bins assign by under `'quantile'` binning; absent otherwise. Feeds the range legend. */
 	thresholds?: number[]
+}
+
+/**
+ * The rows whose region key names a region on the map. A row that matches no
+ * region, such as a total, draws nothing, so it must not stretch the color
+ * scale of the regions.
+ *
+ * @internal
+ */
+function joinedRows<T>(data: T[], regionKey: DataKey<T>, regionIds: readonly string[]): T[] {
+	const ids = new Set(regionIds)
+
+	return data.filter((datum) => ids.has(String(datum[regionKey])))
 }
 
 /**
@@ -127,7 +140,7 @@ export function useMapRegionReadout<T>(
 				domain: resolved,
 				assign,
 				thresholds: edges,
-			} = resolveValueBins(data, valueKey, {
+			} = resolveValueBins(joinedRows(data, regionKey, regionIds), valueKey, {
 				colorRange,
 				bins,
 				binning,

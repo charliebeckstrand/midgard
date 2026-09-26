@@ -28,6 +28,7 @@ import {
 	type ChartEmphasis,
 	ChartEmphasisContext,
 	ChartHoverContext,
+	type ChartHoverState,
 	ChartMarkEmphasisContext,
 	type ChartMarkRef,
 	ChartSeriesEmphasisContext,
@@ -122,6 +123,18 @@ function useSeriesEmphasis(
 	const held = focus !== null && !hidden.has(focus) && (count === undefined || focus < count)
 
 	return [held ? focus : null, setFocus]
+}
+
+/**
+ * The index a right-click targets. It is the hovered category while the
+ * pointer is on a mark. A chart that snaps reads the whole column, so there it
+ * is the hovered category anywhere. Off every mark it is `null`, so a per-mark
+ * menu item does not show on bare plot.
+ *
+ * @internal
+ */
+function menuTarget(hover: ChartHoverState, snaps: boolean): number | null {
+	return hover.onData || snaps ? hover.index : null
 }
 
 /** Props for {@link ChartFrame}; the accessible name spreads onto the `role="img"` plot region. @internal */
@@ -498,7 +511,7 @@ export function ChartFrame({
 			data-touch-readout=""
 			// Capture phase, so the snapshot lands before the menu's own handler opens it — the menu then
 			// renders from a target that stays put however the pointer travels while it is open.
-			onContextMenuCapture={() => setMenuIndex(hoverStore.get().index)}
+			onContextMenuCapture={() => setMenuIndex(menuTarget(hoverStore.get(), snap != null))}
 			className={cn(
 				// A query container so the legend lays out against the chart's own width,
 				// not the viewport — a chart in a narrow column stacks its legend even on

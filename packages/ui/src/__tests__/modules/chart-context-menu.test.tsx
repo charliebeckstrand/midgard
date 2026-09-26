@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
 type Row = { quarter: string; revenue: number }
 
@@ -342,5 +342,45 @@ describe('readoutToCsv', () => {
 		})
 
 		expect(csv.split('\r\n')).toEqual([',Margin', 'Q1,"-1,234.5"', 'Q2,-5'])
+	})
+})
+
+describe('ChartContextMenu target', () => {
+	const DATA = [
+		{ quarter: 'Q1', revenue: 40, costs: 24 },
+		{ quarter: 'Q2', revenue: 80, costs: 31 },
+		{ quarter: 'Q3', revenue: 65, costs: 28 },
+	]
+
+	it('reports no index for a right-click on bare plot above a bar', () => {
+		const items = vi.fn(({ index }: { index: number | null }) =>
+			index === null ? [] : [{ key: 'drill', label: `Drill ${index}`, onAction: () => {} }],
+		)
+
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by quarter"
+				data={DATA}
+				series={[
+					{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue' },
+					{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
+				]}
+				width={400}
+				contextMenu={{ items }}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The column of Q3, at the top of the plot: above both bars, on no mark.
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 1 })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		fireEvent.contextMenu(hit)
+
+		expect(items).toHaveBeenLastCalledWith({ index: null })
+
+		expect(screen.queryByRole('menuitem', { name: /^Drill/ })).not.toBeInTheDocument()
 	})
 })

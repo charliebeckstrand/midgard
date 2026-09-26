@@ -930,7 +930,10 @@ export function useChartCartesian<T>(
 	// gate on this downstream.
 	const drawAxes = draw && policy.tier !== 'spark'
 
-	const { hidden, toggle } = useChartSeriesToggle(props.onHiddenChange)
+	const { hidden, toggle } = useChartSeriesToggle(
+		series.map((entry) => entry.yKey),
+		props.onHiddenChange,
+	)
 
 	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
 
