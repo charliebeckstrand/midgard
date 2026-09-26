@@ -128,6 +128,22 @@ describe('SignaturePad', () => {
 
 		expect(canvas).toHaveAttribute('aria-label', 'Customer signature, empty')
 	})
+
+	it('keeps a dark ink on its white surface in the dark theme', () => {
+		const { container } = renderUI(<SignaturePad />)
+
+		const pad = getSlot(container, 'signature-pad')
+
+		const placeholder = getSlot(container, 'signature-pad-placeholder')
+
+		// The canvas reads the pad's computed `color` as its default stroke. A
+		// `dark:` text color would draw light ink on the white surface.
+		expect(pad).toHaveClass('bg-white', 'text-zinc-950')
+
+		for (const element of [pad, placeholder]) {
+			expect(element.className).not.toMatch(/\bdark:text-/)
+		}
+	})
 })
 
 describe('getCanvasPoint', () => {
