@@ -877,7 +877,9 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 			// selects no text under a hold, as the chart frame does.
 			className={cn(
 				'flex flex-col gap-3 select-none **:select-none [-webkit-touch-callout:none]',
-				width === undefined && 'w-full max-w-2xl',
+				// As in the chart frame, `w-full` fills the box with no max-width cap.
+				// A `className` can bound it.
+				width === undefined && 'w-full',
 				className,
 			)}
 			style={width === undefined ? undefined : { width }}
