@@ -23,8 +23,8 @@
  * page, so no fixture and no network — and pdf.js parses it here, but `page.render` throws
  * `getOrInsertComputed is not a function`: pdf.js 6's renderer calls
  * `Map.prototype.getOrInsertComputed`, which the pinned Playwright Chromium (141) does not
- * implement. That bar is worth adding the moment the browser catches up, and it is the one that
- * would put a number on the saving rather than on the residue.
+ * implement. `pdf-viewer-open.bench.tsx` now fills that method and measures the cold open,
+ * which is the saving that the cache gives.
  *
  * Finding (Chromium 141, three runs): baseline ~0.1–0.17ms, `resident document` ~9.0–10.2ms at
  * 14 pages, `pre-rendered pages` ~8.1–8.7ms. Two things to read off that. The subtree rebuild

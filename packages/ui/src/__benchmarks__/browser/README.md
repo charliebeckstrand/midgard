@@ -665,3 +665,33 @@ Mean ms for 24 glyphs, in Chromium. Each figure is the median of four runs, beca
 **This package's wrapper does not separate from the noise.** The `Icon` step is 0.034 ms over 24 glyphs, and `lucide bare` alone swings 0.411 to 0.470 across the four runs. The step is smaller than the spread of the rung it is measured against, so read it as an upper bound, not as a figure. The numeric-size branch, which also builds a `style` object, sits the same way.
 
 **The jsdom ratio is the engine again.** The jsdom menu suite reads a row with an icon at twice the cost of a row without one. The same tree costs 2.90 ms in jsdom and 0.37 ms here — 7.9× — because jsdom builds DOM and resolves style in JavaScript. No change is warranted. `Icon` is a `cloneElement` and a memoized `cn` call, and the numbers say so.
+
+## PDF viewer
+
+> **Benchmark-driven, as the grid and the chart were: each change to the viewer lands against the baseline below.** No rival runs here yet. pdf.js's own `PDFViewer` is the natural one, because the ui viewer renders through pdf.js too.
+
+### Methodology
+
+[`pdf-viewer-open.bench.tsx`](pdf-viewer-open.bench.tsx) opens documents that [`pdf-fixtures.ts`](pdf-fixtures.ts) builds in memory: US-Letter invoice pages with 40 rows of Helvetica text and the rules between them, so no file and no network. Each `cold open` sample mounts `PdfViewer` in an 800 × 1000 box on a document the cache does not hold, and ends at `onLoad`. The last sample of each page count prints the mean time to the first painted page. The `stage` scenarios split one page at 2x into the pdf.js render and the encode, with PNG beside the other encoders.
+
+pdf.js 6 calls `Map.prototype.getOrInsertComputed`, and the pinned Chromium (141) does not have it. The fixtures therefore fill it in the page and in a worker, which goes in as the global `workerPort` and lives for the whole run. [`pdf-viewer-lifecycle.bench.tsx`](pdf-viewer-lifecycle.bench.tsx) measures the unpark of a resident document, with no pdf.js work.
+
+### Baseline (2026-09-26, this container)
+
+The container has a device pixel ratio of 1, so the viewer rasterizes at 1.5x.
+
+| Pages | First page painted | Settled |
+| ---: | ---: | ---: |
+| 1 | 63 ms | 75 ms |
+| 3 | 107 ms | 119 ms |
+| 14 | 343 ms | 356 ms |
+| 50 | 1,199 ms | 1,213 ms |
+
+| Stage, one page at 2x | Mean | Size |
+| --- | ---: | ---: |
+| pdf.js render to canvas | 17.5 ms | 7.4 MiB decoded |
+| PNG encode | 12.7 ms | 269 KiB |
+| JPEG encode, 0.92 | 16.0 ms | 315 KiB |
+| WebP encode, 0.92 | 176 ms | 148 KiB |
+
+The first page paints only when the whole document settles, because the viewport shows a page only while `loading` is false. Each page after the first adds about 23 ms to that wait. The encode is about 40 % of the cost of a page, and no other encoder is cheaper than PNG.
