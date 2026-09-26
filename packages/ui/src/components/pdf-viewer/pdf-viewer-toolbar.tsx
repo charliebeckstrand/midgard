@@ -21,8 +21,8 @@ import { PdfViewerZoomControls } from './pdf-viewer-zoom-controls'
  * there are regions, and the magnifier control when the consumer asked for a
  * loupe.
  *
- * Reads everything from {@link PdfViewerContext}. Controls disable while
- * loading or empty.
+ * Reads everything from {@link PdfViewerContext}. The controls disable only when the document
+ * has no page. They work while the pages render, because the open gives every page slot.
  *
  * The magnifier control is one of two, and {@link PdfViewerMagnifierMode} says which: a
  * toggle, or the button that opens {@link PdfViewerMagnifierSettings}.
@@ -39,7 +39,6 @@ export function PdfViewerToolbar() {
 		rotate,
 		documentSrc,
 		filename,
-		loading,
 		isDesktop,
 		sidebarOpen,
 		setSidebarOpen,
@@ -55,8 +54,8 @@ export function PdfViewerToolbar() {
 
 	const isEmpty = total === 0
 
-	// The view controls act on the page on screen, so they work while the pages after it
-	// load. The page navigation waits for the whole document, because the count still grows.
+	// The page count is whole when the document opens, so every control works while the
+	// pages render.
 	const controlsDisabled = isEmpty
 
 	const sidebarToggleLabel = sidebarOpen ? 'Hide thumbnails' : 'Show thumbnails'
@@ -76,7 +75,7 @@ export function PdfViewerToolbar() {
 								label={sidebarToggleLabel}
 								icon={sidebarOpen ? <PanelLeftDashed /> : <PanelLeft />}
 								aria-expanded={sidebarOpen}
-								disabled={loading}
+								disabled={controlsDisabled}
 								onClick={() => setSidebarOpen(!sidebarOpen)}
 							/>
 						)}
@@ -90,7 +89,7 @@ export function PdfViewerToolbar() {
 								<PdfViewerToolbarButton
 									label="Show thumbnails"
 									icon={<PanelLeft />}
-									disabled={loading}
+									disabled={controlsDisabled}
 								/>
 							</SheetTrigger>
 						)}
@@ -103,7 +102,7 @@ export function PdfViewerToolbar() {
 									if (next !== null) goToPage(next)
 								}}
 								displayValue={(v) => String(v)}
-								disabled={loading}
+								disabled={controlsDisabled}
 								className="tabular-nums"
 							>
 								{pages.map((p, index) => {

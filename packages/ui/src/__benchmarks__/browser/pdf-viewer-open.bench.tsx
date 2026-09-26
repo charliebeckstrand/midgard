@@ -2,7 +2,7 @@
  * What a reader waits for when a PDF opens cold, and where that time goes.
  *
  * - `cold open · N pages` mounts `PdfViewer` on a document that nothing holds, and each
- *   sample ends when the viewer reports the load. The first page and the whole document
+ *   sample ends when the last page renders. The first page and the whole document
  *   are both on the reader's path: the first page is when they can read, and the settle is
  *   when the rail and the page count are whole. The sample times the settle. The last sample
  *   of each count prints the mean time to the first painted page over the same samples.
@@ -47,6 +47,7 @@ import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	getDocumentSnapshot,
 	resetDocumentCache,
+	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { host } from './harness'
 import { makeInvoicePdf, polyfilledWorker, polyfillUpsert, servePdf } from './pdf-fixtures'
@@ -120,6 +121,9 @@ async function openCold(bytes: Uint8Array): Promise<number> {
 		)
 	})
 
+	// `onLoad` reports the open. The sample ends when the last page has rendered.
+	await rendered(src)
+
 	// The decode of the first page can land after the load report.
 	while (painted < 0 || Number.isNaN(painted)) {
 		await new Promise(requestAnimationFrame)
@@ -134,6 +138,23 @@ async function openCold(bytes: Uint8Array): Promise<number> {
 	URL.revokeObjectURL(src)
 
 	return painted
+}
+
+/** Resolves when the load of `src` has rendered its last page. */
+function rendered(src: string) {
+	return new Promise<void>((resolve) => {
+		const done = () => !getDocumentSnapshot(src).loading
+
+		if (done()) return resolve()
+
+		const unsubscribe = subscribeDocument(src, () => {
+			if (!done()) return
+
+			unsubscribe()
+
+			resolve()
+		})
+	})
 }
 
 /**
@@ -311,6 +332,8 @@ describe('pdf viewer · page flip · 14 pages resident', async () => {
 	await new Promise<void>((resolve) => {
 		flushSync(() => root.render(view(1, resolve)))
 	})
+
+	await rendered(src)
 
 	// What the resident rasters hold. The encoded blobs stay for the life of the entry. The
 	// decoded bitmaps are the browser's, and it can drop one that no element shows.

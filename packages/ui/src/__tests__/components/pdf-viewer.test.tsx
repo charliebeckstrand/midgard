@@ -202,21 +202,38 @@ describe('PdfViewer', () => {
 	})
 
 	/*
-	 * The first page is readable before the last one renders. The load is seeded through the
-	 * cache's own seam and held open, so the render sees a document that is part way in.
+	 * The document opens before its pages render: the load publishes a slot for each page,
+	 * then the rendered pages. It is seeded through the cache's own seam and held open, so
+	 * the render sees a document that is part way in.
 	 */
-	it('shows the first page and its view controls while later pages still load', async () => {
+	function openPartial(src: string) {
 		resetDocumentCache()
 
 		let finish = () => {}
 
-		ensureDocumentLoad('/partial.pdf', (report) => {
-			report.page({ id: 1, src: 'page-1.png', label: 'Page 1' })
+		ensureDocumentLoad(src, (report) => {
+			report.open(
+				[1, 2, 3].map((id) => ({
+					id,
+					src: '',
+					label: `Page ${id}`,
+					width: 918,
+					height: 1188,
+				})),
+			)
+
+			report.page({ id: 1, src: 'page-1.png', label: 'Page 1', width: 918, height: 1188 }, 0)
 
 			return new Promise<void>((resolve) => {
 				finish = resolve
 			})
 		})
+
+		return () => act(async () => finish())
+	}
+
+	it('shows the first page and every control while later pages still render', async () => {
+		const finish = openPartial('/partial.pdf')
 
 		const { container } = renderUI(<PdfViewer src="/partial.pdf" />)
 
@@ -225,15 +242,47 @@ describe('PdfViewer', () => {
 			'page-1.png',
 		)
 
-		expect(screen.queryByLabelText('Loading PDF')).not.toBeInTheDocument()
+		expect(bySlot(container, 'pdf-viewer-page-total')).toHaveTextContent('3')
 
 		expect(screen.getByLabelText('Rotate')).toBeEnabled()
 
-		expect(bySlot(container, 'listbox-button')).toBeDisabled()
-
-		await act(async () => finish())
-
 		expect(bySlot(container, 'listbox-button')).toBeEnabled()
+
+		await finish()
+
+		resetDocumentCache()
+	})
+
+	it('reports the load when the document opens, with its full page count', async () => {
+		const finish = openPartial('/partial.pdf')
+
+		const onLoad = vi.fn()
+
+		renderUI(<PdfViewer src="/partial.pdf" onLoad={onLoad} />)
+
+		expect(onLoad).toHaveBeenCalledExactlyOnceWith(3)
+
+		await finish()
+
+		expect(onLoad).toHaveBeenCalledOnce()
+
+		resetDocumentCache()
+	})
+
+	// The page count is whole at the open, so a later page is not clamped to the pages
+	// rendered so far. It shows its placeholder, and then its image.
+	it('opens on a later page that has not rendered yet, without a jump', async () => {
+		const finish = openPartial('/partial.pdf')
+
+		const { container } = renderUI(<PdfViewer src="/partial.pdf" defaultPage={3} />)
+
+		expect(bySlot(container, 'listbox-button')).toHaveTextContent('3')
+
+		expect(screen.getByLabelText('Loading PDF')).toBeInTheDocument()
+
+		expect(bySlot(container, 'pdf-viewer-viewport')?.querySelector('img')).toBeNull()
+
+		await finish()
 
 		resetDocumentCache()
 	})

@@ -24,8 +24,8 @@ import { usePdfViewerPageSize } from './use-pdf-viewer-page-size'
 import { usePdfViewerPagination } from './use-pdf-viewer-pagination'
 import { usePdfViewerViewportSize } from './use-pdf-viewer-viewport-size'
 
-/** What a load that rasterized no page reports; every page was skipped, so there is no document. @internal */
-const EMPTY_DOCUMENT = new Error('The document rasterized no pages.')
+/** What a load that opened a document with no page reports. @internal */
+const EMPTY_DOCUMENT = new Error('The document has no pages.')
 
 /**
  * How a settled snapshot reports: the error to raise, `null` for a clean load, or
@@ -46,6 +46,25 @@ function documentSettle(
 	if (pageCount > 0) return null
 
 	return started ? EMPTY_DOCUMENT : 'pending'
+}
+
+/**
+ * The report that a settle owes, or `undefined` when `previous` already made it.
+ *
+ * @remarks A load that the viewer already reported keeps its report. A failure after the open
+ * does not also call `onError`.
+ * @internal
+ */
+function nextReport(
+	settled: Error | null,
+	src: string | undefined,
+	previous: string | undefined,
+): string | undefined {
+	if (settled && previous === `load:${src}`) return undefined
+
+	const reported = `${settled === null ? 'load' : 'error'}:${src}`
+
+	return reported === previous ? undefined : reported
 }
 
 /**
@@ -107,7 +126,10 @@ type PdfViewerOptions = {
 
 /** The viewer's full derived state, provided through {@link PdfViewerContext} to every sub-component. @internal */
 export type PdfViewerResult = {
-	/** Resolved pages: consumer `pages`, or the set rasterized from `src`. */
+	/**
+	 * Resolved pages: consumer `pages`, or the slots of the `src` document. The slots arrive
+	 * when the document opens, and a slot whose page has not rendered has an empty `src`.
+	 */
 	pages: PdfViewerPage[]
 	total: number
 	activePage: PdfViewerPage | undefined
@@ -207,8 +229,9 @@ const DEFAULT_ZOOM_LEVELS = [0.5, 0.75, 1, 1.25, 1.5, 2, 3]
  *
  * @returns The {@link PdfViewerResult} consumed by every viewer sub-component.
  * @remarks When `pages` is omitted but `src` is set, pages are rasterized
- * asynchronously via pdf.js ({@link usePdfViewerDocument}); `loading` and
- * `error` track that lifecycle.
+ * asynchronously via pdf.js ({@link usePdfViewerDocument}). The page count
+ * is whole when the document opens, and `loading` stays true until the last
+ * page renders. `error` tracks the load.
  * @internal
  */
 export function usePdfViewer({
@@ -358,10 +381,14 @@ export function usePdfViewer({
 	 * the success that retry produces. It must not hold its error banner over a
 	 * document rendering beside it.
 	 *
-	 * A settle with no pages and no error is a settle all the same. Every page was
-	 * skipped for want of a 2D context or a refused `toBlob`. It reports as a
-	 * failure, because a viewer painting an empty document has not loaded one.
-	 * Exactly one of the two callbacks owes an answer for each src.
+	 * The load is the open. The slots of every page arrive when the document
+	 * opens, while the pages still render, so `onLoad` reports then with the full
+	 * page count. A failure after the open does not undo it: the viewer shows the
+	 * failure, and `onError` stays for a document that never opened.
+	 *
+	 * A settle with no pages and no error is a settle all the same: a document
+	 * that opened with no page. It reports as a failure. Exactly one of the two
+	 * callbacks owes an answer for each src.
 	 */
 	const reportedRef = useRef<string | undefined>(undefined)
 
@@ -374,19 +401,17 @@ export function usePdfViewer({
 	useEffect(() => {
 		if (!shouldLoadFromSrc) return
 
-		if (loading) {
-			startedRef.current = src
+		if (loading) startedRef.current = src
 
-			return
-		}
+		if (loading && loadedPages.length === 0) return
 
 		const settled = documentSettle(error, loadedPages.length, startedRef.current === src)
 
 		if (settled === 'pending') return
 
-		const reported = `${settled === null ? 'load' : 'error'}:${src}`
+		const reported = nextReport(settled, src, reportedRef.current)
 
-		if (reportedRef.current === reported) return
+		if (!reported) return
 
 		reportedRef.current = reported
 
