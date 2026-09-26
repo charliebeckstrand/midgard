@@ -585,7 +585,7 @@ const CellClickExample = () => {
 }
 
 const DoubleClickExample = () => {
-	const [picked, setPicked] = useState<({ event: string } & PickedCell) | null>(null)
+	const { pick, tree } = useClickInspector<{ event: string } & PickedCell>()
 
 	// Double-click events layer over the single-click pair for a secondary
 	// "open" affordance: `onRowDoubleClick` carries the row datum, and
@@ -599,10 +599,10 @@ const DoubleClickExample = () => {
 				rows={people}
 				getKey={(row) => row.id}
 				onCellDoubleClick={(cell) =>
-					setPicked({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
+					pick({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
 				}
 			/>
-			{picked && <JsonTree data={picked} />}
+			<JsonTree {...tree} />
 		</Stack>
 	)
 }
