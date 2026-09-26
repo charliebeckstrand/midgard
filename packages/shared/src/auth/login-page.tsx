@@ -13,12 +13,12 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { chain, email, required } from './form-validators'
-import { type SecondFactorMethod, type SecondFactorProof, SecondStep } from './second-step'
 
 type LoginValues = { email: string; password: string }
 
 /**
- * Notice after registration: shows when the URL has `?registered=true`.
+ * Notice from the query: after registration (`?registered=true`), or after a
+ * second step that the gateway no longer holds (`?expired=true`).
  *
  * @internal
  * @remarks
@@ -27,10 +27,14 @@ type LoginValues = { email: string; password: string }
  * client. Keep this component in its own boundary, so that the rest of the form
  * stays in the prerendered HTML.
  */
-function RegisteredNotice() {
-	const registered = useSearchParams().get('registered') === 'true'
+function QueryNotice() {
+	const params = useSearchParams()
 
-	return registered ? (
+	if (params.get('expired') === 'true') {
+		return <Text tone="error">Your sign-in expired. Please sign in again.</Text>
+	}
+
+	return params.get('registered') === 'true' ? (
 		<Text tone="success">Account created successfully. Please sign in.</Text>
 	) : null
 }
@@ -40,43 +44,29 @@ function RegisteredNotice() {
  *
  * @remarks
  * When the user has two-step sign-in on, the gateway answers the password with
- * `202` and the methods that can finish it, and the page shows the second step
- * ({@link SecondStep}). A `410` from that step means that the gateway no longer
- * holds the sign-in, so the page goes back to the password step.
+ * `202` and sets a ticket cookie, and the page goes to `/login/verify` for the
+ * second step ({@link SecondStepPage}). That page checks the ticket on the
+ * server, so nobody can open it without a password step first.
  *
- * Next prerenders all of the page except the notice after registration, which
- * renders only on the client.
+ * Next prerenders all of the page except the notices from the query, which
+ * render only on the client.
  */
 export function LoginPage() {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
 
-	const [methods, setMethods] = useState<SecondFactorMethod[] | null>(null)
-
 	// Goes to `/` on success, to the second step on a `202`, and shows the message
 	// of the gateway on a failure.
 	async function finish(res: Response) {
 		if (res.status === 202) {
-			const data = (await res.json()) as { methods: SecondFactorMethod[] }
-
-			setServerError('')
-
-			setMethods(data.methods)
+			router.push('/login/verify')
 
 			return
 		}
 
 		if (res.ok) {
 			router.push('/')
-
-			return
-		}
-
-		if (res.status === 410) {
-			setMethods(null)
-
-			setServerError('Your sign-in expired. Please sign in again.')
 
 			return
 		}
@@ -120,38 +110,6 @@ export function LoginPage() {
 		}
 	}
 
-	async function finishSecondStep(proof: SecondFactorProof) {
-		try {
-			await finish(
-				await fetch('/auth/login/mfa', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(proof),
-				}),
-			)
-		} catch {
-			setServerError('An unexpected error occurred. Please try again later.')
-		}
-	}
-
-	if (methods) {
-		return (
-			<AuthLayout>
-				<SecondStep
-					methods={methods}
-					error={serverError}
-					onSubmit={finishSecondStep}
-					onError={setServerError}
-					onCancel={() => {
-						setServerError('')
-
-						setMethods(null)
-					}}
-				/>
-			</AuthLayout>
-		)
-	}
-
 	return (
 		<AuthLayout>
 			<Form<LoginValues>
@@ -168,7 +126,7 @@ export function LoginPage() {
 				{serverError && <Text tone="error">{serverError}</Text>}
 
 				<Suspense>
-					<RegisteredNotice />
+					<QueryNotice />
 				</Suspense>
 
 				<Field>

@@ -10,7 +10,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getSession`, `requireSession`, `requireAdmin`, and the `Session` and `User` types. |
+| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getSession`, `requireSession`, `requireAdmin`, the helpers of the pending second sign-in step (`getSecondStep`, `requireSecondStep`, `forwardToSecondStep`), and the `Session`, `User`, and `SecondFactorMethod` types. |
 | `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites. |
 | `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports. |
 
