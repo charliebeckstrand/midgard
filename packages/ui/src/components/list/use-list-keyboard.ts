@@ -4,6 +4,7 @@ import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, type RefObject, useCallback, useEffect, useRef } from 'react'
 import { accessibleName, announce, querySlot } from '../../core'
 import { useKeyboardLifted } from '../../hooks'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import type { Orientation } from '../../types'
 
 const itemName = (container: ParentNode | null, id: string) =>
@@ -226,8 +227,17 @@ export function useListKeyboard<T>({
 
 			const { liftedId, orientation, locate, focusNeighbor, moveByDirection } = latest.current
 
-			const primaryKey = orientation === 'horizontal' ? 'ArrowRight' : 'ArrowDown'
-			const secondaryKey = orientation === 'horizontal' ? 'ArrowLeft' : 'ArrowUp'
+			// A horizontal list follows the reading order, so its keys swap in RTL.
+			// The rule is its own inverse, so it also gives the physical key for
+			// each step.
+			const primaryKey =
+				orientation === 'horizontal'
+					? logicalArrowKey('ArrowRight', containerRef.current)
+					: 'ArrowDown'
+			const secondaryKey =
+				orientation === 'horizontal'
+					? logicalArrowKey('ArrowLeft', containerRef.current)
+					: 'ArrowUp'
 
 			const deps: ListKeyDeps = {
 				liftedId,

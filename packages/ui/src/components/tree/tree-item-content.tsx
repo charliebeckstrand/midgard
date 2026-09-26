@@ -3,6 +3,7 @@
 import { ChevronRight } from 'lucide-react'
 import type { KeyboardEvent, MouseEvent, ReactElement, ReactNode } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/tree'
 import { Icon } from '../icon'
 import { useTreeContext, useTreePosition } from './context'
@@ -100,14 +101,17 @@ export function TreeItemContent({
 
 			return
 		}
-		if (event.key === 'ArrowRight' && hasChildren && !open) {
+		// The branch opens toward the inline end, so the arrows swap in RTL.
+		const key = logicalArrowKey(event.key, event.currentTarget)
+
+		if (key === 'ArrowRight' && hasChildren && !open) {
 			event.preventDefault()
 
 			onOpenChange(true)
 
 			return
 		}
-		if (event.key === 'ArrowLeft' && hasChildren && open) {
+		if (key === 'ArrowLeft' && hasChildren && open) {
 			event.preventDefault()
 
 			onOpenChange(false)
