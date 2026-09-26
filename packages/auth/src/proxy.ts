@@ -1,35 +1,45 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { PROXY_SECRET } from './env'
+import { clientIpSecret } from './env'
 import { isApiRoute, isAuthRoute, isGuestRoute } from './routes'
 
 // The gateway sets the session with the `__Host-` prefix. The browser then sends
 // it only over HTTPS, and a sibling subdomain cannot set it.
 const sessionCookie = '__Host-session'
 
+// Read when the proxy loads, so the first request after a start fails when the secret is lost.
+const secret = clientIpSecret()
+
 /**
- * Continues a request to the gateway, and adds the address of the browser.
+ * Continues a request, and adds the address of the browser to an auth or API request.
  *
  * @remarks
  * App Platform writes the address of the client into `do-connecting-ip`, and it
  * writes it again on each hop. When the rewrite sends the request to the
  * gateway, that header holds the address of the app. Thus the proxy copies the
- * address into `x-client-ip`, with the secret in `x-proxy-secret`, and the gateway
- * rate-limits by browser. The proxy always removes the values that the client
- * sent in these headers.
+ * address into `x-client-ip`, with the secret in `x-client-ip-secret`, and the
+ * gateway rate-limits by browser. The proxy always removes the values that the
+ * client sent in these headers. Other requests continue unchanged.
  *
- * @internal
+ * Export it as `proxy` from the `proxy.ts` of an app with no session gate.
+ *
+ * @param request - The incoming request.
+ * @returns `NextResponse.next()`, with the address for an auth or API request.
  */
-function forwardToGateway(request: NextRequest): NextResponse {
+export function forwardClientIp(request: NextRequest): NextResponse {
+	const { pathname } = request.nextUrl
+
+	if (!isAuthRoute(pathname) && !isApiRoute(pathname)) return NextResponse.next()
+
 	const headers = new Headers(request.headers)
 
 	headers.delete('x-client-ip')
-	headers.delete('x-proxy-secret')
+	headers.delete('x-client-ip-secret')
 
 	const ip = request.headers.get('do-connecting-ip')
 
-	if (PROXY_SECRET && ip) {
+	if (secret && ip) {
 		headers.set('x-client-ip', ip)
-		headers.set('x-proxy-secret', PROXY_SECRET)
+		headers.set('x-client-ip-secret', secret)
 	}
 
 	return NextResponse.next({ request: { headers } })
@@ -53,7 +63,7 @@ function forwardToGateway(request: NextRequest): NextResponse {
  * answers `200`, so the caller reads a rejected write as a success.
  *
  * An auth or API request that continues gets the address of the browser for
- * the gateway (see {@link forwardToGateway}).
+ * the gateway (see {@link forwardClientIp}).
  *
  * @param request - The incoming request.
  * @returns A redirect, a `401` for an API route, or `NextResponse.next()`.
@@ -61,7 +71,7 @@ function forwardToGateway(request: NextRequest): NextResponse {
 export function proxy(request: NextRequest) {
 	const { pathname } = request.nextUrl
 
-	if (isAuthRoute(pathname)) return forwardToGateway(request)
+	if (isAuthRoute(pathname)) return forwardClientIp(request)
 
 	if (isGuestRoute(pathname)) return NextResponse.next()
 
@@ -73,7 +83,5 @@ export function proxy(request: NextRequest) {
 		return NextResponse.redirect(new URL('/login', request.url))
 	}
 
-	if (isApiRoute(pathname)) return forwardToGateway(request)
-
-	return NextResponse.next()
+	return forwardClientIp(request)
 }

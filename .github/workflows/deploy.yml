@@ -33,7 +33,7 @@ jobs:
       # action reads `project_id` only when it creates the app.
       - uses: digitalocean/app_action/deploy@v2
         env:
-          PROXY_SECRET: ${{ secrets.PROXY_SECRET }}
+          CLIENT_IP_SECRET: ${{ secrets.CLIENT_IP_SECRET }}
         with:
           token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
           project_id: ${{ vars.DIGITALOCEAN_PROJECT_ID }}

@@ -55,51 +55,73 @@ describe('proxy', () => {
 })
 
 describe('proxy address forwarding', () => {
-	const secret = 'a-proxy-secret-of-at-least-32-chars'
+	const secret = 'a-client-ip-secret-of-at-least-32-chars'
 
-	// `env.ts` reads `PROXY_SECRET` once, at load, so each case loads a new instance of the proxy.
-	async function forwarded(pathname: string, env: { PROXY_SECRET?: string } = {}) {
-		vi.stubEnv('PROXY_SECRET', env.PROXY_SECRET)
+	// The proxy reads `CLIENT_IP_SECRET` once, at load, so each case loads a new instance.
+	async function forwarded(
+		pathname: string,
+		env: { CLIENT_IP_SECRET?: string } = {},
+		entry: 'proxy' | 'forwardClientIp' = 'proxy',
+	) {
+		vi.stubEnv('CLIENT_IP_SECRET', env.CLIENT_IP_SECRET)
 
 		vi.resetModules()
 
-		const { proxy } = await import('../proxy')
+		const handler = (await import('../proxy'))[entry]
 
-		const response = proxy(
+		const response = handler(
 			new NextRequest(`https://app.example${pathname}`, {
 				headers: {
 					cookie: session,
 					'do-connecting-ip': '203.0.113.9',
 					'x-client-ip': '198.51.100.66',
-					'x-proxy-secret': 'forged',
+					'x-client-ip-secret': 'forged',
 				},
 			}),
 		)
 
 		return {
 			ip: response.headers.get('x-middleware-request-x-client-ip'),
-			secret: response.headers.get('x-middleware-request-x-proxy-secret'),
+			secret: response.headers.get('x-middleware-request-x-client-ip-secret'),
 		}
 	}
 
 	it.each(['/auth/login', '/api/users'])(
 		'sends the browser address and the secret with %s',
 		async (pathname) => {
-			await expect(forwarded(pathname, { PROXY_SECRET: secret })).resolves.toEqual({
+			await expect(forwarded(pathname, { CLIENT_IP_SECRET: secret })).resolves.toEqual({
 				ip: '203.0.113.9',
 				secret,
 			})
 		},
 	)
 
+	it('sends the browser address from the proxy of an app with no gate', async () => {
+		await expect(
+			forwarded('/auth/login', { CLIENT_IP_SECRET: secret }, 'forwardClientIp'),
+		).resolves.toEqual({ ip: '203.0.113.9', secret })
+	})
+
 	it('removes the forged values when no secret is set', async () => {
 		await expect(forwarded('/auth/login')).resolves.toEqual({ ip: null, secret: null })
 	})
 
 	it('does not send the secret with a page request', async () => {
-		await expect(forwarded('/users', { PROXY_SECRET: secret })).resolves.toEqual({
+		await expect(forwarded('/users', { CLIENT_IP_SECRET: secret })).resolves.toEqual({
 			ip: null,
 			secret: null,
 		})
+	})
+
+	it('fails to load in production when the secret is not set', async () => {
+		vi.stubEnv('NODE_ENV', 'production')
+
+		vi.stubEnv('BIFROST_URL', 'https://bifrost.example')
+
+		vi.stubEnv('CLIENT_IP_SECRET', undefined)
+
+		vi.resetModules()
+
+		await expect(import('../proxy')).rejects.toThrow(/CLIENT_IP_SECRET is not set/)
 	})
 })
