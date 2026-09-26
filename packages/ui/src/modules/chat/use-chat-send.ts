@@ -152,6 +152,59 @@ export type ChatSend = {
 	setMessages: Dispatch<SetStateAction<ChatMessageData[]>>
 }
 
+/** The steps of one reply stream that {@link streamReply} calls. @internal */
+type ReplySteps = {
+	/** Opens the empty reply bubble, after the transport gives its stream. */
+	open: () => void
+	/** Folds one chunk into the reply. */
+	fold: (chunk: string | ChatPart[]) => void
+	/** Reports a stream that ended without a stop. */
+	sent: () => void
+	/** Reports a failure that is not a stop. */
+	fail: (error: unknown) => void
+	/** Runs on every exit: the last chunk, a stop, or a throw. */
+	settle: () => void
+}
+
+/**
+ * Streams one reply from the transport, and calls each step of `steps` in turn.
+ * The function is at module scope, because the React Compiler cannot compile a
+ * `finally` clause or a `for await` loop in a hook.
+ *
+ * @internal
+ */
+async function streamReply(
+	transport: ChatTransport,
+	text: string,
+	signal: AbortSignal,
+	steps: ReplySteps,
+): Promise<void> {
+	try {
+		const stream = await transport(text, signal)
+
+		steps.open()
+
+		for await (const chunk of stream) {
+			// Checked first so a stop mid-stream leaves the bubble at the last
+			// chunk it folded; breaking here also calls the async iterator's
+			// `return`, so a well-behaved transport's cleanup (e.g. releasing a
+			// reader) runs.
+			if (signal.aborted) break
+
+			steps.fold(chunk)
+		}
+
+		if (!signal.aborted) steps.sent()
+	} catch (error) {
+		// A stop-induced rejection isn't a failure: no rollback, no onError.
+		if (signal.aborted) return
+
+		steps.fail(error)
+	} finally {
+		steps.settle()
+	}
+}
+
 /**
  * Drives a chat's message list and streams assistant replies through an injected transport.
  *
@@ -201,44 +254,31 @@ export function useChatSend({
 
 			controllerRef.current = controller
 
-			// Minted before the try, so the catch can name this send's own bubble.
+			// Minted before the stream, so a failure can name this send's own bubble.
 			const replyId = crypto.randomUUID()
 
-			try {
-				const stream = await transport(text, controller.signal)
+			await streamReply(transport, text, controller.signal, {
+				open: () => setMessages((prev) => openReply(prev, replyId)),
+				fold: (chunk) => setMessages((prev) => applyReplyChunk(prev, replyId, chunk)),
+				sent: () => onSent?.(text),
+				fail: (error) => {
+					setMessages((prev) => dropEmptyReply(prev, replyId))
 
-				setMessages((prev) => openReply(prev, replyId))
+					onError?.(error)
+				},
+				settle: () => {
+					// Every exit lands here — the last chunk, a stop, a throw — which is
+					// what keeps a `tool` block from outliving the stream that opened it.
+					// A step still marked running would otherwise draw a spinner nothing
+					// ever stops, the defect that kept a per-part status out of the design
+					// until the shell could settle one.
+					setMessages((prev) => failReplyTools(prev, replyId))
 
-				for await (const chunk of stream) {
-					// Checked first so a stop mid-stream leaves the bubble at the last
-					// chunk it folded; breaking here also calls the async iterator's
-					// `return`, so a well-behaved transport's cleanup (e.g. releasing a
-					// reader) runs.
-					if (controller.signal.aborted) break
+					controllerRef.current = null
 
-					setMessages((prev) => applyReplyChunk(prev, replyId, chunk))
-				}
-
-				if (!controller.signal.aborted) onSent?.(text)
-			} catch (error) {
-				// A stop-induced rejection isn't a failure: no rollback, no onError.
-				if (controller.signal.aborted) return
-
-				setMessages((prev) => dropEmptyReply(prev, replyId))
-
-				onError?.(error)
-			} finally {
-				// Every exit lands here — the last chunk, a stop, a throw — which is
-				// what keeps a `tool` block from outliving the stream that opened it.
-				// A step still marked running would otherwise draw a spinner nothing
-				// ever stops, the defect that kept a per-part status out of the design
-				// until the shell could settle one.
-				setMessages((prev) => failReplyTools(prev, replyId))
-
-				controllerRef.current = null
-
-				setStreaming(false)
-			}
+					setStreaming(false)
+				},
+			})
 		},
 		[transport, onSent, onError],
 	)

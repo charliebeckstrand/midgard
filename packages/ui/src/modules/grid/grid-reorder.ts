@@ -60,9 +60,11 @@ export function useColumnReorderShift(
 		// reduced motion all jump instantly (duration 0).
 		const instant = isDragging || reduceMotion || !isSorting
 
+		const shiftVar = columnShiftVar(index)
+
 		const controls: AnimationPlaybackControls = animate(
 			table,
-			{ [columnShiftVar(index)]: `${x}px` },
+			{ [shiftVar]: `${x}px` },
 			instant ? { duration: 0 } : k.motion.columnShift,
 		)
 

@@ -146,7 +146,7 @@ type MapPlotRegionProps = AccessibleName & {
  * @internal
  */
 export function MapPlotRegion({
-	shape,
+	shape: { ref: shapeRef, ...shape },
 	aside,
 	tooltip,
 	keyboard: options,
@@ -162,7 +162,7 @@ export function MapPlotRegion({
 
 	return (
 		<div
-			ref={shape.ref}
+			ref={shapeRef}
 			data-slot="map-plot"
 			// A touch hold here reads a region. It does not open a context menu.
 			data-touch-readout=""

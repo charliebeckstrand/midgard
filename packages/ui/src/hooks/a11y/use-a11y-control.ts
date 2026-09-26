@@ -46,10 +46,13 @@ export type A11yControl = {
 export function useA11yControl(id: string): A11yControl {
 	const scope = useA11yScope({ id, slots: CONTROL_SLOTS })
 
+	const describedBy = scope.ariaProps['aria-describedby']
+	const labelledBy = scope.ariaProps['aria-labelledby']
+
 	return useMemo<A11yControl>(
 		() => ({
-			describedBy: scope.ariaProps['aria-describedby'],
-			labelledBy: scope.ariaProps['aria-labelledby'],
+			describedBy,
+			labelledBy,
 			labelId: scope.ids.label,
 			descriptionId: scope.ids.description,
 			messageId: scope.ids.error,
@@ -58,8 +61,8 @@ export function useA11yControl(id: string): A11yControl {
 			registerMessage: scope.register.error,
 		}),
 		[
-			scope.ariaProps['aria-describedby'],
-			scope.ariaProps['aria-labelledby'],
+			describedBy,
+			labelledBy,
 			scope.ids.label,
 			scope.ids.description,
 			scope.ids.error,

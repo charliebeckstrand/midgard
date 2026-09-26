@@ -43,7 +43,12 @@ export function MaskInput({
 	ref,
 	...props
 }: MaskInputProps) {
-	const masked = useMaskInput({
+	const {
+		ref: maskedRef,
+		value: maskedValue,
+		onChange: onMaskedChange,
+		onBlur: onMaskedBlur,
+	} = useMaskInput({
 		name,
 		value,
 		defaultValue,
@@ -55,13 +60,13 @@ export function MaskInput({
 
 	return (
 		<Input
-			ref={masked.ref}
+			ref={maskedRef}
 			data-slot="mask-input"
 			name={name}
-			value={masked.value}
-			onChange={masked.onChange}
+			value={maskedValue}
+			onChange={onMaskedChange}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
-			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
 				checkForDefaultPrevented: false,
 			})}
 			{...props}

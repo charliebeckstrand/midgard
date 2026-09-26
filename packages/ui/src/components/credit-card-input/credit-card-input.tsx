@@ -54,7 +54,12 @@ export function CreditCardInput({
 	ref,
 	...props
 }: CreditCardInputProps) {
-	const masked = useMaskInput({
+	const {
+		ref: maskedRef,
+		value: maskedValue,
+		onChange: onMaskedChange,
+		onBlur: onMaskedBlur,
+	} = useMaskInput({
 		name,
 		value,
 		defaultValue,
@@ -65,11 +70,11 @@ export function CreditCardInput({
 
 	// Brand only: `formatCardNumber` would re-run the whole grouping walk to
 	// return a `formatted` string the masked input already holds.
-	const brand = useMemo(() => detectCardBrand(digitsOnly(masked.value)), [masked.value])
+	const brand = useMemo(() => detectCardBrand(digitsOnly(maskedValue)), [maskedValue])
 
 	return (
 		<Input
-			ref={masked.ref}
+			ref={maskedRef}
 			data-slot="credit-card-input"
 			type="text"
 			inputMode="numeric"
@@ -78,16 +83,16 @@ export function CreditCardInput({
 			prefix={prefix ?? <Icon icon={<CreditCard />} />}
 			suffix={suffix ?? (brand ? brand.label : undefined)}
 			name={name}
-			value={masked.value}
+			value={maskedValue}
 			{...props}
 			// The masking wiring sits after the spread, so a stray `onChange`
 			// does not replace it. The touched mark runs whatever the caller
 			// does (CONVENTIONS.md §3.9).
-			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
 				checkForDefaultPrevented: false,
 			})}
 			onChange={(event) => {
-				masked.onChange(event)
+				onMaskedChange(event)
 
 				const next = formatCardNumber(event.target.value)
 

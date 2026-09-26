@@ -594,15 +594,17 @@ function GridRowDragHandle({ sortable, rowLabel, rowKey }: GridRowDragHandleProp
 		)
 	}
 
+	const { setActivatorNodeRef, dragging, attributes, listeners } = sortable
+
 	return (
 		<button
 			type="button"
-			ref={sortable.setActivatorNodeRef}
-			data-dragging={dataAttr(sortable.dragging)}
+			ref={setActivatorNodeRef}
+			data-dragging={dataAttr(dragging)}
 			className={cn(k.rowReorder.handle.root)}
 			aria-label={label}
-			{...sortable.attributes}
-			{...sortable.listeners}
+			{...attributes}
+			{...listeners}
 		>
 			<Icon icon={<GripVertical />} />
 		</button>

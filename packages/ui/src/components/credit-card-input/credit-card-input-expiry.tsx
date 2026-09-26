@@ -11,6 +11,9 @@ import { type CardValidity, formatExpiry, validateCardExpiry } from './credit-ca
 /** The "MM/YY" expiry pattern; a value of its length is a complete entry. */
 const EXPIRY_PATTERN = 'MM/YY'
 
+/** The default `invalidMessage`. A module constant, because the compiler cannot compile a template literal default. */
+const DEFAULT_INVALID_MESSAGE = `Enter a valid expiration date (${EXPIRY_PATTERN})`
+
 /** Props for {@link CreditCardInputExpiry}; extends Input minus the masked value and change slots. */
 export type CreditCardInputExpiryProps = Omit<
 	InputProps,
@@ -49,7 +52,7 @@ export function CreditCardInputExpiry({
 	placeholder,
 	onValueChange,
 	onValidityChange,
-	invalidMessage = `Enter a valid expiration date (${EXPIRY_PATTERN})`,
+	invalidMessage = DEFAULT_INVALID_MESSAGE,
 	invalid,
 	name,
 	onBlur,
@@ -61,7 +64,13 @@ export function CreditCardInputExpiry({
 
 	const [typedInvalid, setTypedInvalid] = useState(false)
 
-	const masked = useMaskInput({
+	const {
+		ref: maskedRef,
+		value: maskedValue,
+		setValue: setMaskedValue,
+		onChange: onMaskedChange,
+		onBlur: onMaskedBlur,
+	} = useMaskInput({
 		name,
 		value,
 		defaultValue,
@@ -83,7 +92,7 @@ export function CreditCardInputExpiry({
 	return (
 		<>
 			<Input
-				ref={masked.ref}
+				ref={maskedRef}
 				data-slot="credit-card-input-expiry"
 				type="text"
 				inputMode="numeric"
@@ -95,7 +104,7 @@ export function CreditCardInputExpiry({
 				placeholder={placeholder ?? EXPIRY_PATTERN}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}
-				value={masked.value}
+				value={maskedValue}
 				{...props}
 				// The masking wiring sits after the spread, so a stray `onChange`
 				// does not replace it. The touched mark and the verdict run
@@ -103,11 +112,11 @@ export function CreditCardInputExpiry({
 				onBlur={composeEventHandlers(
 					onBlur,
 					() => {
-						masked.onBlur()
+						onMaskedBlur()
 
 						// A partial or impossible entry left on blur reads invalid; an empty
 						// field doesn't (that's a required-field concern, not a format one).
-						setTypedInvalid(masked.value !== '' && !validateCardExpiry(masked.value).isValid)
+						setTypedInvalid(maskedValue !== '' && !validateCardExpiry(maskedValue).isValid)
 					},
 					{ checkForDefaultPrevented: false },
 				)}
@@ -116,17 +125,17 @@ export function CreditCardInputExpiry({
 
 					// The formatter re-appends a deleted trailing "/" and traps the
 					// caret; backspace over it deletes the preceding digit instead.
-					if (masked.value.endsWith('/') && raw === masked.value.slice(0, -1)) {
+					if (maskedValue.endsWith('/') && raw === maskedValue.slice(0, -1)) {
 						const next = raw.slice(0, -1)
 
-						masked.setValue(next)
+						setMaskedValue(next)
 
 						report(next)
 
 						return
 					}
 
-					masked.onChange(event)
+					onMaskedChange(event)
 
 					report(formatExpiry(raw))
 				}}

@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react'
 import type { AriaProps } from '../../types'
-import { useAriaIds } from '../use-aria-ids'
+import { joinAriaIds } from '../use-aria-ids'
 import { useIdScope } from '../use-id-scope'
 
 /** Which ARIA relation a registered slot's id contributes to. */
@@ -94,7 +94,7 @@ export function useA11yScope<Slot extends string = never>(
 ): A11yScope<Slot> {
 	const { id, slots } = options
 
-	const scope = useIdScope({ id })
+	const { id: scopeId, sub } = useIdScope({ id })
 
 	// Per slot, a multiset of the ids currently registered (rendered id → mount
 	// count). Reference-counting keeps the id live while any instance holds it.
@@ -103,8 +103,8 @@ export function useA11yScope<Slot extends string = never>(
 	const slotKeys = useMemo(() => Object.keys(slots ?? {}) as Slot[], [slots])
 
 	const ids = useMemo(
-		() => Object.fromEntries(slotKeys.map((key) => [key, scope.sub(key)])) as Record<Slot, string>,
-		[scope.sub, slotKeys],
+		() => Object.fromEntries(slotKeys.map((key) => [key, sub(key)])) as Record<Slot, string>,
+		[sub, slotKeys],
 	)
 
 	const register = useMemo(() => {
@@ -139,9 +139,8 @@ export function useA11yScope<Slot extends string = never>(
 
 	const buckets = useMemo(() => bucketAriaIds(present, slots), [present, slots])
 
-	// `useAriaIds` is a hook; it cannot run inside the bucketing loop above.
-	const labelledby = useAriaIds(...buckets.labelledby)
-	const describedby = useAriaIds(...buckets.describedby)
+	const labelledby = joinAriaIds(buckets.labelledby)
+	const describedby = joinAriaIds(buckets.describedby)
 
 	const ariaProps = useMemo(
 		() => ({ 'aria-labelledby': labelledby, 'aria-describedby': describedby }),
@@ -157,7 +156,7 @@ export function useA11yScope<Slot extends string = never>(
 	)
 
 	return useMemo(
-		() => ({ id: scope.id, sub: scope.sub, ids, register, ariaProps, registered }),
-		[scope.id, scope.sub, ids, register, ariaProps, registered],
+		() => ({ id: scopeId, sub, ids, register, ariaProps, registered }),
+		[scopeId, sub, ids, register, ariaProps, registered],
 	)
 }

@@ -78,7 +78,13 @@ export function SidebarItem({
 	onClick,
 	...props
 }: SidebarItemProps) {
-	const item = useNavItem({ current, size, preventClose, onClick })
+	const {
+		ref: itemRef,
+		current: isCurrent,
+		size: itemSize,
+		indicator: { ref: indicatorRef, tapHandlers },
+		handleClick,
+	} = useNavItem({ current, size, preventClose, onClick })
 
 	// Inside a SidebarList the wrapper is an <li>; standalone it is a <span>.
 	const inList = useInSidebarList()
@@ -118,24 +124,24 @@ export function SidebarItem({
 
 	const inner = (
 		<Button
-			data-current={dataAttr(item.current)}
+			data-current={dataAttr(isCurrent)}
 			className={cn(
-				k.item.base({ size: item.size, chrome: hasAffix ? 'row' : 'item' }),
+				k.item.base({ size: itemSize, chrome: hasAffix ? 'row' : 'item' }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
 				// cursor over the trigger's help-cursor default.
 				mini && '*:cursor-pointer',
 				className,
 			)}
-			onClick={item.handleClick}
+			onClick={handleClick}
 			// Consumer props spread first; the type, the anchor the Sidebar's roving
 			// selects on, and the current marker below take precedence.
 			{...props}
 			type="button"
 			data-slot="sidebar-item-inner"
-			aria-current={item.current ? 'page' : undefined}
+			aria-current={isCurrent ? 'page' : undefined}
 		>
 			<TouchTarget>
-				{icon && <Icon icon={icon} size={item.size} />}
+				{icon && <Icon icon={icon} size={itemSize} />}
 				{innerChildren}
 			</TouchTarget>
 		</Button>
@@ -143,14 +149,14 @@ export function SidebarItem({
 
 	return (
 		<Wrapper
-			ref={item.ref as Ref<HTMLLIElement & HTMLSpanElement>}
+			ref={itemRef as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			className={k.item.row({ affix: hasAffix, size: item.size })}
-			{...item.indicator.tapHandlers}
+			className={k.item.row({ affix: hasAffix, size: itemSize })}
+			{...tapHandlers}
 		>
 			{prefix != null && (
-				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: item.size }))}>
-					<AffixContext value={affixStepDown(item.size)}>{prefix}</AffixContext>
+				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: itemSize }))}>
+					<AffixContext value={affixStepDown(itemSize)}>{prefix}</AffixContext>
 				</span>
 			)}
 			<HeadlessProvider>
@@ -166,14 +172,14 @@ export function SidebarItem({
 				)}
 			</HeadlessProvider>
 			{resolvedSuffix != null && (
-				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: item.size }))}>
-					<AffixContext value={affixStepDown(item.size)}>{resolvedSuffix}</AffixContext>
+				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: itemSize }))}>
+					<AffixContext value={affixStepDown(itemSize)}>{resolvedSuffix}</AffixContext>
 				</span>
 			)}
-			{item.current && (
+			{isCurrent && (
 				// A current affixed row re-draws its focus ring on the active indicator,
 				// the topmost full-row surface; a plain row keeps the default.
-				<ActiveIndicator ref={item.indicator.ref} className={cn(hasAffix && k.item.indicator)} />
+				<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
 			)}
 		</Wrapper>
 	)

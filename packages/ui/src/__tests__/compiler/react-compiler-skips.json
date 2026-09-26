@@ -17,23 +17,8 @@
 	"components/copy-button/use-copy-button-state.ts": {
 		"useCopyButtonState": "PreserveManualMemo"
 	},
-	"components/credit-card-input/credit-card-input-cvv.tsx": {
-		"CreditCardInputCvv": "Refs"
-	},
-	"components/credit-card-input/credit-card-input-expiry.tsx": {
-		"CreditCardInputExpiry": "Todo"
-	},
-	"components/credit-card-input/credit-card-input.tsx": {
-		"CreditCardInput": "Refs"
-	},
 	"components/date-input/date-input.tsx": {
 		"DateInput": "Refs"
-	},
-	"components/date-picker/date-picker-range.tsx": {
-		"DatePickerRange": "Refs"
-	},
-	"components/date-picker/date-picker.tsx": {
-		"DatePickerSingle": "Refs"
 	},
 	"components/date-picker/use-date-picker-controlled.ts": {
 		"useDatePickerControlled": "Refs"
@@ -65,9 +50,6 @@
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
 	},
-	"components/mask-input/mask-input.tsx": {
-		"MaskInput": "Refs"
-	},
 	"components/menu/menu-sub.tsx": {
 		"MenuSub": "Refs"
 	},
@@ -76,12 +58,6 @@
 	},
 	"components/menu/use-menu-state.ts": {
 		"useMenuState": "PreserveManualMemo"
-	},
-	"components/nav/nav-item.tsx": {
-		"NavItem": "Refs"
-	},
-	"components/pagination/pagination-page.tsx": {
-		"PaginationPage": "Refs"
 	},
 	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
 		"PdfViewerMagnifier": "Refs"
@@ -111,17 +87,11 @@
 	"components/popover/popover-trigger.tsx": {
 		"PopoverTrigger": "Refs"
 	},
-	"components/resizable/resizable-group.tsx": {
-		"ResizableGroup": "Todo"
-	},
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
 	"components/shiny-text/shiny-text.tsx": {
 		"ShinyText": "Refs"
-	},
-	"components/sidebar/sidebar-item.tsx": {
-		"SidebarItem": "Refs"
 	},
 	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
 		"useSignaturePadCanvasSizing": "Refs"
@@ -141,14 +111,8 @@
 	"components/tooltip/use-tooltip-state.ts": {
 		"useTooltipState": "Refs"
 	},
-	"hooks/a11y/use-a11y-control.ts": {
-		"useA11yControl": "UseMemo"
-	},
 	"hooks/a11y/use-a11y-roving.ts": {
 		"useA11yRoving": "PreserveManualMemo"
-	},
-	"hooks/a11y/use-a11y-scope.ts": {
-		"useA11yScope": "Todo"
 	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
@@ -181,9 +145,6 @@
 	"modules/chart/engine/chart-context-menu.tsx": {
 		"ChartContextMenu": "PreserveManualMemo"
 	},
-	"modules/chart/engine/chart-frame/cartesian.tsx": {
-		"ChartCartesianFrame": "Refs"
-	},
 	"modules/chart/engine/chart-tooltip.tsx": {
 		"ChartTooltip": "Refs"
 	},
@@ -192,9 +153,6 @@
 	},
 	"modules/chart/scatter-chart/scatter-chart.tsx": {
 		"useScatterReadout": "PreserveManualMemo"
-	},
-	"modules/chat/use-chat-send.ts": {
-		"useChatSend": "Todo"
 	},
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
@@ -222,12 +180,6 @@
 	"modules/grid/grid-group-head.tsx": {
 		"GridGroupHead": "Immutability"
 	},
-	"modules/grid/grid-reorder.ts": {
-		"useColumnReorderShift": "Todo"
-	},
-	"modules/grid/grid-row.tsx": {
-		"GridRowDragHandle": "Refs"
-	},
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"
 	},
@@ -237,9 +189,6 @@
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"
-	},
-	"modules/grid/use-grid-group.ts": {
-		"useGridGroup": "Todo"
 	},
 	"modules/grid/use-grid-item-window.ts": {
 		"useGridItemWindow": "Immutability"
@@ -258,9 +207,6 @@
 	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
-	},
-	"modules/map/map-frame.tsx": {
-		"MapPlotRegion": "Refs"
 	},
 	"modules/map/map-hover-provider.tsx": {
 		"MapHoverProvider": "Refs"

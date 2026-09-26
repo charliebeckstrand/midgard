@@ -30,11 +30,11 @@ export function PaginationPage({
 	href,
 	...props
 }: PaginationPageProps) {
-	const indicator = useActiveIndicator()
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 
 	return (
 		<li>
-			<span className={k.wrapper} {...indicator.tapHandlers}>
+			<span className={k.wrapper} {...tapHandlers}>
 				<Polymorphic
 					as="button"
 					data-slot="pagination-page"
@@ -45,7 +45,7 @@ export function PaginationPage({
 				>
 					{children}
 				</Polymorphic>
-				{current && <ActiveIndicator ref={indicator.ref} />}
+				{current && <ActiveIndicator ref={indicatorRef} />}
 			</span>
 		</li>
 	)
