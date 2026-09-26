@@ -32,7 +32,9 @@ function setup(disabled = false) {
 
 	const onPosition = vi.fn<(position: DragPosition) => void>()
 
-	const { result } = renderHook(() => useColorDrag({ current: node }, onPosition, disabled))
+	const { result } = renderHook(() =>
+		useColorDrag({ current: node }, onPosition, disabled, 'crosshair'),
+	)
 
 	return { api: result.current, node, onPosition }
 }

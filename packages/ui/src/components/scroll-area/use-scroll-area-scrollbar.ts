@@ -7,6 +7,7 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import { holdDragCursor } from '../../hooks/use-drag-cursor'
 import type { ScrollOrientation } from '../../types'
 import { hiddenThumb, SCROLL_FADE_DELAY_MS, type ThumbState } from './scroll-area-constants'
 import { computeThumb, findScrollableAncestor } from './scroll-area-utilities'
@@ -78,8 +79,14 @@ function beginScrollbarDrag(
 
 	const { signal } = controller
 
+	// The thumb sets no cursor, so the page holds the default one. A link or a
+	// field that the pointer crosses mid-drag then does not change it.
+	const releaseCursor = holdDragCursor('default')
+
 	const cleanup = () => {
 		controller.abort()
+
+		releaseCursor()
 
 		ctx.dragCleanupRef.current = null
 	}

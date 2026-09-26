@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { announce, cn, dataAttr } from '../../core'
+import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { k } from '../../recipes/kata/grid'
 import { describeResize } from './engine/grid-announcements'
@@ -42,6 +43,10 @@ export function GridColumnResizeHandle({
 	actions: resize,
 	resizing,
 }: GridColumnResizeHandleProps) {
+	// The resize cursor stays on the page for the whole drag, over a cell or a
+	// control with a cursor of its own.
+	useDragCursor(resizing, 'col-resize')
+
 	// The width of the latest commit. A nudge or an auto-size lands in a later
 	// commit than the key press, so the announcement reads the width from here.
 	const sizeRef = useRef(size)
@@ -151,11 +156,10 @@ export function GridColumnResizeHandle({
 				// this event. Only a press that starts a drag-resize takes the capture.
 				if (event.button !== 0 || event.ctrlKey) return
 
-				// Capture holds the handle as the pointer target for the whole drag. The
-				// handle then keeps its resize cursor over a cell or a control with its
-				// own cursor. The engine's document-level mouse listeners still receive
-				// the moves and the release. The browser releases the capture on
-				// pointerup and pointercancel.
+				// Capture holds the handle as the pointer target for the whole drag, so
+				// the cells under the pointer show no hover. The engine's document-level
+				// mouse listeners still receive the moves and the release. The browser
+				// releases the capture on pointerup and pointercancel.
 				event.currentTarget.setPointerCapture(event.pointerId)
 			}}
 			onClick={(event) => event.stopPropagation()}

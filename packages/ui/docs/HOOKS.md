@@ -75,7 +75,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useSortableList` | Single-list reorder backed by @dnd-kit: owns the drag lifecycle and commits via `arrayMove`. |
 | `useSortableItem` | Wraps dnd-kit `useSortable` with standard transform/transition/drag-opacity style composition. |
 | `useSortableSensors` | Standard dnd-kit sensor config: low-threshold pointer sensor plus arrow-key keyboard sensor. |
-| `useGrabbingCursor` | Forces the grabbing cursor document-wide while active; ref-counted, injected as one universal rule. |
+| `useDragCursor` | Holds a drag cursor (`grabbing` by default, or a resize cursor) on the whole page while active, over elements that set their own cursor. Every drag in the library goes through it, and `drag-cursor-boundary.test.ts` keeps it that way. `useSortableList` calls it for each sortable list. |
 
 ## Formatting & input
 
@@ -116,6 +116,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `ScrollOverflowOptions` | Options for `useScrollOverflow`: the enable gate, for a container that cannot overflow in one of its states. |
 | `ScrollWithinOptions` | Options for `useScrollWithin`. |
 | `SortableItemOptions` / `SortableListOptions` / `SortableSensorsOptions` | Options for the three `@dnd-kit` wrappers. |
+| `DragCursor` | The cursors that `useDragCursor` can hold. |
 | `VirtualWindowOptions` / `MeasuredVirtualWindowOptions` | Options for `useVirtualWindow`: the item count, the size estimate, the overscan, and the offsets of the content above the list. The measured form adds the stable row key, the `anchorTo` edge, and `followOnAppend`. |
 
 `usePlotFrame` exports the types its own signature names: the sizing policy it takes, the reserve it returns, and its measuring handle. The chart and map modules share them with their frame-sizing helpers. The resolver behind it (`resolveFrameSizing`) and that resolver's return shape stay module-private. Reach them at `hooks/use-plot-frame` from inside the package.

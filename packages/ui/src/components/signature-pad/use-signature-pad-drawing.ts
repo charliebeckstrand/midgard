@@ -7,6 +7,7 @@ import {
 	type SetStateAction,
 	useRef,
 } from 'react'
+import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { getCanvasPoint, resolveStrokeColor } from './signature-pad-utilities'
 
 type SignatureDrawingOptions = {
@@ -53,6 +54,9 @@ export function useSignaturePadDrawing({
 }: SignatureDrawingOptions) {
 	const drawingRef = useRef(false)
 
+	// The pen keeps the crosshair on the page while a stroke runs off the pad.
+	const cursorHold = useDragCursorHold('crosshair')
+
 	const lastPointRef = useRef<{ x: number; y: number } | null>(null)
 
 	const handlePointerDown = (event: ReactPointerEvent) => {
@@ -77,6 +81,8 @@ export function useSignaturePadDrawing({
 		event.currentTarget.setPointerCapture?.(event.pointerId)
 
 		drawingRef.current = true
+
+		cursorHold.start()
 
 		// The stroke is now established: every guard above passed, and `commit`
 		// owes a value. The report rides this line, so a pad that draws nothing
@@ -128,6 +134,8 @@ export function useSignaturePadDrawing({
 	}
 
 	const commit = (): boolean => {
+		cursorHold.end()
+
 		if (!drawingRef.current) return false
 
 		drawingRef.current = false

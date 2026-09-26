@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type DragCursor, holdDragCursor } from '../../hooks/use-drag-cursor'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
@@ -45,6 +46,18 @@ export type DashboardResizeHandlers = {
 	 * is live.
 	 */
 	cancelResize: (id?: string) => void
+}
+
+/**
+ * The cursor that one resize holds: the cursor of its splitter at rest. The corner
+ * sits at the end edge, so a right-to-left tile slants the cursor the other way.
+ */
+function edgeCursor(edge: DashboardResizeEdge, inline: 1 | -1): DragCursor {
+	if (edge === 'e') return 'ew-resize'
+
+	if (edge === 's') return 'ns-resize'
+
+	return inline === 1 ? 'nwse-resize' : 'nesw-resize'
 }
 
 /** The pitch and the limits of one resize of the tile `id`, or `null` when the tile cannot resize. */
@@ -146,6 +159,10 @@ export function useDashboardResize({
 
 			handle.setPointerCapture(pointerId)
 
+			// The cursor of the edge stays on the page until `finish`, over the tiles
+			// and the controls that the pointer crosses.
+			const releaseCursor = holdDragCursor(edgeCursor(edge, inline))
+
 			const { width, layout } = store.getState()
 
 			store.setState({
@@ -203,6 +220,8 @@ export function useDashboardResize({
 				canvas.style.minHeight = restMinHeight
 
 				live.current = null
+
+				releaseCursor()
 
 				if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId)
 

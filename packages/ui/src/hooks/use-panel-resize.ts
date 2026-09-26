@@ -10,6 +10,7 @@ import {
 } from 'react'
 import { dataAttr } from '../core'
 import { clamp, pct } from '../utilities'
+import { useDragCursor } from './use-drag-cursor'
 
 /** How far one arrow press moves the edge, as a share of the screen. */
 const STEP = 0.1
@@ -280,6 +281,10 @@ export function usePanelResize({
 	const [size, setSize] = useState<number | null>(null)
 
 	const [resizing, setResizing] = useState(false)
+
+	// The gesture listens on the window and captures nothing, so the element under
+	// the pointer would set the cursor. The rule holds the closed hand instead.
+	useDragCursor(resizing)
 
 	// The share of the screen the panel covers. Measured rather than derived: at
 	// rest the size is whatever the panel's variant works out to on this screen,

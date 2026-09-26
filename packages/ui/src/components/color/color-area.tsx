@@ -29,7 +29,7 @@ export function ColorArea() {
 	const onPosition = ({ x, y }: DragPosition) =>
 		setHsva((prev) => ({ ...prev, s: x * 100, v: (1 - y) * 100 }))
 
-	const drag = useColorDrag(ref, onPosition, disabled)
+	const drag = useColorDrag(ref, onPosition, disabled, 'crosshair')
 
 	const onKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (disabled) return

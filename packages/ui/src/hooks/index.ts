@@ -29,6 +29,7 @@ export { useComposedRef } from './use-composed-ref'
 export { type ControllableOptions, type SetValue, useControllable } from './use-controllable'
 export { type DeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type DismissableOptions, useDismissable } from './use-dismissable'
+export { type DragCursor, useDragCursor } from './use-drag-cursor'
 export { type EscapeLayerOptions, useEscapeLayer } from './use-escape-layer'
 export {
 	type FloatingDisclosureOptions,
@@ -45,7 +46,6 @@ export {
 	useFloatingUI,
 } from './use-floating-ui'
 export { type FormattedInputOptions, useFormattedInput } from './use-formatted-input'
-export { useGrabbingCursor } from './use-grabbing-cursor'
 export { useHasHover } from './use-has-hover'
 export { useHoverAcrossScroll } from './use-hover-across-scroll'
 export { type IdScopeOptions, useIdScope } from './use-id-scope'

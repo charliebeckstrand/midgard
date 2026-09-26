@@ -1,6 +1,7 @@
 'use client'
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
+import { type DragCursor, useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { clamp } from '../../utilities'
 
 /** Pointer position within the tracked element, each axis normalized to `0-1`. */
@@ -24,6 +25,7 @@ export type ColorDragHandlers = {
  * @param ref - The tracked element; its bounding rect normalizes pointer coordinates.
  * @param onPosition - Receives the clamped `0-1` position on press and on each tracked move.
  * @param disabled - When set, press is ignored and no drag begins.
+ * @param cursor - The cursor of the track at rest, which the page holds while the press holds.
  * @returns The {@link ColorDragHandlers} bag to spread onto `ref`'s element.
  * @remarks
  * `onPointerDown` calls `preventDefault` and focuses `ref` synchronously, so the
@@ -38,8 +40,11 @@ export function useColorDrag(
 	ref: RefObject<HTMLElement | null>,
 	onPosition: (position: DragPosition) => void,
 	disabled: boolean,
+	cursor: DragCursor,
 ): ColorDragHandlers {
 	const dragging = useRef(false)
+
+	const cursorHold = useDragCursorHold(cursor)
 
 	const positionFromEvent = useCallback(
 		(event: ReactPointerEvent<HTMLElement>): DragPosition => {
@@ -66,9 +71,11 @@ export function useColorDrag(
 
 			dragging.current = true
 
+			cursorHold.start()
+
 			onPosition(positionFromEvent(event))
 		},
-		[disabled, onPosition, positionFromEvent, ref],
+		[disabled, onPosition, positionFromEvent, ref, cursorHold],
 	)
 
 	const onPointerMove = useCallback(
@@ -80,20 +87,27 @@ export function useColorDrag(
 		[onPosition, positionFromEvent],
 	)
 
-	const endDrag = useCallback((event: ReactPointerEvent<HTMLElement>) => {
-		dragging.current = false
+	const endDrag = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			dragging.current = false
 
-		if (event.currentTarget.hasPointerCapture(event.pointerId)) {
-			event.currentTarget.releasePointerCapture(event.pointerId)
-		}
-	}, [])
+			cursorHold.end()
+
+			if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+				event.currentTarget.releasePointerCapture(event.pointerId)
+			}
+		},
+		[cursorHold],
+	)
 
 	// `lostpointercapture` fires on every capture end: normal release,
 	// `pointercancel` (browser-claimed gesture), or node removal. It is the
 	// authoritative reset for `dragging`.
 	const onLostPointerCapture = useCallback(() => {
 		dragging.current = false
-	}, [])
+
+		cursorHold.end()
+	}, [cursorHold])
 
 	return {
 		onPointerDown,
