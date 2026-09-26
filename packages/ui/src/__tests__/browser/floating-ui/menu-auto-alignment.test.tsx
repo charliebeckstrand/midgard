@@ -83,4 +83,39 @@ describe('a Menu with the auto alignment (real floating engine)', () => {
 
 		expect(panel.right).toBeLessThanOrEqual(window.innerWidth)
 	})
+
+	it('keeps the auto alignment when flip moves the panel to the other side', async () => {
+		// The trigger sits in the right half at the foot of the viewport, so the
+		// panel has no room below it and flips above it.
+		renderUI(
+			<div
+				style={{
+					display: 'flex',
+					justifyContent: 'flex-end',
+					alignItems: 'flex-end',
+					height: '100vh',
+					boxSizing: 'border-box',
+					padding: '0 160px 8px',
+				}}
+			>
+				<Menu placement="bottom-auto" defaultOpen>
+					<MenuTrigger>
+						<Button>Open</Button>
+					</MenuTrigger>
+
+					<MenuContent>
+						<MenuItem>
+							<span style={{ display: 'inline-block', width: 80 }}>Rename</span>
+						</MenuItem>
+					</MenuContent>
+				</Menu>
+			</div>,
+		)
+
+		const { trigger, panel } = await edges()
+
+		expect(panel.bottom).toBeLessThanOrEqual(trigger.top)
+
+		expect(panel.right).toBeCloseTo(trigger.right, 0)
+	})
 })

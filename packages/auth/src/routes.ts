@@ -15,6 +15,15 @@ export function isGuestRoute(pathname: string): boolean {
 }
 
 /**
+ * True when `pathname` is the same-origin auth route (`/auth`) or a subpath of it.
+ *
+ * @internal
+ */
+export function isAuthRoute(pathname: string): boolean {
+	return isWithin(pathname, '/auth')
+}
+
+/**
  * True when `pathname` is the same-origin API route (`/api`) or a subpath of it.
  *
  * @internal

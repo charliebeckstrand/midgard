@@ -53,6 +53,9 @@ describe('Split responsive axes', () => {
 		expect(className).toContain('grid-rows-[1fr_1fr]')
 
 		expect(className).toContain('md:grid-cols-[1fr_1fr]')
+
+		// The rows template of the base stays in force at `md` without a reset.
+		expect(className).toContain('md:grid-rows-none')
 	})
 
 	it('carries the axis forward to a breakpoint only the ratio names', () => {

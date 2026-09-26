@@ -57,7 +57,13 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 
 	return (
 		<StackedLayout>
-			<Flex direction={{ initial: 'col', lg: 'row' }} gap="md">
+			{/* A row centers its cross axis by default. The rail starts at the top of the
+			    main column. */}
+			<Flex
+				direction={{ initial: 'col', lg: 'row' }}
+				align={{ initial: 'stretch', lg: 'start' }}
+				gap="md"
+			>
 				{filters && (
 					<>
 						{/* Filters on desktop */}

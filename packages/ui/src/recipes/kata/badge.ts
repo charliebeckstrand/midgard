@@ -28,11 +28,41 @@ export const k = defineRecipe({
 	// near 22px, so an 8px scale anchored at md=30 leaves no room for xs.
 	// Horizontal padding still grows 0.5/step to hold the affix
 	// chip-alignment lockstep (`kiso/control/affix.ts`).
+	// A LoadingSpinner reads no context, so each row projects the size of its
+	// icon row onto it.
 	size: {
-		xs: [size.xs, icon.xs, gap.g('0.5'), padding.py('1'), padding.px('1')],
-		sm: [size.sm, icon.sm, gap.g('0.75'), padding.py('1'), padding.px('1.5')],
-		md: [size.md, icon.md, gap.g('1'), padding.py('1'), padding.px('2')],
-		lg: [size.lg, icon.lg, gap.g('1.25'), padding.py('1'), padding.px('2.5')],
+		xs: [
+			size.xs,
+			icon.xs,
+			gap.g('0.5'),
+			padding.py('1'),
+			padding.px('1'),
+			'*:data-[slot=loading-spinner]:size-3',
+		],
+		sm: [
+			size.sm,
+			icon.sm,
+			gap.g('0.75'),
+			padding.py('1'),
+			padding.px('1.5'),
+			'*:data-[slot=loading-spinner]:size-4',
+		],
+		md: [
+			size.md,
+			icon.md,
+			gap.g('1'),
+			padding.py('1'),
+			padding.px('2'),
+			'*:data-[slot=loading-spinner]:size-5',
+		],
+		lg: [
+			size.lg,
+			icon.lg,
+			gap.g('1.25'),
+			padding.py('1'),
+			padding.px('2.5'),
+			'*:data-[slot=loading-spinner]:size-6',
+		],
 	},
 	radius: rounded,
 	// Opt into the wide palette: Badge's `color` axis carries the standard set

@@ -26,7 +26,9 @@ export const item = {
 		'whitespace-nowrap',
 		rounded.lg,
 		weight.medium,
-		'select-none',
+		// iOS Safari can select the text in a child of a `select-none` item on a long
+		// press, so the children also set it.
+		'select-none *:select-none',
 		// The selected item steps to full-strength ink and the rest stay muted — the
 		// muted/`data-current` pairing the underline tab carries, which this had no counterpart
 		// for: every item rendered at one color, so the indicator behind the active one was the

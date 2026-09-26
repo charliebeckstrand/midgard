@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { isApiRoute, isGuestRoute } from '../routes'
+import { isApiRoute, isAuthRoute, isGuestRoute } from '../routes'
 
 describe('isGuestRoute', () => {
 	it('matches the guest routes exactly', () => {
@@ -42,5 +42,19 @@ describe('isApiRoute', () => {
 		expect(isApiRoute('/users/api')).toBe(false)
 
 		expect(isApiRoute('/')).toBe(false)
+	})
+})
+
+describe('isAuthRoute', () => {
+	it('matches the auth route and its subpaths', () => {
+		expect(isAuthRoute('/auth')).toBe(true)
+
+		expect(isAuthRoute('/auth/login')).toBe(true)
+	})
+
+	it('does not match an auth prefix without a path boundary', () => {
+		expect(isAuthRoute('/authors')).toBe(false)
+
+		expect(isAuthRoute('/users/auth')).toBe(false)
 	})
 })

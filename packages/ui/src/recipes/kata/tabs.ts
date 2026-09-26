@@ -76,6 +76,10 @@ const tab = defineRecipe({
 		...disabled,
 		'outline-none',
 		'whitespace-nowrap',
+		// The tab is a headless Button, which drops the `select-none` of the button
+		// recipe. A long press on iOS selects the label text without this, and iOS
+		// Safari can select the text in a child of a `select-none` tab.
+		'select-none *:select-none',
 		...cursor,
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',

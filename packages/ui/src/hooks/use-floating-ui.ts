@@ -73,18 +73,23 @@ function autoSide(placement: FloatingPlacement): Side | undefined {
 
 /**
  * Sets the alignment of the current placement from the position of the
- * reference in the viewport. It acts one time in each position pass, and
- * reads the side from the current placement. Thus a later `flip` keeps the
- * placement that it selects, and causes no reset loop.
+ * reference in the viewport. It acts one time for each side in a position
+ * pass, and reads the side from the current placement. When `flip` moves the
+ * panel to a new side, the middleware sets the alignment of that side again.
+ * `flip` builds its fallbacks from the initial `-start` placement, so without
+ * this a flipped panel keeps the start alignment. A later `flip` inside one
+ * side keeps the placement that it selects, and causes no reset loop.
  *
  * @internal
  */
 const autoAlignMiddleware: Middleware = {
 	name: 'autoAlign',
 	async fn({ placement, elements, platform, middlewareData }) {
-		if (middlewareData.autoAlign) return {}
-
 		const [side] = placement.split('-') as [Side]
+
+		const aligned: Partial<Record<Side, true>> | undefined = middlewareData.autoAlign
+
+		if (aligned?.[side]) return {}
 		const vertical = side === 'top' || side === 'bottom'
 		const rect = elements.reference.getBoundingClientRect()
 		const viewport = elements.floating.ownerDocument.documentElement
@@ -99,7 +104,9 @@ const autoAlignMiddleware: Middleware = {
 
 		const next: Placement = `${side}-${firstHalf !== rtl ? 'start' : 'end'}`
 
-		return next === placement ? { data: {} } : { data: {}, reset: { placement: next } }
+		const data = { [side]: true }
+
+		return next === placement ? { data } : { data, reset: { placement: next } }
 	},
 }
 

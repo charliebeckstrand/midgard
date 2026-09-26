@@ -1,5 +1,5 @@
-// The only reader of `process.env.BIFROST_URL` in the repository (CONVENTIONS.md §11.1).
-// The other workspaces get the gateway origin through this package.
+// The only reader of `BIFROST_URL` and `PROXY_SECRET` in the repository (CONVENTIONS.md §11.1).
+// The other workspaces get these values through this package.
 
 const fallback = process.env.NODE_ENV === 'production' ? undefined : 'http://localhost:4000'
 
@@ -35,3 +35,15 @@ if (protocol !== 'http:' && protocol !== 'https:') {
  * @internal
  */
 export const BIFROST_URL = url.replace(/\/+$/, '')
+
+/**
+ * Secret that the gateway requires before it uses the client address that the proxy sends.
+ *
+ * @remarks
+ * Read from `process.env.PROXY_SECRET` at run time. The gateway holds the same
+ * value. When it is not set, the proxy sends no client address, and the gateway
+ * uses the address of the app.
+ *
+ * @internal
+ */
+export const PROXY_SECRET = process.env.PROXY_SECRET || undefined
