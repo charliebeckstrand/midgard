@@ -46,10 +46,9 @@ export function drawSnapshot(canvas: HTMLCanvasElement, src: string) {
  * own computed `color`.
  *
  * @remarks
- * A canvas takes no `currentColor`, so the theme's ink has to be read off the
- * element and handed to the 2D context. That is what makes an unset
- * `strokeColor` follow the theme instead of painting one hard-coded hex on
- * both a light and a dark surface. Falls back to `currentColor` where no
+ * A canvas takes no `currentColor`, so the ink has to be read off the element
+ * and handed to the 2D context. That lets the recipe set the ink with a CSS
+ * class, and a consumer `className` can change it. Falls back to `currentColor` where no
  * computed style is available, which is the server and a detached node.
  *
  * @internal
