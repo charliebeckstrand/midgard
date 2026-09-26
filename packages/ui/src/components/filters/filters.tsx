@@ -54,6 +54,10 @@ export type FiltersProps<T extends FilterValue = FilterValue> = AccessibleName &
 	className?: string
 }
 
+// The value of a bar that holds none. One object, so the context value keeps
+// its identity.
+const NO_FILTERS: Record<string, unknown> = {}
+
 /**
  * Coordinator for a row of filter controls over a `Record` value. Shares
  * set/clear and an active-count through context to enclosed {@link FiltersField}
@@ -92,7 +96,7 @@ export function Filters<T extends FilterValue = FilterValue>({
 		onValueChange: onValueChange && ((v) => v != null && onValueChange(v)),
 	})
 
-	const filterValue = (state ?? {}) as T
+	const filterValue = (state ?? NO_FILTERS) as T
 
 	const setValue = useCallback(
 		(name: string, fieldValue: unknown) => {
