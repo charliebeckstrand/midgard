@@ -299,7 +299,8 @@ export const k = {
 		// the end. Stacks on narrow viewports, then lays out as a row from `sm`.
 		bar: ['flex', 'flex-col', 'gap-2', 'sm:flex-row', 'sm:items-center'],
 		// Column-manager cluster: pushed to the row's end from `sm` so it sits across
-		// from the search field (and stays at the end even when it stands alone).
+		// from the search field. The toolbar applies it only when no consumer content
+		// renders, because two auto margins in one row share the free space.
 		actions: 'sm:ms-auto',
 		// The consumer's own content, pushed to the end the same way. It sits ahead
 		// of the tools, so with both present the free space opens once — here — and
