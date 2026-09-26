@@ -1,5 +1,5 @@
-import { bifrost, requireSession } from 'auth'
-import type { Factors, Passkey } from './account-api'
+import { bifrost, getSignInProviders, requireSession } from 'auth'
+import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
 
 /**
@@ -35,13 +35,49 @@ async function getFactors(): Promise<Factors> {
 }
 
 /**
+ * Fetches the GitHub and Google accounts of the signed-in user from the
+ * gateway, server-side.
+ *
+ * @internal
+ * @returns The accounts, or `[]` on a non-OK response.
+ */
+async function getIdentities(): Promise<Identity[]> {
+	const res = await bifrost('/auth/oauth/identities')
+
+	if (!res.ok) return []
+
+	const { identities } = (await res.json()) as { identities: Identity[] }
+
+	return identities
+}
+
+/**
  * Account page of each signed-in user. The proxy only finds the cookie, so
  * `requireSession` checks the session, and sends a guest to `/login`.
  */
-export default async function AccountPage() {
+export default async function AccountPage({
+	searchParams,
+}: {
+	searchParams: Promise<{ error?: string | string[] }>
+}) {
 	const { user } = await requireSession()
 
-	const [passkeys, factors] = await Promise.all([getPasskeys(), getFactors()])
+	const [passkeys, factors, identities, providers, { error }] = await Promise.all([
+		getPasskeys(),
+		getFactors(),
+		getIdentities(),
+		getSignInProviders(),
+		searchParams,
+	])
 
-	return <AccountClient user={user} passkeys={passkeys} factors={factors} />
+	return (
+		<AccountClient
+			user={user}
+			passkeys={passkeys}
+			factors={factors}
+			identities={identities}
+			providers={providers}
+			connectError={typeof error === 'string' ? error : undefined}
+		/>
+	)
 }

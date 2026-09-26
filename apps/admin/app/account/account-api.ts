@@ -129,3 +129,33 @@ export async function generateRecoveryCodes(): Promise<string[]> {
 
 	return codes
 }
+
+/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
+export type Provider = 'github' | 'google'
+
+/** A GitHub or Google account connected to the signed-in user. */
+export type Identity = {
+	provider: Provider
+	/** The verified email of the account, or null when it has none. */
+	email: string | null
+	created_at: string
+}
+
+/** The GitHub and Google accounts connected to the signed-in user. */
+export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]> {
+	const response = await request('/auth/oauth/identities', { signal })
+
+	const { identities } = (await response.json()) as { identities: Identity[] }
+
+	return identities
+}
+
+/**
+ * Disconnects the account of the provider.
+ *
+ * The gateway refuses with a `409` when the user then has no way to sign in: no
+ * password, no other connected account, and no passkey.
+ */
+export async function unlinkIdentity(provider: Provider): Promise<void> {
+	await request(`/auth/oauth/identities/${provider}`, { method: 'DELETE' })
+}

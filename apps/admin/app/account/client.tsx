@@ -12,24 +12,30 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
-import type { Factors, Passkey } from './account-api'
+import type { Factors, Identity, Passkey, Provider } from './account-api'
 import { useAddPasskey, useFactors, usePasskeys, useRemovePasskey } from './account-queries'
+import { ConnectedAccounts } from './connected-accounts'
 import { TwoStep } from './two-step'
 
 type AccountClientProps = {
 	user: User
 	passkeys: Passkey[]
 	factors: Factors
+	identities: Identity[]
+	/** The providers that the gateway has set up. */
+	providers: Provider[]
+	/** The `?error=` code that a connect came back with, if any. */
+	connectError?: string
 }
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 /**
- * Account page: the passkeys, authenticator app, and recovery codes of the
- * signed-in user, and sign-out.
+ * Account page: the passkeys, authenticator app, recovery codes, and GitHub and
+ * Google accounts of the signed-in user, and sign-out.
  *
  * @remarks
- * The server page seeds the `usePasskeys` and `useFactors` queries. The user owns the passkeys,
+ * The server page seeds the `usePasskeys`, `useFactors`, and `useIdentities` queries. The user owns the passkeys,
  * and no admin can change them. The gateway accepts a change only soon after
  * the sign-in, and shows why when it refuses. A removal asks for confirmation
  * first.
@@ -38,6 +44,9 @@ export function AccountClient({
 	user,
 	passkeys: initialPasskeys,
 	factors: initialFactors,
+	identities,
+	providers,
+	connectError,
 }: AccountClientProps) {
 	const router = useRouter()
 	const { data: passkeys } = usePasskeys(initialPasskeys)
@@ -109,6 +118,12 @@ export function AccountClient({
 						</Button>
 					</div>
 				</TwoStep>
+
+				<ConnectedAccounts
+					providers={providers}
+					identities={identities}
+					connectError={connectError}
+				/>
 
 				{user.role === 'admin' && (
 					<Text className="text-center">
