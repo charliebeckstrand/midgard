@@ -13,6 +13,7 @@ import {
 	type PdfPageRaster,
 	type PdfRenderJob,
 	showThumbnails,
+	sizePage,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
 import type { PdfViewerPage } from './types'
@@ -249,12 +250,12 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 		// The entry owns the document from here, and the `finally` must not destroy it.
 		opened = null
 
-		report.serve((index, raster) => {
+		report.serve((index, raster, factor = 1) => {
 			const page = parsed[index]
 
 			if (!page) return { promise: Promise.resolve(null), cancel: () => {} }
 
-			return renderPage(page, raster, scale)
+			return renderPage(page, raster, scale * factor)
 		})
 	} finally {
 		// Destroy through the loading task: pdf.js 6 removed `PDFDocumentProxy.destroy`,
@@ -308,21 +309,34 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
  * Asks the cache to render the page at the 1-based `page` of `src`, for as long as this viewer
  * shows it.
  *
+ * @param width - The width of the page on screen, in CSS pixels. When the page shows wider than
+ * its raster, the queue renders it again at a larger scale, so its text stays sharp.
  * @returns The function that names the thumbnails the rail shows, as 0-based indices, or
  * `null` with no `src`.
- * @remarks The queue renders this page first, then its neighbors, then the thumbnails that the
- * rail shows. A page past the last page counts as the last page, so a viewer can ask before the
- * document opens.
+ * @remarks The queue renders this page first, then a sharp copy if the width asks for one.
+ * Its neighbors come next, and then the thumbnails that the rail shows. A page past the last page counts as
+ * the last page, so a viewer can ask before the document opens.
+ *
+ * The width has an effect of its own. A zoom then changes the width and keeps the focus, so
+ * the render in flight continues.
  * @internal
  */
 export function usePdfViewerDocumentFocus(
 	src: string | undefined,
 	page: number,
+	width = 0,
 ): ((indices: number[]) => void) | null {
 	// One token for each mounted viewer, so two viewers on one document each keep a page.
 	const [token] = useState(() => ({}))
 
 	useEffect(() => focusPage(src, token, Math.max(page - 1, 0)), [src, token, page])
+
+	useEffect(() => {
+		// The same density as a render: device pixels, up to 2 for each CSS pixel.
+		const density = clamp(window.devicePixelRatio || 1, 1, 2)
+
+		return sizePage(src, token, width * density)
+	}, [src, token, width])
 
 	const show = useCallback((indices: number[]) => showThumbnails(src, token, indices), [src, token])
 

@@ -321,13 +321,13 @@ describe('PdfViewer', () => {
 
 		const { rerender } = renderUI(<PdfViewer src="/queue.pdf" page={4} />)
 
-		expect(render).toHaveBeenNthCalledWith(1, 3, 'full')
+		expect(render).toHaveBeenNthCalledWith(1, 3, 'full', 1)
 
 		rerender(<PdfViewer src="/queue.pdf" page={6} />)
 
 		await act(async () => {})
 
-		expect(render).toHaveBeenLastCalledWith(5, 'full')
+		expect(render).toHaveBeenLastCalledWith(5, 'full', 1)
 
 		resetDocumentCache()
 	})
@@ -361,6 +361,43 @@ describe('PdfViewer', () => {
 		resetDocumentCache()
 	})
 
+	// A page that shows wider than its slot renders again at a larger scale. The viewport here
+	// fits the page at its slot size, and the zoom of 2 doubles it.
+	it('asks the queue for a sharp raster of a zoomed page', async () => {
+		resetDocumentCache()
+
+		vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(918)
+
+		vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1188)
+
+		const render = vi.fn((_index: number, _raster: string, factor = 1) => ({
+			promise: Promise.resolve({
+				width: 918 * factor,
+				height: 1188 * factor,
+				close: vi.fn(),
+			} as unknown as ImageBitmap),
+			cancel: () => {},
+		}))
+
+		ensureDocumentLoad('/zoom.pdf', (report) => {
+			report.open([{ id: 1, src: '', label: 'Page 1', width: 918, height: 1188 }])
+
+			report.serve(render)
+
+			return Promise.resolve()
+		})
+
+		renderUI(<PdfViewer src="/zoom.pdf" defaultZoom={2} />)
+
+		for (let step = 0; step < 4; step++) await act(async () => {})
+
+		expect(render.mock.calls.map((call) => call[2])).toEqual([1, 2])
+
+		resetDocumentCache()
+
+		vi.restoreAllMocks()
+	})
+
 	// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
 	// observer reports every tile in view.
 	it('asks the queue for the thumbnails that the rail shows', async () => {
@@ -385,7 +422,7 @@ describe('PdfViewer', () => {
 
 		for (let step = 0; step < 6; step++) await act(async () => {})
 
-		expect(render).toHaveBeenCalledWith(2, 'thumbnail')
+		expect(render).toHaveBeenCalledWith(2, 'thumbnail', 1)
 
 		const tiles = allBySlot(container, 'pdf-viewer-thumbnail')
 

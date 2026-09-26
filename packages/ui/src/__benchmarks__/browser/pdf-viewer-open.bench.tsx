@@ -6,6 +6,8 @@
  *   thumbnails that the rail shows. The first page is when the reader can read, and the settle is when the rail is
  *   whole. The sample times the settle. The last sample of each count prints the mean time to
  *   the first painted page, and the full rasters that the open rendered.
+ * - `cold open · 1 page · zoom 2` opens one page at a zoom of 2. The page shows wider than its
+ *   slot, so the queue renders it again at a larger scale after the first paint.
  * - `stage · …` splits one page into the steps that the rasterizer takes: the pdf.js render
  *   onto a canvas, then the encode that turns the canvas into the image the viewer shows.
  *   The encoders beside PNG are the alternatives, so each one's cost is on record. The
@@ -84,7 +86,8 @@ const thumbnailRasters = new Map<number, number>()
  */
 async function openCold(
 	bytes: Uint8Array,
-): Promise<{ painted: number; rasters: number; thumbnails: number }> {
+	zoom = 1,
+): Promise<{ painted: number; rasters: number; thumbnails: number; width: number }> {
 	resetDocumentCache()
 
 	const src = servePdf(bytes)
@@ -120,6 +123,7 @@ async function openCold(
 				<PdfViewer
 					src={src}
 					fit="page"
+					defaultZoom={zoom}
 					aria-label="Invoice"
 					onLoad={() => resolve()}
 					onError={reject}
@@ -137,6 +141,8 @@ async function openCold(
 
 	const thumbnails = entry?.thumbnails ?? 0
 
+	const width = getDocumentSnapshot(src).pages[0]?.bitmap?.width ?? 0
+
 	// The decode of the first page can land after the load report.
 	while (painted < 0 || Number.isNaN(painted)) {
 		await new Promise(requestAnimationFrame)
@@ -150,7 +156,7 @@ async function openCold(
 
 	URL.revokeObjectURL(src)
 
-	return { painted, rasters, thumbnails }
+	return { painted, rasters, thumbnails, width }
 }
 
 /** The page image of the viewport: an `<img>`, or the `<canvas>` of a bitmap. */
@@ -302,6 +308,34 @@ describe('pdf viewer · cold open · desktop rail', () => {
 			if (samples === OPEN_OPTIONS.warmupIterations + OPEN_OPTIONS.iterations) {
 				console.log(
 					`cold open · 50 pages · desktop rail · first page painted ${last.painted.toFixed(1)} ms · full rasters ${last.rasters} · thumbnails ${last.thumbnails}`,
+				)
+			}
+		},
+		OPEN_OPTIONS,
+	)
+})
+
+describe('pdf viewer · cold open · zoom 2', () => {
+	const bytes = makeInvoicePdf(1)
+
+	const painted: number[] = []
+
+	// The page shows at twice the size that fits the box, so it shows wider than its slot. The
+	// queue paints the slot first, then renders the page again at the width that it shows.
+	bench(
+		'cold open · 1 page · zoom 2 · settled',
+		async () => {
+			const last = await openCold(bytes, 2)
+
+			painted.push(last.painted)
+
+			if (painted.length === OPEN_OPTIONS.warmupIterations + OPEN_OPTIONS.iterations) {
+				const timed = painted.slice(OPEN_OPTIONS.warmupIterations)
+
+				const mean = timed.reduce((sum, value) => sum + value, 0) / timed.length
+
+				console.log(
+					`cold open · 1 page · zoom 2 · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${last.rasters} · page raster ${last.width} px wide`,
 				)
 			}
 		},

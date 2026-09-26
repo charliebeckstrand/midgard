@@ -37,6 +37,26 @@ const MAX_RASTERS = 8
  */
 const BITMAP_BUDGET = 48 * 1024 * 1024
 
+/**
+ * The most pixels that a sharp raster of one page holds.
+ *
+ * @remarks 8 MiP is 32 MiB as a bitmap, two thirds of {@link BITMAP_BUDGET}. A US-Letter page
+ * at this size is about 2,480 by 3,220 pixels, which covers a zoom of 2 on a 2x screen. Above
+ * that the page stays at this size and the browser scales it up. A canvas also has a limit on
+ * its area: Safari on iOS refuses a canvas of more than 16 MiP.
+ * @internal
+ */
+const MAX_SHARP_PIXELS = 8 * 1024 * 1024
+
+/**
+ * The step of the sharp scale.
+ *
+ * @remarks The queue rounds the scale up to the next quarter. A resize of the viewport then
+ * causes a new render only when the page crosses a step, not at each pixel.
+ * @internal
+ */
+const SHARP_STEP = 4
+
 /** What a viewer observes for one `src`: a slot for each page, with its image once it renders, a download/print URL, and load progress. @internal */
 export type PdfDocumentSnapshot = {
 	pages: PdfViewerSlot[]
@@ -95,13 +115,25 @@ export type PdfRenderJob = {
 /** What a render gives: a blob URL, a bitmap, or `null` for a page that cannot render. @internal */
 export type PdfRasterResult = string | ImageBitmap | null
 
-/** Renders the page at a 0-based index. The load gives one to the cache when the document opens. @internal */
-export type PdfPageRenderer = (index: number, raster: PdfPageRaster) => PdfRenderJob
+/**
+ * Renders the page at a 0-based index. The load gives one to the cache when the document opens.
+ *
+ * @remarks `factor` multiplies the scale of the render. It is 1 unless the queue asks for a
+ * sharp raster of a page that a viewer shows larger than its slot.
+ * @internal
+ */
+export type PdfPageRenderer = (
+	index: number,
+	raster: PdfPageRaster,
+	factor?: number,
+) => PdfRenderJob
 
 /** The render in flight for an entry. @internal */
 type RunningJob = {
 	index: number
 	raster: PdfPageRaster
+	/** The multiplier of the scale of the render. See {@link PdfPageRenderer}. */
+	factor: number
 	job: PdfRenderJob
 	/** True when the queue canceled the job, so that its rejection is not a failure. */
 	canceled: boolean
@@ -137,6 +169,11 @@ type Held = {
 	 * last entry is the viewer that moved last, and the queue serves it first.
 	 */
 	focus: Map<object, number>
+	/**
+	 * The width, in device pixels, at which each viewer shows its page, keyed by the token of the
+	 * viewer. A width above the width of the slot asks for a sharp raster of that page.
+	 */
+	widths: Map<object, number>
 	/**
 	 * The thumbnails that each viewer's rail shows, as 0-based indices, keyed by the token of the
 	 * viewer. A rail that is closed or scrolled away shows none, and the queue renders none for it.
@@ -272,6 +309,7 @@ function heldFor(src: string): Held {
 		release: null,
 		renderer: null,
 		focus: new Map(),
+		widths: new Map(),
 		thumbnails: new Map(),
 		rasters: [],
 		skipped: new Set(),
@@ -493,11 +531,9 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
  * @internal
  */
 function wantedPages(held: Held): number[] {
+	const shown = shownPages(held)
+
 	const count = held.snapshot.pages.length
-
-	if (count === 0) return []
-
-	const shown = [...held.focus.values()].reverse().map((index) => clamp(index, 0, count - 1))
 
 	const wanted = new Set(shown)
 
@@ -511,28 +547,116 @@ function wantedPages(held: Held): number[] {
 }
 
 /**
- * The next render that the queue owes, or `null` when it owes nothing.
+ * The pages that the viewers of `held` show, as 0-based indices, the viewer that moved last
+ * first.
  *
- * @remarks The full rasters of the wanted pages come first. Then the thumbnails that a rail
- * shows follow, in page order. The queue does nothing while no viewer shows the document.
+ * @remarks A focus past the last page counts as the last page.
  * @internal
  */
-function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPageRaster } | null {
+function shownPages(held: Held): number[] {
+	const count = held.snapshot.pages.length
+
+	if (count === 0) return []
+
+	return [...new Set([...held.focus.values()].reverse().map((index) => clamp(index, 0, count - 1)))]
+}
+
+/**
+ * The multiplier of the scale that the shown page at `index` needs to be sharp, or 1 when its
+ * slot is large enough.
+ *
+ * @remarks The widest viewer on the page decides. The factor goes up to the next
+ * {@link SHARP_STEP}, and down to the factor that {@link MAX_SHARP_PIXELS} permits.
+ * @internal
+ */
+function sharpFactor(held: Held, index: number): number {
+	const page = held.snapshot.pages[index]
+
+	if (!page?.width || !page.height) return 1
+
+	let width = 0
+
+	for (const [token, shown] of held.focus) {
+		if (clamp(shown, 0, held.snapshot.pages.length - 1) === index) {
+			width = Math.max(width, held.widths.get(token) ?? 0)
+		}
+	}
+
+	const needed = Math.ceil((width / page.width) * SHARP_STEP) / SHARP_STEP
+
+	const limit = Math.sqrt(MAX_SHARP_PIXELS / (page.width * page.height))
+
+	return Math.max(1, Math.min(needed, limit))
+}
+
+/**
+ * Whether the full raster of a slot is at least `factor` times the size of the slot.
+ *
+ * @remarks A canvas truncates its width to a whole pixel, so the test allows one pixel. A blob
+ * URL has no size to read, and counts as a raster at the scale of the slot.
+ * @internal
+ */
+function isSharp(page: PdfViewerSlot, factor: number): boolean {
+	const width = page.bitmap?.width ?? page.width ?? 0
+
+	return width + 1 >= (page.width ?? 0) * factor
+}
+
+/**
+ * The first shown page that needs a sharp raster, with the factor of its render, or `null`.
+ * @internal
+ */
+function sharpJob(held: Held, shown: number[]): QueuedJob | null {
+	for (const index of shown) {
+		const page = held.snapshot.pages[index]
+
+		const factor = sharpFactor(held, index)
+
+		if (page && factor > 1 && !isSharp(page, factor) && !held.skipped.has(`${index}:sharp`)) {
+			return { index, raster: 'full', factor }
+		}
+	}
+
+	return null
+}
+
+/** A render that the queue owes: the page, its raster, and the factor of its scale. @internal */
+type QueuedJob = { index: number; raster: PdfPageRaster; factor: number }
+
+/**
+ * The next render that the queue owes, or `null` when it owes nothing.
+ *
+ * @remarks The full rasters of the shown pages come first. A sharp raster of each shown page
+ * that shows larger than its slot follows. Then come the neighbors, and last the thumbnails
+ * that a rail shows, in page order. The queue does nothing while no viewer shows the document.
+ * @internal
+ */
+function nextJob(held: Held, wanted: number[]): QueuedJob | null {
 	if (held.focus.size === 0 || held.snapshot.error) return null
 
 	const { pages } = held.snapshot
 
-	for (const index of wanted) {
-		if (!hasRaster(pages[index]) && !held.skipped.has(`${index}:full`)) {
-			return { index, raster: 'full' }
-		}
-	}
+	const shown = shownPages(held)
 
-	const shown = [...new Set([...held.thumbnails.values()].flat())].sort((a, b) => a - b)
+	const missing = (index: number) => !hasRaster(pages[index]) && !held.skipped.has(`${index}:full`)
 
 	for (const index of shown) {
+		if (missing(index)) return { index, raster: 'full', factor: 1 }
+	}
+
+	const sharp = sharpJob(held, shown)
+
+	if (sharp) return sharp
+
+	for (const index of wanted) {
+		if (missing(index)) return { index, raster: 'full', factor: 1 }
+	}
+
+	const tiles = [...new Set([...held.thumbnails.values()].flat())].sort((a, b) => a - b)
+
+	for (const index of tiles) {
 		if (pages[index] && !pages[index].thumbnail && !held.skipped.has(`${index}:thumbnail`)) {
-			return { index, raster: 'thumbnail' }
+			return { index, raster: 'thumbnail', factor: 1 }
 		}
 	}
 
@@ -665,6 +789,10 @@ function land(src: string, held: Held, running: RunningJob, result: PdfRasterRes
 
 	const { index, raster } = running
 
+	// A sharp render that fails leaves the page at the scale of its slot. It does not stop the
+	// page from rendering again at that scale.
+	const key = `${index}:${running.factor > 1 ? 'sharp' : raster}`
+
 	if (result instanceof Error) {
 		if (running.canceled) return pump(src, held)
 
@@ -672,7 +800,7 @@ function land(src: string, held: Held, running: RunningJob, result: PdfRasterRes
 	}
 
 	if (result === null) {
-		held.skipped.add(`${index}:${raster}`)
+		held.skipped.add(key)
 
 		return pump(src, held)
 	}
@@ -684,7 +812,7 @@ function land(src: string, held: Held, running: RunningJob, result: PdfRasterRes
 	if (!page || (raster === 'thumbnail' && typeof result !== 'string')) {
 		discard(result)
 
-		held.skipped.add(`${index}:${raster}`)
+		held.skipped.add(key)
 
 		return pump(src, held)
 	}
@@ -705,7 +833,9 @@ function land(src: string, held: Held, running: RunningJob, result: PdfRasterRes
 /**
  * The pages of `held` with the raster of a finished render in its slot.
  *
- * @remarks A full raster joins the resident set, and the set then keeps its bound.
+ * @remarks A full raster joins the resident set, and the set then keeps its bound. A sharp
+ * raster replaces the raster of its page, and frees the old one. A canvas that shows the old
+ * bitmap keeps its pixels until it draws the new one.
  * @internal
  */
 function place(
@@ -726,7 +856,14 @@ function place(
 		return pages
 	}
 
-	pages[index] = typeof result === 'string' ? { ...page, src: result } : { ...page, bitmap: result }
+	if (page.src) URL.revokeObjectURL(page.src)
+
+	page.bitmap?.close()
+
+	pages[index] =
+		typeof result === 'string'
+			? { ...page, src: result, bitmap: undefined }
+			: { ...page, src: '', bitmap: result }
 
 	held.rasters = [...held.rasters.filter((resident) => resident !== index), index]
 
@@ -769,7 +906,11 @@ function pump(src: string, held: Held) {
 
 	if (!next) return
 
-	const running: RunningJob = { ...next, job: renderer(next.index, next.raster), canceled: false }
+	const running: RunningJob = {
+		...next,
+		job: renderer(next.index, next.raster, next.factor),
+		canceled: false,
+	}
 
 	held.job = running
 
@@ -803,6 +944,30 @@ export function focusPage(src: string | undefined, token: object, index: number)
 		held.focus.delete(token)
 
 		if (documents.get(src) === held) pump(src, held)
+	}
+}
+
+/**
+ * Names the width, in device pixels, at which the viewer `token` shows its page.
+ *
+ * @returns The function that removes the width of the viewer.
+ * @remarks A page that shows wider than its slot looks soft, because the browser scales its
+ * raster up. When the width asks for a larger raster, the queue renders the page again at a
+ * larger scale. This render comes after the full rasters of the shown pages. See
+ * {@link sharpFactor}.
+ * @internal
+ */
+export function sizePage(src: string | undefined, token: object, width: number): () => void {
+	if (!src) return () => {}
+
+	const held = heldFor(src)
+
+	held.widths.set(token, width)
+
+	pump(src, held)
+
+	return () => {
+		held.widths.delete(token)
 	}
 }
 
