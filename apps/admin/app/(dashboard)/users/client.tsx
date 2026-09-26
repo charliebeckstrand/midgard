@@ -59,7 +59,7 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 								</Link>
 							</TableCell>
 							<TableCell>{user.email}</TableCell>
-							<TableCell>{user.role === 'admin' ? 'Admin' : 'User'}</TableCell>
+							<TableCell>{user.roles.includes('admin') ? 'Admin' : 'User'}</TableCell>
 							<TableCell>
 								<Badge color={user.is_active ? 'green' : 'zinc'}>
 									{user.is_active ? 'Active' : 'Inactive'}
@@ -71,7 +71,7 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 							<TableCell>
 								<Button
 									variant="outline"
-									disabled={user.role === 'admin' || saving}
+									disabled={user.roles.includes('admin') || saving}
 									onClick={() =>
 										user.is_active
 											? setDeactivating(user)

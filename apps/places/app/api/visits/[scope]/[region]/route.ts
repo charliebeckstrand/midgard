@@ -1,5 +1,5 @@
 import { readJson } from '@/server/read-draft'
-import { sessionUserId, unauthorized } from '@/server/session-user'
+import { authorize } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
@@ -44,9 +44,9 @@ function readVisited(input: unknown): boolean | null {
  * response needs.
  */
 export async function PUT(request: Request, context: Context) {
-	const userId = await sessionUserId()
+	const userId = await authorize('user')
 
-	if (userId === null) return unauthorized()
+	if (userId instanceof Response) return userId
 
 	const { scope: rawScope, region: rawRegion } = await context.params
 

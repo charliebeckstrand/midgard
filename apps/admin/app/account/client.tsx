@@ -73,7 +73,7 @@ export function AccountClient({
 
 				{error && <Text tone="error">{error.message}</Text>}
 
-				<TwoStep factors={factors} admin={user.role === 'admin'}>
+				<TwoStep factors={factors} admin={user.roles.includes('admin')}>
 					<Heading level={3}>Passkeys</Heading>
 
 					{passkeys.length === 0 ? (
@@ -125,7 +125,7 @@ export function AccountClient({
 					connectError={connectError}
 				/>
 
-				{user.role === 'admin' && (
+				{user.roles.includes('admin') && (
 					<Text className="text-center">
 						<Link href="/" underline>
 							Back to the dashboard
