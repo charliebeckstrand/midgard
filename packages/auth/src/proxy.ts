@@ -10,9 +10,9 @@ const sessionTimeout = 5_000
  * Resolves the session: calls the gateway's `/auth/session` with the cookies of the request.
  *
  * @internal
- * @returns `true` only when the gateway reports `authenticated: true`. A failed
- *   status, a thrown request, or a timeout resolves to `false`, and each failure
- *   except a `401` goes to the log.
+ * @returns `true` only when the gateway answers `200`. The gateway answers `401`
+ *   when no live session exists. A failed status, a thrown request, or a timeout
+ *   resolves to `false`, and each failure except a `401` goes to the log.
  */
 async function isAuthenticated(request: NextRequest): Promise<boolean> {
 	try {
@@ -21,11 +21,7 @@ async function isAuthenticated(request: NextRequest): Promise<boolean> {
 			signal: AbortSignal.timeout(sessionTimeout),
 		})
 
-		if (res.ok) {
-			const { authenticated } = (await res.json()) as { authenticated?: boolean }
-
-			return authenticated === true
-		}
+		if (res.ok) return true
 
 		if (res.status !== 401) console.error(`auth: GET /auth/session failed (${res.status})`)
 	} catch (error) {

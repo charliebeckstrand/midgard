@@ -5,11 +5,10 @@ import type { User } from 'auth'
 import type { Chat } from './[userId]/types'
 import {
 	deleteChat,
-	deleteUser,
 	fetchChatMessages,
 	fetchUserChats,
 	fetchUsers,
-	saveUserEmail,
+	setUserActive,
 } from './users-api'
 
 /**
@@ -64,37 +63,20 @@ export function useChatMessages(chatId: string | null) {
 }
 
 /**
- * Changes the email of one user, and writes the new email into the cached list.
+ * Deactivates or reactivates one user, and writes the changed user into the cached list.
  *
- * The gateway sets `updated_at`, and the client cannot know its value. So the
- * list shows the new email at once, and a refetch then brings the new time.
+ * The gateway returns the user with its new `is_active` and `updated_at`, so
+ * the list needs no refetch.
  */
-export function useSaveUserEmail() {
+export function useSetUserActive() {
 	const client = useQueryClient()
 
 	return useMutation({
-		mutationFn: ({ userId, email }: { userId: string; email: string }) =>
-			saveUserEmail(userId, email),
-		onSuccess: (_result, { userId, email }) => {
+		mutationFn: ({ userId, isActive }: { userId: string; isActive: boolean }) =>
+			setUserActive(userId, isActive),
+		onSuccess: (changed) => {
 			client.setQueryData<User[]>(usersKeys.all, (users) =>
-				users?.map((user) => (user.id === userId ? { ...user, email } : user)),
-			)
-
-			// Exact, so the chats of each user, under the same prefix, stay cached.
-			void client.invalidateQueries({ queryKey: usersKeys.all, exact: true })
-		},
-	})
-}
-
-/** Removes one user, and removes that user from the cached list. */
-export function useDeleteUser() {
-	const client = useQueryClient()
-
-	return useMutation({
-		mutationFn: (userId: string) => deleteUser(userId),
-		onSuccess: (_result, userId) => {
-			client.setQueryData<User[]>(usersKeys.all, (users) =>
-				users?.filter((user) => user.id !== userId),
+				users?.map((user) => (user.id === changed.id ? changed : user)),
 			)
 		},
 	})

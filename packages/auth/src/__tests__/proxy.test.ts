@@ -3,14 +3,14 @@ import { describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
 import { proxy } from '../proxy'
 
-type Gateway = { status: number; authenticated?: boolean } | Error
+type Gateway = { status: number } | Error
 
 // Stubs the gateway: `fetch` resolves to the given session, or rejects with the given error.
 function stubGateway(gateway: Gateway) {
 	const fetch = vi.fn(async (_url: string, _init?: RequestInit) => {
 		if (gateway instanceof Error) throw gateway
 
-		return Response.json({ authenticated: gateway.authenticated }, { status: gateway.status })
+		return Response.json({}, { status: gateway.status })
 	})
 
 	vi.stubGlobal('fetch', fetch)
@@ -31,7 +31,7 @@ async function outcome(pathname: string): Promise<string> {
 	return location ? `redirect ${new URL(location).pathname}` : String(response.status)
 }
 
-const signedIn = { status: 200, authenticated: true }
+const signedIn = { status: 200 }
 
 const signedOut = { status: 401 }
 
@@ -39,7 +39,7 @@ describe('proxy', () => {
 	it.each([
 		['/login', signedIn, 'redirect /'],
 		['/login', signedOut, 'next'],
-		['/register/step-2', { status: 200, authenticated: false }, 'next'],
+		['/register/step-2', signedOut, 'next'],
 		['/users', signedIn, 'next'],
 		['/users', signedOut, 'redirect /login'],
 		['/apis', signedOut, 'redirect /login'],

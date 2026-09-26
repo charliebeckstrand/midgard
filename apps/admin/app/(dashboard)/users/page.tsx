@@ -1,4 +1,4 @@
-import { bifrost, getUser, type User } from 'auth'
+import { bifrost, type User } from 'auth'
 
 import { UsersClient } from './client'
 
@@ -19,7 +19,7 @@ async function getUsers(): Promise<User[]> {
 }
 
 export default async function UsersPage() {
-	const [users, user] = await Promise.all([getUsers(), getUser()])
+	const users = await getUsers()
 
-	return <UsersClient users={users} currentUser={user} />
+	return <UsersClient users={users} />
 }

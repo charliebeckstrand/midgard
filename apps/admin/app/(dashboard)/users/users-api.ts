@@ -32,18 +32,20 @@ export async function fetchUsers(signal?: AbortSignal): Promise<User[]> {
 	return data
 }
 
-/** Changes the email of one user. */
-export async function saveUserEmail(userId: string, email: string): Promise<void> {
-	await request(`/api/users/${encodeURIComponent(userId)}`, {
+/**
+ * Deactivates or reactivates one user, and returns the changed user.
+ *
+ * The gateway accepts this change only for an account of the `user` role. A
+ * deactivation also ends every session of that user.
+ */
+export async function setUserActive(userId: string, isActive: boolean): Promise<User> {
+	const response = await request(`/api/users/${encodeURIComponent(userId)}`, {
 		method: 'PATCH',
 		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ email }),
+		body: JSON.stringify({ is_active: isActive }),
 	})
-}
 
-/** Removes one user. */
-export async function deleteUser(userId: string): Promise<void> {
-	await request(`/api/users/${encodeURIComponent(userId)}`, { method: 'DELETE' })
+	return (await response.json()) as User
 }
 
 /** The chats of one user. */

@@ -11,6 +11,7 @@ const user = {
 	email: 'ada@example.com',
 	is_active: true,
 	is_verified: true,
+	role: 'user',
 	created_at: '2026-01-01T00:00:00Z',
 	updated_at: '2026-01-01T00:00:00Z',
 }
@@ -30,13 +31,18 @@ describe('getUser', () => {
 	})
 
 	it('returns the user of the session', async () => {
-		const fetch = stubGateway(200, user)
+		const fetch = stubGateway(200, {
+			id: 'hash',
+			created_at: '2026-01-01T00:00:00Z',
+			expires_at: '2026-01-31T00:00:00Z',
+			user,
+		})
 
 		await expect(getUser()).resolves.toEqual(user)
 
 		const [url, init] = fetch.mock.calls[0] ?? []
 
-		expect(url).toBe(`${BIFROST_URL}/auth/user`)
+		expect(url).toBe(`${BIFROST_URL}/auth/session`)
 
 		expect(new Headers(init?.headers).get('cookie')).toBe('session=abc')
 	})
