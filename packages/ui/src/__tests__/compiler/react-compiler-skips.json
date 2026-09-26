@@ -32,9 +32,6 @@
 	"components/group/use-group.ts": {
 		"useGroup": "Immutability"
 	},
-	"components/hold-button/hold-button.tsx": {
-		"HoldButton": "Todo"
-	},
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
 	},
@@ -72,17 +69,11 @@
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
-	"components/shiny-text/shiny-text.tsx": {
-		"ShinyText": "Refs"
-	},
 	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
 		"useSignaturePadCanvasSizing": "Refs"
 	},
 	"components/table/table-empty.tsx": {
 		"TableEmpty": "Todo"
-	},
-	"components/tabs/tab.tsx": {
-		"Tab": "Refs"
 	},
 	"components/tooltip/use-tooltip-state.ts": {
 		"useTooltipState": "Refs"

@@ -3,6 +3,7 @@
 import { type ComponentProps, useRef } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
 import { useDensity } from '../../primitives/density'
@@ -106,7 +107,9 @@ export function Tab({
 
 	const tabsContext = useTabsContext()
 
-	const indicator = useActiveIndicator()
+	// Destructured: the compiler reads a property of a result that holds a ref as
+	// a ref read.
+	const { ref: indicatorRef, tapHandlers } = useActiveIndicator()
 
 	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
 	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
@@ -151,13 +154,15 @@ export function Tab({
 	// before it opens. The active tab is already visited; a disabled one can't be.
 	const preloaded = useRef(false)
 
-	function preload() {
+	// The latch is a ref, so the handler reads it through a stable event and not
+	// during render.
+	const preload = useStableEvent(() => {
 		if (preloaded.current || current || disabled) return
 
 		preloaded.current = true
 
 		onPreload?.(value)
-	}
+	})
 
 	// The preload is side behavior, so a consumer's preventDefault() skips it.
 	const handlePointerEnter = composeEventHandlers(onPointerEnter, preload)
@@ -165,7 +170,7 @@ export function Tab({
 	const handleFocus = composeEventHandlers(onFocus, preload)
 
 	return (
-		<span className={k.wrapper({ stretch })} {...indicator.tapHandlers}>
+		<span className={k.wrapper({ stretch })} {...tapHandlers}>
 			<HeadlessProvider>
 				<Button
 					// Forwards the full button surface (aria-label, data-testid,
@@ -204,7 +209,7 @@ export function Tab({
 			</HeadlessProvider>
 			{current && (
 				<ActiveIndicator
-					ref={indicator.ref}
+					ref={indicatorRef}
 					className={cn(isSegment ? k.segment.indicator : k.indicator({ orientation }))}
 				/>
 			)}
