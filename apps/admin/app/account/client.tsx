@@ -66,36 +66,38 @@ export function AccountClient({
 				<TwoStep factors={factors} admin={user.role === 'admin'}>
 					<Heading level={3}>Passkeys</Heading>
 
-					<Table>
-						<TableHead>
-							<TableRow>
-								<TableHeader>Passkey</TableHeader>
-								<TableHeader>Added</TableHeader>
-								<TableHeader></TableHeader>
-							</TableRow>
-						</TableHead>
-						<TableBody>
-							{passkeys.map((passkey, index) => (
-								<TableRow key={passkey.id}>
-									<TableCell>Passkey {index + 1}</TableCell>
-									<TableCell>
-										{new Date(passkey.created_at).toLocaleString(undefined, dateFormat)}
-									</TableCell>
-									<TableCell>
-										<Button
-											variant="outline"
-											disabled={remove.isPending}
-											onClick={() => setRemoving(passkey)}
-										>
-											Remove
-										</Button>
-									</TableCell>
+					{passkeys.length === 0 ? (
+						<Text>You have no passkeys.</Text>
+					) : (
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableHeader>Passkey</TableHeader>
+									<TableHeader>Added</TableHeader>
+									<TableHeader></TableHeader>
 								</TableRow>
-							))}
-						</TableBody>
-					</Table>
-
-					{passkeys.length === 0 && <Text>You have no passkeys.</Text>}
+							</TableHead>
+							<TableBody>
+								{passkeys.map((passkey, index) => (
+									<TableRow key={passkey.id}>
+										<TableCell>Passkey {index + 1}</TableCell>
+										<TableCell>
+											{new Date(passkey.created_at).toLocaleString(undefined, dateFormat)}
+										</TableCell>
+										<TableCell>
+											<Button
+												variant="outline"
+												disabled={remove.isPending}
+												onClick={() => setRemoving(passkey)}
+											>
+												Remove
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					)}
 
 					<Button disabled={add.isPending} onClick={() => add.mutate()}>
 						Add a passkey

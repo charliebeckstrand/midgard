@@ -124,18 +124,30 @@ function SecondStep({ methods, error, onSubmit, onError, onCancel }: SecondStepP
 			)}
 
 			{hasRecovery && !useRecovery && (
-				<Button type="button" variant="plain" onClick={() => setUseRecovery(true)}>
+				<Button
+					type="button"
+					variant="plain"
+					color="blue"
+					className="justify-self-center"
+					onClick={() => setUseRecovery(true)}
+				>
 					Use a recovery code
 				</Button>
 			)}
 
 			{useRecovery && hasTotp && (
-				<Button type="button" variant="plain" onClick={() => setUseRecovery(false)}>
+				<Button
+					type="button"
+					variant="plain"
+					color="blue"
+					className="justify-self-center"
+					onClick={() => setUseRecovery(false)}
+				>
 					Use your authenticator app
 				</Button>
 			)}
 
-			<Button type="button" variant="plain" onClick={onCancel}>
+			<Button type="button" variant="plain" className="justify-self-center" onClick={onCancel}>
 				Back to sign in
 			</Button>
 		</div>

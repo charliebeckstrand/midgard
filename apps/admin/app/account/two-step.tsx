@@ -37,7 +37,7 @@ type CodeValues = { code: string }
  * The account page passes its passkeys table as `children`. An authenticator app
  * stays off until the user types a code from it, so a failed scan never turns
  * on a factor that the user cannot use. Recovery codes show only once, when the
- * gateway makes them.
+ * gateway makes them, and stay on the page until the user leaves it.
  */
 export function TwoStep({ factors, admin, children }: TwoStepProps) {
 	const start = useStartTotpSetup()
@@ -77,11 +77,7 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 			{factors.totp ? (
 				<Stack gap="sm">
 					<Text>Your authenticator app is on.</Text>
-					<Button
-						variant="outline"
-						disabled={removeApp.isPending}
-						onClick={() => setRemoving(true)}
-					>
+					<Button color="red" disabled={removeApp.isPending} onClick={() => setRemoving(true)}>
 						Remove the authenticator app
 					</Button>
 				</Stack>
@@ -135,7 +131,10 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 
 			{factors.enabled && (
 				<>
-					<Heading level={3}>Recovery codes</Heading>
+					<div className="flex items-center justify-between gap-2">
+						<Heading level={3}>Recovery codes</Heading>
+						{codes && <CopyButton text={codes.join('\n')} aria-label="Copy the recovery codes" />}
+					</div>
 
 					{codes ? (
 						<Stack gap="sm">
@@ -148,10 +147,6 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 									<li key={code}>{code}</li>
 								))}
 							</ul>
-							<CopyButton text={codes.join('\n')} aria-label="Copy the recovery codes" />
-							<Button variant="outline" onClick={() => setCodes(null)}>
-								I saved them
-							</Button>
 						</Stack>
 					) : (
 						<Stack gap="sm">
