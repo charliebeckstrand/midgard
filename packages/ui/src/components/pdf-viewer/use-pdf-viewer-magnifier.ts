@@ -2,6 +2,7 @@
 
 import { useClientPoint, useHover, useInteractions } from '@floating-ui/react'
 import {
+	type MouseEvent as ReactMouseEvent,
 	type PointerEvent as ReactPointerEvent,
 	useCallback,
 	useEffect,
@@ -77,6 +78,20 @@ export const delayOptions: readonly MagnifierOption<MagnifierChoice['delay']>[] 
 const DEFAULT_DELAY = delaySteps[DEFAULT_CHOICE.delay]
 
 /**
+ * The shortest hold that opens the lens under a finger, in milliseconds.
+ *
+ * A floor under the dwell, because the `'none'` step is zero. A mouse can rest with no
+ * delay, but a finger that lands to start a scroll must not open a lens first.
+ */
+const TOUCH_HOLD_MIN = 300
+
+/** How far a finger can drift during the hold, in pixels, before the hold becomes a scroll. */
+const TOUCH_SLOP = 10
+
+/** The gap between the lens and a held finger. It is larger than the cursor gap, because a fingertip covers more of the page. */
+const TOUCH_OFFSET = 48
+
+/**
  * Fill in the steps the consumer left out.
  *
  * @param options - The consumer's {@link PdfViewerProps.magnifier} settings.
@@ -147,7 +162,7 @@ export type PdfViewerMagnifierResult = {
 }
 
 /**
- * Drives the hover loupe over the page.
+ * Drives the loupe over the page: a hover for a mouse, and a hold for a finger.
  *
  * @param settings - Resolved settings, or `null` when the consumer did not ask for a loupe or
  * the reader turned it off. In that case every interaction hook is disabled and the reference
@@ -171,6 +186,10 @@ export type PdfViewerMagnifierResult = {
  * The pan is handled here for the same reason, and floating-ui cannot handle it (see
  * {@link handlePan}). Floating-ui reasons about pointers, and a pan moves the page with no
  * pointer movement.
+ *
+ * The hold is handled here too (see {@link hold}), because `useHover` is mouse only. A dwell
+ * under a finger would fight the scroll. The hold opens the lens with the same state that the
+ * hover sets, and places it above the finger. From there, the positioning is the same.
  * @internal
  */
 export function usePdfViewerMagnifier(
@@ -179,6 +198,12 @@ export function usePdfViewerMagnifier(
 	const enabled = settings !== null
 
 	const [open, setOpen] = useState(false)
+
+	/*
+	 * Whether a held finger opened the lens. It moves the lens from beside the cursor to above
+	 * the finger, where the hand does not cover it.
+	 */
+	const [touch, setTouch] = useState(false)
 
 	/** The pointer, in both spaces. See {@link track}. */
 	type Tracking = { local: MagnifierPoint; client: MagnifierPoint }
@@ -257,8 +282,9 @@ export function usePdfViewerMagnifier(
 		open: enabled && open,
 		onOpenChange: handleOpenChange,
 		// Beside the cursor rather than under it: a lens centered on the pointer would cover the
-		// very ink the reader is pointing at.
-		placement: 'right-start',
+		// very ink the reader is pointing at. Above a finger, because the hand covers everything
+		// below it and to one side of it.
+		placement: touch ? 'top' : 'right-start',
 		// Fixed, unlike the package's anchored surfaces, because the reference here is the
 		// cursor — `useClientPoint` reports it in viewport coordinates. Under the default
 		// `absolute` strategy those get resolved against the portal's offset parent, so the lens
@@ -267,7 +293,7 @@ export function usePdfViewerMagnifier(
 		strategy: 'fixed',
 		// Clears the lens of the cursor. The rest of the chain — flip, then shift with the
 		// standard padding — is the package's own, so the loupe follows it wherever it moves.
-		offset: 24,
+		offset: touch ? TOUCH_OFFSET : 24,
 	})
 
 	const hover = useHover(context, {
@@ -275,8 +301,8 @@ export function usePdfViewerMagnifier(
 		// The dwell. Closing is immediate — a lens that lingered after the pointer left the page
 		// would sit over the toolbar it was moving towards.
 		delay: { open: settings?.delay ?? DEFAULT_DELAY, close: 0 },
-		// A loupe under a fingertip shows what the finger is already covering, and would fight
-		// the scroll gesture for the same pointer.
+		// A dwell under a fingertip would fight the scroll gesture for the same pointer. A finger
+		// opens the lens by a hold instead — see {@link hold}.
 		mouseOnly: true,
 	})
 
@@ -322,12 +348,236 @@ export function usePdfViewerMagnifier(
 		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
 	}, [])
 
-	/** Drops the tracked point: the pointer has left the scan, so there is nothing to magnify. */
-	const leave = useCallback(() => {
+	/**
+	 * Drops the tracked point: the pointer has left the scan, so there is nothing to magnify.
+	 *
+	 * Mouse only. A finger leaves the page only when it lifts, and {@link release} ends a hold.
+	 */
+	const leave = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+		if (event.pointerType !== 'mouse') return
+
 		trackingRef.current = null
 
 		if (openRef.current) setTracking(null)
 	}, [])
+
+	/** The finger that is holding, where it landed, and the timer that opens the lens under it. */
+	type Hold = { id: number; start: MagnifierPoint; timer: number }
+
+	const holdRef = useRef<Hold | null>(null)
+
+	/** Whether the hold has opened the lens. Read by the native `touchmove` listener below. */
+	const holdingRef = useRef(false)
+
+	/** True after a hold ends on a lift. The click that the lift can fire then presses no region. */
+	const swallowClickRef = useRef(false)
+
+	/*
+	 * Read by `hold`, which goes into `getReferenceProps` and must not be rebuilt when the
+	 * settings change.
+	 */
+	const holdDelayRef = useRef<number>(TOUCH_HOLD_MIN)
+
+	holdDelayRef.current = Math.max(settings?.delay ?? DEFAULT_DELAY, TOUCH_HOLD_MIN)
+
+	/**
+	 * Ends the hold, and closes the lens if the hold opened it.
+	 *
+	 * @param lifted - The finger lifted with the lens open. The click that follows the lift is
+	 * then swallowed, because the reader was reading, not pressing.
+	 */
+	const endHold = useCallback((lifted = false) => {
+		const hold = holdRef.current
+
+		if (!hold) return
+
+		window.clearTimeout(hold.timer)
+
+		holdRef.current = null
+
+		trackingRef.current = null
+
+		if (!holdingRef.current) return
+
+		holdingRef.current = false
+
+		swallowClickRef.current = lifted
+
+		setOpen(false)
+
+		setTracking(null)
+
+		setTouch(false)
+	}, [])
+
+	/**
+	 * Starts a hold: a finger that rests on the page for the dwell opens the lens above it.
+	 *
+	 * @remarks The touch counterpart of the dwell. It is the gesture of the iOS text loupe. A
+	 * finger that drifts past {@link TOUCH_SLOP} before the lens opens is a scroll, and the hold
+	 * ends (see {@link drag}). Once the lens is open, the finger moves it, and a lift closes it.
+	 *
+	 * The hold leaves the browser's own long-press menu alone. Nothing here cancels a
+	 * `contextmenu` event or sets `-webkit-touch-callout`. A finger that stays still until the
+	 * menu opens gets the menu, and the lens gives way to it (see {@link yieldToMenu}). A finger
+	 * that moves after the lens opens is magnifying, and that movement cancels the long press
+	 * in the browser.
+	 */
+	const hold = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			if (event.pointerType === 'mouse' || !event.isPrimary) return
+
+			window.clearTimeout(holdRef.current?.timer)
+
+			swallowClickRef.current = false
+
+			frameRef.current = event.currentTarget
+
+			const start = { x: event.clientX, y: event.clientY }
+
+			trackingRef.current = start
+
+			const timer = window.setTimeout(() => {
+				const located = locate()
+
+				if (!located) return
+
+				holdingRef.current = true
+
+				setTouch(true)
+
+				setTracking(located)
+
+				setOpen(true)
+			}, holdDelayRef.current)
+
+			holdRef.current = { id: event.pointerId, start, timer }
+		},
+		[locate],
+	)
+
+	/** Moves the held lens, or ends a hold that has become a scroll. */
+	const drag = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			const current = holdRef.current
+
+			if (!current || event.pointerId !== current.id) return
+
+			const client = { x: event.clientX, y: event.clientY }
+
+			if (!holdingRef.current) {
+				const drift = Math.hypot(client.x - current.start.x, client.y - current.start.y)
+
+				if (drift > TOUCH_SLOP) endHold()
+
+				return
+			}
+
+			trackingRef.current = client
+
+			const rect = event.currentTarget.getBoundingClientRect()
+
+			setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
+		},
+		[endHold],
+	)
+
+	/** One move handler for both pointers: the mouse is tracked, and a finger drags. */
+	const move = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			if (event.pointerType === 'mouse') track(event)
+			else drag(event)
+		},
+		[track, drag],
+	)
+
+	/** A lift, or a cancel from the browser, ends the hold of that finger. */
+	const release = useCallback(
+		(event: ReactPointerEvent<HTMLElement>) => {
+			if (event.pointerId !== holdRef.current?.id) return
+
+			endHold(event.type === 'pointerup')
+		},
+		[endHold],
+	)
+
+	/**
+	 * The browser's long-press menu is opening, so the lens closes and does not cover it.
+	 *
+	 * @remarks It does not cancel the event: the menu is the browser's, and it opens as it
+	 * would on a viewer with no loupe. A right click has no hold, so a mouse gets no change.
+	 */
+	const yieldToMenu = useCallback(() => {
+		endHold()
+	}, [endHold])
+
+	/** Swallows the click that the lift at the end of a hold can fire. */
+	const swallowClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
+		if (!swallowClickRef.current) return
+
+		swallowClickRef.current = false
+
+		event.preventDefault()
+
+		event.stopPropagation()
+	}, [])
+
+	/**
+	 * The page frame, as state, so the `touchmove` listener below can attach to the node.
+	 *
+	 * @remarks The listener must be on the node before the finger lands. A browser decides at
+	 * the touch start whether a listener can cancel the scroll, and one added later cannot.
+	 */
+	const [frameNode, setFrameNode] = useState<HTMLElement | null>(null)
+
+	const setReference = useCallback(
+		(node: HTMLElement | null) => {
+			refs.setReference(node)
+
+			setFrameNode(node)
+		},
+		[refs],
+	)
+
+	/*
+	 * Holds the page still while the finger moves the lens.
+	 *
+	 * Native and non-passive, because React attaches its touch listeners as passive, and a
+	 * passive listener cannot cancel. It cancels only while a hold has the lens open. Before
+	 * that, a finger still scrolls the page as it did. The same technique as the map's pinch.
+	 */
+	useEffect(() => {
+		if (!enabled || !frameNode) return
+
+		function handleTouchMove(event: TouchEvent) {
+			if (holdingRef.current && event.cancelable) event.preventDefault()
+		}
+
+		frameNode.addEventListener('touchmove', handleTouchMove, { passive: false })
+
+		return () => frameNode.removeEventListener('touchmove', handleTouchMove)
+	}, [enabled, frameNode])
+
+	/* A hold does not outlive the loupe being switched off, or the viewer. */
+	useEffect(() => {
+		if (!enabled) return
+
+		return () => {
+			window.clearTimeout(holdRef.current?.timer)
+
+			holdRef.current = null
+
+			if (!holdingRef.current) return
+
+			holdingRef.current = false
+
+			setOpen(false)
+
+			setTracking(null)
+
+			setTouch(false)
+		}
+	}, [enabled])
 
 	/*
 	 * Both bags are memoized, and `leave` is a callback rather than a literal, because they are
@@ -339,9 +589,18 @@ export function usePdfViewerMagnifier(
 	const referenceProps = useMemo(
 		() =>
 			enabled
-				? getReferenceProps({ onPointerEnter: track, onPointerMove: track, onPointerLeave: leave })
+				? getReferenceProps({
+						onPointerEnter: track,
+						onPointerMove: move,
+						onPointerLeave: leave,
+						onPointerDown: hold,
+						onPointerUp: release,
+						onPointerCancel: release,
+						onContextMenu: yieldToMenu,
+						onClickCapture: swallowClick,
+					})
 				: EMPTY_PROPS,
-		[enabled, getReferenceProps, track, leave],
+		[enabled, getReferenceProps, track, move, leave, hold, release, yieldToMenu, swallowClick],
 	)
 
 	const floatingProps = useMemo(
@@ -420,6 +679,14 @@ export function usePdfViewerMagnifier(
 			// the screen cannot, and a lens that withdrew for one would be flinching at nothing.
 			if (frame && !(event.target as Node).contains(frame)) return
 
+			// A finger that scrolls the page was never holding it. The hold ends, and the lens
+			// does not come back when the scroll stops: the finger is gone.
+			if (holdRef.current) {
+				endHold()
+
+				return
+			}
+
 			handlePan()
 		}
 
@@ -430,7 +697,7 @@ export function usePdfViewerMagnifier(
 
 			window.clearTimeout(settleRef.current)
 		}
-	}, [enabled, handlePan])
+	}, [enabled, handlePan, endHold])
 
 	/*
 	 * Memoized because this object is the value of `PdfViewerMagnifierContext`. A fresh literal
@@ -442,11 +709,11 @@ export function usePdfViewerMagnifier(
 			point: tracking?.local ?? null,
 			referenceProps,
 			floatingProps,
-			setReference: refs.setReference,
+			setReference,
 			setFloating: refs.setFloating,
 			floatingStyles,
 		}),
-		[enabled, open, tracking, referenceProps, floatingProps, refs, floatingStyles],
+		[enabled, open, tracking, referenceProps, floatingProps, setReference, refs, floatingStyles],
 	)
 }
 

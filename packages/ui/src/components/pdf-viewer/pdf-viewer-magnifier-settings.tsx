@@ -100,7 +100,10 @@ export function PdfViewerMagnifierSettings({ disabled }: PdfViewerMagnifierSetti
 					<Stack gap="lg">
 						<SwitchField>
 							<Label>Show the magnifier</Label>
-							<Description>A lens beside the cursor, while it rests on the page.</Description>
+							<Description>
+								A lens beside the cursor while it rests on the page, or above a finger that you hold
+								on the page.
+							</Description>
 							<Switch
 								checked={magnifierOn}
 								onChange={(event) => setMagnifierOn(event.target.checked)}
