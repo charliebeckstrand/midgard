@@ -119,8 +119,8 @@ export const k = {
 		 * outer edge by the item's `p-2` so a control never sits flush against
 		 * the row chrome.
 		 */
-		prefix: [...affixSlot, 'ml-2'],
-		suffix: [...affixSlot, 'mr-2'],
+		prefix: [...affixSlot, 'ms-2'],
+		suffix: [...affixSlot, 'me-2'],
 	},
 } as const
 

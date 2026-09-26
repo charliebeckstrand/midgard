@@ -353,7 +353,7 @@ export function MenuSub({
 
 				<MenuLabel>{label}</MenuLabel>
 
-				<Icon icon={<ChevronRight />} className="ml-auto" />
+				<Icon icon={<ChevronRight />} className="ms-auto rtl:-scale-x-100" />
 			</button>
 
 			{/* The level this row's own panel opens, wrapping the surface rather than

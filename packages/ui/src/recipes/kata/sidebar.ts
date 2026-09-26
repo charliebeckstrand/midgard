@@ -123,13 +123,13 @@ const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
 // action) read the stepped-down AffixContext.
 const itemPrefix = defineRecipe({
 	base: affix,
-	size: { sm: ['ml-1.5', icon.xs], md: ['ml-2', icon.sm], lg: ['ml-2.5', icon.md] },
+	size: { sm: ['ms-1.5', icon.xs], md: ['ms-2', icon.sm], lg: ['ms-2.5', icon.md] },
 	defaults: { size: 'md' },
 })
 
 const itemSuffix = defineRecipe({
 	base: affix,
-	size: { sm: ['mr-1.5', icon.xs], md: ['mr-2', icon.sm], lg: ['mr-2.5', icon.md] },
+	size: { sm: ['me-1.5', icon.xs], md: ['me-2', icon.sm], lg: ['me-2.5', icon.md] },
 	defaults: { size: 'md' },
 })
 

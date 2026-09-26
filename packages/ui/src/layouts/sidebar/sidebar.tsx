@@ -166,7 +166,7 @@ export function SidebarLayout({
 					onClick={() => setOpen(true)}
 				/>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
-				{actions && <div className="flex items-center shrink-0 ml-auto">{actions}</div>}
+				{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
 			</Flex>
 
 			{/* Content */}

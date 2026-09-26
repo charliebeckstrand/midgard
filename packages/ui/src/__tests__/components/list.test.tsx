@@ -236,7 +236,7 @@ describe('ListItem', () => {
 		// An alpha wash replaces `omote.bg.surface` instead of darkening it, so the
 		// card would go see-through to whatever it covers while the pointer rests on
 		// it. The hover has to stay opaque.
-		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-50')
+		expect(cls).toContain('not-disabled:not-data-disabled:hover:bg-zinc-100')
 
 		expect(cls).toContain('dark:not-disabled:not-data-disabled:hover:bg-zinc-800')
 

@@ -24,6 +24,10 @@ export const k = {
 				...surface.chrome.flat(),
 				layout.base,
 				'fixed inset-x-0 bottom-0',
+				// The panel sits on the bottom edge. In a page with `viewport-fit=cover`,
+				// this keeps the footer clear of the home indicator. Elsewhere the inset
+				// is zero.
+				'pb-[env(safe-area-inset-bottom)]',
 				'overflow-hidden',
 				'w-full',
 			],

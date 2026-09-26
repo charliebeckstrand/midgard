@@ -253,15 +253,17 @@ describe('MapPlat', () => {
 		}
 	})
 
-	it('lays the under-map legend out as a centered grid', () => {
+	it('lays the under-map legend out as a centered wrap row', () => {
 		const { container } = renderUI(categoricalPlat())
 
 		const legend = bySlot(container, 'map-legend')
 
-		// A centered grid block under the map.
-		expect(legend?.getAttribute('class')).toContain('grid')
+		// A centered wrap row under the map, like the chart legend.
+		expect(legend?.getAttribute('class')).toContain('flex-wrap')
 
-		expect(legend?.getAttribute('class')).toContain('mx-auto')
+		expect(legend?.getAttribute('class')).toContain('justify-center')
+
+		expect(legend).toHaveAttribute('aria-orientation', 'horizontal')
 	})
 
 	it('toggles a category off: neutral fill, struck legend text, pressed off', () => {
