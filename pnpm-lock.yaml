@@ -167,6 +167,9 @@ catalogs:
     '@biomejs/biome':
       specifier: ^2.5.14
       version: 2.5.14
+    '@simplewebauthn/browser':
+      specifier: ^14.0.0
+      version: 14.0.0
     '@tailwindcss/postcss':
       specifier: ^4.1.0
       version: 4.3.0
@@ -269,6 +272,9 @@ importers:
       '@heroicons/react':
         specifier: ^2.2.0
         version: 2.2.0(react@19.2.7)
+      '@simplewebauthn/browser':
+        specifier: 'catalog:'
+        version: 14.0.0
       '@tanstack/react-query':
         specifier: 'catalog:'
         version: 5.101.2(react@19.2.7)
@@ -415,6 +421,9 @@ importers:
 
   packages/shared:
     dependencies:
+      '@simplewebauthn/browser':
+        specifier: 'catalog:'
+        version: 14.0.0
       ui:
         specifier: workspace:*
         version: link:../ui
@@ -2213,6 +2222,9 @@ packages:
   '@simple-libs/stream-utils@1.2.0':
     resolution: {integrity: sha512-KxXvfapcixpz6rVEB6HPjOUZT22yN6v0vI0urQSk1L8MlEWPDFCZkhw2xmkyoTGYeFw7tWTZd7e3lVzRZRN/EA==}
     engines: {node: '>=18'}
+
+  '@simplewebauthn/browser@14.0.0':
+    resolution: {integrity: sha512-1odWVqeEBTl7lJ9zMKLEsmTlnyrDO5iRcTvfMKKk1WThUnp/i8JJdffdj2icP+tty159s4PgwE3BiMoEW9NFow==}
 
   '@sinclair/typebox@0.27.10':
     resolution: {integrity: sha512-MTBk/3jGLNB2tVxv6uLlFh1iu64iYOQ2PbdOSK3NW8JZsmlaOh2q6sdtKowBhfw8QFLmYNzTW4/oK4uATIi6ZA==}
@@ -5757,6 +5769,8 @@ snapshots:
       '@simple-libs/stream-utils': 1.2.0
 
   '@simple-libs/stream-utils@1.2.0': {}
+
+  '@simplewebauthn/browser@14.0.0': {}
 
   '@sinclair/typebox@0.27.10': {}
 

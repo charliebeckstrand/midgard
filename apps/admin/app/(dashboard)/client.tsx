@@ -4,6 +4,7 @@ import {
 	ArrowRightStartOnRectangleIcon,
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
+	KeyIcon,
 	UsersIcon,
 } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
@@ -85,7 +86,7 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 }
 
 /**
- * Sidebar footer account menu: settings link and sign-out.
+ * Sidebar footer account menu: account and settings links, and sign-out.
  *
  * @internal
  * @remarks Sign-out POSTs `/auth/logout` then routes to `/login`.
@@ -114,6 +115,10 @@ function SidebarUserMenu({ user }: { user: User }) {
 				</SidebarItem>
 			</MenuTrigger>
 			<MenuContent>
+				<MenuItem href="/account">
+					<KeyIcon />
+					<MenuLabel>Account</MenuLabel>
+				</MenuItem>
 				<MenuItem href="/settings">
 					<Cog8ToothIcon />
 					<MenuLabel>Settings</MenuLabel>
