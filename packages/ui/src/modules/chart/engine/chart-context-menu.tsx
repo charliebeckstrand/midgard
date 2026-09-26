@@ -8,7 +8,6 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useEffectEvent,
 	useMemo,
 	useRef,
 	useState,
@@ -20,6 +19,7 @@ import {
 	type ContextMenuItem,
 } from '../../../components/context-menu'
 import { Dialog, DialogClose, DialogFooter } from '../../../components/dialog'
+import { useStableEvent } from '../../../hooks/use-stable-event'
 import { copyText, downloadBlob } from '../../../utilities/export-output'
 import {
 	type ChartImageType,
@@ -249,10 +249,10 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
-	// Read as an effect event, not a dep: `exportImage` feeds the `defaults` memo this
+	// A stable event, not the caller's callback: `exportImage` feeds the `defaults` memo this
 	// file keeps because it re-renders on every pointer move across the plot, and an
 	// inline `contextMenu={{ onExport }}` would rebuild it and its five icons.
-	const reportExport = useEffectEvent((outcome: ChartExportOutcome) => config?.onExport?.(outcome))
+	const reportExport = useStableEvent((outcome: ChartExportOutcome) => config?.onExport?.(outcome))
 
 	const exportImage = useCallback(
 		async (type: ChartImageType, extension: string): Promise<void> => {
@@ -286,7 +286,7 @@ export function ChartContextMenu({
 				reportExport({ ok: false, type, error })
 			}
 		},
-		[rootRef, includeLegend, title],
+		[rootRef, includeLegend, title, reportExport],
 	)
 
 	// Memoized for the same reason `customItems` is: this array and its five icon

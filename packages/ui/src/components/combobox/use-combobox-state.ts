@@ -1,17 +1,10 @@
 'use client'
 
-import {
-	type RefObject,
-	useCallback,
-	useDeferredValue,
-	useEffect,
-	useEffectEvent,
-	useRef,
-	useState,
-} from 'react'
+import { type RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
 import { useControllable } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
+import { useStableEvent } from '../../hooks/use-stable-event'
 
 type ComboboxStateParams<T> = {
 	multiple: boolean
@@ -71,20 +64,23 @@ export function useComboboxState<T>({
 
 	const [editing, setEditing] = useState(false)
 
-	// Read `onQueryChange` as an effect event so `setQuery` stays referentially
-	// stable across keystrokes. Carried as a dependency, an inline `onQueryChange`
+	// Read `onQueryChange` as a stable event so `setQuery` keeps one identity
+	// across keystrokes. Carried as a dependency, an inline `onQueryChange`
 	// would give `setQuery` — and through it `close`, `select`, and the combobox
 	// context — a new identity each render, re-rendering every option on the
 	// typing path the refs below (and the deferred query) exist to keep cheap.
 	// `useControllable` keeps its own `onValueChange` in a ref instead, because
 	// its setter can run during render.
-	const reportQuery = useEffectEvent((next: string) => onQueryChange?.(next))
+	const reportQuery = useStableEvent((next: string) => onQueryChange?.(next))
 
-	const setQuery = useCallback((next: string) => {
-		setQueryInternal(next)
+	const setQuery = useCallback(
+		(next: string) => {
+			setQueryInternal(next)
 
-		reportQuery(next)
-	}, [])
+			reportQuery(next)
+		},
+		[reportQuery],
+	)
 
 	// Snapshot of the query the menu content filters on, frozen while the panel
 	// animates closed. Clearing `query` synchronously on close snaps
