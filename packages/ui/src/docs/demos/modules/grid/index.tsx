@@ -5,7 +5,7 @@ import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
-import { JsonTree } from '../../../../components/json-tree'
+import { JsonTree, type JsonValue } from '../../../../components/json-tree'
 import { Sparkline } from '../../../../components/sparkline'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
@@ -507,8 +507,31 @@ const BatchActionsExample = () => {
 	)
 }
 
+// The path of the inspector tree's root branch.
+const ROOT_PATH = '$'
+
+// State for the tree that inspects a click. The tree shows an empty object
+// before the first click. The tree is controlled, so each click opens the root
+// again after the user closed it.
+function useClickInspector<T extends JsonValue>() {
+	const [picked, setPicked] = useState<T | null>(null)
+
+	const [expanded, setExpanded] = useState(() => new Set([ROOT_PATH]))
+
+	const pick = (value: T) => {
+		setPicked(value)
+
+		setExpanded((prev) => (prev.has(ROOT_PATH) ? prev : new Set(prev).add(ROOT_PATH)))
+	}
+
+	return {
+		pick,
+		tree: { data: picked ?? {}, expanded, onExpandedChange: setExpanded },
+	}
+}
+
 const RowClickExample = () => {
-	const [picked, setPicked] = useState<Person | null>(null)
+	const { pick, tree } = useClickInspector<Person>()
 
 	// A click on interactive cell content (here the row-action buttons) is ignored,
 	// so the row click and per-row controls coexist. The rows are a roving-tabindex
@@ -530,9 +553,9 @@ const RowClickExample = () => {
 				]}
 				rows={people}
 				getKey={(row) => row.id}
-				onRowClick={(row) => setPicked(row)}
+				onRowClick={pick}
 			/>
-			{picked && <JsonTree data={picked} />}
+			<JsonTree {...tree} />
 		</Stack>
 	)
 }
@@ -542,7 +565,7 @@ const RowClickExample = () => {
 type PickedCell = Omit<GridCellClickContext<Person>, 'value'> & { value: string }
 
 const CellClickExample = () => {
-	const [picked, setPicked] = useState<PickedCell | null>(null)
+	const { pick, tree } = useClickInspector<PickedCell>()
 
 	// The cell context carries the column id and the cell's value alongside the
 	// owning row; clicks on non-data cells are ignored. A cell handler makes the
@@ -554,15 +577,15 @@ const CellClickExample = () => {
 				columns={columns}
 				rows={people}
 				getKey={(row) => row.id}
-				onCellClick={(cell) => setPicked({ ...cell, value: String(cell.value) })}
+				onCellClick={(cell) => pick({ ...cell, value: String(cell.value) })}
 			/>
-			{picked && <JsonTree data={picked} />}
+			<JsonTree {...tree} />
 		</Stack>
 	)
 }
 
 const DoubleClickExample = () => {
-	const [picked, setPicked] = useState<({ event: string } & PickedCell) | null>(null)
+	const { pick, tree } = useClickInspector<{ event: string } & PickedCell>()
 
 	// Double-click events layer over the single-click pair for a secondary
 	// "open" affordance: `onRowDoubleClick` carries the row datum, and
@@ -576,10 +599,10 @@ const DoubleClickExample = () => {
 				rows={people}
 				getKey={(row) => row.id}
 				onCellDoubleClick={(cell) =>
-					setPicked({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
+					pick({ event: 'cellDoubleClick', ...cell, value: String(cell.value) })
 				}
 			/>
-			{picked && <JsonTree data={picked} />}
+			<JsonTree {...tree} />
 		</Stack>
 	)
 }
