@@ -2,7 +2,6 @@
 
 import { useReducedMotion } from 'motion/react'
 import {
-	type ReactNode,
 	useCallback,
 	useEffect,
 	useImperativeHandle,
@@ -11,20 +10,13 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { Table } from '../../components/table'
-import { announce, cn, dataAttr } from '../../core'
+import { announce, dataAttr } from '../../core'
 import { useA11yAnnouncements, useComposedRef, useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
-import {
-	GridContext,
-	GridDirectionContext,
-	GridHighlightContext,
-	GridSettleContext,
-	type GridSortState,
-} from './context'
+import { GridContext, GridSettleContext } from './context'
 import {
 	describeColumnVisibility,
 	describePin,
@@ -55,15 +47,7 @@ import {
 	buildRovingCellActivate,
 	composeCellDoubleClick,
 } from './engine/grid-row/bridges'
-import { sortsEqual } from './engine/grid-sort/state'
-import {
-	condensedTableClass,
-	gridWrapperClass,
-	outlineTableClass,
-	resolveDensity,
-	settleBodyClass,
-	stripedForOutline,
-} from './engine/grid-table/classes'
+import { gridWrapperClass, resolveDensity } from './engine/grid-table/classes'
 import { assertGridProps, implyVirtualize } from './engine/grid-table/guards'
 import {
 	seedColumnManager,
@@ -71,141 +55,54 @@ import {
 	seedColumnSizing,
 	seedPinning,
 } from './engine/grid-table/seeds'
-import { GridAutoSizeConfirmDialog } from './grid-auto-size-confirm-dialog'
-import { GridBody } from './grid-body'
 import { GridBusyStatus } from './grid-busy-status'
-import { GridColumnManager } from './grid-column-manager'
 import { useColumnGroupMenu } from './grid-context-menu'
+import { GridDataDialogs } from './grid-data-dialogs'
 import {
+	placeNewRow,
 	resolveActionable,
 	resolveAriaRowCount,
 	resolveFooterStats,
 	resolveGridSemantics,
+	resolveHighlightQuery,
 	resolveHover,
 	resolveInfiniteScroll,
 	resolveResizeLayout,
 	resolveSortable,
-	resolveTableProps,
 	resolveVirtualization,
+	rowReorderPermitted,
+	widthGateClass,
 } from './grid-data-resolvers'
+import { GridDataTable } from './grid-data-table'
 import type { GridDataProps, GridEditSource, GridPinningState } from './grid-data-types'
 import { GridExportOverlay } from './grid-export-overlay'
 import { GridFooterBar } from './grid-footer-bar'
 import { GridGroupByContext } from './grid-group-by-button'
-import { GridHead } from './grid-head'
-import { GridManagerDialog } from './grid-manager-dialog'
 import { useGridMenuActions } from './grid-menu-actions'
-import { GridNewRow } from './grid-new-row'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
 import {
 	DensityCascade,
 	GridOverlayDensityContext,
 	GridRegion,
-	GridRowManagerRegionDialog,
 	GridRowReorderRegion,
-	GridScrollRegion,
 } from './grid-region'
-import { useGridSort } from './grid-sort-state'
+import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
-import { GridGrandTotalBody, resolveGrandTotal } from './grid-total-row'
+import { resolveGrandTotal } from './grid-total-row'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
-import type { GridColumn, GridSearch } from './types'
+import type { GridColumn } from './types'
 import { useGridColumns } from './use-grid-columns'
 import { useGridCursor } from './use-grid-cursor'
 import { useGridExpansion } from './use-grid-expansion'
 import { useGridExport } from './use-grid-export'
 import { useGridGroup } from './use-grid-group'
-import { GridNavContext } from './use-grid-navigation'
 import { useGridReorder } from './use-grid-reorder'
 import { useGridRoving } from './use-grid-roving'
 import { useGridRowGrouping } from './use-grid-row-grouping'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionActions, useGridSelectionState } from './use-grid-selection'
-import { type GridGlobalFilterView, useGridTable } from './use-grid-table'
-
-/**
- * Where the new-row slot renders, or `null` when it does not. The slot shows
- * over a body that shows data or its empty state, and not over the loading
- * skeleton or an error. @internal
- */
-function placeNewRow(
-	position: 'top' | 'bottom' | null,
-	loading: boolean,
-	showingError: boolean,
-): 'top' | 'bottom' | null {
-	return loading || showingError ? null : position
-}
-
-/** The new-row slot's node when it renders at `where`, else `null`. @internal */
-function slotAt(
-	place: 'top' | 'bottom' | null,
-	where: 'top' | 'bottom',
-	slot: ReactNode,
-): ReactNode {
-	return place === where ? slot : null
-}
-
-/**
- * The `aria-rowindex` of the new-row slot, or `undefined` where the grid sets
- * no row indexes. At the top the slot is the first row after the header rows.
- * At the bottom it is the last row before a grand-total row. An indeterminate
- * row count cannot name that index, so the slot there takes none.
- *
- * @internal
- */
-function resolveNewRowIndex(args: {
-	position: 'top' | 'bottom' | null
-	gridSemantics: boolean
-	/** Whether the body shows data rows. Over the empty state the grid sets no row count. */
-	hasRows: boolean
-	groupRowOffset: number
-	ariaRowCount: number
-	grandTotal: boolean
-}): number | undefined {
-	if (!args.gridSemantics || !args.hasRows || args.position === null) return undefined
-
-	if (args.position === 'top') return args.groupRowOffset + 2
-
-	return args.ariaRowCount > 0 ? args.ariaRowCount - Number(args.grandTotal) : undefined
-}
-
-/**
- * Whether the grid's current state permits a manual row drag-reorder. A manual
- * order only holds against the natural row order, so reordering stands down
- * whenever the rendered rows diverge from the source set. That covers an active
- * column sort and a filtered/searched view (fewer rendered rows than source). It
- * also covers pagination, virtualization, an active row grouping, active
- * master-detail, and an empty or loading grid. A detail row is not a sortable
- * item, so a drag would move its row away from it. The rendered-length check
- * catches client filtering, search, and client pagination in one; the pagination
- * and virtualization flags catch the server-page and windowed cases.
- *
- * @internal
- */
-function rowReorderPermitted(args: {
-	loading: boolean
-	/** Whether there are source rows to drag at all. */
-	hasRows: boolean
-	paginated: boolean
-	virtualized: boolean
-	grouped: boolean
-	expanded: boolean
-	sorted: boolean
-	renderedCount: number
-	sourceCount: number
-}): boolean {
-	return (
-		!args.loading &&
-		args.hasRows &&
-		!args.paginated &&
-		!args.virtualized &&
-		!args.grouped &&
-		!args.expanded &&
-		!args.sorted &&
-		args.renderedCount === args.sourceCount
-	)
-}
+import { useGridTable } from './use-grid-table'
 
 /**
  * {@link bodyRowCount}, memoized. A windowed grouped or master-detail body
@@ -264,55 +161,6 @@ function useMaxHeightGuard(maxHeight: string | undefined): void {
 }
 
 /**
- * Tracks whether a server-side (manual) sort is in flight. That is the interval
- * between the grid emitting a sort change and the consumer handing back the
- * reordered `rows`. The body can then dim its rows to a settle wash until the
- * new order lands (see `k.body.settling`). Enabled only under
- * {@link GridSort.manual}.
- *
- * The grid settles while the live `sort` differs from the order the on-screen
- * `rows` reflect. That order is snapshotted whenever `rows` change, since
- * they've then caught up to the sort that fetched them. The compare is by
- * value, not identity. A rapid asc→desc→clear ends on a cleared sort whose rows
- * are already shown, because no fetch landed between the clicks. The wash
- * therefore lifts rather than latching on. That was the reported stuck-pulse
- * bug, which a reference-only "rows changed?" test left on because the consumer
- * handed back the unchanged default set. A consumer that swaps `rows` in the
- * same commit as the sort — a synchronous re-sort — snapshots the new order at
- * once. Its rows therefore never flash dim.
- *
- * @internal
- */
-function useServerSortSettle<T>(args: {
-	enabled: boolean
-	sort: GridSortState[]
-	rows: T[]
-}): boolean {
-	const { enabled, sort, rows } = args
-
-	const [settling, setSettling] = useState(false)
-
-	// The sort the on-screen rows reflect; re-snapshotted each time `rows` change.
-	const settledSortRef = useRef(sort)
-
-	const prevRowsRef = useRef(rows)
-
-	useEffect(() => {
-		const rowsChanged = prevRowsRef.current !== rows
-
-		prevRowsRef.current = rows
-
-		// Rows landed: they now reflect the live sort — take it as the settled order.
-		if (rowsChanged) settledSortRef.current = sort
-
-		// In flight only while the live sort has moved off the settled order.
-		setSettling(enabled && !sortsEqual(settledSortRef.current, sort))
-	}, [enabled, sort, rows])
-
-	return enabled && settling
-}
-
-/**
  * Stabilizes a consumer event callback (`onRowClick`, `onCellClick`, and their
  * double-click counterparts) so the memoized rows hold across renders. It
  * returns a referentially-stable handler, or `undefined` when no callback is
@@ -331,25 +179,6 @@ function useStableHandler<A extends unknown[]>(
 	const present = handler != null
 
 	return useMemo(() => (present ? (...args: A) => ref.current?.(...args) : undefined), [present])
-}
-
-/**
- * The active highlight-search query: the debounced quick-search value when the
- * search marks rather than prunes ({@link GridSearch.mode} `'highlight'`) and it holds
- * a query, else `null`. Data cells read it through {@link GridHighlightContext} to
- * mark their matches; `null` while the search filters, is empty, or is unset.
- * Kept out of {@link GridData} for its cognitive-complexity budget.
- *
- * @internal
- */
-function resolveHighlightQuery(
-	search: GridSearch | undefined,
-	globalFilter: GridGlobalFilterView | null,
-): string | null {
-	if (search?.mode !== 'highlight') return null
-
-	// `|| null` (not `??`) so an empty query collapses to null — no marking.
-	return globalFilter?.value || null
 }
 
 /**
@@ -392,24 +221,6 @@ function useTableRevealed(
 	if (settled || loading || failed || rowCount === 0) revealed.current = true
 
 	return revealed.current
-}
-
-/**
- * The width gate: withholds the table's paint until its columns are fitted, while
- * leaving it measurable.
- *
- * `invisible` rather than `hidden` or an unmount, because the autosizer has to *measure*
- * this subtree in order to size it. Hidden visibility keeps layout and geometry intact,
- * so the cells lay out and report their widths exactly as they would if shown. It also
- * keeps the box in flow, so the surrounding page doesn't reflow on reveal. Carried by the
- * `<table>` itself rather than a wrapper: a wrapping node — even `display: contents` —
- * would sit in the middle of the grid's own child selectors. Kept out of
- * {@link GridData} for its cognitive-complexity budget.
- *
- * @internal
- */
-function widthGateClass(revealed: boolean): string | undefined {
-	return revealed ? undefined : 'invisible'
 }
 
 /**
@@ -1055,13 +866,6 @@ export function GridData<T>({
 		className,
 	})
 
-	// While a server-side (manual) sort is in flight, the data body pulses at a
-	// reduced opacity until the reordered rows land (projected from the `<table>`
-	// onto its data `<tbody>`; see `settleBodyClass`). `serverSortSettling` is only
-	// ever set under a manual sort, so a client-sorted grid's table class is
-	// untouched — the engine reorders it in place with no round trip.
-	const bodyStateClass = settleBodyClass(serverSortSettling)
-
 	// `resizing` stays on this table-wide value for external `useGrid()` consumers.
 	// The grid's own truncating head and cells read the drag state of the settle
 	// store (see `useGridResizing`), so a sort or a select-all, which churns this
@@ -1340,147 +1144,6 @@ export function GridData<T>({
 		[groupByConfig?.groupButton, grouping, setGrouping, hasData],
 	)
 
-	// The new-row slot, in a body section of its own beside the data body (see
-	// `GridNewRow`). At the top it takes the first index after the header rows,
-	// and the data rows shift down one. At the bottom it takes the last index
-	// before a grand-total row, which an indeterminate count cannot name.
-	const newRowSlot = (
-		<GridNewRow<T>
-			columns={visibleColumns}
-			pinning={pinning}
-			ariaRowIndex={resolveNewRowIndex({
-				position: newRowPlace,
-				gridSemantics,
-				hasRows,
-				groupRowOffset,
-				ariaRowCount,
-				grandTotal: grandTotal.active,
-			})}
-			add={editable?.newRowAdd || undefined}
-			onMeasureAdd={setMeasuredAddWidth}
-		/>
-	)
-
-	// The cursor store is always provided (inert when not navigable/editable); only
-	// a cursor grid's cells subscribe, so the wrapper costs nothing otherwise.
-	const tableContent = (
-		<GridNavContext value={cursor.navStore}>
-			<Table
-				density={density}
-				bleed={bleed}
-				striped={stripedForOutline(striped, outline)}
-				hover={rowHover}
-				className={condensedTableClass(
-					condensed,
-					cn(tableClassName, bodyStateClass, outlineTableClass(outline), widthGateClass(showTable)),
-				)}
-				tableProps={resolveTableProps({
-					tableProps: { ...tableProps, ref: tableElementRef },
-					// The cursor's tab stop, active-cell pointer, and key/focus handlers.
-					navTableProps: cursor.navTableProps,
-					// Row/cell roving: the table ref and the arrow-key handler (exclusive
-					// with the cursor, which stands roving down).
-					rovingTableProps: roving.tableProps,
-					loading,
-					gridSemantics,
-					navigable: cursor.cursorEnabled,
-					tree: groupingActive,
-					ariaRowCount,
-					colCount: visibleColumns.length,
-					multiSelectable: hasSelectionColumn,
-					bodyHasRows: hasRows && !loading && !showingError,
-					tableWidth,
-				})}
-			>
-				{colGroup}
-
-				<GridHead
-					columns={visibleColumns}
-					hasRows={hasRows}
-					interactive={hasData}
-					selectAllLabel={selectAllLabel}
-					gridSemantics={gridSemantics}
-					reorderable={reorderActive}
-					reorderHandle={reorderHandle}
-					resize={resize}
-					filters={filters}
-					pinning={pinning}
-					groups={groupHeader}
-				/>
-
-				{slotAt(newRowPlace, 'top', newRowSlot)}
-
-				<GridBody<T>
-					loading={loading}
-					rows={renderRows}
-					rowKeys={rowKeys}
-					visibleColumns={visibleColumns}
-					rowLoading={rowLoading}
-					rowClassName={rowClassName}
-					rowLabel={rowLabel}
-					onRowClick={handleRowClick}
-					onCellClick={handleCellClick}
-					onRowDoubleClick={handleRowDoubleClick}
-					onCellDoubleClick={cellDoubleClick}
-					rowRoving={roving.rovingRows}
-					rowStaticStop={roving.rowStaticStop}
-					cellRoving={roving.rovingCells}
-					cellActivate={cellActivate}
-					empty={empty}
-					error={error}
-					gridSemantics={gridSemantics}
-					rowIndexOffset={pageRowOffset + groupRowOffset + Number(newRowPlace === 'top')}
-					selection={selection}
-					toggleRow={toggleRow}
-					selectable={hasSelectionColumn}
-					reorderable={reorderActive}
-					rowReorderActive={rowReorderActive}
-					animateSortRows={animateSortRows}
-					rowSortable={rowReorder.sortableContext}
-					groups={groups}
-					toggleGroup={toggleClientGroup}
-					manualRows={manualRows}
-					manualGroup={manualGroupBody}
-					groupColumnId={grouping}
-					manualGroupSort={manualGroupSort}
-					groupRenderHeader={groupRenderHeader}
-					rowGroupPresentation={rowManager.presentation}
-					groupTotalRow={groupTotalRow}
-					expansion={detail.body}
-					density={density}
-					truncate={truncate}
-					pinning={pinning}
-					virtualize={
-						gated.virtualize
-							? {
-									scrollRef,
-									estimateSize,
-									overscan,
-									scrollIntoViewRef: scrollRowIntoViewRef,
-									infiniteScroll,
-									fitRenderedRows,
-									stickyHeader,
-								}
-							: null
-					}
-				/>
-
-				{slotAt(newRowPlace, 'bottom', newRowSlot)}
-
-				<GridGrandTotalBody<T>
-					grandTotal={grandTotal}
-					columns={visibleColumns}
-					gridSemantics={gridSemantics}
-					ariaRowCount={ariaRowCount}
-				/>
-			</Table>
-		</GridNavContext>
-	)
-
-	// Mount the editing contexts (the open edit's coord and session) around the
-	// table when editable; a read-only grid returns it untouched.
-	const cursorContent = cursor.wrap(tableContent)
-
 	// Highlight-mode search (`search.mode === 'highlight'`): every row stays and the
 	// matched substring is marked in each searched cell instead. The debounced query
 	// flows to the body cells through context (null while filtering, empty, or
@@ -1488,18 +1151,108 @@ export function GridData<T>({
 	const highlightQuery = resolveHighlightQuery(searchConfig, globalFilter)
 
 	const tableRegion = (
-		<GridHighlightContext value={highlightQuery}>
-			<GridScrollRegion
-				active={needsScrollWrapper}
-				scrollRef={scrollRef}
-				maxHeight={maxHeight}
-				expandable={detail.active}
-				grouped={groupingMode.active}
-				virtualized={gated.virtualize}
-			>
-				{cursorContent}
-			</GridScrollRegion>
-		</GridHighlightContext>
+		<GridDataTable<T>
+			columns={visibleColumns}
+			pinning={pinning}
+			density={density}
+			loading={loading}
+			showingError={showingError}
+			hasRows={hasRows}
+			cursor={cursor}
+			roving={roving}
+			table={{
+				bleed,
+				striped,
+				outline,
+				condensed,
+				hover: rowHover,
+				className: tableClassName,
+				// While a server-side (manual) sort is in flight, the data body pulses at a
+				// reduced opacity until the reordered rows land (see `settleBodyClass`).
+				// `serverSortSettling` is only ever set under a manual sort, so a
+				// client-sorted grid's table class is untouched.
+				settling: serverSortSettling,
+				revealed: showTable,
+				width: tableWidth,
+				colGroup,
+				props: { ...tableProps, ref: tableElementRef },
+				tree: groupingActive,
+				multiSelectable: hasSelectionColumn,
+			}}
+			semantics={{
+				enabled: gridSemantics,
+				rowOffset: pageRowOffset,
+				groupRowOffset,
+				ariaRowCount,
+				selectAllLabel,
+			}}
+			head={{
+				interactive: hasData,
+				reorderable: reorderActive,
+				reorderHandle,
+				resize,
+				filters,
+				groups: groupHeader,
+			}}
+			body={{
+				rows: renderRows,
+				rowKeys,
+				rowLoading,
+				rowClassName,
+				rowLabel,
+				onRowClick: handleRowClick,
+				onCellClick: handleCellClick,
+				onRowDoubleClick: handleRowDoubleClick,
+				onCellDoubleClick: cellDoubleClick,
+				cellActivate,
+				empty,
+				error,
+				selection,
+				toggleRow,
+				selectable: hasSelectionColumn,
+				reorderable: reorderActive,
+				rowReorderActive,
+				animateSortRows,
+				rowSortable: rowReorder.sortableContext,
+				groups,
+				toggleGroup: toggleClientGroup,
+				manualRows,
+				manualGroup: manualGroupBody,
+				groupColumnId: grouping,
+				manualGroupSort,
+				groupRenderHeader,
+				rowGroupPresentation: rowManager.presentation,
+				groupTotalRow,
+				expansion: detail.body,
+				truncate,
+				virtualize: gated.virtualize
+					? {
+							scrollRef,
+							estimateSize,
+							overscan,
+							scrollIntoViewRef: scrollRowIntoViewRef,
+							infiniteScroll,
+							fitRenderedRows,
+							stickyHeader,
+						}
+					: null,
+			}}
+			newRow={{
+				place: newRowPlace,
+				add: editable?.newRowAdd || undefined,
+				onMeasureAdd: setMeasuredAddWidth,
+			}}
+			grandTotal={grandTotal}
+			scroll={{
+				active: needsScrollWrapper,
+				scrollRef,
+				maxHeight,
+				expandable: detail.active,
+				grouped: groupingMode.active,
+				virtualized: gated.virtualize,
+			}}
+			highlightQuery={highlightQuery}
+		/>
 	)
 
 	return (
@@ -1522,41 +1275,42 @@ export function GridData<T>({
 					    its rows, whichever surface started it. */}
 						<GridExportOverlay active={exportActions.pending} />
 
-						{renderDialog && (
-							<GridDirectionContext value={direction}>
-								<GridManagerDialog
-									open={columnManagerOpen}
-									onOpenChange={setColumnManagerOpen}
-									label={managerLabel}
-									dir={direction}
-								>
-									<GridColumnManager
-										columns={managerItems}
-										filterable={columnManagerConfig?.filterable}
-										order={columnOrder}
-										onOrderChange={setColumnOrder}
-										reorderable={reorderEnabled}
-										hidden={hiddenColumns}
-										onHiddenChange={handleHiddenChange}
-										onPinChange={pinColumn}
-										groups={group.editorGroups}
-										onGroupsChange={group.editorSetGroups}
-										onSavePreset={columnManagerConfig?.onSavePreset}
-									/>
-								</GridManagerDialog>
-							</GridDirectionContext>
-						)}
-
-						<GridRowManagerRegionDialog region={rowManager} />
-
-						{confirmWidthAction && (
-							<GridAutoSizeConfirmDialog
-								open={widthConfirmOpen}
-								onOpenChange={setWidthConfirmOpen}
-								action={widthAction}
-								onConfirm={confirmWidthAction}
-							/>
-						)}
+						<GridDataDialogs
+							direction={direction}
+							columnManager={
+								renderDialog
+									? {
+											open: columnManagerOpen,
+											onOpenChange: setColumnManagerOpen,
+											label: managerLabel,
+											manager: {
+												columns: managerItems,
+												filterable: columnManagerConfig?.filterable,
+												order: columnOrder,
+												onOrderChange: setColumnOrder,
+												reorderable: reorderEnabled,
+												hidden: hiddenColumns,
+												onHiddenChange: handleHiddenChange,
+												onPinChange: pinColumn,
+												groups: group.editorGroups,
+												onGroupsChange: group.editorSetGroups,
+												onSavePreset: columnManagerConfig?.onSavePreset,
+											},
+										}
+									: null
+							}
+							rowManager={rowManager}
+							widthConfirm={
+								confirmWidthAction
+									? {
+											open: widthConfirmOpen,
+											onOpenChange: setWidthConfirmOpen,
+											action: widthAction,
+											onConfirm: confirmWidthAction,
+										}
+									: null
+							}
+						/>
 
 						<GridToolbar
 							filter={globalFilter}
