@@ -28,7 +28,7 @@ import { Input } from '../../components/input'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { useGrabbingCursor, useSortableSensors } from '../../hooks'
+import { useDragCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
 import {
@@ -165,10 +165,9 @@ export function GridGroupManager({
 
 	const sensors = useSortableSensors({ keyboardCoordinateGetter: groupAwareKeyboardCoordinates })
 
-	// Force the grabbing cursor across the document for the whole drag — the group
-	// reorder sorts in place with no overlay, so mid-drag the pointer is usually
-	// over a reflowing sibling zone or the dialog, not the dragged card.
-	useGrabbingCursor(mgr.activeId != null)
+	// dnd-kit sets no cursor, so the element under the pointer sets it. The rule
+	// holds the closed hand on the whole page until the drop or the cancel.
+	useDragCursor(mgr.activeId != null)
 
 	// String-keyed lookup so a zone (whose live ids are stringified) and the drag
 	// overlay can resolve a column id back to its manager item.

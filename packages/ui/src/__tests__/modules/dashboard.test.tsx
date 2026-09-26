@@ -347,7 +347,7 @@ describe('Dashboard', () => {
 	it('shows the grabbing cursor on the whole page while a tile drags, until the drop or the cancel', async () => {
 		renderUI(<Board editing />)
 
-		const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+		const cursor = () => document.head.querySelector('style[data-drag-cursor]')
 
 		const grip = screen.getByRole('button', { name: 'Move Revenue' })
 
@@ -1495,7 +1495,7 @@ describe('Dashboard gesture owner', () => {
 	})
 
 	/** The page-wide rule that holds the grabbing cursor. */
-	const cursor = () => document.head.querySelector('style[data-grabbing-cursor]')
+	const cursor = () => document.head.querySelector('style[data-drag-cursor]')
 
 	it('lifts the grabbing cursor when edit mode ends a drag, so one Escape closes the dialog', async () => {
 		const onOpenChange = vi.fn()

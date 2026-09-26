@@ -19,7 +19,7 @@ import { __resetTruncationObserver } from '../../hooks/use-truncation'
  * media-query registries turned out to guard nothing: a registry drops itself
  * when its last subscriber unsubscribes, and cleanup unmounts every subscriber.
  * The two below are the ones with a mechanism rather than a suspicion. The
- * counters in `use-scroll-lock` and `use-grabbing-cursor` balance on unmount,
+ * counter in `use-scroll-lock` and the holds in `use-drag-cursor` balance on unmount,
  * the `document-listener` registries drop themselves like the media-query ones,
  * and the time-ago ticker's `visibilityBound` flag and the PDF viewer's
  * `sharedWorker` are both bound once and idempotent. Measure one before adding
