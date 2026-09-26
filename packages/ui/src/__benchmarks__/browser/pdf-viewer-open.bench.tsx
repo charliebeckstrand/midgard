@@ -2,18 +2,19 @@
  * What a reader waits for when a PDF opens cold, and where that time goes.
  *
  * - `cold open · N pages` mounts `PdfViewer` on a document that nothing holds, and each
- *   sample ends when the last page renders. The first page and the whole document
- *   are both on the reader's path: the first page is when they can read, and the settle is
- *   when the rail and the page count are whole. The sample times the settle. The last sample
- *   of each count prints the mean time to the first painted page over the same samples.
+ *   sample ends when the render queue is idle: the shown page, its neighbor, and every
+ *   thumbnail. The first page is when the reader can read, and the settle is when the rail is
+ *   whole. The sample times the settle. The last sample of each count prints the mean time to
+ *   the first painted page, and the full rasters that the open rendered.
  * - `stage · …` splits one page into the steps that the rasterizer takes: the pdf.js render
  *   onto a canvas, then the encode that turns the canvas into the image the viewer shows.
  *   The encoders beside PNG are the alternatives, so each one's cost is on record. The
  *   describe also prints the size of the page in each format.
  *   The `work only` rows answer each animation frame that pdf.js waits for in a microtask, so
  *   they give the work of a render without its frame pacing.
- * - `flip · resident page` shows the next page of a document that the cache holds, from the
- *   commit to the decoded image. The describe also prints the PNG that the document holds.
+ * - `flip · resident page` shows a page that has a full raster, from the commit to the decoded
+ *   image. The bench also prints the PNG that the document holds.
+ * - `flip · far page` shows a page with no full raster, so each sample is one render.
  *
  * The documents come from `pdf-fixtures.ts`: US-Letter invoice pages with 40 rows of text,
  * built in memory. pdf.js 6 calls `Map.prototype.getOrInsertComputed`, which the pinned
@@ -45,6 +46,7 @@ import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
+	documentCacheState,
 	getDocumentSnapshot,
 	resetDocumentCache,
 	subscribeDocument,
@@ -67,12 +69,15 @@ const OPEN_OPTIONS = { time: 0, iterations: 5, warmupIterations: 1 } as const
 /** The ms from mount to the first painted page of each sample, per page count. */
 const firstPage = new Map<number, number[]>()
 
+/** The full rasters that each sample rendered, per page count. */
+const fullRasters = new Map<number, number[]>()
+
 /**
  * Mounts a viewer on a fresh copy of the document and resolves when it settles.
  *
  * @returns The ms from mount to the first page image that decoded in the viewport.
  */
-async function openCold(bytes: Uint8Array): Promise<number> {
+async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: number }> {
 	resetDocumentCache()
 
 	const src = servePdf(bytes)
@@ -121,8 +126,10 @@ async function openCold(bytes: Uint8Array): Promise<number> {
 		)
 	})
 
-	// `onLoad` reports the open. The sample ends when the last page has rendered.
+	// `onLoad` reports the open. The sample ends when the queue has nothing more to render.
 	await rendered(src)
+
+	const rasters = documentCacheState().find((entry) => entry.src === src)?.rasters ?? 0
 
 	// The decode of the first page can land after the load report.
 	while (painted < 0 || Number.isNaN(painted)) {
@@ -137,13 +144,15 @@ async function openCold(bytes: Uint8Array): Promise<number> {
 
 	URL.revokeObjectURL(src)
 
-	return painted
+	return { painted, rasters }
 }
 
-/** Resolves when the load of `src` has rendered its last page. */
+/** Resolves when `src` is open and its queue has nothing more to render. */
 function rendered(src: string) {
 	return new Promise<void>((resolve) => {
-		const done = () => !getDocumentSnapshot(src).loading
+		const done = () =>
+			!getDocumentSnapshot(src).loading &&
+			documentCacheState().find((entry) => entry.src === src)?.rendering === false
 
 		if (done()) return resolve()
 
@@ -212,12 +221,18 @@ describe('pdf viewer · cold open', () => {
 
 		firstPage.set(count, [])
 
+		fullRasters.set(count, [])
+
 		bench(
 			`cold open · ${count} pages · settled`,
 			async () => {
 				const samples = firstPage.get(count) ?? []
 
-				samples.push(await openCold(bytes))
+				const { painted, rasters } = await openCold(bytes)
+
+				samples.push(painted)
+
+				fullRasters.get(count)?.push(rasters)
 
 				// The bench prints only its own timing, so the last sample prints this one. The
 				// warm-up sample is left out of the mean.
@@ -227,7 +242,7 @@ describe('pdf viewer · cold open', () => {
 					const mean = timed.reduce((sum, value) => sum + value, 0) / timed.length
 
 					console.log(
-						`cold open · ${count} pages · first page painted · mean ${mean.toFixed(1)} ms`,
+						`cold open · ${count} pages · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${fullRasters.get(count)?.at(-1) ?? 0}`,
 					)
 				}
 			},
@@ -316,10 +331,17 @@ describe('pdf viewer · stage · one invoice page at 2x', async () => {
 	})
 })
 
-describe('pdf viewer · page flip · 14 pages resident', async () => {
+/**
+ * Mounts a viewer on a document of `count` pages, and resolves when its queue is idle.
+ *
+ * @remarks Called from the first sample of a flip bench, not from the body of its describe.
+ * A describe body runs when the file loads, before the cold open resets the cache for each of
+ * its samples. The document would therefore be gone by the time the flips run.
+ */
+async function mountResident(count: number) {
 	resetDocumentCache()
 
-	const src = servePdf(makeInvoicePdf(14))
+	const src = servePdf(makeInvoicePdf(count))
 
 	const box = host({ width: 800, height: 1000 })
 
@@ -335,33 +357,100 @@ describe('pdf viewer · page flip · 14 pages resident', async () => {
 
 	await rendered(src)
 
-	// What the resident rasters hold. The encoded blobs stay for the life of the entry. The
-	// decoded bitmaps are the browser's, and it can drop one that no element shows.
-	const pages = getDocumentSnapshot(src).pages
+	/** Shows `page`, and resolves when its image has decoded. */
+	const show = async (page: number) => {
+		flushSync(() => root.render(view(page)))
 
-	let bytes = 0
+		await rasterOf(src, page - 1)
 
-	for (const page of pages) bytes += (await (await fetch(page.src)).blob()).size
+		await box.querySelector<HTMLImageElement>('[data-slot="pdf-viewer-page-frame"] img')?.decode()
+	}
 
-	console.log(
-		`resident · 14 pages · ${(bytes / 1024 / 1024).toFixed(2)} MiB of PNG, ${((pages.length * (pages[0]?.width ?? 0) * (pages[0]?.height ?? 0) * 4) / 1024 / 1024).toFixed(0)} MiB if every page decodes`,
-	)
+	return { src, show }
+}
+
+describe('pdf viewer · page flip', () => {
+	let resident: ReturnType<typeof mountResident> | undefined
 
 	let current = 1
 
 	// One flip, from the commit to the decoded image of the next page. The pages alternate, so
-	// no sample reads an image that it already shows.
+	// no sample reads an image that it already shows. Both are resident: the queue renders the
+	// shown page and its neighbors.
 	bench(
 		'flip · resident page',
 		async () => {
+			if (!resident) {
+				resident = mountResident(14)
+
+				await printResident((await resident).src)
+			}
+
+			const { show } = await resident
+
 			current = current === 1 ? 2 : 1
 
-			flushSync(() => root.render(view(current)))
+			await show(current)
+		},
+		{ time: 2_000 },
+	)
 
-			const image = box.querySelector<HTMLImageElement>('[data-slot="pdf-viewer-page-frame"] img')
+	let packet: ReturnType<typeof mountResident> | undefined
 
-			await image?.decode()
+	let step = 0
+
+	/*
+	 * A flip to a page that holds no raster: one render, from the commit to the decoded image.
+	 * The cycle moves 5 pages at a time over 50 pages, so each page comes back after 10 moves.
+	 * Each move leaves at least one raster, so the bound of 8 has dropped the page by then.
+	 */
+	bench(
+		'flip · far page',
+		async () => {
+			packet ??= mountResident(50)
+
+			const { show } = await packet
+
+			step = (step + 1) % 10
+
+			await show(step * 5 + 1)
 		},
 		{ time: 2_000 },
 	)
 })
+
+/** Prints the rasters that a resident document holds. */
+async function printResident(src: string) {
+	const { pages } = getDocumentSnapshot(src)
+
+	const full = pages.filter((page) => page.src)
+
+	let bytes = 0
+
+	for (const page of full) bytes += (await (await fetch(page.src)).blob()).size
+
+	for (const page of pages) {
+		if (page.thumbnail) bytes += (await (await fetch(page.thumbnail)).blob()).size
+	}
+
+	console.log(
+		`resident · ${pages.length} pages · ${full.length} full rasters · ${(bytes / 1024 / 1024).toFixed(2)} MiB of PNG with the thumbnails, ${((full.length * (pages[0]?.width ?? 0) * (pages[0]?.height ?? 0) * 4) / 1024 / 1024).toFixed(0)} MiB if every full raster decodes`,
+	)
+}
+
+/** Resolves when the page at the 0-based `index` of `src` has its full raster. */
+function rasterOf(src: string, index: number) {
+	return new Promise<void>((resolve) => {
+		const done = () => !!getDocumentSnapshot(src).pages[index]?.src
+
+		if (done()) return resolve()
+
+		const unsubscribe = subscribeDocument(src, () => {
+			if (!done()) return
+
+			unsubscribe()
+
+			resolve()
+		})
+	})
+}

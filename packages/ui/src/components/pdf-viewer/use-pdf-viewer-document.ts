@@ -1,14 +1,17 @@
 'use client'
 
-import type { PDFDocumentProxy, PDFPageProxy, RenderTask } from 'pdfjs-dist'
-import { useCallback, useEffect, useSyncExternalStore } from 'react'
+import type { PDFDocumentProxy, PDFPageProxy } from 'pdfjs-dist'
+import { useCallback, useEffect, useState, useSyncExternalStore } from 'react'
 import { clamp } from '../../utilities'
 import {
 	EMPTY_DOCUMENT_SNAPSHOT,
 	ensureDocumentLoad,
+	focusPage,
 	getDocumentSnapshot,
 	type PdfDocumentSnapshot,
 	type PdfLoadReport,
+	type PdfPageRaster,
+	type PdfRenderJob,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
 import type { PdfViewerPage } from './types'
@@ -83,86 +86,61 @@ type PdfDocumentResult = PdfDocumentSnapshot & {
 	pending: boolean
 }
 
-/** The pdf.js handles one rasterization holds, so the `finally` can free them from one place. @internal */
-type PdfRasterController = {
-	doc: PDFDocumentProxy | null
-	renderTask: RenderTask | null
-}
-
 /**
- * Cancels the in-flight render task and destroys the document, nulling what it
- * frees so a double call is harmless.
+ * The width of a thumbnail in CSS pixels: the rail, less its padding.
  *
- * @remarks Idempotent.
+ * @remarks The raster is this width times the device pixel ratio, up to 2x. So a thumbnail is
+ * sharp on a dense screen and costs no more than the rail can show.
  * @internal
  */
-function releasePdf(controller: PdfRasterController) {
-	controller.renderTask?.cancel()
-	controller.renderTask = null
-
-	// Destroy through the loading task: pdf.js 6 removed `PDFDocumentProxy.destroy`,
-	// which was an alias for this. It aborts the network requests and the worker.
-	controller.doc?.loadingTask.destroy()
-	controller.doc = null
-}
+const THUMBNAIL_WIDTH = 192
 
 /**
- * Rasterizes one already-parsed page to a blob URL and reports it.
+ * Renders one parsed page onto a canvas of its own, and encodes it to a blob URL.
  *
- * @remarks Each URL is reported in the same step that creates it, which is what keeps a failed
- * load from leaking. Everything allocated is in the cache's snapshot by the time anything can
- * throw, and the cache is what revokes it.
- *
- * A page with no 2D context, or one `toBlob` refuses (oversized or tainted canvas), is skipped
- * rather than treated as a failure. The rest of the document still renders.
- *
- * The canvas belongs to the caller and is resized per page rather than allocated per page. At
- * up to 2× device scale a US-Letter backing store is tens of megabytes. A fresh one per
- * page hands the whole document's worth to the collector over a long load.
+ * @returns A job that gives the URL, or `null` for a page with no 2D context or an encode that
+ * fails. The rest of the document still renders.
+ * @remarks The canvas lives for one render. Its backing store is freed when the render ends,
+ * and the page frees its operator list. So a document keeps no canvas and no operator list
+ * between renders, only the images that the cache holds.
  * @internal
  */
-async function appendRenderedPage(
-	controller: PdfRasterController,
-	page: PDFPageProxy,
-	pageNum: number,
-	scale: number,
-	report: PdfLoadReport,
-	canvas: HTMLCanvasElement,
-): Promise<void> {
-	const viewport = page.getViewport({ scale })
+function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): PdfRenderJob {
+	const points = page.getViewport({ scale: 1 })
+
+	const density = clamp(window.devicePixelRatio || 1, 1, 2)
+
+	const viewport = page.getViewport({
+		scale: raster === 'full' ? scale : Math.min(scale, (THUMBNAIL_WIDTH * density) / points.width),
+	})
+
+	const canvas = document.createElement('canvas')
 
 	canvas.width = viewport.width
 	canvas.height = viewport.height
 
 	const context = canvas.getContext('2d')
 
-	if (!context) return
+	if (!context) return { promise: Promise.resolve(null), cancel: () => {} }
 
-	controller.renderTask = page.render({ canvas, canvasContext: context, viewport })
+	const task = page.render({ canvas, canvasContext: context, viewport })
 
-	await controller.renderTask.promise
+	const promise = (async () => {
+		try {
+			await task.promise
 
-	controller.renderTask = null
+			const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
 
-	const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
+			return blob ? URL.createObjectURL(blob) : null
+		} finally {
+			canvas.width = 0
+			canvas.height = 0
 
-	if (!blob) return
+			page.cleanup()
+		}
+	})()
 
-	report.page(
-		{
-			id: pageNum,
-			src: URL.createObjectURL(blob),
-			label: `Page ${pageNum}`,
-			width: viewport.width,
-			height: viewport.height,
-			// getViewport multiplies the page's own user-space size by `scale`, so dividing it
-			// back out recovers the printed size in points exactly. A highlight specified in a
-			// physical unit divides by this.
-			pointWidth: viewport.width / scale,
-			pointHeight: viewport.height / scale,
-		},
-		pageNum - 1,
-	)
+	return { promise, cancel: () => task.cancel() }
 }
 
 /**
@@ -207,19 +185,20 @@ async function openSlots(
 }
 
 /**
- * Fetches the PDF at `src`, publishes a slot for each page, and then rasterizes every page in
- * order, reporting each as it lands.
+ * Fetches the PDF at `src`, publishes a slot for each page, and gives the cache the renderer of
+ * its pages.
  *
- * @remarks Runs to completion or throws; it is not cancellable, because the cache owns its
- * lifetime rather than any one component — see {@link ensureDocumentLoad}.
+ * @remarks Runs to the open or throws; it is not cancellable, because the cache owns its
+ * lifetime rather than any one component — see {@link ensureDocumentLoad}. The pages render
+ * after it, when the viewers ask for them (`focusPage`).
  *
- * A load that ends keeps its pdf.js document open, and hands the cache the release. The
- * document then lives as long as its cache entry, so a later render needs no new parse. A load
- * that throws destroys the document itself, because a failed entry holds nothing to render.
+ * A load that opens keeps its pdf.js document open, and hands the cache the release. The
+ * document then lives as long as its cache entry, so a render needs no new parse. A load that
+ * throws destroys the document itself, because a failed entry holds nothing to render.
  * @internal
  */
 async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<void> {
-	const controller: PdfRasterController = { doc: null, renderTask: null }
+	let opened: PDFDocumentProxy | null = null
 
 	try {
 		// Independent: the worker chunk and the document itself. Serializing them costs a
@@ -238,36 +217,33 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 		const doc = await pdfjs.getDocument({ data: buffer.slice(0), worker: worker ?? undefined })
 			.promise
 
-		controller.doc = doc
+		opened = doc
 
 		const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
 
 		const parsed = await openSlots(doc, scale, report)
 
-		// One canvas for the whole document — see `appendRenderedPage`.
-		const canvas = document.createElement('canvas')
-
-		for (const [index, page] of parsed.entries()) {
-			await appendRenderedPage(controller, page, index + 1, scale, report, canvas)
-
-			// Frees the page's operator list, which the render built and the blob now replaces.
-			page.cleanup()
-		}
-
-		// Frees the backing store rather than waiting for the element to be collected.
-		canvas.width = 0
-		canvas.height = 0
-
 		report.retain(() => doc.loadingTask.destroy())
 
-		controller.doc = null
+		// The entry owns the document from here, and the `finally` must not destroy it.
+		opened = null
+
+		report.serve((index, raster) => {
+			const page = parsed[index]
+
+			if (!page) return { promise: Promise.resolve(null), cancel: () => {} }
+
+			return renderPage(page, raster, scale)
+		})
 	} finally {
-		releasePdf(controller)
+		// Destroy through the loading task: pdf.js 6 removed `PDFDocumentProxy.destroy`,
+		// which was an alias for this. It aborts the network requests and the worker.
+		opened?.loadingTask.destroy()
 	}
 }
 
 /**
- * Loads a PDF from `src` and rasterizes its pages to blob-URL images for the viewer.
+ * Loads a PDF from `src`, and renders the pages that the viewers ask for to blob-URL images.
  *
  * @returns `{ pages, documentUrl, loading, error, pending }`. `pages` has a slot for each page,
  * with its image once it renders. `documentUrl` is a same-origin blob URL of the source
@@ -305,4 +281,19 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
 	const current = useSyncExternalStore(subscribe, snapshot, serverSnapshot)
 
 	return { ...current, pending: !!src && current === EMPTY_DOCUMENT_SNAPSHOT }
+}
+
+/**
+ * Asks the cache to render the page at the 1-based `page` of `src`, for as long as this viewer
+ * shows it.
+ *
+ * @remarks The queue renders this page first, then its neighbors, then the thumbnails. A page
+ * past the last page counts as the last page, so a viewer can ask before the document opens.
+ * @internal
+ */
+export function usePdfViewerDocumentFocus(src: string | undefined, page: number) {
+	// One token for each mounted viewer, so two viewers on one document each keep a page.
+	const [token] = useState(() => ({}))
+
+	useEffect(() => focusPage(src, token, Math.max(page - 1, 0)), [src, token, page])
 }

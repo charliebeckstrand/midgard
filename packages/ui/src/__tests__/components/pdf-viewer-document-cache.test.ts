@@ -3,8 +3,10 @@ import {
 	documentCacheState,
 	EMPTY_DOCUMENT_SNAPSHOT,
 	ensureDocumentLoad,
+	focusPage,
 	getDocumentSnapshot,
 	type PdfLoadReport,
+	type PdfPageRaster,
 	resetDocumentCache,
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
@@ -38,8 +40,67 @@ function loader() {
 			report?.open(Array.from({ length: count }, (_, index) => ({ ...page(index + 1), src: '' }))),
 		place: (id: number) => report?.page(page(id), id - 1),
 		retain: (release: () => void) => report?.retain(release),
+		serve: (next: ReturnType<typeof renderer>) => report?.serve(next.render),
 		finish: () => settled.resolve(),
 	}
+}
+
+/**
+ * A page renderer whose renders end by hand.
+ *
+ * @remarks Each render is a deferred. A cancel rejects it, as a canceled pdf.js render does.
+ */
+function renderer() {
+	const jobs: {
+		index: number
+		raster: PdfPageRaster
+		finish: (url: string | null) => void
+		fail: (reason: unknown) => void
+		cancel: ReturnType<typeof vi.fn>
+	}[] = []
+
+	const render = vi.fn((index: number, raster: PdfPageRaster) => {
+		const job = deferred<string | null>()
+
+		const cancel = vi.fn(() => job.reject(new Error('canceled')))
+
+		jobs.push({ index, raster, finish: job.resolve, fail: job.reject, cancel })
+
+		return { promise: job.promise, cancel }
+	})
+
+	/** The renders asked for so far, as `index:raster`. */
+	const asked = () => jobs.map((job) => `${job.index}:${job.raster}`)
+
+	/** Ends the latest render with a URL named after its page and raster. */
+	const land = async () => {
+		const job = jobs.at(-1)
+
+		job?.finish(`blob:${job.raster}-${job.index}`)
+
+		await flush()
+	}
+
+	return { render, jobs, asked, land }
+}
+
+/** Opens `src` with `count` slots and serves a hand-driven renderer. */
+async function served(src: string, count: number) {
+	const load = loader()
+
+	const pages = renderer()
+
+	ensureDocumentLoad(src, load.run)
+
+	load.open(count)
+
+	load.serve(pages)
+
+	load.finish()
+
+	await flush()
+
+	return pages
 }
 
 /** One rasterized page, with a blob URL distinct enough to assert revocation against. */
@@ -500,5 +561,203 @@ describe('pdf viewer document cache · open document', () => {
 		load.retain(release)
 
 		expect(release).toHaveBeenCalledOnce()
+	})
+})
+
+describe('pdf viewer document cache · render queue', () => {
+	it('renders nothing while no viewer shows the document', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		expect(pages.render).not.toHaveBeenCalled()
+	})
+
+	it('renders the shown page first, then its neighbors, then the thumbnails in order', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 2)
+
+		for (let step = 0; step < 8; step++) await pages.land()
+
+		expect(pages.asked()).toEqual([
+			'2:full',
+			'3:full',
+			'1:full',
+			'0:thumbnail',
+			'1:thumbnail',
+			'2:thumbnail',
+			'3:thumbnail',
+			'4:thumbnail',
+		])
+
+		expect(getDocumentSnapshot('/a.pdf').pages.map((page) => page.src)).toEqual([
+			'',
+			'blob:full-1',
+			'blob:full-2',
+			'blob:full-3',
+			'',
+		])
+
+		expect(documentCacheState()[0]).toMatchObject({ rasters: 3, thumbnails: 5, rendering: false })
+	})
+
+	it('cancels a render that nobody wants after a move, and renders the new page next', async () => {
+		const pages = await served('/a.pdf', 20)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		expect(pages.asked()).toEqual(['0:full'])
+
+		focusPage('/a.pdf', viewer, 10)
+
+		expect(pages.jobs[0]?.cancel).toHaveBeenCalledOnce()
+
+		await flush()
+
+		expect(pages.asked()).toEqual(['0:full', '10:full'])
+
+		expect(getDocumentSnapshot('/a.pdf').error).toBeNull()
+	})
+
+	it('keeps a render that a move leaves wanted', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		focusPage('/a.pdf', viewer, 1)
+
+		expect(pages.jobs[0]?.cancel).not.toHaveBeenCalled()
+	})
+
+	it('serves the pages of each viewer on one document', async () => {
+		const pages = await served('/a.pdf', 20)
+
+		focusPage('/a.pdf', {}, 0)
+
+		focusPage('/a.pdf', {}, 10)
+
+		await pages.land()
+
+		// The viewer that moved last comes first. The first render still holds, because the
+		// other viewer wants it.
+		expect(pages.jobs[0]?.cancel).not.toHaveBeenCalled()
+
+		expect(pages.asked().slice(0, 2)).toEqual(['0:full', '10:full'])
+	})
+
+	it('bounds the full rasters, and keeps the pages that a viewer wants', async () => {
+		const pages = await served('/a.pdf', 30)
+
+		const viewer = {}
+
+		// Each move renders the page and its two neighbors: 9 pages over three moves. The
+		// fourth render of each move is the thumbnail that the queue starts when it idles.
+		for (const index of [1, 11, 21]) {
+			focusPage('/a.pdf', viewer, index)
+
+			for (let step = 0; step < 4; step++) await pages.land()
+		}
+
+		const resident = getDocumentSnapshot('/a.pdf')
+			.pages.map((page, index) => (page.src ? index : -1))
+			.filter((index) => index >= 0)
+
+		expect(resident).toHaveLength(8)
+
+		expect(resident).toEqual(expect.arrayContaining([20, 21, 22]))
+
+		// The first rendered page left the set, and its URL was freed.
+		expect(resident).not.toContain(1)
+
+		expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:full-1')
+	})
+
+	it('renders a dropped page again when a viewer comes back to it', async () => {
+		const pages = await served('/a.pdf', 30)
+
+		const viewer = {}
+
+		for (const index of [1, 11, 21]) {
+			focusPage('/a.pdf', viewer, index)
+
+			for (let step = 0; step < 4; step++) await pages.land()
+		}
+
+		focusPage('/a.pdf', viewer, 1)
+
+		// The thumbnail in flight ends first. A move cancels only a full render.
+		await pages.land()
+
+		expect(pages.asked().at(-1)).toBe('1:full')
+	})
+
+	it('does not ask again for a page that could not render', async () => {
+		const pages = await served('/a.pdf', 1)
+
+		focusPage('/a.pdf', {}, 0)
+
+		pages.jobs[0]?.finish(null)
+
+		await flush()
+
+		await pages.land()
+
+		expect(pages.asked()).toEqual(['0:full', '0:thumbnail'])
+
+		expect(documentCacheState()[0]?.rendering).toBe(false)
+	})
+
+	it('reports a render that fails as a failure of the document, and stops', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 0)
+
+		pages.jobs[0]?.fail(new Error('bad page'))
+
+		await flush()
+
+		expect(getDocumentSnapshot('/a.pdf').error?.message).toBe('bad page')
+
+		expect(pages.asked()).toEqual(['0:full'])
+	})
+
+	it('stops starting renders when the last viewer leaves', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		const leave = focusPage('/a.pdf', {}, 0)
+
+		leave()
+
+		await pages.land()
+
+		expect(pages.asked()).toEqual(['0:full'])
+	})
+
+	it('cancels the render in flight when the entry leaves', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 0)
+
+		resetDocumentCache()
+
+		expect(pages.jobs[0]?.cancel).toHaveBeenCalledOnce()
+	})
+
+	// A render in its encode ignores the cancel and still gives a URL, which has no owner now.
+	it('frees a URL that lands after its entry left', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 0)
+
+		pages.jobs[0]?.cancel.mockImplementation(() => {})
+
+		resetDocumentCache()
+
+		await pages.land()
+
+		expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:full-0')
 	})
 })

@@ -29,7 +29,7 @@ Chromium 141, headless, device pixel ratio 1, a 50-page invoice from `pdf-fixtur
 | Render one page at 2x, work only | 4.3 ms |
 | Render one page at 0.2x (a thumbnail), work only | 4.2 ms |
 | Encode one 2x page to PNG | 12.7 ms |
-| Show a resident page (a page flip) | 0.4 ms |
+| Show a resident page (a page flip) | 2.2 ms (the first reading, 0.4 ms, timed an empty viewer) |
 | Longest main-thread task during one render and encode | 12 ms |
 | Thumbnail PNG at 0.2x | 6.3 KiB |
 | 14 resident 1.5x pages | 2.74 MiB of PNG, 58 MiB if each decodes |
@@ -64,9 +64,9 @@ One queue for each document renders one page at a time, in this order:
 2. The page after it, then the page before it.
 3. The thumbnails that the rail shows.
 
-A page change puts the new active page at the front. A render for a page that nobody wants now is canceled (`renderTask.cancel()`), because the next page change can come before it ends. The queue stops when it has nothing to render. A reader who stays on one page causes no more work after the neighbours are done.
+A page change puts the new active page at the front. A render for a page that nobody wants now is canceled (`renderTask.cancel()`), because the next page change can come before it ends. The queue stops when it has nothing to render. A reader who stays on one page causes no more work after the neighbors are done.
 
-The frame waits stay. pdf.js has no option to turn them off for a display render, and the print intent that skips them also changes which annotations draw. They cost time, not work, and a neighbour renders while the reader reads the active page. So the reader waits for them only on a far page.
+The frame waits stay. pdf.js has no option to turn them off for a display render, and the print intent that skips them also changes which annotations draw. They cost time, not work, and a neighbor renders while the reader reads the active page. So the reader waits for them only on a far page.
 
 ### The full rasters are bounded
 
@@ -90,9 +90,9 @@ Each increment lands on its own, with its bench rows, and leaves the viewer whol
 
 1. **Measure honestly (done).** The render rows without the frame waits, the page-flip scenario, and the retained PNG of a document. No component change. The numbers are in the table above.
 2. **Open and keep the document (done).** The open publishes the slots and keeps the pdf.js document in the entry. The existing loop still renders every page, in page order. The page count and the highlight geometry are whole at the open, and `defaultPage` no longer jumps. Decision 1 lands here. The first page paints in 63 / 67 / 67 / 74 ms at 1 / 3 / 14 / 50 pages. A page that the render skips (no 2D context, or an encode that fails) keeps its slot with no image, and the viewport shows its placeholder.
-3. **The queue.** Render the active page and its neighbours only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document does its work for 3 pages, not 50.
+3. **The queue (done).** Render the active page and its neighbors only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document renders 2 full rasters, not 50. The rail needs an image for each page before increment 5, so the queue renders a thumbnail of each page after the neighbors, and the queue does this work once for each document. A far flip costs 47 ms.
 4. **No encode.** The rasterizer keeps an `ImageBitmap` for each page, and the viewport and the magnifier draw it (decision 3).
-5. **Thumbnail rasters.** The rail renders its own small rasters as it shows them.
+5. **Thumbnail rasters.** Increment 3 renders a small raster of each page. This increment renders only the thumbnails that the rail shows, so a reader on one page causes no render after the neighbors.
 6. **Re-render on zoom.** The active page renders again at the zoom scale above 1, so that text stays sharp. The queue makes this a change of scale on one request.
 
 ## Non-goals
@@ -108,8 +108,8 @@ The bench is the acceptance test. Each increment records its rows in the optimiz
 
 - The first page paints in about 60 ms at 1, 3, 14, and 50 pages, as after #1416.
 - The page count and the page navigation are whole at the open, at each page count.
-- After the neighbours are done, a reader on one page causes no render.
-- A flip to a neighbour shows a resident page. A flip to a far page costs one render.
+- After the neighbors are done, a reader on one page causes no render.
+- A flip to a neighbor shows a resident page. A flip to a far page costs one render.
 - The resident rasters of a document stay at or under the bound.
 
 The jsdom suite drives the cache through its loader seam, as `pdf-viewer.test.tsx` does now. The browser suite asserts the order of the queue and the cancel.
