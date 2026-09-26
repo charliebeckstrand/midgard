@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
-import { Description } from '../../components/fieldset'
+import { Description, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
@@ -216,5 +216,27 @@ describe('Checkbox defaultChecked under a binding', () => {
 		expect(input.checked).toBe(true)
 
 		expect(input.defaultChecked).toBe(true)
+	})
+})
+
+describe('CheckboxField touch', () => {
+	// A long press on iOS selects the label text and cancels the tap.
+	it('turns off text selection and the double-tap wait on the checkbox and its label', () => {
+		const { container } = renderUI(
+			<CheckboxField>
+				<Checkbox />
+				<Label>Accept</Label>
+			</CheckboxField>,
+		)
+
+		const field = getSlot(container, 'field')
+
+		expect(field.className).toContain('*:data-[slot=label]:select-none')
+
+		expect(field.className).toContain('*:data-[slot=control]:select-none')
+
+		expect(field.className).toContain('*:data-[slot=label]:touch-manipulation')
+
+		expect(getSlot(field, 'control').className).toContain('touch-manipulation')
 	})
 })

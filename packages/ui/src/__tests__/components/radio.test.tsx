@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Description } from '../../components/fieldset'
+import { Description, Label } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
 import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
@@ -98,5 +98,27 @@ describe('RadioField aria-describedby', () => {
 		expect(description.id).toBeTruthy()
 
 		expect(input).toHaveAttribute('aria-describedby', description.id)
+	})
+})
+
+describe('RadioField touch', () => {
+	// A long press on iOS selects the label text and cancels the tap.
+	it('turns off text selection and the double-tap wait on the radio and its label', () => {
+		const { container } = renderUI(
+			<RadioField>
+				<Radio />
+				<Label>Starter</Label>
+			</RadioField>,
+		)
+
+		const field = getSlot(container, 'field')
+
+		expect(field.className).toContain('*:data-[slot=label]:select-none')
+
+		expect(field.className).toContain('*:data-[slot=control]:select-none')
+
+		expect(field.className).toContain('*:data-[slot=label]:touch-manipulation')
+
+		expect(getSlot(field, 'control').className).toContain('touch-manipulation')
 	})
 })
