@@ -56,7 +56,10 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks Takes its padding from the ambient Density `space` axis. The
+ * @remarks The layout is pinned to the viewport (`fixed inset-0`), so the page
+ * itself does not scroll. Only the content region scrolls.
+ *
+ * Takes its padding from the ambient Density `space` axis. The
  * desktop panel holds text, so its width follows the `size` axis. The floating
  * sidebar is non-modal, so its peek never steals focus or locks body scroll,
  * but `backdrop` still dims the page behind it.

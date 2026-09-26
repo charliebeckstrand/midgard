@@ -41,7 +41,7 @@ Client app shell: a desktop sidebar, a mobile drawer-and-navbar, and a content r
 
 | Export | Summary |
 |---|---|
-| `SidebarLayout` | App shell: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. |
+| `SidebarLayout` | App shell, pinned to the viewport: a desktop sidebar (inline, or a hover-revealed floating sheet), a mobile drawer-and-navbar, and a density-aware content region. |
 | `SidebarLayoutHeader` | Header slot; surfaces the layout's `actions` inline on desktop (`data-slot="header"`). |
 | `SidebarLayoutBody` | Scrolling main slot (`data-slot="body"`). |
 | `SidebarLayoutFooter` | Footer slot (`data-slot="footer"`). |

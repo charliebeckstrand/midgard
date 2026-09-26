@@ -56,7 +56,7 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onPrev}
 				aria-label={prevLabel}
-				prefix={<Icon icon={<ChevronLeft />} />}
+				prefix={<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />}
 				className={prevClassName}
 			/>
 			{children}
@@ -65,7 +65,7 @@ export function CalendarToolbar({
 				variant="plain"
 				onClick={onNext}
 				aria-label={nextLabel}
-				prefix={<Icon icon={<ChevronRight />} />}
+				prefix={<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />}
 				className={nextClassName}
 			/>
 		</div>

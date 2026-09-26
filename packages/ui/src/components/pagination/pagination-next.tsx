@@ -6,9 +6,9 @@ import { PaginationNavButton } from './pagination-utilities'
 /** Props for {@link PaginationNext}: identical to {@link ButtonProps}. */
 export type PaginationNextProps = ButtonProps
 
-const DEFAULT_NEXT_ICON = <Icon icon={<ChevronRight />} />
+const DEFAULT_NEXT_ICON = <Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 
-/** Next-page control; defaults to a chevron icon and a "Next page" accessible label. */
+/** Next-page control; defaults to a chevron icon and a "Next page" accessible label. The default chevron mirrors in a right-to-left document. */
 export function PaginationNext({
 	children = DEFAULT_NEXT_ICON,
 	'aria-label': ariaLabel = 'Next page',
