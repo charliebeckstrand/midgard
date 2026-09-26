@@ -3,10 +3,13 @@ import { omote, sen, sou } from '../../recipes/kiso'
 
 const { focus } = sen
 
+// Pinned to the viewport box, not sized by a viewport unit. On iOS an `svh` height
+// can be out of date on the first load, and a layout in the flow gives the page
+// a height it can scroll. A pinned layout gives the page no height to scroll.
 const layout = defineRecipe({
 	base: [
-		'relative isolate',
-		'flex h-svh w-full max-lg:flex-col',
+		'fixed inset-0 isolate',
+		'flex max-lg:flex-col',
 		'bg-white lg:bg-zinc-100',
 		'dark:bg-zinc-950',
 		'overflow-hidden',
