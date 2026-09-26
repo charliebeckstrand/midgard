@@ -289,8 +289,22 @@ export function usePanelResize({
 	// A closed panel forgets its size: it reopens at the size its variant states,
 	// which is what the consumer asked for and what a reader coming back expects.
 	// The reset rides the close, so the panel slides out at the size it was left at.
+	//
+	// A close can come while a pointer still holds the bar: Escape, or the owner
+	// closing the panel. The close ends that gesture too. Otherwise the late
+	// release settles a size on the closed panel, and the reopen takes it.
 	useEffect(() => {
-		if (!open) setSize(null)
+		if (open) return
+
+		stop.current?.abort()
+
+		stop.current = null
+
+		grab.current = null
+
+		setResizing(false)
+
+		setSize(null)
 	}, [open])
 
 	// Deliberately not a layout effect. Nothing paints from `covers` — it is the

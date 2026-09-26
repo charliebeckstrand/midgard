@@ -532,4 +532,34 @@ describe('Drawer drag handle', () => {
 		// back to the panel expects.
 		expect((getSlot(container, 'drawer') as HTMLElement).style.height).toBe('')
 	})
+
+	it('ends a drag that the close interrupts, so a reopen keeps its own height', () => {
+		const { container, rerender, handle } = renderHandled()
+
+		fireEvent.pointerDown(handle, { pointerType: 'touch', clientY: 400 })
+
+		fireEvent.pointerMove(window, { pointerType: 'touch', clientY: 300 })
+
+		// Escape or the owner closes the panel while the finger is still down.
+		rerender(
+			<Drawer open={false} handle height="half" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		// The late release must not settle a size on the closed panel.
+		fireEvent.pointerUp(window, { pointerType: 'touch', clientY: 300 })
+
+		rerender(
+			<Drawer open handle height="half" onOpenChange={() => {}} aria-label="Panel">
+				<p>Body</p>
+			</Drawer>,
+		)
+
+		const panel = getSlot(container, 'drawer') as HTMLElement
+
+		expect(panel.style.height).toBe('')
+
+		expect(panel).not.toHaveAttribute('data-resizing')
+	})
 })
