@@ -24,7 +24,7 @@ function log(text: string) {
 	box.textContent = lines.slice().reverse().join('\n')
 }
 
-function describe(target: EventTarget | null) {
+function nameOf(target: EventTarget | null) {
 	if (!(target instanceof Element)) return String(target)
 
 	const slot = target.getAttribute('data-slot')
@@ -58,7 +58,7 @@ for (const type of [
 					? ` @${Math.round(event.clientX)},${Math.round(event.clientY)}`
 					: ''
 
-			log(`${type} ${describe(event.target)}${where}${event.isTrusted ? '' : ' (synthetic)'}`)
+			log(`${type} ${nameOf(event.target)}${where}${event.isTrusted ? '' : ' (synthetic)'}`)
 
 			setTimeout(() => {
 				if (event.defaultPrevented) log(`  ${type} was prevented`)
@@ -107,3 +107,5 @@ requestAnimationFrame(watch)
 document.body.append(box)
 
 log('tap log ready')
+
+export {}
