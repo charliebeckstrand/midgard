@@ -29,7 +29,7 @@ Chromium 141, headless, device pixel ratio 1, a 50-page invoice from `pdf-fixtur
 | Render one page at 2x, work only | 4.3 ms |
 | Render one page at 0.2x (a thumbnail), work only | 4.2 ms |
 | Encode one 2x page to PNG | 12.7 ms |
-| Show a resident page (a page flip) | 0.4 ms |
+| Show a resident page (a page flip) | 2.2 ms (the first reading, 0.4 ms, timed an empty viewer) |
 | Longest main-thread task during one render and encode | 12 ms |
 | Thumbnail PNG at 0.2x | 6.3 KiB |
 | 14 resident 1.5x pages | 2.74 MiB of PNG, 58 MiB if each decodes |
