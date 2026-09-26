@@ -114,6 +114,9 @@ const DemoItem = memo(function DemoItem({ demo, current }: { demo: Demo; current
 
 				navigate(demo.id)
 			}}
+			// A touch device has no hover, and a tap does not focus the link. The press
+			// starts the fetch, so the demo is ready while the drawer closes.
+			onPointerDown={prefetch}
 			onMouseEnter={prefetch}
 			onFocus={prefetch}
 		>
