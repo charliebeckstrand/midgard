@@ -142,6 +142,11 @@ export type PdfViewerResult = {
 	scale: PageScaleResult
 	/** Source for download / print: the same-origin blob URL when loaded from `src`, else the raw `src`. */
 	documentSrc: string | undefined
+	/**
+	 * Names the thumbnails that the rail shows, as 0-based indices, so the `src` path renders
+	 * only those. `null` for pages that a caller supplies.
+	 */
+	showThumbnails: ((indices: number[]) => void) | null
 	filename: string | undefined
 	loading: boolean
 	/**
@@ -438,7 +443,10 @@ export function usePdfViewer({
 
 	// Before the document opens, `safePage` is 0, so the page that the viewer will show is the
 	// one it asks for. The cache clamps it to the page count.
-	usePdfViewerDocumentFocus(shouldLoadFromSrc ? src : undefined, safePage || (page ?? defaultPage))
+	const showThumbnails = usePdfViewerDocumentFocus(
+		shouldLoadFromSrc ? src : undefined,
+		safePage || (page ?? defaultPage),
+	)
 
 	const [zoomValue, setZoomValue] = useState(defaultZoom)
 
@@ -548,6 +556,7 @@ export function usePdfViewer({
 			scale,
 			fit,
 			documentSrc,
+			showThumbnails,
 			filename,
 			loading,
 			pending,
@@ -586,6 +595,7 @@ export function usePdfViewer({
 			scale,
 			fit,
 			documentSrc,
+			showThumbnails,
 			filename,
 			loading,
 			pending,

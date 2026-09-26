@@ -361,6 +361,39 @@ describe('PdfViewer', () => {
 		resetDocumentCache()
 	})
 
+	// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
+	// observer reports every tile in view.
+	it('asks the queue for the thumbnails that the rail shows', async () => {
+		resetDocumentCache()
+
+		const render = vi.fn((index: number, raster: string) => ({
+			promise: Promise.resolve(`blob:${raster}-${index}`),
+			cancel: () => {},
+		}))
+
+		ensureDocumentLoad('/rail.pdf', (report) => {
+			report.open(
+				[1, 2, 3].map((id) => ({ id, src: '', label: `Page ${id}`, width: 918, height: 1188 })),
+			)
+
+			report.serve(render)
+
+			return Promise.resolve()
+		})
+
+		const { container } = renderUI(<PdfViewer src="/rail.pdf" />)
+
+		for (let step = 0; step < 6; step++) await act(async () => {})
+
+		expect(render).toHaveBeenCalledWith(2, 'thumbnail')
+
+		const tiles = allBySlot(container, 'pdf-viewer-thumbnail')
+
+		expect(tiles[2]?.querySelector('img')).toHaveAttribute('src', 'blob:thumbnail-2')
+
+		resetDocumentCache()
+	})
+
 	it('toggles the desktop thumbnail sidebar from the toolbar', async () => {
 		const { container } = renderUI(<PdfViewer pages={pages} />)
 

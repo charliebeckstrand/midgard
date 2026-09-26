@@ -12,6 +12,7 @@ import {
 	type PdfLoadReport,
 	type PdfPageRaster,
 	type PdfRenderJob,
+	showThumbnails,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
 import type { PdfViewerPage } from './types'
@@ -307,13 +308,23 @@ export function usePdfViewerDocument(src: string | undefined): PdfDocumentResult
  * Asks the cache to render the page at the 1-based `page` of `src`, for as long as this viewer
  * shows it.
  *
- * @remarks The queue renders this page first, then its neighbors, then the thumbnails. A page
- * past the last page counts as the last page, so a viewer can ask before the document opens.
+ * @returns The function that names the thumbnails the rail shows, as 0-based indices, or
+ * `null` with no `src`.
+ * @remarks The queue renders this page first, then its neighbors, then the thumbnails that the
+ * rail shows. A page past the last page counts as the last page, so a viewer can ask before the
+ * document opens.
  * @internal
  */
-export function usePdfViewerDocumentFocus(src: string | undefined, page: number) {
+export function usePdfViewerDocumentFocus(
+	src: string | undefined,
+	page: number,
+): ((indices: number[]) => void) | null {
 	// One token for each mounted viewer, so two viewers on one document each keep a page.
 	const [token] = useState(() => ({}))
 
 	useEffect(() => focusPage(src, token, Math.max(page - 1, 0)), [src, token, page])
+
+	const show = useCallback((indices: number[]) => showThumbnails(src, token, indices), [src, token])
+
+	return src ? show : null
 }

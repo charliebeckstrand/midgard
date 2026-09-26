@@ -8,6 +8,7 @@ import {
 	type PdfLoadReport,
 	type PdfPageRaster,
 	resetDocumentCache,
+	showThumbnails,
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
@@ -592,7 +593,11 @@ describe('pdf viewer document cache · render queue', () => {
 	it('renders the shown page first, then its neighbors, then the thumbnails in order', async () => {
 		const pages = await served('/a.pdf', 5)
 
-		focusPage('/a.pdf', {}, 2)
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 2)
+
+		showThumbnails('/a.pdf', viewer, [0, 1, 2, 3, 4])
 
 		for (let step = 0; step < 8; step++) await pages.land()
 
@@ -616,6 +621,55 @@ describe('pdf viewer document cache · render queue', () => {
 		])
 
 		expect(documentCacheState()[0]).toMatchObject({ rasters: 3, thumbnails: 5, rendering: false })
+	})
+
+	it('renders no thumbnail while no rail shows one', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 0)
+
+		for (let step = 0; step < 3; step++) await pages.land()
+
+		expect(pages.asked()).toEqual(['0:full', '1:full'])
+
+		expect(documentCacheState()[0]?.rendering).toBe(false)
+	})
+
+	it('renders the thumbnails that a rail shows, and stops when it shows none', async () => {
+		const pages = await served('/a.pdf', 30)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		showThumbnails('/a.pdf', viewer, [12, 10, 11])
+
+		for (let step = 0; step < 4; step++) await pages.land()
+
+		// Four renders landed, and the thumbnail of page 13 is in flight.
+		expect(pages.asked()).toEqual([
+			'0:full',
+			'1:full',
+			'10:thumbnail',
+			'11:thumbnail',
+			'12:thumbnail',
+		])
+
+		// The rail closes while the thumbnail of page 13 renders. That render ends, and no other
+		// starts.
+		showThumbnails('/a.pdf', viewer, [])
+
+		await pages.land()
+
+		expect(pages.asked()).toEqual([
+			'0:full',
+			'1:full',
+			'10:thumbnail',
+			'11:thumbnail',
+			'12:thumbnail',
+		])
+
+		expect(documentCacheState()[0]).toMatchObject({ thumbnails: 3, rendering: false })
 	})
 
 	it('cancels a render that nobody wants after a move, and renders the new page next', async () => {
@@ -715,7 +769,11 @@ describe('pdf viewer document cache · render queue', () => {
 	it('does not ask again for a page that could not render', async () => {
 		const pages = await served('/a.pdf', 1)
 
-		focusPage('/a.pdf', {}, 0)
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		showThumbnails('/a.pdf', viewer, [0])
 
 		pages.jobs[0]?.finish(null)
 

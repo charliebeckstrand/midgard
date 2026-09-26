@@ -137,6 +137,11 @@ type Held = {
 	 * last entry is the viewer that moved last, and the queue serves it first.
 	 */
 	focus: Map<object, number>
+	/**
+	 * The thumbnails that each viewer's rail shows, as 0-based indices, keyed by the token of the
+	 * viewer. A rail that is closed or scrolled away shows none, and the queue renders none for it.
+	 */
+	thumbnails: Map<object, number[]>
 	/** The pages that have a full raster from the queue, the least recently rendered first. */
 	rasters: number[]
 	/** The rasters that the renderer could not make, as `index:raster`, so the queue does not ask again. */
@@ -267,6 +272,7 @@ function heldFor(src: string): Held {
 		release: null,
 		renderer: null,
 		focus: new Map(),
+		thumbnails: new Map(),
 		rasters: [],
 		skipped: new Set(),
 		job: null,
@@ -507,8 +513,8 @@ function wantedPages(held: Held): number[] {
 /**
  * The next render that the queue owes, or `null` when it owes nothing.
  *
- * @remarks The full rasters of the wanted pages come first. Then the thumbnails of the rail
- * follow in page order. The queue does nothing while no viewer shows the document.
+ * @remarks The full rasters of the wanted pages come first. Then the thumbnails that a rail
+ * shows follow, in page order. The queue does nothing while no viewer shows the document.
  * @internal
  */
 function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPageRaster } | null {
@@ -522,8 +528,10 @@ function nextJob(held: Held, wanted: number[]): { index: number; raster: PdfPage
 		}
 	}
 
-	for (const [index, page] of pages.entries()) {
-		if (!page.thumbnail && !held.skipped.has(`${index}:thumbnail`)) {
+	const shown = [...new Set([...held.thumbnails.values()].flat())].sort((a, b) => a - b)
+
+	for (const index of shown) {
+		if (pages[index] && !pages[index].thumbnail && !held.skipped.has(`${index}:thumbnail`)) {
 			return { index, raster: 'thumbnail' }
 		}
 	}
@@ -796,6 +804,24 @@ export function focusPage(src: string | undefined, token: object, index: number)
 
 		if (documents.get(src) === held) pump(src, held)
 	}
+}
+
+/**
+ * Names the thumbnails that the rail of the viewer `token` shows, as 0-based indices.
+ *
+ * @remarks The queue renders these after the full rasters that the viewers want. An empty list
+ * withdraws the demand of the rail, as a closed or unmounted rail does.
+ * @internal
+ */
+export function showThumbnails(src: string | undefined, token: object, indices: number[]) {
+	if (!src) return
+
+	const held = heldFor(src)
+
+	if (indices.length === 0) held.thumbnails.delete(token)
+	else held.thumbnails.set(token, indices)
+
+	pump(src, held)
 }
 
 /**
