@@ -22,6 +22,18 @@ const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
 
 describe('HeatmapChart', () => {
+	it('fills its container with no max-width cap, as the other charts do', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} />,
+		)
+
+		const root = getSlot(container, 'heatmap')
+
+		expect(root).toHaveClass('w-full')
+
+		expect(root.className).not.toMatch(/(^|\s)max-w-/)
+	})
+
 	it('draws one cell per grid slot, shaded from the series colorRange', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
