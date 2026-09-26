@@ -106,7 +106,11 @@ export function PopoverPanel({
 	useLayoutEffect(() => {
 		if (!autoFocus || !panelRef.current) return
 
-		const selected = panelRef.current.querySelector<HTMLElement>(`${itemSelector}[data-selected]`)
+		// `:is()` applies the attribute to each selector in a list such as
+		// `'a, button'`. A bare suffix applies only to the last one.
+		const selected = panelRef.current.querySelector<HTMLElement>(
+			`:is(${itemSelector})[data-selected]`,
+		)
 
 		if (selected) {
 			selected.focus()

@@ -1,7 +1,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { type AvatarVariants, k } from '../../recipes/kata/avatar'
+import { capitalizeFirst } from '../../utilities'
 import { StatusDot, type StatusDotProps } from '../status'
 
 // The StatusDot union is the single source of truth for status values.

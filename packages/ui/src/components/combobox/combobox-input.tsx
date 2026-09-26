@@ -10,9 +10,9 @@ import type {
 	Ref,
 } from 'react'
 import { ariaAttr, cn } from '../../core'
-import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
+import { capitalizeFirst } from '../../utilities'
 import type { ControlSize } from '../control/context'
 import { Input } from '../input'
 

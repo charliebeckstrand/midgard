@@ -2,10 +2,10 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { capitalizeFirst } from '../../primitives/select-trigger/capitalize'
 import type { Color } from '../../recipes'
 import { pulse as pulseAnimation } from '../../recipes/kata/status'
 import { k } from '../../recipes/kata/timeline'
+import { capitalizeFirst } from '../../utilities'
 import { StatusDot, type StatusDotProps } from '../status'
 import { Swatch } from '../swatch'
 import { useTimeline } from './context'

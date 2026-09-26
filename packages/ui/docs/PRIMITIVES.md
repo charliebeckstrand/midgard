@@ -15,7 +15,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 | `overlay` | Backdrop-and-panel shell for modal surfaces (Dialog, Sheet, Drawer) over a `PresencePortal`: focus trap, scroll lock, dismissal, dimming scrim. Any `PersistentChrome` region stays reachable through the trap. | `Overlay`, `notifyOverlaySignal`, `subscribeOverlaySignal` |
 | `chrome` | Marks a region as application chrome that no modal surface can seal off. The region keeps its tab stop, its accessibility-tree place, and its pointer events while the rest of the page seals (WCAG 2.1.1 / 2.4.3). Registration is by node, so no surface takes a prop and none has to name the region. | `PersistentChrome`, `registerChrome`, `chromeRegions` |
 | `popover` | Animated listbox-style floating panel (Select, Combobox, Menu) wiring roving keyboard nav, type-ahead, and open autofocus. | `PopoverPanel` |
-| `panel` | Slot family + context envelope for panel surfaces; `createPanel` builds Title/Description/Header/Body/Footer/Content with Close and A11y contexts. `PanelOverlayProps` is the shared `<Overlay>` surface Dialog, Sheet, and Drawer each forward. | `createPanel`, `PanelProviders`, `PanelClose`, `PanelTrigger`, `usePanelA11y`, `usePanelCloseContext` |
+| `panel` | Slot family + context envelope for panel surfaces; `createPanel` builds Title/Description/Header/Body/Footer/Content with Close and A11y contexts. `PanelOverlayProps` is the shared `<Overlay>` surface Dialog, Sheet, and Drawer each forward. The deep-import module `panel/panel-handle` gives Drawer and Sheet their resize grip, `PanelHandle`. | `createPanel`, `PanelProviders`, `PanelClose`, `PanelTrigger`, `usePanelA11y`, `PanelA11yContext`, `usePanelCloseContext`, `PanelCloseContext`, `usePanelCloseValue` |
 | `offcanvas` | React context exposing a `close()` handle so descendants can dismiss the surrounding slide-in drawer. | `OffcanvasContext` |
 | `portal` | Portal-container context that resolves where library UI teleports: per-call container, then ambient `UIProvider`, then each portal's fallback. Adds `PresencePortal`, the portal + mount-while-open + `AnimatePresence` cell the floating and overlay shells share. | `usePortalContainer`, `usePortalContext`, `PortalContext`, `PortalContainer`, `PresencePortal` |
 | `ready-reveal` | Gates content on a ready flag and cross-fades a placeholder to the children in one grid cell, so nothing flashes and the reveal never shifts. | `ReadyReveal` |
@@ -34,10 +34,10 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `density` | Dual-axis (space/size) density token broadcast by `Density`; resolvers cascade explicit → Affix → ambient for leaf and control-host sizing. | `Density`, `useDensity`, `useDensityNullable`, `useResolvedSize`, `useControlSize`, `densityPresets` |
+| `density` | Dual-axis (space/size) density token broadcast by `Density`; resolvers cascade explicit → Affix → ambient for leaf and control-host sizing. `DensityScope` wraps a component's children in `<Density scale>` only when its `size` prop is set. | `Density`, `DensityScope`, `useDensity`, `useDensityNullable`, `useResolvedSize`, `useControlSize`, `densityPresets` |
 | `affix` | Narrow `Ma`-typed slot cascade letting control affix slots (Input prefix/suffix, chevron) broadcast a stepped-down size below the Density `Step` floor. | `AffixContext`, `useAffix`, `affixStepDown` |
 | `control` | Outer chrome wrapper supplying the shared focus ring, border, and disabled state for form inputs, sized via Density. | `ControlFrame` |
-| `mount` | The shared hold behind every inactive panel. `useMountHold` resolves a `Mount` policy (`always`/`lazy`/`active`) into present, held, and hidden; `Hold` applies it through `<Activity>`. | `useMountHold`, `Hold`, `Mount`, `MountHold`, `mountsEveryPanel` |
+| `mount` | The shared hold behind every inactive panel. `useMountHold` resolves a `Mount` policy (`always`/`lazy`/`active`) into present, held, and hidden; `Hold` applies it through `<Activity>`. The deep-import module `mount/held-motion` gives Accordion and Collapse the motion props of a held panel, `heldMotionProps`. | `useMountHold`, `Hold`, `Mount`, `MountHold`, `mountsEveryPanel` |
 | `current` | Shared active-panel cascade for Tabs/Nav: the active value, the inactive-panel `mount` policy, and the auto-height cross-fade between panels. Presence and the Activity hold come from `primitives/mount`. | `CurrentContext`, `useCurrent`, `useCurrentState`, `useCurrentPanelActive`, `CurrentContent`, `CurrentContents`, `CurrentMount` |
 | `query` | Query context for type-ahead roots (Combobox, CommandPalette): shares live + deferred query text, and the deferred query alone for a consumer that filters items. | `QueryContext`, `useQuery`, `useQueryValue`, `QueryContextValue`, `DeferredQueryContext`, `useDeferredQuery` |
 | `active-indicator` | Motion shared-element marker that morphs between sibling nav/tab items via a scoped `layoutId`. | `ActiveIndicatorScope`, `useActiveIndicator`, `ActiveIndicator` |
@@ -47,7 +47,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `reduced-motion` | Bridges `prefers-reduced-motion` into Motion via `MotionConfig`; skips transform animations while keeping fades at every library motion root. | `ReducedMotion` |
+| `reduced-motion` | Bridges `prefers-reduced-motion` into Motion via `MotionConfig`; skips transform animations while keeping fades at every library motion root. A root inside another root adds no second `MotionConfig`. | `ReducedMotion` |
 | `touch-target` | Floors the hit target to WCAG pointer minimums (24px fine / 44px coarse) via an invisible expansion sibling, without altering visual layout. | `TouchTarget` |
 
 ---
