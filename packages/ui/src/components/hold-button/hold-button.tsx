@@ -1,7 +1,8 @@
 'use client'
 
-import { useRef } from 'react'
+import { type KeyboardEvent, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { Button, type ButtonProps } from '../button'
 import { useHoldButtonGesture } from './use-hold-button-gesture'
 
@@ -80,6 +81,32 @@ export function HoldButton({
 	// the *other* activation key mid-hold does not abort the hold.
 	const heldKeyRef = useRef<string | null>(null)
 
+	// The key handlers read the held-key ref, so each is a stable event and not
+	// a closure that render passes to a function.
+	const handleKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
+		if (event.repeat || (event.key !== ' ' && event.key !== 'Enter')) return
+
+		if (heldKeyRef.current === null) heldKeyRef.current = event.key
+
+		start()
+	})
+
+	const handleKeyUp = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
+		if (event.key !== heldKeyRef.current) return
+
+		heldKeyRef.current = null
+
+		cancel()
+	})
+
+	// Tab-away routes the keyup elsewhere; an unfocused button does not complete
+	// the hold. The gesture hook guards window/visibility loss.
+	const handleBlur = useStableEvent(() => {
+		heldKeyRef.current = null
+
+		cancel()
+	})
+
 	return (
 		<Button
 			{...props}
@@ -95,35 +122,9 @@ export function HoldButton({
 			onPointerUp={composeEventHandlers(onPointerUp, cancel, alwaysEnd)}
 			onPointerCancel={composeEventHandlers(onPointerCancel, cancel, alwaysEnd)}
 			onPointerLeave={composeEventHandlers(onPointerLeave, cancel, alwaysEnd)}
-			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-				if (!event.repeat && (event.key === ' ' || event.key === 'Enter')) {
-					heldKeyRef.current ??= event.key
-
-					start()
-				}
-			})}
-			onKeyUp={composeEventHandlers(
-				onKeyUp,
-				(event) => {
-					if (event.key === heldKeyRef.current) {
-						heldKeyRef.current = null
-
-						cancel()
-					}
-				},
-				alwaysEnd,
-			)}
-			onBlur={composeEventHandlers(
-				onBlur,
-				() => {
-					// Tab-away routes the keyup elsewhere; an unfocused button does not
-					// complete the hold. The gesture hook guards window/visibility loss.
-					heldKeyRef.current = null
-
-					cancel()
-				},
-				alwaysEnd,
-			)}
+			onKeyDown={composeEventHandlers(onKeyDown, handleKeyDown)}
+			onKeyUp={composeEventHandlers(onKeyUp, handleKeyUp, alwaysEnd)}
+			onBlur={composeEventHandlers(onBlur, handleBlur, alwaysEnd)}
 		>
 			<span
 				ref={fillRef}

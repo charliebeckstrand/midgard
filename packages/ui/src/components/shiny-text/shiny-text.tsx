@@ -4,6 +4,7 @@ import { type AnimationPlaybackControls, animate } from 'motion'
 import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 
 /**
  * Props for {@link ShinyText}; tunes the sweep animation, gradient colors, and hover behavior atop a `<span>`.
@@ -130,6 +131,16 @@ export function ShinyText({
 		}
 	}, [disabled, reduceMotion, from, to, speed, yoyo, position])
 
+	// The handlers read the controls ref, so each is a stable event and not a
+	// closure that render passes to a function.
+	const pause = useStableEvent(() => {
+		if (pauseOnHover) controlsRef.current?.pause()
+	})
+
+	const play = useStableEvent(() => {
+		if (pauseOnHover) controlsRef.current?.play()
+	})
+
 	return (
 		<motion.span
 			ref={ref}
@@ -149,12 +160,8 @@ export function ShinyText({
 			// Composed after the spread so a consumer handler can't clobber
 			// `pauseOnHover`. The pause is side behavior, so a consumer's
 			// preventDefault() skips it (CONVENTIONS.md §3.9).
-			onMouseEnter={composeEventHandlers(onMouseEnter, () => {
-				if (pauseOnHover) controlsRef.current?.pause()
-			})}
-			onMouseLeave={composeEventHandlers(onMouseLeave, () => {
-				if (pauseOnHover) controlsRef.current?.play()
-			})}
+			onMouseEnter={composeEventHandlers(onMouseEnter, pause)}
+			onMouseLeave={composeEventHandlers(onMouseLeave, play)}
 		>
 			{children}
 		</motion.span>
