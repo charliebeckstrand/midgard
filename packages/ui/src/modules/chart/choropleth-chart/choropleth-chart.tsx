@@ -305,6 +305,8 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			<div
 				ref={rootRef}
 				data-slot="choropleth"
+				// A touch hold here reads the map. It does not open the context menu.
+				data-touch-readout=""
 				// A long press opens the readout, so the whole chart, legend included,
 				// selects no text under a hold, as the chart frame does.
 				className={cn(

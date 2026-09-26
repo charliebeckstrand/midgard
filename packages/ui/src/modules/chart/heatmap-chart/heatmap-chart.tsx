@@ -866,6 +866,8 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		<div
 			ref={containerRef}
 			data-slot="heatmap"
+			// A touch hold here reads the chart. It does not open the context menu.
+			data-touch-readout=""
 			// A long press opens the readout, so the whole chart, legend included,
 			// selects no text under a hold, as the chart frame does.
 			className={cn(

@@ -59,7 +59,8 @@ export type MenuProps = {
  * and items via context. A `placement` makes it a floating dropdown. Without
  * one the wrapper opens as a right-click context menu, or renders as a static
  * inline menu when `defaultOpen` is set. A context menu also opens on a touch
- * long press, because iOS Safari fires no `contextmenu` event for one.
+ * long press, because iOS Safari fires no `contextmenu` event for one. A chart
+ * or a map keeps the long press for its readout.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop

@@ -125,6 +125,27 @@ describe('a context Menu under a touch long press', () => {
 		expect(screen.queryByRole('menu')).toBeNull()
 	})
 
+	it('leaves a hold in a readout surface to that readout', () => {
+		renderUI(
+			<Menu>
+				<div data-touch-readout="">
+					<span data-testid="mark">Q3</span>
+				</div>
+				<MenuContent>
+					<MenuItem>Edit</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		fireEvent.pointerDown(screen.getByTestId('mark'), touch)
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_CONTEXT_MENU_DELAY)
+		})
+
+		expect(screen.queryByRole('menu')).toBeNull()
+	})
+
 	it('leaves a mouse press to the right-click', () => {
 		const surface = renderSurface()
 
