@@ -433,6 +433,80 @@ describe('useChatSend', () => {
 		expect(onSent).not.toHaveBeenCalled()
 	})
 
+	it('sends once when two sends land before the next render', async () => {
+		const calls: string[] = []
+
+		const gate = deferred()
+
+		const transport: ChatTransport = (content) => {
+			calls.push(content)
+
+			return (async function* () {
+				await gate.promise
+
+				yield 'reply'
+			})()
+		}
+
+		const { result } = renderHook(() => useChatSend({ transport }))
+
+		let first!: Promise<void>
+
+		act(() => {
+			first = result.current.send('a')
+
+			void result.current.send('b')
+		})
+
+		gate.resolve()
+
+		await act(async () => {
+			await first
+		})
+
+		expect(calls).toEqual(['a'])
+	})
+
+	it('aborts the in-flight reply on unmount', async () => {
+		let capturedSignal: AbortSignal | undefined
+
+		const gate = deferred()
+
+		const onSent = vi.fn()
+
+		const transport: ChatTransport = (_content, signal) => {
+			capturedSignal = signal
+
+			return (async function* () {
+				yield 'first'
+
+				await gate.promise
+
+				yield 'second'
+			})()
+		}
+
+		const { result, unmount } = renderHook(() => useChatSend({ transport, onSent }))
+
+		let sendPromise!: Promise<void>
+
+		act(() => {
+			sendPromise = result.current.send('hi')
+		})
+
+		await waitFor(() => expect(result.current.messages[1]).toMatchObject({ content: 'first' }))
+
+		unmount()
+
+		expect(capturedSignal?.aborted).toBe(true)
+
+		gate.resolve()
+
+		await sendPromise
+
+		expect(onSent).not.toHaveBeenCalled()
+	})
+
 	it('stop no-ops when nothing is in flight', () => {
 		const { result } = renderHook(() => useChatSend({ transport: streamOf('x') }))
 
