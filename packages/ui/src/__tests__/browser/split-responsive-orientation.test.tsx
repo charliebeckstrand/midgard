@@ -1,6 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
-import { Split } from '../../components/split'
+import { Split } from '../../structure/split'
 import { present, renderUI } from '../helpers'
 
 /**
