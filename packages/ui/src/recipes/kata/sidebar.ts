@@ -38,10 +38,38 @@ const itemBase = defineRecipe({
 		'text-start',
 		mini.square,
 	],
+	// An Avatar is static and keeps its own md box, so each row projects a size
+	// onto it: one step above the icon, with a negative margin, so that the row
+	// keeps the height of a row with an icon. A LoadingSpinner takes the size of
+	// the icon row.
 	size: {
-		sm: [size.sm, gap.g('1.5'), padding.p('1.5'), radius.r('1.5'), icon.sm],
-		md: [size.md, gap.g('2'), padding.p('2'), radius.r('2'), icon.md],
-		lg: [size.lg, gap.g('2.5'), padding.p('2.5'), radius.r('2.5'), icon.lg],
+		sm: [
+			size.sm,
+			gap.g('1.5'),
+			padding.p('1.5'),
+			radius.r('1.5'),
+			icon.sm,
+			'*:data-[slot=avatar]:size-5 *:data-[slot=avatar]:-m-0.5',
+			'*:data-[slot=loading-spinner]:size-4',
+		],
+		md: [
+			size.md,
+			gap.g('2'),
+			padding.p('2'),
+			radius.r('2'),
+			icon.md,
+			'*:data-[slot=avatar]:size-6 *:data-[slot=avatar]:-m-0.5',
+			'*:data-[slot=loading-spinner]:size-5',
+		],
+		lg: [
+			size.lg,
+			gap.g('2.5'),
+			padding.p('2.5'),
+			radius.r('2.5'),
+			icon.lg,
+			'*:data-[slot=avatar]:size-7 *:data-[slot=avatar]:-m-0.5',
+			'*:data-[slot=loading-spinner]:size-6',
+		],
 	},
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
