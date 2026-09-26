@@ -32,9 +32,42 @@ type GridFilterProps = {
 export function GridFilter({ filter }: GridFilterProps) {
 	const [text, setText] = useState(filter.value)
 
+	// The last query this field sent, and the last value it received. A value
+	// that differs from the sent query comes from the owner, for example a
+	// reset, so the field shows it.
+	const [pushed, setPushed] = useState(filter.value)
+
+	const [received, setReceived] = useState(filter.value)
+
+	const [resets, setResets] = useState(0)
+
+	if (received !== filter.value) {
+		setReceived(filter.value)
+
+		if (filter.value !== pushed) {
+			setText(filter.value)
+
+			setPushed(filter.value)
+
+			setResets((count) => count + 1)
+		}
+	}
+
 	const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
 
 	useEffect(() => () => clearTimeout(debounceTimer.current), [])
+
+	// An owner reset cancels the pending query, so the old text does not
+	// overwrite the reset when the debounce settles.
+	useEffect(() => {
+		if (resets > 0) clearTimeout(debounceTimer.current)
+	}, [resets])
+
+	const push = (next: string) => {
+		setPushed(next)
+
+		startTransition(() => filter.setValue(next))
+	}
 
 	const apply = (next: string) => {
 		setText(next)
@@ -44,14 +77,12 @@ export function GridFilter({ filter }: GridFilterProps) {
 		// Clearing recovers the hidden rows, so flush it immediately rather than
 		// lag a debounce behind the emptied field; a query settles after the wait.
 		if (next === '') {
-			startTransition(() => filter.setValue(''))
+			push('')
 
 			return
 		}
 
-		debounceTimer.current = setTimeout(() => {
-			startTransition(() => filter.setValue(next))
-		}, GRID_SEARCH_DEBOUNCE_MS)
+		debounceTimer.current = setTimeout(() => push(next), GRID_SEARCH_DEBOUNCE_MS)
 	}
 
 	// Enter submits the field: cancel the pending debounce and apply the typed
@@ -61,7 +92,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 
 		clearTimeout(debounceTimer.current)
 
-		startTransition(() => filter.setValue(text))
+		push(text)
 	}
 
 	return (
