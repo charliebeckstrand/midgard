@@ -137,9 +137,10 @@ export type PdfViewerProps = {
 	 * it opens on documents it cannot predict. A lens that suits an invoice scan is the
 	 * wrong lens for a plan sheet.
 	 *
-	 * Mouse only, and never interactive. It cannot take a press meant for a highlighted
-	 * region underneath it. It does not appear for touch, where the finger already covers
-	 * what the lens would show.
+	 * The lens is never interactive. It cannot take a press meant for a highlighted region
+	 * underneath it. On touch, a finger that rests on the page for the dwell (300ms at the
+	 * least) opens the lens above the finger. The finger then moves the lens, and a lift
+	 * closes it. The browser's long-press menu stays as it is: when it opens, the lens closes.
 	 * @defaultValue false
 	 */
 	magnifier?: boolean | PdfViewerMagnifierOptions

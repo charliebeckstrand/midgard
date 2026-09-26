@@ -127,6 +127,9 @@ export type PdfViewerMagnifierSize = 'sm' | 'md' | 'lg'
  * @remarks A dwell rather than an immediate open. The pointer crosses the page on its way to
  * the toolbar and the thumbnails constantly. A loupe that answered every one of those would
  * be a strobe. Once open it tracks with no delay at all.
+ *
+ * A finger holds for 300ms at the least, also at `'none'`. A finger that lands to scroll
+ * must not open a lens first.
  */
 export type PdfViewerMagnifierDelay = 'none' | 'default'
 

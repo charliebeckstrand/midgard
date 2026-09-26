@@ -213,7 +213,7 @@ function MagnifierExample() {
 	return (
 		<Example
 			title="Magnifier"
-			footer="Rest the pointer on the page. The toolbar's lens button switches it off and on."
+			footer="Rest the pointer on the page, or hold a finger on it. The toolbar's lens button switches it off and on."
 			code={code`
 				<PdfViewer pages={pages} magnifier />
 

@@ -474,7 +474,9 @@ describe('usePdfViewerMagnifier over a pan', () => {
 				event: ReactPointerEvent<HTMLElement>,
 			) => void
 
-			const leave = result.current.referenceProps.onPointerLeave as () => void
+			const leave = result.current.referenceProps.onPointerLeave as (
+				event: ReactPointerEvent<HTMLElement>,
+			) => void
 
 			const scroll = () => document.dispatchEvent(new Event('scroll'))
 
@@ -483,7 +485,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
 			act(() => {
 				move(pointerOn(frame, 120, 300))
 				scroll()
-				leave()
+				leave(pointerOn(frame, 120, 300))
 			})
 
 			act(() => {
@@ -546,5 +548,285 @@ describe('usePdfViewerMagnifier over a pan', () => {
 		})
 
 		expect(result.current.open).toBe(false)
+	})
+})
+
+/**
+ * The touch path: a finger that rests on the page opens the lens, moves it, and closes it on
+ * the lift. None of this goes through floating-ui, so the mock does not hide it, and each
+ * opening below is the hold's own.
+ */
+describe('usePdfViewerMagnifier under a held finger', () => {
+	const settings = { zoom: 2.5, size: 180, delay: 300 }
+
+	function frameAt() {
+		const frame = document.createElement('div')
+
+		frame.getBoundingClientRect = () => ({ left: 0, top: 0, width: 800, height: 1000 }) as DOMRect
+
+		return attach(frame)
+	}
+
+	type Handler = (event: unknown) => void
+
+	/** The handlers a finger reaches. Each is there whenever a loupe is on. */
+	type TouchHandlers = Record<
+		| 'onPointerDown'
+		| 'onPointerMove'
+		| 'onPointerUp'
+		| 'onPointerCancel'
+		| 'onContextMenu'
+		| 'onClickCapture',
+		Handler
+	>
+
+	function finger(
+		frame: HTMLElement,
+		clientX: number,
+		clientY: number,
+		extra: Record<string, unknown> = {},
+	) {
+		return {
+			pointerType: 'touch',
+			pointerId: 1,
+			isPrimary: true,
+			clientX,
+			clientY,
+			currentTarget: frame,
+			...extra,
+		}
+	}
+
+	function setup(options: typeof settings | null = settings) {
+		const frame = frameAt()
+
+		const hook = renderHook(() => usePdfViewerMagnifier(options))
+
+		const props = () => hook.result.current.referenceProps as TouchHandlers
+
+		return { frame, hook, props }
+	}
+
+	function withTimers(run: () => void) {
+		vi.useFakeTimers()
+
+		try {
+			run()
+		} finally {
+			vi.useRealTimers()
+		}
+	}
+
+	it('opens the lens where the finger rests, after the dwell', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(299)
+			})
+
+			expect(hook.result.current.open).toBe(false)
+
+			act(() => {
+				vi.advanceTimersByTime(1)
+			})
+
+			expect(hook.result.current.open).toBe(true)
+			expect(hook.result.current.point).toEqual({ x: 120, y: 300 })
+		})
+	})
+
+	/** A finger that lands to scroll must not open a lens first, whatever the mouse dwell is. */
+	it('holds for 300ms at the least, under the no-dwell step', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup({ ...settings, delay: 0 })
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(299)
+			})
+
+			expect(hook.result.current.open).toBe(false)
+
+			act(() => {
+				vi.advanceTimersByTime(1)
+			})
+
+			expect(hook.result.current.open).toBe(true)
+		})
+	})
+
+	it('opens nothing for a finger that moves off to scroll', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => props().onPointerMove(finger(frame, 120, 320)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			expect(hook.result.current.open).toBe(false)
+		})
+	})
+
+	it('moves the open lens with the finger, and closes it on the lift', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			act(() => props().onPointerMove(finger(frame, 200, 450)))
+
+			expect(hook.result.current.point).toEqual({ x: 200, y: 450 })
+
+			act(() => props().onPointerUp(finger(frame, 200, 450, { type: 'pointerup' })))
+
+			expect(hook.result.current.open).toBe(false)
+		})
+	})
+
+	/** The lift after a read is not a press: a highlight under the finger stays unpressed. */
+	it('swallows the click that the lift fires', () => {
+		withTimers(() => {
+			const { frame, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+			props().onClickCapture(click)
+
+			expect(click.preventDefault).toHaveBeenCalled()
+			expect(click.stopPropagation).toHaveBeenCalled()
+
+			// One click only: the next tap presses as it always did.
+			const next = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+			props().onClickCapture(next)
+
+			expect(next.preventDefault).not.toHaveBeenCalled()
+		})
+	})
+
+	it('leaves the click of a plain tap alone', () => {
+		withTimers(() => {
+			const { frame, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+			const click = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+			props().onClickCapture(click)
+
+			expect(click.preventDefault).not.toHaveBeenCalled()
+		})
+	})
+
+	/**
+	 * The browser's long-press menu is the reader's, and the loupe does not take it. The lens
+	 * closes for the menu, and the event goes through uncanceled.
+	 */
+	it('gives way to the long-press menu without canceling it', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			const menu = { preventDefault: vi.fn(), stopPropagation: vi.fn() }
+
+			act(() => props().onContextMenu(menu))
+
+			expect(hook.result.current.open).toBe(false)
+			expect(menu.preventDefault).not.toHaveBeenCalled()
+			expect(menu.stopPropagation).not.toHaveBeenCalled()
+		})
+	})
+
+	it('closes when the browser cancels the finger', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			act(() => props().onPointerCancel(finger(frame, 120, 300, { type: 'pointercancel' })))
+
+			expect(hook.result.current.open).toBe(false)
+		})
+	})
+
+	/** Before the lens opens a finger scrolls the page; while it is open, it moves the lens. */
+	it('holds the page still only while the lens is open', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => hook.result.current.setReference(frame))
+
+			const touchmove = () => {
+				const event = new Event('touchmove', { cancelable: true })
+
+				frame.dispatchEvent(event)
+
+				return event.defaultPrevented
+			}
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			expect(touchmove()).toBe(false)
+
+			act(() => {
+				vi.advanceTimersByTime(300)
+			})
+
+			expect(touchmove()).toBe(true)
+
+			act(() => props().onPointerUp(finger(frame, 120, 300, { type: 'pointerup' })))
+
+			expect(touchmove()).toBe(false)
+		})
+	})
+
+	/** A scroll that starts under a pending hold is the finger scrolling, not holding. */
+	it('drops a pending hold when the page scrolls', () => {
+		withTimers(() => {
+			const { frame, hook, props } = setup()
+
+			act(() => props().onPointerDown(finger(frame, 120, 300)))
+
+			act(() => {
+				document.dispatchEvent(new Event('scroll'))
+			})
+
+			act(() => {
+				vi.advanceTimersByTime(1000)
+			})
+
+			expect(hook.result.current.open).toBe(false)
+		})
 	})
 })
