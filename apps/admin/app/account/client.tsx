@@ -3,6 +3,7 @@
 import type { User } from 'auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
@@ -11,28 +12,36 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
-import type { Passkey } from './account-api'
-import { useAddPasskey, usePasskeys, useRemovePasskey } from './account-queries'
+import type { Factors, Passkey } from './account-api'
+import { useAddPasskey, useFactors, usePasskeys, useRemovePasskey } from './account-queries'
+import { TwoStep } from './two-step'
 
 type AccountClientProps = {
 	user: User
 	passkeys: Passkey[]
+	factors: Factors
 }
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 /**
- * Account page: the passkeys of the signed-in user, and sign-out.
+ * Account page: the passkeys, authenticator app, and recovery codes of the
+ * signed-in user, and sign-out.
  *
  * @remarks
- * The server page seeds the `usePasskeys` query. The user owns the passkeys,
+ * The server page seeds the `usePasskeys` and `useFactors` queries. The user owns the passkeys,
  * and no admin can change them. The gateway accepts a change only soon after
  * the sign-in, and shows why when it refuses. A removal asks for confirmation
  * first.
  */
-export function AccountClient({ user, passkeys: initialPasskeys }: AccountClientProps) {
+export function AccountClient({
+	user,
+	passkeys: initialPasskeys,
+	factors: initialFactors,
+}: AccountClientProps) {
 	const router = useRouter()
 	const { data: passkeys } = usePasskeys(initialPasskeys)
+	const { data: factors } = useFactors(initialFactors)
 	const add = useAddPasskey()
 	const remove = useRemovePasskey()
 	const [removing, setRemoving] = useState<Passkey | null>(null)
@@ -55,44 +64,51 @@ export function AccountClient({ user, passkeys: initialPasskeys }: AccountClient
 
 				{error && <Text tone="error">{error.message}</Text>}
 
-				<Table>
-					<TableHead>
-						<TableRow>
-							<TableHeader>Passkey</TableHeader>
-							<TableHeader>Added</TableHeader>
-							<TableHeader></TableHeader>
-						</TableRow>
-					</TableHead>
-					<TableBody>
-						{passkeys.map((passkey, index) => (
-							<TableRow key={passkey.id}>
-								<TableCell>Passkey {index + 1}</TableCell>
-								<TableCell>
-									{new Date(passkey.created_at).toLocaleString(undefined, dateFormat)}
-								</TableCell>
-								<TableCell>
-									<Button
-										variant="outline"
-										disabled={remove.isPending}
-										onClick={() => setRemoving(passkey)}
-									>
-										Remove
-									</Button>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
+				<TwoStep factors={factors} admin={user.role === 'admin'}>
+					<Heading level={3}>Passkeys</Heading>
 
-				{passkeys.length === 0 && <Text>You have no passkeys.</Text>}
+					{passkeys.length === 0 ? (
+						<Alert color="amber" variant="soft" title="You have no passkeys." className="w-full" />
+					) : (
+						<Table>
+							<TableHead>
+								<TableRow>
+									<TableHeader>Passkey</TableHeader>
+									<TableHeader>Added</TableHeader>
+									<TableHeader></TableHeader>
+								</TableRow>
+							</TableHead>
+							<TableBody>
+								{passkeys.map((passkey, index) => (
+									<TableRow key={passkey.id}>
+										<TableCell>Passkey {index + 1}</TableCell>
+										<TableCell>
+											{new Date(passkey.created_at).toLocaleString(undefined, dateFormat)}
+										</TableCell>
+										<TableCell>
+											<Button
+												variant="outline"
+												disabled={remove.isPending}
+												onClick={() => setRemoving(passkey)}
+											>
+												Remove
+											</Button>
+										</TableCell>
+									</TableRow>
+								))}
+							</TableBody>
+						</Table>
+					)}
 
-				<Button disabled={add.isPending} onClick={() => add.mutate()}>
-					Add a passkey
-				</Button>
-
-				<Button variant="outline" onClick={signOut}>
-					Sign out
-				</Button>
+					<div className="flex flex-wrap gap-2">
+						<Button color="blue" disabled={add.isPending} onClick={() => add.mutate()}>
+							Add a passkey
+						</Button>
+						<Button variant="outline" onClick={signOut}>
+							Sign out
+						</Button>
+					</div>
+				</TwoStep>
 
 				{user.role === 'admin' && (
 					<Text className="text-center">

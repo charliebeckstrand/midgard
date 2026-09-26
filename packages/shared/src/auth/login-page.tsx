@@ -17,7 +17,8 @@ import { chain, email, required } from './form-validators'
 type LoginValues = { email: string; password: string }
 
 /**
- * Notice after registration: shows when the URL has `?registered=true`.
+ * Notice from the query: after registration (`?registered=true`), or after a
+ * second step that the gateway no longer holds (`?expired=true`).
  *
  * @internal
  * @remarks
@@ -26,10 +27,14 @@ type LoginValues = { email: string; password: string }
  * client. Keep this component in its own boundary, so that the rest of the form
  * stays in the prerendered HTML.
  */
-function RegisteredNotice() {
-	const registered = useSearchParams().get('registered') === 'true'
+function QueryNotice() {
+	const params = useSearchParams()
 
-	return registered ? (
+	if (params.get('expired') === 'true') {
+		return <Text tone="error">Your sign-in expired. Please sign in again.</Text>
+	}
+
+	return params.get('registered') === 'true' ? (
 		<Text tone="success">Account created successfully. Please sign in.</Text>
 	) : null
 }
@@ -38,16 +43,28 @@ function RegisteredNotice() {
  * Sign-in page: signs in with a password or a passkey, and goes to `/` on success.
  *
  * @remarks
- * Next prerenders all of the page except the notice after registration, which
- * renders only on the client.
+ * When the user has two-step sign-in on, the gateway answers the password with
+ * `202` and sets a ticket cookie, and the page goes to `/login/verify` for the
+ * second step ({@link SecondStepPage}). That page checks the ticket on the
+ * server, so nobody can open it without a password step first.
+ *
+ * Next prerenders all of the page except the notices from the query, which
+ * render only on the client.
  */
 export function LoginPage() {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
 
-	// Goes to `/` on success, and shows the message of the gateway on a failure.
+	// Goes to `/` on success, to the second step on a `202`, and shows the message
+	// of the gateway on a failure.
 	async function finish(res: Response) {
+		if (res.status === 202) {
+			router.push('/login/verify')
+
+			return
+		}
+
 		if (res.ok) {
 			router.push('/')
 
@@ -109,7 +126,7 @@ export function LoginPage() {
 				{serverError && <Text tone="error">{serverError}</Text>}
 
 				<Suspense>
-					<RegisteredNotice />
+					<QueryNotice />
 				</Suspense>
 
 				<Field>

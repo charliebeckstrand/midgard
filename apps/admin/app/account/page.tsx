@@ -1,5 +1,5 @@
 import { bifrost, requireSession } from 'auth'
-import type { Passkey } from './account-api'
+import type { Factors, Passkey } from './account-api'
 import { AccountClient } from './client'
 
 /**
@@ -18,6 +18,22 @@ async function getPasskeys(): Promise<Passkey[]> {
 	return data
 }
 
+const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
+
+/**
+ * Fetches the second factors of the signed-in user from the gateway, server-side.
+ *
+ * @internal
+ * @returns The factors, or none on a non-OK response.
+ */
+async function getFactors(): Promise<Factors> {
+	const res = await bifrost('/auth/mfa')
+
+	if (!res.ok) return noFactors
+
+	return (await res.json()) as Factors
+}
+
 /**
  * Account page of each signed-in user. The proxy only finds the cookie, so
  * `requireSession` checks the session, and sends a guest to `/login`.
@@ -25,7 +41,7 @@ async function getPasskeys(): Promise<Passkey[]> {
 export default async function AccountPage() {
 	const { user } = await requireSession()
 
-	const passkeys = await getPasskeys()
+	const [passkeys, factors] = await Promise.all([getPasskeys(), getFactors()])
 
-	return <AccountClient user={user} passkeys={passkeys} />
+	return <AccountClient user={user} passkeys={passkeys} factors={factors} />
 }

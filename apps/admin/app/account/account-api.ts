@@ -16,7 +16,7 @@ export type Passkey = {
  *
  * A query or a mutation reads a thrown error as a failure. On a non-OK
  * response, the error holds the message of the gateway, such as "Sign in again
- * to change your passkeys", so that the page can show it.
+ * to change how you sign in", so that the page can show it.
  */
 async function request(path: string, init?: RequestInit): Promise<Response> {
 	const response = await fetch(path, init)
@@ -63,8 +63,69 @@ export async function addPasskey(): Promise<Passkey> {
 /**
  * Removes one passkey of the signed-in user.
  *
- * The gateway refuses to remove the last passkey of an admin with a `409`.
+ * The gateway refuses to remove the last second factor of an admin with a `409`.
  */
 export async function removePasskey(id: string): Promise<void> {
 	await request(`/auth/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' })
+}
+
+/** The second factors of the signed-in user, as the gateway reports them. */
+export type Factors = {
+	/** Whether a sign-in takes a second step: a passkey or an authenticator app is on. */
+	enabled: boolean
+	passkeys: number
+	totp: boolean
+	recovery_codes: number
+}
+
+/** A new authenticator-app secret, before the user confirms it. */
+export type TotpSetup = {
+	/** The secret in base32, for an app that cannot scan. */
+	secret: string
+	/** The `otpauth://` URI, for the QR code. */
+	uri: string
+}
+
+/** The second factors of the signed-in user. */
+export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
+	const response = await request('/auth/mfa', { signal })
+
+	return (await response.json()) as Factors
+}
+
+/**
+ * Starts adding an authenticator app. The app stays off until
+ * {@link confirmTotp} sends a code from it.
+ */
+export async function startTotpSetup(): Promise<TotpSetup> {
+	const response = await request('/auth/mfa/totp/setup', { method: 'POST' })
+
+	return (await response.json()) as TotpSetup
+}
+
+/** Turns on the authenticator app with a code that it shows now. */
+export async function confirmTotp(code: string): Promise<void> {
+	await request('/auth/mfa/totp', {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		body: JSON.stringify({ code }),
+	})
+}
+
+/**
+ * Removes the authenticator app.
+ *
+ * The gateway refuses to remove the last second factor of an admin with a `409`.
+ */
+export async function removeTotp(): Promise<void> {
+	await request('/auth/mfa/totp', { method: 'DELETE' })
+}
+
+/** Replaces the recovery codes, and returns the new ones. The gateway shows them only this once. */
+export async function generateRecoveryCodes(): Promise<string[]> {
+	const response = await request('/auth/mfa/recovery-codes', { method: 'POST' })
+
+	const { codes } = (await response.json()) as { codes: string[] }
+
+	return codes
 }

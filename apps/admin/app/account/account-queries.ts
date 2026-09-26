@@ -1,7 +1,18 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { addPasskey, fetchPasskeys, type Passkey, removePasskey } from './account-api'
+import {
+	addPasskey,
+	confirmTotp,
+	type Factors,
+	fetchFactors,
+	fetchPasskeys,
+	generateRecoveryCodes,
+	type Passkey,
+	removePasskey,
+	removeTotp,
+	startTotpSetup,
+} from './account-api'
 
 /**
  * The query keys, in one place. A reader and a writer name the same entry, and
@@ -9,6 +20,7 @@ import { addPasskey, fetchPasskeys, type Passkey, removePasskey } from './accoun
  */
 export const accountKeys = {
 	passkeys: ['account', 'passkeys'] as const,
+	factors: ['account', 'factors'] as const,
 }
 
 /**
@@ -23,7 +35,19 @@ export function usePasskeys(initialPasskeys: Passkey[]) {
 	})
 }
 
-/** Adds a passkey, and writes it into the cached list. */
+/**
+ * The second factors of the signed-in user. The server page seeds it, like
+ * {@link usePasskeys}.
+ */
+export function useFactors(initialFactors: Factors) {
+	return useQuery({
+		queryKey: accountKeys.factors,
+		queryFn: ({ signal }) => fetchFactors(signal),
+		initialData: initialFactors,
+	})
+}
+
+/** Adds a passkey, writes it into the cached list, and refetches the factors. */
 export function useAddPasskey() {
 	const client = useQueryClient()
 
@@ -34,11 +58,13 @@ export function useAddPasskey() {
 				...(passkeys ?? []),
 				added,
 			])
+
+			client.invalidateQueries({ queryKey: accountKeys.factors })
 		},
 	})
 }
 
-/** Removes a passkey, and removes it from the cached list. */
+/** Removes a passkey, removes it from the cached list, and refetches the factors. */
 export function useRemovePasskey() {
 	const client = useQueryClient()
 
@@ -48,6 +74,43 @@ export function useRemovePasskey() {
 			client.setQueryData<Passkey[]>(accountKeys.passkeys, (passkeys) =>
 				passkeys?.filter((passkey) => passkey.id !== id),
 			)
+
+			client.invalidateQueries({ queryKey: accountKeys.factors })
 		},
+	})
+}
+
+/** Starts adding an authenticator app. The caller keeps the secret it returns. */
+export function useStartTotpSetup() {
+	return useMutation({ mutationFn: startTotpSetup })
+}
+
+/** Turns on the authenticator app, and refetches the factors. */
+export function useConfirmTotp() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: confirmTotp,
+		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
+	})
+}
+
+/** Removes the authenticator app, and refetches the factors. */
+export function useRemoveTotp() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: removeTotp,
+		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
+	})
+}
+
+/** Makes new recovery codes, and refetches the factors. The caller shows the codes. */
+export function useGenerateRecoveryCodes() {
+	const client = useQueryClient()
+
+	return useMutation({
+		mutationFn: generateRecoveryCodes,
+		onSuccess: () => client.invalidateQueries({ queryKey: accountKeys.factors }),
 	})
 }
