@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 /**
  * Snapshot machinery for a value a closing panel keeps painting while it
@@ -22,10 +22,12 @@ import { useCallback, useRef, useState } from 'react'
 export function useFrozenOnClose<T>(open: boolean | undefined) {
 	const [frozen, setFrozen] = useState<{ value: T } | null>(null)
 
-	const prevOpenRef = useRef(open)
+	// The previous `open` in state and not in a ref, so a render that React
+	// discards cannot advance it and skip the reopen reset.
+	const [prevOpen, setPrevOpen] = useState(open)
 
-	if (open !== prevOpenRef.current) {
-		prevOpenRef.current = open
+	if (open !== prevOpen) {
+		setPrevOpen(open)
 
 		if (open && frozen) setFrozen(null)
 	}

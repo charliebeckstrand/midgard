@@ -83,9 +83,6 @@
 	"components/pagination/pagination-page.tsx": {
 		"PaginationPage": "Refs"
 	},
-	"components/pdf-viewer/pdf-viewer-highlights.tsx": {
-		"PdfViewerActiveName": "Refs"
-	},
 	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
 		"PdfViewerMagnifier": "Refs"
 	},
@@ -103,9 +100,6 @@
 	},
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
 		"usePdfViewerMagnifier": "Refs"
-	},
-	"components/pdf-viewer/use-pdf-viewer-page-rotation.ts": {
-		"usePdfViewerPageRotation": "Refs"
 	},
 	"components/pdf-viewer/use-pdf-viewer-page-size.ts": {
 		"usePdfViewerPageSize": "Refs"
@@ -164,9 +158,6 @@
 	},
 	"hooks/use-floating-disclosure.ts": {
 		"useFloatingDisclosure": "Refs"
-	},
-	"hooks/use-frozen-on-close.ts": {
-		"useFrozenOnClose": "Refs"
 	},
 	"hooks/use-keybindings.ts": {
 		"useKeybindings": "Refs"
