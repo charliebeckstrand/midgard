@@ -578,9 +578,9 @@ describe('Filters context', () => {
 		// Created once, so a second render of the probe comes from a context change.
 		const children = <Probe />
 
-		const { rerender } = renderUI(<Filters className="a">{children}</Filters>)
+		const { rerender } = renderUI(<Filters aria-label="Orders">{children}</Filters>)
 
-		rerender(<Filters className="b">{children}</Filters>)
+		rerender(<Filters aria-label="Open orders">{children}</Filters>)
 
 		expect(renders).toHaveBeenCalledOnce()
 	})
