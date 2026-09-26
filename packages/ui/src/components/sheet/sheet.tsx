@@ -5,6 +5,7 @@ import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
+import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
 import { Overlay } from '../../primitives/overlay'
@@ -15,8 +16,21 @@ import { sheetCeiling, sheetFloor } from './sheet-floor'
 import { SheetHandle } from './sheet-handle'
 
 /** Props for {@link Sheet}: open-state control, portal `container`, focus, modality, and panel `side`/`width` variants. */
-export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width'> &
+export type SheetProps = Omit<SheetPanelVariants, 'surface' | 'width' | 'side'> &
 	PanelOverlayProps & {
+		/**
+		 * The edge the panel is docked to and slides in from.
+		 *
+		 * `start` and `end` follow the reading direction. In a right-to-left page,
+		 * `start` is the right edge and `end` is the left edge. Use them for a panel
+		 * that belongs to the reading order, such as navigation. `left`, `right`,
+		 * `top`, and `bottom` are physical edges and do not change.
+		 *
+		 * The direction comes from `container`, or from the root element when the
+		 * sheet portals to the body.
+		 * @defaultValue 'right'
+		 */
+		side?: SheetPanelVariants['side'] | 'start' | 'end'
 		/**
 		 * How wide the panel opens.
 		 *
@@ -151,7 +165,12 @@ export function Sheet({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
-	const preset = k.motion[side]
+	const rtl = useIsRtl(container)
+
+	// The physical edge. The recipe, the slide, and the drag all key on it.
+	const edge = physicalSide(side, rtl)
+
+	const preset = k.motion[edge]
 
 	const { onAnimationComplete } = useOpenComplete(resolvedOpen, preset.animate, onOpenComplete)
 
@@ -159,13 +178,13 @@ export function Sheet({
 
 	// The dimension this side is docked across, which is the one the gesture moves
 	// and the one the cap is measured on.
-	const axis = panelAxis(side)
+	const axis = panelAxis(edge)
 
 	// A pixel width means nothing off the screen it was set on, so it stays in
 	// the panel's own state and reaches nowhere: nothing outside the sheet needs
 	// to hold one.
 	const resize = usePanelResize({
-		side,
+		side: edge,
 		open: resolvedOpen,
 		onDismiss: () => setOpen(false),
 		floorOf: (panel, size) => sheetFloor(panel, size, axis),
@@ -208,7 +227,7 @@ export function Sheet({
 						: undefined
 				}
 				className={cn(
-					k.panel({ side, width, surface: resolvedSurface }),
+					k.panel({ side: edge, width, surface: resolvedSurface }),
 					// Non-modal overlays disable pointer events on the full-viewport
 					// wrapper so the page stays interactive; the panel re-enables its own.
 					modal === false && 'pointer-events-auto',
@@ -217,7 +236,7 @@ export function Sheet({
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? (
-						<SheetHandle handleProps={resize.handleProps} covers={resize.covers} side={side} />
+						<SheetHandle handleProps={resize.handleProps} covers={resize.covers} side={edge} />
 					) : null}
 
 					{children}
@@ -225,4 +244,16 @@ export function Sheet({
 			</motion.div>
 		</Overlay>
 	)
+}
+
+/** The physical edge of a {@link SheetProps.side}: `start` and `end` resolve against `rtl`. */
+function physicalSide(
+	side: NonNullable<SheetProps['side']>,
+	rtl: boolean,
+): NonNullable<SheetPanelVariants['side']> {
+	if (side === 'start') return rtl ? 'right' : 'left'
+
+	if (side === 'end') return rtl ? 'left' : 'right'
+
+	return side
 }

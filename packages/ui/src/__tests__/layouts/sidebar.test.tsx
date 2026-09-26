@@ -161,7 +161,7 @@ describe('SidebarLayout floating mode', () => {
 		expect(sidebars.length).toBeGreaterThan(0)
 	})
 
-	it('keeps the sheet open while the pointer moves across the sheet and the right-edge buffer', () => {
+	it('keeps the sheet open while the pointer moves across the sheet and the start-edge buffer', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
 				body
@@ -177,7 +177,10 @@ describe('SidebarLayout floating mode', () => {
 		// Hovering the sheet body itself keeps it open.
 		fireEvent.pointerEnter(inner)
 
-		const buffer = present(document.body.querySelector('[class*="left-80"]'), '[class*="left-80"]')
+		const buffer = present(
+			document.body.querySelector('[class*="start-80"]'),
+			'[class*="start-80"]',
+		)
 
 		expect(buffer).toBeInTheDocument()
 
@@ -188,10 +191,10 @@ describe('SidebarLayout floating mode', () => {
 
 		expect(screen.queryByText('floating-sidebar')).not.toBeInTheDocument()
 
-		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
 
-	it('closes when the pointer leaves the right-edge buffer', () => {
+	it('closes when the pointer leaves the start-edge buffer', () => {
 		const { container } = renderUI(
 			<SidebarLayout sidebar={<div>floating-sidebar</div>} floating>
 				body
@@ -202,13 +205,16 @@ describe('SidebarLayout floating mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
-		const buffer = present(document.body.querySelector('[class*="left-80"]'), '[class*="left-80"]')
+		const buffer = present(
+			document.body.querySelector('[class*="start-80"]'),
+			'[class*="start-80"]',
+		)
 
 		expect(buffer).toBeInTheDocument()
 
 		fireEvent.pointerLeave(buffer)
 
-		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
 
 	it('blurs the page behind the floating peek once it opens', () => {
@@ -326,8 +332,8 @@ describe('SidebarLayout floating mode', () => {
 
 		fireEvent.pointerEnter(hotZone)
 
-		// Opening paints the right-edge buffer — the open-state signal.
-		expect(document.body.querySelector('[class*="left-80"]')).toBeInTheDocument()
+		// Opening paints the start-edge buffer — the open-state signal.
+		expect(document.body.querySelector('[class*="start-80"]')).toBeInTheDocument()
 
 		// Flipping `floating` off resets the sheet to closed; flipping it back on
 		// must re-mount it closed, so the buffer stays absent.
@@ -339,6 +345,6 @@ describe('SidebarLayout floating mode', () => {
 			</SidebarLayout>,
 		)
 
-		expect(document.body.querySelector('[class*="left-80"]')).not.toBeInTheDocument()
+		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
 })

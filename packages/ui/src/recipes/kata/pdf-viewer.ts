@@ -78,7 +78,7 @@ export const k = {
 		],
 	},
 	sidebar: {
-		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-r', border.defaultColor],
+		base: [flex.col, 'shrink-0 w-56 min-h-0', 'overflow-hidden', 'border-e', border.defaultColor],
 		/**
 		 * The slide, and only for a change the reader made.
 		 *
@@ -89,7 +89,9 @@ export const k = {
 		 * the toolbar's toggle is a change the reader made, and that one travels.
 		 */
 		travel: 'transition-[margin] duration-150 ease-in-out',
-		closed: '-ml-56',
+		// The margin on the start side, so the rail leaves toward its own edge in
+		// either direction.
+		closed: '-ms-56',
 		header: [
 			flex.row,
 			'gap-1',
