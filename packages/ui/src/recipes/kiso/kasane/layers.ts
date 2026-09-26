@@ -36,10 +36,14 @@ const overlay = [
 	'after:absolute after:inset-0 after:ring-transparent after:ring-inset after:pointer-events-none',
 ]
 
-/** Outer ring color on hover: one shade darker / lighter than resting. */
+/**
+ * Outer ring color on hover: one shade darker / lighter than resting. It skips a
+ * validation state, like `focus`. The dark class comes later in the CSS, so it
+ * would otherwise replace the validation ring on hover in dark mode.
+ */
 const hover = mode(
-	'not-has-[>:disabled]:hover:ring-zinc-400',
-	'not-has-[>:disabled]:dark:hover:ring-zinc-600',
+	'not-has-[>:disabled]:not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:hover:ring-zinc-400',
+	'not-has-[>:disabled]:not-has-[[data-invalid]]:not-has-[[data-valid]]:not-has-[[data-warning]]:dark:hover:ring-zinc-600',
 )
 
 /** `::after` 2 px focus ring: blue when no validation state is active. */

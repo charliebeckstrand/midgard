@@ -126,7 +126,12 @@ export function GridToolbar({
 					{content ? <div className={cn(k.toolbar.content)}>{content}</div> : null}
 
 					{showTools && (
-						<Toolbar aria-label="Table tools" className={cn(k.toolbar.actions)}>
+						<Toolbar
+							aria-label="Table tools"
+							// The content ahead already takes the free space. A second auto
+							// margin would split it and open a gap between the two.
+							className={cn(!content && k.toolbar.actions)}
+						>
 							{showColumnManager && (
 								<Button
 									type="button"

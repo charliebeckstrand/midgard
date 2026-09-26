@@ -72,4 +72,12 @@ describe('grab-cursor boundary', () => {
 
 		expect(hannou.grab.cursor.join(' ')).not.toContain('touch-none')
 	})
+
+	it('stops a long press on iOS from selecting text or showing the callout', () => {
+		const classes = hannou.grab.default.join(' ').split(/\s+/)
+
+		expect(classes).toEqual(
+			expect.arrayContaining(['select-none', '**:select-none', '[-webkit-touch-callout:none]']),
+		)
+	})
 })

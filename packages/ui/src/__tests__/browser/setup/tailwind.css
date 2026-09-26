@@ -5,3 +5,7 @@
    `../../../` resolves to `src/`. */
 @import 'tailwindcss';
 @source '../../../';
+
+/* The `dark` variant follows the `.dark` class on the root, as in the docs
+   and the apps. A test adds the class to check dark mode. */
+@custom-variant dark (&:where(.dark, .dark *));

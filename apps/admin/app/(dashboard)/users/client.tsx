@@ -150,7 +150,10 @@ export function UsersClient({ users: initialUsers, currentUser }: UsersClientPro
 					{users.map((user) => (
 						<TableRow key={user.id}>
 							<TableCell>
-								<Link href={`/users/${user.id}`} className="text-blue-600 hover:underline">
+								<Link
+									href={`/users/${user.id}`}
+									className="text-blue-600 hover:underline dark:text-blue-500"
+								>
 									{user.id}
 								</Link>
 							</TableCell>

@@ -36,9 +36,12 @@ export const grab = {
 	 * `touch-none` is the load-bearing half. Without it the browser claims the
 	 * gesture for scrolling before the element sees a second move. A handle that
 	 * works with a mouse then does nothing under a finger. `select-none` stops the
-	 * drag painting a text selection across whatever it passes over.
+	 * drag painting a text selection across whatever it passes over. On iOS, Safari can
+	 * select the text in a descendant of a `select-none` box. Thus the descendants
+	 * also set it. A finger that rests before it moves is a long press, and iOS
+	 * shows its callout menu without `-webkit-touch-callout: none`.
 	 */
-	default: [...grabCursor, 'touch-none select-none'],
+	default: [...grabCursor, 'touch-none select-none **:select-none [-webkit-touch-callout:none]'],
 	/**
 	 * The two hands alone, for a surface that must keep touch scrolling, such as a
 	 * card that a grip also drags.

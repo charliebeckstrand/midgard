@@ -124,6 +124,18 @@ const responsiveTemplateMap = {
 	},
 } satisfies Record<Breakpoint, Record<SplitOrientation, Record<SplitRatio, string>>>
 
+// The axis that a breakpoint turns off. A breakpoint that changes the axis sets
+// the template of the new axis only, so the template of the old axis stays in
+// force from the smaller breakpoint. The reset clears it. Spelled out as
+// literals for the same reason as the map above.
+const axisResetMap = {
+	sm: { horizontal: 'sm:grid-rows-none', vertical: 'sm:grid-cols-none' },
+	md: { horizontal: 'md:grid-rows-none', vertical: 'md:grid-cols-none' },
+	lg: { horizontal: 'lg:grid-rows-none', vertical: 'lg:grid-cols-none' },
+	xl: { horizontal: 'xl:grid-rows-none', vertical: 'xl:grid-cols-none' },
+	'2xl': { horizontal: '2xl:grid-rows-none', vertical: '2xl:grid-cols-none' },
+} satisfies Record<Exclude<Breakpoint, 'initial'>, Record<SplitOrientation, string>>
+
 /**
  * The value a responsive prop holds at `bp`: the one named there, else the one
  * carried forward from the last smaller breakpoint that names it.
@@ -149,7 +161,8 @@ function valueAt<T>(value: Responsive<T>, bp: Breakpoint, fallback: T): T {
 /**
  * Grid-template classes for the `orientation` and `ratio` pair. The two share
  * one class, so a breakpoint named by either emits one: the axis in force
- * there, with the ratio in force there.
+ * there, with the ratio in force there. A breakpoint that changes the axis also
+ * resets the template of the old axis.
  *
  * @internal
  */
@@ -169,9 +182,25 @@ export function resolveTemplate(
 		}
 	}
 
-	return BREAKPOINTS.filter((bp) => named.has(bp)).map(
-		(bp) => responsiveTemplateMap[bp][valueAt(axis, bp, 'horizontal')][valueAt(steps, bp, '1/2')],
-	)
+	const classes: string[] = []
+
+	let previous: SplitOrientation | undefined
+
+	for (const bp of BREAKPOINTS) {
+		if (!named.has(bp)) continue
+
+		const current = valueAt(axis, bp, 'horizontal')
+
+		if (bp !== 'initial' && previous !== undefined && current !== previous) {
+			classes.push(axisResetMap[bp][current])
+		}
+
+		classes.push(responsiveTemplateMap[bp][current][valueAt(steps, bp, '1/2')])
+
+		previous = current
+	}
+
+	return classes
 }
 
 /** Flex's align values per breakpoint, or a single value applied at all sizes; the Flex axis. */
