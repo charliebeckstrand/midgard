@@ -15,8 +15,8 @@ import { listPlaces } from './places-store'
  * States of America" where a geocoder commonly writes "United States", so that
  * one is the country most likely to want the single press that corrects it.
  */
-export async function visitedSeed(): Promise<Visits> {
-	const places = await listPlaces()
+export async function visitedSeed(userId: string): Promise<Visits> {
+	const places = await listPlaces(userId)
 
 	return {
 		states: places.map((place) => place.state).filter((state) => state !== undefined),

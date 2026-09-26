@@ -24,6 +24,16 @@ async function failureText(response: Response): Promise<string> {
 }
 
 /**
+ * The error for a failed request. A `401` means that the session ended, so the
+ * page also goes to `/login`.
+ */
+async function failure(response: Response): Promise<Error> {
+	if (response.status === 401) window.location.assign('/login')
+
+	return new Error(await failureText(response))
+}
+
+/**
  * One same-origin request, checked and parsed.
  *
  * Every call below goes through it, so the ok-check happens once rather than
@@ -33,7 +43,7 @@ async function failureText(response: Response): Promise<string> {
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
 	const response = await fetch(path, init)
 
-	if (!response.ok) throw new Error(await failureText(response))
+	if (!response.ok) throw await failure(response)
 
 	return (await response.json()) as T
 }
@@ -67,7 +77,7 @@ export async function deletePlace(id: string): Promise<void> {
 	// The route answers 204, which carries no body to parse.
 	const response = await fetch(`/api/places/${encodeURIComponent(id)}`, { method: 'DELETE' })
 
-	if (!response.ok) throw new Error(await failureText(response))
+	if (!response.ok) throw await failure(response)
 }
 
 /** Every visited region, by the name its own atlas gives it. */

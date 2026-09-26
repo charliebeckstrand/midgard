@@ -2,7 +2,7 @@ import { mkdtemp, readdir, readFile, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
-import { createQueue, readJsonFile, writeJsonFile } from '../../server/json-file'
+import { createQueue, readJsonFile, userFile, writeJsonFile } from '../../server/json-file'
 
 /** The temporary directories a case made, swept after it. */
 const made: string[] = []
@@ -137,5 +137,21 @@ describe('createQueue', () => {
 		await next
 
 		expect(order).toEqual(['first', 'second'])
+	})
+})
+
+describe('userFile', () => {
+	it('puts the file in the directory of the user', () => {
+		const user = '0192f3a4-5b6c-7d8e-9f01-23456789abcd'
+
+		expect(userFile(user, 'places.json')).toBe(
+			join(process.cwd(), '.data', 'users', user, 'places.json'),
+		)
+	})
+
+	// The id names a directory, so an id that is not a UUID could name a path
+	// outside `.data/users`.
+	it.each(['..', '../../etc', '', 'not-a-uuid'])('throws on the id %j', (id) => {
+		expect(() => userFile(id, 'places.json')).toThrow('A user id must be a UUID.')
 	})
 })
