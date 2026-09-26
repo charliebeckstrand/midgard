@@ -23,7 +23,7 @@ import type {
 	GridInfiniteScroll,
 	GridVirtualize,
 } from './grid-data-types'
-import type { GridColumn } from './types'
+import type { GridColumn, GridSearch } from './types'
 import type { GridNavTableProps } from './use-grid-navigation'
 import type {
 	GridColumnFilter,
@@ -427,4 +427,124 @@ export function resolveActionable(args: {
 	const narrowed = (args.filters?.active ?? false) || (args.globalFilter?.value ?? '') !== ''
 
 	return { hasRows, hasData: hasRows || (narrowed && !args.showingError) }
+}
+
+/**
+ * Where the new-row slot renders, or `null` when it does not. The slot shows
+ * over a body that shows data or its empty state, and not over the loading
+ * skeleton or an error. @internal
+ */
+export function placeNewRow(
+	position: 'top' | 'bottom' | null,
+	loading: boolean,
+	showingError: boolean,
+): 'top' | 'bottom' | null {
+	return loading || showingError ? null : position
+}
+
+/** The new-row slot's node when it renders at `where`, else `null`. @internal */
+export function slotAt(
+	place: 'top' | 'bottom' | null,
+	where: 'top' | 'bottom',
+	slot: ReactNode,
+): ReactNode {
+	return place === where ? slot : null
+}
+
+/**
+ * The `aria-rowindex` of the new-row slot, or `undefined` where the grid sets
+ * no row indexes. At the top the slot is the first row after the header rows.
+ * At the bottom it is the last row before a grand-total row. An indeterminate
+ * row count cannot name that index, so the slot there takes none.
+ *
+ * @internal
+ */
+export function resolveNewRowIndex(args: {
+	position: 'top' | 'bottom' | null
+	gridSemantics: boolean
+	/** Whether the body shows data rows. Over the empty state the grid sets no row count. */
+	hasRows: boolean
+	groupRowOffset: number
+	ariaRowCount: number
+	grandTotal: boolean
+}): number | undefined {
+	if (!args.gridSemantics || !args.hasRows || args.position === null) return undefined
+
+	if (args.position === 'top') return args.groupRowOffset + 2
+
+	return args.ariaRowCount > 0 ? args.ariaRowCount - Number(args.grandTotal) : undefined
+}
+
+/**
+ * Whether the grid's current state permits a manual row drag-reorder. A manual
+ * order only holds against the natural row order, so reordering stands down
+ * whenever the rendered rows diverge from the source set. That covers an active
+ * column sort and a filtered/searched view (fewer rendered rows than source). It
+ * also covers pagination, virtualization, an active row grouping, active
+ * master-detail, and an empty or loading grid. A detail row is not a sortable
+ * item, so a drag would move its row away from it. The rendered-length check
+ * catches client filtering, search, and client pagination in one; the pagination
+ * and virtualization flags catch the server-page and windowed cases.
+ *
+ * @internal
+ */
+export function rowReorderPermitted(args: {
+	loading: boolean
+	/** Whether there are source rows to drag at all. */
+	hasRows: boolean
+	paginated: boolean
+	virtualized: boolean
+	grouped: boolean
+	expanded: boolean
+	sorted: boolean
+	renderedCount: number
+	sourceCount: number
+}): boolean {
+	return (
+		!args.loading &&
+		args.hasRows &&
+		!args.paginated &&
+		!args.virtualized &&
+		!args.grouped &&
+		!args.expanded &&
+		!args.sorted &&
+		args.renderedCount === args.sourceCount
+	)
+}
+
+/**
+ * The active highlight-search query: the debounced quick-search value when the
+ * search marks rather than prunes ({@link GridSearch.mode} `'highlight'`) and it holds
+ * a query, else `null`. Data cells read it through {@link GridHighlightContext} to
+ * mark their matches; `null` while the search filters, is empty, or is unset.
+ * Kept out of {@link GridData} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+export function resolveHighlightQuery(
+	search: GridSearch | undefined,
+	globalFilter: GridGlobalFilterView | null,
+): string | null {
+	if (search?.mode !== 'highlight') return null
+
+	// `|| null` (not `??`) so an empty query collapses to null — no marking.
+	return globalFilter?.value || null
+}
+
+/**
+ * The width gate: withholds the table's paint until its columns are fitted, while
+ * leaving it measurable.
+ *
+ * `invisible` rather than `hidden` or an unmount, because the autosizer has to *measure*
+ * this subtree in order to size it. Hidden visibility keeps layout and geometry intact,
+ * so the cells lay out and report their widths exactly as they would if shown. It also
+ * keeps the box in flow, so the surrounding page doesn't reflow on reveal. Carried by the
+ * `<table>` itself rather than a wrapper: a wrapping node — even `display: contents` —
+ * would sit in the middle of the grid's own child selectors. Kept out of
+ * {@link GridData} for its cognitive-complexity budget.
+ *
+ * @internal
+ */
+export function widthGateClass(revealed: boolean): string | undefined {
+	return revealed ? undefined : 'invisible'
 }

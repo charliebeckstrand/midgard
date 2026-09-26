@@ -42,7 +42,7 @@ The grid module is flat, and `grid-data-cell.tsx`, `grid-data-resolvers.ts`, and
 | `use-grid-data-view.ts` | `useGridDataView`, phase 4. |
 | `use-grid-data-frame.ts` | `useGridDataFrame`, phase 5. |
 | `grid-data-table.tsx` | `GridDataTable`: the `<Table>`, the head, the new-row slot, the body, the grand total, the cursor wrap, the highlight context, and the scroll region. |
-| `grid-data-dialogs.tsx` | `GridDataDialogs`: the column manager with its direction read, the row manager dialog, and the auto-size confirm. |
+| `grid-data-dialogs.tsx` | `GridDataDialogs`: the column manager, the row manager dialog, and the auto-size confirm. |
 
 Phase 3 stays one call to `useGridTable` in `GridData`. The menus, the row manager, and the two reorders are hooks now, so `GridData` calls them as it does today.
 
@@ -88,7 +88,7 @@ A probe of the same fixes in one body (the prior version of this plan) made the 
 
 ## Risk
 
-The move changes the order of some hook calls. `useGridGroup` and `useGridColumns` move ahead of the cursor, into phase 1. React runs the effects of one component in call order, and the effects of a child before those of its parent. So a move can change the order of two effects. Each increment lists the effects it reorders and shows that they are independent. The direction read moves into `GridDataDialogs` and runs before the cursor clamp. The two read and write different state.
+The move changes the order of some hook calls. `useGridGroup` and `useGridColumns` move ahead of the cursor, into phase 1. React runs the effects of one component in call order, and the effects of a child before those of its parent. So a move can change the order of two effects. Each increment lists the effects it reorders and shows that they are independent. The direction read stays in `GridData`. React attaches the ref of the root `<div>` after the layout effects of its children, so a child cannot read the wrapper on mount.
 
 With the compiler on, `GridData` memoizes its JSX. A child then renders only when its props change. The rows and cells are memoized now, so they already follow this contract. The risk is a child that reads a ref in render and gets no new props when the ref changes. Such a child is stale today, because a memoized row does not render again for a ref write.
 
@@ -96,7 +96,7 @@ Without the compiler, the split does not change behavior. Each phase runs the sa
 
 ## Increments
 
-1. **Helpers and subtrees.** Move the local helpers, and extract `GridDataTable` and `GridDataDialogs`. No hook order changes, except the direction read. `GridData` loses about 480 lines. The compiler still skips it on the computed key.
+1. **Helpers and subtrees.** Move the pure helpers and `useServerSortSettle`, and extract `GridDataTable` and `GridDataDialogs`. No hook order changes. The hooks that go to a phase file move in increment 2, because each file must export the symbol of its name. `GridData` loses about 250 lines. The compiler still skips it on the computed key.
 2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData` and adds `useGridIndexSync`.
 3. **Render-count bench.** Add a compiled render count for a sort and a selection change on a 1,000-row grid to `__benchmarks__`, before and after. The gain is then a number, not an inference.
 
