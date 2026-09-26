@@ -136,7 +136,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							onClick={state.enterCustom}
 						>
 							Custom range
-							<Icon icon={<ChevronRight />} />
+							<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 						</Button>
 					</div>
 				) : (
@@ -147,7 +147,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 							className={cn(k.relative.back)}
 							onClick={state.backToList}
 						>
-							<Icon icon={<ArrowLeft />} />
+							<Icon icon={<ArrowLeft />} className="rtl:-scale-x-100" />
 							Back to presets
 						</Button>
 						{/* Each field is a single-date picker in `input` mode: a typed

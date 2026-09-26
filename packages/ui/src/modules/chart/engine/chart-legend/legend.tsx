@@ -771,7 +771,7 @@ export function ChartLegend({
 						disabled={currentPage === 0}
 						onClick={() => setPage(currentPage - 1)}
 					>
-						<Icon icon={<ChevronLeft />} />
+						<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 					</Button>
 
 					<Text as="span" tone="muted" size="sm" className="tabular-nums">
@@ -786,7 +786,7 @@ export function ChartLegend({
 						disabled={currentPage === pageCount - 1}
 						onClick={() => setPage(currentPage + 1)}
 					>
-						<Icon icon={<ChevronRight />} />
+						<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 					</Button>
 				</div>
 			)}
