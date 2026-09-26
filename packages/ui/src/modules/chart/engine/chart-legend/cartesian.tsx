@@ -6,9 +6,10 @@ import { type ChartLegendPlacement, legendAside } from './schema'
 type ChartCartesianLegendProps = {
 	/**
 	 * The resolved cartesian model — the series switches and reference chips, the
-	 * hidden sets and their toggles, and the tier's legend-row budget.
+	 * hidden sets and their toggles, and the tier's legend-row budget. The legend
+	 * does not use the frame ref.
 	 */
-	chart: CartesianChart
+	chart: Omit<CartesianChart, 'ref'>
 	/**
 	 * The caller's resolved `legend` placement. A side one lays the rail out as a
 	 * panel, a stacked one (or the boolean default) as the capped wrap row.

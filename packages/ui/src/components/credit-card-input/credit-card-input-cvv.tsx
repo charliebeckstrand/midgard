@@ -67,7 +67,13 @@ export function CreditCardInputCvv({
 
 	const maxLength = resolveCvvLength(brand)
 
-	const masked = useMaskInput({
+	const {
+		ref: maskedRef,
+		value: maskedValue,
+		setValue: setMaskedValue,
+		onChange: onMaskedChange,
+		onBlur: onMaskedBlur,
+	} = useMaskInput({
 		name,
 		value,
 		defaultValue,
@@ -80,9 +86,9 @@ export function CreditCardInputCvv({
 	// event reads the newest value, setter, and callback, so the effect below
 	// depends only on the brand-derived length and the brand.
 	const refit = useEffectEvent((length: number, nextBrand: CreditCardBrand | undefined) => {
-		const truncated = formatCvv(masked.value, length)
+		const truncated = formatCvv(maskedValue, length)
 
-		if (truncated !== masked.value) masked.setValue(truncated)
+		if (truncated !== maskedValue) setMaskedValue(truncated)
 
 		onValidityChange?.(validateCardCvv(truncated, nextBrand))
 	})
@@ -106,7 +112,7 @@ export function CreditCardInputCvv({
 
 	return (
 		<Input
-			ref={masked.ref}
+			ref={maskedRef}
 			data-slot="credit-card-input-cvv"
 			type="text"
 			inputMode="numeric"
@@ -117,16 +123,16 @@ export function CreditCardInputCvv({
 			maxLength={maxLength}
 			placeholder={placeholder ?? (maxLength === 4 ? '1234' : '123')}
 			name={name}
-			value={masked.value}
+			value={maskedValue}
 			{...props}
 			// The masking wiring sits after the spread, so a stray `onChange`
 			// does not replace it. The touched mark runs whatever the caller
 			// does (CONVENTIONS.md §3.9).
-			onBlur={composeEventHandlers(onBlur, () => masked.onBlur(), {
+			onBlur={composeEventHandlers(onBlur, () => onMaskedBlur(), {
 				checkForDefaultPrevented: false,
 			})}
 			onChange={(event) => {
-				masked.onChange(event)
+				onMaskedChange(event)
 
 				onValidityChange?.(validateCardCvv(event.target.value, brand))
 			}}

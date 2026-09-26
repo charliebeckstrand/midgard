@@ -26,7 +26,11 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 		'data-group-orientation': dataGroupOrientation,
 	} = props
 
-	const state = useDatePickerRangeState(props)
+	const {
+		calendar: { calendarRef, footerRef, ...calendar },
+		footer,
+		...state
+	} = useDatePickerRangeState(props)
 
 	return (
 		<>
@@ -65,19 +69,19 @@ export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProp
 				onExitComplete={state.onExitComplete}
 			>
 				<CalendarRange
-					ref={state.calendar.calendarRef}
-					onValueChange={state.calendar.onValueChange}
+					ref={calendarRef}
+					onValueChange={calendar.onValueChange}
 					min={props.min}
 					max={props.max}
-					rangeStart={state.calendar.rangeStart}
-					rangeEnd={state.calendar.rangeEnd}
-					hoverDate={state.calendar.hoverDate}
-					onHoverDate={state.calendar.onHoverDate}
+					rangeStart={calendar.rangeStart}
+					rangeEnd={calendar.rangeEnd}
+					hoverDate={calendar.hoverDate}
+					onHoverDate={calendar.onHoverDate}
 					onMonthChange={props.onMonthChange}
-					active={state.calendar.active}
-					footerRef={state.calendar.footerRef}
+					active={calendar.active}
+					footerRef={footerRef}
 				/>
-				<DatePickerFooter {...state.footer} />
+				<DatePickerFooter {...footer} />
 			</DatePickerContent>
 		</>
 	)

@@ -264,31 +264,60 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 		'data-group-orientation': dataGroupOrientation,
 	} = props
 
-	const state = useDatePickerState(props)
+	const {
+		triggerRef,
+		floatingRef,
+		open,
+		onTriggerKeyDown,
+		setFloating,
+		floatingStyles,
+		getFloatingProps,
+		context,
+		listboxId,
+		activeDescendantId,
+		setReference,
+		getReferenceProps,
+		value,
+		setValue,
+		disabled,
+		readOnly,
+		invalid,
+		inputAria,
+		onOpenChange,
+		triggerId,
+		describedBy,
+		displayValue,
+		required,
+		validation,
+		hasValue,
+		onClear,
+		calendar: { calendarRef, footerRef, ...calendar },
+		footer,
+	} = useDatePickerState(props)
 
 	// The DateInput's native input; `input` mode seeds dialog-open focus here so
 	// the user can type and the keydown stream roves the grid.
 	const inputRef = useRef<HTMLInputElement>(null)
 
-	const inputTab = useDatePickerInputTab({
-		open: state.open,
-		triggerRef: state.triggerRef,
-		floatingRef: state.floatingRef,
+	const { onDialogKeyDown, onReferenceKeyDown } = useDatePickerInputTab({
+		open: open,
+		triggerRef: triggerRef,
+		floatingRef: floatingRef,
 	})
 
 	// With `input`, the dialog's Tab edges hand focus back to the reference
 	// group before the virtual model sees the key.
 	const onContentKeyDown = input
-		? composeEventHandlers(inputTab.onDialogKeyDown, state.onTriggerKeyDown)
-		: state.onTriggerKeyDown
+		? composeEventHandlers(onDialogKeyDown, onTriggerKeyDown)
+		: onTriggerKeyDown
 
 	const content = (
 		<DatePickerContent
-			open={state.open}
-			setFloating={state.setFloating}
-			floatingStyles={state.floatingStyles}
-			getFloatingProps={state.getFloatingProps}
-			context={state.context}
+			open={open}
+			setFloating={setFloating}
+			floatingStyles={floatingStyles}
+			getFloatingProps={getFloatingProps}
+			context={context}
 			size={size}
 			onKeyDown={onContentKeyDown}
 			// `input` mode seeds open-focus on the editable DateInput (not the dialog
@@ -300,23 +329,21 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			// useDatePickerInputTab) while open, so it must stay out of the modal
 			// trap's aria-hidden marking. Non-input mode keeps the standard
 			// dialog semantics: the closed trigger is hidden with the page.
-			getInsideElements={
-				input ? () => (state.triggerRef.current ? [state.triggerRef.current] : []) : undefined
-			}
+			getInsideElements={input ? () => (triggerRef.current ? [triggerRef.current] : []) : undefined}
 		>
 			<Calendar
-				ref={state.calendar.calendarRef}
-				value={state.calendar.value}
-				onValueChange={state.calendar.onValueChange}
+				ref={calendarRef}
+				value={calendar.value}
+				onValueChange={calendar.onValueChange}
 				min={props.min}
 				max={props.max}
-				active={state.calendar.active}
+				active={calendar.active}
 				onMonthChange={props.onMonthChange}
-				footerRef={state.calendar.footerRef}
-				listboxId={state.listboxId}
-				activeDescendantId={state.activeDescendantId}
+				footerRef={footerRef}
+				listboxId={listboxId}
+				activeDescendantId={activeDescendantId}
 			/>
-			<DatePickerFooter {...state.footer} />
+			<DatePickerFooter {...footer} />
 		</DatePickerContent>
 	)
 
@@ -325,37 +352,37 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 			<>
 				<div
 					data-slot="control"
-					ref={state.setReference}
+					ref={setReference}
 					className={cn(k.control, className)}
-					{...state.getReferenceProps({ onKeyDown: inputTab.onReferenceKeyDown })}
+					{...getReferenceProps({ onKeyDown: onReferenceKeyDown })}
 				>
 					<DateInput
 						ref={inputRef}
 						data-slot="datepicker-input"
-						value={state.value ?? null}
-						onValueChange={state.setValue}
+						value={value ?? null}
+						onValueChange={setValue}
 						format={format}
 						min={props.min}
 						max={props.max}
 						size={size}
-						disabled={state.disabled}
-						readOnly={state.readOnly}
+						disabled={disabled}
+						readOnly={readOnly}
 						// A field or Control error marks the input. Without one, `undefined`
 						// lets DateInput report its own typed-entry error.
-						invalid={state.invalid || undefined}
+						invalid={invalid || undefined}
 						clearable={clearable}
 						placeholder={props.placeholder}
 						aria-label={ariaLabel}
 						// Focus stays on the input while the calendar is open, so the same
 						// keydown stream drives the grid highlight; DateInput composes this
 						// ahead of its own Enter-to-commit, which a handled key skips.
-						onKeyDown={state.onTriggerKeyDown}
-						{...state.inputAria}
+						onKeyDown={onTriggerKeyDown}
+						{...inputAria}
 						suffix={
 							<DatePickerCalendarButton
-								open={state.open}
-								disabled={state.disabled}
-								onActivate={() => state.onOpenChange(!state.open)}
+								open={open}
+								disabled={disabled}
+								onActivate={() => onOpenChange(!open)}
 							/>
 						}
 						data-group={dataGroup}
@@ -370,25 +397,25 @@ function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	return (
 		<>
 			<DatePickerTrigger
-				open={state.open}
-				onOpenChange={state.onOpenChange}
-				triggerId={state.triggerId}
-				describedBy={state.describedBy}
-				setReference={state.setReference}
-				getReferenceProps={state.getReferenceProps}
-				displayValue={state.displayValue}
+				open={open}
+				onOpenChange={onOpenChange}
+				triggerId={triggerId}
+				describedBy={describedBy}
+				setReference={setReference}
+				getReferenceProps={getReferenceProps}
+				displayValue={displayValue}
 				placeholder={placeholder}
 				size={size}
 				truncate={truncate}
 				aria-label={ariaLabel}
-				disabled={state.disabled}
-				readOnly={state.readOnly}
-				required={state.required}
-				validation={state.validation}
-				onKeyDown={state.onTriggerKeyDown}
+				disabled={disabled}
+				readOnly={readOnly}
+				required={required}
+				validation={validation}
+				onKeyDown={onTriggerKeyDown}
 				clearable={clearable}
-				hasValue={state.hasValue}
-				onClear={state.onClear}
+				hasValue={hasValue}
+				onClear={onClear}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

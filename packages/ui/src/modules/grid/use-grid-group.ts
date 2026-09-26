@@ -72,11 +72,13 @@ export function useGridGroup(
 ): GridGroupResult {
 	const binding = resolveGroupsBinding(groups)
 
-	const [resolvedGroups = binding.defaultValue, setGroups] = useControllable<GridColumnGroup[]>({
+	const [controlledGroups, setGroups] = useControllable<GridColumnGroup[]>({
 		value: binding.value,
 		defaultValue: binding.defaultValue,
 		onValueChange: (next) => binding.onValueChange?.(next ?? []),
 	})
+
+	const resolvedGroups = controlledGroups ?? binding.defaultValue
 
 	// Collapse is grid-owned view state, not persisted through the groups binding;
 	// seed it once from the initial groups' `defaultCollapsed` flags.

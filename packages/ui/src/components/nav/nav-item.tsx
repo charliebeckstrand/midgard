@@ -43,7 +43,12 @@ export function NavItem({
 	onClick,
 	...props
 }: NavMenuItemProps) {
-	const item = useNavItem({ current, value, preventClose, onClick })
+	const {
+		ref: itemRef,
+		current: isCurrent,
+		indicator: { ref: indicatorRef, tapHandlers },
+		handleClick,
+	} = useNavItem({ current, value, preventClose, onClick })
 
 	// Affixes render as siblings of the inner button, not nested inside it; a
 	// slot can host its own interactive element. With an affix present the row
@@ -53,10 +58,10 @@ export function NavItem({
 
 	return (
 		<li
-			ref={item.ref as Ref<HTMLLIElement>}
+			ref={itemRef as Ref<HTMLLIElement>}
 			data-slot="nav-item"
 			className={k.item.base({ affix: hasAffix })}
-			{...item.indicator.tapHandlers}
+			{...tapHandlers}
 		>
 			{prefix != null && (
 				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>
@@ -66,15 +71,15 @@ export function NavItem({
 			)}
 			<HeadlessProvider>
 				<Button
-					data-current={dataAttr(item.current)}
+					data-current={dataAttr(isCurrent)}
 					className={cn(k.item.button({ affix: hasAffix }), className)}
-					onClick={item.handleClick}
+					onClick={handleClick}
 					// Consumer props spread first; the type, the anchor a kata
 					// `has-[]` rule reads, and the current marker below take precedence.
 					{...props}
 					type="button"
 					data-slot="nav-item-inner"
-					aria-current={item.current ? 'page' : undefined}
+					aria-current={isCurrent ? 'page' : undefined}
 				>
 					<TouchTarget>
 						{icon && <Icon icon={icon} />}
@@ -87,9 +92,9 @@ export function NavItem({
 					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>
 				</span>
 			)}
-			{item.current && (
+			{isCurrent && (
 				<ActiveIndicator
-					ref={item.indicator.ref}
+					ref={indicatorRef}
 					className={hasAffix ? cn(k.item.indicator) : undefined}
 				/>
 			)}

@@ -47,7 +47,7 @@ export type ChartCartesianFrameProps = AccessibleName &
  * @internal
  */
 export function ChartCartesianFrame({
-	chart,
+	chart: { ref: chartRef, ...chart },
 	resolvedLegend,
 	tex,
 	fullscreen,
@@ -63,7 +63,7 @@ export function ChartCartesianFrame({
 		<ChartFrame
 			{...label}
 			fullscreen={fullscreen}
-			ref={chart.ref}
+			ref={chartRef}
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
