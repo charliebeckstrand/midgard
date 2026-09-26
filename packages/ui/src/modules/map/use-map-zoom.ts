@@ -204,6 +204,12 @@ export function useMapZoom({
 	// here lands on a freshly built object each render and feeds no dependency
 	// array, so memoizing those would buy nothing.
 	const commit = useCallback((next: MapTransform) => {
+		// The live view takes the write at once, not on the next render. A phone
+		// reports each finger of a pinch as its own move, and both moves can land
+		// before React renders. The second move then builds on the first, where a
+		// read of the last render would drop the first move.
+		live.current = { ...live.current, transform: next }
+
 		setHeld((prev) =>
 			sameTransform(prev.transform, next) ? prev : { subject: prev.subject, transform: next },
 		)
@@ -221,6 +227,13 @@ export function useMapZoom({
 
 	/** The pinch's last midpoint, so a move reads how far the pair traveled. */
 	const midpoint = useRef<MapPoint2D | null>(null)
+
+	/**
+	 * The frame that applies the pinch, or `null` when none waits. Both fingers
+	 * move in one frame, so the pinch applies once per frame and not once per
+	 * finger. That halves the renders, and the marks regroup at each new scale.
+	 */
+	const pinchFrame = useRef<number | null>(null)
 
 	/** Whether the gesture just ended moved the view, so the click it produced is swallowed. */
 	const panned = useRef(false)
@@ -270,6 +283,8 @@ export function useMapZoom({
 	useEffect(
 		() => () => {
 			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
+
+			if (pinchFrame.current !== null) cancelAnimationFrame(pinchFrame.current)
 		},
 		[],
 	)
@@ -287,6 +302,9 @@ export function useMapZoom({
 	useMapTouchPinch(settings !== null && modifier !== null, svgRef, view, pointers)
 
 	function release(event: PointerEvent<HTMLElement>) {
+		// The travel before the lift is part of the pinch, so it applies first.
+		flushPinch()
+
 		pointers.current.delete(event.pointerId)
 
 		if (pointers.current.size < 2) {
@@ -331,6 +349,9 @@ export function useMapZoom({
 		if (event.pointerType === 'mouse' && event.button !== 0) return
 
 		const at = { x: event.clientX, y: event.clientY }
+
+		// A new finger measures the pinch again, so the travel before it applies first.
+		flushPinch()
 
 		pointers.current.set(event.pointerId, at)
 
@@ -466,9 +487,25 @@ export function useMapZoom({
 
 		hold(event)
 
+		pinchFrame.current ??= requestAnimationFrame(applyPinch)
+	}
+
+	/** Applies the pinch to where the first two pointers are now. */
+	function applyPinch() {
+		pinchFrame.current = null
+
 		const [first, second] = [...pointers.current.values()]
 
 		if (first !== undefined && second !== undefined) pinch(first, second)
+	}
+
+	/** Applies a pinch that waits for its frame, now. */
+	function flushPinch() {
+		if (pinchFrame.current === null) return
+
+		cancelAnimationFrame(pinchFrame.current)
+
+		applyPinch()
 	}
 
 	// A drag ends over whatever region it happens to land on, and the click that

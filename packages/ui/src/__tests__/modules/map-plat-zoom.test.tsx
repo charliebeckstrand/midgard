@@ -506,6 +506,58 @@ describe('MapPlat two-finger gestures', () => {
 
 		expect(fireEvent.touchMove(svg)).toBe(true)
 	})
+
+	it('takes both fingers of one frame, so the scale keeps up with the spread', () => {
+		// A phone reports each finger as its own move, and both can land before
+		// React renders. The second move must build on the first.
+		const { container, plot } = renderZoomable()
+
+		for (const [index, x] of [190, 210].entries()) {
+			fireEvent.pointerDown(plot, {
+				pointerId: index + 1,
+				pointerType: 'touch',
+				clientX: x,
+				clientY: 100,
+			})
+		}
+
+		act(() => {
+			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 100 })
+
+			fireEvent.pointerMove(plot, { pointerId: 2, clientX: 230, clientY: 100 })
+		})
+
+		for (const index of [0, 1]) fireEvent.pointerUp(plot, { pointerId: index + 1 })
+
+		// The spread went from 20 to 60, so the scale is three times the fit.
+		expect(scaleOf(container)).toBeCloseTo(3, 3)
+	})
+
+	it('applies the pinch on the next frame, while both fingers stay down', async () => {
+		await withFakeTime(async (clock) => {
+			const { container, plot } = renderZoomable()
+
+			for (const [index, x] of [190, 210].entries()) {
+				fireEvent.pointerDown(plot, {
+					pointerId: index + 1,
+					pointerType: 'touch',
+					clientX: x,
+					clientY: 100,
+				})
+			}
+
+			fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 100 })
+
+			fireEvent.pointerMove(plot, { pointerId: 2, clientX: 230, clientY: 100 })
+
+			// Both moves wait for one frame, which applies them together.
+			expect(scaleOf(container)).toBe(1)
+
+			await clock.advance(20)
+
+			expect(scaleOf(container)).toBeCloseTo(3, 3)
+		})
+	})
 })
 
 describe('MapPlat wheel zoom', () => {
@@ -579,6 +631,29 @@ describe('MapPlat wheel zoom', () => {
 })
 
 describe('MapPlat pan', () => {
+	it('takes two moves that land before a render, so the pan keeps up with the pointer', () => {
+		/** Drags from one point to another, through a halfway point when `split` asks. */
+		function pan(split: boolean) {
+			const { container, plot, svg } = renderZoomable()
+
+			zoomWheel(svg, -400)
+
+			fireEvent.pointerDown(plot, { pointerId: 1, button: 0, clientX: 200, clientY: 100 })
+
+			act(() => {
+				if (split) fireEvent.pointerMove(plot, { pointerId: 1, clientX: 170, clientY: 80 })
+
+				fireEvent.pointerMove(plot, { pointerId: 1, clientX: 140, clientY: 60 })
+			})
+
+			fireEvent.pointerUp(plot, { pointerId: 1 })
+
+			return transformOf(container)
+		}
+
+		expect(pan(true)).toBe(pan(false))
+	})
+
 	it('moves the view on a drag once it passes the threshold', () => {
 		const { container, plot, svg } = renderZoomable()
 
