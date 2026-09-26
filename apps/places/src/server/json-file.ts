@@ -1,6 +1,6 @@
 import { randomUUID } from 'node:crypto'
 import { mkdir, readFile, rename, writeFile } from 'node:fs/promises'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
 
 /**
  * The one atomic-JSON-file mechanism, shared by the stores that keep their
@@ -13,6 +13,21 @@ import { dirname } from 'node:path'
  * up after a failure, a permission — lands on one of them and silently misses
  * the rest.
  */
+
+/** The form of a user id from the gateway. */
+const USER_ID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+/**
+ * The path of the file `name` that holds the records of one user.
+ *
+ * Each user has a directory under `.data/users`. The id must be a UUID, so an id
+ * cannot name a path outside that directory.
+ */
+export function userFile(userId: string, name: string): string {
+	if (!USER_ID.test(userId)) throw new Error('A user id must be a UUID.')
+
+	return join(process.cwd(), '.data', 'users', userId, name)
+}
 
 /**
  * A fresh write queue, so the caller's writes run one at a time.

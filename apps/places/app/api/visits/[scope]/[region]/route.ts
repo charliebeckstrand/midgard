@@ -1,4 +1,5 @@
 import { readJson } from '@/server/read-draft'
+import { sessionUserId, unauthorized } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
@@ -43,6 +44,10 @@ function readVisited(input: unknown): boolean | null {
  * response needs.
  */
 export async function PUT(request: Request, context: Context) {
+	const userId = await sessionUserId()
+
+	if (userId === null) return unauthorized()
+
 	const { scope: rawScope, region: rawRegion } = await context.params
 
 	const scope = readScope(rawScope)
@@ -65,5 +70,5 @@ export async function PUT(request: Request, context: Context) {
 		return Response.json({ issues: ['`visited` must be a boolean.'] }, { status: 400 })
 	}
 
-	return Response.json(await setVisit(scope, region, visited, visitedSeed))
+	return Response.json(await setVisit(userId, scope, region, visited, () => visitedSeed(userId)))
 }

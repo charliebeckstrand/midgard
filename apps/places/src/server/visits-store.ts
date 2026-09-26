@@ -1,9 +1,8 @@
-import { join } from 'node:path'
 import type { VisitScope, Visits } from '../types'
-import { createQueue, readJsonFile, writeJsonFile } from './json-file'
+import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
 
 /**
- * The visited regions, in one JSON file beside the places.
+ * The visited regions of each user, in one JSON file beside the places of that user.
  *
  * Its own store rather than a field on a place, because the whole point of the
  * designation is that it holds for a region the reader has recorded nothing in:
@@ -17,8 +16,6 @@ import { createQueue, readJsonFile, writeJsonFile } from './json-file'
  * names collide: Georgia is a state of the United States and Georgia is a
  * country, and one list cannot say which of them a reader marked.
  */
-
-const FILE = join(process.cwd(), '.data', 'visits.json')
 
 const serialize = createQueue()
 
@@ -76,8 +73,8 @@ function parseVisits(input: unknown): Visits {
  * change applied. From then on the file is the whole answer and the seed is
  * never asked again.
  */
-export async function listVisits(seed?: () => Promise<Visits>): Promise<Visits> {
-	const stored = await readJsonFile(FILE)
+export async function listVisits(userId: string, seed?: () => Promise<Visits>): Promise<Visits> {
+	const stored = await readJsonFile(userFile(userId, 'visits.json'))
 
 	if (stored === undefined) return seed === undefined ? empty() : parseVisits(await seed())
 
@@ -93,13 +90,14 @@ export async function listVisits(seed?: () => Promise<Visits>): Promise<Visits> 
  * the first write, which must not drop what the reader already had.
  */
 export async function setVisit(
+	userId: string,
 	scope: VisitScope,
 	region: string,
 	visited: boolean,
 	seed?: () => Promise<Visits>,
 ): Promise<Visits> {
 	return serialize(async () => {
-		const held = await listVisits(seed)
+		const held = await listVisits(userId, seed)
 
 		const names = new Set(held[scope])
 
@@ -108,7 +106,7 @@ export async function setVisit(
 
 		const next: Visits = { ...held, [scope]: parseNames([...names]) }
 
-		await writeJsonFile(FILE, next)
+		await writeJsonFile(userFile(userId, 'visits.json'), next)
 
 		return next
 	})

@@ -1,12 +1,11 @@
 'use client'
 
-import { MapPin, MapPinCheck, MapPinned, Plus } from 'lucide-react'
+import type { User } from 'auth'
+import { MapPin, MapPinCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
-import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
-import { Icon } from 'ui/icon'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
@@ -48,6 +47,7 @@ import { PlaceFormDrawer } from '../place-form-drawer'
 import { PlaceTrail } from '../place-trail'
 import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
+import { UserMenu } from '../user-menu'
 import { usePlaceLocation } from './use-place-location'
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
@@ -68,9 +68,10 @@ const REGION_LABEL = {
  *
  * It owns every piece of state the panels share — the filter, the view, and
  * which place is open — because each of them is read by more than one child and
- * none of them belongs to a single panel.
+ * none of them belongs to a single panel. `user` is the signed-in user, for the
+ * menu.
  */
-export function PlacesApp() {
+export function PlacesApp({ user }: { user: User }) {
 	const { data: places = NO_PLACES, isPending, error } = usePlaces()
 
 	const addPlace = useAddPlace()
@@ -363,29 +364,19 @@ export function PlacesApp() {
 				</Flex>
 
 				<Flex gap="sm" align="center" className="shrink-0">
-					{/* Only once there is a list to read. Over an empty store it would open
-					    on the same "no places yet" the map already says, one step further
-					    from the button that fixes it. */}
-					{places.length > 0 ? (
-						<Button
-							variant="plain"
-							prefix={<Icon icon={<MapPinned />} />}
-							onClick={() => setListing(true)}
-						>
-							{/* The count only where the view is cut to one region, because it
-							    is that region's count: `shown` is the bar's list narrowed to
-							    the cut, and the whole atlas is not a region to count. It is
-							    the filtered number rather than the stored one, so it is the
-							    number of rows the sheet opens on. */}
-							{cut !== null && shown.length > 0 ? `All places (${shown.length})` : 'All places'}
-						</Button>
-					) : null}
-
-					<Button prefix={<Icon icon={<Plus />} />} onClick={() => setAdding(true)}>
-						Add place
-					</Button>
-
 					<AppearanceSettings />
+
+					{/* The list item shows only once there is a list to read. Over an empty
+					    store it would open on the same "no places yet" that the map shows.
+					    The count shows only where the view is cut to one region, because it
+					    is the count of that region: `shown` is the list of the bar,
+					    narrowed to the cut. */}
+					<UserMenu
+						user={user}
+						count={cut !== null && shown.length > 0 ? shown.length : undefined}
+						onAdd={() => setAdding(true)}
+						onList={places.length > 0 ? () => setListing(true) : undefined}
+					/>
 				</Flex>
 			</Flex>
 

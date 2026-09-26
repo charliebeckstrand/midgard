@@ -1,11 +1,10 @@
 import { randomUUID } from 'node:crypto'
-import { join } from 'node:path'
 import { parsePlace } from '../schemas/place'
 import type { Place, PlaceDraft } from '../types'
-import { createQueue, readJsonFile, writeJsonFile } from './json-file'
+import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
 
 /**
- * The store: every place, in one JSON file under the app.
+ * The store: the places of each user, in one JSON file for each user.
  *
  * It is the one module that knows where places live, so a gateway or a database
  * can replace this file without the handlers, the queries, or the components
@@ -16,20 +15,18 @@ import { createQueue, readJsonFile, writeJsonFile } from './json-file'
  * another.
  */
 
-const FILE = join(process.cwd(), '.data', 'places.json')
-
 const serialize = createQueue()
 
 /** Reads the file, or an empty list where it does not exist yet. */
-async function readAll(): Promise<unknown[]> {
-	const parsed = await readJsonFile(FILE)
+async function readAll(userId: string): Promise<unknown[]> {
+	const parsed = await readJsonFile(userFile(userId, 'places.json'))
 
 	return Array.isArray(parsed) ? parsed : []
 }
 
 /** Writes the whole list, atomically. */
-function writeAll(places: Place[]): Promise<void> {
-	return writeJsonFile(FILE, places)
+function writeAll(userId: string, places: Place[]): Promise<void> {
+	return writeJsonFile(userFile(userId, 'places.json'), places)
 }
 
 /**
@@ -37,8 +34,8 @@ function writeAll(places: Place[]): Promise<void> {
  * reads as one — a hand-edited file must not put a point with no position on the
  * map.
  */
-export async function listPlaces(): Promise<Place[]> {
-	const stored = await readAll()
+export async function listPlaces(userId: string): Promise<Place[]> {
+	const stored = await readAll(userId)
 
 	const places: Place[] = []
 
@@ -52,13 +49,13 @@ export async function listPlaces(): Promise<Place[]> {
 }
 
 /** Appends one place, giving it its identity and its written-at stamp. */
-export async function addPlace(draft: PlaceDraft): Promise<Place> {
+export async function addPlace(userId: string, draft: PlaceDraft): Promise<Place> {
 	return serialize(async () => {
-		const places = await listPlaces()
+		const places = await listPlaces(userId)
 
 		const place: Place = { ...draft, id: randomUUID(), createdAt: new Date().toISOString() }
 
-		await writeAll([place, ...places])
+		await writeAll(userId, [place, ...places])
 
 		return place
 	})
@@ -71,9 +68,13 @@ export async function addPlace(draft: PlaceDraft): Promise<Place> {
  * `null` where no place carries that id, which the handler answers as a 404
  * rather than writing a new record under an id the caller invented.
  */
-export async function updatePlace(id: string, draft: PlaceDraft): Promise<Place | null> {
+export async function updatePlace(
+	userId: string,
+	id: string,
+	draft: PlaceDraft,
+): Promise<Place | null> {
 	return serialize(async () => {
-		const places = await listPlaces()
+		const places = await listPlaces(userId)
 
 		const held = places.find((place) => place.id === id)
 
@@ -81,7 +82,10 @@ export async function updatePlace(id: string, draft: PlaceDraft): Promise<Place 
 
 		const updated: Place = { ...draft, id: held.id, createdAt: held.createdAt }
 
-		await writeAll(places.map((place) => (place.id === id ? updated : place)))
+		await writeAll(
+			userId,
+			places.map((place) => (place.id === id ? updated : place)),
+		)
 
 		return updated
 	})
@@ -91,15 +95,15 @@ export async function updatePlace(id: string, draft: PlaceDraft): Promise<Place 
  * Removes one place. `false` where none carried that id, so a repeated delete
  * reports the same thing the first one did rather than a silent success.
  */
-export async function removePlace(id: string): Promise<boolean> {
+export async function removePlace(userId: string, id: string): Promise<boolean> {
 	return serialize(async () => {
-		const places = await listPlaces()
+		const places = await listPlaces(userId)
 
 		const kept = places.filter((place) => place.id !== id)
 
 		if (kept.length === places.length) return false
 
-		await writeAll(kept)
+		await writeAll(userId, kept)
 
 		return true
 	})
