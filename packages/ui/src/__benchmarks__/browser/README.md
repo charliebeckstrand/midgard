@@ -699,3 +699,6 @@ The first page paints only when the whole document settles, because the viewport
 ### Optimization log
 
 1. **Paint the first page as it lands** ([`pdf-viewer-viewport.tsx`](../../components/pdf-viewer/pdf-viewer-viewport.tsx)). The viewport shows the active page as soon as the rasterizer reports it, and the view controls work while the later pages load. The page navigation still waits for the settle, because the count still grows. The first page now paints in 58 / 63 / 62 / 59 ms at 1 / 3 / 14 / 50 pages, where it took 63 / 107 / 343 / 1,199 ms. The settle does not change.
+
+2. **Measure the work, not the frames** ([`pdf-viewer-open.bench.tsx`](pdf-viewer-open.bench.tsx)). pdf.js waits for an animation frame before each 15 ms slice of a display render. The new `work only` rows answer each wait in a microtask. One 2x page is 17.2 ms as pdf.js paces it and 4.3 ms of work. A 0.2x thumbnail is the same 4.2 ms of work. The PNG encode, at 12.7 ms, is therefore three quarters of the work of a page. A flip to a resident page costs 0.4 ms. Fourteen resident pages hold 2.74 MiB of PNG, and 58 MiB if each one decodes. The [raster plan](../../../docs/plans/2026-09-26-PDF-VIEWER-RASTER-PLAN.md) takes these numbers as its baseline.
+

@@ -25,14 +25,20 @@ Chromium 141, headless, device pixel ratio 1, a 50-page invoice from `pdf-fixtur
 | --- | --- |
 | Open the document (`numPages`) | 1.4 ms |
 | Open, and read the size of each of the 50 pages | 6.4 ms |
-| Render one page at 1.5x | 17.4 ms |
-| Render one page at 0.2x (a thumbnail) | 17.3 ms |
-| Render at 1.5x and encode to PNG | 23.9 ms |
-| Decode a resident 1.5x PNG | 0.1 ms |
+| Render one page at 2x, as pdf.js paces it | 17.2 ms (2 frames) |
+| Render one page at 2x, work only | 4.3 ms |
+| Render one page at 0.2x (a thumbnail), work only | 4.2 ms |
+| Encode one 2x page to PNG | 12.7 ms |
+| Show a resident page (a page flip) | 0.4 ms |
 | Longest main-thread task during one render and encode | 12 ms |
 | Thumbnail PNG at 0.2x | 6.3 KiB |
+| 14 resident 1.5x pages | 2.74 MiB of PNG, 58 MiB if each decodes |
 
-The two render rows read one frame each. pdf.js paints in slices that it schedules, and a frame costs about 17 ms in this container (bench README). The 0.2x render therefore does not show its real cost. Increment 1 measures the render with a manual frame clock (`withFrameClock` in the bench harness) before any other increment depends on it.
+pdf.js paints a display render in slices of 15 ms, and it waits for an animation frame before each slice. A frame costs about 17 ms in this container (bench README). The "work only" rows answer each wait in a microtask (`withoutFrames` in the bench), so they give the real work. Three facts follow:
+
+- **The encode is most of the work.** A page is about 4 ms of render and 13 ms of PNG encode. The encode is three quarters of the work of a page.
+- **The frame waits are most of the time.** A 2x render takes 17 ms, and 13 ms of it is waiting. The viewer renders off screen, so it gains nothing from the frame pacing, which exists to keep an on-screen canvas smooth.
+- **The size of a raster barely changes its cost.** A 0.2x render costs the same work as a 2x render, so a thumbnail is not free. Fifty thumbnails are about 200 ms of work.
 
 The size of every page costs 6.4 ms, against 1,213 ms for the whole raster. So the open can give the full page count and every page extent at once.
 
@@ -60,6 +66,8 @@ One queue for each document renders one page at a time, in this order:
 
 A page change puts the new active page at the front. A render for a page that nobody wants now is canceled (`renderTask.cancel()`), because the next page change can come before it ends. The queue stops when it has nothing to render. A reader who stays on one page causes no more work after the neighbours are done.
 
+The frame waits stay. pdf.js has no option to turn them off for a display render, and the print intent that skips them also changes which annotations draw. They cost time, not work, and a neighbour renders while the reader reads the active page. So the reader waits for them only on a far page.
+
 ### The full rasters are bounded
 
 A document keeps the full rasters of the last 8 pages that the queue rendered. A page that leaves that set loses its blob URL, and the queue renders it again when a reader comes back to it. A reader can go back through 8 pages with no render.
@@ -70,19 +78,22 @@ The rail shows a thumbnail raster at the width of the rail, about 0.2x (6.3 KiB 
 
 ## Decide before building
 
+Settled on 2026-09-26: the maintainer left each choice to this plan, so each proposal below stands.
+
 1. **When `onLoad` fires.** Its TSDoc says "once the document at `src` is rasterized". Under this plan, the document is never "rasterized" as a whole. The proposal is that `onLoad` fires when the document opens, with the page count, because that is when a consumer can show its chrome. The alternative is to fire it when the active page first paints. Either way the meaning changes, and the TSDoc changes with it.
-2. **The size of the full-raster set.** The proposal is 8 pages. Each 1.5x page is about 270 KiB as PNG and 7.4 MiB when the browser decodes it. A browser can drop the decoded image of a page that no element shows, so the blob is the cost that must stay. That is inferred, not measured, and increment 1 measures it.
-3. **The encode.** The PNG encode is about a third of the cost of a page. A `<canvas>` for each shown page would remove it, but the magnifier copies the page image, and the `pages` path shows images. The proposal is to keep the blob in this plan, and to measure a canvas path as its own change once the queue is in place.
+2. **The size of the full-raster set.** The proposal is 8 pages. Each 1.5x page is about 200 KiB as PNG and 4.2 MiB decoded. Fourteen resident pages hold 2.74 MiB of PNG, and 58 MiB if the browser keeps each one decoded. A bitmap (decision 3) is always decoded, so 8 pages bound it at about 33 MiB for each document at 1.5x.
+3. **The encode.** The first draft read the encode as a third of the cost of a page, and proposed to keep it. Increment 1 measured three quarters of the work, so the proposal changed: the rasterizer keeps each page as an `ImageBitmap`, and the viewport and the magnifier draw it. The `pages` path keeps its images. Increment 4 lands it.
 
 ## Increments
 
 Each increment lands on its own, with its bench rows, and leaves the viewer whole.
 
-1. **Measure honestly.** Add the frame clock to the render and encode stages, a page-flip scenario (a resident page, a neighbour, a far page), and the retained memory of a document. No component change.
+1. **Measure honestly (done).** The render rows without the frame waits, the page-flip scenario, and the retained PNG of a document. No component change. The numbers are in the table above.
 2. **Open and keep the document.** The open publishes the slots and keeps the pdf.js document in the entry. The existing loop still renders every page, in the queue's order. The page count and the highlight geometry are whole at the open, and `defaultPage` no longer jumps. Decision 1 lands here.
 3. **The queue.** Render the active page and its neighbours only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document does its work for 3 pages, not 50.
-4. **Thumbnail rasters.** The rail renders its own small rasters as it shows them.
-5. **Re-render on zoom.** The active page renders again at the zoom scale above 1, so that text stays sharp. The queue makes this a change of scale on one request.
+4. **No encode.** The rasterizer keeps an `ImageBitmap` for each page, and the viewport and the magnifier draw it (decision 3).
+5. **Thumbnail rasters.** The rail renders its own small rasters as it shows them.
+6. **Re-render on zoom.** The active page renders again at the zoom scale above 1, so that text stays sharp. The queue makes this a change of scale on one request.
 
 ## Non-goals
 
