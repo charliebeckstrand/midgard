@@ -17,12 +17,11 @@ export const toggle = [
 	'*:data-[slot=label]:col-start-2 *:data-[slot=label]:row-start-1',
 	'*:data-[slot=description]:col-start-2 *:data-[slot=description]:row-start-2',
 	'has-data-[slot=description]:**:data-[slot=label]:font-medium',
-	// On iOS, a long press on the control or its label selects the label text,
-	// and the selection cancels the tap, so the control does not toggle. The
-	// label and the control do not let the user select text, and a tap does
-	// not wait for a double-tap zoom. The description keeps text selection.
-	'*:data-[slot=control]:touch-manipulation *:data-[slot=label]:touch-manipulation',
-	'*:data-[slot=control]:select-none *:data-[slot=label]:select-none',
+	// A tap on iOS waits for a possible double-tap zoom when the page is zoomed
+	// in. A second tap on a near row in that time is a double tap, and neither
+	// tap toggles a control. `touch-manipulation` on the whole row, gaps
+	// included, stops the wait, as on Button.
+	'touch-manipulation',
 	// Every slot but the description turns not-allowed when disabled; the
 	// description is non-interactive, so it keeps the text cursor.
 	'has-disabled:**:data-[slot]:not-data-[slot=description]:cursor-not-allowed',

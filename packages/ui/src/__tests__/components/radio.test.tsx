@@ -102,8 +102,8 @@ describe('RadioField aria-describedby', () => {
 })
 
 describe('RadioField touch', () => {
-	// A long press on iOS selects the label text and cancels the tap.
-	it('turns off text selection and the double-tap wait on the radio and its label', () => {
+	// On iOS, a tap that waits for a double-tap zoom can join the next tap.
+	it('stops the double-tap wait on the whole radio row', () => {
 		const { container } = renderUI(
 			<RadioField>
 				<Radio />
@@ -113,11 +113,7 @@ describe('RadioField touch', () => {
 
 		const field = getSlot(container, 'field')
 
-		expect(field.className).toContain('*:data-[slot=label]:select-none')
-
-		expect(field.className).toContain('*:data-[slot=control]:select-none')
-
-		expect(field.className).toContain('*:data-[slot=label]:touch-manipulation')
+		expect(field).toHaveClass('touch-manipulation')
 
 		expect(getSlot(field, 'control').className).toContain('touch-manipulation')
 	})

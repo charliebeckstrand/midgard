@@ -220,8 +220,8 @@ describe('Checkbox defaultChecked under a binding', () => {
 })
 
 describe('CheckboxField touch', () => {
-	// A long press on iOS selects the label text and cancels the tap.
-	it('turns off text selection and the double-tap wait on the checkbox and its label', () => {
+	// On iOS, a tap that waits for a double-tap zoom can join the next tap.
+	it('stops the double-tap wait on the whole checkbox row', () => {
 		const { container } = renderUI(
 			<CheckboxField>
 				<Checkbox />
@@ -231,11 +231,7 @@ describe('CheckboxField touch', () => {
 
 		const field = getSlot(container, 'field')
 
-		expect(field.className).toContain('*:data-[slot=label]:select-none')
-
-		expect(field.className).toContain('*:data-[slot=control]:select-none')
-
-		expect(field.className).toContain('*:data-[slot=label]:touch-manipulation')
+		expect(field).toHaveClass('touch-manipulation')
 
 		expect(getSlot(field, 'control').className).toContain('touch-manipulation')
 	})

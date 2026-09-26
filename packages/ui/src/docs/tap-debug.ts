@@ -17,7 +17,9 @@ const radios = () =>
 		.join('')
 
 function log(text: string) {
-	lines.push(`${Math.round(performance.now() - start)} ${text} ${radios()}`)
+	lines.push(
+		`${Math.round(performance.now() - start)} z${(visualViewport?.scale ?? 1).toFixed(2)} ${text} ${radios()}`,
+	)
 
 	if (lines.length > 200) lines.shift()
 

@@ -56,7 +56,7 @@ const surface = [
 /**
  * Layout shell: position, inline-flex centering, focus outline, cursor, and
  * touch action. `touch-manipulation` stops a tap from waiting for a double-tap
- * zoom, as on Button.
+ * zoom, as on Button. The toggle field sets it on the whole row.
  */
 const shell = [
 	'relative',
