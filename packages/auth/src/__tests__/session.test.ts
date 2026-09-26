@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
-import { getSession, requireAdmin } from '../session'
+import { getSession, requireAdmin, requireSession } from '../session'
 
 const cookies = vi.hoisted(() => vi.fn())
 
@@ -101,6 +101,26 @@ describe('getSession', () => {
 	})
 })
 
+describe('requireSession', () => {
+	beforeEach(() => {
+		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
+	})
+
+	it('returns the session of a user', async () => {
+		stubGateway(200, session)
+
+		await expect(requireSession()).resolves.toEqual(session)
+	})
+
+	it('redirects to /login without a session', async () => {
+		stubGateway(401)
+
+		const error = await requireSession().catch((thrown: unknown) => thrown)
+
+		expect(redirectTarget(error)).toBe('/login')
+	})
+})
+
 describe('requireAdmin', () => {
 	beforeEach(() => {
 		cookies.mockResolvedValue({ toString: () => '__Host-session=abc' })
@@ -114,14 +134,19 @@ describe('requireAdmin', () => {
 		await expect(requireAdmin()).resolves.toEqual(admin)
 	})
 
-	it.each([
-		['no session', 401, null],
-		['the session of a user', 200, session],
-	])('redirects to /login for %s', async (_, status, body) => {
-		stubGateway(status, body)
+	it('redirects to /login without a session', async () => {
+		stubGateway(401)
 
 		const error = await requireAdmin().catch((thrown: unknown) => thrown)
 
 		expect(redirectTarget(error)).toBe('/login')
+	})
+
+	it('redirects the session of a user to /account', async () => {
+		stubGateway(200, session)
+
+		const error = await requireAdmin().catch((thrown: unknown) => thrown)
+
+		expect(redirectTarget(error)).toBe('/account')
 	})
 })

@@ -55,18 +55,33 @@ export const getSession = cache(async (): Promise<Session | undefined> => {
 })
 
 /**
- * Returns the session of an admin, or redirects to `/login`.
+ * Returns the current {@link Session}, or redirects to `/login`.
+ *
+ * @remarks
+ * Call it from the layout of a segment that each signed-in user can open. The
+ * proxy only finds the cookie, so this call is the check of the session itself.
+ */
+export async function requireSession(): Promise<Session> {
+	const session = await getSession()
+
+	if (!session) redirect('/login')
+
+	return session
+}
+
+/**
+ * Returns the session of an admin, or redirects.
  *
  * @remarks
  * Call it from the layout of a segment that only admins can open. The proxy
- * only finds the cookie, so this call is the check of the session itself. A
- * signed-in user that is not an admin also goes to `/login`, where an admin
- * can sign in.
+ * only finds the cookie, so this call is the check of the session itself.
+ * Without a session, the redirect goes to `/login`. A signed-in user that is
+ * not an admin goes to `/account`, where the user manages the passkeys.
  */
 export async function requireAdmin(): Promise<Session> {
-	const session = await getSession()
+	const session = await requireSession()
 
-	if (session?.user.role !== 'admin') redirect('/login')
+	if (session.user.role !== 'admin') redirect('/account')
 
 	return session
 }

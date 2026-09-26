@@ -1,2 +1,2 @@
 export { bifrost } from './fetch'
-export { getSession, requireAdmin, type Session, type User } from './session'
+export { getSession, requireAdmin, requireSession, type Session, type User } from './session'

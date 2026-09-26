@@ -1,5 +1,6 @@
 'use client'
 
+import { startAuthentication } from '@simplewebauthn/browser'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
@@ -34,7 +35,7 @@ function RegisteredNotice() {
 }
 
 /**
- * Sign-in page: posts the credentials to `/auth/login`, and goes to `/` on success.
+ * Sign-in page: signs in with a password or a passkey, and goes to `/` on success.
  *
  * @remarks
  * Next prerenders all of the page except the notice after registration, which
@@ -45,25 +46,50 @@ export function LoginPage() {
 
 	const [serverError, setServerError] = useState('')
 
+	// Goes to `/` on success, and shows the message of the gateway on a failure.
+	async function finish(res: Response) {
+		if (res.ok) {
+			router.push('/')
+
+			return
+		}
+
+		const data = await res.json()
+
+		setServerError(data.message || 'Login failed. Please check your credentials and try again.')
+	}
+
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
-			const res = await fetch('/auth/login', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(values),
-			})
-
-			if (res.ok) {
-				router.push('/')
-
-				return
-			}
-
-			const data = await res.json()
-
-			setServerError(data.message || 'Login failed. Please check your credentials and try again.')
+			await finish(
+				await fetch('/auth/login', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(values),
+				}),
+			)
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
+		}
+	}
+
+	// The gateway gives a challenge, the browser signs it with a passkey of the
+	// user, and the gateway checks the result. A cancel in the browser throws.
+	async function signInWithPasskey() {
+		try {
+			const options = await fetch('/auth/login/options', { method: 'POST' })
+
+			const credential = await startAuthentication({ optionsJSON: await options.json() })
+
+			await finish(
+				await fetch('/auth/login/passkey', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(credential),
+				}),
+			)
+		} catch {
+			setServerError('Passkey sign-in did not complete. Please try again.')
 		}
 	}
 
@@ -100,6 +126,10 @@ export function LoginPage() {
 
 				<Button type="submit" className="w-full">
 					Sign in
+				</Button>
+
+				<Button type="button" variant="outline" className="w-full" onClick={signInWithPasskey}>
+					Sign in with a passkey
 				</Button>
 
 				<div className="text-center">
