@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/code'
@@ -88,7 +88,9 @@ export type CodeBlockProps = {
  * memoized in a process-wide cache (max 200 entries, oldest insertion evicted)
  * keyed by theme, language, and code, so repeat snippets paint synchronously.
  * The highlighted `<pre>` is made non-focusable (`tabindex="-1"`) to keep scroll
- * containers out of the tab order.
+ * containers out of the tab order. Markup paints only for the code that it
+ * tokenized. While `code` streams, one tokenization runs at a time and the next
+ * one takes the newest code.
  */
 export function CodeBlock({
 	code: rawCode,
@@ -99,55 +101,73 @@ export function CodeBlock({
 }: CodeBlockProps) {
 	const code = rawCode.trim()
 
-	const [html, setHtml] = useState<string | null>(
-		() => htmlCache.get(cacheKey(code, lang, theme)) ?? null,
-	)
+	const key = cacheKey(code, lang, theme)
+
+	// The newest markup that this block tokenized, with the key it answers. A
+	// result for other code never paints: the fallback shows until the current
+	// code has its own markup.
+	const [result, setResult] = useState<{ key: string; html: string } | null>(null)
+
+	// A cached snippet paints on the render that asks for it.
+	const html = result?.key === key ? result.html : (htmlCache.get(key) ?? null)
+
+	// The snippet that the next tokenization takes, and whether one runs now.
+	// Streamed code changes on each chunk. One tokenization runs at a time, and
+	// the next one takes the newest code, so the chunks between are not
+	// tokenized.
+	const latest = useRef({ key, code, lang, theme })
+
+	const running = useRef(false)
 
 	useEffect(() => {
-		const key = cacheKey(code, lang, theme)
+		latest.current = { key, code, lang, theme }
 
-		const cached = htmlCache.get(key)
+		if (running.current || htmlCache.has(key)) return
 
-		if (cached) {
-			setHtml(cached)
+		const run = () => {
+			const job = latest.current
 
-			return
-		}
+			if (htmlCache.has(job.key)) {
+				running.current = false
 
-		// Cache miss: drop the previous snippet's markup; the plain fallback shows
-		// during re-tokenization.
-		setHtml(null)
+				return
+			}
 
-		let canceled = false
+			running.current = true
 
-		loadShiki()
-			.then(({ codeToHtml }) =>
-				codeToHtml(code, {
-					lang,
-					theme,
-					transformers: [
-						{
-							pre(node) {
-								node.properties.tabindex = '-1'
+			loadShiki()
+				.then(({ codeToHtml }) =>
+					codeToHtml(job.code, {
+						lang: job.lang,
+						theme: job.theme,
+						transformers: [
+							{
+								pre(node) {
+									node.properties.tabindex = '-1'
+								},
 							},
-						},
-					],
-				}).then((result) => {
-					cacheSet(key, result)
+						],
+					}),
+				)
+				.then(
+					(markup) => {
+						cacheSet(job.key, markup)
 
-					if (!canceled) setHtml(result)
-				}),
-			)
-			// Shiki can fail to load (offline chunk fetch, post-deploy 404) or to
-			// tokenize (a lang/theme outside the bundled set). Keep the plain
-			// fallback that `setHtml(null)` already shows rather than leaking an
-			// unhandled rejection and stranding the component with no recovery.
-			.catch(() => {})
-
-		return () => {
-			canceled = true
+						if (latest.current.key === job.key) setResult({ key: job.key, html: markup })
+					},
+					// Shiki can fail to load (offline chunk fetch, post-deploy 404) or to
+					// tokenize (a lang/theme outside the bundled set). Keep the plain
+					// fallback rather than leaking an unhandled rejection.
+					() => {},
+				)
+				.finally(() => {
+					if (latest.current.key === job.key) running.current = false
+					else run()
+				})
 		}
-	}, [code, lang, theme])
+
+		run()
+	}, [key, code, lang, theme])
 
 	return (
 		<div data-slot="code-block" className={cn(k.wrapper, className)}>

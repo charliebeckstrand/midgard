@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import type { CSSProperties } from 'react'
-import { memo } from 'react'
+import { memo, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { groundPoints, type MapGround } from './engine/map-cluster/ground'
@@ -84,7 +84,9 @@ type MapDotProps = {
  *
  * @remarks Under `animate` the pop grows the stroke width (0 → diameter),
  * rather than a transform scale. A dot revealed mid-gesture therefore still
- * lands on the size the view calls for.
+ * lands on the size the view calls for. After the pop, a new width (a zoom, a
+ * regroup) applies at once. The pop's tween and its stagger delay do not run
+ * again.
  *
  * @internal
  */
@@ -108,6 +110,9 @@ export function MapDot({
 		className,
 	}
 
+	// Whether the pop has run. Each width after it is a new view, not a reveal.
+	const [popped, setPopped] = useState(false)
+
 	if (!animate) return <path {...shared} />
 
 	return (
@@ -115,10 +120,14 @@ export function MapDot({
 			{...shared}
 			initial={{ opacity: 0, strokeWidth: 0 }}
 			animate={{ opacity: 1, strokeWidth: width }}
-			transition={transition}
+			transition={popped ? SETTLED : transition}
+			onAnimationComplete={popped ? undefined : () => setPopped(true)}
 		/>
 	)
 }
+
+/** The transition of a dot after its pop: a new width applies at once. @internal */
+const SETTLED = { duration: 0 } as const
 
 /** Props for {@link MapDotCount}. @internal */
 type MapDotCountProps = {

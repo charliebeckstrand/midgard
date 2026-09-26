@@ -1,7 +1,11 @@
 'use client'
 
-import { useEffect, useEffectEvent } from 'react'
-import { isTopDismissLayer, registerDismissLayer } from '../utilities/dismiss-layers'
+import { useEffect, useEffectEvent, useState } from 'react'
+import {
+	isTopDismissLayer,
+	nextDismissOrder,
+	registerDismissLayer,
+} from '../utilities/dismiss-layers'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 
 /** Options for {@link useEscapeLayer}: where the layer sits in the dismiss stack and what an Escape press does there. */
@@ -31,6 +35,10 @@ export type EscapeLayerOptions = {
  * the latest render's callback and its identity never re-registers the layer.
  * A caller passes a fresh closure each render safely, and needs no shadow of
  * its own.
+ *
+ * The render that opens the layer takes its place in the stack. A parent and a
+ * child that open in the same commit therefore stack parent below child, as
+ * they render, although the child's effect registers first.
  */
 export function useEscapeLayer({
 	open,
@@ -40,12 +48,19 @@ export function useEscapeLayer({
 }: EscapeLayerOptions): void {
 	const dismiss = useEffectEvent(onDismiss)
 
+	// The open order, taken in the render that opens the layer. React renders a
+	// parent before its child, but runs the child's effect first.
+	const [order, setOrder] = useState<number | null>(null)
+
+	if (open && order === null) setOrder(nextDismissOrder())
+	else if (!open && order !== null) setOrder(null)
+
 	useEffect(() => {
-		if (!open || !enabled) return
+		if (!open || !enabled || order === null) return
 
 		const layer = {}
 
-		const unregister = layered ? registerDismissLayer(layer) : undefined
+		const unregister = layered ? registerDismissLayer(layer, order) : undefined
 
 		const onKeyDown = (event: KeyboardEvent) => {
 			if (event.key !== 'Escape' || event.defaultPrevented) return
@@ -62,5 +77,5 @@ export function useEscapeLayer({
 
 			unregister?.()
 		}
-	}, [open, enabled, layered])
+	}, [open, enabled, layered, order])
 }

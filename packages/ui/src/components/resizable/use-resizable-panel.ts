@@ -113,13 +113,17 @@ export function useResizablePanel({
 
 	sizesRef.current = sizes
 
-	// Re-derives sizes when panels are added/removed, keeping the sizes array
-	// aligned with the current panel set. State adjusts during render, not in
-	// an effect; an effect shows one frame of misaligned layout.
-	const prevCountRef = useRef(panelConfigs.length)
+	// Re-derives sizes when the panel set changes: a panel added, removed, or
+	// replaced by another at the same count. The panel keys name the set, so a
+	// conditional panel that swaps for another needs a key of its own. State
+	// adjusts during render, not in an effect; an effect shows one frame of
+	// misaligned layout.
+	const panelSet = panelConfigs.map((config) => config.key).join('\u0000')
 
-	if (prevCountRef.current !== panelConfigs.length) {
-		prevCountRef.current = panelConfigs.length
+	const [prevPanelSet, setPrevPanelSet] = useState(panelSet)
+
+	if (prevPanelSet !== panelSet) {
+		setPrevPanelSet(panelSet)
 
 		const normalized = normalizeSizes(panelConfigs)
 

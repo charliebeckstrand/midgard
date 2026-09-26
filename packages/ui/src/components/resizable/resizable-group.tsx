@@ -44,6 +44,10 @@ export type ResizableGroupProps = {
  * {@link ResizableHandle}s. Reads each panel's size constraints from its props,
  * tracks live sizes, and supplies drag/resize actions and per-child index to
  * descendants via context.
+ *
+ * @remarks A change to the set of panels resets the sizes to the panel
+ * defaults. The panel keys name the set. A panel that replaces another at the
+ * same position therefore needs a `key` of its own.
  */
 export function ResizableGroup({
 	orientation = 'horizontal',
@@ -63,7 +67,12 @@ export function ResizableGroup({
 				const p = child.props as ResizablePanelProps
 
 				return [
-					{ defaultSize: p.defaultSize ?? 50, minSize: p.minSize ?? 0, maxSize: p.maxSize ?? 100 },
+					{
+						key: String(child.key),
+						defaultSize: p.defaultSize ?? 50,
+						minSize: p.minSize ?? 0,
+						maxSize: p.maxSize ?? 100,
+					},
 				]
 			}),
 		[children],

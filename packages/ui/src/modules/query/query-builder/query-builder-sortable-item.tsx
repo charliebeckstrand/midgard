@@ -15,6 +15,8 @@ type QueryBuilderSortableItemProps = {
 	/** The name of the node, which labels its grip. */
 	label: string
 	disabled: boolean
+	/** Whether the grip shows. A group with one child has no order to change. */
+	handle: boolean
 	children: ReactNode
 }
 
@@ -30,6 +32,7 @@ export function QueryBuilderSortableItem({
 	id,
 	label,
 	disabled,
+	handle,
 	children,
 }: QueryBuilderSortableItemProps) {
 	const {
@@ -40,7 +43,7 @@ export function QueryBuilderSortableItem({
 		transform,
 		transition,
 		isDragging,
-	} = useSortable({ id, disabled })
+	} = useSortable({ id, disabled: disabled || !handle })
 
 	return (
 		<div
@@ -50,19 +53,21 @@ export function QueryBuilderSortableItem({
 			style={{ transform: CSS.Translate.toString(transform), transition }}
 			className={cn(k.sortable.base)}
 		>
-			<button
-				ref={setActivatorNodeRef}
-				data-slot="query-reorder-handle"
-				data-dragging={dataAttr(isDragging)}
-				className={cn(k.sortable.handle)}
-				{...attributes}
-				{...listeners}
-				type="button"
-				aria-label={`Reorder ${label}`}
-				disabled={disabled}
-			>
-				<Icon icon={<GripVertical />} size="sm" />
-			</button>
+			{handle && (
+				<button
+					ref={setActivatorNodeRef}
+					data-slot="query-reorder-handle"
+					data-dragging={dataAttr(isDragging)}
+					className={cn(k.sortable.handle)}
+					{...attributes}
+					{...listeners}
+					type="button"
+					aria-label={`Reorder ${label}`}
+					disabled={disabled}
+				>
+					<Icon icon={<GripVertical />} size="sm" />
+				</button>
+			)}
 			<div className={cn(k.sortable.node)}>{children}</div>
 		</div>
 	)

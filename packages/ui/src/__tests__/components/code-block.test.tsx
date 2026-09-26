@@ -94,4 +94,43 @@ describe('CodeBlock', () => {
 
 		expect(container.querySelector('pre.shiki')).not.toBeNull()
 	})
+
+	it('never paints the markup of the code it showed before', async () => {
+		const { container, rerender } = renderUI(<CodeBlock code="first-snippet-token" copy={false} />)
+
+		await waitFor(() => expect(container.querySelector('pre.shiki')).toBeInTheDocument())
+
+		rerender(<CodeBlock code="second-snippet-token" copy={false} />)
+
+		expect(screen.queryByText('first-snippet-token')).toBeNull()
+
+		expect(screen.getByText('second-snippet-token')).toBeInTheDocument()
+
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')?.textContent).toBe('second-snippet-token'),
+		)
+	})
+
+	it('tokenizes streamed code one pass at a time, ending on the newest code', async () => {
+		const { codeToHtml } = await loadShiki()
+
+		const calls = vi.mocked(codeToHtml).mock.calls.length
+
+		const { container, rerender } = renderUI(<CodeBlock code="stream-a" copy={false} />)
+
+		for (const chunk of ['stream-ab', 'stream-abc', 'stream-abcd']) {
+			rerender(<CodeBlock code={chunk} copy={false} />)
+		}
+
+		await waitFor(() =>
+			expect(container.querySelector('pre.shiki')?.textContent).toBe('stream-abcd'),
+		)
+
+		const tokenized = vi
+			.mocked(codeToHtml)
+			.mock.calls.slice(calls)
+			.map(([code]) => code)
+
+		expect(tokenized).toEqual(['stream-a', 'stream-abcd'])
+	})
 })

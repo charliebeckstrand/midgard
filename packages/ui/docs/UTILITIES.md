@@ -62,7 +62,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 
 | Export | Summary |
 |---|---|
-| `registerDismissLayer` | Pushes a layer onto the Escape-dismiss stack; returns its unregister fn. |
+| `registerDismissLayer` | Puts a layer on the Escape-dismiss stack at its open order; returns its unregister fn. |
+| `nextDismissOrder` | Gives the next open order for `registerDismissLayer`. Call it in the render that opens a layer. |
 | `isTopDismissLayer` | True when `layer` is the topmost layer on the dismiss stack. |
 
 ## Events

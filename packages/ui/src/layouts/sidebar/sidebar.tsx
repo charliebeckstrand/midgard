@@ -5,6 +5,7 @@ import {
 	type PropsWithChildren,
 	type ReactNode,
 	type Ref,
+	useCallback,
 	useEffect,
 	useMemo,
 	useState,
@@ -89,6 +90,20 @@ export function SidebarLayout({
 
 	const scrollWithin = useScrollWithin()
 
+	// Brings the current item into view when the drawer mounts its panel. A
+	// stable callback, so that a render of the layout without the compiler does
+	// not detach and attach the ref, and scroll again.
+	const scrollToCurrent = useCallback(
+		(node: HTMLDivElement | null) => {
+			if (!node) return
+
+			const current = node.querySelector<HTMLElement>('[data-current]')
+
+			if (current) scrollWithin(current, { block: 'center' })
+		},
+		[scrollWithin],
+	)
+
 	// The floating sheet docks flush to the start edge. The sheet resolves `start`
 	// itself, but its flush offset is a physical class, so it keys on the same read.
 	const rtl = useIsRtl()
@@ -156,16 +171,7 @@ export function SidebarLayout({
 			{/* Sidebar on mobile */}
 			<Drawer open={open} onOpenChange={setOpen}>
 				<OffcanvasContext value={offcanvasValue}>
-					<div
-						ref={(node) => {
-							if (!node) return
-
-							const current = node.querySelector<HTMLElement>('[data-current]')
-
-							if (current) scrollWithin(current, { block: 'center' })
-						}}
-						className="contents"
-					>
+					<div ref={scrollToCurrent} className="contents">
 						{sidebar}
 					</div>
 				</OffcanvasContext>

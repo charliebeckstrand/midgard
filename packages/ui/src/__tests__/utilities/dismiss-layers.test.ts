@@ -1,6 +1,10 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from 'vitest'
-import { isTopDismissLayer, registerDismissLayer } from '../../utilities/dismiss-layers'
+import {
+	isTopDismissLayer,
+	nextDismissOrder,
+	registerDismissLayer,
+} from '../../utilities/dismiss-layers'
 
 // The stack is module-level state. Track every registration and drain it in
 // afterEach so a leaked layer can't corrupt a later shuffled test: the unit
@@ -8,10 +12,10 @@ import { isTopDismissLayer, registerDismissLayer } from '../../utilities/dismiss
 // and not per file either.
 const registered: Array<() => void> = []
 
-function open() {
+function open(order?: number) {
 	const layer = {}
 
-	const unregister = registerDismissLayer(layer)
+	const unregister = registerDismissLayer(layer, order)
 
 	registered.push(unregister)
 
@@ -63,5 +67,45 @@ describe('dismiss layers', () => {
 		inner.unregister()
 
 		expect(isTopDismissLayer(outer.layer)).toBe(true)
+	})
+
+	it('stacks by open order, not by registration order', () => {
+		const parentOrder = nextDismissOrder()
+
+		const childOrder = nextDismissOrder()
+
+		const child = open(childOrder)
+
+		const parent = open(parentOrder)
+
+		expect(isTopDismissLayer(child.layer)).toBe(true)
+
+		parent.unregister()
+
+		expect(isTopDismissLayer(child.layer)).toBe(true)
+	})
+
+	it('never sorts an ordered layer below a layer with no order', () => {
+		const earlier = nextDismissOrder()
+
+		const plain = open()
+
+		const ordered = open(earlier)
+
+		expect(isTopDismissLayer(ordered.layer)).toBe(true)
+
+		ordered.unregister()
+
+		expect(isTopDismissLayer(plain.layer)).toBe(true)
+	})
+
+	it('sorts an ordered layer below later ordered layers', () => {
+		const earlier = nextDismissOrder()
+
+		const later = open(nextDismissOrder())
+
+		open(earlier)
+
+		expect(isTopDismissLayer(later.layer)).toBe(true)
 	})
 })
