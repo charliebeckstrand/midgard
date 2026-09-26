@@ -9,7 +9,7 @@ import { BIFROST_URL } from './env'
  * incoming request. The session travels in the `cookie` header, so callers never
  * hold a token or name the gateway origin (CONVENTIONS.md §6.2).
  *
- * @param path - Gateway path, such as `/auth/user`. It follows the origin as is.
+ * @param path - Gateway path, such as `/auth/session`. It follows the origin as is.
  * @param init - Request options. `cache` defaults to `'no-store'`, and `init` can
  *   override it. The forwarded cookie replaces a `cookie` in `headers`.
  * @returns The raw gateway {@link Response}. The caller checks `ok` and `status`.

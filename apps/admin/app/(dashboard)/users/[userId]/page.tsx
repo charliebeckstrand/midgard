@@ -1,34 +1,40 @@
 import { bifrost, type User } from 'auth'
-import { UserDetailsClient } from './client'
-import type { Chat } from './types'
+import { notFound } from 'next/navigation'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
+import { Heading } from 'ui/heading'
+import { Stack } from 'ui/structure/stack'
 
-/**
- * Fetches a user's record and their chats from the gateway in parallel.
- *
- * @internal
- * @param userId - Target user id.
- * @returns `details`/`chats`, each `null` when its request fails.
- */
-async function getUserDetails(
-	userId: string,
-): Promise<{ details: User | null; chats: Chat[] | null }> {
-	const [details, chats] = await Promise.all([
-		bifrost(`/api/users/${userId}`),
-		bifrost(`/api/users/${userId}/chats`),
-	])
-
-	return {
-		details: details.ok ? ((await details.json()) as User) : null,
-		chats: chats.ok ? ((await chats.json()) as Chat[]) : null,
-	}
-}
+const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
 	const { userId } = await params
 
-	const userDetails = await getUserDetails(userId)
+	const res = await bifrost(`/api/users/${encodeURIComponent(userId)}`)
+
+	if (!res.ok) notFound()
+
+	const user = (await res.json()) as User
 
 	return (
-		<UserDetailsClient userId={userId} details={userDetails.details} chats={userDetails.chats} />
+		<Stack gap="xl">
+			<Heading>{user.email}</Heading>
+
+			<DescriptionList>
+				<DescriptionTerm>ID</DescriptionTerm>
+				<DescriptionDetails>{user.id}</DescriptionDetails>
+				<DescriptionTerm>Role</DescriptionTerm>
+				<DescriptionDetails>{user.role === 'admin' ? 'Admin' : 'User'}</DescriptionDetails>
+				<DescriptionTerm>Status</DescriptionTerm>
+				<DescriptionDetails>{user.is_active ? 'Active' : 'Inactive'}</DescriptionDetails>
+				<DescriptionTerm>Created At</DescriptionTerm>
+				<DescriptionDetails>
+					{new Date(user.created_at).toLocaleString(undefined, dateFormat)}
+				</DescriptionDetails>
+				<DescriptionTerm>Updated At</DescriptionTerm>
+				<DescriptionDetails>
+					{new Date(user.updated_at).toLocaleString(undefined, dateFormat)}
+				</DescriptionDetails>
+			</DescriptionList>
+		</Stack>
 	)
 }

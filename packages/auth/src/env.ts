@@ -30,7 +30,7 @@ if (protocol !== 'http:' && protocol !== 'https:') {
  * built, so the build and the server both need the value.
  *
  * A value that is not an absolute http or https URL throws at load. The value
- * has no trailing slash, so a gateway path such as `/auth/user` appends to it.
+ * has no trailing slash, so a gateway path such as `/auth/session` appends to it.
  *
  * @internal
  */

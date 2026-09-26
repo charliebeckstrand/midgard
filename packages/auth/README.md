@@ -1,6 +1,6 @@
 # auth
 
-Auth library: config, proxy helpers, and user accessor.
+Auth library: config, proxy helpers, and session accessors.
 
 ## 0. Prerequisites
 
@@ -10,7 +10,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getUser`, and the `User` type. |
+| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getSession`, `requireAdmin`, and the `Session` and `User` types. |
 | `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites. |
 | `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports. |
 

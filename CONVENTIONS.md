@@ -90,7 +90,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 6.2 Server data is fetched in Server Components or `'use server'`. They attach the bearer token and resolve the gateway origin server-side.
 
-6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by session and leaves `/auth/*` open, because sign-in and register run before a session exists.
+6.3 Client fetches hit same-origin `/api/*` or `/auth/*` paths. They never call the gateway or handle tokens directly. In an app wrapped in `withAuth`, both prefixes rewrite to the gateway. The rewrites are in the `fallback` phase, so a route handler of the app serves its own path first. The `proxy.ts` of the app gates `/api/*` by the session cookie and leaves `/auth/*` open, because sign-in and register run before a session exists.
 
 The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runtime `auth` import out of a `'use client'` module.
 

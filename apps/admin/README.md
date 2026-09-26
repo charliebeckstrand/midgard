@@ -21,8 +21,8 @@ pnpm --filter admin dev
 
 | Path | Role |
 |---|---|
-| `app/(dashboard)/*` | Authenticated product surface (dashboard, settings, users). |
-| `app/login/`, `app/register/` | Unauthenticated sign-in and registration pages. |
+| `app/(dashboard)/*` | Admin-only product surface (dashboard, settings, users). `requireAdmin` in its layout sends everyone else to `/login`. |
+| `app/(guest)/login/`, `app/(guest)/register/` | Sign-in and registration pages. The layout of the group sends a signed-in admin to `/`. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
 | `proxy.ts` | Session gate. It re-exports [`auth/proxy`](../../packages/auth/README.md), and its `matcher` leaves `/auth/*` open. |

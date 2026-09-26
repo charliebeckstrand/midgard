@@ -28,7 +28,7 @@ import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
 
 type DashboardClientProps = {
-	user?: User
+	user: User
 	children: ReactNode
 }
 
@@ -88,10 +88,9 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
  * Sidebar footer account menu: settings link and sign-out.
  *
  * @internal
- * @remarks Sign-out POSTs `/auth/logout` then routes to `/login`. Falls back to
- *   the email initial / "Account" label when no user is resolved.
+ * @remarks Sign-out POSTs `/auth/logout` then routes to `/login`.
  */
-function SidebarUserMenu({ user }: { user?: User }) {
+function SidebarUserMenu({ user }: { user: User }) {
 	const router = useRouter()
 
 	async function signOut() {
@@ -100,9 +99,7 @@ function SidebarUserMenu({ user }: { user?: User }) {
 		router.push('/login')
 	}
 
-	const displayName = user?.email ?? 'Account'
-
-	const initials = user?.email?.[0]?.toUpperCase() ?? 'U'
+	const initials = user.email[0]?.toUpperCase() ?? 'U'
 
 	return (
 		<Menu placement="top-start">
@@ -112,7 +109,7 @@ function SidebarUserMenu({ user }: { user?: User }) {
 						initials={initials}
 						className="bg-zinc-900 text-white dark:bg-white dark:text-zinc-900"
 					/>
-					<SidebarLabel>{displayName}</SidebarLabel>
+					<SidebarLabel>{user.email}</SidebarLabel>
 					<ChevronUpDownIcon />
 				</SidebarItem>
 			</MenuTrigger>
