@@ -18,10 +18,10 @@
  * - `flip · far page` shows a page with no full raster, so each sample is one render.
  *
  * The documents come from `pdf-fixtures.ts`: US-Letter invoice pages with 40 rows of text,
- * built in memory. pdf.js 6 calls `Map.prototype.getOrInsertComputed`, which the pinned
- * Chromium (141) lacks, so this file fills it in the page and in the worker. The filled worker
- * goes in as the global `workerPort`, so it lives for the whole run, as the viewer's shared
- * worker does in an app. The samples run one after another, so the overlap that the shared
+ * built in memory. The file loads the legacy build of pdf.js, as the viewer does, because the
+ * modern build calls built-ins that the pinned Chromium (141) lacks. Its worker goes in as the
+ * global `workerPort`, so it lives for the whole run, as the viewer's shared worker does in an
+ * app. The samples run one after another, so the overlap that the shared
  * worker exists for never comes up.
  *
  * Baseline (Chromium 141, headless, device pixel ratio 1, so the raster scale is 1.5):
@@ -41,7 +41,7 @@
  * (148 KiB), so no other encoder is a cheaper path. The decoded page is 7.4 MiB.
  */
 
-import * as pdfjs from 'pdfjs-dist'
+import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
@@ -54,12 +54,11 @@ import {
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { host } from './harness'
-import { makeInvoicePdf, polyfilledWorker, polyfillUpsert, servePdf } from './pdf-fixtures'
+import { makeInvoicePdf, servePdf } from './pdf-fixtures'
 
-polyfillUpsert()
-
-pdfjs.GlobalWorkerOptions.workerPort = polyfilledWorker(
-	new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url).href,
+pdfjs.GlobalWorkerOptions.workerPort = new Worker(
+	new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url),
+	{ type: 'module' },
 )
 
 /** The page counts: one scan, a carrier invoice, the demo's paper, and a long packet. */

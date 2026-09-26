@@ -6,7 +6,7 @@ const getDocumentMock = vi.fn()
 // Shape only; `beforeEach` sets workerSrc, which is what resolveWorker() reads first.
 const globalWorkerOptions = { workerSrc: '' }
 
-vi.mock('pdfjs-dist', () => ({
+vi.mock('pdfjs-dist/legacy/build/pdf.mjs', () => ({
 	GlobalWorkerOptions: globalWorkerOptions,
 	getDocument: (...args: unknown[]) => getDocumentMock(...args),
 }))

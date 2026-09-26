@@ -44,6 +44,7 @@ export default defineConfig({
 			'motion',
 			'motion/react',
 			'pdfjs-dist',
+			'pdfjs-dist/legacy/build/pdf.mjs',
 			'react',
 			'react-dom',
 			'react-dom/client',

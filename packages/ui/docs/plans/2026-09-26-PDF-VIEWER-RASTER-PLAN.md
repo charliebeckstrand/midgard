@@ -100,7 +100,7 @@ Each increment lands on its own, with its bench rows, and leaves the viewer whol
 - **Continuous scroll.** The viewer shows one page at a time, and this plan keeps that.
 - **The text layer.** It is increment 8 of the highlights plan, and it needs the page surface extraction first.
 - **A change to the `pages` prop.** A caller's images do not go through the queue.
-- **The `getOrInsertComputed` gap.** pdf.js 6 needs a method that browsers below the floor lack. It is a separate fix.
+- **The `getOrInsertComputed` gap.** pdf.js 6 needs methods that browsers below the floor lack. A separate change fixed it: the viewer loads the legacy build of pdf.js.
 
 ## Proof
 
