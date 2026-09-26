@@ -8,7 +8,9 @@ const viewport = defineRecipe({
 		sou.toast,
 		'fixed top-0 bottom-0 flex flex-col',
 		'max-sm:inset-x-0 max-sm:justify-end',
-		'p-4',
+		// The stack keeps clear of the notch and the home indicator in a page with
+		// `viewport-fit=cover`. Elsewhere each inset is zero, and the padding is 1rem.
+		'p-4 pt-[max(--spacing(4),env(safe-area-inset-top))] pb-[max(--spacing(4),env(safe-area-inset-bottom))]',
 		'pointer-events-none',
 	],
 	position: {
