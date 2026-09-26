@@ -60,8 +60,8 @@ function handleDown(overrides: Parameters<typeof makePointerEvent>[0] = {}) {
 }
 
 const equalPanels: PanelConfig[] = [
-	{ defaultSize: 1, minSize: 0, maxSize: 100 },
-	{ defaultSize: 1, minSize: 0, maxSize: 100 },
+	{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+	{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
 ]
 
 describe('useResizablePanel', () => {
@@ -96,8 +96,8 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 30, minSize: 0, maxSize: 100 },
-						{ defaultSize: 70, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 30, minSize: 0, maxSize: 100 },
+						{ key: '.1', defaultSize: 70, minSize: 0, maxSize: 100 },
 					],
 				}),
 			)
@@ -111,9 +111,9 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ defaultSize: 2, minSize: 0, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.1', defaultSize: 2, minSize: 0, maxSize: 100 },
+						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
 					],
 				}),
 			)
@@ -134,9 +134,9 @@ describe('useResizablePanel', () => {
 
 			rerender({
 				panelConfigs: [
-					{ defaultSize: 1, minSize: 0, maxSize: 100 },
-					{ defaultSize: 1, minSize: 0, maxSize: 100 },
-					{ defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
 				],
 			})
 
@@ -154,9 +154,9 @@ describe('useResizablePanel', () => {
 				{
 					initialProps: {
 						panelConfigs: [
-							{ defaultSize: 1, minSize: 0, maxSize: 100 },
-							{ defaultSize: 1, minSize: 0, maxSize: 100 },
-							{ defaultSize: 1, minSize: 0, maxSize: 100 },
+							{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+							{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
+							{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
 						] as PanelConfig[],
 					},
 				},
@@ -165,6 +165,41 @@ describe('useResizablePanel', () => {
 			rerender({ panelConfigs: equalPanels })
 
 			expect(result.current.sizes).toEqual([50, 50])
+		})
+
+		it('re-derives sizes when a panel is replaced at the same count', () => {
+			const { result, rerender } = renderHook(
+				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
+					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
+				{ initialProps: { panelConfigs: equalPanels } },
+			)
+
+			act(() => result.current.resize(0, 20))
+
+			expect(result.current.sizes).toEqual([70, 30])
+
+			rerender({
+				panelConfigs: [
+					{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+					{ key: '.$other', defaultSize: 3, minSize: 0, maxSize: 100 },
+				],
+			})
+
+			expect(result.current.sizes).toEqual([25, 75])
+		})
+
+		it('keeps dragged sizes while the panel set holds', () => {
+			const { result, rerender } = renderHook(
+				({ panelConfigs }: { panelConfigs: PanelConfig[] }) =>
+					useResizablePanel({ groupRef: makeRef(null), orientation: 'horizontal', panelConfigs }),
+				{ initialProps: { panelConfigs: equalPanels } },
+			)
+
+			act(() => result.current.resize(0, 20))
+
+			rerender({ panelConfigs: equalPanels.map((config) => ({ ...config })) })
+
+			expect(result.current.sizes).toEqual([70, 30])
 		})
 	})
 
@@ -194,8 +229,8 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 0, maxSize: 60 },
-						{ defaultSize: 1, minSize: 10, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 60 },
+						{ key: '.1', defaultSize: 1, minSize: 10, maxSize: 100 },
 					],
 				}),
 			)
@@ -215,8 +250,8 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 0, maxSize: 80 },
-						{ defaultSize: 1, minSize: 20, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 80 },
+						{ key: '.1', defaultSize: 1, minSize: 20, maxSize: 100 },
 					],
 				}),
 			)
@@ -234,8 +269,8 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 20, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 20, maxSize: 100 },
+						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
 					],
 				}),
 			)
@@ -288,9 +323,9 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
 					],
 				}),
 			)
@@ -545,8 +580,8 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(null),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 0, minSize: 0, maxSize: 100 },
-						{ defaultSize: 0, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 0, minSize: 0, maxSize: 100 },
+						{ key: '.1', defaultSize: 0, minSize: 0, maxSize: 100 },
 					],
 				}),
 			)
@@ -692,9 +727,9 @@ describe('useResizablePanel', () => {
 					groupRef: makeRef(makeGroup({ width: 1000, height: 0 })),
 					orientation: 'horizontal',
 					panelConfigs: [
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
-						{ defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.0', defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.1', defaultSize: 1, minSize: 0, maxSize: 100 },
+						{ key: '.2', defaultSize: 1, minSize: 0, maxSize: 100 },
 					],
 					onResizeStart,
 					onResizeEnd,

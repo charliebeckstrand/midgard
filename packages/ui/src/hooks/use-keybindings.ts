@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useEffectEvent, useMemo } from 'react'
 import { type KeybindingFilter, type KeybindingsMap, tinykeys } from 'tinykeys'
 
 /** Options for {@link useKeybindings}: the bindings to match and the enable gate. */
@@ -30,15 +30,12 @@ export type KeybindingsOptions = {
 export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOptions = {}): void {
 	const { enabled = true, target, ignore } = options
 
-	const bindingsRef = useRef(bindings)
+	// Effect events read the newest bindings and `ignore` when a key fires, so a
+	// new identity of either never re-subscribes. For `ignore`, presence is the
+	// dep, not identity.
+	const handle = useEffectEvent((key: string, event: KeyboardEvent) => bindings[key]?.(event))
 
-	bindingsRef.current = bindings
-
-	// A ref holds `ignore`; the effect forwards a stable ref-reading wrapper
-	// when provided, `undefined` when omitted. Presence is the dep, not identity.
-	const ignoreRef = useRef(ignore)
-
-	ignoreRef.current = ignore
+	const skip = useEffectEvent((event: KeyboardEvent) => ignore?.(event) ?? false)
 
 	const hasIgnore = ignore !== undefined
 
@@ -54,12 +51,10 @@ export function useKeybindings(bindings: KeybindingsMap, options: KeybindingsOpt
 		if (keys.length === 0) return
 
 		const wrapped: KeybindingsMap = Object.fromEntries(
-			keys.map((key) => [key, (e: KeyboardEvent) => bindingsRef.current[key]?.(e)]),
+			keys.map((key) => [key, (e: KeyboardEvent) => handle(key, e)]),
 		)
 
-		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore
-			? (e) => ignoreRef.current?.(e) ?? false
-			: undefined
+		const resolvedIgnore: KeybindingFilter | undefined = hasIgnore ? (e) => skip(e) : undefined
 
 		return tinykeys(resolvedTarget, wrapped, { ignore: resolvedIgnore })
 	}, [enabled, target, hasIgnore, keySignature])

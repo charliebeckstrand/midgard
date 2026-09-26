@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
 import { Form } from '../../components/form'
@@ -238,6 +239,52 @@ describe('CurrencyInput', () => {
 		await user.tab()
 
 		expect(onBlur).toHaveBeenCalled()
+	})
+
+	it('shows a value from outside while the field has focus', async () => {
+		const onValueChange = vi.fn()
+
+		const { container, rerender } = renderUI(
+			<CurrencyInput value={10} onValueChange={onValueChange} />,
+		)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.click(input)
+
+		await user.type(input, '5')
+
+		rerender(<CurrencyInput value={42} onValueChange={onValueChange} />)
+
+		expect(input).toHaveFocus()
+
+		expect(input.value).toBe('42.00')
+	})
+
+	it('keeps the typed text while the value follows each keystroke', async () => {
+		function Controlled() {
+			const [value, setValue] = useState<number | null>(null)
+
+			return <CurrencyInput value={value} onValueChange={setValue} />
+		}
+
+		const { container } = renderUI(<Controlled />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.click(input)
+
+		await user.type(input, '12.')
+
+		expect(input.value).toBe('12.')
+
+		await user.clear(input)
+
+		expect(input.value).toBe('')
 	})
 
 	it('accepts a callback ref alongside the controlled value', () => {

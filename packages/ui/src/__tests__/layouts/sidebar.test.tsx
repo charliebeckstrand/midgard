@@ -347,4 +347,35 @@ describe('SidebarLayout floating mode', () => {
 
 		expect(document.body.querySelector('[class*="start-80"]')).not.toBeInTheDocument()
 	})
+
+	it('looks for the current item once while the drawer stays open', () => {
+		const lookup = vi.spyOn(HTMLElement.prototype, 'querySelector')
+
+		const layout = (navbar: string) => (
+			<SidebarLayout
+				sidebar={
+					<a href="/" data-current="">
+						Home
+					</a>
+				}
+				navbar={navbar}
+			>
+				body
+			</SidebarLayout>
+		)
+
+		const { rerender } = renderUI(layout('One'))
+
+		fireEvent.click(screen.getByRole('button', { name: 'Open navigation' }))
+
+		rerender(layout('Two'))
+
+		rerender(layout('Three'))
+
+		const current = lookup.mock.calls.filter(([selector]) => selector === '[data-current]')
+
+		lookup.mockRestore()
+
+		expect(current).toHaveLength(1)
+	})
 })

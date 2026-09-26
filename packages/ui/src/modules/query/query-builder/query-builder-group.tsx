@@ -44,7 +44,9 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 	// hides its remove control so the query can't be emptied.
 	const rulesRemovable = !requireRule || group.children.length > 1
 
-	// A group with one child has no order to change, so it shows no grip.
+	// A group with one child has no order to change, so it shows no grip. The
+	// drag wrappers stay while the builder reorders: a group that grows to two
+	// children or shrinks to one keeps the same tree, so no child remounts.
 	const sortable = reorderable && group.children.length > 1
 
 	// The focus ladder degrades to a group's "add" affordance; that is now the
@@ -85,16 +87,17 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 
 		return (
 			<div key={child.id} className="flex flex-col gap-3">
-				{sortable && separator ? (
+				{reorderable && separator ? (
 					<div className={cn(k.sortable.separator)}>{separator}</div>
 				) : (
 					separator
 				)}
-				{sortable ? (
+				{reorderable ? (
 					<QueryBuilderSortableItem
 						id={child.id}
 						label={describeNode(child, fields)}
 						disabled={disabled}
+						handle={sortable}
 					>
 						{node}
 					</QueryBuilderSortableItem>
@@ -115,7 +118,7 @@ function QueryBuilderGroupImpl({ group, root, className }: QueryBuilderGroupProp
 			<div className={k.group.base}>
 				{group.children.length === 0 ? (
 					<Alert severity="warning" variant="soft" title="No rules added" className="w-full" />
-				) : sortable ? (
+				) : reorderable ? (
 					<QueryBuilderSortable group={group}>{children}</QueryBuilderSortable>
 				) : (
 					children

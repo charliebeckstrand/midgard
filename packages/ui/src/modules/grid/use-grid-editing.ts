@@ -410,11 +410,30 @@ function historyOf<T>(
 }
 
 /**
- * The live row with `rowKey`, keyed over the source rows as `use-grid-table`
- * keys them, or `undefined` when the rows hold none. @internal
+ * Finds the live row of a key, keyed over the source rows as `use-grid-table`
+ * keys them, or `undefined` when the rows hold none. The first find indexes the
+ * rows once. A history step reads a row for each cell, so each read after the
+ * first costs one map lookup, not a scan of the rows. Where two rows share a
+ * key, the first one answers. @internal
  */
-function liveRow<T>(source: GridEditSource<T>, rowKey: string | number): T | undefined {
-	return source.rows.find((candidate, index) => source.getKey(candidate, index) === rowKey)
+function rowLookup<T>(source: GridEditSource<T>): (rowKey: string | number) => T | undefined {
+	let index: Map<string | number, T> | undefined
+
+	return (rowKey) => {
+		if (index === undefined) {
+			const built = new Map<string | number, T>()
+
+			source.rows.forEach((row, at) => {
+				const key = source.getKey(row, at)
+
+				if (!built.has(key)) built.set(key, row)
+			})
+
+			index = built
+		}
+
+		return index.get(rowKey)
+	}
 }
 
 /**
@@ -424,13 +443,14 @@ function liveRow<T>(source: GridEditSource<T>, rowKey: string | number): T | und
  */
 function readHistoryCell<T>(
 	source: GridEditSource<T>,
+	rowOf: (rowKey: string | number) => T | undefined,
 	cell: GridHistoryCell,
 ): { value: unknown } | null {
 	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
 
 	if (col?.field == null || !isColumnEditable(col)) return null
 
-	const row = liveRow(source, cell.rowKey)
+	const row = rowOf(cell.rowKey)
 
 	return row == null ? null : { value: row[col.field] }
 }
@@ -628,9 +648,10 @@ function sendHistory<T>(args: {
 	cells: readonly GridHistoryCell[]
 	step: GridHistoryStep
 	source: GridEditSource<T>
+	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 }): { saved: SavedCells; inFlight: InFlightBatch[] } {
-	const { step, source, onCommit } = args
+	const { step, source, rowOf, onCommit } = args
 
 	const columns: string[] = []
 
@@ -642,7 +663,7 @@ function sendHistory<T>(args: {
 	if (!onCommit) return { saved: { columns, row: undefined, history: [] }, inFlight }
 
 	for (const [rowKey, cells] of byRow(args.cells)) {
-		const row = liveRow(source, rowKey)
+		const row = rowOf(rowKey)
 
 		const changes = cells.map((cell) => ({
 			rowKey,
@@ -2462,8 +2483,10 @@ export function useGridEditing<T>({
 
 			const source = editSourceRef.current
 
+			const rowOf = rowLookup(source)
+
 			const result = takeStep(step, {
-				current: (cell) => readHistoryCell(source, cell),
+				current: (cell) => readHistoryCell(source, rowOf, cell),
 				drafted: (cell) => drafts.read(cell.rowKey, cell.columnId) !== undefined,
 			})
 
@@ -2479,6 +2502,7 @@ export function useGridEditing<T>({
 				cells,
 				step,
 				source,
+				rowOf,
 				onCommit: hasCommit ? sendCommit : undefined,
 			})
 

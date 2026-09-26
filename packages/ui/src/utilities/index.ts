@@ -24,7 +24,7 @@ export {
 	WCAG_NON_TEXT,
 } from './contrast'
 export { digitsOnly } from './digits-only'
-export { isTopDismissLayer, registerDismissLayer } from './dismiss-layers'
+export { isTopDismissLayer, nextDismissOrder, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
 export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { forceStyleFlush } from './force-style-flush'

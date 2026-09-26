@@ -32,7 +32,9 @@ export type CurrencyInputProps = Omit<
  * `locale` from props, then `<LocaleProvider>`, then runtime defaults.
  *
  * @remarks Holds a raw editing buffer once typing begins, and falls back to the
- * display formatter once the buffer clears on blur. The buffer formats digits
+ * display formatter once the buffer clears on blur. A value from outside that
+ * differs from the buffer's value also clears the buffer, while the field has
+ * focus. The buffer formats digits
  * down to grouped output on every keystroke through {@link useFormattedInput},
  * which restores the caret to the typed character across separator insertion. The symbol
  * renders in the `prefix` or `suffix` slot per the locale's symbol position; a
@@ -81,6 +83,20 @@ export function CurrencyInput({
 		})
 
 	const [editingText, setEditingText] = useState<string | null>(null)
+
+	// A new value that the buffer does not hold came from outside (a controlled
+	// parent, a form reset), so the buffer ends and the field shows that value.
+	// The field keeps focus. The check runs only when the value changes: a bound
+	// form field can take one render longer than the buffer to change.
+	const [heldNum, setHeldNum] = useState(num)
+
+	if (heldNum !== num) {
+		setHeldNum(num)
+
+		if (editingText !== null && parseEditing(editingText, group, decimal) !== (num ?? undefined)) {
+			setEditingText(null)
+		}
+	}
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 

@@ -90,9 +90,6 @@
 	"hooks/use-floating-disclosure.ts": {
 		"useFloatingDisclosure": "Refs"
 	},
-	"hooks/use-keybindings.ts": {
-		"useKeybindings": "Refs"
-	},
 	"hooks/use-open-complete.ts": {
 		"useOpenComplete": "Refs"
 	},
