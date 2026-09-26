@@ -49,14 +49,22 @@ export function GridGroupHead({
 
 	// Running 1-based column index for grid semantics: a spanning band cell takes
 	// the index of its leftmost column, then the counter advances by the span.
+	// A loop, not a counter in the map callback: the React Compiler rejects a
+	// reassignment inside a callback.
+	const startIndices: number[] = []
+
 	let colIndex = 1
+
+	for (const span of header.spans) {
+		startIndices.push(colIndex)
+
+		colIndex += span.colSpan
+	}
 
 	return (
 		<TableRow aria-rowindex={ariaRowIndex}>
-			{header.spans.map((span) => {
-				const cellColIndex = gridSemantics ? colIndex : undefined
-
-				colIndex += span.colSpan
+			{header.spans.map((span, i) => {
+				const cellColIndex = gridSemantics ? startIndices[i] : undefined
 
 				return (
 					<GridGroupHeadCell

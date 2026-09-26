@@ -167,16 +167,18 @@ export function FiltersField({ name, children, className }: FiltersFieldProps) {
 	// Clones the first non-decoration child as the control; passes
 	// Label/Description/Message siblings through untouched. null (not undefined)
 	// signals "explicit empty" to components that distinguish controlled state.
-	let controlCloned = false
+	// An object, not a `let`: the React Compiler rejects a reassignment inside a
+	// callback.
+	const control = { cloned: false }
 
 	const processed = Children.map(children, (child) => {
 		if (!isValidElement(child)) return child
 
 		if (isDecoration(child)) return child
 
-		if (controlCloned) return child
+		if (control.cloned) return child
 
-		controlCloned = true
+		control.cloned = true
 
 		const handlerProp = expectsEventCallback(child) ? 'onChange' : 'onValueChange'
 

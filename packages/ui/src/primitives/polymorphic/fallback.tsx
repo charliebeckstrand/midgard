@@ -21,7 +21,7 @@ export type PolymorphicRenderProps<Fallback extends ElementType> = {
 	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>
 )
 
-/** Input to {@link renderFallback}: the `as` element and the props it forwards. @internal */
+/** Props for {@link PolymorphicFallback}: the `as` element and the props it forwards. @internal */
 type FallbackRender<Fallback extends ElementType> = {
 	as: Fallback
 	ref: Ref<Element> | undefined
@@ -36,9 +36,12 @@ type FallbackRender<Fallback extends ElementType> = {
  * the `as` element with the forwarded props. This module carries no
  * `'use client'` directive, so `PolymorphicStatic` stays server-safe.
  *
+ * @remarks It is a component, not a render function. The React Compiler
+ * rejects a `ref` passed to a function call during render, but it accepts one
+ * passed as a JSX prop.
  * @internal
  */
-export function renderFallback<Fallback extends ElementType>({
+export function PolymorphicFallback<Fallback extends ElementType>({
 	as,
 	ref,
 	slot,

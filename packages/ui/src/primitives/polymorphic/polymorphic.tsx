@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ElementType, Ref } from 'react'
 import { type LinkProps, useLink } from '../link'
-import { type PolymorphicRenderProps, renderFallback } from './fallback'
+import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
 
 /**
  * An `href`-driven link switch with element polymorphism. The sole runtime
@@ -59,12 +59,15 @@ export function Polymorphic<Fallback extends ElementType>({
 		)
 	}
 
-	return renderFallback({
-		as,
-		ref,
-		slot,
-		className,
-		children,
-		rest: rest as ComponentProps<Fallback>,
-	})
+	return (
+		<PolymorphicFallback
+			as={as}
+			ref={ref}
+			slot={slot}
+			className={className}
+			rest={rest as ComponentProps<Fallback>}
+		>
+			{children}
+		</PolymorphicFallback>
+	)
 }

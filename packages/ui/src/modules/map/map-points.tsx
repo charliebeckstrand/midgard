@@ -174,6 +174,26 @@ const MapPointsDots = memo(function MapPointsDots({
  */
 export type MapPointsPick = (id: string, index: number, merged: readonly number[]) => void
 
+/**
+ * The drawn dot of each point, per grouping. The map is built on the first read
+ * and held while the grouping lives. The cache is outside the component,
+ * because the React Compiler rejects a closure that writes a render value.
+ */
+const stopsByGrouping = new WeakMap<readonly MapPointCluster[], ReadonlyMap<number, number>>()
+
+/** Gives the drawn dot that point `index` landed in, or `null`. @internal */
+function stopIndex(groups: readonly MapPointCluster[], index: number): number | null {
+	let stops = stopsByGrouping.get(groups)
+
+	if (stops === undefined) {
+		stops = groupsByMember(groups)
+
+		stopsByGrouping.set(groups, stops)
+	}
+
+	return stops.get(index) ?? null
+}
+
 /** Props for {@link MapPoints}. */
 export type MapPointsProps = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> & {
 	/** The dots, in the order they draw and the order the cursor walks them. */
@@ -343,15 +363,7 @@ export function MapPoints({
 	// there: the pick reads it on every render a pointed-mark crossing costs, and
 	// only a regrouping can change the answer — but a map with no pick never reads
 	// it at all, and must not pay a lookup per dot to draw one.
-	const stopOf = useMemo(() => {
-		let held: ReadonlyMap<number, number> | null = null
-
-		return (index: number) => {
-			if (held === null) held = groupsByMember(groups)
-
-			return held.get(index) ?? null
-		}
-	}, [groups])
+	const stopOf = useMemo(() => (index: number) => stopIndex(groups, index), [groups])
 
 	// The caller counts in points; everything inside this mark counts in drawn
 	// groups. A summary hands back the first stop it holds, so a pick names a row
