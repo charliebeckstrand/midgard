@@ -2,7 +2,6 @@
 
 import {
 	type ComponentProps,
-	cloneElement,
 	type HTMLAttributes,
 	isValidElement,
 	type ReactElement,
@@ -63,14 +62,22 @@ export function TooltipTrigger({ children }: TooltipTriggerProps) {
 	const triggerClassName = cn(k.trigger, enabled && k.cursor)
 
 	if (child) {
-		return cloneElement(child, {
-			...(getReferenceProps(child.props as Record<string, unknown>) as HTMLAttributes<HTMLElement>),
-			ref: mergeRefs,
-			// Preserves a child's own `data-slot` (e.g. `time-ago`); falls back to
-			// the generic trigger marker only when the child has none.
-			'data-slot': child.props['data-slot'] ?? 'tooltip-trigger',
-			className: cn(triggerClassName, child.props.className),
-		})
+		// The clone renders the child's type through JSX, not through `cloneElement`.
+		// The React Compiler rejects a ref passed to a function during render.
+		const Child = child.type
+
+		return (
+			<Child
+				key={child.key}
+				{...child.props}
+				{...(getReferenceProps(
+					child.props as Record<string, unknown>,
+				) as HTMLAttributes<HTMLElement>)}
+				ref={mergeRefs}
+				data-slot={child.props['data-slot'] ?? 'tooltip-trigger'}
+				className={cn(triggerClassName, child.props.className)}
+			/>
+		)
 	}
 
 	return (

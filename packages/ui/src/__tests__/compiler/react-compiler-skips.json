@@ -41,9 +41,6 @@
 	"components/menu/menu-sub.tsx": {
 		"MenuSub": "Refs"
 	},
-	"components/menu/menu-trigger.tsx": {
-		"MenuTrigger": "Refs"
-	},
 	"components/menu/use-menu-state.ts": {
 		"useMenuState": "PreserveManualMemo"
 	},
@@ -72,9 +69,6 @@
 		"useDocumentKey": "Refs",
 		"usePdfViewer": "PreserveManualMemo"
 	},
-	"components/popover/popover-trigger.tsx": {
-		"PopoverTrigger": "Refs"
-	},
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
@@ -89,9 +83,6 @@
 	},
 	"components/tabs/tab.tsx": {
 		"Tab": "Refs"
-	},
-	"components/tooltip/tooltip-trigger.tsx": {
-		"TooltipTrigger": "Refs"
 	},
 	"components/tooltip/use-tooltip-state.ts": {
 		"useTooltipState": "Refs"

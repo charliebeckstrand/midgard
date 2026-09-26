@@ -1,7 +1,6 @@
 'use client'
 
 import {
-	cloneElement,
 	type HTMLAttributes,
 	isValidElement,
 	type ReactElement,
@@ -77,15 +76,23 @@ export function PopoverTrigger({ children, className }: PopoverTriggerProps) {
 	if (child) {
 		const referenceProps = wrapReferenceProps(child.props as Record<string, unknown>)
 
-		return cloneElement(child, {
-			...(referenceProps as HTMLAttributes<HTMLElement>),
-			ref: mergeRefs,
-			'aria-haspopup': 'dialog',
-			'aria-expanded': open,
-			'aria-controls': open ? panelId : undefined,
-			'data-slot': 'popover-trigger',
-			className: cn(k.trigger, child.props.className, className),
-		})
+		// The clone renders the child's type through JSX, not through `cloneElement`.
+		// The React Compiler rejects a ref passed to a function during render.
+		const Child = child.type
+
+		return (
+			<Child
+				key={child.key}
+				{...child.props}
+				{...(referenceProps as HTMLAttributes<HTMLElement>)}
+				ref={mergeRefs}
+				aria-haspopup="dialog"
+				aria-expanded={open}
+				aria-controls={open ? panelId : undefined}
+				data-slot="popover-trigger"
+				className={cn(k.trigger, child.props.className, className)}
+			/>
+		)
 	}
 
 	const referenceProps = wrapReferenceProps()
