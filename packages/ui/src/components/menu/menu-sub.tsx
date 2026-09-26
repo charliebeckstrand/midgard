@@ -18,6 +18,7 @@ import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDensity } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
@@ -241,43 +242,42 @@ export function MenuSub({
 		triggerRef.current?.focus()
 	}, [closeSubmenu, subKey])
 
-	const handleTriggerKeyDown = useCallback(
-		(event: KeyboardEvent<HTMLButtonElement>) => {
-			if (disabled) return
+	// The trigger handlers reach the seat-focus and trigger refs, so each is a
+	// stable event and not a closure that render passes to a function.
+	const handleTriggerKeyDown = useStableEvent((event: KeyboardEvent<HTMLButtonElement>) => {
+		if (disabled) return
 
-			if (OPEN_KEYS.includes(event.key)) {
-				event.preventDefault()
+		if (OPEN_KEYS.includes(event.key)) {
+			event.preventDefault()
 
-				openWithFocus()
+			openWithFocus()
 
-				return
-			}
+			return
+		}
 
-			// `Escape` collapses an open submenu from its parent row, and is consumed
-			// so the enclosing menu — which closes on any `Escape` reaching its panel
-			// — survives to take the next press.
-			if (event.key === 'Escape' && open) {
-				event.preventDefault()
+		// `Escape` collapses an open submenu from its parent row, and is consumed
+		// so the enclosing menu — which closes on any `Escape` reaching its panel
+		// — survives to take the next press.
+		if (event.key === 'Escape' && open) {
+			event.preventDefault()
 
-				event.stopPropagation()
+			event.stopPropagation()
 
-				collapse()
+			collapse()
 
-				return
-			}
+			return
+		}
 
-			// An open submenu owns the arrows: they move within its rows rather than
-			// roving on through the menu this row sits in, which would leave the
-			// panel hanging open behind the cursor. Consumed here so the enclosing
-			// menu's roving never sees the press; `Escape` above is the way back out.
-			if (open && enterSubmenu(event.key)) {
-				event.preventDefault()
+		// An open submenu owns the arrows: they move within its rows rather than
+		// roving on through the menu this row sits in, which would leave the
+		// panel hanging open behind the cursor. Consumed here so the enclosing
+		// menu's roving never sees the press; `Escape` above is the way back out.
+		if (open && enterSubmenu(event.key)) {
+			event.preventDefault()
 
-				event.stopPropagation()
-			}
-		},
-		[disabled, open, openWithFocus, collapse, enterSubmenu],
-	)
+			event.stopPropagation()
+		}
+	})
 
 	const handlePanelKeyDown = useCallback(
 		(event: KeyboardEvent) => {
@@ -326,6 +326,12 @@ export function MenuSub({
 	// one panel rather than a flash per row.
 	const handlePointerMove = useMenuRowPointer(disabled, subKey)
 
+	// Opens rather than toggles: a click landing on a row the pointer has already
+	// hovered open would otherwise shut the submenu the user is reaching for.
+	const handleClick = useStableEvent(() => {
+		if (!disabled) openWithFocus()
+	})
+
 	return (
 		<>
 			<button
@@ -350,12 +356,7 @@ export function MenuSub({
 					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,
 					onKeyDown: handleTriggerKeyDown,
-					// Opens rather than toggles: a click landing on a row the pointer has
-					// already hovered open would otherwise shut the submenu the user is
-					// reaching for.
-					onClick: () => {
-						if (!disabled) openWithFocus()
-					},
+					onClick: handleClick,
 				})}
 			>
 				{icon ? <Icon icon={icon} /> : null}

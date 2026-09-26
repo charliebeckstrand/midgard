@@ -22,12 +22,16 @@ const TableEmptyAlert = () => <Alert variant="soft" title="No items" className="
  *
  * @defaultValue children a soft, block {@link Alert} titled `'No items'`
  */
-export function TableEmpty({ columns, children = <TableEmptyAlert /> }: TableEmptyProps) {
+export function TableEmpty({ columns, children }: TableEmptyProps) {
+	// The default resolves in the body. The React Compiler cannot compile a JSX
+	// default in a parameter.
+	const content = children === undefined ? <TableEmptyAlert /> : children
+
 	return (
 		<TableBody>
 			<TableRow>
 				<TableCell colSpan={columns} className={cn(k.empty)}>
-					{children}
+					{content}
 				</TableCell>
 			</TableRow>
 		</TableBody>

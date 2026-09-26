@@ -1,12 +1,6 @@
-import {
-	type ComponentProps,
-	cloneElement,
-	type ElementType,
-	type ReactElement,
-	type Ref,
-} from 'react'
+import type { ComponentProps, ElementType, ReactElement, Ref } from 'react'
 import type { LinkProps } from '../link'
-import { type PolymorphicRenderProps, renderFallback } from './fallback'
+import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
 
 /**
  * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
@@ -64,18 +58,30 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 		}
 
 		if (render) {
-			return cloneElement(render, linkProps, children)
+			// The clone renders the link's type through JSX, not through
+			// `cloneElement`. The React Compiler rejects a ref passed to a function
+			// during render.
+			const Link = render.type
+
+			return (
+				<Link key={render.key} {...render.props} {...linkProps}>
+					{children}
+				</Link>
+			)
 		}
 
 		return <a {...linkProps}>{children}</a>
 	}
 
-	return renderFallback({
-		as,
-		ref,
-		slot,
-		className,
-		children,
-		rest: rest as ComponentProps<Fallback>,
-	})
+	return (
+		<PolymorphicFallback
+			as={as}
+			ref={ref}
+			slot={slot}
+			className={className}
+			rest={rest as ComponentProps<Fallback>}
+		>
+			{children}
+		</PolymorphicFallback>
+	)
 }
