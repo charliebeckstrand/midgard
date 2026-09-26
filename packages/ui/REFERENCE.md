@@ -8,7 +8,7 @@
 |---|---|---|
 | Components | [`docs/COMPONENTS.md`](docs/COMPONENTS.md) | Every component, grouped by domain (inputs, overlays, data display, surfaces, …). |
 | Modules | [`docs/MODULES.md`](docs/MODULES.md) | `ui/modules/*` (or the `ui/*` shorthand) — complex, multi-part compositions that own their sub-components, hooks, and docs. |
-| Structure | [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | `ui/structure/*` (or the `ui/*` shorthand) — box, container, flex, spacer, split, stack: the static units that arrange other elements. |
+| Structure | [`docs/STRUCTURE.md`](docs/STRUCTURE.md) | `ui/structure/*` — box, container, flex, spacer, split, stack: the static units that arrange other elements. |
 | Layouts | [`docs/LAYOUTS.md`](docs/LAYOUTS.md) | `ui/layouts` — page scaffolds and app shells (auth, stacked, dashboard, sidebar). |
 | Hooks | [`docs/HOOKS.md`](docs/HOOKS.md) | `ui/hooks` — state, floating, interaction, a11y, measurement, drag-and-drop, formatted input. |
 | Primitives | [`docs/PRIMITIVES.md`](docs/PRIMITIVES.md) | `ui/primitives/*` — floating/overlay shells, polymorphism, the styling-context cascades. |

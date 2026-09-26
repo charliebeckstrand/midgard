@@ -251,8 +251,8 @@ export function moduleNameFor(filePath: string, srcDir: string): string | null {
 	// resolves, but derived snippets show the canonical path.
 	if (rel[0] === 'modules' && rel[2] === 'index.ts') return rel[1] ? `modules/${rel[1]}` : null
 
-	// Structure units carry the full `structure/<name>`, as modules do
-	// (`ui/structure/flex`). The bare `ui/flex` shorthand also resolves.
+	// Structure units carry the full `structure/<name>`, matching the public
+	// specifier (`ui/structure/flex`).
 	if (rel[0] === 'structure' && rel[2] === 'index.ts') return rel[1] ? `structure/${rel[1]}` : null
 
 	return null

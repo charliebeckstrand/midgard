@@ -1,5 +1,5 @@
 import { Heading } from 'ui/heading'
-import { Stack } from 'ui/stack'
+import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 
 export default function DashboardPage() {

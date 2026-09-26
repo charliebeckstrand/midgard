@@ -2,10 +2,10 @@
 
 > **Quick-glance index of `ui/structure`.** These units arrange other elements on the page. They have no behavior of their own: each one maps its props to flex, grid, and spacing classes. Per-unit props and defaults live in the TSDoc and in the docs site (`pnpm docs`). For the components that you arrange with them, see [`COMPONENTS.md`](COMPONENTS.md).
 
-Each unit is its own entry point under `ui/structure/*`. The bare `ui/<name>` shorthand resolves to the same barrel, because a structure name never collides with a component name or a module name. Both specifiers work; canonical docs and snippets use the nested path:
+Each unit is its own entry point under `ui/structure/*`. There is no bare `ui/<name>` shorthand:
 
 ```ts
-import { Flex } from 'ui/structure/flex' // or the 'ui/flex' shorthand
+import { Flex } from 'ui/structure/flex'
 ```
 
 Every structure unit is static, so it renders in React Server Components ([`../REFERENCE.md`](../REFERENCE.md) §2). A unit that draws a visible element or handles input, such as `divider`, `group`, or `card`, stays in [`COMPONENTS.md`](COMPONENTS.md).

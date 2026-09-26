@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
-import { Flex } from 'ui/flex'
-import { Stack } from 'ui/stack'
+import { Flex } from 'ui/structure/flex'
+import { Stack } from 'ui/structure/stack'
 
 export const metadata: Metadata = {
 	title: '404 - Page Not Found',

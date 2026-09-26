@@ -10,7 +10,6 @@ import type { User } from 'auth'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
 import { Avatar } from 'ui/avatar'
-import { Flex } from 'ui/flex'
 import { SidebarLayout } from 'ui/layouts'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
 import { NavBar } from 'ui/nav'
@@ -24,7 +23,8 @@ import {
 	SidebarLabel,
 	SidebarSection,
 } from 'ui/sidebar'
-import { Spacer } from 'ui/spacer'
+import { Flex } from 'ui/structure/flex'
+import { Spacer } from 'ui/structure/spacer'
 import { Text } from 'ui/text'
 
 type DashboardClientProps = {

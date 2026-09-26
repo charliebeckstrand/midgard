@@ -42,10 +42,6 @@
 			{
 				"types": "./src/modules/*/index.ts",
 				"default": "./src/modules/*/index.ts"
-			},
-			{
-				"types": "./src/structure/*/index.ts",
-				"default": "./src/structure/*/index.ts"
 			}
 		]
 	},

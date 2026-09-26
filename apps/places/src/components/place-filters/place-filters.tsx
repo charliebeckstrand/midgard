@@ -3,8 +3,8 @@
 import { ControlSkeleton } from 'ui/control'
 import { DatePicker, type DatePickerRelativeValue } from 'ui/date-picker'
 import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
-import { Flex } from 'ui/flex'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
+import { Flex } from 'ui/structure/flex'
 import type { PlaceCategory } from '../../types'
 import {
 	hasActiveFilter,
