@@ -54,13 +54,13 @@ function renderer() {
 	const jobs: {
 		index: number
 		raster: PdfPageRaster
-		finish: (url: string | null) => void
+		finish: (raster: string | ImageBitmap | null) => void
 		fail: (reason: unknown) => void
 		cancel: ReturnType<typeof vi.fn>
 	}[] = []
 
 	const render = vi.fn((index: number, raster: PdfPageRaster) => {
-		const job = deferred<string | null>()
+		const job = deferred<string | ImageBitmap | null>()
 
 		const cancel = vi.fn(() => job.reject(new Error('canceled')))
 
@@ -81,7 +81,25 @@ function renderer() {
 		await flush()
 	}
 
-	return { render, jobs, asked, land }
+	/** Ends the latest render with a bitmap of `side` × `side` pixels. */
+	const landBitmap = async (side: number) => {
+		const raster = bitmap(side)
+
+		jobs.at(-1)?.finish(raster)
+
+		await flush()
+
+		return raster
+	}
+
+	return { render, jobs, asked, land, landBitmap }
+}
+
+/** A stand-in for an `ImageBitmap`: jsdom has none. `close` records the free. */
+function bitmap(side: number) {
+	return { width: side, height: side, close: vi.fn() } as unknown as ImageBitmap & {
+		close: ReturnType<typeof vi.fn>
+	}
 }
 
 /** Opens `src` with `count` slots and serves a hand-driven renderer. */
@@ -759,5 +777,84 @@ describe('pdf viewer document cache · render queue', () => {
 		await pages.land()
 
 		expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:full-0')
+	})
+})
+
+describe('pdf viewer document cache · bitmaps', () => {
+	it('keeps a full raster that is a bitmap, and closes it when the bound drops it', async () => {
+		const pages = await served('/a.pdf', 30)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 1)
+
+		const first = await pages.landBitmap(10)
+
+		expect(getDocumentSnapshot('/a.pdf').pages[1]?.bitmap).toBe(first)
+
+		// Two more moves of three pages each push the first bitmap past the bound of 8.
+		for (let step = 0; step < 2; step++) await pages.landBitmap(10)
+
+		for (const index of [11, 21]) {
+			focusPage('/a.pdf', viewer, index)
+
+			for (let step = 0; step < 4; step++) await pages.landBitmap(10)
+		}
+
+		expect(first.close).toHaveBeenCalledOnce()
+
+		expect(getDocumentSnapshot('/a.pdf').pages[1]?.bitmap).toBeUndefined()
+	})
+
+	it('closes the bitmaps of an entry when the cache resets', async () => {
+		const pages = await served('/a.pdf', 3)
+
+		focusPage('/a.pdf', {}, 0)
+
+		const raster = await pages.landBitmap(10)
+
+		resetDocumentCache()
+
+		expect(raster.close).toHaveBeenCalledOnce()
+	})
+
+	// Each bitmap here is 16 MiB, so three fill the budget of 48 MiB.
+	it('drops the bitmaps of the least recently used document first, over the budget', async () => {
+		const older = await served('/older.pdf', 5)
+
+		const leave = focusPage('/older.pdf', {}, 0)
+
+		const kept = [await older.landBitmap(2048), await older.landBitmap(2048)]
+
+		leave()
+
+		const newer = await served('/newer.pdf', 5)
+
+		focusPage('/newer.pdf', {}, 0)
+
+		await newer.landBitmap(2048)
+
+		expect(kept.some((raster) => raster.close.mock.calls.length > 0)).toBe(false)
+
+		await newer.landBitmap(2048)
+
+		// Four bitmaps are 64 MiB. The older document, which no viewer shows, gives one up.
+		expect(kept[0]?.close).toHaveBeenCalledOnce()
+
+		expect(kept[1]?.close).not.toHaveBeenCalled()
+	})
+
+	it('keeps the bitmaps that a viewer wants, whatever the budget', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		focusPage('/a.pdf', {}, 1)
+
+		const wanted = [
+			await pages.landBitmap(4096),
+			await pages.landBitmap(4096),
+			await pages.landBitmap(4096),
+		]
+
+		for (const raster of wanted) expect(raster.close).not.toHaveBeenCalled()
 	})
 })

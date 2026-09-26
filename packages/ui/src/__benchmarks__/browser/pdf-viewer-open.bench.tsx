@@ -9,11 +9,12 @@
  * - `stage · …` splits one page into the steps that the rasterizer takes: the pdf.js render
  *   onto a canvas, then the encode that turns the canvas into the image the viewer shows.
  *   The encoders beside PNG are the alternatives, so each one's cost is on record. The
- *   describe also prints the size of the page in each format.
+ *   describe also prints the size of the page in each format. The `bitmap` row is the path that
+ *   the viewer takes now: it keeps the canvas as an `ImageBitmap`, with no encode.
  *   The `work only` rows answer each animation frame that pdf.js waits for in a microtask, so
  *   they give the work of a render without its frame pacing.
- * - `flip · resident page` shows a page that has a full raster, from the commit to the decoded
- *   image. The bench also prints the PNG that the document holds.
+ * - `flip · resident page` shows a page that has a full raster, from the commit to the page that
+ *   can paint. The bench also prints the rasters that the document holds.
  * - `flip · far page` shows a page with no full raster, so each sample is one render.
  *
  * The documents come from `pdf-fixtures.ts`: US-Letter invoice pages with 40 rows of text,
@@ -48,6 +49,7 @@ import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	documentCacheState,
 	getDocumentSnapshot,
+	hasRaster,
 	resetDocumentCache,
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
@@ -94,20 +96,15 @@ async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: 
 	const observer = new MutationObserver(() => {
 		if (!Number.isNaN(painted)) return
 
-		const image = box.querySelector<HTMLImageElement>('[data-slot="pdf-viewer-page-frame"] img')
+		const image = pageImage(box)
 
 		if (!image) return
 
 		painted = -1
 
-		image.decode().then(
-			() => {
-				painted = performance.now() - start
-			},
-			() => {
-				painted = performance.now() - start
-			},
-		)
+		shown(image).then(() => {
+			painted = performance.now() - start
+		})
 	})
 
 	observer.observe(box, { childList: true, subtree: true })
@@ -145,6 +142,23 @@ async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: 
 	URL.revokeObjectURL(src)
 
 	return { painted, rasters }
+}
+
+/** The page image of the viewport: an `<img>`, or the `<canvas>` of a bitmap. */
+function pageImage(box: HTMLElement) {
+	return box.querySelector<HTMLImageElement | HTMLCanvasElement>(
+		'[data-slot="pdf-viewer-page-frame"] [data-slot="pdf-viewer-page-image"]',
+	)
+}
+
+/**
+ * Resolves when `image` can paint: an `<img>` once it decodes, and a `<canvas>` at once,
+ * because the viewer draws its bitmap in the commit that mounts it.
+ */
+function shown(image: HTMLImageElement | HTMLCanvasElement) {
+	if (image instanceof HTMLCanvasElement) return Promise.resolve()
+
+	return image.decode().catch(() => {})
 }
 
 /** Resolves when `src` is open and its queue has nothing more to render. */
@@ -322,6 +336,12 @@ describe('pdf viewer · stage · one invoice page at 2x', async () => {
 
 	bench('stage · encode · png', () => encode('image/png').then(() => {}), { time: 2_000 })
 
+	bench(
+		'stage · bitmap · createImageBitmap',
+		() => createImageBitmap(canvas).then((bitmap) => bitmap.close()),
+		{ time: 2_000 },
+	)
+
 	bench('stage · encode · webp 0.92', () => encode('image/webp', 0.92).then(() => {}), {
 		time: 2_000,
 	})
@@ -363,7 +383,9 @@ async function mountResident(count: number) {
 
 		await rasterOf(src, page - 1)
 
-		await box.querySelector<HTMLImageElement>('[data-slot="pdf-viewer-page-frame"] img')?.decode()
+		const image = pageImage(box)
+
+		if (image) await shown(image)
 	}
 
 	return { src, show }
@@ -423,25 +445,25 @@ describe('pdf viewer · page flip', () => {
 async function printResident(src: string) {
 	const { pages } = getDocumentSnapshot(src)
 
-	const full = pages.filter((page) => page.src)
+	const full = pages.filter(hasRaster)
 
 	let bytes = 0
-
-	for (const page of full) bytes += (await (await fetch(page.src)).blob()).size
 
 	for (const page of pages) {
 		if (page.thumbnail) bytes += (await (await fetch(page.thumbnail)).blob()).size
 	}
 
+	const entry = documentCacheState().find((held) => held.src === src)
+
 	console.log(
-		`resident · ${pages.length} pages · ${full.length} full rasters · ${(bytes / 1024 / 1024).toFixed(2)} MiB of PNG with the thumbnails, ${((full.length * (pages[0]?.width ?? 0) * (pages[0]?.height ?? 0) * 4) / 1024 / 1024).toFixed(0)} MiB if every full raster decodes`,
+		`resident · ${pages.length} pages · ${full.length} full rasters as ${((entry?.bitmapBytes ?? 0) / 1024 / 1024).toFixed(1)} MiB of bitmap · ${(bytes / 1024 / 1024).toFixed(2)} MiB of thumbnail PNG`,
 	)
 }
 
 /** Resolves when the page at the 0-based `index` of `src` has its full raster. */
 function rasterOf(src: string, index: number) {
 	return new Promise<void>((resolve) => {
-		const done = () => !!getDocumentSnapshot(src).pages[index]?.src
+		const done = () => hasRaster(getDocumentSnapshot(src).pages[index])
 
 		if (done()) return resolve()
 

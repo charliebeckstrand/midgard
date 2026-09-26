@@ -5,7 +5,9 @@ import { cn } from '../../core'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { usePdfViewerContext } from './context'
+import { hasRaster } from './pdf-viewer-document-cache'
 import { usePdfViewerMagnifierContext } from './pdf-viewer-magnifier-context'
+import { PdfViewerPageImage } from './pdf-viewer-page-image'
 import { lensOffset } from './use-pdf-viewer-magnifier'
 
 /**
@@ -15,8 +17,8 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
  * a higher scale. The lens holds a copy of the page frame inside a wrapper scaled about the
  * pointer. The copy is the same image, at the same size, wearing the same transform. So
  * rotation, zoom and the centering all compose exactly as they do on the page itself. There
- * is no second copy of that arithmetic to keep in agreement. There is no work at all beyond
- * a paint either, because the browser has the bitmap decoded already.
+ * is no second copy of that arithmetic to keep in agreement. There is little work beyond
+ * a paint either. The image is decoded already, and a bitmap draws onto the lens in one call.
  *
  * Portaled into the same container every other floating surface in the package resolves.
  * The viewport it sits over is a scroll container and would clip it. A consumer that
@@ -36,7 +38,14 @@ export function PdfViewerMagnifier() {
 
 	const { imageWidth, imageHeight, frameWidth, frameHeight, transform } = scale
 
-	if (!magnifierSettings || !magnifier.open || !magnifier.point || !activePage?.src || !visible) {
+	if (
+		!magnifierSettings ||
+		!magnifier.open ||
+		!magnifier.point ||
+		!activePage ||
+		!hasRaster(activePage) ||
+		!visible
+	) {
 		return null
 	}
 
@@ -64,8 +73,8 @@ export function PdfViewerMagnifier() {
 						transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
 					}}
 				>
-					<img
-						src={activePage.src}
+					<PdfViewerPageImage
+						page={activePage}
 						alt=""
 						className={cn(k.viewport.page.base)}
 						style={{ width: imageWidth, height: imageHeight, transform }}

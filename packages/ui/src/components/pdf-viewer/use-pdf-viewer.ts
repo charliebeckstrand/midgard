@@ -9,6 +9,7 @@ import type {
 	PdfViewerMagnifierOptions,
 	PdfViewerMagnifierState,
 	PdfViewerPage,
+	PdfViewerSlot,
 	PdfViewerZoom,
 } from './types'
 import { usePdfViewerDocument, usePdfViewerDocumentFocus } from './use-pdf-viewer-document'
@@ -130,9 +131,9 @@ export type PdfViewerResult = {
 	 * Resolved pages: consumer `pages`, or the slots of the `src` document. The slots arrive
 	 * when the document opens, and a slot whose page has not rendered has an empty `src`.
 	 */
-	pages: PdfViewerPage[]
+	pages: PdfViewerSlot[]
 	total: number
-	activePage: PdfViewerPage | undefined
+	activePage: PdfViewerSlot | undefined
 	/** Current page clamped to `[1, total]`, or `0` when empty. */
 	safePage: number
 	goToPage: (page: number) => void

@@ -96,10 +96,12 @@ type PdfDocumentResult = PdfDocumentSnapshot & {
 const THUMBNAIL_WIDTH = 192
 
 /**
- * Renders one parsed page onto a canvas of its own, and encodes it to a blob URL.
+ * Renders one parsed page onto a canvas of its own, and keeps the result.
  *
- * @returns A job that gives the URL, or `null` for a page with no 2D context or an encode that
- * fails. The rest of the document still renders.
+ * @returns A job that gives the raster, or `null` for a page with no 2D context or an encode
+ * that fails. The rest of the document still renders. A full raster is an `ImageBitmap`, which
+ * costs no encode. A thumbnail is a PNG blob URL: it is small, and the rail shows it in an
+ * `<img>`.
  * @remarks The canvas lives for one render. Its backing store is freed when the render ends,
  * and the page frees its operator list. So a document keeps no canvas and no operator list
  * between renders, only the images that the cache holds.
@@ -128,6 +130,8 @@ function renderPage(page: PDFPageProxy, raster: PdfPageRaster, scale: number): P
 	const promise = (async () => {
 		try {
 			await task.promise
+
+			if (raster === 'full') return await createImageBitmap(canvas)
 
 			const blob = await new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, 'image/png'))
 

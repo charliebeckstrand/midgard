@@ -1,6 +1,18 @@
 import type { Dispatch, SetStateAction } from 'react'
 import type { Color } from '../../core/recipe'
 
+/**
+ * A page of a `src` document, as the viewer holds it: a {@link PdfViewerPage}, and the bitmap
+ * of its full raster once the page renders.
+ *
+ * @remarks The bitmap replaces the PNG of the full raster, because the encode was three
+ * quarters of the work of a page. A slot with neither `src` nor `bitmap` has not rendered.
+ * @internal
+ */
+export type PdfViewerSlot = PdfViewerPage & {
+	bitmap?: ImageBitmap
+}
+
 /** A pre-rendered page supplied to {@link PdfViewer}: its image source plus optional thumbnail, label, and intrinsic size. */
 export type PdfViewerPage = {
 	/** Stable key. Falls back to the array index when omitted. */
