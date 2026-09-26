@@ -8,9 +8,6 @@
 	"components/color/use-color-state.ts": {
 		"useColorState": "Refs"
 	},
-	"components/combobox/combobox.tsx": {
-		"Combobox": "Todo"
-	},
 	"components/combobox/use-combobox-state.ts": {
 		"useComboboxState": "PreserveManualMemo"
 	},
@@ -67,9 +64,6 @@
 	},
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
-	},
-	"components/listbox/listbox.tsx": {
-		"Listbox": "Todo"
 	},
 	"components/mask-input/mask-input.tsx": {
 		"MaskInput": "Refs"
@@ -253,9 +247,6 @@
 	"modules/grid/use-grid-group.ts": {
 		"useGridGroup": "Todo"
 	},
-	"modules/grid/use-grid-infinite-scroll.ts": {
-		"useGridInfiniteScroll": "Todo"
-	},
 	"modules/grid/use-grid-item-window.ts": {
 		"useGridItemWindow": "Immutability"
 	},
@@ -300,12 +291,6 @@
 	},
 	"modules/query/query-builder/use-query-builder-tree.ts": {
 		"useQueryBuilderTree": "Refs"
-	},
-	"primitives/current/current-content.tsx": {
-		"CurrentContent": "Todo"
-	},
-	"primitives/mount/mount.ts": {
-		"useMountHold": "Refs"
 	},
 	"primitives/polymorphic/polymorphic-static.tsx": {
 		"PolymorphicStatic": "Refs"

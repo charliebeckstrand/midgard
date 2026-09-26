@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 
 /**
  * Mount policy for a panel that spends part of its life inactive. Examples are
@@ -88,13 +88,13 @@ export function useMountHold(
 	const defer = options?.defer ?? false
 
 	// Lazy latch: a panel that has ever been active stays mounted thereafter.
-	// Monotonic, so a re-run render is idempotent; becoming active is itself a
-	// re-render, so no commit is needed to flip it.
-	const everActive = useRef(false)
+	// State and not a ref, so a render that React discards does not set it.
+	const [everActive, setEverActive] = useState(active)
 
-	const mountedActive = useRef(active)
+	if (active && !everActive) setEverActive(true)
 
-	if (active) everActive.current = true
+	// The state the panel mounted in. It does not change after the mount.
+	const [mountedActive] = useState(active)
 
 	const held = mount !== 'active'
 
@@ -129,10 +129,10 @@ export function useMountHold(
 	}, [defer, active])
 
 	return {
-		present: mount === 'always' || active || (mount === 'lazy' && everActive.current),
+		present: mount === 'always' || active || (mount === 'lazy' && everActive),
 		held,
 		hidden: defer ? rested : !active,
-		mountedActive: mountedActive.current,
+		mountedActive,
 		rest,
 	}
 }

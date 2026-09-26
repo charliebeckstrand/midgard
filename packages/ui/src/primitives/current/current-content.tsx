@@ -104,9 +104,13 @@ export function CurrentContent({
 	style,
 	children,
 	ref,
-	'data-slot': slot = `${slotPrefix}-content`,
+	'data-slot': slotProp,
 	...props
 }: CurrentContentProps) {
+	// Resolved here and not as a parameter default, which the React Compiler
+	// cannot reorder.
+	const slot = slotProp ?? `${slotPrefix}-content`
+
 	const context = useCurrent()
 
 	const fade = useCurrentFade()

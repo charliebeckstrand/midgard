@@ -301,9 +301,7 @@ export function Combobox<T>({
 	disabled,
 	readOnly,
 	required,
-	// Derived per render: while no value is held on either channel, clicking the
-	// selected option clears it.
-	nullable = valueProp == null && defaultValue == null,
+	nullable: nullableProp,
 	closeOnSelect,
 	clearOnEmpty = false,
 	clearable = false,
@@ -330,6 +328,11 @@ export function Combobox<T>({
 	const token = useControlSize(size)
 
 	const resolvedSize = token.size
+
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it. Resolved here and not as a parameter default,
+	// which the React Compiler cannot reorder.
+	const nullable = nullableProp ?? (valueProp == null && defaultValue == null)
 
 	const handleValueChange = useSelectableValueChange<T>(
 		onValueChange as ((value: T | T[] | null) => void) | undefined,

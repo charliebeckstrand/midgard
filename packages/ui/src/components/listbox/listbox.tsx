@@ -143,9 +143,7 @@ export function Listbox<T>({
 	displayValue,
 	onValueChange,
 	multiple = false,
-	// Derived per render: while no value is held on either channel, clicking the
-	// selected option clears it.
-	nullable = valueProp == null && defaultValue == null,
+	nullable: nullableProp,
 	placeholder = 'Select',
 	placement = 'bottom-start',
 	prefix,
@@ -173,6 +171,11 @@ export function Listbox<T>({
 	const glass = useGlass()
 	const control = useControl()
 	const token = useControlSize(size)
+
+	// Derived per render: while no value is held on either channel, clicking the
+	// selected option clears it. Resolved here and not as a parameter default,
+	// which the React Compiler cannot reorder.
+	const nullable = nullableProp ?? (valueProp == null && defaultValue == null)
 
 	// The shared control cascade: explicit props win, then the enclosing
 	// `<Control>`. It also merges the consumer `aria-describedby` with the field's
@@ -263,18 +266,20 @@ export function Listbox<T>({
 	// trigger: forward to the next tabbable, Shift+Tab to the previous. Left
 	// to the focus manager, Shift+Tab lands on the trigger itself, costing a
 	// second keystroke.
+	// The handler, not the context that holds it: the engine rebuilds `context`
+	// on every reposition, while `onOpenChange` keeps one identity for the mount
+	// (see {@link useFloatingOutsidePress}).
+	const { onOpenChange: onFloatingOpenChange } = context
+
 	const handleTabOut = useCallback(
 		(event: KeyboardEvent<HTMLElement>) => {
 			if (event.key !== 'Tab') return
 
-			context.onOpenChange(false, event.nativeEvent, 'focus-out')
+			onFloatingOpenChange(false, event.nativeEvent, 'focus-out')
 
 			triggerRef.current?.focus()
 		},
-		// The handler, not the context that holds it: the engine rebuilds
-		// `context` on every reposition, while `onOpenChange` keeps one identity
-		// for the mount (see {@link useFloatingOutsidePress}).
-		[context.onOpenChange],
+		[onFloatingOpenChange],
 	)
 
 	// Marks the bound field touched when focus leaves the widget; a blur into the
