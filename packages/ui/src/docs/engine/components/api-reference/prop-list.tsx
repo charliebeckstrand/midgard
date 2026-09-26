@@ -2,9 +2,9 @@
 
 import { Badge } from '../../../../components/badge'
 import { CodeBlock } from '../../../../components/code'
-import { Stack } from '../../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
+import { Stack } from '../../../../structure/stack'
 import type { PropDef } from '../../api-reference/types'
 import { DefaultValue } from './default-value'
 import { DocDescription } from './doc-description'

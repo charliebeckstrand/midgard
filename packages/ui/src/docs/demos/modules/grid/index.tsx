@@ -7,7 +7,6 @@ import { HoldButton } from '../../../../components/hold-button'
 import { Icon } from '../../../../components/icon'
 import { JsonTree } from '../../../../components/json-tree'
 import { Sparkline } from '../../../../components/sparkline'
-import { Stack } from '../../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../../components/tabs'
 import { Text } from '../../../../components/text'
 import {
@@ -19,6 +18,7 @@ import {
 	type GridRowGroup,
 	type GridSortState,
 } from '../../../../modules/grid'
+import { Stack } from '../../../../structure/stack'
 import { code, Example } from '../../../engine'
 import {
 	AsyncCommitExample,

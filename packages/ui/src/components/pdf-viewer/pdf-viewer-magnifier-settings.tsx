@@ -4,6 +4,7 @@ import { ScanSearch } from 'lucide-react'
 import { useId, useState } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
+import { Stack } from '../../structure/stack'
 import { Button } from '../button'
 import {
 	Dialog,
@@ -15,7 +16,6 @@ import {
 } from '../dialog'
 import { Description, Fieldset, Label, Legend } from '../fieldset'
 import { Radio, RadioField, RadioGroup } from '../radio'
-import { Stack } from '../stack'
 import { Switch, SwitchField } from '../switch'
 import { usePdfViewerContext } from './context'
 import { PdfViewerToolbarButton } from './pdf-viewer-toolbar-button'

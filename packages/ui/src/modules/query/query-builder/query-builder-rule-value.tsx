@@ -3,12 +3,12 @@
 import { parseDate } from '@internationalized/date'
 import { fromCalendarDate, toCalendarDate } from '../../../components/calendar/calendar-utilities'
 import { DatePicker } from '../../../components/date-picker'
-import { Flex } from '../../../components/flex'
 import { Input } from '../../../components/input'
 import { ListboxOption } from '../../../components/listbox'
 import { NumberInput } from '../../../components/number-input'
 import { Select } from '../../../components/select'
 import { cn } from '../../../core'
+import { Flex } from '../../../structure/flex'
 import type { QueryField } from '../engine/types'
 
 /** Props for {@link QueryBuilderRuleValue}: the rule's `field` and its current value plus a change callback. */

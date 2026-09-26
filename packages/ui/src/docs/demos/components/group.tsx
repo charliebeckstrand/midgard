@@ -3,8 +3,8 @@ import { Button } from '../../../components/button'
 import { Group } from '../../../components/group'
 import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
-import { Stack } from '../../../components/stack'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

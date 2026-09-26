@@ -5,7 +5,6 @@ import { useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { CodeBlock } from '../../../../components/code'
-import { Flex } from '../../../../components/flex'
 import { Heading } from '../../../../components/heading'
 import { Icon } from '../../../../components/icon'
 import {
@@ -16,9 +15,10 @@ import {
 	SheetHeader,
 	SheetTitle,
 } from '../../../../components/sheet'
-import { Stack } from '../../../../components/stack'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { GlassProvider } from '../../../../providers/glass'
+import { Flex } from '../../../../structure/flex'
+import { Stack } from '../../../../structure/stack'
 import type { PropDef } from '../../api-reference/types'
 
 /** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */

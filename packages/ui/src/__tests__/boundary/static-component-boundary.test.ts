@@ -12,7 +12,7 @@ import { srcDir, walkSource } from '../helpers/walk-source'
 // Coverage comes from two mechanisms that never overlap:
 //
 //   - STATIC_COMPONENT_FILES below is the curated list of declared static
-//     *atoms* (box, text, table parts, inert display leaves). It's a
+//     *atoms* (text, table parts, inert display leaves). It's a
 //     deliberate contract, not "every hookless file" — most component files
 //     that read no context are only incidentally hookless composition
 //     wrappers whose interactivity lives in their children, and those are
@@ -39,7 +39,6 @@ const STATIC_COMPONENT_FILES = [
 	'avatar/avatar-group.tsx',
 	'badge/badge.tsx',
 	'banner/banner.tsx',
-	'box/box.tsx',
 	'breadcrumb/breadcrumb.tsx',
 	'breadcrumb/breadcrumb-item.tsx',
 	'breadcrumb/breadcrumb-link.tsx',
@@ -52,23 +51,18 @@ const STATIC_COMPONENT_FILES = [
 	'card/card-header.tsx',
 	'card/card-title.tsx',
 	'code/code.tsx',
-	'container/container.tsx',
 	'divider/divider.tsx',
 	'dl/description-details.tsx',
 	'dl/description-list.tsx',
 	'dl/description-term.tsx',
 	'fieldset/fieldset.tsx',
 	'fieldset/legend.tsx',
-	'flex/flex.tsx',
 	'heading/heading.tsx',
 	'icon/icon.tsx',
 	'kbd/kbd.tsx',
 	'loading/loading-dots.tsx',
 	'loading/loading-spinner.tsx',
 	'placeholder/placeholder.tsx',
-	'spacer/spacer.tsx',
-	'split/split.tsx',
-	'stack/stack.tsx',
 	'stat/stat-delta.tsx',
 	'stat/stat-description.tsx',
 	'stat/stat-label.tsx',
@@ -87,6 +81,17 @@ const STATIC_COMPONENT_FILES = [
 ] as const
 
 // Paths are relative to `src/primitives`.
+// Every `structure` file is static: layout scaffolding takes props and
+// returns markup. Paths are relative to `src/structure`.
+const STATIC_STRUCTURE_FILES = [
+	'box/box.tsx',
+	'container/container.tsx',
+	'flex/flex.tsx',
+	'spacer/spacer.tsx',
+	'split/split.tsx',
+	'stack/stack.tsx',
+] as const
+
 const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/polymorphic-static.tsx',
 	'polymorphic/fallback.tsx',
@@ -95,6 +100,8 @@ const STATIC_PRIMITIVE_FILES = [
 const componentsDir = join(srcDir, 'components')
 
 const primitivesDir = join(srcDir, 'primitives')
+
+const structureDir = join(srcDir, 'structure')
 
 const modulesDir = join(srcDir, 'modules')
 
@@ -172,6 +179,12 @@ describe('static component boundary', () => {
 		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
 	})
 
+	it.each(STATIC_STRUCTURE_FILES)('%s stays server-renderable', (file) => {
+		const breaches = staticBreaches(readFileSync(join(structureDir, file), 'utf8'))
+
+		expect(breaches, `${file}: ${breaches.join(', ')}`).toEqual([])
+	})
+
 	it.each(STATIC_PRIMITIVE_FILES)('%s stays server-renderable', (file) => {
 		const breaches = staticBreaches(readFileSync(join(primitivesDir, file), 'utf8'))
 
@@ -181,6 +194,7 @@ describe('static component boundary', () => {
 	it('the curated static list has no stale entries', () => {
 		const missing = [
 			...STATIC_COMPONENT_FILES.filter((file) => !existsSync(join(componentsDir, file))),
+			...STATIC_STRUCTURE_FILES.filter((file) => !existsSync(join(structureDir, file))),
 			...STATIC_PRIMITIVE_FILES.filter((file) => !existsSync(join(primitivesDir, file))),
 		]
 

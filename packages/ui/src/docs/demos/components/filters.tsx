@@ -11,11 +11,11 @@ import {
 	FiltersSuffix,
 	useFilters,
 } from '../../../components/filters'
-import { Flex } from '../../../components/flex'
 import { Input } from '../../../components/input'
 import { JsonTree } from '../../../components/json-tree'
 import { NumberInput } from '../../../components/number-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 type BasicFilters = {

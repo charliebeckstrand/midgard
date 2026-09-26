@@ -5,7 +5,7 @@ import { Control } from '../../../components/control'
 import { Label, Message } from '../../../components/fieldset'
 import { Form } from '../../../components/form'
 import { Input } from '../../../components/input'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 const severities = [

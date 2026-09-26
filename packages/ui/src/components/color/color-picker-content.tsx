@@ -8,7 +8,7 @@ import { Density } from '../../primitives/density'
 import { PresencePortal } from '../../primitives/portal'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
-import { Box } from '../box'
+import { Box } from '../../structure/box'
 import type { ControlSize } from '../control/context'
 
 type ColorPickerContentProps = {

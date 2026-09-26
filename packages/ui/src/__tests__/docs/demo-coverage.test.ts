@@ -9,6 +9,8 @@ const SRC = resolve(dirname(fileURLToPath(import.meta.url)), '../..')
 
 const COMPONENTS = join(SRC, 'components')
 
+const STRUCTURE = join(SRC, 'structure')
+
 const DEMOS = join(SRC, 'docs', 'demos')
 
 // Components intentionally shipped without a dedicated demo. Keep this empty;
@@ -25,12 +27,13 @@ function directoryNames(dir: string): string[] {
  * Demo file basenames (sans `.tsx`). A component demo is
  * `demos/components/<name>.tsx`; a few provider-like components (e.g.
  * `headless`, `toast`) are namespaced under `demos/providers/<name>.tsx`, so
- * both directories count toward coverage.
+ * both directories count toward coverage. A structure demo is
+ * `demos/structure/<name>.tsx`.
  */
-function demoBasenames(): Set<string> {
+function demoBasenames(dirs: readonly string[]): Set<string> {
 	const names = new Set<string>()
 
-	for (const dir of [join(DEMOS, 'components'), join(DEMOS, 'providers')]) {
+	for (const dir of dirs.map((name) => join(DEMOS, name))) {
 		for (const entry of readdirSync(dir, { withFileTypes: true })) {
 			if (entry.isFile() && entry.name.endsWith('.tsx')) names.add(entry.name.replace(/\.tsx$/, ''))
 		}
@@ -51,13 +54,28 @@ describe('demo coverage', () => {
 
 		expect(components.length, 'no component directories found').toBeGreaterThan(0)
 
-		const demos = demoBasenames()
+		const demos = demoBasenames(['components', 'providers'])
 
 		const missing = components.filter((name) => !demos.has(name) && !ALLOW_NO_DEMO.has(name))
 
 		expect(
 			missing,
 			'components without a demo (add one under src/docs/demos/components/, or allowlist)',
+		).toEqual([])
+	})
+
+	it('every structure directory has a demo', () => {
+		const structure = directoryNames(STRUCTURE)
+
+		expect(structure.length, 'no structure directories found').toBeGreaterThan(0)
+
+		const demos = demoBasenames(['structure'])
+
+		const missing = structure.filter((name) => !demos.has(name))
+
+		expect(
+			missing,
+			'structure units without a demo (add one under src/docs/demos/structure/)',
 		).toEqual([])
 	})
 })

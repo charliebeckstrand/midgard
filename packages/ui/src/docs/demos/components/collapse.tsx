@@ -6,8 +6,8 @@ import {
 	CollapseTrigger,
 	useCollapseContext,
 } from '../../../components/collapse'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 function TriggerLabel() {

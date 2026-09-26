@@ -1,9 +1,9 @@
 import { ArrowDown, ArrowUp } from 'lucide-react'
 import { Card, CardBody } from '../../../components/card'
-import { Flex } from '../../../components/flex'
 import { Icon } from '../../../components/icon'
-import { Stack } from '../../../components/stack'
 import { Stat, StatDelta, StatDescription, StatLabel, StatValue } from '../../../components/stat'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

@@ -9,8 +9,8 @@ import {
 	CardTitle,
 } from '../../../components/card'
 import { Link } from '../../../components/link'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {
@@ -23,7 +23,7 @@ export function Demo() {
 				description={
 					<>
 						See the{' '}
-						<Link href="#box" underline>
+						<Link href="#structure-box" underline>
 							Box documentation
 						</Link>{' '}
 						for more details and examples.

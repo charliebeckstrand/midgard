@@ -9,7 +9,7 @@ import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
-import { Box, type BoxPadding } from '../box'
+import { Box, type BoxPadding } from '../../structure/box'
 import { usePopoverContext, usePopoverPosition } from './context'
 
 // Surface padding scales with the resolved Density size.

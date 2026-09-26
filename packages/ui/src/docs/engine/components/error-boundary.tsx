@@ -3,8 +3,8 @@
 import { Component, type ReactNode } from 'react'
 import { Button } from '../../../components/button'
 import { Heading } from '../../../components/heading'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Stack } from '../../../structure/stack'
 
 type Props = {
 	children: ReactNode

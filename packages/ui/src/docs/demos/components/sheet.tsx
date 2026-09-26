@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../../components/sheet'
+import { Flex } from '../../../structure/flex'
 import { Example } from '../../engine'
 
 export function Demo() {

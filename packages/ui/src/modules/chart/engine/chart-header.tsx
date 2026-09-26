@@ -1,10 +1,10 @@
 'use client'
 
-import { Box } from '../../../components/box'
 import { Text } from '../../../components/text'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn } from '../../../core'
 import { useTruncation } from '../../../hooks/use-truncation'
+import { Box } from '../../../structure/box'
 
 /** Props for {@link ChartHeaderLine}. @internal */
 type ChartHeaderLineProps = {

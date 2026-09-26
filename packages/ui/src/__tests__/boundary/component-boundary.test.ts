@@ -21,6 +21,8 @@ const modulesDir = join(srcDir, 'modules')
 
 const providersDir = join(srcDir, 'providers')
 
+const structureDir = join(srcDir, 'structure')
+
 const REEXPORT_FROM = /export\s+(?:\*|\{[^}]*\}|type\s+\{[^}]*\})\s+from\s+['"]([^'"]+)['"]/g
 
 const SIBLING_MAIN_IMPORT = /from\s+['"]\.\.\/([a-z][a-z0-9-]*)\/\1(?:\.tsx?)?['"]/g
@@ -29,7 +31,7 @@ describe('component internals boundary', () => {
 	it("a component's index.ts re-exports only from within its own folder", () => {
 		const violations: string[] = []
 
-		for (const dir of [componentsDir, modulesDir]) {
+		for (const dir of [componentsDir, modulesDir, structureDir]) {
 			const label = relative(srcDir, dir)
 
 			for (const entry of readdirSync(dir, { withFileTypes: true })) {
@@ -66,7 +68,7 @@ describe('component internals boundary', () => {
 	it("no file imports a sibling component's main file via a deep relative path", () => {
 		const violations: string[] = []
 
-		for (const dir of [componentsDir, modulesDir])
+		for (const dir of [componentsDir, modulesDir, structureDir])
 			walkSource(dir, (file, content) => {
 				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
 
@@ -93,7 +95,7 @@ describe('component internals boundary', () => {
 
 		const PROVIDER_JSX = /<[A-Z][A-Za-z]*Context[\s>]/
 
-		for (const dir of [componentsDir, modulesDir, providersDir])
+		for (const dir of [componentsDir, modulesDir, providersDir, structureDir])
 			walkSource(dir, (file, content) => {
 				if (!file.endsWith('.tsx')) return
 

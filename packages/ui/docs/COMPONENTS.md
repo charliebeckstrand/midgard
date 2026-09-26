@@ -1,6 +1,6 @@
 # Components
 
-> **Quick-glance index of every `ui` component**, grouped by domain. This is a flat inventory for orientation. Per-component behavior, props, and defaults live in each component's TSDoc — the `<Name>` doccomment and its `<Name>Props` type — and in the docs site (`pnpm docs`). For hooks, primitives, providers, the recipe layer, core, and utilities, see the sibling docs.
+> **Quick-glance index of every `ui` component**, grouped by domain. This is a flat inventory for orientation. Per-component behavior, props, and defaults live in each component's TSDoc — the `<Name>` doccomment and its `<Name>Props` type — and in the docs site (`pnpm docs`). For structure, hooks, primitives, providers, the recipe layer, core, and utilities, see the sibling docs.
 
 Each component is its own entry point — there is no root barrel:
 
@@ -39,7 +39,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 ## Layout & surfaces
 
-`box` · `flex` · `stack` · `group` · `split` · `container` · `card` · `divider` · `spacer` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
+`group` · `card` · `divider` · `aspect-ratio` · `scroll-area` · `resizable` · `collapse` · `accordion` · `segment` · `placeholder`
 
 ## Typography
 

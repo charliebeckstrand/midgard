@@ -3,8 +3,9 @@ import { join } from 'node:path'
 import { defineConfig } from 'tsup'
 
 /**
- * Discover build entries from the filesystem. Each component / provider dir
- * that has an `index.ts` becomes a named entry; plus hooks and layouts.
+ * Discover build entries from the filesystem. Each component, provider, module,
+ * or structure dir that has an `index.ts` becomes a named entry; plus hooks and
+ * layouts.
  */
 function discoverEntries(root: string, prefix = '') {
 	return Object.fromEntries(
@@ -28,12 +29,15 @@ const providerEntries = discoverEntries('src/providers', 'providers/')
 
 const moduleEntries = discoverEntries('src/modules', 'modules/')
 
+const structureEntries = discoverEntries('src/structure', 'structure/')
+
 const entry = {
 	hooks: 'src/hooks/index.ts',
 	layouts: 'src/layouts/index.ts',
 	...componentEntries,
 	...providerEntries,
 	...moduleEntries,
+	...structureEntries,
 }
 
 // No 'use client' banner: a blanket banner stamps the directive onto every

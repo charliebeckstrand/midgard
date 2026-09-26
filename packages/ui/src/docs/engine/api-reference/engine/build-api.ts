@@ -16,13 +16,14 @@ import {
 } from './find-components'
 
 /**
- * The two documented roots and the key prefix each barrel takes. Components key
- * by bare directory name; modules namespace their key as `modules-<name>` to
- * match the demo id (`pathToId('demos/modules/<name>')`).
+ * The documented roots and the key prefix each barrel takes. Components key by
+ * bare directory name. Modules and structure units namespace their key as
+ * `<root>-<name>` to match the demo id (`pathToId('demos/modules/<name>')`).
  */
 export const DOCUMENTED_ROOTS = [
 	['components', ''],
 	['modules', 'modules-'],
+	['structure', 'structure-'],
 ] as const
 
 /**
@@ -38,8 +39,8 @@ export function tsConfigPathFor(srcDir: string): string {
 export type Barrel = { key: string; indexPath: string }
 
 /**
- * List every documentable barrel under `<srcDir>/components` and
- * `<srcDir>/modules` in a stable order, keyed to match the demo ids. Missing
+ * List every documentable barrel under `<srcDir>/components`,
+ * `<srcDir>/modules`, and `<srcDir>/structure` in a stable order, keyed to match the demo ids. Missing
  * roots and directories without an `index.ts` are skipped.
  */
 export function listBarrels(srcDir: string): Barrel[] {
@@ -99,8 +100,9 @@ export function extractBarrel(
 }
 
 /**
- * Extract API reference data for every component under `<srcDir>/components`
- * and `<srcDir>/modules`, keyed by directory name (modules as `modules-<name>`).
+ * Extract API reference data for every unit under `<srcDir>/components`,
+ * `<srcDir>/modules`, and `<srcDir>/structure`, keyed by directory name
+ * (modules as `modules-<name>`, structure units as `structure-<name>`).
  * One ts-morph Project covers the whole package; the type checker resolves
  * cross-file references in a single pass. This is the one-shot form; the docs
  * plugin drives incremental, disk-cached extraction through

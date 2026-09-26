@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Spacer } from '../../components/spacer'
+import { Spacer } from '../../structure/spacer'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Spacer', () => {

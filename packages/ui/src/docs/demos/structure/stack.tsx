@@ -1,8 +1,8 @@
 import { Badge } from '../../../components/badge'
 import { Button } from '../../../components/button'
 import { Card } from '../../../components/card'
-import { Flex } from '../../../components/flex'
-import { Stack } from '../../../components/stack'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

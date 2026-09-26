@@ -1,8 +1,8 @@
 import { Button } from '../../../components/button'
-import { Flex } from '../../../components/flex'
-import { Stack } from '../../../components/stack'
 import { Toast } from '../../../components/toast'
 import { ToastProvider, useToast } from '../../../providers/toast'
+import { Flex } from '../../../structure/flex'
+import { Stack } from '../../../structure/stack'
 import { code, Example } from '../../engine'
 
 export const meta = { name: 'Toast' }

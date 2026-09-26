@@ -4,8 +4,8 @@ import { Checkbox, CheckboxField } from '../../../components/checkbox'
 import { Confirm } from '../../../components/confirm'
 import { DialogBody } from '../../../components/dialog'
 import { Label } from '../../../components/fieldset'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

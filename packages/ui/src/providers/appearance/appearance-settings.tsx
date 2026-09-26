@@ -13,7 +13,7 @@ import {
 import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
-import { Stack } from '../../components/stack'
+import { Stack } from '../../structure/stack'
 import { densityLevels } from '../density/context'
 import { UIProvider } from '../ui'
 import { themeModes, useAppearance } from './context'

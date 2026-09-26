@@ -1,7 +1,7 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { Box } from '../../components/box'
 import { DensityProvider } from '../../providers/density'
+import { Box } from '../../structure/box'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Box', () => {

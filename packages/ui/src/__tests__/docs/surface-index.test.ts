@@ -70,6 +70,7 @@ describe('surface index ⇄ source sync (CONVENTIONS §12.2)', () => {
 		['COMPONENTS.md', 'components'],
 		['MODULES.md', 'modules'],
 		['PRIMITIVES.md', 'primitives'],
+		['STRUCTURE.md', 'structure'],
 	])('%s lists every %s directory', (mdFile, dir) => {
 		const dirs = subdirectories(dir)
 

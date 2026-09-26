@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { List, ListDescription, ListItem, ListLabel } from '../../../components/list'
-import { Stack } from '../../../components/stack'
+import { Stack } from '../../../structure/stack'
 import { Example, VariantListbox } from '../../engine'
 
 const variants = ['separated', 'outline', 'plain', 'solid'] as const

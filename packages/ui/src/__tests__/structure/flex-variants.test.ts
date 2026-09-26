@@ -5,7 +5,7 @@ import {
 	resolveDirection,
 	resolveGap,
 	resolveJustify,
-} from '../../components/flex/variants'
+} from '../../structure/flex/variants'
 
 describe('resolveDirection', () => {
 	it('returns an empty array when value is undefined', () => {

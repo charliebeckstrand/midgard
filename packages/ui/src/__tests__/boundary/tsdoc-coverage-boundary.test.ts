@@ -40,6 +40,7 @@ const BARREL_PATTERNS: readonly (readonly [dir: string, nested: boolean])[] = [
 	['modules', true],
 	['primitives', true],
 	['providers', true],
+	['structure', true],
 ]
 
 /** Absolute paths of every barrel the public surface exposes. */

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { Stack } from '../../components/stack'
+import { Stack } from '../../structure/stack'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
 describe('Stack', () => {

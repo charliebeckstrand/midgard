@@ -1,8 +1,8 @@
 import { Copy, Download, Maximize2, Pencil, Share2 } from 'lucide-react'
-import { Box } from '../../../components/box'
 import { ContextMenu, type ContextMenuItem } from '../../../components/context-menu'
-import { Stack } from '../../../components/stack'
 import { Text } from '../../../components/text'
+import { Box } from '../../../structure/box'
+import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
 export function Demo() {

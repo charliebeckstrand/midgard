@@ -114,7 +114,7 @@ The `no-client-gateway-access` Biome plugin gates the rule. It also keeps a runt
 
 9.1 In apps, the `@/*` alias maps to the source root: `src` in `places`, and `app` in `admin`. Use the alias in place of a deep relative chain, that is, three or more `../` segments.
 
-From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/primitives/*`, and `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
+From `packages/ui`, import per-component entries (`ui/button`, `ui/dialog`) plus `ui/core`, `ui/hooks`, `ui/layouts`, `ui/modules/*` (or the `ui/<module>` shorthand), `ui/structure/*`, `ui/primitives/*`, and `ui/providers/*`. No root barrel. `src/types`, `src/recipes`, and `src/utilities` stay package-internal, reached by relative import; `internal-barrel-boundary.test.ts` holds `./types` off the `exports` map.
 
 9.2 Import order is handled by [Biome's organize-imports](https://biomejs.dev/assist/actions/organize-imports/).
 
@@ -161,7 +161,7 @@ A dependency list names what its value reads, never an extra key to force a reco
 
 Do not restate the type or document a self-evident field. Mark a documented helper that no barrel re-exports with `@internal`; the tag and a barrel entry exclude each other. `tsdoc-coverage-boundary.test.ts` and `internal-barrel-boundary.test.ts` gate the rule. Standard: [TSDoc](https://tsdoc.org).
 
-12.2 The curated docs in [`packages/ui/docs/`](packages/ui/docs) are the quick-glance index of the `ui` surface. `COMPONENTS`, `MODULES`, `LAYOUTS`, `HOOKS`, `PRIMITIVES`, `PROVIDERS`, and `CORE` index the public surface. `RECIPES` and `UTILITIES` index the package-internal layers (§9.1).
+12.2 The curated docs in [`packages/ui/docs/`](packages/ui/docs) are the quick-glance index of the `ui` surface. `COMPONENTS`, `MODULES`, `STRUCTURE`, `LAYOUTS`, `HOOKS`, `PRIMITIVES`, `PROVIDERS`, and `CORE` index the public surface. `RECIPES` and `UTILITIES` index the package-internal layers (§9.1).
 
 A change that adds, removes, or renames an export updates the matching doc in the same commit. A new component goes in `COMPONENTS.md` under its domain bucket; any other new export gets a one-line summary in its doc. `surface-index.test.ts` checks every doc except `RECIPES` for a missing entry. [`packages/ui/REFERENCE.md`](packages/ui/REFERENCE.md) is the hub, so keep its surface map and its §2 boundary current.
 
