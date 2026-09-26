@@ -7,6 +7,7 @@ import type { Step } from '../../recipes'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
 import { useMenuState } from './use-menu-state'
+import { useMenuTouchHold } from './use-menu-touch-hold'
 
 /**
  * Props for {@link Menu}: the `open` / `defaultOpen` / `onOpenChange` state
@@ -57,7 +58,8 @@ export type MenuProps = {
  * Composition root for menus; provides open state and actions to its trigger
  * and items via context. A `placement` makes it a floating dropdown. Without
  * one the wrapper opens as a right-click context menu, or renders as a static
- * inline menu when `defaultOpen` is set.
+ * inline menu when `defaultOpen` is set. A context menu also opens on a touch
+ * long press, because iOS Safari fires no `contextmenu` event for one.
  *
  * @remarks
  * The mode comes from prop presence by design. The three modes take one prop
@@ -87,6 +89,8 @@ export function Menu({
 		size,
 	})
 
+	const touchContextMenu = useMenuTouchHold()
+
 	return (
 		<MenuActionsContext value={actions}>
 			<MenuCappedContext value={capped}>
@@ -102,11 +106,13 @@ export function Menu({
 							// contents: this wrapper must not participate in layout, or it
 							// introduces a box between the trigger/content and whatever flex or
 							// grid container the caller placed the menu in, breaking alignment.
-							className={cn('contents', className)}
+							// A context surface turns off the iOS callout, because a long press
+							// there opens the menu. The property inherits through `contents`.
+							className={cn('contents', isContextMenu && '[-webkit-touch-callout:none]', className)}
 							// No role: the wrapper holds arbitrary page content and implements no
 							// keyboard model of its own. Stamping role="application" here would
 							// suppress AT browse-mode for everything inside it, so it is omitted.
-							{...(isContextMenu && { onContextMenu: handleContextMenu })}
+							{...(isContextMenu && { ...touchContextMenu, onContextMenu: handleContextMenu })}
 						>
 							{children}
 						</div>
