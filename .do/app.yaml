@@ -68,6 +68,12 @@ services:
       - key: BIFROST_URL
         scope: RUN_AND_BUILD_TIME
         value: https://auth.ivoryimage.dev
+      # The gateway uses the browser address that the proxy sends only with
+      # this secret. The gateway holds the same value.
+      - key: PROXY_SECRET
+        scope: RUN_TIME
+        type: SECRET
+        value: ${PROXY_SECRET}
 
   - name: places
     github:

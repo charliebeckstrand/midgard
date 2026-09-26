@@ -45,6 +45,7 @@ describe('proxy', () => {
 		['/apis', signedOut, 'redirect /login'],
 		['/api/users', signedIn, 'next'],
 		['/api/users', signedOut, '401'],
+		['/auth/login', signedOut, 'next'],
 	])('sends %s with the session %o to %s', async (pathname, gateway, expected) => {
 		stubGateway(gateway)
 
@@ -95,5 +96,64 @@ describe('proxy', () => {
 		await expect(outcome('/users')).resolves.toBe('redirect /login')
 
 		expect(error).toHaveBeenCalledOnce()
+	})
+})
+
+describe('proxy address forwarding', () => {
+	const secret = 'a-proxy-secret-of-at-least-32-chars'
+
+	// `env.ts` reads `PROXY_SECRET` once, at load, so each case loads a new instance of the proxy.
+	async function forwarded(pathname: string, env: { PROXY_SECRET?: string } = {}) {
+		vi.stubEnv('PROXY_SECRET', env.PROXY_SECRET)
+
+		vi.resetModules()
+
+		const { proxy } = await import('../proxy')
+
+		stubGateway(signedIn)
+
+		const response = await proxy(
+			new NextRequest(`https://app.example${pathname}`, {
+				headers: {
+					'do-connecting-ip': '203.0.113.9',
+					'x-client-ip': '198.51.100.66',
+					'x-proxy-secret': 'forged',
+				},
+			}),
+		)
+
+		return {
+			ip: response.headers.get('x-middleware-request-x-client-ip'),
+			secret: response.headers.get('x-middleware-request-x-proxy-secret'),
+		}
+	}
+
+	it.each(['/auth/login', '/api/users'])(
+		'sends the browser address and the secret with %s',
+		async (pathname) => {
+			await expect(forwarded(pathname, { PROXY_SECRET: secret })).resolves.toEqual({
+				ip: '203.0.113.9',
+				secret,
+			})
+		},
+	)
+
+	it('removes the forged values when no secret is set', async () => {
+		await expect(forwarded('/auth/login')).resolves.toEqual({ ip: null, secret: null })
+	})
+
+	it('does not send the secret with a page request', async () => {
+		await expect(forwarded('/users', { PROXY_SECRET: secret })).resolves.toEqual({
+			ip: null,
+			secret: null,
+		})
+	})
+
+	it('does not ask the gateway for the session on an auth route', async () => {
+		const fetch = stubGateway(signedOut)
+
+		await outcome('/auth/register')
+
+		expect(fetch).not.toHaveBeenCalled()
 	})
 })
