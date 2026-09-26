@@ -19,6 +19,32 @@ describe('useSortableList', () => {
 		expect(result.current.itemIds).toEqual(['a', 'b', 'c'])
 	})
 
+	it('keeps the itemIds array while the keys do not change', () => {
+		// An inline `getKey` and a new `items` array each render, as a caller that
+		// derives its rows gives. The ids stay the same, so the array must too:
+		// dnd-kit re-renders each sortable item when the array changes.
+		const { result, rerender } = renderHook(() =>
+			useSortableList({ items: [...items], getKey: (i) => i.id }),
+		)
+
+		const first = result.current.itemIds
+
+		rerender()
+
+		expect(result.current.itemIds).toBe(first)
+	})
+
+	it('gives a new itemIds array when the order changes', () => {
+		const { result, rerender } = renderHook(
+			({ list }: { list: Item[] }) => useSortableList({ items: list, getKey: (i) => i.id }),
+			{ initialProps: { list: items } },
+		)
+
+		rerender({ list: [...items].reverse() })
+
+		expect(result.current.itemIds).toEqual(['c', 'b', 'a'])
+	})
+
 	it('defaults to vertical orientation and strategy', () => {
 		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id }))
 

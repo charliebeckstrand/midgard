@@ -34,6 +34,11 @@ export type SortableListOptions<T> = {
 	onDragEnd?: (item: T) => void
 }
 
+/** Whether two key lists hold the same keys in the same order. @internal */
+function sameKeys(a: readonly string[], b: readonly string[]): boolean {
+	return a.length === b.length && a.every((key, index) => key === b[index])
+}
+
 /**
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
@@ -66,7 +71,14 @@ export function useSortableList<T>({
 
 	const sensors = useSortableSensors({ keyboard: keyboardSensor })
 
-	const itemIds = useMemo(() => items.map(getKey), [items, getKey])
+	// The previous array while the keys do not change. `SortableContext` keys its
+	// own memo on this array, so a new array re-renders each sortable item. A
+	// caller with an inline `getKey` or derived `items` would give one each render.
+	const keys = items.map(getKey)
+
+	const [itemIds, setItemIds] = useState(keys)
+
+	if (!sameKeys(itemIds, keys)) setItemIds(keys)
 
 	const strategy =
 		orientation === 'horizontal' ? horizontalListSortingStrategy : verticalListSortingStrategy
