@@ -2,13 +2,20 @@ import { redirect, unstable_rethrow } from 'next/navigation'
 import { cache } from 'react'
 import { bifrost } from './fetch'
 
+/**
+ * A role of a user. `user` lets the account change data in the apps, and
+ * `admin` lets it manage other users.
+ */
+export type Role = 'user' | 'admin'
+
 /** Account record of a user, as the gateway returns it. */
 export type User = {
 	id: string
 	email: string
 	is_active: boolean
 	is_verified: boolean
-	role: 'user' | 'admin'
+	/** The roles of the account. An account with no role can change nothing. */
+	roles: Role[]
 	created_at: string
 	updated_at: string
 }
@@ -88,7 +95,7 @@ export async function requireSession(): Promise<Session> {
 export async function requireAdmin(): Promise<Session> {
 	const session = await requireSession()
 
-	if (session.user.role !== 'admin') redirect('/account')
+	if (!session.user.roles.includes('admin')) redirect('/account')
 
 	if (!session.two_step) redirect('/verify')
 

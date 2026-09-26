@@ -23,7 +23,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 				<DescriptionTerm>ID</DescriptionTerm>
 				<DescriptionDetails>{user.id}</DescriptionDetails>
 				<DescriptionTerm>Role</DescriptionTerm>
-				<DescriptionDetails>{user.role === 'admin' ? 'Admin' : 'User'}</DescriptionDetails>
+				<DescriptionDetails>{user.roles.includes('admin') ? 'Admin' : 'User'}</DescriptionDetails>
 				<DescriptionTerm>Status</DescriptionTerm>
 				<DescriptionDetails>{user.is_active ? 'Active' : 'Inactive'}</DescriptionDetails>
 				<DescriptionTerm>Created At</DescriptionTerm>

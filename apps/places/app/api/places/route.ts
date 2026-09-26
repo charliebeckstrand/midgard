@@ -1,24 +1,24 @@
 import { addPlace, listPlaces } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
-import { sessionUserId, unauthorized } from '@/server/session-user'
+import { authorize } from '@/server/session-user'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
 
 /** Every place of the user, newest visit first. */
 export async function GET() {
-	const userId = await sessionUserId()
+	const userId = await authorize()
 
-	if (userId === null) return unauthorized()
+	if (userId instanceof Response) return userId
 
 	return Response.json(await listPlaces(userId))
 }
 
 /** Adds one place, after reading the body as a draft. */
 export async function POST(request: Request) {
-	const userId = await sessionUserId()
+	const userId = await authorize('user')
 
-	if (userId === null) return unauthorized()
+	if (userId instanceof Response) return userId
 
 	const draft = await readDraft(request)
 

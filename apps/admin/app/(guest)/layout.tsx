@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 export default async function GuestLayout({ children }: { children: ReactNode }) {
 	const session = await getSession()
 
-	if (session) redirect(session.user.role === 'admin' ? '/' : '/account')
+	if (session) redirect(session.user.roles.includes('admin') ? '/' : '/account')
 
 	return children
 }

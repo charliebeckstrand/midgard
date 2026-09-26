@@ -11,7 +11,7 @@ const user = {
 	email: 'ada@example.com',
 	is_active: true,
 	is_verified: true,
-	role: 'user',
+	roles: ['user'],
 	created_at: '2026-01-01T00:00:00Z',
 	updated_at: '2026-01-01T00:00:00Z',
 }
@@ -128,7 +128,7 @@ describe('requireAdmin', () => {
 	})
 
 	it('returns the session of an admin that passed the second step', async () => {
-		const admin = { ...session, two_step: true, user: { ...user, role: 'admin' } }
+		const admin = { ...session, two_step: true, user: { ...user, roles: ['user', 'admin'] } }
 
 		stubGateway(200, admin)
 
@@ -152,7 +152,7 @@ describe('requireAdmin', () => {
 	})
 
 	it('redirects an admin session without the second step to /verify', async () => {
-		stubGateway(200, { ...session, user: { ...user, role: 'admin' } })
+		stubGateway(200, { ...session, user: { ...user, roles: ['user', 'admin'] } })
 
 		const error = await requireAdmin().catch((thrown: unknown) => thrown)
 

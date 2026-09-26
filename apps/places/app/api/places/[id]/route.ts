@@ -1,6 +1,6 @@
 import { removePlace, updatePlace } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
-import { sessionUserId, unauthorized } from '@/server/session-user'
+import { authorize } from '@/server/session-user'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
@@ -17,9 +17,9 @@ type Context = { params: Promise<{ id: string }> }
  * refused.
  */
 export async function PUT(request: Request, { params }: Context) {
-	const userId = await sessionUserId()
+	const userId = await authorize('user')
 
-	if (userId === null) return unauthorized()
+	if (userId instanceof Response) return userId
 
 	const draft = await readDraft(request)
 
@@ -37,9 +37,9 @@ export async function PUT(request: Request, { params }: Context) {
 
 /** Removes one place. */
 export async function DELETE(_request: Request, { params }: Context) {
-	const userId = await sessionUserId()
+	const userId = await authorize('user')
 
-	if (userId === null) return unauthorized()
+	if (userId instanceof Response) return userId
 
 	const { id } = await params
 
