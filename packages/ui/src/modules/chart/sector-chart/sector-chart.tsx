@@ -211,7 +211,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		fill: frameSizing.mode === 'fill',
 	})
 
-	const { hidden, toggle } = useChartSeriesToggle(onHiddenChange)
+	// A slice keeps its toggle by its label, so a filter that drops an earlier row
+	// does not move the toggle onto another slice.
+	const { hidden, toggle } = useChartSeriesToggle(sliceLabels, onHiddenChange)
 
 	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
 	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))

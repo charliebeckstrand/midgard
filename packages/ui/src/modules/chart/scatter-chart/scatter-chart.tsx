@@ -702,7 +702,10 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const formatX = axesConfig.x?.format ?? formatChartValue
 
-	const { hidden, toggle } = useChartSeriesToggle(onHiddenChange)
+	const { hidden, toggle } = useChartSeriesToggle(
+		series.map((entry) => `${entry.xKey}:${entry.yKey}`),
+		onHiddenChange,
+	)
 
 	const metas = scatterMetas(data, series)
 

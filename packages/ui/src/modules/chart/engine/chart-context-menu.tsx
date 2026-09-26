@@ -35,7 +35,8 @@ import type { ChartReadoutSource } from './types'
  * The mark the pointer was over when the right-click landed. A menu item can act on that mark,
  * rather than the chart as a whole. `index` is the datum's index within the chart's categories,
  * the same index {@link SectorChartProps.onCategoryClick} reports. It is `null` when the click
- * landed off any mark (plot padding, the legend, the header).
+ * landed off any mark (bare plot, plot padding, the legend, the header). A chart whose crosshair
+ * snaps reads the whole column, so there any point in the plot targets its column.
  *
  * An index rather than a label on purpose. Labels are formatted for display (the sector charts run
  * period keys through a formatter). A consumer that needs the underlying value must therefore look
