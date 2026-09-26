@@ -330,3 +330,56 @@ describe('useKanbanDrag: cross-column drop after the live preview', () => {
 		expect(ids(1)).toEqual(['a', 'c'])
 	})
 })
+
+describe('useKanbanDrag: cancel', () => {
+	it('puts a card that crossed columns back in its origin column', () => {
+		const onReorder = vi.fn()
+
+		const { result, rerender } = renderHook(
+			({ columns }: { columns: Column[] }) =>
+				useKanbanDrag<Card, Column>({ columns, getKey: (i) => i.id, onReorder }),
+			{ initialProps: { columns: baseColumns } },
+		)
+
+		act(() => {
+			result.current.handleDragStart(makeDragStart('a'))
+		})
+
+		act(() => {
+			result.current.handleDragOver(makeDragEvent('a', 'doing'))
+		})
+
+		// The consumer applies the live move, as a controlled board does.
+		const moved = onReorder.mock.lastCall?.[0] as Column[]
+
+		expect(moved.find((c) => c.id === 'doing')?.items.map((i) => i.id)).toEqual(['c', 'a'])
+
+		rerender({ columns: moved })
+
+		act(() => {
+			result.current.handleDragCancel()
+		})
+
+		expect(onReorder).toHaveBeenCalledTimes(2)
+
+		expect(onReorder).toHaveBeenLastCalledWith(baseColumns)
+	})
+
+	it('reports nothing on a cancel with no cross-column move', () => {
+		const onReorder = vi.fn()
+
+		const { result } = renderHook(() =>
+			useKanbanDrag<Card, Column>({ columns: baseColumns, getKey: (i) => i.id, onReorder }),
+		)
+
+		act(() => {
+			result.current.handleDragStart(makeDragStart('a'))
+		})
+
+		act(() => {
+			result.current.handleDragCancel()
+		})
+
+		expect(onReorder).not.toHaveBeenCalled()
+	})
+})
