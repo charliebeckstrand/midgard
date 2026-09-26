@@ -13,6 +13,7 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { chain, email, required } from './form-validators'
+import { type SecondFactorMethod, type SecondFactorProof, SecondStep } from './second-step'
 
 type LoginValues = { email: string; password: string }
 
@@ -38,6 +39,11 @@ function RegisteredNotice() {
  * Sign-in page: signs in with a password or a passkey, and goes to `/` on success.
  *
  * @remarks
+ * When the user has two-step sign-in on, the gateway answers the password with
+ * `202` and the methods that can finish it, and the page shows the second step
+ * ({@link SecondStep}). A `410` from that step means that the gateway no longer
+ * holds the sign-in, so the page goes back to the password step.
+ *
  * Next prerenders all of the page except the notice after registration, which
  * renders only on the client.
  */
@@ -46,10 +52,31 @@ export function LoginPage() {
 
 	const [serverError, setServerError] = useState('')
 
-	// Goes to `/` on success, and shows the message of the gateway on a failure.
+	const [methods, setMethods] = useState<SecondFactorMethod[] | null>(null)
+
+	// Goes to `/` on success, to the second step on a `202`, and shows the message
+	// of the gateway on a failure.
 	async function finish(res: Response) {
+		if (res.status === 202) {
+			const data = (await res.json()) as { methods: SecondFactorMethod[] }
+
+			setServerError('')
+
+			setMethods(data.methods)
+
+			return
+		}
+
 		if (res.ok) {
 			router.push('/')
+
+			return
+		}
+
+		if (res.status === 410) {
+			setMethods(null)
+
+			setServerError('Your sign-in expired. Please sign in again.')
 
 			return
 		}
@@ -91,6 +118,38 @@ export function LoginPage() {
 		} catch {
 			setServerError('Passkey sign-in did not complete. Please try again.')
 		}
+	}
+
+	async function finishSecondStep(proof: SecondFactorProof) {
+		try {
+			await finish(
+				await fetch('/auth/login/mfa', {
+					method: 'POST',
+					headers: { 'Content-Type': 'application/json' },
+					body: JSON.stringify(proof),
+				}),
+			)
+		} catch {
+			setServerError('An unexpected error occurred. Please try again later.')
+		}
+	}
+
+	if (methods) {
+		return (
+			<AuthLayout>
+				<SecondStep
+					methods={methods}
+					error={serverError}
+					onSubmit={finishSecondStep}
+					onError={setServerError}
+					onCancel={() => {
+						setServerError('')
+
+						setMethods(null)
+					}}
+				/>
+			</AuthLayout>
+		)
 	}
 
 	return (

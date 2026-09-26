@@ -22,7 +22,7 @@ pnpm --filter admin dev
 | Path | Role |
 |---|---|
 | `app/(dashboard)/*` | Admin-only product surface (dashboard, settings, users). `requireAdmin` in its layout sends a signed-in user that is not an admin to `/account`, and everyone else to `/login`. |
-| `app/account/` | Account page of each signed-in user: the passkeys and sign-out. `requireSession` in its page sends everyone else to `/login`. |
+| `app/account/` | Account page of each signed-in user: two-step sign-in (passkeys, an authenticator app, and recovery codes) and sign-out. `requireSession` in its page sends everyone else to `/login`. |
 | `app/(guest)/login/`, `app/(guest)/register/` | Sign-in and registration pages. The layout of the group sends a signed-in admin to `/`, and another signed-in user to `/account`. |
 | `app/<segment>/client.tsx` | Interactive client subtree split from the segment's server `page.tsx` ([CONVENTIONS](../../CONVENTIONS.md) §2.3). |
 | `app/providers.tsx` | Top-level React Context providers. |
