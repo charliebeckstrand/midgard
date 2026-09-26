@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { lineGeometry } from '../../modules/chart/engine/chart-geometry/line'
+import { seriesValues } from '../../modules/chart/engine/chart-series'
 import { LineChart } from '../../modules/chart/line-chart'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
 	{ week: 'W1', signups: 12, churn: 3 },
@@ -138,6 +139,29 @@ describe('LineChart', () => {
 		expect(readout?.textContent).toContain('Signups')
 
 		expect(readout?.textContent).toContain('Churn')
+	})
+
+	it('drops the readout of a still pointer when its band leaves the data', () => {
+		const weeks = [
+			...DATA,
+			{ week: 'W4', signups: 20, churn: 6 },
+			{ week: 'W5', signups: 22, churn: 7 },
+		]
+
+		const { container, rerender } = renderUI(chart({ data: weeks, crosshair: { snap: true } }))
+
+		// The far right of the plot resolves to the last band, W5.
+		fireEvent.pointerEnter(getSlot(container, 'chart-hit'), { clientX: 395, clientY: 100 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W5')
+
+		rerender(chart({ data: weeks.slice(0, 3), crosshair: { snap: true } }))
+
+		// The readout closes or names a category that still exists. It must not
+		// read the series names with no category and no values.
+		const tip = bySlot(container, 'tooltip-content')
+
+		expect(tip === null || /W[123]/.test(tip.textContent ?? '')).toBe(true)
 	})
 
 	it('isolates the nearest line anywhere in the plot when the readout snaps', () => {
@@ -408,6 +432,49 @@ describe('LineChart', () => {
 		expect(low).toHaveAttribute('aria-pressed', 'true')
 
 		expect(allBySlot(container, 'chart-line')).toHaveLength(1)
+	})
+})
+
+describe('LineChart null values', () => {
+	/** A three-week line whose middle value is `middle`. */
+	function gapLine(middle: null | undefined) {
+		return (
+			<LineChart
+				aria-label="Line"
+				data={[
+					{ week: 'W1', value: 4 as number | null | undefined },
+					{ week: 'W2', value: middle },
+					{ week: 'W3', value: 6 },
+				]}
+				series={[{ xKey: 'week', yKey: 'value' }]}
+				width={400}
+				height={200}
+			/>
+		)
+	}
+
+	it('breaks the line at a null value, as it does at undefined', async () => {
+		const withUndefined = renderUI(gapLine(undefined))
+
+		const withNull = renderUI(gapLine(null))
+
+		await act(async () => {})
+
+		const paths = (container: HTMLElement) =>
+			allBySlot(container, 'chart-line').map((line) => line.getAttribute('d'))
+
+		// The data table reads the W2 cell as a gap for undefined, and it must read null the same way.
+		expect(getSlot(withNull.container, 'chart-table').textContent).toBe(
+			getSlot(withUndefined.container, 'chart-table').textContent,
+		)
+
+		expect(paths(withNull.container)).toEqual(paths(withUndefined.container))
+	})
+})
+
+describe('seriesValues', () => {
+	it('reads a null value as a gap, as it reads undefined, not as 0', () => {
+		expect(seriesValues([{ v: null }, { v: undefined }], 'v')).toEqual([null, null])
 	})
 })
 

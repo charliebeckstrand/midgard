@@ -1,5 +1,6 @@
 'use client'
 
+import { useMemo } from 'react'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useResolvedSize } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
@@ -118,7 +119,7 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		series: ScatterChartSeries<T>[]
 		/**
 		 * Fires when a click lands on a point, with the point's series index and
-		 * its index within that series' data.
+		 * the index of its row in `data`.
 		 *
 		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
 		 * address space a scatter has. A point is named by a pair and not by one id,
@@ -216,6 +217,45 @@ function scatterReadoutThunk(
 	if (visible.length === 0 || uniqueXs.length === 0) return null
 
 	return once(() => scatterReadout(visible, uniqueXs, format, formatX))
+}
+
+/**
+ * The readout thunk, memoized on the content its cells read: the rows, each
+ * visible series' fields, name, and color, and the two formats. A parent render
+ * hands new metas with the same content. A new thunk would reformat every cell
+ * of the hidden table, and the deferred table would render the frame again.
+ *
+ * @internal
+ */
+function useScatterReadout<T>(
+	data: T[],
+	series: ScatterChartSeries<T>[],
+	visible: ScatterMeta[],
+	uniqueXs: number[],
+	format: (value: number) => string,
+	formatX: (value: number) => string,
+): (() => ChartReadout | null) | null {
+	const key = visible
+		.map((meta) => {
+			const entry = series[meta.index]
+
+			return [
+				meta.index,
+				meta.label,
+				meta.sizeName,
+				entry?.xKey,
+				entry?.yKey,
+				entry?.sizeKey,
+				entry?.color,
+			].join('\u0001')
+		})
+		.join('\u0000')
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: data and key stand for the content of visible and uniqueXs, which are new arrays on each render
+	return useMemo(
+		() => scatterReadoutThunk(visible, uniqueXs, format, formatX),
+		[data, key, format, formatX],
+	)
 }
 
 /** The resolved frame flags: the plot's sizing plus the figure and legend layout. @internal */
@@ -724,7 +764,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
-	const readout = scatterReadoutThunk(visible, uniqueXs, format, formatX)
+	const readout = useScatterReadout(data, series, visible, uniqueXs, format, formatX)
 
 	const rails = resolveCrosshair(crosshair)
 
@@ -765,6 +805,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			legendPlacement={resolvedLegend.placement}
 			readout={readout}
 			hidden={hidden}
+			seriesCount={metas.length}
 			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
@@ -804,7 +845,14 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				indices={indices}
 				stops={snapStops}
 				trigger={trigger}
-				onPointClick={onPointClick}
+				onPointClick={
+					onPointClick &&
+					((at) =>
+						onPointClick({
+							series: at.series,
+							datum: metas[at.series]?.points[at.datum]?.row ?? at.datum,
+						}))
+				}
 			/>
 		</ChartFrame>
 	)

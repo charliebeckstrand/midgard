@@ -5,7 +5,7 @@
  * `document` only when called.
  */
 
-import { downloadBlob } from '../../../utilities/export-output'
+import { downloadBlob, neutralizeFormula } from '../../../utilities/export-output'
 import type { ChartReadout } from './types'
 
 /** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
@@ -182,9 +182,25 @@ export async function rasterizeChartImage(
 	return encode(image, width, height, type)
 }
 
-/** Escapes one CSV field, quoting it when it holds a comma, quote, or newline. @internal */
+/**
+ * A formatted number: digits with signs, separators, spaces, currency, or a
+ * percent. It holds no letter and no operator, so a spreadsheet cannot run it.
+ *
+ * @internal
+ */
+const FORMATTED_NUMBER = /^[+-]?[\d.,\s'’%$€£¥\u00a0\u202f]*\d[\d.,\s'’%$€£¥\u00a0\u202f]*$/
+
+/**
+ * Escapes one CSV field, quoting it when it holds a comma, quote, or newline.
+ * A field that a spreadsheet reads as a formula gets a quote prefix first. A
+ * formatted number (`-1,234.5`) stays as it is, so the column still parses.
+ *
+ * @internal
+ */
 function csvField(value: string): string {
-	return /[",\r\n]/.test(value) ? `"${value.replace(/"/g, '""')}"` : value
+	const guarded = FORMATTED_NUMBER.test(value) ? value : neutralizeFormula(value)
+
+	return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded
 }
 
 /**

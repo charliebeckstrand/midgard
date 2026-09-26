@@ -37,10 +37,10 @@ describe('scatter geometry', () => {
 	it('keys on the ascending unique x values across series', () => {
 		expect(
 			uniqueXValues([
-				[{ x: 3, y: 1, size: null }],
+				[{ x: 3, y: 1, row: 0, size: null }],
 				[
-					{ x: 1, y: 2, size: null },
-					{ x: 3, y: 4, size: null },
+					{ x: 1, y: 2, row: 0, size: null },
+					{ x: 3, y: 4, row: 1, size: null },
 				],
 			]),
 		).toEqual([1, 3])
@@ -166,6 +166,24 @@ describe('ScatterChart', () => {
 		expect(bySlot(container, 'chart-axis-y')).not.toBeNull()
 
 		expect(bySlot(container, 'chart-axis-x')).not.toBeNull()
+	})
+
+	it('drops a point whose y is null, and does not plot it at 0', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Scatter"
+				data={[
+					{ x: 1, y: 5 },
+					{ x: 2, y: null },
+					{ x: 3, y: 7 },
+				]}
+				series={[{ xKey: 'x', yKey: 'y' }]}
+				width={400}
+				height={200}
+			/>,
+		)
+
+		expect(discCount(container)).toBe(2)
 	})
 
 	it('survives duplicate points and joins them in the readout', () => {
@@ -377,6 +395,44 @@ describe('ScatterChart', () => {
 		expect(onPointClick).toHaveBeenCalledWith(
 			expect.objectContaining({ series: expect.any(Number), datum: expect.any(Number) }),
 		)
+	})
+
+	it('reports the data row index of the clicked point, also after a row that does not parse', () => {
+		/** The row that a click at the right edge of the plot reports. */
+		function clickedRow(data: { x: number | string; y: number }[]) {
+			const onPointClick = vi.fn()
+
+			const { container, unmount } = renderUI(
+				<ScatterChart
+					aria-label="Scatter"
+					data={data}
+					series={[{ xKey: 'x', yKey: 'y' }]}
+					width={400}
+					height={200}
+					crosshair={{ snap: true }}
+					onPointClick={onPointClick}
+				/>,
+			)
+
+			// The snapped column at the right edge is x = 20.
+			fireEvent.click(getSlot(container, 'chart-hit'), { clientX: 395, clientY: 20 })
+
+			const [{ datum }] = onPointClick.mock.calls[0] as [{ series: number; datum: number }]
+
+			unmount()
+
+			return data[datum]
+		}
+
+		const clean = [
+			{ x: 10, y: 20 },
+			{ x: 20, y: 30 },
+		]
+
+		expect(clickedRow(clean)).toEqual({ x: 20, y: 30 })
+
+		// The first row does not parse, so the drawn point and the data row have different indices.
+		expect(clickedRow([{ x: 'n/a', y: 1 }, ...clean])).toEqual({ x: 20, y: 30 })
 	})
 
 	it('dims the non-emphasized tooltip row when a legend entry is focused', () => {

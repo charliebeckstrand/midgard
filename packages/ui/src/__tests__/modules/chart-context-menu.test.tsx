@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart'
+import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
 type Row = { quarter: string; revenue: number }
@@ -316,5 +317,30 @@ describe('Chart context menu', () => {
 		if (inner) fireEvent.contextMenu(inner)
 
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
+	})
+})
+
+describe('readoutToCsv', () => {
+	it('prefixes a quote to a formula-led category or series label', () => {
+		const csv = readoutToCsv({
+			categories: ['=HYPERLINK("http://evil.example","x")', '@SUM(A1)'],
+			rows: [{ label: '+cmd', swatchClass: '', swatch: 'rect', values: ['1', '2'] }],
+		})
+
+		// A quoted cell whose first inner character is a formula lead is still a formula to a spreadsheet.
+		expect(csv.split('\r\n')).toEqual([
+			",'+cmd",
+			'"\'=HYPERLINK(""http://evil.example"",""x"")",1',
+			"'@SUM(A1),2",
+		])
+	})
+
+	it('keeps a formatted negative number without a prefix, so the column still parses', () => {
+		const csv = readoutToCsv({
+			categories: ['Q1', 'Q2'],
+			rows: [{ label: 'Margin', swatchClass: '', swatch: 'rect', values: ['-1,234.5', '-5'] }],
+		})
+
+		expect(csv.split('\r\n')).toEqual([',Margin', 'Q1,"-1,234.5"', 'Q2,-5'])
 	})
 })

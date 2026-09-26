@@ -106,11 +106,19 @@ const floorHalf = (date: CalendarDateTime) =>
 	date.set({ month: date.month <= 6 ? 1 : 7, day: 1, ...ZERO })
 const floorYear = (date: CalendarDateTime) => date.set({ month: 1, day: 1, ...ZERO })
 
+/** Floors to a multiple of `hours` in the day, so a 12-hour step lands on midnight and noon. @internal */
+const floorHours = (hours: number) => (date: CalendarDateTime) =>
+	floorHour(date).set({ hour: Math.floor(date.hour / hours) * hours })
+
+/** Floors to a multiple of `years`, so a 10-year step lands on the decades. @internal */
+const floorYears = (years: number) => (date: CalendarDateTime) =>
+	floorYear(date).set({ year: Math.floor(date.year / years) * years })
+
 const INTERVALS: readonly TimeInterval[] = [
 	{ approx: HOUR, floor: floorHour, next: (d) => d.add({ hours: 1 }) },
-	{ approx: 3 * HOUR, floor: floorHour, next: (d) => d.add({ hours: 3 }) },
-	{ approx: 6 * HOUR, floor: floorHour, next: (d) => d.add({ hours: 6 }) },
-	{ approx: 12 * HOUR, floor: floorHour, next: (d) => d.add({ hours: 12 }) },
+	{ approx: 3 * HOUR, floor: floorHours(3), next: (d) => d.add({ hours: 3 }) },
+	{ approx: 6 * HOUR, floor: floorHours(6), next: (d) => d.add({ hours: 6 }) },
+	{ approx: 12 * HOUR, floor: floorHours(12), next: (d) => d.add({ hours: 12 }) },
 	{ approx: DAY, floor: floorDay, next: (d) => d.add({ days: 1 }) },
 	{ approx: 2 * DAY, floor: floorDay, next: (d) => d.add({ days: 2 }) },
 	{ approx: WEEK, floor: floorWeek, next: (d) => d.add({ weeks: 1 }) },
@@ -118,9 +126,9 @@ const INTERVALS: readonly TimeInterval[] = [
 	{ approx: 3 * MONTH, floor: floorQuarter, next: (d) => d.add({ months: 3 }) },
 	{ approx: 6 * MONTH, floor: floorHalf, next: (d) => d.add({ months: 6 }) },
 	{ approx: YEAR, floor: floorYear, next: (d) => d.add({ years: 1 }) },
-	{ approx: 2 * YEAR, floor: floorYear, next: (d) => d.add({ years: 2 }) },
-	{ approx: 5 * YEAR, floor: floorYear, next: (d) => d.add({ years: 5 }) },
-	{ approx: 10 * YEAR, floor: floorYear, next: (d) => d.add({ years: 10 }) },
+	{ approx: 2 * YEAR, floor: floorYears(2), next: (d) => d.add({ years: 2 }) },
+	{ approx: 5 * YEAR, floor: floorYears(5), next: (d) => d.add({ years: 5 }) },
+	{ approx: 10 * YEAR, floor: floorYears(10), next: (d) => d.add({ years: 10 }) },
 ]
 
 /** The `Intl` options for a tick at `approx` spacing over a `spanMs` domain. @internal */
@@ -144,7 +152,8 @@ type Anchor = { index: number; time: number }
 /**
  * Positions instant `time` on the band axis by locating it among the anchor
  * rows and interpolating between their band centers. The tick lands at its true
- * fraction of the way from one dated row to the next, clamped to the ends.
+ * fraction of the way from one dated row to the next, clamped to the ends. The
+ * anchors must be in ascending time order.
  *
  * @internal
  */
@@ -156,10 +165,6 @@ function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
 
 	if (time >= last.time) return band.center(last.index)
 
-	// Walk to the first anchor whose successor is later than `time`, rather than
-	// to the last anchor at or before it: the two agree only on ascending anchors,
-	// and `times` arrives in row order, so a table sorted by another column can
-	// hand this a later instant before an earlier one.
 	let low = 0
 
 	while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
@@ -204,9 +209,11 @@ export type TimeTicksOptions = {
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const { times, band, tickTarget, axisLength } = options
 
-	const anchors: Anchor[] = times.flatMap((time, index) =>
-		time != null && Number.isFinite(time) ? [{ index, time }] : [],
-	)
+	// Time order, not row order: newest-first rows, or a table sorted by another
+	// column, still give the true extent and a position between neighbors in time.
+	const anchors: Anchor[] = times
+		.flatMap((time, index) => (time != null && Number.isFinite(time) ? [{ index, time }] : []))
+		.sort((a, b) => a.time - b.time)
 
 	if (anchors.length < 2) return null
 
@@ -232,6 +239,8 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	// The first row as a local wall-clock datetime, so the floor reads calendar days.
 	let cursor = interval.floor(toCalendarDateTime(fromDateToLocal(new Date(first.time))), locale)
 
+	let lastTime = Number.NEGATIVE_INFINITY
+
 	for (let guard = 0; guard < MAX_TICKS; guard++) {
 		const date = cursor.toDate(getLocalTimeZone())
 
@@ -241,8 +250,13 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		// Keyed by the instant, not the mapped `at` — distinct per calendar boundary
 		// and stable across resizes, where `at` can collapse onto one coordinate.
-		if (time >= first.time)
+		// A wall time in a daylight-saving gap resolves to the next hour, which is
+		// already a tick, so a time at or before the last tick is skipped.
+		if (time >= first.time && time > lastTime) {
 			ticks.push({ at: positionOf(time, anchors, band), label: format.format(date), key: time })
+
+			lastTime = time
+		}
 
 		cursor = interval.next(cursor)
 	}
@@ -258,8 +272,16 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	return ticks
 }
 
-/** A bare number ("95190") is an identifier, not a date — `Date.parse` reads it as a year. @internal */
-const BARE_NUMBER = /^\d+(\.\d+)?$/
+/**
+ * The shapes of a date category string. ISO: `2026-06-10`, `2026-06`,
+ * `2026-06-10T09:00`. Numeric with slashes or dots: `06/10/2026`, `10.06.2026`.
+ * A month name beside a day or year: `Jun 10`, `10 June 2026`. `Date.parse` accepts much more than this: it reads a bare number
+ * ("95190") as a year and "Region 3" as March 2001.
+ *
+ * @internal
+ */
+const DATE_SHAPED =
+	/^\d{4}-\d{2}(-\d{2})?([T ]\d|$)|^\d{1,4}[/.]\d{1,2}[/.]\d{1,4}\b|\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?,?\s+\d|\b\d{1,2}\s+(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i
 
 /**
  * A numeric date formatter for a plain category axis. When *every* category
@@ -270,7 +292,8 @@ const BARE_NUMBER = /^\d+(\.\d+)?$/
  * not a date, leaving a non-date axis its raw labels. The same formatter labels
  * the axis ticks, tooltip, and data table. Bare numeric strings never count as
  * dates — `Date.parse('95190')` accepts them as a year, which turned an axis
- * of NMFC codes into `01-01-95190` ticks.
+ * of NMFC codes into `01-01-95190` ticks. Numbers and strings without a date
+ * shape ("Region 3") do not count either.
  *
  * @param values - Each row's raw `xKey` value, in row order.
  * @param referenceYear - The year that reads without a suffix; defaults to the
@@ -293,7 +316,11 @@ export function dateCategoryFormat(
 	let withYear = false
 
 	for (const value of values) {
-		if (typeof value === 'string' && BARE_NUMBER.test(value.trim())) return null
+		// A number category is an identifier or a year, never an epoch instant: a
+		// time axis reads epoch numbers, a plain axis keeps them as written.
+		if (typeof value === 'number') return null
+
+		if (typeof value === 'string' && !DATE_SHAPED.test(value.trim())) return null
 
 		const time = parseInstant(value)
 

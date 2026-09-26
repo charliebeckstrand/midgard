@@ -29,9 +29,10 @@ export type DataKey<T> = keyof T & string
  * One plotted series: the fields it reads and how the legend and tooltip
  * name it.
  *
- * @remarks Values are read as `Number(datum[yKey])`. A non-finite result draws
- * as a gap (line) or an omitted mark (bar), and an em-dash tooltip row, without
- * collapsing the scale.
+ * @remarks Values are read as numbers. A number passes through and a numeric
+ * string parses. A `null`, a blank, or a value that does not parse is a gap. It
+ * draws as a break (line) or an omitted mark (bar), and an em-dash tooltip row.
+ * It does not collapse the scale.
  */
 export type ChartSeries<T> = {
 	/**
@@ -107,8 +108,9 @@ export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'
  * order, and can repeat an x value. An optional `sizeKey` adds the bubble
  * encoding.
  *
- * @remarks Both fields are read as `Number(datum[key])`. A non-finite result on
- * either drops the point, never the scale. Agent-generated or otherwise ragged
+ * @remarks Both fields are read as numbers: a number passes through and a
+ * numeric string parses. A `null`, a blank, or a value that does not parse on
+ * either field drops the point, never the scale. Agent-generated or otherwise ragged
  * datasets therefore degrade to the points that parse.
  */
 export type ScatterChartSeries<T> = {

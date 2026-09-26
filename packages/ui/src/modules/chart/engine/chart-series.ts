@@ -6,7 +6,7 @@
 
 import { cn } from '../../../core'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { formatFraction, formatInteger, resolveFormat } from '../../../utilities'
+import { formatFraction, formatInteger, resolveFormat, toNumericCell } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'
@@ -27,14 +27,15 @@ export function seriesGroupClass(dimmed: boolean | undefined): string {
 }
 
 /**
- * Reads one series' values off the rows: `Number(datum[key])`, with
- * non-finite results as `null` — a gap, never a collapsed scale.
+ * Reads one series' values off the rows through `toNumericCell`, with
+ * non-finite results as `null` — a gap, never a collapsed scale. A `null`,
+ * blank, or missing value is therefore a gap and not a zero.
  *
  * @internal
  */
 export function seriesValues<T>(data: T[], key: DataKey<T>): (number | null)[] {
 	return data.map((datum) => {
-		const value = Number(datum[key])
+		const value = toNumericCell(datum[key])
 
 		return Number.isFinite(value) ? value : null
 	})

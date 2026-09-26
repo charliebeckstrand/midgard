@@ -153,11 +153,16 @@ export function ChartTooltip({
 	order,
 	emphasis = null,
 }: ChartTooltipProps) {
-	const { index, point, onData } = useChartHover()
+	const { index: hovered, point, onData } = useChartHover()
 
 	// Materialized only while a hover is live: the thunk caches, so the first
 	// pointed frame pays the build once and every later move reads it back.
-	const readout = index === null ? null : source()
+	const readout = hovered === null ? null : source()
+
+	// A pinned readout keeps its index when the data shrinks under it. An index
+	// past the categories reads nothing, so the tooltip closes.
+	const index =
+		readout !== null && hovered !== null && hovered < readout.categories.length ? hovered : null
 
 	// The rows read in the marks' visible order when the chart supplies one — a
 	// stacked column top-first, overlapping lines in value order — looked up by

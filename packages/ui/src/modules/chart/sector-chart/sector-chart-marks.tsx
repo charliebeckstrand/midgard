@@ -10,7 +10,7 @@ import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/ch
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
-import { useChartHover, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
+import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -197,7 +197,11 @@ export function SectorChartMarks({
 	trigger = 'hover',
 	onIndexClick,
 }: SectorChartMarksProps) {
-	const { index: active, set } = useChartHover()
+	// The store, not a subscription: the slices write the hover and read the shown
+	// index only in a click, so a pointer move does not render them.
+	const hoverStore = useChartHoverStore()
+
+	const set = hoverStore.set
 
 	// The frame's series emphasis, the same channel the legend hover drives. A
 	// hovered slice isolates itself and recedes the rest, as its legend chip does.
@@ -267,7 +271,7 @@ export function SectorChartMarks({
 					const handlers = click
 						? {
 								onClick: (event: MouseEvent<SVGPathElement>) => {
-									if (active === slice.index) set(null, null)
+									if (hoverStore.get().index === slice.index) set(null, null)
 									else at(event)
 
 									activate()

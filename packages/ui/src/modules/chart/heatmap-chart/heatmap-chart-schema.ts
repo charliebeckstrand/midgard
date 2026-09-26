@@ -13,6 +13,7 @@
  * value-domain or crosshair switches.
  */
 
+import { toNumericCell } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
 import type { ChartBaseProps, DataKey } from '../engine/types'
@@ -22,9 +23,10 @@ import type { ChartBaseProps, DataKey } from '../engine/types'
  * place a cell on the grid, and the numeric field the sequential scale colors
  * it by.
  *
- * @remarks `colorKey` is read as `Number(datum[colorKey])`. A non-finite result
- * draws the cell in the neutral no-data fill and an em-dash table row, without
- * pulling on the color domain.
+ * @remarks `colorKey` is read as a number: a number passes through and a
+ * numeric string parses. A `null`, a blank, or a value that does not parse
+ * draws the cell in the neutral no-data fill and an em-dash table row. It does
+ * not pull on the color domain.
  */
 export type HeatmapChartSeries<T> = {
 	/** The field holding each row's column category — the x (band) axis. AG Charts' `xKey`. */
@@ -174,7 +176,7 @@ export function resolveHeatmapMatrix<T>(
 
 		if (col === undefined || row === undefined) continue
 
-		const value = Number(datum[colorKey])
+		const value = toNumericCell(datum[colorKey])
 
 		const cells = values[row]
 

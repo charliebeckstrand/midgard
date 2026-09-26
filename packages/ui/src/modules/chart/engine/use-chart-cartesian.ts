@@ -117,6 +117,13 @@ export type CartesianConfig<T> = {
 	 */
 	stack?: boolean
 	/**
+	 * The stack draws only positive values, as a stacked bar does: a
+	 * non-positive value takes no segment, so it adds nothing to the column. Off,
+	 * each value adds to the running total, as a stacked area does.
+	 * @defaultValue false
+	 */
+	stackPositive?: boolean
+	/**
 	 * Which screen axis the value axis runs along — only {@link BarChart} varies it.
 	 * @defaultValue 'vertical'
 	 */
@@ -335,6 +342,72 @@ function referencePositionsOf(
 	})
 }
 
+/**
+ * How a stack builds its column: `'signed'` adds each value to the running
+ * total (area), `'positive'` adds only positive values (bar). `false` is no
+ * stack.
+ *
+ * @internal
+ */
+type StackMode = false | 'signed' | 'positive'
+
+/**
+ * The content of the visible series that a readout reads, as one key: each
+ * series' position, name, axis, swatch, field, and color. The values come from
+ * the rows and the field, so the rows and this key together fix every cell.
+ *
+ * @internal
+ */
+function readoutSeriesKey<T>(visible: SeriesMeta[], series: ChartSeries<T>[]): string {
+	return visible
+		.map((meta) => {
+			const entry = series[meta.index]
+
+			return [meta.index, meta.label, meta.axis, meta.swatch, entry?.yKey, entry?.color].join(
+				'\u0001',
+			)
+		})
+		.join('\u0000')
+}
+
+/** The stack mode a chart's config asks for. @internal */
+function stackModeOf<T>(config: CartesianConfig<T>): StackMode {
+	if (!config.stack) return false
+
+	return config.stackPositive ? 'positive' : 'signed'
+}
+
+/**
+ * The per-category edges a stack draws, for its domain. A positive stack rises
+ * to the sum of its positive values. A signed stack draws every running total,
+ * so a total in the middle of the stack can pass the final one.
+ *
+ * @internal
+ */
+function stackEdges(bound: SeriesMeta[], count: number, mode: 'signed' | 'positive'): number[] {
+	const edges: number[] = []
+
+	for (let index = 0; index < count; index++) {
+		let sum = 0
+
+		for (const meta of bound) {
+			const value = meta.values[index] ?? 0
+
+			if (mode === 'positive') {
+				if (value > 0) sum += value
+			} else {
+				sum += value
+
+				edges.push(sum)
+			}
+		}
+
+		if (mode === 'positive') edges.push(sum)
+	}
+
+	return edges
+}
+
 /** The one axis a stack binds to: the axis every series agrees on, else `y`. @internal */
 function stackAxisOf<T>(series: ChartSeries<T>[]): ChartValueAxisId {
 	const first = series[0]?.axis ?? 'y'
@@ -382,7 +455,7 @@ function seriesMetas<T>(
 function domainValuesFor<T>(args: {
 	axis: ChartValueAxisId
 	visible: SeriesMeta[]
-	stack: boolean
+	stack: StackMode
 	data: T[]
 	reference: ChartReferenceLine[] | undefined
 	referenceHidden: ReadonlySet<number>
@@ -391,11 +464,11 @@ function domainValuesFor<T>(args: {
 
 	const bound = visible.filter((meta) => meta.axis === axis)
 
-	// Stacked charts scale to the per-category column totals; every other chart
+	// Stacked charts scale to the edges their columns draw; every other chart
 	// scales to the individual values.
 	const values = stack
 		? bound.length > 0
-			? data.map((_, index) => bound.reduce((sum, meta) => sum + (meta.values[index] ?? 0), 0))
+			? stackEdges(bound, data.length, stack)
 			: []
 		: bound.flatMap((meta) => meta.values.filter((value) => value !== null))
 
@@ -459,7 +532,7 @@ function resolveValueAxes<T>(
 	props: CartesianData<T>,
 	axes: Partial<CartesianAxes>,
 	visible: SeriesMeta[],
-	stack: boolean,
+	stack: StackMode,
 	data: T[],
 	referenceHidden: ReadonlySet<number>,
 	compactFormat: boolean,
@@ -873,7 +946,7 @@ export function useChartCartesian<T>(
 		props,
 		axes,
 		visible,
-		stack,
+		stackModeOf(config),
 		data,
 		referenceHidden,
 		policy.compactFormat,
@@ -935,10 +1008,25 @@ export function useChartCartesian<T>(
 	// mount-critical render only decides whether one exists (cheap) and leaves
 	// materializing to the first consumer that needs the cells — the tooltip on
 	// hover, the deferred table a beat after mount ({@link ChartReadoutSource}).
-	const readout =
-		xKey && data.length > 0 && visible.length > 0
-			? once(() => chartReadout(data, xKey, visible, formatAxisValue, readoutCategory))
-			: null
+	//
+	// Memoized on the content the cells read, not on the identity of the metas and
+	// formatters, which are new on each render. A new thunk on a parent render
+	// would reformat every cell of the hidden table, and the deferred table would
+	// render the frame a second time.
+	const readoutSeries = readoutSeriesKey(visible, series)
+
+	const yReadoutFormat = axes.y?.format ?? props.formatValue
+
+	const y2ReadoutFormat = axes.y2?.format ?? props.formatValue
+
+	// biome-ignore lint/correctness/useExhaustiveDependencies: readoutSeries and the two formats stand for the content of visible and formatAxisValue, which are new objects on each render
+	const readout = useMemo(
+		() =>
+			xKey && data.length > 0 && visible.length > 0
+				? once(() => chartReadout(data, xKey, visible, formatAxisValue, readoutCategory))
+				: null,
+		[data, xKey, readoutSeries, yReadoutFormat, y2ReadoutFormat, readoutCategory],
+	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack
 	// reversed, else the legend's value order); the readout keeps series order for

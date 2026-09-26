@@ -45,6 +45,29 @@ describe('HeatmapChart', () => {
 		expect(noData?.getAttribute('class')).toContain('fill-zinc')
 	})
 
+	it('reads a null colorKey as no data, as the choropleth reads it, not as 0', () => {
+		const rows: { day: string; hour: string; commits: number | null }[] = [
+			...ROWS,
+			{ day: 'Tue', hour: '10', commits: null },
+		]
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={rows}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: RANGE }]}
+				width={400}
+			/>,
+		)
+
+		// The no-data cell has no fill attribute, because it takes the neutral class.
+		const last = cellRects(container).at(-1)
+
+		expect(last?.getAttribute('fill')).toBeNull()
+
+		expect(last?.getAttribute('class')).toContain('fill-zinc')
+	})
+
 	it('separates a skewed field under quantile binning that a linear scale flattens', () => {
 		// Three cells sit at the bottom of the range and one far above it. A linear
 		// scale drops the low three into one bin; quantile cuts between them.
@@ -387,6 +410,64 @@ describe('HeatmapChart', () => {
 		fireEvent.click(hit, { clientX: 330, clientY: 70 })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+	it('closes a pinned readout when its cell leaves the grid', () => {
+		const full: Row[] = [...ROWS, { day: 'Tue', hour: '10', commits: 3 }]
+
+		const pinned = (rows: Row[]) => (
+			<HeatmapChart
+				aria-label="Commits"
+				data={rows}
+				series={SERIES}
+				width={400}
+				tooltip={{ trigger: 'click' }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(pinned(full))
+
+		const hit = getSlot(container, 'heatmap-hit')
+
+		hit.getBoundingClientRect = () =>
+			({
+				left: 100,
+				top: 50,
+				right: 340,
+				bottom: 210,
+				width: 240,
+				height: 160,
+				x: 100,
+				y: 50,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// Pin the bottom-right cell, Tue at 10.
+		fireEvent.click(hit, { clientX: 330, clientY: 200 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Tue')
+
+		// A filter drops Tuesday and hour 10, so the grid holds one cell.
+		rerender(pinned(full.slice(0, 1)))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('paints equal values in one bin with a finite legend', () => {
+		const flat = ROWS.map((row) => ({ ...row, commits: 4 }))
+
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={flat} series={SERIES} width={400} />,
+		)
+
+		const fills = new Set(
+			cellRects(container)
+				.map((rect) => rect.getAttribute('fill'))
+				.filter(Boolean),
+		)
+
+		expect(fills.size).toBe(1)
+
+		expect(container.textContent).not.toContain('NaN')
 	})
 })
 

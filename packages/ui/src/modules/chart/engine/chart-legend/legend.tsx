@@ -26,13 +26,15 @@ const PAGE_SIZE = 5
  * the way a measure-then-cut of the visible row would. It reads each control's
  * wrapped row and right edge, and packs them through {@link visibleLegendCount}.
  * Returns the full `count` when nothing caps (no ghost, no measurement), so an
- * uncapped or side-panel legend pays nothing.
+ * uncapped or side-panel legend pays nothing. `labels` joins the control
+ * labels in render order.
  *
  * @internal
  */
 function useLegendFit(
 	ghostRef: RefObject<HTMLDivElement | null>,
 	count: number,
+	labels: string,
 	maxRows: number | undefined,
 ): number {
 	const [visible, setVisible] = useState(count)
@@ -42,12 +44,14 @@ function useLegendFit(
 	// times, so the observer refits on resize from a stable measurement rather than
 	// the already-cut visible row, which could never reveal that a widened box now
 	// fits more.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: labels re-runs the measure on a relabel that keeps the ghost's box, where the observer does not fire
 	useLayoutEffect(() => {
 		const ghost = ghostRef.current
 
-		// `count` re-runs the measure when the control set changes — a resize alone
-		// can miss an added entry that lands on an existing row without growing the
-		// ghost, so the row count is a dependency, not just the observed size.
+		// `count` and `labels` re-run the measure when the control set changes — a
+		// resize alone can miss an added entry that lands on an existing row without
+		// growing the ghost, or a relabel that keeps the ghost's box but moves the
+		// wraps, so they are dependencies, not just the observed size.
 		if (!ghost || maxRows === undefined || count === 0) return
 
 		const measure = () => {
@@ -81,11 +85,19 @@ function useLegendFit(
 		observer.observe(ghost)
 
 		return () => observer.disconnect()
-	}, [ghostRef, count, maxRows])
+	}, [ghostRef, count, labels, maxRows])
 
 	// Never exceed the real count — a stale larger measurement (a control removed
 	// between renders) can't over-slice the list.
 	return maxRows === undefined ? count : Math.min(visible, count)
+}
+
+/** The labels of every legend control in render order, joined into one fit key. @internal */
+function controlLabels(
+	items: readonly ChartLegendItem[],
+	references: readonly ChartLegendReference[],
+): string {
+	return [...items, ...references].map((control) => control.label).join('\u0000')
 }
 
 /** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
@@ -513,6 +525,7 @@ export function ChartLegend({
 	const visibleCount = useLegendFit(
 		ghostRef,
 		items.length + references.length,
+		controlLabels(items, references),
 		capped ? maxRows : undefined,
 	)
 

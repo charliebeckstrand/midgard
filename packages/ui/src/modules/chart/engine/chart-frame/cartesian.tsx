@@ -83,6 +83,7 @@ export function ChartCartesianFrame({
 			readout={chart.readout}
 			readoutOrder={chart.readoutOrder}
 			hidden={chart.hidden}
+			seriesCount={chart.metas.length}
 			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snap}
