@@ -31,8 +31,16 @@ export const k = {
 	},
 	/** SVG tick-label ink: muted, tabular for vertical alignment. */
 	tick: ['text-sm', 'tabular-nums', ...mode('fill-zinc-500', 'dark:fill-zinc-400')],
-	/** Point-marker stroke: white in both modes, so a dot stays legible crossing the opaque marks behind it. */
-	stroke: mode('stroke-white', 'dark:stroke-white'),
+	/**
+	 * Point-marker stroke: the fill of the surface under the chart, so a dot stays legible
+	 * where it crosses an opaque mark or another dot. It reads `--surface-fill`, which a
+	 * surface card sets. Without a card, it takes the page ground, as the grid host does.
+	 * A white ring in dark mode showed as a halo on each dot.
+	 */
+	stroke: mode('stroke-[var(--surface-fill,var(--color-white))]', [
+		'dark:stroke-[var(--surface-fill,var(--color-zinc-950))]',
+		'dark:lg:stroke-[var(--surface-fill,var(--color-zinc-900))]',
+	]),
 	/** Legend / tooltip label ink (HTML text; marks carry the color, text never does). */
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
