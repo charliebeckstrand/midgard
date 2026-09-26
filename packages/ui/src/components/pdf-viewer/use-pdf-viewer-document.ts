@@ -11,6 +11,7 @@ import {
 	type PdfLoadReport,
 	subscribeDocument,
 } from './pdf-viewer-document-cache'
+import type { PdfViewerPage } from './types'
 
 /**
  * The one worker every load shares, or `null` where this environment has none.
@@ -147,26 +148,74 @@ async function appendRenderedPage(
 
 	if (!blob) return
 
-	report.page({
-		id: pageNum,
-		src: URL.createObjectURL(blob),
-		label: `Page ${pageNum}`,
-		width: viewport.width,
-		height: viewport.height,
-		// getViewport multiplies the page's own user-space size by `scale`, so dividing it
-		// back out recovers the printed size in points exactly. A highlight specified in a
-		// physical unit divides by this.
-		pointWidth: viewport.width / scale,
-		pointHeight: viewport.height / scale,
-	})
+	report.page(
+		{
+			id: pageNum,
+			src: URL.createObjectURL(blob),
+			label: `Page ${pageNum}`,
+			width: viewport.width,
+			height: viewport.height,
+			// getViewport multiplies the page's own user-space size by `scale`, so dividing it
+			// back out recovers the printed size in points exactly. A highlight specified in a
+			// physical unit divides by this.
+			pointWidth: viewport.width / scale,
+			pointHeight: viewport.height / scale,
+		},
+		pageNum - 1,
+	)
 }
 
 /**
- * Fetches the PDF at `src` and rasterizes every page in order, reporting each as it lands.
+ * Reads the size of each page of `doc` and publishes one slot for each, before any page renders.
+ *
+ * @returns The parsed pages, in order, for the render loop to reuse.
+ * @remarks A parse, not a render: 50 pages take about 6 ms (the PDF viewer bench). Each slot
+ * carries the size of its page at `scale` and in points. The viewport, the page count and the
+ * highlight geometry are therefore whole when the document opens.
+ * @internal
+ */
+async function openSlots(
+	doc: PDFDocumentProxy,
+	scale: number,
+	report: PdfLoadReport,
+): Promise<PDFPageProxy[]> {
+	const parsed: PDFPageProxy[] = []
+
+	const slots: PdfViewerPage[] = []
+
+	for (let pageNum = 1; pageNum <= doc.numPages; pageNum++) {
+		const page = await doc.getPage(pageNum)
+
+		const viewport = page.getViewport({ scale })
+
+		parsed.push(page)
+
+		slots.push({
+			id: pageNum,
+			src: '',
+			label: `Page ${pageNum}`,
+			width: viewport.width,
+			height: viewport.height,
+			pointWidth: viewport.width / scale,
+			pointHeight: viewport.height / scale,
+		})
+	}
+
+	report.open(slots)
+
+	return parsed
+}
+
+/**
+ * Fetches the PDF at `src`, publishes a slot for each page, and then rasterizes every page in
+ * order, reporting each as it lands.
  *
  * @remarks Runs to completion or throws; it is not cancellable, because the cache owns its
- * lifetime rather than any one component — see {@link ensureDocumentLoad}. The pdf.js document
- * is destroyed in the `finally` either way, so the worker channel never outlives the load.
+ * lifetime rather than any one component — see {@link ensureDocumentLoad}.
+ *
+ * A load that ends keeps its pdf.js document open, and hands the cache the release. The
+ * document then lives as long as its cache entry, so a later render needs no new parse. A load
+ * that throws destroys the document itself, because a failed entry holds nothing to render.
  * @internal
  */
 async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<void> {
@@ -193,40 +242,25 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 
 		const scale = clamp(window.devicePixelRatio || 1, 1.5, 2)
 
+		const parsed = await openSlots(doc, scale, report)
+
 		// One canvas for the whole document — see `appendRenderedPage`.
 		const canvas = document.createElement('canvas')
 
-		/*
-		 * The next page's parse, started before this one renders.
-		 *
-		 * `getPage` is worker-side while `render` and `toBlob` hold the main thread. An await of
-		 * them in turn left the worker idle for the whole of each page's render and PNG encode.
-		 * Queuing the next parse first overlaps the two. Rendering itself stays strictly serial:
-		 * there is one `controller.renderTask` slot, and its cancel semantics depend on that.
-		 *
-		 * The no-op catch marks the prefetch handled. Without it, a parse that rejects while the
-		 * loop is already unwinding from an earlier failure would surface as an unhandled
-		 * rejection. The loop's own `await` still sees the rejection and throws it.
-		 */
-		let pending: Promise<PDFPageProxy> | null = doc.getPage(1)
+		for (const [index, page] of parsed.entries()) {
+			await appendRenderedPage(controller, page, index + 1, scale, report, canvas)
 
-		pending.catch(() => {})
-
-		for (let i = 1; i <= doc.numPages; i++) {
-			if (!pending) break
-
-			const page = await pending
-
-			pending = i < doc.numPages ? doc.getPage(i + 1) : null
-
-			pending?.catch(() => {})
-
-			await appendRenderedPage(controller, page, i, scale, report, canvas)
+			// Frees the page's operator list, which the render built and the blob now replaces.
+			page.cleanup()
 		}
 
 		// Frees the backing store rather than waiting for the element to be collected.
 		canvas.width = 0
 		canvas.height = 0
+
+		report.retain(() => doc.loadingTask.destroy())
+
+		controller.doc = null
 	} finally {
 		releasePdf(controller)
 	}
@@ -235,8 +269,9 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 /**
  * Loads a PDF from `src` and rasterizes its pages to blob-URL images for the viewer.
  *
- * @returns `{ pages, documentUrl, loading, error, pending }`: the rendered pages, a same-origin
- * blob URL for the source document (download / print), plus load progress and failure state.
+ * @returns `{ pages, documentUrl, loading, error, pending }`. `pages` has a slot for each page,
+ * with its image once it renders. `documentUrl` is a same-origin blob URL of the source
+ * document, for download and print. `loading` and `error` give the progress and the failure.
  * `pending` marks a `src` whose load has not started yet.
  * @remarks **The pages outlive this hook.** They live in a bounded module cache keyed on `src`
  * (`pdf-viewer-document-cache.ts`). A viewer that unmounts and comes back on the same

@@ -42,7 +42,8 @@ export type PdfViewerProps = {
 	defaultPage?: number
 	onPageChange?: (page: number) => void
 	/**
-	 * Fires once the document at `src` is rasterized, with its page count.
+	 * Fires once the document at `src` opens, with its page count. The pages
+	 * render after it, the active page first.
 	 *
 	 * The viewer owns the whole fetch-and-rasterize lifecycle and reported neither
 	 * end of it, so a consumer had to re-fetch `src` to learn what happened. Use
@@ -52,7 +53,9 @@ export type PdfViewerProps = {
 	 */
 	onLoad?: (pageCount: number) => void
 	/**
-	 * Fires when the document at `src` fails to load, with the reason.
+	 * Fires when the document at `src` fails to open, with the reason. A page
+	 * that fails to render after the open shows the failure in the viewer, and
+	 * does not fire this.
 	 *
 	 * A 404, a refused range request, and a file pdf.js cannot parse all land here.
 	 * Without it the viewer shows its own failure state and the consumer cannot

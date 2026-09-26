@@ -48,7 +48,7 @@ The size of every page costs 6.4 ms, against 1,213 ms for the whole raster. So t
 
 The cache holds the pdf.js document for as long as it holds the entry. The entry frees the document when it leaves the cache, which is the same rule that frees its blob URLs now. A viewer that parks and comes back finds the document open. A render for any page then needs no new fetch and no new parse.
 
-The cost is the memory of the parsed document in the worker, for up to `MAX_DOCUMENTS` (4) entries. The bench measures it in increment 2.
+The cost is the memory of the parsed document in the worker, for up to `MAX_DOCUMENTS` (4) entries. The bench does not measure it, because the page cannot read the heap of the worker.
 
 ### The snapshot has a slot for each page
 
@@ -89,7 +89,7 @@ Settled on 2026-09-26: the maintainer left each choice to this plan, so each pro
 Each increment lands on its own, with its bench rows, and leaves the viewer whole.
 
 1. **Measure honestly (done).** The render rows without the frame waits, the page-flip scenario, and the retained PNG of a document. No component change. The numbers are in the table above.
-2. **Open and keep the document.** The open publishes the slots and keeps the pdf.js document in the entry. The existing loop still renders every page, in the queue's order. The page count and the highlight geometry are whole at the open, and `defaultPage` no longer jumps. Decision 1 lands here.
+2. **Open and keep the document (done).** The open publishes the slots and keeps the pdf.js document in the entry. The existing loop still renders every page, in page order. The page count and the highlight geometry are whole at the open, and `defaultPage` no longer jumps. Decision 1 lands here. The first page paints in 63 / 67 / 67 / 74 ms at 1 / 3 / 14 / 50 pages. A page that the render skips (no 2D context, or an encode that fails) keeps its slot with no image, and the viewport shows its placeholder.
 3. **The queue.** Render the active page and its neighbours only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document does its work for 3 pages, not 50.
 4. **No encode.** The rasterizer keeps an `ImageBitmap` for each page, and the viewport and the magnifier draw it (decision 3).
 5. **Thumbnail rasters.** The rail renders its own small rasters as it shows them.

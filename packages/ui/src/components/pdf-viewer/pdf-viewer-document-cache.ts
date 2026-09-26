@@ -15,7 +15,7 @@ import type { PdfViewerPage } from './types'
  */
 const MAX_DOCUMENTS = 4
 
-/** What a viewer observes for one `src`: the pages rasterized so far, a download/print URL, and load progress. @internal */
+/** What a viewer observes for one `src`: a slot for each page, with its image once it renders, a download/print URL, and load progress. @internal */
 export type PdfDocumentSnapshot = {
 	pages: PdfViewerPage[]
 	/** Same-origin blob URL for the fetched PDF, or `null` before the fetch resolves. */
@@ -67,6 +67,13 @@ type Held = {
 	listeners: Set<() => void>
 	/** True while a rasterization is running, so a second viewer joins it instead of starting one. */
 	loading: boolean
+	/**
+	 * Frees what the load keeps open for the life of the entry: the parsed pdf.js document.
+	 *
+	 * @remarks The entry calls it when it leaves the cache, which is the rule that frees its blob
+	 * URLs too. A later render of any page then needs no new fetch and no new parse.
+	 */
+	release: (() => void) | null
 }
 
 /**
@@ -91,15 +98,30 @@ const documents = new Map<string, Held>()
 /**
  * Frees the blob URLs a snapshot owns.
  *
- * @remarks A finished snapshot owns no pdf.js resources. The rasterizer destroys the loading
- * task after the last page. Blob URLs are all that remain to release. Safe on a partial
- * snapshot too, which is what a failed load leaves behind.
+ * @remarks A snapshot owns blob URLs only. The pdf.js document that a load keeps open belongs
+ * to the entry, and {@link free} releases it. Safe on a partial snapshot too, which is what a
+ * failed load leaves behind.
  * @internal
  */
 function revoke(snapshot: PdfDocumentSnapshot) {
 	if (snapshot.documentUrl) URL.revokeObjectURL(snapshot.documentUrl)
 
-	for (const page of snapshot.pages) URL.revokeObjectURL(page.src)
+	// A page that has not rendered yet has an empty `src`, and owns no URL.
+	for (const page of snapshot.pages) if (page.src) URL.revokeObjectURL(page.src)
+}
+
+/**
+ * Frees the entry's blob URLs and the document that its load keeps open.
+ *
+ * @remarks Idempotent: the release runs once, and a second call finds it gone.
+ * @internal
+ */
+function free(held: Held) {
+	revoke(held.snapshot)
+
+	held.release?.()
+
+	held.release = null
 }
 
 /**
@@ -122,7 +144,7 @@ function evict() {
 
 		documents.delete(src)
 
-		revoke(held.snapshot)
+		free(held)
 	}
 }
 
@@ -149,7 +171,7 @@ function heldFor(src: string): Held {
 
 	if (existing) return existing
 
-	const held: Held = { snapshot: EMPTY, listeners: new Set(), loading: false }
+	const held: Held = { snapshot: EMPTY, listeners: new Set(), loading: false, release: null }
 
 	documents.set(src, held)
 
@@ -225,7 +247,23 @@ export function subscribeDocument(src: string | undefined, listener: () => void)
  */
 export type PdfLoadReport = {
 	documentUrl: (url: string) => void
-	page: (page: PdfViewerPage) => void
+	/**
+	 * Publishes one slot for each page of the document, before any page renders.
+	 *
+	 * @remarks A slot carries the page's size and label, and an empty `src`. The page count,
+	 * the page navigation, and the highlight geometry read the slots, so they are whole when
+	 * the document opens.
+	 */
+	open: (slots: PdfViewerPage[]) => void
+	/**
+	 * Publishes one rendered page.
+	 *
+	 * @param index - The 0-based position of the page. Omitted, the page goes after the pages
+	 * that this load reported before it.
+	 */
+	page: (page: PdfViewerPage, index?: number) => void
+	/** Gives the entry what to free when it leaves the cache. See `Held.release`. */
+	retain: (release: () => void) => void
 }
 
 /** Rasterizes a document, reporting each page as it lands. @internal */
@@ -266,9 +304,9 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 	 * stands, and pages are present, so this is a complete rasterization to reuse.
 	 *
 	 * Pages-present rather than a `done` flag. The one case they disagree on is a document that
-	 * rasterized zero pages and threw nothing. That is every page skipped for want of a 2D
-	 * context or a `toBlob` refusal. The next mount retries it, rather than caching an empty
-	 * document forever. That is also what the hook did before the cache existed.
+	 * opened with no page and threw nothing. The next mount retries it, rather than caching an
+	 * empty document forever. A page that a render skipped (no 2D context, or a `toBlob`
+	 * refusal) keeps its slot with no image, and the document stays resident.
 	 *
 	 * A failed attempt's partial pages stay too while a viewer holds them. A retry would revoke
 	 * the blob URLs that viewer renders, and blank its page. The hook runs this before it
@@ -278,16 +316,18 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 
 	if (resident.pages.length > 0 && (!resident.error || held.listeners.size > 0)) return
 
-	// A previous attempt's partial pages, which this run is about to replace. Revoked rather
+	// A previous attempt's partial pages, which this run is about to replace. Freed rather
 	// than left to the evictor: no viewer holds them, and appending to them would show the
 	// failed attempt's pages twice.
-	revoke(held.snapshot)
+	free(held)
 
 	held.loading = true
 
 	publish(src, { pages: [], documentUrl: null, loading: true, error: null })
 
-	const pages: PdfViewerPage[] = []
+	let pages: PdfViewerPage[] = []
+
+	let reported = 0
 
 	const settle = (next: Partial<PdfDocumentSnapshot>) => {
 		const current = documents.get(src)
@@ -301,10 +341,24 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
 
 	run({
 		documentUrl: (url) => publish(src, { documentUrl: url }),
-		page: (page) => {
-			pages.push(page)
+		open: (slots) => {
+			pages = [...slots]
 
 			publish(src, { pages: [...pages] })
+		},
+		page: (page, index = reported) => {
+			reported += 1
+
+			pages[index] = page
+
+			publish(src, { pages: [...pages] })
+		},
+		retain: (release) => {
+			const current = documents.get(src)
+
+			// An entry that left the cache while its load ran has nobody to free this later.
+			if (current === held) held.release = release
+			else release()
 		},
 	}).then(
 		() => settle({}),
@@ -322,7 +376,7 @@ export function ensureDocumentLoad(src: string | undefined, run: PdfLoadRun) {
  * @internal
  */
 export function resetDocumentCache() {
-	for (const [, held] of documents) revoke(held.snapshot)
+	for (const [, held] of documents) free(held)
 
 	documents.clear()
 }

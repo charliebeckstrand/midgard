@@ -34,6 +34,10 @@ function loader() {
 		run,
 		page: (id: number) => report?.page(page(id)),
 		documentUrl: (url: string) => report?.documentUrl(url),
+		open: (count: number) =>
+			report?.open(Array.from({ length: count }, (_, index) => ({ ...page(index + 1), src: '' }))),
+		place: (id: number) => report?.page(page(id), id - 1),
+		retain: (release: () => void) => report?.retain(release),
 		finish: () => settled.resolve(),
 	}
 }
@@ -374,5 +378,127 @@ describe('pdf viewer document cache · bound', () => {
 		for (const src of ['/1.pdf', '/2.pdf', '/3.pdf', '/4.pdf', '/5.pdf']) await resident(src)
 
 		expect(documentCacheState().some((entry) => entry.src === '/pending.pdf')).toBe(true)
+	})
+})
+
+describe('pdf viewer document cache · open document', () => {
+	it('publishes a slot for each page at the open, and fills each slot as its page renders', () => {
+		const load = loader()
+
+		ensureDocumentLoad('/a.pdf', load.run)
+
+		load.open(3)
+
+		expect(getDocumentSnapshot('/a.pdf').pages.map((entry) => entry.src)).toEqual(['', '', ''])
+
+		load.place(3)
+
+		load.place(1)
+
+		expect(getDocumentSnapshot('/a.pdf').pages.map((entry) => entry.src)).toEqual([
+			'blob:page-1',
+			'',
+			'blob:page-3',
+		])
+	})
+
+	it('revokes no URL for a slot that never rendered', async () => {
+		const load = loader()
+
+		ensureDocumentLoad('/a.pdf', load.run)
+
+		load.open(2)
+
+		load.place(1)
+
+		load.finish()
+
+		await flush()
+
+		resetDocumentCache()
+
+		expect(globalThis.URL.revokeObjectURL).toHaveBeenCalledWith('blob:page-1')
+
+		expect(globalThis.URL.revokeObjectURL).not.toHaveBeenCalledWith('')
+	})
+
+	it('frees the kept document when its entry leaves the cache, and not before', async () => {
+		const release = vi.fn()
+
+		const load = loader()
+
+		ensureDocumentLoad('/kept.pdf', load.run)
+
+		load.open(1)
+
+		load.place(1)
+
+		load.retain(release)
+
+		load.finish()
+
+		await flush()
+
+		for (const src of ['/1.pdf', '/2.pdf', '/3.pdf']) {
+			const next = loader()
+
+			ensureDocumentLoad(src, next.run)
+
+			next.page(1)
+
+			next.finish()
+
+			await flush()
+		}
+
+		expect(release).not.toHaveBeenCalled()
+
+		const last = loader()
+
+		ensureDocumentLoad('/4.pdf', last.run)
+
+		last.page(1)
+
+		last.finish()
+
+		await flush()
+
+		expect(release).toHaveBeenCalledOnce()
+	})
+
+	it('frees the kept document when the cache resets', async () => {
+		const release = vi.fn()
+
+		const load = loader()
+
+		ensureDocumentLoad('/a.pdf', load.run)
+
+		load.retain(release)
+
+		load.finish()
+
+		await flush()
+
+		resetDocumentCache()
+
+		resetDocumentCache()
+
+		expect(release).toHaveBeenCalledOnce()
+	})
+
+	// A reset while the load runs takes the entry away. Nothing would free a document
+	// that the load then keeps, so the retain frees it at once.
+	it('frees a document at once when its entry left the cache during the load', () => {
+		const release = vi.fn()
+
+		const load = loader()
+
+		ensureDocumentLoad('/a.pdf', load.run)
+
+		resetDocumentCache()
+
+		load.retain(release)
+
+		expect(release).toHaveBeenCalledOnce()
 	})
 })

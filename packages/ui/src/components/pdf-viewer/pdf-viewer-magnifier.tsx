@@ -36,7 +36,7 @@ export function PdfViewerMagnifier() {
 
 	const { imageWidth, imageHeight, frameWidth, frameHeight, transform } = scale
 
-	if (!magnifierSettings || !magnifier.open || !magnifier.point || !activePage || !visible) {
+	if (!magnifierSettings || !magnifier.open || !magnifier.point || !activePage?.src || !visible) {
 		return null
 	}
 
