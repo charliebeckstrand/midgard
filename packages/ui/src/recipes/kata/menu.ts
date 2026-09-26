@@ -85,6 +85,6 @@ export const k = {
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, onWash.muted, 'group-focus/option:text-white'],
-	shortcut: 'ml-auto',
+	shortcut: 'ms-auto',
 	separator: divider.top,
 } as const

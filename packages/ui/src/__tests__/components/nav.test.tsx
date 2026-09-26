@@ -220,7 +220,7 @@ describe('NavItem', () => {
 
 		// The slot insets from the row edge so the control never sits flush
 		// against the chrome.
-		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain('mr-2')
+		expect(affixed?.querySelector('[data-slot="nav-item-suffix"]')?.className).toContain('me-2')
 	})
 
 	it('re-draws the focus ring on the active indicator of a current affixed row', () => {

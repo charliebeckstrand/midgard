@@ -33,7 +33,7 @@ export function SidebarHeader({ className, children, ...props }: SidebarHeaderPr
 					type="button"
 					variant="bare"
 					aria-label="Close navigation"
-					className="ml-auto"
+					className="ms-auto"
 					prefix={<Icon icon={<X />} />}
 					onClick={offcanvas.close}
 				/>
