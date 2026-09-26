@@ -17,6 +17,22 @@ import {
 import type { PdfViewerPage } from './types'
 
 /**
+ * Loads pdf.js from its legacy build.
+ *
+ * @remarks The modern build calls new built-ins with no fallback: `Promise.try` on each message
+ * to the worker, and `Map.prototype.getOrInsertComputed`, `Math.sumPrecise` and the
+ * `Uint8Array` base64 methods. MDN's compatibility data puts its floor at Chrome 147, Firefox
+ * 144 and Safari 26.2, far above the floor in `.browserslistrc`. The legacy build carries a
+ * polyfill for each one. It costs about 58 KB more in this chunk and 50 KB more in the worker,
+ * and both load only when a PDF opens. Its polyfills go on the globals, and only where a
+ * built-in is missing.
+ * @internal
+ */
+function loadPdfjs() {
+	return import('pdfjs-dist/legacy/build/pdf.mjs')
+}
+
+/**
  * The one worker every load shares, or `null` where this environment has none.
  *
  * @remarks Held here, and handed to `getDocument` as `worker`, rather than published on
@@ -47,7 +63,7 @@ let sharedWorker: import('pdfjs-dist').PDFWorker | null = null
  * @internal
  */
 async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
-	const pdfjs = await import('pdfjs-dist')
+	const pdfjs = await loadPdfjs()
 
 	if (pdfjs.GlobalWorkerOptions.workerSrc || pdfjs.GlobalWorkerOptions.workerPort) return null
 
@@ -58,7 +74,7 @@ async function resolveWorker(): Promise<import('pdfjs-dist').PDFWorker | null> {
 	// main-thread rasterization.
 	if (typeof Worker === 'undefined') return null
 
-	const port = new Worker(new URL('pdfjs-dist/build/pdf.worker.min.mjs', import.meta.url), {
+	const port = new Worker(new URL('pdfjs-dist/legacy/build/pdf.worker.min.mjs', import.meta.url), {
 		type: 'module',
 	})
 
@@ -209,7 +225,7 @@ async function rasterizeDocument(src: string, report: PdfLoadReport): Promise<vo
 		// round trip on the first open of a session.
 		const [worker, response] = await Promise.all([resolveWorker(), fetch(src)])
 
-		const pdfjs = await import('pdfjs-dist')
+		const pdfjs = await loadPdfjs()
 
 		if (!response.ok) throw new Error(`Failed to fetch PDF (${response.status})`)
 
