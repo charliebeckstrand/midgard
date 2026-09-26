@@ -93,7 +93,7 @@ Each increment lands on its own, with its bench rows, and leaves the viewer whol
 3. **The queue (done).** Render the active page and its neighbors only, cancel an unwanted render, and bound the full rasters (decision 2). The cold open of a 50-page document renders 2 full rasters, not 50. The rail needs an image for each page before increment 5, so the queue renders a thumbnail of each page after the neighbors, and the queue does this work once for each document. A far flip costs 47 ms.
 4. **No encode (done).** The rasterizer keeps an `ImageBitmap` for each page, and the viewport and the magnifier draw it (decision 3). At 2x, 8 bitmaps for each of 4 documents come to about 236 MiB. The maintainer therefore chose a budget of 48 MiB of bitmaps across all documents, beside the bound of 8. The first page paints in 47 to 63 ms, and a far flip costs 20 to 24 ms.
 5. **Thumbnail rasters (done).** Increment 3 renders a small raster of each page. This increment renders only the thumbnails that the rail shows, so a reader on one page causes no render after the neighbors. A 50-page document with the rail open settles in about 190 ms, with 4 thumbnails.
-6. **Re-render on zoom.** The active page renders again at the zoom scale above 1, so that text stays sharp. The queue makes this a change of scale on one request.
+6. **Re-render on zoom (done).** The active page renders again at a larger scale when it shows wider than its slot, so that text stays sharp. The queue makes this a change of scale on one request. The scale goes up in steps of a quarter, and a sharp raster holds at most 8 MiP. At a zoom of 2, the first page paints in about 39 ms, and the sharp raster lands by about 78 ms.
 
 ## Non-goals
 

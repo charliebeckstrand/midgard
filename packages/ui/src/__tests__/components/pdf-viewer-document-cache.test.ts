@@ -9,6 +9,7 @@ import {
 	type PdfPageRaster,
 	resetDocumentCache,
 	showThumbnails,
+	sizePage,
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
@@ -55,23 +56,25 @@ function renderer() {
 	const jobs: {
 		index: number
 		raster: PdfPageRaster
+		factor: number
 		finish: (raster: string | ImageBitmap | null) => void
 		fail: (reason: unknown) => void
 		cancel: ReturnType<typeof vi.fn>
 	}[] = []
 
-	const render = vi.fn((index: number, raster: PdfPageRaster) => {
+	const render = vi.fn((index: number, raster: PdfPageRaster, factor = 1) => {
 		const job = deferred<string | ImageBitmap | null>()
 
 		const cancel = vi.fn(() => job.reject(new Error('canceled')))
 
-		jobs.push({ index, raster, finish: job.resolve, fail: job.reject, cancel })
+		jobs.push({ index, raster, factor, finish: job.resolve, fail: job.reject, cancel })
 
 		return { promise: job.promise, cancel }
 	})
 
-	/** The renders asked for so far, as `index:raster`. */
-	const asked = () => jobs.map((job) => `${job.index}:${job.raster}`)
+	/** The renders asked for so far, as `index:raster`, with `@factor` for a sharp render. */
+	const asked = () =>
+		jobs.map((job) => `${job.index}:${job.raster}${job.factor > 1 ? `@${job.factor}` : ''}`)
 
 	/** Ends the latest render with a URL named after its page and raster. */
 	const land = async () => {
@@ -914,5 +917,113 @@ describe('pdf viewer document cache · bitmaps', () => {
 		]
 
 		for (const raster of wanted) expect(raster.close).not.toHaveBeenCalled()
+	})
+})
+
+// Each slot here is 800 by 1000 pixels.
+describe('pdf viewer document cache · sharp rasters', () => {
+	it('renders the shown page again at a larger scale when it shows wider, before its neighbors', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 2)
+
+		sizePage('/a.pdf', viewer, 1600)
+
+		const base = await pages.landBitmap(800)
+
+		expect(pages.asked()).toEqual(['2:full', '2:full@2'])
+
+		const sharp = await pages.landBitmap(1600)
+
+		expect(base.close).toHaveBeenCalledOnce()
+
+		expect(getDocumentSnapshot('/a.pdf').pages[2]?.bitmap).toBe(sharp)
+
+		expect(pages.asked().slice(2)).toEqual(['3:full'])
+	})
+
+	it('rounds the scale up to a quarter step, and bounds its pixels', async () => {
+		const pages = await served('/a.pdf', 5)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		sizePage('/a.pdf', viewer, 1000)
+
+		await pages.landBitmap(800)
+
+		expect(pages.asked()).toEqual(['0:full', '0:full@1.25'])
+
+		sizePage('/a.pdf', viewer, 8000)
+
+		await pages.landBitmap(1000)
+
+		// 8 MiP over a slot of 800 by 1000 pixels permits a scale of about 3.24.
+		expect(pages.jobs.at(-1)?.factor).toBeCloseTo(Math.sqrt((8 * 1024 * 1024) / 800_000))
+	})
+
+	it('renders nothing more when the raster is already as wide as the page shows', async () => {
+		const pages = await served('/a.pdf', 1)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		sizePage('/a.pdf', viewer, 1600)
+
+		await pages.landBitmap(800)
+
+		await pages.landBitmap(1600)
+
+		for (const width of [800, 1200, 1600]) {
+			sizePage('/a.pdf', viewer, width)
+
+			await flush()
+		}
+
+		expect(pages.asked()).toEqual(['0:full', '0:full@2'])
+	})
+
+	it('keeps the raster of the slot when a sharp render cannot render, and does not ask again', async () => {
+		const pages = await served('/a.pdf', 1)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		sizePage('/a.pdf', viewer, 1600)
+
+		const base = await pages.landBitmap(800)
+
+		pages.jobs.at(-1)?.finish(null)
+
+		await flush()
+
+		sizePage('/a.pdf', viewer, 1601)
+
+		await flush()
+
+		expect(pages.asked()).toEqual(['0:full', '0:full@2'])
+
+		expect(getDocumentSnapshot('/a.pdf').pages[0]?.bitmap).toBe(base)
+	})
+
+	it('asks for no sharp raster once the viewer removes its width', async () => {
+		const pages = await served('/a.pdf', 1)
+
+		const viewer = {}
+
+		focusPage('/a.pdf', viewer, 0)
+
+		const remove = sizePage('/a.pdf', viewer, 1600)
+
+		remove()
+
+		await pages.landBitmap(800)
+
+		expect(pages.asked()).toEqual(['0:full'])
 	})
 })

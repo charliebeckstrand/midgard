@@ -441,13 +441,6 @@ export function usePdfViewer({
 		onPageChange,
 	})
 
-	// Before the document opens, `safePage` is 0, so the page that the viewer will show is the
-	// one it asks for. The cache clamps it to the page count.
-	const showThumbnails = usePdfViewerDocumentFocus(
-		shouldLoadFromSrc ? src : undefined,
-		safePage || (page ?? defaultPage),
-	)
-
 	const [zoomValue, setZoomValue] = useState(defaultZoom)
 
 	/*
@@ -534,6 +527,14 @@ export function usePdfViewer({
 		hasContent,
 		fit,
 	})
+
+	// Before the document opens, `safePage` is 0, so the page that the viewer will show is the
+	// one it asks for. The cache clamps it to the page count.
+	const showThumbnails = usePdfViewerDocumentFocus(
+		shouldLoadFromSrc ? src : undefined,
+		safePage || (page ?? defaultPage),
+		scale.imageWidth,
+	)
 
 	const zoom = useMemo<PdfViewerZoom>(
 		() => ({ value: zoomValue, setValue: setZoomValue, levels: zoomLevels }),
