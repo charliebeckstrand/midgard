@@ -1,6 +1,6 @@
 'use client'
 
-import type { Ref } from 'react'
+import { type Ref, type RefObject, useEffect, useRef } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { rangeKeys } from '../../utilities'
@@ -28,10 +28,67 @@ type PdfViewerThumbnailListProps = {
 	/** Fired after a page is selected; the mobile Sheet uses it to close. */
 	onSelect?: () => void
 	/**
+	 * Receives the 0-based indices of the tiles in or near view, whenever they change. The `src`
+	 * path renders the thumbnails of those pages only.
+	 */
+	onVisibleChange?: ((indices: number[]) => void) | null
+	/**
 	 * Rail orientation: vertical sidebar list or multi-column grid.
 	 * @defaultValue 'list'
 	 */
 	layout?: 'list' | 'grid'
+}
+
+/**
+ * Reports the tiles of `list` that are in view, or within 200px of it, through one observer.
+ *
+ * @remarks One observer for the whole rail, not one for each tile. The observer clips each
+ * tile by the scroll container of the rail, so a tile scrolled out of the rail is out of view.
+ * Where nothing can observe (the server, and jsdom without a stub), every tile counts as in
+ * view, as `useInView` does. The cleanup reports none, because a rail that unmounts or hides
+ * shows nothing.
+ * @internal
+ */
+function useVisibleTiles(
+	list: RefObject<HTMLUListElement | null>,
+	count: number,
+	onVisibleChange: ((indices: number[]) => void) | null | undefined,
+) {
+	useEffect(() => {
+		const element = list.current
+
+		if (!element || !onVisibleChange || count === 0) return
+
+		if (typeof IntersectionObserver === 'undefined') {
+			onVisibleChange(Array.from({ length: count }, (_, index) => index))
+
+			return () => onVisibleChange([])
+		}
+
+		const visible = new Set<number>()
+
+		const observer = new IntersectionObserver(
+			(entries) => {
+				for (const entry of entries) {
+					const index = Number((entry.target as HTMLElement).dataset.index)
+
+					if (entry.isIntersecting) visible.add(index)
+					else visible.delete(index)
+				}
+
+				onVisibleChange([...visible].sort((a, b) => a - b))
+			},
+			{ rootMargin: '200px' },
+		)
+
+		for (const tile of element.querySelectorAll('[data-index]')) observer.observe(tile)
+
+		return () => {
+			observer.disconnect()
+
+			onVisibleChange([])
+		}
+	}, [list, count, onVisibleChange])
 }
 
 /**
@@ -49,10 +106,16 @@ export function PdfViewerThumbnailList({
 	goToPage,
 	scrollCurrentIntoView,
 	onSelect,
+	onVisibleChange,
 	layout = 'list',
 }: PdfViewerThumbnailListProps) {
+	const listRef = useRef<HTMLUListElement>(null)
+
+	useVisibleTiles(listRef, items.length, onVisibleChange)
+
 	return (
 		<ul
+			ref={listRef}
 			data-slot="pdf-viewer-thumbnails"
 			className={cn(layout === 'grid' ? k.thumbnails.grid : k.thumbnails.base)}
 		>
@@ -72,7 +135,7 @@ export function PdfViewerThumbnailList({
 				const isCurrent = item.pageNumber === safePage
 
 				return (
-					<li key={item.key}>
+					<li key={item.key} data-index={item.pageNumber - 1}>
 						<button
 							ref={isCurrent ? scrollCurrentIntoView : undefined}
 							type="button"

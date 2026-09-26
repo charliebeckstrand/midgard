@@ -41,6 +41,7 @@ export function PdfViewerThumbnails() {
 		thumbsOpen,
 		setThumbsOpen,
 		rootRef,
+		showThumbnails,
 	} = usePdfViewerContext()
 
 	const scrollCurrentIntoView = useScrollWithin()
@@ -105,6 +106,7 @@ export function PdfViewerThumbnails() {
 							safePage={safePage}
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollCurrentIntoView}
+							onVisibleChange={showThumbnails}
 						/>
 					</Hold>
 				</aside>
@@ -138,6 +140,7 @@ export function PdfViewerThumbnails() {
 							goToPage={goToPage}
 							scrollCurrentIntoView={scrollCurrentIntoView}
 							onSelect={() => setThumbsOpen(false)}
+							onVisibleChange={showThumbnails}
 							layout="grid"
 						/>
 					</SheetBody>

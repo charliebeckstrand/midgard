@@ -2,8 +2,8 @@
  * What a reader waits for when a PDF opens cold, and where that time goes.
  *
  * - `cold open · N pages` mounts `PdfViewer` on a document that nothing holds, and each
- *   sample ends when the render queue is idle: the shown page, its neighbor, and every
- *   thumbnail. The first page is when the reader can read, and the settle is when the rail is
+ *   sample ends when the render queue is idle: the shown page, its neighbor, and the
+ *   thumbnails that the rail shows. The first page is when the reader can read, and the settle is when the rail is
  *   whole. The sample times the settle. The last sample of each count prints the mean time to
  *   the first painted page, and the full rasters that the open rendered.
  * - `stage · …` splits one page into the steps that the rasterizer takes: the pdf.js render
@@ -45,6 +45,7 @@ import * as pdfjs from 'pdfjs-dist/legacy/build/pdf.mjs'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { bench, describe } from 'vitest'
+import { page } from 'vitest/browser'
 import { PdfViewer } from '../../components/pdf-viewer'
 import {
 	documentCacheState,
@@ -73,12 +74,17 @@ const firstPage = new Map<number, number[]>()
 /** The full rasters that each sample rendered, per page count. */
 const fullRasters = new Map<number, number[]>()
 
+/** The thumbnails that the last sample rendered, per page count. */
+const thumbnailRasters = new Map<number, number>()
+
 /**
  * Mounts a viewer on a fresh copy of the document and resolves when it settles.
  *
  * @returns The ms from mount to the first page image that decoded in the viewport.
  */
-async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: number }> {
+async function openCold(
+	bytes: Uint8Array,
+): Promise<{ painted: number; rasters: number; thumbnails: number }> {
 	resetDocumentCache()
 
 	const src = servePdf(bytes)
@@ -125,7 +131,11 @@ async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: 
 	// `onLoad` reports the open. The sample ends when the queue has nothing more to render.
 	await rendered(src)
 
-	const rasters = documentCacheState().find((entry) => entry.src === src)?.rasters ?? 0
+	const entry = documentCacheState().find((held) => held.src === src)
+
+	const rasters = entry?.rasters ?? 0
+
+	const thumbnails = entry?.thumbnails ?? 0
 
 	// The decode of the first page can land after the load report.
 	while (painted < 0 || Number.isNaN(painted)) {
@@ -140,7 +150,7 @@ async function openCold(bytes: Uint8Array): Promise<{ painted: number; rasters: 
 
 	URL.revokeObjectURL(src)
 
-	return { painted, rasters }
+	return { painted, rasters, thumbnails }
 }
 
 /** The page image of the viewport: an `<img>`, or the `<canvas>` of a bitmap. */
@@ -241,11 +251,13 @@ describe('pdf viewer · cold open', () => {
 			async () => {
 				const samples = firstPage.get(count) ?? []
 
-				const { painted, rasters } = await openCold(bytes)
+				const { painted, rasters, thumbnails } = await openCold(bytes)
 
 				samples.push(painted)
 
 				fullRasters.get(count)?.push(rasters)
+
+				thumbnailRasters.set(count, thumbnails)
 
 				// The bench prints only its own timing, so the last sample prints this one. The
 				// warm-up sample is left out of the mean.
@@ -255,13 +267,46 @@ describe('pdf viewer · cold open', () => {
 					const mean = timed.reduce((sum, value) => sum + value, 0) / timed.length
 
 					console.log(
-						`cold open · ${count} pages · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${fullRasters.get(count)?.at(-1) ?? 0}`,
+						`cold open · ${count} pages · first page painted · mean ${mean.toFixed(1)} ms · full rasters ${fullRasters.get(count)?.at(-1) ?? 0} · thumbnails ${thumbnailRasters.get(count) ?? 0}`,
 					)
 				}
 			},
 			OPEN_OPTIONS,
 		)
 	}
+})
+
+describe('pdf viewer · cold open · desktop rail', () => {
+	const bytes = makeInvoicePdf(50)
+
+	let last: Awaited<ReturnType<typeof openCold>> | undefined
+
+	let samples = 0
+
+	// The default window of the suite is a phone, where the rail is a closed sheet and renders
+	// no thumbnail. At a desktop width the rail is open beside the page, and the queue renders
+	// the thumbnails in or near its view.
+	bench(
+		'cold open · 50 pages · desktop rail · settled',
+		async () => {
+			await page.viewport(1280, 900)
+
+			try {
+				last = await openCold(bytes)
+			} finally {
+				await page.viewport(414, 896)
+			}
+
+			samples += 1
+
+			if (samples === OPEN_OPTIONS.warmupIterations + OPEN_OPTIONS.iterations) {
+				console.log(
+					`cold open · 50 pages · desktop rail · first page painted ${last.painted.toFixed(1)} ms · full rasters ${last.rasters} · thumbnails ${last.thumbnails}`,
+				)
+			}
+		},
+		OPEN_OPTIONS,
+	)
 })
 
 describe('pdf viewer · stage · one invoice page at 2x', async () => {
