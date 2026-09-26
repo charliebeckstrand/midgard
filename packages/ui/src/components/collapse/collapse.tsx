@@ -1,9 +1,10 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useCallback, useEffectEvent, useMemo } from 'react'
+import { type ComponentProps, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useControllable } from '../../hooks/use-controllable'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
 import { CollapseContext } from './context'
@@ -82,11 +83,10 @@ export function Collapse({
 
 	const { triggerProps, panelProps } = useA11yDisclosure({ expanded: open })
 
-	// Wrapped so the context memo need not key on the caller's callback, which would
-	// otherwise be its one unstable member and re-render every consumer per parent tick.
-	// The wrapper is not itself a stable identity — it routes to the newest callback,
-	// and the memo's dependency list is what holds the value steady.
-	const reportOpenComplete = useEffectEvent(() => {
+	// A stable event, so the context memo does not key on the caller's callback. That
+	// callback would otherwise be the one unstable member, and each consumer would
+	// render again on each parent render.
+	const reportOpenComplete = useStableEvent(() => {
 		onOpenComplete?.()
 	})
 
@@ -100,7 +100,7 @@ export function Collapse({
 			triggerProps,
 			panelProps,
 		}),
-		[open, toggle, animateProp, mount, triggerProps, panelProps],
+		[open, toggle, animateProp, mount, reportOpenComplete, triggerProps, panelProps],
 	)
 
 	return (

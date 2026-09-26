@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { announce } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 
 type CopyStateOptions = {
 	text: string
@@ -43,11 +44,11 @@ export function useCopyButtonState({
 }: CopyStateOptions): CopyStateResult {
 	const [copied, setCopied] = useState(false)
 
-	const notifyCopiedChange = useEffectEvent((next: boolean) => {
+	const notifyCopiedChange = useStableEvent((next: boolean) => {
 		onCopiedChange?.(next)
 	})
 
-	const notifyCopyError = useEffectEvent((error: unknown) => {
+	const notifyCopyError = useStableEvent((error: unknown) => {
 		onCopyError?.(error)
 	})
 
@@ -66,7 +67,7 @@ export function useCopyButtonState({
 			// `copied` stays false and the rejection goes to the caller instead of nowhere.
 			notifyCopyError(error)
 		}
-	}, [text])
+	}, [text, notifyCopiedChange, notifyCopyError])
 
 	useEffect(() => {
 		if (!copied) return
@@ -78,7 +79,7 @@ export function useCopyButtonState({
 		}, timeout)
 
 		return () => clearTimeout(timer)
-	}, [copied, timeout])
+	}, [copied, timeout, notifyCopiedChange])
 
 	return { copied, copy }
 }

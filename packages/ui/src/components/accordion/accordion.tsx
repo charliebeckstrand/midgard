@@ -1,8 +1,9 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, useEffectEvent, useMemo, useRef } from 'react'
+import { type ComponentProps, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { type AccordionVariants, k } from '../../recipes/kata/accordion'
 import { AccordionContext } from './context'
@@ -87,11 +88,10 @@ export function Accordion(props: AccordionProps) {
 
 	const { openStore, toggle } = useAccordionSelection(props)
 
-	// Wrapped so the context memo need not key on the caller's callback, which would
-	// otherwise be its one unstable member — and every item and panel reads that value.
-	// The wrapper is not itself a stable identity — it routes to the newest callback,
-	// and the memo's dependency list is what holds the value steady.
-	const reportOpenComplete = useEffectEvent((value: string) => {
+	// A stable event, so the context memo does not key on the caller's callback. That
+	// callback would otherwise be the one unstable member, and each item and panel
+	// reads the value.
+	const reportOpenComplete = useStableEvent((value: string) => {
 		onOpenComplete?.(value)
 	})
 
@@ -103,7 +103,7 @@ export function Accordion(props: AccordionProps) {
 			toggle,
 			onOpenComplete: reportOpenComplete,
 		}),
-		[variant, mount, openStore, toggle],
+		[variant, mount, openStore, toggle, reportOpenComplete],
 	)
 
 	const ref = useRef<HTMLDivElement>(null)

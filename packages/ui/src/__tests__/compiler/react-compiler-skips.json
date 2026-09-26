@@ -1,21 +1,9 @@
 {
-	"components/accordion/accordion.tsx": {
-		"Accordion": "PreserveManualMemo"
-	},
-	"components/collapse/collapse.tsx": {
-		"Collapse": "PreserveManualMemo"
-	},
 	"components/color/use-color-state.ts": {
 		"useColorState": "Refs"
 	},
-	"components/combobox/use-combobox-state.ts": {
-		"useComboboxState": "PreserveManualMemo"
-	},
 	"components/command-palette/use-command-palette-state.ts": {
 		"useCommandPaletteState": "Refs"
-	},
-	"components/copy-button/use-copy-button-state.ts": {
-		"useCopyButtonState": "PreserveManualMemo"
 	},
 	"components/date-input/date-input.tsx": {
 		"DateInput": "Refs"
@@ -96,9 +84,6 @@
 	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
 		"useSignaturePadCanvasSizing": "Refs"
 	},
-	"components/slider/range/use-range-pointer.ts": {
-		"useRangePointer": "PreserveManualMemo"
-	},
 	"components/table/table-empty.tsx": {
 		"TableEmpty": "Todo"
 	},
@@ -141,9 +126,6 @@
 	"hooks/use-virtual-window.ts": {
 		"useWindowVirtualizer": "Refs",
 		"useVirtualWindow": "Immutability"
-	},
-	"modules/chart/engine/chart-context-menu.tsx": {
-		"ChartContextMenu": "PreserveManualMemo"
 	},
 	"modules/chart/engine/chart-tooltip.tsx": {
 		"ChartTooltip": "Refs"

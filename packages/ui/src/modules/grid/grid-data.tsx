@@ -5,7 +5,6 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useImperativeHandle,
 	useLayoutEffect,
 	useMemo,
@@ -15,6 +14,7 @@ import {
 import { Table } from '../../components/table'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yAnnouncements, useComposedRef, useControllable } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useDensity } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { isDataColumn } from '../../utilities'
@@ -608,10 +608,10 @@ export function GridData<T>({
 		? resolveInfiniteScroll(infiniteScrollConfig, overscan, rows.length)
 		: null
 
-	// Resolves a column's display label at call time, read by the `[]`-stable
-	// `pinColumn` and the visibility handler so they can narrate the change without
-	// closing over (and re-creating on) the columns.
-	const labelOfColumn = useEffectEvent((id: string | number) => {
+	// Resolves a column's display label at call time, read by the stable `pinColumn`
+	// and the visibility handler so they can narrate the change without closing over
+	// (and re-creating on) the columns.
+	const labelOfColumn = useStableEvent((id: string | number) => {
 		const column = pinnedColumns.find((candidate) => candidate.id === id)
 
 		return column ? columnLabel(column) : String(id)
@@ -628,7 +628,7 @@ export function GridData<T>({
 
 			announce(describePin(labelOfColumn(id), side, rtl))
 		},
-		[setPinningState],
+		[setPinningState, labelOfColumn],
 	)
 
 	// Keyboard cursor (and, under `editable`, per-row editing layered on it).
@@ -821,7 +821,7 @@ export function GridData<T>({
 
 			setHiddenColumns(next)
 		},
-		[setHiddenColumns],
+		[setHiddenColumns, labelOfColumn],
 	)
 
 	// Measured to auto-size resizable columns to fill the available width.
