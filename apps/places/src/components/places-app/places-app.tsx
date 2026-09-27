@@ -385,11 +385,16 @@ export function PlacesApp({ user }: { user: User }) {
 							className="text-xl/8"
 							steps={pageTrail}
 							// The search is on the world map only. Under it, the reader
-							// already chose a country, and the trail names it.
+							// already chose a country, and the trail names it. It renders
+							// before the view settles, so the server sends it with the page,
+							// and it shows a skeleton until the map and the countries load.
 							after={
-								view.country === null && !settling ? (
+								view.country === null ? (
 									<CountrySearch
 										countries={regionNames}
+										// Ready with the map: a pick before the view settles
+										// would open a country onto a skeleton.
+										ready={!settling && regionNames.length > 0}
 										onPick={(country) => setView(drillInto(view, country))}
 										onPreload={onPreload}
 									/>
