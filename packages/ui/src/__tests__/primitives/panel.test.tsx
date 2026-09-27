@@ -2,7 +2,6 @@ import { renderHook } from '@testing-library/react'
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { createPanel, PanelA11yContext, PanelClose, usePanelA11y } from '../../primitives/panel'
-import { DensityProvider } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
 describe('createPanel', () => {
@@ -66,24 +65,10 @@ describe('createPanel', () => {
 	})
 
 	it.each<[string, () => ReactElement, string]>([
-		['Title holds the text-lg baseline at neutral density', () => <Title>Title</Title>, 'text-lg'],
 		[
-			'Title shifts down one rung under compact density',
-			() => (
-				<DensityProvider density="compact">
-					<Title>Title</Title>
-				</DensityProvider>
-			),
-			'text-base',
-		],
-		[
-			'Title shifts up one rung under loose density',
-			() => (
-				<DensityProvider density="loose">
-					<Title>Title</Title>
-				</DensityProvider>
-			),
-			'text-xl',
+			'Title sizes on the title ramp, which follows the nearest scope',
+			() => <Title>Title</Title>,
+			'density-text-[base,lg,xl]',
 		],
 		[
 			'Title weight is sourced from the heading scale (h2 → semibold)',

@@ -150,4 +150,22 @@ describe('cn', () => {
 			expect(cn('px-4', `px-${width}`)).toBe('px-2')
 		})
 	})
+
+	describe('stepped density classes', () => {
+		it('replaces a plain class of the same property with a later stepped class', () => {
+			expect(cn('text-xl', 'density-text-[base,lg,xl]')).toBe('density-text-[base,lg,xl]')
+
+			expect(cn('px-2', 'density-px-[2,3,4]')).toBe('density-px-[2,3,4]')
+		})
+
+		it('replaces a stepped class with a later plain class of the same property', () => {
+			expect(cn('density-max-h-[48,52,56]', 'max-h-64')).toBe('max-h-64')
+
+			expect(cn('density-p-[2,3,4]', 'p-0')).toBe('p-0')
+		})
+
+		it('keeps a stepped class beside a plain class of a different property', () => {
+			expect(cn('density-px-[2,3,4]', 'py-1')).toBe('density-px-[2,3,4] py-1')
+		})
+	})
 })

@@ -4,7 +4,9 @@ import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as fieldset } from '../../recipes/kata/fieldset'
+import { k as list } from '../../recipes/kata/list'
 import { k as loading } from '../../recipes/kata/loading'
+import { k as menu } from '../../recipes/kata/menu'
 import { k as table } from '../../recipes/kata/table'
 import { stripSourceComments, walkSource } from '../helpers/walk-source'
 
@@ -23,7 +25,9 @@ const NATIVE_RECIPES = {
 	badge,
 	description: fieldset.description,
 	label: fieldset.label,
+	'list item': list.item,
 	'loading spinner': loading.spinner,
+	'menu viewport': menu.viewport,
 	message: fieldset.message,
 	'table cell': table.cell,
 	'table header': table.header,
@@ -34,12 +38,19 @@ const NATIVE_FILES = [
 	'components/card/card.tsx',
 	'components/card/card-header.tsx',
 	'components/card/card-footer.tsx',
+	'components/card/card-title.tsx',
 	'components/fieldset/description.tsx',
 	'components/fieldset/label.tsx',
 	'components/fieldset/message.tsx',
 	'components/icon/icon.tsx',
+	'components/list/list-item.tsx',
 	'components/loading/loading-spinner.tsx',
+	'components/menu/menu-item.tsx',
+	'components/menu/menu-sub.tsx',
+	'components/menu/menu-viewport.tsx',
 	'components/table/table.tsx',
+	'primitives/option/option.tsx',
+	'primitives/panel/panel.tsx',
 ]
 
 const DENSITY_READS = /\b(?:useDensityStep|useDensityNullable)\b/

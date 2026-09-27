@@ -85,14 +85,12 @@ describe('Grid condensed', () => {
 
 		fireEvent.contextMenu(screen.getByText('Alice'))
 
-		// The menu portals from outside the table's condensed cascade, so its items
-		// read the ambient `md` font (`text-base`) rather than the condensed
-		// `text-sm` — text and icon step together instead of the text alone shrinking.
+		// The menu portals from outside the table's condensed cascade, so its nearest
+		// scope is the ambient `md` step rather than the condensed `sm`. Text and icon
+		// step together instead of the text alone shrinking.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })
 
-		expect(item).toHaveClass('text-base')
-
-		expect(item).not.toHaveClass('text-sm')
+		expect(item.closest('[data-density]')).toHaveAttribute('data-density', 'md')
 	})
 
 	it('does not shrink a consumer badge outside the grid', () => {

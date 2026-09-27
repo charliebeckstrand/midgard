@@ -1,13 +1,15 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
-import { Card, CardHeader } from '../../components/card'
+import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
+import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
+import { BaseOption } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
-import { present, renderUI } from '../helpers'
+import { present, renderUI, screen } from '../helpers'
 
 /**
  * A static leaf with no `size` follows the nearest density scope.
@@ -234,5 +236,51 @@ describe('density scopes on static leaves (real browser)', () => {
 		const label = present(container.querySelector<HTMLElement>('[data-slot="label"]'), 'label')
 
 		expect(Number.parseFloat(getComputedStyle(label).fontSize)).toBe(font)
+	})
+})
+
+/**
+ * A family that reads no context follows the nearest scope. `floating-ui/density-portal.test.tsx`
+ * holds the families in a portal, which needs the real floating engine.
+ */
+describe('density scopes on families (real browser)', () => {
+	const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
+
+	it('sizes an unsized card title at the step of its card', () => {
+		renderUI(
+			<Card size="lg">
+				<CardTitle>Title</CardTitle>
+			</Card>,
+		)
+
+		expect(fontOf(screen.getByText('Title'))).toBe(20)
+	})
+
+	it('pads a list row at the step of a compact provider', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<List items={[{ id: 'a' }]} getKey={(item) => item.id}>
+					{(item) => <ListItem>{item.id}</ListItem>}
+				</List>
+			</DensityProvider>,
+		)
+
+		const row = present(container.querySelector<HTMLElement>('[data-slot="list-item"]'), 'row')
+
+		expect(Number.parseFloat(getComputedStyle(row).paddingTop)).toBe(CARD_PADDING_PX.sm)
+	})
+
+	it('sizes the check of a selected option at the step of its scope', () => {
+		const { container } = renderUI(
+			<DensityProvider density="loose">
+				<BaseOption selected onSelect={() => {}}>
+					Option
+				</BaseOption>
+			</DensityProvider>,
+		)
+
+		const check = present(container.querySelector<SVGElement>('[data-slot="icon"]'), 'check')
+
+		expect(Number.parseFloat(getComputedStyle(check).width)).toBe(24)
 	})
 })

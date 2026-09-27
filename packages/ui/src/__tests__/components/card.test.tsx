@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, renderUI } from '../helpers'
+import { bySlot, present, renderUI } from '../helpers'
 
 describe('Card', () => {
 	it('keeps its frame around explicit skeleton children', () => {
@@ -72,15 +72,31 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-title')?.className).toContain('text-xl')
 	})
 
-	it('CardTitle defaults to the md rung regardless of the Card size', () => {
+	it('CardTitle with no size follows the Card scope on the title ramp', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardTitle>Title</CardTitle>
 			</Card>,
 		)
 
-		// Static leaf: no inherited size. md → bumps one rung to ji.size.lg.
-		expect(bySlot(container, 'card-title')?.className).toContain('text-lg')
+		const title = present(bySlot(container, 'card-title'), 'card title')
+
+		// The ramp replaces the fixed size of the heading level, so the scope selects the size.
+		expect(title).toHaveClass('density-text-[base,lg,xl]')
+
+		expect(title).not.toHaveClass('text-xl')
+
+		expect(title.closest('[data-density]')).toHaveAttribute('data-density', 'lg')
+	})
+
+	it('CardTitle with a size keeps that step of the title scale', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<CardTitle size="sm">Title</CardTitle>
+			</Card>,
+		)
+
+		expect(bySlot(container, 'card-title')).toHaveClass('text-base')
 	})
 
 	it('CardTitle weight is derived from its heading level', () => {

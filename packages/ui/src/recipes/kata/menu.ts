@@ -1,48 +1,33 @@
 /**
  * Menu kata: object-literal surface for `<Menu>` / `<Dropdown>` popover lists.
- * The `item` and `viewport` sub-recipes carry the density- and size-axed
- * option row and the capped scroll container. The rest are static slots:
+ * The `item` row and the `viewport` scroll container follow the nearest density
+ * scope through stepped classes. The panel is that scope. The rest are static slots:
  * `content` (the panel box), `section`, `heading`, `label`, `description`, and
  * `shortcut`. The `subTrigger` wash on an open submenu parent and the
  * `separator` divider join them.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, sen, stepSize } from '../kiso'
+import { hannou, iro, ji, narabi, sen, textRamp } from '../kiso'
 
 const { onWash, text } = iro
 const { size, weight } = ji
 const { flex, description } = narabi
 const { divider } = sen
 
-const item = defineRecipe({
+const item = [
 	// `hannou.active` layers the `data-active` wash beside `hannou.item`'s
 	// focus/hover wash: a dropdown roves its items via `aria-activedescendant`
 	// (focus stays on the trigger), marking the active row `data-active` rather
 	// than focusing it, so the highlight must key off that too.
-	base: ['group/option', flex.row, 'w-full', ...hannou.item, ...hannou.active, ...narabi.item],
-	// Padding and gap track the density axis; text tracks the size axis.
-	// They move together under a diagonal `<Density>` and split when the axes
-	// are set independently.
-	density: {
-		sm: 'gap-2 px-2.5 py-1',
-		md: 'gap-3 px-3 py-1.5',
-		lg: 'gap-3 px-3.5 py-2.5',
-	},
-	size: stepSize,
-	defaults: { density: 'md', size: 'md' },
-})
-
-/**
- * The panel's height cap per density, tuned to cut the last visible row roughly
- * in half (assuming plain items on the diagonal density/size axis). A clipped
- * row, not just the edge fade, therefore signals more content below. Applied through
- * `compound` so a panel that opts out carries no `max-h` at all.
- */
-const MENU_CAPS = [
-	['sm', 'max-h-48'],
-	['md', 'max-h-52'],
-	['lg', 'max-h-56'],
-] as const
+	'group/option',
+	flex.row,
+	'w-full',
+	...hannou.item,
+	...hannou.active,
+	...narabi.item,
+	'density-gap-[2,3,3] density-px-[2.5,3,3.5] density-py-[1,1.5,2.5]',
+	textRamp,
+]
 
 // The scrollable item region inside the panel.
 const viewport = defineRecipe({
@@ -57,18 +42,16 @@ const viewport = defineRecipe({
 		'data-overflow-above:[--menu-fade-above:1.5rem]',
 		'data-overflow-below:[--menu-fade-below:1.5rem]',
 	],
-	density: { sm: '', md: '', lg: '' },
 	// Off by default: a menu is normally a short, fixed item set, where a cap
 	// clips the last row and reads as truncation rather than as more content
 	// below. `true` caps a panel long enough to run past the viewport. The scroll
 	// container stays either way, so a capped panel can still reach its end.
-	capped: { true: '', false: '' },
-	// The cap is emitted only while capped, rather than emitted and then
-	// overridden. tailwind-merge does not carry `none` in its `max-h` group, so an
-	// overriding class would ride *alongside* the density cap and leave
-	// stylesheet order to decide the height; emitting nothing depends on neither.
-	compound: MENU_CAPS.map(([density, cap]) => ({ density, capped: 'true', class: cap })),
-	defaults: { density: 'md', capped: false },
+	//
+	// The cap of each density step cuts the last visible row at about its
+	// middle. Thus a clipped row, and not only the edge fade, shows that more
+	// content is below. A panel that is not capped gets no `max-h` class.
+	capped: { true: 'density-max-h-[48,52,56]', false: '' },
+	defaults: { capped: false },
 })
 
 export const k = {

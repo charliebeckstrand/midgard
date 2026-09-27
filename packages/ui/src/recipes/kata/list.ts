@@ -1,11 +1,10 @@
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, ma, narabi, omote, sen, steps } from '../kiso'
+import { hannou, iro, ji, kasane, narabi, omote, sen } from '../kiso'
 
 const { cursor, disabled, fg, glassItem, grab, tint, tintFilled, tintSurface } = hannou
 const { onWash, text } = iro
 const { size } = ji
 const { rounded } = kasane
-const { p } = ma
 const { flex } = narabi
 const { bg } = omote
 const { border, divider, focus } = sen
@@ -27,9 +26,9 @@ const root = defineRecipe({
 	defaults: { variant: 'separated', orientation: 'vertical' },
 })
 
-// The card-like variants share the uniform `ma.p` scale across the density
-// axis; `plain` uses a tighter px/py ratio.
-const variants = ['separated', 'outline', 'solid'] as const
+// The padding of a row follows the nearest density scope. The card-like
+// variants use the uniform `ma.p` scale, and `plain` uses a tighter ratio.
+const pad = 'density-p-[2,3,4]'
 
 const item = defineRecipe({
 	// `list-none` is stated, not inherited from the flex display: a row only avoids
@@ -38,15 +37,11 @@ const item = defineRecipe({
 	// outside the `<ul>` preflight strips — would grow a bullet.
 	base: ['group', 'list-none', flex.row, 'gap-2', 'gap-y-0', size.md, text.default, focus.inset],
 	variant: {
-		separated: [...bg.surface, border.default, rounded.lg],
-		outline: '',
-		plain: '',
-		solid: [...bg.tint, border.default, rounded.lg],
+		separated: [...bg.surface, border.default, rounded.lg, pad],
+		outline: pad,
+		plain: 'density-px-[1.5,2,2.5] density-py-[1,1.5,2]',
+		solid: [...bg.tint, border.default, rounded.lg, pad],
 	},
-	// Density carries no padding itself: row padding rides the variant × density
-	// compounds below, so tailwind-merge keeps a later `px`/`py` (the `plain`
-	// rows) over an earlier `p`.
-	density: { sm: '', md: '', lg: '' },
 	active: {
 		true: ['z-10 relative', ...bg.surface, rounded.md],
 		false: '',
@@ -80,12 +75,6 @@ const item = defineRecipe({
 		false: '',
 	},
 	compound: [
-		...variants.flatMap((variant) =>
-			steps.map((density) => ({ variant, density, class: p[density] })),
-		),
-		{ variant: 'plain', density: 'sm', class: 'px-1.5 py-1' },
-		{ variant: 'plain', density: 'md', class: 'px-2 py-1.5' },
-		{ variant: 'plain', density: 'lg', class: 'px-2.5 py-2' },
 		// The hover wash, one per variant, because each rests on a different fill and
 		// a wash is a background *replacement*. It rides the `<li>` rather than the
 		// content column so it covers the prefix and suffix slots too — a row that
@@ -105,7 +94,6 @@ const item = defineRecipe({
 	],
 	defaults: {
 		variant: 'separated',
-		density: 'md',
 		active: false,
 		lifted: false,
 		interactive: false,

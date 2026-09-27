@@ -1,6 +1,5 @@
 import { createContext, type FC, Profiler, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { Density } from '../../primitives/density'
 import { BaseOption, createSelectOption } from '../../primitives/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
@@ -139,16 +138,14 @@ describe('BaseOption', () => {
 		expect(cls).toContain('group-data-selected/option:inline')
 	})
 
-	it('sizes the default check icon to the ambient density', () => {
+	it('sizes the default check icon with a stepped class, which follows the nearest scope', () => {
 		const { container } = renderUI(
-			<Density step="lg">
-				<BaseOption selected={true} onSelect={() => {}}>
-					Option
-				</BaseOption>
-			</Density>,
+			<BaseOption selected={true} onSelect={() => {}}>
+				Option
+			</BaseOption>,
 		)
 
-		expect(bySlot(container, 'icon')?.getAttribute('class')).toContain('size-6')
+		expect(bySlot(container, 'icon')).toHaveClass('density-size-[4,5,6]')
 	})
 })
 

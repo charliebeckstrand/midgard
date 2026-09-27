@@ -25,10 +25,58 @@ const steppedGroups = {
 	'density-gap-y': [{ 'density-gap-y': steps }],
 	'density-size': [{ 'density-size': steps }],
 	'density-h': [{ 'density-h': steps }],
+	'density-max-h': [{ 'density-max-h': steps }],
 	'density-w': [{ 'density-w': steps }],
 	'density-text': [{ 'density-text': steps }],
 	'density-rounded': [{ 'density-rounded': steps, 'density-rounded-ring': steps }],
 }
+
+/**
+ * The plain class group of each stepped group. A stepped class and a plain class
+ * of the same property conflict, so the later class stays.
+ */
+const plainGroups = {
+	'density-p': 'p',
+	'density-px': 'px',
+	'density-py': 'py',
+	'density-pt': 'pt',
+	'density-pb': 'pb',
+	'density-ps': 'ps',
+	'density-pe': 'pe',
+	'density-ms': 'ms',
+	'density-me': 'me',
+	'density-gap': 'gap',
+	'density-gap-x': 'gap-x',
+	'density-gap-y': 'gap-y',
+	'density-size': 'size',
+	'density-h': 'h',
+	'density-max-h': 'max-h',
+	'density-w': 'w',
+	'density-text': 'font-size',
+	'density-rounded': 'rounded',
+} as const satisfies Record<keyof typeof steppedGroups, string>
+
+/** The conflicts of each stepped group with the stepped groups it contains. */
+const steppedConflicts: Partial<
+	Record<keyof typeof steppedGroups, (keyof typeof steppedGroups)[]>
+> = {
+	'density-p': ['density-px', 'density-py', 'density-pt', 'density-pb', 'density-ps', 'density-pe'],
+	'density-px': ['density-ps', 'density-pe'],
+	'density-py': ['density-pt', 'density-pb'],
+	'density-gap': ['density-gap-x', 'density-gap-y'],
+	'density-size': ['density-h', 'density-w'],
+}
+
+/**
+ * The conflicts of each stepped group: the stepped groups it contains, and its
+ * plain group. Each plain group also conflicts with its stepped group.
+ */
+const conflicts = Object.fromEntries(
+	Object.entries(plainGroups).flatMap(([stepped, plain]) => [
+		[stepped, [...(steppedConflicts[stepped as keyof typeof steppedGroups] ?? []), plain]],
+		[plain, [stepped]],
+	]),
+)
 
 /**
  * `tailwind-merge` extended with the project's named spacing scale
@@ -37,8 +85,9 @@ const steppedGroups = {
  * Utilities like `p-md` collapse when a later class overrides them. Each ring
  * utility joins the class group of its property, so a later `px-4` replaces a
  * `px-ring-2`. Each stepped utility has a group of its property,
- * so a later `density-px-[2,3,4]` replaces an earlier one. Shared by `cn` and
- * the recipe engine.
+ * so a later `density-px-[2,3,4]` replaces an earlier one. A stepped class and a
+ * plain class of one property also replace each other. Shared by `cn` and the
+ * recipe engine.
  */
 export const twMerge = extendTailwindMerge<keyof typeof steppedGroups>({
 	extend: {
@@ -56,19 +105,6 @@ export const twMerge = extendTailwindMerge<keyof typeof steppedGroups>({
 			rounded: [{ 'rounded-ring': ringStop }],
 			...steppedGroups,
 		},
-		conflictingClassGroups: {
-			'density-p': [
-				'density-px',
-				'density-py',
-				'density-pt',
-				'density-pb',
-				'density-ps',
-				'density-pe',
-			],
-			'density-px': ['density-ps', 'density-pe'],
-			'density-py': ['density-pt', 'density-pb'],
-			'density-gap': ['density-gap-x', 'density-gap-y'],
-			'density-size': ['density-h', 'density-w'],
-		},
+		conflictingClassGroups: conflicts,
 	},
 })

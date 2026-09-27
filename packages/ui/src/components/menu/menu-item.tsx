@@ -1,8 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'react'
-import { ariaAttr, cn, composeEventHandlers, dataAttr, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useLink } from '../../primitives/link'
 import { inertLinkProps } from '../../primitives/link/inert-link'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
@@ -47,8 +46,6 @@ export type MenuItemProps = MenuItemBaseProps & PolymorphicProps<'button', keyof
 export function MenuItem(props: MenuItemProps) {
 	const { close } = useMenuActions()
 
-	const size = toAmbientStep(useDensityStep())
-
 	const { component: LinkComponent } = useLink()
 
 	const { disabled, className, children, onAction, closeOnAction = true } = props
@@ -72,7 +69,7 @@ export function MenuItem(props: MenuItemProps) {
 	// picks up from the row the pointer left off on.
 	const handlePointerMove = useMenuRowPointer(disabled)
 
-	const classes = cn('group/option', k.item({ density: size, size }), className)
+	const classes = cn('group/option', k.item, className)
 
 	if (props.href !== undefined) {
 		const {

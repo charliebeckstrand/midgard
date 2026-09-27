@@ -67,6 +67,13 @@ export function titleSize(step: Step): string {
 }
 
 /**
+ * {@link titleSize} in a stepped `density-text` class. A title takes the step
+ * of its nearest density scope, and each outer step takes the class of its
+ * neighbor. `heading-title-ramp.test.ts` pins it to {@link titleSize}.
+ */
+export const titleRamp = 'density-text-[base,lg,xl]'
+
+/**
  * Heading font weight for a `level`. Used by heading-like elements that don't
  * render `<Heading>` directly, e.g. the panel title (`<h2>`, level 2).
  */

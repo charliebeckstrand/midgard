@@ -148,7 +148,7 @@ describe('Dialog', () => {
 		expect(panel).not.toHaveAttribute('data-glass')
 	})
 
-	it('DialogTitle holds the text-lg baseline at neutral density', () => {
+	it('DialogTitle sizes on the title ramp', () => {
 		renderUI(
 			<Dialog open onOpenChange={() => {}}>
 				<DialogHeader>
@@ -157,10 +157,10 @@ describe('Dialog', () => {
 			</Dialog>,
 		)
 
-		expect(screen.getByText('Settings').className).toContain('text-lg')
+		expect(screen.getByText('Settings')).toHaveClass('density-text-[base,lg,xl]')
 	})
 
-	it('DialogTitle scales down with an ambient compact density', () => {
+	it('DialogTitle follows an ambient compact density through the portal', () => {
 		renderUI(
 			<DensityProvider density="compact">
 				<Dialog open onOpenChange={() => {}}>
@@ -171,7 +171,10 @@ describe('Dialog', () => {
 			</DensityProvider>,
 		)
 
-		expect(screen.getByText('Settings').className).toContain('text-base')
+		expect(screen.getByText('Settings').closest('[data-density]')).toHaveAttribute(
+			'data-density',
+			'sm',
+		)
 	})
 })
 

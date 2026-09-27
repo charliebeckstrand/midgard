@@ -1,9 +1,8 @@
 'use client'
 
 import type { ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
-import { cn, dataAttr, toAmbientStep } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useLifted } from '../../hooks/use-lifted-store'
-import { useDensityStep } from '../../primitives/density'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
@@ -116,8 +115,6 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 		onItemBlur,
 	} = useListContext()
 
-	const space = toAmbientStep(useDensityStep())
-
 	// The row reads its own lift, so a lift renders only the rows that lift and drop.
 	const lifted = useLifted(liftedStore, id)
 
@@ -198,7 +195,6 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			className={cn(
 				k.item({
 					variant,
-					density: space,
 					active: dragging,
 					lifted,
 					interactive,

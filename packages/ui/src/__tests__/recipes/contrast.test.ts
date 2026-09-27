@@ -251,7 +251,7 @@ const TINT_CONSUMERS: readonly {
 	// `hannou.active` a roved one; both sit a step darker than `bg.tint` in dark.
 	{
 		file: 'recipes/kata/menu.ts',
-		surfaces: [menu.item({}), menu.description],
+		surfaces: [menu.item, menu.description],
 		ground: HOVER_WASH,
 		// The focused row takes a solid accent fill, not the wash.
 		regrounded: ['group-focus/option:text-white'],

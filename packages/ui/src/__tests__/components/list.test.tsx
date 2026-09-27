@@ -1,7 +1,15 @@
 import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
 import { DensityProvider } from '../../providers/density'
-import { allBySlot, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
+import {
+	allBySlot,
+	bySlot,
+	expectAnnouncement,
+	fireEvent,
+	present,
+	renderUI,
+	screen,
+} from '../helpers'
 
 type Item = { id: string; label: string }
 
@@ -743,57 +751,37 @@ describe('List: static (non-interactive) mode', () => {
 	})
 })
 
-describe('ListItem density inheritance', () => {
-	// Card variants (separated/outline/solid) use the uniform ma.p scale
-	// (sm p-2 / md p-3 / lg p-4); `plain` keeps a tighter px/py ratio.
-	function firstItemClass(ui: Parameters<typeof renderUI>[0]) {
+describe('ListItem density', () => {
+	// The row reads no context. Its padding is a stepped class, and the nearest
+	// `data-density` scope selects the step in CSS. The card variants use the
+	// uniform `ma.p` scale, and `plain` keeps a tighter px/py ratio.
+	function firstItem(ui: Parameters<typeof renderUI>[0]) {
 		const { container } = renderUI(ui)
 
-		return bySlot(container, 'list-item')?.className ?? ''
+		return present(bySlot(container, 'list-item'), 'list item')
 	}
 
-	const list = () => (
-		<List items={items} getKey={(i) => i.id}>
+	const list = (variant?: 'plain') => (
+		<List items={items} getKey={(i) => i.id} variant={variant}>
 			{(item) => <ListItem>{item.label}</ListItem>}
 		</List>
 	)
 
-	it('defaults the card variant to md uniform padding', () => {
-		expect(firstItemClass(list())).toMatch(/(^|\s)p-3(\s|$)/)
+	it('pads the card variant on the uniform scale', () => {
+		expect(firstItem(list())).toHaveClass('density-p-[2,3,4]')
 	})
 
-	it('inherits a compact DensityProvider on the card variant', () => {
-		expect(firstItemClass(<DensityProvider density="compact">{list()}</DensityProvider>)).toMatch(
-			/(^|\s)p-2(\s|$)/,
-		)
+	it('pads the plain variant on its tighter px/py ratio, with no uniform padding', () => {
+		const item = firstItem(list('plain'))
+
+		expect(item).toHaveClass('density-px-[1.5,2,2.5]', 'density-py-[1,1.5,2]')
+
+		expect(item).not.toHaveClass('density-p-[2,3,4]')
 	})
 
-	it('keeps the plain variant on its tighter px/py ratio, dropping the shadowed p-*', () => {
-		const cls = firstItemClass(
-			<List items={items} getKey={(i) => i.id} variant="plain">
-				{(item) => <ListItem>{item.label}</ListItem>}
-			</List>,
-		)
+	it('follows the scope of a compact DensityProvider', () => {
+		const item = firstItem(<DensityProvider density="compact">{list()}</DensityProvider>)
 
-		expect(cls).toMatch(/(^|\s)px-2(\s|$)/)
-
-		expect(cls).toMatch(/(^|\s)py-1\.5(\s|$)/)
-
-		// twMerge drops the card padding the density axis would otherwise add.
-		expect(cls).not.toMatch(/(^|\s)p-3(\s|$)/)
-	})
-
-	it('tightens the plain variant under a compact DensityProvider', () => {
-		const cls = firstItemClass(
-			<DensityProvider density="compact">
-				<List items={items} getKey={(i) => i.id} variant="plain">
-					{(item) => <ListItem>{item.label}</ListItem>}
-				</List>
-			</DensityProvider>,
-		)
-
-		expect(cls).toMatch(/(^|\s)px-1\.5(\s|$)/)
-
-		expect(cls).toMatch(/(^|\s)py-1(\s|$)/)
+		expect(item.closest('[data-density]')).toHaveAttribute('data-density', 'sm')
 	})
 })
