@@ -729,6 +729,130 @@ describe('createPhotonProvider', () => {
 		expect(url.searchParams.getAll('osm_tag')).toEqual(['amenity:restaurant', '!amenity:fast_food'])
 	})
 
+	describe('a query that ends in a postal code', () => {
+		const SHERWOOD = {
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: [-122.85, 45.36] },
+			// A postal code carries no OSM object.
+			properties: {
+				osm_key: 'place',
+				osm_value: 'postcode',
+				type: 'other',
+				name: '97140',
+				city: 'Sherwood',
+				state: 'Oregon',
+				countrycode: 'US',
+			},
+		}
+
+		/** Answers the postal code request with `codes`, and every other request with nothing. */
+		function stubPostcode(...codes: unknown[]) {
+			const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+				const url = new URL(String(input))
+
+				const features = url.searchParams.get('osm_tag') === 'place:postcode' ? codes : []
+
+				return { ok: true, json: async () => ({ features }) } as Response
+			})
+
+			vi.stubGlobal('fetch', fetchMock)
+
+			return fetchMock
+		}
+
+		function urls(fetchMock: ReturnType<typeof vi.fn>): URL[] {
+			return fetchMock.mock.calls.map((call) => new URL(String(call[0])))
+		}
+
+		it('searches the rest of the query near the code', async () => {
+			const fetchMock = stubPostcode(SHERWOOD)
+
+			await createPhotonProvider({ region: 'US' })('ice cream 97140', {
+				signal: new AbortController().signal,
+			})
+
+			const [lookup, search] = urls(fetchMock)
+
+			expect(lookup?.searchParams.get('q')).toBe('97140')
+
+			expect(lookup?.searchParams.get('countrycode')).toBe('US')
+
+			expect(search?.searchParams.get('q')).toBe('ice cream')
+
+			expect(search?.searchParams.get('lat')).toBe('45.36')
+
+			expect(search?.searchParams.get('lon')).toBe('-122.85')
+		})
+
+		it('reads a ZIP+4 as its first five digits', async () => {
+			const fetchMock = stubPostcode(SHERWOOD)
+
+			await createPhotonProvider({ region: 'US' })('coffee, 97140-1234', {
+				signal: new AbortController().signal,
+			})
+
+			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('97140')
+
+			expect(urls(fetchMock)[1]?.searchParams.get('q')).toBe('coffee')
+		})
+
+		it('answers a query that is only a code with the code', async () => {
+			stubPostcode(SHERWOOD)
+
+			const results = await createPhotonProvider({ region: 'US' })('97140', {
+				signal: new AbortController().signal,
+			})
+
+			expect(results).toHaveLength(1)
+
+			expect(results[0]).toMatchObject({
+				id: 'place:postcode:US:97140',
+				label: '97140',
+				latitude: 45.36,
+				longitude: -122.85,
+			})
+		})
+
+		it('searches the query as typed where the code is not a code', async () => {
+			const fetchMock = stubPostcode({
+				...SHERWOOD,
+				properties: { ...SHERWOOD.properties, name: '97141' },
+			})
+
+			await createPhotonProvider({ region: 'US' })('ice cream 97140', {
+				signal: new AbortController().signal,
+			})
+
+			const search = urls(fetchMock).at(-1)
+
+			expect(search?.searchParams.get('q')).toBe('ice cream 97140')
+
+			expect(search?.searchParams.has('lat')).toBe(false)
+		})
+
+		it('keeps a number that is not shaped like a code as text', async () => {
+			const fetchMock = stubPostcode(SHERWOOD)
+
+			await createPhotonProvider({ region: 'US' })('Pier 39', {
+				signal: new AbortController().signal,
+			})
+
+			expect(urls(fetchMock)).toHaveLength(1)
+
+			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('Pier 39')
+		})
+
+		it('tries a two-word code before its last word', async () => {
+			const fetchMock = stubPostcode()
+
+			await createPhotonProvider({ region: 'GB' })('pub SW1A 1AA', {
+				signal: new AbortController().signal,
+			})
+
+			expect(urls(fetchMock)[0]?.searchParams.get('q')).toBe('SW1A 1AA')
+		})
+	})
+
 	it('omits every option it was not given', async () => {
 		const fetchMock = stubEmptyFetch()
 
