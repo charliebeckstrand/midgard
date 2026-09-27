@@ -115,6 +115,18 @@ describe('AppearanceSettings', () => {
 
 		expect(screen.getByRole('dialog', { name: 'Settings' })).toBeInTheDocument()
 	})
+
+	it('shows the step of the density level after its name', async () => {
+		renderUI(
+			<AppearanceProvider>
+				<AppearanceSettings />
+			</AppearanceProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Settings' }))
+
+		expect(screen.getByRole('dialog', { name: 'Settings' })).toHaveTextContent('Snug (md)')
+	})
 })
 
 describe('AppearanceScript', () => {

@@ -14,7 +14,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../structure/stack'
-import { densityLevels } from '../density/context'
+import { densityLevels, densityToSize } from '../density/context'
 import { UIProvider } from '../ui'
 import { themeModes, useAppearance } from './context'
 
@@ -23,6 +23,17 @@ type ChoiceListboxProps<T extends string> = {
 	value: T
 	onValueChange: (value: T) => void
 }
+
+/**
+ * The density options with the step of each level after its name, for example
+ * `Compact (sm)`. The step comes from {@link densityToSize}.
+ *
+ * @internal
+ */
+const densityOptions = densityLevels.map((level) => ({
+	...level,
+	label: `${level.label} (${densityToSize[level.value]})`,
+}))
 
 /**
  * A {@link Listbox} over a fixed labeled option set. The guard drops an empty
@@ -91,7 +102,7 @@ export function AppearanceSettings() {
 								<Field>
 									<Label>Density</Label>
 									<ChoiceListbox
-										options={densityLevels}
+										options={densityOptions}
 										value={density}
 										onValueChange={setDensity}
 									/>
