@@ -92,7 +92,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
 | `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
-| `DensityStep` | A value of `data-density` (`xs` / `sm` / `md` / `lg` / `xl`). Each value has a `density-<step>` variant in `ui/tailwind.css`; an ambient scope uses `sm` / `md` / `lg` only. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 

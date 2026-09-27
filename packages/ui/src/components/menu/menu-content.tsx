@@ -46,8 +46,7 @@ export function MenuContent({
 	glass: glassProp,
 	children,
 }: MenuContentProps) {
-	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, density, size } =
-		useMenuState()
+	const { open, menuId, isDropdown, floatingStyles, getFloatingProps, size } = useMenuState()
 	const { close, static: isStatic, setFloating } = useMenuActions()
 	const glass = useResolvedSurface(glassProp) === 'glass'
 
@@ -55,7 +54,7 @@ export function MenuContent({
 
 	if (isStatic) {
 		return (
-			<Density space={density} size={size}>
+			<Density step={size}>
 				<PopoverPanel
 					role="menu"
 					aria-label={ariaLabel}
@@ -81,7 +80,7 @@ export function MenuContent({
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 		>
-			<Density space={density} size={size}>
+			<Density step={size}>
 				<PopoverPanel
 					id={menuId}
 					role="menu"

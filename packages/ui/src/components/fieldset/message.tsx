@@ -1,8 +1,8 @@
 'use client'
 
 import { type HTMLAttributes, type ReactNode, useEffect } from 'react'
-import { cn, type Severity } from '../../core'
-import { useDensity } from '../../primitives/density'
+import { cn, type Severity, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { keyByOccurrence } from '../../utilities'
 import { useControl } from '../control/context'
@@ -83,7 +83,7 @@ export function Message({
 
 	const field = useFormField(name)
 
-	const { size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	// When form-bound, only the error severity auto-renders from the field's errors.
 	// Other severities render their children verbatim.

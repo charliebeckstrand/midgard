@@ -180,7 +180,7 @@ describe('Button', () => {
 
 		it('Affix wins over an enclosing Density', () => {
 			const { container } = renderUI(
-				<Density scale="lg">
+				<Density step="lg">
 					<AffixContext value="sm">
 						<Button>Affix</Button>
 					</AffixContext>
@@ -194,7 +194,7 @@ describe('Button', () => {
 
 		it('Affix can drop a button to xs', () => {
 			const { container } = renderUI(
-				<Density scale="sm">
+				<Density step="sm">
 					<AffixContext value="xs">
 						<Button>Affix</Button>
 					</AffixContext>
@@ -206,7 +206,7 @@ describe('Button', () => {
 
 		it('explicit size prop still wins over Affix', () => {
 			const { container } = renderUI(
-				<Density scale="lg">
+				<Density step="lg">
 					<AffixContext value="sm">
 						<Button size="md">Override</Button>
 					</AffixContext>

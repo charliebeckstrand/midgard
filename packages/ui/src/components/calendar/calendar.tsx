@@ -10,9 +10,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import { Density, useDensity } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
@@ -172,10 +172,6 @@ export function Calendar({
 	size,
 	className,
 }: CalendarProps) {
-	const inherited = useDensity()
-
-	const resolvedSize: Step = size ?? inherited.size
-
 	const ambient = useLocale()
 
 	const localeTag = resolveLocale(locale ?? ambient.locale)
@@ -268,8 +264,10 @@ export function Calendar({
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
+	const resolvedSize: Step = toAmbientStep(useDensityStep(size))
+
 	return (
-		<Density scale={resolvedSize}>
+		<Density step={resolvedSize}>
 			<div
 				data-slot="calendar"
 				data-size={resolvedSize}

@@ -24,8 +24,8 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * Static leaf: renders in React Server Components. Without `size`, the badge
  * takes the step of the nearest density scope, and `md` outside one. It reads
  * no context: the kata writes each step under a `density-*` variant of
- * `ui/tailwind.css`. An explicit `size` writes `data-density` on the badge, so
- * the badge is its own scope. Prefix and suffix icons size through the badge's
+ * `ui/tailwind.css`. An explicit `size` makes the badge a density scope, so
+ * the badge and its children take that step. Prefix and suffix icons size through the badge's
  * own slot projection. Inside a control affix slot, set `size` one step below
  * the host control: the affix compensation constants in `kiso/control/affix`
  * assume the stepped-down chip.
@@ -47,7 +47,7 @@ export function Badge({
 		<PolymorphicStatic
 			as="span"
 			data-slot="badge"
-			data-density={size}
+			density={size}
 			data-has-prefix={dataAttr(!!prefix)}
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}

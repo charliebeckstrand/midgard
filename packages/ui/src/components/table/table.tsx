@@ -1,14 +1,14 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import { DensityScope } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/table'
+import { Box } from '../../structure/box'
 
 /** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * Step for the cell padding. The table writes it to `data-density`, and the
-	 * cells take it. Omit it to follow the nearest density scope, and `md`
+	 * Step for the cell padding. The table opens a density scope at this step,
+	 * and the cells take it. Omit it to follow the nearest density scope, and `md`
 	 * outside one.
 	 */
 	size?: Step
@@ -51,10 +51,10 @@ export type TableProps = TableVariants & {
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
  * The table owns `outline`, `striped`, and `hover` and projects them onto
- * descendant rows and cells. A `size` makes the table a density scope, and the
- * cells take its step. It also opens a density context scope, so size-aware
- * client children take the same step. Without a `size`, the cells follow the
- * nearest scope around the table. TableBody, TableCell, and TableHeader read
+ * descendant rows and cells. A `size` makes the scroll container a density
+ * scope (Box `density`), so the cells and size-aware client children take its
+ * step. Without a `size`, the cells follow the nearest scope around the
+ * table. TableBody, TableCell, and TableHeader read
  * no context.
  *
  * @remarks
@@ -83,10 +83,13 @@ export function Table({
 		// accessible name, so a keyboard-only user cannot scroll an overflowing
 		// table (WCAG 2.1.1). Modern Chromium focuses overflow scrollers on its
 		// own; other engines do not.
-		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
+		<Box
+			data-slot="table"
+			density={size}
+			className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}
+		>
 			<table
 				{...tableProps}
-				data-density={size}
 				className={cn(
 					k.base,
 					outline && k.projection.outline,
@@ -96,8 +99,8 @@ export function Table({
 					tableProps?.className,
 				)}
 			>
-				<DensityScope scale={size}>{children}</DensityScope>
+				{children}
 			</table>
-		</div>
+		</Box>
 	)
 }

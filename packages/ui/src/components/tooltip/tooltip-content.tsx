@@ -3,9 +3,9 @@
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useA11yHasTabbable } from '../../hooks'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
@@ -77,7 +77,6 @@ export function TooltipContent({
 		useTooltipContext()
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
-	const inherited = useDensity()
 
 	// State, not a ref: the panel mounts a commit after the portal node exists,
 	// and the probe has to run against the node React attaches.
@@ -85,7 +84,7 @@ export function TooltipContent({
 
 	const hasTabbable = useA11yHasTabbable(panel)
 
-	const resolvedSize: Step = size ?? inherited.size
+	const resolvedSize: Step = toAmbientStep(useDensityStep(size))
 
 	return (
 		<FloatingSurface

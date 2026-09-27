@@ -16,9 +16,9 @@ import {
 	SidebarSection,
 } from '../../../components/sidebar'
 import { Text } from '../../../components/text'
-import { cn } from '../../../core'
+import { cn, toAmbientStep } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
-import { useDensity } from '../../../primitives/density'
+import { useDensityStep } from '../../../primitives/density'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
 import { navigate } from '../hooks/use-hash'
@@ -135,7 +135,7 @@ export function SidebarContent({ route }: { route: string }) {
 	const scrollWithin = useScrollWithin()
 
 	// Aligns each section label with item text at the active density.
-	const { size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 

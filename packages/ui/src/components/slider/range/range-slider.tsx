@@ -1,9 +1,9 @@
 'use client'
 
 import { type CSSProperties, type FocusEvent, type Ref, useEffect, useRef } from 'react'
-import { cn, dataAttr, invalidAttrs } from '../../../core'
+import { cn, dataAttr, invalidAttrs, toAmbientStep } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
-import { useDensity } from '../../../primitives/density'
+import { useDensityStep } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
@@ -167,9 +167,7 @@ export function RangeSlider({
 
 	// Resolves size through the Density cascade: explicit prop > ambient Density,
 	// falling back to `'md'` outside any provider.
-	const { size: inheritedSize } = useDensity()
-
-	const resolvedSize = size ?? inheritedSize
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	const trackRef = useRef<HTMLDivElement>(null)
 	const loThumbRef = useRef<HTMLButtonElement>(null)

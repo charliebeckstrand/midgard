@@ -1,4 +1,5 @@
 import type { ComponentProps, ElementType, ReactElement, Ref } from 'react'
+import { Density } from '../density'
 import type { LinkProps } from '../link'
 import { resolveLinkRel } from '../link/link-rel'
 import { mergeRenderProps } from './merge-render-props'
@@ -44,6 +45,10 @@ export type PolymorphicStaticProps<
  * and the `render` ref stays when the call site gives no `ref`. A link with
  * `target="_blank"` and no `rel` gets `rel="noopener noreferrer"`.
  *
+ * A `density` step makes the element a density scope. It writes
+ * `data-density` and opens the density context around the children. Static
+ * and client descendants then take the same step.
+ *
  * It is also the one render path of {@link Polymorphic}, which passes the
  * registered link as `render`.
  *
@@ -56,12 +61,18 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 	ref,
 	'data-slot': slot,
 	className,
-	children,
+	density,
+	children: content,
 	...rest
 }: PolymorphicRenderProps<Fallback> & { render?: ReactElement<LinkProps> }) {
+	// Only a scope renders the client context, so an element with no step adds
+	// no client boundary to a server tree.
+	const children = density ? <Density step={density}>{content}</Density> : content
+
 	if (href !== undefined) {
 		const linkProps = {
 			'data-slot': slot,
+			'data-density': density,
 			href,
 			className,
 			...(rest as Omit<LinkProps, 'href' | 'className'>),
@@ -109,6 +120,7 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 		<Element
 			ref={ref}
 			data-slot={slot}
+			data-density={density}
 			type={as === 'button' ? 'button' : undefined}
 			className={className}
 			{...(rest as ComponentProps<Fallback>)}

@@ -8,10 +8,11 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
+import { toAmbientStep } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import type { Step } from '../../recipes'
@@ -67,14 +68,13 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 	const ref = useRef<HTMLSpanElement>(null)
 
 	const indicator = useActiveIndicator()
-	const inherited = useDensity()
 	const offcanvas = use(OffcanvasContext)
 	// The item reads its own value, so a change renders only the item that stops
 	// being current and the item that becomes current.
 	const item = useCurrentItem(value)
 	const scrollWithin = useScrollWithin()
 
-	const resolvedSize = size ?? inherited.size
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	const isCurrent = current ?? item.current
 

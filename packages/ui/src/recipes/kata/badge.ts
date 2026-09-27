@@ -6,9 +6,11 @@
  * carries the extended hues. The rest of the surface is the shared chromatic
  * palette wired through `basePalette`.
  */
+
+import type { DensityStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
-import { type DensityStep, iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { extendedPalette } = iro
 const { weight } = ji

@@ -20,7 +20,6 @@ type ListboxPanelProps = {
 	open: boolean
 	glass: boolean
 	multiple: boolean
-	density: ControlSize
 	size: ControlSize
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string
@@ -47,7 +46,6 @@ export function ListboxPanel({
 	open,
 	glass,
 	multiple,
-	density,
 	size,
 	ariaLabel,
 	ariaLabelledby,
@@ -96,7 +94,7 @@ export function ListboxPanel({
 					tabIndex={-1}
 					{...getFloatingProps({ onKeyDown: onTabOut })}
 				>
-					<Density space={density} size={size}>
+					<Density step={size}>
 						<PopoverPanel
 							id={id}
 							role="listbox"

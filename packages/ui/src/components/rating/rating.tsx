@@ -2,9 +2,9 @@
 
 import { Star } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useControlSize } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
@@ -159,7 +159,7 @@ export function Rating({
 		validation,
 	} = useControlProps({ id, disabled, readOnly, invalid, 'aria-describedby': ariaDescribedBy })
 
-	const token = useControlSize(size)
+	const step = toAmbientStep(useDensityStep(size))
 
 	// The native grouping name, which is this row's own and never the bound
 	// field's: two ratings bound to different fields would otherwise share a
@@ -186,9 +186,9 @@ export function Rating({
 
 	const stars = rangeKeys(count, 'star')
 
-	const rowClass = cn(k({ size: token.size, color }), className)
+	const rowClass = cn(k({ size: step, color }), className)
 
-	const glyph = k.glyph[token.size]
+	const glyph = k.glyph[step]
 
 	function commit(next: number | null) {
 		setValue(next)
@@ -221,7 +221,7 @@ export function Rating({
 		return (
 			<span
 				data-slot={slot}
-				data-size={token.size}
+				data-size={step}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
 				aria-label={getValueText(current, count)}
@@ -258,7 +258,7 @@ export function Rating({
 	return (
 		<span
 			data-slot={slot}
-			data-size={token.size}
+			data-size={step}
 			role="radiogroup"
 			aria-label={labelledBy ? undefined : (ariaLabel ?? 'Rating')}
 			aria-labelledby={labelledBy}

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { densitySteps } from '../../recipes/kiso'
+import { densitySteps } from '../../core/density'
 import { shaku } from '../../recipes/kiso/shaku'
 
 /**

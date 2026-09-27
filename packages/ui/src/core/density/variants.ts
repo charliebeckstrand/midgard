@@ -29,7 +29,7 @@
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
-import { densitySteps } from './kiso/sun'
+import { densitySteps } from './steps'
 
 /** The deepest nesting that the variants rank. When more scopes nest, an outer scope can win. */
 const maxDepth = 6

@@ -1,9 +1,9 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, invalidAttrs } from '../../core'
+import { cn, invalidAttrs, toAmbientStep } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useControlSize } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type InputVariants, k } from '../../recipes/kata/input'
@@ -68,7 +68,7 @@ export function Input({
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()
-	const token = useControlSize(size)
+	const step = toAmbientStep(useDensityStep(size))
 
 	const valueState = useInputValue({ name, value, onChange, onBlur })
 
@@ -95,7 +95,7 @@ export function Input({
 		<input
 			ref={ref}
 			data-slot="input"
-			data-size={token.size}
+			data-size={step}
 			type={type}
 			id={scope.id}
 			name={name}
@@ -109,7 +109,7 @@ export function Input({
 			onBlur={valueState.onBlur}
 			aria-describedby={sharedAttrs['aria-describedby']}
 			className={cn(
-				!headless && k({ variant: resolvedVariant, density: token.space, size: token.size }),
+				!headless && k({ variant: resolvedVariant, density: step, size: step }),
 				className,
 			)}
 			{...validation}
@@ -125,9 +125,8 @@ export function Input({
 			prefix={prefix}
 			suffix={suffix}
 			variant={resolvedVariant}
-			space={token.space}
-			size={token.size}
-			scale={size}
+			size={step}
+			scope={size}
 			dataGroup={dataGroup}
 			dataGroupOrientation={dataGroupOrientation}
 		/>

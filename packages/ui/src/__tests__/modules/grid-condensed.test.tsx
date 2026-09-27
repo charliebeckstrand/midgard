@@ -17,13 +17,19 @@ describe('Grid condensed', () => {
 		renderUI(<Grid condensed density="loose" columns={columns} rows={rows} getKey={getKey} />)
 
 		// The Table stamps the resolved density step; `condensed` wins over `loose`.
-		expect(screen.getByRole('table')).toHaveAttribute('data-density', 'sm')
+		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
+			'data-density',
+			'sm',
+		)
 	})
 
 	it('leaves density in charge when condensed is off', () => {
 		renderUI(<Grid density="loose" columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('table')).toHaveAttribute('data-density', 'lg')
+		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
+			'data-density',
+			'lg',
+		)
 	})
 
 	it('projects the cell-font, icon, and badge step-downs onto the table', () => {

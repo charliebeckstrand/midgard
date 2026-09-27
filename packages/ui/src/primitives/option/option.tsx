@@ -2,10 +2,10 @@
 
 import { Check } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
-import { ariaAttr, cn, createContext, dataAttr } from '../../core'
+import { ariaAttr, cn, createContext, dataAttr, toAmbientStep } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, memoWeak } from '../../utilities'
-import { useDensity } from '../density'
+import { useDensityStep } from '../density'
 
 /**
  * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
@@ -69,7 +69,7 @@ function BaseOptionImpl({
 	id,
 	...props
 }: BaseOptionProps) {
-	const { size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	const autoId = useId()
 

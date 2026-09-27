@@ -6,7 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
-import { cn, dataAttr } from '../../core'
+import { cn, dataAttr, toAmbientStep } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import {
 	createGroup,
@@ -205,11 +205,11 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
 				//
 				// `size` rather than wrapping the surface: `useMenuState` resolves the panel's
-				// density from `useDensity()` at this root, and `MenuContent` re-broadcasts
+				// density from `useDensityStep()` at this root, and `MenuContent` re-broadcasts
 				// that *inside* its own subtree — so a wrapper around `MenuContent` is
 				// overridden and does nothing. Passing the step here wins, and leaves the
 				// trigger below on the header's own cell cascade where it belongs.
-				<Menu placement="bottom-end" size={overlayDensity.size}>
+				<Menu placement="bottom-end" size={toAmbientStep(overlayDensity)}>
 					<MenuTrigger>
 						<Button
 							type="button"

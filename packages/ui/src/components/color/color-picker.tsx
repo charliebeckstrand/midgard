@@ -1,7 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { useDensity } from '../../primitives/density'
+import { toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import type { GroupStampProps } from '../../types/group-stamp'
 import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
@@ -64,9 +65,7 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * @see {@link ColorPanel} for the inline variant.
  */
 export function ColorPicker(props: ColorPickerProps) {
-	const inherited = useDensity()
-
-	const size = props.size ?? inherited.size
+	const size = toAmbientStep(useDensityStep(props.size))
 
 	return <ColorPickerInner {...props} size={size} />
 }

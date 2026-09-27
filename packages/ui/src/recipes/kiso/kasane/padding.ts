@@ -13,7 +13,7 @@
  * Layer: kiso · Concern: ring-compensated padding
  */
 
-import { type DensityStep, densitySteps } from '../sun'
+import { type DensityStep, densitySteps } from '../../../core/density'
 
 const pStops = {
 	'0.75': 'p-[calc(--spacing(0.75)-1px)]',

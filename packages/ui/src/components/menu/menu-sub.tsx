@@ -13,13 +13,13 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { ariaAttr, cn, dataAttr } from '../../core'
+import { ariaAttr, cn, dataAttr, toAmbientStep } from '../../core'
 import { useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useDeferredFloatingReference } from '../../hooks/use-floating-reference'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useGlass } from '../../providers/glass/context'
@@ -127,7 +127,7 @@ export function MenuSub({
 	className,
 	children,
 }: MenuSubProps) {
-	const { space, size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	const glass = useGlass()
 
@@ -351,7 +351,7 @@ export function MenuSub({
 				// works inside the panel, so the trail back to the menu it came from
 				// reads as live.
 				data-open={dataAttr(open)}
-				className={cn('group/option', k.item({ density: space, size }), k.subTrigger, className)}
+				className={cn('group/option', k.item({ density: size, size }), k.subTrigger, className)}
 				{...getReferenceProps({
 					onPointerMove: handlePointerMove,
 					onBlur: handleBlur,

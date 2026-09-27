@@ -18,12 +18,12 @@ import { act, renderUI, screen, userEvent } from '../helpers'
  * consumer of the deferred query now reads a context that holds only the
  * deferred query.
  *
- * The combobox count reads the `useDensity` calls of `BaseOptionImpl`, which
+ * The combobox count reads the `useDensityStep` calls of `BaseOptionImpl`, which
  * each option makes when it renders. The command palette count reads the calls
  * of `CommandPaletteItem`. The counts need module mocks, so this suite sits in
  * `boundary/`.
  */
-/** The call stack of each `useDensity` call since the last clear. */
+/** The call stack of each `useDensityStep` call since the last clear. */
 const stacks = vi.hoisted((): string[] => [])
 
 vi.mock('../../primitives/density', async (importActual) => {
@@ -31,10 +31,10 @@ vi.mock('../../primitives/density', async (importActual) => {
 
 	return {
 		...actual,
-		useDensity: vi.fn(() => {
+		useDensityStep: vi.fn((explicit?: Parameters<typeof actual.useDensityStep>[0]) => {
 			stacks.push(new Error().stack ?? '')
 
-			return actual.useDensity()
+			return actual.useDensityStep(explicit)
 		}),
 	}
 })
@@ -48,7 +48,7 @@ vi.mock('../../components/command-palette/command-palette-item', async (importAc
 
 const VALUES = Array.from({ length: 50 }, (_, index) => `v${index}`)
 
-/** The `useDensity` calls that came from a render of an option. */
+/** The `useDensityStep` calls that came from a render of an option. */
 function optionRenders() {
 	return stacks.filter((stack) => stack.includes('BaseOptionImpl')).length
 }

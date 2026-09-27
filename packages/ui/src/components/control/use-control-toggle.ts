@@ -1,6 +1,7 @@
 'use client'
 
-import { useDensity } from '../../primitives/density'
+import { toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import {
 	type ControlPropsOptions,
@@ -31,7 +32,5 @@ export function useControlToggle({
 }: ControlToggleOptions = {}): ControlToggleResult {
 	const props = useControlProps(input)
 
-	const { size: inheritedSize } = useDensity()
-
-	return { ...props, size: size ?? inheritedSize }
+	return { ...props, size: toAmbientStep(useDensityStep(size)) }
 }

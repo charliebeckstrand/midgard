@@ -1,10 +1,10 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
@@ -59,7 +59,7 @@ export function ChatListItem({
 
 	const Wrapper = inList ? 'li' : 'div'
 
-	const density = useDensity()
+	const step = toAmbientStep(useDensityStep())
 
 	const body = (
 		<>
@@ -92,7 +92,7 @@ export function ChatListItem({
 
 			{actions !== undefined && (
 				<div data-slot="chat-list-item-actions" className={k.actions}>
-					<AffixContext value={affixStepDown(density.size)}>{actions}</AffixContext>
+					<AffixContext value={affixStepDown(step)}>{actions}</AffixContext>
 				</div>
 			)}
 

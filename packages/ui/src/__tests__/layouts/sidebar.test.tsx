@@ -107,7 +107,7 @@ describe('SidebarLayout', () => {
 
 	it('scales the desktop panel width to the ambient density', () => {
 		const { container: small } = renderUI(
-			<Density size="sm">
+			<Density step="sm">
 				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
 			</Density>,
 		)
@@ -115,7 +115,7 @@ describe('SidebarLayout', () => {
 		expect(small.querySelector('.max-lg\\:hidden')?.className).toContain('w-2xs')
 
 		const { container: large } = renderUI(
-			<Density size="lg">
+			<Density step="lg">
 				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
 			</Density>,
 		)
@@ -294,7 +294,7 @@ describe('SidebarLayout floating mode', () => {
 
 	it('scales the mobile navbar padding to the ambient density', () => {
 		const { container: small } = renderUI(
-			<Density space="sm">
+			<Density step="sm">
 				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
 			</Density>,
 		)
@@ -302,41 +302,12 @@ describe('SidebarLayout floating mode', () => {
 		expect(small.querySelector('[class~="lg:hidden"]')?.className).toContain('p-4')
 
 		const { container: large } = renderUI(
-			<Density space="lg">
+			<Density step="lg">
 				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
 			</Density>,
 		)
 
 		expect(large.querySelector('[class~="lg:hidden"]')?.className).toContain('p-8')
-	})
-
-	// Padding is the `space` axis, and text and icon are the `size` axis. The rail
-	// holds text, so its width stays on `size`.
-	it('pads from space and sizes the rail from size under a split Density', () => {
-		const { container } = renderUI(
-			<Density space="sm" size="lg">
-				<SidebarLayout sidebar={<div>side</div>}>
-					<SidebarLayoutHeader>Title</SidebarLayoutHeader>
-					<SidebarLayoutBody>body</SidebarLayoutBody>
-				</SidebarLayout>
-			</Density>,
-		)
-
-		expect(container.querySelector('[class~="lg:hidden"]')).toHaveClass('p-4')
-
-		const header = present(container.querySelector('[data-slot="header"]'), 'header')
-
-		expect(header).toHaveClass('pb-4')
-
-		expect(header).not.toHaveClass('pb-8')
-
-		const content = present(header.parentElement, 'content')
-
-		expect(content).toHaveClass('px-4')
-
-		expect(content).not.toHaveClass('px-8')
-
-		expect(container.querySelector('.max-lg\\:hidden')).toHaveClass('w-sm')
 	})
 
 	it('resets the floating sheet to closed when floating flips off', () => {

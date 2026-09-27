@@ -230,7 +230,7 @@ const VIEWPORT_RUNGS: [string, () => React.ReactNode][] = [
 	[
 		'3 · + Density around it',
 		() => (
-			<Density space="md" size="md">
+			<Density step="md">
 				<Watched />
 			</Density>
 		),

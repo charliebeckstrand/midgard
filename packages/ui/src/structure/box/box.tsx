@@ -1,4 +1,5 @@
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { PolymorphicStatic, type PolymorphicStaticProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/box'
 import {
@@ -24,6 +25,12 @@ type BoxBaseProps = {
 	bg?: BoxBg
 	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	outline?: BoxOutline
+	/**
+	 * Makes the box a density scope at this step. Its subtree takes the step:
+	 * static descendants through `data-density`, client descendants through
+	 * the density context. Omit it to follow the scope around the box.
+	 */
+	density?: DensityStep
 	/**
 	 * Overrides the `data-slot` attribute.
 	 *
@@ -64,7 +71,7 @@ function resolveOutline(outline: BoxOutline | undefined): string | readonly stri
 /**
  * Static layout primitive for padding, radius, background, and outline tokens.
  * Renders in React Server Components. Every token is explicit; an omitted token
- * applies no style.
+ * applies no style. A `density` step makes the box a density scope.
  */
 export function Box({
 	p,
@@ -73,6 +80,7 @@ export function Box({
 	radius,
 	bg,
 	outline,
+	density,
 	'data-slot': slot = 'box',
 	ref,
 	className,
@@ -86,6 +94,7 @@ export function Box({
 			as="div"
 			ref={ref}
 			data-slot={slot}
+			density={density}
 			href={href}
 			render={render}
 			className={cn(

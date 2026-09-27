@@ -1,8 +1,8 @@
 'use client'
 
 import { type ComponentProps, useEffect } from 'react'
-import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
@@ -24,7 +24,7 @@ export type LabelProps = {
 export function Label({ className, htmlFor, id, ...props }: LabelProps) {
 	const control = useControl()
 
-	const { size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	// Registers while mounted; the field's `labelledBy` references this id only
 	// while the Label renders.

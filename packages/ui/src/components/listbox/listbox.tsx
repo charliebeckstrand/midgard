@@ -10,8 +10,9 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { toAmbientStep } from '../../core'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
-import { useControlSize } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -170,7 +171,7 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
-	const token = useControlSize(size)
+	const step = toAmbientStep(useDensityStep(size))
 
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
@@ -217,7 +218,7 @@ export function Listbox<T>({
 		'aria-describedby': ariaDescribedBy,
 	})
 
-	const resolvedSize = token.size
+	const resolvedSize = step
 
 	const listboxId = useId()
 
@@ -403,8 +404,7 @@ export function Listbox<T>({
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						density={token.space}
-						size={token.size}
+						size={step}
 					/>
 				</SelectTrigger>
 
@@ -413,8 +413,7 @@ export function Listbox<T>({
 					open={open}
 					glass={glass}
 					multiple={multiple}
-					density={token.space}
-					size={token.size}
+					size={step}
 					ariaLabel={ariaLabel}
 					// Names the listbox from the trigger's name: an explicit aria-label
 					// wins, else aria-labelledby, else the field's Label (via Control).

@@ -1,10 +1,10 @@
 'use client'
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
@@ -49,9 +49,7 @@ export function Tabs({
 	// item that stops being current and the item that becomes current.
 	const store = useCurrentStore(context)
 
-	const inherited = useDensity()
-
-	const resolvedSize: TabsSize = size ?? inherited.size
+	const resolvedSize: TabsSize = toAmbientStep(useDensityStep(size))
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation

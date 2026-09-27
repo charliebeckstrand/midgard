@@ -19,7 +19,7 @@ Density lives in React context (`primitives/density`). A component must be a cli
 
 ## How the variants rank
 
-[`tailwind.css`](../../tailwind.css) loads a Tailwind plugin, [`density-variants.ts`](../../src/recipes/density-variants.ts), which defines `density-xs` to `density-xl` from `densitySteps` in `kiso/sun`. So the steps have one source for the types and for the CSS. The depth of a match is the number of scopes on the path to the element, the element itself included. Each rung matches one depth, and it sits in a nested cascade layer of `utilities` with the number of that depth. The nearest scope gives the deepest match, and a later layer wins, so the nearest scope wins. A plain utility is in `utilities` itself, and it outranks each nested layer.
+[`tailwind.css`](../../tailwind.css) loads a Tailwind plugin, [`variants.ts`](../../src/core/density/variants.ts), which defines `density-xs` to `density-xl` from `densitySteps` in `core/density`. So the steps have one source for the types and for the CSS. The depth of a match is the number of scopes on the path to the element, the element itself included. Each rung matches one depth, and it sits in a nested cascade layer of `utilities` with the number of that depth. The nearest scope gives the deepest match, and a later layer wins, so the nearest scope wins. A plain utility is in `utilities` itself, and it outranks each nested layer.
 
 Rejected:
 
@@ -36,6 +36,8 @@ Rejected:
 - **Portals.** A portal breaks the DOM chain, and context does not. A static leaf inside a portaled surface follows the surface's scope only if the surface writes `data-density`.
 
 ## Increments
+
+Increment 1 landed in #1482. [`2026-09-27-DENSITY-ENGINE-PLAN.md`](2026-09-27-DENSITY-ENGINE-PLAN.md) replaces increments 2 to 5.
 
 1. **Variants and pilot.** The plugin, `tailwind.css`, and its `ui/tailwind.css` export, imported by `shared/globals.css`, the docs entry, and the browser suite. `DensityProvider` writes the step. Badge, BadgeSkeleton, Card and its sections, the Table cells, Icon, and LoadingSpinner move onto the variants. A LoadingSpinner follows the scope of its Badge, so the Badge spinner projection goes. `density-scope.test.tsx` checks nesting, self scopes, and consumer overrides in Chromium.
 2. **Scope openers.** Client hosts that open a `Density` context scope also write `data-density`: Group, InputFrame, the Control primitive, and the portaled surfaces (Menu, Popover, Listbox, Combobox, DatePicker, Color, Drawer). The control affix slot opens a scope one step down, and the Badge affix rule in `REFERENCE.md` §2 goes.
