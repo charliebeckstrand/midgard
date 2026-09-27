@@ -1,4 +1,4 @@
-import { bifrost } from 'auth'
+import { bifrost, requireGateway } from 'auth'
 import { notFound } from 'next/navigation'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Heading } from 'ui/heading'
@@ -12,9 +12,18 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 
 	const options = { params: { path: { id: userId } } }
 
-	const [{ data: user }, { data: activity }] = await Promise.all([
-		bifrost.GET('/api/users/{id}', options),
-		bifrost.GET('/api/users/{id}/activity', options),
+	// A `400` (an id that is not a UUID) or a `404` is a user that does not
+	// exist. Any other failed read throws, so an outage does not show as a
+	// missing user.
+	const [user, activity] = await Promise.all([
+		requireGateway('/api/users/{id}', () => bifrost.GET('/api/users/{id}', options), {
+			absent: [400, 404],
+		}),
+		requireGateway(
+			'/api/users/{id}/activity',
+			() => bifrost.GET('/api/users/{id}/activity', options),
+			{ absent: [400, 404] },
+		),
 	])
 
 	if (!user) notFound()
