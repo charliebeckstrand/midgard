@@ -4,11 +4,10 @@ import {
 	applyColumnReorder,
 	columnShiftStyle,
 	restrictToFirstScrollableAncestor,
-	restrictToHorizontalAxis,
 } from '../../modules/grid/engine/grid-reorder-compute'
 
 /** dnd-kit's modifier args are broad; the modifier only reads `transform`. */
-type ModifierArgs = Parameters<typeof restrictToHorizontalAxis>[0]
+type ModifierArgs = Parameters<typeof restrictToFirstScrollableAncestor>[0]
 
 describe('applyColumnReorder', () => {
 	it('repermutes only the reorderable slots, holding the rest in place', () => {
@@ -53,16 +52,6 @@ describe('columnShiftStyle', () => {
 
 		// Only the x translate is read, so dnd-kit's scaleX/scaleY can never stretch the cell.
 		expect(String(style.transform)).not.toContain('scale')
-	})
-})
-
-describe('restrictToHorizontalAxis', () => {
-	it('zeroes the vertical component so a column drag stays on the x-axis', () => {
-		const args = {
-			transform: { x: 24, y: 80, scaleX: 1, scaleY: 1 },
-		} as unknown as ModifierArgs
-
-		expect(restrictToHorizontalAxis(args)).toEqual({ x: 24, y: 0, scaleX: 1, scaleY: 1 })
 	})
 })
 

@@ -8,11 +8,11 @@ import { Icon } from '../../components/icon'
 import { Menu } from '../../components/menu'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { useSortableList } from '../../hooks'
+import { restrictToVerticalAxis, useSortableList } from '../../hooks/use-sortable-list'
 import { k as groupK } from '../../recipes/kata/grid-group'
 import { k } from '../../recipes/kata/grid-row-manager'
 import { columnLabel } from './engine/grid-column/label'
-import { restrictToParentElement, restrictToVerticalAxis } from './engine/grid-reorder-compute'
+import { restrictToParentElement } from './engine/grid-reorder-compute'
 import { DEFAULT_COLOR_OPTIONS, GridManagerColorMenu } from './grid-manager-color-menu'
 import type { GridRowManagerGroup } from './use-grid-row-manager'
 import { useGridZoneSortable } from './use-grid-zone-sortable'
@@ -57,6 +57,7 @@ export function GridRowManager({
 		items: groups,
 		getKey: (group) => String(group.key),
 		onReorder: (next) => onReorderGroups(next.map((group) => group.key)),
+		describe: (group) => `group ${columnLabel({ id: group.key, title: group.label })}`,
 	})
 
 	return (

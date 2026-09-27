@@ -1,18 +1,12 @@
 'use client'
 
-import { type Announcements, DndContext, type Modifier } from '@dnd-kit/core'
+import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
-import { type ReactNode, useMemo, useRef } from 'react'
+import { type ReactNode, useRef } from 'react'
 import { cn, dataAttr } from '../../../core'
-import { useSortableList } from '../../../hooks'
+import { restrictToVerticalAxis, useSortableList } from '../../../hooks/use-sortable-list'
 import { k } from '../../../recipes/kata/query-builder'
-import {
-	describeDragCancel,
-	describeDragEnd,
-	describeDragOver,
-	describeDragStart,
-	describeNode,
-} from '../engine/query-announcements'
+import { describeNode } from '../engine/query-announcements'
 import type { QueryGroup, QueryNode } from '../engine/types'
 import { useQueryBuilderActions, useQueryBuilderState } from './context'
 
@@ -27,7 +21,7 @@ type QueryBuilderSortableProps = {
 const getKey = (node: QueryNode) => node.id
 
 /** Holds a drag on the vertical axis, because the children of a group are a column. @internal */
-const restrictToVerticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+const modifiers = [restrictToVerticalAxis]
 
 /**
  * The drag context of one group: its children reorder with a pointer or with
@@ -68,38 +62,12 @@ export function QueryBuilderSortable({ group, children }: QueryBuilderSortablePr
 		onDragEnd: () => {
 			dragged.current = null
 		},
+		// Each step names the node by its summary text and its position.
+		describe: (node) => describeNode(node, fields),
 	})
 
-	// The announcements name a node by its summary text and its position, never
-	// by its generated id, which is what dnd-kit reads out by default.
-	const announcements = useMemo<Announcements>(() => {
-		const total = group.children.length
-
-		const label = (id: string | number) => {
-			const node = group.children.find((child) => child.id === String(id))
-
-			return node ? describeNode(node, fields) : 'the node'
-		}
-
-		const position = (id: string | number) => itemIds.indexOf(String(id)) + 1
-
-		return {
-			onDragStart: ({ active }) => describeDragStart(label(active.id), position(active.id), total),
-			onDragOver: ({ active, over }) =>
-				over ? describeDragOver(label(active.id), position(over.id), total) : undefined,
-			onDragEnd: ({ active, over }) =>
-				describeDragEnd(label(active.id), position((over ?? active).id), total),
-			onDragCancel: ({ active }) =>
-				describeDragCancel(label(active.id), position(active.id), total),
-		}
-	}, [group.children, fields, itemIds])
-
 	return (
-		<DndContext
-			{...dndContextProps}
-			modifiers={[restrictToVerticalAxis]}
-			accessibility={{ announcements }}
-		>
+		<DndContext {...dndContextProps} modifiers={modifiers}>
 			<SortableContext items={itemIds} strategy={strategy}>
 				<div
 					data-slot="query-sortable-list"

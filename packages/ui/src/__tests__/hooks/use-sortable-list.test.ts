@@ -1,8 +1,20 @@
-import type { DragEndEvent, DragStartEvent } from '@dnd-kit/core'
+import type {
+	Active,
+	Announcements,
+	DragEndEvent,
+	DragStartEvent,
+	Modifier,
+	Over,
+} from '@dnd-kit/core'
 import { horizontalListSortingStrategy, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useSortableList } from '../../hooks/use-sortable-list'
+import {
+	restrictToHorizontalAxis,
+	restrictToVerticalAxis,
+	sortableAnnouncements,
+	useSortableList,
+} from '../../hooks/use-sortable-list'
 
 type Item = { id: string; label: string }
 
@@ -258,5 +270,68 @@ describe('useSortableList', () => {
 		expect(onDragEnd).toHaveBeenCalledOnce()
 
 		expect(onDragEnd).toHaveBeenCalledWith(items[2])
+	})
+})
+
+describe('sortableAnnouncements', () => {
+	const names: Record<string, string> = { a: 'Alpha', b: 'Bravo', c: 'Charlie' }
+
+	const announcements = sortableAnnouncements(['a', 'b', 'c'], (id) => names[id] ?? id)
+
+	const active = { id: 'a' } as Active
+
+	const over = { id: 'b' } as Over
+
+	it('names the item and its position at each step', () => {
+		expect(announcements.onDragStart({ active })).toBe('Picked up Alpha, position 1 of 3.')
+
+		expect(announcements.onDragOver({ active, over })).toBe('Alpha moved to position 2 of 3.')
+
+		expect(announcements.onDragEnd({ active, over })).toBe('Dropped Alpha, position 2 of 3.')
+
+		expect(announcements.onDragCancel({ active, over: null })).toBe(
+			'Returned Alpha to position 1 of 3.',
+		)
+	})
+
+	it('drops in place with no target', () => {
+		expect(announcements.onDragEnd({ active, over: null })).toBe('Dropped Alpha, position 1 of 3.')
+	})
+})
+
+describe('useSortableList announcements', () => {
+	const announcementsOf = (props: { accessibility?: { announcements?: Announcements } }) =>
+		props.accessibility?.announcements
+
+	it('leaves the dnd-kit default without describe', () => {
+		const { result } = renderHook(() => useSortableList({ items, getKey: (i) => i.id }))
+
+		expect(announcementsOf(result.current.dndContextProps)).toBeUndefined()
+	})
+
+	it('names each item through describe', () => {
+		const { result } = renderHook(() =>
+			useSortableList({ items, getKey: (i) => i.id, describe: (i) => i.label }),
+		)
+
+		const announcements = announcementsOf(result.current.dndContextProps)
+
+		expect(announcements?.onDragStart({ active: { id: 'c' } as Active })).toBe(
+			'Picked up Charlie, position 3 of 3.',
+		)
+	})
+})
+
+describe('axis modifiers', () => {
+	type ModifierArgs = Parameters<Modifier>[0]
+
+	const args = { transform: { x: 24, y: 80, scaleX: 1, scaleY: 1 } } as unknown as ModifierArgs
+
+	it('holds a horizontal drag on the x-axis', () => {
+		expect(restrictToHorizontalAxis(args)).toEqual({ x: 24, y: 0, scaleX: 1, scaleY: 1 })
+	})
+
+	it('holds a vertical drag on the y-axis', () => {
+		expect(restrictToVerticalAxis(args)).toEqual({ x: 0, y: 80, scaleX: 1, scaleY: 1 })
 	})
 })

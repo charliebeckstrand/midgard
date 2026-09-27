@@ -3,6 +3,7 @@
 import { useCallback, useMemo } from 'react'
 import { useSortableList } from '../../hooks'
 import { isDataColumn } from '../../utilities'
+import { columnLabel } from './engine/grid-column/label'
 import { isFrozen } from './engine/grid-pin/overrides'
 import type { GridColumn } from './types'
 
@@ -74,6 +75,7 @@ export function useGridReorder<T>({
 		orientation: 'horizontal',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
+		describe: (col) => `${columnLabel(col)} column`,
 	})
 
 	return { canReorder, itemIds, strategy, dndContextProps, activeId }

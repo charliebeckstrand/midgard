@@ -1,6 +1,13 @@
 'use client'
 
-import { closestCenter, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
+import {
+	type Announcements,
+	closestCenter,
+	type DragEndEvent,
+	type DragStartEvent,
+	type Modifier,
+	type UniqueIdentifier,
+} from '@dnd-kit/core'
 import {
 	arrayMove,
 	horizontalListSortingStrategy,
@@ -10,6 +17,55 @@ import { useCallback, useMemo, useRef, useState } from 'react'
 import type { Orientation } from '../types'
 import { useDragCursor } from './use-drag-cursor'
 import { useSortableSensors } from './use-sortable-sensors'
+import { useStableEvent } from './use-stable-event'
+
+/**
+ * dnd-kit modifier that holds a drag on the x-axis. It zeroes the vertical part
+ * of the transform. It is the same as `restrictToHorizontalAxis` of
+ * `@dnd-kit/modifiers`, without the dependency.
+ *
+ * @internal
+ */
+export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({ ...transform, y: 0 })
+
+/**
+ * dnd-kit modifier that holds a drag on the y-axis. It zeroes the horizontal part
+ * of the transform. It is the same as `restrictToVerticalAxis` of
+ * `@dnd-kit/modifiers`, without the dependency.
+ *
+ * @internal
+ */
+export const restrictToVerticalAxis: Modifier = ({ transform }) => ({ ...transform, x: 0 })
+
+/**
+ * The dnd-kit announcements of a sortable list. Each names the item and its
+ * 1-based position, never the generated id that dnd-kit reads by default.
+ *
+ * @param itemIds - The ids in their order before the drag.
+ * @param name - The name of the item with an id.
+ * @internal
+ */
+export function sortableAnnouncements(
+	itemIds: readonly string[],
+	name: (id: string) => string,
+): Announcements {
+	const total = itemIds.length
+
+	const label = (id: UniqueIdentifier) => name(String(id))
+
+	const position = (id: UniqueIdentifier) => itemIds.indexOf(String(id)) + 1
+
+	return {
+		onDragStart: ({ active }) =>
+			`Picked up ${label(active.id)}, position ${position(active.id)} of ${total}.`,
+		onDragOver: ({ active, over }) =>
+			over ? `${label(active.id)} moved to position ${position(over.id)} of ${total}.` : undefined,
+		onDragEnd: ({ active, over }) =>
+			`Dropped ${label(active.id)}, position ${position((over ?? active).id)} of ${total}.`,
+		onDragCancel: ({ active }) =>
+			`Returned ${label(active.id)} to position ${position(active.id)} of ${total}.`,
+	}
+}
 
 /** Options for {@link useSortableList}: the items, the key extractor, the axis, and the reorder report. */
 export type SortableListOptions<T> = {
@@ -33,6 +89,11 @@ export type SortableListOptions<T> = {
 	 * so the two together bracket the interaction.
 	 */
 	onDragEnd?: (item: T) => void
+	/**
+	 * Names an item for the drag announcements, such as its label. Without it,
+	 * dnd-kit reads the item's id.
+	 */
+	describe?: (item: T) => string
 }
 
 /** Whether two key lists hold the same keys in the same order. @internal */
@@ -44,7 +105,8 @@ function sameKeys(a: readonly string[], b: readonly string[]): boolean {
  * Single-list reorder hook backed by @dnd-kit. Owns the drag lifecycle and
  * commits reorders via `arrayMove`, leaving rendering of `<DndContext>` and
  * `<SortableContext>` to the caller. It holds the grabbing cursor on the page
- * while an item is lifted.
+ * while an item is lifted. With `describe`, it announces each drag step by the
+ * item's name and position (see {@link sortableAnnouncements}).
  *
  * @returns `{ itemIds, strategy, interactive, activeId, orientation,
  * dndContextProps }`: the keyed id list and sorting `strategy` for
@@ -62,6 +124,7 @@ export function useSortableList<T>({
 	keyboardSensor = true,
 	onDragStart,
 	onDragEnd,
+	describe,
 }: SortableListOptions<T>) {
 	const interactive = !disabled && !!onReorder
 
@@ -144,6 +207,20 @@ export function useSortableList<T>({
 		[settle, itemIds, items, onReorder, onDragEnd],
 	)
 
+	// Read at drag time, so an inline `describe` or `getKey` keeps the announcements.
+	const nameOf = useStableEvent((id: string) => {
+		const item = items.find((candidate) => getKey(candidate) === id)
+
+		return item === undefined ? 'the item' : (describe?.(item) ?? id)
+	})
+
+	const describes = describe !== undefined
+
+	const accessibility = useMemo(
+		() => (describes ? { announcements: sortableAnnouncements(itemIds, nameOf) } : undefined),
+		[describes, itemIds, nameOf],
+	)
+
 	const dndContextProps = useMemo(
 		() => ({
 			sensors,
@@ -151,8 +228,9 @@ export function useSortableList<T>({
 			onDragStart: handleDragStart,
 			onDragEnd: handleDragEnd,
 			onDragCancel: handleDragCancel,
+			accessibility,
 		}),
-		[sensors, handleDragStart, handleDragEnd, handleDragCancel],
+		[sensors, handleDragStart, handleDragEnd, handleDragCancel, accessibility],
 	)
 
 	return {
