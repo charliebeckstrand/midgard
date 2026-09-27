@@ -17,9 +17,8 @@ export type { MinBreakpoint }
  *
  * The hook to reach for whenever JavaScript needs to answer a question the layout already
  * answers in CSS. Which control a press opens, which surface a workflow uses, whether a
- * list is a table or a stack of cards. {@link useMinWidth} takes a pixel literal, so each
- * call site transcribes the scale from memory and none of them move if the theme changes.
- * This takes the name, so `lg` here and `lg:` there are the same fact.
+ * list is a table or a stack of cards. The hook takes the name and not a pixel literal, so
+ * `lg` here and `lg:` there are the same fact.
  *
  * Prefer CSS where CSS can do the job. A thing that is merely *hidden* below a breakpoint
  * hides with a class, not with a hook that unmounts it. This is for the cases where the
