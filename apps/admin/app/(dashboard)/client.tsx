@@ -5,6 +5,7 @@ import {
 	ChevronUpDownIcon,
 	Cog8ToothIcon,
 	KeyIcon,
+	ShieldExclamationIcon,
 	UsersIcon,
 } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
@@ -65,6 +66,10 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
 							<SidebarItem href="/users" current={pathname.startsWith('/users')}>
 								<UsersIcon />
 								<SidebarLabel>Users</SidebarLabel>
+							</SidebarItem>
+							<SidebarItem href="/security" current={pathname.startsWith('/security')}>
+								<ShieldExclamationIcon />
+								<SidebarLabel>Security</SidebarLabel>
 							</SidebarItem>
 						</SidebarSection>
 					</SidebarBody>
