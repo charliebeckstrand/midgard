@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
+import { GatewayError } from '../fetch'
 import { getSession, requireAdmin, requireSession } from '../session'
 
 const cookies = vi.hoisted(() => vi.fn())
@@ -67,24 +68,19 @@ describe('getSession', () => {
 		expect(error).not.toHaveBeenCalled()
 	})
 
-	it('returns undefined for a failed status, and logs it', async () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
-
+	// An outage must not look like a signed-out user, whom the pages send to `/login`.
+	it('throws a GatewayError for a failed status', async () => {
 		stubGateway(500)
 
-		await expect(getSession()).resolves.toBeUndefined()
-
-		expect(error).toHaveBeenCalledOnce()
+		await expect(getSession()).rejects.toBeInstanceOf(GatewayError)
 	})
 
-	it('returns undefined for a thrown request, and logs it', async () => {
-		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+	it('throws a GatewayError for a thrown request', async () => {
+		const cause = new Error('connection refused')
 
-		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('connection refused')))
+		vi.stubGlobal('fetch', vi.fn().mockRejectedValue(cause))
 
-		await expect(getSession()).resolves.toBeUndefined()
-
-		expect(error).toHaveBeenCalledOnce()
+		await expect(getSession()).rejects.toMatchObject({ name: 'GatewayError', cause })
 	})
 
 	it('lets the dynamic-usage signal of a prerender through', async () => {
