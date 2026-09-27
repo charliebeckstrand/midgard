@@ -22,23 +22,44 @@ export async function authorize(role?: Role): Promise<string | Response> {
 
 		console.error(error)
 
-		return Response.json(
-			{ issues: ['Sign-in is not available now. Try again soon.'] },
-			{ status: 503 },
-		)
+		return issue(503, 'Sign-in is not available now. Try again soon.')
 	}
 
-	if (!session) return Response.json({ issues: ['Sign in again.'] }, { status: 401 })
+	if (!session) return issue(401, 'Sign in again.')
 
 	if (role && !session.user.roles.includes(role)) {
-		return Response.json({ issues: ['Your account cannot change places.'] }, { status: 403 })
+		return issue(403, 'Your account cannot change places.')
 	}
 
 	if (role && !session.user.is_verified) {
-		return Response.json({ issues: ['Verify your email to change places.'] }, { status: 403 })
+		return issue(403, 'Verify your email to change places.')
 	}
 
 	return session.user.id
+}
+
+/**
+ * Wraps a route handler so that it runs only for a signed-in user.
+ *
+ * @remarks
+ * The wrapper calls {@link authorize} with `role`. When `authorize` refuses the
+ * request, the wrapper returns that response and does not call `handler`.
+ * Otherwise it calls `handler` with the user id before the route arguments.
+ */
+export function withUser<Args extends unknown[]>(
+	role: Role | undefined,
+	handler: (userId: string, ...args: Args) => Promise<Response>,
+): (...args: Args) => Promise<Response> {
+	return async (...args) => {
+		const userId = await authorize(role)
+
+		return userId instanceof Response ? userId : handler(userId, ...args)
+	}
+}
+
+/** A response with `status` whose body holds the messages that tell the user why. */
+export function issue(status: number, ...issues: string[]): Response {
+	return Response.json({ issues }, { status })
 }
 
 /** Headers of a response that holds one user's data, so no cache serves it to another. */

@@ -59,6 +59,7 @@
 				"src/**",
 				"app/**",
 				"vitest.config.ts",
+				"$TURBO_ROOT$/vitest.shared.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"docs/*.md",
@@ -96,6 +97,7 @@
 				"pnpm-lock.yaml",
 				"pnpm-workspace.yaml",
 				"postcss.config.mjs",
+				"vitest.shared.ts",
 				"apps/**",
 				"packages/**"
 			]

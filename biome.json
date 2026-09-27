@@ -379,6 +379,10 @@
 											"mobx-react-lite"
 										],
 										"message": "An app keeps no global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx` (CONVENTIONS §6.1)."
+									},
+									{
+										"group": ["next/link"],
+										"message": "An app renders links with `Link` from `ui/link`. `UIProvider` registers `next/link` under it, so client navigation stays and the link gets the ui styles."
 									}
 								]
 							}
