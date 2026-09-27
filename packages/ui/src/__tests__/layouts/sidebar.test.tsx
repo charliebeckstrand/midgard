@@ -55,6 +55,24 @@ describe('SidebarLayout', () => {
 		expect(screen.getAllByText('drawer-sidebar').length).toBeGreaterThanOrEqual(1)
 	})
 
+	it('tells assistive technology that the navbar button opens a dialog, and its state', () => {
+		renderUI(
+			<SidebarLayout sidebar={<div>drawer-sidebar</div>}>
+				<SidebarLayoutBody>body</SidebarLayoutBody>
+			</SidebarLayout>,
+		)
+
+		const trigger = screen.getByRole('button', { name: 'Open navigation' })
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.click(trigger)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	it('reports the mobile drawer opening, and not the floating peek', () => {
 		const onOpenChange = vi.fn()
 
