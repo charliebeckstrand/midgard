@@ -3,11 +3,19 @@
 	"extends": ["//"],
 	"tasks": {
 		"test": {
+			"inputs": ["$TURBO_EXTENDS$", "REFERENCE.md", "vitest.browser.config.ts"]
+		},
+		"test:workspace": {
+			"dependsOn": ["^build"],
 			"inputs": [
-				"$TURBO_EXTENDS$",
+				"src/**",
+				"docs/*.md",
 				"REFERENCE.md",
+				"vitest.config.ts",
+				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
-				"vitest.browser.config.ts",
+				"$TURBO_ROOT$/biome.json",
+				"$TURBO_ROOT$/.biome/plugins/**",
 				"$TURBO_ROOT$/apps/**/*.{ts,tsx,mts,cts}",
 				"!$TURBO_ROOT$/apps/*/.next/**",
 				"!$TURBO_ROOT$/apps/*/node_modules/**",
