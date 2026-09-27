@@ -1,6 +1,7 @@
 import { requireSession } from 'auth'
 import { Suspense } from 'react'
 import { PlacesApp } from '@/components/places-app'
+import { listPlaces } from '@/server/places-store'
 import { visitedSeed } from '@/server/visited-seed'
 import { listVisits } from '@/server/visits-store'
 
@@ -19,6 +20,11 @@ import { listVisits } from '@/server/visits-store'
  * only hold a shape where the server already knows the answer. The set is small:
  * at most one name for each region the reader marked.
  *
+ * It reads the places of the user in the same way, the same list that
+ * `/api/places` gives. The filter bar shows only when there are places, so the
+ * app must know the list on the first frame. If not, the bar comes in when the
+ * list lands, and the map under it gets smaller.
+ *
  * The boundary is what `useSearchParams` asks of a page that prerenders: the
  * address is not known while the shell is built, so the tree that reads it waits
  * for the browser. The fallback is nothing, because there is nothing to hold the
@@ -29,11 +35,14 @@ import { listVisits } from '@/server/visits-store'
 export default async function Page() {
 	const { user } = await requireSession()
 
-	const visits = await listVisits(user.id, () => visitedSeed(user.id))
+	const [places, visits] = await Promise.all([
+		listPlaces(user.id),
+		listVisits(user.id, () => visitedSeed(user.id)),
+	])
 
 	return (
 		<Suspense>
-			<PlacesApp user={user} visits={visits} />
+			<PlacesApp user={user} places={places} visits={visits} />
 		</Suspense>
 	)
 }
