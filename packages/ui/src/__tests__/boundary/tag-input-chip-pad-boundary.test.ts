@@ -63,10 +63,7 @@ describe('query-chips chip leading-pad symmetry', () => {
 	const expected = pillPx + bareP
 
 	it(`chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-		const actual = findStop(
-			queryChips.chip,
-			`data-[has-suffix]:data-[density=${QUERY_CHIP.chip}]:ps-ring-`,
-		)
+		const actual = findStop(queryChips.chip, 'data-[has-suffix]:ps-ring-')
 
 		expect(actual).toBe(expected)
 	})
