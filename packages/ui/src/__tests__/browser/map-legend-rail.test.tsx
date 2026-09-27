@@ -12,8 +12,9 @@ import { FIXTURE_GEOJSON } from '../helpers/map-geography'
  * that jsdom cannot measure with no layout engine, so they ride the real browser.
  */
 describe('map legend rail (real browser)', () => {
-	// The panel is `lg`-gated on the viewport, so the rail below is the side column
-	// these assertions measure rather than the stacked row under the plot.
+	// The panel is `@lg`-gated on the map's own width, and the 520px frame below
+	// clears it, so the rail is the side column these assertions measure rather
+	// than the stacked row under the plot.
 	beforeAll(() => page.viewport(1280, 800))
 
 	/** Three depots, each a catchment merged with the depot standing inside it. */

@@ -224,10 +224,10 @@ describe('MapPlat', () => {
 
 		const box = bySlot(container, 'map-legend-box')
 
-		expect(box?.getAttribute('class')).toContain('lg:w-48')
+		expect(box?.getAttribute('class')).toContain('@lg:w-48')
 
-		// The side panel spans the reserved column beside the map from lg.
-		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('lg:w-full')
+		// The side panel spans the reserved column beside the map from the map's own `@lg`.
+		expect(bySlot(container, 'map-legend')?.getAttribute('class')).toContain('@lg:w-full')
 
 		// Row placements reserve one item-row of height instead.
 		const row = renderUI(categoricalPlat({ legend: 'top' }))
@@ -235,10 +235,10 @@ describe('MapPlat', () => {
 		expect(bySlot(row.container, 'map-legend-box')?.getAttribute('class')).toContain('min-h-4')
 	})
 
-	it('stacks a side panel under the map below lg and beside it from lg', () => {
+	it('stacks a side panel under the map below its own @lg width and beside it from there', () => {
 		for (const [legend, row] of [
-			['right', 'lg:flex-row'],
-			['left', 'lg:flex-row-reverse'],
+			['right', '@lg:flex-row'],
+			['left', '@lg:flex-row-reverse'],
 		] as const) {
 			const { container } = renderUI(categoricalPlat({ legend }))
 
@@ -780,7 +780,7 @@ describe('MapPlat choropleth mode', () => {
 
 		// The numeric mode reads its legend beside the plot: the reserved side-panel
 		// column, not the bottom row.
-		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('lg:w-48')
+		expect(bySlot(container, 'map-legend-box')?.getAttribute('class')).toContain('@lg:w-48')
 	})
 
 	it('paints a continuous scale bar under legend="range" instead of the switchboard', () => {

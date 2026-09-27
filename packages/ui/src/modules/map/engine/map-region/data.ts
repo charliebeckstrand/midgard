@@ -14,7 +14,8 @@ import type { DataKey, MapCategory } from '../types'
  * registered overlay — the identity channel color alone must never carry. A
  * placement moves the centered row under the plot (`'bottom'`) or above it
  * (`'top'`). It can also move it to a column panel beside the plot (`'left'` /
- * `'right'`), side by side from `lg` and under the map below that. The default
+ * `'right'`). The panel sits side by side once the map's own width reaches
+ * `@lg` (32rem), and under the map below that. The default
  * placement is `'bottom'` for categorical maps and `'right'` for the numeric
  * choropleth.
  *

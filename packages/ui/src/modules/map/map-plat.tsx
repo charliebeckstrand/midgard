@@ -88,6 +88,8 @@ export type MapPlatProps<T = never> = AccessibleName &
 		/**
 		 * Frame width in px. Omitted, the map measures its container and fills
 		 * it; pass a width for a fixed frame (and for deterministic SSR output).
+		 * The frame is never narrower than 12rem (`min-w-48`), whatever its
+		 * container or this prop asks for.
 		 */
 		width?: number
 		/** Frame height in px; wins over `aspectRatio` when set (a free-form fixed height). */

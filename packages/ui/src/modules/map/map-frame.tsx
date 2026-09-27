@@ -68,11 +68,15 @@ export function MapFrame({
 		<div
 			ref={containerRef}
 			data-slot="map"
+			// A query container, so a side legend lays out against the map's own width
+			// and not the viewport's: a map in a narrow column stacks its legend on a
+			// wide screen too. The floor (`min-w-48`, the rail's own width) stops a
+			// squeezed container from shrinking the map to a speck.
 			// A free-form fill frame grabs its container's height (`h-full`) so the
 			// plot region has a real height to grow into; every other mode reserves
 			// height from the plot's own width and needs none.
 			className={cn(
-				'flex flex-col gap-4',
+				'@container flex min-w-48 flex-col gap-4',
 				width === undefined && 'w-full',
 				fill && 'h-full',
 				className,
@@ -87,15 +91,16 @@ export function MapFrame({
 				preloadRegion={preloadRegion}
 			>
 				{aside ? (
-					// The panel and plot sit side by side from lg; below it they stack
-					// with the panel always under the map, so a left panel reverses
-					// the row instead of moving in the DOM. The stack stretches its
-					// children, because the plot reserves its height from its own
-					// width and a centered plot has no width to reserve from.
+					// The panel and plot sit side by side once the map's own box reaches
+					// `@lg` (32rem). That leaves the plot at least 19rem beside the 12rem
+					// rail. Below it they stack with the panel always under the map, so a
+					// left panel reverses the row instead of moving in the DOM. The stack
+					// stretches its children, because the plot reserves its height from
+					// its own width and a centered plot has no width to reserve from.
 					<div
 						className={cn(
-							'flex flex-col gap-4 lg:items-center',
-							legendPlacement === 'left' ? 'lg:flex-row-reverse' : 'lg:flex-row',
+							'flex flex-col gap-4 @lg:items-center',
+							legendPlacement === 'left' ? '@lg:flex-row-reverse' : '@lg:flex-row',
 						)}
 					>
 						{plot}
