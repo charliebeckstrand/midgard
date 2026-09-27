@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { toggleItem } from '../../utilities/toggle-item'
+import { toggleItem, toggleListItem } from '../../utilities/toggle-item'
 
 describe('toggleItem', () => {
 	it('adds an item that is absent', () => {
@@ -35,5 +35,23 @@ describe('toggleItem', () => {
 		expect(added.has(item)).toBe(true)
 
 		expect(toggleItem(added, item).has(item)).toBe(false)
+	})
+})
+
+describe('toggleListItem', () => {
+	it('adds an absent item at the end', () => {
+		expect(toggleListItem(['a', 'b'], 'c')).toEqual(['a', 'b', 'c'])
+	})
+
+	it('removes a present item and keeps the order of the rest', () => {
+		expect(toggleListItem(['a', 'b', 'c'], 'b')).toEqual(['a', 'c'])
+	})
+
+	it('does not change the input', () => {
+		const list = ['a']
+
+		toggleListItem(list, 'b')
+
+		expect(list).toEqual(['a'])
 	})
 })

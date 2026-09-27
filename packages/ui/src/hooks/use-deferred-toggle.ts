@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef } from 'react'
+import { toggleListItem } from '../utilities'
 import { useFrozenOnClose } from './use-frozen-on-close'
 
 /** Options for {@link useDeferredToggle}: the flag it mirrors and how long it holds the old value. */
@@ -49,9 +50,7 @@ export function useDeferredToggle<T>({
 		(newValue: T) => {
 			setValue((prev) => {
 				if (multiple) {
-					const arr: T[] = Array.isArray(prev) ? prev : []
-
-					return arr.includes(newValue) ? arr.filter((v) => v !== newValue) : [...arr, newValue]
+					return toggleListItem(Array.isArray(prev) ? (prev as T[]) : [], newValue)
 				}
 
 				if (nullable && prev === newValue) return undefined
