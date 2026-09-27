@@ -1,10 +1,10 @@
 'use client'
 
 import { useMemo } from 'react'
+import { toAmbientStep } from '../../../core'
 import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
-import { useResolvedSize } from '../../../primitives/density'
+import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
-import type { Step } from '../../../recipes'
 import { once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type CartesianAxes, type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
@@ -888,7 +888,7 @@ export function useChartCartesian<T>(
 
 	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	// The band axis writes dates in the ambient locale's field order, and a time
 	// axis floors its week ticks on that locale's first weekday. Outside a
@@ -896,7 +896,7 @@ export function useChartCartesian<T>(
 	// locale on.
 	const { locale } = useLocale()
 
-	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
+	const metrics = CHART_METRICS[resolvedSize]
 
 	// A live ratio carries on the figure so a definite-height parent clamps the
 	// whole chart (the box-law); a side legend instead keeps the ratio on the plot

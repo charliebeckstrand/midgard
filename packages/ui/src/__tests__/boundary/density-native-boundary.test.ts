@@ -34,7 +34,7 @@ const NATIVE_FILES = [
 	'components/table/table.tsx',
 ]
 
-const DENSITY_READS = /\b(?:useDensityStep|useDensityNullable|useResolvedSize|useAffix)\b/
+const DENSITY_READS = /\b(?:useDensityStep|useDensityNullable)\b/
 
 const srcDir = join(import.meta.dirname, '..', '..')
 

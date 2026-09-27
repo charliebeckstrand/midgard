@@ -9,22 +9,21 @@
  * - `bar` is the `<NavBar>` landmark frame.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
+import { hannou, ji, kasane, narabi, omote, sen } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { border } = sen
-const { icon } = shaku
 const { bg } = omote
 
 /**
  * Shared slot-wrapper structure for the prefix/suffix entries. The item chrome
- * is fixed at md, so slot icons project one step down (`icon.sm`): the static
- * `<Icon>` leaf reads no context. Client slot children read AffixContext.
+ * is fixed at md, so each slot is an sm density scope. A slot icon or a client
+ * slot child takes that step with no projection.
  */
-const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0', icon.sm]
+const affixSlot = ['relative', 'z-10', flex.row, 'shrink-0']
 
 /** Shared item structure minus the interaction surface. */
 const itemShell = [

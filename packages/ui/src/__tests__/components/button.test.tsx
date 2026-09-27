@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
-import { AffixContext } from '../../primitives/affix'
+import { Input } from '../../components/input'
 import { Density } from '../../primitives/density'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
@@ -172,18 +172,14 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
 		})
 
-		// `<Input>` / `<SelectTrigger>` wrap their affix descendants in an
-		// `<AffixContext>` carrying the one-step-smaller affix size. `useResolvedSize`
-		// reads the Affix cascade first: when `<Density>` (or a surrounding
-		// `<Card>`) mounts an outer Step cascade at the app root, the affix
-		// wrap still pins the button to the smaller affix size.
+		// A control slot (`<Input>` prefix / suffix, `<SelectTrigger>` slots) is a
+		// density scope one step below its host. A button in the slot reads that
+		// step, whatever scope encloses the control.
 
-		it('Affix wins over an enclosing Density', () => {
+		it('takes the step below its host control in a slot', () => {
 			const { container } = renderUI(
 				<Density step="lg">
-					<AffixContext value="sm">
-						<Button>Affix</Button>
-					</AffixContext>
+					<Input aria-label="Field" size="md" prefix={<Button>Slot</Button>} />
 				</Density>,
 			)
 
@@ -192,28 +188,30 @@ describe('Button', () => {
 			expect(bySlot(container, 'button')?.className).not.toContain(textClassFor.lg)
 		})
 
-		it('Affix can drop a button to xs', () => {
+		it('drops to xs in a slot of an sm control', () => {
 			const { container } = renderUI(
-				<Density step="sm">
-					<AffixContext value="xs">
-						<Button>Affix</Button>
-					</AffixContext>
-				</Density>,
+				<Input aria-label="Field" size="sm" prefix={<Button>Slot</Button>} />,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.xs)
 		})
 
-		it('explicit size prop still wins over Affix', () => {
+		it('explicit size prop still wins in a slot', () => {
 			const { container } = renderUI(
-				<Density step="lg">
-					<AffixContext value="sm">
-						<Button size="md">Override</Button>
-					</AffixContext>
-				</Density>,
+				<Input aria-label="Field" size="lg" prefix={<Button size="md">Override</Button>} />,
 			)
 
 			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
+		})
+
+		it('takes lg in an xl scope, because it has no xl size', () => {
+			const { container } = renderUI(
+				<Density step="xl">
+					<Button>Large</Button>
+				</Density>,
+			)
+
+			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
 		})
 	})
 

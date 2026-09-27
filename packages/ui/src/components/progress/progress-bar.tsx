@@ -1,8 +1,8 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
@@ -45,7 +45,7 @@ export function ProgressBar({
 	className,
 	...labelProps
 }: ProgressBarProps) {
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	// NaN is "no usable value": treating it as determinate renders
 	// aria-valuenow="NaN" and width "NaN%".

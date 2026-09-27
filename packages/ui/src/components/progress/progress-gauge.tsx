@@ -2,8 +2,8 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
@@ -55,7 +55,7 @@ export function ProgressGauge({
 	className,
 	...labelProps
 }: ProgressGaugeProps) {
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 

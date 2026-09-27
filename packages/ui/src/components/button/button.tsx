@@ -3,8 +3,7 @@
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
-import { AffixContext } from '../../primitives/affix'
-import { useResolvedSize } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
@@ -72,7 +71,10 @@ export function Button({
 }: ButtonProps) {
 	const headless = useHeadless()
 
-	const resolvedSize = useResolvedSize(size)
+	const step = useDensityStep(size)
+
+	// The button has no `xl` size, so an `xl` scope takes the `lg` button.
+	const resolvedSize = step === 'xl' ? 'lg' : step
 
 	if (headless) {
 		return (
@@ -102,18 +104,18 @@ export function Button({
 		'data-slot': slot,
 		'data-variant': variant,
 		'data-size': resolvedSize,
+		'data-density': resolvedSize,
 		'data-has-prefix': !!prefix || undefined,
 		'data-has-suffix': !!suffix || undefined,
 		'data-has-label': hasLabel || undefined,
 	}
 
 	const content = (
-		<AffixContext value={resolvedSize}>
-			{/* LoadingSpinner reads no context, so the resolved size must be passed. */}
-			{loading ? <LoadingSpinner size={resolvedSize} /> : prefix}
+		<Density step={resolvedSize}>
+			{loading ? <LoadingSpinner /> : prefix}
 			{children}
 			{suffix}
-		</AffixContext>
+		</Density>
 	)
 
 	if (href !== undefined) {

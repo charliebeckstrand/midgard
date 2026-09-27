@@ -3,8 +3,6 @@
 import type { ReactNode } from 'react'
 import { createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
-import type { Ma } from '../../recipes'
-import { useAffix } from '../affix'
 
 /**
  * The density context: the step of the nearest density scope, or `null`
@@ -39,27 +37,6 @@ export function useDensityStep(explicit?: DensityStep): DensityStep {
  * {@link useDensityStep}.
  */
 export { useDensityNullable }
-
-/**
- * Resolves the size of a leaf through the affix cascade:
- * `explicit ?? Affix ?? Density`. An enclosing control slot (an `<Input>`
- * prefix, a `<SelectTrigger>` chevron) broadcasts an Affix step one notch
- * below its host. The leaf then renders one notch tighter than the ambient
- * density.
- *
- * For the `Ma`-scale client leaves (`Button`, `Progress*`, `Sparkline`) that
- * can take `'xs'` or `'xl'`. Static leaves (Badge, Icon) read no context. They
- * follow the nearest `data-density` scope.
- *
- * Generic on the size type of the caller. The cast trusts the caller to
- * handle a value out of its range with the `defaultVariants` of its recipe.
- */
-export function useResolvedSize<T extends Ma = Ma>(explicit?: T): T {
-	const affix = useAffix()
-	const density = useDensityStep()
-
-	return (explicit ?? affix ?? density) as T
-}
 
 /** Props for {@link Density}: the `step` of the scope and its `children`. */
 export type DensityProps = {

@@ -71,14 +71,17 @@ describe('TagInput', () => {
 	] as const)('steps badges down one size at control size %s', (controlSize, badgeSize) => {
 		const { container } = renderUI(<TagInput size={controlSize} defaultValue={['react']} />)
 
-		expect(getBadges(container)[0]).toHaveAttribute('data-density', badgeSize)
+		expect(getBadges(container)[0]?.closest('[data-density]')).toHaveAttribute(
+			'data-density',
+			badgeSize,
+		)
 	})
 
 	it('steps badges down from the density-resolved size when size is omitted', () => {
-		// Default density is md; the badge rides the same affix broadcast.
+		// Default density is md; the badge takes the scope of the prefix slot.
 		const { container } = renderUI(<TagInput defaultValue={['react']} />)
 
-		expect(getBadges(container)[0]).toHaveAttribute('data-density', 'sm')
+		expect(getBadges(container)[0]?.closest('[data-density]')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('adds a tag on Enter', async () => {

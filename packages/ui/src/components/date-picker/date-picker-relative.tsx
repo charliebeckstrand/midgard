@@ -2,8 +2,7 @@
 
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
-import { cn } from '../../core'
-import { affixStepDown } from '../../primitives/affix'
+import { cn, stepDown } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -55,7 +54,7 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 		state.showChips && state.chips.length > 0 ? (
 			<span className={cn(k.relative.chips, 'flex-1')}>
 				{state.chips.map((chip) => (
-					<Badge key={chip.key} size={affixStepDown(size)} className="shrink-0 whitespace-nowrap">
+					<Badge key={chip.key} size={stepDown(size)} className="shrink-0 whitespace-nowrap">
 						{chip.label}
 					</Badge>
 				))}

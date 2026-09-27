@@ -3,10 +3,10 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
-import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, stepDown, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
+import { Density } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/date-picker'
@@ -150,14 +150,18 @@ export function DatePickerTrigger({
 						)}
 						{!showClear && (
 							<span className={cn(k.icon)}>
-								<Icon icon={<CalendarIcon />} size={affixStepDown(size)} />
+								<Icon icon={<CalendarIcon />} size={stepDown(size)} />
 							</span>
 						)}
 					</Button>
 				</HeadlessProvider>
 				{showClear && (
-					<AffixContext value={affixStepDown(size)}>
-						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
+					<span
+						data-slot="suffix"
+						data-density={stepDown(size)}
+						className={cn(k.affix.base, k.affix.suffix[size])}
+					>
+						<Density step={stepDown(size)}>
 							<InputClearButton
 								label="Clear selection"
 								onMouseDown={(event) => event.stopPropagation()}
@@ -169,8 +173,8 @@ export function DatePickerTrigger({
 									triggerButtonRef.current?.focus()
 								}}
 							/>
-						</span>
-					</AffixContext>
+						</Density>
+					</span>
 				)}
 			</ControlFrame>
 		</div>

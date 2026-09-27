@@ -1,9 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn, stepDown, toAmbientStep } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
 import { Density, useDensityStep } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
@@ -155,11 +154,9 @@ export function Textarea({
 			>
 				{textareaEl}
 				{hasActions && (
-					<AffixContext value={affixStepDown(step)}>
-						<div data-slot="textarea-actions" className={cn(k.actions)}>
-							{actions}
-						</div>
-					</AffixContext>
+					<div data-slot="textarea-actions" data-density={stepDown(step)} className={cn(k.actions)}>
+						<Density step={stepDown(step)}>{actions}</Density>
+					</div>
 				)}
 			</ControlFrame>
 		</Density>
