@@ -2,8 +2,9 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Dialog, DialogHeader, DialogTitle } from '../../../components/dialog'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { DensityProvider } from '../../../providers/density'
-import { renderUI, screen } from '../../helpers'
+import { renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A portal takes a panel out of the DOM subtree of its density scope. The root of an Overlay or a
@@ -78,5 +79,27 @@ describe('density scopes across portals (real browser)', () => {
 		const row = await screen.findByRole('menuitem', { name: 'Nested' })
 
 		expect(fontOf(row)).toBe(18)
+	})
+
+	it.each([
+		['follows the scope of its trigger', undefined, 14],
+		['takes its explicit size over the scope of its trigger', 'lg', 18],
+	] as const)('a tooltip %s', async (_name, size, font) => {
+		renderUI(
+			<DensityProvider density="compact">
+				<Tooltip delay={0}>
+					<TooltipTrigger>
+						<button type="button">Details</button>
+					</TooltipTrigger>
+					<TooltipContent size={size}>Tip</TooltipContent>
+				</Tooltip>
+			</DensityProvider>,
+		)
+
+		await userEvent.keyboard('{Tab}')
+
+		const tip = await screen.findByText('Tip')
+
+		await waitFor(() => expect(fontOf(tip)).toBe(font))
 	})
 })

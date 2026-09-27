@@ -13,9 +13,10 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
-import { useDensityNullable } from '../density'
+import { Density, useDensityNullable } from '../density'
 import { PresencePortal } from '../portal'
 
 /**
@@ -43,6 +44,12 @@ export type FloatingSurfaceProps = {
 	 */
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
+	/**
+	 * Makes the surface a density scope at this step: it writes `data-density`
+	 * and opens the density context around the children. With no step, the
+	 * wrapper carries the scope of the place that opened it.
+	 */
+	density?: DensityStep
 	children: ReactNode
 } & Omit<ComponentProps<'div'>, 'children'>
 
@@ -70,13 +77,14 @@ export function FloatingSurface({
 	trapFocusContext,
 	trapFocusProps,
 	onExitComplete,
+	density,
 	className,
 	style,
 	children,
 	ref,
 	...rest
 }: FloatingSurfaceProps) {
-	const density = useDensityNullable()
+	const inherited = useDensityNullable()
 
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
@@ -103,14 +111,14 @@ export function FloatingSurface({
 	const surface = (
 		<div
 			ref={setWrapper}
-			data-density={density ?? undefined}
+			data-density={density ?? inherited ?? undefined}
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
 			className={cn(k.portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose
 			// with floating-ui's own instead of being overwritten.
 			{...getFloatingProps(rest)}
 		>
-			{children}
+			<Density step={density}>{children}</Density>
 		</div>
 	)
 

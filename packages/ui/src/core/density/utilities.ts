@@ -11,8 +11,8 @@
  * consumer `className` wins. `rungs.ts` gives the rank.
  *
  * A spacing utility takes stops of the spacing scale. `density-text` takes the
- * names of the text scale, and `density-rounded` takes the names of the radius
- * scale. A stepped utility takes each variant, as a core utility does, for
+ * names of the text scale. `density-rounded` takes the names of the radius
+ * scale, or stops of the spacing scale as `rounded-[--spacing(n)]` does. A stepped utility takes each variant, as a core utility does, for
  * example `*:data-[slot=icon]:density-size-[3,4,5,6,6]`.
  */
 
@@ -67,6 +67,9 @@ export const handler: PluginCreator = ({ matchUtilities }) => {
 			}),
 			isName,
 		),
-		'density-rounded': stepped((name) => ({ 'border-radius': `var(--radius-${name})` }), isName),
+		'density-rounded': stepped(
+			(value) => ({ 'border-radius': isStop(value) ? spacing(value) : `var(--radius-${value})` }),
+			(value) => isStop(value) || isName(value),
+		),
 	})
 }

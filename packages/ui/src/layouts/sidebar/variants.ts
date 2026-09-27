@@ -24,14 +24,10 @@ const panel = defineRecipe({
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
 		'has-data-[mini]:w-fit',
+		// The rail holds text, so its width follows the nearest density scope, as the
+		// text does. A container width has no stepped utility, so each step is a variant.
+		'density-xs:w-2xs density-sm:w-2xs density-md:w-xs density-lg:w-sm density-xl:w-sm',
 	],
-	// The rail holds text, so its width keys on the `size` axis, as the text does.
-	size: {
-		sm: 'w-2xs',
-		md: 'w-xs',
-		lg: 'w-sm',
-	},
-	defaults: { size: 'md' },
 })
 
 const floatingHotZone = defineRecipe({
@@ -61,13 +57,9 @@ const content = defineRecipe({
 		'overflow-y-auto',
 		'grow min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
+		// The padding follows the nearest density scope.
+		'density-px-[4,6,8] density-pb-[4,6,8] lg:not-has-[[data-slot=header]]:density-pt-[4,6,8]',
 	],
-	// Padding for each density step.
-	density: {
-		sm: 'px-4 pb-4 lg:not-has-[[data-slot=header]]:pt-4',
-		md: 'px-6 pb-6 lg:not-has-[[data-slot=header]]:pt-6',
-		lg: 'px-8 pb-8 lg:not-has-[[data-slot=header]]:pt-8',
-	},
 	stickyHeader: {
 		true: [
 			'**:data-[slot=header]:sticky',
@@ -79,18 +71,12 @@ const content = defineRecipe({
 		],
 		false: '',
 	},
-	defaults: { density: 'md', stickyHeader: false },
+	defaults: { stickyHeader: false },
 })
 
+// The padding follows the nearest density scope.
 const header = defineRecipe({
-	base: ['flex items-center shrink-0'],
-	// Padding for each density step.
-	density: {
-		sm: 'lg:pt-4 pb-4',
-		md: 'lg:pt-6 pb-6',
-		lg: 'lg:pt-8 pb-8',
-	},
-	defaults: { density: 'md' },
+	base: ['flex items-center shrink-0', 'lg:density-pt-[4,6,8] density-pb-[4,6,8]'],
 })
 
 const body = defineRecipe({

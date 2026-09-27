@@ -292,22 +292,10 @@ describe('SidebarLayout floating mode', () => {
 		expect(document.body.style.overflow).toBe('')
 	})
 
-	it('scales the mobile navbar padding to the ambient density', () => {
-		const { container: small } = renderUI(
-			<Density step="sm">
-				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
-			</Density>,
-		)
+	it('pads the mobile navbar with a stepped class, which follows the nearest scope', () => {
+		const { container } = renderUI(<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>)
 
-		expect(small.querySelector('[class~="lg:hidden"]')?.className).toContain('p-4')
-
-		const { container: large } = renderUI(
-			<Density step="lg">
-				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
-			</Density>,
-		)
-
-		expect(large.querySelector('[class~="lg:hidden"]')?.className).toContain('p-8')
+		expect(container.querySelector('[class~="lg:hidden"]')).toHaveClass('density-p-[4,6,8]')
 	})
 
 	it('resets the floating sheet to closed when floating flips off', () => {

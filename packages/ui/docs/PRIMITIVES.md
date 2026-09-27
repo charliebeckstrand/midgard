@@ -11,7 +11,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `floating-surface` | Positioning shell shared by Tooltip, Popover, and Menu; owns the positioned wrapper and optional focus trap over a `PresencePortal`. The wrapper carries the density scope across the portal. | `FloatingSurface` |
+| `floating-surface` | Positioning shell shared by Tooltip, Popover, and Menu; owns the positioned wrapper and optional focus trap over a `PresencePortal`. The wrapper carries the density scope across the portal, and its `density` prop opens a scope of its own. | `FloatingSurface` |
 | `overlay` | Backdrop-and-panel shell for modal surfaces (Dialog, Sheet, Drawer) over a `PresencePortal`: focus trap, scroll lock, dismissal, dimming scrim. Any `PersistentChrome` region stays reachable through the trap. The root carries the density scope across the portal. | `Overlay`, `notifyOverlaySignal`, `subscribeOverlaySignal` |
 | `chrome` | Marks a region as application chrome that no modal surface can seal off. The region keeps its tab stop, its accessibility-tree place, and its pointer events while the rest of the page seals (WCAG 2.1.1 / 2.4.3). Registration is by node, so no surface takes a prop and none has to name the region. | `PersistentChrome`, `registerChrome`, `chromeRegions` |
 | `popover` | Animated listbox-style floating panel (Select, Combobox, Menu) wiring roving keyboard nav, type-ahead, and open autofocus. Its `density` prop makes the panel a density scope. | `PopoverPanel` |

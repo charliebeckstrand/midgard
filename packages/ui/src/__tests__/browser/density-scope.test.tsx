@@ -7,6 +7,8 @@ import { Label } from '../../components/fieldset'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
+import { Tab, TabList, Tabs } from '../../components/tabs'
+import { SidebarLayout } from '../../layouts/sidebar'
 import { BaseOption } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
@@ -282,5 +284,36 @@ describe('density scopes on families (real browser)', () => {
 		const check = present(container.querySelector<SVGElement>('[data-slot="icon"]'), 'check')
 
 		expect(Number.parseFloat(getComputedStyle(check).width)).toBe(24)
+	})
+
+	it.each([
+		['follows a compact provider', undefined, 'tab', 14],
+		['takes the explicit size of its group', 'lg', 'tab', 18],
+		['sizes a segment item one text step below a tab', undefined, 'segment', 12],
+	] as const)('a tab %s', (_name, size, variant, font) => {
+		renderUI(
+			<DensityProvider density="compact">
+				<Tabs defaultValue="a" size={size} variant={variant}>
+					<TabList aria-label="Sections">
+						<Tab value="a">A</Tab>
+					</TabList>
+				</Tabs>
+			</DensityProvider>,
+		)
+
+		expect(Number.parseFloat(getComputedStyle(screen.getByRole('tab')).fontSize)).toBe(font)
+	})
+
+	it('pads the sidebar layout content at the step of a compact provider', () => {
+		renderUI(
+			<DensityProvider density="compact">
+				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
+			</DensityProvider>,
+		)
+
+		// The content region holds the children as its own text.
+		const content = screen.getByText('body')
+
+		expect(Number.parseFloat(getComputedStyle(content).paddingLeft)).toBe(16)
 	})
 })
