@@ -5,20 +5,9 @@ import {
 	aggregateAll,
 	aggregateColumn,
 	aggregateRow,
-	defaultFormat,
 	groupValues,
 	resolveAxis,
 } from '../../components/pivot-table/pivot-table-pivot'
-
-describe('defaultFormat', () => {
-	it('formats integers without decimals', () => {
-		expect(defaultFormat(1000)).toBe('1,000')
-	})
-
-	it('formats fractions with up to two decimals', () => {
-		expect(defaultFormat(1.2345)).toBe('1.23')
-	})
-})
 
 describe('resolveAxis', () => {
 	type Row = { region: string; year: string }

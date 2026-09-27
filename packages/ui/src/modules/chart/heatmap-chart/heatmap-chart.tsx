@@ -12,9 +12,11 @@ import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
+import { useLocale } from '../../../providers/locale'
 import {
 	type BinScale,
 	type ColorBin,
+	fractionFormat,
 	once,
 	resolveBinScale,
 	valueExtent,
@@ -36,7 +38,7 @@ import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
 import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
 import { type BandScale, bandScale } from '../engine/chart-scale'
-import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
+import { READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
@@ -604,7 +606,10 @@ function useHeatmap<T>(
 		[cellBins, bins],
 	)
 
-	const format = formatValue ?? formatChartValue
+	// The default writes numbers in the ambient locale, as a cartesian chart does.
+	const { locale } = useLocale()
+
+	const format = formatValue ?? fractionFormat(locale)
 
 	return {
 		ref,

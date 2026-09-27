@@ -113,15 +113,16 @@ export function cachedAggregate<T>(column: GridColumn<T>, rows: T[]): unknown {
  * - `null` / `undefined` as an empty cell.
  * - Anything else through `String`.
  *
+ * @param locale - The `<LocaleProvider>` locale the numbers take; the runtime locale without it.
  * @internal
  */
-export function formatAggregate(value: unknown): string {
+export function formatAggregate(value: unknown, locale?: string): string {
 	if (value == null) return ''
 
 	if (typeof value === 'number') {
 		if (!Number.isFinite(value)) return ''
 
-		return formatFraction(value)
+		return formatFraction(value, locale)
 	}
 
 	return String(value)
@@ -149,15 +150,21 @@ export function aggregateLabelSpan<T>(columns: GridColumn<T>[]): number {
  * as `headerRow` instead, and reads the backend figure off the row itself. That
  * read goes through {@link columnAccessor}, the same
  * `value`-accessor-else-field path every client aggregate reads, with `rows`
- * empty by contract (the children are not loaded).
+ * empty by contract (the children are not loaded). The default formatting takes
+ * `locale`.
  *
  * @internal
  */
-export function renderAggregate<T>(column: GridColumn<T>, rows: T[], headerRow?: T): ReactNode {
+export function renderAggregate<T>(
+	column: GridColumn<T>,
+	rows: T[],
+	locale: string | undefined,
+	headerRow?: T,
+): ReactNode {
 	if (column.aggFunc === undefined) return null
 
 	const value =
 		headerRow !== undefined ? columnAccessor(column)(headerRow) : cachedAggregate(column, rows)
 
-	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value)
+	return column.aggCell ? column.aggCell({ value, rows }) : formatAggregate(value, locale)
 }

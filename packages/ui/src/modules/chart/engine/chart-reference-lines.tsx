@@ -21,7 +21,6 @@ import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
-import { formatChartValue } from './chart-series'
 import { useChartEmphasis, useChartTier } from './context'
 
 /**
@@ -85,8 +84,8 @@ export type ChartReferenceLinesProps = {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: ChartOrientation
-	/** Formats each rule's tooltip value with its axis's formatter. @defaultValue locale integer / fraction */
-	format?: ReferenceFormat
+	/** Formats each rule's tooltip value with its axis's formatter. */
+	format: ReferenceFormat
 	/**
 	 * Reveal each rule on mount by sliding it in along the value axis, from the
 	 * baseline to its value. It slides in the direction the value points, on the
@@ -452,8 +451,6 @@ export function ChartReferenceLines({
 	// reach it.
 	const baselineOf = (ruleScale: LinearScale) => ruleScale.map(0)
 
-	const resolvedFormat = format ?? formatChartValue
-
 	const keys = ruleKeys(reference)
 
 	const group = (
@@ -477,7 +474,7 @@ export function ChartReferenceLines({
 						start={project(orientation, at, from)}
 						end={project(orientation, at, to)}
 						orientation={orientation}
-						format={(value) => resolvedFormat(value, axis)}
+						format={(value) => format(value, axis)}
 						rise={animate ? referenceRise(orientation, baselineOf(ruleScale) - at) : null}
 						plot={plot}
 						labels={labels}
@@ -493,7 +490,8 @@ export function ChartReferenceLines({
 /** Props for {@link ChartReferenceList}. @internal */
 export type ChartReferenceListProps = {
 	reference: ChartReferenceLine[] | undefined
-	format?: ReferenceFormat
+	/** Formats each rule's value with its axis's formatter. */
+	format: ReferenceFormat
 	/**
 	 * Reference indexes toggled off through their legend chips. They are dropped
 	 * from the parity, so it reads the rules the plot still draws. That is the way
@@ -530,11 +528,9 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
 
 	if (lines.length === 0) return null
 
-	const resolvedFormat = format ?? formatChartValue
-
 	const keys = ruleKeys(lines)
 
-	const value = (line: ChartReferenceLine) => resolvedFormat(line.value, line.axis ?? 'y')
+	const value = (line: ChartReferenceLine) => format(line.value, line.axis ?? 'y')
 
 	return (
 		<ul data-slot="chart-reference-list" className="sr-only">
@@ -558,7 +554,7 @@ export function ChartReferenceList({ reference, format, hidden }: ChartReference
  */
 export function referenceLegendItems(
 	reference: ChartReferenceLine[] | undefined,
-	format: ReferenceFormat = formatChartValue,
+	format: ReferenceFormat,
 ): ChartLegendReference[] {
 	return (reference ?? [])
 		.map((line, index) => ({ line, index }))

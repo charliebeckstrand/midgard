@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart } from '../../modules/chart'
-import { formatChartValue } from '../../modules/chart/engine/chart-series'
+import { LocaleProvider } from '../../providers/locale'
+import { formatFraction } from '../../utilities'
 import { allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FIXTURE_GEOJSON } from '../helpers/map-geography'
 
@@ -286,7 +287,7 @@ describe('the default value format', () => {
 			(cell) => cell.textContent,
 		)
 
-		expect(cells).toContain(formatChartValue(1234.5))
+		expect(cells).toContain(formatFraction(1234.5))
 	})
 })
 
@@ -386,5 +387,31 @@ describe('ChoroplethChart value domain', () => {
 
 		// A total row names no region, so it must not stretch the scale.
 		expect(fills([...rows, { region: 'TOTAL', pop: 10_000 }])).toEqual(fills(rows))
+	})
+})
+
+describe('under a LocaleProvider', () => {
+	it('writes the default values in the ambient locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<ChoroplethChart
+					aria-label="Population"
+					geography={FIXTURE_GEOJSON}
+					width={400}
+					data={[
+						{ region: 'A', pop: 1234.5 },
+						{ region: 'B', pop: 50 },
+						{ region: 'C', pop: 100 },
+					]}
+					series={[{ idKey: 'region', colorKey: 'pop', colorRange: ['#fff', '#000'] }]}
+				/>
+			</LocaleProvider>,
+		)
+
+		const cells = [...(bySlot(container, 'map-table')?.querySelectorAll('tbody td') ?? [])].map(
+			(cell) => cell.textContent,
+		)
+
+		expect(cells).toContain('1.234,5')
 	})
 })

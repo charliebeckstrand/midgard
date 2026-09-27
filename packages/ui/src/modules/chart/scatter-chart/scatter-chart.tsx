@@ -4,9 +4,10 @@ import { useMemo } from 'react'
 import { toAmbientStep } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useDensityStep } from '../../../primitives/density'
+import { useLocale } from '../../../providers/locale'
 import type { Step } from '../../../recipes'
 import type { AccessibleName } from '../../../types'
-import { once } from '../../../utilities'
+import { fractionFormat, once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
 import { ChartGridLines } from '../engine/chart-axes/grid-lines'
 import { type ChartValueAxis, resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
@@ -64,7 +65,6 @@ import {
 } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { type LinearScale, linearScale } from '../engine/chart-scale'
-import { formatChartValue } from '../engine/chart-series'
 import { snapTargets } from '../engine/chart-snap'
 import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
@@ -179,6 +179,7 @@ function scatterReadout(
 	uniqueXs: number[],
 	format: (value: number) => string,
 	formatX: (value: number) => string,
+	formatSize: (value: number) => string,
 ): ChartReadout | null {
 	if (visible.length === 0 || uniqueXs.length === 0) return null
 
@@ -194,7 +195,7 @@ function scatterReadout(
 				meta.points,
 				uniqueXs,
 				format,
-				meta.sizeName === null ? null : (size) => `${meta.sizeName}: ${formatChartValue(size)}`,
+				meta.sizeName === null ? null : (size) => `${meta.sizeName}: ${formatSize(size)}`,
 			),
 		})),
 	}
@@ -214,15 +215,16 @@ function scatterReadoutThunk(
 	uniqueXs: number[],
 	format: (value: number) => string,
 	formatX: (value: number) => string,
+	formatSize: (value: number) => string,
 ): (() => ChartReadout | null) | null {
 	if (visible.length === 0 || uniqueXs.length === 0) return null
 
-	return once(() => scatterReadout(visible, uniqueXs, format, formatX))
+	return once(() => scatterReadout(visible, uniqueXs, format, formatX, formatSize))
 }
 
 /**
  * The readout thunk, memoized on the content its cells read: the rows, each
- * visible series' fields, name, and color, and the two formats. A parent render
+ * visible series' fields, name, and color, and the three formats. A parent render
  * hands new metas with the same content. A new thunk would reformat every cell
  * of the hidden table, and the deferred table would render the frame again.
  *
@@ -235,6 +237,7 @@ function useScatterReadout<T>(
 	uniqueXs: number[],
 	format: (value: number) => string,
 	formatX: (value: number) => string,
+	formatSize: (value: number) => string,
 ): (() => ChartReadout | null) | null {
 	const key = visible
 		.map((meta) => {
@@ -254,8 +257,8 @@ function useScatterReadout<T>(
 
 	// biome-ignore lint/correctness/useExhaustiveDependencies: data and key stand for the content of visible and uniqueXs, which are new arrays on each render
 	return useMemo(
-		() => scatterReadoutThunk(visible, uniqueXs, format, formatX),
-		[data, key, format, formatX],
+		() => scatterReadoutThunk(visible, uniqueXs, format, formatX, formatSize),
+		[data, key, format, formatX, formatSize],
 	)
 }
 
@@ -699,9 +702,15 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// ChartTierContext, and the frame renders the drawing pointer-inert.
 	const spark = policy.tier === 'spark'
 
-	const format = axesConfig.y?.format ?? formatValue ?? formatChartValue
+	// The defaults write numbers in the ambient locale, as a cartesian chart does. A
+	// bubble's size has no formatter of its own, so it always takes the default.
+	const { locale } = useLocale()
 
-	const formatX = axesConfig.x?.format ?? formatChartValue
+	const formatSize = fractionFormat(locale)
+
+	const format = axesConfig.y?.format ?? formatValue ?? formatSize
+
+	const formatX = axesConfig.x?.format ?? formatSize
 
 	const { hidden, toggle } = useChartSeriesToggle(
 		series.map((entry) => `${entry.xKey}:${entry.yKey}`),
@@ -768,7 +777,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
-	const readout = useScatterReadout(data, series, visible, uniqueXs, format, formatX)
+	const readout = useScatterReadout(data, series, visible, uniqueXs, format, formatX, formatSize)
 
 	const rails = resolveCrosshair(crosshair)
 

@@ -1,10 +1,5 @@
-import { formatFraction, toNumericCell } from '../../utilities'
+import { toNumericCell } from '../../utilities'
 import type { PivotAggregation } from './types'
-
-/** Formats a cell value with up to two fraction digits, so a whole number prints with no fraction. */
-export function defaultFormat(value: number): string {
-	return formatFraction(value)
-}
 
 /**
  * Distinct axis values for `key`: any `explicit` ordering first, then remaining

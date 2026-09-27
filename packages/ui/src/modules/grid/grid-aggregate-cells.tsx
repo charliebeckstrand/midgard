@@ -3,6 +3,7 @@
 import { TableCell } from '../../components/table'
 import { cn } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
+import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { renderAggregate } from './engine/grid-aggregate'
 import type { GridColumn } from './types'
@@ -41,13 +42,15 @@ export function GridAggregateCells<T>({
 	from,
 	color,
 }: GridAggregateCellsProps<T>) {
+	const { locale } = useLocale()
+
 	return columns.slice(from).map((column) => (
 		<TableCell
 			key={column.id}
 			data-grid-col={column.id}
 			className={cn(k.aggregate.cell, color && k.rowGroup.tint[color], column.className)}
 		>
-			{renderAggregate(column, rows, headerRow)}
+			{renderAggregate(column, rows, locale, headerRow)}
 		</TableCell>
 	))
 }

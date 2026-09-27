@@ -33,7 +33,15 @@ export { createEmitter, type Emitter } from './emitter'
 export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { forceStyleFlush } from './force-style-flush'
 export { type FormatSpec, resolveFormat } from './format'
-export { formatFraction, formatInteger, formatPercent } from './format-number'
+export {
+	compactFormat,
+	formatFraction,
+	formatInteger,
+	formatPercent,
+	fractionFormat,
+	integerFormat,
+	percentFormat,
+} from './format-number'
 export { type ComputeCache, getOrCompute } from './get-or-compute'
 export { isComposing } from './is-composing'
 export { isDataColumn } from './is-data-column'

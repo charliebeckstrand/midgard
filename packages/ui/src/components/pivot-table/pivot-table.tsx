@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { type DensityLevel, densityToSize } from '../../providers/density'
+import { useLocale } from '../../providers/locale'
+import { fractionFormat } from '../../utilities'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
-import { defaultFormat } from './pivot-table-pivot'
 import type { PivotAggregation } from './types'
 import { type PivotTableKeys, usePivotTable } from './use-pivot-table'
 
@@ -24,7 +25,7 @@ export type PivotTableProps<T> = {
 	keys: PivotTableKeys<T>
 	/** How to aggregate the value field within a (row × column) group. @defaultValue 'sum' */
 	aggregation?: PivotAggregation
-	/** Format cell values. @defaultValue {@link defaultFormat} — `formatFraction`, so a whole number prints with no fraction. */
+	/** Format cell values. @defaultValue up to two fraction digits in the `<LocaleProvider>` locale, so a whole number prints with no fraction */
 	format?: (value: number) => ReactNode
 	/** Label for the row-dimension column. */
 	rowHeader?: ReactNode
@@ -89,7 +90,9 @@ export function PivotTable<T>({
 	const showRowTotals = totals === 'row' || totals === 'both'
 	const showColTotals = totals === 'col' || totals === 'both'
 
-	const formatValue = format ?? defaultFormat
+	const { locale } = useLocale()
+
+	const formatValue = format ?? fractionFormat(locale)
 
 	return (
 		<Table

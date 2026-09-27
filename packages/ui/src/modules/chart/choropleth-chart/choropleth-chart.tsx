@@ -2,8 +2,9 @@
 
 import { useCallback, useRef, useState } from 'react'
 import { cn } from '../../../core'
+import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
-import { once, toNumericCell } from '../../../utilities'
+import { fractionFormat, once, toNumericCell } from '../../../utilities'
 import {
 	type MapAspectRatio,
 	type MapFeature,
@@ -16,7 +17,7 @@ import {
 import { numericRegionData } from '../../map/engine/map-region/data'
 import type { ChartContextMenuConfig } from '../engine/chart-context-menu'
 import { ChartContextMenu } from '../engine/chart-context-menu'
-import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
+import { READOUT_GAP } from '../engine/chart-series'
 import type { ChartItemClick, ChartReadout, DataKey } from '../engine/types'
 
 /**
@@ -249,7 +250,10 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 
 	const [primary] = series
 
-	const format = formatValue ?? formatChartValue
+	// The default writes numbers in the ambient locale, as a cartesian chart does.
+	const { locale } = useLocale()
+
+	const format = formatValue ?? fractionFormat(locale)
 
 	// Built from the input rows for the menu's CSV / copy actions; drops them when
 	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so

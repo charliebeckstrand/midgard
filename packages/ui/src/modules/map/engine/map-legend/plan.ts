@@ -98,6 +98,8 @@ type MapRangeScale = {
 	/** The class edges the regions are binned by under `'quantile'`; absent otherwise. */
 	valueThresholds: number[] | undefined
 	formatValue: ((value: number) => string) | undefined
+	/** The `<LocaleProvider>` locale the default format takes. */
+	locale: string | undefined
 	colorName: string | undefined
 	/** Each region's raw value — the bar's hover arrow marks the pointed one. */
 	regionNumbers: (number | null)[]
@@ -179,7 +181,7 @@ export function planMapLegend(
 					// Through the shared resolver, not a second inline fallback: a map with
 					// no `formatValue` would otherwise format its bar's endpoints by one
 					// rule and its tooltip and table by another.
-					format: resolveValueFormat(scale.formatValue),
+					format: resolveValueFormat(scale.formatValue, scale.locale),
 					label: scale.colorName,
 					bins: switchboard.categoryCount,
 					thresholds: scale.valueThresholds,

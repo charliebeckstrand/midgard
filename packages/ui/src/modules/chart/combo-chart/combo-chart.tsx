@@ -257,7 +257,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				[...areas, ...lines],
 				labelMetas,
 				chart.plot,
-				formatValue,
+				(value) => chart.formatAxisValue(value, 'y'),
 				axisLabelFormats(labelMetas, chart.formatAxisValue),
 			)
 		: []

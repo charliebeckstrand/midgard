@@ -12,9 +12,11 @@
 | `digitsOnly` | Returns `value` with every non-digit character removed. |
 | `capitalizeFirst` | Returns `value` with its first letter uppercased and the rest unchanged. The select-family `capitalize` prop, the Avatar status label, the Timeline marker label, and the grid color menu use it. |
 | `toNumericCell` | Coerces a raw data cell to a number. Numbers pass through and non-blank numeric strings parse. A blank (`null`, `''`, whitespace) becomes `NaN`, not `0`; callers finite-filter. |
-| `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). |
-| `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). |
-| `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). |
+| `formatInteger` | Locale-formats `value` with no fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
+| `formatFraction` | Locale-formats `value` with up to two fraction digits (cached formatter). An optional `locale` overrides the runtime locale. |
+| `formatPercent` | Locale-formats a `0..1` share as a whole percent (cached formatter). An optional `locale` overrides the runtime locale. |
+| `integerFormat` / `fractionFormat` / `percentFormat` | The formatter behind each helper above for a `locale`. The same locale gives the same function, so a component can pass the formatter to a memo as a stable input. |
+| `compactFormat` | Compact notation to one fraction digit (`48.2K`) for a `locale`, as a stable formatter. Chart ticks in a narrow frame take it. |
 | `resolveFormat` | Resolves a `FormatSpec` to a cached `(value) => string` formatter — number, integer, currency, percent, compact, or prefixed id. |
 | `FormatSpec` *(type)* | What to format a value as: a numeric `Intl` format (`number`/`integer`/`currency`/`percent`/`compact`) or a prefixed `id`. |
 

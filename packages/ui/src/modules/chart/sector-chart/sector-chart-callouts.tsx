@@ -3,7 +3,6 @@
 import { motion } from 'motion/react'
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
-import { formatPercent } from '../../../utilities'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
 	CALLOUT_CHAR_WIDTH,
@@ -28,11 +27,13 @@ type CalloutLabel = PieCallout & { text: string }
 /** What a callout's text reads: the slice name plus its percent share. @internal */
 export type CalloutSpec = {
 	labels: string[]
+	/** Formats a `0..1` share, in the ambient locale. */
+	percent: (share: number) => string
 }
 
 /** One callout's text: the slice name trailed by its percent share. @internal */
-function calloutLabelText({ labels }: CalloutSpec, index: number, share: number): string {
-	return `${labels[index] ?? ''} ${formatPercent(share)}`.trim()
+function calloutLabelText({ labels, percent }: CalloutSpec, index: number, share: number): string {
+	return `${labels[index] ?? ''} ${percent(share)}`.trim()
 }
 
 /** The horizontal room the widest callout needs beside the pie; the plain gap when off. @internal */

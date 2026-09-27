@@ -5,7 +5,7 @@ import { toAmbientStep } from '../../../core'
 import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
-import { once } from '../../../utilities'
+import { compactFormat, fractionFormat, once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type CartesianAxes, type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import { paintSlot, rawColor, textClass } from './chart-color/paint'
@@ -28,14 +28,7 @@ import type { ChartOrientation } from './chart-orientation'
 import type { ChartReferenceLine } from './chart-reference-lines'
 import { referenceLegendItems } from './chart-reference-lines'
 import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
-import {
-	chartReadout,
-	formatChartValue,
-	formatChartValueCompact,
-	type SeriesMeta,
-	selectedIndices,
-	seriesValues,
-} from './chart-series'
+import { chartReadout, type SeriesMeta, selectedIndices, seriesValues } from './chart-series'
 import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } from './chart-tier'
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
@@ -499,15 +492,16 @@ type AxisFormatters = {
 /**
  * One axis's tick and readout formatters. An explicit per-axis or chart `format`
  * wins for both. Absent, the tick labels take `tickDefault` (compact in a narrow
- * frame), while the readout keeps {@link formatChartValue}'s full precision.
+ * frame), while the readout keeps `readoutDefault`, the full precision.
  *
  * @internal
  */
 function axisFormatters(
 	explicit: ((value: number) => string) | undefined,
 	tickDefault: (value: number) => string,
+	readoutDefault: (value: number) => string,
 ): AxisFormatters {
-	return { tick: explicit ?? tickDefault, readout: explicit ?? formatChartValue }
+	return { tick: explicit ?? tickDefault, readout: explicit ?? readoutDefault }
 }
 
 /**
@@ -519,7 +513,8 @@ function axisFormatters(
  * - Its title.
  *
  * Two formatters per axis, not one. The tick labels take the compact default in
- * a narrow frame (`compactFormat`). The readout always reads full precision, so
+ * a narrow frame (`compact`): locale compact notation to one fraction digit
+ * (`48.2K`, `1.3M`), where a full-format label would crowd the plot. The readout always reads full precision, so
  * a gutter stays cheap without coarsening the numbers a reader opens the tooltip
  * for. That readout is the tooltip, the hidden table, and the reference rules.
  * An explicit `format` / `formatValue` overrides both. Titles resolve only
@@ -535,16 +530,20 @@ function resolveValueAxes<T>(
 	stack: StackMode,
 	data: T[],
 	referenceHidden: ReadonlySet<number>,
-	compactFormat: boolean,
+	compact: boolean,
 	axisTitles: boolean,
+	locale: string | undefined,
 ): ResolvedValueAxes {
 	// The tick labels take the compact default in a narrow frame; the readout keeps
-	// full precision. An explicit per-axis or chart formatter wins for both.
-	const tickDefault = compactFormat ? formatChartValueCompact : formatChartValue
+	// full precision. An explicit per-axis or chart formatter wins for both. The
+	// defaults write numbers in the ambient locale, as the band axis writes dates.
+	const readoutDefault = fractionFormat(locale)
 
-	const y = axisFormatters(axes.y?.format ?? props.formatValue, tickDefault)
+	const tickDefault = compact ? compactFormat(locale) : readoutDefault
 
-	const y2 = axisFormatters(axes.y2?.format ?? props.formatValue, tickDefault)
+	const y = axisFormatters(axes.y?.format ?? props.formatValue, tickDefault, readoutDefault)
+
+	const y2 = axisFormatters(axes.y2?.format ?? props.formatValue, tickDefault, readoutDefault)
 
 	const yDomainValues = domainValuesFor({
 		axis: 'y',
@@ -954,6 +953,7 @@ export function useChartCartesian<T>(
 		referenceHidden,
 		policy.compactFormat,
 		policy.axisTitles,
+		locale,
 	)
 
 	// Walks every row to detect a date axis, then again to label it, so it is
@@ -1022,13 +1022,13 @@ export function useChartCartesian<T>(
 
 	const y2ReadoutFormat = axes.y2?.format ?? props.formatValue
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: readoutSeries and the two formats stand for the content of visible and formatAxisValue, which are new objects on each render
+	// biome-ignore lint/correctness/useExhaustiveDependencies: readoutSeries and the two formats and locale stand for the content of visible and formatAxisValue, which are new objects on each render
 	const readout = useMemo(
 		() =>
 			xKey && data.length > 0 && visible.length > 0
 				? once(() => chartReadout(data, xKey, visible, formatAxisValue, readoutCategory))
 				: null,
-		[data, xKey, readoutSeries, yReadoutFormat, y2ReadoutFormat, readoutCategory],
+		[data, xKey, readoutSeries, yReadoutFormat, y2ReadoutFormat, readoutCategory, locale],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack

@@ -299,7 +299,7 @@ export type ChartBaseProps<T> = AccessibleName & {
 	 * @defaultValue false
 	 */
 	texture?: boolean
-	/** Formats tick and tooltip values; defaults to locale integer/fraction formatting. */
+	/** Formats tick and tooltip values; defaults to integer/fraction formatting in the `<LocaleProvider>` locale. */
 	formatValue?: (value: number) => string
 	/**
 	 * The right-click context menu. By default a chart offers three groups:

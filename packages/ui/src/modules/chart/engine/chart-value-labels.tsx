@@ -9,7 +9,6 @@ import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
 import { TICK_CHAR_WIDTH } from './chart-constants'
 import type { PlotRect } from './chart-layout'
 import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
-import { formatChartValue } from './chart-series'
 import { useChartTier } from './context'
 
 /**
@@ -396,7 +395,7 @@ export function resolveValueLabels(
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
 	plot: PlotRect,
-	format: ((value: number) => string) | undefined,
+	format: (value: number) => string,
 	formats?: ((value: number) => string)[],
 	gapSkipped = true,
 ): PlacedValueLabel[] {
@@ -405,7 +404,7 @@ export function resolveValueLabels(
 	return valueLabels({
 		series: lineLabelSeries(list, metas, formats, gapSkipped),
 		plot,
-		format: format ?? formatChartValue,
+		format,
 		endpoints: config.endpoints ?? false,
 		extremes: config.extremes ?? false,
 	})

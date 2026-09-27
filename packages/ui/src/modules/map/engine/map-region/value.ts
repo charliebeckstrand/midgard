@@ -9,13 +9,14 @@
  * the heatmap share one scale.
  */
 
-import { formatFraction, resolveBinScale, toNumericCell, valueExtent } from '../../../../utilities'
+import { fractionFormat, resolveBinScale, toNumericCell, valueExtent } from '../../../../utilities'
 import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
 /**
- * A map's `formatValue`, or {@link formatFraction} where it has none: locale
- * digits with up to two fraction places, as a chart formats the same data. The
+ * A map's `formatValue`, or {@link fractionFormat} where it has none: digits in
+ * the `<LocaleProvider>` locale with up to two fraction places, as a chart formats
+ * the same data. The
  * readout and the range legend resolve it through here, rather than each
  * defaulting for itself. A map without the prop would otherwise format its
  * tooltip and table by one rule, and its bar's endpoints by another. Nothing
@@ -25,8 +26,9 @@ import type { MapCategoryMeta } from './category'
  */
 export function resolveValueFormat(
 	formatValue: ((value: number) => string) | undefined,
+	locale: string | undefined,
 ): (value: number) => string {
-	return formatValue ?? formatFraction
+	return formatValue ?? fractionFormat(locale)
 }
 
 /** Options a choropleth resolves its bins with. @internal */

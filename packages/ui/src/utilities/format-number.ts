@@ -1,27 +1,69 @@
-import { resolveFormat } from './format'
+import { type FormatSpec, resolveFormat } from './format'
 
-// Module-level formatters. A fresh `Intl.NumberFormat` for each call costs
-// measurable time in per-frame animations (Odometer) and in grids with many
-// numeric cells (PivotTable). `resolveFormat` shares its cached instances.
-const integerFormatter = resolveFormat({ type: 'integer' })
-const fractionFormatter = resolveFormat({ type: 'number', maximumFractionDigits: 2 })
-const percentFormatter = resolveFormat({ type: 'percent', maximumFractionDigits: 0 })
+/**
+ * A formatter for `spec` per locale, built on first use and kept.
+ *
+ * A fresh `Intl.NumberFormat` for each call costs measurable time in per-frame
+ * animations (Odometer) and in grids with many numeric cells (PivotTable). A
+ * lookup by locale keeps each call to one map read.
+ */
+function perLocale(spec: FormatSpec): (locale: string | undefined) => (value: number) => string {
+	const formatters = new Map<string | undefined, (value: number) => string>()
 
-/** Locale-format `value` with no fraction digits. */
-export function formatInteger(value: number): string {
-	return integerFormatter(value)
+	return (locale) => {
+		let formatter = formatters.get(locale)
+
+		if (formatter === undefined) {
+			formatter = resolveFormat(spec, { locale })
+
+			formatters.set(locale, formatter)
+		}
+
+		return formatter
+	}
+}
+
+/**
+ * The formatter behind {@link formatInteger} for `locale`. The same locale gives the same
+ * function, so a component can pass it where identity gates a memo.
+ */
+export const integerFormat = perLocale({ type: 'integer' })
+
+/** The formatter behind {@link formatFraction} for `locale`, as for {@link integerFormat}. */
+export const fractionFormat = perLocale({ type: 'number', maximumFractionDigits: 2 })
+
+/** The formatter behind {@link formatPercent} for `locale`, as for {@link integerFormat}. */
+export const percentFormat = perLocale({ type: 'percent', maximumFractionDigits: 0 })
+
+/** Compact notation to one fraction digit (`48.2K`, `1.3M`) for `locale`, as for {@link integerFormat}. */
+export const compactFormat = perLocale({ type: 'compact', maximumFractionDigits: 1 })
+
+/**
+ * Locale-format `value` with no fraction digits.
+ *
+ * @param locale - A BCP 47 tag, such as the `<LocaleProvider>` locale. Without it, the runtime
+ * locale applies.
+ */
+export function formatInteger(value: number, locale?: string): string {
+	return integerFormat(locale)(value)
 }
 
 /**
  * Locale-format `value` with up to two fraction digits. An integer prints with
  * no fraction, so this is also the default format for a value that can be an
  * integer or a fraction.
+ *
+ * @param locale - As for {@link formatInteger}.
  */
-export function formatFraction(value: number): string {
-	return fractionFormatter(value)
+export function formatFraction(value: number, locale?: string): string {
+	return fractionFormat(locale)(value)
 }
 
-/** Locale-format a `0..1` share as a whole percent. */
-export function formatPercent(share: number): string {
-	return percentFormatter(share)
+/**
+ * Locale-format a `0..1` share as a whole percent.
+ *
+ * @param locale - As for {@link formatInteger}.
+ */
+export function formatPercent(share: number, locale?: string): string {
+	return percentFormat(locale)(share)
 }
