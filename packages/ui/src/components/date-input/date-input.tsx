@@ -6,7 +6,7 @@ import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
-import { clearNativeInput } from '../../utilities'
+import { clearNativeInput, isComposing } from '../../utilities'
 import { Button } from '../button'
 import { useControl } from '../control/context'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
@@ -226,8 +226,11 @@ export function DateInput({
 	// cognitive-complexity budget.
 	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
 
+	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
+	// the caret before the padded digit.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
+		atEnd: 'jump',
 		ref: setExternalRef,
 	})
 
@@ -286,11 +289,6 @@ export function DateInput({
 						// The mask re-appends a deleted trailing separator and traps the
 						// caret; backspace over it deletes the preceding digit instead.
 						next = maskDateText(raw.slice(0, -1), format)
-					} else if ((event.target.selectionStart ?? raw.length) >= raw.length) {
-						// Typing at the end: let the value swap put the caret at the end.
-						// The meaningful-count restore would pin it before a digit the
-						// mask pads in (`1/` → `01/`).
-						next = maskDateText(raw, format)
 					} else {
 						next = reformat(event)
 					}
@@ -323,7 +321,8 @@ export function DateInput({
 					{ checkForDefaultPrevented: false },
 				)}
 				onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-					if (event.key === 'Enter') event.currentTarget.blur()
+					// Enter that confirms an input-method candidate must not blur the field.
+					if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 				})}
 				{...props}
 			/>

@@ -13,16 +13,21 @@ export type FormattedInputOptions = {
 	 * caret aligned with the typed character when format inserts or removes
 	 * separators.
 	 * @defaultValue a predicate matching ASCII alphanumerics and `+`
-	 * @remarks
-	 * A padding formatter breaks this contract. CurrencyInput's `.` → `0.` and
-	 * DateInput's `1/` → `01/` insert a *meaningful* character. The restore then
-	 * counts the pad and pins the caret one place short. Both call sites answer it
-	 * with a type-at-end branch that formats without queueing a restore. At a
-	 * third padding consumer, absorb it here as an `atEnd: 'jump' | 'restore'`
-	 * option. Masks must keep `'restore'`, since a caret before trailing
-	 * separators is what makes backspace work.
 	 */
 	meaningful?: (char: string) => boolean
+	/**
+	 * What a keystroke at the end of the text does with the caret.
+	 *
+	 * A padding formatter breaks the `meaningful` contract. CurrencyInput pads
+	 * `.` to `0.`, and DateInput pads `1/` to `01/`. Each pad inserts a
+	 * meaningful character, and the restore then pins the caret one place short.
+	 * With `'jump'`, a keystroke at the end queues no restore, and the value swap
+	 * puts the caret at the end. Masks must keep `'restore'`, because a caret
+	 * before trailing separators is what makes backspace work.
+	 *
+	 * @defaultValue 'restore'
+	 */
+	atEnd?: 'jump' | 'restore'
 	/** External ref to compose with the engine's internal input ref. */
 	ref?: Ref<HTMLInputElement>
 }
@@ -31,7 +36,7 @@ const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
 
 /**
  * Caret-preserving reformat engine for formatted text inputs: the stateless
- * core under `useMaskInput` and `CurrencyInput`. `reformat` applies `format`
+ * core under `useMaskInput`, `CurrencyInput` and `DateInput`. `reformat` applies `format`
  * to a change event's text and queues a caret restore, via the returned `ref`.
  * That restore keeps the cursor on the typed character when formatting inserts
  * separators. The caller owns the state the formatted text commits to.
@@ -43,6 +48,7 @@ const defaultMeaningful = (c: string) => /[A-Za-z0-9+]/.test(c)
 export function useFormattedInput({
 	format,
 	meaningful = defaultMeaningful,
+	atEnd = 'restore',
 	ref: externalRef,
 }: FormattedInputOptions) {
 	const { ref, setCaret } = usePendingCaret(externalRef)
@@ -51,6 +57,8 @@ export function useFormattedInput({
 		const raw = event.target.value
 
 		const cursor = event.target.selectionStart ?? raw.length
+
+		if (atEnd === 'jump' && cursor >= raw.length) return format(raw)
 
 		const meaningfulBefore = countMeaningful(raw, cursor, meaningful)
 

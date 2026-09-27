@@ -1,6 +1,7 @@
 'use client'
 
 import type { KeyboardEvent } from 'react'
+import { isComposing } from '../../utilities'
 
 /**
  * Options for {@link useTagInputKeyboard}.
@@ -42,7 +43,7 @@ type KeyboardOptions = {
  */
 export function useTagInputKeyboard({ inputValue, commit, removeTag, tagCount }: KeyboardOptions) {
 	return (event: KeyboardEvent<HTMLInputElement>) => {
-		if (event.nativeEvent.isComposing) return
+		if (isComposing(event)) return
 
 		if (event.key === 'Enter' || event.key === ',') {
 			event.preventDefault()

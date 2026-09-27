@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { CurrencyInput } from '../../components/currency-input'
 import { Form } from '../../components/form'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('CurrencyInput', () => {
 	it('merges a consumer className with its own tabular-nums', () => {
@@ -203,6 +203,22 @@ describe('CurrencyInput', () => {
 		await user.keyboard('{Enter}')
 
 		expect(document.activeElement).not.toBe(input)
+	})
+
+	it('keeps focus on an Enter that confirms an input-method candidate', () => {
+		const { container } = renderUI(<CurrencyInput defaultValue={10} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'currency-input')
+
+		input.focus()
+
+		fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+
+		expect(document.activeElement).toBe(input)
+
+		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+
+		expect(document.activeElement).toBe(input)
 	})
 
 	it('does not blur the input when the consumer prevents default on Enter', async () => {

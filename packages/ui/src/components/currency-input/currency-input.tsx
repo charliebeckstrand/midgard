@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
+import { isComposing } from '../../utilities'
 import { useFormValue } from '../form/use-form-value'
 import { Input, type InputProps } from '../input'
 import { formatEditing, isMeaningful, parseEditing } from './currency-input-utilities'
@@ -100,12 +101,12 @@ export function CurrencyInput({
 
 	const text = editingText ?? (num === undefined ? '' : displayFormatter.format(num))
 
-	// Shared by the hook and the type-at-end branch below, so the two can't drift.
-	const format = (raw: string) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits)
-
+	// `atEnd: 'jump'`: the formatter pads `.` to `0.`, so a restore at the end would
+	// put the next digit in the integer part (`.5` to `5.`).
 	const { ref: setRefs, reformat } = useFormattedInput({
-		format,
+		format: (raw) => formatEditing(raw, resolvedLocale, decimal, maxFractionDigits),
 		meaningful: (c) => isMeaningful(c, decimal),
+		atEnd: 'jump',
 		ref,
 	})
 
@@ -122,17 +123,11 @@ export function CurrencyInput({
 			value={text}
 			onFocus={onFocus}
 			onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-				if (event.key === 'Enter') event.currentTarget.blur()
+				// Enter that confirms an input-method candidate must not blur the field.
+				if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 			})}
 			onChange={(event) => {
-				const raw = event.target.value
-
-				// Typing at the end: format without the meaningful-count caret
-				// restore, which would pin the caret before the leading `0` the
-				// formatter pads in (`.` → `0.`), landing the next digit in the
-				// integer part (`.5` → `5.`). Mirrors DateInput's type-at-end branch.
-				const formatted =
-					(event.target.selectionStart ?? raw.length) >= raw.length ? format(raw) : reformat(event)
+				const formatted = reformat(event)
 
 				setEditingText(formatted)
 
