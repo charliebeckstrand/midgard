@@ -12,7 +12,7 @@ import base from './vitest.bench.browser.config'
  *
  * The compiler reads the `ui` source only. The bench harness under
  * `__benchmarks__` stays plain, so both runs time the same harness, and the
- * contenders in `node_modules` stay as they ship.
+ * dependencies in `node_modules` stay as they ship.
  *
  * The preset is written out, as in `vitest.compiler.config.ts`, because
  * `reactCompilerPreset` applies only to the client environment.

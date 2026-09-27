@@ -24,8 +24,8 @@ import { makeDatedTrend, makeTrend } from './browser/fixtures'
  * move runs after.
  *
  * Node env, no React and no jsdom, so an engine change reads as a core delta
- * the competitive browser suite cannot separate from reconciliation and the
- * DOM commit. Data is the shared LCG fixture the browser suite draws.
+ * the browser suite cannot separate from reconciliation and the DOM commit.
+ * Data is the shared LCG fixture the browser suite draws.
  */
 
 const WIDTH = 800
@@ -130,7 +130,7 @@ describe('chart-time · dateCategoryFormat (the are-these-dates probe)', () => {
 	// is what a date-keyed chart still pays, unmeasured until now.
 	const labels = makeTrend(10_000, 1).categories
 
-	// The same ISO categories the competitive dated-mount scenario draws, so the
+	// The same ISO categories the browser dated-mount scenario draws, so the
 	// core number and the end-to-end number describe one workload.
 	const dates = makeDatedTrend(10_000, 1).categories
 

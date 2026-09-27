@@ -1,32 +1,31 @@
 /**
  * Redraw cost on a live map — the dashboard refresh path, the chart update
- * bench's shape over regions. Each scenario mounts every contender once
- * (top-level await; the maps stay up for the whole run) and each iteration
- * swaps in the other of two same-shape datasets, so every redraw recolors
- * real regions and never bails on an equality guard. The ui module re-renders
- * through its React root; Highcharts and ECharts take their in-place data
- * updates. Geometry never changes — an update moves data, not the atlas.
+ * bench's shape over regions. Each scenario mounts the map once (top-level
+ * await; the map stays up for the whole run) and each iteration swaps in the
+ * other of two same-shape datasets, so every redraw recolors real regions and
+ * never bails on an equality guard. The ui module re-renders through its React
+ * root. Geometry never changes — an update moves data, not the atlas.
  */
 
 import { describe } from 'vitest'
 import { benches, prepare, WINDOW } from './harness'
-import { choroplethMapContenders, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
+import { choroplethMaps, zoneMaps } from './maps'
 
 const states = await prepare(
-	zoneMapContenders(statesAtlas),
+	zoneMaps(statesAtlas),
 	makeZones(statesAtlas, 1),
 	makeZones(statesAtlas, 2),
 )
 
 const counties = await prepare(
-	zoneMapContenders(countiesAtlas),
+	zoneMaps(countiesAtlas),
 	makeZones(countiesAtlas, 1),
 	makeZones(countiesAtlas, 2),
 )
 
 const choropleth = await prepare(
-	choroplethMapContenders(countiesAtlas),
+	choroplethMaps(countiesAtlas),
 	makeValues(countiesAtlas, 1),
 	makeValues(countiesAtlas, 2),
 )

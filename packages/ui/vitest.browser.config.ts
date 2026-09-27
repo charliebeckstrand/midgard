@@ -74,7 +74,7 @@ const PACKAGE_CSS = /^(?!.*[\\/]node_modules[\\/]).*\.css(?:\?(?!.*\b(?:raw|url)
  * The last plugin runs the same `optimize` step on the CSS of this package
  * after Tailwind generates it. The suites therefore read the CSS that an app
  * ships, and a benchmark times the style cost of that CSS. The CSS of a
- * dependency, such as the stylesheet of a contender grid, stays as it ships.
+ * dependency stays as it ships.
  */
 export function servedTailwind(): Plugin[] {
 	return [

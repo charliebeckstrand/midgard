@@ -14,7 +14,7 @@
  * then yields frames so the truncation hook's deferred re-measure backstop lands
  * inside the timed region.
  *
- * A third contender freezes `origin` and the column after it. The toggle then
+ * A third subject freezes `origin` and the column after it. The toggle then
  * moves the sticky offset of the second frozen column in each row, so the
  * bench also prices the frozen chrome through a resize.
  */
@@ -23,7 +23,7 @@ import { createRoot } from 'react-dom/client'
 import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
-import { painted } from './grid-contenders'
+import { painted } from './grids'
 import { benches, host, type Prepared, settle, WINDOW } from './harness'
 
 // Explicit `cell` renderers so content paints synchronously (a bare column's
@@ -35,7 +35,7 @@ const COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => ({
 	cell: (row) => String(row[id]),
 }))
 
-/** The columns that the frozen contender freezes to the left edge: `origin` and the column after it. */
+/** The columns that the frozen subject freezes to the left edge: `origin` and the column after it. */
 const FROZEN = new Set<string>(['origin', 'destination'])
 
 /** {@link COLUMNS} with the {@link FROZEN} columns pinned left. */
@@ -48,7 +48,7 @@ const NARROW = 48
 
 const WIDE = 320
 
-/** One contender: its report name, its `truncate` setting, and its columns. */
+/** One subject: its report name, its `truncate` setting, and its columns. */
 type Variant = { name: string; truncate: boolean; columns: GridColumn<Shipment>[] }
 
 const VARIANTS: Variant[] = [

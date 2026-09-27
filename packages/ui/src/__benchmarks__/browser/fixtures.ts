@@ -1,7 +1,7 @@
 /**
- * Deterministic fixture generators for the competitive chart benches. Each
- * helper seeds an LCG; identical parameters produce identical output, so
- * run-to-run variance reflects the library under test, not the data.
+ * Deterministic fixture generators for the chart benches. Each helper seeds an
+ * LCG. Identical parameters give identical output, so the variance from run to
+ * run comes from the module under test, not from the data.
  */
 
 import { rng } from '../fixtures'
@@ -10,9 +10,9 @@ import { rng } from '../fixtures'
 export type TrendRow = Record<string, string | number>
 
 /**
- * One trend dataset in every contender's natural shape: `rows` for the row
- * readers (ui, AG Charts), `categories` plus per-series `values` for
- * Highcharts' array form. All three views hold the same numbers.
+ * One trend dataset in two shapes. The ui charts read `rows`. The pure-core
+ * benches one directory up read `categories` and the `values` of each series.
+ * Both views hold the same numbers.
  */
 export type TrendData = {
 	rows: TrendRow[]
@@ -38,9 +38,9 @@ function walks(count: number, seriesCount: number, seed: number): number[][] {
 const trendCache = new Map<string, TrendData>()
 
 /**
- * One trend in all three contender shapes, memoized per label kind and
- * parameters. The two exported generators differ only in how a category reads,
- * so `label` is the whole difference between them.
+ * One trend in both shapes, memoized per label kind and parameters. The two
+ * exported generators differ only in how a category reads, so `label` is the
+ * whole difference between them.
  *
  * @remarks Several benches draw the same trend and the ten-thousand-row rungs
  * allocate a row object apiece, so building each one once keeps collection off
@@ -95,11 +95,11 @@ const DAY_MS = 86_400_000
 
 /**
  * {@link makeTrend} with ISO-date categories in place of the opaque `P00001`
- * labels — the shape a time-series dashboard actually holds, and the one that
- * puts every contender's date handling on the clock: the ui module's band axis
- * probes whether all categories parse as dates (and formats them through
- * `Intl` when they do), where a non-date axis exits on its first value. Same
- * values, same seed, so it differs from the plain trend in labels alone.
+ * labels. A time-series dashboard holds this shape, and it puts the date
+ * handling on the clock. The band axis of the ui module probes whether all
+ * categories parse as dates, and formats them through `Intl` when they do. A
+ * non-date axis exits on its first value. The values and the seed are the same,
+ * so it differs from the plain trend in its labels alone.
  */
 export function makeDatedTrend(count: number, seriesCount: number, seed = 1): TrendData {
 	return trend('dated', count, seriesCount, seed, (i) =>
@@ -107,28 +107,25 @@ export function makeDatedTrend(count: number, seriesCount: number, seed = 1): Tr
 	)
 }
 
-/** One scatter point row; `pairs` mirrors it in Highcharts' `[x, y]` form. */
+/** One scatter point row. */
 export type PointRow = { x: number; y: number }
 
-/** One scatter dataset: `rows` for the row readers, `pairs` for Highcharts. */
+/** One scatter dataset. */
 export type PointData = {
 	rows: PointRow[]
-	pairs: [number, number][]
 }
 
 /** `count` points scattered over a correlated cloud. */
 export function makePoints(count: number, seed = 1): PointData {
 	const next = rng(seed)
 
-	const pairs = Array.from({ length: count }, (): [number, number] => {
+	const rows = Array.from({ length: count }, (): PointRow => {
 		const x = Math.round(next() * 10_000) / 10
 
 		const y = Math.round((x * 0.6 + next() * 400) * 10) / 10
 
-		return [x, y]
+		return { x, y }
 	})
 
-	const rows = pairs.map(([x, y]) => ({ x, y }))
-
-	return { rows, pairs }
+	return { rows }
 }

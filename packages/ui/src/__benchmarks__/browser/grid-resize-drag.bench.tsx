@@ -15,17 +15,13 @@
  * The `truncate · script only` row does no layout read. It is the regression
  * sentinel for the script work alone, because the layout cost moves with the
  * browser.
- *
- * The ui grid runs alone, without a rival score. AG Grid and MUI X can drag a
- * column too. On equal terms, the fake clock must drive their frame services
- * also, and that is not verified.
  */
 
 import { createRoot } from 'react-dom/client'
 import { describe } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, painted } from './grid-contenders'
+import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, mouse, type Prepared, WINDOW, withFrameClock } from './harness'
 
 // Explicit `cell` renderers, as in `grid-resize-truncation.bench.tsx`, so the

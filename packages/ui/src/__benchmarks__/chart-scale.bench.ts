@@ -10,7 +10,7 @@ import { makeTrend } from './browser/fixtures'
 // draws, so it scales with N. This suite benches it directly in a node env — no
 // React, no jsdom — so a core change (single-pass finite min/max in place of
 // `filter` + `Math.min(...spread)`) reads as a delta the end-to-end browser
-// suite is too coarse to isolate. Data is the shared LCG fixture the competitive
+// suite is too coarse to isolate. Data is the shared LCG fixture the browser
 // suite draws, so the pool matches the scenarios one rung up.
 
 /** A flat value pool of `seriesCount` random walks over `count` categories. */
