@@ -1,6 +1,8 @@
 import type { ComponentProps, ElementType, ReactElement, Ref } from 'react'
 import type { LinkProps } from '../link'
+import { resolveLinkRel } from '../link/link-rel'
 import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
+import { mergeRenderProps } from './merge-render-props'
 
 /**
  * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
@@ -36,6 +38,12 @@ export type PolymorphicStaticProps<
  * the router link must be supplied per call site via `render`. Suits static
  * leaf components that render in React Server Components.
  *
+ * The props of the `render` element merge with the resolved props. The
+ * classes join, both event handlers run, and a resolved value wins on each
+ * other key. The call-site `ref` wins over the `ref` of the `render` element,
+ * and the `render` ref stays when the call site gives no `ref`. A link with `target="_blank"` and no `rel` gets
+ * `rel="noopener noreferrer"`.
+ *
  * @see {@link Polymorphic}
  */
 export function PolymorphicStatic<Fallback extends ElementType>({
@@ -50,9 +58,6 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 }: PolymorphicRenderProps<Fallback> & { render?: ReactElement<LinkProps> }) {
 	if (href !== undefined) {
 		const linkProps = {
-			// An absent ref stays out of the props. A spread `ref: undefined` would
-			// clear the ref that the render element carries.
-			...(ref === undefined ? {} : { ref: ref as Ref<HTMLAnchorElement> }),
 			'data-slot': slot,
 			href,
 			className,
@@ -61,18 +66,35 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 
 		if (render) {
 			// The clone renders the link's type through JSX, not through
-			// `cloneElement`. The React Compiler rejects a ref passed to a function
-			// during render.
+			// `cloneElement`, and keeps each ref out of the merge call. The React
+			// Compiler rejects a ref passed to a function during render.
 			const Link = render.type
 
+			const { ref: renderRef, ...renderProps } = render.props as LinkProps
+
+			const merged = mergeRenderProps(renderProps, linkProps) as LinkProps
+
 			return (
-				<Link key={render.key} {...render.props} {...linkProps}>
+				<Link
+					key={render.key}
+					{...merged}
+					ref={(ref as Ref<HTMLAnchorElement> | undefined) ?? renderRef}
+					rel={resolveLinkRel(merged.target, merged.rel)}
+				>
 					{children}
 				</Link>
 			)
 		}
 
-		return <a {...linkProps}>{children}</a>
+		return (
+			<a
+				{...linkProps}
+				ref={ref as Ref<HTMLAnchorElement> | undefined}
+				rel={resolveLinkRel(linkProps.target, linkProps.rel)}
+			>
+				{children}
+			</a>
+		)
 	}
 
 	return (

@@ -105,6 +105,56 @@ describe('Polymorphic', () => {
 	})
 })
 
+describe('Polymorphic ref and rel', () => {
+	it('forwards ref to the link and to the fallback element', () => {
+		const linkRef = createRef<HTMLAnchorElement>()
+
+		const fallbackRef = createRef<HTMLSpanElement>()
+
+		renderUI(
+			<>
+				<Polymorphic as="span" href="/path" ref={linkRef} data-slot="link" className="">
+					Link
+				</Polymorphic>
+				<Polymorphic as="span" ref={fallbackRef} data-slot="label" className="">
+					Label
+				</Polymorphic>
+			</>,
+		)
+
+		expect(linkRef.current?.tagName).toBe('A')
+
+		expect(fallbackRef.current?.tagName).toBe('SPAN')
+	})
+
+	it('gives a link that opens a new tab noopener noreferrer', () => {
+		const { container } = renderUI(
+			<Polymorphic as="span" href="/path" target="_blank" data-slot="tag" className="">
+				Link
+			</Polymorphic>,
+		)
+
+		expect(bySlot(container, 'tag')).toHaveAttribute('rel', 'noopener noreferrer')
+	})
+
+	it('keeps a caller rel', () => {
+		const { container } = renderUI(
+			<Polymorphic
+				as="span"
+				href="/path"
+				target="_blank"
+				rel="external"
+				data-slot="tag"
+				className=""
+			>
+				Link
+			</Polymorphic>,
+		)
+
+		expect(bySlot(container, 'tag')).toHaveAttribute('rel', 'external')
+	})
+})
+
 describe('PolymorphicStatic', () => {
 	it('keeps the ref of the render element when the call site passes none', () => {
 		const ref = createRef<HTMLAnchorElement>()

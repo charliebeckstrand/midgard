@@ -95,6 +95,8 @@ const STATIC_STRUCTURE_FILES = [
 const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/polymorphic-static.tsx',
 	'polymorphic/fallback.tsx',
+	'polymorphic/merge-render-props.ts',
+	'link/link-rel.ts',
 ] as const
 
 const componentsDir = join(srcDir, 'components')
