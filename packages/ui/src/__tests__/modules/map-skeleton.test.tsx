@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { MapSkeleton } from '../../modules/map'
 import { ALBERS_USA_ASPECT } from '../../modules/map/engine/map-constants'
+import { MAP_OUTLINE_DATA } from '../../modules/map/engine/map-outline-data'
 import { bySlot, renderUI } from '../helpers'
 
 describe('MapSkeleton', () => {
@@ -55,5 +56,49 @@ describe('MapSkeleton', () => {
 		expect(bySlot(fill.container, 'aspect-ratio')).toBeNull()
 
 		expect(bySlot(fill.container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('draws the outline of a fixed-subject projection in place of the rectangle', () => {
+		// `albers-usa` is the United States, so its outline is on by default.
+		const composite = renderUI(<MapSkeleton projection="albers-usa" />)
+
+		const outline = composite.container.querySelector('svg[data-slot=placeholder]')
+
+		expect(outline?.getAttribute('viewBox')).toBe(
+			`0 0 ${MAP_OUTLINE_DATA['albers-usa'].width} ${MAP_OUTLINE_DATA['albers-usa'].height}`,
+		)
+
+		expect(outline?.getAttribute('aria-hidden')).toBe('true')
+
+		expect(composite.container.querySelector('div[data-slot=placeholder]')).toBeNull()
+
+		// The aspect box still reserves the frame around the outline.
+		expect(bySlot(composite.container, 'aspect-ratio')).toBeInTheDocument()
+
+		const off = renderUI(<MapSkeleton projection="albers-usa" outline={false} />)
+
+		expect(off.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
+
+		expect(bySlot(off.container, 'placeholder')).toBeInTheDocument()
+	})
+
+	it('draws the world outline only when asked, since a world projection frames any geography', () => {
+		const plain = renderUI(<MapSkeleton projection="mercator" />)
+
+		expect(plain.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
+
+		const world = renderUI(<MapSkeleton projection="mercator" outline aspectRatio={false} />)
+
+		const outline = world.container.querySelector('svg[data-slot=placeholder]')
+
+		expect(outline?.querySelector('path')?.getAttribute('d')).toBe(MAP_OUTLINE_DATA.mercator.d)
+
+		// A fill skeleton has no aspect box; the outline takes the container itself.
+		expect(bySlot(world.container, 'aspect-ratio')).toBeNull()
+
+		// No projection has no outline to draw.
+		const none = renderUI(<MapSkeleton outline />)
+
+		expect(none.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
 	})
 })

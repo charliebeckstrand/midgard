@@ -13,7 +13,7 @@ import { content } from './content'
 import { glass } from './glass'
 import { grayscale } from './grayscale'
 import { popover } from './popover'
-import { skeleton } from './skeleton'
+import { skeleton, skeletonShape } from './skeleton'
 
 export const omote = {
 	bg,
@@ -22,6 +22,7 @@ export const omote = {
 	backdrop,
 	content,
 	skeleton,
+	skeletonShape,
 	blur,
 	grayscale,
 } as const

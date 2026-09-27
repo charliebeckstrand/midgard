@@ -2,6 +2,7 @@ import { AspectRatio } from '../../components/aspect-ratio'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
+import { type MapOutline, mapOutline } from './engine/map-outline'
 import { mapFrameSizing, projectionFallbackAspect } from './engine/map-projection/aspect'
 import type { MapAspectRatio, MapProjection } from './engine/types'
 
@@ -31,6 +32,25 @@ export type MapSkeletonProps = {
 	 * they reserve nothing and fall through to the generic default.
 	 */
 	projection?: MapProjection
+	/**
+	 * Draws the outline of the projection's geography in place of the rectangle,
+	 * so the skeleton reads as the map that comes. `'albers-usa'` draws the United
+	 * States. `'mercator'` and `'equal-earth'` draw the land of the world without
+	 * Antarctica. The outline is built into the package, so it shows on the first
+	 * paint, before any atlas loads.
+	 *
+	 * The outline scales to meet the box and centers in it, as the plat fits its
+	 * geography. A plat that draws the same geography under the same projection
+	 * therefore draws it where the outline was. A plat that draws other
+	 * geography, such as one country under `'mercator'`, does not match. Leave
+	 * the outline off for it.
+	 *
+	 * A projection with no outline, such as a passed d3 instance, draws the
+	 * rectangle.
+	 * @defaultValue `true` for `'albers-usa'`, whose subject is fixed; `false`
+	 * for the world projections
+	 */
+	outline?: boolean
 	className?: string
 }
 
@@ -40,9 +60,10 @@ export type MapSkeletonProps = {
  * map in causes no layout shift. Compose it in loading trees that stand in for a
  * plat, such as a Suspense fallback while geography data fetches. Pass the
  * plat's own `aspectRatio` when it fixes one, and its `projection` otherwise,
- * so the two reserve the same box.
+ * so the two reserve the same box. Where the projection has an outline and
+ * `outline` is on, the skeleton draws that outline in place of the rectangle.
  */
-export function MapSkeleton({ aspectRatio, projection, className }: MapSkeletonProps) {
+export function MapSkeleton({ aspectRatio, projection, outline, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
 	// `use-map-shape` resolves the frame through, so the order — an explicit
 	// the explicit aspect, then what the projection knows before its atlas lands, then the
@@ -58,11 +79,44 @@ export function MapSkeleton({ aspectRatio, projection, className }: MapSkeletonP
 		projectionFallbackAspect(projection),
 	)
 
-	if (sizing.mode !== 'aspect') return <Placeholder className={cn(...k.skeleton.base, className)} />
+	// Resolved here, not as a parameter default: the React Compiler skips a
+	// default that reads another parameter.
+	const shape = (outline ?? projection === 'albers-usa') ? mapOutline(projection) : null
+
+	if (sizing.mode !== 'aspect') {
+		return shape === null ? (
+			<Placeholder className={cn(...k.skeleton.base, className)} />
+		) : (
+			<MapSkeletonOutline outline={shape} className={className} />
+		)
+	}
 
 	return (
 		<AspectRatio ratio={sizing.ratio} className={className}>
-			<Placeholder className={cn(...k.skeleton.base)} />
+			{shape === null ? (
+				<Placeholder className={cn(...k.skeleton.base)} />
+			) : (
+				<MapSkeletonOutline outline={shape} />
+			)}
 		</AspectRatio>
+	)
+}
+
+/**
+ * The outline, drawn as one pulsing shape. `xMidYMid meet` scales it to meet
+ * the box and centers the remainder, which is the rule the plat's measured fit
+ * follows.
+ */
+function MapSkeletonOutline({ outline, className }: { outline: MapOutline; className?: string }) {
+	return (
+		<svg
+			data-slot="placeholder"
+			aria-hidden="true"
+			viewBox={`0 0 ${outline.width} ${outline.height}`}
+			preserveAspectRatio="xMidYMid meet"
+			className={cn(...k.skeleton.outline, className)}
+		>
+			<path d={outline.d} />
+		</svg>
 	)
 }
