@@ -1,10 +1,8 @@
 'use client'
 
-import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'react'
 
 import { validationAttrs } from '../../core'
-import { useControllable, useFloatingUI } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
@@ -27,7 +25,9 @@ import {
 	togglePresetValue,
 } from './date-picker-relative-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
+import { useDatePickerFloating } from './use-date-picker-floating'
 import type { FooterButton } from './use-date-picker-keyboard'
+import { useDatePickerOpen } from './use-date-picker-open'
 
 /** The two surfaces of the relative popover: the preset list or the custom Start/End inputs. @internal */
 export type DatePickerRelativeMode = 'list' | 'custom'
@@ -100,23 +100,12 @@ export function useDatePickerRelativeState({
 		onValueChange,
 	})
 
-	const [open = false, setOpenInner] = useControllable<boolean>({
-		value: openProp,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	const { open, setOpen, triggerRef } = useDatePickerOpen({
+		open: openProp,
+		defaultOpen,
+		onOpenChange: onOpenChangeProp,
+		readOnly: resolvedReadOnly,
 	})
-
-	// readOnly keeps the trigger focusable and the value submitted but blocks
-	// every open path; closing stays allowed so an externally-opened calendar
-	// can still dismiss (matching Listbox).
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (resolvedReadOnly && next) return
-
-			setOpenInner(next)
-		},
-		[resolvedReadOnly, setOpenInner],
-	)
 
 	const [mode, setMode] = useState<DatePickerRelativeMode>('list')
 
@@ -128,8 +117,6 @@ export function useDatePickerRelativeState({
 	// the chip, the row highlight, and toggle-off aligned with the actual choice. A
 	// hydrated value (shared link) carries no pick, so it still range-matches.
 	const [pickedIds, setPickedIds] = useState<Set<string>>(() => new Set())
-
-	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const footerRef = useRef<HTMLDivElement>(null)
 
@@ -235,38 +222,15 @@ export function useDatePickerRelativeState({
 		[closePicker, openPicker],
 	)
 
-	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
-		placement,
-		open,
-		onOpenChange: handleOpenChange,
-		offset: 8,
-		role: 'dialog',
-		returnFocusTo: triggerRef,
-	})
-
-	// Public open-change entry: routes through floating-ui's context so a
-	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
-	// focus return.
-	//
-	// The dependency is the handler, not the context that holds it. The engine
-	// rebuilds `context` on every reposition, while `onOpenChange` keeps one
-	// identity for the mount (see {@link useFloatingOutsidePress}), so naming
-	// the whole object would re-identify this callback as the panel moves.
-	const onOpenChange = useCallback(
-		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
-			context.onOpenChange(nextOpen, event, reason),
-		[context.onOpenChange],
-	)
-
-	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`.
-	const setReference = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node
-
-			refs.setReference(node)
-		},
-		[refs],
-	)
+	const {
+		refs,
+		floatingStyles,
+		context,
+		getReferenceProps,
+		getFloatingProps,
+		onOpenChange,
+		setReference,
+	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
 
 	// --- Custom range (Start/End inputs) ---
 

@@ -11,14 +11,8 @@
 	"components/date-picker/use-date-picker-controlled.ts": {
 		"useDatePickerControlled": "Refs"
 	},
-	"components/date-picker/use-date-picker-range-state.ts": {
-		"useDatePickerRangeState": "PreserveManualMemo"
-	},
 	"components/date-picker/use-date-picker-relative-state.ts": {
 		"useDatePickerRelativeState": "Refs"
-	},
-	"components/date-picker/use-date-picker-state.ts": {
-		"useDatePickerState": "PreserveManualMemo"
 	},
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
