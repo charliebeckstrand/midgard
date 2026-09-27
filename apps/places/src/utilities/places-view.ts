@@ -250,6 +250,15 @@ export function drillInto(view: PlaceView, region: string): PlaceView {
 }
 
 /**
+ * A string that names a view, for a React key. Two views with the same fields
+ * give the same key. The app keys each map on it, so a map that it rendered for
+ * a view stays mounted when the reader goes to that view.
+ */
+export function viewKey(view: PlaceView): string {
+	return JSON.stringify([view.country, view.state])
+}
+
+/**
  * What the frame draws, for the readout that names it: the one region a drill
  * cut to, the United States whole, or `null` for the world.
  *
