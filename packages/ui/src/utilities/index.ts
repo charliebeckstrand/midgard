@@ -26,6 +26,7 @@ export {
 export { digitsOnly } from './digits-only'
 export { isTopDismissLayer, nextDismissOrder, registerDismissLayer } from './dismiss-layers'
 export { subscribeDocumentEvent } from './document-listener'
+export { createEmitter, type Emitter } from './emitter'
 export { FOCUSABLE_SELECTOR } from './focusable-selector'
 export { forceStyleFlush } from './force-style-flush'
 export { type FormatSpec, resolveFormat } from './format'

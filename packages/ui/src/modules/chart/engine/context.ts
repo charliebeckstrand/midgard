@@ -2,6 +2,7 @@
 
 import { useMemo, useSyncExternalStore } from 'react'
 import { createContext } from '../../../core'
+import { createEmitter } from '../../../utilities'
 import type { ChartTier } from './chart-tier'
 
 /** The pointer's position in the frame's coordinate space. @internal */
@@ -73,7 +74,7 @@ function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 export function createChartHoverStore(): ChartHoverStore {
 	let current: ChartHoverState = { index: null, point: null, onData: false }
 
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	return {
 		get: () => current,
@@ -84,15 +85,9 @@ export function createChartHoverStore(): ChartHoverStore {
 
 			current = { index, point, onData }
 
-			for (const listener of [...listeners]) listener()
+			emit()
 		},
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe,
 	}
 }
 

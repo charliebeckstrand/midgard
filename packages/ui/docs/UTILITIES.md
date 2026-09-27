@@ -72,6 +72,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it. Returns focus to the input. |
+| `createEmitter` | A listener set with no payload: `subscribe` returns the unsubscribe, and `emit` calls a copy of the set. The chart and map hover stores, the grid and dashboard stores, the appearance choices, and the overlay signal use it. |
+| `Emitter` *(type)* | The `{ subscribe, emit }` pair that `createEmitter` returns. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |

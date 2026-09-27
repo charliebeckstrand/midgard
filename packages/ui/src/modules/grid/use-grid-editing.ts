@@ -16,6 +16,7 @@ import {
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
+import { createEmitter } from '../../utilities'
 import {
 	describeCommit,
 	describeDiscard,
@@ -237,16 +238,10 @@ function createActiveEditStore(): GridActiveEditStore & {
 
 	let toldRows: ReadonlySet<string | number> = EMPTY_SET
 
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	return {
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe,
 		get: () => coord,
 		rows: () => rows,
 		seat: (next, nextRows) => {
@@ -261,7 +256,7 @@ function createActiveEditStore(): GridActiveEditStore & {
 
 			told = next
 
-			for (const listener of listeners) listener()
+			emit()
 		},
 		setRows: (next) => {
 			rows = next
@@ -270,11 +265,9 @@ function createActiveEditStore(): GridActiveEditStore & {
 
 			toldRows = next
 
-			for (const listener of listeners) listener()
+			emit()
 		},
-		notify: () => {
-			for (const listener of listeners) listener()
-		},
+		notify: emit,
 	}
 }
 
