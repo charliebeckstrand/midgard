@@ -3,7 +3,7 @@
 import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
+import { Density } from '../../primitives/density'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
@@ -64,9 +64,9 @@ export function NavItem({
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				<span data-slot="nav-item-prefix" className={cn(k.item.prefix)}>
-					{/* The item chrome is fixed at md, so slot controls step to sm. */}
-					<AffixContext value={affixStepDown('md')}>{prefix}</AffixContext>
+				// The item chrome is fixed at md, so each slot is an sm scope.
+				<span data-slot="nav-item-prefix" data-density="sm" className={cn(k.item.prefix)}>
+					<Density step="sm">{prefix}</Density>
 				</span>
 			)}
 			<HeadlessProvider>
@@ -88,8 +88,8 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" className={cn(k.item.suffix)}>
-					<AffixContext value={affixStepDown('md')}>{suffix}</AffixContext>
+				<span data-slot="nav-item-suffix" data-density="sm" className={cn(k.item.suffix)}>
+					<Density step="sm">{suffix}</Density>
 				</span>
 			)}
 			{isCurrent && (

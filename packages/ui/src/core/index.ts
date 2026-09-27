@@ -9,7 +9,13 @@ export {
 export { createContext } from './create-context'
 export { createSlot } from './create-slot'
 export { dataAttr } from './data-attr'
-export { type AmbientStep, type DensityStep, densitySteps, toAmbientStep } from './density'
+export {
+	type AmbientStep,
+	type DensityStep,
+	densitySteps,
+	stepDown,
+	toAmbientStep,
+} from './density'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'
 export { type Severity, type ValidationAttrs, validationAttrs } from './validation-attrs'

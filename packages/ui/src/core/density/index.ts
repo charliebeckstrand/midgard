@@ -1,1 +1,7 @@
-export { type AmbientStep, type DensityStep, densitySteps, toAmbientStep } from './steps'
+export {
+	type AmbientStep,
+	type DensityStep,
+	densitySteps,
+	stepDown,
+	toAmbientStep,
+} from './steps'

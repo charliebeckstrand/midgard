@@ -1,9 +1,9 @@
 'use client'
 
 import { Children, isValidElement, type ReactNode, type Ref, useEffect } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, dataAttr, stepDown } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
+import { Density } from '../../primitives/density'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import type { Step } from '../../recipes'
@@ -155,8 +155,12 @@ export function SidebarItem({
 			{...tapHandlers}
 		>
 			{prefix != null && (
-				<span data-slot="sidebar-item-prefix" className={cn(k.item.prefix({ size: itemSize }))}>
-					<AffixContext value={affixStepDown(itemSize)}>{prefix}</AffixContext>
+				<span
+					data-slot="sidebar-item-prefix"
+					data-density={stepDown(itemSize)}
+					className={cn(k.item.prefix({ size: itemSize }))}
+				>
+					<Density step={stepDown(itemSize)}>{prefix}</Density>
 				</span>
 			)}
 			<HeadlessProvider>
@@ -172,8 +176,12 @@ export function SidebarItem({
 				)}
 			</HeadlessProvider>
 			{resolvedSuffix != null && (
-				<span data-slot="sidebar-item-suffix" className={cn(k.item.suffix({ size: itemSize }))}>
-					<AffixContext value={affixStepDown(itemSize)}>{resolvedSuffix}</AffixContext>
+				<span
+					data-slot="sidebar-item-suffix"
+					data-density={stepDown(itemSize)}
+					className={cn(k.item.suffix({ size: itemSize }))}
+				>
+					<Density step={stepDown(itemSize)}>{resolvedSuffix}</Density>
 				</span>
 			)}
 			{isCurrent && (

@@ -2,8 +2,8 @@
 
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
-import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sparkline'
@@ -252,9 +252,9 @@ export function Sparkline({
 	className,
 	...labelProps
 }: SparklineProps) {
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
-	const metrics = SPARKLINE_METRICS[resolvedSize as Step] ?? SPARKLINE_METRICS.md
+	const metrics = SPARKLINE_METRICS[resolvedSize]
 
 	const boxWidth = width ?? metrics.width
 

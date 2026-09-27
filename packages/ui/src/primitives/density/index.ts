@@ -3,5 +3,4 @@ export {
 	type DensityProps,
 	useDensityNullable,
 	useDensityStep,
-	useResolvedSize,
 } from './density'

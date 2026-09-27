@@ -6,9 +6,8 @@
  * with its own outer chrome, the affix padding shrinks to a per-chip
  * constant at every density step. That element is a non-bare `<Button>` or
  * a `<Badge>`, matched on `data-slot`. The constant is `1.5` for a
- * `<Button>`, and `2` for a `<Badge>`. `affixStepDown`
- * (`primitives/affix/affix.ts`) reduces the slot's child one notch per
- * density step. Both `density.px` and the stepped-down child padding grow
+ * `<Button>`, and `2` for a `<Badge>`. The slot scope
+ * (`stepDown`) reduces the slot's child one step per density step. Both `density.px` and the stepped-down child padding grow
  * 0.5 per notch, and the per-step deltas cancel. That holds each constant
  * at every step. The two differ because a `<Badge>` sits one notch below a
  * same-size `<Button>` on the shared `px` scale. Its stepped-down padding
@@ -39,16 +38,12 @@
  * (`<Badge>` emits only `data-slot=badge`) and matches the button whether
  * it renders as `<button>` or, with `href`, as `<a>`.
  *
- * Slot icons and spinners size here, not in the leaf. Each step projects
- * the stepped-down `shaku.icon` row onto direct `data-slot=icon` children.
- * That is sm → xs, md → sm, lg → md: the one-notch reduction
- * `affixStepDown` broadcasts. It also projects the matching `kata/loading`
- * spinner size onto `data-slot=loading-spinner` children. `<Icon>` and
- * `<LoadingSpinner>` are static (server-renderable) leaves and read no
- * context. The projection keeps a slot indicator in lockstep with the
- * control, and it owns the slot. An explicit `size` on a slot icon or
- * spinner does not override it. Client slot children (`<Button>`) read the
- * stepped-down size from AffixContext.
+ * Each slot is a density scope one step below the control (`stepDown` in
+ * `core/density`): sm → xs, md → sm, lg → md. An `<Icon>`, a
+ * `<LoadingSpinner>`, or a `<Badge>` in the slot takes that step through its
+ * stepped classes. A client child (`<Button>`) reads it from the density
+ * context. So the slot projects no size. An explicit `size` on a slot child
+ * wins, as it does elsewhere.
  *
  * `autofill` is the input-side counterpart. The browser's autofill
  * highlight paints the inner input's full box, which sits flush against
@@ -66,32 +61,22 @@
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
-import { shaku } from '../shaku'
-
-const { icon } = shaku
-
 export const affix = {
 	prefix: {
 		sm: [
 			'ps-ring-2.5',
-			icon.xs,
-			'*:data-[slot=loading-spinner]:size-3',
 			'has-[[data-slot=badge]]:ps-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-1.75',
 		],
 		md: [
 			'ps-ring-3',
-			icon.sm,
-			'*:data-[slot=loading-spinner]:size-4',
 			'has-[[data-slot=badge]]:ps-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-2',
 		],
 		lg: [
 			'ps-ring-3.5',
-			icon.md,
-			'*:data-[slot=loading-spinner]:size-5',
 			'has-[[data-slot=badge]]:ps-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-2.25',
@@ -100,24 +85,18 @@ export const affix = {
 	suffix: {
 		sm: [
 			'pe-ring-2.5',
-			icon.xs,
-			'*:data-[slot=loading-spinner]:size-3',
 			'has-[[data-slot=badge]]:pe-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-1.75',
 		],
 		md: [
 			'pe-ring-3',
-			icon.sm,
-			'*:data-[slot=loading-spinner]:size-4',
 			'has-[[data-slot=badge]]:pe-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-2',
 		],
 		lg: [
 			'pe-ring-3.5',
-			icon.md,
-			'*:data-[slot=loading-spinner]:size-5',
 			'has-[[data-slot=badge]]:pe-ring-2',
 			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
 			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-2.25',

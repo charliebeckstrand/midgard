@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { toAmbientStep } from '../../core'
+import { densitySteps, stepDown, toAmbientStep } from '../../core'
 import { Density, useDensityNullable, useDensityStep } from '../../primitives/density'
 
 describe('useDensityStep', () => {
@@ -62,5 +62,11 @@ describe('toAmbientStep', () => {
 			'lg',
 			'lg',
 		])
+	})
+})
+
+describe('stepDown', () => {
+	it('takes each step one step down, and keeps xs', () => {
+		expect(densitySteps.map((step) => stepDown(step))).toEqual(['xs', 'xs', 'sm', 'md', 'lg'])
 	})
 })

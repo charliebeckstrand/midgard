@@ -27,3 +27,17 @@ const ambient = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const sa
 export function toAmbientStep(step: DensityStep): AmbientStep {
 	return ambient[step]
 }
+
+const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const satisfies Record<
+	DensityStep,
+	DensityStep
+>
+
+/**
+ * The step below `step`, and `xs` for `xs`. A control slot, such as an Input
+ * prefix, opens a scope at the step below its host. Thus a
+ * chip or an icon in the slot is one step smaller than the host.
+ */
+export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
+	return below[step]
+}

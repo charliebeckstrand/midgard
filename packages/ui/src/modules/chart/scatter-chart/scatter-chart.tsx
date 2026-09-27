@@ -1,8 +1,9 @@
 'use client'
 
 import { useMemo } from 'react'
+import { toAmbientStep } from '../../../core'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
-import { useResolvedSize } from '../../../primitives/density'
+import { useDensityStep } from '../../../primitives/density'
 import type { Step } from '../../../recipes'
 import type { AccessibleName } from '../../../types'
 import { once } from '../../../utilities'
@@ -653,9 +654,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
 
-	const resolvedSize = useResolvedSize(size)
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
-	const metrics = CHART_METRICS[resolvedSize as Step] ?? CHART_METRICS.md
+	const metrics = CHART_METRICS[resolvedSize]
 
 	// The legend shares the aspect box, so a ratio describes the whole chart: with
 	// a legend a live ratio goes to the figure wrapper and the plot measures the

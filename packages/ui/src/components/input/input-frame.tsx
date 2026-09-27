@@ -1,8 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn } from '../../core'
-import { AffixContext, affixStepDown } from '../../primitives/affix'
+import { cn, stepDown } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { Density } from '../../primitives/density'
 import type { Step } from '../../recipes'
@@ -13,7 +12,7 @@ type InputFrameProps = {
 	prefix: ReactNode
 	suffix: ReactNode
 	variant: InputVariants['variant']
-	/** Resolved step: the prefix / suffix slot padding and the stepped-down affix broadcast. */
+	/** Resolved step: the prefix / suffix slot padding. Each slot is a scope one step below it. */
 	size: Step
 	/** Raw `size` prop, opening a density scope when set. */
 	scope?: Step
@@ -45,29 +44,29 @@ export function InputFrame({
 
 	const hasAffix = hasPrefix || hasSuffix
 
+	const slotStep = stepDown(size)
+
 	return (
 		<Density step={scope}>
-			<AffixContext value={affixStepDown(size)}>
-				<ControlFrame
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
-				>
-					{hasPrefix && (
-						<span data-slot="prefix" className={cn(k.affix, k.prefix[size])}>
-							{prefix}
-						</span>
-					)}
+			<ControlFrame
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
+			>
+				{hasPrefix && (
+					<span data-slot="prefix" data-density={slotStep} className={cn(k.affix, k.prefix[size])}>
+						<Density step={slotStep}>{prefix}</Density>
+					</span>
+				)}
 
-					{inputEl}
+				{inputEl}
 
-					{hasSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[size])}>
-							{suffix}
-						</span>
-					)}
-				</ControlFrame>
-			</AffixContext>
+				{hasSuffix && (
+					<span data-slot="suffix" data-density={slotStep} className={cn(k.affix, k.suffix[size])}>
+						<Density step={slotStep}>{suffix}</Density>
+					</span>
+				)}
+			</ControlFrame>
 		</Density>
 	)
 }

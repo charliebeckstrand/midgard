@@ -2,10 +2,9 @@
 
 import { X } from 'lucide-react'
 import { cn } from '../../core'
-import { useResolvedSize } from '../../primitives/density'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
-import { Badge, type BadgeProps } from '../badge'
+import { Badge } from '../badge'
 import { Button } from '../button'
 import { Icon } from '../icon'
 
@@ -29,26 +28,20 @@ type TagInputBadgeProps = {
  * Single removable tag chip rendered in the {@link TagInput} prefix.
  *
  * @remarks
- * Resolves the host {@link Input}'s stepped-down affix size so the chip sits one
- * notch tighter than the control. The chip is keyboard-focusable and removes on
+ * The chip sits in the prefix scope of the host {@link Input}, one step below
+ * the control, so it takes that step with no `size`. The chip is keyboard-focusable and removes on
  * Backspace/Delete; its remove button is held out of the tab order (`tabIndex=-1`)
  * to avoid a redundant stop.
  *
  * @internal
  */
 export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadgeProps) {
-	// Badge is a static leaf and reads no context; resolve the host Input's
-	// stepped-down affix broadcast (sm → xs, md → sm, lg → md) here and pass
-	// it down, keeping the chip one notch tighter than the control.
-	const size = useResolvedSize<NonNullable<BadgeProps['size']>>()
-
 	return (
 		<Badge
 			role="listitem"
 			variant="outline"
 			radius="full"
 			color={color}
-			size={size}
 			className={cn(k.badge)}
 			suffix={
 				!disabled && (

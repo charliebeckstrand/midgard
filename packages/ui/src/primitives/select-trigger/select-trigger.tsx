@@ -1,12 +1,12 @@
 'use client'
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, dataAttr, stepDown } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { AffixContext, affixStepDown } from '../affix'
 import { ControlFrame } from '../control'
+import { Density } from '../density'
 
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
@@ -40,9 +40,9 @@ export type SelectTriggerProps = GroupStampProps & {
  * A presentational primitive; it owns no state.
  *
  * @remarks
- * Wraps its subtree in `AffixContext` set to `affixStepDown(size)`, so
- * affix-aware descendants (the chevron and prefix/suffix icons) render one
- * notch tighter than the trigger. Client component (`'use client'`).
+ * Each prefix and suffix slot is a density scope one step below `size`
+ * (`stepDown`). Thus the chevron and the other slot content render one step
+ * smaller than the trigger. Client component (`'use client'`).
  */
 export function SelectTrigger({
 	open,
@@ -60,33 +60,38 @@ export function SelectTrigger({
 	'data-slot': slot = 'control',
 	children,
 }: SelectTriggerProps) {
+	const slotStep = stepDown(size)
+
 	return (
-		<AffixContext value={affixStepDown(size)}>
-			<div data-slot={slot} ref={setReference} className={cn(className)} {...getReferenceProps()}>
-				<ControlFrame
-					data-open={dataAttr(open)}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && k.surface.default)}
-					{...frameProps}
-				>
-					{prefix && (
-						<span data-slot="prefix" className={cn(k.affix.base, k.affix.prefix[size])}>
-							{prefix}
-						</span>
-					)}
-					{children}
-					{suffix !== undefined && (
-						<span
-							data-slot="suffix"
-							className={cn('peer/suffix', k.affix.base, k.affix.suffix[size])}
-							{...suffixProps}
-						>
-							{suffix}
-						</span>
-					)}
-				</ControlFrame>
-			</div>
-		</AffixContext>
+		<div data-slot={slot} ref={setReference} className={cn(className)} {...getReferenceProps()}>
+			<ControlFrame
+				data-open={dataAttr(open)}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				className={cn(!glass && k.surface.default)}
+				{...frameProps}
+			>
+				{prefix && (
+					<span
+						data-slot="prefix"
+						data-density={slotStep}
+						className={cn(k.affix.base, k.affix.prefix[size])}
+					>
+						<Density step={slotStep}>{prefix}</Density>
+					</span>
+				)}
+				{children}
+				{suffix !== undefined && (
+					<span
+						data-slot="suffix"
+						data-density={slotStep}
+						className={cn('peer/suffix', k.affix.base, k.affix.suffix[size])}
+						{...suffixProps}
+					>
+						<Density step={slotStep}>{suffix}</Density>
+					</span>
+				)}
+			</ControlFrame>
+		</div>
 	)
 }

@@ -13,7 +13,7 @@ import { findSteps, findStop } from '../helpers/class-stops'
 // remove button's `bare.p` so the label sits symmetric with the glyph
 // (rationale lives there). The chip is a `radius: 'full'` pill, so its `px` is
 // the `radius: 'full'` compound ramp, one stop above the base ramp. This pins
-// that sum against the live recipes across the sizes a chip takes (xs/sm/md).
+// that sum against the live recipes across the sizes a chip takes (xs/sm/md) and lg.
 // If the badge px, the pill bump, or the bare compound drifts, the assertion
 // fails with the computed pad and names the size.
 //
@@ -50,7 +50,7 @@ function findPillPx(size: DensityStep): number {
 	return Number(findSteps(pill, 'density-px-ring-')[size])
 }
 
-const CHIP_SIZES = ['xs', 'sm', 'md'] as const satisfies readonly Ma[]
+const CHIP_SIZES = ['xs', 'sm', 'md', 'lg'] as const satisfies readonly Ma[]
 
 /** The fixed sizes of a `QueryChips` chip and of its remove button, in `query-chips.tsx`. */
 const QUERY_CHIP = { chip: 'sm', button: 'xs' } as const satisfies Record<string, Ma>
@@ -81,7 +81,7 @@ describe('tag-input chip leading-pad symmetry', () => {
 		const expected = pillPx + bareP
 
 		it(`${size}: chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-			const actual = findStop(tagInput.badge, `data-[has-suffix]:data-[density=${size}]:ps-ring-`)
+			const actual = Number(findSteps(tagInput.badge, 'data-[has-suffix]:density-ps-ring-')[size])
 
 			expect(actual).toBe(expected)
 		})
