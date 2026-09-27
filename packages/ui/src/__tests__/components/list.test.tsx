@@ -1,6 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
 import { List, ListDescription, ListItem, ListLabel } from '../../components/list'
-import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import { allBySlot, bySlot, expectAnnouncement, fireEvent, renderUI, screen } from '../helpers'
 
@@ -767,16 +766,6 @@ describe('ListItem density inheritance', () => {
 		expect(firstItemClass(<DensityProvider density="compact">{list()}</DensityProvider>)).toMatch(
 			/(^|\s)p-2(\s|$)/,
 		)
-	})
-
-	it('tracks the density axis under a two-axis Density (size does not affect padding)', () => {
-		const cls = firstItemClass(
-			<Density space="lg" size="sm">
-				{list()}
-			</Density>,
-		)
-
-		expect(cls).toMatch(/(^|\s)p-4(\s|$)/)
 	})
 
 	it('keeps the plain variant on its tighter px/py ratio, dropping the shadowed p-*', () => {

@@ -15,7 +15,6 @@ import {
 } from '../../components/menu'
 import { MenuCappedContext, useMenuContext } from '../../components/menu/context'
 import { MenuViewport } from '../../components/menu/menu-viewport'
-import { Density } from '../../primitives/density'
 import { DensityProvider } from '../../providers/density'
 import {
 	bySlot,
@@ -871,8 +870,8 @@ describe('MenuViewport', () => {
 	/**
 	 * The viewport on its own, with an overflowing extent written onto it.
 	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
-	 * the context the flag travels on, and `useDensity` resolves to the same `md`
-	 * preset a default menu gives it.
+	 * the context the flag travels on, and `useDensityStep` resolves to the same
+	 * `md` step a default menu gives it.
 	 */
 	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>) => {
 		const { container, unmount } = renderUI(
@@ -1158,24 +1157,6 @@ describe('MenuItem density inheritance', () => {
 		expect(cls).toContain('px-2.5')
 
 		expect(cls).toContain('text-sm')
-	})
-
-	it('splits tight padding (density) from large text (size) under a two-axis Density', () => {
-		const { container } = renderUI(
-			<Density space="sm" size="lg">
-				<Menu defaultOpen>
-					<MenuContent>
-						<MenuItem>Item</MenuItem>
-					</MenuContent>
-				</Menu>
-			</Density>,
-		)
-
-		const cls = bySlot(container, 'menu-item')?.className ?? ''
-
-		expect(cls).toContain('px-2.5')
-
-		expect(cls).toContain('text-lg')
 	})
 })
 

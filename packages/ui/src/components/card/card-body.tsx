@@ -5,9 +5,9 @@ import { createSlot } from '../../core'
 export type CardBodyProps = ComponentProps<'div'>
 
 /**
- * Main content region of a {@link Card}. Carries no padding of its own; the
- * Card frame pads every edge, and projects the inter-section gaps onto a
- * neighboring header / footer.
+ * Main content region of a {@link Card}. Carries no padding of its own. The
+ * Card frame pads every edge. The header and footer pad the edges that they
+ * share with the body.
  *
  * @remarks
  * Static leaf: renders in React Server Components.

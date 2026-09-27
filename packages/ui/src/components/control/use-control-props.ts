@@ -43,7 +43,7 @@ export type ControlPropsResult = {
  * context's.
  *
  * Does **not** resolve size; every field reads the Density cascade directly via
- * `useControlSize(size)`/`useDensity()`, never off the Control context. The
+ * `useDensityStep(size)`, never off the Control context. The
  * context's own `size` only seeds the `<Density>` scope a sized `<Control>`
  * opens (plus nested-Control inheritance).
  *

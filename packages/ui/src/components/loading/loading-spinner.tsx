@@ -21,10 +21,12 @@ const SPINNER_SVG = (
 
 /**
  * Indeterminate loading indicator rendered as a live `<output>` with an
- * `sr-only` `label`. Static leaf: renders in React Server Components. `size`
- * is explicit (recipe default `md`). Inside a control affix slot, a
- * `<Button>`, a `<Badge>`, or a `<SidebarItem>`, the projection of the parent
- * sets the size.
+ * `sr-only` `label`. Static leaf: renders in React Server Components. Without
+ * `size`, the spinner takes the step of the nearest density scope, and `md`
+ * outside one. An explicit `size` makes the spinner its own scope. Inside a
+ * control affix slot, a `<Button>`, or a `<SidebarItem>`, the projection of
+ * the parent sets the size. Inside a `<Badge>`, the spinner takes the step of
+ * the badge, because both follow the same scope.
  */
 export function LoadingSpinner({
 	size,
@@ -36,7 +38,8 @@ export function LoadingSpinner({
 	return (
 		<output
 			data-slot="loading-spinner"
-			className={cn(k.spinner({ size, color }), className)}
+			data-density={size}
+			className={cn(k.spinner({ color }), className)}
 			{...props}
 		>
 			{SPINNER_SVG}

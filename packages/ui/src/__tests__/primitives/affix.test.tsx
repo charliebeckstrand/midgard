@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { AffixContext, affixStepDown, useAffix } from '../../primitives/affix'
-import { Density, densityPresets, useResolvedSize } from '../../primitives/density'
+import { Density, useResolvedSize } from '../../primitives/density'
 
 describe('useAffix', () => {
 	it('returns null outside any AffixContext', () => {
@@ -48,7 +48,7 @@ describe('useResolvedSize', () => {
 
 	it('falls through to Density size when no Affix', () => {
 		const { result } = renderHook(() => useResolvedSize(), {
-			wrapper: ({ children }) => <Density size="lg">{children}</Density>,
+			wrapper: ({ children }) => <Density step="lg">{children}</Density>,
 		})
 
 		expect(result.current).toBe('lg')
@@ -57,13 +57,13 @@ describe('useResolvedSize', () => {
 	it('returns md when nothing is in scope', () => {
 		const { result } = renderHook(() => useResolvedSize())
 
-		expect(result.current).toBe(densityPresets.md.size)
+		expect(result.current).toBe('md')
 	})
 
 	it('Affix wins over an enclosing Density', () => {
 		const { result } = renderHook(() => useResolvedSize(), {
 			wrapper: ({ children }) => (
-				<Density size="lg">
+				<Density step="lg">
 					<AffixContext value="xs">{children}</AffixContext>
 				</Density>
 			),

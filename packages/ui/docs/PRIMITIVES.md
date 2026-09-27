@@ -34,7 +34,7 @@ import { TouchTarget } from 'ui/primitives/touch-target'
 
 | Primitive | Summary | Key exports |
 |---|---|---|
-| `density` | Dual-axis (space/size) density token broadcast by `Density`; resolvers cascade explicit → Affix → ambient for leaf and control-host sizing. `DensityScope` wraps a component's children in `<Density scale>` only when its `size` prop is set. | `Density`, `DensityScope`, `useDensity`, `useDensityNullable`, `useResolvedSize`, `useControlSize`, `densityPresets` |
+| `density` | The density context: one `DensityStep`, the same value as the `data-density` attribute of the nearest scope. `Density` opens a scope; `useDensityStep` resolves explicit → scope → `md`; `useResolvedSize` adds the Affix step for `Ma`-scale leaves. The `density` prop of `PolymorphicStatic` and Box opens both halves of a scope. | `Density`, `useDensityStep`, `useDensityNullable`, `useResolvedSize` |
 | `affix` | Narrow `Ma`-typed slot cascade letting control affix slots (Input prefix/suffix, chevron) broadcast a stepped-down size below the Density `Step` floor. | `AffixContext`, `useAffix`, `affixStepDown` |
 | `control` | Outer chrome wrapper supplying the shared focus ring, border, and disabled state for form inputs, sized via Density. | `ControlFrame` |
 | `mount` | The shared hold behind every inactive panel. `useMountHold` resolves a `Mount` policy (`always`/`lazy`/`active`) into present, held, and hidden; `Hold` applies it through `<Activity>`. The deep-import module `mount/held-motion` gives Accordion and Collapse the motion props of a held panel, `heldMotionProps`. | `useMountHold`, `Hold`, `Mount`, `MountHold`, `mountsEveryPanel` |

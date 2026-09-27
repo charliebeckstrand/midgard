@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Group } from '../../components/group'
-import { Density, useDensity } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import { allBySlot, bySlot, renderUI } from '../helpers'
 
 describe('Group', () => {
@@ -121,7 +121,7 @@ describe('Group', () => {
 		let observed: string | undefined
 
 		function Probe() {
-			observed = useDensity().size
+			observed = useDensityStep()
 
 			return null
 		}
@@ -139,13 +139,13 @@ describe('Group', () => {
 		let observed: string | undefined
 
 		function Probe() {
-			observed = useDensity().size
+			observed = useDensityStep()
 
 			return null
 		}
 
 		renderUI(
-			<Density scale="sm">
+			<Density step="sm">
 				<Group>
 					<Probe />
 				</Group>

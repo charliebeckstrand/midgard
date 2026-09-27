@@ -690,13 +690,12 @@ export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'get
  *
  * @internal
  */
-export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
+export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
-	 * Density level driving cell padding and grid-internal metrics (resize
-	 * handles, column autosize measurement, the virtualized row-height
-	 * estimate). Unlike the bare `Table` — a static/RSC leaf that reads no
-	 * context — an omitted `density` falls back to an enclosing
-	 * `DensityProvider`, since Grid is always client-rendered.
+	 * Density level for the cell padding and the metrics of the grid: resize
+	 * handles, column autosize, and the row-height estimate of the virtualizer.
+	 * The grid passes its step to `Table` as `size`. Grid needs the level as a
+	 * JS value, so an omitted `density` reads an enclosing `DensityProvider`.
 	 * @defaultValue 'snug'
 	 * @see {@link useDensityLevel} for the explicit-then-ambient resolution.
 	 */
@@ -726,7 +725,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
 	 *
 	 * @remarks
 	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
-	 * moves the space axis; `condensed` moves both axes and projects the text,
+	 * moves the density step; `condensed` moves the step and projects the text,
 	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
 	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
 	 * it. `condensed` with an explicit `density` is legal: the density cascade

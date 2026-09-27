@@ -2,8 +2,8 @@
 
 import type { Placement } from '@floating-ui/react'
 import { type ReactElement, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
-import { useDensity } from '../../primitives/density'
+import { cn, composeEventHandlers, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
@@ -221,9 +221,7 @@ export type DatePickerProps = DatePickerBaseProps &
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
 export function DatePicker(props: DatePickerProps) {
-	const inherited = useDensity()
-
-	const resolvedSize: ControlSize = props.size ?? inherited.size
+	const resolvedSize: ControlSize = toAmbientStep(useDensityStep(props.size))
 
 	let picker: ReactElement
 

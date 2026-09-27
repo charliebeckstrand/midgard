@@ -1,8 +1,9 @@
 'use client'
 
 import type { ReactNode, Ref } from 'react'
+import { toAmbientStep } from '../../core'
 import { useComposedRef, useScrollOverflow } from '../../hooks'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/menu'
 import { useMenuCapped } from './context'
 
@@ -38,7 +39,7 @@ type MenuViewportProps = {
  * @internal
  */
 export function MenuViewport({ ref, children }: MenuViewportProps) {
-	const { space } = useDensity()
+	const space = toAmbientStep(useDensityStep())
 
 	const capped = useMenuCapped()
 

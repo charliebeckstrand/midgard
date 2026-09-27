@@ -7,7 +7,7 @@
 
 import { avatar } from './avatar'
 import { combobox } from './combobox'
-import { icon, iconSize } from './icon'
+import { icon, iconRamp, iconSize, iconSlotRamp } from './icon'
 import { listbox } from './listbox'
 import { mark } from './mark'
 import { panel } from './panel'
@@ -16,6 +16,8 @@ import { scrollArea } from './scroll-area'
 export const shaku = {
 	icon,
 	iconSize,
+	iconRamp,
+	iconSlotRamp,
 	avatar,
 	panel,
 	scrollArea,

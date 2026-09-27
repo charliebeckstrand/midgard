@@ -1,0 +1,6 @@
+/*
+ * Density variants for Tailwind: `density-xs` to `density-xl`. Import this file
+ * in each Tailwind entry that scans ui. It holds variants only, no styles.
+ * The plugin explains the scopes and the rank.
+ */
+@plugin './src/core/density/variants.ts';

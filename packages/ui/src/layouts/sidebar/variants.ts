@@ -62,7 +62,7 @@ const content = defineRecipe({
 		'grow min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 	],
-	// Padding, so it keys on the `space` axis of the Density token.
+	// Padding for each density step.
 	density: {
 		sm: 'px-4 pb-4 lg:not-has-[[data-slot=header]]:pt-4',
 		md: 'px-6 pb-6 lg:not-has-[[data-slot=header]]:pt-6',
@@ -84,7 +84,7 @@ const content = defineRecipe({
 
 const header = defineRecipe({
 	base: ['flex items-center shrink-0'],
-	// Padding, so it keys on the `space` axis of the Density token.
+	// Padding for each density step.
 	density: {
 		sm: 'lg:pt-4 pb-4',
 		md: 'lg:pt-6 pb-6',

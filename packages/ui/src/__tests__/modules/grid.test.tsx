@@ -1478,7 +1478,10 @@ describe('Grid', () => {
 		it('defaults to snug outside any DensityProvider', () => {
 			const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-			expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
+			expect(container.querySelector('table')?.closest('[data-slot="table"]')).toHaveAttribute(
+				'data-density',
+				'md',
+			)
 		})
 
 		it('inherits an enclosing DensityProvider when no density prop is given', () => {
@@ -1488,7 +1491,10 @@ describe('Grid', () => {
 				</DensityProvider>,
 			)
 
-			expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
+			expect(container.querySelector('table')?.closest('[data-slot="table"]')).toHaveAttribute(
+				'data-density',
+				'sm',
+			)
 		})
 
 		it('an explicit density prop overrides the ambient DensityProvider', () => {
@@ -1498,7 +1504,10 @@ describe('Grid', () => {
 				</DensityProvider>,
 			)
 
-			expect(container.querySelector('table')).toHaveAttribute('data-density', 'lg')
+			expect(container.querySelector('table')?.closest('[data-slot="table"]')).toHaveAttribute(
+				'data-density',
+				'lg',
+			)
 		})
 	})
 

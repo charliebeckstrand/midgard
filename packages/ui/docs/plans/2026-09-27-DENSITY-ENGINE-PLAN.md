@@ -1,0 +1,30 @@
+# Density Engine — Design Plan — 2026-09-27
+
+How density becomes a foundation of its own, so that a component becomes density-aware by what it is built from, not by per-component wiring. It follows [`2026-09-27-DENSITY-VARIANTS-PLAN.md`](2026-09-27-DENSITY-VARIANTS-PLAN.md), which made density a Tailwind variant.
+
+## Thesis
+
+After the variants, density still had no owner. Its pieces sat in five places: the context in `primitives/density`, the level names in `providers/density`, the steps in `kiso/sun`, the plugin in `recipes`, and the affix step-down in `primitives/affix`. It had five words for one concept: `DensityLevel`, `Step`, `DensityStep`, `Ma`, and a two-axis context token (`space`, `size`). And each component had to wire density by hand: a hook, a resolve order, a size axis in its kata, and triads in each class list.
+
+The engine gives density one home, one vocabulary, one scope, and one resolver. Then the token layer takes on the ramps, so a kata built from tokens needs no wiring.
+
+## Decisions
+
+- **One step, not two axes.** The context carried `space` (padding) and `size` (text). `data-density` holds one step, so the variants cannot express a split, and no app used one. The context now holds one `DensityStep`, the same value as the attribute. Menu, Listbox, Combobox, Input, and Textarea keep their `size` prop and lose the split. Their kata keep a `density` and a `size` axis for now, fed the same step; the family increments fold them.
+- **`core/density` is the engine.** It holds `densitySteps`, `DensityStep`, `AmbientStep`, `toAmbientStep`, and the Tailwind plugin (`variants.ts`). It imports nothing from the package, so recipes, primitives, and components can all read it. `ui/core` exports the vocabulary.
+- **A scope is one prop.** `density` on PolymorphicStatic writes `data-density` and opens the `Density` context around the children. Box forwards it. Card, Table, and Badge open their scope with it. A leaf with no children (Icon, LoadingSpinner) writes the attribute alone. The context renders only for a scope, so an element with no step adds no client boundary to a server tree.
+- **One resolver.** `useDensityStep(explicit?)` returns `explicit ?? scope ?? 'md'`. A component with a three-step axis clamps with `toAmbientStep` (`xs` → `sm`, `xl` → `lg`). `useDensity`, `useControlSize`, `densityPresets`, and `DensityScope` are gone. `useResolvedSize` stays for the Affix step until the control family moves.
+- **A gate.** `density-native-boundary.test.ts` lists each component that takes its step from the variants alone. Its recipes may not have a `size` or `density` axis, and its files may not read the density context. A family moves by adding its entries.
+
+## Increments
+
+1. **Engine (this plan's first pull request).** The decisions above, with Card, Table, Badge, Icon, and LoadingSpinner on the engine.
+2. **Tokens.** Each kiso token that should scale gets a ramp form, pinned by a test to its scale, as `shaku.iconRamp` is: text, gap, padding, icon, and control height. A ring-padding utility (`px-ring-*` and the other sides) in the plugin replaces the literal maps of `kasane` and keeps ring-compensated ramps short. It needs a `tailwind-merge` class group so a consumer `px-4` still merges. Rule: a ramp covers each of `densitySteps`, so a component inside an `xs` or `xl` scope still has a class for its step.
+3. **Affix as a scope.** A control slot opens a scope one step down (`density={stepDown(step)}`) in place of `AffixContext`. Static leaves in the slot then step down through the variants, and the Badge affix rule in `REFERENCE.md` §2 goes. `useResolvedSize` becomes `useDensityStep`.
+4. **Families.** Each family swaps fixed tokens for ramps, deletes its size axis and its hook, opens its scopes with the `density` prop, and joins the gate. Style-only readers go first: Label, Description, Message, Option, Panel, Tooltip, Tabs, List, Menu, Sidebar. Readers that need a JS value keep `useDensityStep`: Grid metrics, Chart, the virtualizer.
+
+## Costs accepted
+
+- **Breaking change to `ui/primitives/density`.** `Density` takes `step` in place of `space`, `size`, and `scale`. No app used the removed API.
+- **A sized Badge opens a context scope.** A client child of the badge (the TagInput remove button) now reads the badge step from context. It read the same step through the Affix context before.
+- **Table scope on the scroll container.** The `size` of a Table makes its Box wrapper the scope, not the `<table>`. The cells follow it the same way.

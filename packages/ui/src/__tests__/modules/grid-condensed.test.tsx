@@ -17,13 +17,19 @@ describe('Grid condensed', () => {
 		renderUI(<Grid condensed density="loose" columns={columns} rows={rows} getKey={getKey} />)
 
 		// The Table stamps the resolved density step; `condensed` wins over `loose`.
-		expect(screen.getByRole('table')).toHaveAttribute('data-density', 'sm')
+		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
+			'data-density',
+			'sm',
+		)
 	})
 
 	it('leaves density in charge when condensed is off', () => {
 		renderUI(<Grid density="loose" columns={columns} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('table')).toHaveAttribute('data-density', 'lg')
+		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
+			'data-density',
+			'lg',
+		)
 	})
 
 	it('projects the cell-font, icon, and badge step-downs onto the table', () => {
@@ -91,7 +97,8 @@ describe('Grid condensed', () => {
 
 	it('does not shrink a consumer badge outside the grid', () => {
 		// The badge step-down is a table-scoped projection, so a badge elsewhere on
-		// the page is untouched — the class lives on the grid's own `<table>`.
+		// the page is untouched: the class lives on the grid's own `<table>`, and
+		// the badge opens no density scope of its own.
 		renderUI(
 			<>
 				<Badge>loose</Badge>
@@ -99,6 +106,6 @@ describe('Grid condensed', () => {
 			</>,
 		)
 
-		expect(screen.getByText('loose')).toHaveAttribute('data-size', 'md')
+		expect(screen.getByText('loose')).not.toHaveAttribute('data-density')
 	})
 })

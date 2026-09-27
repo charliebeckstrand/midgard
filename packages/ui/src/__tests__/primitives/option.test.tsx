@@ -141,7 +141,7 @@ describe('BaseOption', () => {
 
 	it('sizes the default check icon to the ambient density', () => {
 		const { container } = renderUI(
-			<Density size="lg">
+			<Density step="lg">
 				<BaseOption selected={true} onSelect={() => {}}>
 					Option
 				</BaseOption>

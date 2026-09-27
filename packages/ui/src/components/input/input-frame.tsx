@@ -4,7 +4,7 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { DensityScope } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
@@ -13,12 +13,10 @@ type InputFrameProps = {
 	prefix: ReactNode
 	suffix: ReactNode
 	variant: InputVariants['variant']
-	/** Density space axis, indexing the prefix / suffix slot padding. */
-	space: Step
-	/** Resolved size; drives the stepped-down affix broadcast. */
+	/** Resolved step: the prefix / suffix slot padding and the stepped-down affix broadcast. */
 	size: Step
 	/** Raw `size` prop, opening a density scope when set. */
-	scale?: Step
+	scope?: Step
 	dataGroup?: string
 	dataGroupOrientation?: string
 }
@@ -36,9 +34,8 @@ export function InputFrame({
 	prefix,
 	suffix,
 	variant,
-	space,
 	size,
-	scale,
+	scope,
 	dataGroup,
 	dataGroupOrientation,
 }: InputFrameProps) {
@@ -49,7 +46,7 @@ export function InputFrame({
 	const hasAffix = hasPrefix || hasSuffix
 
 	return (
-		<DensityScope scale={scale}>
+		<Density step={scope}>
 			<AffixContext value={affixStepDown(size)}>
 				<ControlFrame
 					data-group={dataGroup}
@@ -57,7 +54,7 @@ export function InputFrame({
 					className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
 				>
 					{hasPrefix && (
-						<span data-slot="prefix" className={cn(k.affix, k.prefix[space])}>
+						<span data-slot="prefix" className={cn(k.affix, k.prefix[size])}>
 							{prefix}
 						</span>
 					)}
@@ -65,12 +62,12 @@ export function InputFrame({
 					{inputEl}
 
 					{hasSuffix && (
-						<span data-slot="suffix" className={cn(k.affix, k.suffix[space])}>
+						<span data-slot="suffix" className={cn(k.affix, k.suffix[size])}>
 							{suffix}
 						</span>
 					)}
 				</ControlFrame>
 			</AffixContext>
-		</DensityScope>
+		</Density>
 	)
 }

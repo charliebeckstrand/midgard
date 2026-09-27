@@ -1,4 +1,5 @@
 import type { ComponentProps, ElementType, ReactNode, Ref } from 'react'
+import type { DensityStep } from '../../core/density'
 import type { LinkProps } from '../link'
 
 /**
@@ -16,6 +17,11 @@ export type PolymorphicRenderProps<Fallback extends ElementType> = {
 	'data-slot': string
 	className: string
 	children: ReactNode
+	/**
+	 * Makes the element a density scope at this step: it writes `data-density`
+	 * and opens the density context around the children. Omit it for no scope.
+	 */
+	density?: DensityStep
 } & (
 	| Omit<ComponentProps<Fallback>, 'href' | 'ref' | 'className' | 'children'>
 	| Omit<LinkProps, 'href' | 'ref' | 'className' | 'children'>

@@ -1,9 +1,9 @@
 'use client'
 
 import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import type { Mount } from '../../primitives/mount'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import type { AccessibleName } from '../../types'
@@ -83,9 +83,7 @@ export function Tree({
 		rovingKeyDown(event)
 	}
 
-	const inherited = useDensity()
-
-	const resolvedSize: TreeSize = size ?? inherited.size
+	const resolvedSize: TreeSize = toAmbientStep(useDensityStep(size))
 
 	const rootContextValue = useMemo(
 		() => ({ depth: 0, size: resolvedSize, indent, mount }),

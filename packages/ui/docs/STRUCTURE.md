@@ -14,7 +14,7 @@ Every structure unit is static, so it renders in React Server Components ([`../R
 
 | Unit | Summary |
 |---|---|
-| `box` | A `<div>` with padding, radius, background, and outline tokens. |
+| `box` | A `<div>` with padding, radius, background, and outline tokens. A `density` step makes it a density scope. |
 | `container` | A centered `<div>` with a maximum width and horizontal padding. |
 | `flex` | A flex container with responsive direction, gap, alignment, and wrap. |
 | `spacer` | An empty flex item that fills the free space and pushes its siblings apart. |

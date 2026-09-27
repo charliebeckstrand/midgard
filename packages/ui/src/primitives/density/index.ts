@@ -1,10 +1,7 @@
 export {
 	Density,
 	type DensityProps,
-	DensityScope,
-	densityPresets,
-	useControlSize,
-	useDensity,
 	useDensityNullable,
+	useDensityStep,
 	useResolvedSize,
 } from './density'

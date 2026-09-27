@@ -72,7 +72,7 @@ export function ColorPickerContent({
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
-				<Density scale={size}>
+				<Density step={size}>
 					<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
 						{children}
 					</Box>

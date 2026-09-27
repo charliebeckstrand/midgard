@@ -3,7 +3,7 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core'
-import type { DensityLevel } from '../../providers/density'
+import { type DensityLevel, densityToSize } from '../../providers/density'
 import { GridHighlightContext } from './context'
 import {
 	condensedTableClass,
@@ -168,7 +168,7 @@ export function GridDataTable<T>({
 	const tableContent = (
 		<GridNavContext value={cursor.navStore}>
 			<Table
-				density={density}
+				size={densityToSize[density]}
 				bleed={table.bleed}
 				striped={stripedForOutline(table.striped, table.outline)}
 				hover={table.hover}

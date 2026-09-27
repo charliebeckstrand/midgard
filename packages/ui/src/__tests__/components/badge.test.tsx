@@ -23,15 +23,11 @@ describe('Badge', () => {
 		expect(screen.getByText('×')).toBeInTheDocument()
 	})
 
-	// xs projects the smallest type step: data-size echoes the prop and the
-	// kata stamps the text-xs row (ji.size.xs) onto the badge slot.
-	it('renders with the xs size variant', () => {
+	// A size makes the badge its own density scope. The class string is the
+	// same at each step, so only the attribute changes.
+	it('writes the size step to data-density', () => {
 		const { container } = renderUI(<Badge size="xs">Tiny</Badge>)
 
-		const badge = bySlot(container, 'badge')
-
-		expect(badge).toHaveAttribute('data-size', 'xs')
-
-		expect(badge).toHaveClass('text-xs')
+		expect(bySlot(container, 'badge')).toHaveAttribute('data-density', 'xs')
 	})
 })

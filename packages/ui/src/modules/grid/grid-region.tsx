@@ -4,7 +4,8 @@ import { DndContext } from '@dnd-kit/core'
 import { SortableContext } from '@dnd-kit/sortable'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
 import { cn, createContext } from '../../core'
-import { Density, densityPresets, type useDensity } from '../../primitives/density'
+import type { DensityStep } from '../../core/density'
+import { Density } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import type { GridSortState } from './context'
@@ -223,9 +224,9 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  * such content. Scoped to the table on purpose. It sits inside the context-menu
  * trigger, below the toolbar/footer. A portaled overlay (context menu, dialog)
  * the grid spawns therefore stays on the ambient density, rather than inheriting
- * the grid's. Static leaves (`Badge`, `Icon`,
- * `Text`) read no density; the `<table>` class down-projects those under
- * `condensed` (see `condensedTableClass`). A grid already at the ambient density
+ * the grid's. Badge and Icon follow the `data-density` scope of the
+ * `<table>`. `Text` reads no density, so the `<table>` class down-projects it
+ * under `condensed` (see `condensedTableClass`). A grid already at the ambient density
  * broadcasts its own level — a no-op. Kept a component so the branch lives here,
  * off {@link GridData}'s complexity budget.
  *
@@ -237,7 +238,7 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  * @internal
  */
 export function DensityCascade({ level, children }: { level: DensityLevel; children: ReactNode }) {
-	return <Density scale={densityToSize[level]}>{children}</Density>
+	return <Density step={densityToSize[level]}>{children}</Density>
 }
 
 /**
@@ -247,9 +248,10 @@ export function DensityCascade({ level, children }: { level: DensityLevel; child
  *
  * @internal
  */
-export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
-	ReturnType<typeof useDensity>
->('GridOverlayDensity', { default: densityPresets.md })
+export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
+	'GridOverlayDensity',
+	{ default: 'md' },
+)
 
 /**
  * Restores the ambient density inside an overlay whose trigger lives in the table
@@ -265,11 +267,7 @@ export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
 export function GridOverlayDensity({ children }: { children: ReactNode }) {
 	const ambient = useGridOverlayDensity()
 
-	return (
-		<Density space={ambient.space} size={ambient.size}>
-			{children}
-		</Density>
-	)
+	return <Density step={ambient}>{children}</Density>
 }
 
 /** Props for {@link GridScrollRegion}. @internal */

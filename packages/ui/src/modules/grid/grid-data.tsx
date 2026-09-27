@@ -4,7 +4,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { GridContext, GridSettleContext } from './context'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
@@ -151,7 +151,7 @@ export function GridData<T>({
 
 	// Read here, above `DensityCascade`, so it is the density *surrounding* the grid
 	// — what an overlay the grid spawns renders at (see `GridOverlayDensity`).
-	const overlayDensity = useDensity()
+	const overlayDensity = useDensityStep()
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
 	// wrapper); resolved from the `header` config's `position`.

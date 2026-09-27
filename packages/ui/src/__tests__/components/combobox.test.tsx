@@ -885,7 +885,6 @@ describe('ComboboxPanel', () => {
 				editing={false}
 				multiple={false}
 				glass={false}
-				density="md"
 				size="md"
 				floatingStyles={{}}
 				getFloatingProps={() => ({})}
@@ -931,7 +930,6 @@ describe('ComboboxPanel', () => {
 				editing={false}
 				multiple={false}
 				glass={false}
-				density="md"
 				size="md"
 				floatingStyles={{}}
 				getFloatingProps={() => ({})}

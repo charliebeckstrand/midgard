@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import {
 	DensityProvider,
 	densityLevels,
@@ -30,27 +30,27 @@ describe('DensityProvider broadcast', () => {
 	// Sets both Density axes to the same token; size-aware descendants inherit
 	// without additional wiring.
 	it('broadcasts compact as the sm token on both axes', () => {
-		const { result } = renderHook(() => useDensity(), {
+		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ space: 'sm', size: 'sm' })
+		expect(result.current).toBe('sm')
 	})
 
 	it('broadcasts snug as the md token on both axes', () => {
-		const { result } = renderHook(() => useDensity(), {
+		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ space: 'md', size: 'md' })
+		expect(result.current).toBe('md')
 	})
 
 	it('broadcasts loose as the lg token on both axes', () => {
-		const { result } = renderHook(() => useDensity(), {
+		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
 		})
 
-		expect(result.current).toEqual({ space: 'lg', size: 'lg' })
+		expect(result.current).toBe('lg')
 	})
 })
 
@@ -85,10 +85,10 @@ describe('useDensityLevel', () => {
 })
 
 describe('DensityProvider element', () => {
-	it('stamps the level onto a data-density slot', () => {
+	it('stamps the step onto a data-density slot', () => {
 		const { container } = renderUI(<DensityProvider density="compact">content</DensityProvider>)
 
-		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'compact')
+		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('renders the wrapper as display: contents', () => {
