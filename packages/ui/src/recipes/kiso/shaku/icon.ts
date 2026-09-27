@@ -23,3 +23,20 @@ export const icon = {
 	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
 	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
 }
+
+/**
+ * `iconSize` with each step under a `density-*` variant: an icon with no
+ * `size` takes the step of its nearest density scope. Keep it in step with
+ * `iconSize`.
+ */
+export const iconRamp = 'density-xs:size-3 density-sm:size-4 density-md:size-5 density-lg:size-6'
+
+/**
+ * `icon` with each step under a `density-*` variant: a density host sizes its
+ * `data-slot="icon"` children by the step of its nearest density scope. Keep it
+ * in step with `icon`.
+ */
+export const iconSlotRamp = [
+	'*:data-[slot=icon]:shrink-0',
+	'density-xs:*:data-[slot=icon]:size-3 density-sm:*:data-[slot=icon]:size-4 density-md:*:data-[slot=icon]:size-5 density-lg:*:data-[slot=icon]:size-6',
+]

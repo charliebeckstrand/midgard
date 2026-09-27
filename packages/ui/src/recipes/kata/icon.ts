@@ -7,5 +7,5 @@ import { shaku } from '../kiso'
 // scope.
 export const k = {
 	size: shaku.iconSize,
-	ramp: 'density-xs:size-3 density-sm:size-4 density-md:size-5 density-lg:size-6',
+	ramp: shaku.iconRamp,
 } as const

@@ -25,8 +25,8 @@ const SPINNER_SVG = (
  * `size`, the spinner takes the step of the nearest density scope, and `md`
  * outside one. An explicit `size` makes the spinner its own scope. Inside a
  * control affix slot, a `<Button>`, or a `<SidebarItem>`, the projection of
- * the parent sets the size. A `<Badge>` is a density host: its projection sets
- * the size of a spinner with no `size`.
+ * the parent sets the size. Inside a `<Badge>`, the spinner takes the step of
+ * the badge, because both follow the same scope.
  */
 export function LoadingSpinner({
 	size,

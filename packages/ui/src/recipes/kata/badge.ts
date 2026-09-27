@@ -8,13 +8,14 @@
  */
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
 import { basePalette } from '../katakana'
-import { type DensityStep, iro, ji, kasane, kokkaku, narabi } from '../kiso'
+import { type DensityStep, iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { extendedPalette } = iro
 const { weight } = ji
 const { padding, rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
+const { iconSlotRamp: icon } = shaku
 
 /** The `px` stop of each step. */
 const px = { xs: '1', sm: '1.5', md: '2', lg: '2.5' } as const
@@ -38,13 +39,12 @@ export const k = defineRecipe({
 		//
 		// Each step is a `density-*` class: the badge takes the step of its
 		// nearest density scope, and an explicit `size` makes the badge its own
-		// scope. A LoadingSpinner reads no context, so each step projects the
-		// size of its icon step onto it.
+		// scope. A LoadingSpinner follows the same scope, so it takes the step of
+		// the badge with no projection. A bare icon element carries no size, so
+		// the badge projects one onto its icon slots.
 		'density-xs:text-xs density-sm:text-sm density-md:text-base density-lg:text-lg',
 		'density-xs:gap-0.5 density-sm:gap-0.75 density-md:gap-1 density-lg:gap-1.25',
-		'*:data-[slot=icon]:shrink-0',
-		'density-xs:*:data-[slot=icon]:size-3 density-sm:*:data-[slot=icon]:size-4 density-md:*:data-[slot=icon]:size-5 density-lg:*:data-[slot=icon]:size-6',
-		'density-xs:*:data-[slot=loading-spinner]:size-3 density-sm:*:data-[slot=loading-spinner]:size-4 density-md:*:data-[slot=loading-spinner]:size-5 density-lg:*:data-[slot=loading-spinner]:size-6',
+		icon,
 		padding.py('1'),
 		padding.pxRamp(px),
 	],

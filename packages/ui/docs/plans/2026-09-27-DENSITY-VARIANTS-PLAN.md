@@ -18,7 +18,7 @@ Density lives in React context (`primitives/density`). A component must be a cli
 
 ## How the variants rank
 
-[`tailwind.css`](../../tailwind.css) defines `density-xs` to `density-xl`. The depth of a match is the number of scopes on the path to the element, the element itself included. Each rung matches one depth, and it sits in a nested cascade layer of `utilities` with the number of that depth. The nearest scope gives the deepest match, and a later layer wins, so the nearest scope wins. A plain utility is in `utilities` itself, and it outranks each nested layer.
+[`tailwind.css`](../../tailwind.css) loads a Tailwind plugin, [`density-variants.ts`](../../src/recipes/density-variants.ts), which defines `density-xs` to `density-xl` from `densitySteps` in `kiso/sun`. So the steps have one source for the types and for the CSS. The depth of a match is the number of scopes on the path to the element, the element itself included. Each rung matches one depth, and it sits in a nested cascade layer of `utilities` with the number of that depth. The nearest scope gives the deepest match, and a later layer wins, so the nearest scope wins. A plain utility is in `utilities` itself, and it outranks each nested layer.
 
 Rejected:
 
@@ -30,15 +30,15 @@ Rejected:
 ## Costs accepted
 
 - **Depth cap.** The variants stop at a depth of 6 scopes. Past that, an outer scope can win. The trees in the repository stay under the cap.
-- **Layer order.** Tailwind emits the nested layers in the order of first use. Each variant lists its rungs from depth 1 up, so the order is correct. A new variant must keep that order.
+- **Layer order.** Tailwind emits the nested layers in the order of first use. The plugin adds the rungs of each variant from depth 1 up, so the order is correct. A `@layer` order statement does not help: Tailwind moves it after the utilities.
 - **Pinning cascades.** `<Card size="sm">` makes its subtree `sm`. That is the intent for sections and static leaves. A host that wants a child one step down (the control affix) must open a scope with the lower step on the slot.
 - **Portals.** A portal breaks the DOM chain, and context does not. A static leaf inside a portaled surface follows the surface's scope only if the surface writes `data-density`.
 
 ## Increments
 
-1. **Variants and pilot.** `tailwind.css` and its `ui/tailwind.css` export, imported by `shared/globals.css`, the docs entry, and the browser suite. `DensityProvider` writes the step. Badge, BadgeSkeleton, Card and its sections, and the Table cells move onto the variants. `density-scope.test.tsx` checks nesting, self scopes, and consumer overrides in Chromium.
+1. **Variants and pilot.** The plugin, `tailwind.css`, and its `ui/tailwind.css` export, imported by `shared/globals.css`, the docs entry, and the browser suite. `DensityProvider` writes the step. Badge, BadgeSkeleton, Card and its sections, the Table cells, Icon, and LoadingSpinner move onto the variants. A LoadingSpinner follows the scope of its Badge, so the Badge spinner projection goes. `density-scope.test.tsx` checks nesting, self scopes, and consumer overrides in Chromium.
 2. **Scope openers.** Client hosts that open a `Density` context scope also write `data-density`: Group, InputFrame, the Control primitive, and the portaled surfaces (Menu, Popover, Listbox, Combobox, DatePicker, Color, Drawer). The control affix slot opens a scope one step down, and the Badge affix rule in `REFERENCE.md` §2 goes.
-3. **Icons and spinners.** Icon and LoadingSpinner carry their own steps, so a host stops projecting their sizes (`shaku.icon`, the Badge spinner rows) where the host step and the icon step agree.
+3. **Host projections.** Icon and LoadingSpinner carry their own steps. A client host whose icon step equals its own step (Button, Nav, Sidebar) drops its projection when it writes `data-density`. A projection stays only for a bare icon element and for a deliberate step-down.
 4. **Static families.** One pull request each: Heading and Text, Kbd and Code, Avatar and StatusDot, DescriptionList and Stat, Alert and Banner. Each moves its skeleton with it.
 5. **Client families.** Style-only readers (Progress, DatePickerFooter, the Control primitive) drop their hooks. The rest move their classes onto the variants and keep context only for JS values.
 6. **Optional: pre-paint scope.** `AppearanceScript` writes the stored step to `data-density` on `<html>`, so a stored density applies before hydration.
