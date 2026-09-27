@@ -448,7 +448,10 @@ export function PlacesApp({ user }: { user: User }) {
 				</Flex>
 			</Flex>
 
-			{settling || places.length > 0 ? (
+			{/* The bar shows only when there are places to filter. While the places
+			    load, the app does not know if there are any, so it shows no bar. A
+			    reader with no places then never sees a bar, not even one that loads. */}
+			{places.length > 0 ? (
 				// No padding on this wrapper: the rail carries its own, so the whole
 				// padded band sits inside the scroll container and a wheel anywhere over
 				// it scrolls — the strip above and below the controls included.
