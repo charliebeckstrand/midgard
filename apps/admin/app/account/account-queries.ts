@@ -1,6 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { sendVerificationEmail } from 'shared/auth'
 import {
 	addPasskey,
 	confirmTotp,
@@ -14,7 +15,6 @@ import {
 	type Provider,
 	removePasskey,
 	removeTotp,
-	sendVerificationEmail,
 	startTotpSetup,
 	unlinkIdentity,
 } from './account-api'

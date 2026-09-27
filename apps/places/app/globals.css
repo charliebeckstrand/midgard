@@ -3,12 +3,6 @@
 
 @source './';
 @source '../src';
-@source '../../../packages/shared/src';
-@source '../../../packages/ui/src';
 
-/* Tests, benchmarks, and the ui docs never ship with the app, so their classes stay out of its CSS. */
+/* Tests never ship with the app, so their classes stay out of its CSS. `shared/globals.css` names the sources of `shared` and `ui`. */
 @source not '../src/__tests__';
-@source not '../../../packages/shared/src/__tests__';
-@source not '../../../packages/ui/src/__tests__';
-@source not '../../../packages/ui/src/__benchmarks__';
-@source not '../../../packages/ui/src/docs';

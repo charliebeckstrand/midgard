@@ -1,6 +1,14 @@
 @import './fonts.css';
 @import 'ui/tailwind.css';
 
+/* The classes of `shared` and `ui`. Each path is from this file. Tests, benchmarks, and the ui docs never ship with an app, so their classes stay out of its CSS. */
+@source './';
+@source '../../ui/src';
+@source not './__tests__';
+@source not '../../ui/src/__tests__';
+@source not '../../ui/src/__benchmarks__';
+@source not '../../ui/src/docs';
+
 /* The `dark` variant follows the `.dark` class on the root element. `AppearanceProvider` from `ui` sets the class. */
 @custom-variant dark (&:where(.dark, .dark *));
 

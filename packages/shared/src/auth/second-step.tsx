@@ -15,6 +15,7 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Text } from 'ui/text'
+import { signOut } from './account'
 import { bifrost } from './bifrost'
 import { chain, required } from './form-validators'
 import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
@@ -189,12 +190,6 @@ type VerifyPageProps = {
  */
 export function VerifyPage({ methods }: VerifyPageProps) {
 	const router = useRouter()
-
-	async function signOut() {
-		await bifrost.POST('/auth/logout').catch(() => {})
-
-		router.replace('/login')
-	}
 
 	return (
 		<AuthLayout>

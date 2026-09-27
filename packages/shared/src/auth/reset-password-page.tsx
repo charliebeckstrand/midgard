@@ -12,13 +12,9 @@ import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
 import { chain, matches, minLength, required } from './form-validators'
+import { linkToken } from './link-token'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
-
-type ResetPasswordPageProps = {
-	/** The token from the `?token=` of the emailed link. */
-	token: string
-}
 
 /**
  * Page that sets a new password: posts the token of the emailed link and the
@@ -28,8 +24,11 @@ type ResetPasswordPageProps = {
  * @remarks
  * The gateway signs the user out on all devices, so the user signs in again with
  * the new password. A link works one time, for one hour.
+ *
+ * The page reads the token from the `?token=` of the link on the submit, so Next
+ * prerenders all of the page.
  */
-export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
+export function ResetPasswordPage() {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
@@ -37,7 +36,7 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
 			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
-				body: { token, password: values.password },
+				body: { token: linkToken(), password: values.password },
 			})
 
 			if (response.ok) {

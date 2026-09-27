@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ensureSecondStep } from 'shared/auth'
+import { ensureSecondStep, oauthStartPath, signInProviderNames } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
@@ -17,8 +17,6 @@ type ConnectedAccountsProps = {
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }
-
-const providerNames: Record<Provider, string> = { github: 'GitHub', google: 'Google' }
 
 /** The messages of the `?error=` codes that a connect comes back with. */
 const connectErrors: Record<string, string> = {
@@ -73,7 +71,7 @@ export function ConnectedAccounts({
 				return (
 					<div key={provider} className="flex items-center justify-between gap-2">
 						<div>
-							<Text className="font-medium">{providerNames[provider]}</Text>
+							<Text className="font-medium">{signInProviderNames[provider]}</Text>
 							<Text>{identity ? (identity.email ?? 'Connected') : 'Not connected'}</Text>
 						</div>
 						{identity ? (
@@ -92,7 +90,9 @@ export function ConnectedAccounts({
 								onClick={async () => {
 									if (!(await ensureSecondStep())) return
 
-									window.location.assign(`/auth/oauth/${provider}/start?link=1&return_to=/account`)
+									window.location.assign(
+										oauthStartPath(provider, { link: true, returnTo: '/account' }),
+									)
 								}}
 							>
 								Connect
@@ -110,7 +110,7 @@ export function ConnectedAccounts({
 
 					setUnlinking(null)
 				}}
-				title={`Disconnect ${unlinking ? providerNames[unlinking] : ''}?`}
+				title={`Disconnect ${unlinking ? signInProviderNames[unlinking] : ''}?`}
 				description="You cannot sign in with this account after you disconnect it."
 				confirm={{ label: 'Disconnect', color: 'red' }}
 			/>

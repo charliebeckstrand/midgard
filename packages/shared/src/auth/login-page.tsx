@@ -16,13 +16,14 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
+import { oauthStartPath, signInProviderNames } from './account'
 import { bifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
 import { useLeaving } from './use-leaving'
 
 type LoginValues = { email: string; password: string }
 
-const providerNames: Record<SignInProvider, string> = { github: 'GitHub', google: 'Google' }
+const passkeyFailed = 'Passkey sign-in did not complete. Please try again.'
 
 /** The messages of the `?error=` codes that a GitHub or Google sign-in comes back with. */
 const signInErrors: Record<string, string> = {
@@ -126,6 +127,12 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 		try {
 			const { data: options } = await bifrost.POST('/auth/login/options')
 
+			if (!options) {
+				setServerError(passkeyFailed)
+
+				return
+			}
+
 			// The gateway passes the options of the browser API through, so its spec names no fields.
 			const optionsJSON = options as PublicKeyCredentialRequestOptionsJSON
 
@@ -133,7 +140,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 
 			finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
 		} catch {
-			setServerError('Passkey sign-in did not complete. Please try again.')
+			setServerError(passkeyFailed)
 		}
 	}
 
@@ -189,9 +196,9 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 						variant="outline"
 						className="w-full"
 						// A full page load: the gateway answers with a redirect to the provider.
-						onClick={() => leave(() => window.location.assign(`/auth/oauth/${provider}/start`))}
+						onClick={() => leave(() => window.location.assign(oauthStartPath(provider)))}
 					>
-						Continue with {providerNames[provider]}
+						Continue with {signInProviderNames[provider]}
 					</Button>
 				))}
 

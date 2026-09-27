@@ -13,15 +13,6 @@ import { bifrost, unwrap } from 'shared/auth'
 /** A passkey of the signed-in user, as the gateway lists it. */
 export type Passkey = Schema<'Passkey'>
 
-/**
- * Emails the signed-in user a new link that verifies the email.
- *
- * The gateway sends one link each minute at most, and refuses another with a `429`.
- */
-export async function sendVerificationEmail(): Promise<void> {
-	await unwrap(bifrost.POST('/auth/verify-email'))
-}
-
 /** The passkeys of the signed-in user. */
 export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
 	const { data } = await unwrap(bifrost.GET('/auth/passkeys', { signal }))

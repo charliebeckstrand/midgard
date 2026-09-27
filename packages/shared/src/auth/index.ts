@@ -1,3 +1,10 @@
+export {
+	type OAuthStartOptions,
+	oauthStartPath,
+	sendVerificationEmail,
+	signInProviderNames,
+	signOut,
+} from './account'
 export { bifrost, unwrap } from './bifrost'
 export { ForgotPasswordPage } from './forgot-password-page'
 export { LoginPage } from './login-page'

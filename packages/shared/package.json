@@ -8,6 +8,10 @@
 			"types": "./src/auth/index.ts",
 			"default": "./src/auth/index.ts"
 		},
+		"./providers": {
+			"types": "./src/providers/index.ts",
+			"default": "./src/providers/index.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {
@@ -26,10 +30,12 @@
 		"ui": "workspace:*"
 	},
 	"peerDependencies": {
+		"@tanstack/react-query": "^5.0.0",
 		"next": "^15.0.0 || ^16.0.0",
 		"react": "^18.0.0 || ^19.0.0"
 	},
 	"devDependencies": {
+		"@tanstack/react-query": "catalog:",
 		"@biomejs/biome": "catalog:",
 		"@types/node": "catalog:",
 		"@types/react": "catalog:",

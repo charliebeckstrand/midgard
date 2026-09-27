@@ -1,6 +1,6 @@
-import { redirect, unstable_rethrow } from 'next/navigation'
+import { redirect } from 'next/navigation'
 import { cache } from 'react'
-import { bifrost, type Schema } from './fetch'
+import { bifrost, readGateway, type Schema } from './fetch'
 
 /**
  * A role of a user. `user` lets the account change data in the apps, and
@@ -30,24 +30,10 @@ export type Session = Schema<'Session'>
  * each failure except a `401` goes to the log. The control-flow errors of Next,
  * such as the dynamic-usage signal of a prerender, propagate.
  */
-export const getSession = cache(async (): Promise<Session | undefined> => {
-	try {
-		const { data, response } = await bifrost.GET('/auth/session')
-
-		if (data) return data
-
-		if (response.status !== 401) {
-			console.error(`auth: GET /auth/session failed (${response.status})`)
-		}
-	} catch (error) {
-		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
-		unstable_rethrow(error)
-
-		console.error('auth: GET /auth/session threw', error)
-	}
-
-	return undefined
-})
+export const getSession = cache(
+	(): Promise<Session | undefined> =>
+		readGateway('/auth/session', () => bifrost.GET('/auth/session'), { quiet: [401] }),
+)
 
 /**
  * Returns the current {@link Session}, or redirects to `/login`.

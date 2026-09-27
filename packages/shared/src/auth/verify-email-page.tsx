@@ -8,11 +8,7 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
-
-type VerifyEmailPageProps = {
-	/** The token from the `?token=` of the emailed link. */
-	token: string
-}
+import { linkToken } from './link-token'
 
 /**
  * Page that verifies an email: posts the token of the emailed link to
@@ -22,8 +18,11 @@ type VerifyEmailPageProps = {
  * The page needs a click and does not verify when it opens. Thus a mail scanner
  * that opens the link does not use it. The page works with and without a
  * session, because the user can open the link on a different device.
+ *
+ * The page reads the token from the `?token=` of the link on the click, so Next
+ * prerenders all of the page.
  */
-export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
+export function VerifyEmailPage() {
 	const [state, setState] = useState<'idle' | 'pending' | 'verified'>('idle')
 
 	const [serverError, setServerError] = useState('')
@@ -35,7 +34,7 @@ export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
 
 		try {
 			const { response, error } = await bifrost.POST('/auth/verify-email/confirm', {
-				body: { token },
+				body: { token: linkToken() },
 			})
 
 			if (response.ok) {

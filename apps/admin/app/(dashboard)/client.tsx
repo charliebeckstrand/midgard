@@ -8,9 +8,9 @@ import {
 	UsersIcon,
 } from '@heroicons/react/20/solid'
 import type { User } from 'auth'
-import { usePathname, useRouter } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import type { ReactNode } from 'react'
-import { bifrost } from 'shared/auth'
+import { signOut } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { SidebarLayout } from 'ui/layouts'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
@@ -90,17 +90,10 @@ export function DashboardClient({ user, children }: DashboardClientProps) {
  * Sidebar footer account menu: account and settings links, and sign-out.
  *
  * @internal
- * @remarks Sign-out POSTs `/auth/logout` then routes to `/login`.
+ * @remarks Sign-out is `signOut` from `shared/auth`: it ends the session, then
+ * loads `/login` as a full page, so the query cache of the user does not stay.
  */
 function SidebarUserMenu({ user }: { user: User }) {
-	const router = useRouter()
-
-	async function signOut() {
-		await bifrost.POST('/auth/logout').catch(() => {})
-
-		router.push('/login')
-	}
-
 	const initials = user.email[0]?.toUpperCase() ?? 'U'
 
 	return (

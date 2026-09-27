@@ -3,7 +3,7 @@
 import type { User } from 'auth'
 import { CircleUserRound, LogOut, MailCheck, MapPinned, Plus } from 'lucide-react'
 import { useState } from 'react'
-import { bifrost } from 'shared/auth'
+import { sendVerificationEmail, signOut } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import {
@@ -38,22 +38,18 @@ const verifyLabels = {
  * user whose email is not verified can also send a verification link, since
  * places can't be changed until it is.
  *
- * @remarks Sign-out POSTs `/auth/logout`, then loads `/login`. The link is sent
- * with `POST /auth/verify-email`.
+ * @remarks Sign-out and the link are `signOut` and `sendVerificationEmail` from
+ * `shared/auth`. Sign-out loads `/login` as a full page, so no data of the user
+ * stays in the query cache.
  */
 export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
 
-	async function sendVerification() {
-		const result = await bifrost.POST('/auth/verify-email').catch(() => null)
-
-		setVerify(result?.response.ok ? 'sent' : 'failed')
-	}
-	async function signOut() {
-		await bifrost.POST('/auth/logout').catch(() => {})
-
-		// A full load, so no data of the user stays in the query cache.
-		window.location.assign('/login')
+	function sendVerification() {
+		sendVerificationEmail().then(
+			() => setVerify('sent'),
+			() => setVerify('failed'),
+		)
 	}
 
 	return (

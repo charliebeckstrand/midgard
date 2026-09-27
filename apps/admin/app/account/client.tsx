@@ -1,9 +1,8 @@
 'use client'
 
 import type { User } from 'auth'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
-import { bifrost } from 'shared/auth'
+import { signOut } from 'shared/auth'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -60,7 +59,6 @@ export function AccountClient({
 	providers,
 	connectError,
 }: AccountClientProps) {
-	const router = useRouter()
 	const { data: passkeys } = usePasskeys(initialPasskeys)
 	const { data: factors } = useFactors(initialFactors)
 	const add = useAddPasskey()
@@ -69,12 +67,6 @@ export function AccountClient({
 	const [removing, setRemoving] = useState<Passkey | null>(null)
 
 	const error = add.error ?? remove.error ?? sendLink.error
-
-	async function signOut() {
-		await bifrost.POST('/auth/logout').catch(() => {})
-
-		router.push('/login')
-	}
 
 	return (
 		<AuthLayout>
