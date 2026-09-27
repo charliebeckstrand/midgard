@@ -1,5 +1,5 @@
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi, shaku } from '../kiso'
+import { hannou, iro, kasane, narabi, textRamp } from '../kiso'
 
 const { onWash } = iro
 const { rounded } = kasane
@@ -11,27 +11,26 @@ const base = [
 	'grid-cols-[1fr_--spacing(5)] sm:grid-cols-[1fr_--spacing(4)]',
 	rounded.lg,
 	...hannou.active,
+	// Gap, padding, and text follow the nearest density scope.
+	'density-gap-[2,3,3] density-px-[2,2.5,3] density-py-[1,1.5,2.5]',
+	textRamp,
 	...mode(
 		'group-data-editing/combobox:only-of-type:bg-zinc-950/5',
 		'dark:group-data-editing/combobox:only-of-type:bg-white/5',
 	),
 ]
 
-const size = {
-	sm: ['gap-2 px-2 py-1', ji.size.sm],
-	md: ['gap-3 px-2.5 py-1.5', ji.size.md],
-	lg: ['gap-3 px-3 py-2.5', ji.size.lg],
-} as const
-
 export const k = {
 	base,
-	size,
 	content: [flex.row, 'min-w-0', narabi.item],
 	label: 'truncate group-data-selected/option:font-bold',
 	// `onWash.muted`, not `muted`: `hannou.item` / `hannou.active` ground a hovered
 	// or roved row on the tint wash, which `muted` is not legal over. See `iro/ramp.ts`.
 	description: [description, onWash.muted],
 	check: mode('text-green-600', 'dark:text-green-500'),
-	/** Per-Density-step size of the selected-state check icon; `<Icon>`'s own scale. */
-	checkSize: shaku.iconSize,
+	/**
+	 * The size of the selected-state check icon. It is the `sm`, `md`, and `lg`
+	 * steps of `shaku.iconSize`, and each outer step takes the size of its neighbor.
+	 */
+	checkSize: 'density-size-[4,5,6]',
 } as const

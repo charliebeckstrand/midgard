@@ -1,10 +1,9 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useEffect } from 'react'
-import { cn, createContext, toAmbientStep } from '../../core'
-import { headingWeight, titleSize } from '../../recipes/kata/heading'
+import { cn, createContext } from '../../core'
+import { headingWeight, titleRamp } from '../../recipes/kata/heading'
 import { k } from '../../recipes/kata/panel'
-import { useDensityStep } from '../density'
 import { PanelCloseContext, usePanelCloseValue } from './panel-close-context'
 
 /** Props for a panel `Title` slot (`<h2>`). */
@@ -136,16 +135,15 @@ export function createPanel(slotPrefix: string, slots?: PanelSlots) {
 
 	function Title({ className, id, ...props }: PanelTitleProps) {
 		const { titleId, registerTitle } = usePanelA11y()
-		const size = toAmbientStep(useDensityStep())
-
 		useEffect(() => registerTitle?.(id), [registerTitle, id])
 
 		return (
 			<h2
 				id={id ?? titleId}
 				data-slot={`${slotPrefix}-title`}
-				// Level-2 weight and density-scaled size come from the heading scale.
-				className={cn(titleClass, headingWeight(2), titleSize(size), className)}
+				// The weight of level 2 and the title size come from the heading scale. The
+				// size follows the nearest density scope.
+				className={cn(titleClass, headingWeight(2), titleRamp, className)}
 				{...props}
 			/>
 		)

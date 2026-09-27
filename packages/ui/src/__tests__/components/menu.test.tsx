@@ -478,7 +478,7 @@ describe('MenuContent', () => {
 		})
 
 		it('caps at the density height when opted in', () => {
-			expect(viewportFor(true)).toHaveClass('max-h-52')
+			expect(viewportFor(true)).toHaveClass('density-max-h-[48,52,56]')
 		})
 
 		it('keeps the scroll container either way, so a capped menu still reaches its end', () => {
@@ -525,7 +525,7 @@ describe('MenuContent', () => {
 			expect(panels.length).toBeGreaterThan(1)
 
 			for (const panel of panels) {
-				expect(panel.className).toMatch(/(^|\s)max-h-/)
+				expect(panel).toHaveClass('density-max-h-[48,52,56]')
 			}
 		})
 	})
@@ -1122,10 +1122,10 @@ describe('useMenuContext', () => {
 	})
 })
 
-describe('MenuItem density inheritance', () => {
-	// Padding/gap track the density axis (sm px-2.5, md px-3, lg px-3.5); text
-	// tracks the size axis (sm text-sm, md text-base, lg text-lg).
-	it('defaults to md padding and md text outside any provider', () => {
+describe('MenuItem density', () => {
+	// The row reads no context. Its padding, gap, and text are stepped classes,
+	// and the nearest `data-density` scope selects the step in CSS.
+	it('writes padding, gap, and text as stepped classes', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen>
 				<MenuContent>
@@ -1134,15 +1134,16 @@ describe('MenuItem density inheritance', () => {
 			</Menu>,
 		)
 
-		const cls = bySlot(container, 'menu-item')?.className ?? ''
-
-		expect(cls).toContain('py-1.5')
-
-		expect(cls).toContain('text-base')
+		expect(bySlot(container, 'menu-item')).toHaveClass(
+			'density-gap-[2,3,3]',
+			'density-px-[2.5,3,3.5]',
+			'density-py-[1,1.5,2.5]',
+			'density-text-[sm,base,lg]',
+		)
 	})
 
-	it('inherits a compact DensityProvider on both axes', () => {
-		const { container } = renderUI(
+	it('follows the scope of a compact DensityProvider through the portal', () => {
+		renderUI(
 			<DensityProvider density="compact">
 				<Menu defaultOpen>
 					<MenuContent>
@@ -1152,11 +1153,27 @@ describe('MenuItem density inheritance', () => {
 			</DensityProvider>,
 		)
 
-		const cls = bySlot(container, 'menu-item')?.className ?? ''
+		expect(
+			screen.getByRole('menuitem', { name: 'Item' }).closest('[data-density]'),
+		).toHaveAttribute('data-density', 'sm')
+	})
 
-		expect(cls).toContain('px-2.5')
+	it('gives a submenu the scope of its parent menu through the portal', () => {
+		renderUI(
+			<Menu defaultOpen size="lg">
+				<MenuContent>
+					<MenuSub label="More">
+						<MenuItem>Nested</MenuItem>
+					</MenuSub>
+				</MenuContent>
+			</Menu>,
+		)
 
-		expect(cls).toContain('text-sm')
+		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
+
+		expect(
+			screen.getByRole('menuitem', { name: 'Nested' }).closest('[data-density]'),
+		).toHaveAttribute('data-density', 'lg')
 	})
 })
 

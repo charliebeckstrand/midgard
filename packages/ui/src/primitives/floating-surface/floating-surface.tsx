@@ -15,6 +15,7 @@ import {
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
+import { useDensityNullable } from '../density'
 import { PresencePortal } from '../portal'
 
 /**
@@ -52,6 +53,10 @@ export type FloatingSurfaceProps = {
  * lifecycle, and the exit animation. Consumers render the animated inner
  * surface as `children`.
  *
+ * The portal takes the surface out of the DOM subtree of its density scope. So
+ * the wrapper writes the step of that scope as `data-density`, and the surface
+ * follows the scope of its trigger.
+ *
  * @remarks Passing `trapFocusContext` wraps the open surface in a modal
  * `FloatingFocusManager` that traps Tab. It cedes initial focus and close-time
  * restore to the consuming panel hook, which `trapFocusProps` overrides
@@ -71,6 +76,8 @@ export function FloatingSurface({
 	ref,
 	...rest
 }: FloatingSurfaceProps) {
+	const density = useDensityNullable()
+
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 
 	const setWrapper = useComposedRef<HTMLDivElement>(wrapperRef, setFloating, ref)
@@ -96,6 +103,7 @@ export function FloatingSurface({
 	const surface = (
 		<div
 			ref={setWrapper}
+			data-density={density ?? undefined}
 			style={style ? { ...floatingStyles, ...style } : floatingStyles}
 			className={cn(k.portal, className)}
 			// Routed through getFloatingProps so consumer handlers compose

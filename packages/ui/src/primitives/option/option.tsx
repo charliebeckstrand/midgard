@@ -2,10 +2,9 @@
 
 import { Check } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
-import { ariaAttr, cn, createContext, dataAttr, toAmbientStep } from '../../core'
+import { ariaAttr, cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, getOrCompute } from '../../utilities'
-import { useDensityStep } from '../density'
 
 /**
  * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
@@ -46,14 +45,14 @@ export type BaseOptionProps = {
 
 /**
  * Shared option row for select-like components: stamps `role="option"` with
- * `aria-selected`/`aria-disabled`, renders a Density-sized selected-state check
- * icon, and handles Enter/Space activation.
+ * `aria-selected`/`aria-disabled`, renders a selected-state check icon, and handles Enter/Space activation.
  *
  * @remarks
  * For active-descendant lists it mints a stable `id` and `preventDefault`s
  * mousedown to keep DOM focus on the owning input; an explicit `id` always
  * wins. With `commitOnTab`, an unselected option commits on Tab before the
- * keystroke leaves the widget. Reads ambient Density via `useDensity`. Memoized:
+ * keystroke leaves the widget. The row and its check icon follow the nearest
+ * density scope through stepped classes, and they read no context. Memoized:
  * with a stable `onSelect`, an option skips re-rendering when its own `selected`
  * state is unchanged. Committing a selection therefore re-renders only the rows
  * that actually changed, rather than every option in the list.
@@ -69,8 +68,6 @@ function BaseOptionImpl({
 	id,
 	...props
 }: BaseOptionProps) {
-	const size = toAmbientStep(useDensityStep())
-
 	const autoId = useId()
 
 	// Only mint an id for active-descendant lists; an explicit id always wins.
@@ -85,7 +82,7 @@ function BaseOptionImpl({
 			className={cn(
 				'relative hidden shrink-0 self-center group-data-selected/option:inline',
 				k.check,
-				k.checkSize[size],
+				k.checkSize,
 			)}
 		/>
 	)
@@ -112,7 +109,7 @@ function BaseOptionImpl({
 
 				if (event.key === 'Tab' && commitOnTab && !disabled && !selected) onSelect()
 			}}
-			className={cn(k.base, k.size[size])}
+			className={cn(k.base)}
 			{...props}
 		>
 			<span className={cn(k.content, className)}>{children}</span>
@@ -215,8 +212,8 @@ function isOptionSelected(
  * prefix and a hook that reads the host's selection
  * {@link OptionSelectionContext}. The generated `Option` and `Label` call it.
  *
- * `BaseOption` owns the selected-state check icon and sizes it from the
- * ambient Density.
+ * `BaseOption` owns the selected-state check icon. The icon takes its size
+ * from the nearest density scope.
  *
  * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
  * the host's `data-slot` prefix and selection hook.

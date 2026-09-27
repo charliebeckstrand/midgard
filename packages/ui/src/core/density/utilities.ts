@@ -41,6 +41,7 @@ const spacingProperties = {
 	'gap-y': ['row-gap'],
 	size: ['width', 'height'],
 	h: ['height'],
+	'max-h': ['max-height'],
 	w: ['width'],
 }
 

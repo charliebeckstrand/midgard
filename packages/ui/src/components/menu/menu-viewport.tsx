@@ -1,9 +1,7 @@
 'use client'
 
 import type { ReactNode, Ref } from 'react'
-import { toAmbientStep } from '../../core'
 import { useComposedRef, useScrollOverflow } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/menu'
 import { useMenuCapped } from './context'
 
@@ -19,7 +17,7 @@ type MenuViewportProps = {
 
 /**
  * The scrolling item region inside a menu panel. It owns the height policy, the
- * density axis, the edge fade, and the overflow watch, so neither call site
+ * edge fade, and the overflow watch, so neither call site
  * states them.
  *
  * @remarks
@@ -32,15 +30,12 @@ type MenuViewportProps = {
  * edge attributes cannot change. `browser/menu-scroll-overflow.test.tsx` pins
  * that invariant, and `__benchmarks__/browser/README.md` §Menus prices the gate.
  *
- * Density comes from the ambient token rather than a prop. {@link MenuContent}
- * renders this inside its own `Density`, and a submenu panel is a React child
- * of that provider, so both reach the same value.
+ * The height cap follows the nearest density scope. Each menu panel is a
+ * density scope, so the viewport reads no context.
  *
  * @internal
  */
 export function MenuViewport({ ref, children }: MenuViewportProps) {
-	const space = toAmbientStep(useDensityStep())
-
 	const capped = useMenuCapped()
 
 	const scrollOverflowRef = useScrollOverflow({ enabled: capped })
@@ -51,11 +46,7 @@ export function MenuViewport({ ref, children }: MenuViewportProps) {
 	const setViewport = useComposedRef<HTMLElement>(ref, scrollOverflowRef)
 
 	return (
-		<div
-			ref={setViewport}
-			data-slot="menu-viewport"
-			className={k.viewport({ density: space, capped })}
-		>
+		<div ref={setViewport} data-slot="menu-viewport" className={k.viewport({ capped })}>
 			{children}
 		</div>
 	)

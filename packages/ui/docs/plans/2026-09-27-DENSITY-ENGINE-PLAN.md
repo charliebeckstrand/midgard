@@ -25,6 +25,8 @@ The engine gives density one home, one vocabulary, one scope, and one resolver. 
 
    First batch: scope parity, then the field text. Many scopes opened the context alone: Control, Group, Drawer, Calendar, the Input and Textarea frames, and the popover, menu, listbox, combobox, date-picker, and color-picker panels. A static reader follows `data-density`, so those scopes now write it too. PopoverPanel takes a `density` prop, and the popover bodies use the one on Box. A parity check in `density-native-boundary.test.ts` holds it. Then Label, Description, and Message take `ji.textRamp` (`density-text-[sm,base,lg]`), lose their size axis and their hook, and join the gate.
 
+   Second batch: Option, the panel titles, CardTitle, List rows, and Menu rows. Their kata write stepped classes, and they read no context. `titleRamp` in the heading kata repeats `titleSize`. The Menu viewport cap is a stepped `density-max-h` utility. A portal took each panel out of the DOM subtree of its scope. Thus a Dialog, a Sheet, or a submenu in a compact region showed its static leaves at `md`. The root of Overlay and of FloatingSurface now writes the step of its context, and `browser/floating-ui/density-portal.test.tsx` holds it with the real portal. A stepped class and a plain class of one property now merge in `cn`, so the title ramp replaces the fixed size of the heading. Tooltip, Tabs, and Sidebar remain. Each has an explicit `size` that a context resolves, and each needs a scope design.
+
 ## Costs accepted
 
 - **Breaking change to `ui/primitives/density`.** `Density` takes `step` in place of `space`, `size`, and `scale`. No app used the removed API.
