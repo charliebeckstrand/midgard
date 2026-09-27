@@ -3,7 +3,7 @@
 import { type ComponentProps, type ReactNode, useCallback, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/collapse'
@@ -71,13 +71,11 @@ export function Collapse({
 	className,
 	...props
 }: CollapseProps) {
-	const [currentOpen, setCurrentOpen] = useControllable<boolean>({
+	const [open, setCurrentOpen] = useControllableFlag({
 		value: openProp,
 		defaultValue: defaultOpen,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		onValueChange: onOpenChange,
 	})
-
-	const open = currentOpen ?? false
 
 	const toggle = useCallback(() => setCurrentOpen(!open), [open, setCurrentOpen])
 

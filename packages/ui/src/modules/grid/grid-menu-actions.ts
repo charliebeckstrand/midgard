@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useMemo, useState } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllableFlag } from '../../hooks'
 import type { GridSortState } from './context'
 import { resolveToolSurfaces, SURFACES_OFF } from './engine/grid-tools'
 import type { GridWidthAction } from './grid-auto-size-confirm-dialog'
@@ -99,10 +99,10 @@ export function useGridMenuActions<T>({
 
 	const renderDialog = showButton || menuItemReachable || openBound
 
-	const [open, setOpen] = useControllable<boolean>({
+	const [open, setOpen] = useControllableFlag({
 		value: manager?.open,
-		defaultValue: manager?.defaultOpen ?? false,
-		onValueChange: (next) => manager?.onOpenChange?.(next ?? false),
+		defaultValue: manager?.defaultOpen,
+		onValueChange: manager?.onOpenChange,
 	})
 
 	// The menu sets a single-column sort, replacing any multi-column sort; Clear

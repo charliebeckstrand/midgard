@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
 import { useA11yPanel } from '../../hooks'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { panelAxis, usePanelResize } from '../../hooks/use-panel-resize'
@@ -157,10 +157,10 @@ export function Sheet({
 	'aria-label': ariaLabel,
 }: SheetProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
-	const [resolvedOpen = false, setOpen] = useControllable<boolean>({
+	const [resolvedOpen, setOpen] = useControllableFlag({
 		value: open,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		defaultValue: defaultOpen,
+		onValueChange: onOpenChange,
 	})
 
 	const resolvedSurface = useResolvedSurface(glass)

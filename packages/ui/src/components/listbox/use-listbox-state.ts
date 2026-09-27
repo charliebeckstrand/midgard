@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 
 type ListboxStateParams<T> = {
@@ -23,10 +23,9 @@ export function useListboxState<T>({
 	onOpenChange,
 	setValue,
 }: ListboxStateParams<T>) {
-	const [open = false, setOpen] = useControllable<boolean>({
+	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		defaultValue: false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		onValueChange: onOpenChange,
 	})
 
 	const close = useCallback(() => {

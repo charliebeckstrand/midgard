@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useRef } from 'react'
-import { useControllable } from '../../hooks'
+import { useControllableFlag } from '../../hooks'
 
 type DatePickerOpenOptions = {
 	open: boolean | undefined
@@ -26,10 +26,10 @@ export function useDatePickerOpen({
 	onOpenChange,
 	readOnly,
 }: DatePickerOpenOptions) {
-	const [open = false, setOpenInner] = useControllable<boolean>({
+	const [open, setOpenInner] = useControllableFlag({
 		value: openProp,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		defaultValue: defaultOpen,
+		onValueChange: onOpenChange,
 	})
 
 	const setOpen = useCallback(

@@ -26,7 +26,13 @@ export {
 } from './a11y'
 export { useAriaIds } from './use-aria-ids'
 export { useComposedRef } from './use-composed-ref'
-export { type ControllableOptions, type SetValue, useControllable } from './use-controllable'
+export {
+	type ControllableFlagOptions,
+	type ControllableOptions,
+	type SetValue,
+	useControllable,
+	useControllableFlag,
+} from './use-controllable'
 export { type DeferredToggleOptions, useDeferredToggle } from './use-deferred-toggle'
 export { type DismissableOptions, useDismissable } from './use-dismissable'
 export { type DragCursor, useDragCursor } from './use-drag-cursor'

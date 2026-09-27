@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useDeferredValue, useEffect, useRef, useState } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useDeferredToggle } from '../../hooks/use-deferred-toggle'
 import { useFrozenOnClose } from '../../hooks/use-frozen-on-close'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -56,10 +56,9 @@ export function useComboboxState<T>({
 
 	const deferredQuery = query === '' ? '' : deferredQueryInternal
 
-	const [open = false, setOpen] = useControllable<boolean>({
+	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		defaultValue: false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		onValueChange: onOpenChange,
 	})
 
 	const [editing, setEditing] = useState(false)

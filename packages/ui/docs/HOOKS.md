@@ -11,6 +11,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useControllable` | Manages controlled / uncontrolled value state with a unified setter. |
+| `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`: the value is never `undefined`, and a cleared flag reports `false`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
 | `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`; reports every transition to `onOpenChange`. |
@@ -103,6 +104,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |
 | `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, `Escape` to drop focus, and the virtual-item source. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
+| `ControllableFlagOptions` | Options for `useControllableFlag`: the controlled flag, the uncontrolled default (`false`), and the change report. |
 | `DeferredToggleOptions` | Options for `useDeferredToggle`. |
 | `DismissableOptions` | Options for `useDismissable`: the boundary, the dismiss report, and the enable gate. |
 | `EscapeLayerOptions` | Options for `useEscapeLayer`: where the layer sits in the stack and what a press does. |

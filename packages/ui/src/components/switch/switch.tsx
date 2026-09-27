@@ -2,7 +2,7 @@
 
 import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
-import { useComposedRef, useControllable } from '../../hooks'
+import { useComposedRef, useControllableFlag } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlToggle } from '../control/use-control-toggle'
 import { useFormToggle } from '../form/use-form-toggle'
@@ -42,9 +42,9 @@ export function Switch({
 
 	// `role="switch"` requires `aria-checked` to track the live value. Owning
 	// the state here keeps it in sync for controlled and uncontrolled usage.
-	const [on, setOn] = useControllable<boolean>({
+	const [on, setOn] = useControllableFlag({
 		value: resolvedChecked,
-		defaultValue: defaultChecked ?? false,
+		defaultValue: defaultChecked,
 	})
 
 	// React-control the input only when a `checked` prop or form binding drives it.
@@ -124,8 +124,8 @@ export function Switch({
 				name={name}
 				disabled={resolvedDisabled}
 				required={resolvedRequired}
-				{...(isControlled ? { checked: on ?? false } : { defaultChecked: defaultChecked ?? false })}
-				aria-checked={on ?? false}
+				{...(isControlled ? { checked: on } : { defaultChecked: defaultChecked ?? false })}
+				aria-checked={on}
 				onChange={handleChange}
 				aria-describedby={resolvedDescribedBy}
 				{...validation}

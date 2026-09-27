@@ -7,7 +7,7 @@ import type {
 	ReferenceType,
 } from '@floating-ui/react'
 import { type CSSProperties, type RefObject, useCallback, useRef } from 'react'
-import { useControllable } from './use-controllable'
+import { useControllableFlag } from './use-controllable'
 import {
 	type FloatingPanelOptions,
 	useFloatingDismissal,
@@ -90,10 +90,10 @@ export function useFloatingDisclosure({
 	dismissable = true,
 	...panelOptions
 }: FloatingDisclosureOptions): FloatingDisclosureResult {
-	const [open = false, setOpenInner] = useControllable<boolean>({
+	const [open, setOpenInner] = useControllableFlag({
 		value: openProp,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		defaultValue: defaultOpen,
+		onValueChange: onOpenChange,
 	})
 
 	// Deliberately still a render-phase shadow, where the package's sweep has

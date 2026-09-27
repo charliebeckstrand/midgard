@@ -1,6 +1,6 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllable, useControllableFlag } from '../../hooks/use-controllable'
 
 describe('useControllable', () => {
 	it('uses defaultValue for initial uncontrolled state', () => {
@@ -166,5 +166,47 @@ describe('useControllable', () => {
 		expect(onValueChange).toHaveBeenNthCalledWith(1, 11)
 
 		expect(onValueChange).toHaveBeenNthCalledWith(2, 12)
+	})
+})
+
+describe('useControllableFlag', () => {
+	it('starts false with no defaultValue', () => {
+		const { result } = renderHook(() => useControllableFlag({}))
+
+		expect(result.current[0]).toBe(false)
+	})
+
+	it('reads the controlled flag over the default', () => {
+		const { result } = renderHook(() => useControllableFlag({ value: false, defaultValue: true }))
+
+		expect(result.current[0]).toBe(false)
+	})
+
+	it('reads and reports a cleared flag as false', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllableFlag({ defaultValue: true, onValueChange }))
+
+		act(() => {
+			result.current[1](null)
+		})
+
+		expect(result.current[0]).toBe(false)
+
+		expect(onValueChange).toHaveBeenCalledWith(false)
+	})
+
+	it('toggles through a functional update', () => {
+		const onValueChange = vi.fn()
+
+		const { result } = renderHook(() => useControllableFlag({ onValueChange }))
+
+		act(() => {
+			result.current[1]((open) => !open)
+		})
+
+		expect(result.current[0]).toBe(true)
+
+		expect(onValueChange).toHaveBeenCalledWith(true)
 	})
 })

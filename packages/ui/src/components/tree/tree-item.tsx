@@ -1,7 +1,7 @@
 'use client'
 
 import { Children, type ReactElement, type ReactNode } from 'react'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { TreeItemChildren } from './tree-item-children'
 import { TreeItemContent } from './tree-item-content'
 
@@ -70,10 +70,10 @@ export function TreeItem({
 	children,
 	className,
 }: TreeItemProps) {
-	const [open = false, setOpen] = useControllable<boolean>({
+	const [open, setOpen] = useControllableFlag({
 		value: controlledOpen,
 		defaultValue: defaultOpen,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		onValueChange: onOpenChange,
 	})
 
 	// `Children.toArray` drops `null`/`undefined`/`false` and empty arrays, so a
