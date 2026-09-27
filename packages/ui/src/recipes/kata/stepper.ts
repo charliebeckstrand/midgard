@@ -13,15 +13,24 @@ const root = defineRecipe({
 	orientation: {
 		horizontal: 'flex-row items-start gap-4 px-4',
 		vertical: 'flex-col items-start gap-4 pr-4 py-4',
+		// Vertical below `sm`, horizontal from it. CSS picks the layout, so the first
+		// paint is already correct on a narrow viewport.
+		responsive: 'flex-col items-start gap-4 pr-4 py-4 sm:flex-row sm:pl-4 sm:py-0',
 	},
 	defaults: { orientation: 'horizontal' },
 })
+
+const verticalStep = [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor]
 
 const step = defineRecipe({
 	base: ['group relative text-start', 'outline-none', ...disabled, ...cursor],
 	orientation: {
 		horizontal: 'flex shrink-0 flex-col items-center w-32 gap-0.5 text-center',
-		vertical: [flex.row, 'w-full', 'gap-4 py-1 first:pt-0', ...border.subtleColor],
+		vertical: verticalStep,
+		responsive: [
+			...verticalStep,
+			'sm:shrink-0 sm:flex-col sm:w-32 sm:gap-0.5 sm:py-0 sm:text-center',
+		],
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -31,6 +40,7 @@ const title = defineRecipe({
 	orientation: {
 		horizontal: 'mt-2',
 		vertical: '',
+		responsive: 'sm:mt-2',
 	},
 	interactive: {
 		true: [
@@ -50,11 +60,14 @@ const title = defineRecipe({
 	defaults: { orientation: 'horizontal', interactive: false },
 })
 
+const horizontalRule = ['-mx-12 mt-2', flex.fill, 'self-start', 'border-t', ...border.defaultColor]
+
 const separator = defineRecipe({
 	base: 'shrink-0',
 	orientation: {
-		horizontal: ['-mx-12 mt-2', flex.fill, 'self-start', 'border-t', ...border.defaultColor],
+		horizontal: horizontalRule,
 		vertical: 'hidden',
+		responsive: ['max-sm:hidden', ...horizontalRule],
 	},
 	defaults: { orientation: 'horizontal' },
 })
@@ -64,7 +77,12 @@ export const k = {
 	step,
 	title,
 	separator,
-	content: 'flex flex-1 flex-col gap-1',
+	content: {
+		base: 'flex flex-1 flex-col gap-1',
+		// From `sm`, the column dissolves so the title and description sit in the
+		// horizontal step like its direct children.
+		responsive: 'sm:contents',
+	},
 	indicator: {
 		base: [
 			'relative',

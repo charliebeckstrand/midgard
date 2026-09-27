@@ -7,13 +7,19 @@ import type { Orientation } from '../../types'
 /** Layout axis of a {@link Stepper}'s step row: `horizontal` or `vertical`. */
 export type StepperOrientation = Orientation
 
+/**
+ * How the step row lays out: a fixed {@link StepperOrientation}, or `responsive`,
+ * where CSS makes it vertical below `sm` and horizontal from it.
+ */
+export type StepperLayout = StepperOrientation | 'responsive'
+
 /** A step's position relative to the stepper's current `value`: already passed, active, or not yet reached. */
 export type StepState = 'completed' | 'current' | 'upcoming'
 
 type StepperContextValue = {
 	value: number
 	onValueChange?: (value: number) => void
-	orientation: StepperOrientation
+	layout: StepperLayout
 	linear: boolean
 	/** Stable id base wiring each step button to its panel. */
 	baseId: string

@@ -16,14 +16,14 @@ export type StepperSeparatorProps = {
  * and `aria-hidden`, so it carries no semantics for assistive tech.
  */
 export function StepperSeparator({ className, ...props }: StepperSeparatorProps) {
-	const { orientation } = useStepper()
+	const { layout } = useStepper()
 
 	return (
 		<div
 			data-slot="stepper-separator"
 			role="presentation"
 			aria-hidden="true"
-			className={cn(k.separator({ orientation }), className)}
+			className={cn(k.separator({ orientation: layout }), className)}
 			{...props}
 		/>
 	)

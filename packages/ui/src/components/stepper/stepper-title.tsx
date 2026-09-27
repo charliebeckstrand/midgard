@@ -10,14 +10,14 @@ export type StepperTitleProps = ComponentProps<'span'>
 
 /** The primary label of a {@link StepperStep}. Picks up orientation- and interactivity-aware styling from stepper context. */
 export function StepperTitle({ className, ...props }: StepperTitleProps) {
-	const { orientation, onValueChange } = useStepper()
+	const { layout, onValueChange } = useStepper()
 
 	const interactive = onValueChange !== undefined
 
 	return (
 		<span
 			data-slot="stepper-title"
-			className={cn(k.title({ orientation, interactive }), className)}
+			className={cn(k.title({ orientation: layout, interactive }), className)}
 			{...props}
 		/>
 	)

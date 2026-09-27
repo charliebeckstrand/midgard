@@ -16,7 +16,7 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
-import { StepperContext, type StepperOrientation } from './context'
+import { StepperContext, type StepperLayout, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
 /** Props for {@link Stepper}: the controlled `value`, its `onValueChange` handler, `linear`/`orientation` modifiers, and step children. */
@@ -93,9 +93,11 @@ function partitionStepperChildren(children: ReactNode): {
  * by comparing its own index against `value`.
  *
  * @remarks
- * Client component (`'use client'`) — it tracks viewport width. `orientation`
- * defaults to `horizontal` on viewports >= 640px and `vertical` below, since a
- * horizontal row overflows narrow screens. When `onValueChange` is set, steps
+ * Client component (`'use client'`). Without `orientation`, the row is
+ * `vertical` below 640px and `horizontal` from it, since a horizontal row
+ * overflows narrow screens. CSS picks that layout, so the server render does
+ * not shift after hydration. The arrow-key axis and `aria-orientation` follow
+ * the viewport in JavaScript. When `onValueChange` is set, steps
  * render as buttons and the row is a single Tab stop with roving arrow-key
  * navigation; `linear` then disables upcoming steps. Compose `<StepperSkeleton>`
  * in loading trees.
@@ -122,9 +124,13 @@ export function Stepper({
 	// handler. A `value`-only stepper stays a display-only progress readout.
 	const interactive = onValueChange !== undefined || defaultValue !== undefined
 
+	// Without an explicit orientation, CSS picks the layout, so the server render
+	// and the first paint already match the viewport. Only the keyboard axis and
+	// `aria-orientation` read the viewport in JavaScript.
+	const layout: StepperLayout = orientation ?? 'responsive'
+
 	const isDesktop = useMinBreakpoint('sm')
 
-	// Defaults to vertical on mobile (horizontal overflows narrow viewports).
 	const resolvedOrientation: StepperOrientation =
 		orientation ?? (isDesktop ? 'horizontal' : 'vertical')
 
@@ -154,13 +160,13 @@ export function Stepper({
 		() => ({
 			value: current,
 			onValueChange: interactive ? setCurrent : undefined,
-			orientation: resolvedOrientation,
+			layout,
 			linear,
 			baseId,
 			hasPanels,
 			mount,
 		}),
-		[current, interactive, setCurrent, resolvedOrientation, linear, baseId, hasPanels, mount],
+		[current, interactive, setCurrent, layout, linear, baseId, hasPanels, mount],
 	)
 
 	const row = (
@@ -173,7 +179,7 @@ export function Stepper({
 			aria-label="Steps"
 			aria-orientation={resolvedOrientation}
 			onKeyDown={interactive ? handleKeyDown : undefined}
-			className={cn(k.root({ orientation: resolvedOrientation }), className)}
+			className={cn(k.root({ orientation: layout }), className)}
 		>
 			{rowChildren}
 		</div>
