@@ -76,6 +76,12 @@ export type PlacesMapProps = {
 	visitedRegions: PlaceVisitFilter | undefined
 	/** Fires when a region is picked, with the name its atlas gave it. */
 	onDrill: (region: string) => void
+	/**
+	 * Fires when the pointer or the keyboard cursor stays on a region, with the
+	 * name that its atlas gave it. The map drills into that region if the reader
+	 * picks it, so the caller can render that view first.
+	 */
+	onPreload?: (region: string) => void
 	/** The place whose panel is open; the map haloes the dot it drew into. */
 	selected: Place | null
 	/** Fires when a dot is picked, with every place the one dot stands for. */
@@ -101,6 +107,7 @@ export function PlacesMap({
 	visited,
 	visitedRegions,
 	onDrill,
+	onPreload,
 	selected,
 	onSelect,
 }: PlacesMapProps) {
@@ -313,6 +320,9 @@ export function PlacesMap({
 						// have to find out from a dead click that the map disagreed. The paint
 						// still says which regions hold places — it reports, and no longer gates.
 						onRegionClick={onDrill}
+						// The same regions that a click drills into. Inside a drill the layer
+						// answers nothing, so nothing preloads there either.
+						onRegionPreload={cut === null ? onPreload : undefined}
 					>
 						<MapPoints
 							id={MARK_ID}
