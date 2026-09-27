@@ -1,8 +1,7 @@
 'use client'
 
 import { type ComponentProps, useEffect } from 'react'
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/fieldset'
 import { useControl } from '../control/context'
 
@@ -19,8 +18,6 @@ export type DescriptionProps = {
 export function Description({ className, id, ...props }: DescriptionProps) {
 	const control = useControl()
 
-	const size = toAmbientStep(useDensityStep())
-
 	// Registers while mounted; the field's aria-describedby references this id
 	// only while the Description renders.
 	const registerDescription = control?.registerDescription
@@ -31,7 +28,7 @@ export function Description({ className, id, ...props }: DescriptionProps) {
 		<p
 			data-slot="description"
 			id={id ?? control?.descriptionId}
-			className={cn(k.description({ size }), className)}
+			className={cn(k.description(), className)}
 			{...props}
 		/>
 	)

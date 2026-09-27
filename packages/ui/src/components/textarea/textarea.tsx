@@ -146,6 +146,7 @@ export function Textarea({
 	return (
 		<Density step={size}>
 			<ControlFrame
+				data-density={size}
 				className={cn(
 					hasActions && k.frame,
 					hasActions && k.stack,

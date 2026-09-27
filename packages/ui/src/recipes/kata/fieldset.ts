@@ -1,11 +1,12 @@
 /**
  * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
- * primitives. Size-axed sub-recipes carry `legend`, `label`, and `description`;
- * `message` adds an error/warning/success severity axis. The `base` and `field`
+ * primitives. `label`, `description`, and `message` take the text step of
+ * their nearest density scope through `textRamp`; `message` adds an
+ * error/warning/success severity axis. `legend` holds a fixed size axis. The `base` and `field`
  * slots are static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, stepSize } from '../kiso'
+import { hannou, iro, ji, narabi, stepSize, textRamp } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -19,27 +20,23 @@ const label = defineRecipe({
 		'[[data-slot=field][data-disabled]_&]:cursor-not-allowed',
 		'[[data-slot=control][data-disabled]_&]:cursor-not-allowed',
 		text.default,
+		textRamp,
 		...disabled,
 	],
-	size: stepSize,
-	defaults: { size: 'md' },
 })
 
 const description = defineRecipe({
-	base: [text.muted, ...disabled],
-	size: stepSize,
-	defaults: { size: 'md' },
+	base: [text.muted, textRamp, ...disabled],
 })
 
 const message = defineRecipe({
-	base: [...disabled],
-	size: stepSize,
+	base: [textRamp, ...disabled],
 	severity: {
 		error: text.error,
 		warning: text.warning,
 		success: text.success,
 	},
-	defaults: { size: 'md', severity: 'error' },
+	defaults: { severity: 'error' },
 })
 
 const legend = defineRecipe({

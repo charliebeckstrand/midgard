@@ -9,8 +9,10 @@ import {
 	useRef,
 } from 'react'
 import { cn, composeEventHandlers, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
+import { Density } from '../density'
 import { ReducedMotion } from '../reduced-motion'
 
 /**
@@ -34,6 +36,7 @@ export function PopoverPanel({
 	trapTab = false,
 	glass = false,
 	multiselectable,
+	density,
 	'aria-label': ariaLabel,
 	'aria-labelledby': ariaLabelledby,
 	onKeyDown: onKeyDownProp,
@@ -87,6 +90,12 @@ export function PopoverPanel({
 	glass?: boolean
 	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
 	multiselectable?: boolean
+	/**
+	 * Makes the panel a density scope at this step: it writes `data-density`
+	 * and opens the density context around the rows. A portaled panel is not in
+	 * the DOM subtree of its trigger, so it opens its own scope.
+	 */
+	density?: DensityStep
 	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */
 	'aria-label'?: string
 	'aria-labelledby'?: string
@@ -130,6 +139,7 @@ export function PopoverPanel({
 				// Half the marker `hannou.glassItem` keys on; the `group/glass` class
 				// below is the other half. See `recipes/kiso/hannou/glass-item.ts`.
 				data-glass={dataAttr(glass)}
+				data-density={density}
 				role={role}
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
@@ -149,7 +159,7 @@ export function PopoverPanel({
 					className,
 				)}
 			>
-				{children}
+				<Density step={density}>{children}</Density>
 			</motion.div>
 		</ReducedMotion>
 	)

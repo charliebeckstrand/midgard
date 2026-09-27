@@ -266,6 +266,7 @@ export function Drawer({
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-size={resolvedSize}
+				data-density={resolvedSize}
 				data-height={height ?? 'auto'}
 				// Opens the glass cascade to the panel's contents: `hannou.glassItem`
 				// keys on `group-data-[glass]/glass`, which needs the named group and

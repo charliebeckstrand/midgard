@@ -2,7 +2,6 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { PopoverPanel } from '../../primitives/popover'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -54,22 +53,21 @@ export function MenuContent({
 
 	if (isStatic) {
 		return (
-			<Density step={size}>
-				<PopoverPanel
-					role="menu"
-					aria-label={ariaLabel}
-					aria-labelledby={ariaLabelledby}
-					itemSelector={MENUITEM_SELECTOR}
-					typeahead
-					glass={glass}
-					// A static menu is part of the page, not a transient overlay;
-					// `autoFocus={false}` keeps it from grabbing focus on mount.
-					autoFocus={false}
-					className={cn(k.content, className)}
-				>
-					{viewport}
-				</PopoverPanel>
-			</Density>
+			<PopoverPanel
+				density={size}
+				role="menu"
+				aria-label={ariaLabel}
+				aria-labelledby={ariaLabelledby}
+				itemSelector={MENUITEM_SELECTOR}
+				typeahead
+				glass={glass}
+				// A static menu is part of the page, not a transient overlay;
+				// `autoFocus={false}` keeps it from grabbing focus on mount.
+				autoFocus={false}
+				className={cn(k.content, className)}
+			>
+				{viewport}
+			</PopoverPanel>
 		)
 	}
 
@@ -80,35 +78,34 @@ export function MenuContent({
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
 		>
-			<Density step={size}>
-				<PopoverPanel
-					id={menuId}
-					role="menu"
-					itemSelector={MENUITEM_SELECTOR}
-					// A dropdown keeps focus on its trigger while open; opening never
-					// pulls focus into the panel. Seating focus on the portaled,
-					// animating panel is the path that drops to `<body>` on open in a
-					// real browser — leaving it on the trigger sidesteps that, and Tab
-					// off the trigger closes the menu (see MenuTrigger). A right-click
-					// context menu has no persistent trigger to hold focus, so it still
-					// pulls focus into the panel for keyboard navigation.
-					autoFocus={!isDropdown}
-					// Tab is held inside the panel wherever focus lives in it (a
-					// right-click context menu): the menu is left by dismissing it, and
-					// Tab walking off into the page behind an open overlay strands the
-					// user outside a surface still on screen. A dropdown is exempt — its
-					// focus stays on the trigger, where Tab out is the documented close.
-					trapTab={!isDropdown}
-					typeahead
-					glass={glass}
-					className={cn('relative', k.content, className)}
-					onKeyDown={(event) => {
-						if (event.key === 'Escape') close()
-					}}
-				>
-					{viewport}
-				</PopoverPanel>
-			</Density>
+			<PopoverPanel
+				density={size}
+				id={menuId}
+				role="menu"
+				itemSelector={MENUITEM_SELECTOR}
+				// A dropdown keeps focus on its trigger while open; opening never
+				// pulls focus into the panel. Seating focus on the portaled,
+				// animating panel is the path that drops to `<body>` on open in a
+				// real browser — leaving it on the trigger sidesteps that, and Tab
+				// off the trigger closes the menu (see MenuTrigger). A right-click
+				// context menu has no persistent trigger to hold focus, so it still
+				// pulls focus into the panel for keyboard navigation.
+				autoFocus={!isDropdown}
+				// Tab is held inside the panel wherever focus lives in it (a
+				// right-click context menu): the menu is left by dismissing it, and
+				// Tab walking off into the page behind an open overlay strands the
+				// user outside a surface still on screen. A dropdown is exempt — its
+				// focus stays on the trigger, where Tab out is the documented close.
+				trapTab={!isDropdown}
+				typeahead
+				glass={glass}
+				className={cn('relative', k.content, className)}
+				onKeyDown={(event) => {
+					if (event.key === 'Escape') close()
+				}}
+			>
+				{viewport}
+			</PopoverPanel>
 		</FloatingSurface>
 	)
 }

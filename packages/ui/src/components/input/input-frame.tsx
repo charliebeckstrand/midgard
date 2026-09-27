@@ -49,6 +49,7 @@ export function InputFrame({
 	return (
 		<Density step={scope}>
 			<ControlFrame
+				data-density={scope}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}
 				className={cn(k.inputControl({ variant }), hasAffix && k.frame)}

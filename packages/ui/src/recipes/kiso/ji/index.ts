@@ -9,7 +9,7 @@ import { leading } from './leading'
 import { size } from './size'
 import { weight } from './weight'
 
-export { stepSize } from './size'
+export { stepSize, textRamp } from './size'
 
 export const ji = {
 	size,

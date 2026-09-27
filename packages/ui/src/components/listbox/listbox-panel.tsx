@@ -9,7 +9,6 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { PresencePortal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
@@ -94,20 +93,19 @@ export function ListboxPanel({
 					tabIndex={-1}
 					{...getFloatingProps({ onKeyDown: onTabOut })}
 				>
-					<Density step={size}>
-						<PopoverPanel
-							id={id}
-							role="listbox"
-							aria-label={ariaLabel}
-							aria-labelledby={ariaLabelledby}
-							multiselectable={multiple || undefined}
-							typeahead
-							glass={glass}
-							className={cn(k.panel, k.options)}
-						>
-							{children}
-						</PopoverPanel>
-					</Density>
+					<PopoverPanel
+						density={size}
+						id={id}
+						role="listbox"
+						aria-label={ariaLabel}
+						aria-labelledby={ariaLabelledby}
+						multiselectable={multiple || undefined}
+						typeahead
+						glass={glass}
+						className={cn(k.panel, k.options)}
+					>
+						{children}
+					</PopoverPanel>
 				</div>
 			</FloatingFocusManager>
 		</PresencePortal>
