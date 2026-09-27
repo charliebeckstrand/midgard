@@ -1,4 +1,4 @@
-export { bifrost } from './fetch'
+export { bifrost, type ReadGatewayOptions, readGateway } from './fetch'
 export {
 	getSession,
 	type Role,

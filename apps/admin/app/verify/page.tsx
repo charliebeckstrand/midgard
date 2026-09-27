@@ -1,4 +1,4 @@
-import { bifrost, requireSession } from 'auth'
+import { readGateway, requireSession } from 'auth'
 import { redirect } from 'next/navigation'
 import { type SecondFactors, secondFactorMethods, VerifyPage } from 'shared/auth'
 
@@ -16,9 +16,9 @@ export default async function Verify() {
 
 	if (session.two_step) redirect('/')
 
-	const res = await bifrost('/auth/mfa')
+	const factors = await readGateway<SecondFactors>('/auth/mfa')
 
-	const methods = res.ok ? secondFactorMethods((await res.json()) as SecondFactors) : []
+	const methods = factors ? secondFactorMethods(factors) : []
 
 	if (methods.length === 0) redirect('/account')
 

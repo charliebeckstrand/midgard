@@ -1,24 +1,27 @@
 'use client'
 
 import { useState } from 'react'
-import { ensureSecondStep } from 'shared/auth'
+import {
+	ensureSecondStep,
+	oauthStartPath,
+	type SignInProvider,
+	signInProviderNames,
+} from 'shared/auth'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import type { Identity, Provider } from './account-api'
+import type { Identity } from './account-api'
 import { useIdentities, useUnlinkIdentity } from './account-queries'
 
 type ConnectedAccountsProps = {
 	/** The providers that the gateway has set up. */
-	providers: Provider[]
+	providers: SignInProvider[]
 	identities: Identity[]
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }
-
-const providerNames: Record<Provider, string> = { github: 'GitHub', google: 'Google' }
 
 /** The messages of the `?error=` codes that a connect comes back with. */
 const connectErrors: Record<string, string> = {
@@ -48,11 +51,11 @@ export function ConnectedAccounts({
 }: ConnectedAccountsProps) {
 	const { data: identities } = useIdentities(initialIdentities)
 	const unlink = useUnlinkIdentity()
-	const [unlinking, setUnlinking] = useState<Provider | null>(null)
+	const [unlinking, setUnlinking] = useState<SignInProvider | null>(null)
 
 	// A provider that the gateway turned off still shows while an account of it is connected.
 	const shown = [
-		...new Set<Provider>([...providers, ...identities.map((identity) => identity.provider)]),
+		...new Set<SignInProvider>([...providers, ...identities.map((identity) => identity.provider)]),
 	]
 
 	if (shown.length === 0) return null
@@ -73,7 +76,7 @@ export function ConnectedAccounts({
 				return (
 					<div key={provider} className="flex items-center justify-between gap-2">
 						<div>
-							<Text className="font-medium">{providerNames[provider]}</Text>
+							<Text className="font-medium">{signInProviderNames[provider]}</Text>
 							<Text>{identity ? (identity.email ?? 'Connected') : 'Not connected'}</Text>
 						</div>
 						{identity ? (
@@ -92,7 +95,9 @@ export function ConnectedAccounts({
 								onClick={async () => {
 									if (!(await ensureSecondStep())) return
 
-									window.location.assign(`/auth/oauth/${provider}/start?link=1&return_to=/account`)
+									window.location.assign(
+										oauthStartPath(provider, { link: true, returnTo: '/account' }),
+									)
 								}}
 							>
 								Connect
@@ -110,7 +115,7 @@ export function ConnectedAccounts({
 
 					setUnlinking(null)
 				}}
-				title={`Disconnect ${unlinking ? providerNames[unlinking] : ''}?`}
+				title={`Disconnect ${unlinking ? signInProviderNames[unlinking] : ''}?`}
 				description="You cannot sign in with this account after you disconnect it."
 				confirm={{ label: 'Disconnect', color: 'red' }}
 			/>

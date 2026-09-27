@@ -11,6 +11,8 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Text } from 'ui/text'
+import { postJson, readError } from '../http'
+import { signOut } from './account'
 import { chain, required } from './form-validators'
 import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
 import { useLeaving } from './use-leaving'
@@ -63,20 +65,14 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 	async function submit(proof: SecondFactorProof) {
 		try {
-			const res = await fetch('/auth/session/verify', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(proof),
-			})
+			const res = await postJson('/auth/session/verify', proof)
 
 			// The form stays disabled until the next page or the closed dialog replaces it.
 			if (res.ok) return leave(onVerified)
 
 			if (res.status === 410) return leave(onExpired)
 
-			const data = await res.json().catch(() => null)
-
-			setError(data?.message || 'That code was not accepted. Please try again.')
+			setError(await readError(res, 'That code was not accepted. Please try again.'))
 		} catch {
 			setError('An unexpected error occurred. Please try again later.')
 		}
@@ -92,9 +88,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 			const options = await fetch('/auth/session/verify/options', { method: 'POST' })
 
 			if (!options.ok) {
-				const data = await options.json().catch(() => null)
-
-				setError(data?.message || passkeyFailed)
+				setError(await readError(options, passkeyFailed))
 
 				return
 			}
@@ -192,12 +186,6 @@ type VerifyPageProps = {
  */
 export function VerifyPage({ methods }: VerifyPageProps) {
 	const router = useRouter()
-
-	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
-
-		router.replace('/login')
-	}
 
 	return (
 		<AuthLayout>

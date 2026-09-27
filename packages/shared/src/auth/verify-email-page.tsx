@@ -7,11 +7,8 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-
-type VerifyEmailPageProps = {
-	/** The token from the `?token=` of the emailed link. */
-	token: string
-}
+import { postJson, readError } from '../http'
+import { linkToken } from './link-token'
 
 /**
  * Page that verifies an email: posts the token of the emailed link to
@@ -21,8 +18,11 @@ type VerifyEmailPageProps = {
  * The page needs a click and does not verify when it opens. Thus a mail scanner
  * that opens the link does not use it. The page works with and without a
  * session, because the user can open the link on a different device.
+ *
+ * The page reads the token from the `?token=` of the link on the click, so Next
+ * prerenders all of the page.
  */
-export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
+export function VerifyEmailPage() {
 	const [state, setState] = useState<'idle' | 'pending' | 'verified'>('idle')
 
 	const [serverError, setServerError] = useState('')
@@ -33,11 +33,7 @@ export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
 		setServerError('')
 
 		try {
-			const res = await fetch('/auth/verify-email/confirm', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token }),
-			})
+			const res = await postJson('/auth/verify-email/confirm', { token: linkToken() })
 
 			if (res.ok) {
 				setState('verified')
@@ -45,9 +41,7 @@ export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
 				return
 			}
 
-			const data = await res.json()
-
-			setServerError(data.message || 'The email was not verified. Please try again.')
+			setServerError(await readError(res, 'The email was not verified. Please try again.'))
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}

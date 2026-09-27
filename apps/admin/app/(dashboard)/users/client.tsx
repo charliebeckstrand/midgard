@@ -8,6 +8,7 @@ import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
+import { Text } from 'ui/text'
 import { useSetUserActive, useUsers } from './users-queries'
 
 type UsersClientProps = {
@@ -23,11 +24,12 @@ const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle:
  * The server page seeds the `useUsers` query. An admin changes only the status
  * of an account, and never its credentials. The gateway refuses a change to an
  * admin account, so the action of an admin row is disabled. A deactivation
- * signs the user out on each device, so it asks for confirmation first.
+ * signs the user out on each device, so it asks for confirmation first. When
+ * the gateway refuses a change, the page shows its message.
  */
 export function UsersClient({ users: initialUsers }: UsersClientProps) {
 	const { data: users } = useUsers(initialUsers)
-	const { mutate: setActive, isPending: saving } = useSetUserActive()
+	const { mutate: setActive, isPending: saving, error } = useSetUserActive()
 	const [deactivating, setDeactivating] = useState<User | null>(null)
 
 	return (
@@ -35,6 +37,8 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 			<div>
 				<Heading>Users</Heading>
 			</div>
+
+			{error && <Text tone="error">{error.message}</Text>}
 
 			<Table>
 				<TableHead>

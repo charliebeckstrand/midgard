@@ -1,3 +1,4 @@
+import { createRequest } from 'shared/http'
 import type { MapTopology } from 'ui/modules/map'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
 
@@ -7,59 +8,18 @@ import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
  * replaces the app's data source.
  */
 
-/** What a route answers with when it rejects a body. */
-type IssuesResponse = { issues?: unknown }
-
-/** Reads the reasons a request failed, for a message the reader can act on. */
-async function failureText(response: Response): Promise<string> {
-	try {
-		const body = (await response.json()) as IssuesResponse
-
-		if (Array.isArray(body.issues)) return body.issues.map(String).join(' ')
-	} catch {
-		// A non-JSON error body says nothing useful; the status does.
-	}
-
-	return `Request failed: ${response.status}`
-}
-
 /**
- * The error for a failed request. A `401` means that the session ended, so the
- * page also goes to `/login`.
+ * The checked requests of the app. A `401` means that the session ended, so the
+ * page also goes to `/login`. A refused body's `issues` become the message of
+ * the error.
  */
-async function failure(response: Response): Promise<Error> {
-	if (response.status === 401) window.location.assign('/login')
-
-	return new Error(await failureText(response))
-}
-
-/**
- * One same-origin request, checked and parsed.
- *
- * Every call below goes through it, so the ok-check happens once rather than
- * seven times — an unchecked response is the failure that shows up as a parse
- * error three layers away, and the seventh copy is the one that forgets.
- */
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	const response = await fetch(path, init)
-
-	if (!response.ok) throw await failure(response)
-
-	return (await response.json()) as T
-}
-
-/** The same, for a request that writes JSON and reads the stored record back. */
-function send<T>(path: string, method: string, body: unknown): Promise<T> {
-	return request<T>(path, {
-		method,
-		headers: { 'content-type': 'application/json' },
-		body: JSON.stringify(body),
-	})
-}
+const { request, json, send } = createRequest({
+	onUnauthorized: () => window.location.assign('/login'),
+})
 
 /** Every stored place, newest visit first. */
 export function fetchPlaces(signal?: AbortSignal): Promise<Place[]> {
-	return request<Place[]>('/api/places', { signal })
+	return json<Place[]>('/api/places', { signal })
 }
 
 /** Adds one place and hands back the stored record, identity and all. */
@@ -75,14 +35,12 @@ export function savePlace(id: string, draft: PlaceDraft): Promise<Place> {
 /** Removes one place. */
 export async function deletePlace(id: string): Promise<void> {
 	// The route answers 204, which carries no body to parse.
-	const response = await fetch(`/api/places/${encodeURIComponent(id)}`, { method: 'DELETE' })
-
-	if (!response.ok) throw await failure(response)
+	await request(`/api/places/${encodeURIComponent(id)}`, { method: 'DELETE' })
 }
 
 /** Every visited region, by the name its own atlas gives it. */
 export function fetchVisits(signal?: AbortSignal): Promise<Visits> {
-	return request<Visits>('/api/visits', { signal })
+	return json<Visits>('/api/visits', { signal })
 }
 
 /** Marks one region visited or not, and hands back both scopes. */
@@ -98,5 +56,5 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
  * object to decode out of what comes back.
  */
 export function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
-	return request<MapTopology>(`/api/atlas/${scope}`, { signal })
+	return json<MapTopology>(`/api/atlas/${scope}`, { signal })
 }

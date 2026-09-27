@@ -1,6 +1,5 @@
-import { unstable_rethrow } from 'next/navigation'
 import { cache } from 'react'
-import { bifrost } from './fetch'
+import { readGateway } from './fetch'
 
 /** A provider that a user can sign in with, as the gateway names it. */
 export type SignInProvider = 'github' | 'google'
@@ -16,22 +15,7 @@ export type SignInProvider = 'github' | 'google'
  * gateway once.
  */
 export const getSignInProviders = cache(async (): Promise<SignInProvider[]> => {
-	try {
-		const res = await bifrost('/auth/oauth/providers')
+	const body = await readGateway<{ providers: SignInProvider[] }>('/auth/oauth/providers')
 
-		if (res.ok) {
-			const { providers } = (await res.json()) as { providers: SignInProvider[] }
-
-			return providers
-		}
-
-		console.error(`auth: GET /auth/oauth/providers failed (${res.status})`)
-	} catch (error) {
-		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
-		unstable_rethrow(error)
-
-		console.error('auth: GET /auth/oauth/providers threw', error)
-	}
-
-	return []
+	return body?.providers ?? []
 })

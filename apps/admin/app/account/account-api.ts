@@ -1,5 +1,6 @@
 import { startRegistration } from '@simplewebauthn/browser'
-import { fetchWithSecondStep } from 'shared/auth'
+import { fetchWithSecondStep, type SignInProvider } from 'shared/auth'
+import { createRequest } from 'shared/http'
 
 /**
  * The requests that the account page sends from the client. Each goes to a
@@ -13,40 +14,16 @@ export type Passkey = {
 }
 
 /**
- * Sends one same-origin request and checks its status.
- *
- * When the gateway asks for the second step, the dialog of the app asks the
- * user for it, and the request goes again. A query or a mutation reads a
- * thrown error as a failure. On a non-OK
- * response, the error holds the message of the gateway, such as "Sign in again
- * to change how you sign in", so that the page can show it.
+ * The checked requests. When the gateway asks for the second step, the dialog
+ * of the app asks the user for it, and the request goes again. The error of a
+ * refused request holds the gateway's message, such as "Sign in again to
+ * change how you sign in", so that the page can show it.
  */
-async function request(path: string, init?: RequestInit): Promise<Response> {
-	const response = await fetchWithSecondStep(path, init)
-
-	if (!response.ok) {
-		const body = (await response.json().catch(() => null)) as { message?: string } | null
-
-		throw new Error(body?.message ?? `${init?.method ?? 'GET'} ${path} failed: ${response.status}`)
-	}
-
-	return response
-}
-
-/**
- * Emails the signed-in user a new link that verifies the email.
- *
- * The gateway sends one link each minute at most, and refuses another with a `429`.
- */
-export async function sendVerificationEmail(): Promise<void> {
-	await request('/auth/verify-email', { method: 'POST' })
-}
+const { request, json, send } = createRequest({ fetch: fetchWithSecondStep })
 
 /** The passkeys of the signed-in user. */
 export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
-	const response = await request('/auth/passkeys', { signal })
-
-	const { data } = (await response.json()) as { data: Passkey[] }
+	const { data } = await json<{ data: Passkey[] }>('/auth/passkeys', { signal })
 
 	return data
 }
@@ -63,13 +40,7 @@ export async function addPasskey(): Promise<Passkey> {
 
 	const credential = await startRegistration({ optionsJSON: await options.json() })
 
-	const response = await request('/auth/passkeys', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(credential),
-	})
-
-	return (await response.json()) as Passkey
+	return send<Passkey>('/auth/passkeys', 'POST', credential)
 }
 
 /**
@@ -99,29 +70,21 @@ export type TotpSetup = {
 }
 
 /** The second factors of the signed-in user. */
-export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
-	const response = await request('/auth/mfa', { signal })
-
-	return (await response.json()) as Factors
+export function fetchFactors(signal?: AbortSignal): Promise<Factors> {
+	return json<Factors>('/auth/mfa', { signal })
 }
 
 /**
  * Starts adding an authenticator app. The app stays off until
  * {@link confirmTotp} sends a code from it.
  */
-export async function startTotpSetup(): Promise<TotpSetup> {
-	const response = await request('/auth/mfa/totp/setup', { method: 'POST' })
-
-	return (await response.json()) as TotpSetup
+export function startTotpSetup(): Promise<TotpSetup> {
+	return json<TotpSetup>('/auth/mfa/totp/setup', { method: 'POST' })
 }
 
 /** Turns on the authenticator app with a code that it shows now. */
 export async function confirmTotp(code: string): Promise<void> {
-	await request('/auth/mfa/totp', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ code }),
-	})
+	await send('/auth/mfa/totp', 'POST', { code })
 }
 
 /**
@@ -135,19 +98,16 @@ export async function removeTotp(): Promise<void> {
 
 /** Replaces the recovery codes, and returns the new ones. The gateway shows them only this once. */
 export async function generateRecoveryCodes(): Promise<string[]> {
-	const response = await request('/auth/mfa/recovery-codes', { method: 'POST' })
-
-	const { codes } = (await response.json()) as { codes: string[] }
+	const { codes } = await json<{ codes: string[] }>('/auth/mfa/recovery-codes', {
+		method: 'POST',
+	})
 
 	return codes
 }
 
-/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
-export type Provider = 'github' | 'google'
-
 /** A GitHub or Google account connected to the signed-in user. */
 export type Identity = {
-	provider: Provider
+	provider: SignInProvider
 	/** The verified email of the account, or null when it has none. */
 	email: string | null
 	created_at: string
@@ -155,9 +115,9 @@ export type Identity = {
 
 /** The GitHub and Google accounts connected to the signed-in user. */
 export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]> {
-	const response = await request('/auth/oauth/identities', { signal })
-
-	const { identities } = (await response.json()) as { identities: Identity[] }
+	const { identities } = await json<{ identities: Identity[] }>('/auth/oauth/identities', {
+		signal,
+	})
 
 	return identities
 }
@@ -168,6 +128,6 @@ export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]>
  * The gateway refuses with a `409` when the user then has no way to sign in: no
  * password, no other connected account, and no passkey.
  */
-export async function unlinkIdentity(provider: Provider): Promise<void> {
+export async function unlinkIdentity(provider: SignInProvider): Promise<void> {
 	await request(`/auth/oauth/identities/${provider}`, { method: 'DELETE' })
 }

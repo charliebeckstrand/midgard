@@ -1,44 +1,22 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import NextLink from 'next/link'
-import { type ReactNode, useState } from 'react'
+import type { ReactNode } from 'react'
 import { SecondStepDialog } from 'shared/auth'
-import { AppearanceProvider } from 'ui/providers/appearance'
-import { UIProvider } from 'ui/providers/ui'
+import { AppProviders } from 'shared/providers'
 
 /**
- * App-wide client providers: `UIProvider` wired to Next's `Link`,
- * `AppearanceProvider` for the persisted theme and density, one
- * `QueryClient` for the whole app, and the `SecondStepDialog` that asks for the
- * second step when a request needs it.
+ * App-wide client providers: `AppProviders` from `shared`, and the
+ * `SecondStepDialog` that asks for the second step when a request needs it.
  *
- * @remarks Top-level context per CONVENTIONS.md §6.1; rendered from the root
- * layout. The client is built in state rather than at module scope, so a render
- * on the server never shares a cache between requests.
+ * @remarks Rendered from the root layout.
  */
 export function Providers({ children }: { children: ReactNode }) {
-	const [client] = useState(
-		() =>
-			new QueryClient({
-				defaultOptions: {
-					queries: {
-						// A server page gives each list to its query as `initialData`. With
-						// no stale time, the client fetches the same list again at hydration.
-						staleTime: 30_000,
-					},
-				},
-			}),
-	)
-
 	return (
-		<QueryClientProvider client={client}>
-			<UIProvider link={NextLink}>
-				<AppearanceProvider>
-					{children}
-					<SecondStepDialog />
-				</AppearanceProvider>
-			</UIProvider>
-		</QueryClientProvider>
+		// A server page gives each list to its query as `initialData`. With no
+		// stale time, the client fetches the same list again at hydration.
+		<AppProviders queries={{ staleTime: 30_000 }}>
+			{children}
+			<SecondStepDialog />
+		</AppProviders>
 	)
 }

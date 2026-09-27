@@ -1,4 +1,4 @@
-import { bifrost, getSignInProviders, requireSession } from 'auth'
+import { getSignInProviders, readGateway, requireSession } from 'auth'
 import type { Activity } from '@/components/activity-table'
 import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
@@ -7,16 +7,10 @@ import { AccountClient } from './client'
  * Fetches the passkeys of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The passkey list, or `[]` on a non-OK response.
+ * @returns The passkey list, or `[]` on a failure, which goes to the log.
  */
 async function getPasskeys(): Promise<Passkey[]> {
-	const res = await bifrost('/auth/passkeys')
-
-	if (!res.ok) return []
-
-	const { data } = (await res.json()) as { data: Passkey[] }
-
-	return data
+	return (await readGateway<{ data: Passkey[] }>('/auth/passkeys'))?.data ?? []
 }
 
 const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
@@ -25,14 +19,10 @@ const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_
  * Fetches the second factors of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The factors, or none on a non-OK response.
+ * @returns The factors, or none on a failure, which goes to the log.
  */
 async function getFactors(): Promise<Factors> {
-	const res = await bifrost('/auth/mfa')
-
-	if (!res.ok) return noFactors
-
-	return (await res.json()) as Factors
+	return (await readGateway<Factors>('/auth/mfa')) ?? noFactors
 }
 
 /**
@@ -40,32 +30,20 @@ async function getFactors(): Promise<Factors> {
  * gateway, server-side.
  *
  * @internal
- * @returns The accounts, or `[]` on a non-OK response.
+ * @returns The accounts, or `[]` on a failure, which goes to the log.
  */
 async function getIdentities(): Promise<Identity[]> {
-	const res = await bifrost('/auth/oauth/identities')
-
-	if (!res.ok) return []
-
-	const { identities } = (await res.json()) as { identities: Identity[] }
-
-	return identities
+	return (await readGateway<{ identities: Identity[] }>('/auth/oauth/identities'))?.identities ?? []
 }
 
 /**
  * Fetches the recent activity of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The events, newest first, or `[]` on a non-OK response.
+ * @returns The events, newest first, or `[]` on a failure, which goes to the log.
  */
 async function getActivity(): Promise<Activity[]> {
-	const res = await bifrost('/auth/activity')
-
-	if (!res.ok) return []
-
-	const { data } = (await res.json()) as { data: Activity[] }
-
-	return data
+	return (await readGateway<{ data: Activity[] }>('/auth/activity'))?.data ?? []
 }
 
 /**

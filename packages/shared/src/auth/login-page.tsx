@@ -12,15 +12,14 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
+import { postJson, readError } from '../http'
+import { oauthStartPath, type SignInProvider, signInProviderNames } from './account'
 import { chain, email, required } from './form-validators'
 import { useLeaving } from './use-leaving'
 
 type LoginValues = { email: string; password: string }
 
-/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
-export type SignInProvider = 'github' | 'google'
-
-const providerNames: Record<SignInProvider, string> = { github: 'GitHub', google: 'Google' }
+const passkeyFailed = 'Passkey sign-in did not complete. Please try again.'
 
 /** The messages of the `?error=` codes that a GitHub or Google sign-in comes back with. */
 const signInErrors: Record<string, string> = {
@@ -107,20 +106,14 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 			return
 		}
 
-		const data = await res.json()
-
-		setServerError(data.message || 'Login failed. Please check your credentials and try again.')
+		setServerError(
+			await readError(res, 'Login failed. Please check your credentials and try again.'),
+		)
 	}
 
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
-			await finish(
-				await fetch('/auth/login', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(values),
-				}),
-			)
+			await finish(await postJson('/auth/login', values))
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}
@@ -132,17 +125,17 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 		try {
 			const options = await fetch('/auth/login/options', { method: 'POST' })
 
+			if (!options.ok) {
+				setServerError(await readError(options, passkeyFailed))
+
+				return
+			}
+
 			const credential = await startAuthentication({ optionsJSON: await options.json() })
 
-			await finish(
-				await fetch('/auth/login/passkey', {
-					method: 'POST',
-					headers: { 'Content-Type': 'application/json' },
-					body: JSON.stringify(credential),
-				}),
-			)
+			await finish(await postJson('/auth/login/passkey', credential))
 		} catch {
-			setServerError('Passkey sign-in did not complete. Please try again.')
+			setServerError(passkeyFailed)
 		}
 	}
 
@@ -198,9 +191,9 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 						variant="outline"
 						className="w-full"
 						// A full page load: the gateway answers with a redirect to the provider.
-						onClick={() => leave(() => window.location.assign(`/auth/oauth/${provider}/start`))}
+						onClick={() => leave(() => window.location.assign(oauthStartPath(provider)))}
 					>
-						Continue with {providerNames[provider]}
+						Continue with {signInProviderNames[provider]}
 					</Button>
 				))}
 

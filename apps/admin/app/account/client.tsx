@@ -1,8 +1,8 @@
 'use client'
 
 import type { User } from 'auth'
-import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { type SignInProvider, signOut } from 'shared/auth'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -13,7 +13,7 @@ import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 import { type Activity, ActivityTable } from '@/components/activity-table'
-import type { Factors, Identity, Passkey, Provider } from './account-api'
+import type { Factors, Identity, Passkey } from './account-api'
 import {
 	useAddPasskey,
 	useFactors,
@@ -32,7 +32,7 @@ type AccountClientProps = {
 	/** The recent activity of the user, newest first. */
 	activity: Activity[]
 	/** The providers that the gateway has set up. */
-	providers: Provider[]
+	providers: SignInProvider[]
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }
@@ -59,7 +59,6 @@ export function AccountClient({
 	providers,
 	connectError,
 }: AccountClientProps) {
-	const router = useRouter()
 	const { data: passkeys } = usePasskeys(initialPasskeys)
 	const { data: factors } = useFactors(initialFactors)
 	const add = useAddPasskey()
@@ -68,12 +67,6 @@ export function AccountClient({
 	const [removing, setRemoving] = useState<Passkey | null>(null)
 
 	const error = add.error ?? remove.error ?? sendLink.error
-
-	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
-
-		router.push('/login')
-	}
 
 	return (
 		<AuthLayout>

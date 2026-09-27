@@ -1,6 +1,5 @@
-import { unstable_rethrow } from 'next/navigation'
 import { cache } from 'react'
-import { bifrost } from './fetch'
+import { readGateway } from './fetch'
 
 /**
  * Returns the key that the register page shows Cloudflare Turnstile with, or
@@ -12,22 +11,7 @@ import { bifrost } from './fetch'
  * it, so repeat calls in one request hit the gateway once.
  */
 export const getTurnstileSiteKey = cache(async (): Promise<string | null> => {
-	try {
-		const res = await bifrost('/auth/register/options')
+	const body = await readGateway<{ turnstile_site_key: string | null }>('/auth/register/options')
 
-		if (res.ok) {
-			const { turnstile_site_key } = (await res.json()) as { turnstile_site_key: string | null }
-
-			return turnstile_site_key
-		}
-
-		console.error(`auth: GET /auth/register/options failed (${res.status})`)
-	} catch (error) {
-		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
-		unstable_rethrow(error)
-
-		console.error('auth: GET /auth/register/options threw', error)
-	}
-
-	return null
+	return body?.turnstile_site_key ?? null
 })

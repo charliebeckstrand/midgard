@@ -1,40 +1,19 @@
 'use client'
 
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import NextLink from 'next/link'
-import { type ReactNode, useState } from 'react'
-import { AppearanceProvider } from 'ui/providers/appearance'
-import { UIProvider } from 'ui/providers/ui'
+import type { ReactNode } from 'react'
+import { AppProviders } from 'shared/providers'
 
 /**
- * App-wide client providers: `UIProvider` wired to Next's `Link`,
- * `AppearanceProvider` for the persisted theme and density, and one
- * `QueryClient` for the whole app.
+ * App-wide client providers: `AppProviders` from `shared`.
  *
- * @remarks Top-level context per CONVENTIONS.md §6.1; rendered from the root
- * layout. The client is built in state rather than at module scope, so a render
- * on the server never shares a cache between requests.
+ * @remarks Rendered from the root layout.
  */
 export function Providers({ children }: { children: ReactNode }) {
-	const [client] = useState(
-		() =>
-			new QueryClient({
-				defaultOptions: {
-					queries: {
-						// The atlas is the reason for both: it never changes, and it costs
-						// a megabyte to fetch. A window focus must not go and get it again.
-						staleTime: 30_000,
-						refetchOnWindowFocus: false,
-					},
-				},
-			}),
-	)
-
 	return (
-		<QueryClientProvider client={client}>
-			<UIProvider link={NextLink}>
-				<AppearanceProvider>{children}</AppearanceProvider>
-			</UIProvider>
-		</QueryClientProvider>
+		// The atlas is the reason for both: it never changes, and it costs a
+		// megabyte to fetch. A window focus must not go and get it again.
+		<AppProviders queries={{ staleTime: 30_000, refetchOnWindowFocus: false }}>
+			{children}
+		</AppProviders>
 	)
 }
