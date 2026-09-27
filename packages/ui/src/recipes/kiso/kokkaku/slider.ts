@@ -3,6 +3,9 @@
  * vertical margins reserve the hit-area box the real slider pads around
  * the track.
  *
+ * Each step is a stepped `density-*` class, so the silhouette takes the
+ * step of its nearest density scope, as the slider does.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: slider
  */
 
@@ -11,11 +14,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const slider = {
-	base: ['w-full', rounded.full],
-	size: {
-		sm: 'h-1 my-3',
-		md: 'h-1.5 my-4',
-		lg: 'h-2 my-5',
-	},
-	defaults: { size: 'md' as const },
+	base: ['w-full', rounded.full, 'density-h-[1,1.5,2]', 'density-my-[3,4,5]'],
+	density: ['sm', 'md', 'lg'],
 } as const

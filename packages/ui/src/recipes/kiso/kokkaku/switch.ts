@@ -3,6 +3,9 @@
  * steps. Exported as `switchRecipe` (`switch` is a reserved JS keyword);
  * surfaced through the bundle as `switch:`.
  *
+ * Each step is a stepped `density-*` class, so the silhouette takes the
+ * step of its nearest density scope, as the switch does.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: switch
  */
 
@@ -11,11 +14,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const switchRecipe = {
-	base: rounded.full,
-	size: {
-		sm: 'h-5 w-8',
-		md: 'h-6 w-10',
-		lg: 'h-7 w-12',
-	},
-	defaults: { size: 'md' as const },
+	base: [rounded.full, 'density-h-[5,6,7]', 'density-w-[8,10,12]'],
+	density: ['sm', 'md', 'lg'],
 } as const

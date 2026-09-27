@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as fieldset } from '../../recipes/kata/fieldset'
+import { k as heading } from '../../recipes/kata/heading'
 import { k as list } from '../../recipes/kata/list'
 import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
@@ -26,6 +27,7 @@ import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-so
 const NATIVE_RECIPES = {
 	badge,
 	description: fieldset.description,
+	heading,
 	label: fieldset.label,
 	'list item': list.item,
 	'loading spinner': loading.spinner,
@@ -48,6 +50,8 @@ const NATIVE_FILES = [
 	'components/fieldset/description.tsx',
 	'components/fieldset/label.tsx',
 	'components/fieldset/message.tsx',
+	'components/heading/heading.tsx',
+	'components/heading/heading-skeleton.tsx',
 	'components/icon/icon.tsx',
 	'components/list/list-item.tsx',
 	'components/loading/loading-spinner.tsx',
