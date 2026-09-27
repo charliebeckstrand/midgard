@@ -1,7 +1,7 @@
 import { readFile } from 'node:fs/promises'
 import { PGlite } from '@electric-sql/pglite'
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { readDocument, selectDocument, upsertDocument } from '../../server/documents'
+import { changeRow, readDocument, selectDocument, upsertDocument } from '../../server/documents'
 
 /**
  * The database half of the documents, on PGlite: Postgres compiled to run in
@@ -81,6 +81,58 @@ describe('the documents table', () => {
 		await db.exec(await readFile(new URL('../../../db/schema.sql', import.meta.url), 'utf8'))
 
 		expect(await selectDocument(db, USER, 'places')).toEqual([{ id: 'kept' }])
+	})
+})
+
+/**
+ * PGlite has one connection, so each `connect` lends that connection. The lock
+ * between two instances is Postgres behaviour and needs a server. These cases
+ * cover the transaction around it.
+ */
+function pool() {
+	return { connect: async () => ({ query: db.query.bind(db), release: () => undefined }) }
+}
+
+describe('changeRow', () => {
+	it('writes the value of the change, and answers its result', async () => {
+		const result = await changeRow(pool(), USER, 'places', async (document) => {
+			expect(document).toBeUndefined()
+
+			return { result: 'added', value: [{ id: 'a' }] }
+		})
+
+		expect(result).toBe('added')
+
+		expect(await selectDocument(db, USER, 'places')).toEqual([{ id: 'a' }])
+	})
+
+	it('gives the change the stored document', async () => {
+		await upsertDocument(db, USER, 'places', [{ id: 'a' }])
+
+		await changeRow(pool(), USER, 'places', async (document) => ({
+			result: undefined,
+			value: [...(document as unknown[]), { id: 'b' }],
+		}))
+
+		expect(await selectDocument(db, USER, 'places')).toEqual([{ id: 'a' }, { id: 'b' }])
+	})
+
+	it('writes nothing for a change without a value', async () => {
+		expect(await changeRow(pool(), USER, 'places', async () => ({ result: null }))).toBeNull()
+
+		expect(await selectDocument(db, USER, 'places')).toBeUndefined()
+	})
+
+	it('rolls back and throws where the change throws', async () => {
+		await expect(
+			changeRow(pool(), USER, 'places', async () => {
+				await upsertDocument(db, USER, 'visits', { states: ['Ohio'], countries: [] })
+
+				throw new Error('change failed')
+			}),
+		).rejects.toThrow('change failed')
+
+		expect(await selectDocument(db, USER, 'visits')).toBeUndefined()
 	})
 })
 

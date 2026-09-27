@@ -1,5 +1,5 @@
 import { database } from './database'
-import { readJsonFile, userFile, writeJsonFile } from './json-file'
+import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
 
 /**
  * The one place where the stores read and write the documents of a user.
@@ -10,6 +10,12 @@ import { readJsonFile, userFile, writeJsonFile } from './json-file'
  *
  * A production server without a database refuses the request. A file there
  * disappears on the next deploy, so a silent fallback would lose data again.
+ *
+ * Each write reads the document, changes it, and writes it back through
+ * {@link changeDocument}, which holds a lock on the document for that time. Two
+ * requests that land together cannot then each read the same document and
+ * write back over one another. The database lock also holds across instances,
+ * and App Platform runs two instances for the time of a deploy.
  */
 
 /** A minimal query interface, which a `pg` pool and a test database both satisfy. */
@@ -17,8 +23,22 @@ type Queryable = {
 	query(text: string, values?: unknown[]): Promise<{ rows: unknown[] }>
 }
 
+/** A pool that lends one connection, which a transaction needs. A `pg` pool satisfies it. */
+type Connectable = {
+	connect(): Promise<Queryable & { release(): void }>
+}
+
 /** The names of the documents that a user has. */
 type DocumentName = 'places' | 'visits'
+
+/**
+ * What a change gives back: the result for the caller, and the new document.
+ * Without `value`, the change writes nothing.
+ */
+export type Change<T> = { result: T; value?: unknown }
+
+/** Puts the writes to the files in order. The files are for one process only. */
+const serializeFiles = createQueue()
 
 /** Reads one document, or `undefined` where it does not exist yet. */
 export async function readDocument(userId: string, name: DocumentName): Promise<unknown> {
@@ -29,17 +49,70 @@ export async function readDocument(userId: string, name: DocumentName): Promise<
 	return selectDocument(db, userId, name)
 }
 
-/** Writes one document in full, and replaces the document that was there. */
-export async function writeDocument(
+/**
+ * Reads one document, gives it to `change`, and writes the value that `change`
+ * gives back. No other change to the same document runs between the read and
+ * the write. The document is `undefined` where it does not exist yet.
+ */
+export async function changeDocument<T>(
 	userId: string,
 	name: DocumentName,
-	value: unknown,
-): Promise<void> {
+	change: (document: unknown) => Promise<Change<T>>,
+): Promise<T> {
 	const db = database()
 
-	if (db === null) return writeJsonFile(userFile(userId, `${name}.json`), value)
+	if (db !== null) return changeRow(db, userId, name, change)
 
-	return upsertDocument(db, userId, name, value)
+	const file = userFile(userId, `${name}.json`)
+
+	return serializeFiles(async () => {
+		const { result, value } = await change(await readJsonFile(file))
+
+		if (value !== undefined) await writeJsonFile(file, value)
+
+		return result
+	})
+}
+
+/**
+ * The database half of {@link changeDocument}, in one transaction. Exported so
+ * the tests can run it on a database of their own.
+ *
+ * An advisory lock holds the document, not a row lock, because the first write
+ * of a document has no row to lock. The transaction releases the lock when it
+ * ends.
+ */
+export async function changeRow<T>(
+	db: Connectable,
+	userId: string,
+	name: DocumentName,
+	change: (document: unknown) => Promise<Change<T>>,
+): Promise<T> {
+	const client = await db.connect()
+
+	try {
+		await client.query('BEGIN')
+
+		await client.query(
+			"SELECT pg_advisory_xact_lock(hashtextextended($1::text || ':' || $2::text, 0))",
+			[userId, name],
+		)
+
+		const { result, value } = await change(await selectDocument(client, userId, name))
+
+		if (value !== undefined) await upsertDocument(client, userId, name, value)
+
+		await client.query('COMMIT')
+
+		return result
+	} catch (error) {
+		// A failed rollback must not hide the error that caused it.
+		await client.query('ROLLBACK').catch(() => undefined)
+
+		throw error
+	} finally {
+		client.release()
+	}
 }
 
 /** Reads one row of `documents`. Exported so the tests can run it on a database of their own. */
