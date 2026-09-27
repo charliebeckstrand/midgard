@@ -17,7 +17,7 @@ import { CategoryPicker } from '../category-picker'
 export type PlaceFiltersProps = {
 	value: PlaceFilterValue
 	onValueChange: (value: PlaceFilterValue) => void
-	/** Every region the drawn atlas holds, in the order the picker lists them. */
+	/** The regions the picker lists, in order. */
 	regionNames: readonly string[]
 	/** What the region picker calls itself, which follows the atlas the map draws. */
 	regionLabel: string
@@ -32,9 +32,9 @@ export type PlaceFiltersProps = {
  *
  * The region picker is navigation and not a filter, so it sits beside the filter
  * bar rather than inside it — it does not narrow the places, it decides the
- * geography. It lists every region the drawn atlas holds, including the ones
- * holding nothing, because an empty region is still somewhere to look. It and
- * the breadcrumb read the same view, so clearing either is the way back.
+ * geography. It lists the regions it is given: on the world map, the countries
+ * that hold a place, because the country search reaches the rest. It and the
+ * breadcrumb read the same view, so clearing either is the way back.
  *
  * It also names itself for what it lists — countries on the world map, states
  * inside the United States — because the same control means a different grain at

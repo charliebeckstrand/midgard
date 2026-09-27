@@ -31,7 +31,9 @@ import {
 	initialView,
 	knownCountry,
 	type PlaceView,
+	pickerRegions,
 	regionOf,
+	regionsHolding,
 	stateOf,
 	UNITED_STATES_VIEW,
 	viewAtlas,
@@ -220,9 +222,9 @@ export function PlacesApp({
 	// the world re-measured all 177 of them from a topology the cache still held.
 	const boundedCountries = useMemo(() => boundRegions(countriesAtlas), [countriesAtlas])
 
-	// Every region the drawn atlas holds, for the picker that projects one. Read
-	// off the geography rather than the places, so a region holding nothing is
-	// still somewhere the reader can go.
+	// Every region the drawn atlas holds, for the country search. Read off the
+	// geography rather than the places, so a country holding nothing is still
+	// somewhere the reader can go.
 	const regionNames = useMemo(
 		() => (regions?.features ?? []).map(regionName).sort((a, b) => a.localeCompare(b)),
 		[regions],
@@ -273,6 +275,16 @@ export function PlacesApp({
 	// inside the United States the drawn grouping is the states one, which is
 	// already inverted, and inverting the pick would walk it a second time.
 	const regionOfPlace = atlas === 'states' ? stateOfPlace : countryOfPlace
+
+	// The regions the bar's picker offers. Among countries, only the ones that
+	// hold a place: the country search reaches every other one. Among states the
+	// picker is the only list, so it keeps every state the atlas draws. Read off
+	// the unfiltered places for the reason the grouping is.
+	const pickedRegions = useMemo(
+		() =>
+			atlas === 'states' ? regionNames : pickerRegions(regionsHolding(places, countryOfPlace), cut),
+		[atlas, regionNames, places, countryOfPlace, cut],
+	)
 
 	const openedRegion =
 		selected[0] === undefined ? null : (regionOfPlace.get(selected[0].id) ?? null)
@@ -484,7 +496,7 @@ export function PlacesApp({
 						<PlaceFilters
 							value={filter}
 							onValueChange={setFilter}
-							regionNames={regionNames}
+							regionNames={pickedRegions}
 							regionLabel={REGION_LABEL[atlas]}
 							drilled={cut}
 							onDrill={(region) =>
