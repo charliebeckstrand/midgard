@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
+import { DensityScope } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
@@ -20,10 +20,10 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {
  * onto direct `data-slot=card-*` children from outside.
  *
  * An explicit `size` pins the step and opens a density scope. The card writes
- * `data-density` for static descendants. It also wraps its children in
- * `Density` for client descendants (Button, Input, …). Without `size`, the card
- * follows the nearest density scope, and takes `md` outside a scope. The scope
- * flows through to its children.
+ * `data-density` for static descendants, and wraps its children in
+ * `DensityScope` for client descendants (Button, Input, …). Without `size`,
+ * the card follows the nearest density scope, takes `md` outside a scope, and
+ * opens no scope of its own.
  *
  * The frame owns the outer padding for every child, bare or structural. A
  * section pads only the inner edge it shares with a sibling (header below,
@@ -48,7 +48,7 @@ export function Card({
 			className={cn('overflow-hidden -outline-offset-1', k.frame({ size }), className)}
 			{...props}
 		>
-			{size ? <Density scale={size}>{children}</Density> : children}
+			<DensityScope scale={size}>{children}</DensityScope>
 		</Box>
 	)
 }

@@ -61,7 +61,7 @@ const projection = {
 	 * Cell padding for each step. An omitted `size` follows the nearest density
 	 * scope, and `md` outside one.
 	 */
-	density: defineRecipe({
+	padding: defineRecipe({
 		size: {
 			sm: ['[&>*>tr>td]:px-1', '[&>*>tr>td]:py-1', '[&>*>tr>th]:px-1', '[&>*>tr>th]:py-1'],
 			md: ['[&>*>tr>td]:px-2', '[&>*>tr>td]:py-2', '[&>*>tr>th]:px-2', '[&>*>tr>th]:py-2'],

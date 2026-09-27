@@ -15,7 +15,7 @@ import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
 
 import { twMerge } from '../../tw-merge'
-import { DENSITY_STEPS, type DensityStep, densityRow } from './density'
+import { DENSITY_STEPS, densityRow } from './density'
 import { expandPalette, type PalettePairs } from './palette'
 import type {
 	CompoundRule,
@@ -71,12 +71,24 @@ type Plan = {
 	relevantKeys: string[]
 	/** The constant key a no-props call resolves to, precomputed. */
 	defaultKey: string
-	/**
-	 * The axis that follows the nearest density scope, and its step outside a
-	 * scope. The default of the axis moves here, out of `defaults`, so an
-	 * omitted axis resolves to `undefined`.
-	 */
-	density?: { axis: string; fallback: string }
+	/** The density axis, compiled by {@link compileDensity}; absent without one. */
+	density?: DensityPlan
+}
+
+/**
+ * The compiled density axis. The default of the axis moves here, out of
+ * `defaults`, so an omitted axis resolves to `undefined`.
+ *
+ * @internal
+ */
+type DensityPlan = {
+	axis: string
+	/** The step outside a scope: the default of the axis. */
+	fallback: string
+	/** The axis map, hoisted out of the call path. */
+	axisMap: Record<string, ClassValue>
+	/** The compound rules with a condition on the axis. */
+	rules: CompiledRule[]
 }
 
 /**
@@ -294,35 +306,17 @@ function collectRecipeClasses(
 
 	const acc = collectStepClasses(plan, { ...values, [density.axis]: density.fallback })
 
-	for (const step of DENSITY_STEPS) acc.push(collectDensityRow(plan, density.axis, step, values))
+	for (const step of DENSITY_STEPS) {
+		const stepValues = { ...values, [density.axis]: step }
 
-	return acc
-}
+		const row: ClassValue[] = [density.axisMap[step]]
 
-/**
- * The density row of one step, under the `density-<step>:` variant. The row
- * holds the axis row of `step`. It also holds each compound rule on that step
- * whose other conditions match `values`.
- *
- * @internal
- */
-function collectDensityRow(
-	plan: Plan,
-	axis: string,
-	step: DensityStep,
-	values: Record<string, string | undefined>,
-): string[] {
-	const stepValues = { ...values, [axis]: step }
+		for (const rule of density.rules) if (matches(rule, stepValues)) row.push(rule.class)
 
-	const row: ClassValue[] = [plan.variantEntries.find(([name]) => name === axis)?.[1][step]]
-
-	for (const rule of plan.rules) {
-		if (rule.conditions.some(([key]) => key === axis) && matches(rule, stepValues)) {
-			row.push(rule.class)
-		}
+		acc.push(densityRow(step, row))
 	}
 
-	return densityRow(step, row)
+	return acc
 }
 
 /**
@@ -366,8 +360,6 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 		Object.entries(resolved.defaults).map(([key, value]) => [key, axisKey(value)]),
 	)
 
-	const density = compileDensity(resolved, defaults)
-
 	const rules: CompiledRule[] = userCompound.map((rule) => ({
 		// `expand` already put every condition through `axisKey`; `class` is the
 		// one entry that keeps a full `ClassValue`, and the filter drops it.
@@ -376,6 +368,8 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 		) as CompiledRule['conditions'],
 		class: rule.class,
 	}))
+
+	const density = compileDensity(resolved, defaults, rules)
 
 	const relevant = new Set(Object.keys(resolved.variants))
 
@@ -407,7 +401,8 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 
 /**
  * Validates the density axis of a config and moves its default out of
- * `defaults` (mutating it), so an omitted axis resolves to `undefined`.
+ * `defaults` (mutating it), so an omitted axis resolves to `undefined`. It also
+ * collects the compound rules with a condition on the axis.
  *
  * @throws If the axis does not hold every step of {@link DENSITY_STEPS}, or if
  * `defaults` names no step for it.
@@ -416,7 +411,8 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 function compileDensity(
 	resolved: ResolvedConfig,
 	defaults: Record<string, string | undefined>,
-): Plan['density'] {
+	rules: CompiledRule[],
+): DensityPlan | undefined {
 	const axis = resolved.densityAxis
 
 	if (axis === undefined) return undefined
@@ -433,7 +429,12 @@ function compileDensity(
 
 	delete defaults[axis]
 
-	return { axis, fallback }
+	return {
+		axis,
+		fallback,
+		axisMap,
+		rules: rules.filter((rule) => rule.conditions.some(([key]) => key === axis)),
+	}
 }
 
 /**

@@ -55,6 +55,7 @@ describe('density classes', () => {
 
 		await expect(`${[...names].sort().join('\n')}\n`).toMatchFileSnapshot(
 			'../../recipes/density.generated.txt',
+			'the density class list is stale: run `pnpm density`',
 		)
 	})
 })

@@ -1,5 +1,6 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
+import { DensityScope } from '../../primitives/density'
 // Deep import on purpose: context.ts is the directive-free level
 // vocabulary (DensityLevel, densityToSize); the barrel would pull the
 // client DensityProvider into the graph.
@@ -10,8 +11,10 @@ import { k } from '../../recipes/kata/table'
 export type TableVariants = {
 	/**
 	 * Density level driving cell padding. The table projects the padding onto
-	 * its descendant cells and opens a density scope. Omit it to follow the
-	 * nearest density scope, or `'snug'` outside a scope.
+	 * its descendant cells and opens a density scope. Static cell content
+	 * follows the scope through `data-density`, and client cell content through
+	 * context. Omit it to follow the nearest density scope, or `'snug'` outside
+	 * a scope.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -91,7 +94,7 @@ export function Table({
 				data-density={step}
 				className={cn(
 					k.base,
-					k.projection.density({ size: step }),
+					k.projection.padding({ size: step }),
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					hover && k.projection.hover,
@@ -99,7 +102,7 @@ export function Table({
 					tableProps?.className,
 				)}
 			>
-				{children}
+				<DensityScope scale={step}>{children}</DensityScope>
 			</table>
 		</div>
 	)
