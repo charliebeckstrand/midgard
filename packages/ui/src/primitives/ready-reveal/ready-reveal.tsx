@@ -11,9 +11,16 @@ import { ReducedMotion } from '../reduced-motion'
 export type ReadyRevealProps = {
 	/** When true, reveals `children`; when false, shows `placeholder`. */
 	ready: boolean
-	/** Content shown while not ready. */
+	/**
+	 * Content shown while not ready.
+	 *
+	 * The placeholder does not size the box. It fills the box that `children`
+	 * sets. If `children` renders nothing while not ready, the box has no height
+	 * and the placeholder does not show. In that case, give the reveal a size
+	 * through `className`, for example `size-full` in a sized parent.
+	 */
 	placeholder: ReactNode
-	/** Content revealed once ready. */
+	/** Content revealed once ready. It sets the size of the box in both states. */
 	children: ReactNode
 	/**
 	 * Fires once the reveal crossfade has landed and the placeholder is at rest.
