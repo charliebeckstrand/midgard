@@ -2,7 +2,29 @@ import cardValidator from 'card-validator'
 import { digitsOnly } from '../../utilities'
 import type { CreditCardBrand, CreditCardBrandInfo } from './types'
 
-const { number, cvv, expirationDate } = cardValidator
+const { cvv, expirationDate } = cardValidator
+
+type NumberVerification = ReturnType<typeof cardValidator.number>
+
+let lastDigits: string | undefined
+
+let lastVerification: NumberVerification | undefined
+
+/**
+ * Runs card-validator's `number` check, with a cache of one entry.
+ *
+ * One keystroke formats the number, detects the brand, and validates the
+ * number. All three read the same digits, so the check runs one time.
+ */
+function number(digits: string): NumberVerification {
+	if (digits !== lastDigits || lastVerification === undefined) {
+		lastVerification = cardValidator.number(digits)
+
+		lastDigits = digits
+	}
+
+	return lastVerification
+}
 
 // Maps card-validator's `type` strings to public brand names and labels.
 // Brands outside this list (maestro, elo, mir, hiper, hipercard) resolve to undefined.
@@ -33,8 +55,9 @@ export function detectCardBrand(digits: string): CreditCardBrandInfo | undefined
 	return {
 		brand: entry.brand,
 		label: entry.label,
-		lengths: card.lengths,
-		gaps: card.gaps,
+		// Copies, because the cached check shares one `card` between calls.
+		lengths: [...card.lengths],
+		gaps: [...card.gaps],
 		cvvLength: card.code.size,
 	}
 }
