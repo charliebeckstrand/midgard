@@ -10,6 +10,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
+import { bifrost } from './bifrost'
 import { chain, matches, minLength, required } from './form-validators'
 
 type ResetPasswordValues = { password: string; confirmPassword: string }
@@ -35,21 +36,17 @@ export function ResetPasswordPage({ token }: ResetPasswordPageProps) {
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
-			const res = await fetch('/auth/reset-password/confirm', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ token, password: values.password }),
+			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
+				body: { token, password: values.password },
 			})
 
-			if (res.ok) {
+			if (response.ok) {
 				router.push('/login?reset=true')
 
 				return
 			}
 
-			const data = await res.json()
-
-			setServerError(data.message || 'The password did not change. Please try again.')
+			setServerError(error?.message || 'The password did not change. Please try again.')
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}

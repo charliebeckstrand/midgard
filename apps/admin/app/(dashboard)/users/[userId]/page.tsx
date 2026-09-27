@@ -1,24 +1,23 @@
-import { bifrost, type User } from 'auth'
+import { bifrost } from 'auth'
 import { notFound } from 'next/navigation'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
-import { type Activity, ActivityTable } from '@/components/activity-table'
+import { ActivityTable } from '@/components/activity-table'
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
 	const { userId } = await params
 
-	const path = `/api/users/${encodeURIComponent(userId)}`
+	const options = { params: { path: { id: userId } } }
 
-	const [res, activityRes] = await Promise.all([bifrost(path), bifrost(`${path}/activity`)])
+	const [{ data: user }, { data: activity }] = await Promise.all([
+		bifrost.GET('/api/users/{id}', options),
+		bifrost.GET('/api/users/{id}/activity', options),
+	])
 
-	if (!res.ok) notFound()
-
-	const user = (await res.json()) as User
-
-	const activity = activityRes.ok ? ((await activityRes.json()) as { data: Activity[] }).data : []
+	if (!user) notFound()
 
 	return (
 		<Stack gap="xl">
@@ -43,7 +42,7 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 
 			<Heading level={2}>Recent activity</Heading>
 
-			<ActivityTable activity={activity} />
+			<ActivityTable activity={activity?.data ?? []} />
 		</Stack>
 	)
 }

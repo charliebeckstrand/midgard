@@ -26,7 +26,7 @@ const session = {
 
 // Stubs the gateway: `fetch` resolves to the given status and body.
 function stubGateway(status: number, body: unknown = null) {
-	const fetch = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }))
+	const fetch = vi.fn(async (_request: Request) => Response.json(body, { status }))
 
 	vi.stubGlobal('fetch', fetch)
 
@@ -50,11 +50,11 @@ describe('getSession', () => {
 
 		await expect(getSession()).resolves.toEqual(session)
 
-		const [url, init] = fetch.mock.calls[0] ?? []
+		const [request] = fetch.mock.calls[0] ?? []
 
-		expect(url).toBe(`${BIFROST_URL}/auth/session`)
+		expect(request?.url).toBe(`${BIFROST_URL}/auth/session`)
 
-		expect(new Headers(init?.headers).get('cookie')).toBe('__Host-session=abc')
+		expect(request?.headers.get('cookie')).toBe('__Host-session=abc')
 	})
 
 	it('returns undefined for a 401, and does not log it', async () => {

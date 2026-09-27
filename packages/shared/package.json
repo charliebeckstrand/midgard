@@ -21,6 +21,8 @@
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "catalog:",
+		"auth": "workspace:*",
+		"openapi-fetch": "catalog:",
 		"ui": "workspace:*"
 	},
 	"peerDependencies": {

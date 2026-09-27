@@ -11,6 +11,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
+import { bifrost } from './bifrost'
 import { chain, email, matches, minLength, required } from './form-validators'
 import { Turnstile } from './turnstile'
 
@@ -49,18 +50,16 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 	const handleSubmit: FormSubmitHandler<RegisterValues> = async (values) => {
 		try {
-			const res = await fetch('/auth/register', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
+			const { response, error } = await bifrost.POST('/auth/register', {
+				body: {
 					email: values.email,
 					password: values.password,
 					name: values.name,
 					turnstile_token: turnstileToken ?? undefined,
-				}),
+				},
 			})
 
-			if (res.ok) {
+			if (response.ok) {
 				router.push('/login?registered=true')
 
 				return
@@ -70,10 +69,8 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 
 			setAttempt((n) => n + 1)
 
-			const data = await res.json()
-
 			setServerError(
-				data.message || 'Registration failed. Please check your details and try again.',
+				error?.message || 'Registration failed. Please check your details and try again.',
 			)
 		} catch {
 			setTurnstileToken(null)

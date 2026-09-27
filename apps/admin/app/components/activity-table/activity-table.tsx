@@ -1,17 +1,9 @@
+import type { Schema } from 'auth'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 
 /** One event in the history of an account, as the gateway lists it. */
-export type Activity = {
-	id: string
-	action: string
-	/** More about the action: the sign-in method, or the provider. */
-	detail: string | null
-	/** The account that did the action: the user, an admin, or `null` for the operator. */
-	actor_id: string | null
-	ip: string | null
-	created_at: string
-}
+export type Activity = Schema<'Activity'>
 
 /** Props for {@link ActivityTable}. */
 export type ActivityTableProps = {

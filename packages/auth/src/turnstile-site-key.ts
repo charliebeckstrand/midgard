@@ -13,15 +13,11 @@ import { bifrost } from './fetch'
  */
 export const getTurnstileSiteKey = cache(async (): Promise<string | null> => {
 	try {
-		const res = await bifrost('/auth/register/options')
+		const { data, response } = await bifrost.GET('/auth/register/options')
 
-		if (res.ok) {
-			const { turnstile_site_key } = (await res.json()) as { turnstile_site_key: string | null }
+		if (data) return data.turnstile_site_key
 
-			return turnstile_site_key
-		}
-
-		console.error(`auth: GET /auth/register/options failed (${res.status})`)
+		console.error(`auth: GET /auth/register/options failed (${response.status})`)
 	} catch (error) {
 		// A prerender reads `cookies()`, and Next throws to mark the route dynamic. Let it through.
 		unstable_rethrow(error)

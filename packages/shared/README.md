@@ -12,7 +12,7 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 
 | Path | Purpose |
 |---|---|
-| `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` and `fetchWithSecondStep` (the second step when a request needs it). They post to the same-origin `/auth/*` paths, which `withAuth` rewrites to the gateway. |
+| `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` (the second step when a request needs it). `bifrost` is the typed client of the gateway in the browser, and `unwrap` throws for a status that is not OK. The requests go to the same-origin `/auth/*` and `/api/*` paths, which `withAuth` rewrites to the gateway. |
 | `shared/globals.css` | Global stylesheet: the Google Sans Flex font, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class. |
 
 An app that renders `shared/auth` must add `packages/shared/src` as a Tailwind `@source`, so that Tailwind generates the classes of the auth UI.

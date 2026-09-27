@@ -3,6 +3,7 @@
 import type { User } from 'auth'
 import { CircleUserRound, LogOut, MailCheck, MapPinned, Plus } from 'lucide-react'
 import { useState } from 'react'
+import { bifrost } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import {
@@ -44,12 +45,12 @@ export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
 
 	async function sendVerification() {
-		const response = await fetch('/auth/verify-email', { method: 'POST' }).catch(() => null)
+		const result = await bifrost.POST('/auth/verify-email').catch(() => null)
 
-		setVerify(response?.ok ? 'sent' : 'failed')
+		setVerify(result?.response.ok ? 'sent' : 'failed')
 	}
 	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+		await bifrost.POST('/auth/logout').catch(() => {})
 
 		// A full load, so no data of the user stays in the query cache.
 		window.location.assign('/login')
