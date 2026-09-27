@@ -12,6 +12,7 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { chain, email, matches, minLength, required } from './form-validators'
+import { Turnstile } from './turnstile'
 
 type RegisterValues = {
 	email: string
@@ -20,23 +21,43 @@ type RegisterValues = {
 	confirmPassword: string
 }
 
+type RegisterPageProps = {
+	/**
+	 * The key to show Cloudflare Turnstile with, from `getTurnstileSiteKey` of
+	 * the `auth` package. Without a key, the page shows no check.
+	 */
+	turnstileSiteKey?: string | null
+}
+
 /**
  * Registration page: posts the new account to `/auth/register`, and goes to
  * `/login?registered=true` on success.
  *
- * @remarks The form checks that `confirmPassword` matches `password` before it submits.
+ * @remarks
+ * The form checks that `confirmPassword` matches `password` before it submits.
+ * With `turnstileSiteKey`, the submit button waits for the Turnstile token.
+ * A token is good for one try, so a failed try mounts a new widget.
  */
-export function RegisterPage() {
+export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 	const router = useRouter()
 
 	const [serverError, setServerError] = useState('')
+
+	const [turnstileToken, setTurnstileToken] = useState<string | null>(null)
+
+	const [attempt, setAttempt] = useState(0)
 
 	const handleSubmit: FormSubmitHandler<RegisterValues> = async (values) => {
 		try {
 			const res = await fetch('/auth/register', {
 				method: 'POST',
 				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ email: values.email, password: values.password, name: values.name }),
+				body: JSON.stringify({
+					email: values.email,
+					password: values.password,
+					name: values.name,
+					turnstile_token: turnstileToken ?? undefined,
+				}),
 			})
 
 			if (res.ok) {
@@ -45,12 +66,20 @@ export function RegisterPage() {
 				return
 			}
 
+			setTurnstileToken(null)
+
+			setAttempt((n) => n + 1)
+
 			const data = await res.json()
 
 			setServerError(
 				data.message || 'Registration failed. Please check your details and try again.',
 			)
 		} catch {
+			setTurnstileToken(null)
+
+			setAttempt((n) => n + 1)
+
 			setServerError('Registration failed. Please try again later.')
 		}
 	}
@@ -96,7 +125,15 @@ export function RegisterPage() {
 					<Message name="confirmPassword" />
 				</Field>
 
-				<Button type="submit" className="w-full">
+				{turnstileSiteKey && (
+					<Turnstile key={attempt} siteKey={turnstileSiteKey} onToken={setTurnstileToken} />
+				)}
+
+				<Button
+					type="submit"
+					className="w-full"
+					disabled={Boolean(turnstileSiteKey) && !turnstileToken}
+				>
 					Create account
 				</Button>
 
