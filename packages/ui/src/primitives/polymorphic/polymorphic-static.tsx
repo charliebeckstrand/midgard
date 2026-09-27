@@ -1,8 +1,8 @@
 import type { ComponentProps, ElementType, ReactElement, Ref } from 'react'
 import type { LinkProps } from '../link'
 import { resolveLinkRel } from '../link/link-rel'
-import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
 import { mergeRenderProps } from './merge-render-props'
+import type { PolymorphicRenderProps } from './types'
 
 /**
  * Server-safe sibling of `Polymorphic`: the same `href`-driven link switch
@@ -41,8 +41,11 @@ export type PolymorphicStaticProps<
  * The props of the `render` element merge with the resolved props. The
  * classes join, both event handlers run, and a resolved value wins on each
  * other key. The call-site `ref` wins over the `ref` of the `render` element,
- * and the `render` ref stays when the call site gives no `ref`. A link with `target="_blank"` and no `rel` gets
- * `rel="noopener noreferrer"`.
+ * and the `render` ref stays when the call site gives no `ref`. A link with
+ * `target="_blank"` and no `rel` gets `rel="noopener noreferrer"`.
+ *
+ * It is also the one render path of {@link Polymorphic}, which passes the
+ * registered link as `render`.
  *
  * @see {@link Polymorphic}
  */
@@ -97,15 +100,20 @@ export function PolymorphicStatic<Fallback extends ElementType>({
 		)
 	}
 
+	// `as as ElementType` widens a union of string tags to `ElementType`; the
+	// narrow union collapses `{...rest}` to the `never` intersection of every
+	// branch. Unrelated to the generic.
+	const Element = as as ElementType
+
 	return (
-		<PolymorphicFallback
-			as={as}
+		<Element
 			ref={ref}
-			slot={slot}
+			data-slot={slot}
+			type={as === 'button' ? 'button' : undefined}
 			className={className}
-			rest={rest as ComponentProps<Fallback>}
+			{...(rest as ComponentProps<Fallback>)}
 		>
 			{children}
-		</PolymorphicFallback>
+		</Element>
 	)
 }
