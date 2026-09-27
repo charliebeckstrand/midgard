@@ -35,6 +35,7 @@ const SHARED_REGISTRY_SKIP = new Set(['boundary', 'browser', 'setup'])
 const SHARED_REGISTRY_SCANS = [
 	{ dir: testsDir, skip: SHARED_REGISTRY_SKIP },
 	{ dir: join(srcDir, 'docs', 'engine', '__tests__') },
+	// The `boundary` and `workspace` projects: each `-boundary` suite.
 	{ dir: join(testsDir, 'boundary'), fileFilter: /-boundary\.test\.ts$/ },
 	{ dir: join(testsDir, 'browser'), skip: new Set(['setup']) },
 ]
@@ -129,7 +130,7 @@ describe('test isolation boundary', () => {
 		expect(
 			shared.sort(),
 			'a project changed its isolation, or vitest.config.ts no longer matches the text shape this gate parses — extend the scans above to cover its files, or drop it from them',
-		).toEqual(['boundary', 'pure', 'unit'])
+		).toEqual(['boundary', 'pure', 'unit', 'workspace'])
 
 		// The browser config is the fourth scan above, and it is a separate file
 		// the parse over vitest.config.ts cannot reach. Its two instances share one

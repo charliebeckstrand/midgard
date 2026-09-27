@@ -43,6 +43,19 @@ function nodeEnvironmentFiles(): string[] {
 
 const nodeFiles = nodeEnvironmentFiles()
 
+// The boundary suites that read files outside this package: the rule documents
+// at the repository root, the Biome plugins, and the sources of the apps and of
+// the other packages. They run as the `workspace` project, which the
+// `test:workspace` task of turbo runs with those files as its inputs. Thus an
+// edit outside ui does not clear the cache of the whole ui suite.
+const workspaceScans = [
+	'src/__tests__/boundary/biome-plugin-boundary.test.ts',
+	'src/__tests__/boundary/cadence-boundary.test.ts',
+	'src/__tests__/boundary/controlled-language-boundary.test.ts',
+	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
+	'src/__tests__/boundary/recipe-boundary.test.ts',
+]
+
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
 	'./src/__tests__/setup/index.ts',
@@ -223,6 +236,7 @@ export default defineConfig({
 					pool: 'threads',
 					isolate: false,
 					include: ['src/__tests__/boundary/*-boundary.test.ts'],
+					exclude: [...configDefaults.exclude, ...workspaceScans],
 					// These suites run no setupFiles, so the shared budget above governs
 					// them by a rationale they never inherit: it is sized against
 					// `asyncUtilTimeout`, and nothing here awaits anything. Every body in
@@ -236,6 +250,18 @@ export default defineConfig({
 					// note above says a budget must never encode. Flat and wide, then:
 					// the project's median is 72ms, so a budget this size fails only work
 					// that has genuinely stopped moving.
+					testTimeout: 30_000,
+				},
+			},
+			{
+				extends: true as const,
+				// The boundary suites in `workspaceScans`, with the settings of `boundary`.
+				test: {
+					name: 'workspace',
+					environment: 'node',
+					pool: 'threads',
+					isolate: false,
+					include: workspaceScans,
 					testTimeout: 30_000,
 				},
 			},

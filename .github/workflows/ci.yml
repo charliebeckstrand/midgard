@@ -112,6 +112,10 @@ jobs:
       # empty. The first shard runs them whole.
       - if: matrix.shard == 1
         run: pnpm turbo run test --filter='!ui' --summarize
+      # The ui suites that read files outside ui, apart from `test` so that an
+      # edit outside ui keeps the cache of the ui suite (packages/ui/turbo.json).
+      - if: matrix.shard == 1
+        run: pnpm turbo run test:workspace --filter=ui --summarize
       # The same pruning as in `gate`, for the same reason.
       - name: Prune the Turbo cache to this run's tasks
         run: |
