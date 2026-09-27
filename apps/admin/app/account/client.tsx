@@ -12,6 +12,7 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
+import { type Activity, ActivityTable } from '@/components/activity-table'
 import type { Factors, Identity, Passkey, Provider } from './account-api'
 import {
 	useAddPasskey,
@@ -28,6 +29,8 @@ type AccountClientProps = {
 	passkeys: Passkey[]
 	factors: Factors
 	identities: Identity[]
+	/** The recent activity of the user, newest first. */
+	activity: Activity[]
 	/** The providers that the gateway has set up. */
 	providers: Provider[]
 	/** The `?error=` code that a connect came back with, if any. */
@@ -38,7 +41,8 @@ const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle:
 
 /**
  * Account page: the email notice, the passkeys, authenticator app, recovery
- * codes, and GitHub and Google accounts of the signed-in user, and sign-out.
+ * codes, GitHub and Google accounts, and recent activity of the signed-in user,
+ * and sign-out.
  *
  * @remarks
  * The server page seeds the `usePasskeys`, `useFactors`, and `useIdentities` queries. The user owns the passkeys,
@@ -51,6 +55,7 @@ export function AccountClient({
 	passkeys: initialPasskeys,
 	factors: initialFactors,
 	identities,
+	activity,
 	providers,
 	connectError,
 }: AccountClientProps) {
@@ -154,6 +159,12 @@ export function AccountClient({
 					identities={identities}
 					connectError={connectError}
 				/>
+
+				<Stack gap="sm">
+					<Heading level={3}>Recent activity</Heading>
+
+					<ActivityTable activity={activity} />
+				</Stack>
 
 				{user.roles.includes('admin') && (
 					<Text className="text-center">

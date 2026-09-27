@@ -1,4 +1,5 @@
 import { bifrost, getSignInProviders, requireSession } from 'auth'
+import type { Activity } from '@/components/activity-table'
 import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
 
@@ -52,6 +53,22 @@ async function getIdentities(): Promise<Identity[]> {
 }
 
 /**
+ * Fetches the recent activity of the signed-in user from the gateway, server-side.
+ *
+ * @internal
+ * @returns The events, newest first, or `[]` on a non-OK response.
+ */
+async function getActivity(): Promise<Activity[]> {
+	const res = await bifrost('/auth/activity')
+
+	if (!res.ok) return []
+
+	const { data } = (await res.json()) as { data: Activity[] }
+
+	return data
+}
+
+/**
  * Account page of each signed-in user. The proxy only finds the cookie, so
  * `requireSession` checks the session, and sends a guest to `/login`.
  */
@@ -62,10 +79,11 @@ export default async function AccountPage({
 }) {
 	const { user } = await requireSession()
 
-	const [passkeys, factors, identities, providers, { error }] = await Promise.all([
+	const [passkeys, factors, identities, activity, providers, { error }] = await Promise.all([
 		getPasskeys(),
 		getFactors(),
 		getIdentities(),
+		getActivity(),
 		getSignInProviders(),
 		searchParams,
 	])
@@ -76,6 +94,7 @@ export default async function AccountPage({
 			passkeys={passkeys}
 			factors={factors}
 			identities={identities}
+			activity={activity}
 			providers={providers}
 			connectError={typeof error === 'string' ? error : undefined}
 		/>
