@@ -12,14 +12,14 @@ The app runs on port 3001.
 pnpm --filter places test
 ```
 
-The route handlers under `app/api` serve the places, the visits, and the atlases.
-`withAuth` sends each other `/auth/*` and `/api/*` path to the gateway at
-`BIFROST_URL` (see [`.env.example`](.env.example)).
+The route handlers under `app/api` serve the atlases. `withAuth` sends each
+other `/auth/*` and `/api/*` path to the gateway at `BIFROST_URL` (see
+[`.env.example`](.env.example)), which forwards the places and the visits to
+Mimir.
 
-The suite covers what the app holds that is pure: the schema both edges read a
-body through, the geometry that decides which region holds a place, the filter
-the bar applies, and the atomic file mechanism the stores write through. The
-components compose `ui`, which carries its own suite.
+The suite covers what the app holds that is pure: the field readers of the form
+and the address, the geometry that decides which region holds a place, and the
+filter the bar applies. The components compose `ui`, which carries its own suite.
 
 ## The map
 
@@ -68,20 +68,17 @@ never disagree, and its own search finds within that.
 
 ## Data
 
-Each user has two JSON documents: `places` holds the list of places, and
-`visits` holds the visited regions, under a key per atlas. The route handlers
-under `app/api` read and write them through the stores in `src/server`, and
-`src/server/documents.ts` is the one module that knows where the documents live.
+Mimir, a private service in asgard, keeps the data of each user: the places,
+and the visited regions under a key per atlas. The gateway checks the session
+and forwards `/api/places/*` and `/api/visits/*` to it. Mimir decides who can
+change what and how many places a user keeps. `src/api/places-api.ts` calls it
+from the browser and `src/server/mimir.ts` from the page, both typed from
+`src/api/openapi.d.ts`. After a change to the Mimir API, run
+`pnpm --filter places openapi`. The contract is in asgard's
+[`.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md).
 
 The two scopes are kept apart because the names collide: Georgia is a state of
 the United States and Georgia is a country.
-
-The deployed service keeps the documents in the `documents` table of a Postgres
-database (`db/schema.sql`), on the managed cluster that Asgard uses. A deploy
-replaces the container, so a file on its disk does not outlive the deploy. The
-`migrate` job of `.do/app.yaml` applies the schema before each deploy. Without
-`DATABASE_URL`, `next dev` keeps the documents under `.data/users`, and a
-production server refuses the request.
 
 The geometry comes from `us-atlas` and `world-atlas`, served by
 `app/api/atlas/states` and `app/api/atlas/countries`. The routes keep both

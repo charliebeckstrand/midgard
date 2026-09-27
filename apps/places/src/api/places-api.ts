@@ -1,93 +1,69 @@
+import createClient from 'openapi-fetch'
+import { unwrap } from 'shared/auth'
 import type { MapTopology } from 'ui/modules/map'
 import type { Place, PlaceDraft, VisitScope, Visits } from '../types'
+import type { paths } from './openapi'
 
 /**
  * The client's whole reach: same-origin `/api/*` paths, per CONVENTIONS §6.3.
- * Nothing else in the app fetches, so replacing the store behind these routes
- * replaces the app's data source.
+ * Nothing else in the app fetches. The places and the visits go through the
+ * gateway to Mimir, in asgard, whose spec types {@link mimir}. The atlases are
+ * route handlers of this app.
  */
-
-/** What a route answers with when it rejects a body. */
-type IssuesResponse = { issues?: unknown }
-
-/** Reads the reasons a request failed, for a message the reader can act on. */
-async function failureText(response: Response): Promise<string> {
-	try {
-		const body = (await response.json()) as IssuesResponse
-
-		if (Array.isArray(body.issues)) return body.issues.map(String).join(' ')
-	} catch {
-		// A non-JSON error body says nothing useful; the status does.
-	}
-
-	return `Request failed: ${response.status}`
-}
 
 /**
- * The error for a failed request. A `401` means that the session ended, so the
- * page also goes to `/login`.
+ * The typed client of Mimir. The `fetch` is a function and not `fetch` itself,
+ * because `openapi-fetch` keeps the `fetch` it gets, and a test stubs the global.
  */
-async function failure(response: Response): Promise<Error> {
-	if (response.status === 401) window.location.assign('/login')
-
-	return new Error(await failureText(response))
-}
+const mimir = createClient<paths>({ fetch: (request) => fetch(request) })
 
 /**
- * One same-origin request, checked and parsed.
- *
- * Every call below goes through it, so the ok-check happens once rather than
- * seven times — an unchecked response is the failure that shows up as a parse
- * error three layers away, and the seventh copy is the one that forgets.
+ * The data of a result, or an error with the message of the service. A `401`
+ * means that the session ended, so the page also goes to `/login`.
  */
-async function request<T>(path: string, init?: RequestInit): Promise<T> {
-	const response = await fetch(path, init)
+async function settle<Data>(
+	result: Promise<{ data?: Data; error?: { message?: string }; response: Response }>,
+): Promise<Data> {
+	const settled = await result
 
-	if (!response.ok) throw await failure(response)
+	if (settled.response.status === 401) window.location.assign('/login')
 
-	return (await response.json()) as T
-}
-
-/** The same, for a request that writes JSON and reads the stored record back. */
-function send<T>(path: string, method: string, body: unknown): Promise<T> {
-	return request<T>(path, {
-		method,
-		headers: { 'content-type': 'application/json' },
-		body: JSON.stringify(body),
-	})
+	return unwrap(Promise.resolve(settled))
 }
 
 /** Every stored place, newest visit first. */
 export function fetchPlaces(signal?: AbortSignal): Promise<Place[]> {
-	return request<Place[]>('/api/places', { signal })
+	return settle(mimir.GET('/api/places', { signal }))
 }
 
 /** Adds one place and hands back the stored record, identity and all. */
 export function createPlace(draft: PlaceDraft): Promise<Place> {
-	return send<Place>('/api/places', 'POST', draft)
+	return settle(mimir.POST('/api/places', { body: draft }))
 }
 
 /** Replaces one place and hands back the stored record. */
 export function savePlace(id: string, draft: PlaceDraft): Promise<Place> {
-	return send<Place>(`/api/places/${encodeURIComponent(id)}`, 'PUT', draft)
+	return settle(mimir.PUT('/api/places/{id}', { params: { path: { id } }, body: draft }))
 }
 
 /** Removes one place. */
 export async function deletePlace(id: string): Promise<void> {
-	// The route answers 204, which carries no body to parse.
-	const response = await fetch(`/api/places/${encodeURIComponent(id)}`, { method: 'DELETE' })
-
-	if (!response.ok) throw await failure(response)
+	await settle(mimir.DELETE('/api/places/{id}', { params: { path: { id } } }))
 }
 
 /** Every visited region, by the name its own atlas gives it. */
 export function fetchVisits(signal?: AbortSignal): Promise<Visits> {
-	return request<Visits>('/api/visits', { signal })
+	return settle(mimir.GET('/api/visits', { signal }))
 }
 
 /** Marks one region visited or not, and hands back both scopes. */
 export function setVisit(scope: VisitScope, region: string, visited: boolean): Promise<Visits> {
-	return send<Visits>(`/api/visits/${scope}/${encodeURIComponent(region)}`, 'PUT', { visited })
+	return settle(
+		mimir.PUT('/api/visits/{scope}/{region}', {
+			params: { path: { scope, region } },
+			body: { visited },
+		}),
+	)
 }
 
 /**
@@ -97,6 +73,12 @@ export function setVisit(scope: VisitScope, region: string, visited: boolean): P
  * call rather than one function each — and the same word names the topology
  * object to decode out of what comes back.
  */
-export function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
-	return request<MapTopology>(`/api/atlas/${scope}`, { signal })
+export async function fetchAtlas(scope: VisitScope, signal?: AbortSignal): Promise<MapTopology> {
+	const response = await fetch(`/api/atlas/${scope}`, { signal })
+
+	if (response.status === 401) window.location.assign('/login')
+
+	if (!response.ok) throw new Error(`Request failed: ${response.status}`)
+
+	return (await response.json()) as MapTopology
 }
