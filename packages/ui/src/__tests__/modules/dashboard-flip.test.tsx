@@ -1,7 +1,7 @@
 import { act } from '@testing-library/react'
 import { describe, expect, it, type Mock, vi } from 'vitest'
 import { type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
-import { fireEvent, nonEmpty, present, renderUI, screen, stubMatchMedia } from '../helpers'
+import { fireEvent, nonEmpty, present, renderUI, screen, stubMatchMedia, tick } from '../helpers'
 import {
 	ControlledDashboard,
 	pressSplitter,
@@ -84,7 +84,7 @@ function watchGlides(name: string): { glides: Glide[]; widthReads: () => number 
 const PRIMARY = { isPrimary: true, button: 0 }
 
 /** Lets the keyboard sensor attach its keys, one timer after a lift. */
-const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+const settle = () => act(tick)
 
 /** Lifts Revenue with the keyboard, and carries it 8 columns with `key`. */
 async function carryRevenue(key: 'ArrowLeft' | 'ArrowRight'): Promise<HTMLElement> {

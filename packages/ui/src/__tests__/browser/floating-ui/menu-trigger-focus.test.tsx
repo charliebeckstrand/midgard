@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Menu, MenuContent, MenuItem, MenuTrigger } from '../../../components/menu'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { frames, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * Opening a dropdown menu keeps keyboard focus on the trigger — it is never
@@ -167,7 +167,7 @@ describe('MenuTrigger arrow-key roving (real floating engine)', () => {
 		})
 
 		// Settle a frame in case a stray keyup click would re-toggle it.
-		await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)))
+		await frames()
 		expect(screen.queryByRole('menu')).not.toBeInTheDocument()
 		expect(onEdit).toHaveBeenCalledTimes(1)
 	})

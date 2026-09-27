@@ -1,7 +1,7 @@
 import { Profiler } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { frames, present, renderUI, waitFor, windowBody } from '../helpers'
+import { frame, frames, present, renderUI, waitFor, windowBody } from '../helpers'
 
 /**
  * The React commits of one group toggle in a windowed grouped body, in a real
@@ -70,7 +70,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 
 			toggle().click()
 
-			await new Promise((resolve) => requestAnimationFrame(resolve))
+			await frame()
 
 			count = false
 

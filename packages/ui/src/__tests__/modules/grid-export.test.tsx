@@ -3,7 +3,7 @@ import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
 import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
 import { downloadCsv } from '../../utilities/export-output'
-import { deferred, fireEvent, renderUI, screen, waitFor, within } from '../helpers'
+import { deferred, fireEvent, renderUI, screen, tick, waitFor, within } from '../helpers'
 import { captureDownload } from '../helpers/capture-download'
 
 describe('rowsToCsv', () => {
@@ -123,7 +123,7 @@ describe('downloadCsv', () => {
 		// can abort the download), so flush timers before asserting.
 		expect(download.revokeObjectURL).not.toHaveBeenCalled()
 
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		await tick()
 
 		expect(download.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 	})

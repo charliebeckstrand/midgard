@@ -5,7 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest'
 import { cdp } from 'vitest/browser'
 import { Badge } from '../../components/badge'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, present, renderUI, waitFor } from '../helpers'
+import { fireEvent, frame, frames, present, renderUI, waitFor } from '../helpers'
 
 /** Opens the header menu's Auto-size parent, which holds both fits. */
 const openAutoSizeMenu = () => {
@@ -503,8 +503,8 @@ describe('grid column auto-sizing with async rows (real browser)', () => {
 		// each frame that had rendered rows in it.
 		const widths = new Set<number>()
 
-		for (let frame = 0; frame < 40; frame++) {
-			await new Promise((resolve) => requestAnimationFrame(resolve))
+		for (let sample = 0; sample < 40; sample++) {
+			await frame()
 
 			if (leafOf(container)) widths.add(Math.round(header().getBoundingClientRect().width))
 		}
@@ -581,9 +581,6 @@ describe('grid column auto-sizing at device pixel ratio 2 (real browser)', () =>
 			return content > box ? [`${leaf.textContent}: ${content} > ${box}`] : []
 		})
 	}
-
-	const frames = () =>
-		new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
 
 	function menuAction(root: HTMLElement, id: string, label: string) {
 		fireEvent.contextMenu(

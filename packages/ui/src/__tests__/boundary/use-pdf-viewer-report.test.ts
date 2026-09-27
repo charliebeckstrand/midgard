@@ -17,6 +17,7 @@ import {
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
+import { tick } from '../helpers/frames'
 
 beforeEach(() => {
 	getDocumentMock.mockReset()
@@ -66,7 +67,7 @@ async function seed(src: string, pageCount = 1) {
 		})
 	}
 
-	await new Promise((resolve) => setTimeout(resolve, 0))
+	await tick()
 }
 
 const originalFetch = globalThis.fetch
@@ -100,7 +101,7 @@ describe('usePdfViewer · load reporting', () => {
 		await act(async () => {
 			renderHook(() => usePdfViewer({ src: '/missing.pdf', onLoad, onError }))
 
-			await new Promise((resolve) => setTimeout(resolve, 0))
+			await tick()
 		})
 
 		expect(onError).toHaveBeenCalledOnce()
@@ -191,13 +192,13 @@ describe('usePdfViewer · load reporting', () => {
 		await act(async () => {
 			ensureDocumentLoad('/blank.pdf', () => Promise.resolve())
 
-			await new Promise((resolve) => setTimeout(resolve, 0))
+			await tick()
 		})
 
 		renderHook(() => usePdfViewer({ src: '/blank.pdf', onLoad, onError }))
 
 		await act(async () => {
-			await new Promise((resolve) => setTimeout(resolve, 0))
+			await tick()
 		})
 
 		expect(onLoad).not.toHaveBeenCalled()

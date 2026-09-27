@@ -22,3 +22,20 @@ export function nextPaint(): Promise<void> {
 		requestAnimationFrame(() => setTimeout(resolve, 0))
 	})
 }
+
+/** Waits one animation frame. */
+export function frame(): Promise<void> {
+	return new Promise((resolve) => {
+		requestAnimationFrame(() => resolve())
+	})
+}
+
+/**
+ * Waits one macrotask. The microtasks that are pending run first, so a chain
+ * of resolved promises settles before it returns.
+ */
+export function tick(): Promise<void> {
+	return new Promise((resolve) => {
+		setTimeout(resolve, 0)
+	})
+}
