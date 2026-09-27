@@ -10,6 +10,7 @@ import {
 import type { User } from 'auth'
 import { usePathname, useRouter } from 'next/navigation'
 import type { ReactNode } from 'react'
+import { bifrost } from 'shared/auth'
 import { Avatar } from 'ui/avatar'
 import { SidebarLayout } from 'ui/layouts'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuSeparator, MenuTrigger } from 'ui/menu'
@@ -95,7 +96,7 @@ function SidebarUserMenu({ user }: { user: User }) {
 	const router = useRouter()
 
 	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+		await bifrost.POST('/auth/logout').catch(() => {})
 
 		router.push('/login')
 	}

@@ -10,13 +10,9 @@ import { AccountClient } from './client'
  * @returns The passkey list, or `[]` on a non-OK response.
  */
 async function getPasskeys(): Promise<Passkey[]> {
-	const res = await bifrost('/auth/passkeys')
+	const { data } = await bifrost.GET('/auth/passkeys')
 
-	if (!res.ok) return []
-
-	const { data } = (await res.json()) as { data: Passkey[] }
-
-	return data
+	return data?.data ?? []
 }
 
 const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
@@ -28,11 +24,9 @@ const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_
  * @returns The factors, or none on a non-OK response.
  */
 async function getFactors(): Promise<Factors> {
-	const res = await bifrost('/auth/mfa')
+	const { data } = await bifrost.GET('/auth/mfa')
 
-	if (!res.ok) return noFactors
-
-	return (await res.json()) as Factors
+	return data ?? noFactors
 }
 
 /**
@@ -43,13 +37,9 @@ async function getFactors(): Promise<Factors> {
  * @returns The accounts, or `[]` on a non-OK response.
  */
 async function getIdentities(): Promise<Identity[]> {
-	const res = await bifrost('/auth/oauth/identities')
+	const { data } = await bifrost.GET('/auth/oauth/identities')
 
-	if (!res.ok) return []
-
-	const { identities } = (await res.json()) as { identities: Identity[] }
-
-	return identities
+	return data?.identities ?? []
 }
 
 /**
@@ -59,13 +49,9 @@ async function getIdentities(): Promise<Identity[]> {
  * @returns The events, newest first, or `[]` on a non-OK response.
  */
 async function getActivity(): Promise<Activity[]> {
-	const res = await bifrost('/auth/activity')
+	const { data } = await bifrost.GET('/auth/activity')
 
-	if (!res.ok) return []
-
-	const { data } = (await res.json()) as { data: Activity[] }
-
-	return data
+	return data?.data ?? []
 }
 
 /**

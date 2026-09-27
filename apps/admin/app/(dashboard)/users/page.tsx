@@ -9,13 +9,9 @@ import { UsersClient } from './client'
  * @returns The user list, or `[]` on a non-OK response.
  */
 async function getUsers(): Promise<User[]> {
-	const res = await bifrost('/api/users')
+	const { data } = await bifrost.GET('/api/users')
 
-	if (!res.ok) return []
-
-	const { data } = (await res.json()) as { data: User[] }
-
-	return data
+	return data?.data ?? []
 }
 
 export default async function UsersPage() {

@@ -10,7 +10,7 @@ Peer-compatible with Next 15–16 and React 18–19.
 
 | Path | Purpose |
 |---|---|
-| `auth` | Server-side gateway access: `bifrost` (gateway fetch), `getSession`, `requireSession`, `requireAdmin` (an admin session that passed the second step), `getSignInProviders` (the GitHub and Google sign-in the gateway has set up), and the `Session`, `User`, `Role`, and `SignInProvider` types. |
+| `auth` | Server-side gateway access: `bifrost` (the typed client of the gateway, which forwards the session cookies), `getSession`, `requireSession`, `requireAdmin` (an admin session that passed the second step), `getSignInProviders` (the GitHub and Google sign-in the gateway has set up), and the `Session`, `User`, `Role`, and `SignInProvider` types. `Paths` and `Schema` give the types of the gateway API, from `src/openapi.d.ts`. |
 | `auth/config` | `withAuth`, which wraps a Next config with the gateway rewrites. |
 | `auth/proxy` | `proxy`, the session gate that the `proxy.ts` of an app exports, and `forwardClientIp`, the proxy of an app with no gate. Both send the browser address to the gateway. |
 
@@ -23,10 +23,11 @@ Peer-compatible with Next 15–16 and React 18–19.
 | Test | `pnpm --filter auth test` |
 | Lint | `pnpm --filter auth lint` |
 | Format | `pnpm --filter auth format` |
+| Generate the gateway types | `pnpm --filter auth openapi` |
 
 ## 3. Consumers
 
-[`apps/admin`](../../apps/admin/README.md) and [`apps/places`](../../apps/places/README.md) use this package.
+[`apps/admin`](../../apps/admin/README.md), [`apps/places`](../../apps/places/README.md), and [`shared`](../shared/README.md) use this package. `shared` takes only its types.
 
 ---
 

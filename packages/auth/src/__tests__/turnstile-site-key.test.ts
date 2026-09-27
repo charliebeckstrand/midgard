@@ -8,7 +8,7 @@ vi.mock('next/headers', () => ({ cookies }))
 
 // Stubs the gateway: `fetch` resolves to the given status and body.
 function stubGateway(status: number, body: unknown = null) {
-	const fetch = vi.fn(async (_url: string, _init?: RequestInit) => Response.json(body, { status }))
+	const fetch = vi.fn(async (_request: Request) => Response.json(body, { status }))
 
 	vi.stubGlobal('fetch', fetch)
 
@@ -25,7 +25,7 @@ describe('getTurnstileSiteKey', () => {
 
 		await expect(getTurnstileSiteKey()).resolves.toBe('site-key')
 
-		expect(fetch.mock.calls[0]?.[0]).toBe(`${BIFROST_URL}/auth/register/options`)
+		expect(fetch.mock.calls[0]?.[0].url).toBe(`${BIFROST_URL}/auth/register/options`)
 	})
 
 	it('returns null when the gateway has no Turnstile', async () => {

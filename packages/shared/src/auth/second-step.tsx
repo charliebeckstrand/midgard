@@ -1,6 +1,10 @@
 'use client'
 
-import { startAuthentication } from '@simplewebauthn/browser'
+import {
+	type PublicKeyCredentialRequestOptionsJSON,
+	startAuthentication,
+} from '@simplewebauthn/browser'
+import type { Schema } from 'auth'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
@@ -11,15 +15,13 @@ import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Text } from 'ui/text'
+import { bifrost } from './bifrost'
 import { chain, required } from './form-validators'
 import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
 import { useLeaving } from './use-leaving'
 
 /** The proof that `/auth/session/verify` accepts. */
-type SecondFactorProof =
-	| { totp: string }
-	| { recovery_code: string }
-	| { passkey: Awaited<ReturnType<typeof startAuthentication>> }
+type SecondFactorProof = Schema<'SecondFactorRequest'>
 
 type SecondStepProps = {
 	/** The methods that the user has. */
@@ -63,20 +65,14 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 	async function submit(proof: SecondFactorProof) {
 		try {
-			const res = await fetch('/auth/session/verify', {
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify(proof),
-			})
+			const { response, error } = await bifrost.POST('/auth/session/verify', { body: proof })
 
 			// The form stays disabled until the next page or the closed dialog replaces it.
-			if (res.ok) return leave(onVerified)
+			if (response.ok) return leave(onVerified)
 
-			if (res.status === 410) return leave(onExpired)
+			if (response.status === 410) return leave(onExpired)
 
-			const data = await res.json().catch(() => null)
-
-			setError(data?.message || 'That code was not accepted. Please try again.')
+			setError(error?.message || 'That code was not accepted. Please try again.')
 		} catch {
 			setError('An unexpected error occurred. Please try again later.')
 		}
@@ -89,17 +85,18 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 	// The gateway names only the passkeys of this user. A cancel in the browser throws.
 	async function usePasskey() {
 		try {
-			const options = await fetch('/auth/session/verify/options', { method: 'POST' })
+			const { data: options, error } = await bifrost.POST('/auth/session/verify/options')
 
-			if (!options.ok) {
-				const data = await options.json().catch(() => null)
-
-				setError(data?.message || passkeyFailed)
+			if (!options) {
+				setError(error?.message || passkeyFailed)
 
 				return
 			}
 
-			await submit({ passkey: await startAuthentication({ optionsJSON: await options.json() }) })
+			// The gateway passes the options of the browser API through, so its spec names no fields.
+			const optionsJSON = options as PublicKeyCredentialRequestOptionsJSON
+
+			await submit({ passkey: await startAuthentication({ optionsJSON }) })
 		} catch {
 			setError(passkeyFailed)
 		}
@@ -194,7 +191,7 @@ export function VerifyPage({ methods }: VerifyPageProps) {
 	const router = useRouter()
 
 	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+		await bifrost.POST('/auth/logout').catch(() => {})
 
 		router.replace('/login')
 	}

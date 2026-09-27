@@ -1,5 +1,9 @@
-import { startRegistration } from '@simplewebauthn/browser'
-import { fetchWithSecondStep } from 'shared/auth'
+import {
+	type PublicKeyCredentialCreationOptionsJSON,
+	startRegistration,
+} from '@simplewebauthn/browser'
+import type { Schema, SignInProvider } from 'auth'
+import { bifrost, unwrap } from 'shared/auth'
 
 /**
  * The requests that the account page sends from the client. Each goes to a
@@ -7,31 +11,7 @@ import { fetchWithSecondStep } from 'shared/auth'
  */
 
 /** A passkey of the signed-in user, as the gateway lists it. */
-export type Passkey = {
-	id: string
-	created_at: string
-}
-
-/**
- * Sends one same-origin request and checks its status.
- *
- * When the gateway asks for the second step, the dialog of the app asks the
- * user for it, and the request goes again. A query or a mutation reads a
- * thrown error as a failure. On a non-OK
- * response, the error holds the message of the gateway, such as "Sign in again
- * to change how you sign in", so that the page can show it.
- */
-async function request(path: string, init?: RequestInit): Promise<Response> {
-	const response = await fetchWithSecondStep(path, init)
-
-	if (!response.ok) {
-		const body = (await response.json().catch(() => null)) as { message?: string } | null
-
-		throw new Error(body?.message ?? `${init?.method ?? 'GET'} ${path} failed: ${response.status}`)
-	}
-
-	return response
-}
+export type Passkey = Schema<'Passkey'>
 
 /**
  * Emails the signed-in user a new link that verifies the email.
@@ -39,14 +19,12 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
  * The gateway sends one link each minute at most, and refuses another with a `429`.
  */
 export async function sendVerificationEmail(): Promise<void> {
-	await request('/auth/verify-email', { method: 'POST' })
+	await unwrap(bifrost.POST('/auth/verify-email'))
 }
 
 /** The passkeys of the signed-in user. */
 export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
-	const response = await request('/auth/passkeys', { signal })
-
-	const { data } = (await response.json()) as { data: Passkey[] }
+	const { data } = await unwrap(bifrost.GET('/auth/passkeys', { signal }))
 
 	return data
 }
@@ -59,17 +37,14 @@ export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
  * ten minutes of the sign-in.
  */
 export async function addPasskey(): Promise<Passkey> {
-	const options = await request('/auth/passkeys/options', { method: 'POST' })
+	const options = await unwrap(bifrost.POST('/auth/passkeys/options'))
 
-	const credential = await startRegistration({ optionsJSON: await options.json() })
+	// The gateway passes the options of the browser API through, so its spec names no fields.
+	const optionsJSON = options as PublicKeyCredentialCreationOptionsJSON
 
-	const response = await request('/auth/passkeys', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify(credential),
-	})
+	const credential = await startRegistration({ optionsJSON })
 
-	return (await response.json()) as Passkey
+	return unwrap(bifrost.POST('/auth/passkeys', { body: credential }))
 }
 
 /**
@@ -78,31 +53,18 @@ export async function addPasskey(): Promise<Passkey> {
  * The gateway refuses to remove the last second factor of an admin with a `409`.
  */
 export async function removePasskey(id: string): Promise<void> {
-	await request(`/auth/passkeys/${encodeURIComponent(id)}`, { method: 'DELETE' })
+	await unwrap(bifrost.DELETE('/auth/passkeys/{id}', { params: { path: { id } } }))
 }
 
 /** The second factors of the signed-in user, as the gateway reports them. */
-export type Factors = {
-	/** Whether a sign-in takes a second step: a passkey or an authenticator app is on. */
-	enabled: boolean
-	passkeys: number
-	totp: boolean
-	recovery_codes: number
-}
+export type Factors = Schema<'Factors'>
 
 /** A new authenticator-app secret, before the user confirms it. */
-export type TotpSetup = {
-	/** The secret in base32, for an app that cannot scan. */
-	secret: string
-	/** The `otpauth://` URI, for the QR code. */
-	uri: string
-}
+export type TotpSetup = Schema<'TotpSetup'>
 
 /** The second factors of the signed-in user. */
 export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
-	const response = await request('/auth/mfa', { signal })
-
-	return (await response.json()) as Factors
+	return unwrap(bifrost.GET('/auth/mfa', { signal }))
 }
 
 /**
@@ -110,18 +72,12 @@ export async function fetchFactors(signal?: AbortSignal): Promise<Factors> {
  * {@link confirmTotp} sends a code from it.
  */
 export async function startTotpSetup(): Promise<TotpSetup> {
-	const response = await request('/auth/mfa/totp/setup', { method: 'POST' })
-
-	return (await response.json()) as TotpSetup
+	return unwrap(bifrost.POST('/auth/mfa/totp/setup'))
 }
 
 /** Turns on the authenticator app with a code that it shows now. */
 export async function confirmTotp(code: string): Promise<void> {
-	await request('/auth/mfa/totp', {
-		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		body: JSON.stringify({ code }),
-	})
+	await unwrap(bifrost.POST('/auth/mfa/totp', { body: { code } }))
 }
 
 /**
@@ -130,34 +86,25 @@ export async function confirmTotp(code: string): Promise<void> {
  * The gateway refuses to remove the last second factor of an admin with a `409`.
  */
 export async function removeTotp(): Promise<void> {
-	await request('/auth/mfa/totp', { method: 'DELETE' })
+	await unwrap(bifrost.DELETE('/auth/mfa/totp'))
 }
 
 /** Replaces the recovery codes, and returns the new ones. The gateway shows them only this once. */
 export async function generateRecoveryCodes(): Promise<string[]> {
-	const response = await request('/auth/mfa/recovery-codes', { method: 'POST' })
-
-	const { codes } = (await response.json()) as { codes: string[] }
+	const { codes } = await unwrap(bifrost.POST('/auth/mfa/recovery-codes'))
 
 	return codes
 }
 
-/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
-export type Provider = 'github' | 'google'
+/** A provider that a user can sign in with. */
+export type Provider = SignInProvider
 
 /** A GitHub or Google account connected to the signed-in user. */
-export type Identity = {
-	provider: Provider
-	/** The verified email of the account, or null when it has none. */
-	email: string | null
-	created_at: string
-}
+export type Identity = Schema<'Identity'>
 
 /** The GitHub and Google accounts connected to the signed-in user. */
 export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]> {
-	const response = await request('/auth/oauth/identities', { signal })
-
-	const { identities } = (await response.json()) as { identities: Identity[] }
+	const { identities } = await unwrap(bifrost.GET('/auth/oauth/identities', { signal }))
 
 	return identities
 }
@@ -169,5 +116,7 @@ export async function fetchIdentities(signal?: AbortSignal): Promise<Identity[]>
  * password, no other connected account, and no passkey.
  */
 export async function unlinkIdentity(provider: Provider): Promise<void> {
-	await request(`/auth/oauth/identities/${provider}`, { method: 'DELETE' })
+	await unwrap(
+		bifrost.DELETE('/auth/oauth/identities/{provider}', { params: { path: { provider } } }),
+	)
 }

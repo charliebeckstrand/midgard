@@ -3,6 +3,7 @@
 import type { User } from 'auth'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { bifrost } from 'shared/auth'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -70,7 +71,7 @@ export function AccountClient({
 	const error = add.error ?? remove.error ?? sendLink.error
 
 	async function signOut() {
-		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+		await bifrost.POST('/auth/logout').catch(() => {})
 
 		router.push('/login')
 	}

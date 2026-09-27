@@ -1,6 +1,6 @@
 import { bifrost, requireSession } from 'auth'
 import { redirect } from 'next/navigation'
-import { type SecondFactors, secondFactorMethods, VerifyPage } from 'shared/auth'
+import { secondFactorMethods, VerifyPage } from 'shared/auth'
 
 /**
  * Page of the second step. `requireAdmin` sends an admin session here until it
@@ -16,9 +16,9 @@ export default async function Verify() {
 
 	if (session.two_step) redirect('/')
 
-	const res = await bifrost('/auth/mfa')
+	const { data } = await bifrost.GET('/auth/mfa')
 
-	const methods = res.ok ? secondFactorMethods((await res.json()) as SecondFactors) : []
+	const methods = data ? secondFactorMethods(data) : []
 
 	if (methods.length === 0) redirect('/account')
 

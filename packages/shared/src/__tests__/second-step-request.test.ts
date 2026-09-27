@@ -6,12 +6,22 @@ import {
 	setSecondStepDialog,
 } from '../auth/second-step-request'
 
-const factors = { passkeys: 1, totp: false, recovery_codes: 0 }
+// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
+vi.hoisted(() => {
+	globalThis.Request = class extends Request {
+		constructor(input: RequestInfo | URL, init?: RequestInit) {
+			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
+		}
+	}
+})
+
+const factors = { enabled: true, passkeys: 1, totp: false, recovery_codes: 0 }
 
 // Stubs the gateway: each path answers with the given status and body.
 function stubGateway(routes: Record<string, () => Response>) {
 	const fetch = vi.fn(
-		async (path: string) => routes[path]?.() ?? new Response(null, { status: 404 }),
+		async (request: Request) =>
+			routes[new URL(request.url).pathname]?.() ?? new Response(null, { status: 404 }),
 	)
 
 	vi.stubGlobal('fetch', fetch)
@@ -27,9 +37,12 @@ afterEach(() => {
 
 describe('secondFactorMethods', () => {
 	it.each([
-		[{ passkeys: 0, totp: false, recovery_codes: 4 }, []],
-		[{ passkeys: 2, totp: false, recovery_codes: 0 }, ['passkey']],
-		[{ passkeys: 1, totp: true, recovery_codes: 3 }, ['passkey', 'totp', 'recovery_code']],
+		[{ enabled: false, passkeys: 0, totp: false, recovery_codes: 4 }, []],
+		[{ enabled: true, passkeys: 2, totp: false, recovery_codes: 0 }, ['passkey']],
+		[
+			{ enabled: true, passkeys: 1, totp: true, recovery_codes: 3 },
+			['passkey', 'totp', 'recovery_code'],
+		],
 	])('offers %o as %o', (input, methods) => {
 		expect(secondFactorMethods(input)).toEqual(methods)
 	})
@@ -51,7 +64,8 @@ describe('ensureSecondStep', () => {
 	it('passes a user without a second factor, without the dialog', async () => {
 		stubGateway({
 			'/auth/session': () => Response.json({ two_step: false }),
-			'/auth/mfa': () => Response.json({ passkeys: 0, totp: false, recovery_codes: 0 }),
+			'/auth/mfa': () =>
+				Response.json({ enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }),
 		})
 
 		const open = vi.fn()
@@ -106,11 +120,15 @@ describe('fetchWithSecondStep', () => {
 
 		setSecondStepDialog(async () => true)
 
-		const res = await fetchWithSecondStep('/auth/passkeys', { method: 'DELETE' })
+		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
 		expect(res.status).toBe(204)
 
-		expect(fetch).toHaveBeenLastCalledWith('/auth/passkeys', { method: 'DELETE' })
+		const [request] = fetch.mock.lastCall ?? []
+
+		expect(request?.method).toBe('DELETE')
+
+		expect(request?.url).toBe('http://localhost/auth/passkeys')
 	})
 
 	it('returns the first response when the user closes the dialog', async () => {
@@ -122,7 +140,7 @@ describe('fetchWithSecondStep', () => {
 
 		setSecondStepDialog(async () => false)
 
-		const res = await fetchWithSecondStep('/auth/passkeys', { method: 'DELETE' })
+		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
 		expect(res.status).toBe(403)
 
@@ -134,7 +152,7 @@ describe('fetchWithSecondStep', () => {
 			'/auth/passkeys': () => Response.json({ message: 'Sign in again' }, { status: 403 }),
 		})
 
-		const res = await fetchWithSecondStep('/auth/passkeys', { method: 'DELETE' })
+		const res = await fetchWithSecondStep(new Request('/auth/passkeys', { method: 'DELETE' }))
 
 		expect(res.status).toBe(403)
 
