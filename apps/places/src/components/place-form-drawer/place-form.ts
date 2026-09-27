@@ -1,4 +1,4 @@
-import type { AddressSuggestion } from 'ui/address-input'
+import type { AddressProvider, AddressSuggestion } from 'ui/address-input'
 import type { FormProps } from 'ui/form'
 import { MAX_RATING } from '../../constants'
 import { isWebAddress } from '../../schemas/place'
@@ -17,9 +17,15 @@ import { fromDay, toDay } from '../../utilities/places-filter'
  * cleared field as filled and then dereferenced it.
  */
 export type PlaceValues = {
-	/** The geocoded match, which is where the position comes from. */
+	/**
+	 * The geocoded match, which is where the position comes from. It is empty
+	 * when the reader typed the address, and a submit then finds the position
+	 * from that address ({@link locatePlace}).
+	 */
 	place?: AddressSuggestion
 	name: string
+	/** The address on one line. A pick in the search fills it, and the reader can type it. */
+	address: string
 	category?: PlaceCategory
 	rating: number
 	visitedAt?: Date
@@ -44,10 +50,12 @@ function required(field: string): string {
  * The position is validated through `place` rather than through a pair of
  * coordinate fields, because the reader never sees coordinates: a match that
  * carried none is the failure, and the search field is where they can fix it.
+ * The search is not required. A place that the map data does not have is added
+ * by its address, and the address is the field that is required.
  */
 export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = {
 	place: (value) => {
-		if (value === undefined) return required('Search')
+		if (value === undefined) return undefined
 
 		if (value.latitude === undefined || value.longitude === undefined) {
 			return 'That match has no position. Pick another.'
@@ -56,6 +64,7 @@ export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = 
 		return undefined
 	},
 	name: (value) => (value.trim() === '' ? required('Name') : undefined),
+	address: (value) => (value.trim() === '' ? required('Address') : undefined),
 	category: (value) => (value === undefined ? required('Category') : undefined),
 	visitedAt: (value) =>
 		value === undefined || Number.isNaN(value.getTime()) ? required('Visited') : undefined,
@@ -73,14 +82,40 @@ export const placeValidators: NonNullable<FormProps<PlaceValues>['validate']> = 
  * the label already. The parts are the first source, because they are the only
  * form the geocoder gives that is not built for display.
  */
-function addressLine(place: AddressSuggestion | undefined): string {
-	if (place === undefined) return ''
-
+export function addressLine(place: AddressSuggestion): string {
 	const { street, city, state, postcode, country } = place.address ?? {}
 
 	const parted = [street, city, state, postcode, country].filter(Boolean).join(', ')
 
 	return parted || place.description || place.label
+}
+
+/**
+ * Finds the position of the values, which is the match that {@link toPlaceDraft}
+ * reads.
+ *
+ * A match in the search is the position already. Without one, the reader typed
+ * the address, and the geocoder's first match for that address with a position
+ * is the position. The address line stays as the reader typed it. `null` means
+ * that the geocoder found no such address.
+ *
+ * @param values - The filled form values.
+ * @param geocode - The provider that resolves the typed address.
+ * @param signal - Cancels the request.
+ * @returns The match to store, or `null` where the address resolved to nothing.
+ */
+export async function locatePlace(
+	values: PlaceValues,
+	geocode: AddressProvider,
+	signal: AbortSignal,
+): Promise<AddressSuggestion | null> {
+	if (values.place !== undefined) return values.place
+
+	const matches = await geocode(values.address.trim(), { signal })
+
+	return (
+		matches.find((match) => match.latitude !== undefined && match.longitude !== undefined) ?? null
+	)
 }
 
 /**
@@ -91,25 +126,28 @@ function addressLine(place: AddressSuggestion | undefined): string {
  * the route handler validates the body again regardless. A fallback keeps a
  * would-be impossible state legible instead of asserting it away.
  *
- * `base` is the record an edit started from, and it is what keeps an edit from
- * shortening its own address. The store holds the line whole and only three of
- * its parts, so a place dressed back up as a match by {@link toFormValues} has no
- * street and no postcode to rebuild that line from — re-derived, "828 Broadway,
- * New York, New York, 10003, United States" comes back as "New York, New York".
- * The record answers for its own address until the reader searches again.
+ * `place` is the match from {@link locatePlace}, and it gives the position and
+ * the parts that the list filters by. The address line is the field's own.
+ *
+ * `base` is the record an edit started from. The store holds only three parts
+ * of the address, so a place dressed back up as a match by {@link toFormValues}
+ * carries those three and nothing else. While the match is still that one, the
+ * record answers for its own parts.
  */
-export function toPlaceDraft(values: PlaceValues, base: Place | null = null): PlaceDraft {
-	const { place } = values
-
-	// Only while the field still holds the match the form was seeded with. That
-	// match wears the place's own id, and a geocoder's ids are its own — so a
-	// search of any kind replaces the id and the record stops answering.
+export function toPlaceDraft(
+	values: PlaceValues,
+	place: AddressSuggestion | undefined,
+	base: Place | null = null,
+): PlaceDraft {
+	// Only while the match is the one the form was seeded with. That match wears
+	// the place's own id, and a geocoder's ids are its own, so a search of any
+	// kind replaces the id and the record stops answering.
 	const kept = base !== null && place?.id === base.id ? base : null
 
 	return {
 		name: values.name.trim(),
 		category: values.category ?? 'other',
-		address: kept?.address ?? addressLine(place),
+		address: values.address.trim(),
 		city: kept?.city ?? place?.address?.city,
 		state: kept?.state ?? place?.address?.state,
 		country: kept?.country ?? place?.address?.country,
@@ -129,8 +167,8 @@ export function toPlaceDraft(values: PlaceValues, base: Place | null = null): Pl
  * The search field holds a geocoded match and a stored place is not one, so the
  * position it already carries is dressed as a match: the field shows the address
  * on record, the validator sees the coordinates it needs, and searching again
- * replaces the lot. Without it an edit would open with an empty search and
- * refuse to save until the reader re-found a place they had already found.
+ * replaces the lot. Without it, a save would find the position from the stored
+ * address again, and could move a place that is already in the correct position.
  */
 export function toFormValues(place: Place): PlaceValues {
 	return {
@@ -147,6 +185,7 @@ export function toFormValues(place: Place): PlaceValues {
 			longitude: place.longitude,
 		},
 		name: place.name,
+		address: place.address,
 		category: place.category,
 		rating: place.rating,
 		visitedAt: fromDay(place.visitedAt),

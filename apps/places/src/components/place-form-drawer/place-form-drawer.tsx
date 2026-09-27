@@ -7,7 +7,7 @@ import { Button } from 'ui/button'
 import { DatePicker } from 'ui/date-picker'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
 import { Field, Label, Message } from 'ui/fieldset'
-import { Form } from 'ui/form'
+import { Form, type SubmitResult } from 'ui/form'
 import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
@@ -18,8 +18,23 @@ import { Textarea } from 'ui/textarea'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORIES, categoryLabel } from '../../constants'
 import type { Place, PlaceCategory, PlaceDraft } from '../../types'
-import { type PlaceValues, placeValidators, toFormValues, toPlaceDraft } from './place-form'
+import { PlaceAddressField } from './place-address-field'
+import {
+	locatePlace,
+	type PlaceValues,
+	placeValidators,
+	toFormValues,
+	toPlaceDraft,
+} from './place-form'
+import { placeGeocoder } from './place-geocoder'
 import { PlaceSearchField } from './place-search-field'
+
+/**
+ * How long a submit waits for the geocoder to find a typed address. The public
+ * geocoder has no service level, and a submit that waits with no limit keeps
+ * the button busy with no message.
+ */
+const LOCATE_TIMEOUT_MS = 10_000
 
 /** Props for {@link PlaceFormDrawer}. */
 export type PlaceFormDrawerProps = {
@@ -38,11 +53,25 @@ export type PlaceFormDrawerProps = {
 	onSubmit: (draft: PlaceDraft) => Promise<unknown>
 }
 
+/**
+ * What the drawer says about a failed submit. A timed-out search for the typed
+ * address gets its own words, because the platform's words for it name an
+ * operation that the reader never started.
+ */
+function failureMessage(error: unknown): string {
+	if (error instanceof DOMException && error.name === 'TimeoutError') {
+		return 'The address search did not answer. Try again.'
+	}
+
+	return error instanceof Error ? error.message : String(error)
+}
+
 /** A fresh form. */
 function emptyValues(): PlaceValues {
 	return {
 		place: undefined,
 		name: '',
+		address: '',
 		category: undefined,
 		rating: 0,
 		// A place is usually added just after the visit, so today is the useful
@@ -65,7 +94,9 @@ function emptyValues(): PlaceValues {
  *
  * The search field resolves a business name to its address and position, so a
  * place reaches the map without the reader ever typing coordinates — see
- * {@link PlaceSearchField} for what one pick fills in.
+ * {@link PlaceSearchField} for what one pick fills in. For a place that the
+ * search does not find, the reader types the address, and a submit finds the
+ * position from it ({@link PlaceAddressField}).
  */
 export function PlaceFormDrawer({
 	open,
@@ -133,18 +164,34 @@ export function PlaceFormDrawer({
 				key={`${String(open)}:${seed?.id ?? 'new'}`}
 				defaultValues={seed === null ? emptyValues() : toFormValues(seed)}
 				validate={placeValidators}
-				onSubmit={async (values) => {
+				onSubmit={async (values): Promise<SubmitResult<PlaceValues> | undefined> => {
 					setFailure(null)
 
 					try {
-						await onSubmit(toPlaceDraft(values, seed))
-					} catch (error) {
-						setFailure(error instanceof Error ? error.message : String(error))
+						const located = await locatePlace(
+							values,
+							placeGeocoder,
+							AbortSignal.timeout(LOCATE_TIMEOUT_MS),
+						)
 
-						return
+						if (located === null) {
+							return {
+								fieldErrors: {
+									address: 'That address was not found. Check it, or search for the place.',
+								},
+							}
+						}
+
+						await onSubmit(toPlaceDraft(values, located, seed))
+					} catch (error) {
+						setFailure(failureMessage(error))
+
+						return undefined
 					}
 
 					onOpenChange(false)
+
+					return undefined
 				}}
 			>
 				<DrawerBody>
@@ -188,6 +235,10 @@ export function PlaceFormDrawer({
 
 							<Message name="category" />
 						</Field>
+
+						<div className="sm:col-span-2">
+							<PlaceAddressField />
+						</div>
 
 						<Field>
 							<Label>Visited</Label>
