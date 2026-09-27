@@ -7,6 +7,9 @@ import { VISIT_SCOPES, type VisitScope } from '@/types'
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
 
+/** Longer than any country or state name, so a region can't carry a payload. */
+const MAX_REGION_LENGTH = 100
+
 /** Route params arrive as a promise in this Next major. */
 type Context = { params: Promise<{ scope: string; region: string }> }
 
@@ -59,6 +62,13 @@ export async function PUT(request: Request, context: Context) {
 	const region = decodeURIComponent(rawRegion).trim()
 
 	if (region === '') return Response.json({ issues: ['`region` is required.'] }, { status: 400 })
+
+	if (region.length > MAX_REGION_LENGTH) {
+		return Response.json(
+			{ issues: [`\`region\` must be at most ${MAX_REGION_LENGTH} characters.`] },
+			{ status: 400 },
+		)
+	}
 
 	const body = await readJson(request)
 

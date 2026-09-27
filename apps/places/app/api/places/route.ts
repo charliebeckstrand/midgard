@@ -1,6 +1,6 @@
 import { addPlace, listPlaces } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
-import { authorize } from '@/server/session-user'
+import { authorize, userOnly } from '@/server/session-user'
 
 /** The store reads the filesystem, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
@@ -11,7 +11,7 @@ export async function GET() {
 
 	if (userId instanceof Response) return userId
 
-	return Response.json(await listPlaces(userId))
+	return Response.json(await listPlaces(userId), { headers: userOnly })
 }
 
 /** Adds one place, after reading the body as a draft. */

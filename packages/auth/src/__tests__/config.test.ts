@@ -1,17 +1,35 @@
 import { describe, expect, it } from 'vitest'
-import { withAuth } from '../config'
+import { securityHeaders, withAuth } from '../config'
 import { BIFROST_URL } from '../env'
 
-const gatewayRewrites = [
-	{ source: '/auth/:path*', destination: `${BIFROST_URL}/auth/:path*` },
-	{ source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` },
-]
+const gatewayRewrites = [{ source: '/auth/:path*', destination: `${BIFROST_URL}/auth/:path*` }]
+
+const apiRewrite = { source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` }
 
 const userRewrite = { source: '/old', destination: '/new' }
 
 describe('withAuth', () => {
 	it('adds the gateway rewrites to a config without rewrites', async () => {
 		await expect(withAuth().rewrites?.()).resolves.toEqual({ fallback: gatewayRewrites })
+	})
+
+	it('rewrites `/api/*` to the gateway only with gatewayApi', async () => {
+		await expect(withAuth({}, { gatewayApi: true }).rewrites?.()).resolves.toEqual({
+			fallback: [...gatewayRewrites, apiRewrite],
+		})
+	})
+
+	it('sends the security headers on every path, before the headers of the config', async () => {
+		const own = { source: '/fonts/:path*', headers: [{ key: 'Cache-Control', value: 'public' }] }
+
+		await expect(withAuth().headers?.()).resolves.toEqual([
+			{ source: '/:path*', headers: securityHeaders },
+		])
+
+		await expect(withAuth({ headers: async () => [own] }).headers?.()).resolves.toEqual([
+			{ source: '/:path*', headers: securityHeaders },
+			own,
+		])
 	})
 
 	it('keeps the other fields of the config', () => {

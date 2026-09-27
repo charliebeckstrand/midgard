@@ -1,4 +1,4 @@
-import { authorize } from '@/server/session-user'
+import { authorize, userOnly } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { listVisits } from '@/server/visits-store'
 
@@ -11,5 +11,7 @@ export async function GET() {
 
 	if (userId instanceof Response) return userId
 
-	return Response.json(await listVisits(userId, () => visitedSeed(userId)))
+	return Response.json(await listVisits(userId, () => visitedSeed(userId)), {
+		headers: userOnly,
+	})
 }
