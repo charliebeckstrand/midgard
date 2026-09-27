@@ -13,7 +13,7 @@ import type { ReactNode } from 'react'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { type BenchOptions, bench } from 'vitest'
-import type { Contender } from './contenders'
+import type { Subject } from './charts'
 
 /**
  * Sample windows for scenarios whose iterations outrun Vitest's 500ms default.
@@ -169,12 +169,12 @@ export function reactHost() {
 const mountHost = host()
 
 /** Registers one full mount-to-painted-DOM-plus-teardown bench per entry. */
-export function mountBenches<D>(contenders: Contender<D>[], data: D, options?: BenchOptions) {
-	for (const contender of contenders) {
+export function mountBenches<D>(subjects: Subject<D>[], data: D, options?: BenchOptions) {
+	for (const subject of subjects) {
 		bench(
-			contender.name,
+			subject.name,
 			async () => {
-				const mounted = await contender.mount(mountHost, data)
+				const mounted = await subject.mount(mountHost, data)
 
 				mounted.destroy()
 			},
@@ -184,16 +184,16 @@ export function mountBenches<D>(contenders: Contender<D>[], data: D, options?: B
 }
 
 /** Mounts every entry on dataset `a` and closes each over an a/b swap. */
-export async function prepare<D>(contenders: Contender<D>[], a: D, b: D): Promise<Prepared[]> {
+export async function prepare<D>(subjects: Subject<D>[], a: D, b: D): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
-	for (const contender of contenders) {
-		const mounted = await contender.mount(host(), a)
+	for (const subject of subjects) {
+		const mounted = await subject.mount(host(), a)
 
 		let flip = false
 
 		prepared.push({
-			name: contender.name,
+			name: subject.name,
 			run: () => {
 				flip = !flip
 
@@ -250,17 +250,17 @@ function pointerAt(target: Element, x: number, y: number) {
  * resolution needs never enter a sample.
  */
 export async function prepareSweep<D>(
-	contenders: Contender<D>[],
+	subjects: Subject<D>[],
 	data: D,
 	plot: (host: HTMLElement) => Element,
 	targets?: (box: HTMLElement, xs: number[], y: number) => Element[],
 ): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
-	for (const contender of contenders) {
+	for (const subject of subjects) {
 		const box = host()
 
-		await contender.mount(box, data)
+		await subject.mount(box, data)
 
 		const surface = plot(box)
 
@@ -273,7 +273,7 @@ export async function prepareSweep<D>(
 		const steps = targets?.(box, xs, y) ?? xs.map(() => surface)
 
 		prepared.push({
-			name: contender.name,
+			name: subject.name,
 			run: async () => {
 				for (const [step, x] of xs.entries()) {
 					pointerAt(steps[step] as Element, x, y)

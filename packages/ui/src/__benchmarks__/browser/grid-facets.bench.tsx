@@ -9,8 +9,8 @@
 
 import { bench, describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, gridContenders, painted } from './grid-contenders'
 import { viewportMarkers } from './grid-harness'
+import { GRID_HEIGHT, GRID_WIDTH, grids, painted } from './grids'
 import { host, WINDOW } from './harness'
 
 const FACETS = { facets: true }
@@ -32,11 +32,11 @@ function openBenches(rows: Shipment[]) {
 
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
-	for (const contender of gridContenders()) {
+	for (const subject of grids()) {
 		bench(
-			contender.name,
+			subject.name,
 			async () => {
-				const grid = contender.mount(box, rows, FACETS)
+				const grid = subject.mount(box, rows, FACETS)
 
 				await painted(box, markers)
 

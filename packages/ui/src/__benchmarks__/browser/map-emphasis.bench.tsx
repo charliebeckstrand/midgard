@@ -7,8 +7,8 @@
 
 import { describe } from 'vitest'
 import { benches, host, type Prepared, settle, WINDOW } from './harness'
-import { zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeZones } from './map-fixtures'
+import { zoneMaps } from './maps'
 
 const data = makeZones(countiesAtlas)
 
@@ -25,11 +25,11 @@ function pointerPair(target: Element, over: 'over' | 'out') {
 async function mountLegend(): Promise<Element> {
 	const box = host()
 
-	const [contender] = zoneMapContenders(countiesAtlas)
+	const [subject] = zoneMaps(countiesAtlas)
 
-	if (!contender) throw new Error('map emphasis bench found no zone map')
+	if (!subject) throw new Error('map emphasis bench found no zone map')
 
-	await contender.mount(box, data)
+	await subject.mount(box, data)
 
 	const chip = box.querySelector('[data-slot="map-legend-item"]')
 

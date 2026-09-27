@@ -9,23 +9,23 @@
 
 import { describe } from 'vitest'
 import { benches, prepare, WINDOW } from './harness'
-import { choroplethMapContenders, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
+import { choroplethMaps, zoneMaps } from './maps'
 
 const states = await prepare(
-	zoneMapContenders(statesAtlas),
+	zoneMaps(statesAtlas),
 	makeZones(statesAtlas, 1),
 	makeZones(statesAtlas, 2),
 )
 
 const counties = await prepare(
-	zoneMapContenders(countiesAtlas),
+	zoneMaps(countiesAtlas),
 	makeZones(countiesAtlas, 1),
 	makeZones(countiesAtlas, 2),
 )
 
 const choropleth = await prepare(
-	choroplethMapContenders(countiesAtlas),
+	choroplethMaps(countiesAtlas),
 	makeValues(countiesAtlas, 1),
 	makeValues(countiesAtlas, 2),
 )

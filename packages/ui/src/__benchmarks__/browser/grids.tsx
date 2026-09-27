@@ -65,7 +65,7 @@ export type MountOptions = {
 export const PAGE_SIZE = 100
 
 /** One entry in a scenario: a name for the report and a mount. */
-export type GridContender = {
+export type GridSubject = {
 	name: string
 	mount: (host: HTMLElement, rows: Shipment[], options?: MountOptions) => MountedGrid
 }
@@ -149,7 +149,7 @@ function fillBox(host: HTMLElement): HTMLElement {
 }
 
 /** The ui grid: React renders, virtualized rows, controlled sort. */
-function uiContender(): GridContender {
+function uiGrid(): GridSubject {
 	return {
 		name: 'ui Grid',
 		mount(host, rows, options) {
@@ -249,6 +249,6 @@ function uiContender(): GridContender {
 }
 
 /** The grids that each scenario runs. */
-export function gridContenders(): GridContender[] {
-	return [uiContender()]
+export function grids(): GridSubject[] {
+	return [uiGrid()]
 }

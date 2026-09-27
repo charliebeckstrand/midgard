@@ -14,11 +14,11 @@ import type { Shipment } from '../fixtures'
 import {
 	GRID_HEIGHT,
 	GRID_WIDTH,
-	gridContenders,
+	grids,
 	type MountedGrid,
 	type MountOptions,
 	painted,
-} from './grid-contenders'
+} from './grids'
 import { host, type Prepared } from './harness'
 
 /** The fixed box that each grid draws into, so each scenario paints the same viewport. */
@@ -38,11 +38,11 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount
 
 	const mountHost = host(BOX)
 
-	for (const contender of gridContenders()) {
+	for (const subject of grids()) {
 		bench(
-			contender.name,
+			subject.name,
 			async () => {
-				const grid = contender.mount(mountHost, rows, mount)
+				const grid = subject.mount(mountHost, rows, mount)
 
 				await painted(mountHost, markers)
 
@@ -65,14 +65,14 @@ export async function prepareGrids(
 ): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
-	for (const contender of gridContenders()) {
+	for (const subject of grids()) {
 		const box = host(BOX)
 
-		const grid = contender.mount(box, rows, options)
+		const grid = subject.mount(box, rows, options)
 
 		await painted(box, [rows[0]?.id ?? ''])
 
-		prepared.push({ name: contender.name, run: scenario(grid, box) })
+		prepared.push({ name: subject.name, run: scenario(grid, box) })
 	}
 
 	return prepared

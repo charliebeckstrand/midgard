@@ -24,7 +24,7 @@ import { createRoot } from 'react-dom/client'
 import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn } from '../../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, painted } from './grid-contenders'
+import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, type Prepared, WINDOW } from './harness'
 
 // A `field` makes each column editable. The explicit `cell` renderer paints the

@@ -11,8 +11,8 @@
 
 import { describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { painted } from './grid-contenders'
 import { mountGridBenches, prepareGrids, viewportMarkers } from './grid-harness'
+import { painted } from './grids'
 import { benches, WINDOW } from './harness'
 
 const TOTALED = { grandTotal: true }

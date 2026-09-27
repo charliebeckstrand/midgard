@@ -10,8 +10,8 @@
 
 import { describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { painted } from './grid-contenders'
 import { prepareGrids } from './grid-harness'
+import { painted } from './grids'
 import { benches, frame, WINDOW } from './harness'
 
 /** Mounts the grid on dataset `a` and closes it over an a/b swap. */

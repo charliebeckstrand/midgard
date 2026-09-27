@@ -27,13 +27,13 @@ export type Mounted<D> = {
 }
 
 /** One entry in a scenario: a name for the report and a mount. */
-export type Contender<D> = {
+export type Subject<D> = {
 	name: string
 	mount: (host: HTMLElement, data: D) => Mounted<D> | Promise<Mounted<D>>
 }
 
 /** Mounts a React tree synchronously and redraws through the same root. */
-export function reactContender<D>(name: string, element: (data: D) => ReactElement): Contender<D> {
+export function reactSubject<D>(name: string, element: (data: D) => ReactElement): Subject<D> {
 	return {
 		name,
 		mount(host, data) {
@@ -58,9 +58,9 @@ function trendSeries(seriesCount: number): ChartSeries<TrendRow>[] {
 }
 
 /** The ui line chart over a categorical axis. */
-export function lineContenders(seriesCount: number): Contender<TrendData>[] {
+export function lineCharts(seriesCount: number): Subject<TrendData>[] {
 	return [
-		reactContender('ui LineChart', (data) => (
+		reactSubject('ui LineChart', (data) => (
 			<LineChart
 				aria-label="Bench line"
 				data={data.rows}
@@ -72,9 +72,9 @@ export function lineContenders(seriesCount: number): Contender<TrendData>[] {
 }
 
 /** The ui grouped-bar chart over the same trend shape. */
-export function barContenders(seriesCount: number): Contender<TrendData>[] {
+export function barCharts(seriesCount: number): Subject<TrendData>[] {
 	return [
-		reactContender('ui BarChart', (data) => (
+		reactSubject('ui BarChart', (data) => (
 			<BarChart
 				aria-label="Bench bar"
 				data={data.rows}
@@ -86,11 +86,11 @@ export function barContenders(seriesCount: number): Contender<TrendData>[] {
 }
 
 /** The ui scatter chart over numeric x/y points. */
-export function scatterContenders(): Contender<PointData>[] {
+export function scatterCharts(): Subject<PointData>[] {
 	const series: ScatterChartSeries<PointRow>[] = [{ xKey: 'x', yKey: 'y', yName: 'Points' }]
 
 	return [
-		reactContender('ui ScatterChart', (data) => (
+		reactSubject('ui ScatterChart', (data) => (
 			<ScatterChart aria-label="Bench scatter" data={data.rows} series={series} width={WIDTH} />
 		)),
 	]

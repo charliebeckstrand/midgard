@@ -9,8 +9,8 @@
 
 import { describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { painted } from './grid-contenders'
 import { prepareGrids, viewportMarkers } from './grid-harness'
+import { painted } from './grids'
 import { benches, WINDOW } from './harness'
 
 /** Mounts the grid and closes it over an asc/desc sort flip. */

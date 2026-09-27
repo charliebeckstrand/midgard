@@ -11,8 +11,8 @@
 
 import { describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { PAGE_SIZE, painted } from './grid-contenders'
 import { mountGridBenches, prepareGrids, viewportMarkers } from './grid-harness'
+import { PAGE_SIZE, painted } from './grids'
 import { benches, WINDOW } from './harness'
 
 const PAGINATED = { paginated: true }

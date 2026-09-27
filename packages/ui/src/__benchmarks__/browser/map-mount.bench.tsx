@@ -8,17 +8,17 @@
 
 import { describe } from 'vitest'
 import { mountBenches, WINDOW } from './harness'
-import { choroplethMapContenders, zoneMapContenders } from './map-contenders'
 import { countiesAtlas, makeValues, makeZones, statesAtlas } from './map-fixtures'
+import { choroplethMaps, zoneMaps } from './maps'
 
 describe('mount · map · states · 49 regions × 4 zones', () => {
-	mountBenches(zoneMapContenders(statesAtlas), makeZones(statesAtlas))
+	mountBenches(zoneMaps(statesAtlas), makeZones(statesAtlas))
 })
 
 describe('mount · map · counties · 3,108 regions × 4 zones', () => {
-	mountBenches(zoneMapContenders(countiesAtlas), makeZones(countiesAtlas), WINDOW.slow)
+	mountBenches(zoneMaps(countiesAtlas), makeZones(countiesAtlas), WINDOW.slow)
 })
 
 describe('mount · map · counties choropleth · 3,108 regions', () => {
-	mountBenches(choroplethMapContenders(countiesAtlas), makeValues(countiesAtlas), WINDOW.slow)
+	mountBenches(choroplethMaps(countiesAtlas), makeValues(countiesAtlas), WINDOW.slow)
 })

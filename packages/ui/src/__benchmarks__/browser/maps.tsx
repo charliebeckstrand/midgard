@@ -8,7 +8,7 @@
 
 import type { MapCategory } from '../../modules/map/engine/types'
 import { MapPlat } from '../../modules/map/map-plat'
-import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
+import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import {
 	type MapAtlas,
 	VALUE_MAX,
@@ -25,9 +25,9 @@ import {
 const UI_CATEGORIES: MapCategory[] = ZONES.map((zone) => ({ value: zone }))
 
 /** The categorical zone map over one prepared atlas. */
-export function zoneMapContenders(atlas: MapAtlas): Contender<ZoneData>[] {
+export function zoneMaps(atlas: MapAtlas): Subject<ZoneData>[] {
 	return [
-		reactContender('ui MapPlat', (data) => (
+		reactSubject('ui MapPlat', (data) => (
 			<MapPlat
 				aria-label="Bench map"
 				geography={atlas.topology}
@@ -44,9 +44,9 @@ export function zoneMapContenders(atlas: MapAtlas): Contender<ZoneData>[] {
 }
 
 /** The numeric choropleth map over one prepared atlas. */
-export function choroplethMapContenders(atlas: MapAtlas): Contender<ValueData>[] {
+export function choroplethMaps(atlas: MapAtlas): Subject<ValueData>[] {
 	return [
-		reactContender('ui MapPlat', (data) => (
+		reactSubject('ui MapPlat', (data) => (
 			<MapPlat
 				aria-label="Bench map"
 				geography={atlas.topology}

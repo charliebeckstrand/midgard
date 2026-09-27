@@ -11,8 +11,8 @@
 
 import { bench, describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, gridContenders, painted } from './grid-contenders'
 import { prepareGrids } from './grid-harness'
+import { GRID_HEIGHT, GRID_WIDTH, grids, painted } from './grids'
 import { benches, host, WINDOW } from './harness'
 
 const GROUPED = { grouped: true }
@@ -36,11 +36,11 @@ function mountBenches(rows: Shipment[]) {
 
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
-	for (const contender of gridContenders()) {
+	for (const subject of grids()) {
 		bench(
-			contender.name,
+			subject.name,
 			async () => {
-				const grid = contender.mount(box, rows, GROUPED)
+				const grid = subject.mount(box, rows, GROUPED)
 
 				await painted(box, [marker])
 

@@ -32,7 +32,7 @@ When a scenario regresses, the jsdom benches (`pnpm bench`) are the ladder down 
 
 ### Methodology
 
-Each scenario draws a deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into a fixed 800×450 box with the animations off ([`contenders.tsx`](contenders.tsx)). The ui module renders through React (`createRoot` + `flushSync`), which is the synchronous commit that a consumer pays, and it draws synchronously.
+Each scenario draws a deterministic dataset ([`fixtures.ts`](fixtures.ts), LCG-seeded) into a fixed 800×450 box with the animations off ([`charts.tsx`](charts.tsx)). The ui module renders through React (`createRoot` + `flushSync`), which is the synchronous commit that a consumer pays, and it draws synchronously.
 
 - [`chart-mount.bench.tsx`](chart-mount.bench.tsx) — full mount-to-painted-DOM plus teardown per iteration: line at 100 / 1k / 10k × 1 series and 1k × 5, bar at 50 / 500 × 2, scatter at 1k / 10k. Plus the line scenarios again over ISO-date categories (`makeDatedTrend`, 1k / 10k), the time-series dashboard shape. The band axis of the ui module probes whether all categories parse as dates before it formats them through `Intl`, and a plain-label axis exits that pass on its first value. Held beside the plain scenario of the same size, the pair prices the date path end to end; `chart-layout` splits it into the probe and the per-row labeling that follows.
 
@@ -109,7 +109,7 @@ Open: the axis draws about a dozen labels whatever the row count, so most of tha
 
 ### Methodology
 
-Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtures.ts`](../fixtures.ts), LCG-seeded, 8 columns) into a fixed 960×600 box, with the animations off and fixed 120px columns ([`grid-contenders.tsx`](grid-contenders.tsx)). The ui grid renders through React (`createRoot` + `flushSync`). Each operation is timed until a paint probe sees the expected cell text in the live DOM. A row that the grid defers onto an animation frame therefore costs the frames it defers, and the suite trusts no "ready" signal.
+Each scenario drives the deterministic shipment rows (`shipments` in [`../fixtures.ts`](../fixtures.ts), LCG-seeded, 8 columns) into a fixed 960×600 box, with the animations off and fixed 120px columns ([`grids.tsx`](grids.tsx)). The ui grid renders through React (`createRoot` + `flushSync`). Each operation is timed until a paint probe sees the expected cell text in the live DOM. A row that the grid defers onto an animation frame therefore costs the frames it defers, and the suite trusts no "ready" signal.
 
 - [`grid-mount.bench.tsx`](grid-mount.bench.tsx) — full mount-to-painted-rows plus teardown per iteration, at 1k / 10k / 100k rows.
 
@@ -329,7 +329,7 @@ Each entry names the change and the scenarios it moved.
 
 ### Methodology
 
-Each scenario draws the prepared `us-atlas` geometry ([`map-fixtures.ts`](map-fixtures.ts)) into a fixed 800×450 box with the animations off, joined to LCG-seeded rows by FIPS id ([`map-contenders.tsx`](map-contenders.tsx)). The ui module renders `MapPlat` through React, under its `albers-usa` projection.
+Each scenario draws the prepared `us-atlas` geometry ([`map-fixtures.ts`](map-fixtures.ts)) into a fixed 800×450 box with the animations off, joined to LCG-seeded rows by FIPS id ([`maps.tsx`](maps.tsx)). The ui module renders `MapPlat` through React, under its `albers-usa` projection.
 
 The geometry is the conterminous US: `states-10m` (49 regions) and `counties-10m` (3,108 regions). The fixtures filter out the territories and the non-conterminous states. The territories fall outside the `albers-usa` composite, and the same scope keeps the logged figures below comparable.
 

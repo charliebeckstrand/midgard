@@ -13,10 +13,10 @@
 import { describe } from 'vitest'
 import { MapPlat } from '../../modules/map/map-plat'
 import { MapPoints } from '../../modules/map/map-points'
-import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
+import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, prepareSweep, SWEEP, WINDOW } from './harness'
-import { zoneMapContenders } from './map-contenders'
 import { countiesAtlas, LATTICE_DOTS, makeZones, statesAtlas, type ZoneData } from './map-fixtures'
+import { zoneMaps } from './maps'
 
 /** The SVG of the plot, which the map draws into and listens on. */
 function plotTarget(host: HTMLElement): Element {
@@ -56,14 +56,14 @@ function regionTargets(host: HTMLElement, xs: number[], y: number): Element[] {
 }
 
 const states = await prepareSweep(
-	zoneMapContenders(statesAtlas),
+	zoneMaps(statesAtlas),
 	makeZones(statesAtlas),
 	plotTarget,
 	regionTargets,
 )
 
 const counties = await prepareSweep(
-	zoneMapContenders(countiesAtlas),
+	zoneMaps(countiesAtlas),
 	makeZones(countiesAtlas),
 	plotTarget,
 	regionTargets,
@@ -78,9 +78,9 @@ const counties = await prepareSweep(
  * The other map benches draw geography and no marks at all, so nothing in the
  * suite could see a mark re-rendering against a hover elsewhere on the map.
  */
-function overlayHoverContenders(): Contender<ZoneData>[] {
+function overlayHoverMaps(): Subject<ZoneData>[] {
 	return [
-		reactContender('ui MapPlat + 200-dot MapPoints', (data) => (
+		reactSubject('ui MapPlat + 200-dot MapPoints', (data) => (
 			<MapPlat
 				aria-label="Bench map"
 				geography={statesAtlas.topology}
@@ -98,7 +98,7 @@ function overlayHoverContenders(): Contender<ZoneData>[] {
 }
 
 const overlays = await prepareSweep(
-	overlayHoverContenders(),
+	overlayHoverMaps(),
 	makeZones(statesAtlas),
 	plotTarget,
 	regionTargets,
