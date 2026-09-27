@@ -9,10 +9,11 @@ import { Placeholder } from './placeholder'
 // spacing axis reaching a sizing axis is the drift it guards. Keep the two
 // unions in step by hand; the gate is what stops the shortcut.
 //
-// Call sites pin `S` to their kata's `VariantProps['size']`, so the `size` prop
-// only ever carries a key the recipe's own `size` map defines. Skeletons are
-// static leaves: size comes from the explicit prop (default `md`) or, for a
-// density recipe, from the nearest `data-density` scope, never from context. The loading tree's composer (a Suspense fallback,
+// Call sites pin `S` to the `size` type of their component, so the `size` prop
+// only carries a step that the recipe defines. Skeletons are static leaves and
+// read no context. A sized recipe takes its size from the explicit prop, with
+// `md` as the default. A density recipe also follows the nearest
+// `data-density` scope. The composer of the loading tree (a Suspense fallback,
 // `<ReadyReveal placeholder>`) knows the size and passes it.
 type ResolvableSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
 
@@ -86,9 +87,10 @@ export function createSkeleton<S extends ResolvableSize>(
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
 		if ('density' in skeleton) {
-			const scope = { 'data-density': size }
-
-			return createElement(Placeholder, { ...scope, className: cn(skeleton.base, className) })
+			return createElement(Placeholder, {
+				'data-density': size,
+				className: cn(skeleton.base, className),
+			})
 		}
 
 		const sizeClass = 'size' in skeleton ? skeleton.size[size ?? 'md'] : undefined

@@ -86,9 +86,10 @@ export { useDensityNullable }
  * invisible at the call site unless the resolver names it, hence
  * `useResolvedSize` over a bare `size` read.
  *
- * For the `Ma`-scale client leaves that size off Density (`Button`, `Badge`,
+ * For the `Ma`-scale client leaves that size off Density (`Button`,
  * `Progress*`, `Sparkline`) and can carry sub-`Step` (`'xs'`) or `'xl'` sizes.
- * Static leaves like `Icon` take an explicit `size` and never read the cascade.
+ * Static leaves (Badge, Icon) read no context. They follow the nearest
+ * `data-density` scope.
  * Control *hosts* resolve their dual-axis token through
  * {@link useControlSize} instead. They write a stepped-down Affix for their
  * slots, but never read it for their own `Step`-floored size.
@@ -134,8 +135,9 @@ export type DensityProps = DensityInput & { children: ReactNode }
  *
  * @remarks
  * Client-tier context: only client descendants read it. A static host can open
- * a scope without reading one. An explicitly sized Card wraps its children in
- * `<Density>`. Static children still ignore it (REFERENCE §2).
+ * a scope without reading one. An explicitly sized Card or Table opens one
+ * through {@link DensityScope}. Static children follow the `data-density`
+ * attribute of the host instead (REFERENCE §2).
  */
 export function Density({ children, scale, space: spaceProp, size: sizeProp }: DensityProps) {
 	const parent = useDensity()

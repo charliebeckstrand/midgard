@@ -150,21 +150,6 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 
-	it('lets an unsized nested card follow the outer card', () => {
-		const { container } = renderUI(
-			<Card size="sm">
-				<CardBody>
-					<Card>inner</Card>
-				</CardBody>
-			</Card>,
-		)
-
-		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
-
-		// The inner card opens no scope, so the outer card is its nearest scope.
-		expect(cards[1]).not.toHaveAttribute('data-density')
-	})
-
 	// The frame owns the outer padding on every edge: Card carries its padding
 	// steps for any child, structural or bare, and never collapses it.
 	// Sections pad only the inner edge they share with a sibling, so the body

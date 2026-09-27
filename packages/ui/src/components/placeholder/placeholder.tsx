@@ -2,9 +2,10 @@ import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/placeholder'
 
-/** Props for {@link Placeholder}: native `<div>` attributes. */
+/** Props for {@link Placeholder}: native `<div>` attributes, including `data-*` keys. */
 export type PlaceholderProps = {
 	className?: string
+	[key: `data-${string}`]: string | number | boolean | undefined
 } & Omit<ComponentProps<'div'>, 'className'>
 
 /**

@@ -46,6 +46,6 @@ Rejected:
 
 ## Out of scope
 
-- `Grid` projects a compact step onto cell badges (`kata/grid.ts`, `projection.badge`). Remove it when increment 2 lands.
+- `Grid` projects a compact step onto the icons and badges of its cells (`kata/grid.ts`, `condensed.icon` and `condensed.badge`). The `sm` scope of the table already gives that step to an unsized leaf, so the rules now change only a leaf with an explicit `size`. Decide whether to remove them when increment 2 lands.
 - The `useDensity` and `useDensityNullable` TSDoc names Box, Flex, Stack, and Grid as nullable readers. None of them reads density now.
 - `kasane` holds each ring-compensated stop as a literal map. A Tailwind `@utility` for the formula would let a kata write `density-sm:px-ring-1.5` and drop the maps. That is a separate decision.

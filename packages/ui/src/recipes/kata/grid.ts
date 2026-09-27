@@ -569,8 +569,8 @@ export const k = {
 			// The clip between the grid track and the content: `min-h-0` lets the track
 			// shrink past the content, `overflow-hidden` hides what the collapse clips.
 			clip: ['overflow-hidden', 'min-h-0'],
-			// Per-density cell padding on the reveal wrapper, mirroring kata/table's `density`
-			// leaf padding (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
+			// Per-density cell padding on the reveal wrapper, mirroring kata/table's cell
+			// padding steps (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
 			// matches an ordinary one — and collapses that padding to nothing at height 0.
 			pad: defineRecipe({
 				density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
@@ -721,7 +721,7 @@ export const k = {
 	},
 	// Condensed down-projections layered on the compact density the grid forwards
 	// to `<Table>` when `condensed` is set. All cast from the `<table>` element
-	// onto its descendants (like the table's own density/outline projections) so
+	// onto its descendants (like the table's own outline projections) so
 	// cells and headers read no context and the family still renders in RSC. They
 	// reach only what lives in the table's own DOM — a portaled overlay (context
 	// menu, column-manager dialog) is out of scope and keeps the ambient density,
@@ -735,12 +735,14 @@ export const k = {
 		// Step every icon in a header or body cell to the compact `size-4`: the
 		// grid's own header chrome (sort arrow, pin, grip, filter) and a consumer's
 		// `<Icon>` in a cell — standalone or inside a `<Badge>`, whose icon slot is
-		// a nested `data-slot=icon`. A static `<Icon>` reads no density, so the
-		// projection is the only lever that reaches it.
+		// a nested `data-slot=icon`. An icon with no `size` already takes `size-4`
+		// from the `sm` scope of the table. This plain class also overrides an
+		// explicit `size`.
 		icon: ['[&>*>tr>th_[data-slot=icon]]:size-4', '[&>*>tr>td_[data-slot=icon]]:size-4'],
-		// Step a consumer `<Badge>` in a cell down one size. A `<Badge>` is a static
-		// leaf that ignores the density cascade, so match the cell-font step on its
-		// text (the dominant size cue; its icon slot rides the `icon` rule above).
+		// Step a consumer `<Badge>` in a cell down one size: match the cell-font
+		// step on its text (its icon slot rides the `icon` rule above). A badge
+		// with no `size` already takes `text-sm` from the `sm` scope of the table.
+		// This plain class also overrides an explicit `size`.
 		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted

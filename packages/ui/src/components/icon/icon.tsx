@@ -1,13 +1,6 @@
 import { type CSSProperties, cloneElement, type ReactElement } from 'react'
 import { cn } from '../../core'
-import { k } from '../../recipes/kata/icon'
-
-/**
- * Named step of the icon scale, derived from the kata rather than from kiso.
- * A component reaches the recipe layer through its own kata, and this kata's
- * `size` map is the `shaku` row the scale publishes.
- */
-type IconSize = keyof typeof k.size
+import { type IconSize, k } from '../../recipes/kata/icon'
 
 /** Props for {@link Icon}: the `icon` element to clone, plus `size` and an optional accessible `label`. */
 export type IconProps = {

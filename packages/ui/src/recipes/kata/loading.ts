@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { type DensityStep, iro, narabi } from '../kiso'
+import { type DensityStep, iro, narabi, shaku } from '../kiso'
 
 const { marker } = iro
 const { flex } = narabi
@@ -41,13 +41,11 @@ const dot = defineRecipe({
  * Rotating SVG indicator: indeterminate spinner. The spin is
  * `motion-safe:`-gated, resting as a static glyph under
  * `prefers-reduced-motion` (WCAG 2.3.3). Each size step is a `density-*`
- * class, so the spinner takes the step of its nearest density scope.
+ * class, so the spinner takes the step of its nearest density scope. The
+ * spinner uses the icon ramp, so a spinner and an icon at one step have one size.
  */
 const spinner = defineRecipe({
-	base: [
-		'inline-block shrink-0 motion-safe:animate-spin',
-		'density-xs:size-3 density-sm:size-4 density-md:size-5 density-lg:size-6 density-xl:size-8',
-	],
+	base: ['inline-block shrink-0 motion-safe:animate-spin', shaku.iconRamp, 'density-xl:size-8'],
 	color,
 	defaults: { color: 'current' },
 })

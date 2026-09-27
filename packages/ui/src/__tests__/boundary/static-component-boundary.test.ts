@@ -111,15 +111,14 @@ const modulesDir = join(srcDir, 'modules')
 // and `primitives/polymorphic`'s client export read LinkContext;
 // `primitives/density` and `primitives/affix` are the density cascade;
 // `providers/*` are ambient by definition; `motion/react` forces a client
-// module. Type-only imports are fine: TypeScript erases them. Two value
-// exemptions: `providers/density/context` is a directive-free constants
-// module (the DensityLevel vocabulary), not a context; and the bare
-// `DensityScope` broadcast component, which renders a client boundary around
-// children without making the host read anything — a static host may
-// *open* a density scope (Card and Table do, for an explicit `size`), it may
-// never *read* the cascade, which the hook scan below still catches.
+// module. Type-only imports are fine: TypeScript erases them. One value
+// exemption: the bare `DensityScope` broadcast component, which renders a
+// client boundary around children without making the host read anything — a
+// static host may *open* a density scope (Card and Table do, for an explicit
+// `size`), it may never *read* the cascade, which the hook scan below still
+// catches.
 const BANNED_IMPORT_SOURCES = [
-	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\/(?!density\/context['"])/m,
+	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\//m,
 	/^import (?!type[\s{])(?!\{ DensityScope \} from )[^'"]*['"][^'"]*\/primitives\/density['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/affix['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/link['"]/m,

@@ -137,7 +137,7 @@ export const GRID_LOADING_ROWS = 1
 
 /**
  * Zero cell padding as an inline style — highest specificity, so it clears the
- * table's density projection on `td`. Hoisted so every consumer shares one
+ * density padding of the `td`. Hoisted so every consumer shares one
  * object.
  *
  * @internal

@@ -223,9 +223,9 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  * such content. Scoped to the table on purpose. It sits inside the context-menu
  * trigger, below the toolbar/footer. A portaled overlay (context menu, dialog)
  * the grid spawns therefore stays on the ambient density, rather than inheriting
- * the grid's. Static leaves (`Badge`, `Icon`,
- * `Text`) read no density; the `<table>` class down-projects those under
- * `condensed` (see `condensedTableClass`). A grid already at the ambient density
+ * the grid's. Badge and Icon follow the `data-density` scope of the
+ * `<table>`. `Text` reads no density, so the `<table>` class down-projects it
+ * under `condensed` (see `condensedTableClass`). A grid already at the ambient density
  * broadcasts its own level — a no-op. Kept a component so the branch lives here,
  * off {@link GridData}'s complexity budget.
  *

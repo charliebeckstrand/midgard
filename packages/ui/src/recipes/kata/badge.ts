@@ -15,7 +15,7 @@ const { weight } = ji
 const { padding, rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
-const { iconSlotRamp: icon } = shaku
+const { iconSlotRamp } = shaku
 
 /** The `px` stop of each step. */
 const px = { xs: '1', sm: '1.5', md: '2', lg: '2.5' } as const
@@ -44,7 +44,7 @@ export const k = defineRecipe({
 		// the badge projects one onto its icon slots.
 		'density-xs:text-xs density-sm:text-sm density-md:text-base density-lg:text-lg',
 		'density-xs:gap-0.5 density-sm:gap-0.75 density-md:gap-1 density-lg:gap-1.25',
-		icon,
+		iconSlotRamp,
 		padding.py('1'),
 		padding.pxRamp(px),
 	],

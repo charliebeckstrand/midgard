@@ -1,11 +1,13 @@
 /**
- * Shaku icon: icon dimension scale. One scale, two projections:
- * `iconSize` sizes an icon element directly (the `<Icon>` self form).
- * `icon` sizes a parent's `data-slot="icon"` descendants (the slot form
- * read by Button, Badge, Nav, Sidebar, the control affix slots, and
- * `narabi.item`). Tailwind's JIT scans for whole class
- * literals; the slot form can't be interpolated from `iconSize`. Keep
- * the two in step by hand; edit both rows together.
+ * Shaku icon: icon dimension scale. One scale, four projections.
+ * `iconSize` sizes an icon element directly (the Option check mark).
+ * `icon` sizes the `data-slot="icon"` children of a parent (the slot form
+ * read by Button, Nav, Sidebar, the control affix slots, and
+ * `narabi.item`). `iconRamp` and `iconSlotRamp` are the same two forms under
+ * the `density-*` variants: Icon and LoadingSpinner read `iconRamp`, and Badge
+ * reads `iconSlotRamp`. Tailwind's JIT scans for whole class literals, so no
+ * form can be interpolated from another. `shaku-icon-ramp.test.ts` pins the
+ * four forms together.
  *
  * Layer: kiso · Concern: icon dimension
  */

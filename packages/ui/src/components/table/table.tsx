@@ -51,11 +51,11 @@ export type TableProps = TableVariants & {
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
  * The table owns `outline`, `striped`, and `hover` and projects them onto
- * descendant rows and cells. A `size` makes the table a density scope,
- * and the cells take its step. It also opens a density context scope, so
- * size-aware client children take the same step. Without one, the cells follow the nearest
- * scope around the table. TableBody, TableCell, and TableHeader read no
- * context.
+ * descendant rows and cells. A `size` makes the table a density scope, and the
+ * cells take its step. It also opens a density context scope, so size-aware
+ * client children take the same step. Without a `size`, the cells follow the
+ * nearest scope around the table. TableBody, TableCell, and TableHeader read
+ * no context.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React

@@ -12,8 +12,9 @@ import { k as tagInput } from '../../recipes/kata/tag-input'
 // remove button's `bare.p` so the label sits symmetric with the glyph
 // (rationale lives there). The chip is a `radius: 'full'` pill, so its `px` is
 // the `radius: 'full'` compound ramp, one stop above the base ramp. This pins
-// that sum against the live recipes across the sizes a chip takes (xs/sm/md); if the badge px, the pill bump, or the bare compound
-// drifts, the assertion fails with the computed pad and names the size.
+// that sum against the live recipes across the sizes a chip takes (xs/sm/md).
+// If the badge px, the pill bump, or the bare compound drifts, the assertion
+// fails with the computed pad and names the size.
 //
 // `kata/query-chips.ts` pads its chip by the same sum. Its chip and its remove
 // button take fixed sizes in `query-chips.tsx`, so the case below names them.
