@@ -62,9 +62,7 @@ function QueryNotice() {
 	}
 
 	return params.get('registered') === 'true' ? (
-		<Text tone="success">
-			Account created. We sent you a link to verify your email. Please sign in.
-		</Text>
+		<Text tone="success">Check your email to finish signing up, then sign in.</Text>
 	) : null
 }
 
