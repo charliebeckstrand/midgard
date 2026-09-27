@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useDragCursorHold } from '../../hooks/use-drag-cursor'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useTimeout } from '../../hooks/use-timeout'
 import { MAP_PAN_THRESHOLD, MAP_WHEEL_SETTLE_MS } from './engine/map-constants'
 import { clientToFrame, frameScale, type MapClientBox } from './engine/map-projection/frame'
 import {
@@ -247,7 +248,7 @@ export function useMapZoom({
 	// re-arms this, and the marks answer the pointer again once it fires. A
 	// pointer gesture ends on its own release, and either can be live while the
 	// other settles — so both check the other before letting the drawing go.
-	const wheelSettle = useRef<ReturnType<typeof setTimeout> | null>(null)
+	const wheelSettle = useTimeout()
 
 	// The live wheel stream, or `null` between streams. A trackpad keeps sending
 	// after the fingers leave, so a stream outlives the key that armed it, and the
@@ -258,8 +259,8 @@ export function useMapZoom({
 	const wheelStream = useRef<MapWheelStream | null>(null)
 
 	const settleGesture = useCallback(() => {
-		if (pointers.current.size === 0 && wheelSettle.current === null) setGesturing(false)
-	}, [])
+		if (pointers.current.size === 0 && !wheelSettle.pending()) setGesturing(false)
+	}, [wheelSettle])
 
 	// Claims one wheel event for the map: what it pushed, whether the stream it
 	// belongs to is running down, and the window that outlives it. All of it is set
@@ -272,23 +273,17 @@ export function useMapZoom({
 
 			wheelStream.current = { push, coasting }
 
-			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
-
-			wheelSettle.current = setTimeout(() => {
-				wheelSettle.current = null
-
+			wheelSettle.set(() => {
 				wheelStream.current = null
 
 				settleGesture()
 			}, MAP_WHEEL_SETTLE_MS)
 		},
-		[settleGesture],
+		[settleGesture, wheelSettle],
 	)
 
 	useEffect(
 		() => () => {
-			if (wheelSettle.current !== null) clearTimeout(wheelSettle.current)
-
 			if (pinchFrame.current !== null) cancelAnimationFrame(pinchFrame.current)
 		},
 		[],

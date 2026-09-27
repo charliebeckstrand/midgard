@@ -80,6 +80,7 @@ export { useSelectableValueChange } from './use-selectable-value-change'
 export { type SortableItemOptions, useSortableItem } from './use-sortable-item'
 export { type SortableListOptions, useSortableList } from './use-sortable-list'
 export { type SortableSensorsOptions, useSortableSensors } from './use-sortable-sensors'
+export { type Timeout, useTimeout } from './use-timeout'
 export {
 	type MeasuredVirtualWindowOptions,
 	useVirtualWindow,

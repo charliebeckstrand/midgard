@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useTimeout } from '../../hooks/use-timeout'
 import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
 
@@ -71,9 +72,7 @@ export function useMapToggle(
 	// Re-armed per toggle rather than keyed off the flag, so toggling twice inside
 	// one fade holds for the second wash instead of clearing on the first one's
 	// timer. The wheel settle in `use-map-zoom` re-arms the same way.
-	const settle = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-	useEffect(() => () => clearTimeout(settle.current), [])
+	const settle = useTimeout()
 
 	const toggle = useCallback(
 		(id: string) => {
@@ -89,11 +88,9 @@ export function useMapToggle(
 
 			setWashing(true)
 
-			clearTimeout(settle.current)
-
-			settle.current = setTimeout(() => setWashing(false), REGION_FADE.duration * 1000)
+			settle.set(() => setWashing(false), REGION_FADE.duration * 1000)
 		},
-		[hidden, washes],
+		[hidden, washes, settle],
 	)
 
 	// Read from the committed set rather than from `toggle`, because the set is

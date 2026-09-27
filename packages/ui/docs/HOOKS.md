@@ -14,6 +14,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`: the value is never `undefined`, and a cleared flag reports `false`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
+| `useTimeout` | One restartable timer that clears on unmount: `set` (the last call wins), `clear`, and `pending`, each with a stable identity. For a debounce, a settle window, or a dwell delay. |
 | `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`; reports every transition to `onOpenChange`. |
 
 ## Floating & overlays
@@ -99,6 +100,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `A11yDisclosure` / `A11yDisclosureOptions` | Return shape / options of `useA11yDisclosure` (trigger/panel ids and prop bags). |
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
+| `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |

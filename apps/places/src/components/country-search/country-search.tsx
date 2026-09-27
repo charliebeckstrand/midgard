@@ -3,6 +3,7 @@
 import { type PointerEvent, useEffect, useEffectEvent, useId, useRef } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
 import { ControlSkeleton } from 'ui/control'
+import { useTimeout } from 'ui/hooks'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
 
 /**
@@ -57,7 +58,7 @@ export function CountrySearch({ countries, ready, onPick, onPreload }: CountrySe
 	// The country of the active option, and the timer that waits for it to stay.
 	const active = useRef<string | null>(null)
 
-	const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined)
+	const dwell = useTimeout()
 
 	const countryOf = (element: EventTarget | Element | null): string | null => {
 		const option = element instanceof Element ? element.closest('[role=option]') : null
@@ -72,9 +73,9 @@ export function CountrySearch({ countries, ready, onPick, onPreload }: CountrySe
 
 		active.current = country
 
-		clearTimeout(timer.current)
+		dwell.clear()
 
-		if (country !== null) timer.current = setTimeout(() => onPreload(country), PRELOAD_DWELL_MS)
+		if (country !== null) dwell.set(() => onPreload(country), PRELOAD_DWELL_MS)
 	}
 
 	const onHighlight = useEffectEvent((input: HTMLElement) => {
@@ -95,11 +96,7 @@ export function CountrySearch({ countries, ready, onPick, onPreload }: CountrySe
 
 		observer.observe(input, { attributes: true, attributeFilter: ['aria-activedescendant'] })
 
-		return () => {
-			observer.disconnect()
-
-			clearTimeout(timer.current)
-		}
+		return () => observer.disconnect()
 	}, [inputId])
 
 	// The pointer. The panel is in a portal, and React sends the events of a

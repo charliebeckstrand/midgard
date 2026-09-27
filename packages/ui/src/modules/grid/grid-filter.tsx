@@ -1,7 +1,8 @@
 'use client'
 
-import { type SubmitEvent, startTransition, useEffect, useRef, useState } from 'react'
+import { type SubmitEvent, startTransition, useEffect, useState } from 'react'
 import { SearchInput } from '../../components/search-input'
+import { useTimeout } from '../../hooks/use-timeout'
 import { GRID_SEARCH_DEBOUNCE_MS } from './engine/grid-constants'
 import type { GridGlobalFilterView } from './use-grid-table'
 
@@ -53,15 +54,13 @@ export function GridFilter({ filter }: GridFilterProps) {
 		}
 	}
 
-	const debounceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-	useEffect(() => () => clearTimeout(debounceTimer.current), [])
+	const debounce = useTimeout()
 
 	// An owner reset cancels the pending query, so the old text does not
 	// overwrite the reset when the debounce settles.
 	useEffect(() => {
-		if (resets > 0) clearTimeout(debounceTimer.current)
-	}, [resets])
+		if (resets > 0) debounce.clear()
+	}, [debounce, resets])
 
 	const push = (next: string) => {
 		setPushed(next)
@@ -72,7 +71,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 	const apply = (next: string) => {
 		setText(next)
 
-		clearTimeout(debounceTimer.current)
+		debounce.clear()
 
 		// Clearing recovers the hidden rows, so flush it immediately rather than
 		// lag a debounce behind the emptied field; a query settles after the wait.
@@ -82,7 +81,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 			return
 		}
 
-		debounceTimer.current = setTimeout(() => push(next), GRID_SEARCH_DEBOUNCE_MS)
+		debounce.set(() => push(next), GRID_SEARCH_DEBOUNCE_MS)
 	}
 
 	// Enter submits the field: cancel the pending debounce and apply the typed
@@ -90,7 +89,7 @@ export function GridFilter({ filter }: GridFilterProps) {
 	const submit = (event: SubmitEvent<HTMLFormElement>) => {
 		event.preventDefault()
 
-		clearTimeout(debounceTimer.current)
+		debounce.clear()
 
 		push(text)
 	}
