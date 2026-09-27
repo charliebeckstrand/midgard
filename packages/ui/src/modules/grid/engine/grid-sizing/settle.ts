@@ -1,4 +1,4 @@
-import { createKeyedStore } from '../../../../utilities'
+import { createEmitter, createKeyedStore } from '../../../../utilities'
 
 /**
  * The settled width of each column, as a store that a cell subscribes to for
@@ -42,25 +42,19 @@ export function createSettleStore(): GridSettleStore {
 
 	let dragging = false
 
-	const resizingListeners = new Set<() => void>()
+	const resizingChange = createEmitter()
 
 	return {
 		get: widths.get,
 		subscribe: widths.subscribe,
 		resizing: () => dragging,
-		subscribeResizing: (listener) => {
-			resizingListeners.add(listener)
-
-			return () => {
-				resizingListeners.delete(listener)
-			}
-		},
+		subscribeResizing: resizingChange.subscribe,
 		publish: (next, resizing) => {
 			const wasResizing = dragging
 
 			dragging = resizing
 
-			if (wasResizing !== resizing) for (const listener of [...resizingListeners]) listener()
+			if (wasResizing !== resizing) resizingChange.emit()
 
 			widths.publish((columnId) => next.get(columnId))
 		},

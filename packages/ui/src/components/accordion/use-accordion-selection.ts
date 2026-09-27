@@ -2,7 +2,7 @@
 
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { useControllable } from '../../hooks'
-import { createKeyedStore, type KeyedStore } from '../../utilities'
+import { createKeyedStore, type KeyedStore, toggleListItem } from '../../utilities'
 
 /**
  * Single-open mode: at most one section open at a time.
@@ -137,7 +137,7 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 			const open = latest.current
 
 			if (isMultiple) {
-				setCurrent(open.includes(value) ? open.filter((v) => v !== value) : [...open, value])
+				setCurrent(toggleListItem(open, value))
 
 				return
 			}

@@ -1,8 +1,8 @@
 'use client'
 
-type Listener = () => void
+import { createEmitter } from '../../utilities'
 
-const listeners = new Set<Listener>()
+const signal = createEmitter()
 
 /**
  * Broadcasts an overlay-lifecycle signal. Modal-style surfaces (dialog,
@@ -10,7 +10,7 @@ const listeners = new Set<Listener>()
  * tooltips subscribe and close on any signal. Carries no payload.
  */
 export function notifyOverlaySignal(): void {
-	for (const listener of listeners) listener()
+	signal.emit()
 }
 
 /**
@@ -21,10 +21,6 @@ export function notifyOverlaySignal(): void {
  * @returns An unsubscribe function that removes the listener.
  * @see {@link notifyOverlaySignal}
  */
-export function subscribeOverlaySignal(listener: Listener): () => void {
-	listeners.add(listener)
-
-	return () => {
-		listeners.delete(listener)
-	}
+export function subscribeOverlaySignal(listener: () => void): () => void {
+	return signal.subscribe(listener)
 }

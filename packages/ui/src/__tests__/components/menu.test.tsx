@@ -809,6 +809,32 @@ describe('MenuItem', () => {
 		expect(item).toHaveAttribute('rel', 'noopener noreferrer')
 	})
 
+	it('keeps the caller attributes on a disabled link row, but not the link ones', () => {
+		renderUI(
+			<Menu defaultOpen>
+				<MenuContent>
+					<MenuItem
+						href="/about"
+						target="_blank"
+						disabled
+						aria-label="About us"
+						data-testid="about"
+					>
+						About
+					</MenuItem>
+				</MenuContent>
+			</Menu>,
+		)
+
+		const item = screen.getByTestId('about')
+
+		expect(item).toHaveAttribute('aria-label', 'About us')
+
+		expect(item).not.toHaveAttribute('target')
+
+		expect(item).not.toHaveAttribute('rel')
+	})
+
 	it('renders the disabled href variant as a non-navigable element', () => {
 		renderUI(
 			<Menu defaultOpen>

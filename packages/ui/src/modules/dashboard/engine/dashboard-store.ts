@@ -8,6 +8,7 @@
  * A drag preview therefore wakes only the tiles that it moves.
  */
 
+import { createEmitter } from '../../../utilities'
 import type { QueryGroup } from '../../query/engine/types'
 import { type DashboardDragKind, type DashboardDragTravel, dragTravel } from './dashboard-drag'
 import {
@@ -293,7 +294,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	// Whether a tile has registered. An empty set of demands then means that no tile is left.
 	let registered = false
 
-	const listeners = new Set<() => void>()
+	const change = createEmitter()
 
 	// The first entry of each id, placed with provisional heights. A tile that has not registered
 	// paints it, so the server markup shows no clamp overlap of two tiles with saved heights.
@@ -400,7 +401,7 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	const notify = () => {
 		current()
 
-		for (const listener of listeners) listener()
+		change.emit()
 	}
 
 	const replace = (next: DashboardState) => {
@@ -440,12 +441,6 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		close: () => {
 			closed = true
 		},
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe: change.subscribe,
 	}
 }

@@ -4,6 +4,7 @@ import { type KeyboardEvent, type MouseEvent, type ReactNode, useId } from 'reac
 import { ariaAttr, cn, composeEventHandlers, dataAttr } from '../../core'
 import { useDensity } from '../../primitives/density'
 import { useLink } from '../../primitives/link'
+import { inertLinkProps } from '../../primitives/link/inert-link'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/menu'
@@ -74,25 +75,6 @@ export function MenuItem(props: MenuItemProps) {
 	const classes = cn('group/option', k.item({ density: space, size }), className)
 
 	if (props.href !== undefined) {
-		// Anchors with `href` are navigable via middle-click, Cmd-click, and
-		// "Open in new tab", none of which fire `onClick`. Disabled items render
-		// as a `<span>` with no `href`.
-		if (disabled) {
-			return (
-				<span
-					id={id}
-					role="menuitem"
-					tabIndex={-1}
-					aria-disabled={true}
-					data-slot="menu-item"
-					data-disabled={true}
-					className={classes}
-				>
-					{children}
-				</span>
-			)
-		}
-
 		const {
 			id: _id,
 			disabled: _disabled,
@@ -105,6 +87,26 @@ export function MenuItem(props: MenuItemProps) {
 			onPointerMove: consumerOnPointerMove,
 			...rest
 		} = props
+
+		// Anchors with `href` are navigable via middle-click, Cmd-click, and
+		// "Open in new tab", none of which fire `onClick`. Disabled items render
+		// as a `<span>` with no `href`. The other caller attributes stay on it.
+		if (disabled) {
+			return (
+				<span
+					{...inertLinkProps(rest)}
+					id={id}
+					role="menuitem"
+					tabIndex={-1}
+					aria-disabled={true}
+					data-slot="menu-item"
+					data-disabled={true}
+					className={classes}
+				>
+					{children}
+				</span>
+			)
+		}
 
 		return (
 			<LinkComponent

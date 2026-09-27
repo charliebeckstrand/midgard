@@ -6,7 +6,7 @@ import { localeDateInputFormat } from '../../components/date-input/date-input-ut
 import { Field, Label } from '../../components/fieldset'
 import { Form } from '../../components/form'
 import { LocaleProvider } from '../../providers/locale'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 // Controlled usage with an external setter: the harness can move the value
 // while the input holds in-progress text.
@@ -279,6 +279,26 @@ describe('DateInput', () => {
 		expect(bySlot(container, 'message')).toHaveTextContent(
 			'Enter a date between 01/01/2026 and 12/31/2026',
 		)
+	})
+
+	it('blurs on Enter, but not on an Enter that confirms an input-method candidate', () => {
+		const { container } = renderUI(<DateInput />)
+
+		const input = getSlot<HTMLInputElement>(container, 'date-input')
+
+		input.focus()
+
+		fireEvent.keyDown(input, { key: 'Enter', keyCode: 229 })
+
+		expect(document.activeElement).toBe(input)
+
+		fireEvent.keyDown(input, { key: 'Enter', isComposing: true })
+
+		expect(document.activeElement).toBe(input)
+
+		fireEvent.keyDown(input, { key: 'Enter' })
+
+		expect(document.activeElement).not.toBe(input)
 	})
 
 	it('keeps partial text on blur and marks it invalid', async () => {

@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronsUpDown, X } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 import {
 	type FocusEvent,
 	type KeyboardEvent,
@@ -16,11 +16,11 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { capitalizeFirst } from '../../utilities'
-import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
+import { InputClearButton } from '../input/input-clear-button'
 import { ListboxContext } from './context'
 import { ListboxButton } from './listbox-button'
 import { ListboxPanel } from './listbox-panel'
@@ -319,11 +319,8 @@ export function Listbox<T>({
 	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
 
 	const clearSuffix = showClear ? (
-		<Button
-			type="button"
-			variant="bare"
-			className="pointer-events-auto"
-			aria-label="Clear selection"
+		<InputClearButton
+			label="Clear selection"
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()
@@ -334,9 +331,7 @@ export function Listbox<T>({
 				// returns to the trigger instead of falling to <body> (WCAG 2.4.3).
 				triggerRef.current?.focus()
 			}}
-		>
-			<Icon icon={<X />} />
-		</Button>
+		/>
 	) : null
 
 	// The trigger label reads the live `value` (updates instantly on select); the

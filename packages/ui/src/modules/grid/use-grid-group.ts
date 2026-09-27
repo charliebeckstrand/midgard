@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useState } from 'react'
 import { useControllable } from '../../hooks'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { toggleItem } from '../../utilities'
 import { buildGroupSpans, collapsedHiddenIds, groupByColumn } from './engine/grid-group/compute'
 import type { GridColumnGroup, GridColumnGroups, GridGroupSpan } from './grid-group-types'
 
@@ -90,14 +91,7 @@ export function useGridGroup(
 	)
 
 	const toggleCollapse = useCallback((id: string | number) => {
-		setCollapsed((prev) => {
-			const next = new Set(prev)
-
-			if (next.has(id)) next.delete(id)
-			else next.add(id)
-
-			return next
-		})
+		setCollapsed((prev) => toggleItem(prev, id))
 	}, [])
 
 	// Read from the committed set rather than from `toggleCollapse`, because the set

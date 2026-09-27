@@ -1,19 +1,19 @@
 'use client'
 
-import { Calendar as CalendarIcon, X } from 'lucide-react'
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'react'
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
 import { useLocale } from '../../providers/locale'
-import { clearNativeInput } from '../../utilities'
-import { Button } from '../button'
+import { clearNativeInput, isComposing } from '../../utilities'
 import { useControl } from '../control/context'
 import type { CardValidity } from '../credit-card-input/credit-card-input-utilities'
 import { Message } from '../fieldset'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { InputClearButton } from '../input/input-clear-button'
 import {
 	type DateInputFormat,
 	dateInputSeparator,
@@ -226,8 +226,11 @@ export function DateInput({
 	// cognitive-complexity budget.
 	const activeMessage = resolveInvalidMessage(text, format, invalidMessage, min, max)
 
+	// `atEnd: 'jump'`: the mask pads `1/` to `01/`, so a restore at the end would pin
+	// the caret before the padded digit.
 	const { ref: setRefs, reformat } = useFormattedInput({
 		format: (raw) => maskDateText(raw, format),
+		atEnd: 'jump',
 		ref: setExternalRef,
 	})
 
@@ -286,11 +289,6 @@ export function DateInput({
 						// The mask re-appends a deleted trailing separator and traps the
 						// caret; backspace over it deletes the preceding digit instead.
 						next = maskDateText(raw.slice(0, -1), format)
-					} else if ((event.target.selectionStart ?? raw.length) >= raw.length) {
-						// Typing at the end: let the value swap put the caret at the end.
-						// The meaningful-count restore would pin it before a digit the
-						// mask pads in (`1/` → `01/`).
-						next = maskDateText(raw, format)
 					} else {
 						next = reformat(event)
 					}
@@ -323,7 +321,8 @@ export function DateInput({
 					{ checkForDefaultPrevented: false },
 				)}
 				onKeyDown={composeEventHandlers(onKeyDown, (event) => {
-					if (event.key === 'Enter') event.currentTarget.blur()
+					// Enter that confirms an input-method candidate must not blur the field.
+					if (event.key === 'Enter' && !isComposing(event)) event.currentTarget.blur()
 				})}
 				{...props}
 			/>
@@ -388,18 +387,13 @@ function dateInputSuffix({
 	if (!clearable || !hasValue || disabled || readOnly) return resolved
 
 	const clear = (
-		<Button
-			type="button"
-			variant="bare"
-			className="pointer-events-auto"
-			aria-label="Clear date"
+		<InputClearButton
+			label="Clear date"
 			// Keep focus on the input: a blur here would run the field's
 			// commit-on-blur over a partial entry before the clear lands.
 			onMouseDown={(event) => event.preventDefault()}
 			onClick={onClear}
-		>
-			<Icon icon={<X />} />
-		</Button>
+		/>
 	)
 
 	// The default decorative calendar icon yields to the clear (mirroring

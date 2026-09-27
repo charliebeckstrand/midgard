@@ -1,3 +1,5 @@
+import { createEmitter } from '../../utilities'
+
 /**
  * `localStorage` key of the theme preference. {@link AppearanceScript} reads
  * the same key before hydration.
@@ -24,7 +26,7 @@ export const DARK_SCHEME = '(prefers-color-scheme: dark)'
 // contexts), so a choice still applies for the life of the page.
 const memory = new Map<string, string>()
 
-const listeners = new Set<() => void>()
+const choiceChange = createEmitter()
 
 /**
  * Reads the stored choice under `key`. It returns `fallback` when the value is
@@ -56,7 +58,7 @@ export function writeChoice(key: string, value: string) {
 		memory.set(key, value)
 	}
 
-	for (const listener of [...listeners]) listener()
+	choiceChange.emit()
 }
 
 /**
@@ -66,12 +68,12 @@ export function writeChoice(key: string, value: string) {
  * @internal
  */
 export function subscribeChoices(listener: () => void) {
-	listeners.add(listener)
+	const unsubscribe = choiceChange.subscribe(listener)
 
 	window.addEventListener('storage', listener)
 
 	return () => {
-		listeners.delete(listener)
+		unsubscribe()
 
 		window.removeEventListener('storage', listener)
 	}

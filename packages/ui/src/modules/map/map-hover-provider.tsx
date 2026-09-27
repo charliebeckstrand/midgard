@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
+import { createEmitter } from '../../utilities'
 import {
 	type MapHoverSet,
 	MapHoverSetContext,
@@ -45,18 +46,12 @@ function createPointedStore(): MapPointedStore & {
 
 	let focus: string | null = null
 
-	const listeners = new Set<() => void>()
+	const { subscribe, emit } = createEmitter()
 
 	return {
 		get: () => current,
 		emphasis: () => focus,
-		subscribe: (listener) => {
-			listeners.add(listener)
-
-			return () => {
-				listeners.delete(listener)
-			}
-		},
+		subscribe,
 		publish: (next, emphasis) => {
 			if (next === current && emphasis === focus) return
 
@@ -64,7 +59,7 @@ function createPointedStore(): MapPointedStore & {
 
 			focus = emphasis
 
-			for (const listener of [...listeners]) listener()
+			emit()
 		},
 	}
 }

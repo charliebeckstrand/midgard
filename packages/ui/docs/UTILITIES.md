@@ -72,6 +72,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | Export | Summary |
 |---|---|
 | `clearNativeInput` | Clears an input through the native value setter and a bubbling `input` event, so controlled and uncontrolled consumers both observe it. Returns focus to the input. |
+| `createEmitter` | A listener set with no payload: `subscribe` returns the unsubscribe, and `emit` calls a copy of the set. The chart and map hover stores, the grid and dashboard stores, the appearance choices, and the overlay signal use it. |
+| `Emitter` *(type)* | The `{ subscribe, emit }` pair that `createEmitter` returns. |
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
@@ -96,6 +98,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `crossAxisDelta` | Cross-axis arrow delta for an orientation: the pair the main axis doesn't use. |
 | `wrap` | Wraps an index into `[0, count)`, so a step past either end lands at the other. |
 | `NavigationConfig` *(type)* | Navigation mode for `nextIndexForKey`: 2D grid when `cols` set, else single-axis along `orientation`. |
+| `isComposing` | Whether an input method composes a key press: `isComposing`, or `keyCode` 229, which the first key of a composition and the Safari confirm Enter report. |
 
 ## Collections & data
 
@@ -105,6 +108,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. A consumer reads its own key through `useSyncExternalStore`, so a change to one entry does not render the consumers of the others. The grid settle store builds on it. |
 | `KeyedStore` *(type)* | The store that `createKeyedStore` returns: `get`, `subscribe` for one key, and `publish` of a new reader. |
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |
+| `toggleListItem` | Returns a copy of `list` with `item` toggled: removed if present, else added at the end. No mutation. |
 | `keyByOccurrence` | Pairs each string with a React-key-safe id that is unique for any input, keying repeats by occurrence index. |
 | `rangeKeys` | Builds `count` stable `${prefix}-${index}` keys for fixed-length placeholder loops (skeletons). |
 | `isDataColumn` | True for content columns; false for the selection-checkbox and row-actions columns. |

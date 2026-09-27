@@ -348,6 +348,24 @@ describe('CommandPaletteItem', () => {
 		expect(screen.getByText('Go').closest('a')).toHaveAttribute('rel', 'noopener noreferrer')
 	})
 
+	it('keeps the caller attributes on a disabled link item, but not the link ones', () => {
+		renderUI(
+			<CommandPalette open onOpenChange={() => {}}>
+				<CommandPaletteItem disabled href="/somewhere" target="_blank" title="Go there">
+					Go
+				</CommandPaletteItem>
+			</CommandPalette>,
+		)
+
+		const item = screen.getByText('Go')
+
+		expect(item).toHaveAttribute('title', 'Go there')
+
+		expect(item).not.toHaveAttribute('target')
+
+		expect(item).not.toHaveAttribute('href')
+	})
+
 	it('renders a disabled link item with no href', () => {
 		renderUI(
 			<CommandPalette open onOpenChange={() => {}}>

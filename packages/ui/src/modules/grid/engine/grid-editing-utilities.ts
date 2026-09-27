@@ -1,4 +1,4 @@
-import { FOCUSABLE_SELECTOR } from '../../../utilities'
+import { FOCUSABLE_SELECTOR, isComposing } from '../../../utilities'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
 
@@ -91,7 +91,7 @@ export function readKeyPress(event: {
 		ctrlKey: event.ctrlKey,
 		metaKey: event.metaKey,
 		altKey: event.altKey,
-		composing: event.nativeEvent.isComposing || event.keyCode === 229,
+		composing: isComposing(event),
 		altGraph: event.getModifierState('AltGraph'),
 	}
 }

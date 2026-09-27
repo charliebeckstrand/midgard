@@ -8,6 +8,7 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
+import { isComposing } from '../../utilities'
 import { canSubmitDraft } from './engine/chat-draft'
 
 /** Props for {@link ChatPrompt}. */
@@ -107,7 +108,7 @@ export function ChatPrompt({
 
 	const handleKeyDown = useCallback(
 		(event: KeyboardEvent<HTMLTextAreaElement>) => {
-			if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing) return
+			if (event.key !== 'Enter' || event.shiftKey || isComposing(event)) return
 
 			event.preventDefault()
 

@@ -1,7 +1,7 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { ChevronsUpDown, X } from 'lucide-react'
+import { ChevronsUpDown } from 'lucide-react'
 import {
 	type ClipboardEventHandler,
 	type ComponentProps,
@@ -34,11 +34,11 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { Button } from '../button'
 import { type ControlSize, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
+import { InputClearButton } from '../input/input-clear-button'
 import { OPTION_SELECTOR } from './combobox-constants'
 import { ComboboxInput } from './combobox-input'
 import { ComboboxPanel } from './combobox-panel'
@@ -601,11 +601,8 @@ export function Combobox<T>({
 	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
 
 	const clearSuffix = showClear ? (
-		<Button
-			type="button"
-			variant="bare"
-			className="pointer-events-auto"
-			aria-label="Clear selection"
+		<InputClearButton
+			label="Clear selection"
 			onMouseDown={(event) => event.stopPropagation()}
 			onClick={(event) => {
 				event.stopPropagation()
@@ -625,9 +622,7 @@ export function Combobox<T>({
 				// cleared, so without this focus falls to the body.
 				inputRef.current?.focus()
 			}}
-		>
-			<Icon icon={<X />} />
-		</Button>
+		/>
 	) : null
 
 	// The input display reads the live `value`; the menu reads `selectionValue`,

@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import { useControllable } from '../../hooks'
+import { toggleItem } from '../../utilities'
 import type { GridGroupBy, GridGroupHeaderRow } from './grid-data-types'
 
 /** Stable empty expanded-key set; read-only, replaced wholesale on change. @internal */
@@ -95,14 +96,9 @@ export function useGridRowGrouping<T>(
 
 	const toggleGroup = useCallback(
 		(key: string | number) => {
-			const next = new Set(manualExpandedRef.current)
+			const expanding = !manualExpandedRef.current.has(key)
 
-			const expanding = !next.has(key)
-
-			if (expanding) next.add(key)
-			else next.delete(key)
-
-			setManualExpanded(next)
+			setManualExpanded(toggleItem(manualExpandedRef.current, key))
 
 			// The lazy-load hook fires only as a group opens — collapse keeps the
 			// already-fetched children in place.

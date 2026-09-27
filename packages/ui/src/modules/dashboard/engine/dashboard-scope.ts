@@ -8,6 +8,7 @@
  * chart therefore does not filter itself down to the bar that the user clicked.
  */
 
+import { toggleListItem } from '../../../utilities'
 import { isQueryActive } from '../../query/engine/query-active'
 import { asText, evaluateQuery } from '../../query/engine/query-evaluate'
 import type { QueryGroup, QueryNode, QueryRule } from '../../query/engine/types'
@@ -60,7 +61,7 @@ export function selectValue(
 	let values: readonly string[]
 
 	if (additive) {
-		values = current.includes(text) ? current.filter((item) => item !== text) : [...current, text]
+		values = toggleListItem(current, text)
 	} else {
 		values = current.length === 1 && current[0] === text ? [] : [text]
 	}
