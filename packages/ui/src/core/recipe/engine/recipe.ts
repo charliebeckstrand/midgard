@@ -76,8 +76,8 @@ type Plan = {
 }
 
 /**
- * The compiled density axis. The default of the axis moves here, out of
- * `defaults`, so an omitted axis resolves to `undefined`.
+ * The compiled density axis. Its default is the `fallback` here, not an entry
+ * of `Plan.defaults`, so an omitted axis resolves to `undefined`.
  *
  * @internal
  */
@@ -121,9 +121,8 @@ type Expansion = {
  * returns the cached string.
  *
  * @param config - Recipe definition; reserved fields (`base`, `palette`,
- * `compound`, `slots`, `defaults`, `skeleton`, `densityAxis`) are special-cased,
- * every other top-level field becomes a variant axis. `densityAxis` names the axis
- * that follows the nearest density scope when a caller omits it.
+ * `compound`, `slots`, `defaults`, `skeleton`, `densityAxis`) are
+ * special-cased, every other top-level field becomes a variant axis.
  * @param extras - Optional kata-shaped siblings (`motion`, sub-recipes,
  * fragment maps) attached as direct properties; the recipe stays callable.
  * @throws If a slot name collides with a recipe property — a function
@@ -132,7 +131,8 @@ type Expansion = {
  * @throws If an extras key collides with a slot, a function built-in, or
  * `config`. The `skeleton` key also throws, with or without a config
  * `skeleton`.
- * @throws If the `densityAxis` axis lacks a step of `sm` / `md` / `lg`, or a default.
+ * @throws If the `densityAxis` axis lacks a step of `sm` / `md` / `lg`, or a
+ * default.
  * @see {@link expandPalette}
  */
 export function defineRecipe<C extends RecipeConfig>(config: C): Recipe<C>
@@ -356,10 +356,6 @@ function collectStepClasses(plan: Plan, values: Record<string, string | undefine
  * @internal
  */
 function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
-	const defaults = Object.fromEntries(
-		Object.entries(resolved.defaults).map(([key, value]) => [key, axisKey(value)]),
-	)
-
 	const rules: CompiledRule[] = userCompound.map((rule) => ({
 		// `expand` already put every condition through `axisKey`; `class` is the
 		// one entry that keeps a full `ClassValue`, and the filter drops it.
@@ -369,7 +365,14 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 		class: rule.class,
 	}))
 
-	const density = compileDensity(resolved, defaults, rules)
+	const density = compileDensity(resolved, rules)
+
+	// The density axis keeps its default in `density.fallback`.
+	const defaults = Object.fromEntries(
+		Object.entries(resolved.defaults)
+			.filter(([key]) => key !== density?.axis)
+			.map(([key, value]) => [key, axisKey(value)]),
+	)
 
 	const relevant = new Set(Object.keys(resolved.variants))
 
@@ -400,34 +403,28 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 }
 
 /**
- * Validates the density axis of a config and moves its default out of
- * `defaults` (mutating it), so an omitted axis resolves to `undefined`. It also
- * collects the compound rules with a condition on the axis.
+ * Validates and compiles the density axis of a config. The plan holds the
+ * default step, the axis map, and the compound rules on the axis.
  *
  * @throws If the axis does not hold every step of {@link DENSITY_STEPS}, or if
  * `defaults` names no step for it.
  * @internal
  */
 function compileDensity(
-	resolved: ResolvedConfig,
-	defaults: Record<string, string | undefined>,
+	{ densityAxis: axis, variants, defaults }: ResolvedConfig,
 	rules: CompiledRule[],
 ): DensityPlan | undefined {
-	const axis = resolved.densityAxis
-
 	if (axis === undefined) return undefined
 
-	const axisMap = resolved.variants[axis] ?? {}
+	const axisMap = variants[axis] ?? {}
 
-	const fallback = defaults[axis]
+	const fallback = axisKey(defaults[axis])
 
 	if (!DENSITY_STEPS.every((step) => step in axisMap) || fallback === undefined) {
 		throw new Error(
 			`defineRecipe: density axis "${axis}" needs the sm, md, and lg steps and a default`,
 		)
 	}
-
-	delete defaults[axis]
 
 	return {
 		axis,

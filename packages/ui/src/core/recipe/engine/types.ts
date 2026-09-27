@@ -4,9 +4,8 @@
  * `RecipeConfig` is the shape a kata declares. It has seven reserved fields
  * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`,
  * `densityAxis`) and any number of variant axes as top-level fields.
- * `Recipe<C>` is what
- * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
- * from either side; use it in kata to type the consumer-facing
+ * `Recipe<C>` is what `defineRecipe` returns. `VariantProps<R>` extracts the
+ * prop shape from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
  */
 

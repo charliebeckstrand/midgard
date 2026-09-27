@@ -111,11 +111,13 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(Number.parseFloat(getComputedStyle(inner).paddingTop)).toBe(CARD_PADDING_PX.sm)
 	})
 
-	it.each(['compact', 'snug', 'loose'] as const)(
+	it.each([
+		['compact', 'sm'],
+		['snug', 'md'],
+		['loose', 'lg'],
+	] as const)(
 		'pads the cells of a table with no density prop under a %s provider',
-		(density) => {
-			const step = ({ compact: 'sm', snug: 'md', loose: 'lg' } as const)[density]
-
+		(density, step) => {
 			const { container } = renderUI(
 				<DensityProvider density={density}>
 					<Table>

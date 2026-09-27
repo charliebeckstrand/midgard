@@ -21,7 +21,7 @@ import clsx from 'clsx'
 
 import type { ResolvedConfig } from './types'
 
-/** The steps a density scope carries, in the order the rows apply. */
+/** The steps a density scope can carry. */
 export const DENSITY_STEPS = ['sm', 'md', 'lg'] as const
 
 /** One step of {@link DENSITY_STEPS}. */
@@ -47,24 +47,19 @@ export function densityRow(step: DensityStep, value: ClassValue): string[] {
  * @param config - The resolved config of a recipe, as `recipe.config` exposes it.
  * @returns An empty list when the config names no density axis.
  */
-export function densityClasses(config: ResolvedConfig): string[] {
-	const axis = config.densityAxis
-
+export function densityClasses({
+	densityAxis: axis,
+	variants,
+	compound,
+}: ResolvedConfig): string[] {
 	if (axis === undefined) return []
 
-	const axisMap = config.variants[axis] ?? {}
+	const names = DENSITY_STEPS.flatMap((step) =>
+		densityRow(step, [
+			variants[axis]?.[step],
+			compound.filter((rule) => rule[axis] === step).map((rule) => rule.class),
+		]),
+	)
 
-	const names = new Set<string>()
-
-	for (const step of DENSITY_STEPS) {
-		for (const name of densityRow(step, axisMap[step])) names.add(name)
-
-		for (const rule of config.compound) {
-			if (rule[axis] !== step) continue
-
-			for (const name of densityRow(step, rule.class)) names.add(name)
-		}
-	}
-
-	return [...names].sort()
+	return [...new Set(names)].sort()
 }

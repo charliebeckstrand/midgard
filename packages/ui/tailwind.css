@@ -6,9 +6,9 @@
  *
  * A density scope is an element with `data-density="sm|md|lg"`. DensityProvider
  * writes one, and so does a sized Card or Table. A recipe with a `densityAxis`
- * puts `density-sm:`, `density-md:` and `density-lg:` rows on top of its md base
- * when the caller omits that axis. The component follows the nearest scope and
- * reads no context.
+ * puts `density-sm:`, `density-md:` and `density-lg:` rows on top of its
+ * default step when the caller omits that axis. The component follows the
+ * nearest scope and reads no context.
  *
  * The nearest scope must win when scopes nest. Each variant is a list of
  * selectors ranked by depth: the selector for depth n puts n-1 scope
