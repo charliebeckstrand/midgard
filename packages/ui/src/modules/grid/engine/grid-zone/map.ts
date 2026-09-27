@@ -1,4 +1,5 @@
 import type { PaletteColor } from '../../../../core/recipe'
+import { moveItem } from '../../../../utilities/move-item'
 import type { GridColumnGroup } from '../../grid-group-types'
 import { applyColumnReorder } from '../grid-reorder-compute'
 
@@ -22,24 +23,6 @@ export function isGroupDragId(id: string): boolean {
 /** The group id carried by a {@link GROUP_PREFIX}-prefixed dnd id. @internal */
 export function groupIdFromDragId(id: string): string {
 	return id.slice(GROUP_PREFIX.length)
-}
-
-/**
- * Moves the item at `from` to index `to` in a copy of `items`. Each caller
- * rejects an absent index and a no-op move first, so this holds the happy path
- * alone.
- *
- * Matches dnd-kit's `arrayMove` for the non-negative `to` a guarded `findIndex`
- * returns, without the runtime `@dnd-kit` import a pure engine cannot carry.
- *
- * @internal
- */
-function moveItem<T>(items: T[], from: number, to: number): T[] {
-	const next = items.slice()
-
-	next.splice(to, 0, ...next.splice(from, 1))
-
-	return next
 }
 
 /**

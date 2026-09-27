@@ -1,4 +1,4 @@
-import { FOCUSABLE_SELECTOR, isComposing } from '../../../utilities'
+import { FOCUSABLE_SELECTOR, isComposing, wrap } from '../../../utilities'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
 
@@ -49,7 +49,7 @@ export function stepEditableColumn(
 	const count = columns.length
 
 	for (let offset = 1; offset <= count; offset++) {
-		const index = (((from + step * offset) % count) + count) % count
+		const index = wrap(from + step * offset, count)
 
 		const column = columns[index]
 

@@ -7,6 +7,8 @@
  * so a caller can compare cells by identity.
  */
 
+import { moveItem } from '../../../utilities/move-item'
+
 /**
  * Sub-rows per column width, so the row pitch is a quarter of the column pitch.
  * Finer rows let a derived height land near its true value, and the heights stay
@@ -359,9 +361,11 @@ export function shiftCells(
 
 	if (from === -1 || to === -1) return [...cells]
 
-	const order = row.map((cell) => cell.id)
-
-	order.splice(to, 0, ...order.splice(from, 1))
+	const order = moveItem(
+		row.map((cell) => cell.id),
+		from,
+		to,
+	)
 
 	const patch = new Map<string, Partial<DashboardCell>>()
 
