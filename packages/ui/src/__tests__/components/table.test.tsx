@@ -303,7 +303,10 @@ describe('Table density resolution', () => {
 
 		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
 
-		expect(container.querySelector('table')?.className).not.toMatch(/(^|\s)\[&>\*>tr>td\]:px-/)
+		// The md projection is the base, and the density rows follow a scope.
+		expect(container.querySelector('table')).toHaveClass('[&>*>tr>td]:px-2')
+
+		expect(container.querySelector('table')).toHaveClass('density-sm:[&>*>tr>td]:px-1')
 	})
 
 	it('projects sm padding under an explicit compact density prop', () => {

@@ -44,24 +44,32 @@ const header = defineRecipe({
  * `<table>` element. No descendant therefore reads context, and the whole
  * family renders in React Server Components. The exact-depth child chains
  * (`>*>tr>` walks thead/tbody/tfoot) keep a nested table's cells independent.
- * The md step has no density row. At the default step the cell's own classes
- * already match, and a consumer `className` on a cell keeps overriding them.
+ * The projection outranks a cell's own classes at every step, the md default
+ * included, so a consumer padding `className` on a cell takes `!`.
  *
  * The `hover` scopes to `tbody` rows only, because the head holds no data. It
  * washes at the 5% `hannou.tint` value, an interactive variant that
  * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
  * Tailwind scans whole class literals. These rows can't be interpolated
- * from the unprefixed values they mirror (`density`, `sen.border.subtle`),
+ * from the unprefixed values they mirror (the cell `density`, `sen.border.subtle`),
  * or from each other (the `odd`/`even` `striped` parity below). Keep them in
  * step by hand.
  */
 const projection = {
-	density: {
-		sm: ['[&>*>tr>td]:px-1', '[&>*>tr>td]:py-1', '[&>*>tr>th]:px-1', '[&>*>tr>th]:py-1'],
-		md: [],
-		lg: ['[&>*>tr>td]:px-3', '[&>*>tr>td]:py-3', '[&>*>tr>th]:px-3', '[&>*>tr>th]:py-3'],
-	},
+	/**
+	 * Cell padding for each step. An omitted `size` follows the nearest density
+	 * scope, and `md` outside one.
+	 */
+	density: defineRecipe({
+		size: {
+			sm: ['[&>*>tr>td]:px-1', '[&>*>tr>td]:py-1', '[&>*>tr>th]:px-1', '[&>*>tr>th]:py-1'],
+			md: ['[&>*>tr>td]:px-2', '[&>*>tr>td]:py-2', '[&>*>tr>th]:px-2', '[&>*>tr>th]:py-2'],
+			lg: ['[&>*>tr>td]:px-3', '[&>*>tr>td]:py-3', '[&>*>tr>th]:px-3', '[&>*>tr>th]:py-3'],
+		},
+		defaults: { size: 'md' },
+		densityAxis: 'size',
+	}),
 	outline: [
 		'[&>*>tr>td]:border',
 		'[&>*>tr>td]:border-zinc-950/5',
@@ -81,33 +89,6 @@ const projection = {
 		],
 	},
 	hover: ['[&>tbody>tr]:hover:bg-zinc-950/5', 'dark:[&>tbody>tr]:hover:bg-white/5'],
-	/**
-	 * Rows for a table with no `density` prop, which follows the nearest
-	 * density scope (`ui/tailwind.css`). Each row is the cell padding of one
-	 * step, projected as above, under the matching `density-*` variant. The md
-	 * row resets an outer scope. `density-rows.test.ts` keeps the rows in step
-	 * with the cell `density` table.
-	 */
-	scoped: {
-		sm: [
-			'density-sm:[&>*>tr>td]:px-1',
-			'density-sm:[&>*>tr>td]:py-1',
-			'density-sm:[&>*>tr>th]:px-1',
-			'density-sm:[&>*>tr>th]:py-1',
-		],
-		md: [
-			'density-md:[&>*>tr>td]:px-2',
-			'density-md:[&>*>tr>td]:py-2',
-			'density-md:[&>*>tr>th]:px-2',
-			'density-md:[&>*>tr>th]:py-2',
-		],
-		lg: [
-			'density-lg:[&>*>tr>td]:px-3',
-			'density-lg:[&>*>tr>td]:py-3',
-			'density-lg:[&>*>tr>th]:px-3',
-			'density-lg:[&>*>tr>th]:py-3',
-		],
-	},
 } as const
 
 export const k = {

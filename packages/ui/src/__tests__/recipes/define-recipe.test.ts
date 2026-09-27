@@ -240,3 +240,55 @@ describe('defineRecipe', () => {
 		expect(() => defineRecipe({}, { name: 'x' })).toThrow(/extra name/)
 	})
 })
+
+describe('defineRecipe densityAxis', () => {
+	const recipe = defineRecipe({
+		base: 'base',
+		size: { xs: 'size-xs', sm: 'size-sm', md: 'size-md', lg: 'size-lg' },
+		radius: { md: 'radius-md', full: 'radius-full' },
+		compound: [
+			{ radius: 'full', size: 'sm', class: 'pill-sm' },
+			{ radius: 'full', size: 'lg', class: 'pill-lg' },
+		],
+		defaults: { size: 'md', radius: 'md' },
+		densityAxis: 'size',
+	})
+
+	it('adds the density rows on top of the default step when the axis is omitted', () => {
+		expect(recipe().split(' ')).toEqual([
+			'base',
+			'size-md',
+			'radius-md',
+			'density-sm:size-sm',
+			'density-md:size-md',
+			'density-lg:size-lg',
+		])
+	})
+
+	it('adds the compound rules of each step that match the other axes', () => {
+		expect(recipe({ radius: 'full' }).split(' ')).toEqual([
+			'base',
+			'size-md',
+			'radius-full',
+			'density-sm:size-sm',
+			'density-sm:pill-sm',
+			'density-md:size-md',
+			'density-lg:size-lg',
+			'density-lg:pill-lg',
+		])
+	})
+
+	it('pins an explicit step with no density rows', () => {
+		expect(recipe({ size: 'xs' })).toBe('base size-xs radius-md')
+	})
+
+	it('throws when the axis lacks a step or a default', () => {
+		expect(() =>
+			defineRecipe({ size: { sm: 'a', md: 'b' }, defaults: { size: 'md' }, densityAxis: 'size' }),
+		).toThrow(/density axis "size"/)
+
+		expect(() =>
+			defineRecipe({ size: { sm: 'a', md: 'b', lg: 'c' }, densityAxis: 'size' }),
+		).toThrow(/density axis "size"/)
+	})
+})

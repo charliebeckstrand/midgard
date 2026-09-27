@@ -526,7 +526,6 @@
 				"!**/__benchmarks__/**",
 				"!packages/ui/src/recipes/kiso/kasane/**",
 				"!packages/ui/src/recipes/kiso/control/affix.ts",
-				"!packages/ui/src/recipes/kata/badge.ts",
 				"!packages/ui/src/recipes/kata/button.ts",
 				"!packages/ui/src/recipes/kata/query-chips.ts",
 				"!packages/ui/src/recipes/kata/tag-input.ts"

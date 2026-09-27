@@ -1,11 +1,14 @@
+/* biome-ignore-all lint/style/noDescendingSpecificity: the rank by depth is the design. A deeper selector must outrank a shallower one, whatever the order of the variants. */
+
 /*
  * Density variants for Tailwind. Import this file in each Tailwind entry that
  * scans ui. It holds variants only, no styles.
  *
  * A density scope is an element with `data-density="sm|md|lg"`. DensityProvider
- * writes one, and so does a sized Card or Table. A static component with no
- * `size` puts `density-sm:`, `density-md:` and `density-lg:` rows on top of its
- * md base, so it follows the nearest scope and reads no context.
+ * writes one, and so does a sized Card or Table. A recipe with a `densityAxis`
+ * puts `density-sm:`, `density-md:` and `density-lg:` rows on top of its md base
+ * when the caller omits that axis. The component follows the nearest scope and
+ * reads no context.
  *
  * The nearest scope must win when scopes nest. Each variant is a list of
  * selectors ranked by depth: the selector for depth n puts n-1 scope
@@ -17,7 +20,9 @@
  * innermost can match at the same specificity, and then source order decides.
  */
 
-/* biome-ignore-all lint/style/noDescendingSpecificity: the rank by depth is the design. A deeper selector must outrank a shallower one, whatever the order of the variants. */
+/* The recipe engine builds the density rows at runtime, so Tailwind finds them
+ * in this list, not in the kata. `pnpm density` writes the list again. */
+@source './src/recipes/density.generated.txt';
 
 @custom-variant density-sm {
 	[data-density='sm'] & {

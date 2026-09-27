@@ -1,4 +1,5 @@
 export { applyRecipe } from './applicator'
+export { densityClasses } from './density'
 export { definePalette } from './palette'
 export { defineRecipe } from './recipe'
 export type { RecipeConfig, VariantProps } from './types'

@@ -1,9 +1,10 @@
 /**
  * Public types for the recipe engine.
  *
- * `RecipeConfig` is the shape a kata declares: six reserved fields
- * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus
- * any number of variant axes as top-level fields. `Recipe<C>` is what
+ * `RecipeConfig` is the shape a kata declares. It has seven reserved fields
+ * (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`,
+ * `densityAxis`) and any number of variant axes as top-level fields.
+ * `Recipe<C>` is what
  * `defineRecipe` returns. `VariantProps<R>` extracts the prop shape
  * from either side; use it in kata to type the consumer-facing
  * `<Name>Variants` export.
@@ -25,7 +26,14 @@ export type VariantAxis = Record<string, ClassValue>
 export type CompoundRule = Record<string, string | ClassValue> & { class: ClassValue }
 
 /** Reserved top-level config field names; kata must not use these as axis names. */
-export type ReservedField = 'base' | 'palette' | 'compound' | 'slots' | 'defaults' | 'skeleton'
+export type ReservedField =
+	| 'base'
+	| 'palette'
+	| 'compound'
+	| 'slots'
+	| 'defaults'
+	| 'skeleton'
+	| 'densityAxis'
 
 /** The reserved fields' types. */
 type RecipeBase = {
@@ -42,6 +50,12 @@ type RecipeBase = {
 	 * the `extras` second argument instead.
 	 */
 	skeleton?: unknown
+	/**
+	 * The axis that follows the nearest density scope when a caller omits it.
+	 * The axis must hold the `sm`, `md`, and `lg` steps, and `defaults` must
+	 * name its step outside a scope.
+	 */
+	densityAxis?: string
 }
 
 /**
@@ -68,6 +82,8 @@ export type ResolvedConfig = {
 	compound: CompoundRule[]
 	slots: Record<string, ClassValue>
 	defaults: Record<string, string | number | boolean>
+	/** The axis that follows the nearest density scope, when the config names one. */
+	densityAxis?: string
 }
 
 export type Recipe<C extends RecipeBase> = {

@@ -21,9 +21,9 @@ The variants live in [`tailwind.css`](../../tailwind.css), exported as `ui/tailw
 ## The contract
 
 - A **scope** is an element with `data-density="sm|md|lg"`: the `DensityProvider` wrapper, a Card with `size`, a Table with `density`. A scope opener that also wraps client children writes the `Density` context too, so the two channels agree.
-- A **static leaf with no `size`** keeps its md classes as the base and adds its `density-sm`, `density-md`, and `density-lg` rows. The md row is not redundant: it resets an outer `sm` or `lg` scope under an inner `md` one. Outside any scope, no row matches, and the leaf renders at `md`.
+- A **recipe with a `densityAxis`** follows the nearest scope when a caller omits that axis. `defineRecipe` keeps the classes of the default step as the base and adds a `density-<step>:` row for each step: the axis row plus the compound rules of that step that match the other axes. The md row is not redundant: it resets an outer `sm` or `lg` scope under an inner `md` one. Outside any scope, no row matches, and the leaf renders at its default. A component passes its `size` prop through, undefined or not, and does not branch.
 - An **explicit `size`** pins the step: the leaf emits its fixed classes and no rows.
-- Tailwind scans whole class literals, so each kata spells its rows out. `density-rows.test.ts` derives each row from the source table that the explicit path reads, so a row cannot drift.
+- Tailwind scans whole class literals, and the engine builds the rows at runtime. `density-classes.test.ts` lists every row class of every kata and pins the list in `src/recipes/density.generated.txt` with a file snapshot. `ui/tailwind.css` names that file with `@source`, so every app that imports the variants also generates the rows. `pnpm density` writes the list again after a recipe change, and the test fails in CI when the list is stale.
 - Client components keep context. Grid, Chart, Sparkline, Menu, and Tabs need density as a JS value.
 
 ## Costs accepted
@@ -34,9 +34,9 @@ The variants live in [`tailwind.css`](../../tailwind.css), exported as `ui/tailw
 
 ## Increments
 
-1. **Variants and pilot.** `tailwind.css` and its export, `data-density` as a `Step` on `DensityProvider` (it wrote the friendly level before), a scope on a sized Card and on a Table with `density`, and rows on Badge, unsized Card, and Table with no `density`. The drift test and the browser nesting test.
+1. **Variants, engine, and pilot.** `tailwind.css` and its export, `densityAxis` in `defineRecipe` with the generated class list, `data-density` as a `Step` on `DensityProvider` (it wrote the friendly level before), and a scope on a sized Card and on a Table with `density`. Badge, the Card frame, and the Table padding projection opt in. The Table projection now carries an md row, so a consumer padding `className` on a cell takes `!` at every step. The browser nesting test.
 2. **Scope openers.** The client hosts that open a `Density` scope write `data-density` on their own root: Group, InputFrame, the Control primitive, and the portaled surfaces (Menu, Popover, Listbox, Combobox, DatePicker, Color, Drawer). A host can skip the attribute when its step equals the parent's, which keeps the real depth low.
-3. **Static families.** One pull request each: Heading and Text, Kbd and Code, Avatar and StatusDot, DescriptionList and Stat, Alert and Banner.
+3. **Static families.** One pull request each: Heading and Text, Kbd and Code, Avatar and StatusDot, DescriptionList and Stat, Alert and Banner. Each kata adds `densityAxis`, each component passes its `size` through, and `pnpm density` updates the list.
 4. **Style-only client reads.** Progress, DatePickerFooter, and the Control primitive read density for classes only. They move to rows and drop the hook.
 5. **Optional: pre-paint scope.** `AppearanceScript` writes the stored step to `data-density` on `<html>`, so a stored density applies to static leaves before hydration.
 

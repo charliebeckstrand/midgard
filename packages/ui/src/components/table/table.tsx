@@ -55,7 +55,7 @@ export type TableProps = TableVariants & {
  * The table owns `density`, `outline`, `striped`, and `hover` and projects
  * them onto descendant rows and cells, so TableBody, TableCell, and
  * TableHeader read no context. Without `density`, the table follows the
- * nearest density scope through the `density-*` variants of `ui/tailwind.css`.
+ * nearest density scope.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
@@ -75,12 +75,7 @@ export function Table({
 	children,
 	tableProps,
 }: TableProps) {
-	// 'snug' maps to the md step.
-	const step = densityToSize[density ?? 'snug']
-
-	// Without a `density` prop, the table follows the nearest scope through the
-	// `density-*` variants and opens no scope of its own.
-	const scope = density ? step : undefined
+	const step = density && densityToSize[density]
 
 	// `true` keeps the historical default of shading even rows.
 	const stripe = striped === true ? 'even' : striped
@@ -93,10 +88,10 @@ export function Table({
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
 				{...tableProps}
-				data-density={scope}
+				data-density={step}
 				className={cn(
 					k.base,
-					scope ? k.projection.density[step] : Object.values(k.projection.scoped),
+					k.projection.density({ size: step }),
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					hover && k.projection.hover,
