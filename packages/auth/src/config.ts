@@ -1,8 +1,33 @@
 import type { NextConfig } from 'next'
 import { BIFROST_URL } from './env'
 
+/** Options for {@link withAuth}. */
+export type WithAuthOptions = {
+	/**
+	 * Also rewrite `/api/*` to the gateway, for an app that manages users through
+	 * its API (admin). Off by default, so an app that only signs users in never
+	 * serves the gateway's admin API on its origin.
+	 */
+	gatewayApi?: boolean
+}
+
 /**
- * Wraps a Next config so `/auth/*` and `/api/*` rewrite to the gateway ({@link BIFROST_URL}).
+ * Headers every page and route of the app sends: no framing by any site, HTTPS
+ * only, no content-type sniffing, and no path or query (such as an emailed
+ * link's token) in the `Referer` sent to other sites.
+ */
+export const securityHeaders = [
+	{ key: 'Content-Security-Policy', value: "frame-ancestors 'none'" },
+	{ key: 'X-Frame-Options', value: 'DENY' },
+	{ key: 'Strict-Transport-Security', value: 'max-age=63072000' },
+	{ key: 'X-Content-Type-Options', value: 'nosniff' },
+	{ key: 'Referrer-Policy', value: 'same-origin' },
+]
+
+/**
+ * Wraps a Next config so `/auth/*` rewrites to the gateway ({@link BIFROST_URL}),
+ * and `/api/*` too with `gatewayApi`, and every response carries
+ * {@link securityHeaders}.
  *
  * @remarks
  * These rewrites let client code hit same-origin paths while the gateway serves
@@ -14,26 +39,35 @@ import { BIFROST_URL } from './env'
  * `/api/:path*` rewrite would take the dynamic routes before Next matched them.
  *
  * An existing `rewrites` is preserved. The array form stays in `afterFiles`,
- * and the gateway rewrites follow the `fallback` of the object form.
+ * and the gateway rewrites follow the `fallback` of the object form. An
+ * existing `headers` is kept after the security headers.
  *
  * @param config - The base Next config to extend.
- * @returns The config with the gateway rewrites merged in.
+ * @param options - See {@link WithAuthOptions}.
+ * @returns The config with the gateway rewrites and security headers merged in.
  */
-export function withAuth(config: NextConfig = {}): NextConfig {
+export function withAuth(
+	config: NextConfig = {},
+	{ gatewayApi = false }: WithAuthOptions = {},
+): NextConfig {
 	const userRewrites = config.rewrites
+
+	const userHeaders = config.headers
 
 	return {
 		...config,
+		async headers() {
+			return [{ source: '/:path*', headers: securityHeaders }, ...((await userHeaders?.()) ?? [])]
+		},
 		async rewrites() {
 			const authRewrites = [
 				{
 					source: '/auth/:path*',
 					destination: `${BIFROST_URL}/auth/:path*`,
 				},
-				{
-					source: '/api/:path*',
-					destination: `${BIFROST_URL}/api/:path*`,
-				},
+				...(gatewayApi
+					? [{ source: '/api/:path*', destination: `${BIFROST_URL}/api/:path*` }]
+					: []),
 			]
 
 			if (!userRewrites) return { fallback: authRewrites }
