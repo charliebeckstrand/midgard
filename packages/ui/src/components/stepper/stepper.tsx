@@ -1,14 +1,6 @@
 'use client'
 
-import {
-	Children,
-	type ComponentProps,
-	isValidElement,
-	type ReactNode,
-	useId,
-	useMemo,
-	useRef,
-} from 'react'
+import { type ComponentProps, type ReactNode, useId, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useMinBreakpoint } from '../../hooks'
 import { useControllable } from '../../hooks/use-controllable'
@@ -16,6 +8,7 @@ import { ActiveIndicatorScope } from '../../primitives/active-indicator'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
 import { Stack } from '../../structure/stack'
+import { partitionByType } from '../../utilities/flatten-children'
 import { StepperContext, type StepperLayout, type StepperOrientation } from './context'
 import { StepperPanels } from './stepper-panels'
 
@@ -70,19 +63,9 @@ function partitionStepperChildren(children: ReactNode): {
 	rowChildren: ReactNode[]
 	panelsChildren: ReactNode[]
 } {
-	const rowChildren: ReactNode[] = []
+	const { matched, rest } = partitionByType(children, StepperPanels)
 
-	const panelsChildren: ReactNode[] = []
-
-	Children.forEach(children, (child) => {
-		if (isValidElement(child) && child.type === StepperPanels) {
-			panelsChildren.push(child)
-		} else {
-			rowChildren.push(child)
-		}
-	})
-
-	return { rowChildren, panelsChildren }
+	return { rowChildren: rest, panelsChildren: matched }
 }
 
 /**
