@@ -1,10 +1,9 @@
 'use client'
 
 import { type Ref, useCallback } from 'react'
-import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/signature-pad'
 import { Button } from '../button'
-import { useControl } from '../control/context'
 import { type SignaturePadHandle, useSignaturePadState } from './use-signature-pad-state'
 
 export type { SignaturePadHandle }
@@ -76,8 +75,10 @@ export type SignaturePadProps = {
  *
  * @remarks
  * Backs the controlled triad and an enclosing `<Form>`/`<Control>` field. A
- * `name` binds the data URL to the form store, while ambient `<Control>` invalid
- * and description ids ride onto the canvas (`role="img"`). On clear, focus moves
+ * `name` binds the data URL to the form store. The ambient `<Control>` cascade
+ * applies as `useControlProps` resolves it. An explicit `disabled` or
+ * `readOnly` wins over the Control's. The validation ring and the description
+ * ids go onto the canvas (`role="img"`). On clear, focus moves
  * to the canvas as the clear button unmounts (WCAG 2.4.3). The backing store is
  * `string | null`; `undefined` is never emitted.
  *
@@ -100,16 +101,17 @@ export function SignaturePad({
 	ref,
 	className,
 }: SignaturePadProps) {
-	// Mirrors Control/Field invalid + error-message wiring onto the canvas; its
-	// rendered-image value carries the field's validity and shares the control
-	// cascade's description/error ids.
-	const control = useControl()
-
+	// The state resolves the Control cascade: the canvas takes the field's
+	// validity and description/error ids, and an ambient disabled or read-only
+	// Control stops drawing unless an explicit prop says otherwise.
 	const {
 		containerRef,
 		canvasRef,
 		empty,
-		invalid,
+		disabled: resolvedDisabled,
+		readOnly: resolvedReadOnly,
+		describedBy,
+		validation,
 		handlePointerDown,
 		handlePointerMove,
 		commit,
@@ -139,8 +141,8 @@ export function SignaturePad({
 			ref={containerRef}
 			data-slot="signature-pad"
 			data-empty={dataAttr(empty)}
-			data-disabled={dataAttr(disabled)}
-			data-readonly={dataAttr(readOnly)}
+			data-disabled={dataAttr(resolvedDisabled)}
+			data-readonly={dataAttr(resolvedReadOnly)}
 			className={cn(k.base, 'h-40', className)}
 		>
 			<canvas
@@ -151,27 +153,27 @@ export function SignaturePad({
 				// disabled/read-only is conveyed via `aria-disabled` below.
 				role="img"
 				aria-label={empty ? `${ariaLabel}, empty` : ariaLabel}
-				aria-describedby={control?.describedBy}
-				aria-disabled={ariaAttr(disabled || readOnly)}
+				aria-describedby={describedBy}
+				aria-disabled={ariaAttr(resolvedDisabled || resolvedReadOnly)}
 				// Programmatically focusable (not in the tab order); receives focus
 				// when the clear button unmounts.
 				tabIndex={-1}
-				// A Form field error (from `name`) forces invalid; an ambient
-				// `<Field invalid>` via Control still applies too.
-				{...invalidAttrs(control?.severity === 'error' || invalid)}
-				className={cn(k.canvas, (disabled || readOnly) && 'cursor-not-allowed')}
+				// A Form field error (from `name`) or an ambient error severity marks
+				// it invalid; otherwise a warning or success severity shows.
+				{...validation}
+				className={cn(k.canvas, (resolvedDisabled || resolvedReadOnly) && 'cursor-not-allowed')}
 				onPointerDown={handlePointerDown}
 				onPointerMove={handlePointerMove}
 				onPointerUp={commit}
 				onPointerCancel={commit}
 				onPointerLeave={commit}
 			/>
-			{empty && !disabled && (
+			{empty && !resolvedDisabled && (
 				<div data-slot="signature-pad-placeholder" className={cn(k.placeholder)}>
 					{placeholder}
 				</div>
 			)}
-			{clearable && !disabled && !readOnly && !empty && (
+			{clearable && !resolvedDisabled && !resolvedReadOnly && !empty && (
 				<div data-slot="signature-pad-actions" className={cn(k.actions)}>
 					<Button
 						type="button"

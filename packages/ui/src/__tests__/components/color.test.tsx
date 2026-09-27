@@ -255,6 +255,26 @@ describe('ColorPanel', () => {
 })
 
 describe('ColorPicker', () => {
+	it('shows the warning ring of an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control severity="warning">
+				<ColorPicker defaultValue="#ef4444" />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'color-picker-button')).toHaveAttribute('data-warning')
+	})
+
+	it('lets an explicit disabled={false} win over a disabled Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<ColorPicker defaultValue="#ef4444" disabled={false} />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'color-picker-button')).toBeEnabled()
+	})
+
 	it('renders a dialog trigger with a color swatch', () => {
 		const { container } = renderUI(<ColorPicker defaultValue="#ef4444" />)
 

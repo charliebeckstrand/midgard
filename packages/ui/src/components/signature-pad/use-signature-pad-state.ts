@@ -1,6 +1,7 @@
 'use client'
 
 import { type Ref, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { drawSnapshot } from './signature-pad-utilities'
 import { useSignaturePadCanvasSizing } from './use-signature-pad-canvas-sizing'
@@ -44,8 +45,9 @@ export type SignaturePadStateOptions = {
  * @param options - Controlled-triad value, `name` binding, stroke styling, the
  * `disabled`/`readOnly` flags, the `onDrawStart` report, and the forwarded
  * `ref`.
- * @returns The `containerRef`/`canvasRef`, the `empty` and `invalid` flags, and
- * the `handlePointerDown`/`handlePointerMove`/`commit`/`clear` handlers.
+ * @returns The `containerRef`/`canvasRef`, the `empty` flag, the resolved
+ * Control cascade (`disabled`, `readOnly`, `describedBy`, `validation`), and the
+ * `handlePointerDown`/`handlePointerMove`/`commit`/`clear` handlers.
  * @remarks
  * `commit` (stroke end) and `clear` both mark the bound field touched — the
  * pad's analogue of blur. `commit` marks it only when a stroke ends, not on a
@@ -78,6 +80,10 @@ export function useSignaturePadState({
 		defaultValue: defaultValue ?? null,
 		onValueChange: onValueChange ? (next) => onValueChange(next ?? null) : undefined,
 	})
+
+	// The Control cascade: an explicit prop wins over the enclosing Control, and
+	// the field error merges with an ambient error severity.
+	const control = useControlProps({ disabled, readOnly, invalid })
 
 	const current = currentValue ?? null
 
@@ -125,8 +131,8 @@ export function useSignaturePadState({
 		commit: commitStroke,
 	} = useSignaturePadDrawing({
 		canvasRef,
-		disabled,
-		readOnly,
+		disabled: control.disabled,
+		readOnly: control.readOnly,
 		strokeColor,
 		strokeWidth,
 		empty,
@@ -175,7 +181,10 @@ export function useSignaturePadState({
 		containerRef,
 		canvasRef,
 		empty,
-		invalid,
+		disabled: control.disabled === true,
+		readOnly: control.readOnly === true,
+		describedBy: control['aria-describedby'],
+		validation: control.validation,
 		handlePointerDown,
 		handlePointerMove,
 		commit,

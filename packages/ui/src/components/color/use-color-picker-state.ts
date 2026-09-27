@@ -5,7 +5,7 @@ import { useRef } from 'react'
 import { useControllable, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { ColorFormat, Hsva } from './types'
 import { useColorState } from './use-color-state'
@@ -20,7 +20,7 @@ export type ColorPickerStateOptions = {
 	onValueChange?: (value: string | Hsva) => void
 	onOpenChange?: (open: boolean) => void
 	placement: Placement
-	disabled: boolean
+	disabled?: boolean
 }
 
 /**
@@ -30,15 +30,16 @@ export type ColorPickerStateOptions = {
  *
  * @returns The color state (`hsva`, `setHsva`), the open state (`open`,
  * `onOpenChange`), and the Control-derived field metadata (`triggerId`,
- * `describedBy`, `disabled`, `required`, `invalid`). It also returns the
+ * `describedBy`, `disabled`, `required`, `validation`). It also returns the
  * Floating UI plumbing (`setReference`, `setFloating`, `floatingStyles`,
  * `getReferenceProps`, `getFloatingProps`, `context`).
  * @remarks
  * Binds to an enclosing `<Form>` field by `name` (CONVENTIONS §7.2); the field's
- * own errors reach `invalid` beside the ambient `error` severity.
- * `disabled` merges the prop with the enclosing Control's; `setReference`
- * captures the trigger node for `useFloatingUI`'s `returnFocusTo` alongside
- * Floating UI's own reference setter.
+ * own errors reach `validation` beside the Control severity, as
+ * `useControlProps` resolves them. An explicit `disabled` wins over the
+ * enclosing Control's. `setReference` captures the trigger node for
+ * `useFloatingUI`'s `returnFocusTo` alongside Floating UI's own reference
+ * setter.
  * @internal
  */
 export function useColorPickerState({
@@ -52,12 +53,6 @@ export function useColorPickerState({
 	placement,
 	disabled,
 }: ColorPickerStateOptions) {
-	const control = useControl()
-
-	const scope = useIdScope({ id: control?.id })
-
-	const resolvedDisabled = disabled || control?.disabled === true
-
 	// The §7.2 binding sits above the color state rather than inside it: a bound
 	// field is the value channel, and `useColorState` keeps the HSVA the swatch
 	// and the panel share. An emission round-trips through the field and comes
@@ -69,6 +64,12 @@ export function useColorPickerState({
 		// the cleared `null` §7.3 admits never reaches the consumer.
 		onValueChange: onValueChange && ((next) => next != null && onValueChange(next)),
 	})
+
+	// The Control cascade: an explicit prop wins over the enclosing Control, and
+	// the field error merges with an ambient error severity.
+	const controlProps = useControlProps({ disabled, invalid: bound.invalid })
+
+	const scope = useIdScope({ id: controlProps.id })
 
 	const { hsva, setHsva } = useColorState({
 		value: bound.value,
@@ -115,10 +116,10 @@ export function useColorPickerState({
 
 	return {
 		triggerId: scope.id,
-		describedBy: control?.describedBy,
-		disabled: resolvedDisabled,
-		required: control?.required,
-		invalid: bound.invalid || control?.severity === 'error' || undefined,
+		describedBy: controlProps['aria-describedby'],
+		disabled: controlProps.disabled === true,
+		required: controlProps.required,
+		validation: controlProps.validation,
 		hsva,
 		setHsva,
 		open,
