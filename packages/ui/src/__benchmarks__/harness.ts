@@ -2,7 +2,7 @@
  * The shared scenario harness for the jsdom suite: mount-plus-teardown benches
  * over a case list, re-render benches that mount once and time the update
  * alone, and the bench-lifetime mount the cascade scenarios drive. The browser
- * suite keeps its own harness — its contenders, sized hosts, and paint-probe
+ * suite keeps its own harness — its adapters, sized hosts, and paint-probe
  * settle are a different measurement, not a variation of this one.
  *
  * Every mount bench builds its element inside the timed region, the way a

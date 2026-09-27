@@ -1,9 +1,6 @@
 /**
  * Client grouping on a live grid: the ui grid groups the rows by carrier,
- * with every group open. AG Grid holds its row grouping in the Enterprise
- * tier, and MUI X holds its row grouping in the Premium tier, so the ui grid
- * runs these scenarios alone. They measure it against its own earlier builds,
- * not against a rival.
+ * with every group open.
  *
  * Three scenarios run:
  *
@@ -14,7 +11,7 @@
 
 import { bench, describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, gridContenders, painted, supports } from './grid-contenders'
+import { GRID_HEIGHT, GRID_WIDTH, gridContenders, painted } from './grid-contenders'
 import { prepareGrids } from './grid-harness'
 import { benches, host, WINDOW } from './harness'
 
@@ -30,9 +27,9 @@ function firstOfGroup(rows: Shipment[]): { asc: string; desc: string } {
 }
 
 /**
- * Registers one mount, paint, and unmount bench for each contender that
- * groups. It settles on the first row of the first group, since the rows of
- * the data fall in many groups.
+ * Registers one mount, paint, and unmount bench for each grid. It settles on
+ * the first row of the first group, since the rows of the data fall in many
+ * groups.
  */
 function mountBenches(rows: Shipment[]) {
 	const marker = firstOfGroup(rows).asc
@@ -40,8 +37,6 @@ function mountBenches(rows: Shipment[]) {
 	const box = host({ width: GRID_WIDTH, height: GRID_HEIGHT })
 
 	for (const contender of gridContenders()) {
-		if (!supports(contender, GROUPED)) continue
-
 		bench(
 			contender.name,
 			async () => {

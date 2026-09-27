@@ -1,9 +1,6 @@
 /**
  * A grand total on a live grid: the ui grid sums the loads and the weight of
- * every row that its filters keep, in a total row. AG Grid holds its
- * grand-total row in the Enterprise tier, and MUI X holds its aggregation in
- * the Premium tier, so the ui grid runs these scenarios alone. They measure
- * the ui grid against its own earlier builds, not against a rival.
+ * every row that its filters keep, in a total row.
  *
  * Three scenarios run:
  *

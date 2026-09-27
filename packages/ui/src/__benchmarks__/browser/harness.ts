@@ -1,9 +1,8 @@
 /**
- * The shared scenario harness for the competitive browser suite: hosts, frame
- * settling, pointer sweeps, mount-plus-teardown benches, and mounted a/b
- * update benches. Every suite in this directory registers through
- * {@link benches}, so a scenario declares its contenders and its settle
- * contract and nothing else.
+ * The shared scenario harness for the browser suite: hosts, frame settling,
+ * pointer sweeps, mount-plus-teardown benches, and mounted a/b update benches.
+ * Every suite in this directory registers through {@link benches}, so a
+ * scenario declares its entries and its settle contract and nothing else.
  *
  * The grid suite prepares through `grid-harness.ts` rather than {@link prepare}
  * — its paint-probe settle over sized hosts is a different measurement, not a
@@ -19,10 +18,10 @@ import type { Contender } from './contenders'
 /**
  * Sample windows for scenarios whose iterations outrun Vitest's 500ms default.
  * A window that takes only ten-odd samples swings run to run — enough to read a
- * genuine tie as a loss — so the heavy scenarios widen it to buy the sample
- * count their iteration cost denies them. The jsdom suite needs none of this:
- * its benches take the default window, so the two windows live here rather than
- * at the shared root.
+ * noise swing as a regression — so the heavy scenarios widen it to buy the
+ * sample count their iteration cost denies them. The jsdom suite needs none of
+ * this: its benches take the default window, so the two windows live here
+ * rather than at the shared root.
  */
 export const WINDOW = {
 	/** Heavy single-shot iterations — mounts, updates, sorts, resizes. */
@@ -31,13 +30,13 @@ export const WINDOW = {
 	settled: { time: 2_500 },
 } as const
 
-/** One prepared contender: the report name and the timed run. */
+/** One prepared entry: the report name and the timed run. */
 export type Prepared = { name: string; run: () => void | Promise<void> }
 
 /** One animation frame — the browser's own settle unit. */
 export const frame = () => new Promise(requestAnimationFrame)
 
-/** Settles `count` frames, for work a library defers past the first one. */
+/** Settles `count` frames, for work that the module defers past the first one. */
 export async function settle(count = 2) {
 	for (let index = 0; index < count; index++) await frame()
 }
@@ -169,7 +168,7 @@ export function reactHost() {
 // and tears back down, so scenarios never see each other's DOM.
 const mountHost = host()
 
-/** Registers one full mount-to-painted-DOM-plus-teardown bench per contender. */
+/** Registers one full mount-to-painted-DOM-plus-teardown bench per entry. */
 export function mountBenches<D>(contenders: Contender<D>[], data: D, options?: BenchOptions) {
 	for (const contender of contenders) {
 		bench(
@@ -184,7 +183,7 @@ export function mountBenches<D>(contenders: Contender<D>[], data: D, options?: B
 	}
 }
 
-/** Mounts every contender on dataset `a` and closes each over an a/b swap. */
+/** Mounts every entry on dataset `a` and closes each over an a/b swap. */
 export async function prepare<D>(contenders: Contender<D>[], a: D, b: D): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
@@ -206,7 +205,7 @@ export async function prepare<D>(contenders: Contender<D>[], a: D, b: D): Promis
 	return prepared
 }
 
-/** Registers one bench per prepared contender, in the report's fixed order. */
+/** Registers one bench per prepared entry, in the report's fixed order. */
 export function benches(prepared: Prepared[], options?: BenchOptions) {
 	for (const { name, run } of prepared) {
 		bench(name, run, options)
@@ -228,9 +227,8 @@ function sweepXs(rect: DOMRect): number[] {
 }
 
 /**
- * Dispatches the `pointermove` + `mousemove` pair at one point. Each library
- * listens for one of the two and ignores the other, so sending both keeps the
- * dispatch overhead symmetric across their differing interaction stacks.
+ * Dispatches the `pointermove` + `mousemove` pair at one point, as a real mouse
+ * does, so a listener for either event sees the move.
  */
 function pointerAt(target: Element, x: number, y: number) {
 	const at = { bubbles: true, clientX: x, clientY: y }
@@ -241,12 +239,12 @@ function pointerAt(target: Element, x: number, y: number) {
 }
 
 /**
- * Mounts every contender and closes each over a {@link SWEEP}-step pointer
- * sweep across its own plot, settling one frame so frame-deferred drawing
- * lands inside the timed region.
+ * Mounts every entry and closes each over a {@link SWEEP}-step pointer sweep
+ * across its own plot, settling one frame so frame-deferred drawing lands
+ * inside the timed region.
  *
- * @param plot - The element the library draws into and listens on.
- * @param targets - The per-step dispatch target, where a contender renders its
+ * @param plot - The element the module draws into and listens on.
+ * @param targets - The per-step dispatch target, where the module renders its
  * own hit targets rather than hit-testing from coordinates; the plot itself by
  * default. Resolved once, outside the timed region, so the geometry reads that
  * resolution needs never enter a sample.

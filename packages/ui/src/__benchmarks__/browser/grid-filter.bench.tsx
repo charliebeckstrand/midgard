@@ -1,15 +1,12 @@
 /**
- * Quick-filter cost on a live grid — the search-as-you-type path, and the one
- * grid operation that re-derives the whole row model from scratch. Each
- * iteration applies a term through the library's own quick filter (the ui
- * module's `search` binding, AG's `quickFilterText`, MUI's
- * `filterModel.quickFilterValues`), settles until the surviving rows paint,
- * then clears it and settles until the full set is back — so a sample covers
- * both the narrowing and the widening a keystroke and a backspace produce.
+ * Quick-filter cost on a live grid — the search-as-you-type path. Each
+ * iteration applies a term through the `search` binding of the ui grid,
+ * settles until the surviving rows paint, then clears it and settles until the
+ * full set is back — so a sample covers both the narrowing and the widening a
+ * keystroke and a backspace produce.
  *
- * All three scan the same eight columns: the ui grid searches the columns
- * declaring a `value` accessor and every bench column declares one, while AG
- * and MUI scan their bound fields by default.
+ * The search scans all eight columns: the ui grid searches the columns that
+ * declare a `value` accessor, and each bench column declares one.
  *
  * The terms are drawn from the fixture's own carrier names, so each one
  * survives on a predictable share of the rows — a term matching nothing would
@@ -30,8 +27,8 @@ import { benches, WINDOW } from './harness'
 const TERMS = ['Globex', 'Initech', 'Umbrella'] as const
 
 /**
- * Mounts every contender and closes each over an apply-then-clear filter
- * cycle. With `sorted`, each grid first sorts on `id` in descending order.
+ * Mounts the grid and closes it over an apply-then-clear filter cycle. With
+ * `sorted`, the grid first sorts on `id` in descending order.
  */
 function filterCycle(rows: Shipment[], sorted = false) {
 	// The rows in the order that the grid shows them.

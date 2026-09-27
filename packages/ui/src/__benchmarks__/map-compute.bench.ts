@@ -24,21 +24,21 @@ import {
 /**
  * The map's pure compute: the projection fit, and the joins that decide every
  * region's color. `map-render.bench.tsx` times the React mount and its
- * static-geometry cache one rung up; the competitive browser suite scores the
- * module against Highcharts Maps and ECharts one rung above that. This one
- * isolates the passes underneath both — each linear in the region count, and a
- * counties atlas carries 3,108 of them, so a per-region constant is worth
- * three thousand of itself on every mount.
+ * static-geometry cache one rung up; the browser suite times the module in a
+ * real browser one rung above that. This one isolates the passes underneath
+ * both — each linear in the region count, and a counties atlas carries 3,108 of
+ * them, so a per-region constant is worth three thousand of itself on every
+ * mount.
  *
  * Node env, no DOM. The atlases and datasets are the same LCG-seeded fixtures
- * the competitive suite draws, so these numbers sit directly under its
+ * the browser suite draws, so these numbers sit directly under its
  * scenarios.
  */
 
 // Each atlas already carries its decoded features (`prepareAtlas` in
 // `browser/map-fixtures.ts`); decoding them again here would re-walk every arc
 // of the 3,108 counties at collection for no new data. Its datasets are built
-// once too — a counties `makeZones` allocates four 3,108-element arrays, and
+// once too — a counties `makeZones` allocates two 3,108-element arrays, and
 // three describes below want the same one.
 const ATLASES = [
 	{

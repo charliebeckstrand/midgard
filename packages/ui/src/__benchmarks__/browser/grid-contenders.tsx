@@ -1,34 +1,15 @@
 /**
- * One mount/update/sort/scroll adapter per library, so every grid bench
- * times the same task through each contender's idiomatic API: the ui module
- * and MUI X render through React (`createRoot` + `flushSync` — the
- * synchronous commit a consumer's handler pays), AG Grid through its vanilla
- * `createGrid` factory. Every grid draws the same shipment rows into the
- * same fixed 960×600 box with animations off and fixed 120px columns, so no
- * contender wins by rendering fewer cells.
+ * The mount/update/sort/scroll adapter of the ui grid. The grid renders through
+ * React (`createRoot` + `flushSync`), which is the synchronous commit that the
+ * handler of a consumer pays. It draws the shipment rows into a fixed 960×600
+ * box, with the animations off and fixed 120px columns.
  *
- * The settle contract is shared rather than per-library: each operation is
- * timed until {@link painted} sees the expected cell text in the live DOM.
- * The libraries split on when they draw — React commits synchronously under
- * `flushSync`, AG batches row DOM onto animation frames — and a uniform
- * paint probe charges each one for exactly the frames it defers, without
- * trusting any library's own "ready" signal.
- *
- * MUI X ships its MIT tier paginated — `pageSize` is capped at 100 and the
- * unpaginated scroll of the Pro tier is license-gated — so its adapter
- * returns no scroller and the scroll sweep pits the ui module against AG
- * alone. The other scenarios stand: mount, update, and sort all process the
- * full dataset through MUI's client-side model; only the painted window is
- * page-shaped.
+ * Each operation is timed until {@link painted} sees the expected cell text in
+ * the live DOM. React commits under `flushSync`, but a part of the grid can
+ * draw on a later animation frame. The paint probe charges the grid for each
+ * frame that it defers, and it does not trust a "ready" signal.
  */
 
-import {
-	DataGrid,
-	type GridColDef,
-	type GridFilterModel,
-	type GridSortModel,
-} from '@mui/x-data-grid'
-import { AllCommunityModule, createGrid, type GridApi, ModuleRegistry } from 'ag-grid-community'
 import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import {
@@ -40,22 +21,18 @@ import {
 import type { QueryGroup } from '../../modules/query'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey } from '../fixtures'
 
-// AG Grid draws nothing until its feature modules register; the community
-// bundle is the library's own quick-start baseline.
-ModuleRegistry.registerModules([AllCommunityModule])
-
 export const GRID_WIDTH = 960
 
 export const GRID_HEIGHT = 600
 
-/** Sort direction applied through each library's programmatic sort API. */
+/** The sort direction that a scenario applies through the sort state of the grid. */
 export type SortDirection = 'asc' | 'desc'
 
 /** A mounted grid under bench control; operations settle via {@link painted}. */
 export type MountedGrid = {
 	/** Swaps in a replacement dataset of the same shape (same ids, new values). */
 	update: (rows: Shipment[]) => void
-	/** Applies a whole-column sort on `id` through the library's sort state. */
+	/** Applies a whole-column sort on `id` through the sort state of the grid. */
 	sort: (direction: SortDirection) => void
 	/** Applies a quick filter across every column; `''` clears it. */
 	search: (query: string) => void
@@ -63,10 +40,10 @@ export type MountedGrid = {
 	filter: (text: string) => void
 	/** Shows the page at `index`. The grid must mount with {@link MountOptions.paginated}. */
 	page: (index: number) => void
-	/** Opens the filter of the carrier column, which lists its values. Only a grid that mounts with {@link MountOptions.facets} has it. */
-	openFacets?: () => void
-	/** The vertical scroll element, or `null` where the tier cannot scroll the full set (MUI's MIT pagination). */
-	scroller: () => HTMLElement | null
+	/** Opens the filter of the carrier column, which lists its values. The grid must mount with {@link MountOptions.facets}. */
+	openFacets: () => void
+	/** The vertical scroll element. */
+	scroller: () => HTMLElement
 	destroy: () => void
 }
 
@@ -84,28 +61,21 @@ export type MountOptions = {
 	grouped?: boolean
 }
 
-/** The rows on each page of a paginated grid: the cap of MUI's MIT tier, which AG's page-size list also offers. */
+/** The rows on each page of a paginated grid. */
 export const PAGE_SIZE = 100
 
-/** One library's entry in a scenario: a name for the report and a mount. */
+/** One entry in a scenario: a name for the report and a mount. */
 export type GridContender = {
 	name: string
 	mount: (host: HTMLElement, rows: Shipment[], options?: MountOptions) => MountedGrid
-	/** The mount options that the free tier of the library cannot run. A scenario that sets one leaves the contender out. */
-	unsupported?: (keyof MountOptions)[]
-}
-
-/** Whether `contender` can run a scenario that mounts with `options`. */
-export function supports(contender: GridContender, options: MountOptions | undefined): boolean {
-	return !contender.unsupported?.some((option) => options?.[option])
 }
 
 /**
  * Settles an operation by paint evidence: resolves once every `marker` string
  * is present in the host's text, waiting one animation frame between looks.
- * All three grids window their rows, so the probe scans a viewport of cells,
- * not the dataset. The first look is synchronous — a contender that commits
- * its DOM before returning settles at zero frames.
+ * A windowed grid holds only a viewport of cells, so the probe scans that
+ * viewport and not the dataset. The first look is synchronous, so a grid that commits its DOM
+ * before it returns settles at zero frames.
  */
 export async function painted(host: HTMLElement, markers: string[]): Promise<void> {
 	for (let frame = 0; frame < 600; frame++) {
@@ -124,12 +94,10 @@ const UI_COLUMNS: GridColumn<Shipment>[] = SHIPMENT_FIELDS.map(([id, title]) => 
 	title,
 	sortable: true,
 	width: '120px',
-	// A ui column renders nothing without a `cell`; the competitors bind
-	// their `field` automatically, so this is the same accessor spelled out.
+	// A ui column renders nothing without a `cell`.
 	cell: (row) => row[id],
-	// The quick search scans the columns declaring a `value`; AG's quick filter
-	// and MUI's `quickFilterValues` scan every bound field by default, so every
-	// column declares one and all three search the same eight.
+	// The quick search scans the columns that declare a `value`, so each column
+	// declares one and the search reads all eight.
 	value: (row) => row[id],
 }))
 
@@ -160,15 +128,7 @@ function carrierFilter(text: string): GridColumnFilterState[] {
 	return [{ id: 'carrier', value: { id: 'root', type: 'group', children: [rule] } as QueryGroup }]
 }
 
-const AG_COLUMNS = SHIPMENT_FIELDS.map(([field, headerName]) => ({ field, headerName, width: 120 }))
-
-const MUI_COLUMNS: GridColDef<Shipment>[] = SHIPMENT_FIELDS.map(([field, headerName]) => ({
-	field,
-	headerName,
-	width: 120,
-}))
-
-/** A scrollable contender's scroll element; throws rather than letting a renamed class silently drop the contender from the sweep. */
+/** The element at `selector` inside `box`. It throws when no element matches, for example after a rename of the anchor. */
 function mustFind(box: HTMLElement, selector: string): HTMLElement {
 	const found = box.querySelector<HTMLElement>(selector)
 
@@ -177,7 +137,7 @@ function mustFind(box: HTMLElement, selector: string): HTMLElement {
 	return found
 }
 
-/** Sizes a contender's own box inside the shared fixed-height host. */
+/** Sizes the box of the grid inside the fixed-height host. */
 function fillBox(host: HTMLElement): HTMLElement {
 	const box = document.createElement('div')
 
@@ -288,129 +248,7 @@ function uiContender(): GridContender {
 	}
 }
 
-/** AG Grid through the vanilla factory; row data and sort move through the grid API. */
-function agContender(): GridContender {
-	return {
-		name: 'AG Grid',
-		// The grand-total row, the set filter, and the row grouping of AG Grid are
-		// Enterprise features.
-		unsupported: ['grandTotal', 'facets', 'grouped'],
-		mount(host, rows, options) {
-			const box = fillBox(host)
-
-			const api: GridApi<Shipment> = createGrid<Shipment>(box, {
-				columnDefs: options?.filterable
-					? AG_COLUMNS.map((col) => (col.field === 'carrier' ? { ...col, filter: true } : col))
-					: AG_COLUMNS,
-				...(options?.paginated ? { pagination: true, paginationPageSize: PAGE_SIZE } : {}),
-				rowData: rows,
-				getRowId: ({ data }) => data.id,
-				animateRows: false,
-			})
-
-			return {
-				update: (next) => api.setGridOption('rowData', next),
-				sort(direction) {
-					api.applyColumnState({
-						state: [{ colId: 'id', sort: direction }],
-						defaultState: { sort: null },
-					})
-				},
-				search: (query) => api.setGridOption('quickFilterText', query),
-				filter: (text) =>
-					api.setFilterModel(
-						text ? { carrier: { filterType: 'text', type: 'contains', filter: text } } : null,
-					),
-				page: (index) => api.paginationGoToPage(index),
-				scroller: () => mustFind(box, '.ag-grid-viewport'),
-				destroy: () => {
-					api.destroy()
-
-					box.remove()
-				},
-			}
-		},
-	}
-}
-
-/** MUI X DataGrid: React renders, the MIT tier's paginated window, controlled sort. */
-function muiContender(): GridContender {
-	return {
-		name: 'MUI X DataGrid',
-		// The aggregation and the row grouping of MUI X are Premium features, and
-		// its filter lists no values.
-		unsupported: ['grandTotal', 'facets', 'grouped'],
-		mount(host, rows, options) {
-			const box = fillBox(host)
-
-			const root = createRoot(box)
-
-			let current = rows
-
-			let sortModel: GridSortModel = []
-
-			let page = 0
-
-			let filterModel: GridFilterModel = { items: [] }
-
-			const draw = () =>
-				flushSync(() =>
-					root.render(
-						<DataGrid
-							columns={MUI_COLUMNS}
-							rows={current}
-							sortModel={sortModel}
-							filterModel={filterModel}
-							{...(options?.paginated ? { paginationModel: { page, pageSize: PAGE_SIZE } } : {})}
-						/>,
-					),
-				)
-
-			draw()
-
-			return {
-				update(next) {
-					current = next
-
-					draw()
-				},
-				sort(direction) {
-					sortModel = [{ field: 'id', sort: direction }]
-
-					draw()
-				},
-				search(query) {
-					// MUI's quick filter is its filter model's `quickFilterValues`,
-					// which ANDs the terms across every bound field — the same scan
-					// AG's `quickFilterText` and the ui grid's `search` run.
-					filterModel = { items: [], quickFilterValues: query ? [query] : [] }
-
-					draw()
-				},
-				filter(text) {
-					filterModel = {
-						items: text ? [{ field: 'carrier', operator: 'contains', value: text }] : [],
-					}
-
-					draw()
-				},
-				page(index) {
-					page = index
-
-					draw()
-				},
-				scroller: () => null,
-				destroy: () => {
-					root.unmount()
-
-					box.remove()
-				},
-			}
-		},
-	}
-}
-
-/** All three contenders, in the report's fixed order. */
+/** The grids that each scenario runs. */
 export function gridContenders(): GridContender[] {
-	return [uiContender(), agContender(), muiContender()]
+	return [uiContender()]
 }

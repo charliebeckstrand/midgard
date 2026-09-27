@@ -1,9 +1,8 @@
 /**
- * Initial-render cost, side by side per scenario: one full
- * mount-to-painted-rows plus teardown per iteration. Every contender ingests
- * the same shipment dataset into the same fixed box; the iteration ends when
- * the first and a mid-viewport row are painted, so a library that defers row
- * DOM onto animation frames pays for the frames it defers.
+ * Initial-render cost: one full mount-to-painted-rows plus teardown per
+ * iteration. The grid ingests the shipment dataset into a fixed box. The
+ * iteration ends when the first and a mid-viewport row are painted, so a row
+ * that the grid defers onto an animation frame costs the frames it defers.
  */
 
 import { describe } from 'vitest'

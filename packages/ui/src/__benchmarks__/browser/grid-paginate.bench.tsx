@@ -1,8 +1,7 @@
 /**
  * Client pagination on a live grid, with {@link PAGE_SIZE} rows on each page.
- * Each library pages its full dataset through its own pagination: the ui
- * module's `pagination` binding, AG's `pagination` option, and MUI's
- * `paginationModel`. Three scenarios run:
+ * The ui grid pages its full dataset through its `pagination` binding. Three
+ * scenarios run:
  *
  * - A mount, which settles when the first rows of the first page paint.
  * - A page flip, which shows the second page and then the first page again.
@@ -18,7 +17,7 @@ import { benches, WINDOW } from './harness'
 
 const PAGINATED = { paginated: true }
 
-/** Mounts every paginated contender and closes each over a flip to the second page and back. */
+/** Mounts the paginated grid and closes it over a flip to the second page and back. */
 function pageFlip(rows: Shipment[]) {
 	const first = viewportMarkers(rows)
 
@@ -39,7 +38,7 @@ function pageFlip(rows: Shipment[]) {
 	)
 }
 
-/** Mounts every paginated contender and closes each over an asc/desc sort flip. */
+/** Mounts the paginated grid and closes it over an asc/desc sort flip. */
 function sortFlip(rows: Shipment[]) {
 	const first = viewportMarkers(rows)
 

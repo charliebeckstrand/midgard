@@ -17,9 +17,9 @@ import { makePoints, makeTrend } from './browser/fixtures'
 // entirely off the DOM. This suite benches them directly in a node env (no
 // React, no jsdom), so an engine optimization — structure-of-arrays points,
 // single-buffer path synthesis, cached coordinate formatting — reads as a core
-// delta the competitive browser suite can't isolate from React reconciliation
-// and the DOM commit. Data is the shared LCG fixture the browser suite draws, so
-// these numbers sit directly under the end-to-end scenarios one rung up.
+// delta the browser suite can't isolate from React reconciliation and the DOM
+// commit. Data is the shared LCG fixture the browser suite draws, so these
+// numbers sit directly under the end-to-end scenarios one rung up.
 
 const WIDTH = 800
 

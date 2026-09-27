@@ -1,11 +1,10 @@
 /**
  * MapPlat's jsdom render cost, and the geometry cache underneath it. The
- * competitive suite one directory down scores the module against Highcharts
- * Maps and ECharts in a real browser; this one localizes — the mount rungs
- * separate a pre-decoded GeoJSON from a topology that must decode first, the
- * cold/warm pair isolates what the static-geometry cache saves on a remount,
- * and the cascade scenarios drive a mounted plat so a hover or a legend
- * emphasis reads as re-render cost alone.
+ * browser suite one directory down times the module in a real browser; this
+ * one localizes — the mount rungs separate a pre-decoded GeoJSON from a
+ * topology that must decode first, the cold/warm pair isolates what the
+ * static-geometry cache saves on a remount, and the cascade scenarios drive a
+ * mounted plat so a hover or a legend emphasis reads as re-render cost alone.
  */
 
 import { fireEvent } from '@testing-library/react'

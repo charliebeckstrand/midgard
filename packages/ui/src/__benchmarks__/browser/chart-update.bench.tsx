@@ -1,10 +1,9 @@
 /**
  * Redraw cost on a live chart — the dashboard refresh path. Each scenario
- * mounts every contender once (top-level await; the trees stay up for the
- * whole run) and each iteration swaps in the other of two same-shape
- * datasets, so every redraw moves real values and never bails on an
- * equality guard. The ui module re-renders through its React root; AG and
- * Highcharts take their in-place data-update APIs.
+ * mounts the chart once (top-level await; the tree stays up for the whole
+ * run) and each iteration swaps in the other of two same-shape datasets, so
+ * every redraw moves real values and never bails on an equality guard. The ui
+ * module re-renders through its React root.
  */
 
 import { describe } from 'vitest'

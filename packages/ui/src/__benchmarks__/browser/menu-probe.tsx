@@ -193,9 +193,8 @@ export async function openCorridor(panel: string): Promise<Probe> {
 /**
  * One mouse `pointermove` at a point, the arrival a sweep across the panel
  * makes. Deliberately not `harness.ts`'s own `pointerAt`, which also sends a
- * `mousemove` to keep dispatch symmetric across competing libraries. A menu has
- * no contender here, and the second event would inflate the dispatch floor the
- * keyboard bench subtracts.
+ * `mousemove`, as a real mouse does. The menu reads only `pointermove`, and the
+ * second event would inflate the dispatch floor the keyboard bench subtracts.
  */
 export function pointerMove(row: HTMLElement, x: number, y: number) {
 	row.dispatchEvent(
