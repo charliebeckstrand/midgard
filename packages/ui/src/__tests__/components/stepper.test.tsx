@@ -1,3 +1,4 @@
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it, vi } from 'vitest'
 import {
 	Stepper,
@@ -279,6 +280,26 @@ describe('StepperStep interactive mode', () => {
 		)
 
 		expect(bySlot(container, 'stepper-content')).toBeInTheDocument()
+	})
+
+	// Asserted against `renderToString`, because the server render is what painted
+	// the desktop row on a phone before hydration.
+	it('lays out by CSS on the server when orientation is not set', () => {
+		const html = renderToString(
+			<Stepper value={1}>
+				<StepperStep value={1}>
+					<StepperTitle>Step 1</StepperTitle>
+				</StepperStep>
+			</Stepper>,
+		)
+
+		const rootTag = html.match(/<div[^>]*data-slot="stepper"[^>]*>/)?.[0] ?? ''
+
+		expect(rootTag).toContain('flex-col')
+
+		expect(rootTag).toContain('sm:flex-row')
+
+		expect(html).toContain('data-slot="stepper-content"')
 	})
 
 	it('passes the current state through to descendants', () => {

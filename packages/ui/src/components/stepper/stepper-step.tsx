@@ -5,7 +5,7 @@ import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
-import { StepperStepContext, type StepState, useStepper } from './context'
+import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
 /** Props for {@link StepperStep}: the step's `value` index, an optional `disabled` flag, and child indicator/title/description content. */
@@ -35,7 +35,7 @@ function computeState(stepValue: number, value: number): StepState {
  *
  * @internal
  */
-function partitionVerticalChildren(children: ReactNode): ReactNode {
+function partitionVerticalChildren(children: ReactNode, layout: StepperLayout): ReactNode {
 	const indicators: ReactNode[] = []
 
 	const rest: ReactNode[] = []
@@ -51,7 +51,10 @@ function partitionVerticalChildren(children: ReactNode): ReactNode {
 	return (
 		<>
 			{indicators}
-			<span data-slot="stepper-content" className={cn(k.content)}>
+			<span
+				data-slot="stepper-content"
+				className={cn(k.content.base, layout === 'responsive' && k.content.responsive)}
+			>
 				{rest}
 			</span>
 		</>
@@ -86,14 +89,15 @@ function ensureStepperIndicator(children: ReactNode): ReactNode {
  * Renders as a `<button>` (with `aria-current`, and `aria-controls` wiring to the
  * matching `<StepperPanel>`) when the stepper has an `onValueChange` handler,
  * otherwise a display-only `<div>`. In `linear` steppers, upcoming steps are
- * disabled. In `vertical` orientation it splits children into an indicator column
- * and a content column to align the title baseline with the indicator.
+ * disabled. In a vertical or `responsive` layout it splits children into an
+ * indicator column and a content column to align the title baseline with the
+ * indicator. From `sm`, CSS dissolves the content column of a `responsive` step.
  */
 export function StepperStep({ value, disabled, className, children }: StepperStepProps) {
 	const {
 		value: currentValue,
 		onValueChange,
-		orientation,
+		layout,
 		linear,
 		baseId,
 		hasPanels,
@@ -105,15 +109,17 @@ export function StepperStep({ value, disabled, className, children }: StepperSte
 	// Shares baseId + value with StepperPanel; the two derive matching ids.
 	const { triggerId, panelId } = useA11yDisclosure({ id: baseId, key: value })
 
-	const classes = cn(k.step({ orientation }), className)
+	const classes = cn(k.step({ orientation: layout }), className)
 
-	// Vertical mode: splits into [indicator, content-column] for the recipe to
-	// align the title baseline with the indicator center.
+	// A layout that can be vertical splits into [indicator, content-column] for
+	// the recipe to align the title baseline with the indicator center.
 	const layoutChildren = useMemo(() => {
 		const withIndicator = ensureStepperIndicator(children)
 
-		return orientation === 'vertical' ? partitionVerticalChildren(withIndicator) : withIndicator
-	}, [children, orientation])
+		return layout === 'horizontal'
+			? withIndicator
+			: partitionVerticalChildren(withIndicator, layout)
+	}, [children, layout])
 
 	const providerValue = useMemo(() => ({ value, state }), [value, state])
 
