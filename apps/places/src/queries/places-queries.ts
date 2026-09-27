@@ -48,9 +48,9 @@ export function usePlaces() {
  * The atlas names the route and the topology object alike, so one query serves
  * both grains with no branch of its own.
  *
- * `enabled` is what keeps the second atlas off the wire: a reader whose places
- * are all inside the United States never opens a view that draws countries, and
- * must not pay 108 kB for one. Once fetched it is held for the tab's life, so a
+ * `enabled` holds the second atlas back until the caller asks for it. The app
+ * asks once the opening view has settled, so the 108 kB of the world do not
+ * compete with the first frame. Once fetched it is held for the tab's life, so a
  * reader who goes out to the world and back in fetches it once.
  */
 export function useAtlas(atlas: PlaceAtlas, enabled = true) {

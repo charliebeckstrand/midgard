@@ -5,7 +5,6 @@ import { MapPin, MapPinCheck } from 'lucide-react'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Confirm } from 'ui/confirm'
-import { Heading } from 'ui/heading'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import { AppearanceSettings } from 'ui/providers/appearance'
 import { Flex } from 'ui/structure/flex'
@@ -121,8 +120,6 @@ export function PlacesApp({ user }: { user: User }) {
 
 	// The states atlas answers the opening question, so it is fetched whatever the
 	// view — and it is the atlas the app opened on before it drew anywhere else.
-	// The countries atlas is fetched only once a view asks for it, so a reader who
-	// never leaves the United States never pays for it.
 	const { data: statesAtlas = null } = useAtlas('states')
 
 	// Nothing settles the view until both the atlas and the places have landed: an
@@ -166,9 +163,12 @@ export function PlacesApp({ user }: { user: User }) {
 
 	const atlas = viewAtlas(view)
 
-	// Fetched only once a view draws it, so a reader whose places are all inside
-	// the United States never pays for the world.
-	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries')
+	// Fetched as soon as a view draws it, and otherwise once the opening view has
+	// settled. The world then waits in the cache behind the United States, so a
+	// step back out to it draws at once instead of on a skeleton. It waits for the
+	// settle so that it never competes with the states atlas and the places for the
+	// first frame.
+	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
 
 	const regions = atlas === 'states' ? statesAtlas : countriesAtlas
 
@@ -367,7 +367,7 @@ export function PlacesApp({ user }: { user: User }) {
 					<AppearanceSettings />
 
 					{/* The list item shows only once there is a list to read. Over an empty
-					    store it would open on the same "no places yet" that the map shows.
+					    store it would open on an empty sheet.
 					    The count shows only where the view is cut to one region, because it
 					    is the count of that region: `shown` is the list of the bar,
 					    narrowed to the cut. */}
@@ -432,22 +432,6 @@ export function PlacesApp({ user }: { user: User }) {
 							<Text>{error.message}</Text>
 						</Alert>
 					</div>
-				) : null}
-
-				{!isPending && places.length === 0 ? (
-					<Flex
-						direction="col"
-						align="center"
-						justify="center"
-						gap="sm"
-						// The map answers the pointer underneath, so the empty note must
-						// not take the clicks meant for it.
-						className="pointer-events-none absolute inset-0"
-					>
-						<Heading level={2}>No places yet</Heading>
-
-						<Text>Add one and it lands on the map.</Text>
-					</Flex>
 				) : null}
 			</div>
 
