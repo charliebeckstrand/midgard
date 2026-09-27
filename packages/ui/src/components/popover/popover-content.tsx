@@ -2,9 +2,9 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useA11yAutoFocus } from '../../hooks'
-import { Density, useDensity } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
@@ -82,9 +82,7 @@ export function PopoverContent({
 	const [content, setContent] = useState<HTMLDivElement | null>(null)
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	const resolvedPadding: BoxPadding = paddingForSize[resolvedSize]
 
@@ -110,7 +108,7 @@ export function PopoverContent({
 				data-size={resolvedSize}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
-				<Density scale={resolvedSize}>
+				<Density step={resolvedSize}>
 					<Box
 						p={resolvedPadding}
 						bg={glass ? 'none' : 'popover'}

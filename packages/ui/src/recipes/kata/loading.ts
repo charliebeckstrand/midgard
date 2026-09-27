@@ -1,5 +1,6 @@
+import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { type DensityStep, iro, narabi, shaku } from '../kiso'
+import { iro, narabi, shaku } from '../kiso'
 
 const { marker } = iro
 const { flex } = narabi

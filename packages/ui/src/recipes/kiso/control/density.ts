@@ -6,7 +6,7 @@
  * step; the padding-to-radius ratio holds 1:1 across non-ControlFrame
  * controls (listbox, combobox, date-picker button). For ControlFrame
  * consumers (input, textarea, select trigger), `kata/control.ts` exposes
- * `frameRadius`. `<ControlFrame>` reads it from `useDensity()`, and the
+ * `frameRadius`. `<ControlFrame>` reads it from `useDensityStep()`, and the
  * chrome on the wrapping frame carries the matching radius. Gap = py/2 at
  * every step (rounded to the spacing scale).
  *

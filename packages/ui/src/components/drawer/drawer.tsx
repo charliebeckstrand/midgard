@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn, dataAttr, toAmbientStep } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllable } from '../../hooks/use-controllable'
@@ -10,7 +10,7 @@ import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
-import { Density, useDensity } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -242,9 +242,7 @@ export function Drawer({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	return (
 		<Overlay
@@ -298,7 +296,7 @@ export function Drawer({
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? <DrawerHandle handleProps={resize.handleProps} covers={resize.covers} /> : null}
 
-					<Density scale={resolvedSize}>{children}</Density>
+					<Density step={resolvedSize}>{children}</Density>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

@@ -1,5 +1,6 @@
 'use client'
 
+import { toAmbientStep } from '../../core/density'
 import { useDensityNullable } from '../../primitives/density'
 import { type DensityLevel, sizeToDensityLevel } from './context'
 
@@ -10,9 +11,7 @@ import { type DensityLevel, sizeToDensityLevel } from './context'
  * the prop is omitted. {@link Grid} is one: it projects density onto a `Table`
  * that itself reads no context (REFERENCE.md §2).
  *
- * Reads the ambient token's `space` axis (the padding/gap dimension density
- * here controls), not `size`. The two only diverge under a split
- * `<Density space size>`. `DensityProvider` always sets both together.
+ * An outer step (`xs`, `xl`) clamps to the nearest ambient step.
  *
  * @remarks Client-only. It has its own `'use client'` file, so the
  * directive-free `DensityProvider` stays server-renderable.
@@ -20,5 +19,5 @@ import { type DensityLevel, sizeToDensityLevel } from './context'
 export function useDensityLevel(explicit?: DensityLevel): DensityLevel {
 	const ambient = useDensityNullable()
 
-	return explicit ?? (ambient ? sizeToDensityLevel[ambient.space] : 'snug')
+	return explicit ?? (ambient ? sizeToDensityLevel[toAmbientStep(ambient)] : 'snug')
 }

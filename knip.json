@@ -20,7 +20,7 @@
 				"src/**/index.ts",
 				"src/__tests__/**/setup/*.ts",
 				"src/docs/app.css",
-				"src/recipes/density-variants.ts"
+				"src/core/density/variants.ts"
 			]
 		}
 	}

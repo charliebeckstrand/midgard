@@ -1,9 +1,9 @@
 'use client'
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { cn, composeEventHandlers, invalidAttrs } from '../../core'
+import { cn, composeEventHandlers, invalidAttrs, toAmbientStep } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
@@ -95,9 +95,7 @@ export function Slider({
 
 	// Resolves size through the Density cascade: explicit prop > ambient Density.
 	// Outside any provider falls back to `'md'`, the recipe default.
-	const { size: inheritedSize } = useDensity()
-
-	const resolvedSize = size ?? inheritedSize
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	return (
 		<input

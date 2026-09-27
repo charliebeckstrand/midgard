@@ -67,7 +67,7 @@ describe('Heading', () => {
 
 		it('ignores an ambient Density provider', () => {
 			const { container } = renderUI(
-				<Density size="sm">
+				<Density step="sm">
 					<Heading level={1}>One</Heading>
 				</Density>,
 			)

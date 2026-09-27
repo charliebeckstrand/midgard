@@ -1,8 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
-import { Density, useDensity } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { Density, useDensityStep } from '../../primitives/density'
 import type { GroupOrientation, Step } from '../../recipes'
 import { k } from '../../recipes/kata/group'
 import { useGroup } from './use-group'
@@ -32,7 +32,7 @@ export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className
  * plain `data-orientation`, the axis marker every oriented container carries.
  *
  * Provides the Density cascade for its descendants. Components that read
- * `useDensity()` (Button, Input, etc.) default their `size` prop to the
+ * `useDensityStep()` (Button, Input, etc.) default their `size` prop to the
  * wrapper's resolved size, unless the consumer passes one explicitly.
  *
  * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
@@ -53,9 +53,7 @@ export function Group({
 	...props
 }: GroupProps) {
 	const stamped = useGroup(children, orientation)
-	const inherited = useDensity()
-
-	const resolvedSize = size ?? inherited.size
+	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	return (
 		<div
@@ -65,7 +63,7 @@ export function Group({
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
-			<Density scale={resolvedSize}>{stamped}</Density>
+			<Density step={resolvedSize}>{stamped}</Density>
 		</div>
 	)
 }

@@ -1,11 +1,11 @@
 'use client'
 
 import { type ComponentProps, useEffect, useRef } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn, composeEventHandlers, toAmbientStep } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
 import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
@@ -41,9 +41,7 @@ export function TabList({
 
 	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
 	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
-	const inherited = useDensity()
-
-	const size = tabsContext?.size ?? inherited.size
+	const size = toAmbientStep(useDensityStep(tabsContext?.size))
 
 	const ref = useRef<HTMLDivElement>(null)
 

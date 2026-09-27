@@ -1,4 +1,5 @@
-import { type DensityStep, shaku } from '../kiso'
+import type { DensityStep } from '../../core/density'
+import { shaku } from '../kiso'
 
 /** Named step of the icon scale: a step of {@link shaku.iconRamp}. */
 export type IconSize = Exclude<DensityStep, 'xl'>

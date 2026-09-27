@@ -113,7 +113,7 @@ export function Control({
 
 	return (
 		<ControlContext value={value}>
-			{mergedSize ? <Density scale={mergedSize}>{body}</Density> : body}
+			{mergedSize ? <Density step={mergedSize}>{body}</Density> : body}
 		</ControlContext>
 	)
 }

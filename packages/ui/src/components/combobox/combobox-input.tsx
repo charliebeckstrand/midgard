@@ -48,7 +48,6 @@ type ComboboxInputProps = {
 	editing: boolean
 	/** First-word-capitalizes the resolved display value (its first letter). */
 	capitalize: boolean
-	density: ControlSize
 	size: ControlSize
 	handlers: ComboboxInputHandlers
 }
@@ -79,7 +78,6 @@ export function ComboboxInput({
 	title,
 	editing,
 	capitalize,
-	density,
 	size,
 	handlers,
 }: ComboboxInputProps) {
@@ -112,7 +110,7 @@ export function ComboboxInput({
 				// Transform only the resolved value; the live query renders as typed.
 				value={capitalize && !editing ? capitalizeFirst(value) : value}
 				placeholder={placeholder}
-				className={cn(k({ density, size }))}
+				className={cn(k({ density: size, size }))}
 				{...handlers}
 			/>
 		</HeadlessProvider>

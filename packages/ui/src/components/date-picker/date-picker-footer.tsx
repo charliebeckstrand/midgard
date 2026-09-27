@@ -2,8 +2,8 @@
 
 import type { KeyboardEvent, RefObject } from 'react'
 
-import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
@@ -36,7 +36,7 @@ export function DatePickerFooter({
 	footerRef,
 	onKeyDown,
 }: DatePickerFooterProps) {
-	const { size } = useDensity()
+	const size = toAmbientStep(useDensityStep())
 
 	if (footerButtons.length === 0) return null
 

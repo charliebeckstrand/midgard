@@ -171,12 +171,12 @@ function publishedSize(element: ReactElement, slot: string) {
 
 /** The density sweep, ambient leg: with no size, the subject takes the enclosing Density. */
 function inheritsDensity({ render, slot }: DensitySubject) {
-	expect(publishedSize(<Density scale={AMBIENT}>{render()}</Density>, slot)).toBe(AMBIENT)
+	expect(publishedSize(<Density step={AMBIENT}>{render()}</Density>, slot)).toBe(AMBIENT)
 }
 
 /** The density sweep, explicit leg: a size prop wins over the enclosing Density. */
 function explicitSizeWins({ render, slot }: DensitySubject) {
-	expect(publishedSize(<Density scale={AMBIENT}>{render(EXPLICIT)}</Density>, slot)).toBe(EXPLICIT)
+	expect(publishedSize(<Density step={AMBIENT}>{render(EXPLICIT)}</Density>, slot)).toBe(EXPLICIT)
 }
 
 /** The density sweep, fallback leg: with no Density and no size, the subject is `md`. */

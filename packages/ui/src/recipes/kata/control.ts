@@ -4,7 +4,7 @@ import { control } from '../kiso/control'
 const { radius } = kasane
 const { frame } = control
 
-/** Applied via `useDensity()` in `<ControlFrame>`; radius tracks `py` at each step. */
+/** Applied via `useDensityStep()` in `<ControlFrame>`; radius tracks `py` at each step. */
 const frameRadius = {
 	sm: radius.all('1.5'),
 	md: radius.all('2'),

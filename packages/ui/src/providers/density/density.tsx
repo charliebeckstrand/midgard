@@ -20,7 +20,7 @@ export type DensityProviderProps = {
  * them with explicit props.
  *
  * Reference consumer: `<Input>`. Form fields resolve their size through
- * `useDensity()`; an `<Input>` (or any `<Field>`-wrapped field) inside
+ * `useDensityStep()`; an `<Input>` (or any `<Field>`-wrapped field) inside
  * `<DensityProvider density="compact">` shrinks to `'sm'` without touching
  * its props.
  */
@@ -28,7 +28,7 @@ export function DensityProvider({ density, children }: DensityProviderProps) {
 	const step = densityToSize[density]
 
 	return (
-		<DensityPrimitive scale={step}>
+		<DensityPrimitive step={step}>
 			<span data-slot="density" data-density={step} className="contents">
 				{children}
 			</span>

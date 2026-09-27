@@ -16,7 +16,6 @@ type ComboboxPanelProps = {
 	editing: boolean
 	multiple: boolean
 	glass: boolean
-	density: ControlSize
 	size: ControlSize
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
@@ -48,7 +47,6 @@ export function ComboboxPanel({
 	editing,
 	multiple,
 	glass,
-	density,
 	size,
 	ariaLabel,
 	ariaLabelledby,
@@ -79,7 +77,7 @@ export function ComboboxPanel({
 							className={cn('group/combobox', k.portal)}
 							{...getFloatingProps()}
 						>
-							<Density space={density} size={size}>
+							<Density step={size}>
 								<PopoverPanel
 									role="group"
 									autoFocus={false}

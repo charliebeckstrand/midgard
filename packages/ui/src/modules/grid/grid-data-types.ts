@@ -725,7 +725,7 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *
 	 * @remarks
 	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
-	 * moves the space axis; `condensed` moves both axes and projects the text,
+	 * moves the density step; `condensed` moves the step and projects the text,
 	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
 	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
 	 * it. `condensed` with an explicit `density` is legal: the density cascade

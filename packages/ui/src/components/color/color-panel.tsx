@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { cn } from '../../core'
-import { useDensity } from '../../primitives/density'
+import { cn, toAmbientStep } from '../../core'
+import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/color-panel'
 import type { ControlSize } from '../control/context'
 import { ColorArea } from './color-area'
@@ -50,9 +50,7 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  * @see {@link ColorPicker} for the popover variant.
  */
 export function ColorPanel(props: ColorPanelProps) {
-	const inherited = useDensity()
-
-	const size = props.size ?? inherited.size
+	const size = toAmbientStep(useDensityStep(props.size))
 
 	return <ColorPanelInner {...props} size={size} />
 }

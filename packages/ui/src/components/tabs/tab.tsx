@@ -1,12 +1,12 @@
 'use client'
 
 import { type ComponentProps, useRef } from 'react'
-import { cn, composeEventHandlers, dataAttr } from '../../core'
+import { cn, composeEventHandlers, dataAttr, toAmbientStep } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { ActiveIndicator, useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
-import { useDensity } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/tabs'
 import { Button } from '../button'
@@ -113,9 +113,7 @@ export function Tab({
 
 	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
 	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
-	const inherited = useDensity()
-
-	const size = tabsContext?.size ?? inherited.size
+	const size = toAmbientStep(useDensityStep(tabsContext?.size))
 
 	const isSegment = tabsContext?.variant === 'segment'
 

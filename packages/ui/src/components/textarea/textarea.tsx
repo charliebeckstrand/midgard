@@ -1,11 +1,11 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn } from '../../core'
+import { cn, toAmbientStep } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { DensityScope, useControlSize } from '../../primitives/density'
+import { Density, useDensityStep } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -72,7 +72,7 @@ export function Textarea({
 		onChange,
 		onBlur,
 	})
-	const token = useControlSize(size)
+	const step = toAmbientStep(useDensityStep(size))
 
 	const {
 		id: resolvedId,
@@ -130,8 +130,8 @@ export function Textarea({
 				!headless &&
 					k({
 						variant: resolvedVariant,
-						density: token.space,
-						size: token.size,
+						density: step,
+						size: step,
 						resize: hasActions ? 'none' : resize,
 						autoResize,
 					}),
@@ -145,7 +145,7 @@ export function Textarea({
 	if (headless) return textareaEl
 
 	return (
-		<DensityScope scale={size}>
+		<Density step={size}>
 			<ControlFrame
 				className={cn(
 					hasActions && k.frame,
@@ -155,13 +155,13 @@ export function Textarea({
 			>
 				{textareaEl}
 				{hasActions && (
-					<AffixContext value={affixStepDown(token.size)}>
+					<AffixContext value={affixStepDown(step)}>
 						<div data-slot="textarea-actions" className={cn(k.actions)}>
 							{actions}
 						</div>
 					</AffixContext>
 				)}
 			</ControlFrame>
-		</DensityScope>
+		</Density>
 	)
 }

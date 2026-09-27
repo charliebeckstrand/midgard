@@ -13,6 +13,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import { toAmbientStep } from '../../core'
 import {
 	useA11yRoving,
 	useFloatingUI,
@@ -28,7 +29,7 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { useControlSize } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
@@ -325,9 +326,9 @@ export function Combobox<T>({
 
 	const control = useControl()
 
-	const token = useControlSize(size)
+	const step = toAmbientStep(useDensityStep(size))
 
-	const resolvedSize = token.size
+	const resolvedSize = step
 
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
@@ -692,8 +693,7 @@ export function Combobox<T>({
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}
-							density={token.space}
-							size={token.size}
+							size={step}
 							handlers={inputHandlers}
 						/>
 					</SelectTrigger>
@@ -704,8 +704,7 @@ export function Combobox<T>({
 						editing={editing}
 						multiple={multiple}
 						glass={glass}
-						density={token.space}
-						size={token.size}
+						size={step}
 						ariaLabel={ariaLabel}
 						// Names the listbox from the input's name: an explicit aria-label
 						// wins, else aria-labelledby, else the field's Label (via Control).

@@ -24,7 +24,6 @@ type ListboxButtonProps = {
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
-	density: ControlSize
 	size: ControlSize
 }
 
@@ -51,7 +50,6 @@ export function ListboxButton({
 	onBlur,
 	placeholder,
 	truncate,
-	density,
 	size,
 }: ListboxButtonProps) {
 	return (
@@ -74,7 +72,7 @@ export function ListboxButton({
 				data-readonly={dataAttr(readOnly)}
 				onBlur={onBlur}
 				{...validation}
-				className={cn(k({ density, size }))}
+				className={cn(k({ density: size, size }))}
 			>
 				<span className={cn(k.value({ truncate }))}>
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}

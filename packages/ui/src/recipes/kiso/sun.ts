@@ -15,16 +15,6 @@ export const steps = ['sm', 'md', 'lg'] as const
 /** Size step in the `sun` scale, which Density resolves against. */
 export type Step = (typeof steps)[number]
 
-/**
- * The values of a `data-density` scope: the three steps of an ambient scope,
- * and the `xs` and `xl` steps that only an explicit `size` sets. Each value
- * has a `density-<step>` variant in `ui/tailwind.css`.
- */
-export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
-/** A value of `data-density`. See {@link densitySteps}. */
-export type DensityStep = (typeof densitySteps)[number]
-
 type SunStep = {
 	/** Key into `ji`; bundles font-size + line-height. */
 	text: 'sm' | 'md' | 'lg'

@@ -1,0 +1,29 @@
+/**
+ * The steps of density. A density scope, the `density-*` Tailwind variants,
+ * and the density context all use these values.
+ *
+ * `sm`, `md`, and `lg` are the ambient steps: `DensityProvider` sets one of
+ * them. `xs` and `xl` are the outer steps. Only an explicit `size` or a
+ * stepped-down slot sets one of them.
+ */
+export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+/** A step of density: a value of `data-density` and of the density context. */
+export type DensityStep = (typeof densitySteps)[number]
+
+/** An ambient step: the three steps that a three-step size axis takes. */
+export type AmbientStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
+
+const ambient = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const satisfies Record<
+	DensityStep,
+	AmbientStep
+>
+
+/**
+ * Clamps a step to the ambient steps: `xs` becomes `sm`, and `xl` becomes
+ * `lg`. A component with a three-step size axis reads the density context
+ * through this function.
+ */
+export function toAmbientStep(step: DensityStep): AmbientStep {
+	return ambient[step]
+}

@@ -315,13 +315,13 @@ describe('Table density resolution', () => {
 			</DensityProvider>,
 		)
 
-		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
+		expect(container.querySelector('[data-slot="table"]')).not.toHaveAttribute('data-density')
 	})
 
 	it('opens a scope at an explicit size', () => {
 		const { container } = renderUI(<Table size="sm">{body}</Table>)
 
-		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
+		expect(container.querySelector('[data-slot="table"]')).toHaveAttribute('data-density', 'sm')
 	})
 })
 
