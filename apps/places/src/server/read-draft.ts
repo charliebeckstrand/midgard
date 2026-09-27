@@ -5,9 +5,17 @@ import type { PlaceDraft } from '../types'
  * Reads a request body as JSON.
  *
  * Every handler that takes one goes through here, so a body no handler can read
- * is refused the same way and says the same thing wherever it arrives.
+ * is refused the same way and says the same thing wherever it arrives. The body
+ * must be sent as `application/json`, which a plain form can't do, so a write
+ * from another site always needs a CORS preflight that the app never answers.
  */
 export async function readJson(request: Request): Promise<ParseResult<unknown>> {
+	const type = request.headers.get('content-type')?.split(';')[0]?.trim().toLowerCase()
+
+	if (type !== 'application/json') {
+		return { ok: false, issues: ['Body must be sent as `application/json`.'] }
+	}
+
 	try {
 		return { ok: true, value: await request.json() }
 	} catch {

@@ -19,3 +19,6 @@ export async function authorize(role?: Role): Promise<string | Response> {
 
 	return session.user.id
 }
+
+/** Headers of a response that holds one user's data, so no cache serves it to another. */
+export const userOnly = { 'cache-control': 'private, no-store' }
