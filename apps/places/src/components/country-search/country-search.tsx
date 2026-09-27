@@ -2,6 +2,8 @@
 
 import { type PointerEvent, useEffect, useEffectEvent, useId, useRef } from 'react'
 import { Combobox, ComboboxLabel, ComboboxOption, useComboboxDeferredQuery } from 'ui/combobox'
+import { ControlSkeleton } from 'ui/control'
+import { ReadyReveal } from 'ui/primitives/ready-reveal'
 
 /**
  * How long, in milliseconds, an option must stay active before the search asks
@@ -14,6 +16,8 @@ const PRELOAD_DWELL_MS = 150
 export type CountrySearchProps = {
 	/** The countries to list, sorted. */
 	countries: readonly string[]
+	/** Whether the search can take input. Until it can, a skeleton stands in for it. */
+	ready: boolean
 	/** Fires when the reader selects a country. */
 	onPick: (country: string) => void
 	/** Fires when an option stays active for {@link PRELOAD_DWELL_MS}, with its country. */
@@ -45,7 +49,7 @@ function CountryOptions({ countries, prefix }: { countries: readonly string[]; p
  * {@link PRELOAD_DWELL_MS} on one option, `onPreload` fires with its country.
  * When the active option changes before that time, nothing fires.
  */
-export function CountrySearch({ countries, onPick, onPreload }: CountrySearchProps) {
+export function CountrySearch({ countries, ready, onPick, onPreload }: CountrySearchProps) {
 	const inputId = useId()
 
 	const prefix = `${inputId}-country-`
@@ -107,19 +111,26 @@ export function CountrySearch({ countries, onPick, onPreload }: CountrySearchPro
 
 	return (
 		<div className="min-w-0" onPointerOver={onPointerOver} onPointerOut={onPointerOut}>
-			<Combobox<string>
-				id={inputId}
-				value={null}
-				onValueChange={(country) => {
-					if (country !== null) onPick(country)
-				}}
-				placeholder="Search"
-				aria-label="Search countries"
-				disabled={countries.length === 0}
-				className="w-56 max-w-full"
+			{/* The combobox renders in both states, so it sizes the box, and the
+			    skeleton over it never moves the trail. */}
+			<ReadyReveal
+				ready={ready}
+				placeholder={<ControlSkeleton className="size-full" />}
+				className="*:min-w-0"
 			>
-				<CountryOptions countries={countries} prefix={prefix} />
-			</Combobox>
+				<Combobox<string>
+					id={inputId}
+					value={null}
+					onValueChange={(country) => {
+						if (country !== null) onPick(country)
+					}}
+					placeholder="Search"
+					aria-label="Search countries"
+					className="w-56 max-w-full"
+				>
+					<CountryOptions countries={countries} prefix={prefix} />
+				</Combobox>
+			</ReadyReveal>
 		</div>
 	)
 }
