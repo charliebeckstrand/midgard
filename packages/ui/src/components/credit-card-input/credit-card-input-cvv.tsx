@@ -23,7 +23,8 @@ export type CreditCardInputCvvProps = Omit<
 	InputProps,
 	'type' | 'inputMode' | 'value' | 'defaultValue' | 'onChange'
 > & {
-	value?: string
+	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
+	value?: string | null
 	defaultValue?: string
 	placeholder?: string
 	onValueChange?: (value: string) => void
