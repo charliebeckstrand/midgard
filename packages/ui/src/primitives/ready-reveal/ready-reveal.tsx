@@ -97,9 +97,9 @@ export function ReadyReveal({
 	// placeholder can drop into a hidden Activity. Cleared in render when `ready`
 	// flips (the adjust-state-during-render form) so the placeholder is live in
 	// the same pass the crossfade starts; its own fade-out completion sets it
-	// again. Starts true — `initial={false}` means mount plays no entrance, so a
-	// placeholder mounted already-ready rests immediately.
-	const [settled, setSettled] = useState(true)
+	// again. Starts false, so the placeholder layer mounts once, even when the
+	// reveal mounts already ready. The mount effect below then rests it.
+	const [settled, setSettled] = useState(false)
 
 	const [previousReady, setPreviousReady] = useState(ready)
 
@@ -108,6 +108,17 @@ export function ReadyReveal({
 
 		setSettled(false)
 	}
+
+	// A reveal mounted already ready plays no entrance (`initial={false}`), so no
+	// fade-out lands to rest the placeholder. Rest it here, before the first
+	// paint. The placeholder layer must mount before it rests: Motion does not
+	// animate a layer whose first mount comes after it left a hidden Activity.
+	// Such a placeholder stays at the hidden target when `ready` clears, and the
+	// box shows neither layer.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: mount only; a later `ready` flip rests through the fade-out completion.
+	useLayoutEffect(() => {
+		if (ready) setSettled(true)
+	}, [])
 
 	// The last element focused within either layer, tracked via bubbled focusin.
 	// When a `ready` flip sends a focused layer `inert`, the browser drops its

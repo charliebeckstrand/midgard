@@ -148,6 +148,10 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  *   variant that leaves `@floating-ui/react` real (motion stays mocked for
  *   determinism).
  *
+ * - `motion` (browser/motion/): the cases that read the result of a real
+ *   animation, such as the layers of a crossfade after it lands. This instance
+ *   leaves `motion/react` real and mocks `@floating-ui/react` as `browser` does.
+ *
  * - `scrollbars` (browser/scrollbars/): the cases that measure a scroll range.
  *   Playwright starts headless Chromium with `--hide-scrollbars`. In that mode a
  *   `scrollbar-gutter: stable` scroller reserves the gutter, but it computes
@@ -155,7 +159,7 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
  *   short. This instance drops the flag, so its scrollers have real scrollbars.
  *   Its mocks are the ones `browser` uses.
  *
- * `pnpm test:browser` runs all three; `--project <name>` scopes to one.
+ * `pnpm test:browser` runs all four; `--project <name>` scopes to one.
  *
  * Instance-level `setupFiles` merge additively onto project-level ones
  * (project's run first), so `index.ts`/`act-environment.ts` — shared by both
@@ -299,6 +303,7 @@ export default defineConfig({
 					exclude: [
 						...configDefaults.exclude,
 						'src/__tests__/browser/floating-ui/**',
+						'src/__tests__/browser/motion/**',
 						'src/__tests__/browser/scrollbars/**',
 					],
 				},
@@ -316,6 +321,14 @@ export default defineConfig({
 						resolve(import.meta.dirname, 'src/__tests__/browser/floating-ui/setup/module-mocks.ts'),
 					],
 					include: ['src/__tests__/browser/floating-ui/**/*.test.{ts,tsx}'],
+				},
+				{
+					browser: 'chromium',
+					name: 'motion',
+					setupFiles: [
+						resolve(import.meta.dirname, 'src/__tests__/browser/motion/setup/module-mocks.ts'),
+					],
+					include: ['src/__tests__/browser/motion/**/*.test.{ts,tsx}'],
 				},
 			],
 		},
