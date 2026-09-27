@@ -1,4 +1,5 @@
 import { hannou, ji, kasane, narabi, sen } from '../kiso'
+import { control } from '../kiso/control'
 
 const { disabled } = hannou
 const { size } = ji
@@ -16,6 +17,8 @@ export const k = {
 		border.default,
 		rounded.lg,
 		focus.ring,
+		// The canvas carries the `data-*` validation state, so the pad paints the ring.
+		...control.check.validation,
 		...disabled,
 	],
 	canvas: ['block w-full h-full', 'cursor-crosshair touch-none select-none'],
