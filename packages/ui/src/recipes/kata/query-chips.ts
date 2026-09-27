@@ -15,9 +15,9 @@ export const k = {
 	// The remove button's own padding insets its glyph from the trailing edge.
 	// So the leading side takes the pill's `px` plus the button's `bare.p`, and
 	// the text sits symmetric with the glyph. A read-only chip has no button and
-	// keeps the symmetric `px`. The sum is pinned by
-	// `tag-input-chip-pad-boundary.test.ts`.
-	chip: ['max-w-full', 'data-[has-suffix]:data-[density=sm]:ps-ring-2.75'],
+	// keeps the symmetric `px`. The chip is always an `sm` Badge, so the pad is one
+	// plain class. The sum is pinned by `tag-input-chip-pad-boundary.test.ts`.
+	chip: ['max-w-full', 'data-[has-suffix]:ps-ring-2.75'],
 	field: [...text.default],
 	operator: [...text.muted],
 	value: [weight.semibold, ...text.default],

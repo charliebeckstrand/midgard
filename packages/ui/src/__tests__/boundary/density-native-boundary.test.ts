@@ -120,3 +120,28 @@ describe('density scope parity', () => {
 		expect(violations).toEqual([])
 	})
 })
+
+// A class selects a density step through the `density-*` variants and the
+// stepped utilities. Those rank each match by the depth of its scope. A
+// `data-[density=…]` selector has no rank, so an outer scope can win over the
+// nearest one. The source therefore writes no such selector.
+
+const DENSITY_SELECTOR = /data-\[density=/
+
+describe('density selectors', () => {
+	it('no source file selects a step with a data-[density=…] class', () => {
+		const violations: string[] = []
+
+		walkSource(srcDir, (file, content) => {
+			if (!/\.tsx?$/.test(file)) return
+
+			const rel = srcRelative(file)
+
+			if (rel.startsWith('__tests__')) return
+
+			if (DENSITY_SELECTOR.test(stripSourceComments(content))) violations.push(rel)
+		})
+
+		expect(violations).toEqual([])
+	})
+})
