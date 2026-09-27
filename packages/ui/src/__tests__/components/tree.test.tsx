@@ -425,7 +425,7 @@ describe('TreeItem', () => {
 
 		expect(second.tabIndex).toBe(-1)
 
-		// Focusing the second item moves the tabIndex via the Tree's focus capture.
+		// Focusing the second item moves the tabIndex through the roving focusin listener.
 		fireEvent.focus(second)
 
 		expect(second.tabIndex).toBe(0)

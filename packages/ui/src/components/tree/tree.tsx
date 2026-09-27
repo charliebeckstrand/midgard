@@ -1,14 +1,6 @@
 'use client'
 
-import {
-	type ComponentProps,
-	type FocusEvent,
-	type KeyboardEvent,
-	type ReactNode,
-	useEffect,
-	useMemo,
-	useRef,
-} from 'react'
+import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useDensity } from '../../primitives/density'
@@ -18,7 +10,6 @@ import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
 import { stampTreePositions } from './tree-item-children'
-import { ensureFirstItemActive, setActiveItem } from './tree-utilities'
 
 /** Props for {@link Tree}. Requires `aria-label` or `aria-labelledby`. */
 export type TreeProps = AccessibleName &
@@ -68,6 +59,10 @@ export function Tree({
 		itemSelector: ITEM_SELECTOR,
 		orientation: 'vertical',
 		focusOnEmpty: true,
+		// Roving owns the one tab stop. It seats the stop on the first treeitem, keeps
+		// it there as the rendered set changes, and moves it to the item that takes
+		// focus.
+		manageTabIndex: true,
 	})
 
 	// `focusOnEmpty` seeds the first item when no treeitem is active, but a
@@ -97,49 +92,6 @@ export function Tree({
 		[resolvedSize, indent, mount],
 	)
 
-	// Keeps the first treeitem tabbable as the rendered set changes (open/close,
-	// search, expand-all). The focus capture below handles subsequent shifts.
-	useEffect(() => {
-		const container = ref.current
-
-		if (!container) return
-
-		ensureFirstItemActive(container)
-
-		// Expanding/collapsing a branch animates its subtree, so the observer fires
-		// repeatedly through the transition; each `ensureFirstItemActive` scans every
-		// treeitem. Coalesce the bursts into one scan on the next frame.
-		let frame: number | null = null
-
-		const observer = new MutationObserver(() => {
-			if (frame !== null) return
-
-			frame = requestAnimationFrame(() => {
-				frame = null
-
-				ensureFirstItemActive(container)
-			})
-		})
-
-		observer.observe(container, { childList: true, subtree: true })
-
-		return () => {
-			if (frame !== null) cancelAnimationFrame(frame)
-
-			observer.disconnect()
-		}
-	}, [])
-
-	const handleFocus = (event: FocusEvent<HTMLDivElement>) => {
-		if (!(event.target instanceof Element)) return
-
-		const target = event.target.closest<HTMLElement>(ITEM_SELECTOR)
-
-		if (!target || !ref.current) return
-
-		setActiveItem(ref.current, target)
-	}
-
 	return (
 		<TreeContext value={rootContextValue}>
 			<div
@@ -149,7 +101,6 @@ export function Tree({
 				data-slot="tree"
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}
-				onFocus={handleFocus}
 			>
 				{stampTreePositions(children)}
 			</div>
