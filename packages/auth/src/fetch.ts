@@ -39,6 +39,64 @@ export const bifrost = createClient<Paths>({
 	},
 })
 
+/**
+ * A gateway read that failed: a status the caller does not expect, or no answer.
+ *
+ * @remarks
+ * {@link requireGateway} throws it. A page lets it reach the error page of the
+ * app, and a route handler answers `503`.
+ */
+export class GatewayError extends Error {
+	constructor(path: string, options?: ErrorOptions) {
+		super(`auth: GET ${path} failed`, options)
+
+		this.name = 'GatewayError'
+	}
+}
+
+/** Options for {@link requireGateway}. */
+type RequireGatewayOptions = {
+	/** The failed statuses that mean that the data does not exist, such as `401` or `404`. */
+	absent?: number[]
+}
+
+/**
+ * Resolves to the `data` of one gateway read, or `undefined` for a status in
+ * `absent`. Any other failure throws a {@link GatewayError}.
+ *
+ * @remarks
+ * Use it where an empty answer would say something false, such as "no second
+ * factor" or "no users". Use {@link readGateway} where a failure can fall back
+ * to a default. The control-flow errors of Next, such as the dynamic-usage
+ * signal of a prerender, propagate.
+ *
+ * @param path - The gateway path, for the error.
+ * @param read - The read, such as `() => bifrost.GET('/auth/mfa')`.
+ * @param options - The failed statuses that mean that the data does not exist.
+ * @returns The `data` of an OK status, or `undefined` for a status in `absent`.
+ */
+export async function requireGateway<Data>(
+	path: string,
+	read: () => Promise<{ data?: Data; response: Response }>,
+	{ absent = [] }: RequireGatewayOptions = {},
+): Promise<Data | undefined> {
+	let answer: { data?: Data; response: Response }
+
+	try {
+		answer = await read()
+	} catch (error) {
+		unstable_rethrow(error)
+
+		throw new GatewayError(path, { cause: error })
+	}
+
+	if (answer.data) return answer.data
+
+	if (absent.includes(answer.response.status)) return undefined
+
+	throw new GatewayError(path, { cause: `status ${answer.response.status}` })
+}
+
 /** Options for {@link readGateway}. */
 type ReadGatewayOptions = {
 	/** The failed statuses that are expected, and that do not go to the log, such as `401`. */

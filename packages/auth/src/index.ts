@@ -1,4 +1,4 @@
-export { bifrost, type Paths, type Schema } from './fetch'
+export { bifrost, GatewayError, type Paths, requireGateway, type Schema } from './fetch'
 export {
 	getSession,
 	type Role,

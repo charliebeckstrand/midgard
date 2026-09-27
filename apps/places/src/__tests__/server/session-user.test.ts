@@ -1,8 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const getSession = vi.hoisted(() => vi.fn())
+const { getSession, GatewayError } = vi.hoisted(() => ({
+	getSession: vi.fn(),
+	GatewayError: class GatewayError extends Error {},
+}))
 
-vi.mock('auth', () => ({ getSession }))
+vi.mock('auth', () => ({ getSession, GatewayError }))
 
 import { authorize } from '../../server/session-user'
 
@@ -23,6 +26,25 @@ describe('authorize', () => {
 		expect(result).toBeInstanceOf(Response)
 
 		expect((result as Response).status).toBe(401)
+	})
+
+	// An outage must not send the user to `/login`, which a `401` does.
+	it('answers a failed gateway with a 503', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		getSession.mockRejectedValue(new GatewayError('auth: GET /auth/session failed'))
+
+		const result = await authorize()
+
+		expect((result as Response).status).toBe(503)
+	})
+
+	it('lets any other error through', async () => {
+		const error = new Error('bug')
+
+		getSession.mockRejectedValue(error)
+
+		await expect(authorize()).rejects.toBe(error)
 	})
 
 	it('lets an account with no role read', async () => {

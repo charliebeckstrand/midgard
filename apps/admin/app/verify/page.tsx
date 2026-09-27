@@ -1,4 +1,4 @@
-import { bifrost, requireSession } from 'auth'
+import { bifrost, requireGateway, requireSession } from 'auth'
 import { redirect } from 'next/navigation'
 import { secondFactorMethods, VerifyPage } from 'shared/auth'
 
@@ -16,9 +16,10 @@ export default async function Verify() {
 
 	if (session.two_step) redirect('/')
 
-	const { data } = await bifrost.GET('/auth/mfa')
+	// A failed read throws, so an outage does not send the admin to `/account`.
+	const factors = await requireGateway('/auth/mfa', () => bifrost.GET('/auth/mfa'))
 
-	const methods = data ? secondFactorMethods(data) : []
+	const methods = factors ? secondFactorMethods(factors) : []
 
 	if (methods.length === 0) redirect('/account')
 
