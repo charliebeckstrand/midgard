@@ -1,9 +1,9 @@
 'use client'
 
 import type { AnimationPlaybackControls } from 'motion'
-import { useReducedMotion } from 'motion/react'
 import { type RefObject, useEffect } from 'react'
 import { travelHeight } from '../../hooks/travel-height'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/current'
 import { type BorderBox, measureBox } from '../../utilities'
 
@@ -73,7 +73,7 @@ function classifyEntries(
 export function useCurrentContentsMorph(ref: RefObject<HTMLElement | null>, enabled: boolean) {
 	// Imperative `animate()` runs outside any MotionConfig; read the OS
 	// preference directly and leave the height to layout under reduced motion.
-	const reducedMotion = useReducedMotion()
+	const reducedMotion = usePrefersReducedMotion()
 
 	useEffect(() => {
 		const element = ref.current

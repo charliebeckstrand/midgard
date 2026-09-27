@@ -77,6 +77,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `subscribeDocumentEvent` | Subscribes to a document event via one shared listener per type; returns an unsubscribe fn. |
 | `subscribeMediaQuery` | Subscribes to a media query via one shared `MediaQueryList` and `change` listener per query string; returns an unsubscribe fn. |
 | `matchesMediaQuery` | Whether a media query currently matches, read from the shared `MediaQueryList` when registered (client only). |
+| `REDUCED_MOTION_QUERY` | The `(prefers-reduced-motion: reduce)` query, for a caller that reads it outside React. |
 | `isNativeContextMenuRequest` | Whether a `contextmenu` event asks for the browser's native menu (Ctrl + secondary-button click) instead of a custom one. |
 | `isScrollbarPress` | Whether a press landed on an element's own scrollbar gutter rather than on its content. A gutter press starts a pan, so a floating surface does not dismiss for it and no selection follows it. Tests an axis only where it can scroll, and reads the vertical gutter off the inline-start edge under `direction: rtl`. The border widths are not part of the gutter. |
 | `printInHiddenFrame` | Prints a document through an off-screen iframe and reclaims the frame on `afterprint`, with a window-`focus` backstop, and on either failure route. `prepare` points the frame at markup (`srcdoc`) or a URL (`src`). The optional `onFail` says what to do besides reclaiming, and its absence lets a blocked `print()` propagate. |
@@ -104,7 +105,8 @@ The sequential-scale primitives the data-driven color charts share — the choro
 
 | Export | Summary |
 |---|---|
-| `memoWeak` | The value under a key in a `WeakMap`, computed and stored on the first read — the one get-or-compute step every per-object memo spells. |
+| `getOrCompute` | The value under a key in a `Map` or `WeakMap`, computed and stored on the first read — the one get-or-compute step every memo spells. |
+| `ComputeCache` *(type)* | The `get`/`has`/`set` interface `getOrCompute` reads; a `Map` and a `WeakMap` both satisfy it. |
 | `createKeyedStore` | A store that holds one value for each key and calls only the listeners of the keys whose value changed. A consumer reads its own key through `useSyncExternalStore`, so a change to one entry does not render the consumers of the others. The grid settle store builds on it. |
 | `KeyedStore` *(type)* | The store that `createKeyedStore` returns: `get`, `subscribe` for one key, and `publish` of a new reader. |
 | `toggleItem` | Returns a copy of `set` with `item` toggled (removed if present, added otherwise); no mutation. |

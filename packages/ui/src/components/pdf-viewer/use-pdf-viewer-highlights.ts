@@ -1,9 +1,9 @@
 'use client'
 
-import { useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
 import type { Color } from '../../core/recipe'
 import { useControllable, useScrollWithin } from '../../hooks'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
 	PdfViewerHighlight,
@@ -114,7 +114,7 @@ export function usePdfViewerHighlights({
 
 	const scrollWithin = useScrollWithin()
 
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	const regions: PdfViewerRegion[] = []
 

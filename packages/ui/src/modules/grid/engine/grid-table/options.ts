@@ -14,7 +14,7 @@ import type {
 	SortFn,
 	SortingState,
 } from '@tanstack/react-table'
-import { isDataColumn } from '../../../../utilities'
+import { getOrCompute, isDataColumn } from '../../../../utilities'
 import { evaluateQuery } from '../../../query/engine/query-evaluate'
 import { isQueryGroup } from '../../../query/engine/query-node'
 import type { GridSortState } from '../../context'
@@ -104,23 +104,9 @@ const sortKeyCache = new WeakMap<Row<GridFeatures, RowData>, Map<string, SortKey
 
 /** This row's {@link SortKey} for `columnId`, decoded once on first use and reused across the sort's comparisons. @internal */
 function rowSortKey(row: Row<GridFeatures, RowData>, columnId: string): SortKey {
-	let perColumn = sortKeyCache.get(row)
+	const perColumn = getOrCompute(sortKeyCache, row, () => new Map<string, SortKey>())
 
-	if (!perColumn) {
-		perColumn = new Map()
-
-		sortKeyCache.set(row, perColumn)
-	}
-
-	let key = perColumn.get(columnId)
-
-	if (key === undefined) {
-		key = toSortKey(row.getValue(columnId))
-
-		perColumn.set(columnId, key)
-	}
-
-	return key
+	return getOrCompute(perColumn, columnId, () => toSortKey(row.getValue(columnId)))
 }
 
 /**

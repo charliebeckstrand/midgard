@@ -102,6 +102,18 @@ export const b = 'px-3'
 `,
 		},
 	],
+	'no-motion-reduced-motion-hook': [
+		{
+			file: 'motion.tsx',
+			source: `import { useReducedMotion } from 'motion/react' // flag
+import { AnimatePresence, motion, useReducedMotion as useReduced } from 'motion/react' // flag
+import { useReducedMotion as useFramerReduced } from 'framer-motion' // flag
+import { AnimatePresence as Presence, MotionConfig } from 'motion/react'
+import { usePrefersReducedMotion } from './hooks'
+export { useReducedMotion, AnimatePresence, motion, useReduced, useFramerReduced, Presence, MotionConfig, usePrefersReducedMotion }
+`,
+		},
+	],
 	'no-react-create-context': [
 		{
 			file: 'context.ts',

@@ -24,7 +24,7 @@ export type PivotTableProps<T> = {
 	keys: PivotTableKeys<T>
 	/** How to aggregate the value field within a (row × column) group. @defaultValue 'sum' */
 	aggregation?: PivotAggregation
-	/** Format cell values. @defaultValue {@link defaultFormat} — integers via `formatInteger`, the rest via `formatFraction`. */
+	/** Format cell values. @defaultValue {@link defaultFormat} — `formatFraction`, so a whole number prints with no fraction. */
 	format?: (value: number) => ReactNode
 	/** Label for the row-dimension column. */
 	rowHeader?: ReactNode

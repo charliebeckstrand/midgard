@@ -4,7 +4,7 @@ import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
-import { memoWeak } from '../../utilities'
+import { getOrCompute } from '../../utilities'
 import {
 	Calendar,
 	type CalendarActive,
@@ -106,11 +106,11 @@ function hoverHandlers(
 ): Pick<CalendarDayProps, 'onMouseEnter' | 'onMouseLeave'> {
 	if (!onHoverDate) return {}
 
-	const byDay = memoWeak(enterHandlers, onHoverDate, () => new WeakMap<Date, () => void>())
+	const byDay = getOrCompute(enterHandlers, onHoverDate, () => new WeakMap<Date, () => void>())
 
 	return {
-		onMouseEnter: memoWeak(byDay, date, (day) => () => onHoverDate(day)),
-		onMouseLeave: memoWeak(leaveHandlers, onHoverDate, (report) => () => report(null)),
+		onMouseEnter: getOrCompute(byDay, date, (day) => () => onHoverDate(day)),
+		onMouseLeave: getOrCompute(leaveHandlers, onHoverDate, (report) => () => report(null)),
 	}
 }
 

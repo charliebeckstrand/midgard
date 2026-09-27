@@ -6,7 +6,7 @@
 
 import { cn } from '../../../core'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { formatFraction, formatInteger, resolveFormat, toNumericCell } from '../../../utilities'
+import { formatFraction, resolveFormat, toNumericCell } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'
@@ -42,13 +42,13 @@ export function seriesValues<T>(data: T[], key: DataKey<T>): (number | null)[] {
 }
 
 /**
- * The default value formatting: locale integers as integers, fractional
- * values to two places.
+ * The default value formatting: locale digits with up to two fraction places,
+ * so an integer prints with no fraction.
  *
  * @internal
  */
 export function formatChartValue(value: number): string {
-	return Number.isInteger(value) ? formatInteger(value) : formatFraction(value)
+	return formatFraction(value)
 }
 
 /** The cached compact formatter behind {@link formatChartValueCompact}. @internal */

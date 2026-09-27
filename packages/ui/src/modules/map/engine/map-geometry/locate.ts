@@ -23,7 +23,7 @@
  */
 
 import { geoContains } from 'd3-geo'
-import { memoWeak } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities'
 import { bucket, cellKey } from '../map-cluster/grid'
 import type { LngLat, MapFeature } from '../types'
 
@@ -196,7 +196,7 @@ const indexes = new WeakMap<MapFeature[], MapRegionIndex>()
  * @internal
  */
 export function cachedRegionIndex(features: MapFeature[]): MapRegionIndex {
-	return memoWeak(indexes, features, regionIndex)
+	return getOrCompute(indexes, features, regionIndex)
 }
 
 /** Whether a box holds a position — the cheap test before the exact one. @internal */

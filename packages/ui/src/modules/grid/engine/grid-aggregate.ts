@@ -10,7 +10,7 @@
  */
 
 import type { ReactNode } from 'react'
-import { formatFraction, formatInteger } from '../../../utilities'
+import { formatFraction, getOrCompute } from '../../../utilities'
 import type { GridColumn } from '../types'
 import { columnAccessor } from './grid-column/accessor'
 import { parseNumeric } from './grid-sort/utilities'
@@ -99,21 +99,9 @@ const aggregates = new WeakMap<readonly unknown[], WeakMap<object, unknown>>()
  * @internal
  */
 export function cachedAggregate<T>(column: GridColumn<T>, rows: T[]): unknown {
-	let byColumn = aggregates.get(rows)
+	const byColumn = getOrCompute(aggregates, rows, () => new WeakMap<object, unknown>())
 
-	if (!byColumn) {
-		byColumn = new WeakMap()
-
-		aggregates.set(rows, byColumn)
-	}
-
-	if (byColumn.has(column)) return byColumn.get(column)
-
-	const value = aggregateColumn(column, rows)
-
-	byColumn.set(column, value)
-
-	return value
+	return getOrCompute(byColumn, column, () => aggregateColumn(column, rows))
 }
 
 /**
@@ -133,7 +121,7 @@ export function formatAggregate(value: unknown): string {
 	if (typeof value === 'number') {
 		if (!Number.isFinite(value)) return ''
 
-		return Number.isInteger(value) ? formatInteger(value) : formatFraction(value)
+		return formatFraction(value)
 	}
 
 	return String(value)

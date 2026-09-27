@@ -4,7 +4,7 @@ import { Check } from 'lucide-react'
 import { type ComponentProps, memo, type ReactNode, use, useCallback, useId } from 'react'
 import { ariaAttr, cn, createContext, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/option'
-import { capitalizeFirst, memoWeak } from '../../utilities'
+import { capitalizeFirst, getOrCompute } from '../../utilities'
 import { useDensity } from '../density'
 
 /**
@@ -204,7 +204,7 @@ function isOptionSelected(
 	multiple: boolean | undefined,
 ): boolean {
 	if (multiple && Array.isArray(selectedValue)) {
-		return memoWeak(membershipCache, selectedValue, (values) => new Set(values)).has(value)
+		return getOrCompute(membershipCache, selectedValue, (values) => new Set(values)).has(value)
 	}
 
 	return selectedValue === value

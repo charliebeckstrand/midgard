@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useLayoutEffect, useRef } from 'react'
-import { matchesMediaQuery } from '../../utilities'
+import { matchesMediaQuery, REDUCED_MOTION_QUERY } from '../../utilities'
 import type { DashboardOffset } from './engine/dashboard-drag'
 import { type DashboardCell, inlineSign, ROW_SUBDIVISION } from './engine/dashboard-layout'
 
@@ -17,9 +17,6 @@ const GLIDE_EASING = 'cubic-bezier(0.22, 1, 0.36, 1)'
  * raise, so without it the later tiles paint over the glide.
  */
 const GLIDE_LAYER = 20
-
-/** The query that matches when the reader asks the platform for reduced motion. */
-const REDUCED_MOTION = '(prefers-reduced-motion: reduce)'
 
 /** Options for {@link useDashboardFlip}. @internal */
 export type DashboardFlipOptions = {
@@ -84,7 +81,7 @@ function endGlides(element: HTMLElement): void {
 
 /** Plays one glide from `offset` to rest, from the painted position of any glide that runs. */
 function glide(element: HTMLElement, offset: DashboardOffset): void {
-	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION)) return
+	if (typeof element.animate !== 'function' || matchesMediaQuery(REDUCED_MOTION_QUERY)) return
 
 	const running = paintedOffset(element)
 

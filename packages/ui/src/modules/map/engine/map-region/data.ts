@@ -98,7 +98,11 @@ type MapNumericData<T> = MapRegionRows<T> & {
 	 * data extent and this is ignored. `ChoroplethChartSeries` spells it the same.
 	 */
 	colorDomain?: [number, number]
-	/** Formats the bin-range labels, the tooltip value, and the table cell. `ChoroplethChart` spells it the same. */
+	/**
+	 * Formats the bin-range labels, the tooltip value, and the table cell. `ChoroplethChart` spells it the same.
+	 *
+	 * @defaultValue Locale digits with up to two fraction places.
+	 */
 	formatValue?: (value: number) => string
 	/** The value's display name; the table's value-column header. `ChoroplethChartSeries` spells it the same. */
 	colorName?: string

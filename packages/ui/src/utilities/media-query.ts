@@ -1,3 +1,6 @@
+/** The media query that matches when the reader asks the platform for reduced motion. */
+export const REDUCED_MOTION_QUERY = '(prefers-reduced-motion: reduce)'
+
 type Registry = {
 	mql: MediaQueryList
 	handlers: Set<() => void>

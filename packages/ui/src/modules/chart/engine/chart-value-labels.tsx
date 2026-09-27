@@ -1,7 +1,8 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { cn } from '../../../core'
+import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
@@ -451,7 +452,7 @@ export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsP
 
 	// Called unconditionally to keep the hook order stable; only the animated
 	// branch reads it.
-	const reducedMotion = useReducedMotion()
+	const reducedMotion = usePrefersReducedMotion()
 
 	if (spark || labels.length === 0) return null
 

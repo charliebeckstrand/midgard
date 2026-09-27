@@ -11,6 +11,7 @@
 
 import {
 	binIndex,
+	formatFraction,
 	quantileBinIndex,
 	resolveColorBins,
 	resolveQuantileBins,
@@ -21,7 +22,8 @@ import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
 /**
- * A map's `formatValue`, or the plain-string fallback where it has none. The
+ * A map's `formatValue`, or {@link formatFraction} where it has none: locale
+ * digits with up to two fraction places, as a chart formats the same data. The
  * readout and the range legend resolve it through here, rather than each
  * defaulting for itself. A map without the prop would otherwise format its
  * tooltip and table by one rule, and its bar's endpoints by another. Nothing
@@ -32,7 +34,7 @@ import type { MapCategoryMeta } from './category'
 export function resolveValueFormat(
 	formatValue: ((value: number) => string) | undefined,
 ): (value: number) => string {
-	return formatValue ?? String
+	return formatValue ?? formatFraction
 }
 
 /** Options a choropleth resolves its bins with. @internal */

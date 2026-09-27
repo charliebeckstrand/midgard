@@ -1,0 +1,18 @@
+language js
+
+// Motion's `useReducedMotion` reads the reduced-motion setting one time, at
+// mount, and does not update. A reader who turns reduced motion on during the
+// session then gets motion from the caller, and a caller that waits for a
+// `transitionend` waits forever, because the CSS stops the transition. The
+// `usePrefersReducedMotion` hook in `ui/hooks` reads the setting live.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests and benchmarks, which mock motion.
+`import $clause from $source` as $import where {
+	$source <: r"['\"](?:motion/react|framer-motion)['\"]",
+	$import <: r"[\s\S]*\buseReducedMotion\b[\s\S]*",
+	register_diagnostic(
+		span = $import,
+		message = "read reduced motion with `usePrefersReducedMotion` from `hooks/`: motion's `useReducedMotion` reads the setting only at mount"
+	)
+}

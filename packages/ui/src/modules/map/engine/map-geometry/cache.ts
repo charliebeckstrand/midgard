@@ -37,7 +37,7 @@
  */
 
 import type { GeoProjection } from 'd3-geo'
-import { memoWeak } from '../../../../utilities'
+import { getOrCompute } from '../../../../utilities'
 import { canonicalFit, type MapCanonicalFit } from '../map-projection/fit'
 import type { LngLat, MapFeature, MapGeography, MapProjection } from '../types'
 import { chromePaths, EMPTY_CHROME, type MapChromePaths } from './chrome'
@@ -103,7 +103,7 @@ export function cachedGeographyFeatures(
 ): MapFeature[] {
 	if (geography == null) return EMPTY.features
 
-	const byName = memoWeak(decoded, geography, () => new Map())
+	const byName = getOrCompute(decoded, geography, () => new Map())
 
 	let features = byName.get(objectName)
 
@@ -170,7 +170,7 @@ export function staticMapGeometry(
 		return computeStaticMapGeometry(geography, geographyObject, projection)
 	}
 
-	const byKey = memoWeak(cache, geography, () => new Map())
+	const byKey = getOrCompute(cache, geography, () => new Map())
 
 	// A JSON tuple, so an explicit '' object name can't collide with `undefined`
 	// (the "first object" default): `geographyFeatures` decodes those to
@@ -219,7 +219,7 @@ const centroids = new WeakMap<MapFeature[], (LngLat | null)[]>()
  * @internal
  */
 export function cachedRegionCentroids(features: MapFeature[]): (LngLat | null)[] {
-	return memoWeak(centroids, features, regionCentroids)
+	return getOrCompute(centroids, features, regionCentroids)
 }
 
 // The last chrome paths per fitted projection. Keyed on the fit rather than on
@@ -296,7 +296,7 @@ const canonicalPaths = new WeakMap<StaticMapGeometry, (string | null)[]>()
  * @internal
  */
 export function cachedCanonicalPaths(geometry: StaticMapGeometry): (string | null)[] {
-	return memoWeak(canonicalPaths, geometry, ({ canonical }) =>
+	return getOrCompute(canonicalPaths, geometry, ({ canonical }) =>
 		canonical === null ? [] : projectedPaths(geometry, canonical.projection),
 	)
 }

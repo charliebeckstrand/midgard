@@ -1,4 +1,5 @@
 import type { ExpandedState } from '@tanstack/react-table'
+import { getOrCompute } from '../../../../utilities'
 
 /**
  * One row of the source data, as a value the grouped bodies render from.
@@ -64,15 +65,7 @@ const openGroups = new WeakMap<GridGroup<unknown>, GridGroup<unknown>>()
 
 /** The open value of a closed group. The same group always gives the same value. @internal */
 function openGroup<T>(group: GridGroup<T>): GridGroup<T> {
-	let open = openGroups.get(group) as GridGroup<T> | undefined
-
-	if (!open) {
-		open = { ...group, expanded: true }
-
-		openGroups.set(group, open)
-	}
-
-	return open
+	return getOrCompute(openGroups, group, () => ({ ...group, expanded: true })) as GridGroup<T>
 }
 
 /**

@@ -3,7 +3,7 @@
 import { Fragment, memo, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
-import { rangeKeys } from '../../utilities'
+import { getOrCompute, rangeKeys } from '../../utilities'
 import { useMapPlat, useMapZoomScale } from './context'
 import { markTargets } from './engine/map-cluster/crowd'
 import { clusterAnchor, clusterSpan } from './engine/map-cluster/geo'
@@ -183,15 +183,7 @@ const stopsByGrouping = new WeakMap<readonly MapPointCluster[], ReadonlyMap<numb
 
 /** Gives the drawn dot that point `index` landed in, or `null`. @internal */
 function stopIndex(groups: readonly MapPointCluster[], index: number): number | null {
-	let stops = stopsByGrouping.get(groups)
-
-	if (stops === undefined) {
-		stops = groupsByMember(groups)
-
-		stopsByGrouping.set(groups, stops)
-	}
-
-	return stops.get(index) ?? null
+	return getOrCompute(stopsByGrouping, groups, groupsByMember).get(index) ?? null
 }
 
 /** Props for {@link MapPoints}. */
