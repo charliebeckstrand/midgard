@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
+import { Button } from '../../components/button'
 import { Form } from '../../components/form'
 import { Textarea } from '../../components/textarea'
+import { HeadlessProvider } from '../../providers/headless'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
@@ -46,6 +48,34 @@ describe('Textarea', () => {
 		expect(bySlot(container, 'textarea')).toBeInTheDocument()
 
 		expect(screen.getByText('send')).toBeInTheDocument()
+	})
+
+	it('sizes the actions one step below the textarea, as the Input affixes do', () => {
+		const { container } = renderUI(<Textarea size="sm" actions={<Button>send</Button>} />)
+
+		expect(getSlot(container, 'button')).toHaveAttribute('data-size', 'xs')
+	})
+
+	it('gives the textarea an id outside a Control', () => {
+		const { container } = renderUI(<Textarea />)
+
+		expect(getSlot(container, 'textarea').id).not.toBe('')
+	})
+
+	it('renders a bare textarea under headless context', () => {
+		const { container } = renderUI(
+			<HeadlessProvider>
+				<Textarea className="custom" actions={<span>send</span>} />
+			</HeadlessProvider>,
+		)
+
+		const el = getSlot(container, 'textarea')
+
+		expect(el.className).toBe('custom')
+
+		expect(container.firstElementChild).toBe(el)
+
+		expect(screen.queryByText('send')).toBeNull()
 	})
 
 	it('coerces a null controlled value to an empty string and stays controlled', async () => {

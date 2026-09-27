@@ -2,9 +2,12 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
+import { useIdScope } from '../../hooks/use-id-scope'
+import { AffixContext, affixStepDown } from '../../primitives/affix'
 import { ControlFrame } from '../../primitives/control'
-import { useControlSize } from '../../primitives/density'
+import { DensityScope, useControlSize } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
+import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
@@ -24,7 +27,8 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.
  * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
- * `<GlassProvider>`, and Density contexts.
+ * `<GlassProvider>`, and Density contexts. Under headless context, it drops to
+ * a bare `<textarea>`.
  *
  * @remarks Shares the Input value cascade through {@link useInputValue},
  * including the §7.3 value contract it owns. `defaultValue` reaches the element
@@ -32,6 +36,9 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * With `actions`, the frame stacks the field above a right-justified actions
  * row and `field-sizing: content` ignores `rows`, so `rows` becomes a
  * min-height floor.
+ * A set `size` opens a density scope. The actions row gets the affix size, one
+ * step below the textarea, as the Input affixes do. Under headless context the
+ * frame, the recipe classes, and the actions row are all skipped.
  */
 export function Textarea({
 	className,
@@ -58,6 +65,7 @@ export function Textarea({
 }: TextareaProps) {
 	const glass = useGlass()
 	const control = useControl()
+	const headless = useHeadless()
 	const valueState = useInputValue<HTMLTextAreaElement>({
 		name,
 		value,
@@ -84,10 +92,12 @@ export function Textarea({
 		invalid: valueState.invalid,
 	})
 
+	const scope = useIdScope({ id: resolvedId })
+
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const controlProps = {
-		id: resolvedId,
+		id: scope.id,
 		name,
 		autoComplete: resolvedAutoComplete,
 		disabled: resolvedDisabled,
@@ -101,28 +111,23 @@ export function Textarea({
 		...validation,
 	}
 
-	const hasActions = actions !== undefined
+	// Under headless context the actions row is not rendered, so it sets no layout.
+	const hasActions = !headless && actions !== undefined
 
 	// `field-sizing: content` ignores `rows`; floor the field at `rows` lines plus
 	// its own vertical padding. The actions row sits below as its own flex item
 	// (see `k.stack`), so its height is no longer reserved here.
 	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 1.5rem)`, ...style } : style
 
-	return (
-		<ControlFrame
+	const textareaEl = (
+		<textarea
+			data-slot="textarea"
+			ref={ref}
+			{...controlProps}
+			rows={rows}
+			style={hasActionsStyle}
 			className={cn(
-				hasActions && k.frame,
-				hasActions && k.stack,
-				k.inputControl({ variant: resolvedVariant }),
-			)}
-		>
-			<textarea
-				data-slot="textarea"
-				ref={ref}
-				{...controlProps}
-				rows={rows}
-				style={hasActionsStyle}
-				className={cn(
+				!headless &&
 					k({
 						variant: resolvedVariant,
 						density: token.space,
@@ -130,16 +135,33 @@ export function Textarea({
 						resize: hasActions ? 'none' : resize,
 						autoResize,
 					}),
-					hasActions && k.bare,
-					className,
-				)}
-				{...rest}
-			/>
-			{hasActions && (
-				<div data-slot="textarea-actions" className={cn(k.actions)}>
-					{actions}
-				</div>
+				hasActions && k.bare,
+				className,
 			)}
-		</ControlFrame>
+			{...rest}
+		/>
+	)
+
+	if (headless) return textareaEl
+
+	return (
+		<DensityScope scale={size}>
+			<ControlFrame
+				className={cn(
+					hasActions && k.frame,
+					hasActions && k.stack,
+					k.inputControl({ variant: resolvedVariant }),
+				)}
+			>
+				{textareaEl}
+				{hasActions && (
+					<AffixContext value={affixStepDown(token.size)}>
+						<div data-slot="textarea-actions" className={cn(k.actions)}>
+							{actions}
+						</div>
+					</AffixContext>
+				)}
+			</ControlFrame>
+		</DensityScope>
 	)
 }
