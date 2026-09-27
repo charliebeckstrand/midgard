@@ -223,6 +223,38 @@ describe('drawSnapshot', () => {
 })
 
 describe('SignaturePad + Control', () => {
+	it('stops drawing under a disabled Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<SignaturePad />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-disabled')
+
+		expect(bySlot(container, 'signature-pad-canvas')).toHaveAttribute('aria-disabled', 'true')
+	})
+
+	it('reads read-only from an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control readOnly>
+				<SignaturePad />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'signature-pad')).toHaveAttribute('data-readonly')
+	})
+
+	it('shows the success ring of an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control severity="success">
+				<SignaturePad />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'signature-pad-canvas')).toHaveAttribute('data-valid')
+	})
+
 	it('surfaces invalid state from an enclosing Control onto the canvas', () => {
 		const { container } = renderUI(
 			<Control severity="error">

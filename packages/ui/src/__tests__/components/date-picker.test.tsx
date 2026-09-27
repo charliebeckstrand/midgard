@@ -119,6 +119,30 @@ describe('DatePicker', () => {
 		expect(bySlot(container, 'datepicker-button')).toBeDisabled()
 	})
 
+	it('lets an explicit disabled={false} win over a disabled Control', () => {
+		const { container } = renderUI(
+			<Control disabled>
+				<DatePicker disabled={false} />
+			</Control>,
+		)
+
+		expect(bySlot(container, 'datepicker-button')).toBeEnabled()
+	})
+
+	it('shows the warning ring of an enclosing Control', () => {
+		const { container } = renderUI(
+			<Control severity="warning">
+				<DatePicker />
+			</Control>,
+		)
+
+		const button = bySlot(container, 'datepicker-button')
+
+		expect(button).toHaveAttribute('data-warning')
+
+		expect(button).not.toHaveAttribute('aria-invalid')
+	})
+
 	it('surfaces required state from an enclosing Control', () => {
 		const { container } = renderUI(
 			<Control required>

@@ -1,7 +1,7 @@
 'use client'
 
 import type { RefCallback } from 'react'
-import { ariaAttr, cn, dataAttr, invalidAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
@@ -25,7 +25,8 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	size: ControlSize
 	disabled?: boolean
 	required?: boolean
-	invalid?: boolean
+	/** The resolved validation attributes. The frame paints its ring from them. */
+	validation?: ValidationAttrs
 	className?: string
 }
 
@@ -47,7 +48,7 @@ export function ColorPickerTrigger({
 	size,
 	disabled = false,
 	required = false,
-	invalid = false,
+	validation,
 	className,
 	'data-group': dataGroup,
 	'data-group-orientation': dataGroupOrientation,
@@ -76,7 +77,7 @@ export function ColorPickerTrigger({
 						aria-required={ariaAttr(required)}
 						data-slot="color-picker-button"
 						disabled={disabled}
-						{...invalidAttrs(invalid)}
+						{...validation}
 						onClick={() => onOpenChange(!open)}
 						className={cn(k.button({ density: size, size }))}
 					>

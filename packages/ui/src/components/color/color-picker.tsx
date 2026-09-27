@@ -77,7 +77,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		onOpenChange,
 		placement = 'bottom-start',
 		size,
-		disabled = false,
+		disabled,
 		className,
 		'data-group': dataGroup,
 		'data-group-orientation': dataGroupOrientation,
@@ -107,7 +107,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		alpha,
 		swatches,
 		size,
-		disabled,
+		disabled: state.disabled,
 	} as ColorPanelProps
 
 	// `display: contents` wrapper: while open, floating-ui's modal focus manager
@@ -131,7 +131,7 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 				size={size}
 				disabled={state.disabled}
 				required={state.required}
-				invalid={state.invalid}
+				validation={state.validation}
 				className={className}
 				data-group={dataGroup}
 				data-group-orientation={dataGroupOrientation}

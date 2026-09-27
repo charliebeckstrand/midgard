@@ -2,11 +2,10 @@
 
 import { type KeyboardEvent, useCallback, useId, useMemo, useRef, useState } from 'react'
 
-import { validationAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
-import { useControl } from '../control/context'
+import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import type { DatePickerBaseProps, DatePickerSingleProps } from './date-picker'
 import { addDays, addMonths, clampDate, formatDate, startOfDay } from './date-picker-utilities'
@@ -36,17 +35,13 @@ export function useDatePickerState({
 	max,
 	footer,
 	placement = 'bottom-start',
-	disabled = false,
-	readOnly = false,
+	disabled,
+	readOnly,
 	open: openProp,
 	defaultOpen,
 	onOpenChange: onOpenChangeProp,
 	input = false,
 }: DatePickerBaseProps & DatePickerSingleProps) {
-	const control = useControl()
-
-	const scope = useIdScope({ id: control?.id })
-
 	// The trigger label reads the same ambient locale the Calendar beside it does.
 	const ambient = useLocale()
 
@@ -58,10 +53,6 @@ export function useDatePickerState({
 	const listboxId = useId()
 
 	const activeDescendantId = useId()
-
-	const resolvedDisabled = disabled || control?.disabled === true
-
-	const resolvedReadOnly = readOnly || control?.readOnly === true
 
 	// Binds the selected date to an enclosing Form field by `name` (value-typed
 	// cascade); the field error merges with Control's invalid below.
@@ -75,6 +66,16 @@ export function useDatePickerState({
 		defaultValue,
 		onValueChange,
 	})
+
+	// The Control cascade: an explicit prop wins over the enclosing Control, and
+	// the field error merges with an ambient error severity.
+	const controlProps = useControlProps({ disabled, readOnly, invalid: fieldInvalid })
+
+	const scope = useIdScope({ id: controlProps.id })
+
+	const resolvedDisabled = controlProps.disabled === true
+
+	const resolvedReadOnly = controlProps.readOnly === true
 
 	const { open, setOpen, triggerRef } = useDatePickerOpen({
 		open: openProp,
@@ -242,20 +243,14 @@ export function useDatePickerState({
 		onFooterActivate,
 	})
 
-	const invalid = control?.severity === 'error' || fieldInvalid
-
-	// Invalid wins the ring. Otherwise a warning or success severity shows, as
-	// `useControlProps` resolves it for the other controls.
-	const validation = validationAttrs(invalid ? 'error' : control?.severity)
-
 	return {
 		triggerId: scope.id,
-		describedBy: control?.describedBy,
+		describedBy: controlProps['aria-describedby'],
 		disabled: resolvedDisabled,
 		readOnly: resolvedReadOnly,
-		required: control?.required,
-		invalid,
-		validation,
+		required: controlProps.required,
+		invalid: controlProps.invalid,
+		validation: controlProps.validation,
 		value,
 		setValue: writeValue,
 		hasValue: value != null,
