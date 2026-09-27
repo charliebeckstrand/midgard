@@ -1,8 +1,9 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo, useSyncExternalStore } from 'react'
+import { type ReactNode, useCallback, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/accordion'
 import { AccordionItemContext, useAccordion } from './context'
 
@@ -39,14 +40,7 @@ export function AccordionItem({
 
 	// The item reads its own value, so a toggle renders only the items that open
 	// or close.
-	const subscribe = useCallback(
-		(listener: () => void) => openStore.subscribe(value, listener),
-		[openStore, value],
-	)
-
-	const readOpen = () => openStore.get(value)
-
-	const open = useSyncExternalStore(subscribe, readOpen, readOpen)
+	const open = useKeyedValue(openStore, value)
 
 	const toggle = useCallback(() => {
 		if (!disabled) toggleValue(value)

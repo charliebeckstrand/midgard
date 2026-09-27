@@ -1,17 +1,10 @@
 'use client'
 
-import {
-	type RefObject,
-	use,
-	useCallback,
-	useLayoutEffect,
-	useMemo,
-	useState,
-	useSyncExternalStore,
-} from 'react'
+import { type RefObject, use, useMemo } from 'react'
 import { createContext } from '../../core'
 import { useControllable } from '../../hooks'
-import { createKeyedStore, type KeyedStore } from '../../utilities'
+import { keyMatcher, useKeyedStore, useKeyedValue } from '../../hooks/use-keyed-store'
+import type { KeyedStore } from '../../utilities'
 import type { Mount } from '../mount'
 
 /** Value carried by `CurrentContext`: the active panel `value` and its change handler. */
@@ -109,16 +102,10 @@ export const [CurrentStoreContext] = createContext<CurrentStore | undefined>('Cu
 export function useCurrentStore(state: CurrentContextValue): CurrentStore {
 	const { value, onValueChange } = state
 
-	const [current] = useState(() => createKeyedStore((key: string) => key === value))
-
-	useLayoutEffect(() => {
-		current.publish((key) => key === value)
-	}, [current, value])
+	const current = useKeyedStore(value, keyMatcher)
 
 	return useMemo(() => ({ current, onValueChange }), [current, onValueChange])
 }
-
-const noSubscription = () => () => {}
 
 /**
  * Reads whether `value` is the current value, and the change handler of the
@@ -139,15 +126,7 @@ export function useCurrentItem(value: string | undefined): {
 } {
 	const store = use(CurrentStoreContext)
 
-	const subscribe = useCallback(
-		(listener: () => void) =>
-			store && value !== undefined ? store.current.subscribe(value, listener) : noSubscription(),
-		[store, value],
-	)
-
-	const read = () => (store && value !== undefined ? store.current.get(value) : false)
-
-	const stored = useSyncExternalStore(subscribe, read, read)
+	const stored = useKeyedValue(store?.current ?? null, value, false)
 
 	if (store) return { current: stored, onValueChange: store.onValueChange }
 

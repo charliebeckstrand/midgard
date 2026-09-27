@@ -1,10 +1,10 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { useKeyedStore } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/json-tree'
-import { createKeyedStore } from '../../utilities'
 import { JsonTreeContext } from './context'
 import { JsonTreeNode } from './json-tree-node'
 import { buildSearchIndex, normalizeSearch, type Search } from './json-tree-utilities'
@@ -46,6 +46,11 @@ export type JsonTreeProps = {
 	className?: string
 }
 
+/** Reads whether a path is in the controlled expanded set. */
+function expansionReader(expanded: ReadonlySet<string> | undefined): (path: string) => boolean {
+	return (path) => expanded?.has(path) ?? false
+}
+
 /**
  * Collapsible `role="tree"` view for an arbitrary {@link JsonValue}. Expands to
  * `defaultExpandDepth` by default, or runs controlled via `expanded` /
@@ -82,18 +87,14 @@ export function JsonTree({
 
 	// The open state of each path in the controlled set. A node reads its own
 	// path, so a new set renders only the nodes whose open state changed.
-	const [expansion] = useState(() =>
-		createKeyedStore((path: string) => expanded?.has(path) ?? false),
-	)
+	const expansion = useKeyedStore(expanded, expansionReader)
 
 	// The latest set and handler, for a toggle that keeps its identity.
 	const latest = useRef({ expanded, onExpandedChange })
 
 	useLayoutEffect(() => {
 		latest.current = { expanded, onExpandedChange }
-
-		expansion.publish((path) => expanded?.has(path) ?? false)
-	}, [expansion, expanded, onExpandedChange])
+	}, [expanded, onExpandedChange])
 
 	// Controlled without a handler is read-only, as a controlled input with no
 	// `onChange` is.

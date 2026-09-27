@@ -2,7 +2,7 @@
 
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { createContext } from '../../core'
-import { useLifted } from '../../hooks/use-lifted-store'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { KeyedStore } from '../../utilities'
 
 /**
@@ -52,7 +52,7 @@ export const [KanbanContext, useKanbanContext] = createContext<KanbanContextValu
  * @throws When no `<Kanban>` is mounted above the caller.
  */
 export function useKanbanCardLifted(cardId: string): boolean {
-	return useLifted(useKanbanContext().liftedStore, cardId)
+	return useKeyedValue(useKanbanContext().liftedStore, cardId)
 }
 
 /** Column-facing pointer-drag state: the active card and per-column ordering, both of which change every drag-over move. */

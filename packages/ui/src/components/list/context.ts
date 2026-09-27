@@ -4,7 +4,7 @@ import type { DraggableAttributes } from '@dnd-kit/core'
 import type { SyntheticListenerMap } from '@dnd-kit/core/dist/hooks/utilities'
 import type { CSSProperties, KeyboardEvent } from 'react'
 import { createContext } from '../../core'
-import { useLifted } from '../../hooks/use-lifted-store'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import type { ListVariant } from '../../recipes/kata/list'
 import type { KeyedStore } from '../../utilities'
 
@@ -53,7 +53,7 @@ export const [ListContext, useListContext] = createContext<ListContextValue>('Li
  * @throws When no `<List>` is mounted above the caller.
  */
 export function useListItemLifted(id: string): boolean {
-	return useLifted(useListContext().liftedStore, id)
+	return useKeyedValue(useListContext().liftedStore, id)
 }
 
 /** Per-item drag bindings shared with an item and its handle: the item `id`, sortable refs/attributes/listeners, transform `style`, and the `dragging` flag. */

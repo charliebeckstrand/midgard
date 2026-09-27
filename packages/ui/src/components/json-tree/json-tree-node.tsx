@@ -1,11 +1,11 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import { memo, useCallback, useMemo, useState, useSyncExternalStore } from 'react'
+import { memo, useMemo, useState } from 'react'
 import { dataAttr } from '../../core'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/json-tree'
-import { noop } from '../../utilities'
 import { JsonTreeContext, useJsonTreeContext } from './context'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
@@ -81,15 +81,7 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 	const branch = isBranch(value)
 
 	// Only a controlled branch reads the expanded set, and it reads its own path.
-	const subscribeExpanded = useCallback(
-		(listener: () => void) =>
-			controlled && branch ? expansion.subscribe(nodePath, listener) : noop,
-		[controlled, branch, expansion, nodePath],
-	)
-
-	const readExpanded = () => controlled && branch && expansion.get(nodePath)
-
-	const expandedHas = useSyncExternalStore(subscribeExpanded, readExpanded, readExpanded)
+	const expandedHas = useKeyedValue(controlled && branch ? expansion : null, nodePath, false)
 
 	const entries = useMemo(() => getEntries(value), [value])
 
