@@ -1176,11 +1176,16 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// the box — not the marks — owns the size. The view frame is the canonical
 	// one until the container is measured, then the measured pixels, so the
 	// geography paints on the first commit without waiting to be measured.
+	//
+	// The SVG is out of flow, as `ChartPlotBox` requires. In flow, its `viewBox`
+	// ratio gave the box a content height. A container that sizes to its content,
+	// such as a `1fr` grid row, then kept the height of the last frame. A fill map
+	// that became narrow and then wide again stayed taller than its container.
 	const svg = shape.viewWidth > 0 && shape.viewHeight > 0 && (
 		<svg
 			ref={svgRef}
 			aria-hidden="true"
-			className="block size-full"
+			className="absolute inset-0 block size-full"
 			viewBox={`0 0 ${shape.viewWidth} ${shape.viewHeight}`}
 		>
 			<MapPlatContext value={plat}>
