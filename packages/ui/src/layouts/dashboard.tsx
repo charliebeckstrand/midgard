@@ -3,7 +3,7 @@
 import { SlidersHorizontal } from 'lucide-react'
 import type { PropsWithChildren, ReactNode } from 'react'
 import { Button } from '../components/button'
-import { Drawer, DrawerBody, DrawerTitle } from '../components/drawer'
+import { Drawer, DrawerBody, DrawerTitle, DrawerTrigger } from '../components/drawer'
 import { Icon } from '../components/icon'
 import { useOffcanvas } from '../hooks/use-offcanvas'
 import { Box } from '../structure/box'
@@ -73,10 +73,12 @@ export function DashboardLayout({ filters, onOpenChange, children }: DashboardLa
 
 						{/* Filter trigger on mobile */}
 						<Box className="shrink-0 lg:hidden">
-							<Button type="button" variant="outline" onClick={() => setOpen(true)}>
-								<Icon icon={<SlidersHorizontal />} />
-								Filters
-							</Button>
+							<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+								<Button type="button" variant="outline">
+									<Icon icon={<SlidersHorizontal />} />
+									Filters
+								</Button>
+							</DrawerTrigger>
 						</Box>
 
 						{/* Filter drawer on mobile */}

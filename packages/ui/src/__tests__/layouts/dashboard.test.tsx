@@ -29,6 +29,20 @@ describe('DashboardLayout', () => {
 		expect(screen.getByText('Filters', { selector: 'h2,h3,[role="heading"]' })).toBeInTheDocument()
 	})
 
+	it('tells assistive technology that the filters button opens a dialog, and its state', () => {
+		renderUI(<DashboardLayout filters={<div>filter content</div>}>content</DashboardLayout>)
+
+		const trigger = screen.getByRole('button', { name: 'Filters' })
+
+		expect(trigger).toHaveAttribute('aria-haspopup', 'dialog')
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'false')
+
+		fireEvent.click(trigger)
+
+		expect(trigger).toHaveAttribute('aria-expanded', 'true')
+	})
+
 	it('reports the mobile filter drawer opening', () => {
 		const onOpenChange = vi.fn()
 

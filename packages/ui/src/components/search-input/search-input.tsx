@@ -21,7 +21,8 @@ export type SearchInputProps = Omit<
 	InputProps,
 	'type' | 'prefix' | 'suffix' | 'value' | 'defaultValue'
 > & {
-	value?: string
+	/** Controlled text. `undefined` leaves the field uncontrolled; `null` keeps it controlled and empty (CONVENTIONS §7.3). */
+	value?: string | null
 	defaultValue?: string
 	/** Fires with the current query text; the value-first counterpart to `onChange`. */
 	onValueChange?: (value: string) => void

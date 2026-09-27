@@ -1,5 +1,6 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
+
 import {
 	CreditCardInput,
 	CreditCardInputCvv,
@@ -23,6 +24,18 @@ describe('CreditCardInput', () => {
 		expect(input).toHaveAttribute('inputmode', 'numeric')
 
 		expect(container.querySelector('[data-slot="icon"]')).toBeInTheDocument()
+	})
+
+	it('keeps a null value controlled and empty (§7.3)', async () => {
+		const { container } = renderUI(<CreditCardInput value={null} onValueChange={() => {}} />)
+
+		const input = getSlot<HTMLInputElement>(container, 'credit-card-input')
+
+		const user = userEvent.setup({ delay: null })
+
+		await user.type(input, '42')
+
+		expect(input.value).toBe('')
 	})
 
 	it('formats 16-digit card numbers in 4-4-4-4 groups', async () => {

@@ -13,6 +13,7 @@ import {
 import { createPortal } from 'react-dom'
 import { Button } from '../../components/button'
 import { Drawer } from '../../components/drawer/drawer'
+import { DrawerTrigger } from '../../components/drawer/slots'
 import { Icon } from '../../components/icon'
 import { Sheet } from '../../components/sheet/sheet'
 import { cn, createContext } from '../../core'
@@ -179,13 +180,14 @@ export function SidebarLayout({
 
 			{/* Navbar on mobile */}
 			<Flex align="center" className={cn('lg:p-0 lg:hidden', NAVBAR_PADDING[space])}>
-				<Button
-					type="button"
-					variant="bare"
-					aria-label="Open navigation"
-					prefix={<Icon icon={<Menu />} />}
-					onClick={() => setOpen(true)}
-				/>
+				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
+					<Button
+						type="button"
+						variant="bare"
+						aria-label="Open navigation"
+						prefix={<Icon icon={<Menu />} />}
+					/>
+				</DrawerTrigger>
 				{navbar && <div className="min-w-0 flex-1">{navbar}</div>}
 				{actions && <div className="flex items-center shrink-0 ms-auto">{actions}</div>}
 			</Flex>

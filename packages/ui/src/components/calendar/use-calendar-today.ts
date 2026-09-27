@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useHydrated } from '../../hooks/use-hydrated'
+import { subscribeDocumentEvent } from '../../utilities/document-listener'
 import { isSameDay } from './calendar-utilities'
 
 /** The instant of the local midnight that ends the day of `date`, in milliseconds. @internal */
@@ -62,12 +63,12 @@ export function useCalendarToday(): Date | null {
 
 		arm()
 
-		document.addEventListener('visibilitychange', handleVisibility)
+		const unsubscribe = subscribeDocumentEvent('visibilitychange', handleVisibility)
 
 		return () => {
 			clearTimeout(timer)
 
-			document.removeEventListener('visibilitychange', handleVisibility)
+			unsubscribe()
 		}
 	}, [today])
 
