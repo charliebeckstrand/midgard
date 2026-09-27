@@ -68,13 +68,20 @@ never disagree, and its own search finds within that.
 
 ## Data
 
-Places live in `.data/places.json`, written by the route handlers under
-`app/api/places`. `src/server/places-store.ts` is the one module that knows
-where they live, so a gateway or a database replaces that file alone.
+Each user has two JSON documents: `places` holds the list of places, and
+`visits` holds the visited regions, under a key per atlas. The route handlers
+under `app/api` read and write them through the stores in `src/server`, and
+`src/server/documents.ts` is the one module that knows where the documents live.
 
-Visited regions live beside them in `.data/visits.json`, under a key per atlas.
 The two scopes are kept apart because the names collide: Georgia is a state of
 the United States and Georgia is a country.
+
+The deployed service keeps the documents in the `documents` table of a Postgres
+database (`db/schema.sql`), on the managed cluster that Asgard uses. A deploy
+replaces the container, so a file on its disk does not outlive the deploy. The
+`migrate` job of `.do/app.yaml` applies the schema before each deploy. Without
+`DATABASE_URL`, `next dev` keeps the documents under `.data/users`, and a
+production server refuses the request.
 
 The geometry comes from `us-atlas` and `world-atlas`, served by
 `app/api/atlas/states` and `app/api/atlas/countries`. The routes keep both

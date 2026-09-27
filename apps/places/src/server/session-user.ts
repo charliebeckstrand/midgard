@@ -8,7 +8,7 @@ import { getSession, type Role } from 'auth'
  * the session, so a cookie that is not valid gets a `401`. With `role`, a user
  * without that role, or whose email is not verified, gets a `403`. A route that
  * changes data asks for `user`, so an account made in seconds with an address
- * nobody checked can't fill the disk.
+ * nobody checked can't fill the database.
  */
 export async function authorize(role?: Role): Promise<string | Response> {
 	const session = await getSession()

@@ -2,7 +2,7 @@ import { addPlace, listPlaces, MAX_PLACES } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
 import { authorize, userOnly } from '@/server/session-user'
 
-/** The store reads the filesystem, so this route is never prerendered. */
+/** The store reads the database, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
 
 /** Every place of the user, newest visit first. */

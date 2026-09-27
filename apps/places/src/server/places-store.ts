@@ -1,40 +1,41 @@
 import { randomUUID } from 'node:crypto'
 import { parsePlace } from '../schemas/place'
 import type { Place, PlaceDraft } from '../types'
-import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
+import { readDocument, writeDocument } from './documents'
+import { createQueue } from './json-file'
 
 /**
- * The store: the places of each user, in one JSON file for each user.
+ * The store: the places of each user, in one document for each user (see `documents.ts`).
  *
- * It is the one module that knows where places live, so a gateway or a database
- * can replace this file without the handlers, the queries, or the components
- * changing at all.
+ * It is the one module that the handlers call for places, so a change to the
+ * storage does not reach the handlers, the queries, or the components.
  *
  * Every write goes through {@link serialize}, which is what keeps two requests
  * landing together from each reading the same list and writing back over one
- * another.
+ * another. The queue is in the process, so it holds while the service runs one
+ * instance, which `.do/app.yaml` sets.
  */
 
 const serialize = createQueue()
 
-/** The most places one user keeps, so no account can fill the disk. */
+/** The most places one user keeps, so no account can fill the database. */
 export const MAX_PLACES = 1000
 
-/** Reads the file, or an empty list where it does not exist yet. */
+/** Reads the document, or an empty list where it does not exist yet. */
 async function readAll(userId: string): Promise<unknown[]> {
-	const parsed = await readJsonFile(userFile(userId, 'places.json'))
+	const parsed = await readDocument(userId, 'places')
 
 	return Array.isArray(parsed) ? parsed : []
 }
 
 /** Writes the whole list, atomically. */
 function writeAll(userId: string, places: Place[]): Promise<void> {
-	return writeJsonFile(userFile(userId, 'places.json'), places)
+	return writeDocument(userId, 'places', places)
 }
 
 /**
  * Every stored place, newest visit first, dropping any record that no longer
- * reads as one — a hand-edited file must not put a point with no position on the
+ * reads as one — a hand-edited document must not put a point with no position on the
  * map.
  */
 export async function listPlaces(userId: string): Promise<Place[]> {
