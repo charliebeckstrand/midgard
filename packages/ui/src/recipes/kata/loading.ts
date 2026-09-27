@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, narabi } from '../kiso'
+import { type DensityStep, iro, narabi } from '../kiso'
 
 const { marker } = iro
 const { flex } = narabi
@@ -40,19 +40,16 @@ const dot = defineRecipe({
 /**
  * Rotating SVG indicator: indeterminate spinner. The spin is
  * `motion-safe:`-gated, resting as a static glyph under
- * `prefers-reduced-motion` (WCAG 2.3.3).
+ * `prefers-reduced-motion` (WCAG 2.3.3). Each size step is a `density-*`
+ * class, so the spinner takes the step of its nearest density scope.
  */
 const spinner = defineRecipe({
-	base: 'inline-block shrink-0 motion-safe:animate-spin',
-	size: {
-		xs: 'size-3',
-		sm: 'size-4',
-		md: 'size-5',
-		lg: 'size-6',
-		xl: 'size-8',
-	},
+	base: [
+		'inline-block shrink-0 motion-safe:animate-spin',
+		'density-xs:size-3 density-sm:size-4 density-md:size-5 density-lg:size-6 density-xl:size-8',
+	],
 	color,
-	defaults: { size: 'md', color: 'current' },
+	defaults: { color: 'current' },
 })
 
 export const k = defineRecipe(
@@ -73,5 +70,8 @@ export const k = defineRecipe(
 
 /** Recipe variant props for {@link LoadingDots} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
 export type LoadingDotsVariants = VariantProps<typeof k>
-/** Recipe variant props for {@link LoadingSpinner} — its styling axes (`size`, `color`), for consumers composing custom slots. */
-export type LoadingSpinnerVariants = VariantProps<typeof spinner>
+/** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
+export type LoadingSpinnerVariants = VariantProps<typeof spinner> & {
+	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
+	size?: DensityStep
+}

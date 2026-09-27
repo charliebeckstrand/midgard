@@ -1,43 +1,27 @@
-import { iro, ji, type Step, sun } from '../kiso'
+import { iro, ji } from '../kiso'
 
 const { text } = iro
 const { size } = ji
 
 /**
- * Card-side projections onto its direct `data-slot=card-*` children. Header
- * and footer carry none of their own spacing: like the body, they're static
- * leaves that can't read `size`. The card is therefore the single source for the
- * header's gap to the body (`pb`) and the footer's gap from the body (`pt`). It
- * also owns the footer's own action-row gap (one step tighter than `ma.gap`, so
- * actions sit close). Direct-child selectors keep nested cards independent.
+ * Card kata. Each step is a `density-*` class. Each part takes the step of its
+ * nearest density scope. That scope is the card itself when it has a `size`,
+ * else the scope around it. The frame owns the outer padding and the radius. A section
+ * pads only the inner edge that it shares with the body: the header below it,
+ * the footer above it. The footer also owns its action-row gap, one step
+ * tighter than `ma.gap`, so actions sit close. A nested card with a `size` is
+ * its own scope, so its sections do not follow the outer card.
  */
-const slots = {
-	sm: [
-		'*:data-[slot=card-header]:pb-2',
-		'*:data-[slot=card-footer]:pt-2',
-		'*:data-[slot=card-footer]:gap-1',
-	],
-	md: [
-		'*:data-[slot=card-header]:pb-3',
-		'*:data-[slot=card-footer]:pt-3',
-		'*:data-[slot=card-footer]:gap-2',
-	],
-	lg: [
-		'*:data-[slot=card-header]:pb-4',
-		'*:data-[slot=card-footer]:pt-4',
-		'*:data-[slot=card-footer]:gap-3',
-	],
-} as const satisfies Record<Step, readonly string[]>
-
-const radius = {
-	sm: sun.sm.radius,
-	md: sun.md.radius,
-	lg: sun.lg.radius,
-} as const satisfies Record<Step, 'sm' | 'md' | 'lg'>
-
 export const k = {
-	slots,
-	radius,
-	header: text.default,
+	frame: [
+		'density-sm:p-2 density-md:p-3 density-lg:p-4',
+		'density-sm:rounded-sm density-md:rounded-md density-lg:rounded-lg',
+	],
+	header: [text.default, 'density-sm:pb-2 density-md:pb-3 density-lg:pb-4'],
+	footer: [
+		'flex items-center',
+		'density-sm:pt-2 density-md:pt-3 density-lg:pt-4',
+		'density-sm:gap-1 density-md:gap-2 density-lg:gap-3',
+	],
 	description: [size.sm, text.muted],
 } as const

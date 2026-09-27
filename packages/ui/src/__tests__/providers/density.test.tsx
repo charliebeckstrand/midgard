@@ -85,10 +85,10 @@ describe('useDensityLevel', () => {
 })
 
 describe('DensityProvider element', () => {
-	it('stamps the level onto a data-density slot', () => {
+	it('stamps the step onto a data-density slot', () => {
 		const { container } = renderUI(<DensityProvider density="compact">content</DensityProvider>)
 
-		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'compact')
+		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('renders the wrapper as display: contents', () => {

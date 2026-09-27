@@ -109,9 +109,7 @@ describe('control affix has-badge compensation', () => {
 
 		const hostPx = findSpacing(control.density[step], 'px-[')
 
-		const badgeClasses = badge.config.variants.size?.[badgeSize] as readonly unknown[]
-
-		const badgePx = findSpacing(badgeClasses, 'px-[')
+		const badgePx = findSpacing([badge.config.base], `density-${badgeSize}:px-[`)
 
 		const expected = hostPx - badgePx + CHIP_INSET
 
@@ -134,9 +132,7 @@ describe('control affix has-badge compensation', () => {
 
 			const hostPx = findSpacing(control.density[step], 'px-[')
 
-			const badgeClasses = badge.config.variants.size?.[badgeSize] as readonly unknown[]
-
-			const badgePx = findSpacing(badgeClasses, 'px-[')
+			const badgePx = findSpacing([badge.config.base], `density-${badgeSize}:px-[`)
 
 			return hostPx - badgePx
 		})

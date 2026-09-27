@@ -21,12 +21,14 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * link at the call site.
  *
  * @remarks
- * Static leaf: renders in React Server Components. `size` is explicit
- * (recipe default `md`); prefix and suffix icons size through the badge's
- * own slot projection (`shaku.icon` in the kata size rows). Inside a control
- * affix slot, set `size` one step below the host control: the affix
- * compensation constants in `kiso/control/affix` assume the stepped-down
- * chip.
+ * Static leaf: renders in React Server Components. Without `size`, the badge
+ * takes the step of the nearest density scope, and `md` outside one. It reads
+ * no context: the kata writes each step under a `density-*` variant of
+ * `ui/tailwind.css`. An explicit `size` writes `data-density` on the badge, so
+ * the badge is its own scope. Prefix and suffix icons size through the badge's
+ * own slot projection. Inside a control affix slot, set `size` one step below
+ * the host control: the affix compensation constants in `kiso/control/affix`
+ * assume the stepped-down chip.
  */
 export function Badge({
 	variant = 'solid',
@@ -41,18 +43,16 @@ export function Badge({
 	suffix,
 	...props
 }: BadgeProps) {
-	const resolvedSize = size ?? 'md'
-
 	return (
 		<PolymorphicStatic
 			as="span"
 			data-slot="badge"
-			data-size={resolvedSize}
+			data-density={size}
 			data-has-prefix={dataAttr(!!prefix)}
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, size: resolvedSize, radius }), className)}
+			className={cn(k({ variant, color, radius }), className)}
 			{...props}
 		>
 			{prefix}

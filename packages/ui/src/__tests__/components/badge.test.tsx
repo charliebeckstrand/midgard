@@ -30,8 +30,8 @@ describe('Badge', () => {
 
 		const badge = bySlot(container, 'badge')
 
-		expect(badge).toHaveAttribute('data-size', 'xs')
+		expect(badge).toHaveAttribute('data-density', 'xs')
 
-		expect(badge).toHaveClass('text-xs')
+		expect(badge).toHaveClass('density-xs:text-xs')
 	})
 })

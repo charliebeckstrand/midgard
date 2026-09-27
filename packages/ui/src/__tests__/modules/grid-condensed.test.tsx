@@ -91,7 +91,8 @@ describe('Grid condensed', () => {
 
 	it('does not shrink a consumer badge outside the grid', () => {
 		// The badge step-down is a table-scoped projection, so a badge elsewhere on
-		// the page is untouched — the class lives on the grid's own `<table>`.
+		// the page is untouched: the class lives on the grid's own `<table>`, and
+		// the badge opens no density scope of its own.
 		renderUI(
 			<>
 				<Badge>loose</Badge>
@@ -99,6 +100,6 @@ describe('Grid condensed', () => {
 			</>,
 		)
 
-		expect(screen.getByText('loose')).toHaveAttribute('data-size', 'md')
+		expect(screen.getByText('loose')).not.toHaveAttribute('data-density')
 	})
 })

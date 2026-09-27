@@ -1,4 +1,3 @@
-import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
@@ -22,86 +21,59 @@ describe('Card', () => {
 })
 
 describe('Card size system', () => {
-	it.each<[string, () => ReactElement, string]>([
-		['defaults to md and exposes data-size for descendants', () => <Card>content</Card>, 'md'],
-		['reflects an explicit size prop on data-size', () => <Card size="lg">content</Card>, 'lg'],
-		[
-			// Static leaf: ambient density reaches client components only.
-			'ignores an ambient Density provider',
-			() => (
-				<DensityProvider density="compact">
-					<Card>content</Card>
-				</DensityProvider>
-			),
-			'md',
-		],
-	])('%s', (_name, ui, expected) => {
-		const { container } = renderUI(ui())
+	// jsdom loads no stylesheet, so these cases check the scope and the classes.
+	// density-scope.test.tsx checks the computed styles in a real browser.
+	it('opens no scope without a size, so it follows the scope around it', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Card>content</Card>
+			</DensityProvider>,
+		)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', expected)
+		expect(bySlot(container, 'card')).not.toHaveAttribute('data-density')
 	})
 
-	it('renders an inner-radius class matching the resolved size', () => {
+	it('opens a scope at an explicit size', () => {
+		const { container } = renderUI(<Card size="lg">content</Card>)
+
+		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')
+	})
+
+	it('carries each padding and radius step on the frame', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')?.className).toContain('rounded-md')
+		expect(bySlot(container, 'card')).toHaveClass(
+			'density-sm:p-2',
+			'density-md:p-3',
+			'density-lg:p-4',
+			'density-sm:rounded-sm',
+			'density-md:rounded-md',
+			'density-lg:rounded-lg',
+		)
 	})
 
-	it.each<[string, () => ReactElement, string]>([
-		[
-			'sm',
-			() => (
-				<Card size="sm">
-					<CardHeader>header</CardHeader>
-				</Card>
-			),
-			'pb-2',
-		],
-		[
-			'the md default',
-			() => (
-				<Card>
-					<CardHeader>header</CardHeader>
-				</Card>
-			),
-			'pb-3',
-		],
-		[
-			'lg',
-			() => (
-				<Card size="lg">
-					<CardHeader>header</CardHeader>
-				</Card>
-			),
-			'pb-4',
-		],
-	])('projects the %s header gap onto direct children', (_label, ui, expected) => {
-		const { container } = renderUI(ui())
-
-		// CardHeader carries none of its own gap at any step; the card is the
-		// single source, so even the md default shows up as a projection.
-		expect(bySlot(container, 'card')?.className).toContain(`*:data-[slot=card-header]:${expected}`)
-
-		expect(bySlot(container, 'card-header')?.className ?? '').not.toMatch(/\bpb-\d/)
-	})
-
-	it.each([
-		['a footer', <CardFooter key="footer">footer</CardFooter>],
-		['a body', <CardBody key="body">body</CardBody>],
-	])('keeps the header gap when %s follows it', (_, sibling) => {
+	it('pads the header and the footer on the edges that they share with the body', () => {
 		const { container } = renderUI(
 			<Card>
 				<CardHeader>header</CardHeader>
-				{sibling}
+				<CardBody>body</CardBody>
+				<CardFooter>footer</CardFooter>
 			</Card>,
 		)
 
-		// The recipe has no sibling rule, so the md gap applies before any sibling.
-		const className = bySlot(container, 'card')?.className ?? ''
+		expect(bySlot(container, 'card-header')).toHaveClass(
+			'density-sm:pb-2',
+			'density-md:pb-3',
+			'density-lg:pb-4',
+		)
 
-		expect(className).toContain('*:data-[slot=card-header]:pb-3')
+		expect(bySlot(container, 'card-footer')).toHaveClass(
+			'density-sm:pt-2',
+			'density-md:pt-3',
+			'density-lg:pt-4',
+		)
 
-		expect(className).not.toMatch(/card-header[^\s]*(\+|:has\()/)
+		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp[a-z]?-\d/)
 	})
 
 	it('CardTitle text size follows its explicit size prop, bumped one step up', () => {
@@ -178,7 +150,7 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 
-	it('renders nested cards at their own size', () => {
+	it('lets an unsized nested card follow the outer card', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>
@@ -189,13 +161,12 @@ describe('Card size system', () => {
 
 		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
 
-		// The inner card defaults to md; the outer size does not cascade, and
-		// the direct-child section projection cannot reach into it.
-		expect(cards[1]).toHaveAttribute('data-size', 'md')
+		// The inner card opens no scope, so the outer card is its nearest scope.
+		expect(cards[1]).not.toHaveAttribute('data-density')
 	})
 
-	// The frame owns the outer padding on every edge: Card carries a static
-	// `p-{density}` for any child, structural or bare, and never collapses it.
+	// The frame owns the outer padding on every edge: Card carries its padding
+	// steps for any child, structural or bare, and never collapses it.
 	// Sections pad only the inner edge they share with a sibling, so the body
 	// itself carries no padding.
 	it('keeps its frame padding around a structural section', () => {
@@ -208,7 +179,7 @@ describe('Card size system', () => {
 		const cls = bySlot(container, 'card')?.className ?? ''
 
 		// Frame padding survives — no `:has` collapse zeroes it.
-		expect(cls).toContain('p-3')
+		expect(cls).toContain('density-md:p-3')
 
 		expect(cls).not.toContain(':p-0')
 

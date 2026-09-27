@@ -9,9 +9,9 @@ import { k } from '../../recipes/kata/table'
 /** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. Explicit: the table projects the
-	 * resolved padding onto its descendant cells.
-	 * @defaultValue 'snug'
+	 * Density level driving cell padding. The table writes its step to
+	 * `data-density`, and the cells take it. Omit it to follow the nearest
+	 * density scope, and `snug` outside one.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -52,9 +52,11 @@ export type TableProps = TableVariants & {
 
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
- * The table owns `density`, `outline`, `striped`, and `hover` and projects
- * them onto descendant rows and cells, so TableBody, TableCell, and
- * TableHeader read no context.
+ * The table owns `outline`, `striped`, and `hover` and projects them onto
+ * descendant rows and cells. A `density` makes the table a density scope,
+ * and the cells take its step. Without one, the cells follow the nearest
+ * scope around the table. TableBody, TableCell, and TableHeader read no
+ * context.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
@@ -74,9 +76,6 @@ export function Table({
 	children,
 	tableProps,
 }: TableProps) {
-	// 'snug' maps to the md step.
-	const step = densityToSize[density ?? 'snug']
-
 	// `true` keeps the historical default of shading even rows.
 	const stripe = striped === true ? 'even' : striped
 
@@ -88,10 +87,9 @@ export function Table({
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
 				{...tableProps}
-				data-density={step}
+				data-density={density && densityToSize[density]}
 				className={cn(
 					k.base,
-					k.projection.density[step],
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					hover && k.projection.hover,

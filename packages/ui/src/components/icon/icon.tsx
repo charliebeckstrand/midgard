@@ -19,10 +19,12 @@ export type IconProps = {
 	 */
 	icon: ReactElement
 	/**
-	 * Named scale step or a raw pixel value. Inside a sized host (Button, Badge,
-	 * Sidebar, control affix slots) the host's `data-slot=icon` projection owns
-	 * the size and overrides this.
-	 * @defaultValue `'md'`
+	 * Named scale step or a raw pixel value. Omit it to follow the nearest
+	 * density scope, and `md` outside one. A named step makes the icon its own
+	 * scope. Inside a sized host (Button, Sidebar, control affix slots) the
+	 * host's `data-slot=icon` projection owns the size and overrides this. A
+	 * Badge is a density host: its projection sets the size of an icon with no
+	 * `size`.
 	 */
 	size?: IconSize | number
 	className?: string
@@ -44,24 +46,23 @@ export type IconProps = {
  * decorative and stays `aria-hidden`.
  */
 export function Icon({ icon, size, className, label }: IconProps) {
-	const resolvedSize = size ?? 'md'
-
-	const isNumeric = typeof resolvedSize === 'number'
+	const isNumeric = typeof size === 'number'
 
 	return cloneElement(icon as ReactElement<Record<string, unknown>>, {
 		...(label ? { role: 'img', 'aria-label': label } : { 'aria-hidden': 'true' }),
 		'data-slot': 'icon',
+		'data-density': isNumeric ? undefined : size,
 		className: cn(
 			'shrink-0',
-			!isNumeric && k.size[resolvedSize],
+			!isNumeric && k.ramp,
 			(icon.props as { className?: string }).className,
 			className,
 		),
 		...(isNumeric && {
 			style: {
 				...(icon.props as { style?: CSSProperties }).style,
-				width: resolvedSize,
-				height: resolvedSize,
+				width: size,
+				height: size,
 			},
 		}),
 	})

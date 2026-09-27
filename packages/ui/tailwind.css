@@ -1,0 +1,276 @@
+/*
+ * Density variants for Tailwind. Import this file in each Tailwind entry that
+ * scans ui. It holds variants only, no styles.
+ *
+ * A density scope is an element with `data-density="xs|sm|md|lg|xl"`.
+ * DensityProvider writes one. A component with an explicit `size` writes one on
+ * its own element. That element is then its own nearest scope, and its subtree
+ * follows it. A kata writes the classes of each step under the matching
+ * variant, for example `density-sm:px-1.5 density-md:px-2 density-lg:px-2.5`.
+ * The element takes the step of the nearest scope, itself included, and reads
+ * no context.
+ *
+ * Rank: the depth of a match is the number of scopes on the path to the
+ * element, the element itself included. Each rung is in a nested cascade layer
+ * of `utilities` with the number of its depth. The nearest scope gives the
+ * deepest match. Each variant lists its rungs from depth 1 up, so Tailwind
+ * emits the layers in that order, and the last layer wins. Thus the nearest
+ * scope wins. A plain utility is in `utilities` itself, and it outranks each
+ * nested layer. So a consumer `className` always wins over a density class.
+ *
+ * Outside each scope, `density-md` applies through its rung at depth 1. A kata
+ * therefore writes no separate base class for the md step.
+ *
+ * The list stops at a depth of 6. When more scopes nest, an outer scope can win.
+ */
+
+@custom-variant density-xs {
+	@layer density-1 {
+		[data-density='xs'] &,
+		&[data-density='xs'] {
+			@slot;
+		}
+	}
+	@layer density-2 {
+		[data-density] [data-density='xs'] &,
+		[data-density] &[data-density='xs'] {
+			@slot;
+		}
+	}
+	@layer density-3 {
+		[data-density] [data-density] [data-density='xs'] &,
+		[data-density] [data-density] &[data-density='xs'] {
+			@slot;
+		}
+	}
+	@layer density-4 {
+		[data-density] [data-density] [data-density] [data-density='xs'] &,
+		[data-density] [data-density] [data-density] &[data-density='xs'] {
+			@slot;
+		}
+	}
+	@layer density-5 {
+		[data-density] [data-density] [data-density] [data-density] [data-density='xs'] &,
+		[data-density] [data-density] [data-density] [data-density] &[data-density='xs'] {
+			@slot;
+		}
+	}
+	@layer density-6 {
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density='xs']
+			&,
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			&[data-density='xs'] {
+			@slot;
+		}
+	}
+}
+
+@custom-variant density-sm {
+	@layer density-1 {
+		[data-density='sm'] &,
+		&[data-density='sm'] {
+			@slot;
+		}
+	}
+	@layer density-2 {
+		[data-density] [data-density='sm'] &,
+		[data-density] &[data-density='sm'] {
+			@slot;
+		}
+	}
+	@layer density-3 {
+		[data-density] [data-density] [data-density='sm'] &,
+		[data-density] [data-density] &[data-density='sm'] {
+			@slot;
+		}
+	}
+	@layer density-4 {
+		[data-density] [data-density] [data-density] [data-density='sm'] &,
+		[data-density] [data-density] [data-density] &[data-density='sm'] {
+			@slot;
+		}
+	}
+	@layer density-5 {
+		[data-density] [data-density] [data-density] [data-density] [data-density='sm'] &,
+		[data-density] [data-density] [data-density] [data-density] &[data-density='sm'] {
+			@slot;
+		}
+	}
+	@layer density-6 {
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density='sm']
+			&,
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			&[data-density='sm'] {
+			@slot;
+		}
+	}
+}
+
+@custom-variant density-md {
+	@layer density-1 {
+		[data-density='md'] &,
+		&[data-density='md'],
+		&:not([data-density], [data-density] *) {
+			@slot;
+		}
+	}
+	@layer density-2 {
+		[data-density] [data-density='md'] &,
+		[data-density] &[data-density='md'] {
+			@slot;
+		}
+	}
+	@layer density-3 {
+		[data-density] [data-density] [data-density='md'] &,
+		[data-density] [data-density] &[data-density='md'] {
+			@slot;
+		}
+	}
+	@layer density-4 {
+		[data-density] [data-density] [data-density] [data-density='md'] &,
+		[data-density] [data-density] [data-density] &[data-density='md'] {
+			@slot;
+		}
+	}
+	@layer density-5 {
+		[data-density] [data-density] [data-density] [data-density] [data-density='md'] &,
+		[data-density] [data-density] [data-density] [data-density] &[data-density='md'] {
+			@slot;
+		}
+	}
+	@layer density-6 {
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density='md']
+			&,
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			&[data-density='md'] {
+			@slot;
+		}
+	}
+}
+
+@custom-variant density-lg {
+	@layer density-1 {
+		[data-density='lg'] &,
+		&[data-density='lg'] {
+			@slot;
+		}
+	}
+	@layer density-2 {
+		[data-density] [data-density='lg'] &,
+		[data-density] &[data-density='lg'] {
+			@slot;
+		}
+	}
+	@layer density-3 {
+		[data-density] [data-density] [data-density='lg'] &,
+		[data-density] [data-density] &[data-density='lg'] {
+			@slot;
+		}
+	}
+	@layer density-4 {
+		[data-density] [data-density] [data-density] [data-density='lg'] &,
+		[data-density] [data-density] [data-density] &[data-density='lg'] {
+			@slot;
+		}
+	}
+	@layer density-5 {
+		[data-density] [data-density] [data-density] [data-density] [data-density='lg'] &,
+		[data-density] [data-density] [data-density] [data-density] &[data-density='lg'] {
+			@slot;
+		}
+	}
+	@layer density-6 {
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density='lg']
+			&,
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			&[data-density='lg'] {
+			@slot;
+		}
+	}
+}
+
+@custom-variant density-xl {
+	@layer density-1 {
+		[data-density='xl'] &,
+		&[data-density='xl'] {
+			@slot;
+		}
+	}
+	@layer density-2 {
+		[data-density] [data-density='xl'] &,
+		[data-density] &[data-density='xl'] {
+			@slot;
+		}
+	}
+	@layer density-3 {
+		[data-density] [data-density] [data-density='xl'] &,
+		[data-density] [data-density] &[data-density='xl'] {
+			@slot;
+		}
+	}
+	@layer density-4 {
+		[data-density] [data-density] [data-density] [data-density='xl'] &,
+		[data-density] [data-density] [data-density] &[data-density='xl'] {
+			@slot;
+		}
+	}
+	@layer density-5 {
+		[data-density] [data-density] [data-density] [data-density] [data-density='xl'] &,
+		[data-density] [data-density] [data-density] [data-density] &[data-density='xl'] {
+			@slot;
+		}
+	}
+	@layer density-6 {
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density='xl']
+			&,
+		[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			[data-density]
+			&[data-density='xl'] {
+			@slot;
+		}
+	}
+}
