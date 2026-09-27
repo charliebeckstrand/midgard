@@ -1,13 +1,25 @@
+import { compact, splitPostcode, splitUsState, type UsState } from './address-input-photon-query'
 import type { AddressParts, AddressProvider, AddressSuggestion } from './types'
 
 type PhotonFeature = {
 	type: 'Feature'
 	geometry: { type: 'Point'; coordinates: [number, number] }
 	properties: {
-		osm_id: number
-		osm_type: string
+		/**
+		 * The OSM object. Absent on a postal code, which Photon builds from the
+		 * addresses that carry it and not from one object.
+		 */
+		osm_id?: number
+		osm_type?: string
 		/** What the match stands for: `house`, `street`, `city`, `other`. */
 		type?: string
+		/** The OSM key and value, such as `place` and `postcode` for a postal code. */
+		osm_key?: string
+		osm_value?: string
+		/** The ISO 3166-1 alpha-2 code of the country, in capitals. */
+		countrycode?: string
+		/** The box of an area: west, north, east, south. */
+		extent?: unknown
 		name?: string
 		housenumber?: string
 		street?: string
@@ -42,7 +54,10 @@ function isPhotonFeature(value: unknown): value is PhotonFeature {
 
 	const p = f.properties as { osm_id?: unknown; osm_type?: unknown }
 
-	return typeof p.osm_id === 'number' && typeof p.osm_type === 'string'
+	return (
+		(p.osm_id === undefined || typeof p.osm_id === 'number') &&
+		(p.osm_type === undefined || typeof p.osm_type === 'string')
+	)
 }
 
 function isPhotonResponse(value: unknown): value is PhotonResponse {
@@ -102,12 +117,56 @@ export type PhotonProviderOptions = {
 	/** Keep only these layers; every layer otherwise. See {@link PhotonLayer}. */
 	layers?: PhotonLayer[]
 	/**
+	 * The country in which a postal code in the query is read, as an ISO 3166-1
+	 * alpha-2 code. See {@link createPhotonProvider} for how the query reads a
+	 * postal code.
+	 *
+	 * A postal code is not unique across countries: 97140 is Sherwood, Oregon,
+	 * and also Rovaniemi, Finland. When a region is set, a code that has no match
+	 * in that region is not read as a postal code. When no region is known, the
+	 * geocoder's first match is the one used.
+	 * @defaultValue the region of the browser's language, such as `US` for `en-US`
+	 */
+	region?: string
+	/**
 	 * Keep only matches carrying these OpenStreetMap tags, in Photon's own
 	 * `key:value` form (`'amenity:restaurant'`), with a leading `!` to exclude.
 	 * The narrow instrument behind {@link layers}: a field that only ever wants
 	 * restaurants asks for the tag.
 	 */
 	osmTag?: string[]
+}
+
+/** Whether the name of a match holds the full name of a state, as a whole word. */
+function namesState(feature: PhotonFeature, state: UsState): boolean {
+	const words = ` ${(feature.properties.name ?? '').toLowerCase().replace(/[^a-z]+/g, ' ')} `
+
+	return words.includes(` ${state.name.toLowerCase()} `)
+}
+
+/**
+ * A Photon extent as the `bbox` parameter takes it: west, south, east, north.
+ * `undefined` where the extent is not four numbers.
+ */
+function boxOf(extent: unknown): [number, number, number, number] | undefined {
+	if (!Array.isArray(extent) || extent.length !== 4) return undefined
+
+	if (!extent.every((value) => typeof value === 'number')) return undefined
+
+	const [west, north, east, south] = extent as number[]
+
+	return [west as number, south as number, east as number, north as number]
+}
+
+/** The region of the browser's language, or `undefined` where there is no browser or no region. */
+function browserRegion(): string | undefined {
+	if (typeof navigator === 'undefined' || !navigator.language) return undefined
+
+	try {
+		return new Intl.Locale(navigator.language).maximize().region
+	} catch {
+		return undefined
+	}
 }
 
 /**
@@ -120,10 +179,27 @@ export type PhotonProviderOptions = {
  * in {@link AddressSuggestion.address} and the position in `latitude` /
  * `longitude`.
  *
- * @param options - Endpoint, result count, language, proximity bias, and the
- * layer / tag filters; see {@link PhotonProviderOptions}.
+ * A query that ends in a postal code searches near that code. Photon matches
+ * each word against the text of a match, and many matches do not hold a postal
+ * code. Without this step, "ice cream 97140" answers with ice cream in other
+ * states.
+ * The provider finds the position of the code first, then searches the rest of
+ * the query with that position as the proximity bias. A query that is only a
+ * code answers with that code. A query that ends in a code that the geocoder
+ * does not know is searched as typed.
+ *
+ * Where the region is `US`, a query that ends in a state searches inside that
+ * state. A full name matches in any case, and a USPS code only in capitals, so
+ * "starbucks Oregon" and "starbucks OR" search Oregon. The query as typed wins
+ * where the state has no match. It also wins where one of its matches holds the
+ * state in its name, as "Mount Washington" does. See
+ * {@link PhotonProviderOptions.region} for the country a code is read in.
+ *
+ * @param options - Endpoint, result count, language, proximity bias, postal
+ * code region, and the layer / tag filters; see {@link PhotonProviderOptions}.
  * @returns A provider to hand `AddressInput`.
- * @remarks Throws on a non-OK status or an unexpected response shape.
+ * @remarks Throws on a non-OK status or an unexpected response shape. A query
+ * that ends in a postal code costs one more request, and a state two more.
  * @example
  * ```tsx
  * const nearby = createPhotonProvider({ bias: { latitude: 44.6, longitude: -124.05 } })
@@ -134,23 +210,7 @@ export type PhotonProviderOptions = {
 export function createPhotonProvider(options: PhotonProviderOptions = {}): AddressProvider {
 	const { endpoint = PHOTON_ENDPOINT, limit = DEFAULT_LIMIT, lang, bias, layers, osmTag } = options
 
-	return async (query, { signal }) => {
-		const params = new URLSearchParams({ q: query, limit: String(limit) })
-
-		if (lang !== undefined) params.set('lang', lang)
-
-		if (bias !== undefined) {
-			params.set('lat', String(bias.latitude))
-
-			params.set('lon', String(bias.longitude))
-		}
-
-		// Repeated rather than joined: Photon reads each as its own term, and a
-		// comma-joined value matches nothing.
-		for (const layer of layers ?? []) params.append('layer', layer)
-
-		for (const tag of osmTag ?? []) params.append('osm_tag', tag)
-
+	async function request(params: URLSearchParams, signal: AbortSignal): Promise<PhotonFeature[]> {
 		const response = await fetch(`${endpoint}?${params}`, { signal })
 
 		if (!response.ok) throw new Error(`Photon request failed: ${response.status}`)
@@ -159,7 +219,141 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 
 		if (!isPhotonResponse(data)) throw new Error('Photon response did not match expected shape')
 
-		return data.features.map(featureToSuggestion)
+		return data.features
+	}
+
+	/** The match for a postal code, or `undefined` where the geocoder has no such code. */
+	async function findPostcode(
+		postcode: string,
+		region: string | undefined,
+		signal: AbortSignal,
+	): Promise<PhotonFeature | undefined> {
+		const params = new URLSearchParams({ q: postcode, limit: '5', osm_tag: 'place:postcode' })
+
+		if (region !== undefined) params.set('countrycode', region)
+
+		const features = await request(params, signal)
+
+		// The geocoder matches loosely, so "97140" can answer with 97141. Only a
+		// code that is the typed code is its position.
+		return features.find(
+			(feature) =>
+				feature.properties.osm_value === 'postcode' &&
+				compact(feature.properties.name ?? '') === compact(postcode),
+		)
+	}
+
+	/** Where a search looks: near a point, or only inside a box. */
+	type Scope = { near?: PhotonProviderOptions['bias']; box?: [number, number, number, number] }
+
+	function search(query: string, scope: Scope, signal: AbortSignal) {
+		const params = new URLSearchParams({ q: query, limit: String(limit) })
+
+		if (lang !== undefined) params.set('lang', lang)
+
+		if (scope.near !== undefined) {
+			params.set('lat', String(scope.near.latitude))
+
+			params.set('lon', String(scope.near.longitude))
+		}
+
+		if (scope.box !== undefined) params.set('bbox', scope.box.join(','))
+
+		// Repeated rather than joined: Photon reads each as its own term, and a
+		// comma-joined value matches nothing.
+		for (const layer of layers ?? []) params.append('layer', layer)
+
+		for (const tag of osmTag ?? []) params.append('osm_tag', tag)
+
+		return request(params, signal)
+	}
+
+	/**
+	 * The matches for `rest` inside a US state, or an empty list where the state
+	 * has no such match.
+	 *
+	 * Photon filters by a box, and a box around a state holds parts of the
+	 * states next to it. A match in another state is therefore removed.
+	 */
+	async function searchInState(
+		rest: string,
+		state: UsState,
+		signal: AbortSignal,
+	): Promise<PhotonFeature[]> {
+		const params = new URLSearchParams({
+			q: state.name,
+			limit: '1',
+			layer: 'state',
+			countrycode: 'US',
+		})
+
+		const [area] = await request(params, signal)
+
+		const box = boxOf(area?.properties.extent)
+
+		if (box === undefined) return []
+
+		const features = await search(rest, { box }, signal)
+
+		return features.filter(
+			(feature) =>
+				feature.properties.state === state.name || feature.properties.state === state.code,
+		)
+	}
+
+	/**
+	 * The matches near a postal code at the end of the query. `null` means that
+	 * the query does not end in a code that the geocoder knows.
+	 */
+	async function searchNearPostcode(
+		query: string,
+		region: string | undefined,
+		signal: AbortSignal,
+	): Promise<PhotonFeature[] | null> {
+		// The longer candidate first, so that "SW1A 1AA" is not read as "1AA".
+		for (const { rest, qualifier } of splitPostcode(query)) {
+			const code = await findPostcode(qualifier, region, signal)
+
+			if (code === undefined) continue
+
+			// A query that is only a code asks for the code, and the code in the
+			// region is the one the reader means.
+			if (rest === '') return [code]
+
+			const [longitude, latitude] = code.geometry.coordinates
+
+			return search(rest, { near: { latitude, longitude } }, signal)
+		}
+
+		return null
+	}
+
+	return async (query, { signal }) => {
+		const region = (options.region ?? browserRegion())?.toUpperCase()
+
+		const nearPostcode = await searchNearPostcode(query, region, signal)
+
+		if (nearPostcode !== null) return nearPostcode.map(featureToSuggestion)
+
+		const inState = region === 'US' ? splitUsState(query) : null
+
+		if (inState === null) {
+			const features = await search(query, { near: bias }, signal)
+
+			return features.map(featureToSuggestion)
+		}
+
+		// A state is too large to search near its center, so the search stays
+		// inside it. The query as typed runs beside it, because a state name can
+		// be part of a name: "Mount Washington" is in New Hampshire.
+		const [typed, scoped] = await Promise.all([
+			search(query, { near: bias }, signal),
+			searchInState(inState.rest, inState.state, signal),
+		])
+
+		const named = typed.some((feature) => namesState(feature, inState.state))
+
+		return (named || scoped.length === 0 ? typed : scoped).map(featureToSuggestion)
 	}
 }
 
@@ -172,6 +366,25 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
  * @see {@link createPhotonProvider} to bias the ranking or narrow the layers.
  */
 export const photonProvider: AddressProvider = createPhotonProvider()
+
+/**
+ * The identity of a match.
+ *
+ * The OSM object, and what this document says it is. The object alone does not
+ * identify a match, because Photon indexes one object as several documents. A
+ * search for "Clearwater" returns relation 192205 twice: once as a village and
+ * once as a locality. Two results under one id merge wherever a consumer stores
+ * them by that id. `type` is what parts them.
+ *
+ * A postal code has no object, so its country and its code identify it.
+ */
+function featureId(p: PhotonFeature['properties']): string {
+	if (p.osm_type === undefined || p.osm_id === undefined) {
+		return `${p.osm_key ?? 'place'}:${p.osm_value ?? p.type ?? 'other'}:${p.countrycode ?? ''}:${p.name ?? ''}`
+	}
+
+	return p.type === undefined ? `${p.osm_type}${p.osm_id}` : `${p.osm_type}${p.osm_id}:${p.type}`
+}
 
 function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 	const p = feature.properties
@@ -198,12 +411,7 @@ function featureToSuggestion(feature: PhotonFeature): AddressSuggestion {
 	const [primary = '', ...rest] = [p.name, street, locality].filter(Boolean)
 
 	return {
-		// The OSM object, and what this document says it is. The object alone does
-		// not identify a match: Photon indexes one object as several documents, so
-		// a search for "Clearwater" returns relation 192205 twice — once as a
-		// village and once as a locality — and two results under one id merge
-		// wherever a consumer stores them by it. `type` is what parts them.
-		id: p.type === undefined ? `${p.osm_type}${p.osm_id}` : `${p.osm_type}${p.osm_id}:${p.type}`,
+		id: featureId(p),
 		label: primary,
 		description: rest.join(', ') || undefined,
 		name: p.name,
