@@ -72,7 +72,7 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/pagination/pagination-utilities.tsx', { order: 1, note: 'lead' }],
 	['components/stepper/stepper-separator.tsx', { order: 1, note: 'lead' }],
 	['primitives/option/option.tsx', { order: 4, note: 'lead' }],
-	['primitives/polymorphic/fallback.tsx', { order: 1, note: 'lead' }],
+	['primitives/polymorphic/polymorphic-static.tsx', { order: 1, note: 'lead' }],
 	['components/badge/badge.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/description.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/fieldset/field.tsx', { anchor: 1, note: 'lead S1' }],

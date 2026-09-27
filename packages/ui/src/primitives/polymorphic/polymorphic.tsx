@@ -1,9 +1,9 @@
 'use client'
 
-import type { ComponentProps, ElementType, Ref } from 'react'
+import type { ComponentProps, ElementType } from 'react'
 import { type LinkProps, useLink } from '../link'
-import { resolveLinkRel } from '../link/link-rel'
-import { PolymorphicFallback, type PolymorphicRenderProps } from './fallback'
+import { PolymorphicStatic } from './polymorphic-static'
+import type { PolymorphicRenderProps } from './types'
 
 /**
  * An `href`-driven link switch with element polymorphism. The sole runtime
@@ -36,43 +36,10 @@ export type PolymorphicProps<Fallback extends ElementType, Omitted extends Prope
  * `target="_blank"` and no `rel` gets `rel="noopener noreferrer"`.
  * @see {@link PolymorphicStatic}
  */
-export function Polymorphic<Fallback extends ElementType>({
-	as,
-	href,
-	ref,
-	'data-slot': slot,
-	className,
-	children,
-	...rest
-}: PolymorphicRenderProps<Fallback>) {
+export function Polymorphic<Fallback extends ElementType>(props: PolymorphicRenderProps<Fallback>) {
 	const { component: LinkComponent } = useLink()
 
-	if (href !== undefined) {
-		const linkRest = rest as Omit<LinkProps, 'href' | 'className'>
-
-		return (
-			<LinkComponent
-				ref={ref as Ref<HTMLAnchorElement>}
-				data-slot={slot}
-				href={href}
-				className={className}
-				{...linkRest}
-				rel={resolveLinkRel(linkRest.target, linkRest.rel)}
-			>
-				{children}
-			</LinkComponent>
-		)
-	}
-
-	return (
-		<PolymorphicFallback
-			as={as}
-			ref={ref}
-			slot={slot}
-			className={className}
-			rest={rest as ComponentProps<Fallback>}
-		>
-			{children}
-		</PolymorphicFallback>
-	)
+	// One render path for both tiers: the registered link is the `render`
+	// element of `PolymorphicStatic`, which merges the resolved props into it.
+	return <PolymorphicStatic {...props} render={<LinkComponent href="" />} />
 }

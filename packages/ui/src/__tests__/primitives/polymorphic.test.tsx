@@ -1,6 +1,7 @@
-import { type ComponentPropsWithoutRef, createRef } from 'react'
+import { type ComponentProps, type ComponentPropsWithoutRef, createRef } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Polymorphic, PolymorphicStatic } from '../../primitives/polymorphic'
+import { UIProvider } from '../../providers/ui'
 import { bySlot, renderUI } from '../helpers'
 
 describe('Polymorphic', () => {
@@ -195,5 +196,33 @@ describe('PolymorphicStatic', () => {
 		expect(ref.current).toBe(bySlot(container, 'tag'))
 
 		expect(renderRef.current).toBeNull()
+	})
+})
+
+describe('Polymorphic with a registered link', () => {
+	it('renders the registered link with the resolved props and forwards ref', () => {
+		function RouterLink(props: ComponentProps<'a'>) {
+			return <a data-router="" {...props} />
+		}
+
+		const ref = createRef<HTMLAnchorElement>()
+
+		const { container } = renderUI(
+			<UIProvider link={RouterLink}>
+				<Polymorphic as="span" href="/path" ref={ref} data-slot="tag" className="cls">
+					Link
+				</Polymorphic>
+			</UIProvider>,
+		)
+
+		const el = bySlot(container, 'tag')
+
+		expect(el).toHaveAttribute('data-router')
+
+		expect(el).toHaveAttribute('href', '/path')
+
+		expect(el).toHaveClass('cls')
+
+		expect(ref.current).toBe(el)
 	})
 })
