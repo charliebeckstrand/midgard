@@ -4,7 +4,6 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
-import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/combobox'
@@ -77,33 +76,32 @@ export function ComboboxPanel({
 							className={cn('group/combobox', k.portal)}
 							{...getFloatingProps()}
 						>
-							<Density step={size}>
-								<PopoverPanel
-									role="group"
-									autoFocus={false}
-									glass={glass}
-									className={cn('relative', k.options)}
-									onKeyDown={(event) => {
-										if (event.key === 'Escape') onClose()
-									}}
+							<PopoverPanel
+								density={size}
+								role="group"
+								autoFocus={false}
+								glass={glass}
+								className={cn('relative', k.options)}
+								onKeyDown={(event) => {
+									if (event.key === 'Escape') onClose()
+								}}
+							>
+								{/* The listbox owns only options, per aria-required-children. The
+								    empty-state status message is a sibling inside the panel chrome;
+								    it announces and renders on the dropdown surface. A peer/:empty
+								    toggle swaps the two as options come and go. */}
+								<div
+									role="listbox"
+									id={id}
+									aria-label={ariaLabel}
+									aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
+									aria-multiselectable={ariaAttr(multiple)}
+									className={cn(k.list)}
 								>
-									{/* The listbox owns only options, per aria-required-children. The
-									    empty-state status message is a sibling inside the panel chrome;
-									    it announces and renders on the dropdown surface. A peer/:empty
-									    toggle swaps the two as options come and go. */}
-									<div
-										role="listbox"
-										id={id}
-										aria-label={ariaLabel}
-										aria-labelledby={ariaLabel ? undefined : ariaLabelledby}
-										aria-multiselectable={ariaAttr(multiple)}
-										className={cn(k.list)}
-									>
-										{children}
-									</div>
-									<output className={cn(k.empty)}>No results</output>
-								</PopoverPanel>
-							</Density>
+									{children}
+								</div>
+								<output className={cn(k.empty)}>No results</output>
+							</PopoverPanel>
 						</div>
 					)}
 				</AnimatePresence>

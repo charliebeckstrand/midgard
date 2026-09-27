@@ -59,6 +59,7 @@ export function Group({
 		<div
 			data-slot="group"
 			data-size={resolvedSize}
+			data-density={resolvedSize}
 			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}

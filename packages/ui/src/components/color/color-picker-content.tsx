@@ -4,7 +4,6 @@ import type { FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
@@ -17,15 +16,15 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
-	/** Re-broadcast through `<Density>`; the portal renders the panel outside the trigger's cascade. */
+	/** Re-broadcast through the `density` prop of the body Box; the portal renders the panel outside the trigger's cascade. */
 	size: ControlSize
 	children: ReactNode
 }
 
 /**
  * Portals the picker panel into a focus-managed, animated floating dialog
- * positioned by Floating UI, re-broadcasting `size` through `<Density>` and
- * adopting glass styling from context.
+ * positioned by Floating UI. The body is a density scope at `size`, and the
+ * panel adopts glass styling from context.
  *
  * @remarks
  * Mounts only while `open`; {@link https://floating-ui.com | Floating UI}
@@ -72,11 +71,15 @@ export function ColorPickerContent({
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
-				<Density step={size}>
-					<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
-						{children}
-					</Box>
-				</Density>
+				<Box
+					density={size}
+					bg={glass ? 'none' : 'popover'}
+					outline={glass || undefined}
+					radius="lg"
+					p="md"
+				>
+					{children}
+				</Box>
 			</motion.div>
 		</FloatingSurface>
 	)

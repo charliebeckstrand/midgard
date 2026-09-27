@@ -2,6 +2,8 @@ import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Card, CardHeader } from '../../components/card'
+import { Control } from '../../components/control'
+import { Label } from '../../components/fieldset'
 import { Placeholder } from '../../components/placeholder'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { DensityProvider } from '../../providers/density'
@@ -215,5 +217,22 @@ describe('density scopes on static leaves (real browser)', () => {
 		)
 
 		expect(heights).toEqual([16, 32])
+	})
+
+	it.each([
+		['follows a compact provider', undefined, 14],
+		['follows a sized control inside a compact provider', 'lg', 18],
+	] as const)('a label %s', (_name, size, font) => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Control size={size}>
+					<Label>label</Label>
+				</Control>
+			</DensityProvider>,
+		)
+
+		const label = present(container.querySelector<HTMLElement>('[data-slot="label"]'), 'label')
+
+		expect(Number.parseFloat(getComputedStyle(label).fontSize)).toBe(font)
 	})
 })

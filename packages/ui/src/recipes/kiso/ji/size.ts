@@ -21,3 +21,10 @@ export const size = {
  * the full scale. Each step reads its class from {@link size}.
  */
 export const stepSize = { sm: size.sm, md: size.md, lg: size.lg } as const
+
+/**
+ * {@link stepSize} in a stepped `density-text` class. The text takes the step of
+ * its nearest density scope, and each outer step takes the class of its
+ * neighbor. `ji-text-ramp.test.ts` pins it to {@link stepSize}.
+ */
+export const textRamp = 'density-text-[sm,base,lg]'

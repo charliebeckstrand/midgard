@@ -11,7 +11,6 @@ import {
 } from 'react'
 
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
@@ -36,7 +35,7 @@ type DatePickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
-	 * Resolved size from `<DatePicker>`, re-broadcast via `<Density>`. The
+	 * Resolved size from `<DatePicker>`, re-broadcast by a density scope on the body. The
 	 * `FloatingPortal` teleports outside the density chain, where `<Calendar>`
 	 * and `<DatePickerFooter>` fall back to `'md'` regardless of the trigger's
 	 * size.
@@ -83,9 +82,9 @@ type DatePickerContentProps = {
 
 /**
  * Portaled, animated modal dialog shell for the picker popover. It wires
- * `FloatingFocusManager`, seeds focus on the dialog container (not its first
- * tabbable) for the virtual-highlight model, and re-broadcasts `size` via
- * `<Density>`.
+ * `FloatingFocusManager`, and it seeds focus on the dialog container (not its
+ * first tabbable) for the virtual-highlight model. Its body Box is a density
+ * scope at `size`.
  *
  * @remarks
  * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
@@ -177,16 +176,15 @@ export function DatePickerContent({
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
-				<Density step={size}>
-					<Box
-						bg={glass ? 'none' : 'popover'}
-						outline={glass || undefined}
-						radius="lg"
-						className={k.content.body({ density: size })}
-					>
-						{children}
-					</Box>
-				</Density>
+				<Box
+					density={size}
+					bg={glass ? 'none' : 'popover'}
+					outline={glass || undefined}
+					radius="lg"
+					className={k.content.body({ density: size })}
+				>
+					{children}
+				</Box>
 			</motion.div>
 		</FloatingSurface>
 	)

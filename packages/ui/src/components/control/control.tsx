@@ -104,6 +104,7 @@ export function Control({
 	const body = (
 		<div
 			data-slot="control"
+			data-density={mergedSize}
 			data-disabled={mergedDisabled || undefined}
 			className={cn(k.field, className)}
 		>
