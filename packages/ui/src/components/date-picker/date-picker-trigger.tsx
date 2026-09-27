@@ -1,6 +1,6 @@
 'use client'
 
-import { Calendar as CalendarIcon, X } from 'lucide-react'
+import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
@@ -14,6 +14,7 @@ import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
 import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
+import { InputClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 
 /** Props for {@link DatePickerTrigger}. @internal */
@@ -157,11 +158,8 @@ export function DatePickerTrigger({
 				{showClear && (
 					<AffixContext value={affixStepDown(size)}>
 						<span data-slot="suffix" className={cn(k.affix.base, k.affix.suffix[size])}>
-							<Button
-								type="button"
-								variant="bare"
-								className="pointer-events-auto"
-								aria-label="Clear selection"
+							<InputClearButton
+								label="Clear selection"
 								onMouseDown={(event) => event.stopPropagation()}
 								onClick={(event) => {
 									event.stopPropagation()
@@ -170,9 +168,7 @@ export function DatePickerTrigger({
 
 									triggerButtonRef.current?.focus()
 								}}
-							>
-								<Icon icon={<X />} />
-							</Button>
+							/>
 						</span>
 					</AffixContext>
 				)}

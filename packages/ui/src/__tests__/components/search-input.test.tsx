@@ -24,6 +24,18 @@ describe('SearchInput', () => {
 		expect(screen.getByLabelText('Clear search')).toBeInTheDocument()
 	})
 
+	it('does not show clear button when the field is read-only or disabled', () => {
+		const { unmount } = renderUI(<SearchInput defaultValue="query" readOnly />)
+
+		expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+
+		unmount()
+
+		renderUI(<SearchInput defaultValue="query" disabled />)
+
+		expect(screen.queryByRole('button', { name: 'Clear search' })).toBeNull()
+	})
+
 	it('does not show clear button when value is empty', () => {
 		renderUI(<SearchInput value="" onClear={() => {}} onChange={() => {}} />)
 

@@ -1,12 +1,13 @@
 'use client'
 
-import { Upload, X } from 'lucide-react'
+import { Upload } from 'lucide-react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/file-upload'
 import { Button } from '../button'
 import { ControlContext } from '../control/context'
 import { Icon } from '../icon'
 import { Input } from '../input'
+import { InputClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
 import { FileUploadHiddenInput } from './file-upload-hidden-input'
 import { type FileUploadInputProps, useFileUploadState } from './file-upload-state'
@@ -85,16 +86,11 @@ export function FileUploadInput(props: FileUploadInputProps) {
 							className={cn('file:hidden', k.cursor)}
 							suffix={
 								hasFiles ? (
-									<Button
-										type="button"
-										variant="bare"
-										className="pointer-events-auto"
-										aria-label="Clear selected file(s)"
+									<InputClearButton
+										label="Clear selected file(s)"
 										disabled={disabled}
 										onClick={clearFiles}
-									>
-										<Icon icon={<X />} />
-									</Button>
+									/>
 								) : (
 									<Button
 										type="button"

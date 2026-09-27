@@ -1,14 +1,15 @@
 'use client'
 
-import { Search, X } from 'lucide-react'
+import { Search } from 'lucide-react'
 import { type ChangeEvent, type ReactNode, useCallback, useMemo, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { clearNativeInput } from '../../utilities'
-import { Button } from '../button'
+import { useControl } from '../control/context'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
 import { Input, type InputProps } from '../input'
+import { InputClearButton } from '../input/input-clear-button'
 import { LoadingSpinner } from '../loading'
 
 /**
@@ -77,6 +78,12 @@ export function SearchInput({
 	suffix: extraSuffix,
 	...props
 }: SearchInputProps) {
+	const control = useControl()
+
+	// A clear writes the value, so a field that takes no edits shows no clear.
+	const locked =
+		(props.disabled ?? control?.disabled) === true || (props.readOnly ?? control?.readOnly) === true
+
 	const inputRef = useRef<HTMLInputElement>(null)
 
 	const setRefs = useComposedRef(inputRef, ref)
@@ -122,16 +129,13 @@ export function SearchInput({
 
 	const ownSuffix = loading ? (
 		<LoadingSpinner />
-	) : clearable && currentValue !== '' ? (
-		<Button
-			type="button"
-			variant="bare"
-			className="pointer-events-auto"
-			aria-label="Clear search"
+	) : clearable && !locked && currentValue !== '' ? (
+		<InputClearButton
+			label="Clear search"
+			// Keep focus in the field, so that no blur runs before the clear.
+			onMouseDown={(event) => event.preventDefault()}
 			onClick={handleClear}
-		>
-			<Icon icon={<X />} />
-		</Button>
+		/>
 	) : undefined
 
 	// The consumer's trailing content joins after the field's own suffix; with
