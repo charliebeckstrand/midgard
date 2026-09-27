@@ -117,16 +117,16 @@ export function collectPatternViolations(options: {
 	skip?: ReadonlySet<string>
 	stripComments?: boolean
 }): string[] {
-	const { dir, patterns, fileFilter = /\.(?:tsx?|mts|cts)$/, skip, stripComments = false } = options
+	const { dir, patterns, fileFilter, skip, stripComments = false } = options
 
 	const violations: string[] = []
 
 	walkSource(
 		dir,
 		(file, content) => {
-			if (!fileFilter.test(file)) return
+			if (!(fileFilter ? fileFilter.test(file) : isSourceFile(file))) return
 
-			const rel = relative(srcDir, file)
+			const rel = srcRelative(file)
 
 			const text = stripComments ? stripSourceComments(content) : content
 
