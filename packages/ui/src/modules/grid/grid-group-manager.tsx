@@ -1,6 +1,7 @@
 'use client'
 
 import {
+	type Announcements,
 	type CollisionDetection,
 	closestCenter,
 	closestCorners,
@@ -32,10 +33,13 @@ import { useDragCursor, useSortableSensors } from '../../hooks'
 import { k } from '../../recipes/kata/grid-group'
 import { columnLabel } from './engine/grid-column/label'
 import {
+	findZoneId,
 	GROUP_PREFIX,
 	type GridGroupManagerZone,
+	groupIdFromDragId,
 	isGroupDragId,
 	UNGROUPED,
+	type ZoneMap,
 } from './engine/grid-zone/map'
 import type { GridColumnGroup } from './grid-group-types'
 import { GridManagerColorMenu } from './grid-manager-color-menu'
@@ -140,6 +144,65 @@ export type GridGroupManagerProps = {
 }
 
 /**
+ * The dnd-kit announcements of the group editor. Each names the column or the group, and the
+ * zone or the position it lands in, never the generated id that dnd-kit reads by default.
+ *
+ * @param groups - The groups in their order.
+ * @param columnsById - The columns by their stringified id.
+ * @param zoneMap - The live zone map, which says the zone that holds each column.
+ * @internal
+ */
+export function groupManagerAnnouncements(
+	groups: readonly GridColumnGroup[],
+	columnsById: ReadonlyMap<string, GridColumnManagerItem>,
+	zoneMap: ZoneMap,
+): Announcements {
+	const groupIndex = (id: string) => groups.findIndex((g) => String(g.id) === id)
+
+	const groupName = (id: string) => {
+		const group = groups[groupIndex(id)]
+
+		return `${group ? columnLabel(group) : id} group`
+	}
+
+	const name = (id: UniqueIdentifier) => {
+		const key = String(id)
+
+		if (isGroupDragId(key)) return groupName(groupIdFromDragId(key))
+
+		const column = columnsById.get(key)
+
+		return `${column ? columnLabel(column) : key} column`
+	}
+
+	// A column lands in a zone. A group lands at a position in the group list.
+	const place = (active: UniqueIdentifier, over: UniqueIdentifier) => {
+		const key = String(over)
+
+		if (isGroupDragId(String(active))) {
+			return `position ${groupIndex(groupIdFromDragId(key)) + 1} of ${groups.length}`
+		}
+
+		const zone = findZoneId(zoneMap, key)
+
+		if (zone === undefined) return 'the editor'
+
+		return zone === UNGROUPED ? 'Ungrouped' : groupName(zone)
+	}
+
+	return {
+		onDragStart: ({ active }) => `Picked up ${name(active.id)}.`,
+		onDragOver: ({ active, over }) =>
+			over ? `${name(active.id)} is over ${place(active.id, over.id)}.` : undefined,
+		onDragEnd: ({ active, over }) =>
+			over
+				? `Dropped ${name(active.id)} in ${place(active.id, over.id)}.`
+				: `Dropped ${name(active.id)} where it started.`,
+		onDragCancel: ({ active }) => `Returned ${name(active.id)} to where it started.`,
+	}
+}
+
+/**
  * The column-manager's group editor: a "New group" button, a zone per group, and
  * an ungrouped pool. Each zone carries a name {@link Input}, a color
  * {@link Menu}, a remove button, and its member columns. Columns drag between zones (pointer or
@@ -202,8 +265,14 @@ export function GridGroupManager({
 		assign: mgr.assign,
 	}
 
+	const announcements = useMemo(
+		() => groupManagerAnnouncements(groups, byId, mgr.zoneMap),
+		[groups, byId, mgr.zoneMap],
+	)
+
 	return (
 		<DndContext
+			accessibility={{ announcements }}
 			sensors={sensors}
 			collisionDetection={groupAwareCollision}
 			measuring={{ droppable: { strategy: MeasuringStrategy.Always } }}

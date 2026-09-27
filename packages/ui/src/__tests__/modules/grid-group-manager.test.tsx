@@ -1,4 +1,4 @@
-import type { ClientRect, DroppableContainer, UniqueIdentifier } from '@dnd-kit/core'
+import type { Active, ClientRect, DroppableContainer, Over, UniqueIdentifier } from '@dnd-kit/core'
 import { useState } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn, type GridColumnGroup } from '../../modules/grid'
@@ -17,7 +17,10 @@ import {
 	type ZoneMap,
 	zoneMapToStores,
 } from '../../modules/grid/engine/grid-zone/map'
-import { groupAwareKeyboardCoordinates } from '../../modules/grid/grid-group-manager'
+import {
+	groupAwareKeyboardCoordinates,
+	groupManagerAnnouncements,
+} from '../../modules/grid/grid-group-manager'
 import { fireEvent, renderUI, screen } from '../helpers'
 
 describe('group manager reducers', () => {
@@ -460,5 +463,49 @@ describe('Grid column-group editor', () => {
 		fireEvent.click(screen.getByRole('button', { name: 'Color for Contact' }))
 
 		expect(screen.queryByRole('menuitem', { name: 'None' })).not.toBeInTheDocument()
+	})
+})
+
+describe('groupManagerAnnouncements', () => {
+	const groups: GridColumnGroup[] = [
+		{ id: 'g1', title: 'Contact', columns: ['email'] },
+		{ id: 'g2', title: 'Money', columns: [] },
+	]
+
+	const columnsById = new Map([
+		['name', { id: 'name', title: 'Name' }],
+		['email', { id: 'email', title: 'Email' }],
+	])
+
+	const zoneMap: ZoneMap = { g1: ['email'], g2: [], [UNGROUPED]: ['name'] }
+
+	const announcements = groupManagerAnnouncements(groups, columnsById, zoneMap)
+
+	const at = (id: string) => ({ id }) as Active & Over
+
+	it('names a column and the zone it lands in, never an id', () => {
+		expect(announcements.onDragStart({ active: at('name') })).toBe('Picked up Name column.')
+
+		expect(announcements.onDragOver({ active: at('name'), over: at('email') })).toBe(
+			'Name column is over Contact group.',
+		)
+
+		expect(announcements.onDragEnd({ active: at('name'), over: at('g2') })).toBe(
+			'Dropped Name column in Money group.',
+		)
+
+		expect(announcements.onDragEnd({ active: at('email'), over: at(UNGROUPED) })).toBe(
+			'Dropped Email column in Ungrouped.',
+		)
+	})
+
+	it('names a group and the position it lands at', () => {
+		expect(announcements.onDragOver({ active: at('group:g1'), over: at('group:g2') })).toBe(
+			'Contact group is over position 2 of 2.',
+		)
+
+		expect(announcements.onDragCancel({ active: at('group:g1'), over: null })).toBe(
+			'Returned Contact group to where it started.',
+		)
 	})
 })
