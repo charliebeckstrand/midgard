@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { Button } from 'ui/button'
 import { Dialog, DialogBody, DialogHeader, DialogTitle } from 'ui/dialog'
-import { Field, Label, Message } from 'ui/fieldset'
+import { Field, Fieldset, Label, Message } from 'ui/fieldset'
 import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
@@ -13,6 +13,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Text } from 'ui/text'
 import { chain, required } from './form-validators'
 import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
+import { useLeaving } from './use-leaving'
 
 /** The proof that `/auth/session/verify` accepts. */
 type SecondFactorProof =
@@ -56,6 +57,8 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 	const [error, setError] = useState('')
 
+	const [leaving, leave] = useLeaving()
+
 	const showCode = useRecovery || hasTotp
 
 	async function submit(proof: SecondFactorProof) {
@@ -66,9 +69,10 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 				body: JSON.stringify(proof),
 			})
 
-			if (res.ok) return onVerified()
+			// The form stays disabled until the next page or the closed dialog replaces it.
+			if (res.ok) return leave(onVerified)
 
-			if (res.status === 410) return onExpired()
+			if (res.status === 410) return leave(onExpired)
 
 			const data = await res.json().catch(() => null)
 
@@ -102,7 +106,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 	}
 
 	return (
-		<div className="grid gap-6">
+		<Fieldset disabled={leaving} className="grid gap-6">
 			{error && <Text tone="error">{error}</Text>}
 
 			{showCode && (
@@ -167,7 +171,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 			<Button type="button" variant="plain" className="justify-self-center" onClick={onCancel}>
 				{cancelLabel}
 			</Button>
-		</div>
+		</Fieldset>
 	)
 }
 
