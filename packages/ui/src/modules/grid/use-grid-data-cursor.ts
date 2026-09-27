@@ -1,6 +1,7 @@
 'use client'
 
 import { type Ref, type RefObject, useImperativeHandle, useMemo, useRef, useState } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { resolveNewRowAddWidth, withNewRowAddColumn } from './engine/grid-new-row-column'
 import {
 	bridgeCellActivate,
@@ -143,21 +144,17 @@ export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexVal
  * Stabilizes a consumer event callback (`onRowClick`, `onCellClick`, and their
  * double-click counterparts) so the memoized rows hold across renders. It
  * returns a referentially-stable handler, or `undefined` when no callback is
- * set. That handler reads the live callback through a ref, so an inline
- * consumer callback doesn't churn every row.
+ * set. That handler is a {@link useStableEvent} that reads the live callback,
+ * so an inline consumer callback doesn't churn every row.
  *
  * @internal
  */
 export function useStableHandler<A extends unknown[]>(
 	handler: ((...args: A) => void) | undefined,
 ): ((...args: A) => void) | undefined {
-	const ref = useRef(handler)
+	const stable = useStableEvent((...args: A) => handler?.(...args))
 
-	ref.current = handler
-
-	const present = handler != null
-
-	return useMemo(() => (present ? (...args: A) => ref.current?.(...args) : undefined), [present])
+	return handler ? stable : undefined
 }
 
 /**

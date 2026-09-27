@@ -1,7 +1,7 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { Density } from '../../primitives/density'
@@ -105,7 +105,7 @@ export function Control({
 		<div
 			data-slot="control"
 			data-density={mergedSize}
-			data-disabled={mergedDisabled || undefined}
+			data-disabled={dataAttr(mergedDisabled)}
 			className={cn(k.field, className)}
 		>
 			{children}

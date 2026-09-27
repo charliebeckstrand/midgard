@@ -2,7 +2,7 @@
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
-import { extendedColors } from '../../core/recipe'
+import { colors, extendedColors } from '../../core/recipe'
 import { k as commandPalette } from '../../recipes/kata/command-palette'
 import { k as grid } from '../../recipes/kata/grid'
 import { k as list } from '../../recipes/kata/list'
@@ -27,8 +27,6 @@ import { collectPatternViolations, srcDir } from '../helpers/walk-source'
  * Floors: 4.5:1 for text (WCAG 1.4.3), 3:1 for the graphical marker (1.4.11).
  */
 
-const COLORS = ['zinc', 'red', 'amber', 'green', 'blue'] as const
-
 const TEXT_AA = 4.5
 
 const NON_TEXT_AA = 3
@@ -40,7 +38,7 @@ describe('iro ramp contrast', () => {
 	})
 
 	describe('onSurface clears text AA on the page surface', () => {
-		it.each(COLORS)('%s', (color) => {
+		it.each(colors)('%s', (color) => {
 			const [light, dark] = onSurface[color]
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(TEXT_AA)
@@ -50,7 +48,7 @@ describe('iro ramp contrast', () => {
 	})
 
 	describe('onTint clears text AA on the soft fill and a plain surface', () => {
-		it.each(COLORS)('%s', (color) => {
+		it.each(colors)('%s', (color) => {
 			const [light, dark] = onTint[color]
 
 			// The 15% soft-palette wash behind this foreground.
@@ -75,7 +73,7 @@ describe('iro ramp contrast', () => {
 	})
 
 	describe('marker clears non-text 3:1 on the page surface', () => {
-		it.each(COLORS)('%s', (color) => {
+		it.each(colors)('%s', (color) => {
 			const [light, dark] = marker[color]
 
 			expect(contrastOf(light, SURFACE.light)).toBeGreaterThanOrEqual(NON_TEXT_AA)
@@ -175,7 +173,7 @@ const MUTED = byMode(iro.onWash.muted)
  * this filter drops is an ink the guard below never measures.
  */
 const FOREGROUND = new RegExp(
-	`(?:^|:)text-(?:(?:${[...COLORS, ...extendedColors].join('|')})-\\d{2,3}|white|black)\\b`,
+	`(?:^|:)text-(?:(?:${[...colors, ...extendedColors].join('|')})-\\d{2,3}|white|black)\\b`,
 )
 
 /**

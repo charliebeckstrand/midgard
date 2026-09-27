@@ -9,6 +9,7 @@ import {
 } from '../../modules/dashboard'
 import { useDashboardStoreContext } from '../../modules/dashboard/context'
 import type { DashboardStore } from '../../modules/dashboard/engine/dashboard-store'
+import { tick } from './frames'
 import { present } from './present'
 
 /**
@@ -68,7 +69,7 @@ export function stubCanvasWidth(width = 1200): void {
  * keyboard.
  */
 export function settleKeyboardLifts(): void {
-	afterEach(() => act(() => new Promise((resolve) => setTimeout(resolve, 0))))
+	afterEach(() => act(tick))
 }
 
 /**

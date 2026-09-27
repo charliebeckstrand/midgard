@@ -1,8 +1,9 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, useMemo } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/timeline'
+import { hasChildOfType } from '../../utilities/flatten-children'
 import { TimelineContext, type TimelineVariant, useTimeline } from './context'
 import type { TimelineMarkerConfig } from './timeline-marker'
 import { TimelineMarker } from './timeline-marker'
@@ -33,13 +34,7 @@ export function TimelineItem(props: TimelineItemProps) {
 
 	const variant = variantProp ?? contextVariant
 
-	const hasMarker = useMemo(
-		() =>
-			Children.toArray(children).some(
-				(child) => isValidElement(child) && child.type === TimelineMarker,
-			),
-		[children],
-	)
+	const hasMarker = useMemo(() => hasChildOfType(children, TimelineMarker), [children])
 
 	const providerValue = useMemo(() => ({ orientation, variant }), [orientation, variant])
 

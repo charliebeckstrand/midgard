@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config'
+import { sharedTest } from '../../vitest.shared'
 
 /**
  * The app's test harness.
@@ -16,10 +17,8 @@ import { defineConfig } from 'vitest/config'
  */
 export default defineConfig({
 	test: {
+		...sharedTest,
 		environment: 'node',
 		env: { TZ: 'UTC' },
-		include: ['src/__tests__/**/*.test.ts'],
-		restoreMocks: true,
-		unstubGlobals: true,
 	},
 })

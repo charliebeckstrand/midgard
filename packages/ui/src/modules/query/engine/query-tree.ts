@@ -1,3 +1,4 @@
+import { clamp } from '../../../utilities/clamp'
 import type { QueryCombinator, QueryGroup, QueryNode } from './types'
 
 /** Returns true when the group (or any nested group) contains at least one rule. */
@@ -113,7 +114,7 @@ export function moveChild(tree: QueryGroup, id: string, toIndex: number): QueryG
 	const from = children.findIndex((child) => child.id === id)
 
 	if (from !== -1) {
-		const to = Math.min(Math.max(toIndex, 0), children.length - 1)
+		const to = clamp(toIndex, 0, children.length - 1)
 
 		if (to === from) return tree
 

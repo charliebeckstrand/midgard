@@ -1,4 +1,4 @@
-import { authorize, userOnly } from '@/server/session-user'
+import { userOnly, withUser } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { listVisits } from '@/server/visits-store'
 
@@ -6,12 +6,6 @@ import { listVisits } from '@/server/visits-store'
 export const dynamic = 'force-dynamic'
 
 /** Every visited region of the user, each scope alphabetical. */
-export async function GET() {
-	const userId = await authorize()
-
-	if (userId instanceof Response) return userId
-
-	return Response.json(await listVisits(userId, () => visitedSeed(userId)), {
-		headers: userOnly,
-	})
-}
+export const GET = withUser(undefined, async (userId) =>
+	Response.json(await listVisits(userId, () => visitedSeed(userId)), { headers: userOnly }),
+)

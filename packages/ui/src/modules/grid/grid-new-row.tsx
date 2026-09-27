@@ -9,7 +9,7 @@ import {
 	useRef,
 } from 'react'
 import { TableCell } from '../../components/table'
-import { cn } from '../../core'
+import { ariaAttr, cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { GRID_ROLE } from './engine/grid-constants'
@@ -155,8 +155,8 @@ function GridNewRowCell<T>({
 			role="gridcell"
 			data-grid-new-col={String(column.id)}
 			aria-colindex={colIndex}
-			aria-readonly={!editable || undefined}
-			aria-busy={pending || undefined}
+			aria-readonly={ariaAttr(!editable)}
+			aria-busy={ariaAttr(pending)}
 			className={className}
 			style={style}
 			data-grid-pin={pin}
@@ -236,7 +236,7 @@ function GridNewRowAddCell({
 			ref={cellRef}
 			data-grid-new-col={NEW_ROW_ADD_COLUMN_ID}
 			aria-colindex={colIndex}
-			aria-busy={pending || undefined}
+			aria-busy={ariaAttr(pending)}
 			className={cn(className, k.newRow.add)}
 		>
 			<span
@@ -304,7 +304,7 @@ export function GridNewRow<T>({
 				data-position={session.position}
 				aria-label={NEW_ROW_LABEL}
 				aria-rowindex={ariaRowIndex}
-				aria-busy={session.inFlight || undefined}
+				aria-busy={ariaAttr(session.inFlight)}
 			>
 				{columns.map((column, index) => {
 					const pinned = pinnedCellProps(pinning, column)

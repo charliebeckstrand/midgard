@@ -1,5 +1,5 @@
 import { readJson } from '@/server/read-draft'
-import { authorize, userOnly } from '@/server/session-user'
+import { issue, userOnly, withUser } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { MAX_VISITS, setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
@@ -46,49 +46,39 @@ function readVisited(input: unknown): boolean | null {
  * twice it leaves the same set, which is what a toggle pressed through a dropped
  * response needs.
  */
-export async function PUT(request: Request, context: Context) {
-	const userId = await authorize('user')
-
-	if (userId instanceof Response) return userId
-
+export const PUT = withUser('user', async (userId, request: Request, context: Context) => {
 	const { scope: rawScope, region: rawRegion } = await context.params
 
 	const scope = readScope(rawScope)
 
 	if (scope === null) {
-		return Response.json({ issues: ['`scope` must be `states` or `countries`.'] }, { status: 404 })
+		return issue(404, '`scope` must be `states` or `countries`.')
 	}
 
 	// Next decodes the segment already. A second decode throws on a `%` in the name.
 	const region = rawRegion.trim()
 
-	if (region === '') return Response.json({ issues: ['`region` is required.'] }, { status: 400 })
+	if (region === '') return issue(400, '`region` is required.')
 
 	if (region.length > MAX_REGION_LENGTH) {
-		return Response.json(
-			{ issues: [`\`region\` must be at most ${MAX_REGION_LENGTH} characters.`] },
-			{ status: 400 },
-		)
+		return issue(400, `\`region\` must be at most ${MAX_REGION_LENGTH} characters.`)
 	}
 
 	const body = await readJson(request)
 
-	if (!body.ok) return Response.json({ issues: body.issues }, { status: 400 })
+	if (!body.ok) return issue(400, ...body.issues)
 
 	const visited = readVisited(body.value)
 
 	if (visited === null) {
-		return Response.json({ issues: ['`visited` must be a boolean.'] }, { status: 400 })
+		return issue(400, '`visited` must be a boolean.')
 	}
 
 	const visits = await setVisit(userId, scope, region, visited, () => visitedSeed(userId))
 
 	if (visits === null) {
-		return Response.json(
-			{ issues: [`You can mark up to ${MAX_VISITS.toLocaleString('en-US')} regions.`] },
-			{ status: 409 },
-		)
+		return issue(409, `You can mark up to ${MAX_VISITS.toLocaleString('en-US')} regions.`)
 	}
 
 	return Response.json(visits, { headers: userOnly })
-}
+})

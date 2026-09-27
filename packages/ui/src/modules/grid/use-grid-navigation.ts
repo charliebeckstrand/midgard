@@ -14,7 +14,7 @@ import {
 import { createContext } from '../../core'
 import { useIdScope } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
-import { clamp, FOCUSABLE_SELECTOR } from '../../utilities'
+import { clamp, createEmitter, type Emitter, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
 import type { GridCursorRow } from './grid-cursor-order'
 
@@ -477,10 +477,10 @@ export function useGridNavigation({
 	// Mirror the active cell into an external store so each cell subscribes to its
 	// own active flag: moving the cursor re-renders only the two cells whose flag
 	// flipped, not every rendered cell.
-	const internalRef = useRef<{ active: Coord | null; listeners: Set<() => void> } | null>(null)
+	const internalRef = useRef<{ active: Coord | null; changes: Emitter } | null>(null)
 
 	if (internalRef.current === null) {
-		internalRef.current = { active, listeners: new Set() }
+		internalRef.current = { active, changes: createEmitter() }
 	}
 
 	const internal = internalRef.current
@@ -538,7 +538,7 @@ export function useGridNavigation({
 	useLayoutEffect(() => {
 		internal.active = active
 
-		for (const listener of internal.listeners) listener()
+		internal.changes.emit()
 	}, [active, internal])
 
 	const storeRef = useRef<GridNavStore | null>(null)
@@ -546,13 +546,7 @@ export function useGridNavigation({
 	if (storeRef.current === null) {
 		storeRef.current = {
 			enabled: true,
-			subscribe: (listener) => {
-				internal.listeners.add(listener)
-
-				return () => {
-					internal.listeners.delete(listener)
-				}
-			},
+			subscribe: internal.changes.subscribe,
 			isActive: (row, col) => {
 				const current = internal.active
 

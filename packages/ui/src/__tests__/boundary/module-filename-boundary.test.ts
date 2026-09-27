@@ -2,7 +2,7 @@ import { readdirSync } from 'node:fs'
 import { basename, join, relative, sep } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { checkFolder, listLeafFolders, type Violation } from '../helpers/filename-rules'
-import { srcDir } from '../helpers/walk-source'
+import { isSourceFile, srcDir } from '../helpers/walk-source'
 
 // Enforces the file-naming convention documented in CONVENTIONS.md §3.3
 // for the modules tree. Module folders follow the component grammar — files
@@ -71,7 +71,7 @@ function checkEngineConceptFolder(folderPath: string, engine: EnginePosition): V
 
 		const file = entry.name
 
-		if (!file.endsWith('.ts') && !file.endsWith('.tsx')) continue
+		if (!isSourceFile(file)) continue
 
 		if (file.endsWith('.d.ts')) continue
 

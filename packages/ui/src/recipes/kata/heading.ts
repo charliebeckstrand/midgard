@@ -1,4 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
+import { clamp } from '../../utilities/clamp'
 import { iro, ji, kokkaku, type Step } from '../kiso'
 
 const { text } = iro
@@ -49,7 +50,7 @@ const levelWeight = {
  * `sm`/`lg` shift every level one rung, preserving the level hierarchy.
  */
 export function headingScale(level: Level, step: Step): Rung {
-	const index = Math.min(ladder.length - 1, Math.max(0, ladder.indexOf(base[level]) + shift[step]))
+	const index = clamp(ladder.indexOf(base[level]) + shift[step], 0, ladder.length - 1)
 
 	// The index is clamped above; the fallback satisfies
 	// `noUncheckedIndexedAccess`.

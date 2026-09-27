@@ -1,6 +1,6 @@
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `ComponentProps<'tag'>` is the only native-prop base (CONVENTIONS §4.3). It
 // carries `ref`, so the older bases — which drop it — are gone: a props type
@@ -41,9 +41,9 @@ function scan(pattern: RegExp, allowed?: Map<string, string>): string[] {
 
 	for (const dir of SCAN_DIRS) {
 		walkSource(join(srcDir, dir), (file, content) => {
-			if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+			if (!isSourceFile(file)) return
 
-			const rel = relative(srcDir, file)
+			const rel = srcRelative(file)
 
 			if (allowed?.has(rel)) return
 

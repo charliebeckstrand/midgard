@@ -1,7 +1,13 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	isSourceFile,
+	srcDir,
+	srcRelative,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // Two invariants keep components composing through their public surface
 // rather than reaching into each other's files:
@@ -32,7 +38,7 @@ describe('component internals boundary', () => {
 		const violations: string[] = []
 
 		for (const dir of [componentsDir, modulesDir, structureDir]) {
-			const label = relative(srcDir, dir)
+			const label = srcRelative(dir)
 
 			for (const entry of readdirSync(dir, { withFileTypes: true })) {
 				if (!entry.isDirectory()) continue
@@ -70,9 +76,9 @@ describe('component internals boundary', () => {
 
 		for (const dir of [componentsDir, modulesDir, structureDir])
 			walkSource(dir, (file, content) => {
-				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+				if (!isSourceFile(file)) return
 
-				const rel = relative(srcDir, file)
+				const rel = srcRelative(file)
 
 				for (const match of content.matchAll(SIBLING_MAIN_IMPORT)) {
 					violations.push(`${rel} → ../${match[1]}/${match[1]}`)
@@ -103,7 +109,7 @@ describe('component internals boundary', () => {
 
 				if (content.startsWith("'use client'")) return
 
-				violations.push(relative(srcDir, file))
+				violations.push(srcRelative(file))
 			})
 
 		expect(
@@ -122,7 +128,7 @@ describe('component internals boundary', () => {
 		const HOOK = /\buse(?:[A-Z]\w*)?\(/
 
 		walkSource(providersDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
+			if (!isSourceFile(file)) return
 
 			if (content.startsWith("'use client'")) return
 

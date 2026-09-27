@@ -1,4 +1,5 @@
-import { FOCUSABLE_SELECTOR, isComposing, wrap } from '../../../utilities'
+import { isComposing, wrap } from '../../../utilities'
+import { tabbablesIn } from '../../../utilities/focusable-selector'
 import type { GridCellRef } from '../grid-editing-types'
 import { GRID_ROLE } from './grid-constants'
 
@@ -445,23 +446,6 @@ export const NATIVE_ENTER = 'button, a[href], textarea, select, [contenteditable
  */
 export function isInGrid(node: Element | null, grid: HTMLElement | null): boolean {
 	return grid !== null && node?.closest(GRID_ROLE) === grid
-}
-
-/**
- * The elements of `root` in the tab order, in document order.
- *
- * @remarks {@link FOCUSABLE_SELECTOR} also matches a native control with
- * `tabindex="-1"` and a hidden input, so this filter drops both. The walk
- * matches each element in turn, because jsdom returns a selector list grouped
- * by branch, not in document order. @internal
- */
-function tabbablesIn(root: Element): HTMLElement[] {
-	return Array.from(root.querySelectorAll<HTMLElement>('*')).filter(
-		(el) =>
-			el.matches(FOCUSABLE_SELECTOR) &&
-			el.tabIndex >= 0 &&
-			!(el instanceof HTMLInputElement && el.type === 'hidden'),
-	)
 }
 
 /**

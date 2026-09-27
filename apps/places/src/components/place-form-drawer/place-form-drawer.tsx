@@ -273,7 +273,7 @@ export function PlaceFormDrawer({
 						<Field className="sm:col-span-2">
 							<Label>Your review</Label>
 
-							<Textarea name="review" rows={3} placeholder="How was it?" />
+							<Textarea name="review" rows={3} autoResize placeholder="How was it?" />
 						</Field>
 
 						{failure === null ? null : (

@@ -1,6 +1,6 @@
 import { join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // The pure-core invariant the grid, query, map, chat, and dashboard ROADMAPs each
 // assert in prose, enforced once here instead of five times in five documents whose
@@ -106,13 +106,13 @@ function engineFiles(dir: string): { rel: string; depth: number; content: string
 	const out: { rel: string; depth: number; content: string }[] = []
 
 	walkSource(dir, (file, content) => {
-		if (!/\.tsx?$/.test(file)) return
+		if (!isSourceFile(file)) return
 
 		// Depth 1 is a file directly under `engine/`, 2 one in a concept directory.
 		// Split on both separators: `relative` yields backslashes on Windows, and a
 		// '/'-only split reads every file as depth 1 there.
 		out.push({
-			rel: relative(srcDir, file),
+			rel: srcRelative(file),
 			depth: relative(dir, file).split(/[\\/]/).length,
 			content,
 		})

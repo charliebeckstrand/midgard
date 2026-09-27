@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
-import { cn } from '../../../core'
+import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
 import { keyByOccurrence } from '../../../utilities'
@@ -325,7 +325,7 @@ function HoverReferenceRule({
 				    (composes with the tooltip's own hover handlers through the trigger). */}
 				<g
 					data-slot="chart-reference-line"
-					data-focused={focused || undefined}
+					data-focused={dataAttr(focused)}
 					className={cn('transition-opacity', receded && 'opacity-25')}
 					onPointerEnter={() => setReferenceActive(index)}
 					onPointerLeave={() => setReferenceActive(null)}

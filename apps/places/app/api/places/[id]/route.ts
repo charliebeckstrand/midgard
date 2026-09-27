@@ -1,6 +1,6 @@
 import { removePlace, updatePlace } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
-import { authorize, userOnly } from '@/server/session-user'
+import { issue, userOnly, withUser } from '@/server/session-user'
 
 /** The store reads the database, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
@@ -16,36 +16,27 @@ type Context = { params: Promise<{ id: string }> }
  * validator a create uses, so an edit cannot write a shape a create would have
  * refused.
  */
-export async function PUT(request: Request, { params }: Context) {
-	const userId = await authorize('user')
-
-	if (userId instanceof Response) return userId
-
+export const PUT = withUser('user', async (userId, request: Request, { params }: Context) => {
 	const draft = await readDraft(request)
 
-	if (!draft.ok) return Response.json({ issues: draft.issues }, { status: 400 })
+	if (!draft.ok) return issue(400, ...draft.issues)
 
 	const { id } = await params
 
 	const updated = await updatePlace(userId, id, draft.value)
 
-	if (updated === null)
-		return Response.json({ issues: ['No place with that id.'] }, { status: 404 })
+	if (updated === null) return issue(404, 'No place with that id.')
 
 	return Response.json(updated, { headers: userOnly })
-}
+})
 
 /** Removes one place. */
-export async function DELETE(_request: Request, { params }: Context) {
-	const userId = await authorize('user')
-
-	if (userId instanceof Response) return userId
-
+export const DELETE = withUser('user', async (userId, _request: Request, { params }: Context) => {
 	const { id } = await params
 
 	const removed = await removePlace(userId, id)
 
-	if (!removed) return Response.json({ issues: ['No place with that id.'] }, { status: 404 })
+	if (!removed) return issue(404, 'No place with that id.')
 
 	return new Response(null, { status: 204 })
-}
+})

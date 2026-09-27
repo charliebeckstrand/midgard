@@ -21,6 +21,7 @@ import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
 import { binIndex, quantileBinIndex } from '../../../../utilities'
+import { clamp } from '../../../../utilities/clamp'
 
 /**
  * Which way a range legend and its glyph lay out:
@@ -197,7 +198,7 @@ function rangeKeyValue(key: string, probe: number | null, ctx: RangeKeyContext):
 	const { min, max, bins, binOf, edgesOf } = ctx
 
 	const center = (bin: number) => {
-		const [low, high] = edgesOf(Math.min(bins - 1, Math.max(0, bin)))
+		const [low, high] = edgesOf(clamp(bin, 0, bins - 1))
 
 		return (low + high) / 2
 	}
@@ -315,7 +316,7 @@ function probePercent(
 	if (probe === null || span <= 0) return 0
 
 	// A value outside the domain pins to its end of the bar, not past it.
-	const fraction = Math.min(1, Math.max(0, (probe - min) / span))
+	const fraction = clamp((probe - min) / span, 0, 1)
 
 	return (orientation === 'horizontal' ? fraction : 1 - fraction) * 100
 }
@@ -489,7 +490,7 @@ export function RangeLegend({
 	// Read a value: mark it and emphasize the class it falls in — the host is
 	// quantized, so its filter is per-class even while the readout stays precise.
 	const readValue = (value: number) => {
-		const next = Math.min(max, Math.max(min, value))
+		const next = clamp(value, min, max)
 
 		setProbe(next)
 

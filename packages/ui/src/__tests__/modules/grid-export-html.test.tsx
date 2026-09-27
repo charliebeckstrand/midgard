@@ -6,6 +6,7 @@ import { rowsToHtmlTable } from '../../modules/grid/engine/grid-export/html-tabl
 import { printRows, rowsToPrintHtml } from '../../modules/grid/engine/grid-export/print'
 import { captureAppended } from '../helpers/capture-appended'
 import { captureDownload } from '../helpers/capture-download'
+import { tick } from '../helpers/frames'
 
 type Row = { id: number; name: string; role: string }
 
@@ -110,7 +111,7 @@ describe('downloadExcel', () => {
 		// can abort the download), so flush timers before asserting.
 		expect(download.revokeObjectURL).not.toHaveBeenCalled()
 
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		await tick()
 
 		expect(download.revokeObjectURL).toHaveBeenCalledWith('blob:mock')
 	})

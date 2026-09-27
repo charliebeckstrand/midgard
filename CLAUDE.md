@@ -38,6 +38,8 @@
 
 3.8 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
 
+3.9 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
+
 ## 4. Version Control
 
 4.1 Commit messages follow Conventional Commits, with a scope from the `scope-enum` in [commitlint.config.mjs](commitlint.config.mjs). Use `midgard` for a change outside one package.

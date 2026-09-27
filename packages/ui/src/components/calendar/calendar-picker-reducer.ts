@@ -1,11 +1,12 @@
 /** Which grid the picker shows: the 12-month grid or the 12-cell decade grid. @internal */
 type CalendarPickerView = 'months' | 'years'
 
+import { clamp } from '../../utilities/clamp'
 import { isYearInRange, MAX_YEAR, MIN_YEAR } from './calendar-utilities'
 
 /** The year in the range of the calendar that is nearest to `year`. @internal */
 function clampYear(year: number): number {
-	return Math.min(MAX_YEAR, Math.max(MIN_YEAR, year))
+	return clamp(year, MIN_YEAR, MAX_YEAR)
 }
 
 /**

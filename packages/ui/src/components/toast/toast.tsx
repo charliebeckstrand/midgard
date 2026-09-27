@@ -1,9 +1,9 @@
 'use client'
 
 import { AnimatePresence } from 'motion/react'
-import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { cn } from '../../core'
+import { useHydrated } from '../../hooks/use-hydrated'
 import { usePortalContainer } from '../../primitives/portal'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useToastViewport } from '../../providers/toast/context'
@@ -46,11 +46,7 @@ export function Toast({ position = 'bottom-right' }: ToastProps) {
 	// Gate on post-mount state rather than `typeof document`: an SSR/client
 	// branch makes the first client render diverge from the server HTML and
 	// trips React's hydration mismatch.
-	const [hydrated, setHydrated] = useState(false)
-
-	useEffect(() => {
-		setHydrated(true)
-	}, [])
+	const hydrated = useHydrated()
 
 	if (!hydrated) return null
 

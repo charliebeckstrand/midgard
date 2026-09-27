@@ -2,7 +2,7 @@
 
 import { Check, Minus } from 'lucide-react'
 import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
 import { useControlToggle } from '../control/use-control-toggle'
@@ -92,7 +92,7 @@ export function Checkbox({
 		<label
 			data-slot="control"
 			data-size={resolvedSize}
-			data-disabled={resolvedDisabled || undefined}
+			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(k({ color, size: resolvedSize }), className)}
 		>
 			<input

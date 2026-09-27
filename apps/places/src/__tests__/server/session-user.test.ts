@@ -7,7 +7,7 @@ const { getSession, GatewayError } = vi.hoisted(() => ({
 
 vi.mock('auth', () => ({ getSession, GatewayError }))
 
-import { authorize } from '../../server/session-user'
+import { authorize, issue, withUser } from '../../server/session-user'
 
 function signedInWith(roles: string[], isVerified = true) {
 	getSession.mockResolvedValue({ user: { id: 'u1', roles, is_verified: isVerified } })
@@ -83,5 +83,43 @@ describe('authorize', () => {
 		signedInWith(['user'])
 
 		expect(await authorize('user')).toBe('u1')
+	})
+})
+
+describe('withUser', () => {
+	beforeEach(() => {
+		getSession.mockReset()
+	})
+
+	it('calls the handler with the user id before the route arguments', async () => {
+		signedInWith(['user'])
+
+		const handler = vi.fn(async (userId: string, id: string) => Response.json({ userId, id }))
+
+		const response = await withUser('user', handler)('p1')
+
+		expect(await response.json()).toEqual({ userId: 'u1', id: 'p1' })
+	})
+
+	it('returns the refusal and does not call the handler', async () => {
+		signedInWith([])
+
+		const handler = vi.fn(async () => new Response(null, { status: 204 }))
+
+		const response = await withUser('user', handler)()
+
+		expect(response.status).toBe(403)
+
+		expect(handler).not.toHaveBeenCalled()
+	})
+})
+
+describe('issue', () => {
+	it('answers with the status and every message', async () => {
+		const response = issue(400, 'First.', 'Second.')
+
+		expect(response.status).toBe(400)
+
+		expect(await response.json()).toEqual({ issues: ['First.', 'Second.'] })
 	})
 })

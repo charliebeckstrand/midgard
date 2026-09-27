@@ -7,7 +7,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableHeader, TableRow } from '../../components/table'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k as gridK } from '../../recipes/kata/grid'
 import { k } from '../../recipes/kata/grid-group'
 import { useGrid } from './context'
@@ -122,7 +122,7 @@ function GridGroupHeadCell({
 			aria-colindex={colIndex}
 			// A group band carries its id so a right-click on its badge resolves to the
 			// column-group context menu (Clear color / Manage columns).
-			data-group-band={span.kind === 'group' ? '' : undefined}
+			data-group-band={dataAttr(span.kind === 'group')}
 			data-group-id={span.kind === 'group' ? span.group.id : undefined}
 			className={cn(
 				k.cell,

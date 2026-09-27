@@ -1,6 +1,6 @@
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // A barrel names what it exports (CONVENTIONS §4.6). `export *` hides the
 // surface: it re-exports whatever the module gains next, and the barrel tests
@@ -35,7 +35,7 @@ function eachBarrel(visit: (rel: string, content: string) => void): void {
 		walkSource(join(srcDir, dir), (file, content) => {
 			if (!file.endsWith('index.ts')) return
 
-			visit(relative(srcDir, file), content)
+			visit(srcRelative(file), content)
 		})
 	}
 }

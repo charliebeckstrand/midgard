@@ -1,12 +1,4 @@
 import { defineConfig } from 'vitest/config'
+import { sharedTest } from '../../vitest.shared'
 
-export default defineConfig({
-	test: {
-		include: ['src/__tests__/**/*.test.ts'],
-		// Restore each spy, stubbed global, and stubbed variable after its test, so no case leaks
-		// into the next.
-		restoreMocks: true,
-		unstubGlobals: true,
-		unstubEnvs: true,
-	},
-})
+export default defineConfig({ test: sharedTest })
