@@ -36,8 +36,17 @@ const ELEMENT_ATTRS_ALLOWED = new Map([
 	['components/tooltip/tooltip-trigger.tsx', 'casts a cloned child of unknown tag'],
 ])
 
-function scan(pattern: RegExp, allowed?: Map<string, string>): string[] {
+/**
+ * The matches of `pattern` in the shipped source, outside the `allowed` files. `used` holds
+ * each allowed file that still matches, so a test can report an entry that no longer applies.
+ */
+function scan(
+	pattern: RegExp,
+	allowed?: Map<string, string>,
+): { violations: string[]; used: Set<string> } {
 	const violations: string[] = []
+
+	const used = new Set<string>()
 
 	for (const dir of SCAN_DIRS) {
 		walkSource(join(srcDir, dir), (file, content) => {
@@ -45,20 +54,26 @@ function scan(pattern: RegExp, allowed?: Map<string, string>): string[] {
 
 			const rel = srcRelative(file)
 
-			if (allowed?.has(rel)) return
+			const matches = [...content.matchAll(pattern)]
 
-			for (const match of content.matchAll(pattern)) {
+			if (allowed?.has(rel)) {
+				if (matches.length > 0) used.add(rel)
+
+				return
+			}
+
+			for (const match of matches) {
 				violations.push(`${rel} → ${match[1] ?? match[0]}`)
 			}
 		})
 	}
 
-	return violations
+	return { violations, used }
 }
 
 describe('props base boundary', () => {
 	it('no props type is built on a ref-dropping base', () => {
-		const violations = scan(BANNED)
+		const { violations } = scan(BANNED)
 
 		expect(
 			violations,
@@ -67,11 +82,19 @@ describe('props base boundary', () => {
 	})
 
 	it('no props type is built on element attributes', () => {
-		const violations = scan(ELEMENT_ATTRS, ELEMENT_ATTRS_ALLOWED)
+		const { violations } = scan(ELEMENT_ATTRS, ELEMENT_ATTRS_ALLOWED)
 
 		expect(
 			violations,
 			`use \`ComponentProps<'tag'>\`, or allowlist the multi-element case:\n  ${violations.join('\n  ')}`,
 		).toEqual([])
+	})
+
+	it('every allowlist entry still names a file on an element-attributes base', () => {
+		const { used } = scan(ELEMENT_ATTRS, ELEMENT_ATTRS_ALLOWED)
+
+		const stale = [...ELEMENT_ATTRS_ALLOWED.keys()].filter((rel) => !used.has(rel))
+
+		expect(stale, `entries that no longer apply:\n  ${stale.join('\n  ')}`).toEqual([])
 	})
 })

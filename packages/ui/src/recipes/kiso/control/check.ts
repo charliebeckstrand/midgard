@@ -82,7 +82,7 @@ export const check = {
 	shell,
 	base,
 	color,
-	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track, already folded into `surface` for checkbox / radio. */
+	/** Validation ring fragment keyed off the overlaid input's `data-*` state; spread by the switch track and the signature pad, already folded into `surface` for checkbox / radio. */
 	validation,
 	/** Disabled-state text class for the surrounding field wrapper. */
 	disabled: fg.disabled,

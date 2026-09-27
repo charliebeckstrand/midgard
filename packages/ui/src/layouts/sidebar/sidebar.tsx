@@ -38,7 +38,7 @@ export type SidebarLayoutProps = PropsWithChildren<{
 	/**
 	 * Fires when the mobile navigation drawer opens or closes, whatever drove it. The
 	 * drivers are the navbar button, a dismissal, a descendant calling `close`, or the
-	 * viewport widening past `--breakpoint-lg`.
+	 * viewport widening to the `lg` breakpoint.
 	 *
 	 * Observation only, and the mobile drawer alone. The desktop sidebar is inline, and
 	 * the `floating` variant's hover peek is a pointer affordance rather than a

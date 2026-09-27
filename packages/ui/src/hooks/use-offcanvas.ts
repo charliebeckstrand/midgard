@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { BREAKPOINT_WIDTHS } from '../types/responsive'
 import { matchesMediaQuery, subscribeMediaQuery } from '../utilities/media-query'
 import { useOpenChange } from './use-open-change'
 
@@ -8,18 +9,21 @@ import { useOpenChange } from './use-open-change'
 export type OffcanvasOptions = {
 	/**
 	 * Fires when the panel opens or closes, whatever drove it: a trigger, a dismissal,
-	 * `close`, or the viewport crossing `--breakpoint-lg`.
+	 * `close`, or the viewport widening to the `lg` breakpoint.
 	 */
 	onOpenChange?: (open: boolean) => void
 }
 
+/** The query that matches from the `lg` breakpoint up, where the panel is always in view. */
+const DESKTOP_QUERY = `(min-width: ${BREAKPOINT_WIDTHS.lg})`
+
 /**
  * Manages offcanvas sidebar state: open/close plus auto-close
- * when the viewport crosses the `--breakpoint-lg` threshold.
+ * when the viewport widens to the `lg` breakpoint.
  *
  * @param options `onOpenChange`, reported on every transition of the open flag.
- * @remarks Reads `--breakpoint-lg` off the document element; if the token is
- * undefined the auto-close listener is skipped.
+ * @remarks The breakpoint comes from {@link BREAKPOINT_WIDTHS}, the same scale as
+ * the `lg:` prefix and `useMinBreakpoint`.
  * @returns `{ open, setOpen, close }` — the open flag, its setter, and a
  * memoized `close` convenience.
  */
@@ -33,21 +37,13 @@ export function useOffcanvas({ onOpenChange }: OffcanvasOptions = {}) {
 	// handed out raw for callers to drive.
 	useOpenChange(open, onOpenChange)
 
-	useEffect(() => {
-		const breakpoint = getComputedStyle(document.documentElement)
-			.getPropertyValue('--breakpoint-lg')
-			.trim()
-
-		// Bail when the design token is undefined; `matchMedia('(min-width: )')`
-		// is an invalid query that never fires.
-		if (!breakpoint) return
-
-		const query = `(min-width: ${breakpoint})`
-
-		return subscribeMediaQuery(query, () => {
-			if (matchesMediaQuery(query)) setOpen(false)
-		})
-	}, [])
+	useEffect(
+		() =>
+			subscribeMediaQuery(DESKTOP_QUERY, () => {
+				if (matchesMediaQuery(DESKTOP_QUERY)) setOpen(false)
+			}),
+		[],
+	)
 
 	return { open, setOpen, close }
 }

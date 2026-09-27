@@ -1,6 +1,8 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
+import { BREAKPOINT_WIDTHS } from '../../types/responsive'
+import { stubMatchMedia } from '../helpers'
 
 describe('useOffcanvas', () => {
 	it('starts closed', () => {
@@ -79,14 +81,6 @@ describe('useOffcanvas', () => {
 	})
 })
 
-function stubBreakpoint(value: string): void {
-	const partial: Partial<CSSStyleDeclaration> = { getPropertyValue: () => value }
-
-	const impl: typeof window.getComputedStyle = () => partial as CSSStyleDeclaration
-
-	vi.stubGlobal('getComputedStyle', impl)
-}
-
 type MqlMock = Pick<
 	MediaQueryList,
 	'matches' | 'media' | 'addEventListener' | 'removeEventListener'
@@ -110,7 +104,7 @@ function stubFixedMediaQuery(mql: MqlMock): void {
 }
 
 /**
- * Stubs the breakpoint token and `matchMedia`, and returns the mock plus `cross` — set
+ * Stubs `matchMedia`, and returns the mock plus `cross` — set
  * the query's verdict and fire the listener the hook registered. Call before
  * `renderHook`; `cross` reads the captured handler when it runs, not when it is built.
  */
@@ -126,8 +120,6 @@ function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => vo
 		removeEventListener: vi.fn(),
 	}
 
-	stubBreakpoint('1024px')
-
 	stubFixedMediaQuery(mql)
 
 	return {
@@ -141,7 +133,7 @@ function stubViewportCrossing(): { mql: MqlMock; cross: (matches: boolean) => vo
 }
 
 describe('useOffcanvas: breakpoint listener', () => {
-	it('auto-closes when the viewport crosses --breakpoint-lg', () => {
+	it('auto-closes when the viewport widens to the lg breakpoint', () => {
 		const { cross } = stubViewportCrossing()
 
 		const { result } = renderHook(() => useOffcanvas())
@@ -197,16 +189,12 @@ describe('useOffcanvas: breakpoint listener', () => {
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
 
-	it('bails when --breakpoint-lg is undefined', () => {
-		stubBreakpoint('')
-
-		const matchMediaSpy = vi.fn()
-
-		vi.stubGlobal('matchMedia', matchMediaSpy)
+	it('watches the lg breakpoint in the unit Tailwind emits', () => {
+		const matchMedia = stubMatchMedia(() => false)
 
 		renderHook(() => useOffcanvas())
 
-		expect(matchMediaSpy).not.toHaveBeenCalled()
+		expect(matchMedia).toHaveBeenCalledWith(`(min-width: ${BREAKPOINT_WIDTHS.lg})`)
 	})
 
 	it('removes the change listener on unmount', () => {

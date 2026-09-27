@@ -12,9 +12,8 @@ export type MinBreakpoint = Exclude<Breakpoint, 'initial'>
  *
  * The same scale as the `sm:` / `lg:` prefixes above, in the same unit. A question asked
  * in JavaScript (`useMinBreakpoint('lg')`) and the same question asked in CSS (`lg:`)
- * therefore cannot give different answers. Consumers used to spell these from memory as
- * pixel literals, such as `useMinWidth(640)` and `useMinWidth(1024)`. That is one
- * transcription per call site, and none of them move if the theme's breakpoints ever do.
+ * therefore cannot give different answers. A pixel literal at each call site copies the
+ * scale by hand, and no copy moves if the theme's breakpoints change.
  *
  * `rem`, not `px`, because that is what Tailwind emits. At a root font size other than 16px
  * a pixel literal and the matching `lg:` class part company. The JS answer then silently

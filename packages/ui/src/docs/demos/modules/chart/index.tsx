@@ -1,6 +1,7 @@
 import { RefreshCw } from 'lucide-react'
 import { type ComponentProps, type ReactNode, useEffect, useState } from 'react'
 import statesUrl from 'us-atlas/states-10m.json?url'
+import { Alert } from '../../../../components/alert'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Listbox, ListboxOption } from '../../../../components/listbox'
@@ -122,26 +123,36 @@ const signups: { day: string; count: number }[] = [
 
 // Atlas data stays out of the package: fetch the us-atlas TopoJSON as a static
 // asset on first render, the same shape a consumer's lazily-loaded geography
-// takes. `null` until it lands — the choropleth reserves its frame meanwhile.
-function useGeography(url: string): MapGeography | null {
+// takes. `geography` is `null` until it lands, and the choropleth reserves its
+// frame meanwhile. `failed` says the fetch did not land, so the tab can say so and
+// not keep a skeleton that never fills.
+function useGeography(url: string): { geography: MapGeography | null; failed: boolean } {
 	const [geography, setGeography] = useState<MapGeography | null>(null)
+
+	const [failed, setFailed] = useState(false)
 
 	useEffect(() => {
 		let canceled = false
 
 		fetch(url)
-			.then((response) => response.json())
+			.then((response) => {
+				if (!response.ok) throw new Error(`${url}: ${response.status}`)
+
+				return response.json()
+			})
 			.then((json: MapGeography) => {
 				if (!canceled) setGeography(json)
 			})
-			.catch(() => {})
+			.catch(() => {
+				if (!canceled) setFailed(true)
+			})
 
 		return () => {
 			canceled = true
 		}
 	}, [url])
 
-	return geography
+	return { geography, failed }
 }
 
 type LegendPlacement = 'right' | 'left' | 'top' | 'bottom'
@@ -215,7 +226,7 @@ function AnimatedExample({
 }
 
 export function Demo() {
-	const states = useGeography(statesUrl)
+	const { geography: states, failed: statesFailed } = useGeography(statesUrl)
 
 	return (
 		<Tabs defaultValue="bar">
@@ -895,6 +906,9 @@ export function Demo() {
 
 					<TabContent value="choropleth">
 						<Stack gap="xl">
+							{statesFailed && (
+								<Alert color="red" variant="soft" title="Couldn't load the states atlas" />
+							)}
 							<Example
 								title="Heatmap"
 								code={code`<ChoroplethChart legend="range" series={[{ …, colorRange: heat }]} … />`}

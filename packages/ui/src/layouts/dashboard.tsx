@@ -30,7 +30,7 @@ export type DashboardLayoutProps = PropsWithChildren<{
 	filters?: ReactNode
 	/**
 	 * Fires when the mobile filter drawer opens or closes, whatever drove it: the
-	 * "Filters" button, a dismissal, or the viewport widening past `--breakpoint-lg`.
+	 * "Filters" button, a dismissal, or the viewport widening to the `lg` breakpoint.
 	 *
 	 * Observation only. The layout owns the drawer and there is no `open` prop to pair
 	 * with. The desktop rail is always present, so it reports nothing.

@@ -267,6 +267,9 @@ describe('SignaturePad + Control', () => {
 		expect(canvas).toHaveAttribute('aria-invalid', 'true')
 
 		expect(canvas).toHaveAttribute('data-invalid')
+
+		// The pad paints the ring from the canvas state, as a checkbox does.
+		expect(bySlot(container, 'signature-pad')).toHaveClass('has-[[data-invalid]]:ring-red-600')
 	})
 
 	it('points the canvas aria-describedby at the control description and message', () => {

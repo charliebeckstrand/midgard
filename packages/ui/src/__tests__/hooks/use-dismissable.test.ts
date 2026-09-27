@@ -143,4 +143,42 @@ describe('useDismissable', () => {
 
 		expect(second).toHaveBeenCalledOnce()
 	})
+
+	it('does not dismiss on a press on a scrollbar outside the container', () => {
+		const onDismiss = vi.fn()
+
+		const { result, rerender } = renderHook(() => useDismissable({ open: true, onDismiss }))
+
+		Object.defineProperty(result.current, 'current', {
+			value: attach(document.createElement('div')),
+			writable: true,
+		})
+
+		rerender()
+
+		const scroller = attach(document.createElement('div'))
+
+		Object.defineProperties(scroller, {
+			clientWidth: { value: 100, configurable: true },
+			clientHeight: { value: 100, configurable: true },
+			scrollWidth: { value: 100, configurable: true },
+			scrollHeight: { value: 500, configurable: true },
+		})
+
+		vi.spyOn(window, 'getComputedStyle').mockReturnValue({
+			overflowX: 'hidden',
+			overflowY: 'auto',
+			direction: 'ltr',
+		} as CSSStyleDeclaration)
+
+		const event = new PointerEvent('pointerdown', { bubbles: true })
+
+		Object.defineProperty(event, 'offsetX', { value: 110, configurable: true })
+
+		Object.defineProperty(event, 'offsetY', { value: 50, configurable: true })
+
+		scroller.dispatchEvent(event)
+
+		expect(onDismiss).not.toHaveBeenCalled()
+	})
 })
