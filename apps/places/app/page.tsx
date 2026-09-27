@@ -1,9 +1,7 @@
-import { requireSession } from 'auth'
+import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
 import { PlacesApp } from '@/components/places-app'
-import { listPlaces } from '@/server/places-store'
-import { visitedSeed } from '@/server/visited-seed'
-import { listVisits } from '@/server/visits-store'
+import { mimir } from '@/server/mimir'
 
 /**
  * The one page. Every surface below it is interactive — the map, the filter bar,
@@ -35,9 +33,9 @@ import { listVisits } from '@/server/visits-store'
 export default async function Page() {
 	const { user } = await requireSession()
 
-	const [places, visits] = await Promise.all([
-		listPlaces(user.id),
-		listVisits(user.id, () => visitedSeed(user.id)),
+	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([
+		requireGateway('/api/places', () => mimir.GET('/api/places')),
+		requireGateway('/api/visits', () => mimir.GET('/api/visits')),
 	])
 
 	return (
