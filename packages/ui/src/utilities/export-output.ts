@@ -66,3 +66,56 @@ export function neutralizeFormula(value: string): string {
 
 	return value
 }
+
+/**
+ * A formatted number: digits with signs, separators, spaces, currency, or a
+ * percent. It holds no letter and no operator, so a spreadsheet cannot run it.
+ * The spaces are the plain, the no-break, and the narrow no-break space, not a
+ * tab or a line break, which a spreadsheet reads as the start of a formula.
+ *
+ * @internal
+ */
+const FORMATTED_NUMBER = /^[+-]?[\d.,'’%$€£¥ \u00a0\u202f]*\d[\d.,'’%$€£¥ \u00a0\u202f]*$/
+
+/** Options for {@link csvField}. @internal */
+export type CsvFieldOptions = {
+	/**
+	 * Keeps a formatted number (`-1,234.5`, `12 %`) as it is, so the column of a
+	 * formatted readout still parses. Without it, only a plain number keeps its
+	 * sign (see {@link neutralizeFormula}).
+	 * @defaultValue false
+	 */
+	formatted?: boolean
+}
+
+/**
+ * Escapes one CSV field per RFC 4180. A field that holds the delimiter, a quote,
+ * or a line break gets double quotes, and its own quotes are doubled. A field
+ * that a spreadsheet reads as a formula first gets a quote prefix (see
+ * {@link neutralizeFormula}).
+ *
+ * @internal
+ */
+export function csvField(value: string, { formatted = false }: CsvFieldOptions = {}): string {
+	const guarded = formatted && FORMATTED_NUMBER.test(value) ? value : neutralizeFormula(value)
+
+	return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded
+}
+
+/**
+ * Downloads a CSV document as a UTF-8 file.
+ *
+ * @remarks The file starts with a UTF-8 byte order mark. Without it, a
+ * spreadsheet app such as Excel can read the text in a legacy encoding, and a
+ * character outside ASCII (`—`, `é`) shows as mojibake.
+ *
+ * @param filename - The name of the download, such as `grid.csv`.
+ * @param csv - The CSV document.
+ * @internal
+ */
+export function downloadCsv(filename: string, csv: string): void {
+	downloadBlob(
+		new Blob([String.fromCharCode(0xfeff), csv], { type: 'text/csv;charset=utf-8' }),
+		filename,
+	)
+}

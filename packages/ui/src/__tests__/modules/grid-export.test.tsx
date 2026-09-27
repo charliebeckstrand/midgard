@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn, useGridExportActions } from '../../modules/grid'
-import { downloadCsv, rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
+import { rowsToCsv } from '../../modules/grid/engine/grid-export/csv'
 import type { GridExportRows } from '../../modules/grid/engine/grid-export/types'
+import { downloadCsv } from '../../utilities/export-output'
 import { deferred, fireEvent, renderUI, screen, waitFor, within } from '../helpers'
 import { captureDownload } from '../helpers/capture-download'
 
