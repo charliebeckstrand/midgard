@@ -6,7 +6,7 @@ import { createContext } from '../../core'
  * Context tuple for the headless flag: `[HeadlessContext, useHeadless]`.
  *
  * The flag is `true` inside `<HeadlessProvider>`. Headless-aware components
- * (Input, Button) drop their chrome and render the bare semantic element when
+ * (Input, Textarea, Button) drop their chrome and render the bare semantic element when
  * it is set. The rest of their behavior stays (Control / Form wiring, disabled
  * state, `data-slot`, ref forwarding).
  *
