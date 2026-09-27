@@ -81,6 +81,33 @@ const projection = {
 		],
 	},
 	hover: ['[&>tbody>tr]:hover:bg-zinc-950/5', 'dark:[&>tbody>tr]:hover:bg-white/5'],
+	/**
+	 * Rows for a table with no `density` prop, which follows the nearest
+	 * density scope (`ui/tailwind.css`). Each row is the cell padding of one
+	 * step, projected as above, under the matching `density-*` variant. The md
+	 * row resets an outer scope. `density-rows.test.ts` keeps the rows in step
+	 * with the cell `density` table.
+	 */
+	scoped: {
+		sm: [
+			'density-sm:[&>*>tr>td]:px-1',
+			'density-sm:[&>*>tr>td]:py-1',
+			'density-sm:[&>*>tr>th]:px-1',
+			'density-sm:[&>*>tr>th]:py-1',
+		],
+		md: [
+			'density-md:[&>*>tr>td]:px-2',
+			'density-md:[&>*>tr>td]:py-2',
+			'density-md:[&>*>tr>th]:px-2',
+			'density-md:[&>*>tr>th]:py-2',
+		],
+		lg: [
+			'density-lg:[&>*>tr>td]:px-3',
+			'density-lg:[&>*>tr>td]:py-3',
+			'density-lg:[&>*>tr>th]:px-3',
+			'density-lg:[&>*>tr>th]:py-3',
+		],
+	},
 } as const
 
 export const k = {

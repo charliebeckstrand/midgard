@@ -9,9 +9,9 @@ import { k } from '../../recipes/kata/table'
 /** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. Explicit: the table projects the
-	 * resolved padding onto its descendant cells.
-	 * @defaultValue 'snug'
+	 * Density level driving cell padding. The table projects the padding onto
+	 * its descendant cells and opens a density scope. Omit it to follow the
+	 * nearest density scope, or `'snug'` outside a scope.
 	 */
 	density?: DensityLevel
 	bleed?: boolean
@@ -54,7 +54,8 @@ export type TableProps = TableVariants & {
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
  * The table owns `density`, `outline`, `striped`, and `hover` and projects
  * them onto descendant rows and cells, so TableBody, TableCell, and
- * TableHeader read no context.
+ * TableHeader read no context. Without `density`, the table follows the
+ * nearest density scope through the `density-*` variants of `ui/tailwind.css`.
  *
  * @remarks
  * Projection reaches descendant cells through DOM selectors, not React
@@ -77,6 +78,10 @@ export function Table({
 	// 'snug' maps to the md step.
 	const step = densityToSize[density ?? 'snug']
 
+	// Without a `density` prop, the table follows the nearest scope through the
+	// `density-*` variants and opens no scope of its own.
+	const scope = density ? step : undefined
+
 	// `true` keeps the historical default of shading even rows.
 	const stripe = striped === true ? 'even' : striped
 
@@ -88,10 +93,10 @@ export function Table({
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
 				{...tableProps}
-				data-density={step}
+				data-density={scope}
 				className={cn(
 					k.base,
-					k.projection.density[step],
+					scope ? k.projection.density[step] : Object.values(k.projection.scoped),
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					hover && k.projection.hover,

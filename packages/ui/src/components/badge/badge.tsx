@@ -21,10 +21,12 @@ export type BadgeProps = BadgeBaseProps & PolymorphicStaticProps<'span', 'prefix
  * link at the call site.
  *
  * @remarks
- * Static leaf: renders in React Server Components. `size` is explicit
- * (recipe default `md`); prefix and suffix icons size through the badge's
- * own slot projection (`shaku.icon` in the kata size rows). Inside a control
- * affix slot, set `size` one step below the host control: the affix
+ * Static leaf: renders in React Server Components. Without `size`, the badge
+ * follows the nearest density scope through the `density-*` variants of
+ * `ui/tailwind.css`, and takes `md` outside a scope. It reads no context.
+ * An explicit `size` pins the step. Prefix and suffix icons size through the
+ * badge's own slot projection (`shaku.icon` in the kata size rows). Inside a
+ * control affix slot, set `size` one step below the host control: the affix
  * compensation constants in `kiso/control/affix` assume the stepped-down
  * chip.
  */
@@ -41,18 +43,22 @@ export function Badge({
 	suffix,
 	...props
 }: BadgeProps) {
-	const resolvedSize = size ?? 'md'
+	// An unsized badge takes the md rows as its base, and the density rows
+	// override them inside a scope.
+	const density = size
+		? undefined
+		: [Object.values(k.density.size), radius === 'full' && Object.values(k.density.pill)]
 
 	return (
 		<PolymorphicStatic
 			as="span"
 			data-slot="badge"
-			data-size={resolvedSize}
+			data-size={size}
 			data-has-prefix={dataAttr(!!prefix)}
 			data-has-suffix={dataAttr(!!suffix)}
 			href={href}
 			render={render}
-			className={cn(k({ variant, color, size: resolvedSize, radius }), className)}
+			className={cn(k({ variant, color, size: size ?? 'md', radius }), density, className)}
 			{...props}
 		>
 			{prefix}

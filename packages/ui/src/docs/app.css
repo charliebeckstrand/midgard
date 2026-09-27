@@ -2,5 +2,6 @@
    chrome's own classes) comes from the engine; this file adds ui's own
    source so Tailwind generates the classes ui's components and demos use. */
 @import './engine/app.css';
+@import '../../tailwind.css';
 
 @source '../';

@@ -34,6 +34,7 @@
 			"types": "./src/structure/*/index.ts",
 			"default": "./src/structure/*/index.ts"
 		},
+		"./tailwind.css": "./tailwind.css",
 		"./*": [
 			{
 				"types": "./src/components/*/index.ts",

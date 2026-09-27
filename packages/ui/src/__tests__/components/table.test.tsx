@@ -296,12 +296,14 @@ describe('Table density resolution', () => {
 		</TableBody>
 	)
 
-	it('defaults to snug: md cell padding and no density projection', () => {
+	it('defaults to md cell padding and opens no scope without a density prop', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 
 		expect(container.querySelector('tbody td')?.className).toContain('px-2')
 
-		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
+
+		expect(container.querySelector('table')?.className).not.toMatch(/(^|\s)\[&>\*>tr>td\]:px-/)
 	})
 
 	it('projects sm padding under an explicit compact density prop', () => {
@@ -316,17 +318,19 @@ describe('Table density resolution', () => {
 		expect(container.querySelector('tbody td')?.className).toContain('px-2')
 	})
 
-	it('ignores an ambient DensityProvider', () => {
+	it('follows an ambient DensityProvider through the density rows', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Table>{body}</Table>
 			</DensityProvider>,
 		)
 
-		// Static leaf: density comes from the explicit prop only.
-		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+		// Static leaf: it reads no context. The density rows select the step in
+		// CSS from the provider's data-density; the real browser suite checks
+		// the computed result.
+		expect(container.querySelector('table')?.className).toContain('density-sm:[&>*>tr>td]:px-1')
 
-		expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
+		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
 	})
 })
 

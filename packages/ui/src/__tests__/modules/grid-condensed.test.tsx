@@ -99,6 +99,12 @@ describe('Grid condensed', () => {
 			</>,
 		)
 
-		expect(screen.getByText('loose')).toHaveAttribute('data-size', 'md')
+		const badge = screen.getByText('loose')
+
+		expect(badge).toHaveClass('text-base')
+
+		// The grid's sm scope sits on its own `<table>`, so it is no ancestor of
+		// the badge.
+		expect(badge.closest('[data-density]')).toBeNull()
 	})
 })

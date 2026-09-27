@@ -1,0 +1,83 @@
+/*
+ * Density variants for Tailwind. Import this file in each Tailwind entry that
+ * scans ui. It holds variants only, no styles.
+ *
+ * A density scope is an element with `data-density="sm|md|lg"`. DensityProvider
+ * writes one, and so does a sized Card or Table. A static component with no
+ * `size` puts `density-sm:`, `density-md:` and `density-lg:` rows on top of its
+ * md base, so it follows the nearest scope and reads no context.
+ *
+ * The nearest scope must win when scopes nest. Each variant is a list of
+ * selectors ranked by depth: the selector for depth n puts n-1 scope
+ * ancestors above the scope. The innermost scope matches the deepest
+ * selector, and that selector has the highest specificity, so the innermost
+ * scope wins. An outer scope matches only shallower selectors.
+ *
+ * The list stops at a depth of 6 scopes. When more scopes nest, the two
+ * innermost can match at the same specificity, and then source order decides.
+ */
+
+/* biome-ignore-all lint/style/noDescendingSpecificity: the rank by depth is the design. A deeper selector must outrank a shallower one, whatever the order of the variants. */
+
+@custom-variant density-sm {
+	[data-density='sm'] & {
+		@slot;
+	}
+	[data-density] [data-density='sm'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density='sm'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density='sm'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density='sm'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density] [data-density='sm'] & {
+		@slot;
+	}
+}
+
+@custom-variant density-md {
+	[data-density='md'] & {
+		@slot;
+	}
+	[data-density] [data-density='md'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density='md'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density='md'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density='md'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density] [data-density='md'] & {
+		@slot;
+	}
+}
+
+@custom-variant density-lg {
+	[data-density='lg'] & {
+		@slot;
+	}
+	[data-density] [data-density='lg'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density='lg'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density='lg'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density='lg'] & {
+		@slot;
+	}
+	[data-density] [data-density] [data-density] [data-density] [data-density] [data-density='lg'] & {
+		@slot;
+	}
+}

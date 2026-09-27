@@ -16,11 +16,15 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py'> & {
 
 /**
  * Outlined, padded surface built on Box. Renders in React Server Components,
- * because the card never reads context. `size` is explicit (default `md`), and
- * the matching section gap is projected onto direct `data-slot=card-*` children
- * from outside. An explicit `size` additionally opens a density scope, so
- * size-aware client children (Button, Input, …) inherit the step. An unsized
- * card stays fully static and lets ambient density flow through.
+ * because the card never reads context. The matching section gap is projected
+ * onto direct `data-slot=card-*` children from outside.
+ *
+ * An explicit `size` pins the step and opens a density scope. The card writes
+ * `data-density` for static descendants. It also wraps its children in
+ * `Density` for client descendants (Button, Input, …). Without `size`, the card
+ * follows the nearest density scope through the `density-*` variants of
+ * `ui/tailwind.css`. Outside a scope, it takes `md`. The scope flows through
+ * to its children.
  *
  * The frame owns the outer padding for every child, bare or structural. A
  * section pads only the inner edge it shares with a sibling (header below,
@@ -40,12 +44,18 @@ export function Card({
 	return (
 		<Box
 			data-slot="card"
-			data-size={step}
+			data-size={size}
+			data-density={size}
 			p={step}
 			bg={bg}
 			outline={outline}
 			radius={k.radius[step]}
-			className={cn('overflow-hidden -outline-offset-1', k.slots[step], className)}
+			className={cn(
+				'overflow-hidden -outline-offset-1',
+				k.slots[step],
+				!size && Object.values(k.density),
+				className,
+			)}
 			{...props}
 		>
 			{size ? <Density scale={size}>{children}</Density> : children}

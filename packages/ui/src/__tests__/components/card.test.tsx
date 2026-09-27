@@ -22,23 +22,39 @@ describe('Card', () => {
 })
 
 describe('Card size system', () => {
-	it.each<[string, () => ReactElement, string]>([
-		['defaults to md and exposes data-size for descendants', () => <Card>content</Card>, 'md'],
-		['reflects an explicit size prop on data-size', () => <Card size="lg">content</Card>, 'lg'],
-		[
-			// Static leaf: ambient density reaches client components only.
-			'ignores an ambient Density provider',
-			() => (
-				<DensityProvider density="compact">
-					<Card>content</Card>
-				</DensityProvider>
-			),
-			'md',
-		],
-	])('%s', (_name, ui, expected) => {
-		const { container } = renderUI(ui())
+	it('reflects an explicit size prop on data-size and data-density', () => {
+		const { container } = renderUI(<Card size="lg">content</Card>)
 
-		expect(bySlot(container, 'card')).toHaveAttribute('data-size', expected)
+		expect(bySlot(container, 'card')).toHaveAttribute('data-size', 'lg')
+
+		expect(bySlot(container, 'card')).toHaveAttribute('data-density', 'lg')
+	})
+
+	it('writes no size or scope without a size prop', () => {
+		const { container } = renderUI(<Card>content</Card>)
+
+		expect(bySlot(container, 'card')).not.toHaveAttribute('data-size')
+
+		expect(bySlot(container, 'card')).not.toHaveAttribute('data-density')
+	})
+
+	it('follows the nearest density scope without a size prop', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Card>content</Card>
+			</DensityProvider>,
+		)
+
+		// Static leaf: it reads no context. The density rows select the step
+		// in CSS from the provider's data-density; the real browser suite checks
+		// the computed result.
+		expect(bySlot(container, 'card')?.className).toContain('density-sm:p-2')
+	})
+
+	it('pins its own step with an explicit size', () => {
+		const { container } = renderUI(<Card size="lg">content</Card>)
+
+		expect(bySlot(container, 'card')?.className).not.toContain('density-')
 	})
 
 	it('renders an inner-radius class matching the resolved size', () => {
@@ -178,7 +194,7 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'button')?.className).toContain('text-sm')
 	})
 
-	it('renders nested cards at their own size', () => {
+	it('lets an unsized inner card follow the outer card scope', () => {
 		const { container } = renderUI(
 			<Card size="sm">
 				<CardBody>
@@ -189,9 +205,14 @@ describe('Card size system', () => {
 
 		const cards = container.querySelectorAll<HTMLElement>('[data-slot="card"]')
 
-		// The inner card defaults to md; the outer size does not cascade, and
-		// the direct-child section projection cannot reach into it.
-		expect(cards[1]).toHaveAttribute('data-size', 'md')
+		// The outer card opens an sm scope. The unsized inner card follows it
+		// through the density rows; the direct-child section projection of the
+		// outer card cannot reach into it.
+		expect(cards[0]).toHaveAttribute('data-density', 'sm')
+
+		expect(cards[1]).not.toHaveAttribute('data-size')
+
+		expect(cards[1]?.className).toContain('density-sm:p-2')
 	})
 
 	// The frame owns the outer padding on every edge: Card carries a static

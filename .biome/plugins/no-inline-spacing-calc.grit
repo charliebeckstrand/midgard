@@ -9,9 +9,9 @@ language js
 //
 // Reach is the `includes` beside this plugin in `biome.json`: the recipe,
 // component, module, primitive, and layout layers of `ui`, minus tests and
-// benchmarks. It leaves out kasane, and the four files whose literals carry a
-// Tailwind variant prefix (`data-*`, `has-*`, `autofill:*`). A variant must
-// appear in source, so it cannot move behind the kasane helpers.
+// benchmarks. It leaves out kasane, and the five files whose literals carry a
+// Tailwind variant prefix (`data-*`, `has-*`, `autofill:*`, `density-*`). A
+// variant must appear in source, so it cannot move behind the kasane helpers.
 or { JsStringLiteralExpression(), JsxString(), JsTemplateChunkElement() } as $class where {
 	$class <: r"[\s\S]*calc\(--spacing\([\s\S]*",
 	register_diagnostic(
