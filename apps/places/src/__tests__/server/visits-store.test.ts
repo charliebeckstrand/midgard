@@ -106,6 +106,18 @@ describe('setVisit', () => {
 		})
 	})
 
+	it('refuses a new region once a scope holds the most', async () => {
+		const full = Array.from({ length: store.MAX_VISITS }, (_, i) => `Region ${i}`)
+
+		await stored({ states: full, countries: [] })
+
+		expect(await store.setVisit(USER, 'states', 'Oregon', true)).toBeNull()
+
+		expect(await store.setVisit(USER, 'states', 'Region 0', true)).not.toBeNull()
+
+		expect(await store.setVisit(USER, 'countries', 'France', true)).not.toBeNull()
+	})
+
 	// Sent twice it leaves the same set, which is what a toggle pressed through a
 	// dropped response needs.
 	it('states the designation rather than changing it', async () => {

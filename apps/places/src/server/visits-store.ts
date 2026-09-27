@@ -19,6 +19,9 @@ import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
 
 const serialize = createQueue()
 
+/** The most regions one user marks in each scope, so no account can fill the disk. */
+export const MAX_VISITS = 1000
+
 /** An empty set of both scopes, which is what a store with no file holds. */
 function empty(): Visits {
 	return { states: [], countries: [] }
@@ -87,7 +90,8 @@ export async function listVisits(userId: string, seed?: () => Promise<Visits>): 
  * The whole set rather than the one change, so a caller never has to hold a copy
  * it patched itself — and so the first write of a seeded file hands back what it
  * settled on. `seed` is {@link listVisits}'s, and matters on exactly one call:
- * the first write, which must not drop what the reader already had.
+ * the first write, which must not drop what the reader already had. `null` where
+ * marking the region would pass {@link MAX_VISITS} in its scope.
  */
 export async function setVisit(
 	userId: string,
@@ -95,11 +99,13 @@ export async function setVisit(
 	region: string,
 	visited: boolean,
 	seed?: () => Promise<Visits>,
-): Promise<Visits> {
+): Promise<Visits | null> {
 	return serialize(async () => {
 		const held = await listVisits(userId, seed)
 
 		const names = new Set(held[scope])
+
+		if (visited && !names.has(region) && names.size >= MAX_VISITS) return null
 
 		if (visited) names.add(region)
 		else names.delete(region)

@@ -1,4 +1,4 @@
-import { addPlace, listPlaces } from '@/server/places-store'
+import { addPlace, listPlaces, MAX_PLACES } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
 import { authorize, userOnly } from '@/server/session-user'
 
@@ -24,5 +24,14 @@ export async function POST(request: Request) {
 
 	if (!draft.ok) return Response.json({ issues: draft.issues }, { status: 400 })
 
-	return Response.json(await addPlace(userId, draft.value), { status: 201 })
+	const place = await addPlace(userId, draft.value)
+
+	if (place === null) {
+		return Response.json(
+			{ issues: [`You can keep up to ${MAX_PLACES.toLocaleString('en-US')} places.`] },
+			{ status: 409 },
+		)
+	}
+
+	return Response.json(place, { status: 201 })
 }

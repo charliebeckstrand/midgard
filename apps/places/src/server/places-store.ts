@@ -17,6 +17,9 @@ import { createQueue, readJsonFile, userFile, writeJsonFile } from './json-file'
 
 const serialize = createQueue()
 
+/** The most places one user keeps, so no account can fill the disk. */
+export const MAX_PLACES = 1000
+
 /** Reads the file, or an empty list where it does not exist yet. */
 async function readAll(userId: string): Promise<unknown[]> {
 	const parsed = await readJsonFile(userFile(userId, 'places.json'))
@@ -48,10 +51,15 @@ export async function listPlaces(userId: string): Promise<Place[]> {
 	return places.sort((a, b) => b.visitedAt.localeCompare(a.visitedAt))
 }
 
-/** Appends one place, giving it its identity and its written-at stamp. */
-export async function addPlace(userId: string, draft: PlaceDraft): Promise<Place> {
+/**
+ * Appends one place, giving it its identity and its written-at stamp. `null`
+ * where the user already keeps {@link MAX_PLACES}.
+ */
+export async function addPlace(userId: string, draft: PlaceDraft): Promise<Place | null> {
 	return serialize(async () => {
 		const places = await listPlaces(userId)
+
+		if (places.length >= MAX_PLACES) return null
 
 		const place: Place = { ...draft, id: randomUUID(), createdAt: new Date().toISOString() }
 
