@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest'
-
 import { affixStepDown } from '../../primitives/affix/affix'
 import type { Ma, Step } from '../../recipes'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
+import { findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
 //
@@ -26,22 +26,6 @@ import { control } from '../../recipes/kiso/control'
 // override resolves to a different constant (`2`); the has-badge arm
 // below pins it directly off `badge.px`.
 
-const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
-
-function findSpacing(classes: readonly unknown[], prefix: string): number {
-	for (const cls of classes.flat(Number.POSITIVE_INFINITY)) {
-		if (typeof cls !== 'string') continue
-
-		if (!cls.startsWith(prefix)) continue
-
-		const match = cls.match(SPACING_RE)
-
-		if (match) return Number(match[1])
-	}
-
-	throw new Error(`No class starting with "${prefix}" found in: ${JSON.stringify(classes)}`)
-}
-
 const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly Step[]
 
 const CHIP_INSET = 0.5
@@ -50,27 +34,27 @@ describe('control affix has-button compensation', () => {
 	for (const step of STEPS) {
 		const buttonSize = affixStepDown(step)
 
-		const hostPx = findSpacing(control.density[step], 'px-[')
+		const hostPx = findStop(control.density[step], 'px-ring-')
 
 		const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
 
-		const buttonPx = findSpacing(buttonClasses, 'p-[')
+		const buttonPx = findStop(buttonClasses, 'p-ring-')
 
 		const expected = hostPx - buttonPx + CHIP_INSET
 
 		it(`${step}: affix.prefix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(
+			const actual = findStop(
 				control.affix.prefix[step],
-				'has-[[data-slot=button]:not([data-variant=bare])]:ps-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-',
 			)
 
 			expect(actual).toBe(expected)
 		})
 
 		it(`${step}: affix.suffix has-button override = input.px (${hostPx}) − stepped-down button.p (${buttonPx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(
+			const actual = findStop(
 				control.affix.suffix[step],
-				'has-[[data-slot=button]:not([data-variant=bare])]:pe-[',
+				'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-',
 			)
 
 			expect(actual).toBe(expected)
@@ -81,11 +65,11 @@ describe('control affix has-button compensation', () => {
 		const deltas = STEPS.map((step) => {
 			const buttonSize = affixStepDown(step)
 
-			const hostPx = findSpacing(control.density[step], 'px-[')
+			const hostPx = findStop(control.density[step], 'px-ring-')
 
 			const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
 
-			const buttonPx = findSpacing(buttonClasses, 'p-[')
+			const buttonPx = findStop(buttonClasses, 'p-ring-')
 
 			return hostPx - buttonPx
 		})
@@ -107,20 +91,20 @@ describe('control affix has-badge compensation', () => {
 	for (const step of STEPS) {
 		const badgeSize = affixStepDown(step)
 
-		const hostPx = findSpacing(control.density[step], 'px-[')
+		const hostPx = findStop(control.density[step], 'px-ring-')
 
-		const badgePx = findSpacing([badge.config.base], `density-${badgeSize}:px-[`)
+		const badgePx = Number(findSteps([badge.config.base], 'density-px-ring-')[badgeSize])
 
 		const expected = hostPx - badgePx + CHIP_INSET
 
 		it(`${step}: affix.prefix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(control.affix.prefix[step], 'has-[[data-slot=badge]]:ps-[')
+			const actual = findStop(control.affix.prefix[step], 'has-[[data-slot=badge]]:ps-ring-')
 
 			expect(actual).toBe(expected)
 		})
 
 		it(`${step}: affix.suffix has-badge override = input.px (${hostPx}) − stepped-down badge.px (${badgePx}) + chip inset (${CHIP_INSET}) = ${expected}`, () => {
-			const actual = findSpacing(control.affix.suffix[step], 'has-[[data-slot=badge]]:pe-[')
+			const actual = findStop(control.affix.suffix[step], 'has-[[data-slot=badge]]:pe-ring-')
 
 			expect(actual).toBe(expected)
 		})
@@ -130,9 +114,9 @@ describe('control affix has-badge compensation', () => {
 		const deltas = STEPS.map((step) => {
 			const badgeSize = affixStepDown(step)
 
-			const hostPx = findSpacing(control.density[step], 'px-[')
+			const hostPx = findStop(control.density[step], 'px-ring-')
 
-			const badgePx = findSpacing([badge.config.base], `density-${badgeSize}:px-[`)
+			const badgePx = Number(findSteps([badge.config.base], 'density-px-ring-')[badgeSize])
 
 			return hostPx - badgePx
 		})
@@ -181,25 +165,25 @@ describe('control affix has-bare-button compensation', () => {
 	for (const step of STEPS) {
 		const buttonSize = affixStepDown(step)
 
-		const hostPx = findSpacing(control.density[step], 'px-[')
+		const hostPx = findStop(control.density[step], 'px-ring-')
 
 		const bareP = findBareCompoundP(buttonSize)
 
 		const expected = hostPx - bareP
 
 		it(`${step}: affix.prefix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
-			const actual = findSpacing(
+			const actual = findStop(
 				control.affix.prefix[step],
-				'has-[[data-variant=bare]:not([data-has-label])]:ps-[',
+				'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-',
 			)
 
 			expect(actual).toBe(expected)
 		})
 
 		it(`${step}: affix.suffix has-bare override = input.px (${hostPx}) − stepped-down bare.p (${bareP}) = ${expected}`, () => {
-			const actual = findSpacing(
+			const actual = findStop(
 				control.affix.suffix[step],
-				'has-[[data-variant=bare]:not([data-has-label])]:pe-[',
+				'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-',
 			)
 
 			expect(actual).toBe(expected)
@@ -208,7 +192,8 @@ describe('control affix has-bare-button compensation', () => {
 
 	it('the bare compensation drifts a uniform 0.25 per step (the non-bare lockstep does not apply)', () => {
 		const values = STEPS.map(
-			(step) => findSpacing(control.density[step], 'px-[') - findBareCompoundP(affixStepDown(step)),
+			(step) =>
+				findStop(control.density[step], 'px-ring-') - findBareCompoundP(affixStepDown(step)),
 		)
 
 		const drift = new Set<number>()
@@ -242,17 +227,17 @@ describe('control affix has-bare-button compensation', () => {
 
 describe('control affix autofill margin', () => {
 	for (const step of STEPS) {
-		const hostPx = findSpacing(control.density[step], 'px-[')
+		const hostPx = findStop(control.density[step], 'px-ring-')
 
 		it(`${step}: autofill margins track input.px (${hostPx}) beside the affixed side`, () => {
-			const ms = findSpacing(
+			const ms = findStop(
 				[control.affix.autofill.prefix[step]],
-				'group-has-[[data-slot=prefix]]/control:autofill:ms-[',
+				'group-has-[[data-slot=prefix]]/control:autofill:ms-ring-',
 			)
 
-			const me = findSpacing(
+			const me = findStop(
 				[control.affix.autofill.suffix[step]],
-				'group-has-[[data-slot=suffix]]/control:autofill:me-[',
+				'group-has-[[data-slot=suffix]]/control:autofill:me-ring-',
 			)
 
 			expect(ms).toBe(hostPx)

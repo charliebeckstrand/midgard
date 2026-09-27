@@ -31,9 +31,9 @@ const SEARCH_PAGE_SIZE = 20
 // item text; mirrors the `ui` sidebar kata's `section.label` stops without
 // reaching into ui's private recipe surface.
 const SECTION_LABEL_PX: Record<string, string> = {
-	sm: 'px-[calc(--spacing(1.5)-1px)]',
-	md: 'px-[calc(--spacing(2)-1px)]',
-	lg: 'px-[calc(--spacing(2.5)-1px)]',
+	sm: 'px-ring-1.5',
+	md: 'px-ring-2',
+	lg: 'px-ring-2.5',
 }
 
 // Categories present in the demo set, rendered top to bottom: 'components'

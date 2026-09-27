@@ -66,75 +66,73 @@
  * Layer: kiso · Archetype: control · Concern: affix
  */
 
-import { kasane } from '../kasane'
 import { shaku } from '../shaku'
 
-const { padding } = kasane
 const { icon } = shaku
 
 export const affix = {
 	prefix: {
 		sm: [
-			padding.ps('2.5'),
+			'ps-ring-2.5',
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(1.75)-1px)]',
+			'has-[[data-slot=badge]]:ps-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-1.75',
 		],
 		md: [
-			padding.ps('3'),
+			'ps-ring-3',
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=badge]]:ps-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-2',
 		],
 		lg: [
-			padding.ps('3.5'),
+			'ps-ring-3.5',
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:ps-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:ps-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:ps-[calc(--spacing(2.25)-1px)]',
+			'has-[[data-slot=badge]]:ps-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:ps-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:ps-ring-2.25',
 		],
 	},
 	suffix: {
 		sm: [
-			padding.pe('2.5'),
+			'pe-ring-2.5',
 			icon.xs,
 			'*:data-[slot=loading-spinner]:size-3',
-			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(1.75)-1px)]',
+			'has-[[data-slot=badge]]:pe-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-1.75',
 		],
 		md: [
-			padding.pe('3'),
+			'pe-ring-3',
 			icon.sm,
 			'*:data-[slot=loading-spinner]:size-4',
-			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(2)-1px)]',
+			'has-[[data-slot=badge]]:pe-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-2',
 		],
 		lg: [
-			padding.pe('3.5'),
+			'pe-ring-3.5',
 			icon.md,
 			'*:data-[slot=loading-spinner]:size-5',
-			'has-[[data-slot=badge]]:pe-[calc(--spacing(2)-1px)]',
-			'has-[[data-slot=button]:not([data-variant=bare])]:pe-[calc(--spacing(1.5)-1px)]',
-			'has-[[data-variant=bare]:not([data-has-label])]:pe-[calc(--spacing(2.25)-1px)]',
+			'has-[[data-slot=badge]]:pe-ring-2',
+			'has-[[data-slot=button]:not([data-variant=bare])]:pe-ring-1.5',
+			'has-[[data-variant=bare]:not([data-has-label])]:pe-ring-2.25',
 		],
 	},
 	autofill: {
 		prefix: {
-			sm: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(2.5)-1px)]',
-			md: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(3)-1px)]',
-			lg: 'group-has-[[data-slot=prefix]]/control:autofill:ms-[calc(--spacing(3.5)-1px)]',
+			sm: 'group-has-[[data-slot=prefix]]/control:autofill:ms-ring-2.5',
+			md: 'group-has-[[data-slot=prefix]]/control:autofill:ms-ring-3',
+			lg: 'group-has-[[data-slot=prefix]]/control:autofill:ms-ring-3.5',
 		},
 		suffix: {
-			sm: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(2.5)-1px)]',
-			md: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(3)-1px)]',
-			lg: 'group-has-[[data-slot=suffix]]/control:autofill:me-[calc(--spacing(3.5)-1px)]',
+			sm: 'group-has-[[data-slot=suffix]]/control:autofill:me-ring-2.5',
+			md: 'group-has-[[data-slot=suffix]]/control:autofill:me-ring-3',
+			lg: 'group-has-[[data-slot=suffix]]/control:autofill:me-ring-3.5',
 		},
 	},
 } as const

@@ -22,28 +22,28 @@
 import { kasane } from '../kasane'
 import { affix } from './affix'
 
-const { padding, radius, gap } = kasane
+const { radius, gap } = kasane
 
 export const density = {
 	sm: [
-		padding.px('2.5'),
-		padding.py('1.5'),
+		'px-ring-2.5',
+		'py-ring-1.5',
 		radius.r('1.5'),
 		gap.g('0.75'),
 		affix.autofill.prefix.sm,
 		affix.autofill.suffix.sm,
 	],
 	md: [
-		padding.px('3'),
-		padding.py('2'),
+		'px-ring-3',
+		'py-ring-2',
 		radius.r('2'),
 		gap.g('1'),
 		affix.autofill.prefix.md,
 		affix.autofill.suffix.md,
 	],
 	lg: [
-		padding.px('3.5'),
-		padding.py('2.5'),
+		'px-ring-3.5',
+		'py-ring-2.5',
 		radius.r('2.5'),
 		gap.g('1.25'),
 		affix.autofill.prefix.lg,

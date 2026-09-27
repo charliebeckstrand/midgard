@@ -15,10 +15,7 @@ const { text } = iro
 const { border } = sen
 
 // Cell padding for each step.
-const padding = [
-	'density-sm:px-1 density-md:px-2 density-lg:px-3',
-	'density-sm:py-1 density-md:py-2 density-lg:py-3',
-]
+const padding = ['density-px-[1,2,3]', 'density-py-[1,2,3]']
 
 const outline = {
 	true: border.subtle,

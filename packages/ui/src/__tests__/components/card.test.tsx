@@ -42,14 +42,7 @@ describe('Card size system', () => {
 	it('carries each padding and radius step on the frame', () => {
 		const { container } = renderUI(<Card>content</Card>)
 
-		expect(bySlot(container, 'card')).toHaveClass(
-			'density-sm:p-2',
-			'density-md:p-3',
-			'density-lg:p-4',
-			'density-sm:rounded-sm',
-			'density-md:rounded-md',
-			'density-lg:rounded-lg',
-		)
+		expect(bySlot(container, 'card')).toHaveClass('density-p-[2,3,4]', 'density-rounded-[sm,md,lg]')
 	})
 
 	it('pads the header and the footer on the edges that they share with the body', () => {
@@ -61,17 +54,9 @@ describe('Card size system', () => {
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-header')).toHaveClass(
-			'density-sm:pb-2',
-			'density-md:pb-3',
-			'density-lg:pb-4',
-		)
+		expect(bySlot(container, 'card-header')).toHaveClass('density-pb-[2,3,4]')
 
-		expect(bySlot(container, 'card-footer')).toHaveClass(
-			'density-sm:pt-2',
-			'density-md:pt-3',
-			'density-lg:pt-4',
-		)
+		expect(bySlot(container, 'card-footer')).toHaveClass('density-pt-[2,3,4]')
 
 		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp[a-z]?-\d/)
 	})
@@ -164,7 +149,7 @@ describe('Card size system', () => {
 		const cls = bySlot(container, 'card')?.className ?? ''
 
 		// Frame padding survives — no `:has` collapse zeroes it.
-		expect(cls).toContain('density-md:p-3')
+		expect(cls).toContain('density-p-[2,3,4]')
 
 		expect(cls).not.toContain(':p-0')
 

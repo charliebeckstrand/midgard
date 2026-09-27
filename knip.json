@@ -20,7 +20,9 @@
 				"src/**/index.ts",
 				"src/__tests__/**/setup/*.ts",
 				"src/docs/app.css",
-				"src/core/density/variants.ts"
+				"src/core/density/variants.ts",
+				"src/core/density/utilities.ts",
+				"src/recipes/kiso/kasane/ring-utilities.ts"
 			]
 		}
 	}

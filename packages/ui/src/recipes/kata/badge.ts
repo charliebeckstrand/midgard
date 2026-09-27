@@ -14,16 +14,10 @@ import { iro, ji, kasane, kokkaku, narabi, shaku } from '../kiso'
 
 const { extendedPalette } = iro
 const { weight } = ji
-const { padding, rounded } = kasane
+const { rounded } = kasane
 const { badge } = kokkaku
 const { flex } = narabi
 const { iconSlotRamp } = shaku
-
-/** The `px` stop of each step. */
-const px = { xs: '1', sm: '1.5', md: '2', lg: '2.5' } as const
-
-/** The `px` stop of each step of a `radius: 'full'` pill: one stop above {@link px}. */
-const pillPx = { xs: '1.5', sm: '2', md: '2.5', lg: '3' } as const
 
 export const k = defineRecipe({
 	base: [
@@ -32,23 +26,23 @@ export const k = defineRecipe({
 		'w-fit',
 		weight.medium,
 		// A uniform 4px height scale: the type ramp (text-xs → text-lg) sets the
-		// step while vertical padding holds constant (py('1')), landing
+		// step while vertical padding holds constant (`py-ring-1`), landing
 		// xs/sm/md/lg on 22/26/30/34px. `md` matches a `sm` Button's 30px box.
 		// Badges step 4px, not Button's 8px: a text line-height floors a badge
 		// near 22px, so an 8px scale anchored at md=30 leaves no room for xs.
 		// Horizontal padding still grows 0.5/step to hold the affix
 		// chip-alignment lockstep (`kiso/control/affix.ts`).
 		//
-		// Each step is a `density-*` class: the badge takes the step of its
+		// Each step is in a stepped `density-*` class: the badge takes the step of its
 		// nearest density scope, and an explicit `size` makes the badge its own
 		// scope. A LoadingSpinner follows the same scope, so it takes the step of
 		// the badge with no projection. A bare icon element carries no size, so
 		// the badge projects one onto its icon slots.
-		'density-xs:text-xs density-sm:text-sm density-md:text-base density-lg:text-lg',
-		'density-xs:gap-0.5 density-sm:gap-0.75 density-md:gap-1 density-lg:gap-1.25',
+		'density-text-[xs,sm,base,lg,lg]',
+		'density-gap-[0.5,0.75,1,1.25,1.25]',
 		iconSlotRamp,
-		padding.py('1'),
-		padding.pxRamp(px),
+		'py-ring-1',
+		'density-px-ring-[1,1.5,2,2.5,2.5]',
 	],
 	variant: {
 		outline: 'ring-1 ring-inset',
@@ -59,11 +53,12 @@ export const k = defineRecipe({
 	palette: definePalette({ ...basePalette(extendedPalette), plain: extendedPalette.plain.text }),
 	// `radius: 'full'` caps swallow horizontal space, so pills read tighter than
 	// the base `px` (tuned for the default `radius: 'md'`) — most visibly at small
-	// sizes. Bump every pill one `px` step; the shift stays uniform because the
+	// sizes. Bump every pill one `px` step (the later class replaces the base
+	// one in `tailwind-merge`); the shift stays uniform because the
 	// `px` stops jump 0.5 (1.5 → 2 → 2.5), so lifting only the small end would
 	// collapse sm onto md's px and kink the scale. Scoped to the pill, so the
 	// base scale — and the affix `px` lockstep keyed off it — stays put.
-	compound: [{ radius: 'full', class: padding.pxRamp(pillPx) }],
+	compound: [{ radius: 'full', class: 'density-px-ring-[1.5,2,2.5,3,3]' }],
 	defaults: { variant: 'soft', color: 'zinc', radius: 'md' },
 	skeleton: badge,
 })

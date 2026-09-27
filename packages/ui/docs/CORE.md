@@ -23,7 +23,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `announce` | Imperative screen-reader announcement via a shared visually-hidden `aria-live` region on `document.body`. A repeat of the current text gets a trailing no-break space, so it is a real change. |
 | `AnnounceOptions` *(type)* | Options for `announce` (politeness level). |
 | `ComposeEventHandlersOptions` *(type)* | Options for `composeEventHandlers` (`checkForDefaultPrevented`). |
-| `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The `density-*` Tailwind variants, `data-density`, and the density context all use them. |
+| `densitySteps` | The steps of density (`xs` / `sm` / `md` / `lg` / `xl`). The `density-*` Tailwind variants and utilities, `data-density`, and the density context all use them. |
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `AmbientStep` *(type)* | The three ambient steps (`sm` / `md` / `lg`) that a three-step size axis takes. |
 | `toAmbientStep` | Clamps a density step to the ambient steps: `xs` becomes `sm`, `xl` becomes `lg`. |
