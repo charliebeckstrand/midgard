@@ -23,7 +23,7 @@
  * therefore writes no separate base class for the md step.
  */
 
-import plugin from 'tailwindcss/plugin'
+import type { PluginCreator } from 'tailwindcss/plugin'
 import { densitySteps } from './kiso/sun'
 
 /** The deepest nesting that the variants rank. When more scopes nest, an outer scope can win. */
@@ -49,7 +49,10 @@ function rungs(step: string): Rule {
 	return layers
 }
 
-// biome-ignore lint/style/noDefaultExport: Tailwind loads a plugin through its default export.
-export default plugin(({ addVariant }) => {
+/**
+ * The plugin handler. Tailwind reads a named `handler` export as a plugin, so
+ * the module needs no default export.
+ */
+export const handler: PluginCreator = ({ addVariant }) => {
 	for (const step of densitySteps) addVariant(`density-${step}`, rungs(step))
-})
+}
