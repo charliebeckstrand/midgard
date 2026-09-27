@@ -3,7 +3,7 @@ import { basename, dirname, join } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 import { extractComments } from '../helpers/controlled-language'
-import { srcDir, srcRelative } from '../helpers/walk-source'
+import { isSourceFile, srcDir, srcRelative } from '../helpers/walk-source'
 
 // A comment that names a file or a symbol states a fact about the tree, and the
 // tree moves. CONVENTIONS.md §12.4 bans the nearest spelling of the defect — an
@@ -78,8 +78,6 @@ function eachFile(visit: (file: string, content: string) => void): void {
 
 	walk(srcDir)
 }
-
-const SOURCE_FILE = /\.tsx?$/
 
 const MARKDOWN_FILE = /\.md$/
 
@@ -192,7 +190,7 @@ function readDeclarationsAndLinks(): { declared: Set<string>; links: LinkSite[] 
 	const links: LinkSite[] = []
 
 	eachFile((file, content) => {
-		if (!SOURCE_FILE.test(file)) return
+		if (!isSourceFile(file)) return
 
 		// Two thirds of the tree carries no link at all. `getJSDocCommentsAndTags`
 		// reads parent pointers, so the lookup and the cost of building them move
@@ -311,7 +309,7 @@ describe('comment reference boundary', () => {
 			// Markdown is prose end to end, and five of the nine defects that opened
 			// this rule sat in a README rather than in a comment.
 			if (MARKDOWN_FILE.test(file)) collect(content, (index) => lineAt(content, index))
-			else if (SOURCE_FILE.test(file)) {
+			else if (isSourceFile(file)) {
 				// Comments only, read from the parse. `extractComments` gives the reason
 				// that a scan without parser context fails. Reading comments alone keeps
 				// a synthetic path out of the result: the docs engine's api-extractor

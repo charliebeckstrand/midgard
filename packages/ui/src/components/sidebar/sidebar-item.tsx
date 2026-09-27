@@ -1,6 +1,6 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, type Ref, useEffect } from 'react'
+import { type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr, stepDown } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { Density } from '../../primitives/density'
@@ -8,6 +8,7 @@ import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
+import { partitionByType } from '../../utilities/flatten-children'
 import { Button } from '../button'
 import { Icon } from '../icon'
 import { type NavItemProps, useNavItem } from '../nav/use-nav-item'
@@ -35,15 +36,13 @@ export type SidebarItemProps = NavItemProps & {
  * @internal
  */
 function resolveItemChildren(children: ReactNode, suffix: ReactNode) {
-	const childArray = Children.toArray(children)
+	const { matched: actionsList, rest } = partitionByType(children, SidebarItemActions)
 
-	const actions = childArray.find(
-		(child) => isValidElement(child) && child.type === SidebarItemActions,
-	)
+	const actions = actionsList[0]
 
-	const inner = actions ? childArray.filter((child) => child !== actions) : children
+	const inner = actions ? rest : children
 
-	const labels = childArray.filter((child) => isValidElement(child) && child.type === SidebarLabel)
+	const labels = partitionByType(children, SidebarLabel).matched
 
 	return {
 		suffix: suffix ?? actions,

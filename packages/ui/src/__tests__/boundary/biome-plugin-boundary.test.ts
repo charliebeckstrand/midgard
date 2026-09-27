@@ -94,6 +94,32 @@ export const e = <Picker onValueChange={(next) => onValueChange(next ?? '')} />
 `,
 		},
 	],
+	'no-hand-written-clamp': [
+		{
+			file: 'clamp.ts',
+			source: `declare const v: number
+export const a = Math.min(10, Math.max(0, v)) // flag
+export const b = Math.min(Math.max(v, 0), 10) // flag
+export const c = Math.max(0, Math.min(v, 10))
+export const d = Math.min(v, 10)
+// Math.min(10, Math.max(0, v)) in a comment
+`,
+		},
+	],
+	'no-hand-written-bool-attr': [
+		{
+			file: 'attr.tsx',
+			source: `declare const open: boolean
+declare const alt: string
+export const a = <div aria-busy={open || undefined} /> // flag
+export const b = <div data-open={open ? '' : undefined} /> // flag
+export const c = <div aria-pressed={open ? true : undefined} /> // flag
+export const d = <img aria-label={alt || undefined} alt="" />
+export const e = <div aria-busy={open} data-open={open ? 'yes' : undefined} />
+// aria-busy={open || undefined} in a comment
+`,
+		},
+	],
 	'no-inline-spacing-calc': [
 		{
 			file: 'calc.ts',

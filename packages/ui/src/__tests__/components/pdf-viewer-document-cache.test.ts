@@ -13,7 +13,7 @@ import {
 	subscribeDocument,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import type { PdfViewerPage } from '../../components/pdf-viewer/types'
-import { deferred } from '../helpers'
+import { deferred, tick } from '../helpers'
 
 /**
  * The cache's loader seam, driven by hand.
@@ -139,7 +139,7 @@ function page(id: number): PdfViewerPage {
 }
 
 /** Lets the cache's `.then` handlers run. A macrotask, so no chain length has to be guessed at. */
-const flush = () => new Promise((resolve) => setTimeout(resolve, 0))
+const flush = () => tick()
 
 beforeEach(() => {
 	vi.spyOn(URL, 'createObjectURL').mockReturnValue('blob:mock')

@@ -1,6 +1,6 @@
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
-import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
+import { isSourceFile, srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Spread-order boundary. CONVENTIONS.md §3.9 decides what a consumer may
 // override by where an attribute sits relative to `{...props}`. The rule has
@@ -192,7 +192,7 @@ function scan(): { sites: Site[]; anchors: Set<string> } {
 	walkSource(
 		srcDir,
 		(path, source) => {
-			if (!/\.tsx?$/.test(path)) return
+			if (!isSourceFile(path)) return
 
 			for (const selector of source.matchAll(/\[data-slot=["']?([a-z0-9-]+)["']?\]/g)) {
 				if (selector[1]) anchors.add(selector[1])

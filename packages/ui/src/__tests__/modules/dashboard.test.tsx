@@ -37,6 +37,7 @@ import {
 	nonEmpty,
 	renderUI,
 	screen,
+	tick,
 	within,
 } from '../helpers'
 import {
@@ -278,7 +279,7 @@ describe('Dashboard', () => {
 		expect(card).toHaveAttribute('data-dragging')
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await act(tick)
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -304,7 +305,7 @@ describe('Dashboard', () => {
 		expect(grip).not.toHaveClass('focus-visible:outline-blue-600')
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await act(tick)
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -331,7 +332,7 @@ describe('Dashboard', () => {
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await act(tick)
 
 		fireEvent.keyDown(grip, { code: 'Escape', key: 'Escape' })
 
@@ -354,7 +355,7 @@ describe('Dashboard', () => {
 		grip.focus()
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		const settle = () => act(tick)
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
@@ -586,7 +587,7 @@ describe('Dashboard', () => {
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await act(tick)
 
 		renders.clear()
 
@@ -628,7 +629,7 @@ describe('Dashboard', () => {
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		await act(tick)
 
 		const listener = vi.fn()
 
@@ -661,7 +662,7 @@ describe('Dashboard', () => {
 		const flags = () => cards.mock.calls.map(([variants]) => variants?.dragging)
 
 		// The keyboard sensor attaches its keys on a timer after the lift.
-		const settle = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+		const settle = () => act(tick)
 
 		// A lift changes the dnd-kit context, which each tile reads.
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
@@ -988,7 +989,7 @@ describe('Dashboard', () => {
 
 			// Each new Map suspends once. The report renders the app again, and the tile renders nothing again.
 			for (let round = 0; round < 5; round++) {
-				await act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+				await act(tick)
 			}
 
 			expect(screen.getByRole('alert')).toHaveTextContent('Revenue 1 failed to render.')
@@ -1163,7 +1164,7 @@ describe('Dashboard', () => {
 
 describe('Dashboard gesture owner', () => {
 	/** Lets the keyboard sensor attach its keys after a lift, and lets dnd-kit tear down after a drop. */
-	const tick = () => act(() => new Promise((resolve) => setTimeout(resolve, 0)))
+	const settleTick = () => act(tick)
 
 	/** Lifts the tile of the grip `name` with Space, then presses `code` `steps` times. */
 	async function lift(name: string, code = 'ArrowRight', steps = 0): Promise<HTMLElement> {
@@ -1173,7 +1174,7 @@ describe('Dashboard gesture owner', () => {
 
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		await tick()
+		await settleTick()
 
 		for (let step = 0; step < steps; step++) fireEvent.keyDown(grip, { code, key: code })
 
@@ -1184,7 +1185,7 @@ describe('Dashboard gesture owner', () => {
 	async function drop(grip: HTMLElement): Promise<void> {
 		fireEvent.keyDown(grip, { code: 'Space', key: ' ' })
 
-		await tick()
+		await settleTick()
 	}
 
 	/** The painted grid area of the tile that holds `element`. */
@@ -1465,7 +1466,7 @@ describe('Dashboard gesture owner', () => {
 		// The grip left with edit mode, and the keyboard sensor still listens on the document.
 		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
 
-		await tick()
+		await settleTick()
 
 		expect(onLayout).not.toHaveBeenCalled()
 
@@ -1487,7 +1488,7 @@ describe('Dashboard gesture owner', () => {
 
 		fireEvent.keyDown(document, { code: 'Space', key: ' ' })
 
-		await tick()
+		await settleTick()
 
 		expect(onLayout).not.toHaveBeenCalled()
 

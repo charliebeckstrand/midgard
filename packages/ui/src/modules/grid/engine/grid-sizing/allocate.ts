@@ -100,7 +100,7 @@ function levelUp(
 	}
 
 	const widthAt = (level: number) =>
-		cols.reduce((sum, c) => sum + Math.min(c.max, Math.max(c.desired, level)), 0)
+		cols.reduce((sum, c) => sum + clamp(level, c.desired, c.max), 0)
 
 	let lo = 0
 
@@ -119,7 +119,7 @@ function levelUp(
 	}
 
 	return roundToTarget(
-		cols.map((c) => ({ id: c.id, width: Math.min(c.max, Math.max(c.desired, lo)) })),
+		cols.map((c) => ({ id: c.id, width: clamp(lo, c.desired, c.max) })),
 		available,
 	)
 }

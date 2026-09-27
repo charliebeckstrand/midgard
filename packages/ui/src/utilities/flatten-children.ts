@@ -1,4 +1,12 @@
-import { Children, Fragment, isValidElement, type ReactNode } from 'react'
+import {
+	Children,
+	cloneElement,
+	Fragment,
+	isValidElement,
+	type JSXElementConstructor,
+	type ReactElement,
+	type ReactNode,
+} from 'react'
 
 /** One child from {@link flattenChildren}, with its key for the flat list. @internal */
 export type FlatChild = { node: ReactNode; key: string }
@@ -39,4 +47,57 @@ export function flattenChildren(children: ReactNode, prefix = ''): FlatChild[] {
 	})
 
 	return result
+}
+
+/**
+ * Whether a child is an element of `type`.
+ *
+ * @internal
+ */
+export function isElementOfType<P>(
+	node: ReactNode,
+	type: JSXElementConstructor<P>,
+): node is ReactElement<P> {
+	return isValidElement(node) && node.type === type
+}
+
+/**
+ * Whether a child of `type` is present, through each Fragment.
+ *
+ * @internal
+ */
+export function hasChildOfType(children: ReactNode, type: JSXElementConstructor<never>): boolean {
+	return flattenChildren(children).some(({ node }) => isElementOfType(node, type))
+}
+
+/**
+ * Splits `children` into the elements of `type` and the rest, through each
+ * Fragment. A slot in a Fragment is found as if it were a direct child.
+ *
+ * @remarks Each element takes its key from {@link flattenChildren}, so the two
+ * lists render with unique keys.
+ *
+ * @returns `matched`, the elements of `type`, and `rest`, the other children,
+ * each in render order.
+ * @internal
+ */
+export function partitionByType<P>(
+	children: ReactNode,
+	type: JSXElementConstructor<P>,
+): { matched: ReactElement<P>[]; rest: ReactNode[] } {
+	const matched: ReactElement<P>[] = []
+
+	const rest: ReactNode[] = []
+
+	for (const { node, key } of flattenChildren(children)) {
+		const keyed = isValidElement(node) ? cloneElement(node, { key }) : node
+
+		if (isElementOfType(keyed, type)) {
+			matched.push(keyed)
+		} else {
+			rest.push(keyed)
+		}
+	}
+
+	return { matched, rest }
 }

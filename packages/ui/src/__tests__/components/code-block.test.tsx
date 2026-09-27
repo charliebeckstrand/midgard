@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { CodeBlock, loadShiki } from '../../components/code/code-block'
-import { bySlot, renderUI, screen, waitFor } from '../helpers'
+import { bySlot, renderUI, screen, tick, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here
 // would bleed across files (see markdown.test.tsx for the failure it caused).
@@ -82,7 +82,7 @@ describe('CodeBlock', () => {
 		// macrotask then runs the highlight and the cache write behind it.
 		await loadShiki()
 
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		await tick()
 
 		expect(reported).not.toHaveBeenCalled()
 

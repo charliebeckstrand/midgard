@@ -1,8 +1,8 @@
 import { readdirSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { srcDir, srcRelative } from '../helpers/walk-source'
 
 // CONVENTIONS.md §12.1 requires a doccomment on every symbol a barrel
 // re-exports. The rule drifted before this test existed: a sweep found 37
@@ -204,7 +204,7 @@ describe('TSDoc coverage boundary', () => {
 			const source = program.getSourceFile(barrel)
 
 			if (!source) {
-				violations.push(`${relative(srcDir, barrel)} → unparsed`)
+				violations.push(`${srcRelative(barrel)} → unparsed`)
 
 				continue
 			}
@@ -216,7 +216,7 @@ describe('TSDoc coverage boundary', () => {
 			for (const exported of checker.getExportsOfModule(moduleSymbol)) {
 				if (hasDoc(aliasChain(checker, exported))) continue
 
-				violations.push(`${relative(srcDir, barrel)} → ${exported.getName()}`)
+				violations.push(`${srcRelative(barrel)} → ${exported.getName()}`)
 			}
 		}
 

@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
@@ -10,7 +10,7 @@ import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as table } from '../../recipes/kata/table'
 import { k as tabs } from '../../recipes/kata/tabs'
-import { stripSourceComments, walkSource } from '../helpers/walk-source'
+import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
 // Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
@@ -104,7 +104,7 @@ describe('density scope parity', () => {
 		walkSource(srcDir, (file, content) => {
 			if (!file.endsWith('.tsx')) return
 
-			const rel = relative(srcDir, file)
+			const rel = srcRelative(file)
 
 			if (CONTEXT_ONLY.has(rel)) return
 

@@ -1,24 +1,7 @@
 'use client'
 
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-
-// `:disabled` rather than the shared `FOCUSABLE_SELECTOR`'s `[disabled]`: the
-// pseudo-class also matches a control disabled by an ancestor `<fieldset>`,
-// which the edge handoff must skip.
-const TABBABLE_SELECTOR =
-	'a[href], button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])'
-
-// Walk-and-match rather than `querySelectorAll(TABBABLE_SELECTOR)`: edge
-// handoff rides on first/last, and jsdom's selector engine returns a comma
-// list grouped per branch, not in document order.
-/** Tabbable descendants of `root`, in document order. @internal */
-function getTabbables(root: Element | null): HTMLElement[] {
-	if (!root) return []
-
-	return Array.from(root.querySelectorAll<HTMLElement>('*')).filter((el) =>
-		el.matches(TABBABLE_SELECTOR),
-	)
-}
+import { tabbablesIn } from '../../utilities/focusable-selector'
 
 /** Options for {@link useDatePickerInputTab}. @internal */
 type DatePickerInputTabParams = {
@@ -49,8 +32,8 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 		(event: KeyboardEvent<Element>) => {
 			if (event.key !== 'Tab' || !open) return
 
-			const group = getTabbables(event.currentTarget)
-			const dialog = getTabbables(floatingRef.current)
+			const group = tabbablesIn(event.currentTarget)
+			const dialog = tabbablesIn(floatingRef.current)
 
 			if (dialog.length === 0) return
 
@@ -73,8 +56,8 @@ export function useDatePickerInputTab({ open, triggerRef, floatingRef }: DatePic
 		(event: KeyboardEvent<Element>) => {
 			if (event.key !== 'Tab' || !open) return
 
-			const group = getTabbables(triggerRef.current)
-			const dialog = getTabbables(event.currentTarget)
+			const group = tabbablesIn(triggerRef.current)
+			const dialog = tabbablesIn(event.currentTarget)
 
 			if (group.length === 0 || dialog.length === 0) return
 

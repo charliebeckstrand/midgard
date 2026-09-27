@@ -1,7 +1,7 @@
 import { readFileSync } from 'node:fs'
 import { dirname, join, relative } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // `@internal` marks a helper no barrel re-exports (CONVENTIONS.md §12.1). The
 // tag and a barrel entry are mutually exclusive: a symbol on a barrel is public
@@ -87,7 +87,7 @@ function internalDeclarations(dir: string): Map<string, string> {
 		for (const match of content.matchAll(DECLARATION)) {
 			const { doc, name } = match.groups as { doc: string; name: string }
 
-			if (/(^|\s)@internal(\s|$)/.test(doc)) found.set(name, relative(srcDir, file))
+			if (/(^|\s)@internal(\s|$)/.test(doc)) found.set(name, srcRelative(file))
 		}
 	})
 
@@ -110,9 +110,7 @@ describe('internal-surface boundary', () => {
 					const declaredIn = internals.get(name)
 
 					if (declaredIn) {
-						violations.push(
-							`${relative(srcDir, file)} re-exports @internal ${name} (${declaredIn})`,
-						)
+						violations.push(`${srcRelative(file)} re-exports @internal ${name} (${declaredIn})`)
 					}
 				}
 			})

@@ -1,10 +1,11 @@
 'use client'
 
-import { Children, isValidElement, type ReactNode, useMemo } from 'react'
+import { Children, type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import { mountsEveryPanel } from '../../primitives/mount'
 import { k } from '../../recipes/kata/stepper'
+import { hasChildOfType, partitionByType } from '../../utilities/flatten-children'
 import { type StepperLayout, StepperStepContext, type StepState, useStepper } from './context'
 import { StepperIndicator } from './stepper-indicator'
 
@@ -36,17 +37,7 @@ function computeState(stepValue: number, value: number): StepState {
  * @internal
  */
 function partitionVerticalChildren(children: ReactNode, layout: StepperLayout): ReactNode {
-	const indicators: ReactNode[] = []
-
-	const rest: ReactNode[] = []
-
-	Children.forEach(children, (child) => {
-		if (isValidElement(child) && child.type === StepperIndicator) {
-			indicators.push(child)
-		} else {
-			rest.push(child)
-		}
-	})
+	const { matched: indicators, rest } = partitionByType(children, StepperIndicator)
 
 	return (
 		<>
@@ -64,19 +55,13 @@ function partitionVerticalChildren(children: ReactNode, layout: StepperLayout): 
 /**
  * Injects a default `<StepperIndicator>` when the consumer omits one.
  *
- * @remarks Returns an array, not a Fragment, so {@link Children.forEach} can walk each item.
+ * @remarks Returns an array, not a Fragment, so the step keeps one child list.
  * @internal
  */
 function ensureStepperIndicator(children: ReactNode): ReactNode {
-	const items = Children.toArray(children)
+	if (hasChildOfType(children, StepperIndicator)) return children
 
-	const hasIndicator = items.some(
-		(child) => isValidElement(child) && child.type === StepperIndicator,
-	)
-
-	if (hasIndicator) return children
-
-	return [<StepperIndicator key="__auto-stepper-indicator" />, ...items]
+	return [<StepperIndicator key="__auto-stepper-indicator" />, ...Children.toArray(children)]
 }
 
 /**

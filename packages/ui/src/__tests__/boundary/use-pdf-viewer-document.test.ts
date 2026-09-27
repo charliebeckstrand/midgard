@@ -17,6 +17,7 @@ import {
 	resetDocumentCache,
 } from '../../components/pdf-viewer/pdf-viewer-document-cache'
 import { usePdfViewerDocument } from '../../components/pdf-viewer/use-pdf-viewer-document'
+import { tick } from '../helpers/frames'
 
 const originalFetch = globalThis.fetch
 
@@ -148,7 +149,7 @@ describe('usePdfViewerDocument · parked and restored', () => {
 			pointHeight: 792,
 		})
 
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		await tick()
 	}
 
 	it('paints a resident document on its first render, fetching nothing', async () => {
@@ -188,7 +189,7 @@ describe('usePdfViewerDocument · parked and restored', () => {
 	it('reports a settled load with no pages as not pending', async () => {
 		ensureDocumentLoad('/blank.pdf', () => Promise.resolve())
 
-		await new Promise((resolve) => setTimeout(resolve, 0))
+		await tick()
 
 		// The mount retries a zero-page document. A fetch that never settles holds that retry.
 		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))

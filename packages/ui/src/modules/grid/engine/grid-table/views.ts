@@ -283,8 +283,9 @@ const SIZING_DEFAULTS = getDefaultColumnSizingColumnDef()
  * @internal
  */
 export function columnWidth(def: ColumnDef_ColumnSizing, sized: number | undefined): number {
-	return Math.min(
-		Math.max(def.minSize ?? SIZING_DEFAULTS.minSize, sized ?? def.size ?? SIZING_DEFAULTS.size),
+	return clamp(
+		sized ?? def.size ?? SIZING_DEFAULTS.size,
+		def.minSize ?? SIZING_DEFAULTS.minSize,
 		def.maxSize ?? SIZING_DEFAULTS.maxSize,
 	)
 }

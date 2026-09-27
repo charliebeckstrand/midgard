@@ -4,6 +4,7 @@ import type { KeyboardEvent } from 'react'
 import { Input } from '../../components/input'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { NumberInput } from '../../components/number-input'
+import { ariaAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import type { EditorKind } from './engine/grid-editing-utilities'
 
@@ -80,7 +81,7 @@ function GridTextEditInput({
 		<Input
 			data-slot="grid-edit-input"
 			aria-label={ariaLabel}
-			aria-required={required || undefined}
+			aria-required={ariaAttr(required)}
 			invalid={error != null || undefined}
 			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
@@ -106,7 +107,7 @@ function GridNumberEditInput({
 		<NumberInput
 			data-slot="grid-edit-number-input"
 			aria-label={ariaLabel}
-			aria-required={required || undefined}
+			aria-required={ariaAttr(required)}
 			invalid={error != null || undefined}
 			aria-describedby={error != null ? errorId : undefined}
 			className={k.edit.input}
@@ -150,7 +151,7 @@ function GridBooleanEditInput({
 		<Listbox<string>
 			data-slot="grid-edit-boolean-input"
 			aria-label={ariaLabel}
-			aria-required={required || undefined}
+			aria-required={ariaAttr(required)}
 			className={k.edit.input}
 			value={value}
 			onValueChange={(next) => onValueUpdate(next === null ? undefined : next === 'true')}

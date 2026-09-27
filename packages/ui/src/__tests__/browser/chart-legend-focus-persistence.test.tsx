@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { allBySlot, present, renderUI, waitFor } from '../helpers'
+import { allBySlot, frames, present, renderUI, waitFor } from '../helpers'
 
 /**
  * The legend emphasizes a series — dimming every other — while an entry is
@@ -34,8 +34,7 @@ describe('chart legend focus persistence (real browser)', () => {
 
 	// React commits the emphasis state after the focus event; settle two frames
 	// before reading the marks so an absent dim reflects state, not timing.
-	const settle = () =>
-		new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+	const settle = () => frames()
 
 	it('does not dim the other series when a backgrounded tab re-fires focus on a clicked switch', async () => {
 		const { container } = renderUI(
