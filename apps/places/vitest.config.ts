@@ -5,8 +5,9 @@ import { defineConfig } from 'vitest/config'
  *
  * A node environment and nothing else. What this app holds that is worth a test
  * is pure: the schema both edges read a body through, the geometry that decides
- * which region holds a place, the filter the bar applies, and the atomic file
- * mechanism the stores write through. None of it touches a DOM, so none of it
+ * which region holds a place, the filter the bar applies, and the two backends
+ * of the stores: the atomic files of `next dev` and the SQL of the database,
+ * which runs on PGlite in the process. None of it touches a DOM, so none of it
  * needs one — the components compose `ui`, which carries its own suite.
  *
  * The zone is pinned because a visit is a local-time day, and `toDay` and

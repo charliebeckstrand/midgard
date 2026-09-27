@@ -23,6 +23,30 @@ domains:
     type: ALIAS
     zone: ivoryimage.dev
 
+# Binds the managed cluster of Asgard, so the data of places outlives each
+# deploy. Binding also adds this app to the trusted sources of the cluster. The
+# cluster holds a `places` database and a `places` user apart from the data of
+# Asgard, and each must exist before a deploy.
+#
+# The cluster is bound twice, once for each user. The migrate job connects as
+# the admin user, which owns the tables and can change them. The places service
+# connects as `places`, which can only read and write rows, so a flaw in the
+# service cannot change the schema.
+databases:
+  - name: places-admin-db
+    engine: PG
+    version: '18'
+    production: true
+    cluster_name: app-60313cef-8ae5-4240-9538-6a5b4fc46c0f
+    db_name: places
+  - name: places-db
+    engine: PG
+    version: '18'
+    production: true
+    cluster_name: app-60313cef-8ae5-4240-9538-6a5b4fc46c0f
+    db_name: places
+    db_user: places
+
 # Each rule sends one subdomain to one component. The `authority` match reads
 # the host of the request.
 ingress:
@@ -105,6 +129,36 @@ services:
         scope: RUN_TIME
         type: SECRET
         value: ${CLIENT_IP_SECRET}
+      # The stores keep the places and the visits of each user in the database.
+      # Without it, the server refuses each request that reads them.
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${places-db.DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${places-db.CA_CERT}
+
+# Applies the places schema before each deploy. If it fails, the deploy stops
+# and the running version keeps serving.
+jobs:
+  - name: migrate
+    kind: PRE_DEPLOY
+    github:
+      repo: charliebeckstrand/midgard
+      branch: main
+      deploy_on_push: false
+    dockerfile_path: Dockerfile.migrate
+    instance_size_slug: apps-s-1vcpu-0.5gb
+    envs:
+      - key: APP
+        scope: BUILD_TIME
+        value: places
+      - key: DATABASE_URL
+        scope: RUN_TIME
+        value: ${places-admin-db.DATABASE_URL}
+      - key: DATABASE_CA_CERT
+        scope: RUN_TIME
+        value: ${places-admin-db.CA_CERT}
 
 static_sites:
   # The site routes by the URL hash, so each page is `index.html` and no path

@@ -4,7 +4,7 @@ import { visitedSeed } from '@/server/visited-seed'
 import { MAX_VISITS, setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
 
-/** The store reads the filesystem, so this route is never prerendered. */
+/** The store reads the database, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
 
 /** Longer than any country or state name, so a region can't carry a payload. */
