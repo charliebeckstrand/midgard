@@ -57,14 +57,14 @@ export function VerifyEmailPage({ token }: VerifyEmailPageProps) {
 
 	return (
 		<AuthLayout>
-			<Stack gap="lg" className="w-full sm:max-w-sm p-6">
-				<Heading className="text-center">Verify your email</Heading>
+			<Stack gap="lg" className="w-full sm:max-w-sm p-6 text-center">
+				<Heading>Verify your email</Heading>
 
 				{state === 'verified' ? (
 					<>
 						<Text tone="success">Your email is verified.</Text>
 
-						<Text className="text-center">
+						<Text>
 							<Link href="/" underline>
 								Continue
 							</Link>
