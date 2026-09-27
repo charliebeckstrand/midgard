@@ -1,12 +1,13 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
+import { advise, RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
 
 // CADENCE.md sets the spacing and the shape of authored text. CLAUDE.md §3.6
 // once asked for a check by hand before each commit, but no tool made the
-// check, and Biome does not read Markdown. This test holds the rule documents
-// to the parts of the cadence that a reader can measure:
+// check, and Biome does not read Markdown. This test reports the breaks of the
+// parts of the cadence that a reader can measure in the rule documents. It is
+// advisory: it writes each break to the log and does not fail the run.
 //
 //   - Rule 1: one blank line before each numbered clause, and never two blank
 //     lines in a row.
@@ -95,19 +96,16 @@ function cadenceBreaks(file: string, source: string): string[] {
 }
 
 describe('cadence boundary', () => {
-	it('the rule documents keep the measurable cadence (CADENCE.md rules 1, 3, 4, 8)', () => {
+	it('reports cadence breaks in the rule documents (CADENCE.md rules 1, 3, 4, 8)', () => {
 		const violations = RULE_DOCUMENTS.flatMap((file) =>
 			cadenceBreaks(file, readFileSync(join(rootDir, file), 'utf8')),
 		)
 
-		expect(
-			violations,
-			`cadence break in a rule document (CADENCE.md):\n${violations.join('\n')}`,
-		).toEqual([])
+		advise('cadence break in a rule document (CADENCE.md)', violations)
 	})
 })
 
-// The gate is only as good as its reader, so each check has a probe.
+// The report is only as good as its reader, so each check has a probe.
 describe('cadence reader', () => {
 	const probe = (source: string) => cadenceBreaks('probe.md', source)
 

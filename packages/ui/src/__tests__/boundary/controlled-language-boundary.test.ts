@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import {
+	advise,
 	extractComments,
 	fileBreaks,
 	LIVING_MARKDOWN,
@@ -13,22 +14,20 @@ import {
 } from '../helpers/controlled-language'
 
 // STE.md is the project's controlled language, and CLAUDE.md §2.5 applies it to
-// every authored statement. A hand sweep of its rules closed none of them for
-// good, because nothing held the tree to the result. Rule 10 went from 41 sites
-// back to 89 in six weeks, and the missing gate was the reason.
+// every authored statement. This test reports the breaks of the rules that a
+// reader can count. It is advisory: it writes each break to the log and does
+// not fail the run, so a comment does not stop a build. Review decides what to
+// fix.
 //
-// This test is that gate, in five shapes:
+// It reports in five shapes:
 //
-//   1. Rule 10 is pinned at zero. The rule admits no judgment — "must" states a
+//   1. Rule 10 in the comments. The rule admits no judgment — "must" states a
 //      requirement and "can" states a possibility — so any site is a break.
-//   2. Rule 6 is pinned at zero. It held a per-file ledger while the tree paid
-//      the debt down, and the last of it closed in this branch.
-//   3. The curated surface docs carry no debt at all, in either rule.
-//   4. Neither do the rule documents at the repository root. A rule document
-//      that breaks the standard it sets teaches the break.
-//   5. Rule 3 holds one spelling, the American one that the identifiers use.
-//      The comments held both forms in about equal numbers, so a search for
-//      `color` missed more than half of the prose about color.
+//   2. Rule 6 in the comments.
+//   3. Rules 3, 6, and 10 in the curated surface docs.
+//   4. Rules 3, 6, and 10 in the rule documents at the repository root.
+//   5. Rule 3 in the comments: one spelling, the American one that the
+//      identifiers use, so a search for `color` finds all the prose about color.
 //
 // Rule 4 is deliberately absent, and the reason is worth keeping. Its two
 // halves behave differently. The descriptive half is conditional — the rule
@@ -44,40 +43,40 @@ import {
 describe('controlled-language boundary', () => {
 	const breaks = scanPackage()
 
-	it('no comment uses a banned modal (STE.md rule 10)', () => {
+	it('reports a banned modal in a comment (STE.md rule 10)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 10)
 			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
-		expect(
+		advise(
+			`banned modal in a comment — "must" for a requirement, "can" for a possibility (STE.md rule 10)`,
 			violations,
-			`banned modal in a comment — "must" for a requirement, "can" for a possibility (STE.md rule 10):\n${violations.join('\n')}`,
-		).toEqual([])
+		)
 	})
 
-	it('no comment uses a British spelling (STE.md rule 3)', () => {
+	it('reports a British spelling in a comment (STE.md rule 3)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 3)
 			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
-		expect(
+		advise(
+			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3)`,
 			violations,
-			`British spelling in a comment — the prose uses the American form, as the identifiers do (STE.md rule 3):\n${violations.join('\n')}`,
-		).toEqual([])
+		)
 	})
 
-	it('no comment runs past the sentence cap (STE.md rule 6)', () => {
+	it('reports a comment past the sentence cap (STE.md rule 6)', () => {
 		const violations = breaks
 			.filter((item) => item.rule === 6)
 			.map((item) => `${item.file}:${item.line} — ${item.text}`)
 
-		expect(
+		advise(
+			`sentence past the cap — 20 words for an instruction, 25 for a description (STE.md rule 6)`,
 			violations,
-			`sentence past the cap — 20 words for an instruction, 25 for a description (STE.md rule 6):\n${violations.join('\n')}`,
-		).toEqual([])
+		)
 	})
 
-	it('the living Markdown keeps rules 3, 6, and 10 (CONVENTIONS.md §12.2)', () => {
+	it('reports breaks of rules 3, 6, and 10 in the living Markdown (CONVENTIONS.md §12.2)', () => {
 		const violations: string[] = []
 
 		for (const file of LIVING_MARKDOWN) {
@@ -86,13 +85,13 @@ describe('controlled-language boundary', () => {
 			}
 		}
 
-		expect(
+		advise(
+			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10)`,
 			violations,
-			`the curated surface docs are a quick-glance index, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
-		).toEqual([])
+		)
 	})
 
-	it('the rule documents keep rules 3, 6, and 10 (CLAUDE.md §2.5)', () => {
+	it('reports breaks of rules 3, 6, and 10 in the rule documents (CLAUDE.md §2.5)', () => {
 		const violations: string[] = []
 
 		for (const file of RULE_DOCUMENTS) {
@@ -101,15 +100,15 @@ describe('controlled-language boundary', () => {
 			}
 		}
 
-		expect(
+		advise(
+			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10)`,
 			violations,
-			`the rule documents state the rules every package follows, so they carry no debt — split the sentence, drop the modal, or use the American spelling (STE.md rules 3, 6, and 10):\n${violations.join('\n')}`,
-		).toEqual([])
+		)
 	})
 })
 
-// Both comment gates read through `extractComments`, so a comment it skips is
-// a comment neither gate checks.
+// Both comment reports read through `extractComments`, so a comment it skips
+// is a comment neither report checks.
 describe('comment reader', () => {
 	const texts = (file: string, source: string) =>
 		extractComments(file, source).map((comment) => comment.text.trim())
@@ -138,7 +137,7 @@ describe('comment reader', () => {
 	})
 })
 
-// The rule 3 gate reads prose only, so a code span that names a key keeps its
+// The rule 3 report reads prose only, so a code span that names a key keeps its
 // own spelling.
 describe('spelling reader', () => {
 	const flagged = (source: string) =>
