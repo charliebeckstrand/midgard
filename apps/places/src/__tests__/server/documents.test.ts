@@ -14,6 +14,8 @@ const USER = '0192f3a4-5b6c-7d8e-9f01-23456789abcd'
 
 const OTHER = '0192f3a4-5b6c-7d8e-9f01-23456789abce'
 
+// PGlite compiles its WebAssembly on start, which takes longer than the default
+// hook timeout when the gate runs each workspace at the same time.
 beforeAll(async () => {
 	db = new PGlite()
 
@@ -22,7 +24,7 @@ beforeAll(async () => {
 	await db.exec('CREATE ROLE places')
 
 	await db.exec(await readFile(new URL('../../../db/schema.sql', import.meta.url), 'utf8'))
-})
+}, 60_000)
 
 beforeEach(async () => {
 	await db.exec('TRUNCATE documents')
