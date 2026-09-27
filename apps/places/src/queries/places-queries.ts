@@ -25,11 +25,19 @@ export const placesKeys = {
 	visits: ['visits'] as const,
 }
 
-/** Every stored place. */
-export function usePlaces() {
+/**
+ * Every stored place.
+ *
+ * `initial` is the list that the page read on the server. It fills the cache
+ * before the first render, so the filter bar is there on the first paint, and
+ * the map does not change size when the list lands. The query refetches it when
+ * it goes stale, as with any other entry.
+ */
+export function usePlaces(initial: Place[]) {
 	return useQuery({
 		queryKey: placesKeys.all,
 		queryFn: ({ signal }) => fetchPlaces(signal),
+		initialData: initial,
 	})
 }
 

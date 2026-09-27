@@ -84,11 +84,20 @@ function placesInRegion(
  * It owns every piece of state the panels share — the filter, the view, and
  * which place is open — because each of them is read by more than one child and
  * none of them belongs to a single panel. `user` is the signed-in user, for the
- * menu. `visits` is the visited set that the page read on the server, so the
- * Visited toggle is correct on the first paint.
+ * menu. `places` and `visits` are the places and the visited set that the page
+ * read on the server. With them, the filter bar and the Visited toggle are
+ * correct on the first paint.
  */
-export function PlacesApp({ user, visits: initialVisits }: { user: User; visits: Visits }) {
-	const { data: places = NO_PLACES, isPending, error } = usePlaces()
+export function PlacesApp({
+	user,
+	places: initialPlaces,
+	visits: initialVisits,
+}: {
+	user: User
+	places: Place[]
+	visits: Visits
+}) {
+	const { data: places, error } = usePlaces(initialPlaces)
 
 	const addPlace = useAddPlace()
 
@@ -139,9 +148,9 @@ export function PlacesApp({ user, visits: initialVisits }: { user: User; visits:
 	// view — and it is the atlas the app opened on before it drew anywhere else.
 	const { data: statesAtlas = null } = useAtlas('states')
 
-	// Nothing settles the view until both the atlas and the places have landed: an
-	// opening rule read off half the answer would open on the world and jump back.
-	const settling = statesAtlas === null || isPending
+	// Nothing settles the view until the atlas has landed. The places are already
+	// in the cache from the server, so the opening rule reads the whole answer.
+	const settling = statesAtlas === null
 
 	// Each region beside its bounding box, one memo per atlas. Keyed on its own
 	// atlas alone — which never changes for the tab's life — so adding a place does
@@ -451,9 +460,9 @@ export function PlacesApp({ user, visits: initialVisits }: { user: User; visits:
 				</Flex>
 			</Flex>
 
-			{/* The bar shows only when there are places to filter. While the places
-			    load, the app does not know if there are any, so it shows no bar. A
-			    reader with no places then never sees a bar, not even one that loads. */}
+			{/* The bar shows only when there are places to filter. The places come
+			    from the server, so the bar is there on the first paint and the map
+			    under it never changes size. A reader with no places never sees it. */}
 			{places.length > 0 ? (
 				// No padding on this wrapper: the rail carries its own, so the whole
 				// padded band sits inside the scroll container and a wheel anywhere over
