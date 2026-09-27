@@ -13,7 +13,8 @@ Density lives in React context (`primitives/density`). A component must be a cli
 - A **scope** is an element with `data-density="xs|sm|md|lg|xl"`. The `DensityProvider` wrapper writes one with the step of its level. A component with an explicit `size` writes one on its own element. The element is then its own nearest scope, and its subtree follows it.
 - A **kata** writes each step under the variant of that step: `density-sm:p-2 density-md:p-3 density-lg:p-4`. A step is not a recipe axis, so the class string of a component is the same at each size. `size` changes only the attribute. Shared ramps with a ring-compensated stop go through kiso (`kasane.padding.pxRamp`), because the formula lives there.
 - The element takes the step of the **nearest scope**, itself included. Outside each scope, `density-md` applies, so a kata writes no separate base class for md.
-- A **plain utility** wins over each step. A consumer `className` therefore wins with no `!`, inside a scope and on a pinned leaf. A kata that must fix a property at each step writes a plain class. A default that a density class must replace is a density class at each step (the Placeholder height).
+- A **plain utility** wins over each step. A consumer `className` therefore wins with no `!`, inside a scope and on a pinned leaf. A kata that must fix a property at each step writes a plain class. A default that a density class must replace uses `density-any`, which ranks below each step (the Placeholder height).
+- A **sized static host** (Card, Table) also opens a `DensityScope` context scope, so client children take the same step.
 - **Client components** keep context. Grid, Chart, Sparkline, Menu, and Tabs need density as a JS value. A client scope opener writes both the attribute and the context, so the two channels agree.
 
 ## How the variants rank

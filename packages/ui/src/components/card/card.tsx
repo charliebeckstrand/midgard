@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
+import { DensityScope } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/card'
 import { Box, type BoxProps } from '../../structure/box'
@@ -44,7 +44,7 @@ export function Card({
 			className={cn('overflow-hidden -outline-offset-1', k.frame, className)}
 			{...props}
 		>
-			{size ? <Density scale={size}>{children}</Density> : children}
+			<DensityScope scale={size}>{children}</DensityScope>
 		</Box>
 	)
 }

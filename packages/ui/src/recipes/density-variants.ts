@@ -21,6 +21,11 @@
  *
  * Outside each scope, `density-md` applies through its rung at depth 1. A kata
  * therefore writes no separate base class for the md step.
+ *
+ * `density-any` is the rank below each step: it applies at each density, in
+ * layer 0, so each step and each plain utility wins over it. A default that a
+ * step must replace, such as the height of a Placeholder, uses it. The plugin
+ * adds it first, so Tailwind emits layer 0 first.
  */
 
 import type { PluginCreator } from 'tailwindcss/plugin'
@@ -54,5 +59,7 @@ function rungs(step: string): Rule {
  * the module needs no default export.
  */
 export const handler: PluginCreator = ({ addVariant }) => {
+	addVariant('density-any', { '@layer density-0': { '&': { '@slot': {} } } })
+
 	for (const step of densitySteps) addVariant(`density-${step}`, rungs(step))
 }

@@ -26,15 +26,15 @@ export const icon = {
 
 /**
  * `iconSize` with each step under a `density-*` variant: an icon with no
- * `size` takes the step of its nearest density scope. Keep it in step with
- * `iconSize`.
+ * `size` takes the step of its nearest density scope. `shaku-icon-ramp.test.ts`
+ * pins it to `iconSize`.
  */
 export const iconRamp = 'density-xs:size-3 density-sm:size-4 density-md:size-5 density-lg:size-6'
 
 /**
  * `icon` with each step under a `density-*` variant: a density host sizes its
- * `data-slot="icon"` children by the step of its nearest density scope. Keep it
- * in step with `icon`.
+ * `data-slot="icon"` children by the step of its nearest density scope.
+ * `shaku-icon-ramp.test.ts` pins it to `icon`.
  */
 export const iconSlotRamp = [
 	'*:data-[slot=icon]:shrink-0',

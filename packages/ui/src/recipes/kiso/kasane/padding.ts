@@ -75,7 +75,8 @@ type PadStop = keyof typeof pStops
 /**
  * The `px` stops under each `density-*` variant of `ui/tailwind.css`. Tailwind
  * must find a variant in source, so each literal carries its prefix here.
- * {@link padding.pxRamp} reads this map.
+ * {@link padding.pxRamp} reads this map, and `kasane.test.ts` pins each literal
+ * to its unprefixed stop.
  */
 const pxDensityStops = {
 	xs: {

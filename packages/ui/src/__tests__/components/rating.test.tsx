@@ -225,9 +225,9 @@ describe('Rating', () => {
 describe('RatingSkeleton', () => {
 	// The class strings came from the render before the skeleton moved from the
 	// extras into the config. A change in them is a change in the silhouette.
-	// The plain glyph `size-*` wins over the Placeholder's density heights.
+	// The plain glyph `size-*` wins over the Placeholder's default height.
 	const placeholder =
-		'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block density-xs:h-4 density-sm:h-4 density-md:h-4 density-lg:h-4 density-xl:h-4 rounded-sm'
+		'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block density-any:h-4 rounded-sm'
 
 	const row =
 		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150'

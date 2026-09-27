@@ -2,6 +2,7 @@ import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Card, CardHeader } from '../../components/card'
+import { Placeholder } from '../../components/placeholder'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { DensityProvider } from '../../providers/density'
 import { present, renderUI } from '../helpers'
@@ -199,5 +200,20 @@ describe('density scopes on static leaves (real browser)', () => {
 		const cell = present(container.querySelector<HTMLElement>('td'), 'cell')
 
 		expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX.lg)
+	})
+	it('keeps the Placeholder default height below a step and a plain class', () => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<Placeholder />
+				<Placeholder className="h-8" />
+			</DensityProvider>,
+		)
+
+		const heights = Array.from(
+			container.querySelectorAll<HTMLElement>('[data-slot="placeholder"]'),
+			(node) => Number.parseFloat(getComputedStyle(node).height),
+		)
+
+		expect(heights).toEqual([16, 32])
 	})
 })
