@@ -3,6 +3,8 @@ import { Field, Label } from '../../../components/fieldset'
 import { TagInput } from '../../../components/tag-input'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 function DefaultTagInputExample() {
 	const [tags, setTags] = useState<string[]>(['React', 'TypeScript'])
 

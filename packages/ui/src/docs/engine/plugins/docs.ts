@@ -20,7 +20,7 @@ function isMetaKey(key: string): key is keyof DemoMeta {
 }
 
 /**
- * Parse `export const meta = { name?: '...' }` out of a demo source file.
+ * Parse `export const meta = { name?: '...', category?: '...' }` out of a demo source file.
  * Drops unknown keys and non-string-literal values.
  */
 function parseMeta(project: Project, fileName: string, source: string): DemoMeta {

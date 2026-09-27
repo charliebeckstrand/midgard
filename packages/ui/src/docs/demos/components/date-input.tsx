@@ -3,6 +3,8 @@ import { DateInput } from '../../../components/date-input'
 import { Field, Label } from '../../../components/fieldset'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 function ControlledExample() {
 	const [value, setValue] = useState<Date | null>(new Date(2026, 5, 15))
 

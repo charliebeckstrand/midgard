@@ -31,7 +31,7 @@ export type MapCoverageOptions = {
 	 * of any of those takes it back out again. Separate terms with commas,
 	 * semicolons, or space, and pass one string or a list of them.
 	 *
-	 * A ZIP+4 reads as its five-digit code, so a `ZipcodeInput`'s own output
+	 * A ZIP+4 reads as its five-digit code, so the output of a `zipcodeMask` field
 	 * parses as-is. A term that reads as nothing is reported in `invalid` and
 	 * otherwise ignored, so one typo never voids a pasted territory.
 	 */
