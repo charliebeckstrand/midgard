@@ -63,12 +63,7 @@ export type MapSkeletonProps = {
  * so the two reserve the same box. Where the projection has an outline and
  * `outline` is on, the skeleton draws that outline in place of the rectangle.
  */
-export function MapSkeleton({
-	aspectRatio,
-	projection,
-	outline = projection === 'albers-usa',
-	className,
-}: MapSkeletonProps) {
+export function MapSkeleton({ aspectRatio, projection, outline, className }: MapSkeletonProps) {
 	// The plat's own policy, not a copy of it: `mapFrameSizing` is the function
 	// `use-map-shape` resolves the frame through, so the order — an explicit
 	// the explicit aspect, then what the projection knows before its atlas lands, then the
@@ -84,7 +79,9 @@ export function MapSkeleton({
 		projectionFallbackAspect(projection),
 	)
 
-	const shape = outline ? mapOutline(projection) : null
+	// Resolved here, not as a parameter default: the React Compiler skips a
+	// default that reads another parameter.
+	const shape = (outline ?? projection === 'albers-usa') ? mapOutline(projection) : null
 
 	if (sizing.mode !== 'aspect') {
 		return shape === null ? (
