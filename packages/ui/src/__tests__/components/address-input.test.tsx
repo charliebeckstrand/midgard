@@ -205,6 +205,17 @@ describe('AddressInput', () => {
 		expect(getSlot<HTMLInputElement>(container, 'combobox-input').value).toBe('10 Main St')
 	})
 
+	it('reads an explicit value over the field, as the Combobox does', () => {
+		renderUI(
+			<Form defaultValues={{ address: undefined as AddressSuggestion | undefined }}>
+				<AddressInput name="address" value={{ id: '1', label: '10 Main St' }} />
+			</Form>,
+		)
+
+		// The Combobox shows the explicit value, so the suffix cedes the slot to its clear button.
+		expect(screen.getByRole('button', { name: 'Clear selection' })).toBeInTheDocument()
+	})
+
 	it('aborts the in-flight request when the query changes', async () => {
 		await withFakeTime(async (clock) => {
 			const signals: AbortSignal[] = []

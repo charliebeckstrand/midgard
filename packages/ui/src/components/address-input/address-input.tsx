@@ -142,7 +142,12 @@ export function AddressInput({
 		onValueChange,
 	})
 
-	const selected = bound === undefined ? held : (bound.value as AddressSuggestion | undefined)
+	// The same order as the Combobox's own cascade (`useFormValue`): an explicit `value`
+	// wins over the field, so the suffix and the Combobox read one selection.
+	const selected =
+		bound === undefined || value !== undefined
+			? held
+			: (bound.value as AddressSuggestion | undefined)
 
 	const control = useControl()
 
