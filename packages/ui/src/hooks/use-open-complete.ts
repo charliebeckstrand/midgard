@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffectEvent, useRef } from 'react'
+import { useRef } from 'react'
+import { useStableEvent } from './use-stable-event'
 
 /**
  * Reports a panel's arrival exactly once, for a surface that animates it. The element
@@ -34,21 +35,16 @@ export function useOpenComplete(
 
 	if (!open) reportedRef.current = false
 
-	// An effect event, called by a `report` that stays one identity for the mount.
-	// `useEffectEvent` returns a fresh function per render, and `report` escapes
-	// into a caller's dependency array (Drawer's arrival effect). The event also
-	// spares a caller that binds a payload — an accordion section naming itself —
-	// from memoizing a callback only Drawer reads.
-	const openComplete = useEffectEvent(() => onOpenComplete?.())
-
-	// Stable for the mount: Drawer's arrival effect depends on its identity.
-	const report = useCallback(() => {
+	// Stable for the mount: Drawer's arrival effect depends on its identity. It
+	// reads the latest callback, so a caller that binds a payload (an accordion
+	// section that names itself) does not memoize a callback that only Drawer reads.
+	const report = useStableEvent(() => {
 		if (reportedRef.current) return
 
 		reportedRef.current = true
 
-		openComplete()
-	}, [])
+		onOpenComplete?.()
+	})
 
 	return {
 		report,
