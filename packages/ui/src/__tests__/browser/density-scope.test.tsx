@@ -229,8 +229,8 @@ describe('density scopes on static leaves (real browser)', () => {
 	})
 
 	it.each([
-		['takes the step of the scope', undefined, { height: 28, width: 80 }],
-		['keeps an explicit size', 'lg', { height: 44, width: 112 }],
+		['takes the step of the scope', undefined, { height: 30, width: 80 }],
+		['keeps an explicit size', 'lg', { height: 46, width: 112 }],
 	] as const)('a button skeleton %s', (_name, size, box) => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
