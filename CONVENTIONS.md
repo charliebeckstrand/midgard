@@ -84,6 +84,8 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 5.3 Spacing, sizing, and color use the named scale and palette tokens, not magic pixel or hex values.
 
+5.4 An app renders a link with `Link` from `ui/link`, not with `next/link`. `UIProvider` registers `next/link` under it, so client navigation stays. Biome's `noRestrictedImports` holds the rule in `apps`.
+
 ## 6. State & data
 
 6.1 No global state library. Cross-cutting state is React Context at `apps/<app>/app/providers.tsx`. Biome's `noRestrictedImports` keeps the common ones out of `apps`.

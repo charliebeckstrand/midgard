@@ -1,12 +1,12 @@
 'use client'
 
 import type { User } from 'auth'
-import Link from 'next/link'
 import { useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
+import { Link } from 'ui/link'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 import { useSetUserActive, useUsers } from './users-queries'
@@ -55,10 +55,7 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 					{users.map((user) => (
 						<TableRow key={user.id}>
 							<TableCell>
-								<Link
-									href={`/users/${user.id}`}
-									className="text-blue-600 hover:underline dark:text-blue-500"
-								>
+								<Link href={`/users/${user.id}`} color="blue" underline>
 									{user.id}
 								</Link>
 							</TableCell>
