@@ -2,7 +2,7 @@
  * Table kata: object-literal surface for the bare `<Table>` element and its
  * cells. The `cell` and `header` sub-recipes carry the leaf styling. Their
  * padding steps are `density-*` classes. A cell takes the step of its nearest
- * density scope. That scope is the `<table>` when it has a `density`, else the
+ * density scope. That scope is the `<table>` when it has a `size`, else the
  * scope around it. The `projection` holds the outline-, stripe-, and hover-varying
  * child selectors the `<table>` casts onto descendants. Cells therefore read no
  * context, and the family renders in RSC. `head`, `row`, and `empty` are

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { DensityLevel } from '../../providers/density'
+import { type DensityLevel, densityToSize } from '../../providers/density'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
 import { defaultFormat } from './pivot-table-pivot'
 import type { PivotAggregation } from './types'
@@ -94,7 +94,7 @@ export function PivotTable<T>({
 	return (
 		<Table
 			className={className}
-			density={density}
+			size={density && densityToSize[density]}
 			outline={outline}
 			striped={striped}
 			hover={hover}

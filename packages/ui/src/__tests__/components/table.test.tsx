@@ -287,7 +287,7 @@ describe('Table variants', () => {
 })
 
 describe('Table density resolution', () => {
-	// Cell padding steps are density variants: compact px-1, snug px-2, loose px-3.
+	// Cell padding steps are density variants: sm px-1, md px-2, lg px-3.
 	// jsdom loads no stylesheet, so these cases check the scope and the classes.
 	// density-scope.test.tsx checks the computed padding in a real browser.
 	const body = (
@@ -308,7 +308,7 @@ describe('Table density resolution', () => {
 		)
 	})
 
-	it('opens no scope without a density prop, so the cells follow the scope around it', () => {
+	it('opens no scope without a size, so the cells follow the scope around it', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Table>{body}</Table>
@@ -318,8 +318,8 @@ describe('Table density resolution', () => {
 		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
 	})
 
-	it('opens a scope at the step of an explicit density prop', () => {
-		const { container } = renderUI(<Table density="compact">{body}</Table>)
+	it('opens a scope at an explicit size', () => {
+		const { container } = renderUI(<Table size="sm">{body}</Table>)
 
 		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
 	})

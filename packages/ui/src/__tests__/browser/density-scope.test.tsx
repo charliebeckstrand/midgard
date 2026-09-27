@@ -116,26 +116,23 @@ describe('density scopes on static leaves (real browser)', () => {
 		['compact', 'sm'],
 		['snug', 'md'],
 		['loose', 'lg'],
-	] as const)(
-		'pads the cells of a table with no density prop under a %s provider',
-		(density, step) => {
-			const { container } = renderUI(
-				<DensityProvider density={density}>
-					<Table>
-						<TableBody>
-							<TableRow>
-								<TableCell>cell</TableCell>
-							</TableRow>
-						</TableBody>
-					</Table>
-				</DensityProvider>,
-			)
+	] as const)('pads the cells of a table with no size under a %s provider', (density, step) => {
+		const { container } = renderUI(
+			<DensityProvider density={density}>
+				<Table>
+					<TableBody>
+						<TableRow>
+							<TableCell>cell</TableCell>
+						</TableRow>
+					</TableBody>
+				</Table>
+			</DensityProvider>,
+		)
 
-			const cell = present(container.querySelector<HTMLElement>('td'), 'cell')
+		const cell = present(container.querySelector<HTMLElement>('td'), 'cell')
 
-			expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX[step])
-		},
-	)
+		expect(Number.parseFloat(getComputedStyle(cell).paddingLeft)).toBe(CELL_PADDING_PX[step])
+	})
 	it('pads the header of an unsized card at the step of the outer card', () => {
 		const { container } = renderUI(
 			<Card size="lg">
@@ -186,10 +183,10 @@ describe('density scopes on static leaves (real browser)', () => {
 		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
 	})
 
-	it('pads the cells of a table at its density prop inside another scope', () => {
+	it('pads the cells of a table at its size inside another scope', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
-				<Table density="loose">
+				<Table size="lg">
 					<TableBody>
 						<TableRow>
 							<TableCell>cell</TableCell>

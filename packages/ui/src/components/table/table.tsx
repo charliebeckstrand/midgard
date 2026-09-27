@@ -1,19 +1,16 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-// Deep import on purpose: context.ts is the directive-free level
-// vocabulary (DensityLevel, densityToSize); the barrel would pull the
-// client DensityProvider into the graph.
-import { type DensityLevel, densityToSize } from '../../providers/density/context'
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/table'
 
-/** Visual modifiers for {@link Table}: `density`, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
+/** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * Density level driving cell padding. The table writes its step to
-	 * `data-density`, and the cells take it. Omit it to follow the nearest
-	 * density scope, and `snug` outside one.
+	 * Step for the cell padding. The table writes it to `data-density`, and the
+	 * cells take it. Omit it to follow the nearest density scope, and `md`
+	 * outside one.
 	 */
-	density?: DensityLevel
+	size?: Step
 	bleed?: boolean
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean
@@ -53,7 +50,7 @@ export type TableProps = TableVariants & {
 /**
  * Styled `<table>` shell. Static leaf: renders in React Server Components.
  * The table owns `outline`, `striped`, and `hover` and projects them onto
- * descendant rows and cells. A `density` makes the table a density scope,
+ * descendant rows and cells. A `size` makes the table a density scope,
  * and the cells take its step. Without one, the cells follow the nearest
  * scope around the table. TableBody, TableCell, and TableHeader read no
  * context.
@@ -71,7 +68,7 @@ export function Table({
 	outline,
 	striped,
 	hover,
-	density,
+	size,
 	className,
 	children,
 	tableProps,
@@ -87,7 +84,7 @@ export function Table({
 		<div data-slot="table" className={cn('overflow-x-auto', bleed && '-mx-4 sm:-mx-6')}>
 			<table
 				{...tableProps}
-				data-density={density && densityToSize[density]}
+				data-density={size}
 				className={cn(
 					k.base,
 					outline && k.projection.outline,

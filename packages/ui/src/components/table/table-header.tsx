@@ -10,7 +10,7 @@ export type TableHeaderProps = {
 /**
  * A header cell (`<th>`) within a {@link Table}, defaulting `scope="col"`.
  * Static leaf: renders in React Server Components. Its padding takes the step
- * of the nearest density scope, such as `<Table density>`. `outline` overrides
+ * of the nearest density scope, such as `<Table size>`. `outline` overrides
  * it through the table's projection.
  *
  * @remarks Forwards `ref` to the underlying `<th>`, so a client caller can make
