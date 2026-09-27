@@ -1,0 +1,24 @@
+name: Turbo cache
+description: Restore the local Turbo cache of one job, and save it when the job ends.
+
+# Each job that runs Turbo in ci.yml uses this action after `setup`. Each job
+# ends with prune.sh from this directory, which runs before the save.
+#
+# The key is namespaced per job, and per shard in a sharded job. A restore key
+# matches by prefix, so a shared `turbo-` prefix hands one job the entries of
+# another job. Turbo hashes the `--shard` argument into the task, so a shard
+# can hit only its own entries.
+inputs:
+  name:
+    description: The namespace of the cache, such as `gate` or `test-1`.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/cache@v6
+      with:
+        path: .turbo
+        key: ${{ runner.os }}-turbo-${{ inputs.name }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-turbo-${{ inputs.name }}-
