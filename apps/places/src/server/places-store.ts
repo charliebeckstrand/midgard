@@ -29,14 +29,23 @@ async function readAll(userId: string): Promise<unknown[]> {
 }
 
 /** Writes the whole list, atomically. */
-function writeAll(userId: string, places: Place[]): Promise<void> {
+function writeAll(userId: string, places: unknown[]): Promise<void> {
 	return writeDocument(userId, 'places', places)
+}
+
+/** Whether a stored record carries this id, whether or not the rest of it reads as a place. */
+function hasId(record: unknown, id: string): boolean {
+	return typeof record === 'object' && record !== null && (record as { id?: unknown }).id === id
 }
 
 /**
  * Every stored place, newest visit first, dropping any record that no longer
  * reads as one — a hand-edited document must not put a point with no position on the
  * map.
+ *
+ * The writes below do not start from this list. They change the stored records
+ * and keep the others as they are, so a record that a stricter schema cannot
+ * read stays in the document and does not disappear on the next write.
  */
 export async function listPlaces(userId: string): Promise<Place[]> {
 	const stored = await readAll(userId)
@@ -58,13 +67,13 @@ export async function listPlaces(userId: string): Promise<Place[]> {
  */
 export async function addPlace(userId: string, draft: PlaceDraft): Promise<Place | null> {
 	return serialize(async () => {
-		const places = await listPlaces(userId)
+		const stored = await readAll(userId)
 
-		if (places.length >= MAX_PLACES) return null
+		if (stored.length >= MAX_PLACES) return null
 
 		const place: Place = { ...draft, id: randomUUID(), createdAt: new Date().toISOString() }
 
-		await writeAll(userId, [place, ...places])
+		await writeAll(userId, [place, ...stored])
 
 		return place
 	})
@@ -83,17 +92,17 @@ export async function updatePlace(
 	draft: PlaceDraft,
 ): Promise<Place | null> {
 	return serialize(async () => {
-		const places = await listPlaces(userId)
+		const stored = await readAll(userId)
 
-		const held = places.find((place) => place.id === id)
+		const held = stored.map(parsePlace).find((parsed) => parsed.ok && parsed.value.id === id)
 
-		if (held === undefined) return null
+		if (held === undefined || !held.ok) return null
 
-		const updated: Place = { ...draft, id: held.id, createdAt: held.createdAt }
+		const updated: Place = { ...draft, id, createdAt: held.value.createdAt }
 
 		await writeAll(
 			userId,
-			places.map((place) => (place.id === id ? updated : place)),
+			stored.map((record) => (hasId(record, id) ? updated : record)),
 		)
 
 		return updated
@@ -106,11 +115,11 @@ export async function updatePlace(
  */
 export async function removePlace(userId: string, id: string): Promise<boolean> {
 	return serialize(async () => {
-		const places = await listPlaces(userId)
+		const stored = await readAll(userId)
 
-		const kept = places.filter((place) => place.id !== id)
+		const kept = stored.filter((record) => !hasId(record, id))
 
-		if (kept.length === places.length) return false
+		if (kept.length === stored.length) return false
 
 		await writeAll(userId, kept)
 
