@@ -3,17 +3,22 @@ import { notFound } from 'next/navigation'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
+import { type Activity, ActivityTable } from '@/components/activity-table'
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
 	const { userId } = await params
 
-	const res = await bifrost(`/api/users/${encodeURIComponent(userId)}`)
+	const path = `/api/users/${encodeURIComponent(userId)}`
+
+	const [res, activityRes] = await Promise.all([bifrost(path), bifrost(`${path}/activity`)])
 
 	if (!res.ok) notFound()
 
 	const user = (await res.json()) as User
+
+	const activity = activityRes.ok ? ((await activityRes.json()) as { data: Activity[] }).data : []
 
 	return (
 		<Stack gap="xl">
@@ -35,6 +40,10 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 					{new Date(user.updated_at).toLocaleString(undefined, dateFormat)}
 				</DescriptionDetails>
 			</DescriptionList>
+
+			<Heading level={2}>Recent activity</Heading>
+
+			<ActivityTable activity={activity} />
 		</Stack>
 	)
 }
