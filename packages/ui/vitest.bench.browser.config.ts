@@ -3,28 +3,24 @@ import { defineConfig } from 'vitest/config'
 import { servedTailwind } from './vitest.browser.config'
 
 /**
- * Competitive benchmarks in real Chromium (`pnpm bench:browser`) — the ui
- * chart module against AG Charts and Highcharts, the ui grid module against
- * AG Grid and MUI X DataGrid, and the ui map module against Highcharts Maps
- * and ECharts, per `src/__benchmarks__/browser/README.md`. A real browser
- * because the comparison needs one: AG Charts and ECharts draw to real
- * canvases, the grids virtualize against real scroll geometry, and every
- * contender deserves real layout, so jsdom numbers would not be credible.
+ * The benchmarks of the ui modules in real Chromium (`pnpm bench:browser`),
+ * per `src/__benchmarks__/browser/README.md`. The grids virtualize against
+ * real scroll geometry, and the charts and maps settle against real layout
+ * and style, so jsdom numbers would not be credible.
  *
- * Chromium launches with the frame-rate limit off: AG and ECharts defer
- * drawing to animation frames and the hover benches settle one frame per
- * iteration, so a vsync'd browser would quantize every such sample to ~16ms.
+ * Chromium launches with the frame-rate limit off: the hover benches settle
+ * one frame per iteration, so a vsync'd browser would quantize every such
+ * sample to ~16ms.
  */
 export default defineConfig({
 	plugins: [servedTailwind()],
 	// Measure the React the module actually ships: production, not the
 	// development build Vite serves by default. The dev build's invariant checks
 	// and warnings run several times the work per render, so a dev-React number
-	// would score the module's diagnostics, not its shipped speed — and the
-	// vanilla contenders (AG, Highcharts) carry no such build split, so the
-	// comparison would be lopsided. Defined at both layers because React selects
-	// its build through a `process.env.NODE_ENV` require that both the app
-	// transform and the dependency pre-bundle must fold to `'production'`.
+	// would score the module's diagnostics, not its shipped speed. Defined at
+	// both layers because React selects its build through a
+	// `process.env.NODE_ENV` require that both the app transform and the
+	// dependency pre-bundle must fold to `'production'`.
 	define: { 'process.env.NODE_ENV': '"production"' },
 	// Pre-bundle the bench dependency set so the optimizer doesn't discover it
 	// lazily and reload the page mid-run (see vitest.browser.config.ts).
@@ -33,13 +29,7 @@ export default defineConfig({
 		include: [
 			'@floating-ui/react',
 			'@internationalized/date',
-			'@mui/x-data-grid',
-			'ag-charts-community',
-			'ag-grid-community',
 			'd3-geo',
-			'echarts',
-			'highcharts',
-			'highcharts/modules/map',
 			'lucide-react',
 			'motion',
 			'motion/react',

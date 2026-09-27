@@ -1,19 +1,19 @@
 /**
  * Whole-column sort cost on a live grid: each iteration flips an `id` sort
- * between ascending and descending through the library's own sort state —
- * the ui module and MUI X take a controlled sort model, AG its column-state
- * API — so the engine re-sorts the full dataset and repaints the window.
- * The zero-padded ids sort identically as strings everywhere, and the
- * iteration settles when the expected extreme rows paint at the top.
+ * between ascending and descending through the controlled `sort` binding of
+ * the ui grid, so the grid re-sorts the full dataset and repaints the window.
+ * The ids are zero-padded, so the ascending order is the order of the
+ * fixture. The iteration settles when the expected extreme rows paint at the
+ * top.
  */
 
 import { describe } from 'vitest'
 import { type Shipment, shipments } from '../fixtures'
-import { painted } from './grid-contenders'
 import { prepareGrids, viewportMarkers } from './grid-harness'
+import { painted } from './grids'
 import { benches, WINDOW } from './harness'
 
-/** Mounts every contender and closes each over an asc/desc sort flip. */
+/** Mounts the grid and closes it over an asc/desc sort flip. */
 function sortFlip(rows: Shipment[]) {
 	const first = viewportMarkers(rows)
 

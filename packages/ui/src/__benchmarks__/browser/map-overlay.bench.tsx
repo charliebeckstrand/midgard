@@ -3,7 +3,7 @@
  * touch — every other map bench draws geography and no marks at all, so a
  * regression in a mark's own render path was invisible to the suite.
  *
- * The first two contenders are the same two hundred dots, drawn the two ways the
+ * The first two subjects are the same two hundred dots, drawn the two ways the
  * module offers: one `MapPoint` each, and one `MapPoints` holding all of them.
  * Every `MapPoint` claims its own legend entry, so the singular form pays two
  * hundred registrations — each a state commit that re-sorts the ledger and
@@ -30,13 +30,13 @@ import { MapGeofence } from '../../modules/map/map-geofence'
 import { MapPlat } from '../../modules/map/map-plat'
 import { MapPoint } from '../../modules/map/map-point'
 import { MapPoints } from '../../modules/map/map-points'
-import { type Contender, HEIGHT, reactContender, WIDTH } from './contenders'
+import { HEIGHT, reactSubject, type Subject, WIDTH } from './charts'
 import { benches, host, mountBenches, type Prepared, settle, WINDOW } from './harness'
 import { COVERAGE_AREA, LATTICE_DOTS, statesAtlas } from './map-fixtures'
 
-function overlayContenders(): Contender<typeof LATTICE_DOTS>[] {
+function overlayMaps(): Subject<typeof LATTICE_DOTS>[] {
 	return [
-		reactContender('ui MapPoints', (dots) => (
+		reactSubject('ui MapPoints', (dots) => (
 			<MapPlat
 				aria-label="Bench overlays"
 				geography={statesAtlas.topology}
@@ -47,7 +47,7 @@ function overlayContenders(): Contender<typeof LATTICE_DOTS>[] {
 				<MapPoints label="Stops" points={dots} />
 			</MapPlat>
 		)),
-		reactContender('ui MapPoint each', (dots) => (
+		reactSubject('ui MapPoint each', (dots) => (
 			<MapPlat
 				aria-label="Bench overlays"
 				geography={statesAtlas.topology}
@@ -68,9 +68,9 @@ function overlayContenders(): Contender<typeof LATTICE_DOTS>[] {
  * first, so the dots draw over it and the wash stays behind them — the order the
  * mark's own docs ask for.
  */
-function zonedContenders(): Contender<typeof LATTICE_DOTS>[] {
+function zonedMaps(): Subject<typeof LATTICE_DOTS>[] {
 	return [
-		reactContender('ui MapPoints + MapGeofence', (dots) => (
+		reactSubject('ui MapPoints + MapGeofence', (dots) => (
 			<MapPlat
 				aria-label="Bench overlays"
 				geography={statesAtlas.topology}
@@ -94,7 +94,7 @@ function zonedContenders(): Contender<typeof LATTICE_DOTS>[] {
 async function zoomPlot(): Promise<Element> {
 	const box = host()
 
-	await reactContender('ui MapPoints + MapGeofence, zoomable', (dots: typeof LATTICE_DOTS) => (
+	await reactSubject('ui MapPoints + MapGeofence, zoomable', (dots: typeof LATTICE_DOTS) => (
 		<MapPlat
 			aria-label="Bench overlays"
 			geography={statesAtlas.topology}
@@ -160,11 +160,11 @@ const zoomed: Prepared[] = [
 }
 
 describe('mount · map overlays · 200 dots', () => {
-	mountBenches(overlayContenders(), LATTICE_DOTS, WINDOW.slow)
+	mountBenches(overlayMaps(), LATTICE_DOTS, WINDOW.slow)
 })
 
 describe('mount · map overlays · 200 dots over a coverage zone', () => {
-	mountBenches(zonedContenders(), LATTICE_DOTS, WINDOW.slow)
+	mountBenches(zonedMaps(), LATTICE_DOTS, WINDOW.slow)
 })
 
 describe('zoom · map overlays · 200 dots over a coverage zone · notch in and out', () => {

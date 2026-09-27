@@ -1,6 +1,6 @@
 # Cadence
 
-> **The spacing and the shape of authored text.** One blank line separates each statement from the next, so that documents and code stay easy to scan and each diff stays clean. [`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) gates the rule documents at the repository root ([`CLAUDE.md`](CLAUDE.md) §3.6).
+> **The spacing and the shape of authored text.** One blank line separates each statement from the next, so that documents and code stay easy to scan and each diff stays clean. [`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) reports breaks in the rule documents at the repository root ([`CLAUDE.md`](CLAUDE.md) §3.6). The report is advisory.
 
 ## What cadence means
 
@@ -28,9 +28,9 @@ This document obeys the cadence that it defines; read its spacing as the referen
 
 8. **File hygiene.** End the file with one newline. Leave no trailing whitespace and no stacked blank lines.
 
-## Gate
+## Report
 
-`cadence-boundary.test.ts` reads the rule documents at the repository root: `CLAUDE.md`, `CONVENTIONS.md`, `CADENCE.md`, `STE.md`, and `REFERENCE.md`. It checks the parts of rules 1, 3, 4, and 8 that a reader can measure. Rules 2, 5, 6, and 7 need judgment, so review holds them.
+`cadence-boundary.test.ts` reads the rule documents at the repository root: `CLAUDE.md`, `CONVENTIONS.md`, `CADENCE.md`, `STE.md`, and `REFERENCE.md`. It reports breaks of the parts of rules 1, 3, 4, and 8 that a reader can measure, and does not fail the run. Rules 2, 5, 6, and 7 need judgment, so review holds them.
 
 ## Example
 

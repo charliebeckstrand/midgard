@@ -1,15 +1,12 @@
 /**
- * The grid suite's scenario harness. The chart and map suites settle on each
- * library's own contract (`harness.ts`); the grids settle on shared paint
- * evidence instead — every operation is timed until {@link painted} sees the
- * expected cell text in the live DOM — so a library that defers row DOM onto
- * animation frames pays for exactly the frames it defers, and none is trusted
- * about its own "ready" signal.
+ * The scenario harness of the grid suite. The chart and map suites settle on
+ * the synchronous commit of the module (`harness.ts`). The grids settle on
+ * paint evidence instead: each operation is timed until {@link painted} sees
+ * the expected cell text in the live DOM. A grid that defers a part of its
+ * DOM onto animation frames therefore pays for each frame that it defers.
  *
- * Every grid scenario therefore mounts the same way: one fixed 960×600 host
- * per contender, a settled first paint, then a per-iteration drive the
- * scenario supplies. A contender whose tier cannot run a scenario — MUI's MIT
- * pagination has no full-set scroller — returns no drive and sits it out.
+ * Each grid scenario mounts the same way: one fixed 960×600 host, a settled
+ * first paint, then a drive for each iteration that the scenario supplies.
  */
 
 import { type BenchOptions, bench } from 'vitest'
@@ -17,15 +14,14 @@ import type { Shipment } from '../fixtures'
 import {
 	GRID_HEIGHT,
 	GRID_WIDTH,
-	gridContenders,
+	grids,
 	type MountedGrid,
 	type MountOptions,
 	painted,
-	supports,
-} from './grid-contenders'
+} from './grids'
 import { host, type Prepared } from './harness'
 
-/** The fixed box every grid draws into, so no contender wins by rendering fewer cells. */
+/** The fixed box that each grid draws into, so each scenario paints the same viewport. */
 const BOX = { width: GRID_WIDTH, height: GRID_HEIGHT }
 
 /** The first and a mid-viewport row — evidence the visible window painted. */
@@ -34,7 +30,7 @@ export function viewportMarkers(rows: Shipment[]): string[] {
 }
 
 /**
- * Registers one full mount-to-painted-rows-plus-teardown bench per contender.
+ * Registers one full mount-to-painted-rows-plus-teardown bench for each grid.
  * `mount` sets how each grid mounts.
  */
 export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount?: MountOptions) {
@@ -42,13 +38,11 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount
 
 	const mountHost = host(BOX)
 
-	for (const contender of gridContenders()) {
-		if (!supports(contender, mount)) continue
-
+	for (const subject of grids()) {
 		bench(
-			contender.name,
+			subject.name,
 			async () => {
-				const grid = contender.mount(mountHost, rows, mount)
+				const grid = subject.mount(mountHost, rows, mount)
 
 				await painted(mountHost, markers)
 
@@ -60,37 +54,25 @@ export function mountGridBenches(rows: Shipment[], options?: BenchOptions, mount
 }
 
 /**
- * Mounts every contender on `rows` into its own fixed box, settles the first
- * paint, then closes each over the drive `scenario` returns. A contender the
- * scenario cannot run returns `null` and leaves the report. A contender that
- * cannot mount with `options` leaves it too (see `supports`).
- * `options` sets how each grid mounts.
+ * Mounts each grid on `rows` into its own fixed box, settles the first paint,
+ * then closes each over the drive that `scenario` returns. `options` sets how
+ * each grid mounts.
  */
 export async function prepareGrids(
 	rows: Shipment[],
-	scenario: (grid: MountedGrid, box: HTMLElement) => (() => Promise<void>) | null,
+	scenario: (grid: MountedGrid, box: HTMLElement) => () => Promise<void>,
 	options?: MountOptions,
 ): Promise<Prepared[]> {
 	const prepared: Prepared[] = []
 
-	for (const contender of gridContenders()) {
-		if (!supports(contender, options)) continue
-
+	for (const subject of grids()) {
 		const box = host(BOX)
 
-		const grid = contender.mount(box, rows, options)
+		const grid = subject.mount(box, rows, options)
 
 		await painted(box, [rows[0]?.id ?? ''])
 
-		const run = scenario(grid, box)
-
-		if (!run) {
-			box.remove()
-
-			continue
-		}
-
-		prepared.push({ name: contender.name, run })
+		prepared.push({ name: subject.name, run: scenario(grid, box) })
 	}
 
 	return prepared

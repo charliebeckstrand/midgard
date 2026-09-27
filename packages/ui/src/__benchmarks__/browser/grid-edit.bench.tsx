@@ -16,10 +16,6 @@
  * the sample counts the editors and throws on a count that the state does not
  * give. The two runs of 1,000 rows are the regression sentinels. A grid without
  * a window keeps each row mounted, so a cost that reaches each row shows there.
- *
- * The ui grid runs alone, without a rival score. AG Grid and MUI X open their
- * editors through their own APIs and focus models. The same toggle therefore
- * does not give equal work in each library.
  */
 
 import type { ReactNode } from 'react'
@@ -28,7 +24,7 @@ import { createRoot } from 'react-dom/client'
 import { describe } from 'vitest'
 import { Grid, type GridCellRef, type GridColumn } from '../../modules/grid'
 import { SHIPMENT_FIELDS, type Shipment, shipmentKey, shipments } from '../fixtures'
-import { GRID_HEIGHT, GRID_WIDTH, painted } from './grid-contenders'
+import { GRID_HEIGHT, GRID_WIDTH, painted } from './grids'
 import { benches, host, type Prepared, WINDOW } from './harness'
 
 // A `field` makes each column editable. The explicit `cell` renderer paints the
