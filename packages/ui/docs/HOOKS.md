@@ -15,7 +15,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
 | `useTimeout` | One restartable timer that clears on unmount: `set` (the last call wins), `clear`, and `pending`, each with a stable identity. For a debounce, a settle window, or a dwell delay. |
-| `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`; reports every transition to `onOpenChange`. |
+| `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport widens to the `lg` breakpoint; reports every transition to `onOpenChange`. |
 
 ## Floating & overlays
 
