@@ -2,6 +2,7 @@
 
 import { composeEventHandlers } from '../../core'
 import { Input, type InputProps } from '../input'
+import type { MaskInputFormat, MaskInputPreset } from './mask-input-utilities'
 import { useMaskInput } from './use-mask-input'
 
 /** Props for {@link MaskInput}: {@link InputProps} with `onChange` replaced by string-valued masking callbacks. */
@@ -11,8 +12,13 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 	defaultValue?: string
 	/** Fires with the formatted value after each edit. */
 	onValueChange?: (value: string) => void
-	/** Maps a raw input string to its masked display form; runs on every keystroke. */
-	format: (raw: string) => string
+	/**
+	 * The mask: a format function or a preset. A format function maps a raw
+	 * input string to its masked display form, and runs on every keystroke. A
+	 * preset such as {@link phoneMask} or {@link zipcodeMask} also sets field
+	 * defaults. An explicit prop overrides each default.
+	 */
+	mask: MaskInputFormat | MaskInputPreset
 	/**
 	 * Predicate marking characters that count toward caret restoration, letting
 	 * the caret skip inserted mask literals (separators, fixed punctuation).
@@ -22,7 +28,7 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
 }
 
 /**
- * Input that reformats its value through `format` as the user types, preserving
+ * Input that reformats its value through `mask` as the user types, preserving
  * caret position. Controlled or uncontrolled via `value`/`defaultValue`, and
  * bound to an enclosing Form field by `name`.
  *
@@ -30,19 +36,28 @@ export type MaskInputProps = Omit<InputProps, 'value' | 'defaultValue' | 'onChan
  * `onValueChange`, fired with the formatted text after each edit. The bound
  * value is the formatted string, so seed Form defaults pre-formatted. The
  * caret-preserving reformat and Form binding run through {@link useMaskInput}.
+ * A preset `mask` also supplies `type`, `inputMode`, `autoComplete`,
+ * `placeholder`, and `prefix` defaults.
  * @see {@link useMaskInput}
  */
 export function MaskInput({
 	value,
 	defaultValue,
 	onValueChange,
-	format,
+	mask,
 	meaningful,
+	type,
+	inputMode,
+	autoComplete,
+	placeholder,
+	prefix,
 	name,
 	onBlur,
 	ref,
 	...props
 }: MaskInputProps) {
+	const preset: MaskInputPreset = typeof mask === 'function' ? { format: mask } : mask
+
 	const {
 		ref: maskedRef,
 		value: maskedValue,
@@ -53,8 +68,8 @@ export function MaskInput({
 		value,
 		defaultValue,
 		onChange: onValueChange,
-		format,
-		meaningful,
+		format: preset.format,
+		meaningful: meaningful ?? preset.meaningful,
 		ref,
 	})
 
@@ -62,6 +77,11 @@ export function MaskInput({
 		<Input
 			ref={maskedRef}
 			data-slot="mask-input"
+			type={type ?? preset.type}
+			inputMode={inputMode ?? preset.inputMode}
+			autoComplete={autoComplete ?? preset.autoComplete}
+			placeholder={placeholder ?? preset.placeholder}
+			prefix={prefix ?? preset.prefix}
 			name={name}
 			value={maskedValue}
 			onChange={onMaskedChange}

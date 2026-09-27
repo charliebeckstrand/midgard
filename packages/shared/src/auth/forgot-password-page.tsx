@@ -9,7 +9,7 @@ import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Text } from 'ui/text'
-import { postJson, readError } from '../http'
+import { bifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
 
 type ForgotPasswordValues = { email: string }
@@ -30,15 +30,15 @@ export function ForgotPasswordPage() {
 
 	const handleSubmit: FormSubmitHandler<ForgotPasswordValues> = async (values) => {
 		try {
-			const res = await postJson('/auth/reset-password', values)
+			const { response, error } = await bifrost.POST('/auth/reset-password', { body: values })
 
-			if (res.ok) {
+			if (response.ok) {
 				setSent(true)
 
 				return
 			}
 
-			setServerError(await readError(res, 'The request failed. Please try again.'))
+			setServerError(error?.message || 'The request failed. Please try again.')
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}

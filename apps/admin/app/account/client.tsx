@@ -2,7 +2,7 @@
 
 import type { User } from 'auth'
 import { useState } from 'react'
-import { type SignInProvider, signOut } from 'shared/auth'
+import { signOut } from 'shared/auth'
 import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
@@ -13,7 +13,7 @@ import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 import { type Activity, ActivityTable } from '@/components/activity-table'
-import type { Factors, Identity, Passkey } from './account-api'
+import type { Factors, Identity, Passkey, Provider } from './account-api'
 import {
 	useAddPasskey,
 	useFactors,
@@ -32,7 +32,7 @@ type AccountClientProps = {
 	/** The recent activity of the user, newest first. */
 	activity: Activity[]
 	/** The providers that the gateway has set up. */
-	providers: SignInProvider[]
+	providers: Provider[]
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
 }

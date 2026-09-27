@@ -37,7 +37,7 @@ An older global pnpm delegates to pnpm 12 through its tools cache. Turbo cannot 
 
 ## 4. Gateway
 
-Both apps get auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and `bifrost()` fetches from it on the server. [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
+Both apps get auth and API responses from the bifrost gateway. [`withAuth`](packages/auth/README.md) rewrites the same-origin `/auth/*` and `/api/*` paths to the gateway, and the typed `bifrost` client fetches from it. The types come from the OpenAPI spec that the gateway commits (`pnpm --filter auth openapi`). [`packages/auth/src/env.ts`](packages/auth/src/env.ts) reads the origin from `BIFROST_URL`, and no other file reads it.
 
 | Environment | `BIFROST_URL` |
 |---|---|

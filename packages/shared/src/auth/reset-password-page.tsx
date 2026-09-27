@@ -10,7 +10,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
-import { postJson, readError } from '../http'
+import { bifrost } from './bifrost'
 import { chain, matches, minLength, required } from './form-validators'
 import { linkToken } from './link-token'
 
@@ -25,7 +25,7 @@ type ResetPasswordValues = { password: string; confirmPassword: string }
  * The gateway signs the user out on all devices, so the user signs in again with
  * the new password. A link works one time, for one hour.
  *
- * The page reads the token from the `?token=` of the link on submit, so Next
+ * The page reads the token from the `?token=` of the link on the submit, so Next
  * prerenders all of the page.
  */
 export function ResetPasswordPage() {
@@ -35,18 +35,17 @@ export function ResetPasswordPage() {
 
 	const handleSubmit: FormSubmitHandler<ResetPasswordValues> = async (values) => {
 		try {
-			const res = await postJson('/auth/reset-password/confirm', {
-				token: linkToken(),
-				password: values.password,
+			const { response, error } = await bifrost.POST('/auth/reset-password/confirm', {
+				body: { token: linkToken(), password: values.password },
 			})
 
-			if (res.ok) {
+			if (response.ok) {
 				router.push('/login?reset=true')
 
 				return
 			}
 
-			setServerError(await readError(res, 'The password did not change. Please try again.'))
+			setServerError(error?.message || 'The password did not change. Please try again.')
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}

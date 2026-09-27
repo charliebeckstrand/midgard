@@ -1,23 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import {
-	ensureSecondStep,
-	oauthStartPath,
-	type SignInProvider,
-	signInProviderNames,
-} from 'shared/auth'
+import { ensureSecondStep, oauthStartPath, signInProviderNames } from 'shared/auth'
 import { Button } from 'ui/button'
 import { Confirm } from 'ui/confirm'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import type { Identity } from './account-api'
+import type { Identity, Provider } from './account-api'
 import { useIdentities, useUnlinkIdentity } from './account-queries'
 
 type ConnectedAccountsProps = {
 	/** The providers that the gateway has set up. */
-	providers: SignInProvider[]
+	providers: Provider[]
 	identities: Identity[]
 	/** The `?error=` code that a connect came back with, if any. */
 	connectError?: string
@@ -51,11 +46,11 @@ export function ConnectedAccounts({
 }: ConnectedAccountsProps) {
 	const { data: identities } = useIdentities(initialIdentities)
 	const unlink = useUnlinkIdentity()
-	const [unlinking, setUnlinking] = useState<SignInProvider | null>(null)
+	const [unlinking, setUnlinking] = useState<Provider | null>(null)
 
 	// A provider that the gateway turned off still shows while an account of it is connected.
 	const shown = [
-		...new Set<SignInProvider>([...providers, ...identities.map((identity) => identity.provider)]),
+		...new Set<Provider>([...providers, ...identities.map((identity) => identity.provider)]),
 	]
 
 	if (shown.length === 0) return null

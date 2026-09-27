@@ -4,6 +4,8 @@ import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { capitalize, Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 const variants = ['default', 'outline'] as const
 const sizes = ['sm', 'md', 'lg'] as const
 

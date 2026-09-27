@@ -1,5 +1,5 @@
 import { cache } from 'react'
-import { readGateway } from './fetch'
+import { bifrost, readGateway } from './fetch'
 
 /**
  * Returns the key that the register page shows Cloudflare Turnstile with, or
@@ -11,7 +11,9 @@ import { readGateway } from './fetch'
  * it, so repeat calls in one request hit the gateway once.
  */
 export const getTurnstileSiteKey = cache(async (): Promise<string | null> => {
-	const body = await readGateway<{ turnstile_site_key: string | null }>('/auth/register/options')
+	const data = await readGateway('/auth/register/options', () =>
+		bifrost.GET('/auth/register/options'),
+	)
 
-	return body?.turnstile_site_key ?? null
+	return data?.turnstile_site_key ?? null
 })

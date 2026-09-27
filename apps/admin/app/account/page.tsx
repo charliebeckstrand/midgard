@@ -1,4 +1,4 @@
-import { getSignInProviders, readGateway, requireSession } from 'auth'
+import { bifrost, getSignInProviders, requireSession } from 'auth'
 import type { Activity } from '@/components/activity-table'
 import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
@@ -7,10 +7,12 @@ import { AccountClient } from './client'
  * Fetches the passkeys of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The passkey list, or `[]` on a failure, which goes to the log.
+ * @returns The passkey list, or `[]` on a non-OK response.
  */
 async function getPasskeys(): Promise<Passkey[]> {
-	return (await readGateway<{ data: Passkey[] }>('/auth/passkeys'))?.data ?? []
+	const { data } = await bifrost.GET('/auth/passkeys')
+
+	return data?.data ?? []
 }
 
 const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_codes: 0 }
@@ -19,10 +21,12 @@ const noFactors: Factors = { enabled: false, passkeys: 0, totp: false, recovery_
  * Fetches the second factors of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The factors, or none on a failure, which goes to the log.
+ * @returns The factors, or none on a non-OK response.
  */
 async function getFactors(): Promise<Factors> {
-	return (await readGateway<Factors>('/auth/mfa')) ?? noFactors
+	const { data } = await bifrost.GET('/auth/mfa')
+
+	return data ?? noFactors
 }
 
 /**
@@ -30,20 +34,24 @@ async function getFactors(): Promise<Factors> {
  * gateway, server-side.
  *
  * @internal
- * @returns The accounts, or `[]` on a failure, which goes to the log.
+ * @returns The accounts, or `[]` on a non-OK response.
  */
 async function getIdentities(): Promise<Identity[]> {
-	return (await readGateway<{ identities: Identity[] }>('/auth/oauth/identities'))?.identities ?? []
+	const { data } = await bifrost.GET('/auth/oauth/identities')
+
+	return data?.identities ?? []
 }
 
 /**
  * Fetches the recent activity of the signed-in user from the gateway, server-side.
  *
  * @internal
- * @returns The events, newest first, or `[]` on a failure, which goes to the log.
+ * @returns The events, newest first, or `[]` on a non-OK response.
  */
 async function getActivity(): Promise<Activity[]> {
-	return (await readGateway<{ data: Activity[] }>('/auth/activity'))?.data ?? []
+	const { data } = await bifrost.GET('/auth/activity')
+
+	return data?.data ?? []
 }
 
 /**

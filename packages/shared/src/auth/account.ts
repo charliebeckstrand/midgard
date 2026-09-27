@@ -1,8 +1,5 @@
-import { createRequest } from '../http'
-import { fetchWithSecondStep } from './second-step-request'
-
-/** A provider that a user can sign in with. It matches the `SignInProvider` of `auth`. */
-export type SignInProvider = 'github' | 'google'
+import type { SignInProvider } from 'auth'
+import { bifrost, unwrap } from './bifrost'
 
 /** The display name of each {@link SignInProvider}. */
 export const signInProviderNames: Record<SignInProvider, string> = {
@@ -49,12 +46,10 @@ export function oauthStartPath(provider: SignInProvider, options: OAuthStartOpti
  * The sign-out goes on when the request fails, because the page leaves anyway.
  */
 export async function signOut(): Promise<void> {
-	await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
+	await bifrost.POST('/auth/logout').catch(() => {})
 
 	window.location.replace('/login')
 }
-
-const requests = createRequest({ fetch: fetchWithSecondStep })
 
 /**
  * Emails the signed-in user a new link that verifies the email.
@@ -64,5 +59,5 @@ const requests = createRequest({ fetch: fetchWithSecondStep })
  * `429`. The error then holds the gateway's message.
  */
 export async function sendVerificationEmail(): Promise<void> {
-	await requests.request('/auth/verify-email', { method: 'POST' })
+	await unwrap(bifrost.POST('/auth/verify-email'))
 }

@@ -12,10 +12,11 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 
 | Path | Purpose |
 |---|---|
-| `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` and `fetchWithSecondStep` (the second step when a request needs it). They post to the same-origin `/auth/*` paths, which `withAuth` rewrites to the gateway. |
+| `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` (the second step when a request needs it). `bifrost` is the typed client of the gateway in the browser, and `unwrap` throws for a status that is not OK. `signOut`, `sendVerificationEmail`, `oauthStartPath`, and `signInProviderNames` are the account helpers of the apps. The requests go to the same-origin `/auth/*` and `/api/*` paths, which `withAuth` rewrites to the gateway. |
+| `shared/providers` | `AppProviders`: `UIProvider` with the `Link` of Next, `AppearanceProvider`, and one `QueryClient`. The app gives its query defaults. |
 | `shared/globals.css` | Global stylesheet: the Google Sans Flex font, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class. |
 
-An app that renders `shared/auth` must add `packages/shared/src` as a Tailwind `@source`, so that Tailwind generates the classes of the auth UI.
+`shared/globals.css` names `shared` and `ui` as Tailwind sources, so an app that imports it gets the classes of both. The app names only its own sources.
 
 ## 2. Commands
 
@@ -27,7 +28,7 @@ An app that renders `shared/auth` must add `packages/shared/src` as a Tailwind `
 
 ## 3. Consumers
 
-[`apps/admin`](../../apps/admin/README.md) uses the auth UI and the stylesheet. [`apps/places`](../../apps/places/README.md) uses the stylesheet. This package depends on [`ui`](../ui/README.md).
+[`apps/admin`](../../apps/admin/README.md) and [`apps/places`](../../apps/places/README.md) use the auth UI, the providers, and the stylesheet. This package depends on [`ui`](../ui/README.md).
 
 ---
 

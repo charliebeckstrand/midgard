@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { type SignInProvider, sendVerificationEmail } from 'shared/auth'
+import { sendVerificationEmail } from 'shared/auth'
 import {
 	addPasskey,
 	confirmTotp,
@@ -12,6 +12,7 @@ import {
 	generateRecoveryCodes,
 	type Identity,
 	type Passkey,
+	type Provider,
 	removePasskey,
 	removeTotp,
 	startTotpSetup,
@@ -143,7 +144,7 @@ export function useUnlinkIdentity() {
 
 	return useMutation({
 		mutationFn: unlinkIdentity,
-		onSuccess: (_, provider: SignInProvider) => {
+		onSuccess: (_, provider: Provider) => {
 			client.setQueryData<Identity[]>(accountKeys.identities, (identities) =>
 				identities?.filter((identity) => identity.provider !== provider),
 			)

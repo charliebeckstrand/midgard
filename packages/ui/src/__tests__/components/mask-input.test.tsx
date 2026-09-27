@@ -13,7 +13,7 @@ const formatGroups = (raw: string) => {
 
 describe('MaskInput', () => {
 	it('renders an input with data-slot="mask-input"', () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} />)
+		const { container } = renderUI(<MaskInput mask={formatGroups} />)
 
 		const input = bySlot(container, 'mask-input')
 
@@ -25,7 +25,7 @@ describe('MaskInput', () => {
 	it('applies the format as the user types', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<MaskInput format={formatGroups} onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={formatGroups} onValueChange={onChange} />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -39,7 +39,7 @@ describe('MaskInput', () => {
 	})
 
 	it('formats defaultValue on initial render', () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
+		const { container } = renderUI(<MaskInput mask={formatGroups} defaultValue="123456" />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -47,19 +47,19 @@ describe('MaskInput', () => {
 	})
 
 	it('reflects controlled value updates', () => {
-		const { container, rerender } = renderUI(<MaskInput format={formatGroups} value="123" />)
+		const { container, rerender } = renderUI(<MaskInput mask={formatGroups} value="123" />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('123')
 
-		rerender(<MaskInput format={formatGroups} value="123-456" />)
+		rerender(<MaskInput mask={formatGroups} value="123-456" />)
 
 		expect(input.value).toBe('123-456')
 	})
 
 	it('keeps the caret next to the typed character when format inserts separators', async () => {
-		const { container } = renderUI(<MaskInput format={formatGroups} defaultValue="123456" />)
+		const { container } = renderUI(<MaskInput mask={formatGroups} defaultValue="123456" />)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
@@ -88,7 +88,7 @@ describe('MaskInput', () => {
 		const meaningful = (c: string) => /[A-Za-z]/.test(c)
 
 		const { container } = renderUI(
-			<MaskInput format={format} meaningful={meaningful} defaultValue="ab" />,
+			<MaskInput mask={format} meaningful={meaningful} defaultValue="ab" />,
 		)
 
 		const input = getSlot<HTMLInputElement>(container, 'mask-input')
@@ -111,7 +111,7 @@ describe('MaskInput', () => {
 
 		const { container } = renderUI(
 			<Form defaultValues={{ code: '' }} onSubmit={onSubmit}>
-				<MaskInput name="code" format={formatGroups} />
+				<MaskInput name="code" mask={formatGroups} />
 				<button type="submit">Submit</button>
 			</Form>,
 		)

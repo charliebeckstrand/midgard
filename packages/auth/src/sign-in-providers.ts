@@ -1,8 +1,8 @@
 import { cache } from 'react'
-import { readGateway } from './fetch'
+import { bifrost, readGateway, type Schema } from './fetch'
 
 /** A provider that a user can sign in with, as the gateway names it. */
-export type SignInProvider = 'github' | 'google'
+export type SignInProvider = Schema<'Identity'>['provider']
 
 /**
  * Returns the providers that the gateway has set up, or `[]` when it has none
@@ -15,7 +15,9 @@ export type SignInProvider = 'github' | 'google'
  * gateway once.
  */
 export const getSignInProviders = cache(async (): Promise<SignInProvider[]> => {
-	const body = await readGateway<{ providers: SignInProvider[] }>('/auth/oauth/providers')
+	const data = await readGateway('/auth/oauth/providers', () =>
+		bifrost.GET('/auth/oauth/providers'),
+	)
 
-	return body?.providers ?? []
+	return data?.providers ?? []
 })

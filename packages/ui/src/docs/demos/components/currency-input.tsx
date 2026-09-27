@@ -3,6 +3,8 @@ import { CurrencyInput } from '../../../components/currency-input'
 import { Field, Label } from '../../../components/fieldset'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 function ControlledExample() {
 	const [value, setValue] = useState<number | null>(1234.56)
 

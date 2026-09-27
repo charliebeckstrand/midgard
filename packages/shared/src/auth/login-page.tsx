@@ -1,6 +1,10 @@
 'use client'
 
-import { startAuthentication } from '@simplewebauthn/browser'
+import {
+	type PublicKeyCredentialRequestOptionsJSON,
+	startAuthentication,
+} from '@simplewebauthn/browser'
+import type { SignInProvider } from 'auth'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Suspense, useState } from 'react'
 import { Button } from 'ui/button'
@@ -12,8 +16,8 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
-import { postJson, readError } from '../http'
-import { oauthStartPath, type SignInProvider, signInProviderNames } from './account'
+import { oauthStartPath, signInProviderNames } from './account'
+import { bifrost } from './bifrost'
 import { chain, email, required } from './form-validators'
 import { useLeaving } from './use-leaving'
 
@@ -99,21 +103,19 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 
 	// Goes to `/` on success, and shows the message of the gateway on a failure.
 	// The form stays disabled until the next page replaces it.
-	async function finish(res: Response) {
-		if (res.ok) {
+	function finish({ response, error }: { response: Response; error?: { message: string } }) {
+		if (response.ok) {
 			leave(() => router.push('/'))
 
 			return
 		}
 
-		setServerError(
-			await readError(res, 'Login failed. Please check your credentials and try again.'),
-		)
+		setServerError(error?.message || 'Login failed. Please check your credentials and try again.')
 	}
 
 	const handleSubmit: FormSubmitHandler<LoginValues> = async (values) => {
 		try {
-			await finish(await postJson('/auth/login', values))
+			finish(await bifrost.POST('/auth/login', { body: values }))
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}
@@ -123,17 +125,20 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 	// user, and the gateway checks the result. A cancel in the browser throws.
 	async function signInWithPasskey() {
 		try {
-			const options = await fetch('/auth/login/options', { method: 'POST' })
+			const { data: options } = await bifrost.POST('/auth/login/options')
 
-			if (!options.ok) {
-				setServerError(await readError(options, passkeyFailed))
+			if (!options) {
+				setServerError(passkeyFailed)
 
 				return
 			}
 
-			const credential = await startAuthentication({ optionsJSON: await options.json() })
+			// The gateway passes the options of the browser API through, so its spec names no fields.
+			const optionsJSON = options as PublicKeyCredentialRequestOptionsJSON
 
-			await finish(await postJson('/auth/login/passkey', credential))
+			const credential = await startAuthentication({ optionsJSON })
+
+			finish(await bifrost.POST('/auth/login/passkey', { body: credential }))
 		} catch {
 			setServerError(passkeyFailed)
 		}

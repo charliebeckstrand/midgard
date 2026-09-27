@@ -1,12 +1,11 @@
+import type { Paths, Schema } from 'auth'
+import createClient from 'openapi-fetch'
+
 /** A way to give the second step, as the gateway names it. */
 export type SecondFactorMethod = 'passkey' | 'totp' | 'recovery_code'
 
 /** The second factors of a user, as the gateway's `GET /auth/mfa` reports them. */
-export type SecondFactors = {
-	passkeys: number
-	totp: boolean
-	recovery_codes: number
-}
+export type SecondFactors = Schema<'Factors'>
 
 /**
  * Returns the methods that can give the second step, in the order of the
@@ -46,18 +45,22 @@ export function setSecondStepDialog(open: OpenDialog | undefined): void {
 // The check in progress, which calls at the same time share.
 let current: Promise<boolean> | undefined
 
+// The check does not use `fetchWithSecondStep`, because that function waits on the check.
+// The client reads the global `fetch` at each call.
+const gateway = createClient<Paths>({ fetch: (request) => fetch(request) })
+
 async function checkSecondStep(): Promise<boolean> {
-	const session = await fetch('/auth/session')
+	const { data: session } = await gateway.GET('/auth/session')
 
-	if (!session.ok) return false
+	if (!session) return false
 
-	if (((await session.json()) as { two_step: boolean }).two_step) return true
+	if (session.two_step) return true
 
-	const factors = await fetch('/auth/mfa')
+	const { data: factors } = await gateway.GET('/auth/mfa')
 
-	if (!factors.ok) return false
+	if (!factors) return false
 
-	const methods = secondFactorMethods((await factors.json()) as SecondFactors)
+	const methods = secondFactorMethods(factors)
 
 	// The gateway asks a user without a second factor for no second step.
 	if (methods.length === 0) return true
@@ -90,12 +93,11 @@ export function ensureSecondStep(): Promise<boolean> {
  * second step it sends the request again.
  *
  * @remarks
- * When the user does not give the second step, the first response comes back.
- * Only a request with a body that can be sent again, such as a string, can use
- * it.
+ * The `fetch` of the `bifrost` client. When the user does not give the second
+ * step, the first response comes back.
  */
-export async function fetchWithSecondStep(input: string, init?: RequestInit): Promise<Response> {
-	const res = await fetch(input, init)
+export async function fetchWithSecondStep(request: Request): Promise<Response> {
+	const res = await fetch(request.clone())
 
 	if (res.status !== 403) return res
 
@@ -106,5 +108,5 @@ export async function fetchWithSecondStep(input: string, init?: RequestInit): Pr
 
 	if (body?.code !== 'second_step_required' || !(await ensureSecondStep())) return res
 
-	return fetch(input, init)
+	return fetch(request)
 }

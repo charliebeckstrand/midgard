@@ -1,6 +1,15 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { oauthStartPath, signOut } from '../auth/account'
 
+// A browser resolves a same-origin path, and the `Request` of Node takes only an absolute URL.
+vi.hoisted(() => {
+	globalThis.Request = class extends Request {
+		constructor(input: RequestInfo | URL, init?: RequestInit) {
+			super(typeof input === 'string' ? new URL(input, 'http://localhost') : input, init)
+		}
+	}
+})
+
 afterEach(() => {
 	vi.unstubAllGlobals()
 })
@@ -33,7 +42,11 @@ describe('signOut', () => {
 
 		await signOut()
 
-		expect(fetch).toHaveBeenCalledWith('/auth/logout', { method: 'POST' })
+		const [request] = (fetch.mock.lastCall ?? []) as [Request?]
+
+		expect(request && new URL(request.url).pathname).toBe('/auth/logout')
+
+		expect(request?.method).toBe('POST')
 
 		expect(replace).toHaveBeenCalledWith('/login')
 	})

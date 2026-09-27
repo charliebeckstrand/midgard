@@ -1,4 +1,4 @@
-import { readGateway, type User } from 'auth'
+import { bifrost, type User } from 'auth'
 
 import { UsersClient } from './client'
 
@@ -6,10 +6,12 @@ import { UsersClient } from './client'
  * Fetches all users from the gateway, server-side.
  *
  * @internal
- * @returns The user list, or `[]` on a failure, which goes to the log.
+ * @returns The user list, or `[]` on a non-OK response.
  */
 async function getUsers(): Promise<User[]> {
-	return (await readGateway<{ data: User[] }>('/api/users'))?.data ?? []
+	const { data } = await bifrost.GET('/api/users')
+
+	return data?.data ?? []
 }
 
 export default async function UsersPage() {

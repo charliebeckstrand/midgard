@@ -1,21 +1,20 @@
-import { readGateway, type User } from 'auth'
+import { bifrost } from 'auth'
 import { notFound } from 'next/navigation'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Heading } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
-import { type Activity, ActivityTable } from '@/components/activity-table'
+import { ActivityTable } from '@/components/activity-table'
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
 	const { userId } = await params
 
-	const path = `/api/users/${encodeURIComponent(userId)}`
+	const options = { params: { path: { id: userId } } }
 
-	// A missing user is expected, so its 404 does not go to the log.
-	const [user, activity] = await Promise.all([
-		readGateway<User>(path, { quiet: [404] }),
-		readGateway<{ data: Activity[] }>(`${path}/activity`, { quiet: [404] }),
+	const [{ data: user }, { data: activity }] = await Promise.all([
+		bifrost.GET('/api/users/{id}', options),
+		bifrost.GET('/api/users/{id}/activity', options),
 	])
 
 	if (!user) notFound()

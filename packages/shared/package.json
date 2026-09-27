@@ -8,10 +8,6 @@
 			"types": "./src/auth/index.ts",
 			"default": "./src/auth/index.ts"
 		},
-		"./http": {
-			"types": "./src/http/index.ts",
-			"default": "./src/http/index.ts"
-		},
 		"./providers": {
 			"types": "./src/providers/index.ts",
 			"default": "./src/providers/index.ts"
@@ -29,6 +25,8 @@
 	},
 	"dependencies": {
 		"@simplewebauthn/browser": "catalog:",
+		"auth": "workspace:*",
+		"openapi-fetch": "catalog:",
 		"ui": "workspace:*"
 	},
 	"peerDependencies": {

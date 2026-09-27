@@ -7,7 +7,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
-import { postJson, readError } from '../http'
+import { bifrost } from './bifrost'
 import { linkToken } from './link-token'
 
 /**
@@ -33,15 +33,17 @@ export function VerifyEmailPage() {
 		setServerError('')
 
 		try {
-			const res = await postJson('/auth/verify-email/confirm', { token: linkToken() })
+			const { response, error } = await bifrost.POST('/auth/verify-email/confirm', {
+				body: { token: linkToken() },
+			})
 
-			if (res.ok) {
+			if (response.ok) {
 				setState('verified')
 
 				return
 			}
 
-			setServerError(await readError(res, 'The email was not verified. Please try again.'))
+			setServerError(error?.message || 'The email was not verified. Please try again.')
 		} catch {
 			setServerError('An unexpected error occurred. Please try again later.')
 		}
