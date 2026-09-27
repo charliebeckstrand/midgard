@@ -3,9 +3,8 @@
 import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useA11yHasTabbable } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
@@ -25,9 +24,9 @@ const TRAP_ORDER: FloatingFocusManagerProps['order'] = ['reference', 'content']
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
 	/**
-	 * Size step that drives padding and text size.
-	 *
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Size step that drives padding, radius, and text size. It makes the panel a
+	 * density scope. With no step, the panel follows the scope of its trigger,
+	 * and `md` outside one.
 	 */
 	size?: Step
 	className?: string
@@ -84,8 +83,6 @@ export function TooltipContent({
 
 	const hasTabbable = useA11yHasTabbable(panel)
 
-	const resolvedSize: Step = toAmbientStep(useDensityStep(size))
-
 	return (
 		<FloatingSurface
 			open={open}
@@ -103,16 +100,12 @@ export function TooltipContent({
 			trapFocusContext={interactive ? floatingContext : undefined}
 			trapFocusProps={{ disabled: !hasTabbable, order: TRAP_ORDER, returnFocus: true }}
 			data-slot="tooltip-content"
-			data-size={resolvedSize}
+			density={size}
 		>
 			<motion.div
 				{...k.motion}
 				ref={setPanel}
-				className={cn(
-					k.content({ size: resolvedSize }),
-					k.surface[glass ? 'glass' : 'default'],
-					className,
-				)}
+				className={cn(k.content, k.surface[glass ? 'glass' : 'default'], className)}
 			>
 				{children}
 			</motion.div>

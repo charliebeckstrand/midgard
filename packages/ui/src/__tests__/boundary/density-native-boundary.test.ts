@@ -2,12 +2,14 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
+import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as fieldset } from '../../recipes/kata/fieldset'
 import { k as list } from '../../recipes/kata/list'
 import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as table } from '../../recipes/kata/table'
+import { k as tabs } from '../../recipes/kata/tabs'
 import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
@@ -29,6 +31,10 @@ const NATIVE_RECIPES = {
 	'loading spinner': loading.spinner,
 	'menu viewport': menu.viewport,
 	message: fieldset.message,
+	'sidebar layout content': sidebarLayout.content,
+	'sidebar layout header': sidebarLayout.header,
+	'sidebar layout panel': sidebarLayout.panel,
+	tab: tabs.tab,
 	'table cell': table.cell,
 	'table header': table.header,
 }
@@ -49,6 +55,11 @@ const NATIVE_FILES = [
 	'components/menu/menu-sub.tsx',
 	'components/menu/menu-viewport.tsx',
 	'components/table/table.tsx',
+	'components/tabs/tab.tsx',
+	'components/tabs/tab-list.tsx',
+	'components/tabs/tabs.tsx',
+	'components/tooltip/tooltip-content.tsx',
+	'layouts/sidebar/sidebar.tsx',
 	'primitives/option/option.tsx',
 	'primitives/panel/panel.tsx',
 ]

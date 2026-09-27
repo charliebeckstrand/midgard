@@ -1,13 +1,13 @@
 /**
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
- * two units through one surface. Orientation-/size-axed sub-recipes (`group`,
+ * two units through one surface. Orientation-axed sub-recipes (`group`,
  * `list`, `scroll`, `tab`, `indicator`, `wrapper`, `trigger`) build the
  * underline tabs. The `segment` bridges the shared segment recipe, and
  * `skeleton` carries a loading placeholder for each unit.
  */
 import { defineRecipe, mode } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen, stepSize } from '../kiso'
+import { hannou, iro, ji, kasane, kokkaku, narabi, sen, textRamp } from '../kiso'
 import { segment } from '../kiso/segment'
 
 const { cursor, disabled, fg } = hannou
@@ -84,21 +84,20 @@ const tab = defineRecipe({
 		'after:absolute after:rounded-full',
 		'after:bg-transparent',
 		'focus-visible:after:bg-blue-500',
+		// Padding and text follow the nearest density scope.
+		textRamp,
 	],
 	orientation: {
-		horizontal: ['after:inset-x-0 after:-bottom-px after:h-0.5'],
-		vertical: ['after:inset-y-0 after:-left-px after:w-0.5'],
+		horizontal: [
+			'after:inset-x-0 after:-bottom-px after:h-0.5',
+			'density-px-[2,3,4] density-pb-[3,4,5]',
+		],
+		vertical: [
+			'after:inset-y-0 after:-left-px after:w-0.5',
+			'density-px-[3,4,5] density-py-[1.5,2,2.5]',
+		],
 	},
-	size: stepSize,
-	compound: [
-		{ orientation: 'horizontal', size: 'sm', class: 'px-2 pb-3' },
-		{ orientation: 'horizontal', size: 'md', class: 'px-3 pb-4' },
-		{ orientation: 'horizontal', size: 'lg', class: 'px-4 pb-5' },
-		{ orientation: 'vertical', size: 'sm', class: 'px-3 py-1.5' },
-		{ orientation: 'vertical', size: 'md', class: 'px-4 py-2' },
-		{ orientation: 'vertical', size: 'lg', class: 'px-5 py-2.5' },
-	],
-	defaults: { orientation: 'horizontal', size: 'md' },
+	defaults: { orientation: 'horizontal' },
 })
 
 const indicator = defineRecipe({

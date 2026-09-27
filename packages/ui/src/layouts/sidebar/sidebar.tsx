@@ -16,23 +16,17 @@ import { Drawer } from '../../components/drawer/drawer'
 import { DrawerTrigger } from '../../components/drawer/slots'
 import { Icon } from '../../components/icon'
 import { Sheet } from '../../components/sheet/sheet'
-import { cn, createContext, toAmbientStep } from '../../core'
+import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { useDensityStep } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import type { Step } from '../../recipes'
 import { Flex } from '../../structure/flex'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
 	actions?: ReactNode
-	step?: Step
 }>('SidebarLayout', { default: {} })
-
-/** Mobile navbar padding per density step. @internal */
-const NAVBAR_PADDING = { sm: 'p-4', md: 'p-6', lg: 'p-8' } satisfies Record<Step, string>
 
 /** Props for {@link SidebarLayout}: the sidebar content and the slots beside it. */
 export type SidebarLayoutProps = PropsWithChildren<{
@@ -62,8 +56,8 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * @remarks The layout is pinned to the viewport (`fixed inset-0`), so the page
  * itself does not scroll. Only the content region scrolls.
  *
- * Takes its padding and the width of its desktop panel from the ambient
- * density step. The floating
+ * Its padding and the width of its desktop panel follow the nearest density
+ * scope. The floating
  * sidebar is non-modal, so its peek never steals focus or locks body scroll,
  * but `backdrop` still dims the page behind it.
  *
@@ -109,11 +103,9 @@ export function SidebarLayout({
 	// itself, but its flush offset is a physical class, so it keys on the same read.
 	const rtl = useIsRtl()
 
-	const step = toAmbientStep(useDensityStep())
-
 	const offcanvasValue = useMemo(() => ({ close }), [close])
 
-	const layoutValue = useMemo(() => ({ actions, step }), [actions, step])
+	const layoutValue = useMemo(() => ({ actions }), [actions])
 
 	return (
 		<div className={k.layout()}>
@@ -127,7 +119,7 @@ export function SidebarLayout({
 			)}
 
 			{/* Sidebar on desktop: inline when locked */}
-			{!floating && <div className={k.panel({ size: step })}>{sidebar}</div>}
+			{!floating && <div className={k.panel()}>{sidebar}</div>}
 
 			{/* Sidebar on desktop: sheet when floating. Non-modal so the hover-revealed
 			    peek doesn't steal focus or lock body scroll, but `backdrop` still
@@ -179,7 +171,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex align="center" className={cn('lg:p-0 lg:hidden', NAVBAR_PADDING[step])}>
+			<Flex align="center" className="density-p-[4,6,8] lg:p-0 lg:hidden">
 				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
 					<Button
 						type="button"
@@ -195,7 +187,7 @@ export function SidebarLayout({
 			{/* Content */}
 			<SidebarLayoutContext value={layoutValue}>
 				<div className={k.contentWrapper({ floating })}>
-					<div className={k.content({ density: step, stickyHeader })}>{children}</div>
+					<div className={k.content({ stickyHeader })}>{children}</div>
 				</div>
 			</SidebarLayoutContext>
 		</div>
@@ -213,10 +205,10 @@ export type SidebarLayoutHeaderProps = PropsWithChildren<{
  * layout's `actions` alongside its children on desktop.
  */
 export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutHeaderProps) {
-	const { actions, step } = useSidebarLayoutContext()
+	const { actions } = useSidebarLayoutContext()
 
 	return (
-		<header ref={ref} data-slot="header" className={cn(k.header({ density: step }), className)}>
+		<header ref={ref} data-slot="header" className={cn(k.header(), className)}>
 			<div className="flex-1 min-w-0">{children}</div>
 			{actions && <div className="shrink-0 max-lg:hidden flex items-center">{actions}</div>}
 		</header>
