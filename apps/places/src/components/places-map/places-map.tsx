@@ -215,11 +215,18 @@ export function PlacesMap({
 	}, [selected, places])
 
 	// The skeleton takes the same inset as the plat. It then reads as the map that
-	// comes, and not as one block over the full page.
+	// comes, and not as one block over the full page. The outline is the atlas the
+	// plat draws: the states under Albers, and the world without Antarctica under
+	// Mercator. It is on for the world as well, which is not the default.
 	if (geography === null) {
 		return (
 			<div className={FRAME_INSET}>
-				<MapSkeleton projection={atlasProjection} aspectRatio={false} className="size-full" />
+				<MapSkeleton
+					projection={atlasProjection}
+					outline
+					aspectRatio={false}
+					className="size-full"
+				/>
 			</div>
 		)
 	}

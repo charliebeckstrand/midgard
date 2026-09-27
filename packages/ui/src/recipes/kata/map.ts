@@ -11,7 +11,7 @@
  * - The hover and de-emphasis treatments.
  */
 import { mode } from '../../core/recipe'
-import { kokkaku, type SeriesSlot, sen, ugoki, zu } from '../kiso'
+import { kokkaku, omote, type SeriesSlot, sen, ugoki, zu } from '../kiso'
 
 const { palette, ink, motion } = zu
 
@@ -171,5 +171,9 @@ export const k = {
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,
-	skeleton: kokkaku.map,
+	skeleton: {
+		...kokkaku.map,
+		/** The outline skeleton: the placeholder's pulse and tone, as the fill of the projection's outline. */
+		outline: [...kokkaku.map.outline, ...omote.skeletonShape],
+	},
 } as const

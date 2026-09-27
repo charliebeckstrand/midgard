@@ -22,6 +22,8 @@ export const bg = {
 	popover: mode('bg-white/90', 'dark:bg-zinc-800/75'),
 	tint: mode('bg-zinc-950/5', 'dark:bg-white/10'),
 	skeleton: mode('bg-zinc-200', 'dark:bg-zinc-700'),
+	/** The {@link bg.skeleton} tone as an SVG fill, for a skeleton drawn as a shape. */
+	skeletonFill: mode('fill-zinc-200', 'dark:fill-zinc-700'),
 	/** Code-block canvas: matches the shiki `github-dark` theme; fixed across color modes. */
 	code: 'bg-[#0d1117]',
 } as const
