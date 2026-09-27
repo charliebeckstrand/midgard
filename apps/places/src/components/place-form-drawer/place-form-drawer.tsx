@@ -2,6 +2,7 @@
 
 import { X } from 'lucide-react'
 import { useEffect, useState } from 'react'
+import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
 import { DatePicker } from 'ui/date-picker'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
@@ -12,6 +13,7 @@ import { Input } from 'ui/input'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Rating } from 'ui/rating'
 import { Flex } from 'ui/structure/flex'
+import { Text } from 'ui/text'
 import { Textarea } from 'ui/textarea'
 import { ToggleIconButton } from 'ui/toggle-icon-button'
 import { CATEGORIES, categoryLabel } from '../../constants'
@@ -29,7 +31,10 @@ export type PlaceFormDrawerProps = {
 	 * writes.
 	 */
 	place?: Place | null
-	/** Writes the place. A rejection leaves the drawer open with the entry intact. */
+	/**
+	 * Writes the place. A rejection leaves the drawer open with the entry intact,
+	 * and the drawer shows the message of the error.
+	 */
 	onSubmit: (draft: PlaceDraft) => Promise<unknown>
 }
 
@@ -74,8 +79,17 @@ export function PlaceFormDrawer({
 	// writes to it, so the next open still seeds from what it was handed.
 	const [held, setHeld] = useState(place)
 
+	// Why the last write failed. The route refuses a write for reasons that no
+	// field shows, such as an email that is not verified or a full list. Without
+	// this message, a refused write only left the drawer open.
+	const [failure, setFailure] = useState<string | null>(null)
+
 	useEffect(() => {
-		if (open) setHeld(place)
+		if (!open) return
+
+		setHeld(place)
+
+		setFailure(null)
 	}, [open, place])
 
 	const seed = open ? place : held
@@ -120,7 +134,15 @@ export function PlaceFormDrawer({
 				defaultValues={seed === null ? emptyValues() : toFormValues(seed)}
 				validate={placeValidators}
 				onSubmit={async (values) => {
-					await onSubmit(toPlaceDraft(values, seed))
+					setFailure(null)
+
+					try {
+						await onSubmit(toPlaceDraft(values, seed))
+					} catch (error) {
+						setFailure(error instanceof Error ? error.message : String(error))
+
+						return
+					}
 
 					onOpenChange(false)
 				}}
@@ -202,6 +224,12 @@ export function PlaceFormDrawer({
 
 							<Textarea name="review" rows={3} placeholder="How was it?" />
 						</Field>
+
+						{failure === null ? null : (
+							<Alert severity="error" className="sm:col-span-2">
+								<Text>{failure}</Text>
+							</Alert>
+						)}
 					</div>
 				</DrawerBody>
 
