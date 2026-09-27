@@ -33,5 +33,5 @@ export async function POST(request: Request) {
 		)
 	}
 
-	return Response.json(place, { status: 201 })
+	return Response.json(place, { status: 201, headers: userOnly })
 }

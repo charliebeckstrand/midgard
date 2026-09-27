@@ -33,11 +33,12 @@ export function isCategory(value: unknown): value is PlaceCategory {
  * body can carry one.
  */
 export function isDay(value: unknown): value is string {
-	return (
-		typeof value === 'string' &&
-		/^\d{4}-\d{2}-\d{2}$/.test(value) &&
-		!Number.isNaN(Date.parse(value))
-	)
+	if (typeof value !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return false
+
+	// `Date.parse` rolls `2026-02-31` over to March 3, so compare the day it reads back.
+	const date = new Date(`${value}T00:00:00Z`)
+
+	return !Number.isNaN(date.getTime()) && date.toISOString().startsWith(value)
 }
 
 /** A degree within `±limit`, or `undefined` where it is not one. */

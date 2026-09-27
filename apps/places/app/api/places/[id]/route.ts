@@ -1,6 +1,6 @@
 import { removePlace, updatePlace } from '@/server/places-store'
 import { readDraft } from '@/server/read-draft'
-import { authorize } from '@/server/session-user'
+import { authorize, userOnly } from '@/server/session-user'
 
 /** The store reads the database, so this route is never prerendered. */
 export const dynamic = 'force-dynamic'
@@ -32,7 +32,7 @@ export async function PUT(request: Request, { params }: Context) {
 	if (updated === null)
 		return Response.json({ issues: ['No place with that id.'] }, { status: 404 })
 
-	return Response.json(updated)
+	return Response.json(updated, { headers: userOnly })
 }
 
 /** Removes one place. */

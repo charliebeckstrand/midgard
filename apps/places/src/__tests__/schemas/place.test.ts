@@ -106,10 +106,18 @@ describe('parsePlaceDraft', () => {
 		expect(parsePlaceDraft({ ...VALID, longitude: '-124.05' }).ok).toBe(false)
 	})
 
+	it('takes a leap day', () => {
+		expect(parsePlaceDraft({ ...VALID, visitedAt: '2028-02-29' }).ok).toBe(true)
+	})
+
 	it('refuses a visit that is not a day', () => {
 		expect(parsePlaceDraft({ ...VALID, visitedAt: '15-08-2026' }).ok).toBe(false)
 
 		expect(parsePlaceDraft({ ...VALID, visitedAt: '2026-13-01' }).ok).toBe(false)
+
+		expect(parsePlaceDraft({ ...VALID, visitedAt: '2026-02-31' }).ok).toBe(false)
+
+		expect(parsePlaceDraft({ ...VALID, visitedAt: '2025-02-29' }).ok).toBe(false)
 
 		expect(parsePlaceDraft({ ...VALID, visitedAt: '2026-08-15T10:00:00Z' }).ok).toBe(false)
 	})
