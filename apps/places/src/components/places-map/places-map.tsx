@@ -11,6 +11,7 @@ import {
 	type MapProjection,
 	MapSkeleton,
 } from 'ui/modules/map'
+import { ReadyReveal } from 'ui/primitives/ready-reveal'
 import type { Place } from '../../types'
 import type { PlaceVisitFilter } from '../../utilities/places-filter'
 import { centeredProjection, regionFrame, regionName } from '../../utilities/places-geography'
@@ -214,116 +215,121 @@ export function PlacesMap({
 		return index === -1 ? null : { id: MARK_ID, index }
 	}, [selected, places])
 
-	// The skeleton takes the same inset as the plat. It then reads as the map that
-	// comes, and not as one block over the full page. The outline is the atlas the
-	// plat draws: the states under Albers, and the world without Antarctica under
-	// Mercator. It is on for the world as well, which is not the default.
-	if (geography === null) {
-		return (
-			<div className={FRAME_INSET}>
-				<MapSkeleton
-					projection={atlasProjection}
-					outline
-					aspectRatio={false}
-					className="size-full"
-				/>
-			</div>
-		)
-	}
-
+	// The skeleton crossfades into the plat, and not a hard swap. The outline is
+	// the atlas that the plat draws: the states under Albers, and the world without
+	// Antarctica under Mercator. It is on for the world as well, which is not the
+	// default. The skeleton takes the same inset as the plat, so the outline lands
+	// where the geography draws.
 	return (
-		// The fit takes every edge of the box it is handed, so without an inset the
-		// geography meets the chrome and a coastal dot sits half off the screen. The
-		// plat fits whatever box it gets, so the margin is the box.
-		<div
-			className={cn(
-				FRAME_INSET,
-				// Nothing on this map recedes. The plat's emphasis reads a region and the
-				// dots on it as separate marks, so pointing one dimmed the other — and
-				// crossing between them cross-faded the two, which is the flicker a
-				// reader sees moving from a region onto a place standing on it. A region
-				// and its places are one thing here, so both stay forward and the
-				// pointer changes nothing but the readout.
-				'[&_[data-slot=map-points]]:opacity-100! [&_[data-slot=map-regions-recede]]:opacity-100!',
-				// The paint held far back, so a region reads as tinted ground rather than
-				// as a filled shape: the dots carry the values on this map, and a region
-				// at full strength takes the eye off them. `fill-opacity` and not
-				// `opacity`, which would take the seams between regions with it.
-				//
-				// Selected by the fill class, because the module gives a region path no
-				// category anchor on purpose — a county atlas would pay attribute-rule
-				// matching on every one of thousands of paths for it. The two hues here
-				// are the ones `COVERED_CATEGORIES` names, written out because Tailwind
-				// generates only what it finds literally.
-				'[&_[data-slot=map-regions]_.fill-green-600]:[fill-opacity:0.35]',
-				'[&_[data-slot=map-regions]_.fill-red-600]:[fill-opacity:0.35]',
-			)}
+		<ReadyReveal
+			ready={geography !== null}
+			placeholder={
+				<div className={FRAME_INSET}>
+					<MapSkeleton
+						projection={atlasProjection}
+						outline
+						aspectRatio={false}
+						className="size-full"
+					/>
+				</div>
+			}
+			className="size-full"
 		>
-			<MapPlat
-				aria-label={framed === null ? 'Places across the world' : `Places in ${framed}`}
-				geography={geography}
-				projection={projection}
-				aspectRatio={false}
-				className="size-full"
-				// Identity only. The label default already reads `properties.name`,
-				// which is what `regionName` returns; identity does not — it is id-first,
-				// so a state would answer as "41" where every row here says "Oregon".
-				regionId={regionName}
-				data={rows}
-				regionKey="region"
-				categoryKey="visited"
-				// The neutral slot, not a categorical one. A covered region is a
-				// backdrop that says "there is something here to open", and any of the
-				// eight data hues would read as a sixth category — worse, the first of
-				// them is the Food dots' own blue, which a blue region swallowed.
-				categories={COVERED_CATEGORIES}
-				// One mark and one region category, so a legend would draw two rows
-				// that each name a paint rather than telling two things apart.
-				legend={false}
-				// `modifier: false` is the rare form, and this is the case it is for:
-				// the map is the screen. The page behind it does not scroll — the
-				// layout gives the map the leftover height and nothing overflows — so
-				// there is no scroll for a plain wheel to swallow, and arming the wheel
-				// outright costs the reader nothing. Under the default, every zoom on a
-				// full-screen map would need a held shift key for a page that cannot
-				// move.
-				//
-				// It earns more than it looks. The dots merge by pixel distance, so the
-				// summaries a world frame draws separate into their own places as the
-				// view closes on them — which is the same question the summary drawer
-				// answers, asked on the map instead.
-				zoom={{ modifier: false }}
-				// The map is navigated, not read: a region with no places still opens
-				// into somewhere, so the pointer names every one of them rather than
-				// only the regions a row painted.
-				nameRegions
-				// Inside a drill the layer answers nothing: there is one region on
-				// screen and the reader just picked it, so it has nothing left to say,
-				// and a readout under every dot they reach for is in the way. The drill
-				// is stated here alone — the prop withdraws the readout, the pick, and
-				// the pointer cursor together.
-				regionPointer={cut === null}
-				selectedOverlay={selectedOverlay}
-				// Every region opens, whether or not it holds places: an empty one is a
-				// place to look, and a reader who has just added somewhere new should not
-				// have to find out from a dead click that the map disagreed. The paint
-				// still says which regions hold places — it reports, and no longer gates.
-				onRegionClick={onDrill}
-			>
-				<MapPoints
-					id={MARK_ID}
-					label="Places"
-					color="blue"
-					detail={String(places.length)}
-					points={stops}
-					clusterDetail={clusterDetail}
-					// A summary is one dot to the reader, so a click on it opens every
-					// place under it rather than the first one the pick happened to name.
-					onClick={(_id, _index, merged) => {
-						onSelect(merged.flatMap((at) => places[at] ?? []))
-					}}
-				/>
-			</MapPlat>
-		</div>
+			{geography === null ? null : (
+				// The fit takes every edge of the box it is handed, so without an inset
+				// the geography meets the chrome and a coastal dot sits half off the
+				// screen. The plat fits whatever box it gets, so the margin is the box.
+				<div
+					className={cn(
+						FRAME_INSET,
+						// Nothing on this map recedes. The plat's emphasis reads a region and the
+						// dots on it as separate marks, so pointing one dimmed the other — and
+						// crossing between them cross-faded the two, which is the flicker a
+						// reader sees moving from a region onto a place standing on it. A region
+						// and its places are one thing here, so both stay forward and the
+						// pointer changes nothing but the readout.
+						'[&_[data-slot=map-points]]:opacity-100! [&_[data-slot=map-regions-recede]]:opacity-100!',
+						// The paint held far back, so a region reads as tinted ground rather than
+						// as a filled shape: the dots carry the values on this map, and a region
+						// at full strength takes the eye off them. `fill-opacity` and not
+						// `opacity`, which would take the seams between regions with it.
+						//
+						// Selected by the fill class, because the module gives a region path no
+						// category anchor on purpose — a county atlas would pay attribute-rule
+						// matching on every one of thousands of paths for it. The two hues here
+						// are the ones `COVERED_CATEGORIES` names, written out because Tailwind
+						// generates only what it finds literally.
+						'[&_[data-slot=map-regions]_.fill-green-600]:[fill-opacity:0.35]',
+						'[&_[data-slot=map-regions]_.fill-red-600]:[fill-opacity:0.35]',
+					)}
+				>
+					<MapPlat
+						aria-label={framed === null ? 'Places across the world' : `Places in ${framed}`}
+						geography={geography}
+						projection={projection}
+						aspectRatio={false}
+						className="size-full"
+						// Identity only. The label default already reads `properties.name`,
+						// which is what `regionName` returns; identity does not — it is id-first,
+						// so a state would answer as "41" where every row here says "Oregon".
+						regionId={regionName}
+						data={rows}
+						regionKey="region"
+						categoryKey="visited"
+						// The neutral slot, not a categorical one. A covered region is a
+						// backdrop that says "there is something here to open", and any of the
+						// eight data hues would read as a sixth category — worse, the first of
+						// them is the Food dots' own blue, which a blue region swallowed.
+						categories={COVERED_CATEGORIES}
+						// One mark and one region category, so a legend would draw two rows
+						// that each name a paint rather than telling two things apart.
+						legend={false}
+						// `modifier: false` is the rare form, and this is the case it is for:
+						// the map is the screen. The page behind it does not scroll — the
+						// layout gives the map the leftover height and nothing overflows — so
+						// there is no scroll for a plain wheel to swallow, and arming the wheel
+						// outright costs the reader nothing. Under the default, every zoom on a
+						// full-screen map would need a held shift key for a page that cannot
+						// move.
+						//
+						// It earns more than it looks. The dots merge by pixel distance, so the
+						// summaries a world frame draws separate into their own places as the
+						// view closes on them — which is the same question the summary drawer
+						// answers, asked on the map instead.
+						zoom={{ modifier: false }}
+						// The map is navigated, not read: a region with no places still opens
+						// into somewhere, so the pointer names every one of them rather than
+						// only the regions a row painted.
+						nameRegions
+						// Inside a drill the layer answers nothing: there is one region on
+						// screen and the reader just picked it, so it has nothing left to say,
+						// and a readout under every dot they reach for is in the way. The drill
+						// is stated here alone — the prop withdraws the readout, the pick, and
+						// the pointer cursor together.
+						regionPointer={cut === null}
+						selectedOverlay={selectedOverlay}
+						// Every region opens, whether or not it holds places: an empty one is a
+						// place to look, and a reader who has just added somewhere new should not
+						// have to find out from a dead click that the map disagreed. The paint
+						// still says which regions hold places — it reports, and no longer gates.
+						onRegionClick={onDrill}
+					>
+						<MapPoints
+							id={MARK_ID}
+							label="Places"
+							color="blue"
+							detail={String(places.length)}
+							points={stops}
+							clusterDetail={clusterDetail}
+							// A summary is one dot to the reader, so a click on it opens every
+							// place under it rather than the first one the pick happened to name.
+							onClick={(_id, _index, merged) => {
+								onSelect(merged.flatMap((at) => places[at] ?? []))
+							}}
+						/>
+					</MapPlat>
+				</div>
+			)}
+		</ReadyReveal>
 	)
 }

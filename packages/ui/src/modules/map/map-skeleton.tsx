@@ -110,7 +110,7 @@ export function MapSkeleton({ aspectRatio, projection, outline, className }: Map
 function MapSkeletonOutline({ outline, className }: { outline: MapOutline; className?: string }) {
 	return (
 		<svg
-			data-slot="map-skeleton-outline"
+			data-slot="placeholder"
 			aria-hidden="true"
 			viewBox={`0 0 ${outline.width} ${outline.height}`}
 			preserveAspectRatio="xMidYMid meet"

@@ -62,7 +62,7 @@ describe('MapSkeleton', () => {
 		// `albers-usa` is the United States, so its outline is on by default.
 		const composite = renderUI(<MapSkeleton projection="albers-usa" />)
 
-		const outline = bySlot(composite.container, 'map-skeleton-outline')
+		const outline = composite.container.querySelector('svg[data-slot=placeholder]')
 
 		expect(outline?.getAttribute('viewBox')).toBe(
 			`0 0 ${MAP_OUTLINE_DATA['albers-usa'].width} ${MAP_OUTLINE_DATA['albers-usa'].height}`,
@@ -70,14 +70,14 @@ describe('MapSkeleton', () => {
 
 		expect(outline?.getAttribute('aria-hidden')).toBe('true')
 
-		expect(bySlot(composite.container, 'placeholder')).toBeNull()
+		expect(composite.container.querySelector('div[data-slot=placeholder]')).toBeNull()
 
 		// The aspect box still reserves the frame around the outline.
 		expect(bySlot(composite.container, 'aspect-ratio')).toBeInTheDocument()
 
 		const off = renderUI(<MapSkeleton projection="albers-usa" outline={false} />)
 
-		expect(bySlot(off.container, 'map-skeleton-outline')).toBeNull()
+		expect(off.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
 
 		expect(bySlot(off.container, 'placeholder')).toBeInTheDocument()
 	})
@@ -85,11 +85,11 @@ describe('MapSkeleton', () => {
 	it('draws the world outline only when asked, since a world projection frames any geography', () => {
 		const plain = renderUI(<MapSkeleton projection="mercator" />)
 
-		expect(bySlot(plain.container, 'map-skeleton-outline')).toBeNull()
+		expect(plain.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
 
 		const world = renderUI(<MapSkeleton projection="mercator" outline aspectRatio={false} />)
 
-		const outline = bySlot(world.container, 'map-skeleton-outline')
+		const outline = world.container.querySelector('svg[data-slot=placeholder]')
 
 		expect(outline?.querySelector('path')?.getAttribute('d')).toBe(MAP_OUTLINE_DATA.mercator.d)
 
@@ -99,6 +99,6 @@ describe('MapSkeleton', () => {
 		// No projection has no outline to draw.
 		const none = renderUI(<MapSkeleton outline />)
 
-		expect(bySlot(none.container, 'map-skeleton-outline')).toBeNull()
+		expect(none.container.querySelector('svg[data-slot=placeholder]')).toBeNull()
 	})
 })
