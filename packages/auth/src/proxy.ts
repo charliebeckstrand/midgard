@@ -54,7 +54,7 @@ export function forwardClientIp(request: NextRequest): NextResponse {
  * `/api/*` request, and `requireAdmin` checks it for each protected page. So a
  * cookie that is not valid gets no data.
  *
- * An auth route (`/auth/*`) and a guest route (`/login`, `/register`) continue
+ * An auth route (`/auth/*`) and a guest route (such as `/login`) continue
  * without the cookie, because sign-in and register run before a session exists.
  * A request to any other route without the cookie goes to `/login`.
  *

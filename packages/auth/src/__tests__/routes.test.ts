@@ -6,6 +6,12 @@ describe('isGuestRoute', () => {
 		expect(isGuestRoute('/login')).toBe(true)
 
 		expect(isGuestRoute('/register')).toBe(true)
+
+		expect(isGuestRoute('/forgot-password')).toBe(true)
+
+		expect(isGuestRoute('/reset-password')).toBe(true)
+
+		expect(isGuestRoute('/verify-email')).toBe(true)
 	})
 
 	it('matches guest subpaths', () => {
@@ -18,6 +24,8 @@ describe('isGuestRoute', () => {
 		expect(isGuestRoute('/login-help')).toBe(false)
 
 		expect(isGuestRoute('/registered')).toBe(false)
+
+		expect(isGuestRoute('/verify')).toBe(false)
 	})
 
 	it('does not match protected routes', () => {
