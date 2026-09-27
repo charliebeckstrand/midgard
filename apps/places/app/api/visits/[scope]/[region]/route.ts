@@ -1,5 +1,5 @@
 import { readJson } from '@/server/read-draft'
-import { authorize } from '@/server/session-user'
+import { authorize, userOnly } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
 import { MAX_VISITS, setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
@@ -59,7 +59,8 @@ export async function PUT(request: Request, context: Context) {
 		return Response.json({ issues: ['`scope` must be `states` or `countries`.'] }, { status: 404 })
 	}
 
-	const region = decodeURIComponent(rawRegion).trim()
+	// Next decodes the segment already. A second decode throws on a `%` in the name.
+	const region = rawRegion.trim()
 
 	if (region === '') return Response.json({ issues: ['`region` is required.'] }, { status: 400 })
 
@@ -89,5 +90,5 @@ export async function PUT(request: Request, context: Context) {
 		)
 	}
 
-	return Response.json(visits)
+	return Response.json(visits, { headers: userOnly })
 }
