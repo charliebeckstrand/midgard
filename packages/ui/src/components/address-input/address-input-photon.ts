@@ -140,8 +140,8 @@ export type PhotonProviderOptions = {
  * empty where the query is only a code.
  *
  * A candidate is the last word or the last two words, because a code such as
- * `SW1A 1AA` or `M5V 3L9` is two words. It must hold two digits or more, at
- * least three characters, and a digit in each word, so that "5th Ave" and
+ * `SW1A 1AA` or `M5V 3L9` is two words. It must hold two digits or more and
+ * three characters or more. Each word must hold a digit. Thus "5th Ave" and
  * "Pier 39" stay text. A US ZIP+4
  * reads as its first five digits, which is the code the geocoder holds.
  */
@@ -201,7 +201,8 @@ function browserRegion(): string | undefined {
  *
  * A query that ends in a postal code searches near that code. Photon matches
  * each word against the text of a match, and many matches do not hold a postal
- * code, so "ice cream 97140" otherwise answers with ice cream in other states.
+ * code. Without this step, "ice cream 97140" answers with ice cream in other
+ * states.
  * The provider finds the position of the code first, then searches the rest of
  * the query with that position as the proximity bias. A query that is only a
  * code answers with that code. A query that ends in a code that the geocoder
@@ -315,10 +316,10 @@ export const photonProvider: AddressProvider = createPhotonProvider()
  * The identity of a match.
  *
  * The OSM object, and what this document says it is. The object alone does not
- * identify a match: Photon indexes one object as several documents, so a search
- * for "Clearwater" returns relation 192205 twice — once as a village and once as
- * a locality — and two results under one id merge wherever a consumer stores
- * them by it. `type` is what parts them.
+ * identify a match, because Photon indexes one object as several documents. A
+ * search for "Clearwater" returns relation 192205 twice: once as a village and
+ * once as a locality. Two results under one id merge wherever a consumer stores
+ * them by that id. `type` is what parts them.
  *
  * A postal code has no object, so its country and its code identify it.
  */
