@@ -26,6 +26,7 @@ const connectErrors: Record<string, string> = {
 	provider_linked: 'Disconnect your other account of that provider first.',
 	sign_in_again: 'Sign in again to connect an account.',
 	second_step_required: 'Confirm that it is you to connect an account.',
+	email_unverified: 'Verify your email to connect an account.',
 	oauth_unavailable: 'That sign-in method is not available.',
 	oauth_failed: 'Connecting the account did not complete. Please try again.',
 }
@@ -36,8 +37,8 @@ const connectErrors: Record<string, string> = {
  * @remarks
  * "Connect" leaves the app for the provider, and the gateway sends the browser
  * back to `/account`, or to `/account?error=<code>` when the connect fails. The
- * gateway accepts a connect or a disconnect only soon after the sign-in, and
- * after the second step. It keeps the last way to sign in. Before a connect,
+ * gateway accepts a connect or a disconnect only with a verified email, soon
+ * after the sign-in, and after the second step. It keeps the last way to sign in. Before a connect,
  * the page asks for the second step when the session did not pass it. A disconnect asks for confirmation first.
  */
 export function ConnectedAccounts({
