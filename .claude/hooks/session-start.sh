@@ -26,9 +26,11 @@ pnpm install --prefer-offline
 # cold tsup/tsc builds — racing this very warmup
 # for CPU/memory. Sequencing both warmups in a single chain keeps them
 # from contending with each other, and the hook still returns as soon as
-# install finishes.
+# install finishes. Only the packages build: the gate needs no app build,
+# and `next build` stops without BIFROST_URL, which stopped the whole run.
 nohup bash -c '
-  pnpm turbo run build check-types --output-logs=errors-only
+  pnpm turbo run build --filter="./packages/*" --output-logs=errors-only
+  pnpm turbo run check-types --output-logs=errors-only
   pnpm --filter ui exec vitest run --reporter=silent
 ' >"${TMPDIR:-/tmp}/session-warmup.log" 2>&1 </dev/null &
 disown || true

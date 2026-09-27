@@ -8,6 +8,9 @@ concurrency:
   group: deploy-production
   cancel-in-progress: false
 
+permissions:
+  contents: read
+
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
@@ -17,6 +20,8 @@ jobs:
     needs: ci
     runs-on: ubuntu-latest
     environment: production
+    # A stuck deploy holds the concurrency group, and the next push waits on it.
+    timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7
 
