@@ -17,7 +17,7 @@ export const k = {
 	// the text sits symmetric with the glyph. A read-only chip has no button and
 	// keeps the symmetric `px`. The sum is pinned by
 	// `tag-input-chip-pad-boundary.test.ts`.
-	chip: ['max-w-full', 'data-[has-suffix]:data-[density=sm]:ps-[calc(--spacing(2.75)-1px)]'],
+	chip: ['max-w-full', 'data-[has-suffix]:data-[density=sm]:ps-ring-2.75'],
 	field: [...text.default],
 	operator: [...text.muted],
 	value: [weight.semibold, ...text.default],

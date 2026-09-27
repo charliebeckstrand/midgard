@@ -1,6 +1,5 @@
-import { kasane, sen } from '../kiso'
+import { sen } from '../kiso'
 
-const { padding } = kasane
 const { focus } = sen
 
 export const k = {
@@ -16,9 +15,9 @@ export const k = {
 	// `tag-input-chip-pad-boundary.test.ts`.
 	badge: [
 		focus.inset,
-		'data-[has-suffix]:data-[density=xs]:ps-[calc(--spacing(2.25)-1px)]',
-		'data-[has-suffix]:data-[density=sm]:ps-[calc(--spacing(3)-1px)]',
-		'data-[has-suffix]:data-[density=md]:ps-[calc(--spacing(3.75)-1px)]',
+		'data-[has-suffix]:data-[density=xs]:ps-ring-2.25',
+		'data-[has-suffix]:data-[density=sm]:ps-ring-3',
+		'data-[has-suffix]:data-[density=md]:ps-ring-3.75',
 	],
 	// Vertical padding for the tag row, keyed by density.
 	//
@@ -27,8 +26,8 @@ export const k = {
 	// squished. Padding the row one step above the control's `py` insets the
 	// chips and lets the frame grow to fit the row.
 	tags: {
-		sm: padding.py('2'),
-		md: padding.py('2.5'),
-		lg: padding.py('3'),
+		sm: 'py-ring-2',
+		md: 'py-ring-2.5',
+		lg: 'py-ring-3',
 	},
 } as const

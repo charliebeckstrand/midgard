@@ -302,9 +302,8 @@ describe('Table density resolution', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 
 		expect(container.querySelector('tbody td')).toHaveClass(
-			'density-sm:px-1',
-			'density-md:px-2',
-			'density-lg:px-3',
+			'density-px-[1,2,3]',
+			'density-py-[1,2,3]',
 		)
 	})
 

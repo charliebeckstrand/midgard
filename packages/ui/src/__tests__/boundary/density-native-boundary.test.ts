@@ -7,7 +7,7 @@ import { k as loading } from '../../recipes/kata/loading'
 import { k as table } from '../../recipes/kata/table'
 
 // A density-native component takes its step from the nearest density scope.
-// Its kata writes each step under a `density-*` variant, so the DOM selects the
+// Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
 // step and no JS code selects it. Two rules hold that design:
 //
 //   - No recipe of the component has a `size` or a `density` axis.

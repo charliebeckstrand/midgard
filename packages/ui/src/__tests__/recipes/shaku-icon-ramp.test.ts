@@ -2,37 +2,28 @@
 import { describe, expect, it } from 'vitest'
 import { densitySteps } from '../../core/density'
 import { shaku } from '../../recipes/kiso/shaku'
+import { findSteps } from '../helpers/class-stops'
 
 /**
- * The icon ramps repeat the icon scale under the `density-*` variants. Tailwind needs each class as
- * a literal, so the ramps cannot be built from the scale. This pins each ramp to the scale.
+ * The icon ramps repeat the icon scale in a stepped `density-size` class. Tailwind needs each class
+ * as a literal, so the ramps cannot be built from the scale. This pins each step of each ramp to
+ * the scale. The `xl` step takes the `lg` size, because the scale has no `xl`.
  */
-const classes = (value: string | readonly string[]) => [value].flat().join(' ').split(/\s+/)
-
-const scaleSteps = densitySteps.filter((step) => step in shaku.iconSize)
+const scale = (step: (typeof densitySteps)[number]) =>
+	shaku.iconSize[step === 'xl' ? 'lg' : step].replace('size-', '')
 
 describe('shaku icon ramps', () => {
-	it('iconRamp holds the iconSize class of each step, and nothing else', () => {
-		const expected = scaleSteps.map(
-			(step) => `density-${step}:${shaku.iconSize[step as keyof typeof shaku.iconSize]}`,
-		)
+	it('iconRamp holds the iconSize of each step', () => {
+		const steps = findSteps([shaku.iconRamp], 'density-size-')
 
-		expect(classes(shaku.iconRamp).sort()).toEqual(expected.sort())
+		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
 	})
 
-	it('iconSlotRamp holds the icon slot classes of each step', () => {
-		const expected = scaleSteps.flatMap((step) =>
-			classes(shaku.icon[step as keyof typeof shaku.icon])
-				.filter((name) => !name.endsWith(':shrink-0'))
-				.map((name) => `density-${step}:${name}`),
-		)
+	it('iconSlotRamp holds the icon slot size of each step', () => {
+		const steps = findSteps([shaku.iconSlotRamp], '*:data-[slot=icon]:density-size-')
 
-		expect(
-			classes(shaku.iconSlotRamp)
-				.filter((name) => name.startsWith('density-'))
-				.sort(),
-		).toEqual(expected.sort())
+		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
 
-		expect(classes(shaku.iconSlotRamp)).toContain('*:data-[slot=icon]:shrink-0')
+		expect(shaku.iconSlotRamp).toContain('*:data-[slot=icon]:shrink-0')
 	})
 })

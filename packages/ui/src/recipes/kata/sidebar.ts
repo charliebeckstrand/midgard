@@ -3,7 +3,7 @@ import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size } = ji
-const { gap, padding, radius } = kasane
+const { gap, radius } = kasane
 const { flex } = narabi
 const { divider } = sen
 const { icon } = shaku
@@ -46,7 +46,7 @@ const itemBase = defineRecipe({
 		sm: [
 			size.sm,
 			gap.g('1.5'),
-			padding.p('1.5'),
+			'p-ring-1.5',
 			radius.r('1.5'),
 			icon.sm,
 			'*:data-[slot=avatar]:size-5 *:data-[slot=avatar]:-m-0.5',
@@ -55,7 +55,7 @@ const itemBase = defineRecipe({
 		md: [
 			size.md,
 			gap.g('2'),
-			padding.p('2'),
+			'p-ring-2',
 			radius.r('2'),
 			icon.md,
 			'*:data-[slot=avatar]:size-6 *:data-[slot=avatar]:-m-0.5',
@@ -64,7 +64,7 @@ const itemBase = defineRecipe({
 		lg: [
 			size.lg,
 			gap.g('2.5'),
-			padding.p('2.5'),
+			'p-ring-2.5',
 			radius.r('2.5'),
 			icon.lg,
 			'*:data-[slot=avatar]:size-7 *:data-[slot=avatar]:-m-0.5',

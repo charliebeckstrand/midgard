@@ -30,8 +30,8 @@ describe('kasane.radius', () => {
 		expect(radius.r(v)).toBe(`rounded-[--spacing(${v})]`)
 	})
 
-	it.each(stops)('maps ri(%s) to the inset (before) radius class with a 1px deduction', (v) => {
-		expect(radius.ri(v)).toBe(`before:rounded-[calc(--spacing(${v})-1px)]`)
+	it.each(stops)('maps ri(%s) to the inset (before) ring radius class', (v) => {
+		expect(radius.ri(v)).toBe(`before:rounded-ring-${v}`)
 	})
 
 	it.each(stops)('maps ro(%s) to the overlay (after) radius class', (v) => {
@@ -63,27 +63,5 @@ describe('kasane.layers', () => {
 		expect(all).toContain('before:pointer-events-none')
 
 		expect(all).toContain('after:pointer-events-none')
-	})
-})
-
-describe('kasane.padding.pxRamp', () => {
-	const stops = ['0.75', '1', '1.25', '1.5', '2', '2.5', '3', '3.5'] as const
-
-	const steps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
-
-	it.each(steps.flatMap((step) => stops.map((v) => [step, v] as const)))(
-		'puts px(%s) under the density-%s variant',
-		(step, v) => {
-			expect(kasane.padding.pxRamp({ [step]: v })).toEqual([
-				`density-${step}:${kasane.padding.px(v)}`,
-			])
-		},
-	)
-
-	it('emits the steps in density order and skips an omitted step', () => {
-		expect(kasane.padding.pxRamp({ lg: '3', sm: '1' })).toEqual([
-			`density-sm:${kasane.padding.px('1')}`,
-			`density-lg:${kasane.padding.px('3')}`,
-		])
 	})
 })

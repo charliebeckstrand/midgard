@@ -4,7 +4,7 @@ import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
 const { extendedPalette } = iro
 const { cursor, disabled } = hannou
 const { size, weight } = ji
-const { gap, padding, radius } = kasane
+const { gap, radius } = kasane
 const { button } = kokkaku
 const { flex } = narabi
 const { focus } = sen
@@ -46,9 +46,9 @@ export const k = defineRecipe({
 			size.xs,
 			icon.xs,
 			gap.g('0.75'),
-			padding.p('1.5'),
+			'p-ring-1.5',
 			radius.r('1'),
-			'data-[has-label]:py-[calc(--spacing(1)-1px)]',
+			'data-[has-label]:py-ring-1',
 			'*:data-[slot=loading-spinner]:size-3',
 			'*:data-[slot=loading-dots]:gap-0.5',
 			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1',
@@ -58,9 +58,9 @@ export const k = defineRecipe({
 			size.sm,
 			icon.sm,
 			gap.g('1'),
-			padding.p('2'),
+			'p-ring-2',
 			radius.r('1.5'),
-			'data-[has-label]:py-[calc(--spacing(1.5)-1px)]',
+			'data-[has-label]:py-ring-1.5',
 			'*:data-[slot=loading-spinner]:size-4',
 			'*:data-[slot=loading-dots]:gap-1',
 			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1.5',
@@ -70,9 +70,9 @@ export const k = defineRecipe({
 			size.md,
 			icon.md,
 			gap.g('1.25'),
-			padding.p('2.5'),
+			'p-ring-2.5',
 			radius.r('2'),
-			'data-[has-label]:py-[calc(--spacing(2)-1px)]',
+			'data-[has-label]:py-ring-2',
 			'*:data-[slot=loading-spinner]:size-5',
 			'*:data-[slot=loading-dots]:gap-1.5',
 			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2',
@@ -82,9 +82,9 @@ export const k = defineRecipe({
 			size.lg,
 			icon.lg,
 			gap.g('1.5'),
-			padding.p('3'),
+			'p-ring-3',
 			radius.r('2.5'),
-			'data-[has-label]:py-[calc(--spacing(2.5)-1px)]',
+			'data-[has-label]:py-ring-2.5',
 			'*:data-[slot=loading-spinner]:size-6',
 			'*:data-[slot=loading-dots]:gap-2',
 			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2.5',

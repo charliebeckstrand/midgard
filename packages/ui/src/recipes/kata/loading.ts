@@ -1,6 +1,6 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, narabi, shaku } from '../kiso'
+import { iro, narabi } from '../kiso'
 
 const { marker } = iro
 const { flex } = narabi
@@ -43,10 +43,11 @@ const dot = defineRecipe({
  * `motion-safe:`-gated, resting as a static glyph under
  * `prefers-reduced-motion` (WCAG 2.3.3). Each size step is a `density-*`
  * class, so the spinner takes the step of its nearest density scope. The
- * spinner uses the icon ramp, so a spinner and an icon at one step have one size.
+ * spinner repeats the icon ramp and adds a step for `xl`, so a spinner and an
+ * icon at one step have one size.
  */
 const spinner = defineRecipe({
-	base: ['inline-block shrink-0 motion-safe:animate-spin', shaku.iconRamp, 'density-xl:size-8'],
+	base: ['inline-block shrink-0 motion-safe:animate-spin', 'density-size-[3,4,5,6,8]'],
 	color,
 	defaults: { color: 'current' },
 })

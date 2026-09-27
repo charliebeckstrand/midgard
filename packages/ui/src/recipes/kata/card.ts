@@ -13,15 +13,8 @@ const { size } = ji
  * `size` is its own scope, so its sections do not follow the outer card.
  */
 export const k = {
-	frame: [
-		'density-sm:p-2 density-md:p-3 density-lg:p-4',
-		'density-sm:rounded-sm density-md:rounded-md density-lg:rounded-lg',
-	],
-	header: [text.default, 'density-sm:pb-2 density-md:pb-3 density-lg:pb-4'],
-	footer: [
-		'flex items-center',
-		'density-sm:pt-2 density-md:pt-3 density-lg:pt-4',
-		'density-sm:gap-1 density-md:gap-2 density-lg:gap-3',
-	],
+	frame: ['density-p-[2,3,4]', 'density-rounded-[sm,md,lg]'],
+	header: [text.default, 'density-pb-[2,3,4]'],
+	footer: ['flex items-center', 'density-pt-[2,3,4]', 'density-gap-[1,2,3]'],
 	description: [size.sm, text.muted],
 } as const

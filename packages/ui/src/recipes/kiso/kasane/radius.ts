@@ -3,7 +3,7 @@
  * layer stack. `r(v)` / `ri(v)` / `ro(v)` / `all(v)` map a `--spacing(n)`
  * stop to the matching outer / inset-fill / overlay class. That gives a 1:1
  * padding-to-radius ratio at every density step: a component with
- * `py('2')` lands on `r('2')`. `all(v)` returns the coordinated trio,
+ * `py-ring-2` lands on `r('2')`. `all(v)` returns the coordinated trio,
  * mirroring the `kasane.layers.all` bundle. The named-radius scale
  * (`sm` / `md` / `lg` / ...) lives next door in `rounded.ts`.
  *
@@ -11,7 +11,7 @@
  */
 
 // Each stop pairs an outer-element class (`rounded-[--spacing(v)]`) with the
-// matching `::before` inset (`-1px`, inside the 1 px outer ring) and
+// matching `::before` inset (the `rounded-ring` utility, 1 px inside the outer ring) and
 // `::after` overlay (same radius as outer; the overlay sits at `inset-0`,
 // not `inset-px`). The `--spacing` scale keeps radius and padding
 // proportional across density steps.
@@ -28,14 +28,14 @@ const rStops = {
 } as const
 
 const riStops = {
-	'0.5': 'before:rounded-[calc(--spacing(0.5)-1px)]',
-	'0.75': 'before:rounded-[calc(--spacing(0.75)-1px)]',
-	'1': 'before:rounded-[calc(--spacing(1)-1px)]',
-	'1.25': 'before:rounded-[calc(--spacing(1.25)-1px)]',
-	'1.5': 'before:rounded-[calc(--spacing(1.5)-1px)]',
-	'2': 'before:rounded-[calc(--spacing(2)-1px)]',
-	'2.5': 'before:rounded-[calc(--spacing(2.5)-1px)]',
-	'3': 'before:rounded-[calc(--spacing(3)-1px)]',
+	'0.5': 'before:rounded-ring-0.5',
+	'0.75': 'before:rounded-ring-0.75',
+	'1': 'before:rounded-ring-1',
+	'1.25': 'before:rounded-ring-1.25',
+	'1.5': 'before:rounded-ring-1.5',
+	'2': 'before:rounded-ring-2',
+	'2.5': 'before:rounded-ring-2.5',
+	'3': 'before:rounded-ring-3',
 } as const
 
 const roStops = {

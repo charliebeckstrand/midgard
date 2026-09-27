@@ -1,10 +1,11 @@
 import { describe, expect, it } from 'vitest'
-
+import type { DensityStep } from '../../core/density'
 import type { Ma } from '../../recipes'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { k as queryChips } from '../../recipes/kata/query-chips'
 import { k as tagInput } from '../../recipes/kata/tag-input'
+import { findSteps, findStop } from '../helpers/class-stops'
 
 // Tag-chip leading-pad symmetry invariant.
 //
@@ -18,22 +19,6 @@ import { k as tagInput } from '../../recipes/kata/tag-input'
 //
 // `kata/query-chips.ts` pads its chip by the same sum. Its chip and its remove
 // button take fixed sizes in `query-chips.tsx`, so the case below names them.
-
-const SPACING_RE = /calc\(--spacing\(([\d.]+)\)/
-
-function findSpacing(classes: readonly unknown[], prefix: string): number {
-	for (const cls of classes.flat(Number.POSITIVE_INFINITY)) {
-		if (typeof cls !== 'string') continue
-
-		if (!cls.startsWith(prefix)) continue
-
-		const match = cls.match(SPACING_RE)
-
-		if (match) return Number(match[1])
-	}
-
-	throw new Error(`No class starting with "${prefix}" found in: ${JSON.stringify(classes)}`)
-}
 
 const COMPOUND_P_RE = /:p-([\d.]+)$/
 
@@ -57,12 +42,12 @@ function findBareCompoundP(size: Ma): number {
 
 // The chip is a `radius: 'full'` pill: its px is the step of the `radius:
 // 'full'` compound ramp, which bumps each step one stop above the base ramp.
-function findPillPx(size: Ma): number {
+function findPillPx(size: DensityStep): number {
 	const rules = badge.config.compound as ReadonlyArray<Record<string, unknown>>
 
 	const pill = rules.filter((rule) => rule.radius === 'full').map((rule) => rule.class)
 
-	return findSpacing(pill, `density-${size}:px-[`)
+	return Number(findSteps(pill, 'density-px-ring-')[size])
 }
 
 const CHIP_SIZES = ['xs', 'sm', 'md'] as const satisfies readonly Ma[]
@@ -78,9 +63,9 @@ describe('query-chips chip leading-pad symmetry', () => {
 	const expected = pillPx + bareP
 
 	it(`chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-		const actual = findSpacing(
+		const actual = findStop(
 			queryChips.chip,
-			`data-[has-suffix]:data-[density=${QUERY_CHIP.chip}]:ps-[`,
+			`data-[has-suffix]:data-[density=${QUERY_CHIP.chip}]:ps-ring-`,
 		)
 
 		expect(actual).toBe(expected)
@@ -96,7 +81,7 @@ describe('tag-input chip leading-pad symmetry', () => {
 		const expected = pillPx + bareP
 
 		it(`${size}: chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-			const actual = findSpacing(tagInput.badge, `data-[has-suffix]:data-[density=${size}]:ps-[`)
+			const actual = findStop(tagInput.badge, `data-[has-suffix]:data-[density=${size}]:ps-ring-`)
 
 			expect(actual).toBe(expected)
 		})

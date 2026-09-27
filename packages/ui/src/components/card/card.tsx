@@ -16,7 +16,7 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density'> & {
 /**
  * Outlined, padded surface built on Box. Renders in React Server Components,
  * because the card never reads context. The frame, the header, and the footer
- * write each step under a `density-*` variant, so they take the step of the
+ * write each step in a stepped `density-*` utility, so they take the step of the
  * nearest density scope. An explicit `size` makes the card a density scope
  * through Box `density`. Its sections, its static leaves, and its size-aware
  * client children (Button, Input, …) then take that step.

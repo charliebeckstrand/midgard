@@ -63,7 +63,7 @@ describe('Icon', () => {
 
 		expect(el).toBeInTheDocument()
 
-		expect(el?.getAttribute('class')).toContain('size-5')
+		expect(el?.getAttribute('class')).toContain('density-size-[3,4,5,6,6]')
 	})
 
 	it('does not shrink inside a flex container', () => {

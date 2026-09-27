@@ -1,12 +1,11 @@
 /**
- * Kasane 重ね: layered chrome plus its companion spacing helpers.
+ * Kasane 重ね: layered chrome plus its companion spacing helpers. The ring
+ * utilities of `ring-utilities.ts` (`px-ring-2`, …) subtract the 1 px outer
+ * ring from a spacing stop. A class uses them directly.
  *
- * Five named axes:
+ * Four named axes:
  *   - `layers`: the signature inset-fill-plus-rings stack (base /
  *     inset / overlay / hover / focus / validation / disabled / all).
- *   - `padding`: ring-compensated padding helpers
- *     (p / px / py / ps / pe). Each `padding.px('2')` returns the
- *     padding class with 1 px subtracted, landing inside the outer ring.
  *   - `radius`: ring-compensated corner radii (r / ri / ro / all).
  *   - `rounded`: pass-through to Tailwind's named radius scale
  *     (none / sm / md / lg / xl / full); `rounded.lg` → `rounded-lg`.
@@ -16,13 +15,11 @@
 
 import { gap } from './gap'
 import { layers } from './layers'
-import { padding } from './padding'
 import { radius } from './radius'
 import { rounded } from './rounded'
 
 export const kasane = {
 	layers,
-	padding,
 	radius,
 	rounded,
 	gap,
