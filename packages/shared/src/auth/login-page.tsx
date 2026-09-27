@@ -13,6 +13,7 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { chain, email, required } from './form-validators'
+import { useLeaving } from './use-leaving'
 
 type LoginValues = { email: string; password: string }
 
@@ -97,10 +98,13 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 
 	const [serverError, setServerError] = useState('')
 
+	const [leaving, leave] = useLeaving()
+
 	// Goes to `/` on success, and shows the message of the gateway on a failure.
+	// The form stays disabled until the next page replaces it.
 	async function finish(res: Response) {
 		if (res.ok) {
-			router.push('/')
+			leave(() => router.push('/'))
 
 			return
 		}
@@ -153,6 +157,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 					password: chain(required()),
 				}}
 				onSubmit={handleSubmit}
+				disabled={leaving}
 				className="grid gap-6 w-full sm:max-w-sm p-6"
 			>
 				<Heading className="text-center">Sign in to your account</Heading>
@@ -195,7 +200,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 						variant="outline"
 						className="w-full"
 						// A full page load: the gateway answers with a redirect to the provider.
-						onClick={() => window.location.assign(`/auth/oauth/${provider}/start`)}
+						onClick={() => leave(() => window.location.assign(`/auth/oauth/${provider}/start`))}
 					>
 						Continue with {providerNames[provider]}
 					</Button>
