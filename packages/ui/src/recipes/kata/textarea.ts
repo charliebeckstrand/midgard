@@ -13,7 +13,6 @@ export const k = bridge.control(control, {
 		vertical: 'resize-y',
 		horizontal: 'resize-x',
 	},
-	autoResize: { true: 'field-sizing-content', false: '' },
 	slots: {
 		/** Strips textarea chrome when nested inside a framed container. */
 		bare: ['border-0', 'rounded-none', 'focus:outline-hidden'],
@@ -24,9 +23,9 @@ export const k = bridge.control(control, {
 		/** Right-justified actions row beneath the textarea. */
 		actions: 'flex items-center justify-end mt-auto gap-2 pr-2 pb-2',
 	},
-	defaults: { resize: 'none', autoResize: false },
+	defaults: { resize: 'none' },
 	skeleton: textarea,
 })
 
-/** Recipe variant props for {@link Textarea} — the styling axes its kata exposes (`resize`, `autoResize`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Textarea} — the styling axes its kata exposes (`resize`), for consumers composing custom slots. */
 export type TextareaVariants = VariantProps<typeof k>

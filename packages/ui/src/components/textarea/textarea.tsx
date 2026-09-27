@@ -1,7 +1,8 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn, stepDown, toAmbientStep } from '../../core'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
 import { Density, useDensityStep } from '../../primitives/density'
@@ -11,13 +12,20 @@ import { k, type TextareaVariants } from '../../recipes/kata/textarea'
 import { type ControlSize, type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
+import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
-/** Props for {@link Textarea}: density `size`, `variant`, an `actions` slot, and the remaining `<textarea>` surface. */
+/** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 	size?: ControlSize
 	variant?: ControlVariant
 	className?: string
-	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none` and a min-height floor. */
+	/**
+	 * Grow and shrink the field with its content. `rows` sets the minimum
+	 * height, and a `max-height` class sets the maximum height.
+	 * @defaultValue false
+	 */
+	autoResize?: boolean
+	/** Control slot rendered as a right-justified row below the field; its presence pins `resize: none`. */
 	actions?: ReactNode
 	/** Controlled value. `undefined` leaves the textarea uncontrolled; `null` keeps it controlled with no current value (CONVENTIONS §7.3). */
 	value?: ComponentProps<'textarea'>['value'] | null
@@ -32,9 +40,11 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
  * @remarks Shares the Input value cascade through {@link useInputValue},
  * including the §7.3 value contract it owns. `defaultValue` reaches the element
  * only while the textarea is uncontrolled, so a bound textarea ignores it.
- * With `actions`, the frame stacks the field above a right-justified actions
- * row and `field-sizing: content` ignores `rows`, so `rows` becomes a
- * min-height floor.
+ * With `autoResize`, the textarea measures its content before paint, on each
+ * input, and when its width changes. It does not use `field-sizing: content`,
+ * because that property ignores `rows` and is not in each browser at the
+ * floor. With `actions`, the frame stacks the field above a right-justified
+ * actions row.
  * A set `size` opens a density scope. The actions row gets the affix size, one
  * step below the textarea, as the Input affixes do. Under headless context the
  * frame, the recipe classes, and the actions row are all skipped.
@@ -44,7 +54,7 @@ export function Textarea({
 	variant,
 	size,
 	resize,
-	autoResize,
+	autoResize = false,
 	actions,
 	id,
 	autoComplete,
@@ -57,7 +67,6 @@ export function Textarea({
 	onChange,
 	onBlur,
 	rows = 3,
-	style,
 	ref,
 	'aria-describedby': ariaDescribedBy,
 	...rest
@@ -93,6 +102,12 @@ export function Textarea({
 
 	const scope = useIdScope({ id: resolvedId })
 
+	const fieldRef = useRef<HTMLTextAreaElement>(null)
+
+	const composedRef = useComposedRef(fieldRef, ref)
+
+	useTextareaAutoResize(fieldRef, autoResize, valueState.value)
+
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
 	const controlProps = {
@@ -113,18 +128,12 @@ export function Textarea({
 	// Under headless context the actions row is not rendered, so it sets no layout.
 	const hasActions = !headless && actions !== undefined
 
-	// `field-sizing: content` ignores `rows`; floor the field at `rows` lines plus
-	// its own vertical padding. The actions row sits below as its own flex item
-	// (see `k.stack`), so its height is no longer reserved here.
-	const hasActionsStyle = hasActions ? { minHeight: `calc(${rows}lh + 1.5rem)`, ...style } : style
-
 	const textareaEl = (
 		<textarea
 			data-slot="textarea"
-			ref={ref}
+			ref={composedRef}
 			{...controlProps}
 			rows={rows}
-			style={hasActionsStyle}
 			className={cn(
 				!headless &&
 					k({
@@ -132,7 +141,6 @@ export function Textarea({
 						density: step,
 						size: step,
 						resize: hasActions ? 'none' : resize,
-						autoResize,
 					}),
 				hasActions && k.bare,
 				className,
