@@ -28,7 +28,9 @@ import {
  *
  * The optional `width` and `minWidth` props size the frame. `resize` makes it
  * horizontally draggable via a right-edge handle, and switches its border to
- * dashed. See {@link resolveResize} for how the boolean and object forms normalize.
+ * dashed. The drag stops at the content's own minimum width, which the handle
+ * measures from the rendered sections, so no demo guesses a floor. See
+ * {@link resolveResize} for how the boolean and object forms normalize.
  */
 export function Example({
 	title,
@@ -116,7 +118,10 @@ export function Example({
 			? Math.max(initialWidth, minWidth)
 			: initialWidth
 
-	const { containerRef, width, resizing, handlers } = useExampleResize(boundedResize, startWidth)
+	const { containerRef, width, floor, resizing, handlers } = useExampleResize(
+		boundedResize,
+		startWidth,
+	)
 
 	return (
 		<Stack
@@ -154,14 +159,31 @@ export function Example({
 				)}
 			>
 				{prefix && (
-					<div className="border-b border-zinc-200 dark:border-zinc-800 p-4">{prefix}</div>
+					<div
+						data-example-section=""
+						className="border-b border-zinc-200 dark:border-zinc-800 p-4"
+					>
+						{prefix}
+					</div>
 				)}
-				<div className="flex flex-col p-4 gap-4 overflow-x-auto">{children}</div>
+				<div data-example-section="" className="flex flex-col p-4 gap-4 overflow-x-auto">
+					{children}
+				</div>
 				{preview && (
-					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{preview}</div>
+					<div
+						data-example-section=""
+						className="border-t border-zinc-200 dark:border-zinc-800 p-4"
+					>
+						{preview}
+					</div>
 				)}
 				{footer && (
-					<div className="border-t border-zinc-200 dark:border-zinc-800 p-4">{footer}</div>
+					<div
+						data-example-section=""
+						className="border-t border-zinc-200 dark:border-zinc-800 p-4"
+					>
+						{footer}
+					</div>
 				)}
 				{showCode && (
 					<Collapse animate="slide" open={open} onOpenChange={setOpen}>
@@ -184,6 +206,7 @@ export function Example({
 					<ExampleResizeHandle
 						resolved={boundedResize}
 						width={width}
+						floor={floor}
 						resizing={resizing}
 						handlers={handlers}
 					/>

@@ -115,15 +115,46 @@ function availableWidth(el: HTMLElement): number {
 	return inner > 0 ? inner : Number.POSITIVE_INFINITY
 }
 
+/**
+ * The narrowest the frame can go before its content overflows. Each section
+ * marked `data-example-section` is set to `min-content` for one synchronous
+ * layout read, and the widest one wins. The frame's own border comes on top.
+ * Returns `0` when nothing can be measured (e.g. no layout in tests).
+ *
+ * @remarks
+ * The code block is not a section. A long code line must not stop the drag.
+ *
+ * @internal
+ */
+export function contentFloor(frame: HTMLElement): number {
+	let widest = 0
+
+	for (const section of frame.querySelectorAll<HTMLElement>(':scope > [data-example-section]')) {
+		const inline = section.style.width
+
+		section.style.width = 'min-content'
+
+		widest = Math.max(widest, section.getBoundingClientRect().width)
+
+		section.style.width = inline
+	}
+
+	if (widest === 0) return 0
+
+	return Math.ceil(widest + frame.offsetWidth - frame.clientWidth)
+}
+
 /** What {@link useExampleResize} exposes to the frame and its handle. */
 export type ExampleResize = {
 	containerRef: React.RefObject<HTMLDivElement | null>
 	width: number | undefined
+	/** The last measured {@link contentFloor}; `undefined` until a drag or key press reads it. */
+	floor: number | undefined
 	resizing: boolean
 	handlers: ResizeHandlers
 }
 
-type DragStart = { pointerX: number; width: number; containerMax: number }
+type DragStart = { pointerX: number; width: number; containerMax: number; floor: number }
 
 /**
  * Drives an {@link Example} frame's manual width. Returns the container ref to
@@ -134,8 +165,10 @@ type DragStart = { pointerX: number; width: number; containerMax: number }
  * @param resolved - The resize settings, or `null` when resizing is off.
  * @remarks
  * The width is capped at the container's content box (see {@link availableWidth})
- * even when `max` is auto. Pointer drags use pointer capture, so a drag that
- * leaves the handle still tracks. A move with no button down, or a
+ * even when `max` is auto. The content's own minimum (see {@link contentFloor})
+ * floors it. A drag or a key press measures that minimum when it starts, so the
+ * handle stops where the content cannot shrink further. Pointer drags use
+ * pointer capture, so a drag that leaves the handle still tracks. A move with no button down, or a
  * `pointercancel`, ends the drag. A missed `pointerup` thus cannot leave the
  * drag stuck.
  * Arrow keys nudge by a grid step (Shift for a coarser jump) and Home/End jump
@@ -152,6 +185,8 @@ export function useExampleResize(
 
 	const [width, setWidth] = useState<number | undefined>(initialWidth)
 
+	const [floor, setFloor] = useState<number | undefined>(undefined)
+
 	const [resizing, setResizing] = useState(false)
 
 	const startRef = useRef<DragStart | null>(null)
@@ -160,16 +195,34 @@ export function useExampleResize(
 
 	resolvedRef.current = resolved
 
-	const setResolvedWidth = useCallback((proposed: number, cap = Number.POSITIVE_INFINITY) => {
-		const settings = resolvedRef.current
+	const setResolvedWidth = useCallback(
+		(proposed: number, cap = Number.POSITIVE_INFINITY, contentMin = 0) => {
+			const settings = resolvedRef.current
 
-		if (!settings) return
+			if (!settings) return
 
-		// The container caps the width even when `max` is auto, so the frame stays
-		// relative to its container rather than overflowing it.
-		const max = Math.min(settings.max ?? Number.POSITIVE_INFINITY, cap)
+			// The container caps the width even when `max` is auto, so the frame stays
+			// relative to its container rather than overflowing it.
+			const max = Math.min(settings.max ?? Number.POSITIVE_INFINITY, cap)
 
-		setWidth(resolveWidth(proposed, { ...settings, max: Number.isFinite(max) ? max : undefined }))
+			// The content's own minimum floors it, composed with any `min`.
+			const min = maxDefined(settings.min, contentMin || undefined)
+
+			setWidth(
+				resolveWidth(proposed, { ...settings, min, max: Number.isFinite(max) ? max : undefined }),
+			)
+		},
+		[],
+	)
+
+	// Reads the content floor once per gesture and mirrors it to state, so the
+	// handle's `aria-valuemin` reports the bound the drag enforces.
+	const measureFloor = useCallback((container: HTMLElement) => {
+		const measured = contentFloor(container)
+
+		setFloor(measured || undefined)
+
+		return measured
 	}, [])
 
 	const endDrag = useCallback((event: ReactPointerEvent) => {
@@ -184,23 +237,27 @@ export function useExampleResize(
 		}
 	}, [])
 
-	const onPointerDown = useCallback((event: ReactPointerEvent) => {
-		const container = containerRef.current
+	const onPointerDown = useCallback(
+		(event: ReactPointerEvent) => {
+			const container = containerRef.current
 
-		if (!container || event.button !== 0) return
+			if (!container || event.button !== 0) return
 
-		event.preventDefault()
+			event.preventDefault()
 
-		startRef.current = {
-			pointerX: event.clientX,
-			width: container.getBoundingClientRect().width,
-			containerMax: availableWidth(container),
-		}
+			startRef.current = {
+				pointerX: event.clientX,
+				width: container.getBoundingClientRect().width,
+				containerMax: availableWidth(container),
+				floor: measureFloor(container),
+			}
 
-		event.currentTarget.setPointerCapture(event.pointerId)
+			event.currentTarget.setPointerCapture(event.pointerId)
 
-		setResizing(true)
-	}, [])
+			setResizing(true)
+		},
+		[measureFloor],
+	)
 
 	const onPointerMove = useCallback(
 		(event: ReactPointerEvent) => {
@@ -217,7 +274,11 @@ export function useExampleResize(
 				return
 			}
 
-			setResolvedWidth(start.width + (event.clientX - start.pointerX), start.containerMax)
+			setResolvedWidth(
+				start.width + (event.clientX - start.pointerX),
+				start.containerMax,
+				start.floor,
+			)
 		},
 		[endDrag, setResolvedWidth],
 	)
@@ -232,6 +293,10 @@ export function useExampleResize(
 
 			const cap = availableWidth(container)
 
+			const contentMin = measureFloor(container)
+
+			const min = maxDefined(settings.min, contentMin || undefined)
+
 			// Keyboard resizing starts from the current width, falling back to the
 			// measured width before the first nudge sets one.
 			const base = width ?? container.getBoundingClientRect().width
@@ -241,27 +306,28 @@ export function useExampleResize(
 			if (event.key === 'ArrowLeft') {
 				event.preventDefault()
 
-				setResolvedWidth(base - step, cap)
+				setResolvedWidth(base - step, cap, contentMin)
 			} else if (event.key === 'ArrowRight') {
 				event.preventDefault()
 
-				setResolvedWidth(base + step, cap)
-			} else if (event.key === 'Home' && settings.min !== undefined) {
+				setResolvedWidth(base + step, cap, contentMin)
+			} else if (event.key === 'Home' && min !== undefined) {
 				event.preventDefault()
 
-				setResolvedWidth(settings.min, cap)
+				setResolvedWidth(min, cap, contentMin)
 			} else if (event.key === 'End' && settings.max !== undefined) {
 				event.preventDefault()
 
-				setResolvedWidth(settings.max, cap)
+				setResolvedWidth(settings.max, cap, contentMin)
 			}
 		},
-		[setResolvedWidth, width],
+		[measureFloor, setResolvedWidth, width],
 	)
 
 	return {
 		containerRef,
 		width,
+		floor,
 		resizing,
 		handlers: {
 			onPointerDown,
@@ -277,6 +343,8 @@ export function useExampleResize(
 type ExampleResizeHandleProps = {
 	resolved: ResolvedResize
 	width: number | undefined
+	/** The measured content floor, composed into `aria-valuemin`. */
+	floor: number | undefined
 	resizing: boolean
 	handlers: ResizeHandlers
 }
@@ -296,6 +364,7 @@ type ExampleResizeHandleProps = {
 export function ExampleResizeHandle({
 	resolved,
 	width,
+	floor,
 	resizing,
 	handlers,
 }: ExampleResizeHandleProps) {
@@ -308,7 +377,7 @@ export function ExampleResizeHandle({
 			aria-orientation="vertical"
 			aria-label="Resize example"
 			aria-valuenow={width !== undefined ? Math.round(width) : undefined}
-			aria-valuemin={resolved.min}
+			aria-valuemin={maxDefined(resolved.min, floor)}
 			aria-valuemax={resolved.max}
 			tabIndex={0}
 			onPointerDown={handlers.onPointerDown}
