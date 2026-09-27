@@ -13,7 +13,13 @@ import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
 import type { Factors, Identity, Passkey, Provider } from './account-api'
-import { useAddPasskey, useFactors, usePasskeys, useRemovePasskey } from './account-queries'
+import {
+	useAddPasskey,
+	useFactors,
+	usePasskeys,
+	useRemovePasskey,
+	useSendVerificationEmail,
+} from './account-queries'
 import { ConnectedAccounts } from './connected-accounts'
 import { TwoStep } from './two-step'
 
@@ -31,8 +37,8 @@ type AccountClientProps = {
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
 /**
- * Account page: the passkeys, authenticator app, recovery codes, and GitHub and
- * Google accounts of the signed-in user, and sign-out.
+ * Account page: the email notice, the passkeys, authenticator app, recovery
+ * codes, and GitHub and Google accounts of the signed-in user, and sign-out.
  *
  * @remarks
  * The server page seeds the `usePasskeys`, `useFactors`, and `useIdentities` queries. The user owns the passkeys,
@@ -53,9 +59,10 @@ export function AccountClient({
 	const { data: factors } = useFactors(initialFactors)
 	const add = useAddPasskey()
 	const remove = useRemovePasskey()
+	const sendLink = useSendVerificationEmail()
 	const [removing, setRemoving] = useState<Passkey | null>(null)
 
-	const error = add.error ?? remove.error
+	const error = add.error ?? remove.error ?? sendLink.error
 
 	async function signOut() {
 		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
@@ -70,6 +77,29 @@ export function AccountClient({
 					<Heading>Account</Heading>
 					<Text>{user.email}</Text>
 				</div>
+
+				{!user.is_verified && (
+					<Alert
+						color="amber"
+						variant="soft"
+						title="Your email is not verified."
+						description={
+							sendLink.isSuccess
+								? 'We sent you a new link. Open it to verify your email.'
+								: 'Open the link that we sent you when you signed up, or get a new one.'
+						}
+						actions={
+							<Button
+								variant="outline"
+								disabled={sendLink.isPending}
+								onClick={() => sendLink.mutate()}
+							>
+								Send a new link
+							</Button>
+						}
+						className="w-full"
+					/>
+				)}
 
 				{error && <Text tone="error">{error.message}</Text>}
 

@@ -1,4 +1,6 @@
-const guestRoutes = ['/login', '/register']
+// Pages that open without a session. `/verify-email` also opens with one, so
+// its page is not in the guest layout of an app.
+const guestRoutes = ['/login', '/register', '/forgot-password', '/reset-password', '/verify-email']
 
 // Matches on a path boundary, so `/login-help` is not within `/login`.
 function isWithin(pathname: string, route: string): boolean {
@@ -6,7 +8,7 @@ function isWithin(pathname: string, route: string): boolean {
 }
 
 /**
- * True when `pathname` is a guest route (`/login`, `/register`) or a subpath of one.
+ * True when `pathname` is a guest route, such as `/login`, or a subpath of one.
  *
  * @internal
  */

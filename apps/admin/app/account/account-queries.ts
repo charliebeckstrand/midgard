@@ -14,6 +14,7 @@ import {
 	type Provider,
 	removePasskey,
 	removeTotp,
+	sendVerificationEmail,
 	startTotpSetup,
 	unlinkIdentity,
 } from './account-api'
@@ -83,6 +84,11 @@ export function useRemovePasskey() {
 			client.invalidateQueries({ queryKey: accountKeys.factors })
 		},
 	})
+}
+
+/** Emails the signed-in user a new link that verifies the email. */
+export function useSendVerificationEmail() {
+	return useMutation({ mutationFn: sendVerificationEmail })
 }
 
 /** Starts adding an authenticator app. The caller keeps the secret it returns. */

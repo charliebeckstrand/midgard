@@ -32,9 +32,10 @@ const signInErrors: Record<string, string> = {
 }
 
 /**
- * Notice from the query: after registration (`?registered=true`), after too
- * many wrong tries of the second step (`?expired=true`), or after a
- * GitHub or Google sign-in that failed (`?error=<code>`).
+ * Notice from the query: after registration (`?registered=true`), after a
+ * password reset (`?reset=true`), after too many wrong tries of the second
+ * step (`?expired=true`), or after a GitHub or Google sign-in that failed
+ * (`?error=<code>`).
  *
  * @internal
  * @remarks
@@ -56,8 +57,14 @@ function QueryNotice() {
 		return <Text tone="error">Too many wrong tries. Please sign in again.</Text>
 	}
 
+	if (params.get('reset') === 'true') {
+		return <Text tone="success">Your password is set. Please sign in.</Text>
+	}
+
 	return params.get('registered') === 'true' ? (
-		<Text tone="success">Account created successfully. Please sign in.</Text>
+		<Text tone="success">
+			Account created. We sent you a link to verify your email. Please sign in.
+		</Text>
 	) : null
 }
 
@@ -166,6 +173,11 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 					<Label>Password</Label>
 					<PasswordInput name="password" autoComplete="current-password" />
 					<Message name="password" />
+					<Text className="text-right">
+						<Link href="/forgot-password" underline>
+							Forgot password?
+						</Link>
+					</Text>
 				</Field>
 
 				<Button type="submit" className="w-full">

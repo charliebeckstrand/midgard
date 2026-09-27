@@ -33,6 +33,15 @@ async function request(path: string, init?: RequestInit): Promise<Response> {
 	return response
 }
 
+/**
+ * Emails the signed-in user a new link that verifies the email.
+ *
+ * The gateway sends one link each minute at most, and refuses another with a `429`.
+ */
+export async function sendVerificationEmail(): Promise<void> {
+	await request('/auth/verify-email', { method: 'POST' })
+}
+
 /** The passkeys of the signed-in user. */
 export async function fetchPasskeys(signal?: AbortSignal): Promise<Passkey[]> {
 	const response = await request('/auth/passkeys', { signal })
