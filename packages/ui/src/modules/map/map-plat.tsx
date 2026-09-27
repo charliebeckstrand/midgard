@@ -4,6 +4,7 @@ import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from '
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { ReducedMotion } from '../../primitives/reduced-motion'
+import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { once } from '../../utilities'
@@ -1148,6 +1149,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// measure is one hook.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
+	// The range bar's default format writes numbers in the ambient locale, as the readout does.
+	const { locale } = useLocale()
+
 	const {
 		show: showLegend,
 		placement: legendPlacement,
@@ -1166,6 +1170,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			valueExtent,
 			valueThresholds,
 			formatValue,
+			locale,
 			colorName,
 			regionNumbers,
 			onFocus: setFocus,

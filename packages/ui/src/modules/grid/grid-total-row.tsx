@@ -6,6 +6,7 @@ import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { Hold } from '../../primitives/mount'
 import type { DensityLevel } from '../../providers/density'
+import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
 import { NO_PADDING } from './engine/grid-constants'
@@ -261,6 +262,8 @@ function GridGroupTotalRow<T>({
 }) {
 	const reveal = useGridRevealHold(expanded)
 
+	const { locale } = useLocale()
+
 	const pad = k.rowGroup.reveal.pad({ density })
 
 	const stopProps = useGridNavStopProps(navKey ?? '')
@@ -302,7 +305,7 @@ function GridGroupTotalRow<T>({
 						colId={column.id}
 						className={column.className}
 					>
-						{renderAggregate(column, rows)}
+						{renderAggregate(column, rows, locale)}
 					</GroupRevealCell>
 				))}
 			</TableRow>

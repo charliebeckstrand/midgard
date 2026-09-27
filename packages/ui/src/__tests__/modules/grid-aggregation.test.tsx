@@ -115,6 +115,10 @@ describe('grid aggregation core', () => {
 		expect(formatAggregate(null)).toBe('')
 	})
 
+	it('writes a default aggregate in the locale it is given', () => {
+		expect(formatAggregate(1234.5, 'de-DE')).toBe('1.234,5')
+	})
+
 	it('hands the rows themselves to a custom function', () => {
 		const col: GridColumn<Sale> = {
 			id: 'perUnit',

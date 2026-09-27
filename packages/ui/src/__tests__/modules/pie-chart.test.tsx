@@ -14,6 +14,7 @@ import {
 } from '../../modules/chart/engine/chart-geometry/pie'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { PieChart } from '../../modules/chart/pie-chart'
+import { LocaleProvider } from '../../providers/locale'
 import { act, allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 const DATA = [
@@ -922,5 +923,19 @@ describe('PieChart legend toggle after a filter', () => {
 		fireEvent.pointerEnter(allBySlot(container, 'chart-slice')[0] as Element)
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+})
+
+describe('under a LocaleProvider', () => {
+	it('writes the segment percents in the ambient locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">{chart({ labels: { segment: true } })}</LocaleProvider>,
+		)
+
+		expect(allBySlot(container, 'chart-segment-label').map((el) => el.textContent)).toEqual([
+			'60\u00a0%',
+			'25\u00a0%',
+			'15\u00a0%',
+		])
 	})
 })

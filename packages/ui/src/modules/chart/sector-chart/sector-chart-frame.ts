@@ -1,7 +1,6 @@
 import { cn } from '../../../core'
 import type { FrameSizing } from '../../../hooks'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { formatPercent } from '../../../utilities'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { type ChartAspectRatio, chartFrameSizing, frameFills } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
@@ -194,6 +193,7 @@ export function sectorLegendItems(
 	colors: ChartColorSlot[],
 	sliceValues: (number | null)[],
 	panel: boolean,
+	percent: (share: number) => string,
 ): ChartLegendItem[] {
 	const total = sliceValues.reduce<number>(
 		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
@@ -203,7 +203,7 @@ export function sectorLegendItems(
 	return labels.map((entry, index) => {
 		const value = sliceValues[index]
 
-		const share = value != null && value > 0 && total > 0 ? formatPercent(value / total) : '—'
+		const share = value != null && value > 0 && total > 0 ? percent(value / total) : '—'
 
 		return {
 			index,

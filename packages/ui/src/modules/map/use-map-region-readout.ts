@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
+import { useLocale } from '../../providers/locale'
 import {
 	type MapCategoryMeta,
 	regionCategoryIndexes,
@@ -92,6 +93,9 @@ export function useMapRegionReadout<T>(
 	// atlas behind it.
 	const named = data !== undefined || nameRegions
 
+	// The default value format writes numbers in the ambient locale.
+	const { locale } = useLocale()
+
 	const regionNames = useMemo(
 		() => (named ? features.map(regionLabel ?? defaultRegionLabel) : EMPTY_NAMES),
 		[features, regionLabel, named],
@@ -133,7 +137,7 @@ export function useMapRegionReadout<T>(
 		if (data === undefined || regionKey === undefined) return neutral
 
 		if (valueKey !== undefined && colorRange !== undefined) {
-			const format = resolveValueFormat(formatValue)
+			const format = resolveValueFormat(formatValue, locale)
 
 			const {
 				metas,
@@ -184,6 +188,7 @@ export function useMapRegionReadout<T>(
 		binning,
 		colorDomain,
 		formatValue,
+		locale,
 		regionIds,
 	])
 

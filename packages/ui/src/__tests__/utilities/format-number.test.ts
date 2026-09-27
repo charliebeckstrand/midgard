@@ -1,7 +1,12 @@
 // @vitest-environment node
 import { fc, test } from '@fast-check/vitest'
 import { describe, expect, it } from 'vitest'
-import { formatFraction, formatInteger, formatPercent } from '../../utilities/format-number'
+import {
+	formatFraction,
+	formatInteger,
+	formatPercent,
+	fractionFormat,
+} from '../../utilities/format-number'
 
 // Assertions assume the en-US default locale, matching the existing Odometer
 // corpus; a different runtime locale would change the grouping/decimal glyphs.
@@ -135,5 +140,21 @@ describe('formatPercent · properties', () => {
 		expect(Math.abs(parseFormatted(formatPercent(value)) - value * 100)).toBeLessThanOrEqual(
 			0.5000001,
 		)
+	})
+})
+
+describe('with a locale', () => {
+	it('writes the numbers of that locale', () => {
+		expect(formatInteger(1234, 'de-DE')).toBe('1.234')
+
+		expect(formatFraction(1234.5, 'de-DE')).toBe('1.234,5')
+
+		expect(formatPercent(0.6, 'de-DE')).toBe('60\u00a0%')
+	})
+
+	it('hands the same formatter back for the same locale', () => {
+		expect(fractionFormat('de-DE')).toBe(fractionFormat('de-DE'))
+
+		expect(fractionFormat('de-DE')).not.toBe(fractionFormat(undefined))
 	})
 })

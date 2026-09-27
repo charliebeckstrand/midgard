@@ -153,7 +153,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				list,
 				drawnMetas,
 				chart.plot,
-				formatValue,
+				(value) => chart.formatAxisValue(value, 'y'),
 				axisLabelFormats(drawnMetas, chart.formatAxisValue),
 			)
 		: []

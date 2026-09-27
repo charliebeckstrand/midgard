@@ -6,7 +6,7 @@
 
 import { cn } from '../../../core'
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
-import { formatFraction, resolveFormat, toNumericCell } from '../../../utilities'
+import { toNumericCell } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { rawColor, textClass } from './chart-color/paint'
 import type { ChartSeriesPaint } from './chart-color/palette'
@@ -39,33 +39,6 @@ export function seriesValues<T>(data: T[], key: DataKey<T>): (number | null)[] {
 
 		return Number.isFinite(value) ? value : null
 	})
-}
-
-/**
- * The default value formatting: locale digits with up to two fraction places,
- * so an integer prints with no fraction.
- *
- * @internal
- */
-export function formatChartValue(value: number): string {
-	return formatFraction(value)
-}
-
-/** The cached compact formatter behind {@link formatChartValueCompact}. @internal */
-const compactFormatter = resolveFormat({ type: 'compact', maximumFractionDigits: 1 })
-
-/**
- * The compact default the tick labels take in a narrow frame: locale compact
- * notation to one fraction digit (`48.2K`, `1.3M`). The value gutter therefore
- * stays cheap where a full-format label would crowd the plot. Only the tick labels
- * compact; the readout — tooltip and hidden table — keeps {@link
- * formatChartValue}'s full precision, and an explicit `formatValue` overrides
- * both. Small values render plainly (`820`, `8`), the same as the full default.
- *
- * @internal
- */
-export function formatChartValueCompact(value: number): string {
-	return compactFormatter(value)
 }
 
 /** One series with everything the frame parts need to draw it. @internal */

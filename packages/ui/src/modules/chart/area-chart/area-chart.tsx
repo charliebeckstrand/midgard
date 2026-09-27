@@ -343,7 +343,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				list,
 				labelMetas,
 				chart.plot,
-				formatValue,
+				(value) => chart.formatAxisValue(value, 'y'),
 				axisLabelFormats(labelMetas, chart.formatAxisValue),
 				// Stacked ribbons carry a top-edge point per category (nulls included), not
 				// the gap-skipped points a line's geometry emits, so the labels read each

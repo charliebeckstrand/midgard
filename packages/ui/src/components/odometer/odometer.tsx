@@ -2,7 +2,8 @@
 
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import { formatInteger } from '../../utilities'
+import { useLocale } from '../../providers/locale'
+import { integerFormat } from '../../utilities'
 import { useOdometerAnimatedValue } from './use-odometer-animated-value'
 
 /** Props for {@link Odometer}: the target `value`, tween `duration`, and a display `format`, plus native `<span>` attributes. */
@@ -15,15 +16,11 @@ export type OdometerProps = {
 	duration?: number
 	/**
 	 * Formats the numeric value for display.
-	 * @defaultValue rounds to an integer and applies locale grouping
+	 * @defaultValue rounds to an integer and applies the grouping of the `<LocaleProvider>` locale
 	 */
 	format?: (value: number) => string
 	className?: string
 } & Omit<ComponentProps<'span'>, 'className' | 'children'>
-
-function defaultFormat(value: number) {
-	return formatInteger(Math.round(value))
-}
 
 /**
  * Numeric readout that tweens between values over `duration`; announces only the
@@ -37,14 +34,14 @@ function defaultFormat(value: number) {
  * Honors reduced motion by snapping (see {@link useOdometerAnimatedValue}).
  * @see {@link useOdometerAnimatedValue}
  */
-export function Odometer({
-	value,
-	duration = 800,
-	format = defaultFormat,
-	className,
-	...props
-}: OdometerProps) {
+export function Odometer({ value, duration = 800, format, className, ...props }: OdometerProps) {
 	const display = useOdometerAnimatedValue({ value, duration })
+
+	const { locale } = useLocale()
+
+	const integer = integerFormat(locale)
+
+	const resolvedFormat = format ?? ((next: number) => integer(Math.round(next)))
 
 	return (
 		// Exposes the settled target as `aria-label` rather than a live region;
@@ -52,11 +49,11 @@ export function Odometer({
 		<span
 			data-slot="odometer"
 			role="img"
-			aria-label={format(value)}
+			aria-label={resolvedFormat(value)}
 			className={cn('tabular-nums', className)}
 			{...props}
 		>
-			{format(display)}
+			{resolvedFormat(display)}
 		</span>
 	)
 }

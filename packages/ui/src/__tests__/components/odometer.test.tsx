@@ -1,6 +1,7 @@
 import { animate } from 'motion'
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { Odometer } from '../../components/odometer'
+import { LocaleProvider } from '../../providers/locale'
 import { bySlot, renderUI, withFakeTime } from '../helpers'
 
 describe('Odometer', () => {
@@ -12,6 +13,18 @@ describe('Odometer', () => {
 		const { container } = renderUI(<Odometer value={1234} />)
 
 		expect(bySlot(container, 'odometer')).toHaveTextContent('1,234')
+	})
+
+	it('groups the default in the ambient locale', () => {
+		const { container } = renderUI(
+			<LocaleProvider locale="de-DE">
+				<Odometer value={1234} />
+			</LocaleProvider>,
+		)
+
+		expect(bySlot(container, 'odometer')).toHaveTextContent('1.234')
+
+		expect(bySlot(container, 'odometer')).toHaveAttribute('aria-label', '1.234')
 	})
 
 	it('applies a custom format function', () => {

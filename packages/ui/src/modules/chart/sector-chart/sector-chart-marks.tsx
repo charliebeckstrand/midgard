@@ -3,7 +3,6 @@
 import { motion } from 'motion/react'
 import { type MouseEvent, type PointerEvent, useId } from 'react'
 import { cn } from '../../../core'
-import { formatPercent } from '../../../utilities'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
@@ -113,6 +112,8 @@ type SegmentLabelOptions = {
 	slices: PieSlice[]
 	radius: number
 	innerRadius: number
+	/** Formats a `0..1` share, in the ambient locale. */
+	percent: (share: number) => string
 }
 
 /** Resolves and fit-gates the segment labels; empty when the switch is off. @internal */
@@ -121,13 +122,14 @@ export function segmentLabelItems({
 	slices,
 	radius,
 	innerRadius,
+	percent,
 }: SegmentLabelOptions): SectorSegmentLabel[] {
 	if (!show || radius <= 0) return []
 
 	const depth = innerRadius > 0 ? radius - innerRadius : radius
 
 	return slices.flatMap((slice) => {
-		const text = formatPercent(slice.share)
+		const text = percent(slice.share)
 
 		const centroidRadius = pieCentroidRadius(radius, innerRadius, slice.share)
 

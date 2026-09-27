@@ -2,8 +2,9 @@
 
 import type { ReactNode } from 'react'
 import { usePlotFrame } from '../../../hooks'
+import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
-import { once } from '../../../utilities'
+import { fractionFormat, once, percentFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { CHART_METRICS, MARK_GAP } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
@@ -13,7 +14,7 @@ import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { formatChartValue, selectedIndices, seriesValues } from '../engine/chart-series'
+import { selectedIndices, seriesValues } from '../engine/chart-series'
 import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
@@ -157,7 +158,12 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	const format = formatValue ?? formatChartValue
+	// The defaults write numbers in the ambient locale, as a cartesian chart does.
+	const { locale } = useLocale()
+
+	const format = formatValue ?? fractionFormat(locale)
+
+	const percent = percentFormat(locale)
 
 	const [entry] = series
 
@@ -167,7 +173,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip.
-	const calloutSpec: CalloutSpec = { labels: sliceLabels }
+	const calloutSpec: CalloutSpec = { labels: sliceLabels, percent }
 
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
@@ -272,7 +278,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	)
 
 	const legendItems = hasLegend
-		? sectorLegendItems(sliceLabels, paints, colors, sliceValues, aside)
+		? sectorLegendItems(sliceLabels, paints, colors, sliceValues, aside, percent)
 		: null
 
 	const labelItems = segmentLabelItems({
@@ -280,6 +286,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		slices,
 		radius,
 		innerRadius,
+		percent,
 	})
 
 	// Each drawn slice is one keyboard stop at its centroid — the same anchor the
