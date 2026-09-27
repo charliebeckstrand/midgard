@@ -361,6 +361,21 @@ describe('MapPlat', () => {
 
 		const recede = () => bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? ''
 
+		// The test sets `:focus-visible` itself. jsdom matches it after any key
+		// press in the document, and an earlier test in the worker can press one.
+		let keyboard = false
+
+		const matches = Element.prototype.matches
+
+		vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+			this: Element,
+			selector: string,
+		) {
+			return selector === ':focus-visible'
+				? keyboard && this === document.activeElement
+				: matches.call(this, selector)
+		})
+
 		// A click focuses the entry without a ring, so it emphasizes nothing.
 		act(() => east?.focus())
 
@@ -369,16 +384,7 @@ describe('MapPlat', () => {
 		act(() => east?.blur())
 
 		// A keyboard focus shows the ring, so it emphasizes the entry.
-		const matches = Element.prototype.matches
-
-		vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
-			this: Element,
-			selector: string,
-		) {
-			return selector === ':focus-visible'
-				? this === document.activeElement
-				: matches.call(this, selector)
-		})
+		keyboard = true
 
 		act(() => east?.focus())
 
