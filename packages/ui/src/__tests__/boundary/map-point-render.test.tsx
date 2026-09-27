@@ -85,7 +85,7 @@ describe('map singular mark renders', () => {
 		expect(cross(hits[1] as Element, 60)).toBe(2)
 	})
 
-	it('renders only the marks whose dim changes on a legend focus move', () => {
+	it('renders only the marks whose dim changes on a legend emphasis move', () => {
 		const { container } = renderUI(fleet())
 
 		const items = allBySlot(container, 'map-legend-item').filter((item) =>
@@ -94,12 +94,13 @@ describe('map singular mark renders', () => {
 
 		expect(items).toHaveLength(STOPS.length)
 
-		/** Moves the legend focus onto `item`, and returns the mark renders that it caused. */
+		/** Moves the legend emphasis onto `item`, and returns the mark renders that it caused. */
 		const focus = (item: Element) => {
 			vi.mocked(MapPoint).mockClear()
 
+			// The pointer drives the emphasis. A focus emphasizes only with `:focus-visible`.
 			act(() => {
-				fireEvent.focus(item)
+				fireEvent.pointerEnter(item)
 			})
 
 			return vi.mocked(MapPoint).mock.calls.length

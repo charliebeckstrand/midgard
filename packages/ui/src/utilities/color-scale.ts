@@ -202,7 +202,7 @@ function sortedThresholds(sorted: number[], count: number): number[] {
  * `null` for a non-finite value — the no-data case — and bin `0` for every
  * finite value when there are no thresholds (a single bucket).
  */
-export function quantileBinIndex(value: number, thresholds: number[]): number | null {
+export function quantileBinIndex(value: number, thresholds: readonly number[]): number | null {
 	if (!Number.isFinite(value)) return null
 
 	let bin = 0
@@ -252,4 +252,56 @@ export function resolveQuantileBins(
 		})),
 		thresholds,
 	}
+}
+
+/** How a {@link resolveBinScale} cuts its domain into bins. */
+export type Binning = 'linear' | 'quantile'
+
+/** The painted bins of one color scale, and the rule that assigns a value to one of them. */
+export type BinScale = {
+	/** The painted bins, low → high. */
+	bins: ColorBin[]
+	/** The class edges that `assign` reads under `'quantile'` binning; absent under `'linear'`. */
+	thresholds?: number[]
+	/** Maps a raw value to its bin index; `null` is the no-data fill. */
+	assign: (value: number) => number | null
+}
+
+/**
+ * Resolves one color scale: its painted bins and the `assign` rule that its
+ * marks read.
+ *
+ * @remarks
+ * The bins and the `assign` come from one resolution. Thus the fills and the
+ * legend put a value at a bin edge into the same bin. Under `'linear'`, the
+ * bins are equal intervals of `domain`. Under `'quantile'`, the bins cut
+ * `values` into equal counts, and `domain` is not used.
+ *
+ * @param values - The values of the marks.
+ * @param domain - The extent of the linear scale, from {@link valueExtent}.
+ * @param colorRange - The ordered color stops, low → high.
+ * @param bins - The number of bins. The default is one bin for each color stop.
+ * @param binning - How to cut the domain. The default is `'linear'`.
+ * @returns The bins, the quantile thresholds, and the `assign` rule.
+ */
+export function resolveBinScale(
+	values: number[],
+	domain: [number, number],
+	colorRange: string[],
+	bins?: number,
+	binning: Binning = 'linear',
+): BinScale {
+	if (binning === 'quantile') {
+		const quantile = resolveQuantileBins(values, colorRange, bins)
+
+		return {
+			bins: quantile.bins,
+			thresholds: quantile.thresholds,
+			assign: (value) => quantileBinIndex(value, quantile.thresholds),
+		}
+	}
+
+	const linear = resolveColorBins(domain, colorRange, bins)
+
+	return { bins: linear, assign: (value) => binIndex(value, domain, linear.length) }
 }

@@ -12,14 +12,11 @@ import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn, createContext } from '../../../core'
 import { usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
-import { k } from '../../../recipes/kata/chart'
 import {
-	binIndex,
+	type BinScale,
 	type ColorBin,
 	once,
-	quantileBinIndex,
-	resolveColorBins,
-	resolveQuantileBins,
+	resolveBinScale,
 	valueExtent,
 } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
@@ -37,11 +34,13 @@ import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
+import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
 import { type BandScale, bandScale } from '../engine/chart-scale'
 import { formatChartValue, READOUT_GAP } from '../engine/chart-series'
 import { ChartTable } from '../engine/chart-table'
 import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
+import { samePoint } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import {
 	type HeatmapChartProps,
@@ -87,9 +86,7 @@ function HeatmapHoverProvider({ children }: { children: ReactNode }) {
 			...state,
 			set: (cell, point) =>
 				setState((prev) =>
-					sameCell(prev.cell, cell) && prev.point?.x === point?.x && prev.point?.y === point?.y
-						? prev
-						: { cell, point },
+					sameCell(prev.cell, cell) && samePoint(prev.point, point) ? prev : { cell, point },
 				),
 		}),
 		[state],
@@ -418,20 +415,18 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{cell !== null && (
-				<div aria-hidden="true">
-					<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{columns[cell.col]}</div>
-
-					<div className="flex items-center gap-1.5 whitespace-nowrap">
-						<span
-							className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
-							style={fill === null ? undefined : { backgroundColor: fill }}
-						/>
-
-						<span className={cn(k.value)}>{datum == null ? READOUT_GAP : format(datum)}</span>
-
-						<span className={cn(k.label)}>{rows[cell.row]}</span>
-					</div>
-				</div>
+				<ChartReadoutCard title={columns[cell.col]}>
+					<ChartReadoutRow
+						swatch={
+							<span
+								className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
+								style={fill === null ? undefined : { backgroundColor: fill }}
+							/>
+						}
+						value={datum == null ? READOUT_GAP : format(datum)}
+						label={rows[cell.row]}
+					/>
+				</ChartReadoutCard>
 			)}
 		</TooltipPointer>
 	)
@@ -560,35 +555,16 @@ function useHeatmap<T>(
 		[values, primary],
 	)
 
-	// One resolution per mode, each yielding both the painted bins and the
-	// assignment the cells read, so the fills and the legend cannot disagree on
-	// where the buckets fall. `MapPlat` resolves its own the same way.
-	const { bins, thresholds, assign } = useMemo(() => {
-		if (!domain || !primary)
-			return { bins: [] as ColorBin[], thresholds: undefined, assign: () => null }
-
-		if (primary.binning === 'quantile') {
-			const { bins: quantileBins, thresholds } = resolveQuantileBins(
-				values,
-				primary.colorRange,
-				primary.bins,
-			)
-
-			return {
-				bins: quantileBins,
-				thresholds,
-				assign: (value: number) => quantileBinIndex(value, thresholds),
-			}
-		}
-
-		const linearBins = resolveColorBins(domain, primary.colorRange, primary.bins)
-
-		return {
-			bins: linearBins,
-			thresholds: undefined,
-			assign: (value: number) => binIndex(value, domain, linearBins.length),
-		}
-	}, [domain, primary, values])
+	// One resolution yields both the painted bins and the assignment the cells
+	// read, so the fills and the legend cannot disagree on where the buckets fall.
+	// `MapPlat` resolves its own through the same `resolveBinScale`.
+	const { bins, thresholds, assign } = useMemo(
+		(): BinScale =>
+			domain && primary
+				? resolveBinScale(values, domain, primary.colorRange, primary.bins, primary.binning)
+				: { bins: [], assign: () => null },
+		[domain, primary, values],
+	)
 
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/

@@ -101,7 +101,7 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |
-| `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, and the virtual-item source. |
+| `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, `Escape` to drop focus, and the virtual-item source. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
 | `DeferredToggleOptions` | Options for `useDeferredToggle`. |
 | `DismissableOptions` | Options for `useDismissable`: the boundary, the dismiss report, and the enable gate. |

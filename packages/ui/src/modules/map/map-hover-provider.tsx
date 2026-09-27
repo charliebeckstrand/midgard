@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
+import { samePoint } from '../chart/engine/context'
 import {
 	type MapHoverSet,
 	MapHoverSetContext,
@@ -21,7 +22,6 @@ import {
 } from './context'
 import { markAnchorAt, regionIndexAt } from './engine/map-hover/anchor'
 import { type MapHoverTarget, sameMark, sameTarget } from './engine/map-hover/target'
-import type { MapPoint2D } from './engine/types'
 import { useMapRegionPreload } from './use-map-region-preload'
 
 /** Props for {@link MapHoverProvider}. @internal */
@@ -62,11 +62,6 @@ function createPointedStore(): MapPointedStore & {
 			emit()
 		},
 	}
-}
-
-/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
-function samePoint(a: MapPoint2D | null, b: MapPoint2D | null): boolean {
-	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 
 /**
