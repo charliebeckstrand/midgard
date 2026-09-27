@@ -7,6 +7,7 @@ import {
 	knownCountry,
 	openingRegion,
 	type PlaceView,
+	pickerRegions,
 	regionOf,
 	regionsHolding,
 	stateLabel,
@@ -335,6 +336,21 @@ describe('regionsHolding', () => {
 
 	it('offers nothing for no places', () => {
 		expect(regionsHolding([], new Map([['a', 'Idaho']]))).toEqual([])
+	})
+})
+
+describe('pickerRegions', () => {
+	it('offers the regions that hold a place', () => {
+		expect(pickerRegions(['France', 'Japan'], null)).toEqual(['France', 'Japan'])
+	})
+
+	it('does not name the cut twice', () => {
+		expect(pickerRegions(['France', 'Japan'], 'Japan')).toEqual(['France', 'Japan'])
+	})
+
+	it('keeps an empty cut on the list, in order', () => {
+		// The reader stands in Chile with no place there, so the picker names it.
+		expect(pickerRegions(['France', 'Japan'], 'Chile')).toEqual(['Chile', 'France', 'Japan'])
 	})
 })
 

@@ -137,6 +137,25 @@ export function regionsHolding(
 }
 
 /**
+ * The regions the filter bar's picker offers: the ones that hold a place, and
+ * the one the view is cut to.
+ *
+ * The cut stays on the list when it holds nothing. That is the case after a
+ * reader deletes the last place of the region they stand in, or opens a region
+ * through the country search. The picker then names where the reader is, and a
+ * delete does not move the map. The cut drops off the list when the reader
+ * leaves it.
+ *
+ * @param holding The regions that hold a place, sorted, as {@link regionsHolding} gives them.
+ * @param cut The region the view is cut to, or `null` for the whole atlas.
+ */
+export function pickerRegions(holding: readonly string[], cut: string | null): string[] {
+	if (cut === null || holding.includes(cut)) return [...holding]
+
+	return [...holding, cut].sort((a, b) => a.localeCompare(b))
+}
+
+/**
  * The region a panel opens narrowed to: the one the view is cut to, where it
  * holds any of the places on offer, and nothing otherwise.
  *
