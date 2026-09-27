@@ -94,6 +94,18 @@ export const e = <Picker onValueChange={(next) => onValueChange(next ?? '')} />
 `,
 		},
 	],
+	'no-hand-written-clamp': [
+		{
+			file: 'clamp.ts',
+			source: `declare const v: number
+export const a = Math.min(10, Math.max(0, v)) // flag
+export const b = Math.min(Math.max(v, 0), 10) // flag
+export const c = Math.max(0, Math.min(v, 10))
+export const d = Math.min(v, 10)
+// Math.min(10, Math.max(0, v)) in a comment
+`,
+		},
+	],
 	'no-hand-written-bool-attr': [
 		{
 			file: 'attr.tsx',

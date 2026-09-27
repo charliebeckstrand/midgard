@@ -564,6 +564,15 @@
 		{
 			"includes": [
 				"packages/ui/src/**",
+				"!**/__tests__/**",
+				"!**/__benchmarks__/**",
+				"!packages/ui/src/utilities/clamp.ts"
+			],
+			"plugins": ["./.biome/plugins/no-hand-written-clamp.grit"]
+		},
+		{
+			"includes": [
+				"packages/ui/src/**",
 				"packages/shared/src/**",
 				"!**/__tests__/**",
 				"!**/__benchmarks__/**"

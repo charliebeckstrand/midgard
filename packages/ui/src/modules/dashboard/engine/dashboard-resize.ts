@@ -4,6 +4,7 @@
  * span. A resize changes the resized tile only; it never pushes a neighbor.
  */
 
+import { clamp } from '../../../utilities/clamp'
 import {
 	clampSpan,
 	type DashboardCell,
@@ -98,7 +99,7 @@ export function resizeLimits(
 export function resizeRange(limits: DashboardResizeLimits, x: number): DashboardResizeRange {
 	const room = limits.columns - x
 
-	const minW = Math.min(Math.max(1, limits.minW), room)
+	const minW = clamp(limits.minW, 1, room)
 
 	// The height of a tile with a fixed ratio follows its width, so only a
 	// free-form tile reads the height limits.
@@ -108,7 +109,7 @@ export function resizeRange(limits: DashboardResizeLimits, x: number): Dashboard
 
 	const maxH = free && limits.maxH !== undefined ? Math.max(minH, limits.maxH) : undefined
 
-	return { minW, maxW: Math.min(room, Math.max(minW, limits.maxW ?? room)), minH, maxH }
+	return { minW, maxW: clamp(limits.maxW ?? room, minW, room), minH, maxH }
 }
 
 /** Whether an edge drives the width. */

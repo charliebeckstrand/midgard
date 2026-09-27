@@ -1,0 +1,22 @@
+language js
+
+// A value held inside a range goes through `clamp` from `ui/utilities`. The
+// nested form hides which bound wins, and the order of its arguments varies
+// from site to site. `clamp(value, lo, hi)` names the value and its bounds.
+//
+// The plugin matches the two nestings that `clamp` computes: `Math.min` on the
+// outside, with the upper bound on either side. A `Math.max` on the outside
+// lets the lower bound win when the bounds cross, which `clamp` does not, so
+// it passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` source,
+// minus tests, benchmarks, and `clamp` itself.
+or {
+	`Math.min($_, Math.max($_, $_))`,
+	`Math.min(Math.max($_, $_), $_)`
+} as $call where {
+	register_diagnostic(
+		span = $call,
+		message = "hold a value inside a range with `clamp(value, lo, hi)`, which names the value and its bounds"
+	)
+}

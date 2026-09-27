@@ -7,6 +7,7 @@
  * so a caller can compare cells by identity.
  */
 
+import { clamp } from '../../../utilities/clamp'
 import { moveItem } from '../../../utilities/move-item'
 
 /**
@@ -185,7 +186,7 @@ export function clampSpan(value: number, min: number | undefined, max: number | 
 export function minColumns(minWidth: number, gap: number, pitch: number, columns: number): number {
 	if (pitch <= 0) return 1
 
-	return Math.min(columns, Math.max(1, Math.ceil((minWidth + gap) / pitch)))
+	return clamp(Math.ceil((minWidth + gap) / pitch), 1, columns)
 }
 
 /**
@@ -197,7 +198,7 @@ export function resolveCell(
 	demands: DashboardTileDemands | undefined,
 	columns: number,
 ): DashboardCell {
-	const w = Math.min(columns, Math.max(1, Math.round(item.w)))
+	const w = clamp(Math.round(item.w), 1, columns)
 
 	// A tile that has not registered passes its raw props, so the ratio gets the check here too.
 	const ratio = usableRatio(demands?.ratio)
@@ -206,7 +207,7 @@ export function resolveCell(
 
 	return {
 		id: item.id,
-		x: Math.min(columns - w, Math.max(0, Math.round(item.x))),
+		x: clamp(Math.round(item.x), 0, columns - w),
 		y: Math.max(0, Math.round(item.y)),
 		w,
 		h,
