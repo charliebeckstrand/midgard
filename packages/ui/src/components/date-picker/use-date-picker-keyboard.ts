@@ -218,14 +218,13 @@ function handleHeaderKey(
 	active: HeaderActive,
 	ctx: DatePickerKeyContext,
 ) {
-	// Left/Right wrap across the three controls; `(index + delta + 3) % 3`
-	// covers both edges.
+	// Left/Right wrap across the three controls.
 	if (key === 'ArrowLeft' || key === 'ArrowRight') {
 		event.preventDefault()
 
 		const delta = key === 'ArrowLeft' ? -1 : 1
 
-		ctx.setActive({ zone: 'header', index: ((active.index + delta + 3) % 3) as 0 | 1 | 2 })
+		ctx.setActive({ zone: 'header', index: wrap(active.index + delta, 3) as 0 | 1 | 2 })
 
 		return
 	}
@@ -262,8 +261,7 @@ function handleFooterKey(
 ) {
 	const count = ctx.footerButtons.length
 
-	// Left/Right wrap symmetrically; `(index + delta + count) % count` covers
-	// both edges (0 → count-1 going left, count-1 → 0 going right).
+	// Left/Right wrap at both edges: 0 goes to count-1, and count-1 goes to 0.
 	if (key === 'ArrowLeft' || key === 'ArrowRight') {
 		event.preventDefault()
 
