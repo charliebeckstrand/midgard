@@ -21,8 +21,8 @@
  */
 
 /* The recipe engine builds the density rows at runtime, so Tailwind finds them
- * in this list, not in the kata. `pnpm density` writes the list again. */
-@source './src/recipes/density.generated.txt';
+ * in this list, not in the kata. `pnpm density:classes` writes the list again. */
+@source './src/recipes/density-classes.generated.txt';
 
 @custom-variant density-sm {
 	[data-density='sm'] & {

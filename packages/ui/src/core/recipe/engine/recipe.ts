@@ -15,7 +15,8 @@ import type { ClassValue } from 'clsx'
 import clsx from 'clsx'
 
 import { twMerge } from '../../tw-merge'
-import { DENSITY_STEPS, densityRow } from './density'
+import { steps } from '../steps'
+import { densityRow } from './density'
 import { expandPalette, type PalettePairs } from './palette'
 import type {
 	CompoundRule,
@@ -76,7 +77,7 @@ type Plan = {
 }
 
 /**
- * The compiled density axis. Its default is the `fallback` here, not an entry
+ * The compiled density axis. Its default is `defaultStep` here, not an entry
  * of `Plan.defaults`, so an omitted axis resolves to `undefined`.
  *
  * @internal
@@ -84,7 +85,7 @@ type Plan = {
 type DensityPlan = {
 	axis: string
 	/** The step outside a scope: the default of the axis. */
-	fallback: string
+	defaultStep: string
 	/** The axis map, hoisted out of the call path. */
 	axisMap: Record<string, ClassValue>
 	/** The compound rules with a condition on the axis. */
@@ -289,7 +290,7 @@ function matches(rule: CompiledRule, values: Record<string, string | undefined>)
  * Composes base + matching variant axes + the palette pair + compound rules
  * into the class list. Order matches the pre-compiled engine: palette classes
  * land before user compound classes, so user rules still win merge conflicts.
- * When the caller omits the density axis, the list takes the fallback step and
+ * When the caller omits the density axis, the list takes the default step and
  * adds a density row for each step.
  *
  * @internal
@@ -301,12 +302,12 @@ function collectRecipeClasses(
 	const { density } = plan
 
 	if (density === undefined || values[density.axis] !== undefined) {
-		return collectStepClasses(plan, values)
+		return collectVariantClasses(plan, values)
 	}
 
-	const acc = collectStepClasses(plan, { ...values, [density.axis]: density.fallback })
+	const acc = collectVariantClasses(plan, { ...values, [density.axis]: density.defaultStep })
 
-	for (const step of DENSITY_STEPS) {
+	for (const step of steps) {
 		const stepValues = { ...values, [density.axis]: step }
 
 		const row: ClassValue[] = [density.axisMap[step]]
@@ -320,12 +321,15 @@ function collectRecipeClasses(
 }
 
 /**
- * The classes of one resolved step: base, the matching variant axes, the
+ * The classes of one variant combination: base, the matching variant axes, the
  * palette pair, and the matching compound rules.
  *
  * @internal
  */
-function collectStepClasses(plan: Plan, values: Record<string, string | undefined>): ClassValue[] {
+function collectVariantClasses(
+	plan: Plan,
+	values: Record<string, string | undefined>,
+): ClassValue[] {
 	const acc: ClassValue[] = [plan.base]
 
 	for (const [axis, axisMap] of plan.variantEntries) {
@@ -367,7 +371,7 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
 
 	const density = compileDensity(resolved, rules)
 
-	// The density axis keeps its default in `density.fallback`.
+	// The density axis keeps its default in `density.defaultStep`.
 	const defaults = Object.fromEntries(
 		Object.entries(resolved.defaults)
 			.filter(([key]) => key !== density?.axis)
@@ -406,7 +410,7 @@ function compile({ resolved, palettePairs, userCompound }: Expansion): Plan {
  * Validates and compiles the density axis of a config. The plan holds the
  * default step, the axis map, and the compound rules on the axis.
  *
- * @throws If the axis does not hold every step of {@link DENSITY_STEPS}, or if
+ * @throws If the axis does not hold every step of {@link steps}, or if
  * `defaults` names no step for it.
  * @internal
  */
@@ -418,9 +422,9 @@ function compileDensity(
 
 	const axisMap = variants[axis] ?? {}
 
-	const fallback = axisKey(defaults[axis])
+	const defaultStep = axisKey(defaults[axis])
 
-	if (!DENSITY_STEPS.every((step) => step in axisMap) || fallback === undefined) {
+	if (!steps.every((step) => step in axisMap) || defaultStep === undefined) {
 		throw new Error(
 			`defineRecipe: density axis "${axis}" needs the sm, md, and lg steps and a default`,
 		)
@@ -428,7 +432,7 @@ function compileDensity(
 
 	return {
 		axis,
-		fallback,
+		defaultStep,
 		axisMap,
 		rules: rules.filter((rule) => rule.conditions.some(([key]) => key === axis)),
 	}

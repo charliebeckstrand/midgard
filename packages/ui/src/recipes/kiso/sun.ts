@@ -2,7 +2,8 @@
  * Sun (寸): size step keys.
  *
  * The named density steps shared by interactive components (`sm` / `md` /
- * `lg`). `steps` is the list, `Step` the prop type. `sun` is the per-step
+ * `lg`). `steps` is the list and `Step` the prop type. Both come from
+ * `core/recipe`, which the recipe engine also reads. `sun` is the per-step
  * data table: text/radius/icon tokens for components that need to read a
  * specific axis at a given step. Spacing axes (padding, gap) live on `ma`
  * and are composed inline at the kata layer.
@@ -10,10 +11,9 @@
  * Layer: kiso · Concern: size
  */
 
-export const steps = ['sm', 'md', 'lg'] as const
+import type { Step } from '../../core/recipe'
 
-/** Size step in the `sun` scale, which Density resolves against. */
-export type Step = (typeof steps)[number]
+export { type Step, steps } from '../../core/recipe'
 
 type SunStep = {
 	/** Key into `ji`; bundles font-size + line-height. */

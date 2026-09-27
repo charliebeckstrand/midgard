@@ -8,10 +8,10 @@ import { srcDir } from '../helpers/walk-source'
 
 // A recipe with a `densityAxis` builds its density rows at runtime, and
 // Tailwind reads only the class literals it finds in source. This test lists
-// every density row class of every kata and layout variant, and pins the list in
-// `src/recipes/density.generated.txt`, which `ui/tailwind.css` names as a
-// source. After a change to a density recipe, run `pnpm density` to write the
-// list again.
+// every density row class of every kata and layout variant. It pins the list
+// in `src/recipes/density-classes.generated.txt`, which `ui/tailwind.css`
+// names as a source. After a change to a density recipe, run
+// `pnpm density:classes` to write the list again.
 
 const kataDir = join(srcDir, 'recipes', 'kata')
 
@@ -44,7 +44,7 @@ function collectRecipes(value: unknown, found: Set<{ config: ResolvedConfig }>, 
 }
 
 describe('density classes', () => {
-	it('lists every density row class in density.generated.txt', async () => {
+	it('lists every density row class in density-classes.generated.txt', async () => {
 		const recipes = new Set<{ config: ResolvedConfig }>()
 
 		for (const path of recipeModules) collectRecipes(await import(path), recipes)
@@ -54,8 +54,8 @@ describe('density classes', () => {
 		expect(names.size).toBeGreaterThan(0)
 
 		await expect(`${[...names].sort().join('\n')}\n`).toMatchFileSnapshot(
-			'../../recipes/density.generated.txt',
-			'the density class list is stale: run `pnpm density`',
+			'../../recipes/density-classes.generated.txt',
+			'the density class list is stale: run `pnpm density:classes`',
 		)
 	})
 })

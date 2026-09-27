@@ -52,7 +52,7 @@ const header = defineRecipe({
  * out-cascades the non-interactive 2.5% `striped` wash on the hovered row.
  *
  * Tailwind scans whole class literals. These rows can't be interpolated
- * from the unprefixed values they mirror (the cell `density`, `sen.border.subtle`),
+ * from the unprefixed values they mirror (`density`, `sen.border.subtle`),
  * or from each other (the `odd`/`even` `striped` parity below). Keep them in
  * step by hand.
  */
@@ -61,7 +61,7 @@ const projection = {
 	 * Cell padding for each step. An omitted `size` follows the nearest density
 	 * scope, and `md` outside one.
 	 */
-	padding: defineRecipe({
+	density: defineRecipe({
 		size: {
 			sm: ['[&>*>tr>td]:px-1', '[&>*>tr>td]:py-1', '[&>*>tr>th]:px-1', '[&>*>tr>th]:py-1'],
 			md: ['[&>*>tr>td]:px-2', '[&>*>tr>td]:py-2', '[&>*>tr>th]:px-2', '[&>*>tr>th]:py-2'],

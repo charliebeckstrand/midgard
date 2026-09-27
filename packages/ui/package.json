@@ -61,7 +61,7 @@
 		"test:coverage": "LANG=en-US vitest run --coverage",
 		"test:changed": "export LANG=en-US && base=$(git merge-base HEAD origin/main) && vitest run --project boundary && vitest run --passWithNoTests --changed=\"$base\"",
 		"test:related": "LANG=en-US vitest related --run",
-		"density": "LANG=en-US vitest run --project pure src/__tests__/recipes/density-classes.test.ts -u",
+		"density:classes": "LANG=en-US vitest run --project pure src/__tests__/recipes/density-classes.test.ts -u",
 		"bench": "vitest bench --run --config vitest.bench.config.ts",
 		"bench:browser": "vitest bench --run --config vitest.bench.browser.config.ts",
 		"bench:browser:compiler": "vitest bench --run --config vitest.bench.browser.compiler.config.ts",

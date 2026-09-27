@@ -94,7 +94,7 @@ export function Table({
 				data-density={step}
 				className={cn(
 					k.base,
-					k.projection.padding({ size: step }),
+					k.projection.density({ size: step }),
 					outline && k.projection.outline,
 					stripe && k.projection.striped[stripe],
 					hover && k.projection.hover,

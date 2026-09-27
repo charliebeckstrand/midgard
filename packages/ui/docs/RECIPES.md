@@ -74,24 +74,24 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 | Export | Summary |
 |---|---|
-| `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). `densityAxis` names a `sm`/`md`/`lg` axis that follows the nearest density scope when a caller omits it. The call then adds the `density-*` rows of `ui/tailwind.css` on top of the default step. `pnpm density` writes the row classes to `src/recipes/density.generated.txt`, where Tailwind finds them. A slot or extra name that collides with a recipe property throws. |
+| `defineRecipe` | The recipe primitive. It builds a callable recipe from a `RecipeConfig`, applying `base` → `variants` → `compound` → `defaults` per call (clsx + tailwind-merge). `slots` pre-merge and attach as properties. `palette` expands into an implicit `color` axis, and `extras` attach arbitrary siblings (`motion`, sub-recipes). `densityAxis` names a `sm`/`md`/`lg` axis that follows the nearest density scope when a caller omits it. The call then adds the `density-*` rows of `ui/tailwind.css` on top of the default step. `pnpm density:classes` writes the row classes to `src/recipes/density-classes.generated.txt`, where Tailwind finds them. A slot or extra name that collides with a recipe property throws. |
 | `definePalette` | Declares a recipe's color × variant matrix (single or merged per-color records, plus per-color overlays); lives on `RecipeConfig.palette`, separate from the variant scaffold. The engine derives the `color` axis from the matrix's own keys. A kata that takes the wide `iro.extendedPalette` bundle gains the extended colors with no engine change. |
 | `applyRecipe` | Merge helper a bridge calls to fold a kata's per-call overlay over an archetype's standard config and extras. It preserves key-type inference, then hands the result to `defineRecipe`. |
 | `mode` / `defineColors` | Fuse colocated light (`hiru`) and dark (`yoru`) values into the flat `string[]` the engine consumes. `mode` takes a scalar pair; `defineColors` works across a multi-key map. The dark class carries its own `dark:` prefix. |
 | `shades` | Builds a `Record<C, string[]>` from per-color light/dark shade pairs; generic over the color set, defaulting to `Color` and widening to the extended set in `iro/extended-palette`. |
-| `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`) plus any number of variant axes. A `compound` condition coerces to its axis key, so a rule on a `true` / `false` axis accepts `{ interactive: true }` and `{ interactive: 'true' }` alike. |
+| `RecipeConfig` *(type)* | The shape a kata declares: reserved fields (`base`, `palette`, `compound`, `slots`, `defaults`, `skeleton`, `densityAxis`) plus any number of variant axes. A `compound` condition coerces to its axis key, so a rule on a `true` / `false` axis accepts `{ interactive: true }` and `{ interactive: 'true' }` alike. |
 | `VariantProps` *(type)* | Extracts the prop shape from a recipe or config; used to type the consumer-facing `<Name>Variants` export. |
 | `Color` *(type)* | The standard palette color set — `zinc` · `red` · `amber` · `green` · `blue`. |
 | `ExtendedColor` / `PaletteColor` *(types)* | The opt-in extended set — `rose` · `violet` · `sky` — and the union of standard plus extended. A kata surfaces the union when it reads `iro.extendedPalette`. |
+| `steps` / `Step` *(type)* | The size steps — `sm` · `md` · `lg` — that density resolves against. The engine adds a density row for each step, and `kiso/sun` re-exports both. |
 
 ## Barrel surface
 
-The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` / `ExtendedColor` / `PaletteColor` from the engine table above.
+The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` / `ExtendedColor` / `PaletteColor` and `Step` from the engine table above.
 
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 

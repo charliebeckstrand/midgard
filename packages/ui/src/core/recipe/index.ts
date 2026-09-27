@@ -14,3 +14,4 @@ export {
 } from './engine'
 export { defineColors, mode } from './mode'
 export { shades } from './shades'
+export { type Step, steps } from './steps'
