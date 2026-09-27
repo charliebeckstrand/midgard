@@ -131,6 +131,29 @@ const parkPointer: BrowserCommand<[]> = async (context) => {
 }
 
 /**
+ * Moves the real mouse to the center of the element that `selector` matches in the tester
+ * iframe, and holds the primary button down there.
+ *
+ * `userEvent.click` sends `mousedown` and `mouseup` as one step. A case that reads the page
+ * between the two (the focus during a press) needs the halves apart.
+ */
+const pressPointer: BrowserCommand<[selector: string]> = async (context, selector) => {
+	await context.iframe.locator(selector).hover()
+
+	await context.page.mouse.down()
+}
+
+/**
+ * Releases the primary button that {@link pressPointer} holds. With a `selector`, it first moves
+ * the real mouse to the center of the element that the selector matches in the tester iframe.
+ */
+const releasePointer: BrowserCommand<[selector?: string]> = async (context, selector) => {
+	if (selector) await context.iframe.locator(selector).hover()
+
+	await context.page.mouse.up()
+}
+
+/**
  * Real-browser test suite (Vitest browser mode, Playwright/Chromium), split
  * into instances along the `@floating-ui/react` mock boundary — the mock is a
  * setup-file `vi.mock`, so it can only toggle per instance, not per file — and
@@ -273,7 +296,7 @@ export default defineConfig({
 		browser: {
 			enabled: true,
 			// `browser/setup/index.ts` calls it before every case.
-			commands: { parkPointer },
+			commands: { parkPointer, pressPointer, releasePointer },
 			provider: playwright(),
 			headless: true,
 			screenshotFailures: false,
