@@ -29,6 +29,8 @@ The engine gives density one home, one vocabulary, one scope, and one resolver. 
 
    Third batch: an explicit `size` becomes a scope, as on Card. Tabs writes `data-density` on the group only when `size` is set, and the tab and segment classes are stepped. The Segment bridge has no size axis. FloatingSurface takes a `density` prop, and TooltipContent passes its `size` there. `density-rounded` takes spacing stops, so the tooltip radius stays equal to its padding. SidebarLayout pads its content, header, and navbar with stepped classes, and its panel width is a variant for each step. The Sidebar and Nav items keep `useDensityStep`, because each slot needs `stepDown` of the item step as a value.
 
+   Fourth batch: Heading and the skeletons. A Heading with no `size` takes the step of its nearest scope. Each level writes one stepped `density-text` class from `headingRamp`, and `titleRamp` is the ramp of level 4. Each skeleton whose component follows density writes stepped classes, as BadgeSkeleton does. An explicit `size` writes `data-density`. The stepped utilities gain `my`, `mb`, and `min-w` for the slider, tab, and grouped control silhouettes. Where a component reads a `size` map in JS (the progress bar and gauge, the rating star and gap), the stepped class repeats the map, and `skeleton-ramp.test.ts` pins it.
+
 ## Costs accepted
 
 - **Breaking change to `ui/primitives/density`.** `Density` takes `step` in place of `space`, `size`, and `scale`. No app used the removed API.

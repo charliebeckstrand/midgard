@@ -1,12 +1,14 @@
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
+import { ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
-import { Control } from '../../components/control'
+import { Control, ControlSkeleton } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
+import { SliderSkeleton } from '../../components/slider'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { SidebarLayout } from '../../layouts/sidebar'
@@ -224,6 +226,44 @@ describe('density scopes on static leaves (real browser)', () => {
 		)
 
 		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
+	})
+
+	it.each([
+		['takes the step of the scope', undefined, { height: 28, width: 80 }],
+		['keeps an explicit size', 'lg', { height: 44, width: 112 }],
+	] as const)('a button skeleton %s', (_name, size, box) => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<ButtonSkeleton size={size} />
+			</DensityProvider>,
+		)
+
+		const skeleton = present(
+			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
+			'button skeleton',
+		)
+
+		const style = getComputedStyle(skeleton)
+
+		expect({
+			height: Number.parseFloat(style.height),
+			width: Number.parseFloat(style.width),
+		}).toStrictEqual(box)
+	})
+
+	it('steps the margin of a slider skeleton and the minimum width of a grouped control skeleton', () => {
+		const { container } = renderUI(
+			<DensityProvider density="loose">
+				<SliderSkeleton />
+				<ControlSkeleton data-group="" />
+			</DensityProvider>,
+		)
+
+		const [slider, control] = container.querySelectorAll<HTMLElement>('[data-slot="placeholder"]')
+
+		expect(Number.parseFloat(getComputedStyle(present(slider, 'slider')).marginTop)).toBe(20)
+
+		expect(Number.parseFloat(getComputedStyle(present(control, 'control')).minWidth)).toBe(128)
 	})
 
 	it('pads the cells of a table at its size inside another scope', () => {

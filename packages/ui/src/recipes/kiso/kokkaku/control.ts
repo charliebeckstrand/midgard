@@ -16,20 +16,11 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const control = {
-	base: rounded.lg,
-	full: 'w-full',
-	group: {
-		sm: 'flex-1 min-w-16',
-		md: 'flex-1 min-w-24',
-		lg: 'flex-1 min-w-32',
-	},
 	// Heights match the live control outer box (ring-inclusive): sm 30px · md
 	// 38px · lg 46px, so the placeholder fills the same space as the resolved
-	// control.
-	size: {
-		sm: 'h-7.5',
-		md: 'h-9.5',
-		lg: 'h-11.5',
-	},
-	defaults: { size: 'md' as const },
+	// control. Each step is a stepped class, so the silhouette takes the step of
+	// its nearest density scope, as the control does.
+	base: [rounded.lg, 'density-h-[7.5,9.5,11.5]'],
+	full: 'w-full',
+	group: 'flex-1 density-min-w-[16,24,32]',
 } as const

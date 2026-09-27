@@ -3,6 +3,9 @@
  * the three control size steps; chrome, sliders, and swatches collapse into one
  * placeholder rectangle.
  *
+ * Each step is a stepped `density-*` class, so the silhouette takes the
+ * step of its nearest density scope, as the picker does.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: color-panel
  */
 
@@ -11,11 +14,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const colorPanel = {
-	base: rounded.lg,
-	size: {
-		sm: 'h-64 w-56',
-		md: 'h-72 w-64',
-		lg: 'h-80 w-72',
-	},
-	defaults: { size: 'md' as const },
+	base: [rounded.lg, 'density-h-[64,72,80]', 'density-w-[56,64,72]'],
+	density: ['sm', 'md', 'lg'],
 } as const

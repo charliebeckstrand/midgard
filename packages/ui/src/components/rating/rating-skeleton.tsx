@@ -11,7 +11,7 @@ export type RatingSkeletonProps = {
 	 * @defaultValue 5
 	 */
 	count?: number
-	/** @defaultValue 'md' */
+	/** With no `size`, the silhouette takes the step of its nearest density scope. */
 	size?: Step
 	className?: string
 }
@@ -19,15 +19,16 @@ export type RatingSkeletonProps = {
 /**
  * Rating-shaped placeholder: a row of star-sized squares. Keyed off the star
  * count as well as the size step, so it does not use the size-driven
- * `createSkeleton` factory.
+ * `createSkeleton` factory. An explicit `size` writes `data-density` on the
+ * row, and with no `size` the row follows the nearest density scope.
  */
-export function RatingSkeleton({ count = 5, size = 'md', className }: RatingSkeletonProps) {
+export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonProps) {
 	const stars = rangeKeys(count, 'star')
 
 	return (
-		<div className={cn(k({ size }), className)}>
+		<div data-density={size} className={cn(k(), k.skeleton.gap, className)}>
 			{stars.map((key) => (
-				<Placeholder key={key} className={cn(k.skeleton.base, k.skeleton.size[size])} />
+				<Placeholder key={key} className={cn(k.skeleton.base, k.skeleton.star)} />
 			))}
 		</div>
 	)

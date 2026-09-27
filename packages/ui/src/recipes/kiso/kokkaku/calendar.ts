@@ -3,6 +3,9 @@
  * height approximates the header row above the seven square weekday/day
  * rows at that width.
  *
+ * Each step is a stepped `density-*` class, so the silhouette takes the
+ * step of its nearest density scope, as the calendar does.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: calendar
  */
 
@@ -11,11 +14,6 @@ import { kasane } from '../kasane'
 const { rounded } = kasane
 
 export const calendar = {
-	base: rounded.lg,
-	size: {
-		sm: 'h-60 w-52',
-		md: 'h-78 w-68',
-		lg: 'h-92 w-80',
-	},
-	defaults: { size: 'md' as const },
+	base: [rounded.lg, 'density-h-[60,78,92]', 'density-w-[52,68,80]'],
+	density: ['sm', 'md', 'lg'],
 } as const

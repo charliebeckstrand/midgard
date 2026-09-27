@@ -20,6 +20,8 @@ const steppedGroups = {
 	'density-pe': [{ 'density-pe': steps, 'density-pe-ring': steps }],
 	'density-ms': [{ 'density-ms-ring': steps }],
 	'density-me': [{ 'density-me-ring': steps }],
+	'density-my': [{ 'density-my': steps }],
+	'density-mb': [{ 'density-mb': steps }],
 	'density-gap': [{ 'density-gap': steps }],
 	'density-gap-x': [{ 'density-gap-x': steps }],
 	'density-gap-y': [{ 'density-gap-y': steps }],
@@ -27,6 +29,7 @@ const steppedGroups = {
 	'density-h': [{ 'density-h': steps }],
 	'density-max-h': [{ 'density-max-h': steps }],
 	'density-w': [{ 'density-w': steps }],
+	'density-min-w': [{ 'density-min-w': steps }],
 	'density-text': [{ 'density-text': steps }],
 	'density-rounded': [{ 'density-rounded': steps, 'density-rounded-ring': steps }],
 }
@@ -45,6 +48,8 @@ const plainGroups = {
 	'density-pe': 'pe',
 	'density-ms': 'ms',
 	'density-me': 'me',
+	'density-my': 'my',
+	'density-mb': 'mb',
 	'density-gap': 'gap',
 	'density-gap-x': 'gap-x',
 	'density-gap-y': 'gap-y',
@@ -52,6 +57,7 @@ const plainGroups = {
 	'density-h': 'h',
 	'density-max-h': 'max-h',
 	'density-w': 'w',
+	'density-min-w': 'min-w',
 	'density-text': 'font-size',
 	'density-rounded': 'rounded',
 } as const satisfies Record<keyof typeof steppedGroups, string>
@@ -63,6 +69,7 @@ const steppedConflicts: Partial<
 	'density-p': ['density-px', 'density-py', 'density-pt', 'density-pb', 'density-ps', 'density-pe'],
 	'density-px': ['density-ps', 'density-pe'],
 	'density-py': ['density-pt', 'density-pb'],
+	'density-my': ['density-mb'],
 	'density-gap': ['density-gap-x', 'density-gap-y'],
 	'density-size': ['density-h', 'density-w'],
 }

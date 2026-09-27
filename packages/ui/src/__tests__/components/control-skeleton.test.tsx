@@ -12,12 +12,14 @@ describe('ControlSkeleton', () => {
 		expect(bySlot(container, 'placeholder')).toBeInTheDocument()
 	})
 
-	it('sizes from the explicit size prop', () => {
-		const { container: md } = renderUI(<ControlSkeleton />)
+	it('writes an explicit size as its own density scope', () => {
+		const { container: scoped } = renderUI(<ControlSkeleton />)
 
 		const { container: sm } = renderUI(<ControlSkeleton size="sm" />)
 
-		expect(bySlot(md, 'placeholder')?.className).not.toBe(bySlot(sm, 'placeholder')?.className)
+		expect(bySlot(scoped, 'placeholder')).not.toHaveAttribute('data-density')
+
+		expect(bySlot(sm, 'placeholder')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('draws the grouped silhouette inside a Group, from the stamp alone', () => {

@@ -3,17 +3,12 @@
  * line height; the bottom margin mirrors the tab's padding above the
  * list rail. Tab count comes from the composing skeleton.
  *
+ * Each step is a stepped `density-*` class, so the silhouette takes the
+ * step of its nearest density scope, as the tab does.
+ *
  * Layer: kiso · Concern: skeleton form · Unit: tabs
  */
 
 export const tabs = {
-	tab: {
-		base: '',
-		size: {
-			sm: 'mb-3 h-5 w-14',
-			md: 'mb-4 h-6 w-16',
-			lg: 'mb-5 h-7 w-20',
-		},
-		defaults: { size: 'md' as const },
-	},
+	tab: 'density-mb-[3,4,5] density-h-[5,6,7] density-w-[14,16,20]',
 } as const

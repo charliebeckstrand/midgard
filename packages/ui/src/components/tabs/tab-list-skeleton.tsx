@@ -12,8 +12,8 @@ export type TabListSkeletonProps = {
 	 */
 	tabs?: number
 	/**
-	 * Size step driving placeholder dimensions.
-	 * @defaultValue 'md'
+	 * Size step driving placeholder dimensions. With no `size`, the silhouette
+	 * takes the step of its nearest density scope, as the tabs do.
 	 */
 	size?: Step
 	className?: string
@@ -28,12 +28,9 @@ export function TabListSkeleton({ tabs = 3, size, className }: TabListSkeletonPr
 	const tabKeys = rangeKeys(tabs, 'tab')
 
 	return (
-		<div className={cn(k.list({ orientation: 'horizontal' }), className)}>
+		<div data-density={size} className={cn(k.list({ orientation: 'horizontal' }), className)}>
 			{tabKeys.map((tabKey) => (
-				<Placeholder
-					key={tabKey}
-					className={cn(k.skeleton.tab.base, k.skeleton.tab.size[size ?? 'md'])}
-				/>
+				<Placeholder key={tabKey} className={k.skeleton.tab} />
 			))}
 		</div>
 	)

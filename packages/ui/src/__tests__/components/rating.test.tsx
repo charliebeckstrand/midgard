@@ -225,7 +225,7 @@ describe('Rating', () => {
 describe('RatingSkeleton', () => {
 	// The class strings came from the render before the skeleton moved from the
 	// extras into the config. A change in them is a change in the silhouette.
-	// The plain glyph `size-*` wins over the Placeholder's default height.
+	// The stepped glyph `density-size-*` wins over the Placeholder's default height.
 	const placeholder =
 		'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block density-any:h-4 rounded-sm'
 
@@ -234,17 +234,26 @@ describe('RatingSkeleton', () => {
 
 	const hue = 'text-amber-600 dark:text-amber-500'
 
-	it.each([
-		['sm', 'gap-0.5', 'size-4'],
-		['md', 'gap-0.5', 'size-5'],
-		['lg', 'gap-1', 'size-6'],
-	] as const)('keeps the %s silhouette classes', (size, gap, glyph) => {
-		const { container } = renderUI(<RatingSkeleton size={size} count={2} />)
+	// The glyph and the gap are stepped classes, so the browser picks the step of the nearest
+	// scope. `recipes/skeleton-ramp.test.ts` pins them to the glyph map and the row gap.
+	const gap = 'density-gap-[0.5,0.5,1]'
 
-		expect((container.firstElementChild as HTMLElement).className).toBe(`${row} ${gap} ${hue}`)
+	const glyph = 'density-size-[4,5,6]'
 
-		const classes = allBySlot(container, 'placeholder').map((star) => star.className)
+	it.each(['sm', 'md', 'lg', undefined] as const)(
+		'keeps the silhouette classes at size %s',
+		(size) => {
+			const { container } = renderUI(<RatingSkeleton size={size} count={2} />)
 
-		expect(classes).toEqual([`${placeholder} ${glyph}`, `${placeholder} ${glyph}`])
-	})
+			const rowEl = container.firstElementChild as HTMLElement
+
+			expect(rowEl.className).toBe(`${row} ${hue} ${gap}`)
+
+			expect(rowEl.dataset.density).toBe(size)
+
+			const classes = allBySlot(container, 'placeholder').map((star) => star.className)
+
+			expect(classes).toEqual([`${placeholder} ${glyph}`, `${placeholder} ${glyph}`])
+		},
+	)
 })

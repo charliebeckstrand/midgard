@@ -162,6 +162,14 @@ describe('cn', () => {
 			expect(cn('density-max-h-[48,52,56]', 'max-h-64')).toBe('max-h-64')
 
 			expect(cn('density-p-[2,3,4]', 'p-0')).toBe('p-0')
+
+			expect(cn('density-min-w-[16,24,32]', 'min-w-0')).toBe('min-w-0')
+
+			expect(cn('density-my-[3,4,5]', 'my-0')).toBe('my-0')
+		})
+
+		it('replaces a stepped side margin with a later stepped block margin', () => {
+			expect(cn('density-mb-[3,4,5]', 'density-my-[1,2,3]')).toBe('density-my-[1,2,3]')
 		})
 
 		it('keeps a stepped class beside a plain class of a different property', () => {

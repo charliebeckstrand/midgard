@@ -39,10 +39,13 @@ const spacingProperties = {
 	gap: ['gap'],
 	'gap-x': ['column-gap'],
 	'gap-y': ['row-gap'],
+	my: ['margin-block'],
+	mb: ['margin-bottom'],
 	size: ['width', 'height'],
 	h: ['height'],
 	'max-h': ['max-height'],
 	w: ['width'],
+	'min-w': ['min-width'],
 }
 
 /**
