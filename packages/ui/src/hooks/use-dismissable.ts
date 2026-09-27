@@ -3,6 +3,7 @@
 import { type RefObject, useEffect, useEffectEvent, useRef } from 'react'
 import { subscribeDocumentEvent } from '../utilities/document-listener'
 import { pressLandsInSurfaceOpenedWithin } from '../utilities/floating-portal-registry'
+import { isScrollbarPress } from '../utilities/scrollbar-press'
 import { useEscapeLayer } from './use-escape-layer'
 
 /** Options for {@link useDismissable}: the boundary a press is measured against, the dismiss report, and the enable gate. */
@@ -67,11 +68,14 @@ export function useDismissable<T extends HTMLElement = HTMLDivElement>({
 
 			const target = event.target
 
-			if (
-				target instanceof Node &&
-				(el.contains(target) || pressLandsInSurfaceOpenedWithin(el, target))
-			)
-				return
+			if (!(target instanceof Node)) return dismiss()
+
+			if (el.contains(target) || pressLandsInSurfaceOpenedWithin(el, target)) return
+
+			// A press on a scrollbar gutter starts a pan, not a press outside. The test forces
+			// a style recalc, so it runs after the cheap ancestry tests, as in
+			// `isFloatingOutsidePress`.
+			if (target instanceof HTMLElement && isScrollbarPress(event, target)) return
 
 			dismiss()
 		}
