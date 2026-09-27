@@ -1739,6 +1739,218 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/api/security/threats': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * List detected threats
+		 * @description Newest first, at most 100.
+		 */
+		get: {
+			parameters: {
+				query?: {
+					/** @description Only resolved, or only open, threats */
+					resolved?: 'true' | 'false'
+				}
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Threats */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['ThreatList']
+					}
+				}
+				/** @description Security monitoring is unavailable */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/security/threats/{id}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		/** Resolve or reopen a threat */
+		patch: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description Unique identifier (UUID) */
+					id: string
+				}
+				cookie?: never
+			}
+			requestBody: {
+				content: {
+					'application/json': components['schemas']['ResolveThreat']
+				}
+			}
+			responses: {
+				/** @description Threat updated */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Threat']
+					}
+				}
+				/** @description Threat not found */
+				404: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Security monitoring is unavailable */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		trace?: never
+	}
+	'/api/security/bans': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/** List the bans in force */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Bans */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['BanList']
+					}
+				}
+				/** @description Security monitoring is unavailable */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/api/security/bans/{ip}': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		post?: never
+		/** Lift a ban */
+		delete: {
+			parameters: {
+				query?: never
+				header?: never
+				path: {
+					/** @description IPv4 or IPv6 address */
+					ip: string
+				}
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Ban lifted */
+				204: {
+					headers: {
+						[name: string]: unknown
+					}
+					content?: never
+				}
+				/** @description Address not banned */
+				404: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Security monitoring is unavailable */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 }
 export type webhooks = Record<string, never>
 export interface components {
@@ -1987,6 +2199,78 @@ export interface components {
 		}
 		UpdateUserRequest: {
 			is_active: boolean
+		}
+		ThreatList: {
+			data: components['schemas']['Threat'][]
+			/** @description Total number of items */
+			total: number
+		}
+		Threat: {
+			/**
+			 * Format: uuid
+			 * @description Unique identifier (UUID)
+			 * @example 550e8400-e29b-41d4-a716-446655440000
+			 */
+			id: string
+			threat_type: string
+			/**
+			 * @description Rule / threat severity
+			 * @enum {string}
+			 */
+			severity: 'low' | 'medium' | 'high'
+			/**
+			 * @description IPv4 or IPv6 address
+			 * @example 192.168.1.100
+			 */
+			ip: string
+			details: {
+				[key: string]: unknown
+			}
+			action_taken: string | null
+			resolved: boolean
+			/**
+			 * Format: date-time
+			 * @description ISO 8601 datetime
+			 * @example 2026-01-01T00:00:00.000Z
+			 */
+			created_at: string
+		}
+		ResolveThreat: {
+			/** @description Whether the threat has been handled */
+			resolved: boolean
+		}
+		BanList: {
+			data: components['schemas']['Ban'][]
+			/** @description Total number of items */
+			total: number
+		}
+		Ban: {
+			/**
+			 * Format: uuid
+			 * @description Unique identifier (UUID)
+			 * @example 550e8400-e29b-41d4-a716-446655440000
+			 */
+			id: string
+			/**
+			 * @description IPv4 or IPv6 address
+			 * @example 192.168.1.100
+			 */
+			ip: string
+			reason: string
+			rule_id: string | null
+			/**
+			 * @description Origin of the ban
+			 * @enum {string}
+			 */
+			created_by: 'system' | 'manual' | 'vidar'
+			/** Format: date-time */
+			expires_at: string | null
+			/**
+			 * Format: date-time
+			 * @description ISO 8601 datetime
+			 * @example 2026-01-01T00:00:00.000Z
+			 */
+			created_at: string
 		}
 	}
 	responses: never
