@@ -70,8 +70,9 @@ export function neutralizeFormula(value: string): string {
 /**
  * A formatted number: digits with signs, separators, spaces, currency, or a
  * percent. It holds no letter and no operator, so a spreadsheet cannot run it.
- * The spaces are the plain, the no-break, and the narrow no-break space, not a
- * tab or a line break, which a spreadsheet reads as the start of a formula.
+ * The spaces are the plain, the no-break, and the narrow no-break space. A tab
+ * or a line break is not a space here, because a spreadsheet reads it as the
+ * start of a formula.
  *
  * @internal
  */
@@ -106,7 +107,7 @@ export function csvField(value: string, { formatted = false }: CsvFieldOptions =
  * Downloads a CSV document as a UTF-8 file.
  *
  * @remarks The file starts with a UTF-8 byte order mark. Without it, a
- * spreadsheet app such as Excel can read the text in a legacy encoding, and a
+ * spreadsheet app such as Excel can read the text in a legacy encoding. Then a
  * character outside ASCII (`—`, `é`) shows as mojibake.
  *
  * @param filename - The name of the download, such as `grid.csv`.
