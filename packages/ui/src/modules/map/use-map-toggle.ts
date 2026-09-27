@@ -1,7 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { useMediaQuery } from '../../hooks/use-media-query'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { toggleItem } from '../../utilities'
 import { REGION_FADE } from './engine/map-motion'
@@ -61,7 +61,7 @@ export function useMapToggle(
 
 	const [focus, setFocus] = useState<string | null>(null)
 
-	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+	const reducedMotion = usePrefersReducedMotion()
 
 	const washes = animate && !reducedMotion
 

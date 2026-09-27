@@ -1,7 +1,7 @@
 'use client'
 
 import { type TransitionEvent, useLayoutEffect, useState } from 'react'
-import { useMediaQuery } from '../../hooks/use-media-query'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { type MountHold, useMountHold } from '../../primitives/mount'
 import { forceStyleFlush } from '../../utilities'
 
@@ -69,7 +69,7 @@ export type GridRevealHold = {
  * @internal
  */
 export function useGridRevealHold(expanded: boolean, enter = false): GridRevealHold {
-	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+	const reducedMotion = usePrefersReducedMotion()
 
 	const hold = useMountHold(expanded, 'always', { defer: !reducedMotion })
 

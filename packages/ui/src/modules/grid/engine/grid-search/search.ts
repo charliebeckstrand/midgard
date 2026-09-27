@@ -1,3 +1,4 @@
+import { getOrCompute } from '../../../../utilities'
 import type { GridColumn } from '../../types'
 import { filterRowIndices, type RowTest } from '../grid-filter/filter'
 
@@ -35,18 +36,10 @@ function haystacksOf<T>(
 	columns: readonly GridColumn<T>[],
 	readers: ((row: T) => unknown)[],
 ): string[] {
-	let byColumns = haystacks.get(rows)
+	const byColumns = getOrCompute(haystacks, rows, () => new WeakMap<object, string[]>())
 
-	if (!byColumns) {
-		byColumns = new WeakMap()
-
-		haystacks.set(rows, byColumns)
-	}
-
-	let built = byColumns.get(columns)
-
-	if (!built) {
-		built = rows.map((row) => {
+	return getOrCompute(byColumns, columns, () =>
+		rows.map((row) => {
 			const cells: string[] = []
 
 			for (const read of readers) {
@@ -56,12 +49,8 @@ function haystacksOf<T>(
 			}
 
 			return cells.join(SEPARATOR)
-		})
-
-		byColumns.set(columns, built)
-	}
-
-	return built
+		}),
+	)
 }
 
 /**

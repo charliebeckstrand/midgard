@@ -1,9 +1,9 @@
 'use client'
 
-import { useReducedMotion } from 'motion/react'
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
 import { useDensityLevel } from '../../providers/density'
 import { GridContext, GridSettleContext } from './context'
@@ -284,7 +284,7 @@ export function GridData<T>({
 	// Drives the opt-in row-sort FLIP down through `GridBody`; read here so the
 	// gate stands the animation down for a reduced-motion user (WCAG 2.3.3) — a
 	// `MotionConfig` alone would not, since it leaves `layout` animations running.
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	// Selection state lives above the engine, so an export can read it; the
 	// row-derived flags and toggles come after the engine produces `rowKeys` (see

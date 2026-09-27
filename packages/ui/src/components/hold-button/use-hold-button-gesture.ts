@@ -1,7 +1,7 @@
 'use client'
 
-import { useReducedMotion } from 'motion/react'
 import { useEffect, useEffectEvent, useRef } from 'react'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { RESET_DURATION } from './hold-button-constants'
 
 /**
@@ -48,7 +48,7 @@ export function useHoldButtonGesture({
 	// The fill animates unconditionally: it gates an irreversible action in
 	// real time (WCAG 2.3.3 essential exception). The snap-back reset is
 	// decorative and collapses to an instant under prefers-reduced-motion.
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	const resetDuration = reduceMotion ? 0 : RESET_DURATION
 

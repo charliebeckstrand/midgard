@@ -1,9 +1,9 @@
-import { formatFraction, formatInteger, toNumericCell } from '../../utilities'
+import { formatFraction, toNumericCell } from '../../utilities'
 import type { PivotAggregation } from './types'
 
-/** Formats a cell value: whole numbers as integers, the rest as fractions. */
+/** Formats a cell value with up to two fraction digits, so a whole number prints with no fraction. */
 export function defaultFormat(value: number): string {
-	return Number.isInteger(value) ? formatInteger(value) : formatFraction(value)
+	return formatFraction(value)
 }
 
 /**

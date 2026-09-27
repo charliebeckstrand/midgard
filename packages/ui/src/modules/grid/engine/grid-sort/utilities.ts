@@ -1,3 +1,5 @@
+import { getOrCompute } from '../../../../utilities'
+
 /**
  * Smart client-sort comparators for {@link Grid}. The default column sort runs
  * {@link compareSmart}, which recognizes the value shapes a naive lexical sort
@@ -325,31 +327,15 @@ export function cachedSortOrder<T>(
 	signature: string,
 	fields: SmartSortField<T>[],
 ): number[] {
-	let byColumns = sortOrders.get(rows)
+	const byColumns = getOrCompute(
+		sortOrders,
+		rows,
+		() => new WeakMap<object, Map<string, number[]>>(),
+	)
 
-	if (!byColumns) {
-		byColumns = new WeakMap()
+	const orders = getOrCompute(byColumns, columns, () => new Map<string, number[]>())
 
-		sortOrders.set(rows, byColumns)
-	}
-
-	let orders = byColumns.get(columns)
-
-	if (!orders) {
-		orders = new Map()
-
-		byColumns.set(columns, orders)
-	}
-
-	let order = orders.get(signature)
-
-	if (!order) {
-		order = computeSortOrder(rows, fields)
-
-		orders.set(signature, order)
-	}
-
-	return order
+	return getOrCompute(orders, signature, () => computeSortOrder(rows, fields))
 }
 
 /**

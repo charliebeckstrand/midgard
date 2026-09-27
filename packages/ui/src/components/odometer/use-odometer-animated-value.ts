@@ -1,8 +1,8 @@
 'use client'
 
 import { animate } from 'motion'
-import { useReducedMotion } from 'motion/react'
 import { useEffect, useRef, useState } from 'react'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 
 type AnimatedValueOptions = {
 	value: number
@@ -34,7 +34,7 @@ export function useOdometerAnimatedValue({ value, duration = 800 }: AnimatedValu
 
 	// `animate()` runs outside any MotionConfig; the hook reads the OS preference
 	// directly and snaps to the target value under reduced motion (WCAG 2.3.3).
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	useEffect(() => {
 		const from = fromRef.current

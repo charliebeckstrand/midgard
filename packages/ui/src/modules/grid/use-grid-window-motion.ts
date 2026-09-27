@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefObject, useCallback, useEffect, useState } from 'react'
-import { useMediaQuery } from '../../hooks/use-media-query'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import type { GridRowMotion } from './engine/grid-items/items'
 import { type GridWindowRecord, type GridWindowView, gridWindowView } from './use-grid-item-window'
 
@@ -104,7 +104,7 @@ export function useGridWindowMotion<L, S, K>(
 	record: RefObject<GridWindowRecord>,
 	scrollRef: RefObject<HTMLElement | null>,
 ) {
-	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+	const reducedMotion = usePrefersReducedMotion()
 
 	const [state, setState] = useState<MotionState<S, K>>(() => ({
 		captured: source.capture(live),

@@ -2,7 +2,7 @@
 
 import type { RefObject, SyntheticEvent } from 'react'
 import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
-import { useMediaQuery, useMinBreakpoint } from '../../hooks'
+import { useMinBreakpoint, usePrefersReducedMotion } from '../../hooks'
 import type {
 	PdfViewerFit,
 	PdfViewerMagnifierMode,
@@ -480,7 +480,7 @@ export function usePdfViewer({
 	 * the CSS had stopped sending. The rail's mount hold would then wait for it forever.
 	 * `use-grid-reveal-hold.ts` documents the same trap.
 	 */
-	const reducedMotion = useMediaQuery('(prefers-reduced-motion: reduce)')
+	const reducedMotion = usePrefersReducedMotion()
 
 	const sidebarAnimates = sidebarChoice !== null && !reducedMotion
 

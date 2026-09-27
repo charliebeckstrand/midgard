@@ -18,11 +18,10 @@ describe('formatInteger', () => {
 		expect(formatInteger(-1234)).toBe('-1,234')
 	})
 
-	// The bare `new Intl.NumberFormat()` keeps up to three fraction digits, so
-	// despite its "no fraction digits" doc `formatInteger` does not round to an
-	// integer.
-	it('does not strip fraction digits (documents current behavior)', () => {
-		expect(formatInteger(1.5)).toBe('1.5')
+	it('rounds a fraction to a whole number', () => {
+		expect(formatInteger(1.4)).toBe('1')
+
+		expect(formatInteger(1234.5)).toBe('1,235')
 	})
 })
 

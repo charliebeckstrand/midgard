@@ -1,9 +1,10 @@
 'use client'
 
 import { type AnimationPlaybackControls, animate } from 'motion'
-import { motion, useMotionValue, useReducedMotion, useTransform } from 'motion/react'
+import { motion, useMotionValue, useTransform } from 'motion/react'
 import { type ComponentProps, useEffect, useRef } from 'react'
 import { cn, composeEventHandlers } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useStableEvent } from '../../hooks/use-stable-event'
 
 /**
@@ -96,7 +97,7 @@ export function ShinyText({
 	onMouseLeave,
 	...props
 }: ShinyTextProps) {
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	const from = sweep === 'left' ? OFF_RIGHT : OFF_LEFT
 

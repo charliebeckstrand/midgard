@@ -1,11 +1,11 @@
 'use client'
 
 import type { AnimationPlaybackControls, ValueAnimationTransition } from 'motion'
-import { useReducedMotion } from 'motion/react'
 import { type RefCallback, useCallback, useEffect, useState } from 'react'
 import { type BorderBox, measureBox } from '../utilities'
 import { travelHeight } from './travel-height'
 import type { PanelCeiling } from './use-panel-resize'
+import { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 
 /**
  * One rule, for every comparison below: two readings within a pixel of each
@@ -88,7 +88,7 @@ export function usePanelFit({
 	// Imperative motion runs outside any `MotionConfig`, so the preference is read
 	// here rather than inherited (WCAG 2.3.3). The panel still resizes; it just
 	// arrives rather than travels.
-	const reduced = useReducedMotion()
+	const reduced = usePrefersReducedMotion()
 
 	useEffect(() => {
 		// A drag owns the height while it holds one, and the render that starts the

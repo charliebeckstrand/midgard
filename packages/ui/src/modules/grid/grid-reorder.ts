@@ -1,10 +1,10 @@
 'use client'
 
 import { type AnimationPlaybackControls, animate } from 'motion'
-import { useReducedMotion } from 'motion/react'
 import type { RefObject } from 'react'
 import { useLayoutEffect } from 'react'
 import { createContext } from '../../core'
+import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { k } from '../../recipes/kata/grid'
 import { columnShiftVar } from './engine/grid-reorder-compute'
 
@@ -46,7 +46,7 @@ export function useColumnReorderShift(
 	isDragging: boolean,
 	isSorting: boolean,
 ): void {
-	const reduceMotion = useReducedMotion()
+	const reduceMotion = usePrefersReducedMotion()
 
 	useLayoutEffect(() => {
 		const table = tableRef.current

@@ -1,8 +1,9 @@
 'use client'
 
-import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../../../core'
+import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../../primitives/reduced-motion'
 import { STATIC_GENERATION } from '../chart-motion'
 import { useChartEmphasis } from '../context'
@@ -46,7 +47,7 @@ export function ChartMarksLayer({ animate, dataKey, children }: ChartMarksLayerP
 
 	// Called unconditionally to keep the hook order stable across the static and
 	// animated branches; only the animated branch reads it.
-	const reducedMotion = useReducedMotion()
+	const reducedMotion = usePrefersReducedMotion()
 
 	const className = cn('transition-opacity', referenceActive && 'opacity-25')
 

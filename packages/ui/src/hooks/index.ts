@@ -65,6 +65,7 @@ export {
 	type PlotFrameRef,
 	usePlotFrame,
 } from './use-plot-frame'
+export { usePrefersReducedMotion } from './use-prefers-reduced-motion'
 export { useResizeObserver } from './use-resize-observer'
 export { useScrollLock } from './use-scroll-lock'
 export { type ScrollOverflowOptions, useScrollOverflow } from './use-scroll-overflow'
