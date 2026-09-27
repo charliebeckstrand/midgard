@@ -1,10 +1,8 @@
 'use client'
 
-import type { OpenChangeReason } from '@floating-ui/react'
 import { type KeyboardEvent, useCallback, useMemo, useReducer, useRef } from 'react'
 
 import { validationAttrs } from '../../core'
-import { useControllable, useFloatingUI } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useLocale } from '../../providers/locale'
 import type { CalendarActive, CalendarHandle } from '../calendar'
@@ -14,7 +12,9 @@ import type { DatePickerBaseProps, DatePickerRangeProps } from './date-picker'
 import { datePickerRangeReducer, initialDatePickerRangeState } from './date-picker-range-reducer'
 import { addDays, addMonths, clampDate, formatRange } from './date-picker-utilities'
 import { useDatePickerControlled } from './use-date-picker-controlled'
+import { useDatePickerFloating } from './use-date-picker-floating'
 import { type FooterButton, useDatePickerKeyboard } from './use-date-picker-keyboard'
+import { useDatePickerOpen } from './use-date-picker-open'
 
 /**
  * Range state for {@link DatePicker}: a two-tap start/end selection held in a
@@ -76,25 +76,12 @@ export function useDatePickerRangeState({
 		onValueChange,
 	})
 
-	const [open = false, setOpenInner] = useControllable<boolean>({
-		value: openProp,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChangeProp?.(next ?? false),
+	const { open, setOpen, triggerRef } = useDatePickerOpen({
+		open: openProp,
+		defaultOpen,
+		onOpenChange: onOpenChangeProp,
+		readOnly: resolvedReadOnly,
 	})
-
-	// readOnly keeps the trigger focusable and the value submitted but blocks
-	// every open path; closing stays allowed so an externally-opened calendar
-	// can still dismiss (matching Listbox).
-	const setOpen = useCallback(
-		(next: boolean) => {
-			if (resolvedReadOnly && next) return
-
-			setOpenInner(next)
-		},
-		[resolvedReadOnly, setOpenInner],
-	)
-
-	const triggerRef = useRef<HTMLElement | null>(null)
 
 	const [state, dispatch] = useReducer(datePickerRangeReducer, initialDatePickerRangeState)
 
@@ -214,39 +201,15 @@ export function useDatePickerRangeState({
 		[handleClear],
 	)
 
-	const { refs, floatingStyles, context, getReferenceProps, getFloatingProps } = useFloatingUI({
-		placement,
-		open,
-		onOpenChange: handleOpenChange,
-		offset: 8,
-		role: 'dialog',
-		returnFocusTo: triggerRef,
-	})
-
-	// Public open-change entry: routes through floating-ui's context so a
-	// caller-supplied close reason reaches `useFloatingPanel`'s reason-aware
-	// focus return.
-	//
-	// The dependency is the handler, not the context that holds it. The engine
-	// rebuilds `context` on every reposition, while `onOpenChange` keeps one
-	// identity for the mount (see {@link useFloatingOutsidePress}), so naming
-	// the whole object would re-identify this callback as the panel moves.
-	const onOpenChange = useCallback(
-		(nextOpen: boolean, event?: Event, reason?: OpenChangeReason) =>
-			context.onOpenChange(nextOpen, event, reason),
-		[context.onOpenChange],
-	)
-
-	// Captures the trigger for `useFloatingUI`'s `returnFocusTo`;
-	// `FloatingFocusManager` runs with `returnFocus={false}`.
-	const setReference = useCallback(
-		(node: HTMLElement | null) => {
-			triggerRef.current = node
-
-			refs.setReference(node)
-		},
-		[refs],
-	)
+	const {
+		refs,
+		floatingStyles,
+		context,
+		getReferenceProps,
+		getFloatingProps,
+		onOpenChange,
+		setReference,
+	} = useDatePickerFloating({ placement, open, onOpenChange: handleOpenChange, triggerRef })
 
 	const setActive = useCallback(
 		(next: CalendarActive | null) => dispatch({ type: 'setActive', active: next }),

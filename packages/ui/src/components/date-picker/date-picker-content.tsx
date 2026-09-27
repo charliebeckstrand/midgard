@@ -1,6 +1,6 @@
 'use client'
 
-import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
+import type { FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import {
 	type CSSProperties,
@@ -12,7 +12,7 @@ import {
 
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
-import { PresencePortal } from '../../primitives/portal'
+import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
@@ -33,7 +33,7 @@ type DatePickerContentProps = {
 	open: boolean
 	setFloating: (node: HTMLElement | null) => void
 	floatingStyles: CSSProperties
-	getFloatingProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
+	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
 	 * Resolved size from `<DatePicker>`, re-broadcast via `<Density>`. The
@@ -115,92 +115,79 @@ export function DatePickerContent({
 	// uses a virtual highlight; seeding DOM focus on a button both misleads AT
 	// and orphans the arrow-key model. `input` mode overrides this with the
 	// editable DateInput via `initialFocusRef`.
-	const dialogRef = useRef<HTMLElement | null>(null)
+	const dialogRef = useRef<HTMLDivElement | null>(null)
 
 	const focusRef = initialFocusRef ?? dialogRef
 
+	// `FloatingSurface` composes this through floating-ui, so the handlers of the
+	// engine merge with it.
+	const handleDialogKeyDown = (event: KeyboardEvent<HTMLElement>) => {
+		// No handler: this content owns its own keyboard (see the
+		// `onKeyDown` prop doc) — skip the routing guards and the
+		// focus reclaim, which would steal from the field typed in.
+		if (!onKeyDown) return
+
+		// Keys from portaled descendants (the month/year picker
+		// popover) bubble here through the React tree, not the
+		// DOM. That surface owns its keyboard; acting here would
+		// drive the calendar underneath it.
+		if (event.target instanceof Node && !event.currentTarget.contains(event.target)) return
+
+		// Activation keys on a DOM-focused control (the user Tabbed
+		// to a header/footer button) belong to that control; only
+		// the dialog itself routes them to the virtual model.
+		if ((event.key === 'Enter' || event.key === ' ') && event.target !== event.currentTarget) return
+
+		// Navigation keys belong to the virtual model even when the
+		// user has Tabbed onto a control inside. Reclaim DOM focus
+		// for the dialog first: a grid move can re-anchor the month
+		// and unmount the focused day button, dropping focus to
+		// <body>.
+		if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
+			event.currentTarget.focus()
+		}
+
+		onKeyDown(event)
+	}
+
 	return (
-		<PresencePortal open={open} onExitComplete={onExitComplete}>
-			{/* `returnFocus={false}`: `useFloatingUI`'s `returnFocusTo` restores focus
-			    on Escape or selection but not on an outside-press dismiss, where focus
-			    follows the pointer. */}
-			<FloatingFocusManager
-				context={context}
-				modal
-				returnFocus={false}
-				initialFocus={focusRef}
-				getInsideElements={getInsideElements}
+		// `returnFocus={false}` in the surface: `useFloatingUI`'s `returnFocusTo` restores
+		// focus on Escape or selection, but not on an outside press, where focus follows
+		// the pointer.
+		<FloatingSurface
+			open={open}
+			onExitComplete={onExitComplete}
+			setFloating={setFloating}
+			floatingStyles={floatingStyles}
+			getFloatingProps={getFloatingProps}
+			trapFocusContext={context}
+			trapFocusProps={{ initialFocus: focusRef, getInsideElements }}
+			ref={dialogRef}
+			role="dialog"
+			aria-modal="true"
+			aria-label={label}
+			className={cn(k.content.portal)}
+			tabIndex={-1}
+			onKeyDown={handleDialogKeyDown}
+		>
+			<motion.div
+				{...k.content.motion}
+				data-slot="datepicker-content"
+				data-size={size}
+				className={cn('z-50', k.content.text, glass && k.content.glass)}
+				onMouseDown={(event) => event.preventDefault()}
 			>
-				<div
-					ref={(node) => {
-						setFloating(node)
-
-						dialogRef.current = node
-					}}
-					role="dialog"
-					aria-modal="true"
-					aria-label={label}
-					style={floatingStyles}
-					className={cn(k.content.portal)}
-					tabIndex={-1}
-					{...getFloatingProps({
-						// Composed through floating-ui; its own handlers merge
-						// rather than clobber.
-						onKeyDown: (event: KeyboardEvent<HTMLElement>) => {
-							// No handler: this content owns its own keyboard (see the
-							// `onKeyDown` prop doc) — skip the routing guards and the
-							// focus reclaim, which would steal from the field typed in.
-							if (!onKeyDown) return
-
-							// Keys from portaled descendants (the month/year picker
-							// popover) bubble here through the React tree, not the
-							// DOM. That surface owns its keyboard; acting here would
-							// drive the calendar underneath it.
-							if (event.target instanceof Node && !event.currentTarget.contains(event.target))
-								return
-
-							// Activation keys on a DOM-focused control (the user Tabbed
-							// to a header/footer button) belong to that control; only
-							// the dialog itself routes them to the virtual model.
-							if (
-								(event.key === 'Enter' || event.key === ' ') &&
-								event.target !== event.currentTarget
-							)
-								return
-
-							// Navigation keys belong to the virtual model even when the
-							// user has Tabbed onto a control inside. Reclaim DOM focus
-							// for the dialog first: a grid move can re-anchor the month
-							// and unmount the focused day button, dropping focus to
-							// <body>.
-							if (ARROW_KEYS.has(event.key) && event.target !== event.currentTarget) {
-								event.currentTarget.focus()
-							}
-
-							onKeyDown(event)
-						},
-					})}
-				>
-					<motion.div
-						{...k.content.motion}
-						data-slot="datepicker-content"
-						data-size={size}
-						className={cn('z-50', k.content.text, glass && k.content.glass)}
-						onMouseDown={(event) => event.preventDefault()}
+				<Density scale={size}>
+					<Box
+						bg={glass ? 'none' : 'popover'}
+						outline={glass || undefined}
+						radius="lg"
+						className={k.content.body({ density: size })}
 					>
-						<Density scale={size}>
-							<Box
-								bg={glass ? 'none' : 'popover'}
-								outline={glass || undefined}
-								radius="lg"
-								className={k.content.body({ density: size })}
-							>
-								{children}
-							</Box>
-						</Density>
-					</motion.div>
-				</div>
-			</FloatingFocusManager>
-		</PresencePortal>
+						{children}
+					</Box>
+				</Density>
+			</motion.div>
+		</FloatingSurface>
 	)
 }

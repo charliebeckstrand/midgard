@@ -1,7 +1,6 @@
 'use client'
 
-import { FloatingFocusManager, FloatingPortal, type FloatingRootContext } from '@floating-ui/react'
-import { AnimatePresence } from 'motion/react'
+import { FloatingFocusManager, type FloatingRootContext } from '@floating-ui/react'
 import {
 	type CSSProperties,
 	type HTMLProps,
@@ -12,7 +11,7 @@ import {
 import { cn } from '../../core'
 import { Density } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
-import { usePortalContainer } from '../../primitives/portal'
+import { PresencePortal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
 import type { ControlSize } from '../control/context'
 
@@ -37,7 +36,7 @@ type ListboxPanelProps = {
 }
 
 /**
- * Internal: the listbox menu surface rendered through FloatingPortal.
+ * Internal: the listbox menu surface rendered through `PresencePortal`.
  * Owns the entry/exit animation and the listbox role; the caller supplies
  * floating positioning and open state.
  *
@@ -60,8 +59,6 @@ export function ListboxPanel({
 	onTabOut,
 	children,
 }: ListboxPanelProps) {
-	const root = usePortalContainer()
-
 	// The element `FloatingFocusManager` lands focus on when the panel opens:
 	// the selected option (arrow keys resume from the current value), else the
 	// listbox itself. Populated in the floating node's ref callback, which
@@ -70,53 +67,51 @@ export function ListboxPanel({
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
 	return (
-		<FloatingPortal root={root ?? undefined}>
-			<AnimatePresence onExitComplete={flushPending}>
-				{open && (
-					// Non-modal: focus moves into the panel on open and stays contained.
-					// Tab exits through `onTabOut`: commit (at the option), close, and
-					// carry focus past the trigger (a select closes on Tab; it doesn't
-					// trap like a dialog); `closeOnFocusOut` still dismisses any other
-					// focus departure. `useFloatingUI`'s `returnFocusTo` manages
-					// return-focus; `returnFocus={false}` suppresses the manager's own.
-					<FloatingFocusManager
-						context={context}
-						modal={false}
-						initialFocus={initialFocusRef}
-						returnFocus={false}
-					>
-						<div
-							ref={(node) => {
-								setFloating(node)
+		// `PresencePortal` mounts the portal only while open, so a closed Select keeps
+		// no empty portal node in the document.
+		<PresencePortal open={open} onExitComplete={flushPending}>
+			{/* Non-modal: focus moves into the panel on open and stays contained. Tab
+			    exits through `onTabOut`: it commits at the option, closes, and carries
+			    focus past the trigger. A select closes on Tab and does not trap focus.
+			    `closeOnFocusOut` dismisses on any other focus departure. The
+			    `returnFocusTo` of `useFloatingUI` restores focus, so `returnFocus={false}`
+			    turns off the restore of the manager. */}
+			<FloatingFocusManager
+				context={context}
+				modal={false}
+				initialFocus={initialFocusRef}
+				returnFocus={false}
+			>
+				<div
+					ref={(node) => {
+						setFloating(node)
 
-								initialFocusRef.current =
-									node?.querySelector<HTMLElement>('[role="option"][data-selected]') ??
-									node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
-									node
-							}}
-							style={floatingStyles}
-							className={k.portal}
-							tabIndex={-1}
-							{...getFloatingProps({ onKeyDown: onTabOut })}
+						initialFocusRef.current =
+							node?.querySelector<HTMLElement>('[role="option"][data-selected]') ??
+							node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
+							node
+					}}
+					style={floatingStyles}
+					className={k.portal}
+					tabIndex={-1}
+					{...getFloatingProps({ onKeyDown: onTabOut })}
+				>
+					<Density space={density} size={size}>
+						<PopoverPanel
+							id={id}
+							role="listbox"
+							aria-label={ariaLabel}
+							aria-labelledby={ariaLabelledby}
+							multiselectable={multiple || undefined}
+							typeahead
+							glass={glass}
+							className={cn(k.panel, k.options)}
 						>
-							<Density space={density} size={size}>
-								<PopoverPanel
-									id={id}
-									role="listbox"
-									aria-label={ariaLabel}
-									aria-labelledby={ariaLabelledby}
-									multiselectable={multiple || undefined}
-									typeahead
-									glass={glass}
-									className={cn(k.panel, k.options)}
-								>
-									{children}
-								</PopoverPanel>
-							</Density>
-						</div>
-					</FloatingFocusManager>
-				)}
-			</AnimatePresence>
-		</FloatingPortal>
+							{children}
+						</PopoverPanel>
+					</Density>
+				</div>
+			</FloatingFocusManager>
+		</PresencePortal>
 	)
 }

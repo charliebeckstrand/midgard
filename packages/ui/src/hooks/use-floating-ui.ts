@@ -2,6 +2,7 @@
 
 import {
 	autoUpdate,
+	type ElementProps,
 	type ExtendedRefs,
 	type FloatingRootContext,
 	flip,
@@ -452,6 +453,63 @@ function pressLandsInNestedSurface(
 	return !(reference != null && targetPortal.contains(reference))
 }
 
+/** Options for {@link useFloatingDismissal}. @internal */
+type FloatingDismissalOptions = {
+	open: boolean
+	/** The popup role, or `null` for a surface that owns its roles. */
+	role: 'listbox' | 'menu' | 'dialog' | 'tooltip' | null
+	/** Whether the surface answers Escape and an outside press. */
+	dismissable: boolean
+}
+
+/**
+ * The dismiss and role wiring that {@link useFloatingUI} and
+ * `useFloatingDisclosure` share.
+ *
+ * Escape goes through the shared dismiss-layer stack, not through the flat
+ * document listener of floating-ui. Then a surface inside a Dialog or a Sheet
+ * consumes the press, and the surface below stays open. A tooltip stays out of
+ * the stack. It closes on any Escape, and the layer below still gets the press.
+ *
+ * The outside press goes through {@link useFloatingOutsidePress}, not through
+ * the built-in `outsidePress` of `useDismiss`. That option has a "third-party
+ * element" escape hatch. It spares any outside press when another modal marks
+ * sibling elements `inert`, which is the case inside a Dialog or a Sheet.
+ *
+ * Dismissals go through `context.onOpenChange`, so the close reason gets to the
+ * focus return of `useFloatingPanel` and to the `openchange` listeners of
+ * floating-ui. The `'escape-key'` reason arms the re-open block of `useFocus`.
+ *
+ * @returns The `dismiss` and `role` interactions, for `useInteractions`.
+ * @internal
+ */
+export function useFloatingDismissal(
+	context: FloatingRootContext,
+	refs: ExtendedRefs<ReferenceType>,
+	{ open, role: roleProp, dismissable }: FloatingDismissalOptions,
+): { dismiss: ElementProps; role: ElementProps } {
+	const dismiss = useDismiss(context, { escapeKey: false, outsidePress: false })
+
+	useEscapeLayer({
+		open,
+		enabled: dismissable,
+		layered: roleProp !== 'tooltip',
+		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
+	})
+
+	// Published whether or not the panel dismisses on an outside press. A test in
+	// a sibling reads it to tell a nested surface from an unrelated one.
+	useFloatingPortalReference(context, refs)
+
+	useFloatingOutsidePress(context, refs, open && dismissable)
+
+	// `enabled: false` keeps the Hook call unconditional (rules of hooks), and
+	// gives no role props to a component that owns its roles.
+	const role = useRole(context, { role: roleProp ?? 'listbox', enabled: roleProp !== null })
+
+	return { dismiss, role }
+}
+
 /** Options for {@link useFloatingUI}: the {@link FloatingPanelOptions} plus the open state, the dismiss wiring, and the role. */
 export type FloatingUIOptions = FloatingPanelOptions & {
 	/**
@@ -486,30 +544,13 @@ export function useFloatingUI({
 }: FloatingUIOptions): FloatingUIResult {
 	const { refs, floatingStyles, context } = useFloatingPanel(rest)
 
-	// Escape goes through the shared dismiss-layer stack instead of
-	// floating-ui's flat document listener, so a panel inside a Dialog/Sheet
-	// consumes the press without also closing the surface beneath.
-	const dismiss = useDismiss(context, { outsidePress: false, escapeKey: false })
-
-	// `enabled: false` keeps the Hook call unconditional (rules of hooks) while
-	// emitting no role/aria props for a component that owns its roles.
-	const role = useRole(context, { role: roleProp ?? 'listbox', enabled: roleProp !== null })
-
-	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
-
-	const { open } = rest
-
-	// Dismissals route through `context.onOpenChange` rather than the raw
-	// prop, so the close reason reaches `useFloatingPanel`'s focus-return
-	// effect and floating-ui's own `openchange` listeners.
-	useEscapeLayer({
-		open,
-		onDismiss: (event) => context.onOpenChange(false, event, 'escape-key'),
+	const { dismiss, role } = useFloatingDismissal(context, refs, {
+		open: rest.open,
+		role: roleProp,
+		dismissable: true,
 	})
 
-	useFloatingPortalReference(context, refs)
-
-	useFloatingOutsidePress(context, refs, open)
+	const { getReferenceProps, getFloatingProps } = useInteractions([dismiss, role])
 
 	return { refs, floatingStyles, context, getReferenceProps, getFloatingProps }
 }
