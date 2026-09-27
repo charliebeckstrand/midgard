@@ -1,9 +1,9 @@
+import shellscript from '@shikijs/langs-precompiled/shellscript'
+import tsx from '@shikijs/langs-precompiled/tsx'
+import typescript from '@shikijs/langs-precompiled/typescript'
 import type { CodeToHastOptions } from 'shiki/core'
 import { createHighlighterCore } from 'shiki/core'
-import { createJavaScriptRegexEngine } from 'shiki/engine/javascript'
-import shellscript from 'shiki/langs/shellscript.mjs'
-import tsx from 'shiki/langs/tsx.mjs'
-import typescript from 'shiki/langs/typescript.mjs'
+import { createJavaScriptRawEngine } from 'shiki/engine/javascript'
 import githubDarkDefault from 'shiki/themes/github-dark-default.mjs'
 
 // Curated Shiki build for the docs site, aliased over the bare `shiki`
@@ -14,10 +14,12 @@ import githubDarkDefault from 'shiki/themes/github-dark-default.mjs'
 // ~50 grammars (cpp, php, blade, julia, vue-vine…), ~30 themes, and a 622 kB
 // oniguruma-wasm chunk, none of which the docs reach.
 
-// The JS regex engine tokenizes in-process, so no oniguruma-wasm chunk is
-// emitted or prebundled. `forgiving` skips the handful of Oniguruma-only
-// patterns in the shell grammar rather than throwing on them.
-const engine = createJavaScriptRegexEngine({ forgiving: true })
+// The grammars come precompiled: their Oniguruma patterns are already JS
+// RegExp source, so the raw engine does not translate each rule on its first
+// use. That translation was about 40% of the first highlight on a demo page. The
+// engine tokenizes in-process, so no oniguruma-wasm chunk is emitted or
+// prebundled.
+const engine = createJavaScriptRawEngine()
 
 // Memoize the in-flight promise so the highlighter (and its grammars) is built
 // at most once, mirroring the lazy `import('shiki')` boundary in CodeBlock.
