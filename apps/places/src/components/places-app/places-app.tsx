@@ -301,11 +301,10 @@ export function PlacesApp({ user }: { user: User }) {
 		[filtered, cut, placesByRegion],
 	)
 
-	// The view that the country search asks to render ahead of a selection, and
-	// the view that the reader was on when it asked. The map for it renders
-	// hidden, keyed on the view, so a selection shows a map that React already
-	// rendered. A request from a view that the reader left is stale, and nothing
-	// renders for it.
+	// The view that the reader is about to open, and the view that the reader was
+	// on when the request came. The map for it renders hidden, keyed on the view,
+	// so a pick shows a map that React already rendered. A request from a view
+	// that the reader left is stale, and nothing renders for it.
 	const [preload, setPreload] = useState<{ from: string; view: PlaceView } | null>(null)
 
 	const here = viewKey(view)
@@ -315,8 +314,10 @@ export function PlacesApp({ user }: { user: User }) {
 			? preload.view
 			: null
 
+	// The country search and the map both ask for it: the search for its active
+	// option, and the map for the region that the pointer stays on.
 	const onPreload = useCallback(
-		(country: string) => setPreload({ from: here, view: drillInto(view, country) }),
+		(region: string) => setPreload({ from: here, view: drillInto(view, region) }),
 		[here, view],
 	)
 
@@ -494,6 +495,7 @@ export function PlacesApp({ user }: { user: User }) {
 						visited={visited}
 						visitedRegions={filter.visitedRegions}
 						onDrill={(region) => setView(drillInto(view, region))}
+						onPreload={onPreload}
 						selected={selected[0] ?? null}
 						onSelect={(picked) => setSelected(picked.map((place) => place.id))}
 					/>
