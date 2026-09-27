@@ -4,6 +4,8 @@ import { Icon } from '../../../components/icon'
 import { PasswordInput } from '../../../components/password-input'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 export function Demo() {
 	return (
 		<>

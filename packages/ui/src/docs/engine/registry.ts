@@ -18,8 +18,9 @@ export type DemoLoaders = Record<string, () => Promise<ComponentType>>
 // A demo's category is its subfolder under `demos/` (`demos/pages/x` →
 // 'pages'); top-level demos are 'components'. Any subfolder becomes its own
 // category, so a library groups demos simply by adding folders — the sidebar
-// renders a section per category present, in no fixed set.
-function categoryOf(path: string): string {
+// renders a section per category present, in no fixed set. A demo's
+// `meta.category` overrides the folder for the sidebar section only.
+function folderOf(path: string): string {
 	const rel = path.replace(/^\.\/demos\//, '')
 
 	const slash = rel.indexOf('/')
@@ -182,17 +183,19 @@ export function initRegistry(loaders: DemoLoaders): { initialPreload: Promise<un
 
 		loaderById.set(id, loader)
 
-		const category = categoryOf(path)
+		const folder = folderOf(path)
 
 		// Strip the category prefix the id carries for namespaced subfolders
 		// (`pages-auth` → `auth`), then title-case for the fallback display name.
-		const label = id.startsWith(`${category}-`) ? id.slice(category.length + 1) : id
+		const label = id.startsWith(`${folder}-`) ? id.slice(folder.length + 1) : id
 
 		const meta = metaById.get(id)
 
 		const name = meta?.name ?? titleCase(label)
 
-		list.push({ id, name, category })
+		// A meta `category` moves the demo to another sidebar section. The id stays
+		// on the folder, so the hash route and the API reference key do not change.
+		list.push({ id, name, category: meta?.category ?? folder })
 	}
 
 	demos = list.sort((a, b) => a.name.localeCompare(b.name))

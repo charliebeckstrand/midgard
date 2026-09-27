@@ -121,8 +121,8 @@ function highest(term: string): string {
 /** Reads one term, or `null` where it names no rule. @internal */
 function readRule(term: string): MapZipRule | null {
 	// A ZIP+4 names one delivery segment inside a code, and no atlas draws below
-	// the code — so the segment is dropped and the code stands. `ZipcodeInput`
-	// emits this form, which is what makes a pasted field's output parse as-is.
+	// the code — so the segment is dropped and the code stands. A `zipcodeMask`
+	// field emits this form, which is what makes a pasted field's output parse as-is.
 	// Read first, because a range would read this shape as a span as well.
 	const plusFour = PLUS_FOUR_TERM.exec(term)
 

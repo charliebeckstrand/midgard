@@ -10,6 +10,8 @@ import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 function ControlledExample() {
 	const [value, setValue] = useState('')
 

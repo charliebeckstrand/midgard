@@ -18,12 +18,11 @@ import { DatePicker } from '../../../components/date-picker'
 import { Field, Label, Message } from '../../../components/fieldset'
 import { FileUploadButton, FileUploadDrop } from '../../../components/file-upload'
 import { Input } from '../../../components/input'
-import { MaskInput } from '../../../components/mask-input'
+import { MaskInput, phoneMask, zipcodeMask } from '../../../components/mask-input'
 import { NumberInput } from '../../../components/number-input'
 import { PasswordConfirm, PasswordConfirmInput } from '../../../components/password-confirm'
 import { PasswordInput } from '../../../components/password-input'
 import { PasswordStrength } from '../../../components/password-strength'
-import { PhoneInput } from '../../../components/phone-input'
 import { Radio, RadioField, RadioGroup, RadioSkeleton } from '../../../components/radio'
 import { Rating, RatingSkeleton } from '../../../components/rating'
 import { SearchInput } from '../../../components/search-input'
@@ -34,7 +33,6 @@ import { Switch, SwitchField, SwitchSkeleton } from '../../../components/switch'
 import { TagInput } from '../../../components/tag-input'
 import { Textarea, TextareaSkeleton } from '../../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../../components/toggle-icon-button'
-import { ZipcodeInput } from '../../../components/zipcode-input'
 import type { Case } from './types'
 
 // A license-plate mask: uppercase, alphanumeric, grouped 3-4 (mirrors the demo).
@@ -369,29 +367,41 @@ export const inputCases: readonly Case[] = [
 		],
 	},
 	{
-		name: 'phone input',
+		name: 'mask input, phone preset',
 		element: (
 			<Field key="ph">
 				<Label>Phone</Label>
-				<PhoneInput placeholder="(555) 555-5555" />
+				<MaskInput mask={phoneMask()} placeholder="(555) 555-5555" />
 			</Field>
 		),
-		textInput: [{ render: (props) => <PhoneInput {...props} />, slot: 'phone-input' }],
+		textInput: [
+			{ render: (props) => <MaskInput mask={phoneMask()} {...props} />, slot: 'mask-input' },
+		],
 		touchOnBlur: [
-			{ render: (props) => <PhoneInput {...props} />, defaultValue: '', slot: 'phone-input' },
+			{
+				render: (props) => <MaskInput mask={phoneMask()} {...props} />,
+				defaultValue: '',
+				slot: 'mask-input',
+			},
 		],
 	},
 	{
-		name: 'zipcode input',
+		name: 'mask input, zipcode preset',
 		element: (
 			<Field key="zip">
 				<Label>ZIP</Label>
-				<ZipcodeInput country="US" />
+				<MaskInput mask={zipcodeMask('US')} />
 			</Field>
 		),
-		textInput: [{ render: (props) => <ZipcodeInput {...props} />, slot: 'zipcode-input' }],
+		textInput: [
+			{ render: (props) => <MaskInput mask={zipcodeMask()} {...props} />, slot: 'mask-input' },
+		],
 		touchOnBlur: [
-			{ render: (props) => <ZipcodeInput {...props} />, defaultValue: '', slot: 'zipcode-input' },
+			{
+				render: (props) => <MaskInput mask={zipcodeMask()} {...props} />,
+				defaultValue: '',
+				slot: 'mask-input',
+			},
 		],
 	},
 	{
@@ -399,18 +409,18 @@ export const inputCases: readonly Case[] = [
 		element: (
 			<Field key="mask">
 				<Label>License plate</Label>
-				<MaskInput format={formatLicensePlate} placeholder="ABC-1234" />
+				<MaskInput mask={formatLicensePlate} placeholder="ABC-1234" />
 			</Field>
 		),
 		textInput: [
 			{
-				render: (props) => <MaskInput format={formatLicensePlate} {...props} />,
+				render: (props) => <MaskInput mask={formatLicensePlate} {...props} />,
 				slot: 'mask-input',
 			},
 		],
 		touchOnBlur: [
 			{
-				render: (props) => <MaskInput format={formatLicensePlate} {...props} />,
+				render: (props) => <MaskInput mask={formatLicensePlate} {...props} />,
 				defaultValue: '',
 				slot: 'mask-input',
 			},

@@ -10,6 +10,8 @@ import { Field, Label } from '../../../components/fieldset'
 import { Text } from '../../../components/text'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 const places = [
 	{
 		id: '1',

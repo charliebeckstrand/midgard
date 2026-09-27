@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
-import { PhoneInput } from '../../components/phone-input'
+import { MaskInput, phoneMask } from '../../components/mask-input'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
-describe('PhoneInput', () => {
+describe('phoneMask', () => {
 	it('renders an input with type tel and a phone icon prefix by default', () => {
-		const { container } = renderUI(<PhoneInput />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} />)
 
-		const input = bySlot(container, 'phone-input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -20,9 +20,9 @@ describe('PhoneInput', () => {
 	it('formats US numbers as the user types', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} onValueChange={onChange} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -36,9 +36,9 @@ describe('PhoneInput', () => {
 	it('strips non-digit characters for US country', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<PhoneInput onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} onValueChange={onChange} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -48,9 +48,9 @@ describe('PhoneInput', () => {
 	})
 
 	it('preserves leading + for international country', async () => {
-		const { container } = renderUI(<PhoneInput country="international" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask('international')} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -60,17 +60,17 @@ describe('PhoneInput', () => {
 	})
 
 	it('formats defaultValue on initial render', () => {
-		const { container } = renderUI(<PhoneInput defaultValue="5551234567" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="5551234567" />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
 
 	it('keeps the caret next to the typed digit when format inserts separators', async () => {
-		const { container } = renderUI(<PhoneInput defaultValue="5556789" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="5556789" />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('555-6789')
 
@@ -89,24 +89,24 @@ describe('PhoneInput', () => {
 
 	it('renders a custom prefix in place of the default phone icon', () => {
 		const { container } = renderUI(
-			<PhoneInput prefix={<span data-testid="custom-prefix">PHN</span>} />,
+			<MaskInput mask={phoneMask()} prefix={<span data-testid="custom-prefix">PHN</span>} />,
 		)
 
 		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
 	})
 
 	it('strips a leading country-code 1 from an 11-digit US number', () => {
-		const { container } = renderUI(<PhoneInput defaultValue="15551234567" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="15551234567" />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('(555) 123-4567')
 	})
 
 	it('preserves a leading + with no digits for international country', async () => {
-		const { container } = renderUI(<PhoneInput country="international" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask('international')} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -117,18 +117,18 @@ describe('PhoneInput', () => {
 
 	it('formats digits without a + for international country', () => {
 		const { container } = renderUI(
-			<PhoneInput country="international" defaultValue="14155551234" />,
+			<MaskInput mask={phoneMask('international')} defaultValue="14155551234" />,
 		)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('14155551234')
 	})
 
 	it('renders an empty string for an empty US value', () => {
-		const { container } = renderUI(<PhoneInput defaultValue="" />)
+		const { container } = renderUI(<MaskInput mask={phoneMask()} defaultValue="" />)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe('')
 	})
@@ -138,14 +138,14 @@ describe('PhoneInput', () => {
 
 		const { container } = renderUI(
 			<Form defaultValues={{ phone: '' }} onSubmit={onSubmit}>
-				<PhoneInput name="phone" />
+				<MaskInput mask={phoneMask()} name="phone" />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		await user.type(input, '5551234567')
 
@@ -162,12 +162,12 @@ describe('PhoneInput', () => {
 	it('marks the form field touched on blur', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ phone: '' }}>
-				<PhoneInput name="phone" />
+				<MaskInput mask={phoneMask()} name="phone" />
 				<FieldProbe name="phone" />
 			</Form>,
 		)
 
-		const input = getSlot<HTMLInputElement>(container, 'phone-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 

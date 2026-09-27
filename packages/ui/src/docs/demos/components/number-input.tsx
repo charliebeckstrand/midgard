@@ -3,6 +3,8 @@ import { Field, Label } from '../../../components/fieldset'
 import { NumberInput } from '../../../components/number-input'
 import { Example } from '../../engine'
 
+export const meta = { category: 'input' }
+
 function ControlledExample() {
 	const [value, setValue] = useState<number | null>(3)
 

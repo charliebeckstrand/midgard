@@ -1,15 +1,15 @@
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Form } from '../../components/form'
-import { ZipcodeInput } from '../../components/zipcode-input'
+import { MaskInput, zipcodeMask } from '../../components/mask-input'
 import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
-describe('ZipcodeInput', () => {
-	it('renders an input with data-slot="zipcode-input" and a map-pin icon prefix by default', () => {
-		const { container } = renderUI(<ZipcodeInput />)
+describe('zipcodeMask', () => {
+	it('renders an input with a map-pin icon prefix by default', () => {
+		const { container } = renderUI(<MaskInput mask={zipcodeMask()} />)
 
-		const input = bySlot(container, 'zipcode-input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toBeInTheDocument()
 
@@ -20,26 +20,40 @@ describe('ZipcodeInput', () => {
 
 	it('renders a custom prefix in place of the default map-pin icon', () => {
 		const { container } = renderUI(
-			<ZipcodeInput prefix={<span data-testid="custom-prefix">ZIP</span>} />,
+			<MaskInput mask={zipcodeMask()} prefix={<span data-testid="custom-prefix">ZIP</span>} />,
 		)
 
 		expect(container.querySelector('[data-testid="custom-prefix"]')).toBeInTheDocument()
 	})
 
 	it('uses a country-appropriate default placeholder', () => {
-		const { container } = renderUI(<ZipcodeInput country="CA" />)
+		const { container } = renderUI(<MaskInput mask={zipcodeMask('CA')} />)
 
-		const input = bySlot(container, 'zipcode-input')
+		const input = bySlot(container, 'mask-input')
 
 		expect(input).toHaveAttribute('placeholder', 'A1A 1A1')
+	})
+
+	it('lets an explicit prop override a preset default', () => {
+		const { container } = renderUI(
+			<MaskInput mask={zipcodeMask('CA')} placeholder="Postal code" inputMode="numeric" />,
+		)
+
+		const input = bySlot(container, 'mask-input')
+
+		expect(input).toHaveAttribute('placeholder', 'Postal code')
+
+		expect(input).toHaveAttribute('inputmode', 'numeric')
+
+		expect(input).toHaveAttribute('autocomplete', 'postal-code')
 	})
 
 	it('formats US ZIP+4 with a dash', async () => {
 		const onChange = vi.fn()
 
-		const { container } = renderUI(<ZipcodeInput onValueChange={onChange} />)
+		const { container } = renderUI(<MaskInput mask={zipcodeMask()} onValueChange={onChange} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -51,9 +65,9 @@ describe('ZipcodeInput', () => {
 	})
 
 	it('strips non-digit characters for US', async () => {
-		const { container } = renderUI(<ZipcodeInput />)
+		const { container } = renderUI(<MaskInput mask={zipcodeMask()} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -63,9 +77,9 @@ describe('ZipcodeInput', () => {
 	})
 
 	it('uppercases and spaces Canadian postal codes', async () => {
-		const { container } = renderUI(<ZipcodeInput country="CA" />)
+		const { container } = renderUI(<MaskInput mask={zipcodeMask('CA')} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
@@ -74,40 +88,44 @@ describe('ZipcodeInput', () => {
 		expect(input.value).toBe('K1A 0B1')
 	})
 
-	it.each<[string, ComponentProps<typeof ZipcodeInput>, string]>([
-		['formats defaultValue on initial render', { defaultValue: '941031234' }, '94103-1234'],
+	it.each<[string, ComponentProps<typeof MaskInput>, string]>([
+		[
+			'formats defaultValue on initial render',
+			{ mask: zipcodeMask(), defaultValue: '941031234' },
+			'94103-1234',
+		],
 		[
 			'uppercases GB postcodes while preserving an internal space',
-			{ country: 'GB', defaultValue: 'sw1a 1aa' },
+			{ mask: zipcodeMask('GB'), defaultValue: 'sw1a 1aa' },
 			'SW1A 1AA',
 		],
 		[
 			'strips invalid characters and collapses whitespace for GB',
-			{ country: 'GB', defaultValue: 'sw1a  1aa@@' },
+			{ mask: zipcodeMask('GB'), defaultValue: 'sw1a  1aa@@' },
 			'SW1A 1AA',
 		],
 		[
 			'caps GB postcodes at eight characters',
-			{ country: 'GB', defaultValue: 'abcdefghijk' },
+			{ mask: zipcodeMask('GB'), defaultValue: 'abcdefghijk' },
 			'ABCDEFGH',
 		],
 		[
 			'passes international codes through, truncated to twelve characters',
-			{ country: 'international', defaultValue: 'abc-123 def/456' },
+			{ mask: zipcodeMask('international'), defaultValue: 'abc-123 def/456' },
 			'abc-123 def/',
 		],
 	])('%s', (_name, props, expected) => {
-		const { container } = renderUI(<ZipcodeInput {...props} />)
+		const { container } = renderUI(<MaskInput {...props} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input.value).toBe(expected)
 	})
 
 	it('uses an empty default placeholder for international codes', () => {
-		const { container } = renderUI(<ZipcodeInput country="international" />)
+		const { container } = renderUI(<MaskInput mask={zipcodeMask('international')} />)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		expect(input).toHaveAttribute('placeholder', '')
 
@@ -119,14 +137,14 @@ describe('ZipcodeInput', () => {
 
 		const { container } = renderUI(
 			<Form defaultValues={{ zip: '' }} onSubmit={onSubmit}>
-				<ZipcodeInput name="zip" />
+				<MaskInput mask={zipcodeMask()} name="zip" />
 				<button type="submit">Submit</button>
 			</Form>,
 		)
 
 		const user = userEvent.setup({ delay: null })
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		await user.type(input, '941031234')
 
@@ -143,12 +161,12 @@ describe('ZipcodeInput', () => {
 	it('marks the form field touched on blur', async () => {
 		const { container } = renderUI(
 			<Form defaultValues={{ zip: '' }}>
-				<ZipcodeInput name="zip" />
+				<MaskInput mask={zipcodeMask()} name="zip" />
 				<FieldProbe name="zip" />
 			</Form>,
 		)
 
-		const input = getSlot<HTMLInputElement>(container, 'zipcode-input')
+		const input = getSlot<HTMLInputElement>(container, 'mask-input')
 
 		const user = userEvent.setup({ delay: null })
 
