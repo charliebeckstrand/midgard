@@ -121,9 +121,6 @@
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"
 	},
-	"modules/grid/use-grid-data-cursor.ts": {
-		"useStableHandler": "Refs"
-	},
 	"modules/grid/use-grid-data-frame.ts": {
 		"useTableRevealed": "Refs"
 	},
