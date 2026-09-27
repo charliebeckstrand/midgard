@@ -156,7 +156,8 @@ export type MapAspectRatio = number | `${number}/${number}` | 'auto' | false
 
 /**
  * Where the map's legend sits around the plot: a centered row above or below
- * it, or a column panel beside it. The panel sits side by side from `lg`, and
- * under the map below that.
+ * it, or a column panel beside it. The panel sits side by side once the map's
+ * own width reaches `@lg` (32rem), and under the map below that. The viewport
+ * does not decide it.
  */
 export type MapLegendPlacement = ChartLegendPlacement

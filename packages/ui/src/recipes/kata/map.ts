@@ -159,15 +159,15 @@ export const k = {
 	 * frame never shifts as entries land:
 	 *
 	 * - The `row` placements (top / bottom, and every placement stacked below
-	 *   `lg`) hold one item-row of height.
-	 * - The side `panel` holds a fixed column width from `lg`. A label too wide
+	 *   the map's own `@lg` width) hold one item-row of height.
+	 * - The side `panel` holds a fixed column width from the map's `@lg` width. A label too wide
 	 *   for it clips, revealing itself on hover.
 	 *
 	 * The plot's width therefore never depends on what has registered.
 	 */
 	legendBox: {
 		row: 'min-h-4',
-		panel: ['min-h-4', 'shrink-0', 'lg:w-48'],
+		panel: ['min-h-4', 'shrink-0', '@lg:w-48'],
 	},
 	/** Motion vocabulary for the mount reveals, from `zu`, so the two modules' reveals never drift. */
 	motion,

@@ -73,7 +73,7 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			// edge rather than each entry centering its own content; the row under the
 			// map keeps every entry its own width. The width is capped at the row, so a
 			// long name clips instead of overflowing a narrow screen.
-			className={cn('max-w-full gap-2', panel && 'lg:w-full lg:justify-start')}
+			className={cn('max-w-full gap-2', panel && '@lg:w-full @lg:justify-start')}
 			onClick={() => onToggle(item.id)}
 			onPointerEnter={() => onFocus(item.id)}
 			onPointerLeave={() => onFocus(null)}
@@ -212,14 +212,14 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 				// legend. A single column put each entry on its own line, which made the
 				// legend tall on a phone.
 				!panel && 'flex max-w-full flex-wrap items-center justify-center',
-				// The side panel is a grid column. At `lg` the column is capped
+				// The side panel is a grid column. At `@lg` the column is capped
 				// (`grid-cols-1` tracks at `minmax(0,1fr)`) rather than left to size
 				// itself. An implicit track is max-content, and an entry whose name
 				// never wraps contributes its whole name to that — so the track grew
 				// past the rail it sits in and the entries overhung the reserved column
 				// instead of clipping inside it.
 				panel &&
-					'mx-auto grid w-fit max-w-full justify-items-start lg:mx-0 lg:w-full lg:grid-cols-1',
+					'mx-auto grid w-fit max-w-full justify-items-start @lg:mx-0 @lg:w-full @lg:grid-cols-1',
 			)}
 		>
 			{items.map((item) => (
