@@ -70,11 +70,17 @@ export function useAtlas(atlas: PlaceAtlas, enabled = true) {
  * Its own query rather than a field on the places: a region is visited whether
  * or not anything was recorded in it, so nothing about this set can be read off
  * the other one.
+ *
+ * `initial` is the set that the page read on the server. It fills the cache
+ * before the first render, so the Visited toggle paints its true state on the
+ * first frame. Without it, the toggle paints as not visited until the fetch
+ * lands. The query refetches it when it goes stale, as with any other entry.
  */
-export function useVisits() {
+export function useVisits(initial: Visits) {
 	return useQuery({
 		queryKey: placesKeys.visits,
 		queryFn: ({ signal }) => fetchVisits(signal),
+		initialData: initial,
 	})
 }
 

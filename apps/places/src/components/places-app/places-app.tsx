@@ -55,9 +55,6 @@ import { usePlaceLocation } from './use-place-location'
 /** The empty list a pending places query stands in for, held so its identity is stable. */
 const NO_PLACES: Place[] = []
 
-/** The same, for the visited regions of both scopes. */
-const NO_VISITS: Visits = { states: [], countries: [] }
-
 /** What the region picker calls itself, per atlas. */
 const REGION_LABEL = {
 	states: 'All states',
@@ -87,9 +84,10 @@ function placesInRegion(
  * It owns every piece of state the panels share — the filter, the view, and
  * which place is open — because each of them is read by more than one child and
  * none of them belongs to a single panel. `user` is the signed-in user, for the
- * menu.
+ * menu. `visits` is the visited set that the page read on the server, so the
+ * Visited toggle is correct on the first paint.
  */
-export function PlacesApp({ user }: { user: User }) {
+export function PlacesApp({ user, visits: initialVisits }: { user: User; visits: Visits }) {
 	const { data: places = NO_PLACES, isPending, error } = usePlaces()
 
 	const addPlace = useAddPlace()
@@ -98,7 +96,7 @@ export function PlacesApp({ user }: { user: User }) {
 
 	const deletePlace = useDeletePlace()
 
-	const { data: visits = NO_VISITS } = useVisits()
+	const { data: visits } = useVisits(initialVisits)
 
 	const setVisit = useSetVisit()
 
