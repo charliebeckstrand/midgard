@@ -104,3 +104,43 @@ describe('MapPlat free-form fill sizing, aspectRatio={false} (real browser)', ()
 		expect(viewBox(container).height).toBeCloseTo(plot.clientHeight, 0)
 	})
 })
+
+describe('MapPlat free-form fill sizing in a grid cell (real browser)', () => {
+	it('returns to the height of its cell after the width shrinks and grows again', async () => {
+		// A `1fr` grid row keeps the automatic minimum of its item, so the row is as
+		// tall as the content of its cell. `ReadyReveal` is such a grid. An SVG in
+		// flow gave the cell a height from its `viewBox` ratio: a narrow frame made
+		// the plot square, and a wide frame then kept the square height and made the
+		// plot taller than its cell.
+		const { container } = renderUI(
+			<div style={{ display: 'grid', gridTemplate: '1fr / 1fr', width: 600, height: 300 }}>
+				<MapPlat
+					aria-label="Fill"
+					geography={FIXTURE_GEOJSON}
+					aspectRatio={false}
+					className="size-full"
+				/>
+			</div>,
+		)
+
+		const frame = present(container.firstElementChild as HTMLElement | null, 'the sizing frame')
+
+		const plot = getSlot(container, 'map-plot')
+
+		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(600, 0))
+
+		expect(plot.clientHeight).toBe(300)
+
+		frame.style.width = '200px'
+
+		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(200, 0))
+
+		frame.style.width = '600px'
+
+		await waitFor(() => expect(viewBox(container).width).toBeCloseTo(600, 0))
+
+		expect(plot.clientHeight).toBe(300)
+
+		expect(viewBox(container).height).toBeCloseTo(300, 0)
+	})
+})
