@@ -1,8 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { parsePlace } from '../schemas/place'
 import type { Place, PlaceDraft } from '../types'
-import { readDocument, writeDocument } from './documents'
-import { createQueue } from './json-file'
+import { changeDocument, readDocument } from './documents'
 
 /**
  * The store: the places of each user, in one document for each user (see `documents.ts`).
@@ -10,27 +9,16 @@ import { createQueue } from './json-file'
  * It is the one module that the handlers call for places, so a change to the
  * storage does not reach the handlers, the queries, or the components.
  *
- * Every write goes through {@link serialize}, which is what keeps two requests
- * landing together from each reading the same list and writing back over one
- * another. The queue is in the process, so it holds while the service runs one
- * instance, which `.do/app.yaml` sets.
+ * Every write goes through `changeDocument`, which keeps two requests that land
+ * together from each reading the same list and writing back over one another.
  */
-
-const serialize = createQueue()
 
 /** The most places one user keeps, so no account can fill the database. */
 export const MAX_PLACES = 1000
 
-/** Reads the document, or an empty list where it does not exist yet. */
-async function readAll(userId: string): Promise<unknown[]> {
-	const parsed = await readDocument(userId, 'places')
-
-	return Array.isArray(parsed) ? parsed : []
-}
-
-/** Writes the whole list, atomically. */
-function writeAll(userId: string, places: unknown[]): Promise<void> {
-	return writeDocument(userId, 'places', places)
+/** The stored records of a document, or an empty list where it does not exist yet. */
+function records(document: unknown): unknown[] {
+	return Array.isArray(document) ? document : []
 }
 
 /** Whether a stored record carries this id, whether or not the rest of it reads as a place. */
@@ -48,7 +36,7 @@ function hasId(record: unknown, id: string): boolean {
  * read stays in the document and does not disappear on the next write.
  */
 export async function listPlaces(userId: string): Promise<Place[]> {
-	const stored = await readAll(userId)
+	const stored = records(await readDocument(userId, 'places'))
 
 	const places: Place[] = []
 
@@ -66,16 +54,14 @@ export async function listPlaces(userId: string): Promise<Place[]> {
  * where the user already keeps {@link MAX_PLACES}.
  */
 export async function addPlace(userId: string, draft: PlaceDraft): Promise<Place | null> {
-	return serialize(async () => {
-		const stored = await readAll(userId)
+	return changeDocument(userId, 'places', async (document) => {
+		const stored = records(document)
 
-		if (stored.length >= MAX_PLACES) return null
+		if (stored.length >= MAX_PLACES) return { result: null }
 
 		const place: Place = { ...draft, id: randomUUID(), createdAt: new Date().toISOString() }
 
-		await writeAll(userId, [place, ...stored])
-
-		return place
+		return { result: place, value: [place, ...stored] }
 	})
 }
 
@@ -91,21 +77,19 @@ export async function updatePlace(
 	id: string,
 	draft: PlaceDraft,
 ): Promise<Place | null> {
-	return serialize(async () => {
-		const stored = await readAll(userId)
+	return changeDocument(userId, 'places', async (document) => {
+		const stored = records(document)
 
 		const held = stored.map(parsePlace).find((parsed) => parsed.ok && parsed.value.id === id)
 
-		if (held === undefined || !held.ok) return null
+		if (held === undefined || !held.ok) return { result: null }
 
 		const updated: Place = { ...draft, id, createdAt: held.value.createdAt }
 
-		await writeAll(
-			userId,
-			stored.map((record) => (hasId(record, id) ? updated : record)),
-		)
-
-		return updated
+		return {
+			result: updated,
+			value: stored.map((record) => (hasId(record, id) ? updated : record)),
+		}
 	})
 }
 
@@ -114,15 +98,13 @@ export async function updatePlace(
  * reports the same thing the first one did rather than a silent success.
  */
 export async function removePlace(userId: string, id: string): Promise<boolean> {
-	return serialize(async () => {
-		const stored = await readAll(userId)
+	return changeDocument(userId, 'places', async (document) => {
+		const stored = records(document)
 
 		const kept = stored.filter((record) => !hasId(record, id))
 
-		if (kept.length === stored.length) return false
+		if (kept.length === stored.length) return { result: false }
 
-		await writeAll(userId, kept)
-
-		return true
+		return { result: true, value: kept }
 	})
 }

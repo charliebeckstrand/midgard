@@ -1,6 +1,5 @@
 import type { VisitScope, Visits } from '../types'
-import { readDocument, writeDocument } from './documents'
-import { createQueue } from './json-file'
+import { changeDocument, readDocument } from './documents'
 
 /**
  * The visited regions of each user, in one document beside the places of that user.
@@ -17,8 +16,6 @@ import { createQueue } from './json-file'
  * names collide: Georgia is a state of the United States and Georgia is a
  * country, and one list cannot say which of them a reader marked.
  */
-
-const serialize = createQueue()
 
 /** The most regions one user marks in each scope, so no account can fill the database. */
 export const MAX_VISITS = 1000
@@ -78,11 +75,14 @@ function parseVisits(input: unknown): Visits {
  * never asked again.
  */
 export async function listVisits(userId: string, seed?: () => Promise<Visits>): Promise<Visits> {
-	const stored = await readDocument(userId, 'visits')
+	return readVisits(await readDocument(userId, 'visits'), seed)
+}
 
-	if (stored === undefined) return seed === undefined ? empty() : parseVisits(await seed())
+/** Reads a stored document as the two scopes, or asks `seed` where there is none yet. */
+async function readVisits(document: unknown, seed?: () => Promise<Visits>): Promise<Visits> {
+	if (document === undefined) return seed === undefined ? empty() : parseVisits(await seed())
 
-	return parseVisits(stored)
+	return parseVisits(document)
 }
 
 /**
@@ -101,20 +101,18 @@ export async function setVisit(
 	visited: boolean,
 	seed?: () => Promise<Visits>,
 ): Promise<Visits | null> {
-	return serialize(async () => {
-		const held = await listVisits(userId, seed)
+	return changeDocument(userId, 'visits', async (document) => {
+		const held = await readVisits(document, seed)
 
 		const names = new Set(held[scope])
 
-		if (visited && !names.has(region) && names.size >= MAX_VISITS) return null
+		if (visited && !names.has(region) && names.size >= MAX_VISITS) return { result: null }
 
 		if (visited) names.add(region)
 		else names.delete(region)
 
 		const next: Visits = { ...held, [scope]: parseNames([...names]) }
 
-		await writeDocument(userId, 'visits', next)
-
-		return next
+		return { result: next, value: next }
 	})
 }

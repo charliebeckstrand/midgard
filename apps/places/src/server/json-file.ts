@@ -32,11 +32,11 @@ export function userFile(userId: string, name: string): string {
 /**
  * A fresh write queue, so the caller's writes run one at a time.
  *
- * Per store rather than shared: a route handler serves each request on its own,
- * so two writes to the same file would each read the same document, apply one
- * change, and write back — and the second would drop the first. Chaining them
- * puts the second read after the first write. One queue across every store
- * would be correct too, and would make an unrelated file's write wait.
+ * A route handler serves each request on its own, so two writes to the same
+ * file would each read the same document, apply one change, and write back, and
+ * the second would drop the first. Chaining them puts the second read after the
+ * first write. The queue holds in one process only, which is enough for the
+ * files of `next dev` and the tests.
  */
 export function createQueue(): <T>(work: () => Promise<T>) => Promise<T> {
 	let queue: Promise<unknown> = Promise.resolve()
