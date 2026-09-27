@@ -76,40 +76,11 @@ function resolveNeighborTarget<T, C extends KanbanColumnBase<T>>(
 
 /** Dependencies threaded to the module-level card key handlers. @internal */
 type KanbanKeyDeps = {
-	liftedCardId: string | null
-	setLiftedCardId: (id: string | null) => void
-	containerRef: RefObject<HTMLElement | null>
-	locate: (cardId: string) => { columnId: string; position: number; count: number } | null
+	drop: (describe: () => string) => void
+	describe: (cardId: string) => string
 	focusNeighbor: (cardId: string, key: NeighborKey) => boolean
 	moveWithinColumn: (cardId: string, direction: -1 | 1) => void
 	moveToColumn: (cardId: string, direction: -1 | 1) => void
-}
-
-/** Announcement suffix naming the card's position and column; empty when the card is not on the board. @internal */
-function positionSuffix(deps: KanbanKeyDeps, cardId: string): string {
-	const loc = deps.locate(cardId)
-
-	return loc
-		? `, position ${loc.position} of ${loc.count} in ${columnName(deps.containerRef.current, loc.columnId)}`
-		: ''
-}
-
-/** Space toggles the lifted state and announces the pick-up / drop. @internal */
-function handleCardSpaceToggle(cardId: string, event: KeyboardEvent, deps: KanbanKeyDeps) {
-	event.preventDefault()
-
-	const lifting = deps.liftedCardId !== cardId
-
-	deps.setLiftedCardId(lifting ? cardId : null)
-
-	const where = positionSuffix(deps, cardId)
-
-	announce(
-		lifting
-			? `Picked up ${cardName(deps.containerRef.current, cardId)}${where}. Use arrow keys to move, Enter to drop.`
-			: `Dropped ${cardName(deps.containerRef.current, cardId)}${where}.`,
-		{ assertive: true },
-	)
 }
 
 /** Not lifted: arrows/Home/End move focus between cards. @internal */
@@ -150,12 +121,7 @@ function handleCardLiftedNav(
 	if (key === 'Escape' || key === 'Enter') {
 		event.preventDefault()
 
-		deps.setLiftedCardId(null)
-
-		announce(
-			`Dropped ${cardName(deps.containerRef.current, cardId)}${positionSuffix(deps, cardId)}.`,
-			{ assertive: true },
-		)
+		deps.drop(() => deps.describe(cardId))
 
 		return
 	}
@@ -201,7 +167,10 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 	const {
 		liftedId: liftedCardId,
+		readLifted,
 		setLiftedId: setLiftedCardId,
+		toggleLift,
+		drop,
 		refocus: refocusCard,
 		onBlur: onCardBlur,
 	} = useKeyboardLifted(focusCard)
@@ -211,20 +180,20 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 		[columns, getKey],
 	)
 
-	// Returns the card's 1-based position within its column, used for announcements.
-	const locate = useCallback(
+	// The card's name, its 1-based position, and its column, for announcements.
+	const describe = useCallback(
 		(cardId: string) => {
+			const name = cardName(containerRef.current, cardId)
+
 			const col = findColumnByCardId(cardId)
 
-			if (!col) return null
+			const index = col ? col.items.findIndex((i) => getKey(i) === cardId) : -1
 
-			const index = col.items.findIndex((i) => getKey(i) === cardId)
+			if (!col || index === -1) return name
 
-			return index === -1
-				? null
-				: { columnId: col.id, position: index + 1, count: col.items.length }
+			return `${name}, position ${index + 1} of ${col.items.length} in ${columnName(containerRef.current, col.id)}`
 		},
-		[findColumnByCardId, getKey],
+		[findColumnByCardId, getKey, containerRef],
 	)
 
 	const focusNeighbor = useCallback(
@@ -332,44 +301,32 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 	)
 
 	// The state of the last commit, for a key handler that keeps its identity. With
-	// the lifted id or `columns` in its dependencies, the handler, and through it the
-	// board context, took a new identity for each lift and each move, and each card
-	// on the board rendered.
-	const latest = useRef({ liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn })
+	// `columns` in its dependencies, the handler, and through it the board context,
+	// took a new identity for each move, and each card on the board rendered.
+	const latest = useRef({ describe, focusNeighbor, moveWithinColumn, moveToColumn })
 
 	useEffect(() => {
-		latest.current = { liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn }
+		latest.current = { describe, focusNeighbor, moveWithinColumn, moveToColumn }
 	})
-
-	// Writes the ref before the commit too, so a second key in the same tick reads
-	// the lift of the first.
-	const setLifted = useCallback(
-		(cardId: string | null) => {
-			latest.current.liftedCardId = cardId
-
-			setLiftedCardId(cardId)
-		},
-		[setLiftedCardId],
-	)
 
 	const onCardKeyDown = useCallback(
 		(cardId: string, event: KeyboardEvent) => {
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
-			const { liftedCardId, locate, focusNeighbor, moveWithinColumn, moveToColumn } = latest.current
+			const { describe, focusNeighbor, moveWithinColumn, moveToColumn } = latest.current
 
 			const deps: KanbanKeyDeps = {
-				liftedCardId,
-				setLiftedCardId: setLifted,
-				containerRef,
-				locate,
+				drop,
+				describe,
 				focusNeighbor,
 				moveWithinColumn,
 				moveToColumn,
 			}
 
 			if (event.key === ' ') {
-				handleCardSpaceToggle(cardId, event, deps)
+				event.preventDefault()
+
+				toggleLift(cardId, () => describe(cardId))
 
 				return
 			}
@@ -377,7 +334,7 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 			// The columns follow the reading order, so the arrows swap in RTL.
 			const key = logicalArrowKey(event.key, containerRef.current)
 
-			if (liftedCardId !== cardId) {
+			if (readLifted() !== cardId) {
 				handleCardNeighborNav(cardId, event, key, deps)
 
 				return
@@ -385,8 +342,8 @@ export function useKanbanKeyboard<T, C extends KanbanColumnBase<T>>({
 
 			handleCardLiftedNav(cardId, event, key, deps)
 		},
-		[setLifted, containerRef],
+		[readLifted, toggleLift, drop, containerRef],
 	)
 
-	return { liftedCardId, setLiftedCardId: setLifted, onCardKeyDown, onCardBlur }
+	return { liftedCardId, setLiftedCardId, onCardKeyDown, onCardBlur }
 }

@@ -20,34 +20,12 @@ type Options<T> = {
 }
 
 type ListKeyDeps = {
-	liftedId: string | null
-	setLiftedId: (id: string | null) => void
-	containerRef: RefObject<HTMLElement | null>
-	locate: (id: string) => { position: number; count: number } | null
+	drop: (describe: () => string) => void
+	describe: (id: string) => string
 	focusNeighbor: (id: string, direction: -1 | 1 | 'start' | 'end') => boolean
 	moveByDirection: (id: string, direction: -1 | 1) => void
 	primaryKey: string
 	secondaryKey: string
-}
-
-/** Toggles the lifted state and announces the pick-up / drop. @internal */
-function handleSpaceToggle(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
-	event.preventDefault()
-
-	const lifting = deps.liftedId !== id
-
-	deps.setLiftedId(lifting ? id : null)
-
-	const loc = deps.locate(id)
-
-	const where = loc ? `, position ${loc.position} of ${loc.count}` : ''
-
-	announce(
-		lifting
-			? `Picked up ${itemName(deps.containerRef.current, id)}${where}. Use arrow keys to move, Enter to drop.`
-			: `Dropped ${itemName(deps.containerRef.current, id)}${where}.`,
-		{ assertive: true },
-	)
 }
 
 /** Not lifted: arrows / Home / End move focus between items. @internal */
@@ -76,20 +54,12 @@ function handleNeighborNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) 
 function handleLiftedNav(id: string, event: KeyboardEvent, deps: ListKeyDeps) {
 	switch (event.key) {
 		case 'Escape':
-		case 'Enter': {
+		case 'Enter':
 			event.preventDefault()
 
-			deps.setLiftedId(null)
-
-			const loc = deps.locate(id)
-
-			announce(
-				`Dropped ${itemName(deps.containerRef.current, id)}${loc ? `, position ${loc.position} of ${loc.count}` : ''}.`,
-				{ assertive: true },
-			)
+			deps.drop(() => deps.describe(id))
 
 			break
-		}
 		case deps.primaryKey:
 			event.preventDefault()
 
@@ -137,7 +107,10 @@ export function useListKeyboard<T>({
 
 	const {
 		liftedId,
+		readLifted,
 		setLiftedId,
+		toggleLift,
+		drop,
 		refocus: refocusItem,
 		onBlur: onItemBlur,
 	} = useKeyboardLifted(focusItem)
@@ -190,42 +163,34 @@ export function useListKeyboard<T>({
 		[items, getKey, onReorder, refocusItem, containerRef],
 	)
 
-	/** Item's 1-based position and the total count, for announcements. */
-	const locate = useCallback(
+	/** The item's name and its 1-based position, for announcements. */
+	const describe = useCallback(
 		(id: string) => {
 			const index = items.findIndex((i) => getKey(i) === id)
 
-			return index === -1 ? null : { position: index + 1, count: items.length }
+			const where = index === -1 ? '' : `, position ${index + 1} of ${items.length}`
+
+			return `${itemName(containerRef.current, id)}${where}`
 		},
-		[items, getKey],
+		[items, getKey, containerRef],
 	)
 
 	// The state of the last commit, for a key handler that keeps its identity. With
-	// the lifted id or `items` in its dependencies, the handler, and through it the
-	// list context, took a new identity for each lift and each move, and each item
-	// rendered.
-	const latest = useRef({ liftedId, orientation, locate, focusNeighbor, moveByDirection })
+	// `items` in its dependencies, the handler, and through it the list context,
+	// took a new identity for each move, and each item rendered.
+	const latest = useRef({ orientation, describe, focusNeighbor, moveByDirection })
 
 	useEffect(() => {
-		latest.current = { liftedId, orientation, locate, focusNeighbor, moveByDirection }
+		latest.current = { orientation, describe, focusNeighbor, moveByDirection }
 	})
-
-	// Writes the ref before the commit too, so a second key in the same tick reads
-	// the lift of the first.
-	const setLifted = useCallback(
-		(id: string | null) => {
-			latest.current.liftedId = id
-
-			setLiftedId(id)
-		},
-		[setLiftedId],
-	)
 
 	const onItemKeyDown = useCallback(
 		(id: string, event: KeyboardEvent) => {
 			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
 
-			const { liftedId, orientation, locate, focusNeighbor, moveByDirection } = latest.current
+			const { orientation, describe, focusNeighbor, moveByDirection } = latest.current
+
+			const liftedId = readLifted()
 
 			// A horizontal list follows the reading order, so its keys swap in RTL.
 			// The rule is its own inverse, so it also gives the physical key for
@@ -240,10 +205,8 @@ export function useListKeyboard<T>({
 					: 'ArrowUp'
 
 			const deps: ListKeyDeps = {
-				liftedId,
-				setLiftedId: setLifted,
-				containerRef,
-				locate,
+				drop,
+				describe,
 				focusNeighbor,
 				moveByDirection,
 				primaryKey,
@@ -251,7 +214,9 @@ export function useListKeyboard<T>({
 			}
 
 			if (event.key === ' ') {
-				handleSpaceToggle(id, event, deps)
+				event.preventDefault()
+
+				toggleLift(id, () => describe(id))
 
 				return
 			}
@@ -264,8 +229,8 @@ export function useListKeyboard<T>({
 
 			handleLiftedNav(id, event, deps)
 		},
-		[setLifted, containerRef],
+		[readLifted, toggleLift, drop, containerRef],
 	)
 
-	return { liftedId, setLiftedId: setLifted, onItemKeyDown, onItemBlur }
+	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
 }

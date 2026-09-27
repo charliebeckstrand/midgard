@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { announce } from '../core'
 
 /**
  * Lifted-item state for keyboard reordering. Space toggles an item's "lifted"
@@ -10,13 +11,54 @@ import { useCallback, useEffect, useRef, useState } from 'react'
  * @param focus - Moves DOM focus to the item with the given id; invoked by
  * `refocus` on the next animation frame. A later `refocus` replaces a pending
  * frame, and an unmount cancels it.
- * @returns `{ liftedId, setLiftedId, refocus, onBlur }`. `liftedId` is the
- * currently lifted item or `null`; `setLiftedId` toggles it. `refocus(id)`
- * refocuses after a reorder while suppressing the lift-clearing blur; `onBlur`
- * clears the lift unless a reorder is in flight.
+ * @returns
+ * - `liftedId`: the lifted item of the last render, or `null`.
+ * - `readLifted`: the lifted item of the last write. A second key in the same
+ *   tick reads the lift of the first. It keeps its identity.
+ * - `setLiftedId`: sets the lift. It writes `readLifted` before the commit.
+ * - `toggleLift(id, describe)`: lifts `id`, or drops it when it is lifted. It
+ *   announces "Picked up" or "Dropped" with the text that `describe` gives.
+ * * - `drop(describe)`: drops the lift and announces "Dropped".
+ * - `refocus(id)`: refocuses after a reorder and keeps the lift through the blur.
+ * - `onBlur`: clears the lift unless a reorder is in flight.
  */
 export function useKeyboardLifted(focus: (id: string) => void) {
-	const [liftedId, setLiftedId] = useState<string | null>(null)
+	const [liftedId, setLiftedState] = useState<string | null>(null)
+
+	const liftedRef = useRef<string | null>(null)
+
+	const setLiftedId = useCallback((id: string | null) => {
+		liftedRef.current = id
+
+		setLiftedState(id)
+	}, [])
+
+	const readLifted = useCallback(() => liftedRef.current, [])
+
+	const toggleLift = useCallback(
+		(id: string, describe: () => string) => {
+			const lifting = liftedRef.current !== id
+
+			setLiftedId(lifting ? id : null)
+
+			announce(
+				lifting
+					? `Picked up ${describe()}. Use arrow keys to move, Enter to drop.`
+					: `Dropped ${describe()}.`,
+				{ assertive: true },
+			)
+		},
+		[setLiftedId],
+	)
+
+	const drop = useCallback(
+		(describe: () => string) => {
+			setLiftedId(null)
+
+			announce(`Dropped ${describe()}.`, { assertive: true })
+		},
+		[setLiftedId],
+	)
 
 	const movingRef = useRef(false)
 
@@ -52,7 +94,7 @@ export function useKeyboardLifted(focus: (id: string) => void) {
 		if (movingRef.current) return
 
 		setLiftedId(null)
-	}, [])
+	}, [setLiftedId])
 
-	return { liftedId, setLiftedId, refocus, onBlur }
+	return { liftedId, readLifted, setLiftedId, toggleLift, drop, refocus, onBlur }
 }
