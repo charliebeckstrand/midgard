@@ -27,6 +27,8 @@ The engine gives density one home, one vocabulary, one scope, and one resolver. 
 
    Second batch: Option, the panel titles, CardTitle, List rows, and Menu rows. Their kata write stepped classes, and they read no context. `titleRamp` in the heading kata repeats `titleSize`. The Menu viewport cap is a stepped `density-max-h` utility. A portal took each panel out of the DOM subtree of its scope. Thus a Dialog, a Sheet, or a submenu in a compact region showed its static leaves at `md`. The root of Overlay and of FloatingSurface now writes the step of its context, and `browser/floating-ui/density-portal.test.tsx` holds it with the real portal. A stepped class and a plain class of one property now merge in `cn`, so the title ramp replaces the fixed size of the heading. Tooltip, Tabs, and Sidebar remain. Each has an explicit `size` that a context resolves, and each needs a scope design.
 
+   Third batch: an explicit `size` becomes a scope, as on Card. Tabs writes `data-density` on the group only when `size` is set, and the tab and segment classes are stepped. The Segment bridge has no size axis. FloatingSurface takes a `density` prop, and TooltipContent passes its `size` there. `density-rounded` takes spacing stops, so the tooltip radius stays equal to its padding. SidebarLayout pads its content, header, and navbar with stepped classes, and its panel width is a variant for each step. The Sidebar and Nav items keep `useDensityStep`, because each slot needs `stepDown` of the item step as a value.
+
 ## Costs accepted
 
 - **Breaking change to `ui/primitives/density`.** `Density` takes `step` in place of `space`, `size`, and `scale`. No app used the removed API.

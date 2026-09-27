@@ -1,11 +1,10 @@
 'use client'
 
 import { type ComponentProps, useEffect, useRef } from 'react'
-import { cn, composeEventHandlers, toAmbientStep } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { useA11yRoving } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { ActiveIndicatorScope } from '../../primitives/active-indicator'
-import { useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
 import type { AccessibleName } from '../../types'
 import { useTabsContext } from './context'
@@ -38,10 +37,6 @@ export function TabList({
 	const isSegment = tabsContext?.variant === 'segment'
 
 	const orientation = tabsContext?.orientation ?? 'horizontal'
-
-	// Inside <Tabs>, `tabsContext.size` is pre-resolved; à la carte use
-	// (<TabList>+<Tab> without <Tabs>) falls back to the Density cascade.
-	const size = toAmbientStep(useDensityStep(tabsContext?.size))
 
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -93,7 +88,7 @@ export function TabList({
 			ref={setList}
 			data-slot="tab-list"
 			data-orientation={orientation}
-			className={cn(isSegment ? k.segment.control({ size }) : k.list({ orientation }), className)}
+			className={cn(isSegment ? k.segment.control : k.list({ orientation }), className)}
 			// Consumer props spread first; the role, the orientation and the roving
 			// handler below take precedence.
 			{...props}

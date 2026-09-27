@@ -1,23 +1,22 @@
-import { defineRecipe } from '../../core/recipe'
-import { iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
+import { iro, ji, narabi, omote, sen, textRamp, ugoki } from '../kiso'
 
 const { text } = iro
-const { size, weight } = ji
-const { radius } = kasane
+const { weight } = ji
 const { flex } = narabi
 const { popover, glass } = omote
 const { ring } = sen
 const { tooltip } = ugoki
 
-const content = defineRecipe({
-	base: ['max-w-sm', 'text-pretty', text.default, weight.medium],
-	size: {
-		sm: ['p-ring-1', radius.r('1'), size.sm],
-		md: ['p-ring-2', radius.r('2'), size.md],
-		lg: ['p-ring-3', radius.r('3'), size.lg],
-	},
-	defaults: { size: 'md' },
-})
+// Padding, radius, and text follow the nearest density scope. The radius
+// equals the padding stop, as `kasane.radius.r` pairs them.
+const content = [
+	'max-w-sm',
+	'text-pretty',
+	text.default,
+	weight.medium,
+	'density-p-ring-[1,2,3] density-rounded-[1,2,3]',
+	textRamp,
+]
 
 export const k = {
 	// Cloned onto the trigger's child ahead of the child's own `className`, so a child

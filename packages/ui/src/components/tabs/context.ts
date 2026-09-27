@@ -13,7 +13,6 @@ export type TabsSize = Step
 type TabsContextValue = {
 	variant: TabsVariant
 	orientation: TabsOrientation
-	size: TabsSize
 	/** Base id a `Tab` and its `TabContent` derive a matched id pair from, keyed by `value`. */
 	baseId: string
 	/** `true` while a `TabContents` holds every inactive panel mounted (`mount="always"`); inactive tabs can then reference their panels via `aria-controls`. */

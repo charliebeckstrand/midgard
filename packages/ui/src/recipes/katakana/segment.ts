@@ -1,40 +1,34 @@
 /**
  * Segment bridge: segmented-control archetype shared by `<Segment>`
  * (standalone) and `<Tabs variant="segment">`. A pure bridge: it receives
- * the `segment` token bundle and returns the kata `k` surface. It imports
- * only the recipe engine and declares the token shape it needs as its own
- * contract. Katakana references kiso in neither value nor type.
+ * the `segment` token bundle and returns the kata `k` surface. It declares
+ * the token shape it needs as its own contract. Katakana references kiso in
+ * neither value nor type.
  *
- *   - `control`: outer chrome recipe, callable as `control({ size })`
- *   - `item`: per-segment recipe, callable as `item({ size })`
+ *   - `control`: outer chrome classes
+ *   - `item`: per-segment classes
  *   - `indicator`: class fragment for the sliding indicator
+ *
+ * The control and the items follow the nearest density scope through stepped
+ * classes, so the surface has no size axis.
  */
 
 import type { ClassValue } from 'clsx'
-import { defineRecipe } from '../../core/recipe'
 
-/** Size step keys; mirrors the kiso `sun` step scale. */
-type Step = 'sm' | 'md' | 'lg'
-
-/** A size-axed recipe fragment (base chrome + per-step sizing). */
-type Sized = { base?: ClassValue; size: Record<Step, ClassValue> }
+/** A recipe fragment with its base classes. */
+type Fragment = { base: ClassValue }
 
 /** The slice of the `segment` token bundle the bridge reads. */
 type SegmentTokens = {
-	control: Sized
-	item: Sized
+	control: Fragment
+	item: Fragment
 	indicator: ClassValue
 }
 
 /**
- * Build the kata `k` surface for a segmented control: the `control` chrome
- * recipe and per-segment `item` recipe (both size-axed) plus the sliding
- * `indicator` fragment.
+ * Build the kata `k` surface for a segmented control: the `control` chrome, the
+ * per-segment `item` classes, and the sliding `indicator` fragment.
  */
 export function segment(t: SegmentTokens) {
-	const control = defineRecipe({ ...t.control, defaults: { size: 'md' } })
-
-	const item = defineRecipe({ ...t.item, defaults: { size: 'md' } })
-
-	return { control, item, indicator: t.indicator }
+	return { control: t.control.base, item: t.item.base, indicator: t.indicator }
 }

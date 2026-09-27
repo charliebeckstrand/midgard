@@ -260,7 +260,21 @@ describe('Tab', () => {
 		expect(el).toHaveAttribute('role', 'tab')
 	})
 
-	it('inherits size from ambient Density when used à la carte (TabList + Tab without <Tabs>)', () => {
+	it('writes padding and text as stepped classes, which follow the nearest scope', () => {
+		const { container } = renderUI(
+			<TabList aria-label="Tabs">
+				<Tab current>Tab A</Tab>
+			</TabList>,
+		)
+
+		expect(bySlot(container, 'tab')).toHaveClass(
+			'density-text-[sm,base,lg]',
+			'density-px-[2,3,4]',
+			'density-pb-[3,4,5]',
+		)
+	})
+
+	it('follows the scope of a DensityProvider when used à la carte (TabList + Tab without <Tabs>)', () => {
 		const { container } = renderUI(
 			<DensityProvider density="loose">
 				<TabList aria-label="Tabs">
@@ -269,26 +283,33 @@ describe('Tab', () => {
 			</DensityProvider>,
 		)
 
-		// Loose density → 'lg' → text-lg + pb-5 from the recipe.
-		const tab = bySlot(container, 'tab')
-
-		expect(tab?.className).toContain('text-lg')
-
-		expect(tab?.className).toContain('pb-5')
+		expect(bySlot(container, 'tab')?.closest('[data-density]')).toHaveAttribute(
+			'data-density',
+			'lg',
+		)
 	})
 
-	it('falls back to md when neither <Tabs> nor Density is present', () => {
+	it('makes the group a scope for an explicit size, and opens none without one', () => {
 		const { container } = renderUI(
-			<TabList aria-label="Tabs">
-				<Tab current>Tab A</Tab>
-			</TabList>,
+			<DensityProvider density="loose">
+				<Tabs defaultValue="a" size="sm">
+					<TabList aria-label="Tabs">
+						<Tab value="a">A</Tab>
+					</TabList>
+				</Tabs>
+				<Tabs defaultValue="a">
+					<TabList aria-label="Other">
+						<Tab value="a">A</Tab>
+					</TabList>
+				</Tabs>
+			</DensityProvider>,
 		)
 
-		const tab = bySlot(container, 'tab')
+		const [sized, unsized] = Array.from(container.querySelectorAll('[data-slot="tab-group"]'))
 
-		expect(tab?.className).toContain('text-base')
+		expect(sized).toHaveAttribute('data-density', 'sm')
 
-		expect(tab?.className).toContain('pb-4')
+		expect(unsized).not.toHaveAttribute('data-density')
 	})
 
 	it('explicit current prop wins over the Tabs context value', () => {

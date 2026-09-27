@@ -1,14 +1,14 @@
 'use client'
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { useDensityStep } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
 import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
 
-/** Props for {@link Tabs}: selection state plus the `variant`/`orientation`/`size` context broadcast to its list and panels. */
+/** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope. */
 export type TabsProps = ComponentProps<'div'> & {
 	value?: string | null
 	defaultValue?: string
@@ -21,16 +21,18 @@ export type TabsProps = ComponentProps<'div'> & {
 	 */
 	orientation?: TabsOrientation
 	/**
-	 * Size step that drives tab text size and padding.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Size step that drives tab text size and padding. It makes the group a
+	 * density scope. With no step, the tabs follow the nearest scope, and `md`
+	 * outside one.
 	 */
 	size?: TabsSize
 }
 
 /**
- * Tab-group root holding selection state and `variant`/`orientation`/`size`
+ * Tab-group root holding selection state and `variant`/`orientation`
  * context for its list and panels. Controlled or uncontrolled via
  * `value`/`defaultValue`; the `segment` variant forces horizontal orientation.
+ * An explicit `size` makes the group a density scope.
  */
 export function Tabs({
 	value,
@@ -48,8 +50,6 @@ export function Tabs({
 	// Each item reads its own value from the store, so a change renders only the
 	// item that stops being current and the item that becomes current.
 	const store = useCurrentStore(context)
-
-	const resolvedSize: TabsSize = toAmbientStep(useDensityStep(size))
 
 	// Vertical only applies to the 'tab' variant; segment is always horizontal.
 	const resolvedOrientation: TabsOrientation = variant === 'segment' ? 'horizontal' : orientation
@@ -74,12 +74,11 @@ export function Tabs({
 		() => ({
 			variant,
 			orientation: resolvedOrientation,
-			size: resolvedSize,
 			baseId,
 			panelsMounted,
 			registerMountedPanels,
 		}),
-		[variant, resolvedOrientation, resolvedSize, baseId, panelsMounted, registerMountedPanels],
+		[variant, resolvedOrientation, baseId, panelsMounted, registerMountedPanels],
 	)
 
 	return (
@@ -89,10 +88,11 @@ export function Tabs({
 					<div
 						data-slot="tab-group"
 						data-orientation={resolvedOrientation}
+						data-density={size}
 						className={cn(k.group({ orientation: resolvedOrientation }), className)}
 						{...props}
 					>
-						{children}
+						<Density step={size}>{children}</Density>
 					</div>
 				</TabsContext>
 			</CurrentStoreContext>

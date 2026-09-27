@@ -1,6 +1,7 @@
 /**
  * Segment archetype: per-segment item. Layout, focus chrome, disabled
- * and cursor states, sized by the same axis as the outer control.
+ * and cursor states. The padding and the text follow the nearest density scope,
+ * as the outer control does.
  *
  * Layer: kiso · Archetype: segment · Concern: item
  */
@@ -14,7 +15,7 @@ import { sen } from '../sen'
 
 const { cursor, disabled, fg } = hannou
 const { onWash } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { focus } = sen
@@ -43,10 +44,6 @@ export const item = {
 		focus.ring,
 		...disabled,
 		...cursor,
+		'density-text-[xs,sm,base] density-px-[2.5,3,4] density-py-[1,1.5,2]',
 	],
-	size: {
-		sm: [size.xs, 'px-2.5 py-1'],
-		md: [size.sm, 'px-3 py-1.5'],
-		lg: [size.md, 'px-4 py-2'],
-	},
 } as const
