@@ -1,3 +1,4 @@
+import { compact, splitPostcode, splitUsState, type UsState } from './address-input-photon-query'
 import type { AddressParts, AddressProvider, AddressSuggestion } from './types'
 
 type PhotonFeature = {
@@ -17,6 +18,8 @@ type PhotonFeature = {
 		osm_value?: string
 		/** The ISO 3166-1 alpha-2 code of the country, in capitals. */
 		countrycode?: string
+		/** The box of an area: west, north, east, south. */
+		extent?: unknown
 		name?: string
 		housenumber?: string
 		street?: string
@@ -134,48 +137,25 @@ export type PhotonProviderOptions = {
 	osmTag?: string[]
 }
 
-/**
- * The trailing parts of a query that can be a postal code, each with the text
- * before it. The list is empty where the query does not end in one. The text is
- * empty where the query is only a code.
- *
- * A candidate is the last word or the last two words, because a code such as
- * `SW1A 1AA` or `M5V 3L9` is two words. It must hold two digits or more and
- * three characters or more. Each word must hold a digit. Thus "5th Ave" and
- * "Pier 39" stay text. A US ZIP+4
- * reads as its first five digits, which is the code the geocoder holds.
- */
-function splitPostcode(query: string): { rest: string; postcode: string }[] {
-	const words = query.trim().replace(/,/g, ' ').split(/\s+/)
+/** Whether the name of a match holds the full name of a state, as a whole word. */
+function namesState(feature: PhotonFeature, state: UsState): boolean {
+	const words = ` ${(feature.properties.name ?? '').toLowerCase().replace(/[^a-z]+/g, ' ')} `
 
-	const candidates: { rest: string; postcode: string }[] = []
-
-	for (const count of [2, 1]) {
-		if (words.length < count) continue
-
-		const tail = words.slice(-count).join(' ')
-
-		if (!/^[A-Za-z0-9]{2,5}(?:[ -][A-Za-z0-9]{2,4})?$/.test(tail)) continue
-
-		if ((tail.match(/\d/g) ?? []).length < 2 || tail.length < 3) continue
-
-		// Every word of a code holds a digit, so "Pier 39" is not a code.
-		if (!tail.split(/[ -]/).every((part) => /\d/.test(part))) continue
-
-		const zipPlusFour = /^(\d{5})-\d{4}$/.exec(tail)
-
-		candidates.push({
-			rest: words.slice(0, -count).join(' '),
-			postcode: zipPlusFour?.[1] ?? tail.toUpperCase(),
-		})
-	}
-
-	return candidates
+	return words.includes(` ${state.name.toLowerCase()} `)
 }
 
-/** A code with its spaces removed, so that `sw1a1aa` and `SW1A 1AA` compare equal. */
-function compact(code: string): string {
-	return code.replace(/\s+/g, '').toUpperCase()
+/**
+ * A Photon extent as the `bbox` parameter takes it: west, south, east, north.
+ * `undefined` where the extent is not four numbers.
+ */
+function boxOf(extent: unknown): [number, number, number, number] | undefined {
+	if (!Array.isArray(extent) || extent.length !== 4) return undefined
+
+	if (!extent.every((value) => typeof value === 'number')) return undefined
+
+	const [west, north, east, south] = extent as number[]
+
+	return [west as number, south as number, east as number, north as number]
 }
 
 /** The region of the browser's language, or `undefined` where there is no browser or no region. */
@@ -206,14 +186,20 @@ function browserRegion(): string | undefined {
  * The provider finds the position of the code first, then searches the rest of
  * the query with that position as the proximity bias. A query that is only a
  * code answers with that code. A query that ends in a code that the geocoder
- * does not know is searched as typed. See
+ * does not know is searched as typed.
+ *
+ * Where the region is `US`, a query that ends in a state searches inside that
+ * state. A full name matches in any case, and a USPS code only in capitals, so
+ * "starbucks Oregon" and "starbucks OR" search Oregon. The query as typed wins
+ * where the state has no match. It also wins where one of its matches holds the
+ * state in its name, as "Mount Washington" does. See
  * {@link PhotonProviderOptions.region} for the country a code is read in.
  *
  * @param options - Endpoint, result count, language, proximity bias, postal
  * code region, and the layer / tag filters; see {@link PhotonProviderOptions}.
  * @returns A provider to hand `AddressInput`.
  * @remarks Throws on a non-OK status or an unexpected response shape. A query
- * that ends in a postal code costs a second request.
+ * that ends in a postal code costs one more request, and a state two more.
  * @example
  * ```tsx
  * const nearby = createPhotonProvider({ bias: { latitude: 44.6, longitude: -124.05 } })
@@ -239,13 +225,12 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 	/** The match for a postal code, or `undefined` where the geocoder has no such code. */
 	async function findPostcode(
 		postcode: string,
+		region: string | undefined,
 		signal: AbortSignal,
 	): Promise<PhotonFeature | undefined> {
-		const region = options.region ?? browserRegion()
-
 		const params = new URLSearchParams({ q: postcode, limit: '5', osm_tag: 'place:postcode' })
 
-		if (region !== undefined) params.set('countrycode', region.toUpperCase())
+		if (region !== undefined) params.set('countrycode', region)
 
 		const features = await request(params, signal)
 
@@ -258,16 +243,21 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 		)
 	}
 
-	function search(query: string, near: PhotonProviderOptions['bias'], signal: AbortSignal) {
+	/** Where a search looks: near a point, or only inside a box. */
+	type Scope = { near?: PhotonProviderOptions['bias']; box?: [number, number, number, number] }
+
+	function search(query: string, scope: Scope, signal: AbortSignal) {
 		const params = new URLSearchParams({ q: query, limit: String(limit) })
 
 		if (lang !== undefined) params.set('lang', lang)
 
-		if (near !== undefined) {
-			params.set('lat', String(near.latitude))
+		if (scope.near !== undefined) {
+			params.set('lat', String(scope.near.latitude))
 
-			params.set('lon', String(near.longitude))
+			params.set('lon', String(scope.near.longitude))
 		}
+
+		if (scope.box !== undefined) params.set('bbox', scope.box.join(','))
 
 		// Repeated rather than joined: Photon reads each as its own term, and a
 		// comma-joined value matches nothing.
@@ -278,27 +268,92 @@ export function createPhotonProvider(options: PhotonProviderOptions = {}): Addre
 		return request(params, signal)
 	}
 
-	return async (query, { signal }) => {
+	/**
+	 * The matches for `rest` inside a US state, or an empty list where the state
+	 * has no such match.
+	 *
+	 * Photon filters by a box, and a box around a state holds parts of the
+	 * states next to it. A match in another state is therefore removed.
+	 */
+	async function searchInState(
+		rest: string,
+		state: UsState,
+		signal: AbortSignal,
+	): Promise<PhotonFeature[]> {
+		const params = new URLSearchParams({
+			q: state.name,
+			limit: '1',
+			layer: 'state',
+			countrycode: 'US',
+		})
+
+		const [area] = await request(params, signal)
+
+		const box = boxOf(area?.properties.extent)
+
+		if (box === undefined) return []
+
+		const features = await search(rest, { box }, signal)
+
+		return features.filter(
+			(feature) =>
+				feature.properties.state === state.name || feature.properties.state === state.code,
+		)
+	}
+
+	/**
+	 * The matches near a postal code at the end of the query. `null` means that
+	 * the query does not end in a code that the geocoder knows.
+	 */
+	async function searchNearPostcode(
+		query: string,
+		region: string | undefined,
+		signal: AbortSignal,
+	): Promise<PhotonFeature[] | null> {
 		// The longer candidate first, so that "SW1A 1AA" is not read as "1AA".
-		for (const { rest, postcode } of splitPostcode(query)) {
-			const code = await findPostcode(postcode, signal)
+		for (const { rest, qualifier } of splitPostcode(query)) {
+			const code = await findPostcode(qualifier, region, signal)
 
 			if (code === undefined) continue
 
 			// A query that is only a code asks for the code, and the code in the
 			// region is the one the reader means.
-			if (rest === '') return [featureToSuggestion(code)]
+			if (rest === '') return [code]
 
 			const [longitude, latitude] = code.geometry.coordinates
 
-			const features = await search(rest, { latitude, longitude }, signal)
+			return search(rest, { near: { latitude, longitude } }, signal)
+		}
+
+		return null
+	}
+
+	return async (query, { signal }) => {
+		const region = (options.region ?? browserRegion())?.toUpperCase()
+
+		const nearPostcode = await searchNearPostcode(query, region, signal)
+
+		if (nearPostcode !== null) return nearPostcode.map(featureToSuggestion)
+
+		const inState = region === 'US' ? splitUsState(query) : null
+
+		if (inState === null) {
+			const features = await search(query, { near: bias }, signal)
 
 			return features.map(featureToSuggestion)
 		}
 
-		const features = await search(query, bias, signal)
+		// A state is too large to search near its center, so the search stays
+		// inside it. The query as typed runs beside it, because a state name can
+		// be part of a name: "Mount Washington" is in New Hampshire.
+		const [typed, scoped] = await Promise.all([
+			search(query, { near: bias }, signal),
+			searchInState(inState.rest, inState.state, signal),
+		])
 
-		return features.map(featureToSuggestion)
+		const named = typed.some((feature) => namesState(feature, inState.state))
+
+		return (named || scoped.length === 0 ? typed : scoped).map(featureToSuggestion)
 	}
 }
 

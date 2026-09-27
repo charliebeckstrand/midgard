@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import type { AddressProvider, AddressSuggestion } from '../../components/address-input'
 import { AddressInput, createPhotonProvider, photonProvider } from '../../components/address-input'
+import { splitUsState } from '../../components/address-input/address-input-photon-query'
 import { Form, useFormState } from '../../components/form'
 import {
 	bySlot,
@@ -853,6 +854,96 @@ describe('createPhotonProvider', () => {
 		})
 	})
 
+	describe('a query that ends in a US state', () => {
+		const OREGON = {
+			type: 'Feature',
+			geometry: { type: 'Point', coordinates: [-120.5, 44] },
+			properties: {
+				osm_id: 165476,
+				osm_type: 'R',
+				type: 'state',
+				name: 'Oregon',
+				extent: [-124.7, 46.29, -116.46, 41.99],
+			},
+		}
+
+		function place(name: string, state: string) {
+			return {
+				type: 'Feature',
+				geometry: { type: 'Point', coordinates: [-122.6, 45.5] },
+				properties: { osm_id: name.length, osm_type: 'N', name, state },
+			}
+		}
+
+		/**
+		 * Answers the state lookup with Oregon, a search inside the box with
+		 * `scoped`, and the query as typed with `typed`.
+		 */
+		function stubState(scoped: unknown[], typed: unknown[]) {
+			const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
+				const url = new URL(String(input))
+
+				const features =
+					url.searchParams.get('layer') === 'state'
+						? [OREGON]
+						: url.searchParams.has('bbox')
+							? scoped
+							: typed
+
+				return { ok: true, json: async () => ({ features }) } as Response
+			})
+
+			vi.stubGlobal('fetch', fetchMock)
+
+			return fetchMock
+		}
+
+		const signal = new AbortController().signal
+
+		it('searches the rest of the query inside the state, and drops matches outside it', async () => {
+			const fetchMock = stubState(
+				[place('Starbucks', 'OR'), place('Starbucks', 'Washington')],
+				[place('Starbucks', 'California')],
+			)
+
+			const results = await createPhotonProvider({ region: 'US' })('starbucks Oregon', { signal })
+
+			expect(results.map((result) => result.address?.state)).toEqual(['OR'])
+
+			const scoped = fetchMock.mock.calls
+				.map((call) => new URL(String(call[0])))
+				.find((url) => url.searchParams.has('bbox'))
+
+			expect(scoped?.searchParams.get('q')).toBe('starbucks')
+
+			expect(scoped?.searchParams.get('bbox')).toBe('-124.7,41.99,-116.46,46.29')
+		})
+
+		it('keeps the query as typed where a match holds the state in its name', async () => {
+			stubState([place('Mount Vernon', 'Washington')], [place('Mount Washington', 'New Hampshire')])
+
+			const results = await createPhotonProvider({ region: 'US' })('Mount Washington', { signal })
+
+			expect(results.map((result) => result.label)).toEqual(['Mount Washington'])
+		})
+
+		it('keeps the query as typed where the state has no match', async () => {
+			stubState([], [place('Clearwater River', 'Oregon')])
+
+			const results = await createPhotonProvider({ region: 'US' })('clearwater oregon', { signal })
+
+			expect(results.map((result) => result.label)).toEqual(['Clearwater River'])
+		})
+
+		it('reads no state outside the US region', async () => {
+			const fetchMock = stubState([], [])
+
+			await createPhotonProvider({ region: 'CA' })('starbucks Oregon', { signal })
+
+			expect(fetchMock).toHaveBeenCalledTimes(1)
+		})
+	})
+
 	it('omits every option it was not given', async () => {
 		const fetchMock = stubEmptyFetch()
 
@@ -940,5 +1031,32 @@ describe('AddressInput onError', () => {
 
 			expect(onError).not.toHaveBeenCalled()
 		})
+	})
+})
+
+describe('splitUsState', () => {
+	it('reads a full name in any case, up to three words', () => {
+		expect(splitUsState('starbucks oregon')).toEqual({
+			rest: 'starbucks',
+			state: { code: 'OR', name: 'Oregon' },
+		})
+
+		expect(splitUsState('pizza, New Hampshire')?.state.code).toBe('NH')
+
+		expect(splitUsState('museum district of columbia')?.state.code).toBe('DC')
+	})
+
+	it('reads a USPS code only in capitals', () => {
+		expect(splitUsState('starbucks OR')?.state.name).toBe('Oregon')
+
+		expect(splitUsState('coffee or')).toBeNull()
+
+		expect(splitUsState('help me')).toBeNull()
+	})
+
+	it('reads nothing where the state is the whole query', () => {
+		expect(splitUsState('Oregon')).toBeNull()
+
+		expect(splitUsState('New York')).toBeNull()
 	})
 })
