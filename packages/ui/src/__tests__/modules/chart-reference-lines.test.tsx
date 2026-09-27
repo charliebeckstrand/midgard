@@ -353,7 +353,7 @@ describe('reference line keyboard navigation', () => {
 
 		expect(marksClass(container)).toContain('opacity-25')
 
-		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('true')
+		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBe('')
 
 		await waitFor(() => expect(referenceTooltip()).not.toBeNull())
 

@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, stepDown, toAmbientStep } from '../../core'
+import { cn, dataAttr, stepDown, toAmbientStep } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { Density, useDensityStep } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
@@ -70,7 +70,7 @@ export function ChatListItem({
 	return (
 		<Wrapper
 			data-slot="chat-list-item"
-			data-current={current ? '' : undefined}
+			data-current={dataAttr(current)}
 			className={cn(k(), className)}
 		>
 			{onSelect ? (

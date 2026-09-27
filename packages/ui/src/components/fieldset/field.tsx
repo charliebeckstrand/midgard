@@ -1,7 +1,7 @@
 'use client'
 
 import type { ComponentProps } from 'react'
-import { cn } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { k } from '../../recipes/kata/fieldset'
 import { ControlContext, type ControlSeverity } from '../control/context'
@@ -49,7 +49,7 @@ export function Field({
 		<ControlContext value={value}>
 			<div
 				data-slot="field"
-				data-disabled={value.disabled || undefined}
+				data-disabled={dataAttr(value.disabled)}
 				className={cn(k.field, className)}
 				{...props}
 			>

@@ -1,0 +1,37 @@
+language js
+
+// A boolean ARIA state goes through `ariaAttr`, and a boolean data attribute
+// goes through `dataAttr`. Each helper gives the one
+// spelling that the selectors and the tests expect: `true` for ARIA, and an
+// empty value for data. A hand-written `x || undefined` gives the string
+// `"true"` on a data attribute, which a value selector reads differently.
+//
+// The plugin cannot read types, so it matches only the shapes that are
+// boolean by syntax. For an ARIA state that is boolean by the spec, it
+// matches `x || undefined`. For any ARIA or data attribute, it matches
+// `x ? true : undefined` and `x ? '' : undefined`. A string attribute such
+// as `aria-label={alt || undefined}` passes.
+//
+// Reach is the `includes` beside this plugin in `biome.json`: the `ui` and
+// `shared` source, minus tests and benchmarks.
+JsxAttribute(
+	name = $name,
+	initializer = JsxAttributeInitializerClause(
+		value = JsxExpressionAttributeValue(expression = $value)
+	)
+) as $attribute where {
+	or {
+		and {
+			$name <: r"aria-(?:atomic|busy|disabled|expanded|hidden|invalid|modal|multiline|multiselectable|readonly|required|selected)",
+			$value <: `$_ || undefined`
+		},
+		and {
+			$name <: r"(?:aria|data)-[\w-]+",
+			$value <: or { `$_ ? true : undefined`, `$_ ? '' : undefined`, `$_ ? "" : undefined` }
+		}
+	},
+	register_diagnostic(
+		span = $attribute,
+		message = "write a boolean attribute through `ariaAttr` or `dataAttr`, which give the one spelling the selectors expect"
+	)
+}

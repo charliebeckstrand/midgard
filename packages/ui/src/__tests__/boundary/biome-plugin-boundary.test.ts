@@ -94,6 +94,20 @@ export const e = <Picker onValueChange={(next) => onValueChange(next ?? '')} />
 `,
 		},
 	],
+	'no-hand-written-bool-attr': [
+		{
+			file: 'attr.tsx',
+			source: `declare const open: boolean
+declare const alt: string
+export const a = <div aria-busy={open || undefined} /> // flag
+export const b = <div data-open={open ? '' : undefined} /> // flag
+export const c = <div aria-pressed={open ? true : undefined} /> // flag
+export const d = <img aria-label={alt || undefined} alt="" />
+export const e = <div aria-busy={open} data-open={open ? 'yes' : undefined} />
+// aria-busy={open || undefined} in a comment
+`,
+		},
+	],
 	'no-inline-spacing-calc': [
 		{
 			file: 'calc.ts',
