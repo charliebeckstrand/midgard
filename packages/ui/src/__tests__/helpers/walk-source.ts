@@ -23,6 +23,16 @@ export function srcRelative(file: string): string {
 	return relative(srcDir, file).split(sep).join('/')
 }
 
+/**
+ * Whether `file` is TypeScript source: `.ts`, `.tsx`, `.mts`, or `.cts`.
+ *
+ * @remarks The one filter that the boundary scans apply before they read a
+ * file for a pattern.
+ */
+export function isSourceFile(file: string): boolean {
+	return /\.(?:tsx?|mts|cts)$/.test(file)
+}
+
 // Entries a scan of the shipped tree must not descend into: test and bench
 // trees, build output, and dot-directories. A caller that scans the test tree
 // hands in its root directly, which no entry filter can prune — see

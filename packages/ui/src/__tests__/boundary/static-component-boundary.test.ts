@@ -1,7 +1,7 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir, walkSource } from '../helpers/walk-source'
+import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // Static leaves are the library's server-renderable surface: no 'use client'
 // directive, no React hooks, no ambient-context reads (the boundary
@@ -212,7 +212,7 @@ describe('static component boundary', () => {
 		const violations = collectSkeletonFiles().flatMap((path) => {
 			const breaches = staticBreaches(readFileSync(path, 'utf8'))
 
-			return breaches.length ? [`${relative(srcDir, path)}: ${breaches.join(', ')}`] : []
+			return breaches.length ? [`${srcRelative(path)}: ${breaches.join(', ')}`] : []
 		})
 
 		expect(

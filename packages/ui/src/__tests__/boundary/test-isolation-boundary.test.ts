@@ -1,10 +1,12 @@
 import { readFileSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 
 import {
 	collectPatternViolations,
+	isSourceFile,
 	srcDir,
+	srcRelative,
 	stripSourceComments,
 	walkSource,
 } from '../helpers/walk-source'
@@ -162,10 +164,10 @@ describe('test isolation boundary', () => {
 		walkSource(
 			join(testsDir, 'browser'),
 			(file, content) => {
-				if (!/\.tsx?$/.test(file)) return
+				if (!isSourceFile(file)) return
 
 				for (const block of unstatedViewports(stripSourceComments(content))) {
-					gaps.push(`${relative(srcDir, file)} → ${block}`)
+					gaps.push(`${srcRelative(file)} → ${block}`)
 				}
 			},
 			new Set(['setup']),

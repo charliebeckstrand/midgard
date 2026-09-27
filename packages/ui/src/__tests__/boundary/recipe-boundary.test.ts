@@ -1,7 +1,7 @@
 import { readdirSync, readFileSync, statSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcDir } from '../helpers/walk-source'
+import { isSourceFile, srcDir } from '../helpers/walk-source'
 
 // `kata/`, `katakana/`, and `kiso/` are internal-only; see the header in
 // src/recipes/index.ts for the full contract. This test pins four boundaries:
@@ -95,7 +95,7 @@ describe('recipes internal-boundary contract', () => {
 			}
 
 			walk(root, (file, content) => {
-				if (!/\.(?:tsx?|mts|cts)$/.test(file)) return
+				if (!isSourceFile(file)) return
 
 				// Matches `from 'ui/recipes...'` / `from "ui/recipes..."`, the only
 				// reachable import path under the workspace's module-resolution setup.
