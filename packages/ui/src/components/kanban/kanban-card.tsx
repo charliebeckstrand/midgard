@@ -3,7 +3,7 @@
 import { memo, type ReactNode, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useSortableItem } from '../../hooks'
-import { useLifted } from '../../hooks/use-lifted-store'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { k } from '../../recipes/kata/kanban'
 import { useKanbanColumnContext, useKanbanContext } from './context'
 
@@ -67,7 +67,7 @@ function KanbanCardImpl({
 	})
 
 	// The card reads its own lift, so a lift renders only the cards that lift and drop.
-	const lifted = useLifted(liftedStore, cardId)
+	const lifted = useKeyedValue(liftedStore, cardId)
 
 	// Keep the drag-overlay content in sync with the card's latest children.
 	// Runs post-commit (not in render) so it stays pure under concurrent/StrictMode;

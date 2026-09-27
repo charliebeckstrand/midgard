@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useMemo, useRef } from 'react'
 import { useControllable } from '../../hooks'
-import { createKeyedStore, type KeyedStore, toggleListItem } from '../../utilities'
+import { useKeyedStore } from '../../hooks/use-keyed-store'
+import { type KeyedStore, toggleListItem } from '../../utilities'
 
 /**
  * Single-open mode: at most one section open at a time.
@@ -41,6 +42,13 @@ type AccordionSelection = {
 	openStore: KeyedStore<string, boolean>
 	/** Toggles a value. It keeps its identity across renders. */
 	toggle: (value: string) => void
+}
+
+/** Reads whether a value is in the open list. It builds a set once for each list. */
+function openReader(open: readonly string[]): (value: string) => boolean {
+	const set = new Set(open)
+
+	return (value) => set.has(value)
 }
 
 /**
@@ -118,19 +126,11 @@ export function useAccordionSelection(props: SingleProps | MultipleProps): Accor
 	// The open set of the last commit, for a toggle that keeps its identity.
 	const latest = useRef(current)
 
-	const [openStore] = useState(() => {
-		const open = new Set(current)
-
-		return createKeyedStore((value: string) => open.has(value))
-	})
+	const openStore = useKeyedStore(current, openReader)
 
 	useLayoutEffect(() => {
 		latest.current = current
-
-		const open = new Set(current)
-
-		openStore.publish((value) => open.has(value))
-	}, [openStore, current])
+	}, [current])
 
 	const toggle = useCallback(
 		(value: string) => {

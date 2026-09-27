@@ -1,9 +1,7 @@
 'use client'
 
 import { useCallback, useMemo } from 'react'
-import { announce } from '../../core'
 import { useSortableList } from '../../hooks'
-import { describeRowReorder } from './engine/grid-announcements'
 import type { GridRowReorder } from './grid-data-types'
 
 /** A row paired with its stable key — the shape the vertical row sortable orders. @internal */
@@ -28,44 +26,8 @@ type GridRowReorderOptions<T> = {
 	rows: T[]
 	/** Each rendered row's stable key, parallel to {@link GridRowReorderOptions.rows}. */
 	rowKeys: (string | number)[]
-	/** Human-readable row name for the drop announcement; falls back to the row key. */
+	/** Human-readable row name for the drag announcements; falls back to the row key. */
 	rowLabel?: (row: T) => string
-}
-
-/** The moved row's new 1-based position and its name, for the drop announcement. @internal */
-function describeMove<T>(
-	prev: RowItem<T>[],
-	next: RowItem<T>[],
-	rowLabel: ((row: T) => string) | undefined,
-): { name: string; position: number } | null {
-	const oldIndex = new Map(prev.map((item, index) => [item.key, index] as const))
-
-	// The dragged row is the one displaced farthest from its old slot — the rows
-	// it passed each shift by one, so its own move is the largest (ties on an
-	// adjacent swap, where either row's new position reads correctly).
-	let movedIndex = -1
-
-	let maxDelta = 0
-
-	for (let index = 0; index < next.length; index++) {
-		const from = oldIndex.get((next[index] as RowItem<T>).key)
-
-		if (from === undefined) continue
-
-		const delta = Math.abs(index - from)
-
-		if (delta > maxDelta) {
-			maxDelta = delta
-
-			movedIndex = index
-		}
-	}
-
-	if (movedIndex === -1) return null
-
-	const moved = next[movedIndex] as RowItem<T>
-
-	return { name: rowLabel?.(moved.row) ?? `row ${moved.key}`, position: movedIndex + 1 }
 }
 
 /**
@@ -106,15 +68,8 @@ export function useGridRowReorder<T>({
 	const onReorderEnd = rowReorder?.onReorderEnd
 
 	const handleReorder = useCallback(
-		(next: RowItem<T>[]) => {
-			onReorder?.(next.map((item) => item.row))
-
-			// Narrate the settled move; the drag gives no visible text cue (WCAG 4.1.3).
-			const move = describeMove(items, next, rowLabel)
-
-			if (move) announce(describeRowReorder(move.name, move.position, next.length))
-		},
-		[onReorder, items, rowLabel],
+		(next: RowItem<T>[]) => onReorder?.(next.map((item) => item.row)),
+		[onReorder],
 	)
 
 	const handleDragStart = useCallback(
@@ -131,6 +86,8 @@ export function useGridRowReorder<T>({
 		orientation: 'vertical',
 		onDragStart: onReorderStart ? handleDragStart : undefined,
 		onDragEnd: onReorderEnd ? handleDragEnd : undefined,
+		// Each drag step is announced by the row's name; the drag gives no visible text cue (WCAG 4.1.3).
+		describe: (item) => rowLabel?.(item.row) ?? `row ${item.key}`,
 	})
 
 	return {

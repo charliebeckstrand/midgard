@@ -5,7 +5,7 @@ import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr, toAmbientStep } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
@@ -190,10 +190,10 @@ export function Drawer({
 	'aria-label': ariaLabel,
 }: DrawerProps) {
 	// Controlled when `open` is passed; otherwise uncontrolled from `defaultOpen`.
-	const [resolvedOpen = false, setOpen] = useControllable<boolean>({
+	const [resolvedOpen, setOpen] = useControllableFlag({
 		value: open,
-		defaultValue: defaultOpen ?? false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+		defaultValue: defaultOpen,
+		onValueChange: onOpenChange,
 	})
 
 	const resolvedSurface = useResolvedSurface(glass)

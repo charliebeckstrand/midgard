@@ -1,12 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import {
-	describeDragCancel,
-	describeDragEnd,
-	describeDragOver,
-	describeDragStart,
-	describeNode,
-} from '../../modules/query/engine/query-announcements'
+import { describeNode } from '../../modules/query/engine/query-announcements'
 import { createGroup, createRule } from '../../modules/query/engine/query-node'
 import type { QueryField } from '../../modules/query/engine/types'
 
@@ -41,17 +35,5 @@ describe('describeNode', () => {
 		expect(describeNode(createGroup('and', [createRule(nameField)]), fields)).toBe(
 			'condition group',
 		)
-	})
-})
-
-describe('drag announcements', () => {
-	it('name the node and its position in the group', () => {
-		expect(describeDragStart('Name rule', 1, 3)).toBe('Picked up Name rule, position 1 of 3.')
-
-		expect(describeDragOver('Name rule', 2, 3)).toBe('Name rule moved to position 2 of 3.')
-
-		expect(describeDragEnd('Name rule', 2, 3)).toBe('Dropped Name rule, position 2 of 3.')
-
-		expect(describeDragCancel('Name rule', 1, 3)).toBe('Returned Name rule to position 1 of 3.')
 	})
 })

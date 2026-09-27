@@ -11,8 +11,10 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useControllable` | Manages controlled / uncontrolled value state with a unified setter. |
+| `useControllableFlag` | The boolean form of `useControllable` for `open`, `pressed`, or `checked`: the value is never `undefined`, and a cleared flag reports `false`. |
 | `useDeferredToggle` | Listbox/Combobox toggle logic; freezes the rendered selection through the panel's close animation. |
 | `useSelectableValueChange` | Wraps `onValueChange` to drop the "cleared to undefined" event in multi-select mode. |
+| `useTimeout` | One restartable timer that clears on unmount: `set` (the last call wins), `clear`, and `pending`, each with a stable identity. For a debounce, a settle window, or a dwell delay. |
 | `useOffcanvas` | Offcanvas sidebar open state with auto-close when the viewport crosses `--breakpoint-lg`; reports every transition to `onOpenChange`. |
 
 ## Floating & overlays
@@ -32,7 +34,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 |---|---|
 | `useKeybindings` | Subscribes to tinykeys keybindings for the component's lifetime, reading handlers fresh per event. |
 | `useHasHover` | True when the device has a hover-capable pointer; true during SSR. |
-| `useKeyboardLifted` | Lifted-item state for keyboard reordering: Space toggles, blur drops, `refocus` survives reorder re-renders. |
+| `useKeyboardLifted` | Lifted-item state for keyboard reordering. `toggleLift` and `drop` announce the pick-up and the drop, and blur drops. `readLifted` reads a lift before its commit, and `refocus` survives reorder re-renders. |
 | `useKeyboardSettled` | Defers a callback until the virtual keyboard settles; fires immediately on desktop. |
 | `useHoverAcrossScroll` | Hides a chart/map tooltip while scrolling and recomputes hover at the pointer once the scroll settles. |
 
@@ -98,11 +100,13 @@ Hooks export the option and return shapes consumers thread through their own pro
 | `A11yDisclosure` / `A11yDisclosureOptions` | Return shape / options of `useA11yDisclosure` (trigger/panel ids and prop bags). |
 | `A11yLiveRegionProps` / `A11yLiveRegionOptions` / `A11yLiveLevel` | Live-region props, options, and urgency (`'polite' \| 'assertive'`). |
 | `A11yAnnouncementsOptions` | Options for `useA11yAnnouncements` (`assertive`, `enabled`). |
+| `Timeout` | Return shape of `useTimeout`: `set`, `clear`, `pending`. |
 | `SetValue` | Argument to `useControllable`'s setter: a next value, `null`/`undefined` to clear, or a functional updater. |
 | `InView` / `InViewOptions` | Return shape / options of `useInView` (`ref`, `inView`; `margin`, `once`). |
 | `MinBreakpoint` | The argument `useMinBreakpoint` takes: every breakpoint name but the unprefixed base, which has no width of its own. |
 | `RovingOptions` | Options for `useA11yRoving`: the item selector, axis, Tab-stop ownership, `Escape` to drop focus, and the virtual-item source. |
 | `ControllableOptions` | Options for `useControllable`: the controlled `value`, the uncontrolled `defaultValue`, and the change report. |
+| `ControllableFlagOptions` | Options for `useControllableFlag`: the controlled flag, the uncontrolled default (`false`), and the change report. |
 | `DeferredToggleOptions` | Options for `useDeferredToggle`. |
 | `DismissableOptions` | Options for `useDismissable`: the boundary, the dismiss report, and the enable gate. |
 | `EscapeLayerOptions` | Options for `useEscapeLayer`: where the layer sits in the stack and what a press does. |

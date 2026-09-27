@@ -20,11 +20,10 @@ import {
 } from '../../../components/context-menu'
 import { Dialog, DialogClose, DialogFooter } from '../../../components/dialog'
 import { useStableEvent } from '../../../hooks/use-stable-event'
-import { copyText, downloadBlob } from '../../../utilities/export-output'
+import { copyText, downloadBlob, downloadCsv } from '../../../utilities/export-output'
 import {
 	type ChartImageType,
 	chartFileName,
-	downloadText,
 	rasterizeChartImage,
 	readoutToCsv,
 } from './chart-export'
@@ -323,8 +322,7 @@ export function ChartContextMenu({
 							key: 'download-csv',
 							label: 'Download CSV',
 							icon: <Download />,
-							onAction: () =>
-								downloadText(exportCsv(readout), chartFileName(title, 'csv'), 'text/csv'),
+							onAction: () => downloadCsv(chartFileName(title, 'csv'), exportCsv(readout)),
 						},
 						{
 							key: 'copy-data',

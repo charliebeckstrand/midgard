@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactElement } from 'react'
 import { cn, composeEventHandlers } from '../../core'
-import { useControllable } from '../../hooks/use-controllable'
+import { useControllableFlag } from '../../hooks/use-controllable'
 import { k } from '../../recipes/kata/toggle-icon-button'
 import type { AccessibleName } from '../../types'
 import { Button, type ButtonVariants } from '../button'
@@ -63,10 +63,10 @@ export function ToggleIconButton({
 	className,
 	...props
 }: ToggleIconButtonProps) {
-	const [pressed = false, setPressed] = useControllable<boolean>({
+	const [pressed, setPressed] = useControllableFlag({
 		value: pressedProp,
-		defaultValue: defaultPressed ?? false,
-		onValueChange: (next) => onPressedChange?.(next ?? false),
+		defaultValue: defaultPressed,
+		onValueChange: onPressedChange,
 	})
 
 	// The toggle is the activation the button exists to perform, so a

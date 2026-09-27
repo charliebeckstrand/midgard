@@ -2,7 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { useRef } from 'react'
-import { useControllable, useFloatingUI } from '../../hooks'
+import { useControllableFlag, useFloatingUI } from '../../hooks'
 import { useFloatingReference } from '../../hooks/use-floating-reference'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useControlProps } from '../control/use-control-props'
@@ -81,12 +81,11 @@ export function useColorPickerState({
 
 	// The single writer: the trigger toggles through it, and floating-ui's dismiss paths
 	// are armed only while open, so every set it takes is a real transition and the
-	// caller's callback rides the setter with no change guard. `useControllable` rather
+	// caller's callback rides the setter with no change guard. `useControllableFlag` rather
 	// than bare state for the seam, not the machinery — the picker is uncontrolled today,
 	// and this is where an `open` prop slots in without moving the report.
-	const [open = false, setOpenValue] = useControllable<boolean>({
-		defaultValue: false,
-		onValueChange: (next) => onOpenChange?.(next ?? false),
+	const [open, setOpenValue] = useControllableFlag({
+		onValueChange: onOpenChange,
 	})
 
 	// Narrowed on the way out: the controllable setter also takes `null` and a functional

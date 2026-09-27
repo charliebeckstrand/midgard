@@ -4,32 +4,6 @@ import type { CSSProperties } from 'react'
 import type { GridReorder } from '../grid-data-types'
 
 /**
- * dnd-kit modifier that pins a column drag to the x-axis. It zeroes the vertical
- * component of the transform, so a column tracks the pointer horizontally and
- * never drifts up or down while being reordered. Mirrors `@dnd-kit/modifiers`'
- * `restrictToHorizontalAxis` without taking the dependency.
- *
- * @internal
- */
-export const restrictToHorizontalAxis: Modifier = ({ transform }) => ({
-	...transform,
-	y: 0,
-})
-
-/**
- * dnd-kit modifier that pins a row drag to the y-axis. It zeroes the horizontal
- * component of the transform, so a row tracks the pointer vertically and never
- * drifts left or right while being reordered. Mirrors `@dnd-kit/modifiers`'
- * `restrictToVerticalAxis` without taking the dependency.
- *
- * @internal
- */
-export const restrictToVerticalAxis: Modifier = ({ transform }) => ({
-	...transform,
-	x: 0,
-})
-
-/**
  * Clamps `transform` so `rect` stays inside `bounding` on both axes. Lifted from
  * `@dnd-kit/modifiers`' internal `restrictToBoundingRect`.
  *

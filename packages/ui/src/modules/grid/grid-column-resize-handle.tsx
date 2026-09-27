@@ -4,6 +4,7 @@ import { type KeyboardEvent, useEffect, useRef } from 'react'
 import { announce, cn, dataAttr } from '../../core'
 import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
+import { useTimeout } from '../../hooks/use-timeout'
 import { k } from '../../recipes/kata/grid'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -57,14 +58,10 @@ export function GridColumnResizeHandle({
 
 	// Debounce the post-resize announcement so a run of keyboard nudges settles into
 	// one polite message rather than chattering on every keystroke (WCAG 4.1.3).
-	const announceTimer = useRef<ReturnType<typeof setTimeout>>(undefined)
-
-	useEffect(() => () => clearTimeout(announceTimer.current), [])
+	const announceTimer = useTimeout()
 
 	function announceSettledWidth() {
-		clearTimeout(announceTimer.current)
-
-		announceTimer.current = setTimeout(
+		announceTimer.set(
 			() => announce(describeResize(label, sizeRef.current)),
 			GRID_STATUS_DEBOUNCE_MS,
 		)

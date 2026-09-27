@@ -19,23 +19,3 @@ export function describeNode(node: QueryNode, fields: QueryField[]): string {
 
 	return field ? `${field.label} rule` : 'empty rule'
 }
-
-/** The announcement when a drag picks up a node. @internal */
-export function describeDragStart(label: string, position: number, total: number): string {
-	return `Picked up ${label}, position ${position} of ${total}.`
-}
-
-/** The announcement when a dragged node moves over a new position. @internal */
-export function describeDragOver(label: string, position: number, total: number): string {
-	return `${label} moved to position ${position} of ${total}.`
-}
-
-/** The announcement when a drag drops a node. @internal */
-export function describeDragEnd(label: string, position: number, total: number): string {
-	return `Dropped ${label}, position ${position} of ${total}.`
-}
-
-/** The announcement when a drag stops with no move. @internal */
-export function describeDragCancel(label: string, position: number, total: number): string {
-	return `Returned ${label} to position ${position} of ${total}.`
-}

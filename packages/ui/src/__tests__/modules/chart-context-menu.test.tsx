@@ -343,6 +343,15 @@ describe('readoutToCsv', () => {
 
 		expect(csv.split('\r\n')).toEqual([',Margin', 'Q1,"-1,234.5"', 'Q2,-5'])
 	})
+
+	it('prefixes a quote to a number led by a tab or a carriage return', () => {
+		const csv = readoutToCsv({
+			categories: ['Q1', 'Q2'],
+			rows: [{ label: 'Margin', swatchClass: '', swatch: 'rect', values: ['\t12', '+\r7'] }],
+		})
+
+		expect(csv.split('\r\n')).toEqual([',Margin', "Q1,'\t12", 'Q2,"\'+\r7"'])
+	})
 })
 
 describe('ChartContextMenu target', () => {

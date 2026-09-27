@@ -73,3 +73,39 @@ export function useControllable<T>({
 
 	return [currentValue, setValue]
 }
+
+/** Options for {@link useControllableFlag}: the controlled `value`, the uncontrolled `defaultValue`, and the change report. */
+export type ControllableFlagOptions = {
+	/** Controlled flag. `undefined` leaves the hook uncontrolled. */
+	value?: boolean
+	/**
+	 * Initial flag when uncontrolled.
+	 * @defaultValue false
+	 */
+	defaultValue?: boolean
+	/** Fires with the committed flag. A cleared flag reports `false`. */
+	onValueChange?: (value: boolean) => void
+}
+
+/**
+ * The boolean form of {@link useControllable}, for an `open`, `pressed`, or
+ * `checked` prop with its `default` and `on…Change` twins.
+ *
+ * @returns A `[value, setValue]` tuple. `value` is never `undefined`.
+ * @remarks A flag has no "no value" state, so a `null` or `undefined` from the
+ * setter reads and reports as `false`. This is the one place where the §7.3 clear
+ * becomes `false` for a flag.
+ */
+export function useControllableFlag({
+	value,
+	defaultValue = false,
+	onValueChange,
+}: ControllableFlagOptions): [boolean, (value: SetValue<boolean>) => void] {
+	const [current = false, setValue] = useControllable<boolean>({
+		value,
+		defaultValue,
+		onValueChange: onValueChange && ((next) => onValueChange(next ?? false)),
+	})
+
+	return [current, setValue]
+}

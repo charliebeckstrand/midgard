@@ -5,17 +5,14 @@ import { SortableContext } from '@dnd-kit/sortable'
 import type { ComponentProps, ReactNode, RefObject } from 'react'
 import { cn, createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
+import { restrictToHorizontalAxis, restrictToVerticalAxis } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'
 import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { PinSide } from './engine/grid-pin/overrides'
-import {
-	restrictToFirstScrollableAncestor,
-	restrictToHorizontalAxis,
-	restrictToVerticalAxis,
-} from './engine/grid-reorder-compute'
+import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import { GridContextMenu } from './grid-context-menu'
 import type { GridGroupByContextValue } from './grid-group-by-button'
 import { GridManagerDialog } from './grid-manager-dialog'

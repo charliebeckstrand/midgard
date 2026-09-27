@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { announce, cn } from '../../core'
-import { useControllable } from '../../hooks'
+import { useControllableFlag } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -164,10 +164,10 @@ export function Alert({
 	children,
 	'data-slot': slot = 'alert',
 }: AlertProps) {
-	const [open = true, setOpen] = useControllable<boolean>({
+	const [open, setOpen] = useControllableFlag({
 		value: openProp,
-		defaultValue: defaultOpen,
-		onValueChange: onOpenChange ? (next) => onOpenChange(next ?? false) : undefined,
+		defaultValue: defaultOpen ?? true,
+		onValueChange: onOpenChange,
 	})
 
 	// When `open` is controlled but `onOpenChange` is absent, `setOpen(false)`

@@ -2,7 +2,7 @@
 
 import type { ElementType, FocusEvent, KeyboardEvent, ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
-import { useLifted } from '../../hooks/use-lifted-store'
+import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { Polymorphic, type PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/list'
 import { useListContext, useListItemContext } from './context'
@@ -116,7 +116,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	} = useListContext()
 
 	// The row reads its own lift, so a lift renders only the rows that lift and drop.
-	const lifted = useLifted(liftedStore, id)
+	const lifted = useKeyedValue(liftedStore, id)
 
 	// Whether the content area itself acts on activation. Read the handler's
 	// value, not its key: `onClick={enabled ? open : undefined}` leaves the key on

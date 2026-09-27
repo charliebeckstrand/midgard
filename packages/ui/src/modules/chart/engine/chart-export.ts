@@ -5,7 +5,7 @@
  * `document` only when called.
  */
 
-import { downloadBlob, neutralizeFormula } from '../../../utilities/export-output'
+import { csvField } from '../../../utilities/export-output'
 import type { ChartReadout } from './types'
 
 /** The bitmap formats the chart exports to; {@link ChartExportOutcome} names the one a download asked for. */
@@ -183,27 +183,6 @@ export async function rasterizeChartImage(
 }
 
 /**
- * A formatted number: digits with signs, separators, spaces, currency, or a
- * percent. It holds no letter and no operator, so a spreadsheet cannot run it.
- *
- * @internal
- */
-const FORMATTED_NUMBER = /^[+-]?[\d.,\s'’%$€£¥\u00a0\u202f]*\d[\d.,\s'’%$€£¥\u00a0\u202f]*$/
-
-/**
- * Escapes one CSV field, quoting it when it holds a comma, quote, or newline.
- * A field that a spreadsheet reads as a formula gets a quote prefix first. A
- * formatted number (`-1,234.5`) stays as it is, so the column still parses.
- *
- * @internal
- */
-function csvField(value: string): string {
-	const guarded = FORMATTED_NUMBER.test(value) ? value : neutralizeFormula(value)
-
-	return /[",\r\n]/.test(guarded) ? `"${guarded.replace(/"/g, '""')}"` : guarded
-}
-
-/**
  * Builds a CSV from a chart's readout: a leading empty corner cell, then one
  * column per series, and one row per category. It is the same category × series
  * grid that the visually-hidden data table renders, so the export mirrors what
@@ -220,7 +199,9 @@ export function readoutToCsv(readout: ChartReadout): string {
 		...readout.rows.map((row) => row.values[index] ?? ''),
 	])
 
-	return [header, ...body].map((row) => row.map(csvField).join(',')).join('\r\n')
+	return [header, ...body]
+		.map((row) => row.map((field) => csvField(field, { formatted: true })).join(','))
+		.join('\r\n')
 }
 
 /** Slugifies a chart title into a filename stem, falling back to `'chart'`. @internal */
@@ -237,9 +218,4 @@ function fileStem(title: string | undefined): string {
 /** The export filename for a chart: its slugified title and the format's extension. @internal */
 export function chartFileName(title: string | undefined, extension: string): string {
 	return `${fileStem(title)}.${extension}`
-}
-
-/** Downloads text as a UTF-8 file of the given MIME type. @internal */
-export function downloadText(text: string, filename: string, mime: string): void {
-	downloadBlob(new Blob([text], { type: `${mime};charset=utf-8` }), filename)
 }
