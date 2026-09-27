@@ -5,6 +5,7 @@ import {
 	binIndex,
 	quantileBinIndex,
 	quantileThresholds,
+	resolveBinScale,
 	resolveColorBins,
 	resolveQuantileBins,
 	sampleRange,
@@ -193,5 +194,39 @@ describe('resolveQuantileBins', () => {
 		expect(bins[0]?.lo).toBe(0)
 
 		expect(bins.at(-1)?.hi).toBe(999)
+	})
+})
+
+describe('resolveBinScale', () => {
+	const range = ['#000000', '#808080', '#ffffff']
+
+	it('cuts equal intervals of the domain under linear binning', () => {
+		const scale = resolveBinScale([0, 5, 9], [0, 9], range)
+
+		expect(scale.bins.map((bin) => [bin.lo, bin.hi])).toEqual([
+			[0, 3],
+			[3, 6],
+			[6, 9],
+		])
+
+		expect(scale.thresholds).toBeUndefined()
+
+		expect([0, 3, 8.9, 9].map(scale.assign)).toEqual([0, 1, 2, 2])
+	})
+
+	it('cuts equal counts of the values under quantile binning, and ignores the domain', () => {
+		const values = [1, 2, 3, 4, 5, 6, 100, 200, 300]
+
+		const scale = resolveBinScale(values, [0, 1000], range, undefined, 'quantile')
+
+		expect(scale.thresholds).toEqual(quantileThresholds(values, 3))
+
+		expect(values.map(scale.assign)).toEqual(
+			values.map((value) => quantileBinIndex(value, scale.thresholds ?? [])),
+		)
+	})
+
+	it('assigns a non-finite value to no bin', () => {
+		expect(resolveBinScale([1, 2], [1, 2], range).assign(Number.NaN)).toBeNull()
 	})
 })

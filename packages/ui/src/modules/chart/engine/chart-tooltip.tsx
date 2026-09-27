@@ -1,11 +1,10 @@
 'use client'
 
 import type { RefObject } from 'react'
-import { Swatch, type SwatchProps } from '../../../components/swatch'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn } from '../../../core'
-import { k } from '../../../recipes/kata/chart'
 import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
+import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from './chart-readout-card'
 import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
 import type { ChartReadout, ChartReadoutSource } from './types'
@@ -118,12 +117,6 @@ function readoutRows(readout: ChartReadout | null, order: number[] | undefined) 
 /** The gap in px floating-ui keeps between the anchor point and the readout. @internal */
 const TRACK_OFFSET = 12
 
-/** Maps a mark shape to its {@link Swatch} shape. */
-const SWATCH_SHAPE = { rect: 'square', line: 'line' } as const satisfies Record<
-	'rect' | 'line',
-	NonNullable<SwatchProps['shape']>
->
-
 /**
  * The hover readout: one tooltip listing every series at the pointed category,
  * values leading their labels. The panel is the shared {@link TooltipPointer},
@@ -211,34 +204,30 @@ export function ChartTooltip({
 			size="sm"
 		>
 			{index !== null && readout !== null && (
-				<div aria-hidden="true">
-					<div className={cn(k.label, 'mb-1 whitespace-nowrap')}>{readout.categories[index]}</div>
-
+				<ChartReadoutCard title={readout.categories[index]}>
 					<div className="space-y-0.5">
 						{rows.map((row) => (
-							<div
+							<ChartReadoutRow
 								key={row.label}
 								data-slot="chart-tooltip-row"
 								className={cn(
-									'flex items-center gap-1.5 whitespace-nowrap transition-opacity',
+									'transition-opacity',
 									// A cursor on one dataset dims the rest, the same recede the marks take.
 									emphasis !== null && row.index !== emphasis && 'opacity-25',
 								)}
-							>
-								<Swatch
-									shape={SWATCH_SHAPE[row.swatch]}
-									size="sm"
-									color={row.swatchClasses?.[index] ?? row.swatchClass}
-									style={row.swatchColor ? { color: row.swatchColor } : undefined}
-								/>
-
-								<span className={cn(k.value)}>{row.values[index]}</span>
-
-								<span className={cn(k.label)}>{row.label}</span>
-							</div>
+								swatch={
+									<ReadoutSwatch
+										shape={row.swatch}
+										className={row.swatchClasses?.[index] ?? row.swatchClass}
+										color={row.swatchColor}
+									/>
+								}
+								value={row.values[index]}
+								label={row.label}
+							/>
 						))}
 					</div>
-				</div>
+				</ChartReadoutCard>
 			)}
 		</TooltipPointer>
 	)

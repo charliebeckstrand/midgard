@@ -20,6 +20,7 @@ import { Text } from '../../../../components/text'
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
 import type { Orientation } from '../../../../types'
+import { binIndex, quantileBinIndex } from '../../../../utilities'
 
 /**
  * Which way a range legend and its glyph lay out:
@@ -467,13 +468,11 @@ export function RangeLegend({
 
 	const step = span / bins
 
-	// The class that a value lands in, by the host's own edges when it passes
-	// them, else by equal intervals — the host's rule under `'linear'`.
-	const binOf = (value: number): number => {
-		if (thresholds) return thresholds.filter((edge) => value >= edge).length
-
-		return span > 0 ? Math.min(bins - 1, Math.max(0, Math.floor((value - min) / step))) : 0
-	}
+	// The class that a value lands in, by the host's own rule: its quantile edges
+	// when it passes them, else the equal intervals of `'linear'`. The same
+	// functions as the host's `assign`, so a value at an edge lands in one class.
+	const binOf = (value: number): number =>
+		(thresholds ? quantileBinIndex(value, thresholds) : binIndex(value, domain, bins)) ?? 0
 
 	const edgesOf = (bin: number): [number, number] => {
 		if (thresholds) return [thresholds[bin - 1] ?? min, thresholds[bin] ?? max]

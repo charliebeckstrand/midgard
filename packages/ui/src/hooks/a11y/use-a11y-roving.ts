@@ -722,6 +722,28 @@ function handleTypeahead(
 }
 
 /**
+ * Focus-mode `Escape`: drops focus from the item inside `container`. Virtual
+ * mode is out of scope, because its focus sits on an owning input.
+ *
+ * @returns True once the key is `Escape` and the option is on, so the caller stops.
+ * @internal
+ */
+function handleEscapeBlur(
+	event: KeyboardEvent,
+	container: HTMLElement | null,
+	escapeBlurs: boolean,
+	mode: 'focus' | 'virtual',
+): boolean {
+	if (!escapeBlurs || mode !== 'focus' || event.key !== 'Escape') return false
+
+	const active = container?.ownerDocument.activeElement
+
+	if (active instanceof HTMLElement && container?.contains(active)) active.blur()
+
+	return true
+}
+
+/**
  * Focus-mode Tab containment: Tab / Shift+Tab step to the next / previous item
  * instead of leaving the widget, wrapping at both ends. With focus resting on
  * the container rather than an item (`currentIndex` -1), Tab enters at the
@@ -809,6 +831,13 @@ export type RovingOptions = NavigationConfig & {
 	 * @defaultValue false
 	 */
 	trapTab?: boolean
+	/**
+	 * Focus mode: `Escape` drops focus from the item, which leaves the widget.
+	 * For a toolbar whose focus shows an effect, such as a legend that
+	 * emphasizes the focused entry. Never for a surface that closes on `Escape`.
+	 * @defaultValue false
+	 */
+	escapeBlurs?: boolean
 	/**
 	 * Jump to the item whose label starts with recently typed characters
 	 * (WAI-ARIA type-ahead). Off by default; enable for menus and listboxes,
@@ -921,6 +950,7 @@ export function useA11yRoving(
 		mode = 'focus',
 		focusOnEmpty = false,
 		trapTab = false,
+		escapeBlurs = false,
 		typeahead = false,
 		activationKey = 'Enter',
 		activeDescendantRef,
@@ -1023,6 +1053,8 @@ export function useA11yRoving(
 		(event: KeyboardEvent) => {
 			if (!enabled) return
 
+			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return
+
 			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
 				itemSource: itemSource?.current ?? null,
 				activeIndexRef,
@@ -1072,6 +1104,7 @@ export function useA11yRoving(
 			orientation,
 			focusOnEmpty,
 			trapTab,
+			escapeBlurs,
 			typeahead,
 			activationKey,
 			activeDescendantRef,

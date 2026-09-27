@@ -1,15 +1,17 @@
 'use client'
 
-import { type KeyboardEvent, memo, useRef } from 'react'
-import { Button } from '../../components/button'
+import { memo, useRef } from 'react'
 import { Swatch } from '../../components/swatch'
 import { Text } from '../../components/text'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/tooltip'
 import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks/a11y'
-import { useTruncation } from '../../hooks/use-truncation'
+import {
+	type LegendEmphasis,
+	LegendSwitch,
+	useLegendEmphasis,
+} from '../chart/engine/chart-legend/legend-switch'
+import { readoutSwatchShapes } from '../chart/engine/chart-readout-card'
 import type { MapLegendItem } from './engine/map-legend/items'
-import { mapSwatchShapes } from './map-swatch'
 
 /** Props for {@link MapLegendEntry}. @internal */
 type MapLegendEntryProps = {
@@ -20,32 +22,22 @@ type MapLegendEntryProps = {
 	panel: boolean
 	/** Toggles this entry on or off. */
 	onToggle: (id: string) => void
-	/** Emphasizes this entry's marks (`null` clears). */
-	onFocus: (id: string | null) => void
+	/** The legend's shared pointer and focus emphasis. */
+	emphasis: LegendEmphasis<string>
 }
 
 /**
  * One legend entry: the keys mirroring the marks it stands for, the name, and
- * its trailing readout — on one line, always. The name truncates to hold that
- * line and a hover or keyboard focus reveals it in full once it clips.
+ * its trailing readout, on one line. It is the chart legend's
+ * {@link LegendSwitch}, so a clipped name comes back the same way in both.
  *
- * The reveal is the chart legend's, and deliberately. Both legends cap a name
- * against a rail narrower than the names people give things. A reader who
- * cannot finish reading one must not have to learn a second way to.
- *
- * @remarks The tooltip wraps the whole control rather than the label span. A
- * {@link Button}'s touch-target overlay captures the pointer and forwards it by
- * bubbling. A tooltip anchored to an inner span would never see the hover.
- * Overflow is measured on the span through the shared {@link useTruncation}. A
- * closed (unclipped) tooltip renders no surface, so an entry that fits adds no
- * DOM.
- *
+ * @remarks
  * Memoized, because the plat re-renders on every legend point and leave, and
- * the entry is no longer a bare button. It now carries the truncation measure
- * and the floating stack behind the reveal, both of which run per commit. Every
- * prop holds across those renders: the items are memoized, and the two handlers
- * are `useMapToggle`'s own. The whole legend therefore bails out of a crossing
- * that changed nothing but which entry is emphasized.
+ * each entry carries the truncation measure and the floating stack behind the
+ * reveal. Every prop holds across those renders: the items are memoized, the
+ * toggle is `useMapToggle`'s own, and the emphasis handlers keep their
+ * identity. The whole legend therefore bails out of a crossing that changed
+ * nothing but which entry is emphasized.
  * @internal
  */
 const MapLegendEntry = memo(function MapLegendEntry({
@@ -53,98 +45,60 @@ const MapLegendEntry = memo(function MapLegendEntry({
 	off,
 	panel,
 	onToggle,
-	onFocus,
+	emphasis,
 }: MapLegendEntryProps) {
-	// The whole entry is the tooltip's trigger, so its contact — not the label
-	// span's — is what arms the measure.
-	const entryRef = useRef<HTMLButtonElement>(null)
-
-	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: entryRef })
-
-	const control = (
-		<Button
-			type="button"
-			ref={entryRef}
-			size="sm"
-			variant="plain"
-			data-slot="map-legend-item"
-			aria-pressed={!off}
+	return (
+		<LegendSwitch
+			slot="map-legend-item"
+			off={off}
+			label={item.label}
+			labelSlot="map-legend-label"
+			labelClassName="flex-1"
 			// The panel's entries stretch to the rail so the readouts share one right
 			// edge rather than each entry centering its own content; the row under the
 			// map keeps every entry its own width. The width is capped at the row, so a
 			// long name clips instead of overflowing a narrow screen.
 			className={cn('max-w-full gap-2', panel && '@lg:w-full @lg:justify-start')}
-			onClick={() => onToggle(item.id)}
-			onPointerEnter={() => onFocus(item.id)}
-			onPointerLeave={() => onFocus(null)}
-			onFocus={() => onFocus(item.id)}
-			onBlur={() => onFocus(null)}
-		>
-			{/* One key per distinct mark shape the entry stands for. That is a lone
-			    swatch for a category or an ungrouped mark. It is a square beside a dot
-			    where a zone and the mark inside it merged into one place. */}
-			<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
-				{item.swatches.map((swatch) => (
-					<Swatch
-						key={swatch.shape}
-						shape={mapSwatchShapes[swatch.shape]}
-						color={swatch.className}
-						style={swatch.color ? { color: swatch.color } : undefined}
-						className={cn(off && 'opacity-40')}
-					/>
-				))}
-			</span>
-
-			{/* Beside the label rather than under it. The readout is a short,
-			    predictable word: a mileage, a count, a service class. It holds its own
-			    right-hand column, where stacking the two spent a second line on every
-			    entry that carried one.
-
-			    The entry is one line whatever it holds. The name gives up the width,
-			    because it is the half that can be given up gracefully. It clips to an
-			    ellipsis, and the reveal above hands it back in full. A readout clipped
-			    to "Same d…" says nothing, and a wrapped one costs the line the stack
-			    was traded away to save. */}
-			{/* The clipping box is structural and nothing else: the off treatment stays
-			    on the label itself, which is the slot that names it. */}
-			<span ref={labelRef} className="block min-w-0 flex-1 truncate text-start">
-				<Text
-					as="span"
-					size="sm"
-					data-slot="map-legend-label"
-					tone="muted"
-					className={cn('leading-tight', off && 'line-through opacity-60')}
-				>
-					{item.label}
-				</Text>
-			</span>
-
-			{item.detail && (
-				// A step down the scale rather than the label's own size: a readout that
-				// matched its name competed with it for the eye, and the width it took at
-				// that size is width the name is now clipped for want of.
-				<Text
-					as="span"
-					size="xs"
-					data-slot="map-legend-detail"
-					tone="muted"
-					className={cn(
-						'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
-						off && 'opacity-60',
-					)}
-				>
-					{item.detail}
-				</Text>
-			)}
-		</Button>
-	)
-
-	return (
-		<Tooltip disabled={!truncated}>
-			<TooltipTrigger>{control}</TooltipTrigger>
-
-			<TooltipContent>{item.label}</TooltipContent>
-		</Tooltip>
+			keys={
+				// One key per distinct mark shape the entry stands for. That is a lone
+				// swatch for a category or an ungrouped mark. It is a square beside a dot
+				// where a zone and the mark inside it merged into one place.
+				<span data-slot="map-legend-keys" className="flex shrink-0 items-center gap-1">
+					{item.swatches.map((swatch) => (
+						<Swatch
+							key={swatch.shape}
+							shape={readoutSwatchShapes[swatch.shape]}
+							color={swatch.className}
+							style={swatch.color ? { color: swatch.color } : undefined}
+							className={cn(off && 'opacity-40')}
+						/>
+					))}
+				</span>
+			}
+			detail={
+				// Beside the label rather than under it, a step down the scale. A readout
+				// is a short word (a mileage, a count, a service class), so it holds its
+				// own column. The name gives up the width instead, because a name clips
+				// to an ellipsis gracefully and a clipped readout says nothing.
+				item.detail && (
+					<Text
+						as="span"
+						size="xs"
+						data-slot="map-legend-detail"
+						tone="muted"
+						className={cn(
+							'shrink-0 text-right leading-tight whitespace-nowrap tabular-nums font-normal opacity-80',
+							off && 'opacity-60',
+						)}
+					>
+						{item.detail}
+					</Text>
+				)
+			}
+			onToggle={() => onToggle(item.id)}
+			onPoint={(pointed) => emphasis.point(pointed ? item.id : null)}
+			onFocusChange={emphasis.sync}
+		/>
 	)
 })
 
@@ -173,7 +127,8 @@ export type MapLegendProps = {
  *
  * @remarks The row is one Tab stop; the arrow keys rove between entries
  * (Home / End jump to the ends) and Escape drops focus, clearing the
- * emphasis. Each entry holds one line, revealing a clipped name on hover or
+ * emphasis. The pointed entry wins the emphasis, else the entry with a visible
+ * keyboard focus. Each entry holds one line, revealing a clipped name on hover or
  * focus ({@link MapLegendEntry}).
  * @internal
  */
@@ -188,25 +143,26 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 		itemSelector: '[data-slot="map-legend-item"]',
 		orientation,
 		manageTabIndex: true,
+		escapeBlurs: true,
 	})
 
-	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (event.key === 'Escape') {
-			;(document.activeElement as HTMLElement | null)?.blur()
-
-			return
-		}
-
-		onKeyDown(event)
-	}
+	// The pointed entry wins, else the keyboard-focused one, the same rule as the
+	// chart legend. A click's focus shows no ring, so it emphasizes nothing.
+	const emphasis = useLegendEmphasis(
+		ref,
+		'[data-slot="map-legend-item"]',
+		(position) => items[position]?.id ?? null,
+		onFocus,
+	)
 
 	return (
 		<div
 			ref={ref}
 			data-slot="map-legend"
 			role="toolbar"
+			aria-label="Legend"
 			aria-orientation={orientation}
-			onKeyDown={handleKeyDown}
+			onKeyDown={onKeyDown}
 			className={cn(
 				// Under the map, the entries wrap in a centered row, like the chart
 				// legend. A single column put each entry on its own line, which made the
@@ -229,7 +185,7 @@ export function MapLegend({ items, hidden, onToggle, onFocus, panel = false }: M
 					off={hidden.has(item.id)}
 					panel={panel}
 					onToggle={onToggle}
-					onFocus={onFocus}
+					emphasis={emphasis}
 				/>
 			))}
 		</div>

@@ -59,8 +59,13 @@ export type ChartHoverStore = {
 	subscribe: (listener: () => void) => () => void
 }
 
-/** Whether two hover points coincide, so a redundant hover write can bail. @internal */
-function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
+/**
+ * Whether two hover points coincide, so a redundant hover write can bail. The
+ * chart, heatmap, and map hovers share it.
+ *
+ * @internal
+ */
+export function samePoint(a: ChartPoint | null, b: ChartPoint | null): boolean {
 	return a === b || (a !== null && b !== null && a.x === b.x && a.y === b.y)
 }
 

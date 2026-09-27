@@ -7,6 +7,7 @@ import {
 	REGION_WASH_SETTLE,
 } from '../../modules/map/engine/map-motion'
 import {
+	act,
 	allBySlot,
 	allRegions,
 	bySlot,
@@ -351,6 +352,59 @@ describe('MapPlat', () => {
 		)
 
 		expect(bySlot(container, 'map-regions-lit')).toBeNull()
+	})
+
+	it('emphasizes a legend entry on a visible keyboard focus only', () => {
+		const { container } = renderUI(categoricalPlat())
+
+		const [east] = allBySlot(container, 'map-legend-item') as HTMLButtonElement[]
+
+		const recede = () => bySlot(container, 'map-regions-recede')?.getAttribute('class') ?? ''
+
+		// A click focuses the entry without a ring, so it emphasizes nothing.
+		act(() => east?.focus())
+
+		expect(recede()).not.toContain('opacity-25')
+
+		act(() => east?.blur())
+
+		// A keyboard focus shows the ring, so it emphasizes the entry.
+		const matches = Element.prototype.matches
+
+		vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+			this: Element,
+			selector: string,
+		) {
+			return selector === ':focus-visible'
+				? this === document.activeElement
+				: matches.call(this, selector)
+		})
+
+		act(() => east?.focus())
+
+		expect(recede()).toContain('opacity-25')
+
+		// The pointer leaves another entry, and the emphasis goes back to the focused one.
+		const west = allBySlot(container, 'map-legend-item')[1] as HTMLButtonElement
+
+		fireEvent.pointerEnter(west)
+
+		fireEvent.pointerLeave(west)
+
+		expect(recede()).toContain('opacity-25')
+
+		// Escape drops the focus, and the emphasis with it.
+		fireEvent.keyDown(east as HTMLButtonElement, { key: 'Escape' })
+
+		expect(document.activeElement).not.toBe(east)
+
+		expect(recede()).not.toContain('opacity-25')
+	})
+
+	it('names the legend toolbar', () => {
+		const { container } = renderUI(categoricalPlat())
+
+		expect(bySlot(container, 'map-legend')).toHaveAttribute('aria-label', 'Legend')
 	})
 
 	it('holds the emphasis off while a toggled-on category washes back in', async () => {

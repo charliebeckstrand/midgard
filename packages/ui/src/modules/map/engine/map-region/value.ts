@@ -9,15 +9,7 @@
  * the heatmap share one scale.
  */
 
-import {
-	binIndex,
-	formatFraction,
-	quantileBinIndex,
-	resolveColorBins,
-	resolveQuantileBins,
-	toNumericCell,
-	valueExtent,
-} from '../../../../utilities'
+import { formatFraction, resolveBinScale, toNumericCell, valueExtent } from '../../../../utilities'
 import type { DataKey } from '../types'
 import type { MapCategoryMeta } from './category'
 
@@ -88,29 +80,13 @@ export function resolveValueBins<T>(
 
 	if (resolved === null) return { metas: [], domain: null, assign: () => null }
 
-	// One resolution per mode, each yielding both the painted bins and the
-	// assignment the regions read — so the fills and the legend can't disagree on
-	// where the buckets fall.
-	const { colorBins, assign, thresholds } =
-		binning === 'quantile'
-			? (() => {
-					const { bins: quantileBins, thresholds } = resolveQuantileBins(values, colorRange, bins)
-
-					return {
-						colorBins: quantileBins,
-						thresholds,
-						assign: (value: number) => quantileBinIndex(value, thresholds),
-					}
-				})()
-			: (() => {
-					const linearBins = resolveColorBins(resolved, colorRange, bins)
-
-					return {
-						colorBins: linearBins,
-						thresholds: undefined,
-						assign: (value: number) => binIndex(value, resolved, linearBins.length),
-					}
-				})()
+	// One resolution yields both the painted bins and the assignment the regions
+	// read, so the fills and the legend can't disagree on where the buckets fall.
+	const {
+		bins: colorBins,
+		assign,
+		thresholds,
+	} = resolveBinScale(values, resolved, colorRange, bins, binning)
 
 	const metas = colorBins.map((bin, index): MapCategoryMeta => {
 		const label = bin.hi > bin.lo ? `${format(bin.lo)}–${format(bin.hi)}` : format(bin.lo)

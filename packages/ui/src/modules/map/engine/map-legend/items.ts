@@ -61,7 +61,7 @@ export function groupLegendId(group: string): string {
  * The currentColor class an overlay's swatch reads, from the slot the plat
  * assigned it. Named here because two readers key it off one mark: this module's
  * legend items, and the plat's tooltip entries. That pair is the one
- * `map-swatch` already answers on the shape half, and each spelled the fallback
+ * `readoutSwatchShapes` of the chart readout already answers on the shape half, and each spelled the fallback
  * itself.
  *
  * @internal

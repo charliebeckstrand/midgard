@@ -50,6 +50,7 @@ The sequential-scale primitives the data-driven color charts share — the choro
 | `quantileThresholds` | The `count - 1` interior cut points splitting values into equal-count quantile buckets; empty for a flat domain (a single bin). |
 | `quantileBinIndex` | The quantile bin a value falls in — the count of thresholds it meets or exceeds; non-finite to `null`, bin `0` with no thresholds. |
 | `valueExtent` | The `[min, max]` of the finite values, an explicit override, or `null` when nothing spans a domain. |
+| `resolveBinScale` | Resolves one color scale: the painted `ColorBin`s and the `assign` rule its marks read, from one resolution per `Binning` (`'linear'` or `'quantile'`). |
 | `ColorBin` *(type)* | One bin: its `color` and the `[lo, hi]` value range it covers. |
 
 ## Caret & formatted input

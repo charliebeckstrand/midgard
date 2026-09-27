@@ -4,10 +4,13 @@ export { countMeaningful, cursorForCount } from './caret'
 export { clamp } from './clamp'
 export { clearNativeInput } from './clear-native-input'
 export {
+	type Binning,
+	type BinScale,
 	binIndex,
 	type ColorBin,
 	quantileBinIndex,
 	quantileThresholds,
+	resolveBinScale,
 	resolveColorBins,
 	resolveQuantileBins,
 	sampleRange,

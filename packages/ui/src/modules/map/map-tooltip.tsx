@@ -1,9 +1,11 @@
 'use client'
 
-import { Swatch } from '../../components/swatch'
 import { TooltipPointer } from '../../components/tooltip/tooltip-pointer'
-import { cn } from '../../core'
-import { k } from '../../recipes/kata/map'
+import {
+	ChartReadoutCard,
+	ChartReadoutRow,
+	ReadoutSwatch,
+} from '../chart/engine/chart-readout-card'
 import { useMapHoverState } from './context'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapStopRow } from './engine/map-overlay/entry'
@@ -15,15 +17,6 @@ import {
 	paintText,
 } from './engine/map-region/category'
 import type { MapSwatchShape } from './engine/types'
-import { mapSwatchShapes } from './map-swatch'
-
-/**
- * The readout value's ink. Resolved once at module scope: it takes no dynamic
- * input, and this file re-renders on every pointer move the map answers.
- *
- * @internal
- */
-const VALUE_INK = cn(...k.value)
 
 /** One resolved overlay entry the tooltip can read. @internal */
 export type MapTooltipEntry = {
@@ -161,24 +154,20 @@ export function MapTooltip(props: MapTooltipProps) {
 	return (
 		<TooltipPointer open={open} point={point} track="point" size="sm">
 			{content && (
-				<div aria-hidden="true">
-					<div className={cn(...k.label, 'whitespace-nowrap', content.row && 'mb-1')}>
-						{content.title}
-					</div>
-
+				<ChartReadoutCard title={content.title}>
 					{content.row && (
-						<div className="flex items-center gap-1.5 whitespace-nowrap">
-							<Swatch
-								shape={mapSwatchShapes[content.row.swatch]}
-								size="sm"
-								color={content.row.swatchClass}
-								style={content.row.swatchColor ? { color: content.row.swatchColor } : undefined}
-							/>
-
-							<span className={VALUE_INK}>{content.row.text}</span>
-						</div>
+						<ChartReadoutRow
+							swatch={
+								<ReadoutSwatch
+									shape={content.row.swatch}
+									className={content.row.swatchClass}
+									color={content.row.swatchColor}
+								/>
+							}
+							value={content.row.text}
+						/>
 					)}
-				</div>
+				</ChartReadoutCard>
 			)}
 		</TooltipPointer>
 	)

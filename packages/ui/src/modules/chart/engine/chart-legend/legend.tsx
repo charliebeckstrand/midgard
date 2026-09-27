@@ -1,20 +1,19 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type KeyboardEvent, type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
 import { Swatch } from '../../../../components/swatch'
 import { Text } from '../../../../components/text'
-import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
-import { useTruncation } from '../../../../hooks/use-truncation'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
 import { useChartEmphasis, useChartSeriesFocus } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
+import { type LegendEmphasis, LegendSwitch, useLegendEmphasis } from './legend-switch'
 
 /** Entries per page once a side panel's switches would clip vertically. @internal */
 const PAGE_SIZE = 5
@@ -114,10 +113,8 @@ type ChartLegendEntryProps = {
 	texture: boolean
 	/** Toggles this entry's series on or off. */
 	onToggle: (index: number) => void
-	/** Pointer enter/leave emphasis: the series index while pointed, `null` on leave. */
-	onPointerEmphasis: (index: number | null) => void
-	/** Focus/blur emphasis, resolved through the shared `:focus-visible` gate. */
-	onFocusEmphasis: () => void
+	/** The legend's shared pointer and focus emphasis. */
+	emphasis: LegendEmphasis<number>
 	/**
 	 * Renders for measurement only. It is the invisible ghost row a capped band
 	 * packs against. It carries a distinct `chart-legend-ghost` slot, so it never
@@ -129,21 +126,15 @@ type ChartLegendEntryProps = {
 }
 
 /**
- * One legend entry: a series switch whose label truncates to one line, so a side
- * panel's static width can't force the row to overflow. A hover/focus tooltip
- * reveals the full label once the column clips it. `-webkit-line-clamp` was the
- * first pass, but its legacy box model centers a clamped line that had to wrap
- * internally before being cut. That pulled a long label away from its swatch. A
- * plain single-line `truncate` (`nowrap` + ellipsis) stands in instead. It never
- * wraps, so nothing is left to center.
+ * One legend entry: a series {@link LegendSwitch} keyed by the swatch that
+ * mirrors its marks. A panel entry stretches to the rail, so every row aligns
+ * its swatch to the same edge.
  *
- * @remarks The tooltip wraps the whole control rather than the label span. A
- * switch is a {@link Button}, whose {@link TouchTarget} hit-area overlay captures
- * pointer events and forwards them to the button by bubbling. A tooltip anchored
- * to an inner span would therefore never see the hover. Overflow is still
- * measured on the label span through the shared {@link useTruncation} detector,
- * the same measure the grid's cells use. The closed (untruncated) tooltip renders
- * no surface, so a fitting entry adds no DOM.
+ * @remarks
+ * Every entry is a switch, a lone series included. Toggling the only one off
+ * empties the chart by design. The legend is forced on for a lone series, so it
+ * holds the switch that brings the series back. Emphasis then has no sibling marks to
+ * dim, so it does nothing.
  * @internal
  */
 function ChartLegendEntry({
@@ -152,92 +143,43 @@ function ChartLegendEntry({
 	panel,
 	texture,
 	onToggle,
-	onPointerEmphasis,
-	onFocusEmphasis,
+	emphasis,
 	ghost = false,
 }: ChartLegendEntryProps) {
-	// The whole entry is the tooltip trigger, so its contact — not just the
-	// label span's — must arm the truncation measure.
-	const entryRef = useRef<HTMLButtonElement>(null)
-
-	const [labelRef, truncated] = useTruncation<HTMLSpanElement>({ armRef: entryRef })
-
-	const content = (
-		<>
-			<ChartSwatch
-				swatch={item.swatch}
-				swatchClass={item.swatchClass}
-				swatchColor={item.swatchColor}
-				color={item.color}
-				dashed={item.dashed}
-				active={texture}
-				off={off}
-			/>
-
-			<span ref={labelRef} className="block min-w-0 truncate">
-				<Text
-					as="span"
-					tone="muted"
-					size="sm"
-					className={cn('text-start leading-tight', off && 'line-through opacity-60')}
-				>
-					{item.label}
-				</Text>
-			</span>
-
-			{item.detail && (
-				<Text
-					as="span"
-					tone="muted"
-					size="sm"
-					className={cn('text-start leading-tight tabular-nums', off && 'opacity-60')}
-				>
-					{item.detail}
-				</Text>
-			)}
-		</>
-	)
-
-	// Every entry is a switch, a lone series included: toggling the only one off
-	// empties the chart by design — the legend, forced on for a lone series, holds
-	// the switch that brings it back. Emphasis has no sibling marks to dim then, so
-	// it reads as a harmless no-op rather than a reason to drop the button.
-	const control = (
-		<Button
-			type="button"
-			ref={entryRef}
-			size="sm"
-			variant="plain"
-			data-slot={ghost ? 'chart-legend-ghost' : 'chart-legend-item'}
-			// Button's own base centers its content; a panel entry stretches to
-			// `w-full` so every row can align its swatch to the same edge, not center
-			// a shorter row's content under a longer one's.
-			className={cn(panel && 'w-full min-w-0 justify-start')}
-			aria-pressed={!off}
-			onClick={() => onToggle(item.index)}
-			onPointerEnter={() => onPointerEmphasis(item.index)}
-			onPointerLeave={() => onPointerEmphasis(null)}
-			// Focus and blur resolve through the same path as hover: a keyboard focus
-			// (`:focus-visible`, the same gate the ring rides) emphasizes, while a
-			// pointer click's ring-less focus — or the focus a backgrounded tab re-fires
-			// on return — resolves to nothing.
-			onFocus={onFocusEmphasis}
-			onBlur={onFocusEmphasis}
-		>
-			{content}
-		</Button>
-	)
-
-	// The ghost measures width alone, so it skips the reveal tooltip; the visible
-	// entry wears it, opening only while the label actually clips.
-	if (ghost) return control
-
 	return (
-		<Tooltip disabled={!truncated}>
-			<TooltipTrigger>{control}</TooltipTrigger>
-
-			<TooltipContent>{item.label}</TooltipContent>
-		</Tooltip>
+		<LegendSwitch
+			slot={ghost ? 'chart-legend-ghost' : 'chart-legend-item'}
+			off={off}
+			label={item.label}
+			ghost={ghost}
+			className={cn(panel && 'w-full min-w-0 justify-start')}
+			keys={
+				<ChartSwatch
+					swatch={item.swatch}
+					swatchClass={item.swatchClass}
+					swatchColor={item.swatchColor}
+					color={item.color}
+					dashed={item.dashed}
+					active={texture}
+					off={off}
+				/>
+			}
+			detail={
+				item.detail && (
+					<Text
+						as="span"
+						tone="muted"
+						size="sm"
+						className={cn('text-start leading-tight tabular-nums', off && 'opacity-60')}
+					>
+						{item.detail}
+					</Text>
+				)
+			}
+			onToggle={() => onToggle(item.index)}
+			onPoint={(pointed) => emphasis.point(pointed ? item.index : null)}
+			onFocusChange={emphasis.sync}
+		/>
 	)
 }
 
@@ -542,43 +484,20 @@ export function ChartLegend({
 
 	const overflowCount = overflowItems.length + overflowReferences.length
 
-	// Which series the pointer is over, or null. Emphasis draws on this and the
-	// keyboard focus together, so the two inputs share the one slot instead of
-	// clobbering it.
-	const hovered = useRef<number | null>(null)
-
 	// The frame owns the series emphasis, so a hover renders the frame and not the
 	// chart body. The setter keeps its identity.
 	const onFocus = useChartSeriesFocus()
 
-	// Emphasis follows whichever input is live: the pointed-at entry wins, else
-	// the keyboard-focused one. The keyboard side reads `:focus-visible` from the
-	// DOM rather than a tracked index, so a focus that silently stops being
-	// visible — a click landing on a focused switch, a backgrounded tab returning
-	// — resolves to nothing without needing an event to announce it. Every pointer
-	// and focus transition recomputes, so leaving a hover reverts to a still-held
-	// keyboard focus rather than clearing the emphasis out from under it.
-	const syncEmphasis = () => {
-		if (hovered.current !== null) {
-			onFocus(hovered.current)
-
-			return
-		}
-
-		const buttons = ref.current?.querySelectorAll<HTMLButtonElement>(
-			'button[data-slot="chart-legend-item"]',
-		)
-
-		const position = buttons
-			? Array.from(buttons).findIndex((button) => button.matches(':focus-visible'))
-			: -1
-
-		// Buttons render in `pageItems` order — `items` itself, less any page not
-		// currently visible — so a focused button's position names its entry there;
-		// the entry carries the series index the emphasis keys off, which the
-		// legend's display order need not match.
-		onFocus(position === -1 ? null : (pageItems[position]?.index ?? null))
-	}
+	// The pointed entry wins, else the keyboard-focused one. Buttons render in
+	// `pageItems` order, so a focused button's position names its entry there. The
+	// entry carries the series index that the emphasis keys off, which the display
+	// order of the legend need not match.
+	const emphasis = useLegendEmphasis(
+		ref,
+		'button[data-slot="chart-legend-item"]',
+		(position) => pageItems[position]?.index ?? null,
+		onFocus,
+	)
 
 	// The reference chips share the recede with the reference rules: a chip's hover
 	// or keyboard focus recedes the data marks and the rule's siblings to it, the
@@ -638,23 +557,19 @@ export function ChartLegend({
 			'button[data-slot="chart-legend-item"], button[data-slot="chart-legend-reference"]',
 		orientation,
 		manageTabIndex: true,
+		escapeBlurs: true,
 	})
-
-	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-		if (event.key === 'Escape') {
-			;(document.activeElement as HTMLElement | null)?.blur()
-
-			return
-		}
-
-		onKeyDown(event)
-	}
 
 	// The toolbar role, its orientation, and the roving handler travel together:
 	// present whenever the row holds a focusable control, absent for an empty
 	// grouping div with no interaction.
 	const toolbarProps = interactive
-		? ({ role: 'toolbar', 'aria-orientation': orientation, onKeyDown: handleKeyDown } as const)
+		? ({
+				role: 'toolbar',
+				'aria-label': 'Legend',
+				'aria-orientation': orientation,
+				onKeyDown,
+			} as const)
 		: {}
 
 	// One series switch, in the visible row or the invisible ghost that measures
@@ -668,12 +583,7 @@ export function ChartLegend({
 			texture={texture}
 			ghost={ghost}
 			onToggle={onToggle}
-			onPointerEmphasis={(index) => {
-				hovered.current = index
-
-				syncEmphasis()
-			}}
-			onFocusEmphasis={syncEmphasis}
+			emphasis={emphasis}
 		/>
 	)
 
@@ -825,11 +735,7 @@ export function ChartLegend({
 									off={hidden.has(item.index)}
 									texture={texture}
 									onToggle={onToggle}
-									onEmphasis={(index) => {
-										hovered.current = index
-
-										syncEmphasis()
-									}}
+									onEmphasis={emphasis.point}
 								/>
 							))}
 
