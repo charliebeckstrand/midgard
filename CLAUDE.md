@@ -32,7 +32,7 @@
 
 3.5 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
-3.6 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` gates the rule documents at the repository root, and review holds the rest.
+3.6 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` reports breaks in the rule documents at the repository root. The report is advisory, and review holds the rest.
 
 3.7 Comments and TSDoc follow [CONVENTIONS.md](CONVENTIONS.md) §12.1 and [STE.md](STE.md).
 
