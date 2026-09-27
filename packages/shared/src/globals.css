@@ -1,4 +1,5 @@
 @import './fonts.css';
+@import 'ui/tailwind.css';
 
 /* The `dark` variant follows the `.dark` class on the root element. `AppearanceProvider` from `ui` sets the class. */
 @custom-variant dark (&:where(.dark, .dark *));

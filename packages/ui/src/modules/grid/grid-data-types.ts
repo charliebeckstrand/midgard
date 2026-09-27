@@ -690,13 +690,12 @@ export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'get
  *
  * @internal
  */
-export type GridDataProps<T> = Omit<TableVariants, 'density'> & {
+export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
-	 * Density level driving cell padding and grid-internal metrics (resize
-	 * handles, column autosize measurement, the virtualized row-height
-	 * estimate). Unlike the bare `Table` — a static/RSC leaf that reads no
-	 * context — an omitted `density` falls back to an enclosing
-	 * `DensityProvider`, since Grid is always client-rendered.
+	 * Density level for the cell padding and the metrics of the grid: resize
+	 * handles, column autosize, and the row-height estimate of the virtualizer.
+	 * The grid passes its step to `Table` as `size`. Grid needs the level as a
+	 * JS value, so an omitted `density` reads an enclosing `DensityProvider`.
 	 * @defaultValue 'snug'
 	 * @see {@link useDensityLevel} for the explicit-then-ambient resolution.
 	 */

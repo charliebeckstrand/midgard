@@ -11,10 +11,10 @@ import { k as tagInput } from '../../recipes/kata/tag-input'
 // `kata/tag-input.ts` pads a chip's leading side to the chip's `px` + the
 // remove button's `bare.p` so the label sits symmetric with the glyph
 // (rationale lives there). The chip is a `radius: 'full'` pill, so its `px` is
-// the base badge scale plus any `radius: 'full'` size compound (small pills get a
-// bump). This pins that sum against the live recipes across the sizes a chip
-// takes (xs/sm/md); if the badge px, the pill bump, or the bare compound
-// drifts, the assertion fails with the computed pad and names the size.
+// the `radius: 'full'` compound ramp, one stop above the base ramp. This pins
+// that sum against the live recipes across the sizes a chip takes (xs/sm/md).
+// If the badge px, the pill bump, or the bare compound drifts, the assertion
+// fails with the computed pad and names the size.
 //
 // `kata/query-chips.ts` pads its chip by the same sum. Its chip and its remove
 // button take fixed sizes in `query-chips.tsx`, so the case below names them.
@@ -55,24 +55,14 @@ function findBareCompoundP(size: Ma): number {
 	throw new Error(`No bare compound p- class found for size "${size}"`)
 }
 
-// The chip is a `radius: 'full'` pill: its px is the base size-row px unless a
-// `radius: 'full'` size compound overrides it (small pills get a bump).
+// The chip is a `radius: 'full'` pill: its px is the step of the `radius:
+// 'full'` compound ramp, which bumps each step one stop above the base ramp.
 function findPillPx(size: Ma): number {
 	const rules = badge.config.compound as ReadonlyArray<Record<string, unknown>>
 
-	for (const rule of rules) {
-		if (rule.radius !== 'full' || rule.size !== size) continue
+	const pill = rules.filter((rule) => rule.radius === 'full').map((rule) => rule.class)
 
-		for (const cls of [rule.class].flat(Number.POSITIVE_INFINITY)) {
-			if (typeof cls !== 'string' || !cls.startsWith('px-')) continue
-
-			const match = cls.match(SPACING_RE)
-
-			if (match) return Number(match[1])
-		}
-	}
-
-	return findSpacing(badge.config.variants.size?.[size] as readonly unknown[], 'px-[')
+	return findSpacing(pill, `density-${size}:px-[`)
 }
 
 const CHIP_SIZES = ['xs', 'sm', 'md'] as const satisfies readonly Ma[]
@@ -90,7 +80,7 @@ describe('query-chips chip leading-pad symmetry', () => {
 	it(`chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
 		const actual = findSpacing(
 			queryChips.chip,
-			`data-[has-suffix]:data-[size=${QUERY_CHIP.chip}]:ps-[`,
+			`data-[has-suffix]:data-[density=${QUERY_CHIP.chip}]:ps-[`,
 		)
 
 		expect(actual).toBe(expected)
@@ -106,7 +96,7 @@ describe('tag-input chip leading-pad symmetry', () => {
 		const expected = pillPx + bareP
 
 		it(`${size}: chip leading pad = pill px (${pillPx}) + bare remove-button p (${bareP}) = ${expected}`, () => {
-			const actual = findSpacing(tagInput.badge, `data-[has-suffix]:data-[size=${size}]:ps-[`)
+			const actual = findSpacing(tagInput.badge, `data-[has-suffix]:data-[density=${size}]:ps-[`)
 
 			expect(actual).toBe(expected)
 		})

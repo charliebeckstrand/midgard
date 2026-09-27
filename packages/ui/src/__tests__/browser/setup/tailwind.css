@@ -4,6 +4,8 @@
    same computed colors the app ships. `@source` is relative to this file —
    `../../../` resolves to `src/`. */
 @import 'tailwindcss';
+/* The density variants, as the apps and the docs import them. */
+@import '../../../../tailwind.css';
 @source '../../../';
 
 /* The `dark` variant follows the `.dark` class on the root, as in the docs

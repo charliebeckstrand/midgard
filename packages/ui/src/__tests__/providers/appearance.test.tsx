@@ -75,7 +75,7 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('density')).toBe('compact')
 
-		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'compact')
+		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'sm')
 	})
 
 	it('follows a change from another tab', () => {

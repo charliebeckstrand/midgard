@@ -18,8 +18,8 @@ import type { Ma, Step } from '../../recipes'
  *   inherit the button's `Ma` size, including `'xs'` and `'xl'`.
  *
  * Read by the `Ma`-scale client leaves that size off Density (e.g. Button,
- * Badge, Progress) through `useResolvedSize`; static leaves like Icon take an
- * explicit size and never read it. The universal `useDensity` cascade stays
+ * Progress) through `useResolvedSize`. Static leaves (Badge, Icon) never read
+ * it. The universal `useDensity` cascade stays
  * `Step`-typed for everyone else. Returns `null` outside any provider;
  * consumers treat `null` as "fall through to the Density cascade".
  */

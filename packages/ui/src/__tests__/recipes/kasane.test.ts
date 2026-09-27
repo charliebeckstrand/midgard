@@ -65,3 +65,25 @@ describe('kasane.layers', () => {
 		expect(all).toContain('after:pointer-events-none')
 	})
 })
+
+describe('kasane.padding.pxRamp', () => {
+	const stops = ['0.75', '1', '1.25', '1.5', '2', '2.5', '3', '3.5'] as const
+
+	const steps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
+
+	it.each(steps.flatMap((step) => stops.map((v) => [step, v] as const)))(
+		'puts px(%s) under the density-%s variant',
+		(step, v) => {
+			expect(kasane.padding.pxRamp({ [step]: v })).toEqual([
+				`density-${step}:${kasane.padding.px(v)}`,
+			])
+		},
+	)
+
+	it('emits the steps in density order and skips an omitted step', () => {
+		expect(kasane.padding.pxRamp({ lg: '3', sm: '1' })).toEqual([
+			`density-sm:${kasane.padding.px('1')}`,
+			`density-lg:${kasane.padding.px('3')}`,
+		])
+	})
+})

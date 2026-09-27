@@ -287,7 +287,9 @@ describe('Table variants', () => {
 })
 
 describe('Table density resolution', () => {
-	// Cell padding tracks the density prop: compact px-1, snug px-2, loose px-3.
+	// Cell padding steps are density variants: sm px-1, md px-2, lg px-3.
+	// jsdom loads no stylesheet, so these cases check the scope and the classes.
+	// density-scope.test.tsx checks the computed padding in a real browser.
 	const body = (
 		<TableBody>
 			<TableRow>
@@ -296,37 +298,30 @@ describe('Table density resolution', () => {
 		</TableBody>
 	)
 
-	it('defaults to snug: md cell padding and no density projection', () => {
+	it('carries each padding step on the cell', () => {
 		const { container } = renderUI(<Table>{body}</Table>)
 
-		expect(container.querySelector('tbody td')?.className).toContain('px-2')
-
-		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+		expect(container.querySelector('tbody td')).toHaveClass(
+			'density-sm:px-1',
+			'density-md:px-2',
+			'density-lg:px-3',
+		)
 	})
 
-	it('projects sm padding under an explicit compact density prop', () => {
-		const { container } = renderUI(<Table density="compact">{body}</Table>)
-
-		// The static cell keeps its md classes; the table element overrides
-		// them from outside.
-		expect(container.querySelector('table')?.className).toContain('[&>*>tr>td]:px-1')
-
-		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
-
-		expect(container.querySelector('tbody td')?.className).toContain('px-2')
-	})
-
-	it('ignores an ambient DensityProvider', () => {
+	it('opens no scope without a size, so the cells follow the scope around it', () => {
 		const { container } = renderUI(
 			<DensityProvider density="compact">
 				<Table>{body}</Table>
 			</DensityProvider>,
 		)
 
-		// Static leaf: density comes from the explicit prop only.
-		expect(container.querySelector('table')?.className).not.toContain('[&>*>tr>td]:px-')
+		expect(container.querySelector('table')).not.toHaveAttribute('data-density')
+	})
 
-		expect(container.querySelector('table')).toHaveAttribute('data-density', 'md')
+	it('opens a scope at an explicit size', () => {
+		const { container } = renderUI(<Table size="sm">{body}</Table>)
+
+		expect(container.querySelector('table')).toHaveAttribute('data-density', 'sm')
 	})
 })
 
