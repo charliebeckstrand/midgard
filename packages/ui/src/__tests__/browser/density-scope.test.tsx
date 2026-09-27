@@ -4,6 +4,7 @@ import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Control } from '../../components/control'
 import { Label } from '../../components/fieldset'
+import { Heading, HeadingSkeleton } from '../../components/heading'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
@@ -185,6 +186,41 @@ describe('density scopes on static leaves (real browser)', () => {
 		const skeleton = present(
 			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
 			'badge skeleton',
+		)
+
+		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)
+	})
+
+	it.each([
+		['takes md outside a scope', undefined, undefined, 30],
+		['follows a compact provider', 'compact', undefined, 24],
+		['follows a loose provider', 'loose', undefined, 36],
+		['keeps an explicit size', 'compact', 'lg', 36],
+	] as const)('a level 1 heading %s', (_name, density, size, px) => {
+		const heading = <Heading size={size}>Title</Heading>
+
+		const { container } = renderUI(
+			density ? <DensityProvider density={density}>{heading}</DensityProvider> : heading,
+		)
+
+		const el = present(container.querySelector<HTMLElement>('h1'), 'heading')
+
+		expect(Number.parseFloat(getComputedStyle(el).fontSize)).toBe(px)
+	})
+
+	it.each([
+		['takes the step of the scope', undefined, 28],
+		['keeps an explicit size', 'lg', 36],
+	] as const)('a level 1 heading skeleton %s', (_name, size, height) => {
+		const { container } = renderUI(
+			<DensityProvider density="compact">
+				<HeadingSkeleton size={size} />
+			</DensityProvider>,
+		)
+
+		const skeleton = present(
+			container.querySelector<HTMLElement>('[data-slot="placeholder"]'),
+			'heading skeleton',
 		)
 
 		expect(Number.parseFloat(getComputedStyle(skeleton).height)).toBe(height)

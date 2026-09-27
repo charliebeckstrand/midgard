@@ -10,7 +10,7 @@ type Level = 1 | 2 | 3 | 4 | 5 | 6
 
 /**
  * Type-scale ladder, low → high. A heading's size is a position on this
- * ladder: `level` sets the base rung and the ambient density step nudges it
+ * ladder: `level` sets the base rung and the density step nudges it
  * (see {@link headingScale}).
  */
 const ladder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl'] as const
@@ -68,11 +68,26 @@ export function titleSize(step: Step): string {
 }
 
 /**
- * {@link titleSize} in a stepped `density-text` class. A title takes the step
- * of its nearest density scope, and each outer step takes the class of its
- * neighbor. `heading-title-ramp.test.ts` pins it to {@link titleSize}.
+ * {@link headingScale} of each level in a stepped `density-text` class. A
+ * heading with no `size` takes the step of its nearest density scope, and each
+ * outer step takes the class of its neighbor. Tailwind reads each class as a
+ * literal, so the ramps repeat the ladder. `heading-ramp.test.ts` pins each ramp
+ * to {@link headingScale}.
  */
-export const titleRamp = 'density-text-[base,lg,xl]'
+export const headingRamp = {
+	1: 'density-text-[2xl,3xl,4xl]',
+	2: 'density-text-[xl,2xl,3xl]',
+	3: 'density-text-[lg,xl,2xl]',
+	4: 'density-text-[base,lg,xl]',
+	5: 'density-text-[sm,base,lg]',
+	6: 'density-text-[xs,sm,base]',
+} as const satisfies Record<Level, string>
+
+/**
+ * {@link titleSize} in a stepped `density-text` class: the ramp of level 4. A
+ * title takes the step of its nearest density scope.
+ */
+export const titleRamp = headingRamp[4]
 
 /**
  * Heading font weight for a `level`. Used by heading-like elements that don't
@@ -84,11 +99,11 @@ export function headingWeight(level: Level): string {
 
 export const k = defineRecipe({
 	base: [...text.default],
-	// `level` drives weight only; the type size is the `scale` rung resolved
-	// from level + density via `headingScale`.
+	// `level` drives weight only. An explicit `size` gives the `scale` rung
+	// through `headingScale`. With no `size`, the heading takes `headingRamp`.
 	level: levelWeight,
 	scale: size,
-	defaults: { level: 1, scale: '3xl' },
+	defaults: { level: 1 },
 	skeleton: heading,
 })
 

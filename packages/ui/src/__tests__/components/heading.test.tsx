@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Density } from '../../primitives/density'
-import { headingScale, headingWeight } from '../../recipes/kata/heading'
+import { headingRamp, headingScale, headingWeight } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { steps } from '../../recipes/kiso/sun'
 import { bySlot, getSlot, renderUI } from '../helpers'
@@ -65,15 +65,20 @@ describe('Heading', () => {
 			expect(rendered).toStrictEqual(levels.map((level) => [size[headingScale(level, step)]]))
 		})
 
-		it('ignores an ambient Density provider', () => {
+		it.each(levels)('takes the density ramp of level %i with no size', (level) => {
 			const { container } = renderUI(
 				<Density step="sm">
-					<Heading level={1}>One</Heading>
+					<Heading level={level}>Title</Heading>
 				</Density>,
 			)
 
-			// Static leaf: the rung shifts only through the explicit size prop.
-			expect(bySlot(container, 'heading')?.className).toContain(size[headingScale(1, 'md')])
+			// Static leaf: the stepped class selects the rung in CSS from the nearest scope.
+			// `browser/density-scope.test.tsx` holds the computed size.
+			const heading = getSlot(container, 'heading')
+
+			expect(heading.className.split(' ')).toContain(headingRamp[level])
+
+			expect(rungsOf(heading)).toStrictEqual([])
 		})
 
 		it.each(levels)('keeps level %i at its own weight regardless of size', (level) => {
@@ -89,13 +94,19 @@ describe('Heading', () => {
 
 	describe('skeleton', () => {
 		it('tracks the size-shifted rung in the skeleton silhouette', () => {
-			const { container: md } = renderUI(<HeadingSkeleton level={1} />)
+			const { container: md } = renderUI(<HeadingSkeleton level={1} size="md" />)
 
 			expect(bySlot(md, 'placeholder')?.className).toContain('h-8')
 
 			const { container: sm } = renderUI(<HeadingSkeleton level={1} size="sm" />)
 
 			expect(bySlot(sm, 'placeholder')?.className).toContain('h-7')
+		})
+
+		it('takes the density ramp with no size', () => {
+			const { container } = renderUI(<HeadingSkeleton level={1} />)
+
+			expect(bySlot(container, 'placeholder')?.className).toContain('density-h-[7,8,9]')
 		})
 	})
 })
