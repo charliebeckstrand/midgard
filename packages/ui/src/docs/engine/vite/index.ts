@@ -5,8 +5,9 @@ import { visualizer } from 'rollup-plugin-visualizer'
 import type { UserConfig } from 'vite'
 import { docsPlugin } from '../plugins'
 
-// Curated `shiki/core` shim (tsx, typescript, bash + github-dark-default, JS
-// regex engine) that replaces the bare `shiki` specifier in the docs build.
+// Curated `shiki/core` shim (precompiled tsx, typescript, bash grammars,
+// github-dark-default, JS raw engine) that replaces the bare `shiki` specifier
+// in the docs build.
 const shikiCore = fileURLToPath(new URL('../shiki.ts', import.meta.url))
 
 export { docsPlugin } from '../plugins'
@@ -115,11 +116,11 @@ export function defineDocsConfig({
 		resolve: {
 			alias: [
 				// Redirect the bare `shiki` specifier to a curated `shiki/core` build
-				// (three grammars, one theme, JS regex engine) instead of the ~50-grammar,
-				// ~30-theme web bundle with its 622 kB oniguruma-wasm chunk. The public
-				// CodeBlock component still references 'shiki' — this alias only affects
-				// the docs build. The anchored regex leaves shiki/core, shiki/langs/*,
-				// etc. (which the shim itself imports) untouched.
+				// (three precompiled grammars, one theme, JS raw engine) instead of the
+				// ~50-grammar, ~30-theme web bundle with its 622 kB oniguruma-wasm chunk.
+				// The public CodeBlock component still references 'shiki' — this alias
+				// only affects the docs build. The anchored regex leaves shiki/core,
+				// shiki/engine/*, etc. (which the shim itself imports) untouched.
 				{ find: /^shiki$/, replacement: shikiCore },
 			],
 		},

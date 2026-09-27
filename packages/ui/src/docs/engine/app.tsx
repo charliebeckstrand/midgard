@@ -11,6 +11,18 @@ import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
 import { demos } from './registry'
 
+// Snippets in the shape of a derived code block. The browser compiles each
+// grammar RegExp when the tokenizer first runs it, and that compile is most of
+// the cost of a first highlight. The warm-up tokenizes one snippet per idle
+// slice, so each slice stays short.
+const WARM_SNIPPETS = [
+	`import { Select, type SelectOption } from 'ui/select'`,
+	`const options: SelectOption<string>[] = [{ value: 'a', label: \`Beta \${1 + 2}\`, disabled: false }]`,
+	`export function Demo({ label = 'Pick' }: { label?: string }) {\n\tconst [value, setValue] = useState<string | null>(null)\n}`,
+	`// Reset on click.\n<Button color="blue" size={2} disabled={!value} onClick={() => setValue(null)}>\n\t{value ?? label}\n</Button>`,
+	`<>\n\t<Select options={options} value={value} onChange={(next) => setValue(next)} />\n</>`,
+]
+
 /**
  * Root of the docs site: a sidebar layout whose body is the hash-routed demo,
  * wired to the persisted theme and density preferences. Defers the route during
@@ -37,20 +49,44 @@ export function App() {
 		if (deferredRoute) contentRef.current?.closest('[class*="overflow-y"]')?.scrollTo(0, 0)
 	}, [deferredRoute])
 
-	// Warm Shiki on idle. Per-demo prefetch happens via sidebar hover/focus.
+	// Warm Shiki on idle, then tokenize the warm snippets one per idle slice, so
+	// the first "Show code" does not pay for the grammar compile. Per-demo
+	// prefetch happens via sidebar hover/focus.
 	useEffect(() => {
 		const ric = window.requestIdleCallback ?? ((cb: IdleRequestCallback) => setTimeout(cb, 1))
 
 		const cic = window.cancelIdleCallback ?? clearTimeout
 
-		// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
-		// harmless here — CodeBlock re-invokes loadShiki on render and shows its
-		// plain fallback — so swallow the rejection rather than leaking it.
-		const handle = ric(() => {
-			loadShiki().catch(() => {})
-		}) as number
+		let handle: number
 
-		return () => cic(handle)
+		let cancelled = false
+
+		const warm = (index: number) => {
+			handle = ric(() => {
+				// A warm prefetch; a failed chunk fetch (offline, post-deploy 404) is
+				// harmless here — CodeBlock re-invokes loadShiki on render and shows its
+				// plain fallback — so swallow the rejection rather than leaking it.
+				loadShiki()
+					.then(({ codeToHtml }) => {
+						const snippet = WARM_SNIPPETS[index]
+
+						if (cancelled || snippet === undefined) return
+
+						return codeToHtml(snippet, { lang: 'tsx', theme: 'github-dark-default' }).then(() => {
+							if (!cancelled) warm(index + 1)
+						})
+					})
+					.catch(() => {})
+			}) as number
+		}
+
+		warm(0)
+
+		return () => {
+			cancelled = true
+
+			cic(handle)
+		}
 	}, [])
 
 	return (
