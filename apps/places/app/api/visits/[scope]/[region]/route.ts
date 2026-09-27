@@ -1,7 +1,7 @@
 import { readJson } from '@/server/read-draft'
 import { authorize } from '@/server/session-user'
 import { visitedSeed } from '@/server/visited-seed'
-import { setVisit } from '@/server/visits-store'
+import { MAX_VISITS, setVisit } from '@/server/visits-store'
 import { VISIT_SCOPES, type VisitScope } from '@/types'
 
 /** The store reads the filesystem, so this route is never prerendered. */
@@ -80,5 +80,14 @@ export async function PUT(request: Request, context: Context) {
 		return Response.json({ issues: ['`visited` must be a boolean.'] }, { status: 400 })
 	}
 
-	return Response.json(await setVisit(userId, scope, region, visited, () => visitedSeed(userId)))
+	const visits = await setVisit(userId, scope, region, visited, () => visitedSeed(userId))
+
+	if (visits === null) {
+		return Response.json(
+			{ issues: [`You can mark up to ${MAX_VISITS.toLocaleString('en-US')} regions.`] },
+			{ status: 409 },
+		)
+	}
+
+	return Response.json(visits)
 }

@@ -6,8 +6,8 @@ vi.mock('auth', () => ({ getSession }))
 
 import { authorize } from '../../server/session-user'
 
-function signedInWith(roles: string[]) {
-	getSession.mockResolvedValue({ user: { id: 'u1', roles } })
+function signedInWith(roles: string[], isVerified = true) {
+	getSession.mockResolvedValue({ user: { id: 'u1', roles, is_verified: isVerified } })
 }
 
 describe('authorize', () => {
@@ -37,6 +37,24 @@ describe('authorize', () => {
 		const result = await authorize('user')
 
 		expect((result as Response).status).toBe(403)
+	})
+
+	it('refuses a change from a user whose email is not verified with a 403', async () => {
+		signedInWith(['user'], false)
+
+		const result = await authorize('user')
+
+		expect((result as Response).status).toBe(403)
+
+		expect(await (result as Response).json()).toEqual({
+			issues: ['Verify your email to change places.'],
+		})
+	})
+
+	it('lets a user whose email is not verified read', async () => {
+		signedInWith(['user'], false)
+
+		expect(await authorize()).toBe('u1')
 	})
 
 	it('lets a user change data', async () => {

@@ -1,7 +1,8 @@
 'use client'
 
 import type { User } from 'auth'
-import { CircleUserRound, LogOut, MapPinned, Plus } from 'lucide-react'
+import { CircleUserRound, LogOut, MailCheck, MapPinned, Plus } from 'lucide-react'
+import { useState } from 'react'
 import { Button } from 'ui/button'
 import { Icon } from 'ui/icon'
 import {
@@ -24,12 +25,29 @@ type UserMenuProps = {
 	onList?: () => void
 }
 
+/** Where sending a verification link stands, and the label it shows. */
+const verifyLabels = {
+	idle: 'Verify your email',
+	sent: 'Link sent, check your email',
+	failed: 'Link not sent, try again later',
+} as const
+
 /**
- * The menu of the signed-in user: add a place, open the list, and sign out.
+ * The menu of the signed-in user: add a place, open the list, and sign out. A
+ * user whose email is not verified can also send a verification link, since
+ * places can't be changed until it is.
  *
- * @remarks Sign-out POSTs `/auth/logout`, then loads `/login`.
+ * @remarks Sign-out POSTs `/auth/logout`, then loads `/login`. The link is sent
+ * with `POST /auth/verify-email`.
  */
 export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
+	const [verify, setVerify] = useState<keyof typeof verifyLabels>('idle')
+
+	async function sendVerification() {
+		const response = await fetch('/auth/verify-email', { method: 'POST' }).catch(() => null)
+
+		setVerify(response?.ok ? 'sent' : 'failed')
+	}
 	async function signOut() {
 		await fetch('/auth/logout', { method: 'POST' }).catch(() => {})
 
@@ -61,6 +79,21 @@ export function UserMenu({ user, count, onAdd, onList }: UserMenuProps) {
 						</MenuItem>
 					)}
 				</MenuSection>
+
+				{user.is_verified ? null : (
+					<>
+						<MenuSeparator />
+
+						<MenuItem
+							onAction={sendVerification}
+							disabled={verify === 'sent'}
+							closeOnAction={false}
+						>
+							<Icon icon={<MailCheck />} />
+							<MenuLabel>{verifyLabels[verify]}</MenuLabel>
+						</MenuItem>
+					</>
+				)}
 
 				<MenuSeparator />
 
