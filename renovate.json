@@ -9,6 +9,8 @@
 	"prConcurrentLimit": 5,
 	"lockFileMaintenance": {
 		"enabled": true,
+		"automerge": true,
+		"platformAutomerge": false,
 		"schedule": ["before 6am on the first day of the month"]
 	},
 	"vulnerabilityAlerts": {
@@ -25,6 +27,12 @@
 			"description": "The whole minor and patch tail as one pull request. A split by depType earns nothing here: `update-lockfile` makes each of these a lockfile-only diff, and the catalog gives twenty of them one depType whether they are used at runtime or not. One branch also keeps the lockfile conflicts down, because every branch touches it.",
 			"groupName": "non-major",
 			"matchUpdateTypes": ["minor", "patch"]
+		},
+		{
+			"description": "Minor and patch updates merge without a click when every check is green. Renovate merges them itself, not GitHub auto-merge, because main has no required checks: GitHub would merge before CI finishes. Renovate waits until all the checks on the branch pass. Majors still wait for approval on the dependency dashboard.",
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true,
+			"platformAutomerge": false
 		},
 		{
 			"description": "Vitest and Playwright ship as one train here. packages/ui pins @vitest/browser, @vitest/browser-playwright, and playwright exactly, and the browser job installs Chromium against them, so a partial bump breaks test:browser. Membership comes from the upstream presets; the coupling is the only local fact. react and tailwindcss need no rule of their own, because config:recommended already groups each of them.",
