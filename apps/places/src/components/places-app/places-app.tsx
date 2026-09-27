@@ -2,7 +2,7 @@
 
 import type { User } from 'auth'
 import { MapPin, MapPinCheck } from 'lucide-react'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Confirm } from 'ui/confirm'
 import { ReadyReveal } from 'ui/primitives/ready-reveal'
@@ -30,16 +30,19 @@ import {
 	groupTrail,
 	initialView,
 	knownCountry,
+	type PlaceView,
 	regionOf,
 	stateOf,
 	UNITED_STATES_VIEW,
 	viewAtlas,
 	viewCrumbs,
 	viewForPlace,
+	viewKey,
 	viewMark,
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
+import { CountrySearch } from '../country-search'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
 import { PlaceFormDrawer } from '../place-form-drawer'
@@ -59,6 +62,22 @@ const NO_VISITS: Visits = { states: [], countries: [] }
 const REGION_LABEL = {
 	states: 'All states',
 	countries: 'All countries',
+}
+
+/**
+ * The places of `filtered` that `byRegion` puts in `cut`, or all of them when
+ * `cut` is `null`.
+ */
+function placesInRegion(
+	filtered: Place[],
+	byRegion: ReadonlyMap<string, readonly Place[]>,
+	cut: string | null,
+): Place[] {
+	if (cut === null) return filtered
+
+	const inRegion = new Set(byRegion.get(cut)?.map((place) => place.id) ?? [])
+
+	return filtered.filter((place) => inRegion.has(place.id))
 }
 
 /**
@@ -277,13 +296,47 @@ export function PlacesApp({ user }: { user: User }) {
 	// view is a frame over the filtered set and not a filter of its own.
 	const filtered = useMemo(() => filterPlaces(places, filter), [places, filter])
 
-	const shown = useMemo(() => {
-		if (cut === null) return filtered
+	const shown = useMemo(
+		() => placesInRegion(filtered, placesByRegion, cut),
+		[filtered, cut, placesByRegion],
+	)
 
-		const inRegion = new Set(placesByRegion.get(cut)?.map((place) => place.id) ?? [])
+	// The view that the country search asks to render ahead of a selection, and
+	// the view that the reader was on when it asked. The map for it renders
+	// hidden, keyed on the view, so a selection shows a map that React already
+	// rendered. A request from a view that the reader left is stale, and nothing
+	// renders for it.
+	const [preload, setPreload] = useState<{ from: string; view: PlaceView } | null>(null)
 
-		return filtered.filter((place) => inRegion.has(place.id))
-	}, [filtered, cut, placesByRegion])
+	const here = viewKey(view)
+
+	const preloaded =
+		preload !== null && preload.from === here && viewKey(preload.view) !== here
+			? preload.view
+			: null
+
+	const onPreload = useCallback(
+		(country: string) => setPreload({ from: here, view: drillInto(view, country) }),
+		[here, view],
+	)
+
+	// The props of the hidden map, from the same sources as the visible map.
+	const preloadedMap = useMemo(() => {
+		if (preloaded === null) return null
+
+		const at = viewAtlas(preloaded)
+
+		return {
+			view: preloaded,
+			regions: at === 'states' ? statesAtlas : countriesAtlas,
+			places: placesInRegion(
+				filtered,
+				at === 'states' ? placesByState : placesByCountry,
+				viewRegion(preloaded),
+			),
+			visited: new Set(visits[at]),
+		}
+	}, [preloaded, statesAtlas, countriesAtlas, filtered, placesByState, placesByCountry, visits])
 
 	// Held, because the drawer keys its own trail on this: a fresh arrow each
 	// render would rebuild those steps whatever else stayed still.
@@ -327,7 +380,21 @@ export function PlacesApp({ user }: { user: User }) {
 				    the crumbs give way and the button never does. */}
 				<Flex gap="md" align="center" className="flex-1 min-w-0">
 					<div className="min-w-0">
-						<PlaceTrail className="text-xl/8" steps={pageTrail} />
+						<PlaceTrail
+							className="text-xl/8"
+							steps={pageTrail}
+							// The search is on the world map only. Under it, the reader
+							// already chose a country, and the trail names it.
+							after={
+								view.country === null && !settling ? (
+									<CountrySearch
+										countries={regionNames}
+										onPick={(country) => setView(drillInto(view, country))}
+										onPreload={onPreload}
+									/>
+								) : undefined
+							}
+						/>
 					</div>
 
 					{/* The visited toggle. It is a button rather than a checkbox, because
@@ -413,18 +480,39 @@ export function PlacesApp({ user }: { user: User }) {
 			) : null}
 
 			<div className="relative min-h-0 flex-1">
-				<PlacesMap
-					// Held back until the view settles. Otherwise the map draws the United
-					// States first and then jumps to the frame that the places ask for.
-					regions={settling ? null : regions}
-					places={shown}
-					view={view}
-					visited={visited}
-					visitedRegions={filter.visitedRegions}
-					onDrill={(region) => setView(drillInto(view, region))}
-					selected={selected[0] ?? null}
-					onSelect={(picked) => setSelected(picked.map((place) => place.id))}
-				/>
+				{/* Each map is keyed on its view. When the reader goes to the view of the
+				    hidden map, React keeps that map and shows it, and does not render a
+				    new one. `<Activity>` renders the hidden map at a low priority and
+				    starts none of its effects until it shows. */}
+				<Activity key={here}>
+					<PlacesMap
+						// Held back until the view settles. Otherwise the map draws the United
+						// States first and then jumps to the frame that the places ask for.
+						regions={settling ? null : regions}
+						places={shown}
+						view={view}
+						visited={visited}
+						visitedRegions={filter.visitedRegions}
+						onDrill={(region) => setView(drillInto(view, region))}
+						selected={selected[0] ?? null}
+						onSelect={(picked) => setSelected(picked.map((place) => place.id))}
+					/>
+				</Activity>
+
+				{preloadedMap === null ? null : (
+					<Activity key={viewKey(preloadedMap.view)} mode="hidden">
+						<PlacesMap
+							regions={preloadedMap.regions}
+							places={preloadedMap.places}
+							view={preloadedMap.view}
+							visited={preloadedMap.visited}
+							visitedRegions={filter.visitedRegions}
+							onDrill={(region) => setView(drillInto(preloadedMap.view, region))}
+							selected={null}
+							onSelect={(picked) => setSelected(picked.map((place) => place.id))}
+						/>
+					</Activity>
+				)}
 
 				{error ? (
 					<div className="absolute inset-x-0 top-0 p-6">

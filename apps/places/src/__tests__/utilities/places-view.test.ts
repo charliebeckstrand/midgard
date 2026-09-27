@@ -17,6 +17,7 @@ import {
 	viewCrumbs,
 	viewForPlace,
 	viewFrame,
+	viewKey,
 	viewMark,
 	viewRegion,
 	WORLD,
@@ -352,5 +353,17 @@ describe('openingRegion', () => {
 		expect(openingRegion(null, ['Idaho'])).toBeNull()
 
 		expect(openingRegion(undefined, ['Idaho'])).toBeNull()
+	})
+})
+
+describe('viewKey', () => {
+	it('gives two views with the same fields the same key', () => {
+		expect(viewKey({ country: 'France', state: null })).toBe(viewKey(FRANCE))
+	})
+
+	it('gives each level of a trail its own key', () => {
+		const keys = [WORLD, UNITED_STATES_VIEW, OREGON, FRANCE].map(viewKey)
+
+		expect(new Set(keys).size).toBe(keys.length)
 	})
 })
