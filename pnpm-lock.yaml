@@ -318,6 +318,9 @@ importers:
       '@types/react-dom':
         specifier: 'catalog:'
         version: 19.2.3(@types/react@19.2.15)
+      babel-plugin-react-compiler:
+        specifier: 'catalog:'
+        version: 1.0.0
       tailwindcss:
         specifier: 'catalog:'
         version: 4.3.0
