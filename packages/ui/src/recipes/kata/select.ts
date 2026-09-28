@@ -10,7 +10,10 @@ export const k = {
 	affix: {
 		...affix,
 		base: [
-			'flex items-center min-w-0',
+			// The slot fills the height of the frame, so the whole column of the
+			// affix is a press target with the pointer cursor, and not only the
+			// box of its content.
+			'flex items-center self-stretch min-w-0',
 			'*:data-[slot=icon]:pointer-events-none',
 			...text.muted,
 			...cursor,
