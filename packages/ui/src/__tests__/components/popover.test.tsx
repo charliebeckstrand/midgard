@@ -2,7 +2,7 @@ import { createRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Popover, PopoverContent, PopoverTrigger } from '../../components/popover'
-import { bySlot, renderUI, userEvent } from '../helpers'
+import { bySlot, densityStepOf, present, renderUI, userEvent } from '../helpers'
 
 describe('Popover', () => {
 	it('renders a default button when PopoverTrigger has non-element children', () => {
@@ -73,7 +73,7 @@ describe('PopoverContent size context', () => {
 		)
 
 		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
-		expect(buttonInPopover()?.className).toContain('text-sm')
+		expect(densityStepOf(present(buttonInPopover(), 'button'))).toBe('sm')
 	})
 })
 

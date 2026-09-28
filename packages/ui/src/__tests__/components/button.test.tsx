@@ -6,7 +6,9 @@ import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { k } from '../../recipes/kata/button'
+import { bySlot, densityStepOf, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
+import { findSteps } from '../helpers/class-stops'
 
 describe('Button', () => {
 	it('renders a button element with data-slot', () => {
@@ -143,15 +145,8 @@ describe('Button', () => {
 	})
 
 	describe('size resolution', () => {
-		// Each size variant brings a distinct text class via ji; matching
-		// it confirms which size the kata rendered.
-		const textClassFor = {
-			xs: 'text-xs',
-			sm: 'text-sm',
-			md: 'text-base',
-			lg: 'text-lg',
-		} as const
-
+		// jsdom loads no stylesheet, so each test reads the step that the stepped
+		// classes give the button from its density scopes (`densityStepOf`).
 		it('inherits size from <Group> when no explicit size prop is set', () => {
 			const { container } = renderUI(
 				<Group size="lg">
@@ -159,7 +154,7 @@ describe('Button', () => {
 				</Group>,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('lg')
 		})
 
 		it('explicit size prop overrides <Group> inheritance', () => {
@@ -169,7 +164,7 @@ describe('Button', () => {
 				</Group>,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 		})
 
 		// A control slot (`<Input>` prefix / suffix, `<SelectTrigger>` slots) is a
@@ -183,9 +178,7 @@ describe('Button', () => {
 				</Density>,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.sm)
-
-			expect(bySlot(container, 'button')?.className).not.toContain(textClassFor.lg)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 		})
 
 		it('drops to xs in a slot of an sm control', () => {
@@ -193,7 +186,7 @@ describe('Button', () => {
 				<Input aria-label="Field" size="sm" prefix={<Button>Slot</Button>} />,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.xs)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('xs')
 		})
 
 		it('explicit size prop still wins in a slot', () => {
@@ -201,17 +194,20 @@ describe('Button', () => {
 				<Input aria-label="Field" size="lg" prefix={<Button size="md">Override</Button>} />,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.md)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('md')
 		})
 
 		it('takes lg in an xl scope, because it has no xl size', () => {
 			const { container } = renderUI(
-				<Density step="xl">
+				<div data-density="xl">
 					<Button>Large</Button>
-				</Density>,
+				</div>,
 			)
 
-			expect(bySlot(container, 'button')?.className).toContain(textClassFor.lg)
+			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('xl')
+
+			// The stepped classes give `xl` the `lg` value.
+			expect(findSteps([k.config.base], 'density-text-').xl).toBe('lg')
 		})
 	})
 

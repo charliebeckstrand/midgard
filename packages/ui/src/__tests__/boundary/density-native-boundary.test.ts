@@ -4,6 +4,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
+import { k as button } from '../../recipes/kata/button'
 import { k as combobox } from '../../recipes/kata/combobox'
 import { k as fieldset } from '../../recipes/kata/fieldset'
 import { k as heading } from '../../recipes/kata/heading'
@@ -30,6 +31,7 @@ import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-so
 
 const NATIVE_RECIPES = {
 	badge,
+	button,
 	combobox,
 	description: fieldset.description,
 	heading,
@@ -51,6 +53,7 @@ const NATIVE_RECIPES = {
 
 const NATIVE_FILES = [
 	'components/badge/badge.tsx',
+	'components/button/button.tsx',
 	'components/card/card-footer.tsx',
 	'components/card/card-header.tsx',
 	'components/card/card-title.tsx',

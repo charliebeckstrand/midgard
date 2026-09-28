@@ -9,7 +9,7 @@ import {
 	serializeQuery,
 } from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
-import { fireEvent, getAllSlots, renderUI, screen } from '../helpers'
+import { densityStepOf, fireEvent, getAllSlots, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
 	type Row = { id: number; name: string; role: string }
@@ -132,9 +132,9 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'md')
+		expect(densityStepOf(screen.getByRole('button', { name: 'Apply' }))).toBe('md')
 
-		expect(screen.getByRole('button', { name: 'Cancel' })).toHaveAttribute('data-size', 'md')
+		expect(densityStepOf(screen.getByRole('button', { name: 'Cancel' }))).toBe('md')
 	})
 
 	it('follows a surrounding DensityProvider into the filter sheet', () => {
@@ -146,7 +146,7 @@ describe('Grid per-column filters', () => {
 
 		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-		expect(screen.getByRole('button', { name: 'Apply' })).toHaveAttribute('data-size', 'lg')
+		expect(densityStepOf(screen.getByRole('button', { name: 'Apply' }))).toBe('lg')
 	})
 
 	// The applied-state menu is the filter surface's other half, and it needs the same

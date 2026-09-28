@@ -23,8 +23,9 @@ const DOT_DELAYS = [
 /**
  * Indeterminate loading indicator: three breathing dots rendered as a live
  * `<output>` with an `sr-only` `label`. Static leaf: renders in React Server
- * Components. `size` is explicit (recipe default `md`). Inside a `<Button>`,
- * the projection of the button sets the size of each `loading-dot`.
+ * Components. `size` is explicit, and `md` with no `size`. Inside a
+ * `<Button>`, the projection of the button sets the size of each
+ * `loading-dot`, and an explicit `size` wins over it.
  */
 export function LoadingDots({
 	size,

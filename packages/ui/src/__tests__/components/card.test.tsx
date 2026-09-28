@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardBody, CardFooter, CardHeader, CardTitle } from '../../components/card'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, present, renderUI } from '../helpers'
+import { bySlot, densityStepOf, present, renderUI } from '../helpers'
 
 describe('Card', () => {
 	it('keeps its frame around explicit skeleton children', () => {
@@ -132,7 +132,7 @@ describe('Card size system', () => {
 
 		// An explicit size opens a density scope; the client Button resolves
 		// its size through it.
-		expect(bySlot(container, 'button')?.className).toContain('text-sm')
+		expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 	})
 
 	it('Buttons inside an unsized Card follow the ambient density', () => {
@@ -148,7 +148,7 @@ describe('Card size system', () => {
 
 		// No explicit size, no scope of its own: the ambient cascade reaches
 		// the client Button untouched.
-		expect(bySlot(container, 'button')?.className).toContain('text-sm')
+		expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')
 	})
 
 	// The frame owns the outer padding on every edge: Card carries its padding

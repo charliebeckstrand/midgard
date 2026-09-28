@@ -3,7 +3,7 @@ import { Button } from '../../components/button'
 import { Form } from '../../components/form'
 import { Textarea } from '../../components/textarea'
 import { HeadlessProvider } from '../../providers/headless'
-import { bySlot, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, densityStepOf, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Textarea', () => {
 	it('renders with data-slot="textarea"', () => {
@@ -53,7 +53,7 @@ describe('Textarea', () => {
 	it('sizes the actions one step below the textarea, as the Input affixes do', () => {
 		const { container } = renderUI(<Textarea size="sm" actions={<Button>send</Button>} />)
 
-		expect(getSlot(container, 'button')).toHaveAttribute('data-size', 'xs')
+		expect(densityStepOf(getSlot(container, 'button'))).toBe('xs')
 	})
 
 	it('gives the textarea an id outside a Control', () => {
