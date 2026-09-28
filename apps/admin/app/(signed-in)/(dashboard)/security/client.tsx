@@ -4,12 +4,11 @@ import { useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
-import { Card, CardDescription, CardHeader, CardTitle } from 'ui/card'
 import { Confirm } from 'ui/confirm'
 import { Stack } from 'ui/structure/stack'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { Text } from 'ui/text'
-import { PageHeader } from '@/components/page-header'
+import { BansSection, ThreatsSection } from './sections'
 import type { Ban, Threat } from './security-api'
 import { useBans, useRemoveBan, useResolveThreat, useThreats } from './security-queries'
 
@@ -57,19 +56,9 @@ export function SecurityClient({
 
 	return (
 		<Stack gap="xl">
-			<PageHeader
-				title="Security"
-				description="The threats that Vidar found, and the addresses that cannot sign in."
-			/>
-
 			{error && <Alert severity="error" title={error.message} />}
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Bans</CardTitle>
-					<CardDescription>A banned address cannot sign in or sign up.</CardDescription>
-				</CardHeader>
-
+			<BansSection>
 				{bans.length === 0 ? (
 					<Text tone="muted">No address is banned.</Text>
 				) : (
@@ -105,14 +94,9 @@ export function SecurityClient({
 						</TableBody>
 					</Table>
 				)}
-			</Card>
+			</BansSection>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Threats</CardTitle>
-					<CardDescription>Vidar keeps each threat for 30 days.</CardDescription>
-				</CardHeader>
-
+			<ThreatsSection>
 				{threats.length === 0 ? (
 					<Text tone="muted">No threats in the last 30 days.</Text>
 				) : (
@@ -162,7 +146,7 @@ export function SecurityClient({
 						</TableBody>
 					</Table>
 				)}
-			</Card>
+			</ThreatsSection>
 
 			<Confirm
 				open={unbanning !== null}

@@ -1,7 +1,7 @@
 'use client'
 
 import type { User } from 'auth'
-import { useState } from 'react'
+import { type ReactNode, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
@@ -10,7 +10,6 @@ import { Confirm } from 'ui/confirm'
 import { Link } from 'ui/link'
 import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Stack } from 'ui/structure/stack'
-import { PageHeader } from '@/components/page-header'
 import { useSetUserActive, useUsers } from './users-queries'
 
 type UsersClientProps = {
@@ -22,21 +21,13 @@ const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }
 const roleName = (user: User) => (user.roles.includes('admin') ? 'Admin' : 'User')
 
 /**
- * Users grid, sortable by each column (newest first by default), with an action that deactivates or reactivates each user.
+ * The columns of the users grid. `action` renders the control at the end of a
+ * row, so the loading grid can give the same columns with no control.
  *
- * @remarks
- * The server page seeds the `useUsers` query. An admin changes only the status
- * of an account, and never its credentials. The gateway refuses a change to an
- * admin account, so the action of an admin row is disabled. A deactivation
- * signs the user out on each device, so it asks for confirmation first. When
- * the gateway refuses a change, the page shows its message.
+ * @internal
  */
-export function UsersClient({ users: initialUsers }: UsersClientProps) {
-	const { data: users } = useUsers(initialUsers)
-	const { mutate: setActive, isPending: saving, error } = useSetUserActive()
-	const [deactivating, setDeactivating] = useState<User | null>(null)
-
-	const columns: GridColumn<User>[] = [
+function usersColumns(action: (user: User) => ReactNode): GridColumn<User>[] {
+	return [
 		{
 			id: 'email',
 			title: 'Email',
@@ -67,28 +58,41 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 		{
 			id: 'actions',
 			sortable: false,
-			actions: (user) => (
-				<Button
-					variant="outline"
-					size="sm"
-					disabled={user.roles.includes('admin') || saving}
-					onClick={() =>
-						user.is_active ? setDeactivating(user) : setActive({ userId: user.id, isActive: true })
-					}
-				>
-					{user.is_active ? 'Deactivate' : 'Reactivate'}
-				</Button>
-			),
+			actions: action,
 		},
 	]
+}
+
+/**
+ * Users grid, sortable by each column (newest first by default), with an action that deactivates or reactivates each user.
+ *
+ * @remarks
+ * The server page seeds the `useUsers` query. An admin changes only the status
+ * of an account, and never its credentials. The gateway refuses a change to an
+ * admin account, so the action of an admin row is disabled. A deactivation
+ * signs the user out on each device, so it asks for confirmation first. When
+ * the gateway refuses a change, the page shows its message.
+ */
+export function UsersClient({ users: initialUsers }: UsersClientProps) {
+	const { data: users } = useUsers(initialUsers)
+	const { mutate: setActive, isPending: saving, error } = useSetUserActive()
+	const [deactivating, setDeactivating] = useState<User | null>(null)
+
+	const columns = usersColumns((user) => (
+		<Button
+			variant="outline"
+			size="sm"
+			disabled={user.roles.includes('admin') || saving}
+			onClick={() =>
+				user.is_active ? setDeactivating(user) : setActive({ userId: user.id, isActive: true })
+			}
+		>
+			{user.is_active ? 'Deactivate' : 'Reactivate'}
+		</Button>
+	))
 
 	return (
 		<Stack gap="xl">
-			<PageHeader
-				title="Users"
-				description="The accounts that sign in through the gateway. Open an account to see its activity."
-			/>
-
 			{error && <Alert severity="error" title={error.message} />}
 
 			<Card>
@@ -113,5 +117,17 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 				confirm={{ label: 'Deactivate', color: 'red' }}
 			/>
 		</Stack>
+	)
+}
+
+/**
+ * The users grid while the list loads: the same columns, and skeleton rows.
+ * The page gives it as the fallback of its boundary.
+ */
+export function UsersLoading() {
+	return (
+		<Card>
+			<Grid columns={usersColumns(() => null)} rows={[]} getKey={(user) => user.id} loading />
+		</Card>
 	)
 }

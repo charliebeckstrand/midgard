@@ -13,7 +13,7 @@ export type PageHeaderProps = {
 	 * with the same gap as the gap between the header and the page content.
 	 */
 	breadcrumb?: ReactNode
-	/** One line about the page. */
+	/** One line about the page. A `TextSkeleton` can hold its place while it loads. */
 	description?: ReactNode
 	/** The controls of the page. They show at the end of the title row. */
 	actions?: ReactNode
@@ -32,7 +32,11 @@ export function PageHeader({ title, breadcrumb, description, actions }: PageHead
 			<Flex align="end" justify="between" gap="md" wrap>
 				<Stack gap="xs" className="min-w-0">
 					<Heading className="truncate">{title}</Heading>
-					{description && <Text tone="muted">{description}</Text>}
+					{description && (
+						<Text as="div" tone="muted">
+							{description}
+						</Text>
+					)}
 				</Stack>
 				{actions && <Flex gap="sm">{actions}</Flex>}
 			</Flex>

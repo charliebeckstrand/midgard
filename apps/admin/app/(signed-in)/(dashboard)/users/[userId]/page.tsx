@@ -1,5 +1,6 @@
 import { bifrost, requireGateway } from 'auth'
 import { notFound } from 'next/navigation'
+import { type ReactNode, Suspense } from 'react'
 import { Badge } from 'ui/badge'
 import {
 	Breadcrumb,
@@ -7,16 +8,43 @@ import {
 	BreadcrumbLink,
 	BreadcrumbList,
 	BreadcrumbSeparator,
+	BreadcrumbSkeleton,
 } from 'ui/breadcrumb'
 import { Card, CardHeader, CardTitle } from 'ui/card'
 import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
+import { HeadingSkeleton } from 'ui/heading'
 import { Stack } from 'ui/structure/stack'
+import { TextSkeleton } from 'ui/text'
 import { ActivityTable } from '@/components/activity-table'
 import { PageHeader } from '@/components/page-header'
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle: 'short' }
 
-export default async function UserDetailsPage({ params }: { params: Promise<{ userId: string }> }) {
+type Params = Promise<{ userId: string }>
+
+/**
+ * A card with its title. The page and its loading state give the same cards,
+ * so the page keeps its shape when the user lands.
+ *
+ * @internal
+ */
+function Section({ title, children }: { title: string; children: ReactNode }) {
+	return (
+		<Card>
+			<CardHeader>
+				<CardTitle>{title}</CardTitle>
+			</CardHeader>
+			{children}
+		</Card>
+	)
+}
+
+/**
+ * Reads the user and the activity from the gateway, and renders them.
+ *
+ * @internal
+ */
+async function UserDetails({ params }: { params: Params }) {
 	const { userId } = await params
 
 	const options = { params: { path: { id: userId } } }
@@ -56,10 +84,8 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 				}
 			/>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Details</CardTitle>
-				</CardHeader>
+			<Section title="Details">
+				{' '}
 				<DescriptionList>
 					<DescriptionTerm>ID</DescriptionTerm>
 					<DescriptionDetails className="font-mono break-all">{user.id}</DescriptionDetails>
@@ -86,14 +112,51 @@ export default async function UserDetailsPage({ params }: { params: Promise<{ us
 						{new Date(user.updated_at).toLocaleString(undefined, dateFormat)}
 					</DescriptionDetails>
 				</DescriptionList>
-			</Card>
+			</Section>
 
-			<Card>
-				<CardHeader>
-					<CardTitle>Recent activity</CardTitle>
-				</CardHeader>
+			<Section title="Recent activity">
+				{' '}
 				<ActivityTable activity={activity?.data ?? []} />
-			</Card>
+			</Section>
 		</Stack>
+	)
+}
+
+/**
+ * The header and the cards while the user loads.
+ *
+ * @internal
+ */
+function UserDetailsLoading() {
+	return (
+		<Stack gap="xl">
+			<Stack gap="xl">
+				<HeadingSkeleton />
+				<BreadcrumbSkeleton crumbs={2} />
+			</Stack>
+			<Section title="Details">
+				<TextSkeleton />
+			</Section>
+			<Section title="Recent activity">
+				<TextSkeleton />
+			</Section>
+		</Stack>
+	)
+}
+
+/**
+ * One user: the details of the account, and its recent activity.
+ *
+ * @remarks
+ * The id comes from the address, and the title is the email of the user, so
+ * the whole page waits in one boundary. Its loading state keeps the shape of
+ * the page, and a navigation to the page shows it at once. An id that names no
+ * user gives the not-found page.
+ */
+export default function UserDetailsPage({ params }: { params: Params }) {
+	return (
+		<Suspense fallback={<UserDetailsLoading />}>
+			<UserDetails params={params} />
+		</Suspense>
 	)
 }
