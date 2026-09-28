@@ -3,6 +3,7 @@
 import { useMemo } from 'react'
 import { toInnerStep } from '../../../core'
 import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import { compactFormat, fractionFormat, once } from '../../../utilities'
@@ -872,8 +873,9 @@ export function useChartCartesian<T>(
 	const { data, series, size, width, height, aspectRatio = '16/9', legend } = props
 
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
-	// switch, and each axis's config under its own key.
-	const { draw, config: axes } = resolveAxes(props.axes)
+	// switch, and each axis's config under its own key. Memoized, so the memos
+	// below that read an axis config read a value that keeps its identity.
+	const { draw, config: axes } = useMemo(() => resolveAxes(props.axes), [props.axes])
 
 	const orientation = config.orientation ?? 'vertical'
 
@@ -1015,20 +1017,41 @@ export function useChartCartesian<T>(
 	// Memoized on the content the cells read, not on the identity of the metas and
 	// formatters, which are new on each render. A new thunk on a parent render
 	// would reformat every cell of the hidden table, and the deferred table would
-	// render the frame a second time.
-	const readoutSeries = readoutSeriesKey(visible, series)
+	// render the frame a second time. The metas and the formatter are held while
+	// the rows, the key of the visible series, the two readout formats, and the
+	// locale stay the same, so the memo lists what it reads.
+	const readoutInput = useStableValue(
+		{
+			data,
+			key: readoutSeriesKey(visible, series),
+			yFormat: axes.y?.format ?? props.formatValue,
+			y2Format: axes.y2?.format ?? props.formatValue,
+			locale,
+			visible,
+			formatAxisValue,
+		},
+		(previous, next) =>
+			previous.data === next.data &&
+			previous.key === next.key &&
+			previous.yFormat === next.yFormat &&
+			previous.y2Format === next.y2Format &&
+			previous.locale === next.locale,
+	)
 
-	const yReadoutFormat = axes.y?.format ?? props.formatValue
-
-	const y2ReadoutFormat = axes.y2?.format ?? props.formatValue
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: readoutSeries and the two formats and locale stand for the content of visible and formatAxisValue, which are new objects on each render
 	const readout = useMemo(
 		() =>
-			xKey && data.length > 0 && visible.length > 0
-				? once(() => chartReadout(data, xKey, visible, formatAxisValue, readoutCategory))
+			xKey && readoutInput.data.length > 0 && readoutInput.visible.length > 0
+				? once(() =>
+						chartReadout(
+							readoutInput.data,
+							xKey,
+							readoutInput.visible,
+							readoutInput.formatAxisValue,
+							readoutCategory,
+						),
+					)
 				: null,
-		[data, xKey, readoutSeries, yReadoutFormat, y2ReadoutFormat, readoutCategory, locale],
+		[readoutInput, xKey, readoutCategory],
 	)
 
 	// The tooltip lists its rows in the marks' visible order (a vertical stack

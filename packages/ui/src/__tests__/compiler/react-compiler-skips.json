@@ -18,15 +18,6 @@
 	"modules/chart/engine/chart-tooltip.tsx": {
 		"ChartTooltip": "Refs"
 	},
-	"modules/chart/engine/use-chart-cartesian.ts": {
-		"useChartCartesian": "PreserveManualMemo"
-	},
-	"modules/chart/scatter-chart/scatter-chart.tsx": {
-		"useScatterReadout": "PreserveManualMemo"
-	},
-	"modules/chat/use-chat-transcript-item-key.ts": {
-		"useChatTranscriptItemKey": "Refs"
-	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"

@@ -1,7 +1,15 @@
 'use client'
 
-import { useCallback, useRef } from 'react'
+import { useCallback } from 'react'
+import { useStableValue } from '../../hooks/use-stable-value'
 import type { ChatMessageData } from './engine/types'
+
+/** Whether two message lists hold the same ids in the same order. @internal */
+function sameIds(previous: readonly ChatMessageData[], next: readonly ChatMessageData[]): boolean {
+	return (
+		previous.length === next.length && next.every((message, i) => message.id === previous[i]?.id)
+	)
+}
 
 /**
  * Returns the key getter that the transcript window reads: the message `id`,
@@ -16,24 +24,14 @@ import type { ChatMessageData } from './engine/types'
  * new getter. The virtualizer then rebuilds its rows, also when the count does
  * not change.
  *
- * The ref holds a cache of a pure result. A render that React discards thus
- * leaves no wrong value in it.
- *
  * @internal
  */
 export function useChatTranscriptItemKey(
 	messages: readonly ChatMessageData[],
 ): (index: number) => string | number {
-	const cache = useRef<readonly (string | undefined)[]>([])
+	// The held list keeps the ids of the messages, so the getter reads only ids
+	// from it.
+	const held = useStableValue(messages, sameIds)
 
-	const last = cache.current
-
-	const same =
-		last.length === messages.length && messages.every((message, i) => message.id === last[i])
-
-	if (!same) cache.current = messages.map((message) => message.id)
-
-	const ids = cache.current
-
-	return useCallback((index: number) => ids[index] ?? index, [ids])
+	return useCallback((index: number) => held[index]?.id ?? index, [held])
 }

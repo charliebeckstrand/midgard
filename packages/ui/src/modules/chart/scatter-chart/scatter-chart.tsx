@@ -4,6 +4,7 @@ import { useMemo } from 'react'
 import { toInnerStep } from '../../../core'
 import type { DensityStep } from '../../../core/density'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
@@ -231,6 +232,9 @@ function scatterReadoutThunk(
  * hands new metas with the same content. A new thunk would reformat every cell
  * of the hidden table, and the deferred table would render the frame again.
  *
+ * The metas and the x values are held while the rows and the key of the visible
+ * series stay the same, so the memo lists what it reads.
+ *
  * @internal
  */
 function useScatterReadout<T>(
@@ -258,10 +262,14 @@ function useScatterReadout<T>(
 		})
 		.join('\u0000')
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: data and key stand for the content of visible and uniqueXs, which are new arrays on each render
+	const held = useStableValue(
+		{ data, key, visible, uniqueXs },
+		(previous, next) => previous.data === next.data && previous.key === next.key,
+	)
+
 	return useMemo(
-		() => scatterReadoutThunk(visible, uniqueXs, format, formatX, formatSize),
-		[data, key, format, formatX, formatSize],
+		() => scatterReadoutThunk(held.visible, held.uniqueXs, format, formatX, formatSize),
+		[held, format, formatX, formatSize],
 	)
 }
 

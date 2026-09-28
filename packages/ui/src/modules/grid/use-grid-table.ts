@@ -40,6 +40,7 @@ import {
 import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
@@ -289,29 +290,6 @@ type GridTableResult<T> = {
 
 /** Stable empty row set, so an inactive grand total holds its identity. @internal */
 const NO_ROWS: never[] = []
-
-/**
- * Holds a value at its previous reference while `same` reports the two equal. A
- * render that resolved the same facts therefore hands the memos below it the
- * identity they already hold.
- *
- * @remarks The held value is state. A value that `same` rejects updates the
- * state during render, so React renders the component again at once with the
- * new value, before it commits.
- *
- * @internal
- */
-function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
-	const [stable, setStable] = useState(() => candidate)
-
-	if (stable !== candidate && !same(stable, candidate)) {
-		setStable(() => candidate)
-
-		return candidate
-	}
-
-	return stable
-}
 
 /**
  * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
