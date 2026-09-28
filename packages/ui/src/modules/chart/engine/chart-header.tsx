@@ -20,6 +20,10 @@ type ChartHeaderLineProps = {
  * a chart tile trades its height for the plot. A long line ellipsizes and hands
  * the rest to the tooltip, rather than pushing the marks down.
  *
+ * The line sets its own `leading-6` line box. Its height is therefore
+ * `CHART_HEADER_LINE_HEIGHT` at every inherited font size, and the tier
+ * reserve that adds up the header stays correct.
+ *
  * @internal
  */
 function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
@@ -28,20 +32,20 @@ function ChartHeaderLine({ text, subtitle = false }: ChartHeaderLineProps) {
 	return (
 		<Tooltip disabled={!truncated}>
 			<TooltipTrigger>
-				<span
+				<Text
+					as="span"
 					ref={ref}
 					data-slot={subtitle ? 'chart-subtitle' : 'chart-title'}
-					className={cn('block max-w-full truncate', truncated && 'cursor-help')}
+					size={subtitle ? 'sm' : 'md'}
+					tone={subtitle ? 'muted' : undefined}
+					className={cn(
+						'block max-w-full truncate leading-6',
+						!subtitle && 'font-medium',
+						truncated && 'cursor-help',
+					)}
 				>
-					<Text
-						as="span"
-						size={subtitle ? 'sm' : 'md'}
-						tone={subtitle ? 'muted' : undefined}
-						className={cn('leading-tight', !subtitle && 'font-medium')}
-					>
-						{text}
-					</Text>
-				</span>
+					{text}
+				</Text>
 			</TooltipTrigger>
 
 			<TooltipContent>{text}</TooltipContent>

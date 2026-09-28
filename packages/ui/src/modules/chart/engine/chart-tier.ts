@@ -119,16 +119,23 @@ export const MIN_TICK_TARGET = 2
  * Height, in px, of one clipped header line — a title or a subtitle. The header
  * never wraps (each line truncates to one line), so its height is a fixed
  * multiple of this. A two-line header adds {@link CHART_HEADER_LINE_GAP} between
- * the pair. Read off the rendered header, so the {@link chartChromeReserve}
- * budget matches the box the figure actually lays out.
+ * the pair. It is the `leading-6` line box that each header line sets on itself.
+ * The inherited font size and the density scope do not change it, so the
+ * {@link chartChromeReserve} budget matches the box that the figure lays out.
+ * `chart-chrome-reserve.test.tsx` measures it in the browser.
  * @internal
  */
 export const CHART_HEADER_LINE_HEIGHT = 24
 
-/** Gap, in px, between the title and subtitle lines of a two-line header. @internal */
+/** Gap, in px, between the title and subtitle lines of a two-line header: the header's `gap-0.5`. @internal */
 export const CHART_HEADER_LINE_GAP = 2
 
-/** Height, in px, of one stacked legend row. @internal */
+/**
+ * Height, in px, of one stacked legend row: the height of a legend switch, a
+ * `size="sm"` Button. The explicit size makes the switch its own density scope,
+ * so the row keeps this height at every density.
+ * @internal
+ */
 export const CHART_LEGEND_ROW_HEIGHT = 30
 
 /**
