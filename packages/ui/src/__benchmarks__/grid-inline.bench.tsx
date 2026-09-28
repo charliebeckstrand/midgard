@@ -124,9 +124,8 @@ describe('Grid · many grids in one document', () => {
 		(count) => `${count} grids · 10 × 4 each`,
 		(count) => (
 			<div>
-				{Array.from({ length: count }, (_, index) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: fixed-length static list
-					<Grid key={index} columns={COLUMNS} rows={rows10} getKey={shipmentKey} />
+				{Array.from({ length: count }, (_, index) => `grid-${index}`).map((id) => (
+					<Grid key={id} columns={COLUMNS} rows={rows10} getKey={shipmentKey} />
 				))}
 			</div>
 		),
