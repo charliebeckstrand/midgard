@@ -17,8 +17,8 @@ export const size = {
 } as const
 
 /**
- * The three-step size axis (`sm`, `md`, `lg`) of the kata that stop short of
- * the full scale. Each step reads its class from {@link size}.
+ * The class of each inner step (`sm`, `md`, `lg`), from {@link size}. No kata
+ * reads it: `ji-text-ramp.test.ts` pins {@link textRamp} to it.
  */
 export const stepSize = { sm: size.sm, md: size.md, lg: size.lg } as const
 

@@ -10,4 +10,4 @@ export type StatLabelProps = ComponentProps<'div'>
  * leaf: renders in React Server Components. Renders at the `md` step; compose
  * `<StatLabelSkeleton>` in the loading tree.
  */
-export const StatLabel = createSlot('div', 'stat-label', k.label({ size: 'md' }))
+export const StatLabel = createSlot('div', 'stat-label', k.label)

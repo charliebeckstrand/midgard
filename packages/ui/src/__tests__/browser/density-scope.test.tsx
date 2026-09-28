@@ -6,7 +6,7 @@ import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
-import { Label } from '../../components/fieldset'
+import { Fieldset, Label, Legend } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
@@ -620,6 +620,22 @@ describe('the grid at the first paint (real browser)', () => {
 })
 
 describe('density scopes on static leaves (real browser)', () => {
+	it.each([
+		['compact', 14],
+		['snug', 16],
+		['loose', 18],
+	] as const)('sets a legend in the text of a %s provider', (density, font) => {
+		renderUI(
+			<DensityProvider density={density}>
+				<Fieldset>
+					<Legend>Shipping</Legend>
+				</Fieldset>
+			</DensityProvider>,
+		)
+
+		expect(Number.parseFloat(getComputedStyle(screen.getByText('Shipping')).fontSize)).toBe(font)
+	})
+
 	it.each<[string, () => ReactElement, number]>([
 		[
 			'follows a compact provider',

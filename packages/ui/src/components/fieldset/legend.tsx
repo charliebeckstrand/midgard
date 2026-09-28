@@ -9,7 +9,7 @@ export type LegendProps = ComponentProps<'legend'>
  * Caption for a `<Fieldset>`, rendered as a native `<legend>` that names the
  * group for assistive tech.
  *
- * @remarks Static leaf — renders in React Server Components and fixes type scale
- * at the `md` step. It follows no density scope.
+ * @remarks Static leaf — renders in React Server Components. Its text takes the
+ * step of the nearest density scope, as the Label does.
  */
-export const Legend = createSlot('legend', 'legend', k.legend({ size: 'md' }))
+export const Legend = createSlot('legend', 'legend', k.legend)
