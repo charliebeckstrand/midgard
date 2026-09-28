@@ -1,4 +1,5 @@
 import type { ReactElement } from 'react'
+import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { ButtonSkeleton } from '../../components/button'
@@ -6,6 +7,7 @@ import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
+import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
 import { SliderSkeleton } from '../../components/slider'
@@ -95,6 +97,173 @@ describe('the root scope (real browser)', () => {
 		)
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
+	})
+})
+
+/**
+ * A control slot writes `data-density="slot"` and no step. It is a scope one step below the scope
+ * above it, so the slot contents step down with no step in JS. A scope inside the slot wins over
+ * it, and the slot counts as one depth.
+ */
+describe('the relative slot scope (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	it('steps its contents one step below an explicit scope', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<span data-density="slot">
+					<Badge>x</Badge>
+				</span>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
+	})
+
+	it('steps its contents one step below the root', () => {
+		document.documentElement.setAttribute('data-density', 'md')
+
+		const { container } = renderUI(
+			<span data-density="slot">
+				<Badge>x</Badge>
+			</span>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
+	})
+
+	it('steps below md when the root has no step', () => {
+		const { container } = renderUI(
+			<span data-density="slot">
+				<Badge>x</Badge>
+			</span>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
+	})
+
+	it('takes xs below sm, the smallest step', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const { container } = renderUI(
+			<span data-density="slot">
+				<Badge>x</Badge>
+			</span>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(12)
+	})
+
+	it('gives its own step to the slot element', () => {
+		const { container } = renderUI(
+			<Card size="lg">
+				<Badge data-density="slot">x</Badge>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
+	})
+
+	it('loses to a scope inside it', () => {
+		const { container } = renderUI(
+			<Card size="sm">
+				<span data-density="slot">
+					<Badge size="lg">x</Badge>
+				</span>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.lg)
+	})
+
+	it('reads the nearest scope above it, not an outer one', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const { container } = renderUI(
+			<Card size="sm">
+				<Card size="lg">
+					<span data-density="slot">
+						<Badge>x</Badge>
+					</span>
+				</Card>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
+	})
+})
+
+/**
+ * A control reads no density context, so its server markup is the same at each step. The root
+ * scope that `AppearanceScript` writes before the first paint then gives the stored step to the
+ * markup with no hydration.
+ */
+describe('controls at the first paint (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	/** Mounts the server markup of `element` with no hydration. */
+	const mountMarkup = (element: ReactElement) => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToStaticMarkup(element)
+
+		document.body.append(container)
+
+		return container
+	}
+
+	const px = (element: Element | null, property: 'fontSize' | 'paddingInlineStart') =>
+		Number.parseFloat(getComputedStyle(present(element, 'element'))[property])
+
+	it('sizes an unsized input at the step of the root', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(<Input aria-label="Name" />)
+
+		const input = container.querySelector('[data-slot="input"]')
+
+		expect(px(input, 'fontSize')).toBe(14)
+
+		expect(px(input, 'paddingInlineStart')).toBe(9)
+
+		container.remove()
+	})
+
+	it('lets an explicit size win over the root', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(<Input aria-label="Name" size="lg" />)
+
+		expect(px(container.querySelector('[data-slot="input"]'), 'fontSize')).toBe(18)
+
+		container.remove()
+	})
+
+	it('steps the prefix one step below the input and pads it at the input step', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<Input aria-label="Name" prefix={<Badge>x</Badge>} />)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.md)
+
+		// A text affix pads at the `px` of the input; the badge constant is 2.
+		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(7)
+
+		container.remove()
+	})
+
+	it('pads a text prefix at the px of the input', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<Input aria-label="Name" prefix="$" />)
+
+		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(13)
+
+		container.remove()
 	})
 })
 

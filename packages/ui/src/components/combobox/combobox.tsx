@@ -328,8 +328,6 @@ export function Combobox<T>({
 
 	const step = toAmbientStep(useDensityStep(size))
 
-	const resolvedSize = step
-
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
 	// which the React Compiler cannot reorder.
@@ -654,7 +652,7 @@ export function Combobox<T>({
 						setReference={refs.setReference}
 						getReferenceProps={getReferenceProps}
 						glass={glass}
-						size={resolvedSize}
+						size={size}
 						className={className}
 						data-group={dataGroup}
 						data-group-orientation={dataGroupOrientation}
@@ -693,7 +691,6 @@ export function Combobox<T>({
 							title={inputTitle}
 							editing={editing}
 							capitalize={capitalize}
-							size={step}
 							handlers={inputHandlers}
 						/>
 					</SelectTrigger>

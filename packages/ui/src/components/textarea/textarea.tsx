@@ -1,11 +1,11 @@
 'use client'
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
-import { cn, stepDown, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
-import { Density, useDensityStep } from '../../primitives/density'
+import { Density, DensitySlot } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -80,7 +80,6 @@ export function Textarea({
 		onChange,
 		onBlur,
 	})
-	const step = toAmbientStep(useDensityStep(size))
 
 	const {
 		id: resolvedId,
@@ -138,8 +137,6 @@ export function Textarea({
 				!headless &&
 					k({
 						variant: resolvedVariant,
-						density: step,
-						size: step,
 						resize: hasActions ? 'none' : resize,
 					}),
 				hasActions && k.bare,
@@ -163,8 +160,8 @@ export function Textarea({
 			>
 				{textareaEl}
 				{hasActions && (
-					<div data-slot="textarea-actions" data-density={stepDown(step)} className={cn(k.actions)}>
-						<Density step={stepDown(step)}>{actions}</Density>
+					<div data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
+						<DensitySlot>{actions}</DensitySlot>
 					</div>
 				)}
 			</ControlFrame>

@@ -1,15 +1,18 @@
-import { kasane, kokkaku } from '../kiso'
+import { kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
-const { radius } = kasane
 const { frame } = control
 
-/** Applied via `useDensityStep()` in `<ControlFrame>`; radius tracks `py` at each step. */
-const frameRadius = {
-	sm: radius.all('1.5'),
-	md: radius.all('2'),
-	lg: radius.all('2.5'),
-} as const
+/**
+ * The radius of `<ControlFrame>`: the outer box, the inset fill, and the
+ * overlay. It is the same as `py` at each step, and it takes the step of the
+ * nearest density scope.
+ */
+const frameRadius = [
+	'density-rounded-[1.5,2,2.5]',
+	'before:density-rounded-ring-[1.5,2,2.5]',
+	'after:density-rounded-[1.5,2,2.5]',
+] as const
 
 export const k = {
 	skeleton: kokkaku.control,

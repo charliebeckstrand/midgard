@@ -5,7 +5,6 @@ import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/listbox'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 
 type ListboxButtonProps = {
 	id?: string
@@ -24,7 +23,6 @@ type ListboxButtonProps = {
 	onBlur?: FocusEventHandler<HTMLButtonElement>
 	placeholder: string
 	truncate: boolean
-	size: ControlSize
 }
 
 /**
@@ -50,7 +48,6 @@ export function ListboxButton({
 	onBlur,
 	placeholder,
 	truncate,
-	size,
 }: ListboxButtonProps) {
 	return (
 		<HeadlessProvider>
@@ -72,7 +69,7 @@ export function ListboxButton({
 				data-readonly={dataAttr(readOnly)}
 				onBlur={onBlur}
 				{...validation}
-				className={cn(k({ density: size, size }))}
+				className={cn(k())}
 			>
 				<span className={cn(k.value({ truncate }))}>
 					{label || <span className={cn(k.placeholder)}>{placeholder}</span>}

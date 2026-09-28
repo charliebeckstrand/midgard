@@ -2,9 +2,8 @@
 
 import { CornerLeftDown } from 'lucide-react'
 import { type ClipboardEvent, useCallback, useRef, useState } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
 import type { Color } from '../../recipes'
 import { k } from '../../recipes/kata/tag-input'
 import { Flex } from '../../structure/flex'
@@ -126,9 +125,6 @@ export function TagInput({
 
 	const control = useControl()
 
-	// The tag row rides the control's density; resolve the step to pad it.
-	const space = toAmbientStep(useDensityStep(size))
-
 	const { tags, atMax, addTags, removeTag, setTouched, invalid } = useTagInput({
 		name,
 		value,
@@ -225,7 +221,7 @@ export function TagInput({
 
 	const badges =
 		tags.length > 0 ? (
-			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap className={k.tags[space]}>
+			<Flex data-slot="tags" role="list" aria-label="Tags" gap="xs" wrap className={k.tags}>
 				{keyedTags.map(({ value: t, key }, i) => (
 					<TagInputBadge
 						key={key}

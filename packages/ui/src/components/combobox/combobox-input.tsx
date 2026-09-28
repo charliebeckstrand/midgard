@@ -13,7 +13,6 @@ import { ariaAttr, cn } from '../../core'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/combobox'
 import { capitalizeFirst } from '../../utilities'
-import type { ControlSize } from '../control/context'
 import { Input } from '../input'
 
 type ComboboxInputHandlers = {
@@ -48,7 +47,6 @@ type ComboboxInputProps = {
 	editing: boolean
 	/** First-word-capitalizes the resolved display value (its first letter). */
 	capitalize: boolean
-	size: ControlSize
 	handlers: ComboboxInputHandlers
 }
 
@@ -78,7 +76,6 @@ export function ComboboxInput({
 	title,
 	editing,
 	capitalize,
-	size,
 	handlers,
 }: ComboboxInputProps) {
 	return (
@@ -110,7 +107,7 @@ export function ComboboxInput({
 				// Transform only the resolved value; the live query renders as typed.
 				value={capitalize && !editing ? capitalizeFirst(value) : value}
 				placeholder={placeholder}
-				className={cn(k({ density: size, size }))}
+				className={cn(k())}
 				{...handlers}
 			/>
 		</HeadlessProvider>

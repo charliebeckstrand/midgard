@@ -11,12 +11,15 @@
  * 'outline'`; `'glass'` is internal, routed via `useGlass()` when nested
  * in a glass overlay.
  *
- * Returns a recipe callable as `k({ variant, density, size, …extraAxes })`:
+ * Returns a recipe callable as `k({ variant, …extraAxes })`. The density and
+ * size classes are stepped `density-*` utilities in the base, so the recipe
+ * has no step axis. The control takes the step of its nearest density scope.
+ * It returns:
  *   - `k.number` and caller-defined slots are direct strings.
  *   - `k.inputControl({ variant })` is the surface recipe for the inner
  *     `<input>`: `default` paints `surface.default`, `glass` paints
  *     `surface.glass`, `outline` is empty; kata layer their own borders.
- *   - `k.prefix` / `k.suffix` are density-keyed affix-padding tables.
+ *   - `k.prefix` / `k.suffix` are the affix padding classes of a slot.
  *
  * `check(t, overlay)` is the check-input branch (`checkbox`, `radio`):
  * native `<input>` overlaid on the `check.surface` chrome. `switch` reads
@@ -28,17 +31,14 @@ import { applyRecipe, defineRecipe, type RecipeConfig } from '../../core/recipe'
 
 type Empty = Record<never, never>
 
-/** Density / size step keys; mirrors the kiso `sun` step scale. */
-type Step = 'sm' | 'md' | 'lg'
-
 /** The slice of the `control` token bundle the bridges read. */
 type ControlTokens = {
 	input: ClassValue
-	density: Record<Step, ClassValue>
-	size: Record<Step, ClassValue>
+	density: ClassValue
+	size: ClassValue
 	resets: { number: ClassValue }
 	surface: { default: ClassValue; glass: ClassValue }
-	affix: { prefix: Record<Step, ClassValue>; suffix: Record<Step, ClassValue> }
+	affix: { prefix: ClassValue; suffix: ClassValue }
 	check: { base: ClassValue; hidden: ClassValue; disabled: ClassValue }
 }
 
@@ -46,18 +46,16 @@ type ControlTokens = {
 function controlStandard(t: ControlTokens) {
 	return {
 		config: {
-			base: t.input,
+			base: [t.input, t.density, t.size],
 			variant: {
 				default: [],
 				outline: [],
 				glass: [],
 			},
-			density: t.density,
-			size: t.size,
 			slots: {
 				number: t.resets.number,
 			},
-			defaults: { variant: 'default', density: 'md', size: 'md' },
+			defaults: { variant: 'default' },
 		},
 		extras: {
 			inputControl: defineRecipe({
@@ -76,9 +74,9 @@ function controlStandard(t: ControlTokens) {
 
 /**
  * Wire a text-input control from its `control` tokens. It returns a
- * `defineRecipe` callable (`variant` / `density` / `size`) carrying the kasane
- * chrome, plus `k.inputControl`, `k.number`, and the density-keyed `k.prefix` /
- * `k.suffix` affix tables. `overlay` adds kata-specific axes; `extras` adds siblings.
+ * `defineRecipe` callable (`variant`) carrying the kasane chrome, plus
+ * `k.inputControl`, `k.number`, and the `k.prefix` / `k.suffix` affix
+ * classes. `overlay` adds kata-specific axes; `extras` adds siblings.
  */
 export function control<
 	Overlay extends RecipeConfig = Empty,

@@ -9,9 +9,7 @@ const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: ['block', 'truncate', ...reset],
-		density,
-		size,
+		base: ['block', 'truncate', ...reset, ...density, size],
 		slots: {
 			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
 			// there for why 320px).
@@ -23,7 +21,6 @@ export const k = defineRecipe(
 			// Sibling empty-state message: shown when the listbox peer holds no options.
 			empty: ['hidden', 'peer-empty:block', kara.message, 'p-2', ji.size.md, text.muted],
 		},
-		defaults: { density: 'md', size: 'md' },
 	},
 	{
 		portal,

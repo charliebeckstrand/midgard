@@ -218,8 +218,6 @@ export function Listbox<T>({
 		'aria-describedby': ariaDescribedBy,
 	})
 
-	const resolvedSize = step
-
 	const listboxId = useId()
 
 	const triggerRef = useRef<HTMLButtonElement>(null)
@@ -362,7 +360,7 @@ export function Listbox<T>({
 					setReference={refs.setReference}
 					getReferenceProps={getReferenceProps}
 					glass={glass}
-					size={resolvedSize}
+					size={size}
 					className={className}
 					data-group={dataGroup}
 					data-group-orientation={dataGroupOrientation}
@@ -404,7 +402,6 @@ export function Listbox<T>({
 						onBlur={handleTriggerBlur}
 						placeholder={placeholder}
 						truncate={truncate}
-						size={step}
 					/>
 				</SelectTrigger>
 
