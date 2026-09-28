@@ -103,10 +103,8 @@ describe('SidebarLayout', () => {
 		const { container } = renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
 
 		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass(
-			'density-xs:w-2xs',
-			'density-sm:w-2xs',
-			'density-lg:w-sm',
-			'density-xl:w-sm',
+			'density-[xs,sm]:w-2xs',
+			'density-[lg,xl]:w-sm',
 		)
 	})
 

@@ -43,8 +43,8 @@ export const k = defineRecipe({
 		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
 		'*:data-[slot=loading-dots]:density-gap-[0.5,1,1.5,2,2]',
 		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:density-size-[1,1.5,2,2.5,2.5]',
-		'*:data-[slot=kbd]:density-text-[xs,xs,sm,base,base]',
-		'*:data-[slot=kbd]:density-px-[1,1,1.5,1.5,1.5]',
+		'*:data-[slot=kbd]:density-text-[xs,sm,base]',
+		'*:data-[slot=kbd]:density-px-[1,1.5,1.5]',
 		'*:data-[slot=kbd]:density-py-[0,0.5,0.5,0.5,0.5]',
 	],
 	variant: {

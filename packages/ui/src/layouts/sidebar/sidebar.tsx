@@ -171,7 +171,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex align="center" className="density-p-[4,6,8] lg:p-0 lg:hidden">
+			<Flex align="center" className={k.navbar()}>
 				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
 					<Button
 						type="button"

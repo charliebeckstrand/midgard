@@ -25,8 +25,9 @@ const panel = defineRecipe({
 		// holding the size step open.
 		'has-data-[mini]:w-fit',
 		// The rail holds text, so its width follows the nearest density scope, as the
-		// text does. A container width has no stepped utility, so each step is a variant.
-		'density-xs:w-2xs density-sm:w-2xs density-md:w-xs density-lg:w-sm density-xl:w-sm',
+		// text does. A container width has no stepped utility, so the steps are
+		// variants, and equal steps share one.
+		'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm',
 	],
 })
 
@@ -85,6 +86,10 @@ const body = defineRecipe({
 
 const footer = defineRecipe({ base: 'shrink-0' })
 
+// The navbar on mobile. Its padding follows the nearest density scope, and the
+// desktop layout hides it.
+const navbar = defineRecipe({ base: 'density-p-[4,6,8] lg:p-0 lg:hidden' })
+
 export const k = {
 	layout,
 	panel,
@@ -95,4 +100,5 @@ export const k = {
 	header,
 	body,
 	footer,
+	navbar,
 }
