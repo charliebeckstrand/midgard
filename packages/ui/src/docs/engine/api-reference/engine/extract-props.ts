@@ -43,10 +43,16 @@ export function extractProps(
 }
 
 /**
- * Collects props from every union and intersection arm individually. Walking
- * arms separately surfaces arm-only discriminated members and gathers every
- * arm symbol for props that appear in multiple arms. Recursion splits nested
- * unions within intersection arms.
+ * Collects props from every union arm individually. Walking arms separately
+ * surfaces arm-only discriminated members and gathers every arm symbol for
+ * props that appear in multiple arms.
+ *
+ * An intersection is not split. Its own `getProperties()` already carries the
+ * props of each arm, typed as their intersection. The arm symbols would add
+ * each arm's own type back as a union member: `color` would read
+ * `'zinc' | … | string` where the HTML `color: string` is intersected away.
+ * TypeScript distributes an intersection over a union arm
+ * (`X & (A | B)` is `(X & A) | (X & B)`), so no union hides inside one.
  *
  * Only the symbols are gathered here. Resolving each arm's type is deferred to
  * `resolveArmTypes`. The name/project filters in `extractProps` can then discard
@@ -71,12 +77,6 @@ function collectAllProperties(type: ts.Type): CollectedProp[] {
 
 		if (t.flags & ts.TypeFlags.Union) {
 			for (const arm of (t as ts.UnionType).types) visit(arm)
-
-			return
-		}
-
-		if (t.flags & ts.TypeFlags.Intersection) {
-			for (const arm of (t as ts.IntersectionType).types) visit(arm)
 		}
 	}
 

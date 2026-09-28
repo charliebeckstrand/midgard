@@ -234,6 +234,20 @@ describe('extractProps — type display', () => {
 		expect(p.references?.Anchor).toContain('x: number')
 	})
 
+	it('shows the intersected type of a prop that two intersection arms declare', () => {
+		const props = propsOf(
+			[
+				`type Html = { color?: string; max?: number | string }`,
+				`function Foo(props: Html & { color?: 'red' | 'blue'; max?: number }) { return null }`,
+			].join('\n'),
+		)
+
+		// The component accepts only the intersection. Each arm's own type is wider.
+		expect(prop(props, 'color').type).toBe(`'red' | 'blue'`)
+
+		expect(prop(props, 'max').type).toBe('number')
+	})
+
 	it('leaves inline anonymous unions to the formatter (no references)', () => {
 		const p = prop(
 			propsOf(`function Foo(props: { align?: 'start' | 'center' | 'end' }) { return null }`),
