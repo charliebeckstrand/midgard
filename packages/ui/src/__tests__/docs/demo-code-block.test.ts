@@ -24,9 +24,10 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // `__code` snippet. Around 90 Examples across 34 demo pages silently showed no
 // block.
 //
-// Nothing failed, because the suite runs `docsPlugin({ vitest: true })`, which
-// drops the `pre` transform. No test had ever seen a demo module carrying
-// `__code`, so the whole build-time half went unread.
+// Nothing failed, because the suite then ran `docsPlugin({ vitest: true })`
+// without the `pre` transform. No test had ever seen a demo module carrying
+// `__code`, so the whole build-time half went unread. The suite now runs the
+// transform, and `demo-snippets.test.tsx` reads each block that a page renders.
 //
 // This test reads it, against the real demo tree, from source. It calls the
 // same `collectHelpers` the plugin calls, and asks the same
