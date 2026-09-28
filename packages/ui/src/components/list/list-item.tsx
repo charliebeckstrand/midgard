@@ -102,7 +102,7 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 	as = 'div' as Fallback,
 	...props
 }: ListItemProps<Fallback>) {
-	const { id, setNodeRef, attributes, style, dragging } = useListItemContext()
+	const { id, setNodeRef, attributes, style, dragging, position } = useListItemContext()
 
 	// The list's own `interactive` is the reorder wiring; the row's is the
 	// content area's activation treatment. Alias the former to keep them apart.
@@ -189,6 +189,9 @@ export function ListItem<Fallback extends ElementType = 'div'>({
 			{...(stopOnRow ? reorderProps : {})}
 			data-slot="list-item"
 			data-item-id={id}
+			data-index={position?.index}
+			aria-posinset={position === undefined ? undefined : position.index + 1}
+			aria-setsize={position?.count}
 			data-dragging={dataAttr(dragging)}
 			data-lifted={dataAttr(lifted)}
 			data-interactive={dataAttr(interactive)}

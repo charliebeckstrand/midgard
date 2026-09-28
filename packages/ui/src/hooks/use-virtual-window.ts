@@ -35,6 +35,14 @@ export type VirtualWindowOptions = {
 	 */
 	scrollMargin?: number
 	/**
+	 * The space in pixels between two rows, such as the `gap` of a flex column.
+	 * A measured row does not include it, so without it each row lands one gap
+	 * higher per row above it.
+	 *
+	 * @defaultValue 0
+	 */
+	gap?: number
+	/**
 	 * The height in pixels of sticky content over the top edge of the scroller,
 	 * such as a sticky table head. `scrollToIndex` aligns a row below it, so the
 	 * row does not go under it.
@@ -527,6 +535,7 @@ export function useVirtualWindow({
 	estimateSize,
 	overscan,
 	scrollMargin,
+	gap,
 	scrollPaddingStart,
 	scrollPaddingEnd,
 	getItemKey,
@@ -551,6 +560,7 @@ export function useVirtualWindow({
 		estimateSize: getSize,
 		overscan,
 		scrollMargin,
+		gap,
 		scrollPaddingStart,
 		scrollPaddingEnd,
 		getItemKey,
