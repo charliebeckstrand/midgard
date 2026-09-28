@@ -26,6 +26,7 @@ export const k = {
 		flex.row,
 		'w-full',
 		'px-2',
+		'py-2.5 sm:py-1.5',
 		'gap-2',
 		...hannou.item,
 		...narabi.item,
