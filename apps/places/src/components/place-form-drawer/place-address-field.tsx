@@ -1,8 +1,13 @@
 'use client'
 
-import { Description, Field, Label, Message } from 'ui/fieldset'
+import { Info } from 'lucide-react'
+import { Button } from 'ui/button'
+import { Field, Label, Message } from 'ui/fieldset'
 import { useFormActions } from 'ui/form'
+import { Icon } from 'ui/icon'
 import { Input } from 'ui/input'
+import { Flex } from 'ui/structure/flex'
+import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
 
 /**
  * The address field. A pick in the search fills it, and the reader can type it
@@ -12,17 +17,35 @@ import { Input } from 'ui/input'
  * clears the match in the search. A submit then finds the position from the
  * address. A match that stayed would put the place at the position of a
  * different address.
+ *
+ * The hint is in a tooltip on an info button beside the label, so that the form
+ * stays short. On a touch screen, a tap on the button opens the tooltip. The
+ * button takes the focus before the input, and a screen reader reads the hint
+ * as the description of the button.
+ *
+ * The button is `sm`, so that it is not taller than the label and the row keeps
+ * the gap of a plain label. Its hit area stays at 44 px on a touch screen.
  */
 export function PlaceAddressField() {
 	const actions = useFormActions()
 
 	return (
 		<Field>
-			<Label>Address</Label>
+			<Flex gap="xs" align="center">
+				<Label>Address</Label>
 
-			<Description>
-				Filled from the search. Type it if the search does not find the place.
-			</Description>
+				<Tooltip>
+					<TooltipTrigger>
+						<Button type="button" variant="bare" size="sm" aria-label="About the address">
+							<Icon icon={<Info />} />
+						</Button>
+					</TooltipTrigger>
+
+					<TooltipContent>
+						Filled from the search. Type it if the search does not find the place.
+					</TooltipContent>
+				</Tooltip>
+			</Flex>
 
 			<Input
 				name="address"

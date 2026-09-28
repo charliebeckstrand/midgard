@@ -14,6 +14,12 @@ export const field = [
 	// it would be dropped. The `:not(description)` arm lets a description hug the
 	// label instead; its own gap to the control is the next rule's job.
 	'[&>[data-slot=label]:has(+*:not([data-slot=description]))]:mb-1',
+	// A label row: a Flex that holds the label beside an adornment, such as an
+	// info button with a tooltip. The button cannot go in the label, because a
+	// label must not hold a second labelable element. The row takes the gap that
+	// the label takes, and the label in it keeps its weight.
+	'[&>[data-slot=flex]>[data-slot=label]]:font-medium',
+	'[&>[data-slot=flex]:has(>[data-slot=label]):has(+*:not([data-slot=description]))]:mb-1',
 	'[&>[data-slot=description]+[data-slot]]:mt-1',
 	'[&>[data-slot=control]+[data-slot]]:mt-2',
 	'[&>[data-slot=control-frame]+[data-slot]]:mt-2',
