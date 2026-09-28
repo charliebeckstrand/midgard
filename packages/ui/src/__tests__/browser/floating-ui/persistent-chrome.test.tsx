@@ -3,8 +3,8 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Drawer, DrawerBody } from '../../../components/drawer'
-import { PersistentChrome } from '../../../primitives/chrome'
 import { Overlay } from '../../../primitives/overlay'
+import { PersistentChrome } from '../../../primitives/persistent-chrome'
 import { noop, renderUI, screen, waitFor } from '../../helpers'
 
 /**

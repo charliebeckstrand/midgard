@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { Hold } from '../../primitives/mount'
+import { MountHold } from '../../primitives/mount'
 import type { DensityLevel } from '../../providers/density'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
@@ -275,7 +275,7 @@ function GridGroupTotalRow<T>({
 	// A collapsed group's total is clipped to nothing with its leaves; take it out
 	// of the accessibility tree too, matching the leaf rows (WCAG 1.3.1).
 	return (
-		<Hold hold={reveal.hold} name="grid-total-row">
+		<MountHold hold={reveal.hold} name="grid-total-row">
 			<TableRow
 				{...windowRow}
 				data-total-row="group"
@@ -309,6 +309,6 @@ function GridGroupTotalRow<T>({
 					</GroupRevealCell>
 				))}
 			</TableRow>
-		</Hold>
+		</MountHold>
 	)
 }

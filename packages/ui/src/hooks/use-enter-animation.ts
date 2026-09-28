@@ -4,7 +4,7 @@ import { useRef } from 'react'
 
 /**
  * Resolves an `animateOnMount` flag for a surface whose animated element mounts and
- * unmounts with its open state (`PresencePortal`). It returns whether *this* mount
+ * unmounts with its open state (`Portal`). It returns whether *this* mount
  * plays the enter animation.
  *
  * `animateOnMount={false}` describes the arrival — the surface was already open before

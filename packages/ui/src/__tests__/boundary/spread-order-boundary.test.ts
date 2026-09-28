@@ -80,8 +80,9 @@ const WAIVERS = new Map<string, Waiver>([
 	['components/fieldset/message.tsx', { anchor: 2, note: 'lead S1' }],
 	['components/list/list-item.tsx', { anchor: 1, note: 'lead S1' }],
 	['components/switch/switch-field.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/control/control.tsx', { anchor: 1, note: 'lead S1' }],
-	['primitives/toggle/toggle.tsx', { order: 1, anchor: 2, note: 'lead · lead S1' }],
+	['primitives/control/control-frame.tsx', { anchor: 1, note: 'lead S1' }],
+	['primitives/toggle/toggle-field.tsx', { anchor: 1, note: 'lead S1' }],
+	['primitives/toggle/toggle-group.tsx', { order: 1, anchor: 1, note: 'lead · lead S1' }],
 	[
 		'components/scroll-area/scroll-area.tsx',
 		{

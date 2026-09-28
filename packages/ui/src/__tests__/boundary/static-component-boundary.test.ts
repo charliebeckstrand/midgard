@@ -95,7 +95,7 @@ const STATIC_STRUCTURE_FILES = [
 const STATIC_PRIMITIVE_FILES = [
 	'polymorphic/polymorphic-static.tsx',
 	'polymorphic/types.ts',
-	'polymorphic/merge-render-props.ts',
+	'polymorphic/polymorphic-render-props.ts',
 	'link/link-rel.ts',
 ] as const
 

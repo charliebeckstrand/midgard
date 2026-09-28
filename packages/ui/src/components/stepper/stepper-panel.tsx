@@ -2,7 +2,7 @@
 
 import type { ComponentProps } from 'react'
 import { useA11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
-import { Hold, useMountHold } from '../../primitives/mount'
+import { MountHold, useMountHold } from '../../primitives/mount'
 import { useStepper } from './context'
 
 /** Props for {@link StepperPanel}: the step `value` it belongs to, plus `<div>` attributes. */
@@ -37,11 +37,11 @@ export function StepperPanel({ value, className, children, ...props }: StepperPa
 	if (!hold.present) return null
 
 	return (
-		<Hold hold={hold} name="stepper-panel">
+		<MountHold hold={hold} name="stepper-panel">
 			{/* Consumer props spread first; the matching StepperStep points at these ids. */}
 			<section data-slot="stepper-panel" className={className} {...props} {...panelProps}>
 				{children}
 			</section>
-		</Hold>
+		</MountHold>
 	)
 }

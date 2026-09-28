@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
-import { Hold, type Mount, useMountHold } from '../../primitives/mount'
+import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { renderUI, screen, userEvent } from '../helpers'
 
 /**
@@ -35,9 +35,9 @@ describe('useMountHold', () => {
 				</button>
 
 				{hold.present && (
-					<Hold hold={hold}>
+					<MountHold hold={hold}>
 						<Body onSetup={onSetup} />
-					</Hold>
+					</MountHold>
 				)}
 			</>
 		)

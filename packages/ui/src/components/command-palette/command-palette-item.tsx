@@ -3,7 +3,7 @@
 import { type MouseEvent, type ReactNode, useId } from 'react'
 import { cn } from '../../core'
 import { useLink } from '../../primitives/link'
-import { inertLinkProps } from '../../primitives/link/inert-link'
+import { inertLinkProps } from '../../primitives/link/link-inert'
 import { resolveLinkRel } from '../../primitives/link/link-rel'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { k } from '../../recipes/kata/command-palette'

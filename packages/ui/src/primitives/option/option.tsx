@@ -7,10 +7,10 @@ import { k } from '../../recipes/kata/option'
 import { capitalizeFirst, getOrCompute } from '../../utilities'
 
 /**
- * Props for {@link BaseOption}: selection state (`selected`, `disabled`), the
+ * Props for {@link Option}: selection state (`selected`, `disabled`), the
  * `onSelect` handler, and the active-descendant / commit-on-Tab behavior flags.
  */
-export type BaseOptionProps = {
+export type OptionProps = {
 	className?: string
 	selected: boolean
 	disabled?: boolean
@@ -57,7 +57,7 @@ export type BaseOptionProps = {
  * state is unchanged. Committing a selection therefore re-renders only the rows
  * that actually changed, rather than every option in the list.
  */
-function BaseOptionImpl({
+function OptionImpl({
 	children,
 	className,
 	selected,
@@ -67,7 +67,7 @@ function BaseOptionImpl({
 	commitOnTab = false,
 	id,
 	...props
-}: BaseOptionProps) {
+}: OptionProps) {
 	const autoId = useId()
 
 	// Only mint an id for active-descendant lists; an explicit id always wins.
@@ -120,9 +120,9 @@ function BaseOptionImpl({
 
 /**
  * Shared, memoized option row for select-like components. See
- * {@link BaseOptionImpl} for behavior.
+ * {@link OptionImpl} for behavior.
  */
-export const BaseOption = memo(BaseOptionImpl)
+export const Option = memo(OptionImpl)
 
 /** Primary label for a select-like option. */
 export function OptionLabel({ className, ...props }: ComponentProps<'span'>) {
@@ -139,7 +139,7 @@ export function OptionDescription({ className, children, ...props }: ComponentPr
 }
 
 /** Props for a select-like option produced by `createSelectOption`; `value` is matched against the host's selection. */
-export type OptionProps<TValue = unknown> = {
+export type SelectOptionProps<TValue = unknown> = {
 	value: TValue
 	disabled?: boolean
 	className?: string
@@ -212,7 +212,7 @@ function isOptionSelected(
  * prefix and a hook that reads the host's selection
  * {@link OptionSelectionContext}. The generated `Option` and `Label` call it.
  *
- * `BaseOption` owns the selected-state check icon. The icon takes its size
+ * `Option` owns the selected-state check icon. The icon takes its size
  * from the nearest density scope.
  *
  * @returns The bound `{ Option, Label, Description }` triad, each pre-wired with
@@ -221,7 +221,7 @@ function isOptionSelected(
  * It throws outside a provider, so an orphan option fails at render with a
  * message that names the host. A raw `use(Context)` returns the missing-value
  * sentinel, and the fault then shows as an unnamed error at the first click.
- * @see {@link BaseOption}
+ * @see {@link Option}
  */
 export function createSelectOption<
 	TValue = unknown,
@@ -239,7 +239,7 @@ export function createSelectOption<
 	 */
 	useSelection: () => TContext
 }) {
-	function Option({
+	function SelectOption({
 		value,
 		disabled,
 		className,
@@ -247,20 +247,20 @@ export function createSelectOption<
 		id,
 		'aria-setsize': ariaSetsize,
 		'aria-posinset': ariaPosinset,
-	}: OptionProps<TValue>) {
+	}: SelectOptionProps<TValue>) {
 		const { value: selectedValue, multiple, onSelect, capitalize } = config.useSelection()
 
 		const selected = isOptionSelected(selectedValue, value, multiple)
 
 		// Stable per option (the host's `onSelect` is stable and `value` is fixed),
-		// so the memoized `BaseOption` can bail when `selected` is unchanged.
+		// so the memoized `Option` can bail when `selected` is unchanged.
 		const handleSelect = useCallback(() => onSelect(value), [onSelect, value])
 
 		const label = capitalize && typeof children === 'string' ? capitalizeFirst(children) : children
 
 		return (
 			<CapitalizeContext value={capitalize ?? false}>
-				<BaseOption
+				<Option
 					id={id}
 					selected={selected}
 					disabled={disabled}
@@ -276,7 +276,7 @@ export function createSelectOption<
 					commitOnTab={!config.activeDescendant && !multiple}
 				>
 					{label}
-				</BaseOption>
+				</Option>
 			</CapitalizeContext>
 		)
 	}
@@ -306,5 +306,5 @@ export function createSelectOption<
 		)
 	}
 
-	return { Option, Label, Description }
+	return { Option: SelectOption, Label, Description }
 }

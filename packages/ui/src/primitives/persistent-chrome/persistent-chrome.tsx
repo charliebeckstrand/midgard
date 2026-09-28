@@ -4,7 +4,7 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chrome'
-import { registerChrome } from './chrome-registry'
+import { registerChrome } from './persistent-chrome-registry'
 
 /** Props for {@link PersistentChrome}: the region's `children`, plus any div attributes. */
 export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNode }

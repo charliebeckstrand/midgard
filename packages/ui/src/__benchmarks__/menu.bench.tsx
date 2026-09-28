@@ -1,5 +1,5 @@
 /**
- * A closed `Menu` renders no panel. Its `PresencePortal` mounts nothing until
+ * A closed `Menu` renders no panel. Its `Portal` mounts nothing until
  * the menu opens. So the closed rungs price the shell alone: the trigger, the
  * disclosure and roving plumbing, and the recipe resolutions `MenuContent`
  * always pays. They must hold flat as the row count grows.

@@ -16,9 +16,9 @@ import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
-import { chromeRegions } from '../chrome'
 import { useDensityScope } from '../density'
-import { PresencePortal } from '../portal'
+import { chromeRegions } from '../persistent-chrome'
+import { Portal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
@@ -134,7 +134,7 @@ export function Overlay({
 
 	const density = useDensityScope()
 
-	// `PresencePortal` owns the teleport and the mount-while-open lifecycle. An
+	// `Portal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no
 	// scroll lock); modal positioning and scroll lock key off `scoped`.
 	const scoped = container != null
@@ -201,11 +201,11 @@ export function Overlay({
 	)
 
 	return (
-		<PresencePortal open={open} container={container}>
+		<Portal open={open} container={container}>
 			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
 				{panel}
 			</OverlayFocus>
-		</PresencePortal>
+		</Portal>
 	)
 }
 

@@ -17,7 +17,7 @@ import { useCallback, useState } from 'react'
 export type Mount = 'always' | 'lazy' | 'active'
 
 /** The hold state {@link useMountHold} resolves for one panel. */
-export type MountHold = {
+export type MountHoldState = {
 	/** Whether the panel exists in the tree at all. */
 	present: boolean
 	/**
@@ -64,7 +64,7 @@ export function mountsEveryPanel(mount: Mount): boolean {
  * `active` directly, which suits a panel that swaps without animating. Deferred,
  * it tracks a rest latch instead. A `display: none` cannot animate, so an
  * animating panel must stay live and in flow for its close transition. It drops
- * into the hidden Activity only once {@link MountHold.rest} says the transition
+ * into the hidden Activity only once {@link MountHoldState.rest} says the transition
  * landed. Either way a panel mounting inactive starts hidden, so a held panel
  * never pays a visible first render it doesn't need.
  *
@@ -76,15 +76,15 @@ export function mountsEveryPanel(mount: Mount): boolean {
  *
  * @param active - Whether the panel is the one currently shown.
  * @param mount - The policy governing inactive panels.
- * @param options - `defer`: whether hiding waits on {@link MountHold.rest} rather
+ * @param options - `defer`: whether hiding waits on {@link MountHoldState.rest} rather
  * than following `active`. Defaults to `false`.
- * @returns The panel's resolved {@link MountHold}.
+ * @returns The panel's resolved {@link MountHoldState}.
  */
 export function useMountHold(
 	active: boolean,
 	mount: Mount,
 	options?: { defer?: boolean },
-): MountHold {
+): MountHoldState {
 	const defer = options?.defer ?? false
 
 	// Lazy latch: a panel that has ever been active stays mounted thereafter.

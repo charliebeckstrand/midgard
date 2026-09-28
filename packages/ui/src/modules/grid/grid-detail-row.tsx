@@ -5,7 +5,7 @@ import type { ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
-import { Hold } from '../../primitives/mount'
+import { MountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/grid'
 import { NO_PADDING } from './engine/grid-constants'
 import { detailItemKey } from './engine/grid-items/items'
@@ -123,7 +123,7 @@ export function GridDetailRow({
 	const stopProps = useGridNavStopProps(navKey)
 
 	return (
-		<Hold hold={reveal.hold} name="grid-detail-row">
+		<MountHold hold={reveal.hold} name="grid-detail-row">
 			<tr
 				{...windowRow}
 				data-detail-row={String(rowKey)}
@@ -142,6 +142,6 @@ export function GridDetailRow({
 					<GridNavCell stop={navKey} />
 				</td>
 			</tr>
-		</Hold>
+		</MountHold>
 	)
 }

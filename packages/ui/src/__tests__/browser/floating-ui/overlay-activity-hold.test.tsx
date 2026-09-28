@@ -16,7 +16,7 @@ import { renderUI, screen, waitFor } from '../../helpers'
  * remounted the whole surface: state gone, scroll offsets gone. `patches/@floating-ui__react`
  * makes the node re-attach instead. See that patch for the reasoning.
  *
- * This is not a hypothetical arrangement. `primitives/mount`'s `Hold` parks an inactive
+ * This is not a hypothetical arrangement. `primitives/mount`'s `MountHold` parks an inactive
  * Tabs/Nav panel in exactly this boundary, and Next's App Router parks a navigated-away
  * route in it, which is how an in-app tab keeps a half-finished view alive.
  *

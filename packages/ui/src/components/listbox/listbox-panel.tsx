@@ -10,7 +10,7 @@ import {
 } from 'react'
 import { cn } from '../../core'
 import { PopoverPanel } from '../../primitives/popover'
-import { PresencePortal } from '../../primitives/portal'
+import { Portal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
 import type { ControlSize } from '../control/context'
 
@@ -34,7 +34,7 @@ type ListboxPanelProps = {
 }
 
 /**
- * Internal: the listbox menu surface rendered through `PresencePortal`.
+ * Internal: the listbox menu surface rendered through `Portal`.
  * Owns the entry/exit animation and the listbox role; the caller supplies
  * floating positioning and open state.
  *
@@ -64,9 +64,9 @@ export function ListboxPanel({
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
 	return (
-		// `PresencePortal` mounts the portal only while open, so a closed Select keeps
+		// `Portal` mounts the portal only while open, so a closed Select keeps
 		// no empty portal node in the document.
-		<PresencePortal open={open} onExitComplete={flushPending}>
+		<Portal open={open} onExitComplete={flushPending}>
 			{/* Non-modal: focus moves into the panel on open and stays contained. Tab
 			    exits through `onTabOut`: it commits at the option, closes, and carries
 			    focus past the trigger. A select closes on Tab and does not trap focus.
@@ -108,6 +108,6 @@ export function ListboxPanel({
 					</PopoverPanel>
 				</div>
 			</FloatingFocusManager>
-		</PresencePortal>
+		</Portal>
 	)
 }

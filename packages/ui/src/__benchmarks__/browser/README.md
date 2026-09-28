@@ -495,7 +495,7 @@ Most of the floating layer is the engine, not the wrapper. These rungs read floa
 | 3 · useFloating + autoUpdate | 0.600 | 0.211 |
 | 4 · + FloatingPortal | 0.749 | 0.149 |
 
-**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.41 — is `FloatingSurface`, `PresencePortal`, and `MenuTrigger`.
+**`autoUpdate` costs 0.211 ms, which is 12% of the whole shell.** The default options start a `ResizeObserver` on both elements and an `IntersectionObserver` for the layout-shift watch, and they walk the scroll ancestors. The positioning pass and its middleware cost 0.285, and `FloatingPortal` 0.149. Those three are 0.645 of the 1.056, so the rest — about 0.41 — is `FloatingSurface`, `Portal`, and `MenuTrigger`.
 
 The other 25% is `MenuContent`. Split at the `Menu` root:
 
@@ -557,7 +557,7 @@ A tighter ablation toggles the ref in one process, so no cross-run drift enters 
 
 `MenuSub` now takes the same gate, and the gate itself moved into the hook as an `enabled` option ([`use-scroll-overflow.ts`](../../hooks/use-scroll-overflow.ts)). **That half is unmeasured, and no figure above stands in for it.** No bench in this suite opens a submenu: [`menu-mount.bench.tsx`](menu-mount.bench.tsx) prices a *closed* submenu row, and [`menu-pointer.bench.tsx`](menu-pointer.bench.tsx) sweeps with one *already* open. The mount bench is the wrong instrument besides. The reflow control above collapsed its 24-row gap from 0.749 ms to 0.028, so a figure quoted from it here would repeat the error this section corrects.
 
-The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` renders the same `MenuViewport`, which reads the same `capped`. `FloatingSurface` mounts the panel per open through `PresencePortal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
+The submenu gate therefore lands on the dead work alone. The invariant holds verbatim: `MenuSub` renders the same `MenuViewport`, which reads the same `capped`. `FloatingSurface` mounts the panel per open through `Portal`, so the watch was set up on every submenu open, to hold two attributes that cannot change.
 
 The submenu's teardown was a separate defect, and it closed first. `MenuSub` wrapped the hook's ref in a callback that discarded the return, so React held no ref cleanup and the observers outlived every closed panel. [#1171](https://github.com/charliebeckstrand/midgard/pull/1171) composed the two refs, and the watch now stops on detach.
 
@@ -614,7 +614,7 @@ What is left is a whole `useFloatingUI`, a `MenuPointerLevel`, three `useId` cal
 
 ### Methodology
 
-[`popover-mount.bench.tsx`](popover-mount.bench.tsx) is [`menu-mount.bench.tsx`](menu-mount.bench.tsx) one component over: fifty closed popovers, mounted and torn down. A closed popover renders no panel, because `PresencePortal` mounts nothing until it opens, so the rungs price the shell. Each rung contains the one above it, so a step is what that layer costs across the whole fan-out.
+[`popover-mount.bench.tsx`](popover-mount.bench.tsx) is [`menu-mount.bench.tsx`](menu-mount.bench.tsx) one component over: fifty closed popovers, mounted and torn down. A closed popover renders no panel, because `Portal` mounts nothing until it opens, so the rungs price the shell. Each rung contains the one above it, so a step is what that layer costs across the whole fan-out.
 
 ### Fan-out: what a closed popover costs (2026-09-21, a slower container)
 

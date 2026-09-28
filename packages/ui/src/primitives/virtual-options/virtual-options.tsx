@@ -4,7 +4,7 @@ import { type ReactNode, use, useCallback, useEffect, useMemo, useRef } from 're
 import { dataAttr } from '../../core'
 import { useVirtualWindow } from '../../hooks'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
-import { VirtualItemSourceContext } from './virtual-item-source-context'
+import { VirtualItemSourceContext } from './context'
 
 /**
  * Nearest ancestor with a scrollable `overflow-y`, regardless of whether it is

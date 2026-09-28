@@ -2,7 +2,7 @@
  * What a page pays for the popovers nobody has opened.
  *
  * The same shape as `menu-mount.bench.tsx`, one component over. A closed
- * popover renders no panel, because `PresencePortal` mounts nothing until it
+ * popover renders no panel, because `Portal` mounts nothing until it
  * opens, so the cost is the shell around it. A page multiplies that shell: an
  * info popover beside every field, a filter popover on every column.
  *

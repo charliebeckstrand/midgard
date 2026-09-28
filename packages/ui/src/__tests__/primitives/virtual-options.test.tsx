@@ -2,7 +2,7 @@ import type { RefObject } from 'react'
 import { describe, expect, it } from 'vitest'
 import type { VirtualItemSource } from '../../hooks/a11y/use-a11y-roving'
 import { VirtualOptions } from '../../primitives/virtual-options'
-import { VirtualItemSourceContext } from '../../primitives/virtual-options/virtual-item-source-context'
+import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { bySlot, renderUI } from '../helpers'
 
 // jsdom has no layout; react-virtual sees a 0-height scroll container and

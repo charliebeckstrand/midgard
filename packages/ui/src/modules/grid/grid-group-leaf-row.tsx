@@ -6,7 +6,7 @@ import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
-import { Hold } from '../../primitives/mount'
+import { MountHold } from '../../primitives/mount'
 import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -298,7 +298,7 @@ export function GridGroupLeafRow<T>({
 	const reveal = useGridRevealHold(expanded, enter)
 
 	return (
-		<Hold hold={reveal.hold} name="grid-group-leaf-row">
+		<MountHold hold={reveal.hold} name="grid-group-leaf-row">
 			<tr
 				{...windowRow}
 				// The shared row shell (attributes, pointer handlers, Enter / Space
@@ -355,6 +355,6 @@ export function GridGroupLeafRow<T>({
 					)
 				})}
 			</tr>
-		</Hold>
+		</MountHold>
 	)
 }

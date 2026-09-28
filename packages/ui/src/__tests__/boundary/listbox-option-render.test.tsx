@@ -7,7 +7,7 @@ import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers
 /**
  * A multi-select toggle renders only the option that changes.
  *
- * Each option row is a memoized `BaseOption`, and each takes the `onSelect` of
+ * Each option row is a memoized `Option`, and each takes the `onSelect` of
  * its host. That handler depended on the `commit` of `useDeferredToggle`, which
  * took a new identity on each change of the value. One toggle therefore
  * rendered all the rows.

@@ -4,7 +4,7 @@ import { X } from 'lucide-react'
 import { useMemo, useRef } from 'react'
 import { cn } from '../../core'
 import { useA11yRoving, useScrollWithin } from '../../hooks'
-import { Hold, useMountHold } from '../../primitives/mount'
+import { MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/pdf-viewer'
 import { Flex } from '../../structure/flex'
 import { Button } from '../button'
@@ -101,7 +101,7 @@ export function PdfViewerThumbnails() {
 						}
 					}}
 				>
-					<Hold hold={sidebarHold} name="pdf-viewer-sidebar">
+					<MountHold hold={sidebarHold} name="pdf-viewer-sidebar">
 						<div className={cn(k.sidebar.header)}>Pages</div>
 						<PdfViewerThumbnailList
 							items={thumbnailList}
@@ -111,7 +111,7 @@ export function PdfViewerThumbnails() {
 							scrollCurrentIntoView={scrollCurrentIntoView}
 							onVisibleChange={showThumbnails}
 						/>
-					</Hold>
+					</MountHold>
 				</aside>
 			)}
 

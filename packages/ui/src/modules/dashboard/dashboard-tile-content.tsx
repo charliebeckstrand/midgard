@@ -4,7 +4,7 @@ import { type ReactNode, Suspense } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { Hold, type Mount, useMountHold } from '../../primitives/mount'
+import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardTileContext } from './context'
 import { DashboardTileBoundary } from './dashboard-tile-boundary'
@@ -111,7 +111,7 @@ function HeldDashboardTileContent({
 			inert={inert}
 			className={cn(k.content)}
 		>
-			{hold.present ? <Hold hold={hold}>{children}</Hold> : fallback}
+			{hold.present ? <MountHold hold={hold}>{children}</MountHold> : fallback}
 		</div>
 	)
 }

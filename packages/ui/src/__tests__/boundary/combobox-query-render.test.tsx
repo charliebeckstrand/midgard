@@ -18,7 +18,7 @@ import { act, renderUI, screen, userEvent } from '../helpers'
  * consumer of the deferred query now reads a context that holds only the
  * deferred query.
  *
- * The combobox count reads the `useDensityStep` calls of `BaseOptionImpl`, which
+ * The combobox count reads the `useDensityStep` calls of `OptionImpl`, which
  * each option makes when it renders. The command palette count reads the calls
  * of `CommandPaletteItem`. The counts need module mocks, so this suite sits in
  * `boundary/`.
@@ -50,7 +50,7 @@ const VALUES = Array.from({ length: 50 }, (_, index) => `v${index}`)
 
 /** The `useDensityStep` calls that came from a render of an option. */
 function optionRenders() {
-	return stacks.filter((stack) => stack.includes('BaseOptionImpl')).length
+	return stacks.filter((stack) => stack.includes('OptionImpl')).length
 }
 
 function ComboboxResults() {

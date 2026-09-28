@@ -1,4 +1,4 @@
-import type { MountHold } from './mount'
+import type { MountHoldState } from './mount'
 
 /**
  * The recipe preset a disclosure panel animates with: the `AnimatePresence`
@@ -12,7 +12,7 @@ export type HeldMotionPreset = {
 }
 
 /**
- * Motion props for a panel a deferred {@link MountHold} keeps mounted. Held, it
+ * Motion props for a panel a deferred {@link MountHoldState} keeps mounted. Held, it
  * animates between its open and closed states in place rather than entering and
  * exiting. It therefore takes no `exit`, which only `AnimatePresence` reads.
  * Both landings arrive on one `onAnimationComplete`: the close that rests the
@@ -38,7 +38,7 @@ export type HeldMotionPreset = {
 export function heldMotionProps<P extends HeldMotionPreset>(
 	preset: P,
 	open: boolean,
-	hold: Pick<MountHold, 'rest' | 'mountedActive'>,
+	hold: Pick<MountHoldState, 'rest' | 'mountedActive'>,
 	onAnimationComplete: (definition: unknown) => void,
 ): {
 	initial: P['initial'] | P['animate']

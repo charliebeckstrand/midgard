@@ -5,8 +5,8 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { useOpenComplete } from '../../hooks/use-open-complete'
-import { Hold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps } from '../../primitives/mount/held-motion'
+import { MountHold, useMountHold } from '../../primitives/mount'
+import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/collapse'
 import { useCollapseContext } from './context'
@@ -70,11 +70,11 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 		if (!hold.present) return null
 
 		return (
-			<Hold hold={hold} name="collapse-panel">
+			<MountHold hold={hold} name="collapse-panel">
 				<section {...panelProps} data-slot="collapse-panel" className={cn(k.panel, className)}>
 					{children}
 				</section>
-			</Hold>
+			</MountHold>
 		)
 	}
 
@@ -94,9 +94,9 @@ export function CollapsePanel({ children, className }: CollapsePanelProps) {
 
 	return (
 		<ReducedMotion>
-			<Hold hold={hold} name="collapse-panel">
+			<MountHold hold={hold} name="collapse-panel">
 				{section(heldMotionProps(preset, open, hold, onAnimationComplete))}
-			</Hold>
+			</MountHold>
 		</ReducedMotion>
 	)
 }
