@@ -95,9 +95,9 @@ describe('TimeAgo', () => {
 		)
 
 		// The <time> becomes the tooltip trigger; the absolute time only mounts
-		// once the tooltip opens.
+		// once the tooltip opens. The floating-ui mock opens it on focus.
 		act(() => {
-			fireEvent.click(getSlot(container, 'tooltip-trigger'))
+			fireEvent.focus(getSlot(container, 'tooltip-trigger'))
 		})
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toBe(date.toLocaleString('en-US'))
