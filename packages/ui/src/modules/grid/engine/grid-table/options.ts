@@ -127,7 +127,7 @@ function rowSortKey(row: Row<GridFeatures, RowData>, columnId: string): SortKey 
  *   at compare time so column defs needn't rebuild when the sort direction flips.
  * @internal
  */
-export function makeSmartSortingFn(
+function makeSmartSortingFn(
 	isDescending: (row: Row<GridFeatures, RowData>, columnId: string) => boolean,
 ): SortFn<GridFeatures, RowData> {
 	return (rowA, rowB, columnId) => {

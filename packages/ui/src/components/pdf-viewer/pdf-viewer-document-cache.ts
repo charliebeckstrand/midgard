@@ -113,7 +113,7 @@ export type PdfRenderJob = {
 }
 
 /** What a render gives: a blob URL, a bitmap, or `null` for a page that cannot render. @internal */
-export type PdfRasterResult = string | ImageBitmap | null
+type PdfRasterResult = string | ImageBitmap | null
 
 /**
  * Renders the page at a 0-based index. The load gives one to the cache when the document opens.
@@ -122,11 +122,7 @@ export type PdfRasterResult = string | ImageBitmap | null
  * sharp raster of a page that a viewer shows larger than its slot.
  * @internal
  */
-export type PdfPageRenderer = (
-	index: number,
-	raster: PdfPageRaster,
-	factor?: number,
-) => PdfRenderJob
+type PdfPageRenderer = (index: number, raster: PdfPageRaster, factor?: number) => PdfRenderJob
 
 /** The render in flight for an entry. @internal */
 type RunningJob = {

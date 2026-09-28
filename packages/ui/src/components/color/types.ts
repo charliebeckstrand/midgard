@@ -14,7 +14,7 @@ export type Hsv = { h: number; s: number; v: number }
 export type Hsva = Hsv & { a: number }
 
 /** Hex wire contract: a `#rrggbb(aa)` string in and out. The default `format`. */
-export type ColorHexValueProps = {
+type ColorHexValueProps = {
 	format?: 'hex'
 	value?: string
 	defaultValue?: string
@@ -22,7 +22,7 @@ export type ColorHexValueProps = {
 }
 
 /** HSVA wire contract: the structured object in and out. */
-export type ColorHsvaValueProps = {
+type ColorHsvaValueProps = {
 	format: 'hsva'
 	value?: Hsva
 	defaultValue?: Hsva

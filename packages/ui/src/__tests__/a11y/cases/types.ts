@@ -46,7 +46,7 @@ export type DensitySubject = {
 }
 
 /** The props the text-input sweep passes, one leg at a time. */
-export type TextInputProbe = {
+type TextInputProbe = {
 	/** A callback ref, so one probe fits an `<input>` and a `<textarea>` alike. */
 	ref?: (element: HTMLElement | null) => void
 	placeholder?: string
@@ -96,7 +96,7 @@ export type WriteOnChangeSubject = {
 }
 
 /** A named, canonical render a gate drives. */
-export type Scenario = {
+type Scenario = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
 	name: string
 	/** The canonical render. */

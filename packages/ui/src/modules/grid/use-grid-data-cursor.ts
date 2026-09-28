@@ -102,7 +102,7 @@ export function useGridIndexRefs<T>(source: GridEditSource<T>): GridIndexRefs<T>
  *
  * @internal
  */
-export function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource<T>): void {
+function useGridEditSourceSync<T>(refs: GridIndexRefs<T>, source: GridEditSource<T>): void {
 	'use no memo'
 
 	refs.editSourceRef.current = source
@@ -149,7 +149,7 @@ export function useGridIndexSync<T>(refs: GridIndexRefs<T>, values: GridIndexVal
  *
  * @internal
  */
-export function useStableHandler<A extends unknown[]>(
+function useStableHandler<A extends unknown[]>(
 	handler: ((...args: A) => void) | undefined,
 ): ((...args: A) => void) | undefined {
 	const stable = useStableEvent((...args: A) => handler?.(...args))

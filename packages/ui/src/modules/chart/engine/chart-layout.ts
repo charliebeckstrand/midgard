@@ -266,7 +266,7 @@ export function thinned(count: number, axisLength: number, slot: number): number
  *
  * @internal
  */
-export function willThin(count: number, axisLength: number, slot: number): boolean {
+function willThin(count: number, axisLength: number, slot: number): boolean {
 	return count > Math.max(1, Math.floor(axisLength / Math.max(1, slot)))
 }
 

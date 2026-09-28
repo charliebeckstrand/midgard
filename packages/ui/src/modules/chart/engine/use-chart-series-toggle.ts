@@ -5,7 +5,7 @@ import { useReportedChange } from '../../../hooks/use-reported-change'
 import { keyByOccurrence, toggleItem } from '../../../utilities'
 
 /** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
-export type ChartToggleSet = {
+type ChartToggleSet = {
 	/** Indexes toggled off. */
 	hidden: ReadonlySet<number>
 	/** Toggles an index on or off. */

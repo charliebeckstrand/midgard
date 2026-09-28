@@ -10,8 +10,6 @@ import {
 import type { GridExportAction, GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridColumn } from './types'
 
-export type { GridExportAction } from './engine/grid-export/types'
-
 /** A surface offering no export actions. A fixed identity, so an off surface never re-renders its menu. @internal */
 const NO_ACTIONS: GridExportAction[] = []
 

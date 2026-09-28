@@ -161,7 +161,7 @@ export function isBlankDraft(value: unknown): boolean {
  * draft. A refused commit sets it back to `'staged'`, with its error, so the
  * editor that mounts again shows the value and the error. @internal
  */
-export type GridDraftStatus = 'staged' | 'pending'
+type GridDraftStatus = 'staged' | 'pending'
 
 /**
  * One cell's draft: the value that the user typed, its status, and `row`, the

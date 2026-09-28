@@ -6,7 +6,7 @@ import type { FrozenColumn, FrozenLayout } from './layout'
  *
  * @internal
  */
-export const FROZEN_CELL_ATTRIBUTE = 'data-grid-pin'
+const FROZEN_CELL_ATTRIBUTE = 'data-grid-pin'
 
 /**
  * The committed frozen layout, as a store that the pinned chrome reads its

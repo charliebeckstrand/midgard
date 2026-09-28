@@ -56,7 +56,7 @@ export function toRowLeaf<T>(
  *
  * @internal
  */
-export function isGroupExpanded(expanded: ExpandedState, id: string): boolean {
+function isGroupExpanded(expanded: ExpandedState, id: string): boolean {
 	return expanded === true || Boolean(expanded[id])
 }
 

@@ -93,7 +93,7 @@ export function applyRowKeyOrder<I>(
  *
  * @internal
  */
-export function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
+function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
 	return (groups ?? []).map((group) => {
 		const value = groupValueOf(group)
 

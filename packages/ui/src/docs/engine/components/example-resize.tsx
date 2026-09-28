@@ -24,7 +24,7 @@ const KEY_STEP = SNAP_STEP
 const KEY_STEP_LARGE = SNAP_STEP * 8
 
 /** The object form of {@link Example}'s `resize` prop. */
-export type ResizeConfig = {
+type ResizeConfig = {
 	/** Whether the frame is resizable. @defaultValue true */
 	enabled?: boolean
 	/** Minimum width in pixels; unset leaves the lower bound auto. */
@@ -86,7 +86,7 @@ export function maxDefined(a: number | undefined, b: number | undefined): number
 }
 
 /** Pointer/keyboard handlers the handle binds to, from {@link useExampleResize}. */
-export type ResizeHandlers = {
+type ResizeHandlers = {
 	onPointerDown: (event: ReactPointerEvent) => void
 	onPointerMove: (event: ReactPointerEvent) => void
 	onPointerUp: (event: ReactPointerEvent) => void
@@ -127,7 +127,7 @@ function availableWidth(el: HTMLElement): number {
  *
  * @internal
  */
-export function contentFloor(frame: HTMLElement): number {
+function contentFloor(frame: HTMLElement): number {
 	let widest = 0
 
 	for (const section of frame.querySelectorAll<HTMLElement>(':scope > [data-example-section]')) {

@@ -3,7 +3,7 @@ import { cn } from '../../core'
 import { k } from '../../recipes/kata/dl'
 import type { Orientation } from '../../types'
 
-export type DlOrientation = Orientation
+type DlOrientation = Orientation
 
 /** Variant axis for {@link DescriptionList}: term/details `orientation`. */
 export type DescriptionListVariants = {

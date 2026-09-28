@@ -80,7 +80,7 @@ function inCorridor(point: Point, from: Point, rect: DOMRect): boolean {
  * currently open rides {@link MenuOpenSubContext} instead, read by the handful of
  * rows that are submenu parents.
  */
-export type MenuPointerValue = {
+type MenuPointerValue = {
 	/**
 	 * The pointer settled on `row` at `point` (client coordinates), which takes
 	 * the roving cursor. `subKey` names it as a submenu's parent row, whose panel

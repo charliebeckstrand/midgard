@@ -585,9 +585,7 @@ function sameItem(a: DashboardLayoutItem, b: DashboardLayoutItem): boolean {
  * {@link resolveLayout} reads. It returns `items` itself when no id repeats, so a
  * caller can compare by identity.
  */
-export function firstEntries(
-	items: readonly DashboardLayoutItem[],
-): readonly DashboardLayoutItem[] {
+function firstEntries(items: readonly DashboardLayoutItem[]): readonly DashboardLayoutItem[] {
 	const seen = new Set<string>()
 
 	const first = items.filter((item) => {

@@ -341,7 +341,7 @@ export function importFacts(
 // ---------------------------------------------------------------------------
 
 /** One qualifying `<Example>`: where to splice, and its per-Example facts. */
-export type ExampleSite = {
+type ExampleSite = {
 	/** Splice position: right after the opening tag's name. */
 	insertAt: number
 	elements: ElementFact[]

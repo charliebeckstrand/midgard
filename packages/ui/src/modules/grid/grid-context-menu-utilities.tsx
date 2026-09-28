@@ -232,7 +232,7 @@ function manageColumnsItems(chooseColumns: (() => void) | null): GridMenuItem[] 
  *
  * @internal
  */
-export type ColumnMenuFilter = {
+type ColumnMenuFilter = {
 	canFilter: boolean
 	affordance: 'header' | 'menu'
 	openFilter: () => void

@@ -156,10 +156,7 @@ export function resolveType(type: unknown, context: Context): ComponentInfo | un
  * the emptiness probe both sort an element through it, so both answer "is this
  * a component we document?" the same way.
  */
-export function resolveTypeIn(
-	registry: ComponentRegistry,
-	type: unknown,
-): ComponentInfo | undefined {
+function resolveTypeIn(registry: ComponentRegistry, type: unknown): ComponentInfo | undefined {
 	const info = registry.byType.get(type)
 
 	if (info) return info

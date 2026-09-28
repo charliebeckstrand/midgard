@@ -400,7 +400,7 @@ export type CartesianChartProps<T> = ChartBaseProps<T> &
  *
  * @internal
  */
-export type ChartReadoutRow = {
+type ChartReadoutRow = {
 	/**
 	 * The series' index in the caller's list, so the tooltip can tell the
 	 * emphasized row from the rest. It is absent on readouts whose rows aren't

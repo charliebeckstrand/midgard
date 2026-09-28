@@ -8,7 +8,7 @@ import type { GridGroup, GridLeaf } from '../grid-group/tree'
  *
  * @internal
  */
-export type GridItemPhase = 'open' | 'closing'
+type GridItemPhase = 'open' | 'closing'
 
 /**
  * The motion of one row, as a windowed body tracks it.

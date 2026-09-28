@@ -144,7 +144,7 @@ export function speedOf(sample: ResizeSample | null, at: number, t: number): num
 }
 
 /** The share of the screen a size covers, which is what a splitter's value reports. @internal */
-export function shareOf(size: number, viewport: number): number {
+function shareOf(size: number, viewport: number): number {
 	return Math.round(clamp(pct(size, 0, viewport), 0, 100))
 }
 

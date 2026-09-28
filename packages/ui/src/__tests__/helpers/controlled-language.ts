@@ -124,7 +124,7 @@ const SKIP_TAGS = new Set(['example', 'defaultValue', 'see', 'internal', 'packag
  * paragraph, and each list item are separate units. A reader that joins them
  * measures one long run and reports a break that no sentence carries.
  */
-export function proseUnits(comment: Comment): string[] {
+function proseUnits(comment: Comment): string[] {
 	const stripped = comment.text
 		.split('\n')
 		.map((row) => row.replace(/^\s*\*\s?/, ''))
@@ -166,7 +166,7 @@ export function proseUnits(comment: Comment): string[] {
  * hides its full stop from the sentence reader, which then measures two
  * sentences as one and reports a break neither carries.
  */
-export function normalize(text: string): string {
+function normalize(text: string): string {
 	return text
 		.replace(/\{@link\s+[^}]*\}/g, 'LINK')
 		.replace(/\{@label\s+[^}]*\}/g, '')
@@ -189,7 +189,7 @@ export function normalize(text: string): string {
  * the break the cap exists to catch. A unit with no terminal punctuation is one
  * sentence.
  */
-export function sentences(text: string): string[] {
+function sentences(text: string): string[] {
 	return text
 		.split(/(?<=[.!?])\s+(?=[A-Z([`"'])/)
 		.map((part) => part.trim())
@@ -197,7 +197,7 @@ export function sentences(text: string): string[] {
 }
 
 /** The words in a sentence: a token carrying a letter or a digit. */
-export function wordCount(sentence: string): number {
+function wordCount(sentence: string): number {
 	return sentence.split(/\s+/).filter((word) => /[A-Za-z0-9]/.test(word)).length
 }
 
@@ -207,12 +207,12 @@ const IMPERATIVE =
 	/^(?:Use|Do|Call|Pass|Set|Add|Keep|Write|Read|Put|Give|Make|Take|Never|Always|Prefer|Avoid|Return|Check|Run|Treat|Apply|Start|Stop|Consult|See|Note|Reach|Leave|Drop|Wire|Mount|Render|Hide|Show)\b/
 
 /** The rule 6 word cap for `sentence`: 20 for an instruction, 25 otherwise. */
-export function wordLimit(sentence: string): number {
+function wordLimit(sentence: string): number {
 	return IMPERATIVE.test(sentence) ? 20 : 25
 }
 
 /** Rule 10 bans these three modals outright; `must` and `can` replace them. */
-export const MODAL = /\b(?:may|shall|should)\b/i
+const MODAL = /\b(?:may|shall|should)\b/i
 
 // The British forms that the tree has held, by pattern. Each one has an
 // American form.
@@ -259,7 +259,7 @@ const BRITISH_STEMS = [
  * prose together. This matches a British form, with a prefix such as `re` or
  * `un` where one occurs.
  */
-export const BRITISH = new RegExp(`\\b(?:re|un|pre|de)?(?:${BRITISH_STEMS.join('|')})\\b`, 'i')
+const BRITISH = new RegExp(`\\b(?:re|un|pre|de)?(?:${BRITISH_STEMS.join('|')})\\b`, 'i')
 
 /** One rule break, located well enough to fix without a second scan. */
 export type Break = { file: string; line: number; rule: 3 | 6 | 10; text: string }

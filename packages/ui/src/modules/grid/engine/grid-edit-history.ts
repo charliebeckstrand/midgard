@@ -32,7 +32,7 @@ export type GridHistory = {
 export type GridHistoryStep = 'undo' | 'redo'
 
 /** The most entries that the undo stack holds. The oldest entry goes first. @internal */
-export const HISTORY_LIMIT = 100
+const HISTORY_LIMIT = 100
 
 /** A history with no entries. @internal */
 export const EMPTY_HISTORY: GridHistory = { undo: [], redo: [] }

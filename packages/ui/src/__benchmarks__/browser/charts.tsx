@@ -20,7 +20,7 @@ export const WIDTH = 800
 export const HEIGHT = 450
 
 /** A mounted chart under bench control. */
-export type Mounted<D> = {
+type Mounted<D> = {
 	/** Redraws the chart from a replacement dataset of the same shape. */
 	update: (data: D) => void | Promise<void>
 	destroy: () => void

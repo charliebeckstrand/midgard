@@ -12,7 +12,7 @@ import { type RefObject, useLayoutEffect, useRef } from 'react'
  *
  * @internal
  */
-export function fitTextarea(el: HTMLTextAreaElement): void {
+function fitTextarea(el: HTMLTextAreaElement): void {
 	if (el.clientWidth === 0) return
 
 	el.style.height = 'auto'

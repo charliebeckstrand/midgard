@@ -412,7 +412,7 @@ export function GridCellEditor<T>({
  * the `role="gridcell"` element around this content, the way
  * {@link GridNavCell} writes `data-active`. @internal
  */
-export function GridPendingCell({ children }: { children: ReactNode }) {
+function GridPendingCell({ children }: { children: ReactNode }) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	useLayoutEffect(() => {

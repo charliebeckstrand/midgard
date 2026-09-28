@@ -75,10 +75,10 @@ export const VALUE_RAMP = ['#eff6ff', '#bfdbfe', '#60a5fa', '#2563eb', '#1e3a8a'
 export const VALUE_MAX = 10_000
 
 /** One categorical row for the ui module's `regionKey` / `categoryKey` join. */
-export type ZoneRow = { fips: string; zone: string }
+type ZoneRow = { fips: string; zone: string }
 
 /** One numeric row for the `regionKey` / `valueKey` join of the ui choropleth. */
-export type JoinRow = { fips: string; value: number }
+type JoinRow = { fips: string; value: number }
 
 /** One categorical dataset. */
 export type ZoneData = {

@@ -25,9 +25,7 @@ import type { Color } from '../colors'
 
 import type { CompoundRule } from './types'
 
-export type PaletteEntry<C extends string = Color> =
-	| Record<C, string[]>
-	| readonly Record<C, string[]>[]
+type PaletteEntry<C extends string = Color> = Record<C, string[]> | readonly Record<C, string[]>[]
 
 export type PaletteConfig<
 	E extends string = never,
