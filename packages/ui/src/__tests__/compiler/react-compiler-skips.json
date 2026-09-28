@@ -1,11 +1,10 @@
 {
 	"hooks/use-virtual-window.ts": {
-		"useWindowVirtualizer": "Refs",
-		"useVirtualWindow": "Immutability"
+		"useWindowVirtualizer": "Immutability"
 	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
-		"useGridEditing": "Todo"
+		"useGridEditing": "Refs"
 	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
