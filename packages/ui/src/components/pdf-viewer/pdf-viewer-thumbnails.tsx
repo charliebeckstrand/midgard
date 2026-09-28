@@ -40,7 +40,7 @@ export function PdfViewerThumbnails() {
 		sidebarAnimates,
 		thumbsOpen,
 		setThumbsOpen,
-		rootRef,
+		root,
 		showThumbnails,
 	} = usePdfViewerContext()
 
@@ -116,12 +116,7 @@ export function PdfViewerThumbnails() {
 			)}
 
 			{!isDesktop && (
-				<Sheet
-					side="start"
-					open={thumbsOpen}
-					onOpenChange={setThumbsOpen}
-					container={rootRef.current}
-				>
+				<Sheet side="start" open={thumbsOpen} onOpenChange={setThumbsOpen} container={root}>
 					<SheetTitle>
 						<Flex gap="sm" justify="between" align="center">
 							<div>Pages</div>
