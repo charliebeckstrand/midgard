@@ -51,7 +51,8 @@ export function DemoPage({
 					// API data's chunk streams in, rather than suspending the whole route,
 					// and its own error boundary so a failed chunk degrades to nothing
 					// instead of replacing the already-rendered demo through the
-					// route-level boundary.
+					// route-level boundary. The rejection stays cached, so the section
+					// stays empty until a sidebar prefetch re-attempts it.
 					<DemoErrorBoundary fallback={() => null}>
 						<Suspense fallback={null}>
 							<ApiReferenceSection id={demo.id} />

@@ -20,9 +20,9 @@ type State = { error: Error | null }
  * stale chunk after a deploy, an offline navigation) surfaced through
  * `use(loadDemo(...))`. Without it, one failed chunk throws past the root and
  * unmounts the whole docs site. `fallback` receives a `retry` that clears the
- * caught error, so the subtree re-renders. Paired with `loadDemo`'s rejection
- * eviction, the retry re-attempts the import rather than replaying the cached
- * failure. Keying the boundary by route also resets it on navigation.
+ * caught error, so the subtree re-renders. `loadDemo` keeps a rejection cached,
+ * so a caller that wants the retry to re-attempt the import calls `retryDemo`
+ * first. Keying the boundary by route also resets it on navigation.
  */
 export class DemoErrorBoundary extends Component<Props, State> {
 	state: State = { error: null }
