@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useEffectEvent, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	EMPTY_HISTORY,
 	type GridHistory,
@@ -54,48 +55,38 @@ export function useGridEditHistory(
 ): GridEditHistory {
 	const on = enabled && history === true
 
-	const onRef = useRef(on)
-
-	onRef.current = on
-
 	const ref = useRef<GridHistory>(EMPTY_HISTORY)
 
 	// The state last reported, so a change that flips nothing stays silent.
 	const reportedRef = useRef(EMPTY_STATE)
 
-	const report = useEffectEvent((state: GridHistoryState) => onChange?.(state))
+	const set = useStableEvent((next: GridHistory) => {
+		ref.current = next
 
-	const store = useMemo(() => {
-		const set = (next: GridHistory) => {
-			ref.current = next
+		const state = { canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 }
 
-			const state = { canUndo: next.undo.length > 0, canRedo: next.redo.length > 0 }
+		if (sameState(state, reportedRef.current)) return
 
-			if (sameState(state, reportedRef.current)) return
+		reportedRef.current = state
 
-			reportedRef.current = state
+		onChange?.(state)
+	})
 
-			report(state)
-		}
+	const record = useStableEvent((entry: GridHistoryEntry) => {
+		if (on) set(recordHistory(ref.current, entry))
+	})
 
-		return {
-			reset: () => set(EMPTY_HISTORY),
-			record: (entry: GridHistoryEntry) => {
-				if (onRef.current) set(recordHistory(ref.current, entry))
-			},
-			take: (step: GridHistoryStep, read: GridHistoryRead) => {
-				const result = takeHistory(ref.current, step, read)
+	const take = useStableEvent((step: GridHistoryStep, read: GridHistoryRead) => {
+		const result = takeHistory(ref.current, step, read)
 
-				set(result.history)
+		set(result.history)
 
-				return result
-			},
-		}
-	}, [])
+		return result
+	})
 
 	useEffect(() => {
-		if (!on) store.reset()
-	}, [on, store])
+		if (!on) set(EMPTY_HISTORY)
+	}, [on, set])
 
-	return useMemo(() => ({ on, record: store.record, take: store.take }), [on, store])
+	return useMemo(() => ({ on, record, take }), [on, record, take])
 }

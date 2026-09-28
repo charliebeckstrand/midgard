@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useState } from 'react'
 
 /**
  * Resolves an `animateOnMount` flag for a surface whose animated element mounts and
@@ -23,10 +23,11 @@ export function useEnterAnimation(open: boolean, animateOnMount: boolean): boole
 	// Whether what is on screen is still the open state this component mounted with.
 	// Once the surface has closed, every later open is a gesture of the user's own, and
 	// the flag has nothing left to say. Adjusted during render: the reopen's very first
-	// frame is the one that needs the answer.
-	const arrivedOpenRef = useRef(open)
+	// frame is the one that needs the answer. React discards the render that sets the
+	// state, and renders again before it commits.
+	const [arrivedOpen, setArrivedOpen] = useState(open)
 
-	if (!open) arrivedOpenRef.current = false
+	if (!open && arrivedOpen) setArrivedOpen(false)
 
-	return animateOnMount || !arrivedOpenRef.current
+	return animateOnMount || !arrivedOpen
 }
