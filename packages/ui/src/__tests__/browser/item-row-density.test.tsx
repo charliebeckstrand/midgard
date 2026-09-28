@@ -1,13 +1,15 @@
+import { Check } from 'lucide-react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
+import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem } from '../../components/menu'
 import { Option } from '../../primitives/option'
 import { DensityProvider, densityLevels } from '../../providers/density'
-import { renderUI, screen } from '../helpers'
+import { present, renderUI, screen } from '../helpers'
 
 /**
- * A Menu row and an Option row take the padding of the step of the nearest density scope at a
- * desktop width.
+ * A Menu row and an Option row take the padding and the icon size of the step of the nearest
+ * density scope.
  *
  * The suite runs at 414px, below the `sm` breakpoint. A plain `sm:` padding on a row is outside
  * the density layers, so it wins over the stepped padding only at 640px and wider. Thus this file
@@ -16,6 +18,8 @@ import { renderUI, screen } from '../helpers'
 beforeAll(() => page.viewport(1280, 800))
 
 const ROW_PADDING_PX = { compact: 4, snug: 6, loose: 10 } as const
+
+const ICON_PX = { compact: 16, snug: 20, loose: 24 } as const
 
 const levels = densityLevels.map(({ value }) => value)
 
@@ -48,5 +52,26 @@ describe('item rows at a desktop width (real browser)', () => {
 		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
 		expect(paddingOf(row)).toBe(ROW_PADDING_PX[density])
+	})
+
+	it.each(levels)('sizes a menu row icon at the step of a %s provider', async (density) => {
+		renderUI(
+			<DensityProvider density={density}>
+				<Menu defaultOpen>
+					<MenuContent aria-label="Actions">
+						<MenuItem>
+							<Icon icon={<Check />} />
+							Copy
+						</MenuItem>
+					</MenuContent>
+				</Menu>
+			</DensityProvider>,
+		)
+
+		const row = await screen.findByRole('menuitem', { name: 'Copy' })
+
+		const icon = present(row.querySelector('[data-slot="icon"]'), 'menu row icon')
+
+		expect(Number.parseFloat(getComputedStyle(icon).width)).toBe(ICON_PX[density])
 	})
 })

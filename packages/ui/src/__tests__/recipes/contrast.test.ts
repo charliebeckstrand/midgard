@@ -167,7 +167,7 @@ const MUTED = byMode(iro.onWash.muted)
  * A foreground class carrying a palette color, whatever utility and state
  * prefixes it wears (`dark:has-disabled:text-zinc-400`). Filters a recipe
  * fragment down to its inks, so a fragment mixing ink with layout
- * (`hannou.nav.base` carries an icon-slot size) is measured as declared rather
+ * (`hannou.nav.base` carries `select-none`) is measured as declared rather
  * than transcribed. The hues come off `core/recipe`'s own lists: a fourth copy
  * of them here would silently stop matching a newly added color, and an ink
  * this filter drops is an ink the guard below never measures.

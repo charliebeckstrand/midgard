@@ -2,9 +2,10 @@
  * Shaku icon: icon dimension scale. One scale, four projections.
  * `iconSize` sizes an icon element directly. `icon` sizes the
  * `data-slot="icon"` children of a parent at one fixed step (the slot form
- * read by `hannou.nav` and `narabi.item`). `iconRamp` and `iconSlotRamp` are
- * the same two forms in stepped `density-size` classes: Icon reads `iconRamp`,
- * and Badge, Button, and Sidebar read `iconSlotRamp`. Tailwind's JIT scans for
+ * that Nav and CommandPalette read, where the chrome is fixed). `iconRamp` and
+ * `iconSlotRamp` are the same two forms in stepped `density-size` classes: Icon
+ * reads `iconRamp`, and Badge, Button, Sidebar, and `narabi.item` (Menu and
+ * Option) read `iconSlotRamp`. Tailwind's JIT scans for
  * whole class literals, so no form can be interpolated from another.
  * `shaku-icon-ramp.test.ts` pins each stepped form to its fixed form.
  *

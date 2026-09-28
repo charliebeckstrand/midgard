@@ -6,7 +6,7 @@
  * `shortcut`.
  */
 import { mode } from '../../core/recipe'
-import { hannou, iro, ji, kara, narabi } from '../kiso'
+import { hannou, iro, ji, kara, narabi, shaku } from '../kiso'
 
 const { onWash, text } = iro
 const { size, weight } = ji
@@ -30,6 +30,8 @@ export const k = {
 		'gap-2',
 		...hannou.item,
 		...narabi.item,
+		// The chrome of a row is fixed, so its icon is fixed at `md` too.
+		shaku.icon.md,
 		...hannou.active,
 		// Deepen the wash when the active row is also hovered, so the
 		// keyboard-roved item stays distinguishable under the pointer. The

@@ -9,7 +9,7 @@
  * - `bar` is the `<NavBar>` landmark frame.
  */
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, omote, sen } from '../kiso'
+import { hannou, ji, kasane, narabi, omote, sen, shaku } from '../kiso'
 
 const { nav, cursor } = hannou
 const { size } = ji
@@ -32,6 +32,7 @@ const itemShell = [
 	'w-full',
 	'p-2',
 	...nav.base,
+	shaku.icon.md,
 	...cursor,
 	'gap-2',
 	size.md,
