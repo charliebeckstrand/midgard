@@ -23,7 +23,14 @@ function setup(open: boolean) {
 		}),
 	)
 
-	return { handler: result.current.onMouseDown, close, setOpen, focus, select }
+	return {
+		handler: result.current.onMouseDown,
+		frameHandler: result.current.onFrameMouseDown,
+		close,
+		setOpen,
+		focus,
+		select,
+	}
 }
 
 describe('useComboboxTrigger', () => {
@@ -57,5 +64,37 @@ describe('useComboboxTrigger', () => {
 		expect(setOpen).toHaveBeenCalledWith(true)
 
 		expect(close).not.toHaveBeenCalled()
+	})
+
+	it('opens from a press on the frame itself', () => {
+		const { frameHandler, setOpen } = setup(false)
+
+		const frame = document.createElement('span')
+
+		const event = makePointerEvent<HTMLElement>({ target: frame, currentTarget: frame })
+
+		frameHandler(event)
+
+		expect(event.preventDefault).toHaveBeenCalled()
+
+		expect(setOpen).toHaveBeenCalledWith(true)
+	})
+
+	it('ignores a press on a child of the frame', () => {
+		const { frameHandler, close, setOpen } = setup(true)
+
+		const frame = document.createElement('span')
+
+		const input = frame.appendChild(document.createElement('input'))
+
+		const event = makePointerEvent<HTMLElement>({ target: input, currentTarget: frame })
+
+		frameHandler(event)
+
+		expect(event.preventDefault).not.toHaveBeenCalled()
+
+		expect(close).not.toHaveBeenCalled()
+
+		expect(setOpen).not.toHaveBeenCalled()
 	})
 })

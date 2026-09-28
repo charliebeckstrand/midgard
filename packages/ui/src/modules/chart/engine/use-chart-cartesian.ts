@@ -1,18 +1,20 @@
 'use client'
 
-import { useMemo } from 'react'
-import { toInnerStep } from '../../../core'
+import { type RefObject, useMemo } from 'react'
+import { cn, toInnerStep } from '../../../core'
 import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
+import { k } from '../../../recipes/kata/chart'
 import { compactFormat, fractionFormat, once } from '../../../utilities'
 import type { ChartAxisTick } from './chart-axes/axis'
 import { type CartesianAxes, type ChartValueAxisId, resolveAxes } from './chart-axes/schema'
 import { paintSlot, rawColor, textClass } from './chart-color/paint'
 import { seriesPaint } from './chart-color/palette'
-import { CHART_METRICS } from './chart-constants'
+import { CHART_METRICS, GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH } from './chart-constants'
 import {
+	type BandLabel,
 	type CartesianLayout,
 	type ChartAxisTitlePlacement,
 	type ChartValueAxisInput,
@@ -34,6 +36,7 @@ import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } f
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
+import { useChartTextWidth } from './use-chart-text-width'
 
 /** The cartesian props minus the accessible name, which stays with the frame. @internal */
 export type CartesianData<T> = Pick<
@@ -161,9 +164,17 @@ export type CartesianConfig<T> = {
 	categoryRule?: 'zero' | 'edge'
 }
 
+/** The classes of a category label on the horizontal band axis, as the y axis draws it. @internal */
+const BAND_LABEL_CLASS = cn(k.tick)
+
+/** No labels to measure: the band axis is vertical, or it draws none. @internal */
+const NO_LABELS: readonly string[] = []
+
 /** Everything the cartesian frame and marks derive from the props. @internal */
 export type CartesianChart = {
 	ref: PlotFrameRef
+	/** Attach to an element around the plot, so that the category labels measure in its font. */
+	textHostRef: RefObject<HTMLDivElement | null>
 	width: number
 	fixedWidth?: number
 	height: number
@@ -853,6 +864,30 @@ function orderReadout(
 }
 
 /**
+ * The drawn category labels of a horizontal chart, which line its left gutter.
+ * They are proportional text, so the gutter holds the width that each label
+ * draws at, and a label wider than the room is cut with an ellipsis. The tooltip
+ * and the data table show the full label. A vertical chart, or a band that
+ * draws no labels, measures nothing.
+ *
+ * @internal
+ */
+function useHorizontalBandLabel(
+	horizontal: boolean,
+	drawn: boolean,
+	categories: string[],
+): { bandLabel: BandLabel | undefined; hostRef: RefObject<HTMLDivElement | null> } {
+	const text = useChartTextWidth(
+		horizontal && drawn ? categories : NO_LABELS,
+		BAND_LABEL_CLASS,
+		LABEL_CHAR_WIDTH,
+		GUTTER_LABEL_ROOM,
+	)
+
+	return { bandLabel: horizontal ? text : undefined, hostRef: text.hostRef }
+}
+
+/**
  * The orchestration every cartesian chart shares: density and container
  * sizing, the series and legend / readout models, and the value and band scales
  * with their ticks. The oriented scale-and-layout math lives in
@@ -982,6 +1017,12 @@ export function useChartCartesian<T>(
 		[rawCategories, props.selectedCategories],
 	)
 
+	const bandText = useHorizontalBandLabel(
+		orientation === 'horizontal',
+		drawAxes && policy.bandAxis !== 'off',
+		categories,
+	)
+
 	const layout: CartesianLayout = (
 		orientation === 'horizontal' ? horizontalLayout : verticalLayout
 	)({
@@ -993,6 +1034,7 @@ export function useChartCartesian<T>(
 		value,
 		value2,
 		categories,
+		bandLabel: bandText.bandLabel,
 		bandTitle,
 		bandAxis: policy.bandAxis,
 		tickRotation: categoryTickRotation(props.axes),
@@ -1080,6 +1122,7 @@ export function useChartCartesian<T>(
 
 	return {
 		ref,
+		textHostRef: bandText.hostRef,
 		width: frameWidth,
 		fixedWidth: width,
 		height: frameHeight,

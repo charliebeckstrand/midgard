@@ -9,12 +9,14 @@ import { frame, frames, present, renderUI, waitFor, windowBody } from '../helper
  * microtask, before the next animation frame. The count holds the work that a
  * reader waits on before the first paint.
  *
- * A collapse commits once. An expand commits once, and then once more as a
- * nested commit: each entering row opens its track in it, and the motion state
- * drops the entering rows. The two updates batch into one commit. A later
- * commit before the frame is a no-op render of the virtualizer after the rows
- * measure. The test holds such a commit to a quarter of the toggle commit, so
- * that one more render of the body fails.
+ * A toggle commits twice. The toggle commit keeps the applied groups, so no
+ * row changes. Its layout effect reads the window and applies the toggle in a
+ * nested commit. An expand then commits once more as a nested commit: each
+ * entering row opens its track in it, and the motion state drops the entering
+ * rows. The two updates batch into one commit. A later commit before the frame
+ * is a no-op render of the virtualizer after the rows measure. The test holds
+ * such a commit to a quarter of the commit that applies the toggle, so that
+ * one more render of the body fails.
  */
 describe('grid virtualized grouped body commits (real browser)', () => {
 	type Person = { id: number; name: string; team: string }
@@ -30,7 +32,7 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		{ id: 'team', title: 'Team', cell: (r) => r.team, value: (r) => r.team },
 	]
 
-	it('renders the body at most twice for a toggle in view before the next frame', async () => {
+	it('applies a toggle in view in one nested commit before the next frame', async () => {
 		const commits: { phase: string; duration: number }[] = []
 
 		let count = false
@@ -78,17 +80,19 @@ describe('grid virtualized grouped body commits (real browser)', () => {
 		}
 
 		/**
-		 * Holds the commits of one toggle to the toggle, the nested commit of an
-		 * expand, and no-op renders.
+		 * Holds the commits of one toggle to the toggle, the commit that applies
+		 * it, the nested commit of an expand, and no-op renders.
 		 */
 		const expectCommits = (toggled: typeof commits, expand: boolean) => {
-			const [first, ...later] = toggled
+			const [first, applied, ...later] = toggled
 
 			expect(first?.phase).toBe('update')
 
+			expect(applied?.phase).toBe('nested-update')
+
 			if (expand) expect(later.shift()?.phase).toBe('nested-update')
 
-			const budget = (first?.duration ?? 0) / 4
+			const budget = (applied?.duration ?? 0) / 4
 
 			for (const commit of later) {
 				expect(commit.phase).toBe('update')

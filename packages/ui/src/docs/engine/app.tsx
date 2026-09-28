@@ -9,7 +9,7 @@ import { DemoErrorBoundary, DemoLoadError } from './components/error-boundary'
 import { SidebarContent } from './components/sidebar'
 import { DemoPage } from './demo-page'
 import { useHash } from './hooks/use-hash'
-import { demos } from './registry'
+import { demos, retryDemo } from './registry'
 
 // Snippets in the shape of a derived code block. The browser compiles each
 // grammar RegExp when the tokenizer first runs it, and that compile is most of
@@ -113,7 +113,15 @@ export function App() {
 						{current ? (
 							<DemoErrorBoundary
 								key={current.id}
-								fallback={(retry) => <DemoLoadError onRetry={retry} />}
+								fallback={(retry) => (
+									<DemoLoadError
+										onRetry={() => {
+											retryDemo(current.id)
+
+											retry()
+										}}
+									/>
+								)}
 							>
 								<DemoPage demo={current} locked={locked} onToggleLocked={toggleLocked} />
 							</DemoErrorBoundary>

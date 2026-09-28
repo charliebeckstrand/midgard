@@ -25,13 +25,7 @@
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
 	},
-	"modules/grid/use-grid-window-motion.ts": {
-		"useGridWindowMotion": "Refs"
-	},
 	"modules/map/use-map-overlay.ts": {
 		"useMapOverlay": "Refs"
-	},
-	"modules/map/use-map-zoom.ts": {
-		"useMapZoom": "Todo"
 	}
 }

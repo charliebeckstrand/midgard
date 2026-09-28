@@ -66,6 +66,13 @@ type TrackedPromise<T> = Promise<T> & {
  * Return the cached tracked promise under `id`, or start one from `start` and
  * cache it. `start` runs only on a cache miss, so it can throw for an unknown
  * id without poisoning the cache.
+ *
+ * A rejection stays cached. React retries a suspended render when its promise
+ * settles. The retry must read the same rejected promise, so that `use()`
+ * throws it to the error boundary. If the entry left the cache on rejection,
+ * the retry would start a new import and suspend again. A chunk that keeps
+ * failing would then import without end, and the boundary would never render.
+ * {@link retryDemo} evicts a rejection at the points that mean "try again".
  */
 function tracked<T>(
 	cache: Map<string, TrackedPromise<T>>,
@@ -88,17 +95,17 @@ function tracked<T>(
 		(reason) => {
 			promise.status = 'rejected'
 			promise.reason = reason
-
-			// Evict the rejection so a later navigation or an error-boundary retry
-			// re-attempts the import instead of replaying the cached failure — a
-			// transient chunk-load error (offline, deploy skew) must be recoverable.
-			cache.delete(id)
 		},
 	)
 
 	cache.set(id, promise)
 
 	return promise
+}
+
+/** Drop the entry under `id` when it holds a rejection. Keep a pending or a fulfilled entry. */
+function evictRejected<T>(cache: Map<string, TrackedPromise<T>>, id: string) {
+	if (cache.get(id)?.status === 'rejected') cache.delete(id)
 }
 
 const promiseCache = new Map<string, TrackedPromise<ComponentType>>()
@@ -114,8 +121,25 @@ export function loadDemo(id: string): Promise<ComponentType> {
 	})
 }
 
-/** Start and cache the demo's dynamic import ahead of navigation, plus its API chunk. */
+/**
+ * Evict a failed import of the demo and of its API chunk, so the next read
+ * re-attempts it. A transient failure (offline, deploy skew) must be
+ * recoverable. Call it where the reader asks again: the retry of the error
+ * boundary, and a prefetch from the sidebar.
+ */
+export function retryDemo(id: string) {
+	evictRejected(promiseCache, id)
+
+	evictRejected(apiPromiseCache, id)
+}
+
+/**
+ * Start and cache the demo's dynamic import ahead of navigation, plus its API
+ * chunk. A failed import is re-attempted.
+ */
 export function preloadDemo(id: string) {
+	retryDemo(id)
+
 	if (loaderById.has(id)) loadDemo(id)
 
 	if (hasComponentApi(id)) loadComponentApi(id)

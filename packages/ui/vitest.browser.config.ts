@@ -7,41 +7,50 @@ import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
 import { CI, cleanup, sequence } from './vitest.base'
 
-const COMPONENT_MODULES = 'virtual:component-modules'
+/**
+ * The virtual modules of the docs engine, each with an empty value of its
+ * shape: `derive-code` imports the first, and `engine/registry.ts` the other
+ * two.
+ */
+const DOCS_VIRTUAL_MODULES: ReadonlyMap<string, string> = new Map([
+	['virtual:component-modules', 'export default { packageName: "", names: {} }'],
+	['virtual:demo-metas', 'export default {}'],
+	['virtual:api-reference-manifest', 'export default {}'],
+])
 
 /**
- * Resolves `virtual:component-modules` to an empty map.
+ * Resolves the virtual modules of the docs engine to empty values.
  *
- * Nothing this suite runs imports it — a crawl of every relative import from
+ * Nothing this suite runs imports them — a crawl of every relative import from
  * `src/__tests__/browser/` reaches 1,492 files and none under `src/docs/`.
- * Esbuild's dependency scan reaches it anyway, and an unresolvable module stops
- * the scan dead: Vite then reports "Failed to run dependency scan. Skipping
- * dependency pre-bundling" and pre-bundles only the `include` list below,
- * finding every other package one request at a time. Measured cold on a 4-core
- * container: eight packages arrived that way, two of them after the first test
- * started, and each arrival re-runs the optimizer and reloads the page.
- * `@vitest/browser` names the cost in its own warning — "Vite unexpectedly
- * reloaded a test. This may cause tests to fail, lead to flaky behavior or
- * duplicated test runs."
+ * Esbuild's dependency scan reaches them anyway: it starts from every test file
+ * of the package, the `unit` suites under `src/docs/engine/__tests__/`
+ * included. An unresolvable module stops the scan dead: Vite then reports
+ * "Failed to run dependency scan. Skipping dependency pre-bundling" and
+ * pre-bundles only the `include` list below, finding every other package one
+ * request at a time. Measured cold on a 4-core container: eight packages
+ * arrived that way, two of them after the first test started, and each arrival
+ * re-runs the optimizer and reloads the page. `@vitest/browser` names the cost
+ * in its own warning — "Vite unexpectedly reloaded a test. This may cause tests
+ * to fail, lead to flaky behavior or duplicated test runs." In CI the reload
+ * broke a `vi.mock` factory, and the run failed before its first case.
  *
  * A stub rather than the real `docsPlugin` the node config gives `unit` and
- * `pure`. The plugin resolves the module, but it also imports ts-morph and
+ * `pure`. The plugin resolves the modules, but it also imports ts-morph and
  * typescript at module scope, walks every barrel and demo to build the real
  * map, and rewrites each barrel it serves to carry `__module` / `__name` — so
  * the suite would test docs-tagged barrels rather than the ones it ships. An
- * empty map is semantically exact here, because no file reads it.
+ * empty value is semantically exact here, because no file reads it.
  *
  * With the scan whole, lazy arrivals fall to zero and the warm run takes 26.3s
  * against 30.3s.
  */
-function componentModulesStub(): Plugin {
+function docsVirtualModulesStub(): Plugin {
 	return {
-		name: 'component-modules-stub',
-		resolveId: (source) => (source === COMPONENT_MODULES ? `\0${COMPONENT_MODULES}` : null),
+		name: 'docs-virtual-modules-stub',
+		resolveId: (source) => (DOCS_VIRTUAL_MODULES.has(source) ? `\0${source}` : null),
 		load: (resolved) =>
-			resolved === `\0${COMPONENT_MODULES}`
-				? 'export default { packageName: "", names: {} }'
-				: null,
+			resolved.startsWith('\0') ? (DOCS_VIRTUAL_MODULES.get(resolved.slice(1)) ?? null) : null,
 	}
 }
 
@@ -183,7 +192,7 @@ const releasePointer: BrowserCommand<[selector?: string]> = async (context, sele
  * config, unlike project-level paths which Vite resolves normally.
  */
 export default defineConfig({
-	plugins: [servedTailwind(), componentModulesStub()],
+	plugins: [servedTailwind(), docsVirtualModulesStub()],
 	// The floor, not the whole set: the scan above finds these on its own, and
 	// this list still covers the heavy graph if a later edit breaks it. The cost
 	// of a package the optimizer finds late is written above the stub.

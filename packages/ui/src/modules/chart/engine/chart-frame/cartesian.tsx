@@ -64,6 +64,7 @@ export function ChartCartesianFrame({
 			{...label}
 			fullscreen={fullscreen}
 			ref={chartRef}
+			textHostRef={chart.textHostRef}
 			width={chart.width}
 			fixedWidth={chart.fixedWidth}
 			height={chart.height}
