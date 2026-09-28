@@ -8,6 +8,7 @@ import { bySlot, getSlot, renderUI, screen } from '../helpers'
  * A dialog around a chart closes on Escape. The dialog focuses the chart's plot
  * when it opens, and the plot handles Escape itself. The plot therefore claims the
  * press only when it clears a live readout; else the press reaches the dialog.
+ * The readout can come from the keyboard or from a click that pinned it.
  * Real focus management and real key presses need the browser, so this runs in
  * the browser suite, through the expand dialog of a dashboard tile.
  */
@@ -16,7 +17,7 @@ describe('chart Escape inside an overlay (real browser)', () => {
 
 	const LAYOUT: DashboardLayoutItem[] = [{ id: 'trend', x: 0, y: 0, w: 12, h: 30 }]
 
-	function Board() {
+	function Board({ pin = false }: { pin?: boolean }) {
 		return (
 			<div style={{ width: 960 }}>
 				<Dashboard aria-label="Board" layout={{ value: LAYOUT }}>
@@ -26,6 +27,7 @@ describe('chart Escape inside an overlay (real browser)', () => {
 							data={DATA}
 							series={[{ xKey: 'week', yKey: 'value', yName: 'Value' }]}
 							aspectRatio={false}
+							{...(pin ? { tooltip: { trigger: 'click' }, crosshair: { snap: true } } : {})}
 						/>
 					</DashboardTile>
 				</Dashboard>
@@ -69,6 +71,29 @@ describe('chart Escape inside an overlay (real browser)', () => {
 		await userEvent.keyboard('{ArrowRight}')
 
 		await expect.poll(() => bySlot(document.body, 'tooltip-content')).not.toBeNull()
+
+		await userEvent.keyboard('{Escape}')
+
+		await expect.poll(() => bySlot(document.body, 'tooltip-content')).toBeNull()
+
+		expect(dialog.isConnected).toBe(true)
+
+		await userEvent.keyboard('{Escape}')
+
+		await expect.poll(() => screen.queryByRole('dialog', { name: 'Trend' })).toBeNull()
+	})
+
+	it('clears a readout that a click pinned on the first Escape, and closes on the second', async () => {
+		renderUI(<Board pin />)
+
+		const dialog = await expand()
+
+		// The click pins the readout, and the plot keeps the focus.
+		await userEvent.click(getSlot(dialog, 'chart-hit'))
+
+		await expect.poll(() => bySlot(document.body, 'tooltip-content')).not.toBeNull()
+
+		expect(document.activeElement).toBe(getSlot(dialog, 'chart-plot'))
 
 		await userEvent.keyboard('{Escape}')
 

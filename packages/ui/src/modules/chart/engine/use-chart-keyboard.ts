@@ -1,11 +1,18 @@
 'use client'
 
-import { type FocusEvent, type KeyboardEvent, useEffect, useEffectEvent, useState } from 'react'
+import {
+	type FocusEvent,
+	type KeyboardEvent,
+	useEffect,
+	useEffectEvent,
+	useRef,
+	useState,
+} from 'react'
 import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
-import { type ChartHover, samePoint } from './context'
+import { type ChartHoverStore, samePoint } from './context'
 
 /**
  * The per-category anchor points a chart hands its frame for keyboard
@@ -26,9 +33,10 @@ import { type ChartHover, samePoint } from './context'
  *
  * `series` names the series behind each of `points`' stops, in the same order.
  * The cursor's value lane therefore resolves to the series it sits on, the one
- * it emphasizes while the rest recede. Omitted on a chart whose stops don't map
- * to a single series, where a scatter column stacks several. Such a chart reads
- * no active series, and leaves the emphasis alone.
+ * it emphasizes while the rest recede. A band step also reads it to find the
+ * lane of the cursor's series. Omitted on a chart whose stops don't map to a
+ * single series, where a scatter column stacks several. Such a chart reads no
+ * active series, and leaves the emphasis alone.
  *
  * @internal
  */
@@ -45,12 +53,19 @@ export type ChartFocusTargets = {
  * on that reference line at `category`'s band instead. `value` rides along as
  * the series lane to return to, when the value axis steps back off the rule.
  *
+ * `series` names the series of the stop the cursor last landed on, on a chart
+ * with a series map. A gap drops a stop, so one lane can name another series in
+ * the next category. A band step therefore finds the lane of this series, and
+ * falls back to `value` only where the series has no stop. The field stays
+ * across that gap, so the cursor returns to its series after it.
+ *
  * @internal
  */
 export type ChartCursor = {
 	category: number
 	value: number
 	reference?: number
+	series?: number
 }
 
 /** The number of stops at a category, `0` when it has none. @internal */
@@ -70,11 +85,34 @@ function edgeCategory(targets: ChartFocusTargets, dir: 1 | -1): number {
 	return dir < 0 ? targets.points.findIndex(carries) : targets.points.findLastIndex(carries)
 }
 
+/**
+ * A cursor on the series stop `value` at `category`. It names the series behind
+ * that stop, where the chart maps one. @internal
+ */
+function stopCursor(targets: ChartFocusTargets, category: number, value: number): ChartCursor {
+	const series = targets.series?.[category]?.[value]
+
+	return series === undefined ? { category, value } : { category, value, series }
+}
+
+/**
+ * The value lane a cursor takes at `category`. That is the stop of the cursor's
+ * series where the series has one there. Else it is the cursor's own lane,
+ * clamped to the stop count. A gap in an earlier series therefore never moves
+ * the cursor onto another series. @internal
+ */
+function laneAt(targets: ChartFocusTargets, category: number, cursor: ChartCursor): number {
+	const own =
+		cursor.series === undefined ? -1 : (targets.series?.[category]?.indexOf(cursor.series) ?? -1)
+
+	return own === -1 ? clamp(cursor.value, 0, pointCount(targets, category) - 1) : own
+}
+
 /** The cursor on the first focusable category, or `null` when nothing is focusable. @internal */
 export function firstCursor(targets: ChartFocusTargets): ChartCursor | null {
 	const category = edgeCategory(targets, -1)
 
-	return category === -1 ? null : { category, value: 0 }
+	return category === -1 ? null : stopCursor(targets, category, 0)
 }
 
 /**
@@ -98,9 +136,10 @@ function isReferenceStop(targets: ChartFocusTargets, reference: number | undefin
 
 /**
  * Snaps a cursor into range against the current targets. A category with no
- * stops falls to the first focusable one, and the value index clamps to that
- * category's count. A `reference` that no longer names a live rule drops,
- * leaving the cursor on its series lane. Returns `null` when nothing is focusable.
+ * stops falls to the first focusable one. The value index goes to the stop of
+ * the cursor's series, else it clamps to that category's count. A `reference`
+ * that no longer names a live rule drops, leaving the cursor on its series lane.
+ * Returns `null` when nothing is focusable.
  *
  * @internal
  */
@@ -120,11 +159,11 @@ export function clampCursor(
 
 	if (category === -1) return null
 
-	const value = clamp(cursor.value, 0, pointCount(targets, category) - 1)
+	const { reference, ...lane } = cursor
 
-	return isReferenceStop(targets, cursor.reference)
-		? { category, value, reference: cursor.reference }
-		: { category, value }
+	const live = { ...lane, category, value: laneAt(targets, category, cursor) }
+
+	return isReferenceStop(targets, reference) ? { ...live, reference } : live
 }
 
 /**
@@ -264,8 +303,8 @@ function orderedStops(
  * The cursor one step `dir` along the value axis. It walks the category's
  * stops — series points and reference lines alike — in screen order, rather than
  * the order they arrive in. Landing on a reference line parks the cursor there
- * while keeping its series lane; landing on a series point clears the parking.
- * The step wraps at the ends.
+ * while keeping its series lane. Landing on a series point clears the parking,
+ * and names the series of that point. The step wraps at the ends.
  *
  * @internal
  */
@@ -292,18 +331,19 @@ function stepStop(
 	if (!next) return cursor
 
 	return next.kind === 'ref'
-		? { category: cursor.category, value: cursor.value, reference: next.index }
-		: { category: cursor.category, value: next.index }
+		? { ...cursor, reference: next.index }
+		: stopCursor(targets, cursor.category, next.index)
 }
 
 /**
  * Resolves a keypress to the next cursor. The band axis arrows move to the
- * neighboring category. They keep the value lane where it exists, and slide a
- * parked reference line along to the new band. The value axis arrows step
- * through the current category's stops in screen order. That is every visible
- * series, coincident values included, with the reference lines interspersed
- * among them. A rule therefore roves alongside the data, and receding the marks
- * reads as one gesture. Unhandled keys pass through untouched.
+ * neighboring category. They keep the series the cursor sits on, else the value
+ * lane where it exists. They slide a parked reference line along to the new
+ * band. The value axis arrows step through the current category's stops in
+ * screen order. That is every visible series, coincident values included, with
+ * the reference lines interspersed among them. A rule therefore roves alongside
+ * the data, and receding the marks reads as one gesture. Unhandled keys pass
+ * through untouched.
  *
  * @internal
  */
@@ -323,16 +363,13 @@ export function moveCursor(
 
 	if (!base) return { handled: true, cursor: null }
 
-	// Carry the value lane onto the destination category, clamped to its count so
-	// a shorter category never strands the cursor past its last point; a parked
-	// reference line rides along, since a rule spans every band.
+	// Carry the cursor onto the destination category. It keeps the lane of its
+	// series there, else its value lane clamped to the count, so a shorter
+	// category never strands it past its last point. A parked reference line
+	// rides along, since a rule spans every band.
 	const onCategory = (category: number): CursorMove => ({
 		handled: true,
-		cursor: {
-			category,
-			value: Math.min(base.value, pointCount(targets, category) - 1),
-			...(base.reference !== undefined ? { reference: base.reference } : {}),
-		},
+		cursor: { ...base, category, value: laneAt(targets, category, base) },
 	})
 
 	switch (action) {
@@ -358,17 +395,34 @@ export type ChartKeyboardProps = {
 	onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
-/** A parked cursor resolved against the current targets: its clamped stop, its frame point, and its series. @internal */
-type ResolvedStop = { live: ChartCursor; anchor: Vec; series: number | null }
+/**
+ * A parked cursor resolved against the current targets: its clamped stop, its
+ * frame point, and its series. A cursor on a reference line has no point and no
+ * series. @internal
+ */
+type ResolvedStop = { live: ChartCursor; anchor: Vec | null; series: number | null }
 
-/** Whether two resolved stops sit on one point, in one category, on one series. @internal */
+/** Whether two resolved stops sit on one point or rule, in one category, on one series. @internal */
 function sameStop(previous: ResolvedStop | null, next: ResolvedStop | null): boolean {
 	if (previous === null || next === null) return previous === next
 
 	return (
 		samePoint(previous.anchor, next.anchor) &&
 		previous.live.category === next.live.category &&
+		previous.live.reference === next.live.reference &&
 		previous.series === next.series
+	)
+}
+
+/** Whether two cursors hold one category, lane, rule, and series. @internal */
+function sameCursor(a: ChartCursor | null, b: ChartCursor | null): boolean {
+	if (a === null || b === null) return a === b
+
+	return (
+		a.category === b.category &&
+		a.value === b.value &&
+		a.reference === b.reference &&
+		a.series === b.series
 	)
 }
 
@@ -410,7 +464,8 @@ function sameStop(previous: ResolvedStop | null, next: ResolvedStop | null): boo
  * @param targets - The per-category anchor points and reference stops to navigate, or `undefined` on a chart with none.
  * @param orientation - Which screen axis the value runs along, so the arrows map to the right axes and steps sort in screen order.
  * @param enabled - Whether a readout is mounted to answer the cursor — the tooltip that makes navigation legible.
- * @param set - The hover context's setter, moved to the cursor's anchor on each step.
+ * @param store - The hover store. Each step moves its hover to the cursor's
+ * anchor, and Escape reads it for a readout to clear.
  * @param setReference - The emphasis setter, moved to the reference line the cursor parks on, or `null` off it.
  * @param setActiveSeries - The series-emphasis setter, moved to the series the
  * cursor sits on. It is `null` off any series: a reference, a cleared cursor, or
@@ -421,11 +476,16 @@ export function useChartKeyboard(
 	targets: ChartFocusTargets | undefined,
 	orientation: ChartOrientation,
 	enabled: boolean,
-	set: ChartHover['set'],
+	store: ChartHoverStore,
 	setReference: (reference: number | null) => void,
 	setActiveSeries: (series: number | null) => void,
 ): ChartKeyboardProps | null {
 	const [cursor, setCursor] = useState<ChartCursor | null>(null)
+
+	// The frame point the keyboard last wrote to the hover, or `null` for a clear.
+	// A hover that holds another point belongs to the pointer. Only the handlers
+	// and the effects read and write it.
+	const written = useRef<Vec | null>(null)
 
 	const active = enabled && targets !== undefined && hasFocusTargets(targets)
 
@@ -440,85 +500,67 @@ export function useChartKeyboard(
 			setActiveSeries(null)
 
 			if (cursor !== null) {
-				set(null, null)
+				store.set(null, null)
 
 				setCursor(null)
 			}
 		}
-	}, [active, cursor, set, setReference, setActiveSeries])
+	}, [active, cursor, store, setReference, setActiveSeries])
 
-	// The shared hover holds the frame point the last keypress resolved to; a resize
-	// (or a data change) shifts the band positions under a parked cursor, so
-	// re-anchor it rather than leave the crosshair and tooltip on a stale point until
-	// the next key. The cursor is clamped into the current targets first: a data
-	// change can drop its category, or give its lane to another series. Keyed on
-	// the resolved stop alone — a pointer move leaves it unchanged, so it never
-	// wrests the hover back from the pointer.
+	// A resize or a data change moves the stops under a parked cursor. Re-anchor
+	// the cursor, so the crosshair and the tooltip do not stay on a stale point
+	// until the next key. The cursor is clamped into the current targets first: a
+	// data change can drop its category, its rule, or the stop of its series.
 	const live = cursor !== null && targets ? clampCursor(cursor, targets) : null
 
-	const anchor = live !== null && targets ? cursorPoint(live, targets) : null
-
-	const liveSeries = live !== null && targets ? cursorSeries(live, targets) : null
-
-	// The resolved stop, held while its point, category, and series stay the same:
-	// the targets are a new array on each render.
+	// The resolved stop, held while its point, category, rule, and series stay the
+	// same: the targets are a new array on each render. A pointer move leaves it
+	// unchanged, so the re-anchor does not run for one.
 	const stop = useStableValue(
-		live !== null && anchor !== null ? { live, anchor, series: liveSeries } : null,
+		live !== null && targets
+			? { live, anchor: cursorPoint(live, targets), series: cursorSeries(live, targets) }
+			: null,
 		sameStop,
 	)
 
-	// Reads the cursor, `set`, and `setActiveSeries` when it runs.
-	const reanchor = useEffectEvent((next: ResolvedStop) => {
-		if (cursor === null) return
-
-		if (next.live.category !== cursor.category || next.live.value !== cursor.value) {
-			setCursor(next.live)
-		}
-
-		set(next.live.category, next.anchor, true)
-
-		setActiveSeries(next.series)
-	})
-
-	useEffect(() => {
-		if (stop !== null) reanchor(stop)
-	}, [stop])
-
-	// A reference line the cursor parks on owns the emphasis, not the marks: recede
-	// the whole field and drop the series readout so the rule reads alone — no one
-	// series is active. Anywhere else, carry the hover to the cursor's anchor and
-	// emphasize the series it sits on so the rest recede, or clear both.
-	const show = (next: ChartCursor | null) => {
-		setCursor(next)
+	// Carries the cursor to `next`, with its emphasis and its readout. A reference
+	// line the cursor parks on owns the emphasis, not the marks: recede the whole
+	// field and drop the series readout so the rule reads alone. Anywhere else,
+	// carry the readout to the cursor's anchor, and emphasize the series it sits
+	// on so the rest recede. A `null` cursor clears all of them.
+	const applyCursor = (next: ChartCursor | null) => {
+		if (!sameCursor(cursor, next)) setCursor(next)
 
 		const reference = next?.reference
 
-		if (reference !== undefined && targets?.references?.[reference] != null) {
-			setReference(reference)
+		const onRule = reference !== undefined && targets?.references?.[reference] != null
 
-			setActiveSeries(null)
+		const point = next !== null && targets && !onRule ? cursorPoint(next, targets) : null
 
-			set(null, null)
+		setReference(onRule ? reference : null)
 
-			return
-		}
+		setActiveSeries(next !== null && targets && point ? cursorSeries(next, targets) : null)
 
-		setReference(null)
+		written.current = point
 
-		const point = next && targets ? cursorPoint(next, targets) : null
-
-		if (next && targets && point) {
-			set(next.category, point, true)
-
-			setActiveSeries(cursorSeries(next, targets))
-		} else {
-			set(null, null)
-
-			setActiveSeries(null)
-		}
+		if (next !== null && point) store.set(next.category, point, true)
+		else store.set(null, null)
 	}
 
-	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => show(null))
+	// Reads the cursor, the store, and `applyCursor` when it runs. The re-anchor
+	// moves the readout only while the store holds the point that the keyboard
+	// wrote last. A pointer that took the readout since then keeps it.
+	const reanchor = useEffectEvent((next: ChartCursor) => {
+		if (cursor === null || !samePoint(store.get().point, written.current)) return
+
+		applyCursor(next)
+	})
+
+	useEffect(() => {
+		if (stop !== null) reanchor(stop.live)
+	}, [stop])
+
+	const { exit, onBlur } = usePlotTabStop(cursor !== null, () => applyCursor(null))
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		if (!targets) return
@@ -529,12 +571,13 @@ export function useChartKeyboard(
 
 		// Escape clears the readout and drops focus, the same exit the legend gives,
 		// then re-arms the region so the next Tab returns to it. It claims the press
-		// only when it clears a live readout. With nothing to clear, the press also
-		// reaches an overlay around the chart, which closes as it does for the legend.
+		// only when it clears a live readout: the cursor's, or one that a click
+		// pinned or the pointer holds. With nothing to clear, the press also reaches
+		// an overlay around the chart, which closes as it does for the legend.
 		if (move.cursor === null) {
-			if (cursor !== null) event.preventDefault()
+			if (cursor !== null || store.get().index !== null) event.preventDefault()
 
-			show(null)
+			applyCursor(null)
 
 			exit(event.currentTarget)
 
@@ -546,12 +589,12 @@ export function useChartKeyboard(
 		// The first arrow enters at the first point rather than stepping past it;
 		// Home / End are absolute jumps and place directly.
 		if (cursor === null && isArrowKey(event.key)) {
-			show(firstCursor(targets))
+			applyCursor(firstCursor(targets))
 
 			return
 		}
 
-		show(move.cursor)
+		applyCursor(move.cursor)
 	}
 
 	return active ? { tabIndex: 0, onKeyDown, onBlur } : null

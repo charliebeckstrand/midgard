@@ -412,7 +412,7 @@ export function ChartFrame({
 		focus,
 		orientation ?? 'vertical',
 		tooltipShown && readout !== null,
-		hoverStore.set,
+		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 	)

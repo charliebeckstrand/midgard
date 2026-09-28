@@ -402,6 +402,41 @@ describe('reference line keyboard navigation', () => {
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
 
+	it('releases the emphasis when the rule it parks on goes away', () => {
+		const chart = (reference?: ChartReferenceLine[]) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={reference}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart([{ value: 60 }]))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		// The rule goes, so the cursor falls back to its bar. The marks light up
+		// again, and the readout returns to the bar.
+		rerender(chart())
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Jan')
+
+		// The next step walks on from the bar, not from the rule that went.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Feb')
+	})
+
 	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
 		const { container } = bar([{ value: 60 }], 'horizontal')
 
