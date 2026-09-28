@@ -335,7 +335,7 @@ export function usePanelResize({
 	function resize(at: Grab, size: number): number {
 		const next = clamp(size, at.floor, at.ceiling)
 
-		if (panel !== null) panel.style[axis] = `${next}px`
+		if (panel !== null) panel.style.setProperty(axis, `${next}px`)
 
 		return next
 	}
@@ -395,7 +395,7 @@ export function usePanelResize({
 		if (settled === 'close') {
 			// Cleared, so the panel leaves at the size its variant states rather than
 			// sliding out from whatever the swipe left it at.
-			if (panel !== null) panel.style[axis] = ''
+			if (panel !== null) panel.style.removeProperty(axis)
 
 			onDismiss()
 
