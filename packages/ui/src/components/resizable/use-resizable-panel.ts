@@ -3,13 +3,13 @@
 import {
 	type PointerEvent as ReactPointerEvent,
 	type RefObject,
-	useCallback,
 	useEffect,
 	useEffectEvent,
 	useRef,
 	useState,
 } from 'react'
 import { useDragCursor } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp } from '../../utilities'
 import type { PanelConfig, ResizableOrientation } from './types'
 
@@ -98,20 +98,8 @@ export function useResizablePanel({
 }: PanelResize) {
 	const dragRef = useRef<DragState | null>(null)
 	const cleanupRef = useRef<(() => void) | null>(null)
-	const orientationRef = useRef(orientation)
-
-	orientationRef.current = orientation
-
-	const constraintsRef = useRef(panelConfigs)
-
-	constraintsRef.current = panelConfigs
-
 	// Initialize sizes from panel defaults, normalized to 100%.
 	const [sizes, setSizes] = useState(() => normalizeSizes(panelConfigs))
-
-	const sizesRef = useRef(sizes)
-
-	sizesRef.current = sizes
 
 	// Re-derives sizes when the panel set changes: a panel added, removed, or
 	// replaced by another at the same count. The panel keys name the set, so a
@@ -125,11 +113,7 @@ export function useResizablePanel({
 	if (prevPanelSet !== panelSet) {
 		setPrevPanelSet(panelSet)
 
-		const normalized = normalizeSizes(panelConfigs)
-
-		sizesRef.current = normalized
-
-		setSizes(normalized)
+		setSizes(normalizeSizes(panelConfigs))
 	}
 
 	const [dragging, setDragging] = useState<number | null>(null)
@@ -142,11 +126,17 @@ export function useResizablePanel({
 
 	const reportResizeEnd = useEffectEvent((handleIndex: number) => onResizeEnd?.(handleIndex))
 
-	const resize = useCallback((handleIndex: number, delta: number) => {
+	// A drag reads the orientation and the constraints of the newest render on
+	// each move, not the ones of the render that started it.
+	const readLayout = useStableEvent(() => ({ orientation, constraints: panelConfigs }))
+
+	// A discrete event commits before the next one, so each step reads the sizes
+	// that the last step committed.
+	const resize = useStableEvent((handleIndex: number, delta: number) => {
 		const leftIdx = handleIndex
 		const rightIdx = handleIndex + 1
 
-		const prev = sizesRef.current
+		const prev = sizes
 
 		if (prev[leftIdx] === undefined || prev[rightIdx] === undefined) return
 
@@ -155,176 +145,169 @@ export function useResizablePanel({
 		next[leftIdx] = prev[leftIdx] + delta
 		next[rightIdx] = prev[rightIdx] - delta
 
-		const clamped = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+		const clamped = clampPair(next, leftIdx, rightIdx, panelConfigs)
 
 		// Side effects run here, not inside the setSizes updater: StrictMode
 		// double-invokes the updater, firing onSizesChange twice per keypress.
-		sizesRef.current = clamped
-
 		setSizes(clamped)
 
 		reportSizes(clamped)
-	}, [])
+	})
 
-	const startDrag = useCallback(
-		(handleIndex: number, event: ReactPointerEvent) => {
-			const group = groupRef.current
+	const startDrag = useStableEvent((handleIndex: number, event: ReactPointerEvent) => {
+		const group = groupRef.current
 
-			if (!group || event.button !== 0) return
+		if (!group || event.button !== 0) return
 
-			event.preventDefault()
+		event.preventDefault()
 
-			const orient = orientationRef.current
+		const orient = orientation
 
-			const rect = group.getBoundingClientRect()
+		const rect = group.getBoundingClientRect()
 
-			const totalSize = orient === 'horizontal' ? rect.width : rect.height
+		const totalSize = orient === 'horizontal' ? rect.width : rect.height
 
-			// Handle widths don't count toward the draggable size.
-			let handleWidth = 0
+		// Handle widths don't count toward the draggable size.
+		let handleWidth = 0
 
-			for (const handle of group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]')) {
-				const box = handle.getBoundingClientRect()
+		for (const handle of group.querySelectorAll<HTMLElement>('[data-slot="resizable-handle"]')) {
+			const box = handle.getBoundingClientRect()
 
-				handleWidth += orient === 'horizontal' ? box.width : box.height
-			}
+			handleWidth += orient === 'horizontal' ? box.width : box.height
+		}
 
-			const availableSize = totalSize - handleWidth
+		const availableSize = totalSize - handleWidth
 
-			if (availableSize <= 0) return
+		if (availableSize <= 0) return
 
-			// A new drag supersedes any still-active one (a second pointer landing on
-			// another handle before the first lifts): tear down the prior drag's
-			// listeners first, or they outlive cleanupRef — which holds only the
-			// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
-			// Placed after the guard so a pointerdown that can't start a drag (group
-			// collapsed to <= handle size) leaves the still-live drag intact.
-			cleanupRef.current?.()
+		// A new drag supersedes any still-active one (a second pointer landing on
+		// another handle before the first lifts): tear down the prior drag's
+		// listeners first, or they outlive cleanupRef — which holds only the
+		// latest — and fire a post-unmount setSizes. Mirrors beginScrollbarDrag.
+		// Placed after the guard so a pointerdown that can't start a drag (group
+		// collapsed to <= handle size) leaves the still-live drag intact.
+		cleanupRef.current?.()
 
-			// Capture holds the handle as the pointer target for the whole drag, so
-			// the panel content under the pointer shows no hover. `useDragCursor`
-			// holds the resize cursor. The browser releases the capture on pointerup
-			// and pointercancel.
-			event.currentTarget.setPointerCapture(event.pointerId)
+		// Capture holds the handle as the pointer target for the whole drag, so
+		// the panel content under the pointer shows no hover. `useDragCursor`
+		// holds the resize cursor. The browser releases the capture on pointerup
+		// and pointercancel.
+		event.currentTarget.setPointerCapture(event.pointerId)
 
-			const startPos = orient === 'horizontal' ? event.clientX : event.clientY
+		const startPos = orient === 'horizontal' ? event.clientX : event.clientY
 
-			dragRef.current = {
-				handleIndex,
-				startPos,
-				startSizes: [...sizesRef.current],
-				availableSize,
-			}
+		dragRef.current = {
+			handleIndex,
+			startPos,
+			startSizes: [...sizes],
+			availableSize,
+		}
 
-			setDragging(handleIndex)
+		setDragging(handleIndex)
 
-			reportResizeStart(handleIndex)
+		reportResizeStart(handleIndex)
 
-			// Pointermove can outpace the frame rate (coalesced move bursts), and each
-			// event would otherwise commit React state + fire onSizesChange, forcing a
-			// synchronous layout per event. Coalesce to one commit per frame: stash the
-			// latest clamped sizes and let a single rAF flush them.
-			let frame: number | null = null
-			let pending: number[] | null = null
+		// Pointermove can outpace the frame rate (coalesced move bursts), and each
+		// event would otherwise commit React state + fire onSizesChange, forcing a
+		// synchronous layout per event. Coalesce to one commit per frame: stash the
+		// latest clamped sizes and let a single rAF flush them.
+		let frame: number | null = null
+		let pending: number[] | null = null
 
-			const commitPending = () => {
+		const commitPending = () => {
+			frame = null
+
+			if (!pending) return
+
+			const clamped = pending
+
+			pending = null
+
+			setSizes(clamped)
+
+			reportSizes(clamped)
+		}
+
+		const onMove = (event: PointerEvent) => {
+			const drag = dragRef.current
+
+			if (!drag) return
+
+			const { orientation: currentOrient, constraints } = readLayout()
+
+			const currentPos = currentOrient === 'horizontal' ? event.clientX : event.clientY
+
+			const deltaPercent = ((currentPos - drag.startPos) / drag.availableSize) * 100
+
+			const leftIdx = drag.handleIndex
+			const rightIdx = drag.handleIndex + 1
+
+			const next = [...drag.startSizes]
+
+			next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
+			next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
+
+			pending = clampPair(next, leftIdx, rightIdx, constraints)
+
+			if (frame === null) frame = requestAnimationFrame(commitPending)
+		}
+
+		const onUp = () => {
+			dragRef.current = null
+
+			setDragging(null)
+
+			// Flush the final position synchronously so the last move isn't dropped
+			// when the pointer lifts before the pending frame runs.
+			if (frame !== null) {
+				cancelAnimationFrame(frame)
+
 				frame = null
-
-				if (!pending) return
-
-				const clamped = pending
-
-				pending = null
-
-				sizesRef.current = clamped
-
-				setSizes(clamped)
-
-				reportSizes(clamped)
 			}
 
-			const onMove = (event: PointerEvent) => {
-				const drag = dragRef.current
+			commitPending()
 
-				if (!drag) return
+			controller.abort()
 
-				const currentOrient = orientationRef.current
+			cleanupRef.current = null
 
-				const currentPos = currentOrient === 'horizontal' ? event.clientX : event.clientY
+			/*
+			 * Last, and that ordering is what keeps the bracket balanced without a latch.
+			 * The abort drops all four listeners, so a canceled pointer that also fires
+			 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the supersede and
+			 * unmount exits, so a consumer starting a fresh drag from inside this
+			 * callback gets a clean one. The flush above has already delivered the settled sizes
+			 * through `onSizesChange`.
+			 */
+			reportResizeEnd(handleIndex)
+		}
 
-				const deltaPercent = ((currentPos - drag.startPos) / drag.availableSize) * 100
+		// One controller for the drag's whole listener set: `onUp` and the
+		// supersede path in `cleanupRef` tear down the same four listeners, and
+		// a single `abort()` cannot drift from the add list the way two hand-kept
+		// removal lists can.
+		const controller = new AbortController()
 
-				const leftIdx = drag.handleIndex
-				const rightIdx = drag.handleIndex + 1
+		const { signal } = controller
 
-				const next = [...drag.startSizes]
+		document.addEventListener('pointermove', onMove, { signal })
+		document.addEventListener('pointerup', onUp, { signal })
+		// A canceled pointer (OS gesture, pen leaving range) never fires
+		// pointerup; without this the drag flag stays set and buttonless
+		// movement keeps resizing.
+		document.addEventListener('pointercancel', onUp, { signal })
+		document.addEventListener('contextmenu', onUp, { signal })
 
-				next[leftIdx] = (drag.startSizes[leftIdx] ?? 0) + deltaPercent
-				next[rightIdx] = (drag.startSizes[rightIdx] ?? 0) - deltaPercent
+		cleanupRef.current = () => {
+			if (frame !== null) cancelAnimationFrame(frame)
 
-				pending = clampPair(next, leftIdx, rightIdx, constraintsRef.current)
+			controller.abort()
 
-				if (frame === null) frame = requestAnimationFrame(commitPending)
-			}
-
-			const onUp = () => {
-				dragRef.current = null
-
-				setDragging(null)
-
-				// Flush the final position synchronously so the last move isn't dropped
-				// when the pointer lifts before the pending frame runs.
-				if (frame !== null) {
-					cancelAnimationFrame(frame)
-
-					frame = null
-				}
-
-				commitPending()
-
-				controller.abort()
-
-				cleanupRef.current = null
-
-				/*
-				 * Last, and that ordering is what keeps the bracket balanced without a latch.
-				 * The abort drops all four listeners, so a canceled pointer that also fires
-				 * pointerup cannot re-enter. Clearing `cleanupRef` disarms the supersede and
-				 * unmount exits, so a consumer starting a fresh drag from inside this
-				 * callback gets a clean one. The flush above has already delivered the settled sizes
-				 * through `onSizesChange`.
-				 */
-				reportResizeEnd(handleIndex)
-			}
-
-			// One controller for the drag's whole listener set: `onUp` and the
-			// supersede path in `cleanupRef` tear down the same four listeners, and
-			// a single `abort()` cannot drift from the add list the way two hand-kept
-			// removal lists can.
-			const controller = new AbortController()
-
-			const { signal } = controller
-
-			document.addEventListener('pointermove', onMove, { signal })
-			document.addEventListener('pointerup', onUp, { signal })
-			// A canceled pointer (OS gesture, pen leaving range) never fires
-			// pointerup; without this the drag flag stays set and buttonless
-			// movement keeps resizing.
-			document.addEventListener('pointercancel', onUp, { signal })
-			document.addEventListener('contextmenu', onUp, { signal })
-
-			cleanupRef.current = () => {
-				if (frame !== null) cancelAnimationFrame(frame)
-
-				controller.abort()
-
-				// The supersede and unmount exits close the bracket too. `onUp` clears
-				// `cleanupRef` before it reports, so a normal lift never reaches here.
-				reportResizeEnd(handleIndex)
-			}
-		},
-		[groupRef],
-	)
+			// The supersede and unmount exits close the bracket too. `onUp` clears
+			// `cleanupRef` before it reports, so a normal lift never reaches here.
+			reportResizeEnd(handleIndex)
+		}
+	})
 
 	// Clean up document listeners on unmount.
 	useEffect(() => {
