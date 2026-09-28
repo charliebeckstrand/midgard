@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext, type Severity } from '../../core'
-import type { DensityStep } from '../../core/density'
 
 /** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
 export type ControlVariant = 'default' | 'outline'
@@ -24,7 +23,6 @@ export type ControlContextValue = {
 	required?: boolean
 	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
 	severity?: ControlSeverity
-	size?: DensityStep
 	variant?: ControlVariant
 	/** Composed `aria-describedby` for fields: registered Description / error Message ids, or undefined when none are rendered. */
 	describedBy?: string
@@ -44,14 +42,14 @@ export type ControlContextValue = {
 
 /**
  * Form-field cascade. Provided by `<Control>` (and `<Field>` on its behalf).
- * Carries id, autoComplete, disabled, readOnly, required, severity, size,
+ * Carries id, autoComplete, disabled, readOnly, required, severity, and
  * variant: every prop a nested form field can inherit. Also the data bridge
  * between `<Field>` (label, help, errors, validation) and the underlying
  * form field.
  *
  * Resolution lives at the field's call site: shared form-field props go
- * through `useControlProps`. A set `size` makes the control a density scope
- * instead, and each field takes its step in CSS.
+ * through `useControlProps`. The size is not in the context: a set `size`
+ * makes the control a density scope, and each field takes its step in CSS.
  *
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
  * radio.

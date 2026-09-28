@@ -25,8 +25,8 @@ export type ControlProps = {
 	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
 	severity?: ControlSeverity
 	/**
-	 * The density step. Omit it to take the step of an outer Control, else of
-	 * the nearest density scope. A step makes the field a density scope.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the field a density scope.
 	 */
 	size?: DensityStep
 	variant?: ControlVariant
@@ -36,12 +36,13 @@ export type ControlProps = {
 
 /**
  * Form-field context provider. It generates a stable id and broadcasts
- * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, `size`, and
- * `variant` to control-aware descendants. Those are input, textarea, switch,
- * listbox, combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
- * cascade through inner Controls, `severity` / `size` / `variant` inherit
- * unless overridden. With a `size` of its own or of an outer Control, the field
- * is a density scope.
+ * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, and `variant`
+ * to control-aware descendants. Those are input, textarea, switch, listbox,
+ * combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
+ * cascade through inner Controls, and `severity` / `variant` inherit unless
+ * overridden. A `size` makes the field a density scope. It is not in the
+ * context: each field, and each nested Control, takes the step of its nearest
+ * density scope in CSS.
  *
  * @remarks A Control holds one control-aware descendant, because that
  * descendant adopts the one id. To group fields, nest one Control for each
@@ -65,13 +66,11 @@ export function Control({
 
 	const scope = useIdScope({ id: idProp })
 
-	// disabled/readOnly OR-merge with parent; severity/size/variant inherit unless overridden.
+	// disabled/readOnly OR-merge with parent; severity/variant inherit unless overridden.
 	const mergedDisabled = disabled || parent?.disabled
 	const mergedReadOnly = readOnly || parent?.readOnly
 
 	const mergedSeverity = severity ?? parent?.severity
-
-	const mergedSize = size ?? parent?.size
 
 	const mergedVariant = variant ?? parent?.variant
 
@@ -87,7 +86,6 @@ export function Control({
 			readOnly: mergedReadOnly,
 			required,
 			severity: mergedSeverity,
-			size: mergedSize,
 			variant: mergedVariant,
 			// Spreads the a11y bundle wholesale: label / description / error ids,
 			// registrars, and composed labelledBy/describedBy.
@@ -100,7 +98,6 @@ export function Control({
 			mergedReadOnly,
 			required,
 			mergedSeverity,
-			mergedSize,
 			mergedVariant,
 			a11y,
 		],
@@ -110,7 +107,7 @@ export function Control({
 		<ControlContext value={value}>
 			<Box
 				data-slot="control"
-				density={mergedSize}
+				density={size}
 				data-disabled={dataAttr(mergedDisabled)}
 				className={cn(k.field, className)}
 			>

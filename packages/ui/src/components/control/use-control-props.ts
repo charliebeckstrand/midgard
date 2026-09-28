@@ -43,9 +43,7 @@ export type ControlPropsResult = {
  * context's.
  *
  * Does **not** resolve size. A field takes its step from the nearest density
- * scope, never from the Control context. The `size` of the context only sets
- * the scope that a sized `<Control>` opens (and the inheritance of a nested
- * `<Control>`).
+ * scope. The Control context carries no size.
  *
  * @param input - Explicit control props from the field. Each wins over the
  * context value of the same name, except `invalid` and `aria-describedby`.
