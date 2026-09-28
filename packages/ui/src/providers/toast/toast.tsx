@@ -1,6 +1,6 @@
 'use client'
 
-import { type ReactNode, useCallback, useMemo, useReducer, useRef } from 'react'
+import { type ReactNode, useCallback, useMemo, useRef, useState } from 'react'
 import {
 	ToastContext,
 	type ToastContextValue,
@@ -40,9 +40,14 @@ export type ToastProviderProps = {
  * pauses all the countdowns (WCAG 2.2.1).
  */
 export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: ToastProviderProps) {
+	// The callbacks read and write the list in the ref, because one call can read
+	// its own write before the next render. `sync` publishes the list to state,
+	// and render reads only that state.
 	const toastsRef = useRef<ToastData[]>([])
 
-	const [, sync] = useReducer((n: number) => n + 1, 0)
+	const [toasts, setToasts] = useState<ToastData[]>([])
+
+	const sync = useCallback(() => setToasts(toastsRef.current), [])
 
 	/*
 	 * `dismissed` is the latch. It is written once, in `dismiss` below, at the moment a
@@ -88,7 +93,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			requestAnimationFrame(remove)
 		},
-		[stop],
+		[stop, sync],
 	)
 
 	const toast = useCallback(
@@ -114,7 +119,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 
 			return id
 		},
-		[maxToasts, duration, arm, dismiss],
+		[maxToasts, duration, arm, dismiss, sync],
 	)
 
 	const resetToast = useCallback(
@@ -138,7 +143,7 @@ export function ToastProvider({ children, duration = 5000, maxToasts = 5 }: Toas
 	// Viewport value recomputes every render (toasts array); only the viewport
 	// consumes it and re-renders on each push.
 	const viewportValue: ToastViewportContextValue = {
-		toasts: toastsRef.current.toReversed(),
+		toasts: toasts.toReversed(),
 		dismiss,
 		pause,
 		resume,
