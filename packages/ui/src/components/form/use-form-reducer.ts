@@ -4,7 +4,6 @@ import {
 	type SyntheticEvent,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useLayoutEffect,
 	useMemo,
 	useReducer,
@@ -12,6 +11,7 @@ import {
 	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { FormActions, FormStateValue, FormStore } from './context'
 import {
 	type Errors,
@@ -73,6 +73,20 @@ function extractFieldErrors(
 	return fieldErrors as Record<string, string | string[] | undefined>
 }
 
+/**
+ * Runs `submit`, then `done` whether `submit` resolves or throws. Kept outside
+ * the hook: the React Compiler does not support a `finally` block.
+ *
+ * @internal
+ */
+async function settleSubmit(submit: () => Promise<void>, done: () => void): Promise<void> {
+	try {
+		await submit()
+	} finally {
+		done()
+	}
+}
+
 /** Options for {@link useFormReducer}. @internal */
 type FormReducerOptions<T extends Record<string, unknown>> = {
 	defaultValues: T
@@ -125,28 +139,34 @@ export function useFormReducer<T extends Record<string, unknown>>({
 	const [state, dispatch] = useReducer(
 		formReducer as (state: FormState<T>, action: FormAction<T>) => FormState<T>,
 		undefined,
-		(): FormState<T> => ({ values: { ...initialValues }, errors: {}, touched: {} }),
+		(): FormState<T> => ({
+			values: { ...initialValues },
+			defaults: initialValues,
+			errors: {},
+			touched: {},
+		}),
 	)
 
 	const [submitting, setSubmitting] = useState(false)
 
-	const defaultsRef = useRef(initialValues)
-
 	// Mount-time snapshot of `defaultValues`; restores the original baseline
-	// when `controlledValues` transitions to `undefined`. `defaultsRef` shifts
-	// on each sync and cannot serve this role.
+	// when `controlledValues` transitions to `undefined`. The reducer's
+	// `defaults` shift on each sync and cannot serve this role.
 	const initialDefaultsRef = useRef(defaultValues)
 
 	// A ref, not an effect event: the reducer runs the validators during render,
-	// and an effect event throws when render calls it.
+	// and an effect event throws when render calls it. Synced before paint, and
+	// only the dispatching handlers read it.
 	const validateRef = useRef(validate)
 
-	validateRef.current = validate
+	useLayoutEffect(() => {
+		validateRef.current = validate
+	}, [validate])
 
-	const reportSettled = useEffectEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
+	const reportSettled = useStableEvent((outcome: SubmitOutcome<T>) => onSettled?.(outcome))
 
 	// The payload is built only when a callback reads it.
-	const reportInvalid = useEffectEvent((errors: Errors) => {
+	const reportInvalid = useStableEvent((errors: Errors) => {
 		if (!onInvalidSubmit) return
 
 		onInvalidSubmit(
@@ -163,23 +183,25 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 	useEffect(() => () => void submitTokenRef.current++, [])
 
-	const { values, errors, touched } = state
+	const { values, defaults, errors, touched } = state
 
-	// Mirrors current values; `getValue` reads the latest state without
-	// changing actions object identity across re-renders.
+	// Mirrors the committed values; `getValue` reads the latest state without
+	// changing actions object identity across re-renders. Synced before paint.
 	const valuesRef = useRef(values)
 
-	valuesRef.current = values
+	useLayoutEffect(() => {
+		valuesRef.current = values
+	}, [values])
 
 	const dirtyFields = useMemo(() => {
 		const d: Record<string, boolean> = {}
 
 		for (const key in values) {
-			d[key] = !valuesEqual(values[key], defaultsRef.current[key])
+			d[key] = !valuesEqual(values[key], defaults[key])
 		}
 
 		return d
-	}, [values])
+	}, [values, defaults])
 
 	const dirty = useMemo(() => Object.values(dirtyFields).some(Boolean), [dirtyFields])
 
@@ -217,14 +239,13 @@ export function useFormReducer<T extends Record<string, unknown>>({
 		// Typed wider than `T`; `FormActions.reset` carries no `T` at the context
 		// level. `FormHelpers<T>` re-narrows at the consumer via contravariance.
 		(nextDefaults?: Record<string, unknown>) => {
-			if (nextDefaults !== undefined) defaultsRef.current = nextDefaults as T
-
 			// Supersede any in-flight submit and clear `submitting` state.
 			submitTokenRef.current++
 
 			setSubmitting(false)
 
-			dispatch({ type: 'reset', defaults: { ...defaultsRef.current } })
+			// No `nextDefaults` resets to the defaults the reducer holds.
+			dispatch({ type: 'reset', defaults: nextDefaults as T | undefined })
 
 			onReset?.()
 		},
@@ -244,7 +265,6 @@ export function useFormReducer<T extends Record<string, unknown>>({
 
 		const next = controlledValues ?? initialDefaultsRef.current
 
-		defaultsRef.current = next
 		lastSyncedValuesRef.current = controlledValues
 
 		dispatch({ type: 'sync-values', values: next })
@@ -317,16 +337,21 @@ export function useFormReducer<T extends Record<string, unknown>>({
 				})
 			}
 
-			try {
-				applyOutcome(await onSubmit(valuesRef.current, { setErrors: setErrorsExternal, reset }))
-			} catch (err) {
-				applyError(err)
-			} finally {
-				// Clear `submitting` only for the un-superseded submit.
-				if (submitTokenRef.current === token) setSubmitting(false)
-			}
+			await settleSubmit(
+				async () => {
+					try {
+						applyOutcome(await onSubmit(valuesRef.current, { setErrors: setErrorsExternal, reset }))
+					} catch (err) {
+						applyError(err)
+					}
+				},
+				() => {
+					// Clear `submitting` only for the un-superseded submit.
+					if (submitTokenRef.current === token) setSubmitting(false)
+				},
+			)
 		},
-		[onSubmit, setErrorsExternal, reset, validateOn],
+		[onSubmit, setErrorsExternal, reset, validateOn, reportInvalid, reportSettled],
 	)
 
 	const handleReset = useCallback(

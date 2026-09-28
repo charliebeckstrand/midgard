@@ -14,7 +14,7 @@ import {
 type Values = { name: string; age: number }
 
 function initialState(): FormState<Values> {
-	return { values: { name: '', age: 0 }, errors: {}, touched: {} }
+	return { values: { name: '', age: 0 }, defaults: { name: '', age: 0 }, errors: {}, touched: {} }
 }
 
 const validators: Validators<Values> = {
@@ -146,6 +146,7 @@ describe('formReducer', () => {
 		it('does not validate when validateOn is "submit"', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
+				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
 			}
@@ -194,6 +195,7 @@ describe('formReducer', () => {
 		it('is a no-op when the field is already touched', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
+				defaults: { name: '', age: 0 },
 				errors: {},
 				touched: { name: true },
 			}
@@ -235,6 +237,7 @@ describe('formReducer', () => {
 		it('marks the field touched but does not validate when validateOn is "submit"', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
+				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
 			}
@@ -256,6 +259,7 @@ describe('formReducer', () => {
 		it('merges external errors into existing errors', () => {
 			const prior: FormState<Values> = {
 				values: { name: '', age: 0 },
+				defaults: { name: '', age: 0 },
 				errors: { age: ['prev'] },
 				touched: {},
 			}
@@ -291,6 +295,7 @@ describe('formReducer', () => {
 		it('returns a clean state with the provided defaults', () => {
 			const prior: FormState<Values> = {
 				values: { name: 'dirty', age: 99 },
+				defaults: { name: '', age: 0 },
 				errors: { name: ['oops'] },
 				touched: { name: true, age: true },
 			}
@@ -302,9 +307,29 @@ describe('formReducer', () => {
 
 			expect(next).toEqual({
 				values: { name: 'fresh', age: 21 },
+				defaults: { name: 'fresh', age: 21 },
 				errors: {},
 				touched: {},
 			})
+		})
+
+		it('resets to the held defaults when none are given', () => {
+			const defaults = { name: 'Ada', age: 30 }
+
+			const prior: FormState<Values> = {
+				values: { name: 'dirty', age: 99 },
+				defaults,
+				errors: { name: ['oops'] },
+				touched: { name: true },
+			}
+
+			const next = formReducer(prior, { type: 'reset' })
+
+			expect(next.values).toEqual(defaults)
+
+			expect(next.values).not.toBe(defaults)
+
+			expect(next.defaults).toBe(defaults)
 		})
 	})
 
@@ -312,6 +337,7 @@ describe('formReducer', () => {
 		it('replaces values without touching errors or touched', () => {
 			const prior: FormState<Values> = {
 				values: { name: 'Ada', age: 30 },
+				defaults: { name: '', age: 0 },
 				errors: { age: ['too young'] },
 				touched: { name: true },
 			}
@@ -323,6 +349,8 @@ describe('formReducer', () => {
 
 			expect(next.values).toEqual({ name: 'Grace', age: 45 })
 
+			expect(next.defaults).toBe(next.values)
+
 			expect(next.errors).toBe(prior.errors)
 
 			expect(next.touched).toBe(prior.touched)
@@ -333,6 +361,7 @@ describe('formReducer', () => {
 
 			const prior: FormState<Values> = {
 				values: sharedValues,
+				defaults: sharedValues,
 				errors: {},
 				touched: {},
 			}
@@ -347,6 +376,7 @@ describe('formReducer', () => {
 		it('replaces errors and touched while preserving values', () => {
 			const prior: FormState<Values> = {
 				values: { name: 'Ada', age: 30 },
+				defaults: { name: '', age: 0 },
 				errors: { name: ['stale'] },
 				touched: {},
 			}

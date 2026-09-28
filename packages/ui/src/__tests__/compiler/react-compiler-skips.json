@@ -1,7 +1,4 @@
 {
-	"components/form/use-form-reducer.ts": {
-		"useFormReducer": "Todo"
-	},
 	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
 		"PdfViewerThumbnails": "Refs"
 	},
