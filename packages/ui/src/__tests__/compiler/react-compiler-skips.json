@@ -1,7 +1,4 @@
 {
-	"hooks/use-floating-disclosure.ts": {
-		"useFloatingDisclosure": "Refs"
-	},
 	"hooks/use-virtual-window.ts": {
 		"useWindowVirtualizer": "Refs",
 		"useVirtualWindow": "Immutability"
