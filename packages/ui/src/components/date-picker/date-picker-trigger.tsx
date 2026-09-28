@@ -116,7 +116,16 @@ export function DatePickerTrigger({
 	)
 
 	return (
-		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
+		// The trigger still takes its step in JS (increment 4 of the density
+		// pre-paint plan). It writes that step as a scope, so the stepped classes of
+		// the control bridge follow it.
+		<div
+			data-slot="control"
+			data-density={size}
+			ref={setReference}
+			className={cn(className)}
+			{...getReferenceProps()}
+		>
 			<ControlFrame
 				data-open={dataAttr(open)}
 				data-group={dataGroup}
@@ -140,7 +149,7 @@ export function DatePickerTrigger({
 						{...validation}
 						onClick={() => onOpenChange(!open)}
 						onKeyDown={onKeyDown}
-						className={cn(k.button({ density: size, size }))}
+						className={cn(k.button())}
 					>
 						{children ?? (
 							<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
@@ -156,11 +165,7 @@ export function DatePickerTrigger({
 					</Button>
 				</HeadlessProvider>
 				{showClear && (
-					<span
-						data-slot="suffix"
-						data-density={stepDown(size)}
-						className={cn(k.affix.base, k.affix.suffix[size])}
-					>
+					<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>
 						<Density step={stepDown(size)}>
 							<InputClearButton
 								label="Clear selection"

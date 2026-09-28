@@ -1,9 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, invalidAttrs, toAmbientStep } from '../../core'
+import { cn, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useDensityStep } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type InputVariants, k } from '../../recipes/kata/input'
@@ -29,9 +28,10 @@ export type InputProps = GroupStampProps &
 
 /**
  * Text input with optional `prefix`/`suffix` affixes.
- * Resolves variant, size, and invalid state from enclosing Control, Form,
- * GlassProvider, and Density context, and drops to a bare `<input>` under
- * headless context.
+ * Resolves variant and invalid state from enclosing Control, Form, and
+ * GlassProvider context, and drops to a bare `<input>` under headless context.
+ * The size takes the step of the nearest density scope through stepped
+ * classes. An explicit `size` writes that scope on the frame.
  *
  * @remarks Follows the §7.3 value contract and the resolution order
  * (explicit prop > bound field > internal state) owned by {@link useInputValue}.
@@ -68,7 +68,6 @@ export function Input({
 	const control = useControl()
 	const glass = useGlass()
 	const headless = useHeadless()
-	const step = toAmbientStep(useDensityStep(size))
 
 	const valueState = useInputValue({ name, value, onChange, onBlur })
 
@@ -95,7 +94,6 @@ export function Input({
 		<input
 			ref={ref}
 			data-slot="input"
-			data-size={step}
 			type={type}
 			id={scope.id}
 			name={name}
@@ -108,10 +106,7 @@ export function Input({
 			onChange={valueState.onChange}
 			onBlur={valueState.onBlur}
 			aria-describedby={sharedAttrs['aria-describedby']}
-			className={cn(
-				!headless && k({ variant: resolvedVariant, density: step, size: step }),
-				className,
-			)}
+			className={cn(!headless && k({ variant: resolvedVariant }), className)}
 			{...validation}
 			{...rest}
 		/>
@@ -125,7 +120,6 @@ export function Input({
 			prefix={prefix}
 			suffix={suffix}
 			variant={resolvedVariant}
-			size={step}
 			scope={size}
 			dataGroup={dataGroup}
 			dataGroupOrientation={dataGroupOrientation}

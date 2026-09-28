@@ -4,13 +4,17 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
+import { k as combobox } from '../../recipes/kata/combobox'
 import { k as fieldset } from '../../recipes/kata/fieldset'
 import { k as heading } from '../../recipes/kata/heading'
+import { k as input } from '../../recipes/kata/input'
 import { k as list } from '../../recipes/kata/list'
+import { k as listbox } from '../../recipes/kata/listbox'
 import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
 import { k as table } from '../../recipes/kata/table'
 import { k as tabs } from '../../recipes/kata/tabs'
+import { k as textarea } from '../../recipes/kata/textarea'
 import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
@@ -26,10 +30,13 @@ import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-so
 
 const NATIVE_RECIPES = {
 	badge,
+	combobox,
 	description: fieldset.description,
 	heading,
+	input,
 	label: fieldset.label,
 	'list item': list.item,
+	listbox,
 	'loading spinner': loading.spinner,
 	'menu viewport': menu.viewport,
 	message: fieldset.message,
@@ -39,19 +46,20 @@ const NATIVE_RECIPES = {
 	tab: tabs.tab,
 	'table cell': table.cell,
 	'table header': table.header,
+	textarea,
 }
 
 const NATIVE_FILES = [
 	'components/badge/badge.tsx',
-	'components/card/card.tsx',
-	'components/card/card-header.tsx',
 	'components/card/card-footer.tsx',
+	'components/card/card-header.tsx',
 	'components/card/card-title.tsx',
+	'components/card/card.tsx',
 	'components/fieldset/description.tsx',
 	'components/fieldset/label.tsx',
 	'components/fieldset/message.tsx',
-	'components/heading/heading.tsx',
 	'components/heading/heading-skeleton.tsx',
+	'components/heading/heading.tsx',
 	'components/icon/icon.tsx',
 	'components/list/list-item.tsx',
 	'components/loading/loading-spinner.tsx',
@@ -59,8 +67,8 @@ const NATIVE_FILES = [
 	'components/menu/menu-sub.tsx',
 	'components/menu/menu-viewport.tsx',
 	'components/table/table.tsx',
-	'components/tabs/tab.tsx',
 	'components/tabs/tab-list.tsx',
+	'components/tabs/tab.tsx',
 	'components/tabs/tabs.tsx',
 	'components/tooltip/tooltip-content.tsx',
 	'layouts/sidebar/sidebar.tsx',
@@ -69,7 +77,7 @@ const NATIVE_FILES = [
 	'primitives/panel/slots.tsx',
 ]
 
-const DENSITY_READS = /\b(?:useDensityStep|useDensityNullable)\b/
+const DENSITY_READS = /\b(?:useDensityStep|useDensityScope)\b/
 
 const srcDir = join(import.meta.dirname, '..', '..')
 
@@ -91,12 +99,14 @@ describe('density-native boundary', () => {
 // A density scope has two channels: `data-density` for the stepped classes and
 // the density context for a client reader. A context scope with no attribute
 // gives the two channels different steps. So each file that opens the context
-// with `<Density step>` also writes `data-density`, once for each scope.
+// with `<Density step>` also writes `data-density`, once for each scope. A
+// control slot opens the context with `<DensitySlot>` and writes
+// `data-density="slot"`.
 //
 // The grid is the one exception. Its cell scope is on the `<table>`, and its
 // overlay scope wraps a surface that opens its own scope.
 
-const CONTEXT_SCOPE = /<Density\s+step=/g
+const CONTEXT_SCOPE = /<Density(?:\s+step=|Slot>)/g
 
 const ATTRIBUTE = /data-density/g
 

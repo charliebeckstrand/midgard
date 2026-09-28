@@ -58,7 +58,6 @@ export const inputCases: readonly Case[] = [
 				<Input id="axe-name" />
 			</Field>
 		),
-		density: [{ render: (size) => <Input size={size} />, slot: 'input' }],
 		textInput: [{ render: (props) => <Input {...props} />, slot: 'input' }],
 		touchOnBlur: [{ render: (props) => <Input {...props} />, defaultValue: '', slot: 'input' }],
 		writeOnChange: [

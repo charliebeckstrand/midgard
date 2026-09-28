@@ -1,9 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, stepDown } from '../../core'
+import { cn } from '../../core'
 import { ControlFrame } from '../../primitives/control'
-import { Density } from '../../primitives/density'
+import { Density, DensitySlot } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
@@ -12,8 +12,6 @@ type InputFrameProps = {
 	prefix: ReactNode
 	suffix: ReactNode
 	variant: InputVariants['variant']
-	/** Resolved step: the prefix / suffix slot padding. Each slot is a scope one step below it. */
-	size: Step
 	/** Raw `size` prop, opening a density scope when set. */
 	scope?: Step
 	dataGroup?: string
@@ -21,7 +19,9 @@ type InputFrameProps = {
 }
 
 /**
- * Density-scoped affix frame around the bare `<input>`. One definition of
+ * Density-scoped affix frame around the bare `<input>`. Each prefix and suffix
+ * slot is a scope one step below the frame (`data-density="slot"`), so the slot
+ * content renders one step smaller than the input. One definition of
  * "present" serves both the wrapper class and the render guards. A null or
  * false affix styles the frame while rendering nothing, and `0` would leak as a
  * bare text node through a plain `&&`.
@@ -33,7 +33,6 @@ export function InputFrame({
 	prefix,
 	suffix,
 	variant,
-	size,
 	scope,
 	dataGroup,
 	dataGroupOrientation,
@@ -44,8 +43,6 @@ export function InputFrame({
 
 	const hasAffix = hasPrefix || hasSuffix
 
-	const slotStep = stepDown(size)
-
 	return (
 		<Density step={scope}>
 			<ControlFrame
@@ -55,16 +52,16 @@ export function InputFrame({
 				className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
 			>
 				{hasPrefix && (
-					<span data-slot="prefix" data-density={slotStep} className={cn(k.affix, k.prefix[size])}>
-						<Density step={slotStep}>{prefix}</Density>
+					<span data-slot="prefix" data-density="slot" className={cn(k.affix, k.prefix)}>
+						<DensitySlot>{prefix}</DensitySlot>
 					</span>
 				)}
 
 				{inputEl}
 
 				{hasSuffix && (
-					<span data-slot="suffix" data-density={slotStep} className={cn(k.affix, k.suffix[size])}>
-						<Density step={slotStep}>{suffix}</Density>
+					<span data-slot="suffix" data-density="slot" className={cn(k.affix, k.suffix)}>
+						<DensitySlot>{suffix}</DensitySlot>
 					</span>
 				)}
 			</ControlFrame>

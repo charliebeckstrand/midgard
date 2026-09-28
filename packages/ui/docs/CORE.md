@@ -27,7 +27,7 @@ import { cn, createContext, createSlot, announce } from 'ui/core'
 | `DensityStep` *(type)* | A step of density: a value of `data-density` and of the density context. |
 | `AmbientStep` *(type)* | The three ambient steps (`sm` / `md` / `lg`) that a three-step size axis takes. |
 | `toAmbientStep` | Clamps a density step to the ambient steps: `xs` becomes `sm`, `xl` becomes `lg`. |
-| `stepDown` | The step below a density step (`xs` stays `xs`). A control slot opens its scope at the step below its host. |
+| `stepDown` | The step below a density step (`xs` stays `xs`). A control slot is a scope at the step below its host, and the rungs use this map to match a `data-density="slot"` element. |
 
 > For declarative announcements that track a changing value, prefer `useA11yAnnouncements` ([`HOOKS.md`](HOOKS.md)) over calling `announce` directly.
 

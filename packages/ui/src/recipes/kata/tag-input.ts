@@ -15,15 +15,13 @@ export const k = {
 	// stepped class. `tag-input-chip-pad-boundary.test.ts` pins the sum at each
 	// step that a chip takes.
 	badge: [focus.inset, 'data-[has-suffix]:density-ps-ring-[2.25,3,3.75,4.5,4.5]'],
-	// Vertical padding for the tag row, keyed by density.
+	// Vertical padding for the tag row.
 	//
 	// A chip nearly fills the host Input's text-line box, so centered against
 	// the bare input it clears the frame by only the centering gap and reads
 	// squished. Padding the row one step above the control's `py` insets the
-	// chips and lets the frame grow to fit the row.
-	tags: {
-		sm: 'py-ring-2',
-		md: 'py-ring-2.5',
-		lg: 'py-ring-3',
-	},
+	// chips and lets the frame grow to fit the row. The row is in the prefix
+	// slot, a scope one step below the host, so each value is for a host one
+	// step above: `xs` for an `sm` host, `sm` for `md`, and `md` for `lg`.
+	tags: 'density-py-ring-[2,2.5,3,3,3]',
 } as const

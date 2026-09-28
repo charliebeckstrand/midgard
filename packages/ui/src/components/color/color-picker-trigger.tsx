@@ -60,7 +60,16 @@ export function ColorPickerTrigger({
 	const label = hsvaToHex(hsva, alpha).toUpperCase()
 
 	return (
-		<div data-slot="control" ref={setReference} className={cn(className)} {...getReferenceProps()}>
+		// The trigger still takes its step in JS (increment 4 of the density
+		// pre-paint plan). It writes that step as a scope, so the stepped classes of
+		// the control bridge follow it.
+		<div
+			data-slot="control"
+			data-density={size}
+			ref={setReference}
+			className={cn(className)}
+			{...getReferenceProps()}
+		>
 			<ControlFrame
 				data-open={dataAttr(open)}
 				data-group={dataGroup}
@@ -79,7 +88,7 @@ export function ColorPickerTrigger({
 						disabled={disabled}
 						{...validation}
 						onClick={() => onOpenChange(!open)}
-						className={cn(k.button({ density: size, size }))}
+						className={cn(k.button())}
 					>
 						<span
 							data-slot="color-picker-swatch"

@@ -64,24 +64,32 @@ describe('TagInput', () => {
 		expect(container.textContent).toContain('vue')
 	})
 
-	it.each([
-		['sm', 'xs'],
-		['md', 'sm'],
-		['lg', 'md'],
-	] as const)('steps badges down one size at control size %s', (controlSize, badgeSize) => {
-		const { container } = renderUI(<TagInput size={controlSize} defaultValue={['react']} />)
+	it.each(['sm', 'md', 'lg'] as const)(
+		'puts the badges in a slot one step below control size %s',
+		(controlSize) => {
+			const { container } = renderUI(<TagInput size={controlSize} defaultValue={['react']} />)
 
-		expect(getBadges(container)[0]?.closest('[data-density]')).toHaveAttribute(
-			'data-density',
-			badgeSize,
-		)
-	})
+			// The slot is a relative scope: CSS steps it one below the scope above it
+			// (`browser/density-scope.test.tsx` checks the computed step).
+			const slot = present(getBadges(container)[0]?.closest('[data-density]'), 'slot')
 
-	it('steps badges down from the density-resolved size when size is omitted', () => {
-		// Default density is md; the badge takes the scope of the prefix slot.
+			expect(slot).toHaveAttribute('data-density', 'slot')
+
+			expect(slot.parentElement?.closest('[data-density]')).toHaveAttribute(
+				'data-density',
+				controlSize,
+			)
+		},
+	)
+
+	it('puts the badges in a slot under no explicit scope when size is omitted', () => {
 		const { container } = renderUI(<TagInput defaultValue={['react']} />)
 
-		expect(getBadges(container)[0]?.closest('[data-density]')).toHaveAttribute('data-density', 'sm')
+		const slot = present(getBadges(container)[0]?.closest('[data-density]'), 'slot')
+
+		expect(slot).toHaveAttribute('data-density', 'slot')
+
+		expect(slot.parentElement?.closest('[data-density]')).toBeNull()
 	})
 
 	it('adds a tag on Enter', async () => {

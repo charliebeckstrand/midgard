@@ -1,14 +1,10 @@
 /**
- * Control archetype: size axis. Text + icon dimension; padding lives in
- * `density`.
+ * Control archetype: size axis. The text size, in the stepped `textRamp`
+ * class. The padding is in `density`.
  *
  * Layer: kiso · Archetype: control · Concern: size
  */
 
-import { ji } from '../ji'
+import { textRamp } from '../ji'
 
-export const size = {
-	sm: ji.size.sm,
-	md: ji.size.md,
-	lg: ji.size.lg,
-} as const
+export const size = textRamp

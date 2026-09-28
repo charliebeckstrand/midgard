@@ -15,9 +15,15 @@
  * depth: its rung is in the layer of depth 1 with no specificity of its own, so
  * each other scope wins over it, and the trees keep each ranked depth. With
  * no step on the root, the `md` step applies outside each scope.
+ *
+ * A control slot, such as the prefix of an Input, is an element with
+ * `data-density="slot"`. It is a scope one step below the scope above it
+ * (`stepDown`), so a slot needs no step in JS. The slot counts as one depth,
+ * and its rung names the step of the scope above it. A slot in a slot takes
+ * the step of the outer slot, because a rung reads one slot after a scope.
  */
 
-import { type DensityStep, densitySteps } from './steps'
+import { type DensityStep, densitySteps, stepDown } from './steps'
 
 /** A CSS rule in the object form of the plugin API. */
 type CssInJs = { [key: string]: string | CssInJs }
@@ -28,8 +34,18 @@ const maxDepth = 6
 /** Excludes the root element, which is the scope of the app and ranks below each depth. */
 const notRoot = ':not(:root)'
 
-/** A density scope under the root. */
+/** A density scope under the root: an explicit scope or a control slot. */
 const scope = `[data-density]${notRoot}`
+
+/** A control slot: a scope one step below the scope above it. */
+const slot = "[data-density='slot']"
+
+/** Matches an element with one of `steps` on `data-density`. */
+function stepIn(steps: readonly DensityStep[]): string {
+	const each = steps.map((step) => `[data-density='${step}']`)
+
+	return each.length === 1 ? `${each[0]}` : `:is(${each.join(', ')})`
+}
 
 /**
  * The rungs of a set of steps, keyed by the layer of each depth. Each rung
@@ -38,20 +54,40 @@ const scope = `[data-density]${notRoot}`
 export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 	const layers: CssInJs = {}
 
+	const own = stepIn(steps)
+
+	// The steps whose slots take one of `steps`.
+	const hosts = densitySteps.filter((host) => steps.includes(stepDown(host)))
+
+	const host = hosts.length > 0 ? stepIn(hosts) : null
+
 	for (let depth = 1; depth <= maxDepth; depth++) {
 		const above = `${scope} `.repeat(depth - 1)
 
-		const selectors = steps.flatMap((step) => [
-			`${above}[data-density='${step}']${notRoot} &`,
-			`${above}&[data-density='${step}']${notRoot}`,
-		])
+		const selectors = [`${above}${own}${notRoot} &`, `${above}&${own}${notRoot}`]
 
 		if (depth === 1) {
-			for (const step of steps) selectors.push(`:where(:root[data-density='${step}']) &`)
+			selectors.push(`:where(:root${own}) &`)
+
+			if (host) selectors.push(`:where(:root${host}) ${slot} &`, `:where(:root${host}) &${slot}`)
 
 			if (steps.includes('md')) {
 				selectors.push(`:where(:root:not([data-density])) &:not(${scope}, ${scope} *)`)
 			}
+
+			if (hosts.includes('md')) {
+				selectors.push(
+					`:where(:root:not([data-density])) ${slot} &`,
+					`:where(:root:not([data-density])) &${slot}`,
+				)
+			}
+		} else if (host) {
+			const aboveHost = `${scope} `.repeat(depth - 2)
+
+			selectors.push(
+				`${aboveHost}${host}${notRoot} ${slot} &`,
+				`${aboveHost}${host}${notRoot} &${slot}`,
+			)
 		}
 
 		layers[`@layer density-${depth}`] = { [selectors.join(', ')]: body }
