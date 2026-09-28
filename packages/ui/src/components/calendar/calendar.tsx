@@ -13,9 +13,9 @@ import {
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
-import { Density } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/calendar'
+import { Box } from '../../structure/box'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
 import { useFormValue } from '../form/use-form-value'
@@ -264,47 +264,40 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Density step={size}>
-			<div
-				data-slot="calendar"
-				data-size={size}
-				data-density={size}
-				className={cn(k.base, className)}
-			>
-				<CalendarHeader
-					headerRef={headerRef}
-					onHeaderKeyDown={handleHeaderKeyDown}
-					activeIndex={headerActiveIndex}
-					year={year}
-					month={month}
-					today={today}
-					monthLabel={shownLabel}
-					monthLabels={monthLabels}
-					pickerOpen={pickerOpen}
-					onPickerOpenChange={setPickerOpen}
-					onPickerNavigate={navigateTo}
-					onPrevMonth={prevMonth}
-					onNextMonth={nextMonth}
-				/>
+		<Box data-slot="calendar" data-size={size} density={size} className={cn(k.base, className)}>
+			<CalendarHeader
+				headerRef={headerRef}
+				onHeaderKeyDown={handleHeaderKeyDown}
+				activeIndex={headerActiveIndex}
+				year={year}
+				month={month}
+				today={today}
+				monthLabel={shownLabel}
+				monthLabels={monthLabels}
+				pickerOpen={pickerOpen}
+				onPickerOpenChange={setPickerOpen}
+				onPickerNavigate={navigateTo}
+				onPrevMonth={prevMonth}
+				onNextMonth={nextMonth}
+			/>
 
-				<CalendarGrid
-					gridRef={gridRef}
-					onGridKeyDown={handleGridKeyDown}
-					weekdays={weekdays}
-					days={shownDays}
-					firstDayColumn={firstDayColumn}
-					today={today}
-					value={value}
-					activeGridDate={activeGridDate}
-					isDisabled={isDisabled}
-					getDayProps={getDayProps}
-					onSelect={handleSelect}
-					monthLabel={shownLabel}
-					localeTag={localeTag}
-					listboxId={listboxId}
-					activeDescendantId={activeDescendantId}
-				/>
-			</div>
-		</Density>
+			<CalendarGrid
+				gridRef={gridRef}
+				onGridKeyDown={handleGridKeyDown}
+				weekdays={weekdays}
+				days={shownDays}
+				firstDayColumn={firstDayColumn}
+				today={today}
+				value={value}
+				activeGridDate={activeGridDate}
+				isDisabled={isDisabled}
+				getDayProps={getDayProps}
+				onSelect={handleSelect}
+				monthLabel={shownLabel}
+				localeTag={localeTag}
+				listboxId={listboxId}
+				activeDescendantId={activeDescendantId}
+			/>
+		</Box>
 	)
 }

@@ -4,7 +4,7 @@ import { type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Density } from '../../primitives/density'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/sidebar'
@@ -150,43 +150,42 @@ export function SidebarItem({
 	)
 
 	return (
-		<Wrapper
+		<PolymorphicStatic
+			as={Wrapper}
 			ref={itemRef as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
 			data-size={size}
-			data-density={size}
+			density={size}
 			className={k.item.row({ affix: hasAffix })}
 			{...tapHandlers}
 		>
-			<Density step={size}>
-				{prefix != null && (
-					<span data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
-						{prefix}
-					</span>
+			{prefix != null && (
+				<span data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+					{prefix}
+				</span>
+			)}
+			<HeadlessProvider>
+				{mini ? (
+					// The label renders twice: visually hidden inside the rail button
+					// (keeping the accessible name) and as the tooltip surface.
+					<Tooltip placement="right">
+						<TooltipTrigger>{inner}</TooltipTrigger>
+						<TooltipContent>{tooltip}</TooltipContent>
+					</Tooltip>
+				) : (
+					inner
 				)}
-				<HeadlessProvider>
-					{mini ? (
-						// The label renders twice: visually hidden inside the rail button
-						// (keeping the accessible name) and as the tooltip surface.
-						<Tooltip placement="right">
-							<TooltipTrigger>{inner}</TooltipTrigger>
-							<TooltipContent>{tooltip}</TooltipContent>
-						</Tooltip>
-					) : (
-						inner
-					)}
-				</HeadlessProvider>
-				{resolvedSuffix != null && (
-					<span data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
-						{resolvedSuffix}
-					</span>
-				)}
-				{isCurrent && (
-					// A current affixed row re-draws its focus ring on the active indicator,
-					// the topmost full-row surface; a plain row keeps the default.
-					<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
-				)}
-			</Density>
-		</Wrapper>
+			</HeadlessProvider>
+			{resolvedSuffix != null && (
+				<span data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+					{resolvedSuffix}
+				</span>
+			)}
+			{isCurrent && (
+				// A current affixed row re-draws its focus ring on the active indicator,
+				// the topmost full-row surface; a plain row keeps the default.
+				<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
+			)}
+		</PolymorphicStatic>
 	)
 }

@@ -96,46 +96,6 @@ describe('density-native boundary', () => {
 	)
 })
 
-// A density scope has two channels: `data-density` for the stepped classes and
-// the density context for a client reader. A context scope with no attribute
-// gives the two channels different steps. So each file that opens the context
-// with `<Density step>` also writes `data-density`, once for each scope. A
-// control slot is a scope in CSS only: it writes `data-density="slot"` and
-// opens no context, so a panel that the slot opens takes the step of its host.
-//
-// The grid is the one exception. Its overlay scope, `GridOverlayDensity`, wraps
-// a surface that writes its own `data-density`.
-
-const CONTEXT_SCOPE = /<Density\s+step=/g
-
-const ATTRIBUTE = /data-density/g
-
-const CONTEXT_ONLY = new Set(['modules/grid/grid-region.tsx'])
-
-describe('density scope parity', () => {
-	it('each context scope also writes data-density', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!file.endsWith('.tsx')) return
-
-			const rel = srcRelative(file)
-
-			if (CONTEXT_ONLY.has(rel)) return
-
-			const text = stripSourceComments(content)
-
-			const scopes = text.match(CONTEXT_SCOPE)?.length ?? 0
-
-			const attributes = text.match(ATTRIBUTE)?.length ?? 0
-
-			if (scopes > attributes) violations.push(`${rel}: ${scopes} scopes, ${attributes} attributes`)
-		})
-
-		expect(violations).toEqual([])
-	})
-})
-
 /** The source files whose code, with the comments removed, matches `pattern`. */
 function filesMatching(pattern: RegExp): string[] {
 	const files: string[] = []
@@ -148,6 +108,35 @@ function filesMatching(pattern: RegExp): string[] {
 
 	return files.sort()
 }
+
+// A density scope has two channels: `data-density` for the stepped classes and
+// the density context for a client reader. A scope is the `density` prop of the
+// host primitive (PolymorphicStatic, Box, ControlFrame, PopoverPanel, or
+// FloatingSurface), which writes both channels in one place. Only the files
+// below open the context by hand:
+//
+//   - The primitives that own the prop.
+//   - Button, whose element is the registered link or a `<button>`, and Drawer,
+//     whose element is a `motion.div`. Each writes both channels itself.
+//   - The grid's `GridOverlayDensity`, a context-only relay around a surface
+//     that writes its own `data-density`.
+
+const CONTEXT_OPENERS = [
+	'components/button/button.tsx',
+	'components/drawer/drawer.tsx',
+	'modules/grid/grid-region.tsx',
+	'primitives/floating-surface/floating-surface.tsx',
+	'primitives/polymorphic/polymorphic-static.tsx',
+	'primitives/popover/popover-panel.tsx',
+]
+
+const CONTEXT_OPEN = /<Density\b/
+
+describe('density scopes', () => {
+	it('only the listed files open the density context by hand', () => {
+		expect(filesMatching(CONTEXT_OPEN)).toEqual(CONTEXT_OPENERS)
+	})
+})
 
 // A class selects a density step through the `density-*` variants and the
 // stepped utilities. Those rank each match by the depth of its scope. A

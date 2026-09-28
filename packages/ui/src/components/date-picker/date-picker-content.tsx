@@ -35,8 +35,8 @@ type DatePickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
-	 * The explicit size step of `<DatePicker>`. The body opens a density scope at
-	 * it. Without it, the panel takes the step of the nearest density scope of
+	 * The explicit size step of `<DatePicker>`. A step makes the panel a density
+	 * scope. Without it, the panel takes the step of the nearest density scope of
 	 * the picker, which the portal carries.
 	 */
 	size?: DensityStep
@@ -82,8 +82,8 @@ type DatePickerContentProps = {
 /**
  * Portaled, animated modal dialog shell for the picker popover. It wires
  * `FloatingFocusManager`, and it seeds focus on the dialog container (not its
- * first tabbable) for the virtual-highlight model. Its body Box is a density
- * scope at `size`.
+ * first tabbable) for the virtual-highlight model. An explicit `size` makes
+ * the panel a density scope.
  *
  * @remarks
  * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
@@ -154,6 +154,7 @@ export function DatePickerContent({
 		// the pointer.
 		<FloatingSurface
 			open={open}
+			density={size}
 			onExitComplete={onExitComplete}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
@@ -176,7 +177,6 @@ export function DatePickerContent({
 				onMouseDown={(event) => event.preventDefault()}
 			>
 				<Box
-					density={size}
 					bg={glass ? 'none' : 'popover'}
 					outline={glass || undefined}
 					radius="lg"

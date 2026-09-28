@@ -5,8 +5,8 @@ import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
+import { Box } from '../../structure/box'
 import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope. */
@@ -86,15 +86,15 @@ export function Tabs({
 		<CurrentContext value={context}>
 			<CurrentStoreContext value={store}>
 				<TabsContext value={tabsContext}>
-					<div
+					<Box
 						data-slot="tab-group"
 						data-orientation={resolvedOrientation}
-						data-density={size}
+						density={size}
 						className={cn(k.group({ orientation: resolvedOrientation }), className)}
 						{...props}
 					>
-						<Density step={size}>{children}</Density>
-					</div>
+						{children}
+					</Box>
 				</TabsContext>
 			</CurrentStoreContext>
 		</CurrentContext>

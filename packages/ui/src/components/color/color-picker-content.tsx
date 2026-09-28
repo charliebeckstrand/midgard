@@ -16,14 +16,14 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
-	/** The explicit size step. The body Box opens a density scope at it. Without it, the panel takes the step of the scope that the portal carries. */
+	/** The explicit size step. A step makes the panel a density scope. Without it, the panel takes the step of the scope that the portal carries. */
 	size?: DensityStep
 	children: ReactNode
 }
 
 /**
  * Portals the picker panel into a focus-managed, animated floating dialog
- * positioned by Floating UI. An explicit `size` makes the body a density scope,
+ * positioned by Floating UI. An explicit `size` makes the panel a density scope,
  * and the panel adopts glass styling from context.
  *
  * @remarks
@@ -53,6 +53,7 @@ export function ColorPickerContent({
 		// that this panel had before it moved onto the surface.
 		<FloatingSurface
 			open={open}
+			density={size}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
@@ -71,13 +72,7 @@ export function ColorPickerContent({
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
-				<Box
-					density={size}
-					bg={glass ? 'none' : 'popover'}
-					outline={glass || undefined}
-					radius="lg"
-					p="md"
-				>
+				<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
 					{children}
 				</Box>
 			</motion.div>

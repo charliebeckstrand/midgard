@@ -3,9 +3,9 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { Density } from '../../primitives/density'
 import type { GroupOrientation } from '../../recipes'
 import { k } from '../../recipes/kata/group'
+import { Box } from '../../structure/box'
 import { useGroup } from './use-group'
 
 type GroupBaseProps = {
@@ -54,15 +54,15 @@ export function Group({
 	const stamped = useGroup(children, orientation)
 
 	return (
-		<div
+		<Box
 			data-slot="group"
 			data-size={size}
-			data-density={size}
+			density={size}
 			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
-			<Density step={size}>{stamped}</Density>
-		</div>
+			{stamped}
+		</Box>
 	)
 }

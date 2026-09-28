@@ -4,9 +4,9 @@ import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRe
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
-import { Density } from '../../primitives/density'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/tree'
+import { Box } from '../../structure/box'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
@@ -89,20 +89,18 @@ export function Tree({
 
 	return (
 		<TreeContext value={rootContextValue}>
-			<Density step={size}>
-				<div
-					{...labelProps}
-					ref={ref}
-					role="tree"
-					data-slot="tree"
-					data-size={size}
-					data-density={size}
-					className={cn(k.base, className)}
-					onKeyDown={handleKeyDown}
-				>
-					{stampTreePositions(children)}
-				</div>
-			</Density>
+			<Box
+				{...labelProps}
+				ref={ref}
+				role="tree"
+				data-slot="tree"
+				data-size={size}
+				density={size}
+				className={cn(k.base, className)}
+				onKeyDown={handleKeyDown}
+			>
+				{stampTreePositions(children)}
+			</Box>
 		</TreeContext>
 	)
 }

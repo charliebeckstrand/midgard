@@ -121,7 +121,7 @@ export function Input({
 			prefix={prefix}
 			suffix={suffix}
 			variant={resolvedVariant}
-			scope={size}
+			density={size}
 			dataGroup={dataGroup}
 			dataGroupOrientation={dataGroupOrientation}
 		/>

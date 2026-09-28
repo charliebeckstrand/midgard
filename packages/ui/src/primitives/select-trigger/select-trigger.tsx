@@ -6,7 +6,7 @@ import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
-import { Density } from '../density'
+import { PolymorphicStatic } from '../polymorphic'
 
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
@@ -64,43 +64,38 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<div
+		<PolymorphicStatic
+			as="div"
 			data-slot={slot}
-			data-density={size}
+			density={size}
 			ref={setReference}
 			className={cn(className)}
 			{...getReferenceProps()}
 		>
-			<Density step={size}>
-				<ControlFrame
-					data-open={dataAttr(open)}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && k.surface.default)}
-					{...frameProps}
-				>
-					{prefix && (
-						<span
-							data-slot="prefix"
-							data-density="slot"
-							className={cn(k.affix.base, k.affix.prefix)}
-						>
-							{prefix}
-						</span>
-					)}
-					{children}
-					{suffix !== undefined && (
-						<span
-							data-slot="suffix"
-							data-density="slot"
-							className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
-							{...suffixProps}
-						>
-							{suffix}
-						</span>
-					)}
-				</ControlFrame>
-			</Density>
-		</div>
+			<ControlFrame
+				data-open={dataAttr(open)}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				className={cn(!glass && k.surface.default)}
+				{...frameProps}
+			>
+				{prefix && (
+					<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
+						{prefix}
+					</span>
+				)}
+				{children}
+				{suffix !== undefined && (
+					<span
+						data-slot="suffix"
+						data-density="slot"
+						className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
+						{...suffixProps}
+					>
+						{suffix}
+					</span>
+				)}
+			</ControlFrame>
+		</PolymorphicStatic>
 	)
 }

@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Density } from '../../primitives/density'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { type DensityLevel, levelToStep } from './context'
 
 /** Props for {@link DensityProvider}: the friendly `density` level to broadcast, and `children`. */
@@ -29,10 +29,8 @@ export function DensityProvider({ density, children }: DensityProviderProps) {
 	const step = levelToStep[density]
 
 	return (
-		<Density step={step}>
-			<span data-slot="density" data-density={step} className="contents">
-				{children}
-			</span>
-		</Density>
+		<PolymorphicStatic as="span" data-slot="density" density={step} className="contents">
+			{children}
+		</PolymorphicStatic>
 	)
 }

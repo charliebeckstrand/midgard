@@ -5,8 +5,8 @@ import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
+import { Box } from '../../structure/box'
 import {
 	ControlContext,
 	type ControlContextValue,
@@ -101,20 +101,16 @@ export function Control({
 		],
 	)
 
-	const body = (
-		<div
-			data-slot="control"
-			data-density={mergedSize}
-			data-disabled={dataAttr(mergedDisabled)}
-			className={cn(k.field, className)}
-		>
-			{children}
-		</div>
-	)
-
 	return (
 		<ControlContext value={value}>
-			{mergedSize ? <Density step={mergedSize}>{body}</Density> : body}
+			<Box
+				data-slot="control"
+				density={mergedSize}
+				data-disabled={dataAttr(mergedDisabled)}
+				className={cn(k.field, className)}
+			>
+				{children}
+			</Box>
 		</ControlContext>
 	)
 }

@@ -85,6 +85,7 @@ export function PopoverContent({
 	return (
 		<FloatingSurface
 			open={open}
+			density={size}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
@@ -103,7 +104,6 @@ export function PopoverContent({
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Box
-					density={size}
 					bg={glass ? 'none' : 'popover'}
 					radius="lg"
 					outline={glass || undefined}

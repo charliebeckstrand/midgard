@@ -4,7 +4,6 @@ import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
-import { Density } from '../../primitives/density'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
 type InputFrameProps = {
@@ -12,8 +11,8 @@ type InputFrameProps = {
 	prefix: ReactNode
 	suffix: ReactNode
 	variant: InputVariants['variant']
-	/** Raw `size` prop, opening a density scope when set. */
-	scope?: DensityStep
+	/** The `size` of the input. A step makes the frame a density scope. */
+	density?: DensityStep
 	dataGroup?: string
 	dataGroupOrientation?: string
 }
@@ -33,7 +32,7 @@ export function InputFrame({
 	prefix,
 	suffix,
 	variant,
-	scope,
+	density,
 	dataGroup,
 	dataGroupOrientation,
 }: InputFrameProps) {
@@ -44,27 +43,25 @@ export function InputFrame({
 	const hasAffix = hasPrefix || hasSuffix
 
 	return (
-		<Density step={scope}>
-			<ControlFrame
-				data-density={scope}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
-			>
-				{hasPrefix && (
-					<span data-slot="prefix" data-density="slot" className={cn(k.affix, k.prefix)}>
-						{prefix}
-					</span>
-				)}
+		<ControlFrame
+			density={density}
+			data-group={dataGroup}
+			data-group-orientation={dataGroupOrientation}
+			className={cn(k.inputControl({ variant }), hasAffix && k.frame)}
+		>
+			{hasPrefix && (
+				<span data-slot="prefix" data-density="slot" className={cn(k.affix, k.prefix)}>
+					{prefix}
+				</span>
+			)}
 
-				{inputEl}
+			{inputEl}
 
-				{hasSuffix && (
-					<span data-slot="suffix" data-density="slot" className={cn(k.affix, k.suffix)}>
-						{suffix}
-					</span>
-				)}
-			</ControlFrame>
-		</Density>
+			{hasSuffix && (
+				<span data-slot="suffix" data-density="slot" className={cn(k.affix, k.suffix)}>
+					{suffix}
+				</span>
+			)}
+		</ControlFrame>
 	)
 }
