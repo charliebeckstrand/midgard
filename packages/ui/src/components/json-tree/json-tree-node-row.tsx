@@ -3,6 +3,7 @@
 import { dataAttr } from '../../core'
 import { JsonTreeBranchClose } from './json-tree-branch-close'
 import { JsonTreeBranchHeader } from './json-tree-branch-header'
+import { INDENT_REM } from './json-tree-constants'
 import { JsonTreeLeafRow } from './json-tree-leaf-row'
 import type { FlatNode } from './json-tree-utilities'
 
@@ -20,12 +21,14 @@ type JsonNodeRowProps = {
  * Shares visual slots (`json-node`, `json-node-toggle`, `json-close`) and
  * classes with the recursive {@link JsonTreeNode}. The row root carries
  * `data-index`, so the keyboard handler can map a focused row to its flat index.
+ * The flat list has no nested group to pad, so the row root pads its start by
+ * the depth. The padding is the `indent` of a nested group once per depth.
  *
  * @internal
  */
 export function JsonTreeNodeRow({ node, index, onToggle, tabbable }: JsonNodeRowProps) {
 	return (
-		<div data-index={index}>
+		<div data-index={index} style={{ paddingInlineStart: `${node.depth * INDENT_REM}rem` }}>
 			<JsonTreeNodeRowContent node={node} onToggle={onToggle} tabbable={tabbable} />
 		</div>
 	)
@@ -47,7 +50,7 @@ function JsonTreeNodeRowContent({ node, onToggle, tabbable }: Omit<JsonNodeRowPr
 	const isArray = Array.isArray(node.value)
 
 	if (node.type === 'branch-close') {
-		return <JsonTreeBranchClose depth={node.depth} isArray={isArray} />
+		return <JsonTreeBranchClose isArray={isArray} />
 	}
 
 	return (

@@ -456,7 +456,7 @@ describe('TreeItem', () => {
 		expect(row.tabIndex).toBe(0)
 	})
 
-	it('applies indent padding to nested items when the Tree opts in', () => {
+	it('pads each nested group by the indent step when the Tree opts in', () => {
 		const { container } = renderUI(
 			<Tree aria-label="Files" indent>
 				<TreeItem label="Parent" defaultOpen>
@@ -469,15 +469,22 @@ describe('TreeItem', () => {
 
 		expect(rows.length).toBe(2)
 
-		const parent = rows[0] as HTMLElement
+		// The rows carry no inline indent: the nested group pads its start.
+		for (const row of rows) expect(row.style.paddingLeft).toBe('')
 
-		const child = rows[1] as HTMLElement
+		expect(getSlot(container, 'tree-group').className).toContain('density-ps-[6,7,8]')
+	})
 
-		// depth-0 stays at the base inset: 0.5 + 0 * indentStep.md.
-		expect(parent.style.paddingLeft).toBe('0.5rem')
+	it('pads no nested group when the Tree opts out of the indent', () => {
+		const { container } = renderUI(
+			<Tree aria-label="Files" indent={false}>
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+		)
 
-		// depth-1 md item indents by one step: 0.5 + 1 * 1.75 = 2.25rem.
-		expect(child.style.paddingLeft).toBe('2.25rem')
+		expect(getSlot(container, 'tree-group').className).not.toContain('density-ps-')
 	})
 
 	it('marks a current TreeItem with aria-current', () => {

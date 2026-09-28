@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { memo, useMemo, useState } from 'react'
-import { dataAttr } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useKeyedValue } from '../../hooks/use-keyed-store'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/json-tree'
@@ -183,12 +183,15 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 				<AnimatePresence initial={false}>
 					{open && (
 						<motion.div role="group" data-slot="json-group" {...k.motion} className={k.group}>
-							<JsonTreeContext value={childContextValue}>
-								{visibleEntries.map(([childKey, childValue]) => (
-									<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
-								))}
-							</JsonTreeContext>
-							<JsonTreeBranchClose depth={depth} isArray={isArray} />
+							{/* The children are one depth in, and the close bracket aligns with the header. */}
+							<div className={cn(k.indent)}>
+								<JsonTreeContext value={childContextValue}>
+									{visibleEntries.map(([childKey, childValue]) => (
+										<JsonTreeNode key={String(childKey)} keyName={childKey} value={childValue} />
+									))}
+								</JsonTreeContext>
+							</div>
+							<JsonTreeBranchClose isArray={isArray} />
 						</motion.div>
 					)}
 				</AnimatePresence>

@@ -36,6 +36,8 @@ const spacingProperties = {
 	pb: ['padding-bottom'],
 	ps: ['padding-inline-start'],
 	pe: ['padding-inline-end'],
+	ms: ['margin-inline-start'],
+	me: ['margin-inline-end'],
 	gap: ['gap'],
 	'gap-x': ['column-gap'],
 	'gap-y': ['row-gap'],

@@ -16,9 +16,8 @@ import {
 	SidebarSection,
 } from '../../../components/sidebar'
 import { Text } from '../../../components/text'
-import { cn, toAmbientStep } from '../../../core'
+import { cn } from '../../../core'
 import { useScrollWithin } from '../../../hooks'
-import { useDensityStep } from '../../../primitives/density'
 import { OffcanvasContext } from '../../../primitives/offcanvas'
 import { Flex } from '../../../structure/flex'
 import { navigate } from '../hooks/use-hash'
@@ -27,14 +26,10 @@ import { titleCase } from './format'
 
 const SEARCH_PAGE_SIZE = 20
 
-// Section-label horizontal inset, by density size. Aligns the label text with
-// item text; mirrors the `ui` sidebar kata's `section.label` stops without
-// reaching into ui's private recipe surface.
-const SECTION_LABEL_PX: Record<string, string> = {
-	sm: 'px-ring-1.5',
-	md: 'px-ring-2',
-	lg: 'px-ring-2.5',
-}
+// Section-label horizontal inset at the step of the nearest density scope.
+// Aligns the label text with item text; mirrors the padding of the `ui` sidebar
+// item without reaching into ui's private recipe surface.
+const SECTION_LABEL_PX = 'density-px-ring-[1.5,2,2.5]'
 
 // Categories present in the demo set, rendered top to bottom: 'components'
 // first, then any others alphabetically. Derived from the demos themselves so a
@@ -134,9 +129,6 @@ export function SidebarContent({ route }: { route: string }) {
 
 	const scrollWithin = useScrollWithin()
 
-	// Aligns each section label with item text at the active density.
-	const size = toAmbientStep(useDensityStep())
-
 	const [searchLimit, setSearchLimit] = useState(SEARCH_PAGE_SIZE)
 
 	// Stable so SearchLoadMore's IntersectionObserver isn't torn down and re-observed
@@ -213,7 +205,7 @@ export function SidebarContent({ route }: { route: string }) {
 					<SidebarSection key={category}>
 						<Text
 							tone="muted"
-							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX[size])}
+							className={cn('mb-2 text-sm uppercase tracking-wide', SECTION_LABEL_PX)}
 						>
 							{label}
 						</Text>

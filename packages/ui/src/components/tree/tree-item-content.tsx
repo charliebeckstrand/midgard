@@ -33,7 +33,7 @@ type TreeItemContentProps = {
  * optional `icon`, `label`, and `prefix`/`suffix` slots. Toggles expansion on a
  * branch row. On a leaf row it forwards clicks and `Enter`/`Space` to the first
  * interactive control in the `prefix` slot. `ArrowRight` and `ArrowLeft` expand
- * and collapse. Reads depth, size, indent, and ARIA position from tree context.
+ * and collapse. Reads depth and ARIA position from tree context.
  *
  * @internal
  */
@@ -49,11 +49,9 @@ export function TreeItemContent({
 	onOpenChange,
 	className,
 }: TreeItemContentProps) {
-	const { depth, size, indent } = useTreeContext()
+	const { depth } = useTreeContext()
 
 	const { posinset, setsize } = useTreePosition()
-
-	const paddingLeft = indent ? `${0.5 + depth * k.indentStep[size]}rem` : '0.5rem'
 
 	const toggle = () => {
 		if (hasChildren) onOpenChange(!open)
@@ -131,19 +129,17 @@ export function TreeItemContent({
 			data-open={dataAttr(open)}
 			className={cn(
 				'group/tree-item',
-				k.item.content({ size }),
+				k.item.content(),
 				current && k.item.content.current,
 				className,
 			)}
-			style={{ paddingLeft }}
 			onClick={handleClick}
 			onKeyDown={handleKeyDown}
 		>
-			<span className={k.chevron({ size })} aria-hidden="true">
+			<span className={cn(k.chevron)} aria-hidden="true">
 				{hasChildren && (
 					<Icon
 						icon={<ChevronRight />}
-						size={size}
 						className={cn('rtl:-scale-x-100', open && 'rotate-90 rtl:-rotate-90')}
 					/>
 				)}
@@ -153,7 +149,7 @@ export function TreeItemContent({
 					{prefix}
 				</span>
 			)}
-			{icon && <Icon icon={icon} size={size} />}
+			{icon && <Icon icon={icon} />}
 			<span className={k.label}>{label}</span>
 			{suffix != null && (
 				<span data-slot="tree-item-suffix" className={k.affix}>

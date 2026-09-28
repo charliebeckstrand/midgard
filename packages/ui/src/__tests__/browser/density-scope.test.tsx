@@ -8,17 +8,21 @@ import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
+import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Radio } from '../../components/radio'
 import { Rating } from '../../components/rating'
+import { SidebarItem } from '../../components/sidebar'
 import { Slider, SliderSkeleton } from '../../components/slider'
 import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
+import { Tree, TreeItem } from '../../components/tree'
 import { SidebarLayout } from '../../layouts/sidebar'
+import { ChatListItem } from '../../modules/chat'
 import { Option } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
@@ -367,6 +371,124 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Input aria-label="Name" prefix="$" />)
 
 		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(13)
+
+		container.remove()
+	})
+})
+
+describe('items and slots at the first paint (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	/** Mounts the server markup of `element` with no hydration. */
+	const mountMarkup = (element: ReactElement) => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToStaticMarkup(element)
+
+		document.body.append(container)
+
+		return container
+	}
+
+	type Property = 'fontSize' | 'paddingTop' | 'paddingInlineStart' | 'marginInlineEnd' | 'width'
+
+	const px = (element: Element | null, property: Property) =>
+		Number.parseFloat(getComputedStyle(present(element, 'element'))[property])
+
+	const icon = (
+		<Icon
+			icon={
+				<svg viewBox="0 0 1 1" aria-hidden="true">
+					<title>icon</title>
+				</svg>
+			}
+		/>
+	)
+
+	it('sizes an unsized sidebar item and its icon at the step of the root', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(<SidebarItem icon={icon}>Home</SidebarItem>)
+
+		const inner = container.querySelector('[data-slot="sidebar-item-inner"]')
+
+		expect(px(inner, 'fontSize')).toBe(14)
+
+		// The row padding wins over the label padding of the inner Button.
+		expect(px(inner, 'paddingTop')).toBe(5)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+
+		container.remove()
+	})
+
+	it('lets an explicit size of a sidebar item win over the root', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<SidebarItem size="sm">Home</SidebarItem>)
+
+		expect(px(container.querySelector('[data-slot="sidebar-item-inner"]'), 'fontSize')).toBe(14)
+
+		container.remove()
+	})
+
+	it('steps a sidebar item suffix one step below the item and insets it at the item step', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<SidebarItem suffix={<Button>Edit</Button>}>Home</SidebarItem>)
+
+		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
+
+		expect(
+			px(container.querySelector('[data-slot="sidebar-item-suffix"]'), 'marginInlineEnd'),
+		).toBe(10)
+
+		container.remove()
+	})
+
+	it('steps the chat list item actions one step below the root', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<ChatListItem title="Chat" actions={<Button>Delete</Button>} />)
+
+		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
+
+		container.remove()
+	})
+
+	it.each<[string, ReactElement, number, number]>([
+		[
+			'the root',
+			<Tree key="t" aria-label="Files">
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+			14,
+			24,
+		],
+		[
+			'an explicit size',
+			<Tree key="t" aria-label="Files" size="lg">
+				<TreeItem label="Parent" defaultOpen>
+					<TreeItem label="Child" />
+				</TreeItem>
+			</Tree>,
+			18,
+			32,
+		],
+	])('sizes and indents a tree at the step of %s', (_, element, font, indent) => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(element)
+
+		expect(px(container.querySelector('[data-slot="tree-item-content"]'), 'fontSize')).toBe(font)
+
+		expect(px(container.querySelector('[data-slot="tree-group"]'), 'paddingInlineStart')).toBe(
+			indent,
+		)
 
 		container.remove()
 	})

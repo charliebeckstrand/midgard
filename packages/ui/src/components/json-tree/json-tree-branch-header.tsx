@@ -2,7 +2,6 @@ import { ChevronRight } from 'lucide-react'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
 import { Icon } from '../icon'
-import { INDENT_REM } from './json-tree-constants'
 import { NodeKey } from './json-tree-utilities'
 
 type JsonTreeBranchHeaderProps = {
@@ -35,15 +34,13 @@ export function JsonTreeBranchHeader({
 	tabbable,
 	onToggle,
 }: JsonTreeBranchHeaderProps) {
-	const paddingLeft = `${depth * INDENT_REM}rem`
-
 	const openBracket = isArray ? '[' : '{'
 	const closeBracket = isArray ? ']' : '}'
 
 	const summary = count === 0 ? '' : count === 1 ? '1 item' : `${count} items`
 
 	return (
-		<div className={cn(k.row)} style={{ paddingLeft }}>
+		<div className={cn(k.row)}>
 			<button
 				type="button"
 				role="treeitem"

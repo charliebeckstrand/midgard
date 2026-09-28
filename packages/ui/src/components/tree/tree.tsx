@@ -1,9 +1,9 @@
 'use client'
 
 import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useA11yRoving } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import type { Mount } from '../../primitives/mount'
 import { k, type TreeSize } from '../../recipes/kata/tree'
 import type { AccessibleName } from '../../types'
@@ -18,12 +18,13 @@ export type TreeProps = AccessibleName &
 		'className' | 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'
 	> & {
 		/**
-		 * Controls icon size and text size for all items.
-		 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+		 * Size step of the icons, the text, and the indent of all items. It opens
+		 * a density scope on the tree. Without it, the tree takes the step of the
+		 * nearest density scope.
 		 */
 		size?: TreeSize
 		/**
-		 * Indent each depth by the chevron width plus the row gap.
+		 * Indent each nested group by the chevron width plus the row gap.
 		 * @defaultValue true
 		 */
 		indent?: boolean
@@ -44,7 +45,7 @@ export type TreeProps = AccessibleName &
 		className?: string
 	}
 
-/** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth, size, and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
+/** Root of a `role="tree"` with roving-tabindex keyboard navigation. It keeps the first item tabbable across open/close and filtering, and shares depth and `indent` to nested items via context. Requires `aria-label`/`aria-labelledby`. */
 export function Tree({
 	size,
 	indent = true,
@@ -83,25 +84,24 @@ export function Tree({
 		rovingKeyDown(event)
 	}
 
-	const resolvedSize: TreeSize = toAmbientStep(useDensityStep(size))
-
-	const rootContextValue = useMemo(
-		() => ({ depth: 0, size: resolvedSize, indent, mount }),
-		[resolvedSize, indent, mount],
-	)
+	const rootContextValue = useMemo(() => ({ depth: 0, indent, mount }), [indent, mount])
 
 	return (
 		<TreeContext value={rootContextValue}>
-			<div
-				{...labelProps}
-				ref={ref}
-				role="tree"
-				data-slot="tree"
-				className={cn(k.base, className)}
-				onKeyDown={handleKeyDown}
-			>
-				{stampTreePositions(children)}
-			</div>
+			<Density step={size}>
+				<div
+					{...labelProps}
+					ref={ref}
+					role="tree"
+					data-slot="tree"
+					data-size={size}
+					data-density={size}
+					className={cn(k.base, className)}
+					onKeyDown={handleKeyDown}
+				>
+					{stampTreePositions(children)}
+				</div>
+			</Density>
 		</TreeContext>
 	)
 }

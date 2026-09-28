@@ -13,6 +13,11 @@ export const k = defineRecipe(
 			'inline-grid place-items-center align-middle overflow-hidden',
 			'*:col-start-1 *:row-start-1',
 			rounded.full,
+			// With no `size`, the avatar takes the `md` box under `density-any`. That
+			// rank is below each step, so a parent that sizes its avatars with
+			// stepped classes, such as SidebarItem, wins over the default. An
+			// explicit `size` is a plain class and wins over both.
+			'density-any:size-9',
 		],
 		variant: {
 			solid: 'border border-transparent text-white',
@@ -21,7 +26,7 @@ export const k = defineRecipe(
 		},
 		size: avatar,
 		palette: definePalette(basePalette(palette)),
-		defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+		defaults: { variant: 'solid', color: 'zinc' },
 		skeleton: kokkaku.avatar,
 	},
 	{

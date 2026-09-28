@@ -1,9 +1,9 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, dataAttr, stepDown, toAmbientStep } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Density, useDensityStep } from '../../primitives/density'
+import { DensitySlot } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
@@ -41,9 +41,9 @@ export type ChatListItemProps = {
  * so its rows morph against each other rather than any indicator outside the list.
  * Inside a {@link ChatList} the row is an `<li>` and joins the list's roving-tabindex
  * keyboard model; standalone it is a `<div>`.
- * `actions` render at a stepped-down size, broadcast through an `Affix`: `sm` at
- * the ambient `md` Density. A passed-in `Button` therefore needs no explicit
- * `size` to match.
+ * `actions` render in a slot scope, one step below the nearest density scope:
+ * `sm` at `md`. A passed-in `Button` therefore needs no explicit `size` to
+ * match.
  */
 export function ChatListItem({
 	title,
@@ -57,8 +57,6 @@ export function ChatListItem({
 	const inList = useInChatList()
 
 	const Wrapper = inList ? 'li' : 'div'
-
-	const step = toAmbientStep(useDensityStep())
 
 	const body = (
 		<>
@@ -90,8 +88,8 @@ export function ChatListItem({
 			)}
 
 			{actions !== undefined && (
-				<div data-slot="chat-list-item-actions" data-density={stepDown(step)} className={k.actions}>
-					<Density step={stepDown(step)}>{actions}</Density>
+				<div data-slot="chat-list-item-actions" data-density="slot" className={k.actions}>
+					<DensitySlot>{actions}</DensitySlot>
 				</div>
 			)}
 

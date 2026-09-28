@@ -1,12 +1,12 @@
 /**
- * Tree kata: object-literal surface for the `<Tree>` treeview. Size-axed
- * sub-recipes carry the `item.content` row and its `chevron`; the static slots
- * cover the `base` container, `affix`, `label`, and `group`. The
- * `indentStep` map sets per-depth indent in rem, and `motion` is the collapse
+ * Tree kata: object-literal surface for the `<Tree>` treeview. The
+ * `item.content` row and its `chevron` take the step of the nearest density
+ * scope. The static slots cover the `base` container, `affix`, `label`, and
+ * `group`. `indent` pads each nested group, and `motion` is the collapse
  * transition.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, narabi, type Step, sen, stepSize, ugoki } from '../kiso'
+import { hannou, iro, kasane, narabi, type Step, sen, textRamp, ugoki } from '../kiso'
 
 const { cursor, fg } = hannou
 const { text } = iro
@@ -31,22 +31,21 @@ const itemContent = defineRecipe(
 			...cursor,
 			'select-none',
 			...mode('data-[open]:text-zinc-950', 'dark:data-[open]:text-white'),
+			textRamp,
 		],
-		size: stepSize,
-		defaults: { size: 'md' },
 	},
 	{ current: text.default },
 )
 
-const chevron = defineRecipe({
-	base: ['flex-none', flex.row, 'justify-center', css.transform, css.duration],
-	size: {
-		sm: 'w-4',
-		md: 'w-5',
-		lg: 'w-6',
-	},
-	defaults: { size: 'md' },
-})
+/** The chevron column. Its width is the icon size of the step. */
+const chevron = [
+	'flex-none',
+	flex.row,
+	'justify-center',
+	'density-w-[4,5,6]',
+	css.transform,
+	css.duration,
+]
 
 export const k = {
 	base: [
@@ -63,11 +62,10 @@ export const k = {
 	affix: 'flex flex-none items-center',
 	label: 'flex-1 truncate text-start',
 	group: 'overflow-hidden',
-	/** Per-depth indent in rem when `indent` is enabled. Equals chevron width + row gap. */
-	indentStep: {
-		sm: 1.5,
-		md: 1.75,
-		lg: 2,
-	},
+	/**
+	 * The start padding of a nested group when `indent` is enabled. It equals
+	 * the chevron width plus the row gap, so each depth adds one step of it.
+	 */
+	indent: 'density-ps-[6,7,8]',
 	motion: collapse.fade,
 } as const
