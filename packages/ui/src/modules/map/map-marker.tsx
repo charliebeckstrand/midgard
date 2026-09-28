@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
@@ -66,6 +66,9 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		[path, startLng, startLat, endLng, endLat],
 	)
 
+	// Held on `points`, because a new identity tells the plat's pool that the pins moved.
+	const stops = useCallback(() => lineAnchor(points), [points])
+
 	const {
 		slot,
 		hidden,
@@ -81,7 +84,7 @@ export function MapMarker({ start, end, path, ...shared }: MapMarkerProps) {
 		...shared,
 		kind: 'marker',
 		swatch: 'line',
-		stops: () => lineAnchor(points),
+		stops,
 	})
 
 	// Memoized so a hover-driven re-render (the plat's pointer state churns the

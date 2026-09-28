@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, memo, useMemo } from 'react'
+import { Fragment, memo, useCallback, useMemo } from 'react'
 import { cn } from '../../core'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { getOrCompute, rangeKeys } from '../../utilities'
@@ -374,13 +374,19 @@ export function MapPoints({
 		}
 	}
 
+	// A thunk, so the O(N) build — and the spherical centroid behind every
+	// summary's anchor — lands on the one keypress that reads it. Held on the
+	// grouping, because a new identity tells the plat's pool that the dots moved.
+	const stops = useCallback(
+		() => groups.map((group) => clusterAnchor(group.members, positions)),
+		[groups, positions],
+	)
+
 	const { slot, hidden, spare, animate, dim, selected, onPointerLeave, hit } = useMapOverlay({
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		// A thunk, so the O(N) build — and the spherical centroid behind every
-		// summary's anchor — lands on the one keypress that reads it.
-		stops: () => groups.map((group) => clusterAnchor(group.members, positions)),
+		stops,
 		stopRows: rows,
 		// The inverse of `report` above: a pick names the caller's own point, and
 		// this reads back which drawn dot holds it — so the halo and the picked row
