@@ -5,9 +5,6 @@
 	"components/date-input/date-input.tsx": {
 		"DateInput": "Refs"
 	},
-	"components/date-picker/use-date-picker-relative-state.ts": {
-		"useDatePickerRelativeState": "Refs"
-	},
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
 	},
