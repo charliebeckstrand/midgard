@@ -10,9 +10,10 @@ import {
 } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
 import { cn, createContext } from '../../../core'
-import { usePlotFrame } from '../../../hooks'
+import { useComposedRef, usePlotFrame } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
 import { useLocale } from '../../../providers/locale'
+import { k } from '../../../recipes/kata/chart'
 import {
 	type BinScale,
 	type ColorBin,
@@ -25,6 +26,7 @@ import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
 import {
 	BAND_LABEL_HEIGHT,
 	GUTTER_GAP,
+	GUTTER_LABEL_ROOM,
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
@@ -44,6 +46,7 @@ import { isSparkBox } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import { samePoint } from '../engine/context'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
+import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	type HeatmapChartProps,
 	type HeatmapMatrix,
@@ -434,12 +437,21 @@ function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapT
 	)
 }
 
-/** The x (column) and y (row) band-axis tick labels, thinned to fit their axes. @internal */
+/** The classes of a row label, as the y axis draws it. @internal */
+const ROW_LABEL_CLASS = cn(k.tick)
+
+/**
+ * The x (column) and y (row) band-axis tick labels, thinned to fit their axes.
+ * `fitRow` gives each row label as it draws, cut to the gutter.
+ *
+ * @internal
+ */
 function heatmapTicks(
 	matrix: HeatmapMatrix,
 	xBand: BandScale,
 	yBand: BandScale,
 	plot: PlotRect,
+	fitRow: (label: string) => string,
 ): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
 	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
 
@@ -453,7 +465,7 @@ function heatmapTicks(
 
 	const y = thinned(matrix.rows.length, plot.height, BAND_LABEL_HEIGHT).map((index) => ({
 		at: yBand.center(index),
-		label: matrix.rows[index] ?? '',
+		label: fitRow(matrix.rows[index] ?? ''),
 		key: index,
 	}))
 
@@ -480,6 +492,8 @@ function heatmapReadout(matrix: HeatmapMatrix, format: (value: number) => string
 /** Everything {@link HeatmapChart} derives from its props once measured. @internal */
 type HeatmapModel = {
 	ref: React.RefObject<HTMLDivElement | null>
+	/** Attach to an element around the plot, so that the row labels measure in its font. */
+	textHostRef: React.RefObject<HTMLDivElement | null>
 	frameWidth: number
 	frameHeight: number
 	reserve: ReturnType<typeof usePlotFrame>['reserve']
@@ -568,15 +582,22 @@ function useHeatmap<T>(
 		[domain, primary, values],
 	)
 
+	// The rows are proportional category labels, so the gutter holds the width
+	// that each label draws at. A label wider than the room is cut with an
+	// ellipsis. The tooltip and the data table show the full label.
+	const rowText = useChartTextWidth(
+		matrix.rows,
+		ROW_LABEL_CLASS,
+		LABEL_CHAR_WIDTH,
+		GUTTER_LABEL_ROOM,
+	)
+
 	// Memoized so their identity holds across a re-render with unchanged data —
 	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
-	// `fills` memos below, which key off them. The rows are proportional category
-	// labels (day names), not tabular digits, so the gutter reserves at the wider
-	// proportional estimate — else a capital-initial label like "Mon"/"Wed" clips
-	// against the frame's left edge.
+	// `fills` memos below, which key off them.
 	const plot = useMemo(
-		() => plotRect(frameWidth, frameHeight, !spark, matrix.rows, LABEL_CHAR_WIDTH),
-		[frameWidth, frameHeight, matrix.rows, spark],
+		() => plotRect(frameWidth, frameHeight, !spark, matrix.rows, rowText.width),
+		[frameWidth, frameHeight, matrix.rows, spark, rowText.width],
 	)
 
 	const xBand = useMemo(
@@ -613,6 +634,7 @@ function useHeatmap<T>(
 
 	return {
 		ref,
+		textHostRef: rowText.hostRef,
 		frameWidth,
 		frameHeight,
 		reserve,
@@ -629,7 +651,7 @@ function useHeatmap<T>(
 		bins,
 		thresholds,
 		domain,
-		ticks: heatmapTicks(matrix, xBand, yBand, plot),
+		ticks: heatmapTicks(matrix, xBand, yBand, plot, rowText.fit),
 		// A cached thunk ({@link ChartReadoutSource}). The data table and the context
 		// menu's CSV actions call it.
 		readout: cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format)) : null,
@@ -729,6 +751,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 	const {
 		ref,
+		textHostRef,
 		frameWidth,
 		frameHeight,
 		reserve,
@@ -762,6 +785,8 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	// would feed it back on itself and oscillate. A fixed `width` reads
 	// deterministically (SSR, tests); otherwise the observer tracks the container.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
+
+	const rootRef = useComposedRef(containerRef, textHostRef)
 
 	const rangeLegend = resolveRangeLegend(legend, containerWidth, frameHeight)
 
@@ -850,7 +875,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 
 	const heatmapRoot = (
 		<div
-			ref={containerRef}
+			ref={rootRef}
 			data-slot="heatmap"
 			// A touch hold here reads the chart. It does not open the context menu.
 			data-touch-readout=""

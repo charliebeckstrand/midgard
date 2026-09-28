@@ -35,6 +35,7 @@ import {
 	type LinearScale,
 	linearScale,
 } from './chart-scale'
+import type { TextWidth } from './chart-text-width'
 import type { ChartBandAxisMode } from './chart-tier'
 import { timeTicks } from './chart-time'
 
@@ -185,22 +186,34 @@ export type PlotRect = {
  * their widest string estimates reliably from its length at {@link
  * TICK_CHAR_WIDTH} per glyph. Ceil plus edge slack: an estimate rounded down
  * clips the widest label against the SVG's own overflow. The even round-up only
- * ever reserves more, so it never clips either. A caller whose gutter holds
- * proportional category labels instead — the heatmap's rows, not digits —
- * passes a wider `charWidth` ({@link LABEL_CHAR_WIDTH}). A capital-initial label
- * then still clears the frame edge.
- * @param charWidth Per-glyph advance estimate for the labels; defaults to the
- * tabular-digit {@link TICK_CHAR_WIDTH}.
+ * ever reserves more, so it never clips either. Proportional category labels
+ * use {@link labelGutter} instead.
  * @internal
  */
-function tickGutter(labels: string[], charWidth: number = TICK_CHAR_WIDTH): number {
+function tickGutter(labels: string[]): number {
 	const widest = longestLength(labels)
 
 	// Round the count up to an even number so a one-character swing in the widest
 	// label (`8,000` ↔ `40,000`) leaves the gutter where it is — see the doc above.
 	const chars = widest + (widest % 2)
 
-	return Math.min(GUTTER_MAX, Math.ceil(chars * charWidth) + GUTTER_GAP + GUTTER_EDGE_PAD)
+	return Math.min(GUTTER_MAX, Math.ceil(chars * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+}
+
+/**
+ * The y gutter for proportional category labels (the heatmap's rows), from the
+ * width that each label draws at. A proportional font has no one advance that
+ * bounds every label, so the gutter reads each width and not a count of
+ * characters. The widest label ends {@link GUTTER_GAP} before the plot and
+ * starts at the frame edge. A label cut to `GUTTER_LABEL_ROOM` keeps the
+ * gutter at {@link GUTTER_MAX}.
+ *
+ * @internal
+ */
+export function labelGutter(labels: string[], width: TextWidth): number {
+	const widest = labels.reduce((max, label) => Math.max(max, width(label)), 0)
+
+	return widest > 0 ? Math.min(GUTTER_MAX, Math.ceil(widest) + GUTTER_GAP) : 0
 }
 
 /** The character length of the longest label, or 0 for none. @internal */
@@ -214,9 +227,9 @@ function longestLength(labels: string[]): number {
  *
  * @remarks With `axes` off both reservations collapse and the plot fills the
  * frame.
- * @param charWidth Per-glyph advance estimate for the gutter labels; defaults to
- * the tabular-digit {@link TICK_CHAR_WIDTH}. The heatmap passes the wider {@link
- * LABEL_CHAR_WIDTH} for its proportional row labels.
+ * @param labelWidth - The drawn width of a gutter label. Set, the gutter holds
+ * proportional category labels ({@link labelGutter}). Unset, it holds tabular
+ * value ticks, estimated at {@link TICK_CHAR_WIDTH} for each character.
  * @internal
  */
 export function plotRect(
@@ -224,9 +237,13 @@ export function plotRect(
 	height: number,
 	axes: boolean,
 	tickLabels: string[],
-	charWidth: number = TICK_CHAR_WIDTH,
+	labelWidth?: TextWidth,
 ): PlotRect {
-	const gutter = axes ? tickGutter(tickLabels, charWidth) : 0
+	const gutter = !axes
+		? 0
+		: labelWidth
+			? labelGutter(tickLabels, labelWidth)
+			: tickGutter(tickLabels)
 
 	const axisBand = axes ? X_AXIS_HEIGHT : 0
 

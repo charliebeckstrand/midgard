@@ -11,6 +11,7 @@ import { flushSync } from 'react-dom'
 import { createRoot } from 'react-dom/client'
 import { BarChart } from '../../modules/chart/bar-chart'
 import type { ChartSeries, ScatterChartSeries } from '../../modules/chart/engine/types'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
@@ -106,6 +107,61 @@ export function pieCalloutCharts(): Subject<TrendData>[] {
 				data={data.rows}
 				series={[{ xKey: 'label', yKey: 's1' }]}
 				labels={{ callouts: true }}
+				width={WIDTH}
+			/>
+		)),
+	]
+}
+
+/** The row names of the heatmap, one for each series. Two are wider than the gutter room. */
+const HEATMAP_ROWS = [
+	'Organic search',
+	'Direct',
+	'Referral',
+	'Social media',
+	'Email newsletters',
+	'Paid search',
+	'Display',
+	'Other',
+]
+
+/** One heatmap cell: a column, a row, and a value. */
+type HeatmapCell = { col: string; row: string; value: number }
+
+const heatmapCells = new WeakMap<TrendData, HeatmapCell[]>()
+
+/**
+ * The trend in long form: the categories across and one named row for each
+ * series. It is built once for each trend, so the pivot is not on the clock.
+ */
+function heatmapData(data: TrendData): HeatmapCell[] {
+	const hit = heatmapCells.get(data)
+
+	if (hit) return hit
+
+	const cells = data.rows.flatMap((row) =>
+		HEATMAP_ROWS.slice(0, data.values.length).map((name, series) => ({
+			col: String(row.label),
+			row: name,
+			value: Number(row[`s${series + 1}`] ?? 0),
+		})),
+	)
+
+	heatmapCells.set(data, cells)
+
+	return cells
+}
+
+/** The ui heatmap, with the categories across and one named row for each series. */
+export function heatmapCharts(): Subject<TrendData>[] {
+	return [
+		reactSubject('ui HeatmapChart', (data) => (
+			<HeatmapChart
+				aria-label="Bench heatmap"
+				data={heatmapData(data)}
+				series={[
+					{ xKey: 'col', yKey: 'row', colorKey: 'value', colorRange: ['#e0f2fe', '#0369a1'] },
+				]}
 				width={WIDTH}
 			/>
 		)),

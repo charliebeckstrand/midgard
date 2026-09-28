@@ -3,7 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
 	GUTTER_EDGE_PAD,
 	GUTTER_GAP,
-	LABEL_CHAR_WIDTH,
+	GUTTER_LABEL_ROOM,
+	GUTTER_MAX,
 	PLOT_TOP_PAD,
 	TICK_CHAR_WIDTH,
 	X_AXIS_HEIGHT,
@@ -117,20 +118,25 @@ describe('plotRect', () => {
 		expect(plot.height).toBe(240 - PLOT_TOP_PAD)
 	})
 
-	it('widens the gutter for proportional labels passed a wider char width', () => {
-		// Digit ticks size the gutter at TICK_CHAR_WIDTH; proportional category
-		// labels (the heatmap's rows) pass the wider LABEL_CHAR_WIDTH so a
-		// capital-initial label clears the frame edge instead of clipping.
-		const digits = plotRect(400, 240, true, ['Wed'])
+	it('sizes the gutter from the drawn width of proportional labels', () => {
+		// A proportional label passes its drawn width. The widest label ends
+		// GUTTER_GAP before the plot and starts at the frame edge.
+		const width = (label: string) => (label === 'Wednesday' ? 61.4 : 20)
 
-		const labels = plotRect(400, 240, true, ['Wed'], LABEL_CHAR_WIDTH)
+		const plot = plotRect(400, 240, true, ['Mon', 'Wednesday'], width)
 
-		// 'Wed' is 3 chars; the gutter rounds the count up to an even 4 either way.
-		expect(digits.x).toBe(Math.ceil(4 * TICK_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		expect(plot.x).toBe(62 + GUTTER_GAP)
 
-		expect(labels.x).toBe(Math.ceil(4 * LABEL_CHAR_WIDTH) + GUTTER_GAP + GUTTER_EDGE_PAD)
+		expect(plot.width).toBe(400 - plot.x)
+	})
 
-		expect(labels.x).toBeGreaterThan(digits.x)
+	it('caps the gutter of proportional labels at GUTTER_MAX', () => {
+		const plot = plotRect(400, 240, true, ['Organic search'], () => 200)
+
+		expect(plot.x).toBe(GUTTER_MAX)
+
+		// A label cut to the room fills the gutter and does not pass it.
+		expect(plotRect(400, 240, true, ['Organic…'], () => GUTTER_LABEL_ROOM).x).toBe(GUTTER_MAX)
 	})
 
 	it('holds the gutter across a one-character change in the widest label', () => {
