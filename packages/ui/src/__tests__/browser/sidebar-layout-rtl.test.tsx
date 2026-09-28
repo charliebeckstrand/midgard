@@ -4,7 +4,8 @@ import { Sheet, SheetBody } from '../../components/sheet'
 import { cn } from '../../core'
 import { SidebarLayout, SidebarLayoutBody } from '../../layouts'
 import { k as pdf } from '../../recipes/kata/pdf-viewer'
-import { frames, getSlot, present, renderUI } from '../helpers'
+import { frames, present, renderUI } from '../helpers'
+import { settledSheet } from './helpers/settled-sheet'
 
 /**
  * The sidebar sits on the start edge in both directions.
@@ -25,24 +26,6 @@ const DIRECTIONS: Direction[] = ['ltr', 'rtl']
 /** The distance from the start edge of the screen to the start edge of `rect`. */
 function fromStart(rect: DOMRect, dir: Direction): number {
 	return dir === 'rtl' ? window.innerWidth - rect.right : rect.left
-}
-
-/** Waits until the sheet has slid in and stays in the same place. */
-async function settledSheet(): Promise<HTMLElement> {
-	const panel = getSlot(document.body, 'sheet')
-
-	let last = Number.NaN
-
-	await expect
-		.poll(() => {
-			const left = panel.getBoundingClientRect().left
-			const still = left === last
-			last = left
-			return still
-		})
-		.toBe(true)
-
-	return panel
 }
 
 describe('sidebar layout in RTL (real browser)', () => {

@@ -1,6 +1,12 @@
 import babel from '@rolldown/plugin-babel'
 import reactCompiler from 'babel-plugin-react-compiler'
 
+/** The folder of each harness under `src`, as a path segment. */
+const HARNESS = {
+	__tests__: /[\\/]__tests__[\\/]/,
+	__benchmarks__: /[\\/]__benchmarks__[\\/]/,
+}
+
 /**
  * The React Compiler over the `ui` source, for the compiled test run
  * (`vitest.compiler.config.ts`) and the compiled bench run
@@ -20,14 +26,14 @@ import reactCompiler from 'babel-plugin-react-compiler'
  * @param harness - The folder of the harness under `src`: `__tests__` or
  * `__benchmarks__`.
  */
-export function compileUiSource(harness: '__tests__' | '__benchmarks__') {
+export function compileUiSource(harness: keyof typeof HARNESS) {
 	return babel({
 		presets: [
 			{
 				preset: () => ({ plugins: [[reactCompiler, {}]] }),
 				rolldown: {
 					filter: {
-						id: { exclude: [new RegExp(`[\\\\/]${harness}[\\\\/]`), /[\\/]node_modules[\\/]/] },
+						id: { exclude: [HARNESS[harness], /[\\/]node_modules[\\/]/] },
 						// A module with no capitalized name and no `use` call holds no
 						// component or hook, so Babel skips it.
 						code: /\b[A-Z]|\buse/,

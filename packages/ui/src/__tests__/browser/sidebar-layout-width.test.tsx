@@ -1,8 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
-import type { DensityStep } from '../../core/density'
+import { densitySteps } from '../../core/density'
 import { SidebarLayout, SidebarLayoutBody } from '../../layouts'
-import { frames, getSlot, present, renderUI } from '../helpers'
+import { frames, present, renderUI } from '../helpers'
+import { settledSheet } from './helpers/settled-sheet'
 
 /**
  * The floating sidebar is as wide as the inline rail at each density step.
@@ -14,27 +15,6 @@ import { frames, getSlot, present, renderUI } from '../helpers'
  *
  * Rides the real browser because jsdom loads no stylesheet and lays nothing out.
  */
-
-const STEPS: DensityStep[] = ['xs', 'sm', 'md', 'lg', 'xl']
-
-/** Waits until the sheet has slid in and stays in the same place. */
-async function settledSheet(): Promise<HTMLElement> {
-	const panel = getSlot(document.body, 'sheet')
-
-	let last = Number.NaN
-
-	await expect
-		.poll(() => {
-			const left = panel.getBoundingClientRect().left
-			const still = left === last
-			last = left
-			return still
-		})
-		.toBe(true)
-
-	return panel
-}
-
 describe('sidebar layout width (real browser)', () => {
 	// The desktop sidebar renders from `lg` up.
 	beforeAll(() => page.viewport(1280, 800))
@@ -43,7 +23,7 @@ describe('sidebar layout width (real browser)', () => {
 		document.documentElement.removeAttribute('data-density')
 	})
 
-	it.each(STEPS)('gives the floating sidebar the width of the rail at %s', async (step) => {
+	it.each(densitySteps)('gives the floating sidebar the width of the rail at %s', async (step) => {
 		document.documentElement.setAttribute('data-density', step)
 
 		const inline = renderUI(

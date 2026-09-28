@@ -8,6 +8,7 @@ import {
 import { CommandPalette, useCommandPaletteDeferredQuery } from '../../components/command-palette'
 import { CommandPaletteItem } from '../../components/command-palette/command-palette-item'
 import { act, renderUI, screen, userEvent } from '../helpers'
+import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
  * One keystroke renders one pass of the options that a consumer filters.
@@ -24,20 +25,10 @@ import { act, renderUI, screen, userEvent } from '../helpers'
  * `CommandPaletteItem`. The counts need module mocks, so this suite sits in
  * `boundary/`.
  */
-/** The call stack of each `useId` call since the last clear. */
-const stacks = vi.hoisted((): string[] => [])
-
 vi.mock('react', async (importActual) => {
-	const actual = await importActual<typeof import('react')>()
+	const { withRecordedUseId } = await import('../helpers/option-renders')
 
-	return {
-		...actual,
-		useId: () => {
-			stacks.push(new Error().stack ?? '')
-
-			return actual.useId()
-		},
-	}
+	return withRecordedUseId(await importActual<typeof import('react')>())
 })
 
 vi.mock('../../components/command-palette/command-palette-item', async (importActual) => {
@@ -48,11 +39,6 @@ vi.mock('../../components/command-palette/command-palette-item', async (importAc
 })
 
 const VALUES = Array.from({ length: 50 }, (_, index) => `v${index}`)
-
-/** The `useId` calls that came from a render of an option. */
-function optionRenders() {
-	return stacks.filter((stack) => stack.includes('OptionImpl')).length
-}
 
 function ComboboxResults() {
 	const deferredQuery = useComboboxDeferredQuery()
@@ -76,7 +62,7 @@ function PaletteResults() {
 
 describe('query option renders', () => {
 	beforeEach(() => {
-		stacks.length = 0
+		clearOptionRenders()
 
 		vi.mocked(CommandPaletteItem).mockClear()
 	})
@@ -97,7 +83,7 @@ describe('query option renders', () => {
 		// The count is live: each option rendered when the panel opened.
 		expect(optionRenders()).toBeGreaterThanOrEqual(VALUES.length)
 
-		stacks.length = 0
+		clearOptionRenders()
 
 		await act(async () => {
 			await user.keyboard('v')

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Listbox, ListboxOption } from '../../components/listbox'
 import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
  * A multi-select toggle renders only the option that changes.
@@ -16,20 +17,10 @@ import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers
  * memoizes the body. The count needs a module mock, so this suite sits in
  * `boundary/`.
  */
-/** The call stack of each `useId` call since the last clear. */
-const stacks = vi.hoisted((): string[] => [])
-
 vi.mock('react', async (importActual) => {
-	const actual = await importActual<typeof import('react')>()
+	const { withRecordedUseId } = await import('../helpers/option-renders')
 
-	return {
-		...actual,
-		useId: () => {
-			stacks.push(new Error().stack ?? '')
-
-			return actual.useId()
-		},
-	}
+	return withRecordedUseId(await importActual<typeof import('react')>())
 })
 
 const VALUES = Array.from({ length: 100 }, (_, index) => `v${index}`)
@@ -37,18 +28,13 @@ const VALUES = Array.from({ length: 100 }, (_, index) => `v${index}`)
 /** The most row renders a toggle can make without a render of each row. */
 const BOUND = 2
 
-/** The renders of an option row since the last clear. */
-function optionRenders() {
-	return stacks.filter((stack) => stack.includes('OptionImpl')).length
-}
-
 /** Toggles two options, then counts the row renders of the second toggle only. */
 function secondToggle(options: HTMLElement[]) {
 	act(() => {
 		fireEvent.click(options[5] as HTMLElement)
 	})
 
-	stacks.length = 0
+	clearOptionRenders()
 
 	act(() => {
 		fireEvent.click(options[9] as HTMLElement)
@@ -59,7 +45,7 @@ function secondToggle(options: HTMLElement[]) {
 
 describe('multi-select option renders', () => {
 	beforeEach(() => {
-		stacks.length = 0
+		clearOptionRenders()
 	})
 
 	it('renders only the toggled option of a listbox', () => {

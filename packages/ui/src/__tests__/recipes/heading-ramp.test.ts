@@ -42,6 +42,10 @@ const rungsOf = (level: Level) => findSteps([headingRamp[level]], 'density-text-
 const indexOf = (rung: string) => scale.indexOf(rung as (typeof scale)[number])
 
 describe('heading ramps', () => {
+	it('lists the type scale of `ji.size`', () => {
+		expect(scale.map((rung) => `text-${rung}`)).toStrictEqual(Object.values(ji.size))
+	})
+
 	it.each(levels)('names a rung of the scale at each step for level %i', (level) => {
 		const rungs = rungsOf(level)
 

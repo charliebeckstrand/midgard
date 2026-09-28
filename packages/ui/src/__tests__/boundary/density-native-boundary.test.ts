@@ -2,7 +2,13 @@
 import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	isSourceFile,
+	srcDir,
+	srcRelative,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
 // Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
@@ -28,8 +34,6 @@ const INERT: Record<string, string> = {
 	'swatch:k': 'A chart gives each legend dot one size, not a density step.',
 	'text:k': 'Text keeps the size around it. Its `size` sets the type scale explicitly.',
 }
-
-const srcDir = join(import.meta.dirname, '..', '..')
 
 /** The kata modules and the layout variant modules, by the path under `src`. */
 function recipeFiles(): string[] {
@@ -79,8 +83,13 @@ describe('density-native boundary', () => {
 	it('no kata or layout recipe has a size or density axis, except the listed ones', async () => {
 		const found: string[] = []
 
-		for (const file of files) {
-			const module: Record<string, unknown> = await import(join(srcDir, file))
+		// The modules are independent, so they load at once.
+		const modules: Record<string, unknown>[] = await Promise.all(
+			files.map((file) => import(join(srcDir, file))),
+		)
+
+		for (const [index, file] of files.entries()) {
+			const module = modules[index] ?? {}
 
 			const name = file.replace(/^(?:recipes\/kata|layouts)\//, '').replace(/\.ts$/, '')
 
@@ -102,17 +111,20 @@ describe('density-native boundary', () => {
 	})
 })
 
+/** The code of each source file, with the comments removed, read once for each scan below. */
+const sources: { file: string; code: string }[] = []
+
+walkSource(srcDir, (file, content) => {
+	if (isSourceFile(file))
+		sources.push({ file: srcRelative(file), code: stripSourceComments(content) })
+})
+
 /** The source files whose code, with the comments removed, matches `pattern`. */
 function filesMatching(pattern: RegExp): string[] {
-	const files: string[] = []
-
-	walkSource(srcDir, (file, content) => {
-		if (/\.tsx?$/.test(file) && pattern.test(stripSourceComments(content))) {
-			files.push(srcRelative(file))
-		}
-	})
-
-	return files.sort()
+	return sources
+		.filter(({ code }) => pattern.test(code))
+		.map(({ file }) => file)
+		.sort()
 }
 
 // A density scope has two channels: `data-density` for the stepped classes and
