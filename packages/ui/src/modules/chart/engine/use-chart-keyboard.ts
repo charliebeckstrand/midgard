@@ -5,7 +5,7 @@ import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
-import type { ChartHover } from './context'
+import { type ChartHover, samePoint } from './context'
 
 /**
  * The per-category anchor points a chart hands its frame for keyboard
@@ -366,8 +366,7 @@ function sameStop(previous: ResolvedStop | null, next: ResolvedStop | null): boo
 	if (previous === null || next === null) return previous === next
 
 	return (
-		previous.anchor.x === next.anchor.x &&
-		previous.anchor.y === next.anchor.y &&
+		samePoint(previous.anchor, next.anchor) &&
 		previous.live.category === next.live.category &&
 		previous.series === next.series
 	)

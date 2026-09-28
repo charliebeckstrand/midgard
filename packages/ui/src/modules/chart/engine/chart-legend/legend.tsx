@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { useLayoutEffect, useRef, useState } from 'react'
+import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -27,16 +27,17 @@ const PAGE_SIZE = 5
  * Returns the full `count` when nothing caps (no ghost, no measurement), so an
  * uncapped or side-panel legend pays nothing.
  *
- * @returns The callback ref of the ghost, and the count of controls that show.
- * The caller keys the ghost on its control labels, so a change of the control
- * set mounts a new ghost, which the fit measures.
+ * @param labels - The labels of every control in render order, joined. A change
+ * of them measures again.
+ * @returns The ref of the ghost, and the count of controls that show.
  * @internal
  */
 function useLegendFit(
+	labels: string,
 	count: number,
 	maxRows: number | undefined,
-): [(node: HTMLDivElement | null) => void, number] {
-	const [ghost, setGhost] = useState<HTMLDivElement | null>(null)
+): [RefObject<HTMLDivElement | null>, number] {
+	const ghostRef = useRef<HTMLDivElement>(null)
 
 	const [visible, setVisible] = useState(count)
 
@@ -46,9 +47,12 @@ function useLegendFit(
 	// the already-cut visible row, which could never reveal that a widened box now
 	// fits more. A resize alone can miss an added entry that lands on an existing
 	// row without growing the ghost, or a relabel that keeps the ghost's box but
-	// moves the wraps. Either one mounts a new ghost, and the fit measures it.
+	// moves the wraps. Either one changes `labels`, and the fit measures again.
 	useLayoutEffect(() => {
-		if (!ghost || maxRows === undefined || count === 0) return
+		const ghost = ghostRef.current
+
+		// No labels means no controls, so there is nothing to measure.
+		if (!ghost || maxRows === undefined || labels === '') return
 
 		const measure = () => {
 			const controls = [...ghost.querySelectorAll<HTMLElement>('button')]
@@ -81,14 +85,14 @@ function useLegendFit(
 		observer.observe(ghost)
 
 		return () => observer.disconnect()
-	}, [ghost, count, maxRows])
+	}, [labels, maxRows])
 
 	// Never exceed the real count — a stale larger measurement (a control removed
 	// between renders) can't over-slice the list.
-	return [setGhost, maxRows === undefined ? count : Math.min(visible, count)]
+	return [ghostRef, maxRows === undefined ? count : Math.min(visible, count)]
 }
 
-/** The labels of every legend control in render order, joined into the key of the ghost row. @internal */
+/** The labels of every legend control in render order, joined, so the fit measures again on a change. @internal */
 function controlLabels(
 	items: readonly ChartLegendItem[],
 	references: readonly ChartLegendReference[],
@@ -460,6 +464,7 @@ export function ChartLegend({
 	// measured off the ghost row that always holds them all; the full count when
 	// nothing caps.
 	const [ghostRef, visibleCount] = useLegendFit(
+		controlLabels(items, references),
 		items.length + references.length,
 		capped ? maxRows : undefined,
 	)
@@ -795,7 +800,6 @@ export function ChartLegend({
 	return (
 		<div className="relative w-full">
 			<div
-				key={controlLabels(items, references)}
 				ref={ghostRef}
 				aria-hidden
 				inert
