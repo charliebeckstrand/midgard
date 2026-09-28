@@ -1,11 +1,15 @@
 'use client'
 
-import type { OptionDescriptionProps, OptionLabelProps, OptionProps } from '../../primitives/option'
+import type {
+	OptionDescriptionProps,
+	OptionLabelProps,
+	SelectOptionProps,
+} from '../../primitives/option'
 import { createSelectOption } from '../../primitives/option'
 import { useListboxContext } from './context'
 
 /** Props for {@link ListboxOption}: a selectable `value` plus the shared option attributes. */
-export type ListboxOptionProps = OptionProps
+export type ListboxOptionProps = SelectOptionProps
 
 /** Props for {@link ListboxLabel}: the option's primary-text slot attributes. */
 export type ListboxLabelProps = OptionLabelProps

@@ -1,33 +1,66 @@
 'use client'
 
-import { createContext } from '../../core'
+import { FloatingPortal } from '@floating-ui/react'
+import { AnimatePresence } from 'motion/react'
+import { type ReactNode, useState } from 'react'
+import { ReducedMotion } from '../reduced-motion'
+import { type PortalContainer, usePortalContainer } from './context'
+
+/** Props for {@link Portal}. */
+export type PortalProps = {
+	/**
+	 * Whether the surface is open. Drives the enter, and — on the transition to
+	 * `false` — the exit animation before the portal node is removed.
+	 */
+	open: boolean
+	/**
+	 * Explicit portal container; falls back to the ambient `<UIProvider>` node,
+	 * then floating-ui's own root. @see {@link usePortalContainer}
+	 */
+	container?: PortalContainer
+	/** Fires once the exit animation finishes and the portal node unmounts. */
+	onExitComplete?: () => void
+	/** The open surface, mounted while `open` and kept through its exit animation. */
+	children: ReactNode
+}
 
 /**
- * A DOM node to teleport portaled UI into, or `null` to defer to each
- * portal's own fallback (`document.body` / floating-ui's default root).
- */
-export type PortalContainer = HTMLElement | null
-
-/**
- * Portal container context: the default node library portals (overlays,
- * floating surfaces, dropdown panels, toasts) render into. The user-facing
- * `<UIProvider>` (which registers it) lives in `providers/ui`; primitives and
- * components consume `usePortalContainer` here without depending on it.
+ * Portal + presence mount cell shared by the floating and overlay shells: owns
+ * the teleport ({@link usePortalContainer} → `FloatingPortal`), the
+ * mount-only-while-open lifecycle, and the `AnimatePresence` exit under
+ * {@link ReducedMotion}. Consumers render their own surface as `children`.
+ * `Portal` gates it on `open`, so nothing renders while closed and the
+ * portal node is removed once the exit completes. A page of N closed surfaces
+ * (a filter drawer per grid column, a tooltip per cell) therefore strands no
+ * empty `[data-floating-ui-portal]` divs.
  *
- * @defaultValue `null` outside any provider, leaving each portal to fall back to
- * its own default
+ * @remarks Teleports through floating-ui's `FloatingPortal`, not React's
+ * `createPortal`. A floating menu opened inside the surface therefore nests in
+ * the portal context, rather than being stranded inert by a modal focus
+ * manager's `markOthers`. Client-only: returns `null` during SSR.
  */
-export const [PortalContext, usePortalContext] = createContext<PortalContainer>('Portal', {
-	default: null,
-})
+export function Portal({ open, container, onExitComplete, children }: PortalProps) {
+	const root = usePortalContainer(container)
 
-/**
- * Resolves the effective portal container for a single call site. An explicit
- * per-call `container` wins, then the ambient `<UIProvider>` value, then
- * `null` (the caller's own fallback).
- */
-export function usePortalContainer(container?: PortalContainer): PortalContainer {
-	const ambient = usePortalContext()
+	// `mounted` flips on with `open` (adjusted during render) and off once the
+	// exit animation completes, so a closed surface keeps no portal node in the DOM.
+	const [mounted, setMounted] = useState(open)
 
-	return container ?? ambient
+	if (open && !mounted) setMounted(true)
+
+	if (typeof document === 'undefined' || !mounted) return null
+
+	const handleExitComplete = () => {
+		setMounted(false)
+
+		onExitComplete?.()
+	}
+
+	return (
+		<FloatingPortal root={root ?? undefined}>
+			<ReducedMotion>
+				<AnimatePresence onExitComplete={handleExitComplete}>{open && children}</AnimatePresence>
+			</ReducedMotion>
+		</FloatingPortal>
+	)
 }

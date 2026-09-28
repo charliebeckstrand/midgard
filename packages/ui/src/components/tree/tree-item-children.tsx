@@ -2,7 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
-import { Hold, useMountHold } from '../../primitives/mount'
+import { MountHold, useMountHold } from '../../primitives/mount'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
 import { flattenChildren } from '../../utilities/flatten-children'
@@ -91,7 +91,7 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 
 	return (
 		<ReducedMotion>
-			<Hold hold={hold} name="tree-group">
+			<MountHold hold={hold} name="tree-group">
 				{group({
 					// A `lazy` group mounts on its first open and so enters from the
 					// closed state; an `always` group is present from the start and takes
@@ -105,7 +105,7 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 					// passes through without a guard here.
 					onAnimationComplete: hold.rest,
 				})}
-			</Hold>
+			</MountHold>
 		</ReducedMotion>
 	)
 }

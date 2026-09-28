@@ -5,7 +5,7 @@ import { useStableEvent } from './use-stable-event'
 
 /**
  * Reports a panel's arrival exactly once, for a surface that animates it. The element
- * either mounts and unmounts with the open state (`PresencePortal`), or stays mounted and
+ * either mounts and unmounts with the open state (`Portal`), or stays mounted and
  * animates in place. A held `Collapse` or `Accordion` panel is the second kind.
  *
  * Two things make the report awkward enough to share. The reset happens while the panel is

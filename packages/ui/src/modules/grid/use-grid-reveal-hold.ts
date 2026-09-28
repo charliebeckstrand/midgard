@@ -2,7 +2,7 @@
 
 import { type TransitionEvent, useLayoutEffect, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
-import { type MountHold, useMountHold } from '../../primitives/mount'
+import { type MountHoldState, useMountHold } from '../../primitives/mount'
 import { forceStyleFlush } from '../../utilities'
 
 /** The reveal's animated property; a `transitionend` for anything else is not the collapse landing. @internal */
@@ -10,8 +10,8 @@ export const REVEAL_PROPERTY = 'grid-template-rows'
 
 /** What {@link useGridRevealHold} hands a collapsible row. */
 export type GridRevealHold = {
-	/** Pass to `<Hold>` around the row. */
-	hold: MountHold
+	/** Pass to `<MountHold>` around the row. */
+	hold: MountHoldState
 	/**
 	 * Whether the reveal renders open — the `data-open` its track tweens on. It
 	 * trails `expanded` by one commit as the row wakes, so drive the track from

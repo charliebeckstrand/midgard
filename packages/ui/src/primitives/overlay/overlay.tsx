@@ -18,7 +18,7 @@ import { useScrollLock } from '../../hooks/use-scroll-lock'
 import { k } from '../../recipes/kata/overlay'
 import { chromeRegions } from '../chrome'
 import { useDensityScope } from '../density'
-import { PresencePortal } from '../portal'
+import { Portal } from '../portal'
 import { notifyOverlaySignal } from './overlay-signal'
 
 /**
@@ -104,7 +104,7 @@ export type OverlayProps = {
  * `document.body`. A `container` scopes the overlay to that element
  * (`absolute`, no scroll lock). For transient pointer-driven surfaces,
  * `modal={false}` drops focus management, scroll lock, and the backdrop (unless
- * `backdrop` is set). Any `PersistentChrome` region stays reachable through the
+ * `backdrop` is set). Any `Chrome` region stays reachable through the
  * trap without modality being given up. Fires the overlay signal on open so
  * non-modal floats (tooltips) dismiss.
  *
@@ -134,7 +134,7 @@ export function Overlay({
 
 	const density = useDensityScope()
 
-	// `PresencePortal` owns the teleport and the mount-while-open lifecycle. An
+	// `Portal` owns the teleport and the mount-while-open lifecycle. An
 	// explicit `container` scopes the overlay to that element (`absolute`, no
 	// scroll lock); modal positioning and scroll lock key off `scoped`.
 	const scoped = container != null
@@ -201,11 +201,11 @@ export function Overlay({
 	)
 
 	return (
-		<PresencePortal open={open} container={container}>
+		<Portal open={open} container={container}>
 			<OverlayFocus modal={modal} context={context} initialFocus={initialFocus}>
 				{panel}
 			</OverlayFocus>
-		</PresencePortal>
+		</Portal>
 	)
 }
 

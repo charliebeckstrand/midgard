@@ -9,7 +9,7 @@
  * every Dialog, Sheet, and Drawer that only ever wanted a dismiss handler.
  */
 
-/** The marker `PresencePortal` stamps on each teleport node. @internal */
+/** The marker `Portal` stamps on each teleport node. @internal */
 const PORTAL_SELECTOR = '[data-floating-ui-portal]'
 
 /**
@@ -17,7 +17,7 @@ const PORTAL_SELECTOR = '[data-floating-ui-portal]'
  * from.
  *
  * @remarks
- * The DOM cannot answer this. `PresencePortal` passes an explicit `root` under a
+ * The DOM cannot answer this. `Portal` passes an explicit `root` under a
  * `<UIProvider>`, so every surface's portal is a sibling `<div>` under one node
  * whatever opened it. Ancestry carries no nesting information. A getter rather
  * than an element because a panel's reference can change while it is open (a

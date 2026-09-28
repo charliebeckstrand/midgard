@@ -1,2 +1,2 @@
-export { Hold, type HoldProps } from './hold'
-export { type Mount, type MountHold, mountsEveryPanel, useMountHold } from './mount'
+export { type Mount, type MountHoldState, mountsEveryPanel, useMountHold } from './mount'
+export { MountHold, type MountHoldProps } from './mount-hold'

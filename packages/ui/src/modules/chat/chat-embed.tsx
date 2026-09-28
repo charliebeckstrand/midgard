@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { cn } from '../../core'
 import { useInView } from '../../hooks'
 import { useHydrated } from '../../hooks/use-hydrated'
-import { Hold, type Mount, useMountHold } from '../../primitives/mount'
+import { type Mount, MountHold, useMountHold } from '../../primitives/mount'
 import { k } from '../../recipes/kata/chat-message'
 import { type ChatEmbedRenderer, useChatEmbeds, useChatRowKey } from './context'
 import type { ChatEmbedPart } from './engine/chat-content/types'
@@ -142,7 +142,7 @@ function HeldChatEmbed({ part, className, mount, render, address, reached }: Hel
 			data-deferred={hold.present ? undefined : ''}
 			className={cn(k.embed, className)}
 		>
-			{hold.present && <Hold hold={hold}>{render(part)}</Hold>}
+			{hold.present && <MountHold hold={hold}>{render(part)}</MountHold>}
 		</div>
 	)
 }

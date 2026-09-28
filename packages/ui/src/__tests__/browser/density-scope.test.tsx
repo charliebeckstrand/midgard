@@ -12,7 +12,7 @@ import { SliderSkeleton } from '../../components/slider'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { SidebarLayout } from '../../layouts/sidebar'
-import { BaseOption } from '../../primitives/option'
+import { Option } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
 
@@ -406,9 +406,9 @@ describe('density scopes on families (real browser)', () => {
 	it('sizes the check of a selected option at the step of its scope', () => {
 		const { container } = renderUI(
 			<DensityProvider density="loose">
-				<BaseOption selected onSelect={() => {}}>
+				<Option selected onSelect={() => {}}>
 					Option
-				</BaseOption>
+				</Option>
 			</DensityProvider>,
 		)
 

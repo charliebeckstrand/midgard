@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { type ComponentProps, useCallback, useState } from 'react'
 import { dataAttr } from '../../core'
 import { k } from '../../recipes/kata/current'
-import { Hold, useMountHold } from '../mount'
+import { MountHold, useMountHold } from '../mount'
 import {
 	CurrentPanelActiveContext,
 	useCurrent,
@@ -143,15 +143,15 @@ export function CurrentContent({
 	if (!hold.present && !exiting) return null
 
 	if (!fade) {
-		// `Hold` wraps only when the policy holds inactive panels: `active` gets
+		// `MountHold` wraps only when the policy holds inactive panels: `active` gets
 		// the bare div, `always`/`lazy` get it inside an Activity that preserves
 		// state while hidden but tears down effects and defers re-rendering.
 		return (
-			<Hold hold={hold} name={`${slotPrefix}-content`}>
+			<MountHold hold={hold} name={`${slotPrefix}-content`}>
 				<div ref={ref} data-slot={slot} className={className} style={style} {...props}>
 					<CurrentPanelActiveContext value={active}>{children}</CurrentPanelActiveContext>
 				</div>
-			</Hold>
+			</MountHold>
 		)
 	}
 
@@ -195,8 +195,8 @@ export function CurrentContent({
 	// Held panels keep the Activity wrapper while visible too: adding it only
 	// at rest would change the tree shape and remount the subtree each switch.
 	return (
-		<Hold hold={hold} name={`${slotPrefix}-content`}>
+		<MountHold hold={hold} name={`${slotPrefix}-content`}>
 			{panel}
-		</Hold>
+		</MountHold>
 	)
 }

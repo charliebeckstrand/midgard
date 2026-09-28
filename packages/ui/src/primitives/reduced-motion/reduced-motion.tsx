@@ -10,7 +10,7 @@ import { type ReactNode, use } from 'react'
  * plays. Apply at every motion-emitting root the library controls.
  *
  * @remarks A root can render inside another root, for example a
- * `PopoverPanel` inside the `PresencePortal` of a floating surface. When an
+ * `PopoverPanel` inside the `Portal` of a floating surface. When an
  * ancestor already sets the preference, this renders `children` directly and
  * adds no second `MotionConfig`. A `MotionConfig` merges its props over the
  * parent config, so the result is the same.

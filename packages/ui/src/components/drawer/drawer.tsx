@@ -198,7 +198,7 @@ export function Drawer({
 
 	const resolvedSurface = useResolvedSurface(glass)
 
-	// The panel unmounts while closed (`PresencePortal`), so the flag has to be scoped to
+	// The panel unmounts while closed (`Portal`), so the flag has to be scoped to
 	// this component's own mount or a minimize/maximize cycle would land in place.
 	const animateEnter = useEnterAnimation(resolvedOpen, animateOnMount)
 

@@ -4,8 +4,8 @@ import { AnimatePresence, motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { useOpenComplete } from '../../hooks/use-open-complete'
-import { Hold, useMountHold } from '../../primitives/mount'
-import { heldMotionProps } from '../../primitives/mount/held-motion'
+import { MountHold, useMountHold } from '../../primitives/mount'
+import { heldMotionProps } from '../../primitives/mount/mount-held-motion'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/accordion'
 import { useAccordion, useAccordionItem } from './context'
@@ -75,9 +75,9 @@ export function AccordionPanel({ className, children }: AccordionPanelProps) {
 
 	return (
 		<ReducedMotion>
-			<Hold hold={hold} name="accordion-panel">
+			<MountHold hold={hold} name="accordion-panel">
 				{panel(heldMotionProps(k.motion, open, hold, onAnimationComplete))}
-			</Hold>
+			</MountHold>
 		</ReducedMotion>
 	)
 }

@@ -1,14 +1,14 @@
 import { createContext, type FC, Profiler, type ReactNode, use } from 'react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { BaseOption, createSelectOption } from '../../primitives/option'
+import { createSelectOption, Option } from '../../primitives/option'
 import { bySlot, fireEvent, renderUI, screen } from '../helpers'
 
-describe('BaseOption', () => {
+describe('Option', () => {
 	it('renders with role="option"', () => {
 		renderUI(
-			<BaseOption selected={false} onSelect={() => {}}>
+			<Option selected={false} onSelect={() => {}}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		const el = screen.getByRole('option')
@@ -18,9 +18,9 @@ describe('BaseOption', () => {
 
 	it('sets aria-selected when selected', () => {
 		renderUI(
-			<BaseOption selected={true} onSelect={() => {}}>
+			<Option selected={true} onSelect={() => {}}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		const el = screen.getByRole('option')
@@ -30,9 +30,9 @@ describe('BaseOption', () => {
 
 	it('sets aria-disabled when disabled', () => {
 		renderUI(
-			<BaseOption selected={false} disabled onSelect={() => {}}>
+			<Option selected={false} disabled onSelect={() => {}}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		const el = screen.getByRole('option')
@@ -44,9 +44,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} onSelect={onSelect}>
+			<Option selected={false} onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.click(screen.getByRole('option'))
@@ -58,9 +58,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} disabled onSelect={onSelect}>
+			<Option selected={false} disabled onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.click(screen.getByRole('option'))
@@ -72,9 +72,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} onSelect={onSelect}>
+			<Option selected={false} onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
@@ -86,9 +86,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} onSelect={onSelect}>
+			<Option selected={false} onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.keyDown(screen.getByRole('option'), { key: ' ' })
@@ -100,9 +100,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} disabled onSelect={onSelect}>
+			<Option selected={false} disabled onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.keyDown(screen.getByRole('option'), { key: 'Enter' })
@@ -114,9 +114,9 @@ describe('BaseOption', () => {
 		const onSelect = vi.fn()
 
 		renderUI(
-			<BaseOption selected={false} onSelect={onSelect}>
+			<Option selected={false} onSelect={onSelect}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		fireEvent.keyDown(screen.getByRole('option'), { key: 'a' })
@@ -126,9 +126,9 @@ describe('BaseOption', () => {
 
 	it('renders the default check icon hidden until the row is selected', () => {
 		const { container } = renderUI(
-			<BaseOption selected={false} onSelect={() => {}}>
+			<Option selected={false} onSelect={() => {}}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		const cls = bySlot(container, 'icon')?.getAttribute('class') ?? ''
@@ -140,9 +140,9 @@ describe('BaseOption', () => {
 
 	it('sizes the default check icon with a stepped class, which follows the nearest scope', () => {
 		const { container } = renderUI(
-			<BaseOption selected={true} onSelect={() => {}}>
+			<Option selected={true} onSelect={() => {}}>
 				Option
-			</BaseOption>,
+			</Option>,
 		)
 
 		expect(bySlot(container, 'icon')).toHaveClass('density-size-[4,5,6]')
@@ -177,7 +177,11 @@ const TestContext: FC<{
 	</SelectionContext>
 )
 
-const { Option, Label, Description } = createSelectOption({
+const {
+	Option: SelectOption,
+	Label,
+	Description,
+} = createSelectOption({
 	slotPrefix: 'test',
 	useSelection: () => use(SelectionContext),
 })
@@ -190,7 +194,7 @@ describe('createSelectOption', () => {
 	it('Option renders with its data-slot', () => {
 		const { container } = renderUI(
 			<TestContext>
-				<Option value="a">Item A</Option>
+				<SelectOption value="a">Item A</SelectOption>
 			</TestContext>,
 		)
 
@@ -230,9 +234,9 @@ describe('createSelectOption', () => {
 	it('Label capitalizes a string label when the host asks for it', () => {
 		renderUI(
 			<TestContext capitalize>
-				<Option value="a">
+				<SelectOption value="a">
 					<Label>lower case</Label>
-				</Option>
+				</SelectOption>
 			</TestContext>,
 		)
 
@@ -245,11 +249,11 @@ describe('createSelectOption', () => {
 		// The option children are created once, so a commit under a Profiler
 		// comes from the Label itself and not from its parent.
 		const options = ['a', 'b', 'c'].map((value) => (
-			<Option key={value} value={value}>
+			<SelectOption key={value} value={value}>
 				<Profiler id={value} onRender={labelCommits}>
 					<Label>{value}</Label>
 				</Profiler>
-			</Option>
+			</SelectOption>
 		))
 
 		const { rerender } = renderUI(

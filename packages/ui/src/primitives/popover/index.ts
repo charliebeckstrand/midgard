@@ -1,1 +1,1 @@
-export { PopoverPanel } from './popover'
+export { PopoverPanel } from './popover-panel'

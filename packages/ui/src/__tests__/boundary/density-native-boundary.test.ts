@@ -65,7 +65,8 @@ const NATIVE_FILES = [
 	'components/tooltip/tooltip-content.tsx',
 	'layouts/sidebar/sidebar.tsx',
 	'primitives/option/option.tsx',
-	'primitives/panel/panel.tsx',
+	'primitives/panel/panel-providers.tsx',
+	'primitives/panel/slots.tsx',
 ]
 
 const DENSITY_READS = /\b(?:useDensityStep|useDensityNullable)\b/

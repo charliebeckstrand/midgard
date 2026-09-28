@@ -17,7 +17,7 @@ import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
 import { Density, useDensityScope } from '../density'
-import { PresencePortal } from '../portal'
+import { Portal } from '../portal'
 
 /**
  * Props for {@link FloatingSurface}: the floating-ui positioning handles
@@ -56,7 +56,7 @@ export type FloatingSurfaceProps = {
 /**
  * Positioning shell shared by Tooltip, Popover, and Menu surfaces. It owns the
  * positioned wrapper that receives the floating-ui reference over a
- * {@link PresencePortal}. That portal handles the teleport, the mount-while-open
+ * {@link Portal}. That portal handles the teleport, the mount-while-open
  * lifecycle, and the exit animation. Consumers render the animated inner
  * surface as `children`.
  *
@@ -123,7 +123,7 @@ export function FloatingSurface({
 	)
 
 	return (
-		<PresencePortal open={open} onExitComplete={onExitComplete}>
+		<Portal open={open} onExitComplete={onExitComplete}>
 			{trapFocusContext ? (
 				// `returnFocus={false}`: `useFloatingPanel`'s reason-aware effect owns
 				// the close restore, as in DatePickerContent. `initialFocus={-1}`: the
@@ -143,6 +143,6 @@ export function FloatingSurface({
 			) : (
 				surface
 			)}
-		</PresencePortal>
+		</Portal>
 	)
 }

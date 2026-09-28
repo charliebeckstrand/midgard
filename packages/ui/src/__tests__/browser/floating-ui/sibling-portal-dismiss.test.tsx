@@ -12,7 +12,7 @@ import { fireEvent, renderUI, screen, waitFor } from '../../helpers'
  * predicate as "a descendant": a surface that is merely a sibling — neither
  * containing nor contained by this one — satisfies it too.
  *
- * That matters because portals here are flat, not nested. `PresencePortal`
+ * That matters because portals here are flat, not nested. `Portal`
  * passes an explicit `root` under a `<UIProvider>`, so every surface's portal is
  * a sibling `<div>` under one node and DOM ancestry carries no nesting
  * information at all. The reference-containment test is the sole discriminator.
