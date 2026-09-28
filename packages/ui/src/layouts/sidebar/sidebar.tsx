@@ -24,7 +24,6 @@ import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Flex } from '../../structure/flex'
-import { useSidebarPagePin } from './use-sidebar-page-pin'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
@@ -59,10 +58,8 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * @remarks Below `lg`, the page scrolls. The navbar sticks to the top, and with
  * `stickyHeader` the header sticks below the navbar. From `lg` up, the layout is
  * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
- * When a page that cannot scroll reports a scroll offset, as Chrome on iOS can
- * leave it, the layout scrolls the page back to its top. To show the layout inside
- * another page, put it in a box that has a height and layout containment, or the
- * pinned layout covers the page.
+ * To show the layout inside another page, put it in a box that has a height and
+ * layout containment, or the pinned layout covers the page.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating
@@ -83,8 +80,6 @@ export function SidebarLayout({
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
-
-	useSidebarPagePin()
 
 	const layoutRef = useRef<HTMLDivElement>(null)
 
