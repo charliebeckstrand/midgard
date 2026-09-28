@@ -12,6 +12,7 @@ import { createRoot } from 'react-dom/client'
 import { BarChart } from '../../modules/chart/bar-chart'
 import type { ChartSeries, ScatterChartSeries } from '../../modules/chart/engine/types'
 import { LineChart } from '../../modules/chart/line-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import type { PointData, PointRow, TrendData, TrendRow } from './fixtures'
 
@@ -92,6 +93,21 @@ export function scatterCharts(): Subject<PointData>[] {
 	return [
 		reactSubject('ui ScatterChart', (data) => (
 			<ScatterChart aria-label="Bench scatter" data={data.rows} series={series} width={WIDTH} />
+		)),
+	]
+}
+
+/** The ui pie chart with callout labels, one slice for each trend row. */
+export function pieCalloutCharts(): Subject<TrendData>[] {
+	return [
+		reactSubject('ui PieChart callouts', (data) => (
+			<PieChart
+				aria-label="Bench pie"
+				data={data.rows}
+				series={[{ xKey: 'label', yKey: 's1' }]}
+				labels={{ callouts: true }}
+				width={WIDTH}
+			/>
 		)),
 	]
 }

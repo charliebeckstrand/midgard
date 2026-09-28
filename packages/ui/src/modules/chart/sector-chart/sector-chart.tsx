@@ -8,7 +8,12 @@ import { fractionFormat, once, percentFormat } from '../../../utilities'
 import { categorySlots } from '../engine/chart-color/palette'
 import { CHART_METRICS, MARK_GAP } from '../engine/chart-constants'
 import { ChartFrame } from '../engine/chart-frame/frame'
-import { CALLOUT_LEADER, CALLOUT_LINE, pieSlices } from '../engine/chart-geometry/pie'
+import {
+	CALLOUT_CHAR_WIDTH,
+	CALLOUT_LEADER,
+	CALLOUT_LINE,
+	pieSlices,
+} from '../engine/chart-geometry/pie'
 import { ChartLegend } from '../engine/chart-legend/legend'
 import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
@@ -20,12 +25,15 @@ import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
+import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
+	CALLOUT_TEXT_CLASS,
 	type CalloutSpec,
 	calloutFitRadius,
 	calloutRoom,
 	calloutsShown,
+	calloutTexts,
 	resolveSectorFit,
 	SectorChartCallouts,
 } from './sector-chart-callouts'
@@ -171,9 +179,28 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 	const sliceLabels = data.map((datum) => String(datum[entry.xKey]))
 
+	// A slice keeps its toggle by its label, so a filter that drops an earlier row
+	// does not move the toggle onto another slice.
+	const { hidden, toggle } = useChartSeriesToggle(sliceLabels, onHiddenChange)
+
+	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
+	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
+
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
-	// the pie to fit — its label never spills past the frame's clip.
-	const calloutSpec: CalloutSpec = { labels: sliceLabels, percent }
+	// the pie to fit — its label never spills past the frame's clip. The frame
+	// sizes from the full dataset and the pie fits the visible slices, whose
+	// shares read different percents, so both sets of texts are measured.
+	const calloutText = { labels: sliceLabels, percent }
+
+	const calloutWidth = useChartTextWidth(
+		showCallouts
+			? [...calloutTexts(calloutText, values), ...calloutTexts(calloutText, sliceValues)]
+			: [],
+		CALLOUT_TEXT_CLASS,
+		CALLOUT_CHAR_WIDTH,
+	)
+
+	const calloutSpec: CalloutSpec = { ...calloutText, textWidth: calloutWidth.width }
 
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
@@ -216,13 +243,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		tickTarget: CHART_METRICS.md.tickTarget,
 		fill: frameSizing.mode === 'fill',
 	})
-
-	// A slice keeps its toggle by its label, so a filter that drops an earlier row
-	// does not move the toggle onto another slice.
-	const { hidden, toggle } = useChartSeriesToggle(sliceLabels, onHiddenChange)
-
-	// A toggled-off row leaves the sweep entirely, so the survivors re-share the whole.
-	const sliceValues = values.map((entry, index) => (hidden.has(index) ? null : entry))
 
 	const colors = categorySlots(sliceLabels, categories)
 
@@ -336,6 +356,7 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			{...name}
 			fullscreen={<SectorChart {...props} />}
 			ref={ref}
+			textHostRef={calloutWidth.hostRef}
 			width={frameWidth}
 			fixedWidth={width}
 			height={frameHeight}

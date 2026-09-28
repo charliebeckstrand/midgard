@@ -4,6 +4,8 @@
  * styling, so the angle math is unit-testable in isolation.
  */
 
+import type { TextWidth } from '../chart-text-width'
+
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
 export type PieSlice = {
 	/** The datum's index in the source data — colors and readouts key off it. */
@@ -367,14 +369,16 @@ export const CALLOUT_GAP = 6
 export const CALLOUT_LINE = 15
 
 /**
- * Estimated glyph advance of a callout label's character. A slice's name sits
- * beside real, proportionally-set letters, not the all-digit `tabular-nums`
- * strings {@link TICK_CHAR_WIDTH} is calibrated for. The room reserved for a
- * callout therefore does not overshoot the text it measures out to.
+ * Estimated glyph advance of a callout label's character. The pie measures the
+ * rendered width of each callout (`useChartTextWidth`), and this estimate is
+ * the fallback before that measurement: on the server and in the first client
+ * render. A callout label is a proportionally set name with a `font-medium`
+ * weight. In the docs font, such names measure from 7.4 to 8.7 px for each
+ * character at `text-sm`.
  *
  * @internal
  */
-export const CALLOUT_CHAR_WIDTH = 6
+export const CALLOUT_CHAR_WIDTH = 8
 
 /** One placed callout: a leader out to a label set beside its slice. @internal */
 export type PieCallout = {
@@ -529,8 +533,8 @@ export type PieCalloutFitOptions = {
 	values: (number | null)[]
 	/** Each row's callout text, indexed like `values`. */
 	texts: string[]
-	/** Estimated glyph advance for a label's width. */
-	charWidth: number
+	/** The rendered width of a callout text. */
+	textWidth: TextWidth
 	/** The frame's available width. */
 	frameWidth: number
 }
@@ -560,12 +564,12 @@ function calloutPull(mid: number): number {
 export function pieCalloutFit({
 	values,
 	texts,
-	charWidth,
+	textWidth,
 	frameWidth,
 }: PieCalloutFitOptions): PieCalloutFit {
 	const angles = sliceAngles(values)
 
-	const widest = texts.reduce((max, text) => Math.max(max, text.length * charWidth), 0)
+	const widest = texts.reduce((max, text) => Math.max(max, textWidth(text)), 0)
 
 	if (angles.length < 2) {
 		const radius = frameWidth / 2 - CALLOUT_LEADER - CALLOUT_NUB - CALLOUT_GAP - widest
@@ -586,10 +590,7 @@ export function pieCalloutFit({
 			const text = texts[index] ?? ''
 
 			const extent =
-				Math.abs(pull) * (radius + CALLOUT_LEADER) +
-				CALLOUT_NUB +
-				CALLOUT_GAP +
-				text.length * charWidth
+				Math.abs(pull) * (radius + CALLOUT_LEADER) + CALLOUT_NUB + CALLOUT_GAP + textWidth(text)
 
 			return Math.max(max, extent)
 		}, radius)
