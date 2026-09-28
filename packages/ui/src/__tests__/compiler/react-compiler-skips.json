@@ -1,7 +1,4 @@
 {
-	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
-		"PdfViewerThumbnails": "Refs"
-	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},

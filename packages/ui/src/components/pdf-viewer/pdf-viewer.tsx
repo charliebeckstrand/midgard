@@ -218,12 +218,12 @@ export function PdfViewer({
 		onMagnifierChange,
 	})
 
-	const { rootRef, fit: fitMode, magnifierSettings, activePage, safePage, goToPage } = context
+	const { setRoot, fit: fitMode, magnifierSettings, activePage, safePage, goToPage } = context
 
 	return (
 		<PdfViewerContext value={context}>
 			<section
-				ref={rootRef}
+				ref={setRoot}
 				data-slot="pdf-viewer"
 				aria-label={ariaLabel}
 				className={cn(k.base, fitMode === 'width' && k.fill, className)}
