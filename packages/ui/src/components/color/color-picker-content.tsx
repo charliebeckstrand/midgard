@@ -16,15 +16,15 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
-	/** Re-broadcast through the `density` prop of the body Box; the portal renders the panel outside the trigger's cascade. */
-	size: ControlSize
+	/** The explicit size step. The body Box opens a density scope at it. Without it, the panel takes the step of the scope that the portal carries. */
+	size?: ControlSize
 	children: ReactNode
 }
 
 /**
  * Portals the picker panel into a focus-managed, animated floating dialog
- * positioned by Floating UI. The body is a density scope at `size`, and the
- * panel adopts glass styling from context.
+ * positioned by Floating UI. An explicit `size` makes the body a density scope,
+ * and the panel adopts glass styling from context.
  *
  * @remarks
  * Mounts only while `open`; {@link https://floating-ui.com | Floating UI}

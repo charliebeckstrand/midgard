@@ -19,7 +19,8 @@ type ListboxPanelProps = {
 	open: boolean
 	glass: boolean
 	multiple: boolean
-	size: ControlSize
+	/** The explicit size step of the listbox. The panel opens a density scope at it. */
+	size?: ControlSize
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

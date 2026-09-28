@@ -2,7 +2,6 @@
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { CalendarPicker } from './calendar-picker'
 import { CalendarToolbar } from './calendar-toolbar'
@@ -10,7 +9,6 @@ import { CalendarToolbar } from './calendar-toolbar'
 type CalendarHeaderProps = {
 	headerRef: RefObject<HTMLDivElement | null>
 	onHeaderKeyDown: KeyboardEventHandler<HTMLElement>
-	size: Step
 	activeIndex: 0 | 1 | 2 | null
 	year: number
 	month: number
@@ -37,7 +35,6 @@ type CalendarHeaderProps = {
 export const CalendarHeader = memo(function CalendarHeader({
 	headerRef,
 	onHeaderKeyDown,
-	size,
 	activeIndex,
 	year,
 	month,
@@ -55,7 +52,6 @@ export const CalendarHeader = memo(function CalendarHeader({
 			toolbarRef={headerRef}
 			label="Month navigation"
 			onKeyDown={onHeaderKeyDown}
-			size={size}
 			prevLabel="Previous month"
 			nextLabel="Next month"
 			onPrev={onPrevMonth}

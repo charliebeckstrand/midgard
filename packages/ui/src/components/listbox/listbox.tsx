@@ -10,9 +10,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { toAmbientStep } from '../../core'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
@@ -134,8 +132,9 @@ function hasListboxValue<T>(value: T | T[] | undefined, multiple: boolean): bool
  * Select-style dropdown over arbitrary `<ListboxOption>` values: single or
  * `multiple` selection, controlled or uncontrolled, with an optional clear
  * control and a portaled panel. Binds to an enclosing Form field by `name`;
- * an explicit `value` wins over the bound field. `size` resolves from the
- * prop, then `<Control>`, then enclosing Density.
+ * an explicit `value` wins over the bound field. The trigger and the panel
+ * take the step of the nearest density scope, and an explicit `size` opens a
+ * scope on each.
  */
 export function Listbox<T>({
 	name,
@@ -171,7 +170,6 @@ export function Listbox<T>({
 }: ListboxProps<T>) {
 	const glass = useGlass()
 	const control = useControl()
-	const step = toAmbientStep(useDensityStep(size))
 
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
@@ -410,7 +408,7 @@ export function Listbox<T>({
 					open={open}
 					glass={glass}
 					multiple={multiple}
-					size={step}
+					size={size}
 					ariaLabel={ariaLabel}
 					// Names the listbox from the trigger's name: an explicit aria-label
 					// wins, else aria-labelledby, else the field's Label (via Control).

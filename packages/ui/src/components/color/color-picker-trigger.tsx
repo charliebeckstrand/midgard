@@ -22,7 +22,8 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	getReferenceProps: () => Record<string, unknown>
 	hsva: Hsva
 	alpha: boolean
-	size: ControlSize
+	/** The explicit size step. The trigger opens a density scope at it. */
+	size?: ControlSize
 	disabled?: boolean
 	required?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */
@@ -60,9 +61,8 @@ export function ColorPickerTrigger({
 	const label = hsvaToHex(hsva, alpha).toUpperCase()
 
 	return (
-		// The trigger still takes its step in JS (increment 4 of the density
-		// pre-paint plan). It writes that step as a scope, so the stepped classes of
-		// the control bridge follow it.
+		// An explicit `size` makes the trigger a density scope. Without it, the
+		// stepped classes of the control bridge take the step of the nearest scope.
 		<div
 			data-slot="control"
 			data-density={size}
@@ -90,10 +90,7 @@ export function ColorPickerTrigger({
 						onClick={() => onOpenChange(!open)}
 						className={cn(k.button())}
 					>
-						<span
-							data-slot="color-picker-swatch"
-							className={cn(k.swatch({ size }), alpha && k.checkerboard)}
-						>
+						<span data-slot="color-picker-swatch" className={cn(k.swatch, alpha && k.checkerboard)}>
 							<span className="block size-full" style={{ backgroundColor: swatchColor }} />
 						</span>
 						<span className={cn(k.value({ truncate: true }), 'min-w-0 flex-1 font-mono')}>

@@ -10,9 +10,9 @@ import {
 	useRef,
 	useState,
 } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useA11yAnnouncements } from '../../hooks'
-import { Density, useDensityStep } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
@@ -121,12 +121,10 @@ export type CalendarProps = {
 	 */
 	locale?: string
 	/**
-	 * Size step that drives overall width, padding, and the weekday label size.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
-	 * Re-broadcast to descendants via the Density context; nav buttons and day
-	 * cells inherit the resolved size consistently.
-	 *
-	 * @defaultValue enclosing Density size, else `'md'`
+	 * Size step of the width, the padding, and the weekday labels. It opens a
+	 * density scope on the calendar, so the navigation buttons and the day cells
+	 * take the same step. Without it, the calendar takes the step of the nearest
+	 * density scope.
 	 */
 	size?: Step
 	className?: string
@@ -264,20 +262,17 @@ export function Calendar({
 
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
-	const resolvedSize: Step = toAmbientStep(useDensityStep(size))
-
 	return (
-		<Density step={resolvedSize}>
+		<Density step={size}>
 			<div
 				data-slot="calendar"
-				data-size={resolvedSize}
-				data-density={resolvedSize}
-				className={cn(k.base({ size: resolvedSize }), className)}
+				data-size={size}
+				data-density={size}
+				className={cn(k.base, className)}
 			>
 				<CalendarHeader
 					headerRef={headerRef}
 					onHeaderKeyDown={handleHeaderKeyDown}
-					size={resolvedSize}
 					activeIndex={headerActiveIndex}
 					year={year}
 					month={month}
@@ -294,7 +289,6 @@ export function Calendar({
 				<CalendarGrid
 					gridRef={gridRef}
 					onGridKeyDown={handleGridKeyDown}
-					size={resolvedSize}
 					weekdays={weekdays}
 					days={shownDays}
 					firstDayColumn={firstDayColumn}

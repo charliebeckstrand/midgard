@@ -2,10 +2,8 @@
 
 import { useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
-import { toAmbientStep } from '../../core'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import { useDensityStep } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { isNativeContextMenuRequest } from '../../utilities'
 
@@ -84,8 +82,6 @@ export function useMenuState({
 	placement,
 	size,
 }: MenuStateOptions) {
-	const resolvedSize: Step = toAmbientStep(useDensityStep(size))
-
 	const isDropdown = placement !== undefined
 
 	const isStatic = defaultOpen && !isDropdown
@@ -209,9 +205,9 @@ export function useMenuState({
 			floatingStyles,
 			getReferenceProps,
 			getFloatingProps,
-			size: resolvedSize,
+			size,
 		}),
-		[open, menuId, isDropdown, floatingStyles, getReferenceProps, getFloatingProps, resolvedSize],
+		[open, menuId, isDropdown, floatingStyles, getReferenceProps, getFloatingProps, size],
 	)
 
 	const actions = useMemo(

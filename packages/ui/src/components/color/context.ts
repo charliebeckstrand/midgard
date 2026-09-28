@@ -1,7 +1,6 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { ControlSize } from '../control/context'
 import type { Hsva } from './types'
 
 export type ColorPanelContextValue = {
@@ -12,7 +11,6 @@ export type ColorPanelContextValue = {
 	/** Whether the alpha channel is editable (drives the alpha slider and `#rrggbbaa` output). */
 	alpha: boolean
 	disabled: boolean
-	size: ControlSize
 }
 
 /**

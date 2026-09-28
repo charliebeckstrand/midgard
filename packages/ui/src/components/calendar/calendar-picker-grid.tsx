@@ -1,6 +1,5 @@
 import type { KeyboardEvent, ReactNode, RefObject } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { CalendarToolbar } from './calendar-toolbar'
@@ -35,7 +34,6 @@ type CalendarPickerGridProps = {
 	cells: CalendarPickerGridCell[]
 	/** Renders cells full-width (`block`); the month grid sets this, the year grid does not. */
 	cellBlock?: boolean
-	size: Step
 }
 
 /**
@@ -59,7 +57,6 @@ export function CalendarPickerGrid({
 	gridLabel,
 	cells,
 	cellBlock = false,
-	size,
 }: CalendarPickerGridProps) {
 	return (
 		<>
@@ -67,7 +64,6 @@ export function CalendarPickerGrid({
 				toolbarRef={headerRef}
 				label="Calendar navigation"
 				onKeyDown={onHeaderKeyDown}
-				size={size}
 				prevLabel={prevLabel}
 				nextLabel={nextLabel}
 				onPrev={onPrev}
@@ -82,7 +78,7 @@ export function CalendarPickerGrid({
 				role="listbox"
 				aria-label={gridLabel}
 				onKeyDown={onGridKeyDown}
-				className={k.picker.grid({ size })}
+				className={cn(k.picker.grid)}
 			>
 				{cells.map((cell) => (
 					<Button

@@ -20,7 +20,7 @@ import { useColorField } from './use-color-field'
  * its variant.
  */
 export function ColorHexInput() {
-	const { hsva, setHsva, alpha, disabled, size } = useColorPanelContext()
+	const { hsva, setHsva, alpha, disabled } = useColorPanelContext()
 
 	const control = useControl()
 
@@ -55,7 +55,6 @@ export function ColorHexInput() {
 				// a click focuses the hex field. A no-op in the inline ColorPanel.
 				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
-				size={size}
 				variant={control?.variant}
 				data-slot="color-hex-input"
 				prefix="#"

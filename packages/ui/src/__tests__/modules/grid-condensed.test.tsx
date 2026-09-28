@@ -90,7 +90,7 @@ describe('Grid condensed', () => {
 		// step together instead of the text alone shrinking.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })
 
-		expect(item.closest('[data-density]')).toHaveAttribute('data-density', 'md')
+		expect(densityStepOf(item)).toBe('md')
 	})
 
 	it('does not shrink a consumer badge outside the grid', () => {

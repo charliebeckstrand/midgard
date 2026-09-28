@@ -2,8 +2,7 @@
 
 import type { KeyboardEvent, RefObject } from 'react'
 
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import type { CalendarActive } from '../calendar'
@@ -36,8 +35,6 @@ export function DatePickerFooter({
 	footerRef,
 	onKeyDown,
 }: DatePickerFooterProps) {
-	const size = toAmbientStep(useDensityStep())
-
 	if (footerButtons.length === 0) return null
 
 	return (
@@ -47,7 +44,7 @@ export function DatePickerFooter({
 			aria-label="Date picker actions"
 			data-slot="calendar-footer"
 			onKeyDown={onKeyDown}
-			className={cn(k.footer({ size }))}
+			className={cn(k.footer)}
 		>
 			{footerButtons.map((kind, index) => {
 				const isActive = active?.zone === 'footer' && active.index === index

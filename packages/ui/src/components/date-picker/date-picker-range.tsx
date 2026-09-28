@@ -17,7 +17,7 @@ import { useDatePickerRangeState } from './use-date-picker-range-state'
 export function DatePickerRange(props: DatePickerBaseProps & DatePickerRangeProps) {
 	const {
 		placeholder = 'Select dates',
-		size = 'md',
+		size,
 		truncate = true,
 		clearable = false,
 		className,

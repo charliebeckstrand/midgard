@@ -1,67 +1,33 @@
 /**
  * Calendar kata: object-literal surface for `<Calendar>`'s month grid and its
- * month/year `picker`. Size-axed sub-recipes (`base`, `header`, `footer`,
- * `weekday`, `picker.grid`) move with the `<Calendar>` size; the `grid`,
- * `day` (with active/range-edge state classes), and `skeleton` slots are
- * static.
+ * month/year `picker`. The `base`, `header`, `footer`, `weekday`, and
+ * `picker.grid` slots take the step of the nearest density scope through
+ * stepped classes; the `grid`, `day` (with active/range-edge state classes),
+ * and `skeleton` slots are static.
  */
-import { defineRecipe } from '../../core/recipe'
 import { iro, ji, kokkaku, narabi, sen } from '../kiso'
 
 const { palette, text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { flex } = narabi
 const { focus } = sen
 
-const base = defineRecipe({
-	base: ['inline-flex flex-col', 'select-none'],
-	size: {
-		sm: 'w-52',
-		md: 'w-68',
-		lg: 'w-80',
-	},
-	defaults: { size: 'md' },
-})
+const base = ['inline-flex flex-col', 'select-none', 'density-w-[52,68,80]']
 
-const header = defineRecipe({
-	base: [flex.row, 'justify-between'],
-	size: {
-		sm: 'mb-1',
-		md: 'mb-2',
-		lg: 'mb-3',
-	},
-	defaults: { size: 'md' },
-})
+const header = [flex.row, 'justify-between', 'density-mb-[1,2,3]']
 
-const footer = defineRecipe({
-	base: [flex.row, 'justify-center'],
-	size: {
-		sm: 'gap-1',
-		md: 'gap-2',
-		lg: 'gap-3',
-	},
-	defaults: { size: 'md' },
-})
+const footer = [flex.row, 'justify-center', 'density-gap-[1,2,3]']
 
-const pickerGrid = defineRecipe({
-	base: 'grid grid-cols-3',
-	size: {
-		sm: 'px-2',
-		md: 'px-3',
-		lg: 'px-4',
-	},
-	defaults: { size: 'md' },
-})
+const pickerGrid = ['grid grid-cols-3', 'density-px-[2,3,4]']
 
-const weekday = defineRecipe({
-	base: [flex.row, 'justify-center', 'w-full aspect-square', weight.medium, text.muted],
-	size: {
-		sm: size.xs,
-		md: size.sm,
-		lg: size.md,
-	},
-	defaults: { size: 'md' },
-})
+const weekday = [
+	flex.row,
+	'justify-center',
+	'w-full aspect-square',
+	weight.medium,
+	text.muted,
+	'density-text-[xs,sm,base]',
+]
 
 export const k = {
 	base,

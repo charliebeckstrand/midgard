@@ -6,7 +6,10 @@ import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { k as checkbox } from '../../recipes/kata/checkbox'
+import { k as colorPanel } from '../../recipes/kata/color-panel'
+import { k as colorPicker } from '../../recipes/kata/color-picker'
 import { k as combobox } from '../../recipes/kata/combobox'
+import { k as datePicker } from '../../recipes/kata/date-picker'
 import { k as fieldset } from '../../recipes/kata/fieldset'
 import { k as heading } from '../../recipes/kata/heading'
 import { k as input } from '../../recipes/kata/input'
@@ -40,7 +43,10 @@ const NATIVE_RECIPES = {
 	badge,
 	button,
 	checkbox,
+	'color panel': colorPanel,
+	'color picker button': colorPicker.button,
 	combobox,
+	'date picker button': datePicker.button,
 	description: fieldset.description,
 	heading,
 	input,
@@ -72,22 +78,34 @@ const NATIVE_RECIPES = {
 const NATIVE_FILES = [
 	'components/badge/badge.tsx',
 	'components/button/button.tsx',
-	'components/checkbox/checkbox.tsx',
+	'components/calendar/calendar-picker.tsx',
+	'components/calendar/calendar.tsx',
 	'components/card/card-footer.tsx',
 	'components/card/card-header.tsx',
 	'components/card/card-title.tsx',
 	'components/card/card.tsx',
+	'components/checkbox/checkbox.tsx',
+	'components/color/color-panel.tsx',
+	'components/color/color-picker.tsx',
+	'components/combobox/combobox.tsx',
+	'components/date-picker/date-picker-footer.tsx',
+	'components/date-picker/date-picker.tsx',
+	'components/drawer/drawer.tsx',
 	'components/fieldset/description.tsx',
 	'components/fieldset/label.tsx',
 	'components/fieldset/message.tsx',
+	'components/group/group.tsx',
 	'components/heading/heading-skeleton.tsx',
 	'components/heading/heading.tsx',
 	'components/icon/icon.tsx',
 	'components/list/list-item.tsx',
+	'components/listbox/listbox.tsx',
 	'components/loading/loading-spinner.tsx',
 	'components/menu/menu-item.tsx',
 	'components/menu/menu-sub.tsx',
 	'components/menu/menu-viewport.tsx',
+	'components/menu/use-menu-state.ts',
+	'components/popover/popover-content.tsx',
 	'components/progress/progress-bar.tsx',
 	'components/progress/progress-gauge.tsx',
 	'components/radio/radio.tsx',

@@ -1,10 +1,11 @@
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Dialog, DialogHeader, DialogTitle } from '../../../components/dialog'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
+import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { DensityProvider } from '../../../providers/density'
-import { renderUI, screen, waitFor } from '../../helpers'
+import { present, renderUI, screen, waitFor } from '../../helpers'
 
 /**
  * A portal takes a panel out of the DOM subtree of its density scope. The root of an Overlay or a
@@ -17,6 +18,10 @@ import { renderUI, screen, waitFor } from '../../helpers'
 const fontOf = (node: HTMLElement) => Number.parseFloat(getComputedStyle(node).fontSize)
 
 describe('density scopes across portals (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
 	it.each([
 		['takes md outside a scope', undefined, 18],
 		['follows a compact provider', 'compact', 16],
@@ -57,6 +62,42 @@ describe('density scopes across portals (real browser)', () => {
 		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
 		expect(row.closest('[data-slot="density"]')).toBeNull()
+
+		expect(fontOf(row)).toBe(14)
+	})
+
+	it('sizes a menu row and a popover panel at the step of the root', async () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		// No scope on the path: the portal writes no step, so each panel follows the root.
+		renderUI(
+			<>
+				<Menu placement="bottom-start">
+					<MenuTrigger>
+						<button type="button">Open</button>
+					</MenuTrigger>
+					<MenuContent aria-label="Actions">
+						<MenuItem>Copy</MenuItem>
+					</MenuContent>
+				</Menu>
+				<Popover defaultOpen>
+					<PopoverTrigger>
+						<button type="button">Info</button>
+					</PopoverTrigger>
+					<PopoverContent aria-label="Info">Body</PopoverContent>
+				</Popover>
+			</>,
+		)
+
+		const panel = await screen.findByRole('dialog', { name: 'Info' })
+
+		expect(getComputedStyle(present(panel.firstElementChild, 'popover body')).paddingTop).toBe(
+			'12px',
+		)
+
+		await userEvent.click(screen.getByRole('button', { name: 'Open' }))
+
+		const row = await screen.findByRole('menuitem', { name: 'Copy' })
 
 		expect(fontOf(row)).toBe(14)
 	})

@@ -30,7 +30,7 @@ function getEyeDropper(): EyeDropperConstructor | undefined {
  * `AbortError`, which is swallowed.
  */
 export function ColorEyedropper({ className }: { className?: string }) {
-	const { setHsva, size } = useColorPanelContext()
+	const { setHsva } = useColorPanelContext()
 
 	// Probe for the API after mount. Reading it during render returns undefined
 	// on the server but the constructor on a supporting client, mismatching
@@ -59,7 +59,6 @@ export function ColorEyedropper({ className }: { className?: string }) {
 		<Button
 			type="button"
 			variant="bare"
-			size={size}
 			data-slot="color-eyedropper"
 			aria-label="Pick color from screen"
 			onClick={onPick}

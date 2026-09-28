@@ -20,7 +20,7 @@ type ColorSliderProps = {
  * @internal
  */
 export function ColorSlider({ channel }: ColorSliderProps) {
-	const { hsva, setHsva, disabled, size } = useColorPanelContext()
+	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -93,7 +93,7 @@ export function ColorSlider({ channel }: ColorSliderProps) {
 			aria-valuetext={isHue ? `${Math.round(value)}°` : `${Math.round(value * 100)}%`}
 			aria-disabled={ariaAttr(disabled)}
 			className={cn(
-				k.track({ size }),
+				k.track,
 				isHue ? k.hue : k.checkerboard,
 				disabled && 'pointer-events-none opacity-50',
 			)}

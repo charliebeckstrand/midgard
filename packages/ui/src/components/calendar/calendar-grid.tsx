@@ -1,7 +1,7 @@
 'use client'
 
 import { type KeyboardEventHandler, memo, type RefObject } from 'react'
-import type { Step } from '../../recipes'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import type { CalendarDayContextValue, CalendarDayProps } from './calendar'
 import { CalendarDayCell } from './calendar-day-cell'
@@ -10,7 +10,6 @@ import { isSameDay } from './calendar-utilities'
 type CalendarGridProps = {
 	gridRef: RefObject<HTMLDivElement | null>
 	onGridKeyDown: KeyboardEventHandler<HTMLElement>
-	size: Step
 	/** Short weekday labels, pre-ordered to the active locale's first day. */
 	weekdays: string[]
 	days: Date[]
@@ -42,7 +41,6 @@ type CalendarGridProps = {
 export const CalendarGrid = memo(function CalendarGrid({
 	gridRef,
 	onGridKeyDown,
-	size,
 	weekdays,
 	days,
 	firstDayColumn,
@@ -60,7 +58,7 @@ export const CalendarGrid = memo(function CalendarGrid({
 	return (
 		<div className={k.grid}>
 			{weekdays.map((day) => (
-				<div key={day} className={k.weekday({ size })} aria-hidden="true">
+				<div key={day} className={cn(k.weekday)} aria-hidden="true">
 					{day}
 				</div>
 			))}

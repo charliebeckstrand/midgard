@@ -27,14 +27,11 @@ const value = defineRecipe({
 	defaults: { truncate: true },
 })
 
-const swatch = defineRecipe({
-	base: [
-		'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
-		rounded.sm,
-	],
-	size: { sm: 'size-4', md: 'size-5', lg: 'size-5' },
-	defaults: { size: 'md' },
-})
+const swatch = [
+	'relative shrink-0 overflow-hidden ring-1 ring-inset ring-black/10 dark:ring-white/15',
+	rounded.sm,
+	'density-size-[4,5,5]',
+]
 
 export const k = {
 	surface: {

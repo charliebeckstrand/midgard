@@ -1,8 +1,8 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
-import { cn, toAmbientStep } from '../../core'
-import { Density, useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
+import { Density } from '../../primitives/density'
 import type { GroupOrientation, Step } from '../../recipes'
 import { k } from '../../recipes/kata/group'
 import { useGroup } from './use-group'
@@ -11,8 +11,8 @@ type GroupBaseProps = {
 	/** Axis the group lays out on. @defaultValue 'horizontal' */
 	orientation?: GroupOrientation
 	/**
-	 * Size step that drives end-cap radii on participating children. Resolution
-	 * order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Size step of the children. It opens a density scope on the group. Without
+	 * it, the children take the step of the nearest density scope.
 	 */
 	size?: Step
 	className?: string
@@ -31,12 +31,10 @@ export type GroupProps = GroupBaseProps & Omit<ComponentProps<'div'>, 'className
  * `data-group-orientation`, which those selectors read; the root itself stamps
  * plain `data-orientation`, the axis marker every oriented container carries.
  *
- * Provides the Density cascade for its descendants. Components that read
- * `useDensityStep()` (Button, Input, etc.) default their `size` prop to the
- * wrapper's resolved size, unless the consumer passes one explicitly.
- *
- * Composes with surrounding `<Card>` / `<Drawer>` / `<Popover>`: when `size`
- * is omitted, the wrapper inherits the enclosing Density size.
+ * An explicit `size` opens a density scope, so the children (Button, Input,
+ * and so on) take that step unless they have a `size` of their own. With no
+ * `size`, the group opens no scope, and the children take the step of the
+ * nearest scope, such as a surrounding `<Card>`, `<Drawer>`, or `<Popover>`.
  *
  * @example
  *   <Group>
@@ -53,18 +51,17 @@ export function Group({
 	...props
 }: GroupProps) {
 	const stamped = useGroup(children, orientation)
-	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	return (
 		<div
 			data-slot="group"
-			data-size={resolvedSize}
-			data-density={resolvedSize}
+			data-size={size}
+			data-density={size}
 			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
-			<Density step={resolvedSize}>{stamped}</Density>
+			<Density step={size}>{stamped}</Density>
 		</div>
 	)
 }
