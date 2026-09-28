@@ -130,7 +130,7 @@ export function gridWindowView(
  * Drives the measured window of a grouped or master-detail body over its item
  * list. It returns the body ref, the rendered items, the two spacer heights,
  * the measure ref that each rendered row attaches, and the reveal-end reader.
- * After each commit it writes the window to `record`.
+ * After each commit it writes the window to `recordRef`.
  *
  * @remarks Each item has a prefixed key, and the virtualizer caches each
  * measured height against it. The first guess comes from
@@ -151,7 +151,7 @@ export function gridWindowView(
 export function useGridItemWindow<I extends WindowItem>(
 	items: readonly I[],
 	options: GridItemWindowOptions,
-	record: RefObject<GridWindowRecord>,
+	recordRef: RefObject<GridWindowRecord>,
 ) {
 	const { scrollRef, estimateSize, overscan, fitRenderedRows, stickyHeader } = options
 
@@ -171,12 +171,12 @@ export function useGridItemWindow<I extends WindowItem>(
 
 		if (!scroller) return
 
-		const previous = scroller.style.overflowAnchor
+		const previous = scroller.style.getPropertyValue('overflow-anchor')
 
-		scroller.style.overflowAnchor = 'none'
+		scroller.style.setProperty('overflow-anchor', 'none')
 
 		return () => {
-			scroller.style.overflowAnchor = previous
+			scroller.style.setProperty('overflow-anchor', previous)
 		}
 	}, [scrollRef])
 
@@ -204,7 +204,7 @@ export function useGridItemWindow<I extends WindowItem>(
 	// Each commit records its window by reference. A toggle reads it later
 	// through `gridWindowView`, so a commit with no toggle reads nothing.
 	useLayoutEffect(() => {
-		record.current = {
+		recordRef.current = {
 			virtualItems: win.virtualItems,
 			items,
 			paddingStart: offsets.scrollPaddingStart,
@@ -237,7 +237,7 @@ export function useGridItemWindow<I extends WindowItem>(
 		if (!scrollIntoViewRef) return
 
 		scrollIntoViewRef.current = (_, key) => {
-			const index = record.current.items.findIndex((item) => item.key === key)
+			const index = recordRef.current.items.findIndex((item) => item.key === key)
 
 			if (index >= 0) scrollToIndex(index, { align: 'auto' })
 		}
@@ -245,7 +245,7 @@ export function useGridItemWindow<I extends WindowItem>(
 		return () => {
 			scrollIntoViewRef.current = null
 		}
-	}, [scrollIntoViewRef, scrollToIndex, record])
+	}, [scrollIntoViewRef, scrollToIndex, recordRef])
 
 	return { bodyRef, revealEndItem, ...win }
 }

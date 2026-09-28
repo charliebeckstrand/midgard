@@ -68,9 +68,6 @@
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"
 	},
-	"modules/grid/use-grid-item-window.ts": {
-		"useGridItemWindow": "Immutability"
-	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
 	},
