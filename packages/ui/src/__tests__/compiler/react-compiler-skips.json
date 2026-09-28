@@ -64,9 +64,6 @@
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
 	},
-	"modules/grid/use-grid-cursor.tsx": {
-		"useGridCursor": "Refs"
-	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"
@@ -79,9 +76,6 @@
 	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
-	},
-	"modules/map/map-plat.tsx": {
-		"MapPlat": "Refs"
 	},
 	"modules/map/use-map-coverage.ts": {
 		"useMapCoverage": "PreserveManualMemo"
