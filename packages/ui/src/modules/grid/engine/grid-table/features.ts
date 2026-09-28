@@ -16,7 +16,6 @@ import {
 	type TableOptions,
 	tableFeatures,
 } from '@tanstack/react-table'
-import type { GridColumn } from '../../types'
 
 /**
  * The engine features of the grid.
@@ -43,9 +42,9 @@ export const gridFeatures = tableFeatures({
 	rowSortingFeature,
 	// Carries the source column on each column definition, so the visible
 	// columns of the engine map back to the columns of the grid (see
-	// `toGridColumns`). The value is a phantom; only its type is used.
-	// biome-ignore lint/suspicious/noExplicitAny: the meta holds a column of any row type.
-	columnMeta: {} as { gridColumn: GridColumn<any> },
+	// `toGridColumns`). The value is a phantom; only its type is used. The slot
+	// takes no row type, so the column is `unknown` here.
+	columnMeta: {} as { gridColumn: unknown },
 })
 
 /** The feature set of the grid engine. @internal */

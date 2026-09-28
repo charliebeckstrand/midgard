@@ -267,7 +267,10 @@ export function sameElements<T>(a: readonly T[], b: readonly T[]): boolean {
  * @internal
  */
 export function toGridColumns<T>(leaves: readonly EngineColumn<T>[]): GridColumn<T>[] {
-	return leaves.flatMap((leaf) => leaf.columnDef.meta?.gridColumn ?? [])
+	// An engine of `T` rows holds only the `GridColumn<T>` that `toColumnDefs` gave it.
+	return leaves.flatMap(
+		(leaf) => (leaf.columnDef.meta?.gridColumn as GridColumn<T> | undefined) ?? [],
+	)
 }
 
 /** The default size and bounds of an engine column. @internal */
