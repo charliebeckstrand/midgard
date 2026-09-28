@@ -12,11 +12,12 @@ import {
 // compiler reports such a function only when it also breaks a rule, so the skip
 // ledger (`compiler/react-compiler-skips.json`) does not show each one. This list
 // does. Each function states its reason in its TSDoc, and a change to the list
-// shows in the diff of the commit that makes it. `useVirtualWindow` is in the
-// ledger too: it writes to the virtualizer during render.
+// shows in the diff of the commit that makes it. `useWindowVirtualizer` is in
+// the ledger too: it writes to the virtualizer during render.
 //
-//   - `useVirtualWindow`: the virtualizer keeps one identity, and its reads are
-//     live, so a compiled read of the window goes stale.
+//   - `useWindowVirtualizer`: the virtualizer keeps one identity, and its reads
+//     are live, so a compiled read of the window goes stale. It gives each
+//     render its window as plain values, so `useVirtualWindow` compiles.
 //   - `useGridEditSourceSync` and `useGridIndexSync`: each writes refs during
 //     render, which the grid cells read in the same pass.
 
