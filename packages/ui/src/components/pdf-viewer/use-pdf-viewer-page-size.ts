@@ -1,6 +1,6 @@
 'use client'
 
-import { type SyntheticEvent, useCallback, useMemo, useRef, useState } from 'react'
+import { type SyntheticEvent, useCallback, useMemo, useState } from 'react'
 import type { PdfViewerPage } from './types'
 
 type Size = { width: number; height: number }
@@ -34,12 +34,11 @@ export function usePdfViewerPageSize(
 	const [naturalSize, setNaturalSize] = useState<Size | null>(null)
 
 	const resetKey = `${activePage?.id ?? ''}:${safePage}`
-	const prevResetKey = useRef(resetKey)
-	const prevDocumentKey = useRef(documentKey)
+	// Adjusted during render: a new page or document drops the measured size.
+	const [measured, setMeasured] = useState({ resetKey, documentKey })
 
-	if (prevResetKey.current !== resetKey || prevDocumentKey.current !== documentKey) {
-		prevResetKey.current = resetKey
-		prevDocumentKey.current = documentKey
+	if (measured.resetKey !== resetKey || measured.documentKey !== documentKey) {
+		setMeasured({ resetKey, documentKey })
 		setNaturalSize(null)
 	}
 
@@ -48,12 +47,13 @@ export function usePdfViewerPageSize(
 	// would defeat it. Memoize only the caller size and fall back with `??`, so a
 	// caller-dimensioned page keeps one identity even across the natural-size
 	// measurement its `<img>` load triggers.
+	const callerWidth = activePage?.width
+
+	const callerHeight = activePage?.height
+
 	const callerSize = useMemo<Size | null>(
-		() =>
-			activePage?.width && activePage.height
-				? { width: activePage.width, height: activePage.height }
-				: null,
-		[activePage?.width, activePage?.height],
+		() => (callerWidth && callerHeight ? { width: callerWidth, height: callerHeight } : null),
+		[callerWidth, callerHeight],
 	)
 
 	const pageSize = callerSize ?? naturalSize
