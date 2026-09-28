@@ -22,18 +22,21 @@ export type MagnifierChoice = Required<Omit<PdfViewerMagnifierOptions, 'mode'>>
 /**
  * The same three settings, in the numbers the lens draws with.
  *
- * @remarks The seam the named steps exist for. Everything below this line is arithmetic, and
- * arithmetic has no use for a token. That is the dwell handed to `useHover`, the diameter the
- * lens is sized to, and the magnification {@link lensOffset} solves against. So the steps are
- * resolved once, here, and the rest of the loupe never learns that they exist.
+ * @remarks The seam the named steps exist for. The dwell handed to `useHover` and the
+ * magnification {@link lensOffset} solves against are arithmetic, and arithmetic has no use for
+ * a token. So those steps are resolved once, here, and the rest of the loupe never learns that
+ * they exist.
+ *
+ * The size stays a step. The lens takes it as a Tailwind size class, and the stage finds the
+ * center of the lens in CSS, so no code reads the diameter as a number.
  * @internal
  */
-export type ResolvedMagnifier = { zoom: number; size: number; delay: number }
+export type ResolvedMagnifier = { zoom: number; size: MagnifierChoice['size']; delay: number }
 
 /** One option in the config dialog: the step it sets, and what that step is to the reader. @internal */
 export type MagnifierOption<T extends string> = { value: T; label: string }
 
-/** The loupe as it has always been: 2.5× through a 180px lens, after a 300ms dwell. */
+/** The loupe at the middle of each scale: 2.5× through a 192px lens, after a 300ms dwell. */
 const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'default' }
 
 /*
@@ -55,10 +58,7 @@ export const zoomOptions: readonly MagnifierOption<MagnifierChoice['zoom']>[] = 
 	{ value: 'lg', label: '4×' },
 ]
 
-/** Lens diameter in pixels for each step. */
-const sizeSteps = { sm: 140, md: 180, lg: 240 } as const
-
-/** @internal */
+/** The lens diameters, 144, 192 and 240 pixels. The lens kata holds the size classes. @internal */
 export const sizeOptions: readonly MagnifierOption<MagnifierChoice['size']>[] = [
 	{ value: 'sm', label: 'Small' },
 	{ value: 'md', label: 'Medium' },
@@ -112,13 +112,13 @@ export function resolveMagnifierChoice(options: PdfViewerMagnifierOptions): Magn
  * Read the named steps off as the numbers the lens draws with.
  *
  * @param choice - The settings, as the consumer or the reader left them.
- * @returns The same settings in pixels, milliseconds, and a bare multiplier.
+ * @returns The dwell in milliseconds, the zoom as a bare multiplier, and the size step.
  * @internal
  */
 export function resolveMagnifier(choice: MagnifierChoice): ResolvedMagnifier {
 	return {
 		zoom: zoomSteps[choice.zoom],
-		size: sizeSteps[choice.size],
+		size: choice.size,
 		delay: delaySteps[choice.delay],
 	}
 }
@@ -131,10 +131,11 @@ export type MagnifierPoint = { x: number; y: number }
  *
  * @param point - The pointer, in the page frame's own coordinates.
  * @param zoom - Magnification.
- * @param size - The lens's diameter.
  * @returns The copy's translation, for a transform whose origin is its top-left corner.
- * @remarks With the origin pinned there, a point `p` maps to `offset + zoom * p`; solving for
- * the offset that puts it at the lens's center gives `centre - zoom * p`.
+ * @remarks The stage hangs its top-left corner at the center of the lens, so the rendered
+ * size of the lens sets the center and no code measures it. With the origin pinned there, a
+ * point `p` maps to `offset + zoom * p` from the center. The offset that puts `p` at the
+ * center is therefore `-zoom * p`.
  *
  * Pure, and exported for the same reason {@link toFractionRect} is. It is the one seam where
  * this arithmetic is provable without a measured DOM and a real floating engine, neither of
@@ -142,10 +143,8 @@ export type MagnifierPoint = { x: number; y: number }
  *
  * @internal
  */
-export function lensOffset(point: MagnifierPoint, zoom: number, size: number): MagnifierPoint {
-	const center = size / 2
-
-	return { x: center - zoom * point.x, y: center - zoom * point.y }
+export function lensOffset(point: MagnifierPoint, zoom: number): MagnifierPoint {
+	return { x: -zoom * point.x, y: -zoom * point.y }
 }
 
 /** @internal */

@@ -5,6 +5,7 @@ import { PdfViewer, type PdfViewerMagnifierZoom } from '../../components/pdf-vie
 import { usePdfViewer } from '../../components/pdf-viewer/use-pdf-viewer'
 import {
 	lensOffset,
+	type ResolvedMagnifier,
 	resolveMagnifier,
 	resolveMagnifierChoice,
 	usePdfViewerMagnifier,
@@ -66,7 +67,7 @@ describe('resolveMagnifier', () => {
 	it('holds the loupe as it was at the middle of every scale', () => {
 		expect(resolveMagnifier({ zoom: 'md', size: 'md', delay: 'default' })).toEqual({
 			zoom: 2.5,
-			size: 180,
+			size: 'md',
 			delay: 300,
 		})
 	})
@@ -74,13 +75,13 @@ describe('resolveMagnifier', () => {
 	it('reads each step off as the number the lens draws with', () => {
 		expect(resolveMagnifier({ zoom: 'sm', size: 'sm', delay: 'none' })).toEqual({
 			zoom: 2,
-			size: 140,
+			size: 'sm',
 			delay: 0,
 		})
 
 		expect(resolveMagnifier({ zoom: 'lg', size: 'lg', delay: 'default' })).toEqual({
 			zoom: 4,
-			size: 240,
+			size: 'lg',
 			delay: 300,
 		})
 	})
@@ -93,27 +94,23 @@ describe('resolveMagnifier', () => {
 
 describe('lensOffset', () => {
 	/**
-	 * The whole contract: whatever the pointer is over ends up at the center of the lens.
-	 * Applying the transform by hand is what proves it — `offset + zoom * point === centre`.
+	 * The whole contract: whatever the pointer is over ends up at the center of the lens. The
+	 * stage hangs from that center, so applying the transform by hand must give zero —
+	 * `offset + zoom * point === 0`.
 	 */
 	it('puts the pointed-at page coordinate under the crosshair', () => {
 		const zoom = 2.5
-		const size = 180
 		const point = { x: 120, y: 300 }
 
-		const offset = lensOffset(point, zoom, size)
+		const offset = lensOffset(point, zoom)
 
-		expect(offset.x + zoom * point.x).toBe(size / 2)
-		expect(offset.y + zoom * point.y).toBe(size / 2)
-	})
-
-	it('holds at the page origin, where the copy hangs off the lens', () => {
-		expect(lensOffset({ x: 0, y: 0 }, 2, 180)).toEqual({ x: 90, y: 90 })
+		expect(offset.x + zoom * point.x).toBe(0)
+		expect(offset.y + zoom * point.y).toBe(0)
 	})
 
 	it('scales with the magnification, not with the page', () => {
-		expect(lensOffset({ x: 10, y: 10 }, 2, 100)).toEqual({ x: 30, y: 30 })
-		expect(lensOffset({ x: 10, y: 10 }, 4, 100)).toEqual({ x: 10, y: 10 })
+		expect(lensOffset({ x: 10, y: 10 }, 2)).toEqual({ x: -20, y: -20 })
+		expect(lensOffset({ x: 10, y: 10 }, 4)).toEqual({ x: -40, y: -40 })
 	})
 })
 
@@ -171,11 +168,11 @@ describe('usePdfViewer over a re-rendered magnifier prop', () => {
 	it('rebuilds it when a setting changes', () => {
 		const { result, rerender } = configured('md')
 
-		expect(result.current.magnifierSettings).toEqual({ zoom: 2.5, size: 180, delay: 300 })
+		expect(result.current.magnifierSettings).toEqual({ zoom: 2.5, size: 'md', delay: 300 })
 
 		rerender({ zoom: 'lg' })
 
-		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 180, delay: 300 })
+		expect(result.current.magnifierSettings).toEqual({ zoom: 4, size: 'md', delay: 300 })
 	})
 })
 
@@ -340,7 +337,7 @@ describe('PdfViewer magnifier controls', () => {
  * `useHover` contributes no props — so every opening below is unambiguously the settle's doing.
  */
 describe('usePdfViewerMagnifier over a pan', () => {
-	const settings = { zoom: 2.5, size: 180, delay: 300 }
+	const settings: ResolvedMagnifier = { zoom: 2.5, size: 'md', delay: 300 }
 
 	/**
 	 * A page frame that reports where it is, so a pan can be staged by moving it.
@@ -557,7 +554,7 @@ describe('usePdfViewerMagnifier over a pan', () => {
  * opening below is the hold's own.
  */
 describe('usePdfViewerMagnifier under a held finger', () => {
-	const settings = { zoom: 2.5, size: 180, delay: 300 }
+	const settings: ResolvedMagnifier = { zoom: 2.5, size: 'md', delay: 300 }
 
 	function frameAt() {
 		const frame = document.createElement('div')
