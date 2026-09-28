@@ -1002,6 +1002,17 @@ describe('Grid', () => {
 			expect(rendered.length).toBeLessThan(manyRows.length)
 		})
 
+		/** jsdom lays out nothing, so no row measures, and the window never mounts. */
+		it('holds the skeleton until a row measures', () => {
+			const { container } = renderUI(
+				<Grid columns={columns} rows={manyRows} getKey={getKey} virtualize maxHeight="300px" />,
+			)
+
+			expect(container.querySelector('tbody tr[data-grid-placeholder]')).toBeInTheDocument()
+
+			expect(container.querySelector('tbody tr[data-grid-row]')).toBeNull()
+		})
+
 		it('accepts an options object', () => {
 			const { container } = renderUI(
 				<Grid
@@ -1158,6 +1169,10 @@ describe('Grid', () => {
 			age: i,
 		}))
 
+		// jsdom lays out nothing, so no row measures and the body holds the
+		// skeleton. An explicit row height mounts the window, and its trailer.
+		const windowed = { estimateSize: 44 }
+
 		it('throws when infiniteScroll is set without maxHeight', () => {
 			expect(() =>
 				renderUI(
@@ -1226,7 +1241,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
@@ -1241,7 +1256,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true }}
 				/>,
@@ -1257,7 +1272,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), loadingMore: true, loadingIndicator: true }}
 				/>,
@@ -1278,7 +1293,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
@@ -1303,7 +1318,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), loadingIndicator: true }}
 				/>,
@@ -1318,7 +1333,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: false, endMessage: 'No more results' }}
 				/>,
@@ -1342,7 +1357,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: true, endMessage: 'No more results' }}
 				/>,
@@ -1357,7 +1372,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{
 						onLoadMore: vi.fn(),
@@ -1388,7 +1403,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: true }}
 				/>,
@@ -1404,7 +1419,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), hasMore: false }}
 				/>,
@@ -1420,7 +1435,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					infiniteScroll={{ onLoadMore: vi.fn(), totalRows: 500 }}
 				/>,
@@ -1437,7 +1452,7 @@ describe('Grid', () => {
 					columns={columns}
 					rows={manyRows}
 					getKey={getKey}
-					virtualize
+					virtualize={windowed}
 					maxHeight="300px"
 					footer={{ rowTotal: true }}
 					infiniteScroll={{ onLoadMore: vi.fn(), totalRows: 500 }}
@@ -1454,7 +1469,7 @@ describe('Grid', () => {
 						columns={columns}
 						rows={manyRows}
 						getKey={getKey}
-						virtualize
+						virtualize={windowed}
 						maxHeight="fill"
 						infiniteScroll={{ onLoadMore: vi.fn() }}
 					/>

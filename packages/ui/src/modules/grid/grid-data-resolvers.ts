@@ -12,10 +12,9 @@
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
 import { cn } from '../../core'
-import type { DensityLevel } from '../../providers/density/context'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
-import { DEFAULT_OVERSCAN, ROW_HEIGHT_BY_DENSITY } from './engine/grid-constants'
+import { DEFAULT_OVERSCAN } from './engine/grid-constants'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type {
 	GridFooter,
@@ -47,18 +46,14 @@ export function resolveSortable<T>(columns: GridColumn<T>[]): GridColumn<T>[] {
 
 /**
  * Collapses the `virtualize` prop (boolean or options object) into a resolved
- * enabled flag and sizing. The row-height default scales with `density` (see
- * {@link ROW_HEIGHT_BY_DENSITY}) so the estimate tracks the cell padding the
- * table actually renders; an explicit `estimateSize` still overrides it.
+ * enabled flag and sizing. `estimateSize` is the consumer's row height, or
+ * `undefined` when the grid measures its rows (see `useGridRowHeight`).
  *
  * @internal
  */
-export function resolveVirtualization(
-	virtualize: GridVirtualize | undefined,
-	density: DensityLevel | undefined,
-): {
+export function resolveVirtualization(virtualize: GridVirtualize | undefined): {
 	enabled: boolean
-	estimateSize: number
+	estimateSize: number | undefined
 	overscan: number
 } {
 	const enabled = virtualize != null && virtualize !== false
@@ -67,7 +62,7 @@ export function resolveVirtualization(
 
 	return {
 		enabled,
-		estimateSize: opts?.estimateSize ?? ROW_HEIGHT_BY_DENSITY[density ?? 'snug'],
+		estimateSize: opts?.estimateSize,
 		overscan: opts?.overscan ?? DEFAULT_OVERSCAN,
 	}
 }
