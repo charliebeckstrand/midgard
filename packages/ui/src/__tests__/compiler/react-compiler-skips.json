@@ -29,9 +29,6 @@
 	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
 		"PdfViewerViewport": "Refs"
 	},
-	"components/pdf-viewer/pdf-viewer.tsx": {
-		"PdfViewer": "Refs"
-	},
 	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
 		"usePdfViewerHighlights": "Refs"
 	},
