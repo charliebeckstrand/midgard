@@ -30,8 +30,9 @@ describe('extractSourceFacts element facts', () => {
 
 		expect(facts?.sites).toHaveLength(1)
 
+		// The walker reads a live `false` as absent, so `open={false}` keeps its fact.
 		expect(facts?.sites[0]?.elements).toEqual([
-			{ name: 'MaskInput', props: { value: 'value', onValueChange: 'setValue' } },
+			{ name: 'MaskInput', props: { value: 'value', onValueChange: 'setValue', open: 'false' } },
 		])
 	})
 
