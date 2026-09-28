@@ -232,7 +232,9 @@ describe('PdfViewer', () => {
 		return () => act(async () => finish())
 	}
 
-	it('shows the first page and every control while later pages still render', async () => {
+	it('shows the first page and every control while later pages still render', async ({
+		signal,
+	}) => {
 		const finish = openPartial('/partial.pdf')
 
 		const { container } = renderUI(<PdfViewer src="/partial.pdf" />)
@@ -250,10 +252,12 @@ describe('PdfViewer', () => {
 
 		await finish()
 
+		signal.throwIfAborted()
+
 		resetDocumentCache()
 	})
 
-	it('reports the load when the document opens, with its full page count', async () => {
+	it('reports the load when the document opens, with its full page count', async ({ signal }) => {
 		const finish = openPartial('/partial.pdf')
 
 		const onLoad = vi.fn()
@@ -266,12 +270,14 @@ describe('PdfViewer', () => {
 
 		expect(onLoad).toHaveBeenCalledOnce()
 
+		signal.throwIfAborted()
+
 		resetDocumentCache()
 	})
 
 	// The page count is whole at the open, so a later page is not clamped to the pages
 	// rendered so far. It shows its placeholder, and then its image.
-	it('opens on a later page that has not rendered yet, without a jump', async () => {
+	it('opens on a later page that has not rendered yet, without a jump', async ({ signal }) => {
 		const finish = openPartial('/partial.pdf')
 
 		const { container } = renderUI(<PdfViewer src="/partial.pdf" defaultPage={3} />)
@@ -284,12 +290,14 @@ describe('PdfViewer', () => {
 
 		await finish()
 
+		signal.throwIfAborted()
+
 		resetDocumentCache()
 	})
 
 	// The queue renders the page that the viewer shows. The viewer asks for it before the
 	// document opens, so the first render is the page the reader sees.
-	it('asks the queue for the page that it shows, first and after a change', async () => {
+	it('asks the queue for the page that it shows, first and after a change', async ({ signal }) => {
 		resetDocumentCache()
 
 		// A render that never ends, and rejects on a cancel as a pdf.js render does.
@@ -329,12 +337,14 @@ describe('PdfViewer', () => {
 
 		expect(render).toHaveBeenLastCalledWith(5, 'full', 1)
 
+		signal.throwIfAborted()
+
 		resetDocumentCache()
 	})
 
 	// The `src` path keeps a full raster as a bitmap, with no encode. The viewport draws it on
 	// a canvas that carries the name of the page.
-	it('shows a page that rendered to a bitmap on a named canvas', async () => {
+	it('shows a page that rendered to a bitmap on a named canvas', async ({ signal }) => {
 		resetDocumentCache()
 
 		const bitmap = { width: 918, height: 1188, close: vi.fn() } as unknown as ImageBitmap
@@ -357,6 +367,8 @@ describe('PdfViewer', () => {
 		expect(viewport?.querySelector('canvas')).toHaveAttribute('aria-label', 'Page 1')
 
 		expect(viewport?.querySelector('img')).toBeNull()
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 	})
@@ -402,7 +414,7 @@ describe('PdfViewer', () => {
 
 	// The rail names the tiles it shows, and the queue renders their thumbnails. The jsdom
 	// observer reports every tile in view.
-	it('asks the queue for the thumbnails that the rail shows', async () => {
+	it('asks the queue for the thumbnails that the rail shows', async ({ signal }) => {
 		resetDocumentCache()
 
 		const render = vi.fn((index: number, raster: string) => ({
@@ -429,6 +441,8 @@ describe('PdfViewer', () => {
 		const tiles = allBySlot(container, 'pdf-viewer-thumbnail')
 
 		expect(tiles[2]?.querySelector('img')).toHaveAttribute('src', 'blob:thumbnail-2')
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 	})

@@ -485,7 +485,7 @@ describe('pdf viewer document cache · open document', () => {
 		])
 	})
 
-	it('revokes no URL for a slot that never rendered', async () => {
+	it('revokes no URL for a slot that never rendered', async ({ signal }) => {
 		const load = loader()
 
 		ensureDocumentLoad('/a.pdf', load.run)
@@ -497,6 +497,8 @@ describe('pdf viewer document cache · open document', () => {
 		load.finish()
 
 		await flush()
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 
@@ -549,7 +551,7 @@ describe('pdf viewer document cache · open document', () => {
 		expect(release).toHaveBeenCalledOnce()
 	})
 
-	it('frees the kept document when the cache resets', async () => {
+	it('frees the kept document when the cache resets', async ({ signal }) => {
 		const release = vi.fn()
 
 		const load = loader()
@@ -561,6 +563,8 @@ describe('pdf viewer document cache · open document', () => {
 		load.finish()
 
 		await flush()
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 
@@ -815,10 +819,12 @@ describe('pdf viewer document cache · render queue', () => {
 		expect(pages.asked()).toEqual(['0:full'])
 	})
 
-	it('cancels the render in flight when the entry leaves', async () => {
+	it('cancels the render in flight when the entry leaves', async ({ signal }) => {
 		const pages = await served('/a.pdf', 5)
 
 		focusPage('/a.pdf', {}, 0)
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 
@@ -826,12 +832,14 @@ describe('pdf viewer document cache · render queue', () => {
 	})
 
 	// A render in its encode ignores the cancel and still gives a URL, which has no owner now.
-	it('frees a URL that lands after its entry left', async () => {
+	it('frees a URL that lands after its entry left', async ({ signal }) => {
 		const pages = await served('/a.pdf', 5)
 
 		focusPage('/a.pdf', {}, 0)
 
 		pages.jobs[0]?.cancel.mockImplementation(() => {})
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 
@@ -867,12 +875,14 @@ describe('pdf viewer document cache · bitmaps', () => {
 		expect(getDocumentSnapshot('/a.pdf').pages[1]?.bitmap).toBeUndefined()
 	})
 
-	it('closes the bitmaps of an entry when the cache resets', async () => {
+	it('closes the bitmaps of an entry when the cache resets', async ({ signal }) => {
 		const pages = await served('/a.pdf', 3)
 
 		focusPage('/a.pdf', {}, 0)
 
 		const raster = await pages.landBitmap(10)
+
+		signal.throwIfAborted()
 
 		resetDocumentCache()
 

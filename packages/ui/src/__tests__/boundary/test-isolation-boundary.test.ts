@@ -1,5 +1,5 @@
-import { readFileSync } from 'node:fs'
-import { join } from 'node:path'
+import { readFileSync, statSync } from 'node:fs'
+import { dirname, join, sep } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 
@@ -111,11 +111,14 @@ const NULLABLE_CAST = {
 //
 // The rule applies to a write to state that outlives the case: the module
 // registry, a global, the environment, the clock, the mock registry, a spy on
-// a global or a prototype, and a module-scope `let`. A helper in the same file
-// that makes such a write counts as one. A write to the DOM is out of scope:
-// `cleanup`, the residue guard, and the page reset of the browser suite undo
-// it. In a loop, an `await` lower in the body comes before the write of the
-// next pass, so the scan counts the head of the loop body as a resume point.
+// a global or a prototype, and a module-scope `let`. A helper that makes such
+// a write counts as one. The scan reads the helpers of the file, and the
+// modules in a `__tests__` tree that the file imports, with the same rules.
+// It does not read the source tree, so `SOURCE_WRITERS` names each reset seam
+// there. A write to the DOM is out of scope: `cleanup`, the residue guard, and
+// the page reset of the browser suite undo it. In a loop, an `await` lower in
+// the body comes before the write of the next pass, so the scan counts the
+// head of the loop body as a resume point.
 
 /** The `vi` calls that change state that outlives a case. */
 const SHARED_STATE_CALL =
@@ -171,18 +174,161 @@ function targetRoot(node: ts.Expression): ts.Expression {
 }
 
 /**
- * The late writes of one file: each write to shared state in a case or a hook
- * that comes after an `await`, with no `throwIfAborted()` between the latest
- * `await` and the write.
+ * The functions of the source tree that reset module-scope state, by module.
+ * The scan reads no module of the source tree: a cache there changes in forms
+ * that `writeLabel` does not see, such as a `clear()` on a module-scope `Map`.
+ * The other writes to module scope in the source tree are caches that a
+ * render fills and registries that an unmount empties, and a case does not
+ * call them to change state. Add a reset seam here when you export one.
  */
-function unguardedLateWrites(file: string, text: string): string[] {
+const SOURCE_WRITERS: Readonly<Record<string, readonly string[]>> = {
+	'components/pdf-viewer/pdf-viewer-document-cache.ts': ['resetDocumentCache'],
+	'core/announcer.ts': ['__resetAnnouncer'],
+	'hooks/use-truncation.ts': ['__resetTruncationObserver'],
+}
+
+/** Each name in `SOURCE_WRITERS`. */
+const SOURCE_WRITER_NAMES = new Set(Object.values(SOURCE_WRITERS).flat())
+
+/** The resolved file of each import path that the scan read. */
+const resolvedImports = new Map<string, string | undefined>()
+
+/** The file that a relative import names, or `undefined` for a package import. */
+function resolveImport(from: string, specifier: string): string | undefined {
+	if (!specifier.startsWith('.')) return undefined
+
+	const base = join(dirname(from), specifier)
+
+	if (!resolvedImports.has(base)) {
+		resolvedImports.set(
+			base,
+			[`${base}.ts`, `${base}.tsx`, join(base, 'index.ts'), join(base, 'index.tsx'), base].find(
+				(candidate) => statSync(candidate, { throwIfNoEntry: false })?.isFile(),
+			),
+		)
+	}
+
+	return resolvedImports.get(base)
+}
+
+/** Whether `path` is in a `__tests__` tree. */
+function inTestTree(path: string): boolean {
+	return path.includes(`${sep}__tests__${sep}`)
+}
+
+/** The exported writers of each module that the scan read, by file. */
+const exportedWritersByFile = new Map<string, Set<string>>()
+
+/**
+ * The names that a module exports and that write shared state. A module in a
+ * `__tests__` tree is read with the rules of a test file. A module of the
+ * source tree gives the names in `SOURCE_WRITERS`.
+ */
+function exportedWriters(file: string): Set<string> {
+	if (!inTestTree(file)) {
+		return new Set(SOURCE_WRITERS[srcRelative(file)] ?? [])
+	}
+
+	const cached = exportedWritersByFile.get(file)
+
+	if (cached) return cached
+
+	const exported = new Set<string>()
+
+	// An import cycle reads the empty set until this module is complete.
+	exportedWritersByFile.set(file, exported)
+
+	const { source, writers } = scanModule(file, readFileSync(file, 'utf8'))
+
+	const isExported = (node: ts.Node) =>
+		ts.canHaveModifiers(node) &&
+		(ts.getModifiers(node)?.some((modifier) => modifier.kind === ts.SyntaxKind.ExportKeyword) ??
+			false)
+
+	for (const statement of source.statements) {
+		if (ts.isFunctionDeclaration(statement) && statement.name && isExported(statement)) {
+			if (writers.has(statement.name.text)) exported.add(statement.name.text)
+		}
+
+		if (ts.isVariableStatement(statement) && isExported(statement)) {
+			for (const { name } of statement.declarationList.declarations) {
+				if (ts.isIdentifier(name) && writers.has(name.text)) exported.add(name.text)
+			}
+		}
+
+		if (!ts.isExportDeclaration(statement) || statement.isTypeOnly) continue
+
+		const specifier = statement.moduleSpecifier
+
+		const target =
+			specifier && ts.isStringLiteral(specifier) ? resolveImport(file, specifier.text) : undefined
+
+		// A re-export from a package, such as `@testing-library/react`.
+		if (specifier && !target) continue
+
+		const from = target ? exportedWriters(target) : writers
+
+		const clause = statement.exportClause
+
+		if (!clause) {
+			for (const name of from) exported.add(name)
+		} else if (ts.isNamedExports(clause)) {
+			for (const element of clause.elements) {
+				if (from.has((element.propertyName ?? element.name).text)) exported.add(element.name.text)
+			}
+		}
+	}
+
+	return exported
+}
+
+/**
+ * The parts of a module that the scan reads. `writers` holds each function of
+ * the module that writes shared state, and each import of a writer.
+ */
+function scanModule(file: string, text: string) {
 	const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true)
 
 	const moduleLets = new Set<string>()
 
 	const functions = new Map<string, ts.Node>()
 
+	const writers = new Set<string>()
+
 	for (const statement of source.statements) {
+		const bindings = ts.isImportDeclaration(statement)
+			? statement.importClause?.namedBindings
+			: undefined
+
+		if (
+			ts.isImportDeclaration(statement) &&
+			ts.isStringLiteral(statement.moduleSpecifier) &&
+			!statement.importClause?.isTypeOnly &&
+			bindings &&
+			ts.isNamedImports(bindings)
+		) {
+			const specifier = statement.moduleSpecifier.text
+
+			const names = bindings.elements.filter((element) => !element.isTypeOnly)
+
+			// Resolve only an import that can give a writer. The other imports
+			// need no stat.
+			const target =
+				inTestTree(`${join(dirname(file), specifier)}${sep}`) ||
+				names.some((element) =>
+					SOURCE_WRITER_NAMES.has((element.propertyName ?? element.name).text),
+				)
+					? resolveImport(file, specifier)
+					: undefined
+
+			const imported = target ? exportedWriters(target) : new Set<string>()
+
+			for (const element of names) {
+				if (imported.has((element.propertyName ?? element.name).text))
+					writers.add(element.name.text)
+			}
+		}
+
 		if (ts.isFunctionDeclaration(statement) && statement.name && statement.body) {
 			functions.set(statement.name.text, statement.body)
 		}
@@ -203,8 +349,6 @@ function unguardedLateWrites(file: string, text: string): string[] {
 			}
 		}
 	}
-
-	const writers = new Set<string>()
 
 	/** The label of a write to shared state, or `undefined` for any other node. */
 	function writeLabel(node: ts.Node): string | undefined {
@@ -276,6 +420,17 @@ function unguardedLateWrites(file: string, text: string): string[] {
 			}
 		}
 	}
+
+	return { source, writers, writeLabel }
+}
+
+/**
+ * The late writes of one file: each write to shared state in a case or a hook
+ * that comes after an `await`, with no `throwIfAborted()` between the latest
+ * `await` and the write.
+ */
+function unguardedLateWrites(file: string, text: string): string[] {
+	const { source, writeLabel } = scanModule(file, text)
 
 	const late: string[] = []
 

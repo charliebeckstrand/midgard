@@ -153,7 +153,11 @@ Two causes are common, and each has a local fix. When a hook gives an object tha
 
 10.9 A case that runs longer than its time limit fails, but its body does not stop. JavaScript cannot cancel a pending promise, so the body continues at its next `await` while a later case runs. A write to shared state at that point changes the later case. Vitest aborts the `signal` of the test context before the next case starts. When a case writes shared state after an `await`, take `{ signal }` from the test context. Call `signal.throwIfAborted()` after the last `await` and before the write.
 
+<<<<<<< HEAD
+Shared state is the module registry, a global, the environment, and the clock. It is also the mock registry, a spy on a global or a prototype, and a module-scope `let`. A helper that makes such a write counts as a write. That includes a helper in the same file, a helper that the file imports from a `__tests__` tree, and a function of the source tree that resets module-scope state, such as `resetDocumentCache`. [`test-isolation-boundary.test.ts`](packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts) holds this rule. A write to the DOM is out of scope, because `cleanup`, the residue guard, and the page reset of the browser suite undo it.
+=======
 Shared state is the module registry, a global, the environment, and the clock. It is also the mock registry, a spy on a global or a prototype, and a module-scope `let`. A helper in the same file that makes such a write counts as a write. [`test-isolation-boundary.test.ts`](packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts) holds this rule. A write to the DOM is out of scope, because `cleanup`, the residue guard, and the page reset of the browser suite undo it.
+>>>>>>> origin/main
 
 A `finally` in the case does not run after a timeout while the body waits. Thus a stub that a `finally` restores stays on the shared window. Restore a stub in `onTestFinished`, which runs after a case that times out.
 
