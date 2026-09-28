@@ -6,10 +6,12 @@ import { frames, getSlot, present, renderUI, screen } from '../helpers'
 /**
  * The scroll model of the sidebar layout.
  *
- * Below `lg`, the page scrolls, and the navbar and a sticky header stay at the top.
+ * Below `lg`, the page scrolls, and the navbar is the one bar that stays at the top.
  * Chrome on iOS moves the scroll offset of the page when its toolbar changes size.
  * On a page that cannot scroll, nothing takes that offset back, and the navbar went
- * out of view. From `lg` up, the layout stays pinned, and the content region scrolls.
+ * out of view. A sticky header under the navbar showed a seam on iOS, so the header
+ * scrolls with the content. From `lg` up, the layout stays pinned, the content
+ * region scrolls, and `stickyHeader` keeps the header at its top.
  *
  * Rides the real browser because jsdom loads no stylesheet and lays nothing out.
  */
@@ -57,7 +59,7 @@ describe('sidebar layout below lg (real browser)', () => {
 		expect(getComputedStyle(content).overflowY).toBe('visible')
 	})
 
-	it('keeps the navbar at the top, and the header below it, as the page scrolls', async () => {
+	it('keeps the navbar at the top, and scrolls the header away', async () => {
 		const { header, navbar } = renderTallLayout()
 
 		await frames()
@@ -74,7 +76,9 @@ describe('sidebar layout below lg (real browser)', () => {
 
 		expect(bar.height).toBeGreaterThan(0)
 
-		expect(header.getBoundingClientRect().top).toBeCloseTo(bar.bottom, 0)
+		expect(getComputedStyle(header).position).toBe('static')
+
+		expect(header.getBoundingClientRect().bottom).toBeLessThan(0)
 	})
 })
 

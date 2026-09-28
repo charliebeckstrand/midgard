@@ -8,7 +8,6 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
-	useRef,
 	useState,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -21,7 +20,6 @@ import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
-import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Flex } from '../../structure/flex'
 import { k } from './variants'
@@ -55,9 +53,10 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks Below `lg`, the page scrolls. The navbar sticks to the top, and with
- * `stickyHeader` the header sticks below the navbar. From `lg` up, the layout is
+ * @remarks Below `lg`, the page scrolls, and the navbar is the one bar that sticks
+ * to the top. The header scrolls with the content. From `lg` up, the layout is
  * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
+ * There, `stickyHeader` keeps the header at the top of the content region.
  * To show the layout inside another page, put it in a box that has a height and
  * layout containment, or the pinned layout covers the page.
  *
@@ -80,23 +79,6 @@ export function SidebarLayout({
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
-
-	const layoutRef = useRef<HTMLDivElement>(null)
-
-	const navbarRef = useRef<HTMLDivElement>(null)
-
-	// A sticky header sits below the sticky navbar, so the layout gives it the height
-	// of the navbar. The navbar is hidden from `lg` up, where its height is 0.
-	useResizeObserver(
-		navbarRef,
-		() => {
-			layoutRef.current?.style.setProperty(
-				'--sidebar-navbar-height',
-				`${navbarRef.current?.offsetHeight ?? 0}px`,
-			)
-		},
-		'border-box',
-	)
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
@@ -130,7 +112,7 @@ export function SidebarLayout({
 	const layoutValue = useMemo(() => ({ actions }), [actions])
 
 	return (
-		<div ref={layoutRef} className={k.layout()}>
+		<div className={k.layout()}>
 			{/* Hot zone to peek the floating sidebar */}
 			{floating && (
 				<div
@@ -193,7 +175,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex ref={navbarRef} align="center" className={k.navbar()}>
+			<Flex align="center" className={k.navbar()}>
 				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
 					<Button
 						type="button"
