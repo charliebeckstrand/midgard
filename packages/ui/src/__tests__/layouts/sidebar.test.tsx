@@ -5,8 +5,10 @@ import {
 	SidebarLayoutBody,
 	SidebarLayoutHeader,
 } from '../../layouts/sidebar/sidebar'
-import { Density } from '../../primitives/density'
-import { bySlot, fireEvent, present, renderUI, screen } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, present, renderUI, screen } from '../helpers'
+
+/** The inline desktop panel: the one element with the `md` width of the rail. */
+const DESKTOP_PANEL = '.density-md\\:w-xs'
 
 describe('SidebarLayout', () => {
 	it('renders the sidebar content', () => {
@@ -97,30 +99,29 @@ describe('SidebarLayout', () => {
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
 	})
 
-	it('applies the default width class to the desktop panel', () => {
+	it('gives the desktop panel a width for each density step', () => {
 		const { container } = renderUI(<SidebarLayout sidebar={<div>sidebar</div>}>body</SidebarLayout>)
 
-		const desktopPanel = container.querySelector('.max-lg\\:hidden')
-
-		expect(desktopPanel?.className).toContain('w-xs')
+		expect(container.querySelector(DESKTOP_PANEL)).toHaveClass(
+			'density-xs:w-2xs',
+			'density-sm:w-2xs',
+			'density-lg:w-sm',
+			'density-xl:w-sm',
+		)
 	})
 
-	it('scales the desktop panel width to the ambient density', () => {
-		const { container: small } = renderUI(
-			<Density step="sm">
+	it('sizes the desktop panel at the step of the nearest scope', () => {
+		const { container } = renderUI(
+			<div data-density="sm">
 				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
-			</Density>,
+			</div>,
 		)
 
-		expect(small.querySelector('.max-lg\\:hidden')?.className).toContain('w-2xs')
+		const panel = container.querySelector(DESKTOP_PANEL)
 
-		const { container: large } = renderUI(
-			<Density step="lg">
-				<SidebarLayout sidebar={<div>side</div>}>body</SidebarLayout>
-			</Density>,
-		)
+		expect(panel).not.toBeNull()
 
-		expect(large.querySelector('.max-lg\\:hidden')?.className).toContain('w-sm')
+		expect(densityStepOf(panel as Element)).toBe('sm')
 	})
 
 	it('hides the inline desktop panel when floating is true', () => {
@@ -130,9 +131,7 @@ describe('SidebarLayout', () => {
 			</SidebarLayout>,
 		)
 
-		const inlinePanel = container.querySelector('.w-xs')
-
-		expect(inlinePanel).toBeNull()
+		expect(container.querySelector(DESKTOP_PANEL)).toBeNull()
 	})
 })
 

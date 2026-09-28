@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
-import { Density } from '../../primitives/density'
 import { headingRamp, headingScale, headingWeight } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { steps } from '../../recipes/kiso/sun'
@@ -66,11 +65,7 @@ describe('Heading', () => {
 		})
 
 		it.each(levels)('takes the density ramp of level %i with no size', (level) => {
-			const { container } = renderUI(
-				<Density step="sm">
-					<Heading level={level}>Title</Heading>
-				</Density>,
-			)
+			const { container } = renderUI(<Heading level={level}>Title</Heading>)
 
 			// Static leaf: the stepped class selects the rung in CSS from the nearest scope.
 			// `browser/density-scope.test.tsx` holds the computed size.

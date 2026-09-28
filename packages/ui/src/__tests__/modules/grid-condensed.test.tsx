@@ -54,7 +54,7 @@ describe('Grid condensed', () => {
 		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>td]:text-sm')
 	})
 
-	it('cascades a compact density to size-aware client cell content', () => {
+	it('gives cell content with no size the compact step of the table scope', () => {
 		const withButton: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
@@ -62,8 +62,8 @@ describe('Grid condensed', () => {
 
 		renderUI(<Grid condensed columns={withButton} rows={rows} getKey={getKey} />)
 
-		// A cell Button with no explicit `size` resolves through the grid's compact
-		// cascade (the `sm` step), not the ambient `md` default.
+		// A cell Button with no explicit `size` takes the `sm` step of the table
+		// scope, not the ambient `md` step.
 		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('sm')
 	})
 

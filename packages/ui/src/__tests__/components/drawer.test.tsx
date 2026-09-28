@@ -274,7 +274,7 @@ describe('DrawerClose', () => {
 	})
 })
 
-describe('Drawer size context', () => {
+describe('Drawer height and size', () => {
 	// Drawer panels render through Overlay's portal, so they live on
 	// document.body rather than under the test container.
 	const drawerPanel = () => document.querySelector<HTMLElement>('[data-slot="drawer"]')
@@ -345,14 +345,13 @@ describe('Drawer size context', () => {
 		expect(drawerPanel()?.style.height).toBe('')
 	})
 
-	it('descendant Buttons inherit the Drawer size', () => {
+	it('gives descendant Buttons the Drawer size', () => {
 		renderUI(
 			<Drawer open onOpenChange={() => {}} size="lg">
 				<Button>Save</Button>
 			</Drawer>,
 		)
 
-		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg'
 		expect(densityStepOf(present(buttonInDrawer(), 'button'))).toBe('lg')
 	})
 })

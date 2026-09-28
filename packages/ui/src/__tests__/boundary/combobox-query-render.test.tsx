@@ -18,24 +18,25 @@ import { act, renderUI, screen, userEvent } from '../helpers'
  * consumer of the deferred query now reads a context that holds only the
  * deferred query.
  *
- * The combobox count reads the `useDensityStep` calls of `OptionImpl`, which
- * each option makes when it renders. The command palette count reads the calls
- * of `CommandPaletteItem`. The counts need module mocks, so this suite sits in
+ * The combobox count reads the `useId` calls of `OptionImpl`, which each option
+ * makes when it renders. A hook runs on each render, also when the React
+ * Compiler memoizes the body. The command palette count reads the calls of
+ * `CommandPaletteItem`. The counts need module mocks, so this suite sits in
  * `boundary/`.
  */
-/** The call stack of each `useDensityStep` call since the last clear. */
+/** The call stack of each `useId` call since the last clear. */
 const stacks = vi.hoisted((): string[] => [])
 
-vi.mock('../../primitives/density', async (importActual) => {
-	const actual = await importActual<typeof import('../../primitives/density')>()
+vi.mock('react', async (importActual) => {
+	const actual = await importActual<typeof import('react')>()
 
 	return {
 		...actual,
-		useDensityStep: vi.fn((explicit?: Parameters<typeof actual.useDensityStep>[0]) => {
+		useId: () => {
 			stacks.push(new Error().stack ?? '')
 
-			return actual.useDensityStep(explicit)
-		}),
+			return actual.useId()
+		},
 	}
 })
 
@@ -48,7 +49,7 @@ vi.mock('../../components/command-palette/command-palette-item', async (importAc
 
 const VALUES = Array.from({ length: 50 }, (_, index) => `v${index}`)
 
-/** The `useDensityStep` calls that came from a render of an option. */
+/** The `useId` calls that came from a render of an option. */
 function optionRenders() {
 	return stacks.filter((stack) => stack.includes('OptionImpl')).length
 }
@@ -93,6 +94,9 @@ describe('query option renders', () => {
 
 		expect(screen.getAllByRole('option')).toHaveLength(VALUES.length)
 
+		// The count is live: each option rendered when the panel opened.
+		expect(optionRenders()).toBeGreaterThanOrEqual(VALUES.length)
+
 		stacks.length = 0
 
 		await act(async () => {
@@ -114,6 +118,9 @@ describe('query option renders', () => {
 		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByRole('combobox'))
+
+		// The count is live: each item rendered when the palette opened.
+		expect(vi.mocked(CommandPaletteItem).mock.calls.length).toBeGreaterThanOrEqual(VALUES.length)
 
 		vi.mocked(CommandPaletteItem).mockClear()
 

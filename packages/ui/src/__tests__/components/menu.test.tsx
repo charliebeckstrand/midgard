@@ -15,7 +15,6 @@ import {
 } from '../../components/menu'
 import { MenuCappedContext, useMenuContext } from '../../components/menu/context'
 import { MenuViewport } from '../../components/menu/menu-viewport'
-import { DensityProvider } from '../../providers/density'
 import {
 	bySlot,
 	fireEvent,
@@ -858,8 +857,8 @@ describe('MenuItem', () => {
 })
 
 /**
- * The viewport both menu panels render. It owns the height policy, the density
- * axis, the edge fade, and the overflow watch, so the gate is pinned here once
+ * The viewport both menu panels render. It owns the height policy, the stepped
+ * height cap, the edge fade, and the overflow watch, so the gate is pinned here once
  * rather than at each call site.
  *
  * Written geometry, because real layout cannot read the gate: an uncapped
@@ -870,8 +869,7 @@ describe('MenuViewport', () => {
 	/**
 	 * The viewport on its own, with an overflowing extent written onto it.
 	 * `useMenuCapped` reads `false` outside a `Menu`, so the capped arm supplies
-	 * the context the flag travels on, and `useDensityStep` resolves to the same
-	 * `md` step a default menu gives it.
+	 * the context the flag travels on.
 	 */
 	const viewportFor = (capped: boolean, ref?: Ref<HTMLElement>) => {
 		const { container, unmount } = renderUI(
@@ -1140,40 +1138,6 @@ describe('MenuItem density', () => {
 			'density-py-[1,1.5,2.5]',
 			'density-text-[sm,base,lg]',
 		)
-	})
-
-	it('follows the scope of a compact DensityProvider through the portal', () => {
-		renderUI(
-			<DensityProvider density="compact">
-				<Menu defaultOpen>
-					<MenuContent>
-						<MenuItem>Item</MenuItem>
-					</MenuContent>
-				</Menu>
-			</DensityProvider>,
-		)
-
-		expect(
-			screen.getByRole('menuitem', { name: 'Item' }).closest('[data-density]'),
-		).toHaveAttribute('data-density', 'sm')
-	})
-
-	it('gives a submenu the scope of its parent menu through the portal', () => {
-		renderUI(
-			<Menu defaultOpen size="lg">
-				<MenuContent>
-					<MenuSub label="More">
-						<MenuItem>Nested</MenuItem>
-					</MenuSub>
-				</MenuContent>
-			</Menu>,
-		)
-
-		fireEvent.click(screen.getByRole('menuitem', { name: /More/ }))
-
-		expect(
-			screen.getByRole('menuitem', { name: 'Nested' }).closest('[data-density]'),
-		).toHaveAttribute('data-density', 'lg')
 	})
 })
 

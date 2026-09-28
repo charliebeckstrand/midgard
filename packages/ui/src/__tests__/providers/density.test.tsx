@@ -26,10 +26,10 @@ describe('densityLevels', () => {
 	})
 })
 
-describe('DensityProvider broadcast', () => {
-	// Sets both Density axes to the same token; size-aware descendants inherit
-	// without additional wiring.
-	it('broadcasts compact as the sm token on both axes', () => {
+describe('DensityProvider context', () => {
+	// The provider opens the context half of its scope at the step of its level.
+	// A client reader, such as a portal root, reads that step.
+	it('gives compact as the sm step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
 		})
@@ -37,7 +37,7 @@ describe('DensityProvider broadcast', () => {
 		expect(result.current).toBe('sm')
 	})
 
-	it('broadcasts snug as the md token on both axes', () => {
+	it('gives snug as the md step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
 		})
@@ -45,7 +45,7 @@ describe('DensityProvider broadcast', () => {
 		expect(result.current).toBe('md')
 	})
 
-	it('broadcasts loose as the lg token on both axes', () => {
+	it('gives loose as the lg step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
 		})

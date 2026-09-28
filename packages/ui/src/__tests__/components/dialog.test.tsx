@@ -171,7 +171,9 @@ describe('Dialog', () => {
 			</DensityProvider>,
 		)
 
-		expect(screen.getByText('Settings').closest('[data-density]')).toHaveAttribute(
+		// The jsdom portal renders inline, so the provider span is an ancestor too.
+		// The root of the overlay must write the step itself.
+		expect(screen.getByText('Settings').closest('[data-slot="overlay"]')).toHaveAttribute(
 			'data-density',
 			'sm',
 		)
