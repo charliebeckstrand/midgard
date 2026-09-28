@@ -1,7 +1,7 @@
 'use client'
 
 import { type Placement, useClientPoint, useInteractions } from '@floating-ui/react'
-import { useMemo } from 'react'
+import { type RefObject, useLayoutEffect, useMemo } from 'react'
 import { useFloatingPanel } from '../../hooks'
 import type { TooltipContextValue } from './context'
 
@@ -9,8 +9,18 @@ import type { TooltipContextValue } from './context'
 export type TooltipPointerOptions = {
 	/** Whether the readout shows; the caller derives it from its own hover state. */
 	open: boolean
-	/** Client coordinates to anchor at, or `null` while nothing is pointed. */
+	/**
+	 * Coordinates to anchor at, or `null` while nothing is pointed. Client
+	 * coordinates, or coordinates in the box of {@link originRef} when one is given.
+	 */
 	point: { x: number; y: number } | null
+	/**
+	 * An element that `point` is relative to. The client point is then read off the
+	 * element's box when the panel positions, not during render. A caller that
+	 * holds its point in its own frame therefore needs no layout read of its own.
+	 * Omitted, `point` is in client coordinates. `axis` does not apply with it.
+	 */
+	originRef?: RefObject<Element | null>
 	/**
 	 * Preferred side of the anchor point; flips and shifts to stay in the viewport.
 	 * @defaultValue 'top'
@@ -61,6 +71,7 @@ export function useTooltipPointer({
 	offset = 12,
 	axis = 'both',
 	track = 'auto',
+	originRef,
 }: TooltipPointerOptions): TooltipContextValue {
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		placement,
@@ -69,7 +80,32 @@ export function useTooltipPointer({
 		track,
 	})
 
-	const clientPoint = useClientPoint(context, { x: point?.x ?? null, y: point?.y ?? null, axis })
+	const x = point?.x ?? null
+
+	const y = point?.y ?? null
+
+	const clientPoint = useClientPoint(context, { enabled: originRef === undefined, x, y, axis })
+
+	const { setPositionReference } = refs
+
+	// The relative form of `useClientPoint`'s own anchor: a virtual element that
+	// floating-ui measures when it positions the panel. The origin's box is read
+	// there, so a scrolled or resized origin still anchors where it is now.
+	useLayoutEffect(() => {
+		if (originRef === undefined || x === null || y === null) return
+
+		setPositionReference({
+			getBoundingClientRect() {
+				const box = originRef.current?.getBoundingClientRect()
+
+				const left = (box?.left ?? 0) + x
+
+				const top = (box?.top ?? 0) + y
+
+				return { x: left, y: top, width: 0, height: 0, top, left, right: left, bottom: top }
+			},
+		})
+	}, [originRef, x, y, setPositionReference])
 
 	const { getReferenceProps, getFloatingProps } = useInteractions([clientPoint])
 
