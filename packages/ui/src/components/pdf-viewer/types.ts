@@ -127,7 +127,7 @@ export type PdfViewerMagnifierMode = 'simple' | 'config'
 export type PdfViewerMagnifierZoom = 'sm' | 'md' | 'lg'
 
 /**
- * The loupe's diameter: 140, 180 or 240 pixels.
+ * The loupe's diameter: 144, 192 or 240 pixels.
  *
  * @see {@link PdfViewerMagnifierZoom} for why the scale is named and not numeric.
  */

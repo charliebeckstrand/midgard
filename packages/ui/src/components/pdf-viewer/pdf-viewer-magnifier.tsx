@@ -53,7 +53,7 @@ export function PdfViewerMagnifier() {
 
 	const { zoom, size } = magnifierSettings
 
-	const offset = lensOffset(magnifier.point, zoom, size)
+	const offset = lensOffset(magnifier.point, zoom)
 
 	return (
 		<FloatingPortal root={root ?? undefined}>
@@ -62,8 +62,8 @@ export function PdfViewerMagnifier() {
 				{...magnifier.floatingProps}
 				data-slot="pdf-viewer-magnifier"
 				aria-hidden
-				className={cn(k.viewport.page.magnifier.lens)}
-				style={{ ...magnifier.floatingStyles, width: size, height: size }}
+				className={cn(k.viewport.page.magnifier.lens, k.viewport.page.magnifier.size[size])}
+				style={magnifier.floatingStyles}
 			>
 				<div
 					className={cn(k.viewport.page.magnifier.stage)}

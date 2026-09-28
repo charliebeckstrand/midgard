@@ -184,7 +184,13 @@ export const k = {
 					border.defaultColor,
 					...mode('bg-white ring-zinc-950/20', 'dark:bg-zinc-950 dark:ring-white/20'),
 				],
-				stage: ['absolute top-0 left-0 origin-top-left'],
+				/** The lens diameter for each step of `magnifier.size`: 144, 192 and 240 pixels. */
+				size: { sm: 'size-36', md: 'size-48', lg: 'size-60' },
+				/**
+				 * The copy of the page. Its top-left corner is at the center of the lens, so the
+				 * rendered size of the lens sets the center, and the offset math needs no diameter.
+				 */
+				stage: ['absolute top-1/2 left-1/2 origin-top-left'],
 			},
 			// Region overlay. The layer is the page image's twin — same box, same
 			// transform — so a region positioned in percentages of it lands on the same
