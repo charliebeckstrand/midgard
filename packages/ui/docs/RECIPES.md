@@ -38,7 +38,7 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 
 | Bundle | Composes | Consumers |
 |---|---|---|
-| `control` | Field archetype: frame + surface + input + reset + density + size + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
+| `control` | Field archetype: frame + surface + input + reset + density + radius + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
 | `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker. |
 | `segment` | Segmented control — `control` / `item` size maps plus `indicator` color fragments. | `bridge.segment`. |
 | `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip`. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel. |

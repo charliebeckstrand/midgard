@@ -6,21 +6,12 @@ import { popover } from '../kiso/popover'
 const { cursor } = hannou
 const { text } = iro
 const { flex } = narabi
-const { reset, density, size } = control
+const { reset, density } = control
 const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: [
-			flex.row,
-			'w-full',
-			'text-start',
-			...reset,
-			'appearance-none',
-			...cursor,
-			...density,
-			size,
-		],
+		base: [flex.row, 'w-full', 'text-start', ...reset, 'appearance-none', ...cursor, ...density],
 		slots: {
 			// 320px ≈ 8 rows. The old 240px (the classic Tailwind-example value, never a reasoned one)
 			// forced a scrollbar at seven options — the dashboard picker hit it with screen to spare.

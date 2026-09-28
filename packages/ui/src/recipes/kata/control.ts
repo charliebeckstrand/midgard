@@ -1,7 +1,7 @@
 import { kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
-const { frame } = control
+const { frame, radius } = control
 
 /**
  * The radius of `<ControlFrame>`: the outer box, the inset fill, and the
@@ -10,7 +10,7 @@ const { frame } = control
  * their classes name the steps before the pseudo-element.
  */
 const frameRadius = [
-	'density-rounded-[1.5,2,2.5]',
+	radius,
 	'density-[xs,sm]:before:rounded-ring-1.5',
 	'density-md:before:rounded-ring-2',
 	'density-[lg,xl]:before:rounded-ring-2.5',

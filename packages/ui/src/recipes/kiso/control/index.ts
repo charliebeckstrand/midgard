@@ -2,19 +2,18 @@
  * Control archetype: the framed surface that wraps a user-input element.
  *
  * Consumed by input, textarea, select, listbox, combobox, date-picker,
- * color-picker, checkbox, radio, switch, rating, and ControlFrame. Exposes class fragments (frame, surface, reset,
- * input, density, size, affix, resets, check) that each kata composes into
- * its own recipe.
+ * color-picker, checkbox, radio, switch, rating, and ControlFrame. Exposes
+ * class fragments (frame, surface, reset, input, density, radius, affix,
+ * resets, check) that each kata composes into its own recipe.
  */
 
 import { affix } from './affix'
 import { check } from './check'
-import { density } from './density'
+import { density, radius } from './density'
 import { frame } from './frame'
 import { input } from './input'
 import { reset } from './reset'
 import { resets } from './resets'
-import { size } from './size'
 import { surface } from './surface'
 
 export const control = {
@@ -23,7 +22,7 @@ export const control = {
 	reset,
 	input,
 	density,
-	size,
+	radius,
 	affix,
 	resets,
 	check,

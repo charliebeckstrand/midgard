@@ -14,7 +14,7 @@ import { popover } from '../kiso/popover'
 const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
-const { affix, reset, density, size, surface } = control
+const { affix, reset, density, surface } = control
 const { field } = narabi
 const { portal, panel } = popover
 
@@ -26,7 +26,6 @@ const button = defineRecipe({
 		'appearance-none',
 		...cursor,
 		...density,
-		size,
 	],
 })
 
