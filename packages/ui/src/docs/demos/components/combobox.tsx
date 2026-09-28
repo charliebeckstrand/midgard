@@ -19,10 +19,10 @@ const people = [
 	'Hellen Schmidt',
 ]
 
-function FilteredPeople() {
+function FilteredPeople({ options = people }: { options?: string[] }) {
 	const deferredQuery = useComboboxDeferredQuery()
 
-	return people
+	return options
 		.filter((p) => !deferredQuery || p.toLowerCase().includes(deferredQuery.toLowerCase()))
 		.map((person) => (
 			<ComboboxOption key={person} value={person}>
@@ -89,22 +89,31 @@ function ClearableExample() {
 }
 
 function CreatableExample() {
+	const [options, setOptions] = useState(people)
 	const [selected, setSelected] = useState<string | null>(null)
+
+	// The create row selects the name but does not change the list. This handler adds
+	// a new name to the list, so the name is an option when the panel opens again.
+	const select = (name: string | null) => {
+		setSelected(name)
+
+		if (name) setOptions((current) => (current.includes(name) ? current : [...current, name]))
+	}
 
 	return (
 		<Field>
 			<Label>Assignee</Label>
 			<Combobox
 				value={selected}
-				onValueChange={setSelected}
+				onValueChange={select}
 				displayValue={(v: string) => v}
 				placeholder="Choose or name someone"
 			>
-				<FilteredPeople />
+				<FilteredPeople options={options} />
 				{/* Last, after the matches: they answer the query first, and creating is
 				    what is left when none of them do. `taken` withdraws the row for a name
 				    the list already holds. */}
-				<ComboboxCreateOption taken={people} />
+				<ComboboxCreateOption taken={options} />
 			</Combobox>
 		</Field>
 	)
