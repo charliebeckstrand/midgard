@@ -11,6 +11,11 @@ export default withAuth(
 		// `CLAUDE.md` into the app. The agent rules of the repository are in the
 		// root `CLAUDE.md`, so the app keeps no second copy.
 		agentRules: false,
+		// Cache Components prerenders a static shell for each route, and Partial
+		// Prefetching sends it to a link before the click. Together they give an
+		// instant navigation to a route whose request reads sit in `<Suspense>`.
+		cacheComponents: true,
+		partialPrefetching: true,
 	},
 	{ gatewayApi: true },
 )

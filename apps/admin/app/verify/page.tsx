@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import { secondFactorMethods, VerifyPage } from 'shared/auth'
 
 /**
+ * The page reads the session and the second factors before it renders, so a navigation into it waits for the
+ * gateway. This lets the route block. The read moves into a `<Suspense>`
+ * boundary in a later change.
+ */
+export const instant = false
+
+/**
  * Page of the second step. `requireAdmin` sends an admin session here until it
  * passes the second step.
  *
