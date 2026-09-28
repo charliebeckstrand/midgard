@@ -5,7 +5,6 @@ import {
 	useCallback,
 	useDeferredValue,
 	useEffect,
-	useEffectEvent,
 	useId,
 	useMemo,
 	useRef,
@@ -16,6 +15,7 @@ import {
 	useA11yRoving,
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { isReservedTextboxKey } from '../combobox/use-combobox-input'
 
 type CommandPaletteStateOptions = {
@@ -78,29 +78,21 @@ export function useCommandPaletteState({
 	 * because the index and the DOM part company under a windowed list. This is
 	 * the id the reader's assistive technology is given.
 	 */
-	const notifyActiveChange = useEffectEvent((optionId: string | null) => {
-		onActiveChange?.(optionId)
-	})
-
 	const reportedActiveRef = useRef<string | null>(null)
 
-	const reportActive = useCallback((next: string | null) => {
+	const reportActive = useStableEvent((next: string | null) => {
 		if (reportedActiveRef.current === next) return
 
 		reportedActiveRef.current = next
 
-		notifyActiveChange(next)
-	}, [])
+		onActiveChange?.(next)
+	})
 
-	const reportsRef = useRef(onActiveChange !== undefined)
-
-	reportsRef.current = onActiveChange !== undefined
-
-	const reportActiveFromDom = useCallback(() => {
-		if (!reportsRef.current) return
+	const reportActiveFromDom = useStableEvent(() => {
+		if (onActiveChange === undefined) return
 
 		reportActive(inputRef.current?.getAttribute('aria-activedescendant') ?? null)
-	}, [reportActive])
+	})
 
 	const rovingKeyDown = useA11yRoving(listRef, {
 		mode: 'virtual',
@@ -140,9 +132,9 @@ export function useCommandPaletteState({
 
 		lastDeferredRef.current = deferredQuery
 
-		// A closing palette resets its own highlight in the render-phase branch
-		// below. Don't re-seed on the close-time query→'' transition: the options
-		// are still mounted through the exit animation, so seeding would write the
+		// A closing palette resets its own highlight in the close effect below.
+		// Don't re-seed on the close-time query→'' transition: the options are
+		// still mounted through the exit animation, so seeding would write the
 		// index back to 0 and reopen at the second item. `deferredQuery` lags
 		// `query`, so this transition's effect can run while `open` is already
 		// false; guard on it directly.
@@ -159,30 +151,28 @@ export function useCommandPaletteState({
 		reportActiveFromDom()
 	}, [deferredQuery, open, reportActiveFromDom])
 
-	// Resets the query and the virtual-highlight index when closed; done during
-	// render, not in an effect. Clearing `activeIndexRef` stops a virtualized
-	// palette from resuming navigation at the prior session's index on reopen:
-	// the closed dialog unmounts its options, so there's no DOM `data-active` to
-	// read the index back off of, and a stale ref would make the first arrow land
-	// at `index + 1` instead of the first item (mirrors Combobox's close reset).
-	const prevOpenRef = useRef(open)
+	// Resets the query when closed, during render rather than in an effect, so
+	// the closing palette paints no stale filter.
+	const [prevOpen, setPrevOpen] = useState(open)
 
-	if (open !== prevOpenRef.current) {
-		prevOpenRef.current = open
+	if (open !== prevOpen) {
+		setPrevOpen(open)
 
-		if (!open) {
-			setQuery('')
-
-			activeIndexRef.current = -1
-		}
+		if (!open) setQuery('')
 	}
 
 	// The closing panel unmounts its options, so nothing is highlighted any more.
-	// Reported from an effect rather than beside the render-phase reset above,
-	// because a report is a side effect and the render phase is no place for one.
-	// `reportActive` dedupes, so a palette that closed with no highlight is silent.
+	// Clearing `activeIndexRef` stops a virtualized palette from resuming
+	// navigation at the prior session's index on reopen: the closed dialog
+	// unmounts its options, so there's no DOM `data-active` to read the index back
+	// off of, and a stale ref would make the first arrow land at `index + 1`
+	// instead of the first item (mirrors Combobox's close reset). The report is a
+	// side effect, so it waits for the commit. `reportActive` dedupes, so a
+	// palette that closed with no highlight is silent.
 	useEffect(() => {
 		if (open) return
+
+		activeIndexRef.current = -1
 
 		reportActive(null)
 	}, [open, reportActive])
