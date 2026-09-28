@@ -8,8 +8,8 @@ import { Button } from 'ui/button'
 import { Card } from 'ui/card'
 import { Confirm } from 'ui/confirm'
 import { Link } from 'ui/link'
+import { Grid, type GridColumn } from 'ui/modules/grid'
 import { Stack } from 'ui/structure/stack'
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from 'ui/table'
 import { PageHeader } from '@/components/page-header'
 import { useSetUserActive, useUsers } from './users-queries'
 
@@ -19,8 +19,10 @@ type UsersClientProps = {
 
 const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium' }
 
+const roleName = (user: User) => (user.roles.includes('admin') ? 'Admin' : 'User')
+
 /**
- * Users table, with an action that deactivates or reactivates each user.
+ * Users grid, sortable by each column (newest first by default), with an action that deactivates or reactivates each user.
  *
  * @remarks
  * The server page seeds the `useUsers` query. An admin changes only the status
@@ -34,6 +36,52 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 	const { mutate: setActive, isPending: saving, error } = useSetUserActive()
 	const [deactivating, setDeactivating] = useState<User | null>(null)
 
+	const columns: GridColumn<User>[] = [
+		{
+			id: 'email',
+			title: 'Email',
+			value: (user) => user.email,
+			cell: (user) => (
+				<Link href={`/users/${user.id}`} color="blue" className="font-medium">
+					{user.email}
+				</Link>
+			),
+		},
+		{ id: 'role', title: 'Role', value: roleName, cell: roleName },
+		{
+			id: 'status',
+			title: 'Status',
+			value: (user) => (user.is_active ? 'Active' : 'Inactive'),
+			cell: (user) => (
+				<Badge color={user.is_active ? 'green' : 'zinc'}>
+					{user.is_active ? 'Active' : 'Inactive'}
+				</Badge>
+			),
+		},
+		{
+			id: 'created',
+			title: 'Created',
+			value: (user) => user.created_at,
+			cell: (user) => new Date(user.created_at).toLocaleDateString(undefined, dateFormat),
+		},
+		{
+			id: 'actions',
+			sortable: false,
+			actions: (user) => (
+				<Button
+					variant="outline"
+					size="sm"
+					disabled={user.roles.includes('admin') || saving}
+					onClick={() =>
+						user.is_active ? setDeactivating(user) : setActive({ userId: user.id, isActive: true })
+					}
+				>
+					{user.is_active ? 'Deactivate' : 'Reactivate'}
+				</Button>
+			),
+		},
+	]
+
 	return (
 		<Stack gap="xl">
 			<PageHeader
@@ -44,53 +92,12 @@ export function UsersClient({ users: initialUsers }: UsersClientProps) {
 			{error && <Alert severity="error" title={error.message} />}
 
 			<Card>
-				<Table>
-					<TableHead>
-						<TableRow>
-							<TableHeader>Email</TableHeader>
-							<TableHeader>Role</TableHeader>
-							<TableHeader>Status</TableHeader>
-							<TableHeader>Created</TableHeader>
-							<TableHeader>
-								<span className="sr-only">Actions</span>
-							</TableHeader>
-						</TableRow>
-					</TableHead>
-					<TableBody>
-						{users.map((user) => (
-							<TableRow key={user.id}>
-								<TableCell>
-									<Link href={`/users/${user.id}`} color="blue" className="font-medium">
-										{user.email}
-									</Link>
-								</TableCell>
-								<TableCell>{user.roles.includes('admin') ? 'Admin' : 'User'}</TableCell>
-								<TableCell>
-									<Badge color={user.is_active ? 'green' : 'zinc'}>
-										{user.is_active ? 'Active' : 'Inactive'}
-									</Badge>
-								</TableCell>
-								<TableCell>
-									{new Date(user.created_at).toLocaleDateString(undefined, dateFormat)}
-								</TableCell>
-								<TableCell className="text-end">
-									<Button
-										variant="outline"
-										size="sm"
-										disabled={user.roles.includes('admin') || saving}
-										onClick={() =>
-											user.is_active
-												? setDeactivating(user)
-												: setActive({ userId: user.id, isActive: true })
-										}
-									>
-										{user.is_active ? 'Deactivate' : 'Reactivate'}
-									</Button>
-								</TableCell>
-							</TableRow>
-						))}
-					</TableBody>
-				</Table>
+				<Grid
+					columns={columns}
+					rows={users}
+					getKey={(user) => user.id}
+					sort={{ defaultValue: [{ column: 'created', direction: 'desc' }] }}
+				/>
 			</Card>
 
 			<Confirm

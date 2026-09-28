@@ -8,7 +8,10 @@ import { Text } from 'ui/text'
 export type PageHeaderProps = {
 	/** The title of the page. */
 	title: ReactNode
-	/** The trail to the page, such as a `Breadcrumb`. It shows under the title. */
+	/**
+	 * The trail to the page, such as a `Breadcrumb`. It shows under the title,
+	 * with the same gap as the gap between the header and the page content.
+	 */
 	breadcrumb?: ReactNode
 	/** One line about the page. */
 	description?: ReactNode
@@ -25,13 +28,15 @@ export type PageHeaderProps = {
  */
 export function PageHeader({ title, breadcrumb, description, actions }: PageHeaderProps) {
 	return (
-		<Flex align="end" justify="between" gap="md" wrap className="w-full">
-			<Stack gap="xs" className="min-w-0">
-				<Heading className="truncate">{title}</Heading>
-				{breadcrumb}
-				{description && <Text tone="muted">{description}</Text>}
-			</Stack>
-			{actions && <Flex gap="sm">{actions}</Flex>}
-		</Flex>
+		<Stack gap="xl" className="w-full">
+			<Flex align="end" justify="between" gap="md" wrap>
+				<Stack gap="xs" className="min-w-0">
+					<Heading className="truncate">{title}</Heading>
+					{description && <Text tone="muted">{description}</Text>}
+				</Stack>
+				{actions && <Flex gap="sm">{actions}</Flex>}
+			</Flex>
+			{breadcrumb}
+		</Stack>
 	)
 }
