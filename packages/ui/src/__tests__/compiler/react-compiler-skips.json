@@ -8,9 +8,6 @@
 	"components/date-input/date-input.tsx": {
 		"DateInput": "Refs"
 	},
-	"components/date-picker/use-date-picker-controlled.ts": {
-		"useDatePickerControlled": "Refs"
-	},
 	"components/date-picker/use-date-picker-relative-state.ts": {
 		"useDatePickerRelativeState": "Refs"
 	},
@@ -54,9 +51,6 @@
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
-	"components/signature-pad/use-signature-pad-canvas-sizing.ts": {
-		"useSignaturePadCanvasSizing": "Refs"
-	},
 	"components/tooltip/use-tooltip-state.ts": {
 		"useTooltipState": "Refs"
 	},
@@ -87,9 +81,6 @@
 	},
 	"modules/chart/scatter-chart/scatter-chart.tsx": {
 		"useScatterReadout": "PreserveManualMemo"
-	},
-	"modules/chat/use-chat-transcript-item-key.ts": {
-		"useChatTranscriptItemKey": "Refs"
 	},
 	"modules/dashboard/dashboard.tsx": {
 		"Dashboard": "Refs"
@@ -136,9 +127,6 @@
 	},
 	"modules/map/use-map-zoom.ts": {
 		"useMapZoom": "Todo"
-	},
-	"modules/query/query-builder/use-query-builder-tree.ts": {
-		"useQueryBuilderTree": "Refs"
 	},
 	"providers/toast/toast.tsx": {
 		"ToastProvider": "Refs"

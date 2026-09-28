@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef } from 'react'
+import { useState } from 'react'
 
 /**
  * Bridges the date picker's optional `value` prop to {@link useControllable}'s
@@ -14,9 +14,10 @@ import { useRef } from 'react'
  * `undefined` forwards as `null` (a controlled clear).
  */
 export function useDatePickerControlled<T>(value: T | undefined): T | null | undefined {
-	const controlled = useRef(false)
+	// Adjusted during render: the first render with a defined value reads it.
+	const [controlled, setControlled] = useState(value !== undefined)
 
-	if (value !== undefined) controlled.current = true
+	if (value !== undefined && !controlled) setControlled(true)
 
-	return controlled.current ? (value ?? null) : undefined
+	return controlled || value !== undefined ? (value ?? null) : undefined
 }

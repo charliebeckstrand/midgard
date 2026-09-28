@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useRef } from 'react'
+import { type RefObject, useEffect } from 'react'
 import { useResizeObserver } from '../../hooks'
 import { configureStroke, drawSnapshot, resolveStrokeColor } from './signature-pad-utilities'
 
@@ -25,9 +25,9 @@ type CanvasSizingOptions = {
  * snapshotted to a data URL and repainted afterward, since resizing the backing
  * store clears it.
  *
- * Stroke styling flows through a mutable ref, to keep the resize callback
- * identity-stable. A separate effect re-applies styling when `strokeColor` or
- * `strokeWidth` change without a resize.
+ * The observer reads the newest resize callback, so the callback reads the
+ * stroke styling directly. A separate effect re-applies styling when
+ * `strokeColor` or `strokeWidth` change without a resize.
  */
 export function useSignaturePadCanvasSizing({
 	containerRef,
@@ -36,13 +36,9 @@ export function useSignaturePadCanvasSizing({
 	strokeColor,
 	strokeWidth,
 }: CanvasSizingOptions) {
-	const sizingRef = useRef({ empty, strokeColor, strokeWidth })
-
-	sizingRef.current = { empty, strokeColor, strokeWidth }
-
-	// Mutable props flow through `sizingRef`; `resize` stays identity-stable and
-	// `useResizeObserver` re-subscribes only when its callback reference changes.
-	const resize = useCallback(() => {
+	// `useResizeObserver` calls the newest `resize` through an effect event, so a
+	// new identity does not subscribe again.
+	const resize = () => {
 		const container = containerRef.current
 
 		if (!container) return
@@ -55,11 +51,9 @@ export function useSignaturePadCanvasSizing({
 
 		if (width === 0 || height === 0) return
 
-		const { empty: currentEmpty, strokeColor, strokeWidth } = sizingRef.current
-
 		const dpr = window.devicePixelRatio || 1
 
-		const snapshot = currentEmpty ? null : canvas.toDataURL()
+		const snapshot = empty ? null : canvas.toDataURL()
 
 		canvas.width = Math.round(width * dpr)
 		canvas.height = Math.round(height * dpr)
@@ -78,7 +72,7 @@ export function useSignaturePadCanvasSizing({
 		if (snapshot) {
 			drawSnapshot(canvas, snapshot)
 		}
-	}, [containerRef, canvasRef])
+	}
 
 	// The resize callback runs `configureStroke` only on resize; this re-applies
 	// it to the live context when strokeColor / strokeWidth change (no
