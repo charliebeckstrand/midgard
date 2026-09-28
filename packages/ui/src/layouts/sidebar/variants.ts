@@ -23,7 +23,16 @@ const layout = defineRecipe({
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
+	base: [
+		'sticky top-0 z-30',
+		'bg-white dark:bg-zinc-950',
+		// The bar also paints its color above its box, as a native navigation bar does
+		// under the status bar. On iOS, the stuck bar can sit a few pixels below the
+		// top browser bar, and page content then shows between them. The extension
+		// sits under the browser bar or above the page, so it shows only in that gap.
+		'before:absolute before:inset-x-0 before:bottom-full before:h-32 before:bg-inherit',
+		'density-p-[4,6,8] lg:hidden',
+	],
 })
 
 const panel = defineRecipe({
