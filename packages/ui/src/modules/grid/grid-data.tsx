@@ -455,15 +455,15 @@ export function GridData<T>({
 
 	// The direction of the grid, read from its wrapper. The manager dialog portals
 	// out of the grid, so it takes this direction through its `dir` and through
-	// context. The read runs on mount and each time the manager opens, not on
-	// each render, because a computed-style read can force a style pass.
+	// context. The read runs each time the manager opens, before it paints, and not
+	// on each render, because a computed-style read can force a style pass. The
+	// manager is the one reader, so a closed manager needs no read.
 	const [direction, setDirection] = useState<'ltr' | 'rtl'>('ltr')
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the open state is the trigger for a fresh read, not an input.
 	useLayoutEffect(() => {
 		const wrapper = wrapperRef.current
 
-		if (!wrapper) return
+		if (!columnManagerOpen || !wrapper) return
 
 		setDirection(getComputedStyle(wrapper).direction === 'rtl' ? 'rtl' : 'ltr')
 	}, [columnManagerOpen])

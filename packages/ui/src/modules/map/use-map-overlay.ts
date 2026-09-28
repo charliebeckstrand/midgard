@@ -1,15 +1,8 @@
 'use client'
 
-import {
-	type MouseEvent,
-	type PointerEvent,
-	useCallback,
-	useEffect,
-	useId,
-	useMemo,
-	useRef,
-} from 'react'
+import { type MouseEvent, type PointerEvent, useCallback, useEffect, useId, useRef } from 'react'
 import { cn } from '../../core'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { k, type MapSeriesColor } from '../../recipes/kata/map'
 import { useMapHoverSet, useMapPlat, useMapPointed, useMapZoomScale } from './context'
 import { markAnchorAt } from './engine/map-hover/anchor'
@@ -235,6 +228,20 @@ export type MapOverlay = {
 	}
 }
 
+/** Whether two lists of stop rows read the same: each label and detail, in order. @internal */
+function sameStopRows(previous: MapStopRow[] | undefined, next: MapStopRow[] | undefined): boolean {
+	if (previous === undefined || next === undefined) return previous === next
+
+	return (
+		previous.length === next.length &&
+		next.every(
+			(row, i) =>
+				(row.label ?? '') === (previous[i]?.label ?? '') &&
+				(row.detail ?? '') === (previous[i]?.detail ?? ''),
+		)
+	)
+}
+
 /**
  * The plumbing every overlay mark shares: identity, legend registration, the
  * resolved paint and toggle state, the hover tracker, and the click reporters.
@@ -359,21 +366,11 @@ export function useMapOverlay({
 	const selected = pickedStop(selectedOverlay, id, resolveStop)
 
 	// The readout text is the one registered field the table draws, so it has to
-	// reach the ledger to reach the screen. Keyed by content rather than by the
+	// reach the ledger to reach the screen. Held by content rather than by the
 	// array's identity: an inline `points` would otherwise re-register on every
 	// render, and each registration re-renders this mark — a loop.
-	//
-	// Memoized on the array itself: a plural mark hands a memoized one, so the
-	// join runs when its content can actually have changed rather than on each of
-	// the crossings that change its dim and render this hook. An inline array is
-	// unchanged by the memo — it rebuilds either way, which is what the content
-	// key is for.
-	const rowsKey = useMemo(
-		() => stopRows?.map((row) => `${row.label ?? ''}\u001f${row.detail ?? ''}`).join('\u001e'),
-		[stopRows],
-	)
+	const heldRows = useStableValue(stopRows, sameStopRows)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `stopRows` is keyed by `rowsKey`, its content
 	useEffect(
 		() =>
 			register({
@@ -385,7 +382,7 @@ export function useMapOverlay({
 				color,
 				detail,
 				stopsAt,
-				stopRows,
+				stopRows: heldRows,
 				activate,
 				spare: budget,
 				stopOf: stopAt,
@@ -400,7 +397,7 @@ export function useMapOverlay({
 			color,
 			detail,
 			stopsAt,
-			rowsKey,
+			heldRows,
 			activate,
 			budget,
 			stopAt,

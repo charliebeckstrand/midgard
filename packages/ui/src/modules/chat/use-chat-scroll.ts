@@ -67,16 +67,14 @@ export function useChatScroll<T>(dependency?: T) {
 		if (containerRef.current) toBottom(containerRef.current, 'auto')
 	}, [])
 
-	const mounted = useRef(false)
+	// The dependency of the last scroll. It starts at the mount value, because the
+	// mount-time jump above already lands on the bottom.
+	const scrolledFor = useRef(dependency)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the watched `dependency` is the whole point — its identity change is what re-runs the scroll.
 	useEffect(() => {
-		// The mount-time jump above already lands on the bottom; skip the redundant smooth scroll.
-		if (!mounted.current) {
-			mounted.current = true
+		if (Object.is(scrolledFor.current, dependency)) return
 
-			return
-		}
+		scrolledFor.current = dependency
 
 		scrollToBottom()
 	}, [dependency, scrollToBottom])

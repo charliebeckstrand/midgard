@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import { type RefObject, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { Button } from '../../../../components/button'
 import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
@@ -25,32 +25,29 @@ const PAGE_SIZE = 5
  * the way a measure-then-cut of the visible row would. It reads each control's
  * wrapped row and right edge, and packs them through {@link visibleLegendCount}.
  * Returns the full `count` when nothing caps (no ghost, no measurement), so an
- * uncapped or side-panel legend pays nothing. `labels` joins the control
- * labels in render order.
+ * uncapped or side-panel legend pays nothing.
  *
+ * @returns The callback ref of the ghost, and the count of controls that show.
+ * The caller keys the ghost on its control labels, so a change of the control
+ * set mounts a new ghost, which the fit measures.
  * @internal
  */
 function useLegendFit(
-	ghostRef: RefObject<HTMLDivElement | null>,
 	count: number,
-	labels: string,
 	maxRows: number | undefined,
-): number {
+): [(node: HTMLDivElement | null) => void, number] {
+	const [ghost, setGhost] = useState<HTMLDivElement | null>(null)
+
 	const [visible, setVisible] = useState(count)
 
 	// A layout effect, so the first cut lands before paint — the visible row never
 	// flashes its full height then collapses. The ghost holds every control at all
 	// times, so the observer refits on resize from a stable measurement rather than
 	// the already-cut visible row, which could never reveal that a widened box now
-	// fits more.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: labels re-runs the measure on a relabel that keeps the ghost's box, where the observer does not fire
+	// fits more. A resize alone can miss an added entry that lands on an existing
+	// row without growing the ghost, or a relabel that keeps the ghost's box but
+	// moves the wraps. Either one mounts a new ghost, and the fit measures it.
 	useLayoutEffect(() => {
-		const ghost = ghostRef.current
-
-		// `count` and `labels` re-run the measure when the control set changes — a
-		// resize alone can miss an added entry that lands on an existing row without
-		// growing the ghost, or a relabel that keeps the ghost's box but moves the
-		// wraps, so they are dependencies, not just the observed size.
 		if (!ghost || maxRows === undefined || count === 0) return
 
 		const measure = () => {
@@ -84,14 +81,14 @@ function useLegendFit(
 		observer.observe(ghost)
 
 		return () => observer.disconnect()
-	}, [ghostRef, count, labels, maxRows])
+	}, [ghost, count, maxRows])
 
 	// Never exceed the real count — a stale larger measurement (a control removed
 	// between renders) can't over-slice the list.
-	return maxRows === undefined ? count : Math.min(visible, count)
+	return [setGhost, maxRows === undefined ? count : Math.min(visible, count)]
 }
 
-/** The labels of every legend control in render order, joined into one fit key. @internal */
+/** The labels of every legend control in render order, joined into the key of the ghost row. @internal */
 function controlLabels(
 	items: readonly ChartLegendItem[],
 	references: readonly ChartLegendReference[],
@@ -440,8 +437,6 @@ export function ChartLegend({
 }: ChartLegendProps) {
 	const ref = useRef<HTMLDivElement>(null)
 
-	const ghostRef = useRef<HTMLDivElement>(null)
-
 	const [page, setPage] = useState(0)
 
 	// Only a side panel clips vertically — the wrap row just grows. Past one
@@ -464,10 +459,8 @@ export function ChartLegend({
 	// How many of the switches and chips together show before the `+N` chip,
 	// measured off the ghost row that always holds them all; the full count when
 	// nothing caps.
-	const visibleCount = useLegendFit(
-		ghostRef,
+	const [ghostRef, visibleCount] = useLegendFit(
 		items.length + references.length,
-		controlLabels(items, references),
 		capped ? maxRows : undefined,
 	)
 
@@ -802,6 +795,7 @@ export function ChartLegend({
 	return (
 		<div className="relative w-full">
 			<div
+				key={controlLabels(items, references)}
 				ref={ghostRef}
 				aria-hidden
 				inert

@@ -6,6 +6,7 @@ import {
 	type ReactNode,
 	useCallback,
 	useEffect,
+	useEffectEvent,
 	useId,
 	useLayoutEffect,
 	useRef,
@@ -264,15 +265,19 @@ export function GridCellEditor<T>({
 	// the focus claim below, which drops the entry's intents.
 	const wasHeld = useRef(held)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: only the change of `held` asks for the seed; `update` is a new closure on each render.
+	// Stages the typed entry of the released editor, with the newest `update`.
+	const seedTypedEntry = useEffectEvent(() => {
+		const typed = dataKey !== null ? entrySeed(dataKey, column.id) : undefined
+
+		if (typed !== undefined) update(typed)
+	})
+
 	useEffect(() => {
 		const released = wasHeld.current && !held
 
 		wasHeld.current = held
 
-		const typed = released && dataKey !== null ? entrySeed(dataKey, column.id) : undefined
-
-		if (typed !== undefined) update(typed)
+		if (released) seedTypedEntry()
 	}, [held])
 
 	const hostRef = useRef<HTMLSpanElement>(null)
@@ -291,11 +296,13 @@ export function GridCellEditor<T>({
 		return () => host.removeEventListener('focusin', resume)
 	}, [held, resumeCell, dataKey, column.id])
 
-	// Take the focus an entry left for this cell, as the editor mounts or as the
-	// session comes to hold it. The editor sits inside its cell's truncation span,
-	// and this effect runs during React's commit. The helper keeps the span's
-	// arm off its synchronous flush, which cannot run here and warns.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `settle` changes as the session comes to hold an editor that is already mounted, and that re-runs the claim.
+	// Take the focus an entry left for this cell, after each commit: as the editor
+	// mounts, or as the session comes to hold an editor that is already mounted.
+	// The claim succeeds only while the intent names this cell and the cell is
+	// open, and it then drops the intent, so each later run is a no-op. The editor
+	// sits inside its cell's truncation span, and this effect runs during React's
+	// commit. The helper keeps the span's arm off its synchronous flush, which
+	// cannot run here and warns.
 	useEffect(() => {
 		const claimed = dataKey === null ? claimSlot?.(column.id) : claimFocus(dataKey, column.id)
 
@@ -304,7 +311,7 @@ export function GridCellEditor<T>({
 		const editor = hostRef.current?.querySelector<HTMLElement>(EDITOR_FOCUSABLE)
 
 		if (editor) focusWithoutReveal(editor)
-	}, [settle, claimFocus, claimSlot, dataKey, column.id])
+	})
 
 	const cancel = () => {
 		setDraft(seed)

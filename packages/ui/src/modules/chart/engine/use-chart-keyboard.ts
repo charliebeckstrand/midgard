@@ -1,7 +1,8 @@
 'use client'
 
-import { type FocusEvent, type KeyboardEvent, useEffect, useState } from 'react'
+import { type FocusEvent, type KeyboardEvent, useEffect, useEffectEvent, useState } from 'react'
 import { usePlotTabStop } from '../../../hooks/use-plot-tab-stop'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { clamp } from '../../../utilities'
 import { type ChartOrientation, project, type Vec, valueCoord } from './chart-orientation'
 import type { ChartHover } from './context'
@@ -357,6 +358,21 @@ export type ChartKeyboardProps = {
 	onBlur: (event: FocusEvent<HTMLElement>) => void
 }
 
+/** A parked cursor resolved against the current targets: its clamped stop, its frame point, and its series. @internal */
+type ResolvedStop = { live: ChartCursor; anchor: Vec; series: number | null }
+
+/** Whether two resolved stops sit on one point, in one category, on one series. @internal */
+function sameStop(previous: ResolvedStop | null, next: ResolvedStop | null): boolean {
+	if (previous === null || next === null) return previous === next
+
+	return (
+		previous.anchor.x === next.anchor.x &&
+		previous.anchor.y === next.anchor.y &&
+		previous.live.category === next.live.category &&
+		previous.series === next.series
+	)
+}
+
 /**
  * Makes the plot region a single arrow-navigable tab stop that drives the
  * shared hover context. The crosshair and tooltip therefore answer the keyboard
@@ -445,16 +461,29 @@ export function useChartKeyboard(
 
 	const liveSeries = live !== null && targets ? cursorSeries(live, targets) : null
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the resolved stop moves; cursor/live/set are read fresh at fire time and targets is a new array each render
+	// The resolved stop, held while its point, category, and series stay the same:
+	// the targets are a new array on each render.
+	const stop = useStableValue(
+		live !== null && anchor !== null ? { live, anchor, series: liveSeries } : null,
+		sameStop,
+	)
+
+	// Reads the cursor, `set`, and `setActiveSeries` when it runs.
+	const reanchor = useEffectEvent((next: ResolvedStop) => {
+		if (cursor === null) return
+
+		if (next.live.category !== cursor.category || next.live.value !== cursor.value) {
+			setCursor(next.live)
+		}
+
+		set(next.live.category, next.anchor, true)
+
+		setActiveSeries(next.series)
+	})
+
 	useEffect(() => {
-		if (cursor === null || live === null || anchor === null) return
-
-		if (live.category !== cursor.category || live.value !== cursor.value) setCursor(live)
-
-		set(live.category, anchor, true)
-
-		setActiveSeries(liveSeries)
-	}, [anchor?.x, anchor?.y, live?.category, liveSeries])
+		if (stop !== null) reanchor(stop)
+	}, [stop])
 
 	// A reference line the cursor parks on owns the emphasis, not the marks: recede
 	// the whole field and drop the series readout so the rule reads alone — no one
