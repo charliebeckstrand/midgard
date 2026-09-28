@@ -11,6 +11,7 @@ import {
 	useState,
 } from 'react'
 import { useFloatingPanel } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type { PdfViewerMagnifierOptions } from './types'
 
 /**
@@ -227,11 +228,6 @@ export function usePdfViewerMagnifier(
 
 	const [tracking, setTracking] = useState<Tracking | null>(null)
 
-	// Read by `track`, which must not be rebuilt per render — it goes into `getReferenceProps`.
-	const openRef = useRef(open)
-
-	openRef.current = open
-
 	/**
 	 * The frame, kept from the events that already carry it — see {@link track}.
 	 *
@@ -253,7 +249,7 @@ export function usePdfViewerMagnifier(
 	 * That edge happens at most twice per dwell, and it makes every one of those cases the same
 	 * case.
 	 */
-	const locate = useCallback((): Tracking | null => {
+	const locate = useStableEvent((): Tracking | null => {
 		const client = trackingRef.current
 
 		const frame = frameRef.current
@@ -263,19 +259,16 @@ export function usePdfViewerMagnifier(
 		const rect = frame.getBoundingClientRect()
 
 		return { local: { x: client.x - rect.left, y: client.y - rect.top }, client }
-	}, [])
+	})
 
 	/*
 	 * Opening re-locates whatever the ref last saw, so the lens has true coordinates on the
 	 * frame it first paints. Closing drops them, rather than leaving a stale point behind.
 	 */
-	const handleOpenChange = useCallback(
-		(next: boolean) => {
-			setOpen(next)
-			setTracking(next ? locate() : null)
-		},
-		[locate],
-	)
+	const handleOpenChange = useStableEvent((next: boolean) => {
+		setOpen(next)
+		setTracking(next ? locate() : null)
+	})
 
 	const { refs, floatingStyles, context } = useFloatingPanel({
 		open: enabled && open,
@@ -330,7 +323,7 @@ export function usePdfViewerMagnifier(
 	 *
 	 * Writes state only while the lens is open — see {@link trackingRef}.
 	 */
-	const track = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+	const track = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
 		if (event.pointerType !== 'mouse') return
 
 		frameRef.current = event.currentTarget
@@ -340,25 +333,25 @@ export function usePdfViewerMagnifier(
 		trackingRef.current = client
 
 		// Only the open lens needs frame-local coordinates, and only it pays the layout read.
-		if (!openRef.current) return
+		if (!open) return
 
 		const rect = event.currentTarget.getBoundingClientRect()
 
 		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
-	}, [])
+	})
 
 	/**
 	 * Drops the tracked point: the pointer has left the scan, so there is nothing to magnify.
 	 *
 	 * Mouse only. A finger leaves the page only when it lifts, and {@link release} ends a hold.
 	 */
-	const leave = useCallback((event: ReactPointerEvent<HTMLElement>) => {
+	const leave = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
 		if (event.pointerType !== 'mouse') return
 
 		trackingRef.current = null
 
-		if (openRef.current) setTracking(null)
-	}, [])
+		if (open) setTracking(null)
+	})
 
 	/** The finger that is holding, where it landed, and the timer that opens the lens under it. */
 	type Hold = { id: number; start: MagnifierPoint; timer: number }
@@ -371,21 +364,13 @@ export function usePdfViewerMagnifier(
 	/** True after a hold ends on a lift. The click that the lift can fire then presses no region. */
 	const swallowClickRef = useRef(false)
 
-	/*
-	 * Read by `hold`, which goes into `getReferenceProps` and must not be rebuilt when the
-	 * settings change.
-	 */
-	const holdDelayRef = useRef<number>(TOUCH_HOLD_MIN)
-
-	holdDelayRef.current = Math.max(settings?.delay ?? DEFAULT_DELAY, TOUCH_HOLD_MIN)
-
 	/**
 	 * Ends the hold, and closes the lens if the hold opened it.
 	 *
 	 * @param lifted - The finger lifted with the lens open. The click that follows the lift is
 	 * then swallowed, because the reader was reading, not pressing.
 	 */
-	const endHold = useCallback((lifted = false) => {
+	const endHold = useStableEvent((lifted: boolean = false) => {
 		const hold = holdRef.current
 
 		if (!hold) return
@@ -407,7 +392,7 @@ export function usePdfViewerMagnifier(
 		setTracking(null)
 
 		setTouch(false)
-	}, [])
+	})
 
 	/**
 	 * Starts a hold: a finger that rests on the page for the dwell opens the lens above it.
@@ -422,21 +407,21 @@ export function usePdfViewerMagnifier(
 	 * that moves after the lens opens is magnifying, and that movement cancels the long press
 	 * in the browser.
 	 */
-	const hold = useCallback(
-		(event: ReactPointerEvent<HTMLElement>) => {
-			if (event.pointerType === 'mouse' || !event.isPrimary) return
+	const hold = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
+		if (event.pointerType === 'mouse' || !event.isPrimary) return
 
-			window.clearTimeout(holdRef.current?.timer)
+		window.clearTimeout(holdRef.current?.timer)
 
-			swallowClickRef.current = false
+		swallowClickRef.current = false
 
-			frameRef.current = event.currentTarget
+		frameRef.current = event.currentTarget
 
-			const start = { x: event.clientX, y: event.clientY }
+		const start = { x: event.clientX, y: event.clientY }
 
-			trackingRef.current = start
+		trackingRef.current = start
 
-			const timer = window.setTimeout(() => {
+		const timer = window.setTimeout(
+			() => {
 				const located = locate()
 
 				if (!located) return
@@ -448,57 +433,48 @@ export function usePdfViewerMagnifier(
 				setTracking(located)
 
 				setOpen(true)
-			}, holdDelayRef.current)
+			},
+			Math.max(settings?.delay ?? DEFAULT_DELAY, TOUCH_HOLD_MIN),
+		)
 
-			holdRef.current = { id: event.pointerId, start, timer }
-		},
-		[locate],
-	)
+		holdRef.current = { id: event.pointerId, start, timer }
+	})
 
 	/** Moves the held lens, or ends a hold that has become a scroll. */
-	const drag = useCallback(
-		(event: ReactPointerEvent<HTMLElement>) => {
-			const current = holdRef.current
+	const drag = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
+		const current = holdRef.current
 
-			if (!current || event.pointerId !== current.id) return
+		if (!current || event.pointerId !== current.id) return
 
-			const client = { x: event.clientX, y: event.clientY }
+		const client = { x: event.clientX, y: event.clientY }
 
-			if (!holdingRef.current) {
-				const drift = Math.hypot(client.x - current.start.x, client.y - current.start.y)
+		if (!holdingRef.current) {
+			const drift = Math.hypot(client.x - current.start.x, client.y - current.start.y)
 
-				if (drift > TOUCH_SLOP) endHold()
+			if (drift > TOUCH_SLOP) endHold()
 
-				return
-			}
+			return
+		}
 
-			trackingRef.current = client
+		trackingRef.current = client
 
-			const rect = event.currentTarget.getBoundingClientRect()
+		const rect = event.currentTarget.getBoundingClientRect()
 
-			setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
-		},
-		[endHold],
-	)
+		setTracking({ local: { x: client.x - rect.left, y: client.y - rect.top }, client })
+	})
 
 	/** One move handler for both pointers: the mouse is tracked, and a finger drags. */
-	const move = useCallback(
-		(event: ReactPointerEvent<HTMLElement>) => {
-			if (event.pointerType === 'mouse') track(event)
-			else drag(event)
-		},
-		[track, drag],
-	)
+	const move = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
+		if (event.pointerType === 'mouse') track(event)
+		else drag(event)
+	})
 
 	/** A lift, or a cancel from the browser, ends the hold of that finger. */
-	const release = useCallback(
-		(event: ReactPointerEvent<HTMLElement>) => {
-			if (event.pointerId !== holdRef.current?.id) return
+	const release = useStableEvent((event: ReactPointerEvent<HTMLElement>) => {
+		if (event.pointerId !== holdRef.current?.id) return
 
-			endHold(event.type === 'pointerup')
-		},
-		[endHold],
-	)
+		endHold(event.type === 'pointerup')
+	})
 
 	/**
 	 * The browser's long-press menu is opening, so the lens closes and does not cover it.
@@ -506,12 +482,12 @@ export function usePdfViewerMagnifier(
 	 * @remarks It does not cancel the event: the menu is the browser's, and it opens as it
 	 * would on a viewer with no loupe. A right click has no hold, so a mouse gets no change.
 	 */
-	const yieldToMenu = useCallback(() => {
+	const yieldToMenu = useStableEvent(() => {
 		endHold()
-	}, [endHold])
+	})
 
 	/** Swallows the click that the lift at the end of a hold can fire. */
-	const swallowClick = useCallback((event: ReactMouseEvent<HTMLElement>) => {
+	const swallowClick = useStableEvent((event: ReactMouseEvent<HTMLElement>) => {
 		if (!swallowClickRef.current) return
 
 		swallowClickRef.current = false
@@ -519,7 +495,7 @@ export function usePdfViewerMagnifier(
 		event.preventDefault()
 
 		event.stopPropagation()
-	}, [])
+	})
 
 	/**
 	 * The page frame, as state, so the `touchmove` listener below can attach to the node.
@@ -579,7 +555,7 @@ export function usePdfViewerMagnifier(
 	}, [enabled])
 
 	/*
-	 * Both bags are memoized, and `leave` is a callback rather than a literal, because they are
+	 * Both bags are memoized, and the handlers are stable events rather than literals, because they are
 	 * dependencies of the result below. An inline handler — or a bare `getReferenceProps()` call
 	 * — allocates on every render, which would defeat that memo and, through it, the value
 	 * of `PdfViewerMagnifierContext`. The floating-ui getters are stable until an interaction's own
@@ -625,13 +601,13 @@ export function usePdfViewerMagnifier(
 	 * setting, rather than inventing a second one, means a consumer that tuned the dwell has
 	 * tuned this too.
 	 */
-	const handlePan = useCallback(() => {
+	const handlePan = useStableEvent(() => {
 		window.clearTimeout(settleRef.current)
 
 		// Guarded because this is a scroll handler: with the lens closed both of these are
 		// already at their next value, and React would still re-render the whole viewer to find
 		// that out, once per frame of the pan.
-		if (openRef.current) {
+		if (open) {
 			setOpen(false)
 
 			setTracking(null)
@@ -648,7 +624,7 @@ export function usePdfViewerMagnifier(
 
 			setOpen(true)
 		}, settings?.delay ?? DEFAULT_DELAY)
-	}, [locate, settings?.delay])
+	})
 
 	/*
 	 * Every scroller, through one listener.
@@ -662,32 +638,32 @@ export function usePdfViewerMagnifier(
 	 * A pending re-open does not outlive the loupe being switched off. A reader who turns it
 	 * off and back on inside one dwell does not get a lens they never hovered for.
 	 */
+	const handleScroll = useStableEvent((event: Event) => {
+		// Every scroll in the document reaches this, so a reader working anywhere else on the
+		// page must pay one boolean for it. A closed lens with nothing tracked has no ink to
+		// go stale and nowhere to come back to — and answering that here, before the walk
+		// below, is what keeps the cost to the boolean.
+		if (!open && trackingRef.current === null) return
+
+		const frame = frameRef.current
+
+		// Only a scroller the page hangs inside can move the page. A list somewhere else on
+		// the screen cannot, and a lens that withdrew for one would be flinching at nothing.
+		if (frame && !(event.target as Node).contains(frame)) return
+
+		// A finger that scrolls the page was never holding it. The hold ends, and the lens
+		// does not come back when the scroll stops: the finger is gone.
+		if (holdRef.current) {
+			endHold()
+
+			return
+		}
+
+		handlePan()
+	})
+
 	useEffect(() => {
 		if (!enabled) return
-
-		function handleScroll(event: Event) {
-			// Every scroll in the document reaches this, so a reader working anywhere else on the
-			// page must pay one boolean for it. A closed lens with nothing tracked has no ink to
-			// go stale and nowhere to come back to — and answering that here, before the walk
-			// below, is what keeps the cost to the boolean.
-			if (!openRef.current && trackingRef.current === null) return
-
-			const frame = frameRef.current
-
-			// Only a scroller the page hangs inside can move the page. A list somewhere else on
-			// the screen cannot, and a lens that withdrew for one would be flinching at nothing.
-			if (frame && !(event.target as Node).contains(frame)) return
-
-			// A finger that scrolls the page was never holding it. The hold ends, and the lens
-			// does not come back when the scroll stops: the finger is gone.
-			if (holdRef.current) {
-				endHold()
-
-				return
-			}
-
-			handlePan()
-		}
 
 		document.addEventListener('scroll', handleScroll, true)
 
@@ -696,7 +672,7 @@ export function usePdfViewerMagnifier(
 
 			window.clearTimeout(settleRef.current)
 		}
-	}, [enabled, handlePan, endHold])
+	}, [enabled, handleScroll])
 
 	/*
 	 * Memoized because this object is the value of `PdfViewerMagnifierContext`. A fresh literal

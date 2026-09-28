@@ -40,7 +40,7 @@ export function PdfViewerViewport() {
 		onImageLoad,
 	} = usePdfViewerContext()
 
-	const magnifier = usePdfViewerMagnifierContext()
+	const { setReference, referenceProps } = usePdfViewerMagnifierContext()
 
 	const { aspectRatio, frameWidth, frameHeight, imageWidth, imageHeight, transform } = scale
 
@@ -63,8 +63,8 @@ export function PdfViewerViewport() {
 				<div
 					// The frame, not the image: it is the box the loupe's own copy is sized from,
 					// and it does not move under rotation the way the image inside it does.
-					ref={magnifier.setReference}
-					{...magnifier.referenceProps}
+					ref={setReference}
+					{...referenceProps}
 					data-slot="pdf-viewer-page-frame"
 					className={cn(k.viewport.page.frame)}
 					style={{ width: frameWidth, height: frameHeight }}

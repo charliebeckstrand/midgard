@@ -2,17 +2,8 @@
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
 	},
-	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
-		"PdfViewerMagnifier": "Refs"
-	},
 	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
 		"PdfViewerThumbnails": "Refs"
-	},
-	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
-		"PdfViewerViewport": "Refs"
-	},
-	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
-		"usePdfViewerMagnifier": "Refs"
 	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
