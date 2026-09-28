@@ -64,6 +64,6 @@ function serverRootStep(): DensityStep {
  *
  * @internal
  */
-export function useDensityRootStep(): DensityStep {
+export function useDensityRoot(): DensityStep {
 	return useSyncExternalStore(subscribeRootStep, readRootStep, serverRootStep)
 }
