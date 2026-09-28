@@ -145,10 +145,10 @@ export function Demo() {
 		>
 			<Stack gap="md">
 				<DensityProvider density={density}>
-					{/* The layout is an app shell, pinned to the viewport. Layout containment
-					    makes this box the containing block of the pinned layout, so the demo
-					    stays inside its frame and does not cover the page. */}
-					<div className="relative h-[40rem] overflow-auto rounded-lg contain-layout">
+					{/* The layout can pin itself to the viewport. Layout containment makes
+					    this box the containing block of the pinned layout, so the demo stays
+					    inside its frame and does not cover the page. */}
+					<div className="h-[40rem] overflow-auto rounded-lg contain-layout">
 						<SidebarLayout sidebar={sidebar}>
 							<SidebarLayoutHeader>
 								<Heading level={1}>Orders</Heading>
