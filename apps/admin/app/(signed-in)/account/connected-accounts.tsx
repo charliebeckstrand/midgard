@@ -2,11 +2,12 @@
 
 import { useState } from 'react'
 import { ensureSecondStep, oauthStartPath, signInProviderNames } from 'shared/auth'
+import { Alert } from 'ui/alert'
 import { Button } from 'ui/button'
+import { Card, CardDescription, CardHeader, CardTitle } from 'ui/card'
 import { Confirm } from 'ui/confirm'
-import { Heading } from 'ui/heading'
+import { List, ListDescription, ListItem, ListLabel } from 'ui/list'
 import { Stack } from 'ui/structure/stack'
-import { Text } from 'ui/text'
 import type { Identity, Provider } from './account-api'
 import { useIdentities, useUnlinkIdentity } from './account-queries'
 
@@ -30,7 +31,7 @@ const connectErrors: Record<string, string> = {
 }
 
 /**
- * GitHub and Google accounts of the signed-in user.
+ * Card of the GitHub and Google accounts of the signed-in user.
  *
  * @remarks
  * "Connect" leaves the app for the provider, and the gateway sends the browser
@@ -60,47 +61,67 @@ export function ConnectedAccounts({
 		(connectError && (connectErrors[connectError] ?? connectErrors.oauth_failed))
 
 	return (
-		<Stack gap="sm">
-			<Heading level={3}>Connected accounts</Heading>
+		<Card>
+			<CardHeader>
+				<CardTitle level={2}>Connected accounts</CardTitle>
+				<CardDescription>
+					Sign in with one of these accounts in place of your password.
+				</CardDescription>
+			</CardHeader>
 
-			{error && <Text tone="error">{error}</Text>}
+			<Stack gap="md">
+				{error && <Alert severity="error" title={error} />}
 
-			{shown.map((provider) => {
-				const identity = identities.find((item) => item.provider === provider)
+				<List
+					items={shown}
+					getKey={(provider) => provider}
+					variant="outline"
+					sortable={false}
+					aria-label="Connected accounts"
+				>
+					{(provider) => {
+						const identity = identities.find((item) => item.provider === provider)
 
-				return (
-					<div key={provider} className="flex items-center justify-between gap-2">
-						<div>
-							<Text className="font-medium">{signInProviderNames[provider]}</Text>
-							<Text>{identity ? (identity.email ?? 'Connected') : 'Not connected'}</Text>
-						</div>
-						{identity ? (
-							<Button
-								variant="outline"
-								disabled={unlink.isPending}
-								onClick={() => setUnlinking(provider)}
-							>
-								Disconnect
-							</Button>
-						) : (
-							<Button
-								variant="outline"
-								disabled={!providers.includes(provider)}
-								// A full page load: the gateway answers with a redirect to the provider.
-								onClick={async () => {
-									if (!(await ensureSecondStep())) return
+						return (
+							<ListItem
+								suffix={
+									identity ? (
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={unlink.isPending}
+											onClick={() => setUnlinking(provider)}
+										>
+											Disconnect
+										</Button>
+									) : (
+										<Button
+											variant="outline"
+											size="sm"
+											disabled={!providers.includes(provider)}
+											// A full page load: the gateway answers with a redirect to the provider.
+											onClick={async () => {
+												if (!(await ensureSecondStep())) return
 
-									window.location.assign(
-										oauthStartPath(provider, { link: true, returnTo: '/account' }),
+												window.location.assign(
+													oauthStartPath(provider, { link: true, returnTo: '/account' }),
+												)
+											}}
+										>
+											Connect
+										</Button>
 									)
-								}}
+								}
 							>
-								Connect
-							</Button>
-						)}
-					</div>
-				)
-			})}
+								<ListLabel>{signInProviderNames[provider]}</ListLabel>
+								<ListDescription>
+									{identity ? (identity.email ?? 'Connected') : 'Not connected'}
+								</ListDescription>
+							</ListItem>
+						)
+					}}
+				</List>
+			</Stack>
 
 			<Confirm
 				open={unlinking !== null}
@@ -114,6 +135,6 @@ export function ConnectedAccounts({
 				description="You cannot sign in with this account after you disconnect it."
 				confirm={{ label: 'Disconnect', color: 'red' }}
 			/>
-		</Stack>
+		</Card>
 	)
 }

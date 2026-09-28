@@ -1,6 +1,7 @@
 import { bifrost } from 'auth'
-import { Heading } from 'ui/heading'
-import { Text } from 'ui/text'
+import { Alert } from 'ui/alert'
+import { Stack } from 'ui/structure/stack'
+import { PageHeader } from '@/components/page-header'
 import { SecurityClient } from './client'
 
 /**
@@ -15,11 +16,15 @@ export default async function SecurityPage() {
 
 	if (!threats.data || !bans.data) {
 		return (
-			<>
-				<Heading>Security</Heading>
+			<Stack gap="xl">
+				<PageHeader title="Security" />
 
-				<Text tone="error">Security monitoring is not available.</Text>
-			</>
+				<Alert
+					severity="error"
+					title="Security monitoring is not available."
+					description="The gateway cannot reach Vidar. Try again soon."
+				/>
+			</Stack>
 		)
 	}
 
