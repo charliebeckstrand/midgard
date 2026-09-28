@@ -35,12 +35,11 @@ type DatePickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
-	 * Resolved size from `<DatePicker>`, re-broadcast by a density scope on the body. The
-	 * `FloatingPortal` teleports outside the density chain, where `<Calendar>`
-	 * and `<DatePickerFooter>` fall back to `'md'` regardless of the trigger's
-	 * size.
+	 * The explicit size step of `<DatePicker>`. The body opens a density scope at
+	 * it. Without it, the panel takes the step of the nearest density scope of
+	 * the picker, which the portal carries.
 	 */
-	size: ControlSize
+	size?: ControlSize
 	/**
 	 * The picker's virtual-focus key handler (zones + active highlight). It
 	 * lives on the trigger and, via this prop, on the dialog itself. Initial
@@ -181,7 +180,7 @@ export function DatePickerContent({
 					bg={glass ? 'none' : 'popover'}
 					outline={glass || undefined}
 					radius="lg"
-					className={k.content.body({ density: size })}
+					className={cn(k.content.body)}
 				>
 					{children}
 				</Box>

@@ -32,7 +32,7 @@ export type MenuContentProps = {
  * The menu panel: a `role="menu"` surface with roving focus and typeahead over
  * its items. A `static` menu renders inline as part of the page, with no
  * autofocus. Otherwise it mounts as a floating overlay that closes on `Escape`.
- * Resolves size and spacing from the enclosing {@link Menu}.
+ * Takes the `size` of the enclosing {@link Menu} as its density scope.
  *
  * @remarks Items scroll inside a height-capped viewport whose clipped edges
  * fade out while more content lies past them. An overflowing menu therefore

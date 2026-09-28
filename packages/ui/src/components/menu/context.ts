@@ -17,7 +17,8 @@ type MenuStateValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
-	size: Step
+	/** The explicit size step of the menu. The panel opens a density scope at it. */
+	size?: Step
 }
 
 type MenuActionsValue = {

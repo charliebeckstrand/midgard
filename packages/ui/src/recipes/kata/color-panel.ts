@@ -1,12 +1,13 @@
 /**
- * Color-panel kata: the saturation/value picking surface. Recipe-shaped with
- * a single `size` axis on the root; the inner pieces (area, track, preview,
- * handle, swatches) attach as slot extras. The wash gradients and the
+ * Color-panel kata: the saturation/value picking surface. The root and the
+ * inner pieces (area, track, preview, handle, swatches) take the step of the
+ * nearest density scope through stepped classes; the pieces attach as slot
+ * extras. The wash gradients and the
  * alpha/preview chequerboard are authored as raw CSS background-image literals
  * here rather than as kiso tokens — they're picker-specific, used nowhere else.
  */
-import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { kasane, kokkaku, sen } from '../kiso'
+import { defineRecipe } from '../../core/recipe'
+import { kasane, kokkaku, type Step, sen } from '../kiso'
 
 const { rounded } = kasane
 const { focus } = sen
@@ -19,29 +20,20 @@ const handle = [
 	'border-2 border-white shadow-sm ring-1 ring-black/25',
 ] as const
 
-const area = defineRecipe({
-	base: ['relative w-full cursor-crosshair touch-none', ...focus.ring],
-	size: { sm: 'h-32', md: 'h-40', lg: 'h-48' },
-	defaults: { size: 'md' },
-})
+const area = ['relative w-full cursor-crosshair touch-none', ...focus.ring, 'density-h-[32,40,48]']
 
-const track = defineRecipe({
-	base: ['relative w-full cursor-pointer touch-none', rounded.full, ...focus.ring],
-	size: { sm: 'h-3', md: 'h-3.5', lg: 'h-4' },
-	defaults: { size: 'md' },
-})
+const track = [
+	'relative w-full cursor-pointer touch-none',
+	rounded.full,
+	...focus.ring,
+	'density-h-[3,3.5,4]',
+]
 
-const preview = defineRecipe({
-	base: ['relative shrink-0 overflow-hidden', rounded.md],
-	size: { sm: 'size-8', md: 'size-9', lg: 'size-10' },
-	defaults: { size: 'md' },
-})
+const preview = ['relative shrink-0 overflow-hidden', rounded.md, 'density-size-[8,9,10]']
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col select-none'],
-		size: { sm: 'w-72 gap-2', md: 'w-80 gap-4', lg: 'w-88 gap-6' },
-		defaults: { size: 'md' },
+		base: ['flex flex-col select-none', 'density-w-[72,80,88] density-gap-[2,4,6]'],
 		skeleton: kokkaku.colorPanel,
 	},
 	{
@@ -74,4 +66,5 @@ export const k = defineRecipe(
 	},
 )
 
-export type ColorPanelVariants = VariantProps<typeof k>
+/** Props for the {@link ColorPanel} root: the `size` step that the component writes as a density scope. */
+export type ColorPanelVariants = { size?: Step }

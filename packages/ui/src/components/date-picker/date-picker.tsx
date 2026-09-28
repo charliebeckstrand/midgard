@@ -2,8 +2,7 @@
 
 import type { Placement } from '@floating-ui/react'
 import { type ReactElement, useRef } from 'react'
-import { cn, composeEventHandlers, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Calendar } from '../calendar'
@@ -139,8 +138,9 @@ export type DatePickerBaseProps = GroupStampProps & {
 	placeholder?: string
 	placement?: Placement
 	/**
-	 * Size step that drives trigger padding, text size, and the calendar icon.
-	 * Resolution order: explicit prop, then `<Control>`, then enclosing Density size, then `'md'`.
+	 * Size step of the trigger padding, the text, the calendar icon, and the
+	 * panel. It opens a density scope on the trigger and on the panel. Without
+	 * it, the picker takes the step of the nearest density scope.
 	 */
 	size?: ControlSize
 	/**
@@ -200,8 +200,8 @@ export type DatePickerProps = DatePickerBaseProps &
  * Popover date picker. It switches between single and range calendar selection
  * on the `range` prop, or a relative-range picker on the `relative` prop. The
  * relative picker is single-select by default, and multi-select with
- * `multiple: true`. It supports controlled or uncontrolled `value`. `size` resolves through
- * the explicit prop, then `<Control>`, then Density, then `'md'`. With `input`, a
+ * `multiple: true`. It supports controlled or uncontrolled `value`. The picker takes
+ * the step of the nearest density scope, and an explicit `size` opens a scope. With `input`, a
  * typed DateInput replaces the trigger and the calendar opens from its suffix
  * button. A `clearable` clear button replaces the calendar icon once a value is
  * set, mirroring Listbox/Combobox, which default it off as well.
@@ -221,16 +221,14 @@ export type DatePickerProps = DatePickerBaseProps &
  * @see {@link DatePickerProps} for the discriminated value/handler shapes.
  */
 export function DatePicker(props: DatePickerProps) {
-	const resolvedSize: ControlSize = toAmbientStep(useDensityStep(props.size))
-
 	let picker: ReactElement
 
 	if (props.relative) {
-		picker = <DatePickerRelative {...props} size={resolvedSize} />
+		picker = <DatePickerRelative {...props} />
 	} else if (props.range) {
-		picker = <DatePickerRange {...props} size={resolvedSize} />
+		picker = <DatePickerRange {...props} />
 	} else {
-		picker = <DatePickerSingle {...props} size={resolvedSize} />
+		picker = <DatePickerSingle {...props} />
 	}
 
 	// `display: contents` wrapper: while open, floating-ui's modal focus manager
@@ -251,7 +249,7 @@ export function DatePicker(props: DatePickerProps) {
 function DatePickerSingle(props: DatePickerBaseProps & DatePickerSingleProps) {
 	const {
 		placeholder = 'Select a date',
-		size = 'md',
+		size,
 		truncate = true,
 		input = false,
 		format,

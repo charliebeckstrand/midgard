@@ -22,7 +22,7 @@ import { type DragPosition, useColorDrag } from './use-color-drag'
  * @internal
  */
 export function ColorArea() {
-	const { hsva, setHsva, disabled, size } = useColorPanelContext()
+	const { hsva, setHsva, disabled } = useColorPanelContext()
 
 	const ref = useRef<HTMLDivElement>(null)
 
@@ -87,7 +87,7 @@ export function ColorArea() {
 			aria-valuenow={Math.round(hsva.s)}
 			aria-valuetext={`Saturation ${Math.round(hsva.s)}%, brightness ${Math.round(hsva.v)}%`}
 			aria-disabled={ariaAttr(disabled)}
-			className={cn(k.area.base({ size }), disabled && 'pointer-events-none opacity-50')}
+			className={cn(k.area.base, disabled && 'pointer-events-none opacity-50')}
 			style={{ backgroundColor: `hsl(${hsva.h} 100% 50%)` }}
 			onPointerDown={drag.onPointerDown}
 			onPointerMove={drag.onPointerMove}

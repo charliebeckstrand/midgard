@@ -23,7 +23,7 @@ const RGB: ReadonlyArray<'r' | 'g' | 'b'> = ['r', 'g', 'b']
  * `required`, `aria-describedby` or validation state. They keep its variant.
  */
 export function ColorChannelInputs() {
-	const { hsva, setHsva, alpha, disabled, size } = useColorPanelContext()
+	const { hsva, setHsva, alpha, disabled } = useColorPanelContext()
 
 	const control = useControl()
 
@@ -81,7 +81,6 @@ export function ColorChannelInputs() {
 				// a click focuses this input. A no-op in the inline ColorPanel.
 				onMouseDown={(event) => event.stopPropagation()}
 				disabled={disabled}
-				size={size}
 				variant={control?.variant}
 				data-slot="color-channel-input"
 				data-channel={channel}

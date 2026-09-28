@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
-import { cn, dataAttr, toAmbientStep } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllableFlag } from '../../hooks/use-controllable'
@@ -10,7 +10,7 @@ import { useEnterAnimation } from '../../hooks/use-enter-animation'
 import { useOpenComplete } from '../../hooks/use-open-complete'
 import { usePanelFit } from '../../hooks/use-panel-fit'
 import { usePanelResize } from '../../hooks/use-panel-resize'
-import { Density, useDensityStep } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
@@ -47,9 +47,9 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		onOpenComplete?: () => void
 		/**
-		 * Size step that propagates to descendants via the Density context.
-		 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
-		 * @defaultValue inherited Density size, falling back to 'md'
+		 * Size step of the panel content. It opens a density scope on the panel.
+		 * Without it, the panel takes the step of the nearest density scope of
+		 * the drawer, which the portal carries.
 		 */
 		size?: Step
 		/**
@@ -157,8 +157,8 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
  * - Growing to it under Framer Motion, and up to the whole screen, with `fit`.
  * - Fixed at half or the whole of it.
  *
- * Resolves the surface variant against the enclosing Glass provider and opens a Density
- * cascade at the resolved `size` so descendants scale in step. Compose `<DrawerTrigger>`,
+ * Resolves the surface variant against the enclosing Glass provider. An explicit `size`
+ * opens a density scope on the panel, so descendants scale in step. Compose `<DrawerTrigger>`,
  * `<DrawerClose>`, and the slot family (`<DrawerHeader>`, `<DrawerTitle>`,
  * `<DrawerDescription>`, `<DrawerBody>`, `<DrawerFooter>`) within.
  *
@@ -242,8 +242,6 @@ export function Drawer({
 
 	const { ariaProps, a11y } = useA11yPanel('dialog', modal)
 
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
 	return (
 		<Overlay
 			open={resolvedOpen}
@@ -265,8 +263,8 @@ export function Drawer({
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
-				data-size={resolvedSize}
-				data-density={resolvedSize}
+				data-size={size}
+				data-density={size}
 				data-height={height ?? 'auto'}
 				// Opens the glass cascade to the panel's contents: `hannou.glassItem`
 				// keys on `group-data-[glass]/glass`, which needs the named group and
@@ -297,7 +295,7 @@ export function Drawer({
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? <DrawerHandle handleProps={resize.handleProps} covers={resize.covers} /> : null}
 
-					<Density step={resolvedSize}>{children}</Density>
+					<Density step={size}>{children}</Density>
 				</PanelProviders>
 			</motion.div>
 		</Overlay>

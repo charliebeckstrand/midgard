@@ -1,6 +1,6 @@
 /**
  * Date-picker kata: object-literal surface for the `<DatePicker>` trigger and
- * its popover. A `button` with stepped density and size classes, a density-axed `body`, and a
+ * its popover. A `button` with stepped density and size classes, a stepped `body`, and a
  * truncate-axed `value` sub-recipe drive the control, the popover inset, and the
  * value text. `surface`, `control` (the input-mode field adjacency), `icon`,
  * `placeholder`, `affix`, and the `content` group are slots. `relative` adds the relative popover's layout-only preset list,
@@ -41,15 +41,13 @@ const value = defineRecipe({
 
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
-// not in the calendar kata.
-const body = defineRecipe({
-	density: {
-		sm: ['p-2', 'space-y-1'],
-		md: ['p-3', 'space-y-2'],
-		lg: ['p-4', 'space-y-3'],
-	},
-	defaults: { density: 'md' },
-})
+// not in the calendar kata. Each takes the step of the nearest density scope.
+const body = [
+	'density-p-[2,3,4]',
+	'density-[xs,sm]:space-y-1',
+	'density-md:space-y-2',
+	'density-[lg,xl]:space-y-3',
+]
 
 export const k = {
 	surface: {

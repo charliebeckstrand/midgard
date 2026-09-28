@@ -13,7 +13,6 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
-import { toAmbientStep } from '../../core'
 import {
 	useA11yRoving,
 	useFloatingUI,
@@ -29,7 +28,6 @@ import {
 	type VirtualItemSource,
 } from '../../hooks/a11y/use-a11y-roving'
 import { useKeyboardSettled } from '../../hooks/use-keyboard-settled'
-import { useDensityStep } from '../../primitives/density'
 import { DeferredQueryContext, QueryContext, useQueryValue } from '../../primitives/query'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
@@ -266,8 +264,10 @@ export type ComboboxProps<T> = ComboboxBaseProps<T> &
 /**
  * Type-ahead select pairing a text input with a floating option panel.
  * Supports single or `multiple` selection, controlled or uncontrolled `value`,
- * and `clearable`/`nullable` affordances. Resolves `size`, `disabled`,
- * `readOnly`, and `required` against an enclosing `<Control>`/Density, and
+ * and `clearable`/`nullable` affordances. Resolves `disabled`, `readOnly`, and
+ * `required` against an enclosing `<Control>`, takes the step of the nearest
+ * density scope (an explicit `size` opens a scope on the trigger and the
+ * panel), and
  * registers with `<Form>` under `name`. Tracks the highlight as a virtual
  * active-descendant (APG editable combobox) with DOM focus held on the input,
  * re-anchoring across filter and async option changes. Filtering is
@@ -325,8 +325,6 @@ export function Combobox<T>({
 	const glass = useGlass()
 
 	const control = useControl()
-
-	const step = toAmbientStep(useDensityStep(size))
 
 	// Derived per render: while no value is held on either channel, clicking the
 	// selected option clears it. Resolved here and not as a parameter default,
@@ -701,7 +699,7 @@ export function Combobox<T>({
 						editing={editing}
 						multiple={multiple}
 						glass={glass}
-						size={step}
+						size={size}
 						ariaLabel={ariaLabel}
 						// Names the listbox from the input's name: an explicit aria-label
 						// wins, else aria-labelledby, else the field's Label (via Control).

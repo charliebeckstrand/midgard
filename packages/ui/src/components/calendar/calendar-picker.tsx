@@ -1,7 +1,5 @@
 'use client'
 
-import { toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
 import { Button } from '../button'
 import { Popover, PopoverContent, PopoverTrigger } from '../popover'
 import { CalendarPickerGrid } from './calendar-picker-grid'
@@ -38,8 +36,6 @@ export function CalendarPicker({
 	onOpenChange,
 	triggerClassName,
 }: CalendarPickerProps) {
-	const size = toAmbientStep(useDensityStep())
-
 	const { pickerHeaderRef, pickerGridRef, handleHeaderKeyDown, handleGridKeyDown, viewConfig } =
 		useCalendarPicker({ year, month, today, monthLabels, onNavigate, open, onOpenChange })
 
@@ -57,7 +53,6 @@ export function CalendarPicker({
 					onHeaderKeyDown={handleHeaderKeyDown}
 					onGridKeyDown={handleGridKeyDown}
 					{...viewConfig}
-					size={size}
 				/>
 			</PopoverContent>
 		</Popover>

@@ -15,7 +15,8 @@ type ComboboxPanelProps = {
 	editing: boolean
 	multiple: boolean
 	glass: boolean
-	size: ControlSize
+	/** The explicit size step of the combobox. The panel opens a density scope at it. */
+	size?: ControlSize
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

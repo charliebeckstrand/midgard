@@ -11,7 +11,7 @@ import { useMenuTouchHold } from './use-menu-touch-hold'
 
 /**
  * Props for {@link Menu}: the `open` / `defaultOpen` / `onOpenChange` state
- * surface, the `placement` that selects dropdown mode, and a density-resolved `size`.
+ * surface, the `placement` that selects dropdown mode, and an optional `size` step.
  */
 export type MenuProps = {
 	/**
@@ -37,8 +37,9 @@ export type MenuProps = {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * Size step that drives menu item padding and text size.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Size step of the item padding and the text. It opens a density scope on
+	 * the panel. Without it, the panel takes the step of the nearest density
+	 * scope of the menu, which the portal carries.
 	 */
 	size?: Step
 	/**

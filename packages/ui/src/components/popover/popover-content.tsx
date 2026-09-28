@@ -2,18 +2,14 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useA11yAutoFocus } from '../../hooks'
-import { useDensityStep } from '../../primitives/density'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
-import { Box, type BoxPadding } from '../../structure/box'
+import { Box } from '../../structure/box'
 import { usePopoverContext, usePopoverPosition } from './context'
-
-// Surface padding scales with the resolved Density size.
-const paddingForSize = { sm: 'md', md: 'lg', lg: 'xl' } satisfies Record<Step, BoxPadding>
 
 /** Props for {@link PopoverContent}: focus behavior (`autoFocus`/`modal`), `size`, and the accessible name. */
 export type PopoverContentProps = {
@@ -40,8 +36,9 @@ export type PopoverContentProps = {
 	 */
 	glass?: boolean
 	/**
-	 * Size step that propagates to descendants via the Density context.
-	 * Resolution order: explicit prop, then enclosing Density size, then `'md'`.
+	 * Size step of the panel and its content. It opens a density scope on the
+	 * panel. Without it, the panel takes the step of the nearest density scope
+	 * of the trigger, which the portal carries.
 	 */
 	size?: Step
 	/**
@@ -82,9 +79,6 @@ export function PopoverContent({
 	const [content, setContent] = useState<HTMLDivElement | null>(null)
 
 	const glass = useResolvedSurface(glassProp) === 'glass'
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
-	const resolvedPadding: BoxPadding = paddingForSize[resolvedSize]
 
 	useA11yAutoFocus(content, open && autoFocus)
 
@@ -105,16 +99,15 @@ export function PopoverContent({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
-				data-size={resolvedSize}
+				data-size={size}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Box
-					density={resolvedSize}
-					p={resolvedPadding}
+					density={size}
 					bg={glass ? 'none' : 'popover'}
 					radius="lg"
 					outline={glass || undefined}
-					className={className}
+					className={cn(k.padding, className)}
 				>
 					{children}
 				</Box>

@@ -1,8 +1,6 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
-import { toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
 import type { GroupStampProps } from '../../types/group-stamp'
 import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
@@ -58,19 +56,13 @@ export type ColorPickerProps = ColorPickerBaseProps & ColorValueProps
  * Popover color picker: a Control-integrated swatch trigger that opens a
  * floating {@link ColorPanel}, which it drives as a controlled child. Reflects
  * the current color in the trigger swatch, and speaks a hex string (default) or
- * an HSVA object per `format`. It positions via Floating UI (`placement`), and
- * resolves `size` through the explicit prop, then `<Control>`, then Density,
- * then `'md'`. Controlled or uncontrolled.
+ * an HSVA object per `format`. It positions via Floating UI (`placement`). It
+ * takes the step of the nearest density scope, and an explicit `size` opens a
+ * scope on the trigger and on the panel. Controlled or uncontrolled.
  *
  * @see {@link ColorPanel} for the inline variant.
  */
 export function ColorPicker(props: ColorPickerProps) {
-	const size = toAmbientStep(useDensityStep(props.size))
-
-	return <ColorPickerInner {...props} size={size} />
-}
-
-function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 	const {
 		alpha = false,
 		swatches,
@@ -106,7 +98,6 @@ function ColorPickerInner(props: ColorPickerProps & { size: ControlSize }) {
 		onValueChange: (next: string | Hsva) => state.setHsva(toHsva(next) ?? state.hsva),
 		alpha,
 		swatches,
-		size,
 		disabled: state.disabled,
 	} as ColorPanelProps
 

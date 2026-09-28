@@ -1,6 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react'
 import type { KeyboardEventHandler, ReactNode, RefObject } from 'react'
-import type { Step } from '../../recipes'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/calendar'
 import { Button } from '../button'
 import { Icon } from '../icon'
@@ -10,7 +10,6 @@ type CalendarToolbarProps = {
 	/** Accessible name of the `role="toolbar"` row. */
 	label: string
 	onKeyDown: KeyboardEventHandler<HTMLElement>
-	size: Step
 	prevLabel: string
 	nextLabel: string
 	onPrev: () => void
@@ -34,7 +33,6 @@ export function CalendarToolbar({
 	toolbarRef,
 	label,
 	onKeyDown,
-	size,
 	prevLabel,
 	nextLabel,
 	onPrev,
@@ -49,7 +47,7 @@ export function CalendarToolbar({
 			role="toolbar"
 			aria-label={label}
 			onKeyDown={onKeyDown}
-			className={k.header({ size })}
+			className={cn(k.header)}
 		>
 			<Button
 				type="button"

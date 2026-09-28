@@ -1,8 +1,8 @@
 'use client'
 
 import { useMemo } from 'react'
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
+import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/color-panel'
 import type { ControlSize } from '../control/context'
 import { ColorArea } from './color-area'
@@ -30,7 +30,7 @@ type ColorPanelBaseProps = {
 	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
 	 */
 	swatches?: readonly string[] | false
-	/** Size step; resolves through the explicit prop, then the Density cascade, then `'md'`. */
+	/** Size step. It opens a density scope on the panel. Without it, the panel takes the step of the nearest density scope. */
 	size?: ControlSize
 	disabled?: boolean
 	className?: string
@@ -44,18 +44,13 @@ export type ColorPanelProps = ColorPanelBaseProps & ColorValueProps
  * alpha sliders, hex and RGB channel inputs, and preset swatches. An eyedropper
  * joins them where the platform `EyeDropper` API exists. Holds HSVA internally
  * so drags stay lossless. It speaks a hex string (default) or an HSVA object
- * through `value`/`onValueChange` per `format`, and resolves `size` against
- * enclosing Density. Controlled or uncontrolled.
+ * through `value`/`onValueChange` per `format`. It takes the step of the
+ * nearest density scope, and an explicit `size` opens a scope on the panel.
+ * Controlled or uncontrolled.
  *
  * @see {@link ColorPicker} for the popover variant.
  */
 export function ColorPanel(props: ColorPanelProps) {
-	const size = toAmbientStep(useDensityStep(props.size))
-
-	return <ColorPanelInner {...props} size={size} />
-}
-
-function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 	const { alpha = false, swatches = DEFAULT_SWATCHES, size, disabled = false, className } = props
 
 	const { hsva, setHsva } = useColorState({
@@ -69,40 +64,47 @@ function ColorPanelInner(props: ColorPanelProps & { size: ControlSize }) {
 	})
 
 	const context = useMemo<ColorPanelContextValue>(
-		() => ({ hsva, setHsva, alpha, disabled, size }),
-		[hsva, setHsva, alpha, disabled, size],
+		() => ({ hsva, setHsva, alpha, disabled }),
+		[hsva, setHsva, alpha, disabled],
 	)
 
 	const previewColor = hsvaToCss(hsva, alpha)
 
 	return (
 		<ColorPanelContext value={context}>
-			<div data-slot="color-panel" className={cn(k({ size }), className)}>
-				<ColorArea />
+			<div
+				data-slot="color-panel"
+				data-size={size}
+				data-density={size}
+				className={cn(k(), className)}
+			>
+				<Density step={size}>
+					<ColorArea />
 
-				<div className={k.sliders}>
-					<ColorSlider channel="hue" />
-					{alpha && <ColorSlider channel="alpha" />}
-				</div>
-
-				<div className={cn(k.preview.row)}>
-					<span
-						data-slot="color-preview"
-						className={cn('group', k.preview.base({ size }), alpha && k.checkerboard)}
-					>
-						<span className="block size-full" style={{ backgroundColor: previewColor }} />
-					</span>
-
-					<div className="min-w-0 flex-1">
-						<ColorHexInput />
+					<div className={k.sliders}>
+						<ColorSlider channel="hue" />
+						{alpha && <ColorSlider channel="alpha" />}
 					</div>
 
-					{!disabled && <ColorEyedropper />}
-				</div>
+					<div className={cn(k.preview.row)}>
+						<span
+							data-slot="color-preview"
+							className={cn('group', k.preview.base, alpha && k.checkerboard)}
+						>
+							<span className="block size-full" style={{ backgroundColor: previewColor }} />
+						</span>
 
-				<ColorChannelInputs />
+						<div className="min-w-0 flex-1">
+							<ColorHexInput />
+						</div>
 
-				{swatches && swatches.length > 0 && <ColorSwatches swatches={swatches} />}
+						{!disabled && <ColorEyedropper />}
+					</div>
+
+					<ColorChannelInputs />
+
+					{swatches && swatches.length > 0 && <ColorSwatches swatches={swatches} />}
+				</Density>
 			</div>
 		</ColorPanelContext>
 	)

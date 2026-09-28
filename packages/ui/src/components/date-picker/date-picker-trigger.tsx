@@ -3,7 +3,7 @@
 import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
-import { ariaAttr, cn, dataAttr, stepDown, type ValidationAttrs } from '../../core'
+import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { Density } from '../../primitives/density'
@@ -28,7 +28,8 @@ type DatePickerTriggerProps = GroupStampProps & {
 	/** Text label for the selected value; ignored when `children` is provided. */
 	displayValue?: string
 	placeholder: string
-	size: ControlSize
+	/** The explicit size step. The trigger opens a density scope at it. */
+	size?: ControlSize
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
 	/**
@@ -116,9 +117,8 @@ export function DatePickerTrigger({
 	)
 
 	return (
-		// The trigger still takes its step in JS (increment 4 of the density
-		// pre-paint plan). It writes that step as a scope, so the stepped classes of
-		// the control bridge follow it.
+		// An explicit `size` makes the trigger a density scope. Without it, the
+		// stepped classes of the control bridge take the step of the nearest scope.
 		<div
 			data-slot="control"
 			data-density={size}
@@ -126,47 +126,52 @@ export function DatePickerTrigger({
 			className={cn(className)}
 			{...getReferenceProps()}
 		>
-			<ControlFrame
-				data-open={dataAttr(open)}
-				data-group={dataGroup}
-				data-group-orientation={dataGroupOrientation}
-				className={cn('', k.surface[glass ? 'glass' : 'default'])}
-			>
-				<HeadlessProvider>
-					<Button
-						ref={triggerButtonRef}
-						type="button"
-						id={triggerId}
-						aria-label={ariaLabel}
-						aria-haspopup="dialog"
-						aria-expanded={open}
-						aria-describedby={describedBy}
-						aria-readonly={ariaAttr(readOnly)}
-						aria-required={ariaAttr(required)}
-						data-slot="datepicker-button"
-						disabled={disabled}
-						data-readonly={dataAttr(readOnly)}
-						{...validation}
-						onClick={() => onOpenChange(!open)}
-						onKeyDown={onKeyDown}
-						className={cn(k.button())}
-					>
-						{children ?? (
-							<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
-								<TooltipTrigger>{valueNode}</TooltipTrigger>
-								<TooltipContent>{displayValue}</TooltipContent>
-							</Tooltip>
-						)}
-						{!showClear && (
-							<span className={cn(k.icon)}>
-								<Icon icon={<CalendarIcon />} size={stepDown(size)} />
-							</span>
-						)}
-					</Button>
-				</HeadlessProvider>
-				{showClear && (
-					<span data-slot="suffix" data-density="slot" className={cn(k.affix.base, k.affix.suffix)}>
-						<Density step={stepDown(size)}>
+			<Density step={size}>
+				<ControlFrame
+					data-open={dataAttr(open)}
+					data-group={dataGroup}
+					data-group-orientation={dataGroupOrientation}
+					className={cn('', k.surface[glass ? 'glass' : 'default'])}
+				>
+					<HeadlessProvider>
+						<Button
+							ref={triggerButtonRef}
+							type="button"
+							id={triggerId}
+							aria-label={ariaLabel}
+							aria-haspopup="dialog"
+							aria-expanded={open}
+							aria-describedby={describedBy}
+							aria-readonly={ariaAttr(readOnly)}
+							aria-required={ariaAttr(required)}
+							data-slot="datepicker-button"
+							disabled={disabled}
+							data-readonly={dataAttr(readOnly)}
+							{...validation}
+							onClick={() => onOpenChange(!open)}
+							onKeyDown={onKeyDown}
+							className={cn(k.button())}
+						>
+							{children ?? (
+								<Tooltip disabled={!truncate || !isTruncated || !displayValue}>
+									<TooltipTrigger>{valueNode}</TooltipTrigger>
+									<TooltipContent>{displayValue}</TooltipContent>
+								</Tooltip>
+							)}
+							{!showClear && (
+								// A slot scope, so the icon is one step below the trigger.
+								<span data-density="slot" className={cn(k.icon)}>
+									<Icon icon={<CalendarIcon />} />
+								</span>
+							)}
+						</Button>
+					</HeadlessProvider>
+					{showClear && (
+						<span
+							data-slot="suffix"
+							data-density="slot"
+							className={cn(k.affix.base, k.affix.suffix)}
+						>
 							<InputClearButton
 								label="Clear selection"
 								onMouseDown={(event) => event.stopPropagation()}
@@ -178,10 +183,10 @@ export function DatePickerTrigger({
 									triggerButtonRef.current?.focus()
 								}}
 							/>
-						</Density>
-					</span>
-				)}
-			</ControlFrame>
+						</span>
+					)}
+				</ControlFrame>
+			</Density>
 		</div>
 	)
 }

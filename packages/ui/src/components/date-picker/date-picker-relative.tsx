@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ChevronRight } from 'lucide-react'
 
-import { cn, stepDown } from '../../core'
+import { cn } from '../../core'
 import { k } from '../../recipes/kata/date-picker'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -29,7 +29,7 @@ import { useDatePickerRelativeState } from './use-date-picker-relative-state'
 export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelativeProps) {
 	const {
 		placeholder = 'Select range',
-		size = 'md',
+		size,
 		truncate = true,
 		clearable = false,
 		className,
@@ -52,9 +52,10 @@ export function DatePickerRelative(props: DatePickerBaseProps & DatePickerRelati
 	// placeholder the trigger falls back to when that summary is empty.
 	const chipRow =
 		state.showChips && state.chips.length > 0 ? (
-			<span className={cn(k.relative.chips, 'flex-1')}>
+			// A slot scope, so each chip is one step below the trigger.
+			<span data-density="slot" className={cn(k.relative.chips, 'flex-1')}>
 				{state.chips.map((chip) => (
-					<Badge key={chip.key} size={stepDown(size)} className="shrink-0 whitespace-nowrap">
+					<Badge key={chip.key} className="shrink-0 whitespace-nowrap">
 						{chip.label}
 					</Badge>
 				))}
