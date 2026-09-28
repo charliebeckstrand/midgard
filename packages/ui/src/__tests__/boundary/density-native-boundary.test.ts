@@ -23,6 +23,7 @@ import { k as rating } from '../../recipes/kata/rating'
 import { k as sidebar } from '../../recipes/kata/sidebar'
 import { k as slider } from '../../recipes/kata/slider'
 import { k as rangeSlider } from '../../recipes/kata/slider-range'
+import { k as sparkline } from '../../recipes/kata/sparkline'
 import { k as switchRecipe } from '../../recipes/kata/switch'
 import { k as table } from '../../recipes/kata/table'
 import { k as tabs } from '../../recipes/kata/tabs'
@@ -72,6 +73,7 @@ const NATIVE_RECIPES = {
 	'sidebar layout header': sidebarLayout.header,
 	'sidebar layout panel': sidebarLayout.panel,
 	slider,
+	sparkline,
 	switch: switchRecipe,
 	tab: tabs.tab,
 	'table cell': table.cell,
@@ -120,6 +122,7 @@ const NATIVE_FILES = [
 	'components/sidebar/sidebar-item.tsx',
 	'components/slider/range/range-slider.tsx',
 	'components/slider/slider.tsx',
+	'components/sparkline/sparkline.tsx',
 	'components/switch/switch.tsx',
 	'components/table/table.tsx',
 	'components/tabs/tab-list.tsx',
