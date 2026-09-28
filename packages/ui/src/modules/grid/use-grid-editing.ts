@@ -15,6 +15,7 @@ import {
 } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { createEmitter } from '../../utilities'
 import {
@@ -39,6 +40,7 @@ import {
 	type EditorKind,
 	type GridActiveEdit,
 	type GridDraft,
+	type GridDraftKey,
 	type GridDraftStore,
 	isCellEditing,
 	isColumnEditable,
@@ -1360,6 +1362,7 @@ function useActiveCell<T>({
 export function useGridEditing<T>({
 	enabled,
 	config,
+	editSource,
 	editSourceRef,
 	rowKeysRef,
 	dataColumnsRef,
@@ -1369,6 +1372,11 @@ export function useGridEditing<T>({
 }: {
 	enabled: boolean
 	config: GridEditableConfig | undefined
+	/**
+	 * The grid's own rows and columns in this render. The render reads this
+	 * value, and the event and effect paths read {@link editSourceRef}.
+	 */
+	editSource: GridEditSource<T>
 	/** The grid's own rows and columns, which the commit path resolves against. */
 	editSourceRef: RefObject<GridEditSource<T>>
 	rowKeysRef: RefObject<(string | number)[]>
@@ -1416,7 +1424,7 @@ export function useGridEditing<T>({
 
 	// The cell the session opens with, from the binding's first value. Read once:
 	// it seeds the uncontrolled state, and the row it needs seeds `defaultRows`.
-	const [initial] = useState(() => readInitialCell(config, cellScoped, editSourceRef.current))
+	const [initial] = useState(() => readInitialCell(config, cellScoped, editSource))
 
 	// The editable-row set is consumer-driven by default — the grid renders no
 	// built-in entry and only reads the binding (a row-action button flips a
@@ -1462,11 +1470,7 @@ export function useGridEditing<T>({
 	// effects read `activeEdit`: the commit sweep and the transition. The cells
 	// read the store, each subscribed to its own flag, so a move along a row
 	// renders two cells rather than the whole window.
-	const storeRef = useRef<ReturnType<typeof createActiveEditStore> | null>(null)
-
-	if (storeRef.current === null) storeRef.current = createActiveEditStore()
-
-	const activeEditStore = storeRef.current
+	const [activeEditStore] = useState(createActiveEditStore)
 
 	// Seat the resolved coord and rows for the cells that render in this pass.
 	// The other cells hear of them in the layout effect below. An uncontrolled
@@ -1515,27 +1519,28 @@ export function useGridEditing<T>({
 	// has no subscribers, so staging never re-renders the grid. It takes a
 	// write only for a cell that is open now, or that the last sweep saw open.
 	// A later write, such as a blur after a save, is too late to commit.
-	const draftsRef = useRef<GridDraftStore | null>(null)
+	//
+	// The store calls the predicate only when a value stages: from an editor
+	// event, a blur, or the effect of a typed entry. It never stages during
+	// render, so the predicate is a stable event.
+	const accepts = useStableEvent((rowKey: GridDraftKey, columnId: string | number) =>
+		rowKey === NEW_ROW_KEY
+			? newRowOpenRef.current
+			: isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: editableRowsRef.current,
+					activeEdit: activeEditRef.current,
+				}) ||
+				isCellEditing({
+					rowKey,
+					columnId,
+					editableRows: sweptRef.current.rows,
+					activeEdit: sweptRef.current.cell,
+				}),
+	)
 
-	if (draftsRef.current === null)
-		draftsRef.current = createDraftStore((rowKey, columnId) =>
-			rowKey === NEW_ROW_KEY
-				? newRowOpenRef.current
-				: isCellEditing({
-						rowKey,
-						columnId,
-						editableRows: editableRowsRef.current,
-						activeEdit: activeEditRef.current,
-					}) ||
-					isCellEditing({
-						rowKey,
-						columnId,
-						editableRows: sweptRef.current.rows,
-						activeEdit: sweptRef.current.cell,
-					}),
-		)
-
-	const drafts = draftsRef.current
+	const [drafts] = useState(() => createDraftStore(accepts))
 
 	const stageDraft = drafts.stage
 

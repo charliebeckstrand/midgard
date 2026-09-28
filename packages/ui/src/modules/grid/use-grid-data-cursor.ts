@@ -262,6 +262,7 @@ export function useGridDataCursor<T>({
 		scrollContainerRef: scrollRef,
 		tableRef,
 		refs,
+		editSource: source,
 	})
 
 	// The grid's commands on its `ref` (see `GridHandle`).
