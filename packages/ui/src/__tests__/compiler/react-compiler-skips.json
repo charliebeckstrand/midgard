@@ -66,14 +66,8 @@
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},
-	"hooks/use-enter-animation.ts": {
-		"useEnterAnimation": "Refs"
-	},
 	"hooks/use-floating-disclosure.ts": {
 		"useFloatingDisclosure": "Refs"
-	},
-	"hooks/use-open-complete.ts": {
-		"useOpenComplete": "Refs"
 	},
 	"hooks/use-panel-fit.ts": {
 		"usePanelFit": "Immutability"
@@ -121,9 +115,6 @@
 	"modules/grid/use-grid-data-frame.ts": {
 		"useTableRevealed": "Refs"
 	},
-	"modules/grid/use-grid-edit-history.ts": {
-		"useGridEditHistory": "Refs"
-	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"
@@ -136,12 +127,6 @@
 	},
 	"modules/grid/use-grid-new-row.ts": {
 		"useGridNewRow": "Refs"
-	},
-	"modules/grid/use-grid-row-grouping.ts": {
-		"useGridRowGrouping": "Refs"
-	},
-	"modules/grid/use-grid-selection.ts": {
-		"useGridSelectionActions": "Refs"
 	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"

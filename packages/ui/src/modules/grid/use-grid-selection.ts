@@ -1,7 +1,8 @@
 'use client'
 
-import { useCallback, useMemo, useRef } from 'react'
+import { useCallback, useMemo } from 'react'
 import { type SetValue, useControllable } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { toggleItem } from '../../utilities'
 import type { GridSelection } from './grid-data-types'
 
@@ -69,10 +70,6 @@ export function useGridSelectionActions({
 		[rowKeys, selection],
 	)
 
-	const rowKeysRef = useRef(rowKeys)
-
-	rowKeysRef.current = rowKeys
-
 	const toggleRow = useCallback(
 		(key: string | number) => {
 			setSelection((prev) => toggleItem(prev ?? EMPTY_SELECTION, key))
@@ -80,17 +77,16 @@ export function useGridSelectionActions({
 		[setSelection],
 	)
 
-	const toggleAll = useCallback(() => {
+	// It reads the newest rows, and its identity holds for the mount.
+	const toggleAll = useStableEvent(() => {
 		setSelection((prev) => {
-			const keys = rowKeysRef.current
-
 			const current = prev ?? EMPTY_SELECTION
 
-			const every = keys.length > 0 && keys.every((k) => current.has(k))
+			const every = rowKeys.length > 0 && rowKeys.every((k) => current.has(k))
 
-			return every ? new Set() : new Set(keys)
+			return every ? new Set() : new Set(rowKeys)
 		})
-	}, [setSelection])
+	})
 
 	return { toggleRow, toggleAll, allSelected, someSelected }
 }
