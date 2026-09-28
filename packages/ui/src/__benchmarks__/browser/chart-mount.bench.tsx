@@ -5,7 +5,7 @@
  */
 
 import { describe } from 'vitest'
-import { barCharts, lineCharts, scatterCharts } from './charts'
+import { barCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
 import { makeDatedTrend, makePoints, makeTrend } from './fixtures'
 import { mountBenches, WINDOW } from './harness'
 
@@ -39,6 +39,12 @@ describe('mount · scatter · 1,000 points', () => {
 
 describe('mount · scatter · 10,000 points', () => {
 	mountBenches(scatterCharts(), makePoints(10_000), WINDOW.slow)
+})
+
+// The callout pie measures the rendered width of each label before the first
+// paint, so its mount pays one text layout and one more render.
+describe('mount · pie · callouts · 8 slices', () => {
+	mountBenches(pieCalloutCharts(), makeTrend(8, 1))
 })
 
 // The same line scenarios over ISO-date categories — the time-series dashboard

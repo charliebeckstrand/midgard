@@ -11,7 +11,7 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../../../core'
-import type { FrameReserve } from '../../../../hooks'
+import { type FrameReserve, useComposedRef } from '../../../../hooks'
 import { k } from '../../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../../types'
 import type { ChartContextMenuConfig } from '../chart-context-menu'
@@ -144,6 +144,11 @@ export type ChartFrameProps = AccessibleName & {
 	 * the drawing actually fills, so a side legend never inflates the width.
 	 */
 	ref: RefObject<HTMLDivElement | null>
+	/**
+	 * Receives the chart root, which is inside the chart's font context. A chart
+	 * that measures its label text (`useChartTextWidth`) passes its `hostRef`.
+	 */
+	textHostRef?: RefObject<HTMLDivElement | null>
 	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
 	width: number
 	/** Explicit width prop, fixing the wrapper instead of filling the container. */
@@ -300,6 +305,7 @@ export type ChartFrameProps = AccessibleName & {
  */
 export function ChartFrame({
 	ref,
+	textHostRef,
 	width,
 	fixedWidth,
 	height,
@@ -333,6 +339,8 @@ export function ChartFrame({
 	// The chart root, read by the context menu to rasterize the chart for an
 	// image export.
 	const rootRef = useRef<HTMLDivElement>(null)
+
+	const rootRefs = useComposedRef(rootRef, textHostRef)
 
 	// The hover lives in a store the frame makes once. A pointer move then renders
 	// only the readers that subscribe to it (tooltip, crosshair, hit layers), and
@@ -504,7 +512,7 @@ export function ChartFrame({
 
 	const chartRoot = (
 		<div
-			ref={rootRef}
+			ref={rootRefs}
 			data-slot="chart"
 			data-tier={tier}
 			// A touch hold here reads the chart. It does not open the context menu.

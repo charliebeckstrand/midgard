@@ -7,7 +7,7 @@
  */
 
 import { describe } from 'vitest'
-import { barCharts, lineCharts, scatterCharts } from './charts'
+import { barCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
 import { makePoints, makeTrend } from './fixtures'
 import { benches, prepare, WINDOW } from './harness'
 
@@ -18,6 +18,8 @@ const line10k = await prepare(lineCharts(1), makeTrend(10_000, 1, 1), makeTrend(
 const line1k5 = await prepare(lineCharts(5), makeTrend(1_000, 5, 1), makeTrend(1_000, 5, 2))
 
 const bar500 = await prepare(barCharts(2), makeTrend(500, 2, 1), makeTrend(500, 2, 2))
+
+const pie8 = await prepare(pieCalloutCharts(), makeTrend(8, 1, 1), makeTrend(8, 1, 2))
 
 const points10k = await prepare(scatterCharts(), makePoints(10_000, 1), makePoints(10_000, 2))
 
@@ -39,4 +41,10 @@ describe('update · bar · 500 × 2 series', () => {
 
 describe('update · scatter · 10,000 points', () => {
 	benches(points10k, WINDOW.slow)
+})
+
+// New values change the percent in each callout, so each redraw measures the
+// callout texts again.
+describe('update · pie · callouts · 8 slices', () => {
+	benches(pie8)
 })

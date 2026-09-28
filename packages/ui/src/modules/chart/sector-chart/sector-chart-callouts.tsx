@@ -5,7 +5,6 @@ import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { MARK_GAP } from '../engine/chart-constants'
 import {
-	CALLOUT_CHAR_WIDTH,
 	CALLOUT_GAP,
 	CALLOUT_LEADER,
 	CALLOUT_LINE,
@@ -17,6 +16,7 @@ import {
 	pieCallouts,
 } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_UNFADE } from '../engine/chart-motion'
+import type { TextWidth } from '../engine/chart-text-width'
 import { isSparkBox } from '../engine/chart-tier'
 import { useChartSeriesEmphasis } from '../engine/context'
 import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
@@ -24,15 +24,24 @@ import { sliceGroupClass, sweepDelay } from './sector-chart-marks'
 /** A placed callout with its resolved label text. @internal */
 type CalloutLabel = PieCallout & { text: string }
 
+/** The classes of a callout label. The measurement of its width sets the same classes. @internal */
+export const CALLOUT_TEXT_CLASS = cn('font-medium', k.tick)
+
 /** What a callout's text reads: the slice name plus its percent share. @internal */
-export type CalloutSpec = {
+export type CalloutText = {
 	labels: string[]
 	/** Formats a `0..1` share, in the ambient locale. */
 	percent: (share: number) => string
 }
 
+/** A callout's text and how wide it renders. @internal */
+export type CalloutSpec = CalloutText & {
+	/** The rendered width of a callout text. */
+	textWidth: TextWidth
+}
+
 /** One callout's text: the slice name trailed by its percent share. @internal */
-function calloutLabelText({ labels, percent }: CalloutSpec, index: number, share: number): string {
+function calloutLabelText({ labels, percent }: CalloutText, index: number, share: number): string {
 	return `${labels[index] ?? ''} ${percent(share)}`.trim()
 }
 
@@ -49,19 +58,19 @@ export function calloutRoom(
 		0,
 	)
 
-	const chars = sliceValues.reduce<number>(
+	const widest = sliceValues.reduce<number>(
 		(widest, entry, index) =>
 			entry != null && entry > 0
-				? Math.max(widest, calloutLabelText(spec, index, entry / total).length)
+				? Math.max(widest, spec.textWidth(calloutLabelText(spec, index, entry / total)))
 				: widest,
 		0,
 	)
 
-	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + chars * CALLOUT_CHAR_WIDTH
+	return CALLOUT_LEADER + CALLOUT_NUB + CALLOUT_GAP + widest
 }
 
 /** Every row's callout text, indexed like `sliceValues` — {@link pieCalloutFit}'s per-slice widths. @internal */
-function calloutTexts(spec: CalloutSpec, sliceValues: (number | null)[]): string[] {
+export function calloutTexts(spec: CalloutText, sliceValues: (number | null)[]): string[] {
 	const total = sliceValues.reduce<number>(
 		(sum, entry) => sum + (entry != null && entry > 0 ? entry : 0),
 		0,
@@ -100,7 +109,7 @@ export function calloutFitRadius(
 		const { radius } = pieCalloutFit({
 			values,
 			texts: calloutTexts(spec, values),
-			charWidth: CALLOUT_CHAR_WIDTH,
+			textWidth: spec.textWidth,
 			frameWidth,
 		})
 
@@ -132,7 +141,7 @@ export function calloutsShown(
 	const { radius } = pieCalloutFit({
 		values,
 		texts: calloutTexts(spec, values),
-		charWidth: CALLOUT_CHAR_WIDTH,
+		textWidth: spec.textWidth,
 		frameWidth,
 	})
 
@@ -157,7 +166,7 @@ export function resolveSectorFit(
 	return pieCalloutFit({
 		values: sliceValues,
 		texts: calloutTexts(spec, sliceValues),
-		charWidth: CALLOUT_CHAR_WIDTH,
+		textWidth: spec.textWidth,
 		frameWidth,
 	})
 }
@@ -223,7 +232,7 @@ export function SectorChartCallouts({ items, animate, selected = null }: SectorC
 							y={item.y}
 							textAnchor={item.anchor}
 							dominantBaseline="central"
-							className={cn('font-medium', k.tick)}
+							className={CALLOUT_TEXT_CLASS}
 						>
 							{item.text}
 						</text>
