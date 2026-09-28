@@ -1,17 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
-import { headingRamp, headingScale, headingWeight } from '../../recipes/kata/heading'
+import { densitySteps } from '../../core/density'
+import { headingRamp, headingWeight } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { bySlot, getSlot, renderUI } from '../helpers'
 
-/** The inner steps, which a heading `size` takes. */
-const steps = ['sm', 'md', 'lg'] as const
-
-// The ladder is `recipes/heading-scale.test.ts`, in node, over all eighteen
-// level-by-step pairs. What stays here is the wiring: the component gives
-// `headingScale` the level and the step in that order, and the rung it answers
-// reaches the recipe. Both expectations derive from the kata, so a deliberate
-// move of the scale stays one edit.
+// The ramps and their rungs are `recipes/heading-ramp.test.ts`, in node. What
+// stays here is the wiring: the heading carries the ramp of its level, and an
+// explicit `size` makes it a density scope.
 
 const { size } = ji
 
@@ -20,12 +16,11 @@ const levels = [1, 2, 3, 4, 5, 6] as const
 const rungs = new Set<string>(Object.values(size))
 
 /**
- * The type-scale classes an element carries.
+ * The fixed type-scale classes an element carries.
  *
  * @remarks
  * The rung set keeps the resting ink (`text-zinc-950`) out of the answer, which
- * a `text-` prefix does not. The result is a list, so a caller states that
- * exactly one rung survives the merge.
+ * a `text-` prefix does not.
  *
  * @param el - The rendered heading.
  * @returns Every `ji.size` class on the element, in source order.
@@ -52,7 +47,7 @@ describe('Heading', () => {
 	})
 
 	describe('size', () => {
-		it.each(steps)('renders every level at its %s rung', (step) => {
+		it.each(densitySteps)('makes the heading a density scope at %s', (step) => {
 			const rendered = levels.map((level) => {
 				const { container } = renderUI(
 					<Heading level={level} size={step}>
@@ -60,10 +55,15 @@ describe('Heading', () => {
 					</Heading>,
 				)
 
-				return rungsOf(getSlot(container, 'heading'))
+				const heading = getSlot(container, 'heading')
+
+				return [
+					heading.getAttribute('data-density'),
+					heading.classList.contains(headingRamp[level]),
+				]
 			})
 
-			expect(rendered).toStrictEqual(levels.map((level) => [size[headingScale(level, step)]]))
+			expect(rendered).toStrictEqual(levels.map(() => [step, true]))
 		})
 
 		it.each(levels)('takes the density ramp of level %i with no size', (level) => {
@@ -90,14 +90,14 @@ describe('Heading', () => {
 	})
 
 	describe('skeleton', () => {
-		it('tracks the size-shifted rung in the skeleton silhouette', () => {
-			const { container: md } = renderUI(<HeadingSkeleton level={1} size="md" />)
+		it('makes the silhouette a density scope at an explicit size', () => {
+			const { container } = renderUI(<HeadingSkeleton level={1} size="sm" />)
 
-			expect(bySlot(md, 'placeholder')?.className).toContain('h-8')
+			const placeholder = bySlot(container, 'placeholder')
 
-			const { container: sm } = renderUI(<HeadingSkeleton level={1} size="sm" />)
+			expect(placeholder).toHaveAttribute('data-density', 'sm')
 
-			expect(bySlot(sm, 'placeholder')?.className).toContain('h-7')
+			expect(placeholder).toHaveClass('density-h-[7,8,9]')
 		})
 
 		it('takes the density ramp with no size', () => {

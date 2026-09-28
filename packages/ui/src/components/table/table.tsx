@@ -7,9 +7,9 @@ import { Box } from '../../structure/box'
 /** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * DensityStep for the cell padding. The table opens a density scope at this step,
-	 * and the cells take it. Omit it to follow the nearest density scope, and `md`
-	 * outside one.
+	 * The density step of the cell padding. Omit it to take the step of the
+	 * nearest density scope. A step makes the table a density scope, and the
+	 * cells take it.
 	 */
 	size?: DensityStep
 	bleed?: boolean
