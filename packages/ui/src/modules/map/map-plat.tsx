@@ -8,7 +8,6 @@ import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
-import { once } from '../../utilities'
 import { legendAside } from '../chart/engine/chart-legend/schema'
 import type { ChartItemClick } from '../chart/engine/types'
 import {
@@ -17,7 +16,7 @@ import {
 	MapZoomScaleContext,
 	useMapZoomView,
 } from './context'
-import { pooledDots } from './engine/map-cluster/ground'
+import { createDotPool } from './engine/map-cluster/pool'
 import { cachedRegionCentroids } from './engine/map-geometry/cache'
 import { graticuleStep } from './engine/map-geometry/chrome'
 import type { MapHoverTarget } from './engine/map-hover/target'
@@ -992,28 +991,13 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// its own dots, so two separate marks each kept a full target and the overlap went to whichever drew
 	// last.
 	//
-	// Gathered on the first read and held from there, on the same `once` seam the charts hang their own
-	// deferred work on: the gather invokes every entry's `stopsAt`, which `MapPoints` registers as a
-	// thunk precisely so that pass lands on the readers that want it, and a plat with no dot-shaped mark
-	// on it must never run the pass at all. Per asking mark it ran once per mark over the same entries;
-	// held, M marks share one gather and each only drops its own dots from the finished pool.
-	const pooled = useMemo(
-		() => once(() => pooledDots(entries, hidden, shape.project)),
+	// Gathered on the first read and held from there: the gather invokes every entry's `stopsAt`, which
+	// `MapPoints` registers as a thunk precisely so that pass lands on the readers that want it, and a
+	// plat with no dot-shaped mark on it must never run the pass at all. A mark that moves changes none
+	// of these deps, so it restakes its own dots in the pool — see `createDotPool`.
+	const pool = useMemo(
+		() => createDotPool(entries, hidden, shape.project),
 		[entries, hidden, shape.project],
-	)
-
-	// A mark's own dots are its own business, and it holds them in drawn form already. Walked rather than
-	// mapped: every dot on the map is tested per asking mark, and a `flatMap` over the pool would mint an
-	// array per dot to say "keep" or "drop" before flattening them all away again.
-	const neighbors = useCallback(
-		(exclude: string) => {
-			const others: MapPoint2D[] = []
-
-			for (const dot of pooled()) if (dot.owner !== exclude) others.push(dot.at)
-
-			return others
-		},
-		[pooled],
 	)
 
 	const plat = useMemo<MapPlatContextValue>(
@@ -1024,11 +1008,11 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 			order,
 			hidden,
 			spare,
-			neighbors,
+			pool,
 			animate,
 			selectedOverlay: markSelection,
 		}),
-		[shape.project, register, colors, order, hidden, spare, neighbors, animate, markSelection],
+		[shape.project, register, colors, order, hidden, spare, pool, animate, markSelection],
 	)
 
 	const tooltipEntries = useMemo(

@@ -413,6 +413,56 @@ describe('crowded marks divide their targets', () => {
 		expect(fine(target)).toBe(false)
 	})
 
+	it('divides the ground again when a point moves in beside a neighbor', () => {
+		const plat = (annex: LngLat) =>
+			overlayPlat(
+				<>
+					<MapPoint label="Depot" at={[15, 5]} />
+
+					<MapPoint label="Annex" at={annex} />
+				</>,
+			)
+
+		const { container, rerender } = renderUI(plat([60, 5]))
+
+		for (const target of allBySlot(container, 'map-point-hit')) {
+			expect(clipOf(target)).toBeNull()
+		}
+
+		// The move changes no entry of the ledger, so only the moved stops can tell the pool to gather
+		// again. Before that, the depot kept the whole target over ground the annex now stands on.
+		rerender(plat([15.4, 5.2]))
+
+		for (const target of allBySlot(container, 'map-point-hit')) {
+			expect(clipOf(target)).not.toBeNull()
+		}
+
+		rerender(plat([60, 5]))
+
+		for (const target of allBySlot(container, 'map-point-hit')) {
+			expect(clipOf(target)).toBeNull()
+		}
+	})
+
+	it('divides the ground again when a dot of a plural mark moves in beside a point', () => {
+		const plat = (annex: LngLat) =>
+			overlayPlat(
+				<>
+					<MapPoint label="Depot" at={[15, 5]} />
+
+					<MapPoints label="Fleet" points={[{ at: annex }]} />
+				</>,
+			)
+
+		const { container, rerender } = renderUI(plat([60, 5]))
+
+		expect(clipOf(bySlot(container, 'map-point-hit'))).toBeNull()
+
+		rerender(plat([15.4, 5.2]))
+
+		expect(clipOf(bySlot(container, 'map-point-hit'))).not.toBeNull()
+	})
+
 	it('does not let a route or a zone contest a point’s ground', () => {
 		const { container } = renderUI(catchment(<MapPoint label="Depot" at={[15, 5]} />))
 
