@@ -55,7 +55,7 @@ export const TICK_CHAR_WIDTH = 8.5
 /**
  * Estimated glyph advance of a proportional category label's character, for the
  * y-gutter estimate when band labels — not tabular value ticks — line it (the
- * heatmap's rows). Wider than {@link TICK_CHAR_WIDTH}. Category labels are
+ * heatmap's rows). It is the fallback before the labels are measured. Wider than {@link TICK_CHAR_WIDTH}. Category labels are
  * proportionally set and often capital-initial. A tabular-digit width therefore
  * under-reserves the gutter. The widest label, a leading `M` or `W`, crosses the
  * frame's left edge and clips.
@@ -78,6 +78,15 @@ export const GUTTER_EDGE_PAD = 6
 
 /** Y-gutter clamp so extreme labels can't crowd out the plot; roomy enough for currency strings. @internal */
 export const GUTTER_MAX = 96
+
+/**
+ * The widest measured category label that the y gutter holds: {@link
+ * GUTTER_MAX} less the {@link GUTTER_GAP}. A wider label is cut with an ellipsis
+ * to fit it, and the tooltip and the data table show the full label.
+ *
+ * @internal
+ */
+export const GUTTER_LABEL_ROOM = GUTTER_MAX - GUTTER_GAP
 
 /** Height reserved under the plot for the x tick labels. @internal */
 export const X_AXIS_HEIGHT = 24

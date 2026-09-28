@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
-import { GUTTER_EDGE_PAD, LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
+import { LABEL_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import { act, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 
 type Row = { day: string; hour: string; commits: number }
@@ -305,19 +305,35 @@ describe('HeatmapChart', () => {
 		)
 
 		// The left y-axis labels are right-anchored at `plot.x - GUTTER_GAP`, so this
-		// x is the widest label's right edge; its left edge is x minus the estimated
-		// text width. Rows are 'Mon'/'Tue' (3 chars) — capital-initial day names.
+		// x is the widest label's right edge. jsdom has no text layout, so the width
+		// is the proportional estimate. Rows are 'Mon'/'Tue' (3 chars).
 		const label = container.querySelector('[data-slot="chart-axis-y"] text')
 
 		const x = Number(label?.getAttribute('x'))
 
-		// Pinned to the proportional estimate: a regression to TICK_CHAR_WIDTH would
-		// drop x below the label's estimated width, pushing its left edge off-frame.
-		// The 3-char count rounds up to an even 4 (the gutter's magnitude-stability
-		// round-up), still at the wider proportional per-glyph width.
-		expect(x).toBe(Math.ceil(4 * LABEL_CHAR_WIDTH) + GUTTER_EDGE_PAD)
+		// The widest label starts at the frame edge.
+		expect(x).toBe(3 * LABEL_CHAR_WIDTH)
+	})
 
-		expect(x).toBeGreaterThanOrEqual(3 * LABEL_CHAR_WIDTH)
+	it('cuts a row label past the gutter with an ellipsis and keeps it whole in the table', () => {
+		const long = 'Email newsletters'
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Visits"
+				data={[...ROWS, { day: long, hour: '9', commits: 3 }]}
+				series={SERIES}
+				width={400}
+			/>,
+		)
+
+		const labels = [...container.querySelectorAll('[data-slot="chart-axis-y"] text')].map(
+			(text) => text.textContent,
+		)
+
+		expect(labels).toEqual(['Mon', 'Tue', 'Email ne…'])
+
+		expect(container.querySelector('table')?.textContent).toContain(long)
 	})
 
 	it('resolves the cell under the pointer, not one offset by the plot gutter', () => {

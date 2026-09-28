@@ -5,7 +5,7 @@
  */
 
 import { describe } from 'vitest'
-import { barCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
+import { barCharts, heatmapCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
 import { makeDatedTrend, makePoints, makeTrend } from './fixtures'
 import { mountBenches, WINDOW } from './harness'
 
@@ -45,6 +45,12 @@ describe('mount · scatter · 10,000 points', () => {
 // paint, so its mount pays one text layout and one more render.
 describe('mount · pie · callouts · 8 slices', () => {
 	mountBenches(pieCalloutCharts(), makeTrend(8, 1))
+})
+
+// The heatmap measures the rendered width of each row label before the first
+// paint, and cuts a label past the gutter with an ellipsis.
+describe('mount · heatmap · 24 × 8 cells', () => {
+	mountBenches(heatmapCharts(), makeTrend(24, 8))
 })
 
 // The same line scenarios over ISO-date categories — the time-series dashboard
