@@ -249,27 +249,27 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		if (el) setTruncated(isOverflowing(el))
 	})
 
-	// The listener/observer bindings live in the effect below, keyed on this
-	// version: a consumer that reparents the measured element while it stays
+	// The listener/observer bindings live in the effect below, keyed on the node
+	// they bind: a consumer that reparents the measured element while it stays
 	// mounted (a cell wrapping its span in a lazily-mounted tooltip) commits a
 	// replacement node the effect never sees on its own, stranding the bindings
-	// on the detached one. The callback ref bumps the version on a replacement —
-	// and only then, so the plain mount pays no extra render.
-	const [nodeVersion, setNodeVersion] = useState(0)
+	// on the detached one. The callback ref puts a replacement in state — and only
+	// a replacement, so the plain mount pays no extra render and binds the node
+	// of the ref.
+	const [replacement, setReplacement] = useState<E | null>(null)
 
 	const bound = useRef(false)
 
 	const setNode = useCallback((node: E | null) => {
 		elRef.current = node
 
-		if (node && bound.current) setNodeVersion((version) => version + 1)
+		if (node && bound.current) setReplacement(node)
 	}, [])
 
 	useLayoutEffect(() => measure())
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `nodeVersion` is a trigger: a node replacement bumps it, and the bindings run again against the new element, which the body reads through `elRef`.
 	useEffect(() => {
-		const el = elRef.current
+		const el = replacement ?? elRef.current
 
 		if (!el) return
 
@@ -323,8 +323,8 @@ export function useTruncation<E extends HTMLElement>(options?: {
 
 		target.addEventListener('focusin', arm)
 
-		// A reparent re-runs these bindings with the arm already taken (the version
-		// bump); the replacement node picks its observation straight back up.
+		// A reparent re-runs these bindings with the arm already taken (a new
+		// replacement); the replacement node picks its observation straight back up.
 		if (armed.current) watch()
 
 		return () => {
@@ -334,7 +334,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 
 			unobserve?.()
 		}
-	}, [measure, armRef, nodeVersion])
+	}, [measure, armRef, replacement])
 
 	return [setNode, truncated, measure, contacted]
 }

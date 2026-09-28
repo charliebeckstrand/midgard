@@ -258,7 +258,7 @@ type GridTableResult<T> = {
 	 * so the fit precedes the rows' first paint. A no-op once a fit has read rows,
 	 * and when the autosizer stands down.
 	 */
-	fitRenderedRows: () => void
+	fitRenderedRows: (renderedCount: number) => void
 	/**
 	 * Whether the first column-width pass has happened.
 	 *

@@ -105,7 +105,7 @@ export function Textarea({
 
 	const composedRef = useComposedRef(fieldRef, ref)
 
-	useTextareaAutoResize(fieldRef, autoResize, valueState.value)
+	useTextareaAutoResize(fieldRef, autoResize)
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 

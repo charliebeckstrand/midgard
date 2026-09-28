@@ -98,7 +98,7 @@ type GridColumnSizingResult = {
 	resetWidths: () => void
 	/** Takes width control for the user; a keyboard nudge calls it. */
 	takeControl: () => void
-	fitRenderedRows: () => void
+	fitRenderedRows: (renderedCount: number) => void
 	/** Whether the first width pass has happened; the table paints once it has. */
 	settled: boolean
 	/**
@@ -433,34 +433,34 @@ export function useGridColumnSizing<T>({
 	// synchronous fit, so the first pass here is skipped.
 	const initialFitRef = useRef(false)
 
-	// The struct signature at the last fit, so a rows-only change is told apart from
-	// a structural one when the widths are frozen (see `freezeOnRowChange`).
-	const fitStructSigRef = useRef(structSig)
+	// The signatures at the last fit, so a change of the rows alone is told apart
+	// from a change of the structure when the widths are frozen (see
+	// `freezeOnRowChange`).
+	const fittedRef = useRef({ struct: structSig, rows: rowsSig })
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `rowsSig` is a trigger: a row-model change (page turn, filter, sort) runs the fit again.
 	useLayoutEffect(() => {
 		if (!automatic) return
+
+		const fitted = fittedRef.current
+
+		fittedRef.current = { struct: structSig, rows: rowsSig }
 
 		if (!initialFitRef.current) {
 			initialFitRef.current = true
 
-			fitStructSigRef.current = structSig
-
 			return
 		}
 
-		const structChanged = fitStructSigRef.current !== structSig
-
-		fitStructSigRef.current = structSig
-
 		// Frozen widths (infinite scroll's stable columns) hold against an appended
-		// batch: a rows-only re-fire re-measures nothing and the columns keep their
-		// initial fit. A structural change — columns or density — still re-fits. The
-		// freeze arms on the fit that first measured rendered rows, not on a
-		// provisional one: a grid whose rows arrive after mount would otherwise freeze
-		// the floor-only fit it made against the loading skeleton and hold every
-		// column there for good.
-		if (freezeOnRowChange && !structChanged && sizer.measured()) return
+		// batch: a change of the rows alone re-measures nothing, and the columns keep
+		// their initial fit. A change of the structure (columns or density), or of
+		// the config that `refit` reads, still re-fits. The freeze arms on the fit
+		// that first measured rendered rows, not on a provisional one: a grid whose
+		// rows arrive after mount would otherwise freeze the floor-only fit it made
+		// against the loading skeleton and hold every column there for good.
+		const rowsOnly = fitted.struct === structSig && fitted.rows !== rowsSig
+
+		if (freezeOnRowChange && rowsOnly && sizer.measured()) return
 
 		refit(true)
 	}, [automatic, refit, rowsSig, structSig, freezeOnRowChange, sizer])
@@ -474,12 +474,16 @@ export function useGridColumnSizing<T>({
 	// their first frame carries the content widths instead of the floor-only fit the
 	// empty body measured, and the widths never move again under the user's eyes.
 	// Once a pass has read rows this is a bail, leaving the windowed scroll — and
-	// `freezeOnRowChange` — to behave exactly as before.
-	const fitRenderedRows = useCallback(() => {
-		if (!automatic || sizer.measured()) return
+	// `freezeOnRowChange` — to behave exactly as before. A window with no rows has
+	// nothing to measure, so it bails too.
+	const fitRenderedRows = useCallback(
+		(renderedCount: number) => {
+			if (!automatic || renderedCount === 0 || sizer.measured()) return
 
-		refitLatest(true)
-	}, [automatic, sizer, refitLatest])
+			refitLatest(true)
+		},
+		[automatic, sizer, refitLatest],
+	)
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
 	// container, so a width-only container resize is the one thing that recreates it

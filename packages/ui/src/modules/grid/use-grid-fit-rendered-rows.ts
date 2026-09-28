@@ -15,12 +15,15 @@ import { useLayoutEffect } from 'react'
  * again.
  *
  * @param renderedCount - The count of rows that the window renders.
- * @param fitRenderedRows - The autosizer's re-fit, a no-op once a fit has read rows.
+ * @param fitRenderedRows - The autosizer's re-fit for a count of rendered rows,
+ * a no-op once a fit has read rows or while the window has none.
  * @internal
  */
-export function useGridFitRenderedRows(renderedCount: number, fitRenderedRows: () => void): void {
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `renderedCount` is a trigger: a new count of rendered rows runs the fit again.
+export function useGridFitRenderedRows(
+	renderedCount: number,
+	fitRenderedRows: (renderedCount: number) => void,
+): void {
 	useLayoutEffect(() => {
-		fitRenderedRows()
+		fitRenderedRows(renderedCount)
 	}, [renderedCount, fitRenderedRows])
 }
