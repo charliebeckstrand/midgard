@@ -102,7 +102,9 @@ export function compileSearch<T>(
 
 /**
  * The indices of the rows that the quick search keeps, in data order. See
- * {@link compileSearch} for the rows that stay.
+ * {@link compileSearch} for the rows that stay. The grid runs `compileSearch`
+ * and `filterRowIndices` itself, with the column filters in the same pass. This
+ * call composes them for the tests.
  *
  * @param query - The search text. An empty query keeps every row.
  * @internal

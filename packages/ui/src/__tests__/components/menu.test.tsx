@@ -13,7 +13,7 @@ import {
 	MenuSub,
 	MenuTrigger,
 } from '../../components/menu'
-import { MenuCappedContext, useMenuContext } from '../../components/menu/context'
+import { MenuCappedContext } from '../../components/menu/context'
 import { MenuViewport } from '../../components/menu/menu-viewport'
 import {
 	bySlot,
@@ -1096,27 +1096,6 @@ describe('Menu context-menu mode', () => {
 		// A dropdown menu opens through its trigger only; right-click stays the
 		// browser's.
 		expect(container.querySelector('[role="menu"]')).not.toBeInTheDocument()
-	})
-})
-
-describe('useMenuContext', () => {
-	function ContextProbe() {
-		const ctx = useMenuContext()
-
-		return <span data-testid="probe">{ctx.open ? 'open' : 'closed'}</span>
-	}
-
-	it('returns combined state and actions when called inside a Menu', () => {
-		renderUI(
-			<Menu defaultOpen>
-				<MenuTrigger>Open</MenuTrigger>
-				<MenuContent>
-					<ContextProbe />
-				</MenuContent>
-			</Menu>,
-		)
-
-		expect(screen.getByTestId('probe')).toHaveTextContent('open')
 	})
 })
 

@@ -1,6 +1,23 @@
 import { act, renderHook } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest'
-import { useGridSelection } from '../../modules/grid/use-grid-selection'
+import type { GridSelection } from '../../modules/grid/grid-data-types'
+import {
+	useGridSelectionActions,
+	useGridSelectionState,
+} from '../../modules/grid/use-grid-selection'
+
+/** The two halves of the grid selection, composed as `GridData` and its view compose them. */
+function useGridSelection({
+	selectionConfig,
+	rowKeys,
+}: {
+	selectionConfig: GridSelection | undefined
+	rowKeys: (string | number)[]
+}) {
+	const state = useGridSelectionState(selectionConfig)
+
+	return { ...state, ...useGridSelectionActions({ ...state, rowKeys }) }
+}
 
 describe('useGridSelection', () => {
 	it('starts with an empty selection by default', () => {

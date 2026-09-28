@@ -53,8 +53,6 @@ type MenuActionsValue = {
 	openAt: (element: Element | null, clientX: number, clientY: number) => void
 }
 
-type MenuContextValue = MenuStateValue & MenuActionsValue
-
 export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('Menu')
 /**
  * Open-state actions and refs from the enclosing {@link Menu}. Leaves that only
@@ -62,7 +60,6 @@ export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('M
  * than the full state context.
  *
  * @see {@link useMenuState}
- * @see {@link useMenuContext}
  */
 export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
@@ -78,19 +75,3 @@ export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsVal
  * its content the way an enclosed one does.
  */
 export const [MenuCappedContext, useMenuCapped] = createContext<boolean>('Menu', { default: false })
-
-/**
- * Returns combined state + actions. Prefer `useMenuActions` in leaves that only
- * need `close`.
- *
- * @remarks
- * No in-repo consumer: the barrel exports `useMenuActions` alone, and grep finds
- * only this function's own test. Kept as the advanced-composition surface for a
- * consumer that needs both halves, not treated as dead.
- */
-export function useMenuContext(): MenuContextValue {
-	const state = useMenuState()
-	const actions = useMenuActions()
-
-	return { ...state, ...actions }
-}

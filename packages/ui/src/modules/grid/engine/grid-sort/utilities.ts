@@ -231,9 +231,10 @@ export type SmartSortField<T> = {
 
 /**
  * Orders `rows` by an ordered {@link SmartSortField} list, off the engine. It
- * is the client-sort fast path for a grid whose only transform is the sort. It
  * matches {@link makeSmartSortingFn} exactly, so it interchanges with the
- * engine's `getSortedRowModel`.
+ * engine's `getSortedRowModel`. The grid runs the two halves itself,
+ * {@link cachedSortOrder} and {@link materializeSort}, so that a direction flip
+ * reuses the order. This call composes them for the tests and the benchmarks.
  *
  * A decorate-sort-undecorate. Each smart field's {@link SortKey} is computed
  * once per row (the costly `parseNumeric` and type checks). The sort then
