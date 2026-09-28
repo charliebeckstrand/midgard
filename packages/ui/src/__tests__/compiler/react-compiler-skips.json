@@ -1,7 +1,4 @@
 {
-	"components/pdf-viewer/pdf-viewer-thumbnails.tsx": {
-		"PdfViewerThumbnails": "Refs"
-	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},
@@ -21,8 +18,5 @@
 	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
-	},
-	"modules/map/use-map-overlay.ts": {
-		"useMapOverlay": "Refs"
 	}
 }

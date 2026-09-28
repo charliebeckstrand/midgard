@@ -196,7 +196,10 @@ export type PdfViewerResult = {
 	/** True once the viewport and page are measured; gates the image from painting unsized. */
 	visible: boolean
 	onImageLoad: (event: SyntheticEvent<HTMLImageElement>) => void
-	rootRef: RefObject<HTMLElement | null>
+	/** The viewer's root element, once mounted. State, not a ref: the thumbnail Sheet portals into it, so a render reads it. */
+	root: HTMLElement | null
+	/** The callback ref that mounts {@link root}. */
+	setRoot: (node: HTMLElement | null) => void
 	viewportRef: RefObject<HTMLDivElement | null>
 	/**
 	 * Resolved loupe settings, or `null` when there is no loupe to draw. Either the consumer
@@ -500,7 +503,7 @@ export function usePdfViewer({
 		notifyHighlightsVisible(visible)
 	})
 
-	const rootRef = useRef<HTMLElement>(null)
+	const [root, setRoot] = useState<HTMLElement | null>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
 
 	const activePage = total > 0 ? pages[safePage - 1] : undefined
@@ -576,7 +579,8 @@ export function usePdfViewer({
 			setHighlightsVisible,
 			visible,
 			onImageLoad,
-			rootRef,
+			root,
+			setRoot,
 			viewportRef,
 			// Withheld while the loupe is off, which disables every interaction hook inside
 			// `usePdfViewerMagnifier` rather than merely hiding the lens: a switched-off loupe
@@ -614,6 +618,7 @@ export function usePdfViewer({
 			setMagnifierOn,
 			visible,
 			onImageLoad,
+			root,
 			magnifierAsked,
 			magnifierModeProp,
 			magnifierOn,

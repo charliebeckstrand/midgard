@@ -1,9 +1,10 @@
 import { createHash } from 'node:crypto'
 import fs from 'node:fs'
 import path from 'node:path'
-import type { Project } from 'ts-morph'
+import { fileURLToPath } from 'node:url'
+import { type Project, ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
-import { type Barrel, extractBarrel, listBarrels, openProject } from './build-api'
+import { type Barrel, extractBarrel, listBarrels, openProject, tsConfigPathFor } from './build-api'
 
 /**
  * An incremental, disk-cached driver over {@link extractBarrel}. The docs plugin
@@ -36,7 +37,8 @@ export type ApiExtractor = {
 
 export type ApiExtractorOptions = {
 	/**
-	 * Where to persist the extracted JSON keyed by an input-file hash. Defaults to
+	 * Where to persist the extracted JSON, keyed by an input-file hash and the
+	 * {@link extractorFingerprint}. Defaults to
 	 * `<package>/node_modules/.cache/docs-api-reference`; pass `null` to disable
 	 * persistence (tests, one-off builds).
 	 */
@@ -55,12 +57,93 @@ type BarrelState = {
 	inputs: Set<string>
 }
 
-/** Persisted whole-record cache: the extracted record under the hash of all input files that produced it. */
-type DiskCache = { version: number; hash: string; record: Record<string, ComponentApi[]> }
-
-const CACHE_VERSION = 9
+/**
+ * Persisted whole-record cache: the extracted record under the hash of all
+ * input files that produced it, and the fingerprint of the extractor that
+ * produced it.
+ */
+type DiskCache = { fingerprint: string; hash: string; record: Record<string, ComponentApi[]> }
 
 const CACHE_FILE = 'api.json'
+
+/** The docs engine, two levels above this file. */
+const ENGINE_DIR = fileURLToPath(new URL('../..', import.meta.url))
+
+/** A directory of the engine that holds no code of the extractor. */
+const NON_SOURCE_DIR = /(?:^|\/)(?:__tests__|__benchmarks__)\//
+
+/**
+ * A fingerprint of what shapes the extracted record besides the package source
+ * that {@link aggregateHash} keys. It hashes the code of the docs engine, the
+ * tsconfig chain of the package, and the nearest `pnpm-lock.yaml`. The lockfile
+ * pins TypeScript, ts-morph, and the React typings that the extractor reads.
+ * A stored record under another fingerprint is stale. A change to the extractor
+ * therefore invalidates the disk cache with no version kept by hand.
+ *
+ * It hashes each `.ts` file of the engine outside its tests and benchmarks, not
+ * only the extractor. The extractor imports helpers from across the engine, and
+ * a list of them would drift. The cost is one cold extraction after an engine
+ * edit that does not change the record.
+ *
+ * @internal
+ */
+export function extractorFingerprint(srcDir: string, engineDir: string = ENGINE_DIR): string {
+	const digest = createHash('sha1')
+
+	const sources = fs
+		.readdirSync(engineDir, { recursive: true, encoding: 'utf-8' })
+		.map(toPosix)
+		.filter((rel) => rel.endsWith('.ts') && !rel.endsWith('.d.ts') && !NON_SOURCE_DIR.test(rel))
+		.sort()
+
+	for (const rel of sources) digest.update(rel).update(fs.readFileSync(path.join(engineDir, rel)))
+
+	const configs = [...tsConfigChain(tsConfigPathFor(srcDir)), findUp(srcDir, 'pnpm-lock.yaml')]
+
+	// A missing file hashes as its absence, so adding one moves the key too.
+	for (const file of configs) digest.update(file ? readOrEmpty(file) : '\0')
+
+	return digest.digest('hex')
+}
+
+/** A tsconfig and each file that it extends by a relative path, nearest first. */
+function tsConfigChain(file: string): string[] {
+	const chain: string[] = []
+
+	for (let next: string | undefined = file; next && !chain.includes(next); ) {
+		chain.push(next)
+
+		const { config } = ts.readConfigFile(next, ts.sys.readFile)
+
+		const parent: unknown = config?.extends
+
+		next =
+			typeof parent === 'string' && parent.startsWith('.')
+				? path.resolve(path.dirname(next), parent.endsWith('.json') ? parent : `${parent}.json`)
+				: undefined
+	}
+
+	return chain
+}
+
+/** The path of `name` in `dir` or its nearest ancestor that has it. */
+function findUp(dir: string, name: string): string | undefined {
+	for (let current = path.resolve(dir); ; current = path.dirname(current)) {
+		const candidate = path.join(current, name)
+
+		if (fs.existsSync(candidate)) return candidate
+
+		if (path.dirname(current) === current) return undefined
+	}
+}
+
+function readOrEmpty(file: string): Buffer | string {
+	try {
+		return fs.readFileSync(file)
+	} catch {
+		return ''
+	}
+}
 
 /**
  * Normalize to forward slashes so Windows `path.join` output and ts-morph's
@@ -185,6 +268,15 @@ export function createApiExtractor(
 			? null
 			: (options.cacheDir ??
 				path.resolve(srcDir, '..', 'node_modules', '.cache', 'docs-api-reference'))
+
+	// Computed once, and only when a cache dir needs it.
+	let fingerprint: string | undefined
+
+	const fingerprintOf = () => {
+		fingerprint ??= extractorFingerprint(srcDir)
+
+		return fingerprint
+	}
 
 	// Content-hash memo for `aggregateHash`. It lives as long as the extractor:
 	// `notifyChanged` drops the path it reports, so a rebuild re-hashes those
@@ -374,7 +466,7 @@ export function createApiExtractor(
 	function initialLoad(): void {
 		barrels = listBarrels(srcDir)
 
-		const disk = readDisk(cacheDir)
+		const disk = cacheDir ? readDisk(cacheDir, fingerprintOf()) : null
 
 		if (disk && disk.hash === aggregateHash(srcDir, hashes)) {
 			// Byte-identical source: replay the stored record. No project is opened,
@@ -431,7 +523,7 @@ export function createApiExtractor(
 		// Gate the arguments, not the write: both are whole-tree work — the key
 		// walks and hashes every input file, and the snapshot copies every barrel —
 		// and `writeDisk` would discard them.
-		if (cacheDir) writeDisk(cacheDir, aggregateHash(srcDir, hashes), snapshot())
+		if (cacheDir) writeDisk(cacheDir, fingerprintOf(), aggregateHash(srcDir, hashes), snapshot())
 	}
 
 	return {
@@ -473,22 +565,26 @@ export function createApiExtractor(
 	}
 }
 
-function readDisk(cacheDir: string | null): DiskCache | null {
-	if (!cacheDir) return null
-
+/** The stored record, when an extractor with `fingerprint` wrote it. */
+function readDisk(cacheDir: string, fingerprint: string): DiskCache | null {
 	try {
 		const raw = fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')
 
 		const parsed = JSON.parse(raw) as DiskCache
 
-		return parsed.version === CACHE_VERSION ? parsed : null
+		return parsed.fingerprint === fingerprint ? parsed : null
 	} catch {
 		return null
 	}
 }
 
-function writeDisk(cacheDir: string, hash: string, record: Record<string, ComponentApi[]>): void {
-	const payload: DiskCache = { version: CACHE_VERSION, hash, record }
+function writeDisk(
+	cacheDir: string,
+	fingerprint: string,
+	hash: string,
+	record: Record<string, ComponentApi[]>,
+): void {
+	const payload: DiskCache = { fingerprint, hash, record }
 
 	try {
 		fs.mkdirSync(cacheDir, { recursive: true })

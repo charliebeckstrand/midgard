@@ -1,6 +1,6 @@
 'use client'
 
-import { useId, useMemo } from 'react'
+import { useCallback, useId, useMemo } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/map'
 import { markTargets } from './engine/map-cluster/crowd'
@@ -58,6 +58,12 @@ export type MapPointProps = MapOverlayProps & {
  * sequence.
  */
 export function MapPoint({ at, ...shared }: MapPointProps) {
+	const [lng, lat] = at
+
+	// Keyed on the ordinates rather than on `at`, for the reason `position` below states. A new
+	// identity tells the plat's pool that the point moved.
+	const stops = useCallback((): LngLat[] => [[lng, lat]], [lng, lat])
+
 	const {
 		slot,
 		hidden,
@@ -75,13 +81,11 @@ export function MapPoint({ at, ...shared }: MapPointProps) {
 		...shared,
 		kind: 'point',
 		swatch: 'dot',
-		stops: () => [at],
+		stops,
 	})
 
 	// Sanitized, because `useId` spells its output with characters a fragment reference cannot carry.
 	const clipId = `${useId().replace(/[^\w-]/g, '')}-hit`
-
-	const [lng, lat] = at
 
 	/*
 	 * Keyed on the ordinates rather than on `at`, and memoized rather than called inline, because
