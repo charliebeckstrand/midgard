@@ -205,11 +205,29 @@ describe('Rating', () => {
 		it('draws a fractional score as a part star', () => {
 			const { container } = renderUI(<Rating readOnly value={3.5} />)
 
-			const widths = allBySlot(container, 'rating-star').map(
-				(star) => (star.querySelector('span') as HTMLElement | null)?.style.width ?? '',
+			expect(allBySlot(container, 'rating-star')).toHaveLength(5)
+
+			const fills = allBySlot(container, 'rating-fill')
+
+			expect(fills).toHaveLength(1)
+
+			expect(fills[0]?.style.width).toBe('50%')
+
+			const whole = allBySlot(container, 'rating-star').filter(
+				(star) => star.getAttribute('fill') === 'currentColor',
 			)
 
-			expect(widths).toEqual(['100%', '100%', '100%', '50%', ''])
+			expect(whole).toHaveLength(3)
+		})
+
+		it('draws a whole or an empty star as one glyph', () => {
+			const { container } = renderUI(<Rating readOnly value={2} />)
+
+			const tags = allBySlot(container, 'rating-star').map((star) => star.tagName.toLowerCase())
+
+			expect(tags).toEqual(['svg', 'svg', 'svg', 'svg', 'svg'])
+
+			expect(allBySlot(container, 'rating-fill')).toHaveLength(0)
 		})
 	})
 

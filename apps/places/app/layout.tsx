@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import type { ReactNode } from 'react'
+import { fontSans } from 'shared/fonts'
 import { AppearanceScript } from 'ui/providers/appearance'
 
 import './globals.css'
@@ -16,7 +17,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: ReactNode }) {
 	return (
-		<html lang="en" className="h-full" suppressHydrationWarning>
+		<html lang="en" className={`h-full ${fontSans.variable}`} suppressHydrationWarning>
 			<head>
 				<AppearanceScript />
 			</head>

@@ -163,14 +163,12 @@ describe('reference lines', () => {
 	})
 
 	it('floats a tooltip with the value and label when a rule is hovered', async () => {
-		// No hover-capable pointer in jsdom, so the tooltip opens on click; the
-		// design-system Tooltip drives hover on pointer devices. Either way this
-		// proves the rule's trigger is wired to its content.
-		const user = userEvent.setup()
-
+		// The floating-ui mock has no hover, so focus opens the tooltip here. The
+		// design-system Tooltip drives hover in a browser. Either way this proves
+		// the rule's trigger is wired to its content.
 		const { container } = bar([{ value: 55, label: 'Target' }])
 
-		await user.click(bySlot(container, 'chart-reference-line') as Element)
+		fireEvent.focus(bySlot(container, 'chart-reference-line') as Element)
 
 		// The swatch renders only inside the floating tooltip, so its arrival proves
 		// the rule opened one.

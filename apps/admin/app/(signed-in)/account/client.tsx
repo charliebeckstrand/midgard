@@ -23,6 +23,7 @@ import {
 import { ConnectedAccounts } from './connected-accounts'
 import { Section } from './section'
 import { TwoStep } from './two-step'
+import { YourData } from './your-data'
 
 type AccountClientProps = {
 	user: User
@@ -41,7 +42,8 @@ const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle:
 
 /**
  * Account page: the email notice, the passkeys, authenticator app, recovery
- * codes, GitHub and Google accounts, and recent activity of the signed-in user.
+ * codes, GitHub and Google accounts, recent activity, and data of the
+ * signed-in user.
  * The account menu of the chrome holds sign-out.
  *
  * @remarks
@@ -83,7 +85,12 @@ export function AccountClient({
 							: 'Open the link that we sent you when you signed up, or get a new one.'
 					}
 					actions={
-						<Button disabled={sendLink.isPending} onClick={() => sendLink.mutate()}>
+						<Button
+							variant="soft"
+							color="amber"
+							disabled={sendLink.isPending}
+							onClick={() => sendLink.mutate()}
+						>
 							Send a new link
 						</Button>
 					}
@@ -156,6 +163,8 @@ export function AccountClient({
 				</CardHeader>
 				<ActivityTable activity={activity} />
 			</Card>
+
+			<YourData admin={user.roles.includes('admin')} />
 
 			<Confirm
 				open={removing !== null}

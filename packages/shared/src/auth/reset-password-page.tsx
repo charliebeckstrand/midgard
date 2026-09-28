@@ -11,6 +11,7 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { chain, matches, minLength, required } from './form-validators'
 import { linkToken } from './link-token'
 
@@ -64,7 +65,7 @@ export function ResetPasswordPage() {
 			>
 				<Heading className="text-center">Choose a new password</Heading>
 
-				{serverError && <Text tone="error">{serverError}</Text>}
+				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
 
 				<Field>
 					<Label>New password</Label>

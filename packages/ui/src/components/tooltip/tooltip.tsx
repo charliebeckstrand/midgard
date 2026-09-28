@@ -13,6 +13,18 @@ export type TooltipProps = {
 	 */
 	placement?: Placement
 	/**
+	 * What opens the tooltip. Keyboard focus opens it with each value.
+	 *
+	 * - `'hover'`: a mouse or pen hover. A touch press does not open it, because a
+	 *   tap gives no hover.
+	 * - `'click'`: a press from any pointer, touch included. Use it for a tooltip
+	 *   that a reader on a touch screen must reach, such as an info button.
+	 *
+	 * @defaultValue 'hover'
+	 * @remarks {@link TooltipProps.open} is the manual trigger.
+	 */
+	trigger?: 'hover' | 'click'
+	/**
 	 * Hover open delay in milliseconds (close delay is fixed at 100ms).
 	 * @defaultValue 250
 	 */
@@ -36,17 +48,20 @@ export type TooltipProps = {
 	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
 	 * control back to hover / focus / click; `disabled` still wins.
 	 * @defaultValue false
+	 * @remarks `false` does not hold the tooltip closed. It only releases the hold,
+	 * so a hover or a focus can still open the tooltip. Use `disabled` to keep it
+	 * closed.
 	 */
-	forceOpen?: boolean
+	open?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * or a click on a pointer-less device. `forceOpen`, `disabled` going true, the trigger
+	 * or a click on a `trigger="click"` tooltip. `open`, `disabled` going true, the trigger
 	 * becoming `:disabled`, and the shared overlay-close signal also report here.
 	 *
-	 * Observation only. The tooltip owns its open state and there is no `open` prop to
-	 * pair with. Hover cannot be driven from outside, which is why the triad stops here
-	 * ({@link TooltipProps.forceOpen} is the one programmatic reveal). Use this to mirror
-	 * the state elsewhere, not to control it.
+	 * Observation only. The tooltip owns its open state, and {@link TooltipProps.open}
+	 * only holds it open. Hover cannot be driven from outside, so `open` does not pair
+	 * with this callback as a controlled prop. Use this to mirror the state elsewhere,
+	 * not to control it.
 	 */
 	onOpenChange?: (open: boolean) => void
 	children: ReactNode
@@ -56,7 +71,8 @@ export type TooltipProps = {
  * Hover/focus tooltip root; wires up floating state and shares `placement` and
  * `delay` with its `<TooltipTrigger>` and `<TooltipContent>` via context.
  *
- * @remarks On pointer-less devices, opens on click rather than hover. Stays
+ * @remarks Opens on hover or on click, as `trigger` selects, and on keyboard
+ * focus. A hover tooltip does not open on a touch press. Stays
  * suppressed while the trigger is `:disabled` (own attribute, ancestor
  * `<fieldset disabled>`, or a disabled descendant) and dismisses on the shared
  * overlay-close signal. The `tooltip` role and `aria-describedby` land on the

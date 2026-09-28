@@ -12,6 +12,10 @@
 			"types": "./src/providers/index.ts",
 			"default": "./src/providers/index.ts"
 		},
+		"./fonts": {
+			"types": "./src/fonts.ts",
+			"default": "./src/fonts.ts"
+		},
 		"./globals.css": "./src/globals.css"
 	},
 	"scripts": {

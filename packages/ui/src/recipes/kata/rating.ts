@@ -13,6 +13,8 @@
  * A star draws twice: a track glyph, and a fill glyph clipped over it. One icon
  * therefore covers the whole range a value can land in. The `clip` slot is the
  * window the fill draws inside; the component sets its width from the value.
+ * The display form draws a whole or an empty star as one glyph: the fill glyph
+ * alone, or the track glyph alone.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
 import { hannou, iro, kokkaku, narabi, sen, ugoki } from '../kiso'

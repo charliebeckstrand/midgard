@@ -46,10 +46,12 @@ function renderChildren(children: ReactNode): ReactNode {
 export type AlertProps = AlertVariants & {
 	/**
 	 * Semantic kind: drives the default color, an icon, and the ARIA role
-	 * (`'alert'` for warning/error, `'status'` for info/success). Use `color`
-	 * to render a colored alert with no semantic meaning.
+	 * (`'alert'` for warning/error, `'status'` for info/success). The icon shows
+	 * only when the alert has a `title`. Use `color` to render a colored alert
+	 * with no semantic meaning.
 	 */
 	severity?: AlertSeverity
+	/** Icon at the start. It replaces the icon of `severity`, and shows with or without a `title`. */
 	icon?: ReactElement
 	title?: ReactNode
 	description?: ReactNode
@@ -74,12 +76,18 @@ export type AlertProps = AlertVariants & {
 	'data-slot'?: string
 }
 
-/** Resolves color, icon, and ARIA role from severity, falling back to the explicit `color`/`icon` props. @internal */
+/**
+ * Resolves color, icon, and ARIA role from severity, falling back to the explicit `color`/`icon` props.
+ * The icon of a severity needs a title: beside body text alone, it looks too heavy.
+ *
+ * @internal
+ */
 function resolveAlertPresentation(
 	severity: AlertSeverity | undefined,
 	politeSeverity: boolean,
 	color: AlertColor | undefined,
 	icon: ReactElement | undefined,
+	hasTitle: boolean,
 ): {
 	resolvedColor: AlertColor
 	resolvedIcon: ReactElement | undefined
@@ -87,7 +95,7 @@ function resolveAlertPresentation(
 } {
 	const resolvedColor = severity ? severityColorMap[severity] : (color ?? 'zinc')
 
-	const resolvedIcon = icon ?? (severity ? severityIconMap[severity] : undefined)
+	const resolvedIcon = icon ?? (severity && hasTitle ? severityIconMap[severity] : undefined)
 
 	const role = severity ? (politeSeverity ? 'status' : 'alert') : undefined
 
@@ -214,6 +222,7 @@ export function Alert({
 		politeSeverity,
 		color,
 		icon,
+		Boolean(title),
 	)
 
 	return (

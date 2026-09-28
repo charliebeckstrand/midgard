@@ -18,6 +18,7 @@ import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { oauthStartPath, signInProviderNames } from './account'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
 import { useLeaving } from './use-leaving'
 
@@ -54,11 +55,11 @@ function QueryNotice() {
 	const error = params.get('error')
 
 	if (error) {
-		return <Text tone="error">{signInErrors[error] ?? signInErrors.oauth_failed}</Text>
+		return <ErrorAlert key={error}>{signInErrors[error] ?? signInErrors.oauth_failed}</ErrorAlert>
 	}
 
 	if (params.get('expired') === 'true') {
-		return <Text tone="error">Too many wrong tries. Please sign in again.</Text>
+		return <ErrorAlert>Too many wrong tries. Please sign in again.</ErrorAlert>
 	}
 
 	if (params.get('reset') === 'true') {
@@ -158,7 +159,7 @@ export function LoginPage({ providers = [] }: LoginPageProps) {
 			>
 				<Heading className="text-center">Sign in to your account</Heading>
 
-				{serverError && <Text tone="error">{serverError}</Text>}
+				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
 
 				<Suspense>
 					<QueryNotice />

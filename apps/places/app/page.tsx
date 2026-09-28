@@ -1,7 +1,15 @@
 import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
+import { preload } from 'react-dom'
 import { PlacesApp } from '@/components/places-app'
 import { mimir } from '@/server/mimir'
+
+/**
+ * The page reads the session, the places, and the visits before it renders, so
+ * a navigation into it waits for the gateway. This lets the route block. The
+ * reads move into a `<Suspense>` boundary in a later change.
+ */
+export const instant = false
 
 /**
  * The one page. Every surface below it is interactive — the map, the filter bar,
@@ -31,6 +39,12 @@ import { mimir } from '@/server/mimir'
  * that swaps for another.
  */
 export default async function Page() {
+	// The app draws nothing until the states atlas lands, and its own fetch starts
+	// only after hydration. The hint in the head starts the download with the page,
+	// and the fetch of the app then reads the response the browser already has.
+	// `anonymous` is the mode of a same-origin `fetch`, so the two requests match.
+	preload('/api/atlas/states', { as: 'fetch', crossOrigin: 'anonymous' })
+
 	const { user } = await requireSession()
 
 	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([

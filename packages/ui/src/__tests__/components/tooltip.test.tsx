@@ -65,7 +65,7 @@ describe('Tooltip', () => {
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		// jsdom reports no hover, so the tooltip opens on click here.
+		// The floating-ui mock opens on focus, and a click focuses the trigger.
 		await user.click(trigger)
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
@@ -78,13 +78,13 @@ describe('Tooltip', () => {
 		expect(onOpenChange).toHaveBeenCalledTimes(2)
 	})
 
-	it('keeps reporting the resolved state while forceOpen holds it open', async () => {
+	it('keeps reporting the resolved state while open holds it open', async () => {
 		const user = userEvent.setup()
 
 		const onOpenChange = vi.fn()
 
 		const { container } = renderUI(
-			<Tooltip forceOpen onOpenChange={onOpenChange}>
+			<Tooltip open onOpenChange={onOpenChange}>
 				<TooltipTrigger>
 					<button type="button">Trigger</button>
 				</TooltipTrigger>
@@ -100,7 +100,7 @@ describe('Tooltip', () => {
 
 		if (!trigger) throw new Error('trigger missing')
 
-		// `forceOpen` holds the disclosure controlled, so the interactions still call its
+		// `open` holds the disclosure controlled, so the interactions still call its
 		// setter and `useControllable` still fires on every set. Reporting the resolved
 		// state rather than that setter is what keeps a close the reader never saw — the
 		// tooltip is still on screen — from being announced.
@@ -250,10 +250,10 @@ describe('Tooltip', () => {
 		expect(trigger.getAttribute('aria-describedby')).toBe(panel.getAttribute('id'))
 	})
 
-	it('holds open while forceOpen is set, then hands back to the interactions', async () => {
-		function tip(forceOpen: boolean) {
+	it('holds open while open is set, then hands back to the interactions', async () => {
+		function tip(open: boolean) {
 			return (
-				<Tooltip forceOpen={forceOpen}>
+				<Tooltip open={open}>
 					<TooltipTrigger>
 						<button type="button">Anchor</button>
 					</TooltipTrigger>
@@ -273,9 +273,9 @@ describe('Tooltip', () => {
 		await waitFor(() => expect(screen.queryByText('Tooltip text')).not.toBeInTheDocument())
 	})
 
-	it('yields forceOpen to enabled=false', () => {
+	it('yields open to disabled', () => {
 		renderUI(
-			<Tooltip forceOpen disabled>
+			<Tooltip open disabled>
 				<TooltipTrigger>
 					<button type="button">Anchor</button>
 				</TooltipTrigger>

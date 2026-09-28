@@ -1,10 +1,4 @@
-@font-face {
-	font-family: 'Google Sans Flex';
-	font-weight: 100 1000;
-	font-display: swap;
-	src: url('./fonts/GoogleSansFlex-VariableFont_opsz,wght.woff2') format('woff2');
-}
-
+/* `fontSans` of `fonts.ts` loads the font and sets `--font-google-sans-flex` on the root element. */
 :root {
-	--font-sans: 'Google Sans Flex', sans-serif;
+	--font-sans: var(--font-google-sans-flex), sans-serif;
 }

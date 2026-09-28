@@ -71,6 +71,12 @@ export type ListItemContextValue = {
 	style: CSSProperties
 	/** Whether this item is currently being dragged. */
 	dragging: boolean
+	/**
+	 * The place of the row in a windowed list. The row writes it as `data-index`,
+	 * which the window measures by, and as `aria-posinset` and `aria-setsize`,
+	 * because the rows outside the window are not in the DOM to count.
+	 */
+	position?: { index: number; count: number }
 }
 
 /**

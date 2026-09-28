@@ -9,16 +9,18 @@ import {
 	useInteractions,
 } from '@floating-ui/react'
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
-import { useFloatingDisclosure, useHasHover } from '../../hooks'
+import { useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
+import type { TooltipProps } from './tooltip'
 
 type TooltipStateOptions = {
 	placement?: Placement
+	trigger?: TooltipProps['trigger']
 	delay?: number
 	interactive?: boolean
 	enabled?: boolean
-	forceOpen?: boolean
+	open?: boolean
 	onOpenChange?: (open: boolean) => void
 }
 
@@ -57,7 +59,9 @@ function fieldsetAncestors(reference: Element): Element[] {
  * Floating, hover/focus/click interaction, and disabled-suppression state for
  * {@link Tooltip}, returned as the value shared through context.
  *
- * @remarks Hover on pointer devices, click on pointer-less ones, focus always.
+ * @remarks `trigger` selects hover or click, and keyboard focus opens with either.
+ * A hover trigger reads the `pointerType` of the event and ignores a touch. A tap
+ * therefore does not open it, also on a device that can hover.
  * Closes on the shared overlay-close signal and stays suppressed while the
  * reference (or a descendant) matches `:disabled`, re-opening on hover once the
  * disabled state clears. Hands the floating root context out as
@@ -69,21 +73,22 @@ function fieldsetAncestors(reference: Element): Element[] {
  */
 export function useTooltipState({
 	placement = 'top',
+	trigger = 'hover',
 	delay = 250,
 	interactive = false,
 	enabled = true,
-	forceOpen = false,
+	open: held = false,
 	onOpenChange,
 }: TooltipStateOptions) {
-	// `forceOpen` controls the disclosure open — a programmatic reveal that skips
-	// the pointer, for a tooltip whose trigger can't take hover (an SVG rule the
-	// keyboard drives). Left `undefined`, the disclosure stays uncontrolled and
-	// hover / focus / click own it; a disabled tooltip never forces.
+	// The `open` option, `held` here, controls the disclosure open — a programmatic
+	// reveal that skips the pointer, for a tooltip whose trigger can't take hover (an
+	// SVG rule the keyboard drives). Left `undefined`, the disclosure stays
+	// uncontrolled and hover / focus / click own it; a disabled tooltip never holds.
 	const { open, setOpen, refs, floatingStyles, context, dismiss, role } = useFloatingDisclosure({
 		role: 'tooltip',
 		placement,
 		offset: 8,
-		open: enabled && forceOpen ? true : undefined,
+		open: enabled && held ? true : undefined,
 		gate: (next, gateRefs) =>
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
 	})
@@ -150,19 +155,22 @@ export function useTooltipState({
 	}, [open, setOpen])
 
 	/*
-	 * Watched rather than wrapped around the disclosure's setter. `forceOpen` holds the
+	 * Watched rather than wrapped around the disclosure's setter. `held` holds the
 	 * disclosure controlled, and `useControllable` fires on every set, even the ones a
 	 * controlled `open` then overrides. Hovering off a forced-open tooltip would therefore
 	 * report a close that never happened. The committed value reports exactly what the
 	 * reader sees, on every route into it. Those routes are hover, focus, click,
-	 * `forceOpen`, `enabled`, the `:disabled` store above, and the overlay signal.
+	 * `held`, `enabled`, the `:disabled` store above, and the overlay signal.
 	 */
 	useOpenChange(open, onOpenChange)
 
-	const hasHover = useHasHover()
-
+	// `mouseOnly` reads the `pointerType` of the event, not a media query. A touch
+	// press gives no hover, so a tap does not open a hover tooltip, also on a
+	// device that has a mouse and a touch screen. The `:focus-visible` gate of
+	// `useFocus` stops the focus that a tap gives a button from opening it.
 	const hover = useHover(context, {
-		enabled: enabled && hasHover,
+		enabled: enabled && trigger === 'hover',
+		mouseOnly: true,
 		delay: { open: delay, close: 100 },
 		// A bare `safePolygon()` takes floating-ui's defaults, and `requireIntent`
 		// is one of them. It reads cursor speed: a traverse slower than 0.1 px/ms
@@ -173,7 +181,7 @@ export function useTooltipState({
 		...(interactive && { handleClose: safePolygon() }),
 	})
 
-	const click = useClick(context, { enabled: enabled && !hasHover })
+	const click = useClick(context, { enabled: enabled && trigger === 'click' })
 
 	const focus = useFocus(context, { enabled })
 

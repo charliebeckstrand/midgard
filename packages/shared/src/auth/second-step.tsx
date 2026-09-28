@@ -14,9 +14,9 @@ import { Form, type FormSubmitHandler } from 'ui/form'
 import { Heading } from 'ui/heading'
 import { Input } from 'ui/input'
 import { AuthLayout } from 'ui/layouts'
-import { Text } from 'ui/text'
 import { signOut } from './account'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { chain, required } from './form-validators'
 import { type SecondFactorMethod, setSecondStepDialog } from './second-step-request'
 import { useLeaving } from './use-leaving'
@@ -105,7 +105,7 @@ function SecondStep({ methods, onVerified, onExpired, onCancel, cancelLabel }: S
 
 	return (
 		<Fieldset disabled={leaving} className="grid gap-6">
-			{error && <Text tone="error">{error}</Text>}
+			{error && <ErrorAlert onDismiss={() => setError('')}>{error}</ErrorAlert>}
 
 			{showCode && (
 				<Form<CodeValues>

@@ -15,6 +15,8 @@ export default withAuth(
 		// `ui` source it imports. `ui` runs its tests compiled (`test:compiler`), and
 		// its grid reads the table engine through one boundary (CONVENTIONS §10.7).
 		reactCompiler: true,
+		cacheComponents: true,
+		partialPrefetching: true,
 	},
 	// The places and the visits are Mimir's, in asgard, through the gateway.
 	{ gatewayApi: true },

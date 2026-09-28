@@ -115,8 +115,9 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
  * races the `change` that would otherwise set the same star again.
  *
  * The display form draws a fractional score — an average of reviews is not a
- * whole number — by clipping a filled star over an empty one. The interactive
- * form sets whole stars only.
+ * whole number — by clipping a filled star over an empty one. It draws a whole
+ * or an empty star as one glyph, so only the part star stacks two. The
+ * interactive form sets whole stars only.
  */
 export function Rating({
 	value,
@@ -227,11 +228,41 @@ export function Rating({
 				aria-label={getValueText(current, count)}
 				className={rowClass}
 			>
-				{stars.map((key, index) => (
-					<span key={key} data-slot="rating-star" className={k.star()}>
-						{glyphs(index + 1)}
-					</span>
-				))}
+				{stars.map((key, index) => {
+					const fill = starFill(current, index + 1)
+
+					// A whole or an empty star is one glyph. Only the part star stacks a
+					// clipped fill over its track. A list of rated rows draws many of
+					// these, and the stack is most of their elements.
+					if (fill === 1) {
+						return (
+							<Star
+								key={key}
+								data-slot="rating-star"
+								aria-hidden="true"
+								fill="currentColor"
+								className={glyph}
+							/>
+						)
+					}
+
+					if (fill === 0) {
+						return (
+							<Star
+								key={key}
+								data-slot="rating-star"
+								aria-hidden="true"
+								className={cn(glyph, k.track)}
+							/>
+						)
+					}
+
+					return (
+						<span key={key} data-slot="rating-star" className={k.star()}>
+							{glyphs(index + 1)}
+						</span>
+					)
+				})}
 			</span>
 		)
 	}
