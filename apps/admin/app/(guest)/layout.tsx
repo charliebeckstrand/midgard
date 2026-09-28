@@ -3,6 +3,13 @@ import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 /**
+ * The layout reads the session before it renders, so a navigation into it waits for the
+ * gateway. This lets the route block. The read moves into a `<Suspense>`
+ * boundary in a later change.
+ */
+export const instant = false
+
+/**
  * Shell for the sign-in and register pages. A signed-in admin goes to the
  * dashboard, and another signed-in user goes to the account page.
  *

@@ -3,6 +3,13 @@ import type { ReactNode } from 'react'
 import { SignedInClient } from './client'
 
 /**
+ * The layout reads the session before it renders, so a navigation into it waits for the
+ * gateway. This lets the route block. The read moves into a `<Suspense>`
+ * boundary in a later change.
+ */
+export const instant = false
+
+/**
  * Shell of each signed-in page. Requires a session, and hands its user to the
  * {@link SignedInClient} chrome.
  *
