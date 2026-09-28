@@ -5,7 +5,6 @@ import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { MountHold } from '../../primitives/mount'
-import type { DensityLevel } from '../../providers/density'
 import { useLocale } from '../../providers/locale'
 import { k } from '../../recipes/kata/grid'
 import { aggregateLabelSpan, hasAggregation, renderAggregate } from './engine/grid-aggregate'
@@ -117,8 +116,6 @@ type GridTotalRowProps<T> = {
 	 * @defaultValue 'Total'
 	 */
 	label?: ReactNode
-	/** Density padding for the group variant's collapsible cells. */
-	density?: DensityLevel
 	/** The group's overlay color, washing the group total's cells at low opacity; ignored on the grand variant. */
 	color?: PaletteColor
 	/**
@@ -193,7 +190,6 @@ export function GridTotalRow<T>({
 	variant,
 	expanded = true,
 	label = 'Total',
-	density = 'snug',
 	color,
 	navKey,
 	...windowRow
@@ -211,7 +207,6 @@ export function GridTotalRow<T>({
 				span={span}
 				expanded={expanded}
 				label={label}
-				density={density}
 				color={color}
 				navKey={navKey}
 				windowRow={windowRow}
@@ -243,7 +238,6 @@ function GridGroupTotalRow<T>({
 	span,
 	expanded,
 	label,
-	density,
 	color,
 	navKey,
 	windowRow,
@@ -255,7 +249,6 @@ function GridGroupTotalRow<T>({
 	span: number
 	expanded: boolean
 	label: ReactNode
-	density: DensityLevel
 	color?: PaletteColor
 	/** The props that a windowed body gives the row. */
 	windowRow: GridWindowRowProps
@@ -264,7 +257,7 @@ function GridGroupTotalRow<T>({
 
 	const { locale } = useLocale()
 
-	const pad = k.rowGroup.reveal.pad({ density })
+	const pad = k.rowGroup.reveal.pad
 
 	const stopProps = useGridNavStopProps(navKey ?? '')
 

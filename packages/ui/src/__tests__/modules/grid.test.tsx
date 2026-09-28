@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Grid } from '../../modules/grid'
 import { DensityProvider } from '../../providers/density'
-import { bySlot, fireEvent, renderUI, screen, userEvent } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid', () => {
 	type Row = { name: string; age: number }
@@ -1475,26 +1475,28 @@ describe('Grid', () => {
 	})
 
 	describe('density', () => {
-		it('defaults to snug outside any DensityProvider', () => {
+		it('writes no scope and takes md outside each scope', () => {
 			const { container } = renderUI(<Grid columns={columns} rows={rows} getKey={getKey} />)
 
-			expect(container.querySelector('table')?.closest('[data-slot="table"]')).toHaveAttribute(
-				'data-density',
-				'md',
-			)
+			const table = getSlot(container, 'table')
+
+			expect(table).not.toHaveAttribute('data-density')
+
+			expect(densityStepOf(table)).toBe('md')
 		})
 
-		it('inherits an enclosing DensityProvider when no density prop is given', () => {
+		it('follows an enclosing DensityProvider when no density prop is given', () => {
 			const { container } = renderUI(
 				<DensityProvider density="compact">
 					<Grid columns={columns} rows={rows} getKey={getKey} />
 				</DensityProvider>,
 			)
 
-			expect(container.querySelector('table')?.closest('[data-slot="table"]')).toHaveAttribute(
-				'data-density',
-				'sm',
-			)
+			const table = getSlot(container, 'table')
+
+			expect(table).not.toHaveAttribute('data-density')
+
+			expect(densityStepOf(table)).toBe('sm')
 		})
 
 		it('an explicit density prop overrides the ambient DensityProvider', () => {

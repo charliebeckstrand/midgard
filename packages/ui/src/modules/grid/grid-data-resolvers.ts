@@ -364,7 +364,6 @@ export function resolveResizeLayout<T>(args: {
 	resizable: boolean
 	resize: GridColumnResize | null
 	columns: GridColumn<T>[]
-	density: DensityLevel | undefined
 	className: string | undefined
 }): {
 	colGroup: ReactNode
@@ -393,7 +392,7 @@ export function resolveResizeLayout<T>(args: {
 				createElement('col', { key: col.id, style: { width: resize.getSize(col.id) } }),
 			),
 		),
-		tableClassName: cn(k.resize.fixed, k.resize.metrics({ density: args.density }), args.className),
+		tableClassName: cn(k.resize.fixed, k.resize.metrics, args.className),
 		tableWidth: resize.totalSize,
 		resizing: resize.resizing != null,
 	}

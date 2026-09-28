@@ -214,7 +214,7 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 }
 
 /**
- * Broadcasts the grid's resolved density onto the *table region* as a density
+ * Broadcasts the grid's explicit density onto the *table region* as a density
  * cascade. Size-aware *client* cell content therefore tracks the grid's
  * `density`, and its `condensed` step, which {@link resolveDensity} folds to
  * `compact`. A `Sparkline`, an inline `Input`, and the selection checkbox are
@@ -223,9 +223,10 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  * the grid spawns therefore stays on the ambient density, rather than inheriting
  * the grid's. Badge and Icon follow the `data-density` scope of the
  * `<table>`. `Text` reads no density, so the `<table>` class down-projects it
- * under `condensed` (see `condensedTableClass`). A grid already at the ambient density
- * broadcasts its own level — a no-op. Kept a component so the branch lives here,
- * off {@link GridData}'s complexity budget.
+ * under `condensed` (see `condensedTableClass`). With no `level` (no explicit
+ * `density` and no `condensed`), it opens no scope, and the cell content takes
+ * the step of the nearest scope. Kept a component so the branch lives here, off
+ * {@link GridData}'s complexity budget.
  *
  * Overlays mounted *above* this — the column manager, the row manager, the
  * auto-size confirm, the header context menu — are outside the cascade already.
@@ -234,8 +235,14 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
  *
  * @internal
  */
-export function DensityCascade({ level, children }: { level: DensityLevel; children: ReactNode }) {
-	return <Density step={densityToSize[level]}>{children}</Density>
+export function DensityCascade({
+	level,
+	children,
+}: {
+	level: DensityLevel | undefined
+	children: ReactNode
+}) {
+	return <Density step={level && densityToSize[level]}>{children}</Density>
 }
 
 /**

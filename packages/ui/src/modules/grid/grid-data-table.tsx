@@ -41,7 +41,8 @@ type GridDataTableProps<T> = {
 	columns: GridColumn<T>[]
 	/** Frozen-column controls for the head, the body, and the new-row slot. */
 	pinning: GridColumnPinning | null
-	density: DensityLevel
+	/** The explicit density of the table, or `undefined` to follow the nearest scope. */
+	density: DensityLevel | undefined
 	loading: boolean
 	/** Whether the error slot replaces the rows. Loading takes precedence over it. */
 	showingError: boolean
@@ -168,7 +169,7 @@ export function GridDataTable<T>({
 	const tableContent = (
 		<GridNavContext value={cursor.navStore}>
 			<Table
-				size={densityToSize[density]}
+				size={density && densityToSize[density]}
 				bleed={table.bleed}
 				striped={stripedForOutline(table.striped, table.outline)}
 				hover={table.hover}
@@ -216,7 +217,6 @@ export function GridDataTable<T>({
 					{...body}
 					loading={loading}
 					visibleColumns={columns}
-					density={density}
 					pinning={pinning}
 					gridSemantics={semantics.enabled}
 					rowIndexOffset={

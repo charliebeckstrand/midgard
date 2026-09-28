@@ -1,7 +1,6 @@
 'use client'
 
 import { useMemo, useState } from 'react'
-import type { DensityLevel } from '../../providers/density'
 import type { GridSortState } from './context'
 import {
 	manualGroupSortDirection,
@@ -131,7 +130,6 @@ export function useGridDataFrame<T>({
 	widthsSettled,
 	resizable,
 	resize,
-	density,
 	className,
 	group,
 	pinning,
@@ -193,7 +191,6 @@ export function useGridDataFrame<T>({
 	widthsSettled: boolean
 	resizable: boolean
 	resize: GridColumnResize | null
-	density: DensityLevel
 	/** The column groups, for the band row. */
 	group: GridGroupResult
 	pinning: GridColumnPinning | null
@@ -242,7 +239,6 @@ export function useGridDataFrame<T>({
 		resizable,
 		resize,
 		columns: visibleColumns,
-		density,
 		className,
 	})
 

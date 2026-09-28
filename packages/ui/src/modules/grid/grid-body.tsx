@@ -11,7 +11,6 @@ import {
 import { Alert } from '../../components/alert'
 import { TableBody, TableEmpty } from '../../components/table'
 import type { PaletteColor } from '../../core/recipe'
-import type { DensityLevel } from '../../providers/density'
 import {
 	type GridManualGroupSegment,
 	orderManualGroupSegments,
@@ -90,8 +89,6 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	groupRenderHeader: GridGroupBy['renderHeader']
 	/** Append a per-group total row under each group's leaves; effective only while columns aggregate. */
 	groupTotalRow: boolean | undefined
-	/** Grid density, threaded to the grouped leaf rows so their reveal wrappers carry the matching cell padding. */
-	density: DensityLevel
 	/**
 	 * The row manager's overlay presentation, or `null` when the grid isn't
 	 * client-grouped. It holds the per-group color, which tints the header
@@ -126,7 +123,6 @@ function leafRowProps<T>(
 	leaf: GridLeaf<T>,
 	args: {
 		expanded: boolean
-		density: DensityLevel
 		color?: PaletteColor
 		/** The leaf's treegrid level; the client-grouped body sets it. */
 		level?: number
@@ -150,7 +146,6 @@ function leafRowProps<T>(
 		cellActivate: props.cellActivate,
 		truncate: props.truncate,
 		pinning: props.pinning,
-		density: args.density,
 		color: args.color,
 		level: args.level,
 	}
@@ -171,14 +166,13 @@ function renderGroup<T>(
 		props: GridBodyProps<T>
 		columnId: string | number
 		renderHeader: GridGroupBy['renderHeader']
-		density: DensityLevel
 		/** Whether a per-group total row shows — a whole-body gate, resolved once by the caller. */
 		totaled: boolean
 		/** The row-manager overlay presentation (per-group color), or `null` when off. */
 		presentation: GridRowGroupPresentation | null
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, density, totaled, presentation } = args
+	const { props, columnId, renderHeader, totaled, presentation } = args
 
 	const { expanded } = group
 
@@ -199,7 +193,7 @@ function renderGroup<T>(
 			{group.leaves.map((leaf) => (
 				<GridGroupLeafRow<T>
 					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded, density, color, level: 2 })}
+					{...leafRowProps(props, leaf, { expanded, color, level: 2 })}
 				/>
 			))}
 			{totaled && (
@@ -208,7 +202,6 @@ function renderGroup<T>(
 					rows={group.rows}
 					variant="group"
 					expanded={expanded}
-					density={density}
 					color={color}
 					navKey={totalItemKey(group.id)}
 				/>
@@ -235,10 +228,9 @@ function renderManualSegment<T>(
 		renderHeader: GridGroupBy['renderHeader']
 		expanded: ReadonlySet<string | number>
 		toggle: (key: string | number) => void
-		density: DensityLevel
 	},
 ): ReactElement {
-	const { props, columnId, renderHeader, density } = args
+	const { props, columnId, renderHeader } = args
 
 	const open = segment.info ? args.expanded.has(segment.info.key) : true
 
@@ -256,10 +248,7 @@ function renderManualSegment<T>(
 				/>
 			)}
 			{segment.leaves.map((leaf) => (
-				<GridGroupLeafRow<T>
-					key={leaf.id}
-					{...leafRowProps(props, leaf, { expanded: open, density })}
-				/>
+				<GridGroupLeafRow<T> key={leaf.id} {...leafRowProps(props, leaf, { expanded: open })} />
 			))}
 			{/* Expanded, but its children aren't loaded yet (the consumer's
 			    onGroupExpand fetch is in flight): fill the opened group with skeleton
@@ -290,7 +279,7 @@ function renderGroupedBody<T>(
 	groups: GridGroup<T>[],
 	groupColumnId: string | number,
 ): ReactElement {
-	const { visibleColumns, groupRenderHeader, density, rowGroupPresentation, virtualize } = props
+	const { visibleColumns, groupRenderHeader, rowGroupPresentation, virtualize } = props
 
 	// Apply the manual group order while the overlay covers every group.
 	// Otherwise the engine's group order stands.
@@ -313,10 +302,9 @@ function renderGroupedBody<T>(
 				columnId={groupColumnId}
 				renderHeader={groupRenderHeader}
 				totaled={totaled}
-				density={density}
 				presentation={rowGroupPresentation}
 				leafProps={(leaf, expanded, color) =>
-					leafRowProps(props, leaf, { expanded, density, color, level: 2 })
+					leafRowProps(props, leaf, { expanded, color, level: 2 })
 				}
 				window={virtualize}
 			/>
@@ -331,7 +319,6 @@ function renderGroupedBody<T>(
 					props,
 					columnId: groupColumnId,
 					renderHeader: groupRenderHeader,
-					density,
 					totaled,
 					presentation: rowGroupPresentation,
 				}),
@@ -363,7 +350,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 		groupColumnId,
 		manualGroupSort,
 		groupRenderHeader,
-		density,
 		virtualize,
 		pinning,
 	} = props
@@ -405,7 +391,6 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 						renderHeader: groupRenderHeader,
 						expanded: manualGroup.expanded,
 						toggle: manualGroup.toggle,
-						density,
 					}),
 				)}
 			</TableBody>

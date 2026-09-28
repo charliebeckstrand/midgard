@@ -24,6 +24,7 @@ import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
+import { Grid } from '../../modules/grid'
 import { Option } from '../../primitives/option'
 import { DensityProvider } from '../../providers/density'
 import { present, renderUI, screen } from '../helpers'
@@ -551,6 +552,50 @@ describe('the sparkline at the first paint (real browser)', () => {
 
 			container.remove()
 		}
+	})
+})
+
+describe('the grid at the first paint (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	/** Mounts the server markup of `element` with no hydration. */
+	const mountMarkup = (element: ReactElement) => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToStaticMarkup(element)
+
+		document.body.append(container)
+
+		return container
+	}
+
+	const columns = [{ id: 'name', title: 'Name', cell: (row: { name: string }) => row.name }]
+
+	const rows = [{ name: 'Ada' }]
+
+	it.each<[string, ReactElement, number]>([
+		[
+			'the root',
+			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} />,
+			CELL_PADDING_PX.sm,
+		],
+		[
+			'an explicit density',
+			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} density="loose" />,
+			CELL_PADDING_PX.lg,
+		],
+	])('pads the cells at the step of %s', (_, element, padding) => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(element)
+
+		const cell = present(container.querySelector('tbody td'), 'cell')
+
+		expect(Number.parseFloat(getComputedStyle(cell).paddingInlineStart)).toBe(padding)
+
+		container.remove()
 	})
 })
 
