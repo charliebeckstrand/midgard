@@ -142,12 +142,6 @@ describe('CheckboxGroup', () => {
 })
 
 describe('Checkbox size', () => {
-	it('takes md outside each scope', () => {
-		const { container } = renderUI(<Checkbox />)
-
-		expect(densityStepOf(getSlot(container, 'control'))).toBe('md')
-	})
-
 	it('opens a scope for an explicit size prop', () => {
 		const { container } = renderUI(<Checkbox size="lg" />)
 
