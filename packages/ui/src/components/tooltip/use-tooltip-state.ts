@@ -8,7 +8,7 @@ import {
 	useHover,
 	useInteractions,
 } from '@floating-ui/react'
-import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react'
 import { useFloatingDisclosure } from '../../hooks'
 import { useOpenChange } from '../../hooks/use-open-change'
 import { subscribeOverlaySignal } from '../../primitives/overlay'
@@ -93,13 +93,15 @@ export function useTooltipState({
 			!next || (enabled && !isReferenceDisabled(gateRefs.reference.current)),
 	})
 
-	const prevEnabledRef = useRef(enabled)
+	// Adjusted during render: a tooltip that turns off while open closes in the
+	// same render.
+	const [prevEnabled, setPrevEnabled] = useState(enabled)
 
-	if (prevEnabledRef.current && !enabled && open) {
-		setOpen(false)
+	if (prevEnabled !== enabled) {
+		setPrevEnabled(enabled)
+
+		if (!enabled && open) setOpen(false)
 	}
-
-	prevEnabledRef.current = enabled
 
 	// Whether the reference matches `:disabled`, read from the DOM as an external
 	// store. The reference's own `disabled` attribute, a child's, or an ancestor

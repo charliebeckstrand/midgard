@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useRef } from 'react'
+import { useMemo, useState } from 'react'
 import type { DensityLevel } from '../../providers/density'
 import type { GridSortState } from './context'
 import {
@@ -100,11 +100,14 @@ export function useTableRevealed(
 	failed: boolean,
 	rowCount: number,
 ): boolean {
-	const revealed = useRef(false)
+	const reveal = settled || loading || failed || rowCount === 0
 
-	if (settled || loading || failed || rowCount === 0) revealed.current = true
+	// Adjusted during render, so the first render that reveals returns it.
+	const [revealed, setRevealed] = useState(reveal)
 
-	return revealed.current
+	if (reveal && !revealed) setRevealed(true)
+
+	return revealed || reveal
 }
 
 /**

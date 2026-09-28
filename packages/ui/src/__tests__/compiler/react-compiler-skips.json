@@ -14,9 +14,6 @@
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
 	},
-	"components/form/use-form-store.ts": {
-		"useFormStore": "Refs"
-	},
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
 	},
@@ -51,9 +48,6 @@
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
-	"components/tooltip/use-tooltip-state.ts": {
-		"useTooltipState": "Refs"
-	},
 	"hooks/a11y/use-a11y-roving.ts": {
 		"useA11yRoving": "PreserveManualMemo"
 	},
@@ -85,9 +79,6 @@
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
 	},
-	"modules/dashboard/dashboard.tsx": {
-		"Dashboard": "Refs"
-	},
 	"modules/grid/grid-context-menu.tsx": {
 		"GridContextMenu": "PreserveManualMemo"
 	},
@@ -96,9 +87,6 @@
 	},
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"
-	},
-	"modules/grid/use-grid-data-frame.ts": {
-		"useTableRevealed": "Refs"
 	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",

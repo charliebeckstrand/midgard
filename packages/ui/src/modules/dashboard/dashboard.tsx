@@ -19,6 +19,7 @@ import {
 } from 'react'
 import { cn, dataAttr } from '../../core'
 import { useControllable, useDragCursor, useEscapeLayer, useResizeObserver } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { k } from '../../recipes/kata/dashboard'
 import type { AccessibleName } from '../../types'
 import { noop } from '../../utilities'
@@ -441,9 +442,8 @@ export function Dashboard({
 
 	useDashboardHandle({ ref, store, commit })
 
-	const reporter = useRef(onTileError)
-
-	reporter.current = onTileError
+	// It reads the newest reporter, and its identity holds for the mount.
+	const reportError = useStableEvent((id: string, error: unknown) => onTileError?.(id, error))
 
 	const actions = useMemo<DashboardActions>(
 		() => ({
@@ -452,9 +452,9 @@ export function Dashboard({
 			cancelResize,
 			setFilter: (next) => setFilterValue(next),
 			updateSelections: (update) => setSelectionValue((current) => update(current ?? [])),
-			reportError: (id, error) => reporter.current?.(id, error),
+			reportError,
 		}),
-		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue],
+		[beginResize, resizeBy, cancelResize, setFilterValue, setSelectionValue, reportError],
 	)
 
 	// The root reads flags only, so a preview never renders the root again.

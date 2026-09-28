@@ -1,7 +1,40 @@
 'use client'
 
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useState } from 'react'
 import type { FormStateValue, FormStore } from './context'
+
+/**
+ * Makes the store for one form, and the function that publishes a committed
+ * state to it. Both `state` and `server` start from the first state, so SSR,
+ * hydration, and the first client render share one snapshot.
+ */
+function createFormStore(initial: FormStateValue): {
+	store: FormStore
+	publish: (state: FormStateValue) => void
+} {
+	let state = initial
+
+	const listeners = new Set<() => void>()
+
+	return {
+		store: {
+			subscribe: (listener) => {
+				listeners.add(listener)
+
+				return () => {
+					listeners.delete(listener)
+				}
+			},
+			getState: () => state,
+			getServerState: () => initial,
+		},
+		publish: (next) => {
+			state = next
+
+			for (const listener of listeners) listener()
+		},
+	}
+}
 
 /**
  * Bridges the reducer-owned form state to an external-store interface; fields
@@ -17,41 +50,11 @@ import type { FormStateValue, FormStore } from './context'
  * @internal
  */
 export function useFormStore(formState: FormStateValue): FormStore {
-	const internalRef = useRef<{
-		state: FormStateValue
-		server: FormStateValue
-		listeners: Set<() => void>
-	} | null>(null)
-
-	if (internalRef.current === null) {
-		// Seed both `state` and `server` from the first committed state; SSR,
-		// hydration, and the initial client render share the same snapshot.
-		internalRef.current = { state: formState, server: formState, listeners: new Set() }
-	}
-
-	const internal = internalRef.current
+	const [{ store, publish }] = useState(() => createFormStore(formState))
 
 	useLayoutEffect(() => {
-		internal.state = formState
+		publish(formState)
+	}, [formState, publish])
 
-		for (const listener of internal.listeners) listener()
-	}, [formState, internal])
-
-	const storeRef = useRef<FormStore | null>(null)
-
-	if (storeRef.current === null) {
-		storeRef.current = {
-			subscribe: (listener) => {
-				internal.listeners.add(listener)
-
-				return () => {
-					internal.listeners.delete(listener)
-				}
-			},
-			getState: () => internal.state,
-			getServerState: () => internal.server,
-		}
-	}
-
-	return storeRef.current
+	return store
 }
