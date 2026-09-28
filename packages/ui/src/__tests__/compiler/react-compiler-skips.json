@@ -20,9 +20,6 @@
 	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
 		"PdfViewerViewport": "Refs"
 	},
-	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
-		"usePdfViewerHighlights": "Refs"
-	},
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
 		"usePdfViewerMagnifier": "Refs"
 	},

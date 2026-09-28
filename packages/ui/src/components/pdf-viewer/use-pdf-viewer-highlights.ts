@@ -1,9 +1,10 @@
 'use client'
 
-import { useCallback, useEffect, useEffectEvent, useRef } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
 import type { Color } from '../../core/recipe'
 import { useControllable, useScrollWithin } from '../../hooks'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { toFractionRect } from './pdf-viewer-highlight-geometry'
 import type {
 	PdfViewerHighlight,
@@ -175,12 +176,17 @@ export function usePdfViewerHighlights({
 		goToPage(activeHighlightPage)
 	}, [activeId, activeHighlightPage, goToPage])
 
-	// Reveal-once latch, cleared in render on any change of the active id — including to
-	// null, so re-selecting the same region reveals again — rather than in the ref's own
-	// detach, which StrictMode's dev replay of a moved fiber would trip into scrolling twice.
+	// Reveal-once latch, cleared on any change of the active id — including to null, so
+	// re-selecting the same region reveals again — rather than in the ref's own detach,
+	// which StrictMode's dev replay of a moved fiber would trip into scrolling twice. The
+	// clear is a layout effect. The region's ref attaches before it in the same commit,
+	// so a latch that already names the new id stays, and any other latch clears before
+	// a later attach reads it.
 	const revealedRef = useRef<string | null>(null)
 
-	if (revealedRef.current !== activeId) revealedRef.current = null
+	useLayoutEffect(() => {
+		if (revealedRef.current !== activeId) revealedRef.current = null
+	}, [activeId])
 
 	const revealRef = useCallback(
 		(node: HTMLElement | null) => {
@@ -206,11 +212,9 @@ export function usePdfViewerHighlights({
 
 	const clear = useCallback(() => setActiveId(null), [setActiveId])
 
-	// Read as an effect event so a consumer that rebuilds the handler each render — the common
-	// case for an inline arrow — does not change the layer's props and re-render every region.
-	const reportPress = useEffectEvent((id: string) => onHighlightPress?.(id))
-
-	const press = useCallback((id: string) => reportPress(id), [])
+	// A stable event, so a consumer that rebuilds the handler each render — the common case
+	// for an inline arrow — does not change the layer's props and re-render every region.
+	const press = useStableEvent((id: string) => onHighlightPress?.(id))
 
 	return {
 		regions,
