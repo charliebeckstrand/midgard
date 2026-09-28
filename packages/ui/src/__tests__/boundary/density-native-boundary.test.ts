@@ -103,8 +103,8 @@ describe('density-native boundary', () => {
 // control slot opens the context with `<DensitySlot>` and writes
 // `data-density="slot"`.
 //
-// The grid is the one exception. Its cell scope is on the `<table>`, and its
-// overlay scope wraps a surface that opens its own scope.
+// The grid is the one exception. Its overlay scope, `GridOverlayDensity`, wraps
+// a surface that writes its own `data-density`.
 
 const CONTEXT_SCOPE = /<Density(?:\s+step=|Slot>)/g
 

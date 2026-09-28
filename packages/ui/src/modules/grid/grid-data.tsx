@@ -23,12 +23,7 @@ import { GridFooterBar } from './grid-footer-bar'
 import { GridGroupByContext } from './grid-group-by-button'
 import { useGridMenuActions } from './grid-menu-actions'
 import { GridPagination as GridPaginationFooter } from './grid-pagination'
-import {
-	DensityCascade,
-	GridOverlayDensityContext,
-	GridRegion,
-	GridRowReorderRegion,
-} from './grid-region'
+import { GridOverlayDensityContext, GridRegion, GridRowReorderRegion } from './grid-region'
 import { useGridSort, useServerSortSettle } from './grid-sort-state'
 import { GridToolbar } from './grid-toolbar'
 import type { GridScrollRowIntoView } from './grid-virtualized-body'
@@ -152,8 +147,9 @@ export function GridData<T>({
 	// nearest scope, else the root element.
 	const level = resolveDensity(condensed, useDensityLevel(densityProp))
 
-	// Read here, above `DensityCascade`, so it is the density *surrounding* the grid
-	// — what an overlay the grid spawns renders at (see `GridOverlayDensity`).
+	// Read here, above the scope of the table, so it is the density *surrounding*
+	// the grid — what an overlay the grid spawns renders at (see
+	// `GridOverlayDensity`).
 	const overlayDensity = useDensityStep()
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
@@ -846,7 +842,7 @@ export function GridData<T>({
 									active={rowReorderActive}
 									dndContextProps={rowReorder.dndContextProps}
 								>
-									<DensityCascade level={density}>{tableRegion}</DensityCascade>
+									{tableRegion}
 								</GridRowReorderRegion>
 							</GridRegion>
 						</GridGroupByContext>
