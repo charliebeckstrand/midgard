@@ -1,9 +1,46 @@
 import { useRef } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Alert } from '../../components/alert'
+import { Button } from '../../components/button'
 import { bySlot, expectAnnouncement, fireEvent, liveRegion, renderUI, screen } from '../helpers'
 
 describe('Alert', () => {
+	it('gives a button in its actions the soft variant in its own color', () => {
+		renderUI(
+			<>
+				<Alert severity="warning" title="Title" actions={<Button>Action</Button>} />
+				<Button variant="soft" color="amber">
+					Reference
+				</Button>
+			</>,
+		)
+
+		const action = screen.getByRole('button', { name: 'Action' })
+
+		expect(action).toHaveAttribute('data-variant', 'soft')
+
+		expect(action.className).toBe(screen.getByRole('button', { name: 'Reference' }).className)
+	})
+
+	it('keeps the variant and color that a button in its actions gives', () => {
+		renderUI(
+			<Alert
+				color="amber"
+				title="Title"
+				actions={
+					<Button variant="outline" color="zinc">
+						Action
+					</Button>
+				}
+			/>,
+		)
+
+		expect(screen.getByRole('button', { name: 'Action' })).toHaveAttribute(
+			'data-variant',
+			'outline',
+		)
+	})
+
 	it('renders title and description props', () => {
 		renderUI(<Alert title="Title" description="Description" />)
 

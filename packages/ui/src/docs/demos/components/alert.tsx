@@ -117,11 +117,7 @@ export function Demo() {
 					severity="warning"
 					title="Storage is almost full"
 					description="You have used 90% of your available storage."
-					actions={
-						<Button size="sm" color="amber">
-							Upgrade
-						</Button>
-					}
+					actions={<Button size="sm">Upgrade</Button>}
 				/>
 			</Example>
 
