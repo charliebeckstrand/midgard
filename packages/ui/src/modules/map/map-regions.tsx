@@ -199,6 +199,17 @@ const Region = memo(function Region({
 	)
 })
 
+/**
+ * The regions that draw, each with its index. The index is the identity of a
+ * region: the features, the categories, the hover target, and the lit layer all
+ * name a region by it.
+ *
+ * @internal
+ */
+function drawnRegions(paths: (string | null)[]): { index: number; d: string }[] {
+	return paths.flatMap((d, index) => (d === null ? [] : [{ index, d }]))
+}
+
 /** Props for {@link MapRegionsBase}: the layer's own inputs, none of the shared emphasis. @internal */
 type MapRegionsBaseProps = MapRegionLayer & { wash: MapWash; interactive: boolean }
 
@@ -238,16 +249,15 @@ const MapRegionsBase = memo(function MapRegionsBase({
 	// Fixed across the pass, so it is resolved once rather than per region.
 	const onTrack = interactive ? track : undefined
 
+	const drawn = useMemo(() => drawnRegions(paths), [paths])
+
 	return (
 		<>
-			{paths.map((d, index) => {
-				if (d === null) return null
-
+			{drawn.map(({ index, d }) => {
 				const paint = paintAt(paints, regionCategory[index] ?? null)
 
 				return (
 					<Region
-						// biome-ignore lint/suspicious/noArrayIndexKey: regions are index-aligned with the features and never reorder.
 						key={index}
 						d={d}
 						index={index}

@@ -148,10 +148,9 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 						{knownPages && (
 							<PaginationList>
-								{getVisiblePages(pageNumber, pageCount).map((item, index) =>
-									item === 'gap' ? (
-										// biome-ignore lint/suspicious/noArrayIndexKey: gap markers carry no stable identity; their position in the fixed window is their identity
-										<PaginationGap key={`gap-${index}`} />
+								{getVisiblePages(pageNumber, pageCount).map((item) =>
+									typeof item === 'string' ? (
+										<PaginationGap key={item} />
 									) : (
 										<PaginationPage
 											key={item}

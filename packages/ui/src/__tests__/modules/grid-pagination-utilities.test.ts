@@ -13,14 +13,14 @@ describe('getVisiblePages', () => {
 	})
 
 	it('collapses the tail near the start', () => {
-		expect(getVisiblePages(2, 20)).toEqual([1, 2, 3, 4, 'gap', 19, 20])
+		expect(getVisiblePages(2, 20)).toEqual([1, 2, 3, 4, 'end-gap', 19, 20])
 	})
 
 	it('collapses the head near the end', () => {
-		expect(getVisiblePages(19, 20)).toEqual([1, 2, 'gap', 17, 18, 19, 20])
+		expect(getVisiblePages(19, 20)).toEqual([1, 2, 'start-gap', 17, 18, 19, 20])
 	})
 
 	it('windows around the current page in the middle', () => {
-		expect(getVisiblePages(10, 20)).toEqual([1, 'gap', 9, 10, 11, 'gap', 20])
+		expect(getVisiblePages(10, 20)).toEqual([1, 'start-gap', 9, 10, 11, 'end-gap', 20])
 	})
 })

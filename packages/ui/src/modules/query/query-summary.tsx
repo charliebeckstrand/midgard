@@ -61,8 +61,8 @@ export function QuerySummary({ value, fields, className }: QuerySummaryProps) {
 	return (
 		<span data-slot="query-summary" className={cn(k.base, className)}>
 			{tokens.map((token, index) => (
-				// biome-ignore lint/suspicious/noArrayIndexKey: positional projection re-derived wholesale; the index is the token's stable identity
-				<Fragment key={index}>
+				// The kind and the source node name a token, as they do in QueryChips.
+				<Fragment key={`${token.kind}:${token.id}`}>
 					{spacedBefore(tokens[index - 1], token) && ' '}
 					<SummaryToken token={token} />
 				</Fragment>

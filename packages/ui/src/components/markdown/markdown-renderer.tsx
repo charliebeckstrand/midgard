@@ -206,29 +206,30 @@ function renderTable(token: Tokens.Table, key: number): ReactNode {
 	return (
 		<table key={key} className={cn(k.table)}>
 			<thead>
-				<tr>
-					{token.header.map((cell, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: column order is the stable identity
-						<th key={i} className={cn(k.th, alignClass(cell.align))}>
-							{renderChildren(cell.tokens)}
-						</th>
-					))}
-				</tr>
+				<tr>{token.header.map(renderHeaderCell)}</tr>
 			</thead>
-			<tbody>
-				{token.rows.map((row, r) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: row order is the stable identity
-					<tr key={r}>
-						{row.map((cell, c) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: column order is the stable identity
-							<td key={c} className={cn(k.td, alignClass(cell.align))}>
-								{renderChildren(cell.tokens)}
-							</td>
-						))}
-					</tr>
-				))}
-			</tbody>
+			<tbody>{token.rows.map(renderRow)}</tbody>
 		</table>
+	)
+}
+
+function renderHeaderCell(cell: Tokens.TableCell, index: number): ReactNode {
+	return (
+		<th key={index} className={cn(k.th, alignClass(cell.align))}>
+			{renderChildren(cell.tokens)}
+		</th>
+	)
+}
+
+function renderRow(row: Tokens.TableCell[], index: number): ReactNode {
+	return <tr key={index}>{row.map(renderCell)}</tr>
+}
+
+function renderCell(cell: Tokens.TableCell, index: number): ReactNode {
+	return (
+		<td key={index} className={cn(k.td, alignClass(cell.align))}>
+			{renderChildren(cell.tokens)}
+		</td>
 	)
 }
 
