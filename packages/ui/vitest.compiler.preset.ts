@@ -8,6 +8,14 @@ const HARNESS = {
 }
 
 /**
+ * The docs site. An app does not import it, and the skip ledger leaves it out
+ * for the same reason. The site builds with the plain React plugin. Its
+ * `docs:pre` transform also reads the authored TSX of each demo, so a compiler
+ * pass before it removes the helper snippets.
+ */
+const DOCS = /[\\/]src[\\/]docs[\\/]/
+
+/**
  * The React Compiler over the `ui` source, for the compiled test run
  * (`vitest.compiler.config.ts`) and the compiled bench run
  * (`vitest.bench.browser.compiler.config.ts`). An app with `reactCompiler: true`
@@ -15,9 +23,9 @@ const HARNESS = {
  * way.
  *
  * The compiler reads the `ui` source only. The harness of the run, the tests or
- * the benchmarks, stays plain, and so do the dependencies in `node_modules`. So
- * the plain run and the compiled run of one suite differ only in the `ui`
- * source.
+ * the benchmarks, stays plain, and so do the docs site and the dependencies in
+ * `node_modules`. So the plain run and the compiled run of one suite differ
+ * only in the `ui` source.
  *
  * The preset is written out rather than taken from `reactCompilerPreset`. That
  * helper applies only to the client environment, and the `pure` project runs in
@@ -33,7 +41,7 @@ export function compileUiSource(harness: keyof typeof HARNESS) {
 				preset: () => ({ plugins: [[reactCompiler, {}]] }),
 				rolldown: {
 					filter: {
-						id: { exclude: [HARNESS[harness], /[\\/]node_modules[\\/]/] },
+						id: { exclude: [HARNESS[harness], DOCS, /[\\/]node_modules[\\/]/] },
 						// A module with no capitalized name and no `use` call holds no
 						// component or hook, so Babel skips it.
 						code: /\b[A-Z]|\buse/,

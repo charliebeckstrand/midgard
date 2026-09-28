@@ -456,9 +456,11 @@ function findSrcDir(root: string): string {
  * transform reads a demo's raw TSX before JSX lowering and lives in its own
  * `enforce: 'pre'` object.
  *
- * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform, stubs the api-reference manifest and demo-metas with empty
- * defaults, and drops the demo `__code` pre-transform.
+ * `docsPlugin({ vitest: true })` keeps the real component-modules map, the
+ * tagging transform, and the demo `__code` pre-transform. It stubs the
+ * api-reference manifest and demo-metas with empty defaults. The pre-transform
+ * reads only demo files. A suite that imports no demo pays nothing for it, and
+ * `demo-snippets.test.tsx` reads the snippets that the site ships.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read
@@ -570,8 +572,6 @@ export function docsPlugin({
 			return { code: tagged, map: null }
 		},
 	}
-
-	if (vitest) return [main]
 
 	const pre: Plugin = {
 		name: 'docs:pre',
