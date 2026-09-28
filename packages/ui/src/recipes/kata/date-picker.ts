@@ -15,7 +15,7 @@ const { cursor } = hannou
 const { focus } = sen
 const { text } = iro
 const { affix, reset, density, surface } = control
-const { field } = narabi
+const { field, flex } = narabi
 const { portal, panel } = popover
 
 const button = defineRecipe({
@@ -41,12 +41,7 @@ const value = defineRecipe({
 // Portal-only inset around the Calendar plus the Calendar-to-footer gap;
 // an inline Calendar carries no chrome of its own, so this lives here,
 // not in the calendar kata. Each takes the step of the nearest density scope.
-const body = [
-	'density-p-[2,3,4]',
-	'density-[xs,sm]:space-y-1',
-	'density-md:space-y-2',
-	'density-[lg,xl]:space-y-3',
-]
+const body = [flex.col, 'density-p-[2,3,4]', 'density-gap-y-[1,2,3]']
 
 export const k = {
 	surface: {
