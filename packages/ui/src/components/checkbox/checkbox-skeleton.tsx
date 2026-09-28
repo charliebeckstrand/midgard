@@ -1,8 +1,9 @@
+import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/checkbox'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
-/** Props for {@link CheckboxSkeleton}. */
-export type CheckboxSkeletonProps = SkeletonProps
+/** Props for {@link CheckboxSkeleton}: the placeholder `size` of the checkbox and an optional `className`. */
+export type CheckboxSkeletonProps = SkeletonProps<Step>
 
 /** Shimmering placeholder matching a Checkbox's footprint; compose in loading trees. */
 export const CheckboxSkeleton = createSkeleton(k.skeleton, 'CheckboxSkeleton')

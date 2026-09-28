@@ -1,5 +1,5 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku } from '../kiso'
+import { hannou, kokkaku, type Step } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -48,35 +48,31 @@ export const k = defineRecipe({
 		'focus-visible:[&::-moz-range-thumb]:ring-4',
 		'focus-visible:[&::-moz-range-thumb]:ring-blue-600',
 		'dark:focus-visible:[&::-moz-range-thumb]:ring-blue-500',
+
+		// Each size takes the step of the nearest density scope. The vertical
+		// padding extends the native hit area beyond the visible thumb. A class
+		// of a pseudo-element names its steps before the pseudo-element, so an
+		// explicit `size` on the input also sizes the track and the thumb. The
+		// negative margin centers the WebKit thumb on its track: half of the
+		// track height less the thumb height.
+		'density-py-[3,4,5]',
+		'density-[xs,sm]:[&::-webkit-slider-runnable-track]:h-1',
+		'density-md:[&::-webkit-slider-runnable-track]:h-1.5',
+		'density-[lg,xl]:[&::-webkit-slider-runnable-track]:h-2',
+		'density-[xs,sm]:[&::-webkit-slider-thumb]:size-3 density-[xs,sm]:[&::-webkit-slider-thumb]:-mt-1',
+		'density-md:[&::-webkit-slider-thumb]:size-4 density-md:[&::-webkit-slider-thumb]:-mt-[5px]',
+		'density-[lg,xl]:[&::-webkit-slider-thumb]:size-5 density-[lg,xl]:[&::-webkit-slider-thumb]:-mt-[6px]',
+		'density-[xs,sm]:[&::-moz-range-track]:h-1',
+		'density-md:[&::-moz-range-track]:h-1.5',
+		'density-[lg,xl]:[&::-moz-range-track]:h-2',
+		'density-[xs,sm]:[&::-moz-range-thumb]:size-3',
+		'density-md:[&::-moz-range-thumb]:size-4',
+		'density-[lg,xl]:[&::-moz-range-thumb]:size-5',
 	],
-	size: {
-		// Vertical padding extends the native hit area beyond the visible thumb.
-		sm: [
-			'py-3',
-			'[&::-webkit-slider-runnable-track]:h-1',
-			'[&::-webkit-slider-thumb]:size-3 [&::-webkit-slider-thumb]:-mt-1',
-			'[&::-moz-range-track]:h-1',
-			'[&::-moz-range-thumb]:size-3',
-		],
-		md: [
-			'py-4',
-			'[&::-webkit-slider-runnable-track]:h-1.5',
-			'[&::-webkit-slider-thumb]:size-4 [&::-webkit-slider-thumb]:-mt-[5px]',
-			'[&::-moz-range-track]:h-1.5',
-			'[&::-moz-range-thumb]:size-4',
-		],
-		lg: [
-			'py-5',
-			'[&::-webkit-slider-runnable-track]:h-2',
-			'[&::-webkit-slider-thumb]:size-5 [&::-webkit-slider-thumb]:-mt-[6px]',
-			'[&::-moz-range-track]:h-2',
-			'[&::-moz-range-thumb]:size-5',
-		],
-	},
 	color,
-	defaults: { size: 'md', color: 'blue' },
+	defaults: { color: 'blue' },
 	skeleton: kokkaku.slider,
 })
 
-/** Recipe variant props for {@link Slider} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
-export type SliderVariants = VariantProps<typeof k>
+/** Recipe variant props for {@link Slider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
+export type SliderVariants = VariantProps<typeof k> & { size?: Step }

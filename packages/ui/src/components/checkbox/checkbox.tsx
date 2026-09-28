@@ -5,7 +5,7 @@ import { type ChangeEventHandler, type ComponentProps, useLayoutEffect, useRef }
 import { cn, dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { type CheckboxVariants, k } from '../../recipes/kata/checkbox'
-import { useControlToggle } from '../control/use-control-toggle'
+import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Checkbox}. */
@@ -17,7 +17,8 @@ export type CheckboxProps = CheckboxVariants & {
 
 /**
  * Labeled checkbox with an `indeterminate` tri-state. Binds to enclosing Form
- * and Control context for `name`, validation, and sizing. An explicit
+ * and Control context for `name` and validation. The box takes the step of the
+ * nearest density scope, and an explicit `size` opens a scope on the label. An explicit
  * `checked` prop wins over the bound field; `onChange` fires in either mode.
  * `defaultChecked` reaches the element only while the checkbox is uncontrolled,
  * so a bound checkbox ignores it (§7.2).
@@ -49,13 +50,11 @@ export function Checkbox({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		validation,
-		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
-	} = useControlToggle({
+	} = useControlProps({
 		id,
 		disabled,
 		required,
-		size,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
@@ -81,19 +80,15 @@ export function Checkbox({
 			}
 		: resolvedOnChange
 
-	const checkClass = cn(
-		'pointer-events-none absolute stroke-(--check-mark) opacity-0',
-		k.checkSize[resolvedSize],
-	)
-
 	const Mark = indeterminate ? Minus : Check
 
 	return (
 		<label
 			data-slot="control"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
-			className={cn(k({ color, size: resolvedSize }), className)}
+			className={cn(k({ color }), className)}
 		>
 			<input
 				// Consumer props spread first; the resolved §7.2 binding, the
@@ -113,7 +108,12 @@ export function Checkbox({
 				{...validation}
 				className={k.input()}
 			/>
-			<Mark data-slot="checkbox-check" aria-hidden="true" className={checkClass} strokeWidth={2} />
+			<Mark
+				data-slot="checkbox-check"
+				aria-hidden="true"
+				className="pointer-events-none absolute stroke-(--check-mark) opacity-0"
+				strokeWidth={2}
+			/>
 		</label>
 	)
 }

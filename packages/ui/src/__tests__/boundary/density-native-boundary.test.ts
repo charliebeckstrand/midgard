@@ -5,6 +5,7 @@ import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
+import { k as checkbox } from '../../recipes/kata/checkbox'
 import { k as combobox } from '../../recipes/kata/combobox'
 import { k as fieldset } from '../../recipes/kata/fieldset'
 import { k as heading } from '../../recipes/kata/heading'
@@ -13,6 +14,12 @@ import { k as list } from '../../recipes/kata/list'
 import { k as listbox } from '../../recipes/kata/listbox'
 import { k as loading } from '../../recipes/kata/loading'
 import { k as menu } from '../../recipes/kata/menu'
+import { k as progress } from '../../recipes/kata/progress'
+import { k as radio } from '../../recipes/kata/radio'
+import { k as rating } from '../../recipes/kata/rating'
+import { k as slider } from '../../recipes/kata/slider'
+import { k as rangeSlider } from '../../recipes/kata/slider-range'
+import { k as switchRecipe } from '../../recipes/kata/switch'
 import { k as table } from '../../recipes/kata/table'
 import { k as tabs } from '../../recipes/kata/tabs'
 import { k as textarea } from '../../recipes/kata/textarea'
@@ -32,6 +39,7 @@ import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-so
 const NATIVE_RECIPES = {
 	badge,
 	button,
+	checkbox,
 	combobox,
 	description: fieldset.description,
 	heading,
@@ -42,9 +50,19 @@ const NATIVE_RECIPES = {
 	'loading spinner': loading.spinner,
 	'menu viewport': menu.viewport,
 	message: fieldset.message,
+	'progress bar': progress,
+	'progress gauge': progress.gauge.root,
+	'progress gauge label': progress.gauge.label,
+	radio,
+	'range slider': rangeSlider.root,
+	'range slider thumb': rangeSlider.thumb,
+	'range slider track': rangeSlider.track,
+	rating,
 	'sidebar layout content': sidebarLayout.content,
 	'sidebar layout header': sidebarLayout.header,
 	'sidebar layout panel': sidebarLayout.panel,
+	slider,
+	switch: switchRecipe,
 	tab: tabs.tab,
 	'table cell': table.cell,
 	'table header': table.header,
@@ -54,6 +72,7 @@ const NATIVE_RECIPES = {
 const NATIVE_FILES = [
 	'components/badge/badge.tsx',
 	'components/button/button.tsx',
+	'components/checkbox/checkbox.tsx',
 	'components/card/card-footer.tsx',
 	'components/card/card-header.tsx',
 	'components/card/card-title.tsx',
@@ -69,6 +88,13 @@ const NATIVE_FILES = [
 	'components/menu/menu-item.tsx',
 	'components/menu/menu-sub.tsx',
 	'components/menu/menu-viewport.tsx',
+	'components/progress/progress-bar.tsx',
+	'components/progress/progress-gauge.tsx',
+	'components/radio/radio.tsx',
+	'components/rating/rating.tsx',
+	'components/slider/range/range-slider.tsx',
+	'components/slider/slider.tsx',
+	'components/switch/switch.tsx',
 	'components/table/table.tsx',
 	'components/tabs/tab-list.tsx',
 	'components/tabs/tab.tsx',
@@ -158,6 +184,33 @@ describe('density selectors', () => {
 			if (rel.startsWith('__tests__')) return
 
 			if (DENSITY_SELECTOR.test(stripSourceComments(content))) violations.push(rel)
+		})
+
+		expect(violations).toEqual([])
+	})
+})
+
+// A pseudo-element ends a selector. A density class after a pseudo-element
+// variant, such as `before:density-p-[2,3,4]`, therefore writes rules that no
+// browser can match: the rung of the element itself puts an attribute after the
+// pseudo-element. The density variant comes first, as in
+// `density-md:before:p-3` or `density-[xs,sm]:before:p-2`.
+
+const PSEUDO_THEN_DENSITY =
+	/(?<![\w-])(?:before|after|placeholder|file|marker|selection|backdrop|first-line|first-letter|\[&::[^\]\s]+\]):[^\s'"`]*?density-/
+
+describe('density after a pseudo-element', () => {
+	it('no source file puts a density class after a pseudo-element variant', () => {
+		const violations: string[] = []
+
+		walkSource(srcDir, (file, content) => {
+			if (!/\.tsx?$/.test(file)) return
+
+			const rel = srcRelative(file)
+
+			if (rel.startsWith('__tests__')) return
+
+			if (PSEUDO_THEN_DENSITY.test(stripSourceComments(content))) violations.push(rel)
 		})
 
 		expect(violations).toEqual([])

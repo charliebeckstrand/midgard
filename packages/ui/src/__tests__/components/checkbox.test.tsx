@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { Checkbox, CheckboxField, CheckboxGroup } from '../../components/checkbox'
 import { Description } from '../../components/fieldset'
 import { Form } from '../../components/form'
-import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, getSlot, renderUI, screen } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 describe('Checkbox', () => {
@@ -142,25 +142,18 @@ describe('CheckboxGroup', () => {
 })
 
 describe('Checkbox size', () => {
-	it('defaults to md (size-5)', () => {
+	it('takes md outside each scope', () => {
 		const { container } = renderUI(<Checkbox />)
 
-		const label = bySlot(container, 'control')
-
-		expect(label?.className).toContain('size-5')
+		expect(densityStepOf(getSlot(container, 'control'))).toBe('md')
 	})
 
-	it('reflects an explicit size prop', () => {
+	it('opens a scope for an explicit size prop', () => {
 		const { container } = renderUI(<Checkbox size="lg" />)
 
-		expect(bySlot(container, 'control')?.className).toContain('size-5')
-	})
+		expect(getSlot(container, 'control')).toHaveAttribute('data-density', 'lg')
 
-	it('check icon scales with size', () => {
-		const { container } = renderUI(<Checkbox size="lg" />)
-
-		// The check is an SVG element; SVGAnimatedString.baseVal is the readable form.
-		expect(bySlot(container, 'checkbox-check')?.getAttribute('class')).toContain('size-4')
+		expect(densityStepOf(getSlot(container, 'checkbox-check'))).toBe('lg')
 	})
 })
 

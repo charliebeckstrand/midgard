@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { Description } from '../../components/fieldset'
 import { Radio, RadioField, RadioGroup } from '../../components/radio'
-import { bySlot, getSlot, renderUI, screen } from '../helpers'
+import { bySlot, densityStepOf, getSlot, renderUI, screen } from '../helpers'
 
 describe('Radio', () => {
 	it('renders with data-slot="radio"', () => {
@@ -63,22 +63,18 @@ describe('RadioGroup', () => {
 })
 
 describe('Radio size', () => {
-	it('defaults to md (size-5)', () => {
+	it('takes md outside each scope', () => {
 		const { container } = renderUI(<Radio />)
 
-		expect(bySlot(container, 'control')?.className).toContain('size-5')
+		expect(densityStepOf(getSlot(container, 'control'))).toBe('md')
 	})
 
-	it('reflects an explicit size prop', () => {
+	it('opens a scope for an explicit size prop', () => {
 		const { container } = renderUI(<Radio size="lg" />)
 
-		expect(bySlot(container, 'control')?.className).toContain('size-5')
-	})
+		expect(getSlot(container, 'control')).toHaveAttribute('data-density', 'lg')
 
-	it('indicator dot scales with size', () => {
-		const { container } = renderUI(<Radio size="lg" />)
-
-		expect(bySlot(container, 'radio-indicator')?.className).toContain('size-2')
+		expect(densityStepOf(getSlot(container, 'radio-indicator'))).toBe('lg')
 	})
 })
 

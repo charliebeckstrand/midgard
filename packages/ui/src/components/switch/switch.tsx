@@ -4,7 +4,7 @@ import { type ChangeEvent, type ComponentProps, useEffect, useRef } from 'react'
 import { cn } from '../../core'
 import { useComposedRef, useControllableFlag } from '../../hooks'
 import { k, type SwitchVariants } from '../../recipes/kata/switch'
-import { useControlToggle } from '../control/use-control-toggle'
+import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
 
 /** Props for {@link Switch}: recipe variants (`color`, `size`), an input `ref`, and native `<input>` attributes minus `type`/`size`. */
@@ -15,8 +15,9 @@ export type SwitchProps = SwitchVariants & {
 /**
  * Toggle control backed by a native `role="switch"` checkbox; controlled via
  * `checked` or uncontrolled. Owns its checked state, keeping `aria-checked` in
- * sync. Integrates with enclosing `<Form>` and `<Control>` for binding, sizing,
- * and validation. An explicit `checked` prop wins over the bound field, and
+ * sync. Integrates with enclosing `<Form>` and `<Control>` for binding and
+ * validation. The track takes the step of the nearest density scope, and an
+ * explicit `size` opens a scope on the label. An explicit `checked` prop wins over the bound field, and
  * `onChange` fires in either mode.
  */
 export function Switch({
@@ -93,13 +94,11 @@ export function Switch({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		validation,
-		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
-	} = useControlToggle({
+	} = useControlProps({
 		id,
 		disabled,
 		required,
-		size,
 		'aria-describedby': ariaDescribedBy,
 		invalid,
 	})
@@ -107,9 +106,10 @@ export function Switch({
 	return (
 		<label
 			data-slot="control"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(k({ size: resolvedSize, color }), className)}
+			className={cn(k({ color }), className)}
 		>
 			<input
 				// Consumer props spread first; the switch role, the synced

@@ -42,10 +42,10 @@ export type ControlPropsResult = {
  * `<Field>` context. `invalid` instead OR's the form-bound flag with the
  * context's.
  *
- * Does **not** resolve size; every field reads the Density cascade directly via
- * `useDensityStep(size)`, never off the Control context. The
- * context's own `size` only seeds the `<Density>` scope a sized `<Control>`
- * opens (plus nested-Control inheritance).
+ * Does **not** resolve size. A field takes its step from the nearest density
+ * scope, never from the Control context. The `size` of the context only sets
+ * the scope that a sized `<Control>` opens (and the inheritance of a nested
+ * `<Control>`).
  *
  * @param input - Explicit control props from the field. Each wins over the
  * context value of the same name, except `invalid` and `aria-describedby`.
@@ -60,7 +60,6 @@ export type ControlPropsResult = {
  * invalid. `validation` collapses the resolved state into a single spreadable
  * attribute object: invalid wins, then a `warning` / `success` severity. The
  * three validation rings therefore stay mutually exclusive.
- * @see {@link useControlToggle} for the Density-aware variant.
  * @example
  *   const { id, disabled, required, invalid, validation } = useControlProps({
  *     id: idProp, disabled: disabledProp, required: requiredProp, invalid,

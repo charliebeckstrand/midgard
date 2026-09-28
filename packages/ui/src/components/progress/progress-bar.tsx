@@ -1,8 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k, type ProgressBarFillVariants } from '../../recipes/kata/progress'
@@ -29,8 +28,9 @@ export type ProgressBarProps = AccessibleName & {
 /**
  * Linear progress indicator rendered as a `role="progressbar"`. Determinate
  * when `value` is a usable number, animating the fill width to its clamped
- * percentage; otherwise indeterminate. Resolves `size` against enclosing
- * Density and respects reduced-motion.
+ * percentage; otherwise indeterminate. The track takes the step of the nearest
+ * density scope, and an explicit `size` opens a scope on it. It respects
+ * reduced-motion.
  *
  * @remarks
  * Exposes `aria-valuenow`/`aria-valuemin`/`aria-valuemax` when determinate and
@@ -45,8 +45,6 @@ export function ProgressBar({
 	className,
 	...labelProps
 }: ProgressBarProps) {
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
 	// NaN is "no usable value": treating it as determinate renders
 	// aria-valuenow="NaN" and width "NaN%".
 	const determinate = value != null && !Number.isNaN(value)
@@ -56,12 +54,13 @@ export function ProgressBar({
 	return (
 		<div
 			data-slot="progress-bar"
+			data-density={size}
 			role="progressbar"
 			aria-valuenow={determinate ? clamp(value, 0, max) : undefined}
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(k({ size: resolvedSize }), className)}
+			className={cn(k(), className)}
 		>
 			{determinate ? (
 				<ReducedMotion>

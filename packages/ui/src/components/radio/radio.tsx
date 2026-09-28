@@ -3,7 +3,7 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
-import { useControlToggle } from '../control/use-control-toggle'
+import { useControlProps } from '../control/use-control-props'
 
 /** Props for {@link Radio}: recipe `color`/`size` plus native `<input>` attributes (less `type`/`size`). */
 export type RadioProps = RadioVariants & {
@@ -12,7 +12,9 @@ export type RadioProps = RadioVariants & {
 
 /**
  * Single radio control wrapped in its label; id, disabled, required, and
- * invalid state resolve from the enclosing Control and Density context.
+ * invalid state resolve from the enclosing Control. The circle takes the step
+ * of the nearest density scope, and an explicit `size` opens a scope on the
+ * label.
  *
  * @remarks Unlike {@link Checkbox} and {@link Switch}, this binds no Form
  * field. It has no internal checked state, and stays a native input controlled
@@ -41,16 +43,16 @@ export function Radio({
 		disabled: resolvedDisabled,
 		required: resolvedRequired,
 		validation,
-		size: resolvedSize,
 		'aria-describedby': resolvedDescribedBy,
-	} = useControlToggle({ id, disabled, required, size, 'aria-describedby': ariaDescribedBy })
+	} = useControlProps({ id, disabled, required, 'aria-describedby': ariaDescribedBy })
 
 	return (
 		<label
 			data-slot="control"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
-			className={cn(k({ color, size: resolvedSize }), className)}
+			className={cn(k({ color }), className)}
 		>
 			<input
 				// Consumer props spread first; `type`, the native grouping `name`,
@@ -70,10 +72,7 @@ export function Radio({
 			<span
 				data-slot="radio-indicator"
 				aria-hidden="true"
-				className={cn(
-					'absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none',
-					k.indicatorSize[resolvedSize],
-				)}
+				className="absolute rounded-full bg-(--check-mark) opacity-0 pointer-events-none"
 			/>
 		</label>
 	)

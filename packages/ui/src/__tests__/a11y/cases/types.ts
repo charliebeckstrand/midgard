@@ -41,7 +41,7 @@ export type LinkSubject = {
 export type DensitySubject = {
 	/** Renders the subject, with `size` as its explicit prop when the sweep passes one. */
 	render: (size?: Step) => ReactElement
-	/** The `data-slot` that publishes `data-size`. */
+	/** The `data-slot` whose step the sweep reads. */
 	slot: string
 }
 
@@ -128,7 +128,7 @@ export type Case = Scenario & {
 	 */
 	link?: readonly LinkSubject[]
 	/**
-	 * Subjects that resolve their size through the Density cascade. A list,
+	 * Subjects that take the step of the nearest density scope. A list,
 	 * because one entry can publish more than one: `slider in field` covers the
 	 * slider and the range slider.
 	 */

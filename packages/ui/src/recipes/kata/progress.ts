@@ -6,10 +6,10 @@
  * reads the `bg` slice, the gauge the `stroke` slice.
  */
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, type Step, ugoki } from '../kiso'
 
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { rounded } = kasane
 const { flex } = narabi
 const { spring } = ugoki
@@ -55,26 +55,21 @@ const fill = defineRecipe({
 })
 
 const root = defineRecipe({
-	base: ['relative', flex.inline, 'justify-center'],
-	size: kokkaku.progress.gauge.size,
-	defaults: { size: 'md' },
+	base: ['relative', flex.inline, 'justify-center', kokkaku.progress.gauge.diameter],
 })
 
 const label = defineRecipe({
-	base: ['absolute', weight.semibold, ...text.default],
-	size: {
-		sm: size.xs,
-		md: size.sm,
-		lg: size.md,
-	},
-	defaults: { size: 'md' },
+	base: ['absolute', weight.semibold, ...text.default, 'density-text-[xs,sm,base]'],
 })
 
 export const k = defineRecipe(
 	{
-		base: ['overflow-hidden', rounded.full, ...mode('bg-zinc-200', 'dark:bg-zinc-800')],
-		size: kokkaku.progress.bar.size,
-		defaults: { size: 'md' },
+		base: [
+			'overflow-hidden',
+			rounded.full,
+			...mode('bg-zinc-200', 'dark:bg-zinc-800'),
+			kokkaku.progress.bar.height,
+		],
 		skeleton: kokkaku.progress,
 	},
 	{
@@ -93,8 +88,8 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for the {@link ProgressBar} track — its styling axes (`size`), for consumers composing custom slots. */
-export type ProgressTrackVariants = VariantProps<typeof k>
+/** Props for the {@link ProgressBar} track: the `size` step that the component writes as a density scope. */
+export type ProgressTrackVariants = { size?: Step }
 export type ProgressBarFillVariants = VariantProps<typeof fill>
-/** Recipe variant props for the {@link ProgressGauge} root — its styling axes (`size`), for consumers composing custom slots. */
-export type ProgressGaugeVariants = VariantProps<typeof root>
+/** Props for the {@link ProgressGauge} root: the `size` step that the component writes as a density scope. */
+export type ProgressGaugeVariants = { size?: Step }
