@@ -100,6 +100,8 @@ Without the compiler, the split does not change behavior. Each phase runs the sa
 2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData`. `useStableHandler` and `useTableRevealed` compile too (see above).
 3. **Render-count bench.** Add a compiled render count for a sort and a selection change on a 1,000-row grid to `__benchmarks__`, before and after. The gain is then a number, not an inference.
 
+Increment 3 is dropped. Increments 1 and 2 landed first, so no count from before the split exists. The skip ledger and `grid-compiler.test.ts` hold the claim that `GridData` compiles.
+
 ## Proof
 
 Each increment runs:
@@ -110,6 +112,10 @@ Each increment runs:
 - The skip ledger, regenerated with `-u`, in the same commit.
 
 A change to a test means a change to behavior, so the bar is that no test changes.
+
+## Closing note
+
+Increments 1 and 2 landed in #1433 and #1435.
 
 ---
 
