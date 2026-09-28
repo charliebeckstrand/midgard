@@ -2,7 +2,7 @@
 
 import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/calendar'
 import { getOrCompute } from '../../utilities'
 import {
@@ -45,7 +45,7 @@ export type CalendarRangeProps = {
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	locale?: string
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
-	size?: Step
+	size?: DensityStep
 	className?: string
 }
 

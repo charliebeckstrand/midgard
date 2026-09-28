@@ -1,4 +1,4 @@
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
 
 /**
  * A friendly density level: the stored density setting, and the `density` prop
@@ -27,7 +27,7 @@ export const densityToSize = {
 	loose: 'lg',
 	snug: 'md',
 	compact: 'sm',
-} satisfies Record<DensityLevel, Step>
+} satisfies Record<DensityLevel, InnerStep>
 
 /**
  * The friendly level of each ambient step, the inverse of {@link densityToSize}.
@@ -37,4 +37,4 @@ export const sizeToDensityLevel = {
 	lg: 'loose',
 	md: 'snug',
 	sm: 'compact',
-} satisfies Record<Step, DensityLevel>
+} satisfies Record<InnerStep, DensityLevel>

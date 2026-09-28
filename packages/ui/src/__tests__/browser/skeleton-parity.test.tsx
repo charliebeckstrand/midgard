@@ -14,7 +14,7 @@ import { Rating, RatingSkeleton } from '../../components/rating'
 import { Slider, SliderSkeleton } from '../../components/slider'
 import { Switch, SwitchSkeleton } from '../../components/switch'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../components/toggle-icon-button'
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -65,7 +65,12 @@ describe('skeleton parity (real browser)', () => {
 
 	// Each pair renders the real component and its skeleton at one step. The box of the real
 	// component is its `data-slot` element; the skeleton is its placeholder.
-	const pairs: [string, string, (size: Step) => ReactElement, (size: Step) => ReactElement][] = [
+	const pairs: [
+		string,
+		string,
+		(size: InnerStep) => ReactElement,
+		(size: InnerStep) => ReactElement,
+	][] = [
 		[
 			'Checkbox',
 			'control',

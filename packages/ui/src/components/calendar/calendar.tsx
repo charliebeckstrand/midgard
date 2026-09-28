@@ -11,10 +11,10 @@ import {
 	useState,
 } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yAnnouncements } from '../../hooks'
 import { Density } from '../../primitives/density'
 import { useLocale } from '../../providers/locale'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/calendar'
 import { resolveLocale } from '../../utilities'
 import type { ButtonVariants } from '../button'
@@ -126,7 +126,7 @@ export type CalendarProps = {
 	 * take the same step. Without it, the calendar takes the step of the nearest
 	 * density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	className?: string
 }
 

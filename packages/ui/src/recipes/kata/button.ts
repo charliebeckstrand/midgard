@@ -78,11 +78,8 @@ export const k = defineRecipe({
 	skeleton: button,
 })
 
-/** The steps a button takes: `xl` has no button step. */
-export type ButtonSize = Exclude<DensityStep, 'xl'>
-
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k> & {
 	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
-	size?: ButtonSize
+	size?: DensityStep
 }

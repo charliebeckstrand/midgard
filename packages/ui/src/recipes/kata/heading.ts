@@ -1,6 +1,7 @@
+import type { InnerStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
 import { clamp } from '../../utilities/clamp'
-import { iro, ji, kokkaku, type Step } from '../kiso'
+import { iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
 const { size, weight } = ji
@@ -28,7 +29,7 @@ const base = {
 } as const satisfies Record<Level, Rung>
 
 /** Density `size` step → ladder offset. `md` is neutral; `sm`/`lg` shift one rung. */
-const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<Step, number>
+const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<InnerStep, number>
 
 /**
  * Font weight per heading level: bold at the top of the scale, easing to
@@ -49,7 +50,7 @@ const levelWeight = {
  * clamped to the ladder ends. `md` returns the level's natural rung;
  * `sm`/`lg` shift every level one rung, preserving the level hierarchy.
  */
-export function headingScale(level: Level, step: Step): Rung {
+export function headingScale(level: Level, step: InnerStep): Rung {
 	const index = clamp(ladder.indexOf(base[level]) + shift[step], 0, ladder.length - 1)
 
 	// The index is clamped above; the fallback satisfies
@@ -63,7 +64,7 @@ export function headingScale(level: Level, step: Step): Rung {
  * step: `md` returns `text-lg`, `sm`/`lg` move one rung. Returns the
  * matching `ji.size` class.
  */
-export function titleSize(step: Step): string {
+export function titleSize(step: InnerStep): string {
 	return size[headingScale(4, step)]
 }
 

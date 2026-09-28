@@ -13,6 +13,7 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import type { DensityStep } from '../../core/density'
 import {
 	useA11yRoving,
 	useFloatingUI,
@@ -33,7 +34,7 @@ import { SelectTrigger } from '../../primitives/select-trigger'
 import { VirtualItemSourceContext } from '../../primitives/virtual-options/context'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { type ControlSize, useControl } from '../control/context'
+import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -92,7 +93,7 @@ type ComboboxBaseProps<T> = GroupStampProps & {
 	placement?: Placement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: ControlSize
+	size?: DensityStep
 	disabled?: boolean
 	/** Keeps the input focusable and the value submitted, but blocks typing and opening. */
 	readOnly?: boolean

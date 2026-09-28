@@ -1,5 +1,6 @@
+import type { DensityStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, narabi, type Step, sen, shaku, textRamp } from '../kiso'
+import { hannou, narabi, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
 const { flex } = narabi
@@ -133,4 +134,4 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: Step }
+export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: DensityStep }

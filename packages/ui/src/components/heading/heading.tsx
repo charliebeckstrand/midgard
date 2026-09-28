@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
 import { headingRamp, headingScale, k } from '../../recipes/kata/heading'
 
 /** Semantic heading level, `1`-`6`, selecting the rendered `h1`-`h6` tag. */
@@ -15,7 +15,7 @@ export type HeadingProps = {
 	 * `lg` one up, `md` neutral. With no `size`, the heading takes the step of
 	 * its nearest density scope, and `md` outside each scope.
 	 */
-	size?: Step
+	size?: InnerStep
 	className?: string
 } & Omit<ComponentProps<'h1'>, 'className'>
 

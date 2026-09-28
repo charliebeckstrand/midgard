@@ -1,11 +1,11 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/avatar'
 
 /** Props for {@link AvatarGroup}; `size` projects onto descendant avatars and status dots. */
 export type AvatarGroupProps = {
-	size?: Step
+	/** The size of each avatar. It is explicit: an avatar ignores density. */
+	size?: keyof typeof k.group.size
 	className?: string
 	children: ReactNode
 }

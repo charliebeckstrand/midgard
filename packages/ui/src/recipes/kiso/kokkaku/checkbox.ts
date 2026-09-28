@@ -14,5 +14,5 @@ const { rounded } = kasane
 
 export const checkbox = {
 	base: [rounded.sm, 'density-size-[4,5,5]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

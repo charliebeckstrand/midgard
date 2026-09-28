@@ -68,7 +68,7 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 `props-base-boundary.test.ts` and Biome's `noReactForwardRef` gate the rule.
 
-4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A scale with no kata of its own is named where it is defined (`Step` in `kiso/sun`, `IconSize` in `kiso/shaku`) and aliased from there. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
+4.4 A variant axis reaches props from the recipe that declares it: `size?: ButtonVariants['size']`, `SkeletonProps<NonNullable<ButtonVariants['size']>>`. A `size` that sets the density step takes `DensityStep` from `core/density`, with no alias. A JS reader that clamps to three steps takes `InnerStep`. Never repeat an axis union in a second place; the `no-respelled-orientation` Biome plugin pins the orientation axis.
 
 4.5 Props live beside the component that takes them. A barrel reaches a type at the module that declares it, never through a component that re-exports it. Every barreled component ships its `<Name>Props`.
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { toAmbientStep } from '../../core/density'
+import { toInnerStep } from '../../core/density'
 import { useDensityStep } from '../../primitives/density'
 import { type DensityLevel, sizeToDensityLevel } from './context'
 
@@ -20,5 +20,5 @@ import { type DensityLevel, sizeToDensityLevel } from './context'
 export function useDensityLevel(explicit?: DensityLevel): DensityLevel {
 	const ambient = useDensityStep()
 
-	return explicit ?? sizeToDensityLevel[toAmbientStep(ambient)]
+	return explicit ?? sizeToDensityLevel[toInnerStep(ambient)]
 }

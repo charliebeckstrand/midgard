@@ -1,8 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
+import type { DensityStep } from '../../core/density'
 import type { GroupStampProps } from '../../types/group-stamp'
-import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
@@ -44,7 +44,7 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 */
 	onOpenChange?: (open: boolean) => void
 	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
-	size?: ControlSize
+	size?: DensityStep
 	disabled?: boolean
 	className?: string
 }

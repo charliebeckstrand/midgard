@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllableFlag } from '../../hooks/use-controllable'
@@ -14,7 +15,6 @@ import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
-import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
@@ -51,7 +51,7 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 * Without it, the panel takes the step of the nearest density scope of
 		 * the drawer, which the portal carries.
 		 */
-		size?: Step
+		size?: DensityStep
 		/**
 		 * How much of the screen the panel docks over.
 		 *

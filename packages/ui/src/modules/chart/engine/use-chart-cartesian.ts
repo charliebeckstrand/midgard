@@ -1,7 +1,7 @@
 'use client'
 
 import { useMemo } from 'react'
-import { toAmbientStep } from '../../../core'
+import { toInnerStep } from '../../../core'
 import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
@@ -887,7 +887,7 @@ export function useChartCartesian<T>(
 
 	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
 
-	const resolvedSize = toAmbientStep(useDensityStep(size))
+	const resolvedSize = toInnerStep(useDensityStep(size))
 
 	// The band axis writes dates in the ambient locale's field order, and a time
 	// axis floors its week ticks on that locale's first weekday. Outside a

@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const switchRecipe = {
 	base: [rounded.full, 'density-h-[5,6,7]', 'density-w-[8,10,12]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

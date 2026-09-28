@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/color-panel'
-import type { ControlSize } from '../control/context'
 import { ColorArea } from './color-area'
 import { ColorChannelInputs } from './color-channel-inputs'
 import { DEFAULT_SWATCHES } from './color-constants'
@@ -31,7 +31,7 @@ type ColorPanelBaseProps = {
 	 */
 	swatches?: readonly string[] | false
 	/** Size step. It opens a density scope on the panel. Without it, the panel takes the step of the nearest density scope. */
-	size?: ControlSize
+	size?: DensityStep
 	disabled?: boolean
 	className?: string
 }

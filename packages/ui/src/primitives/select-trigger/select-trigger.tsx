@@ -2,7 +2,7 @@
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
@@ -19,7 +19,7 @@ export type SelectTriggerProps = GroupStampProps & {
 	getReferenceProps: () => Record<string, unknown>
 	glass: boolean
 	/** The explicit `size` of the host. It opens a density scope on the trigger. */
-	size?: Step
+	size?: DensityStep
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode

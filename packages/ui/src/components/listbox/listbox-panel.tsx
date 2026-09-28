@@ -9,10 +9,10 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
-import type { ControlSize } from '../control/context'
 
 type ListboxPanelProps = {
 	id: string
@@ -20,7 +20,7 @@ type ListboxPanelProps = {
 	glass: boolean
 	multiple: boolean
 	/** The explicit size step of the listbox. The panel opens a density scope at it. */
-	size?: ControlSize
+	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

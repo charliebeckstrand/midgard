@@ -2,30 +2,33 @@
  * The steps of density. A density scope, the `density-*` Tailwind variants,
  * and the density context all use these values.
  *
- * `sm`, `md`, and `lg` are the ambient steps: the root element and
- * `DensityProvider` take one of them. `xs` and `xl` are the outer steps. Only an explicit `size` or a
- * stepped-down slot sets one of them.
+ * `sm`, `md`, and `lg` are the inner steps: a density level, and so the root
+ * element and `DensityProvider`, takes one of them. `xs` and `xl` are the
+ * outer steps. Only an explicit `size` or a control slot sets one of them.
  */
 export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const
 
 /** A step of density: a value of `data-density` and of the density context. */
 export type DensityStep = (typeof densitySteps)[number]
 
-/** An ambient step: the three steps that a three-step size axis takes. */
-export type AmbientStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
+/**
+ * An inner step: `sm`, `md`, or `lg`. A density level maps to one, and a JS
+ * reader with three values, such as the chart tick cap, clamps to one.
+ */
+export type InnerStep = Extract<DensityStep, 'sm' | 'md' | 'lg'>
 
-const ambient = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const satisfies Record<
+const inner = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const satisfies Record<
 	DensityStep,
-	AmbientStep
+	InnerStep
 >
 
 /**
- * Clamps a step to the ambient steps: `xs` becomes `sm`, and `xl` becomes
+ * Clamps a step to the inner steps: `xs` becomes `sm`, and `xl` becomes
  * `lg`. A client reader with three values for each step, such as the chart
  * tick cap, clamps the step that it reads through this function.
  */
-export function toAmbientStep(step: DensityStep): AmbientStep {
-	return ambient[step]
+export function toInnerStep(step: DensityStep): InnerStep {
+	return inner[step]
 }
 
 const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const satisfies Record<

@@ -6,7 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
-import { cn, dataAttr, toAmbientStep } from '../../core'
+import { cn, dataAttr, toInnerStep } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import {
 	createGroup,
@@ -208,7 +208,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// at that step, so the panel renders at the density around the grid. The
 				// trigger below stays on the scope of the table, where header chrome
 				// belongs.
-				<Menu placement="bottom-end" size={toAmbientStep(overlayDensity)}>
+				<Menu placement="bottom-end" size={toInnerStep(overlayDensity)}>
 					<MenuTrigger>
 						<Button
 							type="button"

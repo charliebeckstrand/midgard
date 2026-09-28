@@ -63,11 +63,8 @@ export const k = defineRecipe({
 	skeleton: badge,
 })
 
-/** The steps a badge takes: `xl` has no badge step. */
-export type BadgeSize = Exclude<DensityStep, 'xl'>
-
 /** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`) and the `size` step, for consumers composing custom slots. */
 export type BadgeVariants = VariantProps<typeof k> & {
 	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
-	size?: BadgeSize
+	size?: DensityStep
 }

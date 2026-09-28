@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
 import { headingScale, k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 import type { HeadingLevel } from './heading'
@@ -9,7 +9,7 @@ export type HeadingSkeletonProps = {
 	/** @defaultValue 1 */
 	level?: HeadingLevel
 	/** With no `size`, the silhouette takes the step of its nearest density scope. */
-	size?: Step
+	size?: InnerStep
 	className?: string
 }
 

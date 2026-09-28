@@ -2,11 +2,12 @@
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
 import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
-import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
+import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope. */
 export type TabsProps = ComponentProps<'div'> & {
@@ -25,7 +26,7 @@ export type TabsProps = ComponentProps<'div'> & {
 	 * density scope. With no step, the tabs follow the nearest scope, and `md`
 	 * outside one.
 	 */
-	size?: TabsSize
+	size?: DensityStep
 }
 
 /**

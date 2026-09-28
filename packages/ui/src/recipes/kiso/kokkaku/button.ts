@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const button = {
 	base: [rounded.lg, 'density-h-[5.5,7.5,9.5,11.5,11.5]', 'density-w-[16,20,24,28,28]'],
-	density: ['xs', 'sm', 'md', 'lg'],
+	density: true,
 } as const

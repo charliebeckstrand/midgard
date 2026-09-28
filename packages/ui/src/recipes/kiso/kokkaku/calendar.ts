@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const calendar = {
 	base: [rounded.lg, 'density-h-[60,78,92]', 'density-w-[52,68,80]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

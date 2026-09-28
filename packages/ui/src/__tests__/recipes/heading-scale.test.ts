@@ -2,7 +2,9 @@
 import { describe, expect, it } from 'vitest'
 import { headingScale, headingWeight, k, titleSize } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
-import { steps } from '../../recipes/kiso/sun'
+
+/** The inner steps, which a heading `size` takes. */
+const steps = ['sm', 'md', 'lg'] as const
 
 const { size, weight } = ji
 

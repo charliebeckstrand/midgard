@@ -1,10 +1,7 @@
 'use client'
 
 import { createContext, type Severity } from '../../core'
-import type { Step } from '../../recipes'
-
-/** Control density step: `sm`, `md`, or `lg`. Aliases the recipe-layer {@link Step} so the control and recipe size scales cannot drift. A set size makes the control a density scope. */
-export type ControlSize = Step
+import type { DensityStep } from '../../core/density'
 
 /** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
 export type ControlVariant = 'default' | 'outline'
@@ -27,7 +24,7 @@ export type ControlContextValue = {
 	required?: boolean
 	/** Validation / status severity from `<Control severity>` / `<Field severity>`; control-aware fields map it to the matching `data-*` validation ring (and `error` additionally to `aria-invalid`). */
 	severity?: ControlSeverity
-	size?: ControlSize
+	size?: DensityStep
 	variant?: ControlVariant
 	/** Composed `aria-describedby` for fields: registered Description / error Message ids, or undefined when none are rendered. */
 	describedBy?: string

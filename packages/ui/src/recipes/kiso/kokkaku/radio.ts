@@ -13,5 +13,5 @@ const { rounded } = kasane
 
 export const radio = {
 	base: [rounded.full, 'density-size-[4,5,5]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

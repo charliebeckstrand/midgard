@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const slider = {
 	base: ['w-full', rounded.full, 'density-h-[1,1.5,2]', 'density-my-[3,4,5]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

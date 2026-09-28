@@ -1,7 +1,7 @@
 export {
-	type AmbientStep,
 	type DensityStep,
 	densitySteps,
+	type InnerStep,
 	stepDown,
-	toAmbientStep,
+	toInnerStep,
 } from './steps'

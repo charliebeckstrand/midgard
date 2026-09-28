@@ -2,7 +2,7 @@
 
 import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 
 type MenuStateValue = {
 	open: boolean
@@ -18,7 +18,7 @@ type MenuStateValue = {
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
 	/** The explicit size step of the menu. The panel opens a density scope at it. */
-	size?: Step
+	size?: DensityStep
 }
 
 type MenuActionsValue = {

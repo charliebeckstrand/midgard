@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { headingRamp, headingScale, headingWeight } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
-import { steps } from '../../recipes/kiso/sun'
 import { bySlot, getSlot, renderUI } from '../helpers'
+
+/** The inner steps, which a heading `size` takes. */
+const steps = ['sm', 'md', 'lg'] as const
 
 // The ladder is `recipes/heading-scale.test.ts`, in node, over all eighteen
 // level-by-step pairs. What stays here is the wiring: the component gives

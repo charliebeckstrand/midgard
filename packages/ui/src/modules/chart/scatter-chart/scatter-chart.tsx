@@ -1,11 +1,11 @@
 'use client'
 
 import { useMemo } from 'react'
-import { toAmbientStep } from '../../../core'
+import { toInnerStep } from '../../../core'
+import type { DensityStep } from '../../../core/density'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
-import type { Step } from '../../../recipes'
 import type { AccessibleName } from '../../../types'
 import { fractionFormat, once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
@@ -88,7 +88,7 @@ import {
  */
 export type ScatterFrameProps = {
 	/** Resolves against enclosing Density; sets the tick-count target. */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
 	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
@@ -657,7 +657,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
 
-	const resolvedSize = toAmbientStep(useDensityStep(size))
+	const resolvedSize = toInnerStep(useDensityStep(size))
 
 	const metrics = CHART_METRICS[resolvedSize]
 

@@ -24,7 +24,7 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * `useDensityRoot`).
  *
  * A component with a three-step size axis clamps the result with
- * `toAmbientStep` from `ui/core`.
+ * `toInnerStep` from `ui/core`.
  *
  * @param explicit - The `size` prop of the component, if it has one.
  * @returns The resolved step.

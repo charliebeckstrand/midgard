@@ -2,10 +2,11 @@
 
 import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
 import { Density } from '../../primitives/density'
 import type { Mount } from '../../primitives/mount'
-import { k, type TreeSize } from '../../recipes/kata/tree'
+import { k } from '../../recipes/kata/tree'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
@@ -22,7 +23,7 @@ export type TreeProps = AccessibleName &
 		 * a density scope on the tree. Without it, the tree takes the step of the
 		 * nearest density scope.
 		 */
-		size?: TreeSize
+		size?: DensityStep
 		/**
 		 * Indent each nested group by the chevron width plus the row gap.
 		 * @defaultValue true

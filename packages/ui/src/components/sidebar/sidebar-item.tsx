@@ -2,11 +2,11 @@
 
 import { type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { ActiveIndicator } from '../../primitives/active-indicator'
 import { Density } from '../../primitives/density'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sidebar'
 import { partitionByType } from '../../utilities/flatten-children'
 import { Button } from '../button'
@@ -24,7 +24,7 @@ export type SidebarItemProps = NavItemProps & {
 	 * and the slots take the same step. Without it, the row takes the step of
 	 * the nearest density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 }
 
 /**

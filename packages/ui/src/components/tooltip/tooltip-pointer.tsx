@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { TooltipContext } from './context'
 import { TooltipContent } from './tooltip-content'
 import { type TooltipPointerOptions, useTooltipPointer } from './use-tooltip-pointer'
@@ -9,7 +9,7 @@ import { type TooltipPointerOptions, useTooltipPointer } from './use-tooltip-poi
 /** Props for {@link TooltipPointer}. @internal */
 export type TooltipPointerProps = TooltipPointerOptions & {
 	/** Size step forwarded to the inner `<TooltipContent>`. @defaultValue the step of the nearest density scope */
-	size?: Step
+	size?: DensityStep
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string
 	children: ReactNode

@@ -2,6 +2,7 @@
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
@@ -9,14 +10,14 @@ import { Density } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
-import { type ControlSize, type ControlVariant, useControl } from '../control/context'
+import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
-	size?: ControlSize
+	size?: DensityStep
 	variant?: ControlVariant
 	className?: string
 	/**

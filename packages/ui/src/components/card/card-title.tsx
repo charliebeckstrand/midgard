@@ -1,6 +1,6 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
 import { titleRamp, titleSize } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 
@@ -8,10 +8,10 @@ import { Heading } from '../heading'
 export type CardTitleProps = {
 	className?: string
 	/**
-	 * Step on the title type scale. With no step, the title follows the nearest
+	 * InnerStep on the title type scale. With no step, the title follows the nearest
 	 * density scope, such as a `<Card size>`, and `md` outside one.
 	 */
-	size?: Step
+	size?: InnerStep
 	/**
 	 * Heading level of the rendered title.
 	 * @defaultValue 3

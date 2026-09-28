@@ -10,7 +10,7 @@ Composition flows downward only. Within kiso, semantic bundles compose primitive
 
 ## 2. Shape
 
-Every module is a sub-folder. One file per concern; `index.ts` assembles the named bundle. The bundle name matches the folder so consumers reach a finished surface by name; the sub-files are the internal structure of each axis. The four exceptions are `kara.ts`, `sou.ts`, `sun.ts`, and `tsunagi.ts` — each a single coherent concern small enough that splitting would add files without adding clarity.
+Every module is a sub-folder. One file per concern; `index.ts` assembles the named bundle. The bundle name matches the folder so consumers reach a finished surface by name; the sub-files are the internal structure of each axis. The three exceptions are `kara.ts`, `sou.ts`, and `tsunagi.ts` — each a single coherent concern small enough that splitting would add files without adding clarity.
 
 Every concern file opens with a `Layer: kiso · Concern: <concern>` (or `Layer: kiso · Archetype: <archetype> · Concern: <part>`) docblock that pins the axis the module owns; the `index.ts` barrel instead opens with a prose summary of the bundle it assembles, since it owns no single concern. Bodies emit Tailwind utility strings and class fragments — `defineRecipe()` is never invoked here. The recipe engine lives in [`core/recipe/`](../../core/recipe) and is called at the katakana bridge or the kata surface, where the variants axis is declared.
 
@@ -31,7 +31,6 @@ Every concern file opens with a `Layer: kiso · Concern: <concern>` (or `Layer: 
 | `kokkaku/` (骨格)  | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped.                                            | `avatar`, `badge`, `breadcrumb`, `button`, `calendar`, `chart`, `checkbox`, `color-panel`, `control`, `heading`, `map`, `pagination`, `progress`, `radio`, `rating`, `segment`, `slider`, `sparkline`, `stepper`, `switch`, `tabs`, `text`, `textarea`, `toggle-icon-button` |
 | `kara.ts` (空)     | Virtualized emptiness — selectors that read `data-empty` on a `VirtualOptions` wrapper. *Flat file — single coherent concern.* | —                                                                                                                  |
 | `sou.ts` (層)      | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. Component-local `z-*` inside a positioned box stays inline. *Flat file — single coherent concern.* | —                                                                                                                  |
-| `sun.ts` (寸)      | Named density steps (`sm` / `md` / `lg`) and the per-step token table. *Flat file — single coherent concern.*                      | —                                                                                                                  |
 | `tsunagi.ts` (繋ぎ) | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. *Flat file — single coherent concern.*       | —                                                                                                                  |
 
 ## 4. Semantic tier — archetype bundles

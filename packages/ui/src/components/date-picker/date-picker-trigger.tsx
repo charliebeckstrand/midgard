@@ -4,6 +4,7 @@ import { Calendar as CalendarIcon } from 'lucide-react'
 import { type KeyboardEvent, type ReactNode, useRef } from 'react'
 
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useIsTruncated } from '../../hooks'
 import { ControlFrame } from '../../primitives/control'
 import { Density } from '../../primitives/density'
@@ -12,7 +13,6 @@ import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/date-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 import { Icon } from '../icon'
 import { InputClearButton } from '../input/input-clear-button'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../tooltip'
@@ -29,7 +29,7 @@ type DatePickerTriggerProps = GroupStampProps & {
 	displayValue?: string
 	placeholder: string
 	/** The explicit size step. The trigger opens a density scope at it. */
-	size?: ControlSize
+	size?: DensityStep
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean
 	/**

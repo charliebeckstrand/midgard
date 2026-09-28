@@ -4,10 +4,10 @@ import type { FloatingFocusManagerProps } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yHasTabbable } from '../../hooks'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/tooltip'
 import { useTooltipContext } from './context'
 
@@ -28,7 +28,7 @@ export type TooltipContentProps = {
 	 * density scope. With no step, the panel follows the scope of its trigger,
 	 * and `md` outside one.
 	 */
-	size?: Step
+	size?: DensityStep
 	className?: string
 	/**
 	 * Class for the positioned wrapper around the panel, rather than for the panel

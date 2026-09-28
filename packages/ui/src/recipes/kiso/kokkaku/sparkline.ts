@@ -14,5 +14,5 @@ const { rounded } = kasane
 
 export const sparkline = {
 	base: ['inline-block', rounded.sm, 'density-w-[18,24,30]', 'density-h-[6,8,10]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

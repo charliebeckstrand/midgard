@@ -4,11 +4,11 @@ import type { FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
 import { Box } from '../../structure/box'
-import type { ControlSize } from '../control/context'
 
 type ColorPickerContentProps = {
 	open: boolean
@@ -17,7 +17,7 @@ type ColorPickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/** The explicit size step. The body Box opens a density scope at it. Without it, the panel takes the step of the scope that the portal carries. */
-	size?: ControlSize
+	size?: DensityStep
 	children: ReactNode
 }
 

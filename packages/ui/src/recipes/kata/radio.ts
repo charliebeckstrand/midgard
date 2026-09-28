@@ -1,6 +1,7 @@
+import type { DensityStep } from '../../core/density'
 import { defineColors, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { kasane, kokkaku, type Step } from '../kiso'
+import { kasane, kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
 const { rounded } = kasane
@@ -31,4 +32,4 @@ export const k = bridge.check(control, {
 })
 
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RadioVariants = VariantProps<typeof k> & { size?: Step }
+export type RadioVariants = VariantProps<typeof k> & { size?: DensityStep }

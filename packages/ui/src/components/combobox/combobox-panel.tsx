@@ -4,10 +4,10 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/combobox'
-import type { ControlSize } from '../control/context'
 
 type ComboboxPanelProps = {
 	id: string
@@ -16,7 +16,7 @@ type ComboboxPanelProps = {
 	multiple: boolean
 	glass: boolean
 	/** The explicit size step of the combobox. The panel opens a density scope at it. */
-	size?: ControlSize
+	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string

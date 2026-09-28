@@ -3,8 +3,8 @@
 import { Star } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
-import type { Step } from '../../recipes'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
@@ -45,7 +45,7 @@ export type RatingProps = RatingVariants & {
 	 * Size step. It opens a density scope on the row. Without it, the row takes
 	 * the step of the nearest density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * Show the score and take no input. The row renders as one `role="img"`
 	 * carrying the {@link getValueText} readout, because a reader has no reason to

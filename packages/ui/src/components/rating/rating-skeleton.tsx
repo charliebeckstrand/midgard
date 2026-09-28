@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/rating'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
@@ -12,7 +12,7 @@ export type RatingSkeletonProps = {
 	 */
 	count?: number
 	/** With no `size`, the silhouette takes the step of its nearest density scope. */
-	size?: Step
+	size?: DensityStep
 	className?: string
 }
 

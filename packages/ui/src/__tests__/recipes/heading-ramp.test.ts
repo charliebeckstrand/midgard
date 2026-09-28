@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { densitySteps, toAmbientStep } from '../../core/density'
+import { densitySteps, toInnerStep } from '../../core/density'
 import { headingRamp, headingScale, k, titleRamp, titleSize } from '../../recipes/kata/heading'
 import { ji } from '../../recipes/kiso'
 import { findSteps } from '../helpers/class-stops'
@@ -17,7 +17,7 @@ describe('heading ramps', () => {
 		const steps = findSteps([headingRamp[level]], 'density-text-')
 
 		for (const step of densitySteps) {
-			expect(`text-${steps[step]}`).toBe(ji.size[headingScale(level, toAmbientStep(step))])
+			expect(`text-${steps[step]}`).toBe(ji.size[headingScale(level, toInnerStep(step))])
 		}
 	})
 
@@ -25,7 +25,7 @@ describe('heading ramps', () => {
 		const steps = findSteps([k.skeleton.ramp[level]], 'density-h-')
 
 		for (const step of densitySteps) {
-			expect(`h-${steps[step]}`).toBe(k.skeleton.scale[headingScale(level, toAmbientStep(step))])
+			expect(`h-${steps[step]}`).toBe(k.skeleton.scale[headingScale(level, toInnerStep(step))])
 		}
 	})
 
@@ -33,7 +33,7 @@ describe('heading ramps', () => {
 		const steps = findSteps([titleRamp], 'density-text-')
 
 		for (const step of densitySteps) {
-			expect(`text-${steps[step]}`).toBe(titleSize(toAmbientStep(step)))
+			expect(`text-${steps[step]}`).toBe(titleSize(toInnerStep(step)))
 		}
 	})
 })

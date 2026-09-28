@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const colorPanel = {
 	base: [rounded.lg, 'density-h-[76.5,98,120]', 'density-w-[72,80,88]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

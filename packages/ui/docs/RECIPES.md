@@ -30,7 +30,6 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `kasane` 重ね | The signature 4-layer chrome stack plus radius / rounded / gap helpers. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. |
-| `sun` 寸 | Named density steps (`sm` / `md` / `lg`) and the per-step token table. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
 
 ## Kiso — semantic tier
@@ -91,7 +90,6 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`): the three ambient density steps, the same union as `AmbientStep` in `ui/core`. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 

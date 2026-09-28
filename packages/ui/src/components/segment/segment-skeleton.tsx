@@ -1,9 +1,9 @@
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/tabs'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link SegmentSkeleton}: an optional `size` step. */
-export type SegmentSkeletonProps = SkeletonProps<Step>
+export type SegmentSkeletonProps = SkeletonProps<DensityStep>
 
 /**
  * Loading placeholder matching the {@link Segment} control silhouette, sized

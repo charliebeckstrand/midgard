@@ -3,7 +3,7 @@
  *
  *   kiso/     - the design tokens, in two tiers. The primitive atomic concerns
  *               are iro / ji / ma / narabi / omote / hannou / sen / shaku /
- *               sou / sun / tsunagi / ugoki / kokkaku / kasane. The semantic
+ *               sou / tsunagi / ugoki / kokkaku / kasane. The semantic
  *               archetype bundles (control / popover / segment / panel /
  *               slider) are composed from them. Read only by kata.
  *   katakana/ - the bridge. Pure functions that receive a kiso token
@@ -20,7 +20,8 @@
  * `no-value-import-from-recipes-barrel` Biome plugin.
  *
  * This barrel is types-only. It re-exports the recipe-substrate types
- * (`Color`, `Ma`, `Step`, `GroupOrientation`, `GroupPosition`); consumers
+ * (`Color`, `ExtendedColor`, `PaletteColor`, `Ma`, `GroupOrientation`,
+ * `GroupPosition`); consumers
  * derive prop unions from them without threading types through their kata.
  * No runtime values pass through; values reach consumers through their kata
  * funnel. The types-only shape is pinned by
@@ -29,5 +30,4 @@
 
 export type { Color, ExtendedColor, PaletteColor } from '../core/recipe'
 export type { Ma } from './kiso/ma'
-export type { Step } from './kiso/sun'
 export type { GroupOrientation, GroupPosition } from './kiso/tsunagi'

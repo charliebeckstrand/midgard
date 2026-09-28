@@ -5,8 +5,10 @@
  * The SVG gauge needs a `stroke` variant the palette doesn't provide. The bar
  * reads the `bg` slice, the gauge the `stroke` slice.
  */
+
+import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { iro, ji, kasane, kokkaku, narabi, type Step, ugoki } from '../kiso'
+import { iro, ji, kasane, kokkaku, narabi, ugoki } from '../kiso'
 
 const { text } = iro
 const { weight } = ji
@@ -89,7 +91,7 @@ export const k = defineRecipe(
 )
 
 /** Props for the {@link ProgressBar} track: the `size` step that the component writes as a density scope. */
-export type ProgressTrackVariants = { size?: Step }
+export type ProgressTrackVariants = { size?: DensityStep }
 export type ProgressBarFillVariants = VariantProps<typeof fill>
 /** Props for the {@link ProgressGauge} root: the `size` step that the component writes as a density scope. */
-export type ProgressGaugeVariants = { size?: Step }
+export type ProgressGaugeVariants = { size?: DensityStep }

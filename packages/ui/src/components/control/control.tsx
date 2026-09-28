@@ -2,6 +2,7 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { Density } from '../../primitives/density'
@@ -10,7 +11,6 @@ import {
 	ControlContext,
 	type ControlContextValue,
 	type ControlSeverity,
-	type ControlSize,
 	type ControlVariant,
 	useControl,
 } from './context'
@@ -24,7 +24,7 @@ export type ControlProps = {
 	required?: boolean
 	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
 	severity?: ControlSeverity
-	size?: ControlSize
+	size?: DensityStep
 	variant?: ControlVariant
 	className?: string
 	children: ReactNode

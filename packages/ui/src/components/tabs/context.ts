@@ -1,14 +1,12 @@
 'use client'
 
 import { createContext } from '../../core'
-import type { Step } from '../../recipes'
 import type { Orientation } from '../../types'
 
 /** Visual treatment of a tab group: underlined `tab` triggers or a segmented control. */
 export type TabsVariant = 'tab' | 'segment'
 /** Tab-list flow axis; the `segment` variant is always horizontal. */
 export type TabsOrientation = Orientation
-export type TabsSize = Step
 
 type TabsContextValue = {
 	variant: TabsVariant

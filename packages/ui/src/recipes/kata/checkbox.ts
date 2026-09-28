@@ -1,6 +1,7 @@
+import type { DensityStep } from '../../core/density'
 import { defineColors, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { kokkaku, type Step } from '../kiso'
+import { kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
 const { checkbox } = kokkaku
@@ -29,4 +30,4 @@ export const k = bridge.check(control, {
 })
 
 /** Recipe variant props for {@link Checkbox}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type CheckboxVariants = VariantProps<typeof k> & { size?: Step }
+export type CheckboxVariants = VariantProps<typeof k> & { size?: DensityStep }

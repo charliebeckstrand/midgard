@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { type DensityStep, stepDown } from '../../core/density'
-import type { Step } from '../../recipes'
+import { type DensityStep, type InnerStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
@@ -30,15 +29,15 @@ import { findSteps, findStop } from '../helpers/class-stops'
 // override resolves to a different constant (`2`); the has-badge arm
 // below pins it directly off `badge.px`.
 
-const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly Step[]
+const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly InnerStep[]
 
 const CHIP_INSET = 0.5
 
 /** The `px` of a control at `step`, from the stepped density axis. */
-const hostPxAt = (step: Step) => Number(findSteps(control.density, 'density-px-ring-')[step])
+const hostPxAt = (step: InnerStep) => Number(findSteps(control.density, 'density-px-ring-')[step])
 
 /** The value of a stepped affix class for a control at `step`, read at the slot step. */
-const affixAt = (classes: readonly unknown[], prefix: string, step: Step) =>
+const affixAt = (classes: readonly unknown[], prefix: string, step: InnerStep) =>
 	Number(findSteps(classes, prefix)[stepDown(step)])
 
 describe('control affix text padding', () => {

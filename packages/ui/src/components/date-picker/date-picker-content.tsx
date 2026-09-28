@@ -11,11 +11,11 @@ import {
 } from 'react'
 
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-import type { ControlSize } from '../control/context'
 
 // Keys the virtual model navigates with; see the dialog's onKeyDown below.
 const ARROW_KEYS = new Set([
@@ -39,7 +39,7 @@ type DatePickerContentProps = {
 	 * it. Without it, the panel takes the step of the nearest density scope of
 	 * the picker, which the portal carries.
 	 */
-	size?: ControlSize
+	size?: DensityStep
 	/**
 	 * The picker's virtual-focus key handler (zones + active highlight). It
 	 * lives on the trigger and, via this prop, on the dialog itself. Initial

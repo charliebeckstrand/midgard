@@ -1,8 +1,9 @@
 'use client'
 
 import type { ComponentProps, ReactNode } from 'react'
+import type { DensityStep } from '../../core/density'
 import type { Button } from '../button'
-import { type ControlSize, useControl } from '../control/context'
+import { useControl } from '../control/context'
 import type { FileRejection } from './file-upload-utilities'
 import { useFileUploadHandlers } from './use-file-upload-handlers'
 
@@ -51,7 +52,7 @@ export type FileUploadDropProps = FileUploadSharedProps & {
 /** Props for {@link FileUploadInput}: the shared accept and limit rules, plus the field's size and placeholder. */
 export type FileUploadInputProps = FileUploadSharedProps & {
 	/** Input field size. */
-	size?: ControlSize
+	size?: DensityStep
 	/**
 	 * Placeholder when empty; also the hidden input's accessible name.
 	 *
@@ -63,7 +64,7 @@ export type FileUploadInputProps = FileUploadSharedProps & {
 /** Props for {@link FileUploadButton}: the shared accept and limit rules, plus the button's size, color, and label. */
 export type FileUploadButtonProps = FileUploadSharedProps & {
 	/** Button size. */
-	size?: ControlSize
+	size?: DensityStep
 	/** Button color. */
 	color?: ComponentProps<typeof Button>['color']
 	/**

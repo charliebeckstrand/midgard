@@ -1,9 +1,9 @@
 import { createSkeleton, type SkeletonProps } from '../../../components/placeholder'
-import type { Step } from '../../../recipes'
+import type { DensityStep } from '../../../core/density'
 import { k } from '../../../recipes/kata/chart'
 
 /** Props for {@link ChartSkeleton}: an optional `size` matching the chart scale. */
-export type ChartSkeletonProps = SkeletonProps<Step>
+export type ChartSkeletonProps = SkeletonProps<DensityStep>
 
 /**
  * Loading placeholder on the chart frame's silhouette — full width at the
