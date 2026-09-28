@@ -2,7 +2,7 @@
 
 import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
-import { type ReactNode, useState } from 'react'
+import { type ReactNode, useEffectEvent, useLayoutEffect, useState } from 'react'
 import { ReducedMotion } from '../reduced-motion'
 import { type PortalContainer, usePortalContainer } from './context'
 
@@ -38,6 +38,10 @@ export type PortalProps = {
  * `createPortal`. A floating menu opened inside the surface therefore nests in
  * the portal context, rather than being stranded inert by a modal focus
  * manager's `markOthers`. Client-only: returns `null` during SSR.
+ *
+ * A Suspense boundary or an `<Activity>` above the surface can hide it during its
+ * exit. When the boundary reveals it, the exit completes at once, without the
+ * animation.
  */
 export function Portal({ open, container, onExitComplete, children }: PortalProps) {
 	const root = usePortalContainer(container)
@@ -48,13 +52,27 @@ export function Portal({ open, container, onExitComplete, children }: PortalProp
 
 	if (open && !mounted) setMounted(true)
 
-	if (typeof document === 'undefined' || !mounted) return null
-
 	const handleExitComplete = () => {
 		setMounted(false)
 
 		onExitComplete?.()
 	}
+
+	// A Suspense boundary or an `<Activity>` above the surface can hide it and then
+	// reveal it. React runs the layout effects of the subtree again at the reveal, so
+	// this effect runs again then. A hide during the exit stops the exit animation. At
+	// the reveal, Motion plays the enter animation again, and `AnimatePresence` never
+	// calls `onExitComplete`. The closed surface then stays on screen for all time. So
+	// a reveal of a closed surface completes the exit here.
+	const completeStoppedExit = useEffectEvent(() => {
+		if (!open && mounted) handleExitComplete()
+	})
+
+	useLayoutEffect(() => {
+		completeStoppedExit()
+	}, [])
+
+	if (typeof document === 'undefined' || !mounted) return null
 
 	return (
 		<FloatingPortal root={root ?? undefined}>
