@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { useRootDensityStep } from './root-density'
+import { useDensityRootStep } from './use-density-root-step'
 
 /**
  * The density context: the step of the nearest density scope under the root,
@@ -21,7 +21,7 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * Resolves the density step of a client component: the explicit step, else
  * the step of the nearest density scope, else the step on the root element.
  * The root step is `md` on the server and in the hydration render (see
- * `useRootDensityStep`).
+ * `useDensityRootStep`).
  *
  * A component with a three-step size axis clamps the result with
  * `toAmbientStep` from `ui/core`.
@@ -32,7 +32,7 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
 export function useDensityStep(explicit?: DensityStep): DensityStep {
 	const inherited = useDensityScope()
 
-	const root = useRootDensityStep()
+	const root = useDensityRootStep()
 
 	return explicit ?? inherited ?? root
 }
