@@ -30,8 +30,5 @@
 	},
 	"modules/map/use-map-overlay.ts": {
 		"useMapOverlay": "Refs"
-	},
-	"modules/map/use-map-zoom.ts": {
-		"useMapZoom": "Todo"
 	}
 }
