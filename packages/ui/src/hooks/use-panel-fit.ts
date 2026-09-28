@@ -99,7 +99,7 @@ export function usePanelFit({
 		// from a travel something interrupted — the variant changing under the
 		// panel, or the reader's motion preference. Clearing it hands the box back
 		// to layout, which is where every measurement below starts.
-		panel.style.height = ''
+		panel.style.removeProperty('height')
 
 		if (!enabled) return
 
