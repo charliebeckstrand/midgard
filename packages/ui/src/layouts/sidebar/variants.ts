@@ -3,16 +3,22 @@ import { omote, sen, sou } from '../../recipes/kiso'
 
 const { focus } = sen
 
-// Pinned to the viewport box, not sized by a viewport unit. On iOS an `svh` height
-// can be out of date on the first load, and a layout in the flow gives the page
-// a height it can scroll. A pinned layout gives the page no height to scroll.
+// Below `lg`, the layout is in the flow and the page scrolls. A mobile browser
+// moves the scroll offset of the page when its toolbar changes size, and only a
+// page that can scroll takes that offset back. From `lg` up, the layout is
+// pinned to the viewport box, and only the content region scrolls.
+//
+// Below `lg`, do not clip the overflow of the layout. WebKit then gives the
+// sticky navbar an ancestor clipping layer, and on iOS the bar stutters while
+// the page scrolls (WebKit bug 247130).
 const layout = defineRecipe({
 	base: [
-		'fixed inset-0 isolate',
+		'relative min-h-svh',
+		'lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden',
+		'isolate',
 		'flex max-lg:flex-col',
 		'bg-white lg:bg-zinc-100',
 		'dark:bg-zinc-950',
-		'overflow-hidden',
 	],
 })
 
@@ -21,6 +27,14 @@ const layout = defineRecipe({
 // the steps are variants, and equal steps share one. The inline panel and the
 // body of the floating sheet both take it, so the text wraps the same in each.
 const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm'
+
+// Sticks to the top of the page below `lg`, over the content that scrolls under it.
+// Keep the background opaque and the bar full width. Safari on iOS 26 then paints
+// the color of the bar under the status bar. The padding follows the nearest
+// density scope.
+const navbar = defineRecipe({
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
+})
 
 const panel = defineRecipe({
 	base: [
@@ -57,7 +71,7 @@ const floatingBuffer = defineRecipe({
 })
 
 const contentWrapper = defineRecipe({
-	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'overflow-hidden'],
+	base: ['flex flex-col flex-1', 'lg:min-w-0 lg:py-2 lg:pe-2', 'lg:overflow-hidden'],
 	floating: {
 		true: 'lg:ps-2',
 		false: '',
@@ -69,16 +83,18 @@ const content = defineRecipe({
 	base: [
 		...omote.content,
 		'flex flex-col',
-		'overflow-y-auto',
-		'grow min-h-0',
+		'lg:overflow-y-auto',
+		'grow lg:min-h-0',
 		'[&:has([data-slot=footer])>[data-slot=body]]:pb-0',
 		// The padding follows the nearest density scope.
 		'density-px-[4,6,8] density-pb-[4,6,8] lg:not-has-[[data-slot=header]]:density-pt-[4,6,8]',
 	],
+	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
+	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
 	stickyHeader: {
 		true: [
-			'**:data-[slot=header]:sticky',
-			'**:data-[slot=header]:top-0',
+			'**:data-[slot=header]:lg:sticky',
+			'**:data-[slot=header]:lg:top-0',
 			'**:data-[slot=header]:z-20',
 			'**:data-[slot=header]:bg-white',
 			'**:data-[slot=header]:dark:bg-zinc-950',
@@ -95,17 +111,14 @@ const header = defineRecipe({
 })
 
 const body = defineRecipe({
-	base: ['flex-1 min-h-0 overflow-y-auto', focus.inset],
+	base: ['flex-1 lg:min-h-0 lg:overflow-y-auto', focus.inset],
 })
 
 const footer = defineRecipe({ base: 'shrink-0' })
 
-// The navbar on mobile. Its padding follows the nearest density scope, and the
-// desktop layout hides it.
-const navbar = defineRecipe({ base: 'density-p-[4,6,8] lg:p-0 lg:hidden' })
-
 export const k = {
 	layout,
+	navbar,
 	panel,
 	floatingHotZone,
 	floatingSheet,
@@ -116,5 +129,4 @@ export const k = {
 	header,
 	body,
 	footer,
-	navbar,
 }

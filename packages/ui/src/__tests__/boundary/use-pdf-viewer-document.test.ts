@@ -186,10 +186,12 @@ describe('usePdfViewerDocument · parked and restored', () => {
 	 * A load that rasterized no page settles with the same shape as the empty snapshot. Only the
 	 * identity tells them apart. A `pending` test on the shape shows the skeleton for ever here.
 	 */
-	it('reports a settled load with no pages as not pending', async () => {
+	it('reports a settled load with no pages as not pending', async ({ signal }) => {
 		ensureDocumentLoad('/blank.pdf', () => Promise.resolve())
 
 		await tick()
+
+		signal.throwIfAborted()
 
 		// The mount retries a zero-page document. A fetch that never settles holds that retry.
 		globalThis.fetch = vi.fn(() => new Promise<Response>(() => {}))

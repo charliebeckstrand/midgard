@@ -111,7 +111,7 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('carries a refused status, and retries only what can clear', async () => {
+	it('carries a refused status, and retries only what can clear', async ({ signal }) => {
 		// The demo server's own answer under load: a 504 and a 429 are worth asking
 		// again, while a 400 is the same request refused the same way every time.
 		stubFetch({ ok: false, status: 504 })
@@ -121,12 +121,16 @@ describe('fetchOsrmRoute', () => {
 			failure: { kind: 'http', status: 504, retryable: true },
 		})
 
+		signal.throwIfAborted()
+
 		stubFetch({ ok: false, status: 429 })
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
 			ok: false,
 			failure: { kind: 'http', status: 429, retryable: true },
 		})
+
+		signal.throwIfAborted()
 
 		stubFetch({ ok: false, status: 400 })
 
@@ -136,7 +140,7 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('tells a timeout from the caller`s own abort', async () => {
+	it('tells a timeout from the caller`s own abort', async ({ signal }) => {
 		// Both arrive as a rejected fetch and only the reason's name separates them:
 		// a timeout can clear on another request, while the caller ended its own.
 		stubThrownRequest(new DOMException('The operation timed out', 'TimeoutError'))
@@ -145,6 +149,8 @@ describe('fetchOsrmRoute', () => {
 			ok: false,
 			failure: { kind: 'timeout', retryable: true },
 		})
+
+		signal.throwIfAborted()
 
 		stubThrownRequest(new DOMException('The operation was aborted', 'AbortError'))
 
@@ -163,13 +169,15 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('reads a body that is no routing answer as a payload failure', async () => {
+	it('reads a body that is no routing answer as a payload failure', async ({ signal }) => {
 		stubUnparseableBody()
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
 			ok: false,
 			failure: { kind: 'payload', retryable: false },
 		})
+
+		signal.throwIfAborted()
 
 		// Parsed, and still not an answer: a body naming neither a leg nor a
 		// refusal, and a leg carrying neither geometry nor a total.
@@ -180,6 +188,8 @@ describe('fetchOsrmRoute', () => {
 			failure: { kind: 'payload', retryable: false },
 		})
 
+		signal.throwIfAborted()
+
 		stubFetch({ ok: true, json: { routes: [{}] } })
 
 		expect(await fetchOsrmRoute(WAYPOINTS)).toEqual({
@@ -188,7 +198,7 @@ describe('fetchOsrmRoute', () => {
 		})
 	})
 
-	it('reads the service`s own refusal as no-route, carrying its code', async () => {
+	it('reads the service`s own refusal as no-route, carrying its code', async ({ signal }) => {
 		// OSRM refuses a pair it cannot join under a 200, in its own code and with
 		// no `routes` at all — the dead end a retry can never clear.
 		stubFetch({
@@ -200,6 +210,8 @@ describe('fetchOsrmRoute', () => {
 			ok: false,
 			failure: { kind: 'no-route', retryable: false, code: 'NoRoute' },
 		})
+
+		signal.throwIfAborted()
 
 		// An empty `routes` array says the same thing without naming it.
 		stubFetch({ ok: true, json: { code: 'Ok', routes: [] } })

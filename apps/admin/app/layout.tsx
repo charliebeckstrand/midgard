@@ -1,4 +1,4 @@
-import type { Metadata, Viewport } from 'next'
+import type { Metadata } from 'next'
 import type { ReactNode } from 'react'
 import { fontSans } from 'shared/fonts'
 import { AppearanceScript } from 'ui/providers/appearance'
@@ -8,10 +8,6 @@ import { Providers } from './providers'
 
 export const metadata: Metadata = {
 	title: 'Admin',
-}
-
-export const viewport: Viewport = {
-	maximumScale: 1,
 }
 
 export default function RootLayout({ children }: { children: ReactNode }) {

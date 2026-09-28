@@ -5,6 +5,7 @@ import type { BundledLanguage, BundledTheme } from 'shiki'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/code'
 import { CopyButton } from '../copy-button'
+import { loadShiki } from './code-shiki'
 
 const MAX_CACHE_SIZE = 200
 
@@ -32,36 +33,6 @@ function cacheSet(key: string, value: string) {
 	}
 
 	htmlCache.set(key, value)
-}
-
-// Lazy-load shiki on first use.
-let shikiPromise: Promise<typeof import('shiki')> | null = null
-
-/**
- * Dynamically imports the Shiki highlighter on first call, memoizing the
- * in-flight promise so the heavy module is fetched at most once per session.
- *
- * @returns The resolved `shiki` module exports.
- * @remarks
- * Call to warm the highlighter ahead of rendering a {@link CodeBlock}. Only a
- * pending or resolved import stays memoized. A rejection clears the cell and
- * reaches the caller, so the next call fetches again. That beats replaying one
- * transient chunk failure for the rest of the session.
- */
-export function loadShiki() {
-	if (!shikiPromise) {
-		shikiPromise = import('shiki').catch((error) => {
-			// Drop the memo before the rejection leaves. A cell left holding it
-			// answers every later call with the same failure, and CodeBlock
-			// swallows it, so one bad chunk fetch paints the plain fallback for the
-			// rest of the session.
-			shikiPromise = null
-
-			throw error
-		})
-	}
-
-	return shikiPromise
 }
 
 /** Props for {@link CodeBlock}. */

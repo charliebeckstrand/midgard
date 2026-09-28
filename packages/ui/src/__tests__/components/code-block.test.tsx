@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
-import { CodeBlock, loadShiki } from '../../components/code/code-block'
+import { CodeBlock } from '../../components/code/code-block'
+import { loadShiki } from '../../components/code/code-shiki'
 import { bySlot, renderUI, screen, tick, waitFor } from '../helpers'
 
 // `shiki` is mocked globally in setup/module-mocks.ts; a per-file mock here

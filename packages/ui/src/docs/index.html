@@ -2,18 +2,16 @@
 <html lang="en" class="antialiased">
 	<head>
 		<meta charset="UTF-8" />
-		<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>Docs</title>
 		<!-- Fonts load via CSS @font-face with font-display: swap — no preload needed. -->
 		<!-- Linked here, never imported from `main.tsx` — an import delays the
 		     styles until the whole module graph loads. See engine/README.md. -->
 		<link rel="stylesheet" href="./app.css" />
 	</head>
-	<!-- No full height here. The sidebar layout sets its own height to the small
-	     viewport. On iOS a full-height html element takes the large viewport, which
-	     is taller while the browser bars show. The page then scrolls the navbar out
-	     of view and shows the body under the layout. The body color matches the
-	     layout, so an overscroll shows no band. -->
+	<!-- No full height here. The sidebar layout sets its own height: below lg the
+	     page scrolls, and from lg up the layout is pinned to the viewport. The body
+	     color matches the layout, so an overscroll shows no band. -->
 	<body class="bg-white lg:bg-zinc-100 dark:bg-zinc-950 text-zinc-950 dark:text-white">
 		<div id="root"></div>
 		<script>

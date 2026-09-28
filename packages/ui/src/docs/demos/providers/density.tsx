@@ -145,59 +145,64 @@ export function Demo() {
 		>
 			<Stack gap="md">
 				<DensityProvider density={density}>
-					<SidebarLayout sidebar={sidebar}>
-						<SidebarLayoutHeader>
-							<Heading level={1}>Orders</Heading>
-						</SidebarLayoutHeader>
-						<SidebarLayoutBody>
-							<Stack gap="md">
-								<OrdersFilters value={filters} onValueChange={setFilters} />
-								{filteredOrders.length ? (
-									<Table>
-										<TableHead>
-											<TableRow>
-												<TableHeader>Order</TableHeader>
-												<TableHeader>Customer</TableHeader>
-												<TableHeader>Status</TableHeader>
-												<TableHeader className="text-right">Amount</TableHeader>
-												<TableHeader className="text-right">Actions</TableHeader>
-											</TableRow>
-										</TableHead>
-										<TableBody>
-											{filteredOrders.map((order) => (
-												<TableRow key={order.id}>
-													<TableCell className="font-medium">{order.id}</TableCell>
-													<TableCell>{order.customer}</TableCell>
-													<TableCell>{order.status}</TableCell>
-													<TableCell className="text-right">{order.amount}</TableCell>
-													<TableCell>
-														<Flex justify="end">
-															<Button
-																aria-label={`Edit order ${order.id}`}
-																color="blue"
-																variant="bare"
-															>
-																<Icon icon={<Pencil />} />
-															</Button>
-															<Button
-																aria-label={`Delete order ${order.id}`}
-																color="red"
-																variant="bare"
-															>
-																<Icon icon={<Trash />} />
-															</Button>
-														</Flex>
-													</TableCell>
+					{/* The layout can pin itself to the viewport. Layout containment makes
+					    this box the containing block of the pinned layout, so the demo stays
+					    inside its frame and does not cover the page. */}
+					<div className="h-[40rem] overflow-auto rounded-lg contain-layout">
+						<SidebarLayout sidebar={sidebar}>
+							<SidebarLayoutHeader>
+								<Heading level={1}>Orders</Heading>
+							</SidebarLayoutHeader>
+							<SidebarLayoutBody>
+								<Stack gap="md">
+									<OrdersFilters value={filters} onValueChange={setFilters} />
+									{filteredOrders.length ? (
+										<Table>
+											<TableHead>
+												<TableRow>
+													<TableHeader>Order</TableHeader>
+													<TableHeader>Customer</TableHeader>
+													<TableHeader>Status</TableHeader>
+													<TableHeader className="text-right">Amount</TableHeader>
+													<TableHeader className="text-right">Actions</TableHeader>
 												</TableRow>
-											))}
-										</TableBody>
-									</Table>
-								) : (
-									<Text tone="warning">No orders match your filters.</Text>
-								)}
-							</Stack>
-						</SidebarLayoutBody>
-					</SidebarLayout>
+											</TableHead>
+											<TableBody>
+												{filteredOrders.map((order) => (
+													<TableRow key={order.id}>
+														<TableCell className="font-medium">{order.id}</TableCell>
+														<TableCell>{order.customer}</TableCell>
+														<TableCell>{order.status}</TableCell>
+														<TableCell className="text-right">{order.amount}</TableCell>
+														<TableCell>
+															<Flex justify="end">
+																<Button
+																	aria-label={`Edit order ${order.id}`}
+																	color="blue"
+																	variant="bare"
+																>
+																	<Icon icon={<Pencil />} />
+																</Button>
+																<Button
+																	aria-label={`Delete order ${order.id}`}
+																	color="red"
+																	variant="bare"
+																>
+																	<Icon icon={<Trash />} />
+																</Button>
+															</Flex>
+														</TableCell>
+													</TableRow>
+												))}
+											</TableBody>
+										</Table>
+									) : (
+										<Text tone="warning">No orders match your filters.</Text>
+									)}
+								</Stack>
+							</SidebarLayoutBody>
+						</SidebarLayout>
+					</div>
 				</DensityProvider>
 			</Stack>
 		</Example>

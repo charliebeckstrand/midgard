@@ -53,8 +53,12 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks The layout is pinned to the viewport (`fixed inset-0`), so the page
- * itself does not scroll. Only the content region scrolls.
+ * @remarks Below `lg`, the page scrolls, and the navbar is the one bar that sticks
+ * to the top. The header scrolls with the content. From `lg` up, the layout is
+ * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
+ * There, `stickyHeader` keeps the header at the top of the content region.
+ * To show the layout inside another page, put it in a box that has a height and
+ * layout containment, or the pinned layout covers the page.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating sheet has the width of the panel at each step. The
@@ -215,13 +219,16 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	)
 }
 
-/** Props for {@link SidebarLayoutBody}; `ref` reaches the scrolling `<main>`. */
+/** Props for {@link SidebarLayoutBody}; `ref` reaches the `<main>`. */
 export type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLElement>
 }>
 
-/** Main content slot for {@link SidebarLayout} (`data-slot="body"`). */
+/**
+ * Main content slot for {@link SidebarLayout} (`data-slot="body"`). From `lg` up,
+ * it scrolls between the header and the footer. Below `lg`, it scrolls with the page.
+ */
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
 		<main ref={ref} data-slot="body" className={cn(k.body(), className)}>

@@ -196,7 +196,9 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		).toBeLessThanOrEqual(1)
 	})
 
-	it('keeps the held offset when the scroll-end timer fires before the scroll event of the move', async () => {
+	it('keeps the held offset when the scroll-end timer fires before the scroll event of the move', async ({
+		signal,
+	}) => {
 		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
 
 		const { container } = renderUI(<List handle={handle} bounded />)
@@ -213,6 +215,8 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		const timeout = window.setTimeout.bind(window)
 
 		let scrollEnd: (() => void) | null = null
+
+		signal.throwIfAborted()
 
 		vi.spyOn(window, 'setTimeout').mockImplementation(((
 			callback: () => void,
