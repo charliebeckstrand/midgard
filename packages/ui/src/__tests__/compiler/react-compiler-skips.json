@@ -2,9 +2,6 @@
 	"components/color/use-color-state.ts": {
 		"useColorState": "Refs"
 	},
-	"components/command-palette/use-command-palette-state.ts": {
-		"useCommandPaletteState": "Refs"
-	},
 	"components/date-input/date-input.tsx": {
 		"DateInput": "Refs"
 	},

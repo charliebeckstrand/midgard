@@ -94,32 +94,37 @@ describe('CommandPalette + VirtualOptions: arrow reaches an item outside the win
 		const [open, setOpen] = useState(true)
 
 		return (
-			<CommandPalette open={open} onOpenChange={setOpen} triggerShortcut={false}>
-				{/* Unlike Combobox/Listbox, whose panel already carries a fixed
+			<>
+				<button type="button" onClick={() => setOpen(true)}>
+					Open palette
+				</button>
+				<CommandPalette open={open} onOpenChange={setOpen} triggerShortcut={false}>
+					{/* Unlike Combobox/Listbox, whose panel already carries a fixed
 				    max-height, CommandPalette's DialogBody sizes to its content —
 				    it needs an explicit, definite-height scrollable wrapper to
 				    virtualize (a max-height alone has no floor to break the
 				    circularity: 0 content -> 0 height -> 0 rendered rows). */}
-				<div style={{ height: '320px', overflow: 'auto' }}>
-					<VirtualOptions
-						items={ITEMS}
-						estimateSize={32}
-						getOptionId={(item) => `cmd-opt-${item.id}`}
-					>
-						{(item, _index, meta) => (
-							<CommandPaletteItem
-								key={item.id}
-								id={`cmd-opt-${item.id}`}
-								closeOnAction={false}
-								onAction={() => onAction(item.id)}
-								{...meta}
-							>
-								<CommandPaletteLabel>{item.label}</CommandPaletteLabel>
-							</CommandPaletteItem>
-						)}
-					</VirtualOptions>
-				</div>
-			</CommandPalette>
+					<div style={{ height: '320px', overflow: 'auto' }}>
+						<VirtualOptions
+							items={ITEMS}
+							estimateSize={32}
+							getOptionId={(item) => `cmd-opt-${item.id}`}
+						>
+							{(item, _index, meta) => (
+								<CommandPaletteItem
+									key={item.id}
+									id={`cmd-opt-${item.id}`}
+									closeOnAction={false}
+									onAction={() => onAction(item.id)}
+									{...meta}
+								>
+									<CommandPaletteLabel>{item.label}</CommandPaletteLabel>
+								</CommandPaletteItem>
+							)}
+						</VirtualOptions>
+					</div>
+				</CommandPalette>
+			</>
 		)
 	}
 
@@ -153,5 +158,35 @@ describe('CommandPalette + VirtualOptions: arrow reaches an item outside the win
 		await userEvent.keyboard('{Enter}')
 
 		await waitFor(() => expect(onAction).toHaveBeenCalledWith(LARGE_COUNT - 1))
+	})
+
+	it('starts again at the first item after the palette closes and opens', async () => {
+		renderUI(<LargePalette onAction={vi.fn()} />)
+
+		await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
+
+		await userEvent.click(screen.getByRole('combobox'))
+
+		await userEvent.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}')
+
+		await waitFor(() =>
+			expect(screen.getByRole('combobox').getAttribute('aria-activedescendant')).toBe('cmd-opt-2'),
+		)
+
+		await userEvent.keyboard('{Escape}')
+
+		await waitFor(() => expect(screen.queryByRole('listbox')).toBeNull())
+
+		await userEvent.click(screen.getByRole('button', { name: 'Open palette' }))
+
+		await waitFor(() => expect(screen.getByRole('listbox')).toBeInTheDocument())
+
+		await userEvent.click(screen.getByRole('combobox'))
+
+		await userEvent.keyboard('{ArrowDown}')
+
+		await waitFor(() =>
+			expect(screen.getByRole('combobox').getAttribute('aria-activedescendant')).toBe('cmd-opt-0'),
+		)
 	})
 })
