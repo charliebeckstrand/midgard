@@ -75,6 +75,9 @@ describe('animated chart mark renders', () => {
 			<BarChart aria-label="Bars" data={DATA} series={[...SERIES]} width={400} animate />,
 		)
 
+		// The count is live, so the bound below can fail.
+		expect(renders.get('chart-bar')).toBeGreaterThan(0)
+
 		// The first bar of the second month in series A.
 		move(container, 50, 'chart-bar')
 
@@ -97,6 +100,8 @@ describe('animated chart mark renders', () => {
 				animate
 			/>,
 		)
+
+		expect(renders.get('chart-scatter-point')).toBeGreaterThan(0)
 
 		// The disc at x = 30, then straight onto the disc at x = 20.
 		move(container, 60, 'chart-scatter-point', 30)

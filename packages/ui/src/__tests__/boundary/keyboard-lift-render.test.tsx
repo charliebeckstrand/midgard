@@ -118,6 +118,9 @@ describe('keyboard lift renders', () => {
 	it('renders only the lifted list item for a lift', () => {
 		const { container } = renderUI(<ReorderList />)
 
+		// The count is live, so the bounds below can fail.
+		expect(vi.mocked(ListItem)).toHaveBeenCalled()
+
 		const row = container.querySelector('[data-slot="list-item"][data-item-id="item-5"]')
 
 		if (!row) throw new Error('no row')
@@ -142,6 +145,8 @@ describe('keyboard lift renders', () => {
 	it('renders only the lifted card for a lift', () => {
 		const { container } = renderUI(<Board />)
 
+		expect(renderedCards()).not.toHaveLength(0)
+
 		vi.mocked(useSortableItem).mockClear()
 
 		press(card(container, 'todo-3'), ' ')
@@ -153,6 +158,8 @@ describe('keyboard lift renders', () => {
 
 	it('renders no card of an untouched column for a move', () => {
 		const { container } = renderUI(<Board />)
+
+		expect(renderedCards().filter((id) => id.startsWith('done-'))).not.toEqual([])
 
 		press(card(container, 'todo-3'), ' ')
 

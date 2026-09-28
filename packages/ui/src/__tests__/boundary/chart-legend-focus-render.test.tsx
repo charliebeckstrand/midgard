@@ -48,11 +48,16 @@ const rows: Row[] = Array.from({ length: 50 }, (_, index) => ({
 	churn: 50 - index,
 }))
 
-/** Mounts the chart and settles the deferred table. */
+/** Mounts the chart, settles the deferred table, and checks that both counts are live. */
 async function mount(ui: Parameters<typeof renderUI>[0]) {
 	const result = renderUI(ui)
 
 	await act(async () => {})
+
+	// Each count fired on mount, so a later `toBe(0)` can fail.
+	expect(vi.mocked(useChartSeriesToggle).mock.calls.length).toBeGreaterThan(0)
+
+	expect(tableRenders.count).toBeGreaterThan(0)
 
 	return result
 }
