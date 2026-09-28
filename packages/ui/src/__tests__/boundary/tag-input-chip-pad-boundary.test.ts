@@ -20,24 +20,11 @@ import { findSteps, findStop } from '../helpers/class-stops'
 // `kata/query-chips.ts` pads its chip by the same sum. Its chip and its remove
 // button take fixed sizes in `query-chips.tsx`, so the case below names them.
 
-const COMPOUND_P_RE = /:p-([\d.]+)$/
+/** The icon-only pad of a bare button at `size`, from its stepped `bare` variant. */
+function findBareCompoundP(size: DensityStep): number {
+	const bare = button.config.variants.variant?.bare as readonly unknown[]
 
-function findBareCompoundP(size: Ma): number {
-	const rules = button.config.compound as ReadonlyArray<Record<string, unknown>>
-
-	for (const rule of rules) {
-		if (rule.variant !== 'bare' || rule.size !== size) continue
-
-		for (const cls of (rule.class as readonly unknown[]).flat(Number.POSITIVE_INFINITY)) {
-			if (typeof cls !== 'string') continue
-
-			const match = cls.match(COMPOUND_P_RE)
-
-			if (match) return Number(match[1])
-		}
-	}
-
-	throw new Error(`No bare compound p- class found for size "${size}"`)
+	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
 }
 
 // The chip is a `radius: 'full'` pill: its px is the step of the `radius:

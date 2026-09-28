@@ -46,11 +46,11 @@ describe('recipe · call (memo hit — the render path)', () => {
 	})
 
 	bench('button · one axis set', () => {
-		button({ size: 'sm' })
+		button({ color: 'blue' })
 	})
 
-	bench('button · all three axes set', () => {
-		button({ variant: 'outline', color: 'blue', size: 'lg' })
+	bench('button · both axes set', () => {
+		button({ variant: 'outline', color: 'blue' })
 	})
 })
 
@@ -95,20 +95,20 @@ describe('recipe · memo hit vs miss (same recipe, same payload)', () => {
 describe('recipe · compose (twMerge ∘ clsx, what a miss runs)', () => {
 	// The merge itself, without the key join or the Map write, over two payload
 	// sizes: a leaf's handful of classes against the fifty-odd a real kata's
-	// base + variant + size resolves to. `tailwind-merge` scans every class for
+	// base + variant resolves to. `tailwind-merge` scans every class for
 	// conflicts, so this scales with the payload — which is why the memo above
 	// matters more for a heavy kata than for a light one.
 	const resolved = button.config
 
 	const light = ['inline-flex', 'p-2', 'rounded-md']
 
-	const heavy = [resolved.base, resolved.variants.variant?.outline, resolved.variants.size?.lg]
+	const heavy = [resolved.base, resolved.variants.variant?.outline]
 
 	bench('3 classes', () => {
 		twMerge(clsx(light))
 	})
 
-	bench('button base + variant + size', () => {
+	bench('button base + variant', () => {
 		twMerge(clsx(heavy))
 	})
 })
@@ -118,7 +118,7 @@ describe('recipe · cn (once per element per render)', () => {
 	// mounted tree, where the arguments are the same objects render after render:
 	// a leaf with nothing but the recipe, a leaf with a caller override, a
 	// composite folding in state and layout.
-	const recipeOutput = button({ variant: 'solid', color: 'zinc', size: 'md' })
+	const recipeOutput = button({ variant: 'solid', color: 'zinc' })
 
 	bench('recipe output only', () => {
 		cn(recipeOutput)
@@ -176,13 +176,11 @@ describe('recipe · defineRecipe (creation, once per module load)', () => {
 		defineRecipe({ base: 'inline-flex', size: { sm: 'p-1', md: 'p-2' }, defaults: { size: 'md' } })
 	})
 
-	bench('button-shaped (3 axes + 8-color palette + 4 compounds)', () => {
+	bench('button-shaped (2 axes + 8-color palette)', () => {
 		defineRecipe({
 			base: config.base,
 			variant: config.variants.variant,
-			size: config.variants.size,
 			color: config.variants.color,
-			compound: config.compound,
 			defaults: config.defaults,
 		})
 	})

@@ -24,10 +24,12 @@ const color = {
 /**
  * A single ellipsis dot. Diameter tracks the shared `size` axis; the pulse
  * animation is `motion-safe:`-gated, resting as a steady dot under
- * `prefers-reduced-motion` (WCAG 2.3.3).
+ * `prefers-reduced-motion` (WCAG 2.3.3). With no `size`, the dot takes the
+ * `md` diameter under `density-any`, the rank below each step. So a parent that
+ * sizes its dots with stepped classes, such as Button, wins over the default.
  */
 const dot = defineRecipe({
-	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse'],
+	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse', 'density-any:size-2'],
 	size: {
 		xs: 'size-1',
 		sm: 'size-1.5',
@@ -35,7 +37,6 @@ const dot = defineRecipe({
 		lg: 'size-2.5',
 		xl: 'size-3',
 	},
-	defaults: { size: 'md' },
 })
 
 /**
@@ -54,7 +55,8 @@ const spinner = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		base: [flex.inline, 'shrink-0'],
+		// With no `size`, the gap is the `md` gap under `density-any`, as on the dot.
+		base: [flex.inline, 'shrink-0', 'density-any:gap-1.5'],
 		size: {
 			xs: 'gap-0.5',
 			sm: 'gap-1',
@@ -63,7 +65,7 @@ export const k = defineRecipe(
 			xl: 'gap-2.5',
 		},
 		color,
-		defaults: { size: 'md', color: 'current' },
+		defaults: { color: 'current' },
 	},
 	{ dot, spinner },
 )

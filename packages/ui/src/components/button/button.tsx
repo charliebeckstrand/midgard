@@ -3,7 +3,7 @@
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { Children } from 'react'
 import { ariaAttr, cn } from '../../core'
-import { Density, useDensityStep } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { useHeadless } from '../../providers/headless/context'
@@ -44,8 +44,10 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
 
 /**
  * Polymorphic action control: renders a `<button>` or, when `href` is set,
- * a `<Link>` anchor. Resolves `size` against enclosing Density and swaps in a
- * `<LoadingSpinner>` while `loading`. It collapses to a square hit area when
+ * a `<Link>` anchor. Without `size`, it takes the step of the nearest density
+ * scope through stepped classes, and reads no context. An explicit `size`
+ * makes the button its own scope. It swaps in a `<LoadingSpinner>` while
+ * `loading`. It collapses to a square hit area when
  * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
  * in loading trees. A button with no `variant` or `color` takes the one of the
  * surface around it, such as the soft color of an alert for its actions.
@@ -79,11 +81,6 @@ export function Button({
 
 	const color = colorProp ?? defaults.color
 
-	const step = useDensityStep(size)
-
-	// The button has no `xl` size, so an `xl` scope takes the `lg` button.
-	const resolvedSize = step === 'xl' ? 'lg' : step
-
 	if (headless) {
 		return (
 			<ButtonHeadless
@@ -104,22 +101,22 @@ export function Button({
 	// (see `data-[has-label]` in the button recipe), icon-only buttons stay square.
 	const hasLabel = Children.toArray(children).some((child) => !isIconElement(child))
 
-	const classes = cn(k({ variant, color, size: resolvedSize }), className)
+	const classes = cn(k({ variant, color }), className)
 
 	// Shared across the anchor and button renders; consumer `props` spread later
 	// can still override.
 	const sharedProps = {
 		'data-slot': slot,
 		'data-variant': variant,
-		'data-size': resolvedSize,
-		'data-density': resolvedSize,
+		'data-size': size,
+		'data-density': size,
 		'data-has-prefix': !!prefix || undefined,
 		'data-has-suffix': !!suffix || undefined,
 		'data-has-label': hasLabel || undefined,
 	}
 
 	const content = (
-		<Density step={resolvedSize}>
+		<Density step={size}>
 			{loading ? <LoadingSpinner /> : prefix}
 			{children}
 			{suffix}

@@ -10,7 +10,7 @@ import {
 	NavList,
 	useNavContext,
 } from '../../components/nav'
-import { bySlot, fireEvent, renderUI, screen } from '../helpers'
+import { bySlot, densityStepOf, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Nav', () => {
 	it('renders with data-slot="nav"', () => {
@@ -252,9 +252,9 @@ describe('NavItem', () => {
 		)
 
 		// The md item chrome steps slot controls to sm; an explicit size wins.
-		expect(screen.getByRole('button', { name: 'auto' })).toHaveAttribute('data-size', 'sm')
+		expect(densityStepOf(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
 
-		expect(screen.getByRole('button', { name: 'explicit' })).toHaveAttribute('data-size', 'lg')
+		expect(densityStepOf(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
 	})
 
 	it('keeps affix actions individually Tab-focusable (link list, no roving)', () => {

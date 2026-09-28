@@ -2,7 +2,7 @@ import type { ReactElement } from 'react'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
-import { ButtonSkeleton } from '../../components/button'
+import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Label } from '../../components/fieldset'
@@ -252,6 +252,26 @@ describe('controls at the first paint (real browser)', () => {
 
 		// A text affix pads at the `px` of the input; the badge constant is 2.
 		expect(px(container.querySelector('[data-slot="prefix"]'), 'paddingInlineStart')).toBe(7)
+
+		container.remove()
+	})
+
+	it('sizes an unsized button at the step of the root', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(<Button>Save</Button>)
+
+		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(14)
+
+		container.remove()
+	})
+
+	it('steps a button in an input suffix one step below the input', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(<Input aria-label="Name" suffix={<Button>Go</Button>} />)
+
+		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
 
 		container.remove()
 	})

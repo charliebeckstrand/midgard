@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { fireEvent, renderUI, screen } from '../helpers'
+import { densityStepOf, fireEvent, renderUI, screen } from '../helpers'
 
 describe('Grid condensed', () => {
 	type Row = { id: number; name: string }
@@ -64,7 +64,7 @@ describe('Grid condensed', () => {
 
 		// A cell Button with no explicit `size` resolves through the grid's compact
 		// cascade (the `sm` step), not the ambient `md` default.
-		expect(screen.getByRole('button', { name: 'Edit Alice' })).toHaveAttribute('data-size', 'sm')
+		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('sm')
 	})
 
 	it('leaves cell content at the ambient size without condensed', () => {
@@ -75,7 +75,7 @@ describe('Grid condensed', () => {
 
 		renderUI(<Grid columns={withButton} rows={rows} getKey={getKey} />)
 
-		expect(screen.getByRole('button', { name: 'Edit Alice' })).toHaveAttribute('data-size', 'md')
+		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('md')
 	})
 
 	it('leaves a portaled context menu at the ambient density, not the condensed step', () => {

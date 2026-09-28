@@ -3,7 +3,16 @@ import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Drawer, DrawerClose, DrawerTrigger } from '../../components/drawer'
 import { settleResize, speedOf } from '../../hooks/use-panel-resize'
-import { bySlot, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import {
+	bySlot,
+	densityStepOf,
+	fireEvent,
+	getSlot,
+	present,
+	renderUI,
+	screen,
+	userEvent,
+} from '../helpers'
 
 describe('Drawer', () => {
 	it('renders children with role="dialog" when open', () => {
@@ -344,7 +353,7 @@ describe('Drawer size context', () => {
 		)
 
 		// sun.lg.text = 'lg' → ji.size.lg = 'text-lg'
-		expect(buttonInDrawer()?.className).toContain('text-lg')
+		expect(densityStepOf(present(buttonInDrawer(), 'button'))).toBe('lg')
 	})
 })
 

@@ -12,7 +12,16 @@ import {
 	useSidebarMini,
 } from '../../components/sidebar'
 import { OffcanvasContext } from '../../primitives/offcanvas'
-import { bySlot, fireEvent, getSlot, renderUI, screen, stubMatchMedia, userEvent } from '../helpers'
+import {
+	bySlot,
+	densityStepOf,
+	fireEvent,
+	getSlot,
+	renderUI,
+	screen,
+	stubMatchMedia,
+	userEvent,
+} from '../helpers'
 
 describe('Sidebar', () => {
 	it('renders with data-slot="sidebar" and a default aria-label', () => {
@@ -530,11 +539,11 @@ describe('SidebarItem', () => {
 		)
 
 		// md host → sm control; lg host → md; an explicit size prop wins.
-		expect(screen.getByRole('button', { name: 'auto' })).toHaveAttribute('data-size', 'sm')
+		expect(densityStepOf(screen.getByRole('button', { name: 'auto' }))).toBe('sm')
 
-		expect(screen.getByRole('button', { name: 'from-lg' })).toHaveAttribute('data-size', 'md')
+		expect(densityStepOf(screen.getByRole('button', { name: 'from-lg' }))).toBe('md')
 
-		expect(screen.getByRole('button', { name: 'explicit' })).toHaveAttribute('data-size', 'lg')
+		expect(densityStepOf(screen.getByRole('button', { name: 'explicit' }))).toBe('lg')
 	})
 
 	it('omits the affix slots when no prefix or suffix is provided', () => {

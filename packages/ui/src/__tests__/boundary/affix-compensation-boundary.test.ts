@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { stepDown } from '../../core/density'
-import type { Ma, Step } from '../../recipes'
+import { type DensityStep, stepDown } from '../../core/density'
+import type { Step } from '../../recipes'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
@@ -57,9 +57,7 @@ describe('control affix has-button compensation', () => {
 
 		const hostPx = hostPxAt(step)
 
-		const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
-
-		const buttonPx = findStop(buttonClasses, 'p-ring-')
+		const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
 
 		const expected = hostPx - buttonPx + CHIP_INSET
 
@@ -88,9 +86,7 @@ describe('control affix has-button compensation', () => {
 
 			const hostPx = hostPxAt(step)
 
-			const buttonClasses = button.config.variants.size?.[buttonSize] as readonly unknown[]
-
-			const buttonPx = findStop(buttonClasses, 'p-ring-')
+			const buttonPx = Number(findSteps([button.config.base], 'density-p-ring-')[buttonSize])
 
 			return hostPx - buttonPx
 		})
@@ -151,10 +147,10 @@ describe('control affix has-badge compensation', () => {
 // A chrome-less icon-only bare Button has no outer box, so its glyph aligns to
 // the *text line* (`density.px`), not the chip-content line: there is no 0.5
 // chip inset. The override subtracts the button's stepped-down icon-only
-// compound padding (`not-data-[has-label]:p-…` in `kata/button.ts`) from
+// padding (`not-data-[has-label]:density-p-…` in the `bare` variant of `kata/button.ts`) from
 // `density.px`:
 //
-//   affix.ps(has-bare) = input.px − bare.compound.p[stepDown(step)]
+//   affix.ps(has-bare) = input.px − bare.p[stepDown(step)]
 //
 // Unlike the non-bare arm this cannot collapse to a constant: the bare compound
 // scale grows 0.25 per notch (half of `density.px`'s 0.5), so the per-step
@@ -162,24 +158,11 @@ describe('control affix has-badge compensation', () => {
 // the live compound rule rather than the literals; if input.px, the bare
 // compound p, or stepDown drifts, the assertion points at the source.
 
-const COMPOUND_P_RE = /:p-([\d.]+)$/
+/** The icon-only pad of a bare button at `size`, from its stepped `bare` variant. */
+function findBareCompoundP(size: DensityStep): number {
+	const bare = button.config.variants.variant?.bare as readonly unknown[]
 
-function findBareCompoundP(size: Ma): number {
-	const rules = button.config.compound as ReadonlyArray<Record<string, unknown>>
-
-	for (const rule of rules) {
-		if (rule.variant !== 'bare' || rule.size !== size) continue
-
-		for (const cls of (rule.class as readonly unknown[]).flat(Number.POSITIVE_INFINITY)) {
-			if (typeof cls !== 'string') continue
-
-			const match = cls.match(COMPOUND_P_RE)
-
-			if (match) return Number(match[1])
-		}
-	}
-
-	throw new Error(`No bare compound p- class found for size "${size}"`)
+	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
 }
 
 describe('control affix has-bare-button compensation', () => {

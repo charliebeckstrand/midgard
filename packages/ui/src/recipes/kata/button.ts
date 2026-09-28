@@ -1,14 +1,14 @@
+import type { DensityStep } from '../../core/density'
 import { definePalette, defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, kokkaku, narabi, sen, shaku } from '../kiso'
+import { hannou, iro, ji, kokkaku, narabi, sen, shaku } from '../kiso'
 
 const { extendedPalette } = iro
 const { cursor, disabled } = hannou
-const { size, weight } = ji
-const { gap, radius } = kasane
+const { weight } = ji
 const { button } = kokkaku
 const { flex } = narabi
 const { focus } = sen
-const { icon } = shaku
+const { iconSlotRamp } = shaku
 
 export const k = defineRecipe({
 	base: [
@@ -24,72 +24,38 @@ export const k = defineRecipe({
 		weight.semibold,
 		...disabled,
 		...cursor,
+		// Each step is in a stepped `density-*` class: the button takes the step of
+		// its nearest density scope, and an explicit `size` makes the button its own
+		// scope. Five values give the steps from `xs` to `xl`, and `xl` takes the
+		// `lg` values. Square padding (`p`) keeps an icon-only button even-sided.
+		// When a text label is present the component sets `data-has-label`, which
+		// overrides `py` with the matching control step. A labeled button thus
+		// aligns with the Input and Select chrome of the same size (md → 38px).
+		'density-text-[xs,sm,base,lg,lg]',
+		...iconSlotRamp,
+		'density-gap-[0.75,1,1.25,1.5,1.5]',
+		'density-p-ring-[1.5,2,2.5,3,3]',
+		'density-rounded-[1,1.5,2,2.5,2.5]',
+		'data-[has-label]:density-py-ring-[1,1.5,2,2.5,2.5]',
+		// A LoadingSpinner or LoadingDots passed as an affix follows the same scope.
+		// The spinner follows the icon ramp. A Kbd sets its text and padding so that
+		// the key fits in the line of the label and does not make the button taller.
+		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
+		'*:data-[slot=loading-dots]:density-gap-[0.5,1,1.5,2,2]',
+		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:density-size-[1,1.5,2,2.5,2.5]',
+		'*:data-[slot=kbd]:density-text-[xs,xs,sm,base,base]',
+		'*:data-[slot=kbd]:density-px-[1,1,1.5,1.5,1.5]',
+		'*:data-[slot=kbd]:density-py-[0,0.5,0.5,0.5,0.5]',
 	],
 	variant: {
 		solid: focus.ring,
 		soft: focus.inset,
 		outline: ['ring-1 ring-inset', focus.inset],
 		plain: focus.inset,
-		bare: focus.inset,
-	},
-	// A LoadingSpinner or LoadingDots passed as an affix reads no context, so
-	// each size row projects the matching loading size onto it. The spinner
-	// follows the `shaku.icon` row, and the dots follow the same size key. A Kbd
-	// is static too. Each row sets its text and padding so that the key fits in
-	// the line of the label and does not make the button taller.
-	// Square padding (`p`) keeps icon-only buttons even-sided. When a text label
-	// is present the component sets `data-has-label`, which overrides `py` to
-	// the matching control density step, aligning a labeled button with
-	// same-size Input/Select chrome (e.g. md → 38px).
-	size: {
-		xs: [
-			size.xs,
-			icon.xs,
-			gap.g('0.75'),
-			'p-ring-1.5',
-			radius.r('1'),
-			'data-[has-label]:py-ring-1',
-			'*:data-[slot=loading-spinner]:size-3',
-			'*:data-[slot=loading-dots]:gap-0.5',
-			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1',
-			'*:data-[slot=kbd]:text-xs *:data-[slot=kbd]:px-1 *:data-[slot=kbd]:py-0',
-		],
-		sm: [
-			size.sm,
-			icon.sm,
-			gap.g('1'),
-			'p-ring-2',
-			radius.r('1.5'),
-			'data-[has-label]:py-ring-1.5',
-			'*:data-[slot=loading-spinner]:size-4',
-			'*:data-[slot=loading-dots]:gap-1',
-			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-1.5',
-			'*:data-[slot=kbd]:text-xs *:data-[slot=kbd]:px-1 *:data-[slot=kbd]:py-0.5',
-		],
-		md: [
-			size.md,
-			icon.md,
-			gap.g('1.25'),
-			'p-ring-2.5',
-			radius.r('2'),
-			'data-[has-label]:py-ring-2',
-			'*:data-[slot=loading-spinner]:size-5',
-			'*:data-[slot=loading-dots]:gap-1.5',
-			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2',
-			'*:data-[slot=kbd]:text-sm *:data-[slot=kbd]:px-1.5 *:data-[slot=kbd]:py-0.5',
-		],
-		lg: [
-			size.lg,
-			icon.lg,
-			gap.g('1.5'),
-			'p-ring-3',
-			radius.r('2.5'),
-			'data-[has-label]:py-ring-2.5',
-			'*:data-[slot=loading-spinner]:size-6',
-			'*:data-[slot=loading-dots]:gap-2',
-			'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:size-2.5',
-			'*:data-[slot=kbd]:text-base *:data-[slot=kbd]:px-1.5 *:data-[slot=kbd]:py-0.5',
-		],
+		// Icon-only floor: a square pad per step keeps an icon-only bare button
+		// even-sided. `not-data-[has-label]` yields to the base padding once a
+		// label is present.
+		bare: [focus.inset, 'not-data-[has-label]:density-p-[0.75,1,1.25,1.5,1.5]'],
 	},
 	// Opt into the wide palette: Button's `color` axis carries the standard set
 	// plus the extended hues (rose / violet / sky), matching Badge.
@@ -108,18 +74,15 @@ export const k = defineRecipe({
 		// Synthetic color entry: inherits parent text color with a hover wash on non-disabled elements.
 		{ inherit: ['text-inherit', 'not-disabled:not-data-disabled:hover:bg-current/15'] },
 	),
-	// Icon-only floor: a square pad per size keeps an icon-only bare button
-	// even-sided; `not-data-[has-label]` yields to the size axis's padding once
-	// a label is present.
-	compound: [
-		{ variant: 'bare', size: 'xs', class: ['not-data-[has-label]:p-0.75'] },
-		{ variant: 'bare', size: 'sm', class: ['not-data-[has-label]:p-1'] },
-		{ variant: 'bare', size: 'md', class: ['not-data-[has-label]:p-1.25'] },
-		{ variant: 'bare', size: 'lg', class: ['not-data-[has-label]:p-1.5'] },
-	],
-	defaults: { variant: 'solid', color: 'zinc', size: 'md' },
+	defaults: { variant: 'solid', color: 'zinc' },
 	skeleton: button,
 })
 
-/** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`, `size`), for consumers composing custom slots. */
-export type ButtonVariants = VariantProps<typeof k>
+/** The steps a button takes: `xl` has no button step. */
+export type ButtonSize = Exclude<DensityStep, 'xl'>
+
+/** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
+export type ButtonVariants = VariantProps<typeof k> & {
+	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
+	size?: ButtonSize
+}
