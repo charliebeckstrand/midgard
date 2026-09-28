@@ -36,17 +36,20 @@ export type TooltipProps = {
 	 * hover — an SVG shape a roving keyboard cursor drives, say. Releasing it hands
 	 * control back to hover / focus / click; `disabled` still wins.
 	 * @defaultValue false
+	 * @remarks `false` does not hold the tooltip closed. It only releases the hold,
+	 * so a hover or a focus can still open the tooltip. Use `disabled` to keep it
+	 * closed.
 	 */
-	forceOpen?: boolean
+	open?: boolean
 	/**
 	 * Fires when the tooltip opens or closes, whatever drove it: the hover delay, focus,
-	 * or a click on a pointer-less device. `forceOpen`, `disabled` going true, the trigger
+	 * or a click on a pointer-less device. `open`, `disabled` going true, the trigger
 	 * becoming `:disabled`, and the shared overlay-close signal also report here.
 	 *
-	 * Observation only. The tooltip owns its open state and there is no `open` prop to
-	 * pair with. Hover cannot be driven from outside, which is why the triad stops here
-	 * ({@link TooltipProps.forceOpen} is the one programmatic reveal). Use this to mirror
-	 * the state elsewhere, not to control it.
+	 * Observation only. The tooltip owns its open state, and {@link TooltipProps.open}
+	 * only holds it open. Hover cannot be driven from outside, so `open` does not pair
+	 * with this callback as a controlled prop. Use this to mirror the state elsewhere,
+	 * not to control it.
 	 */
 	onOpenChange?: (open: boolean) => void
 	children: ReactNode
