@@ -1,6 +1,7 @@
 'use client'
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useStableEvent } from '../../../hooks/use-stable-event'
 import type { QueryGroup } from '../engine/types'
 import { type QueryTreeOptions, useQueryTree } from '../use-query-tree'
 import type { FocusRegister, QueryBuilderActions } from './context'
@@ -20,13 +21,6 @@ type QueryBuilderTreeResult = {
  */
 export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTreeResult {
 	const { root, actions } = useQueryTree(options)
-
-	// The wrapped `remove` is referentially stable and cannot close over the live
-	// tree. A ref mirrors the latest root; the handler reads it to compute where
-	// focus lands after a node disappears.
-	const treeRef = useRef(root)
-
-	treeRef.current = root
 
 	// Focus registry: each remove/add control registers its element by key. A
 	// removal stashes ordered focus candidates; the effect runs once the tree
@@ -59,18 +53,17 @@ export function useQueryBuilderTree(options: QueryTreeOptions): QueryBuilderTree
 		}
 	}, [pendingFocus])
 
-	const remove = useCallback<QueryBuilderActions['remove']>(
-		(id) => {
-			// Resolves focus candidates from the pre-removal tree; the effect moves
-			// focus once the node has unmounted.
-			const targets = findFocusTarget(treeRef.current, id)
+	// The wrapped `remove` keeps its identity, and it reads the newest tree to
+	// find where focus lands after a node goes.
+	const remove = useStableEvent((id: string) => {
+		// Resolves focus candidates from the pre-removal tree; the effect moves
+		// focus once the node has unmounted.
+		const targets = findFocusTarget(root, id)
 
-			actions.remove(id)
+		actions.remove(id)
 
-			if (targets.length > 0) setPendingFocus(targets)
-		},
-		[actions],
-	)
+		if (targets.length > 0) setPendingFocus(targets)
+	})
 
 	const builderActions = useMemo<QueryBuilderActions>(
 		() => ({ ...actions, remove }),
