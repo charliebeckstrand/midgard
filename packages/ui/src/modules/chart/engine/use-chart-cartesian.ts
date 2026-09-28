@@ -59,13 +59,6 @@ export type CartesianData<T> = Pick<
 	legend?: ResolvedLegend['value']
 	/** The legend's hidden-set report, carried straight from the caller's props. */
 	onHiddenChange?: (hidden: ReadonlySet<number>) => void
-	/** Whether the category axis tilts colliding labels, resolved from `axes.x.tickRotation`. */
-	tickRotation?: boolean
-}
-
-/** The category axis's `tickRotation` read off the `axes` union (false when unset). @internal */
-function categoryTickRotation(axes: boolean | CartesianAxes | undefined): boolean {
-	return (typeof axes === 'object' ? axes.x?.tickRotation : undefined) ?? false
 }
 
 /**
@@ -92,7 +85,6 @@ export function cartesianData<T>(
 		legend,
 		onHiddenChange: props.onHiddenChange,
 		reference: props.reference,
-		tickRotation: categoryTickRotation(props.axes),
 		onCategoryClick: props.onCategoryClick,
 		selectedCategories: props.selectedCategories,
 		formatValue: props.formatValue,
@@ -470,18 +462,21 @@ function domainValuesFor<T>(args: {
 	const bound = visible.filter((meta) => meta.axis === axis)
 
 	// Stacked charts scale to the edges their columns draw; every other chart
-	// scales to the individual values.
-	const values = stack
-		? bound.length > 0
-			? stackEdges(bound, data.length, stack)
-			: []
-		: bound.flatMap((meta) => meta.values.filter((value) => value !== null))
+	// scales to the individual values. One array takes each value and reference,
+	// with no copy for each series.
+	const values = stack && bound.length > 0 ? stackEdges(bound, data.length, stack) : []
 
-	const referenceValues = (reference ?? []).flatMap((line, index) =>
-		(line.axis ?? 'y') === axis && !referenceHidden.has(index) ? [line.value] : [],
-	)
+	if (!stack) {
+		for (const meta of bound) {
+			for (const value of meta.values) if (value !== null) values.push(value)
+		}
+	}
 
-	return values.concat(referenceValues)
+	reference?.forEach((line, index) => {
+		if ((line.axis ?? 'y') === axis && !referenceHidden.has(index)) values.push(line.value)
+	})
+
+	return values
 }
 
 /** The per-axis formatters and layout inputs resolved from the chart props. @internal */
@@ -922,7 +917,12 @@ export function useChartCartesian<T>(
 	// place its calendar ticks, and a date formatter labels the readout to match.
 	const timeAxis = axes.x?.type === 'time'
 
-	const times = timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined
+	// Parses every row, so it is memoized like the categories below: a hover, a
+	// legend toggle, or a resize commit changes none of its inputs.
+	const times = useMemo(
+		() => (timeAxis && xKey ? data.map((datum) => parseInstant(datum[xKey])) : undefined),
+		[timeAxis, xKey, data],
+	)
 
 	const resolvedSize = toInnerStep(useDensityStep(size))
 
@@ -1037,7 +1037,7 @@ export function useChartCartesian<T>(
 		bandLabel: bandText.bandLabel,
 		bandTitle,
 		bandAxis: policy.bandAxis,
-		tickRotation: categoryTickRotation(props.axes),
+		tickRotation: axes.x?.tickRotation ?? false,
 		times,
 		locale,
 		count: data.length,

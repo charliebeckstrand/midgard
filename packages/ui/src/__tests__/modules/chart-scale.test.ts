@@ -221,6 +221,24 @@ describe('linearScale', () => {
 		expect(scale?.domain[1]).toBeGreaterThanOrEqual(30)
 	})
 
+	it('drops a non-finite pin rather than pin the domain to it', () => {
+		// A pin read from an empty input (`parseFloat('')`) is NaN. Honored, it
+		// pins the domain to NaN and every mark maps to NaN.
+		const scale = linearScale({
+			values: [10, 50],
+			range: [100, 0],
+			tickTarget: 4,
+			min: Number.NaN,
+			max: Number.POSITIVE_INFINITY,
+		})
+
+		const bare = linearScale({ values: [10, 50], range: [100, 0], tickTarget: 4 })
+
+		expect(scale?.domain).toEqual(bare?.domain)
+
+		expect(Number.isFinite(scale?.map(30))).toBe(true)
+	})
+
 	it('returns null when nothing yields a domain', () => {
 		expect(linearScale({ values: [], range: [100, 0], tickTarget: 4 })).toBeNull()
 

@@ -41,18 +41,19 @@ import {
 	scatterSnapColumns,
 	scatterSnappedStop,
 	scatterSnapStops,
-	scatterXRange,
 	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
 } from '../engine/chart-geometry/scatter'
 import {
+	axisTitleAt,
 	type ChartAspectRatio,
 	type ChartAxisTitlePlacement,
 	chartFrameLayout,
 	frameFills,
 	type PlotRect,
 	plotRect,
+	valueAxisRange,
 	valueTicksOf,
 } from '../engine/chart-layout'
 import type { ChartLegendItem } from '../engine/chart-legend/legend'
@@ -358,23 +359,15 @@ type ScatterScales = {
  */
 function scatterTitles(
 	plot: PlotRect,
+	frameWidth: number,
 	xTitle: string | undefined,
 	yTitle: string | undefined,
 ): ChartAxisTitlePlacement[] {
 	const titles: ChartAxisTitlePlacement[] = []
 
-	if (yTitle) {
-		titles.push({ text: yTitle, x: AXIS_TITLE_BAND / 2, y: plot.y + plot.height / 2, rotate: -90 })
-	}
+	if (yTitle) titles.push(axisTitleAt('left', yTitle, plot, frameWidth))
 
-	if (xTitle) {
-		titles.push({
-			text: xTitle,
-			x: plot.x + plot.width / 2,
-			y: plot.y + plot.height + X_AXIS_HEIGHT + AXIS_TITLE_BAND / 2,
-			rotate: 0,
-		})
-	}
+	if (xTitle) titles.push(axisTitleAt('bottom', xTitle, plot, frameWidth))
 
 	return titles
 }
@@ -485,7 +478,9 @@ function scatterScales(args: {
 	// the end ticks then read inward off that range so their labels don't crowd the
 	// y floor label at the origin or butt the frame at the far end. Spark draws no
 	// axis, so its ticks stay bare and centered over the tight-fit span.
-	const xRange = drawAxes ? scatterXRange(xValues, xOptions, formatX, span) : span
+	const xProbe = drawAxes ? linearScale({ values: xValues, range: span, ...xOptions }) : null
+
+	const xRange = xProbe ? valueAxisRange([{ ticks: xProbe.ticks, format: formatX }], span) : span
 
 	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
 
@@ -497,7 +492,7 @@ function scatterScales(args: {
 		yScale,
 		xTicks: drawAxes ? anchorEndTicks(xTicks, xRange[0], xRange[1]) : xTicks,
 		yTicks,
-		titles: scatterTitles(plot, xTitle, yTitle),
+		titles: scatterTitles(plot, frameWidth, xTitle, yTitle),
 	}
 }
 

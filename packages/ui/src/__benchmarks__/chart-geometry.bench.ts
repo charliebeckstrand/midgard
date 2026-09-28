@@ -2,6 +2,7 @@
 
 import { bench, describe } from 'vitest'
 import { MARKER_RADIUS } from '../modules/chart/engine/chart-constants'
+import { stackedAreas } from '../modules/chart/engine/chart-geometry/area'
 import { barMarks, stackedBarMarks } from '../modules/chart/engine/chart-geometry/bar'
 import { lineGeometry } from '../modules/chart/engine/chart-geometry/line'
 import {
@@ -9,6 +10,7 @@ import {
 	scatterDiscsPath,
 	scatterMarks,
 } from '../modules/chart/engine/chart-geometry/scatter'
+import { seriesDataKey } from '../modules/chart/engine/chart-motion'
 import { bandScale, linearScale } from '../modules/chart/engine/chart-scale'
 import { makePoints, makeTrend } from './browser/fixtures'
 
@@ -59,6 +61,38 @@ describe('chart-geometry · lineGeometry', () => {
 
 		bench(`${n.toLocaleString()} pts · smooth`, () => {
 			lineGeometry(series, xs, scale.map, baseline, 'smooth')
+		})
+
+		// A null in every hundred points splits the line into runs. Each run is as
+		// dense as the whole line, so it decimates the same way.
+		const gappy = series.map((value, index) => (index % 100 === 99 ? null : value))
+
+		bench(`${n.toLocaleString()} pts · linear · gaps`, () => {
+			lineGeometry(gappy, xs, scale.map, baseline, 'linear')
+		})
+	}
+})
+
+describe('chart-geometry · stackedAreas', () => {
+	for (const n of [1_000, 10_000]) {
+		const { values } = makeTrend(n, 3)
+
+		const { scale, xs } = cartesian([
+			values.reduce((sum, row) => sum.map((v, i) => v + (row[i] ?? 0))),
+		])
+
+		bench(`${n.toLocaleString()} × 3 series`, () => {
+			stackedAreas(values, xs, scale.map)
+		})
+	}
+})
+
+describe('chart-motion · seriesDataKey', () => {
+	for (const n of [1_000, 10_000]) {
+		const { values } = makeTrend(n, 3)
+
+		bench(`${n.toLocaleString()} × 3 series`, () => {
+			seriesDataKey(values)
 		})
 	}
 })

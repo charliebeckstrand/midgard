@@ -1,7 +1,15 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { BAND_EDGE_PAD } from '../../modules/chart/engine/chart-constants'
-import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/engine/chart-layout'
+import {
+	BAND_EDGE_PAD,
+	PLOT_TOP_PAD,
+	X_AXIS_HEIGHT,
+} from '../../modules/chart/engine/chart-constants'
+import {
+	type CartesianLayoutInput,
+	horizontalLayout,
+	verticalLayout,
+} from '../../modules/chart/engine/chart-layout'
 
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
 	frameWidth: 400,
@@ -55,6 +63,27 @@ describe('verticalLayout value-label room', () => {
 		expect(withheld).toBeGreaterThan(0)
 	})
 
+	it('keeps the far extreme clear when one side widens and grows the span', () => {
+		// A one-sided widen grows the span, so the other unpinned extreme can fall
+		// under its share of the range. The low label then flips onto the line,
+		// the failure the reservation exists to prevent.
+		for (let frameHeight = 100; frameHeight <= 400; frameHeight += 1) {
+			const layout = verticalLayout({
+				...input(frameHeight, 25),
+				tickTarget: 2,
+				value: { domainValues: [23, 100], format: String },
+			})
+
+			const scale = layout.valueScale
+
+			if (!scale || !layout.valueLabelRoom) continue
+
+			expect(scale.map(100) - layout.plot.y).toBeGreaterThan(21)
+
+			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(21)
+		}
+	})
+
 	it('always grants the room when none is asked', () => {
 		expect(verticalLayout(input(80, 0)).valueLabelRoom).toBe(true)
 	})
@@ -105,5 +134,24 @@ describe('verticalLayout band-edge inset', () => {
 		expect(band.center(0) - band.step / 2 - plot.x).toBeCloseTo(BAND_EDGE_PAD)
 
 		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeCloseTo(BAND_EDGE_PAD)
+	})
+})
+
+describe('horizontalLayout value bands', () => {
+	it('reserves no bottom band when every series binds the secondary axis', () => {
+		// The primary axis stands down when nothing binds to it, as the vertical
+		// layout drops its left gutter. The band under the plot then holds no ticks,
+		// so the plot takes its height back.
+		const layout = horizontalLayout({
+			...input(300, 0),
+			value: undefined,
+			value2: { domainValues: [12, -6, 9], format: String },
+		})
+
+		expect(layout.valueScale).toBeNull()
+
+		expect(layout.plot.y + layout.plot.height).toBe(300)
+
+		expect(layout.plot.y).toBe(PLOT_TOP_PAD + X_AXIS_HEIGHT)
 	})
 })

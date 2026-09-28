@@ -12,16 +12,9 @@
 
 import { toNumericCell } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
-import {
-	BUBBLE_MAX_DIAMETER,
-	BUBBLE_MIN_DIAMETER,
-	GUTTER_EDGE_PAD,
-	MARKER_RADIUS,
-	TICK_CHAR_WIDTH,
-} from '../chart-constants'
+import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
 import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
-import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
 import { nearestStopIndex } from '../chart-snap'
 
@@ -404,42 +397,6 @@ function discCatchSquared(point: ScatterMark, x: number, y: number, slack: numbe
 	const squared = dx * dx + dy * dy
 
 	return squared > reach * reach ? -1 : squared
-}
-
-/**
- * Insets the x span so the extreme discs and the end tick labels clear the frame
- * — the horizontal layout's treatment, over a single probe scale. Ticks are
- * range-independent, so the probe answers before the final range is known. A
- * frame too narrow to seat both keeps the span, since a clipped label beats an
- * inverted axis.
- *
- * @remarks The inset is sized to the end labels' half-width. That also seats the
- * extreme discs off the frame edge, since a value-axis disc paints a smaller
- * reach than its label spans. The labels themselves then read inward through
- * {@link anchorEndTicks}, so this reservation is really the marks'. Reclaiming it
- * for a tighter fit would mean insetting by the widest disc's reach instead. It
- * would also pull the same reservation off the y range's top and floor.
- * @internal
- */
-export function scatterXRange(
-	values: number[],
-	options: { tickTarget: number; min?: number; max?: number },
-	format: (value: number) => string,
-	span: [number, number],
-): [number, number] {
-	const probe = linearScale({ values, range: span, ...options })
-
-	if (!probe || probe.ticks.length === 0) return span
-
-	const half = (value: number) => (format(value).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
-
-	const [from, to] = span
-
-	const insetFrom = Math.max(from, half(probe.ticks[0] as number))
-
-	const insetTo = to - half(probe.ticks.at(-1) as number)
-
-	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }
 
 /** How far a tick's mapped position can sit from a range end and still count as sitting on it. @internal */
