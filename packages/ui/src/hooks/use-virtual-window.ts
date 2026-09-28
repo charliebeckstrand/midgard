@@ -387,13 +387,22 @@ type WindowVirtualizerOptions = Omit<
  * that the virtualizer marks as synchronous renders in a `flushSync`, as in
  * the library.
  *
- * @returns The virtualizer, and the callback that records the window state of
- * a commit. Call it in a layout effect with the state that the render read.
+ * The React Compiler does not compile this hook, by intent. It is the one
+ * place that reads the live virtualizer during render. It returns the window
+ * of this render as plain values, so the callers compile. A compiled read of
+ * the virtualizer would cache the window on its identity, which holds for the
+ * mount, and the window would stop moving.
+ *
+ * @param adjustAbove - Whether a row above the viewport that changes size
+ * moves the scroll offset, in each direction. The measured path sets it.
+ * @returns The virtualizer, the callback that records the window state of a
+ * commit, and the window of this render: its items, the total size, and the
+ * state to record. Call the callback in a layout effect with that state.
  * @internal
  */
-function useWindowVirtualizer(
-	options: WindowVirtualizerOptions,
-): [Virtualizer<HTMLElement, Element>, (state: WindowState) => void] {
+function useWindowVirtualizer(options: WindowVirtualizerOptions, adjustAbove: boolean) {
+	'use no memo'
+
 	const [, rerender] = useReducer((x: number) => x + 1, 0)
 
 	// The window state of the last commit. It is written in a layout effect, so a
@@ -419,6 +428,8 @@ function useWindowVirtualizer(
 
 	instance.setOptions(resolved)
 
+	if (adjustAbove) instance.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
+
 	useLayoutEffect(() => instance._didMount(), [instance])
 
 	useLayoutEffect(() => instance._willUpdate())
@@ -430,7 +441,13 @@ function useWindowVirtualizer(
 		[],
 	)
 
-	return [instance, record]
+	return {
+		virtualizer: instance,
+		record,
+		virtualItems: instance.getVirtualItems(),
+		totalSize: instance.getTotalSize(),
+		rendered: windowState(instance),
+	}
 }
 
 type VirtualWindow = {
@@ -551,10 +568,9 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * closing row, a group row or a detail panel, as an item until its reveal
  * lands, so the close animation still plays.
  *
- * The React Compiler does not compile this hook, by intent. The virtualizer
- * keeps one identity for the mount, and its reads are live. A compiled
- * `getVirtualItems()` would cache the window on that identity, and the window
- * would stop moving.
+ * The React Compiler compiles this hook. The live reads of the virtualizer
+ * stay in an internal adapter that the compiler skips by intent, and the
+ * adapter gives each render its window as plain values.
  */
 export function useVirtualWindow(options: VirtualWindowOptions): VirtualWindow
 
@@ -573,8 +589,6 @@ export function useVirtualWindow({
 	anchorTo,
 	followOnAppend,
 }: VirtualWindowOptions & Partial<MeasuredVirtualWindowOptions>): MeasuredVirtualWindow {
-	'use no memo'
-
 	// The virtualizer reads these getters off the options object each cycle; a
 	// fresh closure per render busts its internal option identity. A function
 	// estimate passes through as it is, so it keeps the caller's identity.
@@ -587,24 +601,32 @@ export function useVirtualWindow({
 	// virtualizer drops undefined options rather than writing them over its
 	// defaults. The same rule keeps the start anchor and no follow on the uniform
 	// path, and a zero scroll margin and paddings where the caller gives none.
-	const [virtualizer, recordShown] = useWindowVirtualizer({
-		count,
-		getScrollElement,
-		estimateSize: getSize,
-		overscan,
-		scrollMargin,
-		gap,
-		scrollPaddingStart,
-		scrollPaddingEnd,
-		getItemKey,
-		anchorTo,
-		followOnAppend,
-	})
+	const {
+		virtualizer,
+		record: recordShown,
+		virtualItems,
+		totalSize,
+		rendered,
+	} = useWindowVirtualizer(
+		{
+			count,
+			getScrollElement,
+			estimateSize: getSize,
+			overscan,
+			scrollMargin,
+			gap,
+			scrollPaddingStart,
+			scrollPaddingEnd,
+			getItemKey,
+			anchorTo,
+			followOnAppend,
+		},
+		getItemKey != null,
+	)
 
 	// A row above the viewport that measures while the reader scrolls up must not
 	// move the rows in view. The library default skips that adjustment, so the
 	// measured path replaces it. The uniform path writes nothing here.
-	if (getItemKey) virtualizer.shouldAdjustScrollPositionOnItemSizeChange = adjustAboveViewport
 
 	// The start anchor. virtual-core 3.16 holds only the end edge. The measured
 	// path holds the start edge in a layout effect below.
@@ -632,11 +654,8 @@ export function useVirtualWindow({
 		[startAnchor, virtualizer],
 	)
 
-	const virtualItems = virtualizer.getVirtualItems()
-
 	// On the measured path `getTotalSize()` moves with each measurement, and the
 	// spacers read it on each render, so they follow the rows as they measure.
-	const totalSize = virtualizer.getTotalSize()
 
 	// An item's start and end include the scroll margin, and the total size does
 	// not. The spacers sit below the content above the list, so they subtract it.
@@ -653,7 +672,6 @@ export function useVirtualWindow({
 
 	// The state that this render read. A virtualizer change that keeps it renders
 	// nothing.
-	const rendered = windowState(virtualizer)
 
 	useLayoutEffect(() => {
 		recordShown(rendered)
