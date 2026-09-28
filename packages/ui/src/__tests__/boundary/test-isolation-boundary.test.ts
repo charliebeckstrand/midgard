@@ -111,21 +111,25 @@ const NULLABLE_CAST = {
 //
 // The rule applies to a write to state that outlives the case: the module
 // registry, a global, the environment, the clock, the mock registry, a spy on
-// a global or a prototype, and a module-scope `let`. A helper that makes such
-// a write counts as one. The scan reads the helpers of the file, and the
-// modules in a `__tests__` tree that the file imports, with the same rules.
-// It does not read the source tree, so `SOURCE_WRITERS` names each reset seam
-// there. A write to the DOM is out of scope: `cleanup`, the residue guard, and
-// the page reset of the browser suite undo it. In a loop, an `await` lower in
-// the body comes before the write of the next pass, so the scan counts the
-// head of the loop body as a resume point.
+// a global or a prototype, and a module-scope `let`. A global includes a
+// constructor or a namespace, such as `URL` or `Math`, because a static on it
+// outlives the case. The type check resolves each name that no scope around
+// the write declares to a global, so the scan needs no list of globals.
+//
+// A helper that makes such a write counts as one. The scan reads the helpers
+// of the file, and the modules in a `__tests__` tree that the file imports,
+// with the same rules. It does not read the source tree, so `SOURCE_WRITERS`
+// names each reset seam there. A write to the DOM is out of scope: `cleanup`,
+// the residue guard, and the page reset of the browser suite undo it. In a
+// loop, an `await` lower in the body comes before the write of the next pass,
+// so the scan counts the head of the loop body as a resume point.
 
 /** The `vi` calls that change state that outlives a case. */
 const SHARED_STATE_CALL =
 	/^(?:vi|vitest)\.(?:doMock|doUnmock|stubGlobal|stubEnv|resetModules|useFakeTimers|useRealTimers|setSystemTime|restoreAllMocks|resetAllMocks|unstubAllGlobals|unstubAllEnvs)$/
 
-/** A target that every case shares: a global, or a prototype. */
-const SHARED_TARGET = /^(?:globalThis|window|document|navigator|[\w.]+\.prototype)\b/
+/** A prototype, which every case shares. */
+const PROTOTYPE = /^[\w.]+\.prototype\b/
 
 /** The calls that take the body of a case or of a hook. */
 const CASE_OR_HOOK = new Set(['it', 'test', 'beforeEach', 'afterEach', 'beforeAll', 'afterAll'])
@@ -171,6 +175,89 @@ function targetRoot(node: ts.Expression): ts.Expression {
 	return ts.isPropertyAccessExpression(bare) || ts.isElementAccessExpression(bare)
 		? targetRoot(bare.expression)
 		: bare
+}
+
+/** Whether `name` is one of the names that a binding or a pattern binds. */
+function bindsName(binding: ts.BindingName, name: string): boolean {
+	return ts.isIdentifier(binding)
+		? binding.text === name
+		: binding.elements.some(
+				(element) => !ts.isOmittedExpression(element) && bindsName(element.name, name),
+			)
+}
+
+/** Whether a statement of a block or of a module declares `name`. */
+function statementDeclares(statement: ts.Statement, name: string): boolean {
+	if (ts.isVariableStatement(statement)) {
+		return statement.declarationList.declarations.some((declaration) =>
+			bindsName(declaration.name, name),
+		)
+	}
+
+	if (ts.isImportDeclaration(statement)) {
+		const clause = statement.importClause
+
+		const bindings = clause?.namedBindings
+
+		return (
+			clause?.name?.text === name ||
+			(bindings !== undefined &&
+				(ts.isNamespaceImport(bindings)
+					? bindings.name.text === name
+					: bindings.elements.some((element) => element.name.text === name)))
+		)
+	}
+
+	return (
+		(ts.isFunctionDeclaration(statement) ||
+			ts.isClassDeclaration(statement) ||
+			ts.isEnumDeclaration(statement) ||
+			ts.isModuleDeclaration(statement) ||
+			ts.isImportEqualsDeclaration(statement)) &&
+		statement.name !== undefined &&
+		ts.isIdentifier(statement.name) &&
+		statement.name.text === name
+	)
+}
+
+/**
+ * Whether a scope around `node` declares `name`: a block, a module, a
+ * function, a loop head, or a `catch`. A `var` in a nested block is not read.
+ */
+function declaredAround(node: ts.Node, name: string): boolean {
+	for (let up = node.parent; up; up = up.parent) {
+		if (
+			ts.isBlock(up) ||
+			ts.isSourceFile(up) ||
+			ts.isModuleBlock(up) ||
+			ts.isCaseOrDefaultClause(up)
+		) {
+			if (up.statements.some((statement) => statementDeclares(statement, name))) return true
+		}
+
+		if (ts.isFunctionLike(up)) {
+			if (up.parameters.some((parameter) => bindsName(parameter.name, name))) return true
+
+			if (ts.isFunctionExpression(up) && up.name?.text === name) return true
+		}
+
+		if (
+			(ts.isForStatement(up) || ts.isForOfStatement(up) || ts.isForInStatement(up)) &&
+			up.initializer &&
+			ts.isVariableDeclarationList(up.initializer) &&
+			up.initializer.declarations.some((declaration) => bindsName(declaration.name, name))
+		) {
+			return true
+		}
+
+		if (ts.isCatchClause(up) && up.variableDeclaration) {
+			if (bindsName(up.variableDeclaration.name, name)) return true
+		}
+
+		if (ts.isClassExpression(up) && up.name?.text === name) return true
+	}
+
+	return false
 }
 
 /**
@@ -350,6 +437,18 @@ function scanModule(file: string, text: string) {
 		}
 	}
 
+	/**
+	 * Whether a write to `target` reaches state that every case shares: a
+	 * prototype, or a name that no scope around it declares, such as `URL`.
+	 */
+	function isSharedTarget(target: ts.Expression): boolean {
+		if (PROTOTYPE.test(target.getText(source))) return true
+
+		const root = targetRoot(target)
+
+		return ts.isIdentifier(root) && !declaredAround(root, root.text)
+	}
+
 	/** The label of a write to shared state, or `undefined` for any other node. */
 	function writeLabel(node: ts.Node): string | undefined {
 		if (ts.isCallExpression(node)) {
@@ -359,18 +458,14 @@ function scanModule(file: string, text: string) {
 
 			const [target] = node.arguments
 
-			if (
-				/^(?:vi|vitest)\.spyOn$/.test(callee) &&
-				target &&
-				SHARED_TARGET.test(target.getText(source))
-			) {
+			if (/^(?:vi|vitest)\.spyOn$/.test(callee) && target && isSharedTarget(target)) {
 				return `${callee}(${target.getText(source)})`
 			}
 
 			if (
 				/^(?:Object|Reflect)\.(?:defineProperty|set|deleteProperty)$/.test(callee) &&
 				target &&
-				SHARED_TARGET.test(target.getText(source))
+				isSharedTarget(target)
 			) {
 				return `${callee}(${target.getText(source)})`
 			}
@@ -378,10 +473,7 @@ function scanModule(file: string, text: string) {
 			if (ts.isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
 		}
 
-		if (
-			ts.isDeleteExpression(node) &&
-			SHARED_TARGET.test(targetRoot(node.expression).getText(source))
-		) {
+		if (ts.isDeleteExpression(node) && isSharedTarget(node.expression)) {
 			return `delete ${node.expression.getText(source)}`
 		}
 
@@ -396,7 +488,7 @@ function scanModule(file: string, text: string) {
 				return `${root.text} =`
 			}
 
-			if (root !== node.left && SHARED_TARGET.test(root.getText(source))) {
+			if (root !== node.left && isSharedTarget(node.left)) {
 				return `${node.left.getText(source)} =`
 			}
 		}
