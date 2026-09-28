@@ -19,7 +19,9 @@ const layout = defineRecipe({
 })
 
 // Sticks to the top of the page below `lg`, over the content that scrolls under it.
-// The padding follows the nearest density scope.
+// Keep the background opaque and the bar full width. Safari on iOS 26 then paints
+// the color of the bar under the status bar. The padding follows the nearest
+// density scope.
 const navbar = defineRecipe({
 	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
 })
@@ -68,10 +70,12 @@ const content = defineRecipe({
 		// The padding follows the nearest density scope.
 		'density-px-[4,6,8] density-pb-[4,6,8] lg:not-has-[[data-slot=header]]:density-pt-[4,6,8]',
 	],
+	// From `lg` up only. Below `lg`, the navbar is the one sticky bar of the page, and
+	// the header scrolls with the content. Two stacked sticky bars show a seam on iOS.
 	stickyHeader: {
 		true: [
-			'**:data-[slot=header]:sticky',
-			'**:data-[slot=header]:top-[var(--sidebar-navbar-height,0px)]',
+			'**:data-[slot=header]:lg:sticky',
+			'**:data-[slot=header]:lg:top-0',
 			'**:data-[slot=header]:z-20',
 			'**:data-[slot=header]:bg-white',
 			'**:data-[slot=header]:dark:bg-zinc-950',
