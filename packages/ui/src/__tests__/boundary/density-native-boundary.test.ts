@@ -1,99 +1,105 @@
 // @vitest-environment node
+import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { k as sidebarLayout } from '../../layouts/sidebar/variants'
-import { k as badge } from '../../recipes/kata/badge'
-import { k as button } from '../../recipes/kata/button'
-import { k as checkbox } from '../../recipes/kata/checkbox'
-import { k as colorPanel } from '../../recipes/kata/color-panel'
-import { k as colorPicker } from '../../recipes/kata/color-picker'
-import { k as combobox } from '../../recipes/kata/combobox'
-import { k as datePicker } from '../../recipes/kata/date-picker'
-import { k as fieldset } from '../../recipes/kata/fieldset'
-import { k as heading } from '../../recipes/kata/heading'
-import { k as input } from '../../recipes/kata/input'
-import { k as list } from '../../recipes/kata/list'
-import { k as listbox } from '../../recipes/kata/listbox'
-import { k as loading } from '../../recipes/kata/loading'
-import { k as menu } from '../../recipes/kata/menu'
-import { k as progress } from '../../recipes/kata/progress'
-import { k as radio } from '../../recipes/kata/radio'
-import { k as rating } from '../../recipes/kata/rating'
-import { k as sidebar } from '../../recipes/kata/sidebar'
-import { k as slider } from '../../recipes/kata/slider'
-import { k as rangeSlider } from '../../recipes/kata/slider-range'
-import { k as sparkline } from '../../recipes/kata/sparkline'
-import { k as switchRecipe } from '../../recipes/kata/switch'
-import { k as table } from '../../recipes/kata/table'
-import { k as tabs } from '../../recipes/kata/tabs'
-import { k as textarea } from '../../recipes/kata/textarea'
-import { k as tree } from '../../recipes/kata/tree'
 import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
 // Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
 // step and no JS code selects it. Two rules hold that design:
 //
-//   - No recipe of the component has a `size` or a `density` axis. The recipes
-//     below hold this rule.
+//   - No recipe of the component has a `size` or a `density` axis. The walk
+//     below reads each recipe of each kata and each layout variant module, so a
+//     new kata is native by default.
 //   - The component reads no density context. An explicit `size` becomes a
 //     scope (the `density` prop of PolymorphicStatic or Box), not a lookup. The
 //     reader allowlists at the end of this file hold this rule for each file.
 //
-// To move a component onto the variants, add its recipes here. Then the gate
-// stops a later change that selects the step in JS again.
+// The recipes below keep a `size` axis on purpose. Each names its reason. A
+// recipe that drops its axis must leave the list too.
 
-const NATIVE_RECIPES = {
-	badge,
-	button,
-	checkbox,
-	'color panel': colorPanel,
-	'color picker button': colorPicker.button,
-	combobox,
-	'date picker button': datePicker.button,
-	description: fieldset.description,
-	heading,
-	input,
-	label: fieldset.label,
-	'list item': list.item,
-	listbox,
-	'loading spinner': loading.spinner,
-	'menu viewport': menu.viewport,
-	message: fieldset.message,
-	'progress bar': progress,
-	'progress gauge': progress.gauge.root,
-	'progress gauge label': progress.gauge.label,
-	radio,
-	'range slider': rangeSlider.root,
-	'range slider thumb': rangeSlider.thumb,
-	'range slider track': rangeSlider.track,
-	rating,
-	'sidebar item': sidebar.item.base,
-	'sidebar item row': sidebar.item.row,
-	'sidebar layout content': sidebarLayout.content,
-	'sidebar layout header': sidebarLayout.header,
-	'sidebar layout panel': sidebarLayout.panel,
-	slider,
-	sparkline,
-	switch: switchRecipe,
-	tab: tabs.tab,
-	'table cell': table.cell,
-	'table header': table.header,
-	textarea,
-	'tree item': tree.item.content,
+const INERT: Record<string, string> = {
+	'avatar:k': 'An avatar is content. Its box is explicit, and a host projects a size onto it.',
+	'code:k': 'Inline code keeps the mark size that the caller gives it.',
+	'kbd:k':
+		'A key keeps the mark size that the caller gives it. A host, such as Button, projects one.',
+	'stat:k.value': 'A figure takes its size from the layout of the dashboard, not from density.',
+	'stat:k.skeleton.value': 'The silhouette of a figure has the axis of the figure.',
+	'swatch:k': 'A chart gives each legend dot one size, not a density step.',
+	'text:k': 'Text keeps the size around it. Its `size` sets the type scale explicitly.',
 }
 
 const srcDir = join(import.meta.dirname, '..', '..')
 
-describe('density-native boundary', () => {
-	it.each(Object.entries(NATIVE_RECIPES))(
-		'the %s recipe has no size or density axis',
-		(_, recipe) => {
-			const axes = Object.keys(recipe.config.variants ?? {})
+/** The kata modules and the layout variant modules, by the path under `src`. */
+function recipeFiles(): string[] {
+	const kata = readdirSync(join(srcDir, 'recipes', 'kata'))
+		.filter((file) => file.endsWith('.ts'))
+		.map((file) => `recipes/kata/${file}`)
 
-			expect(axes.filter((axis) => axis === 'size' || axis === 'density')).toEqual([])
-		},
-	)
+	const layouts = readdirSync(join(srcDir, 'layouts'), { withFileTypes: true })
+		.filter(
+			(entry) =>
+				entry.isDirectory() && existsSync(join(srcDir, 'layouts', entry.name, 'variants.ts')),
+		)
+		.map((entry) => `layouts/${entry.name}/variants.ts`)
+
+	return [...kata, ...layouts].sort()
+}
+
+/** A recipe: a callable with the config it was defined from. */
+type Recipe = { config: { variants?: Record<string, unknown> } }
+
+function isRecipe(value: unknown): value is Recipe {
+	return typeof value === 'function' && 'config' in value
+}
+
+/** The path of each recipe under `value` that has a `size` or a `density` axis. */
+function steppedAxes(value: unknown, path: string, seen: Set<unknown>, found: string[]) {
+	if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return
+
+	if (seen.has(value)) return
+
+	seen.add(value)
+
+	if (isRecipe(value)) {
+		const axes = Object.keys(value.config.variants ?? {})
+
+		if (axes.includes('size') || axes.includes('density')) found.push(path)
+	}
+
+	for (const [key, child] of Object.entries(value)) {
+		if (key !== 'config') steppedAxes(child, `${path}.${key}`, seen, found)
+	}
+}
+
+describe('density-native boundary', () => {
+	const files = recipeFiles()
+
+	it('no kata or layout recipe has a size or density axis, except the listed ones', async () => {
+		const found: string[] = []
+
+		for (const file of files) {
+			const module: Record<string, unknown> = await import(join(srcDir, file))
+
+			const name = file.replace(/^(?:recipes\/kata|layouts)\//, '').replace(/\.ts$/, '')
+
+			const seen = new Set<unknown>()
+
+			for (const [key, value] of Object.entries(module)) {
+				steppedAxes(value, `${name}:${key}`, seen, found)
+			}
+		}
+
+		expect(found.sort()).toEqual(Object.keys(INERT).sort())
+	})
+
+	it('walks the recipes of each kata and each layout', () => {
+		// A walk that read no file would pass the case above with an empty list.
+		expect(files.length).toBeGreaterThan(50)
+
+		expect(files).toContain('layouts/sidebar/variants.ts')
+	})
 })
 
 /** The source files whose code, with the comments removed, matches `pattern`. */
