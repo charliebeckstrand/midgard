@@ -3,9 +3,9 @@ import type { ReactNode } from 'react'
 import { SignedInClient } from './client'
 
 /**
- * The layout reads the session before it renders, so a navigation into it waits for the
- * gateway. This lets the route block. The read moves into a `<Suspense>`
- * boundary in a later change.
+ * The layout reads the session before it renders, because the session selects
+ * the chrome. A fallback chrome would change when the session arrives, so the
+ * route blocks. A navigation between the pages under the layout does not wait.
  */
 export const instant = false
 
