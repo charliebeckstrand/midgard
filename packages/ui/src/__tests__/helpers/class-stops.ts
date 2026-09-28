@@ -1,5 +1,6 @@
 import type { DensityStep } from '../../core/density'
 import { valuesByStep } from '../../core/density/steps'
+import { k as button } from '../../recipes/kata/button'
 
 /** The class strings of a recipe value, which can nest arrays. */
 function classNames(classes: readonly unknown[]): string[] {
@@ -49,4 +50,14 @@ export function findSteps(
 	}
 
 	throw new Error(`No class "${prefix}[…]" in: ${JSON.stringify(classes)}`)
+}
+
+/**
+ * Reads the icon-only pad of a bare button at `size`, from the stepped `bare`
+ * variant of the button kata.
+ */
+export function findBareCompoundP(size: DensityStep): number {
+	const bare = button.config.variants.variant?.bare as readonly unknown[]
+
+	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
 }

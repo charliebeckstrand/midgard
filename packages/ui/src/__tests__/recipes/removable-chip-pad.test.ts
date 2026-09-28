@@ -1,8 +1,8 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import type { DensityStep } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
-import { k as button } from '../../recipes/kata/button'
-import { findSteps } from '../helpers/class-stops'
+import { findBareCompoundP, findSteps } from '../helpers/class-stops'
 
 // Removable-chip leading-pad symmetry invariant.
 //
@@ -14,13 +14,6 @@ import { findSteps } from '../helpers/class-stops'
 // chip. This holds the sum against the live recipes at each step that a chip
 // takes: TagInput, QueryChips (always `sm`), and ChatPrompt. If the badge px,
 // the pill bump, or the bare compound drifts, the case fails and names the step.
-
-/** The icon-only pad of a bare button at `size`, from its stepped `bare` variant. */
-function findBareCompoundP(size: DensityStep): number {
-	const bare = button.config.variants.variant?.bare as readonly unknown[]
-
-	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
-}
 
 // The chip is a `radius: 'full'` pill: its px is the step of the `radius:
 // 'full'` compound ramp, which bumps each step one stop above the base ramp.

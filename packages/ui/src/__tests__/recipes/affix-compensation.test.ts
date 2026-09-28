@@ -1,9 +1,10 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { type DensityStep, type InnerStep, stepDown } from '../../core/density'
+import { type InnerStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
-import { findSteps, findStop } from '../helpers/class-stops'
+import { findBareCompoundP, findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
 //
@@ -156,13 +157,6 @@ describe('control affix has-badge compensation', () => {
 // deltas can't cancel and the value drifts (1.75 → 2 → 2.25). The test parses
 // the live compound rule rather than the literals; if input.px, the bare
 // compound p, or stepDown drifts, the assertion points at the source.
-
-/** The icon-only pad of a bare button at `size`, from its stepped `bare` variant. */
-function findBareCompoundP(size: DensityStep): number {
-	const bare = button.config.variants.variant?.bare as readonly unknown[]
-
-	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
-}
 
 describe('control affix has-bare-button compensation', () => {
 	for (const step of STEPS) {

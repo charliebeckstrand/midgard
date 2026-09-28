@@ -13,9 +13,8 @@
  * deltas cancel. That holds each constant at every step. The two differ because
  * a `<Badge>` sits one notch below a same-size `<Button>` on the shared `px`
  * scale. Its stepped-down padding is therefore 0.5 smaller, and the slot pads
- * 0.5 more to compensate. The boundary test at
- * `__tests__/boundary/affix-compensation-boundary.test.ts` pins both against
- * the live recipes.
+ * 0.5 more to compensate. `__tests__/recipes/affix-compensation.test.ts` pins
+ * both against the live recipes.
  *
  * The frame is a flex row, so a prefix sits at the inline start and a suffix at
  * the inline end. In a right-to-left control the slots mirror. Thus every pad
@@ -63,9 +62,9 @@
  * slot's presence via `group-has` against the frame's `group/control`. The
  * margins ride the `density` axis (`./density.ts`), so every control
  * input carries them. On elements that can't match `:autofill` (the
- * listbox / date-picker buttons) they are inert. The boundary test at
- * `__tests__/boundary/affix-compensation-boundary.test.ts` pins
- * the margin to the control `px` at each step.
+ * listbox / date-picker buttons) they are inert.
+ * `__tests__/recipes/affix-compensation.test.ts` pins the margin to the control
+ * `px` at each step.
  *
  * Layer: kiso · Archetype: control · Concern: affix
  */

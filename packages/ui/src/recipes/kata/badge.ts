@@ -74,7 +74,7 @@ export const k = defineRecipe(
 		 * button, and the label sits symmetric with the glyph. The class is gated
 		 * on `data-has-suffix`, so a chip with no button keeps the symmetric
 		 * `px`. The button takes the step of the chip, so the pad is a stepped
-		 * class. `removable-chip-pad-boundary.test.ts` holds the sum at each step.
+		 * class. `removable-chip-pad.test.ts` holds the sum at each step.
 		 */
 		removable: 'data-[has-suffix]:density-ps-ring-[2.25,3,3.75,4.5,4.5]',
 	},
