@@ -23,6 +23,7 @@ import {
 } from './account-queries'
 import { ConnectedAccounts } from './connected-accounts'
 import { TwoStep } from './two-step'
+import { YourData } from './your-data'
 
 type AccountClientProps = {
 	user: User
@@ -41,8 +42,8 @@ const dateFormat: Intl.DateTimeFormatOptions = { dateStyle: 'medium', timeStyle:
 
 /**
  * Account page: the email notice, the passkeys, authenticator app, recovery
- * codes, GitHub and Google accounts, and recent activity of the signed-in user,
- * and sign-out.
+ * codes, GitHub and Google accounts, recent activity, and data of the
+ * signed-in user, and sign-out.
  *
  * @remarks
  * The server page seeds the `usePasskeys`, `useFactors`, and `useIdentities` queries. The user owns the passkeys,
@@ -158,6 +159,8 @@ export function AccountClient({
 
 					<ActivityTable activity={activity} />
 				</Stack>
+
+				<YourData admin={user.roles.includes('admin')} />
 
 				{user.roles.includes('admin') && (
 					<Text className="text-center">
