@@ -11,6 +11,7 @@ import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
+import { LoadingSpinner } from '../../components/loading'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Radio } from '../../components/radio'
@@ -422,6 +423,25 @@ describe('items and slots at the first paint (real browser)', () => {
 		expect(px(inner, 'paddingTop')).toBe(5)
 
 		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(16)
+
+		container.remove()
+	})
+
+	it.each([
+		['xs', 12],
+		['md', 20],
+		['lg', 24],
+	] as const)('sizes a spinner in a %s sidebar item as its icon', (size, width) => {
+		const container = mountMarkup(
+			<SidebarItem size={size} icon={icon}>
+				<LoadingSpinner label="Loading" />
+				Home
+			</SidebarItem>,
+		)
+
+		expect(px(container.querySelector('[data-slot="loading-spinner"]'), 'width')).toBe(width)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(width)
 
 		container.remove()
 	})

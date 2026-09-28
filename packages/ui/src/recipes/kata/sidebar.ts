@@ -51,7 +51,7 @@ const itemBase = defineRecipe({
 		// keeps the height of a row with an icon. A LoadingSpinner takes the size of
 		// the icon row.
 		'*:data-[slot=avatar]:density-size-[5,6,7] *:data-[slot=avatar]:-m-0.5',
-		'*:data-[slot=loading-spinner]:density-size-[4,5,6]',
+		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
 	],
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
