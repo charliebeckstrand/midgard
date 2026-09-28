@@ -12,6 +12,7 @@ import {
 	pieSlices,
 	segmentLabelFits,
 } from '../../modules/chart/engine/chart-geometry/pie'
+import { estimateTextWidth } from '../../modules/chart/engine/chart-text-width'
 import { ChartFullscreenContext } from '../../modules/chart/engine/context'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { LocaleProvider } from '../../providers/locale'
@@ -346,10 +347,10 @@ describe('PieChart', () => {
 		// height/aspectRatio both unset: the frame fits the pie's own tight,
 		// per-slice callout fit (see the `pieCalloutFit` describe block below)
 		// rather than a flat margin sized as if every label sat at 3 o'clock;
-		// vMargin = 14 + 15 = 29, radius ≈ 62.34, height = round(2*62.34+2*29) = 183.
+		// vMargin = 14 + 15 = 29, radius ≈ 41.5 at the 8 px callout estimate, height = round(2*41.5+2*29) = 141.
 		const { container } = renderUI(chart({ height: undefined, labels: { callouts: true } }))
 
-		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 183')
+		expect(container.querySelector('svg')?.getAttribute('viewBox')).toBe('0 0 300 141')
 	})
 
 	it('keeps crowded callouts inside the SVG height', () => {
@@ -813,7 +814,12 @@ describe('pieCalloutFit', () => {
 
 		const frameWidth = 480
 
-		const fit = pieCalloutFit({ values, texts, charWidth: CALLOUT_CHAR_WIDTH, frameWidth })
+		const fit = pieCalloutFit({
+			values,
+			texts,
+			textWidth: estimateTextWidth(CALLOUT_CHAR_WIDTH),
+			frameWidth,
+		})
 
 		const slices = pieSlices(values, { cx: fit.cx, cy: 200, radius: fit.radius })
 
@@ -846,7 +852,12 @@ describe('pieCalloutFit', () => {
 
 		const texts = ['Everything 100%']
 
-		const fit = pieCalloutFit({ values: [42], texts, charWidth: CALLOUT_CHAR_WIDTH, frameWidth })
+		const fit = pieCalloutFit({
+			values: [42],
+			texts,
+			textWidth: estimateTextWidth(CALLOUT_CHAR_WIDTH),
+			frameWidth,
+		})
 
 		expect(fit.cx).toBe(frameWidth / 2)
 
