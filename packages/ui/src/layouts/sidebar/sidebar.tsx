@@ -57,9 +57,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * itself does not scroll. Only the content region scrolls.
  *
  * Its padding and the width of its desktop panel follow the nearest density
- * scope. The floating
- * sidebar is non-modal, so its peek never steals focus or locks body scroll,
- * but `backdrop` still dims the page behind it.
+ * scope. The floating sheet has the width of the panel at each step. The
+ * floating sidebar is non-modal, so its peek never steals focus or locks body
+ * scroll, but `backdrop` still dims the page behind it.
  *
  * The sidebar sits on the start edge of the reading direction. In a
  * right-to-left page, the panel, the floating sheet, and its hover strip are
@@ -127,18 +127,18 @@ export function SidebarLayout({
 			{floating && (
 				<Sheet
 					side="start"
-					width="xs"
+					width="fit"
 					open={floatingOpen}
 					onOpenChange={setFloatingOpen}
 					modal={false}
 					backdrop
 					className={cn(
-						'sm:top-0 sm:bottom-0',
+						k.floatingSheet(),
 						rtl ? 'sm:right-0 sm:rounded-r-none' : 'sm:left-0 sm:rounded-l-none',
 					)}
 				>
 					<div
-						className="flex flex-col h-full"
+						className={k.floatingBody()}
 						onPointerEnter={() => setFloatingOpen(true)}
 						onPointerLeave={() => setFloatingOpen(false)}
 					>

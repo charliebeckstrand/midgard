@@ -16,6 +16,12 @@ const layout = defineRecipe({
 	],
 })
 
+// The width of the sidebar. It holds text, so its width follows the nearest
+// density scope, as the text does. A container width has no stepped utility, so
+// the steps are variants, and equal steps share one. The inline panel and the
+// body of the floating sheet both take it, so the text wraps the same in each.
+const sidebarWidth = 'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm'
+
 const panel = defineRecipe({
 	base: [
 		'shrink-0 min-w-0',
@@ -24,10 +30,7 @@ const panel = defineRecipe({
 		// A mini sidebar sets the rail width; the panel follows it instead of
 		// holding the size step open.
 		'has-data-[mini]:w-fit',
-		// The rail holds text, so its width follows the nearest density scope, as the
-		// text does. A container width has no stepped utility, so the steps are
-		// variants, and equal steps share one.
-		'density-[xs,sm]:w-2xs density-md:w-xs density-[lg,xl]:w-sm',
+		sidebarWidth,
 	],
 })
 
@@ -35,11 +38,22 @@ const floatingHotZone = defineRecipe({
 	base: ['absolute inset-y-0 start-0 z-30 w-2 max-lg:hidden'],
 })
 
+// The floating sidebar is a Sheet of `fit` width, and its body takes the width
+// of the inline panel at each step.
+const floatingSheet = defineRecipe({ base: 'sm:top-0 sm:bottom-0' })
+
+const floatingBody = defineRecipe({ base: ['flex flex-col h-full', sidebarWidth] })
+
 // Portaled to the body, so it escapes the layout's stacking context and needs a
 // ladder rung rather than a local `z-30` like the hot zone above. It is the
-// sidebar's own furniture, which is the `chrome` rung's other inhabitant.
+// sidebar's own furniture, which is the `chrome` rung's other inhabitant. It
+// starts at the far edge of the floating sheet at each step.
 const floatingBuffer = defineRecipe({
-	base: [sou.chrome, 'fixed top-0 bottom-0 start-80 w-10 max-lg:hidden'],
+	base: [
+		sou.chrome,
+		'fixed top-0 bottom-0 w-10 max-lg:hidden',
+		'density-[xs,sm]:start-72 density-md:start-80 density-[lg,xl]:start-96',
+	],
 })
 
 const contentWrapper = defineRecipe({
@@ -94,6 +108,8 @@ export const k = {
 	layout,
 	panel,
 	floatingHotZone,
+	floatingSheet,
+	floatingBody,
 	floatingBuffer,
 	contentWrapper,
 	content,
