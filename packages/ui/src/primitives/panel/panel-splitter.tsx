@@ -3,8 +3,8 @@
 import type { ComponentProps } from 'react'
 import type { Orientation } from '../../types'
 
-/** Props for {@link Splitter}. @internal */
-export type SplitterProps = Omit<ComponentProps<'div'>, 'role' | 'tabIndex'> & {
+/** Props for {@link PanelSplitter}. @internal */
+export type PanelSplitterProps = Omit<ComponentProps<'div'>, 'role' | 'tabIndex'> & {
 	/** The line the separator draws, which is not the axis it moves on. */
 	'aria-orientation': Orientation
 	'aria-label': string
@@ -23,7 +23,7 @@ export type SplitterProps = Omit<ComponentProps<'div'>, 'role' | 'tabIndex'> & {
  *
  * @internal
  */
-export function Splitter({ 'aria-valuenow': value, children, ...props }: SplitterProps) {
+export function PanelSplitter({ 'aria-valuenow': value, children, ...props }: PanelSplitterProps) {
 	return (
 		// biome-ignore lint/a11y/useSemanticElements: an <hr> is void, and a splitter holds the grip that it draws.
 		<div {...props} role="separator" aria-valuenow={value} tabIndex={0}>

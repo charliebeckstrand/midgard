@@ -5,7 +5,7 @@ import { announce, cn, dataAttr } from '../../core'
 import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useTimeout } from '../../hooks/use-timeout'
-import { Splitter } from '../../primitives/panel/splitter'
+import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/grid'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -111,7 +111,7 @@ export function GridColumnResizeHandle({
 	}
 
 	return (
-		<Splitter
+		<PanelSplitter
 			aria-orientation="vertical"
 			aria-label={`Resize ${label}`}
 			aria-valuenow={Math.round(size)}
@@ -172,6 +172,6 @@ export function GridColumnResizeHandle({
 			onKeyDown={handleKeyDown}
 		>
 			<span aria-hidden="true" className={cn(k.resize.grip)} />
-		</Splitter>
+		</PanelSplitter>
 	)
 }

@@ -2,7 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { cn, dataAttr } from '../../core'
-import { Splitter } from '../../primitives/panel/splitter'
+import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
@@ -70,7 +70,7 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	)
 
 	return (
-		<Splitter
+		<PanelSplitter
 			data-slot="resizable-handle"
 			data-dragging={dataAttr(isDragging)}
 			// A separator's orientation is its own, not the group's flex axis: the
@@ -92,6 +92,6 @@ export function ResizableHandle(props: ResizableHandleProps) {
 				aria-hidden
 				className={cn(k.grip.base, isHorizontal ? k.grip.horizontal : k.grip.vertical)}
 			/>
-		</Splitter>
+		</PanelSplitter>
 	)
 }

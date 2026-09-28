@@ -8,7 +8,7 @@ import {
 	useState,
 } from 'react'
 import { cn, dataAttr } from '../../../core'
-import { Splitter } from '../../../primitives/panel/splitter'
+import { PanelSplitter } from '../../../primitives/panel/panel-splitter'
 import { TouchTarget } from '../../../primitives/touch-target'
 
 /**
@@ -351,9 +351,9 @@ type ExampleResizeHandleProps = {
 }
 
 /**
- * The grip on an {@link Example} frame's right edge: a {@link Splitter}. Its
- * `aria-valuenow` tracks the current width; drag it or use the arrow keys
- * (Home/End for a defined bound) to resize the frame. A
+ * The grip on an {@link Example} frame's right edge: a
+ * {@link PanelSplitter}. Its `aria-valuenow` tracks the current width; drag it
+ * or use the arrow keys (Home/End for a defined bound) to resize the frame. A
  * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums:
  * 24px on fine pointers, 44px on coarse. It does not widen the slim visible
  * grip, whose two bars are its children.
@@ -368,7 +368,7 @@ export function ExampleResizeHandle({
 	handlers,
 }: ExampleResizeHandleProps) {
 	return (
-		<Splitter
+		<PanelSplitter
 			data-slot="example-resize-handle"
 			data-resizing={dataAttr(resizing)}
 			aria-orientation="vertical"
@@ -393,6 +393,6 @@ export function ExampleResizeHandle({
 				<span className="h-4 w-px bg-current" />
 				<span className="h-4 w-px bg-current" />
 			</TouchTarget>
-		</Splitter>
+		</PanelSplitter>
 	)
 }

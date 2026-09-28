@@ -2,7 +2,7 @@
 
 import type { PanelResize } from '../../hooks/use-panel-resize'
 import type { Orientation } from '../../types'
-import { Splitter } from './splitter'
+import { PanelSplitter } from './panel-splitter'
 
 /** Props for {@link PanelHandle}. @internal */
 export type PanelHandleProps = {
@@ -26,9 +26,9 @@ export type PanelHandleProps = {
 /**
  * The grab bar of a resizable panel.
  *
- * A {@link Splitter}, which is what a resize control is. It answers the arrow
- * keys as well as the drag. A panel only a pointer can size is one a keyboard
- * reader cannot open up.
+ * A {@link PanelSplitter}, which is what a resize control is. It answers the
+ * arrow keys as well as the drag. A panel only a pointer can size is one a
+ * keyboard reader cannot open up.
  * `aria-valuenow` reads as the share of the screen the panel covers, so the
  * value means the same thing a reader can see.
  *
@@ -50,7 +50,7 @@ export function PanelHandle({
 	bar,
 }: PanelHandleProps) {
 	return (
-		<Splitter
+		<PanelSplitter
 			data-slot={slot}
 			aria-label="Resize panel"
 			aria-orientation={orientation}
@@ -61,6 +61,6 @@ export function PanelHandle({
 			className={className}
 		>
 			<div className={bar} />
-		</Splitter>
+		</PanelSplitter>
 	)
 }
