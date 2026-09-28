@@ -7,7 +7,14 @@
  */
 
 import { describe } from 'vitest'
-import { barCharts, heatmapCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
+import {
+	barCharts,
+	heatmapCharts,
+	horizontalBarCharts,
+	lineCharts,
+	pieCalloutCharts,
+	scatterCharts,
+} from './charts'
 import { makePoints, makeTrend } from './fixtures'
 import { benches, prepare, WINDOW } from './harness'
 
@@ -18,6 +25,12 @@ const line10k = await prepare(lineCharts(1), makeTrend(10_000, 1, 1), makeTrend(
 const line1k5 = await prepare(lineCharts(5), makeTrend(1_000, 5, 1), makeTrend(1_000, 5, 2))
 
 const bar500 = await prepare(barCharts(2), makeTrend(500, 2, 1), makeTrend(500, 2, 2))
+
+const barHorizontal50 = await prepare(
+	horizontalBarCharts(2),
+	makeTrend(50, 2, 1),
+	makeTrend(50, 2, 2),
+)
 
 const pie8 = await prepare(pieCalloutCharts(), makeTrend(8, 1, 1), makeTrend(8, 1, 2))
 
@@ -39,6 +52,11 @@ describe('update · line · 1,000 × 5 series', () => {
 
 describe('update · bar · 500 × 2 series', () => {
 	benches(bar500, WINDOW.slow)
+})
+
+// New values keep the category labels, so a redraw measures no label again.
+describe('update · bar · horizontal · 50 × 2 series', () => {
+	benches(barHorizontal50)
 })
 
 describe('update · scatter · 10,000 points', () => {

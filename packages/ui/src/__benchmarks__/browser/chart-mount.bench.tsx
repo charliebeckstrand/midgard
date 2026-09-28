@@ -5,7 +5,14 @@
  */
 
 import { describe } from 'vitest'
-import { barCharts, heatmapCharts, lineCharts, pieCalloutCharts, scatterCharts } from './charts'
+import {
+	barCharts,
+	heatmapCharts,
+	horizontalBarCharts,
+	lineCharts,
+	pieCalloutCharts,
+	scatterCharts,
+} from './charts'
 import { makeDatedTrend, makePoints, makeTrend } from './fixtures'
 import { mountBenches, WINDOW } from './harness'
 
@@ -31,6 +38,12 @@ describe('mount · bar · 50 × 2 series', () => {
 
 describe('mount · bar · 500 × 2 series', () => {
 	mountBenches(barCharts(2), makeTrend(500, 2), WINDOW.slow)
+})
+
+// The horizontal bar measures the rendered width of each category label before
+// the first paint, and cuts a label past the gutter with an ellipsis.
+describe('mount · bar · horizontal · 50 × 2 series', () => {
+	mountBenches(horizontalBarCharts(2), makeTrend(50, 2))
 })
 
 describe('mount · scatter · 1,000 points', () => {
