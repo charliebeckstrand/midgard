@@ -550,6 +550,11 @@ type MeasuredVirtualWindow = VirtualWindow & {
  * headers, totals, and detail panels do not share one height. Each keeps a
  * closing row, a group row or a detail panel, as an item until its reveal
  * lands, so the close animation still plays.
+ *
+ * The React Compiler does not compile this hook, by intent. The virtualizer
+ * keeps one identity for the mount, and its reads are live. A compiled
+ * `getVirtualItems()` would cache the window on that identity, and the window
+ * would stop moving.
  */
 export function useVirtualWindow(options: VirtualWindowOptions): VirtualWindow
 
@@ -568,6 +573,8 @@ export function useVirtualWindow({
 	anchorTo,
 	followOnAppend,
 }: VirtualWindowOptions & Partial<MeasuredVirtualWindowOptions>): MeasuredVirtualWindow {
+	'use no memo'
+
 	// The virtualizer reads these getters off the options object each cycle; a
 	// fresh closure per render busts its internal option identity. A function
 	// estimate passes through as it is, so it keeps the caller's identity.
