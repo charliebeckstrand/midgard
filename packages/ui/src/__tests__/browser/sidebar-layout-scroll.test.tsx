@@ -80,6 +80,24 @@ describe('sidebar layout below lg (real browser)', () => {
 
 		expect(header.getBoundingClientRect().bottom).toBeLessThan(0)
 	})
+
+	it('paints the color of the navbar above it', async () => {
+		const { navbar } = renderTallLayout()
+
+		await frames()
+
+		const above = getComputedStyle(navbar, '::before')
+
+		expect(above.content).not.toBe('none')
+
+		expect(above.position).toBe('absolute')
+
+		expect(above.bottom).toBe(`${navbar.getBoundingClientRect().height}px`)
+
+		expect(Number.parseFloat(above.height)).toBeGreaterThan(0)
+
+		expect(above.backgroundColor).toBe(getComputedStyle(navbar).backgroundColor)
+	})
 })
 
 describe('sidebar layout from lg up (real browser)', () => {
