@@ -4,10 +4,10 @@ import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { k } from '../../recipes/kata/chrome'
-import { registerChrome } from './persistent-chrome-registry'
+import { registerChrome } from './chrome-registry'
 
-/** Props for {@link PersistentChrome}: the region's `children`, plus any div attributes. */
-export type PersistentChromeProps = ComponentProps<'div'> & { children: ReactNode }
+/** Props for {@link Chrome}: the region's `children`, plus any div attributes. */
+export type ChromeProps = ComponentProps<'div'> & { children: ReactNode }
 
 /**
  * Registers the region; React 19 runs the returned unregister on detach. Module
@@ -48,22 +48,17 @@ function registerRegion(node: HTMLDivElement | null) {
  *
  * @example
  * ```tsx
- * <PersistentChrome className="sticky top-0">
+ * <Chrome className="sticky top-0">
  * 	<TabStrip />
- * </PersistentChrome>
+ * </Chrome>
  * ```
  */
-export function PersistentChrome({ className, children, ref, ...props }: PersistentChromeProps) {
+export function Chrome({ className, children, ref, ...props }: ChromeProps) {
 	// A consumer `ref` joins the registration rather than replaces it.
 	const setRegion = useComposedRef<HTMLDivElement>(registerRegion, ref)
 
 	return (
-		<div
-			ref={setRegion}
-			data-slot="persistent-chrome"
-			className={cn(k.region, className)}
-			{...props}
-		>
+		<div ref={setRegion} data-slot="chrome" className={cn(k.region, className)} {...props}>
 			{children}
 		</div>
 	)

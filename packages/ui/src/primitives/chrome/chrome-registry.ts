@@ -3,7 +3,7 @@
 const regions = new Set<HTMLElement>()
 
 /**
- * Registers a persistent-chrome region. A modal surface seals the page behind
+ * Registers a chrome region. A modal surface seals the page behind
  * it. A registered region is exempt, keeping its tab stop, its place in the
  * accessibility tree, and its pointer events.
  *

@@ -1,20 +1,20 @@
 import { createRef } from 'react'
 import { describe, expect, it } from 'vitest'
-import { chromeRegions, PersistentChrome, registerChrome } from '../../primitives/persistent-chrome'
+import { Chrome, chromeRegions, registerChrome } from '../../primitives/chrome'
 import { renderUI, screen } from '../helpers'
 
 /*
  * The registry and the region's own contract. What a registration *does* to the
  * focus order is the engine's, and this project mocks the engine away —
- * browser/floating-ui/persistent-chrome.test.tsx asserts the order and the page
+ * browser/floating-ui/chrome.test.tsx asserts the order and the page
  * marking against the real one.
  */
-describe('PersistentChrome', () => {
+describe('Chrome', () => {
 	it('registers while mounted and unregisters on unmount', () => {
 		const { unmount } = renderUI(
-			<PersistentChrome>
+			<Chrome>
 				<span>chrome</span>
-			</PersistentChrome>,
+			</Chrome>,
 		)
 
 		expect(chromeRegions()).toEqual([screen.getByText('chrome').closest('[data-slot]')])
@@ -30,9 +30,9 @@ describe('PersistentChrome', () => {
 		const ref = createRef<HTMLDivElement>()
 
 		renderUI(
-			<PersistentChrome ref={ref}>
+			<Chrome ref={ref}>
 				<span>chrome</span>
-			</PersistentChrome>,
+			</Chrome>,
 		)
 
 		expect(ref.current).not.toBeNull()
@@ -43,12 +43,12 @@ describe('PersistentChrome', () => {
 	it('registers each region separately, so an app can name more than one', () => {
 		renderUI(
 			<>
-				<PersistentChrome>
+				<Chrome>
 					<span>first</span>
-				</PersistentChrome>
-				<PersistentChrome>
+				</Chrome>
+				<Chrome>
 					<span>second</span>
-				</PersistentChrome>
+				</Chrome>
 			</>,
 		)
 
@@ -60,12 +60,12 @@ describe('PersistentChrome', () => {
 	it('positions itself on the chrome rung, and yields position to a consumer class', () => {
 		renderUI(
 			<>
-				<PersistentChrome>
+				<Chrome>
 					<span>default</span>
-				</PersistentChrome>
-				<PersistentChrome className="sticky top-0">
+				</Chrome>
+				<Chrome className="sticky top-0">
 					<span>sticky</span>
-				</PersistentChrome>
+				</Chrome>
 			</>,
 		)
 

@@ -3,12 +3,12 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Button } from '../../../components/button'
 import { Drawer, DrawerBody } from '../../../components/drawer'
+import { Chrome } from '../../../primitives/chrome'
 import { Overlay } from '../../../primitives/overlay'
-import { PersistentChrome } from '../../../primitives/persistent-chrome'
 import { noop, renderUI, screen, waitFor } from '../../helpers'
 
 /**
- * `PersistentChrome` against the real floating engine. A modal surface seals the
+ * `Chrome` against the real floating engine. A modal surface seals the
  * page behind it, which strands a long-lived work surface inside persistent app
  * chrome: the chrome that raised the surface loses its tab stop, so the only exit
  * is to dismantle the surface (WCAG 2.1.1 / 2.4.3). A registered region keeps its
@@ -30,7 +30,7 @@ function Page({ chrome = true, children }: { chrome?: boolean; children: ReactNo
 
 	return (
 		<>
-			{chrome ? <PersistentChrome>{strip}</PersistentChrome> : <div>{strip}</div>}
+			{chrome ? <Chrome>{strip}</Chrome> : <div>{strip}</div>}
 			<div>
 				<Button>Sealed</Button>
 			</div>
@@ -66,7 +66,7 @@ function sealed(): HTMLElement {
 	return screen.getByText('Sealed').closest('button') as HTMLElement
 }
 
-describe('a11y focus order (real browser): PersistentChrome', () => {
+describe('a11y focus order (real browser): Chrome', () => {
 	it('lets Tab leave the panel for the region and come back', async () => {
 		renderUI(<Surface />)
 

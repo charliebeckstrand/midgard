@@ -15,7 +15,7 @@
  * `overlay` seals the page for a transaction — Dialog, Sheet, Drawer.
  *
  * `chrome` is application furniture a sealing overlay must not cover: a
- * `PersistentChrome` region, and the companion furniture such regions need,
+ * `Chrome` region, and the companion furniture such regions need,
  * like the sidebar's pointer buffer. It clears `overlay`, or the scrim would
  * paint over the very control the region keeps reachable.
  *
