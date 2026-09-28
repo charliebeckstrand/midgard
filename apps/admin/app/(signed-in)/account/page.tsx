@@ -1,5 +1,10 @@
 import { bifrost, getSignInProviders, requireGateway, requireSession } from 'auth'
+import { Suspense } from 'react'
+import { Card, CardHeader, CardTitle } from 'ui/card'
+import { Stack } from 'ui/structure/stack'
+import { TextSkeleton } from 'ui/text'
 import type { Activity } from '@/components/activity-table'
+import { PageHeader } from '@/components/page-header'
 import type { Factors, Identity, Passkey } from './account-api'
 import { AccountClient } from './client'
 
@@ -56,15 +61,14 @@ async function getActivity(): Promise<Activity[]> {
 	return data?.data ?? []
 }
 
+type SearchParams = Promise<{ error?: string | string[] }>
+
 /**
- * Account page of each signed-in user. The proxy only finds the cookie, so
- * `requireSession` checks the session, and sends a guest to `/login`.
+ * Reads the session and the account data, and renders the account page.
+ *
+ * @internal
  */
-export default async function AccountPage({
-	searchParams,
-}: {
-	searchParams: Promise<{ error?: string | string[] }>
-}) {
+async function Account({ searchParams }: { searchParams: SearchParams }) {
 	const { user } = await requireSession()
 
 	const [passkeys, factors, identities, activity, providers, { error }] = await Promise.all([
@@ -86,5 +90,46 @@ export default async function AccountPage({
 			providers={providers}
 			connectError={typeof error === 'string' ? error : undefined}
 		/>
+	)
+}
+
+const loadingCards = ['Two-step sign-in', 'Connected accounts', 'Recent activity', 'Your data']
+
+/**
+ * The header and the cards of the account page while the data loads, each
+ * with a skeleton line.
+ *
+ * @internal
+ */
+function AccountLoading() {
+	return (
+		<Stack gap="xl">
+			<PageHeader title="Account" description={<TextSkeleton />} />
+
+			{loadingCards.map((title) => (
+				<Card key={title}>
+					<CardHeader>
+						<CardTitle level={2}>{title}</CardTitle>
+					</CardHeader>
+					<TextSkeleton />
+				</Card>
+			))}
+		</Stack>
+	)
+}
+
+/**
+ * Account page of each signed-in user. The proxy only finds the cookie, so
+ * `requireSession` checks the session, and sends a guest to `/login`.
+ *
+ * @remarks
+ * The header shows the email of the user, so the page reads the session in
+ * the boundary. A navigation to the page shows the skeleton at once.
+ */
+export default function AccountPage({ searchParams }: { searchParams: SearchParams }) {
+	return (
+		<Suspense fallback={<AccountLoading />}>
+			<Account searchParams={searchParams} />
+		</Suspense>
 	)
 }
