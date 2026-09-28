@@ -64,27 +64,34 @@ export function useToastTimer(
 
 	// Arms the one timer to the earliest live deadline. Call it after `settle`.
 	const schedule = useCallback(() => {
-		clearTimeout(timerRef.current)
+		// The timer arms again from its own callback. It calls `run`, not `schedule`:
+		// the React Compiler does not compile a `useCallback` that reads its own
+		// binding.
+		const run = () => {
+			clearTimeout(timerRef.current)
 
-		// WCAG 2.2.1: no live auto-dismiss timer under the user's pointer or focus.
-		// The final `resume` arms again.
-		if (pauseCountRef.current > 0 || remainingRef.current.size === 0) return
+			// WCAG 2.2.1: no live auto-dismiss timer under the user's pointer or focus.
+			// The final `resume` arms again.
+			if (pauseCountRef.current > 0 || remainingRef.current.size === 0) return
 
-		const next = Math.min(...remainingRef.current.values())
+			const next = Math.min(...remainingRef.current.values())
 
-		timerRef.current = setTimeout(() => {
-			settle()
+			timerRef.current = setTimeout(() => {
+				settle()
 
-			const expired = toastsRef.current
-				.map((t) => t.id)
-				.filter((id) => remainingRef.current.get(id) === 0)
+				const expired = toastsRef.current
+					.map((t) => t.id)
+					.filter((id) => remainingRef.current.get(id) === 0)
 
-			for (const id of expired) remainingRef.current.delete(id)
+				for (const id of expired) remainingRef.current.delete(id)
 
-			if (expired.length > 0) start(expired)
+				if (expired.length > 0) start(expired)
 
-			schedule()
-		}, next)
+				run()
+			}, next)
+		}
+
+		run()
 	}, [settle, start, toastsRef])
 
 	// Sets the countdown of one toast to `ms` from now, for a new toast or a reset.
