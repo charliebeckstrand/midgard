@@ -48,8 +48,14 @@ name, and the countries atlas is fetched only once a view draws it.
 
 Where the reader is lives in the address bar, not in React state: the view, the
 filter, and the open place. `src/utilities/places-url.ts` is the codec and
-`src/components/places-app/use-place-location.ts` binds it to the router, so a
-reload keeps the map, the Back button walks the drills, and a place is a link.
+`src/components/places-app/use-place-location.ts` binds it to the address bar, so
+a reload keeps the map, the Back button walks the drills, and a place is a link.
+
+The hook writes the address with `history.pushState` and `replaceState`, not with
+the router. A router step runs the server page again, and the page reads the
+session, the places, and the visits from the gateway. Each open and each close of
+a place then waited on those reads. Next patches the two History calls, so
+`useSearchParams` gets the new address and the server gets no request.
 
 A drill and an opened place are steps the reader can walk back out of, so each
 takes a history entry. Narrowing the bar does not — otherwise leaving the page

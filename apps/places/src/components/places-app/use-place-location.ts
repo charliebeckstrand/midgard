@@ -1,6 +1,6 @@
 'use client'
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
+import { usePathname, useSearchParams } from 'next/navigation'
 import { useCallback, useMemo } from 'react'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
 import {
@@ -86,8 +86,6 @@ function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) =>
 export function usePlaceLocation(): PlaceLocationHandle {
 	const params = useSearchParams()
 
-	const router = useRouter()
-
 	const pathname = usePathname()
 
 	const view = useSlice(params, readView)
@@ -111,11 +109,18 @@ export function usePlaceLocation(): PlaceLocationHandle {
 
 			const href = query === '' ? pathname : `${pathname}?${query}`
 
-			// The map owns the screen and nothing on the page scrolls, so a scroll to
-			// the top on every drill would be a jump with nowhere to jump to.
-			router[step === 'walk' ? 'push' : 'replace'](href, { scroll: false })
+			// The History API, not the router. The page reads the session and the
+			// places on the server, and a router step runs the page again: each
+			// open and each close of a place then waited on three gateway reads
+			// before the drawer moved. The query is client state that the page
+			// does not read, so the server has nothing new to send. Next patches
+			// these two calls, so `useSearchParams` gets the new address, and Back
+			// and Forward restore it from the router cache. The page does not
+			// scroll, so no scroll step is necessary.
+			if (step === 'walk') window.history.pushState(null, '', href)
+			else window.history.replaceState(null, '', href)
 		},
-		[location, router, pathname],
+		[location, pathname],
 	)
 
 	const openAt = useCallback(
