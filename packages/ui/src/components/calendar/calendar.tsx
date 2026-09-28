@@ -264,7 +264,7 @@ export function Calendar({
 	const headerActiveIndex = active?.zone === 'header' ? active.index : null
 
 	return (
-		<Box data-slot="calendar" data-size={size} density={size} className={cn(k.base, className)}>
+		<Box data-slot="calendar" density={size} className={cn(k.base, className)}>
 			<CalendarHeader
 				headerRef={headerRef}
 				onHeaderKeyDown={handleHeaderKeyDown}

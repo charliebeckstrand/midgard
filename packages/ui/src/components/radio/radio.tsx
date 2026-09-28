@@ -49,7 +49,6 @@ export function Radio({
 	return (
 		<label
 			data-slot="control"
-			data-size={size}
 			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(k({ color }), className)}

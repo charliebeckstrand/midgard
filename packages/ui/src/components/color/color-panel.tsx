@@ -72,7 +72,7 @@ export function ColorPanel(props: ColorPanelProps) {
 
 	return (
 		<ColorPanelContext value={context}>
-			<Box data-slot="color-panel" data-size={size} density={size} className={cn(k(), className)}>
+			<Box data-slot="color-panel" density={size} className={cn(k(), className)}>
 				<ColorArea />
 
 				<div className={k.sliders}>

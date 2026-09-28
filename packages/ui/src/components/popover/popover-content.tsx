@@ -100,7 +100,6 @@ export function PopoverContent({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
-				data-size={size}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Box

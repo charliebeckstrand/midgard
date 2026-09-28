@@ -154,7 +154,6 @@ export function SidebarItem({
 			as={Wrapper}
 			ref={itemRef as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			data-size={size}
 			density={size}
 			className={k.item.row({ affix: hasAffix })}
 			{...tapHandlers}

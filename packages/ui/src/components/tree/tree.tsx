@@ -94,7 +94,6 @@ export function Tree({
 				ref={ref}
 				role="tree"
 				data-slot="tree"
-				data-size={size}
 				density={size}
 				className={cn(k.base, className)}
 				onKeyDown={handleKeyDown}

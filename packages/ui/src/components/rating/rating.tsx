@@ -218,7 +218,6 @@ export function Rating({
 		return (
 			<span
 				data-slot={slot}
-				data-size={size}
 				data-density={size}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
@@ -286,7 +285,6 @@ export function Rating({
 	return (
 		<span
 			data-slot={slot}
-			data-size={size}
 			data-density={size}
 			role="radiogroup"
 			aria-label={labelledBy ? undefined : (ariaLabel ?? 'Rating')}

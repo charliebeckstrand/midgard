@@ -108,7 +108,6 @@ export function Button({
 	const sharedProps = {
 		'data-slot': slot,
 		'data-variant': variant,
-		'data-size': size,
 		'data-density': size,
 		'data-has-prefix': !!prefix || undefined,
 		'data-has-suffix': !!suffix || undefined,

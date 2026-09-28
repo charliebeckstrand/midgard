@@ -68,7 +68,6 @@ export function ColorPickerContent({
 			<motion.div
 				{...k.content.motion}
 				data-slot="color-picker-content"
-				data-size={size}
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>

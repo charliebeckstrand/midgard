@@ -97,7 +97,6 @@ export function Slider({
 		<input
 			type="range"
 			data-slot="slider"
-			data-size={size}
 			data-density={size}
 			ref={ref}
 			id={scope.id}

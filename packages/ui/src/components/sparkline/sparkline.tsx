@@ -318,7 +318,6 @@ export function Sparkline({
 		// preference settles them at rest.
 		<span
 			data-slot="sparkline"
-			data-size={size}
 			data-density={size}
 			role="img"
 			{...labelProps}

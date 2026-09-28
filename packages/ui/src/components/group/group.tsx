@@ -56,7 +56,6 @@ export function Group({
 	return (
 		<Box
 			data-slot="group"
-			data-size={size}
 			density={size}
 			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
