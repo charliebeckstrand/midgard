@@ -31,6 +31,15 @@ export function Demo() {
 				</Flex>
 			</Example>
 
+			<Example title="Click trigger">
+				<Tooltip trigger="click">
+					<TooltipTrigger>
+						<Button variant="outline">Click me</Button>
+					</TooltipTrigger>
+					<TooltipContent>This tooltip opens on a click or a tap.</TooltipContent>
+				</Tooltip>
+			</Example>
+
 			<Example title="Interactive">
 				<Tooltip interactive>
 					<TooltipTrigger>

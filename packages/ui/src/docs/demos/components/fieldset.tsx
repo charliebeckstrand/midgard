@@ -120,7 +120,7 @@ export function Demo() {
 								<Field>
 									<Flex gap="xs" align="center">
 										<Label>Address</Label>
-										<Tooltip>
+										<Tooltip trigger="click">
 											<TooltipTrigger>
 												<Button
 													type="button"
