@@ -1,11 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest'
+import { useDensityStep } from '../../primitives/density'
 import {
 	AppearanceProvider,
 	AppearanceScript,
 	AppearanceSettings,
 	useAppearance,
 } from '../../providers/appearance'
-import { act, bySlot, renderUI, screen, userEvent } from '../helpers'
+import { act, bySlot, renderUI, screen, userEvent, waitFor } from '../helpers'
 
 function Probe() {
 	const { theme, density, setTheme, setDensity } = useAppearance()
@@ -27,6 +28,8 @@ afterEach(() => {
 	localStorage.clear()
 
 	document.documentElement.classList.remove('dark')
+
+	document.documentElement.removeAttribute('data-density')
 })
 
 describe('AppearanceProvider', () => {
@@ -57,7 +60,7 @@ describe('AppearanceProvider', () => {
 	})
 
 	it('applies and stores a new choice', async () => {
-		const { container } = renderUI(
+		renderUI(
 			<AppearanceProvider>
 				<Probe />
 			</AppearanceProvider>,
@@ -75,7 +78,39 @@ describe('AppearanceProvider', () => {
 
 		expect(localStorage.getItem('density')).toBe('compact')
 
-		expect(bySlot(container, 'density')).toHaveAttribute('data-density', 'sm')
+		expect(document.documentElement).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('writes the stored density on the root element and opens no scope of its own', () => {
+		localStorage.setItem('density', 'loose')
+
+		const { container } = renderUI(
+			<AppearanceProvider>
+				<Probe />
+			</AppearanceProvider>,
+		)
+
+		expect(document.documentElement).toHaveAttribute('data-density', 'lg')
+
+		expect(bySlot(container, 'density')).toBeNull()
+	})
+
+	it('gives the root step to a client reader with no scope', async () => {
+		localStorage.setItem('density', 'compact')
+
+		function StepProbe() {
+			return <output data-testid="step">{useDensityStep()}</output>
+		}
+
+		renderUI(
+			<AppearanceProvider>
+				<StepProbe />
+			</AppearanceProvider>,
+		)
+
+		// The provider writes the root in an effect, and the reader hears it
+		// through a MutationObserver, which reports in a microtask.
+		await waitFor(() => expect(screen.getByTestId('step')).toHaveTextContent('sm'))
 	})
 
 	it('follows a change from another tab', () => {
@@ -130,11 +165,38 @@ describe('AppearanceSettings', () => {
 })
 
 describe('AppearanceScript', () => {
-	it('renders an inline script that reads the stored theme', () => {
+	function runScript() {
 		const { container } = renderUI(<AppearanceScript />)
 
-		expect(container.querySelector('script')?.textContent).toContain(
-			'localStorage.getItem("theme")',
-		)
+		// Runs the constant script of the component, as the browser does.
+		new Function(container.querySelector('script')?.textContent ?? '')()
+	}
+
+	it('writes the step of the stored density on the root element', () => {
+		localStorage.setItem('density', 'compact')
+
+		runScript()
+
+		expect(document.documentElement).toHaveAttribute('data-density', 'sm')
+	})
+
+	it('writes the snug step for a missing or unknown density', () => {
+		runScript()
+
+		expect(document.documentElement).toHaveAttribute('data-density', 'md')
+
+		localStorage.setItem('density', '__proto__')
+
+		runScript()
+
+		expect(document.documentElement).toHaveAttribute('data-density', 'md')
+	})
+
+	it('applies the stored dark theme', () => {
+		localStorage.setItem('theme', 'dark')
+
+		runScript()
+
+		expect(document.documentElement).toHaveClass('dark')
 	})
 })

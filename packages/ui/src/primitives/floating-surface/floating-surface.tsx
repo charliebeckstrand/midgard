@@ -16,7 +16,7 @@ import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks'
 import { k } from '../../recipes/kata/popover'
-import { Density, useDensityNullable } from '../density'
+import { Density, useDensityScope } from '../density'
 import { PresencePortal } from '../portal'
 
 /**
@@ -84,7 +84,7 @@ export function FloatingSurface({
 	ref,
 	...rest
 }: FloatingSurfaceProps) {
-	const inherited = useDensityNullable()
+	const inherited = useDensityScope()
 
 	const wrapperRef = useRef<HTMLDivElement | null>(null)
 

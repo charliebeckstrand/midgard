@@ -26,10 +26,10 @@ Holds the persisted theme and density of an app, and gives the settings button t
 
 | Export | Summary |
 |---|---|
-| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage`, toggles the root `.dark` class, and broadcasts the density through `DensityProvider`. |
+| `AppearanceProvider` | App-root owner of the theme and density preferences. It keeps both in `localStorage`, toggles the root `.dark` class, and writes the step of the density to `data-density` on the root element, the density scope of the app. |
 | `AppearanceProviderProps` *(type)* | Props for `AppearanceProvider`. |
 | `AppearanceSettings` | Settings icon button that opens a dialog with the appearance and density pickers. A selection applies immediately and persists. |
-| `AppearanceScript` | Inline head script that applies the stored theme before the first paint. It has no `'use client'`, so a server layout can render it. |
+| `AppearanceScript` | Inline head script that applies the stored theme and density to the root element before the first paint. It has no `'use client'`, so a server layout can render it. |
 | `useAppearance` | Reads the theme, the density, and their setters from the nearest `AppearanceProvider`; throws outside one. |
 | `AppearanceContextValue` *(type)* | The value that `useAppearance` returns. |
 | `ThemeMode` *(type)* | Theme preference: `light`, `dark`, or `system`. |

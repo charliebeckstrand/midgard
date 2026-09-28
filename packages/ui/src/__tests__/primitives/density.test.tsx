@@ -1,13 +1,41 @@
-import { renderHook } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
+import { act, renderHook, waitFor } from '@testing-library/react'
+import { afterEach, describe, expect, it } from 'vitest'
 import { densitySteps, stepDown, toAmbientStep } from '../../core'
-import { Density, useDensityNullable, useDensityStep } from '../../primitives/density'
+import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
+
+afterEach(() => {
+	document.documentElement.removeAttribute('data-density')
+})
 
 describe('useDensityStep', () => {
-	it('returns md outside each scope', () => {
+	it('returns md outside each scope when the root has no step', () => {
 		const { result } = renderHook(() => useDensityStep())
 
 		expect(result.current).toBe('md')
+	})
+
+	it('returns the step on the root element outside each scope, and follows a change', async () => {
+		const root = document.documentElement
+
+		root.setAttribute('data-density', 'sm')
+
+		const { result } = renderHook(() => useDensityStep())
+
+		expect(result.current).toBe('sm')
+
+		act(() => root.setAttribute('data-density', 'lg'))
+
+		await waitFor(() => expect(result.current).toBe('lg'))
+	})
+
+	it('lets a scope win over the root step', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const { result } = renderHook(() => useDensityStep(), {
+			wrapper: ({ children }) => <Density step="lg">{children}</Density>,
+		})
+
+		expect(result.current).toBe('lg')
 	})
 
 	it('returns the step of the nearest scope', () => {
@@ -33,7 +61,7 @@ describe('useDensityStep', () => {
 
 describe('Density', () => {
 	it('opens no scope without a step', () => {
-		const { result } = renderHook(() => useDensityNullable(), {
+		const { result } = renderHook(() => useDensityScope(), {
 			wrapper: ({ children }) => <Density>{children}</Density>,
 		})
 
