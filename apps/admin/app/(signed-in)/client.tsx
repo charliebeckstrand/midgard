@@ -132,8 +132,8 @@ function SidebarShell({ user, children }: { user: User; children: ReactNode }) {
  */
 function HeaderShell({ user, children }: { user: User; children: ReactNode }) {
 	return (
-		<StackedLayout className="min-h-dvh w-full bg-zinc-100 dark:bg-zinc-950">
-			<StackedLayoutHeader className="border-b border-zinc-950/5 bg-white dark:border-white/5 dark:bg-zinc-900">
+		<StackedLayout className="min-h-dvh w-full">
+			<StackedLayoutHeader className="border-b border-zinc-950/5 dark:border-white/5">
 				<Container size="md" padding="md">
 					<Flex align="center" gap="sm" className="px-4 py-2.5 lg:px-0">
 						<Link href="/account" className="flex items-center gap-2">
