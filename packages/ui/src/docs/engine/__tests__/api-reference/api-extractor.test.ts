@@ -4,7 +4,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { afterEach, describe, expect, it } from 'vitest'
 import { createApiExtractor } from '../../api-reference'
-import { aggregateHash } from '../../api-reference/engine/api-extractor'
+import { aggregateHash, extractorFingerprint } from '../../api-reference/engine/api-extractor'
 
 /**
  * Foo's source with the given props signature. {@link BASE} and {@link writeFoo}
@@ -315,6 +315,31 @@ describe('createApiExtractor', () => {
 		expect(replay).toEqual(first)
 	})
 
+	it('replays a disk cache only under the fingerprint of the extractor that wrote it', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		const file = path.join(cacheDir, CACHE_FILE)
+
+		const stored = JSON.parse(fs.readFileSync(file, 'utf-8'))
+
+		const stale = [{ name: 'Stale', props: [] }]
+
+		// The same fingerprint replays the stored record as is, stale entry and all.
+		fs.writeFileSync(file, JSON.stringify({ ...stored, record: { ...stored.record, foo: stale } }))
+
+		expect(createApiExtractor(srcDir, { cacheDir }).getAll().foo).toEqual(stale)
+
+		// Another fingerprint is another extractor, so its record is not replayed.
+		fs.writeFileSync(
+			file,
+			JSON.stringify({ ...stored, fingerprint: 'other', record: { ...stored.record, foo: stale } }),
+		)
+
+		expect(createApiExtractor(srcDir, { cacheDir }).getAll().foo?.[0]?.name).toBe('Foo')
+	})
+
 	it('invalidates the disk cache when an input file changes on disk', () => {
 		const { srcDir, cacheDir } = fixture()
 
@@ -392,5 +417,85 @@ describe('createApiExtractor', () => {
 		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
 
 		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+	})
+})
+
+describe('extractorFingerprint', () => {
+	/** A throwaway engine and package, and the fingerprint of the pair. */
+	function engineFixture() {
+		const root = fs.mkdtempSync(path.join(os.tmpdir(), 'api-fingerprint-'))
+
+		roots.push(root)
+
+		const engine = path.join(root, 'engine')
+
+		const files: Record<string, string> = {
+			'engine/extract.ts': 'export const a = 1\n',
+			'engine/shared/helper.ts': 'export const b = 2\n',
+			'engine/__tests__/extract.test.ts': 'test\n',
+			'engine/virtual.d.ts': 'declare module "x"\n',
+			'package/tsconfig.json': JSON.stringify({ extends: '../tsconfig.base.json' }),
+			'tsconfig.base.json': JSON.stringify({ compilerOptions: { strict: true } }),
+		}
+
+		for (const [rel, text] of Object.entries(files)) {
+			fs.mkdirSync(path.dirname(path.join(root, rel)), { recursive: true })
+
+			fs.writeFileSync(path.join(root, rel), text)
+		}
+
+		const srcDir = path.join(root, 'package', 'src')
+
+		const write = (rel: string, text: string) => fs.writeFileSync(path.join(root, rel), text)
+
+		return { write, fingerprint: () => extractorFingerprint(srcDir, engine) }
+	}
+
+	it('holds while nothing that shapes the record changes', () => {
+		const { fingerprint } = engineFixture()
+
+		expect(fingerprint()).toBe(fingerprint())
+	})
+
+	it('moves when a source file of the engine changes', () => {
+		const { write, fingerprint } = engineFixture()
+
+		const before = fingerprint()
+
+		write('engine/shared/helper.ts', 'export const b = 3\n')
+
+		expect(fingerprint()).not.toBe(before)
+	})
+
+	it('holds when a test or a declaration file of the engine changes', () => {
+		const { write, fingerprint } = engineFixture()
+
+		const before = fingerprint()
+
+		write('engine/__tests__/extract.test.ts', 'changed\n')
+
+		write('engine/virtual.d.ts', 'declare module "y"\n')
+
+		expect(fingerprint()).toBe(before)
+	})
+
+	it('moves when the tsconfig that the package extends changes', () => {
+		const { write, fingerprint } = engineFixture()
+
+		const before = fingerprint()
+
+		write('tsconfig.base.json', JSON.stringify({ compilerOptions: { strict: false } }))
+
+		expect(fingerprint()).not.toBe(before)
+	})
+
+	it('moves when a lockfile above the package appears', () => {
+		const { write, fingerprint } = engineFixture()
+
+		const before = fingerprint()
+
+		write('pnpm-lock.yaml', 'lockfileVersion: 9.0\n')
+
+		expect(fingerprint()).not.toBe(before)
 	})
 })

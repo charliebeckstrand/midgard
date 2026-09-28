@@ -8,6 +8,7 @@ import {
 	useId,
 	useLayoutEffect,
 	useRef,
+	useSyncExternalStore,
 } from 'react'
 import { cn } from '../../core'
 import { useStableValue } from '../../hooks/use-stable-value'
@@ -130,6 +131,10 @@ type MapOverlayConfig = Omit<MapOverlayProps, 'onClick' | 'onContextMenu'> &
 		 *
 		 * A thunk, so a plural mark's O(N) build lands on the one keypress that
 		 * reads it rather than on every render.
+		 *
+		 * Hold its identity until the stops move. A new identity restakes the
+		 * mark's dots in the plat's pool, so the dots near it divide their ground
+		 * again. A thunk made inline therefore gathers the mark again on each render.
 		 */
 		stops: () => LngLat[]
 		/**
@@ -193,7 +198,7 @@ export type MapOverlay = {
 	unitsPerPixel: number
 	/**
 	 * Asks for every OTHER visible dot-drawing mark's dots, in frame units — see
-	 * {@link MapPlatContextValue.neighbours}. A dot-shaped mark divides its pointer target's ground
+	 * {@link MapPlatContextValue.pool}. A dot-shaped mark divides its pointer target's ground
 	 * against these, so two marks standing on top of one another no longer overlap.
 	 *
 	 * A resolver rather than the pool itself, and bound to this mark's id. The exclusion is the one
@@ -202,7 +207,8 @@ export type MapOverlay = {
 	 * registers that as a thunk, precisely so the pass lands on the one reader. Resolved eagerly
 	 * here, every mark would trigger that pass for every other mark — M² of them. It would discard
 	 * the answer in all M cases wherever no dot-shaped mark was mounted. Memoize the result at the
-	 * call site; the resolver is stable until the plat's ledger, toggles or fit change.
+	 * call site; the resolver is stable until the plat's ledger, toggles or fit change, or until a
+	 * mark's dots move.
 	 */
 	neighbors: () => MapPoint2D[]
 	/** Whether the plat animates; the mark picks its motion renderers off it. */
@@ -298,7 +304,7 @@ export function useMapOverlay({
 	// them the expansion, so the mark reads the expanded set like every other.
 	const groupId = group === undefined ? id : groupLegendId(group)
 
-	const { project, register, colors, order, hidden, spare, neighbors, animate, selectedOverlay } =
+	const { project, register, colors, order, hidden, spare, pool, animate, selectedOverlay } =
 		useMapPlat()
 
 	const set = useMapHoverSet()
@@ -329,7 +335,8 @@ export function useMapOverlay({
 	// runs off the ledger, and the ledger changes only after a commit: the plat
 	// gathers the dot pool once per `entries`, `hidden`, or projection, and the
 	// table resolves its picked row once per `entries` or pick. By the time any of
-	// those runs again, this effect has written the committed values.
+	// those runs again, this effect has written the committed values. The restake
+	// below also reads `stopsAt`, so it must stay after this effect.
 	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 
 	useLayoutEffect(() => {
@@ -337,6 +344,21 @@ export function useMapOverlay({
 	}, [stops, onClick, onContextMenu, resolveStop, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
+
+	// A move changes no entry of the ledger, so it cannot reach the pool through the plat. The mark
+	// restakes its own dots instead, off the identity of its stops. A layout effect, so that the dots
+	// near it divide their ground again before the move paints.
+	const staked = useRef(stops)
+
+	useLayoutEffect(() => {
+		if (staked.current === stops) return
+
+		staked.current = stops
+
+		pool.restake(id)
+	}, [pool, id, stops])
+
+	const neighbors = useSyncExternalStore(pool.subscribe, pool.neighbors, pool.neighbors)
 
 	const neighborsOf = useCallback(() => neighbors(id), [neighbors, id])
 

@@ -4,6 +4,7 @@ import { use, useSyncExternalStore } from 'react'
 import { createContext } from '../../core'
 import type { MapSeriesColor } from '../../recipes/kata/map'
 import { noop } from '../../utilities'
+import type { MapDotPool } from './engine/map-cluster/pool'
 import type { MapHoverTarget } from './engine/map-hover/target'
 import type { MapOverlayEntry } from './engine/map-overlay/entry'
 import type { LngLat, MapOverlaySelection, MapPoint2D } from './engine/types'
@@ -190,7 +191,7 @@ export type MapPlatContextValue = {
 	 */
 	spare: (at: MapPoint2D, unitsPerPixel: number) => number
 	/**
-	 * Every OTHER mark's drawn dots, in frame units. A dot measures its pointer target's ground
+	 * Every visible dot-drawing mark's dots, in frame units. A dot measures its pointer target's ground
 	 * against them, so two marks standing on top of one another divide it instead of overlapping.
 	 *
 	 * Pooled here for the same reason {@link spare} is: the question is about the plat's whole ledger
@@ -204,11 +205,13 @@ export type MapPlatContextValue = {
 	 * the marks and not the legend or the region layer. Frame units are scale-free,
 	 * so the plat supplies the geometry and the mark applies its own `unitsPerPixel`.
 	 *
-	 * Excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
-	 * drawn form already. Excludes hidden marks and every mark that draws no dot, so a route's waypoints
-	 * and a zone's ring never contest ground they paint nothing on.
+	 * A store rather than a resolver in the value. A mark that moves changes nothing the value holds,
+	 * so the mark restakes its own dots, and only the readers of the pool render again. The snapshot
+	 * excludes the asking mark, by id: a mark's own dots are its own business, and it holds them in
+	 * drawn form already. The pool excludes hidden marks and every mark that draws no dot, so a route's
+	 * waypoints and a zone's ring never contest ground they paint nothing on.
 	 */
-	neighbors: (exclude: string) => MapPoint2D[]
+	pool: MapDotPool
 	/** The picked mark, by the plat's own prop name; the named mark haloes the stop it resolves to. */
 	selectedOverlay: MapOverlaySelection | null
 	/** Whether the plat animates; overlays pick their motion renderers off it. */

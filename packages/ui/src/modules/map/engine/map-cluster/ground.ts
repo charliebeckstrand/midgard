@@ -27,8 +27,7 @@
  */
 
 import { round } from '../map-geometry/mark'
-import type { MapOverlayEntry } from '../map-overlay/entry'
-import type { LngLat, MapPoint2D } from '../types'
+import type { MapPoint2D } from '../types'
 import { squared } from './grid'
 
 /**
@@ -170,56 +169,4 @@ export function ownGround(
  */
 export function groundPoints(ring: MapGround): string {
 	return ring.map((p) => `${round(p.x)},${round(p.y)}`).join(' ')
-}
-
-/**
- * One drawn dot in the pool, beside the id of the mark that drew it.
- *
- * Tagged rather than pre-filtered so the whole map's dots are gathered ONCE and each asking mark drops
- * its own from the finished pool — see {@link pooledDots}.
- *
- * @internal
- */
-export type MapPooledDot = { owner: string; at: MapPoint2D }
-
-/**
- * Every visible dot-drawing mark's stops, projected into frame units. It is the pool a mark divides
- * its targets' ground against, once its own dots are dropped from it.
- *
- * Gathers the whole map rather than taking an exclusion, because gathering is the expensive half. It
- * invokes each entry's `stopsAt`, which `MapPoints` registers as a thunk. That O(N) build and the
- * spherical centroid behind every summary's anchor therefore land on the one reader that wants
- * them. Built per asking mark, M marks would trigger that pass M times over the same entries. Each
- * would keep a different (M-1)th of the answer.
- *
- * Skips hidden marks, which hold no ground while the legend has them away. Skips the line and area
- * kinds. A route's waypoints and a zone's ring paint nothing a pointer could be aimed at instead
- * of. A zone's claim on the ground is a `spare` budget rather than a boundary. Read as a negative so a
- * dot-drawing kind added later joins the rule without this being edited.
- *
- * Off-projection stops are dropped — they draw nothing, so they crowd nothing; the US composite drops
- * points outside its insets.
- *
- * @internal
- */
-export function pooledDots(
-	entries: readonly MapOverlayEntry[],
-	hidden: ReadonlySet<string>,
-	project: (at: LngLat) => MapPoint2D | null,
-): MapPooledDot[] {
-	const pool: MapPooledDot[] = []
-
-	for (const entry of entries) {
-		if (hidden.has(entry.id)) continue
-
-		if (entry.kind === 'route' || entry.kind === 'geofence') continue
-
-		for (const stop of entry.stopsAt()) {
-			const at = project(stop)
-
-			if (at !== null) pool.push({ owner: entry.id, at })
-		}
-	}
-
-	return pool
 }
