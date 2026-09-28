@@ -1,9 +1,14 @@
+import { Info } from 'lucide-react'
+import { Button } from '../../../components/button'
 import { Description, Field, Fieldset, Label, Legend, Message } from '../../../components/fieldset'
+import { Icon } from '../../../components/icon'
 import { Input } from '../../../components/input'
 import { PasswordInput } from '../../../components/password-input'
 import { Select, SelectLabel, SelectOption } from '../../../components/select'
 import { Tab, TabContent, TabContents, TabList, Tabs } from '../../../components/tabs'
 import { Textarea } from '../../../components/textarea'
+import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
+import { Flex } from '../../../structure/flex'
 import { Stack } from '../../../structure/stack'
 import { Example } from '../../engine'
 
@@ -109,6 +114,22 @@ export function Demo() {
 								<Field>
 									<Label>Full name</Label>
 									<Input placeholder="Jane Smith" />
+								</Field>
+							</Example>
+							<Example title="A hint beside the label">
+								<Field>
+									<Flex gap="xs" align="center">
+										<Label>Address</Label>
+										<Tooltip>
+											<TooltipTrigger>
+												<Button type="button" variant="bare" aria-label="About the address">
+													<Icon icon={<Info />} />
+												</Button>
+											</TooltipTrigger>
+											<TooltipContent>Type the street, the city, and the state.</TooltipContent>
+										</Tooltip>
+									</Flex>
+									<Input placeholder="Street, city, state" />
 								</Field>
 							</Example>
 						</Stack>
