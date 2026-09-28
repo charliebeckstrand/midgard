@@ -337,8 +337,11 @@ export function PlaceDrawer({
 									// The `onClick` marks the row interactive, which is where its
 									// cursor, focus ring, and hover wash come from — the card variant's
 									// wash being an opaque step, so a hovered row stays a surface over
-									// the map rather than turning see-through to it.
+									// the map rather than turning see-through to it. The content area
+									// is a button, so Tab reaches each row and Enter or Space opens it.
 									<ListItem
+										as="button"
+										type="button"
 										onClick={() => {
 											setOpenedId(item.id)
 
