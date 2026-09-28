@@ -39,6 +39,7 @@ import {
 } from 'react'
 import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
@@ -1258,17 +1259,8 @@ export function useGridTable<T>({
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
-	// the saved widths without a new callback on each render. The effect keeps the
-	// latest binding, and the callback reads it only when it runs.
-	const sizingChangeRef = useRef(columnSizingConfig?.onValueChange)
-
-	const onSizingChange = columnSizingConfig?.onValueChange
-
-	useEffect(() => {
-		sizingChangeRef.current = onSizingChange
-	}, [onSizingChange])
-
-	const clearSizingPreference = useCallback(() => sizingChangeRef.current?.({}), [])
+	// the saved widths with one callback for the mount.
+	const clearSizingPreference = useStableEvent(() => columnSizingConfig?.onValueChange?.({}))
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
