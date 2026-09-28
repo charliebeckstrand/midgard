@@ -13,6 +13,7 @@ import { LoadingSpinner } from '../loading'
 import { loadingProps } from './button-constants'
 import { ButtonHeadless } from './button-headless'
 import { isIconElement } from './button-utilities'
+import { useButtonDefaults } from './context'
 
 /**
  * Shared, element-agnostic half of {@link ButtonProps}: the recipe variants plus
@@ -46,7 +47,8 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  * a `<Link>` anchor. Resolves `size` against enclosing Density and swaps in a
  * `<LoadingSpinner>` while `loading`. It collapses to a square hit area when
  * icon-only, and degrades to headless output under that provider. Compose `<ButtonSkeleton>`
- * in loading trees.
+ * in loading trees. A button with no `variant` or `color` takes the one of the
+ * surface around it, such as the soft color of an alert for its actions.
  *
  * @remarks
  * Mirrors native `<button>` submission semantics. An untyped Button emits no
@@ -55,8 +57,8 @@ export type ButtonProps = ButtonBaseProps & PolymorphicProps<'button', 'prefix'>
  * non-submitting actions and `type="reset"` to reset.
  */
 export function Button({
-	variant,
-	color,
+	variant: variantProp,
+	color: colorProp,
 	size,
 	className,
 	children,
@@ -70,6 +72,12 @@ export function Button({
 	...props
 }: ButtonProps) {
 	const headless = useHeadless()
+
+	const defaults = useButtonDefaults()
+
+	const variant = variantProp ?? defaults.variant
+
+	const color = colorProp ?? defaults.color
 
 	const step = useDensityStep(size)
 

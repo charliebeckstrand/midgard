@@ -13,6 +13,7 @@ import { announce, cn } from '../../core'
 import { useControllableFlag } from '../../hooks'
 import { type AlertVariants, k } from '../../recipes/kata/alert'
 import { Button } from '../button'
+import { type ButtonDefaults, ButtonDefaultsContext } from '../button/context'
 import { Icon } from '../icon'
 import { AlertBody } from './alert-body'
 
@@ -55,6 +56,11 @@ export type AlertProps = AlertVariants & {
 	icon?: ReactElement
 	title?: ReactNode
 	description?: ReactNode
+	/**
+	 * Controls under the text. A button in them with no `variant` or `color`
+	 * takes the soft variant in the color of the alert, and a solid alert gives
+	 * it the plain variant in the text color.
+	 */
 	actions?: ReactNode
 	closable?: boolean
 	/** Initial open state (uncontrolled). @defaultValue true */
@@ -108,12 +114,14 @@ function AlertContent({
 	title,
 	description,
 	actions,
+	actionDefaults,
 	children,
 }: {
 	resolvedIcon: ReactElement | undefined
 	title: ReactNode
 	description: ReactNode
 	actions: ReactNode
+	actionDefaults: ButtonDefaults
 	children: ReactNode
 }) {
 	return (
@@ -131,7 +139,11 @@ function AlertContent({
 
 			{renderChildren(children)}
 
-			{actions && <div className={cn(k.actions, resolvedIcon && 'col-start-2')}>{actions}</div>}
+			{actions && (
+				<div className={cn(k.actions, resolvedIcon && 'col-start-2')}>
+					<ButtonDefaultsContext value={actionDefaults}>{actions}</ButtonDefaultsContext>
+				</div>
+			)}
 		</div>
 	)
 }
@@ -241,6 +253,11 @@ export function Alert({
 				title={title}
 				description={description}
 				actions={actions}
+				actionDefaults={
+					variant === 'solid'
+						? { variant: 'plain', color: 'inherit' }
+						: { variant: 'soft', color: resolvedColor }
+				}
 			>
 				{children}
 			</AlertContent>
