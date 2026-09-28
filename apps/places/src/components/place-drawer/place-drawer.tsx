@@ -53,15 +53,19 @@ export type PlaceDrawerProps = {
 	onDelete: (place: Place) => void
 }
 
-/** The visit date, category, and score — the line under a place's name. */
+/**
+ * The visit date, category, and score — the line under a place's name. It is
+ * spans, because a list row puts it inside a button, and a flex line lays out
+ * the same either way.
+ */
 function PlaceMeta({ place }: { place: Place }) {
 	const category = CATEGORY_BY_VALUE.get(place.category)
 
 	return (
-		<Flex gap="sm" align="center" wrap>
+		<Flex as="span" gap="sm" align="center" wrap>
 			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
 
-			<Text>{fromDay(place.visitedAt).toLocaleDateString()}</Text>
+			<Text as="span">{fromDay(place.visitedAt).toLocaleDateString()}</Text>
 
 			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
 		</Flex>
@@ -348,8 +352,10 @@ export function PlaceDrawer({
 											setListing(false)
 										}}
 									>
-										<Stack gap="sm" className="text-left">
-											<Text className="font-medium">{item.name}</Text>
+										<Stack as="span" gap="sm" className="text-left">
+											<Text as="span" className="font-medium">
+												{item.name}
+											</Text>
 
 											<PlaceMeta place={item} />
 										</Stack>

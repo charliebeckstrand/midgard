@@ -16,10 +16,10 @@ Every structure unit is static, so it renders in React Server Components ([`../R
 |---|---|
 | `box` | A `<div>` with padding, radius, background, and outline tokens. A `density` step makes it a density scope. |
 | `container` | A centered `<div>` with a maximum width and horizontal padding. |
-| `flex` | A flex container with responsive direction, gap, alignment, and wrap. |
+| `flex` | A flex container with responsive direction, gap, alignment, and wrap. `as="span"` renders a `<span>` for phrasing content, such as the label of a button. |
 | `spacer` | An empty flex item that fills the free space and pushes its siblings apart. |
 | `split` | A two-pane grid with a responsive orientation and a ratio between the panes. |
-| `stack` | A vertical `flex`: children stack in a column. |
+| `stack` | A vertical `flex`: children stack in a column. It takes `as` from `flex`. |
 
 ---
 
