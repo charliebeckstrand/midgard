@@ -69,9 +69,23 @@ const loadForm = () => import('../place-form-drawer')
  */
 const IDLE_FALLBACK_MS = 1000
 
-const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex))
+/**
+ * Each panel suspends in the render that first shows it, also when its code is
+ * in the cache. A `loading` option gives the panel a Suspense boundary of its
+ * own. Without one, the suspense reaches the boundary of the page. React then
+ * hides the whole app for a frame and shows it again.
+ *
+ * That hide interrupts the exit of a closing surface. The user menu opens the
+ * two panels, and it closes in the same render. A hidden menu showed its panel
+ * again at full opacity, took no input, and did not unmount.
+ */
+const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex), {
+	loading: () => null,
+})
 
-const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer))
+const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer), {
+	loading: () => null,
+})
 
 /**
  * Whether a panel has opened at least once.
