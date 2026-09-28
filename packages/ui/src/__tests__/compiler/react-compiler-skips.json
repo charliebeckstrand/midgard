@@ -76,9 +76,6 @@
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
 	},
-	"modules/grid/grid-cursor-order.ts": {
-		"useGridCursorOrder": "Refs"
-	},
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"
 	},
