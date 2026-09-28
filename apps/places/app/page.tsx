@@ -5,6 +5,13 @@ import { PlacesApp } from '@/components/places-app'
 import { mimir } from '@/server/mimir'
 
 /**
+ * The page reads the session, the places, and the visits before it renders, so
+ * a navigation into it waits for the gateway. This lets the route block. The
+ * reads move into a `<Suspense>` boundary in a later change.
+ */
+export const instant = false
+
+/**
  * The one page. Every surface below it is interactive — the map, the filter bar,
  * the drawers — and every fetch runs through TanStack Query, so the page exists
  * to mount the client tree.
