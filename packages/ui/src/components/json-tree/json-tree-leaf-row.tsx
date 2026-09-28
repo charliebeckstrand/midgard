@@ -1,6 +1,5 @@
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/json-tree'
-import { INDENT_REM } from './json-tree-constants'
 import { NodeKey, PrimitiveValue } from './json-tree-utilities'
 import type { JsonValue } from './types'
 
@@ -27,11 +26,9 @@ export function JsonTreeLeafRow({
 	highlighted,
 	tabbable,
 }: JsonTreeLeafRowProps) {
-	const paddingLeft = `${depth * INDENT_REM}rem`
-
 	return (
 		<div data-highlighted={dataAttr(highlighted)}>
-			<div className={cn(k.row)} style={{ paddingLeft }}>
+			<div className={cn(k.row)}>
 				<div
 					role="treeitem"
 					aria-level={depth + 1}

@@ -1,12 +1,10 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, ji, kasane, narabi, sen, shaku } from '../kiso'
+import { hannou, narabi, type Step, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
-const { size } = ji
-const { gap, radius } = kasane
 const { flex } = narabi
 const { divider } = sen
-const { icon } = shaku
+const { iconSlotRamp } = shaku
 
 /**
  * Mini (icon-rail) rules, active when the nav carries `data-mini`. Every rule
@@ -37,40 +35,23 @@ const itemBase = defineRecipe({
 		'w-full',
 		'text-start',
 		mini.square,
+		// Each step is in a stepped `density-*` class: the item takes the step of
+		// its nearest density scope, and an explicit `size` makes the row its own
+		// scope. The inner Button has a text label, so its `data-has-label`
+		// padding repeats the row padding. Thus the Button class merges away.
+		textRamp,
+		'density-gap-[1.5,2,2.5]',
+		'density-p-ring-[1.5,2,2.5]',
+		'data-[has-label]:density-py-ring-[1.5,2,2.5]',
+		'density-rounded-[1.5,2,2.5]',
+		...iconSlotRamp,
+		// An Avatar is static and keeps its own md box, so each row projects a size
+		// onto it: one step above the icon, with a negative margin, so that the row
+		// keeps the height of a row with an icon. A LoadingSpinner takes the size of
+		// the icon row.
+		'*:data-[slot=avatar]:density-size-[5,6,7] *:data-[slot=avatar]:-m-0.5',
+		'*:data-[slot=loading-spinner]:density-size-[4,5,6]',
 	],
-	// An Avatar is static and keeps its own md box, so each row projects a size
-	// onto it: one step above the icon, with a negative margin, so that the row
-	// keeps the height of a row with an icon. A LoadingSpinner takes the size of
-	// the icon row.
-	size: {
-		sm: [
-			size.sm,
-			gap.g('1.5'),
-			'p-ring-1.5',
-			radius.r('1.5'),
-			icon.sm,
-			'*:data-[slot=avatar]:size-5 *:data-[slot=avatar]:-m-0.5',
-			'*:data-[slot=loading-spinner]:size-4',
-		],
-		md: [
-			size.md,
-			gap.g('2'),
-			'p-ring-2',
-			radius.r('2'),
-			icon.md,
-			'*:data-[slot=avatar]:size-6 *:data-[slot=avatar]:-m-0.5',
-			'*:data-[slot=loading-spinner]:size-5',
-		],
-		lg: [
-			size.lg,
-			gap.g('2.5'),
-			'p-ring-2.5',
-			radius.r('2.5'),
-			icon.lg,
-			'*:data-[slot=avatar]:size-7 *:data-[slot=avatar]:-m-0.5',
-			'*:data-[slot=loading-spinner]:size-6',
-		],
-	},
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
 	// slots render inside the hover tint and focus ring; the item then only
@@ -79,7 +60,7 @@ const itemBase = defineRecipe({
 		item: [nav.tint, nav.focus],
 		row: ['outline-none', 'min-w-0 flex-1'],
 	},
-	defaults: { size: 'md', chrome: 'item' },
+	defaults: { chrome: 'item' },
 })
 
 /**
@@ -94,19 +75,14 @@ const itemRow = defineRecipe({
 	affix: {
 		true: [
 			'flex items-center',
+			// The wrapper only needs a radius when it carries the affixed row chrome.
+			'density-rounded-[1.5,2,2.5]',
 			...nav.tint,
 			'ring-inset has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-2 has-[[data-slot=sidebar-item-inner]:focus-visible]:ring-blue-600',
 		],
 		false: '',
 	},
-	size: { sm: '', md: '', lg: '' },
-	// The wrapper only needs a radius when it carries the affixed row chrome.
-	compound: [
-		{ affix: 'true', size: 'sm', class: radius.r('1.5') },
-		{ affix: 'true', size: 'md', class: radius.r('2') },
-		{ affix: 'true', size: 'lg', class: radius.r('2.5') },
-	],
-	defaults: { affix: false, size: 'md' },
+	defaults: { affix: false },
 })
 
 /**
@@ -118,19 +94,14 @@ const itemRow = defineRecipe({
  */
 const affix = ['relative', 'z-10', flex.row, 'shrink-0', mini.hidden]
 
-// Each slot is a density scope one step below the item (`stepDown`), so a slot
-// icon or a small `<Button>` action takes that step with no projection.
-const itemPrefix = defineRecipe({
-	base: affix,
-	size: { sm: 'ms-1.5', md: 'ms-2', lg: 'ms-2.5' },
-	defaults: { size: 'md' },
-})
+// Each slot is a density scope one step below the item (`data-density="slot"`),
+// so a slot icon or a small `<Button>` action takes that step with no
+// projection. The slot is its own nearest scope, so its margin takes the slot
+// step. Each list thus gives the value of an item one step above: the `xs`
+// value is for an `sm` item, and the `md` value is for an `lg` item.
+const itemPrefix = [...affix, 'density-ms-[1.5,2,2.5,2.5,2.5]']
 
-const itemSuffix = defineRecipe({
-	base: affix,
-	size: { sm: 'me-1.5', md: 'me-2', lg: 'me-2.5' },
-	defaults: { size: 'md' },
-})
+const itemSuffix = [...affix, 'density-me-[1.5,2,2.5,2.5,2.5]']
 
 export const k = {
 	base: ['group/sidebar', mini.rail, 'overflow-y-auto', flex.col, 'gap-y-4', 'h-full', 'p-6'],
@@ -162,4 +133,4 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = VariantProps<typeof itemBase>
+export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: Step }

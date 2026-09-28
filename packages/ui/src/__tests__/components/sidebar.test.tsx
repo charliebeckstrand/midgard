@@ -507,8 +507,10 @@ describe('SidebarItem', () => {
 		expect(inner?.className).toContain('outline-none')
 
 		// The slot insets from the row edge so the control never sits flush
-		// against the chrome (md step).
-		expect(affixed?.querySelector('[data-slot="sidebar-item-suffix"]')?.className).toContain('me-2')
+		// against the chrome, at the step of the row.
+		expect(affixed?.querySelector('[data-slot="sidebar-item-suffix"]')?.className).toContain(
+			'density-me-[',
+		)
 	})
 
 	it('re-draws the focus ring on the active indicator of a current affixed row', () => {

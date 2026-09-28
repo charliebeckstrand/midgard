@@ -70,6 +70,11 @@ export const k = {
 	punctuation: text.muted,
 	summary: text.muted,
 	group: 'overflow-hidden',
+	/**
+	 * The start padding of the children of a nested group. It equals the chevron
+	 * spacer plus the row gap, so each depth adds one step of it.
+	 */
+	indent: 'ps-5',
 	highlight: [...mode('bg-amber-100/60', 'dark:bg-amber-500/15'), rounded.lg],
 	motion: collapse.fade,
 	valueColor: color,

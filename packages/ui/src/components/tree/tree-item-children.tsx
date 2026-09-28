@@ -2,6 +2,7 @@
 
 import { AnimatePresence, motion } from 'motion/react'
 import { createElement, isValidElement, type ReactNode, useMemo } from 'react'
+import { cn } from '../../core'
 import { MountHold, useMountHold } from '../../primitives/mount'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k } from '../../recipes/kata/tree'
@@ -54,13 +55,13 @@ type TreeItemChildrenProps = {
  * @internal
  */
 export function TreeItemChildren({ open, label, children }: TreeItemChildrenProps) {
-	const { depth, size, indent, mount } = useTreeContext()
+	const { depth, indent, mount } = useTreeContext()
 
 	const hold = useMountHold(open, mount, DEFER)
 
 	const childContextValue = useMemo(
-		() => ({ depth: depth + 1, size, indent, mount }),
-		[depth, size, indent, mount],
+		() => ({ depth: depth + 1, indent, mount }),
+		[depth, indent, mount],
 	)
 
 	const group = (motionProps: object) => (
@@ -70,7 +71,7 @@ export function TreeItemChildren({ open, label, children }: TreeItemChildrenProp
 				aria-label={typeof label === 'string' ? label : undefined}
 				data-slot="tree-group"
 				{...motionProps}
-				className={k.group}
+				className={cn(k.group, indent && k.indent)}
 			>
 				{stampTreePositions(children)}
 			</motion.div>

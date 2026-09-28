@@ -8,14 +8,11 @@ import {
 	useLayoutEffect,
 	useRef,
 } from 'react'
-import { toAmbientStep } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useActiveIndicator } from '../../primitives/active-indicator'
 import { useCurrentItem } from '../../primitives/current/current'
-import { useDensityStep } from '../../primitives/density'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import type { PolymorphicProps } from '../../primitives/polymorphic'
-import type { Step } from '../../recipes'
 
 /**
  * Canonical props shared by nav-item-style components ({@link NavItem},
@@ -46,7 +43,6 @@ type NavItemOptions = {
 	current?: boolean
 	/** Binds to the surrounding selection context; when set, click reports it and `current` resolves against it. */
 	value?: string
-	size?: Step
 	preventClose?: boolean
 	onClick?: NavItemProps['onClick']
 }
@@ -54,17 +50,16 @@ type NavItemOptions = {
 /**
  * Shared behavior for nav-item components. Resolves the current state from an
  * explicit `current` prop, or from the selection binding via `value`. It also
- * scrolls the active item into view and resolves the size against Density. It
- * composes the click handler from the user `onClick`, the selection change, and
+ * scrolls the active item into view. It composes the click handler from the user `onClick`, the selection change, and
  * the offcanvas close.
  *
  * Only the wiring lives here; each consuming component owns its own markup,
  * slot names, classes, and icon sizing.
  *
- * @returns The scroll-target `ref`, resolved `current` and `size`, the active
+ * @returns The scroll-target `ref`, resolved `current`, the active
  * indicator handle, and the composed `handleClick`.
  */
-export function useNavItem({ current, value, size, preventClose, onClick }: NavItemOptions) {
+export function useNavItem({ current, value, preventClose, onClick }: NavItemOptions) {
 	const ref = useRef<HTMLSpanElement>(null)
 
 	const indicator = useActiveIndicator()
@@ -73,8 +68,6 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 	// being current and the item that becomes current.
 	const item = useCurrentItem(value)
 	const scrollWithin = useScrollWithin()
-
-	const resolvedSize = toAmbientStep(useDensityStep(size))
 
 	const isCurrent = current ?? item.current
 
@@ -111,5 +104,5 @@ export function useNavItem({ current, value, size, preventClose, onClick }: NavI
 		}
 	}
 
-	return { ref, current: isCurrent, size: resolvedSize, indicator, handleClick }
+	return { ref, current: isCurrent, indicator, handleClick }
 }

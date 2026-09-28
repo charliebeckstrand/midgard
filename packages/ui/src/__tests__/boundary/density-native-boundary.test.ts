@@ -20,12 +20,14 @@ import { k as menu } from '../../recipes/kata/menu'
 import { k as progress } from '../../recipes/kata/progress'
 import { k as radio } from '../../recipes/kata/radio'
 import { k as rating } from '../../recipes/kata/rating'
+import { k as sidebar } from '../../recipes/kata/sidebar'
 import { k as slider } from '../../recipes/kata/slider'
 import { k as rangeSlider } from '../../recipes/kata/slider-range'
 import { k as switchRecipe } from '../../recipes/kata/switch'
 import { k as table } from '../../recipes/kata/table'
 import { k as tabs } from '../../recipes/kata/tabs'
 import { k as textarea } from '../../recipes/kata/textarea'
+import { k as tree } from '../../recipes/kata/tree'
 import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
@@ -64,6 +66,8 @@ const NATIVE_RECIPES = {
 	'range slider thumb': rangeSlider.thumb,
 	'range slider track': rangeSlider.track,
 	rating,
+	'sidebar item': sidebar.item.base,
+	'sidebar item row': sidebar.item.row,
 	'sidebar layout content': sidebarLayout.content,
 	'sidebar layout header': sidebarLayout.header,
 	'sidebar layout panel': sidebarLayout.panel,
@@ -73,6 +77,7 @@ const NATIVE_RECIPES = {
 	'table cell': table.cell,
 	'table header': table.header,
 	textarea,
+	'tree item': tree.item.content,
 }
 
 const NATIVE_FILES = [
@@ -105,11 +110,14 @@ const NATIVE_FILES = [
 	'components/menu/menu-sub.tsx',
 	'components/menu/menu-viewport.tsx',
 	'components/menu/use-menu-state.ts',
+	'components/nav/nav-item.tsx',
+	'components/nav/use-nav-item.ts',
 	'components/popover/popover-content.tsx',
 	'components/progress/progress-bar.tsx',
 	'components/progress/progress-gauge.tsx',
 	'components/radio/radio.tsx',
 	'components/rating/rating.tsx',
+	'components/sidebar/sidebar-item.tsx',
 	'components/slider/range/range-slider.tsx',
 	'components/slider/slider.tsx',
 	'components/switch/switch.tsx',
@@ -118,7 +126,11 @@ const NATIVE_FILES = [
 	'components/tabs/tab.tsx',
 	'components/tabs/tabs.tsx',
 	'components/tooltip/tooltip-content.tsx',
+	'components/tree/tree-item-children.tsx',
+	'components/tree/tree-item-content.tsx',
+	'components/tree/tree.tsx',
 	'layouts/sidebar/sidebar.tsx',
+	'modules/chat/chat-list-item.tsx',
 	'primitives/option/option.tsx',
 	'primitives/panel/panel-providers.tsx',
 	'primitives/panel/slots.tsx',

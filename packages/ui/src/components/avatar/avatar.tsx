@@ -22,9 +22,11 @@ export type AvatarProps = AvatarVariants & {
  * User image, initials, or fallback in a sized circle. Pair with `status` to
  * overlay a corner StatusDot. With no `src` and no `initials`, the circle is
  * empty, and an inner `role="img"` node carries `alt` as its name. Static
- * leaf: renders in React Server Components. `size` is explicit (default `md`)
- * and passes through to the StatusDot; compose `<AvatarSkeleton>` in the
- * loading tree.
+ * leaf: renders in React Server Components. `size` is explicit and passes
+ * through to the StatusDot; compose `<AvatarSkeleton>` in the loading tree.
+ * With no `size`, the avatar takes the `md` box at the rank below each density
+ * step, so a parent that sizes its avatars with stepped classes, such as
+ * SidebarItem, wins over it.
  */
 export function Avatar({
 	src,
@@ -79,7 +81,7 @@ export function Avatar({
 			<span
 				data-slot="avatar"
 				data-size={resolvedSize}
-				className={cn(k({ variant, color, size: resolvedSize }), className)}
+				className={cn(k({ variant, color, size }), className)}
 				{...props}
 			>
 				{content}
@@ -95,11 +97,7 @@ export function Avatar({
 			className={cn('relative inline-flex', className)}
 			{...props}
 		>
-			<span
-				data-slot="avatar"
-				data-size={resolvedSize}
-				className={cn(k({ variant, color, size: resolvedSize }))}
-			>
+			<span data-slot="avatar" data-size={resolvedSize} className={cn(k({ variant, color, size }))}>
 				{content}
 			</span>
 			<StatusDot

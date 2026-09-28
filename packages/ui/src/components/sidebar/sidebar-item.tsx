@@ -1,9 +1,9 @@
 'use client'
 
 import { type ReactNode, type Ref, useEffect } from 'react'
-import { cn, dataAttr, stepDown } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Density } from '../../primitives/density'
+import { Density, DensitySlot } from '../../primitives/density'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import type { Step } from '../../recipes'
@@ -17,9 +17,13 @@ import { useInSidebarList, useSidebarMini } from './context'
 import { SidebarItemActions } from './sidebar-item-actions'
 import { SidebarLabel } from './sidebar-label'
 
-/** Props for {@link SidebarItem}: the `NavItem` surface plus a density-resolved `size`. */
+/** Props for {@link SidebarItem}: the `NavItem` surface plus a `size` step. */
 export type SidebarItemProps = NavItemProps & {
-	/** Size step. Resolves through `explicit ?? Density ?? 'md'`. */
+	/**
+	 * Size step of the row. It opens a density scope on the row, so the icon
+	 * and the slots take the same step. Without it, the row takes the step of
+	 * the nearest density scope.
+	 */
 	size?: Step
 }
 
@@ -80,10 +84,9 @@ export function SidebarItem({
 	const {
 		ref: itemRef,
 		current: isCurrent,
-		size: itemSize,
 		indicator: { ref: indicatorRef, tapHandlers },
 		handleClick,
-	} = useNavItem({ current, size, preventClose, onClick })
+	} = useNavItem({ current, preventClose, onClick })
 
 	// Inside a SidebarList the wrapper is an <li>; standalone it is a <span>.
 	const inList = useInSidebarList()
@@ -125,7 +128,7 @@ export function SidebarItem({
 		<Button
 			data-current={dataAttr(isCurrent)}
 			className={cn(
-				k.item.base({ size: itemSize, chrome: hasAffix ? 'row' : 'item' }),
+				k.item.base({ chrome: hasAffix ? 'row' : 'item' }),
 				// In the mini rail this Button is the tooltip trigger; restore the nav
 				// cursor over the trigger's help-cursor default.
 				mini && '*:cursor-pointer',
@@ -140,7 +143,7 @@ export function SidebarItem({
 			aria-current={isCurrent ? 'page' : undefined}
 		>
 			<TouchTarget>
-				{icon && <Icon icon={icon} size={itemSize} />}
+				{icon && <Icon icon={icon} />}
 				{innerChildren}
 			</TouchTarget>
 		</Button>
@@ -150,44 +153,40 @@ export function SidebarItem({
 		<Wrapper
 			ref={itemRef as Ref<HTMLLIElement & HTMLSpanElement>}
 			data-slot="sidebar-item"
-			className={k.item.row({ affix: hasAffix, size: itemSize })}
+			data-size={size}
+			data-density={size}
+			className={k.item.row({ affix: hasAffix })}
 			{...tapHandlers}
 		>
-			{prefix != null && (
-				<span
-					data-slot="sidebar-item-prefix"
-					data-density={stepDown(itemSize)}
-					className={cn(k.item.prefix({ size: itemSize }))}
-				>
-					<Density step={stepDown(itemSize)}>{prefix}</Density>
-				</span>
-			)}
-			<HeadlessProvider>
-				{mini ? (
-					// The label renders twice: visually hidden inside the rail button
-					// (keeping the accessible name) and as the tooltip surface.
-					<Tooltip placement="right">
-						<TooltipTrigger>{inner}</TooltipTrigger>
-						<TooltipContent>{tooltip}</TooltipContent>
-					</Tooltip>
-				) : (
-					inner
+			<Density step={size}>
+				{prefix != null && (
+					<span data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
+						<DensitySlot>{prefix}</DensitySlot>
+					</span>
 				)}
-			</HeadlessProvider>
-			{resolvedSuffix != null && (
-				<span
-					data-slot="sidebar-item-suffix"
-					data-density={stepDown(itemSize)}
-					className={cn(k.item.suffix({ size: itemSize }))}
-				>
-					<Density step={stepDown(itemSize)}>{resolvedSuffix}</Density>
-				</span>
-			)}
-			{isCurrent && (
-				// A current affixed row re-draws its focus ring on the active indicator,
-				// the topmost full-row surface; a plain row keeps the default.
-				<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
-			)}
+				<HeadlessProvider>
+					{mini ? (
+						// The label renders twice: visually hidden inside the rail button
+						// (keeping the accessible name) and as the tooltip surface.
+						<Tooltip placement="right">
+							<TooltipTrigger>{inner}</TooltipTrigger>
+							<TooltipContent>{tooltip}</TooltipContent>
+						</Tooltip>
+					) : (
+						inner
+					)}
+				</HeadlessProvider>
+				{resolvedSuffix != null && (
+					<span data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
+						<DensitySlot>{resolvedSuffix}</DensitySlot>
+					</span>
+				)}
+				{isCurrent && (
+					// A current affixed row re-draws its focus ring on the active indicator,
+					// the topmost full-row surface; a plain row keeps the default.
+					<ActiveIndicator ref={indicatorRef} className={cn(hasAffix && k.item.indicator)} />
+				)}
+			</Density>
 		</Wrapper>
 	)
 }
