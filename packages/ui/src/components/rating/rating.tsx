@@ -42,8 +42,8 @@ export type RatingProps = RatingVariants & {
 	 */
 	name?: string
 	/**
-	 * Size step. It opens a density scope on the row. Without it, the row takes
-	 * the step of the nearest density scope.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the row a density scope.
 	 */
 	size?: DensityStep
 	/**

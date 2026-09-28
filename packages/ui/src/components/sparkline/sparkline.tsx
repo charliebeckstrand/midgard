@@ -37,8 +37,8 @@ export type SparklineProps = AccessibleName & {
 	/** @defaultValue 'zinc' */
 	color?: SparklineColor
 	/**
-	 * Size step of the box. It opens a density scope on the sparkline. Without
-	 * it, the sparkline takes the step of the nearest density scope. Each step
+	 * The density step of the box. Omit it to take the step of the nearest
+	 * density scope. A step makes the sparkline a density scope. Each step
 	 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
 	 * different size.
 	 */
@@ -236,8 +236,8 @@ function AnimatedSparklineMarks({
  * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
  * @remarks Built for a {@link Grid} cell — drop it into a column's `cell`
- * renderer — but usable anywhere. In a density-aware Grid it tracks the
- * density scope of the grid cells unless given an explicit `size`. The accessible name is required by
+ * renderer — but usable anywhere. In a Grid cell it takes the step of the
+ * cells, unless it has an explicit `size`. The accessible name is required by
  * {@link SparklineProps}; summarize the trend (e.g. `aria-label="Revenue, up
  * over 7 days"`) rather than naming the component. Pass `animate` to reveal the
  * marks on mount through Framer Motion; off, it stays a plain-SVG leaf.

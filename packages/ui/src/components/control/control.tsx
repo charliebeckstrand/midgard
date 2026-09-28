@@ -24,6 +24,10 @@ export type ControlProps = {
 	required?: boolean
 	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
 	severity?: ControlSeverity
+	/**
+	 * The density step. Omit it to take the step of an outer Control, else of
+	 * the nearest density scope. A step makes the field a density scope.
+	 */
 	size?: DensityStep
 	variant?: ControlVariant
 	className?: string
@@ -36,7 +40,8 @@ export type ControlProps = {
  * `variant` to control-aware descendants. Those are input, textarea, switch,
  * listbox, combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
  * cascade through inner Controls, `severity` / `size` / `variant` inherit
- * unless overridden. Wraps its subtree in a Density scope when `size` resolves.
+ * unless overridden. With a `size` of its own or of an outer Control, the field
+ * is a density scope.
  *
  * @remarks A Control holds one control-aware descendant, because that
  * descendant adopts the one id. To group fields, nest one Control for each

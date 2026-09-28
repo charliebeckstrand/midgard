@@ -74,6 +74,6 @@ export const k = defineRecipe(
 export type LoadingDotsVariants = VariantProps<typeof k>
 /** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingSpinnerVariants = VariantProps<typeof spinner> & {
-	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: DensityStep
 }

@@ -213,9 +213,9 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 }
 
 /**
- * The density surrounding the grid, captured above the scope of its table. An
- * overlay that the grid spawns renders at it, rather than at the tightened step
- * of its cells. Defaults to the `md` baseline for a grid outside any provider.
+ * The step of the nearest density scope around the grid, read above the scope
+ * of its table. An overlay that the grid spawns renders at it, rather than at
+ * the tightened step of its cells. It is `md` outside a grid.
  *
  * @internal
  */
@@ -225,8 +225,8 @@ export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
 )
 
 /**
- * Restores the ambient density inside an overlay whose trigger lives in the table
- * region, so a *dialog-sized* surface isn't sized like a *cell*.
+ * Restores the step around the grid inside an overlay whose trigger lives in
+ * the table region, so a *dialog-sized* surface isn't sized like a *cell*.
  *
  * A portal is a DOM escape, not a React one. The surface stays a descendant of
  * the trigger, so it inherits the scope of the table unless something says otherwise.
@@ -236,9 +236,9 @@ export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<
  * @internal
  */
 export function GridOverlayDensity({ children }: { children: ReactNode }) {
-	const ambient = useGridOverlayDensity()
+	const step = useGridOverlayDensity()
 
-	return <Density step={ambient}>{children}</Density>
+	return <Density step={step}>{children}</Density>
 }
 
 /** Props for {@link GridScrollRegion}. @internal */

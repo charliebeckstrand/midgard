@@ -1,36 +1,37 @@
 /**
  * Control archetype: affix slot padding.
  *
- * Affix padding equals `density.px`; a text affix's content aligns with
- * the input text in an affix-less control. When the slot hosts an element
- * with its own outer chrome, the affix padding shrinks to a per-chip
- * constant at every density step. That element is a non-bare `<Button>` or
- * a `<Badge>`, matched on `data-slot`. A constant is a plain utility, so it
- * wins over the stepped padding of the slot. The constant is `1.5` for a
- * `<Button>`, and `2` for a `<Badge>`. The slot scope
- * reduces the slot's child one step per density step. Both `density.px` and the stepped-down child padding grow
- * 0.5 per notch, and the per-step deltas cancel. That holds each constant
- * at every step. The two differ because a `<Badge>` sits one notch below a
- * same-size `<Button>` on the shared `px` scale. Its stepped-down padding
- * is therefore 0.5 smaller, and the slot pads 0.5 more to compensate. The
- * boundary test at `__tests__/boundary/affix-compensation-boundary.test.ts`
- * pins both against the live recipes.
+ * Affix padding equals the control `px` (`density-px-ring-*` in
+ * `./density.ts`); a text affix's content aligns with the input text in an
+ * affix-less control. When the slot hosts an element with its own outer chrome,
+ * the affix padding shrinks to a per-chip constant at every density step. That
+ * element is a non-bare `<Button>` or a `<Badge>`, matched on `data-slot`. A
+ * constant is a plain utility, so it wins over the stepped padding of the slot.
+ * The constant is `1.5` for a `<Button>`, and `2` for a `<Badge>`. The slot
+ * scope reduces the slot's child one step per density step. Both the control
+ * `px` and the stepped-down child padding grow 0.5 per notch, and the per-step
+ * deltas cancel. That holds each constant at every step. The two differ because
+ * a `<Badge>` sits one notch below a same-size `<Button>` on the shared `px`
+ * scale. Its stepped-down padding is therefore 0.5 smaller, and the slot pads
+ * 0.5 more to compensate. The boundary test at
+ * `__tests__/boundary/affix-compensation-boundary.test.ts` pins both against
+ * the live recipes.
  *
- * The frame is a flex row, so a prefix sits at the inline start and a
- * suffix at the inline end. In a right-to-left control the slots mirror.
- * Thus every pad and margin here is logical (`ps` / `pe`, `ms` / `me`),
- * and mirrors with its slot. The browser test at
- * `__tests__/browser/input-affix-rtl.test.tsx` pins the pad side.
+ * The frame is a flex row, so a prefix sits at the inline start and a suffix at
+ * the inline end. In a right-to-left control the slots mirror. Thus every pad
+ * and margin here is logical (`ps` / `pe`, `ms` / `me`), and mirrors with its
+ * slot. The browser test at `__tests__/browser/input-affix-rtl.test.tsx` pins
+ * the pad side.
  *
- * An icon-only bare `<Button>` carries no outer chrome, so its glyph
- * aligns to the text line rather than the chip-content line. The override
- * subtracts the button's stepped-down compound padding (`kata/button.ts`)
- * from `density.px`, landing the icon exactly where a text affix sits. The
- * non-bare constant has no counterpart here. The bare compound scale
- * grows 0.25 per notch (half of `density.px`'s 0.5), so the deltas can't
- * cancel and the padding drifts (`1.75 → 2 → 2.25`). A *labeled* bare
- * button carries the regular `p` and stays on the `density.px` base path,
- * hence the `:not([data-has-label])` scope.
+ * An icon-only bare `<Button>` carries no outer chrome, so its glyph aligns to
+ * the text line rather than the chip-content line. The override subtracts the
+ * button's stepped-down compound padding (`kata/button.ts`) from the control
+ * `px`, landing the icon exactly where a text affix sits. The non-bare constant
+ * has no counterpart here. The bare compound scale grows 0.25 per notch (half
+ * the 0.5 of the control `px`), so the deltas can't cancel and the padding
+ * drifts (`1.75 → 2 → 2.25`). A *labeled* bare button carries the regular `p`
+ * and stays on the base path of the control `px`, hence the
+ * `:not([data-has-label])` scope.
  *
  * The bare arm keys on `data-variant`, not `data-slot`: a wrapper can
  * hijack the slot id (e.g. `<TooltipTrigger>` rewrites a child's
@@ -57,14 +58,14 @@
  * highlight paints the inner input's full box, which sits flush against
  * an affix slot. The slot's padding faces the frame edge, not the input,
  * so the fill dead-ends into the slot content. Each entry insets the
- * highlight by `density.px` on the affixed side only: `autofill:ms`
+ * highlight by the control `px` on the affixed side only: `autofill:ms`
  * beside a prefix, `autofill:me` beside a suffix. It is gated on the
  * slot's presence via `group-has` against the frame's `group/control`. The
  * margins ride the `density` axis (`./density.ts`), so every control
  * input carries them. On elements that can't match `:autofill` (the
  * listbox / date-picker buttons) they are inert. The boundary test at
  * `__tests__/boundary/affix-compensation-boundary.test.ts` pins
- * the margin to `density.px` per step.
+ * the margin to the control `px` at each step.
  *
  * Layer: kiso · Archetype: control · Concern: affix
  */

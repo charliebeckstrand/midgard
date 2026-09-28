@@ -8,7 +8,10 @@ import { type TooltipPointerOptions, useTooltipPointer } from './use-tooltip-poi
 
 /** Props for {@link TooltipPointer}. @internal */
 export type TooltipPointerProps = TooltipPointerOptions & {
-	/** Size step forwarded to the inner `<TooltipContent>`. @defaultValue the step of the nearest density scope */
+	/**
+	 * The density step, forwarded to the inner `<TooltipContent>`. Omit it to
+	 * take the step of the nearest density scope.
+	 */
 	size?: DensityStep
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string

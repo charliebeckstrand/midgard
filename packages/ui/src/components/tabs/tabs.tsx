@@ -22,9 +22,8 @@ export type TabsProps = ComponentProps<'div'> & {
 	 */
 	orientation?: TabsOrientation
 	/**
-	 * Size step that drives tab text size and padding. It makes the group a
-	 * density scope. With no step, the tabs follow the nearest scope, and `md`
-	 * outside one.
+	 * The density step of the tab text and the tab padding. Omit it to take the
+	 * step of the nearest density scope. A step makes the group a density scope.
 	 */
 	size?: DensityStep
 }

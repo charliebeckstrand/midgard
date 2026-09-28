@@ -714,7 +714,7 @@ export const k = {
 	// onto its descendants (like the table's own outline projections) so
 	// cells and headers read no context and the family still renders in RSC. They
 	// reach only what lives in the table's own DOM — a portaled overlay (context
-	// menu, column-manager dialog) is out of scope and keeps the ambient density,
+	// menu, column-manager dialog) is out of scope and keeps the step around the grid,
 	// since `condensed` is a table-density preset, not a theme its overlays adopt.
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The

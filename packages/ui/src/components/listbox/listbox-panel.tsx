@@ -20,7 +20,11 @@ type ListboxPanelProps = {
 	open: boolean
 	glass: boolean
 	multiple: boolean
-	/** The explicit size step of the listbox. The panel opens a density scope at it. */
+	/**
+	 * The density step of the listbox. Omit it to take the step of the nearest
+	 * density scope of the listbox, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
 	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string

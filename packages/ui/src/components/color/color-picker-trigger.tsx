@@ -22,7 +22,10 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	getReferenceProps: () => Record<string, unknown>
 	hsva: Hsva
 	alpha: boolean
-	/** The explicit size step. The trigger opens a density scope at it. */
+	/**
+	 * The density step of `<ColorPicker>`. Omit it to take the step of the
+	 * nearest density scope. A step makes the trigger a density scope.
+	 */
 	size?: DensityStep
 	disabled?: boolean
 	required?: boolean

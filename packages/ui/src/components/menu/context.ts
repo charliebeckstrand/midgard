@@ -17,7 +17,11 @@ type MenuStateValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
-	/** The explicit size step of the menu. The panel opens a density scope at it. */
+	/**
+	 * The density step of the menu. Omit it to take the step of the nearest
+	 * density scope of the menu, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
 	size?: DensityStep
 }
 

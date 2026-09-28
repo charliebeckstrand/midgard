@@ -121,10 +121,10 @@ export type CalendarProps = {
 	 */
 	locale?: string
 	/**
-	 * Size step of the width, the padding, and the weekday labels. It opens a
-	 * density scope on the calendar, so the navigation buttons and the day cells
-	 * take the same step. Without it, the calendar takes the step of the nearest
-	 * density scope.
+	 * The density step of the width, the padding, and the weekday labels. Omit
+	 * it to take the step of the nearest density scope. A step makes the calendar
+	 * a density scope, so the navigation buttons and the day cells take the step
+	 * too.
 	 */
 	size?: DensityStep
 	className?: string

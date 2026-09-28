@@ -91,9 +91,10 @@ export function PopoverPanel({
 	/** Sets `aria-multiselectable` on a `role="listbox"` panel that allows multiple selections. */
 	multiselectable?: boolean
 	/**
-	 * Makes the panel a density scope at this step: it writes `data-density`
-	 * and opens the density context around the rows. A portaled panel is not in
-	 * the DOM subtree of its trigger, so it opens its own scope.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the panel a density scope: it writes `data-density` and opens
+	 * the density context around the rows. A portaled panel is not in the DOM
+	 * subtree of its trigger, so it opens its own scope.
 	 */
 	density?: DensityStep
 	/** Accessible name for the panel's role (e.g. the listbox), threaded from the owning control. */

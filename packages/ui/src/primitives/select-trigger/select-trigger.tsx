@@ -18,7 +18,10 @@ export type SelectTriggerProps = GroupStampProps & {
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
 	glass: boolean
-	/** The explicit `size` of the host. It opens a density scope on the trigger. */
+	/**
+	 * The density step of the host. Omit it to take the step of the nearest
+	 * density scope. A step makes the trigger a density scope.
+	 */
 	size?: DensityStep
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */

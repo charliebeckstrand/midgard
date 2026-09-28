@@ -16,7 +16,11 @@ type ComboboxPanelProps = {
 	editing: boolean
 	multiple: boolean
 	glass: boolean
-	/** The explicit size step of the combobox. The panel opens a density scope at it. */
+	/**
+	 * The density step of the combobox. Omit it to take the step of the nearest
+	 * density scope of the combobox, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
 	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string

@@ -87,7 +87,10 @@ import {
  * @internal
  */
 export type ScatterFrameProps = {
-	/** Resolves against enclosing Density; sets the tick-count target. */
+	/**
+	 * The density step, which sets the target count of the ticks. Omit it to
+	 * take the step of the nearest density scope.
+	 */
 	size?: DensityStep
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their

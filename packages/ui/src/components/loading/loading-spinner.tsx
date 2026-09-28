@@ -22,12 +22,12 @@ const SPINNER_SVG = (
 /**
  * Indeterminate loading indicator rendered as a live `<output>` with an
  * `sr-only` `label`. Static leaf: renders in React Server Components. Without
- * `size`, the spinner takes the step of the nearest density scope, and `md`
- * outside one. An explicit `size` makes the spinner its own scope. Inside a
- * `<Button>` or a `<SidebarItem>`, the projection of the parent sets the size.
- * Inside a control affix slot, the spinner takes the slot step, one below the
- * control. Inside a `<Badge>`, the spinner takes the step of the badge, because
- * both follow the same scope.
+ * `size`, the spinner takes the step of the nearest density scope. An explicit
+ * `size` makes the spinner a density scope. Inside a `<Button>` or a
+ * `<SidebarItem>`, the projection of the parent sets the size. Inside a control
+ * affix slot, the spinner takes the slot step, one below the control. Inside a
+ * `<Badge>`, the spinner takes the step of the badge, because both follow the
+ * same scope.
  */
 export function LoadingSpinner({
 	size,

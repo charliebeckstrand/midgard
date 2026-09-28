@@ -24,9 +24,9 @@ const TRAP_ORDER: FloatingFocusManagerProps['order'] = ['reference', 'content']
 /** Props for {@link TooltipContent}. */
 export type TooltipContentProps = {
 	/**
-	 * Size step that drives padding, radius, and text size. It makes the panel a
-	 * density scope. With no step, the panel follows the scope of its trigger,
-	 * and `md` outside one.
+	 * The density step of the padding, the radius, and the text. Omit it to take
+	 * the step of the nearest density scope of the trigger, which the portal
+	 * carries. A step makes the panel a density scope.
 	 */
 	size?: DensityStep
 	className?: string

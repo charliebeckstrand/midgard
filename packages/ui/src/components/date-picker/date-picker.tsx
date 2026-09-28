@@ -138,9 +138,9 @@ export type DatePickerBaseProps = GroupStampProps & {
 	placeholder?: string
 	placement?: Placement
 	/**
-	 * Size step of the trigger padding, the text, the calendar icon, and the
-	 * panel. It opens a density scope on the trigger and on the panel. Without
-	 * it, the picker takes the step of the nearest density scope.
+	 * The density step of the trigger padding, the text, the calendar icon, and
+	 * the panel. Omit it to take the step of the nearest density scope. A step
+	 * makes the trigger and the panel density scopes.
 	 */
 	size?: DensityStep
 	/**

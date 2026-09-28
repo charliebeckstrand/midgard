@@ -11,7 +11,10 @@ export type RatingSkeletonProps = {
 	 * @defaultValue 5
 	 */
 	count?: number
-	/** With no `size`, the silhouette takes the step of its nearest density scope. */
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope,
+	 * as the rating does. A step makes the silhouette a density scope.
+	 */
 	size?: DensityStep
 	className?: string
 }

@@ -47,9 +47,9 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		onOpenComplete?: () => void
 		/**
-		 * Size step of the panel content. It opens a density scope on the panel.
-		 * Without it, the panel takes the step of the nearest density scope of
-		 * the drawer, which the portal carries.
+		 * The density step of the panel content. Omit it to take the step of the
+		 * nearest density scope of the drawer, which the portal carries. A step
+		 * makes the panel a density scope.
 		 */
 		size?: DensityStep
 		/**

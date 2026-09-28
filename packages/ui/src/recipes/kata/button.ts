@@ -80,6 +80,6 @@ export const k = defineRecipe({
 
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k> & {
-	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: DensityStep
 }

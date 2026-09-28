@@ -717,10 +717,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * - makes the *table* an `sm` density scope, so cell content with no `size`
 	 *   (an inline `Input`, the selection checkbox) takes the `sm` step.
 	 *
-	 * Scoped to the table. A portaled overlay the grid spawns stays on the ambient
-	 * density rather than adopting the condensed step. A context menu and the
+	 * Scoped to the table. A portaled overlay the grid spawns takes the step
+	 * around the grid rather than the condensed step. A context menu and the
 	 * column-manager dialog both do. Each therefore reads the same whether a
-	 * condensed grid opened it or not. Wrap the grid in a `DensityProvider` to size those overlays.
+	 * condensed grid opened it or not. Wrap the grid in a density scope to size
+	 * those overlays.
 	 *
 	 * @remarks
 	 * Orthogonal to {@link GridDataProps.size}, not a step on it. `size` moves

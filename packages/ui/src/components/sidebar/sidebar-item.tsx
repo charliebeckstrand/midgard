@@ -20,9 +20,9 @@ import { SidebarLabel } from './sidebar-label'
 /** Props for {@link SidebarItem}: the `NavItem` surface plus a `size` step. */
 export type SidebarItemProps = NavItemProps & {
 	/**
-	 * Size step of the row. It opens a density scope on the row, so the icon
-	 * and the slots take the same step. Without it, the row takes the step of
-	 * the nearest density scope.
+	 * The density step of the row. Omit it to take the step of the nearest
+	 * density scope. A step makes the row a density scope, so the icon and the
+	 * slots take the step too.
 	 */
 	size?: DensityStep
 }

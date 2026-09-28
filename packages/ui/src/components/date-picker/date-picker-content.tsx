@@ -35,9 +35,9 @@ type DatePickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
-	 * The explicit size step of `<DatePicker>`. A step makes the panel a density
-	 * scope. Without it, the panel takes the step of the nearest density scope of
-	 * the picker, which the portal carries.
+	 * The density step of `<DatePicker>`. Omit it to take the step of the
+	 * nearest density scope of the picker, which the portal carries. A step
+	 * makes the panel a density scope.
 	 */
 	size?: DensityStep
 	/**

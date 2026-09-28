@@ -44,7 +44,10 @@ export type CalendarRangeProps = {
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	locale?: string
-	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
+	/**
+	 * The density step, forwarded to `<Calendar>`. Omit it to take the step of
+	 * the nearest density scope.
+	 */
 	size?: DensityStep
 	className?: string
 }

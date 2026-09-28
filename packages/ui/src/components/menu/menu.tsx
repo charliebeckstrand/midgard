@@ -37,9 +37,9 @@ export type MenuProps = {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * Size step of the item padding and the text. It opens a density scope on
-	 * the panel. Without it, the panel takes the step of the nearest density
-	 * scope of the menu, which the portal carries.
+	 * The density step of the item padding and the text. Omit it to take the
+	 * step of the nearest density scope of the menu, which the portal carries.
+	 * A step makes the panel a density scope.
 	 */
 	size?: DensityStep
 	/**

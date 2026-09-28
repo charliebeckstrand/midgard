@@ -19,9 +19,9 @@ export type TreeProps = AccessibleName &
 		'className' | 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'
 	> & {
 		/**
-		 * Size step of the icons, the text, and the indent of all items. It opens
-		 * a density scope on the tree. Without it, the tree takes the step of the
-		 * nearest density scope.
+		 * The density step of the icons, the text, and the indent of all items.
+		 * Omit it to take the step of the nearest density scope. A step makes the
+		 * tree a density scope.
 		 */
 		size?: DensityStep
 		/**

@@ -28,7 +28,10 @@ type DatePickerTriggerProps = GroupStampProps & {
 	/** Text label for the selected value; ignored when `children` is provided. */
 	displayValue?: string
 	placeholder: string
-	/** The explicit size step. The trigger opens a density scope at it. */
+	/**
+	 * The density step of `<DatePicker>`. Omit it to take the step of the
+	 * nearest density scope. A step makes the trigger a density scope.
+	 */
 	size?: DensityStep
 	/** When `false`, the trigger grows to fit its content and omits the truncation Tooltip. */
 	truncate?: boolean

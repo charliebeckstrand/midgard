@@ -12,8 +12,8 @@ type GroupBaseProps = {
 	/** Axis the group lays out on. @defaultValue 'horizontal' */
 	orientation?: GroupOrientation
 	/**
-	 * Size step of the children. It opens a density scope on the group. Without
-	 * it, the children take the step of the nearest density scope.
+	 * The density step of the children. Omit it to take the step of the nearest
+	 * density scope. A step makes the group a density scope.
 	 */
 	size?: DensityStep
 	className?: string

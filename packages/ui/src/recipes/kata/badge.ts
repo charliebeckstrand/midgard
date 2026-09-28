@@ -65,6 +65,6 @@ export const k = defineRecipe({
 
 /** Recipe variant props for {@link Badge} — the styling axes its kata exposes (`variant`, `color`, `radius`) and the `size` step, for consumers composing custom slots. */
 export type BadgeVariants = VariantProps<typeof k> & {
-	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
+	/** The density step. Omit it to take the step of the nearest density scope. */
 	size?: DensityStep
 }

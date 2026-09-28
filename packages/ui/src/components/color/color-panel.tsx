@@ -30,7 +30,10 @@ type ColorPanelBaseProps = {
 	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
 	 */
 	swatches?: readonly string[] | false
-	/** Size step. It opens a density scope on the panel. Without it, the panel takes the step of the nearest density scope. */
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the panel a density scope.
+	 */
 	size?: DensityStep
 	disabled?: boolean
 	className?: string

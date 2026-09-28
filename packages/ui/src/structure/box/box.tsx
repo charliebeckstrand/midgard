@@ -26,9 +26,9 @@ type BoxBaseProps = {
 	/** Outline. `true` uses the default token; pass `'subtle'` / `'strong'` to pick a weight. */
 	outline?: BoxOutline
 	/**
-	 * Makes the box a density scope at this step. Its subtree takes the step:
-	 * static descendants through `data-density`, client descendants through
-	 * the density context. Omit it to follow the scope around the box.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the box a density scope: it writes `data-density` for static
+	 * descendants and opens the density context for client descendants.
 	 */
 	density?: DensityStep
 	/**

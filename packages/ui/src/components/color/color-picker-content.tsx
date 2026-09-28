@@ -16,7 +16,11 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
-	/** The explicit size step. A step makes the panel a density scope. Without it, the panel takes the step of the scope that the portal carries. */
+	/**
+	 * The density step of `<ColorPicker>`. Omit it to take the step of the
+	 * nearest density scope of the picker, which the portal carries. A step
+	 * makes the panel a density scope.
+	 */
 	size?: DensityStep
 	children: ReactNode
 }
