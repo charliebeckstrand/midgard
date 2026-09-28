@@ -15,6 +15,14 @@ import {
 /** Props for {@link Flex}: responsive direction/gap/alignment plus wrap and fill modifiers atop native `<div>` attributes. */
 export type FlexProps = {
 	/**
+	 * The element to render. Set `'span'` to lay out phrasing content, such as
+	 * the label of a button or of a list row that is a button. A `<div>` there
+	 * is not valid HTML.
+	 *
+	 * @defaultValue 'div'
+	 */
+	as?: 'div' | 'span'
+	/**
 	 * Flex direction. Supports responsive breakpoints.
 	 *
 	 * @defaultValue 'row'
@@ -40,6 +48,7 @@ export type FlexProps = {
  * Flex container with responsive `direction`, `gap`, `align`, and `justify`,
  * plus `wrap`, `full`-width, and `flex`-fill modifiers. Use Flex for rows and
  * Stack for columns; cross-axis `align` defaults from `direction` when unset.
+ * It renders a `<div>`, or a `<span>` with `as="span"`.
  *
  * @remarks
  * Static leaf with no client boundary: renders in React Server Components.
@@ -48,6 +57,7 @@ export type FlexProps = {
  * @see {@link Stack} for the column-direction shorthand.
  */
 export function Flex({
+	as: Element = 'div',
 	direction = 'row',
 	gap,
 	align,
@@ -62,7 +72,7 @@ export function Flex({
 	const resolvedAlign = align ?? defaultAlignFromDirection(direction)
 
 	return (
-		<div
+		<Element
 			data-slot="flex"
 			className={cn(
 				resolveDirection(direction),
@@ -79,6 +89,6 @@ export function Flex({
 			{...props}
 		>
 			{children}
-		</div>
+		</Element>
 	)
 }
