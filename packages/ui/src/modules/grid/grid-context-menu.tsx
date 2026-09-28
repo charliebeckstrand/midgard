@@ -175,6 +175,10 @@ export function GridContextMenu<T>({
 	columnFilter,
 	children,
 }: GridContextMenuProps<T>) {
+	// The builders, read apart from the config: a call through `config` would make
+	// the whole config a dependency of each resolver.
+	const { column: columnMenu, cell: cellMenu, capped } = config
+
 	const [open, setOpen] = useState(false)
 
 	const [items, setItems] = useState<GridMenuItem[]>([])
@@ -207,7 +211,7 @@ export function GridContextMenu<T>({
 
 	const resolveColumnItems = useCallback(
 		(columnId: string, rtl: boolean): GridMenuItem[] | null => {
-			if (!config.column) return null
+			if (!columnMenu) return null
 
 			const column = columnById.get(columnId)
 
@@ -242,7 +246,7 @@ export function GridContextMenu<T>({
 
 			// A boolean `column` opt-in takes the defaults untouched; only a builder
 			// function needs the context, so it's built solely on that path.
-			if (typeof config.column !== 'function') return defaults
+			if (typeof columnMenu !== 'function') return defaults
 
 			const context: GridColumnMenuContext<T> = {
 				column,
@@ -263,10 +267,10 @@ export function GridContextMenu<T>({
 				exportActions,
 			}
 
-			return config.column(context, defaults)
+			return columnMenu(context, defaults)
 		},
 		[
-			config.column,
+			columnMenu,
 			columnById,
 			sort,
 			sortColumn,
@@ -284,7 +288,7 @@ export function GridContextMenu<T>({
 
 	const resolveCellItems = useCallback(
 		(columnId: string, rowKey: string, text: string): GridMenuItem[] | null => {
-			if (!config.cell) return null
+			if (!cellMenu) return null
 
 			const column = columnById.get(columnId)
 
@@ -300,7 +304,7 @@ export function GridContextMenu<T>({
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
-			if (typeof config.cell !== 'function') return defaults
+			if (typeof cellMenu !== 'function') return defaults
 
 			const context: GridCellMenuContext<T> = {
 				row,
@@ -310,9 +314,9 @@ export function GridContextMenu<T>({
 				exportActions,
 			}
 
-			return config.cell(context, defaults)
+			return cellMenu(context, defaults)
 		},
-		[config.cell, columnById, rowByKey, exportActions],
+		[cellMenu, columnById, rowByKey, exportActions],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu
@@ -359,7 +363,7 @@ export function GridContextMenu<T>({
 	}, [])
 
 	return (
-		<Menu open={open} onOpenChange={handleOpenChange} capped={config.capped}>
+		<Menu open={open} onOpenChange={handleOpenChange} capped={capped}>
 			<GridContextMenuSurface
 				resolveItems={resolveItems}
 				resolveGroupItems={resolveGroupItems}

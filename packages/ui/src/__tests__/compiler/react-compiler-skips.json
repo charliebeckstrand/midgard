@@ -38,9 +38,6 @@
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
 		"usePdfViewerMagnifier": "Refs"
 	},
-	"components/pdf-viewer/use-pdf-viewer-page-size.ts": {
-		"usePdfViewerPageSize": "Refs"
-	},
 	"components/pdf-viewer/use-pdf-viewer.ts": {
 		"useDocumentKey": "Refs",
 		"usePdfViewer": "PreserveManualMemo"
@@ -79,9 +76,6 @@
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
 	},
-	"modules/grid/grid-context-menu.tsx": {
-		"GridContextMenu": "PreserveManualMemo"
-	},
 	"modules/grid/grid-cursor-order.ts": {
 		"useGridCursorOrder": "Refs"
 	},
@@ -100,9 +94,6 @@
 	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
-	},
-	"modules/map/map-hover-provider.tsx": {
-		"MapHoverProvider": "Refs"
 	},
 	"modules/map/map-plat.tsx": {
 		"MapPlat": "Refs"

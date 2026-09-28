@@ -1,14 +1,6 @@
 'use client'
 
-import {
-	type ReactNode,
-	type RefObject,
-	useCallback,
-	useLayoutEffect,
-	useMemo,
-	useRef,
-	useState,
-} from 'react'
+import { type ReactNode, type RefObject, useCallback, useLayoutEffect, useState } from 'react'
 import { useHoverAcrossScroll } from '../../hooks'
 import { createEmitter } from '../../utilities'
 import { samePoint } from '../chart/engine/context'
@@ -53,9 +45,13 @@ function createPointedStore(): MapPointedStore & {
 		emphasis: () => focus,
 		subscribe,
 		publish: (next, emphasis) => {
-			if (next === current && emphasis === focus) return
+			// Pinned at mark granularity: a move to another stop of the same mark
+			// keeps the held target, so it publishes nothing.
+			const mark = sameMark(current, next) ? current : next
 
-			current = next
+			if (mark === current && emphasis === focus) return
+
+			current = mark
 
 			focus = emphasis
 
@@ -120,27 +116,16 @@ export function MapHoverProvider({
 	// meet: the plat sits above this provider and could not see either.
 	useMapRegionPreload(target, preloadRegion)
 
-	// Pinned at mark granularity, the way the chart frame pins its own pointed
-	// mark: this value names the mark, never the stop within it, and every mark on
-	// the map reads it. Sweeping between the dots of one plural mark would
-	// otherwise republish on each crossing and re-render every mark — the regions,
-	// the range legend, all the overlays — for the answer each already held.
-	const pinned = useRef<MapHoverTarget | null>(null)
-
-	const pointed = useMemo(() => {
-		const next =
-			target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target
-
-		if (sameMark(pinned.current, next)) return pinned.current
-
-		pinned.current = next
-
-		return next
-	}, [target, regionActive])
+	const pointed =
+		target !== null && target.kind === 'region' && !regionActive(target.index) ? null : target
 
 	// The marks read the pointed mark from a store, each for its own answer. The
 	// store keeps one identity, so the context holds and a crossing renders only
-	// the marks whose answer changed.
+	// the marks whose answer changed. The store pins the mark, the way the chart
+	// frame pins its own pointed mark: it names the mark, never the stop within
+	// it. Sweeping between the dots of one plural mark would otherwise republish
+	// on each crossing and re-render every mark — the regions, the range legend,
+	// all the overlays — for the answer each already held.
 	const [pointedStore] = useState(createPointedStore)
 
 	useLayoutEffect(() => pointedStore.publish(pointed, emphasis), [pointedStore, pointed, emphasis])
