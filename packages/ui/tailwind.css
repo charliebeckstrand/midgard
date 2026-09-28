@@ -1,9 +1,8 @@
 /*
- * The Tailwind extensions of ui: the `density-*` variants and the ring
- * utilities (`px-ring-2`, …). Import this file in each Tailwind entry that
- * scans ui. It holds variants and utilities only, no styles. Each plugin
- * explains its classes.
+ * The Tailwind extensions of ui: the `density-*` variants, and the stepped and
+ * ring utilities (`density-p-[2,3,4]`, `px-ring-2`, …). Import this file in
+ * each Tailwind entry that scans ui. It holds variants and utilities only, no
+ * styles. Each plugin explains its classes.
  */
 @plugin './src/core/density/variants.ts';
 @plugin './src/core/density/utilities.ts';
-@plugin './src/recipes/kiso/kasane/ring-utilities.ts';

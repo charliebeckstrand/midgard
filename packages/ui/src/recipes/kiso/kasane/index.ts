@@ -1,7 +1,7 @@
 /**
  * Kasane 重ね: layered chrome plus its companion spacing helpers. The ring
- * utilities of `ring-utilities.ts` (`px-ring-2`, …) subtract the 1 px outer
- * ring from a spacing stop. A class uses them directly.
+ * utilities of `core/density/utilities.ts` (`px-ring-2`, …) subtract the 1 px
+ * outer ring from a spacing stop. A class uses them directly.
  *
  * Four named axes:
  *   - `layers`: the signature inset-fill-plus-rings stack (base /

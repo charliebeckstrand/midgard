@@ -41,3 +41,28 @@ const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const sati
 export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 	return below[step]
 }
+
+/**
+ * Reads a list with a value for each step, such as the `2,3,4` of
+ * `density-p-[2,3,4]`. Five values give the steps from `xs` to `xl`. Three
+ * values give `sm`, `md`, and `lg`, and each outer step takes the value of its
+ * neighbor. It returns `null` for a list of another length.
+ *
+ * @internal
+ */
+export function valuesByStep(list: string): Record<DensityStep, string> | null {
+	const values = list.split(',').map((value) => value.trim())
+
+	if (values.length === densitySteps.length) {
+		return Object.fromEntries(densitySteps.map((step, index) => [step, values[index]])) as Record<
+			DensityStep,
+			string
+		>
+	}
+
+	if (values.length !== 3) return null
+
+	const [sm, md, lg] = values as [string, string, string]
+
+	return { xs: sm, sm, md, lg, xl: lg }
+}
