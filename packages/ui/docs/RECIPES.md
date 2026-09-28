@@ -85,7 +85,7 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 ## Barrel surface
 
-The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` / `ExtendedColor` / `PaletteColor` from the engine table above.
+The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` from the engine table above.
 
 | Type | Summary |
 |---|---|
