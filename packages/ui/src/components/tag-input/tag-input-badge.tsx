@@ -3,6 +3,7 @@
 import { X } from 'lucide-react'
 import { cn } from '../../core'
 import type { Color } from '../../recipes'
+import { k as badgeKata } from '../../recipes/kata/badge'
 import { k } from '../../recipes/kata/tag-input'
 import { Badge } from '../badge'
 import { Button } from '../button'
@@ -42,7 +43,7 @@ export function TagInputBadge({ label, color, disabled, onRemove }: TagInputBadg
 			variant="outline"
 			radius="full"
 			color={color}
-			className={cn(k.badge)}
+			className={cn(k.badge, badgeKata.removable)}
 			suffix={
 				!disabled && (
 					<Button

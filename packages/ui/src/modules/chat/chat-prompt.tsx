@@ -8,6 +8,8 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
+import { cn } from '../../core'
+import { k as badgeKata } from '../../recipes/kata/badge'
 import { isComposing } from '../../utilities'
 import { canSubmitDraft } from './engine/chat-draft'
 
@@ -156,7 +158,6 @@ export function ChatPrompt({
 								<Button
 									type="button"
 									variant="plain"
-									size="sm"
 									aria-label="Add attachment"
 									onClick={openPicker}
 								>
@@ -167,7 +168,6 @@ export function ChatPrompt({
 						{streaming ? (
 							<Button
 								type="button"
-								size="sm"
 								color="blue"
 								aria-label="Stop generating"
 								onClick={() => onStop?.()}
@@ -177,7 +177,6 @@ export function ChatPrompt({
 						) : (
 							<Button
 								type="button"
-								size="sm"
 								color="blue"
 								aria-label="Send message"
 								disabled={!canSubmit}
@@ -196,14 +195,15 @@ export function ChatPrompt({
 							key={`${file.name}-${file.lastModified}-${file.size}`}
 							// Outline (page-surface bg) keeps the bare remove button's muted
 							// `onSurface` glyph above the 3:1 non-text-contrast floor; a solid
-							// fill would sink it. Matches the TagInput removable chip.
+							// fill would sink it. The chip is the removable chip of TagInput.
 							variant="outline"
+							radius="full"
+							className={cn(badgeKata.removable)}
 							suffix={
 								onRemoveAttachment && (
 									<Button
 										type="button"
 										variant="bare"
-										size="sm"
 										aria-label={`Remove ${file.name}`}
 										onClick={() => onRemoveAttachment(index)}
 									>

@@ -12,12 +12,9 @@ const { flex } = narabi
 
 export const k = {
 	base: [flex.row, 'flex-wrap gap-1.5', size.sm],
-	// The remove button's own padding insets its glyph from the trailing edge.
-	// So the leading side takes the pill's `px` plus the button's `bare.p`, and
-	// the text sits symmetric with the glyph. A read-only chip has no button and
-	// keeps the symmetric `px`. The chip is always an `sm` Badge, so the pad is one
-	// plain class. The sum is pinned by `tag-input-chip-pad-boundary.test.ts`.
-	chip: ['max-w-full', 'data-[has-suffix]:ps-ring-2.75'],
+	// The chip is always an `sm` Badge, because the bar has a fixed size. The
+	// leading pad of the removable chip is `removable` of the Badge kata.
+	chip: ['max-w-full'],
 	field: [...text.default],
 	operator: [...text.muted],
 	value: [weight.semibold, ...text.default],
