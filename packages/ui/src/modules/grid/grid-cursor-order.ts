@@ -107,25 +107,37 @@ function sameOrder(a: readonly GridCursorRow[], b: readonly GridCursorRow[]): bo
  * place of the data rows, and it forgets the order when the body unmounts.
  *
  * @remarks The cursor finds its row again by key each time it gets a new
- * order, so an equal order keeps its first reference. A windowed body gives a
- * memoized order, so a scroll frame compares nothing.
+ * order, so the store keeps the first reference of an equal order. A windowed
+ * body gives a memoized order, so a scroll frame compares nothing.
  *
  * @internal
  */
 export function useGridCursorOrder(order: readonly GridCursorRow[]): void {
 	const store = useGridNavContext()
 
-	const stableRef = useRef(order)
+	// The order that the store holds. Only the effects read it and write it.
+	const publishedRef = useRef<readonly GridCursorRow[] | null>(null)
 
-	if (order !== stableRef.current && !sameOrder(order, stableRef.current)) {
-		stableRef.current = order
-	}
+	useLayoutEffect(() => {
+		const published = publishedRef.current
 
-	const stable = stableRef.current
+		if (published !== null && (order === published || sameOrder(order, published))) return
 
-	useLayoutEffect(() => store.publish(stable), [store, stable])
+		publishedRef.current = order
 
-	useLayoutEffect(() => () => store.publish(null), [store])
+		store.publish(order)
+	}, [store, order])
+
+	// The cleanup runs before the publish of a new store, so that publish starts
+	// from no order.
+	useLayoutEffect(
+		() => () => {
+			publishedRef.current = null
+
+			store.publish(null)
+		},
+		[store],
+	)
 }
 
 /**

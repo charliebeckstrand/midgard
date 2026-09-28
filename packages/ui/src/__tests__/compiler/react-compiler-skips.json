@@ -45,9 +45,6 @@
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
-	"hooks/a11y/use-a11y-roving.ts": {
-		"useA11yRoving": "PreserveManualMemo"
-	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},
@@ -75,9 +72,6 @@
 	},
 	"modules/chat/use-chat-transcript-item-key.ts": {
 		"useChatTranscriptItemKey": "Refs"
-	},
-	"modules/grid/grid-cursor-order.ts": {
-		"useGridCursorOrder": "Refs"
 	},
 	"modules/grid/use-grid-cursor.tsx": {
 		"useGridCursor": "Refs"

@@ -958,7 +958,9 @@ export function useA11yRoving(
 		manageTabIndex = false,
 		activeSelector,
 		row,
-		itemSource,
+		// The compiler treats a name that ends in `Ref` as a ref. The handler then
+		// reads `.current` as a ref, not as a dependency of the memo.
+		itemSource: itemSourceRef,
 		activeIndexRef,
 	}: RovingOptions,
 ) {
@@ -1056,7 +1058,7 @@ export function useA11yRoving(
 			if (handleEscapeBlur(event, containerRef.current, escapeBlurs, mode)) return
 
 			const resolved = resolveRovingContext(containerRef.current, itemSelector, mode, {
-				itemSource: itemSource?.current ?? null,
+				itemSource: itemSourceRef?.current ?? null,
 				activeIndexRef,
 				manageTabIndex,
 				activeDescendantRef,
@@ -1115,7 +1117,7 @@ export function useA11yRoving(
 			rowSelector,
 			actionSelector,
 			typeaheadMatchers,
-			itemSource,
+			itemSourceRef,
 			activeIndexRef,
 		],
 	)
