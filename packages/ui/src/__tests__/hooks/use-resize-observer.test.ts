@@ -36,19 +36,7 @@ describe('useResizeObserver', () => {
 
 		expect(observers).toHaveLength(1)
 
-		expect(observers[0]?.observe).toHaveBeenCalledWith(element, { box: 'content-box' })
-	})
-
-	it('observes the box that it is given', () => {
-		const element = document.createElement('div')
-
-		renderHook(() => {
-			const ref = useRef<HTMLDivElement>(element)
-
-			useResizeObserver(ref, () => {}, 'border-box')
-		})
-
-		expect(observers[0]?.observe).toHaveBeenCalledWith(element, { box: 'border-box' })
+		expect(observers[0]?.observe).toHaveBeenCalledWith(element)
 	})
 
 	it('disconnects on unmount', () => {

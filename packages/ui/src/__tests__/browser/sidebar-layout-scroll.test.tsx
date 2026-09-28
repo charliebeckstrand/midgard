@@ -81,22 +81,22 @@ describe('sidebar layout below lg (real browser)', () => {
 		expect(header.getBoundingClientRect().bottom).toBeLessThan(0)
 	})
 
-	it('paints the color of the navbar above it', async () => {
+	it('keeps every ancestor of the navbar free of overflow clipping', async () => {
 		const { navbar } = renderTallLayout()
 
 		await frames()
 
-		const above = getComputedStyle(navbar, '::before')
+		const clipping: string[] = []
 
-		expect(above.content).not.toBe('none')
+		for (let node = navbar.parentElement; node; node = node.parentElement) {
+			const { overflowX, overflowY } = getComputedStyle(node)
 
-		expect(above.position).toBe('absolute')
+			if (overflowX !== 'visible' || overflowY !== 'visible') {
+				clipping.push(`${node.tagName.toLowerCase()} ${overflowX} ${overflowY}`)
+			}
+		}
 
-		expect(above.bottom).toBe(`${navbar.getBoundingClientRect().height}px`)
-
-		expect(Number.parseFloat(above.height)).toBeGreaterThan(0)
-
-		expect(above.backgroundColor).toBe(getComputedStyle(navbar).backgroundColor)
+		expect(clipping).toEqual([])
 	})
 })
 
