@@ -2,6 +2,7 @@
 
 import { type PointerEvent as ReactPointerEvent, type RefObject, useCallback, useRef } from 'react'
 import { type DragCursor, holdDragCursor } from '../../hooks/use-drag-cursor'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import { type DashboardCell, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import {
@@ -96,9 +97,14 @@ export function useDashboardResize({
 	onResizeStart,
 	onResizeEnd,
 }: DashboardResizeOptions): DashboardResizeHandlers {
-	const callbacks = useRef({ commit, onResizeStart, onResizeEnd })
+	// The handlers read the newest callbacks, and they keep their identity.
+	const commitCells = useStableEvent(commit)
 
-	callbacks.current = { commit, onResizeStart, onResizeEnd }
+	const reportResizeStart = useStableEvent((event: DashboardGestureStartEvent) =>
+		onResizeStart?.(event),
+	)
+
+	const reportResizeEnd = useStableEvent((event: DashboardGestureEndEvent) => onResizeEnd?.(event))
 
 	// The tile and the end of the live pointer resize. A splitter that unmounts
 	// takes its own listeners away, so the board ends the gesture through this ref.
@@ -179,7 +185,7 @@ export function useDashboardResize({
 				},
 			})
 
-			callbacks.current.onResizeStart?.({ id, layout })
+			reportResizeStart({ id, layout })
 
 			const update = () => {
 				const gesture = store.getState().gesture
@@ -226,8 +232,8 @@ export function useDashboardResize({
 				if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId)
 
 				endGesture(store, id, keep, {
-					commit: callbacks.current.commit,
-					onEnd: callbacks.current.onResizeEnd,
+					commit: commitCells,
+					onEnd: reportResizeEnd,
 				})
 			}
 
@@ -258,7 +264,7 @@ export function useDashboardResize({
 
 			live.current = { id, finish }
 		},
-		[store, canvasRef],
+		[store, canvasRef, commitCells, reportResizeStart, reportResizeEnd],
 	)
 
 	const cancelResize = useCallback((id?: string) => {
@@ -284,11 +290,11 @@ export function useDashboardResize({
 
 			if (preview === null) return
 
-			const { failure } = callbacks.current.commit(preview)
+			const { failure } = commitCells(preview)
 
 			if (failure !== undefined) throw failure.error
 		},
-		[store, canvasRef],
+		[store, canvasRef, commitCells],
 	)
 
 	return { beginResize, resizeBy, cancelResize }

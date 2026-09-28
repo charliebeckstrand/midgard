@@ -10,6 +10,7 @@ import {
 	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
+import { useStableEvent } from './use-stable-event'
 
 /**
  * Floating-point epsilon (px) on the `Range` overflow test. The single-line
@@ -237,21 +238,16 @@ export function useTruncation<E extends HTMLElement>(options?: {
 	// (a cell's tooltip stack) re-render once when contact first arrives.
 	const [contacted, setContacted] = useState(false)
 
-	const suspendedRef = useRef(suspended)
-
-	suspendedRef.current = suspended
-
 	// Setting the same value bails out of a re-render, so measuring on every
-	// commit can't loop.
-	const measure = useCallback(() => {
-		const stood = suspendedRef.current
-
-		if (!armed.current || (typeof stood === 'function' ? stood() : stood)) return
+	// commit can't loop. It reads the newest `suspended`, and its identity holds
+	// for the mount.
+	const measure = useStableEvent(() => {
+		if (!armed.current || (typeof suspended === 'function' ? suspended() : suspended)) return
 
 		const el = elRef.current
 
 		if (el) setTruncated(isOverflowing(el))
-	}, [])
+	})
 
 	// The listener/observer bindings live in the effect below, keyed on this
 	// version: a consumer that reparents the measured element while it stays
@@ -269,7 +265,7 @@ export function useTruncation<E extends HTMLElement>(options?: {
 		if (node && bound.current) setNodeVersion((version) => version + 1)
 	}, [])
 
-	useLayoutEffect(measure)
+	useLayoutEffect(() => measure())
 
 	useEffect(() => {
 		// Read here so a node replacement (which bumps the version) re-runs the

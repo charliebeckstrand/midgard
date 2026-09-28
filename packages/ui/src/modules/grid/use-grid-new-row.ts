@@ -5,13 +5,13 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
-	useEffectEvent,
 	useMemo,
 	useReducer,
 	useRef,
 	useState,
 } from 'react'
 import { announce } from '../../core'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { focusWithoutReveal } from '../../hooks/use-truncation'
 import { describeRowAdd } from './engine/grid-announcements'
 import { GRID_ROLE } from './engine/grid-constants'
@@ -184,12 +184,6 @@ export function useGridNewRow<T>({
 } {
 	useNewRowWarning(config, managed)
 
-	const onRowAdd = useEffectEvent((values: Record<string, unknown>) => config?.onRowAdd?.(values))
-
-	const positionRef = useRef(position)
-
-	positionRef.current = position
-
 	// Raised to mount the slot's editors again, so each reads the store.
 	const [generation, remount] = useReducer((count: number) => count + 1, 0)
 
@@ -332,9 +326,9 @@ export function useGridNewRow<T>({
 
 	// Adds the row. An add with no value does nothing. A `validate` refusal
 	// blocks it, and the editors already show the error. A second add waits
-	// while one is in flight.
-	const addRow = useCallback(() => {
-		if (positionRef.current === null || flightRef.current !== null) return
+	// while one is in flight. It reads the newest position and `onRowAdd`.
+	const addRow = useStableEvent(() => {
+		if (position === null || flightRef.current !== null) return
 
 		const { values, cells } = collectNewRow(
 			drafts.readRow(NEW_ROW_KEY),
@@ -353,7 +347,7 @@ export function useGridNewRow<T>({
 			return
 		}
 
-		const result = onRowAdd(values)
+		const result = config?.onRowAdd?.(values)
 
 		if (!isThenable(result)) {
 			accept(true)
@@ -379,7 +373,7 @@ export function useGridNewRow<T>({
 			(value) => settle(flight, { value }),
 			(reason: unknown) => settle(flight, { reason }),
 		)
-	}, [drafts, editSourceRef, accept, reseat, settle])
+	})
 
 	const enter = useCallback(
 		(columnId: string | number, seed?: string | number) => {
