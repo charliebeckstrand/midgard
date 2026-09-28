@@ -8,9 +8,6 @@
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
 	},
-	"components/json-tree/json-tree-node.tsx": {
-		"JsonTreeNode": "Invariant"
-	},
 	"components/menu/use-menu-state.ts": {
 		"useMenuState": "PreserveManualMemo"
 	},
