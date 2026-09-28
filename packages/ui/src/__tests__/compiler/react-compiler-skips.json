@@ -82,6 +82,9 @@
 	"modules/chart/scatter-chart/scatter-chart.tsx": {
 		"useScatterReadout": "PreserveManualMemo"
 	},
+	"modules/chat/use-chat-transcript-item-key.ts": {
+		"useChatTranscriptItemKey": "Refs"
+	},
 	"modules/dashboard/dashboard.tsx": {
 		"Dashboard": "Refs"
 	},

@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useState } from 'react'
+import { useCallback, useRef } from 'react'
 import type { ChatMessageData } from './engine/types'
 
 /**
@@ -16,22 +16,24 @@ import type { ChatMessageData } from './engine/types'
  * new getter. The virtualizer then rebuilds its rows, also when the count does
  * not change.
  *
- * The ids are state that the render adjusts when they change. React discards
- * the render that sets the state, and renders again before it commits.
+ * The ref holds a cache of a pure result. A render that React discards thus
+ * leaves no wrong value in it.
  *
  * @internal
  */
 export function useChatTranscriptItemKey(
 	messages: readonly ChatMessageData[],
 ): (index: number) => string | number {
-	const [ids, setIds] = useState<readonly (string | undefined)[]>(() =>
-		messages.map((message) => message.id),
-	)
+	const cache = useRef<readonly (string | undefined)[]>([])
+
+	const last = cache.current
 
 	const same =
-		ids.length === messages.length && messages.every((message, i) => message.id === ids[i])
+		last.length === messages.length && messages.every((message, i) => message.id === last[i])
 
-	if (!same) setIds(messages.map((message) => message.id))
+	if (!same) cache.current = messages.map((message) => message.id)
+
+	const ids = cache.current
 
 	return useCallback((index: number) => ids[index] ?? index, [ids])
 }
