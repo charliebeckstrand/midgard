@@ -29,9 +29,6 @@
 	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
 		"PdfViewerViewport": "Refs"
 	},
-	"components/pdf-viewer/pdf-viewer.tsx": {
-		"PdfViewer": "Refs"
-	},
 	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
 		"usePdfViewerHighlights": "Refs"
 	},
@@ -67,9 +64,6 @@
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"
-	},
-	"modules/grid/use-grid-item-window.ts": {
-		"useGridItemWindow": "Immutability"
 	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"

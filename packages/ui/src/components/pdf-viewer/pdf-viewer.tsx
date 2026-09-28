@@ -218,18 +218,20 @@ export function PdfViewer({
 		onMagnifierChange,
 	})
 
+	const { rootRef, fit: fitMode, magnifierSettings, activePage, safePage, goToPage } = context
+
 	return (
 		<PdfViewerContext value={context}>
 			<section
-				ref={context.rootRef}
+				ref={rootRef}
 				data-slot="pdf-viewer"
 				aria-label={ariaLabel}
-				className={cn(k.base, context.fit === 'width' && k.fill, className)}
+				className={cn(k.base, fitMode === 'width' && k.fill, className)}
 			>
 				<PdfViewerToolbar />
 				<div className={cn(k.body)}>
 					<PdfViewerThumbnails />
-					<PdfViewerMagnifierProvider settings={context.magnifierSettings}>
+					<PdfViewerMagnifierProvider settings={magnifierSettings}>
 						<PdfViewerHighlightsProvider
 							highlights={highlights}
 							highlightUnit={highlightUnit}
@@ -240,9 +242,9 @@ export function PdfViewer({
 							// What the overlay needs from the document beneath it, handed down rather
 							// than read back out of `PdfViewerContext` — the same way the loupe takes
 							// its settings. The overlay's own state stays inside the provider.
-							activePage={context.activePage}
-							safePage={context.safePage}
-							goToPage={context.goToPage}
+							activePage={activePage}
+							safePage={safePage}
+							goToPage={goToPage}
 						>
 							<PdfViewerViewport />
 						</PdfViewerHighlightsProvider>
