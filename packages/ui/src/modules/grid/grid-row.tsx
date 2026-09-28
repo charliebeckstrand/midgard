@@ -103,7 +103,7 @@ export type GridRowsProps<T> = {
 	 * expander cell and to append the detail panel row.
 	 */
 	expansion?: {
-		expanded: Set<string | number>
+		expanded: ReadonlySet<string | number>
 		rowExpandable: (row: T) => boolean
 		toggle: (key: string | number) => void
 		render: (row: T) => ReactNode
