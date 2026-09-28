@@ -6,12 +6,18 @@ import { type RefObject, useEffect, useEffectEvent } from 'react'
  * Observes size changes on `ref.current` and invokes `callback` on each
  * change, plus once synchronously when the effect first attaches.
  *
+ * @param box - The box to observe. Use `border-box` when the callback reads a size
+ * that includes the padding, such as `offsetHeight`.
  * @remarks
  * `callback` is raised through an effect event, so it always sees the latest
  * render's values and its identity never re-subscribes the observer. Passing a
- * fresh closure each render is safe; the subscription tracks `ref` alone.
+ * fresh closure each render is safe; the subscription tracks `ref` and `box`.
  */
-export function useResizeObserver(ref: RefObject<Element | null>, callback: () => void): void {
+export function useResizeObserver(
+	ref: RefObject<Element | null>,
+	callback: () => void,
+	box: ResizeObserverBoxOptions = 'content-box',
+): void {
 	const onResize = useEffectEvent(callback)
 
 	useEffect(() => {
@@ -23,8 +29,8 @@ export function useResizeObserver(ref: RefObject<Element | null>, callback: () =
 
 		const observer = new ResizeObserver(onResize)
 
-		observer.observe(el)
+		observer.observe(el, { box })
 
 		return () => observer.disconnect()
-	}, [ref])
+	}, [ref, box])
 }

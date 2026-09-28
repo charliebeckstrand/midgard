@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { useTimeout } from '../../hooks/use-timeout'
 
 // The time with no scroll event and no viewport event before the check runs. A
 // bounce or a toolbar animation sends events until it stops, so the check reads
@@ -25,12 +26,12 @@ const SETTLE_MS = 150
  * @internal
  */
 export function useSidebarPagePin(): void {
+	const timeout = useTimeout()
+
 	useEffect(() => {
 		const root = document.documentElement
 
 		const viewport = window.visualViewport
-
-		let timer: ReturnType<typeof setTimeout> | undefined
 
 		const settle = () => {
 			if (root.scrollHeight > root.clientHeight) return
@@ -48,11 +49,7 @@ export function useSidebarPagePin(): void {
 			window.scrollTo({ top: 0, behavior: 'instant' })
 		}
 
-		const schedule = () => {
-			clearTimeout(timer)
-
-			timer = setTimeout(settle, SETTLE_MS)
-		}
+		const schedule = () => timeout.set(settle, SETTLE_MS)
 
 		const controller = new AbortController()
 
@@ -72,7 +69,7 @@ export function useSidebarPagePin(): void {
 		return () => {
 			controller.abort()
 
-			clearTimeout(timer)
+			timeout.clear()
 		}
-	}, [])
+	}, [timeout])
 }

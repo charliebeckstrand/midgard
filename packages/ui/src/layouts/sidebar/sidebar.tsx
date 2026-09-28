@@ -60,7 +60,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * `stickyHeader` the header sticks below the navbar. From `lg` up, the layout is
  * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
  * When a page that cannot scroll reports a scroll offset, as Chrome on iOS can
- * leave it, the layout scrolls the page back to its top.
+ * leave it, the layout scrolls the page back to its top. To show the layout inside
+ * another page, put it in a box that has a height and layout containment, or the
+ * pinned layout covers the page.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating
@@ -90,12 +92,16 @@ export function SidebarLayout({
 
 	// A sticky header sits below the sticky navbar, so the layout gives it the height
 	// of the navbar. The navbar is hidden from `lg` up, where its height is 0.
-	useResizeObserver(navbarRef, () => {
-		layoutRef.current?.style.setProperty(
-			'--sidebar-navbar-height',
-			`${navbarRef.current?.offsetHeight ?? 0}px`,
-		)
-	})
+	useResizeObserver(
+		navbarRef,
+		() => {
+			layoutRef.current?.style.setProperty(
+				'--sidebar-navbar-height',
+				`${navbarRef.current?.offsetHeight ?? 0}px`,
+			)
+		},
+		'border-box',
+	)
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 

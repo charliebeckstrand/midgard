@@ -1,7 +1,7 @@
 import { afterEach, beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { SidebarLayout, SidebarLayoutHeader } from '../../layouts'
-import { frames, present, renderUI, screen } from '../helpers'
+import { frames, getSlot, present, renderUI, screen } from '../helpers'
 
 /**
  * The scroll model of the sidebar layout.
@@ -24,7 +24,7 @@ function renderTallLayout() {
 
 	const layout = present(container.firstElementChild, 'layout') as HTMLElement
 
-	const header = present(layout.querySelector<HTMLElement>('[data-slot=header]'), 'header')
+	const header = getSlot(layout, 'header')
 
 	const content = present(header.parentElement, 'content region')
 

@@ -1,5 +1,5 @@
 import { renderHook } from '@testing-library/react'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { SidebarLayout } from '../../layouts/sidebar/sidebar'
 import { useSidebarPagePin } from '../../layouts/sidebar/use-sidebar-page-pin'
 import { renderUI } from '../helpers'
@@ -15,27 +15,7 @@ let viewport: EventTarget & Viewport
 
 const scrollTo = vi.fn()
 
-const saved = {
-	scrollY: Object.getOwnPropertyDescriptor(window, 'scrollY'),
-	scrollTo: Object.getOwnPropertyDescriptor(window, 'scrollTo'),
-	visualViewport: Object.getOwnPropertyDescriptor(window, 'visualViewport'),
-}
-
-function restore(key: keyof typeof saved) {
-	const descriptor = saved[key]
-
-	if (descriptor) Object.defineProperty(window, key, descriptor)
-	else Reflect.deleteProperty(window, key)
-}
-
-function setScrollY(value: number) {
-	Object.defineProperty(window, 'scrollY', { value, configurable: true, writable: true })
-}
-
-function setPageHeight(value: number) {
-	Object.defineProperty(document.documentElement, 'scrollHeight', { value, configurable: true })
-}
-
+// The config undoes each global stub and each spy after the case.
 beforeEach(() => {
 	viewport = Object.assign(new EventTarget(), {
 		scale: 1,
@@ -43,23 +23,11 @@ beforeEach(() => {
 		offsetTop: TOP_BAR,
 	})
 
-	Object.defineProperty(window, 'visualViewport', { value: viewport, configurable: true })
+	vi.stubGlobal('visualViewport', viewport)
 
-	Object.defineProperty(window, 'scrollTo', { value: scrollTo, configurable: true, writable: true })
+	vi.stubGlobal('scrollTo', scrollTo)
 
-	setScrollY(TOP_BAR)
-})
-
-afterEach(() => {
-	scrollTo.mockReset()
-
-	restore('scrollY')
-
-	restore('scrollTo')
-
-	restore('visualViewport')
-
-	Reflect.deleteProperty(document.documentElement, 'scrollHeight')
+	vi.stubGlobal('scrollY', TOP_BAR)
 })
 
 describe('useSidebarPagePin', () => {
@@ -78,7 +46,7 @@ describe('useSidebarPagePin', () => {
 	})
 
 	it('reads the offset of the visual viewport when the page offset is zero', async () => {
-		setScrollY(0)
+		vi.stubGlobal('scrollY', 0)
 
 		await withFakeTime(async (clock) => {
 			renderHook(() => useSidebarPagePin())
@@ -135,14 +103,18 @@ describe('useSidebarPagePin', () => {
 		[
 			'a page at its top',
 			() => {
-				setScrollY(0)
+				vi.stubGlobal('scrollY', 0)
 
 				viewport.offsetTop = 0
 			},
 		],
 		[
 			'a page with a height to scroll',
-			() => setPageHeight(document.documentElement.clientHeight + 1),
+			() => {
+				vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(
+					document.documentElement.clientHeight + 1,
+				)
+			},
 		],
 		['a zoomed page', () => Object.assign(viewport, { scale: 2 })],
 		[

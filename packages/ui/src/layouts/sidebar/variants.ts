@@ -21,7 +21,7 @@ const layout = defineRecipe({
 // Sticks to the top of the page below `lg`, over the content that scrolls under it.
 // The padding follows the nearest density scope.
 const navbar = defineRecipe({
-	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:p-0 lg:hidden'],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
 })
 
 const panel = defineRecipe({
@@ -68,8 +68,6 @@ const content = defineRecipe({
 		// The padding follows the nearest density scope.
 		'density-px-[4,6,8] density-pb-[4,6,8] lg:not-has-[[data-slot=header]]:density-pt-[4,6,8]',
 	],
-	// Below `lg`, the header sticks under the navbar. The layout writes the height of
-	// the navbar to `--sidebar-navbar-height`, and the hidden navbar of `lg` measures 0.
 	stickyHeader: {
 		true: [
 			'**:data-[slot=header]:sticky',
