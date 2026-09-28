@@ -4,6 +4,7 @@ import { type KeyboardEvent, useCallback, useMemo, useRef, useState } from 'reac
 
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useIdScope } from '../../hooks/use-id-scope'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import { wrap } from '../../utilities'
 import { NAVIGATION_KEYS } from '../calendar/use-calendar-focus'
@@ -123,20 +124,16 @@ export function useDatePickerRelativeState({
 
 	// Anchors all relative math to one instant per interaction; re-stamped on open
 	// so a long-lived page can't drift across midnight mid-edit.
-	const nowRef = useRef<Date>(new Date())
-
-	const presets = resolveRelativePresets(relative)
+	const [now, setNow] = useState(() => new Date())
 
 	// In-progress custom-range entry (the Start/End inputs); the committed span
 	// lives in the Form field, not here. A span only commits once both endpoints
-	// hold a valid date, so a half-typed range never overwrites the value. The ref
-	// mirrors the draft so an endpoint handler reads the latest other endpoint
-	// without a stale closure.
+	// hold a valid date, so a half-typed range never overwrites the value.
 	const [draft, setDraft] = useState<{ from?: Date; to?: Date }>({})
 
-	const draftRef = useRef<{ from?: Date; to?: Date }>({})
+	const presets = resolveRelativePresets(relative)
 
-	const customActive = isCustomActive(value, presets, nowRef.current, pickedIds)
+	const customActive = isCustomActive(value, presets, now, pickedIds)
 
 	// The committed custom span, if any — used to seed the Start/End inputs when the
 	// user re-enters custom mode so an existing custom range shows pre-filled.
@@ -147,8 +144,6 @@ export function useDatePickerRelativeState({
 	const togglePreset = useCallback(
 		(preset: DatePickerRelativePreset) => {
 			if (resolvedReadOnly) return
-
-			const now = nowRef.current
 
 			// Which presets read as selected right now, biased by the existing picks so a
 			// collision toggles off the picked preset rather than re-selecting a twin.
@@ -177,13 +172,11 @@ export function useDatePickerRelativeState({
 
 			setPickedIds(nextPicked)
 		},
-		[multiple, pickedIds, presets, resolvedReadOnly, setValue, value],
+		[multiple, now, pickedIds, presets, resolvedReadOnly, setValue, value],
 	)
 
 	const openPicker = useCallback(() => {
-		nowRef.current = new Date()
-
-		draftRef.current = {}
+		setNow(new Date())
 
 		setDraft({})
 
@@ -205,8 +198,6 @@ export function useDatePickerRelativeState({
 	// the custom draft so the Start/End inputs empty alongside the committed value.
 	const handleClear = useCallback(() => {
 		if (resolvedReadOnly) return
-
-		draftRef.current = {}
 
 		setDraft({})
 
@@ -235,7 +226,7 @@ export function useDatePickerRelativeState({
 
 	// --- Custom range (Start/End inputs) ---
 
-	// Applies a draft change: stores it (ref + state) and, once both endpoints are
+	// Applies a draft change: stores it and, once both endpoints are
 	// valid, commits a single custom span (order normalized so `from <= to`). A
 	// partial draft leaves the committed value untouched — the chip persists until
 	// the range is complete, and the footer Clear handles a full reset. A completed
@@ -243,8 +234,6 @@ export function useDatePickerRelativeState({
 	const applyDraft = useCallback(
 		(next: { from?: Date; to?: Date }) => {
 			if (resolvedReadOnly) return
-
-			draftRef.current = next
 
 			setDraft(next)
 
@@ -264,14 +253,14 @@ export function useDatePickerRelativeState({
 		[resolvedReadOnly, setValue],
 	)
 
-	const setCustomStart = useCallback(
-		(date: Date | null) => applyDraft({ ...draftRef.current, from: date ?? undefined }),
-		[applyDraft],
+	// Stable events, so an endpoint handler reads the latest other endpoint
+	// without a stale closure.
+	const setCustomStart = useStableEvent((date: Date | null) =>
+		applyDraft({ ...draft, from: date ?? undefined }),
 	)
 
-	const setCustomEnd = useCallback(
-		(date: Date | null) => applyDraft({ ...draftRef.current, to: date ?? undefined }),
-		[applyDraft],
+	const setCustomEnd = useStableEvent((date: Date | null) =>
+		applyDraft({ ...draft, to: date ?? undefined }),
 	)
 
 	// Both endpoints settled: the custom range is complete and Clear-able.
@@ -299,8 +288,6 @@ export function useDatePickerRelativeState({
 	const enterCustom = useCallback(() => {
 		const seed = { from: customSpan?.from, to: customSpan?.to }
 
-		draftRef.current = seed
-
 		setDraft(seed)
 
 		setMode('custom')
@@ -311,8 +298,6 @@ export function useDatePickerRelativeState({
 	// Deferred to the exit animation so the popover always reopens to the list
 	// with a clean draft.
 	const onExitComplete = useCallback(() => {
-		draftRef.current = {}
-
 		setDraft({})
 
 		setMode('list')
@@ -367,9 +352,8 @@ export function useDatePickerRelativeState({
 	// --- Display derivations ---
 
 	const chips = useMemo<RelativeChip[]>(
-		() =>
-			relativeChips(value, presets, nowRef.current, pickedIds, ambient.locale, ambient.dateFormat),
-		[value, presets, pickedIds, ambient.locale, ambient.dateFormat],
+		() => relativeChips(value, presets, now, pickedIds, ambient.locale, ambient.dateFormat),
+		[value, presets, now, pickedIds, ambient.locale, ambient.dateFormat],
 	)
 
 	// Derived from the chips, so both readings resolve their labels once and cannot
@@ -377,8 +361,8 @@ export function useDatePickerRelativeState({
 	const summary = relativeSummary(chips)
 
 	const selectedIds = useMemo(
-		() => selectedPresetIds(value, presets, nowRef.current, pickedIds),
-		[value, presets, pickedIds],
+		() => selectedPresetIds(value, presets, now, pickedIds),
+		[value, presets, now, pickedIds],
 	)
 
 	return {
