@@ -67,19 +67,19 @@ export function Demo() {
 					<Stack gap="xl">
 						<Example title="Variants">
 							<NavBar variant="solid">
-								<Nav value="home">
+								<Nav defaultValue="home">
 									<NavItems />
 								</Nav>
 							</NavBar>
 
 							<NavBar variant="outline">
-								<Nav value="home">
+								<Nav defaultValue="home">
 									<NavItems />
 								</Nav>
 							</NavBar>
 
 							<NavBar variant="plain">
-								<Nav value="home">
+								<Nav defaultValue="home">
 									<NavItems />
 								</Nav>
 							</NavBar>
