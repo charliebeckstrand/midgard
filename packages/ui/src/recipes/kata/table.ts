@@ -28,8 +28,10 @@ const cell = defineRecipe({
 	defaults: { outline: false },
 })
 
+// A browser centers a `<th>` through its own stylesheet, and the `text-start` of
+// the table does not reach it. So the header states its alignment, as a cell does.
 const header = defineRecipe({
-	base: ['font-bold', text.muted, padding],
+	base: ['text-start font-bold', text.muted, padding],
 	outline,
 	defaults: { outline: false },
 })
