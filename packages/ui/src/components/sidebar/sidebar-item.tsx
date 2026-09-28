@@ -3,7 +3,7 @@
 import { type ReactNode, type Ref, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Density, DensitySlot } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import type { Step } from '../../recipes'
@@ -161,7 +161,7 @@ export function SidebarItem({
 			<Density step={size}>
 				{prefix != null && (
 					<span data-slot="sidebar-item-prefix" data-density="slot" className={cn(k.item.prefix)}>
-						<DensitySlot>{prefix}</DensitySlot>
+						{prefix}
 					</span>
 				)}
 				<HeadlessProvider>
@@ -178,7 +178,7 @@ export function SidebarItem({
 				</HeadlessProvider>
 				{resolvedSuffix != null && (
 					<span data-slot="sidebar-item-suffix" data-density="slot" className={cn(k.item.suffix)}>
-						<DensitySlot>{resolvedSuffix}</DensitySlot>
+						{resolvedSuffix}
 					</span>
 				)}
 				{isCurrent && (

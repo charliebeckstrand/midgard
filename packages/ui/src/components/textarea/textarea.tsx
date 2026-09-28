@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
-import { Density, DensitySlot } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
@@ -161,7 +161,7 @@ export function Textarea({
 				{textareaEl}
 				{hasActions && (
 					<div data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
-						<DensitySlot>{actions}</DensitySlot>
+						{actions}
 					</div>
 				)}
 			</ControlFrame>

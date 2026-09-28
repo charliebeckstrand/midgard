@@ -35,9 +35,8 @@ const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const sati
 
 /**
  * The step below `step`, and `xs` for `xs`. A control slot, such as an Input
- * prefix, is a scope at the step below its host. The rungs give it this step
- * in CSS, and `DensitySlot` gives it in context. Thus a chip or an icon in the
- * slot is one step smaller than the host.
+ * prefix, is a scope at the step below its host: the rungs give it this step
+ * in CSS. Thus a chip or an icon in the slot is one step smaller than the host.
  */
 export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 	return below[step]

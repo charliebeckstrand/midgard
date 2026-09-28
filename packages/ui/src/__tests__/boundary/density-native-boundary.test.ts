@@ -100,13 +100,13 @@ describe('density-native boundary', () => {
 // the density context for a client reader. A context scope with no attribute
 // gives the two channels different steps. So each file that opens the context
 // with `<Density step>` also writes `data-density`, once for each scope. A
-// control slot opens the context with `<DensitySlot>` and writes
-// `data-density="slot"`.
+// control slot is a scope in CSS only: it writes `data-density="slot"` and
+// opens no context, so a panel that the slot opens takes the step of its host.
 //
 // The grid is the one exception. Its overlay scope, `GridOverlayDensity`, wraps
 // a surface that writes its own `data-density`.
 
-const CONTEXT_SCOPE = /<Density(?:\s+step=|Slot>)/g
+const CONTEXT_SCOPE = /<Density\s+step=/g
 
 const ATTRIBUTE = /data-density/g
 

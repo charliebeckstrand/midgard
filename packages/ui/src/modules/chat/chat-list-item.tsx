@@ -3,7 +3,6 @@
 import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { DensitySlot } from '../../primitives/density'
 import { k } from '../../recipes/kata/chat-list-item'
 import { useInChatList } from './context'
 
@@ -89,7 +88,7 @@ export function ChatListItem({
 
 			{actions !== undefined && (
 				<div data-slot="chat-list-item-actions" data-density="slot" className={k.actions}>
-					<DensitySlot>{actions}</DensitySlot>
+					{actions}
 				</div>
 			)}
 

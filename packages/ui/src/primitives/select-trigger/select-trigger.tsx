@@ -6,7 +6,7 @@ import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
-import { Density, DensitySlot } from '../density'
+import { Density } from '../density'
 
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
@@ -85,7 +85,7 @@ export function SelectTrigger({
 							data-density="slot"
 							className={cn(k.affix.base, k.affix.prefix)}
 						>
-							<DensitySlot>{prefix}</DensitySlot>
+							{prefix}
 						</span>
 					)}
 					{children}
@@ -96,7 +96,7 @@ export function SelectTrigger({
 							className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
 							{...suffixProps}
 						>
-							<DensitySlot>{suffix}</DensitySlot>
+							{suffix}
 						</span>
 					)}
 				</ControlFrame>

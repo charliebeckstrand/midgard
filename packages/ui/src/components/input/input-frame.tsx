@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
 import { ControlFrame } from '../../primitives/control'
-import { Density, DensitySlot } from '../../primitives/density'
+import { Density } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { type InputVariants, k } from '../../recipes/kata/input'
 
@@ -53,7 +53,7 @@ export function InputFrame({
 			>
 				{hasPrefix && (
 					<span data-slot="prefix" data-density="slot" className={cn(k.affix, k.prefix)}>
-						<DensitySlot>{prefix}</DensitySlot>
+						{prefix}
 					</span>
 				)}
 
@@ -61,7 +61,7 @@ export function InputFrame({
 
 				{hasSuffix && (
 					<span data-slot="suffix" data-density="slot" className={cn(k.affix, k.suffix)}>
-						<DensitySlot>{suffix}</DensitySlot>
+						{suffix}
 					</span>
 				)}
 			</ControlFrame>

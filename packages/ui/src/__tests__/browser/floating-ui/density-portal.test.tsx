@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { Dialog, DialogHeader, DialogTitle } from '../../../components/dialog'
+import { Input } from '../../../components/input'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -142,5 +143,30 @@ describe('density scopes across portals (real browser)', () => {
 		const tip = await screen.findByText('Tip')
 
 		await waitFor(() => expect(fontOf(tip)).toBe(font))
+	})
+
+	// A control slot is a scope one step below its control in CSS only. A panel that
+	// the slot opens is not part of the control, so it takes the step of the control.
+	it('sizes a tooltip from a control slot at the step of the control', async () => {
+		renderUI(
+			<Input
+				aria-label="Password"
+				size="lg"
+				suffix={
+					<Tooltip delay={0}>
+						<TooltipTrigger>
+							<button type="button">Details</button>
+						</TooltipTrigger>
+						<TooltipContent>Tip</TooltipContent>
+					</Tooltip>
+				}
+			/>,
+		)
+
+		await userEvent.keyboard('{Tab}{Tab}')
+
+		const tip = await screen.findByText('Tip')
+
+		await waitFor(() => expect(fontOf(tip)).toBe(18))
 	})
 })
