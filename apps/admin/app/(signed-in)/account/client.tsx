@@ -83,11 +83,7 @@ export function AccountClient({
 							: 'Open the link that we sent you when you signed up, or get a new one.'
 					}
 					actions={
-						<Button
-							variant="outline"
-							disabled={sendLink.isPending}
-							onClick={() => sendLink.mutate()}
-						>
+						<Button disabled={sendLink.isPending} onClick={() => sendLink.mutate()}>
 							Send a new link
 						</Button>
 					}
