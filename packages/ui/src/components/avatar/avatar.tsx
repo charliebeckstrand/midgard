@@ -80,7 +80,7 @@ export function Avatar({
 		return (
 			<span
 				data-slot="avatar"
-				data-size={resolvedSize}
+				data-size={size}
 				className={cn(k({ variant, color, size }), className)}
 				{...props}
 			>
@@ -97,7 +97,7 @@ export function Avatar({
 			className={cn('relative inline-flex', className)}
 			{...props}
 		>
-			<span data-slot="avatar" data-size={resolvedSize} className={cn(k({ variant, color, size }))}>
+			<span data-slot="avatar" data-size={size} className={cn(k({ variant, color, size }))}>
 				{content}
 			</span>
 			<StatusDot
