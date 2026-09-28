@@ -2,11 +2,11 @@
  * Tabs kata: serves both the underline `<Tabs>` list and the `<Segment>` box,
  * two units through one surface. Orientation-axed sub-recipes (`group`,
  * `list`, `scroll`, `tab`, `indicator`, `wrapper`, `trigger`) build the
- * underline tabs. The `segment` bridges the shared segment recipe, and
- * `skeleton` carries a loading placeholder for each unit.
+ * underline tabs. `segment` reads the kiso segment recipe, which Segment and
+ * Tabs share through this kata, and `skeleton` carries a loading placeholder
+ * for each unit.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { bridge } from '../katakana'
 import { hannou, iro, ji, kasane, kokkaku, narabi, sen, textRamp } from '../kiso'
 import { segment } from '../kiso/segment'
 
@@ -141,7 +141,7 @@ export const k = {
 	trigger,
 	indicator,
 	panel,
-	segment: bridge.segment(segment),
+	segment: { control: segment.control.base, item: segment.item.base, indicator: segment.indicator },
 	// Two units flow through this kata: the underline tab list and the
 	// segment box behind `<Segment>`.
 	skeleton: {
