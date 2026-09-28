@@ -22,21 +22,17 @@ const color = {
 }
 
 /**
- * A single ellipsis dot. Diameter tracks the shared `size` axis; the pulse
- * animation is `motion-safe:`-gated, resting as a steady dot under
- * `prefers-reduced-motion` (WCAG 2.3.3). With no `size`, the dot takes the
- * `md` diameter under `density-any`, the rank below each step. So a parent that
- * sizes its dots with stepped classes, such as Button, wins over the default.
+ * A single ellipsis dot. The pulse animation is `motion-safe:`-gated, resting
+ * as a steady dot under `prefers-reduced-motion` (WCAG 2.3.3). The diameter is
+ * a stepped `density-*` class, so the dot takes the step of its nearest
+ * density scope, as the spinner does.
  */
 const dot = defineRecipe({
-	base: ['shrink-0 rounded-full bg-current', 'motion-safe:animate-pulse', 'density-any:size-2'],
-	size: {
-		xs: 'size-1',
-		sm: 'size-1.5',
-		md: 'size-2',
-		lg: 'size-2.5',
-		xl: 'size-3',
-	},
+	base: [
+		'shrink-0 rounded-full bg-current',
+		'motion-safe:animate-pulse',
+		'density-size-[1,1.5,2,2.5,3]',
+	],
 })
 
 /**
@@ -55,23 +51,19 @@ const spinner = defineRecipe({
 
 export const k = defineRecipe(
 	{
-		// With no `size`, the gap is the `md` gap under `density-any`, as on the dot.
-		base: [flex.inline, 'shrink-0', 'density-any:gap-1.5'],
-		size: {
-			xs: 'gap-0.5',
-			sm: 'gap-1',
-			md: 'gap-1.5',
-			lg: 'gap-2',
-			xl: 'gap-2.5',
-		},
+		// The gap between the dots takes the step of the nearest density scope.
+		base: [flex.inline, 'shrink-0', 'density-gap-[0.5,1,1.5,2,2.5]'],
 		color,
 		defaults: { color: 'current' },
 	},
 	{ dot, spinner },
 )
 
-/** Recipe variant props for {@link LoadingDots} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
-export type LoadingDotsVariants = VariantProps<typeof k>
+/** Recipe variant props for {@link LoadingDots} — its `color` axis and the `size` step, for consumers composing custom slots. */
+export type LoadingDotsVariants = VariantProps<typeof k> & {
+	/** The density step. Omit it to take the step of the nearest density scope. */
+	size?: DensityStep
+}
 /** Recipe variant props for {@link LoadingSpinner} — its `color` axis and the `size` step, for consumers composing custom slots. */
 export type LoadingSpinnerVariants = VariantProps<typeof spinner> & {
 	/** The density step. Omit it to take the step of the nearest density scope. */
