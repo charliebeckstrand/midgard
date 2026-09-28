@@ -437,11 +437,9 @@ export function useGridColumnSizing<T>({
 	// a structural one when the widths are frozen (see `freezeOnRowChange`).
 	const fitStructSigRef = useRef(structSig)
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `rowsSig` is a trigger: a row-model change (page turn, filter, sort) runs the fit again.
 	useLayoutEffect(() => {
 		if (!automatic) return
-
-		// Read so a row-model change (page turn, filter, sort) re-runs this effect.
-		void rowsSig
 
 		if (!initialFitRef.current) {
 			initialFitRef.current = true

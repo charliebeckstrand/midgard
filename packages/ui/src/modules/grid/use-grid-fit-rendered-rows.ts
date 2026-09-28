@@ -19,9 +19,8 @@ import { useLayoutEffect } from 'react'
  * @internal
  */
 export function useGridFitRenderedRows(renderedCount: number, fitRenderedRows: () => void): void {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `renderedCount` is a trigger: a new count of rendered rows runs the fit again.
 	useLayoutEffect(() => {
-		void renderedCount
-
 		fitRenderedRows()
 	}, [renderedCount, fitRenderedRows])
 }

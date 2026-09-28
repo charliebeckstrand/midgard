@@ -108,10 +108,8 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 		setPageIndex(index)
 	}
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `pageIndex` is a trigger: each page change runs the restore again, so a restore follows a commit that lands late.
 	useLayoutEffect(() => {
-		// Re-run on each page change, so a restore follows a commit that lands late.
-		void pageIndex
-
 		if (!restoreFocus.current) return
 
 		restoreFocus.current = false

@@ -111,9 +111,8 @@ export function useGridDataView<T>({
 	// past the new extent; inert for a non-cursor grid (active stays unseated).
 	// The new-row slot counts as a row of the cursor's order, so a change to it
 	// clamps too.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `cursorNewRow` is a trigger: a change of the new-row slot clamps the cursor again.
 	useLayoutEffect(() => {
-		void cursorNewRow
-
 		reconcile(renderRows.length, dataColumns.length)
 	}, [reconcile, cursorNewRow, renderRows.length, dataColumns.length])
 

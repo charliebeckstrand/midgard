@@ -136,9 +136,8 @@ export function useGridWindowMotion<L, S, K>(
 	// A closing row that left the window sends no `transitionend`. Each new
 	// motion starts the timer again, so a row that starts to close late keeps
 	// its full reveal.
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `motions` is a trigger: each new motion starts the timer again.
 	useEffect(() => {
-		void motions
-
 		if (!closing) return
 
 		const timer = setTimeout(

@@ -48,11 +48,9 @@ export function useTextareaAutoResize(
 	enabled: boolean,
 	value: unknown,
 ): void {
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `value` is a trigger: a controlled write sends no `input` event, so each value change fits the textarea again.
 	useLayoutEffect(() => {
 		const el = ref.current
-
-		// Re-run on each value change: a controlled write sends no `input` event.
-		void value
 
 		if (!enabled || !el) return
 

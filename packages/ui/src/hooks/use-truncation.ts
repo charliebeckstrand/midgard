@@ -267,11 +267,8 @@ export function useTruncation<E extends HTMLElement>(options?: {
 
 	useLayoutEffect(() => measure())
 
+	// biome-ignore lint/correctness/useExhaustiveDependencies: `nodeVersion` is a trigger: a node replacement bumps it, and the bindings run again against the new element, which the body reads through `elRef`.
 	useEffect(() => {
-		// Read here so a node replacement (which bumps the version) re-runs the
-		// bindings against the new element; the body reads the node via `elRef`.
-		void nodeVersion
-
 		const el = elRef.current
 
 		if (!el) return
