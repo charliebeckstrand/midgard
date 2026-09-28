@@ -104,9 +104,6 @@
 	"modules/map/use-map-zoom.ts": {
 		"useMapZoom": "Todo"
 	},
-	"providers/toast/toast.tsx": {
-		"ToastProvider": "Refs"
-	},
 	"providers/toast/use-toast-timer.ts": {
 		"useToastTimer": "Immutability"
 	}
