@@ -7,20 +7,21 @@ import {
 	assemble,
 	classifyElement,
 	collectChildItems,
-	collectSnippetImports,
 	createContext,
 	elementChildren,
 	formatProps,
+	hoistSnippet,
 	INDENT,
 	matchElementFact,
 	PLACEHOLDER,
 	registerFactText,
 	renderOpenTag,
 	resolvePreamble,
+	snippetCode,
 	snippetHasImports,
 } from './internals'
 import { defaultRegistry } from './registry'
-import type { ComponentRegistry, Context, SourceFacts } from './types'
+import type { ComponentRegistry, Context, HelperSnippet, SourceFacts } from './types'
 
 export { defaultRegistry } from './registry'
 export type {
@@ -53,6 +54,10 @@ export type {
  *   helpers, data consts) assemble into a preamble between the imports and the
  *   JSX.
  *
+ * A demo-local helper prints as `<Helper …props />`, and its declarations
+ * print once above the JSX. When the helper is all the Example renders, the
+ * block holds its declarations alone.
+ *
  * Live primitive values still win, so control-driven demos keep reflecting
  * their current state.
  *
@@ -69,6 +74,14 @@ export function deriveCode(
 	facts?: SourceFacts,
 ): string | null {
 	const context = createContext(registry, facts)
+
+	const sole = soleSnippet(Children.toArray(children), registry)
+
+	if (sole) {
+		hoistSnippet(sole, context)
+
+		return context.imports.size === 0 ? null : assemble(context, '')
+	}
 
 	let jsx = renderNodes(Children.toArray(children), context, '')
 
@@ -125,7 +138,9 @@ export function hasDerivableCode(
 		if (classified.kind === 'recognized') return true
 
 		if (classified.kind === 'snippet') {
-			if (snippetHasImports(classified.code, registry, classified.imports)) return true
+			const { snippet } = classified
+
+			if (snippetHasImports(snippetCode(snippet), registry, snippet.imports)) return true
 
 			continue
 		}
@@ -138,6 +153,23 @@ export function hasDerivableCode(
 	}
 
 	return false
+}
+
+/**
+ * The helper snippet that the whole tree renders, when the tree renders one
+ * helper and nothing beside it. An unrecognized element with children passes
+ * through to them, as in the walk.
+ */
+function soleSnippet(nodes: ReactNode[], registry: ComponentRegistry): HelperSnippet | null {
+	const [item, ...rest] = collectChildItems(nodes)
+
+	if (item?.kind !== 'element' || rest.length > 0) return null
+
+	const classified = classifyElement(item.value, registry)
+
+	if (classified.kind === 'snippet') return classified.snippet
+
+	return classified.kind === 'children' ? soleSnippet(classified.nodes, registry) : null
 }
 
 /**
@@ -258,12 +290,20 @@ function renderElement(element: ReactElement, context: Context, indent: string):
 		case 'children':
 			return renderNodes(classified.nodes, context, indent).trimStart()
 
-		// Self-closing helper with a build-time snippet attached by the docs
-		// plugin's `pre` transform: use the raw JSX verbatim.
-		case 'snippet':
-			collectSnippetImports(classified.code, context, classified.imports)
+		// A self-closing helper, with the snippet that the docs plugin's `pre`
+		// transform attaches. Its declarations hoist above the JSX, and the element
+		// prints as a use of it.
+		case 'snippet': {
+			const { name } = classified.snippet
 
-			return reindent(classified.code, indent)
+			hoistSnippet(classified.snippet, context)
+
+			const props = element.props as Record<string, unknown>
+
+			const propParts = formatProps(props, context, indent, matchElementFact(name, props, context))
+
+			return renderOpenTag(name, propParts, indent, false)
+		}
 
 		case 'none':
 			return ''

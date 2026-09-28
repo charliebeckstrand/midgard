@@ -1,7 +1,7 @@
 import type { FunctionComponent } from 'react'
 import { createContext } from '../../derive-code/internals'
 import { defaultRegistry } from '../../derive-code/registry'
-import type { ComponentRegistry, Context } from '../../derive-code/types'
+import type { ComponentRegistry, Context, HelperSnippet } from '../../derive-code/types'
 
 /**
  * A stand-in component carrying the `__name` / `__module` decoration the
@@ -30,16 +30,21 @@ export function external<P>(name: string): FunctionComponent<P> {
 }
 
 /**
- * A stand-in for a demo-local helper component, carrying the `__code` source
+ * A stand-in for a demo-local helper component, carrying the `__snippet` that
  * the docs plugin's `pre` transform attaches. It has no build-time tag, so the
- * walk renders `code` verbatim and reads the snippet's imports from it.
+ * walk prints the snippet's declarations and reads its imports from them.
  */
-export function snippet<P>(code: string): FunctionComponent<P> {
+export function helper<P>(snippet: HelperSnippet): FunctionComponent<P> {
 	const Component: FunctionComponent<P> = () => null
 
-	Object.assign(Component, { __code: code })
+	Object.assign(Component, { __snippet: snippet })
 
 	return Component
+}
+
+/** A {@link helper} whose snippet is the one declaration `code`, alone in its table. */
+export function snippet<P>(code: string, name = 'Helper'): FunctionComponent<P> {
+	return helper({ name, declarations: [code], blocks: [0], imports: {} })
 }
 
 /**

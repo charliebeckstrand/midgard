@@ -21,12 +21,11 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // when the walk registers at least one import. Two mechanisms feed it, and both
 // broke at once in 2026-09. The runtime probe read only the children tree.
 // `collectHelpers` decided by a text scan which declaration is a helper worth a
-// `__code` snippet. Around 90 Examples across 34 demo pages silently showed no
-// block.
+// snippet. Around 90 Examples across 34 demo pages silently showed no block.
 //
 // Nothing failed, because the suite then ran `docsPlugin({ vitest: true })`
-// without the `pre` transform. No test had ever seen a demo module carrying
-// `__code`, so the whole build-time half went unread. The suite now runs the
+// without the `pre` transform. No test had ever seen a demo module carrying a
+// helper snippet, so the whole build-time half went unread. The suite now runs the
 // transform, and `demo-snippets.test.tsx` reads each block that a page renders.
 //
 // This test reads it, against the real demo tree, from source. It calls the
@@ -55,13 +54,13 @@ const EXAMPLE_TAG = 'Example'
 // show.
 const ALLOW_NO_CODE = new Set<string>([])
 
-/** What the docs plugin attaches to one helper: its `__code` and its `__imports`. */
+/** The source of one helper snippet, and the imports that it uses. */
 type Snippet = { code: string; imports: Record<string, ImportFact> }
 
 /**
- * One parsed demo: the helpers the docs plugin attaches `__code` to, the sibling
- * demo behind each imported name, and every named declaration — the targets an
- * identifier child resolves to.
+ * One parsed demo: the helpers the docs plugin attaches `__snippet` to, the
+ * sibling demo behind each imported name, and every named declaration — the
+ * targets an identifier child resolves to.
  */
 type Demo = {
 	file: ts.SourceFile
@@ -196,7 +195,7 @@ function helperSnippet(tag: string, demo: Demo, demos: Map<string, Demo>): Snipp
  *
  * A tag that is neither names a demo-local component the walk cannot see
  * inside, so the search never follows its declaration. That is what makes a
- * dropped `__code` fail here, rather than pass through the component's body.
+ * dropped `__snippet` fail here, rather than pass through the component's body.
  */
 function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, Demo>): boolean {
 	const seen = new Set<string>()

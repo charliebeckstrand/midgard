@@ -440,6 +440,10 @@ function findSrcDir(root: string): string {
 // The plugin
 // ---------------------------------------------------------------------------
 
+// The module-scope name of the declaration table that the helpers of a demo
+// file share. The prefix keeps it clear of a name that a demo declares.
+const SNIPPET_TABLE = '__docsSnippetDeclarations'
+
 /**
  * The single Vite plugin backing the docs site. It provides:
  *
@@ -449,15 +453,15 @@ function findSrcDir(root: string): string {
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
- *  - an `enforce: 'pre'` transform attaching helper `__code` and per-Example
- *    `__facts` (source-facts synthesis) to demo sources
+ *  - an `enforce: 'pre'` transform attaching helper `__snippet` and
+ *    per-Example `__facts` (source-facts synthesis) to demo sources
  *
- * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__code`
+ * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__snippet`
  * transform reads a demo's raw TSX before JSX lowering and lives in its own
  * `enforce: 'pre'` object.
  *
  * `docsPlugin({ vitest: true })` keeps the real component-modules map, the
- * tagging transform, and the demo `__code` pre-transform. It stubs the
+ * tagging transform, and the demo `__snippet` pre-transform. It stubs the
  * api-reference manifest and demo-metas with empty defaults. The pre-transform
  * reads only demo files. A suite that imports no demo pays nothing for it, and
  * `demo-snippets.test.tsx` reads the snippets that the site ships.
@@ -506,7 +510,7 @@ export function docsPlugin({
 			// a docs build roots at `src/docs` (so `config.root/demos` happens to
 			// match), but a test run roots at the package dir, where only
 			// `srcDir/docs/demos` points at the real demos. One source keeps every
-			// consumer (metas, the name map, the `__code` transform) aligned.
+			// consumer (metas, the name map, the `__snippet` transform) aligned.
 			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
@@ -578,8 +582,8 @@ export function docsPlugin({
 
 		enforce: 'pre',
 
-		// Attach each demo helper's snippet as a `__code` static, with the imports
-		// that the snippet uses as `__imports`, and inject per-Example `__facts`
+		// Attach each demo helper's snippet as a `__snippet` static, over one
+		// declaration table for the file, and inject per-Example `__facts`
 		// (authored prop sources, referenced declarations, import origins) for the
 		// walker's source-aware synthesis. Runs at `enforce: 'pre'` on raw TSX,
 		// before JSX lowering, over one shared parse.
@@ -596,12 +600,17 @@ export function docsPlugin({
 
 			if (helpers.length === 0 && withFacts === null) return
 
-			const tail = helpers
-				.map(
-					({ name, code, imports }) =>
-						`;Object.assign(${name}, { __code: ${JSON.stringify(code)}, __imports: ${JSON.stringify(imports)} });`,
-				)
-				.join('\n')
+			// Every helper of a file shares one table, so the declarations go into
+			// the module once.
+			const table = helpers[0]?.declarations ?? []
+
+			const tail = [
+				...(helpers.length > 0 ? [`;const ${SNIPPET_TABLE} = ${JSON.stringify(table)};`] : []),
+				...helpers.map(
+					({ name, blocks, imports }) =>
+						`;Object.assign(${name}, { __snippet: { name: ${JSON.stringify(name)}, declarations: ${SNIPPET_TABLE}, blocks: ${JSON.stringify(blocks)}, imports: ${JSON.stringify(imports)} } });`,
+				),
+			].join('\n')
 
 			const base = withFacts ?? code
 

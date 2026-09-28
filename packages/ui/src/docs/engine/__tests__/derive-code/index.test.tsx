@@ -1,10 +1,10 @@
 // @vitest-environment node
 import { Star } from 'lucide-react'
-import { createElement } from 'react'
+import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ComponentRegistry, deriveCode } from '../../derive-code'
 import { readTag } from '../../derive-code/registry'
-import { snippet, tag } from './helpers'
+import { helper, snippet, tag } from './helpers'
 
 // Agnostic: a synthetic registry stands in for a real library's, so snippet-tag
 // and external-icon resolution are exercised without scanning ui. It pairs the
@@ -207,7 +207,7 @@ describe('deriveCode prop formatting', () => {
 	})
 })
 
-describe('deriveCode + __code', () => {
+describe('deriveCode + __snippet', () => {
 	it('renders the helper function snippet verbatim and infers imports', () => {
 		const AreaDemo = snippet(
 			[
@@ -284,5 +284,118 @@ describe('deriveCode + __code', () => {
 		expect(result).not.toBeNull()
 
 		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+	})
+
+	const Stack = tag<{ render?: () => null; children?: ReactNode }>('Stack', 'stack')
+
+	it('prints a helper under a component as a use of it, with its declaration above the JSX', () => {
+		const Pane = helper<{ tone: string }>({
+			name: 'Pane',
+			declarations: ['const Pane = ({ tone }) => <FileUpload tone={tone} />'],
+			blocks: [0],
+			imports: {},
+		})
+
+		const tree = createElement(
+			Stack,
+			null,
+			createElement(Pane, { tone: 'muted' }),
+			createElement(Pane, { tone: 'loud' }),
+		)
+
+		expect(deriveCode(tree, registry)).toBe(
+			[
+				`import { FileUpload } from 'ui/file-upload'`,
+				`import { Stack } from 'ui/stack'`,
+				'',
+				'const Pane = ({ tone }) => <FileUpload tone={tone} />',
+				'',
+				'<Stack>',
+				'  <Pane tone="muted" />',
+				'  <Pane tone="loud" />',
+				'</Stack>',
+			].join('\n'),
+		)
+	})
+
+	it('prints a declaration that two helpers share once, in source order', () => {
+		const declarations = [
+			'const size = 2',
+			'const A = () => <Stack gap={size} />',
+			'const B = () => <FileUpload size={size} />',
+		]
+
+		const A = helper({ name: 'A', declarations, blocks: [0, 1], imports: {} })
+
+		const B = helper({ name: 'B', declarations, blocks: [0, 2], imports: {} })
+
+		const tree = createElement(Stack, null, createElement(B), createElement(A))
+
+		expect(deriveCode(tree, registry)).toBe(
+			[
+				`import { FileUpload } from 'ui/file-upload'`,
+				`import { Stack } from 'ui/stack'`,
+				'',
+				...declarations.flatMap((code) => [code, '']),
+				'<Stack>',
+				'  <B />',
+				'  <A />',
+				'</Stack>',
+			].join('\n'),
+		)
+	})
+
+	it('prints a declaration once when a helper and a fact both pull it', () => {
+		const code = 'const Card = () => <FileUpload />'
+
+		const Card = helper({ name: 'Card', declarations: [code], blocks: [0], imports: {} })
+
+		const tree = createElement(Stack, { render: () => null }, createElement(Card))
+
+		const result = deriveCode(tree, registry, {
+			elements: [{ name: 'Stack', props: { render: 'Card' } }],
+			bindings: { Card: 0 },
+			declarations: [{ names: ['Card'], code }],
+			imports: {},
+		})
+
+		expect(result).toBe(
+			[
+				`import { FileUpload } from 'ui/file-upload'`,
+				`import { Stack } from 'ui/stack'`,
+				'',
+				code,
+				'',
+				'<Stack render={Card}>',
+				'  <Card />',
+				'</Stack>',
+			].join('\n'),
+		)
+	})
+
+	it('prints the declarations alone when a helper is all the tree renders', () => {
+		const Pane = helper<{ tone: string }>({
+			name: 'Pane',
+			declarations: ['const Pane = ({ tone }) => <FileUpload tone={tone} />'],
+			blocks: [0],
+			imports: {},
+		})
+
+		// An unrecognized wrapper passes through to its children, as in the walk.
+		const Wrapper = ({ children }: { children?: ReactNode }) => children
+
+		const tree = createElement(
+			'div',
+			null,
+			createElement(Wrapper, null, createElement(Pane, { tone: 'muted' })),
+		)
+
+		expect(deriveCode(tree, registry)).toBe(
+			[
+				`import { FileUpload } from 'ui/file-upload'`,
+				'',
+				'const Pane = ({ tone }) => <FileUpload tone={tone} />',
+			].join('\n'),
+		)
 	})
 })
