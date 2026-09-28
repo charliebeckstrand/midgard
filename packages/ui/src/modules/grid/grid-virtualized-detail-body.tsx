@@ -14,6 +14,7 @@ import {
 } from './use-grid-item-window'
 import {
 	type GridMotionChange,
+	type GridMotionFlips,
 	type GridMotionSource,
 	useGridWindowMotion,
 } from './use-grid-window-motion'
@@ -38,29 +39,38 @@ const NEVER_EXPANDABLE = () => false
  *
  * @internal
  */
-const detailMotionSource: GridMotionSource<Keys, Keys, string | number> = {
+const detailMotionSource: GridMotionSource<Keys, Keys, string | number, string | number> = {
 	capture: (expanded) => expanded,
 	same: (captured, expanded) => captured === expanded,
-	toggle: (previous, expanded, { view, reducedMotion }) => {
-		const change: GridMotionChange<string | number> = { opened: [], closing: [], entering: [] }
+	flips: (previous, expanded) => {
+		const flips: GridMotionFlips<string | number> = { opened: [], closed: [] }
 
-		for (const key of previous) {
-			if (expanded.has(key) || reducedMotion) continue
+		for (const key of previous) if (!expanded.has(key)) flips.closed.push(key)
 
-			const size = view().size(`detail:${key}`)
+		for (const key of expanded) if (!previous.has(key)) flips.opened.push(key)
 
-			if (size !== undefined && view().edge(`detail:${key}`) === 'in') {
+		return flips
+	},
+	resolve: (flips, view) => {
+		const change: GridMotionChange<string | number> = {
+			opened: [...flips.opened],
+			closing: [],
+			entering: [],
+		}
+
+		if (!view) return change
+
+		for (const key of flips.closed) {
+			const size = view.size(`detail:${key}`)
+
+			if (size !== undefined && view.edge(`detail:${key}`) === 'in') {
 				change.closing.push([key, size])
 			}
 		}
 
-		for (const key of expanded) {
-			if (previous.has(key)) continue
-
-			change.opened.push(key)
-
+		for (const key of flips.opened) {
 			// The panel starts at the end of its data row.
-			const edge = reducedMotion ? undefined : view().edge(`row:${key}`)
+			const edge = view.edge(`row:${key}`)
 
 			if (edge === 'in' || edge === 'top') change.entering.push(key)
 		}
@@ -94,14 +104,21 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 
 	const record = useRef(NO_WINDOW_RECORD)
 
-	const expanded = expansion?.expanded ?? NO_KEYS
-
-	const { motions, release } = useGridWindowMotion(
-		expanded,
+	// The panels and the data rows render from the applied expansion, which
+	// trails a toggle by one commit before the paint. That commit keeps every
+	// row as it was.
+	const {
+		applied: expanded,
+		motions,
+		release,
+	} = useGridWindowMotion(
+		expansion?.expanded ?? NO_KEYS,
 		detailMotionSource,
 		record,
 		props.scrollRef,
 	)
+
+	const rowsProps = expansion ? { ...props, expansion: { ...expansion, expanded } } : props
 
 	const rowExpandable = expansion?.rowExpandable
 
@@ -161,7 +178,7 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 				if (item.kind === 'row') {
 					return (
 						<Fragment key={item.reactKey}>
-							{renderGridRow(props, row, item.dataIndex, aria(item), {
+							{renderGridRow(rowsProps, row, item.dataIndex, aria(item), {
 								ref: measureRef,
 								'data-index': virtualItem.index,
 							})}

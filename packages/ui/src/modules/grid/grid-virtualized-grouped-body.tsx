@@ -27,6 +27,7 @@ import {
 import type { GridRowGroupPresentation } from './use-grid-row-manager'
 import {
 	type GridMotionChange,
+	type GridMotionFlips,
 	type GridMotionSource,
 	useGridWindowMotion,
 } from './use-grid-window-motion'
@@ -46,7 +47,7 @@ function rowKeysOf<T>(group: GridGroup<T>, totaled: boolean): string[] {
 /**
  * Adds one group's toggle to `change`. An expand opens the group's rows, and
  * the rows that fit in one viewport enter. A collapse keeps each row in view
- * as a closing row, with its height.
+ * as a closing row, with its height. With no window, no row moves.
  *
  * @internal
  */
@@ -54,36 +55,31 @@ function groupToggle<T>(
 	group: GridGroup<T>,
 	open: boolean,
 	change: GridMotionChange<string>,
-	context: {
-		view: () => GridWindowView
-		reducedMotion: boolean
-		totaled: boolean
-		rowHeight: number
-	},
+	context: { view: GridWindowView | null; totaled: boolean; rowHeight: number },
 ): void {
-	const { view, reducedMotion } = context
+	const { view } = context
 
 	const keys = rowKeysOf(group, context.totaled)
 
 	if (open) {
 		change.opened.push(...keys)
 
-		if (reducedMotion || view().edge(`group:${group.id}`) === 'above') return
+		if (!view || view.edge(`group:${group.id}`) === 'above') return
 
 		// The rows that fit in one viewport. Only these animate open.
-		const bound = Math.ceil(view().viewport / Math.max(context.rowHeight, 1))
+		const bound = Math.ceil(view.viewport / Math.max(context.rowHeight, 1))
 
 		change.entering.push(...keys.slice(0, bound))
 
 		return
 	}
 
-	if (reducedMotion) return
+	if (!view) return
 
 	for (const key of keys) {
-		const size = view().size(key)
+		const size = view.size(key)
 
-		if (size !== undefined && view().edge(key) === 'in') change.closing.push([key, size])
+		if (size !== undefined && view.edge(key) === 'in') change.closing.push([key, size])
 	}
 }
 
@@ -102,7 +98,7 @@ function groupToggle<T>(
 function groupMotionSource<T>(
 	totaled: boolean,
 	rowHeight: number,
-): GridMotionSource<GridGroup<T>[], GroupExpansion, string> {
+): GridMotionSource<GridGroup<T>[], GroupExpansion, GridGroup<T>, string> {
 	return {
 		capture: (groups) => ({
 			ids: groups.map((group) => group.id),
@@ -121,20 +117,30 @@ function groupMotionSource<T>(
 
 			return true
 		},
-		toggle: (previous, groups, context) => {
-			const change: GridMotionChange<string> = { opened: [], closing: [], entering: [] }
+		flips: (previous, groups) => {
+			const flips: GridMotionFlips<GridGroup<T>> = { opened: [], closed: [] }
 
 			const was = new Map(previous.ids.map((id, index) => [id, previous.open[index]]))
 
 			for (const group of groups) {
-				const open = group.expanded
-
 				const before = was.get(group.id)
 
-				if (before !== undefined && before !== open) {
-					groupToggle(group, open, change, { ...context, totaled, rowHeight })
-				}
+				if (before === undefined || before === group.expanded) continue
+
+				if (group.expanded) flips.opened.push(group)
+				else flips.closed.push(group)
 			}
+
+			return flips
+		},
+		resolve: (flips, view) => {
+			const change: GridMotionChange<string> = { opened: [], closing: [], entering: [] }
+
+			const context = { view, totaled, rowHeight }
+
+			for (const group of flips.opened) groupToggle(group, true, change, context)
+
+			for (const group of flips.closed) groupToggle(group, false, change, context)
 
 			return change
 		},
@@ -205,12 +211,18 @@ export function GridVirtualizedGroupedBody<T>({
 		[totaled, window.estimateSize],
 	)
 
-	const { motions, release } = useGridWindowMotion(groups, source, record, window.scrollRef)
+	// The rows render from the applied groups, which trail a toggle by one
+	// commit before the paint. That commit keeps every row as it was.
+	const {
+		applied: shown,
+		motions,
+		release,
+	} = useGridWindowMotion(groups, source, record, window.scrollRef)
 
 	// A toggle gives a new list of groups, so the item list rebuilds with it.
 	const items = useMemo(
-		() => groupedWindowItems(groups, { totaled, motions }),
-		[groups, totaled, motions],
+		() => groupedWindowItems(shown, { totaled, motions }),
+		[shown, totaled, motions],
 	)
 
 	const { bodyRef, revealEndItem, virtualItems, topSpacer, bottomSpacer, measureRef } =
@@ -218,8 +230,8 @@ export function GridVirtualizedGroupedBody<T>({
 
 	// The cursor walks the open rows. A scroll frame keeps the same order.
 	const cursorOrder = useMemo(
-		() => groupedCursorRows(groups, totaled, toggleGroup),
-		[groups, totaled, toggleGroup],
+		() => groupedCursorRows(shown, totaled, toggleGroup),
+		[shown, totaled, toggleGroup],
 	)
 
 	useGridCursorOrder(cursorOrder)
