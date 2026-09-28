@@ -1,5 +1,13 @@
 # Density Pre-Paint — Design Plan — 2026-09-28
 
+> **Status.** Closed. Increment 1 landed in [#1539](https://github.com/charliebeckstrand/midgard/pull/1539), increment 2 in [#1548](https://github.com/charliebeckstrand/midgard/pull/1548), and
+> increment 3 in [#1552](https://github.com/charliebeckstrand/midgard/pull/1552) (Button) and [#1556](https://github.com/charliebeckstrand/midgard/pull/1556) (the toggles). Increment 4 landed in
+> [#1559](https://github.com/charliebeckstrand/midgard/pull/1559), and increment 5 in [#1564](https://github.com/charliebeckstrand/midgard/pull/1564). Increment 6 landed in [#1567](https://github.com/charliebeckstrand/midgard/pull/1567) (Sparkline),
+> [#1570](https://github.com/charliebeckstrand/midgard/pull/1570), and [#1573](https://github.com/charliebeckstrand/midgard/pull/1573) (Grid); Chart needed no change, as the check in the plan found.
+> Increment 7 landed in [#1571](https://github.com/charliebeckstrand/midgard/pull/1571). `SPARKLINE_METRICS` stayed as the fixed geometry of the one
+> `viewBox`. The relative slot scope ranked correctly, so the first open question closed in
+> [#1548](https://github.com/charliebeckstrand/midgard/pull/1548).
+
 How a stored density applies at the first paint of a static shell. It follows [`2026-09-27-DENSITY-ENGINE-PLAN.md`](2026-09-27-DENSITY-ENGINE-PLAN.md) and makes increment 6 of [`2026-09-27-DENSITY-VARIANTS-PLAN.md`](2026-09-27-DENSITY-VARIANTS-PLAN.md) the goal, not an option.
 
 ## Thesis

@@ -1,5 +1,11 @@
 # Density Engine — Design Plan — 2026-09-27
 
+> **Status.** Closed. Increment 1 landed in [#1486](https://github.com/charliebeckstrand/midgard/pull/1486), increment 2 in [#1488](https://github.com/charliebeckstrand/midgard/pull/1488), and
+> increment 3 in [#1490](https://github.com/charliebeckstrand/midgard/pull/1490). The four batches of increment 4 landed in [#1494](https://github.com/charliebeckstrand/midgard/pull/1494),
+> [#1504](https://github.com/charliebeckstrand/midgard/pull/1504), [#1506](https://github.com/charliebeckstrand/midgard/pull/1506), and [#1518](https://github.com/charliebeckstrand/midgard/pull/1518), and [#1516](https://github.com/charliebeckstrand/midgard/pull/1516) gated the last
+> `data-[density]` selector. [`2026-09-28-DENSITY-PRE-PAINT-PLAN.md`](2026-09-28-DENSITY-PRE-PAINT-PLAN.md)
+> carried the families that remained.
+
 How density becomes a foundation of its own, so that a component becomes density-aware by what it is built from, not by per-component wiring. It follows [`2026-09-27-DENSITY-VARIANTS-PLAN.md`](2026-09-27-DENSITY-VARIANTS-PLAN.md), which made density a Tailwind variant.
 
 ## Thesis

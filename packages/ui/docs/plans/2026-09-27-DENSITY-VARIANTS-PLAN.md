@@ -1,5 +1,12 @@
 # Density Variants — Design Plan — 2026-09-27
 
+> **Status.** Closed. Increment 1 landed in [#1482](https://github.com/charliebeckstrand/midgard/pull/1482).
+> [`2026-09-27-DENSITY-ENGINE-PLAN.md`](2026-09-27-DENSITY-ENGINE-PLAN.md) replaced increments 2 to 5,
+> and [`2026-09-28-DENSITY-PRE-PAINT-PLAN.md`](2026-09-28-DENSITY-PRE-PAINT-PLAN.md) carried
+> increment 6, which landed in [#1539](https://github.com/charliebeckstrand/midgard/pull/1539). Of the items out of scope, the ring utilities replaced
+> the literal maps of `kasane` in [#1488](https://github.com/charliebeckstrand/midgard/pull/1488), and the `useDensity` TSDoc went with the hook in
+> [#1486](https://github.com/charliebeckstrand/midgard/pull/1486). The `condensed` projections of the grid stay open.
+
 How a component follows ambient density without reading context and without leaving the static tier. Density is a Tailwind variant, the same kind of ambient condition as `dark:` or `md:`. A kata writes each step as a literal class, and the DOM selects the step. The rest of the plan is the order in which components move onto the variants.
 
 ## Thesis
