@@ -10,7 +10,11 @@
  * utility is in `utilities` itself, and it outranks each nested layer. So a
  * consumer `className` always wins over a density class.
  *
- * Outside each scope, the `md` step applies through its rung at depth 1.
+ * The root element is the scope of the app. `AppearanceScript` writes the
+ * stored step on it before the first paint. The root does not count as a
+ * depth: its rung is in the layer of depth 1 with no specificity of its own, so
+ * each other scope wins over it, and the trees keep each ranked depth. With
+ * no step on the root, the `md` step applies outside each scope.
  */
 
 import { type DensityStep, densitySteps } from './steps'
@@ -21,6 +25,12 @@ type CssInJs = { [key: string]: string | CssInJs }
 /** The deepest nesting that the rungs rank. When more scopes nest, an outer scope can win. */
 const maxDepth = 6
 
+/** Excludes the root element, which is the scope of the app and ranks below each depth. */
+const notRoot = ':not(:root)'
+
+/** A density scope under the root. */
+const scope = `[data-density]${notRoot}`
+
 /**
  * The rungs of a set of steps, keyed by the layer of each depth. Each rung
  * holds `body`: the `@slot` of a variant, or the declarations of a utility.
@@ -29,15 +39,19 @@ export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 	const layers: CssInJs = {}
 
 	for (let depth = 1; depth <= maxDepth; depth++) {
-		const above = '[data-density] '.repeat(depth - 1)
+		const above = `${scope} `.repeat(depth - 1)
 
 		const selectors = steps.flatMap((step) => [
-			`${above}[data-density='${step}'] &`,
-			`${above}&[data-density='${step}']`,
+			`${above}[data-density='${step}']${notRoot} &`,
+			`${above}&[data-density='${step}']${notRoot}`,
 		])
 
-		if (depth === 1 && steps.includes('md')) {
-			selectors.push('&:not([data-density], [data-density] *)')
+		if (depth === 1) {
+			for (const step of steps) selectors.push(`:where(:root[data-density='${step}']) &`)
+
+			if (steps.includes('md')) {
+				selectors.push(`:where(:root:not([data-density])) &:not(${scope}, ${scope} *)`)
+			}
 		}
 
 		layers[`@layer density-${depth}`] = { [selectors.join(', ')]: body }

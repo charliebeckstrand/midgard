@@ -2,8 +2,8 @@
  * The steps of density. A density scope, the `density-*` Tailwind variants,
  * and the density context all use these values.
  *
- * `sm`, `md`, and `lg` are the ambient steps: `DensityProvider` sets one of
- * them. `xs` and `xl` are the outer steps. Only an explicit `size` or a
+ * `sm`, `md`, and `lg` are the ambient steps: the root element and
+ * `DensityProvider` take one of them. `xs` and `xl` are the outer steps. Only an explicit `size` or a
  * stepped-down slot sets one of them.
  */
 export const densitySteps = ['xs', 'sm', 'md', 'lg', 'xl'] as const

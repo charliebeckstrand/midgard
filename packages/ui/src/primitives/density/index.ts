@@ -1,6 +1,6 @@
 export {
 	Density,
 	type DensityProps,
-	useDensityNullable,
+	useDensityScope,
 	useDensityStep,
 } from './density'

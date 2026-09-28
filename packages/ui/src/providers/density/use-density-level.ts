@@ -1,13 +1,14 @@
 'use client'
 
 import { toAmbientStep } from '../../core/density'
-import { useDensityNullable } from '../../primitives/density'
+import { useDensityStep } from '../../primitives/density'
 import { type DensityLevel, sizeToDensityLevel } from './context'
 
 /**
- * Resolves a friendly `DensityLevel`: `explicit ?? ambient ?? 'snug'`. For a
- * client component whose prop surface speaks `DensityLevel` rather than the
- * primitive `Step`. It must still inherit an enclosing `<DensityProvider>` when
+ * Resolves a friendly `DensityLevel`: the explicit level, else the level of
+ * the ambient step that `useDensityStep` resolves (the nearest scope, else the
+ * root element, else `md`, which is `'snug'`). For a client component whose
+ * prop surface speaks `DensityLevel` rather than the primitive `Step`. It must still inherit an enclosing `<DensityProvider>` when
  * the prop is omitted. {@link Grid} is one: it projects density onto a `Table`
  * that itself reads no context (REFERENCE.md §2).
  *
@@ -17,7 +18,7 @@ import { type DensityLevel, sizeToDensityLevel } from './context'
  * directive-free `DensityProvider` stays server-renderable.
  */
 export function useDensityLevel(explicit?: DensityLevel): DensityLevel {
-	const ambient = useDensityNullable()
+	const ambient = useDensityStep()
 
-	return explicit ?? (ambient ? sizeToDensityLevel[toAmbientStep(ambient)] : 'snug')
+	return explicit ?? sizeToDensityLevel[toAmbientStep(ambient)]
 }

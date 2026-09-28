@@ -3,8 +3,9 @@
  * `@plugin`.
  *
  * A density scope is an element with `data-density`, one value for each of
- * {@link densitySteps}. DensityProvider writes one. A component with an
- * explicit `size` writes one on its own element. That element is then its own
+ * {@link densitySteps}. The root element is the scope of the app, and
+ * DensityProvider writes a nested one. A component with an explicit `size`
+ * writes one on its own element. That element is then its own
  * nearest scope, and its subtree follows it. A kata writes the classes of each
  * step under the matching variant, for example
  * `density-sm:px-1.5 density-md:px-2 density-lg:px-2.5`. The element takes the

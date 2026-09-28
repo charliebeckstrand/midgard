@@ -1,5 +1,5 @@
 import type { ReactElement } from 'react'
-import { describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
@@ -42,6 +42,61 @@ const badgeFont = (container: HTMLElement, text: string) => {
 
 	return Number.parseFloat(getComputedStyle(badge).fontSize)
 }
+
+/**
+ * The root element is the scope of the app: `AppearanceScript` writes the stored step on
+ * `<html>` before the first paint. It ranks below each other scope and does not use one of the
+ * ranked depths, so the trees keep each depth.
+ */
+describe('the root scope (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	it('gives its step to a leaf outside each other scope', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const { container } = renderUI(<Badge>x</Badge>)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
+	})
+
+	it('loses to a scope under it', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const { container } = renderUI(
+			<Card size="lg">
+				<Badge>x</Badge>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.lg)
+	})
+
+	it('keeps each ranked depth for the scopes under it', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		// Six scopes under the root: the ranked maximum. If the root took a depth, the fifth card
+		// would tie with the sixth at the last depth, and the later `lg` rule would win.
+		const { container } = renderUI(
+			<Card size="lg">
+				<Card size="lg">
+					<Card size="lg">
+						<Card size="lg">
+							<Card size="lg">
+								<Card size="sm">
+									<Badge>x</Badge>
+								</Card>
+							</Card>
+						</Card>
+					</Card>
+				</Card>
+			</Card>,
+		)
+
+		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
+	})
+})
 
 describe('density scopes on static leaves (real browser)', () => {
 	it.each<[string, () => ReactElement, keyof typeof BADGE_FONT_PX]>([
