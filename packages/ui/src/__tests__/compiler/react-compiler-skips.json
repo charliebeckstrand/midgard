@@ -9,9 +9,6 @@
 		"useWindowVirtualizer": "Refs",
 		"useVirtualWindow": "Immutability"
 	},
-	"modules/chart/engine/chart-tooltip.tsx": {
-		"ChartTooltip": "Refs"
-	},
 	"modules/grid/use-grid-editing.ts": {
 		"useActiveCell": "Refs",
 		"useGridEditing": "Todo"

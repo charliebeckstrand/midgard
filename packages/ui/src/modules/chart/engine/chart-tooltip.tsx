@@ -184,15 +184,13 @@ export function ChartTooltip({
 
 	// Frame coordinates map to the viewport by the plot region's own rect: the
 	// SVG fills it one-to-one, so the origin plus the frame point is the client
-	// point the floating readout anchors to.
-	const rect = plotRef.current?.getBoundingClientRect()
-
-	const clientPoint = anchor && rect ? { x: rect.left + anchor.x, y: rect.top + anchor.y } : null
-
+	// point the floating readout anchors to. The pointer reads that rect when it
+	// positions the panel, not here in render.
 	return (
 		<TooltipPointer
 			open={open}
-			point={clientPoint}
+			point={anchor}
+			originRef={plotRef}
 			offset={TRACK_OFFSET}
 			// `track="point"` under both triggers. A hover readout repositions on every
 			// move, and the chart's hover-across-scroll rescue handles a scroll under a
