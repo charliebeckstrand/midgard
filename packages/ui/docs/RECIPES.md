@@ -27,7 +27,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
-| `kasane` 重ね | The signature 4-layer chrome stack plus radius / rounded / gap helpers. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
+| `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |

@@ -1,10 +1,9 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, iro, ji, kasane, narabi } from '../kiso'
+import { hannou, iro, ji, narabi } from '../kiso'
 
 const { nav, cursor } = hannou
 const { text } = iro
 const { size } = ji
-const { gap, radius } = kasane
 const { flex } = narabi
 
 export const k = defineRecipe({
@@ -15,9 +14,9 @@ export const k = defineRecipe({
 		flex.row,
 		'items-center',
 		'w-full',
-		gap.g('2'),
+		'gap-2',
 		'p-ring-2',
-		radius.r('2'),
+		'rounded-[--spacing(2)]',
 		...cursor,
 		nav.tint,
 		// Keyboard focus projects onto the whole item: when the inner select control
