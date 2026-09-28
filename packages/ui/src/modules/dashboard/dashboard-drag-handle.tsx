@@ -49,7 +49,7 @@ export function DashboardDragHandle({
 			type="button"
 			aria-label={label}
 		>
-			<Icon icon={<GripVertical />} size="sm" />
+			<Icon icon={<GripVertical />} />
 		</button>
 	)
 }

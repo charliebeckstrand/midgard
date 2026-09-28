@@ -108,7 +108,6 @@ export function DashboardTileExpand({
 				<Button
 					type="button"
 					variant="bare"
-					size="sm"
 					data-slot="dashboard-tile-expand"
 					aria-label={`Expand ${label}`}
 				>
