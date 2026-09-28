@@ -139,6 +139,42 @@ describe('createApiExtractor', () => {
 		expect(result.bar?.[0]?.props).toEqual([{ name: 'count', type: 'number' }])
 	})
 
+	it('reads the props and the TSDoc of a component that a factory returns', () => {
+		const { srcDir } = fixture({
+			'components/baz/index.ts': `export { Baz, BazOne, BazTwo } from './baz'\n`,
+			'components/baz/factory.ts': [
+				`export function create() {`,
+				`\treturn function Made(props: { tone?: 'a' | 'b' }) {`,
+				`\t\treturn props.tone ?? null`,
+				`\t}`,
+				`}`,
+				'',
+			].join('\n'),
+			'components/baz/baz.tsx': [
+				`import { create } from './factory'`,
+				`/** A baz. */`,
+				`export const Baz = create()`,
+				`/** Both parts. */`,
+				`const { One, Two } = { One: create(), Two: create() }`,
+				`export {`,
+				`\t/** The first part. */`,
+				`\tOne as BazOne,`,
+				`\tTwo as BazTwo,`,
+				`}`,
+				'',
+			].join('\n'),
+		})
+
+		const props = [{ name: 'tone', type: `'a' | 'b'` }]
+
+		// The specifier documents `BazOne` alone. `BazTwo` has only the statement.
+		expect(createApiExtractor(srcDir, { cacheDir: null }).getAll().baz).toEqual([
+			{ name: 'Baz', description: 'A baz.', props },
+			{ name: 'BazOne', description: 'The first part.', props },
+			{ name: 'BazTwo', description: 'Both parts.', props },
+		])
+	})
+
 	it('ignores non-source, docs, and test files', () => {
 		const { srcDir } = fixture()
 

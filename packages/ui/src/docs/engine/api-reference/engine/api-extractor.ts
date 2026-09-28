@@ -58,7 +58,7 @@ type BarrelState = {
 /** Persisted whole-record cache: the extracted record under the hash of all input files that produced it. */
 type DiskCache = { version: number; hash: string; record: Record<string, ComponentApi[]> }
 
-const CACHE_VERSION = 6
+const CACHE_VERSION = 9
 
 const CACHE_FILE = 'api.json'
 

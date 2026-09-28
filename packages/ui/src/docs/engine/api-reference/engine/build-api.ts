@@ -1,6 +1,6 @@
 import fs from 'node:fs'
 import path from 'node:path'
-import { Node, Project, SyntaxKind, type ts } from 'ts-morph'
+import { Node, Project, type SourceFile, SyntaxKind, ts } from 'ts-morph'
 import type { ComponentApi } from '../types'
 import { extractDefaults } from './extract-defaults'
 import { extractDocFromText } from './extract-doc'
@@ -68,6 +68,8 @@ export function listBarrels(srcDir: string): Barrel[] {
  * Returns `null` when the index is absent from the project or exports nothing
  * documentable, so the caller can drop the key. The type checker is passed in
  * so a batch shares one checker pass.
+ *
+ * An export that no function declares is read by {@link buildFactoryComponent}.
  */
 export function extractBarrel(
 	project: Project,
@@ -87,13 +89,9 @@ export function extractBarrel(
 	for (const name of names) {
 		const decl = findComponent(name, indexFile)
 
-		if (!decl) {
-			apis.push({ name, props: [] })
-
-			continue
-		}
-
-		apis.push(buildComponent(decl, checker))
+		apis.push(
+			decl ? buildComponent(decl, checker) : buildFactoryComponent(name, indexFile, checker),
+		)
 	}
 
 	return apis.length > 0 ? apis : null
@@ -206,6 +204,94 @@ function componentDescription(decl: ComponentDecl): string | undefined {
 		: (node.getFirstAncestorByKind(SyntaxKind.VariableStatement) ?? node)
 
 	const text = host.getJsDocs().at(-1)?.getDescription().trim()
+
+	return text ? text : undefined
+}
+
+/**
+ * The API of an export that no function declares: a component that a factory
+ * returns, such as `createSlot`, `createSkeleton`, or a destructured
+ * `createPanel` result. The props come from the call signature of the export's
+ * type. The description comes from {@link exportDescription}. The factory
+ * applies its own defaults, so none are read.
+ */
+function buildFactoryComponent(
+	name: string,
+	indexFile: SourceFile,
+	checker: ts.TypeChecker,
+): ComponentApi {
+	const api: ComponentApi = { name, props: [] }
+
+	const node = indexFile.getExportedDeclarations().get(name)?.[0]
+
+	if (!node) return api
+
+	const declaration = node.compilerNode
+
+	const location =
+		ts.isVariableDeclaration(declaration) || ts.isBindingElement(declaration)
+			? declaration.name
+			: declaration
+
+	const propsType = resolvePropsType(location, checker)
+
+	if (propsType) api.props = extractProps(location, propsType, null, new Map(), checker)
+
+	const summary = exportDescription(name, indexFile, checker)
+
+	if (summary) {
+		const { description } = extractDocFromText(summary)
+
+		if (description) api.description = description
+	}
+
+	return api
+}
+
+/**
+ * The TSDoc description of an export, read along its chain of re-exports: the
+ * barrel's specifier, each specifier that it re-exports, and the declaration.
+ * The first description wins. A specifier that documents a renamed export
+ * (`Body as DialogBody`) therefore outranks the statement of a destructured
+ * factory result, which documents all of its members at once.
+ */
+function exportDescription(
+	name: string,
+	indexFile: SourceFile,
+	checker: ts.TypeChecker,
+): string | undefined {
+	const moduleSymbol = checker.getSymbolAtLocation(indexFile.compilerNode)
+
+	let symbol = moduleSymbol
+		? checker.getExportsOfModule(moduleSymbol).find((s) => s.name === name)
+		: undefined
+
+	while (symbol) {
+		for (const decl of symbol.declarations ?? []) {
+			const text = jsDocDescription(decl)
+
+			if (text) return text
+		}
+
+		symbol =
+			symbol.flags & ts.SymbolFlags.Alias ? checker.getImmediateAliasedSymbol(symbol) : undefined
+	}
+
+	return undefined
+}
+
+/**
+ * The description of the last TSDoc block on a declaration. A binding element
+ * reads the block of its variable statement, where TypeScript does not look.
+ */
+function jsDocDescription(decl: ts.Node): string | undefined {
+	const host = ts.isBindingElement(decl)
+		? (ts.findAncestor(decl, ts.isVariableStatement) ?? decl)
+		: decl
+
+	const doc = ts.getJSDocCommentsAndTags(host).filter(ts.isJSDoc).at(-1)
+
+	const text = doc ? ts.getTextOfJSDocComment(doc.comment)?.trim() : undefined
 
 	return text ? text : undefined
 }
