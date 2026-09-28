@@ -30,6 +30,7 @@ const steppedGroups = {
 	'density-max-h': [{ 'density-max-h': steps }],
 	'density-w': [{ 'density-w': steps }],
 	'density-min-w': [{ 'density-min-w': steps }],
+	'density-left': [{ 'density-left': steps }],
 	'density-text': [{ 'density-text': steps }],
 	'density-rounded': [{ 'density-rounded': steps, 'density-rounded-ring': steps }],
 }
@@ -58,6 +59,7 @@ const plainGroups = {
 	'density-max-h': 'max-h',
 	'density-w': 'w',
 	'density-min-w': 'min-w',
+	'density-left': 'left',
 	'density-text': 'font-size',
 	'density-rounded': 'rounded',
 } as const satisfies Record<keyof typeof steppedGroups, string>

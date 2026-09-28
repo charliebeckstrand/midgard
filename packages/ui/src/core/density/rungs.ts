@@ -12,9 +12,15 @@
  *
  * The root element is the scope of the app. `AppearanceScript` writes the
  * stored step on it before the first paint. The root does not count as a
- * depth: its rung is in the layer of depth 1 with no specificity of its own, so
- * each other scope wins over it, and the trees keep each ranked depth. With
- * no step on the root, the `md` step applies outside each scope.
+ * depth: its rung is in the layer `density-0`, below the layer of each depth,
+ * so each other scope wins over it, and the trees keep each ranked depth. With
+ * no step on the root, the `md` step applies outside each scope. The rungs
+ * write `density-0` first, so it is the first layer in the output.
+ *
+ * The rungs of one layer match the same element only for the nearest scope.
+ * So the rank does not use specificity, and a selector list of one layer keeps
+ * its rank when Tailwind wraps it in `:is()`. Tailwind does that for a variant
+ * before a pseudo-element, such as `density-md:before:p-2`.
  *
  * A control slot, such as the prefix of an Input, is an element with
  * `data-density="slot"`. It is a scope one step below the scope above it
@@ -52,8 +58,6 @@ function stepIn(steps: readonly DensityStep[]): string {
  * holds `body`: the `@slot` of a variant, or the declarations of a utility.
  */
 export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
-	const layers: CssInJs = {}
-
 	const own = stepIn(steps)
 
 	// The steps whose slots take one of `steps`.
@@ -61,14 +65,14 @@ export function rungs(steps: readonly DensityStep[], body: CssInJs): CssInJs {
 
 	const host = hosts.length > 0 ? stepIn(hosts) : null
 
+	const layers: CssInJs = { '@layer density-0': { [`:where(:root${own}) &`]: body } }
+
 	for (let depth = 1; depth <= maxDepth; depth++) {
 		const above = `${scope} `.repeat(depth - 1)
 
 		const selectors = [`${above}${own}${notRoot} &`, `${above}&${own}${notRoot}`]
 
 		if (depth === 1) {
-			selectors.push(`:where(:root${own}) &`)
-
 			if (host) selectors.push(`:where(:root${host}) ${slot} &`, `:where(:root${host}) &${slot}`)
 
 			if (steps.includes('md')) {

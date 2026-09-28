@@ -139,6 +139,7 @@ export const inputCases: readonly Case[] = [
 				<Rating defaultValue={4} />
 			</Field>
 		),
+		density: [{ render: (size) => <Rating size={size} aria-label="Score" />, slot: 'rating' }],
 	},
 	{
 		name: 'rating (read-only)',

@@ -1,8 +1,8 @@
 /**
- * Rating kata: the star row that stands for a score. Two axes: `size` and
- * `color`. The `size` takes the `sun` density steps, so a rating inside a
- * `<Field>` scales with the controls beside it. The `color` is the hue a filled
- * star takes.
+ * Rating kata: the star row that stands for a score. One axis: `color`, the
+ * hue a filled star takes. The glyphs and the gap take the step of the nearest
+ * density scope, so a rating inside a `<Field>` scales with the controls
+ * beside it.
  *
  * The chromatic hues ride the `iro.marker` ramp, not the text ramp, and zinc
  * takes a local pair. A star is a glyph and not a word, so it answers the
@@ -60,21 +60,16 @@ const track = mode('text-zinc-300', 'dark:text-zinc-600')
 
 export const k = defineRecipe(
 	{
-		base: [flex.inline, 'items-center', 'w-fit', ...disabled],
-		size: {
-			sm: 'gap-0.5',
-			md: 'gap-0.5',
-			lg: 'gap-1',
-		},
+		base: [flex.inline, 'items-center', 'w-fit', ...disabled, kokkaku.rating.gap],
 		color,
-		defaults: { size: 'md', color: 'amber' },
+		defaults: { color: 'amber' },
 		skeleton: kokkaku.rating,
 	},
 	{
 		star,
 		track,
-		/** Glyph dimension per step; the track and the fill share it, so the two stack exactly. */
-		glyph: kokkaku.rating.size,
+		/** The glyph size at each step. The track and the fill share it, so the two stack exactly. */
+		glyph: kokkaku.rating.star,
 		/**
 		 * The window a partly-filled star draws its fill inside. Absolute over the
 		 * track glyph and clipping at its own width, which the component sets from
@@ -101,5 +96,5 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for {@link Rating} — the styling axes its kata exposes (`size`, `color`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Rating}: the `color` axis of its kata, for consumers composing custom slots. */
 export type RatingVariants = VariantProps<typeof k>

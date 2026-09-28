@@ -26,9 +26,9 @@ export function RatingSkeleton({ count = 5, size, className }: RatingSkeletonPro
 	const stars = rangeKeys(count, 'star')
 
 	return (
-		<div data-density={size} className={cn(k(), k.skeleton.gap, className)}>
+		<div data-density={size} className={cn(k(), className)}>
 			{stars.map((key) => (
-				<Placeholder key={key} className={cn(k.skeleton.base, k.skeleton.star)} />
+				<Placeholder key={key} className={cn(k.skeleton.base, k.glyph)} />
 			))}
 		</div>
 	)

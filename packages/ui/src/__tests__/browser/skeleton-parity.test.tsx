@@ -1,7 +1,20 @@
+import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 import { Button, ButtonSkeleton } from '../../components/button'
+import { Checkbox, CheckboxSkeleton } from '../../components/checkbox'
 import { ColorPanel, ColorPanelSkeleton } from '../../components/color'
+import {
+	ProgressBar,
+	ProgressBarSkeleton,
+	ProgressGauge,
+	ProgressGaugeSkeleton,
+} from '../../components/progress'
+import { Radio, RadioSkeleton } from '../../components/radio'
+import { Rating, RatingSkeleton } from '../../components/rating'
+import { Slider, SliderSkeleton } from '../../components/slider'
+import { Switch, SwitchSkeleton } from '../../components/switch'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../components/toggle-icon-button'
+import type { Step } from '../../recipes'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -49,6 +62,89 @@ describe('skeleton parity (real browser)', () => {
 			).toStrictEqual(real)
 		},
 	)
+
+	// Each pair renders the real component and its skeleton at one step. The box of the real
+	// component is its `data-slot` element; the skeleton is its placeholder.
+	const pairs: [string, string, (size: Step) => ReactElement, (size: Step) => ReactElement][] = [
+		[
+			'Checkbox',
+			'control',
+			(size) => <Checkbox aria-label="Agree" size={size} />,
+			(size) => <CheckboxSkeleton size={size} />,
+		],
+		[
+			'Radio',
+			'control',
+			(size) => <Radio aria-label="Pick" size={size} />,
+			(size) => <RadioSkeleton size={size} />,
+		],
+		[
+			'Switch',
+			'control',
+			(size) => <Switch aria-label="On" size={size} />,
+			(size) => <SwitchSkeleton size={size} />,
+		],
+		[
+			'ProgressGauge',
+			'progress-gauge',
+			(size) => <ProgressGauge aria-label="Upload" size={size} />,
+			(size) => <ProgressGaugeSkeleton size={size} />,
+		],
+	]
+
+	describe.each(pairs)('%sSkeleton', (_, slot, real, skeleton) => {
+		it.each(['sm', 'md', 'lg'] as const)('has the box of a %s component', (size) => {
+			const { container } = renderUI(real(size))
+
+			expect(placeholder(renderUI(skeleton(size)).container)).toStrictEqual(
+				box(container.querySelector(`[data-slot="${slot}"]`), slot),
+			)
+		})
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('ProgressBarSkeleton has the height of a %s bar', (size) => {
+		const real = box(
+			renderUI(<ProgressBar aria-label="Upload" size={size} />).container.firstElementChild,
+			'progress bar',
+		)
+
+		expect(placeholder(renderUI(<ProgressBarSkeleton size={size} />).container).height).toBe(
+			real.height,
+		)
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('SliderSkeleton has the height of a %s slider', (size) => {
+		const real = box(
+			renderUI(<Slider aria-label="Volume" size={size} />).container.firstElementChild,
+			'slider',
+		)
+
+		const skeleton = present(
+			renderUI(<SliderSkeleton size={size} />).container.querySelector('[data-slot="placeholder"]'),
+			'skeleton',
+		)
+
+		// The skeleton reserves the hit area of the slider with its vertical margins.
+		const { marginTop, marginBottom } = getComputedStyle(skeleton)
+
+		expect(
+			skeleton.getBoundingClientRect().height +
+				Number.parseFloat(marginTop) +
+				Number.parseFloat(marginBottom),
+		).toBe(real.height)
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('RatingSkeleton has the box of a %s rating', (size) => {
+		const real = box(
+			renderUI(<Rating aria-label="Score" readOnly value={3} size={size} />).container
+				.firstElementChild,
+			'rating',
+		)
+
+		expect(
+			box(renderUI(<RatingSkeleton size={size} />).container.firstElementChild, 'skeleton'),
+		).toStrictEqual(real)
+	})
 
 	it.each(['sm', 'md', 'lg'] as const)('ColorPanelSkeleton has the box of a %s panel', (size) => {
 		const real = box(

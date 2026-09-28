@@ -46,6 +46,7 @@ const spacingProperties = {
 	'max-h': ['max-height'],
 	w: ['width'],
 	'min-w': ['min-width'],
+	left: ['left'],
 }
 
 /**

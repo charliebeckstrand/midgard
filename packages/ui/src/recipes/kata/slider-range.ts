@@ -1,5 +1,5 @@
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, ugoki } from '../kiso'
+import { hannou, kasane, type Step, ugoki } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -8,24 +8,26 @@ const { css } = ugoki
 const { color } = slider
 
 const root = defineRecipe({
-	base: ['relative', 'w-full', ...cursor, 'select-none', 'touch-none', disabled],
-	size: {
-		sm: 'py-3',
-		md: 'py-4',
-		lg: 'py-5',
-	},
+	base: [
+		'relative',
+		'w-full',
+		...cursor,
+		'select-none',
+		'touch-none',
+		disabled,
+		'density-py-[3,4,5]',
+	],
 	color,
-	defaults: { size: 'md', color: 'blue' },
+	defaults: { color: 'blue' },
 })
 
 const track = defineRecipe({
-	base: ['absolute left-0 right-0', rounded.full, 'bg-[var(--slider-track)]'],
-	size: {
-		sm: 'h-1',
-		md: 'h-1.5',
-		lg: 'h-2',
-	},
-	defaults: { size: 'md' },
+	base: [
+		'absolute left-0 right-0',
+		rounded.full,
+		'bg-[var(--slider-track)]',
+		'density-h-[1,1.5,2]',
+	],
 })
 
 const thumb = defineRecipe({
@@ -40,13 +42,8 @@ const thumb = defineRecipe({
 		'hover:scale-110',
 		'active:scale-110',
 		'focus-visible:outline-none focus-visible:ring-4 focus-visible:ring-blue-600',
+		'density-size-[3,4,5]',
 	],
-	size: {
-		sm: 'size-3',
-		md: 'size-4',
-		lg: 'size-5',
-	},
-	defaults: { size: 'md' },
 })
 
 export const k = {
@@ -56,4 +53,5 @@ export const k = {
 	thumb,
 } as const
 
-export type RangeSliderVariants = VariantProps<typeof root>
+/** Recipe variant props for {@link RangeSlider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
+export type RangeSliderVariants = VariantProps<typeof root> & { size?: Step }

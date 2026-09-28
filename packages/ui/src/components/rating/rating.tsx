@@ -2,9 +2,8 @@
 
 import { Star } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
-import { cn, toAmbientStep } from '../../core'
+import { cn } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useDensityStep } from '../../primitives/density'
 import type { Step } from '../../recipes'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
@@ -23,7 +22,7 @@ function defaultValueText(value: number, count: number): string {
 }
 
 /** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size`/`color` recipe axes, and the read-only display form. */
-export type RatingProps = Omit<RatingVariants, 'size'> & {
+export type RatingProps = RatingVariants & {
 	/** Controlled value. `undefined` leaves the rating uncontrolled; `null` keeps it controlled with no score (CONVENTIONS §7.3). */
 	value?: number | null
 	/** Initial value when uncontrolled and not form-bound. */
@@ -43,7 +42,8 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
 	 */
 	name?: string
 	/**
-	 * Size step. Resolution order: this prop, then the Density cascade, then `md`.
+	 * Size step. It opens a density scope on the row. Without it, the row takes
+	 * the step of the nearest density scope.
 	 */
 	size?: Step
 	/**
@@ -106,8 +106,8 @@ export type RatingProps = Omit<RatingVariants, 'size'> & {
  * (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
- * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`, and takes
- * `size` from the Density cascade.
+ * `readOnly` / `invalid` from an enclosing `<Control>` or `<Field>`. The stars
+ * take the step of the nearest density scope.
  *
  * @remarks A click on the current score clears it while `clearable` holds. The
  * click is canceled rather than handled after the fact. A radio restores its
@@ -160,8 +160,6 @@ export function Rating({
 		validation,
 	} = useControlProps({ id, disabled, readOnly, invalid, 'aria-describedby': ariaDescribedBy })
 
-	const step = toAmbientStep(useDensityStep(size))
-
 	// The native grouping name, which is this row's own and never the bound
 	// field's: two ratings bound to different fields would otherwise share a
 	// group and clear each other.
@@ -187,9 +185,7 @@ export function Rating({
 
 	const stars = rangeKeys(count, 'star')
 
-	const rowClass = cn(k({ size: step, color }), className)
-
-	const glyph = k.glyph[step]
+	const rowClass = cn(k({ color }), className)
 
 	function commit(next: number | null) {
 		setValue(next)
@@ -203,7 +199,7 @@ export function Rating({
 
 		return (
 			<>
-				<Star aria-hidden="true" className={cn(glyph, k.track)} />
+				<Star aria-hidden="true" className={cn(k.glyph, k.track)} />
 
 				{fill > 0 && (
 					<span
@@ -211,7 +207,7 @@ export function Rating({
 						className={cn(k.clip, clearing && k.clearing)}
 						style={{ width: `${fill * 100}%` }}
 					>
-						<Star aria-hidden="true" fill="currentColor" className={glyph} />
+						<Star aria-hidden="true" fill="currentColor" className={k.glyph} />
 					</span>
 				)}
 			</>
@@ -222,7 +218,8 @@ export function Rating({
 		return (
 			<span
 				data-slot={slot}
-				data-size={step}
+				data-size={size}
+				data-density={size}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
 				aria-label={getValueText(current, count)}
@@ -241,7 +238,7 @@ export function Rating({
 								data-slot="rating-star"
 								aria-hidden="true"
 								fill="currentColor"
-								className={glyph}
+								className={k.glyph}
 							/>
 						)
 					}
@@ -252,7 +249,7 @@ export function Rating({
 								key={key}
 								data-slot="rating-star"
 								aria-hidden="true"
-								className={cn(glyph, k.track)}
+								className={cn(k.glyph, k.track)}
 							/>
 						)
 					}
@@ -289,7 +286,8 @@ export function Rating({
 	return (
 		<span
 			data-slot={slot}
-			data-size={step}
+			data-size={size}
+			data-density={size}
 			role="radiogroup"
 			aria-label={labelledBy ? undefined : (ariaLabel ?? 'Rating')}
 			aria-labelledby={labelledBy}

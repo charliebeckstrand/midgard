@@ -4,6 +4,7 @@ import { LoadingDots, LoadingSpinner } from '../../../components/loading'
 import {
 	ProgressBar,
 	ProgressBarSkeleton,
+	ProgressGauge,
 	ProgressGaugeSkeleton,
 } from '../../../components/progress'
 import type { Case } from './types'
@@ -25,6 +26,16 @@ export const feedbackCases: readonly Case[] = [
 			{
 				element: <ProgressGaugeSkeleton />,
 				absentSlot: 'progress-gauge',
+			},
+		],
+		density: [
+			{
+				render: (size) => <ProgressBar size={size} value={60} aria-label="Upload" />,
+				slot: 'progress-bar',
+			},
+			{
+				render: (size) => <ProgressGauge size={size} value={60} aria-label="Upload" />,
+				slot: 'progress-gauge',
 			},
 		],
 	},

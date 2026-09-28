@@ -13,7 +13,7 @@ import type {
 	TouchOnBlurSubject,
 	WriteOnChangeSubject,
 } from '../a11y/cases/types'
-import { allBySlot, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { allBySlot, bySlot, densityStepOf, fireEvent, getSlot, renderUI } from '../helpers'
 import { FieldProbe, getFieldProbe } from '../helpers/field-probe'
 
 /**
@@ -161,27 +161,42 @@ function becomesLink({ render, slot }: LinkSubject) {
 	expect(anchor).toHaveAttribute('href', LINK_HREF)
 }
 
-/** Renders `element` and reads the `data-size` its slot publishes. */
-function publishedSize(element: ReactElement, slot: string) {
+/**
+ * Renders `element` and reads the step of its slot. A subject that selects its
+ * step in JS publishes it in `data-size`. The stepped classes of a subject
+ * take the step of its scopes, and `densityStepOf` reads those.
+ */
+function resolvedStep(element: ReactElement, slot: string) {
 	// `baseElement` is the document body, so a portaled overlay is in reach.
 	const { baseElement } = renderUI(element)
 
-	return getSlot(baseElement, slot).getAttribute('data-size')
+	const node = getSlot(baseElement, slot)
+
+	return node.getAttribute('data-size') ?? densityStepOf(node)
 }
 
-/** The density sweep, ambient leg: with no size, the subject takes the enclosing Density. */
+/** An ambient scope with both channels: `data-density` for the classes, and the context for a JS reader. */
+function Ambient({ children }: { children: ReactElement }) {
+	return (
+		<div data-density={AMBIENT}>
+			<Density step={AMBIENT}>{children}</Density>
+		</div>
+	)
+}
+
+/** The density sweep, ambient leg: with no size, the subject takes the enclosing scope. */
 function inheritsDensity({ render, slot }: DensitySubject) {
-	expect(publishedSize(<Density step={AMBIENT}>{render()}</Density>, slot)).toBe(AMBIENT)
+	expect(resolvedStep(<Ambient>{render()}</Ambient>, slot)).toBe(AMBIENT)
 }
 
-/** The density sweep, explicit leg: a size prop wins over the enclosing Density. */
+/** The density sweep, explicit leg: a size prop wins over the enclosing scope. */
 function explicitSizeWins({ render, slot }: DensitySubject) {
-	expect(publishedSize(<Density step={AMBIENT}>{render(EXPLICIT)}</Density>, slot)).toBe(EXPLICIT)
+	expect(resolvedStep(<Ambient>{render(EXPLICIT)}</Ambient>, slot)).toBe(EXPLICIT)
 }
 
-/** The density sweep, fallback leg: with no Density and no size, the subject is `md`. */
+/** The density sweep, fallback leg: with no scope and no size, the subject is `md`. */
 function fallsBackToMd({ render, slot }: DensitySubject) {
-	expect(publishedSize(render(), slot)).toBe(FALLBACK)
+	expect(resolvedStep(render(), slot)).toBe(FALLBACK)
 }
 
 /** The text-input sweep, ref leg: the ref reaches the editable element. */

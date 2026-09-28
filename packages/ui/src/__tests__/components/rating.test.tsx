@@ -247,14 +247,12 @@ describe('RatingSkeleton', () => {
 	const placeholder =
 		'bg-zinc-200 dark:bg-zinc-700 motion-safe:animate-pulse block density-any:h-4 rounded-sm'
 
+	// The glyph and the gap are stepped classes, so the browser picks the step of the nearest
+	// scope. The real row and its stars share them.
 	const row =
-		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150'
+		'inline-flex items-center w-fit disabled:opacity-50 data-disabled:opacity-50 group-disabled:opacity-50 motion-safe:transition-opacity motion-safe:duration-150 density-gap-[0.5,0.5,1]'
 
 	const hue = 'text-amber-600 dark:text-amber-500'
-
-	// The glyph and the gap are stepped classes, so the browser picks the step of the nearest
-	// scope. `recipes/skeleton-ramp.test.ts` pins them to the glyph map and the row gap.
-	const gap = 'density-gap-[0.5,0.5,1]'
 
 	const glyph = 'density-size-[4,5,6]'
 
@@ -265,7 +263,7 @@ describe('RatingSkeleton', () => {
 
 			const rowEl = container.firstElementChild as HTMLElement
 
-			expect(rowEl.className).toBe(`${row} ${hue} ${gap}`)
+			expect(rowEl.className).toBe(`${row} ${hue}`)
 
 			expect(rowEl.dataset.density).toBe(size)
 

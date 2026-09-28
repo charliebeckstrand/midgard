@@ -1,9 +1,8 @@
 'use client'
 
 import type { ComponentProps, CSSProperties } from 'react'
-import { cn, composeEventHandlers, invalidAttrs, toAmbientStep } from '../../core'
+import { cn, composeEventHandlers, invalidAttrs } from '../../core'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { useDensityStep } from '../../primitives/density'
 import { k, type SliderVariants } from '../../recipes/kata/slider'
 import { pct } from '../../utilities'
 import { useControlProps } from '../control/use-control-props'
@@ -30,7 +29,8 @@ export type SliderProps = SliderBaseProps &
 /**
  * Range input for a single value, controlled or uncontrolled. It resolves `id`,
  * `disabled`, and `invalid` from an enclosing Control or Field, and binds to an
- * enclosing Form field by `name`. `size` comes from the Density cascade, and the
+ * enclosing Form field by `name`. The slider takes the step of the nearest
+ * density scope, and an explicit `size` opens a scope on the input. The
  * fill position is exposed as a `--slider-value` CSS variable.
  *
  * @remarks Renders a native `<input type="range">`, so screen-reader semantics
@@ -93,15 +93,12 @@ export function Slider({
 
 	const scope = useIdScope({ id: controlProps.id })
 
-	// Resolves size through the Density cascade: explicit prop > ambient Density.
-	// Outside any provider falls back to `'md'`, the recipe default.
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
 	return (
 		<input
 			type="range"
 			data-slot="slider"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			ref={ref}
 			id={scope.id}
 			disabled={controlProps.disabled}
@@ -116,7 +113,7 @@ export function Slider({
 			onChange={(event) => setInternal(Number(event.target.value))}
 			// The touched mark runs whatever the caller does (CONVENTIONS.md §3.9).
 			onBlur={composeEventHandlers(onBlur, setTouched, { checkForDefaultPrevented: false })}
-			className={cn(k({ size: resolvedSize, color }), className)}
+			className={cn(k({ color }), className)}
 			style={{ ...style, '--slider-value': `${percent}%` } as CSSProperties}
 			{...props}
 		/>

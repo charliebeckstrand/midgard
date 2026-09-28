@@ -2,8 +2,7 @@
 
 import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { k, type ProgressGaugeVariants } from '../../recipes/kata/progress'
 import type { AccessibleName } from '../../types'
@@ -37,7 +36,8 @@ export type ProgressGaugeProps = AccessibleName &
 /**
  * Circular (radial) progress indicator rendered as a `role="progressbar"` over
  * an SVG ring whose arc animates to the clamped percentage, with an optional
- * center readout. Resolves `size` against enclosing Density and respects
+ * center readout. The ring and the readout take the step of the nearest density
+ * scope, and an explicit `size` opens a scope on the root. It respects
  * reduced-motion.
  *
  * @remarks
@@ -55,8 +55,6 @@ export function ProgressGauge({
 	className,
 	...labelProps
 }: ProgressGaugeProps) {
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
 	const radius = (GAUGE_VIEW_BOX - strokeWidth) / 2
 
 	const percent = clamp(pct(value, 0, max), 0, 100)
@@ -70,12 +68,13 @@ export function ProgressGauge({
 	return (
 		<div
 			data-slot="progress-gauge"
+			data-density={size}
 			role="progressbar"
 			aria-valuenow={clamp(value, 0, max)}
 			aria-valuemin={0}
 			aria-valuemax={max}
 			{...labelProps}
-			className={cn(k.gauge.root({ size: resolvedSize }), className)}
+			className={cn(k.gauge.root(), className)}
 		>
 			<ReducedMotion>
 				<svg
@@ -111,7 +110,7 @@ export function ProgressGauge({
 			</ReducedMotion>
 
 			{resolvedLabel != null && resolvedLabel !== false && (
-				<span className={k.gauge.label({ size: resolvedSize })}>{resolvedLabel}</span>
+				<span className={k.gauge.label()}>{resolvedLabel}</span>
 			)}
 		</div>
 	)

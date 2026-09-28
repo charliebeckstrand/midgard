@@ -1,9 +1,8 @@
 'use client'
 
 import { type CSSProperties, type FocusEvent, type Ref, useEffect, useRef } from 'react'
-import { cn, dataAttr, invalidAttrs, toAmbientStep } from '../../../core'
+import { cn, dataAttr, invalidAttrs } from '../../../core'
 import { useIdScope } from '../../../hooks/use-id-scope'
-import { useDensityStep } from '../../../primitives/density'
 import { k, type RangeSliderVariants } from '../../../recipes/kata/slider-range'
 import { pct } from '../../../utilities'
 import { useControl } from '../../control/context'
@@ -78,8 +77,9 @@ export type RangeSliderProps = {
 /**
  * Dual-thumb range input over `[start, end]`; controlled or uncontrolled.
  * Builds the track, fill, and two `role="slider"` thumb buttons by hand (no
- * native `<input>`), and wires pointer drag and arrow-key stepping. `size`
- * resolves through the Density cascade. Crossing thumbs swap roles by default
+ * native `<input>`), and wires pointer drag and arrow-key stepping. The
+ * slider takes the step of the nearest density scope, and an explicit `size`
+ * opens a scope on the root. Crossing thumbs swap roles by default
  * under `allowCross`, and keyboard focus follows the moving value. Set it
  * `false` to clamp each thumb at the other. Each thumb carries `aria-valuemin`/`max`/`now` and a
  * `labels` name, with optional `getValueText` for `aria-valuetext`.
@@ -165,10 +165,6 @@ export function RangeSlider({
 		setTouched()
 	}
 
-	// Resolves size through the Density cascade: explicit prop > ambient Density,
-	// falling back to `'md'` outside any provider.
-	const resolvedSize = toAmbientStep(useDensityStep(size))
-
 	const trackRef = useRef<HTMLDivElement>(null)
 	const loThumbRef = useRef<HTMLButtonElement>(null)
 	const hiThumbRef = useRef<HTMLButtonElement>(null)
@@ -233,9 +229,10 @@ export function RangeSlider({
 			ref={ref}
 			id={scope.id}
 			data-slot="slider-range"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
-			className={cn(k.root({ size: resolvedSize, color }), className)}
+			className={cn(k.root({ color }), className)}
 			style={style}
 			onPointerDown={onPointerDown}
 			onPointerMove={onPointerMove}
@@ -248,7 +245,7 @@ export function RangeSlider({
 			<div
 				ref={trackRef}
 				data-slot="slider-range-track"
-				className={cn(k.track({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.track(), 'top-1/2 -translate-y-1/2')}
 			>
 				{/* Filled range */}
 				<div
@@ -273,7 +270,7 @@ export function RangeSlider({
 				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${lo}%` }}
 				onKeyDown={handleKeyDown(0)}
 			/>
@@ -293,7 +290,7 @@ export function RangeSlider({
 				aria-describedby={describedBy}
 				{...validation}
 				data-slot="slider-range-thumb"
-				className={cn(k.thumb({ size: resolvedSize }), 'top-1/2 -translate-y-1/2')}
+				className={cn(k.thumb(), 'top-1/2 -translate-y-1/2')}
 				style={{ left: `${hi}%` }}
 				onKeyDown={handleKeyDown(1)}
 			/>

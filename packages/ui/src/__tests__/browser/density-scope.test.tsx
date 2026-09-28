@@ -4,13 +4,18 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
 import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
+import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
 import { Label } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
 import { Placeholder } from '../../components/placeholder'
-import { SliderSkeleton } from '../../components/slider'
+import { ProgressBar, ProgressGauge } from '../../components/progress'
+import { Radio } from '../../components/radio'
+import { Rating } from '../../components/rating'
+import { Slider, SliderSkeleton } from '../../components/slider'
+import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { SidebarLayout } from '../../layouts/sidebar'
@@ -272,6 +277,86 @@ describe('controls at the first paint (real browser)', () => {
 		const container = mountMarkup(<Input aria-label="Name" suffix={<Button>Go</Button>} />)
 
 		expect(px(container.querySelector('[data-slot="button"]'), 'fontSize')).toBe(16)
+
+		container.remove()
+	})
+
+	it.each<[string, ReactElement, string]>([
+		['the root', <Input key="i" aria-label="Name" />, '9px'],
+		['an explicit size', <Input key="i" aria-label="Name" size="sm" />, '5px'],
+	])('rounds the inset fill of the input frame at the step of %s', (_, element, radius) => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		// The fill is the `::before` of the frame. Its radius is the frame radius less the ring.
+		const container = mountMarkup(element)
+
+		const frame = present(container.querySelector('[data-slot="control-frame"]'), 'frame')
+
+		expect(getComputedStyle(frame, '::before').borderTopLeftRadius).toBe(radius)
+
+		container.remove()
+	})
+
+	it('sizes the unsized toggles at the step of the root', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(
+			<>
+				<Checkbox aria-label="Agree" />
+				<Radio aria-label="Pick" />
+				<Switch aria-label="On" />
+			</>,
+		)
+
+		const widths = [...container.querySelectorAll('[data-slot="control"]')].map(
+			(control) => control.getBoundingClientRect().width,
+		)
+
+		expect(widths).toEqual([16, 16, 32])
+
+		container.remove()
+	})
+
+	it('sizes the native slider track at an explicit size of the slider', () => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		// The track is a pseudo-element, so its classes name the steps before it and keep the rung
+		// of the input itself. The content box of the input is the height of its track.
+		const container = mountMarkup(<Slider aria-label="Volume" size="lg" defaultValue={50} />)
+
+		const slider = present(container.querySelector('[data-slot="slider"]'), 'slider')
+
+		const { paddingTop, paddingBottom } = getComputedStyle(slider)
+
+		const track =
+			slider.getBoundingClientRect().height -
+			Number.parseFloat(paddingTop) -
+			Number.parseFloat(paddingBottom)
+
+		expect([paddingTop, track]).toEqual(['20px', 8])
+
+		container.remove()
+	})
+
+	it('sizes the rating and the progress indicators at the step of the root', () => {
+		document.documentElement.setAttribute('data-density', 'lg')
+
+		const container = mountMarkup(
+			<>
+				<Rating aria-label="Score" readOnly value={3} />
+				<ProgressBar aria-label="Upload" value={40} />
+				<ProgressGauge aria-label="Upload" value={40} />
+			</>,
+		)
+
+		const box = (slot: string) =>
+			present(container.querySelector(`[data-slot="${slot}"]`), slot).getBoundingClientRect()
+
+		expect(box('rating-star').width).toBe(24)
+
+		expect(box('progress-bar').height).toBe(16)
+
+		expect(box('progress-gauge').width).toBe(80)
 
 		container.remove()
 	})

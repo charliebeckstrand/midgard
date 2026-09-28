@@ -1,5 +1,5 @@
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
+import { hannou, kasane, kokkaku, narabi, type Step, sen } from '../kiso'
 import { control } from '../kiso/control'
 
 const { cursor, fg } = hannou
@@ -82,26 +82,13 @@ export const k = defineRecipe(
 			// input carries a data-* severity attribute.
 			...check.validation,
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
+			// The track and its thumb take the step of the nearest density scope.
+			'density-h-[5,6,7] density-w-[8,10,12]',
+			'*:data-[slot=switch-thumb]:density-size-[3,4,5]',
+			'has-checked:*:data-[slot=switch-thumb]:density-left-[4,5,6]',
 		],
 		color,
-		size: {
-			sm: [
-				'h-5 w-8',
-				'*:data-[slot=switch-thumb]:size-3',
-				'has-checked:*:data-[slot=switch-thumb]:left-4',
-			],
-			md: [
-				'h-6 w-10',
-				'*:data-[slot=switch-thumb]:size-4',
-				'has-checked:*:data-[slot=switch-thumb]:left-5',
-			],
-			lg: [
-				'h-7 w-12',
-				'*:data-[slot=switch-thumb]:size-5',
-				'has-checked:*:data-[slot=switch-thumb]:left-6',
-			],
-		},
-		defaults: { color: 'zinc', size: 'md' },
+		defaults: { color: 'zinc' },
 		skeleton: kokkaku.switch,
 	},
 	{
@@ -122,5 +109,5 @@ export const k = defineRecipe(
 	},
 )
 
-/** Recipe variant props for {@link Switch} — the styling axes its kata exposes (`color`, `size`), for consumers composing custom slots. */
-export type SwitchVariants = VariantProps<typeof k>
+/** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
+export type SwitchVariants = VariantProps<typeof k> & { size?: Step }
