@@ -8,15 +8,16 @@ import { useEffect } from 'react'
 const SETTLE_MS = 150
 
 /**
- * Holds the page at its top under the pinned {@link SidebarLayout}.
+ * Holds a page that cannot scroll at its top under {@link SidebarLayout}.
  *
- * @remarks The layout gives the page no height to scroll, but Chrome on iOS can
- * leave the page scrolled by the height of its top bar. The layout viewport then
- * stops at the end of the page, and the visual viewport goes past it. The pinned
- * layout stays with the layout viewport, so the bar covers the navbar, and the
- * body shows below the layout. A reload keeps the offset, and only a switch to
- * another tab and back clears it. So the hook scrolls the page back to its top
- * once the events stop.
+ * @remarks The page cannot scroll when the layout is pinned, from `lg` up, or when
+ * the content is short. Chrome on iOS can still leave such a page scrolled by the
+ * height of its top bar. It moves the scroll offset when its toolbar changes size,
+ * and it does not keep the offset in the scroll range. The layout viewport then
+ * stops at the end of the page, and the visual viewport goes past it. The layout
+ * stays with the layout viewport, so the bar covers the navbar, and the body
+ * shows below the layout. A reload keeps the offset, so the hook scrolls the page
+ * back to its top once the events stop.
  *
  * The hook does not move a page that has a height to scroll, a zoomed page, or
  * a page with the keyboard open. In each of these, the offset is intentional.

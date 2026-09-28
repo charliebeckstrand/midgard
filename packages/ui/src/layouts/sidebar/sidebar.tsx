@@ -8,6 +8,7 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
+	useRef,
 	useState,
 } from 'react'
 import { createPortal } from 'react-dom'
@@ -20,6 +21,7 @@ import { cn, createContext } from '../../core'
 import { useScrollWithin } from '../../hooks'
 import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
+import { useResizeObserver } from '../../hooks/use-resize-observer'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Flex } from '../../structure/flex'
 import { useSidebarPagePin } from './use-sidebar-page-pin'
@@ -54,10 +56,11 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link Drawer}. A content column hosts {@link SidebarLayoutHeader},
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
- * @remarks The layout is pinned to the viewport (`fixed inset-0`), so the page
- * itself does not scroll. Only the content region scrolls. When a browser leaves
- * the page scrolled all the same, as Chrome on iOS can, the layout scrolls the
- * page back to its top.
+ * @remarks Below `lg`, the page scrolls. The navbar sticks to the top, and with
+ * `stickyHeader` the header sticks below the navbar. From `lg` up, the layout is
+ * pinned to the viewport (`fixed inset-0`), and only the content region scrolls.
+ * When a page that cannot scroll reports a scroll offset, as Chrome on iOS can
+ * leave it, the layout scrolls the page back to its top.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating
@@ -80,6 +83,19 @@ export function SidebarLayout({
 	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
 
 	useSidebarPagePin()
+
+	const layoutRef = useRef<HTMLDivElement>(null)
+
+	const navbarRef = useRef<HTMLDivElement>(null)
+
+	// A sticky header sits below the sticky navbar, so the layout gives it the height
+	// of the navbar. The navbar is hidden from `lg` up, where its height is 0.
+	useResizeObserver(navbarRef, () => {
+		layoutRef.current?.style.setProperty(
+			'--sidebar-navbar-height',
+			`${navbarRef.current?.offsetHeight ?? 0}px`,
+		)
+	})
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
@@ -113,7 +129,7 @@ export function SidebarLayout({
 	const layoutValue = useMemo(() => ({ actions }), [actions])
 
 	return (
-		<div className={k.layout()}>
+		<div ref={layoutRef} className={k.layout()}>
 			{/* Hot zone to peek the floating sidebar */}
 			{floating && (
 				<div
@@ -176,7 +192,7 @@ export function SidebarLayout({
 			</Drawer>
 
 			{/* Navbar on mobile */}
-			<Flex align="center" className="density-p-[4,6,8] lg:p-0 lg:hidden">
+			<Flex ref={navbarRef} align="center" className={k.navbar()}>
 				<DrawerTrigger open={open} onClick={() => setOpen(true)}>
 					<Button
 						type="button"
@@ -220,13 +236,16 @@ export function SidebarLayoutHeader({ ref, children, className }: SidebarLayoutH
 	)
 }
 
-/** Props for {@link SidebarLayoutBody}; `ref` reaches the scrolling `<main>`. */
+/** Props for {@link SidebarLayoutBody}; `ref` reaches the `<main>`. */
 export type SidebarLayoutBodyProps = PropsWithChildren<{
 	className?: string
 	ref?: Ref<HTMLElement>
 }>
 
-/** Main content slot for {@link SidebarLayout} (`data-slot="body"`). */
+/**
+ * Main content slot for {@link SidebarLayout} (`data-slot="body"`). From `lg` up,
+ * it scrolls between the header and the footer. Below `lg`, it scrolls with the page.
+ */
 export function SidebarLayoutBody({ ref, children, className }: SidebarLayoutBodyProps) {
 	return (
 		<main ref={ref} data-slot="body" className={cn(k.body(), className)}>
