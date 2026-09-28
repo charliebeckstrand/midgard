@@ -5,9 +5,9 @@ import { PlacesApp } from '@/components/places-app'
 import { mimir } from '@/server/mimir'
 
 /**
- * The page reads the session, the places, and the visits before it renders, so
- * a navigation into it waits for the gateway. This lets the route block. The
- * reads move into a `<Suspense>` boundary in a later change.
+ * The page reads the session, the places, and the visits before it renders. The
+ * route blocks, because the app must know the places and the visits on the
+ * first frame, as the comment of the page tells.
  */
 export const instant = false
 

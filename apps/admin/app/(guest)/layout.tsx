@@ -3,9 +3,9 @@ import { redirect } from 'next/navigation'
 import type { ReactNode } from 'react'
 
 /**
- * The layout reads the session before it renders, so a navigation into it waits for the
- * gateway. This lets the route block. The read moves into a `<Suspense>`
- * boundary in a later change.
+ * The layout reads the session to send a signed-in user away from the sign-in
+ * pages. The route blocks, so that a signed-in user does not see the form
+ * before the redirect.
  */
 export const instant = false
 

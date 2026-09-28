@@ -3,9 +3,8 @@ import { redirect } from 'next/navigation'
 import { secondFactorMethods, VerifyPage } from 'shared/auth'
 
 /**
- * The page reads the session and the second factors before it renders, so a navigation into it waits for the
- * gateway. This lets the route block. The read moves into a `<Suspense>`
- * boundary in a later change.
+ * The page reads the session and the second factors to select a redirect or the
+ * form. The route blocks, so that no fallback shows before a redirect.
  */
 export const instant = false
 
