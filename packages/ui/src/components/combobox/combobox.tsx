@@ -579,6 +579,9 @@ export function Combobox<T>({
 
 	const triggerHandlers = useComboboxTrigger({ open, close, setOpen: setOpenGuarded, inputRef })
 
+	// A disabled or read-only combobox takes no press on its chrome.
+	const inert = resolvedDisabled || resolvedReadOnly
+
 	const scrollWithin = useScrollWithin()
 
 	const scrollToSelected = useCallback(
@@ -596,7 +599,7 @@ export function Combobox<T>({
 		? Array.isArray(value) && value.length > 0
 		: value !== undefined && !Array.isArray(value)
 
-	const showClear = clearable && hasValue && !resolvedDisabled && !resolvedReadOnly
+	const showClear = clearable && hasValue && !inert
 
 	const clearSuffix = showClear ? (
 		<InputClearButton
@@ -656,6 +659,12 @@ export function Combobox<T>({
 						data-group={dataGroup}
 						data-group-orientation={dataGroupOrientation}
 						data-slot={slot}
+						frameProps={{
+							// The rounded corners of the input do not take a press, so the
+							// press falls through to the frame. The frame then toggles the
+							// menu, as the chevron does.
+							onMouseDown: inert ? undefined : triggerHandlers.onFrameMouseDown,
+						}}
 						prefix={prefix}
 						suffix={suffix || clearSuffix || <Icon icon={<ChevronsUpDown />} />}
 						suffixProps={{
@@ -665,8 +674,7 @@ export function Combobox<T>({
 							// LoadingSpinner) owns its own semantics. Interactive suffix
 							// content (the clear button) stops propagation to opt out.
 							'aria-hidden': suffix || showClear ? undefined : true,
-							onMouseDown:
-								resolvedDisabled || resolvedReadOnly ? undefined : triggerHandlers.onMouseDown,
+							onMouseDown: inert ? undefined : triggerHandlers.onMouseDown,
 						}}
 					>
 						<ComboboxInput

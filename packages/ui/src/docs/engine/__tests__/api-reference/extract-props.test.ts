@@ -213,6 +213,27 @@ describe('extractProps — type display', () => {
 		expect(p.references?.BoxOutline).toBeDefined()
 	})
 
+	it('gives a reference card to an alias that the component file does not import', () => {
+		const p = prop(
+			propsOf({
+				'types.ts': [
+					`export type Anchor = { x: number; y: number }`,
+					`export type FooProps = { anchor?: Anchor }`,
+				].join('\n'),
+				'index.ts': [
+					`import type { FooProps } from './types'`,
+					`function Foo(props: FooProps) { return null }`,
+				].join('\n'),
+			}),
+			'anchor',
+		)
+
+		// `Anchor` is in scope where the prop is declared, not where `Foo` is.
+		expect(p.type).toBe('Anchor')
+
+		expect(p.references?.Anchor).toContain('x: number')
+	})
+
 	it('shows the intersected type of a prop that two intersection arms declare', () => {
 		const props = propsOf(
 			[

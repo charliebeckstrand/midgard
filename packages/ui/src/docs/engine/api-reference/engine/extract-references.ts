@@ -54,26 +54,37 @@ const ENGINE_PATH_SEGMENT = '/core/recipe/engine/'
  * Scope is project source only: `node_modules`, React/DOM typings, recipe
  * engine internals, and built-in utility types (`Array`, `Pick`, …) are
  * excluded.
+ *
+ * @param location - The component's call site. A top-level name resolves from
+ *   its scope.
+ * @param declarationFile - The file that declares the prop. A top-level name
+ *   resolves there first, because that file imports or declares the prop's
+ *   types. The component's own file often imports only its props alias.
  */
 export function extractReferences(
 	formattedType: string,
 	location: ts.Node,
 	checker: ts.TypeChecker,
+	declarationFile?: ts.SourceFile,
 ): Record<string, string> | undefined {
 	const refs: Record<string, string> = {}
 
-	// Each entry carries its resolution scope: top-level names resolve from
-	// the component's call-site; recursively discovered names resolve from
-	// their defining site.
-	const queue: { name: string; from: ts.Node }[] = collectTypeNames(formattedType).map((name) => ({
-		name,
-		from: location,
-	}))
+	// Each entry carries its resolution scopes, tried in order: top-level names
+	// resolve from the prop's declaring file, then the component's call site;
+	// recursively discovered names resolve from their defining site.
+	const topLevel =
+		declarationFile && declarationFile !== location.getSourceFile()
+			? [declarationFile, location]
+			: [location]
+
+	const queue: { name: string; from: readonly ts.Node[] }[] = collectTypeNames(formattedType).map(
+		(name) => ({ name, from: topLevel }),
+	)
 
 	const visited = new Set<string>()
 
 	while (queue.length > 0) {
-		const entry = queue.shift() as { name: string; from: ts.Node }
+		const entry = queue.shift() as { name: string; from: readonly ts.Node[] }
 
 		if (visited.has(entry.name)) continue
 
@@ -86,7 +97,7 @@ export function extractReferences(
 		refs[entry.name] = resolved.text
 
 		for (const next of collectTypeNames(resolved.text)) {
-			if (!visited.has(next)) queue.push({ name: next, from: resolved.declaration })
+			if (!visited.has(next)) queue.push({ name: next, from: [resolved.declaration] })
 		}
 	}
 
@@ -124,8 +135,8 @@ function collectTypeNames(text: string): string[] {
 /**
  * Type-visible symbols at a node, indexed by name. `getSymbolsInScope` returns
  * thousands of symbols and is the dominant per-component cost. Every top-level
- * name resolves from the same `callable` node, and every transitively
- * discovered name from the same declaration. So one scan per node, memoized
+ * name resolves from the same declaring file or `callable` node, and every
+ * transitively discovered name from the same declaration. So one scan per node, memoized
  * here, serves every lookup against it. The `name → symbol` map turns each
  * lookup from a linear scan into O(1). The outer key is the checker, so entries
  * never outlive the program that produced them. Each program yields fresh nodes
@@ -167,15 +178,27 @@ function scopeIndex(location: ts.Node, checker: ts.TypeChecker): Map<string, ts.
 	return index
 }
 
+/** Resolve `name` in the first of `scopes` that binds it to a project alias or interface. */
 function resolveAliasDefinition(
 	name: string,
-	location: ts.Node,
+	scopes: readonly ts.Node[],
 	checker: ts.TypeChecker,
 ): { text: string; declaration: ts.Node } | null {
-	const symbol = scopeIndex(location, checker).get(name)
+	for (const scope of scopes) {
+		const symbol = scopeIndex(scope, checker).get(name)
 
-	if (!symbol) return null
+		const resolved = symbol ? resolveSymbolDefinition(symbol, checker) : null
 
+		if (resolved) return resolved
+	}
+
+	return null
+}
+
+function resolveSymbolDefinition(
+	symbol: ts.Symbol,
+	checker: ts.TypeChecker,
+): { text: string; declaration: ts.Node } | null {
 	const aliased = unaliasSymbol(symbol, checker)
 
 	for (const decl of aliased.getDeclarations() ?? []) {

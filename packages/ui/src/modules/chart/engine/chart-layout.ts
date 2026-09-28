@@ -370,6 +370,9 @@ export type ChartValueAxisInput = {
 	title?: string
 }
 
+/** A drawn category label: its width, and its text as it draws. @internal */
+export type BandLabel = { width: TextWidth; fit: (label: string) => string }
+
 /** The resolved inputs both {@link verticalLayout} and {@link horizontalLayout} read. @internal */
 export type CartesianLayoutInput = {
 	frameWidth: number
@@ -392,6 +395,14 @@ export type CartesianLayoutInput = {
 	value2?: ChartValueAxisInput
 	/** The category label per row — the band axis, and the gutter estimate when horizontal. */
 	categories: string[]
+	/**
+	 * The drawn category label, for the horizontal layout's left gutter. `width`
+	 * gives the width of a label, and `fit` gives the label as it draws, cut with an
+	 * ellipsis to the gutter. Unset, the gutter estimates the labels at {@link
+	 * TICK_CHAR_WIDTH} for each character and draws them whole. The vertical layout
+	 * ignores it.
+	 */
+	bandLabel?: BandLabel
 	/**
 	 * The band (category) axis's title, drawn past its labels with a band reserved
 	 * for it. It sits under them when vertical, and rotates into the left gutter
@@ -683,6 +694,10 @@ function endBandTicks(categories: string[], band: BandScale): ChartAxisTick[] {
  * axis keeps its calendar ticks over `'ends'`, since its own tick target already
  * thins them to a few in a small frame.
  *
+ * `fit` gives each category label as it draws. The horizontal layout passes it
+ * to cut a label to its gutter. It does not apply to the calendar ticks, whose
+ * labels the gutter does not size to.
+ *
  * @internal
  */
 function bandAxisTicks(
@@ -692,6 +707,7 @@ function bandAxisTicks(
 	slot: number,
 	mode: ChartBandAxisMode,
 	tilt = false,
+	fit?: (label: string) => string,
 ): ChartAxisTick[] {
 	if (mode === 'off') return []
 
@@ -707,9 +723,12 @@ function bandAxisTicks(
 		if (ticks) return ticks
 	}
 
-	if (mode === 'ends') return endBandTicks(input.categories, band)
+	const ticks =
+		mode === 'ends'
+			? endBandTicks(input.categories, band)
+			: bandTicksOf(input.categories, band, axisLength, slot, tilt)
 
-	return bandTicksOf(input.categories, band, axisLength, slot, tilt)
+	return fit ? ticks.map((tick) => ({ ...tick, label: fit(tick.label) })) : ticks
 }
 
 /** One value axis's scale over its inputs, or `null` when nothing yields a domain. @internal */
@@ -1149,7 +1168,13 @@ function horizontalBandGutter(
 ): { gutter: number; bandTitle: string | undefined } {
 	const bandTitle = drawBand ? input.bandTitle : undefined
 
-	const labels = drawBand ? tickGutter(shownBandLabels(categories, bandMode)) : 0
+	const shown = drawBand ? shownBandLabels(categories, bandMode) : []
+
+	const labels = !drawBand
+		? 0
+		: input.bandLabel
+			? labelGutter(shown, input.bandLabel.width)
+			: tickGutter(shown)
 
 	return { gutter: labels + (bandTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0), bandTitle }
 }
@@ -1239,7 +1264,15 @@ export function horizontalLayout(input: CartesianLayoutInput): CartesianLayout {
 		value2Baseline: zeroOf(value2Scale, valueScale, plot.x),
 		valueTicks: valueScale && input.value ? valueTicksOf(valueScale, input.value.format) : [],
 		value2Ticks: value2Scale && input.value2 ? valueTicksOf(value2Scale, input.value2.format) : [],
-		bandTicks: bandAxisTicks(input, band, plot.height, BAND_LABEL_HEIGHT, bandMode),
+		bandTicks: bandAxisTicks(
+			input,
+			band,
+			plot.height,
+			BAND_LABEL_HEIGHT,
+			bandMode,
+			false,
+			input.bandLabel?.fit,
+		),
 		bandPositions: bandCenters(band, count),
 		snapPoints: snapPointsOf(scales, count, input.visibleValues),
 		snapSeries: snapSeriesOf(scales, count, input.visibleValues),

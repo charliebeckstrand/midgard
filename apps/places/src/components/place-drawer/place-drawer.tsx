@@ -1,7 +1,7 @@
 'use client'
 
-import { Pencil, Trash, X } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { CalendarDays, Globe, MapPin, Pencil, Trash, X } from 'lucide-react'
+import { type ReactElement, type ReactNode, useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
@@ -68,6 +68,39 @@ function PlaceMeta({ place }: { place: Place }) {
 			<Text as="span">{fromDay(place.visitedAt).toLocaleDateString()}</Text>
 
 			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
+		</Flex>
+	)
+}
+
+/**
+ * The category and the score of one open place, under the trail. The visit
+ * date is not on this line. The date is a fact about the visit, so it goes
+ * with the other facts in the body.
+ */
+function PlaceScore({ place }: { place: Place }) {
+	const category = CATEGORY_BY_VALUE.get(place.category)
+
+	return (
+		<Flex gap="sm" align="center" wrap>
+			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
+
+			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
+		</Flex>
+	)
+}
+
+/**
+ * One fact about a place, with an icon that names the fact. The icon box is one
+ * line high, so the icon stays on the first line when the text wraps.
+ */
+function PlaceFact({ icon, children }: { icon: ReactElement; children: ReactNode }) {
+	return (
+		<Flex gap="sm" align="start">
+			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
+				<Icon icon={icon} />
+			</Text>
+
+			<div className="min-w-0 break-words">{children}</div>
 		</Flex>
 	)
 }
@@ -260,7 +293,7 @@ export function PlaceDrawer({
 
 					<PlaceTrail className="text-base/7" steps={steps} />
 
-					{place ? <PlaceMeta place={place} /> : null}
+					{place ? <PlaceScore place={place} /> : null}
 				</Stack>
 
 				<DrawerClose>
@@ -298,13 +331,26 @@ export function PlaceDrawer({
 							/>
 						) : null}
 
-						<Text>{place.address}</Text>
+						<Stack gap="sm">
+							<PlaceFact icon={<MapPin />}>
+								<Text>{place.address}</Text>
+							</PlaceFact>
 
-						{place.url ? (
-							<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
-								{place.url}
-							</Link>
-						) : null}
+							{place.url ? (
+								<PlaceFact icon={<Globe />}>
+									<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
+										{place.url}
+									</Link>
+								</PlaceFact>
+							) : null}
+
+							<PlaceFact icon={<CalendarDays />}>
+								<Text>
+									Visited{' '}
+									{fromDay(place.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })}
+								</Text>
+							</PlaceFact>
+						</Stack>
 
 						{place.review ? (
 							<>

@@ -134,7 +134,14 @@ function buildPropDef(
 
 	// Inlined literal unions carry no named references; skip resolution so they
 	// surface no card.
-	const references = literalUnion ? undefined : extractReferences(prop.type, callable, checker)
+	const references = literalUnion
+		? undefined
+		: extractReferences(
+				prop.type,
+				callable,
+				checker,
+				symbol.getDeclarations()?.[0]?.getSourceFile(),
+			)
 
 	if (references) prop.references = references
 

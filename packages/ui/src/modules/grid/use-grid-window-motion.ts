@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useCallback, useEffect, useState } from 'react'
+import { type RefObject, useCallback, useEffect, useLayoutEffect, useState } from 'react'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import type { GridRowMotion } from './engine/grid-items/items'
 import { type GridWindowRecord, type GridWindowView, gridWindowView } from './use-grid-item-window'
@@ -28,28 +28,48 @@ export type GridMotionChange<K> = {
 }
 
 /**
- * How a body reads its toggles. `capture` takes a snapshot of the live source,
- * such as the expansion of each group. `same` tells whether the live source
- * still matches a snapshot, with no allocation. `toggle` maps a change of the
- * snapshot to a {@link GridMotionChange}.
+ * The groups or keys that one change of the source opens and closes. A group
+ * is what a body toggles: a group of rows, or one detail panel.
  *
  * @internal
  */
-export type GridMotionSource<L, S, K> = {
+export type GridMotionFlips<G> = { opened: G[]; closed: G[] }
+
+/**
+ * How a body reads its toggles. `capture` takes a snapshot of the live source,
+ * such as the expansion of each group. `same` tells whether the live source
+ * still matches a snapshot, with no allocation. `flips` finds the groups that
+ * open and close between a snapshot and the live source. It reads no window.
+ * `resolve` maps the flips to a {@link GridMotionChange} from the last
+ * committed window. With no window, which is the case under reduced motion,
+ * it keeps no closing row and makes no row enter.
+ *
+ * @internal
+ */
+export type GridMotionSource<L, S, G, K> = {
 	capture: (live: L) => S
 	same: (captured: S, live: L) => boolean
-	toggle: (
-		previous: S,
-		live: L,
-		context: { view: () => GridWindowView; reducedMotion: boolean },
-	) => GridMotionChange<K>
+	flips: (previous: S, live: L) => GridMotionFlips<G>
+	resolve: (flips: GridMotionFlips<G>, view: GridWindowView | null) => GridMotionChange<K>
 }
 
 /**
- * The state of {@link useGridWindowMotion}: the last snapshot and the motion
+ * A toggle that waits for the window: the live source, its snapshot, and the
+ * flips from the applied source. @internal
+ */
+type PendingToggle<L, S, G> = { live: L; captured: S; flips: GridMotionFlips<G> }
+
+/**
+ * The state of {@link useGridWindowMotion}: the source that the rows render
+ * from and its snapshot, the toggle that waits for the window, and the motion
  * of each row. @internal
  */
-type MotionState<S, K> = { captured: S; motions: ReadonlyMap<K, GridRowMotion> }
+type MotionState<L, S, G, K> = {
+	applied: L
+	captured: S
+	pending: PendingToggle<L, S, G> | null
+	motions: ReadonlyMap<K, GridRowMotion>
+}
 
 /** Whether any row in `motions` has `phase`. @internal */
 function hasPhase<K>(motions: ReadonlyMap<K, GridRowMotion>, phase: GridRowMotion['phase']) {
@@ -84,41 +104,93 @@ function applyChange<K>(
 	return next
 }
 
+/** Whether `flips` opens or closes nothing. @internal */
+function noFlips<G>(flips: GridMotionFlips<G>) {
+	return flips.opened.length + flips.closed.length === 0
+}
+
 /**
  * Tracks the open and close motion of the rows of a windowed body. A body
- * supplies only its toggle mapping in `source`.
+ * supplies only its toggle mapping in `source`, and it renders its rows from
+ * `applied`, not from `live`.
  *
- * @remarks The hook adjusts its state during render, so the commit that a
- * toggle starts already holds the closing and the entering rows. The entering
- * rows lose their motion after that commit, because a row that mounts later,
- * as the reader scrolls, mounts open. `release` drops a closing row once its
- * reveal lands, and a fallback timer drops each closing row that sends no
- * `transitionend`. The toggle reads the last committed window from `record`,
- * and it reads reduced motion live.
+ * @remarks A toggle takes two commits before the paint. The render finds the
+ * flips and reads no window. The first commit keeps the applied source, so
+ * each row keeps its item, its key, and its node, and the window does not
+ * move. A layout effect of that commit reads the window that the reader sees,
+ * resolves the flips to the closing and the entering rows, and applies the
+ * live source. React commits that update before the paint. A closing row thus
+ * keeps its node from the toggle until its reveal lands, and an entering row
+ * mounts once, closed.
+ *
+ * A change that flips nothing, such as a new filter, and a toggle under
+ * reduced motion need no window. The render applies them, in one commit.
+ *
+ * The entering rows lose their motion after the commit that mounts them,
+ * because a row that mounts later, as the reader scrolls, mounts open.
+ * `release` drops a closing row once its reveal lands, and a fallback timer
+ * drops each closing row that sends no `transitionend`. The hook reads
+ * reduced motion live.
  *
  * @internal
  */
-export function useGridWindowMotion<L, S, K>(
+export function useGridWindowMotion<L, S, G, K>(
 	live: L,
-	source: GridMotionSource<L, S, K>,
-	record: RefObject<GridWindowRecord>,
+	source: GridMotionSource<L, S, G, K>,
+	recordRef: RefObject<GridWindowRecord>,
 	scrollRef: RefObject<HTMLElement | null>,
 ) {
 	const reducedMotion = usePrefersReducedMotion()
 
-	const [state, setState] = useState<MotionState<S, K>>(() => ({
+	const [state, setState] = useState<MotionState<L, S, G, K>>(() => ({
+		applied: live,
 		captured: source.capture(live),
+		pending: null,
 		motions: new Map(),
 	}))
 
-	if (!source.same(state.captured, live)) {
-		const change = source.toggle(state.captured, live, {
-			view: () => gridWindowView(record.current, scrollRef.current),
-			reducedMotion,
-		})
+	// The flips count from the applied source, so a second change before the
+	// window resolves the first one keeps both.
+	if (!source.same(state.pending?.captured ?? state.captured, live)) {
+		const flips = source.flips(state.captured, live)
 
-		setState({ captured: source.capture(live), motions: applyChange(state.motions, change) })
+		const captured = source.capture(live)
+
+		if (reducedMotion || noFlips(flips)) {
+			setState({
+				applied: live,
+				captured,
+				pending: null,
+				motions: applyChange(state.motions, source.resolve(flips, null)),
+			})
+		} else {
+			setState({ ...state, pending: { live, captured, flips } })
+		}
 	}
+
+	const { pending } = state
+
+	// The commit of a toggle still shows the applied source, so the window that
+	// the record holds is the window that the reader sees.
+	useLayoutEffect(() => {
+		if (!pending) return
+
+		const change = source.resolve(
+			pending.flips,
+			gridWindowView(recordRef.current, scrollRef.current),
+		)
+
+		setState((current) =>
+			current.pending === pending
+				? {
+						applied: pending.live,
+						captured: pending.captured,
+						pending: null,
+						motions: applyChange(current.motions, change),
+					}
+				: current,
+		)
+	}, [pending, source, recordRef, scrollRef])
 
 	const { motions } = state
 
@@ -160,5 +232,5 @@ export function useGridWindowMotion<L, S, K>(
 		[],
 	)
 
-	return { motions, release }
+	return { applied: state.applied, motions, release }
 }

@@ -87,6 +87,21 @@ export function barCharts(seriesCount: number): Subject<TrendData>[] {
 	]
 }
 
+/** The ui grouped-bar chart turned on its side, so the categories line the left gutter. */
+export function horizontalBarCharts(seriesCount: number): Subject<TrendData>[] {
+	return [
+		reactSubject('ui BarChart horizontal', (data) => (
+			<BarChart
+				aria-label="Bench horizontal bar"
+				data={data.rows}
+				series={trendSeries(seriesCount)}
+				orientation="horizontal"
+				width={WIDTH}
+			/>
+		)),
+	]
+}
+
 /** The ui scatter chart over numeric x/y points. */
 export function scatterCharts(): Subject<PointData>[] {
 	const series: ScatterChartSeries<PointRow>[] = [{ xKey: 'x', yKey: 'y', yName: 'Points' }]

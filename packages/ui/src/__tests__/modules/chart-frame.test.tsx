@@ -255,6 +255,31 @@ describe('cartesian layout', () => {
 		}
 	})
 
+	it('sizes the horizontal gutter from the drawn band labels and cuts one past the room', () => {
+		// A drawn label wider than the room comes back cut, and its cut width fills
+		// the room. The gutter then stops at GUTTER_MAX.
+		const bandLabel = {
+			width: (label: string) => (label === 'Organic search' ? GUTTER_LABEL_ROOM : 40),
+			fit: (label: string) => (label === 'Organic search' ? 'Organic se…' : label),
+		}
+
+		const layout = horizontalLayout({
+			...input,
+			count: 2,
+			categories: ['Organic search', 'Direct'],
+			bandLabel,
+		})
+
+		expect(layout.plot.x).toBe(GUTTER_MAX)
+
+		expect(layout.bandTicks.map((tick) => tick.label)).toEqual(['Organic se…', 'Direct'])
+
+		// Short labels hold only their width and the gap.
+		const short = horizontalLayout({ ...input, count: 2, categories: ['Q1', 'Q2'], bandLabel })
+
+		expect(short.plot.x).toBe(40 + GUTTER_GAP)
+	})
+
 	it('names the series behind each snap stop, aligned to the points through a gap', () => {
 		// Series 0 drops out at the second category, so its stop vanishes there; the
 		// positions and the series map must drop it from the very same slot, or the

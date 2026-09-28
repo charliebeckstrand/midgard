@@ -43,7 +43,7 @@ function useBodyRowCount<T>(args: {
 	groups: GridGroup<T>[] | null
 	groupTotalRow: boolean | undefined
 	columns: GridColumn<T>[]
-	expanded: Set<string | number> | undefined
+	expanded: ReadonlySet<string | number> | undefined
 	rowExpandable: ((row: T) => boolean) | undefined
 }): number {
 	const { virtualize, rows, rowKeys, groups, groupTotalRow, columns } = args

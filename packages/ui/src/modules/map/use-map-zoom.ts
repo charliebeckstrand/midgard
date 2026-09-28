@@ -6,6 +6,7 @@ import {
 	type RefObject,
 	useCallback,
 	useEffect,
+	useLayoutEffect,
 	useRef,
 	useState,
 } from 'react'
@@ -160,6 +161,13 @@ export function useMapZoom({
 	subject,
 	onViewChange,
 }: MapZoomOptions): MapZoom | null {
+	// The subject rides with the transform rather than beside it, so a geography
+	// swap and the view it invalidates land in one write — and the reset happens
+	// during render, before the stale transform can paint. Gated on the zoom below,
+	// so a map that does not zoom never takes the extra render-phase pass. Declared
+	// above the settings read, so that call cannot widen the setter's range.
+	const [held, setHeld] = useState({ subject, transform: MAP_FIT_TRANSFORM })
+
 	const settings = mapZoomSettings(zoom)
 
 	const max = settings?.max ?? 0
@@ -168,12 +176,6 @@ export function useMapZoom({
 	// fresh object every render, and the wheel's listener keys its binding on
 	// this — an object there would re-bind it on every gesture commit.
 	const modifier = settings?.modifier ?? null
-
-	// The subject rides with the transform rather than beside it, so a geography
-	// swap and the view it invalidates land in one write — and the reset happens
-	// during render, before the stale transform can paint. Gated on the zoom, so
-	// a map that does not zoom never takes the extra render-phase pass.
-	const [held, setHeld] = useState({ subject, transform: MAP_FIT_TRANSFORM })
 
 	if (settings !== null && held.subject !== subject) {
 		setHeld({ subject, transform: MAP_FIT_TRANSFORM })
@@ -200,7 +202,12 @@ export function useMapZoom({
 	// pointer sequence outlives the render it began on.
 	const live = useRef({ transform, view, max })
 
-	live.current = { transform, view, max }
+	// Synced in a layout effect, ahead of the effects below and of any event. Only
+	// events read it, and the keyboard cursor drives the view from a keypress, so
+	// no reader runs between the render and this write.
+	useLayoutEffect(() => {
+		live.current = { transform, view, max }
+	}, [transform, view, max])
 
 	// Memoized because the wheel effect below depends on it; every other handler
 	// here lands on a freshly built object each render and feeds no dependency
@@ -301,6 +308,71 @@ export function useMapZoom({
 
 	useMapTouchPinch(settings !== null && modifier !== null, svgRef, view, pointers)
 
+	/**
+	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
+	 * change in their spread scales about where the midpoint now sits. Both halves
+	 * matter. A two-finger drag at a constant spread is a pan. On a map that
+	 * leaves one-finger touch to the page, it is the only pan touch has.
+	 */
+	function pinch(first: MapPoint2D, second: MapPoint2D) {
+		const { transform: from, view: frame, max: limit } = live.current
+
+		const middle = pointerMidpoint(first, second)
+
+		const gap = pointerGap(first, second)
+
+		const before = spread.current
+
+		const previous = midpoint.current
+
+		spread.current = gap
+
+		midpoint.current = middle
+
+		const box = gestureBox.current
+
+		const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
+
+		const focus = box === null ? null : clientToFrame(middle, box, frame.width, frame.height)
+
+		if (before === null || before === 0 || previous === null || focus === null || scale === 0) {
+			return
+		}
+
+		panned.current = true
+
+		setGesturing(true)
+
+		// Panned first, then scaled about where the midpoint now sits, so the ground
+		// under the fingers stays under them however the pair moves and spreads.
+		const traveled = panTransform(
+			from,
+			(middle.x - previous.x) / scale,
+			(middle.y - previous.y) / scale,
+			frame,
+		)
+
+		commit(zoomTransform(traveled, focus, gap / before, frame, limit))
+	}
+
+	/** Applies the pinch to where the first two pointers are now. */
+	function applyPinch() {
+		pinchFrame.current = null
+
+		const [first, second] = [...pointers.current.values()]
+
+		if (first !== undefined && second !== undefined) pinch(first, second)
+	}
+
+	/** Applies a pinch that waits for its frame, now. */
+	function flushPinch() {
+		if (pinchFrame.current === null) return
+
+		cancelAnimationFrame(pinchFrame.current)
+
+		applyPinch()
+	}
+
 	function release(event: PointerEvent<HTMLElement>) {
 		// The travel before the lift is part of the pinch, so it applies first.
 		flushPinch()
@@ -347,6 +419,13 @@ export function useMapZoom({
 		cursorHold.start()
 	}
 
+	/** Reads the SVG's box once, when the gesture starts. See {@link gestureBox}. */
+	function measureGesture() {
+		if (gestureBox.current !== null) return
+
+		gestureBox.current = svgRef.current?.getBoundingClientRect() ?? null
+	}
+
 	function onPointerDown(event: PointerEvent<HTMLElement>) {
 		// A right-click opens the region menu the plat reports for; only the
 		// primary button drives the view.
@@ -365,7 +444,7 @@ export function useMapZoom({
 
 		panned.current = false
 
-		gestureBox.current ??= svgRef.current?.getBoundingClientRect() ?? null
+		measureGesture()
 
 		// In modifier mode the page keeps one-finger touch, so a lone touch never
 		// starts a pan and the browser scrolls with it; two fingers still pan and
@@ -385,53 +464,6 @@ export function useMapZoom({
 
 			midpoint.current = pointerMidpoint(first, second)
 		}
-	}
-
-	/**
-	 * Moves the view by what two pointers did: the midpoint's travel pans, and the
-	 * change in their spread scales about where the midpoint now sits. Both halves
-	 * matter. A two-finger drag at a constant spread is a pan. On a map that
-	 * leaves one-finger touch to the page, it is the only pan touch has.
-	 */
-	function pinch(first: MapPoint2D, second: MapPoint2D) {
-		const { transform: from, view: frame, max: limit } = live.current
-
-		const middle = pointerMidpoint(first, second)
-
-		const gap = pointerGap(first, second)
-
-		const before = spread.current
-
-		const previous = midpoint.current
-
-		spread.current = gap
-
-		midpoint.current = middle
-
-		const box = gestureBox.current
-
-		const scale = box === null ? 0 : frameScale(box, frame.width, frame.height)
-
-		const focus = box === null ? null : clientToFrame(middle, box, frame.width, frame.height)
-
-		if (before === null || before === 0 || previous === null || focus === null || scale === 0) {
-			return
-		}
-
-		panned.current = true
-
-		setGesturing(true)
-
-		// Panned first, then scaled about where the midpoint now sits, so the ground
-		// under the fingers stays under them however the pair moves and spreads.
-		const traveled = panTransform(
-			from,
-			(middle.x - previous.x) / scale,
-			(middle.y - previous.y) / scale,
-			frame,
-		)
-
-		commit(zoomTransform(traveled, focus, gap / before, frame, limit))
 	}
 
 	/** Moves the view by one pointer's travel, once the press has become a pan. */
@@ -491,25 +523,7 @@ export function useMapZoom({
 
 		hold(event)
 
-		pinchFrame.current ??= requestAnimationFrame(applyPinch)
-	}
-
-	/** Applies the pinch to where the first two pointers are now. */
-	function applyPinch() {
-		pinchFrame.current = null
-
-		const [first, second] = [...pointers.current.values()]
-
-		if (first !== undefined && second !== undefined) pinch(first, second)
-	}
-
-	/** Applies a pinch that waits for its frame, now. */
-	function flushPinch() {
-		if (pinchFrame.current === null) return
-
-		cancelAnimationFrame(pinchFrame.current)
-
-		applyPinch()
+		if (pinchFrame.current === null) pinchFrame.current = requestAnimationFrame(applyPinch)
 	}
 
 	// A drag ends over whatever region it happens to land on, and the click that
