@@ -1,5 +1,4 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { k as sidebarLayout } from '../../layouts/sidebar/variants'
@@ -35,12 +34,14 @@ import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-so
 // Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
 // step and no JS code selects it. Two rules hold that design:
 //
-//   - No recipe of the component has a `size` or a `density` axis.
+//   - No recipe of the component has a `size` or a `density` axis. The recipes
+//     below hold this rule.
 //   - The component reads no density context. An explicit `size` becomes a
-//     scope (the `density` prop of PolymorphicStatic or Box), not a lookup.
+//     scope (the `density` prop of PolymorphicStatic or Box), not a lookup. The
+//     reader allowlists at the end of this file hold this rule for each file.
 //
-// To move a component onto the variants, add its recipes and its files here.
-// Then the gate stops a later change that selects the step in JS again.
+// To move a component onto the variants, add its recipes here. Then the gate
+// stops a later change that selects the step in JS again.
 
 const NATIVE_RECIPES = {
 	badge,
@@ -82,67 +83,6 @@ const NATIVE_RECIPES = {
 	'tree item': tree.item.content,
 }
 
-const NATIVE_FILES = [
-	'components/badge/badge.tsx',
-	'components/button/button.tsx',
-	'components/calendar/calendar-picker.tsx',
-	'components/calendar/calendar.tsx',
-	'components/card/card-footer.tsx',
-	'components/card/card-header.tsx',
-	'components/card/card-title.tsx',
-	'components/card/card.tsx',
-	'components/checkbox/checkbox.tsx',
-	'components/color/color-panel.tsx',
-	'components/color/color-picker.tsx',
-	'components/combobox/combobox.tsx',
-	'components/date-picker/date-picker-footer.tsx',
-	'components/date-picker/date-picker.tsx',
-	'components/drawer/drawer.tsx',
-	'components/fieldset/description.tsx',
-	'components/fieldset/label.tsx',
-	'components/fieldset/message.tsx',
-	'components/group/group.tsx',
-	'components/heading/heading-skeleton.tsx',
-	'components/heading/heading.tsx',
-	'components/icon/icon.tsx',
-	'components/list/list-item.tsx',
-	'components/listbox/listbox.tsx',
-	'components/loading/loading-spinner.tsx',
-	'components/menu/menu-item.tsx',
-	'components/menu/menu-sub.tsx',
-	'components/menu/menu-viewport.tsx',
-	'components/menu/use-menu-state.ts',
-	'components/nav/nav-item.tsx',
-	'components/nav/use-nav-item.ts',
-	'components/popover/popover-content.tsx',
-	'components/progress/progress-bar.tsx',
-	'components/progress/progress-gauge.tsx',
-	'components/radio/radio.tsx',
-	'components/rating/rating.tsx',
-	'components/sidebar/sidebar-item.tsx',
-	'components/slider/range/range-slider.tsx',
-	'components/slider/slider.tsx',
-	'components/sparkline/sparkline.tsx',
-	'components/switch/switch.tsx',
-	'components/table/table.tsx',
-	'components/tabs/tab-list.tsx',
-	'components/tabs/tab.tsx',
-	'components/tabs/tabs.tsx',
-	'components/tooltip/tooltip-content.tsx',
-	'components/tree/tree-item-children.tsx',
-	'components/tree/tree-item-content.tsx',
-	'components/tree/tree.tsx',
-	'layouts/sidebar/sidebar.tsx',
-	'modules/chat/chat-list-item.tsx',
-	'modules/grid/grid-data-table.tsx',
-	'modules/grid/grid-region.tsx',
-	'primitives/option/option.tsx',
-	'primitives/panel/panel-providers.tsx',
-	'primitives/panel/slots.tsx',
-]
-
-const DENSITY_READS = /\b(?:useDensityStep|useDensityScope)\b/
-
 const srcDir = join(import.meta.dirname, '..', '..')
 
 describe('density-native boundary', () => {
@@ -154,10 +94,6 @@ describe('density-native boundary', () => {
 			expect(axes.filter((axis) => axis === 'size' || axis === 'density')).toEqual([])
 		},
 	)
-
-	it.each(NATIVE_FILES)('%s reads no density context', (file) => {
-		expect(readFileSync(join(srcDir, file), 'utf8')).not.toMatch(DENSITY_READS)
-	})
 })
 
 // A density scope has two channels: `data-density` for the stepped classes and
@@ -200,6 +136,19 @@ describe('density scope parity', () => {
 	})
 })
 
+/** The source files whose code, with the comments removed, matches `pattern`. */
+function filesMatching(pattern: RegExp): string[] {
+	const files: string[] = []
+
+	walkSource(srcDir, (file, content) => {
+		if (/\.tsx?$/.test(file) && pattern.test(stripSourceComments(content))) {
+			files.push(srcRelative(file))
+		}
+	})
+
+	return files.sort()
+}
+
 // A class selects a density step through the `density-*` variants and the
 // stepped utilities. Those rank each match by the depth of its scope. A
 // `data-[density=…]` selector has no rank, so an outer scope can win over the
@@ -209,19 +158,7 @@ const DENSITY_SELECTOR = /data-\[density=/
 
 describe('density selectors', () => {
 	it('no source file selects a step with a data-[density=…] class', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (DENSITY_SELECTOR.test(stripSourceComments(content))) violations.push(rel)
-		})
-
-		expect(violations).toEqual([])
+		expect(filesMatching(DENSITY_SELECTOR)).toEqual([])
 	})
 })
 
@@ -236,19 +173,7 @@ const PSEUDO_THEN_DENSITY =
 
 describe('density after a pseudo-element', () => {
 	it('no source file puts a density class after a pseudo-element variant', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (PSEUDO_THEN_DENSITY.test(stripSourceComments(content))) violations.push(rel)
-		})
-
-		expect(violations).toEqual([])
+		expect(filesMatching(PSEUDO_THEN_DENSITY)).toEqual([])
 	})
 })
 
@@ -261,32 +186,43 @@ describe('density after a pseudo-element', () => {
 //     renders an empty frame, and the chart measures before the first paint.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
-//   - The density primitive and `useDensityLevel`: the hooks themselves.
+//   - The density primitive, `useDensityLevel`, and their barrels: the hooks
+//     themselves.
+//
+// The check reads each name, not only each call, so an aliased import fails it.
 
 const STEP_READERS = [
 	'modules/chart/engine/use-chart-cartesian.ts',
 	'modules/chart/scatter-chart/scatter-chart.tsx',
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',
+	'primitives/density/index.ts',
+	'providers/density/index.ts',
 	'providers/density/use-density-level.ts',
 ]
 
-const STEP_READ = /\buseDensity(?:Step|Level)\(/
+const STEP_READ = /\buseDensity(?:Step|Level)\b/
 
-describe('density step readers', () => {
+// `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
+// portal root writes that scope on its element, so a portaled panel keeps the
+// step of the tree that opened it. Only the portal roots and the primitive may
+// read it.
+
+const SCOPE_READERS = [
+	'primitives/density/density.tsx',
+	'primitives/density/index.ts',
+	'primitives/floating-surface/floating-surface.tsx',
+	'primitives/overlay/overlay.tsx',
+]
+
+const SCOPE_READ = /\buseDensityScope\b/
+
+describe('density readers', () => {
 	it('only the listed files read the density step in JS', () => {
-		const readers: string[] = []
+		expect(filesMatching(STEP_READ)).toEqual(STEP_READERS)
+	})
 
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (STEP_READ.test(stripSourceComments(content))) readers.push(rel)
-		})
-
-		expect(readers.sort()).toEqual(STEP_READERS)
+	it('only the portal roots read the nearest density scope', () => {
+		expect(filesMatching(SCOPE_READ)).toEqual(SCOPE_READERS)
 	})
 })
