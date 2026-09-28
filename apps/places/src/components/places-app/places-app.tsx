@@ -2,6 +2,7 @@
 
 import type { User } from 'auth'
 import { MapPin, MapPinCheck } from 'lucide-react'
+import dynamic from 'next/dynamic'
 import { Activity, useCallback, useEffect, useMemo, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Confirm } from 'ui/confirm'
@@ -47,12 +48,45 @@ import {
 import { CountrySearch } from '../country-search'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
-import { PlaceFormDrawer } from '../place-form-drawer'
 import { PlaceTrail } from '../place-trail'
-import { PlacesIndex } from '../places-index'
 import { PlacesMap } from '../places-map'
 import { UserMenu } from '../user-menu'
 import { usePlaceLocation } from './use-place-location'
+
+/**
+ * The code of the index and of the form drawer, which a reader opens after the
+ * map, if at all. The index carries the data grid, and the form carries the
+ * address search and the date picker. Together they are about a quarter of the
+ * JavaScript of the page, so the page does not wait for them.
+ */
+const loadIndex = () => import('../places-index')
+
+const loadForm = () => import('../place-form-drawer')
+
+/**
+ * How long a browser without `requestIdleCallback` waits before it fetches the
+ * panels. Safari does not have the call.
+ */
+const IDLE_FALLBACK_MS = 1000
+
+const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesIndex))
+
+const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer))
+
+/**
+ * Whether a panel has opened at least once.
+ *
+ * A panel that has never opened is not rendered, so its code does not load for
+ * it. After the first open it stays rendered, because a closing panel has an exit
+ * to play.
+ */
+function useOpenedOnce(open: boolean): boolean {
+	const [opened, setOpened] = useState(open)
+
+	if (open && !opened) setOpened(true)
+
+	return opened || open
+}
 
 /** The empty list a pending places query stands in for, held so its identity is stable. */
 const NO_PLACES: Place[] = []
@@ -197,6 +231,34 @@ export function PlacesApp({
 	// settle so that it never competes with the states atlas and the places for the
 	// first frame.
 	const { data: countriesAtlas = null } = useAtlas('countries', atlas === 'countries' || !settling)
+
+	// The panels' code, fetched when the main thread is idle after the opening view
+	// has settled. The first open of a panel then waits for nothing. The browser
+	// runs the code of a chunk when it arrives, so a fetch at the settle ran it
+	// while the map drew its first frame.
+	useEffect(() => {
+		if (settling) return
+
+		const load = () => {
+			void loadIndex()
+
+			void loadForm()
+		}
+
+		const idle = window.requestIdleCallback?.(load)
+
+		if (idle !== undefined) return () => window.cancelIdleCallback?.(idle)
+
+		const timer = window.setTimeout(load, IDLE_FALLBACK_MS)
+
+		return () => window.clearTimeout(timer)
+	}, [settling])
+
+	const formOpen = adding || editing !== null
+
+	const formRendered = useOpenedOnce(formOpen)
+
+	const indexRendered = useOpenedOnce(listing)
 
 	const regions = atlas === 'states' ? statesAtlas : countriesAtlas
 
@@ -553,47 +615,53 @@ export function PlacesApp({
 			</div>
 
 			{/* One drawer for both writes, opened on a place to edit it and on nothing
-			    to add one. Two would be the same seven fields twice. */}
-			<PlaceFormDrawer
-				open={adding || editing !== null}
-				onOpenChange={(next) => {
-					setAdding(next)
+			    to add one. Two would be the same seven fields twice. It renders from
+			    its first open on, so its code is not part of the first load. */}
+			{formRendered ? (
+				<PlaceFormDrawer
+					open={formOpen}
+					onOpenChange={(next) => {
+						setAdding(next)
 
-					if (!next) setEditing(null)
-				}}
-				place={editing}
-				onSubmit={(draft) =>
-					editing === null
-						? addPlace.mutateAsync(draft)
-						: savePlace.mutateAsync({ id: editing.id, draft })
-				}
-			/>
+						if (!next) setEditing(null)
+					}}
+					place={editing}
+					onSubmit={(draft) =>
+						editing === null
+							? addPlace.mutateAsync(draft)
+							: savePlace.mutateAsync({ id: editing.id, draft })
+					}
+				/>
+			) : null}
 
 			{/* The other index into the same set: the map answers what is near here,
 			    and this answers where that place was. It reads the filtered list, so
-			    the two never disagree about what is in play. */}
-			<PlacesIndex
-				open={listing}
-				onOpenChange={setListing}
-				places={filtered}
-				regionByPlace={regionOfPlace}
-				// The region the view is cut to, which the sheet opens on where it holds
-				// anything. The reader came from that projection, so it is the narrowing
-				// they already made; clearing the filter widens it back to the bar's.
-				region={cut}
-				// The state, but only where the region column is not already it: inside
-				// the United States the drawn region is the state, and the two columns
-				// would print every state beside itself.
-				stateByPlace={atlas === 'states' ? undefined : stateOfPlace}
-				onOpen={(place) => {
-					// One step, not two: the view and the selection are both the address,
-					// so writing them apart would leave a history entry standing on a map
-					// the reader never saw — and the second write would drop the first.
-					openAt(viewForPlace(stateOfPlace, place), [place.id])
+			    the two never disagree about what is in play. It renders from its first
+			    open on, like the form. */}
+			{indexRendered ? (
+				<PlacesIndex
+					open={listing}
+					onOpenChange={setListing}
+					places={filtered}
+					regionByPlace={regionOfPlace}
+					// The region the view is cut to, which the sheet opens on where it holds
+					// anything. The reader came from that projection, so it is the narrowing
+					// they already made; clearing the filter widens it back to the bar's.
+					region={cut}
+					// The state, but only where the region column is not already it: inside
+					// the United States the drawn region is the state, and the two columns
+					// would print every state beside itself.
+					stateByPlace={atlas === 'states' ? undefined : stateOfPlace}
+					onOpen={(place) => {
+						// One step, not two: the view and the selection are both the address,
+						// so writing them apart would leave a history entry standing on a map
+						// the reader never saw — and the second write would drop the first.
+						openAt(viewForPlace(stateOfPlace, place), [place.id])
 
-					setListing(false)
-				}}
-			/>
+						setListing(false)
+					}}
+				/>
+			) : null}
 
 			<PlaceDrawer
 				places={selected}

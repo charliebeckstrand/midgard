@@ -89,3 +89,14 @@ the United States and Georgia is a country.
 The geometry comes from `us-atlas` and `world-atlas`, served by
 `app/api/atlas/states` and `app/api/atlas/countries`. The routes keep both
 atlases out of the JavaScript bundle and let the browser cache them.
+
+## The first load
+
+The map draws nothing until the states atlas lands, so the page starts that
+download in the head of the document. Without the hint, the fetch started only
+after hydration.
+
+The index and the form drawer load after the map. The index carries the data
+grid, and the form carries the address search and the date picker. The app
+fetches their code when the main thread is idle, and renders each panel from its
+first open on.

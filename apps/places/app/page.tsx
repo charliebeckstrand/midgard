@@ -1,5 +1,6 @@
 import { requireGateway, requireSession } from 'auth'
 import { Suspense } from 'react'
+import { preload } from 'react-dom'
 import { PlacesApp } from '@/components/places-app'
 import { mimir } from '@/server/mimir'
 
@@ -31,6 +32,12 @@ import { mimir } from '@/server/mimir'
  * that swaps for another.
  */
 export default async function Page() {
+	// The app draws nothing until the states atlas lands, and its own fetch starts
+	// only after hydration. The hint in the head starts the download with the page,
+	// and the fetch of the app then reads the response the browser already has.
+	// `anonymous` is the mode of a same-origin `fetch`, so the two requests match.
+	preload('/api/atlas/states', { as: 'fetch', crossOrigin: 'anonymous' })
+
 	const { user } = await requireSession()
 
 	const [places = [], visits = { states: [], countries: [] }] = await Promise.all([
