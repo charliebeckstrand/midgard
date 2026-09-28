@@ -68,11 +68,11 @@ type TrackedPromise<T> = Promise<T> & {
  * id without poisoning the cache.
  *
  * A rejection stays cached. React retries a suspended render when its promise
- * settles, and the retry must read the same rejected promise so that `use()`
- * throws it to the error boundary. An entry evicted on rejection hands the
- * retry a fresh import, which suspends again: a chunk that keeps failing then
- * re-imports without end, and the boundary never renders. {@link retryDemo}
- * evicts a rejection at the points that mean "try again".
+ * settles. The retry must read the same rejected promise, so that `use()`
+ * throws it to the error boundary. If the entry left the cache on rejection,
+ * the retry would start a new import and suspend again. A chunk that keeps
+ * failing would then import without end, and the boundary would never render.
+ * {@link retryDemo} evicts a rejection at the points that mean "try again".
  */
 function tracked<T>(
 	cache: Map<string, TrackedPromise<T>>,
