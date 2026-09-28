@@ -1655,7 +1655,7 @@ export function Demo() {
 
 						<Example
 							title="Search highlight"
-							code={code`<Grid search={{ value, onValueChange, filter: false }} />`}
+							code={code`<Grid search={{ value, onValueChange, mode: 'highlight' }} />`}
 						>
 							<SearchHighlightExample />
 						</Example>

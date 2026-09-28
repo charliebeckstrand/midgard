@@ -5,9 +5,9 @@ import { Example } from '../../engine'
 
 export const meta = { name: 'UI' }
 
-function RegisteredLinkExample() {
-	const RouterLink = ({ children, ...props }: LinkProps) => <a {...props}>{children}</a>
+const RouterLink = ({ children, ...props }: LinkProps) => <a {...props}>{children}</a>
 
+function RegisteredLinkExample() {
 	return (
 		<UIProvider link={RouterLink}>
 			<Link href="#providers-ui">Link</Link>
