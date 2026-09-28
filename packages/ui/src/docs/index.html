@@ -8,12 +8,6 @@
 		<!-- Linked here, never imported from `main.tsx` — an import delays the
 		     styles until the whole module graph loads. See engine/README.md. -->
 		<link rel="stylesheet" href="./app.css" />
-		<script>
-			// Chrome on iOS can save the scroll position while its toolbar covers the top
-			// of the page, and a reload then restores that offset. The app scrolls to the
-			// top on each route change, so the browser does not restore a position.
-			history.scrollRestoration = 'manual'
-		</script>
 	</head>
 	<!-- No full height here. The sidebar layout sets its own height: below lg the
 	     page scrolls, and from lg up the layout is pinned to the viewport. The body

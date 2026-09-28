@@ -7,9 +7,13 @@ const { focus } = sen
 // moves the scroll offset of the page when its toolbar changes size, and only a
 // page that can scroll takes that offset back. From `lg` up, the layout is
 // pinned to the viewport box, and only the content region scrolls.
+//
+// Below `lg`, do not clip the overflow of the layout. WebKit then gives the
+// sticky navbar an ancestor clipping layer, and on iOS the bar stutters while
+// the page scrolls (WebKit bug 247130).
 const layout = defineRecipe({
 	base: [
-		'relative min-h-svh overflow-x-clip',
+		'relative min-h-svh',
 		'lg:fixed lg:inset-0 lg:min-h-0 lg:overflow-hidden',
 		'isolate',
 		'flex max-lg:flex-col',
@@ -23,16 +27,7 @@ const layout = defineRecipe({
 // the color of the bar under the status bar. The padding follows the nearest
 // density scope.
 const navbar = defineRecipe({
-	base: [
-		'sticky top-0 z-30',
-		'bg-white dark:bg-zinc-950',
-		// The bar also paints its color above its box, as a native navigation bar does
-		// under the status bar. On iOS, the stuck bar can sit a few pixels below the
-		// top browser bar, and page content then shows between them. The extension
-		// sits under the browser bar or above the page, so it shows only in that gap.
-		'before:absolute before:inset-x-0 before:bottom-full before:h-32 before:bg-inherit',
-		'density-p-[4,6,8] lg:hidden',
-	],
+	base: ['sticky top-0 z-30', 'bg-white dark:bg-zinc-950', 'density-p-[4,6,8] lg:hidden'],
 })
 
 const panel = defineRecipe({
