@@ -1,18 +1,6 @@
 {
-	"components/color/use-color-state.ts": {
-		"useColorState": "Refs"
-	},
-	"components/date-input/date-input.tsx": {
-		"DateInput": "Refs"
-	},
 	"components/form/use-form-reducer.ts": {
 		"useFormReducer": "Todo"
-	},
-	"components/json-tree/json-tree-node.tsx": {
-		"JsonTreeNode": "Invariant"
-	},
-	"components/menu/use-menu-state.ts": {
-		"useMenuState": "PreserveManualMemo"
 	},
 	"components/pdf-viewer/pdf-viewer-magnifier.tsx": {
 		"PdfViewerMagnifier": "Refs"
@@ -23,15 +11,8 @@
 	"components/pdf-viewer/pdf-viewer-viewport.tsx": {
 		"PdfViewerViewport": "Refs"
 	},
-	"components/pdf-viewer/use-pdf-viewer-highlights.ts": {
-		"usePdfViewerHighlights": "Refs"
-	},
 	"components/pdf-viewer/use-pdf-viewer-magnifier.ts": {
 		"usePdfViewerMagnifier": "Refs"
-	},
-	"components/pdf-viewer/use-pdf-viewer.ts": {
-		"useDocumentKey": "Refs",
-		"usePdfViewer": "PreserveManualMemo"
 	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"

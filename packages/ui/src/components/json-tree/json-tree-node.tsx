@@ -62,7 +62,10 @@ function resolveNodeOpen(opts: {
  * {@link resolveNodeOpen}, honoring controlled `expanded`, search filtering, and
  * the depth default.
  */
-export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonNodeProps) {
+export const JsonTreeNode = memo(JsonTreeNodeView)
+
+/** The body of {@link JsonTreeNode}, declared apart from its `memo` so the recursion names the memoized node. @internal */
+function JsonTreeNodeView({ keyName, value }: JsonNodeProps) {
 	const {
 		depth,
 		defaultExpandDepth,
@@ -198,4 +201,4 @@ export const JsonTreeNode = memo(function JsonTreeNode({ keyName, value }: JsonN
 			</ReducedMotion>
 		</div>
 	)
-})
+}
