@@ -122,7 +122,12 @@ export function Demo() {
 										<Label>Address</Label>
 										<Tooltip>
 											<TooltipTrigger>
-												<Button type="button" variant="bare" aria-label="About the address">
+												<Button
+													type="button"
+													variant="bare"
+													size="sm"
+													aria-label="About the address"
+												>
 													<Icon icon={<Info />} />
 												</Button>
 											</TooltipTrigger>

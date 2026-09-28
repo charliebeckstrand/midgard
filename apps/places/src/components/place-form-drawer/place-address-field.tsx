@@ -22,6 +22,9 @@ import { Tooltip, TooltipContent, TooltipTrigger } from 'ui/tooltip'
  * stays short. On a touch screen, a tap on the button opens the tooltip. The
  * button takes the focus before the input, and a screen reader reads the hint
  * as the description of the button.
+ *
+ * The button is `sm`, so that it is not taller than the label and the row keeps
+ * the gap of a plain label. Its hit area stays at 44 px on a touch screen.
  */
 export function PlaceAddressField() {
 	const actions = useFormActions()
@@ -33,7 +36,7 @@ export function PlaceAddressField() {
 
 				<Tooltip>
 					<TooltipTrigger>
-						<Button type="button" variant="bare" aria-label="About the address">
+						<Button type="button" variant="bare" size="sm" aria-label="About the address">
 							<Icon icon={<Info />} />
 						</Button>
 					</TooltipTrigger>
