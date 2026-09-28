@@ -1,12 +1,14 @@
 import { levelToStep } from '../density/context'
-import { DARK_SCHEME, DENSITY_KEY, THEME_KEY } from './appearance-storage'
+import { DARK_SCHEME, DENSITY_DEFAULT, DENSITY_KEY, THEME_KEY } from './appearance-storage'
 
 // Resolves the stored choices as `AppearanceProvider` does. Theme: 'dark' is
 // dark, 'light' is light, and any other value follows the OS. Density: a stored
-// level gives its step, and any other value gives the step of 'snug'. Storage
-// access can throw, and then the script uses the defaults. The own-property
-// check keeps a stored `__proto__` or `toString` from reading the prototype.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute('data-density',Object.prototype.hasOwnProperty.call(s,d)?s[d]:s.snug)})()`
+// level gives its step, and any other value gives the step of the default.
+// Storage access can throw, and then the script uses the defaults. The
+// own-property check keeps a stored `__proto__` or `toString` from reading the
+// prototype. The docs page keeps a copy (`docs/index.html`), and a test in
+// `providers/appearance.test.tsx` holds the two copies to the same results.
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute('data-density',Object.prototype.hasOwnProperty.call(s,d)?s[d]:s[${JSON.stringify(DENSITY_DEFAULT)}])})()`
 
 /**
  * Inline script that applies the stored theme and density to the root element
