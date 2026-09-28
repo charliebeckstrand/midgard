@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useLayoutEffect, useRef, useState } from 'react'
 
 /** Argument to {@link useControllable}'s setter: a next value, `null`/`undefined` to clear, or a functional updater over the previous value. */
 export type SetValue<T> = T | null | undefined | ((prev: T | undefined) => T | null | undefined)
@@ -35,18 +35,25 @@ export function useControllable<T>({
 	const currentValue = isControlled ? (value ?? undefined) : internalValue
 
 	// Resolution base for functional updaters: re-synced to the committed value
-	// each render, advanced eagerly on every `setValue` call so updaters batched
-	// in one tick chain instead of resolving against the same stale value.
+	// on each commit, advanced eagerly on every `setValue` call so updaters
+	// batched in one tick chain instead of resolving against the same stale value.
 	const valueRef = useRef(currentValue)
 
-	valueRef.current = currentValue
-
-	// Deliberately a render-phase shadow, not an effect event. A caller can set
-	// the value during render (`useTooltipState` closes a tooltip that turns
-	// disabled), and an effect event throws when render calls it.
+	// A ref, not an effect event. A caller can set the value during render
+	// (`useTooltipState` closes a tooltip that turns off, as an adjustment during
+	// render), and an effect event throws when render calls it.
 	const onValueChangeRef = useRef(onValueChange)
 
-	onValueChangeRef.current = onValueChange
+	// Synced before paint, not during render. Events run after the commit, and a
+	// set during render adjusts from the committed value, which is the value the
+	// refs hold. Run on every commit, not keyed on the value: a controlled owner
+	// that refuses a change keeps its `value`, and the eager write above must still
+	// fall back to it once the render lands.
+	useLayoutEffect(() => {
+		valueRef.current = currentValue
+
+		onValueChangeRef.current = onValueChange
+	})
 
 	const setValue = useCallback((next: SetValue<T>) => {
 		const resolved =
