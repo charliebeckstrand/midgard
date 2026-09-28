@@ -12,6 +12,7 @@ import { Link } from 'ui/link'
 import { PasswordInput } from 'ui/password-input'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { chain, email, matches, minLength, required } from './form-validators'
 import { Turnstile } from './turnstile'
 
@@ -96,7 +97,7 @@ export function RegisterPage({ turnstileSiteKey }: RegisterPageProps) {
 			>
 				<Heading className="text-center">Create your account</Heading>
 
-				{serverError && <Text tone="error">{serverError}</Text>}
+				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
 
 				<Field>
 					<Label>Email</Label>

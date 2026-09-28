@@ -8,6 +8,7 @@ import { Link } from 'ui/link'
 import { Stack } from 'ui/structure/stack'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { linkToken } from './link-token'
 
 /**
@@ -68,7 +69,9 @@ export function VerifyEmailPage() {
 					</>
 				) : (
 					<>
-						{serverError && <Text tone="error">{serverError}</Text>}
+						{serverError && (
+							<ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>
+						)}
 
 						<Button className="w-full" disabled={state === 'pending'} onClick={verify}>
 							Verify email
