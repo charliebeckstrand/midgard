@@ -58,6 +58,19 @@ Side behavior, such as a preload or a pause on hover, keeps the default. [`2026-
 
 `spread-order-boundary.test.ts` gates the position rules and the internal `ref`. It computes the read set, and its allowlist holds the known backlog. The `no-hand-composed-handler` Biome plugin gates a handler composed by hand inside JSX. No gate holds the rest of the rule for composed keys yet.
 
+3.10 A behavior that many components share has one home in `ui`. A component calls the home and never writes its own copy. A gate holds each home:
+
+| Behavior | Home | Gate |
+|---|---|---|
+| A horizontal arrow key that steps through the reading order, which swaps in RTL | `logicalArrowKey` in `hooks/a11y/logical-arrow.ts`; `useA11yRoving` applies it | `logical-arrow-boundary.test.ts` |
+| The cursor for the span of a drag | `hooks/use-drag-cursor.ts` (`useDragCursor`, `useDragCursorHold`, `holdDragCursor`) | `drag-cursor-boundary.test.ts` |
+| The grab cursors of a surface that the reader drags | `hannou.grab` in `recipes/kiso/hannou/cursor.ts` | `grab-cursor-boundary.test.ts` |
+| The reduced-motion setting of the reader | `usePrefersReducedMotion` in `ui/hooks` | `no-motion-reduced-motion-hook` |
+| A boolean ARIA state or `data-*` attribute | `ariaAttr` and `dataAttr` in `ui/core` | `no-hand-written-bool-attr` |
+| A value held inside a range | `clamp` in `src/utilities` | `no-hand-written-clamp` |
+
+An arrow key on a physical axis, such as a slider track or a map cursor, stays physical. The logical-arrow gate lists each such file with its reason.
+
 ## 4. TypeScript
 
 4.1 In place of `any`, use `unknown` with narrowing, generics, or a precise type. Type external responses at the fetch boundary. Biome's `noExplicitAny` gates the first rule as an error.
