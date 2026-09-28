@@ -20,9 +20,6 @@
 	"components/form/use-form-store.ts": {
 		"useFormStore": "Refs"
 	},
-	"components/group/use-group.ts": {
-		"useGroup": "Immutability"
-	},
 	"components/json-tree/json-tree-node.tsx": {
 		"JsonTreeNode": "Invariant"
 	},
