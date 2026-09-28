@@ -33,9 +33,10 @@ export function AccordionTrigger({
 	children,
 	level = 3,
 	onClick,
+	onKeyDown,
 	...props
 }: AccordionTriggerProps) {
-	const { mount } = useAccordion()
+	const { mount, onTriggerKeyDown } = useAccordion()
 	const { open, toggle, disabled, triggerProps } = useAccordionItem()
 
 	// Tailwind preflight zeroes heading font and margin; the wrapper is
@@ -58,6 +59,7 @@ export function AccordionTrigger({
 				// The toggle is the activation the trigger exists to perform, so a
 				// consumer's preventDefault() does not cancel it (CONVENTIONS.md §3.9).
 				onClick={composeEventHandlers(onClick, toggle, { checkForDefaultPrevented: false })}
+				onKeyDown={composeEventHandlers(onKeyDown, onTriggerKeyDown)}
 				className={cn(k.trigger, className)}
 			>
 				<span className="flex-1">{children}</span>
