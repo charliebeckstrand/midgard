@@ -218,6 +218,7 @@ export function GridData<T>({
 	// measured row (see `useGridRowHeight`).
 	const { rowHeight, measureRef } = useGridRowHeight(
 		virtualizeEnabled && estimateSize === undefined,
+		level,
 	)
 
 	// The consumer's `tableProps.ref`, the grid's own ref, and the row measure,
