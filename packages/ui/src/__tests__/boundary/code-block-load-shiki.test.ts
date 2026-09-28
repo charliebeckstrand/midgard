@@ -32,14 +32,21 @@ function failShikiImport() {
  * Returns `loadShiki` from a module whose memo cell is empty.
  *
  * @remarks
- * This imports `code-block`, never `shiki` — the memo fills on the first
+ * This imports `code-shiki`, never `shiki` — the memo fills on the first
  * `loadShiki()` call. A `vi.doMock('shiki')` therefore has to stand when that
  * call runs, and it belongs after this reset rather than before it.
+ *
+ * Import `code-shiki`, not `code-block`. The reset makes the case import the
+ * module again, and the time limit of the case includes that import.
+ * `code-block` imports the component graph, and a cold transform cache under
+ * the React Compiler made that import take more than 5 seconds. The case then
+ * stopped at its time limit, but its body continued and registered the failing
+ * double while the next case ran. `code-shiki` has no runtime import.
  */
 async function coldLoadShiki() {
 	vi.resetModules()
 
-	return (await import('../../components/code/code-block')).loadShiki
+	return (await import('../../components/code/code-shiki')).loadShiki
 }
 
 describe('loadShiki', () => {
