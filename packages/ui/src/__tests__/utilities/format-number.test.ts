@@ -106,11 +106,14 @@ describe('formatFraction · properties', () => {
 	})
 
 	// Half-expand rounding to two digits moves a value by half of the last digit
-	// kept, and never by more. The slack absorbs float drift at the cap.
+	// kept. The format rounds the shortest decimal of the double, which can sit
+	// one ulp from the double itself, so the slack grows with the magnitude.
 	test.prop([fc.double({ min: -ROUNDED, max: ROUNDED, noNaN: true })])(
 		'states the value inside half of the digit it drops',
 		(value) => {
-			expect(Math.abs(parseFormatted(formatFraction(value)) - value)).toBeLessThanOrEqual(0.0050001)
+			expect(Math.abs(parseFormatted(formatFraction(value)) - value)).toBeLessThanOrEqual(
+				0.005 + Math.max(1e-7, Math.abs(value) * Number.EPSILON),
+			)
 		},
 	)
 
