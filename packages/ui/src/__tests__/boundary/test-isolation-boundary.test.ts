@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -100,6 +101,263 @@ const NULLABLE_CAST = {
 		/(?:bySlot|querySelector(?:All)?)(?:<[^<>]*>)?\((?:[^()]|\([^()]*\))*\)\s+as\s+(?:HTML|SVG)[A-Za-z]*Element(?!\s*\|)/g,
 } as const
 
+// CONVENTIONS.md §10.9. A case that runs longer than `testTimeout` fails, but
+// its body does not stop. JavaScript cannot cancel a pending promise, so the
+// body continues at its next `await` while a later case runs.
+// `code-block-load-shiki` recorded one such body: it registered a failing
+// `shiki` double under the case after it. Vitest aborts the `signal` of the
+// test context before it starts the next case. Thus a
+// `signal.throwIfAborted()` after the last `await` stops the late write.
+//
+// The rule applies to a write to state that outlives the case: the module
+// registry, a global, the environment, the clock, the mock registry, a spy on
+// a global or a prototype, and a module-scope `let`. A helper in the same file
+// that makes such a write counts as one. A write to the DOM is out of scope:
+// `cleanup`, the residue guard, and the page reset of the browser suite undo
+// it. In a loop, an `await` lower in the body comes before the write of the
+// next pass, so the scan counts the head of the loop body as a resume point.
+
+/** The `vi` calls that change state that outlives a case. */
+const SHARED_STATE_CALL =
+	/^(?:vi|vitest)\.(?:doMock|doUnmock|stubGlobal|stubEnv|resetModules|useFakeTimers|useRealTimers|setSystemTime|restoreAllMocks|resetAllMocks|unstubAllGlobals|unstubAllEnvs)$/
+
+/** A target that every case shares: a global, or a prototype. */
+const SHARED_TARGET = /^(?:globalThis|window|document|navigator|[\w.]+\.prototype)\b/
+
+/** The calls that take the body of a case or of a hook. */
+const CASE_OR_HOOK = new Set(['it', 'test', 'beforeEach', 'afterEach', 'beforeAll', 'afterAll'])
+
+/** The identifier at the root of a callee: `it` for `it.each(rows)`. */
+function calleeRoot(node: ts.Expression): string | undefined {
+	if (ts.isIdentifier(node)) return node.text
+
+	if (ts.isPropertyAccessExpression(node) || ts.isCallExpression(node)) {
+		return calleeRoot(node.expression)
+	}
+
+	return undefined
+}
+
+/** The expression under its parentheses and casts. */
+function uncast(node: ts.Expression): ts.Expression {
+	return ts.isParenthesizedExpression(node) ||
+		ts.isAsExpression(node) ||
+		ts.isNonNullExpression(node)
+		? uncast(node.expression)
+		: node
+}
+
+/** Whether `node` is a loop, whose body runs again after an `await` lower in it. */
+function isLoop(node: ts.Node): node is ts.IterationStatement {
+	return (
+		ts.isForStatement(node) ||
+		ts.isForOfStatement(node) ||
+		ts.isForInStatement(node) ||
+		ts.isWhileStatement(node) ||
+		ts.isDoStatement(node)
+	)
+}
+
+/**
+ * The root of an assignment target, under its casts: `globalThis` for
+ * `(globalThis as T).fetch`.
+ */
+function targetRoot(node: ts.Expression): ts.Expression {
+	const bare = uncast(node)
+
+	return ts.isPropertyAccessExpression(bare) || ts.isElementAccessExpression(bare)
+		? targetRoot(bare.expression)
+		: bare
+}
+
+/**
+ * The late writes of one file: each write to shared state in a case or a hook
+ * that comes after an `await`, with no `throwIfAborted()` between the latest
+ * `await` and the write.
+ */
+function unguardedLateWrites(file: string, text: string): string[] {
+	const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true)
+
+	const moduleLets = new Set<string>()
+
+	const functions = new Map<string, ts.Node>()
+
+	for (const statement of source.statements) {
+		if (ts.isFunctionDeclaration(statement) && statement.name && statement.body) {
+			functions.set(statement.name.text, statement.body)
+		}
+
+		if (!ts.isVariableStatement(statement)) continue
+
+		const isLet = (statement.declarationList.flags & ts.NodeFlags.Let) !== 0
+
+		for (const declaration of statement.declarationList.declarations) {
+			if (!ts.isIdentifier(declaration.name)) continue
+
+			if (isLet) moduleLets.add(declaration.name.text)
+
+			const init = declaration.initializer
+
+			if (init && (ts.isArrowFunction(init) || ts.isFunctionExpression(init))) {
+				functions.set(declaration.name.text, init.body)
+			}
+		}
+	}
+
+	const writers = new Set<string>()
+
+	/** The label of a write to shared state, or `undefined` for any other node. */
+	function writeLabel(node: ts.Node): string | undefined {
+		if (ts.isCallExpression(node)) {
+			const callee = node.expression.getText(source)
+
+			if (SHARED_STATE_CALL.test(callee)) return callee
+
+			const [target] = node.arguments
+
+			if (
+				/^(?:vi|vitest)\.spyOn$/.test(callee) &&
+				target &&
+				SHARED_TARGET.test(target.getText(source))
+			) {
+				return `${callee}(${target.getText(source)})`
+			}
+
+			if (
+				/^(?:Object|Reflect)\.(?:defineProperty|set|deleteProperty)$/.test(callee) &&
+				target &&
+				SHARED_TARGET.test(target.getText(source))
+			) {
+				return `${callee}(${target.getText(source)})`
+			}
+
+			if (ts.isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
+		}
+
+		if (
+			ts.isDeleteExpression(node) &&
+			SHARED_TARGET.test(targetRoot(node.expression).getText(source))
+		) {
+			return `delete ${node.expression.getText(source)}`
+		}
+
+		if (
+			ts.isBinaryExpression(node) &&
+			node.operatorToken.kind >= ts.SyntaxKind.FirstAssignment &&
+			node.operatorToken.kind <= ts.SyntaxKind.LastAssignment
+		) {
+			const root = targetRoot(node.left)
+
+			if (ts.isIdentifier(root) && moduleLets.has(root.text) && root === node.left) {
+				return `${root.text} =`
+			}
+
+			if (root !== node.left && SHARED_TARGET.test(root.getText(source))) {
+				return `${node.left.getText(source)} =`
+			}
+		}
+
+		return undefined
+	}
+
+	function containsWrite(node: ts.Node): boolean {
+		return writeLabel(node) !== undefined || (ts.forEachChild(node, containsWrite) ?? false)
+	}
+
+	// A helper can call another helper, so repeat until the set is stable.
+	for (let grew = true; grew; ) {
+		grew = false
+
+		for (const [name, body] of functions) {
+			if (!writers.has(name) && containsWrite(body)) {
+				writers.add(name)
+
+				grew = true
+			}
+		}
+	}
+
+	const late: string[] = []
+
+	function scanBody(body: ts.Node) {
+		const awaits: number[] = []
+
+		const guards: number[] = []
+
+		const writes: { at: number; label: string; node: ts.Node }[] = []
+
+		const visit = (node: ts.Node) => {
+			ts.forEachChild(node, visit)
+
+			if (ts.isAwaitExpression(node)) awaits.push(node.getEnd())
+
+			if (ts.isCallExpression(node) && /\.throwIfAborted$/.test(node.expression.getText(source))) {
+				guards.push(node.getStart(source))
+			}
+
+			const label = writeLabel(node)
+
+			if (label) writes.push({ at: node.getStart(source), label, node })
+		}
+
+		visit(body)
+
+		/**
+		 * The latest point before `at` where the body can resume. An `await` that
+		 * holds the write ends after it, so it does not count. In a loop, an
+		 * `await` lower in the body comes before the write of the next pass, so
+		 * the pass starts at the head of the loop body.
+		 */
+		function resumedBefore(node: ts.Node, at: number): number {
+			let resumed = Math.max(-1, ...awaits.filter((end) => end <= at))
+
+			for (let up = node.parent; up && up !== body; up = up.parent) {
+				if (!isLoop(up)) continue
+
+				const loopBody = up.statement
+
+				const start = loopBody.getStart(source)
+
+				if (awaits.some((end) => end > at && end <= loopBody.getEnd())) {
+					resumed = Math.max(resumed, start)
+				}
+			}
+
+			return resumed
+		}
+
+		for (const { at, label, node } of writes) {
+			const resumed = resumedBefore(node, at)
+
+			if (resumed < 0 || guards.some((guard) => guard >= resumed && guard < at)) continue
+
+			const line = source.getLineAndCharacterOfPosition(at).line + 1
+
+			late.push(`${srcRelative(file)}:${line} → ${label}`)
+		}
+	}
+
+	function visit(node: ts.Node) {
+		if (ts.isCallExpression(node) && CASE_OR_HOOK.has(calleeRoot(node.expression) ?? '')) {
+			const body = node.arguments.findLast(
+				(arg) => ts.isArrowFunction(arg) || ts.isFunctionExpression(arg),
+			)
+
+			if (body) {
+				scanBody(body)
+
+				return
+			}
+		}
+
+		ts.forEachChild(node, visit)
+	}
+
+	visit(source)
+
+	return late
+}
+
 describe('test isolation boundary', () => {
 	it('no file in a shared-registry project mutates the module registry', () => {
 		const violations = SHARED_REGISTRY_SCANS.flatMap((scan) =>
@@ -189,6 +447,20 @@ describe('test isolation boundary', () => {
 		expect(
 			casts,
 			`a cast cannot make a query non-null — take \`getSlot(container, name)\` for a slot, or \`present(query, 'what')\` for anything else:\n  ${casts.join('\n  ')}`,
+		).toEqual([])
+	})
+	it('stops a case at its signal before it writes shared state after an await', () => {
+		const late: string[] = []
+
+		for (const dir of [testsDir, join(srcDir, 'docs', 'engine', '__tests__')]) {
+			walkSource(dir, (file, content) => {
+				if (/\.test\.tsx?$/.test(file)) late.push(...unguardedLateWrites(file, content))
+			})
+		}
+
+		expect(
+			late,
+			`a case that runs longer than its time limit continues at its next \`await\` while a later case runs — take \`{ signal }\` from the test context, and call \`signal.throwIfAborted()\` after the last \`await\` and before the write (CONVENTIONS.md §10.9):\n  ${late.join('\n  ')}`,
 		).toEqual([])
 	})
 })
