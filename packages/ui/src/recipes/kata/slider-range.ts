@@ -1,6 +1,6 @@
 import type { DensityStep } from '../../core/density'
 import { defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, ugoki } from '../kiso'
+import { hannou, kasane, kokkaku, ugoki } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -23,12 +23,7 @@ const root = defineRecipe({
 })
 
 const track = defineRecipe({
-	base: [
-		'absolute left-0 right-0',
-		rounded.full,
-		'bg-[var(--slider-track)]',
-		'density-h-[1,1.5,2]',
-	],
+	base: ['absolute left-0 right-0', rounded.full, 'bg-[var(--slider-track)]', kokkaku.slider.track],
 })
 
 const thumb = defineRecipe({

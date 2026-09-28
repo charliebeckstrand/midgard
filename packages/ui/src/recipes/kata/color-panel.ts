@@ -35,7 +35,7 @@ const preview = ['relative shrink-0 overflow-hidden', rounded.md, 'density-size-
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col select-none', 'density-w-[72,80,88] density-gap-[2,4,6]'],
+		base: ['flex flex-col select-none', kokkaku.colorPanel.width, 'density-gap-[2,4,6]'],
 		skeleton: kokkaku.colorPanel,
 	},
 	{

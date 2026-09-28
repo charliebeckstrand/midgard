@@ -24,7 +24,7 @@ export const k = bridge.check(control, {
 		'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 		// The circle and its dot take the step of the nearest density scope.
-		'density-size-[4,5,5]',
+		kokkaku.radio.circle,
 		'*:data-[slot=radio-indicator]:density-size-[1,1.5,2]',
 	],
 	color,

@@ -12,7 +12,7 @@ const { weight } = ji
 const { flex } = narabi
 const { focus } = sen
 
-const base = ['inline-flex flex-col', 'select-none', 'density-w-[52,68,80]']
+const base = ['inline-flex flex-col', 'select-none', kokkaku.calendar.width]
 
 const header = [flex.row, 'justify-between', 'density-mb-[1,2,3]']
 

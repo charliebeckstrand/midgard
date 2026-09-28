@@ -84,7 +84,7 @@ export const k = defineRecipe(
 			...check.validation,
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 			// The track and its thumb take the step of the nearest density scope.
-			'density-h-[5,6,7] density-w-[8,10,12]',
+			...kokkaku.switch.track,
 			'*:data-[slot=switch-thumb]:density-size-[3,4,5]',
 			'has-checked:*:data-[slot=switch-thumb]:density-left-[4,5,6]',
 		],
