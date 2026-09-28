@@ -330,9 +330,18 @@ export function useMapOverlay({
 	// during render: a neighbor pools the dots of this mark for its ground
 	// (`map-point.tsx`). So the values are in a ref, not in an effect event, which
 	// throws when it runs during render.
+	//
+	// Synced in a layout effect rather than in render. Every render-time reader
+	// runs off the ledger, and the ledger changes only after a commit: the plat
+	// gathers the dot pool once per `entries`, `hidden`, or projection, and the
+	// table resolves its picked row once per `entries` or pick. By the time any of
+	// those runs again, this effect has written the committed values. The restake
+	// below also reads `stopsAt`, so it must stay after this effect.
 	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 
-	live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
+	useLayoutEffect(() => {
+		live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }
+	}, [stops, onClick, onContextMenu, resolveStop, ownSpare])
 
 	const stopsAt = useCallback(() => live.current.stops(), [])
 
