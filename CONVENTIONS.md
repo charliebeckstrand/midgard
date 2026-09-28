@@ -155,6 +155,8 @@ Two causes are common, and each has a local fix. When a hook gives an object tha
 
 Shared state is the module registry, a global, the environment, and the clock. It is also the mock registry, a spy on a global or a prototype, and a module-scope `let`. A helper in the same file that makes such a write counts as a write. [`test-isolation-boundary.test.ts`](packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts) holds this rule. A write to the DOM is out of scope, because `cleanup`, the residue guard, and the page reset of the browser suite undo it.
 
+A `finally` in the case does not run after a timeout while the body waits. Thus a stub that a `finally` restores stays on the shared window. Restore a stub in `onTestFinished`, which runs after a case that times out.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the one reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`). Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.

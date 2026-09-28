@@ -1,8 +1,16 @@
 import { act, waitFor } from '@testing-library/react'
-import { afterEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, describe, expect, it, onTestFinished, vi } from 'vitest'
 import { CopyButton } from '../../components/copy-button'
 import { expectAnnouncement, fireEvent, present, renderUI } from '../helpers'
 
+/**
+ * Puts `writeText` on `navigator.clipboard` for the current case.
+ *
+ * @remarks
+ * `onTestFinished` restores the property. It runs after a case that times out,
+ * but a `finally` in the case does not: the body of that case waits at its
+ * `await`, and the stub then stays on the shared window.
+ */
 function stubClipboard(writeText: (value: string) => Promise<void>) {
 	const original = Object.getOwnPropertyDescriptor(window.navigator, 'clipboard')
 
@@ -11,10 +19,10 @@ function stubClipboard(writeText: (value: string) => Promise<void>) {
 		value: { writeText },
 	})
 
-	return () => {
+	onTestFinished(() => {
 		if (original) Object.defineProperty(window.navigator, 'clipboard', original)
 		else delete (window.navigator as { clipboard?: unknown }).clipboard
-	}
+	})
 }
 
 describe('CopyButton', () => {
@@ -47,21 +55,17 @@ describe('CopyButton', () => {
 	it('stays in the idle state when clipboard.writeText rejects', async () => {
 		const writeText = vi.fn().mockRejectedValue(new Error('denied'))
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const { container } = renderUI(<CopyButton text="hello" />)
+		const { container } = renderUI(<CopyButton text="hello" />)
 
-			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
-			fireEvent.click(button)
+		fireEvent.click(button)
 
-			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
+		await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 
-			expect(button).toHaveAttribute('aria-label', 'Copy to clipboard')
-		} finally {
-			restore()
-		}
+		expect(button).toHaveAttribute('aria-label', 'Copy to clipboard')
 	})
 
 	it('hands the rejection to onCopyError and leaves onCopiedChange alone', async () => {
@@ -69,46 +73,38 @@ describe('CopyButton', () => {
 
 		const writeText = vi.fn().mockRejectedValue(denial)
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const onCopyError = vi.fn()
-			const onCopiedChange = vi.fn()
+		const onCopyError = vi.fn()
+		const onCopiedChange = vi.fn()
 
-			const { container } = renderUI(
-				<CopyButton text="hello" onCopyError={onCopyError} onCopiedChange={onCopiedChange} />,
-			)
+		const { container } = renderUI(
+			<CopyButton text="hello" onCopyError={onCopyError} onCopiedChange={onCopiedChange} />,
+		)
 
-			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
-			await waitFor(() => expect(onCopyError).toHaveBeenCalledExactlyOnceWith(denial))
+		await waitFor(() => expect(onCopyError).toHaveBeenCalledExactlyOnceWith(denial))
 
-			// A refused write is not a copy: the rest glyph means "failed" here, which is
-			// exactly why the failure needs its own channel.
-			expect(onCopiedChange).not.toHaveBeenCalled()
-		} finally {
-			restore()
-		}
+		// A refused write is not a copy: the rest glyph means "failed" here, which is
+		// exactly why the failure needs its own channel.
+		expect(onCopiedChange).not.toHaveBeenCalled()
 	})
 
 	it('says nothing on onCopyError when the write succeeds', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const onCopyError = vi.fn()
+		const onCopyError = vi.fn()
 
-			const { container } = renderUI(<CopyButton text="hello" onCopyError={onCopyError} />)
+		const { container } = renderUI(<CopyButton text="hello" onCopyError={onCopyError} />)
 
-			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
-			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
+		await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 
-			expect(onCopyError).not.toHaveBeenCalled()
-		} finally {
-			restore()
-		}
+		expect(onCopyError).not.toHaveBeenCalled()
 	})
 
 	it('does not fire onCopiedChange on mount', () => {
@@ -133,80 +129,66 @@ describe('CopyButton', () => {
 		expect(second).not.toHaveBeenCalled()
 	})
 
-	it('fires onCopiedChange with true after a successful copy and false after the timeout', async ({
-		signal,
-	}) => {
+	it('fires onCopiedChange with true after a successful copy and false after the timeout', async () => {
 		vi.useFakeTimers()
 
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
 		const onCopiedChange = vi.fn()
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const { container } = renderUI(
-				<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
-			)
+		const { container } = renderUI(
+			<CopyButton text="hello" timeout={2000} onCopiedChange={onCopiedChange} />,
+		)
 
-			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
-			await act(async () => {
-				fireEvent.click(button)
-			})
+		await act(async () => {
+			fireEvent.click(button)
+		})
 
-			await vi.waitFor(() => expect(onCopiedChange).toHaveBeenCalledWith(true))
+		await vi.waitFor(() => expect(onCopiedChange).toHaveBeenCalledWith(true))
 
-			expect(onCopiedChange).toHaveBeenCalledTimes(1)
+		expect(onCopiedChange).toHaveBeenCalledTimes(1)
 
-			act(() => {
-				vi.advanceTimersByTime(2000)
-			})
+		act(() => {
+			vi.advanceTimersByTime(2000)
+		})
 
-			expect(onCopiedChange).toHaveBeenLastCalledWith(false)
+		expect(onCopiedChange).toHaveBeenLastCalledWith(false)
 
-			expect(onCopiedChange).toHaveBeenCalledTimes(2)
-		} finally {
-			signal.throwIfAborted()
-
-			restore()
-
-			vi.useRealTimers()
-		}
+		expect(onCopiedChange).toHaveBeenCalledTimes(2)
 	})
 
 	it('stays focusable and focused through the copied window (WCAG 2.4.3)', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const { container } = renderUI(<CopyButton text="hello" />)
+		const { container } = renderUI(<CopyButton text="hello" />)
 
-			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
-			button.focus()
+		button.focus()
 
-			await act(async () => {
-				fireEvent.click(button)
-			})
+		await act(async () => {
+			fireEvent.click(button)
+		})
 
-			await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Copied'))
+		await waitFor(() => expect(button).toHaveAttribute('aria-label', 'Copied'))
 
-			// Disabling here would drop keyboard focus to <body> mid-interaction.
-			expect(button).not.toBeDisabled()
+		// Disabling here would drop keyboard focus to <body> mid-interaction.
+		expect(button).not.toBeDisabled()
 
-			expect(document.activeElement).toBe(button)
+		expect(document.activeElement).toBe(button)
 
-			// Re-activating during the window is a no-op, not a second write.
-			await act(async () => {
-				fireEvent.click(button)
-			})
+		// Re-activating during the window is a no-op, not a second write.
+		await act(async () => {
+			fireEvent.click(button)
+		})
 
-			expect(writeText).toHaveBeenCalledTimes(1)
-		} finally {
-			restore()
-		}
+		expect(writeText).toHaveBeenCalledTimes(1)
 	})
 
 	it('invokes a consumer onClick before copying', async () => {
@@ -214,36 +196,28 @@ describe('CopyButton', () => {
 
 		const onClick = vi.fn()
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const { container } = renderUI(<CopyButton text="hello" onClick={onClick} />)
+		const { container } = renderUI(<CopyButton text="hello" onClick={onClick} />)
 
-			const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+		const button = present<HTMLButtonElement>(container.querySelector('button'), 'button')
 
-			fireEvent.click(button)
+		fireEvent.click(button)
 
-			expect(onClick).toHaveBeenCalledTimes(1)
+		expect(onClick).toHaveBeenCalledTimes(1)
 
-			await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
-		} finally {
-			restore()
-		}
+		await waitFor(() => expect(writeText).toHaveBeenCalledWith('hello'))
 	})
 
 	it('announces success to a live region on copy', async () => {
 		const writeText = vi.fn().mockResolvedValue(undefined)
 
-		const restore = stubClipboard(writeText)
+		stubClipboard(writeText)
 
-		try {
-			const { container } = renderUI(<CopyButton text="hello" />)
+		const { container } = renderUI(<CopyButton text="hello" />)
 
-			fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
+		fireEvent.click(present<HTMLButtonElement>(container.querySelector('button'), 'button'))
 
-			await expectAnnouncement('Copied')
-		} finally {
-			restore()
-		}
+		await expectAnnouncement('Copied')
 	})
 })

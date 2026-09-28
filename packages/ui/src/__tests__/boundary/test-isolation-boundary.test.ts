@@ -114,8 +114,8 @@ const NULLABLE_CAST = {
 // a global or a prototype, and a module-scope `let`. A helper in the same file
 // that makes such a write counts as one. A write to the DOM is out of scope:
 // `cleanup`, the residue guard, and the page reset of the browser suite undo
-// it. The scan reads source order, so a write that a loop repeats after an
-// `await` lower in the loop body escapes it.
+// it. In a loop, an `await` lower in the body comes before the write of the
+// next pass, so the scan counts the head of the loop body as a resume point.
 
 /** The `vi` calls that change state that outlives a case. */
 const SHARED_STATE_CALL =
@@ -138,11 +138,36 @@ function calleeRoot(node: ts.Expression): string | undefined {
 	return undefined
 }
 
-/** The root of an assignment target: `globalThis` for `globalThis.fetch`. */
-function targetRoot(node: ts.Expression): ts.Expression {
-	return ts.isPropertyAccessExpression(node) || ts.isElementAccessExpression(node)
-		? targetRoot(node.expression)
+/** The expression under its parentheses and casts. */
+function uncast(node: ts.Expression): ts.Expression {
+	return ts.isParenthesizedExpression(node) ||
+		ts.isAsExpression(node) ||
+		ts.isNonNullExpression(node)
+		? uncast(node.expression)
 		: node
+}
+
+/** Whether `node` is a loop, whose body runs again after an `await` lower in it. */
+function isLoop(node: ts.Node): node is ts.IterationStatement {
+	return (
+		ts.isForStatement(node) ||
+		ts.isForOfStatement(node) ||
+		ts.isForInStatement(node) ||
+		ts.isWhileStatement(node) ||
+		ts.isDoStatement(node)
+	)
+}
+
+/**
+ * The root of an assignment target, under its casts: `globalThis` for
+ * `(globalThis as T).fetch`.
+ */
+function targetRoot(node: ts.Expression): ts.Expression {
+	const bare = uncast(node)
+
+	return ts.isPropertyAccessExpression(bare) || ts.isElementAccessExpression(bare)
+		? targetRoot(bare.expression)
+		: bare
 }
 
 /**
@@ -198,7 +223,22 @@ function unguardedLateWrites(file: string, text: string): string[] {
 				return `${callee}(${target.getText(source)})`
 			}
 
+			if (
+				/^(?:Object|Reflect)\.(?:defineProperty|set|deleteProperty)$/.test(callee) &&
+				target &&
+				SHARED_TARGET.test(target.getText(source))
+			) {
+				return `${callee}(${target.getText(source)})`
+			}
+
 			if (ts.isIdentifier(node.expression) && writers.has(callee)) return `${callee}()`
+		}
+
+		if (
+			ts.isDeleteExpression(node) &&
+			SHARED_TARGET.test(targetRoot(node.expression).getText(source))
+		) {
+			return `delete ${node.expression.getText(source)}`
 		}
 
 		if (
@@ -244,7 +284,7 @@ function unguardedLateWrites(file: string, text: string): string[] {
 
 		const guards: number[] = []
 
-		const writes: { at: number; label: string }[] = []
+		const writes: { at: number; label: string; node: ts.Node }[] = []
 
 		const visit = (node: ts.Node) => {
 			ts.forEachChild(node, visit)
@@ -257,14 +297,37 @@ function unguardedLateWrites(file: string, text: string): string[] {
 
 			const label = writeLabel(node)
 
-			if (label) writes.push({ at: node.getStart(source), label })
+			if (label) writes.push({ at: node.getStart(source), label, node })
 		}
 
 		visit(body)
 
-		for (const { at, label } of writes) {
-			// An `await` that holds the write ends after it, so it does not count.
-			const resumed = Math.max(-1, ...awaits.filter((end) => end <= at))
+		/**
+		 * The latest point before `at` where the body can resume. An `await` that
+		 * holds the write ends after it, so it does not count. In a loop, an
+		 * `await` lower in the body comes before the write of the next pass, so
+		 * the pass starts at the head of the loop body.
+		 */
+		function resumedBefore(node: ts.Node, at: number): number {
+			let resumed = Math.max(-1, ...awaits.filter((end) => end <= at))
+
+			for (let up = node.parent; up && up !== body; up = up.parent) {
+				if (!isLoop(up)) continue
+
+				const loopBody = up.statement
+
+				const start = loopBody.getStart(source)
+
+				if (awaits.some((end) => end > at && end <= loopBody.getEnd())) {
+					resumed = Math.max(resumed, start)
+				}
+			}
+
+			return resumed
+		}
+
+		for (const { at, label, node } of writes) {
+			const resumed = resumedBefore(node, at)
 
 			if (resumed < 0 || guards.some((guard) => guard >= resumed && guard < at)) continue
 
