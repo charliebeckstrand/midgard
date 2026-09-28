@@ -5,10 +5,12 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useLayoutEffect,
 	useMemo,
 	useRef,
 } from 'react'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -192,7 +194,11 @@ export function useGridCursor<T>({
 
 	const newRowRef = useRef<GridNewRowPosition>(newRowPosition)
 
-	newRowRef.current = newRowPosition
+	// Synced before the layout effects of the hooks below, which clamp the
+	// cursor to the slot.
+	useLayoutEffect(() => {
+		newRowRef.current = newRowPosition
+	}, [newRowPosition])
 
 	const {
 		rowsRef,
@@ -288,6 +294,11 @@ export function useGridCursor<T>({
 		moveTo: nav.moveTo,
 	})
 
+	const {
+		enterEdit,
+		newRow: { enter: enterNewRow },
+	} = editing
+
 	// Begins the edit session on a named cell, gating on an editable column: a
 	// `readOnly` or slotless/fieldless one never enters. The editing layer focuses
 	// the cell's editor once that mounts.
@@ -297,9 +308,9 @@ export function useGridCursor<T>({
 
 			if (!col || !isColumnEditable(col)) return
 
-			editing.enterEdit(rowKey, columnId, seed)
+			enterEdit(rowKey, columnId, seed)
 		},
-		[editing.enterEdit, dataColumnsRef],
+		[enterEdit, dataColumnsRef],
 	)
 
 	// The keyboard entry starts from cursor indices, so it resolves them to the
@@ -310,7 +321,7 @@ export function useGridCursor<T>({
 			const col = dataColumnsRef.current[colIdx]
 
 			if (col && rowIdx === NEW_ROW_INDEX) {
-				editing.newRow.enter(col.id, seed)
+				enterNewRow(col.id, seed)
 
 				return
 			}
@@ -321,47 +332,39 @@ export function useGridCursor<T>({
 
 			enterEditAtCell(rowKey, col.id, seed)
 		},
-		[enterEditAtCell, editing.newRow.enter, rowKeysRef, dataColumnsRef],
+		[enterEditAtCell, enterNewRow, rowKeysRef, dataColumnsRef],
 	)
-
-	// Read at event time by the entry keys below, which stay referentially stable.
-	const activeRef = useRef(nav.active)
-
-	activeRef.current = nav.active
 
 	// The keyboard entries beside the cursor's Enter, on the tab stop alone: F2
 	// opens the active cell, and a printable key opens it with that character in
 	// place of its value (see `typedSeed`). A press from inside the grid belongs
 	// to its control, never to type-to-edit.
-	const sessionEntryKeys = useCallback(
-		(event: KeyboardEvent<HTMLTableElement>) => {
-			const active = activeRef.current
+	const sessionEntryKeys = useStableEvent((event: KeyboardEvent<HTMLTableElement>) => {
+		const { active } = nav
 
-			if (event.target !== event.currentTarget || event.defaultPrevented || !active) return
+		if (event.target !== event.currentTarget || event.defaultPrevented || !active) return
 
-			const press = readKeyPress(event)
+		const press = readKeyPress(event)
 
-			// The new-row slot is no data row, so the cursor's Enter activates
-			// nothing there. Enter opens its cell, as F2 does.
-			const slot = active.row === NEW_ROW_INDEX
+		// The new-row slot is no data row, so the cursor's Enter activates
+		// nothing there. Enter opens its cell, as F2 does.
+		const slot = active.row === NEW_ROW_INDEX
 
-			const column = dataColumnsRef.current[active.col]
+		const column = dataColumnsRef.current[active.col]
 
-			const seed =
-				event.key === 'F2' || (slot && event.key === 'Enter')
-					? undefined
-					: slot
-						? slotSeed(press, column, editing.newRow.editorKind)
-						: typedSeed(press, column, rowsRef.current[active.row])
+		const seed =
+			event.key === 'F2' || (slot && event.key === 'Enter')
+				? undefined
+				: slot
+					? slotSeed(press, column, editing.newRow.editorKind)
+					: typedSeed(press, column, rowsRef.current[active.row])
 
-			if (seed === null || (seed === undefined && !isPlainKey(press))) return
+		if (seed === null || (seed === undefined && !isPlainKey(press))) return
 
-			event.preventDefault()
+		event.preventDefault()
 
-			enterEditAt(active.row, active.col, seed)
-		},
-		[enterEditAt, editing.newRow.editorKind, rowsRef, dataColumnsRef],
-	)
+		enterEditAt(active.row, active.col, seed)
+	})
 
 	// The pointer entry, fired through the grid's built-in cell double-click event
 	// (so the interactive-content guard and data-cell resolution apply). The event

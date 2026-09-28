@@ -3,6 +3,7 @@
 import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import { useLocale } from '../../providers/locale'
 import type { MapSeriesColor } from '../../recipes/kata/map'
@@ -778,9 +779,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// below is built: a consumer's inline `onRegionPreload` is a fresh identity
 	// every render, and re-keying the latch on it would warm a region the reader
 	// already warmed.
-	const preloadReport = useRef(onRegionPreload)
-
-	preloadReport.current = onRegionPreload
+	const reportPreload = useStableEvent((id: string, index: number) => onRegionPreload?.(id, index))
 
 	// Whether anything asked to be told of intent, as the boolean the latch and the
 	// tracking gate both key on rather than the churning handler behind it.
@@ -802,9 +801,9 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 
 			warmed.add(index)
 
-			preloadReport.current?.(id, index)
+			reportPreload(id, index)
 		}, regionIds)
-	}, [preloads, regionIds])
+	}, [preloads, regionIds, reportPreload])
 
 	// The selection resolved to the index the layers draw by, against the same
 	// ids a click reports — so the pick a consumer echoes back always rings the
@@ -1092,20 +1091,22 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		[shape.features, shape.project, entries, hidden, regions.answers],
 	)
 
+	const { click: pickRegion } = regions
+
 	// Picks the mark the cursor sits on: a region through the caller's own
 	// reporter, an overlay through the activation it registered — so the plat
 	// dispatches a keyboard pick without knowing what kind of mark it landed on.
 	const activateTarget = useCallback(
 		(target: MapHoverTarget) => {
 			if (target.kind === 'region') {
-				regions.click?.(target.index)
+				pickRegion?.(target.index)
 
 				return
 			}
 
 			entries.find((entry) => entry.id === target.id)?.activate?.(target.stop)
 		},
-		[regions.click, entries],
+		[pickRegion, entries],
 	)
 
 	// Whether anything at all can read out — a matched region, or a registered
