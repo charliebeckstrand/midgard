@@ -302,10 +302,13 @@ export function useMapOverlay({
 	// question — the drift `engine/map-overlay/selection.ts` exists to prevent.
 	const resolveStop = stopOf ?? ownStop
 
-	// The live stops and reporters, read at fire time rather than captured in the
-	// registration: a consumer's inline handler is a fresh identity every render,
+	// The live stops and reporters, read when each one runs rather than captured in
+	// the registration: a consumer's inline handler is a fresh identity every render,
 	// and a mark's geometry changes as it lands — neither can churn the ledger,
-	// whose every write re-sorts it and re-renders the legend.
+	// whose every write re-sorts it and re-renders the legend. `stopsAt` also runs
+	// during render: a neighbor pools the dots of this mark for its ground
+	// (`map-point.tsx`). So the values are in a ref, not in an effect event, which
+	// throws when it runs during render.
 	const live = useRef({ stops, onClick, onContextMenu, resolveStop, ownSpare })
 
 	live.current = { stops, onClick, onContextMenu, resolveStop, ownSpare }

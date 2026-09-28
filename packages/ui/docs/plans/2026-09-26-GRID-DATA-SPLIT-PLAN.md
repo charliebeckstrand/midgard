@@ -74,7 +74,7 @@ The grid cells read `rowIndexMapRef`, `colIndexMapRef`, and `rowKeysRef` during 
 - `bridgeCellActivate` gets the refs from the bundle, which is a hook argument in phase 2. The compiler accepts that.
 - Each phase ends at a hook boundary, and the compiler treats a hook result as frozen. The mutable ranges of the resolvers stop at the phase that calls them.
 
-`useStableHandler` and `useTableRevealed` write refs in render by intent, and stay in the ledger.
+`useStableHandler` and `useTableRevealed` wrote refs in render by intent. Since then `useStableHandler` reads a `useStableEvent`, and `useTableRevealed` latches in state, so both compile and neither is in the ledger.
 
 A probe of the same fixes in one body (the prior version of this plan) made the compiler compile `GridData`. The probe used hook wrappers around three resolvers, and the phase hooks give the same boundaries. The probe did not cover the new phase bodies. Increment 2 regenerates the ledger, and a phase that still skips gets its fix in that increment.
 
@@ -97,7 +97,7 @@ Without the compiler, the split does not change behavior. Each phase runs the sa
 ## Increments
 
 1. **Helpers and subtrees.** Move the pure helpers and `useServerSortSettle`, and extract `GridDataTable` and `GridDataDialogs`. No hook order changes. The hooks that go to a phase file move in increment 2, because each file must export the symbol of its name. `GridData` loses about 250 lines. The compiler still skips it on the computed key.
-2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData`. `useStableHandler` and `useTableRevealed` stay in it, under their new files.
+2. **Phases.** Extract the four phase hooks, the index bundle, and `useGridIndexSync`, and hoist the key. `GridData` compiles. The ledger drops `GridData`. `useStableHandler` and `useTableRevealed` compile too (see above).
 3. **Render-count bench.** Add a compiled render count for a sort and a selection change on a 1,000-row grid to `__benchmarks__`, before and after. The gain is then a number, not an inference.
 
 ## Proof

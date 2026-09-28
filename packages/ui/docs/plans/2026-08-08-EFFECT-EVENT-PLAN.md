@@ -79,7 +79,7 @@ The sweep wants to land per-owner rather than as one commit, because each conver
 
 ## What remains
 
-Six callback refs stay, each for a reason this plan records. `use-floating-disclosure.ts`'s `gateRef` and `use-keybindings.ts`'s `ignoreRef` feed a presence test, and `bindingsRef` is a map of handlers (see "Decide before converting"). `use-grid-navigation.ts`'s `storeActionsRef` is a pair of handlers that a child's layout effect calls (increment 2). `use-form-reducer.ts`'s `validateRef` and `use-controllable.ts`'s `onValueChangeRef` are called during render (increment 3).
+Four callback refs stay, each for a reason this plan records. `use-floating-disclosure.ts`'s `gateRef` feeds a presence test (see "Decide before converting"). `use-keybindings.ts` converted `ignoreRef` and `bindingsRef` after this plan. `use-grid-navigation.ts`'s `storeActionsRef` is a pair of handlers that a child's layout effect calls (increment 2). `use-form-reducer.ts`'s `validateRef` and `use-controllable.ts`'s `onValueChangeRef` are called during render (increment 3).
 
 A render-phase caller is the one fault this sweep cannot see in a file by itself: the call can reach the callback through a setter that another hook hands on. A conversion therefore needs the Chromium suite as well as jsdom before it lands.
 
