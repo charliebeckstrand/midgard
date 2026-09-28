@@ -42,9 +42,6 @@
 		"useDocumentKey": "Refs",
 		"usePdfViewer": "PreserveManualMemo"
 	},
-	"components/resizable/use-resizable-panel.ts": {
-		"useResizablePanel": "Refs"
-	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},
