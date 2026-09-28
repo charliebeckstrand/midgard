@@ -17,14 +17,9 @@ export const size = {
 } as const
 
 /**
- * The class of each inner step (`sm`, `md`, `lg`), from {@link size}. No kata
- * reads it: `ji-text-ramp.test.ts` pins {@link textRamp} to it.
- */
-export const stepSize = { sm: size.sm, md: size.md, lg: size.lg } as const
-
-/**
- * {@link stepSize} in a stepped `density-text` class. The text takes the step of
- * its nearest density scope, and each outer step takes the class of its
- * neighbor. `ji-text-ramp.test.ts` pins it to {@link stepSize}.
+ * The `sm`, `md`, and `lg` classes of {@link size} in a stepped `density-text`
+ * class. The text takes the step of its nearest density scope, and each outer
+ * step takes the class of its neighbor. `ji-text-ramp.test.ts` pins it to
+ * {@link size}.
  */
 export const textRamp = 'density-text-[sm,base,lg]'

@@ -11,15 +11,10 @@
  * Layer: kiso · Concern: skeleton form · Unit: textarea
  */
 
+import { py, radius } from '../control/density'
 import { textRamp } from '../ji'
 
 export const textarea = {
-	base: [
-		'w-full',
-		'box-content',
-		'density-py-ring-[1.5,2,2.5]',
-		'density-rounded-[1.5,2,2.5]',
-		textRamp,
-	],
+	base: ['w-full', 'box-content', py, radius, textRamp],
 	density: true,
 } as const

@@ -30,9 +30,12 @@ import { affix } from './affix'
 /** The radius at each step. `kata/control.ts` also gives it to ControlFrame. */
 export const radius = 'density-rounded-[1.5,2,2.5]'
 
+/** The vertical padding at each step. The textarea skeleton also reads it. */
+export const py = 'density-py-ring-[1.5,2,2.5]'
+
 export const density = [
 	'density-px-ring-[2.5,3,3.5]',
-	'density-py-ring-[1.5,2,2.5]',
+	py,
 	radius,
 	'density-gap-[0.75,1,1.25]',
 	affix.autofill.prefix,

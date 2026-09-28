@@ -9,17 +9,18 @@
  * "no kiso import" contract is pinned by the `recipes/katakana/**` override in
  * `biome.json`.
  *
- * Four archetypes, five bridges:
+ * Five archetypes, and four of them have a bridge:
  *
  * - `control` and `check`, the Control family: text-input and check-input
  *   branches;
  * - `popover`, a floating overlay;
  * - `panel`, the panel bundle shared by Dialog, Drawer, and Sheet.
  *
- * `slider` has no bridge; it's a pure color token bundle the slider kata read
- * from kiso directly. `segment` has no bridge either. Segment and Tabs share
- * it through one kata, `kata/tabs`, which reads kiso directly. Alongside the archetypes, `backdrop` is a small shared recipe
- * (not an archetype) for the drawer/sheet modal scrim.
+ * The fifth, `segment`, has no bridge: Segment and Tabs share it through one
+ * kata, `kata/tabs`, which reads kiso directly. `slider` has no bridge either;
+ * it's a pure color token bundle the slider kata read from kiso directly.
+ * Alongside the archetypes, `backdrop` is a small shared recipe (not an
+ * archetype) for the drawer/sheet modal scrim.
  *
  * **The bridge is namespaced.** Bridges are reached through the `bridge`
  * object. A kata imports the token bundle under its bare archetype
