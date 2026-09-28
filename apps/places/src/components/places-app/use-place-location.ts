@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useSearchParams } from 'next/navigation'
-import { useCallback, useMemo } from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import type { PlaceFilterValue } from '../../utilities/places-filter'
 import {
 	type PlaceLocation,
@@ -63,16 +63,24 @@ export type PlaceLocationHandle = PlaceLocation & {
  * outside the codec has to know which fields those are — and two addresses that
  * parse alike hold one value between them. The reader runs every render, which
  * is a handful of `getAll` calls; what it hands back is what holds.
+ *
+ * The held value is state, not a memo. The React Compiler sets the dependencies
+ * of a memo from what its body reads, so a memo on the key alone recomputed on
+ * each new `params` and kept nothing. When the key changes, the render stores
+ * the new value, and React renders the component again before its children.
  */
 function useSlice<T>(params: URLSearchParams, read: (params: URLSearchParams) => T): T {
 	const value = read(params)
 
 	const key = JSON.stringify(value)
 
-	// The key is the whole of what the value says, so the memo holds until the
-	// address says something else — which the rule cannot see.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `key` is what `value` amounts to
-	return useMemo(() => value, [key])
+	const [held, setHeld] = useState({ key, value })
+
+	if (held.key === key) return held.value
+
+	setHeld({ key, value })
+
+	return value
 }
 
 /**
