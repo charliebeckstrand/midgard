@@ -32,20 +32,13 @@ import { lensOffset } from './use-pdf-viewer-magnifier'
 export function PdfViewerMagnifier() {
 	const { magnifierSettings, activePage, scale, visible } = usePdfViewerContext()
 
-	const magnifier = usePdfViewerMagnifierContext()
+	const { open, point, setFloating, floatingProps, floatingStyles } = usePdfViewerMagnifierContext()
 
 	const root = usePortalContainer()
 
 	const { imageWidth, imageHeight, frameWidth, frameHeight, transform } = scale
 
-	if (
-		!magnifierSettings ||
-		!magnifier.open ||
-		!magnifier.point ||
-		!activePage ||
-		!hasRaster(activePage) ||
-		!visible
-	) {
+	if (!magnifierSettings || !open || !point || !activePage || !hasRaster(activePage) || !visible) {
 		return null
 	}
 
@@ -53,17 +46,17 @@ export function PdfViewerMagnifier() {
 
 	const { zoom, size } = magnifierSettings
 
-	const offset = lensOffset(magnifier.point, zoom)
+	const offset = lensOffset(point, zoom)
 
 	return (
 		<FloatingPortal root={root ?? undefined}>
 			<div
-				ref={magnifier.setFloating}
-				{...magnifier.floatingProps}
+				ref={setFloating}
+				{...floatingProps}
 				data-slot="pdf-viewer-magnifier"
 				aria-hidden
 				className={cn(k.viewport.page.magnifier.lens, k.viewport.page.magnifier.size[size])}
-				style={magnifier.floatingStyles}
+				style={floatingStyles}
 			>
 				<div
 					className={cn(k.viewport.page.magnifier.stage)}
