@@ -5,16 +5,7 @@ import { playwright } from '@vitest/browser-playwright'
 import type { Plugin } from 'vite'
 import { configDefaults, defineConfig } from 'vitest/config'
 import type { BrowserCommand } from 'vitest/node'
-
-const CI = Boolean(process.env.CI)
-
-const SEED = process.env.VITEST_SEED
-
-if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
-	throw new Error(
-		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
-	)
-}
+import { CI, cleanup, sequence } from './vitest.base'
 
 const COMPONENT_MODULES = 'virtual:component-modules'
 
@@ -254,16 +245,9 @@ export default defineConfig({
 		// It governs no real-time hold: a budget costs nothing on a green run,
 		// where a hold spends its full value every time.
 		provide: { asyncUtilTimeout: CI ? 4_000 : 1_000, budgetFactor: CI ? 2 : 1 },
-		// The four settings `vitest.config.ts` carries for the shared registry
-		// `isolate` declares below, and which this config carried none of:
-		// restoreMocks reverts `vi.spyOn` spies, clearMocks drops call history,
-		// and the two unstub settings revert `vi.stubGlobal` and `vi.stubEnv`.
-		// All four run ahead of `beforeEach`, so setup in a hook or a test body
-		// is reapplied untouched.
-		restoreMocks: true,
-		clearMocks: true,
-		unstubGlobals: true,
-		unstubEnvs: true,
+		// The cleanup of `vitest.base.ts`, for the shared registry that `isolate`
+		// declares below.
+		...cleanup,
 		// One page per instance, and one module graph across the files it runs.
 		// The default re-imports the graph for every file: measured on a
 		// 4-core container, the 100-file suite spent 566s summed in import and
@@ -279,7 +263,7 @@ export default defineConfig({
 		// a file moves. It could not land while clicks died at random after a
 		// drag. Since #1180 closed that, ten seeds pass. Replay a red run with
 		// `VITEST_SEED=<seed> pnpm test:browser`.
-		sequence: { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) },
+		sequence,
 		setupFiles: [
 			'./src/__tests__/browser/setup/index.ts',
 			// `userEvent.setup()` patches HTMLElement.prototype.focus with a
