@@ -12,9 +12,12 @@ type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
  * Resolve every project-authored prop the component accepts. `projectNames`
  * is the authoritative filter when an annotation is available; without one,
  * fall back to a per-symbol declaration-source heuristic.
+ *
+ * @param callable - The node that the props resolve at: the component's
+ *   function, or the name of an export that a factory returns.
  */
 export function extractProps(
-	callable: ts.SignatureDeclaration,
+	callable: ts.Node,
 	propsType: ts.Type,
 	projectNames: ReadonlySet<string> | null,
 	defaults: ReadonlyMap<string, string>,
