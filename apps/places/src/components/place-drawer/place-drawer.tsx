@@ -1,10 +1,11 @@
 'use client'
 
-import { Pencil, Trash, X } from 'lucide-react'
+import { CalendarDays, Globe, MapPin, Pencil, Trash, X } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { Badge } from 'ui/badge'
 import { Button } from 'ui/button'
 import { Divider } from 'ui/divider'
+import { DescriptionDetails, DescriptionList, DescriptionTerm } from 'ui/dl'
 import { Drawer, DrawerBody, DrawerClose, DrawerFooter, DrawerTitle } from 'ui/drawer'
 import { Icon } from 'ui/icon'
 import { Link } from 'ui/link'
@@ -69,6 +70,170 @@ function PlaceMeta({ place }: { place: Place }) {
 
 			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
 		</Flex>
+	)
+}
+
+const LAYOUT: 'facts' | 'side' | 'list' = 'list'
+
+/** The visit day, spelled out. */
+function visitedOn(place: Place) {
+	return fromDay(place.visitedAt).toLocaleDateString(undefined, { dateStyle: 'medium' })
+}
+
+/** The category and the score, with no date between them. */
+function PlaceBadges({ place }: { place: Place }) {
+	const category = CATEGORY_BY_VALUE.get(place.category)
+
+	return (
+		<Flex gap="sm" align="center" wrap>
+			{category ? <Badge color={category.color}>{category.label}</Badge> : null}
+
+			{place.rating > 0 ? <Rating readOnly value={place.rating} size="sm" /> : null}
+		</Flex>
+	)
+}
+
+function PlacePhoto({ place }: { place: Place }) {
+	return place.photo ? (
+		<img
+			src={place.photo}
+			alt={place.name}
+			loading="lazy"
+			className="size-32 shrink-0 rounded-lg bg-white/5 object-cover"
+		/>
+	) : null
+}
+
+function PlaceFact({ icon, children }: { icon: React.ReactElement; children: React.ReactNode }) {
+	return (
+		<Flex gap="sm" align="start" className="min-w-0">
+			<Text as="span" tone="muted" className="flex h-lh shrink-0 items-center">
+				<Icon icon={icon} />
+			</Text>
+
+			<div className="min-w-0 break-words">{children}</div>
+		</Flex>
+	)
+}
+
+function PlaceReview({ place }: { place: Place }) {
+	return place.review ? (
+		<>
+			<Divider className="my-2" />
+
+			<Stack gap="sm">
+				<Text className="font-medium">Your review</Text>
+
+				<Text>{place.review}</Text>
+			</Stack>
+		</>
+	) : null
+}
+
+function PlaceLink({ place }: { place: Place }) {
+	return place.url ? (
+		<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
+			{place.url}
+		</Link>
+	) : null
+}
+
+function PlaceDetails({ place }: { place: Place }) {
+	if (LAYOUT === 'facts') {
+		return (
+			<Stack gap="md" className="pb-6">
+				<PlacePhoto place={place} />
+
+				<Stack gap="sm">
+					<PlaceFact icon={<MapPin />}>
+						<Text>{place.address}</Text>
+					</PlaceFact>
+
+					{place.url ? (
+						<PlaceFact icon={<Globe />}>
+							<PlaceLink place={place} />
+						</PlaceFact>
+					) : null}
+
+					<PlaceFact icon={<CalendarDays />}>
+						<Text>Visited {visitedOn(place)}</Text>
+					</PlaceFact>
+				</Stack>
+
+				<PlaceReview place={place} />
+			</Stack>
+		)
+	}
+
+	if (LAYOUT === 'side') {
+		return (
+			<Stack gap="md" className="pb-6">
+				<Flex gap="md" align="start">
+					<PlacePhoto place={place} />
+
+					<Stack gap="sm" className="min-w-0">
+						<PlaceBadges place={place} />
+
+						<Text tone="muted" size="sm">
+							Visited {visitedOn(place)}
+						</Text>
+
+						<Text>{place.address}</Text>
+
+						<div className="min-w-0 truncate">
+							<PlaceLink place={place} />
+						</div>
+					</Stack>
+				</Flex>
+
+				<PlaceReview place={place} />
+			</Stack>
+		)
+	}
+
+	const category = CATEGORY_BY_VALUE.get(place.category)
+
+	return (
+		<Stack gap="md" className="pb-6">
+			<PlacePhoto place={place} />
+
+			<DescriptionList>
+				{category ? (
+					<>
+						<DescriptionTerm>Category</DescriptionTerm>
+						<DescriptionDetails>
+							<Badge color={category.color}>{category.label}</Badge>
+						</DescriptionDetails>
+					</>
+				) : null}
+
+				{place.rating > 0 ? (
+					<>
+						<DescriptionTerm>Rating</DescriptionTerm>
+						<DescriptionDetails>
+							<Rating readOnly value={place.rating} size="sm" />
+						</DescriptionDetails>
+					</>
+				) : null}
+
+				<DescriptionTerm>Visited</DescriptionTerm>
+				<DescriptionDetails>{visitedOn(place)}</DescriptionDetails>
+
+				<DescriptionTerm>Address</DescriptionTerm>
+				<DescriptionDetails>{place.address}</DescriptionDetails>
+
+				{place.url ? (
+					<>
+						<DescriptionTerm>Website</DescriptionTerm>
+						<DescriptionDetails className="break-all">
+							<PlaceLink place={place} />
+						</DescriptionDetails>
+					</>
+				) : null}
+			</DescriptionList>
+
+			<PlaceReview place={place} />
+		</Stack>
 	)
 }
 
@@ -260,7 +425,7 @@ export function PlaceDrawer({
 
 					<PlaceTrail className="text-base/7" steps={steps} />
 
-					{place ? <PlaceMeta place={place} /> : null}
+					{place && LAYOUT === 'facts' ? <PlaceBadges place={place} /> : null}
 				</Stack>
 
 				<DrawerClose>
@@ -270,54 +435,7 @@ export function PlaceDrawer({
 
 			<DrawerBody>
 				{place ? (
-					<Stack gap="md" className="pb-6">
-						{/* A plain `img`, not `next/image`: the address is whatever the reader
-						    typed, and optimizing an arbitrary remote host means listing that
-						    host first. The name is the alt text because it is the one thing
-						    known about what the picture shows.
-
-						    One square, stated on both axes, so every place reads the same
-						    however its photo was shot. `max-h-48 w-full` clamped the tall
-						    ones only: a panoramic shot scaled to the panel's width came out
-						    under the cap and drew a thin strip, a portrait one filled it, and
-						    the address below them landed somewhere different each time — and
-						    on a wide panel the picture ran the whole width, which is a banner
-						    rather than a thumbnail. A square answers both, and it holds its
-						    size as the panel resizes, where a full-width band grew with it.
-
-						    Stating the size also reserves the space before the picture
-						    arrives; unsized, the `img` laid out at nothing and shoved the
-						    text down on load. `object-cover` fills the box and crops the
-						    overflow, which is what makes one size honest for any aspect. */}
-						{place.photo ? (
-							<img
-								src={place.photo}
-								alt={place.name}
-								loading="lazy"
-								className="size-32 rounded-lg bg-white/5 object-cover"
-							/>
-						) : null}
-
-						<Text>{place.address}</Text>
-
-						{place.url ? (
-							<Link href={place.url} target="_blank" underline rel="noopener noreferrer">
-								{place.url}
-							</Link>
-						) : null}
-
-						{place.review ? (
-							<>
-								<Divider className="my-2" />
-
-								<Stack gap="sm">
-									<Text className="font-medium">Your review</Text>
-
-									<Text>{place.review}</Text>
-								</Stack>
-							</>
-						) : null}
-					</Stack>
+					<PlaceDetails place={place} />
 				) : (
 					<Stack gap="md">
 						{/* Over the list rather than in the header, because it narrows the
