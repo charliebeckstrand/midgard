@@ -111,3 +111,41 @@ export async function unlinkIdentity(provider: Provider): Promise<void> {
 		bifrost.DELETE('/auth/oauth/identities/{provider}', { params: { path: { provider } } }),
 	)
 }
+
+/** Everything that the gateway keeps about the signed-in user. */
+export type AccountExport = Schema<'AccountExport'>
+
+/**
+ * Downloads everything that the gateway keeps about the signed-in user, as a
+ * JSON file.
+ */
+export async function downloadAccount(): Promise<void> {
+	const data: AccountExport = await unwrap(bifrost.GET('/auth/account/export'))
+
+	const url = URL.createObjectURL(
+		new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' }),
+	)
+
+	const link = document.createElement('a')
+
+	link.href = url
+	link.download = `account-${data.exported_at.slice(0, 10)}.json`
+	link.click()
+
+	URL.revokeObjectURL(url)
+}
+
+/**
+ * Deletes the account of the signed-in user and all of its data, and loads
+ * `/login`.
+ *
+ * @remarks
+ * The gateway accepts it only soon after the sign-in, and after the second
+ * step. It refuses an admin with a `403`. A full page load, like a sign-out,
+ * so that no data of the user stays in a query cache.
+ */
+export async function deleteAccount(): Promise<void> {
+	await unwrap(bifrost.DELETE('/auth/account'))
+
+	window.location.replace('/login')
+}
