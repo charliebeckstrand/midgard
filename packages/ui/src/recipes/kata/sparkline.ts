@@ -1,7 +1,7 @@
 /**
  * Sparkline kata: recipe-shaped surface for the in-cell trend chart. The root
- * is a bare inline box (the SVG sizes itself from its `viewBox`). The recipe has
- * no axis. `color` is an extras table of per-color `stroke` / `fill` classes,
+ * is a bare inline box. The recipe has no axis. `svg` sizes the SVG at the step
+ * of the nearest density scope, at 3:1 on each step (72×24, 96×32, 120×40). `color` is an extras table of per-color `stroke` / `fill` classes,
  * authored inline with `mode()`. The line and end-point read `stroke`, the bars and area fill read
  * `fill`. The shades track `kata/progress` so a sparkline and a progress bar in
  * the same color read as one family.
@@ -46,5 +46,5 @@ export const k = defineRecipe(
 	// `motion` is the shared data-viz mark-reveal family — the same timings the
 	// chart module draws with, so a sparkline and a chart animating side by side
 	// read as one.
-	{ color, motion: ugoki.mark },
+	{ color, motion: ugoki.mark, svg: ['block', 'density-w-[18,24,30]', 'density-h-[6,8,10]'] },
 )

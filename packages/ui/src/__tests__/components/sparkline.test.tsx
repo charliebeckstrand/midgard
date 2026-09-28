@@ -2,10 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { Sparkline } from '../../components/sparkline'
 import { sparklineGeometry } from '../../components/sparkline/sparkline-geometry'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { bySlot, renderUI, screen } from '../helpers'
-
-/** The SVG width a sparkline draws at, keyed to its resolved density step. */
-const WIDTH_SM = '64'
+import { bySlot, densityStepOf, getSlot, renderUI, screen } from '../helpers'
 
 describe('Sparkline', () => {
 	it('renders a role="img" wrapper carrying the accessible name over a hidden SVG', () => {
@@ -288,8 +285,31 @@ describe('Sparkline density', () => {
 			/>,
 		)
 
-		// The grid broadcasts its `compact` density onto the cell subtree, so the
-		// sparkline draws at the `sm` width without an explicit `size`.
-		expect(bySlot(container, 'sparkline')?.querySelector('svg')).toHaveAttribute('width', WIDTH_SM)
+		// The grid writes its `compact` density as a scope on the cells, so the
+		// sparkline takes the `sm` step without an explicit `size`.
+		const sparkline = getSlot(container, 'sparkline')
+
+		expect(densityStepOf(sparkline)).toBe('sm')
+
+		expect(sparkline.querySelector('svg')?.getAttribute('class')).toContain('density-w-[18,24,30]')
+	})
+
+	it('draws one 3:1 viewBox at each step and pins the box to an explicit width', () => {
+		const { container } = renderUI(
+			<>
+				<Sparkline data={[1, 2]} aria-label="Stepped" />
+				<Sparkline data={[1, 2]} width={120} aria-label="Pinned" />
+			</>,
+		)
+
+		const [stepped, pinned] = container.querySelectorAll('svg')
+
+		expect(stepped).toHaveAttribute('viewBox', '0 0 96 32')
+
+		expect(stepped).not.toHaveAttribute('width')
+
+		expect(pinned).toHaveAttribute('viewBox', '0 0 120 32')
+
+		expect(pinned).toHaveAttribute('width', '120')
 	})
 })

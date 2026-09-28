@@ -17,6 +17,7 @@ import { Radio } from '../../components/radio'
 import { Rating } from '../../components/rating'
 import { SidebarItem } from '../../components/sidebar'
 import { Slider, SliderSkeleton } from '../../components/slider'
+import { Sparkline, SparklineSkeleton } from '../../components/sparkline'
 import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
@@ -491,6 +492,65 @@ describe('items and slots at the first paint (real browser)', () => {
 		)
 
 		container.remove()
+	})
+})
+
+describe('the sparkline at the first paint (real browser)', () => {
+	afterEach(() => {
+		document.documentElement.removeAttribute('data-density')
+	})
+
+	/** Mounts the server markup of `element` with no hydration. */
+	const mountMarkup = (element: ReactElement) => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToStaticMarkup(element)
+
+		document.body.append(container)
+
+		return container
+	}
+
+	const box = (element: Element | null) => {
+		const { width, height } = present(element, 'element').getBoundingClientRect()
+
+		return [width, height]
+	}
+
+	it.each<[string, ReactElement, number[]]>([
+		['the root', <Sparkline key="s" data={[1, 3, 2]} aria-label="Trend" />, [72, 24]],
+		[
+			'an explicit size',
+			<Sparkline key="s" data={[1, 3, 2]} size="lg" aria-label="Trend" />,
+			[120, 40],
+		],
+	])('sizes the box at 3:1 at the step of %s', (_, element, expected) => {
+		document.documentElement.setAttribute('data-density', 'sm')
+
+		const container = mountMarkup(element)
+
+		expect(box(container.querySelector('svg'))).toEqual(expected)
+
+		container.remove()
+	})
+
+	it('sizes the skeleton to the box of the sparkline at each step', () => {
+		for (const step of ['sm', 'md', 'lg'] as const) {
+			document.documentElement.setAttribute('data-density', step)
+
+			const container = mountMarkup(
+				<>
+					<Sparkline data={[1, 3, 2]} aria-label="Trend" />
+					<SparklineSkeleton />
+				</>,
+			)
+
+			expect(box(container.querySelector('[data-slot="placeholder"]'))).toEqual(
+				box(container.querySelector('svg')),
+			)
+
+			container.remove()
+		}
 	})
 })
 

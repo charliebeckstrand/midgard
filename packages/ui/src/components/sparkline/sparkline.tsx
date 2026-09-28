@@ -2,8 +2,7 @@
 
 import { motion } from 'motion/react'
 import { useMemo } from 'react'
-import { cn, toAmbientStep } from '../../core'
-import { useDensityStep } from '../../primitives/density'
+import { cn } from '../../core'
 import { ReducedMotion } from '../../primitives/reduced-motion'
 import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/sparkline'
@@ -37,11 +36,19 @@ export type SparklineProps = AccessibleName & {
 	shape?: 'line' | 'bar'
 	/** @defaultValue 'zinc' */
 	color?: SparklineColor
-	/** Resolves against enclosing Density; sets the default drawing box and mark scale. */
+	/**
+	 * Size step of the box. It opens a density scope on the sparkline. Without
+	 * it, the sparkline takes the step of the nearest density scope. Each step
+	 * is 3:1 (72×24, 96×32, 120×40), so each step is the same drawing at a
+	 * different size.
+	 */
 	size?: Step
-	/** Coordinate-box width in px; overrides the density default. */
+	/**
+	 * Box width in px. With `width` or `height`, the box has a fixed size and
+	 * does not follow the density. The other side is then 96 or 32.
+	 */
 	width?: number
-	/** Coordinate-box height in px; overrides the density default. */
+	/** Box height in px. See `width`. */
 	height?: number
 	/**
 	 * Fill the region under the line with a translucent wash. Ignored for the
@@ -223,15 +230,14 @@ function AnimatedSparklineMarks({
 
 /**
  * Compact inline trend chart — a line or bar sparkline — rendered as a
- * self-contained, decoration-free SVG (`role="img"`). Sized from enclosing
- * Density unless `width` / `height` override it, it maps `data` onto its
+ * self-contained, decoration-free SVG (`role="img"`). Sized at the step of
+ * the nearest density scope unless `width` / `height` fix it, it maps `data` onto its
  * drawing box through {@link sparklineGeometry}. A flat or single-point series
  * still draws visibly, and a stray non-finite value doesn't collapse the scale.
  *
  * @remarks Built for a {@link Grid} cell — drop it into a column's `cell`
- * renderer — but usable anywhere. In a density-aware Grid it tracks the grid's
- * `density` (which broadcasts onto the enclosing Density) unless given an explicit
- * `size`. The accessible name is required by
+ * renderer — but usable anywhere. In a density-aware Grid it tracks the
+ * density scope of the grid cells unless given an explicit `size`. The accessible name is required by
  * {@link SparklineProps}; summarize the trend (e.g. `aria-label="Revenue, up
  * over 7 days"`) rather than naming the component. Pass `animate` to reveal the
  * marks on mount through Framer Motion; off, it stays a plain-SVG leaf.
@@ -252,17 +258,17 @@ export function Sparkline({
 	className,
 	...labelProps
 }: SparklineProps) {
-	const resolvedSize = toAmbientStep(useDensityStep(size))
+	// An explicit `width` or `height` fixes the box. Otherwise the box is the
+	// 3:1 drawing, and the stepped classes of `k.svg` scale it to the step.
+	const fixed = width !== undefined || height !== undefined
 
-	const metrics = SPARKLINE_METRICS[resolvedSize]
+	const boxWidth = width ?? SPARKLINE_METRICS.width
 
-	const boxWidth = width ?? metrics.width
-
-	const boxHeight = height ?? metrics.height
+	const boxHeight = height ?? SPARKLINE_METRICS.height
 
 	// Inset enough to keep the stroke and the (optional) end-point marker inside
 	// the viewBox; the marker only applies to the line shape.
-	const padding = Math.max(strokeWidth / 2, endPoint ? metrics.pointRadius : 0) + 1
+	const padding = Math.max(strokeWidth / 2, endPoint ? SPARKLINE_METRICS.pointRadius : 0) + 1
 
 	// A Grid cell holds one sparkline per row, so a grid render pays this
 	// projection once per visible row. It rebuilds only when the series or the
@@ -273,11 +279,11 @@ export function Sparkline({
 				width: boxWidth,
 				height: boxHeight,
 				padding,
-				barGap: metrics.barGap,
+				barGap: SPARKLINE_METRICS.barGap,
 				min,
 				max,
 			}),
-		[data, boxWidth, boxHeight, padding, metrics.barGap, min, max],
+		[data, boxWidth, boxHeight, padding, min, max],
 	)
 
 	const marksProps: SparklineMarksProps = {
@@ -286,8 +292,8 @@ export function Sparkline({
 		strokeWidth,
 		fill,
 		endPoint,
-		barRadius: metrics.barRadius,
-		pointRadius: metrics.pointRadius,
+		barRadius: SPARKLINE_METRICS.barRadius,
+		pointRadius: SPARKLINE_METRICS.pointRadius,
 		strokeClass: cn(k.color[color].stroke),
 		fillClass: cn(k.color[color].fill),
 	}
@@ -295,9 +301,9 @@ export function Sparkline({
 	const svg = (
 		<svg
 			aria-hidden="true"
-			className="block"
-			width={boxWidth}
-			height={boxHeight}
+			className={fixed ? 'block' : cn(k.svg)}
+			width={fixed ? boxWidth : undefined}
+			height={fixed ? boxHeight : undefined}
 			viewBox={`0 0 ${boxWidth} ${boxHeight}`}
 		>
 			{animate ? <AnimatedSparklineMarks {...marksProps} /> : <SparklineMarks {...marksProps} />}
@@ -312,7 +318,8 @@ export function Sparkline({
 		// preference settles them at rest.
 		<span
 			data-slot="sparkline"
-			data-size={resolvedSize}
+			data-size={size}
+			data-density={size}
 			role="img"
 			{...labelProps}
 			className={cn(k(), className)}
