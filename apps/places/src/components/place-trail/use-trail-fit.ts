@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useEffectEvent, useLayoutEffect, useState } from 'react'
+import { type RefObject, useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
 import { useResizeObserver } from 'ui/hooks'
 
 /**
@@ -139,12 +139,17 @@ export function useTrailFit(ref: RefObject<HTMLElement | null>, labels: string):
 		}
 	}, [])
 
-	// `labels` is the trigger rather than something this body reads — the measure
-	// reads the rendered row — which is why the rule cannot see the dependency.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `labels` is the trigger; the measure reads the DOM
+	// The labels of the last measure. New labels change the crumbs in the row, so
+	// the row is measured again after that commit, before paint.
+	const measuredLabels = useRef<string | null>(null)
+
 	useLayoutEffect(() => {
+		if (measuredLabels.current === labels) return
+
+		measuredLabels.current = labels
+
 		measure()
-	}, [labels])
+	})
 
 	return fit
 }
