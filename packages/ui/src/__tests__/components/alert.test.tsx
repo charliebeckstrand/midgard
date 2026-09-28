@@ -31,6 +31,26 @@ describe('Alert', () => {
 		expect(bySlot(container, 'alert-body')).not.toBeInTheDocument()
 	})
 
+	it('shows the severity icon only with a title', () => {
+		const { container, rerender } = renderUI(<Alert severity="error">Boom</Alert>)
+
+		expect(bySlot(container, 'icon')).not.toBeInTheDocument()
+
+		rerender(<Alert severity="error" title="Boom" />)
+
+		expect(bySlot(container, 'icon')).toBeInTheDocument()
+	})
+
+	it('shows an explicit icon without a title', () => {
+		const { container } = renderUI(
+			<Alert severity="error" icon={<svg />}>
+				Boom
+			</Alert>,
+		)
+
+		expect(bySlot(container, 'icon')).toBeInTheDocument()
+	})
+
 	it('dismisses when close button is clicked', () => {
 		const onOpenChange = vi.fn()
 
