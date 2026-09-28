@@ -151,6 +151,10 @@ A dependency list names what its value reads, never an extra key to force a reco
 
 Two causes are common, and each has a local fix. When a hook gives an object that holds a ref, the compiler reads each property of that object as a ref. Destructure the ref where you call the hook. When a `useCallback` or a `useMemo` calls an effect event, the compiler reads the event as a dependency. A new event comes on each render, so the list cannot name it. Use `useStableEvent` from `src/hooks/use-stable-event.ts` there. Its identity holds for the mount, so the list names it.
 
+10.9 A case that runs longer than its time limit fails, but its body does not stop. JavaScript cannot cancel a pending promise, so the body continues at its next `await` while a later case runs. A write to shared state at that point changes the later case. Vitest aborts the `signal` of the test context before the next case starts. When a case writes shared state after an `await`, take `{ signal }` from the test context. Call `signal.throwIfAborted()` after the last `await` and before the write.
+
+Shared state is the module registry, a global, the environment, and the clock. It is also the mock registry, a spy on a global or a prototype, and a module-scope `let`. A helper in the same file that makes such a write counts as a write. [`test-isolation-boundary.test.ts`](packages/ui/src/__tests__/boundary/test-isolation-boundary.test.ts) holds this rule. A write to the DOM is out of scope, because `cleanup`, the residue guard, and the page reset of the browser suite undo it.
+
 ## 11. Environment
 
 11.1 [`NEXT_PUBLIC_*`](https://nextjs.org/docs/pages/guides/environment-variables) is client, else server-only. Confine raw `process.env` reads to a config edge. Today the one reader is `env.ts` in the `auth` package (`BIFROST_URL`, `CLIENT_IP_SECRET`). Other code reaches env through them. Biome's `noProcessEnv` pins it in `apps`, `auth`, and `shared`; `ui` keeps its `NODE_ENV` checks for development warnings.

@@ -64,8 +64,10 @@ describe('loadShiki', () => {
 		expect(loadShiki()).toBe(first)
 	})
 
-	it('drops a rejected import from the memo so a later call retries', async () => {
+	it('drops a rejected import from the memo so a later call retries', async ({ signal }) => {
 		const loadShiki = await coldLoadShiki()
+
+		signal.throwIfAborted()
 
 		// A registration made before `vi.resetModules()` does not always survive
 		// it.
@@ -74,6 +76,8 @@ describe('loadShiki', () => {
 		const rejected = loadShiki()
 
 		await expect(rejected).rejects.toThrow()
+
+		signal.throwIfAborted()
 
 		mockShiki()
 

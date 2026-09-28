@@ -133,7 +133,9 @@ describe('CopyButton', () => {
 		expect(second).not.toHaveBeenCalled()
 	})
 
-	it('fires onCopiedChange with true after a successful copy and false after the timeout', async () => {
+	it('fires onCopiedChange with true after a successful copy and false after the timeout', async ({
+		signal,
+	}) => {
 		vi.useFakeTimers()
 
 		const writeText = vi.fn().mockResolvedValue(undefined)
@@ -165,6 +167,8 @@ describe('CopyButton', () => {
 
 			expect(onCopiedChange).toHaveBeenCalledTimes(2)
 		} finally {
+			signal.throwIfAborted()
+
 			restore()
 
 			vi.useRealTimers()
