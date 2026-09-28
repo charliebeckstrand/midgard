@@ -8,7 +8,7 @@ const { ring } = sen
 const { tooltip } = ugoki
 
 // Padding, radius, and text follow the nearest density scope. The radius
-// equals the padding stop, as `kasane.radius.r` pairs them.
+// equals the padding stop at each step.
 const content = [
 	'max-w-sm',
 	'text-pretty',

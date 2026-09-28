@@ -9,7 +9,7 @@ export { default as userEvent } from '@testing-library/user-event'
 export { attach } from './attach'
 export { deferred } from './deferred'
 export { densityStepOf } from './density-step'
-export { frame, frames, nextPaint, tick } from './frames'
+export { frame, frames, tick } from './frames'
 export { sampleDrift, watchReveals, windowBody } from './grid-window'
 export { holdMouse } from './hold-mouse'
 // `axe`/`axePage` are intentionally not re-exported here: this barrel is imported

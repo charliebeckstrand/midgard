@@ -27,7 +27,9 @@ const root = defineRecipe({
 })
 
 const group = defineRecipe({
-	base: flex.row,
+	// The group is a `<fieldset>`. `min-w-auto` replaces its min-content floor,
+	// so it sizes as a `<div>` does.
+	base: [flex.row, 'min-w-auto'],
 	orientation: {
 		horizontal: 'flex-row gap-0.5',
 		vertical: 'flex-col gap-0.5',

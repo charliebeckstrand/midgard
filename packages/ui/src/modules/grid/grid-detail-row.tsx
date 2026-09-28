@@ -14,7 +14,7 @@ import { GridNavCell, useGridNavStopProps } from './use-grid-navigation-columns'
 import { useGridRevealHold } from './use-grid-reveal-hold'
 
 /** The DOM id of a row's detail panel, so the expander's `aria-controls` names it. @internal */
-export function detailPanelId(rowKey: string | number): string {
+function detailPanelId(rowKey: string | number): string {
 	return `grid-detail-${rowKey}`
 }
 

@@ -46,5 +46,5 @@ export const k = defineRecipe(
 	// `motion` is the shared data-viz mark-reveal family — the same timings the
 	// chart module draws with, so a sparkline and a chart animating side by side
 	// read as one.
-	{ color, motion: ugoki.mark, svg: ['block', 'density-w-[18,24,30]', 'density-h-[6,8,10]'] },
+	{ color, motion: ugoki.mark, svg: ['block', ...kokkaku.sparkline.box] },
 )

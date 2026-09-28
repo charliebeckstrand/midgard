@@ -97,10 +97,10 @@ export function useFloatingDisclosure({
 	})
 
 	// Deliberately still a render-phase shadow, where the package's sweep has
-	// moved such callbacks to `useEffectEvent`. `gate` is optional and `setOpen`
-	// tests it for presence, so an always-present effect event would report every
-	// disclosure as gated. Converting this needs the presence test rewritten
-	// first; see the effect-event plan.
+	// moved such callbacks to `useEffectEvent`. `setOpen` runs during render:
+	// `useTooltipState` closes a tooltip that turns disabled in its render body,
+	// and an effect event throws when render calls it. `gate` is also optional,
+	// and `setOpen` tests it for presence, which an effect event cannot express.
 	const gateRef = useRef(gate)
 	gateRef.current = gate
 

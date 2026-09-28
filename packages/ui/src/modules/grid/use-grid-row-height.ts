@@ -1,7 +1,7 @@
 'use client'
 
 import { type RefCallback, useCallback, useState } from 'react'
-import type { DensityLevel } from '../../providers/density'
+import type { DensityStep } from '../../core/density'
 
 /**
  * The rows that give the height: a data row, or a placeholder row of the
@@ -39,12 +39,12 @@ const ROW_SELECTOR =
  */
 export function useGridRowHeight(
 	enabled: boolean,
-	density: DensityLevel,
+	density: DensityStep,
 ): {
 	rowHeight: number | null
 	measureRef: RefCallback<HTMLTableElement>
 } {
-	const [measured, setMeasured] = useState<{ density: DensityLevel; height: number } | null>(null)
+	const [measured, setMeasured] = useState<{ density: DensityStep; height: number } | null>(null)
 
 	const measureRef = useCallback(
 		(table: HTMLTableElement | null) => {

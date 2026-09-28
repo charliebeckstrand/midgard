@@ -19,6 +19,11 @@ export type ColorState = {
 	setHsva: (next: Hsva | ((prev: Hsva) => Hsva)) => void
 }
 
+/** Whether two HSVA values are the same in each channel. @internal */
+function sameHsva(a: Hsva, b: Hsva): boolean {
+	return a.h === b.h && a.s === b.s && a.v === b.v && a.a === b.a
+}
+
 /**
  * Controlled/uncontrolled color state. Keeps HSVA internally regardless of
  * the consumer's wire format; hex drops hue at grayscale and black.
@@ -60,7 +65,6 @@ export function useColorState({
 
 	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
 	// same `value`, and the check must still run to snap the HSVA back (§7.2).
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `hsva` is the trigger for an internal write; the body compares `value` with the cache.
 	useLayoutEffect(() => {
 		if (value === undefined) return
 
@@ -72,6 +76,10 @@ export function useColorState({
 		if (!parsed) return
 
 		cacheRef.current = value
+
+		// The HSVA already holds the value, so no write is needed.
+		if (sameHsva(parsed, hsva)) return
+
 		hsvaRef.current = parsed
 		setInternal(parsed)
 	}, [value, hsva])

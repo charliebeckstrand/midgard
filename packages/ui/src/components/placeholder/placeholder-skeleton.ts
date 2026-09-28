@@ -1,28 +1,23 @@
 import type { ClassValue } from 'clsx'
 import { createElement, type ReactElement } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { Placeholder } from './placeholder'
 
-// Spelled out rather than imported as `Ma`. This is a component file, and
-// `biome.json` admits that import in `variants.ts` alone — its `components/**`
-// override bans the name and exempts `components/**/variants.ts`, because the
-// spacing axis reaching a sizing axis is the drift it guards. Keep the two
-// unions in step by hand; the gate is what stops the shortcut.
-//
 // Call sites pin `S` to the `size` type of their component, so the `size` prop
-// only carries a step that the recipe defines. Skeletons are static leaves and
+// only carries a size that the recipe defines. Skeletons are static leaves and
 // read no context. A sized recipe takes its size from the explicit prop, with
-// `md` as the default. A density recipe also follows the nearest
-// `data-density` scope. The composer of the loading tree (a Suspense fallback,
-// `<ReadyReveal placeholder>`) knows the size and passes it.
-type ResolvableSize = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+// `md` as the default. A density recipe takes the step of its nearest density
+// scope, and an explicit `size` makes it a scope. The composer of the loading
+// tree (a Suspense fallback, `<ReadyReveal placeholder>`) knows the size and
+// passes it.
 
 type BaseSkeletonRecipe = {
 	/** Base skeleton shape classes. */
 	base: ClassValue
 }
 
-type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
+type SizedSkeletonRecipe<S extends DensityStep> = BaseSkeletonRecipe & {
 	/**
 	 * Per-size shape classes, keyed by the resolved size. `md` is required because
 	 * it is the default an omitted `size` prop resolves to. A map without it would
@@ -31,20 +26,20 @@ type SizedSkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
 	size: Record<S | 'md', ClassValue>
 }
 
-type DensitySkeletonRecipe<S extends ResolvableSize> = BaseSkeletonRecipe & {
+type DensitySkeletonRecipe = BaseSkeletonRecipe & {
 	/**
-	 * The steps the silhouette takes. The base carries each step under a
-	 * `density-*` variant. An explicit `size` writes `data-density`. The
-	 * silhouette takes the step of its nearest density scope, itself included.
+	 * Marks a silhouette that follows density: the base holds stepped classes,
+	 * so the silhouette takes the step of its nearest density scope. An explicit
+	 * `size` writes `data-density`, so the silhouette is its own scope.
 	 */
-	density: readonly S[]
+	density: true
 }
 
 /**
  * Props of a {@link createSkeleton} component: `className` always, plus an
  * optional `size` when built from a sized recipe.
  */
-export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never]
+export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
 	? { className?: string }
 	: { size?: S; className?: string }
 
@@ -73,16 +68,20 @@ export type SkeletonProps<S extends ResolvableSize = never> = [S] extends [never
  *   export const ButtonSkeleton = createSkeleton(k.skeleton, 'ButtonSkeleton')
  *   export const RadioSkeleton = createSkeleton(k.skeleton, 'RadioSkeleton')
  */
-export function createSkeleton<S extends ResolvableSize>(
-	skeleton: SizedSkeletonRecipe<S> | DensitySkeletonRecipe<S>,
+export function createSkeleton(
+	skeleton: DensitySkeletonRecipe,
+	name: string,
+): (props: SkeletonProps<DensityStep>) => ReactElement
+export function createSkeleton<S extends DensityStep>(
+	skeleton: SizedSkeletonRecipe<S>,
 	name: string,
 ): (props: SkeletonProps<S>) => ReactElement
 export function createSkeleton(
 	skeleton: BaseSkeletonRecipe,
 	name: string,
 ): (props: SkeletonProps) => ReactElement
-export function createSkeleton<S extends ResolvableSize>(
-	skeleton: BaseSkeletonRecipe | SizedSkeletonRecipe<S> | DensitySkeletonRecipe<S>,
+export function createSkeleton<S extends DensityStep>(
+	skeleton: BaseSkeletonRecipe | SizedSkeletonRecipe<S> | DensitySkeletonRecipe,
 	name: string,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {

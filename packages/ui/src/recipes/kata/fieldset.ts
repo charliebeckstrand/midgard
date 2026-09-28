@@ -1,12 +1,12 @@
 /**
  * Fieldset kata: object-literal surface for `<Fieldset>` and the form-field
- * primitives. `label`, `description`, and `message` take the text step of
- * their nearest density scope through `textRamp`; `message` adds an
- * error/warning/success severity axis. `legend` holds a fixed size axis. The `base` and `field`
- * slots are static, threading the disabled state down through the group.
+ * primitives. `legend`, `label`, `description`, and `message` take the text
+ * step of their nearest density scope through `textRamp`; `message` adds an
+ * error/warning/success severity axis. The `base` and `field` slots are
+ * static, threading the disabled state down through the group.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, ji, narabi, stepSize, textRamp } from '../kiso'
+import { hannou, iro, ji, narabi, textRamp } from '../kiso'
 
 const { cursor, disabled } = hannou
 const { text } = iro
@@ -39,11 +39,7 @@ const message = defineRecipe({
 	defaults: { severity: 'error' },
 })
 
-const legend = defineRecipe({
-	base: [weight.semibold, text.default, ...disabled],
-	size: stepSize,
-	defaults: { size: 'md' },
-})
+const legend = [textRamp, weight.semibold, text.default, ...disabled]
 
 export const k = {
 	base: ['[&>legend+*]:pt-4', ...disabled],

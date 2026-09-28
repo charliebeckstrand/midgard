@@ -16,6 +16,13 @@ function streamOf(...chunks: (string | ChatPart[])[]): ChatTransport {
 		})()
 }
 
+/** A stream that fails before its first chunk. */
+function failingStream(message: string): AsyncIterable<string> {
+	return {
+		[Symbol.asyncIterator]: () => ({ next: () => Promise.reject(new Error(message)) }),
+	}
+}
+
 describe('useChatSend', () => {
 	it('assigns client ids to seed messages', () => {
 		const { result } = renderHook(() =>
@@ -163,11 +170,8 @@ describe('useChatSend', () => {
 	it('rolls back the empty assistant placeholder and keeps the user message on failure', async () => {
 		const onError = vi.fn()
 
-		const transport: ChatTransport = () =>
-			// biome-ignore lint/correctness/useYield: throws before yielding to exercise the rollback path.
-			(async function* () {
-				throw new Error('boom')
-			})()
+		// Fails before the first chunk, to exercise the rollback path.
+		const transport: ChatTransport = () => failingStream('boom')
 
 		const { result } = renderHook(() => useChatSend({ transport, onError }))
 
@@ -217,12 +221,8 @@ describe('useChatSend', () => {
 		const transport: ChatTransport = (content, signal) => {
 			call += 1
 
-			if (call === 1) {
-				// biome-ignore lint/correctness/useYield: throws before yielding to exercise the failure path.
-				return (async function* () {
-					throw new Error('boom')
-				})()
-			}
+			// The first send fails before its first chunk.
+			if (call === 1) return failingStream('boom')
 
 			return streamOf('recovered')(content, signal)
 		}

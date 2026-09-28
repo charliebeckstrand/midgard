@@ -1,17 +1,17 @@
 import type { ComponentProps } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
-import { titleRamp, titleSize } from '../../recipes/kata/heading'
+import type { DensityStep } from '../../core/density'
+import { titleRamp } from '../../recipes/kata/heading'
 import { Heading } from '../heading'
 
-/** Props for {@link CardTitle}: title-scale `size`, heading `level`, and the underlying `<h3>` attributes. */
+/** Props for {@link CardTitle}: the density `size` step, heading `level`, and the underlying `<h3>` attributes. */
 export type CardTitleProps = {
 	className?: string
 	/**
-	 * Step on the title type scale. With no step, the title follows the nearest
-	 * density scope, such as a `<Card size>`, and `md` outside one.
+	 * The density step. Omit it to take the step of the nearest density scope,
+	 * such as a `<Card size>`. A step makes the title a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * Heading level of the rendered title.
 	 * @defaultValue 3
@@ -28,8 +28,9 @@ export function CardTitle({ className, size, level = 3, children, ...props }: Ca
 	return (
 		<Heading
 			level={level}
+			size={size}
 			data-slot="card-title"
-			className={cn(size ? titleSize(size) : titleRamp, className)}
+			className={cn(titleRamp, className)}
 			{...props}
 		>
 			{children}

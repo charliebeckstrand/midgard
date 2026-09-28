@@ -22,7 +22,7 @@ import type { MapSwatchShape } from '../types'
  *
  * @internal
  */
-export type MapLegendSwatch = {
+type MapLegendSwatch = {
 	/** Swatch shape, mirroring the mark: `rect` for a region and a geofence, the two that draw an area. */
 	shape: MapSwatchShape
 	/** currentColor class carrying the color (categorical slots and overlays). */

@@ -36,7 +36,7 @@ function DashboardTileTitle({ id, title, editing }: DashboardTileTitleProps) {
 				{/* The trigger gives its own slot to a child with no slot, so the title
 				    states its slot. `block` wins over the `inline-flex` of the trigger,
 				    because an ellipsis paints only on a block box. */}
-				<CardTitle ref={ref} id={id} size="sm" data-slot="card-title" className="block truncate">
+				<CardTitle ref={ref} id={id} data-slot="card-title" className="block truncate">
 					{title}
 				</CardTitle>
 			</TooltipTrigger>

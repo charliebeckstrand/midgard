@@ -8,6 +8,7 @@ import {
 	useState,
 } from 'react'
 import { cn, dataAttr } from '../../../core'
+import { PanelSplitter } from '../../../primitives/panel/panel-splitter'
 import { TouchTarget } from '../../../primitives/touch-target'
 
 /**
@@ -23,7 +24,7 @@ const KEY_STEP = SNAP_STEP
 const KEY_STEP_LARGE = SNAP_STEP * 8
 
 /** The object form of {@link Example}'s `resize` prop. */
-export type ResizeConfig = {
+type ResizeConfig = {
 	/** Whether the frame is resizable. @defaultValue true */
 	enabled?: boolean
 	/** Minimum width in pixels; unset leaves the lower bound auto. */
@@ -85,7 +86,7 @@ export function maxDefined(a: number | undefined, b: number | undefined): number
 }
 
 /** Pointer/keyboard handlers the handle binds to, from {@link useExampleResize}. */
-export type ResizeHandlers = {
+type ResizeHandlers = {
 	onPointerDown: (event: ReactPointerEvent) => void
 	onPointerMove: (event: ReactPointerEvent) => void
 	onPointerUp: (event: ReactPointerEvent) => void
@@ -126,7 +127,7 @@ function availableWidth(el: HTMLElement): number {
  *
  * @internal
  */
-export function contentFloor(frame: HTMLElement): number {
+function contentFloor(frame: HTMLElement): number {
 	let widest = 0
 
 	for (const section of frame.querySelectorAll<HTMLElement>(':scope > [data-example-section]')) {
@@ -350,11 +351,9 @@ type ExampleResizeHandleProps = {
 }
 
 /**
- * The grip on an {@link Example} frame's right edge: an interactive
- * window-splitter rendered as a focusable `div` with `role="separator"`. An
- * `<hr>` is a non-interactive thematic break, so it cannot carry the splitter's
- * value semantics. Its `aria-valuenow` tracks the current width; drag it or use
- * the arrow keys (Home/End for a defined bound) to resize the frame. A
+ * The grip on an {@link Example} frame's right edge: a
+ * {@link PanelSplitter}. Its `aria-valuenow` tracks the current width; drag it
+ * or use the arrow keys (Home/End for a defined bound) to resize the frame. A
  * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums:
  * 24px on fine pointers, 44px on coarse. It does not widen the slim visible
  * grip, whose two bars are its children.
@@ -369,17 +368,14 @@ export function ExampleResizeHandle({
 	handlers,
 }: ExampleResizeHandleProps) {
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an interactive window-splitter is role="separator" with aria-value*; <hr> is a non-interactive thematic break
-		<div
+		<PanelSplitter
 			data-slot="example-resize-handle"
 			data-resizing={dataAttr(resizing)}
-			role="separator"
 			aria-orientation="vertical"
 			aria-label="Resize example"
 			aria-valuenow={width !== undefined ? Math.round(width) : undefined}
 			aria-valuemin={maxDefined(resolved.min, floor)}
 			aria-valuemax={resolved.max}
-			tabIndex={0}
 			onPointerDown={handlers.onPointerDown}
 			onPointerMove={handlers.onPointerMove}
 			onPointerUp={handlers.onPointerUp}
@@ -397,6 +393,6 @@ export function ExampleResizeHandle({
 				<span className="h-4 w-px bg-current" />
 				<span className="h-4 w-px bg-current" />
 			</TouchTarget>
-		</div>
+		</PanelSplitter>
 	)
 }

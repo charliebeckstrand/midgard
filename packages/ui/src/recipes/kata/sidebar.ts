@@ -1,5 +1,6 @@
+import type { DensityStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, narabi, type Step, sen, shaku, textRamp } from '../kiso'
+import { hannou, narabi, sen, shaku, textRamp } from '../kiso'
 
 const { nav, cursor } = hannou
 const { flex } = narabi
@@ -50,7 +51,7 @@ const itemBase = defineRecipe({
 		// keeps the height of a row with an icon. A LoadingSpinner takes the size of
 		// the icon row.
 		'*:data-[slot=avatar]:density-size-[5,6,7] *:data-[slot=avatar]:-m-0.5',
-		'*:data-[slot=loading-spinner]:density-size-[4,5,6]',
+		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
 	],
 	// Where the interaction surface lives. `item`: on the element itself, the
 	// affixless default. `row`: re-seated on the wrapper (`k.item.row`) so affix
@@ -133,4 +134,4 @@ export const k = {
 } as const
 
 /** Recipe variant props for {@link SidebarItem}: the `size` step and `chrome` surface (`item` | `row`). */
-export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: Step }
+export type SidebarItemVariants = VariantProps<typeof itemBase> & { size?: DensityStep }

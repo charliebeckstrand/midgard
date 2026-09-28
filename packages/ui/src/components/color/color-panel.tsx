@@ -2,9 +2,9 @@
 
 import { useMemo } from 'react'
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/color-panel'
-import type { ControlSize } from '../control/context'
+import { Box } from '../../structure/box'
 import { ColorArea } from './color-area'
 import { ColorChannelInputs } from './color-channel-inputs'
 import { DEFAULT_SWATCHES } from './color-constants'
@@ -30,8 +30,11 @@ type ColorPanelBaseProps = {
 	 * @defaultValue {@link DEFAULT_SWATCHES} — a built-in palette
 	 */
 	swatches?: readonly string[] | false
-	/** Size step. It opens a density scope on the panel. Without it, the panel takes the step of the nearest density scope. */
-	size?: ControlSize
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the panel a density scope.
+	 */
+	size?: DensityStep
 	disabled?: boolean
 	className?: string
 }
@@ -72,40 +75,33 @@ export function ColorPanel(props: ColorPanelProps) {
 
 	return (
 		<ColorPanelContext value={context}>
-			<div
-				data-slot="color-panel"
-				data-size={size}
-				data-density={size}
-				className={cn(k(), className)}
-			>
-				<Density step={size}>
-					<ColorArea />
+			<Box data-slot="color-panel" density={size} className={cn(k(), className)}>
+				<ColorArea />
 
-					<div className={k.sliders}>
-						<ColorSlider channel="hue" />
-						{alpha && <ColorSlider channel="alpha" />}
+				<div className={k.sliders}>
+					<ColorSlider channel="hue" />
+					{alpha && <ColorSlider channel="alpha" />}
+				</div>
+
+				<div className={cn(k.preview.row)}>
+					<span
+						data-slot="color-preview"
+						className={cn('group', k.preview.base, alpha && k.checkerboard)}
+					>
+						<span className="block size-full" style={{ backgroundColor: previewColor }} />
+					</span>
+
+					<div className="min-w-0 flex-1">
+						<ColorHexInput />
 					</div>
 
-					<div className={cn(k.preview.row)}>
-						<span
-							data-slot="color-preview"
-							className={cn('group', k.preview.base, alpha && k.checkerboard)}
-						>
-							<span className="block size-full" style={{ backgroundColor: previewColor }} />
-						</span>
+					{!disabled && <ColorEyedropper />}
+				</div>
 
-						<div className="min-w-0 flex-1">
-							<ColorHexInput />
-						</div>
+				<ColorChannelInputs />
 
-						{!disabled && <ColorEyedropper />}
-					</div>
-
-					<ColorChannelInputs />
-
-					{swatches && swatches.length > 0 && <ColorSwatches swatches={swatches} />}
-				</Density>
-			</div>
+				{swatches && swatches.length > 0 && <ColorSwatches swatches={swatches} />}
+			</Box>
 		</ColorPanelContext>
 	)
 }

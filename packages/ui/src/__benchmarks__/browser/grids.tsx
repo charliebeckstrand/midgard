@@ -26,7 +26,7 @@ export const GRID_WIDTH = 960
 export const GRID_HEIGHT = 600
 
 /** The sort direction that a scenario applies through the sort state of the grid. */
-export type SortDirection = 'asc' | 'desc'
+type SortDirection = 'asc' | 'desc'
 
 /** A mounted grid under bench control; operations settle via {@link painted}. */
 export type MountedGrid = {

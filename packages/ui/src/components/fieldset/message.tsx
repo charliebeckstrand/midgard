@@ -66,7 +66,7 @@ function resolveMessageElementId(
  * @remarks A nested `<Message>` is presentational: it does not mark the control
  * invalid. Drive the validation ring (and, for `error`, `aria-invalid`) with
  * `<Field severity>` / `<Control severity>`, an explicit `invalid`, or a form
- * binding. Resolves type scale from the Density cascade.
+ * binding. Its type scale takes the step of the nearest density scope.
  * @defaultValue severity `'error'`
  */
 export function Message({

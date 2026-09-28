@@ -2,11 +2,12 @@
 
 import { type ComponentProps, useCallback, useId, useMemo, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { CurrentContext, useCurrentState } from '../../primitives/current'
 import { CurrentStoreContext, useCurrentStore } from '../../primitives/current/current'
-import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/tabs'
-import { TabsContext, type TabsOrientation, type TabsSize, type TabsVariant } from './context'
+import { Box } from '../../structure/box'
+import { TabsContext, type TabsOrientation, type TabsVariant } from './context'
 
 /** Props for {@link Tabs}: selection state, the `variant`/`orientation` context broadcast to its list and panels, and the `size` scope. */
 export type TabsProps = ComponentProps<'div'> & {
@@ -21,11 +22,10 @@ export type TabsProps = ComponentProps<'div'> & {
 	 */
 	orientation?: TabsOrientation
 	/**
-	 * Size step that drives tab text size and padding. It makes the group a
-	 * density scope. With no step, the tabs follow the nearest scope, and `md`
-	 * outside one.
+	 * The density step of the tab text and the tab padding. Omit it to take the
+	 * step of the nearest density scope. A step makes the group a density scope.
 	 */
-	size?: TabsSize
+	size?: DensityStep
 }
 
 /**
@@ -85,15 +85,15 @@ export function Tabs({
 		<CurrentContext value={context}>
 			<CurrentStoreContext value={store}>
 				<TabsContext value={tabsContext}>
-					<div
+					<Box
 						data-slot="tab-group"
 						data-orientation={resolvedOrientation}
-						data-density={size}
+						density={size}
 						className={cn(k.group({ orientation: resolvedOrientation }), className)}
 						{...props}
 					>
-						<Density step={size}>{children}</Density>
-					</div>
+						{children}
+					</Box>
 				</TabsContext>
 			</CurrentStoreContext>
 		</CurrentContext>

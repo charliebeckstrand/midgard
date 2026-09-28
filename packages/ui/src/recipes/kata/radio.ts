@@ -1,6 +1,7 @@
+import type { DensityStep } from '../../core/density'
 import { defineColors, type VariantProps } from '../../core/recipe'
 import { bridge } from '../katakana'
-import { kasane, kokkaku, type Step } from '../kiso'
+import { kasane, kokkaku } from '../kiso'
 import { control } from '../kiso/control'
 
 const { rounded } = kasane
@@ -23,7 +24,7 @@ export const k = bridge.check(control, {
 		'has-checked:bg-(--check-bg) has-checked:border-(--check-border)',
 		'not-has-[:disabled]:has-checked:hover:opacity-90',
 		// The circle and its dot take the step of the nearest density scope.
-		'density-size-[4,5,5]',
+		kokkaku.radio.circle,
 		'*:data-[slot=radio-indicator]:density-size-[1,1.5,2]',
 	],
 	color,
@@ -31,4 +32,4 @@ export const k = bridge.check(control, {
 })
 
 /** Recipe variant props for {@link Radio}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type RadioVariants = VariantProps<typeof k> & { size?: Step }
+export type RadioVariants = VariantProps<typeof k> & { size?: DensityStep }

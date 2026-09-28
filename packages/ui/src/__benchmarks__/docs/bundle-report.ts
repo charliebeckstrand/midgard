@@ -15,9 +15,9 @@ import { gzipSync } from 'node:zlib'
 import { pkgRoot } from './paths'
 
 /** Where the docs build emits its hashed chunks and assets. */
-export const distAssets = path.join(pkgRoot, 'src', 'docs', 'dist', 'assets')
+const distAssets = path.join(pkgRoot, 'src', 'docs', 'dist', 'assets')
 
-export type ChunkEntry = { name: string; raw: number; gzip: number }
+type ChunkEntry = { name: string; raw: number; gzip: number }
 
 export type BundleReport = {
 	files: number

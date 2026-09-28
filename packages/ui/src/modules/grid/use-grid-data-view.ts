@@ -9,6 +9,7 @@ import { resolveActionable } from './grid-data-resolvers'
 import type { GridDataProps } from './grid-data-types'
 import type { GridColumn } from './types'
 import { type GridIndexRefs, useGridIndexSync } from './use-grid-data-cursor'
+import type { GridNewRowPosition } from './use-grid-navigation'
 import { useGridRoving } from './use-grid-roving'
 import { useGridSelectionActions, type useGridSelectionState } from './use-grid-selection'
 import type { GridColumnFilter, GridGlobalFilterView } from './use-grid-table'
@@ -67,7 +68,7 @@ export function useGridDataView<T>({
 	/** Where the cursor's new-row slot is, which clamps the cursor when it moves. */
 	cursorNewRow: 'top' | 'bottom' | null
 	/** Clamps the cursor to the rendered bounds. */
-	reconcile: (rowCount: number, colCount: number) => void
+	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
 	virtualized: boolean
 	tableRef: RefObject<HTMLTableElement | null>
 }) {
@@ -112,9 +113,7 @@ export function useGridDataView<T>({
 	// The new-row slot counts as a row of the cursor's order, so a change to it
 	// clamps too.
 	useLayoutEffect(() => {
-		void cursorNewRow
-
-		reconcile(renderRows.length, dataColumns.length)
+		reconcile(renderRows.length, dataColumns.length, cursorNewRow)
 	}, [reconcile, cursorNewRow, renderRows.length, dataColumns.length])
 
 	// Visible rows drive the select-all checkbox.

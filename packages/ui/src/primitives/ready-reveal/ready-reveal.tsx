@@ -121,11 +121,13 @@ export function ReadyReveal({
 	// paint. The placeholder layer must mount before it rests: Motion does not
 	// animate a layer whose first mount comes after it left a hidden Activity.
 	// Such a placeholder stays at the hidden target when `ready` clears, and the
-	// box shows neither layer.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: mount only; a later `ready` flip rests through the fade-out completion.
+	// box shows neither layer. A later `ready` flip rests through the fade-out
+	// completion, so this reads `ready` at mount.
+	const [readyAtMount] = useState(ready)
+
 	useLayoutEffect(() => {
-		if (ready) setSettled(true)
-	}, [])
+		if (readyAtMount) setSettled(true)
+	}, [readyAtMount])
 
 	// The last element focused within either layer, tracked via bubbled focusin.
 	// When a `ready` flip sends a focused layer `inert`, the browser drops its

@@ -1237,8 +1237,8 @@ describe('PdfViewer highlights', () => {
 		const onOuterKeyDown = vi.fn()
 
 		renderUI(
-			// biome-ignore lint/a11y/noStaticElementInteractions: stands in for a drawer that would read Escape as a dismiss.
-			<div onKeyDown={onOuterKeyDown}>
+			// Stands in for a drawer that would read Escape as a dismiss.
+			<div role="dialog" aria-label="Drawer" onKeyDown={onOuterKeyDown}>
 				<PdfViewer
 					pages={sizedPages}
 					highlights={highlights}

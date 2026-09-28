@@ -5,7 +5,8 @@ import { Description, Label, Message } from '../../components/fieldset'
 import { Input } from '../../components/input'
 import { Switch } from '../../components/switch'
 import { Textarea } from '../../components/textarea'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import type { DensityStep } from '../../core/density'
+import { allBySlot, bySlot, densityStepOf, present, renderUI, screen } from '../helpers'
 
 describe('Control', () => {
 	it('sets data-disabled when disabled', () => {
@@ -315,7 +316,7 @@ describe('Control nesting', () => {
 	})
 
 	it('error severity propagates into a nested child Control', () => {
-		// severity cascades like size/variant: a nested Control inherits the
+		// severity cascades like variant: a nested Control inherits the
 		// parent's error unless it sets its own severity.
 		const { container } = renderUI(
 			<Control severity="error">
@@ -386,75 +387,58 @@ describe('Control nesting', () => {
 })
 
 describe('Control + size', () => {
-	// Each case names the size the queried slot must resolve to; `baseline`
-	// renders that slot standalone at the resolved size. The cascade is correct
-	// only when the Control-driven className equals the standalone baseline, so
-	// a broken inherit (falls back to `md`) or a broken override (Control's size
-	// leaks past the local prop) makes the classNames diverge and the row fails.
-	// Distinguishing class is the `text-*` size token (sm `text-sm`, lg
-	// `text-lg`) plus density padding/radius/gap; the probe confirms each size
-	// emits a different className.
-	it.each<[string, () => ReactElement, () => ReactElement, string]>([
+	// A sized Control is a density scope, and each field takes the step of its
+	// nearest scope. The stepped classes are the same at each step, so each case
+	// reads the step of the field, not its class.
+	it.each<[string, ReactElement, string, DensityStep]>([
 		[
-			'Input inherits size from Control',
-			() => (
-				<Control size="lg">
+			'an Input takes the step of its Control',
+			<Control key="c" size="lg">
+				<Input />
+			</Control>,
+			'input',
+			'lg',
+		],
+		[
+			'an explicit Input size wins over the Control size',
+			<Control key="c" size="lg">
+				<Input size="sm" />
+			</Control>,
+			'input',
+			'sm',
+		],
+		[
+			'a Switch takes the step of its Control',
+			<Control key="c" size="lg">
+				<Switch />
+			</Control>,
+			'switch',
+			'lg',
+		],
+		[
+			'a nested Control with no size takes the step of the outer Control',
+			<Control key="c" size="sm">
+				<Control id="child">
 					<Input />
 				</Control>
-			),
-			() => <Input size="lg" />,
+			</Control>,
 			'input',
+			'sm',
 		],
 		[
-			'Input explicit size overrides Control size',
-			() => (
-				<Control size="lg">
-					<Input size="sm" />
+			'a nested Control size wins over the outer Control size',
+			<Control key="c" size="sm">
+				<Control size="lg" id="child">
+					<Input />
 				</Control>
-			),
-			() => <Input size="sm" />,
+			</Control>,
 			'input',
+			'lg',
 		],
-		[
-			'Switch inherits size from Control',
-			() => (
-				<Control size="lg">
-					<Switch />
-				</Control>
-			),
-			() => <Switch size="lg" />,
-			'switch',
-		],
-		[
-			'nested Control inherits parent size when not explicitly set',
-			() => (
-				<Control size="sm">
-					<Control id="child">
-						<Input />
-					</Control>
-				</Control>
-			),
-			() => <Input size="sm" />,
-			'input',
-		],
-		[
-			'nested Control size overrides parent size',
-			() => (
-				<Control size="sm">
-					<Control size="lg" id="child">
-						<Input />
-					</Control>
-				</Control>
-			),
-			() => <Input size="lg" />,
-			'input',
-		],
-	])('%s', (_name, ui, baseline, slot) => {
-		const { container } = renderUI(ui())
+	])('%s', (_name, ui, slot, step) => {
+		const { container } = renderUI(ui)
 
-		const { container: expected } = renderUI(baseline())
-
-		expect(bySlot(container, slot)?.className).toBe(bySlot(expected, slot)?.className)
+		expect(densityStepOf(present(bySlot(container, slot), slot))).toBe(step)
 	})
 })
 

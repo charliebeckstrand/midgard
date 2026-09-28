@@ -17,6 +17,7 @@
 import { type ChildProcess, spawn } from 'node:child_process'
 import fs from 'node:fs'
 import path from 'node:path'
+import { stripVTControlCharacters } from 'node:util'
 import { type BundleReport, readBundle } from './bundle-report'
 import { pkgRoot } from './paths'
 
@@ -147,8 +148,8 @@ function waitForReady(child: ChildProcess, t0: number): Promise<{ readyMs: numbe
 		child.stdout?.on('data', (data: Buffer) => {
 			buffer += data.toString()
 
-			// biome-ignore lint/suspicious/noControlCharactersInRegex: strips ANSI color codes from vite's banner
-			const clean = buffer.replace(/\[[0-9;]*m/g, '')
+			// Vite colors its banner, so the ANSI codes come off first.
+			const clean = stripVTControlCharacters(buffer)
 
 			const match = clean.match(/Local:\s+(http:\/\/\S+)/)
 

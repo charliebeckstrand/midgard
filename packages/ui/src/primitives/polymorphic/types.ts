@@ -18,8 +18,9 @@ export type PolymorphicRenderProps<Fallback extends ElementType> = {
 	className: string
 	children: ReactNode
 	/**
-	 * Makes the element a density scope at this step: it writes `data-density`
-	 * and opens the density context around the children. Omit it for no scope.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the element a density scope: it writes `data-density` and
+	 * opens the density context around the children.
 	 */
 	density?: DensityStep
 } & (

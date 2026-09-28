@@ -1,7 +1,11 @@
 /**
  * Narabi item: icon-slot dimensioning for sibling items in a list.
- * Composes the standard icon size with the inherit-color rule and the
+ * Composes the stepped icon size with the inherit-color rule and the
  * forced-colors safety net for High Contrast Mode legibility.
+ *
+ * The size is `iconSlotRamp`, so an icon takes the step of the nearest density
+ * scope, as the text and the padding of a Menu or an Option row do. A kata with
+ * fixed chrome, such as CommandPalette, sets `icon.md` after it.
  *
  * Layer: kiso · Concern: icon-slot dimensioning
  */
@@ -10,6 +14,6 @@ import { sen } from '../sen'
 import { shaku } from '../shaku'
 
 const { forced } = sen
-const { icon } = shaku
+const { iconSlotRamp } = shaku
 
-export const item = [icon.md, 'text-inherit', forced.icon]
+export const item = [...iconSlotRamp, 'text-inherit', forced.icon]

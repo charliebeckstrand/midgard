@@ -1,34 +1,11 @@
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { clamp } from '../../utilities/clamp'
-import { iro, ji, kokkaku, type Step } from '../kiso'
+import { iro, ji, kokkaku } from '../kiso'
 
 const { text } = iro
-const { size, weight } = ji
+const { weight } = ji
 const { heading } = kokkaku
 
 type Level = 1 | 2 | 3 | 4 | 5 | 6
-
-/**
- * Type-scale ladder, low → high. A heading's size is a position on this
- * ladder: `level` sets the base rung and the density step nudges it
- * (see {@link headingScale}).
- */
-const ladder = ['xs', 'sm', 'md', 'lg', 'xl', '2xl', '3xl', '4xl'] as const
-
-type Rung = (typeof ladder)[number]
-
-/** Natural rung per level at neutral (`md`) density. */
-const base = {
-	1: '3xl',
-	2: '2xl',
-	3: 'xl',
-	4: 'lg',
-	5: 'md',
-	6: 'sm',
-} as const satisfies Record<Level, Rung>
-
-/** Density `size` step → ladder offset. `md` is neutral; `sm`/`lg` shift one rung. */
-const shift = { sm: -1, md: 0, lg: 1 } as const satisfies Record<Step, number>
 
 /**
  * Font weight per heading level: bold at the top of the scale, easing to
@@ -45,34 +22,11 @@ const levelWeight = {
 } as const satisfies Record<Level, string>
 
 /**
- * Resolve the type-scale rung for a heading `level` under a density `step`,
- * clamped to the ladder ends. `md` returns the level's natural rung;
- * `sm`/`lg` shift every level one rung, preserving the level hierarchy.
- */
-export function headingScale(level: Level, step: Step): Rung {
-	const index = clamp(ladder.indexOf(base[level]) + shift[step], 0, ladder.length - 1)
-
-	// The index is clamped above; the fallback satisfies
-	// `noUncheckedIndexedAccess`.
-	return ladder[index] ?? base[level]
-}
-
-/**
- * Density-scaled font size for component titles (Card, Dialog / Sheet /
- * Drawer). Resolves the level-4 `lg` rung shifted ±1 by the ambient density
- * step: `md` returns `text-lg`, `sm`/`lg` move one rung. Returns the
- * matching `ji.size` class.
- */
-export function titleSize(step: Step): string {
-	return size[headingScale(4, step)]
-}
-
-/**
- * {@link headingScale} of each level in a stepped `density-text` class. A
- * heading with no `size` takes the step of its nearest density scope, and each
- * outer step takes the class of its neighbor. Tailwind reads each class as a
- * literal, so the ramps repeat the ladder. `heading-ramp.test.ts` pins each ramp
- * to {@link headingScale}.
+ * The text size of each level in a stepped `density-text` class. At `md` a
+ * level takes its natural rung of the type scale, and each step moves it one
+ * rung: `sm` one rung down and `lg` one rung up, so the levels keep their order.
+ * Each outer step takes the rung of its neighbor. A heading takes the step of
+ * its nearest density scope. `heading-ramp.test.ts` pins the rungs.
  */
 export const headingRamp = {
 	1: 'density-text-[2xl,3xl,4xl]',
@@ -84,8 +38,9 @@ export const headingRamp = {
 } as const satisfies Record<Level, string>
 
 /**
- * {@link titleSize} in a stepped `density-text` class: the ramp of level 4. A
- * title takes the step of its nearest density scope.
+ * The text size of a component title (Card, and the Dialog, Sheet, and Drawer
+ * panels): the ramp of level 4. A title takes the step of its nearest density
+ * scope.
  */
 export const titleRamp = headingRamp[4]
 
@@ -99,13 +54,11 @@ export function headingWeight(level: Level): string {
 
 export const k = defineRecipe({
 	base: [...text.default],
-	// `level` drives weight only. An explicit `size` gives the `scale` rung
-	// through `headingScale`. With no `size`, the heading takes `headingRamp`.
+	// `level` drives weight only. The size comes from `headingRamp`.
 	level: levelWeight,
-	scale: size,
 	defaults: { level: 1 },
 	skeleton: heading,
 })
 
-/** Recipe variant props for {@link Heading} — the styling axes its kata exposes (`level`, `scale`), for consumers composing custom slots. */
+/** Recipe variant props for {@link Heading} — the styling axis its kata exposes (`level`), for consumers composing custom slots. */
 export type HeadingVariants = VariantProps<typeof k>

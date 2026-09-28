@@ -3,8 +3,8 @@
 import { Star } from 'lucide-react'
 import { type MouseEvent, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
-import type { Step } from '../../recipes'
 import { k, type RatingVariants } from '../../recipes/kata/rating'
 import { clamp, rangeKeys } from '../../utilities'
 import { useControl } from '../control/context'
@@ -21,7 +21,7 @@ function defaultValueText(value: number, count: number): string {
 	return `${value} out of ${count} stars`
 }
 
-/** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size`/`color` recipe axes, and the read-only display form. */
+/** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size` step, the recipe `color`, and the read-only display form. */
 export type RatingProps = RatingVariants & {
 	/** Controlled value. `undefined` leaves the rating uncontrolled; `null` keeps it controlled with no score (CONVENTIONS §7.3). */
 	value?: number | null
@@ -42,10 +42,10 @@ export type RatingProps = RatingVariants & {
 	 */
 	name?: string
 	/**
-	 * Size step. It opens a density scope on the row. Without it, the row takes
-	 * the step of the nearest density scope.
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the row a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * Show the score and take no input. The row renders as one `role="img"`
 	 * carrying the {@link getValueText} readout, because a reader has no reason to
@@ -218,7 +218,6 @@ export function Rating({
 		return (
 			<span
 				data-slot={slot}
-				data-size={size}
 				data-density={size}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
@@ -286,7 +285,6 @@ export function Rating({
 	return (
 		<span
 			data-slot={slot}
-			data-size={size}
 			data-density={size}
 			role="radiogroup"
 			aria-label={labelledBy ? undefined : (ariaLabel ?? 'Rating')}

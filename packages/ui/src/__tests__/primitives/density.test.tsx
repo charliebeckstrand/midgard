@@ -1,6 +1,6 @@
 import { act, renderHook, waitFor } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
-import { densitySteps, stepDown, toAmbientStep } from '../../core'
+import { densitySteps, stepDown, toInnerStep } from '../../core'
 import { Density, useDensityScope, useDensityStep } from '../../primitives/density'
 
 afterEach(() => {
@@ -81,9 +81,9 @@ describe('Density', () => {
 	})
 })
 
-describe('toAmbientStep', () => {
-	it('clamps the outer steps to the ambient steps', () => {
-		expect(['xs', 'sm', 'md', 'lg', 'xl'].map((step) => toAmbientStep(step as never))).toEqual([
+describe('toInnerStep', () => {
+	it('clamps the outer steps to the inner steps', () => {
+		expect(['xs', 'sm', 'md', 'lg', 'xl'].map((step) => toInnerStep(step as never))).toEqual([
 			'sm',
 			'sm',
 			'md',

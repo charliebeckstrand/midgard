@@ -46,7 +46,7 @@ const DEFAULT_CHOICE: MagnifierChoice = { zoom: 'md', size: 'md', delay: 'defaul
  * The two halves sit together because they drift apart in silence. A retune of
  * `zoomSteps.lg` leaves a label three files away claiming 4×, with no type error and no
  * failing test to say so. Same arrangement, for the same reason, as `densityLevels` beside
- * `densityToSize` in `providers/density/context.ts`.
+ * `levelToStep` in `providers/density/context.ts`.
  */
 
 /** Magnification for each step. */

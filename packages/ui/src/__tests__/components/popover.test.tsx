@@ -56,11 +56,11 @@ describe('Popover', () => {
 	})
 })
 
-describe('PopoverContent size context', () => {
+describe('PopoverContent size scope', () => {
 	// PopoverContent renders through FloatingPortal; query the document.
 	const buttonInPopover = () => document.querySelector<HTMLElement>('[data-slot="button"]')
 
-	it('descendant Buttons inherit the PopoverContent size', () => {
+	it('gives descendant Buttons the PopoverContent size', () => {
 		renderUI(
 			<Popover open>
 				<PopoverTrigger>
@@ -72,7 +72,6 @@ describe('PopoverContent size context', () => {
 			</Popover>,
 		)
 
-		// sun.sm.text = 'sm' → ji.size.sm = 'text-sm'
 		expect(densityStepOf(present(buttonInPopover(), 'button'))).toBe('sm')
 	})
 })

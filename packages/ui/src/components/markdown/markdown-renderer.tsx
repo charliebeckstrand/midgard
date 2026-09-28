@@ -1,3 +1,4 @@
+import type { ClassValue } from 'clsx'
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
@@ -206,30 +207,28 @@ function renderTable(token: Tokens.Table, key: number): ReactNode {
 	return (
 		<table key={key} className={cn(k.table)}>
 			<thead>
-				<tr>
-					{token.header.map((cell, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: column order is the stable identity
-						<th key={i} className={cn(k.th, alignClass(cell.align))}>
-							{renderChildren(cell.tokens)}
-						</th>
-					))}
-				</tr>
+				<tr>{token.header.map(renderHeaderCell)}</tr>
 			</thead>
-			<tbody>
-				{token.rows.map((row, r) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: row order is the stable identity
-					<tr key={r}>
-						{row.map((cell, c) => (
-							// biome-ignore lint/suspicious/noArrayIndexKey: column order is the stable identity
-							<td key={c} className={cn(k.td, alignClass(cell.align))}>
-								{renderChildren(cell.tokens)}
-							</td>
-						))}
-					</tr>
-				))}
-			</tbody>
+			<tbody>{token.rows.map(renderRow)}</tbody>
 		</table>
 	)
+}
+
+/** A renderer of the cells of one table section: `th` in the head, `td` in the body. */
+function cellRenderer(Cell: 'th' | 'td', className: ClassValue) {
+	return (cell: Tokens.TableCell, index: number): ReactNode => (
+		<Cell key={index} className={cn(className, alignClass(cell.align))}>
+			{renderChildren(cell.tokens)}
+		</Cell>
+	)
+}
+
+const renderHeaderCell = cellRenderer('th', k.th)
+
+const renderCell = cellRenderer('td', k.td)
+
+function renderRow(row: Tokens.TableCell[], index: number): ReactNode {
+	return <tr key={index}>{row.map(renderCell)}</tr>
 }
 
 function alignClass(align: Tokens.TableCell['align']): string | undefined {

@@ -9,5 +9,5 @@ export type StatLabelSkeletonProps = {
 
 /** Label-shaped placeholder. */
 export function StatLabelSkeleton({ className }: StatLabelSkeletonProps) {
-	return <Placeholder className={cn(k.skeleton.label({ size: 'md' }), className)} />
+	return <Placeholder className={cn(k.skeleton.label, className)} />
 }

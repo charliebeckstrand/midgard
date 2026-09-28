@@ -14,7 +14,7 @@ import { Field, Label } from '../../components/fieldset'
 import { Icon } from '../../components/icon'
 import { Listbox, ListboxLabel, ListboxOption } from '../../components/listbox'
 import { Stack } from '../../structure/stack'
-import { densityLevels, densityToSize } from '../density/context'
+import { densityLevels, levelToStep } from '../density/context'
 import { UIProvider } from '../ui'
 import { themeModes, useAppearance } from './context'
 
@@ -26,13 +26,13 @@ type ChoiceListboxProps<T extends string> = {
 
 /**
  * The density options with the step of each level after its name, for example
- * `Compact (sm)`. The step comes from {@link densityToSize}.
+ * `Compact (sm)`. The step comes from {@link levelToStep}.
  *
  * @internal
  */
 const densityOptions = densityLevels.map((level) => ({
 	...level,
-	label: `${level.label} (${densityToSize[level.value]})`,
+	label: `${level.label} (${levelToStep[level.value]})`,
 }))
 
 /**

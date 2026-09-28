@@ -1,4 +1,4 @@
-import type { Step } from '../../../recipes'
+import type { InnerStep } from '../../../core/density'
 
 /**
  * Density-resolved frame metrics: the values that scale with the size step.
@@ -15,7 +15,7 @@ export type ChartMetrics = {
 }
 
 /** Per-density frame metrics, keyed by the resolved size step. @internal */
-export const CHART_METRICS: Record<Step, ChartMetrics> = {
+export const CHART_METRICS: Record<InnerStep, ChartMetrics> = {
 	sm: { tickTarget: 3 },
 	md: { tickTarget: 4 },
 	lg: { tickTarget: 5 },

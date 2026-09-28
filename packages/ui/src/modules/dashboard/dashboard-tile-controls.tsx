@@ -60,7 +60,6 @@ export function DashboardTileControls({
 				<Button
 					type="button"
 					variant="bare"
-					size="sm"
 					data-slot="dashboard-tile-duplicate"
 					aria-label={`Duplicate ${label}`}
 					onClick={() => {
@@ -77,7 +76,6 @@ export function DashboardTileControls({
 				<Button
 					type="button"
 					variant="bare"
-					size="sm"
 					data-slot="dashboard-tile-remove"
 					aria-label={`Remove ${label}`}
 					onClick={() => {

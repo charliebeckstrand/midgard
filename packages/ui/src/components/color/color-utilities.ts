@@ -145,7 +145,7 @@ export function hexToRgba(input: string): Rgba | null {
  * @param alpha - Append the alpha pair.
  * @defaultValue `false`
  */
-export function rgbaToHex({ r, g, b, a }: Rgba, alpha = false): string {
+function rgbaToHex({ r, g, b, a }: Rgba, alpha = false): string {
 	const base = `#${toHex2(r)}${toHex2(g)}${toHex2(b)}`
 
 	return alpha ? base + toHex2(clamp(a, 0, 1) * 255) : base

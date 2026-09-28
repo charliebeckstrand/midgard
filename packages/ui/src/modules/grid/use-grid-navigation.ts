@@ -441,8 +441,8 @@ export function useGridNavigation({
 	store: GridNavStore
 	cellId: (row: number, col: number) => string
 	moveTo: (coord: Coord) => void
-	/** Re-clamps the active cell to the given bounds; the grid drives it as the data changes. */
-	reconcile: (rowCount: number, colCount: number) => void
+	/** Re-clamps the active cell to the given bounds and new-row slot; the grid drives it as the data changes. */
+	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive] = useState<Coord | null>(null)
@@ -636,25 +636,22 @@ export function useGridNavigation({
 	// paginate, hide a column), so the active cell — and the `aria-activedescendant`
 	// it drives — never dangles past the rendered grid; clears it when the grid
 	// empties. A no-op while in bounds (returns the same coord, so no re-render).
-	const reconcile = useCallback(
-		(rowCount: number, colCount: number) => {
-			setActive((current) => {
-				if (current === null) return null
+	const reconcile = useCallback((rowCount: number, colCount: number, slot: GridNewRowPosition) => {
+		setActive((current) => {
+			if (current === null) return null
 
-				// A published order holds its own bounds; `rowCount` counts data rows.
-				const rows = orderRef.current ? orderRef.current.length : rowCount
+			// A published order holds its own bounds; `rowCount` counts data rows.
+			const rows = orderRef.current ? orderRef.current.length : rowCount
 
-				const row = clampRow(current.row, rows, newRowRef.current)
+			const row = clampRow(current.row, rows, slot)
 
-				if (row === null || colCount === 0) return null
+			if (row === null || colCount === 0) return null
 
-				const col = clamp(current.col, 0, colCount - 1)
+			const col = clamp(current.col, 0, colCount - 1)
 
-				return row === current.row && col === current.col ? current : { row, col }
-			})
-		},
-		[newRowRef],
-	)
+			return row === current.row && col === current.col ? current : { row, col }
+		})
+	}, [])
 
 	// Activates the cell then the row under the cursor through the grid's
 	// click bridges — the same cell-first order a pointer click fires in.

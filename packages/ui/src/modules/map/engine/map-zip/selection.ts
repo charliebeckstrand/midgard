@@ -70,7 +70,7 @@ const RANGE_SPACING = /\s*-\s*/g
  *
  * @internal
  */
-export type MapZipRule =
+type MapZipRule =
 	| { kind: 'code'; code: string }
 	| { kind: 'prefix'; prefix: string }
 	| { kind: 'range'; from: string; to: string }

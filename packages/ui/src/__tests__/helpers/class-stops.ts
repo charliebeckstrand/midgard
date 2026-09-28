@@ -1,4 +1,6 @@
-import { type DensityStep, densitySteps } from '../../core/density'
+import type { DensityStep } from '../../core/density'
+import { valuesByStep } from '../../core/density/steps'
+import { k as button } from '../../recipes/kata/button'
 
 /** The class strings of a recipe value, which can nest arrays. */
 function classNames(classes: readonly unknown[]): string[] {
@@ -30,7 +32,8 @@ export function findStop(classes: readonly unknown[], prefix: string): number {
  * Reads the value of each step from the first stepped class that starts with
  * `prefix`, such as `density-px-[1,2,3]` for the prefix `density-px-`. Three
  * values give `sm`, `md`, and `lg`, and each outer step takes the value of its
- * neighbor, as the stepped utilities of `core/density` do.
+ * neighbor. It reads the list with `valuesByStep`, as the stepped utilities of
+ * `core/density` do.
  *
  * @throws If no class has the prefix and a list of three or five values.
  */
@@ -41,21 +44,20 @@ export function findSteps(
 	for (const name of classNames(classes)) {
 		if (!name.startsWith(`${prefix}[`) || !name.endsWith(']')) continue
 
-		const values = name.slice(prefix.length + 1, -1).split(',')
+		const values = valuesByStep(name.slice(prefix.length + 1, -1))
 
-		if (values.length === 5) {
-			return Object.fromEntries(densitySteps.map((step, index) => [step, values[index]])) as Record<
-				DensityStep,
-				string
-			>
-		}
-
-		if (values.length === 3) {
-			const [sm, md, lg] = values as [string, string, string]
-
-			return { xs: sm, sm, md, lg, xl: lg }
-		}
+		if (values) return values
 	}
 
 	throw new Error(`No class "${prefix}[…]" in: ${JSON.stringify(classes)}`)
+}
+
+/**
+ * Reads the icon-only pad of a bare button at `size`, from the stepped `bare`
+ * variant of the button kata.
+ */
+export function findBareCompoundP(size: DensityStep): number {
+	const bare = button.config.variants.variant?.bare as readonly unknown[]
+
+	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
 }

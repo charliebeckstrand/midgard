@@ -14,7 +14,7 @@ const directionMap = {
 	'col-reverse': 'flex-col-reverse',
 } as const
 
-export const alignMap = {
+const alignMap = {
 	start: 'items-start',
 	center: 'items-center',
 	end: 'items-end',

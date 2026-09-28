@@ -10,7 +10,8 @@ import {
 	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
-import type { DensityLevel } from '../../providers/density/context'
+import type { DensityStep } from '../../core/density'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { measureColumns } from './engine/grid-sizing/measure'
@@ -46,7 +47,7 @@ type GridColumnSizingOptions<T> = {
 	 */
 	rowsSignature: string
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
-	density: DensityLevel | undefined
+	density: DensityStep | undefined
 	/**
 	 * Size the columns to their own content rather than to the container. Nothing
 	 * the pass produces is then measured from the box it is about to size.
@@ -419,51 +420,40 @@ export function useGridColumnSizing<T>({
 		if (table.getColumn(drag.id)?.getSize() !== drag.start) sizer.takeControl(columns)
 	}, [resizing, table, sizer, columns])
 
-	// Keep the latest `refit` reachable from the ResizeObserver without listing it in
-	// the observer effect's deps: its identity shifts whenever the columns or density
-	// change, and tearing the observer down to re-subscribe on each is needless churn.
-	const refitRef = useRef(refit)
-
-	useLayoutEffect(() => {
-		refitRef.current = refit
-	}, [refit])
+	// The latest `refit`, with one identity for the mount. The ResizeObserver and the
+	// font subscription call it without a re-subscribe each time the columns or the
+	// density change. React writes the newest `refit` before any layout effect of a
+	// commit runs, so the body, which calls `fitRenderedRows` from its own layout
+	// effect, reads the `refit` of that commit.
+	const refitLatest = useStableEvent(refit)
 
 	// Re-measure when the inputs `refit` closes over change (columns, density) or the
 	// visible rows change (`rowsSig` — a page turn, filter, or sort can bring wider
-	// content into view). The observer effect below performs the initial
-	// synchronous fit, so the first pass here is skipped.
-	const initialFitRef = useRef(false)
-
-	// The struct signature at the last fit, so a rows-only change is told apart from
-	// a structural one when the widths are frozen (see `freezeOnRowChange`).
-	const fitStructSigRef = useRef(structSig)
+	// content into view). The signatures at the last pass tell a change of the rows
+	// alone from a change of the structure when the widths are frozen (see
+	// `freezeOnRowChange`). They are `null` before the first pass, which this effect
+	// skips, because the observer effect below performs the initial synchronous fit.
+	const fittedRef = useRef<{ struct: string; rows: string } | null>(null)
 
 	useLayoutEffect(() => {
 		if (!automatic) return
 
-		// Read so a row-model change (page turn, filter, sort) re-runs this effect.
-		void rowsSig
+		const fitted = fittedRef.current
 
-		if (!initialFitRef.current) {
-			initialFitRef.current = true
+		fittedRef.current = { struct: structSig, rows: rowsSig }
 
-			fitStructSigRef.current = structSig
-
-			return
-		}
-
-		const structChanged = fitStructSigRef.current !== structSig
-
-		fitStructSigRef.current = structSig
+		if (fitted === null) return
 
 		// Frozen widths (infinite scroll's stable columns) hold against an appended
-		// batch: a rows-only re-fire re-measures nothing and the columns keep their
-		// initial fit. A structural change — columns or density — still re-fits. The
-		// freeze arms on the fit that first measured rendered rows, not on a
-		// provisional one: a grid whose rows arrive after mount would otherwise freeze
-		// the floor-only fit it made against the loading skeleton and hold every
-		// column there for good.
-		if (freezeOnRowChange && !structChanged && sizer.measured()) return
+		// batch: a change of the rows alone re-measures nothing, and the columns keep
+		// their initial fit. A change of the structure (columns or density), or of
+		// the config that `refit` reads, still re-fits. The freeze arms on the fit
+		// that first measured rendered rows, not on a provisional one: a grid whose
+		// rows arrive after mount would otherwise freeze the floor-only fit it made
+		// against the loading skeleton and hold every column there for good.
+		const rowsOnly = fitted.struct === structSig && fitted.rows !== rowsSig
+
+		if (freezeOnRowChange && rowsOnly && sizer.measured()) return
 
 		refit(true)
 	}, [automatic, refit, rowsSig, structSig, freezeOnRowChange, sizer])
@@ -481,8 +471,8 @@ export function useGridColumnSizing<T>({
 	const fitRenderedRows = useCallback(() => {
 		if (!automatic || sizer.measured()) return
 
-		refitRef.current(true)
-	}, [automatic, sizer])
+		refitLatest(true)
+	}, [automatic, sizer, refitLatest])
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
 	// container, so a width-only container resize is the one thing that recreates it
@@ -505,7 +495,7 @@ export function useGridColumnSizing<T>({
 		// cells. A zero-width container (a collapsed panel, a tab parked in a hidden
 		// `Activity`) settles inside `refit` without a fit, and the observer below fits
 		// it the moment it has a width — which is the first moment it could be seen.
-		refitRef.current(true)
+		refitLatest(true)
 
 		/*
 		 * Flushed, so the refitted columns land in the frame that resized the container.
@@ -529,12 +519,12 @@ export function useGridColumnSizing<T>({
 		 * moves no width still writes no state (`sizingMoved`), so a height-only tick — rows
 		 * appended, the window growing vertically — flushes nothing.
 		 */
-		const observer = new ResizeObserver(() => flushSync(() => refitRef.current(false)))
+		const observer = new ResizeObserver(() => flushSync(() => refitLatest(false)))
 
 		observer.observe(element)
 
 		return () => observer.disconnect()
-	}, [automatic, containerRef])
+	}, [automatic, containerRef, refitLatest])
 
 	useEffect(() => {
 		if (!automatic) return
@@ -543,7 +533,7 @@ export function useGridColumnSizing<T>({
 
 		// Web fonts reflow text after the first measure; re-measure once they settle.
 		// Subscribed once per enablement (reading the latest `refit` through
-		// `refitRef`), since `fonts.ready` settles once — re-subscribing on every
+		// `refitLatest`), since `fonts.ready` settles once — re-subscribing on every
 		// `refit` identity change would re-fire immediately and redundantly.
 		document.fonts?.ready
 			.then(() => {
@@ -551,14 +541,14 @@ export function useGridColumnSizing<T>({
 
 				sizer.forget()
 
-				refitRef.current(true)
+				refitLatest(true)
 			})
 			.catch(() => {})
 
 		return () => {
 			canceled = true
 		}
-	}, [automatic, sizer])
+	}, [automatic, sizer, refitLatest])
 
 	return { autoSizeColumn, autoSizeAll, resetWidths, takeControl, fitRenderedRows, settled, floors }
 }

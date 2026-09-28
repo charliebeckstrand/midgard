@@ -1,17 +1,17 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/table'
 import { Box } from '../../structure/box'
 
 /** Visual modifiers for {@link Table}: the `size` step, full-`bleed`, `outline` borders, zebra `striped` rows, and a `hover` row wash. */
 export type TableVariants = {
 	/**
-	 * Step for the cell padding. The table opens a density scope at this step,
-	 * and the cells take it. Omit it to follow the nearest density scope, and `md`
-	 * outside one.
+	 * The density step of the cell padding. Omit it to take the step of the
+	 * nearest density scope. A step makes the table a density scope, and the
+	 * cells take it.
 	 */
-	size?: Step
+	size?: DensityStep
 	bleed?: boolean
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean

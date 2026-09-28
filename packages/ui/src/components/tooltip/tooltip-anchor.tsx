@@ -1,15 +1,18 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { TooltipContext } from './context'
 import { TooltipContent } from './tooltip-content'
 import { type TooltipAnchorOptions, useTooltipAnchor } from './use-tooltip-anchor'
 
 /** Props for {@link TooltipAnchor}. @internal */
 export type TooltipAnchorProps = TooltipAnchorOptions & {
-	/** Size step forwarded to the inner `<TooltipContent>`. @defaultValue the enclosing Density size */
-	size?: Step
+	/**
+	 * The density step, forwarded to the inner `<TooltipContent>`. Omit it to
+	 * take the step of the nearest density scope.
+	 */
+	size?: DensityStep
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string
 	/** Class for the positioned wrapper; see {@link TooltipContentProps.surfaceClassName}. */

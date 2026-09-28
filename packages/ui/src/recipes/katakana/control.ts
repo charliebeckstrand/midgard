@@ -11,9 +11,9 @@
  * 'outline'`; `'glass'` is internal, routed via `useGlass()` when nested
  * in a glass overlay.
  *
- * Returns a recipe callable as `k({ variant, …extraAxes })`. The density and
- * size classes are stepped `density-*` utilities in the base, so the recipe
- * has no step axis. The control takes the step of its nearest density scope.
+ * Returns a recipe callable as `k({ variant, …extraAxes })`. The density
+ * classes are stepped `density-*` utilities in the base, so the recipe has no
+ * step axis. The control takes the step of its nearest density scope.
  * It returns:
  *   - `k.number` and caller-defined slots are direct strings.
  *   - `k.inputControl({ variant })` is the surface recipe for the inner
@@ -35,7 +35,6 @@ type Empty = Record<never, never>
 type ControlTokens = {
 	input: ClassValue
 	density: ClassValue
-	size: ClassValue
 	resets: { number: ClassValue }
 	surface: { default: ClassValue; glass: ClassValue }
 	affix: { prefix: ClassValue; suffix: ClassValue }
@@ -46,7 +45,7 @@ type ControlTokens = {
 function controlStandard(t: ControlTokens) {
 	return {
 		config: {
-			base: [t.input, t.density, t.size],
+			base: [t.input, t.density],
 			variant: {
 				default: [],
 				outline: [],

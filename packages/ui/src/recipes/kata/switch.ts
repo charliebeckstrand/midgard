@@ -1,5 +1,6 @@
+import type { DensityStep } from '../../core/density'
 import { defineColors, defineRecipe, mode, type VariantProps } from '../../core/recipe'
-import { hannou, kasane, kokkaku, narabi, type Step, sen } from '../kiso'
+import { hannou, kasane, kokkaku, narabi, sen } from '../kiso'
 import { control } from '../kiso/control'
 
 const { cursor, fg } = hannou
@@ -83,7 +84,7 @@ export const k = defineRecipe(
 			...check.validation,
 			'has-[:disabled]:opacity-50 has-[:disabled]:cursor-not-allowed',
 			// The track and its thumb take the step of the nearest density scope.
-			'density-h-[5,6,7] density-w-[8,10,12]',
+			...kokkaku.switch.track,
 			'*:data-[slot=switch-thumb]:density-size-[3,4,5]',
 			'has-checked:*:data-[slot=switch-thumb]:density-left-[4,5,6]',
 		],
@@ -110,4 +111,4 @@ export const k = defineRecipe(
 )
 
 /** Recipe variant props for {@link Switch}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type SwitchVariants = VariantProps<typeof k> & { size?: Step }
+export type SwitchVariants = VariantProps<typeof k> & { size?: DensityStep }

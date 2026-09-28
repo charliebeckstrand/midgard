@@ -3,6 +3,11 @@
 import { type RefObject, useEffectEvent, useLayoutEffect, useState } from 'react'
 import { isOverflowing } from './use-truncation'
 
+/** Whether `text` overflows `el`. An empty string or no element is never truncated. @internal */
+function overflows(el: HTMLElement | null, text: string): boolean {
+	return el != null && text !== '' && isOverflowing(el, true)
+}
+
 /**
  * True when `text` overflows the element at `ref.current`. Measures through
  * {@link isOverflowing}, which owns the measurement and its rationale, in its
@@ -20,11 +25,8 @@ import { isOverflowing } from './use-truncation'
 export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string): boolean {
 	const [truncated, setTruncated] = useState(false)
 
-	const check = useEffectEvent(() => {
-		const el = ref.current
-
-		setTruncated(el != null && text !== '' && isOverflowing(el, true))
-	})
+	// The subscription below measures the newest string when it fires.
+	const check = useEffectEvent(() => setTruncated(overflows(ref.current, text)))
 
 	// The subscription tracks the element, not the string: re-keying it on `text`
 	// would tear down and rebuild the observer — and re-subscribe `fonts.ready` —
@@ -51,14 +53,10 @@ export function useIsTruncated(ref: RefObject<HTMLElement | null>, text: string)
 		}
 	}, [ref])
 
-	// A new string re-measures against the same element and subscription. `text`
-	// is the trigger rather than something this body reads — `check` reads the
-	// current string through its effect event — which is why the rule cannot see
-	// the dependency and has to be told.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `text` is the trigger; `check` reads it through the effect event
+	// A new string re-measures against the same element and subscription.
 	useLayoutEffect(() => {
-		check()
-	}, [text])
+		setTruncated(overflows(ref.current, text))
+	}, [ref, text])
 
 	return truncated
 }

@@ -11,8 +11,14 @@ import { useEffectEvent, useState } from 'react'
  * to that cell before the effects of a commit run. The hook keeps the wrapper
  * from the first render, so the identity does not change.
  *
- * Use it where a `useCallback` or a `useMemo` calls an effect event. The React
- * Compiler reads the effect event as a dependency. Because the list of
+ * Use it for a handler that keeps one identity for the mount and calls the
+ * newest props: a handler that a subscription holds, or that an effect, a memo,
+ * or a child lists. Do not keep the newest handler in a ref that an effect
+ * writes instead. A child runs its layout effects first, so it can read the
+ * handler of the last commit.
+ *
+ * Use it also where a `useCallback` or a `useMemo` calls an effect event. The
+ * React Compiler reads the effect event as a dependency. Because the list of
  * dependencies does not name it, the compiler cannot keep the memoization, and
  * it skips the whole component. A stable event is one identity, so the list can
  * name it, and the memo stays stable.

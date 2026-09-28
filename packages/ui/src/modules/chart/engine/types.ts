@@ -11,7 +11,7 @@
  * tooltip and data table, and not part of the public schema.
  */
 
-import type { Step } from '../../../recipes'
+import type { DensityStep } from '../../../core/density'
 import type { AccessibleName } from '../../../types'
 import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
@@ -327,8 +327,11 @@ export type ChartBaseProps<T> = AccessibleName & {
  * @internal
  */
 export type CartesianFrameProps = {
-	/** Resolves against enclosing Density; sets the tick-count target. */
-	size?: Step
+	/**
+	 * The density step, which sets the target count of the ticks. Omit it to
+	 * take the step of the nearest density scope.
+	 */
+	size?: DensityStep
 	/**
 	 * The chart's axes. `true` (the default) draws the value and category axes
 	 * at their defaults; `false` drops the axis chrome for a bare-marks plot.
@@ -397,7 +400,7 @@ export type CartesianChartProps<T> = ChartBaseProps<T> &
  *
  * @internal
  */
-export type ChartReadoutRow = {
+type ChartReadoutRow = {
 	/**
 	 * The series' index in the caller's list, so the tooltip can tell the
 	 * emphasized row from the rest. It is absent on readouts whose rows aren't

@@ -201,7 +201,7 @@ export function renderGridRow<T>(
  *
  * @internal
  */
-export type GridRowSortable = {
+type GridRowSortable = {
 	setNodeRef: (node: HTMLElement | null) => void
 	setActivatorNodeRef: (node: HTMLElement | null) => void
 	attributes: DraggableAttributes

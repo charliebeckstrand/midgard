@@ -9,18 +9,23 @@ import {
 	useRef,
 } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
+import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { Portal } from '../../primitives/portal'
 import { k } from '../../recipes/kata/listbox'
-import type { ControlSize } from '../control/context'
 
 type ListboxPanelProps = {
 	id: string
 	open: boolean
 	glass: boolean
 	multiple: boolean
-	/** The explicit size step of the listbox. The panel opens a density scope at it. */
-	size?: ControlSize
+	/**
+	 * The density step of the listbox. Omit it to take the step of the nearest
+	 * density scope of the listbox, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
+	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the trigger's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string
@@ -64,6 +69,11 @@ export function ListboxPanel({
 	// running its initial-focus effect.
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
+	// A portal takes the panel out of the DOM subtree of its scope, so the root
+	// writes the step of the scope that opened it, as `FloatingSurface` does. An
+	// explicit `size` is the scope of the `PopoverPanel` inside.
+	const inherited = useDensityScope()
+
 	return (
 		// `Portal` mounts the portal only while open, so a closed Select keeps
 		// no empty portal node in the document.
@@ -89,6 +99,7 @@ export function ListboxPanel({
 							node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
 							node
 					}}
+					data-density={inherited ?? undefined}
 					style={floatingStyles}
 					className={k.portal}
 					tabIndex={-1}

@@ -52,7 +52,6 @@ export function useControlFieldContext(
 			readOnly: parent?.readOnly,
 			required: parent?.required,
 			severity: severity ?? parent?.severity,
-			size: parent?.size,
 			variant: parent?.variant,
 			...a11y,
 		}),

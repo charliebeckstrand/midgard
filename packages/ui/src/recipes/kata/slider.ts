@@ -1,5 +1,6 @@
+import type { DensityStep } from '../../core/density'
 import { defineRecipe, type VariantProps } from '../../core/recipe'
-import { hannou, kokkaku, type Step } from '../kiso'
+import { hannou, kokkaku } from '../kiso'
 import { slider } from '../kiso/slider'
 
 const { cursor, disabled } = hannou
@@ -75,4 +76,4 @@ export const k = defineRecipe({
 })
 
 /** Recipe variant props for {@link Slider}: the `color` axis of its kata, and the `size` step that the component writes as a density scope. */
-export type SliderVariants = VariantProps<typeof k> & { size?: Step }
+export type SliderVariants = VariantProps<typeof k> & { size?: DensityStep }

@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 
 /**
  * Scrolls one element to its own bottom. The `scrollTop` rather than `scrollTo`
@@ -67,19 +68,9 @@ export function useChatScroll<T>(dependency?: T) {
 		if (containerRef.current) toBottom(containerRef.current, 'auto')
 	}, [])
 
-	const mounted = useRef(false)
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: the watched `dependency` is the whole point — its identity change is what re-runs the scroll.
-	useEffect(() => {
-		// The mount-time jump above already lands on the bottom; skip the redundant smooth scroll.
-		if (!mounted.current) {
-			mounted.current = true
-
-			return
-		}
-
-		scrollToBottom()
-	}, [dependency, scrollToBottom])
+	// A change of the dependency scrolls. The mount value does not, because the
+	// mount-time jump above already lands on the bottom.
+	useReportedChange(dependency, scrollToBottom)
 
 	return { containerRef, scrollToBottom }
 }

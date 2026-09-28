@@ -1,10 +1,10 @@
+// @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { type DensityStep, stepDown } from '../../core/density'
-import type { Step } from '../../recipes'
+import { type InnerStep, stepDown } from '../../core/density'
 import { k as badge } from '../../recipes/kata/badge'
 import { k as button } from '../../recipes/kata/button'
 import { control } from '../../recipes/kiso/control'
-import { findSteps, findStop } from '../helpers/class-stops'
+import { findBareCompoundP, findSteps, findStop } from '../helpers/class-stops'
 
 // Affix `data-slot` compensation invariant.
 //
@@ -30,15 +30,15 @@ import { findSteps, findStop } from '../helpers/class-stops'
 // override resolves to a different constant (`2`); the has-badge arm
 // below pins it directly off `badge.px`.
 
-const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly Step[]
+const STEPS = ['sm', 'md', 'lg'] as const satisfies readonly InnerStep[]
 
 const CHIP_INSET = 0.5
 
 /** The `px` of a control at `step`, from the stepped density axis. */
-const hostPxAt = (step: Step) => Number(findSteps(control.density, 'density-px-ring-')[step])
+const hostPxAt = (step: InnerStep) => Number(findSteps(control.density, 'density-px-ring-')[step])
 
 /** The value of a stepped affix class for a control at `step`, read at the slot step. */
-const affixAt = (classes: readonly unknown[], prefix: string, step: Step) =>
+const affixAt = (classes: readonly unknown[], prefix: string, step: InnerStep) =>
 	Number(findSteps(classes, prefix)[stepDown(step)])
 
 describe('control affix text padding', () => {
@@ -157,13 +157,6 @@ describe('control affix has-badge compensation', () => {
 // deltas can't cancel and the value drifts (1.75 → 2 → 2.25). The test parses
 // the live compound rule rather than the literals; if input.px, the bare
 // compound p, or stepDown drifts, the assertion points at the source.
-
-/** The icon-only pad of a bare button at `size`, from its stepped `bare` variant. */
-function findBareCompoundP(size: DensityStep): number {
-	const bare = button.config.variants.variant?.bare as readonly unknown[]
-
-	return Number(findSteps(bare, 'not-data-[has-label]:density-p-')[size])
-}
 
 describe('control affix has-bare-button compensation', () => {
 	for (const step of STEPS) {

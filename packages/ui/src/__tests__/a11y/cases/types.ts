@@ -1,6 +1,6 @@
 import type { UserEvent } from '@testing-library/user-event'
 import type { ChangeEvent, FocusEvent, ReactElement } from 'react'
-import type { Step } from '../../../recipes'
+import type { DensityStep } from '../../../core/density'
 
 /**
  * A subject of the pass-through sweep: a render that takes the props the sweep
@@ -35,18 +35,18 @@ export type LinkSubject = {
 }
 
 /**
- * A subject that resolves its size through the Density cascade and publishes
- * the answer as `data-size`.
+ * A subject that takes the step of its nearest density scope. An explicit
+ * `size` makes the subject a scope of its own.
  */
 export type DensitySubject = {
 	/** Renders the subject, with `size` as its explicit prop when the sweep passes one. */
-	render: (size?: Step) => ReactElement
+	render: (size?: DensityStep) => ReactElement
 	/** The `data-slot` whose step the sweep reads. */
 	slot: string
 }
 
 /** The props the text-input sweep passes, one leg at a time. */
-export type TextInputProbe = {
+type TextInputProbe = {
 	/** A callback ref, so one probe fits an `<input>` and a `<textarea>` alike. */
 	ref?: (element: HTMLElement | null) => void
 	placeholder?: string
@@ -96,7 +96,7 @@ export type WriteOnChangeSubject = {
 }
 
 /** A named, canonical render a gate drives. */
-export type Scenario = {
+type Scenario = {
 	/** Scenario name, printed by every gate that sweeps this entry. */
 	name: string
 	/** The canonical render. */

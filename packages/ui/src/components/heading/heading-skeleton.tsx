@@ -1,6 +1,6 @@
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
-import { headingScale, k } from '../../recipes/kata/heading'
+import type { DensityStep } from '../../core/density'
+import { k } from '../../recipes/kata/heading'
 import { Placeholder } from '../placeholder'
 import type { HeadingLevel } from './heading'
 
@@ -8,21 +8,26 @@ import type { HeadingLevel } from './heading'
 export type HeadingSkeletonProps = {
 	/** @defaultValue 1 */
 	level?: HeadingLevel
-	/** With no `size`, the silhouette takes the step of its nearest density scope. */
-	size?: Step
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the silhouette a density scope.
+	 */
+	size?: DensityStep
 	className?: string
 }
 
 /**
- * Heading-shaped placeholder. Height tracks the type-scale rung: the level
- * shifted by `size`, or by the step of the nearest density scope when `size`
- * is omitted, as the heading does. Keyed off the rung rather than a size step
- * alone; it does not use the size-driven `createSkeleton` factory.
+ * Heading-shaped placeholder. Its height tracks the rung of the heading at each
+ * step, and it takes the step of the nearest density scope, as the heading
+ * does. Keyed off the level, so it does not use the `createSkeleton` factory.
  * @remarks Static leaf: renders in React Server Components.
  * @see {@link Heading}
  */
 export function HeadingSkeleton({ level = 1, size, className }: HeadingSkeletonProps) {
-	const height = size ? k.skeleton.scale[headingScale(level, size)] : k.skeleton.ramp[level]
-
-	return <Placeholder className={cn(k.skeleton.base, height, className)} />
+	return (
+		<Placeholder
+			data-density={size}
+			className={cn(k.skeleton.base, k.skeleton.ramp[level], className)}
+		/>
+	)
 }

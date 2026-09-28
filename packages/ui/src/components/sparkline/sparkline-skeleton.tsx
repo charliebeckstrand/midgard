@@ -1,9 +1,9 @@
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/sparkline'
 import { createSkeleton, type SkeletonProps } from '../placeholder'
 
 /** Props for {@link SparklineSkeleton}: an optional `size` matching the chart scale. */
-export type SparklineSkeletonProps = SkeletonProps<Step>
+export type SparklineSkeletonProps = SkeletonProps<DensityStep>
 
 /**
  * Loading placeholder on the {@link Sparkline} silhouette.

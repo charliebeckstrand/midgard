@@ -6,8 +6,10 @@
  * alpha/preview chequerboard are authored as raw CSS background-image literals
  * here rather than as kiso tokens — they're picker-specific, used nowhere else.
  */
+
+import type { DensityStep } from '../../core/density'
 import { defineRecipe } from '../../core/recipe'
-import { kasane, kokkaku, type Step, sen } from '../kiso'
+import { kasane, kokkaku, sen } from '../kiso'
 
 const { rounded } = kasane
 const { focus } = sen
@@ -33,7 +35,7 @@ const preview = ['relative shrink-0 overflow-hidden', rounded.md, 'density-size-
 
 export const k = defineRecipe(
 	{
-		base: ['flex flex-col select-none', 'density-w-[72,80,88] density-gap-[2,4,6]'],
+		base: ['flex flex-col select-none', kokkaku.colorPanel.width, 'density-gap-[2,4,6]'],
 		skeleton: kokkaku.colorPanel,
 	},
 	{
@@ -67,4 +69,4 @@ export const k = defineRecipe(
 )
 
 /** Props for the {@link ColorPanel} root: the `size` step that the component writes as a density scope. */
-export type ColorPanelVariants = { size?: Step }
+export type ColorPanelVariants = { size?: DensityStep }

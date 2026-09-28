@@ -4,12 +4,12 @@ import { control } from '../kiso/control'
 import { popover } from '../kiso/popover'
 
 const { text } = iro
-const { reset, density, size } = control
+const { reset, density } = control
 const { portal } = popover
 
 export const k = defineRecipe(
 	{
-		base: ['block', 'truncate', ...reset, ...density, size],
+		base: ['block', 'truncate', ...reset, ...density],
 		slots: {
 			// Kept in step with the listbox recipe — one dropdown family, one height (see the note
 			// there for why 320px).

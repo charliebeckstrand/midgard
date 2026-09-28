@@ -124,8 +124,6 @@ export function useGridWindowMotion<L, S, K>(
 
 	const entering = hasPhase(motions, 'entering')
 
-	const closing = hasPhase(motions, 'closing')
-
 	// The entering rows mounted in the commit that the toggle started.
 	useEffect(() => {
 		if (entering) {
@@ -137,9 +135,7 @@ export function useGridWindowMotion<L, S, K>(
 	// motion starts the timer again, so a row that starts to close late keeps
 	// its full reveal.
 	useEffect(() => {
-		void motions
-
-		if (!closing) return
+		if (!hasPhase(motions, 'closing')) return
 
 		const timer = setTimeout(
 			() =>
@@ -148,7 +144,7 @@ export function useGridWindowMotion<L, S, K>(
 		)
 
 		return () => clearTimeout(timer)
-	}, [closing, motions])
+	}, [motions])
 
 	const release = useCallback(
 		(key: K) =>

@@ -278,7 +278,7 @@ describe('Sparkline density', () => {
 
 		const { container } = renderUI(
 			<Grid
-				density="compact"
+				size="sm"
 				columns={columns}
 				rows={[{ id: 1, trend: [1, 4, 2, 8] }]}
 				getKey={(row) => row.id}

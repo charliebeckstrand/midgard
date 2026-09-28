@@ -26,9 +26,8 @@ describe('Menu scroll overflow (real browser)', () => {
 		const { container } = renderUI(
 			<Menu defaultOpen capped={capped}>
 				<MenuContent aria-label="Actions">
-					{Array.from({ length: count }, (_, index) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: static list
-						<MenuItem key={index}>Item {index + 1}</MenuItem>
+					{Array.from({ length: count }, (_, index) => `Item ${index + 1}`).map((label) => (
+						<MenuItem key={label}>{label}</MenuItem>
 					))}
 				</MenuContent>
 			</Menu>,

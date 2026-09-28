@@ -5,9 +5,9 @@ import { shaku } from '../../recipes/kiso/shaku'
 import { findSteps } from '../helpers/class-stops'
 
 /**
- * The icon ramps repeat the icon scale in a stepped `density-size` class. Tailwind needs each class
- * as a literal, so the ramps cannot be built from the scale. This pins each step of each ramp to
- * the scale. The `xl` step takes the `lg` size, because the scale has no `xl`.
+ * The icon forms repeat the icon scale, the ramps in a stepped `density-size` class. Tailwind needs
+ * each class as a literal, so the forms cannot be built from the scale. This pins each step of each
+ * form to the scale. The `xl` step takes the `lg` size, because the scale has no `xl`.
  */
 const scale = (step: (typeof densitySteps)[number]) =>
 	shaku.iconSize[step === 'xl' ? 'lg' : step].replace('size-', '')
@@ -25,5 +25,9 @@ describe('shaku icon ramps', () => {
 		for (const step of densitySteps) expect(steps[step]).toBe(scale(step))
 
 		expect(shaku.iconSlotRamp).toContain('*:data-[slot=icon]:shrink-0')
+	})
+
+	it('icon.md holds the icon slot size of md', () => {
+		expect(shaku.icon.md).toBe(`*:data-[slot=icon]:size-${scale('md')} *:data-[slot=icon]:shrink-0`)
 	})
 })

@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const chart = {
 	base: ['block', 'w-full', rounded.md, 'density-h-[40,60,80]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

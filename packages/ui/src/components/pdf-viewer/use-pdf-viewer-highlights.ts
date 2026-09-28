@@ -51,7 +51,7 @@ export type PdfViewerHighlightsOptions = {
 }
 
 /** One region of the active page, converted and resolved for painting. @internal */
-export type PdfViewerRegion = {
+type PdfViewerRegion = {
 	id: string
 	label: string
 	color: Color

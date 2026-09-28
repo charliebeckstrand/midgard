@@ -91,30 +91,28 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 	// When a page change disables the control the user activated (reaching an
 	// extent), or scrolls its number out of the window, the browser drops focus to
 	// the body. Restore it to the current-page marker so focus stays in the nav
-	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFocus`.
+	// (WCAG 2.4.3 / 2.4.7). Scoped to user-driven changes via `restoreFrom`.
 	const navRef = useRef<HTMLDivElement>(null)
 
-	// Armed by a navigation the reader drives, and spent by the page change that
-	// follows it. That change can land a commit later, when a controlled consumer
-	// sets the page in a transition or after a fetch. A navigation onto the page
-	// already current changes no index, so it leaves the latch unarmed.
-	const restoreFocus = useRef(false)
+	// Armed by a navigation the reader drives, with the page it leaves, and spent
+	// by the first render on another page. That change can land a commit later,
+	// when a controlled consumer sets the page in a transition or after a fetch. A
+	// navigation onto the page already current changes no index, so it leaves the
+	// latch unarmed.
+	const restoreFrom = useRef<number | null>(null)
 
 	const goToPage = (index: SetStateAction<number>) => {
 		const next = typeof index === 'function' ? index(pageIndex) : index
 
-		restoreFocus.current = next !== pageIndex
+		restoreFrom.current = next !== pageIndex ? pageIndex : null
 
 		setPageIndex(index)
 	}
 
 	useLayoutEffect(() => {
-		// Re-run on each page change, so a restore follows a commit that lands late.
-		void pageIndex
+		if (restoreFrom.current === null || restoreFrom.current === pageIndex) return
 
-		if (!restoreFocus.current) return
-
-		restoreFocus.current = false
+		restoreFrom.current = null
 
 		const nav = navRef.current
 
@@ -150,10 +148,9 @@ export function GridPagination({ pagination }: GridPaginationProps) {
 
 						{knownPages && (
 							<PaginationList>
-								{getVisiblePages(pageNumber, pageCount).map((item, index) =>
-									item === 'gap' ? (
-										// biome-ignore lint/suspicious/noArrayIndexKey: gap markers carry no stable identity; their position in the fixed window is their identity
-										<PaginationGap key={`gap-${index}`} />
+								{getVisiblePages(pageNumber, pageCount).map((item) =>
+									typeof item === 'string' ? (
+										<PaginationGap key={item} />
 									) : (
 										<PaginationPage
 											key={item}

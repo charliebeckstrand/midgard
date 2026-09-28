@@ -315,7 +315,7 @@ function floatingReferenceElement(refs: FloatingOutsidePressRefs): Element | nul
  *
  * @internal
  */
-export function useFloatingPortalReference(
+function useFloatingPortalReference(
 	context: FloatingRootContext,
 	refs: FloatingOutsidePressRefs,
 ): void {
@@ -356,7 +356,7 @@ export function useFloatingPortalReference(
  *
  * @internal
  */
-export function useFloatingOutsidePress(
+function useFloatingOutsidePress(
 	context: FloatingRootContext,
 	refs: FloatingOutsidePressRefs,
 	enabled: boolean,
@@ -391,10 +391,7 @@ export function useFloatingOutsidePress(
  * other modal on the page has marked sibling elements `inert`, exactly the case
  * whenever a floating panel opens inside a Dialog/Sheet.
  */
-export function isFloatingOutsidePress(
-	event: PointerEvent,
-	refs: FloatingOutsidePressRefs,
-): boolean {
+function isFloatingOutsidePress(event: PointerEvent, refs: FloatingOutsidePressRefs): boolean {
 	const target = event.target
 
 	if (!(target instanceof Node)) return false

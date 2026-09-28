@@ -7,7 +7,7 @@ export type StatLabelProps = ComponentProps<'div'>
 
 /**
  * Caption naming the metric a `Stat` reports, sitting above its value. Static
- * leaf: renders in React Server Components. Renders at the `md` step; compose
- * `<StatLabelSkeleton>` in the loading tree.
+ * leaf: renders in React Server Components. Its text is `text-sm` at each
+ * step; compose `<StatLabelSkeleton>` in the loading tree.
  */
-export const StatLabel = createSlot('div', 'stat-label', k.label({ size: 'md' }))
+export const StatLabel = createSlot('div', 'stat-label', k.label)

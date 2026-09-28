@@ -14,7 +14,7 @@ describe('Grid condensed', () => {
 	const getKey = (row: Row) => row.id
 
 	it('forces the compact padding step, overriding an explicit density', () => {
-		renderUI(<Grid condensed density="loose" columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(<Grid condensed size="lg" columns={columns} rows={rows} getKey={getKey} />)
 
 		// The Table stamps the resolved density step; `condensed` wins over `loose`.
 		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
@@ -24,7 +24,7 @@ describe('Grid condensed', () => {
 	})
 
 	it('leaves density in charge when condensed is off', () => {
-		renderUI(<Grid density="loose" columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(<Grid size="lg" columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
 			'data-density',
@@ -32,7 +32,7 @@ describe('Grid condensed', () => {
 		)
 	})
 
-	it('projects the cell-font, icon, and badge step-downs onto the table', () => {
+	it('projects the cell-font step-down onto the table', () => {
 		renderUI(<Grid condensed columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = screen.getByRole('table')
@@ -40,12 +40,6 @@ describe('Grid condensed', () => {
 		expect(table).toHaveClass('[&>*>tr>td]:text-sm')
 
 		expect(table).toHaveClass('[&>*>tr>th]:text-sm')
-
-		expect(table).toHaveClass('[&>*>tr>th_[data-slot=icon]]:size-4')
-
-		expect(table).toHaveClass('[&>*>tr>td_[data-slot=icon]]:size-4')
-
-		expect(table).toHaveClass('[&>*>tr>td_[data-slot=badge]]:text-sm')
 	})
 
 	it('omits the projections on a plain grid', () => {
@@ -54,7 +48,7 @@ describe('Grid condensed', () => {
 		expect(screen.getByRole('table')).not.toHaveClass('[&>*>tr>td]:text-sm')
 	})
 
-	it('cascades a compact density to size-aware client cell content', () => {
+	it('gives cell content with no size the compact step of the table scope', () => {
 		const withButton: GridColumn<Row>[] = [
 			{ id: 'name', title: 'Name', cell: (row) => row.name },
 			{ id: 'actions', actions: (row) => <Button>Edit {row.name}</Button> },
@@ -62,8 +56,8 @@ describe('Grid condensed', () => {
 
 		renderUI(<Grid condensed columns={withButton} rows={rows} getKey={getKey} />)
 
-		// A cell Button with no explicit `size` resolves through the grid's compact
-		// cascade (the `sm` step), not the ambient `md` default.
+		// A cell Button with no explicit `size` takes the `sm` step of the table
+		// scope, not the ambient `md` step.
 		expect(densityStepOf(screen.getByRole('button', { name: 'Edit Alice' }))).toBe('sm')
 	})
 
@@ -85,7 +79,7 @@ describe('Grid condensed', () => {
 
 		fireEvent.contextMenu(screen.getByText('Alice'))
 
-		// The menu portals from outside the table's condensed cascade, so its nearest
+		// The menu portals from outside the table's condensed scope, so its nearest
 		// scope is the ambient `md` step rather than the condensed `sm`. Text and icon
 		// step together instead of the text alone shrinking.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })

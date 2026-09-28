@@ -2,21 +2,21 @@
 
 import { type ComponentProps, type ReactNode, useRef } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { ControlFrame } from '../../primitives/control'
-import { Density, DensitySlot } from '../../primitives/density'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { k, type TextareaVariants } from '../../recipes/kata/textarea'
-import { type ControlSize, type ControlVariant, useControl } from '../control/context'
+import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useInputValue } from '../input/use-input-value'
 import { useTextareaAutoResize } from './use-textarea-auto-resize'
 
 /** Props for {@link Textarea}: density `size`, `variant`, `autoResize`, an `actions` slot, and the remaining `<textarea>` surface. */
 export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
-	size?: ControlSize
+	size?: DensityStep
 	variant?: ControlVariant
 	className?: string
 	/**
@@ -33,9 +33,9 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.
- * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
- * `<GlassProvider>`, and Density contexts. Under headless context, it drops to
- * a bare `<textarea>`.
+ * Resolves variant and binding from enclosing `<Form>`, `<Control>`, and
+ * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
+ * Under headless context, it drops to a bare `<textarea>`.
  *
  * @remarks Shares the Input value cascade through {@link useInputValue},
  * including the §7.3 value contract it owns. `defaultValue` reaches the element
@@ -105,7 +105,7 @@ export function Textarea({
 
 	const composedRef = useComposedRef(fieldRef, ref)
 
-	useTextareaAutoResize(fieldRef, autoResize, valueState.value)
+	useTextareaAutoResize(fieldRef, autoResize)
 
 	const resolvedVariant = variant ?? control?.variant ?? (glass ? 'glass' : undefined)
 
@@ -149,22 +149,20 @@ export function Textarea({
 	if (headless) return textareaEl
 
 	return (
-		<Density step={size}>
-			<ControlFrame
-				data-density={size}
-				className={cn(
-					hasActions && k.frame,
-					hasActions && k.stack,
-					k.inputControl({ variant: resolvedVariant }),
-				)}
-			>
-				{textareaEl}
-				{hasActions && (
-					<div data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
-						<DensitySlot>{actions}</DensitySlot>
-					</div>
-				)}
-			</ControlFrame>
-		</Density>
+		<ControlFrame
+			density={size}
+			className={cn(
+				hasActions && k.frame,
+				hasActions && k.stack,
+				k.inputControl({ variant: resolvedVariant }),
+			)}
+		>
+			{textareaEl}
+			{hasActions && (
+				<div data-slot="textarea-actions" data-density="slot" className={cn(k.actions)}>
+					{actions}
+				</div>
+			)}
+		</ControlFrame>
 	)
 }

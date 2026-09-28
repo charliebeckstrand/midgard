@@ -25,28 +25,21 @@ const sortIcon = defineRecipe({
 })
 
 /**
- * Density-scaled resize metrics, projected from the `<table>` element onto the
- * resizable headers (those carrying `data-resizable`). They therefore override
- * the density cell padding at higher specificity without `!important`. Each is
- * a stepped class, so it takes the step of the nearest density scope, as the
- * cell padding does. Two coupled measures:
+ * The trailing padding (`pe-*`, the inline end) of each resizable header (a
+ * header with `data-resizable`), so that its label clears the resize handle.
+ * The table projects it onto the headers, so it overrides the density cell
+ * padding at a higher specificity, with no `!important`. It is a stepped
+ * class, so it takes the step of the nearest density scope, as the cell
+ * padding does.
  *
- * - the header's trailing padding (`pe-*`, the inline end), so its label clears
- *   the handle; and
- * - the resize handle's own width (the handle can't size itself — only the table
- *   knows the density).
- *
- * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
- * 4/8/12px). The grab zone is twice that padding and anchored to the trailing
- * edge. Its centered grip (`justify-center`; see `handle`) therefore lands
- * exactly one cell-padding in from that edge. That is flush with where the
- * header label and body values truncate, so the grip meets the value instead of
- * cutting through it.
+ * The padding and the width of the handle (see `handle`) use the same ramp,
+ * which is twice the horizontal cell padding of the density (`px-1`/`px-2`/
+ * `px-3` → 4/8/12px). The handle sits on the trailing edge, so its centered
+ * grip lands one cell padding in from that edge. The header label and the body
+ * values truncate at that line, so the grip meets the value and does not cut
+ * through it.
  */
-const resizeMetrics = [
-	'[&>*>tr>th[data-resizable]]:density-pe-[2,4,6]',
-	'[&>*>tr>th[data-resizable]>[role=separator]]:density-w-[2,4,6]',
-]
+const resizeMetrics = ['[&>*>tr>th[data-resizable]]:density-pe-[2,4,6]']
 
 /**
  * Opaque fill behind every sticky grid surface: the sticky header bar and the
@@ -633,14 +626,13 @@ export const k = {
 		// explicit and shared by both). The handle lives in the header, so there is
 		// no body-region overflow to lift over the column's cells.
 		cell: 'relative',
-		// Density-scaled resize metrics (header trailing padding + grab-zone width)
-		// projected onto resizable headers; lives on the `<table>` element.
+		// The trailing padding of each resizable header, on the `<table>` element.
 		metrics: resizeMetrics,
 		// Resize grab zone on a resizable header's trailing edge, anchored to the
 		// inside of that edge (`end-0`, no outward shift) and widening into the cell.
-		// The edge is logical, so a right-to-left header holds it on the left. Its width is density-scaled (set via `metrics`, since only the
-		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
-		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
+		// The edge is logical, so a right-to-left header holds it on the left. Its
+		// width is twice the horizontal cell padding at each step, the ramp of
+		// `metrics`. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
 		// the grip one cell-padding in from the trailing edge — flush with where a
 		// truncating header's label and body values clip — and `items-center` centers
@@ -649,7 +641,7 @@ export const k = {
 		// boundary: an outward overhang gets painted over by a neighbor's opaque
 		// sticky/pinned header, and on the trailing column inflates the horizontal scroll.
 		handle: [
-			'group/grid-resize absolute top-0 end-0 z-10 h-full',
+			'group/grid-resize absolute top-0 end-0 z-10 h-full density-w-[2,4,6]',
 			'flex items-center justify-center',
 			'cursor-col-resize touch-none select-none outline-none',
 		],
@@ -714,26 +706,16 @@ export const k = {
 	// onto its descendants (like the table's own outline projections) so
 	// cells and headers read no context and the family still renders in RSC. They
 	// reach only what lives in the table's own DOM — a portaled overlay (context
-	// menu, column-manager dialog) is out of scope and keeps the ambient density,
+	// menu, column-manager dialog) is out of scope and keeps the step around the grid,
 	// since `condensed` is a table-density preset, not a theme its overlays adopt.
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The
 		// selector targets the cell element, so a consumer cell that sets its own
-		// size still overrides it. Tailwind scans whole literals — keep these in
-		// step with the density padding rows above.
+		// size still overrides it. Tailwind scans whole literals, so each class is
+		// written out.
+		// An icon or a badge in a cell takes the `sm` step of the table scope, and
+		// one with an explicit `size` keeps that size.
 		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
-		// Step every icon in a header or body cell to the compact `size-4`: the
-		// grid's own header chrome (sort arrow, pin, grip, filter) and a consumer's
-		// `<Icon>` in a cell — standalone or inside a `<Badge>`, whose icon slot is
-		// a nested `data-slot=icon`. An icon with no `size` already takes `size-4`
-		// from the `sm` scope of the table. This plain class also overrides an
-		// explicit `size`.
-		icon: ['[&>*>tr>th_[data-slot=icon]]:size-4', '[&>*>tr>td_[data-slot=icon]]:size-4'],
-		// Step a consumer `<Badge>` in a cell down one size: match the cell-font
-		// step on its text (its icon slot rides the `icon` rule above). A badge
-		// with no `size` already takes `text-sm` from the `sm` scope of the table.
-		// This plain class also overrides an explicit `size`.
-		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count

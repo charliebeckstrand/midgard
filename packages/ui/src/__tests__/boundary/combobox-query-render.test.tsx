@@ -8,6 +8,7 @@ import {
 import { CommandPalette, useCommandPaletteDeferredQuery } from '../../components/command-palette'
 import { CommandPaletteItem } from '../../components/command-palette/command-palette-item'
 import { act, renderUI, screen, userEvent } from '../helpers'
+import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
  * One keystroke renders one pass of the options that a consumer filters.
@@ -18,25 +19,16 @@ import { act, renderUI, screen, userEvent } from '../helpers'
  * consumer of the deferred query now reads a context that holds only the
  * deferred query.
  *
- * The combobox count reads the `useDensityStep` calls of `OptionImpl`, which
- * each option makes when it renders. The command palette count reads the calls
- * of `CommandPaletteItem`. The counts need module mocks, so this suite sits in
+ * The combobox count reads the `useId` calls of `OptionImpl`, which each option
+ * makes when it renders. A hook runs on each render, also when the React
+ * Compiler memoizes the body. The command palette count reads the calls of
+ * `CommandPaletteItem`. The counts need module mocks, so this suite sits in
  * `boundary/`.
  */
-/** The call stack of each `useDensityStep` call since the last clear. */
-const stacks = vi.hoisted((): string[] => [])
+vi.mock('react', async (importActual) => {
+	const { withRecordedUseId } = await import('../helpers/option-renders')
 
-vi.mock('../../primitives/density', async (importActual) => {
-	const actual = await importActual<typeof import('../../primitives/density')>()
-
-	return {
-		...actual,
-		useDensityStep: vi.fn((explicit?: Parameters<typeof actual.useDensityStep>[0]) => {
-			stacks.push(new Error().stack ?? '')
-
-			return actual.useDensityStep(explicit)
-		}),
-	}
+	return withRecordedUseId(await importActual<typeof import('react')>())
 })
 
 vi.mock('../../components/command-palette/command-palette-item', async (importActual) => {
@@ -47,11 +39,6 @@ vi.mock('../../components/command-palette/command-palette-item', async (importAc
 })
 
 const VALUES = Array.from({ length: 50 }, (_, index) => `v${index}`)
-
-/** The `useDensityStep` calls that came from a render of an option. */
-function optionRenders() {
-	return stacks.filter((stack) => stack.includes('OptionImpl')).length
-}
 
 function ComboboxResults() {
 	const deferredQuery = useComboboxDeferredQuery()
@@ -75,7 +62,7 @@ function PaletteResults() {
 
 describe('query option renders', () => {
 	beforeEach(() => {
-		stacks.length = 0
+		clearOptionRenders()
 
 		vi.mocked(CommandPaletteItem).mockClear()
 	})
@@ -93,7 +80,10 @@ describe('query option renders', () => {
 
 		expect(screen.getAllByRole('option')).toHaveLength(VALUES.length)
 
-		stacks.length = 0
+		// The count is live: each option rendered when the panel opened.
+		expect(optionRenders()).toBeGreaterThanOrEqual(VALUES.length)
+
+		clearOptionRenders()
 
 		await act(async () => {
 			await user.keyboard('v')
@@ -114,6 +104,9 @@ describe('query option renders', () => {
 		const user = userEvent.setup({ delay: null })
 
 		await user.click(screen.getByRole('combobox'))
+
+		// The count is live: each item rendered when the palette opened.
+		expect(vi.mocked(CommandPaletteItem).mock.calls.length).toBeGreaterThanOrEqual(VALUES.length)
 
 		vi.mocked(CommandPaletteItem).mockClear()
 

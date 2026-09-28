@@ -13,8 +13,10 @@ import { Radio, RadioSkeleton } from '../../components/radio'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { Slider, SliderSkeleton } from '../../components/slider'
 import { Switch, SwitchSkeleton } from '../../components/switch'
+import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { ToggleIconButton, ToggleIconButtonSkeleton } from '../../components/toggle-icon-button'
-import type { Step } from '../../recipes'
+import type { InnerStep } from '../../core/density'
+import { Box } from '../../structure/box'
 import { present, renderUI } from '../helpers'
 
 /**
@@ -65,7 +67,12 @@ describe('skeleton parity (real browser)', () => {
 
 	// Each pair renders the real component and its skeleton at one step. The box of the real
 	// component is its `data-slot` element; the skeleton is its placeholder.
-	const pairs: [string, string, (size: Step) => ReactElement, (size: Step) => ReactElement][] = [
+	const pairs: [
+		string,
+		string,
+		(size: InnerStep) => ReactElement,
+		(size: InnerStep) => ReactElement,
+	][] = [
 		[
 			'Checkbox',
 			'control',
@@ -158,5 +165,28 @@ describe('skeleton parity (real browser)', () => {
 
 		// The panel height has a fraction of a pixel from its text lines.
 		expect(Math.abs(skeleton.height - real.height)).toBeLessThan(1)
+	})
+
+	it.each(['sm', 'md', 'lg'] as const)('TextareaSkeleton has the box of a %s textarea', (size) => {
+		const real = box(
+			renderUI(
+				<Box density={size}>
+					<Textarea aria-label="Notes" rows={3} />
+				</Box>,
+			).container.querySelector('textarea'),
+			'textarea',
+		)
+
+		const skeleton = renderUI(
+			<Box density={size}>
+				<TextareaSkeleton rows={3} />
+			</Box>,
+		).container.querySelector('[data-slot="placeholder"]')
+
+		expect(box(skeleton, 'skeleton')).toStrictEqual(real)
+
+		expect(getComputedStyle(present(skeleton, 'skeleton')).borderRadius).toBe(
+			getComputedStyle(present(document.querySelector('textarea'), 'textarea')).borderRadius,
+		)
 	})
 })

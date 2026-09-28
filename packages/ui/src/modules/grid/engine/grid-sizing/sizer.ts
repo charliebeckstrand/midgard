@@ -17,7 +17,7 @@ import type { ColumnMeasurement } from './measure'
  *
  * @internal
  */
-export type GridSizingMode = 'auto' | 'manual'
+type GridSizingMode = 'auto' | 'manual'
 
 /**
  * What one sizer command reads. The sizer touches no DOM and no table, so the
@@ -51,7 +51,7 @@ export type ColumnSizerEnv<T> = {
  *
  * @internal
  */
-export type ColumnSizingPersist = 'none' | 'widths' | 'clear'
+type ColumnSizingPersist = 'none' | 'widths' | 'clear'
 
 /** A write that a sizer command asks for. @internal */
 export type ColumnSizingWrite = {

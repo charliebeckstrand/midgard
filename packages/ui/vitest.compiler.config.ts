@@ -1,8 +1,7 @@
 import { createRequire } from 'node:module'
 import { fileURLToPath } from 'node:url'
-import babel from '@rolldown/plugin-babel'
-import reactCompiler from 'babel-plugin-react-compiler'
 import { mergeConfig } from 'vitest/config'
+import { compileUiSource } from './vitest.compiler.preset'
 import base from './vitest.config'
 
 const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/package.json') as {
@@ -22,22 +21,9 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // The `skips` project runs the skip ledger in src/__tests__/compiler/, which
 // only this run needs.
 //
-// The preset is written out rather than taken from `reactCompilerPreset`. That
-// helper applies only to the client environment, and the `pure` project runs in
-// node.
+// The compiler reads the `ui` source, not the tests (`vitest.compiler.preset.ts`).
 export default mergeConfig(base, {
-	plugins: [
-		babel({
-			presets: [
-				{
-					preset: () => ({ plugins: [[reactCompiler, {}]] }),
-					// A module with no capitalized name and no `use` call holds no component
-					// or hook, so Babel skips it.
-					rolldown: { filter: { code: /\b[A-Z]|\buse/ } },
-				},
-			],
-		}),
-	],
+	plugins: [compileUiSource('__tests__')],
 	test: {
 		// `grid-compiler.test.ts` reads this to tell the two runs apart.
 		env: { REACT_COMPILER: '1' },

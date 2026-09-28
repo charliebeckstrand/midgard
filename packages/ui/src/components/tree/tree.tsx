@@ -2,10 +2,11 @@
 
 import { type ComponentProps, type KeyboardEvent, type ReactNode, useMemo, useRef } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yRoving } from '../../hooks'
-import { Density } from '../../primitives/density'
 import type { Mount } from '../../primitives/mount'
-import { k, type TreeSize } from '../../recipes/kata/tree'
+import { k } from '../../recipes/kata/tree'
+import { Box } from '../../structure/box'
 import type { AccessibleName } from '../../types'
 import { TreeContext } from './context'
 import { ITEM_SELECTOR } from './tree-constants'
@@ -18,11 +19,11 @@ export type TreeProps = AccessibleName &
 		'className' | 'onKeyDown' | 'onFocus' | 'aria-label' | 'aria-labelledby'
 	> & {
 		/**
-		 * Size step of the icons, the text, and the indent of all items. It opens
-		 * a density scope on the tree. Without it, the tree takes the step of the
-		 * nearest density scope.
+		 * The density step of the icons, the text, and the indent of all items.
+		 * Omit it to take the step of the nearest density scope. A step makes the
+		 * tree a density scope.
 		 */
-		size?: TreeSize
+		size?: DensityStep
 		/**
 		 * Indent each nested group by the chevron width plus the row gap.
 		 * @defaultValue true
@@ -88,20 +89,17 @@ export function Tree({
 
 	return (
 		<TreeContext value={rootContextValue}>
-			<Density step={size}>
-				<div
-					{...labelProps}
-					ref={ref}
-					role="tree"
-					data-slot="tree"
-					data-size={size}
-					data-density={size}
-					className={cn(k.base, className)}
-					onKeyDown={handleKeyDown}
-				>
-					{stampTreePositions(children)}
-				</div>
-			</Density>
+			<Box
+				{...labelProps}
+				ref={ref}
+				role="tree"
+				data-slot="tree"
+				density={size}
+				className={cn(k.base, className)}
+				onKeyDown={handleKeyDown}
+			>
+				{stampTreePositions(children)}
+			</Box>
 		</TreeContext>
 	)
 }

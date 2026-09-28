@@ -57,7 +57,7 @@ export type ChartPaint =
  *
  * @internal
  */
-export function isColorSlot(color: string): color is ChartColorSlot {
+function isColorSlot(color: string): color is ChartColorSlot {
 	return Object.hasOwn(k.series, color)
 }
 

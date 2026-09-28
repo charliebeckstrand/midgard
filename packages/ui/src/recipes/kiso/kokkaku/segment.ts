@@ -15,5 +15,5 @@ const { rounded } = kasane
 
 export const segment = {
 	base: [rounded.lg, 'density-h-[8,10,12]', 'density-w-[40,48,56]'],
-	density: ['sm', 'md', 'lg'],
+	density: true,
 } as const

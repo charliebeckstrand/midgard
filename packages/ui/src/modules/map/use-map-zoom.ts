@@ -42,7 +42,7 @@ import type { MapPoint2D } from './engine/types'
  *
  * @internal
  */
-export type MapZoomSurface = {
+type MapZoomSurface = {
 	onPointerDown: (event: PointerEvent<HTMLElement>) => void
 	onPointerMove: (event: PointerEvent<HTMLElement>) => void
 	onPointerUp: (event: PointerEvent<HTMLElement>) => void

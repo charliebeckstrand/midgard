@@ -6,11 +6,12 @@ import { Button, ButtonSkeleton } from '../../components/button'
 import { Card, CardHeader, CardTitle } from '../../components/card'
 import { Checkbox } from '../../components/checkbox'
 import { Control, ControlSkeleton } from '../../components/control'
-import { Label } from '../../components/fieldset'
+import { Fieldset, Label, Legend } from '../../components/fieldset'
 import { Heading, HeadingSkeleton } from '../../components/heading'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
 import { List, ListItem } from '../../components/list'
+import { LoadingDots, LoadingSpinner } from '../../components/loading'
 import { Placeholder } from '../../components/placeholder'
 import { ProgressBar, ProgressGauge } from '../../components/progress'
 import { Radio } from '../../components/radio'
@@ -426,6 +427,25 @@ describe('items and slots at the first paint (real browser)', () => {
 		container.remove()
 	})
 
+	it.each([
+		['xs', 12],
+		['md', 20],
+		['lg', 24],
+	] as const)('sizes a spinner in a %s sidebar item as its icon', (size, width) => {
+		const container = mountMarkup(
+			<SidebarItem size={size} icon={icon}>
+				<LoadingSpinner label="Loading" />
+				Home
+			</SidebarItem>,
+		)
+
+		expect(px(container.querySelector('[data-slot="loading-spinner"]'), 'width')).toBe(width)
+
+		expect(px(container.querySelector('[data-slot="icon"]'), 'width')).toBe(width)
+
+		container.remove()
+	})
+
 	it('lets an explicit size of a sidebar item win over the root', () => {
 		document.documentElement.setAttribute('data-density', 'lg')
 
@@ -583,7 +603,7 @@ describe('the grid at the first paint (real browser)', () => {
 		],
 		[
 			'an explicit density',
-			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} density="loose" />,
+			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} size="lg" />,
 			CELL_PADDING_PX.lg,
 		],
 	])('pads the cells at the step of %s', (_, element, padding) => {
@@ -600,6 +620,51 @@ describe('the grid at the first paint (real browser)', () => {
 })
 
 describe('density scopes on static leaves (real browser)', () => {
+	it.each([
+		['compact', 14],
+		['snug', 16],
+		['loose', 18],
+	] as const)('sets a legend in the text of a %s provider', (density, font) => {
+		renderUI(
+			<DensityProvider density={density}>
+				<Fieldset>
+					<Legend>Shipping</Legend>
+				</Fieldset>
+			</DensityProvider>,
+		)
+
+		expect(Number.parseFloat(getComputedStyle(screen.getByText('Shipping')).fontSize)).toBe(font)
+	})
+
+	it.each<[string, () => ReactElement, number]>([
+		[
+			'follows a compact provider',
+			() => (
+				<DensityProvider density="compact">
+					<LoadingDots />
+				</DensityProvider>
+			),
+			6,
+		],
+		['takes md outside a scope', () => <LoadingDots />, 8],
+		[
+			'follows a loose provider',
+			() => (
+				<DensityProvider density="loose">
+					<LoadingDots />
+				</DensityProvider>
+			),
+			10,
+		],
+		['takes an explicit xl step', () => <LoadingDots size="xl" />, 12],
+	])('a loading dot %s', (_name, element, width) => {
+		const { container } = renderUI(element())
+
+		const dot = present(container.querySelector('[data-slot="loading-dot"]'), 'loading dot')
+
+		expect(Number.parseFloat(getComputedStyle(dot).width)).toBe(width)
+	})
+
 	it.each<[string, () => ReactElement, keyof typeof BADGE_FONT_PX]>([
 		['takes md outside a scope', () => <Badge>x</Badge>, 'md'],
 		[

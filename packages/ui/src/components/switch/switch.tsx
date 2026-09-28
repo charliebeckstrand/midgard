@@ -7,7 +7,7 @@ import { k, type SwitchVariants } from '../../recipes/kata/switch'
 import { useControlProps } from '../control/use-control-props'
 import { useFormToggle } from '../form/use-form-toggle'
 
-/** Props for {@link Switch}: recipe variants (`color`, `size`), an input `ref`, and native `<input>` attributes minus `type`/`size`. */
+/** Props for {@link Switch}: the recipe `color` and the `size` step, an input `ref`, and native `<input>` attributes minus `type`/`size`. */
 export type SwitchProps = SwitchVariants & {
 	className?: string
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
@@ -106,7 +106,6 @@ export function Switch({
 	return (
 		<label
 			data-slot="control"
-			data-size={size}
 			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(k({ color }), className)}

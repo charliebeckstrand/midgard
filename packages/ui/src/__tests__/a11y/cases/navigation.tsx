@@ -206,8 +206,18 @@ export const navigationCases: readonly Case[] = [
 			</Tabs>
 		),
 		skeleton: [{ element: <TabListSkeleton tabs={4} />, absentSlot: 'tab', placeholders: 4 }],
-		// No density subject: a tab publishes no `data-size`. Its classes follow the
-		// nearest scope, and `density-native-boundary.test.ts` holds that.
+		density: [
+			{
+				render: (size) => (
+					<Tabs defaultValue="account" size={size}>
+						<TabList aria-label="Sections">
+							<Tab value="account">Account</Tab>
+						</TabList>
+					</Tabs>
+				),
+				slot: 'tab',
+			},
+		],
 	},
 	{
 		// Process steps with separators between them; current step marked via the

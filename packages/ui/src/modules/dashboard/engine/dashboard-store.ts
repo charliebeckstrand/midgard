@@ -30,7 +30,7 @@ import { type DashboardSelection, liveSelections } from './dashboard-scope'
  * follows a commit, and it paints the committed cells until the saved layout
  * arrives. A dropped tile therefore never shows its start cell for a frame.
  */
-export type DashboardGesture = {
+type DashboardGesture = {
 	/** The phase of the gesture. */
 	kind: 'drag' | 'resize' | 'settle'
 	/** The id of the tile that the gesture moves. */

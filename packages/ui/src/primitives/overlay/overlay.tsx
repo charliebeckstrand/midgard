@@ -10,7 +10,7 @@ import {
 	useEffect,
 	useRef,
 } from 'react'
-import { cn, composeEventHandlers } from '../../core'
+import { cn } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useDismissable } from '../../hooks/use-dismissable'
 import { useEnterAnimation } from '../../hooks/use-enter-animation'
@@ -32,8 +32,8 @@ export type OverlayProps = {
 	dismissOnBackdrop?: boolean
 	/**
 	 * Class for the dimming backdrop. It fully replaces the backdrop's default
-	 * classes (including `absolute inset-0`), and applies only when a backdrop
-	 * renders; with `backdrop={false}` it has no effect.
+	 * classes (including `absolute inset-0`), and applies only when the backdrop
+	 * paints; with `backdrop={false}` it has no effect.
 	 *
 	 * @remarks
 	 * The one channel that styles the backdrop. Every panel drives its glass
@@ -86,8 +86,9 @@ export type OverlayProps = {
 	 * staying interactive. The backdrop inherits the wrapper's
 	 * `pointer-events-none`, so it never intercepts a press.
 	 *
-	 * The flag changes paint only. A modal overlay with `backdrop={false}` still
-	 * closes on a press outside the panel, unless `dismissOnBackdrop` is `false`.
+	 * The flag changes paint only. A modal overlay with `backdrop={false}` keeps
+	 * a backdrop with no paint, so it still closes on a press outside the panel,
+	 * unless `dismissOnBackdrop` is `false`.
 	 *
 	 * @defaultValue `modal`
 	 */
@@ -124,7 +125,6 @@ export function Overlay({
 	backdrop = modal,
 	animateOnMount = true,
 	className,
-	onClick,
 	ref,
 	...props
 }: OverlayProps) {
@@ -155,29 +155,20 @@ export function Overlay({
 
 	useScrollLock(open && !scoped && modal)
 
-	// With no backdrop, the root is what a modal press outside the panel lands on.
-	// A press that bubbles up from the panel has another target, so it stays open.
-	const dismissOnRoot = modal && !backdrop && dismissOnBackdrop
+	// A modal press outside the panel lands on the backdrop. With no paint, the
+	// backdrop stays for that press alone.
+	const catchesPress = modal && dismissOnBackdrop
 
 	useEffect(() => {
 		if (open) notifyOverlaySignal()
 	}, [open])
 
 	const panel = (
-		// biome-ignore lint/a11y/noStaticElementInteractions: the root stands in for the absent backdrop, a pointer target and not a control. Escape is the keyboard route.
-		// biome-ignore lint/a11y/useKeyWithClickEvents: Escape through `useDismissable` is the keyboard route, as it is for the backdrop.
 		<div
 			ref={setPanel}
 			data-slot="overlay"
 			data-density={density ?? undefined}
 			{...props}
-			onClick={
-				dismissOnRoot
-					? composeEventHandlers(onClick, (event) => {
-							if (event.target === event.currentTarget) onOpenChange(false)
-						})
-					: onClick
-			}
 			className={cn(
 				k.root,
 				scoped ? 'absolute' : 'fixed',
@@ -185,13 +176,17 @@ export function Overlay({
 				className,
 			)}
 		>
-			{backdrop && (
+			{(backdrop || catchesPress) && (
 				<motion.div
 					{...k.motion}
 					// After the preset spread, so it overrides the preset's own `initial`.
 					initial={animateEnter ? k.motion.initial : false}
 					data-slot="overlay-backdrop"
-					className={backdropClassName ?? cn('absolute inset-0', k.backdrop.base)}
+					className={
+						backdrop
+							? (backdropClassName ?? cn('absolute inset-0', k.backdrop.base))
+							: 'absolute inset-0'
+					}
 					onClick={dismissOnBackdrop ? () => onOpenChange(false) : undefined}
 					aria-hidden="true"
 				/>

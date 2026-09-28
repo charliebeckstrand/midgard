@@ -1,8 +1,8 @@
 'use client'
 
 import type { Placement } from '@floating-ui/react'
+import type { DensityStep } from '../../core/density'
 import type { GroupStampProps } from '../../types/group-stamp'
-import type { ControlSize } from '../control/context'
 import { ColorPanel, type ColorPanelProps } from './color-panel'
 import { ColorPickerContent } from './color-picker-content'
 import { ColorPickerTrigger } from './color-picker-trigger'
@@ -43,8 +43,12 @@ type ColorPickerBaseProps = GroupStampProps & {
 	 * with. Use this to mirror the state elsewhere, not to drive it.
 	 */
 	onOpenChange?: (open: boolean) => void
-	/** Size step; resolves through the explicit prop, then `<Control>`, then Density, then `'md'`. */
-	size?: ControlSize
+	/**
+	 * The density step of the trigger and the panel. Omit it to take the step
+	 * of the nearest density scope. A step makes the trigger and the panel
+	 * density scopes.
+	 */
+	size?: DensityStep
 	disabled?: boolean
 	className?: string
 }

@@ -2,12 +2,14 @@
 
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
-import { type DensityLevel, densityLevels, densityToSize } from '../density/context'
+import { type DensityLevel, densityLevels, levelToStep } from '../density/context'
 import {
 	DARK_SCHEME,
+	DENSITY_DEFAULT,
 	DENSITY_KEY,
 	readChoice,
 	subscribeChoices,
+	THEME_DEFAULT,
 	THEME_KEY,
 } from './appearance-storage'
 import { AppearanceContext, type ThemeMode, themeModes } from './context'
@@ -42,12 +44,12 @@ export type AppearanceProviderProps = {
  * that reads the step as a JS value takes it one render after hydration.
  */
 export function AppearanceProvider({ children }: AppearanceProviderProps) {
-	const [theme, setTheme] = useAppearanceChoice<ThemeMode>(THEME_KEY, THEME_VALUES, 'system')
+	const [theme, setTheme] = useAppearanceChoice<ThemeMode>(THEME_KEY, THEME_VALUES, THEME_DEFAULT)
 
 	const [density, setDensity] = useAppearanceChoice<DensityLevel>(
 		DENSITY_KEY,
 		DENSITY_VALUES,
-		'snug',
+		DENSITY_DEFAULT,
 	)
 
 	useEffect(() => {
@@ -62,7 +64,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 		const apply = (dark: boolean) => root.classList.toggle('dark', dark)
 
 		const sync = () => {
-			const stored = readChoice<ThemeMode>(THEME_KEY, THEME_VALUES, 'system')
+			const stored = readChoice<ThemeMode>(THEME_KEY, THEME_VALUES, THEME_DEFAULT)
 
 			unsubscribeScheme?.()
 
@@ -78,9 +80,9 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 				apply(stored === 'dark')
 			}
 
-			const level = readChoice<DensityLevel>(DENSITY_KEY, DENSITY_VALUES, 'snug')
+			const level = readChoice<DensityLevel>(DENSITY_KEY, DENSITY_VALUES, DENSITY_DEFAULT)
 
-			root.setAttribute('data-density', densityToSize[level])
+			root.setAttribute('data-density', levelToStep[level])
 		}
 
 		sync()

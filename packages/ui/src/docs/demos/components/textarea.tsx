@@ -26,10 +26,10 @@ function WithActionsExample() {
 				placeholder="Ask anything"
 				actions={
 					<>
-						<Button aria-label="Attach file" variant="plain" size="sm">
+						<Button aria-label="Attach file" variant="plain">
 							<Icon icon={<Paperclip />} />
 						</Button>
-						<Button aria-label="Send" size="sm" color="blue" disabled={!withActionsValue.trim()}>
+						<Button aria-label="Send" color="blue" disabled={!withActionsValue.trim()}>
 							<Icon icon={<ArrowUp />} />
 						</Button>
 					</>

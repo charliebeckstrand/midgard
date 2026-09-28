@@ -162,17 +162,14 @@ function becomesLink({ render, slot }: LinkSubject) {
 }
 
 /**
- * Renders `element` and reads the step of its slot. A subject that selects its
- * step in JS publishes it in `data-size`. The stepped classes of a subject
- * take the step of its scopes, and `densityStepOf` reads those.
+ * Renders `element` and reads the step of its slot. The stepped classes of a
+ * subject take the step of its nearest scope, and `densityStepOf` reads it.
  */
 function resolvedStep(element: ReactElement, slot: string) {
 	// `baseElement` is the document body, so a portaled overlay is in reach.
 	const { baseElement } = renderUI(element)
 
-	const node = getSlot(baseElement, slot)
-
-	return node.getAttribute('data-size') ?? densityStepOf(node)
+	return densityStepOf(getSlot(baseElement, slot))
 }
 
 /** An ambient scope with both channels: `data-density` for the classes, and the context for a JS reader. */
@@ -262,12 +259,12 @@ describe('component links', () => {
 
 describe('component density', () => {
 	for (const subject of densities) {
-		it(`${subject.title} inherits its size from an ambient Density`, () => inheritsDensity(subject))
+		it(`${subject.title} takes the step of an ambient scope`, () => inheritsDensity(subject))
 
-		it(`${subject.title} lets an explicit size win over an ambient Density`, () =>
+		it(`${subject.title} lets an explicit size win over an ambient scope`, () =>
 			explicitSizeWins(subject))
 
-		it(`${subject.title} falls back to md outside any Density`, () => fallsBackToMd(subject))
+		it(`${subject.title} takes md outside each scope`, () => fallsBackToMd(subject))
 	}
 
 	it('has subjects to sweep', () => {
@@ -420,16 +417,16 @@ describe('capability sweeps: teeth checks', () => {
 		).toThrow()
 	})
 
-	it('fails a subject that ignores the ambient Density', () => {
+	it('fails a subject that ignores the ambient scope', () => {
 		expect(() =>
-			inheritsDensity({ render: () => <div data-slot="fixed" data-size="md" />, slot: 'fixed' }),
+			inheritsDensity({ render: () => <div data-slot="fixed" data-density="md" />, slot: 'fixed' }),
 		).toThrow()
 	})
 
-	it('fails a subject that lets the ambient Density beat its size prop', () => {
+	it('fails a subject that lets the ambient scope beat its size prop', () => {
 		expect(() =>
 			explicitSizeWins({
-				render: () => <div data-slot="ambient-only" data-size={AMBIENT} />,
+				render: () => <div data-slot="ambient-only" />,
 				slot: 'ambient-only',
 			}),
 		).toThrow()
@@ -437,7 +434,7 @@ describe('capability sweeps: teeth checks', () => {
 
 	it('fails a subject that falls back to a size other than md', () => {
 		expect(() =>
-			fallsBackToMd({ render: () => <div data-slot="large" data-size="lg" />, slot: 'large' }),
+			fallsBackToMd({ render: () => <div data-slot="large" data-density="lg" />, slot: 'large' }),
 		).toThrow()
 	})
 

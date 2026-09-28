@@ -1,11 +1,12 @@
 'use client'
 
 import { useMemo } from 'react'
-import { toAmbientStep } from '../../../core'
+import { toInnerStep } from '../../../core'
+import type { DensityStep } from '../../../core/density'
 import { type FrameSizing, usePlotFrame } from '../../../hooks'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
-import type { Step } from '../../../recipes'
 import type { AccessibleName } from '../../../types'
 import { fractionFormat, once } from '../../../utilities'
 import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
@@ -87,8 +88,11 @@ import {
  * @internal
  */
 export type ScatterFrameProps = {
-	/** Resolves against enclosing Density; sets the tick-count target. */
-	size?: Step
+	/**
+	 * The density step, which sets the target count of the ticks. Omit it to
+	 * take the step of the nearest density scope.
+	 */
+	size?: DensityStep
 	/**
 	 * The chart's axes. `true` (the default) draws both value axes at their
 	 * defaults; `false` drops the axis chrome for a bare-marks plot. The object
@@ -228,6 +232,9 @@ function scatterReadoutThunk(
  * hands new metas with the same content. A new thunk would reformat every cell
  * of the hidden table, and the deferred table would render the frame again.
  *
+ * The metas and the x values are held while the rows and the key of the visible
+ * series stay the same, so the memo lists what it reads.
+ *
  * @internal
  */
 function useScatterReadout<T>(
@@ -255,10 +262,14 @@ function useScatterReadout<T>(
 		})
 		.join('\u0000')
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: data and key stand for the content of visible and uniqueXs, which are new arrays on each render
+	const held = useStableValue(
+		{ data, key, visible, uniqueXs },
+		(previous, next) => previous.data === next.data && previous.key === next.key,
+	)
+
 	return useMemo(
-		() => scatterReadoutThunk(visible, uniqueXs, format, formatX, formatSize),
-		[data, key, format, formatX, formatSize],
+		() => scatterReadoutThunk(held.visible, held.uniqueXs, format, formatX, formatSize),
+		[held, format, formatX, formatSize],
 	)
 }
 
@@ -657,7 +668,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// switch and each axis's domain, formatter, title, and grid participation.
 	const { draw, config: axesConfig } = resolveAxes(axes)
 
-	const resolvedSize = toAmbientStep(useDensityStep(size))
+	const resolvedSize = toInnerStep(useDensityStep(size))
 
 	const metrics = CHART_METRICS[resolvedSize]
 

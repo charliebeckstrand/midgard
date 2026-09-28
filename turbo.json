@@ -72,6 +72,7 @@
 				"src/**",
 				"vitest.config.ts",
 				"vitest.compiler.config.ts",
+				"vitest.compiler.preset.ts",
 				"tsconfig.json",
 				"$TURBO_ROOT$/tsconfig.base.json",
 				"package.json"

@@ -8,7 +8,7 @@ import type { QueryGroup, QueryNode } from './types'
  *
  * @internal
  */
-export function isEmptyValue(value: unknown): boolean {
+function isEmptyValue(value: unknown): boolean {
 	if (value == null) return true
 
 	if (typeof value === 'string') return value.trim() === ''

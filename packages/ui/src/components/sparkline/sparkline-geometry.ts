@@ -8,7 +8,7 @@
 import { clamp } from '../../utilities'
 
 /** A resolved point in the sparkline's coordinate box. @internal */
-export type SparklinePoint = { x: number; y: number }
+type SparklinePoint = { x: number; y: number }
 
 /**
  * One bar rectangle for the `bar` variant, in `viewBox` user units. `index` is
@@ -18,7 +18,7 @@ export type SparklinePoint = { x: number; y: number }
  *
  * @internal
  */
-export type SparklineBar = { index: number; x: number; y: number; width: number; height: number }
+type SparklineBar = { index: number; x: number; y: number; width: number; height: number }
 
 /**
  * The resolved marks for one series: the polyline `points` and its `line`

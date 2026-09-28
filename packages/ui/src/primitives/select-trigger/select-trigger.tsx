@@ -2,11 +2,11 @@
 
 import type { ComponentProps, ReactNode, Ref } from 'react'
 import { cn, dataAttr } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/select'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { ControlFrame } from '../control'
-import { Density, DensitySlot } from '../density'
+import { PolymorphicStatic } from '../polymorphic'
 
 /**
  * Props for {@link SelectTrigger}: the floating-reference wiring the caller
@@ -18,8 +18,11 @@ export type SelectTriggerProps = GroupStampProps & {
 	setReference: Ref<HTMLDivElement>
 	getReferenceProps: () => Record<string, unknown>
 	glass: boolean
-	/** The explicit `size` of the host. It opens a density scope on the trigger. */
-	size?: Step
+	/**
+	 * The density step of the host. Omit it to take the step of the nearest
+	 * density scope. A step makes the trigger a density scope.
+	 */
+	size?: DensityStep
 	prefix?: ReactNode
 	/** Suffix rendered inside the standard `<span data-slot="suffix">` slot. */
 	suffix?: ReactNode
@@ -64,43 +67,38 @@ export function SelectTrigger({
 	children,
 }: SelectTriggerProps) {
 	return (
-		<div
+		<PolymorphicStatic
+			as="div"
 			data-slot={slot}
-			data-density={size}
+			density={size}
 			ref={setReference}
 			className={cn(className)}
 			{...getReferenceProps()}
 		>
-			<Density step={size}>
-				<ControlFrame
-					data-open={dataAttr(open)}
-					data-group={dataGroup}
-					data-group-orientation={dataGroupOrientation}
-					className={cn(!glass && k.surface.default)}
-					{...frameProps}
-				>
-					{prefix && (
-						<span
-							data-slot="prefix"
-							data-density="slot"
-							className={cn(k.affix.base, k.affix.prefix)}
-						>
-							<DensitySlot>{prefix}</DensitySlot>
-						</span>
-					)}
-					{children}
-					{suffix !== undefined && (
-						<span
-							data-slot="suffix"
-							data-density="slot"
-							className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
-							{...suffixProps}
-						>
-							<DensitySlot>{suffix}</DensitySlot>
-						</span>
-					)}
-				</ControlFrame>
-			</Density>
-		</div>
+			<ControlFrame
+				data-open={dataAttr(open)}
+				data-group={dataGroup}
+				data-group-orientation={dataGroupOrientation}
+				className={cn(!glass && k.surface.default)}
+				{...frameProps}
+			>
+				{prefix && (
+					<span data-slot="prefix" data-density="slot" className={cn(k.affix.base, k.affix.prefix)}>
+						{prefix}
+					</span>
+				)}
+				{children}
+				{suffix !== undefined && (
+					<span
+						data-slot="suffix"
+						data-density="slot"
+						className={cn('peer/suffix', k.affix.base, k.affix.suffix)}
+						{...suffixProps}
+					>
+						{suffix}
+					</span>
+				)}
+			</ControlFrame>
+		</PolymorphicStatic>
 	)
 }

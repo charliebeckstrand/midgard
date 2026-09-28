@@ -63,12 +63,6 @@ describe('RadioGroup', () => {
 })
 
 describe('Radio size', () => {
-	it('takes md outside each scope', () => {
-		const { container } = renderUI(<Radio />)
-
-		expect(densityStepOf(getSlot(container, 'control'))).toBe('md')
-	})
-
 	it('opens a scope for an explicit size prop', () => {
 		const { container } = renderUI(<Radio size="lg" />)
 

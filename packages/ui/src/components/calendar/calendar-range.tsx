@@ -2,7 +2,7 @@
 
 import { type Ref, type RefObject, useCallback } from 'react'
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/calendar'
 import { getOrCompute } from '../../utilities'
 import {
@@ -44,8 +44,11 @@ export type CalendarRangeProps = {
 	ref?: Ref<CalendarHandle>
 	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
 	locale?: string
-	/** Forwarded to `<Calendar>`. See its docs for the resolution chain. */
-	size?: Step
+	/**
+	 * The density step, forwarded to `<Calendar>`. Omit it to take the step of
+	 * the nearest density scope.
+	 */
+	size?: DensityStep
 	className?: string
 }
 

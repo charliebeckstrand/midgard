@@ -460,7 +460,7 @@ function coordinate(rounded: number): string {
  *
  * @internal
  */
-export function frameAffine(
+function frameAffine(
 	atlas: MapProjectedAtlas,
 	fitted: GeoProjection,
 ): { factor: number; dx: number; dy: number } | null {

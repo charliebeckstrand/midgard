@@ -1,13 +1,13 @@
 /**
- * Shaku icon: icon dimension scale. One scale, four projections.
- * `iconSize` sizes an icon element directly (the Option check mark).
- * `icon` sizes the `data-slot="icon"` children of a parent (the slot form
- * read by Button, Nav, Sidebar, the control affix slots, and
- * `narabi.item`). `iconRamp` and `iconSlotRamp` are the same two forms in
- * stepped `density-size` classes: Icon and LoadingSpinner read `iconRamp`, and Badge
- * reads `iconSlotRamp`. Tailwind's JIT scans for whole class literals, so no
- * form can be interpolated from another. `shaku-icon-ramp.test.ts` pins the
- * four forms together.
+ * Shaku icon: icon dimension scale. `iconSize` is the scale, and three forms
+ * project it. `iconRamp` sizes an icon element by the step of its nearest
+ * density scope, and Icon reads it. `iconSlotRamp` sizes the
+ * `data-slot="icon"` children of a parent the same way, and Badge, Button,
+ * Sidebar, and `narabi.item` (Menu and Option) read it. `icon.md` sizes those
+ * children at the fixed `md` step, for Nav and CommandPalette, where the
+ * chrome is fixed. Tailwind's JIT scans for whole class literals, so no form
+ * can be interpolated from another. `shaku-icon-ramp.test.ts` pins each form
+ * to the scale.
  *
  * Layer: kiso · Concern: icon dimension
  */
@@ -20,10 +20,7 @@ export const iconSize = {
 } as const
 
 export const icon = {
-	xs: '*:data-[slot=icon]:size-3 *:data-[slot=icon]:shrink-0',
-	sm: '*:data-[slot=icon]:size-4 *:data-[slot=icon]:shrink-0',
 	md: '*:data-[slot=icon]:size-5 *:data-[slot=icon]:shrink-0',
-	lg: '*:data-[slot=icon]:size-6 *:data-[slot=icon]:shrink-0',
 }
 
 /**
@@ -34,9 +31,9 @@ export const icon = {
 export const iconRamp = 'density-size-[3,4,5,6,6]'
 
 /**
- * `icon` in a stepped `density-size` class: a density host sizes its
+ * The slot form in a stepped `density-size` class: a density host sizes its
  * `data-slot="icon"` children by the step of its nearest density scope.
- * `shaku-icon-ramp.test.ts` pins it to `icon`.
+ * `shaku-icon-ramp.test.ts` pins it to `iconSize`.
  */
 export const iconSlotRamp = [
 	'*:data-[slot=icon]:shrink-0',

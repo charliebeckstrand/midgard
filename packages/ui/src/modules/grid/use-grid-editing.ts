@@ -1684,7 +1684,7 @@ export function useGridEditing<T>({
 	// the render which tells an applied move from a declined one.
 	const requestRef = useRef<CellRequest | null>(null)
 
-	const [tick, bump] = useReducer((count: number) => count + 1, 0)
+	const [, bump] = useReducer((count: number) => count + 1, 0)
 
 	// The rows that the grid itself closed since the last sweep: a session exit,
 	// or an acquired row that the session leaves. The sweep reads any other row
@@ -1996,8 +1996,10 @@ export function useGridEditing<T>({
 		[controlled, settledRef, applyTransition, dropIntents, landWait, setActiveCellValue],
 	)
 
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `tick` re-runs the transition after each request, so a declined move drops its intents. `editableRows` lands a waiting value once its row opens.
-	useLayoutEffect(() => settleBinding(raw), [raw, tick, editableRows, settleBinding])
+	// Settle the binding after each commit. It acts on a moved value, on a request,
+	// whose render `bump` forces, so a declined move drops its intents, and on a
+	// waiting value whose row has opened. With none of those, it changes nothing.
+	useLayoutEffect(() => settleBinding(raw))
 
 	// The session one key press names. The press names its row when it came from
 	// inside one, which is what picks the right row while several edit at once.

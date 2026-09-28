@@ -66,7 +66,7 @@ export function categorySlots(
  *
  * @internal
  */
-export function seriesColor<T>(series: ChartSeries<T>, index: number): ChartSeriesColor {
+function seriesColor<T>(series: ChartSeries<T>, index: number): ChartSeriesColor {
 	return series.color ?? paletteSlot(index)
 }
 

@@ -3,6 +3,7 @@
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
 import { cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useControllableFlag } from '../../hooks/use-controllable'
@@ -14,12 +15,11 @@ import { Density } from '../../primitives/density'
 import { Overlay } from '../../primitives/overlay'
 import { type PanelOverlayProps, PanelProviders } from '../../primitives/panel'
 import { useResolvedSurface } from '../../providers/glass/context'
-import type { Step } from '../../recipes'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
 
-/** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
+/** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 	PanelOverlayProps & {
 		/** Controlled open state. Pair with `onOpenChange`. */
@@ -47,11 +47,11 @@ export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 		 */
 		onOpenComplete?: () => void
 		/**
-		 * Size step of the panel content. It opens a density scope on the panel.
-		 * Without it, the panel takes the step of the nearest density scope of
-		 * the drawer, which the portal carries.
+		 * The density step of the panel content. Omit it to take the step of the
+		 * nearest density scope of the drawer, which the portal carries. A step
+		 * makes the panel a density scope.
 		 */
-		size?: Step
+		size?: DensityStep
 		/**
 		 * How much of the screen the panel docks over.
 		 *
@@ -263,7 +263,6 @@ export function Drawer({
 				{...ariaProps}
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
-				data-size={size}
 				data-density={size}
 				data-height={height ?? 'auto'}
 				// Opens the glass cascade to the panel's contents: `hannou.glassItem`

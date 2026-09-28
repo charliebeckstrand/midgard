@@ -61,15 +61,18 @@ describe('Card size system', () => {
 		expect(bySlot(container, 'card-body')?.className ?? '').not.toMatch(/\bp[a-z]?-\d/)
 	})
 
-	it('CardTitle text size follows its explicit size prop, bumped one step up', () => {
+	it('CardTitle with a size is a density scope on the title ramp', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardTitle size="lg">Title</CardTitle>
 			</Card>,
 		)
 
-		// CardTitle size "lg" → bumps to ji.size.xl = 'text-xl'
-		expect(bySlot(container, 'card-title')?.className).toContain('text-xl')
+		const title = present(bySlot(container, 'card-title'), 'card title')
+
+		expect(title).toHaveAttribute('data-density', 'lg')
+
+		expect(title).toHaveClass('density-text-[base,lg,xl]')
 	})
 
 	it('CardTitle with no size follows the Card scope on the title ramp', () => {
@@ -89,14 +92,14 @@ describe('Card size system', () => {
 		expect(title.closest('[data-density]')).toHaveAttribute('data-density', 'lg')
 	})
 
-	it('CardTitle with a size keeps that step of the title scale', () => {
+	it('CardTitle with a size keeps that step inside a Card of another step', () => {
 		const { container } = renderUI(
 			<Card size="lg">
 				<CardTitle size="sm">Title</CardTitle>
 			</Card>,
 		)
 
-		expect(bySlot(container, 'card-title')).toHaveClass('text-base')
+		expect(densityStepOf(present(bySlot(container, 'card-title'), 'card title'))).toBe('sm')
 	})
 
 	it('CardTitle weight is derived from its heading level', () => {

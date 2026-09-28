@@ -15,8 +15,8 @@ import { mode } from '../../../core/recipe'
  * Base ring under the other layers. The ring uses solid colors, not
  * translucent like `sen.ring.inset`. Adjacent rings in a group overlap
  * by 1 px without alpha-stacking into a darker line at the join. Radius
- * is not bundled; composers add `radius(v)` (or `r(v)` for the
- * outer-only case) per component density step.
+ * is not bundled; each composer adds its own radius, as a stepped
+ * `density-rounded-*` class when it follows density.
  */
 const base = ['ring-1 ring-inset ring-zinc-300 dark:ring-zinc-700']
 

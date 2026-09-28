@@ -67,17 +67,23 @@ export function DashboardResizeHandle({
 
 	const ref = useRef<HTMLDivElement>(null)
 
+	// The span of the last check, so the scroll below runs on a new span only.
+	const checkedSpan = useRef(span)
+
 	// A keyboard step changes the span and not the scroll, so a step can push the focused
 	// splitter past the fold. A pointer resize skips the scroll, because its edge follows the
 	// pointer through a scroll, and the scroll then changes the span again.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: a change of `span` is the trigger. The body reads the focus and `resizing` at that time.
 	useLayoutEffect(() => {
+		if (checkedSpan.current === span) return
+
+		checkedSpan.current = span
+
 		const node = ref.current
 
 		if (resizing || node === null || node !== document.activeElement) return
 
 		node.scrollIntoView({ block: 'nearest', inline: 'nearest' })
-	}, [span])
+	}, [span, resizing])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		const step = STEPS[event.key]

@@ -164,7 +164,7 @@ export function useGridCursor<T>({
 	/** `<table>` cursor props, with the editing key handler layered over navigation when editable. */
 	navTableProps: GridNavTableProps | undefined
 	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
-	reconcile: (rowCount: number, colCount: number) => void
+	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/**

@@ -2,13 +2,13 @@
 
 import type { RefCallback } from 'react'
 import { ariaAttr, cn, dataAttr, type ValidationAttrs } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { ControlFrame } from '../../primitives/control'
 import { useGlass } from '../../providers/glass/context'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/color-picker'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { Button } from '../button'
-import type { ControlSize } from '../control/context'
 import { hsvaToCss, hsvaToHex } from './color-utilities'
 import type { Hsva } from './types'
 
@@ -22,8 +22,11 @@ type ColorPickerTriggerProps = GroupStampProps & {
 	getReferenceProps: () => Record<string, unknown>
 	hsva: Hsva
 	alpha: boolean
-	/** The explicit size step. The trigger opens a density scope at it. */
-	size?: ControlSize
+	/**
+	 * The density step of `<ColorPicker>`. Omit it to take the step of the
+	 * nearest density scope. A step makes the trigger a density scope.
+	 */
+	size?: DensityStep
 	disabled?: boolean
 	required?: boolean
 	/** The resolved validation attributes. The frame paints its ring from them. */

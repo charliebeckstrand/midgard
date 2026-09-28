@@ -109,19 +109,17 @@ const modulesDir = join(srcDir, 'modules')
 
 // Ambient-context sources a static leaf must not import. `primitives/link`
 // and `primitives/polymorphic`'s client export read LinkContext;
-// `primitives/density` and `primitives/affix` are the density cascade;
-// `providers/*` are ambient by definition; `motion/react` forces a client
-// module. Type-only imports are fine: TypeScript erases them. One value
-// exemption: the bare `Density` scope component, which renders a client
-// boundary around children without making the host read anything. The
-// `density` prop of PolymorphicStatic uses it, so a static host may *open* a
-// density scope. A static host may never *read* the cascade, and the hook scan
-// below still catches a read. A primitive imports its siblings as `../density`,
-// so the density and affix sources match that form too.
+// `primitives/density` holds the density context; `providers/*` are ambient by
+// definition; `motion/react` forces a client module. Type-only imports are fine:
+// TypeScript erases them. One value exemption: the bare `Density` scope
+// component, which renders a client boundary around children without making the
+// host read anything. The `density` prop of PolymorphicStatic uses it, so a
+// static host may *open* a density scope. A static host may never *read* the
+// context, and the hook scan below still catches a read. A primitive imports
+// its siblings as `../density`, so the density source matches that form too.
 const BANNED_IMPORT_SOURCES = [
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/providers\//m,
 	/^import (?!type[\s{])(?!\{ Density \} from )[^'"]*['"][^'"]*(?:\/primitives|\.\.)\/density['"]/m,
-	/^import (?!type[\s{])[^'"]*['"][^'"]*(?:\/primitives|\.\.)\/affix['"]/m,
 	/^import (?!type[\s{])[^'"]*['"][^'"]*\/primitives\/link['"]/m,
 	/^import [^'"]*['"]motion\/react['"]/m,
 ]

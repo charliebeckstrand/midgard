@@ -11,11 +11,11 @@ import {
 } from 'react'
 
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/date-picker'
 import { Box } from '../../structure/box'
-import type { ControlSize } from '../control/context'
 
 // Keys the virtual model navigates with; see the dialog's onKeyDown below.
 const ARROW_KEYS = new Set([
@@ -35,11 +35,11 @@ type DatePickerContentProps = {
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
 	/**
-	 * The explicit size step of `<DatePicker>`. The body opens a density scope at
-	 * it. Without it, the panel takes the step of the nearest density scope of
-	 * the picker, which the portal carries.
+	 * The density step of `<DatePicker>`. Omit it to take the step of the
+	 * nearest density scope of the picker, which the portal carries. A step
+	 * makes the panel a density scope.
 	 */
-	size?: ControlSize
+	size?: DensityStep
 	/**
 	 * The picker's virtual-focus key handler (zones + active highlight). It
 	 * lives on the trigger and, via this prop, on the dialog itself. Initial
@@ -82,8 +82,8 @@ type DatePickerContentProps = {
 /**
  * Portaled, animated modal dialog shell for the picker popover. It wires
  * `FloatingFocusManager`, and it seeds focus on the dialog container (not its
- * first tabbable) for the virtual-highlight model. Its body Box is a density
- * scope at `size`.
+ * first tabbable) for the virtual-highlight model. An explicit `size` makes
+ * the panel a density scope.
  *
  * @remarks
  * The dialog's `onKeyDown` reclaims DOM focus for the container on navigation
@@ -154,6 +154,7 @@ export function DatePickerContent({
 		// the pointer.
 		<FloatingSurface
 			open={open}
+			density={size}
 			onExitComplete={onExitComplete}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
@@ -171,12 +172,10 @@ export function DatePickerContent({
 			<motion.div
 				{...k.content.motion}
 				data-slot="datepicker-content"
-				data-size={size}
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
 				<Box
-					density={size}
 					bg={glass ? 'none' : 'popover'}
 					outline={glass || undefined}
 					radius="lg"

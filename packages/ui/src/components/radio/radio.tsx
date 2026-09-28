@@ -5,7 +5,7 @@ import { cn } from '../../core'
 import { k, type RadioVariants } from '../../recipes/kata/radio'
 import { useControlProps } from '../control/use-control-props'
 
-/** Props for {@link Radio}: recipe `color`/`size` plus native `<input>` attributes (less `type`/`size`). */
+/** Props for {@link Radio}: the recipe `color` and the `size` step, plus native `<input>` attributes (less `type`/`size`). */
 export type RadioProps = RadioVariants & {
 	className?: string
 } & Omit<ComponentProps<'input'>, 'className' | 'type' | 'size'>
@@ -49,7 +49,6 @@ export function Radio({
 	return (
 		<label
 			data-slot="control"
-			data-size={size}
 			data-density={size}
 			{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 			className={cn(k({ color }), className)}

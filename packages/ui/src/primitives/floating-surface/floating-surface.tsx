@@ -45,9 +45,10 @@ export type FloatingSurfaceProps = {
 	trapFocusProps?: Omit<FloatingFocusManagerProps, 'context' | 'children'>
 	onExitComplete?: () => void
 	/**
-	 * Makes the surface a density scope at this step: it writes `data-density`
-	 * and opens the density context around the children. With no step, the
-	 * wrapper carries the scope of the place that opened it.
+	 * The density step. Omit it to take the step of the scope of the place that
+	 * opened the surface, which the wrapper carries. A step makes the surface a
+	 * density scope: it writes `data-density` and opens the density context
+	 * around the children.
 	 */
 	density?: DensityStep
 	children: ReactNode

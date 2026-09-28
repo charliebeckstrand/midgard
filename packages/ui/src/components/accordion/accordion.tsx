@@ -95,6 +95,15 @@ export function Accordion(props: AccordionProps) {
 		onOpenComplete?.(value)
 	})
 
+	const ref = useRef<HTMLDivElement>(null)
+
+	// Each header button runs the handler. The container has no role in the
+	// WAI-ARIA accordion pattern, so it takes no key handler. The handler finds
+	// the buttons in the container.
+	const handleTriggerKeyDown = useA11yRoving(ref, {
+		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
+	})
+
 	const context = useMemo(
 		() => ({
 			variant: variant ?? 'separated',
@@ -102,26 +111,14 @@ export function Accordion(props: AccordionProps) {
 			openStore,
 			toggle,
 			onOpenComplete: reportOpenComplete,
+			onTriggerKeyDown: handleTriggerKeyDown,
 		}),
-		[variant, mount, openStore, toggle, reportOpenComplete],
+		[variant, mount, openStore, toggle, reportOpenComplete, handleTriggerKeyDown],
 	)
-
-	const ref = useRef<HTMLDivElement>(null)
-
-	const handleKeyDown = useA11yRoving(ref, {
-		itemSelector: '[data-slot="accordion-trigger"]:not(:disabled)',
-	})
 
 	return (
 		<AccordionContext value={context}>
-			{/* biome-ignore lint/a11y/noStaticElementInteractions: the WAI-ARIA accordion pattern defines no role for the container; the arrow-key navigation handler must live here to move focus between header buttons */}
-			<div
-				{...rest}
-				ref={ref}
-				data-slot="accordion"
-				className={cn(k({ variant }), className)}
-				onKeyDown={handleKeyDown}
-			>
+			<div {...rest} ref={ref} data-slot="accordion" className={cn(k({ variant }), className)}>
 				{children}
 			</div>
 		</AccordionContext>

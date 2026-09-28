@@ -46,8 +46,8 @@ export type TreeItemProps = {
  * children, the optional `icon` and `label`, and `prefix`/`suffix` slots
  * whose clicks don't toggle expansion. Tracks expanded state controllably
  * (`open`/`onOpenChange`) or uncontrolled (`defaultOpen`), nests its
- * `children` as a collapsible group, and inherits depth, size, and indent
- * from tree context.
+ * `children` as a collapsible group, and inherits depth and indent from tree
+ * context. Its row takes the step of the nearest density scope.
  *
  * @remarks
  * Client component. Reflects expansion as `aria-expanded` and nesting as

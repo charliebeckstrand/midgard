@@ -37,14 +37,15 @@ export const k = defineRecipe({
 		'density-p-ring-[1.5,2,2.5,3,3]',
 		'density-rounded-[1,1.5,2,2.5,2.5]',
 		'data-[has-label]:density-py-ring-[1,1.5,2,2.5,2.5]',
-		// A LoadingSpinner or LoadingDots passed as an affix follows the same scope.
-		// The spinner follows the icon ramp. A Kbd sets its text and padding so that
+		// A LoadingSpinner or LoadingDots passed as an affix takes the step of the
+		// same scope. These projections stop at the `lg` values, as the button does,
+		// and the spinner follows the icon ramp. A Kbd sets its text and padding so that
 		// the key fits in the line of the label and does not make the button taller.
 		'*:data-[slot=loading-spinner]:density-size-[3,4,5,6,6]',
 		'*:data-[slot=loading-dots]:density-gap-[0.5,1,1.5,2,2]',
 		'*:data-[slot=loading-dots]:*:data-[slot=loading-dot]:density-size-[1,1.5,2,2.5,2.5]',
-		'*:data-[slot=kbd]:density-text-[xs,xs,sm,base,base]',
-		'*:data-[slot=kbd]:density-px-[1,1,1.5,1.5,1.5]',
+		'*:data-[slot=kbd]:density-text-[xs,sm,base]',
+		'*:data-[slot=kbd]:density-px-[1,1.5,1.5]',
 		'*:data-[slot=kbd]:density-py-[0,0.5,0.5,0.5,0.5]',
 	],
 	variant: {
@@ -78,11 +79,8 @@ export const k = defineRecipe({
 	skeleton: button,
 })
 
-/** The steps a button takes: `xl` has no button step. */
-export type ButtonSize = Exclude<DensityStep, 'xl'>
-
 /** Recipe variant props for {@link Button} — the styling axes its kata exposes (`variant`, `color`) and the `size` step, for consumers composing custom slots. */
 export type ButtonVariants = VariantProps<typeof k> & {
-	/** The step. Omit it to follow the nearest density scope, `md` outside one. */
-	size?: ButtonSize
+	/** The density step. Omit it to take the step of the nearest density scope. */
+	size?: DensityStep
 }

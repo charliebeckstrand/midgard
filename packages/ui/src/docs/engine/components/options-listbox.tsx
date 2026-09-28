@@ -3,7 +3,7 @@
 import { Listbox, ListboxLabel, ListboxOption } from '../../../components/listbox'
 
 /** One selectable option: the token `value` and its display `label`. */
-export type LabeledOption<T extends string> = { value: T; label: string }
+type LabeledOption<T extends string> = { value: T; label: string }
 
 type OptionsListboxProps<T extends string> = {
 	options: readonly LabeledOption<T>[]

@@ -80,7 +80,7 @@ function hatch(texture: Texture): ReactNode {
 }
 
 /** One tile to define: the slot's hue paint and the scoped `id` the marks reference. @internal */
-export type ChartPatternEntry = { color: ChartColorSlot; paint: SlotPaint; id: string }
+type ChartPatternEntry = { color: ChartColorSlot; paint: SlotPaint; id: string }
 
 /**
  * The `<defs>` block of texture tiles — one per distinct slot in use, a hue

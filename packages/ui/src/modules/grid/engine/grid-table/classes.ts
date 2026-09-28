@@ -1,33 +1,29 @@
 import { cn } from '../../../../core'
-import type { DensityLevel } from '../../../../providers/density'
+import type { DensityStep } from '../../../../core/density'
 import { k } from '../../../../recipes/kata/grid'
 
 /**
- * Effective density under {@link GridDataProps.condensed}. The tight preset
- * forces the compact step for every density-derived metric: cell padding,
- * resize-handle width, virtualized row-height, autosize measurement. A plain
- * grid keeps its own level, which is `undefined` for a grid that follows the
- * nearest scope. Kept out of {@link GridData} so its branch
+ * The density step of the table under {@link GridDataProps.condensed}. The
+ * tight preset forces the `sm` step for every density-derived metric: cell
+ * padding, resize-handle width, virtualized row-height, autosize measurement.
+ * A plain grid keeps its own `size`, which is `undefined` for a grid that
+ * follows the nearest scope. Kept out of {@link GridData} so its branch
  * doesn't weigh on the component's complexity budget.
  *
  * @internal
  */
-export function resolveDensity<L extends DensityLevel | undefined>(
-	condensed: boolean,
-	resolved: L,
-): L | 'compact' {
-	return condensed ? 'compact' : resolved
+export function resolveStep(condensed: boolean, size: DensityStep | undefined) {
+	return condensed ? 'sm' : size
 }
 
 /**
- * Table className with the {@link GridDataProps.condensed} down-projections —
- * cell font, header/body icons, and consumer badges — layered onto the resolved
- * layout class, or that class untouched. All cast from the `<table>` onto its
- * descendants, so cells and headers read no context (see `kata/grid`
- * `condensed`). @internal
+ * Table className with the {@link GridDataProps.condensed} cell font layered
+ * onto the resolved layout class, or that class untouched. It is cast from the
+ * `<table>` onto the cells, so cells and headers read no context (see
+ * `kata/grid` `condensed`). @internal
  */
 export function condensedTableClass(condensed: boolean, base: string): string {
-	return condensed ? cn(base, k.condensed.font, k.condensed.icon, k.condensed.badge) : base
+	return condensed ? cn(base, k.condensed.font) : base
 }
 
 /**

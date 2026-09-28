@@ -22,11 +22,11 @@ export const progress = {
 	bar: {
 		base: ['w-full', rounded.full, height],
 		height,
-		density: ['sm', 'md', 'lg'],
+		density: true,
 	},
 	gauge: {
 		base: [rounded.full, diameter],
 		diameter,
-		density: ['sm', 'md', 'lg'],
+		density: true,
 	},
 } as const

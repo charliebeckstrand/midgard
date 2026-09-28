@@ -21,9 +21,8 @@ export type LocaleProviderProps = LocaleConfig & {
  * waits for that locale, so its keys answer to a real consumer.
  *
  * A nested provider overrides one field and leaves the rest of the enclosing
- * config alone, the way `<Density>` folds its parent token. So a nested
- * `<LocaleProvider currency="EUR">` keeps the outer `locale` and `dateFormat`
- * for its subtree rather than clearing them.
+ * config alone. So a nested `<LocaleProvider currency="EUR">` keeps the outer
+ * `locale` and `dateFormat` for its subtree rather than clearing them.
  */
 export function LocaleProvider({
 	locale,

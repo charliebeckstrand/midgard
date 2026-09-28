@@ -2,8 +2,8 @@
 
 import type { ReactNode } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import type { FloatingPlacement } from '../../hooks'
-import type { Step } from '../../recipes'
 import { MenuActionsContext, MenuCappedContext, MenuStateContext } from './context'
 import { MenuPointerLevel } from './use-menu-pointer'
 import { useMenuState } from './use-menu-state'
@@ -37,11 +37,11 @@ export type MenuProps = {
 	 */
 	placement?: FloatingPlacement
 	/**
-	 * Size step of the item padding and the text. It opens a density scope on
-	 * the panel. Without it, the panel takes the step of the nearest density
-	 * scope of the menu, which the portal carries.
+	 * The density step of the item padding and the text. Omit it to take the
+	 * step of the nearest density scope of the menu, which the portal carries.
+	 * A step makes the panel a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * Cap the panel at its density height, scrolling past it. Off by default. A
 	 * menu is normally a short, fixed item set. A cap there clips the last row and

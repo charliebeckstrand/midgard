@@ -19,7 +19,7 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | Token | Concern |
 |---|---|
 | `iro` 色 | Variant × color × slot palette matrix plus the semantic intent-color text bundle. `palette` is the standard five-color set; `extendedPalette` is the opt-in wide palette (standard + rose / violet / sky). |
-| `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. `stepSize` is the three-step (`sm` / `md` / `lg`) size axis. |
+| `ji` 字 | Typography — size scale plus `weight` / `leading` / `family` aliases. |
 | `ma` 間 | Named spacing scale projected as Tailwind padding, margin, and gap utilities — all-sides and axis variants. |
 | `narabi` 並び | Sibling arrangement — field adjacency, toggle grid, slide positioning, icon slot, truncation, flex primitives. |
 | `omote` 面 | Generic surface fills and chromes (`bg`, `blur`, `surface`, `popover`, `glass`, `backdrop`, `content`, `skeleton`). |
@@ -27,10 +27,9 @@ Atomic concerns, one sub-folder each; `index.ts` assembles the named bundle. Ful
 | `sen` 線 | Borders, rings, dividers, focus indicators, and forced-colors safety nets. |
 | `shaku` 尺 | Dimension scales per surface (`icon`, `avatar`, `panel`, `scroll-area`, `mark`, `combobox`, `listbox`). |
 | `ugoki` 動き | Motion — tempo primitives, the spring vocabulary, the data-viz mark family, CSS transitions, and Framer Motion enter/exit configs. |
-| `kasane` 重ね | The signature 4-layer chrome stack plus radius / rounded / gap helpers, and the ring utilities (`px-ring-2`, …) that subtract the ring. |
+| `kasane` 重ね | The signature 4-layer chrome stack plus the `rounded` scale. The ring utilities (`px-ring-2`, …) that subtract the ring are in `core/density/utilities.ts`. |
 | `kokkaku` 骨格 | Skeleton placeholder dimensions per component — chrome-, variant-, and color-stripped. |
 | `sou` 層 | App-level stacking order — the ordered rung ladder (`overlay` / `chrome` / `float` / `lens` / `toast`) every portaled surface lands on. |
-| `sun` 寸 | Named density steps (`sm` / `md` / `lg`) and the per-step token table. |
 | `tsunagi` 繋ぎ | Group-join class fragments — dormant until the parent stamps `data-group` at runtime. |
 
 ## Kiso — semantic tier
@@ -39,9 +38,9 @@ Archetype bundles compose primitive atoms into the multi-fragment shape an arche
 
 | Bundle | Composes | Consumers |
 |---|---|---|
-| `control` | Field archetype: frame + surface + input + reset + density + size + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
+| `control` | Field archetype: frame + surface + input + reset + density + radius + affix + check (composes `kasane`). | `bridge.control` / `bridge.check`; subset reach from combobox, listbox, date-picker, select, switch. |
 | `popover` | Floating overlay — `trigger` / `portal` / `text` / `panel` fragments. | `bridge.popover`; subset reach from combobox, listbox, date-picker. |
-| `segment` | Segmented control — `control` / `item` size maps plus `indicator` color fragments. | `bridge.segment`. |
+| `segment` | Segmented control — `control` / `item` fragments plus `indicator` color fragments. *No bridge.* | `kata/tabs`, which Segment and Tabs share. |
 | `panel` | Panel archetype — `surface` (fill + chrome), `layout` (title / description / header / body / footer), and `grip`. The grip is the drag bar that resizes a panel, keyed by the separator's line. | `bridge.panel`; subset reach from box, panel. |
 | `slider` | Slider palette — the `--slider-fill` / `--slider-track` CSS-variable bundle per color. *No bridge.* | `kata/slider`, `kata/slider-range`. |
 
@@ -86,12 +85,11 @@ The substrate the bridge and kata call, in [`src/core/recipe/`](../src/core/reci
 
 ## Barrel surface
 
-The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` / `ExtendedColor` / `PaletteColor` from the engine table above.
+The barrel re-exports the substrate types, so a consumer derives a prop union without reaching through its kata. It also re-exports `Color` from the engine table above.
 
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 

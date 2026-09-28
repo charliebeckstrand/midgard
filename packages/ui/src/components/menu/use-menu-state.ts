@@ -2,9 +2,9 @@
 
 import { useClick, useInteractions } from '@floating-ui/react'
 import { type MouseEvent, useCallback, useEffect, useId, useMemo } from 'react'
+import type { DensityStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingDisclosure } from '../../hooks'
 import { clearVirtualActive, useA11yRoving } from '../../hooks/a11y/use-a11y-roving'
-import type { Step } from '../../recipes'
 import { isNativeContextMenuRequest } from '../../utilities'
 
 /** Navigable menu items: `role="menuitem"`, excluding disabled rows. @internal */
@@ -23,7 +23,7 @@ type MenuStateOptions = {
 	defaultOpen?: boolean
 	onOpenChange?: (open: boolean) => void
 	placement?: FloatingPlacement
-	size?: Step
+	size?: DensityStep
 }
 
 /**

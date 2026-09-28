@@ -1,5 +1,5 @@
 import { cn } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 import { k } from '../../recipes/kata/tabs'
 import { rangeKeys } from '../../utilities'
 import { Placeholder } from '../placeholder'
@@ -12,10 +12,10 @@ export type TabListSkeletonProps = {
 	 */
 	tabs?: number
 	/**
-	 * Size step driving placeholder dimensions. With no `size`, the silhouette
-	 * takes the step of its nearest density scope, as the tabs do.
+	 * The density step. Omit it to take the step of the nearest density scope,
+	 * as the tabs do. A step makes the silhouette a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	className?: string
 }
 

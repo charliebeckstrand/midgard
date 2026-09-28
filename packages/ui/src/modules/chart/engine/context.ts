@@ -32,11 +32,7 @@ export type ChartHoverState = {
  *
  * @internal
  */
-export type ChartHoverSet = (
-	index: number | null,
-	point: ChartPoint | null,
-	onData?: boolean,
-) => void
+type ChartHoverSet = (index: number | null, point: ChartPoint | null, onData?: boolean) => void
 
 /**
  * Hover state with its writer, as {@link useChartHover} gives it.

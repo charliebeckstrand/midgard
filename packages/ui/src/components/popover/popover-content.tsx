@@ -3,10 +3,10 @@
 import { motion } from 'motion/react'
 import { type ReactNode, useState } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yAutoFocus } from '../../hooks'
 import { FloatingSurface } from '../../primitives/floating-surface'
 import { useResolvedSurface } from '../../providers/glass/context'
-import type { Step } from '../../recipes'
 import { k } from '../../recipes/kata/popover'
 import { Box } from '../../structure/box'
 import { usePopoverContext, usePopoverPosition } from './context'
@@ -36,11 +36,11 @@ export type PopoverContentProps = {
 	 */
 	glass?: boolean
 	/**
-	 * Size step of the panel and its content. It opens a density scope on the
-	 * panel. Without it, the panel takes the step of the nearest density scope
-	 * of the trigger, which the portal carries.
+	 * The density step of the panel and its content. Omit it to take the step
+	 * of the nearest density scope of the trigger, which the portal carries. A
+	 * step makes the panel a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	/**
 	 * Accessible name for the surface. When provided (or `aria-labelledby`), the
 	 * content renders as a **non-modal** `role="dialog"` without `aria-modal`;
@@ -85,6 +85,7 @@ export function PopoverContent({
 	return (
 		<FloatingSurface
 			open={open}
+			density={size}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
@@ -99,11 +100,9 @@ export function PopoverContent({
 				aria-label={ariaLabel}
 				aria-labelledby={ariaLabelledby}
 				data-slot="popover-content"
-				data-size={size}
 				className={cn(k.text, glass && k.panel.glass)}
 			>
 				<Box
-					density={size}
 					bg={glass ? 'none' : 'popover'}
 					radius="lg"
 					outline={glass || undefined}

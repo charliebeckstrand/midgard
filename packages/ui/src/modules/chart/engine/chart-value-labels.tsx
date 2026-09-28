@@ -81,7 +81,7 @@ const HALF = HEIGHT / 2
  * extreme's label on the flip boundary. A resize would dance it across — above,
  * below, above — landing it on the line each time it flips. @internal
  */
-export const VALUE_LABEL_HEADROOM = OFFSET + HEIGHT + 4
+const VALUE_LABEL_HEADROOM = OFFSET + HEIGHT + 4
 
 /**
  * The headroom a chart passes for its point value labels. It is the
@@ -165,7 +165,7 @@ export type ValueLabelSeries = {
  *
  * @internal
  */
-export function lineLabelSeries(
+function lineLabelSeries(
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
 	metas: { values: (number | null)[] }[],
 	formats?: ((value: number) => string)[],

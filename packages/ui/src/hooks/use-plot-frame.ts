@@ -166,6 +166,14 @@ export function resolveFrameSizing(
  */
 export type PlotFrameRef = RefCallback<HTMLDivElement> & RefObject<HTMLDivElement | null>
 
+/** The measured size of a plot frame, in integer px. @internal */
+type FrameSize = { width: number; height: number; containerHeight: number }
+
+/** Whether two frame sizes are the same on each axis. @internal */
+function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
+	return a.width === b.width && a.height === b.height && a.containerHeight === b.containerHeight
+}
+
 /**
  * Resolves a plot frame's drawing size from its {@link FrameSizing} policy. It
  * measures only the dimensions the policy consumes, so a resize re-renders the
@@ -259,15 +267,17 @@ export function usePlotFrame(
 	// reads this.
 	const measureContainer = sizing.mode === 'fill'
 
-	const [size, setSize] = useState({ width: 0, height: 0, containerHeight: 0 })
+	const [size, setSize] = useState<FrameSize>({ width: 0, height: 0, containerHeight: 0 })
 
-	const measure = useCallback(
-		(el: HTMLDivElement) => {
+	// The size of the plot element, in integer px. An axis the policy ignores
+	// stays 0, so it never re-renders the frame.
+	const readSize = useCallback(
+		(el: HTMLDivElement): FrameSize | null => {
 			// A node the commit just detached (a layout branch re-arranged around
 			// the plot) measures 0 × 0 — garbage that would flip every size-driven
 			// policy downstream (spark shedding, legend placement) and can feed a
 			// remount loop. Skip it; the replacement node measures on attach.
-			if (!el.isConnected) return
+			if (!el.isConnected) return null
 
 			// The fill frame's own box — the nearest ancestor the frame marks. Its
 			// height is the tile's, held steady as the tier mounts or drops the chrome
@@ -277,21 +287,11 @@ export function usePlotFrame(
 				? (el.closest<HTMLElement>('[data-plot-fill-container]')?.clientHeight ?? 0)
 				: 0
 
-			// Integer px, equality-guarded, so observer notifications can't churn
-			// state. An axis the policy ignores stays 0 and never re-renders it.
-			const next = {
+			return {
 				width: measureWidth ? Math.round(el.clientWidth) : 0,
 				height: measureHeight ? Math.round(el.clientHeight) : 0,
 				containerHeight: Math.round(container),
 			}
-
-			setSize((current) =>
-				current.width === next.width &&
-				current.height === next.height &&
-				current.containerHeight === next.containerHeight
-					? current
-					: next,
-			)
 		},
 		[measureWidth, measureHeight, measureContainer],
 	)
@@ -309,15 +309,16 @@ export function usePlotFrame(
 	// oscillating, and the equality-guarded `setSize` stops it once it lands.
 	// A layout effect, not passive, so the settle precedes paint the way the
 	// legend's own fit measure does — and `node` lands here as state pre-paint
-	// too, so a mount or swap measures before the browser shows it. `size` is a
-	// re-trigger, not read: each run measures the DOM afresh, so re-running on
-	// the last committed size walks the chain to its fixed point.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `size` re-triggers the re-measure; the effect reads the live DOM, not the value.
+	// too, so a mount or swap measures before the browser shows it. Each run
+	// reads the DOM afresh and compares the reading with the committed `size`, so
+	// the chain stops at the first reading that matches it.
 	useLayoutEffect(() => {
 		if (!node || !(measureWidth || measureHeight)) return
 
-		measure(node)
-	}, [node, measure, measureWidth, measureHeight, size])
+		const next = readSize(node)
+
+		if (next !== null && !sameFrameSize(next, size)) setSize(next)
+	}, [node, readSize, measureWidth, measureHeight, size])
 
 	// Observe only while a measured axis feeds the sizing — a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. Keyed on
@@ -332,13 +333,17 @@ export function usePlotFrame(
 			// Transition priority: a burst of notifications coalesces — React
 			// abandons a render for a size a newer notification has already
 			// outdated — and the geometry rebuild never blocks urgent work.
-			startTransition(() => measure(node))
+			startTransition(() => {
+				const next = readSize(node)
+
+				if (next !== null) setSize((current) => (sameFrameSize(current, next) ? current : next))
+			})
 		})
 
 		observer.observe(node)
 
 		return () => observer.disconnect()
-	}, [node, measure, measureWidth, measureHeight])
+	}, [node, readSize, measureWidth, measureHeight])
 
 	const resolvedWidth = width ?? size.width
 

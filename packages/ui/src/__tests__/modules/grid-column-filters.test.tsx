@@ -9,6 +9,7 @@ import {
 	serializeQuery,
 } from '../../modules/query'
 import { DensityProvider } from '../../providers/density'
+import { Box } from '../../structure/box'
 import { densityStepOf, fireEvent, getAllSlots, renderUI, screen } from '../helpers'
 
 describe('Grid per-column filters', () => {
@@ -125,8 +126,8 @@ describe('Grid per-column filters', () => {
 	})
 
 	// The filter surface is the one grid-spawned overlay whose trigger lives inside
-	// the table region, so it is the only one that can inherit the cell density
-	// cascade. It must not: a sheet is a dialog-sized surface, not a cell.
+	// the table region, so it is the only one that can inherit the density scope
+	// of the table. It must not: a sheet is a dialog-sized surface, not a cell.
 	it("renders the filter sheet at the ambient density, not the grid's condensed step", () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} condensed />)
 
@@ -149,39 +150,28 @@ describe('Grid per-column filters', () => {
 		expect(densityStepOf(screen.getByRole('button', { name: 'Apply' }))).toBe('lg')
 	})
 
-	// The applied-state menu is the filter surface's other half, and it needs the same
-	// ambient density the sheet gets. Asserted differentially — the panel's class under
-	// a condensed grid must equal its class under a plain one — so it pins the property
-	// (density is not inherited from the cells) without hardcoding utility classes.
-	it("renders the filter menu at the ambient density, not the grid's condensed step", () => {
-		const menuViewportClass = (condensed: boolean) => {
-			const view = renderUI(
-				<Grid columns={columns} rows={rows} getKey={getKey} condensed={condensed} />,
-			)
+	// The applied-state menu is the other half of the filter surface, and it takes the
+	// same step as the sheet: the step around the grid, not the condensed step of the
+	// cells. An `xl` scope reaches the panel as `xl`, with no clamp.
+	it('renders the filter menu at the step around the grid, not the condensed step', () => {
+		renderUI(
+			<Box density="xl">
+				<Grid columns={columns} rows={rows} getKey={getKey} condensed />
+			</Box>,
+		)
 
-			// A filter has to be applied before the trigger becomes a menu.
-			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+		// A filter must be applied before the trigger becomes a menu.
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-			fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
-				target: { value: 'Bob' },
-			})
+		fireEvent.change(screen.getByRole('textbox', { name: 'Name value' }), {
+			target: { value: 'Bob' },
+		})
 
-			fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
+		fireEvent.click(screen.getByRole('button', { name: 'Apply' }))
 
-			fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
+		fireEvent.click(screen.getByRole('button', { name: /^Filter Name/ }))
 
-			const viewport = document.querySelector('[data-slot="menu-viewport"]')
-
-			if (!viewport) throw new Error('menu viewport did not render')
-
-			const className = viewport.className
-
-			view.unmount()
-
-			return className
-		}
-
-		expect(menuViewportClass(true)).toBe(menuViewportClass(false))
+		expect(densityStepOf(screen.getByRole('menuitem', { name: 'Edit filters' }))).toBe('xl')
 	})
 
 	it('hides the remove control while a single rule remains, restoring it past one', () => {

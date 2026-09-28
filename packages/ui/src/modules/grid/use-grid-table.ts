@@ -37,8 +37,10 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
-import type { DensityLevel } from '../../providers/density/context'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { useStableValue } from '../../hooks/use-stable-value'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
@@ -190,7 +192,7 @@ type GridTableParams<T> = {
 	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
 	containerRef?: RefObject<HTMLElement | null>
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
-	density?: DensityLevel
+	density?: DensityStep
 	/**
 	 * Whether a grand total aggregates the filtered rows. Only then does the grid
 	 * collect {@link GridTableResult.grandTotalRows}.
@@ -288,29 +290,6 @@ type GridTableResult<T> = {
 
 /** Stable empty row set, so an inactive grand total holds its identity. @internal */
 const NO_ROWS: never[] = []
-
-/**
- * Holds a value at its previous reference while `same` reports the two equal. A
- * render that resolved the same facts therefore hands the memos below it the
- * identity they already hold.
- *
- * @remarks The held value is state. A value that `same` rejects updates the
- * state during render, so React renders the component again at once with the
- * new value, before it commits.
- *
- * @internal
- */
-function useStableValue<T>(candidate: T, same: (previous: T, next: T) => boolean): T {
-	const [stable, setStable] = useState(() => candidate)
-
-	if (stable !== candidate && !same(stable, candidate)) {
-		setStable(() => candidate)
-
-		return candidate
-	}
-
-	return stable
-}
 
 /**
  * The engine's `ColumnDef[]` for the grid's columns. `meta` carries the source
@@ -1258,17 +1237,8 @@ export function useGridTable<T>({
 	const resolvedSizing = columnSizingState ?? EMPTY_SIZING
 
 	// The consumer's binding, read at call time, so "Reset column widths" can clear
-	// the saved widths without a new callback on each render. The effect keeps the
-	// latest binding, and the callback reads it only when it runs.
-	const sizingChangeRef = useRef(columnSizingConfig?.onValueChange)
-
-	const onSizingChange = columnSizingConfig?.onValueChange
-
-	useEffect(() => {
-		sizingChangeRef.current = onSizingChange
-	}, [onSizingChange])
-
-	const clearSizingPreference = useCallback(() => sizingChangeRef.current?.({}), [])
+	// the saved widths with one callback for the mount.
+	const clearSizingPreference = useStableEvent(() => columnSizingConfig?.onValueChange?.({}))
 
 	// The consumer-seeded widths (a restored/persisted sizing), captured once so the
 	// autosizer can hold them on reload rather than measuring over them.
@@ -1384,8 +1354,8 @@ export function useGridTable<T>({
 	// The column filters that reach the engine. A grid with no filterable column
 	// gives the engine no filter state, so its filters apply to no row. This block
 	// comes before the engine options. The React Compiler reads a plain call after
-	// a memo as a possible change to the inputs of the memo, and then skips this
-	// hook (see `react-compiler-skips.json`).
+	// a memo as a possible change to the inputs of the memo, so it would skip this
+	// hook if the block came later (see `react-compiler-skips.json`).
 	const appliedColumnFilters = hasColumnFilters ? resolvedColumnFilters : EMPTY_COLUMN_FILTERS
 
 	const columnTests = useMemo(

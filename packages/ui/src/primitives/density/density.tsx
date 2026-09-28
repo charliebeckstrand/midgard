@@ -2,7 +2,7 @@
 
 import type { ReactNode } from 'react'
 import { createContext } from '../../core'
-import { type DensityStep, stepDown } from '../../core/density'
+import type { DensityStep } from '../../core/density'
 import { useDensityRoot } from './use-density-root'
 
 /**
@@ -24,7 +24,7 @@ const [DensityContext, useDensityScope] = createContext<DensityStep | null>('Den
  * `useDensityRoot`).
  *
  * A component with a three-step size axis clamps the result with
- * `toAmbientStep` from `ui/core`.
+ * `toInnerStep` from `ui/core`.
  *
  * @param explicit - The `size` prop of the component, if it has one.
  * @returns The resolved step.
@@ -65,23 +65,4 @@ export type DensityProps = {
  */
 export function Density({ step, children }: DensityProps) {
 	return step ? <DensityContext value={step}>{children}</DensityContext> : children
-}
-
-/** Props for {@link DensitySlot}: the `children` of the slot. */
-export type DensitySlotProps = { children: ReactNode }
-
-/**
- * Opens the context half of a control slot: client descendants read the step
- * one below the nearest scope through {@link useDensityStep}.
- *
- * @remarks
- * The slot element writes `data-density="slot"`, and the rungs give the CSS
- * half: a class in the slot takes the step below the scope above it, with no
- * step in JS. This component serves only a client child that still selects
- * its classes from the JS step.
- */
-export function DensitySlot({ children }: DensitySlotProps) {
-	const step = useDensityStep()
-
-	return <DensityContext value={stepDown(step)}>{children}</DensityContext>
 }

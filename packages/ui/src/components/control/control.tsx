@@ -2,15 +2,15 @@
 
 import { type ReactNode, useMemo } from 'react'
 import { cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useA11yControl } from '../../hooks'
 import { useIdScope } from '../../hooks/use-id-scope'
-import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/fieldset'
+import { Box } from '../../structure/box'
 import {
 	ControlContext,
 	type ControlContextValue,
 	type ControlSeverity,
-	type ControlSize,
 	type ControlVariant,
 	useControl,
 } from './context'
@@ -24,7 +24,11 @@ export type ControlProps = {
 	required?: boolean
 	/** Validation / status severity broadcast to control-aware descendants: `error` (also `aria-invalid`), `warning`, or `success`. Pass `severity="error"` to mark the field invalid. */
 	severity?: ControlSeverity
-	size?: ControlSize
+	/**
+	 * The density step. Omit it to take the step of the nearest density scope.
+	 * A step makes the field a density scope.
+	 */
+	size?: DensityStep
 	variant?: ControlVariant
 	className?: string
 	children: ReactNode
@@ -32,11 +36,13 @@ export type ControlProps = {
 
 /**
  * Form-field context provider. It generates a stable id and broadcasts
- * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, `size`, and
- * `variant` to control-aware descendants. Those are input, textarea, switch,
- * listbox, combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
- * cascade through inner Controls, `severity` / `size` / `variant` inherit
- * unless overridden. Wraps its subtree in a Density scope when `size` resolves.
+ * `autoComplete`, `disabled`, `readOnly`, `required`, `severity`, and `variant`
+ * to control-aware descendants. Those are input, textarea, switch, listbox,
+ * combobox, datepicker, checkbox, and radio. Nests: `disabled` / `readOnly`
+ * cascade through inner Controls, and `severity` / `variant` inherit unless
+ * overridden. A `size` makes the field a density scope. It is not in the
+ * context: each field, and each nested Control, takes the step of its nearest
+ * density scope in CSS.
  *
  * @remarks A Control holds one control-aware descendant, because that
  * descendant adopts the one id. To group fields, nest one Control for each
@@ -60,13 +66,11 @@ export function Control({
 
 	const scope = useIdScope({ id: idProp })
 
-	// disabled/readOnly OR-merge with parent; severity/size/variant inherit unless overridden.
+	// disabled/readOnly OR-merge with parent; severity/variant inherit unless overridden.
 	const mergedDisabled = disabled || parent?.disabled
 	const mergedReadOnly = readOnly || parent?.readOnly
 
 	const mergedSeverity = severity ?? parent?.severity
-
-	const mergedSize = size ?? parent?.size
 
 	const mergedVariant = variant ?? parent?.variant
 
@@ -82,7 +86,6 @@ export function Control({
 			readOnly: mergedReadOnly,
 			required,
 			severity: mergedSeverity,
-			size: mergedSize,
 			variant: mergedVariant,
 			// Spreads the a11y bundle wholesale: label / description / error ids,
 			// registrars, and composed labelledBy/describedBy.
@@ -95,26 +98,21 @@ export function Control({
 			mergedReadOnly,
 			required,
 			mergedSeverity,
-			mergedSize,
 			mergedVariant,
 			a11y,
 		],
 	)
 
-	const body = (
-		<div
-			data-slot="control"
-			data-density={mergedSize}
-			data-disabled={dataAttr(mergedDisabled)}
-			className={cn(k.field, className)}
-		>
-			{children}
-		</div>
-	)
-
 	return (
 		<ControlContext value={value}>
-			{mergedSize ? <Density step={mergedSize}>{body}</Density> : body}
+			<Box
+				data-slot="control"
+				density={size}
+				data-disabled={dataAttr(mergedDisabled)}
+				className={cn(k.field, className)}
+			>
+				{children}
+			</Box>
 		</ControlContext>
 	)
 }

@@ -10,12 +10,13 @@ import {
 	useMemo,
 	useRef,
 } from 'react'
+import type { DensityStep } from '../../core/density'
 import { type FloatingPlacement, useFloatingUI, useSelectableValueChange } from '../../hooks'
 import { SelectTrigger } from '../../primitives/select-trigger'
 import { useGlass } from '../../providers/glass/context'
 import type { GroupStampProps } from '../../types/group-stamp'
 import { capitalizeFirst } from '../../utilities'
-import { type ControlSize, useControl } from '../control/context'
+import { useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { useFormValue } from '../form/use-form-value'
 import { Icon } from '../icon'
@@ -38,7 +39,7 @@ type ListboxBaseProps = GroupStampProps & {
 	placement?: FloatingPlacement
 	prefix?: ReactNode
 	suffix?: ReactNode
-	size?: ControlSize
+	size?: DensityStep
 	disabled?: boolean
 	/** Keeps the trigger focusable and the value submitted, but blocks opening and selection. */
 	readOnly?: boolean

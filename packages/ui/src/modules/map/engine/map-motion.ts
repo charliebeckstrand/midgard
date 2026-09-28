@@ -35,10 +35,10 @@ export const ROUTE_DRAW = mark.draw
 export const POINT_POP = { ...mark.pop, ease: ease.out } as const
 
 /** Delay step between points on the mount reveal, so a cluster staggers in. @internal */
-export const POINT_STAGGER = 0.08
+const POINT_STAGGER = 0.08
 
 /** Ceiling on the point stagger — a large cluster must not draw out the reveal. @internal */
-export const POINT_STAGGER_MAX = 0.6
+const POINT_STAGGER_MAX = 0.6
 
 /**
  * A dot's pop, delayed by its ordinal so a set of them reveals in sequence, and

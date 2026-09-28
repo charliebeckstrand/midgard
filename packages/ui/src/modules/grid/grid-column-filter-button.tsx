@@ -6,7 +6,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
 import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
-import { cn, dataAttr, toAmbientStep } from '../../core'
+import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import {
 	createGroup,
@@ -17,7 +17,7 @@ import {
 	type QueryGroup,
 } from '../query'
 import { columnLabel } from './engine/grid-column/label'
-import { GridOverlayDensity, useGridOverlayDensity } from './grid-region'
+import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 import type { GridColumnFacets, GridColumnFilter } from './use-grid-table'
 
@@ -116,10 +116,6 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 
 	const [open, setOpen] = useState(false)
 
-	// The density this column's overlays render at — the grid's surroundings, not its
-	// cells (see `GridOverlayDensity`).
-	const overlayDensity = useGridOverlayDensity()
-
 	const [draft, setDraft] = useState<QueryGroup>(() => seedQuery(field))
 
 	// Open the sheet on the applied query, so editing always resumes from what's in
@@ -204,12 +200,10 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// sheet, or clear the filter without opening it. The trigger keeps the
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
 				//
-				// `size` rather than wrapping the surface: `useMenuState` resolves the panel's
-				// density from `useDensityStep()` at this root, and `MenuContent` re-broadcasts
-				// that *inside* its own subtree — so a wrapper around `MenuContent` is
-				// overridden and does nothing. Passing the step here wins, and leaves the
-				// trigger below on the header's own cell cascade where it belongs.
-				<Menu placement="bottom-end" size={toAmbientStep(overlayDensity)}>
+				// `GridOverlayDensity` gives the panel the step around the grid, as it gives
+				// the Sheet below. The trigger stays on the scope of the table, where header
+				// chrome belongs.
+				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button
 							type="button"
@@ -228,15 +222,17 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 						</Button>
 					</MenuTrigger>
 
-					<MenuContent>
-						<MenuItem onAction={() => handleOpenChange(true)}>
-							<MenuLabel>Edit filters</MenuLabel>
-						</MenuItem>
+					<GridOverlayDensity>
+						<MenuContent>
+							<MenuItem onAction={() => handleOpenChange(true)}>
+								<MenuLabel>Edit filters</MenuLabel>
+							</MenuItem>
 
-						<MenuItem onAction={clear}>
-							<MenuLabel>Clear filters</MenuLabel>
-						</MenuItem>
-					</MenuContent>
+							<MenuItem onAction={clear}>
+								<MenuLabel>Clear filters</MenuLabel>
+							</MenuItem>
+						</MenuContent>
+					</GridOverlayDensity>
 				</Menu>
 			) : showRestingFunnel ? (
 				<Button

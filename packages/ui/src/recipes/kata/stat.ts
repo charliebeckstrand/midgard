@@ -5,15 +5,7 @@ const { text } = iro
 const { size, weight } = ji
 const { flex } = narabi
 
-const label = defineRecipe({
-	base: [...text.muted, weight.medium],
-	size: {
-		sm: size.xs,
-		md: size.sm,
-		lg: size.md,
-	},
-	defaults: { size: 'md' },
-})
+const label = [...text.muted, weight.medium, size.sm]
 
 const value = defineRecipe({
 	base: [weight.semibold, 'tracking-tight tabular-nums', ...text.default],
@@ -49,15 +41,7 @@ const skeleton = {
 		},
 		defaults: { size: 'md' },
 	}),
-	label: defineRecipe({
-		base: '',
-		size: {
-			sm: 'h-4 w-20',
-			md: 'h-5 w-24',
-			lg: 'h-6 w-28',
-		},
-		defaults: { size: 'md' },
-	}),
+	label: 'h-5 w-24',
 	description: 'h-5 w-20',
 	delta: 'h-5 w-12',
 }

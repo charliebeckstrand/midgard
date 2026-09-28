@@ -64,7 +64,7 @@ export const NO_WINDOW_RECORD: GridWindowRecord = { virtualItems: [], items: [],
  *
  * @internal
  */
-export type GridItemEdge = 'above' | 'top' | 'in' | 'below'
+type GridItemEdge = 'above' | 'top' | 'in' | 'below'
 
 /**
  * The last committed window as a toggle reads it. It gives the edge of an

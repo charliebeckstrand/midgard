@@ -1,18 +1,12 @@
 import { renderHook } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { useDensityStep } from '../../primitives/density'
-import {
-	DensityProvider,
-	densityLevels,
-	densityToSize,
-	sizeToDensityLevel,
-	useDensityLevel,
-} from '../../providers/density'
+import { DensityProvider, densityLevels, levelToStep } from '../../providers/density'
 import { bySlot, renderUI } from '../helpers'
 
-describe('densityToSize', () => {
-	it('maps the friendly levels 1:1 onto the Step cascade', () => {
-		expect(densityToSize).toEqual({ loose: 'lg', snug: 'md', compact: 'sm' })
+describe('levelToStep', () => {
+	it('maps each friendly level to its density step', () => {
+		expect(levelToStep).toEqual({ loose: 'lg', snug: 'md', compact: 'sm' })
 	})
 })
 
@@ -26,10 +20,10 @@ describe('densityLevels', () => {
 	})
 })
 
-describe('DensityProvider broadcast', () => {
-	// Sets both Density axes to the same token; size-aware descendants inherit
-	// without additional wiring.
-	it('broadcasts compact as the sm token on both axes', () => {
+describe('DensityProvider context', () => {
+	// The provider opens the context half of its scope at the step of its level.
+	// A client reader, such as a portal root, reads that step.
+	it('gives compact as the sm step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
 		})
@@ -37,7 +31,7 @@ describe('DensityProvider broadcast', () => {
 		expect(result.current).toBe('sm')
 	})
 
-	it('broadcasts snug as the md token on both axes', () => {
+	it('gives snug as the md step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="snug">{children}</DensityProvider>,
 		})
@@ -45,42 +39,12 @@ describe('DensityProvider broadcast', () => {
 		expect(result.current).toBe('md')
 	})
 
-	it('broadcasts loose as the lg token on both axes', () => {
+	it('gives loose as the lg step', () => {
 		const { result } = renderHook(() => useDensityStep(), {
 			wrapper: ({ children }) => <DensityProvider density="loose">{children}</DensityProvider>,
 		})
 
 		expect(result.current).toBe('lg')
-	})
-})
-
-describe('sizeToDensityLevel', () => {
-	it('inverts densityToSize', () => {
-		expect(sizeToDensityLevel).toEqual({ lg: 'loose', md: 'snug', sm: 'compact' })
-	})
-})
-
-describe('useDensityLevel', () => {
-	it('falls back to snug outside any provider', () => {
-		const { result } = renderHook(() => useDensityLevel())
-
-		expect(result.current).toBe('snug')
-	})
-
-	it('inherits the ambient DensityProvider level when omitted', () => {
-		const { result } = renderHook(() => useDensityLevel(), {
-			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
-		})
-
-		expect(result.current).toBe('compact')
-	})
-
-	it('an explicit level overrides the ambient one', () => {
-		const { result } = renderHook(() => useDensityLevel('loose'), {
-			wrapper: ({ children }) => <DensityProvider density="compact">{children}</DensityProvider>,
-		})
-
-		expect(result.current).toBe('loose')
 	})
 })
 

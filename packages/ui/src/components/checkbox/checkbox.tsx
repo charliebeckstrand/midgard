@@ -85,7 +85,6 @@ export function Checkbox({
 	return (
 		<label
 			data-slot="control"
-			data-size={size}
 			data-density={size}
 			data-disabled={dataAttr(resolvedDisabled)}
 			className={cn(k({ color }), className)}

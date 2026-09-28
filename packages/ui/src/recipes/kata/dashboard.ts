@@ -9,7 +9,7 @@
  * and one lookup for each of its items.
  */
 import { defineRecipe, mode } from '../../core/recipe'
-import { hannou, iro, kasane, omote, sen, sun } from '../kiso'
+import { hannou, iro, kasane, omote, sen } from '../kiso'
 
 const { fg, grab } = hannou
 const { text } = iro
@@ -166,7 +166,7 @@ const missing = 'flex size-full items-center justify-center p-2 text-center'
  */
 const placeholder = [
 	'pointer-events-none',
-	rounded[sun.sm.radius],
+	rounded.sm,
 	...mode('bg-zinc-200/60', 'dark:bg-zinc-800/60'),
 ].join(' ')
 

@@ -24,7 +24,7 @@ import type { ChartOrientation } from './chart-orientation'
  *
  * @internal
  */
-export const LINE_HIT_TOLERANCE = 16
+const LINE_HIT_TOLERANCE = 16
 
 /** Slack above an area's top edge, so its own stroke counts as inside. @internal */
 const AREA_EDGE_SLACK = 4
@@ -38,7 +38,7 @@ const AREA_EDGE_SLACK = 4
  *
  * @internal
  */
-export const MARK_HOLD_RATIO = 0.5
+const MARK_HOLD_RATIO = 0.5
 
 /**
  * Whether a challenger at `challengerSquared` decisively beats a held mark at

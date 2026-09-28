@@ -10,11 +10,11 @@ export { createContext } from './create-context'
 export { createSlot } from './create-slot'
 export { dataAttr } from './data-attr'
 export {
-	type AmbientStep,
 	type DensityStep,
 	densitySteps,
+	type InnerStep,
 	stepDown,
-	toAmbientStep,
+	toInnerStep,
 } from './density'
 export { invalidAttrs } from './invalid-attrs'
 export { querySlot } from './query-slot'

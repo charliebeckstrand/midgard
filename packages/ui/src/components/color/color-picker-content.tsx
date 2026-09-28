@@ -4,11 +4,11 @@ import type { FloatingRootContext } from '@floating-ui/react'
 import { motion } from 'motion/react'
 import type { CSSProperties, ReactNode } from 'react'
 import { cn } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { FloatingSurface, type FloatingSurfaceProps } from '../../primitives/floating-surface'
 import { useGlass } from '../../providers/glass/context'
 import { k } from '../../recipes/kata/color-picker'
 import { Box } from '../../structure/box'
-import type { ControlSize } from '../control/context'
 
 type ColorPickerContentProps = {
 	open: boolean
@@ -16,14 +16,18 @@ type ColorPickerContentProps = {
 	floatingStyles: CSSProperties
 	getFloatingProps: FloatingSurfaceProps['getFloatingProps']
 	context: FloatingRootContext
-	/** The explicit size step. The body Box opens a density scope at it. Without it, the panel takes the step of the scope that the portal carries. */
-	size?: ControlSize
+	/**
+	 * The density step of `<ColorPicker>`. Omit it to take the step of the
+	 * nearest density scope of the picker, which the portal carries. A step
+	 * makes the panel a density scope.
+	 */
+	size?: DensityStep
 	children: ReactNode
 }
 
 /**
  * Portals the picker panel into a focus-managed, animated floating dialog
- * positioned by Floating UI. An explicit `size` makes the body a density scope,
+ * positioned by Floating UI. An explicit `size` makes the panel a density scope,
  * and the panel adopts glass styling from context.
  *
  * @remarks
@@ -53,6 +57,7 @@ export function ColorPickerContent({
 		// that this panel had before it moved onto the surface.
 		<FloatingSurface
 			open={open}
+			density={size}
 			setFloating={setFloating}
 			floatingStyles={floatingStyles}
 			getFloatingProps={getFloatingProps}
@@ -67,17 +72,10 @@ export function ColorPickerContent({
 			<motion.div
 				{...k.content.motion}
 				data-slot="color-picker-content"
-				data-size={size}
 				className={cn('z-50', k.content.text, glass && k.content.glass)}
 				onMouseDown={(event) => event.preventDefault()}
 			>
-				<Box
-					density={size}
-					bg={glass ? 'none' : 'popover'}
-					outline={glass || undefined}
-					radius="lg"
-					p="md"
-				>
+				<Box bg={glass ? 'none' : 'popover'} outline={glass || undefined} radius="lg" p="md">
 					{children}
 				</Box>
 			</motion.div>

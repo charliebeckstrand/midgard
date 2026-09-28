@@ -153,7 +153,7 @@ export type LineSeriesGeometry = {
  *
  * @internal
  */
-export function decimateRun(run: LinePoint[], width: number): LinePoint[] {
+function decimateRun(run: LinePoint[], width: number): LinePoint[] {
 	if (width <= 0 || run.length <= width * 2) return run
 
 	const out: LinePoint[] = []

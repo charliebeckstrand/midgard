@@ -256,10 +256,9 @@ const WATCH_ROWS = [24, 64] as const
 function Rows({ count, watched }: { count: number; watched: boolean }) {
 	const scrollOverflowRef = useScrollOverflow()
 
-	const children = Array.from({ length: count }, (_, row) => (
-		// biome-ignore lint/suspicious/noArrayIndexKey: a fixed-length static list
-		<div key={row} className="px-3 py-1.5">
-			Option {row}
+	const children = Array.from({ length: count }, (_, row) => `Option ${row}`).map((label) => (
+		<div key={label} className="px-3 py-1.5">
+			{label}
 		</div>
 	))
 

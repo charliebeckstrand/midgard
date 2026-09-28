@@ -2,7 +2,7 @@
 
 import type { CSSProperties, KeyboardEvent, RefObject } from 'react'
 import { createContext } from '../../core'
-import type { Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
 
 type MenuStateValue = {
 	open: boolean
@@ -17,8 +17,12 @@ type MenuStateValue = {
 	floatingStyles: CSSProperties
 	getReferenceProps: (userProps?: Record<string, unknown>) => Record<string, unknown>
 	getFloatingProps: () => Record<string, unknown>
-	/** The explicit size step of the menu. The panel opens a density scope at it. */
-	size?: Step
+	/**
+	 * The density step of the menu. Omit it to take the step of the nearest
+	 * density scope of the menu, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
+	size?: DensityStep
 }
 
 type MenuActionsValue = {
@@ -49,8 +53,6 @@ type MenuActionsValue = {
 	openAt: (element: Element | null, clientX: number, clientY: number) => void
 }
 
-type MenuContextValue = MenuStateValue & MenuActionsValue
-
 export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('Menu')
 /**
  * Open-state actions and refs from the enclosing {@link Menu}. Leaves that only
@@ -58,7 +60,6 @@ export const [MenuStateContext, useMenuState] = createContext<MenuStateValue>('M
  * than the full state context.
  *
  * @see {@link useMenuState}
- * @see {@link useMenuContext}
  */
 export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsValue>('Menu')
 
@@ -74,19 +75,3 @@ export const [MenuActionsContext, useMenuActions] = createContext<MenuActionsVal
  * its content the way an enclosed one does.
  */
 export const [MenuCappedContext, useMenuCapped] = createContext<boolean>('Menu', { default: false })
-
-/**
- * Returns combined state + actions. Prefer `useMenuActions` in leaves that only
- * need `close`.
- *
- * @remarks
- * No in-repo consumer: the barrel exports `useMenuActions` alone, and grep finds
- * only this function's own test. Kept as the advanced-composition surface for a
- * consumer that needs both halves, not treated as dead.
- */
-export function useMenuContext(): MenuContextValue {
-	const state = useMenuState()
-	const actions = useMenuActions()
-
-	return { ...state, ...actions }
-}

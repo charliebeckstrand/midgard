@@ -54,14 +54,14 @@ function keepControlFocus(event: MouseEvent<HTMLLabelElement>) {
 /**
  * Caption for a single form control, rendered as a `<label>`. Defaults `htmlFor`
  * to the enclosing `<Field>`/`<Control>` id, and registers its own id so the
- * control can name itself via `aria-labelledby`. Resolves type scale from the
- * Density cascade.
+ * control can name itself via `aria-labelledby`. Its type scale takes the step
+ * of the nearest density scope.
  *
  * A press on the label keeps the focus on a control that already has it. The control does not
  * get a `blur` and a `focus` between `mousedown` and `click`. As on a native label, the `click`
  * focuses a control that does not have the focus.
  */
-export function Label({ className, htmlFor, id, onMouseDown, ...props }: LabelProps) {
+export function Label({ className, htmlFor, id, onMouseDown, children, ...props }: LabelProps) {
 	const control = useControl()
 
 	// Registers while mounted; the field's `labelledBy` references this id only
@@ -71,7 +71,6 @@ export function Label({ className, htmlFor, id, onMouseDown, ...props }: LabelPr
 	useEffect(() => registerLabel?.(id), [registerLabel, id])
 
 	return (
-		// biome-ignore lint/a11y/noLabelWithoutControl: htmlFor is passed by the consumer or the label wraps its control
 		<label
 			data-slot="label"
 			id={id ?? control?.labelId}
@@ -79,6 +78,8 @@ export function Label({ className, htmlFor, id, onMouseDown, ...props }: LabelPr
 			className={cn(k.label(), className)}
 			{...props}
 			onMouseDown={composeEventHandlers(onMouseDown, keepControlFocus)}
-		/>
+		>
+			{children}
+		</label>
 	)
 }

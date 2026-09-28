@@ -1,6 +1,6 @@
 'use client'
 
-import { type RefObject, useLayoutEffect } from 'react'
+import { type RefObject, useLayoutEffect, useRef } from 'react'
 
 /**
  * Set the height of a textarea to the height of its content.
@@ -12,7 +12,7 @@ import { type RefObject, useLayoutEffect } from 'react'
  *
  * @internal
  */
-export function fitTextarea(el: HTMLTextAreaElement): void {
+function fitTextarea(el: HTMLTextAreaElement): void {
 	if (el.clientWidth === 0) return
 
 	el.style.height = 'auto'
@@ -31,9 +31,10 @@ export function fitTextarea(el: HTMLTextAreaElement): void {
  * Keep the height of a textarea equal to the height of its content while
  * `enabled` is true.
  *
- * @remarks The hook fits the field before paint when `value` changes, and on
- * each `input` event. It also fits the field when its width changes, because a
- * new width changes the line wraps. The resize observer defers the fit by one
+ * @remarks The hook fits the field on each `input` event, and before paint after
+ * a render that changed its text, such as a controlled write, which sends no
+ * `input` event. It also fits the field when its width changes, because a new
+ * width changes the line wraps. The resize observer defers the fit by one
  * frame, so the height write does not start a resize-observer loop. When
  * `enabled` becomes false, the hook removes the inline height.
  *
@@ -46,25 +47,31 @@ export function fitTextarea(el: HTMLTextAreaElement): void {
 export function useTextareaAutoResize(
 	ref: RefObject<HTMLTextAreaElement | null>,
 	enabled: boolean,
-	value: unknown,
 ): void {
+	// The text of the last fit, or `null` when no fit holds.
+	const fitted = useRef<string | null>(null)
+
+	// After each render, fit when the text differs from the text of the last fit.
 	useLayoutEffect(() => {
 		const el = ref.current
 
-		// Re-run on each value change: a controlled write sends no `input` event.
-		void value
+		if (!enabled || !el || el.value === fitted.current) return
 
-		if (!enabled || !el) return
+		fitted.current = el.value
 
 		fitTextarea(el)
-	}, [ref, enabled, value])
+	})
 
 	useLayoutEffect(() => {
 		const el = ref.current
 
 		if (!enabled || !el) return
 
-		const onInput = () => fitTextarea(el)
+		const onInput = () => {
+			fitted.current = el.value
+
+			fitTextarea(el)
+		}
 
 		let width = el.clientWidth
 		let frame = 0
@@ -91,6 +98,8 @@ export function useTextareaAutoResize(
 			cancelAnimationFrame(frame)
 
 			el.style.height = ''
+
+			fitted.current = null
 		}
 	}, [ref, enabled])
 }

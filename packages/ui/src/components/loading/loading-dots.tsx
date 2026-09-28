@@ -20,12 +20,16 @@ const DOT_DELAYS = [
 	'motion-safe:[animation-delay:0ms]',
 ] as const
 
+// The class of each dot. It takes no input, so it is built once.
+const dotClass = k.dot()
+
 /**
  * Indeterminate loading indicator: three breathing dots rendered as a live
  * `<output>` with an `sr-only` `label`. Static leaf: renders in React Server
- * Components. `size` is explicit, and `md` with no `size`. Inside a
- * `<Button>`, the projection of the button sets the size of each
- * `loading-dot`, and an explicit `size` wins over it.
+ * Components. Without `size`, the dots take the step of the nearest density
+ * scope. An explicit `size` makes the dots a density scope. Inside a
+ * `<Button>`, the projection of the button sets the size of each dot, as it
+ * does for a spinner.
  */
 export function LoadingDots({
 	size,
@@ -34,11 +38,13 @@ export function LoadingDots({
 	className,
 	...props
 }: LoadingDotsProps) {
-	// One recipe call for all three dots: `size` is constant across them.
-	const dotClass = k.dot({ size })
-
 	return (
-		<output data-slot="loading-dots" className={cn(k({ size, color }), className)} {...props}>
+		<output
+			data-slot="loading-dots"
+			data-density={size}
+			className={cn(k({ color }), className)}
+			{...props}
+		>
 			{DOT_DELAYS.map((delay) => (
 				<span
 					key={delay}

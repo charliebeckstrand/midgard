@@ -27,7 +27,7 @@
 export type ChartTier = 'spark' | 'compact' | 'standard' | 'expanded'
 
 /** How the value axis presents: a gutter of tick labels beside the plot, or nothing. @internal */
-export type ChartValueAxisMode = 'gutter' | 'off'
+type ChartValueAxisMode = 'gutter' | 'off'
 
 /**
  * How the band axis presents: every fitting label {@link ChartBandAxisMode

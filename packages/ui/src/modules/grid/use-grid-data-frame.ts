@@ -35,7 +35,7 @@ type RowGrouping<T> = ReturnType<typeof useGridRowGrouping<T>>
  * walks each group or row to count its rows. The count therefore runs again
  * only when the rows, the columns, or an expansion change. @internal
  */
-export function useBodyRowCount<T>(args: {
+function useBodyRowCount<T>(args: {
 	virtualize: boolean
 	rows: T[]
 	rowKeys: (string | number)[]
@@ -88,12 +88,12 @@ export function useBodyRowCount<T>(args: {
  *
  * Latched because the reveal is a one-way door. `loading` goes true again on page two, a
  * filter, and a re-sort. Blanking a table the user is already reading would be far worse
- * than the first-paint jump this exists to prevent. Monotonic, so writing it during render
- * stays idempotent under StrictMode's double pass.
+ * than the first-paint jump this exists to prevent. The latch is state that render adjusts,
+ * and it only goes from false to true.
  *
  * @internal
  */
-export function useTableRevealed(
+function useTableRevealed(
 	settled: boolean,
 	loading: boolean,
 	failed: boolean,

@@ -3,7 +3,23 @@
 	"extends": ["//"],
 	"tasks": {
 		"test": {
-			"inputs": ["$TURBO_EXTENDS$", "REFERENCE.md", "vitest.browser.config.ts"]
+			"inputs": [
+				"src/**",
+				"docs/*.md",
+				"REFERENCE.md",
+				"vitest.config.ts",
+				"vitest.base.ts",
+				"vitest.browser.config.ts",
+				"tsconfig.json",
+				"$TURBO_ROOT$/tsconfig.base.json",
+				"package.json"
+			]
+		},
+		"test:browser": {
+			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
+		},
+		"test:compiler": {
+			"inputs": ["$TURBO_EXTENDS$", "vitest.base.ts"]
 		},
 		"test:workspace": {
 			"dependsOn": ["^build"],
@@ -12,6 +28,7 @@
 				"docs/*.md",
 				"REFERENCE.md",
 				"vitest.config.ts",
+				"vitest.base.ts",
 				"package.json",
 				"$TURBO_ROOT$/{CLAUDE,CONVENTIONS,CADENCE,STE,REFERENCE}.md",
 				"$TURBO_ROOT$/biome.json",

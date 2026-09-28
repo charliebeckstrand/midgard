@@ -2,12 +2,13 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn, invalidAttrs } from '../../core'
+import type { DensityStep } from '../../core/density'
 import { useIdScope } from '../../hooks/use-id-scope'
 import { useGlass } from '../../providers/glass/context'
 import { useHeadless } from '../../providers/headless/context'
 import { type InputVariants, k } from '../../recipes/kata/input'
 import type { GroupStampProps } from '../../types/group-stamp'
-import { type ControlSize, type ControlVariant, useControl } from '../control/context'
+import { type ControlVariant, useControl } from '../control/context'
 import { useControlProps } from '../control/use-control-props'
 import { InputFrame } from './input-frame'
 import { useInputValue } from './use-input-value'
@@ -15,7 +16,7 @@ import { useInputValue } from './use-input-value'
 /** Props for {@link Input}: `size`/`variant`, `prefix`/`suffix` affixes, and `invalid` override atop native `<input>` attributes. */
 export type InputProps = GroupStampProps &
 	Omit<InputVariants, 'size' | 'variant'> & {
-		size?: ControlSize
+		size?: DensityStep
 		variant?: ControlVariant
 		prefix?: ReactNode
 		suffix?: ReactNode
@@ -120,7 +121,7 @@ export function Input({
 			prefix={prefix}
 			suffix={suffix}
 			variant={resolvedVariant}
-			scope={size}
+			density={size}
 			dataGroup={dataGroup}
 			dataGroupOrientation={dataGroupOrientation}
 		/>

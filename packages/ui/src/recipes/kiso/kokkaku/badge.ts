@@ -12,5 +12,5 @@ const { rounded } = kasane
 
 export const badge = {
 	base: [rounded.md, 'density-h-[5.5,6.5,7.5,8.5,8.5]', 'density-w-[10,12,14,16,16]'],
-	density: ['xs', 'sm', 'md', 'lg'],
+	density: true,
 } as const

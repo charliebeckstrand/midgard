@@ -145,7 +145,7 @@ function PromptWithActions() {
 			onValueChange={setValue}
 			onSubmit={() => setValue('')}
 			actions={
-				<Button variant="plain" size="sm">
+				<Button variant="plain">
 					<Icon icon={<CircleDashed />} />
 					Data Analyst
 				</Button>

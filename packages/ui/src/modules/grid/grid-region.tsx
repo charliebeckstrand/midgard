@@ -7,7 +7,6 @@ import { cn, createContext } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { restrictToHorizontalAxis, restrictToVerticalAxis } from '../../hooks/use-sortable-list'
 import { Density } from '../../primitives/density'
-import { type DensityLevel, densityToSize } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
@@ -214,64 +213,35 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 }
 
 /**
- * Broadcasts the grid's explicit density onto the *table region* as a density
- * cascade. Size-aware *client* cell content therefore tracks the grid's
- * `density`, and its `condensed` step, which {@link resolveDensity} folds to
- * `compact`. A `Sparkline`, an inline `Input`, and the selection checkbox are
- * such content. Scoped to the table on purpose. It sits inside the context-menu
- * trigger, below the toolbar/footer. A portaled overlay (context menu, dialog)
- * the grid spawns therefore stays on the ambient density, rather than inheriting
- * the grid's. Badge and Icon follow the `data-density` scope of the
- * `<table>`. `Text` reads no density, so the `<table>` class down-projects it
- * under `condensed` (see `condensedTableClass`). With no `level` (no explicit
- * `density` and no `condensed`), it opens no scope, and the cell content takes
- * the step of the nearest scope. Kept a component so the branch lives here, off
- * {@link GridData}'s complexity budget.
- *
- * Overlays mounted *above* this — the column manager, the row manager, the
- * auto-size confirm, the header context menu — are outside the cascade already.
- * One is not: the per-column filter surface hangs off a header cell, so it sits
- * inside. It re-broadcasts the ambient token via {@link GridOverlayDensity}.
+ * The step of the nearest density scope around the grid, read above the scope
+ * of its table. An overlay that the grid spawns renders at it, rather than at
+ * the tightened step of its cells. It is `md` outside a grid. The one reader is
+ * {@link GridOverlayDensity}, so no other file reads the step in JS through it.
  *
  * @internal
  */
-export function DensityCascade({
-	level,
-	children,
-}: {
-	level: DensityLevel | undefined
-	children: ReactNode
-}) {
-	return <Density step={level && densityToSize[level]}>{children}</Density>
-}
-
-/**
- * The density surrounding the grid, captured above {@link DensityCascade} — what
- * an overlay the grid spawns must render at, rather than the tightened step its
- * cells use. Defaults to the `md` baseline for a grid outside any provider.
- *
- * @internal
- */
-export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
+const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
 	'GridOverlayDensity',
 	{ default: 'md' },
 )
 
+export { GridOverlayDensityContext }
+
 /**
- * Restores the ambient density inside an overlay whose trigger lives in the table
- * region, so a *dialog-sized* surface isn't sized like a *cell*.
+ * Restores the step around the grid inside an overlay whose trigger lives in
+ * the table region, so a *dialog-sized* surface isn't sized like a *cell*.
  *
  * A portal is a DOM escape, not a React one. The surface stays a descendant of
- * the trigger, so it inherits the cell cascade unless something says otherwise.
+ * the trigger, so it inherits the scope of the table unless something says otherwise.
  * Only the surface is wrapped, never the trigger — the trigger is header chrome
  * and belongs at the header's density.
  *
  * @internal
  */
 export function GridOverlayDensity({ children }: { children: ReactNode }) {
-	const ambient = useGridOverlayDensity()
+	const step = useGridOverlayDensity()
 
-	return <Density step={ambient}>{children}</Density>
+	return <Density step={step}>{children}</Density>
 }
 
 /** Props for {@link GridScrollRegion}. @internal */

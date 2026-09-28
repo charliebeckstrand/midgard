@@ -2,6 +2,7 @@
 
 import { type KeyboardEvent, useCallback } from 'react'
 import { cn, dataAttr } from '../../core'
+import { PanelSplitter } from '../../primitives/panel/panel-splitter'
 import { k } from '../../recipes/kata/resizable'
 import { useResizable, useResizableIndex } from './context'
 
@@ -69,11 +70,9 @@ export function ResizableHandle(props: ResizableHandleProps) {
 	)
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: a focusable separator is the correct role for a resize handle
-		<div
+		<PanelSplitter
 			data-slot="resizable-handle"
 			data-dragging={dataAttr(isDragging)}
-			role="separator"
 			// A separator's orientation is its own, not the group's flex axis: the
 			// handle between side-by-side panels is a vertical bar.
 			aria-orientation={isHorizontal ? 'vertical' : 'horizontal'}
@@ -81,7 +80,6 @@ export function ResizableHandle(props: ResizableHandleProps) {
 			aria-valuenow={panelSize}
 			aria-valuemin={panelMinSize}
 			aria-valuemax={panelMaxSize}
-			tabIndex={0}
 			onPointerDown={(event) => startDrag(handleIndex, event)}
 			onKeyDown={onKeyDown}
 			className={cn(
@@ -94,6 +92,6 @@ export function ResizableHandle(props: ResizableHandleProps) {
 				aria-hidden
 				className={cn(k.grip.base, isHorizontal ? k.grip.horizontal : k.grip.vertical)}
 			/>
-		</div>
+		</PanelSplitter>
 	)
 }

@@ -16,6 +16,7 @@ import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { announce, cn, dataAttr } from '../../core'
 import { useA11yRoving } from '../../hooks'
+import { k as badgeKata } from '../../recipes/kata/badge'
 import { k } from '../../recipes/kata/query-chips'
 import {
 	formatQuerySummary,
@@ -102,14 +103,13 @@ function QueryChip({ token, onRemove, disabled, register }: QueryChipProps) {
 			variant="outline"
 			radius="full"
 			size="sm"
-			className={cn(k.chip)}
+			className={cn(k.chip, badgeKata.removable)}
 			suffix={
 				onRemove && (
 					<Button
 						ref={ref}
 						type="button"
 						variant="bare"
-						size="xs"
 						data-slot="query-chip-remove"
 						aria-label={`Remove ${renderToken(token)}`}
 						disabled={disabled}
@@ -282,17 +282,17 @@ export function QueryChips({
 	))
 
 	if (readOnly) {
+		// `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the row
+		// sizes as the `<div>` of the editable bar does.
 		return (
-			// biome-ignore lint/a11y/useSemanticElements: a <fieldset> gives form-field semantics to a row of text. A named role="group" is the correct grouping here
-			<div
+			<fieldset
 				data-slot="query-chips"
 				data-readonly=""
-				role="group"
 				aria-label={ariaLabel}
-				className={cn(k.base, className)}
+				className={cn(k.base, 'min-w-auto', className)}
 			>
 				{body}
-			</div>
+			</fieldset>
 		)
 	}
 

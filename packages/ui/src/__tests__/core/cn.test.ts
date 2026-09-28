@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { cn, cnMemoNodes } from '../../core/cn'
+import { utilityTable } from '../../core/density/utility-table'
 
 describe('cn', () => {
 	it('merges multiple class strings', () => {
@@ -174,6 +175,45 @@ describe('cn', () => {
 
 		it('keeps a stepped class beside a plain class of a different property', () => {
 			expect(cn('density-px-[2,3,4]', 'py-1')).toBe('density-px-[2,3,4] py-1')
+		})
+
+		it('replaces an earlier plain class of a property that a later stepped class covers', () => {
+			expect(cn('h-4', 'density-size-[4,5,6]')).toBe('density-size-[4,5,6]')
+
+			expect(cn('ps-4', 'density-px-[2,3,4]')).toBe('density-px-[2,3,4]')
+
+			expect(cn('rounded-tl-md', 'density-rounded-[sm,md,lg]')).toBe('density-rounded-[sm,md,lg]')
+
+			expect(cn('px-ring-2', 'density-p-ring-[2,3,4]')).toBe('density-p-ring-[2,3,4]')
+		})
+
+		it('replaces an earlier stepped class of a property that a later plain class covers', () => {
+			expect(cn('density-h-[4,5,6]', 'size-4')).toBe('size-4')
+
+			expect(cn('density-px-[2,3,4]', 'p-4')).toBe('p-4')
+
+			expect(cn('density-left-[1,2,3]', 'inset-x-2')).toBe('inset-x-2')
+		})
+
+		it('keeps an earlier leading class, which the stepped text class reads', () => {
+			expect(cn('leading-none', 'density-text-[base,lg,xl]')).toBe(
+				'leading-none density-text-[base,lg,xl]',
+			)
+		})
+
+		// Each utility of the table merges with its plain class in each order, so a
+		// new entry merges with no other change.
+		it.each(Object.keys(utilityTable))('merges density-%s with its plain class', (name) => {
+			const [plain, stepped] =
+				name === 'text'
+					? ['text-sm', 'density-text-[sm,base,lg]']
+					: name === 'rounded'
+						? ['rounded-sm', 'density-rounded-[sm,md,lg]']
+						: [`${name}-1`, `density-${name}-[1,2,3]`]
+
+			expect(cn(plain, stepped)).toBe(stepped)
+
+			expect(cn(stepped, plain)).toBe(plain)
 		})
 	})
 })

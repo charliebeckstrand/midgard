@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ChoroplethChart, HeatmapChart, type HeatmapChartSeries } from '../../modules/chart'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
@@ -26,6 +26,11 @@ const renders = vi.hoisted(() => ({
 
 function resetRenders() {
 	for (const key of Object.keys(renders) as (keyof typeof renders)[]) renders[key] = 0
+}
+
+/** Checks that each count fired on mount, so a later `toBe(0)` can fail. */
+function expectLive(...keys: (keyof typeof renders)[]) {
+	for (const key of keys) expect(renders[key], key).toBeGreaterThan(0)
 }
 
 vi.mock('../../modules/chart/engine/chart-header', async (importOriginal) => {
@@ -151,6 +156,8 @@ const BOX = {
 } as DOMRect
 
 describe('Chart hover renders', () => {
+	beforeEach(resetRenders)
+
 	it('tracks the pointer inside a bar without a render of the frame or the hit rect', () => {
 		const { container } = renderUI(bars())
 
@@ -159,6 +166,8 @@ describe('Chart hover renders', () => {
 		// The entry lands on the revenue bar of Q3. That crossing changes the
 		// pointed mark, which the frame owns, so it can render the frame once.
 		fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 })
+
+		expectLive('header', 'pointer')
 
 		resetRenders()
 
@@ -182,6 +191,8 @@ describe('Chart hover renders', () => {
 
 		const hit = getSlot(container, 'chart-hit')
 
+		expectLive('legend', 'axis')
+
 		resetRenders()
 
 		for (let x = 20; x < 400; x += 10) {
@@ -201,6 +212,8 @@ describe('Chart hover renders', () => {
 		const { container } = renderUI(bars({ legend: true }))
 
 		await act(async () => {})
+
+		expectLive('axis')
 
 		resetRenders()
 
@@ -239,6 +252,8 @@ describe('Chart hover renders', () => {
 		const [first] = allBySlot(container, 'chart-slice')
 
 		fireEvent.pointerEnter(first as Element)
+
+		expectLive('header', 'slices', 'segmentLabels')
 
 		resetRenders()
 
@@ -284,6 +299,8 @@ describe('Chart hover renders', () => {
 
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
 
+		expectLive('axis')
+
 		resetRenders()
 
 		// The moves cross from cell to cell.
@@ -312,6 +329,8 @@ describe('Chart hover renders', () => {
 		)
 
 		const regions = allRegions(container)
+
+		expectLive('menu')
 
 		resetRenders()
 

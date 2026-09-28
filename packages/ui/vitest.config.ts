@@ -2,18 +2,7 @@ import { join, relative } from 'node:path'
 import { configDefaults, defineConfig } from 'vitest/config'
 import { docblockEnvironment, walkSource } from './src/__tests__/helpers/walk-source'
 import { docsPlugin } from './src/docs/engine/plugins'
-
-const CI = Boolean(process.env.CI)
-
-const SEED = process.env.VITEST_SEED
-
-if (SEED !== undefined && !Number.isFinite(Number(SEED))) {
-	throw new Error(
-		`VITEST_SEED must be a number; received ${SEED}. A NaN seed corrupts the shuffle.`,
-	)
-}
-
-const sequence = { shuffle: true, ...(SEED ? { seed: Number(SEED) } : {}) }
+import { CI, cleanup, sequence } from './vitest.base'
 
 // The test files that open with `// @vitest-environment node`: the `pure`
 // project runs exactly these, and `unit` excludes them. The docblock is the
@@ -55,6 +44,27 @@ const workspaceScans = [
 	'src/__tests__/boundary/drag-cursor-boundary.test.ts',
 	'src/__tests__/boundary/recipe-boundary.test.ts',
 ]
+
+// The settings of the two projects that scan source text: `boundary` and
+// `workspace`. Each project also declares `isolate: false` itself, because
+// `test-isolation-boundary.test.ts` reads that line in each project.
+//
+// The suites run no setupFiles, so the shared budget below governs them by a
+// rationale they never inherit: it is sized against `asyncUtilTimeout`, and
+// nothing here awaits anything. Every body in the project is synchronous, which
+// also means the budget cannot interrupt one — a scan that never returns holds
+// the runner's timer with it. What it can do is fail a slow run, and the
+// pre-push gate makes runs slow: `lefthook` drives `check-types` and
+// `test:changed` through `turbo` at once, so a `tsc` pass competes with these
+// for the same cores. `tsdoc-coverage-boundary` builds a TypeScript program and
+// crossed the 5s default there on contention alone, which the note below says a
+// budget must never encode. Flat and wide, then: the project's median is 72ms,
+// so a budget this size fails only work that has genuinely stopped moving.
+const nodeScan = {
+	environment: 'node',
+	pool: 'threads',
+	testTimeout: 30_000,
+} as const
 
 // Setup files for both jsdom projects (unit, integration).
 const setupFiles = [
@@ -118,24 +128,9 @@ export default defineConfig({
 		// `groupOrder` with it — which reorders the very queue the failure came
 		// from.
 		sequence,
-		// Within a file a vi.spyOn or vi.stubGlobal outlives its test unless
-		// restored, and sequence.shuffle randomizes sibling order — so an
-		// unrestored spy or stub leaks into whichever test runs next. restoreMocks
-		// runs vi.restoreAllMocks() before each test and unstubGlobals runs
-		// vi.unstubAllGlobals(), both ahead of beforeEach so the setup in
-		// beforeEach and in the test body is reapplied untouched. mockRestore only reverts
-		// vi.spyOn() spies, so the plain vi.fn() and Object.defineProperty jsdom
-		// stubs in setup/ are left intact.
-		restoreMocks: true,
-		unstubGlobals: true,
-		// clearMocks resets call history (not implementation — mockClear, not
-		// mockReset) before each test, so the shared global mocks (motion, shiki,
-		// floating-ui, …) never carry call counts across tests. unstubEnvs mirrors
-		// unstubGlobals for vi.stubEnv. Deliberately NOT mockReset/resetModules —
-		// the former wipes the global mock implementations, and the latter is
-		// barred outright; see the unit project below.
-		clearMocks: true,
-		unstubEnvs: true,
+		// See `vitest.base.ts`. `resetModules` is barred too; see the unit project
+		// below.
+		...cleanup,
 		reporters: CI ? ['default', 'junit'] : ['default'],
 		outputFile: {
 			junit: 'test-results/junit.xml',
@@ -232,25 +227,10 @@ export default defineConfig({
 				// serializes into real wall clock on few-core CI agents.
 				test: {
 					name: 'boundary',
-					environment: 'node',
-					pool: 'threads',
+					...nodeScan,
 					isolate: false,
 					include: ['src/__tests__/boundary/*-boundary.test.ts'],
 					exclude: [...configDefaults.exclude, ...workspaceScans],
-					// These suites run no setupFiles, so the shared budget above governs
-					// them by a rationale they never inherit: it is sized against
-					// `asyncUtilTimeout`, and nothing here awaits anything. Every body in
-					// the project is synchronous, which also means the budget cannot
-					// interrupt one — a scan that never returns holds the runner's timer
-					// with it. What it can do is fail a slow run, and the pre-push gate
-					// makes runs slow: `lefthook` drives `check-types` and `test:changed`
-					// through `turbo` at once, so a `tsc` pass competes with these for the
-					// same cores. `tsdoc-coverage-boundary` builds a TypeScript program
-					// and crossed the 5s default there on contention alone, which the
-					// note above says a budget must never encode. Flat and wide, then:
-					// the project's median is 72ms, so a budget this size fails only work
-					// that has genuinely stopped moving.
-					testTimeout: 30_000,
 				},
 			},
 			{
@@ -258,11 +238,9 @@ export default defineConfig({
 				// The boundary suites in `workspaceScans`, with the settings of `boundary`.
 				test: {
 					name: 'workspace',
-					environment: 'node',
-					pool: 'threads',
+					...nodeScan,
 					isolate: false,
 					include: workspaceScans,
-					testTimeout: 30_000,
 				},
 			},
 			{

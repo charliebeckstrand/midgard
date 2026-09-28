@@ -167,7 +167,7 @@ function buildPropDef(
 type PropTags = { default?: string; example?: string; deprecated?: string | true }
 
 /** `@default` / `@defaultValue`, `@example`, and `@deprecated` from a symbol's TSDoc. */
-export function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags {
+function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags {
 	const out: PropTags = {}
 
 	for (const tag of symbol.getJsDocTags(checker)) {
@@ -198,7 +198,7 @@ export function jsDocTags(symbol: ts.Symbol, checker: ts.TypeChecker): PropTags 
  * to the authored `?` token, so a prop optional in any union/intersection arm
  * reads as optional, mirroring `collectAllProperties`.
  */
-export function isRequired(symbol: ts.Symbol): boolean {
+function isRequired(symbol: ts.Symbol): boolean {
 	if (symbol.flags & ts.SymbolFlags.Optional) return false
 
 	const declarations = symbol.getDeclarations() ?? []

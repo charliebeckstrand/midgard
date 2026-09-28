@@ -1,202 +1,158 @@
 // @vitest-environment node
-import { readFileSync } from 'node:fs'
+import { existsSync, readdirSync } from 'node:fs'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { k as sidebarLayout } from '../../layouts/sidebar/variants'
-import { k as badge } from '../../recipes/kata/badge'
-import { k as button } from '../../recipes/kata/button'
-import { k as checkbox } from '../../recipes/kata/checkbox'
-import { k as colorPanel } from '../../recipes/kata/color-panel'
-import { k as colorPicker } from '../../recipes/kata/color-picker'
-import { k as combobox } from '../../recipes/kata/combobox'
-import { k as datePicker } from '../../recipes/kata/date-picker'
-import { k as fieldset } from '../../recipes/kata/fieldset'
-import { k as heading } from '../../recipes/kata/heading'
-import { k as input } from '../../recipes/kata/input'
-import { k as list } from '../../recipes/kata/list'
-import { k as listbox } from '../../recipes/kata/listbox'
-import { k as loading } from '../../recipes/kata/loading'
-import { k as menu } from '../../recipes/kata/menu'
-import { k as progress } from '../../recipes/kata/progress'
-import { k as radio } from '../../recipes/kata/radio'
-import { k as rating } from '../../recipes/kata/rating'
-import { k as sidebar } from '../../recipes/kata/sidebar'
-import { k as slider } from '../../recipes/kata/slider'
-import { k as rangeSlider } from '../../recipes/kata/slider-range'
-import { k as sparkline } from '../../recipes/kata/sparkline'
-import { k as switchRecipe } from '../../recipes/kata/switch'
-import { k as table } from '../../recipes/kata/table'
-import { k as tabs } from '../../recipes/kata/tabs'
-import { k as textarea } from '../../recipes/kata/textarea'
-import { k as tree } from '../../recipes/kata/tree'
-import { srcRelative, stripSourceComments, walkSource } from '../helpers/walk-source'
+import {
+	isSourceFile,
+	srcDir,
+	srcRelative,
+	stripSourceComments,
+	walkSource,
+} from '../helpers/walk-source'
 
 // A density-native component takes its step from the nearest density scope.
 // Its kata writes each step in a stepped `density-*` utility, so the DOM selects the
 // step and no JS code selects it. Two rules hold that design:
 //
-//   - No recipe of the component has a `size` or a `density` axis.
+//   - No recipe of the component has a `size` or a `density` axis. The walk
+//     below reads each recipe of each kata and each layout variant module, so a
+//     new kata is native by default.
 //   - The component reads no density context. An explicit `size` becomes a
-//     scope (the `density` prop of PolymorphicStatic or Box), not a lookup.
+//     scope (the `density` prop of PolymorphicStatic or Box), not a lookup. The
+//     reader allowlists at the end of this file hold this rule for each file.
 //
-// To move a component onto the variants, add its recipes and its files here.
-// Then the gate stops a later change that selects the step in JS again.
+// The recipes below keep a `size` axis on purpose. Each names its reason. A
+// recipe that drops its axis must leave the list too.
 
-const NATIVE_RECIPES = {
-	badge,
-	button,
-	checkbox,
-	'color panel': colorPanel,
-	'color picker button': colorPicker.button,
-	combobox,
-	'date picker button': datePicker.button,
-	description: fieldset.description,
-	heading,
-	input,
-	label: fieldset.label,
-	'list item': list.item,
-	listbox,
-	'loading spinner': loading.spinner,
-	'menu viewport': menu.viewport,
-	message: fieldset.message,
-	'progress bar': progress,
-	'progress gauge': progress.gauge.root,
-	'progress gauge label': progress.gauge.label,
-	radio,
-	'range slider': rangeSlider.root,
-	'range slider thumb': rangeSlider.thumb,
-	'range slider track': rangeSlider.track,
-	rating,
-	'sidebar item': sidebar.item.base,
-	'sidebar item row': sidebar.item.row,
-	'sidebar layout content': sidebarLayout.content,
-	'sidebar layout header': sidebarLayout.header,
-	'sidebar layout panel': sidebarLayout.panel,
-	slider,
-	sparkline,
-	switch: switchRecipe,
-	tab: tabs.tab,
-	'table cell': table.cell,
-	'table header': table.header,
-	textarea,
-	'tree item': tree.item.content,
+const INERT: Record<string, string> = {
+	'avatar:k': 'An avatar is content. Its box is explicit, and a host projects a size onto it.',
+	'code:k': 'Inline code keeps the mark size that the caller gives it.',
+	'kbd:k':
+		'A key keeps the mark size that the caller gives it. A host, such as Button, projects one.',
+	'stat:k.value': 'A figure takes its size from the layout of the dashboard, not from density.',
+	'stat:k.skeleton.value': 'The silhouette of a figure has the axis of the figure.',
+	'swatch:k': 'A chart gives each legend dot one size, not a density step.',
+	'text:k': 'Text keeps the size around it. Its `size` sets the type scale explicitly.',
 }
 
-const NATIVE_FILES = [
-	'components/badge/badge.tsx',
-	'components/button/button.tsx',
-	'components/calendar/calendar-picker.tsx',
-	'components/calendar/calendar.tsx',
-	'components/card/card-footer.tsx',
-	'components/card/card-header.tsx',
-	'components/card/card-title.tsx',
-	'components/card/card.tsx',
-	'components/checkbox/checkbox.tsx',
-	'components/color/color-panel.tsx',
-	'components/color/color-picker.tsx',
-	'components/combobox/combobox.tsx',
-	'components/date-picker/date-picker-footer.tsx',
-	'components/date-picker/date-picker.tsx',
-	'components/drawer/drawer.tsx',
-	'components/fieldset/description.tsx',
-	'components/fieldset/label.tsx',
-	'components/fieldset/message.tsx',
-	'components/group/group.tsx',
-	'components/heading/heading-skeleton.tsx',
-	'components/heading/heading.tsx',
-	'components/icon/icon.tsx',
-	'components/list/list-item.tsx',
-	'components/listbox/listbox.tsx',
-	'components/loading/loading-spinner.tsx',
-	'components/menu/menu-item.tsx',
-	'components/menu/menu-sub.tsx',
-	'components/menu/menu-viewport.tsx',
-	'components/menu/use-menu-state.ts',
-	'components/nav/nav-item.tsx',
-	'components/nav/use-nav-item.ts',
-	'components/popover/popover-content.tsx',
-	'components/progress/progress-bar.tsx',
-	'components/progress/progress-gauge.tsx',
-	'components/radio/radio.tsx',
-	'components/rating/rating.tsx',
-	'components/sidebar/sidebar-item.tsx',
-	'components/slider/range/range-slider.tsx',
-	'components/slider/slider.tsx',
-	'components/sparkline/sparkline.tsx',
-	'components/switch/switch.tsx',
-	'components/table/table.tsx',
-	'components/tabs/tab-list.tsx',
-	'components/tabs/tab.tsx',
-	'components/tabs/tabs.tsx',
-	'components/tooltip/tooltip-content.tsx',
-	'components/tree/tree-item-children.tsx',
-	'components/tree/tree-item-content.tsx',
-	'components/tree/tree.tsx',
-	'layouts/sidebar/sidebar.tsx',
-	'modules/chat/chat-list-item.tsx',
-	'modules/grid/grid-data-table.tsx',
-	'modules/grid/grid-region.tsx',
-	'primitives/option/option.tsx',
-	'primitives/panel/panel-providers.tsx',
-	'primitives/panel/slots.tsx',
-]
+/** The kata modules and the layout variant modules, by the path under `src`. */
+function recipeFiles(): string[] {
+	const kata = readdirSync(join(srcDir, 'recipes', 'kata'))
+		.filter((file) => file.endsWith('.ts'))
+		.map((file) => `recipes/kata/${file}`)
 
-const DENSITY_READS = /\b(?:useDensityStep|useDensityScope)\b/
+	const layouts = readdirSync(join(srcDir, 'layouts'), { withFileTypes: true })
+		.filter(
+			(entry) =>
+				entry.isDirectory() && existsSync(join(srcDir, 'layouts', entry.name, 'variants.ts')),
+		)
+		.map((entry) => `layouts/${entry.name}/variants.ts`)
 
-const srcDir = join(import.meta.dirname, '..', '..')
+	return [...kata, ...layouts].sort()
+}
+
+/** A recipe: a callable with the config it was defined from. */
+type Recipe = { config: { variants?: Record<string, unknown> } }
+
+function isRecipe(value: unknown): value is Recipe {
+	return typeof value === 'function' && 'config' in value
+}
+
+/** The path of each recipe under `value` that has a `size` or a `density` axis. */
+function steppedAxes(value: unknown, path: string, seen: Set<unknown>, found: string[]) {
+	if (value === null || (typeof value !== 'object' && typeof value !== 'function')) return
+
+	if (seen.has(value)) return
+
+	seen.add(value)
+
+	if (isRecipe(value)) {
+		const axes = Object.keys(value.config.variants ?? {})
+
+		if (axes.includes('size') || axes.includes('density')) found.push(path)
+	}
+
+	for (const [key, child] of Object.entries(value)) {
+		if (key !== 'config') steppedAxes(child, `${path}.${key}`, seen, found)
+	}
+}
 
 describe('density-native boundary', () => {
-	it.each(Object.entries(NATIVE_RECIPES))(
-		'the %s recipe has no size or density axis',
-		(_, recipe) => {
-			const axes = Object.keys(recipe.config.variants ?? {})
+	const files = recipeFiles()
 
-			expect(axes.filter((axis) => axis === 'size' || axis === 'density')).toEqual([])
-		},
-	)
+	it('no kata or layout recipe has a size or density axis, except the listed ones', async () => {
+		const found: string[] = []
 
-	it.each(NATIVE_FILES)('%s reads no density context', (file) => {
-		expect(readFileSync(join(srcDir, file), 'utf8')).not.toMatch(DENSITY_READS)
+		// The modules are independent, so they load at once.
+		const modules: Record<string, unknown>[] = await Promise.all(
+			files.map((file) => import(join(srcDir, file))),
+		)
+
+		for (const [index, file] of files.entries()) {
+			const module = modules[index] ?? {}
+
+			const name = file.replace(/^(?:recipes\/kata|layouts)\//, '').replace(/\.ts$/, '')
+
+			const seen = new Set<unknown>()
+
+			for (const [key, value] of Object.entries(module)) {
+				steppedAxes(value, `${name}:${key}`, seen, found)
+			}
+		}
+
+		expect(found.sort()).toEqual(Object.keys(INERT).sort())
+	})
+
+	it('walks the recipes of each kata and each layout', () => {
+		// A walk that read no file would pass the case above with an empty list.
+		expect(files.length).toBeGreaterThan(50)
+
+		expect(files).toContain('layouts/sidebar/variants.ts')
 	})
 })
 
+/** The code of each source file, with the comments removed, read once for each scan below. */
+const sources: { file: string; code: string }[] = []
+
+walkSource(srcDir, (file, content) => {
+	if (isSourceFile(file))
+		sources.push({ file: srcRelative(file), code: stripSourceComments(content) })
+})
+
+/** The source files whose code, with the comments removed, matches `pattern`. */
+function filesMatching(pattern: RegExp): string[] {
+	return sources
+		.filter(({ code }) => pattern.test(code))
+		.map(({ file }) => file)
+		.sort()
+}
+
 // A density scope has two channels: `data-density` for the stepped classes and
-// the density context for a client reader. A context scope with no attribute
-// gives the two channels different steps. So each file that opens the context
-// with `<Density step>` also writes `data-density`, once for each scope. A
-// control slot opens the context with `<DensitySlot>` and writes
-// `data-density="slot"`.
+// the density context for a client reader. A scope is the `density` prop of the
+// host primitive (PolymorphicStatic, Box, ControlFrame, PopoverPanel, or
+// FloatingSurface), which writes both channels in one place. Only the files
+// below open the context by hand:
 //
-// The grid is the one exception. Its cell scope is on the `<table>`, and its
-// overlay scope wraps a surface that opens its own scope.
+//   - The primitives that own the prop.
+//   - Button, whose element is the registered link or a `<button>`, and Drawer,
+//     whose element is a `motion.div`. Each writes both channels itself.
+//   - The grid's `GridOverlayDensity`, a context-only relay around a surface
+//     that writes its own `data-density`. Its context is private to its file.
 
-const CONTEXT_SCOPE = /<Density(?:\s+step=|Slot>)/g
+const CONTEXT_OPENERS = [
+	'components/button/button.tsx',
+	'components/drawer/drawer.tsx',
+	'modules/grid/grid-region.tsx',
+	'primitives/floating-surface/floating-surface.tsx',
+	'primitives/polymorphic/polymorphic-static.tsx',
+	'primitives/popover/popover-panel.tsx',
+]
 
-const ATTRIBUTE = /data-density/g
+const CONTEXT_OPEN = /<Density\b/
 
-const CONTEXT_ONLY = new Set(['modules/grid/grid-region.tsx'])
-
-describe('density scope parity', () => {
-	it('each context scope also writes data-density', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!file.endsWith('.tsx')) return
-
-			const rel = srcRelative(file)
-
-			if (CONTEXT_ONLY.has(rel)) return
-
-			const text = stripSourceComments(content)
-
-			const scopes = text.match(CONTEXT_SCOPE)?.length ?? 0
-
-			const attributes = text.match(ATTRIBUTE)?.length ?? 0
-
-			if (scopes > attributes) violations.push(`${rel}: ${scopes} scopes, ${attributes} attributes`)
-		})
-
-		expect(violations).toEqual([])
+describe('density scopes', () => {
+	it('only the listed files open the density context by hand', () => {
+		expect(filesMatching(CONTEXT_OPEN)).toEqual(CONTEXT_OPENERS)
 	})
 })
 
@@ -209,19 +165,7 @@ const DENSITY_SELECTOR = /data-\[density=/
 
 describe('density selectors', () => {
 	it('no source file selects a step with a data-[density=…] class', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (DENSITY_SELECTOR.test(stripSourceComments(content))) violations.push(rel)
-		})
-
-		expect(violations).toEqual([])
+		expect(filesMatching(DENSITY_SELECTOR)).toEqual([])
 	})
 })
 
@@ -236,19 +180,7 @@ const PSEUDO_THEN_DENSITY =
 
 describe('density after a pseudo-element', () => {
 	it('no source file puts a density class after a pseudo-element variant', () => {
-		const violations: string[] = []
-
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (PSEUDO_THEN_DENSITY.test(stripSourceComments(content))) violations.push(rel)
-		})
-
-		expect(violations).toEqual([])
+		expect(filesMatching(PSEUDO_THEN_DENSITY)).toEqual([])
 	})
 })
 
@@ -261,32 +193,43 @@ describe('density after a pseudo-element', () => {
 //     renders an empty frame, and the chart measures before the first paint.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
-//   - The density primitive and `useDensityLevel`: the hooks themselves.
+//   - The density primitive and its barrel: the hook itself.
+//
+// The check reads each name, not only each call, so an aliased import fails it.
 
 const STEP_READERS = [
 	'modules/chart/engine/use-chart-cartesian.ts',
 	'modules/chart/scatter-chart/scatter-chart.tsx',
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',
-	'providers/density/use-density-level.ts',
+	'primitives/density/index.ts',
 ]
 
-const STEP_READ = /\buseDensity(?:Step|Level)\(/
+const STEP_READ = /\buseDensityStep\b/
 
-describe('density step readers', () => {
+// `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
+// portal root writes that scope on its element, so a portaled panel keeps the
+// step of the tree that opened it. Only the portal roots and the primitive may
+// read it: Overlay, FloatingSurface, and the Listbox and Combobox panels, which
+// portal through their own wrappers.
+
+const SCOPE_READERS = [
+	'components/combobox/combobox-panel.tsx',
+	'components/listbox/listbox-panel.tsx',
+	'primitives/density/density.tsx',
+	'primitives/density/index.ts',
+	'primitives/floating-surface/floating-surface.tsx',
+	'primitives/overlay/overlay.tsx',
+]
+
+const SCOPE_READ = /\buseDensityScope\b/
+
+describe('density readers', () => {
 	it('only the listed files read the density step in JS', () => {
-		const readers: string[] = []
+		expect(filesMatching(STEP_READ)).toEqual(STEP_READERS)
+	})
 
-		walkSource(srcDir, (file, content) => {
-			if (!/\.tsx?$/.test(file)) return
-
-			const rel = srcRelative(file)
-
-			if (rel.startsWith('__tests__')) return
-
-			if (STEP_READ.test(stripSourceComments(content))) readers.push(rel)
-		})
-
-		expect(readers.sort()).toEqual(STEP_READERS)
+	it('only the portal roots read the nearest density scope', () => {
+		expect(filesMatching(SCOPE_READ)).toEqual(SCOPE_READERS)
 	})
 })

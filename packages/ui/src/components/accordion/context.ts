@@ -1,5 +1,6 @@
 'use client'
 
+import type { KeyboardEvent } from 'react'
 import { createContext } from '../../core'
 import type { A11yDisclosure } from '../../hooks/a11y/use-a11y-disclosure'
 import type { Mount } from '../../primitives/mount'
@@ -14,6 +15,8 @@ type AccordionContextValue = {
 	toggle: (value: string) => void
 	/** The root's arrival callback, raised by the section panel that owns the motion. */
 	onOpenComplete?: (value: string) => void
+	/** The arrow-key navigation of the root, which each header button runs. */
+	onTriggerKeyDown: (event: KeyboardEvent) => void
 }
 
 /**

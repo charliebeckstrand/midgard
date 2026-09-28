@@ -5,7 +5,6 @@ import { Button } from '../../components/button'
 import { Group } from '../../components/group'
 import { Icon } from '../../components/icon'
 import { Input } from '../../components/input'
-import { Density } from '../../primitives/density'
 import { k } from '../../recipes/kata/button'
 import { bySlot, densityStepOf, fireEvent, getSlot, present, renderUI, screen } from '../helpers'
 import { findSteps } from '../helpers/class-stops'
@@ -173,9 +172,9 @@ describe('Button', () => {
 
 		it('takes the step below its host control in a slot', () => {
 			const { container } = renderUI(
-				<Density step="lg">
+				<div data-density="lg">
 					<Input aria-label="Field" size="md" prefix={<Button>Slot</Button>} />
-				</Density>,
+				</div>,
 			)
 
 			expect(densityStepOf(present(bySlot(container, 'button'), 'button'))).toBe('sm')

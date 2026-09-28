@@ -3,7 +3,7 @@
 import type { Ref } from 'react'
 import { cn, dataAttr } from '../../core'
 import { ActiveIndicator } from '../../primitives/active-indicator'
-import { Density } from '../../primitives/density'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { TouchTarget } from '../../primitives/touch-target'
 import { HeadlessProvider } from '../../providers/headless'
 import { k } from '../../recipes/kata/nav'
@@ -65,9 +65,14 @@ export function NavItem({
 		>
 			{prefix != null && (
 				// The item chrome is fixed at md, so each slot is an sm scope.
-				<span data-slot="nav-item-prefix" data-density="sm" className={cn(k.item.prefix)}>
-					<Density step="sm">{prefix}</Density>
-				</span>
+				<PolymorphicStatic
+					as="span"
+					data-slot="nav-item-prefix"
+					density="sm"
+					className={cn(k.item.prefix)}
+				>
+					{prefix}
+				</PolymorphicStatic>
 			)}
 			<HeadlessProvider>
 				<Button
@@ -88,9 +93,14 @@ export function NavItem({
 				</Button>
 			</HeadlessProvider>
 			{suffix != null && (
-				<span data-slot="nav-item-suffix" data-density="sm" className={cn(k.item.suffix)}>
-					<Density step="sm">{suffix}</Density>
-				</span>
+				<PolymorphicStatic
+					as="span"
+					data-slot="nav-item-suffix"
+					density="sm"
+					className={cn(k.item.suffix)}
+				>
+					{suffix}
+				</PolymorphicStatic>
 			)}
 			{isCurrent && (
 				<ActiveIndicator

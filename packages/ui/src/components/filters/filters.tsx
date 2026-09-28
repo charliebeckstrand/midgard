@@ -67,9 +67,9 @@ const NO_FILTERS: Record<string, unknown> = {}
  * @remarks
  * Controlled via `value`/`onValueChange`, uncontrolled from `defaultValue`.
  * Clearing restores `defaultValue` when set, else empties the record. The bar
- * is a named `role="group"` (a `<fieldset>` would impose unwanted field
- * semantics) — pass `aria-label` or `aria-labelledby`. The active count is
- * announced to assistive tech on change (WCAG 4.1.3).
+ * is a `<fieldset>`, which has the `group` role. Pass `aria-label` or
+ * `aria-labelledby` to name it. The active count is announced to assistive
+ * tech on change (WCAG 4.1.3).
  *
  * The root is the coordinator and a column; its regions are children. It took
  * `prefix`, `suffix`, and `clear` as `ReactNode` props once. The context made
@@ -138,15 +138,15 @@ export function Filters<T extends FilterValue = FilterValue>({
 
 	return (
 		<FiltersContext value={context}>
-			{/* biome-ignore lint/a11y/useSemanticElements: a <fieldset> imposes form-field semantics and layout quirks on this flex bar. A named role="group" is the right grouping here */}
-			<div
+			{/* `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the
+			    bar sizes as a `<div>` does. */}
+			<fieldset
 				{...labelProps}
 				data-slot="filters"
-				role="group"
-				className={cn('flex flex-col gap-4', className)}
+				className={cn('flex min-w-auto flex-col gap-4', className)}
 			>
 				{children}
-			</div>
+			</fieldset>
 		</FiltersContext>
 	)
 }

@@ -1,8 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { Combobox, ComboboxOption } from '../../components/combobox'
 import { Listbox, ListboxOption } from '../../components/listbox'
-import { useDensityStep } from '../../primitives/density'
 import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers'
+import { clearOptionRenders, optionRenders } from '../helpers/option-renders'
 
 /**
  * A multi-select toggle renders only the option that changes.
@@ -12,39 +12,40 @@ import { act, fireEvent, getSlot, renderUI, screen, userEvent } from '../helpers
  * took a new identity on each change of the value. One toggle therefore
  * rendered all the rows.
  *
- * The count reads `useDensityStep`, which each row calls when it renders. A toggle
- * calls it from the toggled row and from the few parts of the host that show
- * the value. The count needs a module mock, so this suite sits in `boundary/`.
+ * The count reads the `useId` calls of `OptionImpl`, which each row makes when
+ * it renders. A hook runs on each render, also when the React Compiler
+ * memoizes the body. The count needs a module mock, so this suite sits in
+ * `boundary/`.
  */
-vi.mock('../../primitives/density', async (importActual) => {
-	const actual = await importActual<typeof import('../../primitives/density')>()
+vi.mock('react', async (importActual) => {
+	const { withRecordedUseId } = await import('../helpers/option-renders')
 
-	return { ...actual, useDensityStep: vi.fn(actual.useDensityStep) }
+	return withRecordedUseId(await importActual<typeof import('react')>())
 })
 
 const VALUES = Array.from({ length: 100 }, (_, index) => `v${index}`)
 
-/** The most `useDensityStep` calls a toggle can make without a render of each row. */
-const BOUND = 10
+/** The most row renders a toggle can make without a render of each row. */
+const BOUND = 2
 
-/** Toggles two options, then counts the renders of the second toggle only. */
+/** Toggles two options, then counts the row renders of the second toggle only. */
 function secondToggle(options: HTMLElement[]) {
 	act(() => {
 		fireEvent.click(options[5] as HTMLElement)
 	})
 
-	vi.mocked(useDensityStep).mockClear()
+	clearOptionRenders()
 
 	act(() => {
 		fireEvent.click(options[9] as HTMLElement)
 	})
 
-	return vi.mocked(useDensityStep).mock.calls.length
+	return optionRenders()
 }
 
 describe('multi-select option renders', () => {
 	beforeEach(() => {
-		vi.mocked(useDensityStep).mockClear()
+		clearOptionRenders()
 	})
 
 	it('renders only the toggled option of a listbox', () => {
@@ -66,6 +67,9 @@ describe('multi-select option renders', () => {
 
 		expect(options).toHaveLength(VALUES.length)
 
+		// The count is live: each row rendered when the panel opened.
+		expect(optionRenders()).toBeGreaterThanOrEqual(VALUES.length)
+
 		expect(secondToggle(options)).toBeLessThanOrEqual(BOUND)
 	})
 
@@ -85,6 +89,8 @@ describe('multi-select option renders', () => {
 		const options = screen.getAllByRole('option')
 
 		expect(options).toHaveLength(VALUES.length)
+
+		expect(optionRenders()).toBeGreaterThanOrEqual(VALUES.length)
 
 		expect(secondToggle(options)).toBeLessThanOrEqual(BOUND)
 	})

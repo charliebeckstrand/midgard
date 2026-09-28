@@ -2,19 +2,20 @@
 
 import type { ComponentProps, ReactNode } from 'react'
 import { cn } from '../../core'
-import { Density } from '../../primitives/density'
-import type { GroupOrientation, Step } from '../../recipes'
+import type { DensityStep } from '../../core/density'
+import type { GroupOrientation } from '../../recipes'
 import { k } from '../../recipes/kata/group'
+import { Box } from '../../structure/box'
 import { useGroup } from './use-group'
 
 type GroupBaseProps = {
 	/** Axis the group lays out on. @defaultValue 'horizontal' */
 	orientation?: GroupOrientation
 	/**
-	 * Size step of the children. It opens a density scope on the group. Without
-	 * it, the children take the step of the nearest density scope.
+	 * The density step of the children. Omit it to take the step of the nearest
+	 * density scope. A step makes the group a density scope.
 	 */
-	size?: Step
+	size?: DensityStep
 	className?: string
 	children?: ReactNode
 }
@@ -53,15 +54,14 @@ export function Group({
 	const stamped = useGroup(children, orientation)
 
 	return (
-		<div
+		<Box
 			data-slot="group"
-			data-size={size}
-			data-density={size}
+			density={size}
 			data-orientation={orientation}
 			className={cn(k.frame(orientation), className)}
 			{...props}
 		>
-			<Density step={size}>{stamped}</Density>
-		</div>
+			{stamped}
+		</Box>
 	)
 }

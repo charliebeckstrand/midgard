@@ -243,7 +243,7 @@ describe('Calendar', () => {
 
 		const el = bySlot(container, 'calendar')
 
-		expect(el).toHaveAttribute('data-size', 'sm')
+		expect(el).toHaveAttribute('data-density', 'sm')
 	})
 })
 

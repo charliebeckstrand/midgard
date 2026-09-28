@@ -21,7 +21,8 @@ export type GridProps<T> = GridDataProps<T>
  * drag handles, and `navigable` adds a keyboard cell cursor (`role="grid"` with
  * an `aria-activedescendant` active cell). The `density` tunes cell padding, and
  * `condensed` steps the whole grid down a notch. That covers padding, cell font,
- * header chrome, and a compact cascade over client cell content.
+ * header chrome, and the compact step of the table scope, which cell content
+ * follows.
  *
  * Pass `editable` (a {@link GridEditableConfig}) to bake in inline editing. A
  * row in the editable set puts all of its editable cells into edit mode at once.

@@ -4,10 +4,11 @@ import { FloatingPortal } from '@floating-ui/react'
 import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
+import type { DensityStep } from '../../core/density'
+import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/combobox'
-import type { ControlSize } from '../control/context'
 
 type ComboboxPanelProps = {
 	id: string
@@ -15,8 +16,12 @@ type ComboboxPanelProps = {
 	editing: boolean
 	multiple: boolean
 	glass: boolean
-	/** The explicit size step of the combobox. The panel opens a density scope at it. */
-	size?: ControlSize
+	/**
+	 * The density step of the combobox. Omit it to take the step of the nearest
+	 * density scope of the combobox, which the portal carries. A step makes the
+	 * panel a density scope.
+	 */
+	size?: DensityStep
 	/** Accessible name for the listbox, threaded from the combobox input's name. */
 	ariaLabel?: string
 	ariaLabelledby?: string
@@ -61,9 +66,14 @@ export function ComboboxPanel({
 }: ComboboxPanelProps) {
 	const root = usePortalContainer()
 
+	// A portal takes the panel out of the DOM subtree of its scope, so the root
+	// writes the step of the scope that opened it, as `FloatingSurface` does. An
+	// explicit `size` is the scope of the `PopoverPanel` inside.
+	const inherited = useDensityScope()
+
 	return (
 		<FloatingPortal root={root ?? undefined}>
-			<div ref={optionsRef}>
+			<div ref={optionsRef} data-density={inherited ?? undefined}>
 				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
 						<div
