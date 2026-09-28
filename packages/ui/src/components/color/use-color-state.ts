@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffectEvent, useLayoutEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { DEFAULT_HSVA } from './color-constants'
 import { clampHsva, sameColorValue, serializeColor, toHsva } from './color-utilities'
 import type { ColorFormat, Hsva } from './types'
@@ -35,8 +36,8 @@ export type ColorState = {
  * not adopt an emission keeps its color. An owner that echoes the emission
  * is skipped, so the HSVA keeps the hue that hex drops. An owner that adopts
  * after a delay sees each change snap back until its value arrives.
- * `format`/`alpha`/`onValueChange` are read through refs, keeping `setHsva`
- * stable across renders.
+ * `setHsva` is a stable event. It reads the newest `format`, `alpha`, and
+ * `onValueChange` when it runs, and keeps one identity across renders.
  * @internal
  */
 export function useColorState({
@@ -48,20 +49,14 @@ export function useColorState({
 }: ColorStateOptions): ColorState {
 	const [hsva, setInternal] = useState<Hsva>(() => toHsva(value ?? defaultValue) ?? DEFAULT_HSVA)
 
+	// The newest HSVA, so that a second `setHsva` in one event resolves its
+	// updater against the first. Only the effect below and `setHsva` write it,
+	// and each write goes with the `setInternal` call that makes it the state.
 	const hsvaRef = useRef(hsva)
-	hsvaRef.current = hsva
 
 	// Last external value adopted or emitted, in the consumer's wire format;
 	// the echo guard the reconcile effect compares against.
 	const cacheRef = useRef<string | Hsva>(serializeColor(hsva, format, alpha))
-
-	const formatRef = useRef(format)
-	formatRef.current = format
-
-	const alphaRef = useRef(alpha)
-	alphaRef.current = alpha
-
-	const reportChange = useEffectEvent((external: string | Hsva) => onValueChange?.(external))
 
 	// Keyed on `hsva` too: an owner that does not adopt an emission keeps the
 	// same `value`, and the check must still run to snap the HSVA back (§7.2).
@@ -81,19 +76,19 @@ export function useColorState({
 		setInternal(parsed)
 	}, [value, hsva])
 
-	const setHsva = useCallback((next: Hsva | ((prev: Hsva) => Hsva)) => {
+	const setHsva = useStableEvent((next: Hsva | ((prev: Hsva) => Hsva)) => {
 		const prev = hsvaRef.current
 		const resolved = typeof next === 'function' ? next(prev) : next
-		const normalized = clampHsva(alphaRef.current ? resolved : { ...resolved, a: 1 })
+		const normalized = clampHsva(alpha ? resolved : { ...resolved, a: 1 })
 
 		hsvaRef.current = normalized
 
-		const external = serializeColor(normalized, formatRef.current, alphaRef.current)
+		const external = serializeColor(normalized, format, alpha)
 		cacheRef.current = external
 
 		setInternal(normalized)
-		reportChange(external)
-	}, [])
+		onValueChange?.(external)
+	})
 
 	return { hsva, setHsva }
 }

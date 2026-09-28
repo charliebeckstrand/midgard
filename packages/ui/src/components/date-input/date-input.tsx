@@ -5,6 +5,7 @@ import { type ReactNode, useEffect, useEffectEvent, useRef, useState } from 'rea
 import { composeEventHandlers } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { useFormattedInput } from '../../hooks/use-formatted-input'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { useLocale } from '../../providers/locale'
 import { clearNativeInput, isComposing } from '../../utilities'
 import { useControl } from '../control/context'
@@ -165,26 +166,29 @@ export function DateInput({
 	}
 
 	// Last value this input committed. Tells an external value change (a form
-	// reset, a calendar pick) apart from the echo of its own commit.
-	const emitted = useRef<Date | undefined>(undefined)
+	// reset, a calendar pick) apart from the echo of its own commit. The commit
+	// sets it in the same batch as the value, so the render that sees the value
+	// also sees it.
+	const [emitted, setEmitted] = useState<Date | undefined>(undefined)
 
-	const known = useRef(date)
+	const [known, setKnown] = useState(date)
 
-	// An external change clears the typed verdict during render, where a report
-	// must not run. The effect below carries it, so the reported verdict cannot
-	// drift from the one the field renders.
-	const clearedVerdict = useRef(false)
+	// A count of the typed verdicts that an external change cleared. The change
+	// clears the verdict during render, where a report must not run. The effect
+	// below carries the report, so the reported verdict cannot drift from the one
+	// the field renders.
+	const [clearedVerdicts, setClearedVerdicts] = useState(0)
 
-	if (known.current !== date) {
-		known.current = date
+	if (known !== date) {
+		setKnown(date)
 
 		// An external change overrides any in-progress text.
-		if (editingText !== null && !isSameDay(date, emitted.current)) {
+		if (editingText !== null && !isSameDay(date, emitted)) {
 			setEditingText(null)
 
 			setTypedInvalid(false)
 
-			clearedVerdict.current = true
+			setClearedVerdicts((count) => count + 1)
 		}
 	}
 
@@ -211,15 +215,9 @@ export function DateInput({
 		onValidityChange?.({ isValid: date !== undefined, isPotentiallyValid: true })
 	})
 
-	// Runs unkeyed, because the flag is written during render rather than derived
-	// from a value React can compare.
 	useEffect(() => {
-		if (!clearedVerdict.current) return
-
-		clearedVerdict.current = false
-
-		reportClearedVerdict()
-	})
+		if (clearedVerdicts > 0) reportClearedVerdict()
+	}, [clearedVerdicts])
 
 	// Resolved eagerly though only the `typedInvalid` branch renders it: gating it
 	// buys one skipped parse of a ≤10-character text and costs this component its
@@ -234,6 +232,8 @@ export function DateInput({
 		ref: setExternalRef,
 	})
 
+	const clearText = useStableEvent(() => clearNativeInput(inputRef.current))
+
 	const resolvedDisabled = disabled ?? control?.disabled
 
 	const resolvedReadOnly = readOnly ?? control?.readOnly
@@ -244,7 +244,7 @@ export function DateInput({
 		// Re-stating the held day is not a change; the value keeps its identity
 		// (and any time of day it carries).
 		if (!isSameDay(parsed, date)) {
-			emitted.current = parsed
+			setEmitted(parsed)
 
 			setDate(parsed)
 		}
@@ -275,7 +275,7 @@ export function DateInput({
 					disabled: resolvedDisabled,
 					readOnly: resolvedReadOnly,
 					suffix,
-					onClear: () => clearNativeInput(inputRef.current),
+					onClear: clearText,
 				})}
 				invalid={invalid ?? (typedInvalid || undefined)}
 				name={name}

@@ -1,8 +1,9 @@
 'use client'
 
 import type { RefObject, SyntheticEvent } from 'react'
-import { useCallback, useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
+import { useEffect, useEffectEvent, useMemo, useRef, useState } from 'react'
 import { useMinBreakpoint, usePrefersReducedMotion } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import type {
 	PdfViewerFit,
 	PdfViewerMagnifierMode,
@@ -96,13 +97,15 @@ function samePages(previous: PdfViewerPage[] | undefined, next: PdfViewerPage[] 
  * @internal
  */
 function useDocumentKey(pagesProp: PdfViewerPage[] | undefined, src: string | undefined) {
-	const heldRef = useRef(pagesProp)
+	const [held, setHeld] = useState(pagesProp)
 
-	const held = samePages(heldRef.current, pagesProp) ? heldRef.current : pagesProp
+	const same = held === pagesProp || samePages(held, pagesProp)
 
-	heldRef.current = held
+	// A change of content adjusts the held pages during render. React then renders
+	// again at once, before it commits.
+	if (!same) setHeld(pagesProp)
 
-	return held ?? src
+	return (same ? held : pagesProp) ?? src
 }
 
 /** Inputs to {@link usePdfViewer}; mirrors the consumer-facing {@link PdfViewerProps} minus presentation (`className`, `aria-label`). @internal */
@@ -348,17 +351,17 @@ export function usePdfViewer({
 		onMagnifierChange?.({ enabled: magnifierOn, ...magnifierChoice, ...next })
 	})
 
-	const setMagnifierOn = useCallback((on: boolean) => {
+	const setMagnifierOn = useStableEvent((on: boolean) => {
 		setMagnifierOnState(on)
 
 		notifyMagnifier({ enabled: on })
-	}, [])
+	})
 
-	const setMagnifierChoice = useCallback((choice: MagnifierChoice) => {
+	const setMagnifierChoice = useStableEvent((choice: MagnifierChoice) => {
 		setMagnifierChoiceState(choice)
 
 		notifyMagnifier(choice)
-	}, [])
+	})
 
 	const shouldLoadFromSrc = !pagesProp && !!src
 
@@ -491,11 +494,11 @@ export function usePdfViewer({
 	// the toolbar sits outside the overlay's provider.
 	const [highlightsVisible, setHighlightsVisibleState] = useState(true)
 
-	const setHighlightsVisible = useCallback((visible: boolean) => {
+	const setHighlightsVisible = useStableEvent((visible: boolean) => {
 		setHighlightsVisibleState(visible)
 
 		notifyHighlightsVisible(visible)
-	}, [])
+	})
 
 	const rootRef = useRef<HTMLElement>(null)
 	const viewportRef = useRef<HTMLDivElement>(null)
