@@ -9,17 +9,23 @@ export type Validators<T> = { [K in keyof T]?: Validator<T, K> }
 /** When the reducer runs validators: on a field's first blur (`'touched'`), on every keystroke (`'change'`), or only on submit (`'submit'`). */
 export type ValidateOn = 'touched' | 'change' | 'submit'
 
-/** Reducer state for one form: current `values` plus the {@link Errors} and {@link Touched} maps. @internal */
+/**
+ * Reducer state for one form: current `values`, the `defaults` that `values`
+ * compare against for dirtiness, and the {@link Errors} and {@link Touched} maps.
+ * @internal
+ */
 export type FormState<T> = {
 	values: T
+	defaults: T
 	errors: Errors
 	touched: Touched
 }
 
 /**
  * Discriminated action set for {@link formReducer}. An action writes a value,
- * marks a field touched, merges external errors, re-syncs controlled values,
- * resets to defaults, or commits a full-field submit validation.
+ * marks a field touched, merges external errors, re-syncs controlled values
+ * and the defaults with them, resets to new defaults or to the held ones, or
+ * commits a full-field submit validation.
  *
  * @internal
  */
@@ -39,7 +45,7 @@ export type FormAction<T> =
 	  }
 	| { type: 'set-errors-external'; errors: Errors }
 	| { type: 'sync-values'; values: T }
-	| { type: 'reset'; defaults: T }
+	| { type: 'reset'; defaults?: T }
 	| { type: 'submit-validate'; touched: Touched; errors: Errors }
 
 /**
@@ -205,11 +211,14 @@ export function formReducer<T extends Record<string, unknown>>(
 			return { ...state, errors: nextErrors, touched: nextTouched }
 		}
 		case 'sync-values':
-			if (state.values === action.values) return state
+			if (state.values === action.values && state.defaults === action.values) return state
 
-			return { ...state, values: action.values }
-		case 'reset':
-			return { values: action.defaults, errors: {}, touched: {} }
+			return { ...state, values: action.values, defaults: action.values }
+		case 'reset': {
+			const defaults = action.defaults ?? state.defaults
+
+			return { values: { ...defaults }, defaults, errors: {}, touched: {} }
+		}
 		case 'submit-validate':
 			return {
 				...state,
