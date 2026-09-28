@@ -5,10 +5,13 @@ import {
 	type KeyboardEvent,
 	type RefObject,
 	useEffect,
+	useMemo,
 	useRef,
 	useState,
 } from 'react'
 import { usePlotTabStop } from '../../hooks/use-plot-tab-stop'
+import { useStableEvent } from '../../hooks/use-stable-event'
+import { once } from '../../utilities'
 import { useMapHoverSet } from './context'
 import { MAP_CURSOR_INSET } from './engine/map-constants'
 import { type MapHoverTarget, sameTarget } from './engine/map-hover/target'
@@ -119,33 +122,27 @@ export function useMapKeyboard({
 	// silently re-point at a different mark.
 	const [cursor, setCursor] = useState<MapHoverTarget | null>(null)
 
-	// The resolver's last result, held until a refit or a registration hands over
-	// a new resolver. Keyed on the resolver's own identity, so there is no second
-	// dependency to keep in step. The index beside it turns the cursor's mark back
-	// into its position in O(1): a county atlas holds three thousand stops, and
-	// this is read on every render while a cursor is live.
-	const held = useRef<{ from: () => MapStop[]; value: MapStop[]; where: Map<string, number> }>(null)
+	// The resolver's result for its own identity, so a refit or a registration
+	// that hands over a new resolver is the one thing that resolves again. The
+	// index beside it turns the cursor's mark back into its position in O(1): a
+	// county atlas holds three thousand stops, and this is read on every render
+	// while a cursor is live. Resolved on the first read, so a map that no cursor
+	// visits never resolves.
+	const resolved = useMemo(
+		() =>
+			once(() => {
+				const value = resolveStops()
 
-	const stops = (): MapStop[] => {
-		if (held.current?.from !== resolveStops) {
-			const value = resolveStops()
+				return { value, where: new Map(value.map((stop, index) => [stopKey(stop.target), index])) }
+			}),
+		[resolveStops],
+	)
 
-			const where = new Map(value.map((stop, index) => [stopKey(stop.target), index]))
-
-			held.current = { from: resolveStops, value, where }
-		}
-
-		return held.current.value
-	}
+	const stops = (): MapStop[] => resolved().value
 
 	/** Where `cursor` stands in the current stop list, or `null` once it has left it. */
-	const at = (): number | null => {
-		if (cursor === null) return null
-
-		stops()
-
-		return held.current?.where.get(stopKey(cursor)) ?? null
-	}
+	const at = (): number | null =>
+		cursor === null ? null : (resolved().where.get(stopKey(cursor)) ?? null)
 
 	const transform = zoom?.transform ?? MAP_FIT_TRANSFORM
 
@@ -162,7 +159,7 @@ export function useMapKeyboard({
 	 * it is given. It moves nothing: a pointer gesture and a refit both land here
 	 * to re-place a readout the reader did not ask to move.
 	 */
-	const anchor = (stop: MapStop | null, through: MapTransform) => {
+	const anchor = useStableEvent((stop: MapStop | null, through: MapTransform) => {
 		// Every resolve mints fresh target objects, so hold the previous one where
 		// it names the same mark: the cursor is a dependency of the effects below,
 		// and a refit frame would otherwise re-run them all for a mark that has not
@@ -182,7 +179,7 @@ export function useMapKeyboard({
 
 		if (stop === null || point === null) set(null, null)
 		else set(stop.target, point)
-	}
+	})
 
 	/**
 	 * Steps the cursor onto a stop, taking the view with it. A zoomed map pans
@@ -221,14 +218,17 @@ export function useMapKeyboard({
 
 	const drawn = current === null ? null : applyTransform(current.at, transform)
 
-	const moved =
-		drawn !== null &&
-		(anchored.current === null || anchored.current.x !== drawn.x || anchored.current.y !== drawn.y)
-
-	// biome-ignore lint/correctness/useExhaustiveDependencies: re-anchors when the cursor's projected stop moves; the reader is read fresh at fire time
+	// A keypress anchors the stop itself, so the effect stops at a point that is
+	// already anchored and reads no box for it.
 	useEffect(() => {
-		if (current !== null && moved) anchor(current, transform)
-	}, [moved])
+		if (current === null || drawn === null) return
+
+		const last = anchored.current
+
+		if (last !== null && last.x === drawn.x && last.y === drawn.y) return
+
+		anchor(current, transform)
+	}, [current, drawn, transform, anchor])
 
 	const onKeyDown = (event: KeyboardEvent<HTMLElement>) => {
 		// The zoom keys, read first because they claim keys the cursor does not: a

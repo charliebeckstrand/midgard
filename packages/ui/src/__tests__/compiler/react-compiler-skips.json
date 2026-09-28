@@ -86,9 +86,6 @@
 	"modules/map/use-map-coverage.ts": {
 		"useMapCoverage": "PreserveManualMemo"
 	},
-	"modules/map/use-map-keyboard.ts": {
-		"useMapKeyboard": "Refs"
-	},
 	"modules/map/use-map-overlay.ts": {
 		"useMapOverlay": "Refs"
 	},
