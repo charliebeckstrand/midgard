@@ -98,7 +98,8 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 	rowGroupPresentation: GridRowGroupPresentation | null
 	virtualize: {
 		scrollRef: RefObject<HTMLDivElement | null>
-		estimateSize: number
+		/** The row height, or `null` until a row measures (see `useGridRowHeight`). */
+		estimateSize: number | null
 		overscan: number
 		scrollIntoViewRef: RefObject<GridScrollRowIntoView | null>
 		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
@@ -108,6 +109,28 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		/** Whether the header sticks, so the window aligns a row below it. */
 		stickyHeader: boolean
 	} | null
+}
+
+/** The window wiring of {@link GridBodyProps.virtualize}, once a row has measured. @internal */
+type GridRowWindow = NonNullable<GridBodyProps<unknown>['virtualize']> & { estimateSize: number }
+
+/**
+ * The window of a windowed body, `'measuring'` until a row has measured, or
+ * `null` for a grid that renders every row.
+ *
+ * @remarks A window needs a row height. Until a row measures, the body holds
+ * the loading skeleton, and the table measures a row of it (see
+ * `useGridRowHeight`).
+ * @internal
+ */
+function resolveRowWindow(
+	virtualize: GridBodyProps<unknown>['virtualize'],
+): GridRowWindow | 'measuring' | null {
+	if (!virtualize) return null
+
+	const { estimateSize } = virtualize
+
+	return estimateSize === null ? 'measuring' : { ...virtualize, estimateSize }
 }
 
 /**
@@ -278,8 +301,9 @@ function renderGroupedBody<T>(
 	props: GridBodyProps<T>,
 	groups: GridGroup<T>[],
 	groupColumnId: string | number,
+	rowWindow: GridRowWindow | null,
 ): ReactElement {
-	const { visibleColumns, groupRenderHeader, rowGroupPresentation, virtualize } = props
+	const { visibleColumns, groupRenderHeader, rowGroupPresentation } = props
 
 	// Apply the manual group order while the overlay covers every group.
 	// Otherwise the engine's group order stands.
@@ -293,7 +317,7 @@ function renderGroupedBody<T>(
 	// is body-wide, so resolve it once here rather than per group in renderGroup.
 	const totaled = groupTotaled(props.groupTotalRow, visibleColumns)
 
-	if (virtualize) {
+	if (rowWindow) {
 		return (
 			<GridVirtualizedGroupedBody<T>
 				rowsProps={props}
@@ -306,7 +330,7 @@ function renderGroupedBody<T>(
 				leafProps={(leaf, expanded, color) =>
 					leafRowProps(props, leaf, { expanded, color, level: 2 })
 				}
-				window={virtualize}
+				window={rowWindow}
 			/>
 		)
 	}
@@ -324,6 +348,20 @@ function renderGroupedBody<T>(
 				}),
 			)}
 		</TableBody>
+	)
+}
+
+/**
+ * The ungrouped windowed body: the master-detail window under `expansion`, or
+ * else the flat window. Split out of {@link GridBody} for its complexity budget.
+ *
+ * @internal
+ */
+function renderWindowedBody<T>(props: GridBodyProps<T>, rowWindow: GridRowWindow): ReactElement {
+	return props.expansion ? (
+		<GridVirtualizedDetailBody<T> {...props} {...rowWindow} />
+	) : (
+		<GridVirtualizedBody<T> {...props} {...rowWindow} />
 	)
 }
 
@@ -399,10 +437,16 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 
 	if (rows.length === 0) return <TableEmpty columns={visibleColumns.length}>{empty}</TableEmpty>
 
+	const rowWindow = resolveRowWindow(virtualize)
+
+	if (rowWindow === 'measuring') {
+		return <GridLoadingBody columns={visibleColumns} pinning={pinning} />
+	}
+
 	// Grouping renders its own body (see `renderGroupedBody`). It stands down
 	// pagination (see `GridData`), so this precedes the flat virtualized branch.
 	if (groups && groupColumnId != null) {
-		return renderGroupedBody(props, groups, groupColumnId)
+		return renderGroupedBody(props, groups, groupColumnId, rowWindow)
 	}
 
 	// The windowed body carries the loading skeleton on from the branch above while
@@ -410,13 +454,7 @@ export function GridBody<T>(props: GridBodyProps<T>) {
 	// headers-only, rowless table (see `GridVirtualizedBody`). Master-detail under
 	// a window renders each data row and each open panel as an item of one
 	// measured window (see `GridVirtualizedDetailBody`).
-	if (virtualize) {
-		return props.expansion ? (
-			<GridVirtualizedDetailBody<T> {...props} {...virtualize} />
-		) : (
-			<GridVirtualizedBody<T> {...props} {...virtualize} />
-		)
-	}
+	if (rowWindow) return renderWindowedBody(props, rowWindow)
 
 	// Global row indices only under grid semantics (a plain table conveys them
 	// natively); see `ariaRowIndex` for the offset math.

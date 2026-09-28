@@ -319,7 +319,7 @@ export function detailWindowRowCount<T>(
 /**
  * The first height guess of a window item, before it measures. A closing row
  * guesses the height it had in view, so its new key moves no row. Every other
- * row guesses the density row height. The start anchor of the window holds the
+ * row guesses the grid's row height. The start anchor of the window holds the
  * rows in view still while a guess differs from the real height.
  *
  * @internal

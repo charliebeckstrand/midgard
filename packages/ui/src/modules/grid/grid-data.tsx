@@ -38,6 +38,7 @@ import { useGridDataFrame } from './use-grid-data-frame'
 import { useGridDataView } from './use-grid-data-view'
 import { useGridExport } from './use-grid-export'
 import { useGridReorder } from './use-grid-reorder'
+import { useGridRowHeight } from './use-grid-row-height'
 import { useGridRowManagerRegion } from './use-grid-row-manager'
 import { useGridRowReorder } from './use-grid-row-reorder'
 import { useGridSelectionState } from './use-grid-selection'
@@ -176,10 +177,6 @@ export function GridData<T>({
 	// (see `useGridRoving`), attached through `resolveTableProps`.
 	const tableRef = useRef<HTMLTableElement>(null)
 
-	// The consumer's `tableProps.ref` and the grid's own ref, on one node. The
-	// cursor reads the grid's ref to reseat focus on its own tab stop.
-	const tableElementRef = useComposedRef(tableRef, tableProps?.ref)
-
 	// Phase 1: the columns, the pin state, row grouping, and the gates it sets.
 	const {
 		columnOrderConfig,
@@ -214,9 +211,20 @@ export function GridData<T>({
 		virtualize,
 		infiniteScroll: infiniteScrollConfig,
 		pagination: paginationConfig,
-		density: level,
 		wrapperRef,
 	})
+
+	// A windowed grid without an `estimateSize` takes its estimate from a
+	// measured row (see `useGridRowHeight`).
+	const { rowHeight, measureRef } = useGridRowHeight(
+		virtualizeEnabled && estimateSize === undefined,
+		level,
+	)
+
+	// The consumer's `tableProps.ref`, the grid's own ref, and the row measure,
+	// on one node. The cursor reads the grid's ref to reseat focus on its own
+	// tab stop.
+	const tableElementRef = useComposedRef(tableRef, measureRef, tableProps?.ref)
 
 	const {
 		grouping,
@@ -709,7 +717,7 @@ export function GridData<T>({
 				virtualize: gated.virtualize
 					? {
 							scrollRef,
-							estimateSize,
+							estimateSize: estimateSize ?? rowHeight,
 							overscan,
 							scrollIntoViewRef: scrollRowIntoViewRef,
 							infiniteScroll,

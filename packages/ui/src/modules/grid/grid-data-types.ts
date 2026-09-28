@@ -1272,9 +1272,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * `maxHeight`, which sizes the scroll container.
 	 *
 	 * Pass `true` for defaults, or an object to tune. The defaults are 10 overscan
-	 * and a row-height estimate that scales with {@link GridDataProps.density}:
-	 * 36, 44, or 52px for compact, snug, or loose. The flat body assumes uniform
-	 * row heights.
+	 * and a row-height estimate that the grid measures from its first row. The
+	 * skeleton shows until that row measures. An explicit `estimateSize` skips
+	 * the measurement. The flat body assumes uniform row heights.
 	 *
 	 * Without virtualization every row in `rows` renders to the DOM; past
 	 * ~500 rows initial render and column-state changes become slow. Enable

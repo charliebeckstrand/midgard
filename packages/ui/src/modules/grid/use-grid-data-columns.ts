@@ -4,7 +4,6 @@ import { type RefObject, useCallback, useMemo } from 'react'
 import { announce } from '../../core'
 import { useControllable } from '../../hooks'
 import { useStableEvent } from '../../hooks/use-stable-event'
-import type { DensityLevel } from '../../providers/density'
 import { describeColumnVisibility, describePin } from './engine/grid-announcements'
 import { columnLabel } from './engine/grid-column/label'
 import {
@@ -57,7 +56,6 @@ export function useGridDataColumns<T>({
 	virtualize,
 	infiniteScroll: infiniteScrollConfig,
 	pagination: paginationConfig,
-	density,
 	wrapperRef,
 }: Pick<
 	GridDataProps<T>,
@@ -78,7 +76,6 @@ export function useGridDataColumns<T>({
 	/** The number of source rows. */
 	rowCount: number
 	navigable: boolean
-	density: DensityLevel
 	/** The grid's root, read for its direction when a pin change is narrated. */
 	wrapperRef: RefObject<HTMLDivElement | null>
 }) {
@@ -101,7 +98,7 @@ export function useGridDataColumns<T>({
 		enabled: virtualizeEnabled,
 		estimateSize,
 		overscan,
-	} = resolveVirtualization(implyVirtualize(virtualize, infiniteScrollConfig), density)
+	} = resolveVirtualization(implyVirtualize(virtualize, infiniteScrollConfig))
 
 	// Columns sort by default; bake that into each data column that doesn't set
 	// its own `sortable`, so head and engine read one resolved flag.

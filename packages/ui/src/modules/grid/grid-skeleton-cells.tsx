@@ -100,7 +100,7 @@ export function GridSkeletonRows<T>({ columns, pinning }: GridSkeletonRowsProps<
 	return (
 		<>
 			{LOADING_ROW_KEYS.map((rowKey) => (
-				<TableRow key={rowKey}>
+				<TableRow key={rowKey} data-grid-placeholder="">
 					<GridSkeletonCells columns={columns} pinning={pinning} />
 				</TableRow>
 			))}
