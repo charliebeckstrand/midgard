@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { Button } from '../../components/button'
 import { Form } from '../../components/form'
-import { Textarea } from '../../components/textarea'
+import { Textarea, TextareaSkeleton } from '../../components/textarea'
 import { HeadlessProvider } from '../../providers/headless'
 import { bySlot, densityStepOf, getSlot, renderUI, screen, userEvent } from '../helpers'
 
@@ -162,5 +162,23 @@ describe('Textarea', () => {
 		expect(warned).toBe(false)
 
 		error.mockRestore()
+	})
+})
+
+describe('TextareaSkeleton', () => {
+	it('writes an explicit size as its own density scope', () => {
+		const { container: scoped } = renderUI(<TextareaSkeleton />)
+
+		const { container: lg } = renderUI(<TextareaSkeleton size="lg" />)
+
+		expect(bySlot(scoped, 'placeholder')).not.toHaveAttribute('data-density')
+
+		expect(bySlot(lg, 'placeholder')).toHaveAttribute('data-density', 'lg')
+	})
+
+	it('reserves one line for each row', () => {
+		const { container } = renderUI(<TextareaSkeleton rows={5} />)
+
+		expect(bySlot(container, 'placeholder')).toHaveStyle({ height: '5lh' })
 	})
 })
