@@ -583,7 +583,7 @@ describe('the grid at the first paint (real browser)', () => {
 		],
 		[
 			'an explicit density',
-			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} density="loose" />,
+			<Grid key="g" columns={columns} rows={rows} getKey={(row) => row.name} size="lg" />,
 			CELL_PADDING_PX.lg,
 		],
 	])('pads the cells at the step of %s', (_, element, padding) => {

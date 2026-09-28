@@ -1,6 +1,6 @@
 import type { ReactNode, Ref } from 'react'
 import type { TableElementProps, TableVariants } from '../../components/table'
-import type { DensityLevel } from '../../providers/density'
+import type { DensityStep } from '../../core/density'
 import type { GridSortState } from './context'
 import type { GridExportable, GridExportRows } from './engine/grid-export/types'
 import type { GridCellClick, GridCellClickContext, GridRowClick } from './engine/grid-row/cell'
@@ -692,21 +692,20 @@ export type GridEditSource<T> = Pick<GridDataProps<T>, 'rows' | 'columns' | 'get
  */
 export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
-	 * Density level for the cell padding and the metrics of the grid: resize
+	 * The density step of the cell padding and the metrics of the grid: resize
 	 * handles, column autosize, and the row-height estimate of the virtualizer.
-	 * It opens a density scope on the table: the grid passes its step to `Table`
-	 * as `size`. Without it, the grid takes the step of the nearest density scope
-	 * in CSS, so it paints at the stored density from the first frame. The
-	 * autosizer and the virtualizer read that step in JS after mount.
-	 * @see {@link useDensityLevel} for the explicit-then-ambient resolution.
+	 * Omit it to take the step of the nearest density scope, so the grid paints
+	 * at the stored density from the first frame. A step makes the table a
+	 * density scope. The autosizer and the virtualizer read the step in JS after
+	 * mount.
 	 */
-	density?: DensityLevel
+	size?: DensityStep
 
 	/**
 	 * Tight, all-dimensions-down preset that steps the grid below what
-	 * {@link GridDataProps.density | density} alone reaches. On its own `density`
-	 * controls padding only. `condensed` forces the compact padding step, which
-	 * overrides `density` for every density-derived metric: cell padding,
+	 * {@link GridDataProps.size | size} alone reaches. On its own `size`
+	 * controls padding only. `condensed` forces the `sm` padding step, which
+	 * overrides `size` for every density-derived metric: cell padding,
 	 * resize-handle width, the virtualized row-height estimate, and autosize
 	 * measurement. It additionally:
 	 *
@@ -715,8 +714,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   a consumer `Badge`'s text down to match. That covers the grid's own
 	 *   chrome (sort arrow, pin, grip, filter) and a consumer's `Icon` or
 	 *   `Badge`-slot icon; and
-	 * - makes the *table* a `compact` density scope, so cell content with no
-	 *   `size` (an inline `Input`, the selection checkbox) takes the compact step.
+	 * - makes the *table* an `sm` density scope, so cell content with no `size`
+	 *   (an inline `Input`, the selection checkbox) takes the `sm` step.
 	 *
 	 * Scoped to the table. A portaled overlay the grid spawns stays on the ambient
 	 * density rather than adopting the condensed step. A context menu and the
@@ -724,13 +723,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * condensed grid opened it or not. Wrap the grid in a `DensityProvider` to size those overlays.
 	 *
 	 * @remarks
-	 * Orthogonal to {@link GridDataProps.density}, not a step on it. `density`
-	 * moves the density step; `condensed` moves the step and projects the text,
-	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
-	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
-	 * it. `condensed` with an explicit `density` is legal: `condensed` wins, so the
-	 * table scope is `compact`, and `condensed` layers its projection over the
-	 * table.
+	 * Orthogonal to {@link GridDataProps.size}, not a step on it. `size` moves
+	 * the density step; `condensed` moves the step and projects the text, icon,
+	 * and badge classes above, table-scoped, so it cannot fold into `size`.
+	 * `condensed` with an explicit `size` is legal: `condensed` wins, so the table
+	 * scope is `sm`, and `condensed` layers its projection over the table.
 	 * @defaultValue false
 	 */
 	condensed?: boolean

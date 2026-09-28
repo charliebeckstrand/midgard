@@ -2,7 +2,7 @@
 
 import { type ReactNode, useEffect, useMemo } from 'react'
 import { matchesMediaQuery, subscribeMediaQuery } from '../../utilities/media-query'
-import { type DensityLevel, densityLevels, densityToSize } from '../density/context'
+import { type DensityLevel, densityLevels, levelToStep } from '../density/context'
 import {
 	DARK_SCHEME,
 	DENSITY_KEY,
@@ -80,7 +80,7 @@ export function AppearanceProvider({ children }: AppearanceProviderProps) {
 
 			const level = readChoice<DensityLevel>(DENSITY_KEY, DENSITY_VALUES, 'snug')
 
-			root.setAttribute('data-density', densityToSize[level])
+			root.setAttribute('data-density', levelToStep[level])
 		}
 
 		sync()

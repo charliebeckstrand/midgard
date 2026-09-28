@@ -37,8 +37,8 @@ import {
 	useRef,
 	useState,
 } from 'react'
+import type { DensityStep } from '../../core/density'
 import { useControllable } from '../../hooks'
-import type { DensityLevel } from '../../providers/density/context'
 import { isDataColumn } from '../../utilities'
 import type { GridSortState } from './context'
 import { columnAccessor } from './engine/grid-column/accessor'
@@ -190,7 +190,7 @@ type GridTableParams<T> = {
 	/** Grid wrapper element; measured to auto-size resizable columns to fill its width. */
 	containerRef?: RefObject<HTMLElement | null>
 	/** Table density; threaded to the autosizer, whose measurements scale with it. */
-	density?: DensityLevel
+	density?: DensityStep
 	/**
 	 * Whether a grand total aggregates the filtered rows. Only then does the grid
 	 * collect {@link GridTableResult.grandTotalRows}.

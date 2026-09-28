@@ -10,7 +10,7 @@ export type DensityLevel = 'loose' | 'snug' | 'compact'
  * Selectable density levels with display labels, ordered loose → compact, for
  * use in density pickers.
  *
- * @see {@link densityToSize} for the step of each level.
+ * @see {@link levelToStep} for the step of each level.
  */
 export const densityLevels: { label: string; value: DensityLevel }[] = [
 	{ label: 'Loose', value: 'loose' },
@@ -23,18 +23,8 @@ export const densityLevels: { label: string; value: DensityLevel }[] = [
  * `compact` → `sm`. The `md` step applies where no scope and no root step set
  * one.
  */
-export const densityToSize = {
+export const levelToStep = {
 	loose: 'lg',
 	snug: 'md',
 	compact: 'sm',
 } satisfies Record<DensityLevel, InnerStep>
-
-/**
- * The friendly level of each ambient step, the inverse of {@link densityToSize}.
- * `useDensityLevel` uses it to give the level of the step that it resolves.
- */
-export const sizeToDensityLevel = {
-	lg: 'loose',
-	md: 'snug',
-	sm: 'compact',
-} satisfies Record<InnerStep, DensityLevel>

@@ -5,12 +5,11 @@ import { dataAttr } from '../../core'
 import { useComposedRef } from '../../hooks'
 import { usePrefersReducedMotion } from '../../hooks/use-prefers-reduced-motion'
 import { useDensityStep } from '../../primitives/density'
-import { useDensityLevel } from '../../providers/density'
 import { GridContext, GridSettleContext } from './context'
 import { DEFAULT_EXPORTABLE } from './engine/grid-export/registry'
 import { manualGroupPredicate } from './engine/grid-group/resolve'
 import { resolveGridReorder } from './engine/grid-reorder-compute'
-import { gridWrapperClass, resolveDensity } from './engine/grid-table/classes'
+import { gridWrapperClass, resolveStep } from './engine/grid-table/classes'
 import { assertGridProps } from './engine/grid-table/guards'
 import { GridBusyStatus } from './grid-busy-status'
 import { useColumnGroupMenu } from './grid-context-menu'
@@ -115,7 +114,7 @@ export function GridData<T>({
 	virtualize,
 	infiniteScroll: infiniteScrollConfig,
 	tableProps,
-	density: densityProp,
+	size,
 	condensed = false,
 	bleed,
 	outline,
@@ -135,22 +134,22 @@ export function GridData<T>({
 	// A percentage `maxHeight` never binds; fail loud in dev (see `useMaxHeightGuard`).
 	useMaxHeightGuard(maxHeight)
 
-	// The painted density: an explicit `density`, or `compact` under `condensed`,
-	// which is a tight preset for every density-derived metric. It becomes the
-	// scope of the table. Without it, the table writes no scope, and the cells,
-	// the resize metrics, and the reveal padding take the step of the nearest
-	// scope in CSS. So the server markup is right at the first paint.
-	const density = resolveDensity(condensed, densityProp)
-
-	// The level as a JS value, for the work after mount that needs a number: the
-	// virtualizer's row estimate and the autosizer's refit key. It reads the
-	// nearest scope, else the root element.
-	const level = resolveDensity(condensed, useDensityLevel(densityProp))
+	// The painted step: an explicit `size`, or `sm` under `condensed`, which is a
+	// tight preset for every density-derived metric. It becomes the scope of the
+	// table. Without it, the table writes no scope, and the cells, the resize
+	// metrics, and the reveal padding take the step of the nearest scope in CSS.
+	// So the server markup is right at the first paint.
+	const density = resolveStep(condensed, size)
 
 	// Read here, above the scope of the table, so it is the density *surrounding*
 	// the grid — what an overlay the grid spawns renders at (see
 	// `GridOverlayDensity`).
 	const overlayDensity = useDensityStep()
+
+	// The step as a JS value, for the work after mount that needs a number: the
+	// virtualizer's row estimate and the autosizer's refit key. With no scope of
+	// its own, the table takes the step around the grid.
+	const step = density ?? overlayDensity
 
 	// Sticky header pins the header row while the body scrolls (forcing a scroll
 	// wrapper); resolved from the `header` config's `position`.
@@ -214,7 +213,7 @@ export function GridData<T>({
 	// measured row (see `useGridRowHeight`).
 	const { rowHeight, measureRef } = useGridRowHeight(
 		virtualizeEnabled && estimateSize === undefined,
-		level,
+		step,
 	)
 
 	// The consumer's `tableProps.ref`, the grid's own ref, and the row measure,
@@ -364,7 +363,7 @@ export function GridData<T>({
 		globalFilter: searchConfig,
 		columnFilters: columnFiltersConfig,
 		containerRef: wrapperRef,
-		density: level,
+		density: step,
 		// The engine builds its filtered model only for a grand total.
 		grandTotal: grandTotalRow,
 	})

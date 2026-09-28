@@ -1,7 +1,7 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { type DensityLevel, densityToSize } from '../../providers/density'
+import type { DensityStep } from '../../core/density'
 import { useLocale } from '../../providers/locale'
 import { fractionFormat } from '../../utilities'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '../table'
@@ -37,7 +37,11 @@ export type PivotTableProps<T> = {
 	columnOrder?: readonly string[]
 	/** Rendered when no source rows match a (row × column) group. @defaultValue '—' */
 	emptyCell?: ReactNode
-	density?: DensityLevel
+	/**
+	 * The density step of the cell padding. Omit it to take the step of the
+	 * nearest density scope. A step makes the table a density scope.
+	 */
+	size?: DensityStep
 	/** Draw hairline borders around every cell. @defaultValue false */
 	outline?: boolean
 	/** Zebra-stripe the body rows; `'odd'` / `'even'` pick which. @defaultValue false */
@@ -69,7 +73,7 @@ export function PivotTable<T>({
 	rowOrder,
 	columnOrder,
 	emptyCell = '—',
-	density,
+	size,
 	outline,
 	striped,
 	hover,
@@ -97,7 +101,7 @@ export function PivotTable<T>({
 	return (
 		<Table
 			className={className}
-			size={density && densityToSize[density]}
+			size={size}
 			outline={outline}
 			striped={striped}
 			hover={hover}

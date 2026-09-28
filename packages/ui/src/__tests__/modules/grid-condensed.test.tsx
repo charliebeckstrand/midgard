@@ -14,7 +14,7 @@ describe('Grid condensed', () => {
 	const getKey = (row: Row) => row.id
 
 	it('forces the compact padding step, overriding an explicit density', () => {
-		renderUI(<Grid condensed density="loose" columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(<Grid condensed size="lg" columns={columns} rows={rows} getKey={getKey} />)
 
 		// The Table stamps the resolved density step; `condensed` wins over `loose`.
 		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
@@ -24,7 +24,7 @@ describe('Grid condensed', () => {
 	})
 
 	it('leaves density in charge when condensed is off', () => {
-		renderUI(<Grid density="loose" columns={columns} rows={rows} getKey={getKey} />)
+		renderUI(<Grid size="lg" columns={columns} rows={rows} getKey={getKey} />)
 
 		expect(screen.getByRole('table').closest('[data-slot="table"]')).toHaveAttribute(
 			'data-density',

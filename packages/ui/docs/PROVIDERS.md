@@ -43,11 +43,9 @@ Opens a density scope for a region, and maps the friendly density levels to dens
 |---|---|
 | `DensityProvider` | Opens a density scope for a region at a friendly level (`compact` / `snug` / `loose`). Its wrapper writes the step of the level to `data-density`, which the stepped classes read, and it opens the `Density` context at the same step for the portal roots and the JS readers. |
 | `DensityProviderProps` *(type)* | Props for `DensityProvider`. |
-| `useDensityLevel` | Resolves `explicit ?? ambient ?? 'snug'` for a client component whose props use `DensityLevel` (e.g. `Grid`). The ambient level comes from the nearest scope, else the root element. It has its own `'use client'` module, so `DensityProvider` stays server-renderable. |
 | `DensityLevel` *(type)* | Friendly density level: the stored density setting and the `density` prop of `DensityProvider`; `'snug'` is the baseline. |
 | `densityLevels` | Selectable density levels with display labels, ordered loose → compact, for density pickers. |
-| `densityToSize` | Maps each friendly density level to its density step (loose→lg, snug→md, compact→sm). |
-| `sizeToDensityLevel` | Inverse of `densityToSize`: maps each ambient step back to its friendly density level. |
+| `levelToStep` | Maps each friendly density level to its density step (loose→lg, snug→md, compact→sm). |
 
 ## `ui/providers/glass`
 

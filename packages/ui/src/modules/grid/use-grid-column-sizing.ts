@@ -10,7 +10,7 @@ import {
 	useState,
 } from 'react'
 import { flushSync } from 'react-dom'
-import type { DensityLevel } from '../../providers/density/context'
+import type { DensityStep } from '../../core/density'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_COLUMN_SIZE } from './engine/grid-constants'
 import { measureColumns } from './engine/grid-sizing/measure'
@@ -46,7 +46,7 @@ type GridColumnSizingOptions<T> = {
 	 */
 	rowsSignature: string
 	/** Density of the rendered table; a change re-measures (padding and icons scale with it). */
-	density: DensityLevel | undefined
+	density: DensityStep | undefined
 	/**
 	 * Size the columns to their own content rather than to the container. Nothing
 	 * the pass produces is then measured from the box it is about to size.

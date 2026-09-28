@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Density } from '../../primitives/density'
-import { type DensityLevel, densityToSize } from './context'
+import { type DensityLevel, levelToStep } from './context'
 
 /** Props for {@link DensityProvider}: the friendly `density` level to broadcast, and `children`. */
 export type DensityProviderProps = {
@@ -26,7 +26,7 @@ export type DensityProviderProps = {
  * provider. Use one for a region that differs from the app.
  */
 export function DensityProvider({ density, children }: DensityProviderProps) {
-	const step = densityToSize[density]
+	const step = levelToStep[density]
 
 	return (
 		<Density step={step}>

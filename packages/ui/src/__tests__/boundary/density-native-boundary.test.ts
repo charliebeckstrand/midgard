@@ -186,8 +186,7 @@ describe('density after a pseudo-element', () => {
 //     renders an empty frame, and the chart measures before the first paint.
 //   - GridData: the virtualizer estimate, the autosizer refit key, and the
 //     step of the overlays that the grid opens.
-//   - The density primitive, `useDensityLevel`, and their barrels: the hooks
-//     themselves.
+//   - The density primitive and its barrel: the hook itself.
 //
 // The check reads each name, not only each call, so an aliased import fails it.
 
@@ -197,11 +196,9 @@ const STEP_READERS = [
 	'modules/grid/grid-data.tsx',
 	'primitives/density/density.tsx',
 	'primitives/density/index.ts',
-	'providers/density/index.ts',
-	'providers/density/use-density-level.ts',
 ]
 
-const STEP_READ = /\buseDensity(?:Step|Level)\b/
+const STEP_READ = /\buseDensityStep\b/
 
 // `useDensityScope` gives the nearest explicit scope, or `null` at the root. A
 // portal root writes that scope on its element, so a portaled panel keeps the

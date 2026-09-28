@@ -57,7 +57,7 @@ export function Demo() {
 					format={currency}
 					rowHeader="Carrier"
 					totals="row"
-					density="compact"
+					size="sm"
 					striped
 				/>
 			</Example>

@@ -3,7 +3,7 @@
 import type { ComponentProps, ReactNode } from 'react'
 import { Table, type TableElementProps } from '../../components/table'
 import { cn } from '../../core'
-import { type DensityLevel, densityToSize } from '../../providers/density'
+import type { DensityStep } from '../../core/density'
 import { GridHighlightContext } from './context'
 import {
 	condensedTableClass,
@@ -42,7 +42,7 @@ type GridDataTableProps<T> = {
 	/** Frozen-column controls for the head, the body, and the new-row slot. */
 	pinning: GridColumnPinning | null
 	/** The explicit density of the table, or `undefined` to follow the nearest scope. */
-	density: DensityLevel | undefined
+	density: DensityStep | undefined
 	loading: boolean
 	/** Whether the error slot replaces the rows. Loading takes precedence over it. */
 	showingError: boolean
@@ -169,7 +169,7 @@ export function GridDataTable<T>({
 	const tableContent = (
 		<GridNavContext value={cursor.navStore}>
 			<Table
-				size={density && densityToSize[density]}
+				size={density}
 				bleed={table.bleed}
 				striped={stripedForOutline(table.striped, table.outline)}
 				hover={table.hover}

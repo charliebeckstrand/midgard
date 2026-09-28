@@ -1517,7 +1517,7 @@ describe('Grid', () => {
 		it('an explicit density prop overrides the ambient DensityProvider', () => {
 			const { container } = renderUI(
 				<DensityProvider density="compact">
-					<Grid columns={columns} rows={rows} getKey={getKey} density="loose" />
+					<Grid columns={columns} rows={rows} getKey={getKey} size="lg" />
 				</DensityProvider>,
 			)
 

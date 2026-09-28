@@ -1,4 +1,4 @@
-import { densityToSize } from '../density/context'
+import { levelToStep } from '../density/context'
 import { DARK_SCHEME, DENSITY_KEY, THEME_KEY } from './appearance-storage'
 
 // Resolves the stored choices as `AppearanceProvider` does. Theme: 'dark' is
@@ -6,7 +6,7 @@ import { DARK_SCHEME, DENSITY_KEY, THEME_KEY } from './appearance-storage'
 // level gives its step, and any other value gives the step of 'snug'. Storage
 // access can throw, and then the script uses the defaults. The own-property
 // check keeps a stored `__proto__` or `toString` from reading the prototype.
-const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(densityToSize)};r.setAttribute('data-density',Object.prototype.hasOwnProperty.call(s,d)?s[d]:s.snug)})()`
+const SCRIPT = `(function(){var r=document.documentElement,t=null,d=null;try{t=localStorage.getItem(${JSON.stringify(THEME_KEY)});d=localStorage.getItem(${JSON.stringify(DENSITY_KEY)})}catch(e){}if(t==='dark'||(t!=='light'&&matchMedia(${JSON.stringify(DARK_SCHEME)}).matches))r.classList.add('dark');var s=${JSON.stringify(levelToStep)};r.setAttribute('data-density',Object.prototype.hasOwnProperty.call(s,d)?s[d]:s.snug)})()`
 
 /**
  * Inline script that applies the stored theme and density to the root element

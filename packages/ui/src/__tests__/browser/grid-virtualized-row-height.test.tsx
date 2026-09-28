@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
+import type { DensityStep } from '../../core/density'
 import { Grid, type GridColumn } from '../../modules/grid'
-import type { DensityLevel } from '../../providers/density'
 import { present, renderUI, waitFor, windowBody } from '../helpers'
 
 /**
@@ -16,13 +16,13 @@ describe('grid virtualized row height (real browser)', () => {
 
 	const rows: Row[] = Array.from({ length: 300 }, (_, i) => ({ id: i + 1, name: `Name ${i + 1}` }))
 
-	/** Renders a windowed grid at `density`, and returns its body once rows render. */
-	async function windowAt(density: DensityLevel) {
+	/** Renders a windowed grid at `size`, and returns its body once rows render. */
+	async function windowAt(size: DensityStep) {
 		const view = renderUI(
 			<div style={{ width: '320px' }}>
 				<Grid
 					virtualize
-					density={density}
+					size={size}
 					maxHeight="240px"
 					columns={columns}
 					rows={rows}
@@ -46,8 +46,8 @@ describe('grid virtualized row height (real browser)', () => {
 	it('sizes the window from the measured row at each density', async () => {
 		const heights: number[] = []
 
-		for (const density of ['compact', 'loose'] as const) {
-			const { body, unmount } = await windowAt(density)
+		for (const size of ['sm', 'lg'] as const) {
+			const { body, unmount } = await windowAt(size)
 
 			const height = rowHeight(body)
 
