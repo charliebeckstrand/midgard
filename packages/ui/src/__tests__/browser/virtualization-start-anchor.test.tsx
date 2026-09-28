@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { useVirtualWindow } from '../../hooks'
 import { act, frames, renderUI, waitFor } from '../helpers'
 
@@ -189,6 +189,76 @@ describe('useVirtualWindow start anchor (real browser)', () => {
 		act(() => handle.insertBefore(Number(first.dataset.row), [5000, 5001, 5002]))
 
 		// Read in the same task, before a paint or a `ResizeObserver` callback.
+		const after = scroller.querySelector<HTMLElement>(`[data-row="${id}"]`)
+
+		expect(
+			Math.abs((after?.getBoundingClientRect().top ?? Number.NaN) - before),
+		).toBeLessThanOrEqual(1)
+	})
+
+	it('keeps the held offset when the scroll-end timer fires before the scroll event of the move', async () => {
+		const handle: Handle = { prepend: () => {}, insertBefore: () => {} }
+
+		const { container } = renderUI(<List handle={handle} bounded />)
+
+		const scroller = container.querySelector<HTMLElement>('[data-slot="anchored-list"]')
+
+		if (!scroller) throw new Error('scroll container not found')
+
+		await waitFor(() => expect(scroller.querySelector('[data-row]')).not.toBeNull())
+
+		// The virtualizer ends a scroll with a timer that it sets again on each
+		// `scroll` event, 150 ms after the last one. The case holds that timer, so
+		// it can fire the timer at the one point where the order matters.
+		const timeout = window.setTimeout.bind(window)
+
+		let scrollEnd: (() => void) | null = null
+
+		vi.spyOn(window, 'setTimeout').mockImplementation(((
+			callback: () => void,
+			delay?: number,
+			...rest: unknown[]
+		) => {
+			if (delay !== 150) return timeout(callback, delay, ...rest)
+
+			scrollEnd = callback
+
+			return 0
+		}) as typeof window.setTimeout)
+
+		scroller.scrollTop = 2000
+
+		let last = -1
+
+		while (last !== scroller.scrollTop) {
+			last = scroller.scrollTop
+
+			await frames()
+		}
+
+		const anchor = Array.from(scroller.querySelectorAll<HTMLElement>('[data-row]')).find(
+			(row) => row.getBoundingClientRect().top >= scroller.getBoundingClientRect().top,
+		)
+
+		if (!anchor || !scrollEnd) throw new Error('no row in view, or no scroll-end timer')
+
+		const id = anchor.dataset.row
+
+		const before = anchor.getBoundingClientRect().top
+
+		// A hundred rows above the anchor. None of them has measured, and most
+		// differ from the estimate.
+		act(() => handle.prepend(Array.from({ length: 100 }, (_, i) => 1000 + i)))
+
+		// The move sends its `scroll` event at the next frame. Under load, the timer
+		// can fire first, and it must not put the offset before the move back into
+		// the window: the rows there would then measure with no correction.
+		act(() => (scrollEnd as () => void)())
+
+		await frames()
+
+		await frames()
+
 		const after = scroller.querySelector<HTMLElement>(`[data-row="${id}"]`)
 
 		expect(
