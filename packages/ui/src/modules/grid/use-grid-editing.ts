@@ -150,6 +150,24 @@ function restoreGridFocus(grid: HTMLElement | null): void {
 }
 
 /**
+ * Runs {@link restoreGridFocus} with `flag` set, and clears the flag after it,
+ * also when the move throws. The commit on leave reads the flag, so it does not
+ * read the grid's own move as a user who left the editor. A module function,
+ * because the React Compiler does not compile a `try` without a `catch`.
+ *
+ * @internal
+ */
+function reseatFlagged(flag: { current: boolean }, grid: HTMLElement | null): void {
+	flag.current = true
+
+	try {
+		restoreGridFocus(grid)
+	} finally {
+		flag.current = false
+	}
+}
+
+/**
  * Whether `node` is in a floating surface that an editor opened. That is a
  * portaled panel, such as an open listbox's options or the date picker's
  * calendar. It is also an open disclosure's own trigger or input
@@ -1604,15 +1622,7 @@ export function useGridEditing<T>({
 
 	// Reseats focus on the tab stop (see `restoreGridFocus`), marked as the
 	// grid's own move for the commit on leave.
-	const reseat = useCallback(() => {
-		reseatingRef.current = true
-
-		try {
-			restoreGridFocus(tableRef.current)
-		} finally {
-			reseatingRef.current = false
-		}
-	}, [tableRef])
+	const reseat = useCallback(() => reseatFlagged(reseatingRef, tableRef.current), [tableRef])
 
 	const newRow = useGridNewRow<T>({
 		config,
