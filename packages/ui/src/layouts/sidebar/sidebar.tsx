@@ -22,6 +22,7 @@ import { useIsRtl } from '../../hooks/use-is-rtl'
 import { useOffcanvas } from '../../hooks/use-offcanvas'
 import { OffcanvasContext } from '../../primitives/offcanvas'
 import { Flex } from '../../structure/flex'
+import { useSidebarPagePin } from './use-sidebar-page-pin'
 import { k } from './variants'
 
 const [SidebarLayoutContext, useSidebarLayoutContext] = createContext<{
@@ -54,7 +55,9 @@ export type SidebarLayoutProps = PropsWithChildren<{
  * {@link SidebarLayoutBody}, and {@link SidebarLayoutFooter}.
  *
  * @remarks The layout is pinned to the viewport (`fixed inset-0`), so the page
- * itself does not scroll. Only the content region scrolls.
+ * itself does not scroll. Only the content region scrolls. When a browser leaves
+ * the page scrolled all the same, as Chrome on iOS can, the layout scrolls the
+ * page back to its top.
  *
  * Its padding and the width of its desktop panel follow the nearest density
  * scope. The floating
@@ -75,6 +78,8 @@ export function SidebarLayout({
 	children,
 }: SidebarLayoutProps) {
 	const { open, setOpen, close } = useOffcanvas({ onOpenChange })
+
+	useSidebarPagePin()
 
 	const [floatingOpen, setFloatingOpen] = useState(false)
 
