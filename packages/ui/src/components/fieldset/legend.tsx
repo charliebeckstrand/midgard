@@ -10,6 +10,6 @@ export type LegendProps = ComponentProps<'legend'>
  * group for assistive tech.
  *
  * @remarks Static leaf — renders in React Server Components and fixes type scale
- * at the `md` step rather than reading the Density cascade.
+ * at the `md` step. It follows no density scope.
  */
 export const Legend = createSlot('legend', 'legend', k.legend({ size: 'md' }))

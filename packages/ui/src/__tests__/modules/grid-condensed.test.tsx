@@ -85,7 +85,7 @@ describe('Grid condensed', () => {
 
 		fireEvent.contextMenu(screen.getByText('Alice'))
 
-		// The menu portals from outside the table's condensed cascade, so its nearest
+		// The menu portals from outside the table's condensed scope, so its nearest
 		// scope is the ambient `md` step rather than the condensed `sm`. Text and icon
 		// step together instead of the text alone shrinking.
 		const item = screen.getByRole('menuitem', { name: 'Copy' })

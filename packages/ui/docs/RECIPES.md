@@ -91,7 +91,7 @@ The barrel re-exports the substrate types, so a consumer derives a prop union wi
 | Type | Summary |
 |---|---|
 | `Ma` | Name of a spacing stop in the `ma` scale. |
-| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`), which Density resolves against. |
+| `Step` | Size step in the `sun` scale (`sm` / `md` / `lg`): the three ambient density steps, the same union as `AmbientStep` in `ui/core`. |
 | `GroupPosition` | Where a member sits in a joined group, which selects the corners it rounds. |
 | `GroupOrientation` | Axis a joined group runs along. |
 

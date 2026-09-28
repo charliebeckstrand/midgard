@@ -1,13 +1,16 @@
 import type { Step } from '../../recipes'
 
-/** Friendly density level a `<DensityProvider>` broadcasts; `'snug'` is the baseline. */
+/**
+ * A friendly density level: the stored density setting, and the `density` prop
+ * of `<DensityProvider>`. `'snug'` is the baseline.
+ */
 export type DensityLevel = 'loose' | 'snug' | 'compact'
 
 /**
  * Selectable density levels with display labels, ordered loose → compact, for
  * use in density pickers.
  *
- * @see {@link densityToSize} for the 1:1 mapping of these friendly levels to the `Step` cascade.
+ * @see {@link densityToSize} for the step of each level.
  */
 export const densityLevels: { label: string; value: DensityLevel }[] = [
 	{ label: 'Loose', value: 'loose' },
@@ -16,9 +19,9 @@ export const densityLevels: { label: string; value: DensityLevel }[] = [
 ]
 
 /**
- * Friendly density level → `Step` carried by the Density primitive, broadcast
- * by `<DensityProvider>`. A 1:1 mapping (`loose` → `lg`, `snug` → `md`,
- * `compact` → `sm`); `snug` / `md` is the baseline outside any provider.
+ * The density step of each friendly level: `loose` → `lg`, `snug` → `md`, and
+ * `compact` → `sm`. The `md` step applies where no scope and no root step set
+ * one.
  */
 export const densityToSize = {
 	loose: 'lg',
@@ -27,9 +30,8 @@ export const densityToSize = {
 } satisfies Record<DensityLevel, Step>
 
 /**
- * `Step` carried by the ambient Density cascade → friendly level, the inverse
- * of {@link densityToSize}. Backs `useDensityLevel`'s ambient fallback for
- * context-reading components whose prop surface speaks `DensityLevel`.
+ * The friendly level of each ambient step, the inverse of {@link densityToSize}.
+ * `useDensityLevel` uses it to give the level of the step that it resolves.
  */
 export const sizeToDensityLevel = {
 	lg: 'loose',

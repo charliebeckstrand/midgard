@@ -32,7 +32,7 @@ export const k = bridge.control(control, { base: 'block', slots: { … } })
 
 ## 3. Boundary
 
-Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Step` / `Ma` / `Color` / `Ji` / `GroupOrientation` / `GroupPosition` / `SunStep`) so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
+Cross-layer value imports are forbidden. The barrel `index.ts` re-exports foundational types only (`Color` / `ExtendedColor` / `PaletteColor` / `Ma` / `Step` / `GroupOrientation` / `GroupPosition`) so consumers can derive prop unions without threading the type through their kata. No runtime value passes through the barrel.
 
 The contract is pinned by:
 

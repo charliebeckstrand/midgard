@@ -133,9 +133,10 @@ export type CalendarProps = {
 /**
  * Single-date month-grid picker. Binds to an enclosing Form field by `name`
  * (value-typed cascade) or falls back to controlled/uncontrolled `value`;
- * `min`/`max` bound the selectable range. Resolves `size` and `locale` against
- * enclosing Density and Locale providers, re-broadcasting the size to the
- * header, grid, and day cells. Roving focus spans header, grid, and footer
+ * `min`/`max` bound the selectable range. Resolves `locale` against an
+ * enclosing Locale provider. The header, grid, and day cells take the step of
+ * the nearest density scope, and a set `size` makes the calendar that scope.
+ * Roving focus spans header, grid, and footer
  * zones (tracked via `active`), and month changes are announced to screen
  * readers (WCAG 4.1.3). Exposes navigation and picker control to a parent via
  * the {@link CalendarHandle} `ref` for embedded use (e.g. DatePicker).

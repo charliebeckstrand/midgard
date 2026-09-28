@@ -3,16 +3,15 @@
  *
  * The named density steps shared by interactive components (`sm` / `md` /
  * `lg`). `steps` is the list, `Step` the prop type. `sun` is the per-step
- * data table: text/radius/icon tokens for components that need to read a
- * specific axis at a given step. Spacing axes (padding, gap) live on `ma`
- * and are composed inline at the kata layer.
+ * data table of text, radius, and icon tokens. Spacing axes (padding, gap)
+ * live on `ma` and are composed inline at the kata layer.
  *
  * Layer: kiso · Concern: size
  */
 
 export const steps = ['sm', 'md', 'lg'] as const
 
-/** Size step in the `sun` scale, which Density resolves against. */
+/** Size step in the `sun` scale: the three ambient density steps, the same union as `AmbientStep` in `core/density`. */
 export type Step = (typeof steps)[number]
 
 type SunStep = {

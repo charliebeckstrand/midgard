@@ -33,8 +33,8 @@ const sortIcon = defineRecipe({
  *
  * - the header's trailing padding (`pe-*`, the inline end), so its label clears
  *   the handle; and
- * - the resize handle's own width (the handle can't size itself — only the table
- *   knows the density).
+ * - the resize handle's own width, which the table sets with the header padding,
+ *   so one rule holds both.
  *
  * Both track the density's horizontal cell padding (`px-1`/`px-2`/`px-3` →
  * 4/8/12px). The grab zone is twice that padding and anchored to the trailing
@@ -638,8 +638,8 @@ export const k = {
 		metrics: resizeMetrics,
 		// Resize grab zone on a resizable header's trailing edge, anchored to the
 		// inside of that edge (`end-0`, no outward shift) and widening into the cell.
-		// The edge is logical, so a right-to-left header holds it on the left. Its width is density-scaled (set via `metrics`, since only the
-		// table knows the density) to twice the cell's horizontal padding — 8/16/24px
+		// The edge is logical, so a right-to-left header holds it on the left. Its width is density-scaled (set via `metrics` on the
+		// table) to twice the cell's horizontal padding — 8/16/24px
 		// across compact/snug/loose. It spans the header cell's height (`h-full`): the
 		// affordance lives in the header, not down the column. `justify-center` lands
 		// the grip one cell-padding in from the trailing edge — flush with where a
@@ -719,8 +719,8 @@ export const k = {
 	condensed: {
 		// Step header + body cell text below the table's `text-base` base. The
 		// selector targets the cell element, so a consumer cell that sets its own
-		// size still overrides it. Tailwind scans whole literals — keep these in
-		// step with the density padding rows above.
+		// size still overrides it. Tailwind scans whole literals, so each class is
+		// written out.
 		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
 		// Step every icon in a header or body cell to the compact `size-4`: the
 		// grid's own header chrome (sort arrow, pin, grip, filter) and a consumer's

@@ -97,9 +97,9 @@ export type AddressInputProps = Omit<
  * @remarks
  * Client component. Defaults to {@link photonProvider}; reach for
  * {@link createPhotonProvider} to bias the ranking toward a place or narrow the
- * layers. In-flight requests are aborted on query change or close. Reads
- * enclosing Density/Control context for disabled state and accessible name
- * (falls back to `placeholder`).
+ * layers. In-flight requests are aborted on query change or close. Reads the
+ * enclosing Control context for disabled state and accessible name (falls back
+ * to `placeholder`).
  */
 export function AddressInput({
 	name,

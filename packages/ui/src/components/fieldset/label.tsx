@@ -54,8 +54,8 @@ function keepControlFocus(event: MouseEvent<HTMLLabelElement>) {
 /**
  * Caption for a single form control, rendered as a `<label>`. Defaults `htmlFor`
  * to the enclosing `<Field>`/`<Control>` id, and registers its own id so the
- * control can name itself via `aria-labelledby`. Resolves type scale from the
- * Density cascade.
+ * control can name itself via `aria-labelledby`. Its type scale takes the step
+ * of the nearest density scope.
  *
  * A press on the label keeps the focus on a control that already has it. The control does not
  * get a `blur` and a `focus` between `mousedown` and `click`. As on a native label, the `click`

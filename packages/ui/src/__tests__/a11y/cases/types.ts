@@ -35,8 +35,8 @@ export type LinkSubject = {
 }
 
 /**
- * A subject that resolves its size through the Density cascade and publishes
- * the answer as `data-size`.
+ * A subject that takes the step of its nearest density scope. An explicit
+ * `size` makes the subject a scope of its own.
  */
 export type DensitySubject = {
 	/** Renders the subject, with `size` as its explicit prop when the sweep passes one. */

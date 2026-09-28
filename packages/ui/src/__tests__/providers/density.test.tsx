@@ -11,7 +11,7 @@ import {
 import { bySlot, renderUI } from '../helpers'
 
 describe('densityToSize', () => {
-	it('maps the friendly levels 1:1 onto the Step cascade', () => {
+	it('maps each friendly level to its density step', () => {
 		expect(densityToSize).toEqual({ loose: 'lg', snug: 'md', compact: 'sm' })
 	})
 })

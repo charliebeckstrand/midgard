@@ -8,7 +8,7 @@ export type CardProps = BoxProps<'radius' | 'p' | 'px' | 'py' | 'density'> & {
 	/**
 	 * Step for the card's own padding, its sections, and its radius. Omit it to
 	 * follow the nearest density scope, and `md` outside one. An explicit step
-	 * also goes to children through the density cascade.
+	 * makes the card a density scope, so its children take the step too.
 	 */
 	size?: Step
 }

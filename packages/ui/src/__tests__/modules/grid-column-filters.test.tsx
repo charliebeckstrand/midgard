@@ -125,8 +125,8 @@ describe('Grid per-column filters', () => {
 	})
 
 	// The filter surface is the one grid-spawned overlay whose trigger lives inside
-	// the table region, so it is the only one that can inherit the cell density
-	// cascade. It must not: a sheet is a dialog-sized surface, not a cell.
+	// the table region, so it is the only one that can inherit the density scope
+	// of the table. It must not: a sheet is a dialog-sized surface, not a cell.
 	it("renders the filter sheet at the ambient density, not the grid's condensed step", () => {
 		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} condensed />)
 

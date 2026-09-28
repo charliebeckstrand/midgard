@@ -10,7 +10,7 @@ The contract is pinned by the `recipes/katakana/**` override in `biome.json` (no
 
 ## 2. Shape
 
-Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. `defineApplicator` no longer fits — the standard config is built per call from the injected tokens, not baked at module load — so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (popover, segment, panel). The recipe-axis bridges pin the step keys in their contract (`Step = 'sm' | 'md' | 'lg'`) so the kata's variant types keep their literal axes; the pass-through bridge stays generic and annotates its return with the token field types:
+Every bridge is a function `(<tokens>, …) => k` generic only over its per-call overlay. `defineApplicator` no longer fits — the standard config is built per call from the injected tokens, not baked at module load — so bridges call `applyRecipe(standard(tokens), overlay, extras)` (control, check) or hand-roll the returned bundle (popover, segment, panel). No bridge has a step axis: the density classes are stepped utilities in the base, so a kata's variant types hold only its other axes. The pass-through bridge stays generic and annotates its return with the token field types:
 
 - `control` / `check` — build the standard config / extras from the `control` token contract and forward to `applyRecipe`. The kata derives variants from `VariantProps<typeof k>`.
 - `popover` — no `defineRecipe` calls; returns a bundle of class fragments anchored by an optional caller `text` override, defaulting to the bundle's own `text`. Generic over the bundle so the panel slot's concrete shape (motion config and all) flows through.

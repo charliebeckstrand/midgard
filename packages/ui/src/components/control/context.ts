@@ -3,7 +3,7 @@
 import { createContext, type Severity } from '../../core'
 import type { Step } from '../../recipes'
 
-/** Control density step: `sm`, `md`, or `lg`. Aliases the recipe-layer {@link Step} so the control and recipe size scales cannot drift. Feeds the Density cascade and each field's recipe size. */
+/** Control density step: `sm`, `md`, or `lg`. Aliases the recipe-layer {@link Step} so the control and recipe size scales cannot drift. A set size makes the control a density scope. */
 export type ControlSize = Step
 
 /** Visual treatment shared across a Control's fields: `default` (filled) or `outline`. */
@@ -53,7 +53,8 @@ export type ControlContextValue = {
  * form field.
  *
  * Resolution lives at the field's call site: shared form-field props go
- * through `useControlProps`; the Density cascade resolves size separately.
+ * through `useControlProps`. A set `size` makes the control a density scope
+ * instead, and each field takes its step in CSS.
  *
  * Read by input, textarea, switch, listbox, combobox, datepicker, checkbox,
  * radio.

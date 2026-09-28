@@ -19,7 +19,7 @@ import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
 
-/** Props for {@link Drawer}: open-state control, panel `height`, density `size` cascade, and accessible naming. */
+/** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
 	PanelOverlayProps & {
 		/** Controlled open state. Pair with `onOpenChange`. */

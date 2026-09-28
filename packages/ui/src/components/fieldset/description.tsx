@@ -13,7 +13,8 @@ export type DescriptionProps = {
 /**
  * Help text for a form control, rendered as a `<p>`. While mounted it registers
  * its id with the enclosing `<Field>`/`<Control>`, which folds it into the
- * control's `aria-describedby`; resolves type scale from the Density cascade.
+ * control's `aria-describedby`. Its type scale takes the step of the nearest
+ * density scope.
  */
 export function Description({ className, id, ...props }: DescriptionProps) {
 	const control = useControl()

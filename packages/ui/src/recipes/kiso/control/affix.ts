@@ -42,9 +42,9 @@
  * Each slot writes `data-density="slot"`. The rungs read it as a scope one
  * step below the scope above it (`stepDown` in `core/density`): sm → xs,
  * md → sm, lg → md. An `<Icon>`, a `<LoadingSpinner>`, or a `<Badge>` in the
- * slot takes that step through its stepped classes. A client child
- * (`<Button>`) reads it from `DensitySlot`. So the slot projects no size. An
- * explicit `size` on a slot child wins, as it does elsewhere.
+ * slot takes that step through its stepped classes, and so does a `<Button>`.
+ * So the slot projects no size. An explicit `size` on a slot child wins, as it
+ * does elsewhere.
  *
  * The slot is its own nearest scope, so its own padding takes the slot step
  * and not the step of the control. Each stepped list thus gives the value of a

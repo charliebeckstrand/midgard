@@ -204,11 +204,10 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// sheet, or clear the filter without opening it. The trigger keeps the
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
 				//
-				// `size` rather than wrapping the surface: `useMenuState` resolves the panel's
-				// density from `useDensityStep()` at this root, and `MenuContent` re-broadcasts
-				// that *inside* its own subtree — so a wrapper around `MenuContent` is
-				// overridden and does nothing. Passing the step here wins, and leaves the
-				// trigger below on the header's own cell cascade where it belongs.
+				// `size` sets the step of the panel: `MenuContent` makes its surface a scope
+				// at that step, so the panel renders at the density around the grid. The
+				// trigger below stays on the scope of the table, where header chrome
+				// belongs.
 				<Menu placement="bottom-end" size={toAmbientStep(overlayDensity)}>
 					<MenuTrigger>
 						<Button

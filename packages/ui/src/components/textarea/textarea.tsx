@@ -33,9 +33,9 @@ export type TextareaProps = Omit<TextareaVariants, 'size' | 'variant'> & {
 
 /**
  * Multi-line text control with optional `autoResize` and an `actions` slot.
- * Resolves variant, density, and binding from enclosing `<Form>`, `<Control>`,
- * `<GlassProvider>`, and Density contexts. Under headless context, it drops to
- * a bare `<textarea>`.
+ * Resolves variant and binding from enclosing `<Form>`, `<Control>`, and
+ * `<GlassProvider>` contexts, and takes the step of the nearest density scope.
+ * Under headless context, it drops to a bare `<textarea>`.
  *
  * @remarks Shares the Input value cascade through {@link useInputValue},
  * including the §7.3 value contract it owns. `defaultValue` reaches the element

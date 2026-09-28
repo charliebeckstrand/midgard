@@ -77,8 +77,8 @@ export type DensitySlotProps = { children: ReactNode }
  * @remarks
  * The slot element writes `data-density="slot"`, and the rungs give the CSS
  * half: a class in the slot takes the step below the scope above it, with no
- * step in JS. This component serves only a client child that still selects
- * its classes from the JS step.
+ * step in JS. No component in a slot reads the context now. The portal roots
+ * read it, so a tooltip or a menu that a slot opens takes the slot step.
  */
 export function DensitySlot({ children }: DensitySlotProps) {
 	const step = useDensityStep()

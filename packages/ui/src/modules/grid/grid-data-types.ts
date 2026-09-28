@@ -715,9 +715,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   a consumer `Badge`'s text down to match. That covers the grid's own
 	 *   chrome (sort arrow, pin, grip, filter) and a consumer's `Icon` or
 	 *   `Badge`-slot icon; and
-	 * - broadcasts a `compact` density cascade over the *table*, so size-aware
-	 *   *client* cell content (an inline `Input`, the selection checkbox) shrinks
-	 *   with it.
+	 * - makes the *table* a `compact` density scope, so cell content with no
+	 *   `size` (an inline `Input`, the selection checkbox) takes the compact step.
 	 *
 	 * Scoped to the table. A portaled overlay the grid spawns stays on the ambient
 	 * density rather than adopting the condensed step. A context menu and the
@@ -729,9 +728,9 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * moves the density step; `condensed` moves the step and projects the text,
 	 * icon, and badge classes above, table-scoped. `DensityLevel` maps one-to-one
 	 * onto the `Step` scale and has no step below `sm`, so this cannot fold into
-	 * it. `condensed` with an explicit `density` is legal: the density cascade
-	 * still broadcasts what you name, and `condensed` layers its projection over
-	 * the table.
+	 * it. `condensed` with an explicit `density` is legal: `condensed` wins, so the
+	 * table scope is `compact`, and `condensed` layers its projection over the
+	 * table.
 	 * @defaultValue false
 	 */
 	condensed?: boolean

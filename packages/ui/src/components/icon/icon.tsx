@@ -14,10 +14,11 @@ export type IconProps = {
 	/**
 	 * Named scale step or a raw pixel value. Omit it to follow the nearest
 	 * density scope, and `md` outside one. A named step makes the icon its own
-	 * scope. Inside a sized host (Button, Sidebar, control affix slots) the
-	 * host's `data-slot=icon` projection owns the size and overrides this. A
-	 * Badge is a density host: its projection sets the size of an icon with no
-	 * `size`.
+	 * scope. A host can project an icon size, as Button, Badge, Sidebar, Nav,
+	 * and the menu and option rows do. Inside such a host, the `data-slot=icon`
+	 * projection sets the size, and it can override this. A control affix slot
+	 * projects no size: it is a scope one step below its control, so an icon
+	 * with no `size` takes that step.
 	 */
 	size?: IconSize | number
 	className?: string

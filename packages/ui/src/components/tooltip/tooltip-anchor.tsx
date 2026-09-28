@@ -8,7 +8,7 @@ import { type TooltipAnchorOptions, useTooltipAnchor } from './use-tooltip-ancho
 
 /** Props for {@link TooltipAnchor}. @internal */
 export type TooltipAnchorProps = TooltipAnchorOptions & {
-	/** Size step forwarded to the inner `<TooltipContent>`. @defaultValue the enclosing Density size */
+	/** Size step forwarded to the inner `<TooltipContent>`. @defaultValue the step of the nearest density scope */
 	size?: Step
 	/** Class forwarded to the inner `<TooltipContent>`. */
 	className?: string

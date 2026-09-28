@@ -21,8 +21,8 @@ const ambient = { xs: 'sm', sm: 'sm', md: 'md', lg: 'lg', xl: 'lg' } as const sa
 
 /**
  * Clamps a step to the ambient steps: `xs` becomes `sm`, and `xl` becomes
- * `lg`. A component with a three-step size axis reads the density context
- * through this function.
+ * `lg`. A client reader with three values for each step, such as the chart
+ * tick cap, clamps the step that it reads through this function.
  */
 export function toAmbientStep(step: DensityStep): AmbientStep {
 	return ambient[step]
@@ -35,8 +35,9 @@ const below = { xs: 'xs', sm: 'xs', md: 'sm', lg: 'md', xl: 'lg' } as const sati
 
 /**
  * The step below `step`, and `xs` for `xs`. A control slot, such as an Input
- * prefix, opens a scope at the step below its host. Thus a
- * chip or an icon in the slot is one step smaller than the host.
+ * prefix, is a scope at the step below its host. The rungs give it this step
+ * in CSS, and `DensitySlot` gives it in context. Thus a chip or an icon in the
+ * slot is one step smaller than the host.
  */
 export function stepDown<S extends DensityStep>(step: S): (typeof below)[S] {
 	return below[step]

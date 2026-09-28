@@ -21,7 +21,7 @@ function defaultValueText(value: number, count: number): string {
 	return `${value} out of ${count} stars`
 }
 
-/** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size`/`color` recipe axes, and the read-only display form. */
+/** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size` step, the recipe `color`, and the read-only display form. */
 export type RatingProps = RatingVariants & {
 	/** Controlled value. `undefined` leaves the rating uncontrolled; `null` keeps it controlled with no score (CONVENTIONS §7.3). */
 	value?: number | null

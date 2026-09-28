@@ -77,9 +77,9 @@ export function ToggleIconButton({
 
 	// Animated: both icons ride the `prefix` slot and cross-fade. Instant: the
 	// current icon is the sole child and `prefix` stays absent. Cross-fade
-	// classes sit on the icons themselves, not wrapper spans: the Button's slot
-	// projection (`*:data-[slot=icon]`) sizes direct children only, and a
-	// wrapped Icon falls back to its static md default.
+	// classes sit on the icons themselves, not wrapper spans, so each icon stays
+	// a direct child that the Button's slot projection (`*:data-[slot=icon]`)
+	// sizes.
 	return (
 		<Button
 			{...props}
