@@ -8,7 +8,6 @@ import { Control } from '../../components/control'
 import { useFileUploadHandlers } from '../../components/file-upload'
 import { Icon } from '../../components/icon'
 import { Textarea } from '../../components/textarea'
-import { cn } from '../../core'
 import { k as badgeKata } from '../../recipes/kata/badge'
 import { isComposing } from '../../utilities'
 import { canSubmitDraft } from './engine/chat-draft'
@@ -198,7 +197,7 @@ export function ChatPrompt({
 							// fill would sink it. The chip is the removable chip of TagInput.
 							variant="outline"
 							radius="full"
-							className={cn(badgeKata.removable)}
+							className={badgeKata.removable}
 							suffix={
 								onRemoveAttachment && (
 									<Button

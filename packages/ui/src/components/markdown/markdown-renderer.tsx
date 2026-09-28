@@ -1,3 +1,4 @@
+import type { ClassValue } from 'clsx'
 import type { Token, Tokens } from 'marked'
 import { Fragment, type ReactNode } from 'react'
 import type { BundledLanguage } from 'shiki'
@@ -213,24 +214,21 @@ function renderTable(token: Tokens.Table, key: number): ReactNode {
 	)
 }
 
-function renderHeaderCell(cell: Tokens.TableCell, index: number): ReactNode {
-	return (
-		<th key={index} className={cn(k.th, alignClass(cell.align))}>
+/** A renderer of the cells of one table section: `th` in the head, `td` in the body. */
+function cellRenderer(Cell: 'th' | 'td', className: ClassValue) {
+	return (cell: Tokens.TableCell, index: number): ReactNode => (
+		<Cell key={index} className={cn(className, alignClass(cell.align))}>
 			{renderChildren(cell.tokens)}
-		</th>
+		</Cell>
 	)
 }
+
+const renderHeaderCell = cellRenderer('th', k.th)
+
+const renderCell = cellRenderer('td', k.td)
 
 function renderRow(row: Tokens.TableCell[], index: number): ReactNode {
 	return <tr key={index}>{row.map(renderCell)}</tr>
-}
-
-function renderCell(cell: Tokens.TableCell, index: number): ReactNode {
-	return (
-		<td key={index} className={cn(k.td, alignClass(cell.align))}>
-			{renderChildren(cell.tokens)}
-		</td>
-	)
 }
 
 function alignClass(align: Tokens.TableCell['align']): string | undefined {

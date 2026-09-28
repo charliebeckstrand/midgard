@@ -67,12 +67,13 @@ export function ComboboxPanel({
 	const root = usePortalContainer()
 
 	// A portal takes the panel out of the DOM subtree of its scope, so the root
-	// writes the step of the scope that opened it, as `FloatingSurface` does.
+	// writes the step of the scope that opened it, as `FloatingSurface` does. An
+	// explicit `size` is the scope of the `PopoverPanel` inside.
 	const inherited = useDensityScope()
 
 	return (
 		<FloatingPortal root={root ?? undefined}>
-			<div ref={optionsRef} data-density={size ?? inherited ?? undefined}>
+			<div ref={optionsRef} data-density={inherited ?? undefined}>
 				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
 						<div

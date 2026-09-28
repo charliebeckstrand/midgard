@@ -70,7 +70,8 @@ export function ListboxPanel({
 	const initialFocusRef = useRef<HTMLElement | null>(null)
 
 	// A portal takes the panel out of the DOM subtree of its scope, so the root
-	// writes the step of the scope that opened it, as `FloatingSurface` does.
+	// writes the step of the scope that opened it, as `FloatingSurface` does. An
+	// explicit `size` is the scope of the `PopoverPanel` inside.
 	const inherited = useDensityScope()
 
 	return (
@@ -98,7 +99,7 @@ export function ListboxPanel({
 							node?.querySelector<HTMLElement>('[data-slot="popover-panel"]') ??
 							node
 					}}
-					data-density={size ?? inherited ?? undefined}
+					data-density={inherited ?? undefined}
 					style={floatingStyles}
 					className={k.portal}
 					tabIndex={-1}

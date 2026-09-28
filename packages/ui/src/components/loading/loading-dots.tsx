@@ -20,6 +20,9 @@ const DOT_DELAYS = [
 	'motion-safe:[animation-delay:0ms]',
 ] as const
 
+// The class of each dot. It takes no input, so it is built once.
+const dotClass = k.dot()
+
 /**
  * Indeterminate loading indicator: three breathing dots rendered as a live
  * `<output>` with an `sr-only` `label`. Static leaf: renders in React Server
@@ -35,8 +38,6 @@ export function LoadingDots({
 	className,
 	...props
 }: LoadingDotsProps) {
-	const dotClass = k.dot()
-
 	return (
 		<output
 			data-slot="loading-dots"

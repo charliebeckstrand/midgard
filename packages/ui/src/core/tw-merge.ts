@@ -1,9 +1,4 @@
-import {
-	type ClassValidator,
-	extendTailwindMerge,
-	getDefaultConfig,
-	validators,
-} from 'tailwind-merge'
+import { type ClassValidator, extendTailwindMerge, validators } from 'tailwind-merge'
 import { utilityTable } from './density/utility-table'
 
 /** A stepped utility, such as `density-px`. */
@@ -41,20 +36,22 @@ const classGroups = Object.fromEntries(
 
 /**
  * The conflicts of the stepped groups. They mirror the conflicts of
- * `tailwind-merge`: a group that contains the plain group of a property also
- * contains its stepped group, and the stepped group of a group contains what
- * the plain group contains. A stepped group and its plain group contain each
- * other. So a later class replaces an earlier class of each property that it
- * covers, whether each class is stepped or plain.
+ * `tailwind-merge`, which `defaults` holds: a group that contains the plain
+ * group of a property also contains its stepped group, and the stepped group of
+ * a group contains what the plain group contains. A stepped group and its plain
+ * group contain each other. So a later class replaces an earlier class of each
+ * property that it covers, whether each class is stepped or plain.
  */
-function steppedConflicts(): Record<string, string[]> {
+function steppedConflicts(
+	defaults: Readonly<Record<string, readonly string[] | undefined>>,
+): Record<string, string[]> {
 	const conflicts: Record<string, string[]> = {}
 
 	const add = (group: string, contained: readonly string[]) => {
 		conflicts[group] = [...new Set([...(conflicts[group] ?? []), ...contained])]
 	}
 
-	for (const [group, contained] of Object.entries(getDefaultConfig().conflictingClassGroups)) {
+	for (const [group, contained = []] of Object.entries(defaults)) {
 		const stepped = contained.flatMap((part) => steppedOf[part] ?? [])
 
 		if (stepped.length > 0) add(group, stepped)
@@ -93,13 +90,26 @@ function steppedConflicts(): Record<string, string[]> {
  * A later class replaces an earlier class of each property that it covers,
  * whether each class is stepped, plain, or a ring form. Shared by `cn` and the
  * recipe engine.
+ *
+ * The stepped conflicts join the config that `tailwind-merge` builds on the
+ * first merge, so the default config is built once, and not at module load.
  */
-export const twMerge = extendTailwindMerge<SteppedGroup>({
-	extend: {
-		theme: {
-			spacing: ['xs', 'sm', 'md', 'lg', 'xl'],
+export const twMerge = extendTailwindMerge<SteppedGroup>(
+	{
+		extend: {
+			theme: {
+				spacing: ['xs', 'sm', 'md', 'lg', 'xl'],
+			},
+			classGroups,
 		},
-		classGroups,
-		conflictingClassGroups: steppedConflicts(),
 	},
-})
+	(config) => {
+		const groups: Record<string, readonly string[] | undefined> = config.conflictingClassGroups
+
+		for (const [group, contained] of Object.entries(steppedConflicts(groups))) {
+			groups[group] = [...(groups[group] ?? []), ...contained]
+		}
+
+		return config
+	},
+)

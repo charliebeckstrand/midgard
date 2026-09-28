@@ -1,6 +1,7 @@
 'use client'
 
-import { useCallback, useEffect, useLayoutEffect, useRef } from 'react'
+import { useCallback, useLayoutEffect, useRef } from 'react'
+import { useReportedChange } from '../../hooks/use-reported-change'
 
 /**
  * Scrolls one element to its own bottom. The `scrollTop` rather than `scrollTo`
@@ -67,17 +68,9 @@ export function useChatScroll<T>(dependency?: T) {
 		if (containerRef.current) toBottom(containerRef.current, 'auto')
 	}, [])
 
-	// The dependency of the last scroll. It starts at the mount value, because the
+	// A change of the dependency scrolls. The mount value does not, because the
 	// mount-time jump above already lands on the bottom.
-	const scrolledFor = useRef(dependency)
-
-	useEffect(() => {
-		if (Object.is(scrolledFor.current, dependency)) return
-
-		scrolledFor.current = dependency
-
-		scrollToBottom()
-	}, [dependency, scrollToBottom])
+	useReportedChange(dependency, scrollToBottom)
 
 	return { containerRef, scrollToBottom }
 }
