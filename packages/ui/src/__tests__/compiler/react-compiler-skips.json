@@ -1,7 +1,4 @@
 {
-	"hooks/use-controllable.ts": {
-		"useControllable": "Refs"
-	},
 	"hooks/use-floating-disclosure.ts": {
 		"useFloatingDisclosure": "Refs"
 	},
