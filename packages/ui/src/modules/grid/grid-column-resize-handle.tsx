@@ -5,6 +5,7 @@ import { announce, cn, dataAttr } from '../../core'
 import { useDragCursor } from '../../hooks'
 import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useTimeout } from '../../hooks/use-timeout'
+import { Splitter } from '../../primitives/panel/splitter'
 import { k } from '../../recipes/kata/grid'
 import { describeResize } from './engine/grid-announcements'
 import {
@@ -110,16 +111,13 @@ export function GridColumnResizeHandle({
 	}
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an interactive window-splitter is role="separator" with aria-value*; <hr> is a non-interactive thematic break
-		<span
-			role="separator"
+		<Splitter
 			aria-orientation="vertical"
 			aria-label={`Resize ${label}`}
 			aria-valuenow={Math.round(size)}
 			aria-valuetext={`${Math.round(size)} pixels`}
 			aria-valuemin={min}
 			aria-valuemax={max < Number.MAX_SAFE_INTEGER ? max : undefined}
-			tabIndex={0}
 			data-resizing={dataAttr(resizing)}
 			className={cn(k.resize.handle)}
 			onMouseDown={(event) => {
@@ -174,6 +172,6 @@ export function GridColumnResizeHandle({
 			onKeyDown={handleKeyDown}
 		>
 			<span aria-hidden="true" className={cn(k.resize.grip)} />
-		</span>
+		</Splitter>
 	)
 }

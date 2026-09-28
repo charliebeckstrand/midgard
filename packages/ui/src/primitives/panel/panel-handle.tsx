@@ -2,6 +2,7 @@
 
 import type { PanelResize } from '../../hooks/use-panel-resize'
 import type { Orientation } from '../../types'
+import { Splitter } from './splitter'
 
 /** Props for {@link PanelHandle}. @internal */
 export type PanelHandleProps = {
@@ -25,9 +26,9 @@ export type PanelHandleProps = {
 /**
  * The grab bar of a resizable panel.
  *
- * A window splitter — `role="separator"` with a tab stop — which is what a
- * resize control is. It answers the arrow keys as well as the drag. A panel
- * only a pointer can size is one a keyboard reader cannot open up.
+ * A {@link Splitter}, which is what a resize control is. It answers the arrow
+ * keys as well as the drag. A panel only a pointer can size is one a keyboard
+ * reader cannot open up.
  * `aria-valuenow` reads as the share of the screen the panel covers, so the
  * value means the same thing a reader can see.
  *
@@ -49,20 +50,17 @@ export function PanelHandle({
 	bar,
 }: PanelHandleProps) {
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an <hr> is void and cannot hold the bar this draws, and the focusable window-splitter pattern this implements is a div by convention
-		<div
+		<Splitter
 			data-slot={slot}
-			role="separator"
 			aria-label="Resize panel"
 			aria-orientation={orientation}
 			aria-valuenow={covers}
 			aria-valuemin={0}
 			aria-valuemax={100}
-			tabIndex={0}
 			{...handleProps}
 			className={className}
 		>
 			<div className={bar} />
-		</div>
+		</Splitter>
 	)
 }

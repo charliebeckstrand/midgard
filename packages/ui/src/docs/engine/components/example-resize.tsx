@@ -8,6 +8,7 @@ import {
 	useState,
 } from 'react'
 import { cn, dataAttr } from '../../../core'
+import { Splitter } from '../../../primitives/panel/splitter'
 import { TouchTarget } from '../../../primitives/touch-target'
 
 /**
@@ -350,11 +351,9 @@ type ExampleResizeHandleProps = {
 }
 
 /**
- * The grip on an {@link Example} frame's right edge: an interactive
- * window-splitter rendered as a focusable `div` with `role="separator"`. An
- * `<hr>` is a non-interactive thematic break, so it cannot carry the splitter's
- * value semantics. Its `aria-valuenow` tracks the current width; drag it or use
- * the arrow keys (Home/End for a defined bound) to resize the frame. A
+ * The grip on an {@link Example} frame's right edge: a {@link Splitter}. Its
+ * `aria-valuenow` tracks the current width; drag it or use the arrow keys
+ * (Home/End for a defined bound) to resize the frame. A
  * {@link TouchTarget} floors the pointer/touch hit area to the WCAG minimums:
  * 24px on fine pointers, 44px on coarse. It does not widen the slim visible
  * grip, whose two bars are its children.
@@ -369,17 +368,14 @@ export function ExampleResizeHandle({
 	handlers,
 }: ExampleResizeHandleProps) {
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: an interactive window-splitter is role="separator" with aria-value*; <hr> is a non-interactive thematic break
-		<div
+		<Splitter
 			data-slot="example-resize-handle"
 			data-resizing={dataAttr(resizing)}
-			role="separator"
 			aria-orientation="vertical"
 			aria-label="Resize example"
 			aria-valuenow={width !== undefined ? Math.round(width) : undefined}
 			aria-valuemin={maxDefined(resolved.min, floor)}
 			aria-valuemax={resolved.max}
-			tabIndex={0}
 			onPointerDown={handlers.onPointerDown}
 			onPointerMove={handlers.onPointerMove}
 			onPointerUp={handlers.onPointerUp}
@@ -397,6 +393,6 @@ export function ExampleResizeHandle({
 				<span className="h-4 w-px bg-current" />
 				<span className="h-4 w-px bg-current" />
 			</TouchTarget>
-		</div>
+		</Splitter>
 	)
 }
