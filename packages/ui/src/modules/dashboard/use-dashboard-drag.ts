@@ -9,6 +9,7 @@ import type {
 } from '@dnd-kit/core'
 import { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useSortableSensors } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { type DashboardCommit, endGesture, measureGesture } from './dashboard-gesture'
 import {
 	describeDragCancel,
@@ -108,9 +109,14 @@ export function useDashboardDrag({
 	/** The last target, so a move inside one unit does nothing. */
 	const targetRef = useRef<{ x: number; y: number } | null>(null)
 
-	const callbacks = useRef({ commit, onDragStart, onDragEnd })
+	// The handlers read the newest callbacks, and they keep their identity.
+	const commitCells = useStableEvent(commit)
 
-	callbacks.current = { commit, onDragStart, onDragEnd }
+	const reportDragStart = useStableEvent((event: DashboardGestureStartEvent) =>
+		onDragStart?.(event),
+	)
+
+	const reportDragEnd = useStableEvent((event: DashboardGestureEndEvent) => onDragEnd?.(event))
 
 	// The announcements read it after the end of the drag, so it stays until the next start.
 	const sensed = useRef<SensedDrag | null>(null)
@@ -167,9 +173,9 @@ export function useDashboardDrag({
 				},
 			})
 
-			callbacks.current.onDragStart?.({ id, layout })
+			reportDragStart({ id, layout })
 		},
-		[store, canvasRef],
+		[store, canvasRef, reportDragStart],
 	)
 
 	const handleDragMove = useCallback(
@@ -227,11 +233,11 @@ export function useDashboardDrag({
 			targetRef.current = null
 
 			endGesture(store, gesture.id, keep, {
-				commit: callbacks.current.commit,
-				onEnd: callbacks.current.onDragEnd,
+				commit: commitCells,
+				onEnd: reportDragEnd,
 			})
 		},
-		[store],
+		[store, reportDragEnd, commitCells],
 	)
 
 	/** Receives the end of the dnd-kit drag: `keep` for a drop, else a cancel. */

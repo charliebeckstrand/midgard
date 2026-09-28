@@ -75,9 +75,6 @@
 	"hooks/use-panel-resize.ts": {
 		"usePanelResize": "Immutability"
 	},
-	"hooks/use-truncation.ts": {
-		"useTruncation": "Refs"
-	},
 	"hooks/use-virtual-window.ts": {
 		"useWindowVirtualizer": "Refs",
 		"useVirtualWindow": "Immutability"
@@ -96,12 +93,6 @@
 	},
 	"modules/dashboard/dashboard.tsx": {
 		"Dashboard": "Refs"
-	},
-	"modules/dashboard/use-dashboard-drag.ts": {
-		"useDashboardDrag": "Refs"
-	},
-	"modules/dashboard/use-dashboard-resize.ts": {
-		"useDashboardResize": "Refs"
 	},
 	"modules/grid/grid-context-menu.tsx": {
 		"GridContextMenu": "PreserveManualMemo"
@@ -124,9 +115,6 @@
 	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
-	},
-	"modules/grid/use-grid-new-row.ts": {
-		"useGridNewRow": "Refs"
 	},
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
