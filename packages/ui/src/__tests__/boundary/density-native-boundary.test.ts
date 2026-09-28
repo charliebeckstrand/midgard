@@ -119,7 +119,7 @@ function filesMatching(pattern: RegExp): string[] {
 //   - Button, whose element is the registered link or a `<button>`, and Drawer,
 //     whose element is a `motion.div`. Each writes both channels itself.
 //   - The grid's `GridOverlayDensity`, a context-only relay around a surface
-//     that writes its own `data-density`.
+//     that writes its own `data-density`. Its context is private to its file.
 
 const CONTEXT_OPENERS = [
 	'components/button/button.tsx',

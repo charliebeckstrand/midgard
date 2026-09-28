@@ -215,14 +215,17 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 /**
  * The step of the nearest density scope around the grid, read above the scope
  * of its table. An overlay that the grid spawns renders at it, rather than at
- * the tightened step of its cells. It is `md` outside a grid.
+ * the tightened step of its cells. It is `md` outside a grid. The one reader is
+ * {@link GridOverlayDensity}, so no other file reads the step in JS through it.
  *
  * @internal
  */
-export const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
+const [GridOverlayDensityContext, useGridOverlayDensity] = createContext<DensityStep>(
 	'GridOverlayDensity',
 	{ default: 'md' },
 )
+
+export { GridOverlayDensityContext }
 
 /**
  * Restores the step around the grid inside an overlay whose trigger lives in
