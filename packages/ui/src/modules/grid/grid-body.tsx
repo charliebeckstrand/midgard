@@ -105,7 +105,7 @@ type GridBodyProps<T> = GridRowsProps<T> & {
 		/** Infinite-scroll gates, or `null` when the windowed grid isn't infinite-scrolling. */
 		infiniteScroll: ResolvedInfiniteScroll | null
 		/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
-		fitRenderedRows: (renderedCount: number) => void
+		fitRenderedRows: () => void
 		/** Whether the header sticks, so the window aligns a row below it. */
 		stickyHeader: boolean
 	} | null

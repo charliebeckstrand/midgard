@@ -12,18 +12,15 @@ import { useLayoutEffect } from 'react'
  * therefore fits against an empty body first. The fit runs from a layout
  * effect, before the window paints, so the first frame of the rows carries
  * content widths, not the floor-only fit. A new count of rendered rows runs it
- * again.
+ * again. A window with no rows has nothing to measure, so it does not run.
  *
  * @param renderedCount - The count of rows that the window renders.
- * @param fitRenderedRows - The autosizer's re-fit for a count of rendered rows,
- * a no-op once a fit has read rows or while the window has none.
+ * @param fitRenderedRows - The autosizer's re-fit, a no-op once a fit has read
+ * rows.
  * @internal
  */
-export function useGridFitRenderedRows(
-	renderedCount: number,
-	fitRenderedRows: (renderedCount: number) => void,
-): void {
+export function useGridFitRenderedRows(renderedCount: number, fitRenderedRows: () => void): void {
 	useLayoutEffect(() => {
-		fitRenderedRows(renderedCount)
+		if (renderedCount > 0) fitRenderedRows()
 	}, [renderedCount, fitRenderedRows])
 }

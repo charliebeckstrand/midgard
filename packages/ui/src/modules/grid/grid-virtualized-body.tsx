@@ -102,7 +102,7 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
 	 * rows to measure (see `useGridColumnSizing`). Called from a layout effect, so
 	 * the widths land before those rows paint; a no-op once a fit has read rows.
 	 */
-	fitRenderedRows: (renderedCount: number) => void
+	fitRenderedRows: () => void
 	/** Whether the header sticks to the top edge, so an aligned row must land below it. */
 	stickyHeader: boolean
 }

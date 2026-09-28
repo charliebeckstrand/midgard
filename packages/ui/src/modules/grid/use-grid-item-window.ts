@@ -27,7 +27,7 @@ export type GridItemWindowOptions = {
 	estimateSize: number
 	overscan: number
 	/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
-	fitRenderedRows: (renderedCount: number) => void
+	fitRenderedRows: () => void
 	/** Whether the header sticks, so the window aligns a row below it. */
 	stickyHeader: boolean
 	/** The cursor's row scroller, which the body sets while it is mounted. */

@@ -98,7 +98,7 @@ type GridColumnSizingResult = {
 	resetWidths: () => void
 	/** Takes width control for the user; a keyboard nudge calls it. */
 	takeControl: () => void
-	fitRenderedRows: (renderedCount: number) => void
+	fitRenderedRows: () => void
 	/** Whether the first width pass has happened; the table paints once it has. */
 	settled: boolean
 	/**
@@ -429,14 +429,11 @@ export function useGridColumnSizing<T>({
 
 	// Re-measure when the inputs `refit` closes over change (columns, density) or the
 	// visible rows change (`rowsSig` — a page turn, filter, or sort can bring wider
-	// content into view). The observer effect below performs the initial
-	// synchronous fit, so the first pass here is skipped.
-	const initialFitRef = useRef(false)
-
-	// The signatures at the last fit, so a change of the rows alone is told apart
-	// from a change of the structure when the widths are frozen (see
-	// `freezeOnRowChange`).
-	const fittedRef = useRef({ struct: structSig, rows: rowsSig })
+	// content into view). The signatures at the last pass tell a change of the rows
+	// alone from a change of the structure when the widths are frozen (see
+	// `freezeOnRowChange`). They are `null` before the first pass, which this effect
+	// skips, because the observer effect below performs the initial synchronous fit.
+	const fittedRef = useRef<{ struct: string; rows: string } | null>(null)
 
 	useLayoutEffect(() => {
 		if (!automatic) return
@@ -445,11 +442,7 @@ export function useGridColumnSizing<T>({
 
 		fittedRef.current = { struct: structSig, rows: rowsSig }
 
-		if (!initialFitRef.current) {
-			initialFitRef.current = true
-
-			return
-		}
+		if (fitted === null) return
 
 		// Frozen widths (infinite scroll's stable columns) hold against an appended
 		// batch: a change of the rows alone re-measures nothing, and the columns keep
@@ -474,16 +467,12 @@ export function useGridColumnSizing<T>({
 	// their first frame carries the content widths instead of the floor-only fit the
 	// empty body measured, and the widths never move again under the user's eyes.
 	// Once a pass has read rows this is a bail, leaving the windowed scroll — and
-	// `freezeOnRowChange` — to behave exactly as before. A window with no rows has
-	// nothing to measure, so it bails too.
-	const fitRenderedRows = useCallback(
-		(renderedCount: number) => {
-			if (!automatic || renderedCount === 0 || sizer.measured()) return
+	// `freezeOnRowChange` — to behave exactly as before.
+	const fitRenderedRows = useCallback(() => {
+		if (!automatic || sizer.measured()) return
 
-			refitLatest(true)
-		},
-		[automatic, sizer, refitLatest],
-	)
+		refitLatest(true)
+	}, [automatic, sizer, refitLatest])
 
 	// Own the ResizeObserver in its own effect, keyed only on enablement and the
 	// container, so a width-only container resize is the one thing that recreates it
