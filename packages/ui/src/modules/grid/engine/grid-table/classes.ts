@@ -17,14 +17,13 @@ export function resolveStep(condensed: boolean, size: DensityStep | undefined) {
 }
 
 /**
- * Table className with the {@link GridDataProps.condensed} down-projections —
- * cell font, header/body icons, and consumer badges — layered onto the resolved
- * layout class, or that class untouched. All cast from the `<table>` onto its
- * descendants, so cells and headers read no context (see `kata/grid`
- * `condensed`). @internal
+ * Table className with the {@link GridDataProps.condensed} cell font layered
+ * onto the resolved layout class, or that class untouched. It is cast from the
+ * `<table>` onto the cells, so cells and headers read no context (see
+ * `kata/grid` `condensed`). @internal
  */
 export function condensedTableClass(condensed: boolean, base: string): string {
-	return condensed ? cn(base, k.condensed.font, k.condensed.icon, k.condensed.badge) : base
+	return condensed ? cn(base, k.condensed.font) : base
 }
 
 /**

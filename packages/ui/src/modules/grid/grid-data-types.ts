@@ -709,13 +709,11 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 * resize-handle width, the virtualized row-height estimate, and autosize
 	 * measurement. It additionally:
 	 *
-	 * - steps header and body cell text below the table's base to `text-sm`;
-	 * - steps every icon in a header or body cell to the compact size, and steps
-	 *   a consumer `Badge`'s text down to match. That covers the grid's own
-	 *   chrome (sort arrow, pin, grip, filter) and a consumer's `Icon` or
-	 *   `Badge`-slot icon; and
+	 * - steps header and body cell text below the table's base to `text-sm`; and
 	 * - makes the *table* an `sm` density scope, so cell content with no `size`
-	 *   (an inline `Input`, the selection checkbox) takes the `sm` step.
+	 *   takes the `sm` step. That covers the grid's own chrome (sort arrow, pin,
+	 *   grip, filter), the selection checkbox, and a consumer's `Input`, `Icon`,
+	 *   or `Badge`. Cell content with an explicit `size` keeps that size.
 	 *
 	 * Scoped to the table. A portaled overlay the grid spawns takes the step
 	 * around the grid rather than the condensed step. A context menu and the
@@ -725,8 +723,8 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *
 	 * @remarks
 	 * Orthogonal to {@link GridDataProps.size}, not a step on it. `size` moves
-	 * the density step; `condensed` moves the step and projects the text, icon,
-	 * and badge classes above, table-scoped, so it cannot fold into `size`.
+	 * the density step; `condensed` moves the step and projects the cell text
+	 * class above, table-scoped, so it cannot fold into `size`.
 	 * `condensed` with an explicit `size` is legal: `condensed` wins, so the table
 	 * scope is `sm`, and `condensed` layers its projection over the table.
 	 * @defaultValue false

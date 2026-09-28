@@ -713,19 +713,9 @@ export const k = {
 		// selector targets the cell element, so a consumer cell that sets its own
 		// size still overrides it. Tailwind scans whole literals, so each class is
 		// written out.
+		// An icon or a badge in a cell takes the `sm` step of the table scope, and
+		// one with an explicit `size` keeps that size.
 		font: ['[&>*>tr>td]:text-sm', '[&>*>tr>th]:text-sm'],
-		// Step every icon in a header or body cell to the compact `size-4`: the
-		// grid's own header chrome (sort arrow, pin, grip, filter) and a consumer's
-		// `<Icon>` in a cell — standalone or inside a `<Badge>`, whose icon slot is
-		// a nested `data-slot=icon`. An icon with no `size` already takes `size-4`
-		// from the `sm` scope of the table. This plain class also overrides an
-		// explicit `size`.
-		icon: ['[&>*>tr>th_[data-slot=icon]]:size-4', '[&>*>tr>td_[data-slot=icon]]:size-4'],
-		// Step a consumer `<Badge>` in a cell down one size: match the cell-font
-		// step on its text (its icon slot rides the `icon` rule above). A badge
-		// with no `size` already takes `text-sm` from the `sm` scope of the table.
-		// This plain class also overrides an explicit `size`.
-		badge: '[&>*>tr>td_[data-slot=badge]]:text-sm',
 	},
 	// The opt-in summary footer (`GridFooter`) below the table: a small, muted
 	// status bar. Wraps on narrow viewports; the leading slot holds a single count

@@ -32,7 +32,7 @@ describe('Grid condensed', () => {
 		)
 	})
 
-	it('projects the cell-font, icon, and badge step-downs onto the table', () => {
+	it('projects the cell-font step-down onto the table', () => {
 		renderUI(<Grid condensed columns={columns} rows={rows} getKey={getKey} />)
 
 		const table = screen.getByRole('table')
@@ -40,12 +40,6 @@ describe('Grid condensed', () => {
 		expect(table).toHaveClass('[&>*>tr>td]:text-sm')
 
 		expect(table).toHaveClass('[&>*>tr>th]:text-sm')
-
-		expect(table).toHaveClass('[&>*>tr>th_[data-slot=icon]]:size-4')
-
-		expect(table).toHaveClass('[&>*>tr>td_[data-slot=icon]]:size-4')
-
-		expect(table).toHaveClass('[&>*>tr>td_[data-slot=badge]]:text-sm')
 	})
 
 	it('omits the projections on a plain grid', () => {
