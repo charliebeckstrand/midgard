@@ -105,6 +105,9 @@ export type MapCoverage = {
  */
 const NO_PLACEMENT: { features: MapFeature[]; groups: string[] } = { features: [], groups: [] }
 
+/** Stands in front of each group id in the content key of {@link useMapCoverage}. @internal */
+const GROUP_SEPARATOR = '\u001e'
+
 /**
  * Resolves a ZIP-code territory into the two things a map draws it with: the
  * geography to frame, and the outline to fence.
@@ -188,17 +191,20 @@ export function useMapCoverage({
 
 	// The groups by content, which is what the frame actually answers. Every stage
 	// above re-runs on each keystroke and hands this one fresh objects, but the
-	// states a territory lands in rarely change while it is typed.
-	const groupKey = placed.groups.join(',')
+	// states a territory lands in rarely change while it is typed. Each id takes a
+	// record separator in front, which no group id holds, so the key splits back to
+	// the exact set, an empty id included.
+	const groupKey = placed.groups.map((group) => `${GROUP_SEPARATOR}${group}`).join('')
 
 	// Held on that key, so a frame keeps its identity across a keystroke that did
 	// not change the states. `MapPlat` keys its decode, its canonical fit, its
 	// region paths, and its chrome on this object — all in weak maps — so a fresh
 	// one on every keystroke would re-project the whole county atlas twice per
-	// character and never once hit the caches built to prevent exactly that.
-	// biome-ignore lint/correctness/useExhaustiveDependencies: `placed.groups` is keyed by `groupKey`, its content
+	// character and never once hit the caches built to prevent exactly that. The
+	// set is read back off the key, so the memo depends on nothing else.
 	const geography = useMemo(
-		() => groupFrame(placed.features, new Set(placed.groups), regionGroup),
+		() =>
+			groupFrame(placed.features, new Set(groupKey.split(GROUP_SEPARATOR).slice(1)), regionGroup),
 		[placed.features, groupKey, regionGroup],
 	)
 

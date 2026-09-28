@@ -65,9 +65,6 @@
 	"modules/grid/use-grid-window-motion.ts": {
 		"useGridWindowMotion": "Refs"
 	},
-	"modules/map/use-map-coverage.ts": {
-		"useMapCoverage": "PreserveManualMemo"
-	},
 	"modules/map/use-map-overlay.ts": {
 		"useMapOverlay": "Refs"
 	},
