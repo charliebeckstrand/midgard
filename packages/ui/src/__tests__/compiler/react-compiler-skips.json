@@ -45,9 +45,6 @@
 	"components/resizable/use-resizable-panel.ts": {
 		"useResizablePanel": "Refs"
 	},
-	"hooks/a11y/use-a11y-roving.ts": {
-		"useA11yRoving": "PreserveManualMemo"
-	},
 	"hooks/use-controllable.ts": {
 		"useControllable": "Refs"
 	},
