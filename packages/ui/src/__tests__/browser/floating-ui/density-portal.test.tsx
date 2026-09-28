@@ -1,7 +1,9 @@
 import { afterEach, describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
+import { Combobox, ComboboxOption } from '../../../components/combobox'
 import { Dialog, DialogHeader, DialogTitle } from '../../../components/dialog'
 import { Input } from '../../../components/input'
+import { Listbox, ListboxOption } from '../../../components/listbox'
 import { Menu, MenuContent, MenuItem, MenuSub, MenuTrigger } from '../../../components/menu'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../components/popover'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
@@ -143,6 +145,44 @@ describe('density scopes across portals (real browser)', () => {
 		const tip = await screen.findByText('Tip')
 
 		await waitFor(() => expect(fontOf(tip)).toBe(font))
+	})
+
+	it('sizes a listbox option at the step of a compact provider', async () => {
+		renderUI(
+			<DensityProvider density="compact">
+				<Listbox aria-label="Fruit" defaultValue="apple">
+					<ListboxOption value="apple">Apple</ListboxOption>
+					<ListboxOption value="pear">Pear</ListboxOption>
+				</Listbox>
+			</DensityProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+
+		const option = await screen.findByRole('option', { name: 'Pear' })
+
+		expect(option.closest('[data-slot="density"]')).toBeNull()
+
+		expect(fontOf(option)).toBe(14)
+	})
+
+	it('sizes a combobox option at the step of a compact provider', async () => {
+		renderUI(
+			<DensityProvider density="compact">
+				<Combobox<string> aria-label="Fruit">
+					<ComboboxOption value="apple">Apple</ComboboxOption>
+					<ComboboxOption value="pear">Pear</ComboboxOption>
+				</Combobox>
+			</DensityProvider>,
+		)
+
+		await userEvent.click(screen.getByRole('combobox', { name: 'Fruit' }))
+
+		const option = await screen.findByRole('option', { name: 'Pear' })
+
+		expect(option.closest('[data-slot="density"]')).toBeNull()
+
+		expect(fontOf(option)).toBe(14)
 	})
 
 	// A control slot is a scope one step below its control in CSS only. A panel that

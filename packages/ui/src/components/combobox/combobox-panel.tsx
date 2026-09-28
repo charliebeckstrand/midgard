@@ -5,6 +5,7 @@ import { AnimatePresence } from 'motion/react'
 import type { CSSProperties, ReactNode, Ref } from 'react'
 import { ariaAttr, cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
+import { useDensityScope } from '../../primitives/density'
 import { PopoverPanel } from '../../primitives/popover'
 import { usePortalContainer } from '../../primitives/portal'
 import { k } from '../../recipes/kata/combobox'
@@ -61,9 +62,13 @@ export function ComboboxPanel({
 }: ComboboxPanelProps) {
 	const root = usePortalContainer()
 
+	// A portal takes the panel out of the DOM subtree of its scope, so the root
+	// writes the step of the scope that opened it, as `FloatingSurface` does.
+	const inherited = useDensityScope()
+
 	return (
 		<FloatingPortal root={root ?? undefined}>
-			<div ref={optionsRef}>
+			<div ref={optionsRef} data-density={size ?? inherited ?? undefined}>
 				<AnimatePresence onExitComplete={flushPending}>
 					{open && (
 						<div
