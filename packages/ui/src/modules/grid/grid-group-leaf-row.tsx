@@ -7,7 +7,6 @@ import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
 import { MountHold } from '../../primitives/mount'
-import type { DensityLevel } from '../../providers/density'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { NO_PADDING } from './engine/grid-constants'
@@ -61,7 +60,6 @@ type GridGroupLeafRowProps<T> = {
 	cellActivate?: GridCellRovingActivate<T>
 	truncate: boolean
 	pinning: GridColumnPinning | null
-	density: DensityLevel
 	/** The group's overlay color, coloring each leaf's leading rail; `undefined` keeps it neutral. */
 	color?: PaletteColor
 	/**
@@ -281,13 +279,12 @@ export function GridGroupLeafRow<T>({
 	cellActivate,
 	truncate,
 	pinning,
-	density,
 	color,
 	enter = false,
 	level,
 	...windowRow
 }: GridGroupLeafRowProps<T>) {
-	const pad = k.rowGroup.reveal.pad({ density })
+	const pad = k.rowGroup.reveal.pad
 
 	// The cursor makes a client-grouped grid a treegrid, which reads the level.
 	const tree = useGridNavContext().enabled

@@ -134,6 +134,8 @@ const NATIVE_FILES = [
 	'components/tree/tree.tsx',
 	'layouts/sidebar/sidebar.tsx',
 	'modules/chat/chat-list-item.tsx',
+	'modules/grid/grid-data-table.tsx',
+	'modules/grid/grid-region.tsx',
 	'primitives/option/option.tsx',
 	'primitives/panel/panel-providers.tsx',
 	'primitives/panel/slots.tsx',
@@ -247,5 +249,44 @@ describe('density after a pseudo-element', () => {
 		})
 
 		expect(violations).toEqual([])
+	})
+})
+
+// A component that reads the step as a JS value paints the `md` step on the
+// server and in the hydration render, so the markup is wrong at the first
+// paint. Only the files below may read it. Each uses the value only for work
+// after mount, or for a context that a client descendant reads after mount.
+//
+//   - Chart and scatter chart: the tick cap. With no `width`, the server
+//     renders an empty frame, and the chart measures before the first paint.
+//   - GridData: the virtualizer estimate, the autosizer refit key, and the
+//     step of the overlays that the grid opens.
+//   - The density primitive and `useDensityLevel`: the hooks themselves.
+
+const STEP_READERS = [
+	'modules/chart/engine/use-chart-cartesian.ts',
+	'modules/chart/scatter-chart/scatter-chart.tsx',
+	'modules/grid/grid-data.tsx',
+	'primitives/density/density.tsx',
+	'providers/density/use-density-level.ts',
+]
+
+const STEP_READ = /\buseDensity(?:Step|Level)\(/
+
+describe('density step readers', () => {
+	it('only the listed files read the density step in JS', () => {
+		const readers: string[] = []
+
+		walkSource(srcDir, (file, content) => {
+			if (!/\.tsx?$/.test(file)) return
+
+			const rel = srcRelative(file)
+
+			if (rel.startsWith('__tests__')) return
+
+			if (STEP_READ.test(stripSourceComments(content))) readers.push(rel)
+		})
+
+		expect(readers.sort()).toEqual(STEP_READERS)
 	})
 })

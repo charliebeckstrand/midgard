@@ -6,12 +6,16 @@ import { k } from '../../../../recipes/kata/grid'
  * Effective density under {@link GridDataProps.condensed}. The tight preset
  * forces the compact step for every density-derived metric: cell padding,
  * resize-handle width, virtualized row-height, autosize measurement. A plain
- * grid keeps its resolved level. Kept out of {@link GridData} so its branch
+ * grid keeps its own level, which is `undefined` for a grid that follows the
+ * nearest scope. Kept out of {@link GridData} so its branch
  * doesn't weigh on the component's complexity budget.
  *
  * @internal
  */
-export function resolveDensity(condensed: boolean, resolved: DensityLevel): DensityLevel {
+export function resolveDensity<L extends DensityLevel | undefined>(
+	condensed: boolean,
+	resolved: L,
+): L | 'compact' {
 	return condensed ? 'compact' : resolved
 }
 

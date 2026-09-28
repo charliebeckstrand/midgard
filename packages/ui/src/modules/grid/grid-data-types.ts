@@ -694,9 +694,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	/**
 	 * Density level for the cell padding and the metrics of the grid: resize
 	 * handles, column autosize, and the row-height estimate of the virtualizer.
-	 * The grid passes its step to `Table` as `size`. Grid needs the level as a
-	 * JS value, so an omitted `density` reads an enclosing `DensityProvider`.
-	 * @defaultValue 'snug'
+	 * It opens a density scope on the table: the grid passes its step to `Table`
+	 * as `size`. Without it, the grid takes the step of the nearest density scope
+	 * in CSS, so it paints at the stored density from the first frame. The
+	 * autosizer and the virtualizer read that step in JS after mount.
 	 * @see {@link useDensityLevel} for the explicit-then-ambient resolution.
 	 */
 	density?: DensityLevel

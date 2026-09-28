@@ -2,7 +2,6 @@
 
 import { type ComponentProps, type TransitionEvent, useMemo, useRef } from 'react'
 import type { PaletteColor } from '../../core/recipe'
-import type { DensityLevel } from '../../providers/density'
 import type { GridGroup, GridLeaf } from './engine/grid-group/tree'
 import {
 	type GridGroupedWindowItem,
@@ -153,7 +152,6 @@ type GridVirtualizedGroupedBodyProps<T> = {
 	renderHeader: GridGroupBy['renderHeader']
 	/** Whether each group shows a total row. */
 	totaled: boolean
-	density: DensityLevel
 	/** The row-manager overlay presentation (per-group color), or `null` when off. */
 	presentation: GridRowGroupPresentation | null
 	/** The leaf row props from the shared body wiring. */
@@ -193,7 +191,6 @@ export function GridVirtualizedGroupedBody<T>({
 	columnId,
 	renderHeader,
 	totaled,
-	density,
 	presentation,
 	leafProps,
 	window,
@@ -280,7 +277,6 @@ export function GridVirtualizedGroupedBody<T>({
 							rows={item.rows}
 							variant="group"
 							expanded={item.phase === 'open'}
-							density={density}
 							color={color}
 							navKey={item.reactKey}
 							{...windowRow(item, virtualItem.index)}

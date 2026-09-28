@@ -1,9 +1,9 @@
 /**
  * Data-table kata: object-literal surface for the table chrome that sits
  * around `kata/table` — sticky head, batch-action bar, sort controls, column
- * drag-reorder, and the row-loading pulse. No top-level variants axis. Three
- * sub-recipes: `sort.icon`, inked or muted by the active sort, and the
- * density-axed `resize.metrics` and `rowGroup.reveal.pad`.
+ * drag-reorder, and the row-loading pulse. No top-level variants axis. One
+ * sub-recipe: `sort.icon`, inked or muted by the active sort. The
+ * `resize.metrics` and `rowGroup.reveal.pad` classes are stepped.
  */
 import { defineRecipe, mode, type PaletteColor } from '../../core/recipe'
 import { hannou, iro, ji, kasane, narabi, omote, sen, ugoki } from '../kiso'
@@ -27,9 +27,9 @@ const sortIcon = defineRecipe({
 /**
  * Density-scaled resize metrics, projected from the `<table>` element onto the
  * resizable headers (those carrying `data-resizable`). They therefore override
- * the density cell padding at higher specificity without `!important`. Keyed by
- * the friendly density level the grid forwards to `<Table>`. Two coupled
- * measures:
+ * the density cell padding at higher specificity without `!important`. Each is
+ * a stepped class, so it takes the step of the nearest density scope, as the
+ * cell padding does. Two coupled measures:
  *
  * - the header's trailing padding (`pe-*`, the inline end), so its label clears
  *   the handle; and
@@ -43,17 +43,10 @@ const sortIcon = defineRecipe({
  * header label and body values truncate, so the grip meets the value instead of
  * cutting through it.
  */
-const resizeMetrics = defineRecipe({
-	density: {
-		compact: [
-			'[&>*>tr>th[data-resizable]]:pe-2',
-			'[&>*>tr>th[data-resizable]>[role=separator]]:w-2',
-		],
-		snug: ['[&>*>tr>th[data-resizable]]:pe-4', '[&>*>tr>th[data-resizable]>[role=separator]]:w-4'],
-		loose: ['[&>*>tr>th[data-resizable]]:pe-6', '[&>*>tr>th[data-resizable]>[role=separator]]:w-6'],
-	},
-	defaults: { density: 'snug' },
-})
+const resizeMetrics = [
+	'[&>*>tr>th[data-resizable]]:density-pe-[2,4,6]',
+	'[&>*>tr>th[data-resizable]>[role=separator]]:density-w-[2,4,6]',
+]
 
 /**
  * Opaque fill behind every sticky grid surface: the sticky header bar and the
@@ -569,13 +562,10 @@ export const k = {
 			// The clip between the grid track and the content: `min-h-0` lets the track
 			// shrink past the content, `overflow-hidden` hides what the collapse clips.
 			clip: ['overflow-hidden', 'min-h-0'],
-			// Per-density cell padding on the reveal wrapper, mirroring kata/table's cell
-			// padding steps (compact → p-1, snug → p-2, loose → p-3) so an animated leaf cell
-			// matches an ordinary one — and collapses that padding to nothing at height 0.
-			pad: defineRecipe({
-				density: { compact: ['p-1'], snug: ['p-2'], loose: ['p-3'] },
-				defaults: { density: 'snug' },
-			}),
+			// The cell padding on the reveal wrapper, in the stepped class of the
+			// kata/table cell padding, so an animated leaf cell matches an ordinary one —
+			// and collapses that padding to nothing at height 0.
+			pad: 'density-p-[1,2,3]',
 		},
 	},
 	aggregate: {
