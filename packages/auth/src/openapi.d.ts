@@ -801,6 +801,127 @@ export interface paths {
 		patch?: never
 		trace?: never
 	}
+	'/auth/account/export': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		/**
+		 * Export your account
+		 * @description Everything kept about the signed-in user, as one JSON file: the account, how they sign in, recent activity, and the data of each app. Secrets and password hashes stay out.
+		 */
+		get: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Your account */
+				200: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['AccountExport']
+					}
+				}
+				/** @description Not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description App data is unavailable */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		put?: never
+		post?: never
+		delete?: never
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
+	'/auth/account': {
+		parameters: {
+			query?: never
+			header?: never
+			path?: never
+			cookie?: never
+		}
+		get?: never
+		put?: never
+		post?: never
+		/**
+		 * Delete your account
+		 * @description Deletes the signed-in user's account and all of its data, ends every session, and emails the owner. Needs the second step, when the user has a second factor, and a sign-in from the last ten minutes. An admin can't delete their account until the admin role is removed.
+		 */
+		delete: {
+			parameters: {
+				query?: never
+				header?: never
+				path?: never
+				cookie?: never
+			}
+			requestBody?: never
+			responses: {
+				/** @description Account deleted */
+				204: {
+					headers: {
+						[name: string]: unknown
+					}
+					content?: never
+				}
+				/** @description Not authenticated */
+				401: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description Second step or a new sign-in needed, or an admin account */
+				403: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+				/** @description App data is unavailable, so nothing was deleted */
+				503: {
+					headers: {
+						[name: string]: unknown
+					}
+					content: {
+						'application/json': components['schemas']['Error']
+					}
+				}
+			}
+		}
+		options?: never
+		head?: never
+		patch?: never
+		trace?: never
+	}
 	'/auth/passkeys': {
 		parameters: {
 			query?: never
@@ -2121,10 +2242,23 @@ export interface components {
 			/** @description Password (8 to 128 characters) */
 			password: string
 		}
-		PasskeyList: {
-			data: components['schemas']['Passkey'][]
-			/** @description Total number of items */
-			total: number
+		AccountExport: {
+			/**
+			 * Format: date-time
+			 * @description ISO 8601 datetime
+			 * @example 2026-01-01T00:00:00.000Z
+			 */
+			exported_at: string
+			user: components['schemas']['User']
+			passkeys: components['schemas']['Passkey'][]
+			connected_accounts: components['schemas']['Identity'][]
+			/** @description Whether an authenticator app is on */
+			authenticator_app: boolean
+			activity: components['schemas']['Activity'][]
+			/** @description Each app's data, as Mimir keeps it */
+			app_data: {
+				[key: string]: unknown
+			}
 		}
 		Passkey: {
 			/** @description Credential ID, base64url */
@@ -2135,6 +2269,18 @@ export interface components {
 			 * @example 2026-01-01T00:00:00.000Z
 			 */
 			created_at: string
+		}
+		Identity: {
+			/** @enum {string} */
+			provider: 'github' | 'google'
+			/** @description The verified email of the account */
+			email: string | null
+			created_at: string
+		}
+		PasskeyList: {
+			data: components['schemas']['Passkey'][]
+			/** @description Total number of items */
+			total: number
 		}
 		Factors: {
 			/** @description Whether sign-in takes a second step */
@@ -2165,13 +2311,6 @@ export interface components {
 		}
 		Identities: {
 			identities: components['schemas']['Identity'][]
-		}
-		Identity: {
-			/** @enum {string} */
-			provider: 'github' | 'google'
-			/** @description The verified email of the account */
-			email: string | null
-			created_at: string
 		}
 		HealthResponse: {
 			/**

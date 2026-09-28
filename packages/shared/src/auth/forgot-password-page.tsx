@@ -10,6 +10,7 @@ import { AuthLayout } from 'ui/layouts'
 import { Link } from 'ui/link'
 import { Text } from 'ui/text'
 import { bifrost } from './bifrost'
+import { ErrorAlert } from './error-alert'
 import { chain, email, required } from './form-validators'
 
 type ForgotPasswordValues = { email: string }
@@ -64,7 +65,7 @@ export function ForgotPasswordPage() {
 					</Text>
 				)}
 
-				{serverError && <Text tone="error">{serverError}</Text>}
+				{serverError && <ErrorAlert onDismiss={() => setServerError('')}>{serverError}</ErrorAlert>}
 
 				<Field>
 					<Label>Email</Label>

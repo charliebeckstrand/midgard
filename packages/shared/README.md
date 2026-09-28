@@ -14,7 +14,8 @@ The apps compile this package from its source, as they do `ui`, so it has no bui
 |---|---|
 | `shared/auth` | Auth UI: `LoginPage`, `RegisterPage`, `VerifyPage` (the second step after a sign-in), and `SecondStepDialog` with `ensureSecondStep` (the second step when a request needs it). `bifrost` is the typed client of the gateway in the browser, and `unwrap` throws for a status that is not OK. `signOut`, `sendVerificationEmail`, `oauthStartPath`, and `signInProviderNames` are the account helpers of the apps. The requests go to the same-origin `/auth/*` and `/api/*` paths, which `withAuth` rewrites to the gateway. |
 | `shared/providers` | `AppProviders`: `UIProvider` with the `Link` of Next, `AppearanceProvider`, and one `QueryClient`. The app gives its query defaults. |
-| `shared/globals.css` | Global stylesheet: the Google Sans Flex font, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class. |
+| `shared/fonts` | `fontSans`: the Google Sans Flex font through `next/font`, which preloads the file and adds a fallback with the same metrics. The root layout puts `fontSans.variable` on `<html>`. |
+| `shared/globals.css` | Global stylesheet: `--font-sans` from `fontSans`, the root styles, and a `dark` variant that follows the `.dark` class. `AppearanceProvider` from `ui/providers/appearance` sets that class. |
 
 `shared/globals.css` names `shared` and `ui` as Tailwind sources, so an app that imports it gets the classes of both. The app names only its own sources.
 

@@ -318,7 +318,7 @@ function HoverReferenceRule({
 	)
 
 	return (
-		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} forceOpen={focused}>
+		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} open={focused}>
 			<TooltipTrigger>
 				{/* Pointing the rule recedes the marks and the sibling rules to it
 				    (composes with the tooltip's own hover handlers through the trigger). */}
