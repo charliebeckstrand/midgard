@@ -282,17 +282,17 @@ export function QueryChips({
 	))
 
 	if (readOnly) {
+		// `min-w-auto` replaces the min-content floor of a `<fieldset>`, so the row
+		// sizes as the `<div>` of the editable bar does.
 		return (
-			// biome-ignore lint/a11y/useSemanticElements: a <fieldset> gives form-field semantics to a row of text. A named role="group" is the correct grouping here
-			<div
+			<fieldset
 				data-slot="query-chips"
 				data-readonly=""
-				role="group"
 				aria-label={ariaLabel}
-				className={cn(k.base, className)}
+				className={cn(k.base, 'min-w-auto', className)}
 			>
 				{body}
-			</div>
+			</fieldset>
 		)
 	}
 

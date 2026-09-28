@@ -14,20 +14,19 @@ export type ToolbarGroupProps = {
 
 /**
  * Visual cluster of related controls within a `<Toolbar>`, rendered as a
- * `role="group"`. Takes its orientation from toolbar context.
+ * `<fieldset>`, which has the `group` role. Takes its orientation from toolbar
+ * context.
  */
 export function ToolbarGroup({ 'aria-label': ariaLabel, className, children }: ToolbarGroupProps) {
 	const { orientation } = useToolbarContext()
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: role="group" is the correct ARIA pattern for clustering related toolbar controls
-		<div
+		<fieldset
 			data-slot="toolbar-group"
-			role="group"
 			aria-label={ariaLabel}
 			className={cn(k.group({ orientation }), className)}
 		>
 			{children}
-		</div>
+		</fieldset>
 	)
 }

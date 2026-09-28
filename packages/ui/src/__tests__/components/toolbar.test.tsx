@@ -203,7 +203,7 @@ describe('Toolbar', () => {
 })
 
 describe('ToolbarGroup', () => {
-	it('has role="group"', () => {
+	it('is a named group', () => {
 		const { container } = renderUI(
 			<Toolbar aria-label="Editor">
 				<ToolbarGroup aria-label="Marks">
@@ -212,11 +212,7 @@ describe('ToolbarGroup', () => {
 			</Toolbar>,
 		)
 
-		const el = bySlot(container, 'toolbar-group')
-
-		expect(el).toHaveAttribute('role', 'group')
-
-		expect(el).toHaveAttribute('aria-label', 'Marks')
+		expect(screen.getByRole('group', { name: 'Marks' })).toBe(bySlot(container, 'toolbar-group'))
 	})
 
 	it('inherits orientation from the surrounding toolbar', () => {

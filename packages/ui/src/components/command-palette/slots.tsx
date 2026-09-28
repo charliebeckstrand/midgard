@@ -37,8 +37,8 @@ export type CommandPaletteGroupProps = ComponentProps<'div'>
  *
  * @remarks
  * The pair replaces the old `title` prop, so grouping is composition here as it
- * is in Menu. The grouping is `role="group"` and not a `<fieldset>`, which a
- * `role="listbox"` owner would reject.
+ * is in Menu. The grouping is a `<div>` with `role="group"`, as in the WAI-ARIA
+ * listbox pattern, so the props and the ref are those of a `<div>`.
  */
 export function CommandPaletteGroup({ className, children, ...props }: CommandPaletteGroupProps) {
 	// The library's slot-registration scope, which Panel and Control also build
@@ -52,7 +52,7 @@ export function CommandPaletteGroup({ className, children, ...props }: CommandPa
 	)
 
 	return (
-		// biome-ignore lint/a11y/useSemanticElements: role="group" is the valid listbox-owned grouping; a <fieldset> would be invalid inside role="listbox"
+		// biome-ignore lint/a11y/useSemanticElements: the public props and ref of this part are those of a <div>. A <fieldset> changes both.
 		<div
 			data-slot="command-palette-group"
 			role="group"

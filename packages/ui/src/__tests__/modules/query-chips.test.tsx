@@ -207,7 +207,7 @@ describe('QueryChips', () => {
 
 		const row = bySlot(container, 'query-chips')
 
-		expect(row).toHaveAttribute('role', 'group')
+		expect(screen.getByRole('group')).toBe(row)
 
 		expect(row).toHaveTextContent('Status is Active OR Age > 30')
 
