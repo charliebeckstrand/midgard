@@ -65,7 +65,7 @@ describe('Tooltip', () => {
 
 		expect(onOpenChange).not.toHaveBeenCalled()
 
-		// jsdom reports no hover, so the tooltip opens on click here.
+		// The floating-ui mock opens on focus, and a click focuses the trigger.
 		await user.click(trigger)
 
 		expect(onOpenChange).toHaveBeenCalledExactlyOnceWith(true)
