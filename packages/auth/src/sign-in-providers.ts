@@ -1,5 +1,5 @@
-import { cache } from 'react'
-import { bifrost, readGateway, type Schema } from './fetch'
+import { cacheLife } from 'next/cache'
+import { publicBifrost, readGateway, type Schema } from './fetch'
 
 /** A provider that a user can sign in with, as the gateway names it. */
 export type SignInProvider = Schema<'Identity'>['provider']
@@ -10,14 +10,21 @@ export type SignInProvider = Schema<'Identity'>['provider']
  *
  * @remarks
  * The gateway turns a provider on when it has the OAuth client of that
- * provider, so a page shows only the buttons that work. Each failure goes to
- * the log. React `cache` wraps it, so repeat calls in one request hit the
- * gateway once.
+ * provider, so a page shows only the buttons that work. The providers are the
+ * same for each user, so the read sends no cookies and the answer goes into the
+ * cache for some hours. Thus the sign-in page can prerender, and a navigation
+ * to it does not wait for the gateway. A new provider can show late. A failure
+ * goes to the log and stays in the cache for one minute at most.
  */
-export const getSignInProviders = cache(async (): Promise<SignInProvider[]> => {
+export async function getSignInProviders(): Promise<SignInProvider[]> {
+	'use cache'
+
 	const data = await readGateway('/auth/oauth/providers', () =>
-		bifrost.GET('/auth/oauth/providers'),
+		publicBifrost.GET('/auth/oauth/providers'),
 	)
 
+	// A prerender leaves out an answer with a short life, so it does not keep a failure.
+	cacheLife(data ? 'hours' : 'seconds')
+
 	return data?.providers ?? []
-})
+}
