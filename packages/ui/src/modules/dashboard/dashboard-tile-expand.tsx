@@ -33,6 +33,8 @@ export type DashboardTileExpandProps = {
 	fallback: ReactNode
 	/** Receives each error that a boundary in the dialog catches. */
 	onError: (error: unknown) => void
+	/** The `width / height` ratio of the tile on the board. The content box of the dialog keeps it. */
+	shape: number
 	/** The tile shell, which finds the element that takes the focus when an open dialog unmounts. */
 	shell: RefObject<HTMLElement | null>
 	/** The widget. */
@@ -74,6 +76,7 @@ export function DashboardTileExpand({
 	description,
 	fallback,
 	onError,
+	shape,
 	shell,
 	children,
 }: DashboardTileExpandProps) {
@@ -137,7 +140,11 @@ export function DashboardTileExpand({
 					)}
 
 					<DialogBody>
-						<div data-slot="dashboard-tile-expanded" className={cn(k.expanded)}>
+						<div
+							data-slot="dashboard-tile-expanded"
+							style={{ aspectRatio: shape }}
+							className={cn(k.expanded)}
+						>
 							<DashboardTileContent
 								id={id}
 								label={label}
@@ -145,6 +152,9 @@ export function DashboardTileExpand({
 								inert={false}
 								fallback={fallback}
 								onError={onError}
+								// The dialog keeps the shape of the tile, so a widget there claims nothing.
+								host={null}
+								natural={false}
 							>
 								{children}
 							</DashboardTileContent>

@@ -190,6 +190,25 @@ describe('deriveCode source-fact props', () => {
 			expect(result).toContain('<Dialog open={open} onOpenChange={setOpen} />')
 		})
 
+		it('prints its identifier when a pulled declaration calls the setter', () => {
+			const tree = createElement(Dialog, { open: false, onOpenChange: () => {} })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Dialog', props: { open: 'open', onOpenChange: 'close' } }],
+					bindings: { open: 0, setOpen: 0, close: 1 },
+					declarations: [
+						{ names: ['open', 'setOpen'], code: 'const [open, setOpen] = useState(false)' },
+						{ names: ['close'], code: 'const close = () => setOpen(false)' },
+					],
+				}),
+			)
+
+			expect(result).toContain('<Dialog open={open} onOpenChange={close} />')
+		})
+
 		it('drops it when its source is an expression', () => {
 			const tree = createElement(Dialog, { disabled: false })
 
@@ -520,6 +539,26 @@ describe('deriveCode source-fact matching', () => {
 		)
 
 		expect(result).toContain('<Cvv onBrandChange={setBrand} />')
+	})
+
+	// A conditional sibling of the tag renders nothing, so the pairing by position fails.
+	it('takes the candidate that claims each key of the others', () => {
+		const Toggle = tag<{ onClick?: () => void; disabled?: boolean }>('Toggle', 'toggle')
+
+		const tree = createElement(Toggle, { onClick: () => {}, disabled: false }, 'Edit')
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Toggle', props: { onClick: 'clear' } },
+					{ name: 'Toggle', props: { onClick: 'toggle', disabled: 'locked' } },
+				],
+			}),
+		)
+
+		expect(result).toContain('<Toggle onClick={toggle}>Edit</Toggle>')
 	})
 
 	it('ignores a candidate claiming props the runtime element lacks', () => {

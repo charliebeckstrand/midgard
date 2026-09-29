@@ -45,4 +45,56 @@ describe('projectLayout', () => {
 
 		expect(projection.cells.map((item) => item.w)).toEqual([24, 24, 24])
 	})
+
+	it('keeps the shape of a free-form tile as it widens', () => {
+		const cells = [cell('stat', 0, 0, 6, 16), cell('spark', 6, 0, 3, 14)]
+
+		const free = new Map([
+			['stat', { minWidth: 160 }],
+			['spark', { minWidth: 0 }],
+		])
+
+		// 360 px over 24 columns is 15 px a column, so the stat starves at 6 columns.
+		const projection = projectLayout(cells, { width: 360, gap: 12, columns: 24, demands: free })
+
+		const byId = Object.fromEntries(projection.cells.map((item) => [item.id, item]))
+
+		// Each tile keeps its saved ratio of columns to rows: 6 to 16, and 3 to 14.
+		expect(byId.stat?.h).toBe(Math.round((16 * (byId.stat?.w ?? 0)) / 6))
+
+		expect(byId.spark?.h).toBe(Math.round((14 * (byId.spark?.w ?? 0)) / 3))
+
+		expect(byId.stat?.w).toBeGreaterThan(6)
+	})
+
+	it('gives a tile the rows that hold the height of its content', () => {
+		const cells = [cell('list', 0, 0, 12, 44)]
+
+		const starved = new Map([['list', { minWidth: 240 }]])
+
+		// 384 px over 24 columns and 4 rows a column is 4 px a row. The content and
+		// the 12 px gutter need 412 px, which is 103 rows.
+		const heights = new Map([['list', 400]])
+
+		const projection = projectLayout(cells, {
+			width: 384,
+			gap: 12,
+			columns: 24,
+			demands: starved,
+			heights,
+		})
+
+		expect(projection.cells[0]).toMatchObject({ w: 24, h: 103 })
+
+		// The saved layout ignores the height.
+		const saved = projectLayout(cells, {
+			width: 1200,
+			gap: 12,
+			columns: 24,
+			demands: starved,
+			heights,
+		})
+
+		expect(saved.cells[0]).toMatchObject({ w: 12, h: 44 })
+	})
 })

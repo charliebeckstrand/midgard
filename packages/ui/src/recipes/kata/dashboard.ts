@@ -92,67 +92,36 @@ const heading = 'min-w-0 flex-1'
 const actions = 'flex shrink-0 cursor-default items-center gap-1'
 
 /**
- * The spark veil, which the card applies. A chart at the spark tier writes
- * `data-tier="spark"` on its root, and the card reads it through `:has()`, so no
- * code crosses the module boundary. The header then leaves the flow for a veil
- * over the top of the content, and the sparkline takes the full height. This is
- * the posture of the chart's own title at the spark tier.
- *
- * The rule reads only the content box, at any depth in it. A spark chart in the
- * actions of the header therefore veils nothing.
- */
-const veil = {
-	/**
-	 * In both modes, the header overlays the content on the popover surface. The
-	 * content box therefore keeps one height when edit mode switches.
-	 */
-	overlay: [
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:absolute',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:top-2',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:p-1',
-		// The fade stays under the spark variant. A transition on the header at all times
-		// also fades the header in when a chart leaves the spark tier, as it does on mount.
-		// The fade takes the motion-safe gate of `ugoki.css.opacity`, and the default
-		// duration of 150 ms.
-		'motion-safe:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
-		...mode(
-			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
-			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
-		),
-	].join(' '),
-	/**
-	 * At rest, the veil fades out and lets the pointer through, until the card is
-	 * hovered or holds focus. A tab onto a control of the header therefore shows
-	 * it. Edit mode leaves this off, so the grip stays in view.
-	 *
-	 * The fade applies only where the primary pointer can hover. On a phone or a
-	 * tablet, no hover shows the veil. A tap on a spark chart moves no focus into
-	 * the card either. The veil therefore stays in view there, as in edit mode.
-	 */
-	fade: [
-		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
-		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
-	].join(' '),
-} as const
-
-/**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
  *
+ * In the re-pack of a narrow board, a widget can claim the height of its content
+ * (`natural`). The box then takes that height, and the tile grows to hold it.
+ *
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = '@container relative min-h-0 flex-1 overflow-auto'
+const content = defineRecipe({
+	base: '@container relative',
+	natural: {
+		// The box fills the height that the header leaves, and a taller widget scrolls in it.
+		false: 'min-h-0 flex-1 overflow-auto',
+		// The box takes the height of the widget, and the board gives the tile the rows for it.
+		true: 'flex-none',
+	},
+	defaults: { natural: false },
+})
 
 /**
- * The content box of an expanded tile, in its dialog. It gives the widget a
- * height, so a chart that fills its box has a box to fill.
+ * The content box of an expanded tile, in its dialog. The tile sets the ratio
+ * of its shape on the board, and the box takes its height from its width. A
+ * chart that fills its box then has a box to fill, and a small tile such as a
+ * stat does not get a tall, empty box. The box keeps the full width, and its
+ * height stops at 70% of the viewport or 40rem. A tall, narrow tile therefore
+ * gets a wider box than its shape.
  */
-const expanded = 'flex h-[min(70dvh,40rem)] min-h-0 flex-col'
+const expanded = 'flex max-h-[min(70dvh,40rem)] min-h-0 w-full flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
 const error = 'flex size-full flex-col items-center justify-center gap-2 p-2 text-center'
@@ -243,7 +212,6 @@ export const k = {
 	header,
 	heading,
 	actions,
-	veil,
 	content,
 	expanded,
 	error,

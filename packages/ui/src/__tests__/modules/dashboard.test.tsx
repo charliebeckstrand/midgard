@@ -164,35 +164,15 @@ describe('Dashboard', () => {
 		expect(screen.queryByRole('button', { name: 'Move Revenue' })).not.toBeInTheDocument()
 	})
 
-	it('fades the spark veil at rest only where the pointer can hover', () => {
-		const { rerender } = renderUI(<Board />)
-
-		const card = screen.getByRole('group', { name: 'Revenue' })
-
-		const fades = () => [...card.classList].filter((name) => name.includes(':not-hover:'))
-
-		// jsdom applies no Tailwind CSS, so the class carries the pin. Where the
-		// primary pointer cannot hover, the veil must stay in view.
-		expect(fades()).toHaveLength(2)
-
-		for (const name of fades()) expect(name.startsWith('[@media(hover:hover)]:')).toBe(true)
-
-		rerender(<Board editing />)
-
-		expect(fades()).toEqual([])
-	})
-
-	it('fades the veil and the splitter bars only where the reader allows motion', () => {
+	it('fades the splitter bars only where the reader allows motion', () => {
 		const { container } = renderUI(<Board editing />)
-
-		const card = screen.getByRole('group', { name: 'Revenue' })
 
 		const transitions = (element: Element) =>
 			[...element.classList].filter((name) => name.includes('transition'))
 
-		// jsdom applies no Tailwind CSS, so the class carries the pin. The card fades
-		// the veil, and each splitter fades its bar.
-		for (const element of [card, ...allBySlot(container, 'dashboard-resize-handle')]) {
+		// jsdom applies no Tailwind CSS, so the class carries the pin. Each splitter
+		// fades its bar.
+		for (const element of allBySlot(container, 'dashboard-resize-handle')) {
 			for (const name of nonEmpty(transitions(element), 'transition class')) {
 				expect(name.startsWith('motion-safe:')).toBe(true)
 			}
@@ -510,6 +490,38 @@ describe('Dashboard', () => {
 
 		// jsdom applies no Tailwind CSS, so the class carries the pin. The row starts no drag.
 		expect(bySlot(card, 'dashboard-tile-actions')).toHaveClass('cursor-default')
+	})
+
+	it('reports each change of the projection to the app', () => {
+		const onProjectedChange = vi.fn()
+
+		const board = (minWidth: number) => (
+			<Dashboard
+				aria-label="Sales"
+				editing
+				layout={{ defaultValue: LAYOUT }}
+				onProjectedChange={onProjectedChange}
+			>
+				<DashboardTile id="c" title="Orders" minWidth={minWidth} />
+			</Dashboard>
+		)
+
+		// At a 50 px pitch, 8 columns hold 400 px.
+		const { rerender } = renderUI(board(0))
+
+		expect(onProjectedChange).not.toHaveBeenCalled()
+
+		rerender(board(600))
+
+		expect(onProjectedChange).toHaveBeenCalledExactlyOnceWith(true)
+
+		expect(screen.queryByRole('button', { name: 'Move Orders' })).not.toBeInTheDocument()
+
+		rerender(board(0))
+
+		expect(onProjectedChange).toHaveBeenLastCalledWith(false)
+
+		expect(onProjectedChange).toHaveBeenCalledTimes(2)
 	})
 
 	it('renders only the tile whose cell changed', () => {

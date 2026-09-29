@@ -21,7 +21,7 @@ type DashboardTileTitleProps = {
 /**
  * The title of a tile, clipped to one line. When the title truncates, a hover
  * tooltip shows the full text. This is the reveal of the chart header and the
- * grid header. The veil of a spark tile is narrow, so its title truncates first.
+ * grid header.
  *
  * @remarks In edit mode the tooltip stays closed. The title is then a part of
  * the drag surface, and the grab cursor and the drag own the pointer.

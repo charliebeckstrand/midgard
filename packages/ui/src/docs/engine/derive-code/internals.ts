@@ -566,6 +566,15 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 		.join('\n\n')
 }
 
+/** Whether two element facts claim the same prop keys. */
+function sameKeys(a: ElementFact, b: ElementFact): boolean {
+	const keys = Object.keys(a.props)
+
+	return (
+		keys.length === Object.keys(b.props).length && keys.every((key) => Object.hasOwn(b.props, key))
+	)
+}
+
 /**
  * Resolve the source fact for a rendered element. Call it once for each
  * element that the walk renders, in the order of the walk.
@@ -575,8 +584,9 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
  * element takes the k-th fact of the tag. A map or a condition can render more
  * or fewer elements than the source holds. Then the match falls back to the
  * candidates: the facts of the tag that claim only props the runtime element
- * carries. A single survivor wins outright. Several survivors reduce to their
- * consensus: the props (and render-prop children) every candidate agrees on.
+ * carries. A single survivor wins outright. Of several survivors, the one that
+ * claims each key of the others wins, when no other claims the same keys. Else
+ * the survivors reduce to their consensus: the props (and render-prop children) every candidate agrees on.
  * An ambiguous match therefore drops a prop, instead of attaching another
  * element's source.
  */
@@ -610,6 +620,19 @@ export function matchElementFact(
 	if (!first) return undefined
 
 	if (candidates.length === 1) return first
+
+	// The runtime element carries each key of each candidate. A candidate that
+	// claims each key of the others is then the most specific source. A
+	// conditional sibling of the same tag with fewer props cannot claim its keys.
+	const widest = candidates.find((e) =>
+		candidates.every((other) =>
+			Object.keys(other.props).every((key) => Object.hasOwn(e.props, key)),
+		),
+	)
+
+	if (widest && candidates.every((other) => other === widest || !sameKeys(other, widest))) {
+		return widest
+	}
 
 	const rest = candidates.slice(1)
 
@@ -666,23 +689,22 @@ export function registerFactText(text: string, context: Context): string {
 }
 
 /**
- * Close over the declarations the printed sources use. A source pulls the
- * declarations that its names bind, and a pulled declaration's own names pull
- * more, to fixpoint. Then register the import of each name that the sources
- * and the pulled declarations use (see {@link registerUses}). Returns the pulled
- * declarations dedented, in source order, ready to sit between the imports and
- * the JSX.
+ * Add to the pulled declarations each declaration that a pulled declaration
+ * uses, to fixpoint. Returns the names that the printed sources and the pulled
+ * declarations use.
  *
  * @remarks
- * The names come from the syntax tree at build time, so a word in a string, in
- * JSX text, in a comment, or in a property name pulls nothing.
+ * `deriveCode` calls it before its second walk too. A declaration that only a
+ * pulled declaration uses, such as the `useState` pair whose setter a callback
+ * calls, is then pulled when the consistency pass of `formatProps` runs. A prop
+ * that reads that state prints its identifier, and the state is not left unread.
  */
-export function resolvePreamble(context: Context): string[] {
+export function closePulledDecls(context: Context): Set<string> {
+	const used = new Set(context.used)
+
 	const facts = context.facts
 
-	if (!facts || context.used.size === 0) return []
-
-	const used = new Set(context.used)
+	if (!facts) return used
 
 	// The pulled declarations whose names the closure has yet to read.
 	const pending = [...context.pulledDecls]
@@ -701,7 +723,27 @@ export function resolvePreamble(context: Context): string[] {
 		}
 	}
 
-	registerUses(used, context)
+	return used
+}
+
+/**
+ * Close over the declarations the printed sources use. A source pulls the
+ * declarations that its names bind, and a pulled declaration's own names pull
+ * more, to fixpoint. Then register the import of each name that the sources
+ * and the pulled declarations use (see {@link registerUses}). Returns the pulled
+ * declarations dedented, in source order, ready to sit between the imports and
+ * the JSX.
+ *
+ * @remarks
+ * The names come from the syntax tree at build time, so a word in a string, in
+ * JSX text, in a comment, or in a property name pulls nothing.
+ */
+export function resolvePreamble(context: Context): string[] {
+	const facts = context.facts
+
+	if (!facts || context.used.size === 0) return []
+
+	registerUses(closePulledDecls(context), context)
 
 	return [...context.pulledDecls]
 		.sort((a, b) => a - b)

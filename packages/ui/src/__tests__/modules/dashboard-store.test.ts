@@ -24,6 +24,7 @@ const initial = (patch: Partial<DashboardState> = {}): DashboardState => ({
 	]),
 	declared: new Set(),
 	width: 0,
+	heights: new Map(),
 	gesture: null,
 	filter: undefined,
 	selections: [],
@@ -139,6 +140,28 @@ describe('createDashboardStore', () => {
 		expect(store.getView()).toMatchObject({ projected: false, editable: true })
 
 		expect(createDashboardStore(store.getState()).getView().projected).toBe(false)
+	})
+
+	it('re-packs a tile to the content height that it measures, and to its shape after', () => {
+		// With no gutter, tile a at 8 of 24 columns starves under 600 px.
+		const demands = new Map([
+			['a', { minWidth: 200 }],
+			['b', {}],
+			['c', {}],
+		])
+
+		const store = createDashboardStore(initial({ gap: 0, demands, width: 480 }))
+
+		const shaped = store.getView().cells.get('a')?.h
+
+		// 480 px over 96 rows a width is 5 px a row, so 200 px is 40 rows.
+		store.measure('a', 200)
+
+		expect(store.getView().cells.get('a')?.h).toBe(40)
+
+		store.measure('a', undefined)
+
+		expect(store.getView().cells.get('a')?.h).toBe(shaped)
 	})
 
 	it('drops the hold when the minWidth of the starved tile drops so that it fits', () => {
