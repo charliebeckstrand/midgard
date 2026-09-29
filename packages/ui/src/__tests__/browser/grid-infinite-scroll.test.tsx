@@ -324,6 +324,60 @@ describe('grid infinite scroll (real browser)', () => {
 		expect(onLoadMore).not.toHaveBeenCalled()
 	})
 
+	it.each([
+		['at the top', false],
+		['scrolled', true],
+	])('fills the viewport after a replacement too short to fill it (%s)', async (_, scrolled) => {
+		const onLoadMore = vi.fn()
+
+		function ShrinkingGrid() {
+			const [replaced, setReplaced] = useState(false)
+
+			const rows = useMemo(() => allRows.slice(0, replaced ? 2 : 50), [replaced])
+
+			return (
+				<div style={{ width: '320px' }}>
+					<button type="button" onClick={() => setReplaced(true)}>
+						Replace
+					</button>
+
+					<Grid
+						columns={columns}
+						rows={rows}
+						getKey={getKey}
+						virtualize={{ estimateSize: 36 }}
+						maxHeight="180px"
+						infiniteScroll={{ onLoadMore, hasMore: true }}
+					/>
+				</div>
+			)
+		}
+
+		const { container } = renderUI(<ShrinkingGrid />)
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		const scroll = present(
+			container.querySelector('[data-slot="grid-scroll"]'),
+			'[data-slot="grid-scroll"]',
+		)
+
+		if (scrolled) {
+			// Short of the end, so nothing fires before the replacement.
+			scroll.scrollTop = 300
+
+			fireEvent.scroll(scroll)
+
+			await waitFor(() => expect(scroll.scrollTop).toBeGreaterThan(0))
+		}
+
+		fireEvent.click(screen.getByRole('button', { name: 'Replace' }))
+
+		// Two rows do not fill the 180px viewport, and the reader cannot scroll
+		// an under-filled grid, so the fill must fetch without a scroll.
+		await waitFor(() => expect(onLoadMore).toHaveBeenCalledTimes(1))
+	})
+
 	it('windows and loads inside a CSS-sized parent under maxHeight="fill"', async () => {
 		const onLoadMore = vi.fn()
 

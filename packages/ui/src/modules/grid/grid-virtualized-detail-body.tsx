@@ -1,6 +1,6 @@
 'use client'
 
-import { Fragment, type TransitionEvent, useMemo, useRef } from 'react'
+import { Fragment, type ReactNode, type TransitionEvent, useMemo, useRef } from 'react'
 import { detailOpen, detailWindowItems, type GridDetailWindowItem } from './engine/grid-items/items'
 import { itemAriaRowIndex } from './engine/grid-row/shell'
 import { detailCursorRows, useGridCursorOrder } from './grid-cursor-order'
@@ -25,6 +25,9 @@ const NO_KEYS: Keys = new Set()
 
 /** The expandability of a row when the grid has no master-detail wiring. @internal */
 const NEVER_EXPANDABLE = () => false
+
+/** The detail content of a panel when the grid has no master-detail wiring. @internal */
+const renderNothing = (): ReactNode => null
 
 /**
  * The toggle mapping of the master-detail body, for {@link useGridWindowMotion}.
@@ -88,7 +91,8 @@ type GridVirtualizedDetailBodyProps<T> = GridRowsProps<T> & GridItemWindowOption
  * view plus overscan, and each row measures its own height.
  *
  * @remarks A closed panel is not an item, so it has no node and it keeps no
- * state. A panel guesses 0 pixels until it measures. A panel that opens or
+ * state. A panel guesses the row height until it measures, and the start
+ * anchor holds the rows in view still while the guess differs. A panel that opens or
  * closes in view animates. A panel above the view opens and closes at once,
  * because each frame of its reveal would move the rows in view. The start
  * anchor of the window holds the rows in view still for an insert or a
@@ -187,18 +191,18 @@ export function GridVirtualizedDetailBody<T>(props: GridVirtualizedDetailBodyPro
 				}
 
 				return (
-					<GridDetailRow
+					<GridDetailRow<T>
 						key={item.reactKey}
 						rowKey={rowKey}
+						row={row}
+						render={expansion?.render ?? renderNothing}
 						colSpan={columns.length}
 						expanded={item.phase === 'open'}
 						enter={motions.get(rowKey)?.phase === 'entering'}
 						ref={measureRef}
 						data-index={virtualItem.index}
 						aria-rowindex={aria(item)}
-					>
-						{expansion?.render(row)}
-					</GridDetailRow>
+					/>
 				)
 			})}
 		</GridWindowBody>

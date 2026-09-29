@@ -188,14 +188,12 @@ describe('detailWindowItems', () => {
 })
 
 describe('windowItemEstimate', () => {
-	it('guesses the row height for each kind', () => {
-		for (const kind of ['group', 'leaf', 'total', 'row', 'detail']) {
-			expect(windowItemEstimate({ kind }, 44)).toBe(44)
-		}
+	it('guesses the row height for a row with no size', () => {
+		expect(windowItemEstimate({}, 44)).toBe(44)
 	})
 
 	it('guesses the height that a closing row had in view', () => {
-		expect(windowItemEstimate({ kind: 'leaf', size: 112 }, 44)).toBe(112)
+		expect(windowItemEstimate({ size: 112 }, 44)).toBe(112)
 	})
 })
 

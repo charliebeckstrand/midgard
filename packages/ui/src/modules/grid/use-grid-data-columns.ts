@@ -229,7 +229,6 @@ export function useGridDataColumns<T>({
 		columnOrderConfig,
 		columnSizingConfig,
 		columnManagerConfig,
-		virtualizeEnabled,
 		estimateSize,
 		overscan,
 		pinnedColumns,

@@ -26,8 +26,8 @@ export function stackStickyHead(head: HTMLTableSectionElement): void {
 }
 
 /**
- * Runs `measure` for an element of a grid table after each layout, and again
- * on each resize of the table's `<thead>`. The sticky offsets of the grid read
+ * Runs `measure` for an element of a grid table when it mounts or `measure`
+ * changes, and again on each resize of the table's `<thead>`. The sticky offsets of the grid read
  * the head, and density and wrapped labels change its height. A `null`
  * `measure` or a table with no head does nothing.
  *

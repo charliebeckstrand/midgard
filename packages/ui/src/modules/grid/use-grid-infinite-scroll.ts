@@ -162,8 +162,9 @@ function initialLoadMoreState(count: number): LoadMoreState {
  * meaningless against the new set. Scrolls back to the top and clears the
  * latch, arm, and fill state, requiring fresh overflow-plus-scroll evidence
  * before the next fetch. Otherwise a position deep in the old set would sit
- * past the new end and re-trigger an immediate fetch cascade. Returns whether
- * a replacement was handled (the caller then skips this run's evaluation).
+ * past the new end and re-trigger an immediate fetch cascade. The caller still
+ * evaluates in the same run: the cleared arm holds a new set that overflows,
+ * and a new set that does not fill the viewport fetches through the fill.
  *
  * @internal
  */
@@ -171,11 +172,11 @@ function resetOnReplacement(
 	state: LoadMoreState,
 	element: HTMLElement | null,
 	count: number,
-): boolean {
+): void {
 	if (count >= state.prevCount) {
 		state.prevCount = count
 
-		return false
+		return
 	}
 
 	state.prevCount = count
@@ -193,8 +194,6 @@ function resetOnReplacement(
 
 		element.scrollTop = 0
 	}
-
-	return true
 }
 
 /** Fails loud in dev — once per mount — when the scroll container isn't windowing. @internal */
@@ -224,11 +223,11 @@ function evaluateLoadMore(args: {
 	hasMore: boolean
 	loadingMore: boolean
 	threshold: number
-	onLoadMore: (() => void) | null
+	onLoadMore: () => void
 }): void {
 	const { state, element, count } = args
 
-	if (resetOnReplacement(state, element, count)) return
+	resetOnReplacement(state, element, count)
 
 	const clientHeight = element?.clientHeight ?? 0
 
@@ -275,7 +274,7 @@ function evaluateLoadMore(args: {
 
 	state.armed = false
 
-	args.onLoadMore?.()
+	args.onLoadMore()
 }
 
 /** Parameters for {@link useGridInfiniteScroll}. @internal */

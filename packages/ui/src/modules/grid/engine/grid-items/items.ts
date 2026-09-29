@@ -146,61 +146,99 @@ export function groupedWindowItems<T>(
 			group,
 		})
 
-		const open = group.expanded
-
-		for (const leaf of group.leaves) {
-			pushRow(items, cursor, open, args.motions, {
-				kind: 'leaf',
-				reactKey: leafItemKey(leaf.id),
-				closingKey: `closing:${leaf.id}`,
-				group,
-				leaf,
-			})
-		}
-
-		if (args.totaled) {
-			pushRow(items, cursor, open, args.motions, {
-				kind: 'total',
-				reactKey: totalItemKey(group.id),
-				closingKey: `closing-total:${group.id}`,
-				group,
-				rows: group.rows,
-			})
-		}
+		if (group.expanded) pushOpenRows(items, cursor, group, args.totaled)
+		// A collapsed group gives only its closing rows. With no motion there are
+		// none, so its leaves cost nothing.
+		else if (args.motions.size > 0) pushClosingRows(items, group, args.totaled, args.motions)
 	}
 
 	return items
 }
 
-/**
- * Pushes one leaf or total of a group. The row of an open group takes the
- * next position. The closing row of a collapsed group takes its closing key,
- * its size, and no position. Any other row of a collapsed group is not an item.
- *
- * @internal
- */
-function pushRow<T>(
+/** Pushes the leaves and the total of an expanded group, each at the next position. @internal */
+function pushOpenRows<T>(
 	items: GridGroupedWindowItem<T>[],
 	cursor: { position: number },
-	open: boolean,
-	motions: ReadonlyMap<string, GridRowMotion>,
-	row:
-		| { kind: 'leaf'; reactKey: string; closingKey: string; group: GridGroup<T>; leaf: GridLeaf<T> }
-		| { kind: 'total'; reactKey: string; closingKey: string; group: GridGroup<T>; rows: T[] },
+	group: GridGroup<T>,
+	totaled: boolean,
 ): void {
-	const { closingKey, ...rest } = row
+	for (const leaf of group.leaves) {
+		const key = leafItemKey(leaf.id)
 
-	if (open) {
-		items.push({ ...rest, key: row.reactKey, position: cursor.position++, phase: 'open' })
-
-		return
+		items.push({
+			kind: 'leaf',
+			key,
+			reactKey: key,
+			position: cursor.position++,
+			phase: 'open',
+			group,
+			leaf,
+		})
 	}
 
-	const size = closingSize(motions, row.reactKey)
+	if (!totaled) return
 
-	if (size !== undefined) {
-		items.push({ ...rest, key: closingKey, position: -1, phase: 'closing', size })
+	const key = totalItemKey(group.id)
+
+	items.push({
+		kind: 'total',
+		key,
+		reactKey: key,
+		position: cursor.position++,
+		phase: 'open',
+		group,
+		rows: group.rows,
+	})
+}
+
+/**
+ * Pushes the closing rows of a collapsed group: each leaf and total that
+ * `motions` marks as closing, under its closing key, with its size and no
+ * position. @internal
+ */
+function pushClosingRows<T>(
+	items: GridGroupedWindowItem<T>[],
+	group: GridGroup<T>,
+	totaled: boolean,
+	motions: ReadonlyMap<string, GridRowMotion>,
+): void {
+	for (const leaf of group.leaves) {
+		const reactKey = leafItemKey(leaf.id)
+
+		const size = closingSize(motions, reactKey)
+
+		if (size === undefined) continue
+
+		items.push({
+			kind: 'leaf',
+			key: `closing:${leaf.id}`,
+			reactKey,
+			position: -1,
+			phase: 'closing',
+			size,
+			group,
+			leaf,
+		})
 	}
+
+	if (!totaled) return
+
+	const reactKey = totalItemKey(group.id)
+
+	const size = closingSize(motions, reactKey)
+
+	if (size === undefined) return
+
+	items.push({
+		kind: 'total',
+		key: `closing-total:${group.id}`,
+		reactKey,
+		position: -1,
+		phase: 'closing',
+		size,
+		group,
+		rows: group.rows,
+	})
 }
 
 /**
@@ -324,10 +362,7 @@ export function detailWindowRowCount<T>(
  *
  * @internal
  */
-export function windowItemEstimate(
-	item: { kind: string; size?: number },
-	rowHeight: number,
-): number {
+export function windowItemEstimate(item: { size?: number }, rowHeight: number): number {
 	return item.size ?? rowHeight
 }
 
