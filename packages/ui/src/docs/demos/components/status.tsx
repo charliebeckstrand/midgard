@@ -38,7 +38,14 @@ export function Demo() {
 
 			<Example
 				title="Sizes"
-				actions={<VariantListbox variants={statuses} value={status} onValueChange={setStatus} />}
+				actions={
+					<VariantListbox
+						label="Status"
+						variants={statuses}
+						value={status}
+						onValueChange={setStatus}
+					/>
+				}
 			>
 				<Stack gap="md">
 					{sizes.map((size) => (

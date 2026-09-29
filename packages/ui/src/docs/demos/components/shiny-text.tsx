@@ -23,7 +23,9 @@ function SpeedExample() {
 	return (
 		<Example
 			title="Speed"
-			actions={<ValueStepper value={speed} min={1} max={6} onValueChange={setSpeed} />}
+			actions={
+				<ValueStepper label="speed" value={speed} min={1} max={6} onValueChange={setSpeed} />
+			}
 			prefix={
 				<Badge color="zinc" className="tabular-nums">
 					{speed}s
@@ -45,7 +47,9 @@ function SweepExample() {
 	return (
 		<Example
 			title="Sweep"
-			actions={<VariantListbox variants={sweeps} value={sweep} onValueChange={setSweep} />}
+			actions={
+				<VariantListbox label="Sweep" variants={sweeps} value={sweep} onValueChange={setSweep} />
+			}
 		>
 			<ShinyText sweep={sweep} className="text-3xl font-semibold">
 				Sweep {sweep}
