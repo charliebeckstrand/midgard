@@ -45,9 +45,9 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
-import { CountrySearch } from '../country-search'
 import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
+import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
 import { PlaceTrail } from '../place-trail'
 import { PlacesMap } from '../places-map'
 import { UserMenu } from '../user-menu'
@@ -298,9 +298,9 @@ export function PlacesApp({
 	// the world re-measured all 177 of them from a topology the cache still held.
 	const boundedCountries = useMemo(() => boundRegions(countriesAtlas), [countriesAtlas])
 
-	// Every region the drawn atlas holds, for the country search. Read off the
-	// geography rather than the places, so a country holding nothing is still
-	// somewhere the reader can go.
+	// Every region the drawn atlas holds, for the picker inside the United States.
+	// Read off the geography rather than the places, so a state holding nothing is
+	// still somewhere the reader can go.
 	const regionNames = useMemo(
 		() => (regions?.features ?? []).map(regionName).sort((a, b) => a.localeCompare(b)),
 		[regions],
@@ -353,7 +353,7 @@ export function PlacesApp({
 	const regionOfPlace = atlas === 'states' ? stateOfPlace : countryOfPlace
 
 	// The regions the bar's picker offers. Among countries, only the ones that
-	// hold a place: the country search reaches every other one. Among states the
+	// hold a place: the palette reaches every other one. Among states the
 	// picker is the only list, so it keeps every state the atlas draws. Read off
 	// the unfiltered places for the reason the grouping is.
 	const pickedRegions = useMemo(
@@ -409,11 +409,16 @@ export function PlacesApp({
 			? preload.view
 			: null
 
-	// The country search and the map both ask for it: the search for its active
-	// option, and the map for the region that the pointer stays on.
+	// The palette and the map both ask for it: the palette for the region of its
+	// active row, and the map for the region that the pointer stays on.
+	const preloadView = useCallback(
+		(next: PlaceView) => setPreload({ from: here, view: next }),
+		[here],
+	)
+
 	const onPreload = useCallback(
-		(region: string) => setPreload({ from: here, view: drillInto(view, region) }),
-		[here, view],
+		(region: string) => preloadView(drillInto(view, region)),
+		[preloadView, view],
 	)
 
 	// The props of the hidden map, from the same sources as the visible map.
@@ -452,6 +457,56 @@ export function PlacesApp({
 		[view, setView],
 	)
 
+	// The palette's sources. Each has its own memo, so a change to one does not
+	// build the others again: the regions sort more than 200 names.
+	const placeCommands = useMemo(
+		() => placeSource(places, (place) => openAt(viewForPlace(stateOfPlace, place), [place.id])),
+		[places, openAt, stateOfPlace],
+	)
+
+	// Every region of both atlases, whatever the view draws, so a reader can go to
+	// a country that holds no places, or to a state from anywhere.
+	const regionCommands = useMemo(
+		() =>
+			regionSource({
+				countries: (countriesAtlas?.features ?? []).map(regionName),
+				states: (statesAtlas?.features ?? []).map(regionName),
+				countryPlaces: placesByCountry,
+				statePlaces: placesByState,
+				goTo: setView,
+				preload: preloadView,
+			}),
+		[countriesAtlas, statesAtlas, placesByCountry, placesByState, setView, preloadView],
+	)
+
+	// Keyed on the fields of the mark: `viewMark` gives a new object on each render.
+	const markScope = mark?.scope ?? null
+
+	const markRegion = mark?.region ?? null
+
+	const markVisited = setVisit.mutate
+
+	const actionCommands = useMemo(
+		() =>
+			actionSource({
+				onAdd: () => setAdding(true),
+				onList: places.length > 0 ? () => setListing(true) : undefined,
+				mark: markRegion,
+				marked,
+				onMark: (visited) => {
+					if (markScope !== null && markRegion !== null) {
+						markVisited({ scope: markScope, region: markRegion, visited })
+					}
+				},
+			}),
+		[places.length, markScope, markRegion, marked, markVisited],
+	)
+
+	const paletteSources = useMemo(
+		() => [placeCommands, regionCommands, actionCommands],
+		[placeCommands, regionCommands, actionCommands],
+	)
+
 	return (
 		<Flex direction="col" className="h-full">
 			<Flex
@@ -476,26 +531,7 @@ export function PlacesApp({
 				    the crumbs give way and the button never does. */}
 				<Flex gap="md" align="center" className="flex-1 min-w-0">
 					<div className="min-w-0">
-						<PlaceTrail
-							className="text-xl/8"
-							steps={pageTrail}
-							// The search is on the world map only. Under it, the reader
-							// already chose a country, and the trail names it. It renders
-							// before the view settles, so the server sends it with the page,
-							// and it shows a skeleton until the map and the countries load.
-							after={
-								view.country === null ? (
-									<CountrySearch
-										countries={regionNames}
-										// Ready with the map: a pick before the view settles
-										// would open a country onto a skeleton.
-										ready={!settling && regionNames.length > 0}
-										onPick={(country) => setView(drillInto(view, country))}
-										onPreload={onPreload}
-									/>
-								) : undefined
-							}
-						/>
+						<PlaceTrail className="text-xl/8" steps={pageTrail} />
 					</div>
 
 					{/* The visited toggle. It is a button rather than a checkbox, because
@@ -532,6 +568,10 @@ export function PlacesApp({
 				</Flex>
 
 				<Flex gap="sm" align="center" className="shrink-0">
+					{/* Ready with the map, as the map's own drill is: a pick before the view
+					    settles would open a region onto a skeleton. */}
+					<PlacePalette sources={paletteSources} ready={!settling} />
+
 					<AppearanceSettings />
 
 					{/* The list item shows only once there is a list to read. Over an empty
