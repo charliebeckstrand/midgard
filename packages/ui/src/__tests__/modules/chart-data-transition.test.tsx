@@ -1,8 +1,7 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import { STATIC_GENERATION } from '../../modules/chart/engine/chart-motion'
 import { PieChart } from '../../modules/chart/pie-chart'
-import { bySlot, renderUI, stubMatchMedia } from '../helpers'
+import { act, bySlot, renderUI, stubMatchMedia } from '../helpers'
 
 /**
  * The data-change transition: an animated chart replays its reveal out-then-in
@@ -100,17 +99,54 @@ describe('chart data-change transition', () => {
 		expect(bySlot(container, 'chart-marks')).not.toBeNull()
 	})
 
-	it('pins the generation for a reduced-motion preference, so a data change snaps', () => {
+	it('holds the generation for a reduced-motion preference, so a data change snaps', () => {
 		stubMatchMedia((query) => query === '(prefers-reduced-motion: reduce)')
 
 		const { container, rerender } = renderUI(bars(DATA))
 
-		expect(generation(container)).toBe(STATIC_GENERATION)
+		const before = generation(container)
+
+		expect(before).not.toBeNull()
 
 		rerender(bars(NEXT))
 
 		// No generation swap under reduced motion — the new data reconciles in place.
-		expect(generation(container)).toBe(STATIC_GENERATION)
+		expect(generation(container)).toBe(before)
+	})
+
+	it('holds the generation when the preference reads false after hydration', () => {
+		// The server and the hydration render read reduced motion. The client then
+		// reads the real setting. A key that followed the preference swapped at
+		// that read and replayed the reveal of a server-rendered chart.
+		let reduced = true
+
+		const listeners = new Set<() => void>()
+
+		// A live `matches`, since the media-query registry holds one list for each query.
+		vi.stubGlobal('matchMedia', (query: string) => ({
+			media: query,
+			onchange: null,
+			get matches() {
+				return reduced && query === '(prefers-reduced-motion: reduce)'
+			},
+			addEventListener: (_type: string, listener: () => void) => listeners.add(listener),
+			removeEventListener: (_type: string, listener: () => void) => listeners.delete(listener),
+			addListener: () => {},
+			removeListener: () => {},
+			dispatchEvent: () => false,
+		}))
+
+		const { container } = renderUI(bars(DATA))
+
+		const before = generation(container)
+
+		reduced = false
+
+		act(() => {
+			for (const listener of listeners) listener()
+		})
+
+		expect(generation(container)).toBe(before)
 	})
 
 	it('swaps the pie generation on a data change too', () => {

@@ -225,10 +225,8 @@ export function seriesDataKey(values: readonly (readonly (number | null)[])[]): 
 }
 
 /**
- * The generation key an animated renderer holds still on when it must not replay
- * the out-then-in transition. That is a reduced-motion preference, where a data
- * change skips straight to the new marks. A constant, so the generation never
- * swaps and the marks reconcile in place.
+ * The generation key of animated content that has no data signature. A
+ * constant, so the generation never swaps and the content reconciles in place.
  *
  * @internal
  */

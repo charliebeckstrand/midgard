@@ -1,7 +1,7 @@
 'use client'
 
 import { AnimatePresence, motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useState } from 'react'
 import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import { ReducedMotion } from '../../../../primitives/reduced-motion'
 import { STATIC_GENERATION } from '../chart-motion'
@@ -40,11 +40,15 @@ export type ChartGenerationProps = {
  * generation reveals the new data. Each child's `exit` target is the `initial`
  * that it drew from.
  *
- * A reduced-motion preference pins the key to {@link STATIC_GENERATION}. The
- * generation then never swaps, and the new data snaps in place. The mount reveal
- * still obeys the preference through the surrounding {@link ReducedMotion}. The
- * group shows the current generation as `data-generation`, for tests and
- * debugging. Static content renders a plain group.
+ * The generation is state that advances with the data. Under a reduced-motion
+ * preference a data change holds it, so the new data snaps in place. A change of
+ * the preference alone never swaps it. The server and the hydration render read
+ * reduced motion, and a key that followed the preference would swap when the
+ * client reads the real setting, and replay the reveal of a server-rendered
+ * chart. The mount reveal still obeys the preference through the surrounding
+ * {@link ReducedMotion}. The group shows the current generation as
+ * `data-generation`, for tests and debugging. Static content renders a plain
+ * group.
  *
  * @internal
  */
@@ -56,9 +60,22 @@ export function ChartGeneration({
 	pointerEvents,
 	children,
 }: ChartGenerationProps) {
-	// Called unconditionally to keep the hook order stable across the static and
-	// animated branches; only the animated branch reads it.
 	const reducedMotion = usePrefersReducedMotion()
+
+	const [held, setHeld] = useState(() => ({
+		dataKey,
+		generation: dataKey ?? STATIC_GENERATION,
+	}))
+
+	// The data changed since the last render: advance the generation, or hold it
+	// under reduced motion. A set during render replaces this render at once.
+	let generation = held.generation
+
+	if (held.dataKey !== dataKey) {
+		generation = reducedMotion ? held.generation : (dataKey ?? STATIC_GENERATION)
+
+		setHeld({ dataKey, generation })
+	}
 
 	if (!animate) {
 		return (
@@ -67,8 +84,6 @@ export function ChartGeneration({
 			</g>
 		)
 	}
-
-	const generation = reducedMotion ? STATIC_GENERATION : (dataKey ?? STATIC_GENERATION)
 
 	return (
 		<ReducedMotion>
