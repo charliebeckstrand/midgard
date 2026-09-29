@@ -22,7 +22,7 @@ import { Stack } from '../../../../structure/stack'
 import type { PropDef } from '../../api-reference/types'
 
 /** Split a type expression on top-level `|`, ignoring `|` inside nesting and strings. */
-function splitUnion(type: string): string[] {
+export function splitUnion(type: string): string[] {
 	const parts: string[] = []
 
 	let depth = 0
@@ -70,7 +70,7 @@ function splitUnion(type: string): string[] {
 }
 
 /** Strip a matching pair of enclosing quotes (`'`, `"`, or backtick) from a string-literal fragment. */
-function unquote(part: string): string {
+export function unquote(part: string): string {
 	return part.replace(/^(['"`])([\s\S]*)\1$/, '$2')
 }
 
