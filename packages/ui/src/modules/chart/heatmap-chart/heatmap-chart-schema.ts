@@ -82,8 +82,14 @@ export type HeatmapChartSeries<T> = {
  */
 export type HeatmapChartProps<T = never> = Omit<
 	ChartBaseProps<T>,
-	'legend' | 'onHiddenChange' | 'animate' | 'texture' | 'subtitle'
+	'legend' | 'onHiddenChange' | 'animate' | 'texture' | 'title' | 'subtitle'
 > & {
+	/**
+	 * The chart's name for its context menu: it heads the fullscreen view and
+	 * starts the name of each exported file. The heatmap draws no heading, so
+	 * the title does not show above the grid.
+	 */
+	title?: string
 	/**
 	 * The one series to shade cells with. A one-element tuple, as pie and donut
 	 * take: the heatmap draws one color scale, so a second entry had no reading.

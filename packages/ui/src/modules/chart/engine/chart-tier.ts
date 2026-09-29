@@ -18,16 +18,16 @@
  * A chart's resolved anatomy tier, narrowest to widest:
  *
  * - `spark` is pure marks, a sparkline with the chrome stripped.
- * - `compact` keeps a value gutter (compact number format) and end-only band
- *   labels.
- * - `standard` and `expanded` carry the full frame. They differ only as a
- *   styling label a dashboard tile can read off `data-tier`, and the cartesian
- *   anatomy is identical between them.
+ * - `compact` is a narrow or a short box.
+ * - `standard` and `expanded` carry the full frame, and split at a width.
+ *
+ * Only `spark` sets the anatomy. Above it, each part of the chrome binds to the
+ * dimension that pays for it, not to the tier. A narrow box takes the compact
+ * number format and end-only band labels. A short, wide box is also `compact`,
+ * but it keeps the full number format. The tier is a readable summary, and a
+ * label that a dashboard tile can style through `data-tier`.
  */
 export type ChartTier = 'spark' | 'compact' | 'standard' | 'expanded'
-
-/** How the value axis presents: a gutter of tick labels beside the plot, or nothing. @internal */
-type ChartValueAxisMode = 'gutter' | 'off'
 
 /**
  * How the band axis presents: every fitting label {@link ChartBandAxisMode
@@ -47,8 +47,6 @@ export type ChartBandAxisMode = 'thinned' | 'ends' | 'off'
 export type ChartPolicy = {
 	/** The resolved tier — the readable summary, and the `data-tier` styling hook. */
 	tier: ChartTier
-	/** Whether the value axis reserves a gutter of tick labels or stands down entirely. */
-	valueAxis: ChartValueAxisMode
 	/** Whether the band axis thins its labels, shows only its ends, or stands down. */
 	bandAxis: ChartBandAxisMode
 	/**
@@ -220,7 +218,6 @@ export function chartPolicy(
 	if (spark) {
 		return {
 			tier: 'spark',
-			valueAxis: 'off',
 			bandAxis: 'off',
 			tickTarget: 0,
 			compactFormat: true,
@@ -232,7 +229,6 @@ export function chartPolicy(
 
 	return {
 		tier: tierOf(width, height),
-		valueAxis: 'gutter',
 		bandAxis: bandAxisOf(width, height),
 		tickTarget: Math.max(MIN_TICK_TARGET, Math.min(Math.floor(height / TICK_SPACING), tickCap)),
 		compactFormat: width < COMPACT_WIDTH,

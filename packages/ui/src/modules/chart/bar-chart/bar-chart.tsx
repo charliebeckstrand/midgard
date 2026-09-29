@@ -42,8 +42,9 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
 	 * by side. Segments pile to their running total, and the value axis scales to
 	 * that sum. A surface gap separates the segments and only the outermost
 	 * keeps a rounded end.
-	 * @remarks Positive values only: a non-positive value takes no segment, the
-	 * same part-to-whole reading as the stacked {@link AreaChart}.
+	 * @remarks Positive values only: a non-positive value takes no segment, since
+	 * a stacked column reads as parts of a whole. The stacked {@link AreaChart}
+	 * differs, and stacks signed values.
 	 * @defaultValue false
 	 */
 	stacked?: boolean

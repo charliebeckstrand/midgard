@@ -44,7 +44,9 @@ export type ComboChartProps<T = never> = ChartBaseProps<T> &
 		/** The series to plot, each drawn as bars, a line, or a filled area; slot colors follow this order. */
 		series: ComboChartSeries<T>[]
 		/**
-		 * Mark every line and area point with a filled, surface-ringed dot.
+		 * Mark every line and area point with a filled dot. While bars draw, each
+		 * dot also takes a ring in the surface color, so it stays clear where it
+		 * crosses a bar.
 		 * @defaultValue false
 		 */
 		points?: boolean
@@ -215,7 +217,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const drawn = drawnSeries(chart)
 
 	const pick = (type: ComboChartSeries<T>['type']) =>
-		drawn.filter((entry) => (series[entry.meta.index]?.type ?? 'bar') === type)
+		drawn.filter((entry) => series[entry.meta.index]?.type === type)
 
 	const barEntries = pick('bar')
 
@@ -376,7 +378,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 						if (meta === null || index === null) return null
 
-						return { series: meta, datum: (series[meta]?.type ?? 'bar') === 'bar' ? index : null }
+						return { series: meta, datum: series[meta]?.type === 'bar' ? index : null }
 					}}
 					trigger={trigger}
 					snaps={snapping}

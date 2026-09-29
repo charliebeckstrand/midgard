@@ -4,33 +4,18 @@ import { useCallback, useMemo, useState } from 'react'
 import { useReportedChange } from '../../../hooks/use-reported-change'
 import { keyByOccurrence, toggleItem } from '../../../utilities'
 
-/** A toggleable set of hidden indexes — the primitive under both switchboards. @internal */
+/**
+ * The state of a legend switchboard: the series or the reference rules toggled
+ * off, and the toggle.
+ *
+ * @internal
+ */
 type ChartToggleSet = {
 	/** Indexes toggled off. */
 	hidden: ReadonlySet<number>
 	/** Toggles an index on or off. */
 	toggle: (index: number) => void
 }
-
-/**
- * A set of hidden indexes with an index toggle — the shared core of the series
- * and reference switchboards. Neither the series entries nor the reference chips
- * differ in how they hide their mark.
- *
- * @internal
- */
-function useChartToggleSet(): ChartToggleSet {
-	const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
-
-	const toggle = useCallback((index: number) => {
-		setHidden((current) => toggleItem(current, index))
-	}, [])
-
-	return { hidden, toggle }
-}
-
-/** The legend's series switchboard state. @internal */
-export type ChartSeriesToggle = ChartToggleSet
 
 /** Whether two index sets hold the same members. @internal */
 function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
@@ -56,7 +41,7 @@ function sameMembers(a: ReadonlySet<number>, b: ReadonlySet<number>): boolean {
 export function useChartSeriesToggle(
 	keys: readonly string[],
 	onHiddenChange?: (hidden: ReadonlySet<number>) => void,
-): ChartSeriesToggle {
+): ChartToggleSet {
 	const [hiddenKeys, setHiddenKeys] = useState<ReadonlySet<string>>(() => new Set())
 
 	// One string for the key list, so the derived set keeps its identity across a
@@ -89,9 +74,6 @@ export function useChartSeriesToggle(
 	return { hidden, toggle }
 }
 
-/** The reference switchboard's toggle state. @internal */
-export type ChartReferenceToggle = ChartToggleSet
-
 /**
  * Which reference rules are toggled off — the reference chips' switchboard,
  * keyed by each rule's own index in the `reference` array. Unlike the series
@@ -101,6 +83,12 @@ export type ChartReferenceToggle = ChartToggleSet
  *
  * @internal
  */
-export function useChartReferenceToggle(): ChartReferenceToggle {
-	return useChartToggleSet()
+export function useChartReferenceToggle(): ChartToggleSet {
+	const [hidden, setHidden] = useState<ReadonlySet<number>>(() => new Set())
+
+	const toggle = useCallback((index: number) => {
+		setHidden((current) => toggleItem(current, index))
+	}, [])
+
+	return { hidden, toggle }
 }

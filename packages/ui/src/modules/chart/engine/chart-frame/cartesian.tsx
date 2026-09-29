@@ -1,7 +1,7 @@
 import type { ReactElement, ReactNode } from 'react'
 import type { AccessibleName } from '../../../../types'
-import { ChartCartesianLegend } from '../chart-legend/cartesian'
-import type { ResolvedLegend } from '../chart-legend/schema'
+import { ChartLegend } from '../chart-legend/legend'
+import { legendAside, type ResolvedLegend } from '../chart-legend/schema'
 import type { ChartTexture } from '../chart-pattern-defs'
 import type { ChartReferenceLine } from '../chart-reference-lines'
 import { ChartReferenceList } from '../chart-reference-lines'
@@ -73,12 +73,21 @@ export function ChartCartesianFrame({
 			aspect={chart.outerAspect ?? undefined}
 			tier={chart.tier}
 			legend={
-				<ChartCartesianLegend
-					chart={chart}
-					legend={resolvedLegend.value}
-					inert={resolvedLegend.inert}
-					texture={tex.active}
-				/>
+				// No legend resolves for a lone series with `legend` unset.
+				chart.legendItems && (
+					<ChartLegend
+						items={chart.legendItems}
+						references={chart.referenceItems}
+						hidden={chart.hidden}
+						referenceHidden={chart.referenceHidden}
+						onToggle={chart.toggleSeries}
+						onToggleReference={chart.toggleReference}
+						panel={legendAside(resolvedLegend.value)}
+						maxRows={chart.legendRows}
+						texture={tex.active}
+						inert={resolvedLegend.inert}
+					/>
+				)
 			}
 			legendPlacement={resolvedLegend.placement}
 			readout={chart.readout}
