@@ -121,6 +121,20 @@ describe('HeatmapChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
+	it('keeps a prop that the heatmap does not take off the plot region', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits per day"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				{...{ 'data-stray': 'leak' }}
+			/>,
+		)
+
+		expect(bySlot(container, 'heatmap-plot')?.hasAttribute('data-stray')).toBe(false)
+	})
+
 	it('names the plot and renders the range legend by default', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits per day" data={ROWS} series={SERIES} width={400} />,

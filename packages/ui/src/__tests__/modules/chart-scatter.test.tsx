@@ -558,6 +558,33 @@ describe('BubbleChart', () => {
 		// The data table names the size measure beside each value.
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
 	})
+
+	it('keeps a prop that the scatter does not take off the plot region', () => {
+		// `BubbleChart` hands every prop to the scatter, and the scatter takes no
+		// `texture`. The frame picks the accessible name alone for its plot region.
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={STOPS}
+				width={480}
+				texture
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				{...{ 'data-stray': 'leak' }}
+			/>,
+		)
+
+		const plot = bySlot(container, 'chart-plot')
+
+		expect(plot?.getAttribute('aria-label')).toBe('Dwell against distance, sized by weight')
+
+		expect(plot?.hasAttribute('data-stray')).toBe(false)
+
+		expect(error.mock.calls.flat().join(' ')).not.toContain('texture')
+
+		error.mockRestore()
+	})
 })
 
 describe('scatter axis titles', () => {

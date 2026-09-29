@@ -83,6 +83,20 @@ function chartChrome(
 	}
 }
 
+/** The accessible-name attributes of the plot region. @internal */
+type PlotName = { 'aria-label'?: string; 'aria-labelledby'?: string }
+
+/**
+ * The accessible name of the plot region, picked by name. A chart hands the
+ * frame the rest of its props, so a prop that the chart does not take off
+ * reaches the frame too. The pick keeps such a prop off the `role="img"` region.
+ *
+ * @internal
+ */
+export function plotName(label: PlotName): PlotName {
+	return { 'aria-label': label['aria-label'], 'aria-labelledby': label['aria-labelledby'] }
+}
+
 /**
  * The plot region's attributes: the keyboard tab stop and its focus ring when
  * `keyboard` makes the region navigable, else a plain non-focusable region. It
@@ -463,7 +477,7 @@ export function ChartFrame({
 			ref={ref}
 			data-slot="chart-plot"
 			role="img"
-			{...label}
+			{...plotName(label)}
 			{...plotRegionProps(keyboard, aside, fill)}
 		>
 			{/* ChartPlotBox reserves the box height from its own width, steady before

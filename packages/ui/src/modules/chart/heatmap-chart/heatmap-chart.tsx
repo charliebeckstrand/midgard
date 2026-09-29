@@ -40,6 +40,7 @@ import {
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
 import { ChartContextMenu } from '../engine/chart-context-menu'
+import { plotName } from '../engine/chart-frame/frame'
 import { chartFrameSizing } from '../engine/chart-frame/sizing'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { bandTicksOf, plotRect, thinned } from '../engine/chart-layout'
@@ -1040,7 +1041,7 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 			ref={ref}
 			data-slot="heatmap-plot"
 			role="img"
-			{...label}
+			{...plotName(label)}
 			className={plotRegionClass(aside, fill)}
 		>
 			<ChartPlotBox reserve={reserve} height={frameHeight} fill={fill}>
