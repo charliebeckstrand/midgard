@@ -18,7 +18,9 @@ import { AppearanceProvider } from '../../providers/appearance'
 // then checks each block as one TSX module, on its own, with the DOM lib and
 // no import resolution. A block fails on a syntax error, on a name that it
 // declares twice, or on a name that it uses and neither declares nor imports.
-// The gate does not type-check the block against ui, so a wrong prop passes.
+// A derived block with none of those also fails on an import or a top-level
+// declaration that it never uses: a name that the walk pulled by mistake. The
+// gate does not type-check the block against ui, so a wrong prop passes.
 //
 // A block reads as imports, then declarations, then the JSX of the Example as
 // sibling elements. `asModule` wraps that JSX in a component, so the siblings
@@ -74,6 +76,35 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'components/segment › Sizes': "TS2304: Cannot find name 's'.",
 	'modules/chat › List': "TS2304: Cannot find name 'conversation'.",
 
+	// A `useState` value that the block declares and never reads. The block wires
+	// the setter as source, and prints the value's use from the live render: a
+	// prop dropped because the value is `null` or `undefined`, or a text child
+	// printed as its live text.
+	'components/calendar › Default': "TS6133: 'date' is declared but its value is never read.",
+	'components/calendar › With min/max': "TS6133: 'date' is declared but its value is never read.",
+	'components/credit-card-input › Composed':
+		"TS6133: 'brand' is declared but its value is never read.",
+	'components/date-picker › Default': "TS6133: 'date' is declared but its value is never read.",
+	'components/date-picker › Footer toggles':
+		"TS6133: 'footerDate' is declared but its value is never read.",
+	'components/date-picker › Glass': "TS6133: 'glassRange' is declared but its value is never read.",
+	'components/date-picker › Input': "TS6133: 'typed' is declared but its value is never read.",
+	'components/date-picker › Range': "TS6133: 'range' is declared but its value is never read.",
+	'components/date-picker › Relative':
+		"TS6133: 'relative' is declared but its value is never read.",
+	'components/date-picker › Relative (multiple)':
+		"TS6133: 'relativeMany' is declared but its value is never read.",
+	'components/date-picker › Relative (text, no chips)':
+		"TS6133: 'relativeText' is declared but its value is never read.",
+	'components/hold-button › Default': "TS6133: 'count' is declared but its value is never read.",
+	'components/hold-button › Lifecycle callbacks':
+		"TS6133: 'status' is declared but its value is never read.",
+	'components/signature-pad › Default': "TS6133: 'value' is declared but its value is never read.",
+	'components/signature-pad › Imperative handle':
+		"TS6133: 'value' is declared but its value is never read.",
+	'providers/glass › Form controls':
+		"TS6133: 'comboboxValue' is declared but its value is never read.",
+
 	// A hand-written override that does not parse.
 	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',
 }
@@ -92,6 +123,15 @@ const NAME_DIAGNOSTICS = new Set([
 	2552, // Cannot find name. Did you mean …?
 ])
 
+// The diagnostics of a name that the block declares or imports and never
+// uses, with `noUnusedLocals` on.
+const UNUSED_DIAGNOSTICS = new Set([
+	6133, // 'x' is declared but its value is never read.
+	6192, // All imports in import declaration are unused.
+	6196, // 'x' is declared but never used.
+	6198, // All destructured elements are unused.
+])
+
 const LIB_DIR = '/lib'
 
 const libFiles = new Map(
@@ -101,6 +141,9 @@ const libFiles = new Map(
 const libSourceFiles = new Map<string, ts.SourceFile>()
 
 const SNIPPET = '/snippet.tsx'
+
+/** The component that `asModule` wraps the JSX of a block in. */
+const SNIPPET_COMPONENT = '__Snippet'
 
 /** An elision in a hand-written override: `…`, or `...` that is not a spread. */
 const ELISION = /…|\.\.\.(?![\w$[{(])/
@@ -126,7 +169,7 @@ function asModule(code: string): string {
 
 	return [
 		...lines.slice(0, start),
-		'export function __Snippet() {',
+		`export function ${SNIPPET_COMPONENT}() {`,
 		'return (<>',
 		...lines.slice(start),
 		'</>)',
@@ -179,6 +222,7 @@ function diagnose(snippet: string): string[] {
 			jsx: ts.JsxEmit.Preserve,
 			lib: ['lib.es2023.d.ts', 'lib.dom.d.ts', 'lib.dom.iterable.d.ts'],
 			noResolve: true,
+			noUnusedLocals: true,
 			skipLibCheck: true,
 			types: [],
 		},
@@ -189,14 +233,83 @@ function diagnose(snippet: string): string[] {
 
 	const syntactic = program.getSyntacticDiagnostics(sf)
 
+	const semantic = syntactic.length > 0 || !derived ? [] : program.getSemanticDiagnostics(sf)
+
+	const names = semantic.filter((d) => NAME_DIAGNOSTICS.has(d.code))
+
 	const diagnostics =
 		syntactic.length > 0 || !derived
 			? syntactic
-			: program.getSemanticDiagnostics(sf).filter((d) => NAME_DIAGNOSTICS.has(d.code))
+			: names.length > 0
+				? names
+				: unusedOf(semantic, sf, code.includes(SNIPPET_COMPONENT))
 
-	return diagnostics.map(
-		(d) => `TS${d.code}: ${ts.flattenDiagnosticMessageText(d.messageText, ' ')}`,
+	return diagnostics.map((d) => `TS${d.code}: ${messageOf(d)}`)
+}
+
+function messageOf(diagnostic: ts.Diagnostic): string {
+	return ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')
+}
+
+/** The deepest node of `sf` that holds `position`. */
+function nodeAt(sf: ts.SourceFile, position: number): ts.Node {
+	let found: ts.Node = sf
+
+	const visit = (node: ts.Node) => {
+		if (node.getStart(sf) > position || position >= node.getEnd()) return
+
+		found = node
+
+		ts.forEachChild(node, visit)
+	}
+
+	ts.forEachChild(sf, visit)
+
+	return found
+}
+
+/**
+ * Whether a node names what the block itself declares: an import, or a name
+ * that a top-level statement declares. A parameter, a type parameter, and a
+ * local of a helper are authored code, so they do not count.
+ */
+function isBlockName(node: ts.Node): boolean {
+	for (let current = node.parent; current; current = current.parent) {
+		if (ts.isImportDeclaration(current)) return true
+
+		if (ts.isParameter(current) || ts.isTypeParameterDeclaration(current)) return false
+
+		if (ts.isBlock(current)) return false
+
+		if (ts.isSourceFile(current.parent)) return true
+	}
+
+	return false
+}
+
+/**
+ * The unused-name diagnostics of the block's own imports and top-level
+ * declarations. A block with no JSX shows one helper on its own. It declares
+ * that helper and never uses it, so the last unused PascalCase name is exempt
+ * there.
+ */
+function unusedOf(
+	diagnostics: readonly ts.Diagnostic[],
+	sf: ts.SourceFile | undefined,
+	hasJsx: boolean,
+): ts.Diagnostic[] {
+	if (!sf) return []
+
+	const unused = diagnostics.filter(
+		(d) =>
+			UNUSED_DIAGNOSTICS.has(d.code) && d.start !== undefined && isBlockName(nodeAt(sf, d.start)),
 	)
+
+	if (hasJsx) return unused
+
+	const shown = unused.findLast((d) => /^'[A-Z]/.test(messageOf(d)))
+
+	return unused.filter((d) => d !== shown)
 }
 
 /** The title of an Example frame, or `null` for an untitled one. */
