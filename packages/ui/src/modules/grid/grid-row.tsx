@@ -32,6 +32,12 @@ import type { GridColumnPinning } from './use-grid-table'
 export type GridRowsProps<T> = {
 	rows: T[]
 	rowKeys: (string | number)[]
+	/**
+	 * Each row's 0-based place in the view, while the cursor is on (empty
+	 * otherwise). A grouped leaf reads it: the body order of its group can
+	 * differ from the view order, and its cells key their cursor id on it.
+	 */
+	rowIndexMap: ReadonlyMap<T, number>
 	/** Visible columns, in display order: each row renders its cells straight from these, and the loading/empty/spacer rows span them. */
 	visibleColumns: GridColumn<T>[]
 	rowLoading?: (row: T) => boolean
@@ -181,8 +187,9 @@ export function renderGridRow<T>(
 
 	// An expandable grid follows each row with its master-detail panel row, which
 	// stays mounted and reveals open/closed from `expanded` (see `GridDetailRow`).
-	// A windowed body renders the panel as an item of its own.
-	if (!props.expansion || windowRow) return rowNode
+	// A windowed body renders the panel as an item of its own. A row that
+	// `rowExpandable` rejects gets no panel, so `render` never sees it.
+	if (!props.expansion || windowRow || !expandable) return rowNode
 
 	return (
 		<Fragment key={key}>
@@ -509,6 +516,7 @@ function GridRowImpl<T>({
 						key={col.id}
 						col={col}
 						row={row}
+						rowIndex={dataRowIndex}
 						rowKey={rowKey}
 						colIndex={colIndex}
 						columnIndex={colIdx}

@@ -118,7 +118,9 @@ export function applyColumnReorder(
 
 	for (const id of order) {
 		if (isReorderable(id)) {
-			next.push(reorderedIds[idx] as string | number)
+			// A slot with no id left to draw keeps its own, so the order never holds
+			// `undefined` when the two lengths disagree.
+			next.push(reorderedIds[idx] ?? id)
 
 			idx++
 		} else {

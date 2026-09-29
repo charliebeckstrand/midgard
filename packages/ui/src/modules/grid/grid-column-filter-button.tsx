@@ -1,7 +1,15 @@
 'use client'
 
 import { ListFilter, ListFilterPlus } from 'lucide-react'
-import { type SubmitEvent, useEffect, useEffectEvent, useMemo, useState } from 'react'
+import {
+	type SubmitEvent,
+	useEffect,
+	useEffectEvent,
+	useLayoutEffect,
+	useMemo,
+	useRef,
+	useState,
+} from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
@@ -157,6 +165,10 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// applies as "no constraint" (the evaluator skips value-less rules), so Apply
 	// doubles as a clear.
 	function apply() {
+		const next = isQueryActive(draft)
+
+		if (next !== active) refocusRef.current = next
+
 		filter.setQuery(column.id, draft)
 
 		closeSheet()
@@ -176,6 +188,8 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// menu the button becomes while a filter is applied (the sheet is closed then,
 	// so there's no open state to settle).
 	function clear() {
+		refocusRef.current = false
+
 		filter.setQuery(column.id, undefined)
 	}
 
@@ -190,6 +204,22 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	// the trigger into the edit/clear menu below either way, and the sheet renders
 	// regardless, so the menu can open it under both affordances.
 	const showRestingFunnel = filter.affordance !== 'menu'
+
+	// Apply and Clear swap the resting funnel for the menu trigger, or back. The
+	// sheet and the menu return focus to the trigger that opened them, which is
+	// gone, so focus would fall to the page. The trigger of the new state takes it.
+	const triggerRef = useRef<HTMLButtonElement>(null)
+
+	// The applied state that Apply or Clear moved to, or `null` with no swap to follow.
+	const refocusRef = useRef<boolean | null>(null)
+
+	useLayoutEffect(() => {
+		if (refocusRef.current !== active) return
+
+		refocusRef.current = null
+
+		triggerRef.current?.focus()
+	}, [active])
 
 	const label = columnLabel(column)
 
@@ -206,6 +236,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				<Menu placement="bottom-end">
 					<MenuTrigger>
 						<Button
+							ref={triggerRef}
 							type="button"
 							variant="bare"
 							color="blue"
@@ -236,6 +267,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</Menu>
 			) : showRestingFunnel ? (
 				<Button
+					ref={triggerRef}
 					type="button"
 					variant="bare"
 					aria-label={`Filter ${label}`}

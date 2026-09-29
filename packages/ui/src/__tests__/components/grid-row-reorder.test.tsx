@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
-import { renderUI, screen } from '../helpers'
+import { fireEvent, renderUI, screen } from '../helpers'
 
 /**
  * Row drag-reorder gating (the `rowReorder` binding + a `dragHandle` column). A
@@ -57,6 +57,35 @@ describe('Grid row reorder', () => {
 
 		// The empty drag-handle header still names itself for assistive tech.
 		expect(screen.getByText('Reorder rows')).toBeInTheDocument()
+	})
+
+	it('keeps the table and the focused sort button when a sort stands the reorder down', () => {
+		const { container } = renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				rowLabel={rowLabel}
+				rowReorder={{ onReorder: () => {} }}
+			/>,
+		)
+
+		const table = container.querySelector('table')
+
+		const sort = screen.getByRole('button', { name: 'Sort by Name' })
+
+		sort.focus()
+
+		fireEvent.click(sort)
+
+		// The sort applies, and it only disables the grips: nothing remounts.
+		expect(grips()[0]).toBeDisabled()
+
+		expect(container.querySelector('table')).toBe(table)
+
+		expect(sort.isConnected).toBe(true)
+
+		expect(sort).toHaveFocus()
 	})
 
 	it('disables the grip while a column sort orders the rows', () => {

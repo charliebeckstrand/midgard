@@ -125,6 +125,8 @@ function noFlips<G>(flips: GridMotionFlips<G>) {
  *
  * A change that flips nothing, such as a new filter, and a toggle under
  * reduced motion need no window. The render applies them, in one commit.
+ * `applied` is `live` in every render but those of a pending toggle, so an
+ * edit or a new order that keeps each row shows at once.
  *
  * The entering rows lose their motion after the commit that mounts them,
  * because a row that mounts later, as the reader scrolls, mounts open.
@@ -149,6 +151,11 @@ export function useGridWindowMotion<L, S, G, K>(
 		motions: new Map(),
 	}))
 
+	// Whether the rows hold the applied source: only while a toggle waits for its
+	// window. Every other render reads `live`, so a change that keeps each row
+	// (an edit, a new order inside a group) shows at once.
+	let held = state.pending !== null
+
 	// The flips count from the applied source, so a second change before the
 	// window resolves the first one keeps both.
 	if (!source.same(state.pending?.captured ?? state.captured, live)) {
@@ -165,6 +172,10 @@ export function useGridWindowMotion<L, S, G, K>(
 			})
 		} else {
 			setState({ ...state, pending: { live, captured, flips } })
+
+			// React renders again at once with the toggle pending. This pass holds the
+			// applied source too, so the body builds no list for `live` only to drop it.
+			held = true
 		}
 	}
 
@@ -232,5 +243,5 @@ export function useGridWindowMotion<L, S, G, K>(
 		[],
 	)
 
-	return { applied: state.applied, motions, release }
+	return { applied: held ? state.applied : live, motions, release }
 }

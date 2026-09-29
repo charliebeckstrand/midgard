@@ -8,18 +8,28 @@ import { useGridHighlight } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
-import { type GridCellRovingActivate, resolveCellTooltip } from './engine/grid-row/cell'
+import {
+	cellContentAt,
+	cellPropsAt,
+	type GridCellRovingActivate,
+	type GridIndexedColumn,
+	resolveCellTooltip,
+} from './engine/grid-row/cell'
 import { cellRovingAttrs } from './engine/grid-row/shell'
 import { GridCellContent } from './grid-cell-content'
 import { highlightMatches } from './grid-highlight-utilities'
 import { GridReorderContext } from './grid-reorder'
-import type { GridColumn } from './types'
 import type { GridColumnPinning } from './use-grid-table'
 
 /** Props for {@link GridDataCell}. @internal */
 type GridDataCellProps<T> = {
-	col: GridColumn<T>
+	col: GridIndexedColumn<T>
 	row: T
+	/**
+	 * The row's 0-based place in the view. A cursor cell reads it for its id and
+	 * its seat, so a sort or an insert above renders the moved cells again.
+	 */
+	rowIndex: number
 	/** The owning row's key, carried so cell roving can build the {@link GridCellClickContext}. */
 	rowKey: string | number
 	colIndex: number | undefined
@@ -46,6 +56,7 @@ type GridDataCellProps<T> = {
 function GridDataCellImpl<T>({
 	col,
 	row,
+	rowIndex,
 	rowKey,
 	colIndex,
 	columnIndex,
@@ -55,7 +66,7 @@ function GridDataCellImpl<T>({
 	cellRoving = false,
 	cellActivate,
 }: GridDataCellProps<T>) {
-	const cellExtra = col.cellProps?.(row)
+	const cellExtra = cellPropsAt(col, row, rowIndex)
 
 	// Cell-mode roving: the focus ring plus the marker/activation attributes,
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
@@ -69,7 +80,7 @@ function GridDataCellImpl<T>({
 
 	// Render only columns that declare a `cell`; a bare accessor column stays
 	// empty rather than falling back to an engine default renderer.
-	const rawContent = col.cell ? (col.cell(row) ?? null) : null
+	const rawContent = cellContentAt(col, row, rowIndex)
 
 	// In highlight-search mode, mark the matched substring in this column's
 	// content — but only for the columns the search actually scans.
@@ -124,7 +135,7 @@ function GridDataCellImpl<T>({
 
 /**
  * Memoized {@link GridDataCellImpl}. When a row re-renders, only the cells whose
- * own props (column, row, pinning) changed re-render. A row-level change
+ * own props (column, row, place in the view, pinning) changed re-render. A row-level change
  * (selection, truncation) therefore doesn't re-run the cell renderer and
  * `cellProps` for every cell in the row. @internal
  */

@@ -1,4 +1,9 @@
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
+import type {
+	ComponentProps,
+	KeyboardEvent as ReactKeyboardEvent,
+	MouseEvent as ReactMouseEvent,
+	ReactNode,
+} from 'react'
 import { isDataColumn } from '../../../../utilities'
 import type { CellTooltip } from '../../grid-cell-content'
 import type { GridColumn } from '../../types'
@@ -129,3 +134,34 @@ const AUTO_TOOLTIP: CellTooltip = { kind: 'auto' }
 
 /** Shared suppressed-tooltip descriptor. @internal */
 const NO_TOOLTIP: CellTooltip = { kind: 'none' }
+
+/**
+ * A column whose cell reads its display row. The cursor projections build one:
+ * the id, the seat, and the active flag of each cell follow the row's place in
+ * the view, which the row data does not carry. A flat row gives the index to
+ * `cellAt` and `cellPropsAt`, so a cell whose row moved renders again, and a
+ * compiled cell keys its content on the index. `cell` and `cellProps` stay for
+ * a body that has no index to give.
+ *
+ * @internal
+ */
+export type GridIndexedColumn<T> = GridColumn<T> & {
+	cellAt?: (row: T, rowIndex: number) => ReactNode
+	cellPropsAt?: (row: T, rowIndex: number) => Omit<ComponentProps<'td'>, 'children'>
+}
+
+/** The content of a column's cell in the row at `rowIndex` of the view, or `null` with no `cell`. @internal */
+export function cellContentAt<T>(col: GridIndexedColumn<T>, row: T, rowIndex: number): ReactNode {
+	if (col.cellAt) return col.cellAt(row, rowIndex) ?? null
+
+	return col.cell ? (col.cell(row) ?? null) : null
+}
+
+/** The `cellProps` of a column's cell in the row at `rowIndex` of the view. @internal */
+export function cellPropsAt<T>(
+	col: GridIndexedColumn<T>,
+	row: T,
+	rowIndex: number,
+): Omit<ComponentProps<'td'>, 'children'> | undefined {
+	return col.cellPropsAt ? col.cellPropsAt(row, rowIndex) : col.cellProps?.(row)
+}

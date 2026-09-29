@@ -35,6 +35,30 @@ describe('Grid pagination', () => {
 	})
 
 	describe('client mode', () => {
+		it('shows the last page when the rows shrink under the current page', () => {
+			const ui = (rows: Row[]) => (
+				<Grid
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+					pagination={{ defaultValue: { pageIndex: 4, pageSize: 5 } }}
+				/>
+			)
+
+			const view = renderUI(ui(many))
+
+			expect(screen.getByText('21–25 of 25')).toBeInTheDocument()
+
+			// Three rows fit on one page, so no control could reach them.
+			view.rerender(ui(many.slice(0, 3)))
+
+			expect(screen.getByText('Row 1')).toBeInTheDocument()
+
+			expect(screen.getByText('Row 3')).toBeInTheDocument()
+
+			expect(screen.getByText('1–3 of 3')).toBeInTheDocument()
+		})
+
 		it('renders only the first page of rows', () => {
 			renderUI(
 				<Grid

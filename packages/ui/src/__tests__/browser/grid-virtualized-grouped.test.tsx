@@ -395,4 +395,31 @@ describe('grid virtualized grouped body (real browser)', () => {
 
 		expect(await sampleDrift(anchor, before, 30)).toBeLessThanOrEqual(1)
 	})
+	it('shows a data change that keeps every group', async () => {
+		const ui = (rows: Person[]) => (
+			<div style={{ width: 560 }}>
+				<Grid<Person>
+					columns={columns}
+					rows={rows}
+					getKey={(r) => r.id}
+					groupBy={{ value: 'role', defaultExpanded: true }}
+					groupTotalRow
+					truncate={false}
+					maxHeight="400px"
+					virtualize={{ estimateSize: 44 }}
+				/>
+			</div>
+		)
+
+		const view = renderUI(ui(people))
+
+		await waitFor(() => expect(screen.getByText('Person 1')).toBeInTheDocument())
+
+		// Each group keeps its id and its open flag; only the leaf values change.
+		view.rerender(ui(people.map((person) => ({ ...person, name: `${person.name}, edited` }))))
+
+		await waitFor(() => expect(screen.getByText('Person 1, edited')).toBeInTheDocument())
+
+		expect(screen.queryByText('Person 1')).toBeNull()
+	})
 })

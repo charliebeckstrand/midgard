@@ -868,14 +868,23 @@ export function useGridNavigation({
 	}, [])
 
 	// The grid writes the row map during its render, after this hook. Under a
-	// published order, a new map with the same order reaches the view here, and
-	// the render that follows reads it before paint.
+	// published order, a new map reaches the view here, and the render that
+	// follows reads it before paint. The map of data rows to cursor rows follows
+	// it, because a row that joins a closed group moves every later data index
+	// while the order stays equal. The update reads the view it replaces: a
+	// `publish` in this commit already queued the newer order.
 	useLayoutEffect(() => {
+		const order = orderRef.current
+
 		const rowIndexMap = rowIndexMapRef.current
 
-		if (view.order === null || view.rowIndexMap === rowIndexMap) return
+		if (order === null || view.rowIndexMap === rowIndexMap) return
 
-		setView({ order: view.order, rowIndexMap })
+		cursorOfDataRef.current = cursorOfDataRows(order, rowIndexMap)
+
+		setView((current) =>
+			current.rowIndexMap === rowIndexMap ? current : { order: current.order, rowIndexMap },
+		)
 	})
 
 	const activeStop = active ? stopIn(view.order, active.row) : undefined

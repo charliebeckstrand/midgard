@@ -94,20 +94,17 @@ export function useGridColumns<T>({
 		[rawOrder, groups, isOrderable],
 	)
 
-	// A header drag only permutes the columns shown with a handle — visible,
-	// non-frozen data columns — so the splice predicate matches that exact set and
-	// holds every other id (selection/actions/pinned/locked/hidden) in place.
+	// A header drag only permutes the columns shown with a handle, so the splice
+	// predicate is the set that the drag moved. Every other id holds its slot:
+	// the selection, actions, pinned, locked, and hidden columns, and the members
+	// that a collapsed group hides.
 	const reorderColumns = useCallback(
 		(reorderedIds: (string | number)[]) => {
-			setColumnOrder(
-				applyColumnReorder(
-					columnOrder,
-					reorderedIds,
-					(id) => isOrderable(id) && !hiddenColumns.has(id),
-				),
-			)
+			const moved = new Set(reorderedIds)
+
+			setColumnOrder(applyColumnReorder(columnOrder, reorderedIds, (id) => moved.has(id)))
 		},
-		[setColumnOrder, columnOrder, isOrderable, hiddenColumns],
+		[setColumnOrder, columnOrder],
 	)
 
 	// The engine's `columnVisibility` state: only orderable ids are marked hidden,

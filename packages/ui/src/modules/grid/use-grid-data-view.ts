@@ -170,6 +170,7 @@ export function useGridDataView<T>({
 
 	return {
 		roving,
+		rowIndexMap,
 		hasRows,
 		showingError,
 		hasRowsToActOn,
