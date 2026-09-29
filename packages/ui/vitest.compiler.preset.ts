@@ -8,7 +8,7 @@ const HARNESS = {
 }
 
 /**
- * The docs site. An app does not import it, and the skip ledger leaves it out
+ * The docs site. An app does not import it, and the skip gate leaves it out
  * for the same reason. The site builds with the plain React plugin. Its
  * `docs:pre` transform also reads the authored TSX of each demo, so a compiler
  * pass before it removes the helper snippets.

@@ -1355,7 +1355,7 @@ export function useGridTable<T>({
 	// gives the engine no filter state, so its filters apply to no row. This block
 	// comes before the engine options. The React Compiler reads a plain call after
 	// a memo as a possible change to the inputs of the memo, so it would skip this
-	// hook if the block came later (see `react-compiler-skips.json`).
+	// hook if the block came later (see `react-compiler-skips.test.ts`).
 	const appliedColumnFilters = hasColumnFilters ? resolvedColumnFilters : EMPTY_COLUMN_FILTERS
 
 	const columnTests = useMemo(

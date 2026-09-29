@@ -9,11 +9,10 @@ import {
 } from '../helpers/walk-source'
 
 // A `'use no memo'` directive keeps the React Compiler off one function. The
-// compiler reports such a function only when it also breaks a rule, so the skip
-// ledger (`compiler/react-compiler-skips.json`) does not show each one. This list
-// does. Each function states its reason in its TSDoc, and a change to the list
-// shows in the diff of the commit that makes it. `useWindowVirtualizer` is in
-// the ledger too: it writes to the virtualizer during render.
+// skip gate (`compiler/react-compiler-skips.test.ts`) does not report such a
+// function, so this list is the one record of each opt-out. Each function
+// states its reason in its TSDoc, and a change to the list shows in the diff of
+// the commit that makes it.
 //
 //   - `useWindowVirtualizer`: the virtualizer keeps one identity, and its reads
 //     are live, so a compiled read of the window goes stale. It gives each
