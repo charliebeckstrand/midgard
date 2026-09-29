@@ -470,36 +470,45 @@ export function renderOpenTag(
 }
 
 /**
+ * How an import line takes a name: as a named value, as a named type, or as
+ * the default export of the module.
+ */
+export type ImportKind = 'value' | 'type' | 'default'
+
+/**
  * Record an import for `name` from `mod`. Allocates the inner Set on first
  * use. `external` marks `mod` as a bare package specifier (`lucide-react`);
- * `assemble` emits it without the library prefix. `type` records a type-only
- * import, which `assemble` writes as `type Name`.
+ * `assemble` emits it without the library prefix. A `type` import reads
+ * `type Name` in the braces, and a `default` import reads
+ * `import Name from`.
  */
 export function addImport(
 	context: Context,
 	mod: string,
 	name: string,
 	external = false,
-	type = false,
+	kind: ImportKind = 'value',
 ): void {
 	const set = context.imports.get(mod) ?? new Set<string>()
 
-	set.add(type ? `type ${name}` : name)
+	set.add(kind === 'value' ? name : `${kind} ${name}`)
 
 	context.imports.set(mod, set)
 
 	if (external) context.externalModules.add(mod)
 }
 
-/** The bare name of an import entry, without its `type ` marker. */
-const bareName = (entry: string) => entry.replace(/^type /, '')
+/** The bare name of an import entry, without its `type ` or `default ` marker. */
+const bareName = (entry: string) => entry.replace(/^(?:type|default) /, '')
 
 /**
- * One module's import names, sorted by the bare name. A `type X` entry goes
+ * One module's named imports, sorted by the bare name. A `type X` entry goes
  * when `X` also imports as a value, because the value import covers the type.
+ * A default import is no named import, so it goes too.
  */
 function importNames(names: Set<string>): string[] {
 	return [...names]
+		.filter((entry) => !entry.startsWith('default '))
 		.filter((entry) => !entry.startsWith('type ') || !names.has(bareName(entry)))
 		.sort((a, b) => {
 			const left = bareName(a)
@@ -524,11 +533,25 @@ function importNames(names: Set<string>): string[] {
 export function assemble(context: Context, jsx: string, preamble: string[] = []): string {
 	const imports = [...context.imports.entries()]
 		.sort(([a], [b]) => a.localeCompare(b))
-		.map(([mod, names]) => {
+		.flatMap(([mod, names]) => {
 			const specifier =
 				mod === 'react' || context.externalModules.has(mod) ? mod : `${context.packageName}/${mod}`
 
-			return `import { ${importNames(names).join(', ')} } from '${specifier}'`
+			const named = importNames(names)
+
+			const braces = named.length > 0 ? [`{ ${named.join(', ')} }`] : []
+
+			const defaults = [...names].filter((entry) => entry.startsWith('default ')).map(bareName)
+
+			// One default shares the line of the named imports. A line takes one
+			// default, so each other default takes its own line.
+			const [first, ...rest] = defaults
+
+			const lines = [[first, ...braces].filter(Boolean).join(', ')]
+
+			return [...lines, ...rest]
+				.filter(Boolean)
+				.map((clause) => `import ${clause} from '${specifier}'`)
 		})
 		.join('\n')
 
@@ -749,7 +772,10 @@ export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
 
 /** Register the import line of one entry of an import table. */
 function registerImport(name: string, fact: ImportFact, context: Context): void {
-	addImport(context, fact.module, name, fact.external ?? false, fact.type ?? false)
+	// A type-only default reads as a value default: TypeScript takes either.
+	const kind = fact.default ? 'default' : fact.type ? 'type' : 'value'
+
+	addImport(context, fact.module, name, fact.external ?? false, kind)
 }
 
 /**
