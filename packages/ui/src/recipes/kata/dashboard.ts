@@ -149,10 +149,14 @@ const veil = {
 const content = '@container relative min-h-0 flex-1 overflow-auto'
 
 /**
- * The content box of an expanded tile, in its dialog. It gives the widget a
- * height, so a chart that fills its box has a box to fill.
+ * The content box of an expanded tile, in its dialog. The tile sets the ratio
+ * of its shape on the board, and the box takes its height from its width. A
+ * chart that fills its box then has a box to fill, and a small tile such as a
+ * stat does not get a tall, empty box. The box keeps the full width, and its
+ * height stops at 70% of the viewport or 40rem. A tall, narrow tile therefore
+ * gets a wider box than its shape.
  */
-const expanded = 'flex h-[min(70dvh,40rem)] min-h-0 flex-col'
+const expanded = 'flex max-h-[min(70dvh,40rem)] min-h-0 w-full flex-col'
 
 /** The error state of a tile: a centered message and a retry button. */
 const error = 'flex size-full flex-col items-center justify-center gap-2 p-2 text-center'

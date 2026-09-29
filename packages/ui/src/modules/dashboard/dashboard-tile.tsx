@@ -8,7 +8,7 @@ import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
-import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
+import { type DashboardTileSize, gridArea, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
@@ -143,9 +143,11 @@ export type DashboardTileProps = {
 	onDuplicate?: () => void
 	/**
 	 * Show an expand control at rest. It opens the content in a dialog, at a
-	 * larger size, in the scope of the same tile. When edit mode starts, an open
-	 * dialog closes. The focus then moves to the grip of the tile. A tile with no
-	 * grip, such as a tile with a `static` layout entry, gives the focus to the board.
+	 * larger size, in the scope of the same tile. The content box of the dialog
+	 * keeps the shape of the tile on the board, up to 70% of the viewport
+	 * height. When edit mode starts, an open dialog closes. The focus then moves
+	 * to the grip of the tile. A tile with no grip, such as a tile with a `static`
+	 * layout entry, gives the focus to the board.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
@@ -293,6 +295,8 @@ export function DashboardTile(props: DashboardTileProps) {
 				onRemove={onRemove}
 				onDuplicate={onDuplicate}
 				expandable={expandable}
+				// The rows follow the column pitch, so the span gives the shape of the tile.
+				shape={(cell.w * ROW_SUBDIVISION) / cell.h}
 				shell={node}
 			>
 				{children}

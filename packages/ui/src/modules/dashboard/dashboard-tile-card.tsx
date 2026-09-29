@@ -51,6 +51,8 @@ export type DashboardTileCardProps = {
 	onDuplicate?: () => void
 	/** Whether the expand control shows at rest. */
 	expandable: boolean
+	/** The `width / height` ratio of the tile on the board, which the expand dialog keeps. */
+	shape: number
 	/** The tile shell, which finds the tile that takes the focus after a remove. */
 	shell: RefObject<HTMLElement | null>
 	/** The widget. */
@@ -86,6 +88,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	onRemove,
 	onDuplicate,
 	expandable,
+	shape,
 	shell,
 	children,
 }: DashboardTileCardProps) {
@@ -115,6 +118,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				description={description}
 				fallback={fallback}
 				onError={onError}
+				shape={shape}
 				shell={shell}
 			>
 				{children}
