@@ -56,11 +56,11 @@ type ComboMarks = {
 	/** The line series, then the area series behind them in stroke order. */
 	lines: ChartLineSeries[]
 	areas: ChartLineSeries[]
+	/** The zero line that each area wash closes on, by its position in `areas`. */
+	areaBase: (order: number) => number
 	/** Series-major bar marks, with each bar series' own index alongside. */
 	bars: (BarMark | null)[][]
 	barIndices: number[]
-	/** The plot floor the area fills read down to. */
-	floor: number
 }
 
 /**
@@ -100,7 +100,7 @@ function comboMarkAt(
 	y: number,
 	held: ChartMarkRef | null,
 ): ChartMarkRef | null {
-	const { lines, areas, bars, barIndices, floor } = marks
+	const { lines, areas, areaBase, bars, barIndices } = marks
 
 	const strokes = [...lines, ...areas]
 
@@ -110,7 +110,7 @@ function comboMarkAt(
 
 	if (stroke !== null) return { series: strokes[stroke]?.index ?? stroke, datum: null }
 
-	const area = nearestSeriesArea(comboStrokeRuns(areas), floor, x, y)
+	const area = nearestSeriesArea(comboStrokeRuns(areas), areaBase, x, y)
 
 	if (area !== null) return { series: areas[area]?.index ?? area, datum: null }
 
@@ -124,7 +124,9 @@ function comboMarkAt(
  * a second on request. A series carrying `axis: 'y2'` reads the secondary scale
  * the chart's `axes.y2` config shapes. A count therefore plots beside a currency
  * at its natural size. Bars sit at the back, the translucent area washes ride
- * over them, and lines draw on top. Every series reads a zero-baseline domain.
+ * over them, and lines draw on top. Every series reads a zero-baseline domain,
+ * and each area wash closes on the zero line of its axis, as an
+ * {@link AreaChart} wash does.
  * The frame is the cartesian standard: axes, grid, legend, hover tooltip, and
  * the visually-hidden data table. The tooltip snaps when the `crosshair` snaps.
  *
@@ -195,12 +197,19 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	)
 
 	// Lines and areas share the polyline geometry; an area is a line that also
-	// fills down to the baseline.
+	// fills down to its baseline.
 	const xs = chart.bandPositions
 
 	const lines = lineSeriesOf(lineEntries, xs, floor, interpolation, points)
 
-	const areas = lineSeriesOf(areaEntries, xs, floor, interpolation, points)
+	// Each wash closes on the zero line of its own axis, as an AreaChart wash does.
+	// A negative bar or a domain pinned below zero lifts that line off the floor.
+	const areas = areaEntries.flatMap((entry) =>
+		lineSeriesOf([entry], xs, entry.baseline, interpolation, points),
+	)
+
+	// The hit test reads each wash down to the same zero line.
+	const areaBase = (order: number) => areaEntries[order]?.baseline ?? floor
 
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
@@ -270,7 +279,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 			chart={chart}
 			fullscreen={<ComboChart {...props} />}
 			marks={marks}
-			markAt={(x, y, held) => comboMarkAt({ lines, areas, bars, barIndices, floor }, x, y, held)}
+			markAt={(x, y, held) => comboMarkAt({ lines, areas, areaBase, bars, barIndices }, x, y, held)}
 			bars={(index) => series[index]?.type === 'bar'}
 			// Value labels ride the line and area series only — bars read against the axis.
 			valueLabels={{ list: [...areas, ...lines] }}

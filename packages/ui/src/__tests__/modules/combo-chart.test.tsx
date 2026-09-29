@@ -240,6 +240,83 @@ describe('ComboChart', () => {
 	})
 })
 
+describe('ComboChart area wash', () => {
+	/**
+	 * A bar below zero lifts the zero line off the plot floor. The area stays
+	 * above zero, and the bar at `C` stands above zero too, so the band under the
+	 * zero line at `C` holds no mark.
+	 */
+	function lifted() {
+		const result = renderUI(
+			<ComboChart
+				aria-label="Net and volume"
+				width={400}
+				height={240}
+				points
+				data={[
+					{ q: 'A', net: -40, volume: 20 },
+					{ q: 'B', net: 30, volume: 60 },
+					{ q: 'C', net: 10, volume: 40 },
+				]}
+				series={[
+					{ type: 'bar', xKey: 'q', yKey: 'net', yName: 'Net' },
+					{ type: 'area', xKey: 'q', yKey: 'volume', yName: 'Volume' },
+				]}
+			/>,
+		)
+
+		const { container } = result
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// The category rule stands on the zero line.
+		const zero = Number(
+			getSlot(container, 'chart-axis-x').querySelector('line')?.getAttribute('y1'),
+		)
+
+		const floor = Number(hit.getAttribute('y')) + Number(hit.getAttribute('height'))
+
+		return { ...result, hit, zero, floor }
+	}
+
+	it('closes the wash at the zero line, not the plot floor', () => {
+		const { container, zero, floor } = lifted()
+
+		const d = getSlot(container, 'chart-area').getAttribute('d') ?? ''
+
+		const close = Number(/([\d.]+)\s*Z$/.exec(d)?.[1])
+
+		// The premise: the zero line sits well above the floor.
+		expect(floor - zero).toBeGreaterThan(20)
+
+		expect(close).toBeCloseTo(zero, 1)
+	})
+
+	it('reads the wash above the zero line and nothing between the zero line and the floor', () => {
+		const { container, hit, zero, floor } = lifted()
+
+		const plotX = Number(hit.getAttribute('x'))
+
+		const plotY = Number(hit.getAttribute('y'))
+
+		const dot = allBySlot(container, 'chart-point')[2] as Element
+
+		const x = Number(dot.getAttribute('cx'))
+
+		const top = Number(dot.getAttribute('cy'))
+
+		// Inside the wash, between its top edge and the zero line, the area reads.
+		fireEvent.pointerMove(hit, { clientX: x - plotX, clientY: (top + zero) / 2 - plotY })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('40')
+
+		// Under the zero line the wash does not draw, so the pointer reads no mark.
+		fireEvent.pointerMove(hit, { clientX: x - plotX, clientY: (zero + floor) / 2 - plotY })
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+})
+
 describe('ComboChart reference labels', () => {
 	it('draws a standing label for a reference under `labels.references`', () => {
 		const { container } = renderUI(
