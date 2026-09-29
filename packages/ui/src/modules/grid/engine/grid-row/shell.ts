@@ -199,8 +199,9 @@ export type GridWindowRowProps = {
  * The roving attributes a focusable data cell carries in cell mode. They are the
  * `data-roving` marker the grid's roving hook seats a `tabIndex` on, and an
  * Enter / Space handler that activates the cell. That handler is gated to the
- * cell itself, so an inner control keeps its own key behavior. `null` outside
- * cell roving.
+ * cell itself, so an inner control keeps its own key behavior. The handler of
+ * the column's `cellProps` runs first, and a handler that prevents the default
+ * keeps the key. `null` outside cell roving.
  *
  * @internal
  */
@@ -210,19 +211,26 @@ export function cellRovingAttrs<T>(args: {
 	col: GridColumn<T>
 	row: T
 	rowKey: string | number
+	/** The `onKeyDown` of the column's `cellProps`, which the roving handler replaces on the cell. */
+	keyDown?: ((event: ReactKeyboardEvent<HTMLTableCellElement>) => void) | undefined
 }): {
 	'data-roving': '' | undefined
-	onKeyDown: (event: ReactKeyboardEvent<HTMLElement>) => void
+	onKeyDown: (event: ReactKeyboardEvent<HTMLTableCellElement>) => void
 } | null {
-	const { cellRoving, cellActivate, col, row, rowKey } = args
+	const { cellRoving, cellActivate, col, row, rowKey, keyDown } = args
 
 	if (!cellRoving) return null
 
 	return {
 		'data-roving': dataAttr(true),
-		onKeyDown: (event) =>
+		onKeyDown: (event) => {
+			keyDown?.(event)
+
+			if (event.defaultPrevented) return
+
 			activateOnEnterSpace(event, (e) =>
 				cellActivate?.({ row, rowKey, columnId: col.id, value: cellValue(col, row) }, e),
-			),
+			)
+		},
 	}
 }

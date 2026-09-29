@@ -5,11 +5,13 @@ import { useStableEvent } from '../../hooks/use-stable-event'
 import {
 	EMPTY_HISTORY,
 	type GridHistory,
+	type GridHistoryCell,
 	type GridHistoryEntry,
 	type GridHistoryRead,
 	type GridHistoryResult,
 	type GridHistoryStep,
 	recordHistory,
+	restoreHistory,
 	takeHistory,
 } from './engine/grid-edit-history'
 import type { GridHistoryState } from './grid-editing-types'
@@ -27,6 +29,8 @@ export type GridEditHistory = {
 	record: (entry: GridHistoryEntry) => void
 	/** Takes one step, and keeps the history that the step leaves. */
 	take: (step: GridHistoryStep, read: GridHistoryRead) => GridHistoryResult
+	/** Puts back the cells of a step that the sink refused. */
+	restore: (step: GridHistoryStep, refused: readonly GridHistoryCell[]) => void
 }
 
 /** Whether two history states say the same. */
@@ -39,8 +43,8 @@ const EMPTY_STATE: GridHistoryState = { canUndo: false, canRedo: false }
 
 /**
  * Holds the undo history of an editable grid. A history that the config turns
- * off does not come back when it turns on again. `record` and `take` keep
- * their identity, so the sweep and the settle can read them without a new
+ * off does not come back when it turns on again. `record`, `take`, and
+ * `restore` keep their identity, so the sweep and the settle can read them without a new
  * dependency. `onChange` hears the state each time either value flips.
  *
  * @param enabled - Whether the grid is editable.
@@ -84,9 +88,13 @@ export function useGridEditHistory(
 		return result
 	})
 
+	const restore = useStableEvent((step: GridHistoryStep, refused: readonly GridHistoryCell[]) => {
+		if (on) set(restoreHistory(ref.current, step, refused))
+	})
+
 	useEffect(() => {
 		if (!on) set(EMPTY_HISTORY)
 	}, [on, set])
 
-	return useMemo(() => ({ on, record, take }), [on, record, take])
+	return useMemo(() => ({ on, record, take, restore }), [on, record, take, restore])
 }

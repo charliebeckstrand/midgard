@@ -280,6 +280,60 @@ describe('Grid search', () => {
 			})
 		})
 
+		it.each([
+			['an editable grid', { editable: { session: 'managed', onCommit: () => {} } }],
+			['the leaves of a grouped grid', { groupBy: { value: 'role' } }],
+		] as const)('marks the match in %s', async (_name, props) => {
+			await withFakeTime(async (clock) => {
+				const fields: GridColumn<Row>[] = columns.map((column) => ({
+					...column,
+					field: column.id as keyof Row,
+				}))
+
+				renderUI(
+					<Grid
+						columns={fields}
+						rows={rows}
+						getKey={getKey}
+						search={{ mode: 'highlight' }}
+						{...props}
+					/>,
+				)
+
+				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				const marks = document.querySelectorAll('td mark')
+
+				expect(marks).toHaveLength(1)
+
+				expect(marks[0]).toHaveTextContent('Ali')
+			})
+		})
+
+		it('renders no cell of a column that the search does not scan when the query settles', async () => {
+			await withFakeTime(async (clock) => {
+				const note = vi.fn((row: Row) => `note ${row.id}`)
+
+				const withNote: GridColumn<Row>[] = [...columns, { id: 'note', title: 'Note', cell: note }]
+
+				renderUI(
+					<Grid columns={withNote} rows={rows} getKey={getKey} search={{ mode: 'highlight' }} />,
+				)
+
+				note.mockClear()
+
+				await clock.user.type(screen.getByRole('searchbox'), 'Ali')
+
+				await clock.advance(GRID_SEARCH_DEBOUNCE_MS)
+
+				expect(document.querySelector('mark')).toBeInTheDocument()
+
+				expect(note).not.toHaveBeenCalled()
+			})
+		})
+
 		it('clears the marks when the query is cleared', async () => {
 			await withFakeTime(async (clock) => {
 				renderUI(

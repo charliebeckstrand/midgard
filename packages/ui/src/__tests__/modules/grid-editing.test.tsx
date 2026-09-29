@@ -2382,6 +2382,41 @@ describe('Grid active-cell binding', () => {
 		expect(onCellChange).not.toHaveBeenCalled()
 	})
 
+	it('keeps a row that a controlled rows opens for the default cell when the session leaves it', () => {
+		const onRowsChange = vi.fn()
+
+		const ui = (rows: Set<string | number>) => (
+			<Grid
+				columns={sessionColumns}
+				rows={sessionRows}
+				getKey={(row) => row.id}
+				editable={{
+					session: 'managed',
+					scope: 'cell',
+					defaultCell: { rowKey: 1, columnId: 'name' },
+					rows,
+					onRowsChange,
+					onCommit: () => {},
+				}}
+			/>
+		)
+
+		// The controlled set lacks the row, so the default cell stays closed.
+		const view = renderUI(ui(new Set()))
+
+		expect(editorsIn(view.container)).toHaveLength(0)
+
+		// The consumer opens the row.
+		view.rerender(ui(new Set([1])))
+
+		// An entry into the other row leaves the consumer's row open.
+		fireEvent.doubleClick(
+			view.container.querySelectorAll<HTMLElement>('td[data-grid-col="name"]')[1] as HTMLElement,
+		)
+
+		expect(onRowsChange).toHaveBeenLastCalledWith(new Set([1, 2]))
+	})
+
 	it('warns once and stays inert outside a cell-scoped grid-owned session', () => {
 		const warn = vi.spyOn(console, 'warn').mockImplementation(() => {})
 
@@ -4889,6 +4924,43 @@ describe('Grid new row', () => {
 		await expectAnnouncement('Row not added, 1 cell refused')
 	})
 
+	describe('a validate that reads another cell', () => {
+		// The count may not pass 5 while the name is Big.
+		const cols: GridColumn<SessionRow>[] = [
+			sessionColumns[0] as GridColumn<SessionRow>,
+			{
+				...(sessionColumns[1] as GridColumn<SessionRow>),
+				validate: (value, row) => (row.name === 'Big' && Number(value) > 5 ? 'Too many' : null),
+			},
+		]
+
+		it('reads the current value of the other cell as the user types', () => {
+			const view = renderNewRow({}, {}, cols)
+
+			view.type('name', 'Big')
+
+			view.type('count', '9')
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+		})
+
+		it('shows the error of a blocked add on the cell that refuses it', async () => {
+			const view = renderNewRow({}, {}, cols)
+
+			view.type('count', '9')
+
+			view.type('name', 'Big')
+
+			view.press('name', 'Enter')
+
+			expect(view.onRowAdd).not.toHaveBeenCalled()
+
+			expect(view.slotCell('count')).toHaveTextContent('Too many')
+
+			await expectAnnouncement('Row not added, 1 cell refused')
+		})
+	})
+
 	it('reads the values as the row that validate sees', () => {
 		const validate = vi.fn(() => null)
 
@@ -5558,6 +5630,8 @@ describe('Grid undo and redo (history)', () => {
 
 		const onCommit = vi.fn()
 
+		const states: GridHistoryState[] = []
+
 		function Harness() {
 			const [rows, setRows] = useState(sessionRows)
 
@@ -5571,6 +5645,7 @@ describe('Grid undo and redo (history)', () => {
 						session: 'managed',
 						scope: 'cell',
 						history: true,
+						onHistoryChange: (next) => states.push(next),
 						onCommit: (changes) => {
 							onCommit(changes)
 
@@ -5604,6 +5679,7 @@ describe('Grid undo and redo (history)', () => {
 		return {
 			...view,
 			state,
+			states,
 			onCommit,
 			count,
 			saveCount: (value: string) => {
@@ -5668,6 +5744,24 @@ describe('Grid undo and redo (history)', () => {
 		fireEvent.keyDown(view.getByRole('grid'), { key: 'z', ctrlKey: true })
 
 		await expectAnnouncement('Nothing to undo')
+	})
+
+	it('puts a refused async undo back on the undo stack', async () => {
+		const view = renderLaterGrid()
+
+		view.saveCount('9')
+
+		view.state.later = true
+
+		view.undo()
+
+		expect(view.states.at(-1)).toEqual({ canUndo: false, canRedo: true })
+
+		await act(async () => view.state.refuse([{ rowKey: 1, columnId: 'count', error: 'No' }]))
+
+		// The cell still holds the saved value, so the undo can run again, and
+		// no redo names a step that undid nothing.
+		expect(view.states.at(-1)).toEqual({ canUndo: true, canRedo: false })
 	})
 
 	it('does nothing without the flag', () => {

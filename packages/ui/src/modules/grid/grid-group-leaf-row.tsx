@@ -13,13 +13,11 @@ import { NO_PADDING } from './engine/grid-constants'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import {
-	cellContentAt,
 	cellPropsAt,
 	type GridCellClick,
 	type GridCellRovingActivate,
 	type GridIndexedColumn,
 	type GridRowClick,
-	resolveCellTooltip,
 } from './engine/grid-row/cell'
 import {
 	cellRovingAttrs,
@@ -27,7 +25,7 @@ import {
 	rowClickableClass,
 	rowShellProps,
 } from './engine/grid-row/shell'
-import { GridCellContent } from './grid-cell-content'
+import { cellBody } from './grid-cell-content'
 import { GridRowActions } from './grid-row-actions'
 import type { GridColumn } from './types'
 import { useGridNavContext } from './use-grid-navigation'
@@ -130,19 +128,7 @@ function leafCellInner<T>(args: {
 	if (col.actions) return <GridRowActions render={col.actions} row={row} rowKey={rowKey} />
 
 	// The column renders the cell as a flat row does.
-	const raw = cellContentAt(col, row, rowIndex)
-
-	if (truncate && raw != null) {
-		return (
-			<GridCellContent
-				content={raw}
-				tooltip={resolveCellTooltip(col, row)}
-				columnId={String(col.id)}
-			/>
-		)
-	}
-
-	return raw
+	return cellBody(col, row, rowIndex, truncate)
 }
 
 /** Props for {@link GridGroupLeafCell}. @internal */
@@ -217,6 +203,7 @@ function GridGroupLeafCell<T>({
 		col,
 		row,
 		rowKey,
+		keyDown: extra?.onKeyDown,
 	})
 
 	return (

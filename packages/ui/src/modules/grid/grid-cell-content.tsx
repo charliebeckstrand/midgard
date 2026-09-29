@@ -5,6 +5,8 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../components/toolti
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { useGridResizing, useGridSettle } from './context'
+import { cellContentAt, type GridIndexedColumn, resolveCellTooltip } from './engine/grid-row/cell'
+import { searchedContent } from './grid-highlight-utilities'
 import { useGridTruncation } from './use-grid-truncation'
 
 /**
@@ -109,3 +111,30 @@ const TRUNCATE_CLASS = cn(k.cell.truncate)
 
 /** The static tooltip-content class, composed once. @internal */
 const TOOLTIP_CLASS = cn(k.cell.tooltip)
+
+/**
+ * The body of a data cell, on a flat row and on a group leaf: the content of
+ * the column, with the matches of the highlight search marked, in the
+ * truncation reveal unless the grid opts out. A column with no `cell` gives
+ * `null`, and the cell stays bare.
+ *
+ * @internal
+ */
+export function cellBody<T>(
+	col: GridIndexedColumn<T>,
+	row: T,
+	rowIndex: number,
+	truncate: boolean,
+): ReactNode {
+	const content = searchedContent(col, cellContentAt(col, row, rowIndex))
+
+	if (!truncate || content == null) return content
+
+	return (
+		<GridCellContent
+			content={content}
+			tooltip={resolveCellTooltip(col, row)}
+			columnId={String(col.id)}
+		/>
+	)
+}

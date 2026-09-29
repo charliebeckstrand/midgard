@@ -187,6 +187,9 @@ export function useGridNewRow<T>({
 	// Raised to mount the slot's editors again, so each reads the store.
 	const [generation, remount] = useReducer((count: number) => count + 1, 0)
 
+	// Raised by a blocked add, so the slot renders and each editor checks again.
+	const [checks, check] = useReducer((count: number) => count + 1, 0)
+
 	const [inFlight, setInFlight] = useState(false)
 
 	const flightRef = useRef<NewRowFlight | null>(null)
@@ -325,7 +328,8 @@ export function useGridNewRow<T>({
 	)
 
 	// Adds the row. An add with no value does nothing. A `validate` refusal
-	// blocks it, and the editors already show the error. A second add waits
+	// blocks it, and the slot renders so the editors show the error, also one
+	// that reads another cell. A second add waits
 	// while one is in flight. It reads the newest position and `onRowAdd`.
 	const addRow = useStableEvent(() => {
 		if (position === null || flightRef.current !== null) return
@@ -342,6 +346,8 @@ export function useGridNewRow<T>({
 		).length
 
 		if (invalid > 0) {
+			check()
+
 			announce(describeRowAdd(invalid))
 
 			return
@@ -457,6 +463,7 @@ export function useGridNewRow<T>({
 				: {
 						position,
 						generation,
+						checks,
 						inFlight,
 						stageDraft: drafts.stage,
 						unstageDraft: drafts.unstage,
@@ -467,7 +474,18 @@ export function useGridNewRow<T>({
 						cellId,
 						moveTo,
 					},
-		[position, generation, inFlight, drafts, claimFocus, addRow, editorKind, cellId, moveTo],
+		[
+			position,
+			generation,
+			checks,
+			inFlight,
+			drafts,
+			claimFocus,
+			addRow,
+			editorKind,
+			cellId,
+			moveTo,
+		],
 	)
 
 	return { session, keys, enter, editorKind }

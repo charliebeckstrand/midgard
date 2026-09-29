@@ -7,6 +7,7 @@ import {
 	historyStep,
 	historyValue,
 	recordHistory,
+	restoreHistory,
 	takeHistory,
 } from '../../modules/grid/engine/grid-edit-history'
 
@@ -118,6 +119,26 @@ describe('historyValue', () => {
 		expect(historyValue(name, 'undo')).toBe('Alice')
 
 		expect(historyValue(name, 'redo')).toBe('Alicia')
+	})
+})
+
+describe('restoreHistory', () => {
+	it('puts a refused undo back on the undo stack, and keeps the accepted cells on the redo stack', () => {
+		const history = { undo: [], redo: [[name, count]] }
+
+		expect(restoreHistory(history, 'undo', [count])).toEqual({ undo: [[count]], redo: [[name]] })
+	})
+
+	it('drops a moved entry that loses every cell', () => {
+		const history = { undo: [[name]], redo: [] }
+
+		expect(restoreHistory(history, 'redo', [name])).toEqual({ undo: [], redo: [[name]] })
+	})
+
+	it('ignores an empty refusal', () => {
+		const history = { undo: [], redo: [[name]] }
+
+		expect(restoreHistory(history, 'undo', [])).toBe(history)
 	})
 })
 

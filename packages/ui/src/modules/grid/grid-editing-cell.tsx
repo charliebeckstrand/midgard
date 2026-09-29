@@ -36,6 +36,7 @@ import {
 	type GridSettleControls as SettleControls,
 	useGridEditingSession,
 } from './grid-editing-context'
+import { searchedContent } from './grid-highlight-utilities'
 import type { GridColumn } from './types'
 import { GridNavCell } from './use-grid-navigation-columns'
 
@@ -60,6 +61,12 @@ type GridCellEditorProps<T> = Omit<GridEditingCellProps<T>, 'render' | 'colIdx' 
 	kind?: EditorKind
 	/** Whether the editor of this column of the new-row slot takes focus now. */
 	claimSlot?: (columnId: string | number) => boolean
+	/**
+	 * Reads the row that `validate` checks, at each render. The new-row slot
+	 * passes it, because its row is in the draft store, and a keystroke in one
+	 * editor does not render the others.
+	 */
+	readRow?: () => T
 } & Pick<
 		GridEditingSession,
 		| 'stageDraft'
@@ -211,6 +218,7 @@ export function GridCellEditor<T>({
 	held,
 	kind,
 	claimSlot,
+	readRow,
 }: GridCellEditorProps<T>) {
 	const seed = column.field != null ? row[column.field] : undefined
 
@@ -333,7 +341,8 @@ export function GridCellEditor<T>({
 	// for `validate` to refuse yet.
 	const checked = column.validate && !(newRow && isBlankDraft(draft))
 
-	const error = (checked ? column.validate?.(draft, row) : null) ?? refusal ?? null
+	const error =
+		(checked ? column.validate?.(draft, readRow ? readRow() : row) : null) ?? refusal ?? null
 
 	// Links the editor to its message (aria-describedby) so the error reaches AT,
 	// not just sighted users (WCAG 1.3.1 / 3.3.1).
@@ -569,7 +578,7 @@ export function GridEditingCell<T>({
 
 	return (
 		<GridNavCell row={rowIdx} col={colIdx}>
-			{render?.(row)}
+			{searchedContent(column, render?.(row))}
 		</GridNavCell>
 	)
 }

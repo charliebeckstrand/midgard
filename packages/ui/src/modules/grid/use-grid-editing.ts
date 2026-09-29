@@ -268,16 +268,29 @@ function sameCell(a: GridActiveEdit | null, b: GridActiveEdit | null): boolean {
 	return a === b || (b !== null && isSameCell(a, b))
 }
 
+/** Whether two sets of row keys hold the same keys. @internal */
+function sameKeys(a: ReadonlySet<string | number>, b: ReadonlySet<string | number>): boolean {
+	if (a === b) return true
+
+	if (a.size !== b.size) return false
+
+	for (const key of a) if (!b.has(key)) return false
+
+	return true
+}
+
 /**
  * Builds the store behind {@link GridActiveEditStore}. `seat` moves the coord
  * and the editable rows without a notice, for the render that resolves them.
  * The cells that render in that pass then read the new values. `set` moves the
  * coord and notifies the rest. It notifies only when the coord names another
  * cell than the listeners last heard, so a write that repeats the held cell
- * renders nothing. `setRows` does the same for the set of editable rows.
- * `notify` tells every listener that a draft changed status. @internal
+ * renders nothing. `setRows` does the same for the set of editable rows, by
+ * its keys: a controlled `rows` built again with the same keys renders
+ * nothing. `notify` tells every listener that a draft changed status.
+ * @internal
  */
-function createActiveEditStore(): GridActiveEditStore & {
+export function createActiveEditStore(): GridActiveEditStore & {
 	seat: (next: GridActiveEdit | null, rows: ReadonlySet<string | number>) => void
 	set: (next: GridActiveEdit | null) => void
 	setRows: (next: ReadonlySet<string | number>) => void
@@ -314,11 +327,11 @@ function createActiveEditStore(): GridActiveEditStore & {
 		setRows: (next) => {
 			rows = next
 
-			if (toldRows === next) return
+			const same = sameKeys(toldRows, next)
 
 			toldRows = next
 
-			emit()
+			if (!same) emit()
 		},
 		notify: emit,
 	}
@@ -544,7 +557,10 @@ type InFlightBatch = {
 	labels: Map<string | number, string>
 	/** What the batch does: a save, an undo, or a redo. */
 	outcome: GridSaveOutcome
-	/** The history cells that an accepted save records. An undo and a redo record none. */
+	/**
+	 * The history cells of the batch. An accepted save records them. A refused
+	 * undo or redo puts them back.
+	 */
 	history: GridHistoryCell[]
 }
 
@@ -800,6 +816,14 @@ function stagedDrafts<T>(changes: readonly GridCellChange[], row: T | undefined)
 	return drafts
 }
 
+/** The cells of a history step on the row of `rowKey`. @internal */
+function stepCells(
+	rows: Map<string | number, GridHistoryCell[]>,
+	rowKey: string | number,
+): GridHistoryCell[] {
+	return rows.get(rowKey) ?? []
+}
+
 /**
  * Sends a batch of changes that no session staged through the sink, one batch
  * for each row, as the commit sweep sends a session's drafts. It returns the
@@ -810,7 +834,8 @@ function stagedDrafts<T>(changes: readonly GridCellChange[], row: T | undefined)
  * {@link checkRow}), and the saved cells carry their history. The refused
  * cells return in `refused`. A paste sets it. A history step does not. It
  * writes a value that was valid, and it moved its history entry when it was
- * taken.
+ * taken. It passes its cells as `history` instead, and each batch keeps the
+ * cells of its row, so a refusal can put them back.
  *
  * @internal
  */
@@ -821,8 +846,11 @@ function sendCells<T>(args: {
 	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
 	check: boolean
+	history: readonly GridHistoryCell[]
 }): { saved: SavedCells; inFlight: InFlightBatch[]; refused: GridCellChange[] } {
 	const { outcome, source, rowOf, onCommit, check } = args
+
+	const historyRows = byRow(args.history)
 
 	const columns: string[] = []
 
@@ -867,7 +895,16 @@ function sendCells<T>(args: {
 
 		inFlight.push(
 			inFlightBatch(
-				{ rowKey, rowDrafts, changes, result, row: name, outcome, history: cells },
+				{
+					rowKey,
+					rowDrafts,
+					changes,
+					result,
+					row: name,
+					outcome,
+					// A checked write holds no step cells, and a step holds no checked ones.
+					history: [...cells, ...stepCells(historyRows, rowKey)],
+				},
 				source,
 			),
 		)
@@ -1224,6 +1261,22 @@ function moveSessionRow(
 		leaving: held?.acquired ? held.rowKey : null,
 		row: { rowKey, acquired: !rows.has(rowKey) },
 	}
+}
+
+/**
+ * The session row of the initial cell, or `null` with no initial cell. The row
+ * counts as acquired only when the grid seeds it into an uncontrolled set that
+ * `defaultRows` lacks. A controlled `rows` gets no seed. @internal
+ */
+function initialSessionRow(
+	cell: GridActiveEdit | null,
+	config: GridEditableConfig | undefined,
+): SessionRow | null {
+	if (!cell) return null
+
+	const seeded = config?.rows === undefined && !(config?.defaultRows ?? EMPTY_SET).has(cell.rowKey)
+
+	return { rowKey: cell.rowKey, acquired: seeded }
 }
 
 /**
@@ -1674,7 +1727,7 @@ export function useGridEditing<T>({
 	// The undo history, when the config turns it on.
 	const history = useGridEditHistory(enabled, config?.history, config?.onHistoryChange)
 
-	const { record: recordEntry, take: takeStep } = history
+	const { record: recordEntry, take: takeStep, restore: restoreStep } = history
 
 	// The open state that the last commit sweep saw. A cell that it saw open
 	// has not committed yet, so a write to it still counts.
@@ -1855,14 +1908,11 @@ export function useGridEditing<T>({
 	// `activeEdit`. Provenance rides the row because the row is its subject: read
 	// off the cell it would be recomputed on every move, and a move within an
 	// acquired row would find that row already in the set and forget the session
-	// had put it there. An initial cell's row counts as acquired when neither
-	// `rows` nor `defaultRows` held it.
-	const sessionRowRef = useRef<SessionRow | null>(
-		initial.cell && {
-			rowKey: initial.cell.rowKey,
-			acquired: !(config?.rows ?? config?.defaultRows ?? EMPTY_SET).has(initial.cell.rowKey),
-		},
-	)
+	// had put it there. An initial cell's row counts as acquired only when the
+	// grid seeded it into an uncontrolled set that `defaultRows` lacked. A
+	// controlled `rows` gets no seed, so the consumer opens that row, and it
+	// stays open when the session leaves it.
+	const sessionRowRef = useRef(initialSessionRow(initial.cell, config))
 
 	// The move a controlled binding has yet to apply. `bump` forces the render
 	// that tells an applied move from a declined one.
@@ -2169,25 +2219,42 @@ export function useGridEditing<T>({
 		[entry, setActiveCellValue],
 	)
 
+	// The cell that an uncontrolled binding held at its last commit, for a
+	// switch to a controlled binding. A ref, not the settled state: the render
+	// reads the settled value only while controlled, so a write on each move
+	// would render the host once more for nothing.
+	// Only an uncontrolled commit writes it, and a switch always follows one.
+	const uncontrolledRef = useRef<GridActiveEdit | null>(activeEdit)
+
+	const wasControlledRef = useRef(controlled)
+
 	const settleBinding = useCallback(
 		(raw: GridActiveEdit | null) => {
 			const request = requestRef.current
 
 			requestRef.current = null
 
+			const switched = controlled && !wasControlledRef.current
+
+			wasControlledRef.current = controlled
+
 			if (!controlled) {
 				settleUncontrolled(raw)
 
-				const active = activeEditRef.current
-
-				// Kept for a switch to a controlled binding. Set only on a change, as the
-				// effect runs on each commit.
-				if (!settledAt(settled, active)) setSettled({ raw: active, cell: active })
+				uncontrolledRef.current = activeEditRef.current
 
 				return
 			}
 
-			const from = landWait(settled)
+			// A switch to a controlled binding starts from the cell that the
+			// uncontrolled binding held.
+			const held = uncontrolledRef.current
+
+			const base = switched && !settledAt(settled, held) ? { raw: held, cell: held } : settled
+
+			if (base !== settled) setSettled(base)
+
+			const from = landWait(base)
 
 			// An equal value moves nothing. A request that did not land was declined.
 			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
@@ -2575,8 +2642,15 @@ export function useGridEditing<T>({
 			activeEditStore.notify()
 
 			// An accepted save goes into the history. An undo or a redo moved its
-			// entry when it was sent, so its batch holds no history cells.
-			recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
+			// entry when it was sent, so a refused cell goes back.
+			if (batch.outcome === 'undone' || batch.outcome === 'redone') {
+				restoreStep(
+					batch.outcome === 'undone' ? 'undo' : 'redo',
+					batch.history.filter((cell) => refused.has(cell.columnId)),
+				)
+			} else {
+				recordEntry(batch.history.filter((cell) => accepted.has(cell.columnId)))
+			}
 
 			if (failed.length > 0 && !cellScoped && !editableRowsRef.current.has(rowKey)) {
 				awaitingReopenRef.current.add(rowKey)
@@ -2590,7 +2664,7 @@ export function useGridEditing<T>({
 
 			announce(describeSettle(saved, failed, batch.row, batch.outcome))
 		},
-		[cellScoped, drafts, activeEditStore, setEditableRows, recordEntry, rerender],
+		[cellScoped, drafts, activeEditStore, setEditableRows, recordEntry, restoreStep, rerender],
 	)
 
 	// Puts the drafts of an async batch back as pending, and settles them when
@@ -2670,13 +2744,16 @@ export function useGridEditing<T>({
 	// no history value came from, such as a paste, passes `write`: its cells go
 	// through the checks of a save, and its refusals, with the ones the caller
 	// found, go to `onReject` in one call. Its saved cells are one entry in the
-	// history. The announcement also counts the cells that the write skipped.
+	// history. The announcement also counts the cells that the write skipped. A
+	// history step passes its cells as `history`, so a refused batch puts them
+	// back.
 	const submitCells = useCallback(
 		(
 			changes: readonly GridCellChange[],
 			outcome: GridSaveOutcome,
 			rowOf: (rowKey: string | number) => T | undefined,
 			write?: { refused: readonly GridCellChange[]; skipped: number },
+			history: readonly GridHistoryCell[] = [],
 		) => {
 			const { saved, inFlight, refused } = sendCells({
 				changes,
@@ -2685,6 +2762,7 @@ export function useGridEditing<T>({
 				rowOf,
 				onCommit: hasCommit ? sendCommit : undefined,
 				check: write !== undefined,
+				history,
 			})
 
 			const rejected = write ? [...write.refused, ...refused] : refused
@@ -2806,7 +2884,7 @@ export function useGridEditing<T>({
 				value: historyValue(cell, step),
 			}))
 
-			submitCells(changes, historyOutcome(step), rowOf)
+			submitCells(changes, historyOutcome(step), rowOf, undefined, cells)
 
 			if (moveCursor) moveToCell(cells[0])
 
