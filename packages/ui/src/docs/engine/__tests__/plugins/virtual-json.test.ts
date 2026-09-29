@@ -9,10 +9,15 @@ import {
 /**
  * Minimal stand-in for the bits of the Vite dev server that the HMR hook
  * touches. `getModuleById` echoes the id back as the module; `invalidatedIds`
- * records each invalidated virtual module.
+ * records each invalidated virtual module, `reloadedIds` each reloaded one, and
+ * `errors` each logged error.
  */
 function fakeServer() {
 	const invalidatedIds: string[] = []
+
+	const reloadedIds: string[] = []
+
+	const errors: string[] = []
 
 	const server = {
 		moduleGraph: {
@@ -21,9 +26,24 @@ function fakeServer() {
 				invalidatedIds.push(mod.id)
 			},
 		},
+		reloadModule: async (mod: { id: string }) => {
+			reloadedIds.push(mod.id)
+		},
+		config: {
+			logger: {
+				error: (message: string) => {
+					errors.push(message)
+				},
+			},
+		},
 	}
 
-	return { server, invalidatedIds }
+	return { server, invalidatedIds, reloadedIds, errors }
+}
+
+/** Let the background regeneration of a family settle. */
+async function settle() {
+	await new Promise((resolve) => setTimeout(resolve, 0))
 }
 
 type Server = ReturnType<typeof fakeServer>['server']
@@ -35,7 +55,7 @@ type Server = ReturnType<typeof fakeServer>['server']
  */
 type Callable = {
 	resolveId(id: string): string | undefined
-	load(id: string): string | undefined
+	load(id: string): string | Promise<string> | undefined
 	handleHotUpdate(ctx: {
 		file: string
 		modules: { id: string }[]
@@ -179,11 +199,13 @@ describe('virtualJsonModules', () => {
 
 describe('virtualJsonModules (family spec)', () => {
 	const family = (
-		generate: () => Record<string, unknown>,
+		generate: () => Record<string, unknown> | Promise<Record<string, unknown>>,
 		shouldInvalidate: (f: string) => boolean = () => false,
+		keys: () => string[] = () => ['button', 'card'],
 	): VirtualJsonFamilySpec => ({
 		prefix: 'virtual:api/',
 		manifestId: 'virtual:api-manifest',
+		keys,
 		generate,
 		shouldInvalidate,
 	})
@@ -200,138 +222,268 @@ describe('virtualJsonModules (family spec)', () => {
 		expect(hooks.resolveId('virtual:other')).toBeUndefined()
 	})
 
-	it('serves the manifest as static import thunks, one per record key', () => {
-		const hooks = build([family(() => ({ button: [{ name: 'Button' }], card: [] }))])
+	it('serves the manifest from the keys alone, without the record', () => {
+		const generate = vi.fn(() => ({}))
+
+		const hooks = build([family(generate)])
 
 		expect(hooks.load('\0virtual:api-manifest')).toBe(
 			'export default {"button": () => import("virtual:api/button"),' +
 				'"card": () => import("virtual:api/card")}',
 		)
+
+		expect(generate).not.toHaveBeenCalled()
 	})
 
-	it('serves each key module as its slice of the record', () => {
+	it('serves each key module as its slice of the record, once the record resolves', async () => {
 		const record = { button: [{ name: 'Button' }], card: [] }
 
-		const hooks = build([family(() => record)])
+		const hooks = build([family(async () => record)])
 
-		expect(hooks.load('\0virtual:api/button')).toBe('export default [{"name":"Button"}]')
+		await expect(hooks.load('\0virtual:api/button')).resolves.toBe(
+			'export default [{"name":"Button"}]',
+		)
 
-		expect(hooks.load('\0virtual:api/card')).toBe('export default []')
+		await expect(hooks.load('\0virtual:api/card')).resolves.toBe('export default []')
 
 		// An id with no record entry serves null rather than throwing.
-		expect(hooks.load('\0virtual:api/missing')).toBe('export default null')
+		await expect(hooks.load('\0virtual:api/missing')).resolves.toBe('export default null')
 	})
 
-	it('generates the record once across the manifest and every key read', () => {
+	it('generates the record once across every key read', async () => {
 		const generate = vi.fn(() => ({ button: [], card: [] }))
 
 		const hooks = build([family(generate)])
 
-		hooks.load('\0virtual:api-manifest')
+		await Promise.all([hooks.load('\0virtual:api/button'), hooks.load('\0virtual:api/card')])
 
-		hooks.load('\0virtual:api/button')
-
-		hooks.load('\0virtual:api/card')
+		await hooks.load('\0virtual:api/button')
 
 		expect(generate).toHaveBeenCalledTimes(1)
 	})
 
-	it('re-generates, and invalidates a served key whose slice changed', () => {
+	it('fails each key read when the record fails', async () => {
+		const hooks = build([
+			family(() => {
+				throw new Error('no record')
+			}),
+		])
+
+		await expect(hooks.load('\0virtual:api/button')).rejects.toThrow('no record')
+
+		await expect(hooks.load('\0virtual:api/card')).rejects.toThrow('no record')
+	})
+
+	it('re-generates after the update, and reloads a served key whose slice changed', async () => {
 		let props: unknown[] = [{ name: 'Button' }]
 
-		const generate = vi.fn(() => ({ button: props }))
+		const generate = vi.fn(() => ({ button: props, card: [] }))
 
 		const hooks = build([family(generate, (f) => f.endsWith('.tsx'))])
 
-		// Prime the manifest and the button key module.
 		hooks.load('\0virtual:api-manifest')
 
-		expect(hooks.load('\0virtual:api/button')).toBe('export default [{"name":"Button"}]')
+		await hooks.load('\0virtual:api/button')
 
-		const { server, invalidatedIds } = fakeServer()
+		await hooks.load('\0virtual:api/card')
+
+		const { server, invalidatedIds, reloadedIds } = fakeServer()
 
 		props = [{ name: 'Button', updated: true }]
 
-		const result = hooks.handleHotUpdate({
-			file: 'button.tsx',
-			modules: [{ id: 'button.tsx' }],
-			server,
-		})
+		// The key list holds, so no virtual module joins the edit's own update.
+		expect(
+			hooks.handleHotUpdate({ file: 'button.tsx', modules: [{ id: 'button.tsx' }], server }),
+		).toBeUndefined()
 
-		// The key set holds, so the manifest stays. The served key module is
-		// invalidated, and the edited file's own module is folded back in ahead of
-		// it.
-		expect(invalidatedIds).toEqual(['\0virtual:api/button'])
+		await settle()
 
-		expect(result?.map((m) => m.id)).toEqual(['button.tsx', '\0virtual:api/button'])
+		// Only the key whose slice changed reloads.
+		expect(invalidatedIds).toEqual([])
 
-		// The next read re-generates with fresh data.
-		expect(hooks.load('\0virtual:api/button')).toBe(
+		expect(reloadedIds).toEqual(['\0virtual:api/button'])
+
+		await expect(hooks.load('\0virtual:api/button')).resolves.toBe(
 			'export default [{"name":"Button","updated":true}]',
 		)
 
 		expect(generate).toHaveBeenCalledTimes(2)
 	})
 
-	it('invalidates the manifest when the key set changes, and no unchanged key', () => {
+	it('serves the new record to a key read that starts during the regeneration', async () => {
+		let version = 1
+
+		const hooks = build([
+			family(
+				async () => ({ button: version }),
+				() => true,
+			),
+		])
+
+		await hooks.load('\0virtual:api/button')
+
+		const { server } = fakeServer()
+
+		version = 2
+
+		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
+
+		await expect(hooks.load('\0virtual:api/button')).resolves.toBe('export default 2')
+	})
+
+	it('reloads each served key when the previous record failed', async () => {
+		let fail = false
+
+		const hooks = build([
+			family(
+				() => {
+					if (fail) throw new Error('broken')
+
+					return { button: [], card: [] }
+				},
+				() => true,
+			),
+		])
+
+		await hooks.load('\0virtual:api/button')
+
+		await hooks.load('\0virtual:api/card')
+
+		const { server, reloadedIds } = fakeServer()
+
+		fail = true
+
+		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
+
+		await settle()
+
+		fail = false
+
+		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
+
+		await settle()
+
+		// Neither slice changed, but the failed record gave no slice to compare.
+		expect(reloadedIds).toEqual(['\0virtual:api/button', '\0virtual:api/card'])
+	})
+
+	it('logs a regeneration that fails, and reloads nothing', async () => {
+		let fail = false
+
+		const hooks = build([
+			family(
+				() => {
+					if (fail) throw new Error('broken')
+
+					return { button: [] }
+				},
+				() => true,
+			),
+		])
+
+		await hooks.load('\0virtual:api/button')
+
+		const { server, reloadedIds, errors } = fakeServer()
+
+		fail = true
+
+		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
+
+		await settle()
+
+		expect(reloadedIds).toEqual([])
+
+		expect(errors).toEqual(['virtual:api-manifest: Error: broken'])
+	})
+
+	it('invalidates the manifest in the update when the key list changes', async () => {
+		let keys = ['button', 'card']
+
 		let record: Record<string, unknown> = { button: [], card: [] }
 
 		const hooks = build([
 			family(
 				() => record,
 				() => true,
+				() => keys,
 			),
 		])
 
 		hooks.load('\0virtual:api-manifest')
 
-		hooks.load('\0virtual:api/button')
+		await hooks.load('\0virtual:api/button')
 
-		hooks.load('\0virtual:api/card')
+		await hooks.load('\0virtual:api/card')
 
-		const { server, invalidatedIds } = fakeServer()
+		const { server, invalidatedIds, reloadedIds } = fakeServer()
+
+		keys = ['button', 'card', 'dialog']
 
 		record = { button: [], card: [{ name: 'Card' }], dialog: [] }
 
-		hooks.handleHotUpdate({ file: 'dialog.tsx', modules: [], server })
+		const result = hooks.handleHotUpdate({
+			file: 'dialog.tsx',
+			modules: [{ id: 'dialog.tsx' }],
+			server,
+		})
 
-		expect(invalidatedIds).toEqual(['\0virtual:api-manifest', '\0virtual:api/card'])
+		// The manifest joins the edit's own update, after the edited file.
+		expect(invalidatedIds).toEqual(['\0virtual:api-manifest'])
+
+		expect(result?.map((m) => m.id)).toEqual(['dialog.tsx', '\0virtual:api-manifest'])
 
 		expect(hooks.load('\0virtual:api-manifest')).toContain(
 			'"dialog": () => import("virtual:api/dialog")',
 		)
+
+		await settle()
+
+		// Of the served keys, only card changed.
+		expect(reloadedIds).toEqual(['\0virtual:api/card'])
 	})
 
-	it('generates nothing on a matching change to a family never served', () => {
+	it('generates nothing on a matching change to a family never served', async () => {
 		const generate = vi.fn(() => ({ button: [] }))
 
-		const hooks = build([family(generate, () => true)])
+		const keys = vi.fn(() => ['button'])
 
-		const { server, invalidatedIds } = fakeServer()
+		const hooks = build([family(generate, () => true, keys)])
+
+		const { server, invalidatedIds, reloadedIds } = fakeServer()
 
 		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
 
+		await settle()
+
 		expect(invalidatedIds).toEqual([])
 
+		expect(reloadedIds).toEqual([])
+
 		expect(generate).not.toHaveBeenCalled()
+
+		expect(keys).not.toHaveBeenCalled()
 	})
 
-	it('leaves the family untouched when no predicate matches', () => {
+	it('leaves the family untouched when no predicate matches', async () => {
 		const generate = vi.fn(() => ({ button: [] }))
 
 		const hooks = build([family(generate, (f) => f.endsWith('.tsx'))])
 
 		hooks.load('\0virtual:api-manifest')
 
-		const { server, invalidatedIds } = fakeServer()
+		await hooks.load('\0virtual:api/button')
+
+		const { server, invalidatedIds, reloadedIds } = fakeServer()
 
 		expect(
 			hooks.handleHotUpdate({ file: 'notes.md', modules: [{ id: 'notes.md' }], server }),
 		).toBeUndefined()
 
+		await settle()
+
 		expect(invalidatedIds).toEqual([])
 
-		hooks.load('\0virtual:api/button')
+		expect(reloadedIds).toEqual([])
 
 		// Cache intact: still a single generate.
 		expect(generate).toHaveBeenCalledTimes(1)

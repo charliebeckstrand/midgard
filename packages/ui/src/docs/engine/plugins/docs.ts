@@ -3,7 +3,7 @@ import path from 'node:path'
 import ts from '@typescript/typescript6'
 import { Node, Project, SyntaxKind } from 'ts-morph'
 import type { Plugin } from 'vite'
-import { type ApiExtractor, createApiExtractor } from '../api-reference'
+import { type ApiExtractorWorker, listBarrels, startApiExtractorWorker } from '../api-reference'
 import { type DemoMeta, META_KEYS } from '../demo-meta'
 import { isPascalCase } from '../identifiers'
 import { collectHelpers } from './collect-helpers'
@@ -521,13 +521,14 @@ export function docsPlugin({
 
 	const demoExternalsCache: DemoParseCache<ExternalImport[]> = new Map()
 
-	// Lazily created on first read so `vitest` builds never open a Project. One
-	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
-	// re-extracts only the barrels a changed file feeds.
-	let extractor: ApiExtractor | null = null
+	// One long-lived extractor per plugin, in a worker thread: it reuses its
+	// scoped ts-morph Project and re-extracts only the barrels a changed file
+	// feeds. A dev server starts it at once, so the first pass runs while the
+	// server serves the first page. A `vitest` run never starts it.
+	let extractor: ApiExtractorWorker | null = null
 
-	const apiExtractor = (): ApiExtractor => {
-		extractor ??= createApiExtractor(srcDir)
+	const apiExtractor = (): ApiExtractorWorker => {
+		extractor ??= startApiExtractorWorker(srcDir)
 
 		return extractor
 	}
@@ -546,22 +547,42 @@ export function docsPlugin({
 			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
+		configureServer() {
+			if (!vitest) apiExtractor()
+		},
+
+		// A dev server calls this hook when it closes, and a build when it ends.
+		async closeBundle() {
+			await extractor?.close()
+
+			extractor = null
+		},
+
 		...virtualJsonModules([
 			{
-				// A cold or invalidated cache blocks dev first paint on a full
-				// extraction pass the open page can never read. The disk cache makes
-				// that rare, so the fix stays unwritten. To take it, key the manifest
-				// off `listBarrels` alone and defer extraction to each key read. Do
-				// that only once cold-cache starts prove common, as on fresh clones.
+				// The manifest lists every barrel and never waits for extraction, so
+				// the first paint never waits for it either. The key module of a
+				// barrel waits for the record, and the page shows its API section
+				// when the record arrives. A barrel with nothing to document serves
+				// `null`.
 				prefix: 'virtual:api-reference/',
 				manifestId: 'virtual:api-reference-manifest',
+				keys: () => (vitest ? [] : listBarrels(srcDir).map((barrel) => barrel.key)),
 				generate: () => (vitest ? {} : apiExtractor().getAll()),
-				shouldInvalidate: (file) =>
-					!vitest &&
-					file.startsWith(srcDir) &&
-					/\.tsx?$/.test(file) &&
-					!file.includes(`${path.sep}docs${path.sep}`) &&
-					apiExtractor().notifyChanged(file),
+				shouldInvalidate: (file) => {
+					if (
+						vitest ||
+						!file.startsWith(srcDir) ||
+						!/\.tsx?$/.test(file) ||
+						file.includes(`${path.sep}docs${path.sep}`)
+					) {
+						return false
+					}
+
+					apiExtractor().notifyChanged(file)
+
+					return true
+				},
 			},
 			{
 				id: 'virtual:demo-metas',

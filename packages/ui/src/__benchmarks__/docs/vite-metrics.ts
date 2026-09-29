@@ -1,8 +1,8 @@
 /**
  * Whole-process metrics for the docs app that vitest bench can't express:
  * prod build wall time, per-chunk bundle sizes, dev cold start, and the
- * ts-morph extraction cost as the dev server actually pays it (first and
- * re-invalidated reads of `virtual:api-reference-manifest`).
+ * ts-morph extraction cost as the dev server actually pays it (the first read
+ * of an api-reference key module, and a read after each re-invalidation).
  *
  * ```sh
  * pnpm bench:docs:vite                     # build + dev, print a report
@@ -94,20 +94,37 @@ type DevMetrics = {
 	readyMs: number
 	/** First `/main.tsx` transform completing (rides the configured warmup). */
 	entryMs: number
-	/** First `virtual:api-reference-manifest` read: full extraction cold, a disk-cache replay warm. */
+	/**
+	 * First `virtual:api-reference-manifest` read. The manifest lists the barrels
+	 * and never waits for extraction, so the first paint does not wait either.
+	 */
 	apiManifestMs: number
 	/**
-	 * Manifest re-read after the first component-source touch. On a disk-served
-	 * start this pays the extractor's one-time warming pass (a full extraction);
-	 * on a cold start the checker is already warm and it runs per-barrel.
+	 * First key-module read, which waits for the worker's first pass: a full
+	 * extraction cold, a disk-cache replay warm. The worker starts with the
+	 * server, so the pass overlaps `readyMs` and `entryMs`.
+	 */
+	apiRecordMs: number
+	/**
+	 * First read of another key module after the first component-source touch.
+	 * On a disk-served start this pays the extractor's one-time warming pass (a
+	 * full extraction); on a cold start the checker is already warm and it runs
+	 * per-barrel.
 	 */
 	apiReextractMs: number
-	/** Manifest re-read after a second touch — always the per-barrel steady state. */
+	/** The same after a second touch — always the per-barrel steady state. */
 	apiReextractWarmMs: number
 }
 
 /** The resolved (`\0`-prefixed) manifest id as Vite serves it over HTTP. */
 const MANIFEST_PATH = '/@id/__x00__virtual:api-reference-manifest'
+
+/**
+ * The resolved id of one api-reference key module. Vite caches a key module
+ * that it served, so each re-extraction reads a key that it has not served yet.
+ * That read waits for the record of the latest pass.
+ */
+const keyPath = (key: string) => `/@id/__x00__virtual:api-reference/${key}`
 
 function killDevServer(child: ChildProcess): void {
 	if (!child.killed) child.kill('SIGTERM')
@@ -177,26 +194,28 @@ async function runDev(): Promise<DevMetrics> {
 
 		const apiManifestMs = await timedFetch(`${url}${MANIFEST_PATH}`)
 
-		// Touch (mtime-only) a component source so `shouldInvalidate` clears the
-		// api-reference family, then re-read the manifest: the re-extraction cost
-		// the user pays after a component edit. Twice — the first edit after a
-		// disk-served start pays the extractor's warming pass, the second is the
-		// per-barrel steady state.
-		const touchAndRefetch = async () => {
+		const apiRecordMs = await timedFetch(`${url}${keyPath('button')}`)
+
+		// Touch (mtime-only) a component source so `shouldInvalidate` starts a new
+		// pass for the api-reference family, then read a key not served yet: the
+		// re-extraction cost before the API data of a component edit arrives.
+		// Twice — the first edit after a disk-served start pays the extractor's
+		// warming pass, the second is the per-barrel steady state.
+		const touchAndRead = async (key: string) => {
 			const now = new Date()
 
 			fs.utimesSync(invalidationTarget, now, now)
 
 			await new Promise((r) => setTimeout(r, 500))
 
-			return timedFetch(`${url}${MANIFEST_PATH}`)
+			return timedFetch(`${url}${keyPath(key)}`)
 		}
 
-		const apiReextractMs = await touchAndRefetch()
+		const apiReextractMs = await touchAndRead('card')
 
-		const apiReextractWarmMs = await touchAndRefetch()
+		const apiReextractWarmMs = await touchAndRead('badge')
 
-		return { readyMs, entryMs, apiManifestMs, apiReextractMs, apiReextractWarmMs }
+		return { readyMs, entryMs, apiManifestMs, apiRecordMs, apiReextractMs, apiReextractWarmMs }
 	} finally {
 		killDevServer(child)
 	}
@@ -254,6 +273,7 @@ function printReport(metrics: Metrics): void {
 		console.log(
 			`\ndev (median of ${metrics.dev.length}): ready ${ms(pick('readyMs'))},` +
 				` entry ${ms(pick('entryMs'))}, api manifest ${ms(pick('apiManifestMs'))},` +
+				` api record ${ms(pick('apiRecordMs'))},` +
 				` re-extract ${ms(pick('apiReextractMs'))} first / ${ms(pick('apiReextractWarmMs'))} steady`,
 		)
 	}
@@ -289,6 +309,7 @@ function compareDev(baseline: DevMetrics[], current: DevMetrics[]): void {
 		'readyMs',
 		'entryMs',
 		'apiManifestMs',
+		'apiRecordMs',
 		'apiReextractMs',
 		'apiReextractWarmMs',
 	] as const) {

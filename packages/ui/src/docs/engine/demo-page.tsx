@@ -64,9 +64,14 @@ export function DemoPage({
 	)
 }
 
-/** The API-reference section for a component, suspending on its lazy chunk. */
+/**
+ * The API-reference section for a component, suspending on its lazy chunk. A
+ * barrel with nothing to document renders nothing.
+ */
 function ApiReferenceSection({ id }: { id: string }) {
 	const api = use(loadComponentApi(id))
+
+	if (api.length === 0) return null
 
 	return (
 		<Stack gap="sm">

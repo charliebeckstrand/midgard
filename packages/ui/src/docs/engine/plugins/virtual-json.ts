@@ -1,4 +1,4 @@
-import type { ModuleNode, Plugin } from 'vite'
+import type { ModuleNode, Plugin, ViteDevServer } from 'vite'
 
 type Hooks = Required<Pick<Plugin, 'resolveId' | 'load' | 'handleHotUpdate'>>
 
@@ -15,21 +15,26 @@ export type VirtualJsonSpec = {
 }
 
 /**
- * A family of virtual modules sharing one memoized source record. `generate`
- * runs once and is sliced per key into a lazily-imported module at
- * `${prefix}${key}` (`export default <record[key]>`); a manifest module at
- * `manifestId` exports `{ key: () => import('${prefix}${key}') }`. The manifest's
- * specifiers are string literals Rollup can analyze, so each key splits into its
- * own chunk fetched on demand. The consumer imports the manifest and calls a
- * key's thunk, rather than eagerly importing the whole record. After a change
- * that `shouldInvalidate` matches, the record generates again. The manifest
- * invalidates only when the key set differs, and a key module that the load
- * hook served invalidates only when its slice differs.
+ * A family of virtual modules over one memoized source record. A manifest
+ * module at `manifestId` exports `{ key: () => import('${prefix}${key}') }`,
+ * and each key module at `${prefix}${key}` exports `record[key]`. The
+ * manifest's specifiers are string literals that Rollup can analyze, so each
+ * key splits into its own chunk that the consumer fetches on demand.
+ *
+ * The manifest renders from `keys` alone, and never waits for the record.
+ * `generate` runs at the first key read, and a key module's load waits for the
+ * record. An expensive record thus stays off the path of the page that imports
+ * the manifest. After a change that `shouldInvalidate` matches, the manifest
+ * invalidates when `keys` differs. The record generates again in the
+ * background, and a served key module whose slice differs reloads when the new
+ * record resolves. Thus a slow record never holds up the edit's own update.
  */
 export type VirtualJsonFamilySpec = {
 	prefix: string
 	manifestId: string
-	generate: () => Record<string, unknown>
+	/** The keys of the record, in manifest order. The manifest reads only these. */
+	keys: () => string[]
+	generate: () => Record<string, unknown> | Promise<Record<string, unknown>>
 	shouldInvalidate: (file: string) => boolean
 }
 
@@ -39,7 +44,10 @@ type FixedEntry = { spec: VirtualJsonSpec; resolved: string; cached: string | nu
 type FamilyEntry = {
 	spec: VirtualJsonFamilySpec
 	manifestResolved: string
-	record: Record<string, unknown> | null
+	// The keys that the served manifest lists, and null until the first read.
+	keys: string[] | null
+	// The record that key modules read, and null until the first key read.
+	record: Promise<Record<string, unknown>> | null
 	// Resolved ids of key modules the load hook has served, so HMR can invalidate
 	// exactly those the browser holds. An invalidated id leaves the set, and the
 	// next read adds it again.
@@ -50,13 +58,19 @@ function isFamily(spec: VirtualJsonSpec | VirtualJsonFamilySpec) {
 	return 'prefix' in spec
 }
 
-/** Whether two records have the same keys, in the same order, as the manifest lists them. */
-function sameKeys(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
-	const keys = Object.keys(a)
+/** Whether two key lists hold the same keys in the same order. */
+function sameKeys(a: string[], b: string[]): boolean {
+	return a.length === b.length && a.every((key, i) => key === b[i])
+}
 
-	const next = Object.keys(b)
+/**
+ * Run `generate` for a family and hold its record. A synchronous throw becomes
+ * a rejection, so each key read fails the same way.
+ */
+function regenerate(fam: FamilyEntry): Promise<Record<string, unknown>> {
+	fam.record = Promise.resolve().then(() => fam.spec.generate())
 
-	return keys.length === next.length && keys.every((key, i) => key === next[i])
+	return fam.record
 }
 
 /**
@@ -73,7 +87,9 @@ function sameKeys(a: Record<string, unknown>, b: Record<string, unknown>): boole
  * update's module list with a hook's returned array. The return therefore folds
  * the changed file's own affected modules (`ctx.modules`) back in, alongside the
  * invalidated virtual modules. Returning the virtual modules alone would drop
- * the edited file's HMR update and leave the browser on stale code. Spread the
+ * the edited file's HMR update and leave the browser on stale code. A family
+ * record generates again after the hook returns, and its changed key modules
+ * reload on their own (see {@link VirtualJsonFamilySpec}). Spread the
  * returned hooks into a Plugin alongside `name` and any other hooks. A single
  * docs plugin can serve every docs virtual module through one call.
  */
@@ -86,6 +102,7 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 			families.push({
 				spec,
 				manifestResolved: `\0${spec.manifestId}`,
+				keys: null,
 				record: null,
 				loaded: new Set(),
 			})
@@ -99,13 +116,11 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 	const fixedByResolved = new Map(fixed.map((e) => [e.resolved, e]))
 
 	// Serialize the manifest's key thunks. Each specifier is a string literal, so
-	// Rollup code-splits `${prefix}${key}` into its own chunk. Naming the keys
-	// needs the whole record, so a family whose `generate` is expensive pays it in
-	// full on the first manifest read.
+	// Rollup code-splits `${prefix}${key}` into its own chunk.
 	function renderManifest(fam: FamilyEntry): string {
-		fam.record ??= fam.spec.generate()
+		fam.keys = fam.spec.keys()
 
-		const entries = Object.keys(fam.record).map(
+		const entries = fam.keys.map(
 			(key) => `${JSON.stringify(key)}: () => import(${JSON.stringify(fam.spec.prefix + key)})`,
 		)
 
@@ -116,15 +131,47 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 	const keyOf = (fam: FamilyEntry, resolved: string) => resolved.slice(1 + fam.spec.prefix.length)
 
 	// Serve one key module: `export default <record[key]>`, tracking its resolved
-	// id so HMR can invalidate it.
-	function renderKey(fam: FamilyEntry, resolved: string): string {
-		fam.record ??= fam.spec.generate()
-
-		const key = keyOf(fam, resolved)
+	// id so HMR can reload it.
+	async function renderKey(fam: FamilyEntry, resolved: string): Promise<string> {
+		const record = await (fam.record ?? regenerate(fam))
 
 		fam.loaded.add(resolved)
 
-		return `export default ${JSON.stringify(fam.record[key] ?? null)}`
+		return `export default ${JSON.stringify(record[keyOf(fam, resolved)] ?? null)}`
+	}
+
+	// After the record generates again, reload each served key module whose slice
+	// changed. A previous record that failed counts as changed for every key.
+	async function reloadChangedKeys(
+		fam: FamilyEntry,
+		previous: Promise<Record<string, unknown>>,
+		next: Promise<Record<string, unknown>>,
+		server: ViteDevServer,
+	): Promise<void> {
+		try {
+			const before = await previous.catch(() => null)
+
+			const after = await next
+
+			// A later change started another pass. That pass reloads against this one.
+			if (fam.record !== next) return
+
+			for (const keyId of [...fam.loaded]) {
+				const key = keyOf(fam, keyId)
+
+				if (before && JSON.stringify(before[key] ?? null) === JSON.stringify(after[key] ?? null)) {
+					continue
+				}
+
+				fam.loaded.delete(keyId)
+
+				const mod = server.moduleGraph.getModuleById(keyId)
+
+				if (mod) await server.reloadModule(mod)
+			}
+		} catch (error) {
+			server.config.logger.error(`${fam.spec.manifestId}: ${String(error)}`)
+		}
 	}
 
 	return {
@@ -191,28 +238,23 @@ export function virtualJsonModules(specs: (VirtualJsonSpec | VirtualJsonFamilySp
 			for (const fam of families) {
 				if (!fam.spec.shouldInvalidate(file)) continue
 
+				// A served manifest joins this update only when its key list changed.
+				if (fam.keys !== null) {
+					const keys = fam.spec.keys()
+
+					if (!sameKeys(fam.keys, keys)) {
+						fam.keys = keys
+
+						invalidate(fam.manifestResolved)
+					}
+				}
+
 				const previous = fam.record
 
-				// Never served: the first read generates.
+				// Never served: the first key read generates.
 				if (previous === null) continue
 
-				const next = fam.spec.generate()
-
-				fam.record = next
-
-				if (!sameKeys(previous, next)) invalidate(fam.manifestResolved)
-
-				for (const keyId of fam.loaded) {
-					const key = keyOf(fam, keyId)
-
-					if (JSON.stringify(previous[key] ?? null) === JSON.stringify(next[key] ?? null)) {
-						continue
-					}
-
-					invalidate(keyId)
-
-					fam.loaded.delete(keyId)
-				}
+				void reloadChangedKeys(fam, previous, regenerate(fam), server)
 			}
 
 			// Nothing to invalidate: return undefined so Vite keeps its default
