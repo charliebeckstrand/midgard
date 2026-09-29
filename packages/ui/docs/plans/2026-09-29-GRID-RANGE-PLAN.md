@@ -24,18 +24,18 @@ The editing layer has no entry point that commits an arbitrary batch. `flushRow`
 - **Data rows only.** A rectangle over a grouped or detail order covers only the `data` stops inside it. Group headers, totals, and detail panels inside the rectangle are not in the range, and copy, paste, and fill step over them. The anchor can sit only on a data stop.
 - **Excluded places.** The new-row slot (`NEW_ROW_INDEX`) and non-data columns (selection, actions, handle, expander) are never in a range. Manual grouping stands the cursor down, so it stands the range down too.
 - **A change of order clears the range.** A sort, a filter, a search, a page change, a regroup, a column reorder, or a column hide or show clears the anchor in `reconcile`. The cursor keeps its current reseat rule. A rectangle that follows its cells by key through a re-sort has no meaningful shape, so a clear is the honest result.
-- **Per-cell flag, same store.** `GridNavStore` gains `isInRange(row, col)`. `GridNavCell` subscribes to it as it does to `isActive`, and toggles `data-in-range` on its `<td>`. A range change notifies every subscriber, but only cells whose flag flips render, which is the cursor's cost profile today. The recipe adds a `data-[in-range]:` tint beside the ring in `k.nav`.
+- **Per-cell flag, same store.** `GridNavStore` gains `isInRange(row, col)`. `GridNavCell` subscribes to it as it does to `isActive`, and toggles `data-in-range` on its `<td>`. A range change notifies every subscriber, but only cells whose flag flips render, which is the cursor's cost profile today. The recipe adds a `data-[in-range]:` tint and a hairline outline beside the ring in `k.nav`.
 - **Uncontrolled.** The range has no binding and no `onRangeChange` in this plan. The `GridHandle` does not change. A consumer need for either is a later increment, and the anchor coord does not foreclose one.
 
 ### Gestures
 
 - **Keys.** Shift with Arrow, Home, End, PageUp, and PageDown moves the cursor and keeps the anchor. Shift with Ctrl/Cmd+Home or Ctrl/Cmd+End extends to the grid corners. The first Shift move sets the anchor at the cursor's start. A move without Shift clears the anchor. Escape clears the range first, and the next Escape clears the cursor as today.
-- **Pointer.** Shift+click extends the range to the clicked cell. A primary-button drag from a data cell sets the anchor on the press and moves the cursor with the pointer. The drag uses pointer capture and resolves the cell under the pointer by its `role="gridcell"` id. Near the scroll region's edge, the region scrolls so a windowed body mounts the next rows. A drag that starts on interactive cell content, or from a touch pointer, does not start a range, so touch scroll and text controls keep their gestures.
+- **Pointer.** Shift+click extends the range to the clicked cell. A primary-button drag from a data cell sets the anchor on the press and moves the cursor with the pointer. The drag listens on the window until the release, and resolves the cell under the pointer with `elementFromPoint` and its `role="gridcell"` id. Near the scroll region's edge, the region scrolls so a windowed body mounts the next rows. A move that the pointer makes does not scroll the row into the window, because the cell is on screen, and that scroll would fight the edge scroll. A drag that starts on interactive cell content, or from a touch pointer, does not start a range, so touch scroll and text controls keep their gestures.
 - **Space is unchanged.** Space still toggles the active row's selection. A range does not select rows, and row selection does not make a range.
 
 ### Copy
 
-- **Ctrl/Cmd+C on the tab stop** writes the range, or the cursor cell without a range, as TSV through the native `copy` event's `clipboardData`. The event is synchronous and needs no clipboard permission, which `navigator.clipboard.writeText` does not give.
+- **Ctrl/Cmd+C on the tab stop** writes the range, or the cursor cell without a range, as TSV through the native `copy` event's `clipboardData`. The event is synchronous and needs no clipboard permission, which `navigator.clipboard.writeText` does not give. With no text selection, Chromium sends the event to the body, not to the focused table, so the grid listens on the document and acts only while its tab stop has focus and no text is selected.
 - **Values** come from `columnAccessor` and `cellText`, which export uses. Rows join with `\n`, and cells with `\t`. A cell that holds a tab, a newline, or a double quote gets double quotes, as spreadsheets write TSV. Rows and columns step over the excluded stops above.
 - **Formula guard.** A copied cell passes through `neutralizeFormula`, which becomes an export of `utilities/export-output.ts`. The clipboard reaches a spreadsheet as a CSV file does, so the same guard applies. Paste removes that one guard apostrophe, so a copy and a paste inside the grid give back the same text.
 - **Copy needs no editing.** It works on any grid with the range on.
@@ -72,7 +72,7 @@ The editing layer has no entry point that commits an arbitrary batch. `flushRow`
 - **No `aria-selected` on cells.** The rows carry it for row selection, and a second meaning on the cells would read as a row choice. The range speaks through the live region instead.
 - **Announcement.** A settled range change says its size and its corners in column and row words, for example `3 by 4 range, Name row 2 to Status row 5`. A key-held extend announces once when the keys stop, not on each step.
 - **Focus.** The tab stop keeps focus through every gesture here. Copy, paste, and fill move no focus, which WCAG 2.4.3 needs.
-- **Visible range.** The `data-in-range` tint must meet 3:1 against the cell background in both modes (WCAG 1.4.11), and the cursor ring must stay visible on a tinted cell.
+- **Visible range.** The state must meet 3:1 against the cell background in both modes (WCAG 1.4.11), and the cursor ring must stay visible on a tinted cell. A light tint cannot meet 3:1, so each cell of the range also takes a one-pixel inset outline in the ring's color. An outline does not stack with the ring's box shadow.
 
 ### React Compiler
 

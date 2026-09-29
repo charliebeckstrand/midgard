@@ -88,6 +88,9 @@ export const COLUMN_RESIZE_PAGE_STEP = 64
 /** Fallback rows for a PageUp/PageDown cursor jump when the viewport or row height cannot be measured. @internal */
 export const NAV_PAGE_STEP = 10
 
+/** Debounce (ms) before the live region speaks a cell range, so a held Shift+arrow speaks once when it stops. @internal */
+export const GRID_RANGE_ANNOUNCE_MS = 300
+
 /** Debounce (ms) before the busy live region announces a settled row count, so a fast filter/search doesn't chatter. @internal */
 export const GRID_STATUS_DEBOUNCE_MS = 150
 

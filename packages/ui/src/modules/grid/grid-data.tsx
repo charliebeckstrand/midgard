@@ -93,6 +93,7 @@ export function GridData<T>({
 	reorder = false,
 	rowReorder: rowReorderConfig,
 	navigable = false,
+	range = false,
 	onActiveCellChange,
 	onCollapsedChange,
 	editable,
@@ -262,6 +263,7 @@ export function GridData<T>({
 		refs: indexRefs,
 		// Manual grouping stands the navigable cursor down (see `gated`).
 		navigable: gated.navigable,
+		range,
 		editable,
 		columns: pinnedColumns,
 		source: editSource,
@@ -396,6 +398,7 @@ export function GridData<T>({
 		cursorEnabled: cursor.cursorEnabled,
 		cursorNewRow: cursor.newRow,
 		reconcile: cursor.reconcile,
+		settleRange: cursor.settleRange,
 		virtualized: gated.virtualize,
 		onRowClick,
 		onCellClick,

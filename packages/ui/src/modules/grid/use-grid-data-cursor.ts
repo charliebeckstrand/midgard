@@ -168,6 +168,7 @@ function useStableHandler<A extends unknown[]>(
 export function useGridDataCursor<T>({
 	refs,
 	navigable,
+	range,
 	editable,
 	columns,
 	source,
@@ -183,6 +184,7 @@ export function useGridDataCursor<T>({
 }: Pick<
 	GridDataProps<T>,
 	| 'editable'
+	| 'range'
 	| 'onActiveCellChange'
 	| 'onRowClick'
 	| 'onCellClick'
@@ -251,6 +253,7 @@ export function useGridDataCursor<T>({
 	// static grid.
 	const cursor = useGridCursor<T>({
 		navigable,
+		range: range ?? false,
 		editable,
 		columns,
 		onRowActivate,

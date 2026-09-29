@@ -1107,6 +1107,34 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	navigable?: boolean
 
 	/**
+	 * Lets the keyboard cursor hold a rectangular cell range. The range runs from
+	 * an anchor cell to the cursor, and its cells carry `data-in-range`.
+	 *
+	 * - Shift with an arrow key, Home, End, PageUp, or PageDown extends the range.
+	 *   Shift with Ctrl/Cmd+Home or Ctrl/Cmd+End extends it to a corner of the grid.
+	 * - Shift with a click extends the range to the clicked cell. A drag from a
+	 *   data cell makes a range, and near an edge of the scroll region the region
+	 *   scrolls. A drag from a touch pointer or from a control in a cell does not.
+	 * - A move without Shift ends the range. The first Escape ends the range, and
+	 *   the next one clears the cursor.
+	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
+	 *   range. A cell reads as export reads it, with the export's formula guard.
+	 *
+	 * The range covers data cells only. A group header, a group total, a detail
+	 * panel, and the new-row slot inside it are not cells of the range. A sort,
+	 * a filter, a page change, a change of the groups, or a change of the column
+	 * order or visibility ends the range. The live region gives the size and the
+	 * corners of the range once it stops changing. The cells take no
+	 * `aria-selected`, which the rows keep for {@link GridDataProps.selection}.
+	 *
+	 * Needs the keyboard cursor: {@link GridDataProps.navigable} or
+	 * {@link GridDataProps.editable}. With the range on, a press on a cell starts
+	 * no text selection.
+	 * @defaultValue false
+	 */
+	range?: boolean
+
+	/**
 	 * Fires with the cell the keyboard cursor sits on, whenever the cursor moves,
 	 * and with `null` when it clears.
 	 *

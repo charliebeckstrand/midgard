@@ -5,12 +5,18 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
 } from 'react'
+import { announce } from '../../core'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { describeRange } from './engine/grid-announcements'
+import { columnAccessor } from './engine/grid-column/accessor'
+import { columnLabel } from './engine/grid-column/label'
+import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -19,6 +25,9 @@ import {
 	readKeyPress,
 	seedFromKey,
 } from './engine/grid-editing-utilities'
+import { cellText } from './engine/grid-export/accessor'
+import type { GridRangeCells } from './engine/grid-range/range'
+import { toTsv } from './engine/grid-range/tsv'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
@@ -87,6 +96,26 @@ function slotSeed<T>(
 }
 
 /**
+ * The text of each cell of a range, row by row, as export reads a cell. A
+ * cell whose row or column is gone reads as empty. @internal
+ */
+function rangeText<T>(
+	cells: GridRangeCells,
+	rows: readonly T[],
+	columns: readonly GridColumn<T>[],
+) {
+	return cells.rows.map((index) => {
+		const row = rows[index]
+
+		return cells.cols.map((colIdx) => {
+			const col = columns[colIdx]
+
+			return col && row !== undefined ? cellText(columnAccessor(col)(row)) : ''
+		})
+	})
+}
+
+/**
  * Live refs the cursor and editing layers read at event/render time, all populated
  * by {@link GridData}. The cursor's carry what the engine resolved — display
  * order, rows, and the visible data columns. `editSourceRef` is the exception,
@@ -124,6 +153,7 @@ type GridCursorRefs<T> = {
  */
 export function useGridCursor<T>({
 	navigable,
+	range,
 	editable,
 	columns,
 	onRowActivate,
@@ -138,6 +168,8 @@ export function useGridCursor<T>({
 	editSource,
 }: {
 	navigable: boolean
+	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
+	range: boolean
 	editable: GridEditableConfig | undefined
 	/** The pinned/resolved columns to augment. */
 	columns: GridColumn<T>[]
@@ -171,6 +203,8 @@ export function useGridCursor<T>({
 	navTableProps: GridNavTableProps | undefined
 	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
 	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
+	/** Clears the cell range when the rows or the data columns change order. */
+	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/**
@@ -243,7 +277,82 @@ export function useGridCursor<T>({
 		scrollContainerRef,
 		newRowRef,
 		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
+		range: cursorEnabled && range,
 	})
+
+	const { readRange, rangeAnchor } = nav
+
+	// A copy while the tab stop has focus writes the range as TSV, or the active
+	// cell with no range. The native event needs no clipboard permission. The
+	// browser sends it to the start of the text selection, else to the body,
+	// never to a focused table, so the document hears it. A copy of selected
+	// text, or from a control in the grid, stays the browser's.
+	const copyRange = useStableEvent((event: ClipboardEvent) => {
+		const table = tableRef.current
+
+		if (!table || document.activeElement !== table || !event.clipboardData) return
+
+		if (window.getSelection()?.isCollapsed === false) return
+
+		const { active } = nav
+
+		const cells =
+			readRange() ??
+			(active && active.row !== NEW_ROW_INDEX
+				? { rows: [active.row], cols: [active.col], from: active, to: active }
+				: null)
+
+		if (!cells) return
+
+		event.preventDefault()
+
+		event.clipboardData.setData(
+			'text/plain',
+			toTsv(rangeText(cells, rowsRef.current, dataColumnsRef.current)),
+		)
+	})
+
+	// Speaks the size and the corners of the range once it stops changing.
+	const announceRange = useStableEvent(() => {
+		const cells = readRange()
+
+		if (!cells) return
+
+		const columns = dataColumnsRef.current
+
+		const corner = ({ row, col }: Coord) => ({
+			column: columns[col] ? columnLabel(columns[col]) : `column ${col + 1}`,
+			row: row + 1,
+		})
+
+		announce(
+			describeRange(
+				{ rows: cells.rows.length, cols: cells.cols.length },
+				corner(cells.from),
+				corner(cells.to),
+			),
+		)
+	})
+
+	const { active: rangeFocus } = nav
+
+	const copies = cursorEnabled && range
+
+	useEffect(() => {
+		if (!copies) return
+
+		document.addEventListener('copy', copyRange)
+
+		return () => document.removeEventListener('copy', copyRange)
+	}, [copies, copyRange])
+
+	useEffect(() => {
+		if (!rangeAnchor || !rangeFocus) return
+
+		const timer = setTimeout(announceRange, GRID_RANGE_ANNOUNCE_MS)
+
+		return () => clearTimeout(timer)
+	}, [rangeAnchor, rangeFocus, announceRange])
 
 	/*
 	 * One report for each cell the cursor lands on, read from the committed
@@ -390,7 +499,7 @@ export function useGridCursor<T>({
 		rowIndexMapRef,
 		colIndexMapRef,
 		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		seat: nav.seat,
 	})
 
 	const editColumns = useGridEditingColumns<T>({
@@ -400,7 +509,7 @@ export function useGridCursor<T>({
 		colIndexMapRef,
 		rowKeysRef,
 		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		seat: nav.seat,
 	})
 
 	const { session } = editing
@@ -481,6 +590,7 @@ export function useGridCursor<T>({
 		navStore: nav.store,
 		navTableProps,
 		reconcile: nav.reconcile,
+		settleRange: nav.settleRange,
 		columns: editingEnabled ? editColumns : navColumns,
 		editOnCellDoubleClick,
 		wrap,
