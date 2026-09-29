@@ -213,9 +213,11 @@ export const PLACEHOLDER = '...'
  * An element prop is the exception to "live first": it prints from its fact
  * when one carries it, unless that source uses a name of a callback in the JSX.
  *
- * A live `false` reads as absent and prints only from its fact: as
- * `key={false}` when the demo authors `false`, or as its identifier through
- * the consistency rule. Any other source drops it.
+ * A live `false`, `null`, or `undefined` reads as absent and prints only from
+ * its fact: as `key={false}` or `key={null}` when the demo authors that
+ * literal, or as its identifier through the consistency rule. A controlled
+ * `value={date}` that holds `null` at render therefore keeps its value beside
+ * its setter. Any other source drops it.
  */
 export function formatProps(
 	props: Record<string, unknown>,
@@ -250,13 +252,16 @@ export function formatProps(
 		const live = formatLiveProp(key, value, context)
 
 		if (live === null) {
-			// A live `false` reads as absent. An authored `false` turns off a prop
-			// whose default is on, so it prints. Another source prints only through
-			// the consistency pass below, as a controlled `open={open}` does.
+			// A live `false`, `null`, or `undefined` reads as absent. An authored
+			// `false` turns off a prop whose default is on, and an authored `null`
+			// keeps a prop controlled, so each prints. Another source prints only
+			// through the consistency pass below, as a controlled `open={open}` does.
 			const source = fact?.props[key]
 
-			if (value === false && source !== undefined) {
-				slots.push({ key, text: source === 'false' ? `${key}={false}` : '', live: true })
+			if (source !== undefined) {
+				const literal = value === false ? 'false' : value === null ? 'null' : undefined
+
+				slots.push({ key, text: source === literal ? `${key}={${literal}}` : '', live: true })
 			}
 
 			continue
@@ -565,7 +570,9 @@ export function matchElementFact(
 
 	context.matched.set(name, position + 1)
 
-	const claims = (e: ElementFact) => Object.keys(e.props).every((key) => props[key] !== undefined)
+	// An authored prop stays a key of the runtime props even while its value is
+	// `undefined`, so a key the element lacks marks another element's fact.
+	const claims = (e: ElementFact) => Object.keys(e.props).every((key) => Object.hasOwn(props, key))
 
 	const paired = ofTag[position]
 
