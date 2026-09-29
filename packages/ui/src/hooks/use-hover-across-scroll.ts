@@ -24,6 +24,9 @@ const SETTLE_MS = 120
  * math, with no event in play. So the readout is gone while the surface moves and returns the instant
  * it rests, showing whatever now sits under the pointer.
  *
+ * A touch pan is the exception: the finger is no longer down when the scroll
+ * settles, so the readout stays cleared and is not resolved again.
+ *
  * @remarks Both callbacks are raised through effect events, so each scroll
  * frame reaches the latest render's closure and neither identity re-subscribes
  * the scroll listener mid-gesture.
@@ -43,6 +46,8 @@ export function useHoverAcrossScroll(
 ): void {
 	const pointer = useRef<{ x: number; y: number } | null>(null)
 
+	const touch = useRef(false)
+
 	const clearReadout = useEffectEvent(clear)
 
 	const resolveHover = useEffectEvent(resolveAt)
@@ -52,6 +57,8 @@ export function useHoverAcrossScroll(
 	useEffect(() => {
 		const onMove = (event: PointerEvent) => {
 			pointer.current = { x: event.clientX, y: event.clientY }
+
+			touch.current = event.pointerType === 'touch'
 		}
 
 		window.addEventListener('pointermove', onMove, { capture: true, passive: true })
@@ -73,7 +80,8 @@ export function useHoverAcrossScroll(
 			settle = setTimeout(() => {
 				const p = pointer.current
 
-				if (p !== null) resolveHover(p.x, p.y)
+				// A finger that panned the surface has lifted: nothing rests under it.
+				if (p !== null && !touch.current) resolveHover(p.x, p.y)
 			}, SETTLE_MS)
 		}
 
