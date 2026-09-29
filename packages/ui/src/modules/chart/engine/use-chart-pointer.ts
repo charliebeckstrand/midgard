@@ -13,6 +13,9 @@ import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
 
+/** Hold time, in ms, before a touch opens the readout. A tap or a double tap opens none. @internal */
+export const TOUCH_READOUT_DELAY = 300
+
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
 	ref: RefObject<SVGRectElement | null>
@@ -345,6 +348,21 @@ export function useChartPointer({
 	// under `'click'`.
 	useHoverAcrossScroll(trigger === 'hover', clear, resolveAt)
 
+	// A touch that enters the layer waits `TOUCH_READOUT_DELAY` before it opens the
+	// readout. A tap, or the taps of a double tap, lift first and show none. Once
+	// the readout is open, a moving finger tracks with no delay.
+	const holdTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+	const cancelHold = useCallback(() => {
+		if (holdTimer.current === null) return
+
+		clearTimeout(holdTimer.current)
+
+		holdTimer.current = null
+	}, [])
+
+	useEffect(() => cancelHold, [cancelHold])
+
 	if (trigger === 'click') {
 		return {
 			ref,
@@ -363,6 +381,23 @@ export function useChartPointer({
 
 		lastPointer.current = { x: event.clientX, y: event.clientY }
 
+		if (event.pointerType === 'touch' && event.type === 'pointerenter') {
+			cancelHold()
+
+			holdTimer.current = setTimeout(() => {
+				holdTimer.current = null
+
+				const at = lastPointer.current
+
+				if (pointerInside.current && at !== null) track(at.x, at.y, false)
+			}, TOUCH_READOUT_DELAY)
+
+			return
+		}
+
+		// A move before the hold elapses only updates the point the hold reads.
+		if (holdTimer.current !== null) return
+
 		track(event.clientX, event.clientY, false)
 	}
 
@@ -374,6 +409,8 @@ export function useChartPointer({
 		onPointerEnter: follow,
 		onPointerMove: follow,
 		onPointerLeave: () => {
+			cancelHold()
+
 			pointerInside.current = false
 
 			set(null, null)

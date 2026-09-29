@@ -7,6 +7,7 @@ import {
 	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
+import { TOUCH_READOUT_DELAY } from '../../modules/chart/engine/use-chart-pointer'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
 
 /**
@@ -74,6 +75,8 @@ describe('BarChart', () => {
 	})
 
 	it('opens the tooltip on a held press that does not move', () => {
+		vi.useFakeTimers()
+
 		const { container } = renderUI(chart())
 
 		const hit = bySlot(container, 'chart-hit') as Element
@@ -81,11 +84,39 @@ describe('BarChart', () => {
 		// A touch press fires the entry and no move while the finger holds still.
 		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
 
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
 
 		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		vi.useRealTimers()
+	})
+
+	it('opens no tooltip on a tap that lifts before the hold', () => {
+		vi.useFakeTimers()
+
+		const { container } = renderUI(chart())
+
+		const hit = bySlot(container, 'chart-hit') as Element
+
+		fireEvent.pointerOver(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+
+		fireEvent.pointerOut(hit, { clientX: 280, clientY: 100, pointerType: 'touch' })
+
+		act(() => {
+			vi.advanceTimersByTime(TOUCH_READOUT_DELAY)
+		})
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		vi.useRealTimers()
 	})
 
 	it('selects no text in the chart, labels included', () => {
