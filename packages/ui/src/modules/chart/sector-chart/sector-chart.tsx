@@ -231,7 +231,12 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		stackedLegend,
 	} = sectorFrame(sizing, resolvedLegend.value, data.length)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(width, frameSizing, aside)
 
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice

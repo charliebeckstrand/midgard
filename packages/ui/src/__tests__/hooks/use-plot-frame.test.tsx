@@ -26,13 +26,15 @@ const Marks = memo(function Marks({
 function Probe({
 	width,
 	sizing,
+	shared = false,
 	onMarks,
 }: {
 	width: number | undefined
 	sizing: FrameSizing
+	shared?: boolean
 	onMarks: () => void
 }) {
-	const plot = usePlotFrame(width, sizing)
+	const plot = usePlotFrame(width, sizing, shared)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
@@ -96,6 +98,22 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
+	})
+
+	it('draws a shared fixed width until the plot measures the width that remains', () => {
+		renderUI(<Probe width={600} sizing={{ mode: 'aspect', ratio: 2 }} shared onMarks={vi.fn()} />)
+
+		// A side legend shares the width, so the plot observes its own box.
+		expect(observers).toHaveLength(1)
+
+		// With no measurement yet, the explicit width draws, as a server render does.
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
+
+		resizeTo(screen.getByTestId('plot'), { width: 400, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
 	})
 
 	it('tracks resize notifications live and swallows the ones that change nothing', () => {

@@ -63,6 +63,31 @@ function requestedPlacement(
 }
 
 /**
+ * Where a color-scaled chart's range legend sits, after the box adjusts the
+ * placement that the `legend` prop names. A box too narrow for a side rail
+ * (`compact` width) drops a side placement to a horizontal row under the plot.
+ * The placement reads the width alone, so a chart can resolve it before it
+ * sizes the plot.
+ *
+ * @param legend The caller's `legend` prop.
+ * @param width The box width the placement decides against, as for
+ * {@link resolveRangeLegend}.
+ * @param defaultPlacement Where the bar sits when the prop names none.
+ * @internal
+ */
+export function rangeLegendPlacement(
+	legend: boolean | ChartLegendPlacement | ChartRangeLegendConfig | undefined,
+	width: number,
+	defaultPlacement: ChartLegendPlacement = 'right',
+): ChartLegendPlacement {
+	const requested = requestedPlacement(legend, defaultPlacement)
+
+	// A stacked placement is already horizontal and stays put. An unmeasured box
+	// (width 0) keeps the request, because there is nothing to adjust to.
+	return legendAside(requested) && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
+}
+
+/**
  * Resolves a color-scaled chart's `legend` prop against its measured box to the
  * range legend's placement, orientation, and whether it shows. The prop names a
  * placement: a bare boolean at the default, a bare string, or `{ placement }`.
@@ -86,20 +111,14 @@ export function resolveRangeLegend(
 	height: number,
 	defaultPlacement: ChartLegendPlacement = 'right',
 ): ResolvedRangeLegend {
-	const requested = requestedPlacement(legend, defaultPlacement)
-
 	// A measured box too narrow for a side rail drops a side placement to a
 	// horizontal row under the plot, the way a side categorical legend stacks
-	// below its engage width; a stacked placement is already horizontal and stays
-	// put. Resolved ahead of the spark check so shedding and re-showing the bar
-	// never moves it between structures: a placement that flipped with `show`
-	// would rebuild the frame around the plot, and the remount's transient
-	// measurements can feed back into this resolution and oscillate it. An
-	// unmeasured box (width 0) keeps the request — there is nothing to adjust to.
-	const side = legendAside(requested)
-
-	const placement: ChartLegendPlacement =
-		side && width > 0 && width < COMPACT_WIDTH ? 'bottom' : requested
+	// below its engage width. Resolved ahead of the spark check so shedding and
+	// re-showing the bar never moves it between structures: a placement that
+	// flipped with `show` would rebuild the frame around the plot, and the
+	// remount's transient measurements can feed back into this resolution and
+	// oscillate it.
+	const placement = rangeLegendPlacement(legend, width, defaultPlacement)
 
 	// Off, or stripped with the rest of the chrome at the spark floor — the way a
 	// cartesian frame drops its legend to draw a bare sparkline. An unmeasured box

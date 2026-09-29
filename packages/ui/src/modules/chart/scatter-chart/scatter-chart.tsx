@@ -674,7 +674,12 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		aside,
 	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(width, sizing, aside)
 
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep

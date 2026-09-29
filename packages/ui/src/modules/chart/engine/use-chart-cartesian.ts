@@ -943,7 +943,12 @@ export function useChartCartesian<T>(
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
+	const {
+		ref,
+		width: frameWidth,
+		height: frameHeight,
+		reserve,
+	} = usePlotFrame(width, sizing, aside)
 
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,

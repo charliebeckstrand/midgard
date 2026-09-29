@@ -60,7 +60,7 @@ import { useControllable, useA11yScope } from 'ui/hooks'
 | Hook | Summary |
 |---|---|
 | `useResizeObserver` | Observes size changes on `ref.current` and calls `callback` per change, plus once on attach. The callback rides an effect event, so a fresh closure each render neither re-subscribes nor re-fires. |
-| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-fill, or content-fit — measuring only the axes that policy consumes. |
+| `usePlotFrame` | Resolves a chart/map frame's drawing box from a `FrameSizing` policy — fixed, aspect-derived, container-fill, or content-fit — measuring only the axes that policy consumes. When a side legend shares a fixed width, the plot measures the width that remains. |
 | `useMediaQuery` | True when `query` matches the viewport; true during SSR. |
 | `usePrefersReducedMotion` | True when the reader asks for reduced motion, read live; true during SSR. Use it, not motion's `useReducedMotion`, which reads the setting only at mount. |
 | `useMinBreakpoint` | True when the viewport has reached a named breakpoint (`'lg'`), the same one the `lg:` prefix responds to; true during SSR. The name keeps JS and CSS on one scale. For a query off that scale, use `useMediaQuery`. |

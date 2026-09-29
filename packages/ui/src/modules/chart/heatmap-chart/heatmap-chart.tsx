@@ -42,7 +42,7 @@ import {
 import { ChartContextMenu } from '../engine/chart-context-menu'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
-import { resolveRangeLegend } from '../engine/chart-legend/range'
+import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
 import type { ChartOrientation } from '../engine/chart-orientation'
@@ -686,6 +686,8 @@ function useHeatmap<T>(
 	formatValue: HeatmapChartProps<T>['formatValue'],
 	/** The measured width of the whole chart, rail included; `0` before it lands. */
 	containerWidth: number,
+	/** A side rail shares the width with the plot, so the plot measures its own. */
+	sharedWidth: boolean,
 ): HeatmapModel {
 	// A series literal is a new object on each render of the caller. It is held
 	// while its fields keep their values, so the grid memos below hold through a
@@ -716,7 +718,7 @@ function useHeatmap<T>(
 		height: frameHeight,
 		reserve,
 		containerHeight,
-	} = usePlotFrame(width, sizing)
+	} = usePlotFrame(width, sizing, sharedWidth)
 
 	const fill = sizing.mode === 'fill'
 
@@ -947,6 +949,11 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	// deterministically (SSR, tests); otherwise the observer tracks the container.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
+	// A side rail takes a share of a fixed width, so the plot measures the width
+	// that remains. The placement reads the width alone, so it resolves before
+	// the frame sizes the plot.
+	const sharedWidth = legend !== false && legendAside(rangeLegendPlacement(legend, containerWidth))
+
 	const {
 		ref,
 		textHostRef,
@@ -971,7 +978,16 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		ticks,
 		readout,
 		format,
-	} = useHeatmap(data, primary, width, height, aspectRatio, formatValue, containerWidth)
+	} = useHeatmap(
+		data,
+		primary,
+		width,
+		height,
+		aspectRatio,
+		formatValue,
+		containerWidth,
+		sharedWidth,
+	)
 
 	// Spark is a bare, non-interactive sparkline, so the hover readout stands down
 	// with the labels; every wider tier keeps the caller's `tooltip`.

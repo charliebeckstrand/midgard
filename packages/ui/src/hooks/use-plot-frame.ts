@@ -187,6 +187,11 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
  * size is fully fixed by props observes nothing at all, so a resize never
  * reaches it.
  *
+ * A side legend takes a share of an explicit `width`, so the plot box is
+ * narrower than that width. With `sharedWidth` set, the plot measures its own
+ * width, and the explicit `width` stands only until that measurement lands.
+ * A server render and a test frame therefore still draw from the width alone.
+ *
  * Resize notifications commit as transitions. The frame tracks its container
  * live, with no settle window and no timers. React coalesces a burst by
  * abandoning renders whose size is already stale. A window drag on a slow
@@ -204,6 +209,9 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
+ * @param sharedWidth - A side legend shares the explicit `width` with the
+ * plot, so the plot measures the width that remains. It has no effect without
+ * an explicit `width`, because the plot then measures its width anyway.
  * @returns The wrapper `ref` to attach, and the resolved drawing box. The ref
  * is a callback ref that re-targets the observer if React swaps the node, still
  * readable through `.current`. An unmeasured `width` stays `0`, which renders
@@ -213,6 +221,7 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
+	sharedWidth = false,
 ): {
 	ref: PlotFrameRef
 	width: number
@@ -253,8 +262,9 @@ export function usePlotFrame(
 
 	// The policy decides what the frame consumes: the width feeds every
 	// sizing but `fixed` unless the consumer fixes it directly, and a height
-	// feeds only the height-measured cases — `fill` and `aspect-fill`.
-	const measureWidth = width === undefined
+	// feeds only the height-measured cases — `fill` and `aspect-fill`. A side
+	// legend takes a share of a fixed width, so that plot measures its own.
+	const measureWidth = width === undefined || sharedWidth
 
 	// `fill` reads the container's height; `aspect-fill` reads the plot's own — the
 	// remainder its figure's aspect-ratio leaves once the legend takes its size.
@@ -345,7 +355,8 @@ export function usePlotFrame(
 		return () => observer.disconnect()
 	}, [node, readSize, measureWidth, measureHeight])
 
-	const resolvedWidth = width ?? size.width
+	// The explicit width stands until a shared plot has a measurement.
+	const resolvedWidth = width === undefined || (sharedWidth && size.width > 0) ? size.width : width
 
 	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height)
 
