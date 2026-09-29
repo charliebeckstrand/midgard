@@ -22,14 +22,19 @@ export type CommitMenu = (
 export function tryGroupMenu(
 	target: HTMLElement,
 	event: MouseEvent<HTMLDivElement>,
-	resolveGroupItems: (key: string) => GridMenuItem[] | null,
+	resolveGroupItems: (key: string, header: HTMLElement) => GridMenuItem[] | null,
 	commit: CommitMenu,
 ): boolean {
 	const groupRow = target.closest<HTMLElement>('tr[data-group-row]')
 
 	if (groupRow?.dataset.groupKey === undefined) return false
 
-	commit(resolveGroupItems(groupRow.dataset.groupKey), target, event.clientX, event.clientY)
+	commit(
+		resolveGroupItems(groupRow.dataset.groupKey, groupRow),
+		target,
+		event.clientX,
+		event.clientY,
+	)
 
 	return true
 }

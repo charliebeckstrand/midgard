@@ -78,12 +78,13 @@ function GridGroupRowImpl<T>({
 	const tree = useGridNavContext().enabled
 
 	return (
-		// `data-group-key` (the shared value) lets the group-header context menu
-		// resolve the right-clicked group for the row manager and its color/expand items.
+		// `data-group-key` (the text key of the group) lets the group-header
+		// context menu resolve the right-clicked group for the row manager and its
+		// color/expand items.
 		<TableRow
 			{...windowRow}
 			data-group-row
-			data-group-key={String(value)}
+			data-group-key={group.key}
 			data-expanded={dataAttr(expanded)}
 			aria-level={tree ? 1 : undefined}
 			aria-expanded={tree ? expanded : undefined}

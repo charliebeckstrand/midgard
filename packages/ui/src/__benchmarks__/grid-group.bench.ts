@@ -8,6 +8,7 @@ import {
 	hasAggregation,
 } from '../modules/grid/engine/grid-aggregate'
 import { columnAccessor } from '../modules/grid/engine/grid-column/accessor'
+import { groupMembers, groupRows, orderGroups } from '../modules/grid/engine/grid-group/client'
 import {
 	buildGroupSpans,
 	collapsedHiddenIds,
@@ -196,6 +197,34 @@ describe('grid-group · column-group compute (every render of a grouped grid)', 
 
 		bench(`${count} cols · buildGroupSpans`, () => {
 			buildGroupSpans(ids, colToGroup, pinned)
+		})
+	}
+})
+
+describe('grid-group · client grouping (a view change of a grouped grid)', () => {
+	// A column of few values (status, four groups) and a near-unique one
+	// (reference, a group for each row). A sort change keeps the members and
+	// orders the groups again; a filter or a data change collects them anew.
+	const rows = shipments(100_000)
+
+	const getKey = (row: Shipment) => row.id
+
+	for (const [label, columnId] of [
+		['4 groups', 'status'],
+		['near-unique', 'reference'],
+	] as const) {
+		const read = (row: Shipment) => row[columnId]
+
+		const members = groupMembers(rows, null, read)
+
+		const args = { rows, order: null, sort: null, columnId, read, getKey }
+
+		bench(`100,000 rows · ${label} · groupRows (members and order)`, () => {
+			groupRows({ ...args, kept: null })
+		})
+
+		bench(`100,000 rows · ${label} · orderGroups (kept members, a sort change)`, () => {
+			orderGroups({ ...args, members })
 		})
 	}
 })

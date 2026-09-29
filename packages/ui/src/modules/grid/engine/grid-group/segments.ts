@@ -1,5 +1,5 @@
 import type { GridGroupHeaderRow } from '../../grid-data-types'
-import { compareSmart } from '../grid-sort/utilities'
+import { compareDirected, toSortKey } from '../grid-sort/utilities'
 import type { GridLeaf } from './tree'
 
 /**
@@ -62,7 +62,7 @@ export function segmentManualGroupRows<T>(
 /**
  * Orders manual group {@link GridManualGroupSegment}s for a sort on the grouped
  * column. The header segments sort by their group `value` through
- * {@link compareSmart} (negated for descending). A leading headerless run
+ * {@link compareDirected}: an empty group stays last under both directions. A leading headerless run
  * — leaves before any header — stays at the front. The leaves within each
  * segment keep their supplied (backend) order — only the group blocks move, so
  * children never leave their header. Returns the segments untouched when no
@@ -76,13 +76,15 @@ export function orderManualGroupSegments<T>(
 ): GridManualGroupSegment<T>[] {
 	if (!direction) return segments
 
-	const factor = direction === 'asc' ? 1 : -1
+	const descending = direction === 'desc'
 
 	const headerless = segments.filter((segment) => segment.header === null)
 
 	const headed = segments
 		.filter((segment) => segment.header !== null)
-		.sort((a, b) => factor * compareSmart(a.info?.value, b.info?.value))
+		.map((segment) => ({ segment, key: toSortKey(segment.info?.value) }))
+		.sort((a, b) => compareDirected(a.key, b.key, descending))
+		.map(({ segment }) => segment)
 
 	return [...headerless, ...headed]
 }

@@ -94,4 +94,36 @@ describe('Grid client view cost', () => {
 		// The facet parity test covers the first read, which compiles the search.
 		expect(name).not.toHaveBeenCalled()
 	})
+
+	it('collects the members of the groups once across a sort flip', () => {
+		const role = vi.fn((row: Row) => row.role)
+
+		const counted: GridColumn<Row>[] = [
+			columns[0] as GridColumn<Row>,
+			{ ...(columns[1] as GridColumn<Row>), value: role },
+		]
+
+		const { rerender } = renderHook(
+			({ sort }: { sort: GridSortState[] }) =>
+				useGridTable<Row>({
+					rows,
+					columns: counted,
+					getKey: (row) => row.id,
+					globalFilter: { value: '' },
+					columnFilters: { value: [] },
+					sort,
+					setSort: () => {},
+					grouping: 'role',
+				}),
+			{ initialProps: { sort: [{ column: 'name', direction: 'asc' }] as GridSortState[] } },
+		)
+
+		role.mockClear()
+
+		rerender({ sort: [{ column: 'name', direction: 'desc' }] })
+
+		// A group reads the value of its first row for its label. No pass over
+		// the rows collects the members again.
+		expect(role.mock.calls.length).toBeLessThan(rows.length)
+	})
 })

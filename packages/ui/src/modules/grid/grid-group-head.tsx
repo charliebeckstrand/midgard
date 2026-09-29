@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronLeft, ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { type ReactNode, useId } from 'react'
 import { Badge } from '../../components/badge'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
@@ -115,6 +115,13 @@ function GridGroupHeadCell({
 				: k.band.neutral
 			: null
 
+	// The description of a group reaches the keyboard and a screen reader as
+	// hidden text that the band describes itself by. The tooltip over the badge
+	// is for a pointer, and a badge takes no focus.
+	const descriptionId = useId()
+
+	const description = span.kind === 'group' ? span.group.description : undefined
+
 	return (
 		<TableHeader
 			scope={span.kind === 'group' ? 'colgroup' : 'col'}
@@ -124,6 +131,7 @@ function GridGroupHeadCell({
 			// column-group context menu (Clear color / Manage columns).
 			data-group-band={dataAttr(span.kind === 'group')}
 			data-group-id={span.kind === 'group' ? span.group.id : undefined}
+			aria-describedby={description ? descriptionId : undefined}
 			className={cn(
 				k.cell,
 				stickyHeader && gridK.sticky.head,
@@ -142,6 +150,12 @@ function GridGroupHeadCell({
 
 					{ruleColor && (
 						<div data-slot="grid-group-rule" className={cn(k.rule, ruleColor)} aria-hidden="true" />
+					)}
+
+					{description && (
+						<span id={descriptionId} className="sr-only">
+							{description}
+						</span>
 					)}
 				</div>
 			)}

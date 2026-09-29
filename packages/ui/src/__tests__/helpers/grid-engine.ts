@@ -169,6 +169,7 @@ export function referenceGroups<T>(
 			return {
 				id: group.id,
 				value: group.getGroupingValue(columnId),
+				key: group.id.slice(columnId.length + 1),
 				expanded: false,
 				leaves,
 				rows: leaves.map((leaf) => leaf.row),

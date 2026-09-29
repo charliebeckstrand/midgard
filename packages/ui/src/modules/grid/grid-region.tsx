@@ -96,7 +96,7 @@ type GridRegionProps<T> = {
 	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
 	fill: GridRangeFill | undefined
 	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
-	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
+	rowGroupMenu: ((key: string, header: HTMLElement) => GridMenuItem[] | null) | null
 	/** Resolves the column-group band menu for a right-clicked group by id. */
 	columnGroupMenu: ((id: string) => GridMenuItem[] | null) | null
 	/** The grid's column-filter model, or `null` when it has none; backs the column menu's "Filter …" item. */
@@ -263,7 +263,13 @@ export function GridRowManagerRegionDialog({ region }: { region: GridRowManagerR
 	if (!region.reachable) return null
 
 	return (
-		<GridManagerDialog open={region.open} onOpenChange={region.setOpen} label="Manage rows">
+		<GridManagerDialog
+			open={region.open}
+			onOpenChange={region.setOpen}
+			label="Manage rows"
+			// The group-header menu opens it, and its item is gone by then.
+			focusDone
+		>
 			<GridRowManager
 				groups={region.managerGroups}
 				onRecolor={region.recolor}

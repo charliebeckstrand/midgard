@@ -9,11 +9,27 @@ export const UNGROUPED = '__grid_ungrouped__'
 /**
  * Prefix distinguishing a group's dnd id (reordering whole groups) from a
  * column's (moving columns within/between zones), so one `DndContext` carries
- * both sortables without id collisions.
+ * both sortables without id collisions. A column id is free text, so the
+ * prefix opens with a NUL, which no id holds: a column named `group:x` stays a
+ * column.
  *
  * @internal
  */
-export const GROUP_PREFIX = 'group:'
+export const GROUP_PREFIX = '\u0000group:'
+
+/**
+ * Prefix of a zone's droppable id, apart from the column ids for the same
+ * reason as {@link GROUP_PREFIX}: a column whose id equals a group id drops at
+ * its own slot, not into that group.
+ *
+ * @internal
+ */
+export const ZONE_PREFIX = '\u0000zone:'
+
+/** The droppable id of a zone. @internal */
+export function zoneDropId(zoneId: string | number): string {
+	return `${ZONE_PREFIX}${zoneId}`
+}
 
 /** Whether a dnd id is a group-reorder id (vs a column id). @internal */
 export function isGroupDragId(id: string): boolean {
@@ -150,14 +166,20 @@ export function buildManagerZones(
 }
 
 /**
- * Resolves an id to its zone key. It is the zone whose id equals it, on a drop
- * on the zone droppable itself, such as an empty zone. Otherwise it is the zone
- * whose member list contains it. `undefined` when it belongs to no zone.
+ * Resolves a dnd id to its zone key. A zone's droppable id (see
+ * {@link zoneDropId}), on a drop on the zone itself such as an empty zone,
+ * gives that zone. Otherwise it is the zone whose member list contains the id.
+ * `undefined` when it belongs to no zone. The map is a plain object, so only
+ * its own keys count: a column named `constructor` names no zone.
  *
  * @internal
  */
 export function findZoneId(map: ZoneMap, id: string): string | undefined {
-	if (id in map) return id
+	if (id.startsWith(ZONE_PREFIX)) {
+		const zoneId = id.slice(ZONE_PREFIX.length)
+
+		return Object.hasOwn(map, zoneId) ? zoneId : undefined
+	}
 
 	return Object.keys(map).find((zoneId) => map[zoneId]?.includes(id))
 }
@@ -195,7 +217,7 @@ export function moveBetweenZones(
 	const overIndex = toIds.indexOf(overStr)
 
 	const insertIndex =
-		overStr === to || overIndex === -1 ? toIds.length : overIndex + (below ? 1 : 0)
+		overStr === zoneDropId(to) || overIndex === -1 ? toIds.length : overIndex + (below ? 1 : 0)
 
 	return {
 		...map,
@@ -207,7 +229,7 @@ export function moveBetweenZones(
 /**
  * Settles a same-zone reorder on drop (a cross-zone move already landed live in
  * `onDragOver`). Moves `activeStr` to `overStr`'s slot within their shared zone,
- * or to the end when dropped on the zone id itself. It returns the map unchanged
+ * or to the end when dropped on the zone's droppable. It returns the map unchanged
  * for a cross-zone drop, or a no-op.
  *
  * @internal
@@ -223,7 +245,7 @@ export function settleDragEnd(map: ZoneMap, activeStr: string, overStr: string):
 
 	const oldIndex = ids.indexOf(activeStr)
 
-	const newIndex = overStr === from ? ids.length - 1 : ids.indexOf(overStr)
+	const newIndex = overStr === zoneDropId(from) ? ids.length - 1 : ids.indexOf(overStr)
 
 	if (oldIndex === -1 || newIndex === -1 || oldIndex === newIndex) return map
 

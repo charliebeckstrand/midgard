@@ -2,12 +2,13 @@
 
 import type { ExpandedState } from '@tanstack/react-table'
 import { Ban, ChevronsDownUp, ChevronsUpDown, ListTree } from 'lucide-react'
-import { type ReactNode, useCallback, useMemo, useState } from 'react'
+import { type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import type { PaletteColor } from '../../core/recipe'
 import { useControllable } from '../../hooks'
+import { useStableEvent } from '../../hooks/use-stable-event'
 import { groupValueLabel } from './engine/grid-column/label'
 import type { GridGroup } from './engine/grid-group/tree'
-import { groupValueOf } from './engine/grid-items/items'
+import { groupKeyOf } from './engine/grid-items/items'
 import type { GridGroupBy } from './grid-data-types'
 import type { GridRowGroup, GridRowGroups } from './grid-row-group-types'
 import type { GridMenuItem } from './types'
@@ -95,9 +96,11 @@ export function applyRowKeyOrder<I>(
  */
 function buildRowManagerGroups<T>(groups: GridGroup<T>[] | null): GridRowManagerGroup[] {
 	return (groups ?? []).map((group) => {
-		const value = groupValueOf(group)
-
-		return { key: value, label: groupValueLabel(value), count: group.leaves.length }
+		return {
+			key: groupKeyOf(group),
+			label: groupValueLabel(group.value),
+			count: group.leaves.length,
+		}
 	})
 }
 
@@ -275,7 +278,7 @@ export type GridRowManagerRegionResult = {
 	recolor: (key: string | number, color: PaletteColor | undefined) => void
 	reorderGroups: (orderedKeys: (string | number)[]) => void
 	/** The group-header menu resolver, keyed by a group's stringified value. */
-	rowGroupMenu: (key: string) => GridMenuItem[] | null
+	rowGroupMenu: (key: string, header: HTMLElement) => GridMenuItem[] | null
 	/** Whether the "Manage rows" dialog is reachable (mount it when true). */
 	reachable: boolean
 	open: boolean
@@ -324,12 +327,33 @@ export function useGridRowManagerRegion<T>({
 
 	const [open, setOpen] = useState(false)
 
+	// The control that takes focus back when the dialog closes: the toggle of the
+	// header whose menu opened it. The menu item that opened the dialog is gone
+	// by then.
+	const returnRef = useRef<HTMLElement | null>(null)
+
+	const openFrom = useStableEvent((header: HTMLElement) => {
+		returnRef.current = header.querySelector<HTMLElement>('button')
+
+		setOpen(true)
+	})
+
+	useEffect(() => {
+		const target = returnRef.current
+
+		if (open || !target) return
+
+		returnRef.current = null
+
+		if (target.isConnected) target.focus()
+	}, [open])
+
 	// Reached only through the group-header menu, so it needs the context menu live.
 	const reachable = enabled && contextMenuActive
 
-	// Group lookup (by stringified value) for the menu's per-group expand toggle.
+	// Group lookup (by text key) for the menu's per-group expand toggle.
 	const groupByKey = useMemo(
-		() => new Map((groups ?? []).map((group) => [String(group.value), group])),
+		() => new Map((groups ?? []).map((group) => [group.key, group])),
 		[groups],
 	)
 
@@ -338,7 +362,7 @@ export function useGridRowManagerRegion<T>({
 	const { recolor } = manager
 
 	const rowGroupMenu = useCallback(
-		(key: string): GridMenuItem[] | null => {
+		(key: string, header: HTMLElement): GridMenuItem[] | null => {
 			if (!reachable) return null
 
 			const group = groupByKey.get(key)
@@ -347,7 +371,7 @@ export function useGridRowManagerRegion<T>({
 				expanded: group?.expanded ?? false,
 				color: color(key),
 				manageLabel: 'Manage rows',
-				onManage: () => setOpen(true),
+				onManage: () => openFrom(header),
 				onToggle: () => {
 					if (group) toggleGroup(group.id)
 				},
@@ -356,7 +380,7 @@ export function useGridRowManagerRegion<T>({
 				onClearColor: () => recolor(key, undefined),
 			})
 		},
-		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded],
+		[reachable, groupByKey, color, recolor, toggleGroup, setGroupExpanded, openFrom],
 	)
 
 	return {
@@ -366,7 +390,7 @@ export function useGridRowManagerRegion<T>({
 		managerGroups: manager.managerGroups,
 		recolor: manager.recolor,
 		reorderGroups: manager.reorderGroups,
-		/** The group-header menu resolver, keyed by a group's stringified value. */
+		/** The group-header menu resolver, keyed by a group's text key, with its header row. */
 		rowGroupMenu,
 		/** Whether the "Manage rows" dialog is reachable (mount it when true). */
 		reachable,

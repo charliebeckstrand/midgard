@@ -27,6 +27,13 @@ export type GridGroup<T> = {
 	id: string
 	/** The group's value on the grouped column. */
 	value: unknown
+	/**
+	 * The text of the value, which groups the rows: `null` and `'null'` share a
+	 * group, and `null` and `undefined` do not. It keys the overlay of the row
+	 * manager (see `groupKeyOf`), because the value of a nullish group reads
+	 * as `undefined`.
+	 */
+	key: string
 	/** Whether the group is open. */
 	expanded: boolean
 	/** The group's leaves, in display order. */
