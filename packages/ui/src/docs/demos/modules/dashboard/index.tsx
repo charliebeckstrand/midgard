@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react'
+import { useCallback, useLayoutEffect, useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
 import { Stat, StatDelta, StatDescription, StatValue } from '../../../../components/stat'
@@ -13,6 +13,7 @@ import {
 } from '../../../../modules/dashboard'
 import { Grid, type GridColumn } from '../../../../modules/grid'
 import { QueryBuilder, type QueryGroup, QuerySummary } from '../../../../modules/query'
+import { useContentHeightHost } from '../../../../primitives/content-height'
 import { Flex } from '../../../../structure/flex'
 import { Spacer } from '../../../../structure/spacer'
 import { Stack } from '../../../../structure/stack'
@@ -21,13 +22,13 @@ import { fields, products, type Sale, sales, sumBy } from './data'
 import { RegistryExample } from './registry'
 
 const layout: DashboardLayoutItem[] = [
-	{ id: 'units-trend', x: 0, y: 0, w: 8, h: 16 },
-	{ id: 'revenue-trend', x: 8, y: 0, w: 8, h: 16 },
-	{ id: 'units', x: 16, y: 0, w: 8, h: 16 },
-	{ id: 'regions', x: 0, y: 16, w: 12 },
-	{ id: 'mix', x: 12, y: 16, w: 12 },
-	{ id: 'trend', x: 0, y: 43, w: 24, h: 40 },
-	{ id: 'orders', x: 0, y: 83, w: 24, h: 44 },
+	{ id: 'units-trend', x: 0, y: 0, w: 8, h: 20 },
+	{ id: 'revenue-trend', x: 8, y: 0, w: 8, h: 20 },
+	{ id: 'units', x: 16, y: 0, w: 8, h: 20 },
+	{ id: 'regions', x: 0, y: 20, w: 12 },
+	{ id: 'mix', x: 12, y: 20, w: 12 },
+	{ id: 'trend', x: 0, y: 47, w: 24, h: 40 },
+	{ id: 'orders', x: 0, y: 87, w: 24, h: 44 },
 ]
 
 const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
@@ -83,6 +84,22 @@ function ProductMix() {
 	)
 }
 
+// On a narrow board, a stat tile claims the height of its content, so its value,
+// its change, and its trend all show and only the page scrolls. The trend then
+// takes a fixed height, because a chart that fills its box has no height of its own.
+function useStatFlow() {
+	const host = useContentHeightHost()
+
+	const flow = host?.available === true
+
+	useLayoutEffect(() => (flow ? host?.claim() : undefined), [flow, host])
+
+	return {
+		root: flow ? 'flex flex-col gap-2' : 'flex size-full flex-col gap-2',
+		trend: flow ? 'h-20' : 'min-h-0 flex-1',
+	}
+}
+
 // A stat tile can add a trend under its value. The trend is optional, and it
 // takes the height that the value leaves free.
 function Units() {
@@ -92,15 +109,17 @@ function Units() {
 
 	const data = sumBy(rows, 'month', 'units')
 
+	const flow = useStatFlow()
+
 	return (
-		<div className="flex size-full flex-col gap-2">
+		<div className={flow.root}>
 			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
 				<StatValue size="sm">{units.toLocaleString()}</StatValue>
 
 				<StatDescription>in {data.length} months</StatDescription>
 			</Stat>
 
-			<div className="min-h-0 flex-1">
+			<div className={flow.trend}>
 				<BarChart
 					aria-label="Units sold by month"
 					data={data}
@@ -139,8 +158,10 @@ function Kpi({ value }: { value: 'revenue' | 'units' }) {
 
 	const name = value === 'units' ? 'Units' : 'Revenue'
 
+	const flow = useStatFlow()
+
 	return (
-		<div className="flex size-full flex-col gap-2">
+		<div className={flow.root}>
 			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
 				<StatValue size="sm">{latest?.total.toLocaleString() ?? '–'}</StatValue>
 
@@ -150,7 +171,7 @@ function Kpi({ value }: { value: 'revenue' | 'units' }) {
 				</StatDelta>
 			</Stat>
 
-			<div className="min-h-0 flex-1">
+			<div className={flow.trend}>
 				<LineChart
 					aria-label={`${name} by month`}
 					data={data}
@@ -190,7 +211,7 @@ export function Demo() {
 	const [editing, setEditing] = useState(false)
 
 	// A narrow board paints the re-pack, where edit mode stands down. The control
-	// that starts it then goes disabled, and a live edit ends.
+	// that starts it then hides, and a live edit ends.
 	const [projected, setProjected] = useState(false)
 
 	const project = useCallback((next: boolean) => {
@@ -228,7 +249,7 @@ export function Demo() {
 
 						<Button
 							color={editing ? 'zinc' : 'blue'}
-							disabled={projected}
+							hidden={projected}
 							onClick={() => setEditing((live) => !live)}
 						>
 							{editing ? 'Done' : 'Edit layout'}
@@ -267,11 +288,11 @@ export function Demo() {
 							<Units />
 						</DashboardTile>
 
-						<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={160}>
+						<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={200}>
 							<Kpi value="units" />
 						</DashboardTile>
 
-						<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={160}>
+						<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={200}>
 							<Kpi value="revenue" />
 						</DashboardTile>
 
