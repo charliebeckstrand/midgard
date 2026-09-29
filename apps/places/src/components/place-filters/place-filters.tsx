@@ -1,7 +1,8 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { ControlSkeleton } from 'ui/control'
-import { DatePicker, type DatePickerRelativeValue } from 'ui/date-picker'
+import type { DatePickerRelativeValue } from 'ui/date-picker'
 import { Filters, FiltersBar, FiltersClear, FiltersField, FiltersRow } from 'ui/filters'
 import { Listbox, ListboxLabel, ListboxOption } from 'ui/listbox'
 import { Flex } from 'ui/structure/flex'
@@ -12,6 +13,18 @@ import {
 	type PlaceVisitFilter,
 } from '../../utilities/places-filter'
 import { CategoryPicker } from '../category-picker'
+
+/**
+ * The date picker of the Visited field. It carries the calendar and the relative
+ * presets, which a reader opens after the map, if at all, so the page does not
+ * wait for its code. The form drawer uses the same picker, so the two share one
+ * chunk. The bar stays under the skeleton of {@link PlaceFiltersSkeleton} until
+ * the view settles, and the picker normally loads before that. The `loading`
+ * control holds the width and height of the field if it does not.
+ */
+const DatePicker = dynamic(() => import('ui/date-picker').then((module) => module.DatePicker), {
+	loading: () => <ControlSkeleton />,
+})
 
 /** Props for {@link PlaceFilters}. */
 export type PlaceFiltersProps = {
