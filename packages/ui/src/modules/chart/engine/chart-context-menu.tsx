@@ -71,7 +71,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**
 	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
-	 * header alone, the chart reflowing to fill the space the legend leaves.
+	 * header alone, cropped so that no gap remains where the legend was.
 	 * @defaultValue true
 	 */
 	downloadLegend?: boolean
