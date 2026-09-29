@@ -46,7 +46,7 @@ export type ResolvedRangeLegend = {
  *
  * @internal
  */
-export function rangeLegendOrientation(placement: ChartLegendPlacement): ChartOrientation {
+function rangeLegendOrientation(placement: ChartLegendPlacement): ChartOrientation {
 	return legendAside(placement) ? 'vertical' : 'horizontal'
 }
 

@@ -11,6 +11,7 @@
 
 import {
 	type CSSProperties,
+	type FocusEvent,
 	type KeyboardEvent,
 	type PointerEvent,
 	type ReactNode,
@@ -343,7 +344,7 @@ type RangeTrackProps = {
 	arrow?: ReactNode
 	onPointerMove: (event: PointerEvent<HTMLDivElement>) => void
 	onPointerLeave: (event: PointerEvent<HTMLDivElement>) => void
-	onFocus: () => void
+	onFocus: (event: FocusEvent<HTMLDivElement>) => void
 	onBlur: () => void
 	onKeyDown: (event: KeyboardEvent<HTMLDivElement>) => void
 }
@@ -543,7 +544,14 @@ export function RangeLegend({
 				</Text>
 			)}
 
-			<div className={cn('flex gap-2', horizontal ? 'w-40 flex-col' : 'h-40 items-stretch')}>
+			{/* The bar is physical: the gradient, the pointer math, the thumb, and the
+			    arrow run from the left or the bottom. The end labels must follow the
+			    bar, so the block is `ltr` in every page. The caption keeps the page
+			    direction. */}
+			<div
+				dir="ltr"
+				className={cn('flex gap-2', horizontal ? 'w-40 flex-col' : 'h-40 items-stretch')}
+			>
 				<RangeTrack
 					slot={slot}
 					label={label}
@@ -555,13 +563,18 @@ export function RangeLegend({
 					valueText={probe === null ? undefined : binLabel(binOf(probe))}
 					arrow={arrow}
 					onPointerMove={track}
+					// The keyboard side rides `:focus-visible`, the same gate as the ring. A
+					// click, or a tab that comes back, focuses the track with no ring, so
+					// it reads nothing and keeps nothing.
 					onPointerLeave={(event) => {
-						// A keyboard user owns the probe while the track holds focus; a
+						// A keyboard user owns the probe while the track shows its ring; a
 						// pointer passing off the bar must not wipe their marker, emphasis,
 						// and aria-valuenow. A real blur still clears it (onBlur).
-						if (event.currentTarget !== document.activeElement) clear()
+						if (!event.currentTarget.matches(':focus-visible')) clear()
 					}}
-					onFocus={() => readValue(probe ?? min)}
+					onFocus={(event) => {
+						if (event.currentTarget.matches(':focus-visible')) readValue(probe ?? min)
+					}}
 					onBlur={clear}
 					onKeyDown={onKeyDown}
 				/>

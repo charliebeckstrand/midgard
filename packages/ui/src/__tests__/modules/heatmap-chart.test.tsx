@@ -280,8 +280,15 @@ describe('HeatmapChart', () => {
 			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
 				.length
 
-		// Focus the track (keyboard ownership), then probe a class so cells dim.
+		// Focus the track (keyboard ownership), then probe a class so cells dim. The
+		// Tab press gives the focus the keyboard's ring (`:focus-visible`), which the
+		// track reads. An earlier pointer event in the shared window can take it away
+		// from a bare `focus()`.
+		fireEvent.keyDown(document.body, { key: 'Tab' })
+
 		act(() => track.focus())
+
+		expect(track.matches(':focus-visible')).toBe(true)
 
 		fireEvent.pointerMove(track, { clientY: 10 })
 

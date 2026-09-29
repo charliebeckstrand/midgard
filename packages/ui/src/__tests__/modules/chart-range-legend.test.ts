@@ -1,25 +1,20 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import {
-	rangeLegendOrientation,
-	resolveRangeLegend,
-} from '../../modules/chart/engine/chart-legend/range'
+import { resolveRangeLegend } from '../../modules/chart/engine/chart-legend/range'
 import { COMPACT_WIDTH, SPARK_HEIGHT, SPARK_WIDTH } from '../../modules/chart/engine/chart-tier'
 
 // A roomy, non-spark, non-narrow box the placement passes through untouched.
 const WIDE = 500
 const TALL = 400
 
-describe('rangeLegendOrientation', () => {
-	it('stands a side placement vertical and a stacked one horizontal', () => {
-		expect(rangeLegendOrientation('left')).toBe('vertical')
-		expect(rangeLegendOrientation('right')).toBe('vertical')
-		expect(rangeLegendOrientation('top')).toBe('horizontal')
-		expect(rangeLegendOrientation('bottom')).toBe('horizontal')
-	})
-})
-
 describe('resolveRangeLegend', () => {
+	it('stands a side placement vertical and a stacked one horizontal', () => {
+		expect(resolveRangeLegend('left', WIDE, TALL).orientation).toBe('vertical')
+		expect(resolveRangeLegend('right', WIDE, TALL).orientation).toBe('vertical')
+		expect(resolveRangeLegend('top', WIDE, TALL).orientation).toBe('horizontal')
+		expect(resolveRangeLegend('bottom', WIDE, TALL).orientation).toBe('horizontal')
+	})
+
 	it('defaults to a vertical bar on the right', () => {
 		expect(resolveRangeLegend(undefined, WIDE, TALL)).toEqual({
 			show: true,
