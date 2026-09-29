@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Drawer, DrawerBody, DrawerStandIn, DrawerTitle } from '../../components/drawer'
-import { bySlot, present, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, present, renderUI, screen } from '../helpers'
 
 /** The class list of `el`, order-free — the two trees build theirs through different calls. */
 function classes(el: Element | null | undefined, what: string): string[] {
@@ -57,11 +57,11 @@ describe('DrawerStandIn', () => {
 			</DrawerStandIn>,
 		)
 
-		const standIn = present(bySlot(container, 'drawer-stand-in'), 'stand-in')
+		const standIn = getSlot(container, 'drawer-stand-in')
 
 		expect(classes(standIn, 'stand-in root')).toEqual(root)
 		expect(classes(standIn.children[0], 'stand-in backdrop')).toEqual(backdrop)
-		expect(classes(standIn.children[1], 'stand-in panel')).toEqual(panel)
+		expect(classes(getSlot(standIn, 'drawer-stand-in-panel'), 'stand-in panel')).toEqual(panel)
 	})
 
 	it('resolves glass from the ambient provider, as the drawer does', () => {
@@ -78,8 +78,7 @@ describe('DrawerStandIn', () => {
 			</DrawerStandIn>,
 		).container
 
-		const panelOf = (node: HTMLElement) =>
-			present(bySlot(node, 'drawer-stand-in'), 'stand-in').children[1]?.className
+		const panelOf = (node: HTMLElement) => getSlot(node, 'drawer-stand-in-panel').className
 
 		expect(panelOf(container)).not.toBe(panelOf(flat))
 	})
@@ -97,9 +96,9 @@ describe('DrawerStandIn', () => {
 
 		expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
-		const standIn = present(bySlot(container, 'drawer-stand-in'), 'stand-in')
+		const standIn = getSlot(container, 'drawer-stand-in')
 
-		expect(standIn.children[1]).toHaveAttribute('inert')
+		expect(getSlot(standIn, 'drawer-stand-in-panel')).toHaveAttribute('inert')
 
 		// The root stays hit-testable, so a press cannot fall through to the page behind it.
 		expect(standIn).not.toHaveAttribute('inert')
@@ -112,6 +111,6 @@ describe('DrawerStandIn', () => {
 			</DrawerStandIn>,
 		)
 
-		expect(present(bySlot(container, 'drawer-stand-in'), 'stand-in')).toHaveClass('lg:hidden')
+		expect(getSlot(container, 'drawer-stand-in')).toHaveClass('lg:hidden')
 	})
 })

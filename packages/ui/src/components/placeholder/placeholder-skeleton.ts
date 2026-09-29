@@ -100,9 +100,11 @@ export function createSkeleton<S extends DensityStep>(
 	options?: SkeletonOptions,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
+		const as = options?.as
+
 		if ('density' in skeleton) {
 			return createElement(Placeholder, {
-				as: options?.as,
+				as,
 				'data-density': size,
 				className: cn(skeleton.base, className),
 			})
@@ -111,7 +113,7 @@ export function createSkeleton<S extends DensityStep>(
 		const sizeClass = 'size' in skeleton ? skeleton.size[size ?? 'md'] : undefined
 
 		return createElement(Placeholder, {
-			as: options?.as,
+			as,
 			className: cn(skeleton.base, sizeClass, className),
 		})
 	}

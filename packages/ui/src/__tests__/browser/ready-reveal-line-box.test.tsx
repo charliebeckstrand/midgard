@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { ReadyReveal } from '../../primitives/ready-reveal'
-import { renderUI } from '../helpers'
+import { getSlot, renderUI, screen } from '../helpers'
 
 /**
  * `ReadyReveal`'s content layer is a plain block `div`, so **an inline-level child sits in a line
@@ -47,13 +47,13 @@ function heights(display: 'inline-flex' | 'flex w-fit') {
 		</div>,
 	)
 
-	const reveal = container.querySelector('[data-slot="ready-reveal"]')
+	const reveal = getSlot(container, 'ready-reveal')
 
-	const child = container.querySelector('[data-testid="control"]')
+	const child = screen.getByTestId('control')
 
 	return {
-		reveal: Math.round(reveal?.getBoundingClientRect().height ?? -1),
-		child: Math.round(child?.getBoundingClientRect().height ?? -1),
+		reveal: Math.round(reveal.getBoundingClientRect().height),
+		child: Math.round(child.getBoundingClientRect().height),
 	}
 }
 

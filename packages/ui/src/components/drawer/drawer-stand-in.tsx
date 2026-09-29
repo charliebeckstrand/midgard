@@ -3,7 +3,7 @@
 import type { ReactNode } from 'react'
 import { cn, dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
-import { Density } from '../../primitives/density'
+import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
@@ -71,26 +71,30 @@ export function DrawerStandIn({
 }: DrawerStandInProps) {
 	const resolvedSurface = useResolvedSurface(glass)
 
+	const isGlass = resolvedSurface === 'glass'
+
 	// None of the drawer's own `data-slot`s: nothing styles off them, and a selector written
 	// for the real drawer must not find its stand-in. The panel's group names and `data-*`
 	// hooks are the drawer's, because its slots and rows style off those.
 	return (
 		<div data-slot="drawer-stand-in" className={cn(overlay.root, 'fixed', rootClassName)}>
 			<div className={k.backdrop({ surface: resolvedSurface, desaturate })} aria-hidden="true" />
-			<div
+			<PolymorphicStatic
+				as="div"
+				data-slot="drawer-stand-in-panel"
 				inert
-				data-density={size}
+				density={size}
 				data-height={height ?? 'auto'}
-				data-glass={dataAttr(resolvedSurface === 'glass')}
+				data-glass={dataAttr(isGlass)}
 				className={cn(
 					'group/drawer',
-					resolvedSurface === 'glass' && 'group/glass',
+					isGlass && 'group/glass',
 					k.panel({ surface: resolvedSurface, height }),
 					className,
 				)}
 			>
-				<Density step={size}>{children}</Density>
-			</div>
+				{children}
+			</PolymorphicStatic>
 		</div>
 	)
 }

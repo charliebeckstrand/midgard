@@ -1,7 +1,7 @@
 import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { Badge, BadgeSkeleton } from '../../components/badge'
-import { bySlot, renderUI, screen } from '../helpers'
+import { bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Badge', () => {
 	/*
@@ -18,10 +18,10 @@ describe('Badge', () => {
 			</p>,
 		)
 
-		const skeleton = bySlot(container, 'placeholder')
+		const skeleton = getSlot(container, 'placeholder')
 
-		expect(skeleton?.tagName).toBe('SPAN')
-		expect(skeleton?.parentElement?.tagName).toBe('P')
+		expect(skeleton.tagName).toBe('SPAN')
+		expect(skeleton.parentElement?.tagName).toBe('P')
 		expect(skeleton).toHaveClass('inline-block')
 		expect(skeleton).not.toHaveClass('block')
 	})

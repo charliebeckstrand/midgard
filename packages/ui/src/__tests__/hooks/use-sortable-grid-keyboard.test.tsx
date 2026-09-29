@@ -63,12 +63,12 @@ const order = () =>
 const card = (label: string) => screen.getByRole('listitem', { name: label })
 
 /** Presses a key on `label`'s card the way a keyboard user would — on the focused element. */
-function press(label: string, key: string) {
+function press(label: string, key: string, init?: KeyboardEventInit) {
 	const element = card(label)
 
 	element.focus()
 
-	fireEvent.keyDown(element, { key })
+	fireEvent.keyDown(element, { key, ...init })
 }
 
 describe('useSortableGridKeyboard', () => {
@@ -144,11 +144,7 @@ describe('useSortableGridKeyboard', () => {
 
 		press('Alpha', ' ')
 
-		const element = card('Alpha')
-
-		element.focus()
-
-		fireEvent.keyDown(element, { key: 'ArrowRight', shiftKey: true })
+		press('Alpha', 'ArrowRight', { shiftKey: true })
 
 		expect(order()).toEqual(['a', 'b', 'c', 'd', 'e', 'f'])
 	})

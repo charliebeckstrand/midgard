@@ -1,9 +1,8 @@
 'use client'
 
-import { arrayMove } from '@dnd-kit/sortable'
 import { type KeyboardEvent, type RefObject, useCallback } from 'react'
 import { accessibleName, announce, querySlot } from '../core'
-import { clamp } from '../utilities'
+import { clamp, moveItem } from '../utilities'
 import { logicalArrowKey } from './a11y/logical-arrow'
 import { useKeyboardLifted } from './use-keyboard-lifted'
 
@@ -28,6 +27,25 @@ function columnCount(container: HTMLElement | null): number {
 	if (!tracks || tracks === 'none') return 1
 
 	return tracks.split(/\s+/).filter(Boolean).length || 1
+}
+
+/**
+ * How far a key moves in the flat order: ±1 across, ±one row down or up, or `null` for a key
+ * that is not an arrow. The cards wrap in the reading order, so a horizontal step follows it.
+ */
+function stepFor(key: string, container: HTMLElement | null): number | null {
+	switch (logicalArrowKey(key, container)) {
+		case 'ArrowRight':
+			return 1
+		case 'ArrowLeft':
+			return -1
+		case 'ArrowDown':
+			return columnCount(container)
+		case 'ArrowUp':
+			return -columnCount(container)
+		default:
+			return null
+	}
 }
 
 /** Options for {@link useSortableGridKeyboard}: the items, the key extractor, the grid, and the reorder report. */
@@ -81,17 +99,14 @@ export function useSortableGridKeyboard<T>({
 	containerRef,
 	itemSlot = 'sortable-grid-item',
 }: SortableGridKeyboardOptions<T>) {
-	const focusItem = useCallback(
-		(id: string) => {
-			querySlot(containerRef.current, itemSlot, 'item-id', id)?.focus()
-		},
+	const findItem = useCallback(
+		(id: string) => querySlot(containerRef.current, itemSlot, 'item-id', id),
 		[containerRef, itemSlot],
 	)
 
-	const itemName = useCallback(
-		(id: string) => accessibleName(querySlot(containerRef.current, itemSlot, 'item-id', id)),
-		[containerRef, itemSlot],
-	)
+	const focusItem = useCallback((id: string) => findItem(id)?.focus(), [findItem])
+
+	const itemName = useCallback((id: string) => accessibleName(findItem(id)), [findItem])
 
 	const {
 		liftedId,
@@ -115,42 +130,33 @@ export function useSortableGridKeyboard<T>({
 		[items, getKey, itemName],
 	)
 
-	/** How far a key moves in the flat order: ±1 across, ±one row down or up. */
-	const stepFor = useCallback(
-		(key: string): number | null => {
-			// The cards wrap in the reading order, so a horizontal step follows it.
-			switch (logicalArrowKey(key, containerRef.current)) {
-				case 'ArrowRight':
-					return 1
-				case 'ArrowLeft':
-					return -1
-				case 'ArrowDown':
-					return columnCount(containerRef.current)
-				case 'ArrowUp':
-					return -columnCount(containerRef.current)
-				default:
-					return null
-			}
+	/**
+	 * The item's index and the index a step lands on, or `null` when the item is gone or the step
+	 * goes nowhere. Clamped, not wrapped: a Right on the last card of a row still reaches the next
+	 * row, and a Down from the bottom row lands on the last position rather than doing nothing.
+	 */
+	const resolveStep = useCallback(
+		(id: string, step: number | 'start' | 'end') => {
+			const index = items.findIndex((item) => getKey(item) === id)
+
+			if (index === -1) return null
+
+			const last = items.length - 1
+
+			const target = step === 'start' ? 0 : step === 'end' ? last : clamp(index + step, 0, last)
+
+			return target === index ? null : { index, target }
 		},
-		[containerRef],
+		[items, getKey],
 	)
 
 	const focusByStep = useCallback(
 		(id: string, step: number | 'start' | 'end') => {
-			const index = items.findIndex((item) => getKey(item) === id)
+			const resolved = resolveStep(id, step)
 
-			if (index === -1) return false
+			if (!resolved) return false
 
-			const target =
-				step === 'start'
-					? 0
-					: step === 'end'
-						? items.length - 1
-						: clamp(index + step, 0, items.length - 1)
-
-			if (target === index) return false
-
-			const item = items[target]
+			const item = items[resolved.target]
 
 			if (item === undefined) return false
 
@@ -158,33 +164,26 @@ export function useSortableGridKeyboard<T>({
 
 			return true
 		},
-		[items, getKey, focusItem],
+		[items, getKey, resolveStep, focusItem],
 	)
 
 	const moveByStep = useCallback(
 		(id: string, step: number) => {
 			if (!onReorder) return
 
-			const index = items.findIndex((item) => getKey(item) === id)
+			const resolved = resolveStep(id, step)
 
-			if (index === -1) return
+			if (!resolved) return
 
-			// Clamped, not dropped: a Right on the last card of a row should still
-			// reach the next row, and a Down from the bottom row should land on the
-			// last position rather than doing nothing.
-			const target = clamp(index + step, 0, items.length - 1)
+			onReorder(moveItem(items, resolved.index, resolved.target))
 
-			if (target === index) return
-
-			onReorder(arrayMove(items, index, target))
-
-			announce(`${itemName(id)} moved to position ${target + 1} of ${items.length}.`, {
+			announce(`${itemName(id)} moved to position ${resolved.target + 1} of ${items.length}.`, {
 				assertive: true,
 			})
 
 			refocusItem(id)
 		},
-		[items, getKey, onReorder, itemName, refocusItem],
+		[items, onReorder, resolveStep, itemName, refocusItem],
 	)
 
 	/** Not lifted: arrows walk focus across the grid, Home/End jump to its ends. */
@@ -236,14 +235,14 @@ export function useSortableGridKeyboard<T>({
 				return
 			}
 
-			const step = stepFor(event.key)
+			const step = stepFor(event.key, containerRef.current)
 
 			// The lift of the last write, not the last render, so a second key in the
 			// same tick carries the item the first one lifted.
 			if (readLifted() === id) carry(id, event, step)
 			else navigate(id, event, step)
 		},
-		[readLifted, toggleLift, describe, stepFor, carry, navigate],
+		[readLifted, toggleLift, describe, containerRef, carry, navigate],
 	)
 
 	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
