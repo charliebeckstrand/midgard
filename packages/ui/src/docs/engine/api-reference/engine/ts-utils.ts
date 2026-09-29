@@ -1,5 +1,12 @@
 import { ts } from 'ts-morph'
 
+/**
+ * The path segment of the recipe engine. Its internals (`Recipe`,
+ * `RecipeBase`, `ResolvedConfig`, `VariantProps`, …) get the same treatment as
+ * `node_modules`: no reference card shows them.
+ */
+export const RECIPE_ENGINE_PATH = '/core/recipe/engine/'
+
 /** Dot-joined name of a TypeName: `Foo`, `Foo.Bar`, `Foo.Bar.Baz`. */
 export function typeRefName(name: ts.EntityName): string {
 	if (ts.isIdentifier(name)) return name.text

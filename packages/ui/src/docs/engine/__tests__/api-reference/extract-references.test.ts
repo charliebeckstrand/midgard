@@ -194,6 +194,29 @@ describe('extractReferences', () => {
 		expect(refs?.Inner).toBeUndefined()
 	})
 
+	// `Warm` makes the checker meet `'c'` and `'a'` first. `Omit` orders its keys
+	// by type id, so its own order puts `c` and `a` before `b`.
+	it('lists the properties of an alias in the order that its body spells', () => {
+		const { location, checker } = callableLocation({
+			'index.ts': [
+				`type Warm = 'c' | 'a'`,
+				`type Inner = { b?: 1; a?: 2; c?: 3; x?: 4 }`,
+				`type Options = Omit<Inner, 'x'>`,
+				`function Foo(props: { opts: Options }) { return null }`,
+			].join('\n'),
+		})
+
+		const warm = location
+			.getSourceFile()
+			.statements.find((s) => ts.isTypeAliasDeclaration(s) && s.name.text === 'Warm')
+
+		if (warm) checker.getTypeAtLocation(warm)
+
+		const refs = extractReferences('Options', location, checker)
+
+		expect(refs?.Options).toBe('{\n\tb?: 1\n\ta?: 2\n\tc?: 3\n}')
+	})
+
 	it('marks optional properties in the apparent shape with `?`', () => {
 		const { location, checker } = callableLocation({
 			'index.ts': [
