@@ -293,6 +293,78 @@ describe('extractProps — type display', () => {
 	})
 })
 
+describe('extractProps — which props show', () => {
+	const names = (source: string) => propsOf(source).map((p) => p.name)
+
+	it('keeps a string-literal prop name', () => {
+		expect(names(`function Foo(props: { 'aria-label'?: string }) { return null }`)).toEqual([
+			'aria-label',
+		])
+	})
+
+	it('drops a `data-*` attribute, a hook for selectors and not an option', () => {
+		const source = `function Foo(props: { 'data-slot'?: string; size?: string }) { return null }`
+
+		expect(names(source)).toEqual(['size'])
+	})
+
+	it('drops a prop whose own doc comment is `@internal`', () => {
+		const source = [
+			`function Foo(props: {`,
+			`  /** @internal */`,
+			`  stamp?: string`,
+			`  size?: string`,
+			`}) { return null }`,
+		].join('\n')
+
+		expect(names(source)).toEqual(['size'])
+	})
+
+	// ui tags a props type `@internal` when no barrel exports it, and its props
+	// are still API.
+	it('keeps the props of a type whose own doc comment is `@internal`', () => {
+		const source = [
+			`/** @internal */`,
+			`type SingleProps = { type?: 'single' }`,
+			`function Foo(props: SingleProps) { return null }`,
+		].join('\n')
+
+		expect(names(source)).toEqual(['type'])
+	})
+
+	it('keeps `children` of a narrower type than any node', () => {
+		const p = prop(propsOf(`function Foo(props: { children: string }) { return null }`), 'children')
+
+		expect(p.type).toBe('string')
+	})
+
+	it('drops `children` that takes any node, or none', () => {
+		// The in-memory program resolves no `react`, so a local alias stands in.
+		const source = (type: string) => [
+			`type ReactNode = string | number | boolean | null | undefined`,
+			`function Foo(props: { children?: ${type} }) { return null }`,
+		]
+
+		for (const type of ['ReactNode', 'ReactNode | undefined', 'never']) {
+			expect(names(source(type).join('\n'))).toEqual([])
+		}
+	})
+
+	it('prints a union that names `ReactNode` as authored', () => {
+		const p = prop(
+			propsOf(
+				[
+					`import type { ReactNode } from 'react'`,
+					`function Foo(props: { children: ReactNode | ((open: boolean) => ReactNode) }) { return null }`,
+				].join('\n'),
+			),
+			'children',
+		)
+
+		expect(p.type).toBe('ReactNode | ((open: boolean) => ReactNode)')
+	})
+})
+
 describe('extractProps — discriminated unions', () => {
 	// A prop shared by every arm is collected both as the parent union's merged
 	// property and as each arm's slice; the merged superset must not double the

@@ -26,7 +26,7 @@ export function extractProps(
 	const props: PropDef[] = []
 
 	for (const { name, symbol, symbols } of collectAllProperties(propsType)) {
-		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
+		if ((name !== 'children' && IGNORED_PROPS.has(name)) || name.startsWith('_')) continue
 
 		if (projectNames) {
 			if (!projectNames.has(name)) continue
@@ -34,12 +34,38 @@ export function extractProps(
 			continue
 		}
 
+		// A `data-*` attribute is a hook for selectors that a parent or a slot
+		// writes, such as `data-group` and `data-slot`, not an option.
+		if (name.startsWith('data-') || isInternal(symbol)) continue
+
 		const types = resolveArmTypes(symbols, callable, checker)
 
-		props.push(buildPropDef(name, symbol, types, callable, defaults, checker))
+		const prop = buildPropDef(name, symbol, types, callable, defaults, checker)
+
+		// `children` is structural when it takes any node, and absent when it
+		// takes none. A narrower type, such as `children: string`, is API, so the
+		// table keeps it.
+		if (name === 'children' && ['ReactNode', 'undefined', 'never'].includes(prop.type)) continue
+
+		props.push(prop)
 	}
 
 	return props
+}
+
+/** Whether a node carries an `@internal` tag in its doc comment. */
+function hasInternalTag(node: ts.Node): boolean {
+	return ts.getJSDocTags(node).some((tag) => tag.tagName.text === 'internal')
+}
+
+/**
+ * Whether a prop's own doc comment carries `@internal`. The tag on the type
+ * that declares the prop does not count: ui tags a props type `@internal` when
+ * no barrel exports it, as `SingleProps` of Accordion, and its props are still
+ * API.
+ */
+function isInternal(symbol: ts.Symbol): boolean {
+	return (symbol.getDeclarations() ?? []).some(hasInternalTag)
 }
 
 /**
@@ -371,13 +397,16 @@ function literalUnionType(
 }
 
 /**
- * Prefer the author's source text over the formatter's expansion in two cases.
- * The declared type is a mapped type (`{ [K in keyof T]?: … }`), or a reference
- * to a project-source alias / interface (`Responsive<number>`, `GridGap`,
- * `ButtonVariants`). The optional `?` lives on the property name,
- * not the type node, so `getText()` is already clean. Everything else — inline
- * unions, primitives, external and built-in references — returns null and
- * flows through `formatPropType` for alias resolution.
+ * Prefer the author's source text over the formatter's expansion in three
+ * cases. The declared type is a mapped type (`{ [K in keyof T]?: … }`), a
+ * reference to a project-source alias / interface (`Responsive<number>`,
+ * `GridGap`, `ButtonVariants`), or a union that names `ReactNode`. The checker
+ * flattens `ReactNode | ((field) => ReactNode)` into the ten members of
+ * `ReactNode`, so only the source keeps the name. The optional `?` lives on the
+ * property name, not the type node, so `getText()` is already clean.
+ * Everything else — other inline unions, primitives, external and built-in
+ * references — returns null and flows through `formatPropType` for alias
+ * resolution.
  */
 function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | null {
 	const decl = symbol.getDeclarations()?.[0]
@@ -392,7 +421,33 @@ function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | 
 		return node.getText()
 	}
 
+	// `ReactNode | undefined` is `ReactNode` itself, which the formatter prints.
+	if (
+		ts.isUnionTypeNode(node) &&
+		node.types.some(namesReactNode) &&
+		node.types.some((member) => !namesReactNode(member) && !isEmptyType(member))
+	) {
+		return node.getText()
+	}
+
 	return null
+}
+
+/** Whether a type node is `undefined` or `null`, both members of `ReactNode`. */
+function isEmptyType(node: ts.TypeNode): boolean {
+	return (
+		node.kind === ts.SyntaxKind.UndefinedKeyword ||
+		(ts.isLiteralTypeNode(node) && node.literal.kind === ts.SyntaxKind.NullKeyword)
+	)
+}
+
+/** Whether a type node is a reference to `ReactNode`, bare or as `React.ReactNode`. */
+function namesReactNode(node: ts.TypeNode): boolean {
+	if (!ts.isTypeReferenceNode(node)) return false
+
+	const name = ts.isIdentifier(node.typeName) ? node.typeName : node.typeName.right
+
+	return name.text === 'ReactNode'
 }
 
 /**
