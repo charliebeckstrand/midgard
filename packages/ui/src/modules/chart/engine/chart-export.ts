@@ -5,6 +5,7 @@
  * `document` only when called.
  */
 
+import { clamp } from '../../../utilities'
 import { csvField } from '../../../utilities/export-output'
 import type { ChartReadout } from './types'
 
@@ -17,76 +18,391 @@ const RASTER_SCALE = 2
 /** The JPEG quality passed to `toBlob`. @internal */
 const JPEG_QUALITY = 0.95
 
-/** The chart's legend containers, hidden when an image export drops the legend. @internal */
+/** The chart's legend containers, pruned from the clone when an image export drops the legend. @internal */
 const LEGEND_SELECTOR =
 	'[data-slot="chart-legend"],[data-slot="heatmap-legend-box"],[data-slot="map-legend-box"]'
+
+/** The plot regions. The first SVG in each is the drawing that an export without the legend keeps. @internal */
+const PLOT_SELECTOR = '[data-slot="chart-plot"],[data-slot="heatmap-plot"],[data-slot="map-plot"]'
+
+/** The chart header. An export without the legend keeps the extent of its text. @internal */
+const HEADER_SELECTOR = '[data-slot="chart-header"]'
+
+/** The subpixel slack of an edge test, so a sibling that meets a box edge to edge counts as past it. @internal */
+const EDGE_SLACK = 0.5
+
+/** A box in CSS pixels, relative to the border box of the chart root. @internal */
+type CaptureBox = { x: number; y: number; width: number; height: number }
+
+/** A move in CSS pixels. @internal */
+type Shift = { x: number; y: number }
+
+/**
+ * The synchronous half of an image export: the clone that the bitmap draws, and
+ * the box that the bitmap crops to.
+ *
+ * @internal
+ */
+export type ChartCapture = {
+	/** The detached copy of the chart root, with the computed style of each node inline. It keeps the size of the root. */
+	clone: HTMLElement
+	/** The crop, relative to the border box of the root. */
+	box: CaptureBox
+}
+
+/**
+ * What an export without the legend does to the clone: the legend boxes that it
+ * prunes, and the moves that close the bands they leave.
+ *
+ * @internal
+ */
+type CapturePlan = {
+	pruned: ReadonlySet<Element>
+	shifts: ReadonlyMap<Element, Shift>
+}
+
+/** The plan of an export that keeps the legend: it prunes and moves nothing. @internal */
+const KEEP_ALL: CapturePlan = { pruned: new Set(), shifts: new Map() }
+
+/**
+ * Tells whether an element paints nothing and takes no space in the flow. The
+ * clone drops such an element and its subtree, so it copies no style for them.
+ * A hidden box in the flow stays, because it holds space.
+ *
+ * Three patterns match. The first is `display: none`. The second is the
+ * `sr-only` pattern of the data table and the reference list: an out-of-flow
+ * box of 1px or less, which a clip hides. The third is an out-of-flow box with
+ * `visibility: hidden`, such as the ghost row of a capped legend.
+ *
+ * @internal
+ */
+function paintsNothing(style: CSSStyleDeclaration): boolean {
+	if (style.display === 'none') return true
+
+	if (style.position !== 'absolute' && style.position !== 'fixed') return false
+
+	if (style.visibility !== 'visible') return true
+
+	const clipped = style.clipPath !== 'none' || style.getPropertyValue('clip') !== 'auto'
+
+	return clipped && Number.parseFloat(style.width) <= 1 && Number.parseFloat(style.height) <= 1
+}
 
 /**
  * Copies a source element's full computed style inline onto its clone.
  * Rasterizing through a `foreignObject` renders the clone detached from the
  * document's stylesheets. Every class-driven and inherited value — color,
- * layout, and font — therefore has to travel on the element itself.
+ * layout, and font — therefore has to travel on the element itself. The
+ * declarations in `extra` come last, so they override the copied values.
  *
  * @internal
  */
-function copyComputedStyle(source: Element, clone: Element): void {
-	const computed = getComputedStyle(source)
-
+function copyComputedStyle(computed: CSSStyleDeclaration, clone: Element, extra: string): void {
 	clone.setAttribute(
 		'style',
 		Array.from(computed, (property) => `${property}:${computed.getPropertyValue(property)};`).join(
 			'',
-		),
+		) + extra,
 	)
 }
 
 /**
  * Walks a source tree and its clone in lockstep, and freezes each node's
  * computed style onto the clone ({@link copyComputedStyle}). The detached copy
- * then lays out and paints exactly as rendered.
+ * then lays out and paints exactly as rendered. The walk drops each child that
+ * paints nothing ({@link paintsNothing}). It empties each box that the plan
+ * prunes, and moves each box that the plan moves.
  *
  * @internal
  */
-function freezeStyleTree(source: Element, clone: Element): void {
-	copyComputedStyle(source, clone)
+function freezeStyleTree(
+	source: Element,
+	clone: Element,
+	computed: CSSStyleDeclaration,
+	plan: CapturePlan,
+): void {
+	// A pruned box stays as an empty, hidden box of the same size. The rest of
+	// the clone then lays out as the chart does, and the planned moves hold.
+	if (plan.pruned.has(source)) {
+		clone.replaceChildren()
 
-	const sourceChildren = source.children
+		copyComputedStyle(computed, clone, 'visibility:hidden;')
 
-	const cloneChildren = clone.children
+		return
+	}
 
-	const count = Math.min(sourceChildren.length, cloneChildren.length)
+	// The siblings that a pruned box leaves carry no translate of their own, so
+	// the move can take the property.
+	const shift = plan.shifts.get(source)
 
-	for (let index = 0; index < count; index++) {
-		const sourceChild = sourceChildren.item(index)
+	copyComputedStyle(computed, clone, shift ? `translate:${shift.x}px ${shift.y}px;` : '')
 
-		const cloneChild = cloneChildren.item(index)
+	// Pair the children before a removal, so the two lists stay in step.
+	const sourceChildren = Array.from(source.children)
 
-		if (sourceChild && cloneChild) freezeStyleTree(sourceChild, cloneChild)
+	const cloneChildren = Array.from(clone.children)
+
+	for (const [index, sourceChild] of sourceChildren.entries()) {
+		const cloneChild = cloneChildren[index]
+
+		if (!cloneChild) continue
+
+		const style = getComputedStyle(sourceChild)
+
+		if (paintsNothing(style)) cloneChild.remove()
+		else freezeStyleTree(sourceChild, cloneChild, style, plan)
 	}
 }
 
+/** Tells whether each sibling of `element` paints nothing. @internal */
+function paintsAlone(element: Element): boolean {
+	const siblings = element.parentElement?.children ?? []
+
+	for (const sibling of siblings) {
+		if (sibling !== element && !paintsNothing(getComputedStyle(sibling))) return false
+	}
+
+	return true
+}
+
 /**
- * Hides a chart's legend containers in place, returning a restore per node. Used
- * to reflow the live chart without its legend before the styles are frozen. An
- * export that drops the legend then leaves no gap where it sat. Synchronous — the
- * caller restores before yielding, so the page never repaints the hidden state.
+ * Finds the legend boxes to prune. A box is the legend, or its outermost
+ * ancestor that holds nothing else that paints. A capped legend shares its
+ * wrapper only with its ghost row, so the wrapper is the box, and its gap goes
+ * with it.
  *
  * @internal
  */
-function hideLegends(root: Element): (() => void)[] {
-	const restores: (() => void)[] = []
+function legendBoxes(root: HTMLElement): Set<Element> {
+	const boxes = new Set<Element>()
 
-	for (const node of root.querySelectorAll<HTMLElement>(LEGEND_SELECTOR)) {
-		const previous = node.style.display
+	for (const legend of root.querySelectorAll(LEGEND_SELECTOR)) {
+		let box: Element = legend
 
-		node.style.display = 'none'
+		while (box.parentElement && box.parentElement !== root && paintsAlone(box)) {
+			box = box.parentElement
+		}
 
-		restores.push(() => {
-			node.style.display = previous
-		})
+		boxes.add(box)
 	}
 
-	return restores
+	return boxes
+}
+
+/**
+ * Plans the move that closes the band a pruned box leaves. Each sibling past the
+ * box, along the main axis of the parent, moves back to where the box started. A
+ * column closes up. A row closes toward its inline start, which is the left in
+ * LTR and the right in RTL. A side legend on the inline-start side then gives
+ * its rail to the plot, and a top legend gives its band. The plot then sits
+ * under the header, as it does in a chart that has no legend.
+ *
+ * @internal
+ */
+function closeBand(box: Element, shifts: Map<Element, Shift>): void {
+	const parent = box.parentElement
+
+	if (!parent) return
+
+	const layout = getComputedStyle(parent)
+
+	const row = layout.display.endsWith('flex') && layout.flexDirection.startsWith('row')
+
+	const rtl = layout.direction === 'rtl'
+
+	const edge = box.getBoundingClientRect()
+
+	// How far past the start of the box a sibling starts, or `null` when the
+	// sibling does not lie past the box.
+	const distance = (rect: DOMRect): number | null => {
+		if (!row) return rect.top >= edge.bottom - EDGE_SLACK ? rect.top - edge.top : null
+
+		if (rtl) return rect.right <= edge.left + EDGE_SLACK ? edge.right - rect.right : null
+
+		return rect.left >= edge.right - EDGE_SLACK ? rect.left - edge.left : null
+	}
+
+	const past: Element[] = []
+
+	let band = Number.POSITIVE_INFINITY
+
+	for (const sibling of parent.children) {
+		if (sibling === box || paintsNothing(getComputedStyle(sibling))) continue
+
+		const reach = distance(sibling.getBoundingClientRect())
+
+		if (reach === null) continue
+
+		past.push(sibling)
+
+		band = Math.min(band, reach)
+	}
+
+	const move: Shift = row ? { x: rtl ? band : -band, y: 0 } : { x: 0, y: -band }
+
+	for (const sibling of past) {
+		const held = shifts.get(sibling)
+
+		shifts.set(sibling, { x: (held?.x ?? 0) + move.x, y: (held?.y ?? 0) + move.y })
+	}
+}
+
+/** Plans an export without the legend: the legend boxes to prune, and the moves that close their bands. @internal */
+function planWithoutLegend(root: HTMLElement): CapturePlan {
+	const pruned = legendBoxes(root)
+
+	const shifts = new Map<Element, Shift>()
+
+	for (const box of pruned) closeBand(box, shifts)
+
+	return { pruned, shifts }
+}
+
+/** Tells whether `element` is in a pruned box of `plan`, below `root`. @internal */
+function isPruned(element: Element, root: Element, plan: CapturePlan): boolean {
+	for (let node: Element | null = element; node && node !== root; node = node.parentElement) {
+		if (plan.pruned.has(node)) return true
+	}
+
+	return false
+}
+
+/** Adds the moves of `element` and of its ancestors below `root`. @internal */
+function shiftOf(element: Element, root: Element, plan: CapturePlan): Shift {
+	let x = 0
+
+	let y = 0
+
+	for (let node: Element | null = element; node && node !== root; node = node.parentElement) {
+		const shift = plan.shifts.get(node)
+
+		x += shift?.x ?? 0
+
+		y += shift?.y ?? 0
+	}
+
+	return { x, y }
+}
+
+/**
+ * Measures the drawn content of a chart without its legend. That is the union of
+ * each drawing SVG and the text of the header, at the places the planned moves
+ * give them in the clone. A `Range` measures the text, because the header box
+ * spans the chart and its text does not. The box is relative to the root,
+ * rounded out to whole pixels, and held inside `full`.
+ *
+ * @returns The box, or `null` when the chart has no drawing to measure.
+ * @internal
+ */
+function drawnBox(root: HTMLElement, plan: CapturePlan, full: CaptureBox): CaptureBox | null {
+	const origin = root.getBoundingClientRect()
+
+	let left = Number.POSITIVE_INFINITY
+
+	let top = Number.POSITIVE_INFINITY
+
+	let right = Number.NEGATIVE_INFINITY
+
+	let bottom = Number.NEGATIVE_INFINITY
+
+	const add = (
+		edges: { left: number; top: number; right: number; bottom: number },
+		shift: Shift,
+	) => {
+		if (edges.right <= edges.left || edges.bottom <= edges.top) return
+
+		left = Math.min(left, edges.left + shift.x)
+
+		top = Math.min(top, edges.top + shift.y)
+
+		right = Math.max(right, edges.right + shift.x)
+
+		bottom = Math.max(bottom, edges.bottom + shift.y)
+	}
+
+	for (const plot of root.querySelectorAll(PLOT_SELECTOR)) {
+		const svg = plot.querySelector('svg')
+
+		if (svg && !isPruned(svg, root, plan)) {
+			add(svg.getBoundingClientRect(), shiftOf(svg, root, plan))
+		}
+	}
+
+	if (right === Number.NEGATIVE_INFINITY) return null
+
+	const range = root.ownerDocument.createRange()
+
+	for (const header of root.querySelectorAll(HEADER_SELECTOR)) {
+		if (isPruned(header, root, plan)) continue
+
+		// The text of a clipped line runs past its box, so each extent stops at the header.
+		const frame = header.getBoundingClientRect()
+
+		const shift = shiftOf(header, root, plan)
+
+		const walker = root.ownerDocument.createTreeWalker(header, NodeFilter.SHOW_TEXT)
+
+		for (let text = walker.nextNode(); text; text = walker.nextNode()) {
+			range.selectNodeContents(text)
+
+			const extent = range.getBoundingClientRect()
+
+			add(
+				{
+					left: Math.max(extent.left, frame.left),
+					top: Math.max(extent.top, frame.top),
+					right: Math.min(extent.right, frame.right),
+					bottom: Math.min(extent.bottom, frame.bottom),
+				},
+				shift,
+			)
+		}
+	}
+
+	const x = clamp(Math.floor(left - origin.left), 0, full.width)
+
+	const y = clamp(Math.floor(top - origin.top), 0, full.height)
+
+	const width = clamp(Math.ceil(right - origin.left), 0, full.width) - x
+
+	const height = clamp(Math.ceil(bottom - origin.top), 0, full.height) - y
+
+	return width > 0 && height > 0 ? { x, y, width, height } : null
+}
+
+/**
+ * Prepares the capture of a chart for an image export. It is the synchronous
+ * half of {@link rasterizeChartImage}. It reads the live chart and writes nothing
+ * to it. It clones the root and freezes the computed style of each node onto the
+ * clone. It drops each node that paints nothing, such as the hidden data table.
+ *
+ * Without the legend, it prunes each legend box from the clone and closes the
+ * band that the box leaves. It then crops to the drawing and the header text.
+ *
+ * @param root - The chart root element to capture.
+ * @param includeLegend - Whether the capture keeps the legend.
+ * @returns The clone and the box that the bitmap crops to.
+ * @internal
+ */
+export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): ChartCapture {
+	const rect = root.getBoundingClientRect()
+
+	const full: CaptureBox = {
+		x: 0,
+		y: 0,
+		width: Math.max(1, Math.round(rect.width)),
+		height: Math.max(1, Math.round(rect.height)),
+	}
+
+	const plan = includeLegend ? KEEP_ALL : planWithoutLegend(root)
+
+	const box = includeLegend ? full : (drawnBox(root, plan, full) ?? full)
+
+	const clone = root.cloneNode(true) as HTMLElement
+
+	freezeStyleTree(root, clone, getComputedStyle(root), plan)
+
+	return { clone, box }
 }
 
 /** Loads a data-URL into an `Image`, resolving once decoded. @internal */
@@ -138,8 +454,9 @@ async function encode(
  * Rasterizes a whole chart — plot, header, and (by default) legend — to a
  * {@link Blob}. Clones the root, freezes its computed styles onto the clone, and
  * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
- * then export as one image. `includeLegend: false` hides the legend first, so the
- * chart reflows without it and no gap remains. JPEG gets an opaque white ground;
+ * then export as one image. `includeLegend: false` prunes the legend from the
+ * clone and crops the image to the plot and the header text, so no blank band
+ * remains. The live chart does not change. JPEG gets an opaque white ground;
  * PNG stays transparent.
  *
  * @param root - The chart root element to capture.
@@ -150,36 +467,27 @@ export async function rasterizeChartImage(
 	root: HTMLElement,
 	{ type, includeLegend }: { type: ChartImageType; includeLegend: boolean },
 ): Promise<Blob | null> {
-	// Synchronous capture: hide the legend, measure and clone the reflowed chart,
-	// freeze its styles, then restore — all before the first await, so the page
-	// never paints the hidden state.
-	const restores = includeLegend ? [] : hideLegends(root)
+	// Synchronous capture: measure and clone before the first await, so the
+	// image shows the chart as it is now.
+	const { clone, box } = prepareChartCapture(root, includeLegend)
 
-	const rect = root.getBoundingClientRect()
-
-	const width = Math.max(1, Math.round(rect.width))
-
-	const height = Math.max(1, Math.round(rect.height))
-
-	const clone = root.cloneNode(true) as HTMLElement
-
-	freezeStyleTree(root, clone)
-
-	for (const restore of restores) restore()
+	// The clone keeps the size of the root. It moves by the crop origin, so the
+	// crop fills the image.
+	clone.style.translate = `${-box.x}px ${-box.y}px`
 
 	clone.setAttribute('xmlns', 'http://www.w3.org/1999/xhtml')
 
 	const serialized = new XMLSerializer().serializeToString(clone)
 
 	const svg =
-		`<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">` +
-		`<foreignObject x="0" y="0" width="${width}" height="${height}">${serialized}</foreignObject></svg>`
+		`<svg xmlns="http://www.w3.org/2000/svg" width="${box.width}" height="${box.height}">` +
+		`<foreignObject x="0" y="0" width="${box.width}" height="${box.height}">${serialized}</foreignObject></svg>`
 
 	const dataUrl = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
 	const image = await loadImage(dataUrl)
 
-	return encode(image, width, height, type)
+	return encode(image, box.width, box.height, type)
 }
 
 /**
