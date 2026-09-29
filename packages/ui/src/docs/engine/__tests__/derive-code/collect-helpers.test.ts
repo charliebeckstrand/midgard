@@ -173,6 +173,44 @@ describe('collectHelpers preamble inclusion', () => {
 		expect(helper?.imports).toEqual({ defaultPasswordRules: { module: 'password-strength' } })
 	})
 
+	// The name of a declaration in a string, JSX text, or a comment is no use.
+	it('pulls no declaration that only a string, JSX text, or a comment names', () => {
+		const source = [
+			`const people = ['Ada']`,
+			``,
+			`type Command = { id: string }`,
+			``,
+			`// Built like Search, with no Command list.`,
+			`function Search() {`,
+			`\treturn <Input placeholder="Search people">Command palette</Input>`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source)
+
+		expect(helper?.code).toBe(
+			[
+				`function Search() {`,
+				`\treturn <Input placeholder="Search people">Command palette</Input>`,
+				`}`,
+			].join('\n'),
+		)
+	})
+
+	it('carries no import that only a string or JSX text names', () => {
+		const source = [
+			`function Items() {`,
+			`\treturn <NavItem value="home">Home</NavItem>`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source, undefined, {
+			Home: { module: 'lucide-react', external: true },
+		})
+
+		expect(helper?.imports).toEqual({})
+	})
+
 	it('leaves helpers untouched when no preamble is referenced', () => {
 		const source = [
 			`type Unused = { x: string }`,

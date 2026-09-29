@@ -27,3 +27,56 @@ export function namedImportsOf(
 
 	return { specifier: stmt.moduleSpecifier.text, elements: clause.namedBindings.elements }
 }
+
+/**
+ * Whether an identifier is a name that its parent declares or keys, not a use
+ * of a binding: a declared name, a property or member name, a JSX attribute
+ * name, the key of a destructured property, or an intrinsic JSX tag.
+ */
+function isNamePosition(id: ts.Identifier): boolean {
+	const parent = id.parent
+
+	if (ts.isPropertyAccessExpression(parent)) return parent.name === id
+
+	if (ts.isQualifiedName(parent)) return parent.right === id
+
+	if (ts.isBindingElement(parent)) return parent.propertyName === id || parent.name === id
+
+	if (
+		ts.isJsxOpeningElement(parent) ||
+		ts.isJsxSelfClosingElement(parent) ||
+		ts.isJsxClosingElement(parent)
+	) {
+		return parent.tagName === id && /^[a-z]/.test(id.text)
+	}
+
+	if (ts.isShorthandPropertyAssignment(parent)) return false
+
+	const declaration = parent as ts.NamedDeclaration
+
+	return declaration.name === id
+}
+
+/**
+ * The names that a node uses: each identifier in a value or a type position.
+ * A declared name, a property name, a JSX attribute name, a string, JSX text,
+ * and a comment are no use. This is a syntactic pass, so a name that a nested
+ * scope declares again still counts as a use of the outer name.
+ */
+export function referencedNames(node: ts.Node): Set<string> {
+	const names = new Set<string>()
+
+	const visit = (current: ts.Node): void => {
+		if (ts.isIdentifier(current)) {
+			if (!isNamePosition(current)) names.add(current.text)
+
+			return
+		}
+
+		ts.forEachChild(current, visit)
+	}
+
+	visit(node)
+
+	return names
+}
