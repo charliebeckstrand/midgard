@@ -1,6 +1,6 @@
 'use client'
 
-import type { ReactNode, RefObject } from 'react'
+import type { ReactNode, Ref, RefObject } from 'react'
 import { cn } from '../../core'
 import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
@@ -23,7 +23,7 @@ type MapFrameProps = {
 	/** The plot region element; the hover provider re-resolves settled scroll pointers within it. */
 	plotRef: RefObject<HTMLDivElement | null>
 	/** The frame's outer box; its measured width drives the range bar's tier-aware placement. */
-	containerRef: RefObject<HTMLDivElement | null>
+	containerRef: Ref<HTMLDivElement>
 	/** What the view transform needs; the provider mounts around the plot alone. */
 	zoom: MapZoomOptions
 	/** Whether the tooltip is on; gates the hover provider's scroll listener. */

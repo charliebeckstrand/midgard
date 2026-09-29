@@ -734,6 +734,21 @@ describe('MapPlat', () => {
 	})
 })
 
+describe('MapPlat root ref', () => {
+	it('hands its root frame to a ref', () => {
+		// A host that captures the whole map reads the frame, as the choropleth's
+		// image export does. Before, the root ref was private, and a host wrapped
+		// the map in an element sized like the frame.
+		const ref = { current: null as HTMLDivElement | null }
+
+		const { container } = renderUI(
+			<MapPlat aria-label="Backdrop" geography={FIXTURE_GEOJSON} width={400} ref={ref} />,
+		)
+
+		expect(ref.current).toBe(container.querySelector('[data-slot="map"]'))
+	})
+})
+
 describe('MapPlat choropleth mode', () => {
 	const NUMERIC = [
 		{ state: 'A', value: 0 },

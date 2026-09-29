@@ -1,6 +1,7 @@
 'use client'
 
-import { type ReactNode, useCallback, useDeferredValue, useMemo, useRef } from 'react'
+import { type ReactNode, type Ref, useCallback, useDeferredValue, useMemo, useRef } from 'react'
+import { useComposedRef } from '../../hooks/use-composed-ref'
 import { useMeasuredWidth } from '../../hooks/use-measured-width'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
@@ -263,6 +264,11 @@ export type MapPlatProps<T = never> = AccessibleName &
 		 */
 		animate?: boolean
 		className?: string
+		/**
+		 * The map's root element: the frame that holds the legend, the plot, and
+		 * the data table. A host that captures or measures the whole map reads it.
+		 */
+		ref?: Ref<HTMLDivElement>
 		/**
 		 * Fires when a click lands on a region, with the region's identity and its
 		 * feature index. The whole shape is the target, the same hit the tooltip
@@ -673,6 +679,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 		onHiddenChange,
 		className,
 		children,
+		ref,
 		// Destructured off so the region-data fields nothing else here reads never
 		// fall into `...name` and spread onto the plot element as invalid DOM
 		// attributes. The readout takes them off `props` below, so a value bound
@@ -1134,6 +1141,8 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 	// measure is one hook.
 	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
 
+	const rootRef = useComposedRef(containerRef, ref)
+
 	// The range bar's default format writes numbers in the ambient locale, as the readout does.
 	const { locale } = useLocale()
 
@@ -1310,7 +1319,7 @@ export function MapPlat<T = never>(props: MapPlatProps<T>) {
 				subject: shape.features,
 				onViewChange,
 			}}
-			containerRef={containerRef}
+			containerRef={rootRef}
 			tooltip={readable}
 			regionActive={regionActive}
 			emphasis={emphasis}
