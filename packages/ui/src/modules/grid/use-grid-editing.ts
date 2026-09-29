@@ -1020,6 +1020,11 @@ function readSettled(settled: SettledCell, rows: Set<string | number>): GridActi
 	return wait && rows.has(wait.cell.rowKey) ? wait.cell : settled.cell
 }
 
+/** Whether a settled value holds `cell`, as its value and its cell, with no wait. @internal */
+function settledAt(settled: SettledCell, cell: GridActiveEdit | null): boolean {
+	return !settled.wait && sameCell(settled.raw, cell) && sameCell(settled.cell, cell)
+}
+
 /**
  * An uncontrolled entry into a row that is not open yet, made while the
  * session holds a cell. A controlled `rows` can decline the rows write that
@@ -1270,16 +1275,16 @@ function useActiveCell<T>({
 	controlled,
 	initialCell,
 	editableRows,
-	editSourceRef,
-	entryRef,
+	editSource,
+	entry,
 }: {
 	config: GridEditableConfig | undefined
 	cellScoped: boolean
 	controlled: boolean
 	initialCell: GridActiveEdit | null
 	editableRows: Set<string | number>
-	editSourceRef: RefObject<GridEditSource<T>>
-	entryRef: RefObject<CrossRowEntry | null>
+	editSource: GridEditSource<T>
+	entry: CrossRowEntry | null
 }) {
 	// The session's cell as the binding holds it, before the grid resolves it
 	// against the set. Uncontrolled, the grid writes it at event time. Controlled,
@@ -1294,11 +1299,11 @@ function useActiveCell<T>({
 
 	// The last value of a controlled binding that the transition effect acted on.
 	// A value past it is in flight: the effect has yet to write the rows it needs.
-	const settledRef = useRef<SettledCell>({ raw: initialCell, cell: initialCell })
+	// State, because the render reads it: the effect sets it, and the render that
+	// follows reads the new value before paint.
+	const [settled, setSettled] = useState<SettledCell>({ raw: initialCell, cell: initialCell })
 
-	const candidate = controlled
-		? readControlledCell(raw, settledRef.current, editableRows, editSourceRef.current)
-		: raw
+	const candidate = controlled ? readControlledCell(raw, settled, editableRows, editSource) : raw
 
 	// An uncontrolled coord that stranded once stays dropped. Masking alone would
 	// survive as state, so the same row re-entering the set later would revive a
@@ -1320,8 +1325,6 @@ function useActiveCell<T>({
 	// A cross-row entry that the rows binding declined reads as the cell it left,
 	// while that cell's row is still open. The transition effect then writes the
 	// state back to it, so no mask is necessary.
-	const entry = entryRef.current
-
 	const declined =
 		stranded &&
 		!controlled &&
@@ -1336,7 +1339,7 @@ function useActiveCell<T>({
 
 	const activeEdit = declined ? entry.from : stranded || masked ? null : candidate
 
-	return { raw, setValue, settledRef, activeEdit }
+	return { raw, setValue, settled, setSettled, activeEdit }
 }
 
 /**
@@ -1462,13 +1465,15 @@ export function useGridEditing<T>({
 	const editableRows = enabled ? (editableRowsRaw ?? EMPTY_SET) : EMPTY_SET
 
 	// The last uncontrolled cross-row entry, until the transition effect sees
-	// whether the rows binding applied it.
-	const entryRef = useRef<CrossRowEntry | null>(null)
+	// whether the rows binding applied it. State, because the render reads it:
+	// the entry sets it with the cell and the rows, in one render.
+	const [entry, setEntry] = useState<CrossRowEntry | null>(null)
 
 	const {
 		raw,
 		setValue: setActiveCellValue,
-		settledRef,
+		settled,
+		setSettled,
 		activeEdit,
 	} = useActiveCell({
 		config,
@@ -1476,8 +1481,8 @@ export function useGridEditing<T>({
 		controlled,
 		initialCell: initial.cell,
 		editableRows,
-		editSourceRef,
-		entryRef,
+		editSource,
+		entry,
 	})
 
 	// The cell a cell-scoped session edits; null under row scope. The hook's own
@@ -1833,7 +1838,7 @@ export function useGridEditing<T>({
 
 			// A controlled `rows` can decline the row that this entry opens. Record
 			// where the session was, so that a decline puts it back there.
-			entryRef.current = crossRowEntry(entering, active, editableRows, sessionRowRef.current)
+			setEntry(crossRowEntry(entering, active, editableRows, sessionRowRef.current))
 
 			sessionRowRef.current = move.row
 
@@ -1963,7 +1968,7 @@ export function useGridEditing<T>({
 
 			if (raw !== null && plan.next === null) warnUneditable()
 
-			settledRef.current = settleOn(plan, raw, readSettled(from, rows))
+			setSettled(settleOn(plan, raw, readSettled(from, rows)))
 
 			settleFocus(plan, request?.blur === true)
 
@@ -1984,24 +1989,46 @@ export function useGridEditing<T>({
 
 			awaitRowRef.current = plan.opens
 		},
-		[settledRef, editSourceRef, warnUneditable, settleFocus, unstageDraft, setEditableRows, bump],
+		[setSettled, editSourceRef, warnUneditable, settleFocus, unstageDraft, setEditableRows, bump],
 	)
 
 	// Lands a settled value that waits for its row, once that row is open. The
 	// session then holds the new cell and the session row that it planned.
-	const landWait = useCallback((): SettledCell => {
-		const settled = settledRef.current
+	const landWait = useCallback(
+		(current: SettledCell): SettledCell => {
+			const wait = current.wait
 
-		const wait = settled.wait
+			if (!wait || !editableRowsRef.current.has(wait.cell.rowKey)) return current
 
-		if (!wait || !editableRowsRef.current.has(wait.cell.rowKey)) return settled
+			sessionRowRef.current = wait.sessionRow
 
-		sessionRowRef.current = wait.sessionRow
+			const landed = { raw: current.raw, cell: wait.cell }
 
-		settledRef.current = { raw: settled.raw, cell: wait.cell }
+			setSettled(landed)
 
-		return settledRef.current
-	}, [settledRef])
+			return landed
+		},
+		[setSettled],
+	)
+
+	// Settles an uncontrolled binding: the entry the last event recorded, and the
+	// settled value that a switch to a controlled binding starts from.
+	const settleUncontrolled = useCallback(
+		(raw: GridActiveEdit | null) => {
+			if (entry === null) return
+
+			setEntry(null)
+
+			// The render read a declined entry as the cell it left. Write the
+			// state back to that cell, and report it, as the entry was reported.
+			if (sameCell(raw, entry.to) && sameCell(activeEditRef.current, entry.from)) {
+				sessionRowRef.current = entry.sessionRow
+
+				setActiveCellValue(entry.from)
+			}
+		},
+		[entry, setActiveCellValue],
+	)
 
 	const settleBinding = useCallback(
 		(raw: GridActiveEdit | null) => {
@@ -2010,30 +2037,24 @@ export function useGridEditing<T>({
 			requestRef.current = null
 
 			if (!controlled) {
-				const entry = entryRef.current
+				settleUncontrolled(raw)
 
-				entryRef.current = null
+				const active = activeEditRef.current
 
-				// The render read a declined entry as the cell it left. Write the
-				// state back to that cell, and report it, as the entry was reported.
-				if (entry && sameCell(raw, entry.to) && sameCell(activeEditRef.current, entry.from)) {
-					sessionRowRef.current = entry.sessionRow
-
-					setActiveCellValue(entry.from)
-				}
-
-				settledRef.current = { raw: activeEditRef.current, cell: activeEditRef.current }
+				// Kept for a switch to a controlled binding. Set only on a change, as the
+				// effect runs on each commit.
+				if (!settledAt(settled, active)) setSettled({ raw: active, cell: active })
 
 				return
 			}
 
-			const from = landWait()
+			const from = landWait(settled)
 
 			// An equal value moves nothing. A request that did not land was declined.
 			if (!sameCell(raw, from.raw)) applyTransition(raw, from, request)
 			else if (request) dropIntents()
 		},
-		[controlled, settledRef, applyTransition, dropIntents, landWait, setActiveCellValue],
+		[controlled, settled, setSettled, settleUncontrolled, applyTransition, dropIntents, landWait],
 	)
 
 	// Settle the binding after each commit. It acts on a moved value, on a request,
