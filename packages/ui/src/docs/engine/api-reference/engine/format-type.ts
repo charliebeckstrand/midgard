@@ -1,4 +1,5 @@
 import { ts } from 'ts-morph'
+import { orderMembers } from './literal-order'
 import { isFunctionType } from './ts-utils'
 
 const TYPE_FORMAT_FLAGS =
@@ -39,8 +40,16 @@ let depth = 0
  * Works on raw compiler types (not ts-morph wrappers); recursion formats
  * types returned by `getDefaultFromTypeParameter` / `getBaseConstraintOfType`,
  * which ts-morph doesn't surface as wrapped Types.
+ *
+ * `order` is the source order of the members of `type`, when `type` is a union
+ * (see `sourceOrder`). A nested union keeps the checker's order.
  */
-export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
+export function formatType(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	location?: ts.Node,
+	order: readonly string[] | null = null,
+): string {
 	if (depth >= MAX_DEPTH) return '…'
 
 	depth++
@@ -58,6 +67,10 @@ export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts
 
 		if (fn) return fn
 
+		const reordered = type.isUnion() ? reorder(type.types, order) : null
+
+		if (reordered) return formatUnionMembers(reordered, checker, location)
+
 		return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
 	} finally {
 		depth--
@@ -65,12 +78,32 @@ export function formatType(type: ts.Type, checker: ts.TypeChecker, location?: ts
 }
 
 /**
+ * The members of a union in the source `order`, or null when the order moves
+ * none of them. A union that keeps its checker order prints as before, through
+ * `typeToString`.
+ */
+function reorder(
+	members: readonly ts.Type[],
+	order: readonly string[] | null,
+): readonly ts.Type[] | null {
+	const ordered = orderMembers(members, order)
+
+	return ordered.some((member, i) => member !== members[i]) ? ordered : null
+}
+
+/**
  * Same as `formatType`, but strips `| undefined` from optional unions. The two
  * are not interchangeable: this one hands a leaf function type to
  * `typeToString`, where `formatType` routes it through `formatFunctionType`.
- * Merging them changes how function-typed props render.
+ * Merging them changes how function-typed props render. `order` is as for
+ * `formatType`.
  */
-export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?: ts.Node): string {
+export function formatPropType(
+	type: ts.Type,
+	checker: ts.TypeChecker,
+	location?: ts.Node,
+	order: readonly string[] | null = null,
+): string {
 	const named = namedTypeShortName(type, checker, location)
 
 	if (named) return named
@@ -91,8 +124,12 @@ export function formatPropType(type: ts.Type, checker: ts.TypeChecker, location?
 		if (filtered.length !== type.types.length) {
 			if (filtered.length === 1 && filtered[0]) return formatType(filtered[0], checker, location)
 
-			return formatUnionMembers(filtered, checker, location)
+			return formatUnionMembers(orderMembers(filtered, order), checker, location)
 		}
+
+		const reordered = reorder(type.types, order)
+
+		if (reordered) return formatUnionMembers(reordered, checker, location)
 	}
 
 	return toSingleQuotes(checker.typeToString(type, location, TYPE_FORMAT_FLAGS))
