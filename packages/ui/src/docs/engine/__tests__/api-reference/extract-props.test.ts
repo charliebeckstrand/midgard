@@ -292,6 +292,23 @@ describe('extractProps — type display', () => {
 
 		expect(p.references).toBeUndefined()
 	})
+
+	// The checker adds `undefined` to an optional prop, and that union names no
+	// alias, as React's `ElementType` showed.
+	it('renders an optional prop that a node_modules union types by the name of the union', () => {
+		const p = prop(
+			propsOf({
+				'node_modules/dep.ts': `export type Tag = 'a' | 'b' | (() => null)`,
+				'index.ts': [
+					`import type { Tag } from './node_modules/dep'`,
+					`function Foo(props: { as?: Tag }) { return null }`,
+				].join('\n'),
+			}),
+			'as',
+		)
+
+		expect(p.type).toBe('Tag')
+	})
 })
 
 describe('extractProps — order', () => {
