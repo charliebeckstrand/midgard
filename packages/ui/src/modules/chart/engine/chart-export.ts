@@ -512,12 +512,32 @@ export function readoutToCsv(readout: ChartReadout): string {
 		.join('\r\n')
 }
 
-/** Slugifies a chart title into a filename stem, falling back to `'chart'`. @internal */
+/**
+ * The combining diacritics that NFKD splits from an accented Latin, Greek, or
+ * Cyrillic letter. The slug removes them and keeps the base letter. The marks of
+ * other scripts, such as a Devanagari vowel sign, are part of the word and stay.
+ *
+ * @internal
+ */
+const DIACRITICS = /[\u0300-\u036f]/g
+
+/**
+ * Slugifies a chart title into a filename stem, falling back to `'chart'`. The
+ * slug folds a Latin accent to its base letter, and keeps the letters, marks,
+ * and digits of each script. `Umsätze München` gives `umsatze-munchen`, and
+ * `売上` stays `売上`. NFC then composes each character that NFKD split, such as
+ * a Hangul syllable.
+ *
+ * @internal
+ */
 function fileStem(title: string | undefined): string {
 	const slug = (title ?? '')
 		.trim()
 		.toLowerCase()
-		.replace(/[^a-z0-9]+/g, '-')
+		.normalize('NFKD')
+		.replace(DIACRITICS, '')
+		.normalize('NFC')
+		.replace(/[^\p{L}\p{M}\p{N}]+/gu, '-')
 		.replace(/^-+|-+$/g, '')
 
 	return slug || 'chart'
