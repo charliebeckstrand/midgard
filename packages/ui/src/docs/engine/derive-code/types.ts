@@ -97,9 +97,10 @@ export type HelperSnippet = {
  * Where an identifier referenced by emitted source imports from. `module` is a
  * library module name (`fieldset`) unless `external` marks it a bare package
  * specifier (`lucide-react`, `react`). `type` marks a type-only import, which
- * the import line writes as `type Name`.
+ * the import line writes as `type Name`. `default` marks the default export of
+ * the module, which the import line writes as `import Name from`.
  */
-export type ImportFact = { module: string; external?: boolean; type?: boolean }
+export type ImportFact = { module: string; external?: boolean; type?: boolean; default?: true }
 
 /**
  * Per-`Example` source knowledge extracted by the docs plugin's pre-transform

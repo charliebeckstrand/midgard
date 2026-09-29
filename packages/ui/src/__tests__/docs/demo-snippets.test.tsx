@@ -56,11 +56,6 @@ function pageOf(path: string): string {
  * diagnostic of each. Fix a block, and remove its entry.
  */
 const KNOWN_FAILURES: Record<string, string> = {
-	// A default import, which the import table of a demo does not keep:
-	// `import countiesUrl from 'us-atlas/counties-10m.json?url'`.
-	"modules/map › Drill into a state's counties":
-		"TS2552: Cannot find name 'countiesUrl'. Did you mean 'countiesQuery'?",
-
 	// A `useState` value that the block declares and never reads, because the
 	// block prints the value's use from the live render: a text child as its live
 	// text, or a condition that renders nothing yet.

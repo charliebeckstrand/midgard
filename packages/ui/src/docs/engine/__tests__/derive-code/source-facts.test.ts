@@ -478,6 +478,31 @@ describe('extractSourceFacts imports', () => {
 		expect(imports.PasswordRule).toEqual({ module: 'password-strength', type: true })
 	})
 
+	it('marks a default binding, beside the named ones, and skips a namespace import', () => {
+		const file = parseSource(
+			OPTIONS.filePath,
+			[
+				`import countiesUrl from 'us-atlas/counties-10m.json?url'`,
+				`import React, { useState } from 'react'`,
+				`import * as Icons from 'lucide-react'`,
+			].join('\n'),
+		)
+
+		const imports = importFacts(file, OPTIONS)
+
+		expect(imports.countiesUrl).toEqual({
+			module: 'us-atlas/counties-10m.json?url',
+			external: true,
+			default: true,
+		})
+
+		expect(imports.React).toEqual({ module: 'react', external: true, default: true })
+
+		expect(imports.useState).toEqual({ module: 'react', external: true })
+
+		expect(imports.Icons).toBeUndefined()
+	})
+
 	it('maps the exported core, hooks, and primitive entry points, and no path below them', () => {
 		const file = parseSource(
 			OPTIONS.filePath,

@@ -95,7 +95,7 @@ describe('assemble', () => {
 
 		addImport(context, 'password-strength', 'PasswordStrength')
 
-		addImport(context, 'password-strength', 'PasswordRule', false, true)
+		addImport(context, 'password-strength', 'PasswordRule', false, 'type')
 
 		addImport(context, 'password-strength', 'defaultPasswordRules')
 
@@ -107,11 +107,40 @@ describe('assemble', () => {
 	it('drops a type-only entry when the same name also imports as a value', () => {
 		const context = makeContext()
 
-		addImport(context, 'button', 'Button', false, true)
+		addImport(context, 'button', 'Button', false, 'type')
 
 		addImport(context, 'button', 'Button')
 
 		expect(assemble(context, '')).toBe(`import { Button } from 'ui/button'`)
+	})
+
+	it('writes a default import before the braces of the named ones', () => {
+		const context = makeContext()
+
+		addImport(context, 'us-atlas/counties-10m.json?url', 'countiesUrl', true, 'default')
+
+		addImport(context, 'react', 'React', false, 'default')
+
+		addImport(context, 'react', 'useState')
+
+		expect(assemble(context, '')).toBe(
+			[
+				`import React, { useState } from 'react'`,
+				`import countiesUrl from 'us-atlas/counties-10m.json?url'`,
+			].join('\n'),
+		)
+	})
+
+	it('gives a second default of one module its own line', () => {
+		const context = makeContext()
+
+		addImport(context, 'atlas', 'states', true, 'default')
+
+		addImport(context, 'atlas', 'counties', true, 'default')
+
+		expect(assemble(context, '')).toBe(
+			[`import states from 'atlas'`, `import counties from 'atlas'`].join('\n'),
+		)
 	})
 
 	it("prefixes non-react modules with 'ui/'", () => {
