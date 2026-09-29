@@ -460,8 +460,8 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
 }
 
 /**
- * The half-width of the leader circle of radius `circle` at `dy` below its
- * center: how far a callout on that circle sits to the side of the center. It
+ * The half-width of the leader circle of radius `circle`, at `dy` below its
+ * center. A callout on that circle sits this far to the side of the center. It
  * is `0` past the top or the foot of the circle.
  *
  * @internal
@@ -472,9 +472,10 @@ function circleHalfWidth(circle: number, dy: number): number {
 
 /**
  * The leader of a callout that the declump moved to the height `y`. It runs out
- * from the slice edge to the elbow, then along the leader circle in steps of at
- * most {@link LEADER_STEP} to the knee at the height of the label. The leader
- * therefore never crosses the pie body. Returns the points and the knee.
+ * from the slice edge to the elbow. From there it follows the leader circle to
+ * the knee at the height of the label, in steps of at most {@link LEADER_STEP}.
+ * The leader therefore never crosses the pie body. Returns the points and the
+ * knee.
  *
  * @internal
  */
@@ -620,9 +621,9 @@ function calloutPull(mid: number): number {
 }
 
 /**
- * One callout as the fit reads it: its natural height on the leader circle, as
- * a fraction of the circle's radius (`-1` at the top, `1` at the foot), and the
- * width of its text.
+ * One callout as the fit reads it: its natural height on the leader circle, and
+ * the width of its text. The height is a fraction of the circle's radius, `-1`
+ * at the top and `1` at the foot.
  *
  * @internal
  */
@@ -652,8 +653,8 @@ function fitSide(
 
 /**
  * The widest the leader circle gets over the heights `from` to `to`, both
- * relative to its center: its radius where the span crosses the center line,
- * else its half-width at the end nearer that line.
+ * relative to its center. It is the radius where the span crosses the center
+ * line. Else it is the half-width at the end nearer that line.
  *
  * @internal
  */
@@ -668,7 +669,7 @@ function spanHalfWidth(circle: number, from: number, to: number): number {
  * label, or the disc itself. It mirrors the declump of {@link pieCallouts},
  * where a moved label stays on the leader circle. The declump pushes each label
  * at least a line below the label above it. A run past the foot of the circle
- * can then slide up by that overflow, and a full side drops the labels of its
+ * can then slide up by that overflow. A full side also drops the labels of its
  * smallest slices. So each label sits between its own height less the overflow
  * and its pushed height. Its reach is the widest the circle gets over that span.
  * The bound is exact for a label that does not move. `pushed` is the scratch
