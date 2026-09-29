@@ -135,6 +135,7 @@ export function useGridCursor<T>({
 	scrollContainerRef,
 	tableRef,
 	refs,
+	editSource,
 }: {
 	navigable: boolean
 	editable: GridEditableConfig | undefined
@@ -156,6 +157,11 @@ export function useGridCursor<T>({
 	/** The grid `<table>`, the cursor's tab stop. The editing layer reseats focus on it. */
 	tableRef: RefObject<HTMLTableElement | null>
 	refs: GridCursorRefs<T>
+	/**
+	 * The grid's own inputs in this render, the value that `editSourceRef` holds.
+	 * The editing layer reads it during render, and the ref at event time.
+	 */
+	editSource: GridEditSource<T>
 }): {
 	/** Whether the grid carries a keyboard cursor (`navigable` or editable). */
 	cursorEnabled: boolean
@@ -286,6 +292,7 @@ export function useGridCursor<T>({
 	const editing = useGridEditing<T>({
 		enabled: editingEnabled,
 		config: editable,
+		editSource,
 		editSourceRef,
 		rowKeysRef,
 		dataColumnsRef,
