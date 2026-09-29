@@ -3,6 +3,7 @@
 import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
+import type { ContentHeightHost } from '../../primitives/content-height'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardDragHandle } from './dashboard-drag-handle'
@@ -51,8 +52,14 @@ export type DashboardTileCardProps = {
 	onDuplicate?: () => void
 	/** Whether the expand control shows at rest. */
 	expandable: boolean
+	/** The `width / height` ratio of the tile on the board, which the expand dialog keeps. */
+	shape: number
 	/** The tile shell, which finds the tile that takes the focus after a remove. */
 	shell: RefObject<HTMLElement | null>
+	/** The box that the widget can claim the height of its content from. */
+	host: ContentHeightHost
+	/** Whether the content box takes the height of its content. */
+	natural: boolean
 	/** The widget. */
 	children?: ReactNode
 }
@@ -86,7 +93,10 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	onRemove,
 	onDuplicate,
 	expandable,
+	shape,
 	shell,
+	host,
+	natural,
 	children,
 }: DashboardTileCardProps) {
 	const handle = movable && (
@@ -115,6 +125,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				description={description}
 				fallback={fallback}
 				onError={onError}
+				shape={shape}
 				shell={shell}
 			>
 				{children}
@@ -130,11 +141,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 			{...(movable ? surface : {})}
 			// The pointer drags the card itself, so the card closes the grab hand too.
 			data-dragging={dataAttr(dragging)}
-			className={cn(
-				k.card({ editable: movable, dragging }),
-				k.veil.overlay,
-				!editable && k.veil.fade,
-			)}
+			className={cn(k.card({ editable: movable, dragging }))}
 		>
 			{!hasHeader && handle}
 
@@ -160,6 +167,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				inert={editable}
 				fallback={fallback}
 				onError={onError}
+				host={host}
+				natural={natural}
 			>
 				{children}
 			</DashboardTileContent>

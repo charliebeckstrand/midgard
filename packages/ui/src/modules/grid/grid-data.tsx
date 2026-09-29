@@ -177,7 +177,6 @@ export function GridData<T>({
 		columnOrderConfig,
 		columnSizingConfig,
 		columnManagerConfig,
-		virtualizeEnabled,
 		estimateSize,
 		overscan,
 		pinnedColumns,
@@ -210,9 +209,10 @@ export function GridData<T>({
 	})
 
 	// A windowed grid without an `estimateSize` takes its estimate from a
-	// measured row (see `useGridRowHeight`).
+	// measured row (see `useGridRowHeight`). A body that grouping keeps
+	// unwindowed reads no estimate, so it measures nothing.
 	const { rowHeight, measureRef } = useGridRowHeight(
-		virtualizeEnabled && estimateSize === undefined,
+		gated.virtualize && estimateSize === undefined,
 		step,
 	)
 
@@ -516,7 +516,7 @@ export function GridData<T>({
 			// which an emptied-by-a-filter grid hasn't got.
 			hasRows: hasRowsToActOn,
 			paginated: paginationConfig != null,
-			virtualized: virtualizeEnabled,
+			virtualized: gated.virtualize,
 			// Either grouping mode renders its own body; both stand reordering down.
 			grouped: groupingMode.active,
 			expanded: detail.active,

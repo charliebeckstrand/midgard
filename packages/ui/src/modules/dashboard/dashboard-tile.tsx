@@ -1,14 +1,15 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo } from 'react'
+import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
+import type { ContentHeightHost } from '../../primitives/content-height'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
 import { DashboardTileCard } from './dashboard-tile-card'
 import { DashboardTileEdges } from './dashboard-tile-edges'
-import { type DashboardTileSize, gridArea } from './engine/dashboard-layout'
+import { type DashboardTileSize, gridArea, ROW_SUBDIVISION } from './engine/dashboard-layout'
 import type { DashboardState, DashboardView } from './engine/dashboard-store'
 import { useDashboardFlip } from './use-dashboard-flip'
 import { useDashboardStore } from './use-dashboard-store'
@@ -143,9 +144,11 @@ export type DashboardTileProps = {
 	onDuplicate?: () => void
 	/**
 	 * Show an expand control at rest. It opens the content in a dialog, at a
-	 * larger size, in the scope of the same tile. When edit mode starts, an open
-	 * dialog closes. The focus then moves to the grip of the tile. A tile with no
-	 * grip, such as a tile with a `static` layout entry, gives the focus to the board.
+	 * larger size, in the scope of the same tile. The content box of the dialog
+	 * keeps the shape of the tile on the board, up to 70% of the viewport
+	 * height. When edit mode starts, an open dialog closes. The focus then moves
+	 * to the grip of the tile. A tile with no grip, such as a tile with a `static`
+	 * layout entry, gives the focus to the board.
 	 * @defaultValue false
 	 */
 	expandable?: boolean
@@ -174,6 +177,12 @@ export type DashboardTileProps = {
  * The content box is an inline-size container. A container query or a `cqi`
  * unit in a widget therefore reads the tile, and not the board.
  *
+ * In the re-pack of a narrow board, a widget can claim the height of its content
+ * through `ContentHeightContext` (`ui/primitives/content-height`). The tile then
+ * takes the rows that hold that height, and the page has no scroll region inside
+ * a scroll region. A `Grid` with `maxHeight="fill"` claims it, and shows pages
+ * of 10 rows.
+ *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.
  *
@@ -188,16 +197,10 @@ export type DashboardTileProps = {
  * in markup order. It first renders on the client, because the board must know
  * each mounted tile to place it.
  *
- * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
- * through CSS. The header then becomes a veil over the top of the content, so the
- * sparkline takes the full height. A spark chart anywhere in the content box
- * veils the header, and a spark chart in the actions does not. At rest the veil
- * shows on hover or focus, and in edit mode it stays in view for the grip. Where
- * the primary pointer cannot hover, as on a phone or a tablet, the veil stays in
- * view at rest too.
+ * The header row stays in the flow above the content at each size, so a small
+ * tile, such as a sparkline or a KPI, always shows its title.
  *
- * At rest, a truncated title shows its full text in a tooltip on hover. The veil
- * is narrow, so the title of a spark tile truncates first.
+ * At rest, a truncated title shows its full text in a tooltip on hover.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>
@@ -242,6 +245,30 @@ export function DashboardTile(props: DashboardTileProps) {
 	)
 
 	const movable = editable && cell !== undefined && !cell.static
+
+	// The widgets that claim the height of their content. The re-pack gives the
+	// tile that height, so a list shows in the flow of the page and not in a
+	// scroll region of its own.
+	const [claims, setClaims] = useState(0)
+
+	const claim = useCallback(() => {
+		setClaims((count) => count + 1)
+
+		let held = true
+
+		return () => {
+			if (!held) return
+
+			held = false
+
+			setClaims((count) => count - 1)
+		}
+	}, [])
+
+	const host = useMemo<ContentHeightHost>(
+		() => ({ available: projected, claim }),
+		[projected, claim],
+	)
 
 	const drag = useDashboardTileDrag(id, cell, movable)
 
@@ -293,7 +320,11 @@ export function DashboardTile(props: DashboardTileProps) {
 				onRemove={onRemove}
 				onDuplicate={onDuplicate}
 				expandable={expandable}
+				// The rows follow the column pitch, so the span gives the shape of the tile.
+				shape={(cell.w * ROW_SUBDIVISION) / cell.h}
 				shell={node}
+				host={host}
+				natural={projected && claims > 0}
 			>
 				{children}
 			</DashboardTileCard>

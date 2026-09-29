@@ -1,6 +1,7 @@
-import { startTransition, useState } from 'react'
+import { type ReactNode, startTransition, useState } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridColumn } from '../../modules/grid'
+import { ContentHeightContext } from '../../primitives/content-height'
 import { act, renderUI, screen, userEvent } from '../helpers'
 
 describe('Grid pagination', () => {
@@ -19,6 +20,78 @@ describe('Grid pagination', () => {
 
 		// Every row renders — the grid did not slice.
 		expect(screen.getByText('Row 25')).toBeInTheDocument()
+	})
+
+	describe('in a box that can take the height of its content', () => {
+		const inHost = (available: boolean, claim: () => () => void, grid: ReactNode) => (
+			<ContentHeightContext value={{ available, claim }}>{grid}</ContentHeightContext>
+		)
+
+		it('shows pages of 10 rows in the flow and claims the height of its content', () => {
+			const release = vi.fn()
+
+			const claim = vi.fn(() => release)
+
+			const { unmount } = renderUI(
+				inHost(
+					true,
+					claim,
+					<Grid columns={columns} rows={many} getKey={getKey} maxHeight="fill" />,
+				),
+			)
+
+			expect(screen.getByRole('navigation', { name: 'Pagination' })).toBeInTheDocument()
+
+			expect(screen.getByText('Row 10')).toBeInTheDocument()
+
+			expect(screen.queryByText('Row 11')).not.toBeInTheDocument()
+
+			expect(claim).toHaveBeenCalledTimes(1)
+
+			unmount()
+
+			expect(release).toHaveBeenCalledTimes(1)
+		})
+
+		it('keeps the rows in its scroll region under pagination={false}', () => {
+			const claim = vi.fn(() => () => {})
+
+			renderUI(
+				inHost(
+					true,
+					claim,
+					<Grid
+						columns={columns}
+						rows={many}
+						getKey={getKey}
+						maxHeight="fill"
+						pagination={false}
+					/>,
+				),
+			)
+
+			expect(screen.getByText('Row 25')).toBeInTheDocument()
+
+			expect(screen.queryByRole('navigation', { name: 'Pagination' })).not.toBeInTheDocument()
+
+			expect(claim).not.toHaveBeenCalled()
+		})
+
+		it('keeps the rows in its scroll region while the box keeps its size', () => {
+			const claim = vi.fn(() => () => {})
+
+			renderUI(
+				inHost(
+					false,
+					claim,
+					<Grid columns={columns} rows={many} getKey={getKey} maxHeight="fill" />,
+				),
+			)
+
+			expect(screen.getByText('Row 25')).toBeInTheDocument()
+
+			expect(claim).not.toHaveBeenCalled()
+		})
 	})
 
 	it('hides the navigation when there is only one page', () => {

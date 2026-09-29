@@ -40,9 +40,6 @@ npm-debug.log*
 .claude/settings.local.json
 
 # Skill outputs
-council-transcript-*.md
-council-report-*.html
-debate-*.md
 deliberate-*.md
 deliberate-*.html
 

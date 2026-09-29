@@ -48,7 +48,7 @@ tools: Read, Grep, Glob, Edit, Write, Bash, ToolSearch
 
 3.7 Make the change the step states, and no more. When a public export changes, update its TSDoc and the owning package's surface index in the same commit (§12.1, §12.2).
 
-3.8 Run the gates `CLAUDE.md` §3.4 names, with the test filter scoped to the owning package. Prove the test passes after the change, and keep the red log and the green log.
+3.8 Run the gates `CLAUDE.md` §3.3 names, with the test filter scoped to the owning package. Prove the test passes after the change, and keep the red log and the green log.
 
 3.9 Set the `Status` cell of each row the step closes to `◐ FIXED`, in the record that holds it, on the same branch. Change no other cell and no prose. Report the count of rows closed and the count outstanding; the caller owns any state above the row.
 

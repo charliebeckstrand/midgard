@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronDown, ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { TableCell, TableRow } from '../../components/table'
@@ -48,7 +48,7 @@ type GridGroupRowProps<T> = {
  *
  * @internal
  */
-export function GridGroupRow<T>({
+function GridGroupRowImpl<T>({
 	group,
 	onToggle,
 	columns,
@@ -118,3 +118,8 @@ export function GridGroupRow<T>({
 		</TableRow>
 	)
 }
+
+/**
+ * Memoized {@link GridGroupRowImpl}. A body render that leaves the header's props as they were does not render it again. @internal
+ */
+export const GridGroupRow = memo(GridGroupRowImpl) as typeof GridGroupRowImpl

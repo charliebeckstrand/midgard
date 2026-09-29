@@ -310,10 +310,20 @@ describe('HeatmapChart', () => {
 				.length
 
 		// Focus the track (keyboard ownership), then probe a class so cells dim. The
-		// Tab press gives the focus the keyboard's ring (`:focus-visible`), which the
-		// track reads. An earlier pointer event in the shared window can take it away
-		// from a bare `focus()`.
-		fireEvent.keyDown(document.body, { key: 'Tab' })
+		// track reads the keyboard's ring (`:focus-visible`). The test sets that match
+		// itself. jsdom guesses it from the last key press and the last element that
+		// matched, and an earlier test in the worker can leave a removed element as
+		// that last match.
+		const matches = Element.prototype.matches
+
+		vi.spyOn(Element.prototype, 'matches').mockImplementation(function (
+			this: Element,
+			selector: string,
+		) {
+			return selector === ':focus-visible'
+				? this === document.activeElement
+				: matches.call(this, selector)
+		})
 
 		act(() => track.focus())
 

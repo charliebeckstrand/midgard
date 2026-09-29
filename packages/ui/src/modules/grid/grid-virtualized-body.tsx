@@ -117,9 +117,9 @@ type GridVirtualizedBodyProps<T> = GridRowsProps<T> & {
  * skeleton straight for data, instead of flashing a rowless table (see
  * {@link GridWindowBody}).
  *
- * @remarks Drives a `@tanstack/react-virtual` measurement lifecycle; assumes
- * uniform `estimateSize` row heights and requires a scroll container of known
- * height (see {@link GridProps.maxHeight}).
+ * @remarks The window reads no row's height: it assumes uniform `estimateSize`
+ * row heights, and it requires a scroll container of known height (see
+ * {@link GridProps.maxHeight}).
  * @internal
  */
 export function GridVirtualizedBody<T>(props: GridVirtualizedBodyProps<T>) {

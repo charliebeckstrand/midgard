@@ -1,6 +1,6 @@
 'use client'
 
-import type { ComponentProps, ReactNode } from 'react'
+import { type ComponentProps, memo, type ReactNode } from 'react'
 import { TableBody, TableCell, TableRow } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import type { PaletteColor } from '../../core/recipe'
@@ -184,7 +184,7 @@ function GroupRevealCell({
  *
  * @internal
  */
-export function GridTotalRow<T>({
+function GridTotalRowImpl<T>({
 	columns,
 	rows,
 	variant,
@@ -224,6 +224,11 @@ export function GridTotalRow<T>({
 		</TableRow>
 	)
 }
+
+/**
+ * Memoized {@link GridTotalRowImpl}. A body render that leaves the total's props as they were does not render it again. @internal
+ */
+export const GridTotalRow = memo(GridTotalRowImpl) as typeof GridTotalRowImpl
 
 /**
  * A group's total row. It collapses with its group through the same CSS reveal

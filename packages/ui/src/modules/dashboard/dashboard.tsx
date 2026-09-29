@@ -240,6 +240,14 @@ export type DashboardProps = AccessibleName & {
 	onResizeEnd?: (event: DashboardGestureEndEvent) => void
 	/** Receives each error that a tile boundary catches, for a log or a report. */
 	onTileError?: (id: string, error: unknown) => void
+	/**
+	 * Receives each change of the responsive projection: `true` when the board
+	 * paints the re-pack, and `false` when the saved layout returns. Edit mode
+	 * stands down while the re-pack is on screen, so use it to disable the
+	 * control that starts edit mode. The server and the first render paint the
+	 * saved layout, so the first call comes only after a measurement projects.
+	 */
+	onProjectedChange?: (projected: boolean) => void
 	/** Receives the commands of the board, such as {@link DashboardHandle.tidy}. */
 	ref?: Ref<DashboardHandle>
 	className?: string
@@ -313,6 +321,7 @@ export function Dashboard({
 	onResizeStart,
 	onResizeEnd,
 	onTileError,
+	onProjectedChange,
 	ref,
 	className,
 	children,
@@ -348,6 +357,7 @@ export function Dashboard({
 			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
 			declared: declaredTiles(children),
 			width: 0,
+			heights: new Map(),
 			gesture: null,
 			filter: filterValue,
 			selections: selectionValue ?? EMPTY_SELECTIONS,
@@ -461,6 +471,24 @@ export function Dashboard({
 	const readEditable = () => store.getView().editable
 
 	const editable = useSyncExternalStore(store.subscribe, readEditable, readEditable)
+
+	const readProjected = () => store.getView().projected
+
+	const projected = useSyncExternalStore(store.subscribe, readProjected, readProjected)
+
+	// It reads the newest listener, and its identity holds for the mount.
+	const reportProjected = useStableEvent((next: boolean) => onProjectedChange?.(next))
+
+	// The last value that the app received. The app starts from the saved layout.
+	const reported = useRef(false)
+
+	useLayoutEffect(() => {
+		if (projected === reported.current) return
+
+		reported.current = projected
+
+		reportProjected(projected)
+	}, [projected, reportProjected])
 
 	// The store gesture owns the drag. The dnd-kit drag of a tile can outlive the
 	// gesture after an edit exit, and the tile can unmount before the drag ends.

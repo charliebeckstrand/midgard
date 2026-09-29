@@ -1,7 +1,7 @@
 'use client'
 
 import { GripVertical } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { Checkbox } from '../../components/checkbox'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -274,7 +274,7 @@ function GridGroupLeafCell<T>({
  *
  * @internal
  */
-export function GridGroupLeafRow<T>({
+function GridGroupLeafRowImpl<T>({
 	expanded,
 	rowIndex,
 	columns,
@@ -370,3 +370,8 @@ export function GridGroupLeafRow<T>({
 		</MountHold>
 	)
 }
+
+/**
+ * Memoized {@link GridGroupLeafRowImpl}. A body render, or a window step, that leaves the leaf's props as they were renders neither the leaf nor its cells, as {@link GridRow} holds a flat row. @internal
+ */
+export const GridGroupLeafRow = memo(GridGroupLeafRowImpl) as typeof GridGroupLeafRowImpl

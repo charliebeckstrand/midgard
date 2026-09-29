@@ -1,15 +1,14 @@
 import { describe, expect, it } from 'vitest'
-import { userEvent } from 'vitest/browser'
 import { LineChart } from '../../modules/chart/line-chart'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../modules/dashboard'
 import { renderUI, screen } from '../helpers'
 
 /**
- * The spark veil is a `:has()` rule on the card, and jsdom resolves no such
- * style. A real engine measures the chart, so the chart takes the spark tier in
- * a narrow tile, and the card reads it.
+ * A narrow tile gives its chart the spark tier, and a real engine measures the
+ * chart. The header row of the tile stays in the flow at that tier, so the tile
+ * always shows its title.
  */
-describe('dashboard spark veil (real browser)', () => {
+describe('dashboard spark tile (real browser)', () => {
 	const DATA = [3, 8, 5, 9, 4, 7].map((value, index) => ({ label: `d${index}`, value }))
 
 	// At 960 px, a column is 40 px. The narrow tile gives its chart under 160 px.
@@ -53,97 +52,26 @@ describe('dashboard spark veil (real browser)', () => {
 
 	const style = (element: HTMLElement | null) => getComputedStyle(element as HTMLElement)
 
-	it('veils the header of a spark tile at rest, and leaves a wider tile alone', async () => {
+	it('keeps the header of a spark tile in the flow and in view', async () => {
 		renderUI(<Board />)
 
 		await expect.poll(() => tierOf('spark')).toBe('spark')
 
-		await expect.poll(() => tierOf('wide')).not.toBe('spark')
-
-		const spark = parts('spark')
-
-		const wide = parts('wide')
-
-		expect(style(spark.header).position).toBe('absolute')
-
-		await expect.poll(() => style(spark.header).opacity).toBe('0')
-
-		expect(style(spark.header).pointerEvents).toBe('none')
-
-		// Out of the flow, the header leaves the content box the full height of the card.
-		expect(spark.content?.getBoundingClientRect().top).toBeLessThan(
-			(spark.header?.getBoundingClientRect().bottom ?? 0) - 8,
-		)
-
-		expect(style(wide.header).position).toBe('static')
-
-		expect(style(wide.header).opacity).toBe('1')
-	})
-
-	it('shows the veil while the pointer is over the tile', async () => {
-		renderUI(<Board />)
-
-		await expect.poll(() => tierOf('spark')).toBe('spark')
-
-		const { tile, header } = parts('spark')
-
-		await userEvent.hover(tile)
-
-		await expect.poll(() => style(header).opacity).toBe('1')
-
-		expect(style(header).pointerEvents).toBe('auto')
-	})
-
-	it('shows the veil when a control of the header takes the focus', async () => {
-		renderUI(<Board />)
-
-		await expect.poll(() => tierOf('spark')).toBe('spark')
-
-		const { header } = parts('spark')
-
-		screen.getByRole('button', { name: 'Expand Trend spark' }).focus()
-
-		await expect.poll(() => style(header).opacity).toBe('1')
-	})
-
-	it('leaves the header in the flow when a spark chart sits in the actions of a wide tile', async () => {
-		renderUI(
-			<div style={{ width: 960 }}>
-				<Dashboard
-					aria-label="Board"
-					layout={{ value: [{ id: 'wide', x: 0, y: 0, w: 12, h: 12 }] }}
-				>
-					<DashboardTile
-						id="wide"
-						title="Trend wide"
-						minWidth={0}
-						actions={
-							<div style={{ width: 96, height: 24 }}>
-								<LineChart
-									aria-label="Chart in the actions"
-									data={DATA}
-									series={[{ xKey: 'label', yKey: 'value', yName: 'Value' }]}
-									aspectRatio={false}
-								/>
-							</div>
-						}
-					>
-						<p>Body</p>
-					</DashboardTile>
-				</Dashboard>
-			</div>,
-		)
-
-		await expect.poll(() => tierOf('wide')).toBe('spark')
-
-		const { header } = parts('wide')
+		const { header, content } = parts('spark')
 
 		expect(style(header).position).toBe('static')
 
 		expect(style(header).opacity).toBe('1')
+
+		expect(parts('spark').tile).toHaveTextContent('Trend spark')
+
+		// The content box starts under the header row.
+		expect(content?.getBoundingClientRect().top).toBeGreaterThanOrEqual(
+			header?.getBoundingClientRect().bottom ?? 0,
+		)
 	})
 
-	it('keeps the veil in view in edit mode, with one content height in both modes', async () => {
+	it('keeps one content height when edit mode switches', async () => {
 		const { rerender } = renderUI(<Board />)
 
 		await expect.poll(() => tierOf('spark')).toBe('spark')
@@ -152,14 +80,10 @@ describe('dashboard spark veil (real browser)', () => {
 
 		rerender(<Board editing />)
 
-		const { header, content } = parts('spark')
-
-		expect(style(header).position).toBe('absolute')
-
-		await expect.poll(() => style(header).opacity).toBe('1')
-
 		expect(screen.getByRole('button', { name: 'Move Trend spark' })).toBeVisible()
 
-		expect(content?.getBoundingClientRect().height).toBe(rest)
+		expect(style(parts('spark').header).position).toBe('static')
+
+		expect(parts('spark').content?.getBoundingClientRect().height).toBe(rest)
 	})
 })

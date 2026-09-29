@@ -200,6 +200,16 @@ export function RegistryExample() {
 
 	const [editing, setEditing] = useState(false)
 
+	// A narrow board paints the re-pack, where edit mode stands down. The control
+	// that starts it then goes disabled, and a live edit ends.
+	const [projected, setProjected] = useState(false)
+
+	const project = useCallback((next: boolean) => {
+		setProjected(next)
+
+		if (next) setEditing(false)
+	}, [])
+
 	// The key of the board. A start from a preset changes it, so each tile mounts
 	// again, and the selection of the old board goes with it.
 	const [started, setStarted] = useState('saved')
@@ -208,6 +218,9 @@ export function RegistryExample() {
 		setSpec(startFromPreset(preset).spec)
 
 		setStarted(preset.id)
+
+		// The new board reports its own projection when it mounts.
+		setProjected(false)
 	}
 
 	// A remove leaves a gap, because the board never packs itself. Tidy closes the
@@ -279,7 +292,11 @@ export function RegistryExample() {
 						</Button>
 					)}
 
-					<Button color={editing ? 'zinc' : 'blue'} onClick={() => setEditing((live) => !live)}>
+					<Button
+						color={editing ? 'zinc' : 'blue'}
+						disabled={projected}
+						onClick={() => setEditing((live) => !live)}
+					>
 						{editing ? 'Done' : 'Edit layout'}
 					</Button>
 				</Flex>
@@ -290,6 +307,7 @@ export function RegistryExample() {
 						ref={board}
 						aria-label="Saved dashboard"
 						editing={editing}
+						onProjectedChange={project}
 						layout={{
 							value: spec.layout,
 							onValueChange: (layout) => setSpec((current) => ({ ...current, layout })),

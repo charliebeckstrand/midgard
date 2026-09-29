@@ -199,9 +199,13 @@ export function renderGridRow<T>(
 	return (
 		<Fragment key={key}>
 			{rowNode}
-			<GridDetailRow rowKey={key} colSpan={props.visibleColumns.length} expanded={expanded}>
-				{props.expansion.render(row)}
-			</GridDetailRow>
+			<GridDetailRow<T>
+				rowKey={key}
+				row={row}
+				render={props.expansion.render}
+				colSpan={props.visibleColumns.length}
+				expanded={expanded}
+			/>
 		</Fragment>
 	)
 }

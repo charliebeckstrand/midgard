@@ -231,7 +231,7 @@ function recordStartAnchor(
 
 /**
  * The index of `key` in the new list. It tries the old index, then the
- * rendered window, and only then the whole list. @internal
+ * rendered window, and only then the whole list, through `listIndex`. @internal
  */
 function indexOfKey(
 	key: VirtualItem['key'],
@@ -239,6 +239,7 @@ function indexOfKey(
 	count: number,
 	getItemKey: (index: number) => VirtualItem['key'],
 	window: readonly VirtualItem[],
+	listIndex: () => ReadonlyMap<VirtualItem['key'], number>,
 ): number {
 	if (oldIndex < count && getItemKey(oldIndex) === key) return oldIndex
 
@@ -246,11 +247,23 @@ function indexOfKey(
 
 	if (rendered) return rendered.index
 
-	for (let index = 0; index < count; index++) {
-		if (getItemKey(index) === key) return index
+	return listIndex().get(key) ?? -1
+}
+
+/** The index of each key of the list, the first one where a key repeats. @internal */
+function keyIndexOf(
+	count: number,
+	getItemKey: (index: number) => VirtualItem['key'],
+): Map<VirtualItem['key'], number> {
+	const index = new Map<VirtualItem['key'], number>()
+
+	for (let at = 0; at < count; at++) {
+		const key = getItemKey(at)
+
+		if (!index.has(key)) index.set(key, at)
 	}
 
-	return -1
+	return index
 }
 
 /**
@@ -277,8 +290,19 @@ function holdStartAnchor(
 
 	const measurements = freshMeasurements(virtualizer)
 
+	// A recorded row that left the list misses both fast paths. The first miss
+	// builds one index of the list, and each later miss reads it, so a change
+	// that drops many rows scans the list once, not once for each row.
+	let keyIndex: Map<VirtualItem['key'], number> | null = null
+
+	const listIndex = () => {
+		keyIndex ??= keyIndexOf(count, getItemKey)
+
+		return keyIndex
+	}
+
 	for (const row of record.rows) {
-		const index = indexOfKey(row.key, row.index, count, getItemKey, window)
+		const index = indexOfKey(row.key, row.index, count, getItemKey, window, listIndex)
 
 		const start = index < 0 ? undefined : measurements[index]?.start
 

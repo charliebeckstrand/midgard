@@ -2,14 +2,14 @@ import { describe, expect, it } from 'vitest'
 import { userEvent } from 'vitest/browser'
 import { LineChart } from '../../../modules/chart/line-chart'
 import { Dashboard, type DashboardLayoutItem, DashboardTile } from '../../../modules/dashboard'
-import { getSlot, present, renderUI, screen } from '../../helpers'
+import { getSlot, renderUI, screen } from '../../helpers'
 import { pause } from '../helpers/wall-clock'
 
 /**
  * The title tooltip of a dashboard tile, against the real floating engine and
  * the real layout. The jsdom suite sees no overflow and mocks
  * `@floating-ui/react`, so the hover tooltip shows only here. A narrow tile puts
- * its chart at the spark tier, and the veil then clips a long title.
+ * its chart at the spark tier, and its header row then clips a long title.
  */
 describe('dashboard tile title truncation tooltip (real browser)', () => {
 	const DATA = [3, 8, 5, 9, 4, 7].map((value, index) => ({ label: `d${index}`, value }))
@@ -45,13 +45,12 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 		)
 	}
 
-	/** The tile named `title`, its header row, and its title element. */
+	/** The tile named `title`, and its title element. */
 	function parts(title: string) {
 		const tile = screen.getByRole('group', { name: title })
 
 		return {
 			tile,
-			header: present(tile.querySelector(':scope > [data-slot="card-header"]'), 'the header row'),
 			heading: getSlot(tile, 'card-title'),
 		}
 	}
@@ -59,23 +58,14 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 	const tierOf = (title: string) =>
 		parts(title).tile.querySelector('[data-tier]')?.getAttribute('data-tier')
 
-	/**
-	 * Hovers the tile, so that the veil takes the pointer, and then hovers the
-	 * title. At rest the veil lets the pointer through until the tile is hovered.
-	 */
+	/** Hovers the title of a tile, after its chart takes the spark tier. */
 	async function hoverTitle(title: string) {
 		await expect.poll(() => tierOf(title)).toBe('spark')
 
-		const { tile, header, heading } = parts(title)
-
-		await userEvent.hover(tile)
-
-		await expect.poll(() => getComputedStyle(header).pointerEvents).toBe('auto')
-
-		await userEvent.hover(heading)
+		await userEvent.hover(parts(title).heading)
 	}
 
-	it('shows the full title in a tooltip when the veil clips it', async () => {
+	it('shows the full title in a tooltip when the header row clips it', async () => {
 		renderUI(<Board />)
 
 		await hoverTitle(LONG)
@@ -85,7 +75,7 @@ describe('dashboard tile title truncation tooltip (real browser)', () => {
 		expect(tip).toHaveTextContent(LONG)
 	})
 
-	it('opens no tooltip on a title that fits the veil', async () => {
+	it('opens no tooltip on a title that fits the header row', async () => {
 		renderUI(<Board />)
 
 		await hoverTitle(SHORT)

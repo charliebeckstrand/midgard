@@ -54,3 +54,42 @@ describe('Grid cell stability across column-array changes', () => {
 		expect(container.querySelector('[data-testid="inner"]')).toBe(before)
 	})
 })
+
+describe('Grid grouped rows across a selection toggle', () => {
+	type Row = { id: number; name: string; team: string }
+
+	const rows: Row[] = Array.from({ length: 30 }, (_, i) => ({
+		id: i + 1,
+		name: `Name ${i + 1}`,
+		team: `Team ${i % 3}`,
+	}))
+
+	it('renders only the leaf whose selection changed', () => {
+		let calls = 0
+
+		const columns: GridColumn<Row>[] = [
+			{ id: 'select', selectable: true },
+			{
+				id: 'name',
+				title: 'Name',
+				cell: (row) => {
+					calls++
+
+					return row.name
+				},
+			},
+			{ id: 'team', title: 'Team', cell: (row) => row.team },
+		]
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={(row) => row.id} groupBy={{ value: 'team' }} />,
+		)
+
+		calls = 0
+
+		fireEvent.click(screen.getByRole('checkbox', { name: 'Select row 1' }))
+
+		// The other 29 leaves keep their props, so their memo holds.
+		expect(calls).toBe(1)
+	})
+})

@@ -3,7 +3,7 @@ import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { advise, RULE_DOCUMENTS, rootDir } from '../helpers/controlled-language'
 
-// CADENCE.md sets the spacing and the shape of authored text. CLAUDE.md §3.6
+// CADENCE.md sets the spacing and the shape of authored text. CLAUDE.md §3.5
 // once asked for a check by hand before each commit, but no tool made the
 // check, and Biome does not read Markdown. This test reports the breaks of the
 // parts of the cadence that a reader can measure in the rule documents. It is

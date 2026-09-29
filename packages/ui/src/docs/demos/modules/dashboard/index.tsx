@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Stat, StatLabel, StatValue } from '../../../../components/stat'
+import { Stat, StatDelta, StatDescription, StatValue } from '../../../../components/stat'
 import { BarChart, DonutChart, LineChart } from '../../../../modules/chart'
 import {
 	Dashboard,
@@ -21,13 +21,13 @@ import { fields, products, type Sale, sales, sumBy } from './data'
 import { RegistryExample } from './registry'
 
 const layout: DashboardLayoutItem[] = [
-	{ id: 'regions', x: 0, y: 0, w: 12 },
-	{ id: 'mix', x: 12, y: 0, w: 12 },
-	{ id: 'units', x: 0, y: 27, w: 6, h: 16 },
-	{ id: 'units-trend', x: 0, y: 43, w: 3, h: 14 },
-	{ id: 'revenue-trend', x: 3, y: 43, w: 3, h: 14 },
-	{ id: 'trend', x: 6, y: 27, w: 18, h: 30 },
-	{ id: 'orders', x: 0, y: 57, w: 24, h: 44 },
+	{ id: 'units-trend', x: 0, y: 0, w: 8, h: 16 },
+	{ id: 'revenue-trend', x: 8, y: 0, w: 8, h: 16 },
+	{ id: 'units', x: 16, y: 0, w: 8, h: 16 },
+	{ id: 'regions', x: 0, y: 16, w: 12 },
+	{ id: 'mix', x: 12, y: 16, w: 12 },
+	{ id: 'trend', x: 0, y: 43, w: 24, h: 40 },
+	{ id: 'orders', x: 0, y: 83, w: 24, h: 44 },
 ]
 
 const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
@@ -35,6 +35,18 @@ const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
 // Each tile below is ordinary app code. It reads the scope through a hook and
 // hands rows to a widget; no widget knows that a dashboard holds it. A chart that
 // selects also gets its own selection back, so the selected marks stay lit.
+
+// A tap on a touch screen shows the readout first, so a second tap selects.
+// The hint names the gesture of the pointer that the device has.
+function FilterHint({ mark }: { mark: 'bar' | 'slice' }) {
+	return (
+		<>
+			<span className="pointer-coarse:hidden">Click</span>
+			<span className="hidden pointer-coarse:inline">Double-tap</span> a {mark} to filter the other
+			tiles
+		</>
+	)
+}
 
 function RevenueByRegion() {
 	const scope = useDashboardScope()
@@ -71,15 +83,32 @@ function ProductMix() {
 	)
 }
 
+// A stat tile can add a trend under its value. The trend is optional, and it
+// takes the height that the value leaves free.
 function Units() {
-	const units = useDashboardRows(sales).reduce((sum, row) => sum + row.units, 0)
+	const rows = useDashboardRows(sales)
+
+	const units = rows.reduce((sum, row) => sum + row.units, 0)
+
+	const data = sumBy(rows, 'month', 'units')
 
 	return (
-		<Stat>
-			<StatLabel>Units sold</StatLabel>
+		<div className="flex size-full flex-col gap-2">
+			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
+				<StatValue size="sm">{units.toLocaleString()}</StatValue>
 
-			<StatValue>{units.toLocaleString()}</StatValue>
-		</Stat>
+				<StatDescription>in {data.length} months</StatDescription>
+			</Stat>
+
+			<div className="min-h-0 flex-1">
+				<BarChart
+					aria-label="Units sold by month"
+					data={data}
+					series={[{ xKey: 'key', yKey: 'total', yName: 'Units' }]}
+					aspectRatio={false}
+				/>
+			</div>
+		</div>
 	)
 }
 
@@ -96,18 +125,40 @@ function Trend() {
 	)
 }
 
-// A narrow tile gives its chart the spark tier. The tile reads the tier through
-// CSS and veils its header, so the sparkline takes the full height of the tile.
-function Sparkline({ value }: { value: 'revenue' | 'units' }) {
+// A KPI tile leads with its latest value and the change from the month before,
+// and the sparkline under them shows the trend. The narrow chart takes the spark
+// tier, and the tile keeps its title in the header row.
+function Kpi({ value }: { value: 'revenue' | 'units' }) {
 	const data = sumBy(useDashboardRows(sales), 'month', value)
 
+	const latest = data.at(-1)
+
+	const previous = data.at(-2)
+
+	const change = latest && previous?.total ? (latest.total - previous.total) / previous.total : 0
+
+	const name = value === 'units' ? 'Units' : 'Revenue'
+
 	return (
-		<LineChart
-			aria-label={`${value === 'units' ? 'Units' : 'Revenue'} by month`}
-			data={data}
-			series={[{ xKey: 'key', yKey: 'total', yName: value === 'units' ? 'Units' : 'Revenue' }]}
-			aspectRatio={false}
-		/>
+		<div className="flex size-full flex-col gap-2">
+			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
+				<StatValue size="sm">{latest?.total.toLocaleString() ?? '–'}</StatValue>
+
+				<StatDelta trend={change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}>
+					{change > 0 ? '↑' : change < 0 ? '↓' : '→'} {Math.abs(change * 100).toFixed(1)}% vs{' '}
+					{previous?.key ?? 'last month'}
+				</StatDelta>
+			</Stat>
+
+			<div className="min-h-0 flex-1">
+				<LineChart
+					aria-label={`${name} by month`}
+					data={data}
+					series={[{ xKey: 'key', yKey: 'total', yName: name }]}
+					aspectRatio={false}
+				/>
+			</div>
+		</div>
 	)
 }
 
@@ -120,7 +171,9 @@ const columns: GridColumn<Sale>[] = [
 ]
 
 // The grid fills the tile and scrolls its own rows under a sticky header, so
-// the tile keeps its size on the board.
+// the tile keeps its size on the board. On a narrow board the grid shows pages
+// of 10 rows instead, and the tile grows to hold them. `pagination={false}`
+// keeps the scroll region there too.
 function Orders() {
 	return (
 		<Grid
@@ -135,6 +188,16 @@ function Orders() {
 
 export function Demo() {
 	const [editing, setEditing] = useState(false)
+
+	// A narrow board paints the re-pack, where edit mode stands down. The control
+	// that starts it then goes disabled, and a live edit ends.
+	const [projected, setProjected] = useState(false)
+
+	const project = useCallback((next: boolean) => {
+		setProjected(next)
+
+		if (next) setEditing(false)
+	}, [])
 
 	const [filter, setFilter] = useState<QueryGroup>(emptyFilter)
 
@@ -163,7 +226,11 @@ export function Demo() {
 							</Button>
 						)}
 
-						<Button color={editing ? 'zinc' : 'blue'} onClick={() => setEditing((live) => !live)}>
+						<Button
+							color={editing ? 'zinc' : 'blue'}
+							disabled={projected}
+							onClick={() => setEditing((live) => !live)}
+						>
 							{editing ? 'Done' : 'Edit layout'}
 						</Button>
 					</Flex>
@@ -171,6 +238,7 @@ export function Demo() {
 					<Dashboard
 						aria-label="Sales dashboard"
 						editing={editing}
+						onProjectedChange={project}
 						layout={{ defaultValue: layout }}
 						filter={{ value: filter, onValueChange: setFilter }}
 						selection={{ value: selection, onValueChange: setSelection }}
@@ -179,7 +247,7 @@ export function Demo() {
 							id="regions"
 							expandable
 							title="Revenue by region"
-							description="Click a bar to filter the other tiles"
+							description={<FilterHint mark="bar" />}
 							ratio={16 / 9}
 						>
 							<RevenueByRegion />
@@ -189,22 +257,22 @@ export function Demo() {
 							id="mix"
 							expandable
 							title="Product mix"
-							description="Click a slice to filter the other tiles"
+							description={<FilterHint mark="slice" />}
 							ratio={16 / 9}
 						>
 							<ProductMix />
 						</DashboardTile>
 
-						<DashboardTile id="units" title="Units" minWidth={160}>
+						<DashboardTile id="units" title="Units sold" minWidth={160}>
 							<Units />
 						</DashboardTile>
 
-						<DashboardTile id="units-trend" expandable title="Units trend" minWidth={0}>
-							<Sparkline value="units" />
+						<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={160}>
+							<Kpi value="units" />
 						</DashboardTile>
 
-						<DashboardTile id="revenue-trend" expandable title="Revenue trend" minWidth={0}>
-							<Sparkline value="revenue" />
+						<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={160}>
+							<Kpi value="revenue" />
 						</DashboardTile>
 
 						<DashboardTile
