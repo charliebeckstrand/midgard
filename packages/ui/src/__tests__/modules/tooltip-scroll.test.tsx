@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
 import { act, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
@@ -16,8 +17,16 @@ const SERIES = [
 	{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 ] as const
 
-/** A viewport rect for the hit element, so the settle resolve can bound the pointer. */
-function boxOf(el: Element, right: number, bottom: number): void {
+/**
+ * A viewport rect for the hit element, so the settle resolve can bound the
+ * pointer. It is the size of the rect itself, as in an unscaled page: the
+ * pointer maps through the fraction of the box it crosses.
+ */
+function boxOf(el: Element): void {
+	const right = Number(el.getAttribute('width'))
+
+	const bottom = Number(el.getAttribute('height'))
+
 	vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
 		x: 0,
 		y: 0,
@@ -56,7 +65,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		boxOf(hit, 400, 240)
+		boxOf(hit)
 
 		// Hover Q3; the readout appears and the pointer is recorded.
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
@@ -72,6 +81,38 @@ describe('tooltip across a scroll', () => {
 		act(() => vi.advanceTimersByTime(150))
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
+	it('heatmap: hides on scroll, then re-reads the cell under the settled pointer', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+					{ day: 'Tue', hour: '10', commits: 3 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				width={400}
+			/>,
+		)
+
+		const hit = getSlot(container, 'heatmap-hit')
+
+		boxOf(hit)
+
+		act(() => fireEvent.pointerMove(hit, { clientX: 300, clientY: 60 }))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
+
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
 	})
 
 	it('chart: keeps a keyboard-driven readout through a scroll with no pointer engaged', () => {
@@ -130,7 +171,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		boxOf(hit, 400, 240)
+		boxOf(hit)
 
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
 

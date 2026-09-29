@@ -185,3 +185,39 @@ export function resolveHeatmapMatrix<T>(
 
 	return { columns, rows, values }
 }
+
+/** Whether two lists hold the same values in the same order; `undefined` matches only itself. @internal */
+function sameList<V>(a: readonly V[] | undefined, b: readonly V[] | undefined): boolean {
+	if (a === b) return true
+
+	if (a === undefined || b === undefined || a.length !== b.length) return false
+
+	return a.every((value, index) => value === b[index])
+}
+
+/**
+ * Whether two heatmap series read the same fields and paint the same scale. A
+ * series literal is a new object on each render of the caller, so the heatmap
+ * holds the series by its content and its grid memos hold with it.
+ *
+ * @internal
+ */
+export function sameHeatmapSeries<T>(
+	a: HeatmapChartSeries<T> | undefined,
+	b: HeatmapChartSeries<T> | undefined,
+): boolean {
+	if (a === b) return true
+
+	if (a === undefined || b === undefined) return false
+
+	return (
+		a.xKey === b.xKey &&
+		a.yKey === b.yKey &&
+		a.colorKey === b.colorKey &&
+		a.colorName === b.colorName &&
+		a.bins === b.bins &&
+		a.binning === b.binning &&
+		sameList(a.colorRange, b.colorRange) &&
+		sameList(a.colorDomain, b.colorDomain)
+	)
+}

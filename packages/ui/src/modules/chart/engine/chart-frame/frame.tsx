@@ -5,7 +5,6 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
-	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -359,19 +358,6 @@ export function ChartFrame({
 	// object a function-form `items` receives.
 	const [menuIndex, setMenuIndex] = useState<number | null>(null)
 
-	// The visually-hidden data table holds one row per datum, so at large row
-	// counts materializing and committing it dominates — yet nothing visual waits
-	// on it and assistive tech reads it from the settled DOM, not the first frame.
-	// Deferring the thunk drops it off the urgent render: the plot paints at full
-	// priority, then React re-renders the table alone in a low-priority pass, and
-	// only that pass calls the thunk — the mount commit never formats a cell. The
-	// `null` initial value holds the table out of the very first commit too, so a
-	// fresh mount paints its marks before any of it; a data change keeps the prior
-	// table up for a beat rather than blocking the new marks behind a rebuild.
-	// Parity is unchanged — the table always converges on the current readout,
-	// one low-priority commit behind.
-	const tableReadout = useDeferredValue(readout, null)
-
 	// The frame owns the series emphasis, not the chart body: a legend hover then
 	// does not run the body, which would make a new readout thunk and format the
 	// data table again.
@@ -564,7 +550,7 @@ export function ChartFrame({
 				</ChartEmphasisContext>
 			</ChartTierContext>
 
-			{tableReadout && <ChartTable readout={tableReadout} />}
+			{readout && <ChartTable readout={readout} />}
 
 			{annotations}
 		</div>

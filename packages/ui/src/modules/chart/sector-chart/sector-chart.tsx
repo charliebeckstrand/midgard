@@ -1,7 +1,8 @@
 'use client'
 
-import type { ReactNode } from 'react'
+import { type ReactNode, useMemo } from 'react'
 import { usePlotFrame } from '../../../hooks'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import { fractionFormat, once, percentFormat } from '../../../utilities'
@@ -292,9 +293,36 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			: []
 
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
-	// contract defers every readout to its first consumer all the same.
-	const readout = once(() =>
-		sectorReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format),
+	// contract defers every readout to its first consumer all the same. Its inputs
+	// are new on each render, so the rows, the fields, the color order, and the
+	// format hold them while their content stays the same. A parent render then
+	// formats no row again. An empty pie has no readout, so the menu drops its
+	// data actions.
+	const readoutInput = useStableValue(
+		{ data, entry, categories, format, labels: sliceLabels, paints, values },
+		(previous, next) =>
+			previous.data === next.data &&
+			previous.entry.xKey === next.entry.xKey &&
+			previous.entry.yKey === next.entry.yKey &&
+			previous.entry.yName === next.entry.yName &&
+			previous.categories === next.categories &&
+			previous.format === next.format,
+	)
+
+	const readout = useMemo(
+		() =>
+			readoutInput.labels.length > 0
+				? once(() =>
+						sectorReadout(
+							readoutInput.labels,
+							readoutInput.paints,
+							readoutInput.entry.yName ?? readoutInput.entry.yKey,
+							readoutInput.values,
+							readoutInput.format,
+						),
+					)
+				: null,
+		[readoutInput],
 	)
 
 	const legendItems = hasLegend

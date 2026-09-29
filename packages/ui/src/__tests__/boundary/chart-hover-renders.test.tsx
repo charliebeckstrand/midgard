@@ -22,6 +22,7 @@ const renders = vi.hoisted(() => ({
 	axis: 0,
 	legend: 0,
 	menu: 0,
+	arrow: 0,
 }))
 
 function resetRenders() {
@@ -102,6 +103,20 @@ vi.mock('../../modules/chart/engine/chart-legend/legend', async (importOriginal)
 			renders.legend += 1
 
 			return actual.ChartLegend(props)
+		},
+	}
+})
+
+vi.mock('../../modules/chart/engine/chart-legend/range-legend', async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import('../../modules/chart/engine/chart-legend/range-legend')>()
+
+	return {
+		...actual,
+		RangeArrow: (props: Parameters<typeof actual.RangeArrow>[0]) => {
+			renders.arrow += 1
+
+			return actual.RangeArrow(props)
 		},
 	}
 })
@@ -345,6 +360,46 @@ describe('Chart hover renders', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		expect(renders.axis).toBe(0)
+	})
+
+	it('holds the range arrow while the pointer moves inside one heatmap cell', () => {
+		type Row = { day: string; hour: string; commits: number }
+
+		const series = [
+			{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
+		] satisfies [HeatmapChartSeries<Row>]
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+				]}
+				series={series}
+				width={400}
+			/>,
+		)
+
+		const hit = getSlot(container, 'heatmap-hit')
+
+		hit.getBoundingClientRect = () => BOX
+
+		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
+
+		expectLive('arrow')
+
+		resetRenders()
+
+		// The moves stay inside the first cell, so the pointed value holds.
+		for (let step = 0; step < 50; step += 1) {
+			fireEvent.pointerMove(hit, { clientX: 120 + (step % 9), clientY: 70 + (step % 7) })
+		}
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		expect(renders.arrow).toBe(0)
 	})
 
 	it('tracks the pointer across choropleth regions without a render of the chart body', () => {

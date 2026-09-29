@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
@@ -255,10 +255,16 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 
 	const format = formatValue ?? fractionFormat(locale)
 
-	// Built from the input rows for the menu's CSV / copy actions; drops them when
-	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so
-	// only a selected action materializes it.
-	const readout = once(() => choroplethReadout(data, primary, format))
+	// Built from the input rows for the menu's CSV / copy actions; with no rows
+	// or no series there is nothing to export, so the actions drop. A cached
+	// thunk (`ChartReadoutSource`), so only a selected action materializes it.
+	const readout = useMemo(
+		() =>
+			primary && data && data.length > 0
+				? once(() => choroplethReadout(data, primary, format))
+				: null,
+		[data, primary, format],
+	)
 
 	// The rasterized root and right-click surface. MapPlat keeps its own root ref
 	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
