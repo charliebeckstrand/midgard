@@ -1,7 +1,7 @@
 import { useCallback, useState } from 'react'
 import { Badge } from '../../../../components/badge'
 import { Button } from '../../../../components/button'
-import { Stat, StatLabel, StatValue } from '../../../../components/stat'
+import { Stat, StatDelta, StatLabel, StatValue } from '../../../../components/stat'
 import { BarChart, DonutChart, LineChart } from '../../../../modules/chart'
 import {
 	Dashboard,
@@ -21,13 +21,13 @@ import { fields, products, type Sale, sales, sumBy } from './data'
 import { RegistryExample } from './registry'
 
 const layout: DashboardLayoutItem[] = [
-	{ id: 'regions', x: 0, y: 0, w: 12 },
-	{ id: 'mix', x: 12, y: 0, w: 12 },
-	{ id: 'units', x: 0, y: 27, w: 6, h: 16 },
-	{ id: 'units-trend', x: 0, y: 43, w: 3, h: 14 },
-	{ id: 'revenue-trend', x: 3, y: 43, w: 3, h: 14 },
-	{ id: 'trend', x: 6, y: 27, w: 18, h: 30 },
-	{ id: 'orders', x: 0, y: 57, w: 24, h: 44 },
+	{ id: 'units-trend', x: 0, y: 0, w: 8, h: 16 },
+	{ id: 'revenue-trend', x: 8, y: 0, w: 8, h: 16 },
+	{ id: 'units', x: 16, y: 0, w: 8, h: 16 },
+	{ id: 'regions', x: 0, y: 16, w: 12 },
+	{ id: 'mix', x: 12, y: 16, w: 12 },
+	{ id: 'trend', x: 0, y: 43, w: 24, h: 40 },
+	{ id: 'orders', x: 0, y: 83, w: 24, h: 44 },
 ]
 
 const emptyFilter: QueryGroup = { id: 'filter', type: 'group', children: [] }
@@ -108,18 +108,40 @@ function Trend() {
 	)
 }
 
-// A narrow tile gives its chart the spark tier. The tile reads the tier through
-// CSS and veils its header, so the sparkline takes the full height of the tile.
-function Sparkline({ value }: { value: 'revenue' | 'units' }) {
+// A KPI tile leads with its latest value and the change from the month before,
+// and the sparkline under them shows the trend. The narrow chart takes the spark
+// tier, and the tile keeps its title in the header row.
+function Kpi({ value }: { value: 'revenue' | 'units' }) {
 	const data = sumBy(useDashboardRows(sales), 'month', value)
 
+	const latest = data.at(-1)
+
+	const previous = data.at(-2)
+
+	const change = latest && previous?.total ? (latest.total - previous.total) / previous.total : 0
+
+	const name = value === 'units' ? 'Units' : 'Revenue'
+
 	return (
-		<LineChart
-			aria-label={`${value === 'units' ? 'Units' : 'Revenue'} by month`}
-			data={data}
-			series={[{ xKey: 'key', yKey: 'total', yName: value === 'units' ? 'Units' : 'Revenue' }]}
-			aspectRatio={false}
-		/>
+		<div className="flex size-full flex-col gap-2">
+			<Stat className="h-auto flex-row flex-wrap items-baseline justify-start gap-x-2">
+				<StatValue size="sm">{latest?.total.toLocaleString() ?? '–'}</StatValue>
+
+				<StatDelta trend={change > 0 ? 'up' : change < 0 ? 'down' : 'neutral'}>
+					{change > 0 ? '↑' : change < 0 ? '↓' : '→'} {Math.abs(change * 100).toFixed(1)}% vs{' '}
+					{previous?.key ?? 'last month'}
+				</StatDelta>
+			</Stat>
+
+			<div className="min-h-0 flex-1">
+				<LineChart
+					aria-label={`${name} by month`}
+					data={data}
+					series={[{ xKey: 'key', yKey: 'total', yName: name }]}
+					aspectRatio={false}
+				/>
+			</div>
+		</div>
 	)
 }
 
@@ -226,12 +248,12 @@ export function Demo() {
 							<Units />
 						</DashboardTile>
 
-						<DashboardTile id="units-trend" expandable title="Units trend" minWidth={0}>
-							<Sparkline value="units" />
+						<DashboardTile id="units-trend" expandable title="Monthly units" minWidth={160}>
+							<Kpi value="units" />
 						</DashboardTile>
 
-						<DashboardTile id="revenue-trend" expandable title="Revenue trend" minWidth={0}>
-							<Sparkline value="revenue" />
+						<DashboardTile id="revenue-trend" expandable title="Monthly revenue" minWidth={160}>
+							<Kpi value="revenue" />
 						</DashboardTile>
 
 						<DashboardTile

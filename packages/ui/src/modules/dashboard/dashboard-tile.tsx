@@ -190,16 +190,10 @@ export type DashboardTileProps = {
  * in markup order. It first renders on the client, because the board must know
  * each mounted tile to place it.
  *
- * A chart at the spark tier writes `data-tier="spark"`, and the card reads it
- * through CSS. The header then becomes a veil over the top of the content, so the
- * sparkline takes the full height. A spark chart anywhere in the content box
- * veils the header, and a spark chart in the actions does not. At rest the veil
- * shows on hover or focus, and in edit mode it stays in view for the grip. Where
- * the primary pointer cannot hover, as on a phone or a tablet, the veil stays in
- * view at rest too.
+ * The header row stays in the flow above the content at each size, so a small
+ * tile, such as a sparkline or a KPI, always shows its title.
  *
- * At rest, a truncated title shows its full text in a tooltip on hover. The veil
- * is narrow, so the title of a spark tile truncates first.
+ * At rest, a truncated title shows its full text in a tooltip on hover.
  * @example
  * ```tsx
  * <DashboardTile id="revenue" title="Revenue" ratio={16 / 9} actions={<Badge>Live</Badge>}>

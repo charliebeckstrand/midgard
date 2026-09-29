@@ -164,35 +164,15 @@ describe('Dashboard', () => {
 		expect(screen.queryByRole('button', { name: 'Move Revenue' })).not.toBeInTheDocument()
 	})
 
-	it('fades the spark veil at rest only where the pointer can hover', () => {
-		const { rerender } = renderUI(<Board />)
-
-		const card = screen.getByRole('group', { name: 'Revenue' })
-
-		const fades = () => [...card.classList].filter((name) => name.includes(':not-hover:'))
-
-		// jsdom applies no Tailwind CSS, so the class carries the pin. Where the
-		// primary pointer cannot hover, the veil must stay in view.
-		expect(fades()).toHaveLength(2)
-
-		for (const name of fades()) expect(name.startsWith('[@media(hover:hover)]:')).toBe(true)
-
-		rerender(<Board editing />)
-
-		expect(fades()).toEqual([])
-	})
-
-	it('fades the veil and the splitter bars only where the reader allows motion', () => {
+	it('fades the splitter bars only where the reader allows motion', () => {
 		const { container } = renderUI(<Board editing />)
-
-		const card = screen.getByRole('group', { name: 'Revenue' })
 
 		const transitions = (element: Element) =>
 			[...element.classList].filter((name) => name.includes('transition'))
 
-		// jsdom applies no Tailwind CSS, so the class carries the pin. The card fades
-		// the veil, and each splitter fades its bar.
-		for (const element of [card, ...allBySlot(container, 'dashboard-resize-handle')]) {
+		// jsdom applies no Tailwind CSS, so the class carries the pin. Each splitter
+		// fades its bar.
+		for (const element of allBySlot(container, 'dashboard-resize-handle')) {
 			for (const name of nonEmpty(transitions(element), 'transition class')) {
 				expect(name.startsWith('motion-safe:')).toBe(true)
 			}

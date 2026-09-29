@@ -134,11 +134,7 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 			{...(movable ? surface : {})}
 			// The pointer drags the card itself, so the card closes the grab hand too.
 			data-dragging={dataAttr(dragging)}
-			className={cn(
-				k.card({ editable: movable, dragging }),
-				k.veil.overlay,
-				!editable && k.veil.fade,
-			)}
+			className={cn(k.card({ editable: movable, dragging }))}
 		>
 			{!hasHeader && handle}
 

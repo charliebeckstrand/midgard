@@ -92,53 +92,6 @@ const heading = 'min-w-0 flex-1'
 const actions = 'flex shrink-0 cursor-default items-center gap-1'
 
 /**
- * The spark veil, which the card applies. A chart at the spark tier writes
- * `data-tier="spark"` on its root, and the card reads it through `:has()`, so no
- * code crosses the module boundary. The header then leaves the flow for a veil
- * over the top of the content, and the sparkline takes the full height. This is
- * the posture of the chart's own title at the spark tier.
- *
- * The rule reads only the content box, at any depth in it. A spark chart in the
- * actions of the header therefore veils nothing.
- */
-const veil = {
-	/**
-	 * In both modes, the header overlays the content on the popover surface. The
-	 * content box therefore keeps one height when edit mode switches.
-	 */
-	overlay: [
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:absolute',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:inset-x-2',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:top-2',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:z-10',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:rounded-sm',
-		'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:p-1',
-		// The fade stays under the spark variant. A transition on the header at all times
-		// also fades the header in when a chart leaves the spark tier, as it does on mount.
-		// The fade takes the motion-safe gate of `ugoki.css.opacity`, and the default
-		// duration of 150 ms.
-		'motion-safe:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:transition-opacity',
-		...mode(
-			'has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-white/90',
-			'dark:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:*:data-[slot=card-header]:bg-zinc-800/75',
-		),
-	].join(' '),
-	/**
-	 * At rest, the veil fades out and lets the pointer through, until the card is
-	 * hovered or holds focus. A tab onto a control of the header therefore shows
-	 * it. Edit mode leaves this off, so the grip stays in view.
-	 *
-	 * The fade applies only where the primary pointer can hover. On a phone or a
-	 * tablet, no hover shows the veil. A tap on a spark chart moves no focus into
-	 * the card either. The veil therefore stays in view there, as in edit mode.
-	 */
-	fade: [
-		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:opacity-0',
-		'[@media(hover:hover)]:has-[>[data-slot=dashboard-tile-content]_[data-tier=spark]]:not-hover:not-focus-within:*:data-[slot=card-header]:pointer-events-none',
-	].join(' '),
-} as const
-
-/**
  * The content box. It fills the height that the header leaves. A widget taller
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
@@ -247,7 +200,6 @@ export const k = {
 	header,
 	heading,
 	actions,
-	veil,
 	content,
 	expanded,
 	error,
