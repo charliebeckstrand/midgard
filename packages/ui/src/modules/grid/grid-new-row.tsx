@@ -93,6 +93,7 @@ function GridNewRowCell<T>({
 	col,
 	colIndex,
 	draftRow,
+	readDraftRow,
 	className,
 	style,
 	pin,
@@ -103,6 +104,8 @@ function GridNewRowCell<T>({
 	col: number
 	colIndex: number | undefined
 	draftRow: T
+	/** Reads the draft row again, for the `validate` of the editor. */
+	readDraftRow: () => T
 	className: string
 	style: CSSProperties | undefined
 	/** The `data-grid-pin` value of a frozen cell (see `pinnedCellProps`). */
@@ -145,6 +148,7 @@ function GridNewRowCell<T>({
 				held={false}
 				kind={column.editCell ? undefined : session.editorKind(column)}
 				claimSlot={session.claimFocus}
+				readRow={readDraftRow}
 			/>
 		</span>
 	) : null
@@ -288,12 +292,17 @@ export function GridNewRow<T>({
 	if (!session) return null
 
 	// The row that a column's `editCell` slot and `validate` read: the field of
-	// each editable column, with the value that the user entered.
-	const draftRow = Object.fromEntries(
-		dataColumns
-			.filter((column) => column.field != null)
-			.map((column) => [column.field, session.readDraft(NEW_ROW_KEY, column.id)?.value]),
-	) as T
+	// each editable column, with the value that the user entered. An editor
+	// reads it again as it renders, so `validate` sees the newest value of each
+	// other cell.
+	const readDraftRow = () =>
+		Object.fromEntries(
+			dataColumns
+				.filter((column) => column.field != null)
+				.map((column) => [column.field, session.readDraft(NEW_ROW_KEY, column.id)?.value]),
+		) as T
+
+	const draftRow = readDraftRow()
 
 	const edge = session.position === 'top' ? k.newRow.top : k.newRow.bottom
 
@@ -349,6 +358,7 @@ export function GridNewRow<T>({
 							col={dataColumns.indexOf(column)}
 							colIndex={colIndex}
 							draftRow={draftRow}
+							readDraftRow={readDraftRow}
 							className={className}
 							style={pinned.style}
 							pin={pinned.pin}

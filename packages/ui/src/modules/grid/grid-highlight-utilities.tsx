@@ -3,6 +3,7 @@
 import { Children, cloneElement, isValidElement, type ReactNode } from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
+import { useGridHighlight } from './context'
 
 /** The static highlight-mark class, composed once — not per marked run. @internal */
 const MARK_CLASS = cn(k.cell.mark)
@@ -89,4 +90,31 @@ function walk(node: ReactNode, query: string, lowerQuery: string): ReactNode {
 	}
 
 	return node
+}
+
+/**
+ * Marks the matches of the highlight search in the content of a cell. It reads
+ * the query itself, so a new query renders this node and not the cell around it.
+ *
+ * @internal
+ */
+function GridHighlighted({ children }: { children: ReactNode }): ReactNode {
+	const query = useGridHighlight()
+
+	return query == null ? children : highlightMatches(children, query)
+}
+
+/**
+ * The content of a cell of `column`, set to mark the matches of the highlight
+ * search. The search scans only a column with a `value`, so the cell of any
+ * other column reads no query, and a new query does not render it.
+ *
+ * @internal
+ */
+export function searchedContent(column: { value?: unknown }, content: ReactNode): ReactNode {
+	return column.value != null && content != null ? (
+		<GridHighlighted>{content}</GridHighlighted>
+	) : (
+		content
+	)
 }

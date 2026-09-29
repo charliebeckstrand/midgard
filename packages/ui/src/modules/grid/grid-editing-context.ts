@@ -157,6 +157,12 @@ export type GridNewRowSession = {
 	 * draft store.
 	 */
 	generation: number
+	/**
+	 * A counter that a blocked add raises. The slot renders again, so each
+	 * editor checks `validate` with the current row and shows why the add
+	 * stopped.
+	 */
+	checks: number
 	/** Whether an add that `onRowAdd` returned as a promise is in flight. */
 	inFlight: boolean
 	/** The draft store of the session, which the slot writes under its reserved key. */

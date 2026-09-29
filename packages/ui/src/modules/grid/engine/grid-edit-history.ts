@@ -127,6 +127,36 @@ export function takeHistory(
 	return { status: 'applied', history: next, cells }
 }
 
+/**
+ * Puts back the cells of a step that the sink refused. The step moved its
+ * entry to the other stack when it was sent. The refused cells leave that
+ * entry, and an entry with no cell left goes. They go back to the stack that
+ * `step` took from, as its newest entry, so the step can run again.
+ *
+ * @internal
+ */
+export function restoreHistory(
+	history: GridHistory,
+	step: GridHistoryStep,
+	refused: readonly GridHistoryCell[],
+): GridHistory {
+	if (refused.length === 0) return history
+
+	const out = new Set(refused)
+
+	const moved = step === 'undo' ? history.redo : history.undo
+
+	const kept = moved
+		.map((entry) =>
+			entry.some((cell) => out.has(cell)) ? entry.filter((cell) => !out.has(cell)) : entry,
+		)
+		.filter((entry) => entry.length > 0)
+
+	return step === 'undo'
+		? { undo: [...history.undo, refused], redo: kept }
+		: { undo: kept, redo: [...history.redo, refused] }
+}
+
 /** The value that `step` writes to a cell. @internal */
 export function historyValue(cell: GridHistoryCell, step: GridHistoryStep): unknown {
 	return step === 'undo' ? cell.before : cell.after

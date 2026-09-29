@@ -4,20 +4,16 @@ import { type ComponentProps, memo, type ReactNode, use } from 'react'
 import { TableCell } from '../../components/table'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import { useGridHighlight } from './context'
 import { isFrozen } from './engine/grid-pin/overrides'
 import { pinnedCellProps } from './engine/grid-pin/styles'
 import { columnShiftStyle } from './engine/grid-reorder-compute'
 import {
-	cellContentAt,
 	cellPropsAt,
 	type GridCellRovingActivate,
 	type GridIndexedColumn,
-	resolveCellTooltip,
 } from './engine/grid-row/cell'
 import { cellRovingAttrs } from './engine/grid-row/shell'
-import { GridCellContent } from './grid-cell-content'
-import { highlightMatches } from './grid-highlight-utilities'
+import { cellBody } from './grid-cell-content'
 import { GridReorderContext } from './grid-reorder'
 import type { GridColumnPinning } from './use-grid-table'
 
@@ -46,8 +42,8 @@ type GridDataCellProps<T> = {
 
 /**
  * One data cell: renders the column's `cell` slot directly against the row. It
- * wraps that in the truncation reveal unless the grid opts out, then in a
- * reorder-aware `<td>`. A column with no `cell` yields null content and stays
+ * marks the matches of the highlight search, and wraps that in the truncation
+ * reveal unless the grid opts out, then in a reorder-aware `<td>`. A column with no `cell` yields null content and stays
  * bare. The direct call — no engine `Cell`, no `flexRender` component boundary —
  * is what lets a body render without materializing the engine row model.
  *
@@ -70,35 +66,18 @@ function GridDataCellImpl<T>({
 
 	// Cell-mode roving: the focus ring plus the marker/activation attributes,
 	// applied to whichever `<td>` this cell renders (reorder-aware or plain).
-	const roving = cellRovingAttrs({ cellRoving, cellActivate, col, row, rowKey })
+	const roving = cellRovingAttrs({
+		cellRoving,
+		cellActivate,
+		col,
+		row,
+		rowKey,
+		keyDown: cellExtra?.onKeyDown,
+	})
 
 	const rovingClass = cellRoving ? k.cell.rovable : undefined
 
-	// The active highlight-search query, or `null` outside highlight mode; only a
-	// searched column (one declaring a `value`) marks its matches.
-	const highlightQuery = useGridHighlight()
-
-	// Render only columns that declare a `cell`; a bare accessor column stays
-	// empty rather than falling back to an engine default renderer.
-	const rawContent = cellContentAt(col, row, rowIndex)
-
-	// In highlight-search mode, mark the matched substring in this column's
-	// content — but only for the columns the search actually scans.
-	const marked =
-		highlightQuery != null && col.value != null && rawContent != null
-			? highlightMatches(rawContent, highlightQuery)
-			: rawContent
-
-	const content =
-		truncate && marked != null ? (
-			<GridCellContent
-				content={marked}
-				tooltip={resolveCellTooltip(col, row)}
-				columnId={String(col.id)}
-			/>
-		) : (
-			marked
-		)
+	const content = cellBody(col, row, rowIndex, truncate)
 
 	if (reorderable && !isFrozen(col)) {
 		return (

@@ -233,6 +233,43 @@ describe('Grid grouped-body roving', () => {
 	})
 })
 
+describe("Grid cell roving with a column's own key handler", () => {
+	it.each([
+		['a flat row', {}],
+		['a group leaf', { groupBy: { value: 'role' } }],
+	] as const)('runs the handler of cellProps in %s, and lets it keep the key', (_name, props) => {
+		const onKeyDown = vi.fn((event: { key: string; preventDefault: () => void }) => {
+			if (event.key === ' ') event.preventDefault()
+		})
+
+		const onCellClick = vi.fn()
+
+		const keyed: GridColumn<Row>[] = [
+			{ ...(columns[0] as GridColumn<Row>), cellProps: () => ({ onKeyDown }) },
+			columns[1] as GridColumn<Row>,
+		]
+
+		const { container } = renderUI(
+			<Grid columns={keyed} rows={rows} getKey={getKey} onCellClick={onCellClick} {...props} />,
+		)
+
+		const cell = container.querySelector<HTMLElement>('td[data-roving][data-grid-col="name"]')
+
+		fireEvent.keyDown(cell as HTMLElement, { key: 'Enter' })
+
+		expect(onKeyDown).toHaveBeenCalledTimes(1)
+
+		expect(onCellClick).toHaveBeenCalledTimes(1)
+
+		// The column's handler prevents the default of Space, so the cell does not activate.
+		fireEvent.keyDown(cell as HTMLElement, { key: ' ' })
+
+		expect(onKeyDown).toHaveBeenCalledTimes(2)
+
+		expect(onCellClick).toHaveBeenCalledTimes(1)
+	})
+})
+
 describe('Grid roving interactive-content deference', () => {
 	const withButton: GridColumn<Row>[] = [
 		{ id: 'name', title: 'Name', cell: (row) => row.name },
