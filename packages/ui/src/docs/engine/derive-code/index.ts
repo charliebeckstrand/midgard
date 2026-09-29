@@ -6,6 +6,7 @@ import {
 	addImport,
 	assemble,
 	classifyElement,
+	closePulledDecls,
 	collectChildItems,
 	createContext,
 	elementChildren,
@@ -95,6 +96,9 @@ export function deriveCode(
 	// pulls the pair). A second walk sees the full pull set; it can only turn
 	// live values into source identifiers, never pull further, so it converges.
 	if (context.pulledDecls.size > 0) {
+		// A pulled declaration can pull another, so the second walk sees the closure.
+		closePulledDecls(context)
+
 		context.matched.clear()
 
 		jsx = renderNodes(nodes, context, '')
