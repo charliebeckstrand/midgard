@@ -131,7 +131,10 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
 	})
 
-	it('renders no more for a shared plot as wide as its explicit width', () => {
+	it('measures a shared plot as it attaches, in the render that the attach costs', () => {
+		// The plot box is narrower than the explicit width before React attaches it.
+		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(400)
+
 		const onFrame = vi.fn()
 
 		renderUI(
@@ -144,14 +147,40 @@ describe('usePlotFrame observer lifecycle', () => {
 			/>,
 		)
 
+		clientWidth.mockRestore()
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		// The mount, then one render for the attach and its measurement together.
+		expect(onFrame).toHaveBeenCalledTimes(2)
+	})
+
+	it('renders no more for a shared plot as wide as its explicit width', () => {
+		// A legend stacked below the plot leaves it the whole width.
+		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(600)
+
+		const onFrame = vi.fn()
+
+		renderUI(
+			<Probe
+				width={600}
+				sizing={{ mode: 'aspect', ratio: 2 }}
+				shared
+				onMarks={vi.fn()}
+				onFrame={onFrame}
+			/>,
+		)
+
+		clientWidth.mockRestore()
+
 		const plot = screen.getByTestId('plot')
 
-		const mounted = onFrame.mock.calls.length
+		expect(onFrame).toHaveBeenCalledTimes(2)
 
-		// A legend stacked below the plot leaves it the whole width.
+		// The first notification repeats the size that the attach read.
 		resizeTo(plot, { width: 600, height: 0 })
 
-		expect(onFrame).toHaveBeenCalledTimes(mounted)
+		expect(onFrame).toHaveBeenCalledTimes(2)
 
 		// A legend beside the plot narrows it, and the width comes back after.
 		resizeTo(plot, { width: 400, height: 0 })
