@@ -4,7 +4,7 @@ import type { PropDef } from '../types'
 import { extractDocFromParts } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
-import { sourceOrder } from './literal-order'
+import { orderMembers, sourceOrder } from './literal-order'
 import { isFunctionType, unaliasSymbol } from './ts-utils'
 
 type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
@@ -16,6 +16,8 @@ type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
  *
  * @param callable - The node that the props resolve at: the component's
  *   function, or the name of an export that a factory returns.
+ * @param annotation - The props annotation, when there is one. A recipe prop
+ *   reads the order of its values from the recipe that the annotation names.
  */
 export function extractProps(
 	callable: ts.Node,
@@ -23,6 +25,7 @@ export function extractProps(
 	projectNames: ReadonlySet<string> | null,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
+	annotation?: ts.TypeNode,
 ): PropDef[] {
 	const props: PropDef[] = []
 
@@ -41,7 +44,7 @@ export function extractProps(
 
 		const types = resolveArmTypes(symbols, callable, checker)
 
-		const prop = buildPropDef(name, symbol, types, callable, defaults, checker)
+		const prop = buildPropDef(name, symbol, types, callable, annotation, defaults, checker)
 
 		// `children` is structural when it takes any node, and absent when it
 		// takes none. A narrower type, such as `children: string`, is API, so the
@@ -51,7 +54,14 @@ export function extractProps(
 		props.push(prop)
 	}
 
-	return props
+	if (!projectNames) return props
+
+	// The table follows the order in which the annotation spells the props. The
+	// order of `getProperties()` changes with type ids (see
+	// `extractProjectPropNames`).
+	const rank = [...projectNames]
+
+	return props.sort((a, b) => rank.indexOf(a.name) - rank.indexOf(b.name))
 }
 
 /** Whether a node carries an `@internal` tag in its doc comment. */
@@ -139,6 +149,7 @@ function buildPropDef(
 	symbol: ts.Symbol,
 	propTypes: ts.Type[],
 	callable: ts.Node,
+	annotation: ts.TypeNode | undefined,
 	defaults: ReadonlyMap<string, string>,
 	checker: ts.TypeChecker,
 ): PropDef {
@@ -149,7 +160,7 @@ function buildPropDef(
 	// indirection over a handful of badges. This takes precedence over the
 	// authored alias text below.
 	// The members of a union prop print in the order that its declaration spells.
-	const order = sourceOrder(symbol.getDeclarations()?.[0], checker)
+	const order = sourceOrder(symbol.getDeclarations()?.[0], checker, annotation)
 
 	const literalUnion = literalUnionType(propTypes, callable, checker, order)
 
@@ -250,7 +261,7 @@ function isRequired(symbol: ts.Symbol): boolean {
 
 /**
  * Render each arm-type, dedupe by output text, and join distinct renderings
- * with `|`. `order` orders the members of a single arm (see `sourceOrder`).
+ * with `|`. `order` orders the members of the arms (see `sourceOrder`).
  */
 function formatPropTypes(
 	types: ts.Type[],
@@ -270,16 +281,16 @@ function formatPropTypes(
 	// dedupes and collapses, and a wholly-`undefined` arm — a discriminator like
 	// `onReorder?: undefined` — contributes nothing rather than a literal
 	// `undefined`.
+	// `order` places the members of all the arms together, as it places the
+	// members of one union.
 	const rendered: { text: string; fn: boolean }[] = []
 
-	for (const t of arms) {
-		for (const member of unionMembers(t)) {
-			const text = formatPropType(member, checker, location)
+	for (const member of orderMembers(arms.flatMap(unionMembers), order)) {
+		const text = formatPropType(member, checker, location)
 
-			if (rendered.some((a) => a.text === text)) continue
+		if (rendered.some((a) => a.text === text)) continue
 
-			rendered.push({ text, fn: isFunctionType(member) })
-		}
+		rendered.push({ text, fn: isFunctionType(member) })
 	}
 
 	return joinArms(rendered)

@@ -18,8 +18,8 @@ const { version } = createRequire(import.meta.url)('babel-plugin-react-compiler/
 // a job of its own. The `boundary` project reads source, not rendered output,
 // so it stays out.
 //
-// The `skips` project runs the skip ledger in src/__tests__/compiler/, which
-// only this run needs.
+// The `skips` project runs the skip gate in src/__tests__/compiler/, which only
+// this run needs.
 //
 // The compiler reads the `ui` source, not the tests (`vitest.compiler.preset.ts`).
 export default mergeConfig(base, {

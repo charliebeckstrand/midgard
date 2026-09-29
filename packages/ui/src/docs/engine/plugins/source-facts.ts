@@ -10,7 +10,7 @@ import {
 import { isPascalCase } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { isPageStatement } from './collect-helpers'
-import { namedImportsOf, parseSource, referencedNames } from './ts-source'
+import { parseSource, referencedNames } from './ts-source'
 
 /**
  * Build-time companion to the runtime walker. It extracts per-`Example` source
@@ -524,22 +524,6 @@ function importedNames(sf: ts.SourceFile): string[] {
 }
 
 /**
- * The named specifiers of an `import type { … }` declaration, or null for any
- * other statement.
- */
-function typeImportsOf(
-	stmt: ts.Statement,
-): { specifier: string; elements: readonly ts.ImportSpecifier[] } | null {
-	if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) return null
-
-	const bindings = stmt.importClause?.isTypeOnly ? stmt.importClause.namedBindings : undefined
-
-	if (!bindings || !ts.isNamedImports(bindings)) return null
-
-	return { specifier: stmt.moduleSpecifier.text, elements: bindings.elements }
-}
-
-/**
  * Whether a relative specifier names a data module in the demo's own folder,
  * such as `./data` for `data.ts`. A reader keeps such a file beside the code,
  * so the import line stays as the demo writes it. A sibling demo page is a
@@ -553,9 +537,11 @@ function isDataBeside(specifier: string, resolved: string): boolean {
  * The identifiers a demo imports and where a reader would import them from:
  * relative specifiers map onto public library modules, bare specifiers stay
  * external, and a data module beside the demo keeps its authored specifier.
- * A type-only specifier carries `type`, so its line reads `type Name`.
- * Aliased specifiers are skipped, because an emitted import line would
- * misname them.
+ * A type-only specifier carries `type`, so its line reads `type Name`. A
+ * default binding carries `default`, so its line reads `import Name from`, as
+ * `import countiesUrl from 'us-atlas/counties-10m.json?url'` does. Aliased
+ * specifiers are skipped, because an emitted import line would misname them.
+ * A namespace import (`import * as X`) is skipped too.
  */
 export function importFacts(
 	sf: ts.SourceFile,
@@ -564,13 +550,13 @@ export function importFacts(
 	const facts: Record<string, ImportFact> = {}
 
 	for (const stmt of sf.statements) {
-		const typeOnly = typeImportsOf(stmt)
+		if (!ts.isImportDeclaration(stmt) || !ts.isStringLiteral(stmt.moduleSpecifier)) continue
 
-		const named = typeOnly ?? namedImportsOf(stmt)
+		const clause = stmt.importClause
 
-		if (!named) continue
+		if (!clause) continue
 
-		const { specifier, elements } = named
+		const specifier = stmt.moduleSpecifier.text
 
 		const isRelative = specifier.startsWith('.')
 
@@ -586,7 +572,17 @@ export function importFacts(
 
 		if (!fact) continue
 
-		for (const spec of elements) {
+		const typeOnly = clause.isTypeOnly
+
+		if (clause.name) {
+			facts[clause.name.text] = { ...fact, default: true, ...(typeOnly ? { type: true } : {}) }
+		}
+
+		const bindings = clause.namedBindings
+
+		if (!bindings || !ts.isNamedImports(bindings)) continue
+
+		for (const spec of bindings.elements) {
 			if (spec.propertyName) continue
 
 			facts[spec.name.text] = typeOnly || spec.isTypeOnly ? { ...fact, type: true } : fact

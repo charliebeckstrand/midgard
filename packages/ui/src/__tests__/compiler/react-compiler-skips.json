@@ -1,5 +1,0 @@
-{
-	"hooks/use-virtual-window.ts": {
-		"useWindowVirtualizer": "Immutability"
-	}
-}

@@ -180,6 +180,22 @@ describe('extractProjectPropNames', () => {
 		expect(names.has('size')).toBe(true)
 	})
 
+	// The prop table follows this order.
+	it('keeps the order of the annotation, less the keys that `Omit` drops', () => {
+		const names = projectNames(
+			{
+				'index.ts': [
+					`type BaseProps = { size?: 'sm'; tone?: 'a'; label?: string }`,
+					`type FooProps = Omit<BaseProps, 'tone'> & { icon?: string; tone?: 'b' }`,
+					`export type _Use = FooProps`,
+				].join('\n'),
+			},
+			'FooProps',
+		)
+
+		expect([...names]).toEqual(['size', 'label', 'icon', 'tone'])
+	})
+
 	it('recurses into Extract<T, U> rather than expanding the resolved type', () => {
 		const names = projectNames(
 			{

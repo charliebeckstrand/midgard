@@ -21,6 +21,14 @@ import {
  * intersection properties into a single symbol whose declarations can point
  * only at `@types/react` (e.g. `color` on `<input>`), erasing the project arm
  * that narrowed the type.
+ *
+ * The set keeps the order in which the annotation spells the names, arm by
+ * arm, and the prop table uses that order. The checker's order is not stable.
+ * `Omit` and `Pick` order their keys by type id, and the ids change with the
+ * files that a pass reads first. The walk reads the checker's order only for
+ * a type that it cannot split, such as a recipe's `VariantProps`. That mapped
+ * type iterates the keys of the recipe config, so its order is the order of
+ * the source.
  */
 export function extractProjectPropNames(
 	annotation: ts.TypeNode,
@@ -107,8 +115,18 @@ function walk(
 	// Pass-throughs surface via the pass-through note, not the table.
 	if (isPassThroughTypeName(refName)) return
 
+	// `Omit<T, K>`: the names of `T`, less the keys of `K`. A later arm that
+	// declares an omitted name again adds it in its own place.
 	if (refName === 'Omit') {
-		if (first) recurse(first)
+		if (!first) return
+
+		const kept = new Set<string>()
+
+		walk(first, bindings, kept, visited, checker)
+
+		const omitted = new Set(stringLiteralKeys(second, bindings, checker))
+
+		for (const name of kept) if (!omitted.has(name)) names.add(name)
 
 		return
 	}

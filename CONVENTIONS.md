@@ -162,7 +162,7 @@ The dependency list of a memo names what its value reads, never an extra key to 
 
 The `ui` package keeps its manual `useMemo` and `useCallback`. The jsdom suite, the docs site, and an app that does not compile run `ui` with the compiler off, and there the manual memo is the only memo. Remove it only when each of them compiles `ui`.
 
-10.8 The compiler skips a function that breaks one of its rules, and that function loses its memoization. The `skips` project of `test:compiler` compares each skip in `ui` with a ledger, the file snapshot [`react-compiler-skips.json`](packages/ui/src/__tests__/compiler/react-compiler-skips.json). A new skip fails the run, and so does a ledger entry that compiles now. Fix a new skip. If you cannot, write the ledger with `-u`, and commit it with the change.
+10.8 The compiler skips a function that breaks one of its rules, and that function loses its memoization. The `skips` project of `test:compiler` fails on each skip in `ui`. Fix a new skip. If you cannot, add a function-level `'use no memo'`, give the reason in its TSDoc, and add the function to the list in [`compiler-opt-out-boundary.test.ts`](packages/ui/src/__tests__/boundary/compiler-opt-out-boundary.test.ts).
 
 Two causes are common, and each has a local fix. When a hook gives an object that holds a ref, the compiler reads each property of that object as a ref. Destructure the ref where you call the hook. When a `useCallback` or a `useMemo` calls an effect event, the compiler reads the event as a dependency. A new event comes on each render, so the list cannot name it. Use `useStableEvent` from `src/hooks/use-stable-event.ts` there. Its identity holds for the mount, so the list names it.
 

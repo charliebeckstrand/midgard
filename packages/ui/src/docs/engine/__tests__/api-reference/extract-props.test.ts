@@ -14,6 +14,7 @@ import { createInMemoryProgram } from './helpers'
 function propsOf(
 	source: string | Record<string, string>,
 	defaults: Map<string, string> = new Map(),
+	projectNames: ReadonlySet<string> | null = null,
 ): PropDef[] {
 	const files = typeof source === 'string' ? { 'index.ts': source } : source
 
@@ -35,7 +36,7 @@ function propsOf(
 
 	const propsType = checker.getTypeOfSymbolAtLocation(param, fn)
 
-	return extractProps(fn, propsType, null, defaults, checker)
+	return extractProps(fn, propsType, projectNames, defaults, checker)
 }
 
 function prop(props: PropDef[], name: string): PropDef {
@@ -290,6 +291,32 @@ describe('extractProps — type display', () => {
 		expect(p.type).toBe('Dep')
 
 		expect(p.references).toBeUndefined()
+	})
+})
+
+describe('extractProps — order', () => {
+	it('lists the props in the order of the project names', () => {
+		const props = propsOf(
+			`function Foo(props: { a?: string; b?: string; c?: string }) { return null }`,
+			new Map(),
+			new Set(['c', 'a', 'b']),
+		)
+
+		expect(props.map((p) => p.name)).toEqual(['c', 'a', 'b'])
+	})
+
+	// `w` makes the checker meet `'a'` before `'b'`, so its order puts `'a'`
+	// first.
+	it('orders the members of all the arms of a prop by its source', () => {
+		const props = propsOf(
+			[
+				`type Single = { w?: 'a'; value?: 'b' | 'a' | null }`,
+				`type Multiple = { w?: 'a'; value?: string[] }`,
+				`function Foo(props: Single | Multiple) { return null }`,
+			].join('\n'),
+		)
+
+		expect(prop(props, 'value').type).toBe(`'b' | 'a' | null | string[]`)
 	})
 })
 
