@@ -21,7 +21,10 @@ const FRAMES: Record<string, CSSProperties> = {
 /** The default gap of `TooltipPointer` between the anchor and the panel. */
 const GAP = 12
 
-/** A point in the box of the origin, in client pixels, as ChartTooltip sends it on main. */
+/** The layout size of the origin, before the frame scales it. */
+const ORIGIN = { width: 400, height: 200 }
+
+/** A point in the layout box of the origin, as ChartTooltip sends it. */
 const OFFSET = { x: 300, y: 120 }
 
 /** A client point, as the map and the heatmap send it. */
@@ -33,7 +36,7 @@ function Frame({ frame, relative }: { frame: CSSProperties; relative: boolean })
 
 	return (
 		<div data-testid="frame" style={{ ...frame, width: 400, marginTop: 100, marginLeft: 50 }}>
-			<div ref={origin} data-testid="origin" style={{ width: 400, height: 200 }} />
+			<div ref={origin} data-testid="origin" style={ORIGIN} />
 
 			<TooltipPointer
 				open
@@ -78,9 +81,14 @@ describe('pointer readout under a transformed ancestor (real browser)', () => {
 
 		expect(panel.closest('[data-testid="frame"]')).toBeNull()
 
-		expect(box.left + box.width / 2).toBeCloseTo(origin.left + OFFSET.x, 0)
+		// The point is in the layout pixels of the origin, so it scales with the frame.
+		const scaleX = origin.width / ORIGIN.width
 
-		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y - GAP, 0)
+		const scaleY = origin.height / ORIGIN.height
+
+		expect(box.left + box.width / 2).toBeCloseTo(origin.left + OFFSET.x * scaleX, 0)
+
+		expect(box.bottom).toBeCloseTo(origin.top + OFFSET.y * scaleY - GAP, 0)
 	})
 
 	it.each(Object.entries(FRAMES))('holds a client anchor under %s', async (_, frame) => {
