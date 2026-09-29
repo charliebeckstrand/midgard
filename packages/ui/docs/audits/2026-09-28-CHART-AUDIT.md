@@ -8,7 +8,7 @@
 
 **Classes:** **A** is mechanical, with no change in behavior. **B** is a fix or a refactor that holds the documented behavior and needs a test. **C** needs a decision from the owner: a visual change, a public API change, or an architectural change (CLAUDE.md §3.1).
 
-**Status:** *Open* until a commit on `claude/chart-audit` closes the row; *Fixed on branch* until that branch opens a pull request (CONVENTIONS §12.4).
+**Status:** *Open* until a commit on `claude/chart-audit` closes the row; *Fixed on branch* until that branch opens a pull request (CONVENTIONS §12.4). *Part fixed on branch* where the owner took one part of a row and deferred the rest; *Declined* where the owner chose to leave a row as it is.
 
 ## 1. Defects
 
@@ -81,8 +81,8 @@ Each row names the hot path it sits on and the bench that holds it.
 
 | ID | Where | Finding | Proposed change | Class | Status |
 |---|---|---|---|---|---|
-| S1 | `line-chart.tsx`, `area-chart.tsx`, `bar-chart.tsx`, `combo-chart.tsx` | The four entries repeat the same shell, about 400 of their 1,435 lines: the prop strip list, the legend and texture setup, the value-label call, the crosshair and tooltip resolution, the reference-stop gate (three spellings), the snapped `markAt` fallback, and the whole layer stack. Each frame feature lands four times and drifts (Bar has no `labels.references`). | The hook resolves the legend, the texture, and the drawn series; `ChartCartesianFrame` renders the layer stack from `marks`, `markAt`, and per-chart snap and focus inputs. Each chart keeps its config, geometry, and marks. | C | Open |
-| S2 | `heatmap-chart.tsx:60-126, 801-918` | The heatmap rebuilds the frame (root, figure, tier, hover, menu, table) instead of using `ChartFrame`, which is the root of D1, D31, D38, P9, P10, a missing keyboard path, and a spark heatmap that stays clickable. | Put the heatmap on `ChartFrame` and `useChartPointer`. | C | Open |
+| S1 | `line-chart.tsx`, `area-chart.tsx`, `bar-chart.tsx`, `combo-chart.tsx` | The four entries repeat the same shell, about 400 of their 1,435 lines: the prop strip list, the legend and texture setup, the value-label call, the crosshair and tooltip resolution, the reference-stop gate (three spellings), the snapped `markAt` fallback, and the whole layer stack. Each frame feature lands four times and drifts (Bar has no `labels.references`). | The hook resolves the legend, the texture, and the drawn series; `ChartCartesianFrame` renders the layer stack from `marks`, `markAt`, and per-chart snap and focus inputs. Each chart keeps its config, geometry, and marks. | C | Fixed on branch |
+| S2 | `heatmap-chart.tsx:60-126, 801-918` | The heatmap rebuilds the frame (root, figure, tier, hover, menu, table) instead of using `ChartFrame`, which is the root of D1, D31, D38, P9, P10, a missing keyboard path, and a spark heatmap that stays clickable. | Put the heatmap on `ChartFrame` and `useChartPointer`. | C | Fixed on branch |
 | S3 | `use-chart-cartesian.ts` (1,173 lines) | The pure series, axis, and category helpers share a file with the hook body. | Move the pure helpers to an `engine/chart-cartesian/` concept directory; keep each memo boundary. | A | Fixed on branch |
 | S4 | `chart-layout.ts:42-162`; `use-chart-cartesian.ts:927-962`; `scatter-chart.tsx:276-312, 671-707`; `sector-chart.tsx:229-245` | Frame sizing is a separate concern inside `chart-layout.ts`, and the sizing-plus-policy block is written three times. `chartFrameLayout` repeats `chartFrameSizing`. `chart-orientation.ts` imports `PlotRect` back from the layout. | Move sizing to `engine/chart-frame/sizing.ts`, write `chartFrameLayout` over `chartFrameSizing`, and give the three charts one hook. Move `PlotRect` to `chart-orientation.ts`. | B | Fixed on branch |
 | S5 | `scatter-chart.tsx` (883 lines) | The readout, frame wiring, legend items, and paint repeat the cartesian versions (`scatterLegendItems`, `useScatterReadout`, `scatterMetas`). `scatterXRange` is `valueAxisRange`. The scatter hit area is `ChartHitArea` with another index resolver. | Split the pure layout, the readout hook, and the chrome into their own files. Share the legend items and the paint. Delete `scatterXRange` and `scatter-chart-hit-area.tsx`. | B | Fixed on branch |
@@ -91,11 +91,11 @@ Each row names the hot path it sits on and the bench that holds it.
 | S8 | `chart-series.ts:26`; `sector-chart-marks.tsx:35`; nine inline copies | The recede class has two homes and nine copies. The value-rule projection is written three times. `value === null ? GAP : format(value)` is written four times. The band-index lookup is written twice. The pattern tile body twice. | `seriesGroupClass`, `valueRule`, `readoutCells`, `bandIndexAt`, and `patternTile`, each in one home. | A | Fixed on branch |
 | S9 | `use-chart-pointer.ts:69-118` | Eight positional parameters; the `onData` parameter and the no-`markAt` branch have no caller. | An options object with `markAt` required. | A | Fixed on branch |
 | S10 | `chart-legend/legend.tsx` | `syncReference` repeats `useLegendEmphasis.sync` line for line (the cause of D21). The swatch block is copied twice. | A `ChartLegendReferenceSwitch` on `useLegendEmphasis`, and one swatch component. | B | Fixed on branch |
-| S11 | `heatmap-chart.tsx` (919 lines), `sector-chart.tsx` | The heatmap puts its model hook, cells, hit layer, tooltip, and legend in one file (CONVENTIONS §3.3). The sector computes its sizing, callouts, and readout in the render body. | Split by part. If S2 goes ahead, split after it. | B | Open |
+| S11 | `heatmap-chart.tsx` (919 lines), `sector-chart.tsx` | The heatmap puts its model hook, cells, hit layer, tooltip, and legend in one file (CONVENTIONS §3.3). The sector computes its sizing, callouts, and readout in the render body. | Split by part. If S2 goes ahead, split after it. | B | Fixed on branch |
 | S12 | frame, heatmap, choropleth roots; `map-frame.tsx:188` | The readout-surface root classes are copied four times; the map copy lacks `**:select-none`. The range-legend box is written twice. | A kata token and a `RangeLegend` box slot. | A | Fixed on branch |
 | S13 | each entry's `{...label}` spread | A strip list by destructure decides which props reach the plot `<div>`, so a base prop that a chart forgets leaks to the DOM: `BubbleChart` passes `texture` onto the `role="img"` div. *Probed.* | Pick the frame label by allowlist. | B | Fixed on branch |
 | S14 | Type back-edges | `chart-geometry/line.ts` imports a type from `chart-marks/line.tsx`; `use-chart-cartesian.ts` imports reference schema from a component file. | Move each type to the core it describes. | A | Fixed on branch |
-| S15 | `components/sparkline/sparkline-geometry.ts:96-150` | The sparkline keeps its own polyline and baseline-close writers and the `Math.min(...finite)` spread. A component cannot import `modules/chart/engine`. | A shared `src/utilities` path writer, or leave the sparkline separate. | C | Open |
+| S15 | `components/sparkline/sparkline-geometry.ts:96-150` | The sparkline keeps its own polyline and baseline-close writers and the `Math.min(...finite)` spread. A component cannot import `modules/chart/engine`. | A shared `src/utilities` path writer, or leave the sparkline separate. | C | Declined |
 
 ## 4. Dead code
 
@@ -124,30 +124,31 @@ Each row names the hot path it sits on and the bench that holds it.
 
 Each row changes what a reader sees, a public type, or the module layout. None of them proceeds without assent.
 
-| ID | Source | Question |
-|---|---|---|
-| Q1 | S1 | Fold the cartesian entry shell into the hook and `ChartCartesianFrame`? |
-| Q2 | S2 | Put the heatmap on `ChartFrame`? It needs a custom-tooltip slot on the frame, and it adds a keyboard path. |
-| Q3 | `combo-chart.tsx:245` | ComboChart area washes close at the plot floor, AreaChart's at zero. Close combo areas at zero? *Probed.* |
-| Q4 | `bubble-chart.tsx:12-16` | `BubbleChartProps` accepts `texture` (ignored) and lacks `onPointClick`. Change the public type? |
-| Q5 | `scatter-chart.tsx:722-741` | ScatterChart ignores the tier's tick budget and compact number format. Adopt them? |
-| Q6 | `sector-chart.tsx:385`, `scatter-chart.tsx:836` | The pie and the scatter keyboard cursor do not isolate the series under it; the cartesian charts do. Add it? |
-| Q7 | `chart-time.ts:135-147` | Hourly ticks carry no date across midnight; `Jan 24` reads as a month and as a day. Adopt a multi-format? |
-| Q8 | `chart-scale.ts:106` | A flat series gets at least one whole unit of air: a constant 0.05 shows `[-1, 1.5]`. Scale the air to the magnitude? |
-| Q9 | `chart-layout.ts:642-649` | Tilted labels are never thinned; 60 categories at 800px overlap. Thin by the rotated footprint? |
-| Q10 | `pie.ts:498-512` | Declumped pie callouts can move onto the pie body. Keep them on the leader circle? |
-| Q11 | `chart-value-labels.tsx:306` | `endpoints` labels drop on dense lines when a centered label crosses the plot side. Anchor them inward? |
-| Q12 | `chart-reference-lines.tsx:465` | A reference beyond a pinned domain draws on the clamped edge. Skip it, or mark it off-scale? |
-| Q13 | `chart-marks/bar.tsx:194` | The bar stagger has no cap: the last of 365 bars starts after 18s. Cap it, as the map does? |
-| Q14 | `chart-reference-lines.tsx:153-175`; label inks | Standing reference labels overlap each other and the value labels, and no label has a halo. |
-| Q15 | `layer.tsx:64`, `chart-value-labels.tsx:499` | The generation key reads `static` through hydration and flips after, so an SSR animated chart reveals twice. Decouple the key from reduced motion? |
-| Q16 | `chart-export.ts:124`; fonts | A dark-mode JPG draws on white; web fonts do not reach the bitmap. |
-| Q17 | `heatmap-chart.tsx:549, 821` | The default heatmap ratio is unbounded (1 × 24 draws as a spark strip); a spark heatmap stays clickable. |
-| Q18 | SVG `direction`; `frame.tsx:641` | Pie callouts and heatmap row labels flip their anchor in RTL; `legend="right"` renders on the left in RTL. Pin the drawing to LTR? |
-| Q19 | `use-chart-series-toggle.ts:104` | Reference hides key on position, so a dropped rule shifts the hide onto its neighbor. Key them by occurrence, as series are? |
-| Q20 | `scatter.ts:120-123`; `ScatterChartSeries` | A non-positive bubble size draws at the middle diameter. Pick and document a rule. `ScatterChartSeries` restates three `ChartSeries` fields. |
-| Q21 | `choropleth-chart.tsx:17, 309-325` | The choropleth imports the map engine deeply and wraps `MapPlat` because its root ref is private. Give `MapPlat` a `ref`? |
-| Q22 | `area-chart.tsx` config | Unstacked washes stand on zero, but the category rule stays at the floor. Use the zero rule, as bar and combo do? |
+| ID | Source | Question | Status |
+|---|---|---|---|
+| Q1 | S1 | Fold the cartesian entry shell into the hook and `ChartCartesianFrame`? | Fixed on branch |
+| Q2 | S2 | Put the heatmap on `ChartFrame`? It needs a custom-tooltip slot on the frame, and it adds a keyboard path. | Fixed on branch |
+| Q3 | `combo-chart.tsx:245` | ComboChart area washes close at the plot floor, AreaChart's at zero. Close combo areas at zero? *Probed.* | Fixed on branch |
+| Q4 | `bubble-chart.tsx:12-16` | `BubbleChartProps` accepts `texture` (ignored) and lacks `onPointClick`. Change the public type? | Fixed on branch |
+| Q5 | `scatter-chart.tsx:722-741` | ScatterChart ignores the tier's tick budget and compact number format. Adopt them? | Fixed on branch |
+| Q6 | `sector-chart.tsx:385`, `scatter-chart.tsx:836` | The pie and the scatter keyboard cursor do not isolate the series under it; the cartesian charts do. Add it? | Fixed on branch |
+| Q7 | `chart-time.ts:135-147` | Hourly ticks carry no date across midnight; `Jan 24` reads as a month and as a day. Adopt a multi-format? | Fixed on branch |
+| Q8 | `chart-scale.ts:106` | A flat series gets at least one whole unit of air: a constant 0.05 shows `[-1, 1.5]`. Scale the air to the magnitude? | Fixed on branch |
+| Q9 | `chart-layout.ts:642-649` | Tilted labels are never thinned; 60 categories at 800px overlap. Thin by the rotated footprint? | Fixed on branch |
+| Q10 | `pie.ts:498-512` | Declumped pie callouts can move onto the pie body. Keep them on the leader circle? | Fixed on branch |
+| Q11 | `chart-value-labels.tsx:306` | `endpoints` labels drop on dense lines when a centered label crosses the plot side. Anchor them inward? | Fixed on branch |
+| Q12 | `chart-reference-lines.tsx:465` | A reference beyond a pinned domain draws on the clamped edge. Skip it, or mark it off-scale? | Fixed on branch |
+| Q13 | `chart-marks/bar.tsx:194` | The bar stagger has no cap: the last of 365 bars starts after 18s. Cap it, as the map does? | Fixed on branch |
+| Q14 | `chart-reference-lines.tsx:153-175`; label inks | Standing reference labels overlap each other and the value labels, and no label has a halo. | Open |
+| Q15 | `layer.tsx:64`, `chart-value-labels.tsx:499` | The generation key reads `static` through hydration and flips after, so an SSR animated chart reveals twice. Decouple the key from reduced motion? | Fixed on branch |
+| Q16 | `chart-export.ts:124`; fonts | A dark-mode JPG draws on white; web fonts do not reach the bitmap. | Part fixed on branch |
+| Q17 | `heatmap-chart.tsx:549, 821` | The default heatmap ratio is unbounded (1 × 24 draws as a spark strip); a spark heatmap stays clickable. | Fixed on branch |
+| Q18 | SVG `direction`; `frame.tsx:641` | Pie callouts and heatmap row labels flip their anchor in RTL; `legend="right"` renders on the left in RTL. Pin the drawing to LTR? | Fixed on branch |
+| Q19 | `use-chart-series-toggle.ts:104` | Reference hides key on position, so a dropped rule shifts the hide onto its neighbor. Key them by occurrence, as series are? | Fixed on branch |
+| Q20 | `scatter.ts:120-123`; `ScatterChartSeries` | A non-positive bubble size draws at the middle diameter. Pick and document a rule. `ScatterChartSeries` restates three `ChartSeries` fields. | Fixed on branch |
+| Q21 | `choropleth-chart.tsx:17, 309-325` | The choropleth imports the map engine deeply and wraps `MapPlat` because its root ref is private. Give `MapPlat` a `ref`? | Fixed on branch |
+| Q22 | `area-chart.tsx` config | Unstacked washes stand on zero, but the category rule stays at the floor. Use the zero rule, as bar and combo do? | Fixed on branch |
+| Q23 | `heatmap-chart-schema.ts` | `HeatmapChartProps` omits keys from `ChartBaseProps`, and `Omit` over the `AccessibleName` union drops both name keys, so the type requires no name. Restore the name, as `ScatterChartProps` does? | Fixed on branch |
 
 ## 7. Checked and clean
 
