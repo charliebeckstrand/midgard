@@ -152,6 +152,123 @@ function usesAny(expr: ts.Expression, names: Set<string>): boolean {
 	return visit(expr)
 }
 
+/** The array methods whose callback renders one element for each item. */
+const MAP_METHODS = new Set(['map', 'flatMap'])
+
+/**
+ * The elements that a callback returns: its concise body, or the expression of
+ * each of its own `return` statements. The search reads through parentheses, a
+ * condition, the right side of a logical choice, and a fragment.
+ */
+function returnedElements(fn: ts.ArrowFunction | ts.FunctionExpression): ts.Node[] {
+	const found: ts.Node[] = []
+
+	const take = (expr: ts.Expression | undefined): void => {
+		if (!expr) return
+
+		if (
+			ts.isParenthesizedExpression(expr) ||
+			ts.isAsExpression(expr) ||
+			ts.isSatisfiesExpression(expr) ||
+			ts.isNonNullExpression(expr)
+		) {
+			take(expr.expression)
+		} else if (ts.isConditionalExpression(expr)) {
+			take(expr.whenTrue)
+
+			take(expr.whenFalse)
+		} else if (ts.isBinaryExpression(expr)) {
+			take(expr.right)
+		} else if (ts.isJsxElement(expr) || ts.isJsxSelfClosingElement(expr)) {
+			found.push(expr)
+		} else if (ts.isJsxFragment(expr)) {
+			for (const child of expr.children) {
+				if (ts.isJsxElement(child) || ts.isJsxSelfClosingElement(child)) found.push(child)
+			}
+		}
+	}
+
+	const visit = (node: ts.Node): void => {
+		if (ts.isFunctionLike(node)) return
+
+		if (ts.isReturnStatement(node)) take(node.expression)
+
+		ts.forEachChild(node, visit)
+	}
+
+	if (ts.isBlock(fn.body)) ts.forEachChild(fn.body, visit)
+	else take(fn.body)
+
+	return found
+}
+
+/**
+ * The JSX expression child that holds `node`. Undefined when `node` sits in an
+ * attribute, or in a function or an element inside the expression, first.
+ */
+function jsxChildOf(node: ts.Node): ts.JsxExpression | undefined {
+	for (let current = node.parent; current; current = current.parent) {
+		if (ts.isJsxExpression(current)) {
+			return ts.isJsxAttribute(current.parent) ? undefined : current
+		}
+
+		if (ts.isFunctionLike(current) || ts.isJsxElement(current) || ts.isJsxFragment(current)) {
+			return undefined
+		}
+	}
+
+	return undefined
+}
+
+/** The map that an element renders from, as the facts record it. */
+type MapSource = { source: string; local: boolean; uses: Set<string> }
+
+/**
+ * The map of each element that a `.map` or a `.flatMap` callback in the JSX
+ * returns. Its source is the whole JSX expression child that holds the call.
+ * `local` marks a source that uses a name of an enclosing callback, as an
+ * inner map over the item of an outer one does.
+ */
+function mapsOf(
+	children: readonly ts.Node[],
+	sf: ts.SourceFile,
+	locals: Set<string>,
+): Map<ts.Node, MapSource> {
+	const maps = new Map<ts.Node, MapSource>()
+
+	const visit = (node: ts.Node): void => {
+		if (
+			ts.isCallExpression(node) &&
+			ts.isPropertyAccessExpression(node.expression) &&
+			MAP_METHODS.has(node.expression.name.text)
+		) {
+			const [callback] = node.arguments
+
+			const holder = jsxChildOf(node)?.expression
+
+			if (
+				holder &&
+				callback &&
+				(ts.isArrowFunction(callback) || ts.isFunctionExpression(callback))
+			) {
+				const map: MapSource = {
+					source: holder.getText(sf),
+					local: locals.size > 0 && usesAny(holder, locals),
+					uses: referencedNames(holder),
+				}
+
+				for (const element of returnedElements(callback)) maps.set(element, map)
+			}
+		}
+
+		ts.forEachChild(node, visit)
+	}
+
+	for (const child of children) visit(child)
+
+	return maps
+}
+
 /**
  * The expression props of an element, as source text, the keys among them
  * whose source uses a name of `locals`, and every name that their sources use.
@@ -218,6 +335,8 @@ function collectElementFacts(
 
 	const locals = localNames(children)
 
+	const maps = mapsOf(children, sf, locals)
+
 	const visit = (node: ts.Node): void => {
 		if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
 			const name = tagNameOf(node)
@@ -233,11 +352,18 @@ function collectElementFacts(
 
 				if (renderProp) for (const used of referencedNames(renderProp)) uses.add(used)
 
+				if (renderProp && locals.size > 0 && usesAny(renderProp, locals)) local.push('children')
+
+				const map = maps.get(node)
+
+				if (map) for (const used of map.uses) uses.add(used)
+
 				facts.push({
 					name,
 					props,
 					...(local.length > 0 ? { local } : {}),
 					...(renderProp ? { children: renderProp.getText(sf) } : {}),
+					...(map ? { map: map.source, ...(map.local ? { mapLocal: true } : {}) } : {}),
 				})
 
 				if (renderProp) return

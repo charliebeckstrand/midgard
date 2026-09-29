@@ -106,6 +106,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 		hoisted: new Map(),
 		rendered: new Map(),
 		matched: new Map(),
+		localPrints: 0,
 	}
 }
 
@@ -276,6 +277,8 @@ export function formatProps(
 		const source = fact?.props[key]
 
 		if (source !== undefined) {
+			if (fact?.local?.includes(key)) context.localPrints += 1
+
 			slots.push({
 				key,
 				text: `${key}={${reindent(registerFactText(source, context), indent + INDENT)}}`,
@@ -596,9 +599,17 @@ export function matchElementFact(
 
 	const children = rest.every((c) => c.children === first.children) ? first.children : undefined
 
-	const local = first.local?.filter((key) => key in agreed)
+	const local = first.local?.filter((key) => key in agreed || (key === 'children' && children))
 
-	return { name, props: agreed, ...(local?.length ? { local } : {}), children }
+	const map = rest.every((c) => c.map === first.map) ? first.map : undefined
+
+	return {
+		name,
+		props: agreed,
+		...(local?.length ? { local } : {}),
+		children,
+		...(map === undefined ? {} : { map, ...(first.mapLocal ? { mapLocal: true as const } : {}) }),
+	}
 }
 
 /**

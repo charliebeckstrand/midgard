@@ -492,6 +492,101 @@ describe('deriveCode source-fact matching', () => {
 	})
 })
 
+describe('deriveCode mapped runs', () => {
+	const Page = tag<{ value?: number; onClick?: () => void }>('Page', 'page')
+
+	const Gap = tag('Gap', 'page')
+
+	const List = tag<{ children?: ReactNode }>('List', 'list')
+
+	const map =
+		'pages.map((p) => (p === 0 ? <Gap key="gap" /> : <Page key={p} onClick={() => go(p)} />))'
+
+	const pageFacts = (local: boolean) =>
+		facts({
+			elements: [
+				{ name: 'Gap', props: {}, map },
+				{
+					name: 'Page',
+					props: { onClick: '() => go(p)' },
+					...(local ? { local: ['onClick'] } : {}),
+					map,
+				},
+			],
+			bindings: { pages: 0 },
+			declarations: [{ names: ['pages'], code: 'const pages = [1, 0, 2]' }],
+		})
+
+	const tree = createElement(
+		List,
+		null,
+		[1, 0, 2].map((p) =>
+			p === 0
+				? createElement(Gap, { key: 'gap' })
+				: createElement(Page, { key: p, value: p, onClick: () => {} }),
+		),
+	)
+
+	// `p` is the map's item, so the run prints the map, which binds it.
+	it('prints a run as its authored map when an element prints a name that the map binds', () => {
+		const result = deriveCode(tree, registry, pageFacts(true))
+
+		expect(result).toContain(`<List>\n  {${map}}\n</List>`)
+
+		expect(result).toContain('const pages = [1, 0, 2]')
+	})
+
+	// The inner map names the outer item, so the outer map prints, and binds it.
+	it('prints the outer map when an inner map uses the outer item', () => {
+		const Column = tag<{ children?: ReactNode }>('Column', 'board')
+
+		const Card = tag<{ onClick?: () => void }>('Card', 'board')
+
+		const outer = 'columns.map((column) => <Column key={column.id}>{column.cards.map(…)}</Column>)'
+
+		const inner = 'column.cards.map((card) => <Card key={card} onClick={() => pick(card)} />)'
+
+		const board = createElement(
+			List,
+			null,
+			['a', 'b'].map((id) =>
+				createElement(
+					Column,
+					{ key: id },
+					[1, 2].map((card) => createElement(Card, { key: card, onClick: () => {} })),
+				),
+			),
+		)
+
+		const result = deriveCode(
+			board,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Column', props: {}, map: outer },
+					{
+						name: 'Card',
+						props: { onClick: '() => pick(card)' },
+						local: ['onClick'],
+						map: inner,
+						mapLocal: true,
+					},
+				],
+			}),
+		)
+
+		expect(result).toContain(`<List>\n  {${outer}}\n</List>`)
+	})
+
+	it('prints a run one element at a time when no element prints such a name', () => {
+		const result = deriveCode(tree, registry, pageFacts(false))
+
+		expect(result).toContain('<Page value={1} onClick={() => go(p)} />\n  <Gap />')
+
+		expect(result).not.toContain('pages.map')
+	})
+})
+
 describe('deriveCode round trip through extractSourceFacts', () => {
 	it('reproduces a controlled-input snippet from the authored demo source', () => {
 		const source = [
