@@ -838,3 +838,63 @@ describe('HeatmapChart keyboard navigation', () => {
 		expect(getSlot(spark.container, 'chart-plot')).not.toHaveAttribute('tabindex')
 	})
 })
+
+describe('HeatmapChart default ratio', () => {
+	/** A grid of `rows` × `cols` cells, each with a value. */
+	const grid = (rows: number, cols: number) =>
+		Array.from({ length: rows * cols }, (_, index) => ({
+			day: `R${Math.floor(index / cols)}`,
+			hour: `C${index % cols}`,
+			commits: index,
+		}))
+
+	/** The height the drawing takes at 400 px wide, with no rail beside it. */
+	const drawnHeight = (rows: number, cols: number) => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={grid(rows, cols)}
+				series={SERIES}
+				width={400}
+				legend={false}
+			/>,
+		)
+
+		return {
+			height: Number(getSlot(container, 'chart-plot').querySelector('svg')?.getAttribute('height')),
+			tier: getSlot(container, 'chart').getAttribute('data-tier'),
+		}
+	}
+
+	it('fits the frame to the grid inside the bounds', () => {
+		// 24 columns over 7 rows is a ratio of about 3.4, inside the bounds.
+		expect(drawnHeight(7, 24).height).toBe(Math.round(400 / (24 / 7)))
+	})
+
+	it('caps a wide grid at a ratio of 4, so one row draws as a chart and not a spark strip', () => {
+		const wide = drawnHeight(1, 24)
+
+		expect(wide.height).toBe(100)
+
+		expect(wide.tier).not.toBe('spark')
+	})
+
+	it('floors a tall grid at a ratio of 1/2', () => {
+		expect(drawnHeight(24, 1).height).toBe(800)
+	})
+
+	it('keeps an explicit aspectRatio outside the bounds', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={grid(1, 24)}
+				series={SERIES}
+				width={400}
+				legend={false}
+				aspectRatio={8}
+			/>,
+		)
+
+		expect(getSlot(container, 'chart-plot').querySelector('svg')).toHaveAttribute('height', '50')
+	})
+})

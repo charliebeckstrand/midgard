@@ -48,10 +48,11 @@ function gridMarkAt(): ChartMarkRef {
  *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
- * fitting its aspect to the grid shape; pass `aspectRatio` to override. The
- * heatmap renders as a static SVG tree and takes no `animate`. A function-form
- * context menu `items` receives the row-major index of the cell under the
- * pointer or the keyboard cursor: `row * columns + col`.
+ * fitting its aspect to the grid shape, held between 1/2 and 4. Pass
+ * `aspectRatio` to override. The heatmap renders as a static SVG tree and takes
+ * no `animate`. A function-form context menu `items` receives the row-major
+ * index of the cell under the pointer or the keyboard cursor:
+ * `row * columns + col`.
  * @example
  * ```tsx
  * <HeatmapChart

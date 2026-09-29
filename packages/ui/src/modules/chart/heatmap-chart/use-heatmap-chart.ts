@@ -14,6 +14,7 @@ import { k } from '../../../recipes/kata/chart'
 import {
 	type BinScale,
 	type ColorBin,
+	clamp,
 	fractionFormat,
 	once,
 	resolveBinScale,
@@ -27,13 +28,13 @@ import {
 	LABEL_CHAR_WIDTH,
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
-import { chartFrameSizing } from '../engine/chart-frame/sizing'
+import { type ChartAspectRatio, chartFrameSizing } from '../engine/chart-frame/sizing'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
 import { bandTicksOf, plotRect, thinned } from '../engine/chart-layout'
 import type { PlotRect } from '../engine/chart-orientation'
 import { type BandScale, bandScale } from '../engine/chart-scale'
 import { readoutCell } from '../engine/chart-series'
-import { type ChartTier, chartPolicy } from '../engine/chart-tier'
+import { type ChartTier, COMPACT_WIDTH, chartPolicy, SPARK_HEIGHT } from '../engine/chart-tier'
 import type { ChartReadout, ChartReadoutSource } from '../engine/types'
 import type { ChartFocusTargets } from '../engine/use-chart-keyboard'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
@@ -46,6 +47,28 @@ import {
 
 /** The classes of a row label, as the y axis draws it. @internal */
 const ROW_LABEL_CLASS = cn(k.tick)
+
+/**
+ * The widest default ratio, 4. A box at the compact width then stands at the
+ * spark height, so a wide grid in a framed box never draws as a spark strip.
+ *
+ * @internal
+ */
+const MAX_GRID_RATIO = COMPACT_WIDTH / SPARK_HEIGHT
+
+/** The tallest default ratio: a tall grid draws at most twice as tall as it is wide. @internal */
+const MIN_GRID_RATIO = 1 / 2
+
+/**
+ * The default ratio of the frame: the shape of the grid, so that the cells read
+ * square-ish, held between {@link MIN_GRID_RATIO} and {@link MAX_GRID_RATIO}.
+ * One row of 24 cells therefore draws at 4, not 24. An empty grid takes 16/9.
+ *
+ * @internal
+ */
+function gridRatio(cols: number, rows: number): ChartAspectRatio {
+	return cols > 0 && rows > 0 ? clamp(cols / rows, MIN_GRID_RATIO, MAX_GRID_RATIO) : '16/9'
+}
 
 /**
  * The x (column) and y (row) band-axis tick labels, thinned to fit their axes.
@@ -222,8 +245,9 @@ export function useHeatmapChart<T>(
 	const rows = matrix.rows.length
 
 	// Fit the frame to the grid so cells read square-ish; the reserved gutter and
-	// axis band shave it a touch, which is fine for a categorical key.
-	const ratio = aspectRatio ?? (cols > 0 && rows > 0 ? cols / rows : '16/9')
+	// axis band shave it a touch, which is fine for a categorical key. An explicit
+	// `aspectRatio` is not bounded.
+	const ratio = aspectRatio ?? gridRatio(cols, rows)
 
 	const sizing = chartFrameSizing(height, ratio)
 
