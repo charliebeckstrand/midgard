@@ -1,3 +1,4 @@
+import type { CSSProperties } from 'react'
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page } from 'vitest/browser'
 import { type ChartCapture, prepareChartCapture } from '../../modules/chart/engine/chart-export'
@@ -234,5 +235,47 @@ describe('chart image capture (real browser)', () => {
 			width: Math.round(rect.width),
 			height: Math.round(rect.height),
 		})
+	})
+})
+
+describe('chart image ground (real browser)', () => {
+	/** Renders a small line chart inside `surface`, and returns its root. */
+	async function chartOn(surface: CSSProperties, inner?: CSSProperties) {
+		const { container } = renderUI(
+			<div style={{ width: 480, ...surface }}>
+				<div style={inner}>
+					<LineChart
+						aria-label="Revenue by month"
+						data={DATA}
+						series={SERIES.slice(0, 1)}
+						animate={false}
+					/>
+				</div>
+			</div>,
+		)
+
+		await waitFor(() => expect(drawing(container).getBoundingClientRect().width).toBeGreaterThan(0))
+
+		return getSlot(container, 'chart')
+	}
+
+	it('grounds the bitmap on the surface under the chart', async () => {
+		// A dark surface. Before, a JPEG always drew on white, where the light
+		// text of a dark theme could not be read.
+		const root = await chartOn({ background: 'rgb(9, 9, 11)' })
+
+		expect(prepareChartCapture(root, true).ground).toEqual(['rgb(9, 9, 11)'])
+	})
+
+	it('layers a translucent surface over the one beneath it, outermost first', async () => {
+		const root = await chartOn(
+			{ background: 'rgb(9, 9, 11)' },
+			{ background: 'rgba(255, 255, 255, 0.1)' },
+		)
+
+		expect(prepareChartCapture(root, true).ground).toEqual([
+			'rgb(9, 9, 11)',
+			'rgba(255, 255, 255, 0.1)',
+		])
 	})
 })

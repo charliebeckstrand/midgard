@@ -48,6 +48,48 @@ export type ChartCapture = {
 	clone: HTMLElement
 	/** The crop, relative to the border box of the root. */
 	box: CaptureBox
+	/**
+	 * The surface under the chart, as the background colors from the nearest
+	 * opaque one inward, outermost first. A JPEG paints them in that order under
+	 * the image. It is empty where no ancestor paints a background.
+	 */
+	ground: string[]
+}
+
+/** The alpha of a computed CSS color: `rgba(…)`, a slash alpha, or opaque. @internal */
+function alphaOf(color: string): number {
+	if (color === 'transparent') return 0
+
+	const alpha =
+		/\/\s*([\d.]+)(%?)\s*\)$/.exec(color) ?? /^rgba\((?:[^,]+,){3}\s*([\d.]+)()\)$/.exec(color)
+
+	if (!alpha) return 1
+
+	return Number(alpha[1]) / (alpha[2] === '%' ? 100 : 1)
+}
+
+/**
+ * The background colors under `root`, from the nearest opaque one inward,
+ * outermost first: the surface that a chart with no background of its own
+ * reads on. A translucent surface keeps the ones beneath it, so a painter can
+ * layer them.
+ *
+ * @internal
+ */
+function groundOf(root: HTMLElement): string[] {
+	const layers: string[] = []
+
+	for (let node: HTMLElement | null = root; node; node = node.parentElement) {
+		const color = getComputedStyle(node).backgroundColor
+
+		const alpha = alphaOf(color)
+
+		if (alpha > 0) layers.unshift(color)
+
+		if (alpha >= 1) break
+	}
+
+	return layers
 }
 
 /**
@@ -402,7 +444,7 @@ export function prepareChartCapture(root: HTMLElement, includeLegend: boolean): 
 
 	freezeStyleTree(root, clone, getComputedStyle(root), plan)
 
-	return { clone, box }
+	return { clone, box, ground: groundOf(root) }
 }
 
 /** Loads a data-URL into an `Image`, resolving once decoded. @internal */
@@ -420,12 +462,19 @@ function loadImage(source: string): Promise<HTMLImageElement> {
 	})
 }
 
-/** Draws a decoded image to a `2×` canvas — white-grounded for JPEG, transparent for PNG — and encodes it. @internal */
+/**
+ * Draws a decoded image to a `2×` canvas and encodes it. A JPEG has no alpha, so
+ * it paints the `ground` under the image first: white, then each surface layer.
+ * A PNG stays transparent.
+ *
+ * @internal
+ */
 async function encode(
 	image: HTMLImageElement,
 	width: number,
 	height: number,
 	type: ChartImageType,
+	ground: string[],
 ): Promise<Blob | null> {
 	const canvas = document.createElement('canvas')
 
@@ -438,9 +487,13 @@ async function encode(
 	if (!context) return null
 
 	if (type === 'image/jpeg') {
-		context.fillStyle = '#ffffff'
+		// White under all, so a translucent ground with no opaque one beneath it
+		// never blends with the black of an empty canvas.
+		for (const color of ['#ffffff', ...ground]) {
+			context.fillStyle = color
 
-		context.fillRect(0, 0, canvas.width, canvas.height)
+			context.fillRect(0, 0, canvas.width, canvas.height)
+		}
 	}
 
 	context.drawImage(image, 0, 0, canvas.width, canvas.height)
@@ -456,8 +509,9 @@ async function encode(
  * draws it through an SVG `foreignObject`. The HTML chrome and the SVG marks
  * then export as one image. `includeLegend: false` prunes the legend from the
  * clone and crops the image to the plot and the header text, so no blank band
- * remains. The live chart does not change. JPEG gets an opaque white ground;
- * PNG stays transparent.
+ * remains. The live chart does not change. A JPEG takes the surface under the
+ * chart as its ground, so a dark theme exports on its dark surface. A PNG stays
+ * transparent.
  *
  * @param root - The chart root element to capture.
  * @param options - The bitmap `type` and whether to keep the legend.
@@ -469,7 +523,7 @@ export async function rasterizeChartImage(
 ): Promise<Blob | null> {
 	// Synchronous capture: measure and clone before the first await, so the
 	// image shows the chart as it is now.
-	const { clone, box } = prepareChartCapture(root, includeLegend)
+	const { clone, box, ground } = prepareChartCapture(root, includeLegend)
 
 	// The clone keeps the size of the root. It moves by the crop origin, so the
 	// crop fills the image.
@@ -487,7 +541,7 @@ export async function rasterizeChartImage(
 
 	const image = await loadImage(dataUrl)
 
-	return encode(image, box.width, box.height, type)
+	return encode(image, box.width, box.height, type, ground)
 }
 
 /**
