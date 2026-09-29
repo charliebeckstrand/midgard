@@ -768,6 +768,22 @@ export function useGridNavigation({
 
 	// A press on a data cell. Without the range, it only seats the cursor. With
 	// it, the grid owns the press, so the browser starts no text selection.
+	// Whether the cell at a data row and a column is inside the range.
+	const inRangeAt = useCallback(
+		(row: number, col: number) => {
+			const corners = readCorners()
+
+			if (corners === null) return false
+
+			const rect = rangeRect(corners.from, corners.to)
+
+			const place = orderRef.current ? (cursorOfDataRef.current.get(row) ?? -1) : row
+
+			return place !== -1 && inRangeRect(rect, place, col)
+		},
+		[readCorners],
+	)
+
 	const seat = useCallback(
 		(coord: Coord, event: MouseEvent<HTMLElement>) => {
 			if (!range) {
@@ -775,6 +791,10 @@ export function useGridNavigation({
 
 				return
 			}
+
+			// A press of another button, such as the one that opens the context
+			// menu, keeps a range that holds the cell, so the menu can act on it.
+			if (event.button !== 0 && inRangeAt(coord.row, coord.col)) return
 
 			event.preventDefault()
 
@@ -788,7 +808,7 @@ export function useGridNavigation({
 
 			startDrag(event)
 		},
-		[range, moveTo, extendTo, startDrag],
+		[range, moveTo, extendTo, startDrag, inRangeAt],
 	)
 
 	const readRange = useCallback((): GridRangeCells | null => {
@@ -864,17 +884,7 @@ export function useGridNavigation({
 
 			return data !== -1 && data === row
 		},
-		isInRange: (row, col) => {
-			const corners = readCorners()
-
-			if (corners === null) return false
-
-			const rect = rangeRect(corners.from, corners.to)
-
-			const place = orderRef.current ? (cursorOfDataRef.current.get(row) ?? -1) : row
-
-			return place !== -1 && inRangeRect(rect, place, col)
-		},
+		isInRange: inRangeAt,
 		isStopActive: (key) => {
 			const current = readActive()
 

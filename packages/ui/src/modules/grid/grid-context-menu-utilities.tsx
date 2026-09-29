@@ -2,6 +2,7 @@
 
 import {
 	ArrowDown,
+	ArrowDownToLine,
 	ArrowLeftToLine,
 	ArrowRightToLine,
 	ArrowUp,
@@ -33,6 +34,7 @@ import {
 	physicalSide,
 	pinMenuChoices,
 } from './engine/grid-pin/overrides'
+import type { GridRangeFill } from './engine/grid-range/fill'
 import { sortsEqual } from './engine/grid-sort/state'
 import type { GridColumnGroup } from './grid-group-types'
 import type { GridColumn, GridMenuItem } from './types'
@@ -436,19 +438,51 @@ export function columnMenuDefaults<T>(args: ColumnMenuDefaultArgs<T>): GridMenuI
 }
 
 /**
- * Default cell-menu items: Copy, acting on the right-clicked cell. When export
- * is on, the Export submenu follows it, a grid-wide tool scoped to the
- * selection when rows are selected. Unruled, as the column menu's defaults are;
- * a host's builder places any separator it wants.
+ * The Fill down and Fill right items of the cell menu: one for each fill
+ * that the range can make when the menu opens. They are the single-pointer
+ * route to a fill (WCAG 2.5.7). Empty while the grid cannot fill.
+ *
+ * @internal
+ */
+export function fillItems(fill: GridRangeFill | undefined): GridMenuItem[] {
+	const down = fill?.('down')
+
+	const right = fill?.('right')
+
+	const items: GridMenuItem[] = []
+
+	if (down)
+		items.push({ key: 'fill-down', label: 'Fill down', icon: <ArrowDownToLine />, onAction: down })
+
+	if (right) {
+		items.push({
+			key: 'fill-right',
+			label: 'Fill right',
+			icon: <ArrowRightToLine />,
+			onAction: right,
+		})
+	}
+
+	return items
+}
+
+/**
+ * Default cell-menu items: Copy, acting on the right-clicked cell. The fill
+ * items of a cell range follow it (see {@link fillItems}). When export is on,
+ * the Export submenu comes next, a grid-wide tool scoped to the selection when
+ * rows are selected. Unruled, as the column menu's defaults are; a host's
+ * builder places any separator it wants.
  *
  * @internal
  */
 export function cellMenuDefaults(
 	copy: () => void,
 	exportActions: GridExportAction[],
+	fill: GridMenuItem[] = [],
 ): GridMenuItem[] {
 	return [
 		{ key: 'copy', label: 'Copy', icon: <Copy />, onAction: copy },
+		...fill,
 		...submenuItems({
 			key: 'export',
 			label: 'Export',

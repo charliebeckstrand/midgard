@@ -120,6 +120,11 @@ export type GridEditingApi = {
 	 */
 	pasteCells: ((cells: readonly GridPasteCell[]) => void) | undefined
 	/**
+	 * Writes the values of a fill into their cells, as one save, for the fill
+	 * of {@link useGridCursor}. Present under `editable.session: 'managed'` only.
+	 */
+	fillCells: ((cells: readonly GridFillCell[]) => void) | undefined
+	/**
 	 * The session's commit on leave, layered onto the grid `<table>`'s focus
 	 * handlers by {@link useGridCursor}. `blur` reads each focus move out of an
 	 * editor, or out of the grid, against `commitOn`. When the move leaves what
@@ -692,10 +697,35 @@ function flushClosedCells<T>(args: {
 export type GridPasteCell = { rowKey: string | number; columnId: string | number; text: string }
 
 /**
+ * One cell of a fill: its row, its column, and the value that goes into it.
+ * @internal
+ */
+export type GridFillCell = GridCellChange
+
+/**
+ * The column and the row of a cell that a paste or a fill can write, or
+ * `null` when the write skips the cell. A cell is skipped when its column
+ * cannot edit now, when its column has no `field`, or when its row is gone.
+ * @internal
+ */
+function writeTarget<T>(
+	source: GridEditSource<T>,
+	rowOf: (rowKey: string | number) => T | undefined,
+	cell: GridCellRef,
+): { col: GridColumn<T>; field: keyof T; row: T } | null {
+	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+
+	if (col?.field == null || !isColumnEditable(col)) return null
+
+	const row = rowOf(cell.rowKey)
+
+	return row == null ? null : { col, field: col.field, row }
+}
+
+/**
  * The change that a paste makes to one cell, or `null` when the paste skips
- * the cell. A cell is skipped when its column cannot edit now, when its column
- * has no `field`, or when its row is gone. The text loses the one guard
- * apostrophe that a copy adds (see {@link unguardField}). The column's
+ * the cell (see {@link writeTarget}). The text loses the one guard apostrophe
+ * that a copy adds (see {@link unguardField}). The column's
  * {@link GridColumn.parse} reads it, else {@link coercePaste}. A text that
  * does not fit its cell gives a change with the text as its value, and
  * `fits` is `false`. @internal
@@ -705,17 +735,15 @@ function pasteChange<T>(
 	rowOf: (rowKey: string | number) => T | undefined,
 	cell: GridPasteCell,
 ): { change: GridCellChange; fits: boolean } | null {
-	const col = source.columns.find((candidate) => candidate.id === cell.columnId)
+	const target = writeTarget(source, rowOf, cell)
 
-	if (col?.field == null || !isColumnEditable(col)) return null
+	if (!target) return null
 
-	const row = rowOf(cell.rowKey)
-
-	if (row == null) return null
+	const { col, field, row } = target
 
 	const text = unguardField(cell.text)
 
-	const read = col.parse ? { value: col.parse(text, row) } : coercePaste(text, row[col.field])
+	const read = col.parse ? { value: col.parse(text, row) } : coercePaste(text, row[field])
 
 	const { rowKey, columnId } = cell
 
@@ -2709,6 +2737,30 @@ export function useGridEditing<T>({
 		[editSourceRef, drafts, submitCells],
 	)
 
+	// Writes the values of a fill into their cells, as one save. A fill skips
+	// the cells that a paste skips.
+	const fillCells = useCallback(
+		(cells: readonly GridFillCell[]) => {
+			const source = editSourceRef.current
+
+			const rowOf = rowLookup(source)
+
+			const changes: GridCellChange[] = []
+
+			let skipped = 0
+
+			for (const cell of cells) {
+				const drafted = drafts.read(cell.rowKey, cell.columnId) !== undefined
+
+				if (drafted || !writeTarget(source, rowOf, cell)) skipped++
+				else changes.push(cell)
+			}
+
+			submitCells(changes, 'filled', rowOf, { refused: [], skipped })
+		},
+		[editSourceRef, drafts, submitCells],
+	)
+
 	// Moves the cursor to a cell that a history step wrote, when the grid shows
 	// its row and its column.
 	const moveToCell = useCallback(
@@ -2822,6 +2874,7 @@ export function useGridEditing<T>({
 		historyKeys,
 		stepHistory: stepFromHandle,
 		pasteCells: managed ? pasteCells : undefined,
+		fillCells: managed ? fillCells : undefined,
 		sessionLeave: commitOn === 'explicit' ? undefined : { blur: sessionLeave, focus: sessionFocus },
 		newRow: {
 			position: newRowPosition,

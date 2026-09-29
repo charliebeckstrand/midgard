@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { describeRange, describeWrite } from '../../modules/grid/engine/grid-announcements'
+import { fillLine, fillPlan, rangeFillSource } from '../../modules/grid/engine/grid-range/fill'
 import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
@@ -242,5 +243,74 @@ describe('describeWrite', () => {
 		expect(describeWrite([], undefined, 'pasted', 1)).toBe('1 cell skipped')
 
 		expect(describeWrite([], undefined, 'pasted', 0)).toBeNull()
+	})
+})
+
+describe('fillLine', () => {
+	it('continues a line of numbers with a constant step', () => {
+		expect(fillLine([1, 2], 3)).toEqual([3, 4, 5])
+
+		expect(fillLine([10, 7.5, 5], 2)).toEqual([2.5, 0])
+
+		expect(fillLine([0.1, 0.2], 1)).toEqual([0.3])
+	})
+
+	it('repeats every other line', () => {
+		expect(fillLine([5], 2)).toEqual([5, 5])
+
+		expect(fillLine([1, 2, 4], 4)).toEqual([1, 2, 4, 1])
+
+		expect(fillLine(['a', 'b'], 3)).toEqual(['a', 'b', 'a'])
+
+		expect(fillLine([1, '2'], 2)).toEqual([1, '2'])
+
+		expect(fillLine([], 2)).toEqual([])
+	})
+})
+
+describe('fillPlan', () => {
+	const read = (row: number, col: number) => row * 10 + col
+
+	it('fills each column down, and each row right', () => {
+		expect(fillPlan({ rows: [0, 1], cols: [2] }, 'down', 2, read)).toEqual([
+			{ row: 2, col: 2, value: 22 },
+			{ row: 3, col: 2, value: 32 },
+		])
+
+		expect(fillPlan({ rows: [4], cols: [0] }, 'right', 2, read)).toEqual([
+			{ row: 4, col: 1, value: 40 },
+			{ row: 4, col: 2, value: 40 },
+		])
+	})
+
+	it('runs a series back from the far edge for a fill up or left', () => {
+		expect(fillPlan({ rows: [3, 4], cols: [0] }, 'up', 2, read)).toEqual([
+			{ row: 2, col: 0, value: 20 },
+			{ row: 1, col: 0, value: 10 },
+		])
+
+		expect(fillPlan({ rows: [0], cols: [2, 3] }, 'left', 1, read)).toEqual([
+			{ row: 0, col: 1, value: 1 },
+		])
+	})
+})
+
+describe('rangeFillSource', () => {
+	const cells = { rows: [0, 1, 2], cols: [1, 2] }
+
+	it('takes the top row for a fill down and the first column for a fill right', () => {
+		expect(rangeFillSource(cells, 'down')).toEqual({
+			source: { rows: [0], cols: [1, 2] },
+			count: 2,
+		})
+
+		expect(rangeFillSource(cells, 'right')).toEqual({
+			source: { rows: [0, 1, 2], cols: [1] },
+			count: 1,
+		})
+	})
+
+	it('gives no fill for a range one cell deep', () => {
+		expect(rangeFillSource({ rows: [0], cols: [1, 2] }, 'down')).toBeNull()
 	})
 })
