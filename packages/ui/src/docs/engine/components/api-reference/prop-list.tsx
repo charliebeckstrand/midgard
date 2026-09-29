@@ -1,21 +1,24 @@
 'use client'
 
+import { useState } from 'react'
 import { Badge } from '../../../../components/badge'
+import { Button } from '../../../../components/button'
 import { CodeBlock } from '../../../../components/code'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../../components/tooltip'
 import { cn } from '../../../../core'
 import { Stack } from '../../../../structure/stack'
 import type { PropDef } from '../../api-reference/types'
-import { DefaultValue } from './default-value'
-import { DocDescription } from './doc-description'
+import { DefaultValue, isProseDefault } from './default-value'
+import { DocDescription, splitDescription } from './doc-description'
 import { TypeCell } from './type-cell'
 
 /**
  * Prop entries as a two-column rail. The left column carries the identity: name,
  * required and deprecated marks, and the type via `TypeCell`. The right column
- * carries the prose: description, a labelled default, and `@example`. The
- * columns stack below `sm`. Absent fields drop out, so an undocumented prop
- * collapses to name and type.
+ * carries the prose: the description summary, a labelled default, and
+ * `@example`. The rest of the description folds behind a toggle. A default that
+ * is a sentence joins that folded text. The columns stack below `sm`. Absent
+ * fields drop out, so an undocumented prop collapses to name and type.
  */
 export function PropList({ rows }: { rows: PropDef[] }) {
 	return (
@@ -30,7 +33,15 @@ export function PropList({ rows }: { rows: PropDef[] }) {
 function PropRow({ prop }: { prop: PropDef }) {
 	const { deprecated } = prop
 
-	const hasBody = !!(prop.description || prop.default || prop.example)
+	const { summary, detail } = splitDescription(prop.description ?? '')
+
+	const proseDefault = prop.default && isProseDefault(prop.default) ? prop.default : undefined
+
+	const folded = [detail, proseDefault && `Default: ${proseDefault}`].filter(Boolean).join('\n\n')
+
+	const literalDefault = prop.default && !proseDefault ? prop.default : undefined
+
+	const hasBody = !!(summary || folded || literalDefault || prop.example)
 
 	return (
 		<div className="grid gap-x-8 gap-y-2 py-4 first:pt-0 last:pb-0 sm:grid-cols-[12rem_minmax(0,1fr)]">
@@ -65,15 +76,36 @@ function PropRow({ prop }: { prop: PropDef }) {
 			</Stack>
 			{hasBody && (
 				<Stack gap="sm" className="min-w-0">
-					{prop.description && <DocDescription description={prop.description} />}
-					{prop.default && (
+					<DocDescription description={summary} />
+					{folded && <Folded description={folded} />}
+					{literalDefault && (
 						<span className="text-sm text-zinc-500 dark:text-zinc-400">
-							Default <DefaultValue value={prop.default} />
+							Default <DefaultValue value={literalDefault} />
 						</span>
 					)}
 					{prop.example && <CodeBlock code={prop.example} />}
 				</Stack>
 			)}
 		</div>
+	)
+}
+
+/** The long part of a description, hidden until asked for. */
+function Folded({ description }: { description: string }) {
+	const [open, setOpen] = useState(false)
+
+	return (
+		<>
+			{open && <DocDescription description={description} />}
+			<Button
+				size="sm"
+				variant="bare"
+				className="self-start"
+				aria-expanded={open}
+				onClick={() => setOpen(!open)}
+			>
+				{open ? 'Show less' : 'Read more'}
+			</Button>
+		</>
 	)
 }
