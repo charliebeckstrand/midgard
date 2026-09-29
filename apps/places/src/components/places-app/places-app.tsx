@@ -45,7 +45,6 @@ import {
 	viewRegion,
 	viewUp,
 } from '../../utilities/places-view'
-import { PlaceDrawer } from '../place-drawer'
 import { PlaceFilters, PlaceFiltersSkeleton } from '../place-filters'
 import { actionSource, PlacePalette, placeSource, regionSource } from '../place-palette'
 import { PlaceTrail } from '../place-trail'
@@ -54,14 +53,17 @@ import { UserMenu } from '../user-menu'
 import { usePlaceLocation } from './use-place-location'
 
 /**
- * The code of the index and of the form drawer, which a reader opens after the
- * map, if at all. The index carries the data grid, and the form carries the
- * address search and the date picker. Together they are about a quarter of the
- * JavaScript of the page, so the page does not wait for them.
+ * The code of the index, of the form drawer, and of the place drawer, which a
+ * reader opens after the map, if at all. The index carries the data grid, the
+ * form carries the address search and the date picker, and the place drawer
+ * carries the list and the ratings. Together they are more than a quarter of
+ * the JavaScript of the page, so the page does not wait for them.
  */
 const loadIndex = () => import('../places-index')
 
 const loadForm = () => import('../place-form-drawer')
+
+const loadDrawer = () => import('../place-drawer')
 
 /**
  * How long a browser without `requestIdleCallback` waits before it fetches the
@@ -84,6 +86,10 @@ const PlacesIndex = dynamic(() => loadIndex().then((module) => module.PlacesInde
 })
 
 const PlaceFormDrawer = dynamic(() => loadForm().then((module) => module.PlaceFormDrawer), {
+	loading: () => null,
+})
+
+const PlaceDrawer = dynamic(() => loadDrawer().then((module) => module.PlaceDrawer), {
 	loading: () => null,
 })
 
@@ -257,6 +263,8 @@ export function PlacesApp({
 			void loadIndex()
 
 			void loadForm()
+
+			void loadDrawer()
 		}
 
 		const idle = window.requestIdleCallback?.(load)
@@ -337,6 +345,8 @@ export function PlacesApp({
 
 		return selectedIds.map((id) => byId.get(id)).filter((place) => place !== undefined)
 	}, [selectedIds, places])
+
+	const drawerRendered = useOpenedOnce(selected.length > 0)
 
 	// The countries grouping inverted, held in its own slot for the reason the
 	// grouping is: one settled answer per atlas.
@@ -717,15 +727,17 @@ export function PlacesApp({
 				/>
 			) : null}
 
-			<PlaceDrawer
-				places={selected}
-				trail={trail}
-				regionPlaces={openedRegionPlaces}
-				onNavigate={onNavigate}
-				onOpenChange={() => setSelected([])}
-				onEdit={setEditing}
-				onDelete={setDeleting}
-			/>
+			{drawerRendered ? (
+				<PlaceDrawer
+					places={selected}
+					trail={trail}
+					regionPlaces={openedRegionPlaces}
+					onNavigate={onNavigate}
+					onOpenChange={() => setSelected([])}
+					onEdit={setEditing}
+					onDelete={setDeleting}
+				/>
+			) : null}
 
 			{/* A delete is the one action here the reader cannot undo — the store keeps
 			    no history — so it is the one that asks first. It names the place, because
