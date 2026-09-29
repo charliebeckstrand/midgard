@@ -58,6 +58,16 @@ describe('getSession', () => {
 		expect(request?.headers.get('cookie')).toBe('__Host-session=abc')
 	})
 
+	// Next does not hold a `Request` with an `init` for the dynamic stage, so the
+	// read ends in the runtime stage, and its `Date.now()` is a prerender error.
+	it('sends the request without an init', async () => {
+		const fetch = stubGateway(200, session)
+
+		await getSession()
+
+		expect(fetch.mock.calls[0]).toHaveLength(1)
+	})
+
 	it('returns undefined for a 401, and does not log it', async () => {
 		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
 
