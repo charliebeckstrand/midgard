@@ -57,7 +57,27 @@ export const POINT_POP = mark.popHeld
 export const BAR_GROW = mark.grow
 
 /** Delay step between adjacent bar groups, so they rise in sequence. @internal */
-export const BAR_STAGGER = mark.stagger
+const BAR_STAGGER = mark.stagger
+
+/**
+ * The longest a run of bars staggers its grow, in seconds. A run of more bars
+ * than the step fits in it shortens the step, so the run still rises in order
+ * but in one beat. The map caps its point stagger in the same way.
+ *
+ * @internal
+ */
+const BAR_STAGGER_SPAN = 0.6
+
+/**
+ * The grow delay of the bar at `index` in a run of `count` bars: the
+ * {@link BAR_STAGGER} step, shortened so the run spans at most
+ * {@link BAR_STAGGER_SPAN}.
+ *
+ * @internal
+ */
+export function barGrowDelay(index: number, count: number): number {
+	return index * (count > 1 ? Math.min(BAR_STAGGER, BAR_STAGGER_SPAN / (count - 1)) : BAR_STAGGER)
+}
 
 /**
  * Reference-rule rise: the rule slides in along the value axis from the baseline

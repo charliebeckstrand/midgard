@@ -6,7 +6,7 @@ import { cn } from '../../../../core'
 import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
-import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
+import { BAR_GROW, BAR_SHRINK, barGrow, barGrowDelay } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
 import { seriesGroupClass } from '../chart-series'
@@ -151,8 +151,8 @@ type AnimatedBarProps = {
 	d: string
 	positive: boolean
 	orientation: ChartOrientation
-	/** The bar's place in its series, for the grow stagger. */
-	index: number
+	/** The grow delay of the bar in its series, in seconds ({@link barGrowDelay}). */
+	delay: number
 	fill: string | undefined
 	/** The texture tile fill URL, if any. */
 	tile: string | undefined
@@ -169,7 +169,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	d,
 	positive,
 	orientation,
-	index,
+	delay,
 	fill,
 	tile,
 	className,
@@ -188,7 +188,7 @@ const AnimatedBar = memo(function AnimatedBar({
 			// reveal in reverse — when a data change swaps the marks generation.
 			exit={{ ...grow.initial, transition: BAR_SHRINK }}
 			style={{ ...grow.style, ...textureStyle(tile) }}
-			transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
+			transition={{ ...BAR_GROW, delay }}
 		/>
 	)
 })
@@ -222,7 +222,7 @@ export function AnimatedChartBarMarks({
 					d={mark.d}
 					positive={mark.positive}
 					orientation={orientation}
-					index={index}
+					delay={barGrowDelay(index, row.length)}
 					fill={paint && rawColor(paint)}
 					tile={fills?.[seriesIndex]}
 					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}
