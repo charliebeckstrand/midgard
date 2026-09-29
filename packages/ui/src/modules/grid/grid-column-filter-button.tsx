@@ -2,7 +2,8 @@
 
 import { ListFilter, ListFilterPlus } from 'lucide-react'
 import {
-	type SubmitEvent,
+	lazy,
+	Suspense,
 	useEffect,
 	useEffectEvent,
 	useLayoutEffect,
@@ -13,21 +14,25 @@ import {
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { Menu, MenuContent, MenuItem, MenuLabel, MenuTrigger } from '../../components/menu'
-import { Sheet, SheetBody, SheetFooter, SheetTitle } from '../../components/sheet'
 import { cn, dataAttr } from '../../core'
 import { k } from '../../recipes/kata/grid'
-import {
-	createGroup,
-	createRule,
-	isQueryActive,
-	QueryBuilder,
-	type QueryField,
-	type QueryGroup,
-} from '../query'
+import { createGroup, createRule, isQueryActive, type QueryField, type QueryGroup } from '../query'
 import { columnLabel } from './engine/grid-column/label'
 import { GridOverlayDensity } from './grid-region'
 import type { GridColumn } from './types'
 import type { GridColumnFacets, GridColumnFilter } from './use-grid-table'
+
+/**
+ * The filter sheet, loaded on the first open. It carries the query builder, the
+ * date picker, and the calendar, which a grid that nobody filters does not need.
+ *
+ * @internal
+ */
+const GridColumnFilterSheet = lazy(() =>
+	import('./grid-column-filter-sheet').then((module) => ({
+		default: module.GridColumnFilterSheet,
+	})),
+)
 
 /** The subset of a column the filter sheet reads. @internal */
 type FilterColumn = Pick<GridColumn<unknown>, 'id' | 'title' | 'filterType' | 'filterOptions'>
@@ -98,7 +103,8 @@ type GridColumnFilterButtonProps = {
 
 /**
  * Filter affordance for a filterable column header: an icon button opening a
- * right-side {@link Sheet} that hosts a single-field {@link QueryBuilder}. There
+ * right-side sheet ({@link GridColumnFilterSheet}) that hosts a single-field
+ * query builder. The sheet loads on the first open. There
  * is no field selector and no nested groups, just operator + value rules joined
  * by AND/OR.
  *
@@ -125,6 +131,13 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 	const [open, setOpen] = useState(false)
 
 	const [draft, setDraft] = useState<QueryGroup>(() => seedQuery(field))
+
+	// Whether the sheet has opened at least once. The sheet and its code load on
+	// the first open. After that the sheet stays mounted, because a closing sheet
+	// has an exit to play. Adjusted during render, so the open render mounts it.
+	const [sheetMounted, setSheetMounted] = useState(open)
+
+	if (open && !sheetMounted) setSheetMounted(true)
 
 	// Open the sheet on the applied query, so editing always resumes from what's in
 	// effect. With no applied query it opens on one empty rule. An unapplied draft
@@ -172,15 +185,6 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 		filter.setQuery(column.id, draft)
 
 		closeSheet()
-	}
-
-	// The sheet body + footer form a `<form>`, so Enter in any rule input settles
-	// the draft — the same commit as the Apply submit button. preventDefault stops
-	// the browser's native navigation before applying.
-	function submit(event: SubmitEvent<HTMLFormElement>) {
-		event.preventDefault()
-
-		apply()
 	}
 
 	// Clear the applied filter outright — the one-press path to undo a filter,
@@ -231,7 +235,7 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				// accent (`color`), the "+"-marked icon, and the applied-state name.
 				//
 				// `GridOverlayDensity` gives the panel the step around the grid, as it gives
-				// the Sheet below. The trigger stays on the scope of the table, where header
+				// the sheet below. The trigger stays on the scope of the table, where header
 				// chrome belongs.
 				<Menu placement="bottom-end">
 					<MenuTrigger>
@@ -281,42 +285,22 @@ export function GridColumnFilterButton({ column, filter, query }: GridColumnFilt
 				</Button>
 			) : null}
 
-			<GridOverlayDensity>
-				<Sheet open={open} onOpenChange={handleOpenChange} aria-label={`Filter “${label}”`}>
-					{/* A `contents` form so Enter in a rule input submits (Apply) without
-				    imposing a box — the panel's `gap-4` slot rhythm survives the
-				    display:contents wrapper. It spans the title too so the body stays a
-				    non-first child, keeping its `first:` top padding off. */}
-					<form className="contents" onSubmit={submit}>
-						{/* The column name is quoted, as the row that opens this sheet quotes
-						    it. The name therefore reads as the column being filtered, rather
-						    than as part of the title's own wording. The dialog's `aria-label` above
-						    carries the same string. */}
-						<SheetTitle>Filter “{label}”</SheetTitle>
-
-						<SheetBody>
-							<QueryBuilder
-								fields={fields}
-								hideFieldSelector
-								allowGroups={false}
-								requireRule
-								value={draft}
-								onValueChange={setDraft}
-							/>
-						</SheetBody>
-
-						<SheetFooter>
-							<Button type="button" variant="outline" onClick={() => handleOpenChange(false)}>
-								Cancel
-							</Button>
-
-							<Button type="submit" color="blue">
-								Apply
-							</Button>
-						</SheetFooter>
-					</form>
-				</Sheet>
-			</GridOverlayDensity>
+			{/* The sheet suspends on its first open, while its code loads. The
+			    boundary keeps that wait here. The sheet then mounts open, and its
+			    focus moves into the query builder as on every later open. */}
+			{sheetMounted ? (
+				<Suspense fallback={null}>
+					<GridColumnFilterSheet
+						open={open}
+						onOpenChange={handleOpenChange}
+						label={label}
+						fields={fields}
+						draft={draft}
+						onDraftChange={setDraft}
+						onApply={apply}
+					/>
+				</Suspense>
+			) : null}
 		</>
 	)
 }
