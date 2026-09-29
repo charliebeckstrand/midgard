@@ -483,6 +483,16 @@ describe('BarChart', () => {
 		expect(blue()).toBe(before)
 	})
 
+	it('strokes the category axis line with the axis ink', () => {
+		const { container } = renderUI(chart())
+
+		const line = getSlot(container, 'chart-axis-x').querySelector('line')
+
+		// The recipe object would write its key names (`line title`) as classes and
+		// leave the line with no stroke.
+		expect(line?.getAttribute('class')).toContain('stroke-zinc-300')
+	})
+
 	it('still renders the marks under animate', () => {
 		const { container } = renderUI(chart({ animate: true }))
 

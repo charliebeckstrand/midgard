@@ -1,7 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { LineChart } from '../../modules/chart/line-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
-import { act, bySlot, fireEvent, renderUI } from '../helpers'
+import { act, allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
 /**
  * A hover renders only the animated marks whose emphasis changed.
@@ -83,6 +84,43 @@ describe('animated chart mark renders', () => {
 
 		// Its twin in series B: one bar dims and one lights, of 24.
 		expect(move(container, 60, 'chart-bar')).toBeLessThanOrEqual(2)
+	})
+
+	it('renders no line mark when a crossing moves the emphasis between lines', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Lines"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				crosshair={false}
+				animate
+				points
+			/>,
+		)
+
+		expect(renders.get('chart-point')).toBeGreaterThan(0)
+
+		// The height of each flat line, read off its path.
+		const [a, b] = allBySlot(container, 'chart-line').map((line) =>
+			Number(line.getAttribute('d')?.split(' ')[2]),
+		)
+
+		const receded = () =>
+			allBySlot(container, 'chart-line-series').map((group) =>
+				group.getAttribute('class')?.includes('opacity-25'),
+			)
+
+		move(container, 200, 'chart-point', a)
+
+		expect(receded()).toEqual([false, true])
+
+		// Onto the other line: the emphasis moves, and no line mark renders again.
+		expect(move(container, 200, 'chart-point', b)).toBe(0)
+
+		expect(receded()).toEqual([true, false])
+
+		expect(renders.get('chart-line') ?? 0).toBe(0)
 	})
 
 	it('renders only the two discs that swap emphasis on a crossing', () => {

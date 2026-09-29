@@ -123,7 +123,7 @@ export function ChartAxis({ axis, plot, ticks, position, baseline, line = true }
 					y2={lineY}
 					strokeWidth={1}
 					shapeRendering="crispEdges"
-					className={cn(k.axis)}
+					className={cn(k.axis.line)}
 				/>
 			)}
 

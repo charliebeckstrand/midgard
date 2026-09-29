@@ -1,8 +1,9 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useId } from 'react'
+import { memo, useId } from 'react'
 import { cn } from '../../../../core'
+import { usePrefersReducedMotion } from '../../../../hooks/use-prefers-reduced-motion'
 import { k } from '../../../../recipes/kata/chart'
 import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor, strokeClass } from '../chart-color/paint'
@@ -74,6 +75,212 @@ function segmentProps(paint: ChartPaint, dashed: boolean | undefined) {
 	} as const
 }
 
+/** The fade of an area wash, held at module scope so each render reuses it. @internal */
+const AREA_HIDDEN = { opacity: 0 }
+
+/** @internal */
+const AREA_SHOWN = { opacity: 1 }
+
+/** @internal */
+const AREA_EXIT = { opacity: 0, transition: AREA_UNFADE }
+
+/** The draw of a solid stroke along its own length. @internal */
+const LINE_HIDDEN = { pathLength: 0 }
+
+/** @internal */
+const LINE_SHOWN = { pathLength: 1 }
+
+/**
+ * The stroke un-draws along its own length — the draw-on reversed — when a data
+ * change swaps the marks generation.
+ *
+ * @internal
+ */
+const LINE_EXIT = { pathLength: 0, transition: LINE_UNDRAW }
+
+/** The pop of a point marker. @internal */
+const POINT_HIDDEN = { r: 0, opacity: 0 }
+
+/** @internal */
+const POINT_SHOWN = { r: MARKER_RADIUS, opacity: 1 }
+
+/** @internal */
+const POINT_EXIT = { r: 0, opacity: 0, transition: POINT_UNPOP }
+
+/** The options that each series body of one marks layer shares. @internal */
+type LineBodyOptions = {
+	/** Render the area washes under the lines. */
+	fill: boolean
+	/** Stroke the markers with a surface outline. */
+	stroke: boolean
+	/** Whether the `texture` prop is on. */
+	textureActive: boolean
+	/** Reveal the marks through motion; off, they are plain SVG. */
+	animated: boolean
+	/**
+	 * Mount the marks at rest: the reader asks for reduced motion. The draw
+	 * (`pathLength`) and the pop (`r`) are no transform, so the reduced-motion
+	 * config of motion does not skip them.
+	 */
+	still: boolean
+}
+
+/** Props for {@link LineSeriesBody}: one series, in plain values so the memo holds. @internal */
+type LineSeriesBodyProps = LineBodyOptions &
+	Pick<ChartLineSeries, 'label' | 'paint' | 'geometry' | 'markers' | 'dashed'> & {
+		/** The texture tile fill URL, if any. */
+		patternFill: string | undefined
+		/** The wipe clip that an animated dashed line reveals under. */
+		clip: string | undefined
+	}
+
+/**
+ * The washes, strokes, and markers of one series. Memoized on plain values, so
+ * an emphasis change renders only the group class around it, not each mark of
+ * the chart. A dashed stroke holds its pattern and reveals under the wipe clip;
+ * a solid one draws itself along its own length.
+ *
+ * @internal
+ */
+const LineSeriesBody = memo(function LineSeriesBody({
+	label,
+	paint,
+	geometry,
+	markers,
+	dashed,
+	patternFill,
+	clip,
+	fill,
+	stroke,
+	textureActive,
+	animated,
+	still,
+}: LineSeriesBodyProps) {
+	const points = markers ? geometry.points : geometry.isolated
+
+	const color = rawColor(paint)
+
+	const areaStyle = textureStyle(patternFill)
+
+	const areaClass = cn(fillClass(paint), textureClass(textureActive, patternFill))
+
+	const dotClass = markerClass(paint, stroke)
+
+	return (
+		<>
+			{fill &&
+				rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) =>
+					animated ? (
+						<motion.path
+							key={key}
+							data-slot="chart-area"
+							d={geometry.areas[index]}
+							stroke="none"
+							fill={color}
+							fillOpacity={AREA_FILL_OPACITY}
+							style={areaStyle}
+							className={areaClass}
+							initial={AREA_HIDDEN}
+							animate={AREA_SHOWN}
+							exit={AREA_EXIT}
+							transition={AREA_FADE}
+						/>
+					) : (
+						<path
+							key={key}
+							data-slot="chart-area"
+							d={geometry.areas[index]}
+							stroke="none"
+							fill={color}
+							fillOpacity={AREA_FILL_OPACITY}
+							style={areaStyle}
+							className={areaClass}
+						/>
+					),
+				)}
+
+			{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) =>
+				animated && !dashed ? (
+					<motion.path
+						key={key}
+						data-slot="chart-line"
+						d={geometry.segments[index]}
+						{...segmentProps(paint, false)}
+						initial={still ? false : LINE_HIDDEN}
+						animate={LINE_SHOWN}
+						exit={LINE_EXIT}
+						transition={LINE_DRAW}
+					/>
+				) : (
+					<path
+						key={key}
+						data-slot="chart-line"
+						d={geometry.segments[index]}
+						clipPath={clip}
+						{...segmentProps(paint, dashed)}
+					/>
+				),
+			)}
+
+			{rangeKeys(points.length, `${label}-pt`).map((key, index) =>
+				animated ? (
+					<motion.circle
+						key={key}
+						data-slot="chart-point"
+						cx={points[index]?.x}
+						cy={points[index]?.y}
+						fill={color}
+						strokeWidth={MARKER_RING_WIDTH}
+						className={dotClass}
+						initial={still ? false : POINT_HIDDEN}
+						animate={POINT_SHOWN}
+						exit={POINT_EXIT}
+						transition={POINT_POP}
+					/>
+				) : (
+					<circle
+						key={key}
+						data-slot="chart-point"
+						cx={points[index]?.x}
+						cy={points[index]?.y}
+						r={MARKER_RADIUS}
+						fill={color}
+						strokeWidth={MARKER_RING_WIDTH}
+						className={dotClass}
+					/>
+				),
+			)}
+		</>
+	)
+})
+
+/**
+ * One group for each series: the emphasis class on the group, and the memoized
+ * body inside it. Only the group reads the emphasis. @internal
+ */
+function lineSeriesGroups(
+	list: ChartLineSeries[],
+	lit: (series: number) => boolean,
+	fills: (string | undefined)[] | undefined,
+	options: LineBodyOptions,
+	clip?: string,
+) {
+	return list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => (
+		<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
+			<LineSeriesBody
+				label={label}
+				paint={paint}
+				geometry={geometry}
+				markers={markers}
+				dashed={dashed}
+				patternFill={fills?.[seriesIndex]}
+				clip={dashed ? clip : undefined}
+				{...options}
+			/>
+		</g>
+	))
+}
+
 /** The plain-SVG lines: the cheap default with no motion runtime work. @internal */
 export function ChartLineMarks({
 	list,
@@ -84,50 +291,12 @@ export function ChartLineMarks({
 }: ChartLineMarksProps) {
 	const { lit } = useChartMarkEmphasis()
 
-	return list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => {
-		const points = markers ? geometry.points : geometry.isolated
-
-		const patternFill = fills?.[seriesIndex]
-
-		return (
-			<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
-				{fill &&
-					rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
-						<path
-							key={key}
-							data-slot="chart-area"
-							d={geometry.areas[index]}
-							stroke="none"
-							fill={rawColor(paint)}
-							fillOpacity={AREA_FILL_OPACITY}
-							style={textureStyle(patternFill)}
-							className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
-						/>
-					))}
-
-				{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) => (
-					<path
-						key={key}
-						data-slot="chart-line"
-						d={geometry.segments[index]}
-						{...segmentProps(paint, dashed)}
-					/>
-				))}
-
-				{rangeKeys(points.length, `${label}-pt`).map((key, index) => (
-					<circle
-						key={key}
-						data-slot="chart-point"
-						cx={points[index]?.x}
-						cy={points[index]?.y}
-						r={MARKER_RADIUS}
-						fill={rawColor(paint)}
-						strokeWidth={MARKER_RING_WIDTH}
-						className={markerClass(paint, stroke)}
-					/>
-				))}
-			</g>
-		)
+	return lineSeriesGroups(list, lit, fills, {
+		fill,
+		stroke,
+		textureActive,
+		animated: false,
+		still: false,
 	})
 }
 
@@ -151,6 +320,8 @@ export function AnimatedChartLineMarks({
 
 	const { lit } = useChartMarkEmphasis()
 
+	const still = usePrefersReducedMotion()
+
 	return (
 		<>
 			{wipe && (
@@ -171,78 +342,13 @@ export function AnimatedChartLineMarks({
 				</defs>
 			)}
 
-			{list.map(({ index, label, paint, geometry, markers, dashed }, seriesIndex) => {
-				const points = markers ? geometry.points : geometry.isolated
-
-				const patternFill = fills?.[seriesIndex]
-
-				const clip = dashed && wipe ? `url(#${wipeId})` : undefined
-
-				return (
-					<g key={index} data-slot="chart-line-series" className={seriesGroupClass(!lit(index))}>
-						{fill &&
-							rangeKeys(geometry.areas.length, `${label}-area`).map((key, index) => (
-								<motion.path
-									key={key}
-									data-slot="chart-area"
-									d={geometry.areas[index]}
-									stroke="none"
-									fill={rawColor(paint)}
-									fillOpacity={AREA_FILL_OPACITY}
-									style={textureStyle(patternFill)}
-									className={cn(fillClass(paint), textureClass(textureActive, patternFill))}
-									initial={{ opacity: 0 }}
-									animate={{ opacity: 1 }}
-									exit={{ opacity: 0, transition: AREA_UNFADE }}
-									transition={AREA_FADE}
-								/>
-							))}
-
-						{rangeKeys(geometry.segments.length, `${label}-seg`).map((key, index) =>
-							// The dash reveals under the wipe clip, holding its pattern; a solid
-							// stroke draws itself along its own length.
-							dashed ? (
-								<path
-									key={key}
-									data-slot="chart-line"
-									d={geometry.segments[index]}
-									clipPath={clip}
-									{...segmentProps(paint, true)}
-								/>
-							) : (
-								<motion.path
-									key={key}
-									data-slot="chart-line"
-									d={geometry.segments[index]}
-									{...segmentProps(paint, false)}
-									initial={{ pathLength: 0 }}
-									animate={{ pathLength: 1 }}
-									// The stroke un-draws along its own length — the draw-on reversed —
-									// when a data change swaps the marks generation.
-									exit={{ pathLength: 0, transition: LINE_UNDRAW }}
-									transition={LINE_DRAW}
-								/>
-							),
-						)}
-
-						{rangeKeys(points.length, `${label}-pt`).map((key, index) => (
-							<motion.circle
-								key={key}
-								data-slot="chart-point"
-								cx={points[index]?.x}
-								cy={points[index]?.y}
-								fill={rawColor(paint)}
-								strokeWidth={MARKER_RING_WIDTH}
-								className={markerClass(paint, stroke)}
-								initial={{ r: 0, opacity: 0 }}
-								animate={{ r: MARKER_RADIUS, opacity: 1 }}
-								exit={{ r: 0, opacity: 0, transition: POINT_UNPOP }}
-								transition={POINT_POP}
-							/>
-						))}
-					</g>
-				)
-			})}
+			{lineSeriesGroups(
+				list,
+				lit,
+				fills,
+				{ fill, stroke, textureActive, animated: true, still },
+				wipe ? `url(#${wipeId})` : undefined,
+			)}
 		</>
 	)
 }
