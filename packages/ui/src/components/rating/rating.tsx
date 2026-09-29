@@ -72,7 +72,9 @@ export type RatingProps = RatingVariants & {
 	 * Show the score and take no input. The row renders as one `role="img"`,
 	 * because a reader has no reason to walk five radios that answer nothing. Its
 	 * name is the consumer's name followed by the {@link getValueText} readout.
-	 * With no name, the readout is the whole name.
+	 * With no name, the readout is the whole name. The image keeps the
+	 * `aria-describedby` ids. It takes no validation attributes, because
+	 * `aria-invalid` is not a supported attribute of `role="img"`.
 	 *
 	 * It also renders a fraction: a whole star for each point, a part star for the
 	 * remainder. Only the display form does — a reader picks whole stars.
@@ -109,7 +111,11 @@ export type RatingProps = RatingVariants & {
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string
-	/** Consumer-supplied `aria-describedby`, merged ahead of the field's registered description / error ids. */
+	/**
+	 * Consumer-supplied `aria-describedby`, merged ahead of the field's
+	 * registered description / error ids. Both forms keep it: the radiogroup
+	 * and the display form's `role="img"`.
+	 */
 	'aria-describedby'?: string
 	/**
 	 * Overrides the `data-slot` attribute.
@@ -260,6 +266,7 @@ export function Rating({
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
 				{...naming}
+				aria-describedby={describedBy}
 				className={rowClass}
 			>
 				{/* The readout that follows the consumer's name. A reference names the
