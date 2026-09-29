@@ -1,8 +1,26 @@
+import { renderToString } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { Avatar, AvatarGroup } from '../../components/avatar'
-import { allBySlot, bySlot, renderUI, screen } from '../helpers'
+import { Avatar, AvatarGroup, AvatarSkeleton } from '../../components/avatar'
+import { allBySlot, bySlot, getSlot, renderUI, screen } from '../helpers'
 
 describe('Avatar', () => {
+	// An avatar can sit in a line of text, so its skeleton has to be able to as well.
+	it('stands in for an avatar inside a paragraph, as server markup and inline', () => {
+		const container = document.createElement('div')
+
+		container.innerHTML = renderToString(
+			<p>
+				Assigned to <AvatarSkeleton size="sm" />
+			</p>,
+		)
+
+		const skeleton = getSlot(container, 'placeholder')
+
+		expect(skeleton.tagName).toBe('SPAN')
+		expect(skeleton.parentElement?.tagName).toBe('P')
+		expect(skeleton).toHaveClass('inline-block')
+	})
+
 	it('renders initials as SVG text', () => {
 		const { container } = renderUI(<Avatar initials="JD" />)
 

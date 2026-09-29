@@ -15,6 +15,12 @@ import { Placeholder } from './placeholder'
 type BaseSkeletonRecipe = {
 	/** Base skeleton shape classes. */
 	base: ClassValue
+	/**
+	 * Marks the silhouette of an inline component. It renders as an inline-block `<span>`, so it
+	 * flows where the component would, a line of text included. A `div` there is invalid inside a
+	 * `<p>`: the parser closes the paragraph at it, and a server-rendered tree fails to hydrate.
+	 */
+	inline?: true
 }
 
 type SizedSkeletonRecipe<S extends DensityStep> = BaseSkeletonRecipe & {
@@ -52,7 +58,7 @@ export type SkeletonProps<S extends DensityStep = never> = [S] extends [never]
  * optional `size` prop. A density recipe (`{ base, density }`) writes an
  * explicit `size` to `data-density`, and without `size` it follows the nearest
  * density scope. A base-only recipe (`{ base }`) has a fixed silhouette and
- * takes no `size` prop.
+ * takes no `size` prop. An `inline` recipe renders an inline-block `<span>`.
  *
  * Use only for skeletons whose entire body is that. Components that compose
  * more than a single placeholder — a count-keyed row (breadcrumb) — or fold in
@@ -85,17 +91,14 @@ export function createSkeleton<S extends DensityStep>(
 	name: string,
 ) {
 	function Skeleton({ size, className }: { size?: S; className?: string }) {
-		if ('density' in skeleton) {
-			return createElement(Placeholder, {
-				'data-density': size,
-				className: cn(skeleton.base, className),
-			})
-		}
+		const inline = skeleton.inline === true
 
 		const sizeClass = 'size' in skeleton ? skeleton.size[size ?? 'md'] : undefined
 
 		return createElement(Placeholder, {
-			className: cn(skeleton.base, sizeClass, className),
+			as: inline ? 'span' : 'div',
+			'data-density': 'density' in skeleton ? size : undefined,
+			className: cn(inline && 'inline-block align-middle', skeleton.base, sizeClass, className),
 		})
 	}
 

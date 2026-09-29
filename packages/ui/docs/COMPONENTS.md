@@ -37,6 +37,8 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
 
+> `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
+
 ## Data display
 
 `table` · `pivot-table` · `list` · `listbox` · `tree` · `kanban` · `json-tree` · `pagination` · `dl` · `timeline` · `stat` · `sparkline` · `odometer` · `time-ago` · `status` · `swatch` · `badge` · `avatar` · `kbd` · `code`

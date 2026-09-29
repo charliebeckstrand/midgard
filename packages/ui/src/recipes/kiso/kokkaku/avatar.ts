@@ -13,4 +13,6 @@ const { rounded } = kasane
 export const avatar = {
 	base: rounded.full,
 	size: shaku.avatar,
+	// Inline-level, as the `inline-grid` avatar is, so the silhouette flows where the avatar would.
+	inline: true,
 } as const
