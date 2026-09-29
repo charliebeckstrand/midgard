@@ -16,7 +16,9 @@ import {
 //
 //   - `useWindowVirtualizer`: the virtualizer keeps one identity, and its reads
 //     are live, so a compiled read of the window goes stale. It gives each
-//     render its window as plain values, so `useVirtualWindow` compiles.
+//     render its window as plain values, so `useVirtualWindow` compiles. The
+//     opt-out is permanent, because the compiler marks react-virtual as
+//     incompatible.
 //   - `useGridEditSourceSync` and `useGridIndexSync`: each writes refs during
 //     render, which the grid cells read in the same pass.
 
