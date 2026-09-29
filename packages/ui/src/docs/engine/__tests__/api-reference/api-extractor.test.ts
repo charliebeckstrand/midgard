@@ -372,19 +372,46 @@ describe('createApiExtractor', () => {
 	it('moves the disk cache key when notifyChanged reports a same-session edit', () => {
 		const { srcDir, cacheDir } = fixture()
 
+		createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		const before = cacheKey(cacheDir)
+
+		// A replay fills the content-hash memo, and its first edit runs a full
+		// pass, which persists.
 		const extractor = createApiExtractor(srcDir, { cacheDir })
 
 		extractor.getAll()
 
-		const before = cacheKey(cacheDir)
-
-		// The content-hash memo outlives the pass, so a reported path must drop out
-		// of it; a retained entry freezes the key.
+		// The memo outlives the pass, so a reported path must drop out of it; a
+		// retained entry freezes the key.
 		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
 
 		extractor.getAll()
 
 		expect(cacheKey(cacheDir)).not.toBe(before)
+	})
+
+	// A subset pass runs on a fresh checker that fewer barrels warmed, so its
+	// output can differ in order from a full pass.
+	it('keeps the last full pass on disk after a subset pass', () => {
+		const { srcDir, cacheDir } = fixture()
+
+		const extractor = createApiExtractor(srcDir, { cacheDir })
+
+		extractor.getAll()
+
+		const stored = fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')
+
+		extractor.notifyChanged(writeFoo(srcDir, 'label?: number'))
+
+		expect(extractor.getAll().foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
+
+		expect(fs.readFileSync(path.join(cacheDir, CACHE_FILE), 'utf-8')).toBe(stored)
+
+		// The next start finds the source changed since the stored pass.
+		const restart = createApiExtractor(srcDir, { cacheDir }).getAll()
+
+		expect(restart.foo?.[0]?.props).toEqual([{ name: 'label', type: 'number' }])
 	})
 
 	it('holds the disk cache key when an edit skips notifyChanged, and recovers on the next start', () => {
@@ -398,7 +425,7 @@ describe('createApiExtractor', () => {
 
 		// Edit Foo behind the extractor's back — a watcher miss, or a write from
 		// outside the dev server. The report names Bar, not the file that changed,
-		// so a pass runs and persists while Foo's edit stays unreported.
+		// so a pass runs while Foo's edit stays unreported.
 		writeFoo(srcDir, 'label?: number')
 
 		extractor.notifyChanged(path.join(srcDir, 'components', 'bar', 'bar.tsx'))

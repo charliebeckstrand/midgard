@@ -1,6 +1,7 @@
 import { ts } from 'ts-morph'
 import { reindent } from '../../derive-code/indent'
 import { formatPropType, formatType } from './format-type'
+import { sourceOrder } from './literal-order'
 import { unaliasSymbol } from './ts-utils'
 
 const TYPE_NAME_RE = /\b([A-Z][A-Za-z0-9_]*)\b/g
@@ -257,7 +258,7 @@ function computedLiteralUnion(
 
 	if (!bodyType.types.every((t) => (t.flags & LITERAL) !== 0)) return null
 
-	return formatType(bodyType, checker, decl)
+	return formatType(bodyType, checker, decl, sourceOrder(decl, checker))
 }
 
 /**
@@ -317,7 +318,12 @@ function formatApparentShape(
 
 		const optional = !!(sym.flags & ts.SymbolFlags.Optional)
 
-		const formatted = formatPropType(propType, checker, decl)
+		const formatted = formatPropType(
+			propType,
+			checker,
+			decl,
+			sourceOrder(sym.getDeclarations()?.[0], checker),
+		)
 
 		return `\t${name}${optional ? '?' : ''}: ${formatted}`
 	})
