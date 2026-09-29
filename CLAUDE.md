@@ -24,21 +24,19 @@
 
 3.1 Before architectural work, work that crosses packages, or a breaking change to a public export, surface the approach for assent.
 
-3.2 When weighing a decision, name the fitting instrument: `/debate` for binary X-or-Y, `/council` for high-stakes calls with competing tradeoffs. Don't run either unprompted.
+3.2 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
 
-3.3 For research across many files or subsystems, delegate to subagents, one task each. Read a small, known set of files directly.
+3.3 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` or `test:changed`). Lefthook runs Biome on staged files before a commit, and the branch gate before a push. CI runs the full gate and gates merges.
 
-3.4 Prove it works; flag anything unverified. Verify with `biome check .`, `turbo run check-types`, and scoped Vitest (`test:related` or `test:changed`). Lefthook runs Biome on staged files before a commit, and the branch gate before a push. CI runs the full gate and gates merges.
+3.4 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
 
-3.5 When you change a public `ui` export, update its TSDoc. Update the related surface index in `packages/ui/docs` in the same commit ([CONVENTIONS.md](CONVENTIONS.md) §12).
+3.5 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` reports breaks in the rule documents at the repository root. The report is advisory, and review holds the rest.
 
-3.6 [CADENCE.md](CADENCE.md) sets the spacing and the shape of authored text. `cadence-boundary.test.ts` reports breaks in the rule documents at the repository root. The report is advisory, and review holds the rest.
+3.6 Comments and TSDoc follow [CONVENTIONS.md](CONVENTIONS.md) §12.1 and [STE.md](STE.md).
 
-3.7 Comments and TSDoc follow [CONVENTIONS.md](CONVENTIONS.md) §12.1 and [STE.md](STE.md).
+3.7 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
 
-3.8 The repository rules outrank a skill. When a skill disagrees with this file, [CONVENTIONS.md](CONVENTIONS.md), [STE.md](STE.md), or a gate, follow the repository.
-
-3.9 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
+3.8 [asgard `.claude/docs/midgard.md`](https://github.com/charliebeckstrand/asgard/blob/main/.claude/docs/midgard.md) is the one record of the contract between Midgard and asgard. Read it before you change a call to bifrost. When the contract changes, update that file in asgard.
 
 ## 4. Version Control
 
