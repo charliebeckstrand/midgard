@@ -26,6 +26,26 @@ function chart(extra?: Partial<Parameters<typeof LineChart<(typeof DATA)[number]
 }
 
 describe('LineChart', () => {
+	it('keeps a chart prop that the frame does not name away from the frame', () => {
+		// The chart hands all its props to the cartesian frame. A stray prop named
+		// like a frame prop reached the chart frame, as `overlay` here drew into the
+		// plot.
+		renderUI(
+			<LineChart
+				aria-label="Revenue"
+				data={[
+					{ month: 'Jan', revenue: 40 },
+					{ month: 'Feb', revenue: 90 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={400}
+				{...{ overlay: <span data-testid="stray-overlay" /> }}
+			/>,
+		)
+
+		expect(document.querySelector('[data-testid="stray-overlay"]')).toBeNull()
+	})
+
 	it('keeps a tooltip row for each series when two share a name', () => {
 		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
 

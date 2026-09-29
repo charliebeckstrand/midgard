@@ -25,7 +25,7 @@ import type { CartesianChartProps } from '../types'
 import type { CartesianChart } from '../use-chart-cartesian'
 import { cartesianFocus } from '../use-chart-keyboard'
 import type { ChartMarkAt } from '../use-chart-pointer'
-import { ChartFrame, type ChartFrameProps } from './frame'
+import { ChartFrame, type ChartFrameProps, plotName } from './frame'
 
 /**
  * Per category, the value-axis stops of a cartesian chart, and the series
@@ -148,6 +148,9 @@ export function ChartCartesianFrame({
 	labels,
 	valueLabels,
 	className,
+	title,
+	subtitle,
+	contextMenu,
 	...label
 }: ChartCartesianFrameProps) {
 	const { ref: chartRef, resolvedLegend, tex, orientation } = chart
@@ -172,7 +175,12 @@ export function ChartCartesianFrame({
 
 	return (
 		<ChartFrame
-			{...label}
+			// The entry spreads all its props in, so the rest holds each prop the
+			// frame does not name. The frame takes the accessible name alone from it.
+			{...(plotName(label) as AccessibleName)}
+			title={title}
+			subtitle={subtitle}
+			contextMenu={contextMenu}
 			fullscreen={fullscreen}
 			ref={chartRef}
 			textHostRef={chart.textHostRef}
