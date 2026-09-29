@@ -150,6 +150,17 @@ export type GridIndexedColumn<T> = GridColumn<T> & {
 	cellPropsAt?: (row: T, rowIndex: number) => Omit<ComponentProps<'td'>, 'children'>
 }
 
+/**
+ * The place in the view that a cell of `col` takes: `rowIndex` for a column
+ * that reads it (a cursor column), and -1 for any other. A cell that reads no
+ * place thus keeps its memo when a sort moves its row.
+ *
+ * @internal
+ */
+export function cellRowIndex<T>(col: GridIndexedColumn<T>, rowIndex: number): number {
+	return col.cellAt !== undefined || col.cellPropsAt !== undefined ? rowIndex : -1
+}
+
 /** The content of a column's cell in the row at `rowIndex` of the view, or `null` with no `cell`. @internal */
 export function cellContentAt<T>(col: GridIndexedColumn<T>, row: T, rowIndex: number): ReactNode {
 	if (col.cellAt) return col.cellAt(row, rowIndex) ?? null

@@ -14,7 +14,12 @@ import { k } from '../../recipes/kata/grid'
 import { detailOpen } from './engine/grid-items/items'
 import { isNewRowAddColumn } from './engine/grid-new-row-column'
 import { pinnedCellProps } from './engine/grid-pin/styles'
-import type { GridCellClick, GridCellRovingActivate, GridRowClick } from './engine/grid-row/cell'
+import {
+	cellRowIndex,
+	type GridCellClick,
+	type GridCellRovingActivate,
+	type GridRowClick,
+} from './engine/grid-row/cell'
 import { type GridWindowRowProps, rowClickableClass, rowShellProps } from './engine/grid-row/shell'
 import { GridDataCell } from './grid-data-cell'
 import { GridDetailRow, GridExpandToggle } from './grid-detail-row'
@@ -516,7 +521,7 @@ function GridRowImpl<T>({
 						key={col.id}
 						col={col}
 						row={row}
-						rowIndex={dataRowIndex}
+						rowIndex={cellRowIndex(col, dataRowIndex)}
 						rowKey={rowKey}
 						colIndex={colIndex}
 						columnIndex={colIdx}
