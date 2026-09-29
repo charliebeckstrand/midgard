@@ -267,6 +267,42 @@ describe('extractSourceFacts declarations and bindings', () => {
 		expect(bindings.formatPlate).not.toBe(bindings.value)
 	})
 
+	it('ships the names that each source uses, among those that the file binds', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			`import { Star } from 'lucide-react'`,
+			``,
+			`const trim = (raw: string) => raw.trim()`,
+			``,
+			`export function Demo() {`,
+			`\tconst [value, setValue] = useState('')`,
+			``,
+			`\treturn (`,
+			`\t\t<Example title="Controlled">`,
+			`\t\t\t<Input value={value} onValueChange={(next) => setValue(String(trim(next)))} icon={<Star />} />`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const facts = extract(source)
+
+		// A parameter (`next`) and a global (`String`) are no names of the file.
+		expect(facts?.uses).toEqual({
+			value: ['value'],
+			'(next) => setValue(String(trim(next)))': ['setValue', 'trim'],
+			'<Star />': ['Star'],
+		})
+
+		const usesOf = (name: string) =>
+			facts?.declarations.find(({ names }) => names.includes(name))?.uses
+
+		// A property name (`raw.trim`) is no use of the declaration `trim`.
+		expect(usesOf('trim')).toEqual([])
+
+		expect(usesOf('value')).toEqual(['useState'])
+	})
+
 	it('lets an enclosing-function declaration shadow a module-scope one', () => {
 		const source = [
 			`const label = 'outer'`,

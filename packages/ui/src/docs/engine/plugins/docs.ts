@@ -190,8 +190,8 @@ export function hasUnmodeledExports(source: string, fileName: string): boolean {
 export type ExternalImport = { name: string; specifier: string }
 
 // Packages whose imports never surface as external components: react hooks
-// resolve through `collectSnippetImports`, and the renderer has no place in
-// derived code.
+// resolve through the import tables and `registerUses`, and the renderer has
+// no place in derived code.
 const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
 
 /**

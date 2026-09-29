@@ -1,7 +1,6 @@
 import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
-import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
 import {
@@ -101,7 +100,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 		externalModules: new Set(),
 		packageName: registry.packageName,
 		facts,
-		factTexts: [],
+		used: new Set(),
 		pulledDecls: new Set(),
 		hoisted: new Map(),
 		rendered: new Map(),
@@ -305,7 +304,7 @@ export function formatProps(
 
 		if (source === undefined || !IDENTIFIER_RE.test(source)) continue
 
-		const decl = context.facts?.bindings[source]
+		const decl = own(context.facts?.bindings, source)
 
 		if (decl === undefined || !context.pulledDecls.has(decl)) continue
 
@@ -613,76 +612,73 @@ export function matchElementFact(
 }
 
 /**
- * Record an authored source snippet the walk emitted, marking any declaration
- * it directly references as pulled — the signal `formatProps`' consistency
- * pass keys on. Returns `text` so call sites can register inline.
+ * The value of an own key of a record that the facts carry. A record parsed
+ * from JSON inherits keys such as `toString`, and a name or a source can
+ * match one.
+ */
+function own<T>(record: Readonly<Record<string, T>> | undefined, key: string): T | undefined {
+	return record && Object.hasOwn(record, key) ? record[key] : undefined
+}
+
+/**
+ * Record an authored source that the walk prints: add the names that it uses
+ * (see `SourceFacts.uses`) to the walk's names, and mark each declaration that
+ * one of them binds as pulled. `formatProps`' consistency pass keys on that
+ * mark. Returns `text` so call sites can register inline.
  */
 export function registerFactText(text: string, context: Context): string {
-	context.factTexts.push(text)
-
 	const facts = context.facts
 
 	if (!facts) return text
 
-	for (const [name, index] of Object.entries(facts.bindings)) {
-		if (!context.pulledDecls.has(index) && wordRe(name).test(text)) {
-			context.pulledDecls.add(index)
-		}
+	for (const name of own(facts.uses, text) ?? []) {
+		context.used.add(name)
+
+		const index = own(facts.bindings, name)
+
+		if (index !== undefined) context.pulledDecls.add(index)
 	}
 
 	return text
 }
 
 /**
- * Close over the declarations the emitted source snippets reference. A snippet
- * pulls its declarations, and a pulled declaration's own source pulls more, to
- * fixpoint. Register the imports everything mentions: component tags and hooks
- * via {@link collectSnippetImports}, everything else via the facts' import
- * table. Returns the pulled declarations dedented, in source
- * order, ready to sit between the imports and the JSX.
+ * Close over the declarations the printed sources use. A source pulls the
+ * declarations that its names bind, and a pulled declaration's own names pull
+ * more, to fixpoint. Then register the import of each name that the sources
+ * and the pulled declarations use (see {@link registerUses}). Returns the pulled
+ * declarations dedented, in source order, ready to sit between the imports and
+ * the JSX.
  *
- * Like the build-time preamble matching, reference detection is a whole-word
- * name scan, not a reference graph; a name inside a string literal counts.
+ * @remarks
+ * The names come from the syntax tree at build time, so a word in a string, in
+ * JSX text, in a comment, or in a property name pulls nothing.
  */
 export function resolvePreamble(context: Context): string[] {
 	const facts = context.facts
 
-	if (!facts || context.factTexts.length === 0) return []
+	if (!facts || context.used.size === 0) return []
 
-	const texts = [
-		...context.factTexts,
-		...[...context.pulledDecls].map((index) => facts.declarations[index]?.code ?? ''),
-	]
+	const used = new Set(context.used)
 
-	let progress = true
+	// The pulled declarations whose names the closure has yet to read.
+	const pending = [...context.pulledDecls]
 
-	while (progress) {
-		progress = false
+	for (let index = pending.pop(); index !== undefined; index = pending.pop()) {
+		for (const name of facts.declarations[index]?.uses ?? []) {
+			used.add(name)
 
-		for (const [name, index] of Object.entries(facts.bindings)) {
-			if (context.pulledDecls.has(index)) continue
+			const next = own(facts.bindings, name)
 
-			const re = wordRe(name)
+			if (next === undefined || context.pulledDecls.has(next)) continue
 
-			if (!texts.some((text) => re.test(text))) continue
+			context.pulledDecls.add(next)
 
-			context.pulledDecls.add(index)
-
-			texts.push(facts.declarations[index]?.code ?? '')
-
-			progress = true
+			pending.push(next)
 		}
 	}
 
-	for (const text of texts) {
-		collectSnippetImports(text, context)
-
-		for (const [name, imp] of Object.entries(facts.imports)) {
-			if (wordRe(name).test(text)) {
-				addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
-			}
-		}
-	}
+	registerUses(used, context)
 
 	return [...context.pulledDecls]
 		.sort((a, b) => a - b)
@@ -717,15 +713,10 @@ export function readSnippet(type: unknown): HelperSnippet | null {
 	return valid ? (snippet as HelperSnippet) : null
 }
 
-/** The source of a helper snippet: its blocks, in source order. */
-export function snippetCode(snippet: HelperSnippet): string {
-	return snippet.blocks.map((index) => snippet.declarations[index] ?? '').join('\n\n')
-}
-
 /**
- * Hoist a helper's blocks above the JSX, and register the imports they use.
- * The blocks key by the file's table, so a declaration that two helpers of a
- * file share prints once.
+ * Hoist a helper's blocks above the JSX, and register the imports they use:
+ * each entry of the snippet's import table. The blocks key by the file's
+ * table, so a declaration that two helpers of a file share prints once.
  */
 export function hoistSnippet(snippet: HelperSnippet, context: Context): void {
 	const blocks = context.hoisted.get(snippet.declarations) ?? new Set<number>()
@@ -734,7 +725,7 @@ export function hoistSnippet(snippet: HelperSnippet, context: Context): void {
 
 	context.hoisted.set(snippet.declarations, blocks)
 
-	collectSnippetImports(snippetCode(snippet), context, snippet.imports)
+	for (const [name, fact] of Object.entries(snippet.imports)) registerImport(name, fact, context)
 }
 
 // `use` (the React 19 API) or a `use<Capital>` hook name.
@@ -756,68 +747,40 @@ export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
 		.map((name) => [name, 'react'] as const),
 ])
 
-// Match any known hook at a call site. The `(?<!\.)` lookbehind excludes method
-// calls (`router.use(...)`); the `\b` anchors keep a short name from matching
-// inside a longer one; the `(?=\s*[(<])` lookahead requires a following call or
-// generic-argument list (`use(`, `useState<T>(`) so a bare word — prose like
-// "easy to use" or a `use` in a comment — never conjures a phantom import.
-const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b(?=\\s*[(<])`, 'g')
-
-const TAG_RE = /<([A-Z][\w]*)/g
-
-/**
- * Whether `snippet` would register at least one import. The walk answers this
- * by mutating its `Context`. A caller with no walk in progress has none, so it
- * asks here against a scratch one. A snippet that names no recognized component
- * and calls no hook contributes nothing, and leaves the code block hidden.
- *
- * @remarks
- * Delegates to {@link collectSnippetImports} rather than re-scanning, so a new
- * import source inside that function counts here too.
- */
-export function snippetHasImports(
-	snippet: string,
-	registry: ComponentRegistry,
-	imports: Record<string, ImportFact> = {},
-): boolean {
-	const context = createContext(registry)
-
-	collectSnippetImports(snippet, context, imports)
-
-	return context.imports.size > 0
+/** Register the import line of one entry of an import table. */
+function registerImport(name: string, fact: ImportFact, context: Context): void {
+	addImport(context, fact.module, name, fact.external ?? false, fact.type ?? false)
 }
 
 /**
- * Register imports for anything the snippet references. A UI component
- * registers through its JSX opening tag, and a React hook through bare
- * identifier use. Each entry of `imports` registers too: that is the table the
- * docs plugin attached beside the snippet. `addImport` dedupes
+ * Register the import of each name in `names`. A name that the facts' import
+ * table holds imports as that entry says. Any other name imports as a
+ * component of the registry or as a React hook. A name that is neither, such
+ * as a local or a global, imports nothing. `addImport` dedupes
  * per-(module,name).
  */
-export function collectSnippetImports(
-	snippet: string,
-	context: Context,
-	imports: Record<string, ImportFact> = {},
-): void {
-	for (const [name, imp] of Object.entries(imports)) {
-		addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
-	}
+export function registerUses(names: Iterable<string>, context: Context): void {
+	for (const name of names) {
+		const fact = own(context.facts?.imports, name)
 
-	for (const [, name] of snippet.matchAll(TAG_RE)) {
-		if (!name) continue
+		if (fact) {
+			registerImport(name, fact, context)
+
+			continue
+		}
 
 		const info = context.registry.byName.get(name)
 
-		if (info?.module) addImport(context, info.module, info.name, info.external)
-	}
+		if (info?.module) {
+			addImport(context, info.module, info.name, info.external)
 
-	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
-		if (!hook) continue
+			continue
+		}
 
-		const module = HOOK_MODULES.get(hook)
+		const module = HOOK_MODULES.get(name)
 
 		// `react` is rendered bare by `assemble` already; flag any other package
 		// (e.g. `react-dom`) external so its specifier stays bare too.
-		if (module) addImport(context, module, hook, module !== 'react')
+		if (module) addImport(context, module, name, module !== 'react')
 	}
 }

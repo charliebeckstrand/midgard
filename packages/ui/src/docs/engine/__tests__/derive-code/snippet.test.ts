@@ -1,7 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { reindent } from '../../derive-code/indent'
-import { collectSnippetImports, readSnippet, snippetCode } from '../../derive-code/internals'
+import { readSnippet, registerUses } from '../../derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('readSnippet', () => {
@@ -52,19 +52,6 @@ describe('readSnippet', () => {
 
 			expect(readSnippet(Demo)).toBeNull()
 		}
-	})
-})
-
-describe('snippetCode', () => {
-	it('joins the blocks of the snippet from its table, and leaves the rest', () => {
-		const code = snippetCode({
-			name: 'B',
-			declarations: ['const a = 1', 'const b = 2', 'function B() { return b }'],
-			blocks: [1, 2],
-			imports: {},
-		})
-
-		expect(code).toBe('const b = 2\n\nfunction B() { return b }')
 	})
 })
 
@@ -128,8 +115,8 @@ describe('reindent', () => {
 	})
 })
 
-describe('collectSnippetImports', () => {
-	it('collects UI component imports from JSX opening tags via the registry', () => {
+describe('registerUses', () => {
+	it('imports a component of the registry by its name', () => {
 		const context = makeContext({
 			byName: new Map([
 				['Stack', { name: 'Stack', module: 'stack' }],
@@ -137,106 +124,64 @@ describe('collectSnippetImports', () => {
 			]),
 		})
 
-		collectSnippetImports('<Stack><FileUpload /></Stack>', context)
+		registerUses(['Stack', 'FileUpload'], context)
 
 		expect(context.imports.get('stack')).toEqual(new Set(['Stack']))
 
 		expect(context.imports.get('file-upload')).toEqual(new Set(['FileUpload']))
 	})
 
-	it('registers each entry of the attached import table', () => {
-		const context = makeContext()
-
-		collectSnippetImports('const rules = defaultPasswordRules', context, {
-			defaultPasswordRules: { module: 'password-strength' },
-			PasswordRule: { module: 'password-strength', type: true },
+	it('imports a name as the import table of the facts says, before the registry', () => {
+		const context = makeContext({
+			byName: new Map([['PasswordRule', { name: 'PasswordRule', module: 'other' }]]),
 		})
+
+		context.facts = {
+			elements: [],
+			bindings: {},
+			declarations: [],
+			imports: {
+				defaultPasswordRules: { module: 'password-strength' },
+				PasswordRule: { module: 'password-strength', type: true },
+			},
+			uses: {},
+		}
+
+		registerUses(['defaultPasswordRules', 'PasswordRule'], context)
 
 		expect(context.imports.get('password-strength')).toEqual(
 			new Set(['defaultPasswordRules', 'type PasswordRule']),
 		)
+
+		expect(context.imports.has('other')).toBe(false)
 	})
 
-	it('ignores PascalCase tags that the registry does not recognize', () => {
+	it('imports React hooks, and react-dom hooks from react-dom', () => {
 		const context = makeContext({ byName: new Map() })
 
-		collectSnippetImports('<UnknownThing />', context)
+		registerUses(['use', 'useActionState', 'useOptimistic', 'useFormStatus'], context)
+
+		expect(context.imports.get('react')).toEqual(
+			new Set(['use', 'useActionState', 'useOptimistic']),
+		)
+
+		expect(context.imports.get('react-dom')).toEqual(new Set(['useFormStatus']))
+	})
+
+	it('imports nothing for a name that is neither a component nor a hook', () => {
+		const context = makeContext({ byName: new Map() })
+
+		registerUses(['UnknownThing', 'useFoo', 'value', 'Math'], context)
 
 		expect(context.imports.size).toBe(0)
 	})
 
-	it('collects React hooks via bare identifier use', () => {
-		const context = makeContext({ byName: new Map() })
-
-		collectSnippetImports('const [v, setV] = useState(0)', context)
-
-		expect(context.imports.get('react')).toEqual(new Set(['useState']))
-	})
-
-	it('collects React 19 hooks, attributing react-dom hooks to react-dom', () => {
-		const context = makeContext({ byName: new Map() })
-
-		const body = [
-			'const data = use(promise)',
-			'const [state, action] = useActionState(submit, null)',
-			'const [optimistic, addOptimistic] = useOptimistic(items)',
-			'const status = useFormStatus()',
-		].join('\n')
-
-		collectSnippetImports(body, context)
-
-		const reactImports = context.imports.get('react')
-
-		expect(reactImports).toContain('use')
-
-		expect(reactImports).toContain('useActionState')
-
-		expect(reactImports).toContain('useOptimistic')
-
-		// `useFormStatus` is a react-dom export, not react.
-		expect(context.imports.get('react-dom')).toContain('useFormStatus')
-
-		expect(reactImports).not.toContain('useFormStatus')
-	})
-
-	it('does not mistake method calls for React hooks (lookbehind on `.`)', () => {
-		const context = makeContext({ byName: new Map() })
-
-		collectSnippetImports('router.use(plugin)', context)
-
-		expect(context.imports.get('react')).toBeUndefined()
-	})
-
-	it('does not import non-React hook-shaped identifiers (e.g. useFoo)', () => {
-		const context = makeContext({ byName: new Map() })
-
-		collectSnippetImports('const v = useFoo()', context)
-
-		expect(context.imports.get('react')).toBeUndefined()
-	})
-
-	it('does not import `use` from a bare word in prose or a comment', () => {
-		const context = makeContext({ byName: new Map() })
-
-		collectSnippetImports('// use the shared ref here\nconst label = "easy to use"', context)
-
-		expect(context.imports.get('react')).toBeUndefined()
-	})
-
-	it('imports a hook called with an explicit generic argument (`useState<T>()`)', () => {
-		const context = makeContext({ byName: new Map() })
-
-		collectSnippetImports('const [v, setV] = useState<number>(0)', context)
-
-		expect(context.imports.get('react')).toEqual(new Set(['useState']))
-	})
-
-	it('dedupes repeated matches into a single import entry', () => {
+	it('dedupes a repeated name into a single import entry', () => {
 		const context = makeContext({
 			byName: new Map([['Stack', { name: 'Stack', module: 'stack' }]]),
 		})
 
-		collectSnippetImports('<Stack><Stack /></Stack>', context)
+		registerUses(['Stack', 'Stack'], context)
 
 		expect(context.imports.get('stack')?.size).toBe(1)
 	})
