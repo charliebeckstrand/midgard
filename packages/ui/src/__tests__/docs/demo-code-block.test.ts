@@ -307,8 +307,8 @@ describe('demo code blocks', () => {
 	// A snippet is what a reader copies, so each name it uses from its own demo
 	// file has to come with it. The snippet declares the name, or an import line
 	// brings it in. A name from a module that no reader can import, such as the
-	// docs engine or a sibling demo file, has no import line to take, so this
-	// case leaves it out. A use is an identifier in a value or a type position,
+	// docs engine or a sibling demo page, has no import line to take, so this
+	// case leaves it out. A data module beside the demo has an import line. A use is an identifier in a value or a type position,
 	// the same reading that builds the snippet.
 	it('every helper snippet declares or imports each name it uses', () => {
 		const violations: string[] = []

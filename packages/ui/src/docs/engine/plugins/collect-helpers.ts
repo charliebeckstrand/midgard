@@ -291,8 +291,9 @@ function usedImports(
  * table of those declarations, so a declaration that two helpers use goes into
  * the chunk once. The snippet also carries the entries of `imports` that it
  * uses. A name imported from a module that no reader can import has no entry
- * in `imports`. The docs engine and a sibling demo file are such modules, so
- * the snippet stays short of that name.
+ * in `imports`. The docs engine and a sibling demo page are such modules, so
+ * the snippet stays short of that name. A data module beside the demo keeps
+ * its entry (see `importFacts`).
  *
  * @param imports - The demo's import table, from `importFacts`.
  */

@@ -1,3 +1,4 @@
+import fs from 'node:fs'
 import path from 'node:path'
 import ts from '@typescript/typescript6'
 import {
@@ -511,11 +512,22 @@ function typeImportsOf(
 }
 
 /**
+ * Whether a relative specifier names a data module in the demo's own folder,
+ * such as `./data` for `data.ts`. A reader keeps such a file beside the code,
+ * so the import line stays as the demo writes it. A sibling demo page is a
+ * `.tsx` file, whose helpers print from their own snippets.
+ */
+function isDataBeside(specifier: string, resolved: string): boolean {
+	return /^\.\/[^/]+$/.test(specifier) && fs.existsSync(`${resolved}.ts`)
+}
+
+/**
  * The identifiers a demo imports and where a reader would import them from:
  * relative specifiers map onto public library modules, bare specifiers stay
- * external. A type-only specifier carries `type`, so its line reads
- * `type Name`. Aliased specifiers are skipped, because an emitted import line
- * would misname them.
+ * external, and a data module beside the demo keeps its authored specifier.
+ * A type-only specifier carries `type`, so its line reads `type Name`.
+ * Aliased specifiers are skipped, because an emitted import line would
+ * misname them.
  */
 export function importFacts(
 	sf: ts.SourceFile,
@@ -534,13 +546,17 @@ export function importFacts(
 
 		const isRelative = specifier.startsWith('.')
 
-		const module = isRelative
-			? publicModuleFor(path.resolve(path.dirname(filePath), specifier), srcDir)
-			: specifier
+		const resolved = path.resolve(path.dirname(filePath), specifier)
 
-		if (!module) continue
+		const library = isRelative ? publicModuleFor(resolved, srcDir) : null
 
-		const fact: ImportFact = isRelative ? { module } : { module, external: true }
+		const fact: ImportFact | null = library
+			? { module: library }
+			: !isRelative || isDataBeside(specifier, resolved)
+				? { module: specifier, external: true }
+				: null
+
+		if (!fact) continue
 
 		for (const spec of elements) {
 			if (spec.propertyName) continue
