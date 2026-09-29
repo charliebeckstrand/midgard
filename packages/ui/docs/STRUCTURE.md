@@ -9,7 +9,7 @@ import { Flex } from 'ui/structure/flex'
 import { Stack } from 'ui/stack'
 ```
 
-The bare paths are exact keys in `package.json` `exports`, one per unit, rather than a third target on the `./*` fallback array: Next.js resolves only the first target of that array, which is `components/*`. A new unit adds its key beside the others.
+The bare paths are exact keys in `package.json` `exports`, one per unit, as for the modules. Next.js resolves only the first target of an `exports` fallback array, so the `./*` key has one target, `components/*`. A new unit adds its key beside the others, and `package-exports-boundary.test.ts` fails until it does.
 
 Every structure unit is static, so it renders in React Server Components ([`../REFERENCE.md`](../REFERENCE.md) §2). A unit that draws a visible element or handles input, such as `divider`, `group`, or `card`, stays in [`COMPONENTS.md`](COMPONENTS.md).
 

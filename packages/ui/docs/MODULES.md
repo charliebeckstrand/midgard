@@ -4,7 +4,7 @@
 
 A module is larger than a component. It owns a family of sub-components and hooks behind one entry point, ships its own demo, and earns its own surface entry here. A module builds on the atomic `ui` components and primitives; it does not sit beside them.
 
-Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel, because a module name and a component name never collide. Both specifiers work; canonical docs and snippets use the nested path:
+Each module is its own entry point under `ui/modules/*`. The bare `ui/<name>` shorthand resolves to the same barrel. It is an exact key in `package.json` `exports`, as for [structure](STRUCTURE.md), and `package-exports-boundary.test.ts` holds a key for each module and holds the names apart from the components. Both specifiers work, and canonical docs and snippets use the nested path:
 
 ```ts
 import { MapPlat } from 'ui/modules/map' // or the 'ui/map' shorthand

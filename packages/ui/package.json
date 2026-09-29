@@ -58,17 +58,35 @@
 			"types": "./src/structure/stack/index.ts",
 			"default": "./src/structure/stack/index.ts"
 		},
+		"./chart": {
+			"types": "./src/modules/chart/index.ts",
+			"default": "./src/modules/chart/index.ts"
+		},
+		"./chat": {
+			"types": "./src/modules/chat/index.ts",
+			"default": "./src/modules/chat/index.ts"
+		},
+		"./dashboard": {
+			"types": "./src/modules/dashboard/index.ts",
+			"default": "./src/modules/dashboard/index.ts"
+		},
+		"./grid": {
+			"types": "./src/modules/grid/index.ts",
+			"default": "./src/modules/grid/index.ts"
+		},
+		"./map": {
+			"types": "./src/modules/map/index.ts",
+			"default": "./src/modules/map/index.ts"
+		},
+		"./query": {
+			"types": "./src/modules/query/index.ts",
+			"default": "./src/modules/query/index.ts"
+		},
 		"./tailwind.css": "./tailwind.css",
-		"./*": [
-			{
-				"types": "./src/components/*/index.ts",
-				"default": "./src/components/*/index.ts"
-			},
-			{
-				"types": "./src/modules/*/index.ts",
-				"default": "./src/modules/*/index.ts"
-			}
-		]
+		"./*": {
+			"types": "./src/components/*/index.ts",
+			"default": "./src/components/*/index.ts"
+		}
 	},
 	"scripts": {
 		"build:dist": "tsup",
