@@ -206,6 +206,10 @@ export const PLACEHOLDER = '...'
  * once the identifier's declaration is already pulled into the preamble. A
  * controlled pair therefore reads `value={value} onValueChange={setValue}`,
  * rather than mixing a frozen live value with source-form wiring.
+ *
+ * A live `false` reads as absent and prints only from its fact: as
+ * `key={false}` when the demo authors `false`, or as its identifier through
+ * the consistency rule. Any other source drops it.
  */
 export function formatProps(
 	props: Record<string, unknown>,
@@ -222,7 +226,18 @@ export function formatProps(
 
 		const live = formatLiveProp(key, value, context)
 
-		if (live === null) continue
+		if (live === null) {
+			// A live `false` reads as absent. An authored `false` turns off a prop
+			// whose default is on, so it prints. Another source prints only through
+			// the consistency pass below, as a controlled `open={open}` does.
+			const source = fact?.props[key]
+
+			if (value === false && source !== undefined) {
+				slots.push({ key, text: source === 'false' ? `${key}={false}` : '', live: true })
+			}
+
+			continue
+		}
 
 		if (live !== undefined) {
 			slots.push({ key, text: live, live: true })
@@ -266,7 +281,7 @@ export function formatProps(
 		slot.text = `${slot.key}={${registerFactText(source, context)}}`
 	}
 
-	return slots.map((slot) => slot.text)
+	return slots.flatMap((slot) => (slot.text === '' ? [] : [slot.text]))
 }
 
 /**

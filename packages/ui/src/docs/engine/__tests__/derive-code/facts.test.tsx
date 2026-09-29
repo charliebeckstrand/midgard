@@ -108,6 +108,58 @@ describe('deriveCode source-fact props', () => {
 		expect(result).not.toContain('const variant')
 	})
 
+	describe('a live `false`', () => {
+		const Dialog = tag<{
+			open?: boolean
+			onOpenChange?: (open: boolean) => void
+			closable?: boolean
+			disabled?: boolean
+		}>('Dialog', 'dialog')
+
+		// `false` turns off a prop whose default is on, so dropping it flips the prop.
+		it('prints an authored `false`', () => {
+			const tree = createElement(Dialog, { closable: false })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Dialog', props: { closable: 'false' } }] }),
+			)
+
+			expect(result).toContain('<Dialog closable={false} />')
+		})
+
+		it('prints its identifier once the setter pulls the declaration', () => {
+			const tree = createElement(Dialog, { open: false, onOpenChange: () => {} })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Dialog', props: { open: 'open', onOpenChange: 'setOpen' } }],
+					bindings: { open: 0, setOpen: 0 },
+					declarations: [
+						{ names: ['open', 'setOpen'], code: 'const [open, setOpen] = useState(false)' },
+					],
+				}),
+			)
+
+			expect(result).toContain('<Dialog open={open} onOpenChange={setOpen} />')
+		})
+
+		it('drops it when its source is an expression', () => {
+			const tree = createElement(Dialog, { disabled: false })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Dialog', props: { disabled: '!value' } }] }),
+			)
+
+			expect(result).toContain('<Dialog />')
+		})
+	})
+
 	it('rescues an unserializable prop with source instead of a placeholder', () => {
 		const Grid = tag<{ sort?: unknown }>('Grid', 'modules/grid')
 

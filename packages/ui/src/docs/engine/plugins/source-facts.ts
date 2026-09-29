@@ -40,17 +40,19 @@ const FACTS_CONST = '__exampleFacts'
 /**
  * Expression kinds the runtime walker already recovers from live values;
  * recording their source would only override live rendering with a stale copy.
+ *
+ * @remarks
+ * `false` is not one of them. The walker reads a live `false` as an absent
+ * prop, so an authored `false` that turns off a default (`closable={false}`)
+ * needs its fact to print.
  */
 function isRuntimeRecoverable(expr: ts.Expression): boolean {
 	if (
 		ts.isStringLiteral(expr) ||
 		ts.isNoSubstitutionTemplateLiteral(expr) ||
-		ts.isNumericLiteral(expr)
+		ts.isNumericLiteral(expr) ||
+		expr.kind === ts.SyntaxKind.TrueKeyword
 	) {
-		return true
-	}
-
-	if (expr.kind === ts.SyntaxKind.TrueKeyword || expr.kind === ts.SyntaxKind.FalseKeyword) {
 		return true
 	}
 
