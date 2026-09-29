@@ -243,6 +243,46 @@ describe('AreaChart value domain', () => {
 		expect(labeled.ticks[0]).toBe(`0@${labeled.y}`)
 	})
 
+	it.each([false, true])(
+		'rules the category axis on the zero line the washes stand on (stacked: %s)',
+		(stacked) => {
+			const { container } = renderUI(
+				<AreaChart
+					aria-label="Net flow"
+					width={400}
+					height={240}
+					stacked={stacked}
+					data={[
+						{ day: 'Mon', a: 10, b: -20 },
+						{ day: 'Tue', a: 30, b: -10 },
+						{ day: 'Wed', a: 20, b: -30 },
+					]}
+					series={[
+						{ xKey: 'day', yKey: 'a' },
+						{ xKey: 'day', yKey: 'b' },
+					]}
+				/>,
+			)
+
+			const rule = Number(
+				getSlot(container, 'chart-axis-x').querySelector('line')?.getAttribute('y1'),
+			)
+
+			const zero = [...getSlot(container, 'chart-axis-y').querySelectorAll('text')].find(
+				(text) => text.textContent === '0',
+			)
+
+			const hit = getSlot(container, 'chart-hit')
+
+			const floor = Number(hit.getAttribute('y')) + Number(hit.getAttribute('height'))
+
+			// The premise: the negative values lift the zero line off the floor.
+			expect(floor - Number(zero?.getAttribute('y'))).toBeGreaterThan(20)
+
+			expect(rule).toBeCloseTo(Number(zero?.getAttribute('y')), 1)
+		},
+	)
+
 	it('keeps a stacked band of 10 inside the value axis when the next series is negative', () => {
 		const { container } = renderUI(
 			<AreaChart

@@ -130,8 +130,8 @@ export type CartesianConfig<T> = {
 	valueHeadroom?: (visible: readonly SeriesMeta[]) => number
 	/**
 	 * Where the category axis rules. `'zero'` draws it at the value scale's zero,
-	 * which is what a chart whose marks stand on that zero wants. That is bars, and
-	 * the bar half of a combo. `'edge'`, the default, leaves the rule at the plot
+	 * which is what a chart whose marks stand on that zero wants. That is bars,
+	 * area washes, and a combo. `'edge'`, the default, leaves the rule at the plot
 	 * floor. `'zero'` is honored only where {@link CartesianConfig.zeroBaseline}
 	 * put zero in the domain. Without it the scale clamps `map(0)` to whichever end
 	 * is nearer, and an all-negative domain would rule across the plot ceiling.

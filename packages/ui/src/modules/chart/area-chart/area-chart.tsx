@@ -205,6 +205,7 @@ function stackedRibbons(
  * under its band-edge line. The series stack into a part-to-whole ribbon set,
  * or stay independent overlapping areas. Carries the cartesian standard — value
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
+ * The category axis rules on the zero line that the washes stand on.
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous;
  * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
@@ -241,6 +242,9 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
+		// Each wash and the first ribbon of a stack stand on the zero line, so the
+		// category rule draws there too.
+		categoryRule: 'zero',
 		swatch: () => 'line',
 		stack: stacked,
 		markInset: lineMarkReach(points),
