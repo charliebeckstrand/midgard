@@ -11,14 +11,16 @@ export type TooltipPointerOptions = {
 	open: boolean
 	/**
 	 * Coordinates to anchor at, or `null` while nothing is pointed. Client
-	 * coordinates, or coordinates in the box of {@link originRef} when one is given.
+	 * coordinates, or coordinates in the layout box of {@link originRef} when one
+	 * is given: the CSS pixels of the origin, before an ancestor scale or zoom.
 	 */
 	point: { x: number; y: number } | null
 	/**
 	 * An element that `point` is relative to. The client point is then read off the
 	 * element's box when the panel positions, not during render. A caller that
 	 * holds its point in its own frame therefore needs no layout read of its own.
-	 * Omitted, `point` is in client coordinates. `axis` does not apply with it.
+	 * The point scales with the element, so it holds under an ancestor scale or
+	 * zoom. Omitted, `point` is in client coordinates. `axis` does not apply with it.
 	 */
 	originRef?: RefObject<Element | null>
 	/**
@@ -47,6 +49,26 @@ export type TooltipPointerOptions = {
 	 * @defaultValue 'auto'
 	 */
 	track?: 'auto' | 'point'
+}
+
+/**
+ * The client point of a point in the layout box of `origin`. An ancestor scale
+ * or zoom draws the origin at a size apart from its layout size, so the point
+ * scales by the ratio of the two. An origin with no layout size (jsdom) maps by
+ * the offset alone.
+ *
+ * @internal
+ */
+function clientPointOf(origin: Element | null, x: number, y: number) {
+	if (!origin) return { left: x, top: y }
+
+	const box = origin.getBoundingClientRect()
+
+	const scaleX = origin.clientWidth > 0 ? box.width / origin.clientWidth : 1
+
+	const scaleY = origin.clientHeight > 0 ? box.height / origin.clientHeight : 1
+
+	return { left: box.left + x * scaleX, top: box.top + y * scaleY }
 }
 
 /**
@@ -96,11 +118,7 @@ export function useTooltipPointer({
 
 		setPositionReference({
 			getBoundingClientRect() {
-				const box = originRef.current?.getBoundingClientRect()
-
-				const left = (box?.left ?? 0) + x
-
-				const top = (box?.top ?? 0) + y
+				const { left, top } = clientPointOf(originRef.current, x, y)
 
 				return { x: left, y: top, width: 0, height: 0, top, left, right: left, bottom: top }
 			},

@@ -30,7 +30,7 @@ export type ChartPointerHandlers = {
  *
  * @internal
  */
-function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
+export function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
 	const dx = clientX - box.left
 
 	const dy = clientY - box.top

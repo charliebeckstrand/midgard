@@ -12,6 +12,7 @@ import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
 import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
+import { toFrame } from '../engine/use-chart-pointer'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -143,6 +144,20 @@ export function segmentLabelItems({
 }
 
 /**
+ * A client point in the units that the pie draws in, which are the units that
+ * the readout anchors in. It maps through an ancestor scale or zoom, as the
+ * cartesian pointer does. A drawing with no layout size (jsdom) maps by the
+ * offset alone.
+ *
+ * @internal
+ */
+function drawingPoint(svg: SVGSVGElement, clientX: number, clientY: number) {
+	const drawing = { x: 0, y: 0, width: svg.clientWidth, height: svg.clientHeight }
+
+	return toFrame(drawing, svg.getBoundingClientRect(), clientX, clientY)
+}
+
+/**
  * The slice that a node under the pointer belongs to, or `null` off the slices.
  * Each child of `wedges` is the group of one slice, in the order of `slices`,
  * and holds its hit wedge and its visible slice.
@@ -267,11 +282,11 @@ export function SectorChartMarks({
 
 			const slice = sliceAt(wedges.current, slices, document.elementFromPoint(clientX, clientY))
 
-			const box = wedges.current?.ownerSVGElement?.getBoundingClientRect()
+			const svg = wedges.current?.ownerSVGElement
 
-			if (slice === null || !box) return
+			if (slice === null || !svg) return
 
-			set(slice.index, { x: clientX - box.left, y: clientY - box.top })
+			set(slice.index, drawingPoint(svg, clientX, clientY))
 
 			onEmphasis(slice.index)
 		},
@@ -319,11 +334,11 @@ export function SectorChartMarks({
 					// reports through `onIndexClick` on either trigger, after the toggle,
 					// so one gesture drives both the readout and the consumer's activation.
 					const at = (event: PointerEvent<SVGPathElement> | MouseEvent<SVGPathElement>) => {
-						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+						const svg = event.currentTarget.ownerSVGElement
 
-						if (!box) return
+						if (!svg) return
 
-						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+						set(slice.index, drawingPoint(svg, event.clientX, event.clientY))
 					}
 
 					const activate = () => onIndexClick?.(slice.index)

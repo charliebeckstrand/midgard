@@ -65,8 +65,9 @@ export function resolveTooltip(tooltip: boolean | ChartTooltipConfig | undefined
 export type ChartTooltipProps = {
 	/**
 	 * The plot region element. Its viewport rect maps the hover's frame
-	 * coordinates to the client point floating-ui anchors to. The SVG fills the
-	 * region one-to-one, so the rect origin plus a frame point is that point.
+	 * coordinates to the client point floating-ui anchors to. The SVG starts at
+	 * the origin of the region, and a frame unit is a layout pixel of it. The
+	 * point therefore scales with the region under an ancestor scale or zoom.
 	 */
 	plotRef: RefObject<HTMLDivElement | null>
 	/**
@@ -215,10 +216,11 @@ export function ChartTooltip({
 	// anywhere in the plot; otherwise it waits for the pointer to sit on a mark.
 	const open = anchor !== null && (snap != null || onData)
 
-	// Frame coordinates map to the viewport by the plot region's own rect: the
-	// SVG fills it one-to-one, so the origin plus the frame point is the client
-	// point the floating readout anchors to. The pointer reads that rect when it
-	// positions the panel, not here in render.
+	// Frame coordinates map to the viewport by the plot region's own rect. The
+	// pointer scales the frame point by the drawn size of the region over its
+	// layout size, and adds it to the origin, so an ancestor scale or zoom keeps
+	// the readout on its mark. It reads that rect when it positions the panel,
+	// not here in render.
 	return (
 		<TooltipPointer
 			open={open}
