@@ -54,27 +54,9 @@ function pageOf(path: string): string {
  * diagnostic of each. Fix a block, and remove its entry.
  */
 const KNOWN_FAILURES: Record<string, string> = {
-	// A helper's source, printed inside the JSX of a component that renders it.
-	'components/command-palette › Default': "TS1005: '}' expected.",
-	'components/drawer › Height': "TS1005: '}' expected.",
-	'components/kanban › Default': "TS1005: '}' expected.",
-	'components/kanban › Disabled': "TS1005: '}' expected.",
-	'components/kanban › Read-only': "TS1005: '}' expected.",
-	'components/nav › Variants': 'TS1109: Expression expected.',
-	'components/resizable › Horizontal': "TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?",
-	'components/resizable › Three panels':
-		"TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?",
-	'components/resizable › Vertical': "TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?",
-	'modules/dashboard › Dashboard': 'TS1109: Expression expected.',
-	'modules/map › IKEA distribution network': 'TS1109: Expression expected.',
-	'modules/map › Line haul': 'TS1109: Expression expected.',
-	'modules/map › Long-haul corridors': 'TS1109: Expression expected.',
-	'providers/density › #1': "TS1005: '}' expected.",
-	'providers/glass › Form controls': 'TS1109: Expression expected.',
-	'providers/glass › Overlays': 'TS1109: Expression expected.',
-
-	// A declaration that the block uses and does not carry: a JSX helper of the page, or demo data from a sibling module, whose relative import the block drops.
-	'modules/dashboard › Widget registry': "TS2304: Cannot find name 'RevenueBars'.",
+	// Demo data from a sibling module, whose relative import the block drops.
+	'modules/dashboard › Dashboard': "TS2304: Cannot find name 'sumBy'.",
+	'modules/dashboard › Widget registry': "TS2304: Cannot find name 'sumBy'.",
 	'modules/map › Delivery rounds': "TS2304: Cannot find name 'deliveryStops'.",
 	"modules/map › Drill into a state's counties":
 		"TS2552: Cannot find name 'countiesUrl'. Did you mean 'countiesQuery'?",
@@ -85,6 +67,9 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'modules/map › Zoom into the rounds': "TS2304: Cannot find name 'deliveryStops'.",
 
 	// The parameter of a `.map` callback, printed in each element that the map renders, with no binding.
+	'components/kanban › Default': "TS2552: Cannot find name 'column'. Did you mean 'columns'?",
+	'components/kanban › Disabled': "TS2552: Cannot find name 'column'. Did you mean 'columns'?",
+	'components/kanban › Read-only': "TS2304: Cannot find name 'column'.",
 	'components/pagination › Default': "TS2304: Cannot find name 'p'.",
 	'components/segment › Sizes': "TS2304: Cannot find name 's'.",
 	'modules/chat › List': "TS2304: Cannot find name 'conversation'.",

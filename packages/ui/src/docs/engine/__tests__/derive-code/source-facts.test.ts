@@ -210,7 +210,9 @@ describe('extractSourceFacts declarations and bindings', () => {
 		expect(codes).toContain('const fmt = makeFmt(BASE)')
 	})
 
-	it('excludes module-scope JSX helper components from the declaration table', () => {
+	// A pulled declaration that names a helper would otherwise name a component
+	// that the block never declares.
+	it('binds a module-scope JSX helper component that a prop names', () => {
 		const source = [
 			`const Card = () => <div>card</div>`,
 			``,
@@ -225,9 +227,35 @@ describe('extractSourceFacts declarations and bindings', () => {
 
 		const facts = extract(source)
 
-		expect(facts?.sites[0]?.bindings.Card).toBeUndefined()
+		const bound = facts?.sites[0]?.bindings.Card
 
-		expect(facts?.declarations).toHaveLength(0)
+		expect(facts?.declarations[bound ?? -1]?.code).toBe('const Card = () => <div>card</div>')
+	})
+
+	it('keeps the demo page itself out of the declaration table', () => {
+		const source = [
+			`const label = 'Demo'`,
+			``,
+			`export default function Page() {`,
+			`\treturn <Slot />`,
+			`}`,
+			``,
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<Example title="Page">`,
+			`\t\t\t<Slot render={Demo} fallback={Page} title={label} />`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const facts = extract(source)
+
+		expect(facts?.sites[0]?.bindings.Demo).toBeUndefined()
+
+		expect(facts?.sites[0]?.bindings.Page).toBeUndefined()
+
+		expect(facts?.declarations.map((decl) => decl.code)).toEqual([`const label = 'Demo'`])
 	})
 })
 

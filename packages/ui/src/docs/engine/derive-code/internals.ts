@@ -9,6 +9,7 @@ import type {
 	ComponentRegistry,
 	Context,
 	ElementFact,
+	HelperSnippet,
 	ImportFact,
 	SourceFacts,
 } from './types'
@@ -101,6 +102,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 		facts,
 		factTexts: [],
 		pulledDecls: new Set(),
+		hoisted: new Map(),
 	}
 }
 
@@ -114,7 +116,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 export type ElementCase =
 	| { kind: 'recognized'; info: ComponentInfo }
 	| { kind: 'children'; nodes: ReactNode[] }
-	| { kind: 'snippet'; code: string; imports: Record<string, ImportFact> }
+	| { kind: 'snippet'; snippet: HelperSnippet }
 	| { kind: 'none' }
 
 /**
@@ -131,11 +133,9 @@ export function classifyElement(element: ReactElement, registry: ComponentRegist
 
 	if (nodes.length > 0) return { kind: 'children', nodes }
 
-	const code = readSnippet(element.type)
+	const snippet = readSnippet(element.type)
 
-	return code === null
-		? { kind: 'none' }
-		: { kind: 'snippet', code, imports: readSnippetImports(element.type) }
+	return snippet === null ? { kind: 'none' } : { kind: 'snippet', snippet }
 }
 
 /**
@@ -457,10 +457,15 @@ function importNames(names: Set<string>): string[] {
 }
 
 /**
- * Combine the imports accumulated on `context` with the preamble declarations
- * and the rendered JSX into the final code block. Sorts imports by module;
- * `react` and external packages keep their bare specifiers, everything else
- * uses the documented library's `<packageName>/*` layout.
+ * Combine the imports accumulated on `context` with the declarations and the
+ * rendered JSX into the final code block. Sorts imports by module; `react` and
+ * external packages keep their bare specifiers, everything else uses the
+ * documented library's `<packageName>/*` layout.
+ *
+ * The hoisted helper declarations come first, and the preamble follows. A
+ * preamble declaration can name a helper, but a helper's blocks already hold
+ * each declaration they use. A declaration that both hold prints once, in the
+ * hoisted place.
  */
 export function assemble(context: Context, jsx: string, preamble: string[] = []): string {
 	const imports = [...context.imports.entries()]
@@ -473,7 +478,15 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 		})
 		.join('\n')
 
-	return [imports, ...preamble, jsx].filter(Boolean).join('\n\n')
+	const hoisted = [...context.hoisted].flatMap(([declarations, blocks]) =>
+		[...blocks].sort((a, b) => a - b).map((index) => reindent(declarations[index] ?? '', '')),
+	)
+
+	const printed = new Set(hoisted)
+
+	return [imports, ...hoisted, ...preamble.filter((code) => !printed.has(code)), jsx]
+		.filter(Boolean)
+		.join('\n\n')
 }
 
 /**
@@ -598,33 +611,47 @@ export function resolvePreamble(context: Context): string[] {
 }
 
 /**
- * Components decorated by the docs plugin's `pre` transform carry their
- * original source as `__code`, and the imports it uses as `__imports`.
+ * Read the {@link HelperSnippet} that the docs plugin's `pre` transform
+ * attaches to a helper component as `__snippet`. Returns null for built-ins,
+ * undecorated functions, and a `__snippet` of another shape.
  */
-type WithCode = { __code?: string; __imports?: Record<string, ImportFact> }
-
-/**
- * Read the build-time-attached source snippet from a component. Returns null
- * for built-ins, undecorated functions, or non-string `__code` values.
- */
-export function readSnippet(type: unknown): string | null {
+export function readSnippet(type: unknown): HelperSnippet | null {
 	if (typeof type !== 'function') return null
 
-	const code = (type as WithCode).__code
+	const snippet: unknown = (type as { __snippet?: unknown }).__snippet
 
-	return typeof code === 'string' ? code : null
+	if (typeof snippet !== 'object' || snippet === null) return null
+
+	const { name, declarations, blocks, imports } = snippet as Partial<HelperSnippet>
+
+	const valid =
+		typeof name === 'string' &&
+		Array.isArray(declarations) &&
+		Array.isArray(blocks) &&
+		typeof imports === 'object' &&
+		imports !== null
+
+	return valid ? (snippet as HelperSnippet) : null
+}
+
+/** The source of a helper snippet: its blocks, in source order. */
+export function snippetCode(snippet: HelperSnippet): string {
+	return snippet.blocks.map((index) => snippet.declarations[index] ?? '').join('\n\n')
 }
 
 /**
- * Read the import table the docs plugin attached beside `__code`. Empty for a
- * component that carries none.
+ * Hoist a helper's blocks above the JSX, and register the imports they use.
+ * The blocks key by the file's table, so a declaration that two helpers of a
+ * file share prints once.
  */
-export function readSnippetImports(type: unknown): Record<string, ImportFact> {
-	if (typeof type !== 'function') return {}
+export function hoistSnippet(snippet: HelperSnippet, context: Context): void {
+	const blocks = context.hoisted.get(snippet.declarations) ?? new Set<number>()
 
-	const imports = (type as WithCode).__imports
+	for (const index of snippet.blocks) blocks.add(index)
 
-	return imports && typeof imports === 'object' ? imports : {}
+	context.hoisted.set(snippet.declarations, blocks)
+
+	collectSnippetImports(snippetCode(snippet), context, snippet.imports)
 }
 
 // `use` (the React 19 API) or a `use<Capital>` hook name.

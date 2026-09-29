@@ -3,7 +3,7 @@ import ts from '@typescript/typescript6'
 import type { DeclarationFact, ElementFact, ImportFact } from '../derive-code/types'
 import { isPascalCase, wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
-import { isJsxHelperStatement } from './collect-helpers'
+import { isPageStatement } from './collect-helpers'
 import { namedImportsOf, parseSource } from './ts-source'
 
 /**
@@ -14,7 +14,7 @@ import { namedImportsOf, parseSource } from './ts-source'
  * can synthesize what runtime values can't express (see `derive-code/types.ts`
  * for the shapes).
  *
- * Extraction is name-based, mirroring the `__code` preamble matching. Bindings
+ * Extraction is name-based, mirroring the helper snippets' dependency matching. Bindings
  * resolve lexically per Example: module scope, then each enclosing function.
  * Reference detection downstream is a whole-word scan, not a checker pass.
  */
@@ -190,18 +190,17 @@ function boundNames(name: ts.BindingName, into: string[]): void {
 
 /**
  * The identifiers a statement declares, with its verbatim source. Returns
- * null for statements a preamble can't use (imports, expressions, exports of
- * the entry component). `excludeJsxHelpers` drops helper components at module
- * scope — they render through the `__code` pipeline instead; inside function
- * bodies everything counts (a local `const icon = <Star />` is legitimate
- * preamble).
+ * null for statements a preamble can't use: imports, expressions, and, at
+ * `moduleScope`, the demo page itself. A helper component counts like any
+ * declaration, so a pulled declaration that names one pulls it too. The walk
+ * prints a declaration once, whether a helper snippet or a fact pulls it.
  */
 function declarationOf(
 	stmt: ts.Statement,
 	sf: ts.SourceFile,
-	excludeJsxHelpers: boolean,
+	moduleScope: boolean,
 ): Omit<Declaration, 'index'> | null {
-	if (excludeJsxHelpers && isJsxHelperStatement(stmt)) return null
+	if (moduleScope && isPageStatement(stmt)) return null
 
 	const code = stmt.getText(sf)
 
@@ -391,9 +390,9 @@ export function extractSourceFacts(
 	// functions enclosing any Example, in source order.
 	const statementScopes = new Map<ts.Statement, Omit<Declaration, 'index'> | null>()
 
-	const declarationFor = (stmt: ts.Statement, excludeJsxHelpers: boolean) => {
+	const declarationFor = (stmt: ts.Statement, moduleScope: boolean) => {
 		if (!statementScopes.has(stmt)) {
-			statementScopes.set(stmt, declarationOf(stmt, sf, excludeJsxHelpers))
+			statementScopes.set(stmt, declarationOf(stmt, sf, moduleScope))
 		}
 
 		return statementScopes.get(stmt) ?? null
@@ -403,12 +402,12 @@ export function extractSourceFacts(
 
 	const declarationIndex = new Map<ts.Statement, number>()
 
-	const indexOf = (stmt: ts.Statement, excludeJsxHelpers: boolean): number | null => {
+	const indexOf = (stmt: ts.Statement, moduleScope: boolean): number | null => {
 		const existing = declarationIndex.get(stmt)
 
 		if (existing !== undefined) return existing
 
-		const decl = declarationFor(stmt, excludeJsxHelpers)
+		const decl = declarationFor(stmt, moduleScope)
 
 		if (!decl) return null
 
@@ -442,9 +441,9 @@ export function extractSourceFacts(
 		// function from outermost in, so inner declarations shadow outer ones.
 		const bindings: Record<string, number> = {}
 
-		const bind = (stmts: readonly ts.Statement[], excludeJsxHelpers: boolean) => {
+		const bind = (stmts: readonly ts.Statement[], moduleScope: boolean) => {
 			for (const stmt of stmts) {
-				const index = indexOf(stmt, excludeJsxHelpers)
+				const index = indexOf(stmt, moduleScope)
 
 				if (index === null) continue
 

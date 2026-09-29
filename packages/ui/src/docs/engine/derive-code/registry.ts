@@ -41,7 +41,7 @@ const byName = new Map<string, ComponentInfo>(
 /**
  * Default (and only) registry. `byType` reads tags lazily off each element's
  * type, loading components alongside the demos that use them. `byName` is the
- * build-time module map resolving JSX tag names in raw `__code` snippets to
+ * build-time module map resolving JSX tag names in helper snippets to
  * their import paths. `packageName` is the documented library's import prefix,
  * baked in at build time by the docs plugin.
  */

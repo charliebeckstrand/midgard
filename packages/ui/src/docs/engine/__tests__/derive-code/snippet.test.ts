@@ -1,22 +1,29 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { reindent } from '../../derive-code/indent'
-import { collectSnippetImports, readSnippet, readSnippetImports } from '../../derive-code/internals'
+import { collectSnippetImports, readSnippet, snippetCode } from '../../derive-code/internals'
 import { makeContext } from './helpers'
 
 describe('readSnippet', () => {
-	it('returns the `__code` string attached to a function', () => {
+	const attached = {
+		name: 'Demo',
+		declarations: ['const size = 2', 'function Demo() { return null }'],
+		blocks: [0, 1],
+		imports: { cn: { module: 'core' } },
+	}
+
+	it('returns the `__snippet` attached to a function', () => {
 		const Demo = Object.assign(
 			function Demo() {
 				return null
 			},
-			{ __code: 'function Demo() { return null }' },
+			{ __snippet: attached },
 		)
 
-		expect(readSnippet(Demo)).toBe('function Demo() { return null }')
+		expect(readSnippet(Demo)).toBe(attached)
 	})
 
-	it('returns null for a function with no `__code` decoration', () => {
+	it('returns null for a function with no `__snippet` decoration', () => {
 		function Plain() {
 			return null
 		}
@@ -31,41 +38,33 @@ describe('readSnippet', () => {
 
 		expect(readSnippet('text')).toBeNull()
 
-		expect(readSnippet({ __code: 'never read' })).toBeNull()
+		expect(readSnippet({ __snippet: attached })).toBeNull()
 	})
 
-	it('returns null when `__code` is present but not a string', () => {
-		const Demo = Object.assign(
-			function Demo() {
-				return null
-			},
-			{ __code: 42 },
-		)
+	it('returns null when `__snippet` has another shape', () => {
+		for (const shape of [42, 'code', { ...attached, name: 1 }, { ...attached, blocks: 0 }]) {
+			const Demo = Object.assign(
+				function Demo() {
+					return null
+				},
+				{ __snippet: shape },
+			)
 
-		expect(readSnippet(Demo)).toBeNull()
+			expect(readSnippet(Demo)).toBeNull()
+		}
 	})
 })
 
-describe('readSnippetImports', () => {
-	it('returns the `__imports` table attached beside `__code`', () => {
-		const Demo = Object.assign(
-			function Demo() {
-				return null
-			},
-			{ __code: 'x', __imports: { cn: { module: 'core' } } },
-		)
+describe('snippetCode', () => {
+	it('joins the blocks of the snippet from its table, and leaves the rest', () => {
+		const code = snippetCode({
+			name: 'B',
+			declarations: ['const a = 1', 'const b = 2', 'function B() { return b }'],
+			blocks: [1, 2],
+			imports: {},
+		})
 
-		expect(readSnippetImports(Demo)).toEqual({ cn: { module: 'core' } })
-	})
-
-	it('returns an empty table for a function with none, or for a non-function', () => {
-		function Plain() {
-			return null
-		}
-
-		expect(readSnippetImports(Plain)).toEqual({})
-
-		expect(readSnippetImports({ __imports: { cn: { module: 'core' } } })).toEqual({})
+		expect(code).toBe('const b = 2\n\nfunction B() { return b }')
 	})
 })
 

@@ -18,7 +18,7 @@ type ComponentLookup = {
 /**
  * Two views over the same set of components: identity-keyed for matching
  * rendered elements, and name-keyed for resolving JSX tag names found inside
- * raw `__code` snippets. `packageName` is the documented library's import
+ * helper snippets. `packageName` is the documented library's import
  * prefix (`ui`, `grid`, …); `assemble` prepends it to non-external modules.
  */
 export type ComponentRegistry = {
@@ -43,6 +43,26 @@ export type ElementFact = { name: string; props: Record<string, string>; childre
  * binds (a `useState` tuple lists both names) and its full source text.
  */
 export type DeclarationFact = { names: string[]; code: string }
+
+/**
+ * The source that the docs plugin attaches to a demo-local helper component,
+ * as its `__snippet` static.
+ *
+ * - `name` is the helper's authored name. A production build minifies the
+ *   function's own `name`, so the walk cannot read it there.
+ * - `declarations` is the table of the demo file: each top-level statement
+ *   that a helper of the file prints, in source order. The helpers of one
+ *   file share one table.
+ * - `blocks` lists the indices in `declarations` of the helper and of each
+ *   declaration it depends on, in ascending order.
+ * - `imports` holds each imported name that those blocks use.
+ */
+export type HelperSnippet = {
+	name: string
+	declarations: readonly string[]
+	blocks: readonly number[]
+	imports: Record<string, ImportFact>
+}
 
 /**
  * Where an identifier referenced by emitted source imports from. `module` is a
@@ -80,6 +100,8 @@ export type SourceFacts = {
  * `factTexts` accumulates every authored source snippet the walk emits (prop
  * expressions, render-prop children), for the preamble closure and import scan.
  * `pulledDecls` carries the declaration indices those snippets reference.
+ * `hoisted` collects the helper declarations that print above the JSX, as
+ * indices into each file's table, keyed by the table.
  */
 export type Context = {
 	registry: ComponentRegistry
@@ -89,4 +111,5 @@ export type Context = {
 	facts?: SourceFacts
 	factTexts: string[]
 	pulledDecls: Set<number>
+	hoisted: Map<readonly string[], Set<number>>
 }
