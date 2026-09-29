@@ -150,7 +150,7 @@ export function preloadDemo(id: string) {
 // thunk) is the only api-reference code in the initial graph; each component's
 // prop data is fetched on demand, alongside its demo.
 
-/** Whether a component has build-time API data (a manifest entry). */
+/** Whether the id is a documented barrel (a manifest entry). Its API data can be empty. */
 export function hasComponentApi(id: string): boolean {
 	return Object.hasOwn(apiManifest, id)
 }
@@ -160,7 +160,8 @@ const apiPromiseCache = new Map<string, TrackedPromise<ComponentApi[]>>()
 
 /**
  * Return a cached promise for the component's API data, fetching its chunk on
- * first call. Throws for an id with no manifest entry — gate on
+ * first call. The data is empty for a barrel with nothing to document. Throws
+ * for an id with no manifest entry — gate on
  * {@link hasComponentApi} before calling.
  */
 export function loadComponentApi(id: string): Promise<ComponentApi[]> {
@@ -169,7 +170,7 @@ export function loadComponentApi(id: string): Promise<ComponentApi[]> {
 
 		if (!loader) throw new Error(`No API reference found for id: ${id}`)
 
-		return loader().then((mod) => mod.default)
+		return loader().then((mod) => mod.default ?? [])
 	})
 }
 

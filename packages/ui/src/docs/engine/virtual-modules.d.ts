@@ -2,10 +2,11 @@ declare module 'virtual:api-reference-manifest' {
 	import type { ComponentApi } from './api-reference'
 
 	/**
-	 * One lazy loader per component id; each resolves the component's prop data
-	 * from its own `virtual:api-reference/<id>` chunk. Missing ids have no entry.
+	 * One lazy loader per documented barrel id. Each loader resolves the prop data
+	 * of the barrel from its own `virtual:api-reference/<id>` chunk, or `null` for
+	 * a barrel with nothing to document. Ids that are not barrels have no entry.
 	 */
-	const manifest: Record<string, () => Promise<{ default: ComponentApi[] }>>
+	const manifest: Record<string, () => Promise<{ default: ComponentApi[] | null }>>
 
 	export default manifest
 }

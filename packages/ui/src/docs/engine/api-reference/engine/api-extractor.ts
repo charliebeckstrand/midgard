@@ -517,8 +517,9 @@ export function createApiExtractor(
 
 		// First in-process pass (the disk cache served the initial load). A
 		// cache-replayed state carries empty `inputs`, so a full pass maps them.
-		// That costs a once-per-session stall on the first edit. To remove it,
-		// run the pass ahead of time from the dev server in `plugins/docs.ts`.
+		// That costs one slow pass on the first edit of a session. The dev server
+		// runs the extractor in a worker (`extractor-worker.ts`), so the pass
+		// delays only the API data of that edit, and not the edit's own update.
 		fullPass()
 
 		reindex()
