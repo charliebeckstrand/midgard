@@ -1,6 +1,7 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { describeRange } from '../../modules/grid/engine/grid-announcements'
+import { describeRange, describeWrite } from '../../modules/grid/engine/grid-announcements'
+import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
 	inRangeRect,
@@ -8,7 +9,7 @@ import {
 	rangeCells,
 	rangeRect,
 } from '../../modules/grid/engine/grid-range/range'
-import { toTsv, tsvField } from '../../modules/grid/engine/grid-range/tsv'
+import { parseTsv, toTsv, tsvField, unguardField } from '../../modules/grid/engine/grid-range/tsv'
 
 describe('rangeRect', () => {
 	it('spans two corners in either order', () => {
@@ -106,5 +107,140 @@ describe('describeRange', () => {
 		expect(
 			describeRange({ rows: 1, cols: 1 }, { column: 'Name', row: 1 }, { column: 'Name', row: 1 }),
 		).toBe('Range of 1 row and 1 column, Name row 1 to Name row 1')
+	})
+})
+
+describe('parseTsv', () => {
+	it('splits fields at tabs and rows at each kind of line break', () => {
+		expect(parseTsv('a\tb\r\nc\td\re\tf')).toEqual([
+			['a', 'b'],
+			['c', 'd'],
+			['e', 'f'],
+		])
+	})
+
+	it('drops one line break at the end, and keeps an empty field', () => {
+		expect(parseTsv('a\t\n')).toEqual([['a', '']])
+
+		expect(parseTsv('a\n\n')).toEqual([['a'], ['']])
+
+		expect(parseTsv('')).toEqual([])
+	})
+
+	it('reads a quoted field with a tab, a line break, and a doubled quote', () => {
+		expect(parseTsv('"a\tb"\t"two\nlines"\n"say ""hi"""')).toEqual([
+			['a\tb', 'two\nlines'],
+			['say "hi"'],
+		])
+	})
+
+	it('reads back what toTsv writes', () => {
+		const block = [
+			['=1+1', 'two\tparts'],
+			['say "hi"', 'plain'],
+		]
+
+		expect(parseTsv(toTsv(block)).map((row) => row.map(unguardField))).toEqual(block)
+	})
+
+	it('runs a quote with no end to the end of the text', () => {
+		expect(parseTsv('"open\tfield')).toEqual([['open\tfield']])
+	})
+})
+
+describe('unguardField', () => {
+	it('takes off only the apostrophe that the guard adds', () => {
+		expect(unguardField("'=SUM(A1)")).toBe('=SUM(A1)')
+
+		expect(unguardField("'-x")).toBe('-x')
+
+		expect(unguardField("'quoted")).toBe("'quoted")
+
+		expect(unguardField("'-5")).toBe("'-5")
+	})
+})
+
+describe('pastePlacement', () => {
+	const size = { rows: 5, cols: 4 }
+
+	it('writes one field into each cell of the range', () => {
+		const targets = pastePlacement([['x']], { rows: [1, 2], cols: [0, 1] }, size)
+
+		expect(targets).toEqual([
+			{ row: 1, col: 0, text: 'x' },
+			{ row: 1, col: 1, text: 'x' },
+			{ row: 2, col: 0, text: 'x' },
+			{ row: 2, col: 1, text: 'x' },
+		])
+	})
+
+	it('tiles a block over a range that is a whole multiple of it', () => {
+		const targets = pastePlacement([['a', 'b']], { rows: [0, 1], cols: [0, 1, 2, 3] }, size)
+
+		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'a', 'b', 'a', 'b', 'a', 'b'])
+	})
+
+	it('starts a block at the top-left cell and cuts it at the edge', () => {
+		const block = [
+			['a', 'b', 'c'],
+			['d', 'e', 'f'],
+		]
+
+		expect(pastePlacement(block, { rows: [4], cols: [2] }, size)).toEqual([
+			{ row: 4, col: 2, text: 'a' },
+			{ row: 4, col: 3, text: 'b' },
+		])
+	})
+
+	it('gives empty text for a short row of the block', () => {
+		const targets = pastePlacement([['a', 'b'], ['c']], { rows: [0], cols: [0] }, size)
+
+		expect(targets.map((target) => target.text)).toEqual(['a', 'b', 'c', ''])
+	})
+
+	it('writes nothing for an empty block', () => {
+		expect(pastePlacement([], { rows: [0], cols: [0] }, size)).toEqual([])
+	})
+})
+
+describe('coercePaste', () => {
+	it('reads the text as the kind of the current value', () => {
+		expect(coercePaste(' 1,200.5 ', 3)).toEqual({ value: 1200.5 })
+
+		expect(coercePaste('YES', false)).toEqual({ value: true })
+
+		expect(coercePaste('0', true)).toEqual({ value: false })
+
+		expect(coercePaste(' as is ', 'text')).toEqual({ value: ' as is ' })
+
+		expect(coercePaste('text', null)).toEqual({ value: 'text' })
+	})
+
+	it('clears a number cell and a yes/no cell with an empty text', () => {
+		expect(coercePaste('', 3)).toEqual({ value: undefined })
+
+		expect(coercePaste(' ', true)).toEqual({ value: undefined })
+	})
+
+	it('refuses a text that does not fit', () => {
+		expect(coercePaste('many', 3)).toBeNull()
+
+		expect(coercePaste('maybe', true)).toBeNull()
+
+		expect(coercePaste('constructor', true)).toBeNull()
+	})
+})
+
+describe('describeWrite', () => {
+	it('adds the skipped count to the commit', () => {
+		expect(describeWrite(['Name', 'Count'], undefined, 'pasted', 2)).toBe(
+			'2 cells pasted, 2 skipped',
+		)
+
+		expect(describeWrite(['Name'], 'Alice', 'pasted', 0)).toBe('Name pasted for Alice')
+
+		expect(describeWrite([], undefined, 'pasted', 1)).toBe('1 cell skipped')
+
+		expect(describeWrite([], undefined, 'pasted', 0)).toBeNull()
 	})
 })

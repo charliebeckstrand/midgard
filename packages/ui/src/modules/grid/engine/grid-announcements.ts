@@ -105,10 +105,10 @@ function forRow(row: string | undefined): string {
 }
 
 /**
- * What a save did to its cells: a save updates them, an undo undoes them, and
- * a redo redoes them. @internal
+ * What a save did to its cells: a save updates them, an undo undoes them, a
+ * redo redoes them, and a paste pastes them. @internal
  */
-export type GridSaveOutcome = 'updated' | 'undone' | 'redone'
+export type GridSaveOutcome = 'updated' | 'undone' | 'redone' | 'pasted'
 
 /**
  * The polite announcement for an inline-edit commit, narrated when staged cells
@@ -211,6 +211,26 @@ export function describeRowAdd(refused: number): string {
 /** A count with its noun, singular for one. */
 function counted(count: number, noun: string): string {
 	return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
+/**
+ * The polite announcement for a write of many cells at once, such as a paste
+ * (WCAG 4.1.3). It reads as {@link describeCommit}, and adds the count of the
+ * cells that the write skipped: `12 cells pasted, 2 skipped`. With no saved
+ * cell, it gives the skipped count alone (`2 cells skipped`). With nothing to
+ * say, it returns `null`. @internal
+ */
+export function describeWrite(
+	columns: readonly string[],
+	row: string | undefined,
+	outcome: GridSaveOutcome,
+	skipped: number,
+): string | null {
+	if (columns.length === 0) return skipped > 0 ? `${counted(skipped, 'cell')} skipped` : null
+
+	const saved = describeCommit(columns, row, outcome)
+
+	return skipped > 0 ? `${saved}, ${skipped} skipped` : saved
 }
 
 /**

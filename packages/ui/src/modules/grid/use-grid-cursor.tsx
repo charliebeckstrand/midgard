@@ -26,15 +26,16 @@ import {
 	seedFromKey,
 } from './engine/grid-editing-utilities'
 import { cellText } from './engine/grid-export/accessor'
+import { pastePlacement } from './engine/grid-range/paste'
 import type { GridRangeCells } from './engine/grid-range/range'
-import { toTsv } from './engine/grid-range/tsv'
+import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
-import { useGridEditing } from './use-grid-editing'
+import { type GridPasteCell, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
 	type Coord,
@@ -112,6 +113,39 @@ function rangeText<T>(
 
 			return col && row !== undefined ? cellText(columnAccessor(col)(row)) : ''
 		})
+	})
+}
+
+/**
+ * The active cell as a range of one cell, or `null` when the cursor is on no
+ * data cell. `active` is the public cursor, which names a data row. Copy and
+ * paste act on it when the cursor holds no range. @internal
+ */
+function activeCells(active: Coord | null): GridRangeCells | null {
+	if (!active || active.row === NEW_ROW_INDEX) return null
+
+	return { rows: [active.row], cols: [active.col], from: active, to: active }
+}
+
+/**
+ * The cells that a block of clipboard fields writes into `cells`, each with
+ * its row key and its column id (see {@link pastePlacement}). A place that
+ * names no row or no column is left out. @internal
+ */
+function pasteTargets<T>(
+	block: string[][],
+	cells: GridRangeCells,
+	keys: readonly (string | number)[],
+	columns: readonly GridColumn<T>[],
+): GridPasteCell[] {
+	const size = { rows: keys.length, cols: columns.length }
+
+	return pastePlacement(block, cells, size).flatMap(({ row, col, text }) => {
+		const rowKey = keys[row]
+
+		const column = columns[col]
+
+		return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, text }]
 	})
 }
 
@@ -294,13 +328,7 @@ export function useGridCursor<T>({
 
 		if (window.getSelection()?.isCollapsed === false) return
 
-		const { active } = nav
-
-		const cells =
-			readRange() ??
-			(active && active.row !== NEW_ROW_INDEX
-				? { rows: [active.row], cols: [active.col], from: active, to: active }
-				: null)
+		const cells = readRange() ?? activeCells(nav.active)
 
 		if (!cells) return
 
@@ -512,7 +540,37 @@ export function useGridCursor<T>({
 		seat: nav.seat,
 	})
 
-	const { session } = editing
+	const { session, pasteCells } = editing
+
+	// A paste while the tab stop has focus writes the clipboard's TSV into the
+	// range, or from the active cell with no range. As with copy, the document
+	// hears the event. A paste into an open editor stays the editor's, because
+	// the editor, not the tab stop, has focus.
+	const pasteRange = useStableEvent((event: ClipboardEvent) => {
+		const table = tableRef.current
+
+		if (!pasteCells || !table || document.activeElement !== table || !event.clipboardData) return
+
+		const cells = readRange() ?? activeCells(nav.active)
+
+		if (!cells) return
+
+		event.preventDefault()
+
+		const block = parseTsv(event.clipboardData.getData('text/plain'))
+
+		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current))
+	})
+
+	const pastes = copies && pasteCells !== undefined
+
+	useEffect(() => {
+		if (!pastes) return
+
+		document.addEventListener('paste', pasteRange)
+
+		return () => document.removeEventListener('paste', pasteRange)
+	}, [pastes, pasteRange])
 
 	// The `<table>` cursor props, with the history keys layered ahead of
 	// navigation when the history is on, and the session's keys when the grid
