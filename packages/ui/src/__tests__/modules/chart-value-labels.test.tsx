@@ -181,6 +181,49 @@ describe('labelPoints', () => {
 	})
 })
 
+describe('valueLabels at the plot sides', () => {
+	it('anchors a label inward where a centered one would cross a side', () => {
+		// A dense line puts its endpoints near the plot sides. A centered label
+		// there crossed the side and dropped.
+		const labels = valueLabels({
+			series: [
+				series([
+					[10, 50, 12345],
+					[100, 60, 1],
+					[190, 70, 67890],
+				]),
+			],
+			plot: PLOT,
+			endpoints: true,
+			extremes: false,
+		})
+
+		const first = labels.find((label) => label.text === '12345')
+
+		const last = labels.find((label) => label.text === '67890')
+
+		expect(first?.anchor).toBe('start')
+
+		expect(first?.x).toBe(10)
+
+		expect(last?.anchor).toBe('end')
+
+		expect(last?.x).toBe(190)
+	})
+
+	it('hides a label that does not fit even anchored inward', () => {
+		// The point sits closer to the side than the label padding.
+		const [edge] = valueLabels({
+			series: [series([[1, 50, 12345]])],
+			plot: PLOT,
+			endpoints: true,
+			extremes: false,
+		})
+
+		expect(edge).toBeUndefined()
+	})
+})
+
 describe('resolveValueLabels', () => {
 	/** A labelable series in the given palette slot. */
 	function labelable(

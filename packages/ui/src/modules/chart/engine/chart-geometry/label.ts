@@ -11,8 +11,11 @@
  * to the tooltip (see {@link resolveValueLabels}). Placement measures every
  * label first, and keeps each centered on its own point. One that would
  * overshoot the top or bottom flips to the point's other side, still pinned to
- * its mark. One that would have to slide sideways to fit the plot hides
- * instead, since a slid label lands on the neighboring marks. Overlaps resolve
+ * its mark. One that would cross a side of the plot anchors inward from its
+ * point instead: it starts at the point near the left side, and ends at it
+ * near the right. A label never slides past its point, since a slid label
+ * lands on the neighboring marks, and one that still does not fit hides.
+ * Overlaps resolve
  * by priority: extremes outrank endpoints, and a label whose box meets one
  * already placed is dropped rather than stacked.
  */
@@ -235,23 +238,52 @@ function candidatesFor(
 }
 
 /**
+ * The anchor of a label `width` wide at `x`, and its box across the axis: centered
+ * on the point where that fits the plot, else anchored inward from the point,
+ * else `null`. The box keeps {@link LABEL_PAD} past the point on the anchored
+ * side.
+ *
+ * @internal
+ */
+function anchorAt(
+	x: number,
+	width: number,
+	plot: PlotRect,
+): { anchor: PlacedValueLabel['anchor']; x0: number; x1: number } | null {
+	const [left, right] = [plot.x, plot.x + plot.width]
+
+	if (x - width / 2 >= left && x + width / 2 <= right) {
+		return { anchor: 'middle', x0: x - width / 2, x1: x + width / 2 }
+	}
+
+	// A label near the left side starts at its point; any other ends at it.
+	const start = x - width / 2 < left
+
+	const x0 = start ? x - LABEL_PAD : x + LABEL_PAD - width
+
+	const x1 = x0 + width
+
+	return x0 < left || x1 > right ? null : { anchor: start ? 'start' : 'end', x0, x1 }
+}
+
+/**
  * Resolves a candidate to its placed label and collision box, or `null` where
- * it no longer fits. The label stays centered on its own point. Clipping the top
- * or bottom flips it to the point's other side, and vertically it never leaves
- * its mark. A box that would cross the plot's sides hides rather than sliding
- * inward. A slid label lands on the neighboring marks, which is where a small
- * frame forces it.
+ * it no longer fits. Clipping the top or bottom flips the label to the point's
+ * other side, and vertically it never leaves its mark. Across the axis it
+ * centers on its point, or anchors inward from the point near a side of the
+ * plot ({@link anchorAt}). It never slides past its point, where it would land
+ * on the neighboring marks.
  *
  * @internal
  */
 function place(candidate: Candidate, plot: PlotRect): { label: PlacedValueLabel; box: Box } | null {
 	const text = candidate.series.format(candidate.value)
 
-	const width = text.length * TICK_CHAR_WIDTH + 2 * LABEL_PAD
+	const across = anchorAt(candidate.x, text.length * TICK_CHAR_WIDTH + 2 * LABEL_PAD, plot)
 
-	const [x0, x1] = [candidate.x - width / 2, candidate.x + width / 2]
+	if (!across) return null
 
-	if (x0 < plot.x || x1 > plot.x + plot.width) return null
+	const { anchor, x0, x1 } = across
 
 	const y = labelBesideY(candidate.y, plot, candidate.above)
 
@@ -261,7 +293,7 @@ function place(candidate: Candidate, plot: PlotRect): { label: PlacedValueLabel;
 			x: candidate.x,
 			y,
 			text,
-			anchor: 'middle',
+			anchor,
 			fill: candidate.series.fill,
 			color: candidate.series.color,
 		},
