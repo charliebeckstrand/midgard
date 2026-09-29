@@ -280,7 +280,10 @@ export function GridNavCell({
 
 		cell.toggleAttribute('data-active', isActive)
 
-		if (isActive) {
+		// A cell scrolls into view once for each change of the cursor. A cell that
+		// mounts active again, as a scroll brings its row back into a window,
+		// leaves the scroll where the reader put it.
+		if (isActive && store.claimReveal()) {
 			// Hold the cell clear of the grid's sticky header and pinned columns as it
 			// scrolls into view, so the focus indicator is never obscured (WCAG 2.4.11).
 			const insets = obscuringInsets(cell)
@@ -301,7 +304,7 @@ export function GridNavCell({
 		return () => {
 			cell.removeAttribute('data-active')
 		}
-	}, [isActive])
+	}, [isActive, store])
 
 	return (
 		<>

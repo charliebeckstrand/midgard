@@ -93,6 +93,82 @@ describe('grid virtualized cursor (real browser)', () => {
 			expect(row).toBeLessThan(10)
 		})
 	})
+
+	/** A navigable window of 200 rows and its scroller. */
+	function renderWindow() {
+		const view = renderUI(
+			<div style={{ width: '320px' }}>
+				<Grid
+					navigable
+					virtualize={{ estimateSize: 36, overscan: 10 }}
+					maxHeight="180px"
+					columns={columns}
+					rows={rows}
+					getKey={getKey}
+				/>
+			</div>,
+		)
+
+		const scroll = view.container.querySelector<HTMLElement>('[data-slot="grid-scroll"]')
+
+		if (!scroll) throw new Error('the scroller')
+
+		return { grid: screen.getByRole('grid'), scroll }
+	}
+
+	/** Two animation frames, so a window step and its effects land. */
+	const frames = () =>
+		new Promise<void>((resolve) =>
+			requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+		)
+
+	it('leaves the scroll alone when the active row comes back into the window', async () => {
+		const { scroll } = renderWindow()
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		scroll.scrollTop = 1700
+
+		await waitFor(() => expect(screen.queryByText('Name 51')).not.toBeNull())
+
+		fireEvent.mouseDown(screen.getByText('Name 51').closest('td') as HTMLElement)
+
+		await frames()
+
+		scroll.scrollTop = 0
+
+		await waitFor(() => expect(screen.queryByText('Name 51')).toBeNull())
+
+		// Row 51 comes back into the overscan below the viewport. Its active cell
+		// mounts again, and the reader's scroll stays where it was put.
+		scroll.scrollTop = 1520
+
+		await waitFor(() => expect(screen.queryByText('Name 51')).not.toBeNull())
+
+		await frames()
+
+		expect(scroll.scrollTop).toBe(1520)
+	})
+
+	it('seats a mounted cell when focus enters a scrolled window', async () => {
+		const { grid, scroll } = renderWindow()
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).not.toBeNull())
+
+		scroll.scrollTop = 3000
+
+		await waitFor(() => expect(screen.queryByText('Name 1')).toBeNull())
+
+		grid.focus()
+
+		await waitFor(() => {
+			const active = grid.getAttribute('aria-activedescendant')
+
+			expect(active).toBeTruthy()
+
+			expect(document.getElementById(active as string)).not.toBeNull()
+		})
+	})
 })
 
 /**
