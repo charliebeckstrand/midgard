@@ -33,7 +33,7 @@ export type PlaceFiltersProps = {
  * The region picker is navigation and not a filter, so it sits beside the filter
  * bar rather than inside it — it does not narrow the places, it decides the
  * geography. It lists the regions it is given: on the world map, the countries
- * that hold a place, because the country search reaches the rest. It and the
+ * that hold a place, because the palette reaches the rest. It and the
  * breadcrumb read the same view, so clearing either is the way back.
  *
  * It also names itself for what it lists — countries on the world map, states
