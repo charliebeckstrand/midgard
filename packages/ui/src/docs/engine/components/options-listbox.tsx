@@ -7,6 +7,8 @@ type LabeledOption<T extends string> = { value: T; label: string }
 
 type OptionsListboxProps<T extends string> = {
 	options: readonly LabeledOption<T>[]
+	/** What the picker sets, as its accessible name (`Size`). The trigger shows the value. */
+	label: string
 	value: T
 	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
 	onValueChange: (value: T) => void
@@ -22,6 +24,7 @@ type OptionsListboxProps<T extends string> = {
  */
 export function OptionsListbox<T extends string>({
 	options,
+	label,
 	value,
 	placement = 'bottom-auto',
 	onValueChange,
@@ -30,6 +33,7 @@ export function OptionsListbox<T extends string>({
 
 	return (
 		<Listbox<T>
+			aria-label={label}
 			value={value}
 			displayValue={labelFor}
 			placement={placement}

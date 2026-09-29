@@ -13,14 +13,20 @@ export const sizeLabels: Record<string, string> = {
 
 type SizeListboxProps<T extends string> = {
 	sizes: readonly T[]
+	/** The picker's accessible name. Defaults to `Size`. */
+	label?: string
 	value: T
 	placement?: 'bottom-start' | 'bottom-end' | 'bottom-auto'
 	onValueChange: (value: T) => void
 }
 
 /** A demo control for picking a component's `size` from a fixed scale, labeled via {@link sizeLabels}. */
-export function SizeListbox<T extends string>({ sizes, ...rest }: SizeListboxProps<T>) {
+export function SizeListbox<T extends string>({
+	sizes,
+	label = 'Size',
+	...rest
+}: SizeListboxProps<T>) {
 	const options = sizes.map((value) => ({ value, label: sizeLabels[value] ?? value }))
 
-	return <OptionsListbox options={options} {...rest} />
+	return <OptionsListbox options={options} label={label} {...rest} />
 }
