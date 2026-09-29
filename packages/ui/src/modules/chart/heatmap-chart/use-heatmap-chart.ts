@@ -360,6 +360,12 @@ export function useHeatmapChart<T>(
 
 	const focus = useMemo(() => heatmapFocus(cols, rows, xBand, yBand), [cols, rows, xBand, yBand])
 
+	// A parent render thins no tick and cuts no row label again.
+	const ticks = useMemo(
+		() => heatmapTicks(matrix, xBand, yBand, plot, rowText.fit),
+		[matrix, xBand, yBand, plot, rowText.fit],
+	)
+
 	// The pointer resolves to its cell through the band arithmetic, so a reader
 	// aims at a cell without the marks repainting.
 	const resolveCell = useCallback(
@@ -390,7 +396,7 @@ export function useHeatmapChart<T>(
 		bins,
 		thresholds,
 		domain,
-		ticks: heatmapTicks(matrix, xBand, yBand, plot, rowText.fit),
+		ticks,
 		readout,
 		format,
 		focus,
