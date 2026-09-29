@@ -55,12 +55,18 @@ describe('PropList', () => {
 		expect(screen.getByText('optional')).toBeInTheDocument()
 	})
 
-	it('writes options and the default as one sentence', () => {
+	it('shows options as chips with no prefix, then the default', () => {
 		const { container } = renderUI(
 			<PropList rows={[{ name: 'align', type: "'center' | 'top'", default: "'center'" }]} />,
 		)
 
-		expect(container.textContent).toContain("One of 'center' or 'top'. Defaults to 'center'.")
+		const options = [...container.querySelectorAll('[data-slot="option"]')]
+
+		expect(options.map((o) => o.textContent)).toEqual(["'center'", "'top'"])
+
+		expect(container.textContent).not.toContain('One of')
+
+		expect(container.textContent).toContain("default 'center'")
 	})
 
 	it('writes a plain type and its default', () => {
@@ -68,7 +74,7 @@ describe('PropList', () => {
 			<PropList rows={[{ name: 'modal', type: 'boolean', default: 'true' }]} />,
 		)
 
-		expect(container.textContent).toContain('Type boolean. Defaults to true.')
+		expect(container.textContent).toContain('booleandefault true')
 	})
 
 	it('names the package of an external type', () => {
@@ -76,7 +82,7 @@ describe('PropList', () => {
 			<PropList rows={[{ name: 'ref', type: 'Placement', externalFrom: '@floating-ui/react' }]} />,
 		)
 
-		expect(container.textContent).toContain('Type Placement from @floating-ui/react.')
+		expect(container.textContent).toContain('Placementfrom @floating-ui/react')
 	})
 
 	it('moves a prose default into the description', () => {
@@ -95,6 +101,6 @@ describe('PropList', () => {
 
 		expect(container.textContent).toContain('Default: the document.body node')
 
-		expect(container.textContent).not.toContain('Defaults to')
+		expect(container.textContent).not.toContain('default')
 	})
 })

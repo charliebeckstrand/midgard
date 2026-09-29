@@ -1,7 +1,6 @@
 'use client'
 
-import { Fragment, type ReactNode } from 'react'
-import { Text } from '../../../../components/text'
+import { cn } from '../../../../core'
 import type { PropDef } from '../../api-reference/types'
 import { DefaultValue, isProseDefault } from './default-value'
 import { splitUnion, TypeReferences } from './type-references'
@@ -30,53 +29,55 @@ export function readSignature(type: string): Signature {
 	return { options: literals, others: arms.filter((arm) => !LITERAL_ARM.test(arm)) }
 }
 
-/** Join code items as prose: `a`, `a or b`, `a, b, or c`. */
-function orList(items: string[]): ReactNode {
-	return items.map((item, i) => (
-		<Fragment key={item}>
-			{i > 0 && (items.length > 2 ? ', ' : ' ')}
-			{i > 0 && i === items.length - 1 && 'or '}
-			<code>{item}</code>
-		</Fragment>
-	))
-}
+const CHIP = 'rounded px-1.5 py-0.5 font-mono text-[0.8125rem]/5'
+
+const OPTION_CHIP = cn(
+	CHIP,
+	'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
+)
+
+const TYPE_CHIP = cn(CHIP, 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300')
 
 /**
- * What a prop accepts, as a sentence in the way the React docs write one:
- * "One of `'a'`, `'b'`. Defaults to `'a'`." or "Type `boolean`. Defaults to
- * `true`." An external type names its package. A type with resolved references
- * adds a link to those definitions. A default that is a sentence is left to
- * the description.
+ * What a prop accepts, as a row of tokens. Fixed choices are green chips, with
+ * no prefix. Any other type is a gray chip, and an external type names its
+ * package. A default follows behind a muted label. A type with resolved
+ * references adds a link to those definitions. A default that is a sentence is
+ * left to the description.
  */
 export function PropFacts({ prop }: { prop: PropDef }) {
 	const { options, others } = readSignature(prop.type)
 
 	const literalDefault = prop.default && !isProseDefault(prop.default) ? prop.default : undefined
 
+	const types = options.length > 0 ? others : [prop.type]
+
 	return (
 		<>
-			<Text tone="muted">
-				{options.length > 0 ? (
-					<>One of {orList([...options, ...others])}.</>
-				) : (
-					<>
-						Type <code>{prop.type}</code>
-						{prop.externalFrom && (
-							<>
-								{' '}
-								from <code>{prop.externalFrom}</code>
-							</>
-						)}
-						.
-					</>
-				)}
+			<div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm">
+				<span className="flex flex-wrap items-baseline gap-1.5">
+					{options.map((option) => (
+						<code key={option} data-slot="option" className={OPTION_CHIP}>
+							{option}
+						</code>
+					))}
+					{types.map((type) => (
+						<code key={type} className={TYPE_CHIP}>
+							{type}
+						</code>
+					))}
+					{options.length === 0 && prop.externalFrom && (
+						<span className="text-zinc-500 dark:text-zinc-400">
+							from <code>{prop.externalFrom}</code>
+						</span>
+					)}
+				</span>
 				{literalDefault && (
-					<>
-						{' '}
-						Defaults to <DefaultValue value={literalDefault} />.
-					</>
+					<span className="text-zinc-500 dark:text-zinc-400">
+						default <DefaultValue value={literalDefault} />
+					</span>
 				)}
-			</Text>
+			</div>
 			<TypeReferences prop={prop} />
 		</>
 	)
