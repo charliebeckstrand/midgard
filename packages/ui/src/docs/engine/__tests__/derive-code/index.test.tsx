@@ -208,7 +208,7 @@ describe('deriveCode prop formatting', () => {
 })
 
 describe('deriveCode + __snippet', () => {
-	it('renders the helper function snippet verbatim and infers imports', () => {
+	it('renders the helper function snippet verbatim, with the imports of its table', () => {
 		const AreaDemo = snippet(
 			[
 				'function AreaDemo() {',
@@ -221,6 +221,12 @@ describe('deriveCode + __snippet', () => {
 				'\t)',
 				'}',
 			].join('\n'),
+			'AreaDemo',
+			{
+				Stack: { module: 'stack' },
+				FileUpload: { module: 'file-upload' },
+				useState: { module: 'react', external: true },
+			},
 		)
 
 		const result = deriveCode(createElement(AreaDemo), registry)
@@ -234,56 +240,43 @@ describe('deriveCode + __snippet', () => {
 
 		expect(result).toContain('<FileUpload accept="image/*" onAccept={setFiles} />')
 
-		// Component imports inferred from JSX, under the library prefix.
+		// Component imports, under the library prefix.
 		expect(result).toMatch(/import \{.*Stack.*\} from 'ui\/stack'/)
 
 		expect(result).toMatch(/import \{.*FileUpload.*\} from 'ui\/file-upload'/)
 
-		// React hook imports inferred from the body.
 		expect(result).toMatch(/import \{.*useState.*\} from 'react'/)
 	})
 
-	it('infers React 19 hook imports, sourcing react-dom hooks from react-dom', () => {
-		const FormDemo = snippet(
+	// A scan of the text read `<File` in `useState<File[]>` as a tag, and
+	// imported a component named `File` over the DOM type.
+	it('imports nothing that the table leaves out, whatever the code names', () => {
+		const registryWithFile: ComponentRegistry = {
+			...registry,
+			byName: new Map([
+				...registry.byName,
+				['File', { name: 'File', module: 'lucide-react', external: true }],
+			]),
+		}
+
+		const Upload = snippet(
 			[
-				'function FormDemo() {',
-				'\tconst data = use(promise)',
-				'\tconst [state, action] = useActionState(submit, null)',
-				'\tconst [optimistic, addOptimistic] = useOptimistic(items)',
-				'\tconst status = useFormStatus()',
-				'\treturn <form />',
+				'function Upload() {',
+				'\tconst [files, setFiles] = useState<File[]>([])',
+				'',
+				'\treturn <FileUpload onAccept={setFiles} />',
 				'}',
 			].join('\n'),
+			'Upload',
+			{
+				FileUpload: { module: 'file-upload' },
+				useState: { module: 'react', external: true },
+			},
 		)
 
-		const result = deriveCode(createElement(FormDemo), registry)
+		const result = deriveCode(createElement(Upload), registryWithFile)
 
-		expect(result).toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
-
-		expect(result).toMatch(/import \{[^}]*useActionState[^}]*\} from 'react'/)
-
-		expect(result).toMatch(/import \{[^}]*useOptimistic[^}]*\} from 'react'/)
-
-		expect(result).toMatch(/import \{[^}]*useFormStatus[^}]*\} from 'react-dom'/)
-	})
-
-	it('does not mistake method calls for React hooks', () => {
-		// `<Stack />` is a recognized component (synthetic map), so `deriveCode`
-		// returns a non-null block, enabling the `toMatch` assertion below.
-		const MethodDemo = snippet(
-			[
-				'function MethodDemo() {',
-				'\tconst result = router.use(plugin)',
-				'\treturn <Stack />',
-				'}',
-			].join('\n'),
-		)
-
-		const result = deriveCode(createElement(MethodDemo), registry)
-
-		expect(result).not.toBeNull()
-
-		expect(result).not.toMatch(/import \{[^}]*\buse\b[^}]*\} from 'react'/)
+		expect(result).not.toMatch(/\bFile\b.*from 'lucide-react'/)
 	})
 
 	const Stack = tag<{ render?: () => null; children?: ReactNode }>('Stack', 'stack')
@@ -293,7 +286,7 @@ describe('deriveCode + __snippet', () => {
 			name: 'Pane',
 			declarations: ['const Pane = ({ tone }) => <FileUpload tone={tone} />'],
 			blocks: [0],
-			imports: {},
+			imports: { FileUpload: { module: 'file-upload' } },
 		})
 
 		const tree = createElement(
@@ -325,9 +318,19 @@ describe('deriveCode + __snippet', () => {
 			'const B = () => <FileUpload size={size} />',
 		]
 
-		const A = helper({ name: 'A', declarations, blocks: [0, 1], imports: {} })
+		const A = helper({
+			name: 'A',
+			declarations,
+			blocks: [0, 1],
+			imports: { Stack: { module: 'stack' } },
+		})
 
-		const B = helper({ name: 'B', declarations, blocks: [0, 2], imports: {} })
+		const B = helper({
+			name: 'B',
+			declarations,
+			blocks: [0, 2],
+			imports: { FileUpload: { module: 'file-upload' } },
+		})
 
 		const tree = createElement(Stack, null, createElement(B), createElement(A))
 
@@ -348,15 +351,21 @@ describe('deriveCode + __snippet', () => {
 	it('prints a declaration once when a helper and a fact both pull it', () => {
 		const code = 'const Card = () => <FileUpload />'
 
-		const Card = helper({ name: 'Card', declarations: [code], blocks: [0], imports: {} })
+		const Card = helper({
+			name: 'Card',
+			declarations: [code],
+			blocks: [0],
+			imports: { FileUpload: { module: 'file-upload' } },
+		})
 
 		const tree = createElement(Stack, { render: () => null }, createElement(Card))
 
 		const result = deriveCode(tree, registry, {
 			elements: [{ name: 'Stack', props: { render: 'Card' } }],
 			bindings: { Card: 0 },
-			declarations: [{ names: ['Card'], code }],
+			declarations: [{ names: ['Card'], code, uses: ['FileUpload'] }],
 			imports: {},
+			uses: { Card: ['Card'] },
 		})
 
 		expect(result).toBe(
@@ -378,7 +387,7 @@ describe('deriveCode + __snippet', () => {
 			name: 'Pane',
 			declarations: ['const Pane = ({ tone }) => <FileUpload tone={tone} />'],
 			blocks: [0],
-			imports: {},
+			imports: { FileUpload: { module: 'file-upload' } },
 		})
 
 		// An unrecognized wrapper passes through to its children, as in the walk.

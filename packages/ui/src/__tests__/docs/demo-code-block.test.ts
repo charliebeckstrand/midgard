@@ -4,11 +4,6 @@ import { dirname, join } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 import { defaultRegistry, type ImportFact } from '../../docs/engine/derive-code'
-import {
-	collectSnippetImports,
-	createContext,
-	snippetHasImports,
-} from '../../docs/engine/derive-code/internals'
 import { collectHelpers, declaredNames } from '../../docs/engine/plugins/collect-helpers'
 import { importFacts } from '../../docs/engine/plugins/source-facts'
 import { namedImportsOf, parseSource, referencedNames } from '../../docs/engine/plugins/ts-source'
@@ -28,9 +23,9 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // transform, and `demo-snippets.test.tsx` reads each block that a page renders.
 //
 // This test reads it, against the real demo tree, from source. It calls the
-// same `collectHelpers` the plugin calls, and asks the same
-// `snippetHasImports` the probe asks. A helper the JSX test stops recognizing
-// therefore fails here, named by its Example.
+// same `collectHelpers` the plugin calls, and reads the same import table that
+// the probe reads. A helper the JSX test stops recognizing therefore fails
+// here, named by its Example.
 //
 // The runtime half is not this test's to hold. `classifyElement` states the
 // walk's cases once for the renderer and the probe together, and
@@ -217,7 +212,7 @@ function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, 
 		for (const tag of names.childless) {
 			const snippet = helperSnippet(tag, demo, demos)
 
-			if (snippet && snippetHasImports(snippet.code, defaultRegistry, snippet.imports)) return true
+			if (snippet && Object.keys(snippet.imports).length > 0) return true
 		}
 
 		// An identifier child renders whatever its binding holds, so the tree the
@@ -325,15 +320,7 @@ describe('demo code blocks', () => {
 
 				const used = referencedNames(parsed)
 
-				const context = createContext(defaultRegistry)
-
-				collectSnippetImports(snippet.code, context, snippet.imports)
-
-				const imported = new Set(
-					[...context.imports.values()].flatMap((names) =>
-						[...names].map((entry) => entry.replace(/^type /, '')),
-					),
-				)
+				const imported = new Set(Object.keys(snippet.imports))
 
 				for (const name of [...siblings, ...importable]) {
 					if (declared.has(name) || imported.has(name)) continue

@@ -17,8 +17,6 @@ import {
 	registerFactText,
 	renderOpenTag,
 	resolvePreamble,
-	snippetCode,
-	snippetHasImports,
 } from './internals'
 import { defaultRegistry } from './registry'
 import type { ComponentRegistry, Context, ElementFact, HelperSnippet, SourceFacts } from './types'
@@ -119,8 +117,8 @@ export function deriveCode(
  * Both walks sort an element through {@link classifyElement}, so neither
  * restates the other's rule. A recognized component imports itself. An
  * unrecognized one renders its children in its place, so the walk descends.
- * Without children it stands for its build-time snippet, whose imports
- * {@link snippetHasImports} counts — the case a demo-local helper rests on,
+ * Without children it stands for its build-time snippet, which contributes
+ * when its import table has an entry — the case a demo-local helper rests on,
  * as in `<Example><ClosableExample /></Example>`.
  *
  * @remarks
@@ -144,9 +142,7 @@ export function hasDerivableCode(
 		if (classified.kind === 'recognized') return true
 
 		if (classified.kind === 'snippet') {
-			const { snippet } = classified
-
-			if (snippetHasImports(snippetCode(snippet), registry, snippet.imports)) return true
+			if (Object.keys(classified.snippet.imports).length > 0) return true
 
 			continue
 		}

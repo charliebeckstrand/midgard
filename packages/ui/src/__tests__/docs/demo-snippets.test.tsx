@@ -70,13 +70,6 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'components/signature-pad › Imperative handle':
 		"TS6133: 'value' is declared but its value is never read.",
 
-	// A name that the run-time preamble pulls by a word in a pulled declaration.
-	// `start.setDate(…)` names the `setDate` of a `useState` pair, and the
-	// `feature` parameter of `stateName` names the `feature` import.
-	'components/calendar › With min/max': "TS6133: 'date' is declared but its value is never read.",
-	'modules/map › Timezones across America':
-		"TS6133: 'feature' is declared but its value is never read.",
-
 	// A hand-written override that does not parse.
 	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',
 }

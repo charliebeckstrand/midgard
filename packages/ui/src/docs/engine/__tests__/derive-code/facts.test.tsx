@@ -3,7 +3,9 @@ import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ComponentRegistry, deriveCode, type SourceFacts } from '../../derive-code'
 import { readTag } from '../../derive-code/registry'
+import type { DeclarationFact } from '../../derive-code/types'
 import { extractSourceFacts } from '../../plugins/source-facts'
+import { parseSource, referencedNames } from '../../plugins/ts-source'
 import { tag } from './helpers'
 
 const registry: ComponentRegistry = {
@@ -16,13 +18,36 @@ const registry: ComponentRegistry = {
 	packageName: 'ui',
 }
 
-const facts = (overrides: Partial<SourceFacts>): SourceFacts => ({
-	elements: [],
-	bindings: {},
-	declarations: [],
-	imports: {},
-	...overrides,
-})
+// The names that a source uses, read from its syntax tree as the docs plugin
+// reads them. The plugin also drops each name that the demo file does not
+// bind, and a test file has no demo file, so here each name stays.
+const namesOf = (code: string) => [...referencedNames(parseSource('source.tsx', code))]
+
+type Authored = Partial<Omit<SourceFacts, 'declarations' | 'uses'>> & {
+	declarations?: Omit<DeclarationFact, 'uses'>[]
+}
+
+/** Facts as the docs plugin ships them, with the names that each source uses. */
+const facts = ({ declarations = [], ...overrides }: Authored): SourceFacts => {
+	const elements = overrides.elements ?? []
+
+	const sources = elements.flatMap(({ props, children, map }) =>
+		[...Object.values(props), children, map].filter((source) => source !== undefined),
+	)
+
+	return {
+		elements,
+		bindings: {},
+		imports: {},
+		...overrides,
+		declarations: declarations.map((declaration) => ({
+			...declaration,
+			uses: namesOf(declaration.code),
+		})),
+		// The parentheses make an object literal read as an expression, not a block.
+		uses: Object.fromEntries(sources.map((source) => [source, namesOf(`(${source})`)])),
+	}
+}
 
 describe('deriveCode source-fact props', () => {
 	const MaskInput = tag<{
@@ -106,6 +131,24 @@ describe('deriveCode source-fact props', () => {
 		expect(result).toContain('<MaskInput value="solid" />')
 
 		expect(result).not.toContain('const variant')
+	})
+
+	it('reads no key that a record of the facts inherits, such as `toString`', () => {
+		const tree = createElement(MaskInput, { format: (v) => v })
+
+		const result = deriveCode(tree, registry, {
+			elements: [{ name: 'MaskInput', props: { format: 'toString' } }],
+			bindings: {},
+			declarations: [],
+			imports: {},
+			uses: {},
+		})
+
+		expect(result).toBe(
+			[`import { MaskInput } from 'ui/mask-input'`, '', '<MaskInput format={toString} />'].join(
+				'\n',
+			),
+		)
 	})
 
 	describe('a live `false`', () => {
@@ -650,6 +693,7 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 			bindings: site?.bindings ?? {},
 			declarations: extracted?.declarations ?? [],
 			imports: extracted?.imports ?? {},
+			uses: extracted?.uses ?? {},
 		})
 
 		// The rescued props push the open tag past the inline budget, so it wraps
@@ -677,5 +721,134 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 				'</Field>',
 			].join('\n'),
 		)
+	})
+
+	/**
+	 * Derive the code of the first Example of `source`, with the facts the plugin
+	 * extracts. The build ships only the names that some Example uses, so each
+	 * source below has a second Example that ships the name under test.
+	 */
+	const roundTrip = (source: string, tree: ReactNode) => {
+		const extracted = extractSourceFacts(source, {
+			filePath: '/lib/src/docs/demos/components/demo.tsx',
+			srcDir: '/lib/src',
+		})
+
+		const site = extracted?.sites[0]
+
+		return deriveCode(tree, registry, {
+			elements: site?.elements ?? [],
+			bindings: site?.bindings ?? {},
+			declarations: extracted?.declarations ?? [],
+			imports: extracted?.imports ?? {},
+			uses: extracted?.uses ?? {},
+		})
+	}
+
+	const Calendar = tag<{
+		min?: Date
+		max?: Date
+		value?: Date | null
+		onValueChange?: (value: Date | null) => void
+		format?: (date: Date) => number
+		shapes?: unknown
+	}>('Calendar', 'calendar')
+
+	it('pulls no declaration by a property name that one of its names shares', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [date, setDate] = useState<Date | null>(null)`,
+			``,
+			`\tconst [{ min, max }] = useState(() => {`,
+			`\t\tconst start = new Date()`,
+			``,
+			`\t\tstart.setDate(start.getDate() - 30)`,
+			``,
+			`\t\treturn { min: start, max: new Date() }`,
+			`\t})`,
+			``,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="With min/max">`,
+			`\t\t\t\t<Calendar min={min} max={max} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Default">`,
+			`\t\t\t\t<Calendar value={date} onValueChange={setDate} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const result = roundTrip(source, createElement(Calendar, { min: new Date(), max: new Date() }))
+
+		expect(result).toContain('const [{ min, max }] = useState(')
+
+		expect(result).not.toContain('const [date, setDate]')
+	})
+
+	it('imports nothing by a parameter that shadows an import', () => {
+		const source = [
+			`import { feature } from 'topojson-client'`,
+			``,
+			`const dayOf = (feature: Date) => feature.getDate()`,
+			``,
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="Days">`,
+			`\t\t\t\t<Calendar format={dayOf} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Shapes">`,
+			`\t\t\t\t<Calendar shapes={feature(atlas)} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const result = roundTrip(source, createElement(Calendar, { format: (date) => date.getDate() }))
+
+		expect(result).toContain('const dayOf = (feature: Date) => feature.getDate()')
+
+		expect(result).not.toContain('topojson-client')
+	})
+
+	it('pulls nothing by a word in a string, in JSX text, or in a comment', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [value, setValue] = useState('')`,
+			``,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="Label">`,
+			`\t\t\t\t<Field label={<Label title="value">Set the value {/* setValue */}</Label>} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Controlled">`,
+			`\t\t\t\t<Field value={value} onValueChange={setValue} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const Field = tag<{ label?: ReactNode }>('Field', 'fieldset')
+
+		const Label = tag<{ title?: string; children?: ReactNode }>('Label', 'fieldset')
+
+		const result = roundTrip(
+			source,
+			createElement(Field, {
+				label: createElement(Label, { title: 'value' }, 'Set the value'),
+			}),
+		)
+
+		expect(result).toContain('<Label title="value">Set the value {/* setValue */}</Label>')
+
+		expect(result).not.toContain('useState')
 	})
 })

@@ -67,9 +67,11 @@ export function hasFacts(element: ElementFact): boolean {
 
 /**
  * A declaration statement an emitted snippet can reference: the identifiers it
- * binds (a `useState` tuple lists both names) and its full source text.
+ * binds (a `useState` tuple lists both names), its full source text, and the
+ * names that the text uses. `uses` keeps a name only when a declaration or an
+ * import of the demo file binds it.
  */
-export type DeclarationFact = { names: string[]; code: string }
+export type DeclarationFact = { names: string[]; code: string; uses: string[] }
 
 /**
  * The source that the docs plugin attaches to a demo-local helper component,
@@ -108,13 +110,19 @@ export type ImportFact = { module: string; external?: boolean; type?: boolean }
  * - `bindings` resolves an identifier to its index in `declarations`,
  *   respecting the Example's scope chain;
  * - `declarations` and `imports` are shared per demo file, pruned to what the
- *   facts can reference.
+ *   facts can reference;
+ * - `uses` maps the text of each element source (a prop, a render-prop child,
+ *   or a map) to the names that it uses, as {@link DeclarationFact} keeps them.
+ *   A source that uses none has no entry. The names come from the syntax tree,
+ *   so a word in a string, in JSX text, in a comment, or in a property name is
+ *   no use.
  */
 export type SourceFacts = {
 	elements: ElementFact[]
 	bindings: Record<string, number>
 	declarations: DeclarationFact[]
 	imports: Record<string, ImportFact>
+	uses: Record<string, string[]>
 }
 
 /**
@@ -125,9 +133,9 @@ export type SourceFacts = {
  * `assemble` skips the prefix for them.
  *
  * When the docs plugin supplied {@link SourceFacts}, `facts` carries them.
- * `factTexts` accumulates every authored source snippet the walk emits (prop
- * expressions, render-prop children), for the preamble closure and import scan.
- * `pulledDecls` carries the declaration indices those snippets reference.
+ * `used` collects the names that the authored sources the walk prints use (see
+ * `SourceFacts.uses`), for the preamble closure and the imports.
+ * `pulledDecls` carries the declaration indices those names bind.
  * `hoisted` collects the helper declarations that print above the JSX, as
  * indices into each file's table, keyed by the table.
  *
@@ -142,7 +150,7 @@ export type Context = {
 	externalModules: Set<string>
 	packageName: string
 	facts?: SourceFacts
-	factTexts: string[]
+	used: Set<string>
 	pulledDecls: Set<number>
 	hoisted: Map<readonly string[], Set<number>>
 	rendered: Map<string, number>

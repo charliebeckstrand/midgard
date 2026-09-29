@@ -22,7 +22,8 @@ import { namedImportsOf, parseSource, referencedNames } from './ts-source'
  *
  * Extraction is name-based, mirroring the helper snippets' dependency matching. Bindings
  * resolve lexically per Example: module scope, then each enclosing function.
- * Reference detection downstream is a whole-word scan, not a checker pass.
+ * The names that a source uses come from its syntax tree (`referencedNames`),
+ * and ship beside it, so the runtime reads no source text for names.
  */
 export type SourceFactsOptions = {
 	/** Absolute path of the demo file; anchors relative-import resolution. */
@@ -222,7 +223,13 @@ function jsxChildOf(node: ts.Node): ts.JsxExpression | undefined {
 }
 
 /** The map that an element renders from, as the facts record it. */
-type MapSource = { source: string; local: boolean; uses: Set<string> }
+type MapSource = { source: string; local: boolean }
+
+/**
+ * Returns the source text of an expression, and records the names that it uses
+ * under that text.
+ */
+type RecordSource = (expr: ts.Expression) => string
 
 /**
  * The map of each element that a `.map` or a `.flatMap` callback in the JSX
@@ -232,8 +239,8 @@ type MapSource = { source: string; local: boolean; uses: Set<string> }
  */
 function mapsOf(
 	children: readonly ts.Node[],
-	sf: ts.SourceFile,
 	locals: Set<string>,
+	record: RecordSource,
 ): Map<ts.Node, MapSource> {
 	const maps = new Map<ts.Node, MapSource>()
 
@@ -253,9 +260,8 @@ function mapsOf(
 				(ts.isArrowFunction(callback) || ts.isFunctionExpression(callback))
 			) {
 				const map: MapSource = {
-					source: holder.getText(sf),
+					source: record(holder),
 					local: locals.size > 0 && usesAny(holder, locals),
-					uses: referencedNames(holder),
 				}
 
 				for (const element of returnedElements(callback)) maps.set(element, map)
@@ -271,19 +277,17 @@ function mapsOf(
 }
 
 /**
- * The expression props of an element, as source text, the keys among them
- * whose source uses a name of `locals`, and every name that their sources use.
+ * The expression props of an element, as source text, and the keys among them
+ * whose source uses a name of `locals`.
  */
 function propFacts(
 	node: ts.JsxElement | ts.JsxSelfClosingElement,
-	sf: ts.SourceFile,
 	locals: Set<string>,
+	record: RecordSource,
 ) {
 	const props: Record<string, string> = {}
 
 	const local: string[] = []
-
-	const uses = new Set<string>()
 
 	for (const attr of attributesOf(node).properties) {
 		if (!ts.isJsxAttribute(attr) || !ts.isIdentifier(attr.name)) continue
@@ -300,14 +304,12 @@ function propFacts(
 
 		if (isRuntimeRecoverable(init.expression)) continue
 
-		props[key] = init.expression.getText(sf)
+		props[key] = record(init.expression)
 
 		if (locals.size > 0 && usesAny(init.expression, locals)) local.push(key)
-
-		for (const name of referencedNames(init.expression)) uses.add(name)
 	}
 
-	return { props, local, uses }
+	return { props, local }
 }
 
 /**
@@ -323,20 +325,30 @@ function propFacts(
  * The walk pairs the k-th element of a tag that it renders with the k-th entry
  * of that tag, so each entry holds its position.
  *
- * `uses` holds every name that the recorded sources use, the start of the
- * declaration closure.
+ * `sources` maps each recorded source to the names that it uses. The names
+ * start the declaration closure, and the runtime reads them when it prints the
+ * source.
  */
 function collectElementFacts(
 	children: readonly ts.Node[],
 	sf: ts.SourceFile,
-): { elements: ElementFact[]; uses: Set<string> } {
+): { elements: ElementFact[]; sources: Map<string, Set<string>> } {
 	const facts: ElementFact[] = []
 
-	const uses = new Set<string>()
+	const sources = new Map<string, Set<string>>()
+
+	// Two sources with one text use the same names, so the text keys them.
+	const record: RecordSource = (expr) => {
+		const text = expr.getText(sf)
+
+		if (!sources.has(text)) sources.set(text, referencedNames(expr))
+
+		return text
+	}
 
 	const locals = localNames(children)
 
-	const maps = mapsOf(children, sf, locals)
+	const maps = mapsOf(children, locals, record)
 
 	const visit = (node: ts.Node): void => {
 		if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
@@ -345,25 +357,19 @@ function collectElementFacts(
 			if (name === EXAMPLE_TAG) return
 
 			if (name) {
-				const { props, local, uses: propUses } = propFacts(node, sf, locals)
+				const { props, local } = propFacts(node, locals, record)
 
 				const renderProp = ts.isJsxElement(node) ? renderPropChild(node) : null
-
-				for (const used of propUses) uses.add(used)
-
-				if (renderProp) for (const used of referencedNames(renderProp)) uses.add(used)
 
 				if (renderProp && locals.size > 0 && usesAny(renderProp, locals)) local.push('children')
 
 				const map = maps.get(node)
 
-				if (map) for (const used of map.uses) uses.add(used)
-
 				facts.push({
 					name,
 					props,
 					...(local.length > 0 ? { local } : {}),
-					...(renderProp ? { children: renderProp.getText(sf) } : {}),
+					...(renderProp ? { children: record(renderProp) } : {}),
 					...(map ? { map: map.source, ...(map.local ? { mapLocal: true } : {}) } : {}),
 				})
 
@@ -382,15 +388,15 @@ function collectElementFacts(
 
 	const withFacts = new Set(facts.filter(hasFacts).map(({ name }) => name))
 
-	return { elements: facts.filter(({ name }) => withFacts.has(name)), uses }
+	return { elements: facts.filter(({ name }) => withFacts.has(name)), sources }
 }
 
 // ---------------------------------------------------------------------------
 // Declarations and bindings
 // ---------------------------------------------------------------------------
 
-/** A declaration of the table, with the names that it uses. */
-type Declaration = DeclarationFact & { index: number; uses: Set<string> }
+/** A declaration of the table, with every name that it uses. */
+type Declaration = Omit<DeclarationFact, 'uses'> & { index: number; uses: Set<string> }
 
 function boundNames(name: ts.BindingName, into: string[]): void {
 	if (ts.isIdentifier(name)) {
@@ -496,6 +502,28 @@ function publicModuleFor(resolved: string, srcDir: string): string | null {
 }
 
 /**
+ * Every name that an import of the file binds: a named, default, or namespace
+ * binding, of a value or of a type.
+ */
+function importedNames(sf: ts.SourceFile): string[] {
+	return sf.statements.flatMap((stmt) => {
+		const clause = ts.isImportDeclaration(stmt) ? stmt.importClause : undefined
+
+		if (!clause) return []
+
+		const bindings = clause.namedBindings
+
+		const named = !bindings
+			? []
+			: ts.isNamespaceImport(bindings)
+				? [bindings.name.text]
+				: bindings.elements.map((spec) => spec.name.text)
+
+		return clause.name ? [clause.name.text, ...named] : named
+	})
+}
+
+/**
  * The named specifiers of an `import type { … }` declaration, or null for any
  * other statement.
  */
@@ -585,6 +613,7 @@ export type FileFacts = {
 	sites: ExampleSite[]
 	declarations: DeclarationFact[]
 	imports: Record<string, ImportFact>
+	uses: Record<string, string[]>
 }
 
 /**
@@ -655,6 +684,9 @@ export function extractSourceFacts(
 
 	const sites: ExampleSite[] = []
 
+	// Each recorded source, across the sites, with the names that it uses.
+	const sources = new Map<string, Set<string>>()
+
 	// Every name that a recorded source uses, across the sites.
 	const needed = new Set<string>()
 
@@ -667,9 +699,13 @@ export function extractSourceFacts(
 
 		if (hasCode) continue
 
-		const { elements, uses } = collectElementFacts(meaningfulChildren(example), sf)
+		const { elements, sources: siteSources } = collectElementFacts(meaningfulChildren(example), sf)
 
-		for (const name of uses) needed.add(name)
+		for (const [text, names] of siteSources) {
+			sources.set(text, names)
+
+			for (const name of names) needed.add(name)
+		}
 
 		if (elements.length === 0) continue
 
@@ -726,11 +762,31 @@ export function extractSourceFacts(
 
 	const remap = new Map(kept.map((decl, next) => [decl.index, next]))
 
-	const sharedDeclarations: DeclarationFact[] = kept.map(({ names, code }) => ({ names, code }))
+	// The runtime resolves a name through a shipped declaration or an import of
+	// the file. Any other name, such as a global or a callback parameter, stays
+	// out of the shipped lists.
+	const resolvable = new Set([...importedNames(sf), ...kept.flatMap(({ names }) => names)])
+
+	const resolved = (names: Set<string>) => [...names].filter((name) => resolvable.has(name))
+
+	const sharedDeclarations: DeclarationFact[] = kept.map(({ names, code, uses }) => ({
+		names,
+		code,
+		uses: resolved(uses),
+	}))
 
 	// Imports prune the same way: only names that the shipped sources use.
 	const sharedImports = Object.fromEntries(
 		Object.entries(imports).filter(([name]) => needed.has(name)),
+	)
+
+	// A source that uses no resolvable name has no entry.
+	const sharedUses = Object.fromEntries(
+		[...sources].flatMap(([text, names]): [string, string[]][] => {
+			const used = resolved(names)
+
+			return used.length > 0 ? [[text, used]] : []
+		}),
 	)
 
 	const remappedBindings = (site: ExampleSite): Record<string, number> =>
@@ -746,14 +802,15 @@ export function extractSourceFacts(
 		sites: sites.map((site) => ({ ...site, bindings: remappedBindings(site) })),
 		declarations: sharedDeclarations,
 		imports: sharedImports,
+		uses: sharedUses,
 	}
 }
 
 /**
  * Splice a demo's extracted facts into its source. Each qualifying Example's
  * open tag gains `__facts={__exampleFacts[k]}`. One module-level const carrying
- * the facts lands at the end of the file. The shared declaration/import tables
- * spread into each per-Example entry. The const is declared at
+ * the facts lands at the end of the file. The shared declaration, import, and
+ * uses tables spread into each per-Example entry. The const is declared at
  * module scope but read from render scope, so it is initialized before any
  * Example renders. Returns null when no Example yields facts, leaving the
  * module untouched.
@@ -774,7 +831,11 @@ export function injectSourceFacts(
 		source,
 	)
 
-	const shared = JSON.stringify({ declarations: facts.declarations, imports: facts.imports })
+	const shared = JSON.stringify({
+		declarations: facts.declarations,
+		imports: facts.imports,
+		uses: facts.uses,
+	})
 
 	const perExample = facts.sites
 		.map(
