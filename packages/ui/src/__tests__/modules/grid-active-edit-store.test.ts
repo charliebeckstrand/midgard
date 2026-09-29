@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, expect, it, vi } from 'vitest'
 import { createActiveEditStore } from '../../modules/grid/use-grid-editing'
 
