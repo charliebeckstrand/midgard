@@ -26,6 +26,12 @@ import {
 	seedFromKey,
 } from './engine/grid-editing-utilities'
 import { cellText } from './engine/grid-export/accessor'
+import {
+	fillPlan,
+	type GridRangeFill,
+	type GridRangeFillDirection,
+	rangeFillSource,
+} from './engine/grid-range/fill'
 import { pastePlacement } from './engine/grid-range/paste'
 import type { GridRangeCells } from './engine/grid-range/range'
 import { parseTsv, toTsv } from './engine/grid-range/tsv'
@@ -150,6 +156,28 @@ function pasteTargets<T>(
 }
 
 /**
+ * The value that a fill reads from a data cell: its row's `field`, or
+ * `undefined` for a cell with no row or no `field`. @internal
+ */
+function fillValue<T>(row: T | undefined, col: GridColumn<T> | undefined): unknown {
+	return row != null && col?.field != null ? row[col.field] : undefined
+}
+
+/**
+ * The fill direction of a key press on the tab stop, or `null` for another
+ * key. Ctrl/Cmd+D fills down and Ctrl/Cmd+R fills right. @internal
+ */
+function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDirection | null {
+	if (press.composing || press.altKey || press.shiftKey || !(press.ctrlKey || press.metaKey)) {
+		return null
+	}
+
+	const key = press.key.toLowerCase()
+
+	return key === 'd' ? 'down' : key === 'r' ? 'right' : null
+}
+
+/**
  * Live refs the cursor and editing layers read at event/render time, all populated
  * by {@link GridData}. The cursor's carry what the engine resolved — display
  * order, rows, and the visible data columns. `editSourceRef` is the exception,
@@ -253,6 +281,8 @@ export function useGridCursor<T>({
 	newRow: GridNewRowPosition
 	/** One step through the undo history, for the grid's `ref` handle. */
 	stepHistory: (step: 'undo' | 'redo') => boolean
+	/** The fill of the range, for the cell context menu, or `undefined` while the grid cannot fill. */
+	fill: GridRangeFill | undefined
 } {
 	const editingEnabled = editable != null
 
@@ -562,6 +592,65 @@ export function useGridCursor<T>({
 		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current))
 	})
 
+	const { fillCells } = editing
+
+	// The fill of the range from its top row down, or from its first column
+	// right, bound to the range as it is now.
+	const planFill = useStableEvent((direction: GridRangeFillDirection) => {
+		const cells = readRange()
+
+		const plan = cells && rangeFillSource(cells, direction)
+
+		if (!fillCells || !plan) return null
+
+		return () => {
+			const rows = rowsRef.current
+
+			const keys = rowKeysRef.current
+
+			const columns = dataColumnsRef.current
+
+			const targets = fillPlan(plan.source, direction, plan.count, (row, col) =>
+				fillValue(rows[row], columns[col]),
+			)
+
+			fillCells(
+				targets.flatMap(({ row, col, value }) => {
+					const rowKey = keys[row]
+
+					const column = columns[col]
+
+					return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, value }]
+				}),
+			)
+		}
+	})
+
+	const fills = copies && fillCells !== undefined
+
+	// The fill of the context menu. Absent while the grid cannot fill.
+	const fill = fills ? planFill : undefined
+
+	// The fill keys act on the tab stop only. Each claims its press only when
+	// it fills, so the browser keeps the key otherwise.
+	const fillKeys = useMemo(() => {
+		if (!fills) return undefined
+
+		return (event: KeyboardEvent<HTMLTableElement>) => {
+			if (event.target !== event.currentTarget || event.defaultPrevented) return
+
+			const direction = fillKey({ ...readKeyPress(event), shiftKey: event.shiftKey })
+
+			const run = direction === null ? null : planFill(direction)
+
+			if (!run) return
+
+			event.preventDefault()
+
+			run()
+		}
+	}, [fills, planFill])
+
 	const pastes = copies && pasteCells !== undefined
 
 	useEffect(() => {
@@ -598,6 +687,8 @@ export function useGridCursor<T>({
 				// The history keys need no grid-owned session, so they come first.
 				historyKeys?.(event)
 
+				fillKeys?.(event)
+
 				if (sessionKeys) {
 					sessionKeys(event)
 
@@ -627,6 +718,7 @@ export function useGridCursor<T>({
 		editing.historyKeys,
 		editing.sessionLeave,
 		sessionEntryKeys,
+		fillKeys,
 	])
 
 	const newRowSession = editing.newRow.session
@@ -654,5 +746,6 @@ export function useGridCursor<T>({
 		wrap,
 		newRow: newRowPosition,
 		stepHistory: editing.stepHistory,
+		fill,
 	}
 }

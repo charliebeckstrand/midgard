@@ -203,3 +203,57 @@ describe('grid range copy and paste round trip (real browser)', () => {
 		])
 	})
 })
+
+/**
+ * The fill keys in a real browser. Ctrl+D and Ctrl+R also belong to the
+ * browser, so the grid must claim a key only when it fills.
+ */
+describe('grid range fill keys (real browser)', () => {
+	type Row = { id: number; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	]
+
+	const rows: Row[] = [
+		{ id: 1, name: 'Ann' },
+		{ id: 2, name: 'Ben' },
+	]
+
+	it('claims Ctrl+D when it fills, and leaves it to the browser when it does not', async () => {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		const claimed: boolean[] = []
+
+		// The window hears the key after the grid's own handler.
+		const read = (event: KeyboardEvent) => {
+			if (event.key === 'd') claimed.push(event.defaultPrevented)
+		}
+
+		window.addEventListener('keydown', read)
+
+		onTestFinished(() => window.removeEventListener('keydown', read))
+
+		await userEvent.click(screen.getByText('Ann'))
+
+		await userEvent.keyboard('{Control>}d{/Control}')
+
+		await userEvent.keyboard('{Shift>}{ArrowDown}{/Shift}{Control>}d{/Control}')
+
+		expect(claimed).toEqual([false, true])
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([
+			{ rowKey: 2, columnId: 'name', value: 'Ann' },
+		])
+	})
+})

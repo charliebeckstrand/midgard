@@ -650,8 +650,9 @@ export type GridCellMenuContext<T> = {
 /**
  * Body-cell context-menu config: `true` for the default items, or a builder
  * that receives the {@link GridCellMenuContext} and the defaults. The builder
- * returns the final item list. The defaults are Copy, then the Export menu when
- * {@link GridProps.exportable} is on.
+ * returns the final item list. The defaults are Copy, then Fill down and Fill
+ * right when a cell {@link GridProps.range | range} can fill, then the Export
+ * menu when {@link GridProps.exportable} is on.
  *
  * @typeParam T - Shape of a single row.
  */

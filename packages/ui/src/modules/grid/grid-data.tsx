@@ -842,6 +842,7 @@ export function GridData<T>({
 								resetColumnWidths={resetColumnWidths}
 								chooseColumns={chooseColumns}
 								exportActions={exportActions.contextMenu}
+								fill={cursor.fill}
 								rowGroupMenu={rowManager.rowGroupMenu}
 								columnGroupMenu={columnGroupMenu}
 								columnFilter={filters}

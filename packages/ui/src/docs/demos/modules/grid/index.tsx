@@ -1869,8 +1869,8 @@ export function Demo() {
 						</Example>
 
 						<Example
-							title="Paste"
-							code={code`<Grid range editable={{ session: 'managed', history: true, onCommit }} />`}
+							title="Paste and fill"
+							code={code`<Grid range contextMenu={{ cell: true }} editable={{ session: 'managed', history: true, onCommit }} />`}
 						>
 							<PasteExample />
 						</Example>

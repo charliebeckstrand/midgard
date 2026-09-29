@@ -11,6 +11,7 @@ import { k } from '../../recipes/kata/grid'
 import type { GridSortState } from './context'
 import type { GridExportAction } from './engine/grid-export/types'
 import type { PinSide } from './engine/grid-pin/overrides'
+import type { GridRangeFill } from './engine/grid-range/fill'
 import { restrictToFirstScrollableAncestor } from './engine/grid-reorder-compute'
 import { GridContextMenu } from './grid-context-menu'
 import type { GridGroupByContextValue } from './grid-group-by-button'
@@ -95,6 +96,8 @@ type GridRegionProps<T> = {
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. */
 	exportActions: GridExportAction[]
+	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
+	fill: GridRangeFill | undefined
 	/** Resolves the group-header menu for a right-clicked group by key, or `null` when the row manager is off. */
 	rowGroupMenu: ((key: string) => GridMenuItem[] | null) | null
 	/** Resolves the column-group band menu for a right-clicked group by id. */
@@ -136,6 +139,7 @@ export function GridRegion<T>({
 	resetColumnWidths,
 	chooseColumns,
 	exportActions,
+	fill,
 	rowGroupMenu,
 	columnGroupMenu,
 	columnFilter,
@@ -175,6 +179,7 @@ export function GridRegion<T>({
 			resetColumnWidths={resetColumnWidths}
 			chooseColumns={chooseColumns}
 			exportActions={exportActions}
+			fill={fill}
 			rowGroupMenu={rowGroupMenu}
 			columnGroupMenu={columnGroupMenu}
 			columnFilter={columnFilter}

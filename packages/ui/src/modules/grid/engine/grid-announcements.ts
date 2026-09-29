@@ -106,9 +106,9 @@ function forRow(row: string | undefined): string {
 
 /**
  * What a save did to its cells: a save updates them, an undo undoes them, a
- * redo redoes them, and a paste pastes them. @internal
+ * redo redoes them, a paste pastes them, and a fill fills them. @internal
  */
-export type GridSaveOutcome = 'updated' | 'undone' | 'redone' | 'pasted'
+export type GridSaveOutcome = 'updated' | 'undone' | 'redone' | 'pasted' | 'filled'
 
 /**
  * The polite announcement for an inline-edit commit, narrated when staged cells

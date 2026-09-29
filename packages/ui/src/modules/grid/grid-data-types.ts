@@ -1125,13 +1125,21 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   of it. Else the block starts at the top-left cell, or at the active cell
 	 *   with no range, and the grid cuts it off at the last row and column. A
 	 *   paste adds no rows.
+	 * - Ctrl/Cmd+D fills the range down from its top row, and Ctrl/Cmd+R fills
+	 *   it right from its first column, under `editable.session: 'managed'`.
+	 *   The cell menu of {@link GridDataProps.contextMenu} gives the same fills
+	 *   as Fill down and Fill right. A key stays the browser's when the range is
+	 *   one cell deep in its direction. A press of another mouse button in the
+	 *   range, such as the one that opens the menu, keeps the range.
 	 *
-	 * A paste is one save and one entry in the history, through
-	 * {@link GridEditableConfig.onCommit}. {@link GridColumn.parse} reads each
-	 * text, and {@link GridColumn.validate} checks each value. A refused cell
-	 * goes to {@link GridEditableConfig.onReject}. A paste skips a cell that
+	 * A paste or a fill is one save and one entry in the history, through
+	 * {@link GridEditableConfig.onCommit}. A fill copies the values of its
+	 * source cells. A source line of two or more numbers with a constant step
+	 * continues the step. {@link GridColumn.parse} reads each pasted text,
+	 * and {@link GridColumn.validate} checks each value. A refused cell goes to
+	 * {@link GridEditableConfig.onReject}. A paste or a fill skips a cell that
 	 * cannot edit, a cell of a column with no `field`, and a cell that holds a
-	 * draft. The live region counts the pasted and the skipped cells.
+	 * draft. The live region counts the written and the skipped cells.
 	 *
 	 * The range covers data cells only. A group header, a group total, a detail
 	 * panel, and the new-row slot inside it are not cells of the range. A sort,
