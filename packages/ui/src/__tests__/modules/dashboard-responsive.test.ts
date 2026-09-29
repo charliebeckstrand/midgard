@@ -97,4 +97,35 @@ describe('projectLayout', () => {
 
 		expect(saved.cells[0]).toMatchObject({ w: 12, h: 44 })
 	})
+
+	it('stretches a tile that takes the height of its content to the height of its shelf', () => {
+		// 384 px is 16 px a column, so tile a starves at 8 columns, and the two
+		// tiles still share one shelf.
+		const cells = [cell('a', 0, 0, 8, 20), cell('b', 8, 0, 8, 20)]
+
+		const starved = new Map([
+			['a', { minWidth: 150 }],
+			['b', { minWidth: 0 }],
+		])
+
+		// A row is 4 px. Tile a needs 112 px, which is 28 rows, and tile b needs
+		// 212 px, which is 53 rows.
+		const heights = new Map([
+			['a', 100],
+			['b', 200],
+		])
+
+		const projection = projectLayout(cells, {
+			width: 384,
+			gap: 12,
+			columns: 24,
+			demands: starved,
+			heights,
+		})
+
+		expect(projection.cells.map((item) => [item.y, item.h])).toEqual([
+			[0, 53],
+			[0, 53],
+		])
+	})
 })

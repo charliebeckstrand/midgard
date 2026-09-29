@@ -201,7 +201,7 @@ export function RegistryExample() {
 	const [editing, setEditing] = useState(false)
 
 	// A narrow board paints the re-pack, where edit mode stands down. The control
-	// that starts it then goes disabled, and a live edit ends.
+	// that starts it then hides, and a live edit ends.
 	const [projected, setProjected] = useState(false)
 
 	const project = useCallback((next: boolean) => {
@@ -294,7 +294,7 @@ export function RegistryExample() {
 
 					<Button
 						color={editing ? 'zinc' : 'blue'}
-						disabled={projected}
+						hidden={projected}
 						onClick={() => setEditing((live) => !live)}
 					>
 						{editing ? 'Done' : 'Edit layout'}

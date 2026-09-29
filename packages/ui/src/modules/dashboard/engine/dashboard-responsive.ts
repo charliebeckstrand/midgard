@@ -91,6 +91,7 @@ function spanOf(cell: DashboardCell, w: number, grid: ShelfGrid): number {
 /**
  * Places one shelf at row `y`, and returns its height. The spare columns spread
  * across the tiles in proportion to their spans, so the shelf fills the width.
+ * A tile that takes the height of its content takes the height of the shelf.
  */
 function placeShelf(
 	shelf: Shelf,
@@ -121,6 +122,16 @@ function placeShelf(
 
 		height = Math.max(height, h)
 	})
+
+	// A tile that takes the height of its content grows to the height of its
+	// shelf, so the cards on one shelf end on one line.
+	for (const cell of shelf.cells) {
+		const placed = into.get(cell.id)
+
+		if (placed !== undefined && grid.heights?.has(cell.id) === true) {
+			into.set(cell.id, { ...placed, h: height })
+		}
+	}
 
 	return height
 }
