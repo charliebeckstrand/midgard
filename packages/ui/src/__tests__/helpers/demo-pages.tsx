@@ -22,12 +22,23 @@ function pageOf(path: string): string {
 	return path.replace('../../docs/demos/', '').replace(/(\/index)?\.tsx$/, '')
 }
 
-/** Each demo page, as its name and a loader of its `Demo`, in name order. */
-export const demoPages: readonly (readonly [string, () => Promise<ComponentType>])[] = Object.keys(
-	loaders,
-)
+/** A demo page, as its name and a loader of its `Demo`. */
+export type DemoPage = readonly [string, () => Promise<ComponentType>]
+
+/** Each demo page, in name order. */
+export const demoPages: readonly DemoPage[] = Object.keys(loaders)
 	.sort()
 	.map((path) => [pageOf(path), loaders[path] as () => Promise<ComponentType>] as const)
+
+// The six pages of `modules/` take about as long to walk as the other 103
+// pages. Thus the smoke test and the snippet gate each run them in a test file
+// of their own, and a test shard in CI gets about half of each gate.
+
+/** The pages of `modules/`. */
+export const modulePages = demoPages.filter(([page]) => page.startsWith('modules/'))
+
+/** The pages that are not in `modules/`. */
+export const otherPages = demoPages.filter(([page]) => !page.startsWith('modules/'))
 
 /** The label of a tab, qualified by its tablist, so two lists with a tab `A` stay apart. */
 function tabKey(tab: Element): string {

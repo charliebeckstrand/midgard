@@ -30,8 +30,37 @@ jobs:
       - run: pnpm biome ci .
       # `bundle:budget` depends on `docs:build` in turbo.json, so the graph
       # orders them; see bundle-budget.ts for what it asserts and why. The
-      # tests run in the `test` job below.
-      - run: pnpm turbo run check-types knip build bundle:budget --summarize
+      # tests run in the `test` job below, and the builds in the `build` job.
+      - run: pnpm turbo run check-types knip bundle:budget --summarize
+      - name: Prune the Turbo cache to this run's tasks
+        run: .github/actions/turbo-cache/prune.sh
+
+  # A separate job, not a step in `gate`. The two Next builds shared the four
+  # cores of `gate` with the type-check and the docs build, and the turbo step
+  # took 112s. `docs:build` took 9s alone and 75s in `gate`.
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+      - uses: ./.github/actions/setup
+      - uses: ./.github/actions/turbo-cache
+        with:
+          name: build
+      # The Turbopack build cache of each app. `next build` writes it under
+      # .next/cache, and the turbo outputs of `build` leave that directory out.
+      # A cold admin build took 89s. With the cache, a build of the same source
+      # took 9s, and a build after an edit to a ui component took 21s. The cache
+      # holds entries of the installed Next, so the key stops at the lockfile
+      # hash, as the Next documentation gives it. The SHA makes each run save
+      # what it wrote for the next run to restore.
+      - uses: actions/cache@v6
+        with:
+          path: apps/*/.next/cache
+          key: ${{ runner.os }}-next-cache-${{ hashFiles('pnpm-lock.yaml') }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-next-cache-${{ hashFiles('pnpm-lock.yaml') }}-
+      - run: pnpm turbo run build --summarize
         env:
           # Placeholder: only used to construct rewrite/fetch URLs, not reached at build time.
           BIFROST_URL: https://bifrost.invalid
