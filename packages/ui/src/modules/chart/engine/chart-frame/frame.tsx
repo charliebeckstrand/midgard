@@ -481,6 +481,11 @@ export function ChartFrame({
 	const svg = width > 0 && (
 		<svg
 			aria-hidden="true"
+			// The drawing is physical: its geometry runs left to right, so its text
+			// anchors must too. In a right-to-left page an end anchor would otherwise
+			// run each label from its anchor into the plot. The bidi of the text
+			// itself still reads a right-to-left label in its own order.
+			direction="ltr"
 			className={cn('absolute left-0 top-0 block', k.drawing(spark))}
 			width={width}
 			height={height}
@@ -680,7 +685,11 @@ function ChartFigure({
 				'flex min-h-0 flex-1 flex-col',
 				rail ? 'gap-4' : 'gap-2',
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
-				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
+				// The side is physical: a right-to-left row runs from the right, so it
+				// swaps the order back, and a `left` legend still draws on the left.
+				legendPlacement === 'left'
+					? '@sm:flex-row-reverse rtl:@sm:flex-row'
+					: '@sm:flex-row rtl:@sm:flex-row-reverse',
 			)}
 		>
 			{plot}

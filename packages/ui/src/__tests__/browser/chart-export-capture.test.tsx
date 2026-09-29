@@ -149,7 +149,9 @@ describe('chart image capture (real browser)', () => {
 	// In RTL the row of a `left` legend puts the rail on the right, the inline
 	// start, where the header text also starts.
 	it('moves an RTL plot toward the inline start, under the header', async () => {
-		const root = await renderChart('left', 'rtl')
+		// The side legend is physical, so a `right` legend sits at the inline start
+		// of a right-to-left page, and the plot closes toward it.
+		const root = await renderChart('right', 'rtl')
 
 		const svg = relative(drawing(root), root)
 
