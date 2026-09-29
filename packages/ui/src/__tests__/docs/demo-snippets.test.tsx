@@ -76,34 +76,18 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'components/segment › Sizes': "TS2304: Cannot find name 's'.",
 	'modules/chat › List': "TS2304: Cannot find name 'conversation'.",
 
-	// A `useState` value that the block declares and never reads. The block wires
-	// the setter as source, and prints the value's use from the live render: a
-	// prop dropped because the value is `null` or `undefined`, or a text child
-	// printed as its live text.
-	'components/calendar › Default': "TS6133: 'date' is declared but its value is never read.",
-	'components/calendar › With min/max': "TS6133: 'date' is declared but its value is never read.",
-	'components/credit-card-input › Composed':
-		"TS6133: 'brand' is declared but its value is never read.",
-	'components/date-picker › Default': "TS6133: 'date' is declared but its value is never read.",
-	'components/date-picker › Footer toggles':
-		"TS6133: 'footerDate' is declared but its value is never read.",
-	'components/date-picker › Glass': "TS6133: 'glassRange' is declared but its value is never read.",
-	'components/date-picker › Input': "TS6133: 'typed' is declared but its value is never read.",
-	'components/date-picker › Range': "TS6133: 'range' is declared but its value is never read.",
-	'components/date-picker › Relative':
-		"TS6133: 'relative' is declared but its value is never read.",
-	'components/date-picker › Relative (multiple)':
-		"TS6133: 'relativeMany' is declared but its value is never read.",
-	'components/date-picker › Relative (text, no chips)':
-		"TS6133: 'relativeText' is declared but its value is never read.",
+	// A `useState` value that the block declares and never reads, because the
+	// block prints the value's use from the live render: a text child as its live
+	// text, or a condition that renders nothing yet.
 	'components/hold-button › Default': "TS6133: 'count' is declared but its value is never read.",
 	'components/hold-button › Lifecycle callbacks':
 		"TS6133: 'status' is declared but its value is never read.",
-	'components/signature-pad › Default': "TS6133: 'value' is declared but its value is never read.",
 	'components/signature-pad › Imperative handle':
 		"TS6133: 'value' is declared but its value is never read.",
-	'providers/glass › Form controls':
-		"TS6133: 'comboboxValue' is declared but its value is never read.",
+
+	// A declaration that the run-time preamble pulls by a word in a pulled one:
+	// `start.setDate(…)` names the `setDate` of a `useState` pair.
+	'components/calendar › With min/max': "TS6133: 'date' is declared but its value is never read.",
 
 	// A hand-written override that does not parse.
 	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',

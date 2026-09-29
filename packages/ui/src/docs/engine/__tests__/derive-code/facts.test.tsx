@@ -160,6 +160,64 @@ describe('deriveCode source-fact props', () => {
 		})
 	})
 
+	describe('a live `null` or `undefined`', () => {
+		const Picker = tag<{
+			value?: Date | null
+			defaultValue?: Date | null
+			onValueChange?: (value: Date | null) => void
+		}>('Picker', 'picker')
+
+		const pulled = {
+			bindings: { date: 0, setDate: 0 },
+			declarations: [
+				{ names: ['date', 'setDate'], code: 'const [date, setDate] = useState<Date | null>(null)' },
+			],
+		}
+
+		// A controlled value that is empty at render keeps its value beside its setter.
+		it.each([null, undefined])(
+			'prints %s as its identifier once the setter pulls the declaration',
+			(value) => {
+				const tree = createElement(Picker, { value, onValueChange: () => {} })
+
+				const result = deriveCode(
+					tree,
+					registry,
+					facts({
+						elements: [{ name: 'Picker', props: { value: 'date', onValueChange: 'setDate' } }],
+						...pulled,
+					}),
+				)
+
+				expect(result).toContain('<Picker value={date} onValueChange={setDate} />')
+			},
+		)
+
+		it('prints an authored `null`', () => {
+			const tree = createElement(Picker, { defaultValue: null })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Picker', props: { defaultValue: 'null' } }] }),
+			)
+
+			expect(result).toContain('<Picker defaultValue={null} />')
+		})
+
+		it('drops it when its source is an expression', () => {
+			const tree = createElement(Picker, { value: undefined })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Picker', props: { value: 'picked ?? fallback' } }] }),
+			)
+
+			expect(result).toContain('<Picker />')
+		})
+	})
+
 	describe('an element prop', () => {
 		const Kbd = tag<{ children?: ReactNode }>('Kbd', 'kbd')
 
@@ -404,6 +462,21 @@ describe('deriveCode source-fact matching', () => {
 		)
 
 		expect(result).toContain('<Button>Spread</Button>\n<Button onClick={save}>Saved</Button>')
+	})
+
+	// An authored prop that is `undefined` at render is still a key of the props.
+	it('claims a fact whose prop is `undefined` at render', () => {
+		const Cvv = tag<{ brand?: string; onBrandChange?: () => void }>('Cvv', 'cvv')
+
+		const tree = createElement(Cvv, { brand: undefined, onBrandChange: () => {} })
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({ elements: [{ name: 'Cvv', props: { brand: 'brand', onBrandChange: 'setBrand' } }] }),
+		)
+
+		expect(result).toContain('<Cvv onBrandChange={setBrand} />')
 	})
 
 	it('ignores a candidate claiming props the runtime element lacks', () => {
