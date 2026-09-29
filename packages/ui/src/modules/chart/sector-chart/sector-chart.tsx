@@ -80,12 +80,13 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * data table always carry the full readout. The `callouts` names every slice
 	 * from the outside, with a leader line to its name and percent share. It
 	 * declumps per side, so a crowded pie never overlaps them, and it shrinks the
-	 * pie to make room. See `aspectRatio`. The default frame shrinks with it too,
-	 * rather than leaving the labels' margin empty on every side. Unlike segment
-	 * labels these name the slice, so they read without the legend. In a box too
-	 * narrow for their columns they drop, and the pie draws as bare marks. Such a
-	 * box is one where they would starve the pie to the spark floor. The share is
-	 * read from the tooltip and table instead.
+	 * pie to make room. A label that the declump moves follows the leader circle,
+	 * so it never sits on the pie. See `aspectRatio`. The default frame shrinks
+	 * with it too, rather than leaving the labels' margin empty on every side.
+	 * Unlike segment labels these name the slice, so they read without the
+	 * legend. In a box too narrow for their columns they drop, and the pie draws
+	 * as bare marks. Such a box is one where they would starve the pie to the
+	 * spark floor. The share is read from the tooltip and table instead.
 	 */
 	labels?: SectorLabels
 	/**

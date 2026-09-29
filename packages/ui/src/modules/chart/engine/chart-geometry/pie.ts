@@ -4,6 +4,7 @@
  * styling, so the angle math is unit-testable in isolation.
  */
 
+import { clamp } from '../../../../utilities'
 import type { TextWidth } from '../chart-text-width'
 
 /** One drawable slice: its path, source index, share, and tooltip anchor. @internal */
@@ -382,13 +383,26 @@ export const CALLOUT_LINE = 15
  */
 export const CALLOUT_CHAR_WIDTH = 8
 
+/**
+ * The most degrees of the leader circle that one straight step of a moved
+ * leader spans. The chord of a step that short stays outside the pie body for
+ * any radius up to about 3,600 px.
+ *
+ * @internal
+ */
+const LEADER_STEP = 10
+
 /** One placed callout: a leader out to a label set beside its slice. @internal */
 export type PieCallout = {
 	/** The datum's index — the label text and color key off it. */
 	index: number
 	/** The slice's mid-angle, so a callout can sync its reveal to the sweep. */
 	mid: number
-	/** The leader polyline points, `"x,y x,y x,y"`: edge, radial elbow, nub. */
+	/**
+	 * The leader polyline points, `"x,y x,y …"`: edge, radial elbow, nub. The
+	 * leader of a label that the declump moved also follows the leader circle
+	 * from the elbow to the height of the label.
+	 */
 	leader: string
 	/** The label anchor x, a constant gap past the nub. */
 	x: number
@@ -446,6 +460,49 @@ function declumpLabels(ys: number[], top: number, bottom: number, gap: number): 
 }
 
 /**
+ * The half-width of the leader circle of radius `circle` at `dy` below its
+ * center: how far a callout on that circle sits to the side of the center. It
+ * is `0` past the top or the foot of the circle.
+ *
+ * @internal
+ */
+function circleHalfWidth(circle: number, dy: number): number {
+	return Math.sqrt(Math.max(0, circle * circle - dy * dy))
+}
+
+/**
+ * The leader of a callout that the declump moved to the height `y`. It runs out
+ * from the slice edge to the elbow, then along the leader circle in steps of at
+ * most {@link LEADER_STEP} to the knee at the height of the label. The leader
+ * therefore never crosses the pie body. Returns the points and the knee.
+ *
+ * @internal
+ */
+function movedLeader(
+	{ cx, cy, circle }: { cx: number; cy: number; circle: number },
+	mid: number,
+	y: number,
+	dir: 1 | -1,
+): { points: string[]; knee: { x: number; y: number } } {
+	// The angle of the knee, clockwise from the top, on the side of the slice. A
+	// label past the top or the foot of the circle turns at that end of it.
+	const turn = (Math.acos(clamp((cy - y) / circle, -1, 1)) * 180) / Math.PI
+
+	const to = dir > 0 ? turn : 360 - turn
+
+	const steps = Math.max(1, Math.ceil(Math.abs(to - mid) / LEADER_STEP))
+
+	const turns = Array.from({ length: steps }, (_, step) =>
+		at(cx, cy, circle, mid + ((to - mid) * (step + 1)) / steps),
+	)
+
+	return {
+		points: turns.map((point) => `${point.x},${point.y}`),
+		knee: turns.at(-1) ?? at(cx, cy, circle, to),
+	}
+}
+
+/**
  * The `count` entries of the largest slices, in their first order. @internal
  */
 function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[] {
@@ -459,15 +516,19 @@ function largest<E extends { slice: PieSlice }>(entries: E[], count: number): E[
 /**
  * Places a callout beside each slice. Each callout has three parts:
  *
- * - A short radial leader out from the edge along the slice's bisector.
+ * - A short radial leader out from the edge along the slice's bisector, to an
+ *   elbow on the leader circle.
  * - A nub.
  * - A label a constant gap past it.
  *
  * Slices are split left / right of the center, and their labels declumped per
  * side. A crowded pie therefore stacks them without overlap instead of piling
- * them on one point. A side with more labels than its height holds keeps the
- * labels of its largest slices, and the rest take no callout. The data table
- * still reads every slice. Pure, so the placement is unit-testable in isolation.
+ * them on one point. A label that the declump moves stays on the leader circle
+ * at its new height, and its leader follows the circle there. The label and
+ * its leader therefore never sit on the pie body. A side with more labels than
+ * its height holds keeps the labels of its largest slices, and the rest take no
+ * callout. The data table still reads every slice. Pure, so the placement is
+ * unit-testable in isolation.
  *
  * @internal
  */
@@ -475,10 +536,12 @@ export function pieCallouts(
 	slices: PieSlice[],
 	{ cx, cy, radius, top, bottom }: PieCalloutsOptions,
 ): PieCallout[] {
-	const placed = slices.map((slice) => {
-		const elbow = at(cx, cy, radius + CALLOUT_LEADER, slice.mid)
+	const circle = radius + CALLOUT_LEADER
 
-		return { slice, elbow, dir: elbow.x >= cx ? 1 : -1 }
+	const placed = slices.map((slice) => {
+		const elbow = at(cx, cy, circle, slice.mid)
+
+		return { slice, elbow, dir: elbow.x >= cx ? (1 as const) : (-1 as const) }
 	})
 
 	// The labels one side holds at the declump gap, from `top` to `bottom`.
@@ -502,12 +565,22 @@ export function pieCallouts(
 
 			const y = ys[order] ?? entry.elbow.y
 
-			const nubX = entry.elbow.x + CALLOUT_NUB * dir
+			const moved =
+				y === entry.elbow.y
+					? { points: [], knee: entry.elbow }
+					: movedLeader({ cx, cy, circle }, entry.slice.mid, y, entry.dir)
+
+			const nubX = moved.knee.x + CALLOUT_NUB * dir
 
 			return {
 				index: entry.slice.index,
 				mid: entry.slice.mid,
-				leader: `${edge.x},${edge.y} ${entry.elbow.x},${entry.elbow.y} ${nubX},${y}`,
+				leader: [
+					`${edge.x},${edge.y}`,
+					`${entry.elbow.x},${entry.elbow.y}`,
+					...moved.points,
+					`${nubX},${y}`,
+				].join(' '),
 				x: nubX + CALLOUT_GAP * dir,
 				y,
 				anchor: dir > 0 ? ('start' as const) : ('end' as const),
@@ -547,6 +620,89 @@ function calloutPull(mid: number): number {
 }
 
 /**
+ * One callout as the fit reads it: its natural height on the leader circle, as
+ * a fraction of the circle's radius (`-1` at the top, `1` at the foot), and the
+ * width of its text.
+ *
+ * @internal
+ */
+type FitCallout = { lift: number; width: number }
+
+/**
+ * The callouts of one side, `dir`, in the order the declump stacks them: top to
+ * bottom by natural height. The order holds at every radius, because each
+ * natural height scales with the leader circle. Each text width is read once.
+ *
+ * @internal
+ */
+function fitSide(
+	angles: { index: number; mid: number }[],
+	texts: string[],
+	textWidth: TextWidth,
+	dir: 1 | -1,
+): FitCallout[] {
+	return angles
+		.filter(({ mid }) => (calloutPull(mid) >= 0 ? 1 : -1) === dir)
+		.map(({ index, mid }) => ({
+			lift: Math.sin(((mid - 90) * Math.PI) / 180),
+			width: textWidth(texts[index] ?? ''),
+		}))
+		.sort((a, b) => a.lift - b.lift)
+}
+
+/**
+ * The widest the leader circle gets over the heights `from` to `to`, both
+ * relative to its center: its radius where the span crosses the center line,
+ * else its half-width at the end nearer that line.
+ *
+ * @internal
+ */
+function spanHalfWidth(circle: number, from: number, to: number): number {
+	if (from <= 0 && to >= 0) return circle
+
+	return circleHalfWidth(circle, to < 0 ? to : from)
+}
+
+/**
+ * How far one side's callouts reach from the center at `radius`: the widest
+ * label, or the disc itself. It mirrors the declump of {@link pieCallouts},
+ * where a moved label stays on the leader circle. The declump pushes each label
+ * at least a line below the label above it. A run past the foot of the circle
+ * can then slide up by that overflow, and a full side drops the labels of its
+ * smallest slices. So each label sits between its own height less the overflow
+ * and its pushed height. Its reach is the widest the circle gets over that span.
+ * The bound is exact for a label that does not move. `pushed` is the scratch
+ * the heights of the side go into.
+ *
+ * @internal
+ */
+function sideReach(side: FitCallout[], radius: number, pushed: Float64Array): number {
+	const circle = radius + CALLOUT_LEADER
+
+	let last = Number.NEGATIVE_INFINITY
+
+	for (let order = 0; order < side.length; order++) {
+		last = Math.max((side[order] as FitCallout).lift * circle, last + CALLOUT_LINE)
+
+		pushed[order] = last
+	}
+
+	const overflow = Math.max(0, last - circle)
+
+	let reach = radius
+
+	for (let order = 0; order < side.length; order++) {
+		const { lift, width } = side[order] as FitCallout
+
+		const half = spanHalfWidth(circle, lift * circle - overflow, pushed[order] as number)
+
+		reach = Math.max(reach, half + CALLOUT_NUB + CALLOUT_GAP + width)
+	}
+
+	return reach
+}
+
+/**
  * The largest radius and the center-x under which every callout lands exactly
  * inside `frameWidth`. Each callout hugs its own slice's angle, the way
  * {@link pieCallouts} places it. This is the tight inverse of that placement.
@@ -554,13 +710,13 @@ function calloutPull(mid: number): number {
  * each side needs. A flat margin, sized as if every label sat at 3 o'clock,
  * reserves more.
  *
- * @remarks Each callout's reach from the center is affine in the radius. It is
- * its slice's horizontal pull times `radius + leader`, plus its fixed nub, gap,
- * and text. A side's worst case is therefore the upper envelope of a handful of
- * lines. The pair of envelopes crossing `frameWidth` narrows to one radius by
- * bisection. Below two slices there is nothing to balance between two sides.
- * Then `cx` stays centered, and the margin falls back to the flat case for the
- * one label.
+ * @remarks A callout that does not move reaches its slice's horizontal pull
+ * times `radius + leader`, plus its fixed nub, gap, and text. A callout that
+ * the declump moves reaches the half-width of the leader circle at its height
+ * instead ({@link sideReach}). The pair of side reaches crossing `frameWidth`
+ * narrows to one radius by bisection. Each step keeps a radius that fits. Below
+ * two slices there is nothing to balance between two sides. Then `cx` stays
+ * centered, and the margin falls back to the flat case for the one label.
  * @internal
  */
 export function pieCalloutFit({
@@ -579,23 +735,16 @@ export function pieCalloutFit({
 		return { radius: Math.max(0, radius), cx: frameWidth / 2 }
 	}
 
-	// A side's reach at `radius`: the furthest any of its callouts extends from
-	// center, mirroring `pieCallouts`' own elbow + nub + gap + text math.
-	// The disc itself is the least reach: a side whose callouts all sit near 12 or
-	// 6 o'clock still holds half the disc.
-	const reach = (dir: 1 | -1, radius: number): number =>
-		angles.reduce((max, { index, mid }) => {
-			const pull = calloutPull(mid)
+	// Each side's callouts and a scratch for their heights, made once for the
+	// whole search. A side's reach at a radius is the furthest any of its
+	// callouts extends from center, mirroring the placement of `pieCallouts`. The
+	// disc itself is the least reach: a side whose callouts all sit near 12 or 6
+	// o'clock still holds half the disc.
+	const right = fitSide(angles, texts, textWidth, 1)
 
-			if ((pull >= 0 ? 1 : -1) !== dir) return max
+	const left = fitSide(angles, texts, textWidth, -1)
 
-			const text = texts[index] ?? ''
-
-			const extent =
-				Math.abs(pull) * (radius + CALLOUT_LEADER) + CALLOUT_NUB + CALLOUT_GAP + textWidth(text)
-
-			return Math.max(max, extent)
-		}, radius)
+	const pushed = new Float64Array(Math.max(right.length, left.length))
 
 	let lo = 0
 
@@ -604,9 +753,9 @@ export function pieCalloutFit({
 	for (let i = 0; i < 40; i++) {
 		const mid = (lo + hi) / 2
 
-		if (reach(1, mid) + reach(-1, mid) > frameWidth) hi = mid
+		if (sideReach(right, mid, pushed) + sideReach(left, mid, pushed) > frameWidth) hi = mid
 		else lo = mid
 	}
 
-	return { radius: lo, cx: reach(-1, lo) }
+	return { radius: lo, cx: sideReach(left, lo, pushed) }
 }
