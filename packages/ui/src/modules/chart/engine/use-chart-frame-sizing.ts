@@ -9,7 +9,7 @@ import {
 import { type ChartChrome, type ChartPolicy, chartFramePolicy } from './chart-tier'
 
 /** The inputs of {@link useChartFrameSizing}. @internal */
-export type ChartFrameSizingInput = {
+type ChartFrameSizingInput = {
 	/** An explicit drawing width, or `undefined` to measure the container. */
 	width: number | undefined
 	/** The policy that the plot box measures through, resolved from the props. */
@@ -32,7 +32,7 @@ export type ChartFrameSizingInput = {
 }
 
 /** What {@link useChartFrameSizing} returns. @internal */
-export type ChartFrameSize = {
+type ChartFrameSize = {
 	/** Attach to the plot box, so that the hook measures it. */
 	ref: PlotFrameRef
 	/** The drawing width in px; `0` until the width is measured. */

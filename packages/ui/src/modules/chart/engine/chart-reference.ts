@@ -1,8 +1,8 @@
 /**
  * The reference-line schema: the line that the `reference` prop of a cartesian
- * chart takes, and the pure reads of it that the hook and the legend share. It
- * holds no React, so a module that reads the schema does not import the rules
- * that {@link ChartReferenceLines} draws.
+ * chart takes. It also holds the pure reads of the line that the hook and the
+ * legend share. It holds no React, so a module that reads the schema does not
+ * import the rules that {@link ChartReferenceLines} draws.
  */
 
 import type { ChartColorSlot } from '../../../recipes/kata/chart'

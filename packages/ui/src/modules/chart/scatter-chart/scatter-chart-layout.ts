@@ -1,8 +1,8 @@
 /**
- * The pure layout of the {@link ScatterChart}: each series resolved to its
- * points and paint, and the plot, the scales, the ticks, and the axis titles
- * that the frame parts read. It holds no React, so the layout is unit-testable
- * in isolation.
+ * The pure layout of the {@link ScatterChart}. It resolves each series to its
+ * points and paint. It also places the plot, the scales, the ticks, and the
+ * axis titles that the frame parts read. It holds no React, so the layout is
+ * unit-testable in isolation.
  */
 
 import type { ChartAxisTick } from '../engine/chart-axes/axis'
@@ -95,10 +95,10 @@ export function scatterLegendItems(
 }
 
 /** Both scales' pins, lifted off the props. @internal */
-export type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
+type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
 
 /** The resolved scatter plot: rect, scales, ticks, and placed axis titles. @internal */
-export type ScatterScales = {
+type ScatterScales = {
 	plot: PlotRect
 	xScale: LinearScale | null
 	yScale: LinearScale | null

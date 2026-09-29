@@ -1,15 +1,24 @@
 /**
- * The cartesian orientation and the single coordinate transpose every oriented
- * chart part reads. A cartesian chart has one continuous **value** axis and one
- * categorical **band** axis; orientation is only which screen axis each maps to.
- * Vertical keeps the value axis on y (bars grow up) and the band on x.
- * Horizontal transposes both (bars grow right, categories run down the side).
+ * The cartesian orientation, the plot rectangle, and the coordinate transpose
+ * that the oriented chart parts read. A cartesian chart has one continuous
+ * **value** axis and one categorical **band** axis; orientation is only which
+ * screen axis each maps to. Vertical keeps the value axis on y (bars grow up)
+ * and the band on x. Horizontal transposes both (bars grow right, categories run
+ * down the side).
  *
- * Every oriented position is expressed in (value, band) space and projected
- * through {@link project}. That covers a bar corner, a gridline, a tick, a
- * crosshair rule, and a tooltip anchor. The transpose therefore lives here, and
- * nothing else branches on the orientation. Framework- and style-free, so the mapping is unit-testable in
- * isolation and reused by the pure geometry cores and the React parts alike.
+ * A part that places a point in (value, band) space projects it through
+ * {@link project}. That covers a gridline, a crosshair rule, a reference rule, a
+ * keyboard stop, and a tooltip anchor. The plot extent along each axis comes
+ * from {@link valueExtent} and {@link bandExtent}.
+ *
+ * The transpose of a point lives here, but not each branch on the orientation.
+ * A part that differs by more than a coordinate reads the orientation itself.
+ * Examples are the layout, the axis sides, the bar path and hit test, and the
+ * mount motion. The arrow keys, the reference labels, and the tooltip order
+ * also read it.
+ *
+ * The file holds no framework and no styles, so the mapping is unit-testable in
+ * isolation. The pure geometry cores and the React parts read it alike.
  */
 
 import type { Orientation } from '../../../types'

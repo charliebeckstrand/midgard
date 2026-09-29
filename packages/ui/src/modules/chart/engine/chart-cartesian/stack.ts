@@ -1,8 +1,8 @@
 /**
  * The stack of a cartesian chart: how a stacked bar or area builds its column,
- * the edges that the column draws for the value domain, and the one axis that
- * the stack binds to. It holds no React, so the stack math is unit-testable in
- * isolation.
+ * and the edges of that column for the value domain. It also names the one axis
+ * that the stack binds to. It holds no React, so the stack math is
+ * unit-testable in isolation.
  */
 
 import type { ChartValueAxisId } from '../chart-axes/schema'

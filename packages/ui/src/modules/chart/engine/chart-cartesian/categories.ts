@@ -7,7 +7,7 @@
 import { dateCategoryFormat, timeCategory } from '../chart-time'
 
 /** The category labels, their raw forms, and the readout formatter. @internal */
-export type ResolvedCategories = {
+type ResolvedCategories = {
 	/** The band-axis labels — formatted when a formatter resolved, else raw. */
 	categories: string[]
 	/** The raw `String`-coerced values, which the click callback keys off. */

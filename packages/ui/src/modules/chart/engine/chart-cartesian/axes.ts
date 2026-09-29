@@ -1,8 +1,8 @@
 /**
  * The value axes of a cartesian chart: the domain inputs, the formatters, and
- * the title of each value axis, the grid positions, and the value-axis position
- * of each reference line. It holds no React, so the axis math is unit-testable
- * in isolation.
+ * the title of each value axis. It also holds the grid positions, and the
+ * value-axis position of each reference line. It holds no React, so the axis
+ * math is unit-testable in isolation.
  */
 
 import { compactFormat, fractionFormat } from '../../../../utilities'
@@ -55,7 +55,7 @@ function domainValuesFor<T>(args: {
 }
 
 /** The per-axis formatters and layout inputs resolved from the chart props. @internal */
-export type ResolvedValueAxes = {
+type ResolvedValueAxes = {
 	value?: ChartValueAxisInput
 	value2?: ChartValueAxisInput
 	/** The category axis's title, gated on the tier affording a title band. */

@@ -1,8 +1,8 @@
 /**
- * The sizing policy of a chart frame: how an explicit `height`, an aspect
- * ratio, and the legend placement resolve to the {@link FrameSizing} that the
- * plot box measures through. It holds no React, so the policy is unit-testable
- * in isolation. {@link useChartFrameSizing} measures the box through it.
+ * The sizing policy of a chart frame. An explicit `height`, an aspect ratio, and
+ * the legend placement resolve to the {@link FrameSizing} that the plot box
+ * measures through. It holds no React, so the policy is unit-testable in
+ * isolation. {@link useChartFrameSizing} measures the box through it.
  */
 
 import type { FrameSizing } from '../../../../hooks'
@@ -10,10 +10,11 @@ import { parseAspectRatio } from '../../../../utilities'
 
 /**
  * A chart's aspect ratio: a `width / height` number, a `"16/9"` string, or
- * `false` to leave the frame free-form (its explicit or density height). The
- * ratio is a preference, not a demand. A definite-height parent shorter than it
- * clamps the chart. The chart then fills the height that leaves, rather than
- * overflowing — the box is law.
+ * `false` to leave the frame free-form. A free-form frame takes an explicit
+ * `height`, else it fills the height of its container. The ratio is a
+ * preference, not a demand. A definite-height parent shorter than it clamps the
+ * chart. The chart then fills the height that leaves, rather than overflowing —
+ * the box is law.
  *
  * A stacked (top / bottom) legend folds into the aspect box. The ratio there
  * governs the whole chart, so a legended chart fills a fixed-aspect tile
@@ -30,12 +31,13 @@ export type ChartAspectRatio = number | `${number}/${number}` | false
  * free-form and fills its container. Density never sets a height, so it can't
  * conflict with the ratio.
  *
- * @remarks The plot-only sizing: the ratio governs the drawing box alone, which
- * a legend then sits beside. The chart family instead resolves through {@link
- * chartFrameLayout}. That one carries the ratio on the figure, so a
- * definite-height parent clamps the whole chart (a side legend still bands
- * beside the plot). {@link HeatmapChart} keeps this one, its range legend never
- * sharing the box.
+ * @remarks The plot-only sizing: the ratio governs the drawing box alone. The
+ * cartesian charts and the scatter read it through {@link chartFrameLayout}.
+ * That function moves a live ratio to the figure, unless a side legend bands
+ * beside the plot. The pie and the donut read it through {@link sectorFrameSizing} when a
+ * `height` or an `aspectRatio` is set. {@link sectorFrame} then folds a stacked
+ * legend into the box. {@link HeatmapChart} reads it as it is, its range legend
+ * never sharing the box.
  * @internal
  */
 export function chartFrameSizing(
@@ -62,28 +64,6 @@ export function frameFills(sizing: FrameSizing): boolean {
 }
 
 /**
- * A chart frame's sizing under the box-law: the {@link FrameSizing} the plot
- * measures through, and the CSS `aspect-ratio` the figure wrapper carries. The
- * whole chart — legend and all — holds the ratio as a preference the parent can
- * clamp.
- *
- * @internal
- */
-export type ChartFrameLayout = {
-	/** The policy {@link usePlotFrame} measures and resolves the plot box through. */
-	sizing: FrameSizing
-	/**
-	 * The `width / height` the figure wrapper reserves through CSS `aspect-ratio`
-	 * whenever a live ratio governs the whole chart — no legend or a stacked band.
-	 * The plot then fills the space the legend's natural size leaves, and a
-	 * definite-height parent clamps the figure. It is `null` when the plot box
-	 * carries the ratio itself (a side legend banding beside it), or when nothing
-	 * reserves one.
-	 */
-	outerAspect: number | null
-}
-
-/**
  * Resolves a chart frame's sizing under the box-law. A live aspect ratio is a
  * preference a definite-height parent can clamp. It is never a height the
  * drawing forces on the box. An explicit `height` is a fixed pixel box and a
@@ -107,13 +87,18 @@ export type ChartFrameLayout = {
  * rather than above or below it. A side legend keeps the ratio on the plot box.
  * Every other live-ratio frame carries it on the figure, so the parent can clamp
  * the chart.
+ * @returns The `sizing` that {@link usePlotFrame} measures the plot box through,
+ * and the `outerAspect`: the `width / height` that the figure reserves through
+ * CSS `aspect-ratio`. The plot then fills the space that the natural size of
+ * the legend leaves. `outerAspect` is `null` when the plot box carries the ratio
+ * itself, or when nothing reserves one.
  * @internal
  */
 export function chartFrameLayout(
 	height: number | undefined,
 	aspectRatio: ChartAspectRatio,
 	aside: boolean,
-): ChartFrameLayout {
+): { sizing: FrameSizing; outerAspect: number | null } {
 	const sizing = chartFrameSizing(height, aspectRatio)
 
 	// A fixed or free-form frame is legend-agnostic. A side legend bands beside

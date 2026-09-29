@@ -1,8 +1,8 @@
 /**
- * The series of a cartesian chart: each series resolved to its meta, the scale
- * that each visible series draws through, and the order in which the legend and
- * the tooltip list the series. It holds no React, so the series math is
- * unit-testable in isolation.
+ * The series of a cartesian chart: each series resolved to its meta, and the
+ * scale that each visible series draws through. It also sets the order in which
+ * the legend and the tooltip list the series. It holds no React, so the series
+ * math is unit-testable in isolation.
  */
 
 import { paintSlot, rawColor, textClass } from '../chart-color/paint'
@@ -174,7 +174,7 @@ export function orderReadout(
 }
 
 /** The fields of a series that its legend entry reads. @internal */
-export type LegendSeries = Pick<SeriesMeta, 'index' | 'label' | 'paint' | 'swatch' | 'dashed'>
+type LegendSeries = Pick<SeriesMeta, 'index' | 'label' | 'paint' | 'swatch' | 'dashed'>
 
 /**
  * One series' legend entry: its label, and a swatch in its paint. A palette

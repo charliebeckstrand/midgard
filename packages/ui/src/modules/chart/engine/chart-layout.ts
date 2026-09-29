@@ -78,7 +78,7 @@ function tickGutter(labels: string[]): number {
  *
  * @internal
  */
-export function labelGutter(labels: string[], width: TextWidth): number {
+function labelGutter(labels: string[], width: TextWidth): number {
 	const widest = labels.reduce((max, label) => Math.max(max, width(label)), 0)
 
 	return widest > 0 ? Math.min(GUTTER_MAX, Math.ceil(widest) + GUTTER_GAP) : 0
