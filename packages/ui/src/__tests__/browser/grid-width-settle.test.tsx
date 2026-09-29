@@ -28,7 +28,7 @@ describe('grid width settling (real browser)', () => {
 	const getKey = (row: Row) => row.id
 
 	/** The gate is a class on the table itself — see `GridData`'s width-settling comment. */
-	const hidden = () => document.querySelector('table')?.className.includes('invisible') ?? null
+	const hidden = () => document.querySelector('table')?.className.includes('opacity-0') ?? null
 
 	it('shows the loading skeleton before any rows have been measured', () => {
 		renderUI(<Grid columns={columns} rows={[]} getKey={getKey} loading />)

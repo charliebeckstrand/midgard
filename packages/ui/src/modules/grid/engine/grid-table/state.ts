@@ -78,9 +78,47 @@ export function resolveTransformModes(args: {
 	}
 }
 
-/** Fingerprint of the rendered rows — count and end keys — the autosizer re-measures on. @internal */
-export function rowsSignatureOf(rowKeys: (string | number)[]): string {
-	return `${rowKeys.length}:${rowKeys[0] ?? ''}:${rowKeys.at(-1) ?? ''}`
+/** The 32-bit FNV-1a hash of a row key's string form. @internal */
+function hashKey(key: string | number): number {
+	const text = String(key)
+
+	let hash = 0x811c9dc5
+
+	for (let i = 0; i < text.length; i++) {
+		hash ^= text.charCodeAt(i)
+
+		hash = Math.imul(hash, 0x01000193)
+	}
+
+	return hash >>> 0
+}
+
+/**
+ * Fingerprint of the rendered rows that the autosizer re-measures on: the count,
+ * and two hashes of the set of keys.
+ *
+ * The hashes combine each key's hash by a sum and by an exclusive or, so the order
+ * of the keys does not change them. A sort shows the same rows in a new order, and
+ * the widest cell of each column stays the same, so a sort keeps the fingerprint and
+ * measures nothing. A page turn, a filter, or new data changes the set of keys, and
+ * so the fingerprint.
+ *
+ * @internal
+ */
+export function rowsSignatureOf(rowKeys: readonly (string | number)[]): string {
+	let sum = 0
+
+	let mix = 0
+
+	for (const key of rowKeys) {
+		const hash = hashKey(key)
+
+		sum = (sum + hash) >>> 0
+
+		mix = (mix ^ hash) >>> 0
+	}
+
+	return `${rowKeys.length}:${sum}:${mix}`
 }
 
 /**

@@ -34,9 +34,9 @@ describe('grid width settling', () => {
 
 		expect(tableTag).not.toBe('')
 
-		// `invisible` is visibility, not display — the autosizer has to measure this table
-		// to size it, and hidden visibility keeps layout and geometry intact.
-		expect(tableTag).toContain('invisible')
+		// `opacity-0`, not display — the autosizer has to measure this table to size it,
+		// and zero opacity keeps layout and geometry intact.
+		expect(tableTag).toContain('opacity-0')
 	})
 
 	it('leaves a grid it never sizes visible on the server', () => {
@@ -48,7 +48,7 @@ describe('grid width settling', () => {
 		const tableTag = html.match(/<table[^>]*>/)?.[0] ?? ''
 
 		expect(tableTag).not.toBe('')
-		expect(tableTag).not.toContain('invisible')
+		expect(tableTag).not.toContain('opacity-0')
 	})
 
 	// jsdom has no `ResizeObserver`, so this is the "nothing will ever fit these columns"
@@ -62,7 +62,7 @@ describe('grid width settling', () => {
 		const table = document.querySelector('table')
 
 		expect(table).not.toBeNull()
-		expect(table?.className ?? '').not.toContain('invisible')
+		expect(table?.className ?? '').not.toContain('opacity-0')
 		expect(screen.getByRole('columnheader', { name: /Name/ })).toBeVisible()
 	})
 })

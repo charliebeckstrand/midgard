@@ -1605,6 +1605,10 @@ export function useGridTable<T>({
 			})
 		: null
 
+	// The fingerprint reads every key, so it runs once for each new set of keys and not
+	// on each render.
+	const rowsSignature = useMemo(() => rowsSignatureOf(rowKeys), [rowKeys])
+
 	// Size resizable columns to their content and fill the container, unless widths
 	// are controlled. The hook also backs the header menu's width actions.
 	const {
@@ -1624,7 +1628,7 @@ export function useGridTable<T>({
 		containerRef,
 		// Fingerprint from the keys the grid already derived, so the autosizer
 		// never walks the rows just to notice a row change.
-		rowsSignature: rowsSignatureOf(rowKeys),
+		rowsSignature,
 		density,
 		fitContent,
 		resizing,
