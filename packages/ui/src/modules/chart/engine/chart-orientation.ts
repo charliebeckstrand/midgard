@@ -7,8 +7,9 @@
  * down the side).
  *
  * A part that places a point in (value, band) space projects it through
- * {@link project}. That covers a gridline, a crosshair rule, a reference rule, a
- * keyboard stop, and a tooltip anchor. The plot extent along each axis comes
+ * {@link project}, as a keyboard stop and a tooltip anchor do. A rule at a value
+ * spans the band axis through {@link valueRule}: a gridline, the value rule of
+ * the crosshair, and a reference rule. The plot extent along each axis comes
  * from {@link valueExtent} and {@link bandExtent}.
  *
  * The transpose of a point lives here, but not each branch on the orientation.
@@ -71,4 +72,22 @@ export function valueExtent(orientation: ChartOrientation, plot: PlotRect): [num
 /** The plot's `[start, end]` screen extent along the band axis — the range a band scale spans. @internal */
 export function bandExtent(orientation: ChartOrientation, plot: PlotRect): [number, number] {
 	return orientation === 'vertical' ? [plot.x, plot.x + plot.width] : [plot.y, plot.y + plot.height]
+}
+
+/**
+ * The ends of the rule at value-axis position `at`, drawn across the plot on
+ * the band axis. A gridline, the value rule of the crosshair, and a reference
+ * rule each draw it. The ends are the {@link project} of `at` at each end of
+ * {@link bandExtent}, written out so that no tuple is built for each rule.
+ *
+ * @internal
+ */
+export function valueRule(
+	orientation: ChartOrientation,
+	plot: PlotRect,
+	at: number,
+): { from: Vec; to: Vec } {
+	return orientation === 'vertical'
+		? { from: { x: plot.x, y: at }, to: { x: plot.x + plot.width, y: at } }
+		: { from: { x: at, y: plot.y }, to: { x: at, y: plot.y + plot.height } }
 }

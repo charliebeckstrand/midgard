@@ -1,6 +1,6 @@
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
-import { bandExtent, type ChartOrientation, type PlotRect, project } from '../chart-orientation'
+import { type ChartOrientation, type PlotRect, valueRule } from '../chart-orientation'
 
 /** Props for {@link ChartGridLines}. @internal */
 export type ChartGridLinesProps = {
@@ -35,22 +35,18 @@ export function ChartGridLines({
 	orientation = 'vertical',
 	dashed = false,
 }: ChartGridLinesProps) {
-	const [from, to] = bandExtent(orientation, plot)
-
 	return (
 		<g data-slot="chart-grid-lines">
 			{ticks.map((tick) => {
-				const start = project(orientation, tick, from)
-
-				const end = project(orientation, tick, to)
+				const { from, to } = valueRule(orientation, plot, tick)
 
 				return (
 					<line
 						key={tick}
-						x1={start.x}
-						y1={start.y}
-						x2={end.x}
-						y2={end.y}
+						x1={from.x}
+						y1={from.y}
+						x2={to.x}
+						y2={to.y}
 						strokeWidth={1}
 						strokeDasharray={dashed ? '3 3' : undefined}
 						shapeRendering="crispEdges"

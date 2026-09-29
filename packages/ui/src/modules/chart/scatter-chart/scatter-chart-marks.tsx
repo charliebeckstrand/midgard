@@ -9,6 +9,7 @@ import { type ChartPaint, fillClass, rawColor } from '../engine/chart-color/pain
 import { BUBBLE_FILL_OPACITY, MARKER_RING_WIDTH } from '../engine/chart-constants'
 import { type ScatterMark, scatterDiscsPath } from '../engine/chart-geometry/scatter'
 import { POINT_POP } from '../engine/chart-motion'
+import { seriesGroupClass } from '../engine/chart-series'
 import { useChartMarkEmphasis } from '../engine/context'
 
 /**
@@ -101,11 +102,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 							// The disc the pointer isolates keeps full strength; its siblings and
 							// every other series recede — the dim rides the class, no inline
 							// opacity to lose to.
-							className={cn(
-								props.className,
-								'transition-opacity',
-								!lit(index, datum) && 'opacity-25',
-							)}
+							className={cn(props.className, seriesGroupClass(!lit(index, datum)))}
 						/>
 					))}
 				</g>
@@ -128,7 +125,7 @@ export function ScatterChartMarks({ list }: ScatterChartMarksProps) {
 					data-slot="chart-scatter-discs"
 					d={paths[seriesIndex]}
 					{...props}
-					className={cn(props.className, 'transition-opacity', dimmed && 'opacity-25')}
+					className={cn(props.className, seriesGroupClass(dimmed))}
 				/>
 
 				{spot && (

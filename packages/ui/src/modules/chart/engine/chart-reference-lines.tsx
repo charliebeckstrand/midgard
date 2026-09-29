@@ -18,7 +18,7 @@ import {
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
 import { LABEL_HEIGHT, LABEL_OFFSET, labelBesideY } from './chart-geometry/label'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
-import { bandExtent, type ChartOrientation, type PlotRect, project } from './chart-orientation'
+import { type ChartOrientation, type PlotRect, valueRule } from './chart-orientation'
 import {
 	type ChartReferenceLine,
 	DEFAULT_REFERENCE_COLOR,
@@ -408,8 +408,6 @@ export function ChartReferenceLines({
 
 	const { plot, orientation, referencePositions } = chart
 
-	const [from, to] = bandExtent(orientation, plot)
-
 	const keys = ruleKeys(reference)
 
 	const group = (
@@ -426,9 +424,7 @@ export function ChartReferenceLines({
 
 				if (!ruleScale || at === null) return null
 
-				const start = project(orientation, at, from)
-
-				const end = project(orientation, at, to)
+				const { from, to } = valueRule(orientation, plot, at)
 
 				// The zero line each rule reveals from: the baseline the bars grow from,
 				// on the rule's own axis. `map` clamps into the scale's range, so zero
@@ -442,7 +438,7 @@ export function ChartReferenceLines({
 						line={line}
 						index={index}
 						paint={resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)}
-						points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }}
+						points={{ x1: from.x, y1: from.y, x2: to.x, y2: to.y }}
 						orientation={orientation}
 						format={(value) => chart.formatAxisValue(value, axis)}
 						rise={rise}

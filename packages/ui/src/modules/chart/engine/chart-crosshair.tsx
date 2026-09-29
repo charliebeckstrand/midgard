@@ -11,6 +11,7 @@ import {
 	project,
 	valueCoord,
 	valueExtent,
+	valueRule,
 } from './chart-orientation'
 import { nearestValue } from './chart-snap'
 import { useChartHover, useChartTier } from './context'
@@ -167,11 +168,9 @@ export function ChartCrosshair({
 			: clamp(rawBand, Math.min(bandStart, bandEnd), Math.max(bandStart, bandEnd))
 
 	// The value rule holds its value and spans the band axis; the band rule holds
-	// its band and spans the value axis. `project` puts each pair of ends on screen.
-	const valueRule =
-		value === null
-			? null
-			: { from: project(orientation, value, bandStart), to: project(orientation, value, bandEnd) }
+	// its band and spans the value axis. `valueRule` and `project` put each pair of
+	// ends on screen.
+	const valueLine = value === null ? null : valueRule(orientation, plot, value)
 
 	const bandRule =
 		band === null
@@ -180,13 +179,13 @@ export function ChartCrosshair({
 
 	return (
 		<g data-slot="chart-crosshair">
-			{crosshair.x && valueRule && (
+			{crosshair.x && valueLine && (
 				<line
 					data-slot="chart-crosshair-x"
-					x1={valueRule.from.x}
-					y1={valueRule.from.y}
-					x2={valueRule.to.x}
-					y2={valueRule.to.y}
+					x1={valueLine.from.x}
+					y1={valueLine.from.y}
+					x2={valueLine.to.x}
+					y2={valueLine.to.y}
 					{...CROSSHAIR_RULE}
 				/>
 			)}
