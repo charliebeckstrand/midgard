@@ -80,16 +80,11 @@ function niceStep(raw: number): number {
 const FLAT_SPAN = 1e-12
 
 /**
- * The air on each side of a large flat value, as a fraction of its magnitude.
- *
- * @internal
- */
-const FLAT_AIR = 1e-9
-
-/**
  * Widens a degenerate (zero-span) domain so the scale has something to
  * divide by. An all-zero zero-baseline domain becomes `[0, 1]`, and any other
- * flat value gets a unit of air on each side.
+ * flat zero gets a unit of air on each side. A flat value other than zero gets
+ * half its magnitude of air on each side, so the axis reads at the scale of the
+ * value: a constant 0.05 reads near `[0.025, 0.075]`, not `[-1, 1.5]`.
  *
  * @internal
  */
@@ -102,8 +97,9 @@ function widen(low: number, high: number, zeroBaseline: boolean): [number, numbe
 
 	if (zeroBaseline && magnitude === 0) return [0, 1]
 
-	// The air must survive the float precision of a large value: 1e17 + 1 is 1e17.
-	const air = Math.max(1, magnitude * FLAT_AIR)
+	// Half the magnitude also survives the float precision of a large value,
+	// where a unit of air would not: 1e17 + 1 is 1e17.
+	const air = magnitude === 0 ? 1 : magnitude / 2
 
 	return [low - air, low + air]
 }

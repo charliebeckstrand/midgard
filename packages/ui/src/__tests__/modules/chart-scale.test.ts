@@ -261,6 +261,27 @@ describe('linearScale', () => {
 
 		expect(zeros?.domain).toEqual([0, 1])
 	})
+
+	it('gives a flat series air in proportion to its value', () => {
+		// A constant 0.05 took a unit of air each side and read over [-1, 1.5],
+		// the line pressed flat near zero.
+		const small = linearScale({ values: [0.05, 0.05], range: [100, 0], tickTarget: 4 })
+
+		expect(small?.domain[0]).toBeGreaterThanOrEqual(0)
+
+		expect(small?.domain[1]).toBeLessThanOrEqual(0.1)
+
+		expect(small?.map(0.05)).toBeCloseTo(50, 0)
+
+		const negative = linearScale({ values: [-40, -40], range: [100, 0], tickTarget: 4 })
+
+		expect(negative?.domain[0]).toBeGreaterThanOrEqual(-80)
+
+		expect(negative?.domain[1]).toBeLessThanOrEqual(0)
+
+		// A flat zero with no zero baseline keeps a unit of air.
+		expect(linearScale({ values: [0, 0], range: [100, 0], tickTarget: 4 })?.domain).toEqual([-1, 1])
+	})
 })
 
 /** The native `Array.prototype.push`, which {@link bounded} restores. */
