@@ -1,5 +1,6 @@
 'use client'
 
+import dynamic from 'next/dynamic'
 import { type ReactNode, useState } from 'react'
 import { Alert } from 'ui/alert'
 import { Badge } from 'ui/badge'
@@ -21,8 +22,22 @@ import {
 	useRemoveTotp,
 	useStartTotpSetup,
 } from './account-queries'
-import { QrCode } from './qr-code'
 import { Section } from './section'
+
+/**
+ * The code of the QR code and its encoder. Only a user who sets up an
+ * authenticator app sees a QR code, so the page does not wait for it.
+ */
+const loadQrCode = () => import('./qr-code')
+
+/**
+ * The QR code. Its `loading` placeholder gives the code a Suspense boundary of
+ * its own and keeps the space of the code, so the section does not move when
+ * the code shows.
+ */
+const QrCode = dynamic(() => loadQrCode().then((module) => module.QrCode), {
+	loading: () => <div className="size-48 self-center" />,
+})
 
 type TwoStepProps = {
 	factors: Factors
@@ -148,7 +163,12 @@ export function TwoStep({ factors, admin, children }: TwoStepProps) {
 							<Button
 								variant="outline"
 								disabled={start.isPending}
-								onClick={() => start.mutate(undefined, { onSuccess: setSetup })}
+								onClick={() => {
+									// Fetch the code of the QR code while the gateway makes the secret.
+									void loadQrCode()
+
+									start.mutate(undefined, { onSuccess: setSetup })
+								}}
 							>
 								Add
 							</Button>
