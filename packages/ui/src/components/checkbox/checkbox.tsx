@@ -107,12 +107,7 @@ export function Checkbox({
 				{...validation}
 				className={k.input()}
 			/>
-			<Mark
-				data-slot="checkbox-check"
-				aria-hidden="true"
-				className="pointer-events-none absolute stroke-(--check-mark) opacity-0"
-				strokeWidth={2}
-			/>
+			<Mark data-slot="checkbox-check" aria-hidden="true" className={k.mark()} strokeWidth={2} />
 		</label>
 	)
 }
