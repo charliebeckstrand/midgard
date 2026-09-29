@@ -55,18 +55,26 @@ describe('PropList', () => {
 		expect(screen.getByText('optional')).toBeInTheDocument()
 	})
 
-	it('shows options as chips with no prefix, then the default', () => {
+	it('marks the default inside its option chip', () => {
 		const { container } = renderUI(
 			<PropList rows={[{ name: 'align', type: "'center' | 'top'", default: "'center'" }]} />,
 		)
 
 		const options = [...container.querySelectorAll('[data-slot="option"]')]
 
-		expect(options.map((o) => o.textContent)).toEqual(["'center'", "'top'"])
+		expect(options.map((o) => o.textContent)).toEqual(["'center'default", "'top'"])
 
 		expect(container.textContent).not.toContain('One of')
 
-		expect(container.textContent).toContain("default 'center'")
+		expect(container.textContent?.match(/'center'/g)).toHaveLength(1)
+	})
+
+	it('labels a default that is not an option', () => {
+		const { container } = renderUI(
+			<PropList rows={[{ name: 'size', type: "'sm' | 'md' | number", default: '4' }]} />,
+		)
+
+		expect(container.textContent).toContain('default 4')
 	})
 
 	it('writes a plain type and its default', () => {
