@@ -1,4 +1,5 @@
 // @vitest-environment node
+import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import { extractPassThrough } from '../../api-reference/engine/extract-passthrough'
 import { createInMemoryProgram, firstTypeAlias } from './helpers'
@@ -168,5 +169,73 @@ describe('extractPassThrough — Omit + Intersection', () => {
 		expect(out[0]?.element).toBe('button')
 
 		expect(out[0]?.omitted?.sort()).toEqual(['onClick', 'type'].sort())
+	})
+})
+
+describe('extractPassThrough — type parameters and components', () => {
+	const polymorphic = [
+		`import type { ComponentProps } from 'react'`,
+		`type Poly<F extends string, O extends PropertyKey = never> =`,
+		`  | ({ href?: never } & Omit<ComponentProps<F>, 'className' | O>)`,
+		`  | ({ href: string } & Omit<ComponentProps<'a'>, 'className' | O>)`,
+	]
+
+	it('binds the tag and the omitted keys of a generic alias to its arguments', () => {
+		const lines = [...polymorphic, `type FooProps = Poly<'span', 'prefix'>`]
+
+		expect(passThroughOf(lines)).toEqual([
+			{ element: 'span', omitted: ['className', 'prefix'] },
+			{ element: 'a', omitted: ['className', 'prefix'] },
+		])
+	})
+
+	it('binds a parameter that the reference leaves out to its default', () => {
+		const lines = [...polymorphic, `type FooProps = Poly<'div'>`]
+
+		expect(passThroughOf(lines)).toEqual([
+			{ element: 'div', omitted: ['className'] },
+			{ element: 'a', omitted: ['className'] },
+		])
+	})
+
+	it("reads a component's own type parameter through its default", () => {
+		const program = createInMemoryProgram({
+			'index.ts': [
+				...polymorphic,
+				`export function Item<F extends string = 'li'>(props: Poly<F>) { return null }`,
+			].join('\n'),
+		})
+
+		const item = program.sourceFiles['index.ts']?.statements.find(ts.isFunctionDeclaration)
+
+		const node = item?.parameters[0]?.type
+
+		if (!node) throw new Error('no props annotation')
+
+		expect(extractPassThrough(node, program.checker).map(({ element }) => element)).toEqual([
+			'li',
+			'a',
+		])
+	})
+
+	it('reads `ComponentProps<typeof X>` through the props annotation of X', () => {
+		const lines = [
+			`import type { ComponentProps } from 'react'`,
+			`function Panel(props: Omit<ComponentProps<'section'>, 'title'> & { value?: string }) {`,
+			`  return null`,
+			`}`,
+			`type FooProps = Omit<ComponentProps<typeof Panel>, 'value'>`,
+		]
+
+		expect(passThroughOf(lines)).toEqual([{ element: 'section', omitted: ['value', 'title'] }])
+	})
+
+	it('reads through a props wrapper to its argument', () => {
+		const lines = [
+			`import type { ComponentProps, PropsWithoutRef } from 'react'`,
+			`type FooProps = PropsWithoutRef<ComponentProps<'input'>>`,
+		]
+
+		expect(passThroughOf(lines)).toEqual([{ element: 'input' }])
 	})
 })

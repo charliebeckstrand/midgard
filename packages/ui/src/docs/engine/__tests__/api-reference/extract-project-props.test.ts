@@ -101,11 +101,16 @@ describe('extractProjectPropNames', () => {
 		expect([...names].sort()).toEqual([...expected].sort())
 	})
 
-	it('exposes `href` from a PolymorphicProps arm (the polymorphism discriminator)', () => {
+	// A stand-in with the shape of the real alias: `href` switches the element,
+	// and the fallback arm passes the attributes of the bound tag through.
+	it('reads `href` from the arms of a PolymorphicProps alias, and no tag attribute', () => {
 		const names = projectNames(
 			{
 				'index.ts': [
-					`type PolymorphicProps<T extends string> = { as?: T }`,
+					`type ComponentProps<T> = { tagAttribute?: T }`,
+					`type PolymorphicProps<T extends string, O extends PropertyKey = never> =`,
+					`  | ({ href?: never } & Omit<ComponentProps<T>, 'className' | O>)`,
+					`  | { href: string }`,
 					`type LinkProps = PolymorphicProps<'a'> & { disabled?: boolean }`,
 					`export type _Use = LinkProps`,
 				].join('\n'),
@@ -113,9 +118,42 @@ describe('extractProjectPropNames', () => {
 			'LinkProps',
 		)
 
-		expect(names.has('href')).toBe(true)
+		expect([...names].sort()).toEqual(['disabled', 'href'])
+	})
 
-		expect(names.has('disabled')).toBe(true)
+	it('reads `ComponentProps<typeof X>` through the props annotation of X', () => {
+		const names = projectNames(
+			{
+				'index.ts': [
+					`import type { ComponentProps } from 'react'`,
+					`function Panel(props: ComponentProps<'section'> & { value?: string }) { return null }`,
+					`type FooProps = Omit<ComponentProps<typeof Panel>, 'title'>`,
+					`export type _Use = FooProps`,
+				].join('\n'),
+			},
+			'FooProps',
+		)
+
+		expect([...names]).toEqual(['value'])
+	})
+
+	// A type argument binds a parameter; it is no props arm of its own. Read as
+	// one, the constraint of `C` gave the table the `id` of a column.
+	it('takes no names from the constraint of a type argument', () => {
+		const names = projectNames(
+			{
+				'index.ts': [
+					`type ColumnBase = { id: string; items: unknown[] }`,
+					`type BoardProps<C extends ColumnBase> = { columns: C[] }`,
+					`function Board<C extends ColumnBase>(props: BoardProps<C>) { return null }`,
+					`type FooProps = BoardProps<ColumnBase>`,
+					`export type _Use = FooProps`,
+				].join('\n'),
+			},
+			'FooProps',
+		)
+
+		expect([...names]).toEqual(['columns'])
 	})
 
 	it("recurses into Omit<T, …> to surface T's project-authored keys", () => {

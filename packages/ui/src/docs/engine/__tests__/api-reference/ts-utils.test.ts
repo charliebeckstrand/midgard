@@ -3,8 +3,9 @@ import { ts } from 'ts-morph'
 import { describe, expect, it } from 'vitest'
 import {
 	isPassThroughTypeName,
-	STRING_LITERAL_PASS_THROUGHS,
+	PROPS_WRAPPERS,
 	stringLiteralKeys,
+	TAG_PASS_THROUGHS,
 	typeRefName,
 } from '../../api-reference/engine/ts-utils'
 
@@ -79,8 +80,8 @@ describe('stringLiteralKeys', () => {
 })
 
 describe('isPassThroughTypeName', () => {
-	it('recognizes each canonical string-literal pass-through', () => {
-		for (const name of STRING_LITERAL_PASS_THROUGHS) {
+	it('recognizes each pass-through that takes a tag', () => {
+		for (const name of TAG_PASS_THROUGHS) {
 			expect(isPassThroughTypeName(name)).toBe(true)
 		}
 	})
@@ -101,9 +102,11 @@ describe('isPassThroughTypeName', () => {
 		expect(isPassThroughTypeName('')).toBe(false)
 	})
 
-	it('exposes the canonical pass-through set', () => {
-		expect(STRING_LITERAL_PASS_THROUGHS.has('ComponentPropsWithoutRef')).toBe(true)
-
-		expect(STRING_LITERAL_PASS_THROUGHS.has('PolymorphicProps')).toBe(true)
+	// A wrapper takes a props type, and a project alias is walked with its type
+	// parameters bound, so neither is a pass-through by name.
+	it('rejects the props wrappers and the polymorphic aliases', () => {
+		for (const name of [...PROPS_WRAPPERS, 'PolymorphicProps', 'PolymorphicStaticProps']) {
+			expect(isPassThroughTypeName(name)).toBe(false)
+		}
 	})
 })
