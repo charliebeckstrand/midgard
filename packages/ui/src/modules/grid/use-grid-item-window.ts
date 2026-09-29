@@ -23,7 +23,7 @@ import { useGridWindowOffsets } from './use-grid-window-offsets'
  */
 export type GridItemWindowOptions = {
 	scrollRef: RefObject<HTMLDivElement | null>
-	/** The row height, which is the first guess for each row that is not a detail panel. */
+	/** The row height, which is the first guess for each row that is not closing. */
 	estimateSize: number
 	overscan: number
 	/** Re-fits the columns once the window's rows render, when the autosizer had none to measure. */
@@ -35,7 +35,7 @@ export type GridItemWindowOptions = {
 }
 
 /** The part of a window item that the window reads. @internal */
-type WindowItem = { key: string; kind: string; size?: number }
+type WindowItem = { key: string; size?: number }
 
 /**
  * What each commit records of its window: the rendered items, the item list,
@@ -185,7 +185,7 @@ export function useGridItemWindow<I extends WindowItem>(
 	const getItemKey = useCallback((index: number) => items[index]?.key ?? index, [items])
 
 	const estimate = useCallback(
-		(index: number) => windowItemEstimate(items[index] ?? { kind: '' }, estimateSize),
+		(index: number) => windowItemEstimate(items[index] ?? {}, estimateSize),
 		[items, estimateSize],
 	)
 

@@ -30,10 +30,11 @@ const ROW_SELECTOR =
  * and stops. It does not stay on, because a row of a grouped or a detail body
  * changes height while its reveal plays, and that height is not the row height.
  *
- * A height holds only for the density it was read at. A new `density` returns
- * `null`, so the body holds the skeleton again, and the new ref reads a
- * placeholder row in the same commit. The window then mounts again before the
- * paint. The measured bodies measure each row themselves, so for them the
+ * A new `density` keeps the last height as the estimate, and the new ref reads a
+ * row of the window in the same commit. The height of the new density follows
+ * one commit later. The window stays mounted, so the reader keeps the scroll
+ * position and each row keeps its node. Only the first measure holds the
+ * skeleton. The measured bodies measure each row themselves, so for them the
  * estimate is only a first guess.
  * @internal
  */
@@ -74,7 +75,7 @@ export function useGridRowHeight(
 		[enabled, density],
 	)
 
-	const rowHeight = enabled && measured?.density === density ? measured.height : null
+	const rowHeight = enabled && measured ? measured.height : null
 
 	return { rowHeight, measureRef }
 }

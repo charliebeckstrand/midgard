@@ -1,7 +1,7 @@
 'use client'
 
 import { ChevronRight } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { memo, type ReactNode } from 'react'
 import { Button } from '../../components/button'
 import { Icon } from '../../components/icon'
 import { cn, dataAttr } from '../../core'
@@ -75,14 +75,18 @@ export function GridExpandToggle({
 }
 
 /** Props for {@link GridDetailRow}. @internal */
-type GridDetailRowProps = {
+type GridDetailRowProps<T> = {
 	rowKey: string | number
+	row: T
 	/** Columns the panel spans — the full visible column count. */
 	colSpan: number
 	/** Whether the panel is open, driving its height reveal and AT visibility. */
 	expanded: boolean
-	/** The detail content for the row. */
-	children: ReactNode
+	/**
+	 * Renders the detail content for the row. The panel calls it in its own
+	 * render, so a memoized panel whose props hold skips the consumer's render.
+	 */
+	render: (row: T) => ReactNode
 	/**
 	 * Whether an open panel mounts at the closed track and then opens over the
 	 * transition. A windowed body mounts a panel only when it opens, so it sets
@@ -106,14 +110,15 @@ type GridDetailRowProps = {
  *
  * @internal
  */
-export function GridDetailRow({
+function GridDetailRowImpl<T>({
 	rowKey,
+	row,
 	colSpan,
 	expanded,
-	children,
+	render,
 	enter = false,
 	...windowRow
-}: GridDetailRowProps) {
+}: GridDetailRowProps<T>) {
 	// A detail panel holds whatever the caller put in it — a nested grid, a chart
 	// — so a closed one is the most expensive row the flat body keeps live.
 	const reveal = useGridRevealHold(expanded, enter)
@@ -135,7 +140,7 @@ export function GridDetailRow({
 					<div className={cn(k.detail.reveal.track)} data-open={dataAttr(reveal.open)}>
 						<div className={cn(k.detail.reveal.clip)}>
 							<section id={detailPanelId(rowKey)} className={cn(k.detail.panel)}>
-								{children}
+								{render(row)}
 							</section>
 						</div>
 					</div>
@@ -145,3 +150,10 @@ export function GridDetailRow({
 		</MountHold>
 	)
 }
+
+/**
+ * Memoized {@link GridDetailRowImpl}. A window step, or a body render that
+ * leaves the panel's props as they were, renders neither the panel nor the
+ * consumer's detail content. @internal
+ */
+export const GridDetailRow = memo(GridDetailRowImpl) as typeof GridDetailRowImpl
