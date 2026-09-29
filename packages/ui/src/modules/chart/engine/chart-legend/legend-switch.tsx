@@ -25,12 +25,15 @@ export type LegendEmphasis<Key> = {
  * tracked index. Thus a focus that stops being visible emphasizes nothing, with
  * no event to announce it. Examples are the focus of a click, or of a tab that
  * comes back. When the pointer leaves, the emphasis goes back to a switch that
- * keeps the keyboard focus. The handlers keep their identity.
+ * keeps the keyboard focus. A key that is not `live` emphasizes nothing, so a
+ * pointed switch that is not live yields to the keyboard focus. The handlers
+ * keep their identity.
  *
  * @param containerRef - The legend.
  * @param selector - The switches inside the legend, in render order.
  * @param keyAt - The key of the switch at a position, or `null` for no emphasis.
  * @param onEmphasis - Receives the emphasized key, or `null`.
+ * @param live - Whether a key can take the emphasis. Absent, every key can.
  * @returns The handlers of each switch.
  * @internal
  */
@@ -39,11 +42,14 @@ export function useLegendEmphasis<Key>(
 	selector: string,
 	keyAt: (position: number) => Key | null,
 	onEmphasis: (key: Key | null) => void,
+	live?: (key: Key) => boolean,
 ): LegendEmphasis<Key> {
 	const pointed = useRef<Key | null>(null)
 
 	const sync = useStableEvent(() => {
-		if (pointed.current !== null) {
+		const isLive = (key: Key | null): key is Key => key !== null && (live?.(key) ?? true)
+
+		if (isLive(pointed.current)) {
 			onEmphasis(pointed.current)
 
 			return
@@ -55,7 +61,9 @@ export function useLegendEmphasis<Key>(
 			? Array.from(switches).findIndex((element) => element.matches(':focus-visible'))
 			: -1
 
-		onEmphasis(position === -1 ? null : keyAt(position))
+		const focused = position === -1 ? null : keyAt(position)
+
+		onEmphasis(isLive(focused) ? focused : null)
 	})
 
 	const point = useStableEvent((key: Key | null) => {
@@ -105,13 +113,14 @@ export type LegendSwitchProps = {
  * chart legend and the map legend use it.
  *
  * @remarks
- * The name truncates, so a narrow rail cannot push the row past its edge. A
- * hover or a keyboard focus shows the full name in a tooltip while the name
- * clips. The tooltip wraps the whole switch rather than the label. A
- * {@link Button}'s touch-target overlay takes the pointer and sends it on by
- * bubbling, so a tooltip on an inner span never sees the hover. The overflow
- * is measured on the label through {@link useTruncation}. A closed tooltip
- * renders no surface, so an entry that fits adds no DOM.
+ * The switch is no wider than its row, and the name truncates. A narrow rail or
+ * row therefore cannot push the entry past its edge. A hover or a keyboard focus
+ * shows the full name in a tooltip while the name clips. The tooltip wraps the
+ * whole switch rather than the label. A {@link Button}'s touch-target overlay
+ * takes the pointer and sends it on by bubbling, so a tooltip on an inner span
+ * never sees the hover. The overflow is measured on the label through
+ * {@link useTruncation}. A closed tooltip renders no surface, so an entry that
+ * fits adds no DOM.
  * @internal
  */
 export function LegendSwitch({
@@ -140,7 +149,9 @@ export function LegendSwitch({
 			size="sm"
 			variant="plain"
 			data-slot={slot}
-			className={className}
+			// A `Button` does not shrink, so `max-w-full` caps it at the row. A long
+			// name then clips and does not overflow the row.
+			className={cn('max-w-full', className)}
 			aria-pressed={!off}
 			onClick={onToggle}
 			onPointerEnter={() => onPoint(true)}

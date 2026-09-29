@@ -56,9 +56,8 @@ const MapLegendEntry = memo(function MapLegendEntry({
 			labelClassName="flex-1"
 			// The panel's entries stretch to the rail so the readouts share one right
 			// edge rather than each entry centering its own content; the row under the
-			// map keeps every entry its own width. The width is capped at the row, so a
-			// long name clips instead of overflowing a narrow screen.
-			className={cn('max-w-full gap-2', panel && '@lg:w-full @lg:justify-start')}
+			// map keeps every entry its own width.
+			className={cn('gap-2', panel && '@lg:w-full @lg:justify-start')}
 			keys={
 				// One key per distinct mark shape the entry stands for. That is a lone
 				// swatch for a category or an ungrouped mark. It is a square beside a dot

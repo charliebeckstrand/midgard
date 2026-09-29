@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
+import { BarChart } from '../../modules/chart/bar-chart'
 import { PieChart } from '../../modules/chart/pie-chart'
 import { allBySlot, getSlot, present, renderUI, waitFor } from '../helpers'
 
@@ -109,5 +110,57 @@ describe('chart legend panel (real browser)', () => {
 		await userEvent.hover(short)
 
 		expect(short.className).not.toContain('cursor-help')
+	})
+})
+
+/**
+ * The wrap row under the plot bounds each entry to the row, as the side rail
+ * does. A long series name clips to one line inside the chart and arms its
+ * reveal tooltip, rather than an entry wider than the chart.
+ */
+describe('chart legend wrap row (real browser)', () => {
+	beforeAll(() => page.viewport(960, 640))
+
+	const longName = 'A series name far too long to fit the row of a narrow chart'
+
+	it('keeps a long entry inside a narrow chart and clips its label', async () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Signups"
+				data={[
+					{ q: 'Q1', value: 10 },
+					{ q: 'Q2', value: 30 },
+				]}
+				series={[{ xKey: 'q', yKey: 'value', yName: longName }]}
+				width={300}
+				legend="bottom"
+			/>,
+		)
+
+		const chart = getSlot(container, 'chart')
+
+		const entry = await waitFor(() => {
+			const found = allBySlot(container, 'chart-legend-item')[0] as HTMLElement | undefined
+
+			expect(found).toBeDefined()
+
+			return found as HTMLElement
+		})
+
+		const label = present(entry.querySelector<HTMLElement>('.truncate'), '.truncate')
+
+		const bounds = chart.getBoundingClientRect()
+
+		// The entry, and the ghost that measures it, stay inside the chart.
+		for (const box of [entry, ...allBySlot(container, 'chart-legend-ghost')]) {
+			expect(box.getBoundingClientRect().left).toBeGreaterThanOrEqual(bounds.left - 0.5)
+			expect(box.getBoundingClientRect().right).toBeLessThanOrEqual(bounds.right + 0.5)
+		}
+
+		expect(label.scrollWidth).toBeGreaterThan(label.clientWidth)
+
+		await userEvent.hover(entry)
+
+		await waitFor(() => expect(entry.className).toContain('cursor-help'))
 	})
 })

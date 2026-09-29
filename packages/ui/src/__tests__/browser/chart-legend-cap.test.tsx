@@ -141,6 +141,45 @@ describe('chart stacked legend row cap (real browser)', () => {
 })
 
 /**
+ * The ghost row that measures the cap holds every control, so it lays out many
+ * rows. It must add no scroll range below the chart: a hidden box still lays
+ * out, so the ghost clips to a box of zero height.
+ */
+describe('stacked legend ghost adds no scroll range (real browser)', () => {
+	beforeAll(() => page.viewport(1000, 700))
+
+	const names = Array.from({ length: 40 }, (_, index) => `Series ${index + 1}`)
+
+	const data: Record<string, string | number>[] = [
+		{ q: 'Q1', ...Object.fromEntries(names.map((n, i) => [n, 10 + i])) },
+		{ q: 'Q2', ...Object.fromEntries(names.map((n, i) => [n, 20 + i])) },
+	]
+
+	const series = names.map((n) => ({ xKey: 'q', yKey: n, yName: n }))
+
+	it('keeps the ghost of forty controls inside the chart', async () => {
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Forty series"
+				data={data}
+				series={series}
+				width={360}
+				legend="bottom"
+			/>,
+		)
+
+		await waitFor(() => expect(container.querySelector('[aria-label^="Show "]')).not.toBeNull())
+
+		const chart = getSlot(container, 'chart')
+
+		expect(allBySlot(container, 'chart-legend-ghost')).toHaveLength(40)
+
+		// No box below the chart: the chart scrolls no further than its own height.
+		expect(chart.scrollHeight).toBeLessThanOrEqual(chart.clientHeight)
+	})
+})
+
+/**
  * The pie was the chart the complaint named: a many-slice legend under the plot
  * used to stack row on row and push its entries past where they could be seen.
  * Now the pie reads the same intrinsic tier as a cartesian chart, so its stacked
