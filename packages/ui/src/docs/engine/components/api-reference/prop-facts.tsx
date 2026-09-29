@@ -36,29 +36,19 @@ const OPTION_CHIP = cn(
 	'bg-emerald-50 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400',
 )
 
-const DEFAULT_OPTION_CHIP = cn(
-	CHIP,
-	'inline-flex items-baseline gap-1.5 bg-emerald-600 text-white dark:bg-emerald-500 dark:text-emerald-950',
-)
-
 const TYPE_CHIP = cn(CHIP, 'bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300')
 
 /**
  * What a prop accepts, as a row of tokens. Fixed choices are green chips, with
- * no prefix. The option that is the default is filled and carries a "default"
- * tag. Any other type is a gray chip, and an external type names its package.
- * A default that is not an option follows behind a muted label. A type with
- * resolved references adds a link to those definitions. A default that is a
- * sentence is left to the description.
+ * no prefix. Any other type is a gray chip, and an external type names its
+ * package. A default follows behind a muted label. A type with resolved
+ * references adds a link to those definitions. A default that is a sentence is
+ * left to the description.
  */
 export function PropFacts({ prop }: { prop: PropDef }) {
 	const { options, others } = readSignature(prop.type)
 
 	const literalDefault = prop.default && !isProseDefault(prop.default) ? prop.default : undefined
-
-	const unwrapped = literalDefault?.trim().replace(/^`([^`]+)`$/, '$1')
-
-	const defaultOption = options.find((option) => option === unwrapped)
 
 	const types = options.length > 0 ? others : [prop.type]
 
@@ -66,20 +56,11 @@ export function PropFacts({ prop }: { prop: PropDef }) {
 		<>
 			<div className="flex flex-wrap items-baseline gap-x-4 gap-y-2 text-sm">
 				<span className="flex flex-wrap items-baseline gap-1.5">
-					{options.map((option) =>
-						option === defaultOption ? (
-							<code key={option} data-slot="option" className={DEFAULT_OPTION_CHIP}>
-								{option}
-								<span className="font-sans text-[0.6875rem] uppercase tracking-wide opacity-80">
-									default
-								</span>
-							</code>
-						) : (
-							<code key={option} data-slot="option" className={OPTION_CHIP}>
-								{option}
-							</code>
-						),
-					)}
+					{options.map((option) => (
+						<code key={option} data-slot="option" className={OPTION_CHIP}>
+							{option}
+						</code>
+					))}
 					{types.map((type) => (
 						<code key={type} className={TYPE_CHIP}>
 							{type}
@@ -91,7 +72,7 @@ export function PropFacts({ prop }: { prop: PropDef }) {
 						</span>
 					)}
 				</span>
-				{literalDefault && !defaultOption && (
+				{literalDefault && (
 					<span className="text-zinc-500 dark:text-zinc-400">
 						default <DefaultValue value={literalDefault} />
 					</span>
