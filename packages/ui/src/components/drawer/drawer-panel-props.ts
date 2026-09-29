@@ -3,7 +3,7 @@ import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 
 /**
  * The attributes and classes of the drawer panel that its slots and rows style off. {@link Drawer}
- * and {@link DrawerStandIn} both spread them, so the stand-in paints the panel that the drawer
+ * and {@link DrawerStatic} both spread them, so the static drawer paints the panel that the drawer
  * then mounts on top of it.
  *
  * `data-glass` opens the glass cascade to the panel contents: `hannou.glassItem` keys on

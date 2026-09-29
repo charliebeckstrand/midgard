@@ -37,7 +37,7 @@ For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcod
 
 `dialog` · `drawer` · `sheet` · `popover` · `tooltip` · `confirm` · `alert` · `banner` · `toast`
 
-> `drawer` also exports `DrawerStandIn`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
+> `drawer` also exports `DrawerStatic`: an open drawer as static, in-place markup, for the server paint of a page that loads with its drawer open. The overlay itself portals, and a portal has no server output.
 
 ## Data display
 

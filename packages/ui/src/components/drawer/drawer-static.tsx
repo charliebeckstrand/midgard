@@ -9,11 +9,11 @@ import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
 import { drawerPanelProps } from './drawer-panel-props'
 
-/** Props for {@link DrawerStandIn}: the {@link Drawer} styling props it has to match, and the content it paints. */
-export type DrawerStandInProps = {
+/** Props for {@link DrawerStatic}: the {@link Drawer} styling props it has to match, and the content it paints. */
+export type DrawerStaticProps = {
 	/**
 	 * The density step of the painted content, as on {@link Drawer}. Omit it to take the step of
-	 * the nearest density scope, which the stand-in sits inside.
+	 * the nearest density scope, which the static drawer sits inside.
 	 */
 	size?: DensityStep
 	/** As on {@link Drawer}: how much of the screen the panel docks over. @defaultValue 'auto' */
@@ -25,7 +25,7 @@ export type DrawerStandInProps = {
 	/** Classes for the panel, as {@link Drawer}'s `className` — pass the same ones. */
 	className?: string
 	/**
-	 * Classes for the root, which covers the viewport. For hiding the whole stand-in where the
+	 * Classes for the root, which covers the viewport. For hiding the whole static drawer where the
 	 * drawer will not be the surface, say below a breakpoint only CSS can see on the server.
 	 */
 	rootClassName?: string
@@ -62,7 +62,7 @@ export type DrawerStandInProps = {
  * rather than the document's. Sitting in place, it is inside the density scope it was rendered
  * in, which the portalled drawer carries over as its root's `data-density`.
  */
-export function DrawerStandIn({
+export function DrawerStatic({
 	size,
 	height,
 	glass,
@@ -70,18 +70,18 @@ export function DrawerStandIn({
 	className,
 	rootClassName,
 	children,
-}: DrawerStandInProps) {
+}: DrawerStaticProps) {
 	const resolvedSurface = useResolvedSurface(glass)
 
 	// None of the drawer's own `data-slot`s: nothing styles off them, and a selector written
-	// for the real drawer must not find its stand-in. The panel's group names and `data-*`
+	// for the real drawer must not find its static copy. The panel's group names and `data-*`
 	// hooks are the drawer's, because its slots and rows style off those.
 	return (
-		<div data-slot="drawer-stand-in" className={cn(overlay.root, 'fixed', rootClassName)}>
+		<div data-slot="drawer-static" className={cn(overlay.root, 'fixed', rootClassName)}>
 			<div className={k.backdrop({ surface: resolvedSurface, desaturate })} aria-hidden="true" />
 			<PolymorphicStatic
 				as="div"
-				data-slot="drawer-stand-in-panel"
+				data-slot="drawer-static-panel"
 				inert
 				density={size}
 				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
