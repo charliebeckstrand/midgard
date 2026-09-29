@@ -34,9 +34,17 @@ export type ComponentRegistry = {
  * - each expression-valued prop's source text, less the literals the runtime
  *   recovers on its own;
  * - the render-prop source in `children`, when the element's sole child is a
- *   function.
+ *   function;
+ * - in `local`, the keys of `props` whose source uses a name that the JSX of
+ *   the Example binds, such as the item of a `.map`. That source does not
+ *   stand on its own outside the callback.
  */
-export type ElementFact = { name: string; props: Record<string, string>; children?: string }
+export type ElementFact = {
+	name: string
+	props: Record<string, string>
+	local?: string[]
+	children?: string
+}
 
 /**
  * Whether an element fact carries anything: a prop source or a render-prop

@@ -138,8 +138,27 @@ describe('extractSourceFacts element facts', () => {
 
 		const facts = extract(source)
 
+		// `variant` is the map's item, so the source of `onClick` is local.
 		expect(facts?.sites[0]?.elements).toEqual([
-			{ name: 'Button', props: { onClick: '() => pick(variant)' } },
+			{ name: 'Button', props: { onClick: '() => pick(variant)' }, local: ['onClick'] },
+		])
+	})
+
+	it('marks no prop local for a name that the prop binds itself, or a property name', () => {
+		const source = [
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<Example title="Own">`,
+			`\t\t\t{items.map((item) => (`,
+			`\t\t\t\t<Select key={item.id} onChange={(item) => pick(item)} format={(v) => v.item} />`,
+			`\t\t\t))}`,
+			`\t\t</Example>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		expect(extract(source)?.sites[0]?.elements).toEqual([
+			{ name: 'Select', props: { onChange: '(item) => pick(item)', format: '(v) => v.item' } },
 		])
 	})
 })

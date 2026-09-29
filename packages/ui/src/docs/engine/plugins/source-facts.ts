@@ -103,8 +103,67 @@ function renderPropChild(node: ts.JsxElement): ts.Expression | null {
 	return ts.isArrowFunction(expr) || ts.isFunctionExpression(expr) ? expr : null
 }
 
-function propFacts(node: ts.JsxElement | ts.JsxSelfClosingElement, sf: ts.SourceFile) {
+/**
+ * The names that the JSX of an Example binds itself: the parameters of each
+ * callback in it, such as the item of a `.map`, and the variables that a
+ * callback body declares. JSX declares a name nowhere else.
+ */
+function localNames(nodes: readonly ts.Node[]): Set<string> {
+	const names: string[] = []
+
+	const visit = (node: ts.Node): void => {
+		if (ts.isArrowFunction(node) || ts.isFunctionExpression(node)) {
+			for (const param of node.parameters) boundNames(param.name, names)
+		}
+
+		if (ts.isVariableDeclaration(node)) boundNames(node.name, names)
+
+		ts.forEachChild(node, visit)
+	}
+
+	for (const node of nodes) visit(node)
+
+	return new Set(names)
+}
+
+/**
+ * Whether `expr` uses one of `names` as a value. A property name, a JSX
+ * attribute name, and a name that `expr` binds itself do not count.
+ */
+function usesAny(expr: ts.Expression, names: Set<string>): boolean {
+	const own = localNames([expr])
+
+	const visit = (node: ts.Node): boolean => {
+		if (ts.isIdentifier(node) && names.has(node.text) && !own.has(node.text)) {
+			const parent = node.parent
+
+			const isName =
+				(ts.isPropertyAccessExpression(parent) ||
+					ts.isPropertyAssignment(parent) ||
+					ts.isJsxAttribute(parent)) &&
+				parent.name === node
+
+			if (!isName) return true
+		}
+
+		return ts.forEachChild(node, visit) ?? false
+	}
+
+	return visit(expr)
+}
+
+/**
+ * The expression props of an element, as source text, and the keys among them
+ * whose source uses a name of `locals`.
+ */
+function propFacts(
+	node: ts.JsxElement | ts.JsxSelfClosingElement,
+	sf: ts.SourceFile,
+	locals: Set<string>,
+) {
 	const props: Record<string, string> = {}
+
+	const local: string[] = []
 
 	for (const attr of attributesOf(node).properties) {
 		if (!ts.isJsxAttribute(attr) || !ts.isIdentifier(attr.name)) continue
@@ -122,9 +181,11 @@ function propFacts(node: ts.JsxElement | ts.JsxSelfClosingElement, sf: ts.Source
 		if (isRuntimeRecoverable(init.expression)) continue
 
 		props[key] = init.expression.getText(sf)
+
+		if (locals.size > 0 && usesAny(init.expression, locals)) local.push(key)
 	}
 
-	return props
+	return { props, local }
 }
 
 /**
@@ -143,6 +204,8 @@ function propFacts(node: ts.JsxElement | ts.JsxSelfClosingElement, sf: ts.Source
 function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): ElementFact[] {
 	const facts: ElementFact[] = []
 
+	const locals = localNames(children)
+
 	const visit = (node: ts.Node): void => {
 		if (ts.isJsxElement(node) || ts.isJsxSelfClosingElement(node)) {
 			const name = tagNameOf(node)
@@ -150,13 +213,14 @@ function collectElementFacts(children: readonly ts.Node[], sf: ts.SourceFile): E
 			if (name === EXAMPLE_TAG) return
 
 			if (name) {
-				const props = propFacts(node, sf)
+				const { props, local } = propFacts(node, sf, locals)
 
 				const renderProp = ts.isJsxElement(node) ? renderPropChild(node) : null
 
 				facts.push({
 					name,
 					props,
+					...(local.length > 0 ? { local } : {}),
 					...(renderProp ? { children: renderProp.getText(sf) } : {}),
 				})
 
