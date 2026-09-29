@@ -48,6 +48,9 @@ const KNOWN_FAILURES: Record<string, string> = {
 		"TS6133: 'status' is declared but its value is never read.",
 	'components/signature-pad › Imperative handle':
 		"TS6133: 'value' is declared but its value is never read.",
+	'modules/dashboard › Dashboard': "TS6133: 'editing' is declared but its value is never read.",
+	'modules/dashboard › Widget registry':
+		"TS6133: 'editing' is declared but its value is never read.",
 
 	// A hand-written override that does not parse.
 	'modules/chart › Basic': 'TS17014: JSX fragment has no corresponding closing tag.',
