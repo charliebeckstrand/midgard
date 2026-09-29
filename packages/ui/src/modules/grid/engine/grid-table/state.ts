@@ -58,7 +58,7 @@ export function resolveTransformModes(args: {
 	hasColumnFilters: boolean
 	globalManual: boolean | undefined
 	columnManual: boolean | undefined
-	/** The search's `filter` flag; `false` puts the global search in highlight (mark, don't prune) mode. */
+	/** Whether the global search prunes rows. It is `false` when `search.mode` is `'highlight'`, which marks the matches and keeps every row. */
 	globalFiltersRows: boolean | undefined
 }): {
 	clientSort: boolean
