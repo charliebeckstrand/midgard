@@ -19,6 +19,8 @@ import {
 import { resolveCategories } from './chart-cartesian/categories'
 import {
 	cartesianLegendItems,
+	type DrawnSeries,
+	drawnSeries,
 	orderReadout,
 	readoutSeriesKey,
 	seriesMetas,
@@ -34,9 +36,10 @@ import {
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
-import { legendAside, legendBands, type ResolvedLegend } from './chart-legend/schema'
+import { legendAside, legendBands, type ResolvedLegend, resolveLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
+import { type ChartTexture, useChartTexture } from './chart-pattern-defs'
 import { referenceLegendItems, ruleKeys } from './chart-reference'
 import type { BandScale, LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
@@ -47,7 +50,13 @@ import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 import { useChartTextWidth } from './use-chart-text-width'
 
-/** The cartesian props minus the accessible name, which stays with the frame. @internal */
+/**
+ * The props of a cartesian entry component that the hook reads. An entry gives
+ * the hook all of its props. The header also reaches the frame, and the hook
+ * reads it so that the tier reserves the header band.
+ *
+ * @internal
+ */
 export type CartesianData<T> = Pick<
 	CartesianChartProps<T>,
 	| 'data'
@@ -57,50 +66,16 @@ export type CartesianData<T> = Pick<
 	| 'height'
 	| 'aspectRatio'
 	| 'axes'
+	| 'legend'
+	| 'onHiddenChange'
+	| 'texture'
 	| 'reference'
 	| 'onCategoryClick'
 	| 'selectedCategories'
 	| 'formatValue'
 	| 'title'
 	| 'subtitle'
-> & {
-	/** The `legend` prop already resolved to its show value — the entry component resolves it before the hook reads it. */
-	legend?: ResolvedLegend['value']
-	/** The legend's hidden-set report, carried straight from the caller's props. */
-	onHiddenChange?: (hidden: ReadonlySet<number>) => void
-}
-
-/**
- * The hook input picked off an entry component's props with its `legend`
- * resolved. It is the one place the four cartesian charts' shared field list
- * lives, so each hands the hook `cartesianData(props, resolvedLegend.value)`
- * rather than repeating it. The header fields travel to the frame through the
- * props' rest, and the hook reads them too so its tier reserves the header band.
- *
- * @internal
- */
-export function cartesianData<T>(
-	props: CartesianChartProps<T>,
-	legend: ResolvedLegend['value'],
-): CartesianData<T> {
-	return {
-		data: props.data,
-		series: props.series,
-		size: props.size,
-		width: props.width,
-		height: props.height,
-		aspectRatio: props.aspectRatio,
-		axes: props.axes,
-		legend,
-		onHiddenChange: props.onHiddenChange,
-		reference: props.reference,
-		onCategoryClick: props.onCategoryClick,
-		selectedCategories: props.selectedCategories,
-		formatValue: props.formatValue,
-		title: props.title,
-		subtitle: props.subtitle,
-	}
-}
+>
 
 /** Per-chart configuration for {@link useChartCartesian}. @internal */
 export type CartesianConfig<T> = {
@@ -235,6 +210,10 @@ export type CartesianChart = {
 	y2Ticks: ChartAxisTick[]
 	/** Category labels along the band axis (x when vertical, y when horizontal). */
 	xTicks: ChartAxisTick[]
+	/** The `legend` prop resolved to its show value, placement, and inert flag. */
+	resolvedLegend: ResolvedLegend
+	/** The texture defs and the fill of each slot, for the visible series. */
+	tex: ChartTexture
 	/** Every series, toggled or not — the legend lists them all. */
 	metas: SeriesMeta[]
 	/**
@@ -247,6 +226,12 @@ export type CartesianChart = {
 	dataKey: string
 	/** The series still toggled on — scales, marks, and readout draw these. */
 	visible: SeriesMeta[]
+	/**
+	 * The visible series that take marks, each with the scale and the baseline it
+	 * draws through ({@link drawnSeries}). The geometry, the fills, and the value
+	 * labels of a chart read this one list, so their indices stay aligned.
+	 */
+	drawn: DrawnSeries[]
 	/** Legend indexes toggled off. */
 	hidden: ReadonlySet<number>
 	/** Toggles a series on or off by its index. */
@@ -337,10 +322,10 @@ export type CartesianChart = {
  *
  * @internal
  */
-function cartesianChrome<T>(props: CartesianData<T>): ChartChrome {
+function cartesianChrome<T>(props: CartesianData<T>, legend: ResolvedLegend['value']): ChartChrome {
 	return {
 		headerLines: headerLineCount(props.title, props.subtitle),
-		legend: legendBands(props.legend, props.series.length),
+		legend: legendBands(legend, props.series.length),
 	}
 }
 
@@ -370,11 +355,12 @@ function useHorizontalBandLabel(
 
 /**
  * The orchestration every cartesian chart shares: density and container
- * sizing, the series and legend / readout models, and the value and band scales
- * with their ticks. The oriented scale-and-layout math lives in
- * {@link verticalLayout} / {@link horizontalLayout}; this hook picks one by the
- * config's `orientation` and returns its normalized result. Charts add only
- * their geometry and mark renderers on top.
+ * sizing, the legend, the texture, the series and readout models, the drawn
+ * series, and the value and band scales with their ticks. The oriented
+ * scale-and-layout math lives in {@link verticalLayout} / {@link horizontalLayout};
+ * this hook picks one by the config's `orientation` and returns its normalized
+ * result. Charts add only their geometry and marks, and
+ * {@link ChartCartesianFrame} draws the layers around them.
  *
  * @remarks Series binding to the right axis split the domain. Each side's
  * visible series (and the references bound to it) feed its own scale, each
@@ -386,7 +372,13 @@ export function useChartCartesian<T>(
 	props: CartesianData<T>,
 	config: CartesianConfig<T>,
 ): CartesianChart {
-	const { data, series, size, width, height, aspectRatio = '16/9', legend } = props
+	const { data, series, size, width, height, aspectRatio = '16/9' } = props
+
+	// The legend prop resolves to its placement / show value and the inert flag.
+	// The hook reads the value, and the legend reads the flag.
+	const resolvedLegend = resolveLegend(props.legend)
+
+	const legend = resolvedLegend.value
 
 	// The one place the `axes` prop's boolean-or-object union is read: the draw
 	// switch, and each axis's config under its own key. Memoized, so the memos
@@ -447,7 +439,7 @@ export function useChartCartesian<T>(
 		sizing,
 		aside,
 		aspect: outerAspect,
-		chrome: cartesianChrome(props),
+		chrome: cartesianChrome(props, legend),
 		tickTarget: metrics.tickTarget,
 	})
 
@@ -474,6 +466,13 @@ export function useChartCartesian<T>(
 	// Toggled-off series leave the scales and readout; slot colors stay put
 	// because each meta's paint keyed off its original index.
 	const visible = metas.filter((meta) => !hidden.has(meta.index))
+
+	// One tile set over every visible slot, so that each filled mark of a chart
+	// resolves its fill: the bars and the area washes of a combo alike.
+	const tex = useChartTexture(
+		props.texture ?? false,
+		visible.map((meta) => meta.slot),
+	)
 
 	const { value, value2, bandTitle, formatAxisValue } = resolveValueAxes(
 		props,
@@ -637,11 +636,22 @@ export function useChartCartesian<T>(
 		yTicks: layout.valueTicks,
 		y2Ticks: layout.value2Ticks,
 		xTicks: layout.bandTicks,
+		resolvedLegend,
+		tex,
 		metas,
 		// Read off every series' values, so a legend toggle (which drops a series
 		// from `visible`) leaves the key steady and only a real data change swaps it.
 		dataKey: seriesDataKey(metas.map((meta) => meta.values)),
 		visible,
+		// Each visible series draws through its own axis's scale. A series whose
+		// scale never resolved takes no marks.
+		drawn: drawnSeries({
+			visible,
+			yScale: layout.valueScale,
+			y2Scale: layout.value2Scale,
+			baseline: layout.baseline,
+			y2Baseline: layout.value2Baseline,
+		}),
 		hidden,
 		toggleSeries: toggle,
 		readout,

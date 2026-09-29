@@ -1,24 +1,14 @@
 'use client'
 
-import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
-import { barProjection, drawnSeries } from '../engine/chart-cartesian/series'
+import { barProjection } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { barMarks, stackedBarMarks, stackedBarSnaps } from '../engine/chart-geometry/bar'
-import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt } from '../engine/chart-hit-test'
-import { resolveLegend } from '../engine/chart-legend/schema'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
-import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import { type ChartOrientation, valueCoord } from '../engine/chart-orientation'
-import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartOrientation } from '../engine/chart-orientation'
 import type { CartesianChartProps } from '../engine/types'
-import { cartesianData, useChartCartesian } from '../engine/use-chart-cartesian'
-import { cartesianFocus } from '../engine/use-chart-keyboard'
+import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link BarChart}. Requires an accessible name (`aria-label` or
@@ -85,36 +75,9 @@ export type BarChartProps<T = never> = CartesianChartProps<T> & {
  * ```
  */
 export function BarChart<T>(props: BarChartProps<T>) {
-	const {
-		data,
-		series,
-		size,
-		width,
-		height,
-		aspectRatio,
-		axes,
-		legend,
-		tooltip,
-		crosshair,
-		animate = false,
-		orientation = 'vertical',
-		stacked = false,
-		thick = false,
-		texture = false,
-		reference,
-		onCategoryClick,
-		selectedCategories,
-		onHiddenChange,
-		formatValue,
-		className,
-		...label
-	} = props
+	const { animate = false, orientation = 'vertical', stacked = false, thick = false } = props
 
-	// The legend prop resolves to its placement / show value and the inert flag;
-	// the hook and frame read the value, the legend the flag.
-	const resolvedLegend = resolveLegend(legend)
-
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: () => 'rect',
@@ -125,7 +88,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	// Each visible series draws through its own axis's scale and grows from its
 	// own baseline; a series whose scale never resolved takes no marks.
-	const drawn = drawnSeries(chart)
+	const { drawn, tex } = chart
 
 	const seriesValues = drawn.map((entry) => entry.meta.values)
 
@@ -150,23 +113,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 	// test speak the series identity the emphasis keys on rather than a draw slot.
 	const indices = drawn.map((entry) => entry.meta.index)
 
-	// Stacked segments sit at cumulative tops, not the individual from-zero values
-	// `chart.snapPoints` carries, so the crosshair snap and keyboard cursor read the
-	// drawn edges; grouped bars each grow from one baseline and match as they are.
-	const stackSnaps = stacked
-		? stackedBarSnaps(marks, indices, data.length, chart.orientation)
-		: null
-
-	const valuePoints = stackSnaps?.points ?? chart.snapPoints
-
-	const snapSeries = stackSnaps?.series ?? chart.snapSeries
-
 	const paints = drawn.map((entry) => entry.meta.paint)
-
-	const tex = useChartTexture(
-		texture,
-		chart.visible.map((meta) => meta.slot),
-	)
 
 	const fills = drawn.map((entry) => tex.fillFor(entry.meta.slot))
 
@@ -191,81 +138,32 @@ export function BarChart<T>(props: BarChartProps<T>) {
 
 	// Spark needs no gate here: the frame renders the drawing pointer-inert and the
 	// crosshair and hit layer stand themselves down through ChartTierContext.
-	const rails = resolveCrosshair(crosshair)
-
-	const snapping = crosshairSnaps(rails)
-
-	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
-
 	return (
 		<ChartCartesianFrame
-			{...label}
+			{...props}
 			chart={chart}
-			resolvedLegend={resolvedLegend}
-			tex={tex}
 			fullscreen={<BarChart {...props} />}
-			showTooltip={showTooltip}
-			snap={snapTargets(rails, chart.bandPositions, valuePoints)}
-			focus={cartesianFocus(
-				chart.bandPositions,
-				valuePoints,
-				chart.orientation,
-				chart.referencePositions,
-				snapSeries,
-			)}
-			reference={reference}
-			className={className}
-		>
-			<ChartCartesianAxes chart={chart} />
+			marks={marksNode}
+			crosshairOver
+			markAt={(x, y) => {
+				// Isolation mirrors the readout: on a bar, that bar.
+				const hit = barMarkAt(marks, x, y, MARK_GAP, chart.orientation)
 
-			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
-				{marksNode}
-			</ChartMarksLayer>
-
-			{rails && (
-				<ChartCrosshair
-					plot={chart.plot}
-					crosshair={rails}
-					bandPositions={chart.bandPositions}
-					valuePoints={valuePoints}
-					orientation={chart.orientation}
-				/>
-			)}
-
-			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
-				<ChartHitArea
-					plot={chart.plot}
-					band={chart.band}
-					count={data.length}
-					markAt={(x, y, _held, index) => {
-						// Isolation mirrors the readout: on a bar, that bar.
-						const hit = barMarkAt(marks, x, y, MARK_GAP, chart.orientation)
-
-						if (hit) return { series: indices[hit.series] ?? hit.series, datum: hit.datum }
-
-						// Past the bars the emphasis goes to the stop the snapped readout
-						// anchors — the bar top nearest the pointer along the value axis in
-						// the snapped band — isolating that one bar.
-						const series = snapping
-							? snappedSeriesAt(
-									valuePoints,
-									snapSeries,
-									index,
-									valueCoord(chart.orientation, { x, y }),
-								)
-							: null
-
-						return series === null || index === null ? null : { series, datum: index }
-					}}
-					orientation={chart.orientation}
-					trigger={trigger}
-					snaps={snapping}
-					onIndexClick={chart.onBandClick}
-				/>
-			)}
-
-			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
-			<ChartReferenceLines chart={chart} reference={reference} animate={animate} />
-		</ChartCartesianFrame>
+				return hit && { series: indices[hit.series] ?? hit.series, datum: hit.datum }
+			}}
+			// Stacked segments sit at cumulative tops, not the individual from-zero
+			// values `chart.snapPoints` carries, so the crosshair snap and keyboard
+			// cursor read the drawn edges; grouped bars each grow from one baseline and
+			// match as they are.
+			snapStops={
+				stacked
+					? stackedBarSnaps(marks, indices, chart.bandPositions.length, chart.orientation)
+					: undefined
+			}
+			// Past the bars the emphasis goes to the stop the snapped readout anchors
+			// (the bar top nearest the pointer along the value axis in the snapped
+			// band), isolating that one bar.
+			bars
+		/>
 	)
 }

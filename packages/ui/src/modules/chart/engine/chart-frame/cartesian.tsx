@@ -1,64 +1,175 @@
 import type { ReactElement, ReactNode } from 'react'
 import type { AccessibleName } from '../../../../types'
+import { ChartCartesianAxes } from '../chart-axes/cartesian'
+import type { ChartValueAxisId } from '../chart-axes/schema'
+import {
+	ChartCrosshair,
+	type Crosshair,
+	crosshairSnaps,
+	resolveCrosshair,
+} from '../chart-crosshair'
+import type { ChartLineSeries } from '../chart-geometry/line'
+import { ChartHitArea, cartesianHitActive } from '../chart-hit-area'
 import { ChartLegend } from '../chart-legend/legend'
-import { legendAside, type ResolvedLegend } from '../chart-legend/schema'
-import type { ChartTexture } from '../chart-pattern-defs'
-import type { ChartReferenceLine } from '../chart-reference'
-import { ChartReferenceList } from '../chart-reference-lines'
+import { legendAside } from '../chart-legend/schema'
+import { ChartMarksLayer } from '../chart-marks/layer'
+import { ChartReferenceLines, ChartReferenceList, referenceStops } from '../chart-reference-lines'
+import { snappedSeriesAt, snapTargets } from '../chart-snap'
+import { resolveTooltip } from '../chart-tooltip'
+import {
+	type ChartValueLabelConfig,
+	ChartValueLabels,
+	cartesianValueLabels,
+} from '../chart-value-labels'
+import type { CartesianChartProps } from '../types'
 import type { CartesianChart } from '../use-chart-cartesian'
+import { cartesianFocus } from '../use-chart-keyboard'
+import type { ChartMarkAt } from '../use-chart-pointer'
 import { ChartFrame, type ChartFrameProps } from './frame'
+
+/**
+ * Per category, the value-axis stops of a cartesian chart, and the series
+ * behind each stop in the same order.
+ *
+ * @internal
+ */
+export type CartesianStops = {
+	/** Per category, the value-axis position of each stop. */
+	points: number[][]
+	/** Per category, the series index behind each stop. */
+	series: number[][]
+}
+
+/**
+ * The line and area series that carry the point value labels.
+ *
+ * @internal
+ */
+export type CartesianValueLabelSeries = {
+	/** The drawn series, in the order the labels resolve their overlaps. */
+	list: ChartLineSeries[]
+	/**
+	 * Whether the points of each series already drop the null categories. A
+	 * stacked ribbon's edge carries one point for each category, so it passes
+	 * `false`.
+	 * @defaultValue true
+	 */
+	gapSkipped?: boolean
+}
 
 /** Props for {@link ChartCartesianFrame}. @internal */
 export type ChartCartesianFrameProps = AccessibleName &
-	Pick<ChartFrameProps, 'title' | 'subtitle' | 'contextMenu'> & {
+	Pick<ChartFrameProps, 'title' | 'subtitle' | 'contextMenu'> &
+	Pick<CartesianChartProps<unknown>, 'crosshair' | 'tooltip' | 'animate' | 'reference'> & {
 		/** The resolved chart the frame reads its sizing, tier, legend, and readout off. */
 		chart: CartesianChart
-		/** The `legend` prop resolved to its show value, placement, and inert flag. */
-		resolvedLegend: ResolvedLegend
-		/** The texture defs and per-slot fills, mounted first inside the plot. */
-		tex: ChartTexture
 		/** A fresh copy of the chart for the menu's fullscreen view. */
 		fullscreen: ReactElement
-		/** Mount the hover tooltip. */
-		showTooltip: boolean
-		/** Snap targets when the crosshair snaps — chart-specific, so it stays a prop. */
-		snap: ChartFrameProps['snap']
-		/** The keyboard tab stops — chart-specific (reference roving, stack folding), so it stays a prop. */
-		focus: ChartFrameProps['focus']
-		/** The reference lines for the annotation parity outside the plot. */
-		reference: ChartReferenceLine[] | undefined
+		/** The chart's own marks, which the marks layer wraps. */
+		marks: ReactNode
+		/**
+		 * The mark under the pointer: a bar, a line, or a wash. The frame adds the
+		 * snapped fallback off the marks, so this reads only the drawn marks.
+		 */
+		markAt: ChartMarkAt
+		/**
+		 * The crosshair to draw when the `crosshair` prop is unset.
+		 * @defaultValue no crosshair
+		 */
+		defaultCrosshair?: Crosshair
+		/**
+		 * Draw the crosshair over the marks, as a bar chart does. Off, the crosshair
+		 * draws under the marks, as on the line charts.
+		 * @defaultValue false
+		 */
+		crosshairOver?: boolean
+		/**
+		 * The stops that the crosshair and the tooltip snap to, and that isolate a
+		 * mark off the marks.
+		 * @defaultValue the chart's own snap points and series
+		 */
+		snapStops?: CartesianStops
+		/**
+		 * The stops that the keyboard cursor walks.
+		 * @defaultValue {@link ChartCartesianFrameProps.snapStops}
+		 */
+		focusStops?: CartesianStops
+		/**
+		 * Which series draw bars: every series, or each series that the function
+		 * picks. Off the marks, a snapped bar stop isolates its one bar, and a line
+		 * or an area stop isolates its whole series.
+		 * @defaultValue false
+		 */
+		bars?: boolean | ((series: number) => boolean)
+		/**
+		 * The value labels of the chart. With `references`, each reference rule
+		 * draws its value beside it in place of its hover tooltip and its keyboard
+		 * stop.
+		 */
+		labels?: ChartValueLabelConfig
+		/** The series that carry the point value labels. Omitted, no value label layer mounts. */
+		valueLabels?: CartesianValueLabelSeries
 		className?: string
-		/** The plot's own layer stack, in the order the chart draws it. */
-		children: ReactNode
 	}
 
+/** A series with no values, which labels nothing. Only a stale index reads it. @internal */
+const NO_VALUES: { values: (number | null)[]; axis: ChartValueAxisId } = { values: [], axis: 'y' }
+
 /**
- * The frame scaffold every cartesian chart (bar, line, area, combo) shares. It
- * is the {@link ChartFrame} wired to the resolved chart's sizing, tier,
- * cartesian legend, readout, and reference annotations. The texture defs mount
- * ahead of the chart's own layers. Hook-free: the entry components own every
- * hook and hand the resolved values in. It therefore adds no hook to their
- * order, and never rebuilds their layers. Only the genuinely per-chart pieces
- * stay props: the fullscreen copy, the snap and focus targets, and the
- * `children` layer stack. Each engine derives the snap and focus targets from
- * its own marks. The stack's draw order is the chart's to own — a bar draws its
- * marks before the crosshair, the line charts after.
+ * The frame and the layer stack that every cartesian chart (bar, line, area,
+ * combo) shares. It is the {@link ChartFrame} wired to the resolved chart's
+ * sizing, tier, cartesian legend, readout, and reference annotations. Inside
+ * the plot it draws the texture defs, the axes, the crosshair, the marks, the
+ * value labels, the hit area, and the reference rules, in that order. A bar
+ * draws its marks before the crosshair, the line charts after.
+ *
+ * The chart hands in its own props, its marks, and its hit test on the marks.
+ * The frame resolves the crosshair, the tooltip, the snap and the keyboard
+ * targets, and the reference stops from them. Off the marks, the pointer
+ * isolates the snapped stop. Hook-free: the entry component owns every hook, so
+ * the frame adds no hook to its order.
  *
  * @internal
  */
 export function ChartCartesianFrame({
-	chart: { ref: chartRef, ...chart },
-	resolvedLegend,
-	tex,
+	chart,
 	fullscreen,
-	showTooltip,
-	snap,
-	focus,
+	marks,
+	markAt,
+	crosshair,
+	defaultCrosshair,
+	crosshairOver = false,
+	tooltip,
+	animate = false,
 	reference,
+	snapStops,
+	focusStops,
+	bars = false,
+	labels,
+	valueLabels,
 	className,
-	children,
 	...label
 }: ChartCartesianFrameProps) {
+	const { ref: chartRef, resolvedLegend, tex, orientation } = chart
+
+	const rails = resolveCrosshair(crosshair ?? defaultCrosshair)
+
+	const snapping = crosshairSnaps(rails)
+
+	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
+
+	const snap = snapStops ?? { points: chart.snapPoints, series: chart.snapSeries }
+
+	const focus = focusStops ?? snap
+
+	const count = chart.bandPositions.length
+
+	const marksLayer = (
+		<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
+			{marks}
+		</ChartMarksLayer>
+	)
+
 	return (
 		<ChartFrame
 			{...label}
@@ -96,11 +207,17 @@ export function ChartCartesianFrame({
 			seriesCount={chart.metas.length}
 			emphasizeMarks
 			tooltip={showTooltip}
-			snap={snap}
-			focus={focus}
+			snap={snapTargets(rails, chart.bandPositions, snap.points)}
+			focus={cartesianFocus(
+				chart.bandPositions,
+				focus.points,
+				orientation,
+				referenceStops(labels?.references, chart.referencePositions),
+				focus.series,
+			)}
 			keyboardEmphasis
 			selected={chart.selected}
-			orientation={chart.orientation}
+			orientation={orientation}
 			className={className}
 			annotations={
 				<ChartReferenceList
@@ -112,7 +229,76 @@ export function ChartCartesianFrame({
 		>
 			{tex.defs}
 
-			{children}
+			<ChartCartesianAxes chart={chart} />
+
+			{crosshairOver && marksLayer}
+
+			{rails && (
+				<ChartCrosshair
+					plot={chart.plot}
+					crosshair={rails}
+					bandPositions={chart.bandPositions}
+					valuePoints={snap.points}
+					orientation={orientation}
+				/>
+			)}
+
+			{!crosshairOver && marksLayer}
+
+			{valueLabels && (
+				<ChartValueLabels
+					labels={cartesianValueLabels(
+						chart,
+						labels,
+						valueLabels.list,
+						valueLabels.list.map((entry) => chart.metas[entry.index] ?? NO_VALUES),
+						valueLabels.gapSkipped,
+					)}
+					animate={animate}
+					dataKey={chart.dataKey}
+				/>
+			)}
+
+			{cartesianHitActive(showTooltip, rails, chart.onBandClick, count) && (
+				<ChartHitArea
+					plot={chart.plot}
+					band={chart.band}
+					count={count}
+					markAt={(x, y, held, index) => {
+						const direct = markAt(x, y, held, index)
+
+						if (direct || !snapping || index === null) return direct
+
+						// Isolation mirrors the snapped readout: off the marks the emphasis goes
+						// to the stop the tooltip anchors in the snapped column. A bar's stop
+						// isolates that one bar, a line's or an area's its whole series.
+						const series = snappedSeriesAt(
+							snap.points,
+							snap.series,
+							index,
+							orientation === 'vertical' ? y : x,
+						)
+
+						if (series === null) return null
+
+						const bar = typeof bars === 'function' ? bars(series) : bars
+
+						return { series, datum: bar ? index : null }
+					}}
+					orientation={orientation}
+					trigger={trigger}
+					snaps={snapping}
+					onIndexClick={chart.onBandClick}
+				/>
+			)}
+
+			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
+			<ChartReferenceLines
+				chart={chart}
+				reference={reference}
+				animate={animate}
+				labels={labels?.references}
+			/>
 		</ChartFrame>
 	)
 }

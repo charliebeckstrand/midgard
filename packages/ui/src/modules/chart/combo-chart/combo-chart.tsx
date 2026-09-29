@@ -1,9 +1,7 @@
 'use client'
 
-import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
-import { barProjection, drawnSeries } from '../engine/chart-cartesian/series'
+import { barProjection } from '../engine/chart-cartesian/series'
 import { MARK_GAP } from '../engine/chart-constants'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
 import { valueLabelHeadroom } from '../engine/chart-geometry/label'
@@ -12,23 +10,14 @@ import {
 	type LineInterpolation,
 	lineSeriesOf,
 } from '../engine/chart-geometry/line'
-import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
-import { resolveLegend } from '../engine/chart-legend/schema'
 import { AnimatedChartBarMarks, ChartBarMarks } from '../engine/chart-marks/bar'
-import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
-import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
-import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
-import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
-import { cartesianData, useChartCartesian } from '../engine/use-chart-cartesian'
-import { cartesianFocus } from '../engine/use-chart-keyboard'
+import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link ComboChart}. Requires an accessible name (`aria-label` or
@@ -159,34 +148,9 @@ function comboMarkAt(
  * ```
  */
 export function ComboChart<T>(props: ComboChartProps<T>) {
-	const {
-		data,
-		series,
-		size,
-		width,
-		height,
-		aspectRatio,
-		axes,
-		legend,
-		tooltip,
-		crosshair,
-		animate = false,
-		points = false,
-		interpolation = 'linear',
-		reference,
-		texture = false,
-		labels,
-		onCategoryClick,
-		selectedCategories,
-		onHiddenChange,
-		formatValue,
-		className,
-		...label
-	} = props
+	const { series, animate = false, points = false, interpolation = 'linear', labels } = props
 
-	const resolvedLegend = resolveLegend(legend)
-
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
 		categoryRule: 'zero',
 		swatch: (_, index) => (series[index]?.type === 'bar' ? 'rect' : 'line'),
@@ -210,7 +174,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	// Each visible series draws through its own axis's scale; the mark kinds
 	// partition off the one drawn list so their indices stay aligned.
-	const drawn = drawnSeries(chart)
+	const { drawn, tex } = chart
 
 	const pick = (type: ComboChartSeries<T>['type']) =>
 		drawn.filter((entry) => series[entry.meta.index]?.type === type)
@@ -238,27 +202,14 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 	const areas = lineSeriesOf(areaEntries, xs, floor, interpolation, points)
 
-	// Value labels ride the line and area series only — bars read against the axis.
-	const valueLabelItems = cartesianValueLabels(
-		chart,
-		labels,
-		[...areas, ...lines],
-		[...areaEntries, ...lineEntries].map(({ meta }) => meta),
-	)
-
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
 	// The bar series' own indices, aligned to `bars`, so the isolation keys on the
 	// series identity rather than the bar's slot among the picked bar series.
 	const barIndices = barEntries.map((entry) => entry.meta.index)
 
-	// One tile set over every visible slot, so the bars and area washes both
-	// resolve their fill; the line series carry no fill and stay flat.
-	const tex = useChartTexture(
-		texture,
-		chart.visible.map((meta) => meta.slot),
-	)
-
+	// The bars and the area washes resolve their fill from the texture; the line
+	// series carry no fill and stay flat.
 	const barFills = barEntries.map((entry) => tex.fillFor(entry.meta.slot))
 
 	const areaFills = areaEntries.map((entry) => tex.fillFor(entry.meta.slot))
@@ -270,7 +221,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	// Bars sit at the back, then the translucent area washes over them — a wash
 	// behind opaque bars would vanish wherever the area falls short of them —
 	// then the lines ride on top.
-	const marksNode = animate ? (
+	const marks = animate ? (
 		<>
 			<AnimatedChartBarMarks
 				marks={bars}
@@ -313,82 +264,16 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 		</>
 	)
 
-	const rails = resolveCrosshair(crosshair)
-
-	const snapping = crosshairSnaps(rails)
-
-	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
-
 	return (
 		<ChartCartesianFrame
-			{...label}
+			{...props}
 			chart={chart}
-			resolvedLegend={resolvedLegend}
-			tex={tex}
 			fullscreen={<ComboChart {...props} />}
-			showTooltip={showTooltip}
-			snap={snapTargets(rails, chart.bandPositions, chart.snapPoints)}
-			focus={cartesianFocus(
-				chart.bandPositions,
-				chart.snapPoints,
-				chart.orientation,
-				referenceStops(labels?.references, chart.referencePositions),
-				chart.snapSeries,
-			)}
-			reference={reference}
-			className={className}
-		>
-			<ChartCartesianAxes chart={chart} />
-
-			{rails && (
-				<ChartCrosshair
-					plot={chart.plot}
-					crosshair={rails}
-					bandPositions={chart.bandPositions}
-					valuePoints={chart.snapPoints}
-				/>
-			)}
-
-			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
-				{marksNode}
-			</ChartMarksLayer>
-
-			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
-
-			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
-				<ChartHitArea
-					plot={chart.plot}
-					band={chart.band}
-					count={data.length}
-					markAt={(x, y, held, index) => {
-						const direct = comboMarkAt({ lines, areas, bars, barIndices, floor }, x, y, held)
-
-						if (direct) return direct
-
-						// Isolation mirrors the snapped readout: off every mark the emphasis
-						// goes to the stop the tooltip anchors in the snapped column — a bar's
-						// stop isolating that one bar, a line's or area's its whole series.
-						const meta = snapping
-							? snappedSeriesAt(chart.snapPoints, chart.snapSeries, index, y)
-							: null
-
-						if (meta === null || index === null) return null
-
-						return { series: meta, datum: series[meta]?.type === 'bar' ? index : null }
-					}}
-					trigger={trigger}
-					snaps={snapping}
-					onIndexClick={chart.onBandClick}
-				/>
-			)}
-
-			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
-			<ChartReferenceLines
-				chart={chart}
-				reference={reference}
-				animate={animate}
-				labels={labels?.references}
-			/>
-		</ChartCartesianFrame>
+			marks={marks}
+			markAt={(x, y, held) => comboMarkAt({ lines, areas, bars, barIndices, floor }, x, y, held)}
+			bars={(index) => series[index]?.type === 'bar'}
+			// Value labels ride the line and area series only — bars read against the axis.
+			valueLabels={{ list: [...areas, ...lines] }}
+		/>
 	)
 }
