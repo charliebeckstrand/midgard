@@ -2,7 +2,7 @@
 
 import { motion } from 'motion/react'
 import { type ReactNode, type RefObject, useEffect } from 'react'
-import { cn, dataAttr } from '../../core'
+import { dataAttr } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { useA11yPanel } from '../../hooks'
 import { useComposedRef } from '../../hooks/use-composed-ref'
@@ -18,6 +18,7 @@ import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { drawerCeiling, drawerFloor } from './drawer-floor'
 import { DrawerHandle } from './drawer-handle'
+import { drawerPanelProps } from './drawer-panel-props'
 
 /** Props for {@link Drawer}: open-state control, panel `height`, density `size` scope, and accessible naming. */
 export type DrawerProps = Omit<DrawerPanelVariants, 'surface' | 'height'> &
@@ -264,13 +265,7 @@ export function Drawer({
 				aria-label={ariaProps['aria-labelledby'] ? undefined : ariaLabel}
 				data-slot="drawer"
 				data-density={size}
-				data-height={height ?? 'auto'}
-				// Opens the glass cascade to the panel's contents: `hannou.glassItem`
-				// keys on `group-data-[glass]/glass`, which needs the named group and
-				// the attribute on one element. Rows inside take their hover wash at
-				// double strength, because 5% under the panel's own translucency reads
-				// as no hover at all.
-				data-glass={dataAttr(resolvedSurface === 'glass')}
+				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
 				// The panel eases between its `height` variants, which is right for a step
 				// and wrong for a finger: eased, each frame's height becomes an animation
 				// toward where the pointer already is, so the edge trails the drag and
@@ -284,12 +279,6 @@ export function Drawer({
 				// down for as long as one is held. It is inline because it is a
 				// measurement rather than a step: there is no class for "412 pixels".
 				style={resize.size === null ? undefined : { height: resize.size }}
-				className={cn(
-					'group/drawer',
-					resolvedSurface === 'glass' && 'group/glass',
-					k.panel({ surface: resolvedSurface, height }),
-					className,
-				)}
 			>
 				<PanelProviders onOpenChange={setOpen} a11y={a11y}>
 					{handle ? <DrawerHandle handleProps={resize.handleProps} covers={resize.covers} /> : null}

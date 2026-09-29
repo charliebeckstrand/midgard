@@ -1,12 +1,13 @@
 'use client'
 
 import type { ReactNode } from 'react'
-import { cn, dataAttr } from '../../core'
+import { cn } from '../../core'
 import type { DensityStep } from '../../core/density'
 import { PolymorphicStatic } from '../../primitives/polymorphic'
 import { useResolvedSurface } from '../../providers/glass/context'
 import { type DrawerPanelVariants, k } from '../../recipes/kata/drawer'
 import { k as overlay } from '../../recipes/kata/overlay'
+import { drawerPanelProps } from './drawer-panel-props'
 
 /** Props for {@link DrawerStandIn}: the {@link Drawer} styling props it has to match, and the content it paints. */
 export type DrawerStandInProps = {
@@ -44,8 +45,9 @@ export type DrawerStandInProps = {
  * so it arrives on top of this in place instead of sliding up over it.
  *
  * @remarks
- * Built from the same recipe classes as the overlay root, backdrop, and panel, and resolving
- * `glass` through the same hook, so it stays in step with {@link Drawer} by construction. Pass
+ * Built from the same recipe classes as the overlay root and backdrop, and from the same panel
+ * attributes and classes (`drawerPanelProps`), and resolving `glass` through the same hook, so it
+ * stays in step with {@link Drawer} by construction. Pass
  * the drawer's `className`, and the same slot components (`DrawerTitle`, `DrawerBody`, …) for
  * content: they read only defaulted context, so they render here unchanged.
  *
@@ -71,8 +73,6 @@ export function DrawerStandIn({
 }: DrawerStandInProps) {
 	const resolvedSurface = useResolvedSurface(glass)
 
-	const isGlass = resolvedSurface === 'glass'
-
 	// None of the drawer's own `data-slot`s: nothing styles off them, and a selector written
 	// for the real drawer must not find its stand-in. The panel's group names and `data-*`
 	// hooks are the drawer's, because its slots and rows style off those.
@@ -84,14 +84,7 @@ export function DrawerStandIn({
 				data-slot="drawer-stand-in-panel"
 				inert
 				density={size}
-				data-height={height ?? 'auto'}
-				data-glass={dataAttr(isGlass)}
-				className={cn(
-					'group/drawer',
-					isGlass && 'group/glass',
-					k.panel({ surface: resolvedSurface, height }),
-					className,
-				)}
+				{...drawerPanelProps({ surface: resolvedSurface, height, className })}
 			>
 				{children}
 			</PolymorphicStatic>
