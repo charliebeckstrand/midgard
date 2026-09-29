@@ -38,7 +38,13 @@ describe('MapPlat', () => {
 	it('keeps a long press on the plot from starting a text selection', () => {
 		const { container } = renderUI(categoricalPlat())
 
-		expect(bySlot(container, 'map-plot')).toHaveClass('select-none', '[-webkit-touch-callout:none]')
+		// iOS Safari can select text in a descendant of a `select-none` box, so every
+		// descendant also sets it, as on the chart roots.
+		expect(bySlot(container, 'map-plot')).toHaveClass(
+			'select-none',
+			'**:select-none',
+			'[-webkit-touch-callout:none]',
+		)
 	})
 
 	it('decodes a TopoJSON topology to the same regions', () => {

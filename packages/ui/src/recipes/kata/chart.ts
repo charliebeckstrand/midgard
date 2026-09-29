@@ -64,6 +64,13 @@ export const k = {
 	 * nothing.
 	 */
 	drawing: (spark: boolean) => (spark ? ['pointer-events-none', '**:pointer-events-none'] : []),
+	/**
+	 * The root of a readout surface, where a long press opens the readout: a chart,
+	 * a heatmap, a choropleth, or a map plot. The surface selects no text and opens
+	 * no callout under a hold. iOS Safari can select text in a descendant of a
+	 * `select-none` box, so every descendant also sets it.
+	 */
+	touchReadout: ['select-none', '**:select-none', '[-webkit-touch-callout:none]'],
 	/** Motion vocabulary for the mount reveals, from `zu`. `chart-motion.ts` composes the chart's timings from it. */
 	motion,
 	skeleton: kokkaku.chart,

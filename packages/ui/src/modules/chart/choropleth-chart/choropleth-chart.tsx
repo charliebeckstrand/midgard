@@ -3,6 +3,7 @@
 import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
+import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
 import { fractionFormat, once, toNumericCell } from '../../../utilities'
 import {
@@ -319,11 +320,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 				data-touch-readout=""
 				// A long press opens the readout, so the whole chart, legend included,
 				// selects no text under a hold, as the chart frame does.
-				className={cn(
-					'select-none **:select-none [-webkit-touch-callout:none]',
-					width === undefined && 'w-full',
-					className,
-				)}
+				className={cn(k.touchReadout, width === undefined && 'w-full', className)}
 				style={width === undefined ? undefined : { width }}
 				// Capture runs before the region layer's bubbled report: an off-region
 				// right-click stays null, an on-region one overwrites with its index.

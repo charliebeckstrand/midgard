@@ -288,6 +288,7 @@ function HeatmapRangeLegend({
 	return (
 		<RangeLegend
 			slot="heatmap-range"
+			box="heatmap-legend-box"
 			colorRange={colorRange}
 			domain={domain}
 			format={format}
@@ -662,12 +663,7 @@ function plotRegionClass(aside: boolean, fill: boolean): string {
  * @internal
  */
 function heatmapRootClass(fluid: boolean, fill: boolean, className: string | undefined): string {
-	return cn(
-		'flex flex-col gap-3 select-none **:select-none [-webkit-touch-callout:none]',
-		fluid && 'w-full',
-		fill && 'h-full',
-		className,
-	)
+	return cn('flex flex-col gap-3', k.touchReadout, fluid && 'w-full', fill && 'h-full', className)
 }
 
 /**
@@ -1068,18 +1064,16 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 	)
 
 	const legendNode = showLegend && domain && (
-		<div data-slot="heatmap-legend-box" className={cn(aside ? 'shrink-0' : 'flex justify-center')}>
-			<HeatmapRangeLegend
-				colorRange={primary?.colorRange ?? []}
-				domain={domain}
-				format={format}
-				label={primary?.colorName}
-				bins={bins.length}
-				thresholds={thresholds}
-				values={matrix.values}
-				orientation={rangeLegend.orientation}
-			/>
-		</div>
+		<HeatmapRangeLegend
+			colorRange={primary?.colorRange ?? []}
+			domain={domain}
+			format={format}
+			label={primary?.colorName}
+			bins={bins.length}
+			thresholds={thresholds}
+			values={matrix.values}
+			orientation={rangeLegend.orientation}
+		/>
 	)
 
 	const heatmapRoot = (

@@ -1,6 +1,5 @@
 'use client'
 
-import { cn } from '../../core'
 import {
 	RangeArrow,
 	RangeLegend,
@@ -53,7 +52,7 @@ function RangeHoverArrow({
  * and probing the bar emphasizes that class's regions through `onFocus`, dimming
  * the rest. The `map-range` slot keeps the map's part names. `orientation`
  * follows the resolved placement — vertical beside the plot, horizontal above or
- * below — the wrapper centering a horizontal bar in its stacked row.
+ * below — the legend box centering a horizontal bar in its stacked row.
  *
  * @internal
  */
@@ -68,28 +67,21 @@ export function MapRangeLegend({
 	onFocus,
 	orientation = 'vertical',
 }: MapRangeLegendProps) {
-	const horizontal = orientation === 'horizontal'
-
 	return (
-		<div data-slot="map-legend-box" className={cn(horizontal ? 'flex justify-center' : 'shrink-0')}>
-			<RangeLegend
-				slot="map-range"
-				colorRange={colorRange}
-				domain={domain}
-				format={format}
-				label={label}
-				bins={bins}
-				thresholds={thresholds}
-				orientation={orientation}
-				onProbe={(bin) => onFocus(bin === null ? null : binEmphasisId(bin))}
-				arrow={
-					<RangeHoverArrow
-						regionNumbers={regionNumbers}
-						domain={domain}
-						orientation={orientation}
-					/>
-				}
-			/>
-		</div>
+		<RangeLegend
+			slot="map-range"
+			box="map-legend-box"
+			colorRange={colorRange}
+			domain={domain}
+			format={format}
+			label={label}
+			bins={bins}
+			thresholds={thresholds}
+			orientation={orientation}
+			onProbe={(bin) => onFocus(bin === null ? null : binEmphasisId(bin))}
+			arrow={
+				<RangeHoverArrow regionNumbers={regionNumbers} domain={domain} orientation={orientation} />
+			}
+		/>
 	)
 }

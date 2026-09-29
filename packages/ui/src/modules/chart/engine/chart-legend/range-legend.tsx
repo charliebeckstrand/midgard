@@ -170,6 +170,13 @@ export type RangeLegendProps = RangeScale & {
 	 * @defaultValue 'vertical'
 	 */
 	orientation?: RangeOrientation
+	/**
+	 * The `data-slot` of a box that holds the legend in the layout of its host
+	 * (`heatmap-legend-box`, `map-legend-box`). A vertical bar keeps its width
+	 * beside the plot, and a horizontal bar centers in its row. Unset, the legend
+	 * renders with no box.
+	 */
+	box?: string
 }
 
 /** The class-center context {@link rangeKeyValue} walks. @internal */
@@ -457,6 +464,7 @@ export function RangeLegend({
 	onProbe,
 	arrow,
 	orientation = 'vertical',
+	box,
 }: RangeLegendProps) {
 	const [min, max] = domain
 
@@ -536,7 +544,7 @@ export function RangeLegend({
 
 	const probeOffset = probePercent(probe, domain, orientation)
 
-	return (
+	const legend = (
 		<div data-slot={`${slot}-legend`} className="flex flex-col gap-1.5">
 			{label && (
 				<Text as="span" size="sm" className="leading-tight">
@@ -588,6 +596,14 @@ export function RangeLegend({
 					slot={slot}
 				/>
 			</div>
+		</div>
+	)
+
+	if (box === undefined) return legend
+
+	return (
+		<div data-slot={box} className={horizontal ? 'flex justify-center' : 'shrink-0'}>
+			{legend}
 		</div>
 	)
 }

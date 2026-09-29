@@ -2,6 +2,7 @@
 
 import type { ReactNode, RefObject } from 'react'
 import { cn } from '../../core'
+import { k as chart } from '../../recipes/kata/chart'
 import { k } from '../../recipes/kata/map'
 import type { AccessibleName } from '../../types'
 import { legendAside } from '../chart/engine/chart-legend/schema'
@@ -185,7 +186,7 @@ export function MapPlotRegion({
 				// these, that long press also starts a text selection that spreads across
 				// the whole map and the text around it, and iOS shows its callout menu.
 				// The tooltip and the tap to pick do not use selection, so nothing is lost.
-				'select-none [-webkit-touch-callout:none]',
+				chart.touchReadout,
 				// The focus ring only rides a region that can take focus; a rounded
 				// corner comes with it, so the outline follows the box it rings.
 				// Joined at module scope: nested inline, the whole call is unkeyable
