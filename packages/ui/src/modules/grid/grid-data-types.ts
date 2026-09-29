@@ -1107,6 +1107,55 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	navigable?: boolean
 
 	/**
+	 * Lets the keyboard cursor hold a rectangular cell range. The range runs from
+	 * an anchor cell to the cursor, and its cells carry `data-in-range`.
+	 *
+	 * - Shift with an arrow key, Home, End, PageUp, or PageDown extends the range.
+	 *   Shift with Ctrl/Cmd+Home or Ctrl/Cmd+End extends it to a corner of the grid.
+	 * - Shift with a click extends the range to the clicked cell. A drag from a
+	 *   data cell makes a range, and near an edge of the scroll region the region
+	 *   scrolls. A drag from a touch pointer or from a control in a cell does not.
+	 * - A move without Shift ends the range. The first Escape ends the range, and
+	 *   the next one clears the cursor.
+	 * - Ctrl/Cmd+C on the grid writes the range as TSV, or the active cell with no
+	 *   range. A cell reads as export reads it, with the export's formula guard.
+	 * - Ctrl/Cmd+V on the grid writes the clipboard's TSV into the range, under
+	 *   `editable.session: 'managed'`. One field goes into each cell of the
+	 *   range. A block goes side by side into a range that is a whole multiple
+	 *   of it. Else the block starts at the top-left cell, or at the active cell
+	 *   with no range, and the grid cuts it off at the last row and column. A
+	 *   paste adds no rows.
+	 * - Ctrl/Cmd+D fills the range down from its top row, and Ctrl/Cmd+R fills
+	 *   it right from its first column, under `editable.session: 'managed'`.
+	 *   The cell menu of {@link GridDataProps.contextMenu} gives the same fills
+	 *   as Fill down and Fill right. A key stays the browser's when the range is
+	 *   one cell deep in its direction. A press of another mouse button in the
+	 *   range, such as the one that opens the menu, keeps the range.
+	 *
+	 * A paste or a fill is one save and one entry in the history, through
+	 * {@link GridEditableConfig.onCommit}. A fill copies the values of its
+	 * source cells. A source line of two or more numbers with a constant step
+	 * continues the step. {@link GridColumn.parse} reads each pasted text,
+	 * and {@link GridColumn.validate} checks each value. A refused cell goes to
+	 * {@link GridEditableConfig.onReject}. A paste or a fill skips a cell that
+	 * cannot edit, a cell of a column with no `field`, and a cell that holds a
+	 * draft. The live region counts the written and the skipped cells.
+	 *
+	 * The range covers data cells only. A group header, a group total, a detail
+	 * panel, and the new-row slot inside it are not cells of the range. A sort,
+	 * a filter, a page change, a change of the groups, or a change of the column
+	 * order or visibility ends the range. The live region gives the size and the
+	 * corners of the range once it stops changing. The cells take no
+	 * `aria-selected`, which the rows keep for {@link GridDataProps.selection}.
+	 *
+	 * Needs the keyboard cursor: {@link GridDataProps.navigable} or
+	 * {@link GridDataProps.editable}. With the range on, a press on a cell starts
+	 * no text selection.
+	 * @defaultValue false
+	 */
+	range?: boolean
+
+	/**
 	 * Fires with the cell the keyboard cursor sits on, whenever the cursor moves,
 	 * and with `null` when it clears.
 	 *

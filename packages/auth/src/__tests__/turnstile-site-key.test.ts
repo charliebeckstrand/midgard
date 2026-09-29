@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
 import { getTurnstileSiteKey } from '../turnstile-site-key'
 
-const cookies = vi.hoisted(() => vi.fn())
+const cacheLife = vi.hoisted(() => vi.fn())
 
-vi.mock('next/headers', () => ({ cookies }))
+vi.mock('next/cache', () => ({ cacheLife }))
 
 // Stubs the gateway: `fetch` resolves to the given status and body.
 function stubGateway(status: number, body: unknown = null) {
@@ -17,13 +17,17 @@ function stubGateway(status: number, body: unknown = null) {
 
 describe('getTurnstileSiteKey', () => {
 	beforeEach(() => {
-		cookies.mockResolvedValue({ toString: () => '' })
+		cacheLife.mockClear()
 	})
 
 	it('returns the key that the gateway gives', async () => {
 		const fetch = stubGateway(200, { turnstile_site_key: 'site-key' })
 
 		await expect(getTurnstileSiteKey()).resolves.toBe('site-key')
+
+		expect(fetch.mock.calls[0]?.[0].headers.has('cookie')).toBe(false)
+
+		expect(cacheLife).toHaveBeenCalledWith('hours')
 
 		expect(fetch.mock.calls[0]?.[0].url).toBe(`${BIFROST_URL}/auth/register/options`)
 	})
@@ -42,6 +46,8 @@ describe('getTurnstileSiteKey', () => {
 		await expect(getTurnstileSiteKey()).resolves.toBeNull()
 
 		expect(error).toHaveBeenCalledOnce()
+
+		expect(cacheLife).toHaveBeenCalledWith('seconds')
 
 		error.mockRestore()
 	})

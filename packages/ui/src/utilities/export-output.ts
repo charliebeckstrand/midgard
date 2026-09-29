@@ -59,7 +59,7 @@ const PLAIN_NUMBER = /^[+-]?(?:\d+\.?\d*|\.\d+)(?:[eE][+-]?\d+)?$/
  *
  * @internal
  */
-function neutralizeFormula(value: string): string {
+export function neutralizeFormula(value: string): string {
 	if (FORMULA_LEAD.test(value)) return `'${value}`
 
 	if (SIGNED_LEAD.test(value) && !PLAIN_NUMBER.test(value)) return `'${value}`

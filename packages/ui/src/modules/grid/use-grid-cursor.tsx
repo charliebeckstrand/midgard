@@ -5,12 +5,18 @@ import {
 	type ReactNode,
 	type RefObject,
 	useCallback,
+	useEffect,
 	useLayoutEffect,
 	useMemo,
 	useRef,
 } from 'react'
+import { announce } from '../../core'
 import { useReportedChange } from '../../hooks/use-reported-change'
 import { useStableEvent } from '../../hooks/use-stable-event'
+import { describeRange } from './engine/grid-announcements'
+import { columnAccessor } from './engine/grid-column/accessor'
+import { columnLabel } from './engine/grid-column/label'
+import { GRID_RANGE_ANNOUNCE_MS } from './engine/grid-constants'
 import {
 	type EditorKind,
 	type GridKeyPress,
@@ -19,13 +25,23 @@ import {
 	readKeyPress,
 	seedFromKey,
 } from './engine/grid-editing-utilities'
+import { cellText } from './engine/grid-export/accessor'
+import {
+	fillPlan,
+	type GridRangeFill,
+	type GridRangeFillDirection,
+	rangeFillSource,
+} from './engine/grid-range/fill'
+import { pastePlacement } from './engine/grid-range/paste'
+import type { GridRangeCells } from './engine/grid-range/range'
+import { parseTsv, toTsv } from './engine/grid-range/tsv'
 import { resolveCellAt } from './engine/grid-row/bridges'
 import type { GridCellClick, GridCellClickContext } from './engine/grid-row/cell'
 import type { GridEditSource } from './grid-data-types'
 import { GridEditingSessionContext, GridNewRowContext } from './grid-editing-context'
 import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
-import { useGridEditing } from './use-grid-editing'
+import { type GridPasteCell, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
 import {
 	type Coord,
@@ -87,6 +103,81 @@ function slotSeed<T>(
 }
 
 /**
+ * The text of each cell of a range, row by row, as export reads a cell. A
+ * cell whose row or column is gone reads as empty. @internal
+ */
+function rangeText<T>(
+	cells: GridRangeCells,
+	rows: readonly T[],
+	columns: readonly GridColumn<T>[],
+) {
+	return cells.rows.map((index) => {
+		const row = rows[index]
+
+		return cells.cols.map((colIdx) => {
+			const col = columns[colIdx]
+
+			return col && row !== undefined ? cellText(columnAccessor(col)(row)) : ''
+		})
+	})
+}
+
+/**
+ * The active cell as a range of one cell, or `null` when the cursor is on no
+ * data cell. `active` is the public cursor, which names a data row. Copy and
+ * paste act on it when the cursor holds no range. @internal
+ */
+function activeCells(active: Coord | null): GridRangeCells | null {
+	if (!active || active.row === NEW_ROW_INDEX) return null
+
+	return { rows: [active.row], cols: [active.col], from: active, to: active }
+}
+
+/**
+ * The cells that a block of clipboard fields writes into `cells`, each with
+ * its row key and its column id (see {@link pastePlacement}). A place that
+ * names no row or no column is left out. @internal
+ */
+function pasteTargets<T>(
+	block: string[][],
+	cells: GridRangeCells,
+	keys: readonly (string | number)[],
+	columns: readonly GridColumn<T>[],
+): GridPasteCell[] {
+	const size = { rows: keys.length, cols: columns.length }
+
+	return pastePlacement(block, cells, size).flatMap(({ row, col, text }) => {
+		const rowKey = keys[row]
+
+		const column = columns[col]
+
+		return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, text }]
+	})
+}
+
+/**
+ * The value that a fill reads from a data cell: its row's `field`, or
+ * `undefined` for a cell with no row or no `field`. @internal
+ */
+function fillValue<T>(row: T | undefined, col: GridColumn<T> | undefined): unknown {
+	return row != null && col?.field != null ? row[col.field] : undefined
+}
+
+/**
+ * The fill direction of a key press on the tab stop, or `null` for another
+ * key. Ctrl/Cmd+D fills down and Ctrl/Cmd+R fills right. @internal
+ */
+function fillKey(press: GridKeyPress & { shiftKey: boolean }): GridRangeFillDirection | null {
+	if (press.composing || press.altKey || press.shiftKey || !(press.ctrlKey || press.metaKey)) {
+		return null
+	}
+
+	const key = press.key.toLowerCase()
+
+	return key === 'd' ? 'down' : key === 'r' ? 'right' : null
+}
+
+/**
  * Live refs the cursor and editing layers read at event/render time, all populated
  * by {@link GridData}. The cursor's carry what the engine resolved — display
  * order, rows, and the visible data columns. `editSourceRef` is the exception,
@@ -124,6 +215,7 @@ type GridCursorRefs<T> = {
  */
 export function useGridCursor<T>({
 	navigable,
+	range,
 	editable,
 	columns,
 	onRowActivate,
@@ -138,6 +230,8 @@ export function useGridCursor<T>({
 	editSource,
 }: {
 	navigable: boolean
+	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
+	range: boolean
 	editable: GridEditableConfig | undefined
 	/** The pinned/resolved columns to augment. */
 	columns: GridColumn<T>[]
@@ -171,6 +265,8 @@ export function useGridCursor<T>({
 	navTableProps: GridNavTableProps | undefined
 	/** Re-clamps the cursor to the current bounds; the grid drives it as rows/columns change. */
 	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
+	/** Clears the cell range when the rows or the data columns change order. */
+	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	/** The augmented columns to feed the engine. */
 	columns: GridColumn<T>[]
 	/**
@@ -185,6 +281,8 @@ export function useGridCursor<T>({
 	newRow: GridNewRowPosition
 	/** One step through the undo history, for the grid's `ref` handle. */
 	stepHistory: (step: 'undo' | 'redo') => boolean
+	/** The fill of the range, for the cell context menu, or `undefined` while the grid cannot fill. */
+	fill: GridRangeFill | undefined
 } {
 	const editingEnabled = editable != null
 
@@ -243,7 +341,76 @@ export function useGridCursor<T>({
 		scrollContainerRef,
 		newRowRef,
 		rowIndexMapRef: rowIndexMapRef as RefObject<Map<unknown, number>>,
+		range: cursorEnabled && range,
 	})
+
+	const { readRange, rangeAnchor } = nav
+
+	// A copy while the tab stop has focus writes the range as TSV, or the active
+	// cell with no range. The native event needs no clipboard permission. The
+	// browser sends it to the start of the text selection, else to the body,
+	// never to a focused table, so the document hears it. A copy of selected
+	// text, or from a control in the grid, stays the browser's.
+	const copyRange = useStableEvent((event: ClipboardEvent) => {
+		const table = tableRef.current
+
+		if (!table || document.activeElement !== table || !event.clipboardData) return
+
+		if (window.getSelection()?.isCollapsed === false) return
+
+		const cells = readRange() ?? activeCells(nav.active)
+
+		if (!cells) return
+
+		event.preventDefault()
+
+		event.clipboardData.setData(
+			'text/plain',
+			toTsv(rangeText(cells, rowsRef.current, dataColumnsRef.current)),
+		)
+	})
+
+	// Speaks the size and the corners of the range once it stops changing.
+	const announceRange = useStableEvent(() => {
+		const cells = readRange()
+
+		if (!cells) return
+
+		const columns = dataColumnsRef.current
+
+		const corner = ({ row, col }: Coord) => ({
+			column: columns[col] ? columnLabel(columns[col]) : `column ${col + 1}`,
+			row: row + 1,
+		})
+
+		announce(
+			describeRange(
+				{ rows: cells.rows.length, cols: cells.cols.length },
+				corner(cells.from),
+				corner(cells.to),
+			),
+		)
+	})
+
+	const { active: rangeFocus } = nav
+
+	const copies = cursorEnabled && range
+
+	useEffect(() => {
+		if (!copies) return
+
+		document.addEventListener('copy', copyRange)
+
+		return () => document.removeEventListener('copy', copyRange)
+	}, [copies, copyRange])
+
+	useEffect(() => {
+		if (!rangeAnchor || !rangeFocus) return
+
+		const timer = setTimeout(announceRange, GRID_RANGE_ANNOUNCE_MS)
+
+		return () => clearTimeout(timer)
+	}, [rangeAnchor, rangeFocus, announceRange])
 
 	/*
 	 * One report for each cell the cursor lands on, read from the committed
@@ -390,7 +557,7 @@ export function useGridCursor<T>({
 		rowIndexMapRef,
 		colIndexMapRef,
 		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		seat: nav.seat,
 	})
 
 	const editColumns = useGridEditingColumns<T>({
@@ -400,10 +567,99 @@ export function useGridCursor<T>({
 		colIndexMapRef,
 		rowKeysRef,
 		cellId: nav.cellId,
-		moveTo: nav.moveTo,
+		seat: nav.seat,
 	})
 
-	const { session } = editing
+	const { session, pasteCells } = editing
+
+	// A paste while the tab stop has focus writes the clipboard's TSV into the
+	// range, or from the active cell with no range. As with copy, the document
+	// hears the event. A paste into an open editor stays the editor's, because
+	// the editor, not the tab stop, has focus.
+	const pasteRange = useStableEvent((event: ClipboardEvent) => {
+		const table = tableRef.current
+
+		if (!pasteCells || !table || document.activeElement !== table || !event.clipboardData) return
+
+		const cells = readRange() ?? activeCells(nav.active)
+
+		if (!cells) return
+
+		event.preventDefault()
+
+		const block = parseTsv(event.clipboardData.getData('text/plain'))
+
+		pasteCells(pasteTargets(block, cells, rowKeysRef.current, dataColumnsRef.current))
+	})
+
+	const { fillCells } = editing
+
+	// The fill of the range from its top row down, or from its first column
+	// right, bound to the range as it is now.
+	const planFill = useStableEvent((direction: GridRangeFillDirection) => {
+		const cells = readRange()
+
+		const plan = cells && rangeFillSource(cells, direction)
+
+		if (!fillCells || !plan) return null
+
+		return () => {
+			const rows = rowsRef.current
+
+			const keys = rowKeysRef.current
+
+			const columns = dataColumnsRef.current
+
+			const targets = fillPlan(plan.source, direction, plan.count, (row, col) =>
+				fillValue(rows[row], columns[col]),
+			)
+
+			fillCells(
+				targets.flatMap(({ row, col, value }) => {
+					const rowKey = keys[row]
+
+					const column = columns[col]
+
+					return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, value }]
+				}),
+			)
+		}
+	})
+
+	const fills = copies && fillCells !== undefined
+
+	// The fill of the context menu. Absent while the grid cannot fill.
+	const fill = fills ? planFill : undefined
+
+	// The fill keys act on the tab stop only. Each claims its press only when
+	// it fills, so the browser keeps the key otherwise.
+	const fillKeys = useMemo(() => {
+		if (!fills) return undefined
+
+		return (event: KeyboardEvent<HTMLTableElement>) => {
+			if (event.target !== event.currentTarget || event.defaultPrevented) return
+
+			const direction = fillKey({ ...readKeyPress(event), shiftKey: event.shiftKey })
+
+			const run = direction === null ? null : planFill(direction)
+
+			if (!run) return
+
+			event.preventDefault()
+
+			run()
+		}
+	}, [fills, planFill])
+
+	const pastes = copies && pasteCells !== undefined
+
+	useEffect(() => {
+		if (!pastes) return
+
+		document.addEventListener('paste', pasteRange)
+
+		return () => document.removeEventListener('paste', pasteRange)
+	}, [pastes, pasteRange])
 
 	// The `<table>` cursor props, with the history keys layered ahead of
 	// navigation when the history is on, and the session's keys when the grid
@@ -430,6 +686,8 @@ export function useGridCursor<T>({
 			onKeyDown: (event) => {
 				// The history keys need no grid-owned session, so they come first.
 				historyKeys?.(event)
+
+				fillKeys?.(event)
 
 				if (sessionKeys) {
 					sessionKeys(event)
@@ -460,6 +718,7 @@ export function useGridCursor<T>({
 		editing.historyKeys,
 		editing.sessionLeave,
 		sessionEntryKeys,
+		fillKeys,
 	])
 
 	const newRowSession = editing.newRow.session
@@ -481,10 +740,12 @@ export function useGridCursor<T>({
 		navStore: nav.store,
 		navTableProps,
 		reconcile: nav.reconcile,
+		settleRange: nav.settleRange,
 		columns: editingEnabled ? editColumns : navColumns,
 		editOnCellDoubleClick,
 		wrap,
 		newRow: newRowPosition,
 		stepHistory: editing.stepHistory,
+		fill,
 	}
 }

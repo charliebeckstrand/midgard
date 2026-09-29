@@ -23,10 +23,12 @@ import {
 	tryGroupMenu,
 } from './engine/grid-menu-targeting'
 import { frozenSide, normalizeFreeze } from './engine/grid-pin/overrides'
+import type { GridRangeFill } from './engine/grid-range/fill'
 import {
 	buildColumnGroupMenu,
 	cellMenuDefaults,
 	columnMenuDefaults,
+	fillItems,
 	type GridGroupByMenu,
 	type PinColumn,
 	type SortColumn,
@@ -81,6 +83,8 @@ type GridContextMenuProps<T> = {
 	chooseColumns: (() => void) | null
 	/** One action per configured export type; empty when export is off. Shared by the column menu, the cell menu, and the toolbar dropdown. */
 	exportActions: GridExportAction[]
+	/** The fill of the cell range, for the cell menu's Fill items, or `undefined` while the grid cannot fill. */
+	fill: GridRangeFill | undefined
 	/**
 	 * Resolves the group-header menu items for a right-clicked group by its key
 	 * (the group's shared value), or `null` when the row manager / grouping isn't
@@ -170,6 +174,7 @@ export function GridContextMenu<T>({
 	resetColumnWidths,
 	chooseColumns,
 	exportActions,
+	fill,
 	rowGroupMenu,
 	columnGroupMenu,
 	columnFilter,
@@ -300,7 +305,7 @@ export function GridContextMenu<T>({
 
 			const copy = () => copyText(value == null ? '' : String(value))
 
-			const defaults = cellMenuDefaults(copy, exportActions)
+			const defaults = cellMenuDefaults(copy, exportActions, fillItems(fill))
 
 			// As with columns: the context is built only for a builder function, not
 			// the boolean opt-in that takes the defaults as-is.
@@ -316,7 +321,7 @@ export function GridContextMenu<T>({
 
 			return cellMenu(context, defaults)
 		},
-		[cellMenu, columnById, rowByKey, exportActions],
+		[cellMenu, columnById, rowByKey, exportActions, fill],
 	)
 
 	// `enabled` gates every resolver (a `null` resolution leaves the native menu

@@ -55,6 +55,20 @@ export function createGatewayClient<P extends {}>() {
 export const bifrost = createGatewayClient<Paths>()
 
 /**
+ * A typed client of the gateway on the server that sends no cookies.
+ *
+ * @internal
+ * @remarks
+ * For the public reads of the gateway, such as the sign-in providers. It reads
+ * no request data, so a `"use cache"` function can call it.
+ */
+export const publicBifrost = createClient<Paths>({
+	baseUrl: BIFROST_URL,
+	// The client reads the global `fetch` at each call, not when it is made.
+	fetch: (request) => fetch(request),
+})
+
+/**
  * A gateway read that failed: a status the caller does not expect, or no answer.
  *
  * @remarks

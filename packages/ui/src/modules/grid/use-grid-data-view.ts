@@ -41,6 +41,7 @@ export function useGridDataView<T>({
 	cursorEnabled,
 	cursorNewRow,
 	reconcile,
+	settleRange,
 	virtualized,
 	onRowClick,
 	onCellClick,
@@ -72,6 +73,8 @@ export function useGridDataView<T>({
 	cursorNewRow: 'top' | 'bottom' | null
 	/** Clamps the cursor to the rendered bounds. */
 	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
+	/** Ends the cell range when the rows or the data columns change order. */
+	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	virtualized: boolean
 	tableRef: RefObject<HTMLTableElement | null>
 }) {
@@ -118,6 +121,14 @@ export function useGridDataView<T>({
 	useLayoutEffect(() => {
 		reconcile(renderRows.length, dataColumns.length, cursorNewRow)
 	}, [reconcile, cursorNewRow, renderRows.length, dataColumns.length])
+
+	// A sort, a filter, a page, or a column change moves the cells under the
+	// range. A save that gives new rows in the same order does not.
+	const dataColumnIds = useMemo(() => dataColumns.map((col) => col.id), [dataColumns])
+
+	useLayoutEffect(() => {
+		settleRange(rowKeys, dataColumnIds)
+	}, [settleRange, rowKeys, dataColumnIds])
 
 	// Visible rows drive the select-all checkbox.
 	const hasRows = renderRows.length > 0

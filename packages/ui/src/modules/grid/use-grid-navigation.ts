@@ -3,6 +3,7 @@
 import {
 	type FocusEvent,
 	type KeyboardEvent,
+	type MouseEvent,
 	type RefObject,
 	useCallback,
 	useLayoutEffect,
@@ -16,7 +17,9 @@ import { logicalArrowKey } from '../../hooks/a11y/logical-arrow'
 import { useStableEvent } from '../../hooks/use-stable-event'
 import { clamp, createEmitter, FOCUSABLE_SELECTOR } from '../../utilities'
 import { FLOATING_PORTAL, NAV_PAGE_STEP } from './engine/grid-constants'
+import { type GridRangeCells, inRangeRect, rangeCells, rangeRect } from './engine/grid-range/range'
 import type { GridCursorRow } from './grid-cursor-order'
+import { useGridRangeDrag } from './use-grid-range-drag'
 
 /**
  * Zero-based cursor position over the grid's data cells, in display order.
@@ -107,6 +110,8 @@ export type GridNavStore = {
 	subscribe: (listener: () => void) => () => void
 	/** Whether the cell at `(row, col)` is currently the active cursor cell. */
 	isActive: (row: number, col: number) => boolean
+	/** Whether the cell at `(row, col)` is in the cell range (see {@link GridDataProps.range}). */
+	isInRange: (row: number, col: number) => boolean
 	/** Whether the cursor sits on the one-stop row with this item key. */
 	isStopActive: (key: string) => boolean
 	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */
@@ -133,6 +138,7 @@ const INERT_STORE: GridNavStore = {
 	enabled: false,
 	subscribe: () => () => {},
 	isActive: () => false,
+	isInRange: () => false,
 	isStopActive: () => false,
 	stopId: (key) => key,
 	seatStop: () => {},
@@ -434,6 +440,14 @@ function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
 	event.currentTarget.focus()
 }
 
+/** The row and the column at the end of a data cell's element id (see `cellId`). @internal */
+const CELL_ID_TAIL = /cell-(\d+)-(\d+)$/
+
+/** Whether two lists hold the same items in the same order. @internal */
+function sameItems(a: readonly unknown[], b: readonly unknown[]): boolean {
+	return a.length === b.length && a.every((item, index) => Object.is(item, b[index]))
+}
+
 /**
  * The active cell of the cursor as an external store. The cells subscribe to
  * it, each to its own flag, and the event handlers read it. The hook writes it
@@ -442,6 +456,10 @@ function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
  */
 function createActiveCursor() {
 	let active: Coord | null = null
+
+	// The anchor of the cell range, a place in the cursor's order, or `null`
+	// for no range.
+	let anchor: Coord | null = null
 
 	// The count of the changes of the active cell, and the change that a cell
 	// last scrolled into view.
@@ -453,10 +471,13 @@ function createActiveCursor() {
 
 	return {
 		get: (): Coord | null => active,
-		set: (next: Coord | null) => {
+		getAnchor: (): Coord | null => anchor,
+		set: (next: Coord | null, nextAnchor: Coord | null) => {
 			if (next?.row !== active?.row || next?.col !== active?.col) changed++
 
 			active = next
+
+			anchor = nextAnchor
 
 			changes.emit()
 		},
@@ -518,6 +539,7 @@ export function useGridNavigation({
 	scrollContainerRef,
 	newRowRef,
 	rowIndexMapRef,
+	range = false,
 }: {
 	enabled: boolean
 	/** Live rendered rows; backs cursor bounds and the Enter/Space row lookup. */
@@ -543,6 +565,8 @@ export function useGridNavigation({
 	newRowRef: RefObject<GridNewRowPosition>
 	/** Live row → data index map; turns a data row of a published order into a data index. */
 	rowIndexMapRef: RefObject<Map<unknown, number>>
+	/** Whether the cursor holds a cell range (see {@link GridDataProps.range}). */
+	range?: boolean
 }): {
 	active: Coord | null
 	store: GridNavStore
@@ -550,9 +574,28 @@ export function useGridNavigation({
 	moveTo: (coord: Coord) => void
 	/** Re-clamps the active cell to the given bounds and new-row slot; the grid drives it as the data changes. */
 	reconcile: (rowCount: number, colCount: number, slot: GridNewRowPosition) => void
+	/**
+	 * Seats the cursor on a pressed data cell. With the range on, Shift extends
+	 * the range to the cell, and a press without it can start a drag.
+	 */
+	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
+	/** Moves the cursor to a data cell, and keeps the range anchor where it is. */
+	extendTo: (coord: Coord) => void
+	/** The data cell that an element id names, or `null` for another id. */
+	cellCoordOf: (id: string) => Coord | null
+	/** The anchor of the range, reactive, so a reader can follow a change of the range. */
+	rangeAnchor: Coord | null
+	/** The cells of the range at call time, or `null` for no range. */
+	readRange: () => GridRangeCells | null
+	/** Clears the range when the row keys or the data column ids change order. */
+	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	navTableProps: GridNavTableProps | undefined
 } {
 	const [active, setActive] = useState<Coord | null>(null)
+
+	// The anchor of the cell range, a place in the cursor's order, or `null` for
+	// no range. The cursor is the other corner.
+	const [anchor, setAnchor] = useState<Coord | null>(null)
 
 	// Read the row- and cell-click as stable events, so the key handler's deps
 	// stay stable when the consumer passes inline callbacks. Whether each one is
@@ -622,24 +665,55 @@ export function useGridNavigation({
 
 	const stopId = useCallback((key: string) => sub(`stop-${key}`), [sub])
 
-	useLayoutEffect(() => internal.set(active), [active, internal])
+	useLayoutEffect(() => internal.set(active, anchor), [active, anchor, internal])
+
+	// The anchor that a move with the range on keeps: the one held, else the
+	// cell the cursor leaves. A range starts only at a data cell, so a one-stop
+	// row or the new-row slot sets none.
+	const holdAnchor = useCallback(() => {
+		const from = readActive()
+
+		const seed = from && from.row !== NEW_ROW_INDEX && dataRowOf(from.row) !== -1 ? from : null
+
+		setAnchor((held) => held ?? seed)
+	}, [readActive, dataRowOf])
+
+	// The two corners of the range at call time, or `null` for no range.
+	const readCorners = useCallback(() => {
+		const from = internal.getAnchor()
+
+		const to = readActive()
+
+		if (!from || !to || to.row === NEW_ROW_INDEX) return null
+
+		return { from, to }
+	}, [internal, readActive])
 
 	// Moves the cursor to a place in its order. A one-stop row keeps the column
 	// the cursor came from, so a later step onto a data row lands in it again.
+	// A move that extends the range keeps its anchor, and any other move ends
+	// the range. With the range off, no move extends. A move to a cell that the
+	// reader points at (`shown`) needs no scroll of the window. A scroll there
+	// would fight the scroll of a drag at an edge.
 	const moveToCursor = useCallback(
-		(coord: Coord) => {
+		(coord: Coord, extend = false, shown = false) => {
 			const colCount = colCountRef.current
 
 			const row = clampRow(coord.row, count(), newRowRef.current)
 
 			if (row === null || colCount === 0) return
 
+			if (extend && range) holdAnchor()
+			else setAnchor(null)
+
 			const col = clamp(coord.col, 0, colCount - 1)
 
 			// Bring the target row into the virtualized window so its cell mounts
 			// before `aria-activedescendant` points at it; a no-op when unwindowed.
 			// The new-row slot sits outside the window, and is always mounted.
-			if (row !== NEW_ROW_INDEX) scrollRowIntoViewRef.current?.(row, orderRef.current?.[row]?.key)
+			if (row !== NEW_ROW_INDEX && !shown) {
+				scrollRowIntoViewRef.current?.(row, orderRef.current?.[row]?.key)
+			}
 
 			// A move that stays put, such as a held arrow at an edge, keeps the coord,
 			// so it commits no render.
@@ -647,7 +721,7 @@ export function useGridNavigation({
 				current && current.row === row && current.col === col ? current : { row, col },
 			)
 		},
-		[colCountRef, count, scrollRowIntoViewRef, newRowRef],
+		[colCountRef, count, scrollRowIntoViewRef, newRowRef, holdAnchor, range],
 	)
 
 	// The public move takes a data row index, as every caller outside this hook
@@ -662,6 +736,101 @@ export function useGridNavigation({
 		},
 		[cursorRowOf, moveToCursor],
 	)
+
+	// Extends the range to a data cell, as Shift with a click or a drag does. The
+	// pointer is on the cell, so the cell is in the window.
+	const extendTo = useCallback(
+		(coord: Coord) => {
+			const row = cursorRowOf(coord.row)
+
+			if (row === -1 || !range) return
+
+			moveToCursor({ row, col: coord.col }, true, true)
+		},
+		[cursorRowOf, moveToCursor, range],
+	)
+
+	const cellCoordOf = useCallback(
+		(id: string): Coord | null => {
+			const match = CELL_ID_TAIL.exec(id)
+
+			if (!match) return null
+
+			const coord = { row: Number(match[1]), col: Number(match[2]) }
+
+			// The id must be one that this grid gave, not one of a nested grid.
+			return cellId(coord.row, coord.col) === id ? coord : null
+		},
+		[cellId],
+	)
+
+	const startDrag = useGridRangeDrag({ extendTo, cellCoordOf, scrollContainerRef })
+
+	// A press on a data cell. Without the range, it only seats the cursor. With
+	// it, the grid owns the press, so the browser starts no text selection.
+	// Whether the cell at a data row and a column is inside the range.
+	const inRangeAt = useCallback(
+		(row: number, col: number) => {
+			const corners = readCorners()
+
+			if (corners === null) return false
+
+			const rect = rangeRect(corners.from, corners.to)
+
+			const place = orderRef.current ? (cursorOfDataRef.current.get(row) ?? -1) : row
+
+			return place !== -1 && inRangeRect(rect, place, col)
+		},
+		[readCorners],
+	)
+
+	const seat = useCallback(
+		(coord: Coord, event: MouseEvent<HTMLElement>) => {
+			if (!range) {
+				moveTo(coord)
+
+				return
+			}
+
+			// A press of another button, such as the one that opens the context
+			// menu, keeps a range that holds the cell, so the menu can act on it.
+			if (event.button !== 0 && inRangeAt(coord.row, coord.col)) return
+
+			event.preventDefault()
+
+			if (event.shiftKey) {
+				extendTo(coord)
+
+				return
+			}
+
+			moveTo(coord)
+
+			startDrag(event)
+		},
+		[range, moveTo, extendTo, startDrag, inRangeAt],
+	)
+
+	const readRange = useCallback((): GridRangeCells | null => {
+		const corners = readCorners()
+
+		return corners ? rangeCells(corners.from, corners.to, dataRowOf) : null
+	}, [readCorners, dataRowOf])
+
+	// The last row keys and column ids that the range saw.
+	const rangeOrderRef = useRef<{ rows: readonly unknown[]; cols: readonly unknown[] } | null>(null)
+
+	const settleRange = useCallback((rowKeys: readonly unknown[], columnIds: readonly unknown[]) => {
+		const last = rangeOrderRef.current
+
+		rangeOrderRef.current = { rows: rowKeys, cols: columnIds }
+
+		if (!last || (sameItems(last.rows, rowKeys) && sameItems(last.cols, columnIds))) return
+
+		// A sort, a filter, a page, or a column change moved the cells under the
+		// range, so its rectangle names other cells now.
+		setAnchor(null)
+	}, [])
 
 	// Records the key of each row the cursor seats on, against the order it was
 	// seated in. A later order looks the row up by that key. A new order counts
@@ -692,6 +861,9 @@ export function useGridNavigation({
 
 		setView({ order, rowIndexMap: rowIndexMapRef.current })
 
+		// A new order moves the places under the range.
+		setAnchor(null)
+
 		const seated = activeKeyRef.current
 
 		setActive((current) => reseat(current, order, seated))
@@ -712,6 +884,7 @@ export function useGridNavigation({
 
 			return data !== -1 && data === row
 		},
+		isInRange: inRangeAt,
 		isStopActive: (key) => {
 			const current = readActive()
 
@@ -814,10 +987,12 @@ export function useGridNavigation({
 			} else if (event.key === 'Escape' && readActive()) {
 				event.preventDefault()
 
-				setActive(null)
+				// The first Escape ends the range, and the next one clears the cursor.
+				if (internal.getAnchor()) setAnchor(null)
+				else setActive(null)
 			}
 		},
-		[activateOrSelectRow, dataRowOf, readActive],
+		[activateOrSelectRow, dataRowOf, readActive, internal],
 	)
 
 	const onKeyDown = useCallback(
@@ -881,7 +1056,8 @@ export function useGridNavigation({
 
 			event.preventDefault()
 
-			moveToCursor(target)
+			// Shift with a movement key extends the range, when the range is on.
+			moveToCursor(target, event.shiftKey)
 		},
 		[
 			moveToCursor,
@@ -946,6 +1122,8 @@ export function useGridNavigation({
 		if (next === null && !document.hasFocus()) return
 
 		setActive(null)
+
+		setAnchor(null)
 	}, [])
 
 	// The grid writes the row map during its render, after this hook. Under a
@@ -1001,6 +1179,12 @@ export function useGridNavigation({
 		cellId,
 		moveTo,
 		reconcile,
+		seat,
+		extendTo,
+		cellCoordOf,
+		rangeAnchor: enabled ? anchor : null,
+		readRange,
+		settleRange,
 		navTableProps,
 	}
 }

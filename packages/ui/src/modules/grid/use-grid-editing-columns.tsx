@@ -1,6 +1,12 @@
 'use client'
 
-import { type ComponentProps, type ReactNode, type RefObject, useMemo } from 'react'
+import {
+	type ComponentProps,
+	type MouseEvent,
+	type ReactNode,
+	type RefObject,
+	useMemo,
+} from 'react'
 import { cn } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
@@ -33,7 +39,7 @@ export function useGridEditingColumns<T>({
 	colIndexMapRef,
 	rowKeysRef,
 	cellId,
-	moveTo,
+	seat,
 }: {
 	enabled: boolean
 	columns: GridColumn<T>[]
@@ -44,7 +50,8 @@ export function useGridEditingColumns<T>({
 	/** Live display-order row keys; resolves a cell's row key for the open-editor test. */
 	rowKeysRef: RefObject<(string | number)[]>
 	cellId: (row: number, col: number) => string
-	moveTo: (coord: Coord) => void
+	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
+	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
 }): GridColumn<T>[] {
 	return useMemo(() => {
 		if (!enabled) return columns
@@ -84,7 +91,7 @@ export function useGridEditingColumns<T>({
 					)
 
 			const cellPropsAt = (row: T, rowIdx: number): ComponentProps<'td'> =>
-				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, moveTo, extra })
+				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, seat, extra })
 
 			return {
 				...col,
@@ -95,5 +102,5 @@ export function useGridEditingColumns<T>({
 				cell: (row: T) => cellAt(row, indexOf(row)),
 			}
 		})
-	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, moveTo])
+	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, rowKeysRef, cellId, seat])
 }

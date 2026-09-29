@@ -105,10 +105,10 @@ function forRow(row: string | undefined): string {
 }
 
 /**
- * What a save did to its cells: a save updates them, an undo undoes them, and
- * a redo redoes them. @internal
+ * What a save did to its cells: a save updates them, an undo undoes them, a
+ * redo redoes them, a paste pastes them, and a fill fills them. @internal
  */
-export type GridSaveOutcome = 'updated' | 'undone' | 'redone'
+export type GridSaveOutcome = 'updated' | 'undone' | 'redone' | 'pasted' | 'filled'
 
 /**
  * The polite announcement for an inline-edit commit, narrated when staged cells
@@ -206,4 +206,49 @@ export function describeRowAdd(refused: number): string {
 	if (refused === 0) return 'Row added'
 
 	return `Row not added, ${refused} ${refused === 1 ? 'cell' : 'cells'} refused`
+}
+
+/** A count with its noun, singular for one. */
+function counted(count: number, noun: string): string {
+	return `${count} ${noun}${count === 1 ? '' : 's'}`
+}
+
+/**
+ * The polite announcement for a write of many cells at once, such as a paste
+ * (WCAG 4.1.3). It reads as {@link describeCommit}, and adds the count of the
+ * cells that the write skipped: `12 cells pasted, 2 skipped`. With no saved
+ * cell, it gives the skipped count alone (`2 cells skipped`). With nothing to
+ * say, it returns `null`. @internal
+ */
+export function describeWrite(
+	columns: readonly string[],
+	row: string | undefined,
+	outcome: GridSaveOutcome,
+	skipped: number,
+): string | null {
+	if (columns.length === 0) return skipped > 0 ? `${counted(skipped, 'cell')} skipped` : null
+
+	const saved = describeCommit(columns, row, outcome)
+
+	return skipped > 0 ? `${saved}, ${skipped} skipped` : saved
+}
+
+/**
+ * The polite announcement for a cell range (WCAG 4.1.3). It gives the size
+ * of the range and its two corners, the anchor first:
+ * `Range of 3 rows and 2 columns, Name row 2 to Status row 4`.
+ *
+ * @param size - The count of data rows and of columns in the range.
+ * @param from - The column label and the row number of the anchor.
+ * @param to - The column label and the row number of the cursor.
+ * @internal
+ */
+export function describeRange(
+	size: { rows: number; cols: number },
+	from: { column: string; row: number },
+	to: { column: string; row: number },
+): string {
+	const extent = `Range of ${counted(size.rows, 'row')} and ${counted(size.cols, 'column')}`
+
+	return `${extent}, ${from.column} row ${from.row} to ${to.column} row ${to.row}`
 }

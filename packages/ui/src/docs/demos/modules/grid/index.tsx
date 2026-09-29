@@ -28,6 +28,7 @@ import {
 	EditorTypesExample,
 	HistoryExample,
 	NewRowExample,
+	PasteExample,
 } from './editable'
 import { ServerGroupingExample } from './server-grouping'
 
@@ -606,6 +607,13 @@ const DoubleClickExample = () => {
 		</Stack>
 	)
 }
+
+// Shift with an arrow key or a click extends the range from the cursor, and a
+// drag makes one. Ctrl/Cmd+C copies it as TSV, which a spreadsheet pastes as
+// cells. Escape ends the range.
+const RangeExample = () => (
+	<Grid navigable range columns={columns} rows={people} getKey={(row) => row.id} />
+)
 
 const ErrorExample = () => {
 	// `error` shows in place of the body — for a failed fetch — taking precedence
@@ -1483,6 +1491,10 @@ export function Demo() {
 						>
 							<DoubleClickExample />
 						</Example>
+
+						<Example title="Cell range" code={code`<Grid navigable range />`}>
+							<RangeExample />
+						</Example>
 					</Stack>
 				</TabContent>
 
@@ -1854,6 +1866,13 @@ export function Demo() {
 							code={code`<Grid ref={grid} editable={{ session: 'managed', scope: 'cell', history: true, onHistoryChange, onCommit }} />`}
 						>
 							<HistoryExample />
+						</Example>
+
+						<Example
+							title="Paste and fill"
+							code={code`<Grid range contextMenu={{ cell: true }} editable={{ session: 'managed', history: true, onCommit }} />`}
+						>
+							<PasteExample />
 						</Example>
 
 						<Example
