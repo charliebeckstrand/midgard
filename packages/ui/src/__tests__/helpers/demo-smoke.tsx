@@ -1,6 +1,7 @@
 import { act, cleanup, render } from '@testing-library/react'
 import { configureAxe } from 'jest-axe'
 import { describe, expect, it, onTestFinished, vi } from 'vitest'
+import { maxDepth } from '../../core/density/rungs'
 import { AppearanceProvider } from '../../providers/appearance'
 import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './demo-pages'
 
@@ -10,7 +11,8 @@ import { type DemoPage, demoPages, restoreRootAfterCase, visitTabs } from './dem
 //
 // It renders each page and opens each tab. A page fails when it throws, when it
 // writes to `console.error` or `console.warn`, or when a curated set of axe
-// rules finds a violation in any state that it shows. `demo-coverage.test.ts`
+// rules finds a violation in any state that it shows, or when a state nests
+// more density scopes than the rungs rank (`maxDepth`). `demo-coverage.test.ts`
 // asks whether a page exists, and the snippet gate (`demo-snippets.tsx`) reads
 // its "Show code" blocks. This test is the one that asks whether the page works.
 //
@@ -80,6 +82,37 @@ function captureConsole(): string[] {
 	return logged
 }
 
+/** The name of a scope in a chain: its tag, its step, and its `data-slot`. */
+function scopeName(element: Element): string {
+	const slot = element.getAttribute('data-slot')
+
+	return `${element.localName}[${element.getAttribute('data-density')}]${slot ? `{${slot}}` : ''}`
+}
+
+/**
+ * The longest chain of density scopes in the document, outermost first. The
+ * root element is the scope of the app, and it does not count as a depth.
+ */
+function deepestScopeChain(): Element[] {
+	let deepest: Element[] = []
+
+	for (const element of document.body.querySelectorAll('[data-density]')) {
+		const chain: Element[] = []
+
+		for (
+			let node: Element | null = element;
+			node && node !== document.documentElement;
+			node = node.parentElement
+		) {
+			if (node.hasAttribute('data-density')) chain.unshift(node)
+		}
+
+		if (chain.length > deepest.length) deepest = chain
+	}
+
+	return deepest
+}
+
 /**
  * Registers a smoke case for each page of `pages`, and the check of the page
  * names in `KNOWN_FAILURES` against all the pages.
@@ -105,7 +138,13 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 
 				const violations = new Map<string, Set<Element>>()
 
+				let deepest: Element[] = []
+
 				await visitTabs(container, async () => {
+					const chain = deepestScopeChain()
+
+					if (chain.length > deepest.length) deepest = chain
+
 					// A demo is a live page. Its timers and effects update it while axe
 					// runs, so the run goes inside `act`.
 					const results = await act(() => axe(document.body))
@@ -122,6 +161,8 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 					}
 				})
 
+				const scopes = deepest.map(scopeName)
+
 				cleanup()
 
 				const found = Object.fromEntries(
@@ -131,6 +172,8 @@ export function describeDemoSmoke(pages: readonly DemoPage[]): void {
 				expect(logged).toEqual([])
 
 				expect(found).toEqual(knownFailuresOf(page))
+
+				expect(scopes.length, `${page} nests ${scopes.join(' > ')}`).toBeLessThanOrEqual(maxDepth)
 			},
 		)
 
