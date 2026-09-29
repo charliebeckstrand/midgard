@@ -693,7 +693,9 @@ function historyOutcome(step: GridHistoryStep): GridSaveOutcome {
  *
  * @remarks A history step is the one caller today. It writes a value that was
  * valid, so no `validate` runs, and it moved its history entry when it was
- * taken, so the saved cells carry no history.
+ * taken, so the saved cells record no history. The step passes its cells as
+ * `history`, and each batch keeps the cells of its row, so a refusal can put
+ * them back.
  *
  * @internal
  */
@@ -703,8 +705,11 @@ function sendCells<T>(args: {
 	source: GridEditSource<T>
 	rowOf: (rowKey: string | number) => T | undefined
 	onCommit: CommitSink | undefined
+	history?: readonly GridHistoryCell[]
 }): { saved: SavedCells; inFlight: InFlightBatch[] } {
 	const { outcome, source, rowOf, onCommit } = args
+
+	const historyRows = byRow(args.history ?? [])
 
 	const columns: string[] = []
 
@@ -746,7 +751,15 @@ function sendCells<T>(args: {
 
 		inFlight.push(
 			inFlightBatch(
-				{ rowKey, rowDrafts, changes, result, row: name, outcome, history: cells },
+				{
+					rowKey,
+					rowDrafts,
+					changes,
+					result,
+					row: name,
+					outcome,
+					history: historyRows.get(rowKey) ?? [],
+				},
 				source,
 			),
 		)
@@ -2572,12 +2585,14 @@ export function useGridEditing<T>({
 	// Sends a batch of changes that no session staged through the sink, and
 	// announces and tracks it as the commit sweep does. A history step is the
 	// one caller today. `rowOf` reads the live rows, so a caller that already
-	// indexed them passes its own.
+	// indexed them passes its own. A step passes its history cells, so a
+	// refused batch puts them back.
 	const submitCells = useCallback(
 		(
 			changes: readonly GridCellChange[],
 			outcome: GridSaveOutcome,
 			rowOf: (rowKey: string | number) => T | undefined,
+			history?: readonly GridHistoryCell[],
 		) => {
 			const { saved, inFlight } = sendCells({
 				changes,
@@ -2585,6 +2600,7 @@ export function useGridEditing<T>({
 				source: editSourceRef.current,
 				rowOf,
 				onCommit: hasCommit ? sendCommit : undefined,
+				history,
 			})
 
 			if (saved.columns.length > 0) announce(describeCommit(saved.columns, saved.row, outcome))
@@ -2639,7 +2655,7 @@ export function useGridEditing<T>({
 				value: historyValue(cell, step),
 			}))
 
-			submitCells(changes, historyOutcome(step), rowOf)
+			submitCells(changes, historyOutcome(step), rowOf, cells)
 
 			if (moveCursor) moveToCell(cells[0])
 
