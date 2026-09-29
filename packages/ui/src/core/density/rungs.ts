@@ -34,8 +34,13 @@ import { type DensityStep, densitySteps, stepDown } from './steps'
 /** A CSS rule in the object form of the plugin API. */
 export type CssInJs = { [key: string]: string | CssInJs }
 
-/** The deepest nesting that the rungs rank. When more scopes nest, an outer scope can win. */
-const maxDepth = 6
+/**
+ * The deepest nesting that the rungs rank. When more scopes nest, an outer
+ * scope can win. The output grows with the square of this value. The apps nest
+ * one scope deep and the docs site two, so 3 keeps one depth free. The demo
+ * smoke test fails when a docs page nests deeper.
+ */
+export const maxDepth = 3
 
 /** Excludes the root element, which is the scope of the app and ranks below each depth. */
 const notRoot = ':not(:root)'

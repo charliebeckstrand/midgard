@@ -23,6 +23,7 @@ import { Switch } from '../../components/switch'
 import { Table, TableBody, TableCell, TableRow } from '../../components/table'
 import { Tab, TabList, Tabs } from '../../components/tabs'
 import { Tree, TreeItem } from '../../components/tree'
+import { maxDepth } from '../../core/density/rungs'
 import { SidebarLayout } from '../../layouts/sidebar'
 import { ChatListItem } from '../../modules/chat'
 import { Grid } from '../../modules/grid'
@@ -90,23 +91,19 @@ describe('the root scope (real browser)', () => {
 	it('keeps each ranked depth for the scopes under it', () => {
 		document.documentElement.setAttribute('data-density', 'lg')
 
-		// Six scopes under the root: the ranked maximum. If the root took a depth, the fifth card
-		// would tie with the sixth at the last depth, and the later `lg` rule would win.
-		const { container } = renderUI(
-			<Card size="lg">
-				<Card size="lg">
-					<Card size="lg">
-						<Card size="lg">
-							<Card size="lg">
-								<Card size="sm">
-									<Badge>x</Badge>
-								</Card>
-							</Card>
-						</Card>
-					</Card>
+		// The ranked maximum of scopes under the root: `lg` cards around one `sm` card. If the root
+		// took a depth, the last `lg` card would tie with the `sm` card at the last depth, and the
+		// later `lg` rule would win.
+		const nest = (depth: number): ReactElement =>
+			depth === 1 ? (
+				<Card size="sm">
+					<Badge>x</Badge>
 				</Card>
-			</Card>,
-		)
+			) : (
+				<Card size="lg">{nest(depth - 1)}</Card>
+			)
+
+		const { container } = renderUI(nest(maxDepth))
 
 		expect(badgeFont(container, 'x')).toBe(BADGE_FONT_PX.sm)
 	})
