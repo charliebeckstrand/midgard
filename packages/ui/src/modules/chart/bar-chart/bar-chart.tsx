@@ -268,16 +268,7 @@ export function BarChart<T>(props: BarChartProps<T>) {
 			)}
 
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
-			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				y2Scale={chart.y2Scale}
-				reference={reference}
-				orientation={chart.orientation}
-				format={chart.formatAxisValue}
-				animate={animate}
-				hidden={chart.referenceHidden}
-			/>
+			<ChartReferenceLines chart={chart} reference={reference} animate={animate} />
 		</ChartCartesianFrame>
 	)
 }

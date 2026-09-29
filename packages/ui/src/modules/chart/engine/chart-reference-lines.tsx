@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { useEffect, useRef } from 'react'
+import { type ReactNode, useEffect, useRef } from 'react'
 import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/tooltip'
 import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
@@ -10,6 +10,7 @@ import { keyByOccurrence } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import {
 	type ChartColor,
+	type ChartPaint,
 	fillClass,
 	rawColor,
 	resolvePaint,
@@ -17,10 +18,11 @@ import {
 	textClass,
 } from './chart-color/paint'
 import { REFERENCE_DASH, REFERENCE_HIT_WIDTH, REFERENCE_STROKE_WIDTH } from './chart-constants'
+import { LABEL_HEIGHT, LABEL_OFFSET, labelBesideY } from './chart-geometry/label'
 import type { PlotRect } from './chart-layout'
 import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
-import { bandExtent, type ChartOrientation, project, type Vec } from './chart-orientation'
+import { bandExtent, type ChartOrientation, project } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
 import { useChartEmphasis, useChartReferencePoint, useChartTier } from './context'
 
@@ -70,23 +72,40 @@ type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 /** The neutral de-emphasis slot a reference takes until colored. @internal */
 const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
 
-/** Props for {@link ChartReferenceLines}. @internal */
-export type ChartReferenceLinesProps = {
+/**
+ * The part of a cartesian chart that its reference rules read: the plot, the
+ * value scales, the facing, the formatter, and the position and the legend state
+ * of each rule.
+ *
+ * @internal
+ */
+export type ChartReferenceFrame = {
 	plot: PlotRect
 	/** The resolved primary value scale, or `null` before a domain resolves. */
-	scale: LinearScale | null
-	/** The secondary scale, for rules bound to `y2`; a rule whose scale is `null` draws nothing. */
-	y2Scale?: LinearScale | null
-	/** The reference lines to draw, or none; non-finite values are skipped. */
-	reference: ChartReferenceLine[] | undefined
+	yScale: LinearScale | null
+	/** The secondary scale, for rules bound to `y2`. */
+	y2Scale: LinearScale | null
 	/**
-	 * Which way the value axis runs — vertical draws horizontal rules, horizontal
-	 * draws vertical ones, mirroring {@link ChartGridLines}.
-	 * @defaultValue 'vertical'
+	 * Which way the value axis runs. A vertical chart draws horizontal rules, and a
+	 * horizontal chart draws vertical ones, as {@link ChartGridLines} does.
 	 */
-	orientation?: ChartOrientation
-	/** Formats each rule's tooltip value with its axis's formatter. */
-	format: ReferenceFormat
+	orientation: ChartOrientation
+	/** Formats each rule's value with the formatter of its axis. */
+	formatAxisValue: ReferenceFormat
+	/**
+	 * The value-axis position of each rule, aligned with the `reference` prop.
+	 * `null` where the rule draws nothing: a non-finite value, a scale that did not
+	 * resolve, or a rule toggled off through its legend chip.
+	 */
+	referencePositions: (number | null)[]
+}
+
+/** Props for {@link ChartReferenceLines}. @internal */
+export type ChartReferenceLinesProps = {
+	/** The chart that the rules annotate. */
+	chart: ChartReferenceFrame
+	/** The reference lines to draw, or none. */
+	reference: ChartReferenceLine[] | undefined
 	/**
 	 * Reveal each rule on mount by sliding it in along the value axis, from the
 	 * baseline to its value. It slides in the direction the value points, on the
@@ -100,17 +119,26 @@ export type ChartReferenceLinesProps = {
 	 * Draw a standing label at each rule's far end — the `labels.references`
 	 * mode — in place of the hover tooltip. The label shows the rule's own label
 	 * when it has one, else the rule's value. The rules then shed their pointer
-	 * target and float no surface. The caller also drops their
-	 * keyboard stop, since the label reads the value where pointing once did.
+	 * target and float no surface. The caller also drops their keyboard stop
+	 * ({@link referenceStops}), since the label reads the value where pointing
+	 * once did.
 	 * @defaultValue false
 	 */
 	labels?: boolean
-	/**
-	 * Reference indexes toggled off through their legend chips. Their rules draw
-	 * nothing, holding their slot so a shown rule still keys its emphasis off its
-	 * own `reference` index. Empty by default.
-	 */
-	hidden?: ReadonlySet<number>
+}
+
+/**
+ * The keyboard stops of the reference rules, or none when `labels.references`
+ * draws their values beside them. A labeled rule reads its value without the
+ * rove, so it leaves the value-axis roving as it leaves the hover tooltip.
+ *
+ * @internal
+ */
+export function referenceStops(
+	labels: boolean | undefined,
+	positions: (number | null)[],
+): (number | null)[] | undefined {
+	return labels ? undefined : positions
 }
 
 /** Props for {@link ReferenceRule}. @internal */
@@ -118,8 +146,10 @@ type ReferenceRuleProps = {
 	line: ChartReferenceLine
 	/** The rule's position in the `reference` array — its identity to the keyboard emphasis. */
 	index: number
-	start: Vec
-	end: Vec
+	/** The rule's paint, resolved once for the stroke, the label, and the tooltip swatch. */
+	paint: ChartPaint
+	/** The two endpoints of the drawn rule. */
+	points: RulePoints
 	orientation: ChartOrientation
 	format: (value: number) => string
 	/** The mount slide-in transform from {@link referenceRise}, or `null` when the chart is static. */
@@ -134,58 +164,42 @@ type ReferenceRuleProps = {
 	labels: boolean
 }
 
-/** Gap from a rule to its far-end label, and the label's collision height for the near-edge flip. @internal */
-const REFERENCE_LABEL_OFFSET = 8
-const REFERENCE_LABEL_HEIGHT = 13
-const REFERENCE_LABEL_HALF = REFERENCE_LABEL_HEIGHT / 2
-
-/** The standing reference label's ink: small, semibold, tabular, in the rule's color. @internal */
-const REFERENCE_LABEL_INK = 'text-xs font-semibold tabular-nums'
-
 /** A resolved reference-label anchor: where its text sits and how it aligns. @internal */
 type ReferenceLabelAnchor = { x: number; y: number; textAnchor: 'end' | 'middle' }
 
 /**
  * Where a rule's standing label sits, clear of the dashes. In a vertical chart,
- * the label sits above the rule's right end. It flips below when the value
- * crowds the top edge. In a horizontal chart, the label sits at the top of the
- * rule. @internal
+ * the label sits above the rule's right end, and flips below where the value
+ * crowds the top edge: the flip that the value labels use. In a horizontal
+ * chart, the label hangs below the top of the rule. @internal
  */
 function referenceLabelAnchor(
 	orientation: ChartOrientation,
-	end: Vec,
+	points: RulePoints,
 	plot: PlotRect,
 ): ReferenceLabelAnchor {
 	if (orientation === 'vertical') {
-		const above = end.y - REFERENCE_LABEL_OFFSET - REFERENCE_LABEL_HEIGHT >= plot.y
-
-		return {
-			x: end.x,
-			y: above
-				? end.y - REFERENCE_LABEL_OFFSET - REFERENCE_LABEL_HALF
-				: end.y + REFERENCE_LABEL_OFFSET + REFERENCE_LABEL_HALF,
-			textAnchor: 'end',
-		}
+		return { x: points.x2, y: labelBesideY(points.y2, plot, true), textAnchor: 'end' }
 	}
 
-	return {
-		x: end.x,
-		y: plot.y + REFERENCE_LABEL_OFFSET + REFERENCE_LABEL_HALF,
-		textAnchor: 'middle',
-	}
+	return { x: points.x2, y: plot.y + LABEL_OFFSET + LABEL_HEIGHT / 2, textAnchor: 'middle' }
 }
 
 /** The two endpoints of a rule's drawn line, in `viewBox` user units. @internal */
 type RulePoints = { x1: number; y1: number; x2: number; y2: number }
 
 /**
- * The dashed value-axis rule itself, shared by the hover and labeled
- * renderings: a named slot's stroke class, or a raw hex / `oklch()` color
- * inline. Never takes the pointer — the hover rendering lays its own transparent
- * hit line over this. @internal
+ * The dashed value-axis rule itself, shared by the three renderings: a named
+ * slot's stroke class, or a raw hex / `oklch()` color inline. Never takes the
+ * pointer — the hover rendering lays its own transparent hit line over this.
+ * @internal
  */
-function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; points: RulePoints }) {
-	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
+function ReferenceRuleStroke({
+	line,
+	paint,
+	points,
+}: Pick<ReferenceRuleProps, 'line' | 'paint' | 'points'>) {
+	const color = rawColor(paint)
 
 	return (
 		<line
@@ -193,9 +207,24 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
 			strokeWidth={REFERENCE_STROKE_WIDTH}
 			strokeDasharray={line.dashed === false ? undefined : REFERENCE_DASH}
 			className={strokeClass(paint)}
-			style={rawColor(paint) ? { stroke: rawColor(paint) } : undefined}
+			style={color ? { stroke: color } : undefined}
 			pointerEvents="none"
 		/>
+	)
+}
+
+/**
+ * The mount slide-in of a rule: its content in a `motion.g` that rises from the
+ * baseline, or the content as is on a static chart. The rule, its hit line, and
+ * its label ride it as one. @internal
+ */
+function RuleRise({ rise, children }: { rise: ReferenceRuleProps['rise']; children: ReactNode }) {
+	return rise ? (
+		<motion.g {...rise} transition={REFERENCE_RISE}>
+			{children}
+		</motion.g>
+	) : (
+		children
 	)
 }
 
@@ -212,8 +241,8 @@ function ReferenceRuleStroke({ line, points }: { line: ChartReferenceLine; point
 function LabeledReferenceRule({
 	line,
 	index,
-	start,
-	end,
+	paint,
+	points,
 	orientation,
 	format,
 	rise,
@@ -221,36 +250,13 @@ function LabeledReferenceRule({
 }: ReferenceRuleProps) {
 	const { emphasizedReference } = useChartEmphasis()
 
-	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
+	const anchor = referenceLabelAnchor(orientation, points, plot)
 
-	const anchor = referenceLabelAnchor(orientation, end, plot)
-
-	const valueText = format(line.value)
+	const color = rawColor(paint)
 
 	// A standing rule has no hover target of its own, but a legend chip's emphasis
 	// still recedes the siblings of the rule it names, label and all.
 	const receded = emphasizedReference !== null && emphasizedReference !== index
-
-	const body = (
-		<>
-			<ReferenceRuleStroke
-				line={line}
-				points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }}
-			/>
-
-			<text
-				data-slot="chart-reference-label"
-				x={anchor.x}
-				y={anchor.y}
-				textAnchor={anchor.textAnchor}
-				dominantBaseline="central"
-				className={cn(REFERENCE_LABEL_INK, fillClass(paint))}
-				style={rawColor(paint) ? { fill: rawColor(paint) } : undefined}
-			>
-				{line.label ? line.label : valueText}
-			</text>
-		</>
-	)
 
 	return (
 		<g
@@ -258,13 +264,21 @@ function LabeledReferenceRule({
 			pointerEvents="none"
 			className={cn('transition-opacity', receded && 'opacity-25')}
 		>
-			{rise ? (
-				<motion.g {...rise} transition={REFERENCE_RISE}>
-					{body}
-				</motion.g>
-			) : (
-				body
-			)}
+			<RuleRise rise={rise}>
+				<ReferenceRuleStroke line={line} paint={paint} points={points} />
+
+				<text
+					data-slot="chart-reference-label"
+					x={anchor.x}
+					y={anchor.y}
+					textAnchor={anchor.textAnchor}
+					dominantBaseline="central"
+					className={cn(k.markLabel, fillClass(paint))}
+					style={color ? { fill: color } : undefined}
+				>
+					{line.label || format(line.value)}
+				</text>
+			</RuleRise>
 		</g>
 	)
 }
@@ -285,8 +299,8 @@ function LabeledReferenceRule({
 function HoverReferenceRule({
 	line,
 	index,
-	start,
-	end,
+	paint,
+	points,
 	orientation,
 	format,
 	rise,
@@ -308,30 +322,13 @@ function HoverReferenceRule({
 		[setReferenceActive],
 	)
 
-	const paint = resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)
-
-	const points: RulePoints = { x1: start.x, y1: start.y, x2: end.x, y2: end.y }
+	const color = rawColor(paint)
 
 	const focused = activeReference === index
 
 	// Another rule holds the emphasis: this one recedes to it, the way the data
 	// marks do, so pointing one rule reads it clear of the rest.
 	const receded = emphasizedReference !== null && emphasizedReference !== index
-
-	// The drawn rule over its wide transparent hover target; the pair reveals as
-	// one, so the hit line rises with the rule it stands in for.
-	const rules = (
-		<>
-			<ReferenceRuleStroke line={line} points={points} />
-
-			<line
-				{...points}
-				stroke="transparent"
-				strokeWidth={REFERENCE_HIT_WIDTH}
-				pointerEvents="stroke"
-			/>
-		</>
-	)
 
 	return (
 		<Tooltip placement={orientation === 'vertical' ? 'top' : 'right'} delay={0} open={focused}>
@@ -353,13 +350,18 @@ function HoverReferenceRule({
 						setReferenceActive(null)
 					}}
 				>
-					{rise ? (
-						<motion.g {...rise} transition={REFERENCE_RISE}>
-							{rules}
-						</motion.g>
-					) : (
-						rules
-					)}
+					{/* The drawn rule over its wide transparent hover target; the pair
+					    reveals as one, so the hit line rises with the rule it stands in for. */}
+					<RuleRise rise={rise}>
+						<ReferenceRuleStroke line={line} paint={paint} points={points} />
+
+						<line
+							{...points}
+							stroke="transparent"
+							strokeWidth={REFERENCE_HIT_WIDTH}
+							pointerEvents="stroke"
+						/>
+					</RuleRise>
 				</g>
 			</TooltipTrigger>
 
@@ -371,7 +373,7 @@ function HoverReferenceRule({
 							'inline-block h-[2px] w-3 rounded-full',
 							textClass(paint) && cn(textClass(paint), 'bg-current'),
 						)}
-						style={rawColor(paint) ? { backgroundColor: rawColor(paint) } : undefined}
+						style={color ? { backgroundColor: color } : undefined}
 					/>
 
 					<span className={cn(k.value)}>{format(line.value)}</span>
@@ -391,20 +393,12 @@ function HoverReferenceRule({
  *
  * @internal
  */
-function SparkReferenceRule({ line, start, end, rise }: ReferenceRuleProps) {
-	const body = (
-		<ReferenceRuleStroke line={line} points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }} />
-	)
-
+function SparkReferenceRule({ line, paint, points, rise }: ReferenceRuleProps) {
 	return (
 		<g data-slot="chart-reference-line" pointerEvents="none">
-			{rise ? (
-				<motion.g {...rise} transition={REFERENCE_RISE}>
-					{body}
-				</motion.g>
-			) : (
-				body
-			)}
+			<RuleRise rise={rise}>
+				<ReferenceRuleStroke line={line} paint={paint} points={points} />
+			</RuleRise>
 		</g>
 	)
 }
@@ -431,10 +425,11 @@ function ReferenceRule(props: ReferenceRuleProps) {
 }
 
 /**
- * Reference lines at fixed values, drawn across the band axis. They take the
- * same value→project→draw path as {@link ChartGridLines}, but on a raw domain
- * value and over the marks instead of under them. A target or threshold
- * therefore reads against the data, rather than hiding behind it. Each rule
+ * Reference lines at fixed values, drawn across the band axis. Each rule sits at
+ * the value-axis position that the chart projected for it, as a grid line of
+ * {@link ChartGridLines} does, but over the marks instead of under them. A
+ * target or threshold therefore reads against the data, rather than hiding
+ * behind it. Each rule
  * floats its value and label from a {@link Tooltip} on hover, or — under
  * `labels` — carries them in a standing label at its far end.
  *
@@ -452,28 +447,16 @@ function ReferenceRule(props: ReferenceRuleProps) {
  * @internal
  */
 export function ChartReferenceLines({
-	plot,
-	scale,
-	y2Scale = null,
+	chart,
 	reference,
-	orientation = 'vertical',
-	format,
 	animate = false,
 	labels = false,
-	hidden,
 }: ChartReferenceLinesProps) {
-	if ((!scale && !y2Scale) || !reference || reference.length === 0) return null
+	if ((!chart.yScale && !chart.y2Scale) || !reference || reference.length === 0) return null
+
+	const { plot, orientation, referencePositions } = chart
 
 	const [from, to] = bandExtent(orientation, plot)
-
-	// The zero line each rule reveals from — the same baseline the bars grow from,
-	// on the rule's own axis. `map` already clamps its output into the scale's
-	// range (the value extent), so zero lands on the plot even off-domain
-	// without a second clamp. Revealing from here points every rule the way its
-	// value does: up from zero for a value above it, down for one below, transposed
-	// to right / left when horizontal, so a rule animates like the bar that would
-	// reach it.
-	const baselineOf = (ruleScale: LinearScale) => ruleScale.map(0)
 
 	const keys = ruleKeys(reference)
 
@@ -482,24 +465,35 @@ export function ChartReferenceLines({
 			{reference.map((line, index) => {
 				const axis = line.axis ?? 'y'
 
-				const ruleScale = axis === 'y2' ? y2Scale : scale
+				const ruleScale = axis === 'y2' ? chart.y2Scale : chart.yScale
 
-				// A rule toggled off through its chip draws nothing but keeps its slot, so
-				// a shown rule's emphasis still keys off its own `reference` index.
-				if (!ruleScale || !Number.isFinite(line.value) || hidden?.has(index)) return null
+				// The chart projected each rule once. A rule it holds `null` for draws
+				// nothing, but keeps its slot, so a shown rule's emphasis still keys off
+				// its own `reference` index.
+				const at = referencePositions[index] ?? null
 
-				const at = ruleScale.map(line.value)
+				if (!ruleScale || at === null) return null
+
+				const start = project(orientation, at, from)
+
+				const end = project(orientation, at, to)
+
+				// The zero line each rule reveals from: the baseline the bars grow from,
+				// on the rule's own axis. `map` clamps into the scale's range, so zero
+				// lands on the plot even off-domain. Revealing from here points every
+				// rule the way its value does, as the bar that would reach it grows.
+				const rise = animate ? referenceRise(orientation, ruleScale.map(0) - at) : null
 
 				return (
 					<ReferenceRule
 						key={keys[index]}
 						line={line}
 						index={index}
-						start={project(orientation, at, from)}
-						end={project(orientation, at, to)}
+						paint={resolvePaint(line.color ?? DEFAULT_REFERENCE_COLOR)}
+						points={{ x1: start.x, y1: start.y, x2: end.x, y2: end.y }}
 						orientation={orientation}
-						format={(value) => format(value, axis)}
-						rise={animate ? referenceRise(orientation, baselineOf(ruleScale) - at) : null}
+						format={(value) => chart.formatAxisValue(value, axis)}
+						rise={rise}
 						plot={plot}
 						labels={labels}
 					/>

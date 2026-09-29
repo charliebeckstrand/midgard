@@ -1,14 +1,14 @@
 'use client'
 
-import { AnimatePresence, motion } from 'motion/react'
+import { motion } from 'motion/react'
 import { cn } from '../../../core'
-import { usePrefersReducedMotion } from '../../../hooks/use-prefers-reduced-motion'
-import { ReducedMotion } from '../../../primitives/reduced-motion'
+import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
-import { TICK_CHAR_WIDTH } from './chart-constants'
+import { type PlacedValueLabel, resolveValueLabels } from './chart-geometry/label'
 import type { PlotRect } from './chart-layout'
-import { POINT_POP, POINT_UNPOP, STATIC_GENERATION } from './chart-motion'
+import { ChartGeneration } from './chart-marks/layer'
+import { POINT_POP, POINT_UNPOP } from './chart-motion'
 import { useChartTier } from './context'
 
 /**
@@ -50,461 +50,137 @@ export type ChartValueLabelConfig = {
 	references?: boolean
 }
 
-/**
- * Selective value labels for a line-bearing chart's single series: direct
- * labels at its endpoints (first / last point) and extremes (min / max). A
- * reader therefore gets the numbers without the tooltip. The chart layer only
- * feeds this a lone series. A multi-series plot would crowd its labels between
- * lines with no reliable place to put them. Those charts fall back to the
- * tooltip (see {@link resolveValueLabels}). Placement measures every label
- * first, and keeps each centered on its own point. One that would overshoot the
- * top or bottom flips to the point's other side, still pinned to its mark. One
- * that would have to slide sideways to fit the plot hides instead, since a slid
- * label lands on the neighboring marks. Overlaps resolve by priority: extremes
- * outrank endpoints, and a label whose box meets one already placed is dropped
- * rather than stacked. The placement is pure and unit-testable; the
- * `ChartValueLabels` component at the foot only draws the result.
- */
-
-/** Gap from a point to its label, the label's collision height, and its box padding. @internal */
-const OFFSET = 8
-const HEIGHT = 13
-const PAD = 3
-const HALF = HEIGHT / 2
-
-/**
- * The value-axis room a chart reserves past its data extremes for the labels:
- * the label's footprint plus slack. That footprint is its offset from the point
- * plus its height, exactly the threshold {@link place} flips a clipping label
- * at. The reserved gap therefore sits safely past that threshold, rather than
- * exactly on it. A reservation that only met the threshold would leave every
- * extreme's label on the flip boundary. A resize would dance it across — above,
- * below, above — landing it on the line each time it flips. @internal
- */
-const VALUE_LABEL_HEADROOM = OFFSET + HEIGHT + 4
-
-/**
- * The headroom a chart passes for its point value labels. It is the
- * {@link VALUE_LABEL_HEADROOM} footprint when a single-series chart switches
- * `endpoints` or `extremes` on, and nothing otherwise. Endpoints can sit at the
- * data extremes too, so both switches reserve. That matches the single-series
- * gate in {@link resolveValueLabels}. The layout answers whether the ask was
- * affordable through `valueLabelRoom`; a chart draws the labels only while it
- * holds.
- *
- * @internal
- */
-export function valueLabelHeadroom(
-	config: ValueLabelConfig | undefined,
-	seriesCount: number,
-): number {
-	const wants = Boolean(config?.endpoints || config?.extremes)
-
-	return wants && seriesCount === 1 ? VALUE_LABEL_HEADROOM : 0
-}
-
-/** One plotted point a label can annotate: its position and the value it carries. @internal */
-export type ValueLabelPoint = { x: number; y: number; value: number }
-
-/**
- * Pairs a series' rendered points with the values behind them. Two point shapes
- * reach this:
- *
- * - A gap-skipping line (or unstacked area), whose `points` already drop the
- *   null categories. The finite values align one-to-one with them in draw order.
- * - A stacked ribbon's continuous top edge, whose `points` carry one entry per
- *   category, nulls included. Each reads its value straight off `values[index]`,
- *   and a null category takes no label.
- *
- * The point position, not the raw value, sets the label anchor, so a stacked
- * ribbon labels each series at its own edge.
- *
- * @param gapSkipped Whether `points` already dropped the null categories (a
- * line's gap-split geometry) rather than carrying one entry per category (a
- * stacked ribbon's continuous edge).
- * @internal
- */
-export function labelPoints(
-	values: (number | null)[],
-	points: { x: number; y: number }[],
-	gapSkipped = true,
-): ValueLabelPoint[] {
-	if (gapSkipped) {
-		const finite = values.filter(
-			(value): value is number => value != null && Number.isFinite(value),
-		)
-
-		return points.map((point, index) => ({ x: point.x, y: point.y, value: finite[index] ?? 0 }))
-	}
-
-	return points.flatMap((point, index) => {
-		const value = values[index]
-
-		return value != null && Number.isFinite(value) ? [{ x: point.x, y: point.y, value }] : []
-	})
-}
-
-/** One series' labelable points and the ink its labels take. @internal */
-export type ValueLabelSeries = {
-	/** The SVG-fill class the labels render in for a slot; empty for a raw color, which inks inline. */
-	fill: string
-	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
-	color?: string
-	/** Every finite point, in draw order. */
-	points: ValueLabelPoint[]
-	/** This series' own formatter — its axis's, on a dual-axis chart; the shared one when absent. */
-	format?: (value: number) => string
-}
-
-/**
- * Builds the label series from a line / area render list and its metas. Each
- * series' rendered points pair with its values, inked to match its mark. Where
- * `formats` is given, its own axis's formatter does the formatting. Keeps the
- * charts' own bodies flat — they hand this to {@link resolveValueLabels} as the
- * deferred builder.
- *
- * @internal
- */
-function lineLabelSeries(
-	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
-	metas: { values: (number | null)[] }[],
-	formats?: ((value: number) => string)[],
-	gapSkipped = true,
-): ValueLabelSeries[] {
-	return list.map((entry, index) => ({
-		fill: fillClass(entry.paint) ?? '',
-		color: rawColor(entry.paint),
-		points: labelPoints(metas[index]?.values ?? [], entry.geometry.points, gapSkipped),
-		format: formats?.[index],
-	}))
-}
-
-/** Options for {@link valueLabels}. @internal */
-export type ValueLabelsOptions = {
-	series: ValueLabelSeries[]
+/** The part of a cartesian chart that its point labels read. @internal */
+type ValueLabelChart = {
+	/** Whether the layout afforded the headroom that the labels asked for. */
+	valueLabelRoom: boolean
 	plot: PlotRect
-	format: (value: number) => string
-	/** Label each series' first and last point. */
-	endpoints: boolean
-	/** Label each series' minimum and maximum point. */
-	extremes: boolean
-}
-
-/** The `labels` prop's shape — both switches optional and off by default. @internal */
-export type ValueLabelConfig = { endpoints?: boolean; extremes?: boolean }
-
-/** A placed label: where its text anchors, what it reads, and its ink. @internal */
-export type PlacedValueLabel = {
-	x: number
-	y: number
-	text: string
-	anchor: 'start' | 'middle' | 'end'
-	fill: string
-	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
-	color?: string
-}
-
-/** A candidate label before placement: its point, the side it prefers, and its rank. @internal */
-type Candidate = {
-	x: number
-	y: number
-	value: number
-	above: boolean
-	priority: number
-	fill: string
-	/** A raw series color inked inline on the label's `fill`; unset for a slot. */
-	color?: string
-	/** The candidate's own formatter; the shared one when absent. */
-	format?: (value: number) => string
-}
-
-/** An axis-aligned box, for the overlap test. @internal */
-type Box = { x0: number; x1: number; y0: number; y1: number }
-
-/**
- * The endpoint and extreme candidates for one series, de-duped so a point that
- * is both keeps its higher rank. Extremes outrank endpoints; the maximum sits
- * above its point, the minimum below.
- *
- * @internal
- */
-function candidatesFor(
-	series: ValueLabelSeries,
-	endpoints: boolean,
-	extremes: boolean,
-): Candidate[] {
-	const pts = series.points
-
-	if (pts.length === 0) return []
-
-	const byIndex = new Map<number, Candidate>()
-
-	const add = (index: number, priority: number, above: boolean) => {
-		const point = pts[index] as ValueLabelPoint
-
-		const existing = byIndex.get(index)
-
-		if (!existing || priority > existing.priority) {
-			byIndex.set(index, {
-				x: point.x,
-				y: point.y,
-				value: point.value,
-				above,
-				priority,
-				fill: series.fill,
-				color: series.color,
-				format: series.format,
-			})
-		}
-	}
-
-	if (extremes) {
-		let maxI = 0
-		let minI = 0
-
-		for (let i = 1; i < pts.length; i++) {
-			if ((pts[i] as ValueLabelPoint).value > (pts[maxI] as ValueLabelPoint).value) maxI = i
-
-			if ((pts[i] as ValueLabelPoint).value < (pts[minI] as ValueLabelPoint).value) minI = i
-		}
-
-		add(maxI, 4, true)
-
-		add(minI, 3, false)
-	}
-
-	if (endpoints) {
-		add(pts.length - 1, 2, true)
-
-		add(0, 1, true)
-	}
-
-	return [...byIndex.values()]
+	formatAxisValue: (value: number, axis: ChartValueAxisId) => string
 }
 
 /**
- * Resolves a candidate to its placed label and collision box, or `null` where
- * it no longer fits. The label stays centered on its own point. Clipping the top
- * or bottom flips it to the point's other side, and vertically it never leaves
- * its mark. A box that would cross the plot's sides hides rather than sliding
- * inward. A slid label lands on the neighboring marks, which is where a small
- * frame forces it.
+ * The placed point labels of a line, area, or combo chart. A plot too short to
+ * afford the reserved label room sheds the labels whole. The layout decides by
+ * the same test that the scale reserved by, so a label never renders against an
+ * edge that has no room. Each series formats its labels with the formatter of
+ * its own value axis. A dual-axis chart therefore labels a currency series
+ * against `y` and a percent against `y2`.
  *
+ * @param list The drawn line or area series, aligned with `metas`.
+ * @param metas The values and the value axis of each series in `list`.
+ * @param gapSkipped Whether the points of each series already drop the null
+ * categories. A stacked ribbon's edge carries one point for each category, so
+ * it passes `false`.
  * @internal
  */
-function place(
-	candidate: Candidate,
-	plot: PlotRect,
-	format: (value: number) => string,
-): { label: PlacedValueLabel; box: Box } | null {
-	const text = (candidate.format ?? format)(candidate.value)
-
-	const width = text.length * TICK_CHAR_WIDTH + 2 * PAD
-
-	const [x0, x1] = [candidate.x - width / 2, candidate.x + width / 2]
-
-	if (x0 < plot.x || x1 > plot.x + plot.width) return null
-
-	// Prefer the candidate's side; flip to the other if it would clip top or bottom.
-	const above = candidate.y - OFFSET - HEIGHT < plot.y ? false : candidate.above
-
-	const belowClips = candidate.y + OFFSET + HEIGHT > plot.y + plot.height
-
-	const y = above || belowClips ? candidate.y - OFFSET - HALF : candidate.y + OFFSET + HALF
-
-	return {
-		label: {
-			x: candidate.x,
-			y,
-			text,
-			anchor: 'middle',
-			fill: candidate.fill,
-			color: candidate.color,
-		},
-		box: { x0, x1, y0: y - HALF, y1: y + HALF },
-	}
-}
-
-/** Two boxes share area. @internal */
-function overlaps(a: Box, b: Box): boolean {
-	return a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1
-}
-
-/**
- * Places the selective value labels across every series, highest rank first. It
- * drops any that no longer fits its natural spot, and any whose box meets one
- * already placed.
- *
- * @internal
- */
-export function valueLabels(options: ValueLabelsOptions): PlacedValueLabel[] {
-	const candidates = options.series
-		.flatMap((series) => candidatesFor(series, options.endpoints, options.extremes))
-		.sort((a, b) => b.priority - a.priority)
-
-	const placed: Box[] = []
-
-	const labels: PlacedValueLabel[] = []
-
-	for (const candidate of candidates) {
-		const placement = place(candidate, options.plot, options.format)
-
-		if (!placement) continue
-
-		if (placed.some((other) => overlaps(other, placement.box))) continue
-
-		placed.push(placement.box)
-
-		labels.push(placement.label)
-	}
-
-	return labels
-}
-
-/**
- * Each visible series' value formatter, bound to its own value axis. A dual-axis
- * chart therefore labels a currency series against `y` and a percent against
- * `y2`. The formatter array {@link resolveValueLabels} reads, built one way by
- * the line, area, and combo charts.
- *
- * @internal
- */
-export function axisLabelFormats(
-	metas: { axis: ChartValueAxisId }[],
-	formatAxisValue: (value: number, axis: ChartValueAxisId) => string,
-): ((value: number) => string)[] {
-	return metas.map((meta) => (value: number) => formatAxisValue(value, meta.axis))
-}
-
-/**
- * Gates the labels on the `labels` config, and builds them from a line / area
- * render list. An empty (or absent) config draws none. A chart therefore calls
- * this with one flat statement, and keeps its own branching under budget. The
- * series are built only when a label is actually asked for.
- *
- * Point labels are a single-series feature. With more than one labelable series
- * (`list`), the numbers would crowd between the lines with no reliable place to
- * sit. The labels therefore stand down, and the tooltip carries the readout.
- * Reference labels are unaffected — they route through the reference rules, not
- * here.
- *
- * @internal
- */
-export function resolveValueLabels(
-	config: ValueLabelConfig | undefined,
+export function cartesianValueLabels(
+	chart: ValueLabelChart,
+	config: ChartValueLabelConfig | undefined,
 	list: { paint: ChartPaint; geometry: { points: { x: number; y: number }[] } }[],
-	metas: { values: (number | null)[] }[],
-	plot: PlotRect,
-	format: (value: number) => string,
-	formats?: ((value: number) => string)[],
+	metas: { values: (number | null)[]; axis: ChartValueAxisId }[],
 	gapSkipped = true,
 ): PlacedValueLabel[] {
-	if ((!config?.endpoints && !config?.extremes) || list.length !== 1) return []
+	if (!chart.valueLabelRoom) return []
 
-	return valueLabels({
-		series: lineLabelSeries(list, metas, formats, gapSkipped),
-		plot,
-		format,
-		endpoints: config.endpoints ?? false,
-		extremes: config.extremes ?? false,
-	})
+	return resolveValueLabels(
+		config,
+		list.map((entry, index) => {
+			const meta = metas[index]
+
+			const axis = meta?.axis ?? 'y'
+
+			return {
+				fill: fillClass(entry.paint),
+				color: rawColor(entry.paint),
+				points: entry.geometry.points,
+				values: meta?.values ?? [],
+				format: (value: number) => chart.formatAxisValue(value, axis),
+			}
+		}),
+		chart.plot,
+		gapSkipped,
+	)
 }
 
-/** The value labels' ink: small, semibold, tabular, in the series color. @internal */
-const LABEL_INK = 'text-xs font-semibold tabular-nums'
-
-/**
- * The placed selective value labels, drawn over the marks in each series'
- * color. Non-interactive — the tooltip and data table own the readout — so the
- * labels never take the pointer. Under `animate` each fades in once its line has
- * drawn, the same beat as the point markers.
- *
- * Self-gating at spark through {@link ChartTierContext}. A sparkline is bare
- * marks, so the endpoint and extreme labels stand down with the rest of the
- * chrome. A chart passes its placed labels through, and leaves the tier to the
- * frame.
- *
- * Under `animate` each label fades in once its line has drawn, the same beat as
- * the point markers. On a genuine data change it fades out with the outgoing
- * marks, before the new labels fade in. The group is keyed by
- * {@link ChartValueLabelsProps.dataKey} inside an `AnimatePresence`, mirroring
- * the marks layer. The labels therefore transition in step with the data they
- * annotate.
- * A reduced-motion preference pins the key steady, so the new labels swap in
- * place. (The per-label keys are geometry-derived, so a resize already remounts
- * them; the generation key sits above that and only swaps on a data change.)
- *
- * @internal
- */
+/** Props for {@link ChartValueLabels}. @internal */
 export type ChartValueLabelsProps = {
 	labels: PlacedValueLabel[]
 	animate: boolean
 	/**
-	 * The marks' generation signature — {@link seriesDataKey} — that the
-	 * data-change fade swaps on; omitted, the labels never replay on a data change.
+	 * The generation signature of the marks ({@link seriesDataKey}). The
+	 * data-change fade swaps on it. When it is omitted, the labels never replay on
+	 * a data change.
 	 */
 	dataKey?: string
 }
 
+/** The fade of a value label, held at module scope so each render reuses it. @internal */
+const LABEL_HIDDEN = { opacity: 0 }
+
+/** @internal */
+const LABEL_SHOWN = { opacity: 1 }
+
+/** @internal */
+const LABEL_EXIT = { opacity: 0, transition: POINT_UNPOP }
+
+/**
+ * The placed value labels, drawn over the marks in the color of each series.
+ * They take no pointer: the tooltip and the data table own the readout.
+ *
+ * At the spark tier, read through {@link ChartTierContext}, the labels stand
+ * down with the rest of the chrome, since a sparkline is bare marks. A chart
+ * passes its placed labels through and leaves the tier to the frame.
+ *
+ * Under `animate`, each label fades in once its line has drawn, on the same beat
+ * as the point markers. The labels share the {@link ChartGeneration} of the
+ * marks, so on a data change they fade out with the outgoing marks before the
+ * new labels fade in. Each label keys on its series and its point, not on its
+ * position, so a resize moves a label in place and does not mount it again.
+ *
+ * @internal
+ */
 export function ChartValueLabels({ labels, animate, dataKey }: ChartValueLabelsProps) {
 	const spark = useChartTier() === 'spark'
 
-	// Called unconditionally to keep the hook order stable; only the animated
-	// branch reads it.
-	const reducedMotion = usePrefersReducedMotion()
-
 	if (spark || labels.length === 0) return null
 
-	const content = labels.map((label) => {
-		const shared = {
-			'data-slot': 'chart-value-label',
-			x: label.x,
-			y: label.y,
-			textAnchor: label.anchor,
-			dominantBaseline: 'central' as const,
-			// A raw color inks through the `fill` attribute; a slot omits it and
-			// inks through its class.
-			fill: label.color,
-			className: cn(LABEL_INK, label.fill),
-		}
-
-		return animate ? (
-			<motion.text
-				key={`${label.x}:${label.y}:${label.text}`}
-				{...shared}
-				initial={{ opacity: 0 }}
-				animate={{ opacity: 1 }}
-				exit={{ opacity: 0, transition: POINT_UNPOP }}
-				transition={POINT_POP}
-			>
-				{label.text}
-			</motion.text>
-		) : (
-			<text key={`${label.x}:${label.y}:${label.text}`} {...shared}>
-				{label.text}
-			</text>
-		)
-	})
-
-	if (!animate) {
-		return (
-			<g data-slot="chart-value-labels" pointerEvents="none">
-				{content}
-			</g>
-		)
-	}
-
-	// A reduced-motion preference holds the generation steady, so a data change
-	// reconciles the labels in place rather than fading out-then-in.
-	const generation = reducedMotion ? STATIC_GENERATION : (dataKey ?? STATIC_GENERATION)
-
 	return (
-		<ReducedMotion>
-			<AnimatePresence mode="wait">
-				<motion.g key={generation} data-slot="chart-value-labels" pointerEvents="none">
-					{content}
-				</motion.g>
-			</AnimatePresence>
-		</ReducedMotion>
+		<ChartGeneration
+			animate={animate}
+			dataKey={dataKey}
+			slot="chart-value-labels"
+			pointerEvents="none"
+		>
+			{labels.map((label) => {
+				const shared = {
+					'data-slot': 'chart-value-label',
+					x: label.x,
+					y: label.y,
+					textAnchor: label.anchor,
+					dominantBaseline: 'central' as const,
+					// A raw color inks through the `fill` attribute; a slot omits it and
+					// inks through its class.
+					fill: label.color,
+					className: cn(k.markLabel, label.fill),
+				}
+
+				return animate ? (
+					<motion.text
+						key={label.key}
+						{...shared}
+						initial={LABEL_HIDDEN}
+						animate={LABEL_SHOWN}
+						exit={LABEL_EXIT}
+						transition={POINT_POP}
+					>
+						{label.text}
+					</motion.text>
+				) : (
+					<text key={label.key} {...shared}>
+						{label.text}
+					</text>
+				)
+			})}
+		</ChartGeneration>
 	)
 }

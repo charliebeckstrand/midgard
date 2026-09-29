@@ -45,6 +45,11 @@ export const k = {
 	label: ink.label,
 	/** Tooltip value ink: the strong element, values lead. */
 	value: ink.value,
+	/**
+	 * The ink of an SVG label beside a mark or a rule: small, semibold, and tabular.
+	 * The color of the series or the rule fills it.
+	 */
+	markLabel: ['text-xs', 'font-semibold', 'tabular-nums'],
 	/** The keyboard focus ring on the plot region when arrow-key navigation is enabled, and on the range legend's scale-bar slider. */
 	focusRing: sen.focus.ring,
 	/** The range legend's hover arrow: foreground ink (via `currentColor`), so the class glyph reads over the panel. */

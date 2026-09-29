@@ -5,6 +5,7 @@ import { MARK_GAP } from '../engine/chart-constants'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type BarMark, barMarks } from '../engine/chart-geometry/bar'
+import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { barMarkAt, nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
@@ -18,16 +19,11 @@ import {
 	type ChartLineSeries,
 } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines } from '../engine/chart-reference-lines'
+import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
-import {
-	axisLabelFormats,
-	ChartValueLabels,
-	resolveValueLabels,
-	valueLabelHeadroom,
-} from '../engine/chart-value-labels'
+import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { ChartMarkRef } from '../engine/context'
 import type { CartesianFrameProps, ChartBaseProps, ComboChartSeries } from '../engine/types'
 import {
@@ -245,22 +241,12 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 	const areas = lineSeriesOf(areaEntries, xs, floor, interpolation, points)
 
 	// Value labels ride the line and area series only — bars read against the axis.
-	const labeled = [...areaEntries, ...lineEntries]
-
-	const labelMetas = labeled.map(({ meta }) => meta)
-
-	// A plot too short to afford the reserved label room sheds the point labels
-	// whole, as a `LineChart` does.
-	const valueLabelItems = chart.valueLabelRoom
-		? resolveValueLabels(
-				labels,
-				[...areas, ...lines],
-				labelMetas,
-				chart.plot,
-				(value) => chart.formatAxisValue(value, 'y'),
-				axisLabelFormats(labelMetas, chart.formatAxisValue),
-			)
-		: []
+	const valueLabelItems = cartesianValueLabels(
+		chart,
+		labels,
+		[...areas, ...lines],
+		[...areaEntries, ...lineEntries].map(({ meta }) => meta),
+	)
 
 	const barPaints = barEntries.map((entry) => entry.meta.paint)
 
@@ -348,8 +334,7 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				// A labeled rule reads its value without the rove, so it sheds its stop.
-				labels?.references ? undefined : chart.referencePositions,
+				referenceStops(labels?.references, chart.referencePositions),
 				chart.snapSeries,
 			)}
 			reference={reference}
@@ -401,14 +386,10 @@ export function ComboChart<T>(props: ComboChartProps<T>) {
 
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				y2Scale={chart.y2Scale}
+				chart={chart}
 				reference={reference}
-				format={chart.formatAxisValue}
 				animate={animate}
 				labels={labels?.references}
-				hidden={chart.referenceHidden}
 			/>
 		</ChartCartesianFrame>
 	)

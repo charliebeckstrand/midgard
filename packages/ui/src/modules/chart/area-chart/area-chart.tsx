@@ -5,6 +5,7 @@ import type { Crosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry/area'
+import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
 	type LineInterpolation,
 	type LineSeriesGeometry,
@@ -21,16 +22,11 @@ import {
 	type ChartLineSeries,
 } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines } from '../engine/chart-reference-lines'
+import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
-import {
-	axisLabelFormats,
-	ChartValueLabels,
-	resolveValueLabels,
-	valueLabelHeadroom,
-} from '../engine/chart-value-labels'
+import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import {
 	cartesianData,
@@ -124,20 +120,6 @@ function focusPoints(
 
 		return edges
 	})
-}
-
-/**
- * The reference lines' keyboard stops, or none when `labels.references` draws
- * their values beside them instead. A labeled rule reads its value without the
- * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
- *
- * @internal
- */
-function referenceStops(
-	labels: ChartValueLabelConfig | undefined,
-	positions: (number | null)[],
-): (number | null)[] | undefined {
-	return labels?.references ? undefined : positions
 }
 
 /**
@@ -342,24 +324,16 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
-	const labelMetas = drawn.map(({ meta }) => meta)
-
-	// A plot too short to afford the reserved label room sheds the point labels
-	// whole, as a `LineChart` does.
-	const valueLabelItems = chart.valueLabelRoom
-		? resolveValueLabels(
-				labels,
-				list,
-				labelMetas,
-				chart.plot,
-				(value) => chart.formatAxisValue(value, 'y'),
-				axisLabelFormats(labelMetas, chart.formatAxisValue),
-				// Stacked ribbons carry a top-edge point per category (nulls included), not
-				// the gap-skipped points a line's geometry emits, so the labels read each
-				// category's value by index rather than zipping the gap-filtered values.
-				!stacked,
-			)
-		: []
+	// Stacked ribbons carry a top-edge point for each category (nulls included),
+	// not the gap-skipped points of a line, so the labels read each category's
+	// value by index.
+	const valueLabelItems = cartesianValueLabels(
+		chart,
+		labels,
+		list,
+		drawn.map(({ meta }) => meta),
+		!stacked,
+	)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks
@@ -404,7 +378,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 				chart.bandPositions,
 				navPoints,
 				chart.orientation,
-				referenceStops(labels, chart.referencePositions),
+				referenceStops(labels?.references, chart.referencePositions),
 				navSeries,
 			)}
 			reference={reference}
@@ -462,14 +436,10 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				y2Scale={chart.y2Scale}
+				chart={chart}
 				reference={reference}
-				format={chart.formatAxisValue}
 				animate={animate}
 				labels={labels?.references}
-				hidden={chart.referenceHidden}
 			/>
 		</ChartCartesianFrame>
 	)

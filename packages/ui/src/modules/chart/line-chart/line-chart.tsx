@@ -3,6 +3,7 @@
 import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
+import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import { type LineInterpolation, lineSeriesOf } from '../engine/chart-geometry/line'
 import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { nearestSeriesArea, nearestSeriesLine } from '../engine/chart-hit-test'
@@ -11,16 +12,11 @@ import { resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines } from '../engine/chart-reference-lines'
+import { ChartReferenceLines, referenceStops } from '../engine/chart-reference-lines'
 import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
-import {
-	axisLabelFormats,
-	ChartValueLabels,
-	resolveValueLabels,
-	valueLabelHeadroom,
-} from '../engine/chart-value-labels'
+import { ChartValueLabels, cartesianValueLabels } from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
 import { cartesianData, drawnSeries, useChartCartesian } from '../engine/use-chart-cartesian'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
@@ -142,21 +138,12 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
-	// A plot too short to afford the reserved label room sheds the point labels
-	// whole — the layout decides by the same test the scale reserved by, so a
-	// label never renders against an unreserved edge.
-	const drawnMetas = drawn.map(({ meta }) => meta)
-
-	const valueLabelItems = chart.valueLabelRoom
-		? resolveValueLabels(
-				labels,
-				list,
-				drawnMetas,
-				chart.plot,
-				(value) => chart.formatAxisValue(value, 'y'),
-				axisLabelFormats(drawnMetas, chart.formatAxisValue),
-			)
-		: []
+	const valueLabelItems = cartesianValueLabels(
+		chart,
+		labels,
+		list,
+		drawn.map(({ meta }) => meta),
+	)
 
 	const marksNode = animate ? (
 		<AnimatedChartLineMarks
@@ -176,11 +163,6 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
 
-	// With reference values labeled beside their rules, the rules shed the hover
-	// tooltip they stand in for — so they also leave the keyboard roving, dropping
-	// out of the value-axis stops.
-	const referenceLabels = labels?.references ?? false
-
 	return (
 		<ChartCartesianFrame
 			{...label}
@@ -194,7 +176,7 @@ export function LineChart<T>(props: LineChartProps<T>) {
 				chart.bandPositions,
 				chart.snapPoints,
 				chart.orientation,
-				referenceLabels ? undefined : chart.referencePositions,
+				referenceStops(labels?.references, chart.referencePositions),
 				chart.snapSeries,
 			)}
 			reference={reference}
@@ -249,14 +231,10 @@ export function LineChart<T>(props: LineChartProps<T>) {
 
 			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
 			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				y2Scale={chart.y2Scale}
+				chart={chart}
 				reference={reference}
-				format={chart.formatAxisValue}
 				animate={animate}
-				labels={referenceLabels}
-				hidden={chart.referenceHidden}
+				labels={labels?.references}
 			/>
 		</ChartCartesianFrame>
 	)
