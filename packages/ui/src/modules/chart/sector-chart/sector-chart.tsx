@@ -30,9 +30,9 @@ import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
 	CALLOUT_TEXT_CLASS,
-	type CalloutSpec,
 	calloutFitRadius,
 	calloutRoom,
+	calloutSpecOf,
 	calloutsShown,
 	calloutTexts,
 	resolveSectorFit,
@@ -190,18 +190,22 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip. The frame
 	// sizes from the full dataset and the pie fits the visible slices, whose
-	// shares read different percents, so both sets of texts are measured.
-	const calloutText = { labels: sliceLabels, percent }
+	// shares read different percents, so both sets of texts are measured. Each
+	// set formats once, and each fit runs once, for the whole render.
+	const calloutText = calloutTexts(
+		showCallouts,
+		{ labels: sliceLabels, percent },
+		values,
+		sliceValues,
+	)
 
 	const calloutWidth = useChartTextWidth(
-		showCallouts
-			? [...calloutTexts(calloutText, values), ...calloutTexts(calloutText, sliceValues)]
-			: [],
+		[...calloutText.full, ...calloutText.shown],
 		CALLOUT_TEXT_CLASS,
 		CALLOUT_CHAR_WIDTH,
 	)
 
-	const calloutSpec: CalloutSpec = { ...calloutText, textWidth: calloutWidth.width }
+	const calloutSpec = calloutSpecOf(calloutText, values, sliceValues, calloutWidth.width)
 
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
@@ -211,9 +215,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const sizing = sectorFrameSizing(
 		height,
 		frameAspectRatio,
-		calloutRoom(showCallouts, calloutSpec, values),
+		calloutRoom(showCallouts, calloutSpec),
 		vMargin,
-		calloutFitRadius(showCallouts, calloutSpec, values, vMargin),
+		calloutFitRadius(showCallouts, calloutSpec, vMargin),
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -256,13 +260,13 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Callouts need a wide horizontal band; where that band would starve the pie to
 	// the spark floor, drop them and draw a bare pie — the sizing already squared
 	// the frame to receive it.
-	const drawCallouts = calloutsShown(showCallouts, calloutSpec, values, vMargin, frameWidth)
+	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
 	// square rather than holding the taller callout band's margin.
 	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
 
-	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, sliceValues, frameWidth)
+	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, frameWidth)
 
 	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
 
