@@ -6,10 +6,12 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/engine/chart-constants'
 import {
+	bandTicksOf,
 	type CartesianLayoutInput,
 	horizontalLayout,
 	verticalLayout,
 } from '../../modules/chart/engine/chart-layout'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
 	frameWidth: 400,
@@ -153,5 +155,34 @@ describe('horizontalLayout value bands', () => {
 		expect(layout.plot.y + layout.plot.height).toBe(300)
 
 		expect(layout.plot.y).toBe(PLOT_TOP_PAD + X_AXIS_HEIGHT)
+	})
+})
+
+describe('bandTicksOf tilted labels', () => {
+	it('thins a tilted run by the room each rotated label takes along the axis', () => {
+		// Sixty categories along 740px, about 12px a band. Each tilted label needs
+		// its line box across the slant, about 28px along the axis. Before, every
+		// label tilted, and the run overlapped.
+		const categories = Array.from({ length: 60 }, (_, index) => `Category ${index + 1}`)
+
+		const band = bandScale({ count: 60, range: [0, 740] })
+
+		const ticks = bandTicksOf(categories, band, 740, 0, true)
+
+		expect(ticks.length).toBeLessThan(60)
+
+		expect(ticks.every((tick) => tick.rotate !== undefined)).toBe(true)
+
+		const gaps = ticks.slice(1).map((tick, index) => tick.at - (ticks[index]?.at ?? 0))
+
+		expect(Math.min(...gaps)).toBeGreaterThanOrEqual(27)
+	})
+
+	it('keeps every tilted label where the bands leave room', () => {
+		const categories = ['January Sales', 'February Sales', 'March Sales', 'April Sales']
+
+		const ticks = bandTicksOf(categories, bandScale({ count: 4, range: [0, 400] }), 400, 0, true)
+
+		expect(ticks).toHaveLength(4)
 	})
 })

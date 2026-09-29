@@ -522,9 +522,20 @@ function bandCenters(band: BandScale, count: number): number[] {
 }
 
 /**
- * The category labels at their band centers: every one tilted at {@link
- * TICK_ROTATION_ANGLE} when `tilt` is on, else thinned by `slot` room along
- * the axis.
+ * The room a tilted category label takes along the axis. Tilted labels run
+ * parallel, so two clear each other when their spacing across the slant holds
+ * a line box: the spacing times the sine of the tilt. At {@link
+ * TICK_ROTATION_ANGLE} that is about 28px, whatever the label length.
+ *
+ * @internal
+ */
+const TILTED_LABEL_SLOT =
+	BAND_LABEL_HEIGHT / Math.sin((Math.abs(TICK_ROTATION_ANGLE) * Math.PI) / 180)
+
+/**
+ * The category labels at their band centers: tilted at {@link
+ * TICK_ROTATION_ANGLE} when `tilt` is on and thinned by the room a tilted label
+ * takes, else thinned by `slot` room along the axis.
  *
  * @internal
  */
@@ -539,9 +550,9 @@ export function bandTicksOf(
 	// collapses every center onto one coordinate, so `at` collides while the index
 	// stays the category's stable identity across resizes and thinning changes.
 	if (tilt) {
-		return categories.map((label, index) => ({
+		return thinned(categories.length, axisLength, TILTED_LABEL_SLOT).map((index) => ({
 			at: band.center(index),
-			label,
+			label: categories[index] ?? '',
 			key: index,
 			rotate: TICK_ROTATION_ANGLE,
 		}))
