@@ -320,7 +320,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	})
 
 	// The sorted unique x values are the scatter's categories: the hover index,
-	// snap columns, keyboard cursor, and readout all key on them.
+	// snap columns, keyboard cursor, and readout all key on them. A point that
+	// draws no disc keeps its column, so the readout still reads it. Its column
+	// holds no snap stop, so the keyboard steps over it.
 	const uniqueXs = uniqueXValues(visible.map((meta) => meta.points))
 
 	const scaled = xScale !== null && yScale !== null
@@ -332,7 +334,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// the stop the tooltip anchors.
 	const snapStops = scaled
 		? scatterSnapStops(
-				visible.map((meta) => meta.points),
+				visible.map((meta) => meta.drawn),
 				uniqueXs,
 				yScale.map,
 			)
@@ -345,7 +347,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				index: meta.index,
 				label: meta.label,
 				paint: meta.paint,
-				marks: scatterMarks(meta.points, xScale.map, yScale.map, meta.radius),
+				marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius),
 				sized: meta.sized,
 			}))
 		: []
@@ -448,7 +450,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 					((at) =>
 						onPointClick({
 							series: at.series,
-							datum: metas[at.series]?.points[at.datum]?.row ?? at.datum,
+							datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
 						}))
 				}
 			/>

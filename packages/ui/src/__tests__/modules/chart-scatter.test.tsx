@@ -148,6 +148,21 @@ describe('scatter geometry', () => {
 		expect(sizeRadius(null, [1, 100], diameters)).toBeCloseTo(4)
 	})
 
+	it('draws a zero size at the smallest diameter and a negative size as no disc', () => {
+		const diameters = diameterRange(8, 28)
+
+		// Every size is zero, so the extent collapses. The discs still read smallest, not mid-range.
+		expect(sizeRadius(0, [0, 0], diameters)).toBeCloseTo(4)
+
+		expect(sizeRadius(-3, [0, 16], diameters)).toBe(0)
+	})
+
+	it('leaves a negative size out of the size extent', () => {
+		const sized = [-5, 4, 16].map((size, row) => ({ x: row, y: row, row, size }))
+
+		expect(sizeDomain(sized)).toEqual([4, 16])
+	})
+
 	it('anchors the edge ticks inward and leaves interior ones centered', () => {
 		const anchored = anchorEndTicks(
 			[
@@ -570,6 +585,56 @@ describe('BubbleChart', () => {
 
 		// The data table names the size measure beside each value.
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
+	})
+
+	it('draws no disc for a negative size and keeps the point in the data table only', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={[
+					{ distance: 12, dwell: 34, weight: 4 },
+					{ distance: 30, dwell: 25, weight: -3 },
+					{ distance: 48, dwell: 18, weight: 16 },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		const discs = points(container)
+
+		expect(discs).toHaveLength(2)
+
+		// The data table still reads the point that draws no disc.
+		expect(bySlot(container, 'chart-table')?.textContent).toContain('25 (weight: -3)')
+
+		// Both scales are linear, so the drawn discs place the point at x 30, y 25.
+		const [low, high] = discs.map((disc) => ({
+			x: Number(disc.getAttribute('cx')),
+			y: Number(disc.getAttribute('cy')),
+		})) as [{ x: number; y: number }, { x: number; y: number }]
+
+		const x = low.x + ((30 - 12) / (48 - 12)) * (high.x - low.x)
+
+		const y = low.y + ((25 - 34) / (18 - 34)) * (high.y - low.y)
+
+		clickAt(container, x, y)
+
+		expect(onPointClick).not.toHaveBeenCalled()
+
+		// The keyboard steps from the column at 12 to the column at 48, past the point.
+		const plot = getSlot(container, 'chart-plot')
+
+		act(() => plot.focus())
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('48')
 	})
 
 	it('reports the clicked disc by series and data row', () => {

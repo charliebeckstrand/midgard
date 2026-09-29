@@ -22,6 +22,7 @@ import {
 	diameterRange,
 	type ScatterDatum,
 	scatterData,
+	scatterDrawn,
 	sizeDomain,
 	sizeRadius,
 } from '../engine/chart-geometry/scatter'
@@ -45,7 +46,10 @@ export type ScatterMeta = {
 	paint: ChartPaint
 	/** The shape of the legend swatch. */
 	swatch: 'rect'
+	/** Every point that parses: the scales, the x columns, and the readout read them. */
 	points: ScatterDatum[]
+	/** The points that draw a disc: the marks, the hit test, and the keyboard stops read them. */
+	drawn: ScatterDatum[]
 	sized: boolean
 	sizeName: string | null
 	radius: (size: number | null) => number
@@ -73,6 +77,8 @@ export function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): Sca
 			paint: seriesPaint(entry, index),
 			swatch: 'rect',
 			points,
+			// A plain series reads no size, so each of its points draws.
+			drawn: entry.sizeKey === undefined ? points : scatterDrawn(points),
 			sized: domain !== null,
 			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),
 			radius: (size) => sizeRadius(size, domain, diameters),
@@ -142,7 +148,7 @@ function scatterTitles(
 function sparkMarkInset(visible: ScatterMeta[]): number {
 	const widest = visible.reduce(
 		(outer, meta) =>
-			meta.points.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
+			meta.drawn.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
 		MARKER_RADIUS,
 	)
 

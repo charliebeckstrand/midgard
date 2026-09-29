@@ -97,7 +97,8 @@ export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
 
 /**
  * One series' size extent, for the bubble radius scaling; `null` when no point
- * carries a finite size (a plain scatter series).
+ * carries a finite size that is not negative (a plain scatter series). A
+ * negative size draws no disc, so it takes no part in the extent.
  *
  * @internal
  */
@@ -109,7 +110,7 @@ export function sizeDomain(points: ScatterDatum[]): [number, number] | null {
 	let high = Number.NEGATIVE_INFINITY
 
 	for (const { size } of points) {
-		if (size === null) continue
+		if (size === null || size < 0) continue
 
 		if (size < low) low = size
 
@@ -129,9 +130,14 @@ export function diameterRange(size?: number, maxSize?: number): [number, number]
 /**
  * A point's radius. Bubbles interpolate on the square root of the size, between
  * the diameter range's ends over the series' own size extent. Area, not
- * diameter, carries the quantity. A sizeless point (or series) takes the plain
- * marker radius; a degenerate extent reads mid-range, because equal sizes must
- * read equal, not minimal.
+ * diameter, carries the quantity. A sizeless series takes the plain marker
+ * radius. In a sized series:
+ *
+ * - A size that is not finite (`null`), or a size of zero, takes the smallest
+ *   diameter.
+ * - A negative size takes `0`, for no disc.
+ * - A degenerate extent reads mid-range, because equal sizes must read equal,
+ *   not minimal.
  *
  * @internal
  */
@@ -144,7 +150,9 @@ export function sizeRadius(
 
 	const [minD, maxD] = diameters
 
-	if (size === null) return minD / 2
+	if (size === null || size === 0) return minD / 2
+
+	if (size < 0) return 0
 
 	const [low, high] = [Math.sqrt(Math.max(0, domain[0])), Math.sqrt(Math.max(0, domain[1]))]
 
@@ -154,6 +162,23 @@ export function sizeRadius(
 	const t = (Math.sqrt(Math.max(0, size)) - low) / (high - low)
 
 	return (minD + t * (maxD - minD)) / 2
+}
+
+/** Whether a point draws a disc: every point does, except one with a negative size. @internal */
+function drawsDisc(point: ScatterDatum): boolean {
+	return point.size === null || point.size >= 0
+}
+
+/**
+ * The points of one series that draw a disc. A point with a negative size draws
+ * none, so it leaves the marks, the hit test, and the keyboard stops. The scales
+ * and the readout still read it from the whole list. Returns `points` itself
+ * when each point draws, so a plain series copies nothing.
+ *
+ * @internal
+ */
+export function scatterDrawn(points: ScatterDatum[]): ScatterDatum[] {
+	return points.every(drawsDisc) ? points : points.filter(drawsDisc)
 }
 
 /** One drawable point: its frame position and radius. @internal */
