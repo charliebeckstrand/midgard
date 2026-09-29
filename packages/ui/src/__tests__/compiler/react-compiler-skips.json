@@ -3,8 +3,7 @@
 		"useWindowVirtualizer": "Immutability"
 	},
 	"modules/grid/use-grid-editing.ts": {
-		"useActiveCell": "Refs",
-		"useGridEditing": "Refs"
+		"useActiveCell": "Refs"
 	},
 	"modules/grid/use-grid-navigation.ts": {
 		"useGridNavigation": "Refs"
