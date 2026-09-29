@@ -484,8 +484,8 @@ export function PasteExample() {
 					Copy a block of cells from a spreadsheet, or from this grid with Ctrl+C or Cmd+C. Select
 					cells with Shift and the arrow keys, or drag across them. Then press Ctrl+V or Cmd+V. One
 					value fills the whole range. Press Ctrl+D or Cmd+D to fill the range down from its top
-					row, and Ctrl+R or Cmd+R to fill it right, or right-click the range. Press Ctrl+Z or Cmd+Z
-					to undo.
+					row, and Ctrl+R or Cmd+R to fill it right, or right-click the range. You can also drag the
+					square on the corner of the active cell. Press Ctrl+Z or Cmd+Z to undo.
 				</EditHelp>
 			</Flex>
 			<Grid

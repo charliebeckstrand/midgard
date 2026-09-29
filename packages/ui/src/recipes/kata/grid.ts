@@ -820,6 +820,19 @@ export const k = {
 				'data-[in-range]:bg-blue-50 data-[in-range]:outline-blue-600',
 				'dark:data-[in-range]:bg-blue-950 dark:data-[in-range]:outline-blue-500',
 			),
+			// A static cell that shows the fill handle holds it in place. A sticky
+			// cell already does, and must stay sticky.
+			'data-[fill-handle=static]:relative',
+		],
+		// The fill handle on the bottom end corner of the active cell (`range` in
+		// a managed editable grid). A drag from it fills. The square sits inside
+		// the corner, so the scroll region does not clip it at the last row or
+		// column, and a wider hit area sits around it. The keys and the cell menu
+		// give the same fills with no drag (WCAG 2.5.7).
+		fillHandle: [
+			'absolute bottom-0 end-0 z-[1] size-2 cursor-crosshair border',
+			'before:absolute before:-inset-1.5',
+			...mode('border-white bg-blue-600', 'dark:border-zinc-900 dark:bg-blue-500'),
 		],
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the

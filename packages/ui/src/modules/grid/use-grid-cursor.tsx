@@ -28,6 +28,8 @@ import {
 import { cellText } from './engine/grid-export/accessor'
 import {
 	fillPlan,
+	type GridFillDirection,
+	type GridFillRect,
 	type GridRangeFill,
 	type GridRangeFillDirection,
 	rangeFillSource,
@@ -43,6 +45,7 @@ import type { GridEditableConfig } from './grid-editing-types'
 import type { GridColumn } from './types'
 import { type GridPasteCell, useGridEditing } from './use-grid-editing'
 import { useGridEditingColumns } from './use-grid-editing-columns'
+import { useGridFillDrag } from './use-grid-fill-drag'
 import {
 	type Coord,
 	type GridCellActivate,
@@ -161,6 +164,11 @@ function pasteTargets<T>(
  */
 function fillValue<T>(row: T | undefined, col: GridColumn<T> | undefined): unknown {
 	return row != null && col?.field != null ? row[col.field] : undefined
+}
+
+/** The whole numbers from `from` to `to`, inclusive. @internal */
+function span(from: number, to: number): number[] {
+	return Array.from({ length: to - from + 1 }, (_, i) => from + i)
 }
 
 /**
@@ -594,6 +602,35 @@ export function useGridCursor<T>({
 
 	const { fillCells } = editing
 
+	// Fills `count` lines after a source block in `direction`, as one save.
+	const writeFill = useStableEvent(
+		(
+			source: { rows: readonly number[]; cols: readonly number[] },
+			direction: GridFillDirection,
+			count: number,
+		) => {
+			const rows = rowsRef.current
+
+			const keys = rowKeysRef.current
+
+			const columns = dataColumnsRef.current
+
+			const targets = fillPlan(source, direction, count, (row, col) =>
+				fillValue(rows[row], columns[col]),
+			)
+
+			fillCells?.(
+				targets.flatMap(({ row, col, value }) => {
+					const rowKey = keys[row]
+
+					const column = columns[col]
+
+					return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, value }]
+				}),
+			)
+		},
+	)
+
 	// The fill of the range from its top row down, or from its first column
 	// right, bound to the range as it is now.
 	const planFill = useStableEvent((direction: GridRangeFillDirection) => {
@@ -603,33 +640,54 @@ export function useGridCursor<T>({
 
 		if (!fillCells || !plan) return null
 
-		return () => {
-			const rows = rowsRef.current
+		return () => writeFill(plan.source, direction, plan.count)
+	})
 
-			const keys = rowKeysRef.current
+	// The source of a drag of the fill handle: the range, else the active cell.
+	const readFillSource = useStableEvent((): GridFillRect | null => {
+		const cells = readRange() ?? activeCells(nav.active)
 
-			const columns = dataColumnsRef.current
+		const top = cells?.rows[0]
 
-			const targets = fillPlan(plan.source, direction, plan.count, (row, col) =>
-				fillValue(rows[row], columns[col]),
-			)
+		const left = cells?.cols[0]
 
-			fillCells(
-				targets.flatMap(({ row, col, value }) => {
-					const rowKey = keys[row]
+		if (!cells || top === undefined || left === undefined) return null
 
-					const column = columns[col]
+		const bottom = cells.rows[cells.rows.length - 1] ?? top
 
-					return rowKey === undefined || !column ? [] : [{ rowKey, columnId: column.id, value }]
-				}),
-			)
-		}
+		const right = cells.cols[cells.cols.length - 1] ?? left
+
+		return { top, bottom, left, right }
+	})
+
+	const fillFromHandle = useStableEvent(
+		(source: GridFillRect, direction: GridFillDirection, count: number) =>
+			writeFill(
+				{ rows: span(source.top, source.bottom), cols: span(source.left, source.right) },
+				direction,
+				count,
+			),
+	)
+
+	const startFillDrag = useGridFillDrag({
+		readSource: readFillSource,
+		showRange: nav.showRange,
+		fill: fillFromHandle,
+		cellCoordOf: nav.cellCoordOf,
+		scrollContainerRef,
 	})
 
 	const fills = copies && fillCells !== undefined
 
 	// The fill of the context menu. Absent while the grid cannot fill.
 	const fill = fills ? planFill : undefined
+
+	// The cursor store of the cells, with the fill handle while the grid can
+	// fill. The active cell shows the handle.
+	const navStore = useMemo<GridNavStore>(
+		() => (fills ? { ...nav.store, fillHandle: startFillDrag } : nav.store),
+		[fills, nav.store, startFillDrag],
+	)
 
 	// The fill keys act on the tab stop only. Each claims its press only when
 	// it fills, so the browser keeps the key otherwise.
@@ -737,7 +795,7 @@ export function useGridCursor<T>({
 
 	return {
 		cursorEnabled,
-		navStore: nav.store,
+		navStore,
 		navTableProps,
 		reconcile: nav.reconcile,
 		settleRange: nav.settleRange,

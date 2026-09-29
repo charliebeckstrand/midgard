@@ -112,6 +112,11 @@ export type GridNavStore = {
 	isActive: (row: number, col: number) => boolean
 	/** Whether the cell at `(row, col)` is in the cell range (see {@link GridDataProps.range}). */
 	isInRange: (row: number, col: number) => boolean
+	/**
+	 * Starts the drag of the fill handle, for the press on the handle that the
+	 * active cell shows, or `null` when the grid shows no handle.
+	 */
+	fillHandle: ((event: MouseEvent<HTMLElement>) => void) | null
 	/** Whether the cursor sits on the one-stop row with this item key. */
 	isStopActive: (key: string) => boolean
 	/** The element id of the one cell of a one-stop row, matched by `aria-activedescendant`. */
@@ -139,6 +144,7 @@ const INERT_STORE: GridNavStore = {
 	subscribe: () => () => {},
 	isActive: () => false,
 	isInRange: () => false,
+	fillHandle: null,
 	isStopActive: () => false,
 	stopId: (key) => key,
 	seatStop: () => {},
@@ -587,6 +593,8 @@ export function useGridNavigation({
 	rangeAnchor: Coord | null
 	/** The cells of the range at call time, or `null` for no range. */
 	readRange: () => GridRangeCells | null
+	/** Shows the range between two data cells, the first as the anchor and the second as the cursor. */
+	showRange: (from: Coord, to: Coord) => void
 	/** Clears the range when the row keys or the data column ids change order. */
 	settleRange: (rowKeys: readonly unknown[], columnIds: readonly unknown[]) => void
 	navTableProps: GridNavTableProps | undefined
@@ -764,7 +772,29 @@ export function useGridNavigation({
 		[cellId],
 	)
 
-	const startDrag = useGridRangeDrag({ extendTo, cellCoordOf, scrollContainerRef })
+	const startDrag = useGridRangeDrag({ onCell: extendTo, cellCoordOf, scrollContainerRef })
+
+	// Shows the range between two data cells, the first as its anchor and the
+	// second as the cursor, as the drag of the fill handle grows it. The pointer
+	// is on the second cell, so the cell is in the window.
+	const showRange = useCallback(
+		(from: Coord, to: Coord) => {
+			const anchorRow = cursorRowOf(from.row)
+
+			const row = cursorRowOf(to.row)
+
+			if (anchorRow === -1 || row === -1 || !range) return
+
+			setAnchor((held) =>
+				held?.row === anchorRow && held.col === from.col ? held : { row: anchorRow, col: from.col },
+			)
+
+			setActive((current) =>
+				current?.row === row && current.col === to.col ? current : { row, col: to.col },
+			)
+		},
+		[cursorRowOf, range],
+	)
 
 	// A press on a data cell. Without the range, it only seats the cursor. With
 	// it, the grid owns the press, so the browser starts no text selection.
@@ -885,6 +915,7 @@ export function useGridNavigation({
 			return data !== -1 && data === row
 		},
 		isInRange: inRangeAt,
+		fillHandle: null,
 		isStopActive: (key) => {
 			const current = readActive()
 
@@ -1184,6 +1215,7 @@ export function useGridNavigation({
 		cellCoordOf,
 		rangeAnchor: enabled ? anchor : null,
 		readRange,
+		showRange,
 		settleRange,
 		navTableProps,
 	}
