@@ -83,6 +83,12 @@ describe('extractDefaults — inline destructured defaults', () => {
 			'size',
 			`'md'`,
 		],
+		[
+			'keys a string-literal prop name, which the binding must rename',
+			`function Foo({ 'aria-label': ariaLabel = 'PDF viewer' }) { return ariaLabel }`,
+			'aria-label',
+			`'PDF viewer'`,
+		],
 	])('%s', (_name, src, prop, expected) => {
 		expect(extractDefaults(fromFunction(src)).get(prop)).toBe(expected)
 	})

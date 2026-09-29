@@ -45,6 +45,15 @@ describe('extractProjectPropNames', () => {
 			['label', 'size'],
 		],
 		[
+			'collects a string-literal key and a method signature from a type literal',
+			[
+				`type FooProps = { 'aria-label'?: string; onOpen(): void; size?: string }`,
+				`export type _Use = FooProps`,
+			],
+			'FooProps',
+			['aria-label', 'onOpen', 'size'],
+		],
+		[
 			'follows project type aliases whose RHS is splittable',
 			[
 				`type Inner = { foo?: string; bar?: number }`,

@@ -67,10 +67,12 @@ function walk(
 		return
 	}
 
-	// Inline type literal: `{ foo: string; bar?: number }`.
+	// Inline type literal: `{ foo: string; 'aria-label'?: string; onOpen(): void }`.
 	if (ts.isTypeLiteralNode(node)) {
 		for (const member of node.members) {
-			if (ts.isPropertySignature(member) && member.name && ts.isIdentifier(member.name)) {
+			if (!ts.isPropertySignature(member) && !ts.isMethodSignature(member)) continue
+
+			if (ts.isIdentifier(member.name) || ts.isStringLiteral(member.name)) {
 				names.add(member.name.text)
 			}
 		}
