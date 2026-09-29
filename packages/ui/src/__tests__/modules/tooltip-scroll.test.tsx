@@ -1,9 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
-import { act, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 const DATA = [
@@ -113,6 +114,73 @@ describe('tooltip across a scroll', () => {
 		act(() => vi.advanceTimersByTime(150))
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
+	})
+
+	it('pie: hides on scroll, then re-reads the slice under the settled pointer', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Traffic by source"
+				data={[
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 25 },
+					{ source: 'Referral', visits: 15 },
+				]}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				width={300}
+				height={200}
+			/>,
+		)
+
+		const [, direct] = allBySlot(container, 'chart-slice')
+
+		act(() => fireEvent.pointerEnter(direct as Element, { clientX: 150, clientY: 100 }))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+
+		// jsdom has no layout, so name the slice the settled pointer lands on.
+		document.elementFromPoint = vi.fn().mockReturnValue(direct ?? null)
+
+		movePointer(150, 100)
+
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+
+	it('pie: stays hidden when the settled pointer rests off every slice', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Traffic by source"
+				data={[
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 25 },
+				]}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				width={300}
+				height={200}
+			/>,
+		)
+
+		const [search] = allBySlot(container, 'chart-slice')
+
+		act(() => fireEvent.pointerEnter(search as Element, { clientX: 150, clientY: 60 }))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// The scroll carried the pie out from under the pointer, onto the page.
+		document.elementFromPoint = vi.fn().mockReturnValue(document.body)
+
+		movePointer(150, 60)
+
+		act(() => fireEvent.scroll(window))
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('chart: keeps a keyboard-driven readout through a scroll with no pointer engaged', () => {
