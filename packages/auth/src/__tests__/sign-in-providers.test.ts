@@ -2,9 +2,9 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { BIFROST_URL } from '../env'
 import { getSignInProviders } from '../sign-in-providers'
 
-const cookies = vi.hoisted(() => vi.fn())
+const cacheLife = vi.hoisted(() => vi.fn())
 
-vi.mock('next/headers', () => ({ cookies }))
+vi.mock('next/cache', () => ({ cacheLife }))
 
 // Stubs the gateway: `fetch` resolves to the given status and body.
 function stubGateway(status: number, body: unknown = null) {
@@ -17,13 +17,17 @@ function stubGateway(status: number, body: unknown = null) {
 
 describe('getSignInProviders', () => {
 	beforeEach(() => {
-		cookies.mockResolvedValue({ toString: () => '' })
+		cacheLife.mockClear()
 	})
 
 	it('returns the providers that the gateway has set up', async () => {
 		const fetch = stubGateway(200, { providers: ['github', 'google'] })
 
 		await expect(getSignInProviders()).resolves.toEqual(['github', 'google'])
+
+		expect(fetch.mock.calls[0]?.[0].headers.has('cookie')).toBe(false)
+
+		expect(cacheLife).toHaveBeenCalledWith('hours')
 
 		expect(fetch.mock.calls[0]?.[0].url).toBe(`${BIFROST_URL}/auth/oauth/providers`)
 	})
@@ -36,6 +40,8 @@ describe('getSignInProviders', () => {
 		await expect(getSignInProviders()).resolves.toEqual([])
 
 		expect(error).toHaveBeenCalledOnce()
+
+		expect(cacheLife).toHaveBeenCalledWith('seconds')
 
 		error.mockRestore()
 	})
@@ -53,6 +59,8 @@ describe('getSignInProviders', () => {
 		await expect(getSignInProviders()).resolves.toEqual([])
 
 		expect(error).toHaveBeenCalledOnce()
+
+		expect(cacheLife).toHaveBeenCalledWith('seconds')
 
 		error.mockRestore()
 	})
