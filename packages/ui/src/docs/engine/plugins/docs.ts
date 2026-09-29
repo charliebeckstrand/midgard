@@ -75,48 +75,65 @@ function isDemoFile(file: string, demosDir: string): boolean {
 	return file.startsWith(demosDir + path.sep) && file.endsWith('.tsx')
 }
 
-/** Last parsed meta for one demo, valid while its file keeps this mtime. */
-type DemoMetaCache = Map<string, { mtimeMs: number; meta: DemoMeta }>
+/** The last parse of each demo file, valid while the file keeps this mtime. */
+type DemoParseCache<T> = Map<string, { mtimeMs: number; value: T }>
 
 /**
- * One demo edit invalidates the whole `demo-metas` module, and regenerating it
- * would re-parse every demo — ~110 of them — to pick up the one that changed.
- * `cache` carries the previous pass's parses; an unchanged mtime reuses one,
+ * Parse each demo file, in the order of {@link forEachDemoFile}. A demo edit
+ * generates the demo-derived virtual modules again, and each would otherwise
+ * re-parse every demo, about 110 of them, to pick up the one that changed.
+ * `cache` carries the previous pass's parses. An unchanged mtime reuses one,
  * which also skips reading the file. The directory walk still runs: it is a
  * `readdir`, and it is what notices an added or deleted demo.
  *
  * The cache is rebuilt rather than pruned, so it tracks the directory
  * structurally — a demo that disappears is simply not carried over.
  */
-function generateDemoMetas(demosDir: string, cache: DemoMetaCache): Record<string, DemoMeta> {
-	const project = new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
-
-	const result: Record<string, DemoMeta> = {}
-
-	const next: DemoMetaCache = new Map()
+function parseDemoFiles<T>(
+	demosDir: string,
+	cache: DemoParseCache<T>,
+	parse: (fullPath: string, source: string) => T,
+): Map<string, T> {
+	const next: DemoParseCache<T> = new Map()
 
 	forEachDemoFile(demosDir, (full) => {
-		const rel = path.relative(demosDir, full).replaceAll(path.sep, '/')
-
 		const { mtimeMs } = fs.statSync(full)
 
 		const cached = cache.get(full)
 
-		const meta =
-			cached?.mtimeMs === mtimeMs
-				? cached.meta
-				: parseMeta(project, full, fs.readFileSync(full, 'utf-8'))
+		const value =
+			cached?.mtimeMs === mtimeMs ? cached.value : parse(full, fs.readFileSync(full, 'utf-8'))
 
-		next.set(full, { mtimeMs, meta })
-
-		result[`./demos/${rel}`] = meta
+		next.set(full, { mtimeMs, value })
 	})
 
 	cache.clear()
 
 	for (const [key, entry] of next) cache.set(key, entry)
 
-	return result
+	return new Map([...next].map(([full, { value }]) => [full, value]))
+}
+
+/** The `virtual:demo-metas` payload: each demo's meta, keyed `./demos/<path>`. */
+function generateDemoMetas(
+	demosDir: string,
+	cache: DemoParseCache<DemoMeta>,
+): Record<string, DemoMeta> {
+	// Created on the first parse, so a pass that reuses every parse opens none.
+	let project: Project | undefined
+
+	const parsed = parseDemoFiles(demosDir, cache, (full, source) => {
+		project ??= new Project({ useInMemoryFileSystem: true, skipLoadingLibFiles: true })
+
+		return parseMeta(project, full, source)
+	})
+
+	return Object.fromEntries(
+		[...parsed].map(([full, meta]) => [
+			`./demos/${path.relative(demosDir, full).replaceAll(path.sep, '/')}`,
+			meta,
+		]),
+	)
 }
 
 // ---------------------------------------------------------------------------
@@ -190,8 +207,8 @@ export function hasUnmodeledExports(source: string, fileName: string): boolean {
 export type ExternalImport = { name: string; specifier: string }
 
 // Packages whose imports never surface as external components: react hooks
-// resolve through `collectSnippetImports`, and the renderer has no place in
-// derived code.
+// resolve through the import tables and `registerUses`, and the renderer has
+// no place in derived code.
 const EXCLUDED_PACKAGES = /^(react|react-dom)(\/|$)/
 
 /**
@@ -308,14 +325,22 @@ function collectDirNames(
  * Record every external component imported by a demo (e.g. lucide icons)
  * under its bare package specifier. Runs after the ui collectors, and ui
  * names win collisions via `??=`: an external sharing a component's name
- * stays unresolvable rather than shadowing it.
+ * stays unresolvable rather than shadowing it. `cache` carries each demo's
+ * last parse (see {@link parseDemoFiles}).
  */
-function collectDemoExternals(result: Record<string, ModuleEntry>, demosDir: string): void {
-	forEachDemoFile(demosDir, (full) => {
-		for (const { name, specifier } of parseExternalImports(fs.readFileSync(full, 'utf-8'), full)) {
+function collectDemoExternals(
+	result: Record<string, ModuleEntry>,
+	demosDir: string,
+	cache: DemoParseCache<ExternalImport[]>,
+): void {
+	const parsed = parseDemoFiles(demosDir, cache, (full, source) =>
+		parseExternalImports(source, full),
+	)
+
+	for (const imports of parsed.values()) {
+		for (const { name, specifier } of imports)
 			result[name] ??= { module: specifier, external: true }
-		}
-	})
+	}
 }
 
 /** The `virtual:component-modules` payload: the library's import prefix plus its name map. */
@@ -330,7 +355,12 @@ type ComponentModules = { packageName: string; names: Record<string, ModuleEntry
  * needs no extra configuration. `packageName` rides along: `assemble` reads it
  * to prefix derived imports (`<packageName>/button`).
  */
-function buildNameMap(srcDir: string, demosDir: string, packageName: string): ComponentModules {
+function buildNameMap(
+	srcDir: string,
+	demosDir: string,
+	packageName: string,
+	externalsCache: DemoParseCache<ExternalImport[]>,
+): ComponentModules {
 	const names: Record<string, ModuleEntry> = {}
 
 	collectDirNames(names, path.join(srcDir, 'components'), (name) => name)
@@ -347,7 +377,7 @@ function buildNameMap(srcDir: string, demosDir: string, packageName: string): Co
 	// two diverge when the `srcDir` option overrides source-root detection, and
 	// recomputing from `srcDir` there would read a non-existent directory and drop
 	// every external component from the name map.
-	collectDemoExternals(names, demosDir)
+	collectDemoExternals(names, demosDir, externalsCache)
 
 	return { packageName, names }
 }
@@ -440,6 +470,10 @@ function findSrcDir(root: string): string {
 // The plugin
 // ---------------------------------------------------------------------------
 
+// The module-scope name of the declaration table that the helpers of a demo
+// file share. The prefix keeps it clear of a name that a demo declares.
+const SNIPPET_TABLE = '__docsSnippetDeclarations'
+
 /**
  * The single Vite plugin backing the docs site. It provides:
  *
@@ -449,16 +483,18 @@ function findSrcDir(root: string): string {
  *  - `virtual:demo-metas`: each demo's `{ name? }`
  *  - `virtual:component-modules`: `{ componentName → module }` for snippet imports
  *  - a transform tagging public index barrels with `__module` / `__name`
- *  - an `enforce: 'pre'` transform attaching helper `__code` and per-Example
- *    `__facts` (source-facts synthesis) to demo sources
+ *  - an `enforce: 'pre'` transform attaching helper `__snippet` and
+ *    per-Example `__facts` (source-facts synthesis) to demo sources
  *
- * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__code`
+ * Returns two plugin objects. Vite's `enforce` is plugin-wide; the `__snippet`
  * transform reads a demo's raw TSX before JSX lowering and lives in its own
  * `enforce: 'pre'` object.
  *
- * `docsPlugin({ vitest: true })` keeps the real component-modules map and the
- * tagging transform, stubs the api-reference manifest and demo-metas with empty
- * defaults, and drops the demo `__code` pre-transform.
+ * `docsPlugin({ vitest: true })` keeps the real component-modules map, the
+ * tagging transform, and the demo `__snippet` pre-transform. It stubs the
+ * api-reference manifest and demo-metas with empty defaults. The pre-transform
+ * reads only demo files. A suite that imports no demo pays nothing for it, and
+ * `demo-snippets.test.tsx` reads the snippets that the site ships.
  *
  * `packageName` is the documented library's import prefix (`ui`, `grid`, …),
  * baked into `virtual:component-modules` so derived snippets read
@@ -481,7 +517,9 @@ export function docsPlugin({
 	// Per plugin instance, not module-global: the prune is keyed on this
 	// instance's `demosDir`, so a second instance in one process would evict the
 	// first's entries on every regeneration.
-	const demoMetaCache: DemoMetaCache = new Map()
+	const demoMetaCache: DemoParseCache<DemoMeta> = new Map()
+
+	const demoExternalsCache: DemoParseCache<ExternalImport[]> = new Map()
 
 	// Lazily created on first read so `vitest` builds never open a Project. One
 	// long-lived extractor per plugin: it reuses its scoped ts-morph Project and
@@ -504,7 +542,7 @@ export function docsPlugin({
 			// a docs build roots at `src/docs` (so `config.root/demos` happens to
 			// match), but a test run roots at the package dir, where only
 			// `srcDir/docs/demos` points at the real demos. One source keeps every
-			// consumer (metas, the name map, the `__code` transform) aligned.
+			// consumer (metas, the name map, the `__snippet` transform) aligned.
 			demosDir = path.join(srcDir, 'docs', 'demos')
 		},
 
@@ -532,7 +570,7 @@ export function docsPlugin({
 			},
 			{
 				id: 'virtual:component-modules',
-				generate: () => buildNameMap(srcDir, demosDir, packageName),
+				generate: () => buildNameMap(srcDir, demosDir, packageName, demoExternalsCache),
 				// Exactly what `buildNameMap` reads: the public barrels
 				// `moduleNameFor` recognizes, plus the demos it scans for external
 				// components. A test, a stylesheet, or a component body cannot change
@@ -571,15 +609,13 @@ export function docsPlugin({
 		},
 	}
 
-	if (vitest) return [main]
-
 	const pre: Plugin = {
 		name: 'docs:pre',
 
 		enforce: 'pre',
 
-		// Attach each demo helper's snippet as a `__code` static, with the imports
-		// that the snippet uses as `__imports`, and inject per-Example `__facts`
+		// Attach each demo helper's snippet as a `__snippet` static, over one
+		// declaration table for the file, and inject per-Example `__facts`
 		// (authored prop sources, referenced declarations, import origins) for the
 		// walker's source-aware synthesis. Runs at `enforce: 'pre'` on raw TSX,
 		// before JSX lowering, over one shared parse.
@@ -596,12 +632,17 @@ export function docsPlugin({
 
 			if (helpers.length === 0 && withFacts === null) return
 
-			const tail = helpers
-				.map(
-					({ name, code, imports }) =>
-						`;Object.assign(${name}, { __code: ${JSON.stringify(code)}, __imports: ${JSON.stringify(imports)} });`,
-				)
-				.join('\n')
+			// Every helper of a file shares one table, so the declarations go into
+			// the module once.
+			const table = helpers[0]?.declarations ?? []
+
+			const tail = [
+				...(helpers.length > 0 ? [`;const ${SNIPPET_TABLE} = ${JSON.stringify(table)};`] : []),
+				...helpers.map(
+					({ name, blocks, imports }) =>
+						`;Object.assign(${name}, { __snippet: { name: ${JSON.stringify(name)}, declarations: ${SNIPPET_TABLE}, blocks: ${JSON.stringify(blocks)}, imports: ${JSON.stringify(imports)} } });`,
+				),
+			].join('\n')
 
 			const base = withFacts ?? code
 

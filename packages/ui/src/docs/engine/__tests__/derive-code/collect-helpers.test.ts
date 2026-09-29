@@ -112,9 +112,8 @@ describe('collectHelpers preamble inclusion', () => {
 		expect(bIndex).toBeGreaterThan(aIndex)
 	})
 
-	// The walker shows a snippet in place of the tree it renders, so a helper that
-	// another helper renders rides along. Without it, the snippet names a
-	// component it never defines.
+	// A snippet declares each component that it renders. Without the sibling
+	// helper, the snippet names a component it never defines.
 	it('pulls in a sibling helper that the snippet renders', () => {
 		const source = [
 			`function FilterOutput() {`,
@@ -174,6 +173,44 @@ describe('collectHelpers preamble inclusion', () => {
 		expect(helper?.imports).toEqual({ defaultPasswordRules: { module: 'password-strength' } })
 	})
 
+	// The name of a declaration in a string, JSX text, or a comment is no use.
+	it('pulls no declaration that only a string, JSX text, or a comment names', () => {
+		const source = [
+			`const people = ['Ada']`,
+			``,
+			`type Command = { id: string }`,
+			``,
+			`// Built like Search, with no Command list.`,
+			`function Search() {`,
+			`\treturn <Input placeholder="Search people">Command palette</Input>`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source)
+
+		expect(helper?.code).toBe(
+			[
+				`function Search() {`,
+				`\treturn <Input placeholder="Search people">Command palette</Input>`,
+				`}`,
+			].join('\n'),
+		)
+	})
+
+	it('carries no import that only a string or JSX text names', () => {
+		const source = [
+			`function Items() {`,
+			`\treturn <NavItem value="home">Home</NavItem>`,
+			`}`,
+		].join('\n')
+
+		const [helper] = collectHelpers(source, undefined, {
+			Home: { module: 'lucide-react', external: true },
+		})
+
+		expect(helper?.imports).toEqual({})
+	})
+
 	it('leaves helpers untouched when no preamble is referenced', () => {
 		const source = [
 			`type Unused = { x: string }`,
@@ -191,7 +228,50 @@ describe('collectHelpers preamble inclusion', () => {
 	})
 })
 
-// A helper the JSX test misses carries no `__code`, so its `<Example>` renders
+describe('collectHelpers declaration table', () => {
+	it('shares one table across the helpers of a file, in source order', () => {
+		const source = [
+			`type Unused = { x: string }`,
+			``,
+			`const size = 2`,
+			``,
+			`function A() {`,
+			`\treturn <Stack gap={size} />`,
+			`}`,
+			``,
+			`function B() {`,
+			`\treturn <Input size={size} />`,
+			`}`,
+		].join('\n')
+
+		const [a, b] = collectHelpers(source)
+
+		expect(a?.declarations).toBe(b?.declarations)
+
+		expect(a?.declarations).toEqual([
+			'const size = 2',
+			'function A() {\n\treturn <Stack gap={size} />\n}',
+			'function B() {\n\treturn <Input size={size} />\n}',
+		])
+
+		expect(a?.blocks).toEqual([0, 1])
+
+		expect(b?.blocks).toEqual([0, 2])
+	})
+
+	it('names each helper, so the walk can print a use of it', () => {
+		const source = [`const Pane = () => <Card />`, `const Row = () => <Pane />`].join('\n')
+
+		const helpers = collectHelpers(source)
+
+		expect(helpers.map(({ name, blocks }) => ({ name, blocks }))).toEqual([
+			{ name: 'Pane', blocks: [0] },
+			{ name: 'Row', blocks: [0, 1] },
+		])
+	})
+})
+
+// A helper the JSX test misses carries no `__snippet`, so its `<Example>` renders
 // no code block at all. See `rendersJsx` for the scan these cases retired.
 describe('collectHelpers JSX detection', () => {
 	it('collects a helper whose return is a conditional', () => {
@@ -252,7 +332,7 @@ describe('collectHelpers JSX detection', () => {
 	})
 
 	// A callback's returns belong to the callback. Read as the host's, the arrow
-	// below would make `Registry` a helper and attach it a `__code` nothing
+	// below would make `Registry` a helper and attach it a `__snippet` nothing
 	// renders.
 	it('reads the returns of the function itself, not those of a nested one', () => {
 		const source = [
@@ -267,7 +347,7 @@ describe('collectHelpers JSX detection', () => {
 })
 
 describe('collectHelpers entry export', () => {
-	it('skips the `Demo` page function so its source is not embedded as dead __code', () => {
+	it('skips the `Demo` page function so its source is not embedded as a dead __snippet', () => {
 		const source = [
 			`function Swatch() {`,
 			`\treturn <Box />`,

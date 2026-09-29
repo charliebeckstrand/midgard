@@ -3,7 +3,9 @@ import { createElement, type ReactNode } from 'react'
 import { describe, expect, it } from 'vitest'
 import { type ComponentRegistry, deriveCode, type SourceFacts } from '../../derive-code'
 import { readTag } from '../../derive-code/registry'
+import type { DeclarationFact } from '../../derive-code/types'
 import { extractSourceFacts } from '../../plugins/source-facts'
+import { parseSource, referencedNames } from '../../plugins/ts-source'
 import { tag } from './helpers'
 
 const registry: ComponentRegistry = {
@@ -16,13 +18,36 @@ const registry: ComponentRegistry = {
 	packageName: 'ui',
 }
 
-const facts = (overrides: Partial<SourceFacts>): SourceFacts => ({
-	elements: [],
-	bindings: {},
-	declarations: [],
-	imports: {},
-	...overrides,
-})
+// The names that a source uses, read from its syntax tree as the docs plugin
+// reads them. The plugin also drops each name that the demo file does not
+// bind, and a test file has no demo file, so here each name stays.
+const namesOf = (code: string) => [...referencedNames(parseSource('source.tsx', code))]
+
+type Authored = Partial<Omit<SourceFacts, 'declarations' | 'uses'>> & {
+	declarations?: Omit<DeclarationFact, 'uses'>[]
+}
+
+/** Facts as the docs plugin ships them, with the names that each source uses. */
+const facts = ({ declarations = [], ...overrides }: Authored): SourceFacts => {
+	const elements = overrides.elements ?? []
+
+	const sources = elements.flatMap(({ props, children, map }) =>
+		[...Object.values(props), children, map].filter((source) => source !== undefined),
+	)
+
+	return {
+		elements,
+		bindings: {},
+		imports: {},
+		...overrides,
+		declarations: declarations.map((declaration) => ({
+			...declaration,
+			uses: namesOf(declaration.code),
+		})),
+		// The parentheses make an object literal read as an expression, not a block.
+		uses: Object.fromEntries(sources.map((source) => [source, namesOf(`(${source})`)])),
+	}
+}
 
 describe('deriveCode source-fact props', () => {
 	const MaskInput = tag<{
@@ -106,6 +131,195 @@ describe('deriveCode source-fact props', () => {
 		expect(result).toContain('<MaskInput value="solid" />')
 
 		expect(result).not.toContain('const variant')
+	})
+
+	it('reads no key that a record of the facts inherits, such as `toString`', () => {
+		const tree = createElement(MaskInput, { format: (v) => v })
+
+		const result = deriveCode(tree, registry, {
+			elements: [{ name: 'MaskInput', props: { format: 'toString' } }],
+			bindings: {},
+			declarations: [],
+			imports: {},
+			uses: {},
+		})
+
+		expect(result).toBe(
+			[`import { MaskInput } from 'ui/mask-input'`, '', '<MaskInput format={toString} />'].join(
+				'\n',
+			),
+		)
+	})
+
+	describe('a live `false`', () => {
+		const Dialog = tag<{
+			open?: boolean
+			onOpenChange?: (open: boolean) => void
+			closable?: boolean
+			disabled?: boolean
+		}>('Dialog', 'dialog')
+
+		// `false` turns off a prop whose default is on, so dropping it flips the prop.
+		it('prints an authored `false`', () => {
+			const tree = createElement(Dialog, { closable: false })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Dialog', props: { closable: 'false' } }] }),
+			)
+
+			expect(result).toContain('<Dialog closable={false} />')
+		})
+
+		it('prints its identifier once the setter pulls the declaration', () => {
+			const tree = createElement(Dialog, { open: false, onOpenChange: () => {} })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Dialog', props: { open: 'open', onOpenChange: 'setOpen' } }],
+					bindings: { open: 0, setOpen: 0 },
+					declarations: [
+						{ names: ['open', 'setOpen'], code: 'const [open, setOpen] = useState(false)' },
+					],
+				}),
+			)
+
+			expect(result).toContain('<Dialog open={open} onOpenChange={setOpen} />')
+		})
+
+		it('drops it when its source is an expression', () => {
+			const tree = createElement(Dialog, { disabled: false })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Dialog', props: { disabled: '!value' } }] }),
+			)
+
+			expect(result).toContain('<Dialog />')
+		})
+	})
+
+	describe('a live `null` or `undefined`', () => {
+		const Picker = tag<{
+			value?: Date | null
+			defaultValue?: Date | null
+			onValueChange?: (value: Date | null) => void
+		}>('Picker', 'picker')
+
+		const pulled = {
+			bindings: { date: 0, setDate: 0 },
+			declarations: [
+				{ names: ['date', 'setDate'], code: 'const [date, setDate] = useState<Date | null>(null)' },
+			],
+		}
+
+		// A controlled value that is empty at render keeps its value beside its setter.
+		it.each([null, undefined])(
+			'prints %s as its identifier once the setter pulls the declaration',
+			(value) => {
+				const tree = createElement(Picker, { value, onValueChange: () => {} })
+
+				const result = deriveCode(
+					tree,
+					registry,
+					facts({
+						elements: [{ name: 'Picker', props: { value: 'date', onValueChange: 'setDate' } }],
+						...pulled,
+					}),
+				)
+
+				expect(result).toContain('<Picker value={date} onValueChange={setDate} />')
+			},
+		)
+
+		it('prints an authored `null`', () => {
+			const tree = createElement(Picker, { defaultValue: null })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Picker', props: { defaultValue: 'null' } }] }),
+			)
+
+			expect(result).toContain('<Picker defaultValue={null} />')
+		})
+
+		it('drops it when its source is an expression', () => {
+			const tree = createElement(Picker, { value: undefined })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Picker', props: { value: 'picked ?? fallback' } }] }),
+			)
+
+			expect(result).toContain('<Picker />')
+		})
+	})
+
+	describe('an element prop', () => {
+		const Kbd = tag<{ children?: ReactNode }>('Kbd', 'kbd')
+
+		const Trigger = tag<{ suffix?: ReactNode; children?: ReactNode }>('Trigger', 'trigger')
+
+		it('prints its authored source, children included', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') }, 'Open')
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({ elements: [{ name: 'Trigger', props: { suffix: '<Kbd>⌘O</Kbd>' } }] }),
+			)
+
+			expect(result).toContain('<Trigger suffix={<Kbd>⌘O</Kbd>}>Open</Trigger>')
+		})
+
+		it('prints an identifier source, and pulls its declaration', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Trigger', props: { suffix: 'shortcut' } }],
+					bindings: { shortcut: 0 },
+					declarations: [{ names: ['shortcut'], code: 'const shortcut = <Kbd>⌘O</Kbd>' }],
+				}),
+			)
+
+			expect(result).toContain('const shortcut = <Kbd>⌘O</Kbd>')
+
+			expect(result).toContain('<Trigger suffix={shortcut} />')
+		})
+
+		// `keys[k]` names the item of a `.map`, which the block never binds.
+		it('prints its live form when the source uses a name of a callback in the JSX', () => {
+			const tree = createElement(Trigger, { suffix: createElement(Kbd, null, '⌘O') })
+
+			const result = deriveCode(
+				tree,
+				registry,
+				facts({
+					elements: [{ name: 'Trigger', props: { suffix: 'keys[k]' }, local: ['suffix'] }],
+				}),
+			)
+
+			expect(result).toContain('<Trigger suffix={<Kbd>⌘O</Kbd>} />')
+		})
+
+		it('prints the children of its live form, with text that JSX reads as syntax quoted', () => {
+			const tree = createElement(Trigger, {
+				suffix: createElement(Kbd, null, 'a < b', createElement(Kbd, null, 'K')),
+			})
+
+			expect(deriveCode(tree, registry)).toContain(
+				'<Trigger suffix={<Kbd>{"a < b"}<Kbd>K</Kbd></Kbd>} />',
+			)
+		})
 	})
 
 	it('rescues an unserializable prop with source instead of a placeholder', () => {
@@ -247,6 +461,67 @@ describe('deriveCode source-fact matching', () => {
 		expect(result).toContain('<Button onClick={handle}>One</Button>')
 	})
 
+	it('pairs the k-th rendered element of a tag with its k-th fact', () => {
+		const tree = createElement(
+			'div',
+			null,
+			createElement(Button, { onClick: () => {} }, 'One'),
+			createElement(Button, { onClick: () => {} }, 'Two'),
+		)
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Button', props: { onClick: 'first' } },
+					{ name: 'Button', props: { onClick: 'second' } },
+				],
+			}),
+		)
+
+		expect(result).toContain(
+			'<Button onClick={first}>One</Button>\n<Button onClick={second}>Two</Button>',
+		)
+	})
+
+	it('keeps an element with an empty fact free of the facts of the others', () => {
+		const tree = createElement(
+			'div',
+			null,
+			createElement(Button, { onClick: () => {} }, 'Spread'),
+			createElement(Button, { onClick: () => {} }, 'Saved'),
+		)
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Button', props: {} },
+					{ name: 'Button', props: { onClick: 'save' } },
+				],
+			}),
+		)
+
+		expect(result).toContain('<Button>Spread</Button>\n<Button onClick={save}>Saved</Button>')
+	})
+
+	// An authored prop that is `undefined` at render is still a key of the props.
+	it('claims a fact whose prop is `undefined` at render', () => {
+		const Cvv = tag<{ brand?: string; onBrandChange?: () => void }>('Cvv', 'cvv')
+
+		const tree = createElement(Cvv, { brand: undefined, onBrandChange: () => {} })
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({ elements: [{ name: 'Cvv', props: { brand: 'brand', onBrandChange: 'setBrand' } }] }),
+		)
+
+		expect(result).toContain('<Cvv onBrandChange={setBrand} />')
+	})
+
 	it('ignores a candidate claiming props the runtime element lacks', () => {
 		const tree = createElement(Button, null, 'Plain')
 
@@ -257,6 +532,101 @@ describe('deriveCode source-fact matching', () => {
 		)
 
 		expect(result).toContain('<Button>Plain</Button>')
+	})
+})
+
+describe('deriveCode mapped runs', () => {
+	const Page = tag<{ value?: number; onClick?: () => void }>('Page', 'page')
+
+	const Gap = tag('Gap', 'page')
+
+	const List = tag<{ children?: ReactNode }>('List', 'list')
+
+	const map =
+		'pages.map((p) => (p === 0 ? <Gap key="gap" /> : <Page key={p} onClick={() => go(p)} />))'
+
+	const pageFacts = (local: boolean) =>
+		facts({
+			elements: [
+				{ name: 'Gap', props: {}, map },
+				{
+					name: 'Page',
+					props: { onClick: '() => go(p)' },
+					...(local ? { local: ['onClick'] } : {}),
+					map,
+				},
+			],
+			bindings: { pages: 0 },
+			declarations: [{ names: ['pages'], code: 'const pages = [1, 0, 2]' }],
+		})
+
+	const tree = createElement(
+		List,
+		null,
+		[1, 0, 2].map((p) =>
+			p === 0
+				? createElement(Gap, { key: 'gap' })
+				: createElement(Page, { key: p, value: p, onClick: () => {} }),
+		),
+	)
+
+	// `p` is the map's item, so the run prints the map, which binds it.
+	it('prints a run as its authored map when an element prints a name that the map binds', () => {
+		const result = deriveCode(tree, registry, pageFacts(true))
+
+		expect(result).toContain(`<List>\n  {${map}}\n</List>`)
+
+		expect(result).toContain('const pages = [1, 0, 2]')
+	})
+
+	// The inner map names the outer item, so the outer map prints, and binds it.
+	it('prints the outer map when an inner map uses the outer item', () => {
+		const Column = tag<{ children?: ReactNode }>('Column', 'board')
+
+		const Card = tag<{ onClick?: () => void }>('Card', 'board')
+
+		const outer = 'columns.map((column) => <Column key={column.id}>{column.cards.map(…)}</Column>)'
+
+		const inner = 'column.cards.map((card) => <Card key={card} onClick={() => pick(card)} />)'
+
+		const board = createElement(
+			List,
+			null,
+			['a', 'b'].map((id) =>
+				createElement(
+					Column,
+					{ key: id },
+					[1, 2].map((card) => createElement(Card, { key: card, onClick: () => {} })),
+				),
+			),
+		)
+
+		const result = deriveCode(
+			board,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Column', props: {}, map: outer },
+					{
+						name: 'Card',
+						props: { onClick: '() => pick(card)' },
+						local: ['onClick'],
+						map: inner,
+						mapLocal: true,
+					},
+				],
+			}),
+		)
+
+		expect(result).toContain(`<List>\n  {${outer}}\n</List>`)
+	})
+
+	it('prints a run one element at a time when no element prints such a name', () => {
+		const result = deriveCode(tree, registry, pageFacts(false))
+
+		expect(result).toContain('<Page value={1} onClick={() => go(p)} />\n  <Gap />')
+
+		expect(result).not.toContain('pages.map')
 	})
 })
 
@@ -323,6 +693,7 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 			bindings: site?.bindings ?? {},
 			declarations: extracted?.declarations ?? [],
 			imports: extracted?.imports ?? {},
+			uses: extracted?.uses ?? {},
 		})
 
 		// The rescued props push the open tag past the inline budget, so it wraps
@@ -350,5 +721,134 @@ describe('deriveCode round trip through extractSourceFacts', () => {
 				'</Field>',
 			].join('\n'),
 		)
+	})
+
+	/**
+	 * Derive the code of the first Example of `source`, with the facts the plugin
+	 * extracts. The build ships only the names that some Example uses, so each
+	 * source below has a second Example that ships the name under test.
+	 */
+	const roundTrip = (source: string, tree: ReactNode) => {
+		const extracted = extractSourceFacts(source, {
+			filePath: '/lib/src/docs/demos/components/demo.tsx',
+			srcDir: '/lib/src',
+		})
+
+		const site = extracted?.sites[0]
+
+		return deriveCode(tree, registry, {
+			elements: site?.elements ?? [],
+			bindings: site?.bindings ?? {},
+			declarations: extracted?.declarations ?? [],
+			imports: extracted?.imports ?? {},
+			uses: extracted?.uses ?? {},
+		})
+	}
+
+	const Calendar = tag<{
+		min?: Date
+		max?: Date
+		value?: Date | null
+		onValueChange?: (value: Date | null) => void
+		format?: (date: Date) => number
+		shapes?: unknown
+	}>('Calendar', 'calendar')
+
+	it('pulls no declaration by a property name that one of its names shares', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [date, setDate] = useState<Date | null>(null)`,
+			``,
+			`\tconst [{ min, max }] = useState(() => {`,
+			`\t\tconst start = new Date()`,
+			``,
+			`\t\tstart.setDate(start.getDate() - 30)`,
+			``,
+			`\t\treturn { min: start, max: new Date() }`,
+			`\t})`,
+			``,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="With min/max">`,
+			`\t\t\t\t<Calendar min={min} max={max} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Default">`,
+			`\t\t\t\t<Calendar value={date} onValueChange={setDate} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const result = roundTrip(source, createElement(Calendar, { min: new Date(), max: new Date() }))
+
+		expect(result).toContain('const [{ min, max }] = useState(')
+
+		expect(result).not.toContain('const [date, setDate]')
+	})
+
+	it('imports nothing by a parameter that shadows an import', () => {
+		const source = [
+			`import { feature } from 'topojson-client'`,
+			``,
+			`const dayOf = (feature: Date) => feature.getDate()`,
+			``,
+			`export function Demo() {`,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="Days">`,
+			`\t\t\t\t<Calendar format={dayOf} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Shapes">`,
+			`\t\t\t\t<Calendar shapes={feature(atlas)} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const result = roundTrip(source, createElement(Calendar, { format: (date) => date.getDate() }))
+
+		expect(result).toContain('const dayOf = (feature: Date) => feature.getDate()')
+
+		expect(result).not.toContain('topojson-client')
+	})
+
+	it('pulls nothing by a word in a string, in JSX text, or in a comment', () => {
+		const source = [
+			`import { useState } from 'react'`,
+			``,
+			`export function Demo() {`,
+			`\tconst [value, setValue] = useState('')`,
+			``,
+			`\treturn (`,
+			`\t\t<>`,
+			`\t\t\t<Example title="Label">`,
+			`\t\t\t\t<Field label={<Label title="value">Set the value {/* setValue */}</Label>} />`,
+			`\t\t\t</Example>`,
+			`\t\t\t<Example title="Controlled">`,
+			`\t\t\t\t<Field value={value} onValueChange={setValue} />`,
+			`\t\t\t</Example>`,
+			`\t\t</>`,
+			`\t)`,
+			`}`,
+		].join('\n')
+
+		const Field = tag<{ label?: ReactNode }>('Field', 'fieldset')
+
+		const Label = tag<{ title?: string; children?: ReactNode }>('Label', 'fieldset')
+
+		const result = roundTrip(
+			source,
+			createElement(Field, {
+				label: createElement(Label, { title: 'value' }, 'Set the value'),
+			}),
+		)
+
+		expect(result).toContain('<Label title="value">Set the value {/* setValue */}</Label>')
+
+		expect(result).not.toContain('useState')
 	})
 })

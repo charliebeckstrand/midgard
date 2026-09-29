@@ -35,7 +35,13 @@ export function Demo() {
 							<Example
 								title="Default"
 								actions={
-									<ValueStepper value={barValue} onValueChange={setBarValue} max={100} step={10} />
+									<ValueStepper
+										label="progress"
+										value={barValue}
+										onValueChange={setBarValue}
+										max={100}
+										step={10}
+									/>
 								}
 							>
 								<ProgressBar value={barValue} aria-label="Progress" />
@@ -79,6 +85,7 @@ export function Demo() {
 								title="Default"
 								actions={
 									<ValueStepper
+										label="progress"
 										value={gaugeValue}
 										onValueChange={setGaugeValue}
 										max={100}

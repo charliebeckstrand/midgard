@@ -1,8 +1,14 @@
 import { ts } from 'ts-morph'
 import {
+	aliasTarget,
+	type Bindings,
+	componentPropsAnnotation,
 	isPassThroughTypeName,
-	resolveTypeAliasTarget,
+	NO_BINDINGS,
+	PROPS_WRAPPERS,
+	resolveBound,
 	stringLiteralKeys,
+	TAG_PASS_THROUGHS,
 	typeRefName,
 } from './ts-utils'
 
@@ -22,39 +28,51 @@ export function extractProjectPropNames(
 ): Set<string> {
 	const names = new Set<string>()
 
-	const visited = new Set<ts.Node>()
-
-	walk(annotation, names, visited, checker)
+	walk(annotation, NO_BINDINGS, names, new Map(), checker)
 
 	return names
 }
 
 function walk(
-	node: ts.TypeNode,
+	annotation: ts.TypeNode,
+	scope: Bindings,
 	names: Set<string>,
-	visited: Set<ts.Node>,
+	visited: Map<Bindings, Set<ts.Node>>,
 	checker: ts.TypeChecker,
 ): void {
-	if (visited.has(node)) return
+	const { node, bindings } = resolveBound(annotation, scope, checker)
 
-	visited.add(node)
+	// Per bindings: an alias that two references bind differently is walked
+	// once for each.
+	const seen = visited.get(bindings) ?? new Set<ts.Node>()
+
+	if (seen.has(node)) return
+
+	seen.add(node)
+
+	visited.set(bindings, seen)
+
+	const recurse = (next: ts.TypeNode, nextBindings = bindings) =>
+		walk(next, nextBindings, names, visited, checker)
 
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
-		for (const member of node.types) walk(member, names, visited, checker)
+		for (const member of node.types) recurse(member)
 
 		return
 	}
 
 	if (ts.isParenthesizedTypeNode(node)) {
-		walk(node.type, names, visited, checker)
+		recurse(node.type)
 
 		return
 	}
 
-	// Inline type literal: `{ foo: string; bar?: number }`.
+	// Inline type literal: `{ foo: string; 'aria-label'?: string; onOpen(): void }`.
 	if (ts.isTypeLiteralNode(node)) {
 		for (const member of node.members) {
-			if (ts.isPropertySignature(member) && member.name && ts.isIdentifier(member.name)) {
+			if (!ts.isPropertySignature(member) && !ts.isMethodSignature(member)) continue
+
+			if (ts.isIdentifier(member.name) || ts.isStringLiteral(member.name)) {
 				names.add(member.name.text)
 			}
 		}
@@ -66,27 +84,37 @@ function walk(
 
 	const refName = typeRefName(node.typeName)
 
-	// Pass-throughs surface via the pass-through note, not the table.
-	// `PolymorphicProps` adds `href` explicitly: its `href` discriminator
-	// switches the element to `<a>` and counts as a project-authored prop.
-	if (isPassThroughTypeName(refName)) {
-		if (refName === 'PolymorphicProps') names.add('href')
+	const [first, second] = node.typeArguments ?? []
+
+	if (PROPS_WRAPPERS.has(refName)) {
+		if (first) recurse(first)
 
 		return
 	}
 
-	if (refName === 'Omit') {
-		const inner = node.typeArguments?.[0]
+	// `ComponentProps<typeof X>` takes the props of the component `X`, so its
+	// project arms are names here.
+	if (TAG_PASS_THROUGHS.has(refName) && first) {
+		const props = componentPropsAnnotation(resolveBound(first, bindings, checker).node, checker)
 
-		if (inner) walk(inner, names, visited, checker)
+		if (props) {
+			recurse(props, NO_BINDINGS)
+
+			return
+		}
+	}
+
+	// Pass-throughs surface via the pass-through note, not the table.
+	if (isPassThroughTypeName(refName)) return
+
+	if (refName === 'Omit') {
+		if (first) recurse(first)
 
 		return
 	}
 
 	if (refName === 'Pick') {
-		const [, keys] = node.typeArguments ?? []
-
-		for (const k of stringLiteralKeys(keys)) names.add(k)
+		for (const k of stringLiteralKeys(second, bindings, checker)) names.add(k)
 
 		return
 	}
@@ -95,14 +123,13 @@ function walk(
 	// predicate, not a prop source; recursing it fans T out into every HTML
 	// attr (`aria-*`, `on*`, …).
 	if (refName === 'Extract' || refName === 'Exclude') {
-		const inner = node.typeArguments?.[0]
-
-		if (inner) walk(inner, names, visited, checker)
+		if (first) recurse(first)
 
 		return
 	}
 
-	// Project alias (`CheckboxVariants`, `ButtonBaseProps`, …): inspect the RHS:
+	// Project alias (`CheckboxVariants`, `ButtonBaseProps`, …): inspect the RHS,
+	// with the alias's type parameters bound to the reference's arguments:
 	//   • Splittable (intersection / union / parens / literal): recurse into
 	//     each arm, detecting pass-through arms.
 	//   • Single TypeReference: drop the branch if it's a pass-through
@@ -110,29 +137,12 @@ function walk(
 	//     if it's another project alias (`StackProps = FlexProps`).
 	//   • Anything else (mapped / conditional / fn): fall through to the
 	//     resolved-type properties below.
-	const aliasTarget = resolveTypeAliasTarget(node.typeName, checker)
+	const target = aliasTarget(node, bindings, checker)
 
-	if (aliasTarget) {
-		if (isSplittable(aliasTarget)) {
-			walk(aliasTarget, names, visited, checker)
+	if (target && (isSplittable(target.node) || ts.isTypeReferenceNode(target.node))) {
+		recurse(target.node, target.bindings)
 
-			// A generic alias' RHS is walked with its type parameters unbound, so
-			// props supplied through a type argument (`WithFoo<{ bar }>` where
-			// `type WithFoo<T> = T & { foo?: string }`) never surface. Walk the
-			// supplied arguments too; a pass-through argument still drops out via
-			// the pass-through guards above.
-			for (const arg of node.typeArguments ?? []) walk(arg, names, visited, checker)
-
-			return
-		}
-
-		if (ts.isTypeReferenceNode(aliasTarget)) {
-			if (isPassThroughTypeName(typeRefName(aliasTarget.typeName))) return
-
-			walk(aliasTarget, names, visited, checker)
-
-			return
-		}
+		return
 	}
 
 	const type = checker.getTypeFromTypeNode(node)

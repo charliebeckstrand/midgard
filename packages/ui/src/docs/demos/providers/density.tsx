@@ -140,7 +140,12 @@ export function Demo() {
 	return (
 		<Example
 			actions={
-				<OptionsListbox options={densityLevels} value={density} onValueChange={setDensity} />
+				<OptionsListbox
+					label="Density"
+					options={densityLevels}
+					value={density}
+					onValueChange={setDensity}
+				/>
 			}
 		>
 			<Stack gap="md">

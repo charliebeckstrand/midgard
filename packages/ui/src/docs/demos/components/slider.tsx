@@ -14,7 +14,9 @@ function InteractiveExample() {
 	return (
 		<Example
 			title="Default"
-			actions={<ValueStepper value={value} onValueChange={setValue} max={100} step={10} />}
+			actions={
+				<ValueStepper label="value" value={value} onValueChange={setValue} max={100} step={10} />
+			}
 		>
 			<Slider aria-label="Value" value={value} onValueChange={setValue} />
 			<Text className="tabular-nums">{value}</Text>

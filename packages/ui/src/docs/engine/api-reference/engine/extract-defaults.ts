@@ -22,9 +22,10 @@ export function extractDefaults(callable: ts.SignatureDeclaration): Map<string, 
 		// A renamed binding (`{ size: sizeProp = 'md' }`) carries the public prop
 		// name on `propertyName`; `name` is the local binding. Key the default
 		// under the prop so it matches the extracted prop table, not the local.
+		// A prop name that is no identifier, such as `'aria-label'`, is a string.
 		const key = element.propertyName ?? element.name
 
-		const name = ts.isIdentifier(key) ? key.text : null
+		const name = ts.isIdentifier(key) || ts.isStringLiteral(key) ? key.text : null
 
 		if (!name) continue
 

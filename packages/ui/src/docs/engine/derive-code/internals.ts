@@ -1,16 +1,17 @@
 import * as React from 'react'
 import { Children, Fragment, isValidElement, type ReactElement, type ReactNode } from 'react'
 import * as ReactDOM from 'react-dom'
-import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
-import type {
-	ComponentInfo,
-	ComponentRegistry,
-	Context,
-	ElementFact,
-	ImportFact,
-	SourceFacts,
+import {
+	type ComponentInfo,
+	type ComponentRegistry,
+	type Context,
+	type ElementFact,
+	type HelperSnippet,
+	hasFacts,
+	type ImportFact,
+	type SourceFacts,
 } from './types'
 
 /**
@@ -99,8 +100,12 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 		externalModules: new Set(),
 		packageName: registry.packageName,
 		facts,
-		factTexts: [],
+		used: new Set(),
 		pulledDecls: new Set(),
+		hoisted: new Map(),
+		rendered: new Map(),
+		matched: new Map(),
+		localPrints: 0,
 	}
 }
 
@@ -114,7 +119,7 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 export type ElementCase =
 	| { kind: 'recognized'; info: ComponentInfo }
 	| { kind: 'children'; nodes: ReactNode[] }
-	| { kind: 'snippet'; code: string; imports: Record<string, ImportFact> }
+	| { kind: 'snippet'; snippet: HelperSnippet }
 	| { kind: 'none' }
 
 /**
@@ -131,11 +136,9 @@ export function classifyElement(element: ReactElement, registry: ComponentRegist
 
 	if (nodes.length > 0) return { kind: 'children', nodes }
 
-	const code = readSnippet(element.type)
+	const snippet = readSnippet(element.type)
 
-	return code === null
-		? { kind: 'none' }
-		: { kind: 'snippet', code, imports: readSnippetImports(element.type) }
+	return snippet === null ? { kind: 'none' } : { kind: 'snippet', snippet }
 }
 
 /**
@@ -206,6 +209,15 @@ export const PLACEHOLDER = '...'
  * once the identifier's declaration is already pulled into the preamble. A
  * controlled pair therefore reads `value={value} onValueChange={setValue}`,
  * rather than mixing a frozen live value with source-form wiring.
+ *
+ * An element prop is the exception to "live first": it prints from its fact
+ * when one carries it, unless that source uses a name of a callback in the JSX.
+ *
+ * A live `false`, `null`, or `undefined` reads as absent and prints only from
+ * its fact: as `key={false}` or `key={null}` when the demo authors that
+ * literal, or as its identifier through the consistency rule. A controlled
+ * `value={date}` that holds `null` at render therefore keeps its value beside
+ * its setter. Any other source drops it.
  */
 export function formatProps(
 	props: Record<string, unknown>,
@@ -220,9 +232,40 @@ export function formatProps(
 	for (const [key, value] of Object.entries(props)) {
 		if (IGNORED_PROPS.has(key)) continue
 
+		// An element prop prints from its authored source when a fact carries it.
+		// The live form loses an identifier, such as `sidebar={sidebar}`, and the
+		// source reads as the demo wrote it. A source that uses a name of a callback
+		// in the JSX does not stand on its own, so the live form prints then.
+		const authored =
+			isValidElement(value) && !fact?.local?.includes(key) ? fact?.props[key] : undefined
+
+		if (authored !== undefined) {
+			slots.push({
+				key,
+				text: `${key}={${reindent(registerFactText(authored, context), indent + INDENT)}}`,
+				live: false,
+			})
+
+			continue
+		}
+
 		const live = formatLiveProp(key, value, context)
 
-		if (live === null) continue
+		if (live === null) {
+			// A live `false`, `null`, or `undefined` reads as absent. An authored
+			// `false` turns off a prop whose default is on, and an authored `null`
+			// keeps a prop controlled, so each prints. Another source prints only
+			// through the consistency pass below, as a controlled `open={open}` does.
+			const source = fact?.props[key]
+
+			if (source !== undefined) {
+				const literal = value === false ? 'false' : value === null ? 'null' : undefined
+
+				slots.push({ key, text: source === literal ? `${key}={${literal}}` : '', live: true })
+			}
+
+			continue
+		}
 
 		if (live !== undefined) {
 			slots.push({ key, text: live, live: true })
@@ -233,6 +276,8 @@ export function formatProps(
 		const source = fact?.props[key]
 
 		if (source !== undefined) {
+			if (fact?.local?.includes(key)) context.localPrints += 1
+
 			slots.push({
 				key,
 				text: `${key}={${reindent(registerFactText(source, context), indent + INDENT)}}`,
@@ -259,14 +304,14 @@ export function formatProps(
 
 		if (source === undefined || !IDENTIFIER_RE.test(source)) continue
 
-		const decl = context.facts?.bindings[source]
+		const decl = own(context.facts?.bindings, source)
 
 		if (decl === undefined || !context.pulledDecls.has(decl)) continue
 
 		slot.text = `${slot.key}={${registerFactText(source, context)}}`
 	}
 
-	return slots.map((slot) => slot.text)
+	return slots.flatMap((slot) => (slot.text === '' ? [] : [slot.text]))
 }
 
 /**
@@ -287,15 +332,9 @@ function formatLiveProp(key: string, value: unknown, context: Context): string |
 	if (typeof value === 'function') return undefined
 
 	if (isValidElement(value)) {
-		const name = getElementName(value, context)
+		const element = formatElement(value, context)
 
-		if (!name) return undefined
-
-		const childProps = formatProps(value.props as Record<string, unknown>, context)
-
-		const propStr = childProps.length > 0 ? ` ${childProps.join(' ')}` : ''
-
-		return `${key}={<${name}${propStr} />}`
+		return element === null ? undefined : `${key}={${element}}`
 	}
 
 	if (Array.isArray(value) && value.every(isPrimitive)) {
@@ -315,6 +354,36 @@ function formatLiveProp(key: string, value: unknown, context: Context): string |
 }
 
 const IDENTIFIER_RE = /^[A-Za-z_$][\w$]*$/
+
+/**
+ * The live form of an element prop's value, as inline JSX with its children.
+ * A text child prints as text, and an element child prints the same way. Returns
+ * null for an element whose type resolves to no name, and drops such a child.
+ */
+function formatElement(element: ReactElement, context: Context): string | null {
+	const name = getElementName(element, context)
+
+	if (!name) return null
+
+	const props = formatProps(element.props as Record<string, unknown>, context)
+
+	const open = props.length > 0 ? `<${name} ${props.join(' ')}` : `<${name}`
+
+	const children = elementChildren(element).flatMap((child) => {
+		if (typeof child === 'string' || typeof child === 'number') return [jsxText(String(child))]
+
+		const nested = isValidElement(child) ? formatElement(child, context) : null
+
+		return nested === null ? [] : [nested]
+	})
+
+	return children.length > 0 ? `${open}>${children.join('')}</${name}>` : `${open} />`
+}
+
+/** JSX text, or a string expression when the text holds a character that JSX reads as syntax. */
+function jsxText(text: string): string {
+	return /[{}<>]/.test(text) ? `{${JSON.stringify(text)}}` : text
+}
 
 /**
  * A plain object literal (a responsive config like `{ initial: 1, sm: 2 }`),
@@ -442,10 +511,15 @@ function importNames(names: Set<string>): string[] {
 }
 
 /**
- * Combine the imports accumulated on `context` with the preamble declarations
- * and the rendered JSX into the final code block. Sorts imports by module;
- * `react` and external packages keep their bare specifiers, everything else
- * uses the documented library's `<packageName>/*` layout.
+ * Combine the imports accumulated on `context` with the declarations and the
+ * rendered JSX into the final code block. Sorts imports by module; `react` and
+ * external packages keep their bare specifiers, everything else uses the
+ * documented library's `<packageName>/*` layout.
+ *
+ * The hoisted helper declarations come first, and the preamble follows. A
+ * preamble declaration can name a helper, but a helper's blocks already hold
+ * each declaration they use. A declaration that both hold prints once, in the
+ * hoisted place.
  */
 export function assemble(context: Context, jsx: string, preamble: string[] = []): string {
 	const imports = [...context.imports.entries()]
@@ -458,16 +532,30 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 		})
 		.join('\n')
 
-	return [imports, ...preamble, jsx].filter(Boolean).join('\n\n')
+	const hoisted = [...context.hoisted].flatMap(([declarations, blocks]) =>
+		[...blocks].sort((a, b) => a - b).map((index) => reindent(declarations[index] ?? '', '')),
+	)
+
+	const printed = new Set(hoisted)
+
+	return [imports, ...hoisted, ...preamble.filter((code) => !printed.has(code)), jsx]
+		.filter(Boolean)
+		.join('\n\n')
 }
 
 /**
- * Resolve the source fact for a rendered element. Candidates share the
- * element's authored tag name, and only claim props the runtime element
- * actually carries. A single survivor wins outright. Multiple survivors reduce
- * to their consensus: the props (and render-prop children) every candidate
- * agrees on. An ambiguous match therefore degrades to today's behavior, instead
- * of attaching another element's source.
+ * Resolve the source fact for a rendered element. Call it once for each
+ * element that the walk renders, in the order of the walk.
+ *
+ * The walk renders the authored elements of a tag in source order. When it
+ * renders as many elements of the tag as the facts list, the k-th rendered
+ * element takes the k-th fact of the tag. A map or a condition can render more
+ * or fewer elements than the source holds. Then the match falls back to the
+ * candidates: the facts of the tag that claim only props the runtime element
+ * carries. A single survivor wins outright. Several survivors reduce to their
+ * consensus: the props (and render-prop children) every candidate agrees on.
+ * An ambiguous match therefore drops a prop, instead of attaching another
+ * element's source.
  */
 export function matchElementFact(
 	name: string,
@@ -478,9 +566,21 @@ export function matchElementFact(
 
 	if (!facts) return undefined
 
-	const candidates = facts.elements.filter(
-		(e) => e.name === name && Object.keys(e.props).every((key) => props[key] !== undefined),
-	)
+	const ofTag = facts.elements.filter((e) => e.name === name)
+
+	const position = context.matched.get(name) ?? 0
+
+	context.matched.set(name, position + 1)
+
+	// An authored prop stays a key of the runtime props even while its value is
+	// `undefined`, so a key the element lacks marks another element's fact.
+	const claims = (e: ElementFact) => Object.keys(e.props).every((key) => Object.hasOwn(props, key))
+
+	const paired = ofTag[position]
+
+	if (context.rendered.get(name) === ofTag.length && paired && claims(paired)) return paired
+
+	const candidates = ofTag.filter((e) => hasFacts(e) && claims(e))
 
 	const first = candidates[0]
 
@@ -498,80 +598,87 @@ export function matchElementFact(
 
 	const children = rest.every((c) => c.children === first.children) ? first.children : undefined
 
-	return { name, props: agreed, children }
+	const local = first.local?.filter((key) => key in agreed || (key === 'children' && children))
+
+	const map = rest.every((c) => c.map === first.map) ? first.map : undefined
+
+	return {
+		name,
+		props: agreed,
+		...(local?.length ? { local } : {}),
+		children,
+		...(map === undefined ? {} : { map, ...(first.mapLocal ? { mapLocal: true as const } : {}) }),
+	}
 }
 
 /**
- * Record an authored source snippet the walk emitted, marking any declaration
- * it directly references as pulled — the signal `formatProps`' consistency
- * pass keys on. Returns `text` so call sites can register inline.
+ * The value of an own key of a record that the facts carry. A record parsed
+ * from JSON inherits keys such as `toString`, and a name or a source can
+ * match one.
+ */
+function own<T>(record: Readonly<Record<string, T>> | undefined, key: string): T | undefined {
+	return record && Object.hasOwn(record, key) ? record[key] : undefined
+}
+
+/**
+ * Record an authored source that the walk prints: add the names that it uses
+ * (see `SourceFacts.uses`) to the walk's names, and mark each declaration that
+ * one of them binds as pulled. `formatProps`' consistency pass keys on that
+ * mark. Returns `text` so call sites can register inline.
  */
 export function registerFactText(text: string, context: Context): string {
-	context.factTexts.push(text)
-
 	const facts = context.facts
 
 	if (!facts) return text
 
-	for (const [name, index] of Object.entries(facts.bindings)) {
-		if (!context.pulledDecls.has(index) && wordRe(name).test(text)) {
-			context.pulledDecls.add(index)
-		}
+	for (const name of own(facts.uses, text) ?? []) {
+		context.used.add(name)
+
+		const index = own(facts.bindings, name)
+
+		if (index !== undefined) context.pulledDecls.add(index)
 	}
 
 	return text
 }
 
 /**
- * Close over the declarations the emitted source snippets reference. A snippet
- * pulls its declarations, and a pulled declaration's own source pulls more, to
- * fixpoint. Register the imports everything mentions: component tags and hooks
- * via {@link collectSnippetImports}, everything else via the facts' import
- * table. Returns the pulled declarations dedented, in source
- * order, ready to sit between the imports and the JSX.
+ * Close over the declarations the printed sources use. A source pulls the
+ * declarations that its names bind, and a pulled declaration's own names pull
+ * more, to fixpoint. Then register the import of each name that the sources
+ * and the pulled declarations use (see {@link registerUses}). Returns the pulled
+ * declarations dedented, in source order, ready to sit between the imports and
+ * the JSX.
  *
- * Like the build-time preamble matching, reference detection is a whole-word
- * name scan, not a reference graph; a name inside a string literal counts.
+ * @remarks
+ * The names come from the syntax tree at build time, so a word in a string, in
+ * JSX text, in a comment, or in a property name pulls nothing.
  */
 export function resolvePreamble(context: Context): string[] {
 	const facts = context.facts
 
-	if (!facts || context.factTexts.length === 0) return []
+	if (!facts || context.used.size === 0) return []
 
-	const texts = [
-		...context.factTexts,
-		...[...context.pulledDecls].map((index) => facts.declarations[index]?.code ?? ''),
-	]
+	const used = new Set(context.used)
 
-	let progress = true
+	// The pulled declarations whose names the closure has yet to read.
+	const pending = [...context.pulledDecls]
 
-	while (progress) {
-		progress = false
+	for (let index = pending.pop(); index !== undefined; index = pending.pop()) {
+		for (const name of facts.declarations[index]?.uses ?? []) {
+			used.add(name)
 
-		for (const [name, index] of Object.entries(facts.bindings)) {
-			if (context.pulledDecls.has(index)) continue
+			const next = own(facts.bindings, name)
 
-			const re = wordRe(name)
+			if (next === undefined || context.pulledDecls.has(next)) continue
 
-			if (!texts.some((text) => re.test(text))) continue
+			context.pulledDecls.add(next)
 
-			context.pulledDecls.add(index)
-
-			texts.push(facts.declarations[index]?.code ?? '')
-
-			progress = true
+			pending.push(next)
 		}
 	}
 
-	for (const text of texts) {
-		collectSnippetImports(text, context)
-
-		for (const [name, imp] of Object.entries(facts.imports)) {
-			if (wordRe(name).test(text)) {
-				addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
-			}
-		}
-	}
+	registerUses(used, context)
 
 	return [...context.pulledDecls]
 		.sort((a, b) => a - b)
@@ -583,33 +690,42 @@ export function resolvePreamble(context: Context): string[] {
 }
 
 /**
- * Components decorated by the docs plugin's `pre` transform carry their
- * original source as `__code`, and the imports it uses as `__imports`.
+ * Read the {@link HelperSnippet} that the docs plugin's `pre` transform
+ * attaches to a helper component as `__snippet`. Returns null for built-ins,
+ * undecorated functions, and a `__snippet` of another shape.
  */
-type WithCode = { __code?: string; __imports?: Record<string, ImportFact> }
-
-/**
- * Read the build-time-attached source snippet from a component. Returns null
- * for built-ins, undecorated functions, or non-string `__code` values.
- */
-export function readSnippet(type: unknown): string | null {
+export function readSnippet(type: unknown): HelperSnippet | null {
 	if (typeof type !== 'function') return null
 
-	const code = (type as WithCode).__code
+	const snippet: unknown = (type as { __snippet?: unknown }).__snippet
 
-	return typeof code === 'string' ? code : null
+	if (typeof snippet !== 'object' || snippet === null) return null
+
+	const { name, declarations, blocks, imports } = snippet as Partial<HelperSnippet>
+
+	const valid =
+		typeof name === 'string' &&
+		Array.isArray(declarations) &&
+		Array.isArray(blocks) &&
+		typeof imports === 'object' &&
+		imports !== null
+
+	return valid ? (snippet as HelperSnippet) : null
 }
 
 /**
- * Read the import table the docs plugin attached beside `__code`. Empty for a
- * component that carries none.
+ * Hoist a helper's blocks above the JSX, and register the imports they use:
+ * each entry of the snippet's import table. The blocks key by the file's
+ * table, so a declaration that two helpers of a file share prints once.
  */
-export function readSnippetImports(type: unknown): Record<string, ImportFact> {
-	if (typeof type !== 'function') return {}
+export function hoistSnippet(snippet: HelperSnippet, context: Context): void {
+	const blocks = context.hoisted.get(snippet.declarations) ?? new Set<number>()
 
-	const imports = (type as WithCode).__imports
+	for (const index of snippet.blocks) blocks.add(index)
 
-	return imports && typeof imports === 'object' ? imports : {}
+	context.hoisted.set(snippet.declarations, blocks)
+
+	for (const [name, fact] of Object.entries(snippet.imports)) registerImport(name, fact, context)
 }
 
 // `use` (the React 19 API) or a `use<Capital>` hook name.
@@ -631,68 +747,40 @@ export const HOOK_MODULES: ReadonlyMap<string, string> = new Map([
 		.map((name) => [name, 'react'] as const),
 ])
 
-// Match any known hook at a call site. The `(?<!\.)` lookbehind excludes method
-// calls (`router.use(...)`); the `\b` anchors keep a short name from matching
-// inside a longer one; the `(?=\s*[(<])` lookahead requires a following call or
-// generic-argument list (`use(`, `useState<T>(`) so a bare word — prose like
-// "easy to use" or a `use` in a comment — never conjures a phantom import.
-const HOOK_RE = new RegExp(`(?<!\\.)\\b(${[...HOOK_MODULES.keys()].join('|')})\\b(?=\\s*[(<])`, 'g')
-
-const TAG_RE = /<([A-Z][\w]*)/g
-
-/**
- * Whether `snippet` would register at least one import. The walk answers this
- * by mutating its `Context`. A caller with no walk in progress has none, so it
- * asks here against a scratch one. A snippet that names no recognized component
- * and calls no hook contributes nothing, and leaves the code block hidden.
- *
- * @remarks
- * Delegates to {@link collectSnippetImports} rather than re-scanning, so a new
- * import source inside that function counts here too.
- */
-export function snippetHasImports(
-	snippet: string,
-	registry: ComponentRegistry,
-	imports: Record<string, ImportFact> = {},
-): boolean {
-	const context = createContext(registry)
-
-	collectSnippetImports(snippet, context, imports)
-
-	return context.imports.size > 0
+/** Register the import line of one entry of an import table. */
+function registerImport(name: string, fact: ImportFact, context: Context): void {
+	addImport(context, fact.module, name, fact.external ?? false, fact.type ?? false)
 }
 
 /**
- * Register imports for anything the snippet references. A UI component
- * registers through its JSX opening tag, and a React hook through bare
- * identifier use. Each entry of `imports` registers too: that is the table the
- * docs plugin attached beside the snippet. `addImport` dedupes
+ * Register the import of each name in `names`. A name that the facts' import
+ * table holds imports as that entry says. Any other name imports as a
+ * component of the registry or as a React hook. A name that is neither, such
+ * as a local or a global, imports nothing. `addImport` dedupes
  * per-(module,name).
  */
-export function collectSnippetImports(
-	snippet: string,
-	context: Context,
-	imports: Record<string, ImportFact> = {},
-): void {
-	for (const [name, imp] of Object.entries(imports)) {
-		addImport(context, imp.module, name, imp.external ?? false, imp.type ?? false)
-	}
+export function registerUses(names: Iterable<string>, context: Context): void {
+	for (const name of names) {
+		const fact = own(context.facts?.imports, name)
 
-	for (const [, name] of snippet.matchAll(TAG_RE)) {
-		if (!name) continue
+		if (fact) {
+			registerImport(name, fact, context)
+
+			continue
+		}
 
 		const info = context.registry.byName.get(name)
 
-		if (info?.module) addImport(context, info.module, info.name, info.external)
-	}
+		if (info?.module) {
+			addImport(context, info.module, info.name, info.external)
 
-	for (const [, hook] of snippet.matchAll(HOOK_RE)) {
-		if (!hook) continue
+			continue
+		}
 
-		const module = HOOK_MODULES.get(hook)
+		const module = HOOK_MODULES.get(name)
 
 		// `react` is rendered bare by `assemble` already; flag any other package
 		// (e.g. `react-dom`) external so its specifier stays bare too.
-		if (module) addImport(context, module, hook, module !== 'react')
+		if (module) addImport(context, module, name, module !== 'react')
 	}
 }

@@ -4,15 +4,9 @@ import { dirname, join } from 'node:path'
 import ts from '@typescript/typescript6'
 import { describe, expect, it } from 'vitest'
 import { defaultRegistry, type ImportFact } from '../../docs/engine/derive-code'
-import {
-	collectSnippetImports,
-	createContext,
-	snippetHasImports,
-} from '../../docs/engine/derive-code/internals'
-import { wordRe } from '../../docs/engine/identifiers'
 import { collectHelpers, declaredNames } from '../../docs/engine/plugins/collect-helpers'
 import { importFacts } from '../../docs/engine/plugins/source-facts'
-import { namedImportsOf, parseSource } from '../../docs/engine/plugins/ts-source'
+import { namedImportsOf, parseSource, referencedNames } from '../../docs/engine/plugins/ts-source'
 import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 
 // A corpus gate on the docs site's "Show code" block.
@@ -21,17 +15,17 @@ import { srcDir, srcRelative, walkSource } from '../helpers/walk-source'
 // when the walk registers at least one import. Two mechanisms feed it, and both
 // broke at once in 2026-09. The runtime probe read only the children tree.
 // `collectHelpers` decided by a text scan which declaration is a helper worth a
-// `__code` snippet. Around 90 Examples across 34 demo pages silently showed no
-// block.
+// snippet. Around 90 Examples across 34 demo pages silently showed no block.
 //
-// Nothing failed, because the suite runs `docsPlugin({ vitest: true })`, which
-// drops the `pre` transform. No test had ever seen a demo module carrying
-// `__code`, so the whole build-time half went unread.
+// Nothing failed, because the suite then ran `docsPlugin({ vitest: true })`
+// without the `pre` transform. No test had ever seen a demo module carrying a
+// helper snippet, so the whole build-time half went unread. The suite now runs the
+// transform, and `demo-snippets.test.tsx` reads each block that a page renders.
 //
 // This test reads it, against the real demo tree, from source. It calls the
-// same `collectHelpers` the plugin calls, and asks the same
-// `snippetHasImports` the probe asks. A helper the JSX test stops recognizing
-// therefore fails here, named by its Example.
+// same `collectHelpers` the plugin calls, and reads the same import table that
+// the probe reads. A helper the JSX test stops recognizing therefore fails
+// here, named by its Example.
 //
 // The runtime half is not this test's to hold. `classifyElement` states the
 // walk's cases once for the renderer and the probe together, and
@@ -54,13 +48,13 @@ const EXAMPLE_TAG = 'Example'
 // show.
 const ALLOW_NO_CODE = new Set<string>([])
 
-/** What the docs plugin attaches to one helper: its `__code` and its `__imports`. */
+/** The source of one helper snippet, and the imports that it uses. */
 type Snippet = { code: string; imports: Record<string, ImportFact> }
 
 /**
- * One parsed demo: the helpers the docs plugin attaches `__code` to, the sibling
- * demo behind each imported name, and every named declaration — the targets an
- * identifier child resolves to.
+ * One parsed demo: the helpers the docs plugin attaches `__snippet` to, the
+ * sibling demo behind each imported name, and every named declaration — the
+ * targets an identifier child resolves to.
  */
 type Demo = {
 	file: ts.SourceFile
@@ -195,7 +189,7 @@ function helperSnippet(tag: string, demo: Demo, demos: Map<string, Demo>): Snipp
  *
  * A tag that is neither names a demo-local component the walk cannot see
  * inside, so the search never follows its declaration. That is what makes a
- * dropped `__code` fail here, rather than pass through the component's body.
+ * dropped `__snippet` fail here, rather than pass through the component's body.
  */
 function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, Demo>): boolean {
 	const seen = new Set<string>()
@@ -218,7 +212,7 @@ function reachesAnImport(example: ts.JsxElement, demo: Demo, demos: Map<string, 
 		for (const tag of names.childless) {
 			const snippet = helperSnippet(tag, demo, demos)
 
-			if (snippet && snippetHasImports(snippet.code, defaultRegistry, snippet.imports)) return true
+			if (snippet && Object.keys(snippet.imports).length > 0) return true
 		}
 
 		// An identifier child renders whatever its binding holds, so the tree the
@@ -308,9 +302,9 @@ describe('demo code blocks', () => {
 	// A snippet is what a reader copies, so each name it uses from its own demo
 	// file has to come with it. The snippet declares the name, or an import line
 	// brings it in. A name from a module that no reader can import, such as the
-	// docs engine or a sibling demo file, has no import line to take, so this
-	// case leaves it out. The scan is by whole word, the same scan that builds
-	// the snippet.
+	// docs engine or a sibling demo page, has no import line to take, so this
+	// case leaves it out. A data module beside the demo has an import line. A use is an identifier in a value or a type position,
+	// the same reading that builds the snippet.
 	it('every helper snippet declares or imports each name it uses', () => {
 		const violations: string[] = []
 
@@ -320,24 +314,18 @@ describe('demo code blocks', () => {
 			const importable = Object.keys(importFacts(demo.file, { filePath: path, srcDir }))
 
 			for (const [helper, snippet] of demo.helpers) {
-				const declared = new Set(
-					parseSource('snippet.tsx', snippet.code).statements.flatMap(declaredNames),
-				)
+				const parsed = parseSource('snippet.tsx', snippet.code)
 
-				const context = createContext(defaultRegistry)
+				const declared = new Set(parsed.statements.flatMap(declaredNames))
 
-				collectSnippetImports(snippet.code, context, snippet.imports)
+				const used = referencedNames(parsed)
 
-				const imported = new Set(
-					[...context.imports.values()].flatMap((names) =>
-						[...names].map((entry) => entry.replace(/^type /, '')),
-					),
-				)
+				const imported = new Set(Object.keys(snippet.imports))
 
 				for (const name of [...siblings, ...importable]) {
 					if (declared.has(name) || imported.has(name)) continue
 
-					if (wordRe(name).test(snippet.code)) {
+					if (used.has(name)) {
 						violations.push(`${srcRelative(path)}#${helper} → ${name}`)
 					}
 				}

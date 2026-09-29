@@ -1,18 +1,18 @@
 import ts from '@typescript/typescript6'
-import type { ImportFact } from '../derive-code/types'
-import { isPascalCase, wordRe } from '../identifiers'
-import { parseSource } from './ts-source'
+import type { HelperSnippet, ImportFact } from '../derive-code/types'
+import { isPascalCase } from '../identifiers'
+import { parseSource, referencedNames } from './ts-source'
 
 /**
- * One helper component and its snippet. `code` is the helper's source, led by
- * every sibling declaration it depends on. `imports` holds each imported name
- * that `code` uses, keyed to where a reader imports it from.
+ * One helper component and its snippet, as the docs plugin attaches it. `code`
+ * joins the helper's blocks: the source of the helper, led by every sibling
+ * declaration it depends on.
  */
-type Helper = { name: string; code: string; imports: Record<string, ImportFact> }
+type Helper = HelperSnippet & { code: string }
 
 // The demo page's entry export, loaded via `import.meta.glob(…, { import: 'Demo'
 // })`. It renders as the route body, never inside an `<Example>`, so its
-// `__code` is never read — skip it rather than shipping the whole page source.
+// `__snippet` is never read — skip it rather than shipping the whole page source.
 const ENTRY_EXPORT = 'Demo'
 
 /**
@@ -98,7 +98,7 @@ function returnsJsx(node: ts.Node): boolean {
  * Replaces a `/(?:return|=>)\s*\(?\s*</` scan of the source text, which read
  * neither through a ternary (`return deleted ? <Text /> : <HoldButton />`) nor
  * past a comment between `=> (` and the tag. Both are ordinary demo shapes, and
- * both left the helper without its `__code` — so its `<Example>` showed no code
+ * both left the helper without its snippet — so its `<Example>` showed no code
  * block at all.
  */
 function rendersJsx(
@@ -113,9 +113,10 @@ function rendersJsx(
 
 /**
  * A top-level statement a helper can depend on. `names` lists the identifiers
- * it introduces; `code` is the full statement source for verbatim prepending.
+ * it introduces, `uses` the names it uses (see `referencedNames`), and `code`
+ * is the full statement source for verbatim prepending.
  */
-type Declaration = { stmt: ts.Statement; names: string[]; code: string }
+type Declaration = { stmt: ts.Statement; names: string[]; uses: Set<string>; code: string }
 
 /**
  * Returns the PascalCase name of a JSX-returning arrow / function-expression
@@ -144,12 +145,7 @@ function jsxHelperName(decl: ts.VariableDeclaration): string | null {
  * Empty for anything else.
  *
  * @remarks
- * The one answer both readers take. {@link collectHelpers} attaches `__code`
- * to these. {@link isJsxHelperStatement} keeps them out of the source-facts
- * declaration table, because a fact copy would duplicate a component that the
- * walker already renders from its snippet. Were the two to read different
- * rules, a helper would come out with a snippet and a fact copy, or with
- * neither.
+ * {@link collectHelpers} attaches a `__snippet` to each of these.
  */
 function helperNames(stmt: ts.Statement): string[] {
 	if (ts.isFunctionDeclaration(stmt)) {
@@ -167,11 +163,6 @@ function helperNames(stmt: ts.Statement): string[] {
 
 		return name === null ? [] : [name]
 	})
-}
-
-/** Whether a top-level statement declares a helper component. */
-export function isJsxHelperStatement(stmt: ts.Statement): boolean {
-	return helperNames(stmt).length > 0
 }
 
 /**
@@ -219,37 +210,42 @@ export function declaredNames(stmt: ts.Statement): string[] {
 }
 
 /**
- * Every top-level statement a helper can depend on, in source order. The demo
- * page itself stays out: the entry export and a default export render as the
- * route body, which no snippet shows.
+ * Whether a top-level statement is the demo page itself: the entry export, or
+ * a default export. Either renders as the route body, which no snippet shows.
+ * The helper snippets and the source-facts declaration table both leave it
+ * out.
  */
+export function isPageStatement(stmt: ts.Statement): boolean {
+	return isDefaultExported(stmt) || declaredNames(stmt).includes(ENTRY_EXPORT)
+}
+
+/** Every top-level statement a helper can depend on, in source order. */
 function collectDeclarations(sf: ts.SourceFile): Declaration[] {
 	return sf.statements.flatMap((stmt) => {
 		const names = declaredNames(stmt)
 
-		if (names.length === 0 || names.includes(ENTRY_EXPORT) || isDefaultExported(stmt)) return []
+		if (names.length === 0 || isPageStatement(stmt)) return []
 
-		return [{ stmt, names, code: stmt.getText(sf) }]
+		return [{ stmt, names, uses: referencedNames(stmt), code: stmt.getText(sf) }]
 	})
 }
 
 /**
- * The helper's source, led by every declaration it depends on. A declaration
- * joins when one of its names appears in the text gathered so far. So the
- * declarations that a joined one uses join too, until none is left. They keep
- * their source order, and the helper comes last. Another helper joins like any
- * declaration. The walker shows this snippet in place of the tree it renders,
- * so nothing renders the other helper twice.
+ * The helper's declaration and every declaration it depends on, in source
+ * order, with the names that they use. A declaration joins when the gathered
+ * declarations use one of its names. So the declarations that a joined one
+ * uses join too, until none is left. Another helper joins like any
+ * declaration.
  *
  * @remarks
- * This is a name scan, not a reference graph. A name inside a string literal
- * or a comment pulls its declaration in. That errs toward a longer snippet,
- * never toward a broken one.
+ * A use is an identifier in a value or a type position (`referencedNames`). A
+ * name in a string, in JSX text, or in a comment is no use, so it pulls
+ * nothing in.
  */
-function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.SourceFile): string {
+function closeOver(helper: ts.Statement, declarations: Declaration[]) {
 	const joined = new Set<Declaration>()
 
-	const texts = [helper.getText(sf)]
+	const uses = new Set(referencedNames(helper))
 
 	let grew = true
 
@@ -259,47 +255,45 @@ function closeOver(helper: ts.Statement, declarations: Declaration[], sf: ts.Sou
 		for (const declaration of declarations) {
 			if (declaration.stmt === helper || joined.has(declaration)) continue
 
-			const used = declaration.names.some((name) => {
-				const re = wordRe(name)
-
-				return texts.some((text) => re.test(text))
-			})
-
-			if (!used) continue
+			if (!declaration.names.some((name) => uses.has(name))) continue
 
 			joined.add(declaration)
 
-			texts.push(declaration.code)
+			for (const name of declaration.uses) uses.add(name)
 
 			grew = true
 		}
 	}
 
-	return [
-		...declarations.filter((declaration) => joined.has(declaration)).map(({ code }) => code),
-		helper.getText(sf),
-	].join('\n\n')
+	const closure = declarations.filter(
+		(declaration) => declaration.stmt === helper || joined.has(declaration),
+	)
+
+	return { closure, uses }
 }
 
-/** The entries of `imports` whose name `code` uses, as a whole word. */
+/** The entries of `imports` whose name `uses` holds. */
 function usedImports(
-	code: string,
+	uses: Set<string>,
 	imports: Record<string, ImportFact>,
 ): Record<string, ImportFact> {
-	return Object.fromEntries(Object.entries(imports).filter(([name]) => wordRe(name).test(code)))
+	return Object.fromEntries(Object.entries(imports).filter(([name]) => uses.has(name)))
 }
 
 /**
  * Finds every PascalCase top-level function or const that returns JSX. It skips
  * the entry export `Demo`, the demo page itself. That renders as the route body
  * and never inside `<Example>`, so attaching its source only bloats the chunk
- * with a `__code` string nothing reads.
+ * with a `__snippet` nothing reads.
  *
  * Each helper's snippet carries every sibling declaration it depends on,
- * through any chain of them (see {@link closeOver}). It also carries the
- * entries of `imports` that the snippet uses. A name imported from a module
- * that no reader can import has no entry in `imports`. The docs engine and a
- * sibling demo file are such modules, so the snippet stays short of that name.
+ * through any chain of them (see {@link closeOver}). The helpers share one
+ * table of those declarations, so a declaration that two helpers use goes into
+ * the chunk once. The snippet also carries the entries of `imports` that it
+ * uses. A name imported from a module that no reader can import has no entry
+ * in `imports`. The docs engine and a sibling demo page are such modules, so
+ * the snippet stays short of that name. A data module beside the demo keeps
+ * its entry (see `importFacts`).
  *
  * @param imports - The demo's import table, from `importFacts`.
  */
@@ -312,7 +306,7 @@ export function collectHelpers(
 
 	const declarations = collectDeclarations(sf)
 
-	const helpers: Helper[] = []
+	const found: { name: string; closure: Declaration[]; uses: Set<string> }[] = []
 
 	for (const stmt of sf.statements) {
 		if (isDefaultExported(stmt)) continue
@@ -320,11 +314,23 @@ export function collectHelpers(
 		for (const name of helperNames(stmt)) {
 			if (name === ENTRY_EXPORT) continue
 
-			const code = closeOver(stmt, declarations, sf)
-
-			helpers.push({ name, code, imports: usedImports(code, imports) })
+			found.push({ name, ...closeOver(stmt, declarations) })
 		}
 	}
 
-	return helpers
+	const used = new Set(found.flatMap(({ closure }) => closure))
+
+	// Source order. The demo file runs in that order, so the blocks of a snippet,
+	// printed by ascending index, run in it too.
+	const table = declarations.filter((declaration) => used.has(declaration))
+
+	const codes = table.map(({ code }) => code)
+
+	return found.map(({ name, closure, uses }) => ({
+		name,
+		declarations: codes,
+		blocks: closure.map((declaration) => table.indexOf(declaration)),
+		imports: usedImports(uses, imports),
+		code: closure.map((declaration) => declaration.code).join('\n\n'),
+	}))
 }

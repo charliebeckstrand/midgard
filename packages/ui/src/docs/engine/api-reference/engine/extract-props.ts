@@ -4,6 +4,7 @@ import type { PropDef } from '../types'
 import { extractDocFromParts } from './extract-doc'
 import { extractReferences } from './extract-references'
 import { formatPropType, formatType } from './format-type'
+import { sourceOrder } from './literal-order'
 import { isFunctionType, unaliasSymbol } from './ts-utils'
 
 type CollectedProp = { name: string; symbol: ts.Symbol; symbols: ts.Symbol[] }
@@ -26,7 +27,7 @@ export function extractProps(
 	const props: PropDef[] = []
 
 	for (const { name, symbol, symbols } of collectAllProperties(propsType)) {
-		if (IGNORED_PROPS.has(name) || name.startsWith('_')) continue
+		if ((name !== 'children' && IGNORED_PROPS.has(name)) || name.startsWith('_')) continue
 
 		if (projectNames) {
 			if (!projectNames.has(name)) continue
@@ -34,12 +35,38 @@ export function extractProps(
 			continue
 		}
 
+		// A `data-*` attribute is a hook for selectors that a parent or a slot
+		// writes, such as `data-group` and `data-slot`, not an option.
+		if (name.startsWith('data-') || isInternal(symbol)) continue
+
 		const types = resolveArmTypes(symbols, callable, checker)
 
-		props.push(buildPropDef(name, symbol, types, callable, defaults, checker))
+		const prop = buildPropDef(name, symbol, types, callable, defaults, checker)
+
+		// `children` is structural when it takes any node, and absent when it
+		// takes none. A narrower type, such as `children: string`, is API, so the
+		// table keeps it.
+		if (name === 'children' && ['ReactNode', 'undefined', 'never'].includes(prop.type)) continue
+
+		props.push(prop)
 	}
 
 	return props
+}
+
+/** Whether a node carries an `@internal` tag in its doc comment. */
+function hasInternalTag(node: ts.Node): boolean {
+	return ts.getJSDocTags(node).some((tag) => tag.tagName.text === 'internal')
+}
+
+/**
+ * Whether a prop's own doc comment carries `@internal`. The tag on the type
+ * that declares the prop does not count: ui tags a props type `@internal` when
+ * no barrel exports it, as `SingleProps` of Accordion, and its props are still
+ * API.
+ */
+function isInternal(symbol: ts.Symbol): boolean {
+	return (symbol.getDeclarations() ?? []).some(hasInternalTag)
 }
 
 /**
@@ -121,7 +148,10 @@ function buildPropDef(
 	// useful information; an alias name plus a `View references` card only adds
 	// indirection over a handful of badges. This takes precedence over the
 	// authored alias text below.
-	const literalUnion = literalUnionType(propTypes, callable, checker)
+	// The members of a union prop print in the order that its declaration spells.
+	const order = sourceOrder(symbol.getDeclarations()?.[0], checker)
+
+	const literalUnion = literalUnionType(propTypes, callable, checker, order)
 
 	// `authoredTypeText` reads one declaration's source; for a prop collected
 	// across multiple discriminated arms, that first arm's text silently drops
@@ -132,7 +162,7 @@ function buildPropDef(
 
 	const prop: PropDef = {
 		name,
-		type: authored ?? formatPropTypes(propTypes, callable, checker),
+		type: authored ?? formatPropTypes(propTypes, callable, checker, order),
 	}
 
 	// Inlined literal unions carry no named references; skip resolution so they
@@ -218,14 +248,22 @@ function isRequired(symbol: ts.Symbol): boolean {
 	return !declarations.some((d) => ts.isPropertySignature(d) && d.questionToken !== undefined)
 }
 
-/** Render each arm-type, dedupe by output text, and join distinct renderings with `|`. */
-function formatPropTypes(types: ts.Type[], location: ts.Node, checker: ts.TypeChecker): string {
+/**
+ * Render each arm-type, dedupe by output text, and join distinct renderings
+ * with `|`. `order` orders the members of a single arm (see `sourceOrder`).
+ */
+function formatPropTypes(
+	types: ts.Type[],
+	location: ts.Node,
+	checker: ts.TypeChecker,
+	order: readonly string[] | null,
+): string {
 	const arms = dropMergedArmUnions(types, location, checker)
 
 	// A single arm renders whole, so `formatPropType`'s union handling stays
 	// intact: the `'a' | 'b' | (string & {})` autocomplete collapse, the boolean
 	// re-merge, and alias shortening all apply.
-	if (arms.length === 1 && arms[0]) return formatPropType(arms[0], checker, location)
+	if (arms.length === 1 && arms[0]) return formatPropType(arms[0], checker, location, order)
 
 	// Multiple discriminated arms: flatten each to its non-`undefined` leaf
 	// members so a `true`/`false` pair (or any duplicate) split across arms still
@@ -350,6 +388,7 @@ function literalUnionType(
 	propTypes: ts.Type[],
 	location: ts.Node,
 	checker: ts.TypeChecker,
+	order: readonly string[] | null,
 ): string | null {
 	if (propTypes.length !== 1) return null
 
@@ -367,17 +406,20 @@ function literalUnionType(
 
 	if (!members.every((t) => (t.flags & LITERAL) !== 0)) return null
 
-	return formatPropType(type, checker, location)
+	return formatPropType(type, checker, location, order)
 }
 
 /**
- * Prefer the author's source text over the formatter's expansion in two cases.
- * The declared type is a mapped type (`{ [K in keyof T]?: … }`), or a reference
- * to a project-source alias / interface (`Responsive<number>`, `GridGap`,
- * `ButtonVariants`). The optional `?` lives on the property name,
- * not the type node, so `getText()` is already clean. Everything else — inline
- * unions, primitives, external and built-in references — returns null and
- * flows through `formatPropType` for alias resolution.
+ * Prefer the author's source text over the formatter's expansion in three
+ * cases. The declared type is a mapped type (`{ [K in keyof T]?: … }`), a
+ * reference to a project-source alias / interface (`Responsive<number>`,
+ * `GridGap`, `ButtonVariants`), or a union that names `ReactNode`. The checker
+ * flattens `ReactNode | ((field) => ReactNode)` into the ten members of
+ * `ReactNode`, so only the source keeps the name. The optional `?` lives on the
+ * property name, not the type node, so `getText()` is already clean.
+ * Everything else — other inline unions, primitives, external and built-in
+ * references — returns null and flows through `formatPropType` for alias
+ * resolution.
  */
 function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | null {
 	const decl = symbol.getDeclarations()?.[0]
@@ -392,7 +434,33 @@ function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | 
 		return node.getText()
 	}
 
+	// `ReactNode | undefined` is `ReactNode` itself, which the formatter prints.
+	if (
+		ts.isUnionTypeNode(node) &&
+		node.types.some(namesReactNode) &&
+		node.types.some((member) => !namesReactNode(member) && !isEmptyType(member))
+	) {
+		return node.getText()
+	}
+
 	return null
+}
+
+/** Whether a type node is `undefined` or `null`, both members of `ReactNode`. */
+function isEmptyType(node: ts.TypeNode): boolean {
+	return (
+		node.kind === ts.SyntaxKind.UndefinedKeyword ||
+		(ts.isLiteralTypeNode(node) && node.literal.kind === ts.SyntaxKind.NullKeyword)
+	)
+}
+
+/** Whether a type node is a reference to `ReactNode`, bare or as `React.ReactNode`. */
+function namesReactNode(node: ts.TypeNode): boolean {
+	if (!ts.isTypeReferenceNode(node)) return false
+
+	const name = ts.isIdentifier(node.typeName) ? node.typeName : node.typeName.right
+
+	return name.text === 'ReactNode'
 }
 
 /**

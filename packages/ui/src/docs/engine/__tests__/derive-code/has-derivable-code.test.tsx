@@ -80,24 +80,30 @@ describe('hasDerivableCode', () => {
 		byName: new Map<string, ComponentInfo>([['Alert', { name: 'Alert', module: 'alert' }]]),
 	}
 
-	it('finds a recognized component inside a childless helper snippet', () => {
+	it('finds a component that a childless helper snippet imports', () => {
 		const Helper = snippet<Record<string, never>>(
 			'function Helper() {\n\treturn <Alert severity="success" />\n}',
+			'Helper',
+			{ Alert: { module: 'alert' } },
 		)
 
 		expect(agrees(<Helper />, snippetRegistry)).toBe(true)
 	})
 
-	it('finds a React hook call inside a childless helper snippet', () => {
+	it('finds a React hook that a childless helper snippet imports', () => {
 		const Helper = snippet<Record<string, never>>(
 			'function Helper() {\n\tconst [open, setOpen] = useState(false)\n\n\treturn <p>{open}</p>\n}',
+			'Helper',
+			{ useState: { module: 'react', external: true } },
 		)
 
 		expect(agrees(<Helper />, snippetRegistry)).toBe(true)
 	})
 
-	it('reports nothing for a snippet naming no recognized component or hook', () => {
-		const Helper = snippet<Record<string, never>>('function Helper() {\n\treturn <Unknown />\n}')
+	// The import table is the build's reading of the snippet's syntax tree, so
+	// the walk reads no name from the code text.
+	it('reports nothing for a snippet with an empty import table, whatever its code names', () => {
+		const Helper = snippet<Record<string, never>>('function Helper() {\n\treturn <Alert />\n}')
 
 		expect(agrees(<Helper />, snippetRegistry)).toBe(false)
 	})

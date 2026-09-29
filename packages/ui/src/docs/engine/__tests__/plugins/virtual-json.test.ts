@@ -121,6 +121,40 @@ describe('virtualJsonModules', () => {
 		expect(genB).toHaveBeenCalledTimes(1)
 	})
 
+	it('invalidates nothing when a matching change leaves the JSON as it was', () => {
+		const generate = vi.fn(() => ({ value: 1 }))
+
+		const hooks = build([{ id: 'virtual:a', generate, shouldInvalidate: () => true }])
+
+		hooks.load('\0virtual:a')
+
+		const { server, invalidatedIds } = fakeServer()
+
+		// No virtual module joins the update, so Vite keeps its own: the edit
+		// stays a Fast Refresh.
+		expect(
+			hooks.handleHotUpdate({ file: 'demo.tsx', modules: [{ id: 'demo.tsx' }], server }),
+		).toBeUndefined()
+
+		expect(invalidatedIds).toEqual([])
+
+		expect(generate).toHaveBeenCalledTimes(2)
+	})
+
+	it('generates nothing on a matching change to a module never served', () => {
+		const generate = vi.fn(() => ({ value: 1 }))
+
+		const hooks = build([{ id: 'virtual:a', generate, shouldInvalidate: () => true }])
+
+		const { server, invalidatedIds } = fakeServer()
+
+		hooks.handleHotUpdate({ file: 'demo.tsx', modules: [{ id: 'demo.tsx' }], server })
+
+		expect(invalidatedIds).toEqual([])
+
+		expect(generate).not.toHaveBeenCalled()
+	})
+
 	it('returns undefined from handleHotUpdate when no predicate matches', () => {
 		const generate = vi.fn(() => ({}))
 
@@ -202,7 +236,7 @@ describe('virtualJsonModules (family spec)', () => {
 		expect(generate).toHaveBeenCalledTimes(1)
 	})
 
-	it('re-generates and invalidates the manifest plus served keys on a matching change', () => {
+	it('re-generates, and invalidates a served key whose slice changed', () => {
 		let props: unknown[] = [{ name: 'Button' }]
 
 		const generate = vi.fn(() => ({ button: props }))
@@ -224,15 +258,12 @@ describe('virtualJsonModules (family spec)', () => {
 			server,
 		})
 
-		// Both the manifest and the served key module are invalidated, and the
-		// edited file's own module is folded back in ahead of them.
-		expect(invalidatedIds).toEqual(['\0virtual:api-manifest', '\0virtual:api/button'])
+		// The key set holds, so the manifest stays. The served key module is
+		// invalidated, and the edited file's own module is folded back in ahead of
+		// it.
+		expect(invalidatedIds).toEqual(['\0virtual:api/button'])
 
-		expect(result?.map((m) => m.id)).toEqual([
-			'button.tsx',
-			'\0virtual:api-manifest',
-			'\0virtual:api/button',
-		])
+		expect(result?.map((m) => m.id)).toEqual(['button.tsx', '\0virtual:api/button'])
 
 		// The next read re-generates with fresh data.
 		expect(hooks.load('\0virtual:api/button')).toBe(
@@ -240,6 +271,49 @@ describe('virtualJsonModules (family spec)', () => {
 		)
 
 		expect(generate).toHaveBeenCalledTimes(2)
+	})
+
+	it('invalidates the manifest when the key set changes, and no unchanged key', () => {
+		let record: Record<string, unknown> = { button: [], card: [] }
+
+		const hooks = build([
+			family(
+				() => record,
+				() => true,
+			),
+		])
+
+		hooks.load('\0virtual:api-manifest')
+
+		hooks.load('\0virtual:api/button')
+
+		hooks.load('\0virtual:api/card')
+
+		const { server, invalidatedIds } = fakeServer()
+
+		record = { button: [], card: [{ name: 'Card' }], dialog: [] }
+
+		hooks.handleHotUpdate({ file: 'dialog.tsx', modules: [], server })
+
+		expect(invalidatedIds).toEqual(['\0virtual:api-manifest', '\0virtual:api/card'])
+
+		expect(hooks.load('\0virtual:api-manifest')).toContain(
+			'"dialog": () => import("virtual:api/dialog")',
+		)
+	})
+
+	it('generates nothing on a matching change to a family never served', () => {
+		const generate = vi.fn(() => ({ button: [] }))
+
+		const hooks = build([family(generate, () => true)])
+
+		const { server, invalidatedIds } = fakeServer()
+
+		hooks.handleHotUpdate({ file: 'button.tsx', modules: [], server })
+
+		expect(invalidatedIds).toEqual([])
+
+		expect(generate).not.toHaveBeenCalled()
 	})
 
 	it('leaves the family untouched when no predicate matches', () => {

@@ -20,9 +20,13 @@
 
 import { vi } from 'vitest'
 
+/** Escape `code` as shiki does, so the markup's text is the code itself. */
+const escapeHtml = (code: string) =>
+	code.replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;')
+
 const codeToHtml = vi.fn(
 	async (code: string, options?: { lang?: string }) =>
-		`<pre class="shiki" data-lang="${options?.lang ?? 'text'}"><code>${code}</code></pre>`,
+		`<pre class="shiki" data-lang="${options?.lang ?? 'text'}"><code>${escapeHtml(code)}</code></pre>`,
 )
 
 const shiki = { codeToHtml, default: { codeToHtml } }
