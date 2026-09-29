@@ -24,6 +24,12 @@ function line(type?: 'category' | 'time') {
 	)
 }
 
+/** Twelve rows four minutes apart, from 10:01 to 10:45, keyed by local ISO time. */
+const MINUTES = Array.from({ length: 12 }, (_, index) => ({
+	at: `2026-06-01T10:${String(1 + index * 4).padStart(2, '0')}`,
+	visits: 100 + index,
+}))
+
 /** The same chart over a single June date, under an explicit ambient locale. */
 function localized(locale: string) {
 	return renderUI(
@@ -55,6 +61,21 @@ describe('chart time axis', () => {
 		expect(time).not.toContain('01/01')
 
 		expect(time.length).toBeLessThan(category.length)
+	})
+
+	it('lines minute ticks over a span that crosses no hour', () => {
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Visits by minute"
+				data={MINUTES}
+				series={[{ xKey: 'at', yKey: 'visits', yName: 'Visits' }]}
+				width={600}
+				axes={{ x: { type: 'time' } }}
+			/>,
+		)
+
+		// Hour ticks find no boundary here, and an empty tick list drew a blank axis.
+		expect(bySlot(container, 'chart-axis-x')?.textContent).toContain('10:15')
 	})
 
 	it('reads the tooltip and table categories as formatted dates', () => {

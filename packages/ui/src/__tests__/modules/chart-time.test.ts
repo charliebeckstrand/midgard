@@ -172,6 +172,81 @@ describe('timeTicks', () => {
 		expect(hours.every((hour) => hour % 12 === 0)).toBe(true)
 	})
 
+	it('steps in minutes when the span crosses no hour', () => {
+		// Twelve rows four minutes apart, from 10:01 to 10:45.
+		const start = new Date(2026, 5, 1, 10, 1).getTime()
+
+		const times = Array.from({ length: 12 }, (_, index) => start + index * 240_000)
+
+		const ticks =
+			timeTicks({ times, band: band(12), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+
+		expect(ticks.map((tick) => tick.key)).toEqual([
+			new Date(2026, 5, 1, 10, 15).getTime(),
+			new Date(2026, 5, 1, 10, 30).getTime(),
+			new Date(2026, 5, 1, 10, 45).getTime(),
+		])
+
+		expect(ticks[0]?.label).toMatch(/^10:15\sAM$/)
+	})
+
+	it('steps in seconds when the span crosses no minute', () => {
+		// Twelve rows five seconds apart, from 10:00:01 to 10:00:56.
+		const start = new Date(2026, 5, 1, 10, 0, 1).getTime()
+
+		const times = Array.from({ length: 12 }, (_, index) => start + index * 5_000)
+
+		const ticks = timeTicks({
+			times,
+			band: band(12),
+			tickTarget: 5,
+			axisLength: 600,
+			locale: 'en-US',
+		})
+
+		expect(ticks?.map((tick) => tick.label)).toEqual(['00:15', '00:30', '00:45'])
+	})
+
+	it('returns null when no calendar boundary falls inside the span', () => {
+		// Three rows inside one second cross no second boundary.
+		const start = new Date(2026, 5, 1, 10, 0, 0, 100).getTime()
+
+		expect(
+			timeTicks({
+				times: [start, start + 300, start + 600],
+				band: band(3),
+				tickTarget: 5,
+				axisLength: 600,
+			}),
+		).toBeNull()
+	})
+
+	it('steps in centuries across a span of more than a thousand years', () => {
+		// A row each century from 1000 to 2500. A 10-year step runs out of ticks at 1990.
+		const times = Array.from({ length: 16 }, (_, index) =>
+			new Date(1000 + index * 100, 0, 1).getTime(),
+		)
+
+		const ticks = timeTicks({
+			times,
+			band: band(16),
+			tickTarget: 5,
+			axisLength: 600,
+			locale: 'en-US',
+		})
+
+		expect(ticks?.map((tick) => tick.label)).toEqual([
+			'1000',
+			'1200',
+			'1400',
+			'1600',
+			'1800',
+			'2000',
+			'2200',
+			'2400',
+		])
+	})
+
 	it('never packs more ticks than the axis fits', () => {
 		const ticks = timeTicks({
 			times: dailyTimes(365),

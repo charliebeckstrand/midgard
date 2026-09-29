@@ -27,7 +27,8 @@ import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import type { BandScale } from './chart-scale'
 
 /** One millisecond span per calendar unit, for choosing a tick interval. @internal */
-const MINUTE = 60_000
+const SECOND = 1_000
+const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 const WEEK = 7 * DAY
@@ -37,7 +38,13 @@ const YEAR = 365 * DAY
 /** A bare `YYYY-MM-DD` reads as a local wall-clock day, not a UTC instant. @internal */
 const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/
 
-/** A day's worth of tick labels never share the axis, so cap the walk far above any real count. @internal */
+/**
+ * A day's worth of tick labels never share the axis, so cap the walk far above
+ * any real count. At the 100-year step, the cap covers years 1 to 9999, the
+ * full range of the date library.
+ *
+ * @internal
+ */
 const MAX_TICKS = 100
 
 /** Roughly the widest tick label ("Jan 26", "Jan 5") in characters, for the fit estimate. @internal */
@@ -86,7 +93,8 @@ function quarterStart(month: number): number {
 /**
  * One nice tick interval: its approximate millisecond span (for matching the
  * target spacing), the boundary its ticks snap to, and how it advances. The
- * ladder runs hour → year so a span of any length lands clean calendar ticks.
+ * ladder runs from one second to one century, so a span of seconds or of
+ * millennia lands clean calendar ticks.
  *
  * @internal
  */
@@ -95,6 +103,14 @@ type TimeInterval = {
 	floor: (date: CalendarDateTime, locale: string) => CalendarDateTime
 	next: (date: CalendarDateTime) => CalendarDateTime
 }
+
+/** Floors to a multiple of `seconds` in the minute. @internal */
+const floorSeconds = (seconds: number) => (date: CalendarDateTime) =>
+	date.set({ second: Math.floor(date.second / seconds) * seconds, millisecond: 0 })
+
+/** Floors to a multiple of `minutes` in the hour, so a 15-minute step lands on the quarter hours. @internal */
+const floorMinutes = (minutes: number) => (date: CalendarDateTime) =>
+	date.set({ minute: Math.floor(date.minute / minutes) * minutes, second: 0, millisecond: 0 })
 
 const floorHour = (date: CalendarDateTime) => date.set({ minute: 0, second: 0, millisecond: 0 })
 const floorDay = (date: CalendarDateTime) => date.set(ZERO)
@@ -115,6 +131,14 @@ const floorYears = (years: number) => (date: CalendarDateTime) =>
 	floorYear(date).set({ year: Math.floor(date.year / years) * years })
 
 const INTERVALS: readonly TimeInterval[] = [
+	{ approx: SECOND, floor: floorSeconds(1), next: (d) => d.add({ seconds: 1 }) },
+	{ approx: 5 * SECOND, floor: floorSeconds(5), next: (d) => d.add({ seconds: 5 }) },
+	{ approx: 15 * SECOND, floor: floorSeconds(15), next: (d) => d.add({ seconds: 15 }) },
+	{ approx: 30 * SECOND, floor: floorSeconds(30), next: (d) => d.add({ seconds: 30 }) },
+	{ approx: MINUTE, floor: floorMinutes(1), next: (d) => d.add({ minutes: 1 }) },
+	{ approx: 5 * MINUTE, floor: floorMinutes(5), next: (d) => d.add({ minutes: 5 }) },
+	{ approx: 15 * MINUTE, floor: floorMinutes(15), next: (d) => d.add({ minutes: 15 }) },
+	{ approx: 30 * MINUTE, floor: floorMinutes(30), next: (d) => d.add({ minutes: 30 }) },
 	{ approx: HOUR, floor: floorHour, next: (d) => d.add({ hours: 1 }) },
 	{ approx: 3 * HOUR, floor: floorHours(3), next: (d) => d.add({ hours: 3 }) },
 	{ approx: 6 * HOUR, floor: floorHours(6), next: (d) => d.add({ hours: 6 }) },
@@ -129,6 +153,9 @@ const INTERVALS: readonly TimeInterval[] = [
 	{ approx: 2 * YEAR, floor: floorYears(2), next: (d) => d.add({ years: 2 }) },
 	{ approx: 5 * YEAR, floor: floorYears(5), next: (d) => d.add({ years: 5 }) },
 	{ approx: 10 * YEAR, floor: floorYears(10), next: (d) => d.add({ years: 10 }) },
+	{ approx: 25 * YEAR, floor: floorYears(25), next: (d) => d.add({ years: 25 }) },
+	{ approx: 50 * YEAR, floor: floorYears(50), next: (d) => d.add({ years: 50 }) },
+	{ approx: 100 * YEAR, floor: floorYears(100), next: (d) => d.add({ years: 100 }) },
 ]
 
 /** The `Intl` options for a tick at `approx` spacing over a `spanMs` domain. @internal */
@@ -143,7 +170,11 @@ function formatOptionsFor(approx: number, spanMs: number): Intl.DateTimeFormatOp
 			? { month: 'short', day: 'numeric', year: '2-digit' }
 			: { month: 'short', day: 'numeric' }
 
-	return { hour: 'numeric' }
+	if (approx >= HOUR) return { hour: 'numeric' }
+
+	if (approx >= MINUTE) return { hour: 'numeric', minute: '2-digit' }
+
+	return { minute: '2-digit', second: '2-digit' }
 }
 
 /** A finite row instant paired with the row index whose band center anchors it. @internal */
@@ -237,9 +268,11 @@ export type TimeTicksOptions = {
 /**
  * Calendar-boundary ticks for a date-keyed band axis.
  *
- * @returns The ticks — position and formatted label — or `null` when fewer than
- * two rows carry a parseable, spanning date. The caller then falls back to
- * plain category labels.
+ * @returns The ticks, each with its position and formatted label, or `null`
+ * when no tick falls inside the span. That is the result when fewer than two
+ * rows carry a parseable, spanning date. It is also the result when the span
+ * crosses no boundary of the chosen interval, as a span inside one second
+ * does. The caller then falls back to plain category labels.
  * @internal
  */
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
@@ -285,8 +318,9 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		// Keyed by the instant, not the mapped `at` — distinct per calendar boundary
 		// and stable across resizes, where `at` can collapse onto one coordinate.
-		// A wall time in a daylight-saving gap resolves to the next hour, which is
-		// already a tick, so a time at or before the last tick is skipped.
+		// A wall time in a daylight-saving gap resolves forward past the gap, to
+		// an instant that the walk reaches again. Thus a time at or before the
+		// last tick is skipped.
 		if (time >= first.time && time > lastTime) {
 			ticks.push({ at: place(time), label: format.format(date), key: time })
 
@@ -295,6 +329,8 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		cursor = interval.next(cursor)
 	}
+
+	if (ticks.length === 0) return null
 
 	// The interval targets the fit, but uneven calendar steps can overshoot it;
 	// thin to every nth so labels never collide.
