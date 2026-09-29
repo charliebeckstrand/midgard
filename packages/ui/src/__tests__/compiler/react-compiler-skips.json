@@ -1,8 +1,5 @@
 {
 	"hooks/use-virtual-window.ts": {
 		"useWindowVirtualizer": "Immutability"
-	},
-	"modules/grid/use-grid-navigation.ts": {
-		"useGridNavigation": "Refs"
 	}
 }
