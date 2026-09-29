@@ -1,10 +1,9 @@
 'use client'
 
-import { type KeyboardEvent, type RefObject, useCallback } from 'react'
-import { accessibleName, announce, querySlot } from '../core'
-import { clamp, moveItem } from '../utilities'
+import { type RefObject, useCallback } from 'react'
+import { accessibleName, querySlot } from '../core'
 import { logicalArrowKey } from './a11y/logical-arrow'
-import { useKeyboardLifted } from './use-keyboard-lifted'
+import { useKeyboardReorder } from './use-keyboard-reorder'
 
 /**
  * Columns the container currently lays out, read from its resolved
@@ -79,7 +78,8 @@ export type SortableGridKeyboardOptions<T> = {
  * The grid wraps in the reading order, so in a right-to-left layout Left is the
  * next position and Right the previous one.
  * Both steps clamp at the ends instead of wrapping — an Up on the first row is a
- * no-op, not a jump to the bottom of the grid.
+ * no-op, not a jump to the bottom of the grid. The model is the list's own,
+ * `useKeyboardReorder`, with these steps.
  *
  * Pairs with dnd-kit's keyboard sensor turned OFF (`useSortableSensors({
  * keyboard: false })`). The sensor's own model hides the item behind a drag
@@ -106,144 +106,12 @@ export function useSortableGridKeyboard<T>({
 
 	const focusItem = useCallback((id: string) => findItem(id)?.focus(), [findItem])
 
-	const itemName = useCallback((id: string) => accessibleName(findItem(id)), [findItem])
-
-	const {
-		liftedId,
-		readLifted,
-		setLiftedId,
-		toggleLift,
-		drop,
-		refocus: refocusItem,
-		onBlur: onItemBlur,
-	} = useKeyboardLifted(focusItem)
-
-	/** The item's name and its 1-based position, for announcements. */
-	const describe = useCallback(
-		(id: string) => {
-			const index = items.findIndex((item) => getKey(item) === id)
-
-			const where = index === -1 ? '' : `, position ${index + 1} of ${items.length}`
-
-			return `${itemName(id)}${where}`
-		},
-		[items, getKey, itemName],
-	)
-
-	/**
-	 * The item's index and the index a step lands on, or `null` when the item is gone or the step
-	 * goes nowhere. Clamped, not wrapped: a Right on the last card of a row still reaches the next
-	 * row, and a Down from the bottom row lands on the last position rather than doing nothing.
-	 */
-	const resolveStep = useCallback(
-		(id: string, step: number | 'start' | 'end') => {
-			const index = items.findIndex((item) => getKey(item) === id)
-
-			if (index === -1) return null
-
-			const last = items.length - 1
-
-			const target = step === 'start' ? 0 : step === 'end' ? last : clamp(index + step, 0, last)
-
-			return target === index ? null : { index, target }
-		},
-		[items, getKey],
-	)
-
-	const focusByStep = useCallback(
-		(id: string, step: number | 'start' | 'end') => {
-			const resolved = resolveStep(id, step)
-
-			if (!resolved) return false
-
-			const item = items[resolved.target]
-
-			if (item === undefined) return false
-
-			focusItem(getKey(item))
-
-			return true
-		},
-		[items, getKey, resolveStep, focusItem],
-	)
-
-	const moveByStep = useCallback(
-		(id: string, step: number) => {
-			if (!onReorder) return
-
-			const resolved = resolveStep(id, step)
-
-			if (!resolved) return
-
-			onReorder(moveItem(items, resolved.index, resolved.target))
-
-			announce(`${itemName(id)} moved to position ${resolved.target + 1} of ${items.length}.`, {
-				assertive: true,
-			})
-
-			refocusItem(id)
-		},
-		[items, onReorder, resolveStep, itemName, refocusItem],
-	)
-
-	/** Not lifted: arrows walk focus across the grid, Home/End jump to its ends. */
-	const navigate = useCallback(
-		(id: string, event: KeyboardEvent, step: number | null) => {
-			if (step !== null) {
-				if (focusByStep(id, step)) event.preventDefault()
-
-				return
-			}
-
-			if (event.key !== 'Home' && event.key !== 'End') return
-
-			if (focusByStep(id, event.key === 'Home' ? 'start' : 'end')) event.preventDefault()
-		},
-		[focusByStep],
-	)
-
-	/** Lifted: arrows move the card, Enter or Escape puts it down. */
-	const carry = useCallback(
-		(id: string, event: KeyboardEvent, step: number | null) => {
-			if (step !== null) {
-				event.preventDefault()
-
-				moveByStep(id, step)
-
-				return
-			}
-
-			if (event.key !== 'Escape' && event.key !== 'Enter') return
-
-			event.preventDefault()
-
-			drop(() => describe(id))
-		},
-		[moveByStep, drop, describe],
-	)
-
-	const onItemKeyDown = useCallback(
-		(id: string, event: KeyboardEvent) => {
-			// A modified arrow is a browser or OS gesture, never a move.
-			if (event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return
-
-			if (event.key === ' ') {
-				event.preventDefault()
-
-				toggleLift(id, () => describe(id))
-
-				return
-			}
-
-			const step = stepFor(event.key, containerRef.current)
-
-			// The lift of the last write, not the last render, so a second key in the
-			// same tick carries the item the first one lifted.
-			if (readLifted() === id) carry(id, event, step)
-			else navigate(id, event, step)
-		},
-		[readLifted, toggleLift, describe, containerRef, carry, navigate],
-	)
-
-	return { liftedId, setLiftedId, onItemKeyDown, onItemBlur }
+	return useKeyboardReorder({
+		items,
+		getKey,
+		onReorder,
+		focusItem,
+		itemName: (id) => accessibleName(findItem(id)),
+		stepFor: (key) => stepFor(key, containerRef.current),
+	})
 }
