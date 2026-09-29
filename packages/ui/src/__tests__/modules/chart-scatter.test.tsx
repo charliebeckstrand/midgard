@@ -34,6 +34,19 @@ function discCount(container: HTMLElement): number {
 	return discsPath(container).match(/M/g)?.length ?? 0
 }
 
+/**
+ * Clicks the hit layer at a point of the drawing. jsdom lays out no box, so the
+ * hit layer reads a client point as an offset from the plot origin.
+ */
+function clickAt(container: HTMLElement, x: number, y: number) {
+	const hit = getSlot(container, 'chart-hit')
+
+	fireEvent.click(hit, {
+		clientX: x - Number(hit.getAttribute('x')),
+		clientY: y - Number(hit.getAttribute('y')),
+	})
+}
+
 describe('scatter geometry', () => {
 	it('keys on the ascending unique x values across series', () => {
 		expect(
@@ -559,6 +572,27 @@ describe('BubbleChart', () => {
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
 	})
 
+	it('reports the clicked disc by series and data row', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		// The third row (distance 30) draws the third disc.
+		const disc = points(container)[2] as SVGCircleElement
+
+		clickAt(container, Number(disc.getAttribute('cx')), Number(disc.getAttribute('cy')))
+
+		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 })
+	})
+
 	it('keeps a prop that the scatter does not take off the plot region', () => {
 		// `BubbleChart` hands every prop to the scatter, and the scatter takes no
 		// `texture`. The frame picks the accessible name alone for its plot region.
@@ -569,6 +603,8 @@ describe('BubbleChart', () => {
 				aria-label="Dwell against distance, sized by weight"
 				data={STOPS}
 				width={480}
+				// The type takes no `texture`, because a disc draws no texture tile.
+				// @ts-expect-error: a JavaScript caller can still pass it.
 				texture
 				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
 				{...{ 'data-stray': 'leak' }}

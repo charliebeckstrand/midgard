@@ -1,5 +1,1 @@
-export {
-	ScatterChart,
-	type ScatterChartProps,
-	type ScatterFrameProps,
-} from './scatter-chart'
+export { ScatterChart, type ScatterChartProps } from './scatter-chart'

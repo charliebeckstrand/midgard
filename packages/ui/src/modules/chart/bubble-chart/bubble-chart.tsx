@@ -1,16 +1,18 @@
 'use client'
 
-import type { BubbleChartSeries, ChartBaseProps } from '../engine/types'
-import { ScatterChart, type ScatterFrameProps } from '../scatter-chart'
+import type { AccessibleName } from '../../../types'
+import type { BubbleChartSeries } from '../engine/types'
+import { ScatterChart, type ScatterChartProps } from '../scatter-chart'
 
 /**
- * Props for {@link BubbleChart}: the scatter props with the size encoding
- * required on every series. Requires an accessible name (`aria-label` or
- * `aria-labelledby`) — the plot is `role="img"`, so assistive tech needs a
- * name for it.
+ * Props for {@link BubbleChart}: the {@link ScatterChartProps} with the size
+ * encoding required on every series. The props come from the scatter, so the
+ * bubble takes `onPointClick` and no `texture`, as the scatter does. Requires an
+ * accessible name (`aria-label` or `aria-labelledby`) — the plot is
+ * `role="img"`, so assistive tech needs a name for it.
  */
-export type BubbleChartProps<T = never> = ChartBaseProps<T> &
-	ScatterFrameProps & {
+export type BubbleChartProps<T = never> = AccessibleName &
+	Omit<ScatterChartProps<T>, 'series'> & {
 		/** The series to plot, each row a disc sized by its `sizeKey` measure. */
 		series: BubbleChartSeries<T>[]
 	}
@@ -23,8 +25,8 @@ export type BubbleChartProps<T = never> = ChartBaseProps<T> &
  * the tooltip and data table read the size measure beside each value.
  *
  * @remarks Everything else is the scatter contract: linear scales both ways,
- * parse-tolerant rows, legend toggles, unique-x keyboard roving, and the
- * visually-hidden data table.
+ * parse-tolerant rows, legend toggles, unique-x keyboard roving, a point-click
+ * report, and the visually-hidden data table.
  * @example
  * ```tsx
  * <BubbleChart
