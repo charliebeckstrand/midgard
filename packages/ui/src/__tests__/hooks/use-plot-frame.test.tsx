@@ -23,22 +23,37 @@ const Marks = memo(function Marks({
 	return <span data-testid="marks" data-width={width} data-height={height} />
 })
 
+/**
+ * A child with no memo, so it renders with each render of the frame that
+ * reaches the children. A state write that changes nothing skips it.
+ */
+function Tick({ onRender }: { onRender: () => void }) {
+	onRender()
+
+	return null
+}
+
 function Probe({
 	width,
 	sizing,
 	shared = false,
 	onMarks,
+	onFrame,
 }: {
 	width: number | undefined
 	sizing: FrameSizing
 	shared?: boolean
 	onMarks: () => void
+	/** Counts each render of the frame that reaches its children. */
+	onFrame?: () => void
 }) {
 	const plot = usePlotFrame(width, sizing, shared)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
 			<Marks width={plot.width} height={plot.height} onRender={onMarks} />
+
+			{onFrame && <Tick onRender={onFrame} />}
 		</div>
 	)
 }
@@ -114,6 +129,38 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
 
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
+	})
+
+	it('renders no more for a shared plot as wide as its explicit width', () => {
+		const onFrame = vi.fn()
+
+		renderUI(
+			<Probe
+				width={600}
+				sizing={{ mode: 'aspect', ratio: 2 }}
+				shared
+				onMarks={vi.fn()}
+				onFrame={onFrame}
+			/>,
+		)
+
+		const plot = screen.getByTestId('plot')
+
+		const mounted = onFrame.mock.calls.length
+
+		// A legend stacked below the plot leaves it the whole width.
+		resizeTo(plot, { width: 600, height: 0 })
+
+		expect(onFrame).toHaveBeenCalledTimes(mounted)
+
+		// A legend beside the plot narrows it, and the width comes back after.
+		resizeTo(plot, { width: 400, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		resizeTo(plot, { width: 600, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 	})
 
 	it('tracks resize notifications live and swallows the ones that change nothing', () => {

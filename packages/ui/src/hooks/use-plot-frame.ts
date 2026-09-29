@@ -297,13 +297,17 @@ export function usePlotFrame(
 				? (el.closest<HTMLElement>('[data-plot-fill-container]')?.clientHeight ?? 0)
 				: 0
 
+			const measured = measureWidth ? Math.round(el.clientWidth) : 0
+
 			return {
-				width: measureWidth ? Math.round(el.clientWidth) : 0,
+				// A shared plot as wide as the explicit width stores nothing, so the
+				// explicit width stands, and the measurement costs no render.
+				width: measured === width ? 0 : measured,
 				height: measureHeight ? Math.round(el.clientHeight) : 0,
 				containerHeight: Math.round(container),
 			}
 		},
-		[measureWidth, measureHeight, measureContainer],
+		[width, measureWidth, measureHeight, measureContainer],
 	)
 
 	// Settle the size before the browser paints, and re-settle on every size

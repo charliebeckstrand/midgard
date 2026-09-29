@@ -24,6 +24,7 @@ import type { ChartLegendReference } from './chart-legend/legend'
 import { REFERENCE_RISE, referenceRise } from './chart-motion'
 import { bandExtent, type ChartOrientation, project } from './chart-orientation'
 import type { LinearScale } from './chart-scale'
+import { seriesGroupClass } from './chart-series'
 import { useChartEmphasis, useChartReferencePoint, useChartTier } from './context'
 
 /**
@@ -259,11 +260,7 @@ function LabeledReferenceRule({
 	const receded = emphasizedReference !== null && emphasizedReference !== index
 
 	return (
-		<g
-			data-slot="chart-reference-line"
-			pointerEvents="none"
-			className={cn('transition-opacity', receded && 'opacity-25')}
-		>
+		<g data-slot="chart-reference-line" pointerEvents="none" className={seriesGroupClass(receded)}>
 			<RuleRise rise={rise}>
 				<ReferenceRuleStroke line={line} paint={paint} points={points} />
 
@@ -338,7 +335,7 @@ function HoverReferenceRule({
 				<g
 					data-slot="chart-reference-line"
 					data-focused={dataAttr(focused)}
-					className={cn('transition-opacity', receded && 'opacity-25')}
+					className={seriesGroupClass(receded)}
 					onPointerEnter={() => {
 						pointed.current = true
 
