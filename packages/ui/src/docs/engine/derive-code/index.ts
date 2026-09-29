@@ -75,7 +75,9 @@ export function deriveCode(
 ): string | null {
 	const context = createContext(registry, facts)
 
-	const sole = soleSnippet(Children.toArray(children), registry)
+	const nodes = Children.toArray(children)
+
+	const sole = soleSnippet(nodes, registry)
 
 	if (sole) {
 		hoistSnippet(sole, context)
@@ -83,7 +85,9 @@ export function deriveCode(
 		return context.imports.size === 0 ? null : assemble(context, '')
 	}
 
-	let jsx = renderNodes(Children.toArray(children), context, '')
+	if (facts) countRendered(nodes, registry, context.rendered)
+
+	let jsx = renderNodes(nodes, context, '')
 
 	if (context.imports.size === 0) return null
 
@@ -93,7 +97,9 @@ export function deriveCode(
 	// pulls the pair). A second walk sees the full pull set; it can only turn
 	// live values into source identifiers, never pull further, so it converges.
 	if (context.pulledDecls.size > 0) {
-		jsx = renderNodes(Children.toArray(children), context, '')
+		context.matched.clear()
+
+		jsx = renderNodes(nodes, context, '')
 	}
 
 	const preamble = resolvePreamble(context)
@@ -170,6 +176,42 @@ function soleSnippet(nodes: ReactNode[], registry: ComponentRegistry): HelperSni
 	if (classified.kind === 'snippet') return classified.snippet
 
 	return classified.kind === 'children' ? soleSnippet(classified.nodes, registry) : null
+}
+
+/**
+ * Count the elements of each tag that the walk renders into `counts`: each
+ * recognized element and each helper. It follows the walk's cases, so
+ * {@link matchElementFact} can pair the k-th element of a tag with the k-th
+ * fact of that tag.
+ */
+function countRendered(
+	nodes: ReactNode[],
+	registry: ComponentRegistry,
+	counts: Map<string, number>,
+): void {
+	for (const item of collectChildItems(nodes)) {
+		if (item.kind !== 'element') continue
+
+		const classified = classifyElement(item.value, registry)
+
+		if (classified.kind === 'children') {
+			countRendered(classified.nodes, registry, counts)
+
+			continue
+		}
+
+		if (classified.kind === 'none') continue
+
+		const name = classified.kind === 'snippet' ? classified.snippet.name : classified.info.name
+
+		counts.set(name, (counts.get(name) ?? 0) + 1)
+
+		// A helper renders no children of its own, and a render-prop child is no
+		// element, so only a recognized element's children count.
+		if (classified.kind === 'recognized') {
+			countRendered(elementChildren(item.value), registry, counts)
+		}
+	}
 }
 
 /**

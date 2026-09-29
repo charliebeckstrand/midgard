@@ -4,14 +4,15 @@ import * as ReactDOM from 'react-dom'
 import { wordRe } from '../identifiers'
 import { IGNORED_PROPS } from '../reserved-props'
 import { reindent } from './indent'
-import type {
-	ComponentInfo,
-	ComponentRegistry,
-	Context,
-	ElementFact,
-	HelperSnippet,
-	ImportFact,
-	SourceFacts,
+import {
+	type ComponentInfo,
+	type ComponentRegistry,
+	type Context,
+	type ElementFact,
+	type HelperSnippet,
+	hasFacts,
+	type ImportFact,
+	type SourceFacts,
 } from './types'
 
 /**
@@ -103,6 +104,8 @@ export function createContext(registry: ComponentRegistry, facts?: SourceFacts):
 		factTexts: [],
 		pulledDecls: new Set(),
 		hoisted: new Map(),
+		rendered: new Map(),
+		matched: new Map(),
 	}
 }
 
@@ -490,12 +493,18 @@ export function assemble(context: Context, jsx: string, preamble: string[] = [])
 }
 
 /**
- * Resolve the source fact for a rendered element. Candidates share the
- * element's authored tag name, and only claim props the runtime element
- * actually carries. A single survivor wins outright. Multiple survivors reduce
- * to their consensus: the props (and render-prop children) every candidate
- * agrees on. An ambiguous match therefore degrades to today's behavior, instead
- * of attaching another element's source.
+ * Resolve the source fact for a rendered element. Call it once for each
+ * element that the walk renders, in the order of the walk.
+ *
+ * The walk renders the authored elements of a tag in source order. When it
+ * renders as many elements of the tag as the facts list, the k-th rendered
+ * element takes the k-th fact of the tag. A map or a condition can render more
+ * or fewer elements than the source holds. Then the match falls back to the
+ * candidates: the facts of the tag that claim only props the runtime element
+ * carries. A single survivor wins outright. Several survivors reduce to their
+ * consensus: the props (and render-prop children) every candidate agrees on.
+ * An ambiguous match therefore drops a prop, instead of attaching another
+ * element's source.
  */
 export function matchElementFact(
 	name: string,
@@ -506,9 +515,19 @@ export function matchElementFact(
 
 	if (!facts) return undefined
 
-	const candidates = facts.elements.filter(
-		(e) => e.name === name && Object.keys(e.props).every((key) => props[key] !== undefined),
-	)
+	const ofTag = facts.elements.filter((e) => e.name === name)
+
+	const position = context.matched.get(name) ?? 0
+
+	context.matched.set(name, position + 1)
+
+	const claims = (e: ElementFact) => Object.keys(e.props).every((key) => props[key] !== undefined)
+
+	const paired = ofTag[position]
+
+	if (context.rendered.get(name) === ofTag.length && paired && claims(paired)) return paired
+
+	const candidates = ofTag.filter((e) => hasFacts(e) && claims(e))
 
 	const first = candidates[0]
 

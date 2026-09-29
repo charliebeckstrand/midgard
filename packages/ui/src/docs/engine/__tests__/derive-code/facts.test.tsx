@@ -299,6 +299,52 @@ describe('deriveCode source-fact matching', () => {
 		expect(result).toContain('<Button onClick={handle}>One</Button>')
 	})
 
+	it('pairs the k-th rendered element of a tag with its k-th fact', () => {
+		const tree = createElement(
+			'div',
+			null,
+			createElement(Button, { onClick: () => {} }, 'One'),
+			createElement(Button, { onClick: () => {} }, 'Two'),
+		)
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Button', props: { onClick: 'first' } },
+					{ name: 'Button', props: { onClick: 'second' } },
+				],
+			}),
+		)
+
+		expect(result).toContain(
+			'<Button onClick={first}>One</Button>\n<Button onClick={second}>Two</Button>',
+		)
+	})
+
+	it('keeps an element with an empty fact free of the facts of the others', () => {
+		const tree = createElement(
+			'div',
+			null,
+			createElement(Button, { onClick: () => {} }, 'Spread'),
+			createElement(Button, { onClick: () => {} }, 'Saved'),
+		)
+
+		const result = deriveCode(
+			tree,
+			registry,
+			facts({
+				elements: [
+					{ name: 'Button', props: {} },
+					{ name: 'Button', props: { onClick: 'save' } },
+				],
+			}),
+		)
+
+		expect(result).toContain('<Button>Spread</Button>\n<Button onClick={save}>Saved</Button>')
+	})
+
 	it('ignores a candidate claiming props the runtime element lacks', () => {
 		const tree = createElement(Button, null, 'Plain')
 

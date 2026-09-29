@@ -39,6 +39,15 @@ export type ComponentRegistry = {
 export type ElementFact = { name: string; props: Record<string, string>; children?: string }
 
 /**
+ * Whether an element fact carries anything: a prop source or a render-prop
+ * child. An empty fact only holds the position of its element among the
+ * elements of its tag.
+ */
+export function hasFacts(element: ElementFact): boolean {
+	return Object.keys(element.props).length > 0 || element.children !== undefined
+}
+
+/**
  * A declaration statement an emitted snippet can reference: the identifiers it
  * binds (a `useState` tuple lists both names) and its full source text.
  */
@@ -76,7 +85,8 @@ export type ImportFact = { module: string; external?: boolean; type?: boolean }
  * Per-`Example` source knowledge extracted by the docs plugin's pre-transform
  * and injected as the `__facts` prop.
  *
- * - `elements` lists the authored JSX elements in source order;
+ * - `elements` lists the authored JSX elements in source order, each element
+ *   of a tag that has a fact on any of its elements;
  * - `bindings` resolves an identifier to its index in `declarations`,
  *   respecting the Example's scope chain;
  * - `declarations` and `imports` are shared per demo file, pruned to what the
@@ -102,6 +112,9 @@ export type SourceFacts = {
  * `pulledDecls` carries the declaration indices those snippets reference.
  * `hoisted` collects the helper declarations that print above the JSX, as
  * indices into each file's table, keyed by the table.
+ *
+ * `rendered` counts the elements of each tag that the walk renders, and
+ * `matched` counts those that it has matched to a fact so far in this walk.
  */
 export type Context = {
 	registry: ComponentRegistry
@@ -112,4 +125,6 @@ export type Context = {
 	factTexts: string[]
 	pulledDecls: Set<number>
 	hoisted: Map<readonly string[], Set<number>>
+	rendered: Map<string, number>
+	matched: Map<string, number>
 }
