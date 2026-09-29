@@ -135,3 +135,56 @@ export function rangeFillSource(
 
 	return { source, count: along.length - 1 }
 }
+
+/** The bounds of a block of data cells, inclusive, in data row and data column indexes. @internal */
+export type GridFillRect = { top: number; bottom: number; left: number; right: number }
+
+/**
+ * The fill that a drag of the fill handle makes from a source block to the
+ * data cell under the pointer, or `null` while the pointer is on the source.
+ * The fill runs along the axis of the larger travel past the source, and a
+ * tie goes down or up. @internal
+ */
+export function handleFill(
+	source: GridFillRect,
+	cell: { row: number; col: number },
+): { direction: GridFillDirection; count: number } | null {
+	const rows =
+		cell.row > source.bottom ? cell.row - source.bottom : Math.min(0, cell.row - source.top)
+
+	const cols =
+		cell.col > source.right ? cell.col - source.right : Math.min(0, cell.col - source.left)
+
+	if (rows === 0 && cols === 0) return null
+
+	if (Math.abs(rows) >= Math.abs(cols)) {
+		return { direction: rows > 0 ? 'down' : 'up', count: Math.abs(rows) }
+	}
+
+	return { direction: cols > 0 ? 'right' : 'left', count: Math.abs(cols) }
+}
+
+/**
+ * The corners of the range that a fill of `source` leaves: the anchor at the
+ * source corner away from the fill, and the cursor at the far corner of the
+ * filled cells. With no fill, the corners of the source. @internal
+ */
+export function filledCorners(
+	source: GridFillRect,
+	fill: { direction: GridFillDirection; count: number } | null,
+): { from: { row: number; col: number }; to: { row: number; col: number } } {
+	const { top, bottom, left, right } = source
+
+	const count = fill?.count ?? 0
+
+	switch (fill?.direction) {
+		case 'up':
+			return { from: { row: bottom, col: right }, to: { row: top - count, col: left } }
+		case 'left':
+			return { from: { row: bottom, col: right }, to: { row: top, col: left - count } }
+		case 'right':
+			return { from: { row: top, col: left }, to: { row: bottom, col: right + count } }
+		default:
+			return { from: { row: top, col: left }, to: { row: bottom + count, col: right } }
+	}
+}

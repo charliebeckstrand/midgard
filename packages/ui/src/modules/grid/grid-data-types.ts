@@ -1131,6 +1131,10 @@ export type GridDataProps<T> = Omit<TableVariants, 'size'> & {
 	 *   as Fill down and Fill right. A key stays the browser's when the range is
 	 *   one cell deep in its direction. A press of another mouse button in the
 	 *   range, such as the one that opens the menu, keeps the range.
+	 * - The active cell shows a fill handle on its bottom end corner, under
+	 *   `editable.session: 'managed'`. A drag from it grows the range from the
+	 *   range, or from the active cell, along the axis of the larger travel. The
+	 *   release fills the new cells.
 	 *
 	 * A paste or a fill is one save and one entry in the history, through
 	 * {@link GridEditableConfig.onCommit}. A fill copies the values of its

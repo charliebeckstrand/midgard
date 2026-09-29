@@ -257,3 +257,87 @@ describe('grid range fill keys (real browser)', () => {
 		])
 	})
 })
+
+/**
+ * The drag of the fill handle (real browser). The drag reads the cell under a
+ * real mouse with `elementFromPoint`, which jsdom does not model.
+ */
+describe('grid fill handle (real browser)', () => {
+	type Row = { id: number; count: number; name: string }
+
+	const columns: GridColumn<Row>[] = [
+		{ id: 'count', title: 'Count', field: 'count', cell: (row) => String(row.count) },
+		{ id: 'name', title: 'Name', field: 'name', cell: (row) => row.name },
+	]
+
+	// The first two counts make a series, and the rest differ from it.
+	const rows: Row[] = Array.from({ length: 5 }, (_, i) => ({
+		id: i + 1,
+		count: i < 2 ? i + 1 : 0,
+		name: `Name ${i + 1}`,
+	}))
+
+	const cellSelector = (key: number, column: string) =>
+		`tr[data-grid-row="${key}"] td[data-grid-col="${column}"]`
+
+	const cell = (key: number, column: string) =>
+		present(
+			document.querySelector<HTMLElement>(cellSelector(key, column)),
+			cellSelector(key, column),
+		)
+
+	const renderGrid = () => {
+		const onCommit = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={(row) => row.id}
+				range
+				editable={{ session: 'managed', onCommit }}
+			/>,
+		)
+
+		return onCommit
+	}
+
+	it('continues a series down the rows that the drag covers', async () => {
+		const onCommit = renderGrid()
+
+		onTestFinished(() => commands.releasePointer())
+
+		await userEvent.click(cell(1, 'count'))
+
+		await userEvent.keyboard('{Shift>}{ArrowDown}{/Shift}')
+
+		await commands.pressPointer('[data-slot="grid-fill-handle"]')
+
+		await userEvent.hover(cell(4, 'count'))
+
+		await waitFor(() => expect(document.querySelectorAll('td[data-in-range]')).toHaveLength(4))
+
+		await commands.releasePointer()
+
+		expect(onCommit.mock.calls.flat()).toEqual([
+			[{ rowKey: 3, columnId: 'count', value: 3 }],
+			[{ rowKey: 4, columnId: 'count', value: 4 }],
+		])
+	})
+
+	it('fills right when the drag travels further across than down', async () => {
+		const onCommit = renderGrid()
+
+		onTestFinished(() => commands.releasePointer())
+
+		await userEvent.click(cell(2, 'count'))
+
+		await commands.pressPointer('[data-slot="grid-fill-handle"]')
+
+		await userEvent.hover(cell(2, 'name'))
+
+		await commands.releasePointer()
+
+		expect(onCommit).toHaveBeenCalledExactlyOnceWith([{ rowKey: 2, columnId: 'name', value: 2 }])
+	})
+})

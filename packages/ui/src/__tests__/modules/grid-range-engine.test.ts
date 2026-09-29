@@ -1,7 +1,13 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
 import { describeRange, describeWrite } from '../../modules/grid/engine/grid-announcements'
-import { fillLine, fillPlan, rangeFillSource } from '../../modules/grid/engine/grid-range/fill'
+import {
+	filledCorners,
+	fillLine,
+	fillPlan,
+	handleFill,
+	rangeFillSource,
+} from '../../modules/grid/engine/grid-range/fill'
 import { coercePaste, pastePlacement } from '../../modules/grid/engine/grid-range/paste'
 import {
 	edgeScrollStep,
@@ -312,5 +318,46 @@ describe('rangeFillSource', () => {
 
 	it('gives no fill for a range one cell deep', () => {
 		expect(rangeFillSource({ rows: [0], cols: [1, 2] }, 'down')).toBeNull()
+	})
+})
+
+describe('handleFill', () => {
+	const source = { top: 2, bottom: 3, left: 1, right: 2 }
+
+	it('fills along the axis of the larger travel past the source', () => {
+		expect(handleFill(source, { row: 6, col: 3 })).toEqual({ direction: 'down', count: 3 })
+
+		expect(handleFill(source, { row: 0, col: 2 })).toEqual({ direction: 'up', count: 2 })
+
+		expect(handleFill(source, { row: 4, col: 5 })).toEqual({ direction: 'right', count: 3 })
+
+		expect(handleFill(source, { row: 3, col: 0 })).toEqual({ direction: 'left', count: 1 })
+	})
+
+	it('goes down or up on a tie, and gives no fill on the source', () => {
+		expect(handleFill(source, { row: 4, col: 3 })).toEqual({ direction: 'down', count: 1 })
+
+		expect(handleFill(source, { row: 2, col: 2 })).toBeNull()
+	})
+})
+
+describe('filledCorners', () => {
+	const source = { top: 2, bottom: 3, left: 1, right: 2 }
+
+	it('anchors at the source corner away from the fill', () => {
+		expect(filledCorners(source, { direction: 'down', count: 2 })).toEqual({
+			from: { row: 2, col: 1 },
+			to: { row: 5, col: 2 },
+		})
+
+		expect(filledCorners(source, { direction: 'left', count: 1 })).toEqual({
+			from: { row: 3, col: 2 },
+			to: { row: 2, col: 0 },
+		})
+
+		expect(filledCorners(source, null)).toEqual({
+			from: { row: 2, col: 1 },
+			to: { row: 3, col: 2 },
+		})
 	})
 })

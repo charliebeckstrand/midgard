@@ -175,4 +175,28 @@ describe('Grid range fill', () => {
 
 		expect(screen.queryByRole('menuitem', { name: 'Fill down' })).not.toBeInTheDocument()
 	})
+
+	it('shows the fill handle on the active cell only', () => {
+		const view = renderFillGrid()
+
+		const handles = () => view.container.querySelectorAll('[data-slot="grid-fill-handle"]')
+
+		expect(handles()).toHaveLength(0)
+
+		view.select([0, 0], [1, 1])
+
+		expect(handles()).toHaveLength(1)
+
+		expect(view.cell(1, 1)).toContainElement(handles()[0] as HTMLElement)
+
+		expect(view.cell(1, 1)).toHaveAttribute('data-fill-handle', 'static')
+	})
+
+	it('shows no fill handle without a grid-owned session', () => {
+		const view = renderFillGrid({ editable: { session: 'manual' } })
+
+		fireEvent.mouseDown(view.cell(0, 0))
+
+		expect(view.container.querySelector('[data-slot="grid-fill-handle"]')).toBeNull()
+	})
 })
