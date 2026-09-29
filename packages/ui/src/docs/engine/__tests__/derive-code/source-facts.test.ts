@@ -138,9 +138,15 @@ describe('extractSourceFacts element facts', () => {
 
 		const facts = extract(source)
 
-		// `variant` is the map's item, so the source of `onClick` is local.
+		// `variant` is the map's item, so the source of `onClick` is local, and
+		// the Button carries the map it renders from.
 		expect(facts?.sites[0]?.elements).toEqual([
-			{ name: 'Button', props: { onClick: '() => pick(variant)' }, local: ['onClick'] },
+			{
+				name: 'Button',
+				props: { onClick: '() => pick(variant)' },
+				local: ['onClick'],
+				map: `variants.map((variant) => (\n\t\t\t\t<Button key={variant} onClick={() => pick(variant)}>{variant}</Button>\n\t\t\t))`,
+			},
 		])
 	})
 
@@ -158,8 +164,67 @@ describe('extractSourceFacts element facts', () => {
 		].join('\n')
 
 		expect(extract(source)?.sites[0]?.elements).toEqual([
-			{ name: 'Select', props: { onChange: '(item) => pick(item)', format: '(v) => v.item' } },
+			expect.objectContaining({
+				name: 'Select',
+				props: { onChange: '(item) => pick(item)', format: '(v) => v.item' },
+			}),
 		])
+
+		expect(extract(source)?.sites[0]?.elements[0]?.local).toBeUndefined()
+	})
+})
+
+describe('extractSourceFacts maps', () => {
+	const site = (jsx: string[]) =>
+		extract(
+			[
+				`export function Demo() {`,
+				`\treturn (`,
+				`\t\t<Example title="Map">`,
+				...jsx.map((line) => `\t\t\t${line}`),
+				`\t\t</Example>`,
+				`\t)`,
+				`}`,
+			].join('\n'),
+		)?.sites[0]?.elements
+
+	it('records the map on each element that its callback returns, through a condition', () => {
+		const elements = site([
+			`{pages.map((p) => (p === 0 ? <Gap key="gap" /> : <Page key={p} onClick={() => go(p)} />))}`,
+		])
+
+		const map = `pages.map((p) => (p === 0 ? <Gap key="gap" /> : <Page key={p} onClick={() => go(p)} />))`
+
+		expect(elements?.map((element) => [element.name, element.map])).toEqual([
+			['Gap', map],
+			['Page', map],
+		])
+	})
+
+	it('records no map on an element inside the returned one', () => {
+		const elements = site([`{rows.map((row) => (<Row key={row}><Cell value={row} /></Row>))}`])
+
+		expect(elements?.find((element) => element.name === 'Cell')?.map).toBeUndefined()
+	})
+
+	it('marks an inner map over the item of an outer map as local', () => {
+		const elements = site([
+			`{columns.map((column) => (`,
+			`\t<Column key={column.id} title={column.title}>`,
+			`\t\t{column.items.map((item) => <Card key={item} value={item} />)}`,
+			`\t</Column>`,
+			`))}`,
+		])
+
+		const column = elements?.find((element) => element.name === 'Column')
+
+		const card = elements?.find((element) => element.name === 'Card')
+
+		expect(column?.mapLocal).toBeUndefined()
+
+		expect(card?.map).toBe('column.items.map((item) => <Card key={item} value={item} />)')
+
+		expect(card?.mapLocal).toBe(true)
 	})
 })
 

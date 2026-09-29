@@ -37,22 +37,32 @@ export type ComponentRegistry = {
  *   function;
  * - in `local`, the keys of `props` whose source uses a name that the JSX of
  *   the Example binds, such as the item of a `.map`. That source does not
- *   stand on its own outside the callback.
+ *   stand on its own outside the callback. `children` marks such a render-prop
+ *   source;
+ * - in `map`, for an element that a `.map` callback returns, the source of the
+ *   JSX expression that holds the call. `mapLocal` marks a map source that
+ *   itself uses a name of an enclosing callback.
  */
 export type ElementFact = {
 	name: string
 	props: Record<string, string>
 	local?: string[]
 	children?: string
+	map?: string
+	mapLocal?: true
 }
 
 /**
- * Whether an element fact carries anything: a prop source or a render-prop
- * child. An empty fact only holds the position of its element among the
- * elements of its tag.
+ * Whether an element fact carries anything: a prop source, a render-prop
+ * child, or the map it renders from. An empty fact only holds the position of
+ * its element among the elements of its tag.
  */
 export function hasFacts(element: ElementFact): boolean {
-	return Object.keys(element.props).length > 0 || element.children !== undefined
+	return (
+		Object.keys(element.props).length > 0 ||
+		element.children !== undefined ||
+		element.map !== undefined
+	)
 }
 
 /**
@@ -123,6 +133,8 @@ export type SourceFacts = {
  *
  * `rendered` counts the elements of each tag that the walk renders, and
  * `matched` counts those that it has matched to a fact so far in this walk.
+ * `localPrints` counts each source that the walk prints with a name that only
+ * a callback in the JSX binds.
  */
 export type Context = {
 	registry: ComponentRegistry
@@ -135,4 +147,5 @@ export type Context = {
 	hoisted: Map<readonly string[], Set<number>>
 	rendered: Map<string, number>
 	matched: Map<string, number>
+	localPrints: number
 }

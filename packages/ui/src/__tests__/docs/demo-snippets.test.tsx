@@ -68,14 +68,6 @@ const KNOWN_FAILURES: Record<string, string> = {
 	'modules/map › Timezones across America': "TS2304: Cannot find name 'timezones'.",
 	'modules/map › Zoom into the rounds': "TS2304: Cannot find name 'deliveryStops'.",
 
-	// The parameter of a `.map` callback, printed in each element that the map renders, with no binding.
-	'components/kanban › Default': "TS2552: Cannot find name 'column'. Did you mean 'columns'?",
-	'components/kanban › Disabled': "TS2552: Cannot find name 'column'. Did you mean 'columns'?",
-	'components/kanban › Read-only': "TS2304: Cannot find name 'column'.",
-	'components/pagination › Default': "TS2304: Cannot find name 'p'.",
-	'components/segment › Sizes': "TS2304: Cannot find name 's'.",
-	'modules/chat › List': "TS2304: Cannot find name 'conversation'.",
-
 	// A `useState` value that the block declares and never reads, because the
 	// block prints the value's use from the live render: a text child as its live
 	// text, or a condition that renders nothing yet.
