@@ -1,10 +1,10 @@
-/// <reference types="vite/client" />
 import { act, cleanup, fireEvent, render, within } from '@testing-library/react'
 import { getLibFiles } from '@ts-morph/common'
 import type { ComponentType } from 'react'
 import { ts } from 'ts-morph'
-import { describe, expect, it, onTestFinished } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import { AppearanceProvider } from '../../providers/appearance'
+import { demoPages, restoreRootAfterCase, visitTabs } from '../helpers/demo-pages'
 
 // A gate on the text of each "Show code" block of the docs site.
 //
@@ -34,22 +34,6 @@ import { AppearanceProvider } from '../../providers/appearance'
 // `KNOWN_FAILURES` lists the blocks that fail today. Each page must match its
 // entries: a new failure fails the gate, and so does an entry whose block now
 // compiles. A case for each page keeps each case inside the time limit.
-
-const loaders = import.meta.glob<ComponentType>(
-	[
-		'../../docs/demos/components/*.tsx',
-		'../../docs/demos/providers/*.tsx',
-		'../../docs/demos/modules/*.tsx',
-		'../../docs/demos/modules/*/index.tsx',
-		'../../docs/demos/structure/*.tsx',
-	],
-	{ import: 'Demo' },
-)
-
-/** `components/button` for `../../docs/demos/components/button.tsx`. */
-function pageOf(path: string): string {
-	return path.replace('../../docs/demos/', '').replace(/(\/index)?\.tsx$/, '')
-}
 
 /**
  * The blocks that fail the gate today, keyed `page › example`, with the first
@@ -283,19 +267,10 @@ function titleOf(frame: Element): string | null {
 	return head.querySelector('h3')?.textContent ?? null
 }
 
-/** The label of a tab, qualified by its tablist, so two lists with a tab `A` stay apart. */
-function tabKey(tab: Element): string {
-	const list = tab.closest('[role="tablist"]')
-
-	const siblings = [...(list?.querySelectorAll('[role="tab"]') ?? [])].map((t) => t.textContent)
-
-	return `${siblings.join('|')}::${tab.textContent}`
-}
-
 /**
  * Each "Show code" block of a demo page, keyed by example title (or position),
- * with a suffix for a repeated title. It opens every tab it finds, including a
- * tab that a panel reveals, until no tab is left unopened.
+ * with a suffix for a repeated title. It reads the blocks in each state that
+ * the page's tabs show.
  */
 async function snippetsOf(Demo: ComponentType): Promise<Map<string, string>> {
 	const { container } = render(
@@ -341,25 +316,7 @@ async function snippetsOf(Demo: ComponentType): Promise<Map<string, string>> {
 		}
 	}
 
-	await harvest()
-
-	const seenTabs = new Set<string>()
-
-	for (;;) {
-		const next = [...container.querySelectorAll('[role="tab"]')].find(
-			(tab) => !seenTabs.has(tabKey(tab)) && tab.getAttribute('aria-disabled') !== 'true',
-		)
-
-		if (!next) break
-
-		seenTabs.add(tabKey(next))
-
-		await act(async () => {
-			fireEvent.click(next)
-		})
-
-		await harvest()
-	}
+	await visitTabs(container, harvest)
 
 	cleanup()
 
@@ -373,38 +330,15 @@ function knownFailuresOf(page: string): Record<string, string> {
 	)
 }
 
-const paths = Object.keys(loaders).sort()
-
-/**
- * Put back the theme class and the density step that `AppearanceProvider`
- * writes to the root element and does not remove on unmount. The window is
- * shared across the files of a worker, so a step left on the root would reach
- * a later file that reads it.
- */
-function restoreRootAfterCase(): void {
-	const root = document.documentElement
-
-	const density = root.getAttribute('data-density')
-
-	const dark = root.classList.contains('dark')
-
-	onTestFinished(() => {
-		if (density === null) root.removeAttribute('data-density')
-		else root.setAttribute('data-density', density)
-
-		root.classList.toggle('dark', dark)
-	})
-}
-
 describe('demo snippets', () => {
-	it.each(paths.map((path) => [pageOf(path), path] as const))(
+	it.each(demoPages)(
 		'%s derives blocks that compile',
 		// The grid page opens about 45 blocks across its tabs, in about 7s.
 		{ timeout: 30_000 },
-		async (page, path) => {
+		async (page, load) => {
 			restoreRootAfterCase()
 
-			const Demo = await (loaders[path] as () => Promise<ComponentType>)()
+			const Demo = await load()
 
 			const snippets = await snippetsOf(Demo)
 
@@ -426,7 +360,7 @@ describe('demo snippets', () => {
 	)
 
 	it('names only pages that exist in its known failures', () => {
-		const pages = new Set(paths.map(pageOf))
+		const pages = new Set(demoPages.map(([page]) => page))
 
 		const unknown = Object.keys(KNOWN_FAILURES).filter(
 			(key) => !pages.has(key.split(' › ')[0] ?? ''),
