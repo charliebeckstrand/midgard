@@ -6,7 +6,6 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '../../../components/too
 import { cn, dataAttr } from '../../../core'
 import { ReducedMotion } from '../../../primitives/reduced-motion'
 import { k } from '../../../recipes/kata/chart'
-import { keyByOccurrence } from '../../../utilities'
 import {
 	type ChartPaint,
 	fillClass,
@@ -23,6 +22,7 @@ import {
 	type ChartReferenceLine,
 	DEFAULT_REFERENCE_COLOR,
 	type ReferenceFormat,
+	ruleKeys,
 } from './chart-reference'
 import type { LinearScale } from './chart-scale'
 import { seriesGroupClass } from './chart-series'
@@ -464,19 +464,6 @@ export type ChartReferenceListProps = {
 	 * the data table follows the visible series. Empty by default.
 	 */
 	hidden?: ReadonlySet<number>
-}
-
-/**
- * One unique React key per rule: its axis, value, and label, with the
- * occurrence added to a repeat. Two rules can share a value and a label on two
- * axes, or on one axis.
- *
- * @internal
- */
-function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
-	return keyByOccurrence(
-		lines.map((line) => `${line.axis ?? 'y'}:${line.value}:${line.label ?? ''}`),
-	).map(({ key }) => key)
 }
 
 /**

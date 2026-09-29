@@ -637,6 +637,48 @@ describe('reference lines in the legend', () => {
 		expect(chip().getAttribute('aria-pressed')).toBe('true')
 	})
 
+	it('keeps a toggled-off rule off when an earlier rule leaves the prop', async () => {
+		const user = userEvent.setup()
+
+		const floor = { value: 30, label: 'Floor' }
+
+		const target = { value: 50, label: 'Target' }
+
+		const ceiling = { value: 70, label: 'Ceiling' }
+
+		const chart = (reference: ChartReferenceLine[]) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={reference}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart([floor, target, ceiling]))
+
+		const pressed = () =>
+			allBySlot(container, 'chart-legend-reference').map(
+				(chip) => `${chip.textContent}:${chip.getAttribute('aria-pressed')}`,
+			)
+
+		await user.click(allBySlot(container, 'chart-legend-reference')[1] as Element)
+
+		expect(pressed()).toEqual(['Floor:true', 'Target:false', 'Ceiling:true'])
+
+		// The rule before the hidden one leaves. The hide stays with its rule, and
+		// the rule after it keeps its own state.
+		rerender(chart([target, ceiling]))
+
+		expect(pressed()).toEqual(['Target:false', 'Ceiling:true'])
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toBe('Ceiling: 70')
+	})
+
 	it('drops a toggled-off rule from the domain and the hidden parity', async () => {
 		const user = userEvent.setup()
 

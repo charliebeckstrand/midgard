@@ -37,7 +37,7 @@ import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legen
 import { legendAside, legendBands, type ResolvedLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
 import type { ChartOrientation, PlotRect } from './chart-orientation'
-import { referenceLegendItems } from './chart-reference'
+import { referenceLegendItems, ruleKeys } from './chart-reference'
 import type { BandScale, LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices } from './chart-series'
 import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
@@ -461,7 +461,11 @@ export function useChartCartesian<T>(
 		props.onHiddenChange,
 	)
 
-	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle()
+	// A rule keeps its hide by its key, so a `reference` list that drops a rule
+	// leaves each other rule as the reader left it.
+	const { hidden: referenceHidden, toggle: toggleReference } = useChartReferenceToggle(
+		ruleKeys(props.reference ?? []),
+	)
 
 	const stack = config.stack ?? false
 

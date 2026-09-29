@@ -6,6 +6,7 @@
  */
 
 import type { ChartColorSlot } from '../../../recipes/kata/chart'
+import { keyByOccurrence } from '../../../utilities'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartColor, rawColor, resolvePaint, textClass } from './chart-color/paint'
 import type { ChartLegendReference } from './chart-legend/legend'
@@ -56,6 +57,20 @@ export type ReferenceFormat = (value: number, axis: ChartValueAxisId) => string
 
 /** The neutral de-emphasis slot a reference takes until colored. @internal */
 export const DEFAULT_REFERENCE_COLOR = 'zinc' satisfies ChartColorSlot
+
+/**
+ * One unique key per rule: its axis, value, and label, with the occurrence
+ * added to a repeat. Two rules can share a value and a label on two axes, or on
+ * one axis. The drawn rules and the parity list key their React nodes on it, and
+ * the legend toggle keys each hidden rule on it.
+ *
+ * @internal
+ */
+export function ruleKeys(lines: readonly ChartReferenceLine[]): string[] {
+	return keyByOccurrence(
+		lines.map((line) => `${line.axis ?? 'y'}:${line.value}:${line.label ?? ''}`),
+	).map(({ key }) => key)
+}
 
 /**
  * The legend entries for the reference lines: each finite rule's label, or its
