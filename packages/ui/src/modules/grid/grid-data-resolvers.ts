@@ -11,10 +11,11 @@
 
 import { createElement, type ReactNode } from 'react'
 import type { TableElementProps } from '../../components/table'
-import { cn } from '../../core'
+import { cn, composeEventHandlers } from '../../core'
 import { k } from '../../recipes/kata/grid'
 import { isDataColumn } from '../../utilities'
 import { DEFAULT_OVERSCAN } from './engine/grid-constants'
+import { pageOffset } from './engine/grid-pagination-utilities'
 import type { GridCellClick, GridRowClick } from './engine/grid-row/cell'
 import type {
 	GridFooter,
@@ -151,8 +152,35 @@ function tableRole(args: {
 }
 
 /**
- * Assembles the `<table>` element props: the caller's `tableProps`, `aria-busy`
- * while loading, and the role/index scheme. The role is `grid` when the table
+ * The key and focus handlers of the `<table>`: the caller's handler composed
+ * with the grid's, the caller's first. A caller's handler that prevents the
+ * default keeps the event. A handler that only one side sets passes as it is.
+ *
+ * @internal
+ */
+function gridHandlers(
+	own: TableElementProps | undefined,
+	nav: GridNavTableProps | undefined,
+	roving: Pick<TableElementProps, 'onKeyDown'> | undefined,
+): Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> {
+	const grid: Partial<Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'>> | undefined =
+		nav ?? roving
+
+	const handlers: Pick<TableElementProps, 'onKeyDown' | 'onFocus' | 'onBlur'> = {}
+
+	if (grid?.onKeyDown) handlers.onKeyDown = composeEventHandlers(own?.onKeyDown, grid.onKeyDown)
+
+	if (grid?.onFocus) handlers.onFocus = composeEventHandlers(own?.onFocus, grid.onFocus)
+
+	if (grid?.onBlur) handlers.onBlur = composeEventHandlers(own?.onBlur, grid.onBlur)
+
+	return handlers
+}
+
+/**
+ * Assembles the `<table>` element props: the caller's `tableProps`, with its
+ * key and focus handlers composed ahead of the grid's, `aria-busy` while
+ * loading, and the role/index scheme. The role is `grid` when the table
  * carries a keyboard cursor (`navigable`, or a caller-supplied `role` — the
  * editable grid). It is `table` when the body is only a window onto a larger
  * set (`gridSemantics`: virtualization or pagination) with no cursor, and
@@ -169,8 +197,8 @@ export function resolveTableProps(args: {
 	tableProps: TableElementProps | undefined
 	/** Cursor props (tab stop, `aria-activedescendant`, key/focus handlers) under `navigable`. */
 	navTableProps: GridNavTableProps | undefined
-	/** Roving props (the table ref and the arrow-key handler) under row/cell roving; exclusive with `navTableProps`. */
-	rovingTableProps: Pick<TableElementProps, 'ref' | 'onKeyDown'> | undefined
+	/** Roving props (the arrow-key handler) under row/cell roving; exclusive with `navTableProps`. */
+	rovingTableProps: Pick<TableElementProps, 'onKeyDown'> | undefined
 	loading: boolean
 	gridSemantics: boolean
 	navigable: boolean
@@ -192,9 +220,10 @@ export function resolveTableProps(args: {
 	return {
 		...args.tableProps,
 		...args.navTableProps,
-		// Roving attaches the table ref and the arrow-key handler; it stands down
-		// under the navigable cursor, so this never coexists with `navTableProps`.
+		// Roving attaches the arrow-key handler; it stands down under the
+		// navigable cursor, so this never coexists with `navTableProps`.
 		...args.rovingTableProps,
+		...gridHandlers(args.tableProps, args.navTableProps, args.rovingTableProps),
 		// The navigable table drops its own focus outline (the active-cell ring is the
 		// indicator); merge it onto any caller className so it reaches the `<table>`.
 		...(args.navigable ? { className: cn(args.tableProps?.className, k.nav.table) } : {}),
@@ -312,7 +341,7 @@ export function resolveGridSemantics(
 ): GridSemantics {
 	return {
 		enabled: !manualGrouped && (virtualizeEnabled || pagination != null || navigable),
-		rowOffset: pagination ? pagination.pageIndex * pagination.pageSize : 0,
+		rowOffset: pagination ? pageOffset(pagination.pageIndex, pagination.pageSize) : 0,
 		selectAllLabel: pagination ? 'Select all rows on this page' : 'Select all rows',
 	}
 }

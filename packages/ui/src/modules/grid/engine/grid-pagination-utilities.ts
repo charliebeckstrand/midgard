@@ -82,6 +82,16 @@ export function pageBounds(pageIndex: number, pageSize: number): [number, number
 }
 
 /**
+ * The count of the rows before the first row of a page. The first page of an
+ * unbounded page size starts at 0, as {@link pageBounds} keeps it whole.
+ *
+ * @internal
+ */
+export function pageOffset(pageIndex: number, pageSize: number): number {
+	return pageBounds(pageIndex, pageSize)?.[0] ?? 0
+}
+
+/**
  * The page that a client view shows: the stored page, held to the last page
  * when the rows shrink under it, such as after a search. The stored page stays
  * as it is, so a consumer binding reads no write it did not make. An empty set

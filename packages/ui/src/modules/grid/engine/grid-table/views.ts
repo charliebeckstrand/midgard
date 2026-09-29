@@ -14,7 +14,7 @@ import type { QueryGroup } from '../../../query/engine/types'
 import type { GridColumn, GridColumnFilterState, GridPagination } from '../../types'
 import { DEFAULT_COLUMN_SIZE, DEFAULT_MIN_COLUMN_SIZE } from '../grid-constants'
 import { isNewRowAddColumn } from '../grid-new-row-column'
-import { pageCountOf } from '../grid-pagination-utilities'
+import { pageCountOf, pageOffset } from '../grid-pagination-utilities'
 import type { FrozenColumn, FrozenLayout } from '../grid-pin/layout'
 import type { FrozenOffsetStore } from '../grid-pin/offsets'
 import { frozenSide } from '../grid-pin/overrides'
@@ -550,11 +550,13 @@ export function buildColumnFilters<T>(args: {
 		args.columns.filter((col) => col.filterable && col.value).map((col) => String(col.id)),
 	)
 
-	// A controlled binding can carry any value, so each entry is checked as a query.
+	// A controlled binding can carry any value, so each entry is checked as a
+	// query. An entry on a column that cannot filter filters no row, so it
+	// counts for nothing.
 	const queries = new Map<string, QueryGroup>()
 
 	for (const entry of args.applied) {
-		if (isQueryGroup(entry.value)) queries.set(entry.id, entry.value)
+		if (filterable.has(entry.id) && isQueryGroup(entry.value)) queries.set(entry.id, entry.value)
 	}
 
 	return {
@@ -611,8 +613,8 @@ export function buildPaginationView<T>(args: {
 		pageCount,
 		// The count before pagination reflects the client filters; server mode trusts the supplied total.
 		rowCount: args.manual ? args.config.rowCount : args.rows,
-		from: onPage === 0 ? 0 : pageIndex * pageSize + 1,
-		to: onPage === 0 ? 0 : pageIndex * pageSize + onPage,
+		from: onPage === 0 ? 0 : pageOffset(pageIndex, pageSize) + 1,
+		to: onPage === 0 ? 0 : pageOffset(pageIndex, pageSize) + onPage,
 		canPrevious: pageIndex > 0,
 		canNext: pageCount === -1 || (pageCount !== 0 && pageIndex < pageCount - 1),
 		pageSizeOptions: args.config.pageSizeOptions,

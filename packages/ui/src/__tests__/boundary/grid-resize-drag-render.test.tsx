@@ -41,6 +41,23 @@ vi.mock('../../modules/grid/grid-column-resize-handle', async (importOriginal) =
 	}
 })
 
+// Counts the renders of the grid host. The host reads the pinned offsets once
+// for each render.
+const hostRenders = vi.hoisted(() => ({ count: 0 }))
+
+vi.mock('../../modules/grid/use-grid-pinned-offsets', async (importOriginal) => {
+	const actual = await importOriginal<typeof import('../../modules/grid/use-grid-pinned-offsets')>()
+
+	return {
+		...actual,
+		useGridPinnedOffsets: ((...args: Parameters<typeof actual.useGridPinnedOffsets>) => {
+			hostRenders.count++
+
+			return actual.useGridPinnedOffsets(...args)
+		}) as typeof actual.useGridPinnedOffsets,
+	}
+})
+
 /**
  * A drag-resize holds the truncation tooltips closed, and measures again when it
  * settles. The body cells read the drag state from the settle store when they
@@ -99,6 +116,35 @@ describe('Grid column drag-resize', () => {
 		expect(handleRenders.get('city') ?? 0).toBeGreaterThanOrEqual(5)
 
 		expect(handleRenders.get('name') ?? 0).toBe(0)
+
+		fireEvent.mouseUp(document, { clientX: 150 })
+	})
+
+	it('renders the host once on each frame of a drag of a frozen column', async () => {
+		const frozen: GridColumn<Row>[] = [
+			{ ...(columns[0] as GridColumn<Row>), pinned: 'left' },
+			columns[1] as GridColumn<Row>,
+		]
+
+		renderUI(<Grid columns={frozen} rows={rows} getKey={(row) => row.id} resizable />)
+
+		fireEvent.mouseDown(screen.getByRole('separator', { name: 'Resize City' }), {
+			button: 0,
+			clientX: 100,
+		})
+
+		await act(frames)
+
+		hostRenders.count = 0
+
+		for (let x = 110; x <= 150; x += 10) {
+			fireEvent.mouseMove(document, { clientX: x })
+
+			await act(frames)
+		}
+
+		// A new frozen layout on each frame keeps the host at one render.
+		expect(hostRenders.count).toBe(5)
 
 		fireEvent.mouseUp(document, { clientX: 150 })
 	})

@@ -447,16 +447,23 @@ function useGridRowModel<T>(args: {
 		[manualGroupRow, rows, getKey],
 	)
 
+	// The rows and keys of a flat body under a client view. A body that
+	// collects leaves reads them from the leaves, so it builds neither.
+	const flat = useMemo(
+		() => (leaves || !clientView ? null : materializeSort(rows, clientView.shown, getKey)),
+		[leaves, clientView, rows, getKey],
+	)
+
 	const renderRows = useMemo(
-		() => (leaves ? leaves.map((leaf) => leaf.row) : (clientView?.rows ?? rows)),
-		[leaves, clientView, rows],
+		() => (leaves ? leaves.map((leaf) => leaf.row) : (flat?.rows ?? rows)),
+		[leaves, flat, rows],
 	)
 
 	const rowKeys = useMemo<(string | number)[]>(() => {
 		if (leaves) return leaves.map((leaf) => leaf.key)
 
-		return clientView?.keys ?? rows.map((row, index) => getKey(row, index))
-	}, [leaves, clientView, rows, getKey])
+		return flat?.keys ?? rows.map((row, index) => getKey(row, index))
+	}, [leaves, flat, rows, getKey])
 
 	return { manualRows, renderRows, rowKeys }
 }
@@ -546,9 +553,11 @@ function useGroupTree<T>(args: {
  * The filter keeps the rows that pass the compiled column filters and the
  * quick search (see {@link compileColumnFilters} and {@link compileSearch}),
  * in one pass over the rows. The sort then orders those rows through
- * {@link cachedSortOrder}, and {@link materializeSort} reads each kept row at
- * its original index. The parity tests hold the result equal to the filtered
- * and sorted row models of a stock engine table.
+ * {@link cachedSortOrder}. The view holds indices only. A flat body reads each
+ * shown row at its original index through {@link materializeSort} (see
+ * `useGridRowModel`), and a grouped body reads its groups, so it builds no
+ * row list. The parity tests hold the result equal to the filtered and sorted
+ * row models of a stock engine table.
  *
  * The sort columns are resolved to {@link SmartSortField}s in their own memo,
  * keyed on the sort and columns. A data change therefore re-sorts without
@@ -562,7 +571,6 @@ function useGroupTree<T>(args: {
  */
 function useClientView<T>(args: {
 	rows: T[]
-	getKey: (row: T, index: number) => string | number
 	sort: GridSortState[] | undefined
 	/** Whether the grid sorts client-side (a manual/server sort orders `rows` itself). */
 	clientSort: boolean
@@ -576,8 +584,10 @@ function useClientView<T>(args: {
 	columnTests: ColumnTests<T>
 	/** The full column set, to resolve each sort column's value accessor and any manual `sortFn`. */
 	columns: GridColumn<T>[]
+	/** Whether a grand total reads {@link ClientView.filtered}. */
+	grandTotal: boolean
 }): ClientView<T> | null {
-	const { rows, getKey, sort, clientSort, filtered, page, query, columnTests, columns } = args
+	const { rows, sort, clientSort, filtered, page, query, columnTests, columns, grandTotal } = args
 
 	// The sort columns as fields, or `null` unless a sort is the sole transform (a
 	// client sort with entries and no engine transform already reshaping the rows).
@@ -610,16 +620,21 @@ function useClientView<T>(args: {
 
 		const byColumn = [...columnTests.values()]
 
-		return search ? [...byColumn, search] : byColumn
+		const all = search ? [...byColumn, search] : byColumn
+
+		// A blank rule compiles to no test, and a set with no test keeps every row.
+		return all.length > 0 ? all : null
 	}, [filtered, rows, columns, query, columnTests])
 
 	// The original indices of the rows that the filter keeps, and those rows.
 	// Both are `null` with no off-engine filter.
 	const kept = useMemo(() => (tests ? filterRowIndices(rows, tests) : null), [rows, tests])
 
+	// The kept rows as a list, for a grand total only: the order and the page
+	// read the indices.
 	const keptRows = useMemo(
-		() => (kept ? kept.map((index) => rows[index] as T) : null),
-		[kept, rows],
+		() => (grandTotal && kept ? rowsAt(rows, kept) : null),
+		[grandTotal, kept, rows],
 	)
 
 	// The permutation depends only on the rows and the sort spec, never on
@@ -647,12 +662,12 @@ function useClientView<T>(args: {
 			return kept ? keepInOrder(full, kept, rows.length) : full
 		}
 
-		const local = cachedSortOrder(keptRows ?? rows, columns, sig, fields)
+		const local = cachedSortOrder(rowsAt(rows, kept), columns, sig, fields)
 
 		// A sort of the kept rows gives positions among them. Each maps back to
 		// the original index of its row.
 		return local.map((position) => kept[position] as number)
-	}, [fields, kept, keptRows, rows, sort, columns])
+	}, [fields, kept, rows, sort, columns])
 
 	const pageIndex = page?.pageIndex
 
@@ -677,16 +692,13 @@ function useClientView<T>(args: {
 
 		const shown = bounds ? sliceOrder(order, total, bounds) : (order ?? identityOrder(total))
 
-		return {
-			...materializeSort(rows, shown, getKey),
-			total,
-			pageIndex: shownPage,
-			filtered: keptRows,
-			kept,
-			order,
-			fields,
-		}
-	}, [order, pageIndex, pageSize, rows, getKey, keptRows, kept, fields])
+		return { shown, total, pageIndex: shownPage, filtered: keptRows, kept, order, fields }
+	}, [order, pageIndex, pageSize, rows, keptRows, kept, fields])
+}
+
+/** The rows at `indices`, in their sequence. @internal */
+function rowsAt<T>(rows: readonly T[], indices: readonly number[]): T[] {
+	return indices.map((index) => rows[index] as T)
 }
 
 /**
@@ -696,14 +708,21 @@ function useClientView<T>(args: {
  * @internal
  */
 type ClientView<T> = {
-	rows: T[]
-	keys: (string | number)[]
+	/**
+	 * The original indices of the rows that the view shows, in view order. A
+	 * flat body reads the rows and the keys from them (see `useGridRowModel`),
+	 * and a grouped body reads the groups instead.
+	 */
+	shown: number[]
 	total: number
 	/** The page the view shows, or `undefined` when the view does not paginate. */
 	pageIndex: number | undefined
-	/** The rows that the filters keep, in data order, or `null` when the view applies no filter. */
+	/**
+	 * The rows that the filters keep, in data order, for a grand total. It is
+	 * `null` when the view applies no filter or shows no grand total.
+	 */
 	filtered: T[] | null
-	/** The indices of {@link ClientView.filtered}, or `null`. */
+	/** The original indices of the rows that the filters keep, or `null` with no filter. */
 	kept: number[] | null
 	/** The indices of the view before the page slice, in view order, or `null` for data order. */
 	order: number[] | null
@@ -713,7 +732,9 @@ type ClientView<T> = {
 
 /** The cache key of a sort: the column id and the direction of each entry. @internal */
 function sortSignature(sort: readonly GridSortState[]): string {
-	return sort.map((entry) => `${String(entry.column)}:${entry.direction}`).join('|')
+	// A column id is free text, so no printable separator is safe: `a:asc|b`
+	// names one column, and it would read as two. An id does not hold a NUL.
+	return sort.map((entry) => `${String(entry.column)}\u0000${entry.direction}`).join('\u0000')
 }
 
 /**
@@ -773,7 +794,8 @@ function sliceOrder(
  * nudge writes the width straight through `columnSizing` instead). A transition
  * off or onto a column id therefore brackets the drag. The outgoing column ends
  * first (a settle, or a pointer that slid onto another handle), then the
- * incoming one starts. Read from the engine and fired from an effect, keeping the
+ * incoming one starts. An unmount during a drag ends it. Read from the engine
+ * and fired from an effect, keeping the
  * callbacks out of the controlled-state write path. Kept out of
  * {@link useGridTable} for its cognitive-complexity budget.
  *
@@ -800,6 +822,15 @@ function useColumnResizeLifecycle(
 
 		if (resizingColumnId) onResizeStart?.(resizingColumnId)
 	}, [resizingColumnId, onResizeStart, onResizeEnd])
+
+	// A grid that unmounts during a drag ends it, so each start has its end.
+	const endOnUnmount = useStableEvent(() => {
+		const prev = prevResizingRef.current
+
+		if (prev) onResizeEnd?.(prev)
+	})
+
+	useEffect(() => endOnUnmount, [endOnUnmount])
 }
 
 /**
@@ -1000,7 +1031,8 @@ function useFilterView<T>(args: {
 
 /**
  * The facet values of each column over one set of rows, filters, and query.
- * Each column collects its values on its first read, and keeps them.
+ * Each column collects its values on its first read, and keeps them. The
+ * search compiles on the first read of any column.
  *
  * @remarks
  * A plain function, not a hook body, so that the cache of the values lives
@@ -1015,11 +1047,13 @@ function facetSource<T>(
 	columnTests: ColumnTests<T>,
 	query: string,
 ): (id: string) => Set<unknown> {
-	const search = compileSearch(rows, columns, query)
-
 	const byId = new Map(columns.map((col) => [String(col.id), col] as const))
 
 	const cache = new Map<string, Set<unknown>>()
+
+	// Compiled on the first read. A source that no sheet reads, such as each
+	// source of a manual search, builds no haystack.
+	let search: RowTest<T> | null | undefined
 
 	return (id) => {
 		let values = cache.get(id)
@@ -1028,6 +1062,8 @@ function facetSource<T>(
 			const read = byId.get(id)?.value
 
 			const tests = [...columnTests].flatMap(([other, test]) => (other === id ? [] : [test]))
+
+			if (search === undefined) search = compileSearch(rows, columns, query)
 
 			if (search) tests.push(search)
 
@@ -1510,7 +1546,6 @@ export function useGridTable<T>({
 	// display list, and `renderRows`/`rowKeys`) derive from this view.
 	const clientView = useClientView({
 		rows,
-		getKey,
 		sort,
 		clientSort,
 		filtered: clientTransforms.filtered,
@@ -1518,6 +1553,7 @@ export function useGridTable<T>({
 		query: searchQuery,
 		columnTests,
 		columns,
+		grandTotal,
 	})
 
 	const { groups, closed, toggleGroup } = useGroupTree({

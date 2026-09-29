@@ -235,6 +235,29 @@ describe('Grid per-column filters', () => {
 		expect(button.querySelector('.lucide-list-filter-plus')).not.toBeInTheDocument()
 	})
 
+	it('counts no filter on a column that cannot filter', () => {
+		const roleField: QueryField = { name: 'role', label: 'Role', type: 'text' }
+
+		const roleIs = createGroup('and', [
+			{ ...createRule(roleField), operator: 'contains', value: 'Designer' },
+		])
+
+		renderUI(
+			<Grid
+				columns={columns}
+				rows={rows}
+				getKey={getKey}
+				search={{}}
+				columnFilters={{ value: [{ id: 'role', value: roleIs }] }}
+			/>,
+		)
+
+		// The rule filters no row, so the toolbar offers nothing to clear.
+		expect(screen.getByText('Alice')).toBeInTheDocument()
+
+		expect(screen.queryByRole('button', { name: 'Clear filters' })).not.toBeInTheDocument()
+	})
+
 	it('leaves the button unaccented when a rule carries no value', () => {
 		// A rule with no value (added then emptied, or the freshly seeded rule)
 		// constrains nothing, so the button must read as inactive.
