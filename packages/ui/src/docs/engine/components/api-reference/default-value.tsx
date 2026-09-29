@@ -43,6 +43,19 @@ export function DefaultValue({ value }: { value: string }) {
 }
 
 /**
+ * Whether a default is a sentence, not a value. Prose has a backtick span or a
+ * `{@link}` mixed with plain words. A lone span, a union, and a JSX expression
+ * are values. The API reference moves prose into the description.
+ */
+export function isProseDefault(raw: string): boolean {
+	if (classifyLiteral(raw) || /<[A-Za-z]/.test(raw) || /\s\|\s/.test(raw)) return false
+
+	if (!/`|\{@link/.test(raw)) return false
+
+	return /[A-Za-z]{2,}/.test(raw.replace(/`[^`]*`|\{@link[^}]*\}/g, ''))
+}
+
+/**
  * A non-literal default. A JSX/element expression (`<TableEmptyAlert />`,
  * `<ChevronRight />`) renders verbatim in monospace. The Markdown inline lexer
  * reads an HTML-like tag as raw HTML and drops it, blanking the cell. Everything

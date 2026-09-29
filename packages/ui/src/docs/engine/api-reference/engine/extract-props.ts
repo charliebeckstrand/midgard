@@ -171,9 +171,17 @@ function buildPropDef(
 	const authored =
 		literalUnion ?? (propTypes.length === 1 ? authoredTypeText(symbol, checker) : null)
 
+	const [single] = propTypes
+
+	const declared = propTypes.length === 1 && single ? declaredAlias(symbol, single, checker) : null
+
 	const prop: PropDef = {
 		name,
-		type: authored ?? formatPropTypes(propTypes, callable, checker, order),
+		type:
+			authored ??
+			(declared
+				? formatPropType(declared, checker, callable)
+				: formatPropTypes(propTypes, callable, checker, order)),
 	}
 
 	// Inlined literal unions carry no named references; skip resolution so they
@@ -455,6 +463,35 @@ function authoredTypeText(symbol: ts.Symbol, checker: ts.TypeChecker): string | 
 	}
 
 	return null
+}
+
+/**
+ * The declared type of an optional prop, when the type of the prop lost its
+ * alias. The checker adds `undefined` to the type of an optional prop, and
+ * that union names no alias. So `as?: ElementType` printed each member of
+ * `ElementType`, 170 tags among them. The declared type keeps the alias and
+ * prints by name.
+ *
+ * Null when the declared type names no alias. Also null when its members
+ * differ from the members of the prop type less `undefined`, as for a generic
+ * prop that the call site binds.
+ */
+function declaredAlias(symbol: ts.Symbol, type: ts.Type, checker: ts.TypeChecker): ts.Type | null {
+	const declaration = symbol.getDeclarations()?.[0]
+
+	if (!declaration || !ts.isPropertySignature(declaration) || !declaration.type) return null
+
+	if (type.aliasSymbol || !type.isUnion()) return null
+
+	const declared = checker.getTypeFromTypeNode(declaration.type)
+
+	if (!declared.aliasSymbol) return null
+
+	const members = declared.isUnion() ? declared.types : [declared]
+
+	const rest = type.types.filter((t) => !(t.flags & ts.TypeFlags.Undefined))
+
+	return rest.length === members.length && rest.every((t) => members.includes(t)) ? declared : null
 }
 
 /** Whether a type node is `undefined` or `null`, both members of `ReactNode`. */

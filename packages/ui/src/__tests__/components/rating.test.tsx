@@ -202,6 +202,34 @@ describe('Rating', () => {
 			expect(stars(container)).toHaveLength(0)
 		})
 
+		it('joins the score to a consumer aria-label', () => {
+			renderUI(<Rating readOnly aria-label="Quality" value={4} />)
+
+			expect(screen.getByRole('img')).toHaveAccessibleName('Quality 4 out of 5 stars')
+		})
+
+		it('joins the score to a consumer aria-labelledby', () => {
+			renderUI(
+				<>
+					<span id="rating-name">Service</span>
+					<Rating readOnly aria-labelledby="rating-name" value={2} />
+				</>,
+			)
+
+			expect(screen.getByRole('img')).toHaveAccessibleName('Service 2 out of 5 stars')
+		})
+
+		it('joins the score to an enclosing Field label', () => {
+			renderUI(
+				<Field>
+					<Label>How was it?</Label>
+					<Rating readOnly value={3} />
+				</Field>,
+			)
+
+			expect(screen.getByRole('img')).toHaveAccessibleName('How was it? 3 out of 5 stars')
+		})
+
 		it('draws a fractional score as a part star', () => {
 			const { container } = renderUI(<Rating readOnly value={3.5} />)
 
@@ -237,6 +265,8 @@ describe('Rating', () => {
 		expect(bySlot(container, 'rating')).toHaveAttribute('data-disabled')
 
 		expect(stars(container)).toHaveLength(0)
+
+		expect(screen.getByRole('img')).toHaveAccessibleName('Score 3 out of 5 stars')
 	})
 })
 

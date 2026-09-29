@@ -21,6 +21,28 @@ function defaultValueText(value: number, count: number): string {
 	return `${value} out of ${count} stars`
 }
 
+/**
+ * The naming attributes of the display form. The consumer's name labels the
+ * image, and the readout follows it through `aria-labelledby`. An `aria-label`
+ * joins by a reference to the row itself. With no name from the consumer, the
+ * readout is the whole name.
+ *
+ * @internal
+ */
+function displayNaming(
+	name: { label: string | undefined; labelledBy: string | undefined },
+	ids: { row: string; value: string },
+	valueText: string,
+): { id?: string; 'aria-label'?: string; 'aria-labelledby'?: string } {
+	if (name.labelledBy) return { 'aria-labelledby': `${name.labelledBy} ${ids.value}` }
+
+	if (name.label) {
+		return { id: ids.row, 'aria-label': name.label, 'aria-labelledby': `${ids.row} ${ids.value}` }
+	}
+
+	return { 'aria-label': valueText }
+}
+
 /** Props for {@link Rating}: the controllable value triad, the `count` of stars, the `size` step, the recipe `color`, and the read-only display form. */
 export type RatingProps = RatingVariants & {
 	/** Controlled value. `undefined` leaves the rating uncontrolled; `null` keeps it controlled with no score (CONVENTIONS §7.3). */
@@ -47,9 +69,10 @@ export type RatingProps = RatingVariants & {
 	 */
 	size?: DensityStep
 	/**
-	 * Show the score and take no input. The row renders as one `role="img"`
-	 * carrying the {@link getValueText} readout, because a reader has no reason to
-	 * walk five radios that answer nothing.
+	 * Show the score and take no input. The row renders as one `role="img"`,
+	 * because a reader has no reason to walk five radios that answer nothing. Its
+	 * name is the consumer's name followed by the {@link getValueText} readout.
+	 * With no name, the readout is the whole name.
 	 *
 	 * It also renders a fraction: a whole star for each point, a part star for the
 	 * remainder. Only the display form does — a reader picks whole stars.
@@ -69,8 +92,8 @@ export type RatingProps = RatingVariants & {
 	 */
 	clearable?: boolean
 	/**
-	 * The readout, for the display form's accessible name and for each star's own
-	 * name in the interactive one. Say what the stars mean where they mean
+	 * The readout, for the score in the display form's accessible name and for
+	 * each star's own name in the interactive one. Say what the stars mean where they mean
 	 * something particular: `` (v) => `${v} of 5 — ${LEVELS[v]}` ``.
 	 * @defaultValue `` `${value} out of ${count} stars` ``
 	 */
@@ -79,10 +102,10 @@ export type RatingProps = RatingVariants & {
 	id?: string
 	className?: string
 	/**
-	 * Names the interactive row when no `<Field>` / `<Label>` wraps it. A
+	 * Names the row when no `<Field>` / `<Label>` wraps it. A
 	 * `role="radiogroup"` is not named by an enclosing `<fieldset>` legend, so a
-	 * bare Rating needs one of these. The display form names itself from
-	 * {@link getValueText} and ignores this.
+	 * bare Rating needs one of these. The display form puts the
+	 * {@link getValueText} readout after this name.
 	 */
 	'aria-label'?: string
 	'aria-labelledby'?: string
@@ -101,8 +124,9 @@ export type RatingProps = RatingVariants & {
  * Interactive, it is a `role="radiogroup"` over one native `<input type="radio">`
  * per star. Arrow keys, focus, and the announced position therefore come from
  * the platform, rather than from key handlers of its own. It is `Slider`'s
- * bargain, for the same reason. `readOnly` drops the inputs and renders one `role="img"`
- * carrying the readout, because color and shape alone do not carry a score
+ * bargain, for the same reason. `readOnly` and `disabled` drop the inputs and
+ * render one `role="img"`. Its name is the consumer's name, then the readout.
+ * The readout is necessary, because color and shape alone do not carry a score
  * (WCAG 1.4.1).
  *
  * Binds to an enclosing Form field by `name`. Resolves `id` / `disabled` /
@@ -214,16 +238,37 @@ export function Rating({
 		)
 	}
 
+	// A Label registered on the enclosing Field names the row; an explicit
+	// `aria-labelledby` wins over it. Only where neither stands does the row fall
+	// back to its own `aria-label`. The interactive form never sets both naming
+	// attributes. The display form sets both only to join the readout.
+	const labelledBy = ariaLabelledBy ?? control?.labelledBy
+
 	if (!live) {
+		const valueText = getValueText(current, count)
+
+		const naming = displayNaming(
+			{ label: ariaLabel, labelledBy },
+			{ row: scope.sub('row'), value: scope.sub('value') },
+			valueText,
+		)
+
 		return (
 			<span
 				data-slot={slot}
 				data-density={size}
 				{...(resolvedDisabled ? { 'data-disabled': true } : {})}
 				role="img"
-				aria-label={getValueText(current, count)}
+				{...naming}
 				className={rowClass}
 			>
+				{/* The readout that follows the consumer's name. A reference names the
+				    row from it while it stays hidden. */}
+				{naming['aria-labelledby'] && (
+					<span id={scope.sub('value')} hidden>
+						{valueText}
+					</span>
+				)}
 				{stars.map((key, index) => {
 					const fill = starFill(current, index + 1)
 
@@ -273,11 +318,6 @@ export function Rating({
 
 		commit(null)
 	}
-
-	// A Label registered on the enclosing Field names the group; an explicit
-	// `aria-labelledby` wins over it. Only where neither stands does the row fall
-	// back to its own `aria-label`, so the two naming attributes are never both set.
-	const labelledBy = ariaLabelledBy ?? control?.labelledBy
 
 	// A `<fieldset>` would impose form-field semantics and a min-content box on
 	// this inline row, so the grouping is a named `role="radiogroup"` — the

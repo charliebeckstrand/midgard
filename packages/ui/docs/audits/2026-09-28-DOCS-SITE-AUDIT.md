@@ -218,7 +218,7 @@ In order of value per cost. P1 turns most of §3 and §5.2 into failing tests be
 
 **P4. Explicit cache invalidation in the registry, and its tests.** A rejected entry stays cached until a retry, a prefetch, or a navigation clears it (E1). Add unit tests for `registry.ts`, `host.tsx`, and `use-hash.ts`: the loop in E1, the duplicate-id guard, the one-reload recovery, and `navigate`'s history state. Cost: about 15 lines plus tests.
 
-**P5. A demo smoke test.** Render every `Demo` in jsdom, click each tab, and fail on `console.error`, `console.warn`, or a curated axe rule set (`button-name`, `aria-required-children`, `landmark-unique`, `label`). Every demo renders cleanly today, so it lands green once the a11y rows it would catch are fixed or allowlisted. Cost: small.
+**P5. A demo smoke test.** Render every `Demo` in jsdom, click each tab, and fail on `console.error`, `console.warn`, or a curated axe rule set (`button-name`, `aria-required-children`, `landmark-unique`, `label`). Every demo renders cleanly today, so it lands green once the a11y rows it would catch are fixed or allowlisted. Cost: small. *Landed in [#1644](https://github.com/charliebeckstrand/midgard/pull/1644).*
 
 **P6. An a11y contract for the kit.** A required `label` on `OptionsListbox`, `SizeListbox`, `VariantListbox`, and `ValueStepper` (E3). Size labels always come from `sizeLabels` (D57). A `SizeRows` helper can replace the repeated `sizes.map(<LabeledRow>)` blocks. ui's `ChoiceListbox` (`providers/appearance/appearance-settings.tsx:44`) repeats `OptionsListbox`. A ui-internal home for both would let the docs import one. Cost: small; about 33 call sites.
 
@@ -241,7 +241,7 @@ Add an `@internal` filter, and fold the engine sources, `tsconfig.json`, and the
 
 ## 7. Gate gaps
 
-- No test renders a demo. `demo-coverage.test.ts` checks that a file exists, and `demo-code-block.test.ts` checks that a block would exist. A demo that throws, logs, or fails axe passes CI (P5).
+- ~~No test renders a demo. `demo-coverage.test.ts` checks that a file exists, and `demo-code-block.test.ts` checks that a block would exist. A demo that throws, logs, or fails axe passes CI (P5).~~ Fixed by #1644.
 - ~~No test parses a derived snippet or a `code` override (P1).~~ Fixed by #1612.
 - `host.tsx`, `hooks/use-hash.ts`, and `app.tsx` have no unit test (P4). The `registry.test.ts` under `derive-code` covers a different registry.
 - ~~The unit project runs `docsPlugin({ vitest: true })`, which drops the `pre` transform, so no suite exercises `__code` or `__facts` at runtime. The sweeps above ran the real plugin in probes.~~ Fixed by #1612.
@@ -250,9 +250,9 @@ Add an `@internal` filter, and fold the engine sources, `tsconfig.json`, and the
 ## 8. Surfaced, outside scope
 
 - ~~`CONVENTIONS.md:160-164` is committed on `main` with unresolved conflict markers in §10.9.~~ Fixed on `main` by #1589.
-- `modules/grid/grid-data-types.ts:234-236`: the `GridGroupBy` TSDoc says grouping stands down `virtualize`, but grouped virtualization exists (`grid-virtualized-grouped-body.tsx`).
-- `modules/grid/engine/grid-table/state.ts:61` still documents the search `filter` flag that `mode` replaced.
-- A disabled `Rating` renders `role="img"` with its own label and discards the consumer's `aria-label`.
+- ~~`modules/grid/grid-data-types.ts:234-236`: the `GridGroupBy` TSDoc says grouping stands down `virtualize`, but grouped virtualization exists (`grid-virtualized-grouped-body.tsx`).~~ Fixed by #1642.
+- ~~`modules/grid/engine/grid-table/state.ts:61` still documents the search `filter` flag that `mode` replaced.~~ Fixed by #1642.
+- ~~A disabled `Rating` renders `role="img"` with its own label and discards the consumer's `aria-label`.~~ Fixed by #1645.
 
 ## 9. Ruled out
 
