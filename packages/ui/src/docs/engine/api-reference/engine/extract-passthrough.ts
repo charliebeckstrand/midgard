@@ -1,9 +1,15 @@
 import { ts } from 'ts-morph'
 import type { PassThrough } from '../types'
 import {
-	resolveTypeAliasTarget,
-	STRING_LITERAL_PASS_THROUGHS,
+	aliasTarget,
+	type Bindings,
+	boundStringLiteral,
+	componentPropsAnnotation,
+	NO_BINDINGS,
+	PROPS_WRAPPERS,
+	resolveBound,
 	stringLiteralKeys,
+	TAG_PASS_THROUGHS,
 	typeRefName,
 } from './ts-utils'
 
@@ -11,9 +17,12 @@ import {
  * Detect HTML pass-through in a props-type annotation. A component passes
  * through `<tag>` attrs when the annotation contains:
  *
- *   - `ComponentPropsWithRef<'tag'>` / `ComponentPropsWithoutRef<'tag'>`
+ *   - `ComponentProps<'tag'>`, `ComponentPropsWithRef<'tag'>`, or
+ *     `ComponentPropsWithoutRef<'tag'>`, whose tag can be a type parameter
+ *     that a generic alias binds (`PolymorphicProps<'tag'>`)
  *   - `*HTMLAttributes<HTMLTagElement>`
- *   - `PolymorphicProps<'tag'>` (project helper)
+ *
+ * `ComponentProps<typeof X>` reads the props annotation of the component `X`.
  */
 export function extractPassThrough(
 	annotation: ts.TypeNode,
@@ -21,37 +30,46 @@ export function extractPassThrough(
 ): PassThrough[] {
 	const found: PassThrough[] = []
 
-	const visited = new Set<string>()
-
-	walk(annotation, [], found, visited, checker)
+	walk(annotation, [], NO_BINDINGS, found, new Map(), checker)
 
 	return dedupe(found)
 }
 
 function walk(
-	node: ts.TypeNode,
+	annotation: ts.TypeNode,
 	omitted: string[],
+	scope: Bindings,
 	out: PassThrough[],
-	visited: Set<string>,
+	visited: Map<Bindings, Set<string>>,
 	checker: ts.TypeChecker,
 ): void {
-	// Key by node + omitted context: the same alias reached through different
-	// `Omit<…>` wrappers produces separate pass-through entries, each carrying
-	// its own omitted-key set.
+	const { node, bindings } = resolveBound(annotation, scope, checker)
+
+	// Key by node + omitted context, per bindings: the same alias reached through
+	// different `Omit<…>` wrappers produces separate pass-through entries, each
+	// carrying its own omitted-key set, and an alias that two references bind
+	// differently is walked once for each.
 	const key = `${node.getSourceFile().fileName}:${node.pos}:${node.end} ${omitted.join('|')}`
 
-	if (visited.has(key)) return
+	const seen = visited.get(bindings) ?? new Set<string>()
 
-	visited.add(key)
+	if (seen.has(key)) return
+
+	seen.add(key)
+
+	visited.set(bindings, seen)
+
+	const recurse = (next: ts.TypeNode, keys = omitted, nextBindings = bindings) =>
+		walk(next, keys, nextBindings, out, visited, checker)
 
 	if (ts.isIntersectionTypeNode(node) || ts.isUnionTypeNode(node)) {
-		for (const member of node.types) walk(member, omitted, out, visited, checker)
+		for (const member of node.types) recurse(member)
 
 		return
 	}
 
 	if (ts.isParenthesizedTypeNode(node)) {
-		walk(node.type, omitted, out, visited, checker)
+		recurse(node.type)
 
 		return
 	}
@@ -60,11 +78,11 @@ function walk(
 
 	const name = typeRefName(node.typeName)
 
+	const [first, second] = node.typeArguments ?? []
+
 	// Omit<T, 'a' | 'b'>: recurse, carrying the keys forward.
 	if (name === 'Omit') {
-		const [inner, keys] = node.typeArguments ?? []
-
-		if (inner) walk(inner, [...omitted, ...stringLiteralKeys(keys)], out, visited, checker)
+		if (first) recurse(first, [...omitted, ...stringLiteralKeys(second, bindings, checker)])
 
 		return
 	}
@@ -72,50 +90,47 @@ function walk(
 	// Pick narrows to a slice, not a full pass-through.
 	if (name === 'Pick') return
 
-	const direct = matchDirectPassThrough(name, node.typeArguments ?? [], checker)
-
-	if (direct) {
-		out.push({ element: direct, ...(omitted.length > 0 ? { omitted } : {}) })
+	if (PROPS_WRAPPERS.has(name)) {
+		if (first) recurse(first)
 
 		return
 	}
 
-	// Project alias: follow to its RHS and keep walking.
-	const target = resolveTypeAliasTarget(node.typeName, checker)
+	if (TAG_PASS_THROUGHS.has(name)) {
+		const tag = boundStringLiteral(first, bindings, checker)
 
-	if (target) walk(target, omitted, out, visited, checker)
-}
+		if (tag) {
+			out.push(passThrough(tag, omitted))
 
-/** HTML element name for a recognized pass-through type; null otherwise. */
-function matchDirectPassThrough(
-	name: string,
-	typeArgs: readonly ts.TypeNode[],
-	checker: ts.TypeChecker,
-): string | null {
-	if (STRING_LITERAL_PASS_THROUGHS.has(name)) {
-		return extractStringLiteral(typeArgs[0], checker)
+			return
+		}
+
+		const component = first && resolveBound(first, bindings, checker).node
+
+		const props = component && componentPropsAnnotation(component, checker)
+
+		if (props) recurse(props, omitted, NO_BINDINGS)
+
+		return
 	}
 
 	if (name.endsWith('HTMLAttributes')) {
-		return extractHtmlElementTag(typeArgs[0], checker)
+		const tag = extractHtmlElementTag(first, checker)
+
+		if (tag) out.push(passThrough(tag, omitted))
+
+		return
 	}
 
-	return null
+	// Project alias: follow to its RHS, with its type parameters bound.
+	const target = aliasTarget(node, bindings, checker)
+
+	if (target) recurse(target.node, omitted, target.bindings)
 }
 
-function extractStringLiteral(
-	node: ts.TypeNode | undefined,
-	checker: ts.TypeChecker,
-): string | null {
-	if (!node) return null
-
-	if (ts.isLiteralTypeNode(node) && ts.isStringLiteral(node.literal)) return node.literal.text
-
-	const type = checker.getTypeFromTypeNode(node)
-
-	if (type.isStringLiteral()) return type.value
-
-	return null
+/** A pass-through of `element`, with each omitted key once. */
+function passThrough(element: string, omitted: string[]): PassThrough {
+	return omitted.length > 0 ? { element, omitted: [...new Set(omitted)] } : { element }
 }
 
 /**
