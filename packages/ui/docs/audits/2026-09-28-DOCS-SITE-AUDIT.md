@@ -252,7 +252,7 @@ Add an `@internal` filter, and fold the engine sources, `tsconfig.json`, and the
 - ~~`CONVENTIONS.md:160-164` is committed on `main` with unresolved conflict markers in §10.9.~~ Fixed on `main` by #1589.
 - `modules/grid/grid-data-types.ts:234-236`: the `GridGroupBy` TSDoc says grouping stands down `virtualize`, but grouped virtualization exists (`grid-virtualized-grouped-body.tsx`).
 - `modules/grid/engine/grid-table/state.ts:61` still documents the search `filter` flag that `mode` replaced.
-- A disabled `Rating` renders `role="img"` with its own label and discards the consumer's `aria-label`.
+- ~~A disabled `Rating` renders `role="img"` with its own label and discards the consumer's `aria-label`.~~ Fixed by #1645.
 
 ## 9. Ruled out
 
