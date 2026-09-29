@@ -241,7 +241,8 @@ function setScrollMargin(
  * toggles `data-active` on its owning `role="gridcell"` `<td>` when this cell
  * becomes (or stops being) the active one. The `<td>`'s `cellProps` are
  * non-reactive, so the memoized row holds across cursor moves. The styling
- * therefore rides this imperative attribute instead. The active cell also
+ * therefore rides this imperative attribute instead. A cell in the range of
+ * the cursor carries `data-in-range` in the same way. The active cell also
  * scrolls into view, clear of the grid's sticky header and pinned columns.
  * Renders a hidden locator span, not a wrapper,
  * so cell layout is untouched.
@@ -272,6 +273,26 @@ export function GridNavCell({
 		),
 		() => false,
 	)
+
+	// A one-stop row holds no cell of a range.
+	const isInRange = useSyncExternalStore(
+		store.subscribe,
+		useCallback(() => stop === undefined && store.isInRange(row, col), [store, row, col, stop]),
+		() => false,
+	)
+
+	// Its own effect, so a change of the range does not scroll the active cell.
+	useLayoutEffect(() => {
+		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
+
+		if (!cell) return
+
+		cell.toggleAttribute('data-in-range', isInRange)
+
+		return () => {
+			cell.removeAttribute('data-in-range')
+		}
+	}, [isInRange])
 
 	useLayoutEffect(() => {
 		const cell = ref.current?.closest<HTMLElement>('[role="gridcell"]')
@@ -334,10 +355,11 @@ export function seatingCellProps<T>(args: {
 	rowIdx: number
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
-	moveTo: (coord: Coord) => void
+	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
+	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
 	extra?: ComponentProps<'td'>
 }): ComponentProps<'td'> {
-	const { col, row, rowIdx, colIndexMapRef, cellId, moveTo, extra } = args
+	const { col, row, rowIdx, colIndexMapRef, cellId, seat, extra } = args
 
 	const colIdx = colIndexMapRef.current.get(col.id) ?? -1
 
@@ -359,7 +381,7 @@ export function seatingCellProps<T>(args: {
 				if (inCell && !fromInteractiveContent(event.target)) {
 					event.currentTarget.closest<HTMLElement>(GRID_ROLE)?.focus()
 
-					moveTo({ row: rowIdx, col: colIdx })
+					seat({ row: rowIdx, col: colIdx }, event)
 				}
 			},
 			{ checkForDefaultPrevented: false },
@@ -420,7 +442,7 @@ export function useGridNavigationColumns<T>({
 	rowIndexMapRef,
 	colIndexMapRef,
 	cellId,
-	moveTo,
+	seat,
 }: {
 	enabled: boolean
 	columns: GridColumn<T>[]
@@ -429,7 +451,8 @@ export function useGridNavigationColumns<T>({
 	/** Live column-id → display-data-index map; resolves a cell's cursor column. */
 	colIndexMapRef: RefObject<Map<string | number, number>>
 	cellId: (row: number, col: number) => string
-	moveTo: (coord: Coord) => void
+	/** Seats the cursor on a pressed cell (see `useGridNavigation`). */
+	seat: (coord: Coord, event: MouseEvent<HTMLElement>) => void
 }): GridColumn<T>[] {
 	return useMemo(() => {
 		if (!enabled) return columns
@@ -448,7 +471,7 @@ export function useGridNavigationColumns<T>({
 			)
 
 			const cellPropsAt = (row: T, rowIdx: number): ComponentProps<'td'> =>
-				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, moveTo })
+				seatingCellProps({ col, row, rowIdx, colIndexMapRef, cellId, seat })
 
 			return {
 				...col,
@@ -459,5 +482,5 @@ export function useGridNavigationColumns<T>({
 				cell: (row: T) => cellAt(row, indexOf(row)),
 			}
 		})
-	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, cellId, moveTo])
+	}, [enabled, columns, rowIndexMapRef, colIndexMapRef, cellId, seat])
 }

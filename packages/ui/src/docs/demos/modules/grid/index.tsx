@@ -607,6 +607,13 @@ const DoubleClickExample = () => {
 	)
 }
 
+// Shift with an arrow key or a click extends the range from the cursor, and a
+// drag makes one. Ctrl/Cmd+C copies it as TSV, which a spreadsheet pastes as
+// cells. Escape ends the range.
+const RangeExample = () => (
+	<Grid navigable range columns={columns} rows={people} getKey={(row) => row.id} />
+)
+
 const ErrorExample = () => {
 	// `error` shows in place of the body — for a failed fetch — taking precedence
 	// over rows and the empty slot.
@@ -1482,6 +1489,10 @@ export function Demo() {
 							code={code`<Grid onRowDoubleClick={(row) => ...} onCellDoubleClick={(cell) => ...} />`}
 						>
 							<DoubleClickExample />
+						</Example>
+
+						<Example title="Cell range" code={code`<Grid navigable range />`}>
+							<RangeExample />
 						</Example>
 					</Stack>
 				</TabContent>

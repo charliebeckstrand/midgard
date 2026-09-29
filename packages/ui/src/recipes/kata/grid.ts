@@ -811,6 +811,15 @@ export const k = {
 			'data-[active]:ring-2',
 			'data-[active]:ring-inset',
 			...mode('data-[active]:ring-blue-600', 'dark:data-[active]:ring-blue-500'),
+			// A cell of the cursor's range (`range`) takes a tint and a hairline
+			// outline. The outline, not the tint, holds the 3:1 contrast of the state
+			// (WCAG 1.4.11). It is an outline, so it does not stack with the ring.
+			'data-[in-range]:outline-1',
+			'data-[in-range]:-outline-offset-1',
+			...mode(
+				'data-[in-range]:bg-blue-50 data-[in-range]:outline-blue-600',
+				'dark:data-[in-range]:bg-blue-950 dark:data-[in-range]:outline-blue-500',
+			),
 		],
 	},
 	// Inline per-row editing: an editable row's cells render their editors (the
