@@ -1,6 +1,6 @@
 # Cadence
 
-> **The spacing and the shape of authored text.** One blank line separates each statement from the next, so that documents and code stay easy to scan and each diff stays clean. [`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) reports breaks in the rule documents at the repository root ([`CLAUDE.md`](CLAUDE.md) §3.6). The report is advisory.
+> **The spacing and the shape of authored text.** One blank line separates each statement from the next, so that documents and code stay easy to scan and each diff stays clean. [`cadence-boundary.test.ts`](packages/ui/src/__tests__/boundary/cadence-boundary.test.ts) reports breaks in the rule documents at the repository root ([`CLAUDE.md`](CLAUDE.md) §3.5). The report is advisory.
 
 ## What cadence means
 

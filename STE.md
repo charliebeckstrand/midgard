@@ -67,7 +67,7 @@ These terms have one meaning in this repository. Use them in that meaning, and d
 | static tier | The `ui` components that read no context and carry no `'use client'`. | `packages/ui/REFERENCE.md` §2 |
 | client tier | The `ui` components that carry `'use client'` and can read context. | `packages/ui/REFERENCE.md` §2 |
 | seam | The synchronous part of a behavior that a test can drive: a reducer, a callback, or a typed harness. | `CONVENTIONS.md` §10.3 |
-| gate | A check that fails the build on a break: a boundary test, a Biome rule, or a Biome plugin. | `CLAUDE.md` §3.4 |
+| gate | A check that fails the build on a break: a boundary test, a Biome rule, or a Biome plugin. | `CLAUDE.md` §3.3 |
 | recipe | The styling definition of a unit, built in the Kiso, Katakana, and Kata layers. | `packages/ui/src/recipes/README.md` |
 
 ## Example
