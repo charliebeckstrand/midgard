@@ -1,8 +1,9 @@
 'use client'
 
-import { type ReactNode, useCallback, useId, useMemo } from 'react'
+import { type ReactNode, useCallback, useId, useMemo, useState } from 'react'
 import { Placeholder } from '../../components/placeholder'
 import { cn } from '../../core'
+import type { ContentHeightHost } from '../../primitives/content-height'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { useDashboardActions } from './context'
@@ -176,6 +177,12 @@ export type DashboardTileProps = {
  * The content box is an inline-size container. A container query or a `cqi`
  * unit in a widget therefore reads the tile, and not the board.
  *
+ * In the re-pack of a narrow board, a widget can claim the height of its content
+ * through `ContentHeightContext` (`ui/primitives/content-height`). The tile then
+ * takes the rows that hold that height, and the page has no scroll region inside
+ * a scroll region. A `Grid` with `maxHeight="fill"` claims it, and shows pages
+ * of 10 rows.
+ *
  * While the tile drags, the whole page shows the grabbing cursor. The hand thus
  * stays closed when the carried tile stops at an edge and the pointer goes on.
  *
@@ -239,6 +246,30 @@ export function DashboardTile(props: DashboardTileProps) {
 
 	const movable = editable && cell !== undefined && !cell.static
 
+	// The widgets that claim the height of their content. The re-pack gives the
+	// tile that height, so a list shows in the flow of the page and not in a
+	// scroll region of its own.
+	const [claims, setClaims] = useState(0)
+
+	const claim = useCallback(() => {
+		setClaims((count) => count + 1)
+
+		let held = true
+
+		return () => {
+			if (!held) return
+
+			held = false
+
+			setClaims((count) => count - 1)
+		}
+	}, [])
+
+	const host = useMemo<ContentHeightHost>(
+		() => ({ available: projected, claim }),
+		[projected, claim],
+	)
+
 	const drag = useDashboardTileDrag(id, cell, movable)
 
 	const { node, setNodeRef } = drag
@@ -292,6 +323,8 @@ export function DashboardTile(props: DashboardTileProps) {
 				// The rows follow the column pitch, so the span gives the shape of the tile.
 				shape={(cell.w * ROW_SUBDIVISION) / cell.h}
 				shell={node}
+				host={host}
+				natural={projected && claims > 0}
 			>
 				{children}
 			</DashboardTileCard>

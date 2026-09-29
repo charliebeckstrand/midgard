@@ -1,8 +1,10 @@
 'use client'
 
-import { memo } from 'react'
+import { memo, useLayoutEffect } from 'react'
+import { useContentHeightHost } from '../../primitives/content-height'
 import { GridData } from './grid-data'
 import type { GridDataProps } from './grid-data-types'
+import type { GridPagination } from './types'
 
 /**
  * Props for {@link Grid}: a flat `rows` source mapped through `columns`. Pass an
@@ -10,7 +12,28 @@ import type { GridDataProps } from './grid-data-types'
  *
  * @typeParam T - Shape of a single row.
  */
-export type GridProps<T> = GridDataProps<T>
+export type GridProps<T> = Omit<GridDataProps<T>, 'pagination'> & {
+	/**
+	 * Pagination binding backed by the grid's TanStack Table engine. In server
+	 * mode (the default once `rowCount`/`pageCount` is supplied) the consumer
+	 * feeds each page as `rows`; in client mode the grid slices `rows` itself.
+	 * Renders a footer with a row-range status, page navigation, and an optional
+	 * page-size picker.
+	 *
+	 * Omit it to render every row with no footer. The exception is a grid with
+	 * `maxHeight="fill"` in a box that can take the height of its content, such
+	 * as a dashboard tile in the re-pack of a narrow board. That grid shows pages
+	 * of 10 rows in the flow of the page, and the box grows to hold them, so the
+	 * page has no scroll region inside a scroll region. Pass `false` to keep the
+	 * rows in the scroll region of the box.
+	 *
+	 * @see {@link GridPagination}
+	 */
+	pagination?: GridPagination | false
+}
+
+/** The pages of a grid that takes the height of its content from its box. */
+const FLOW_PAGINATION: GridPagination = { defaultValue: { pageIndex: 0, pageSize: 10 } }
 
 /**
  * Data grid over a flat `rows` source. Maps each row through `columns`, keys rows
@@ -52,8 +75,27 @@ export type GridProps<T> = GridDataProps<T>
  * columns and rows. An embedded grid then rests when its data is unchanged.
  * @typeParam T - Shape of a single row.
  */
-function GridImpl<T>(props: GridProps<T>) {
-	return <GridData<T> {...props} />
+function GridImpl<T>({ pagination, maxHeight, ...props }: GridProps<T>) {
+	const host = useContentHeightHost()
+
+	// A grid that fills a box which can grow shows pages in the flow instead.
+	// A window of rows needs its scroll region, so a virtual or an infinite grid keeps it.
+	const flow =
+		pagination === undefined &&
+		maxHeight === 'fill' &&
+		host?.available === true &&
+		!props.virtualize &&
+		props.infiniteScroll === undefined
+
+	useLayoutEffect(() => (flow ? host?.claim() : undefined), [flow, host])
+
+	return (
+		<GridData<T>
+			{...props}
+			pagination={flow ? FLOW_PAGINATION : pagination || undefined}
+			maxHeight={flow ? undefined : maxHeight}
+		/>
+	)
 }
 
 /**

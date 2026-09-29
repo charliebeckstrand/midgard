@@ -152,6 +152,9 @@ export function DashboardTileExpand({
 								inert={false}
 								fallback={fallback}
 								onError={onError}
+								// The dialog keeps the shape of the tile, so a widget there claims nothing.
+								host={null}
+								natural={false}
 							>
 								{children}
 							</DashboardTileContent>

@@ -3,6 +3,7 @@
 import { memo, type ReactNode, type RefObject } from 'react'
 import { Card } from '../../components/card'
 import { cn, dataAttr } from '../../core'
+import type { ContentHeightHost } from '../../primitives/content-height'
 import type { Mount } from '../../primitives/mount'
 import { k } from '../../recipes/kata/dashboard'
 import { DashboardDragHandle } from './dashboard-drag-handle'
@@ -55,6 +56,10 @@ export type DashboardTileCardProps = {
 	shape: number
 	/** The tile shell, which finds the tile that takes the focus after a remove. */
 	shell: RefObject<HTMLElement | null>
+	/** The box that the widget can claim the height of its content from. */
+	host: ContentHeightHost
+	/** Whether the content box takes the height of its content. */
+	natural: boolean
 	/** The widget. */
 	children?: ReactNode
 }
@@ -90,6 +95,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 	expandable,
 	shape,
 	shell,
+	host,
+	natural,
 	children,
 }: DashboardTileCardProps) {
 	const handle = movable && (
@@ -160,6 +167,8 @@ export const DashboardTileCard = memo(function DashboardTileCard({
 				inert={editable}
 				fallback={fallback}
 				onError={onError}
+				host={host}
+				natural={natural}
 			>
 				{children}
 			</DashboardTileContent>

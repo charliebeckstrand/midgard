@@ -171,7 +171,9 @@ const columns: GridColumn<Sale>[] = [
 ]
 
 // The grid fills the tile and scrolls its own rows under a sticky header, so
-// the tile keeps its size on the board.
+// the tile keeps its size on the board. On a narrow board the grid shows pages
+// of 10 rows instead, and the tile grows to hold them. `pagination={false}`
+// keeps the scroll region there too.
 function Orders() {
 	return (
 		<Grid

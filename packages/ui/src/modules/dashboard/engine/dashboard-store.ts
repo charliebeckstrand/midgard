@@ -76,6 +76,11 @@ export type DashboardState = {
 	declared: ReadonlySet<string>
 	/** The container width in px, or `0` before the first measurement. */
 	width: number
+	/**
+	 * The content height in px of each tile that takes the height of its content
+	 * in the re-pack. See {@link DashboardStore.measure}.
+	 */
+	heights: ReadonlyMap<string, number>
 	/** The live gesture, or `null` at rest. */
 	gesture: DashboardGesture | null
 	/** The filter that the app owns. */
@@ -145,6 +150,12 @@ export type DashboardStore = {
 	register: (id: string, demands: DashboardTileDemands) => void
 	/** Removes the demands of a tile. */
 	unregister: (id: string) => void
+	/**
+	 * Sets the content height in px of the tile `id`, which the re-pack then
+	 * gives to the tile. The value `undefined` removes it, and the tile takes its
+	 * shape again.
+	 */
+	measure: (id: string, height: number | undefined) => void
 	/**
 	 * Opens a closed store. It derives the view of the current state, and it
 	 * notifies the listeners. A new store is open.
@@ -323,7 +334,9 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		gap: number,
 		columns: number,
 		demands: ReadonlyMap<string, DashboardTileDemands>,
-	) => projectLayout(cells, { width, gap, columns, demands })
+		heights: ReadonlyMap<string, number>,
+		painted: number,
+	) => projectLayout(cells, { width, gap, columns, demands, heights, painted })
 
 	// One slot for the full width and one for the held width, so that the two keep their results.
 	const projectionOf = memo(project)
@@ -331,13 +344,24 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 	const heldOf = memo(project)
 
 	const derive = (previous: DashboardView | null, from: DashboardState | null): DashboardView => {
-		const { columns, gap, editing, layout, demands, declared, width, gesture, selections } = state
+		const {
+			columns,
+			gap,
+			editing,
+			layout,
+			demands,
+			declared,
+			width,
+			heights,
+			gesture,
+			selections,
+		} = state
 
 		const canonical = canonicalOf(layout, demands, columns)
 
 		const measured = gesture?.width ?? width
 
-		const full = projectionOf(canonical, measured, gap, columns, demands)
+		const full = projectionOf(canonical, measured, gap, columns, demands, heights, measured)
 
 		// The hold keeps a projection on screen only while the resolved cells, the demands, and
 		// the grid stay the same. After a change of one of them, the view is that of a new store.
@@ -356,7 +380,15 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 		const held = measured > 0 && ((sameBoard && previous?.projected === true) || !full.identity)
 
 		const projection = held
-			? heldOf(canonical, Math.max(1, measured - PROJECTION_HOLD), gap, columns, demands)
+			? heldOf(
+					canonical,
+					Math.max(1, measured - PROJECTION_HOLD),
+					gap,
+					columns,
+					demands,
+					heights,
+					measured,
+				)
 			: full
 
 		const placed = placedOf(layout, columns)
@@ -430,6 +462,16 @@ export function createDashboardStore(initial: DashboardState): DashboardStore {
 			rest.delete(id)
 
 			replace({ ...state, demands: rest })
+		},
+		measure: (id, height) => {
+			if (state.heights.get(id) === height) return
+
+			const heights = new Map(state.heights)
+
+			if (height === undefined) heights.delete(id)
+			else heights.set(id, height)
+
+			replace({ ...state, heights })
 		},
 		open: () => {
 			if (!closed) return

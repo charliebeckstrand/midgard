@@ -96,10 +96,22 @@ const actions = 'flex shrink-0 cursor-default items-center gap-1'
  * than the box scrolls inside it, so the tile never clips content without a way
  * to reach it. A widget that fills the box, such as a chart, shows no scrollbar.
  *
+ * In the re-pack of a narrow board, a widget can claim the height of its content
+ * (`natural`). The box then takes that height, and the tile grows to hold it.
+ *
  * The content box is the inline-size container of the widget. A container query
  * or a `cqi` unit in the widget therefore reads the tile, and not the board.
  */
-const content = '@container relative min-h-0 flex-1 overflow-auto'
+const content = defineRecipe({
+	base: '@container relative',
+	natural: {
+		// The box fills the height that the header leaves, and a taller widget scrolls in it.
+		false: 'min-h-0 flex-1 overflow-auto',
+		// The box takes the height of the widget, and the board gives the tile the rows for it.
+		true: 'flex-none',
+	},
+	defaults: { natural: false },
+})
 
 /**
  * The content box of an expanded tile, in its dialog. The tile sets the ratio

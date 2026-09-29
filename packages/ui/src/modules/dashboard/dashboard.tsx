@@ -357,6 +357,7 @@ export function Dashboard({
 			// Until the first tile registers, as on the server, the store counts these tiles as on the board.
 			declared: declaredTiles(children),
 			width: 0,
+			heights: new Map(),
 			gesture: null,
 			filter: filterValue,
 			selections: selectionValue ?? EMPTY_SELECTIONS,

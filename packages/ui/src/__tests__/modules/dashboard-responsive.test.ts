@@ -66,4 +66,35 @@ describe('projectLayout', () => {
 
 		expect(byId.stat?.w).toBeGreaterThan(6)
 	})
+
+	it('gives a tile the rows that hold the height of its content', () => {
+		const cells = [cell('list', 0, 0, 12, 44)]
+
+		const starved = new Map([['list', { minWidth: 240 }]])
+
+		// 384 px over 24 columns and 4 rows a column is 4 px a row. The content and
+		// the 12 px gutter need 412 px, which is 103 rows.
+		const heights = new Map([['list', 400]])
+
+		const projection = projectLayout(cells, {
+			width: 384,
+			gap: 12,
+			columns: 24,
+			demands: starved,
+			heights,
+		})
+
+		expect(projection.cells[0]).toMatchObject({ w: 24, h: 103 })
+
+		// The saved layout ignores the height.
+		const saved = projectLayout(cells, {
+			width: 1200,
+			gap: 12,
+			columns: 24,
+			demands: starved,
+			heights,
+		})
+
+		expect(saved.cells[0]).toMatchObject({ w: 12, h: 44 })
+	})
 })
