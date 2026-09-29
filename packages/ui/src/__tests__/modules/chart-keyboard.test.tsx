@@ -216,6 +216,58 @@ describe('chart keyboard cursor', () => {
 	})
 })
 
+// Three series, A B C from the top of the plot down. A has no value at the
+// second category, so there B takes the first stop and C the second.
+const THREE = cartesianFocus(
+	[10, 20, 30],
+	[
+		[20, 50, 80],
+		[50, 80],
+		[20, 50, 80],
+	],
+	'vertical',
+	undefined,
+	[
+		[0, 1, 2],
+		[1, 2],
+		[0, 1, 2],
+	],
+)
+
+describe('chart keyboard cursor across a series gap', () => {
+	/** The series under the cursor after each key in turn, from the first cursor. */
+	function walk(keys: string[]): (number | null)[] {
+		let cursor = firstCursor(THREE)
+
+		return keys.map((key) => {
+			cursor = moveCursor(cursor, key, THREE, 'vertical').cursor
+
+			return cursor ? cursorSeries(cursor, THREE) : null
+		})
+	}
+
+	it('keeps the series it sits on where an earlier series has a gap', () => {
+		// Down onto B, then across the gap of A and on: the cursor stays on B.
+		expect(walk(['ArrowDown', 'ArrowRight', 'ArrowRight'])).toEqual([1, 1, 1])
+
+		// The reverse walk holds B too.
+		expect(walk(['ArrowDown', 'End', 'ArrowLeft', 'ArrowLeft'])).toEqual([1, 1, 1, 1])
+	})
+
+	it('falls to the lane of a series with no stop, and returns to it after the gap', () => {
+		// A has no stop at the second category, so the cursor reads the stop in its
+		// lane there. It comes back to A where A has a value again.
+		expect(walk(['ArrowRight', 'ArrowRight'])).toEqual([1, 0])
+	})
+
+	it('re-finds its series when a data change moves the lane of that series', () => {
+		// The cursor sat on B in the second lane before A lost its value there.
+		const cursor = clampCursor({ category: 1, value: 1, series: 1 }, THREE)
+
+		expect(cursor && cursorSeries(cursor, THREE)).toBe(1)
+	})
+})
+
 // One category, two series at y 20 and 80, and a reference line at y 50 sitting
 // between them — the stop the cursor must reach along the value axis.
 const REF = cartesianFocus([10], [[20, 80]], 'vertical', [50])
@@ -591,6 +643,111 @@ describe('LineChart keyboard navigation', () => {
 		expect(marks[0]?.getAttribute('class')).toContain('opacity-25')
 
 		expect(marks[1]?.getAttribute('class')).not.toContain('opacity-25')
+	})
+
+	it('holds the emphasis on its series across a gap in an earlier series', () => {
+		// A sits on top, B in the middle, and C at the bottom. A has no value at W2.
+		const gapped: { week: string; a?: number; b: number; c: number }[] = [
+			{ week: 'W1', a: 90, b: 50, c: 10 },
+			{ week: 'W2', b: 50, c: 10 },
+			{ week: 'W3', a: 90, b: 50, c: 10 },
+		]
+
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Signups"
+				data={gapped}
+				series={[
+					{ xKey: 'week', yKey: 'a', yName: 'A' },
+					{ xKey: 'week', yKey: 'b', yName: 'B' },
+					{ xKey: 'week', yKey: 'c', yName: 'C' },
+				]}
+				width={400}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		/** The index of each series mark that reads at full strength. */
+		const lit = () =>
+			allBySlot(container, 'chart-line-series').flatMap((mark, index) =>
+				mark.getAttribute('class')?.includes('opacity-25') ? [] : [index],
+			)
+
+		// Enter on A at W1, and step down onto B.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(lit()).toEqual([1])
+
+		// Across the gap of A at W2, and on to W3: B keeps the emphasis each step.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(lit()).toEqual([1])
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(lit()).toEqual([1])
+	})
+
+	it('claims Escape when it clears a readout that a click pinned', () => {
+		const { container } = renderUI(
+			line({ tooltip: { trigger: 'click' }, crosshair: { x: false, y: true, snap: true } }),
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// A click pins the readout of W1, and the plot takes the focus.
+		fireEvent.click(getSlot(container, 'chart-hit'), { clientX: 62, clientY: 100 })
+
+		plot.focus()
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W1')
+
+		// Escape clears the pinned readout, so it claims the press, and an overlay
+		// around the chart stays open.
+		expect(fireEvent.keyDown(plot, { key: 'Escape' })).toBe(false)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+})
+
+describe('LineChart keyboard cursor under a pointer', () => {
+	it('leaves the readout of a still pointer when the data changes', () => {
+		const snap = { x: false, y: true, snap: true }
+
+		const { container, rerender } = renderUI(line({ data: WEEKS, crosshair: snap }))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		// The keyboard reads W1, then the pointer comes to rest on W5.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W1')
+
+		// jsdom gives each box a zero size, so give the hit layer the size of the
+		// plot. A data change then re-reads the still pointer inside the layer.
+		const hit = getSlot(container, 'chart-hit')
+
+		const width = Number(hit.getAttribute('width'))
+
+		const height = Number(hit.getAttribute('height'))
+
+		hit.getBoundingClientRect = () =>
+			({ left: 0, top: 0, right: width, bottom: height, width, height, x: 0, y: 0 }) as DOMRect
+
+		fireEvent.pointerEnter(hit, { clientX: width - 2, clientY: height / 2 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W5')
+
+		// A data change moves the point of W1 under the keyboard cursor. The pointer
+		// holds the readout, so the readout stays on W5.
+		const ticked = WEEKS.map((row) => (row.week === 'W1' ? { ...row, a: 20 } : row))
+
+		rerender(line({ data: ticked, crosshair: snap }))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('W5')
 	})
 })
 

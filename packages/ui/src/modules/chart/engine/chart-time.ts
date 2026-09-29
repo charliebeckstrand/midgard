@@ -27,27 +27,104 @@ import { GUTTER_GAP, TICK_CHAR_WIDTH } from './chart-constants'
 import type { BandScale } from './chart-scale'
 
 /** One millisecond span per calendar unit, for choosing a tick interval. @internal */
-const MINUTE = 60_000
+const SECOND = 1_000
+const MINUTE = 60 * SECOND
 const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 const WEEK = 7 * DAY
 const MONTH = 30 * DAY
 const YEAR = 365 * DAY
 
-/** A bare `YYYY-MM-DD` reads as a local wall-clock day, not a UTC instant. @internal */
-const DATE_ONLY = /^(\d{4})-(\d{2})-(\d{2})$/
+/** A bare `YYYY-MM-DD`, `YYYY-MM`, or `YYYY` reads as a local wall-clock day, not a UTC instant. @internal */
+const DATE_ONLY = /^(\d{4})(?:-(\d{2})(?:-(\d{2}))?)?$/
 
-/** A day's worth of tick labels never share the axis, so cap the walk far above any real count. @internal */
+/**
+ * A dotted numeric date: `10.06.2026` day-first, or `2026.06.10` after a
+ * four-digit year. A time of day can follow, as in `10.06.2026, 09:30`.
+ *
+ * @internal
+ */
+const DOTTED = /^(\d{1,4})\.(\d{1,2})\.(\d{1,4})(?:,?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?)?$/
+
+/**
+ * A day's worth of tick labels never share the axis, so cap the walk far above
+ * any real count. At the 100-year step, the cap covers years 1 to 9999, the
+ * full range of the date library.
+ *
+ * @internal
+ */
 const MAX_TICKS = 100
 
 /** Roughly the widest tick label ("Jan 26", "Jan 5") in characters, for the fit estimate. @internal */
 const LABEL_CHARS = 7
 
+/** The days in each month of a common year, from January. @internal */
+const MONTH_DAYS = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31] as const
+
+/**
+ * The instant of a local wall-clock date and time, or `null` when a field falls
+ * outside the calendar, as in `2026-13` or `31.06.2026`. The check is
+ * arithmetic, because a date-keyed axis parses each row.
+ *
+ * @internal
+ */
+function localInstant(
+	year: number,
+	month: number,
+	day: number,
+	hour = 0,
+	minute = 0,
+	second = 0,
+): number | null {
+	const leapFebruary = month === 2 && year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)
+
+	const days = leapFebruary ? 29 : MONTH_DAYS[month - 1]
+
+	if (days === undefined || day < 1 || day > days) return null
+
+	if (hour > 23 || minute > 59 || second > 59) return null
+
+	const date = new Date(year, month - 1, day, hour, minute, second)
+
+	// The constructor reads a year below 100 as a year in the 1900s.
+	if (year < 100) date.setFullYear(year, month - 1, day)
+
+	return date.getTime()
+}
+
+/**
+ * The instant of a {@link DOTTED} match. A year of one or two digits reads as
+ * `Date.parse` reads it: below 50 in the 2000s, else in the 1900s.
+ *
+ * @internal
+ */
+function dottedInstant(parts: RegExpExecArray): number | null {
+	const [, first = '', month, last = '', hour, minute, second] = parts
+
+	const yearFirst = first.length === 4
+
+	const yearText = yearFirst ? first : last
+
+	const year = Number(yearText)
+
+	return localInstant(
+		yearText.length > 2 ? year : year < 50 ? 2000 + year : 1900 + year,
+		Number(month),
+		Number(yearFirst ? last : first),
+		Number(hour ?? 0),
+		Number(minute ?? 0),
+		Number(second ?? 0),
+	)
+}
+
 /**
  * Parses a raw category value to an epoch-millisecond instant: a `Date`, a
- * number (already epoch ms), or a string. A bare `YYYY-MM-DD` becomes local
- * midnight so a daily key lands on its wall-clock day rather than shifting
- * across the UTC boundary. Any other string goes through `Date.parse`.
+ * number (already epoch ms), or a string. A bare `YYYY-MM-DD`, `YYYY-MM`, or
+ * `YYYY` becomes local midnight on its first day. A key thus lands on its
+ * wall-clock day and does not shift across the UTC boundary. A dotted numeric
+ * date reads day-first, or year-first after a four-digit year, also as a local
+ * date. `Date.parse` reads the dotted form month-first. Any other string goes
+ * through `Date.parse`.
  *
  * @returns The instant, or `null` when the value holds no parseable date — the
  * row then anchors no tick and the axis falls back to plain labels.
@@ -65,7 +142,11 @@ export function parseInstant(value: unknown): number | null {
 	if (typeof value === 'string') {
 		const parts = DATE_ONLY.exec(value)
 
-		if (parts) return new Date(Number(parts[1]), Number(parts[2]) - 1, Number(parts[3])).getTime()
+		if (parts) return localInstant(Number(parts[1]), Number(parts[2] ?? 1), Number(parts[3] ?? 1))
+
+		const dotted = DOTTED.exec(value)
+
+		if (dotted) return dottedInstant(dotted)
 
 		const time = Date.parse(value)
 
@@ -86,7 +167,8 @@ function quarterStart(month: number): number {
 /**
  * One nice tick interval: its approximate millisecond span (for matching the
  * target spacing), the boundary its ticks snap to, and how it advances. The
- * ladder runs hour → year so a span of any length lands clean calendar ticks.
+ * ladder runs from one second to one century, so a span of seconds or of
+ * millennia lands clean calendar ticks.
  *
  * @internal
  */
@@ -95,6 +177,14 @@ type TimeInterval = {
 	floor: (date: CalendarDateTime, locale: string) => CalendarDateTime
 	next: (date: CalendarDateTime) => CalendarDateTime
 }
+
+/** Floors to a multiple of `seconds` in the minute. @internal */
+const floorSeconds = (seconds: number) => (date: CalendarDateTime) =>
+	date.set({ second: Math.floor(date.second / seconds) * seconds, millisecond: 0 })
+
+/** Floors to a multiple of `minutes` in the hour, so a 15-minute step lands on the quarter hours. @internal */
+const floorMinutes = (minutes: number) => (date: CalendarDateTime) =>
+	date.set({ minute: Math.floor(date.minute / minutes) * minutes, second: 0, millisecond: 0 })
 
 const floorHour = (date: CalendarDateTime) => date.set({ minute: 0, second: 0, millisecond: 0 })
 const floorDay = (date: CalendarDateTime) => date.set(ZERO)
@@ -115,6 +205,14 @@ const floorYears = (years: number) => (date: CalendarDateTime) =>
 	floorYear(date).set({ year: Math.floor(date.year / years) * years })
 
 const INTERVALS: readonly TimeInterval[] = [
+	{ approx: SECOND, floor: floorSeconds(1), next: (d) => d.add({ seconds: 1 }) },
+	{ approx: 5 * SECOND, floor: floorSeconds(5), next: (d) => d.add({ seconds: 5 }) },
+	{ approx: 15 * SECOND, floor: floorSeconds(15), next: (d) => d.add({ seconds: 15 }) },
+	{ approx: 30 * SECOND, floor: floorSeconds(30), next: (d) => d.add({ seconds: 30 }) },
+	{ approx: MINUTE, floor: floorMinutes(1), next: (d) => d.add({ minutes: 1 }) },
+	{ approx: 5 * MINUTE, floor: floorMinutes(5), next: (d) => d.add({ minutes: 5 }) },
+	{ approx: 15 * MINUTE, floor: floorMinutes(15), next: (d) => d.add({ minutes: 15 }) },
+	{ approx: 30 * MINUTE, floor: floorMinutes(30), next: (d) => d.add({ minutes: 30 }) },
 	{ approx: HOUR, floor: floorHour, next: (d) => d.add({ hours: 1 }) },
 	{ approx: 3 * HOUR, floor: floorHours(3), next: (d) => d.add({ hours: 3 }) },
 	{ approx: 6 * HOUR, floor: floorHours(6), next: (d) => d.add({ hours: 6 }) },
@@ -129,52 +227,129 @@ const INTERVALS: readonly TimeInterval[] = [
 	{ approx: 2 * YEAR, floor: floorYears(2), next: (d) => d.add({ years: 2 }) },
 	{ approx: 5 * YEAR, floor: floorYears(5), next: (d) => d.add({ years: 5 }) },
 	{ approx: 10 * YEAR, floor: floorYears(10), next: (d) => d.add({ years: 10 }) },
+	{ approx: 25 * YEAR, floor: floorYears(25), next: (d) => d.add({ years: 25 }) },
+	{ approx: 50 * YEAR, floor: floorYears(50), next: (d) => d.add({ years: 50 }) },
+	{ approx: 100 * YEAR, floor: floorYears(100), next: (d) => d.add({ years: 100 }) },
 ]
 
-/** The `Intl` options for a tick at `approx` spacing over a `spanMs` domain. @internal */
-function formatOptionsFor(approx: number, spanMs: number): Intl.DateTimeFormatOptions {
-	if (approx >= YEAR) return { year: 'numeric' }
+/** Formats one tick from its local wall-clock boundary and its instant. @internal */
+type TickLabel = (at: CalendarDateTime, date: Date) => string
 
-	if (approx >= MONTH)
-		return spanMs > 1.5 * YEAR ? { month: 'short', year: '2-digit' } : { month: 'short' }
+/**
+ * The label of each tick at `approx` spacing: the multi-format of a time axis.
+ * Each tick reads the coarsest calendar unit whose boundary it sits on. An
+ * hourly tick at midnight reads the date, a daily tick on the first of a month
+ * reads the month, and a tick on 1 January reads the year. Other ticks read
+ * their own unit. The axis thus carries the date across midnight and the year
+ * across January, and no label joins a month to a two-digit year, which reads
+ * as a day too.
+ *
+ * @internal
+ */
+function tickLabel(approx: number, locale: string): TickLabel {
+	// Each formatter builds on its first tick, so a run that never reaches a
+	// coarser boundary never pays for its `Intl` formatter.
+	const formatter = (options: Intl.DateTimeFormatOptions) => {
+		let format: DateFormatter | null = null
 
-	if (approx >= DAY)
-		return spanMs > 300 * DAY
-			? { month: 'short', day: 'numeric', year: '2-digit' }
-			: { month: 'short', day: 'numeric' }
+		return (date: Date) => {
+			format ??= new DateFormatter(locale, options)
 
-	return { hour: 'numeric' }
+			return format.format(date)
+		}
+	}
+
+	const year = formatter({ year: 'numeric' })
+
+	if (approx >= YEAR) return (_, date) => year(date)
+
+	const month = formatter({ month: 'short' })
+
+	const calendar = (at: CalendarDateTime, date: Date) => (at.month === 1 ? year(date) : month(date))
+
+	if (approx >= MONTH) return calendar
+
+	const day = formatter({ month: 'short', day: 'numeric' })
+
+	if (approx >= DAY) return (at, date) => (at.day === 1 ? calendar(at, date) : day(date))
+
+	const time = formatter(
+		approx >= HOUR
+			? { hour: 'numeric' }
+			: approx >= MINUTE
+				? { hour: 'numeric', minute: '2-digit' }
+				: { minute: '2-digit', second: '2-digit' },
+	)
+
+	return (at, date) =>
+		at.hour === 0 && at.minute === 0 && at.second === 0 ? day(date) : time(date)
 }
 
 /** A finite row instant paired with the row index whose band center anchors it. @internal */
 type Anchor = { index: number; time: number }
 
 /**
- * Positions instant `time` on the band axis by locating it among the anchor
- * rows and interpolating between their band centers. The tick lands at its true
- * fraction of the way from one dated row to the next, clamped to the ends. The
- * anchors must be in ascending time order.
+ * A function that positions an instant on the band axis. It locates the instant
+ * among the anchor rows and interpolates between their band centers. The tick
+ * lands at its true fraction of the way from one dated row to the next, clamped
+ * to the ends. The anchors must be in ascending time order.
+ *
+ * The function keeps a cursor that moves forward through the anchors and never
+ * back. Thus each call must pass an instant at or after the instant before it.
  *
  * @internal
  */
-function positionOf(time: number, anchors: Anchor[], band: BandScale): number {
+function positioner(anchors: Anchor[], band: BandScale): (time: number) => number {
 	const first = anchors[0] as Anchor
 	const last = anchors.at(-1) as Anchor
 
-	if (time <= first.time) return band.center(first.index)
-
-	if (time >= last.time) return band.center(last.index)
-
 	let low = 0
 
-	while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
+	return (time) => {
+		if (time <= first.time) return band.center(first.index)
 
-	const a = anchors[low] as Anchor
-	const b = anchors[low + 1] as Anchor
+		if (time >= last.time) return band.center(last.index)
 
-	const fraction = b.time === a.time ? 0 : (time - a.time) / (b.time - a.time)
+		while (low < anchors.length - 1 && (anchors[low + 1] as Anchor).time <= time) low++
 
-	return band.center(a.index) + fraction * (band.center(b.index) - band.center(a.index))
+		const a = anchors[low] as Anchor
+		const b = anchors[low + 1] as Anchor
+
+		const fraction = b.time === a.time ? 0 : (time - a.time) / (b.time - a.time)
+
+		return band.center(a.index) + fraction * (band.center(b.index) - band.center(a.index))
+	}
+}
+
+/**
+ * The finite row instants in time order, not row order. Newest-first rows, or
+ * a table sorted by another column, thus still give the true extent and a
+ * position between neighbors in time. Rows that already ascend skip the sort.
+ *
+ * @internal
+ */
+function anchorsOf(times: (number | null)[]): Anchor[] {
+	const anchors: Anchor[] = []
+
+	let ascending = true
+
+	let previous = Number.NEGATIVE_INFINITY
+
+	for (let index = 0; index < times.length; index++) {
+		const time = times[index]
+
+		if (time == null || !Number.isFinite(time)) continue
+
+		if (time < previous) ascending = false
+
+		previous = time
+
+		anchors.push({ index, time })
+	}
+
+	if (!ascending) anchors.sort((a, b) => a.time - b.time)
+
+	return anchors
 }
 
 /** Picks the interval whose spacing is the smallest that meets the ideal step. @internal */
@@ -201,19 +376,17 @@ export type TimeTicksOptions = {
 /**
  * Calendar-boundary ticks for a date-keyed band axis.
  *
- * @returns The ticks — position and formatted label — or `null` when fewer than
- * two rows carry a parseable, spanning date. The caller then falls back to
- * plain category labels.
+ * @returns The ticks, each with its position and formatted label, or `null`
+ * when no tick falls inside the span. That is the result when fewer than two
+ * rows carry a parseable, spanning date. It is also the result when the span
+ * crosses no boundary of the chosen interval, as a span inside one second
+ * does. The caller then falls back to plain category labels.
  * @internal
  */
 export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 	const { times, band, tickTarget, axisLength } = options
 
-	// Time order, not row order: newest-first rows, or a table sorted by another
-	// column, still give the true extent and a position between neighbors in time.
-	const anchors: Anchor[] = times
-		.flatMap((time, index) => (time != null && Number.isFinite(time) ? [{ index, time }] : []))
-		.sort((a, b) => a.time - b.time)
+	const anchors = anchorsOf(times)
 
 	if (anchors.length < 2) return null
 
@@ -232,9 +405,12 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 	const interval = chooseInterval(spanMs / target)
 
-	const format = new DateFormatter(locale, formatOptionsFor(interval.approx, spanMs))
+	const label = tickLabel(interval.approx, locale)
 
 	const ticks: ChartAxisTick[] = []
+
+	// The ticks ascend, so one forward pass through the anchors places them all.
+	const place = positioner(anchors, band)
 
 	// The first row as a local wall-clock datetime, so the floor reads calendar days.
 	let cursor = interval.floor(toCalendarDateTime(fromDateToLocal(new Date(first.time))), locale)
@@ -250,16 +426,19 @@ export function timeTicks(options: TimeTicksOptions): ChartAxisTick[] | null {
 
 		// Keyed by the instant, not the mapped `at` — distinct per calendar boundary
 		// and stable across resizes, where `at` can collapse onto one coordinate.
-		// A wall time in a daylight-saving gap resolves to the next hour, which is
-		// already a tick, so a time at or before the last tick is skipped.
+		// A wall time in a daylight-saving gap resolves forward past the gap, to
+		// an instant that the walk reaches again. Thus a time at or before the
+		// last tick is skipped.
 		if (time >= first.time && time > lastTime) {
-			ticks.push({ at: positionOf(time, anchors, band), label: format.format(date), key: time })
+			ticks.push({ at: place(time), label: label(cursor, date), key: time })
 
 			lastTime = time
 		}
 
 		cursor = interval.next(cursor)
 	}
+
+	if (ticks.length === 0) return null
 
 	// The interval targets the fit, but uneven calendar steps can overshoot it;
 	// thin to every nth so labels never collide.

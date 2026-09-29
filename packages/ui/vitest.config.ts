@@ -251,7 +251,10 @@ export default defineConfig({
 				// module registry belongs here too: `vi.resetModules()` is barred
 				// in the shared-registry projects, so a case that must re-evaluate
 				// a module to empty its module-scope state
-				// (code-block-load-shiki, for one memo cell) cannot run above.
+				// (code-block-load-shiki, for one memo cell) cannot run above. A
+				// suite that sets `process.env.TZ` belongs here too: a worker thread
+				// keeps the zone it started with, and a fork reads the change
+				// (chart-time-zone).
 				//
 				// Nothing else belongs here. Each file here pays a fork and a
 				// fresh jsdom, which the pool above pays once per worker. The

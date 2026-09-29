@@ -1,8 +1,9 @@
 'use client'
 
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useMemo, useRef, useState } from 'react'
 import { cn } from '../../../core'
 import { useLocale } from '../../../providers/locale'
+import { k } from '../../../recipes/kata/chart'
 import type { AccessibleName } from '../../../types'
 import { fractionFormat, once, toNumericCell } from '../../../utilities'
 import {
@@ -226,9 +227,9 @@ function choroplethReadout<T>(
  * ```
  */
 export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
-	// `contextMenu`, `title`, and `className` are the frame's, not MapPlat's; peel
-	// them off the rest that spreads onto the map. `width` is peeled to size the
-	// rasterized wrapper, then handed back to MapPlat below. `data` is peeled
+	// `contextMenu` and `title` are the menu's, not MapPlat's; peel them off the
+	// rest that spreads onto the map. `className` is peeled to join the touch
+	// classes, then handed to MapPlat below. `data` is peeled
 	// because it belongs to the region-data branch below, which decides whether
 	// the map carries rows at all — left in the rest it would survive the branch's
 	// spread and hand a data-less map its rows back.
@@ -236,7 +237,7 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// it is part of the region-data union now, because its range form paints the
 	// scale only the numeric branch carries. The constructor below places it on
 	// whichever branch the series resolves to.
-	const { series, formatValue, contextMenu, title, className, width, data, legend, ...map } = props
+	const { series, formatValue, contextMenu, title, className, data, legend, ...map } = props
 
 	// The right-clicked region, reported outward by the map (its hover state is provider-isolated, so the
 	// menu cannot read it). Set once per right-click — never per hover — so the map's render isolation
@@ -255,14 +256,19 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 
 	const format = formatValue ?? fractionFormat(locale)
 
-	// Built from the input rows for the menu's CSV / copy actions; drops them when
-	// there is nothing to export. A cached thunk (`ChartReadoutSource`), so
-	// only a selected action materializes it.
-	const readout = once(() => choroplethReadout(data, primary, format))
+	// Built from the input rows for the menu's CSV / copy actions; with no rows
+	// or no series there is nothing to export, so the actions drop. A cached
+	// thunk (`ChartReadoutSource`), so only a selected action materializes it.
+	const readout = useMemo(
+		() =>
+			primary && data && data.length > 0
+				? once(() => choroplethReadout(data, primary, format))
+				: null,
+		[data, primary, format],
+	)
 
-	// The rasterized root and right-click surface. MapPlat keeps its own root ref
-	// private, so wrap it in one sized like MapPlat's frame — full-width, or the
-	// fixed `width` — so an image export captures the map tightly, with no gutter.
+	// The rasterized root: the map's own frame, so an image export captures the
+	// map tightly, with no gutter.
 	const rootRef = useRef<HTMLDivElement>(null)
 
 	// Unwrap the (single) series onto MapPlat's numeric mode. The fields go through
@@ -273,7 +279,6 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 	// lets these props be checked (`satisfies`) instead of asserted.
 	const mapProps = {
 		...map,
-		width,
 		// A choropleth is always a chart tile, so default it to the board's shared
 		// 16/9 ratio (overridable) to match its neighbors, and defer the first paint:
 		// the map then draws once at that measured aspect with its legend resolved,
@@ -307,23 +312,24 @@ export function ChoroplethChart<T = never>(props: ChoroplethChartProps<T>) {
 			fullscreen={<ChoroplethChart {...props} />}
 		>
 			<div
-				ref={rootRef}
 				data-slot="choropleth"
 				// A touch hold here reads the map. It does not open the context menu.
 				data-touch-readout=""
-				// A long press opens the readout, so the whole chart, legend included,
-				// selects no text under a hold, as the chart frame does.
-				className={cn(
-					'select-none **:select-none [-webkit-touch-callout:none]',
-					width === undefined && 'w-full',
-					className,
-				)}
-				style={width === undefined ? undefined : { width }}
+				// No box of its own: the map frame sizes the chart. The element holds
+				// the chart's slot and its right-click capture.
+				className="contents"
 				// Capture runs before the region layer's bubbled report: an off-region
 				// right-click stays null, an on-region one overwrites with its index.
 				onContextMenuCapture={() => setMenuRegion(null)}
 			>
-				<MapPlat<T> {...mapProps} onRegionContextMenu={onRegionContextMenu} />
+				<MapPlat<T>
+					{...mapProps}
+					ref={rootRef}
+					// A long press opens the readout, so the whole chart, legend included,
+					// selects no text under a hold, as the chart frame does.
+					className={cn(k.touchReadout, className)}
+					onRegionContextMenu={onRegionContextMenu}
+				/>
 			</div>
 		</ChartContextMenu>
 	)

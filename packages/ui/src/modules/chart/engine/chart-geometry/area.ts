@@ -5,7 +5,8 @@
  * unit-testable in isolation. The unstacked variant reuses `lineGeometry`.
  */
 
-import type { LinePoint } from './line'
+import { coord } from '../chart-coords'
+import { decimateRun, type LinePoint, polylinePath } from './line'
 
 /** One stacked series' drawable marks. @internal */
 export type StackedAreaGeometry = {
@@ -17,19 +18,19 @@ export type StackedAreaGeometry = {
 	points: LinePoint[]
 }
 
-/** Builds a polyline `d` from points. @internal */
-function polyline(points: LinePoint[]): string {
-	return `M ${points.map((point) => `${point.x} ${point.y}`).join(' L ')}`
-}
-
 /**
  * Stacks the series bottom-to-top: each category's value adds to the running
  * total, so band `s` spans `[sum(0..s-1), sum(0..s)]`. The stack starts at
  * zero, so `map` is expected to be a zero-baseline value scale.
  *
- * @remarks A non-finite value counts as zero so the stack stays continuous —
- * the band simply contributes no thickness at that category. Needs at least
- * two categories to form a ribbon; a single category yields empty paths.
+ * @remarks A `null` value counts as zero so the stack stays continuous — the
+ * band simply contributes no thickness at that category. Needs at least two
+ * categories to form a ribbon; a single category yields empty paths.
+ *
+ * The drawn edges decimate as a line does ({@link decimateRun}), and `points`
+ * stay at full resolution for the markers, labels, and hit test. The lower edge
+ * of each ribbon is the drawn top edge of the ribbon below it, so the seam
+ * between two ribbons is exact.
  * @internal
  */
 export function stackedAreas(
@@ -39,29 +40,46 @@ export function stackedAreas(
 ): StackedAreaGeometry[] {
 	const count = xs.length
 
-	const lower = new Array<number>(count).fill(0)
+	const totals = new Array<number>(count).fill(0)
+
+	// The drawn top edge of the ribbon below; `null` under the first ribbon, which
+	// closes on the zero line.
+	let below: LinePoint[] | null = null
 
 	return seriesValues.map((values) => {
-		const upper = values.map((value, index) => (lower[index] ?? 0) + (value ?? 0))
+		const points = new Array<LinePoint>(count)
 
-		const topPoints = upper.map((value, index) => ({ x: xs[index] ?? 0, y: map(value) }))
+		for (let index = 0; index < count; index++) {
+			const total = (totals[index] as number) + (values[index] ?? 0)
 
-		const bottomPoints = lower.map((value, index) => ({ x: xs[index] ?? 0, y: map(value) }))
+			totals[index] = total
 
-		const drawable = count > 1
+			points[index] = { x: xs[index] ?? 0, y: map(total) }
+		}
 
-		const line = drawable ? polyline(topPoints) : ''
+		if (count < 2) return { line: '', area: '', points }
+
+		const top = decimateRun(points)
+
+		const line = polylinePath(top)
 
 		// The top edge forward, then the lower edge back, closes the ribbon.
-		const area = drawable
-			? `${line} L ${[...bottomPoints]
-					.reverse()
-					.map((point) => `${point.x} ${point.y}`)
-					.join(' L ')} Z`
-			: ''
+		let area = line
 
-		for (let index = 0; index < count; index++) lower[index] = upper[index] ?? 0
+		if (below) {
+			for (let index = below.length - 1; index >= 0; index--) {
+				const point = below[index] as LinePoint
 
-		return { line, area, points: topPoints }
+				area += ` L ${coord(point.x)} ${coord(point.y)}`
+			}
+		} else {
+			const zero = coord(map(0))
+
+			area += ` L ${coord((top.at(-1) as LinePoint).x)} ${zero} L ${coord((top[0] as LinePoint).x)} ${zero}`
+		}
+
+		below = top
+
+		return { line, area: `${area} Z`, points }
 	})
 }

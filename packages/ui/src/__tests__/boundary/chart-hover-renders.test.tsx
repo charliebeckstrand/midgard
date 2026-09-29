@@ -22,6 +22,7 @@ const renders = vi.hoisted(() => ({
 	axis: 0,
 	legend: 0,
 	menu: 0,
+	arrow: 0,
 }))
 
 function resetRenders() {
@@ -102,6 +103,20 @@ vi.mock('../../modules/chart/engine/chart-legend/legend', async (importOriginal)
 			renders.legend += 1
 
 			return actual.ChartLegend(props)
+		},
+	}
+})
+
+vi.mock('../../modules/chart/engine/chart-legend/range-legend', async (importOriginal) => {
+	const actual =
+		await importOriginal<typeof import('../../modules/chart/engine/chart-legend/range-legend')>()
+
+	return {
+		...actual,
+		RangeArrow: (props: Parameters<typeof actual.RangeArrow>[0]) => {
+			renders.arrow += 1
+
+			return actual.RangeArrow(props)
 		},
 	}
 })
@@ -206,6 +221,40 @@ describe('Chart hover renders', () => {
 		expect(renders.legend).toBe(0)
 
 		expect(renders.axis).toBe(0)
+
+		// The hit rect writes the pointed mark through a setter that keeps its
+		// identity, so a crossing from bar to bar does not render it.
+		expect(renders.pointer).toBe(0)
+	})
+
+	it('holds the legend while the pointer rests on a reference rule', async () => {
+		const { container } = renderUI(
+			bars({ legend: true, reference: [{ value: 50, label: 'Target' }] }),
+		)
+
+		await act(async () => {})
+
+		expectLive('legend')
+
+		resetRenders()
+
+		const rule = getSlot(container, 'chart-reference-line')
+
+		act(() => {
+			fireEvent.pointerEnter(rule)
+		})
+
+		// The marks recede to the rule, and the legend, which writes the same
+		// emphasis, does not render for it.
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+
+		act(() => {
+			fireEvent.pointerLeave(rule)
+		})
+
+		await act(async () => {})
+
+		expect(renders.legend).toBe(0)
 	})
 
 	it('holds the axes through a legend hover', async () => {
@@ -293,13 +342,13 @@ describe('Chart hover renders', () => {
 			/>,
 		)
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		hit.getBoundingClientRect = () => BOX
 
 		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
 
-		expectLive('axis')
+		expectLive('axis', 'pointer')
 
 		resetRenders()
 
@@ -311,6 +360,51 @@ describe('Chart hover renders', () => {
 		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
 
 		expect(renders.axis).toBe(0)
+
+		// The hit layer writes the hover and reads nothing from it.
+		expect(renders.pointer).toBe(0)
+	})
+
+	it('holds the range arrow while the pointer moves inside one heatmap cell', () => {
+		type Row = { day: string; hour: string; commits: number }
+
+		const series = [
+			{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
+		] satisfies [HeatmapChartSeries<Row>]
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+				]}
+				series={series}
+				width={400}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		hit.getBoundingClientRect = () => BOX
+
+		fireEvent.pointerMove(hit, { clientX: 130, clientY: 70 })
+
+		expectLive('arrow', 'pointer')
+
+		resetRenders()
+
+		// The moves stay inside the first cell, so the pointed value holds.
+		for (let step = 0; step < 50; step += 1) {
+			fireEvent.pointerMove(hit, { clientX: 120 + (step % 9), clientY: 70 + (step % 7) })
+		}
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		expect(renders.arrow).toBe(0)
+
+		expect(renders.pointer).toBe(0)
 	})
 
 	it('tracks the pointer across choropleth regions without a render of the chart body', () => {

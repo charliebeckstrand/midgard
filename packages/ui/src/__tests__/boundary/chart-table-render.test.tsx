@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { HeatmapChart, PieChart } from '../../modules/chart'
 import { LineChart } from '../../modules/chart/line-chart'
 import { act, fireEvent, getSlot, renderUI } from '../helpers'
 
@@ -86,5 +87,52 @@ describe('chart data table renders', () => {
 		await act(async () => {})
 
 		expect(tableRenders.count).toBeGreaterThan(0)
+	})
+
+	it('holds the pie and heatmap tables through a parent render', async () => {
+		const pieRows = [
+			{ source: 'Search', visits: 60 },
+			{ source: 'Direct', visits: 25 },
+		]
+
+		const cells = [
+			{ day: 'Mon', hour: '9', commits: 1 },
+			{ day: 'Tue', hour: '9', commits: 5 },
+		]
+
+		const charts = () => (
+			<>
+				<PieChart
+					aria-label="Traffic"
+					data={pieRows}
+					series={[{ xKey: 'source', yKey: 'visits' }]}
+					width={300}
+				/>
+
+				<HeatmapChart
+					aria-label="Commits"
+					data={cells}
+					series={[
+						{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#f7fee7', '#365314'] },
+					]}
+					width={400}
+				/>
+			</>
+		)
+
+		const { rerender } = renderUI(charts())
+
+		await act(async () => {})
+
+		expect(tableRenders.count).toBeGreaterThan(0)
+
+		tableRenders.count = 0
+
+		// The same rows: a parent render with no change of content.
+		rerender(charts())
+
+		await act(async () => {})
+
+		expect(tableRenders.count).toBe(0)
 	})
 })

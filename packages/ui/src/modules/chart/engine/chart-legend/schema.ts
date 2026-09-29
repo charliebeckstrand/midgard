@@ -8,7 +8,8 @@
  * Where a chart's legend sits around the plot. It is a row above or below it,
  * centered at all widths. It is otherwise a column panel beside it. That panel
  * sits side by side once the chart's own container is wide enough for both,
- * and stacks under the plot below that width.
+ * and stacks under the plot below that width. `left` and `right` are physical
+ * sides, so they hold in a right-to-left page too.
  */
 export type ChartLegendPlacement = 'top' | 'bottom' | 'left' | 'right'
 

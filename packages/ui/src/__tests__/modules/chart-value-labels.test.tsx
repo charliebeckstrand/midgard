@@ -1,14 +1,16 @@
 import { describe, expect, it } from 'vitest'
 import { AreaChart } from '../../modules/chart/area-chart'
 import { ComboChart } from '../../modules/chart/combo-chart'
-import { resolvePaint } from '../../modules/chart/engine/chart-color/paint'
+import { fillClass, rawColor, resolvePaint } from '../../modules/chart/engine/chart-color/paint'
 import {
+	type LabelableSeries,
+	labelBesideY,
 	labelPoints,
 	type PlacedValueLabel,
 	resolveValueLabels,
 	type ValueLabelSeries,
 	valueLabels,
-} from '../../modules/chart/engine/chart-value-labels'
+} from '../../modules/chart/engine/chart-geometry/label'
 import { LineChart } from '../../modules/chart/line-chart'
 import { allBySlot, bySlot, fireEvent, renderUI } from '../helpers'
 
@@ -16,7 +18,11 @@ const PLOT = { x: 0, y: 0, width: 200, height: 100 }
 
 /** A single series over the given `[x, y, value]` points. */
 function series(points: [number, number, number][]): ValueLabelSeries {
-	return { fill: 'fill-blue-600', points: points.map(([x, y, value]) => ({ x, y, value })) }
+	return {
+		fill: 'fill-blue-600',
+		points: points.map(([x, y, value]) => ({ x, y, value })),
+		format: String,
+	}
 }
 
 /** The label texts, in placement order. */
@@ -35,7 +41,6 @@ describe('valueLabels', () => {
 				]),
 			],
 			plot: PLOT,
-			format: String,
 			endpoints: true,
 			extremes: false,
 		})
@@ -53,7 +58,6 @@ describe('valueLabels', () => {
 				]),
 			],
 			plot: PLOT,
-			format: String,
 			endpoints: false,
 			extremes: true,
 		})
@@ -72,7 +76,6 @@ describe('valueLabels', () => {
 				]),
 			],
 			plot: PLOT,
-			format: String,
 			endpoints: true,
 			extremes: true,
 		})
@@ -86,7 +89,6 @@ describe('valueLabels', () => {
 		const labels = valueLabels({
 			series: [series([[100, 50, 100]]), series([[100, 50, 999]])],
 			plot: PLOT,
-			format: String,
 			endpoints: false,
 			extremes: true,
 		})
@@ -96,35 +98,36 @@ describe('valueLabels', () => {
 		expect(labels[0]?.text).toBe('100')
 	})
 
-	it('hides a label that would slide sideways to fit, keeping the vertical flip', () => {
-		// A label stays centered on its point: near a side edge its box would cross
-		// the plot, and it hides rather than sliding onto the neighboring marks —
-		// the small-frame crowding this pins out.
-		const right = valueLabels({
+	it('pins a side label to its point rather than sliding it, keeping the vertical flip', () => {
+		// Near a side edge a centered box would cross the plot. The label anchors
+		// inward at its own point instead, and never slides onto the neighboring
+		// marks.
+		const [right] = valueLabels({
 			series: [series([[198, 50, 12345]])],
 			plot: PLOT,
-			format: String,
 			endpoints: true,
 			extremes: false,
 		})
 
-		expect(right).toHaveLength(0)
+		expect(right?.anchor).toBe('end')
 
-		const left = valueLabels({
+		expect(right?.x).toBe(198)
+
+		const [left] = valueLabels({
 			series: [series([[2, 50, 12345]])],
 			plot: PLOT,
-			format: String,
 			endpoints: true,
 			extremes: false,
 		})
 
-		expect(left).toHaveLength(0)
+		expect(left?.anchor).toBe('start')
+
+		expect(left?.x).toBe(2)
 
 		// A fitting label anchors on its point's center — never slid inward.
 		const [fits] = valueLabels({
 			series: [series([[100, 50, 12345]])],
 			plot: PLOT,
-			format: String,
 			endpoints: true,
 			extremes: false,
 		})
@@ -136,7 +139,6 @@ describe('valueLabels', () => {
 		const [top] = valueLabels({
 			series: [series([[100, 2, 9]])],
 			plot: PLOT,
-			format: String,
 			endpoints: false,
 			extremes: true,
 		})
@@ -183,33 +185,121 @@ describe('labelPoints', () => {
 	})
 })
 
+describe('valueLabels at the plot sides', () => {
+	it('anchors a label inward where a centered one would cross a side', () => {
+		// A dense line puts its endpoints near the plot sides. A centered label
+		// there crossed the side and dropped.
+		const labels = valueLabels({
+			series: [
+				series([
+					[10, 50, 12345],
+					[100, 60, 1],
+					[190, 70, 67890],
+				]),
+			],
+			plot: PLOT,
+			endpoints: true,
+			extremes: false,
+		})
+
+		const first = labels.find((label) => label.text === '12345')
+
+		const last = labels.find((label) => label.text === '67890')
+
+		expect(first?.anchor).toBe('start')
+
+		expect(first?.x).toBe(10)
+
+		expect(last?.anchor).toBe('end')
+
+		expect(last?.x).toBe(190)
+	})
+
+	it('anchors a label at a point on the plot side', () => {
+		// A dense series puts its first point within the label padding of the
+		// side. The padding is spacing, not text, so the label still anchors there.
+		const [edge] = valueLabels({
+			series: [series([[1, 50, 12345]])],
+			plot: PLOT,
+			endpoints: true,
+			extremes: false,
+		})
+
+		expect(edge?.anchor).toBe('start')
+
+		expect(edge?.x).toBe(1)
+	})
+
+	it('hides a label that does not fit even anchored inward', () => {
+		// The plot is narrower than the text.
+		const [wide] = valueLabels({
+			series: [series([[20, 50, 123456789012]])],
+			plot: { x: 0, y: 0, width: 60, height: 100 },
+			endpoints: true,
+			extremes: false,
+		})
+
+		expect(wide).toBeUndefined()
+	})
+})
+
 describe('resolveValueLabels', () => {
+	/** A labelable series in the given palette slot. */
+	function labelable(
+		color: 'blue' | 'orange',
+		points: { x: number; y: number }[],
+		values: number[],
+	): LabelableSeries {
+		const paint = resolvePaint(color)
+
+		return { fill: fillClass(paint), color: rawColor(paint), points, values, format: String }
+	}
+
 	const list = [
-		{
-			paint: resolvePaint('blue'),
-			geometry: {
-				points: [
-					{ x: 10, y: 50 },
-					{ x: 100, y: 20 },
-				],
-			},
-		},
+		labelable(
+			'blue',
+			[
+				{ x: 10, y: 50 },
+				{ x: 100, y: 20 },
+			],
+			[5, 9],
+		),
 	]
 
-	const metas = [{ values: [5, 9] }]
-
 	it('draws nothing without a label switch', () => {
-		expect(resolveValueLabels(undefined, list, metas, PLOT, String)).toEqual([])
+		expect(resolveValueLabels(undefined, list, PLOT)).toEqual([])
 
-		expect(resolveValueLabels({}, list, metas, PLOT, String)).toEqual([])
+		expect(resolveValueLabels({}, list, PLOT)).toEqual([])
 	})
 
 	it('builds the labels in the series ink when a switch is on', () => {
-		const labels = resolveValueLabels({ endpoints: true }, list, metas, PLOT, String)
+		const labels = resolveValueLabels({ endpoints: true }, list, PLOT)
 
 		expect(texts(labels).sort()).toEqual(['5', '9'])
 
 		expect(labels[0]?.fill).toContain('fill-blue-600')
+	})
+
+	it('keys each label on its series and its point, not on its position', () => {
+		const labels = resolveValueLabels({ endpoints: true }, list, PLOT)
+
+		const wider = resolveValueLabels(
+			{ endpoints: true },
+			[
+				{
+					...list[0],
+					points: [
+						{ x: 20, y: 50 },
+						{ x: 180, y: 20 },
+					],
+				} as LabelableSeries,
+			],
+			{ ...PLOT, width: 400 },
+		)
+
+		expect(labels.map((label) => label.key).sort()).toEqual(['0:0', '0:1'])
+
+		expect(wider.map((label) => label.key).sort()).toEqual(['0:0', '0:1'])
 	})
 
 	it('stands the point labels down when the chart has more than one series', () => {
@@ -218,29 +308,72 @@ describe('resolveValueLabels', () => {
 		// series and the tooltip carries the readout otherwise.
 		const twoSeries = [
 			...list,
-			{
-				paint: resolvePaint('orange'),
-				geometry: {
-					points: [
-						{ x: 10, y: 80 },
-						{ x: 100, y: 60 },
-					],
-				},
-			},
+			labelable(
+				'orange',
+				[
+					{ x: 10, y: 80 },
+					{ x: 100, y: 60 },
+				],
+				[3, 7],
+			),
 		]
 
-		const twoMetas = [...metas, { values: [3, 7] }]
-
-		expect(
-			resolveValueLabels({ endpoints: true, extremes: true }, twoSeries, twoMetas, PLOT, String),
-		).toEqual([])
+		expect(resolveValueLabels({ endpoints: true, extremes: true }, twoSeries, PLOT)).toEqual([])
 
 		// The lone series still labels.
-		expect(resolveValueLabels({ endpoints: true }, list, metas, PLOT, String)).toHaveLength(2)
+		expect(resolveValueLabels({ endpoints: true }, list, PLOT)).toHaveLength(2)
+	})
+})
+
+describe('labelBesideY', () => {
+	it('takes its preferred side, and flips where that side clips the plot', () => {
+		expect(labelBesideY(50, PLOT, true)).toBeLessThan(50)
+
+		expect(labelBesideY(50, PLOT, false)).toBeGreaterThan(50)
+
+		// Too near the top to sit above, and too near the bottom to sit below.
+		expect(labelBesideY(4, PLOT, true)).toBeGreaterThan(4)
+
+		expect(labelBesideY(96, PLOT, false)).toBeLessThan(96)
 	})
 })
 
 describe('LineChart value labels', () => {
+	it('keeps each label node through a resize', () => {
+		// A resize moves the labels, and the data stays. A label keyed on its
+		// position mounted again at each width, and an animated one faded out and
+		// in: it blinked on each resize.
+		const chart = (width: number) => (
+			<LineChart
+				aria-label="Revenue by month"
+				data={[
+					{ month: 'Jan', revenue: 40 },
+					{ month: 'Feb', revenue: 90 },
+					{ month: 'Mar', revenue: 65 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={width}
+				animate
+				labels={{ extremes: true }}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart(400))
+
+		const peak = () =>
+			allBySlot(container, 'chart-value-label').find((node) => node.textContent === '90')
+
+		const before = peak()
+
+		const x = before?.getAttribute('x')
+
+		rerender(chart(520))
+
+		expect(peak()).toBe(before)
+
+		expect(peak()?.getAttribute('x')).not.toBe(x)
+	})
+
 	it('renders the selective labels over the marks', () => {
 		const { container } = renderUI(
 			<LineChart

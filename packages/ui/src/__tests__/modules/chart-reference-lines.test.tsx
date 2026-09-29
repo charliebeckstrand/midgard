@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
-import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference-lines'
+import type { ChartReferenceLine } from '../../modules/chart/engine/chart-reference'
 import { LineChart } from '../../modules/chart/line-chart'
 import {
 	allBySlot,
@@ -149,6 +149,30 @@ describe('reference lines', () => {
 		expect(y).toBeGreaterThanOrEqual(0)
 
 		expect(y).toBeLessThanOrEqual(height)
+	})
+
+	it('draws no rule outside a pinned domain, and keeps it in the list', () => {
+		// A pin holds the domain at 100, so the fold cannot reach 150. The rule
+		// drew on the clamped top edge, where it read as 100.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				axes={{ y: { max: 100 } }}
+				reference={[
+					{ value: 150, label: 'Stretch' },
+					{ value: 55, label: 'Target' },
+				]}
+			/>,
+		)
+
+		const rules = allBySlot(container, 'chart-reference-line')
+
+		expect(rules).toHaveLength(1)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toContain('Stretch')
 	})
 
 	it('transposes the rule to a vertical line under horizontal orientation', () => {
@@ -402,6 +426,41 @@ describe('reference line keyboard navigation', () => {
 		expect(bySlot(container, 'chart-reference-line')?.getAttribute('data-focused')).toBeNull()
 	})
 
+	it('releases the emphasis when the rule it parks on goes away', () => {
+		const chart = (reference?: ChartReferenceLine[]) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				reference={reference}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart([{ value: 60 }]))
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(marksClass(container)).toContain('opacity-25')
+
+		// The rule goes, so the cursor falls back to its bar. The marks light up
+		// again, and the readout returns to the bar.
+		rerender(chart())
+
+		expect(marksClass(container)).not.toContain('opacity-25')
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Jan')
+
+		// The next step walks on from the bar, not from the rule that went.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Feb')
+	})
+
 	it('transposes the roving with orientation — the value axis reaches the rule', async () => {
 		const { container } = bar([{ value: 60 }], 'horizontal')
 
@@ -576,6 +635,115 @@ describe('reference lines in the legend', () => {
 		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 
 		expect(chip().getAttribute('aria-pressed')).toBe('true')
+	})
+
+	it('keeps a toggled-off rule off when an earlier rule leaves the prop', async () => {
+		const user = userEvent.setup()
+
+		const floor = { value: 30, label: 'Floor' }
+
+		const target = { value: 50, label: 'Target' }
+
+		const ceiling = { value: 70, label: 'Ceiling' }
+
+		const chart = (reference: ChartReferenceLine[]) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={reference}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart([floor, target, ceiling]))
+
+		const pressed = () =>
+			allBySlot(container, 'chart-legend-reference').map(
+				(chip) => `${chip.textContent}:${chip.getAttribute('aria-pressed')}`,
+			)
+
+		await user.click(allBySlot(container, 'chart-legend-reference')[1] as Element)
+
+		expect(pressed()).toEqual(['Floor:true', 'Target:false', 'Ceiling:true'])
+
+		// The rule before the hidden one leaves. The hide stays with its rule, and
+		// the rule after it keeps its own state.
+		rerender(chart([target, ceiling]))
+
+		expect(pressed()).toEqual(['Target:false', 'Ceiling:true'])
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
+
+		expect(bySlot(container, 'chart-reference-list')?.textContent).toBe('Ceiling: 70')
+	})
+
+	it('recedes nothing from the chip of a rule outside a pinned domain', () => {
+		// The rule draws nothing, so pointing its chip receded every mark to a rule
+		// that was not on the plot.
+		const { container } = renderUI(
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				axes={{ y: { max: 100 } }}
+				reference={[
+					{ value: 150, label: 'Stretch' },
+					{ value: 55, label: 'Target' },
+				]}
+			/>,
+		)
+
+		const [stretch, target] = allBySlot(container, 'chart-legend-reference')
+
+		fireEvent.pointerEnter(stretch as Element)
+
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).not.toContain('opacity-25')
+
+		fireEvent.pointerLeave(stretch as Element)
+
+		// The chip of a drawn rule still recedes the marks to it.
+		fireEvent.pointerEnter(target as Element)
+
+		expect(getSlot(container, 'chart-marks').getAttribute('class')).toContain('opacity-25')
+	})
+
+	it('keeps a toggled-off labeled rule off when its value changes', async () => {
+		// A rule such as an average takes a new value with each data refresh. The
+		// hide keyed on the value too, so a refresh brought the rule back.
+		const user = userEvent.setup()
+
+		const chart = (average: number) => (
+			<BarChart
+				aria-label="Revenue by month"
+				data={DATA}
+				series={[...SERIES]}
+				width={400}
+				legend
+				reference={[
+					{ value: average, label: 'Average' },
+					{ value: 70, label: 'Ceiling' },
+				]}
+			/>
+		)
+
+		const { container, rerender } = renderUI(chart(41.2))
+
+		const pressed = () =>
+			allBySlot(container, 'chart-legend-reference').map(
+				(chip) => `${chip.textContent}:${chip.getAttribute('aria-pressed')}`,
+			)
+
+		await user.click(allBySlot(container, 'chart-legend-reference')[0] as Element)
+
+		rerender(chart(41.7))
+
+		expect(pressed()).toEqual(['Average:false', 'Ceiling:true'])
+
+		expect(allBySlot(container, 'chart-reference-line')).toHaveLength(1)
 	})
 
 	it('drops a toggled-off rule from the domain and the hidden parity', async () => {

@@ -4,6 +4,7 @@ import {
 	anchorEndTicks,
 	diameterRange,
 	scatterMarkAt,
+	sizeDomain,
 	sizeRadius,
 	uniqueXValues,
 } from '../../modules/chart/engine/chart-geometry/scatter'
@@ -31,6 +32,19 @@ function discsPath(container: HTMLElement): string {
 /** How many discs a plain series drew — one `M` command opens each. */
 function discCount(container: HTMLElement): number {
 	return discsPath(container).match(/M/g)?.length ?? 0
+}
+
+/**
+ * Clicks the hit layer at a point of the drawing. jsdom lays out no box, so the
+ * hit layer reads a client point as an offset from the plot origin.
+ */
+function clickAt(container: HTMLElement, x: number, y: number) {
+	const hit = getSlot(container, 'chart-hit')
+
+	fireEvent.click(hit, {
+		clientX: x - Number(hit.getAttribute('x')),
+		clientY: y - Number(hit.getAttribute('y')),
+	})
 }
 
 describe('scatter geometry', () => {
@@ -63,6 +77,28 @@ describe('scatter geometry', () => {
 
 		// Off every disc, past the edge slack.
 		expect(scatterMarkAt(marks, 100, 100, 2)).toBeNull()
+	})
+
+	it('gives a shared point to the disc that paints on top', () => {
+		// Two series share one point. The later disc draws over the earlier one, so
+		// the pointer reads the disc the reader sees.
+		const marks = [[{ x: 10, y: 10, r: 5 }], [{ x: 10, y: 10, r: 5 }]]
+
+		expect(scatterMarkAt(marks, 10, 10, 0)).toEqual({ series: 1, datum: 0 })
+	})
+
+	it('folds the size extent of any count of points', () => {
+		// A spread into `Math.min` throws past the engine's argument limit.
+		const many = Array.from({ length: 500_000 }, (_, row) => ({
+			x: row,
+			y: row,
+			row,
+			size: row % 7 === 0 ? null : row,
+		}))
+
+		expect(sizeDomain(many)).toEqual([1, 499_999])
+
+		expect(sizeDomain([{ x: 0, y: 0, row: 0, size: null }])).toBeNull()
 	})
 
 	it('holds the emphasized disc across the midline until a challenger decisively closes', () => {
@@ -110,6 +146,21 @@ describe('scatter geometry', () => {
 		expect(sizeRadius(7, [7, 7], diameters)).toBeCloseTo(9)
 
 		expect(sizeRadius(null, [1, 100], diameters)).toBeCloseTo(4)
+	})
+
+	it('draws a zero size at the smallest diameter and a negative size as no disc', () => {
+		const diameters = diameterRange(8, 28)
+
+		// Every size is zero, so the extent collapses. The discs still read smallest, not mid-range.
+		expect(sizeRadius(0, [0, 0], diameters)).toBeCloseTo(4)
+
+		expect(sizeRadius(-3, [0, 16], diameters)).toBe(0)
+	})
+
+	it('leaves a negative size out of the size extent', () => {
+		const sized = [-5, 4, 16].map((size, row) => ({ x: row, y: row, row, size }))
+
+		expect(sizeDomain(sized)).toEqual([4, 16])
 	})
 
 	it('anchors the edge ticks inward and leaves interior ones centered', () => {
@@ -267,6 +318,42 @@ describe('ScatterChart', () => {
 		expect(allBySlot(container, 'chart-scatter-series')).toHaveLength(1)
 	})
 
+	it('inks a square legend swatch inline for a raw series and through the class for a slot', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Two series"
+				data={STOPS}
+				width={480}
+				series={[
+					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell', color: '#e11d48' },
+					{ xKey: 'distance', yKey: 'weight', yName: 'Weight', color: 'blue' },
+				]}
+			/>,
+		)
+
+		const swatches = [
+			...(bySlot(container, 'chart-legend')?.querySelectorAll('[data-slot="swatch"]') ?? []),
+		]
+
+		const [raw, slot] = swatches
+
+		// A disc has no stroke to mirror, so each series keys with a square.
+		expect(swatches.map((swatch) => swatch.getAttribute('data-shape'))).toEqual([
+			'square',
+			'square',
+		])
+
+		// The raw swatch inks inline and takes no slot class; the slot swatch is the
+		// other way round.
+		expect(raw?.getAttribute('style')).toContain('color')
+
+		expect(raw?.getAttribute('class') ?? '').not.toContain('text-blue-600')
+
+		expect(slot?.getAttribute('class')).toContain('text-blue-600')
+
+		expect(slot?.getAttribute('style')).toBeNull()
+	})
+
 	it('anchors the first and last x-axis labels inward so the corner labels stay clear', () => {
 		const { container } = renderUI(
 			<ScatterChart
@@ -316,6 +403,44 @@ describe('ScatterChart', () => {
 		expect(tip?.textContent).toContain('12 mi')
 
 		expect(tip?.textContent).toContain('34')
+	})
+
+	it('recedes the other series while the keyboard cursor reads a point', () => {
+		const { container } = renderUI(
+			<ScatterChart
+				aria-label="Two series"
+				data={STOPS}
+				width={480}
+				series={[
+					{ xKey: 'distance', yKey: 'dwell', yName: 'Dwell' },
+					{ xKey: 'distance', yKey: 'weight', yName: 'Weight' },
+				]}
+			/>,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const receded = () =>
+			allBySlot(container, 'chart-scatter-discs').map(
+				(discs) => discs.getAttribute('class')?.includes('opacity-25') ?? false,
+			)
+
+		act(() => plot.focus())
+
+		// The first arrow enters on the Dwell point of the first column, so Weight recedes.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([false, true])
+
+		// The Weight point sits lower in that column, so the down arrow reads it.
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(receded()).toEqual([true, false])
+
+		// Escape drops the emphasis with the readout.
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(receded()).toEqual([false, false])
 	})
 
 	it('pins the readout to a click under trigger click, ignoring hover', () => {
@@ -498,6 +623,182 @@ describe('BubbleChart', () => {
 
 		// The data table names the size measure beside each value.
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('34 (weight: 4)')
+	})
+
+	it('draws no disc for a negative size and keeps the point in the data table only', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={[
+					{ distance: 12, dwell: 34, weight: 4 },
+					{ distance: 30, dwell: 25, weight: -3 },
+					{ distance: 48, dwell: 18, weight: 16 },
+				]}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		const discs = points(container)
+
+		expect(discs).toHaveLength(2)
+
+		// The data table still reads the point that draws no disc.
+		expect(bySlot(container, 'chart-table')?.textContent).toContain('25 (weight: -3)')
+
+		// Both scales are linear, so the drawn discs place the point at x 30, y 25.
+		const [low, high] = discs.map((disc) => ({
+			x: Number(disc.getAttribute('cx')),
+			y: Number(disc.getAttribute('cy')),
+		})) as [{ x: number; y: number }, { x: number; y: number }]
+
+		const x = low.x + ((30 - 12) / (48 - 12)) * (high.x - low.x)
+
+		const y = low.y + ((25 - 34) / (18 - 34)) * (high.y - low.y)
+
+		clickAt(container, x, y)
+
+		expect(onPointClick).not.toHaveBeenCalled()
+
+		// The keyboard steps from the column at 12 to the column at 48, past the point.
+		const plot = getSlot(container, 'chart-plot')
+
+		act(() => plot.focus())
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('48')
+	})
+
+	it('reports the clicked disc by series and data row', () => {
+		const onPointClick = vi.fn()
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={STOPS}
+				width={480}
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				onPointClick={onPointClick}
+			/>,
+		)
+
+		// The third row (distance 30) draws the third disc.
+		const disc = points(container)[2] as SVGCircleElement
+
+		clickAt(container, Number(disc.getAttribute('cx')), Number(disc.getAttribute('cy')))
+
+		expect(onPointClick).toHaveBeenCalledWith({ series: 0, datum: 2 })
+	})
+
+	it('keeps a prop that the scatter does not take off the plot region', () => {
+		// `BubbleChart` hands every prop to the scatter, and the scatter takes no
+		// `texture`. The frame picks the accessible name alone for its plot region.
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<BubbleChart
+				aria-label="Dwell against distance, sized by weight"
+				data={STOPS}
+				width={480}
+				// The type takes no `texture`, because a disc draws no texture tile.
+				// @ts-expect-error: a JavaScript caller can still pass it.
+				texture
+				series={[{ xKey: 'distance', yKey: 'dwell', sizeKey: 'weight', yName: 'Dwell' }]}
+				{...{ 'data-stray': 'leak' }}
+			/>,
+		)
+
+		const plot = bySlot(container, 'chart-plot')
+
+		expect(plot?.getAttribute('aria-label')).toBe('Dwell against distance, sized by weight')
+
+		expect(plot?.hasAttribute('data-stray')).toBe(false)
+
+		expect(error.mock.calls.flat().join(' ')).not.toContain('texture')
+
+		error.mockRestore()
+	})
+})
+
+describe('the scatter tier budget', () => {
+	const REVENUE = [
+		{ spend: 1200, revenue: 12_000 },
+		{ spend: 5200, revenue: 48_200 },
+		{ spend: 3100, revenue: 30_500 },
+	]
+
+	/** The tick labels of one axis, in order. */
+	function tickLabels(container: HTMLElement, axis: 'x' | 'y'): string[] {
+		const node = bySlot(container, `chart-axis-${axis}`) as Element
+
+		return [...node.querySelectorAll('text')].map((label) => label.textContent ?? '')
+	}
+
+	it('writes the tick labels of both axes compactly in a narrow frame', () => {
+		const chart = (width: number) =>
+			renderUI(
+				<ScatterChart
+					aria-label="Revenue against spend"
+					data={REVENUE}
+					width={width}
+					height={240}
+					series={[{ xKey: 'spend', yKey: 'revenue', yName: 'Revenue' }]}
+				/>,
+			)
+
+		const narrow = chart(300)
+
+		for (const axis of ['x', 'y'] as const) {
+			const labels = tickLabels(narrow.container, axis)
+
+			expect(labels.some((label) => label.endsWith('K'))).toBe(true)
+
+			expect(labels.some((label) => label.includes(','))).toBe(false)
+		}
+
+		// The readout keeps full precision.
+		expect(bySlot(narrow.container, 'chart-table')?.textContent).toContain('48,200')
+
+		narrow.unmount()
+
+		// A wide frame keeps the full format.
+		const wide = chart(480)
+
+		expect(tickLabels(wide.container, 'y').some((label) => label.includes(','))).toBe(true)
+	})
+
+	it('draws fewer ticks in a short frame', () => {
+		const ticks = (height: number) => {
+			const { container, unmount } = renderUI(
+				<ScatterChart
+					aria-label="Revenue against spend"
+					data={REVENUE}
+					width={480}
+					height={height}
+					series={[{ xKey: 'spend', yKey: 'revenue', yName: 'Revenue' }]}
+				/>,
+			)
+
+			const count = { x: tickLabels(container, 'x').length, y: tickLabels(container, 'y').length }
+
+			unmount()
+
+			return count
+		}
+
+		const tall = ticks(360)
+
+		const short = ticks(120)
+
+		expect(short.y).toBeLessThan(tall.y)
+
+		expect(short.x).toBeLessThan(tall.x)
 	})
 })
 

@@ -26,6 +26,56 @@ function chart(extra?: Partial<Parameters<typeof LineChart<(typeof DATA)[number]
 }
 
 describe('LineChart', () => {
+	it('keeps a chart prop that the frame does not name away from the frame', () => {
+		// The chart hands all its props to the cartesian frame. A stray prop named
+		// like a frame prop reached the chart frame, as `overlay` here drew into the
+		// plot.
+		renderUI(
+			<LineChart
+				aria-label="Revenue"
+				data={[
+					{ month: 'Jan', revenue: 40 },
+					{ month: 'Feb', revenue: 90 },
+				]}
+				series={[{ xKey: 'month', yKey: 'revenue', yName: 'Revenue' }]}
+				width={400}
+				{...{ overlay: <span data-testid="stray-overlay" /> }}
+			/>,
+		)
+
+		expect(document.querySelector('[data-testid="stray-overlay"]')).toBeNull()
+	})
+
+	it('keeps a tooltip row for each series when two share a name', () => {
+		const errors = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+		const { container } = renderUI(
+			<LineChart
+				aria-label="Twins"
+				data={[
+					{ w: 'W1', a: 1, b: 2 },
+					{ w: 'W2', a: 3, b: 4 },
+				]}
+				series={[
+					{ xKey: 'w', yKey: 'a', yName: 'Same' },
+					{ xKey: 'w', yKey: 'b', yName: 'Same' },
+				]}
+				width={400}
+				crosshair={{ x: false, y: true, snap: true }}
+			/>,
+		)
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 100, clientY: 100 })
+
+		expect(allBySlot(container, 'chart-tooltip-row')).toHaveLength(2)
+
+		const duplicate = errors.mock.calls.some((call) => String(call[0]).includes('same key'))
+
+		errors.mockRestore()
+
+		expect(duplicate).toBe(false)
+	})
+
 	it('draws one line per series with line-swatched legend keys', () => {
 		const { container } = renderUI(chart())
 
@@ -569,5 +619,27 @@ describe('lineGeometry', () => {
 		expect(geo.runs[0]).toHaveLength(n)
 
 		expect(geo.points).toHaveLength(n)
+	})
+
+	it('decimates each dense run that a gap splits off', () => {
+		// A null in every thousand points splits the line into runs, each still ten
+		// points to a pixel. Each run decimates as the whole line would.
+		const n = 8_000
+
+		const xs = Array.from({ length: n }, (_, i) => (i / (n - 1)) * 800)
+
+		const values = Array.from({ length: n }, (_, i) =>
+			i % 1000 === 999 ? null : Math.sin(i / 20) * 40 + 50,
+		)
+
+		const geo = lineGeometry(values, xs, identity, 100)
+
+		expect(geo.segments).toHaveLength(8)
+
+		for (const [index, segment] of geo.segments.entries()) {
+			const drawn = (segment.match(/L /g)?.length ?? 0) + 1
+
+			expect(drawn).toBeLessThan((geo.runs[index]?.length ?? 0) / 2)
+		}
 	})
 })

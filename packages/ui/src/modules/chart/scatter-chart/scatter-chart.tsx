@@ -1,84 +1,53 @@
 'use client'
 
-import { useMemo } from 'react'
 import { toInnerStep } from '../../../core'
 import type { DensityStep } from '../../../core/density'
-import { type FrameSizing, usePlotFrame } from '../../../hooks'
-import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
 import type { AccessibleName } from '../../../types'
-import { fractionFormat, once } from '../../../utilities'
-import { ChartAxis, type ChartAxisTick, ChartAxisTitles } from '../engine/chart-axes/axis'
-import { ChartGridLines } from '../engine/chart-axes/grid-lines'
-import { type ChartValueAxis, resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
-import { type ChartPaint, rawColor, resolvePaint, textClass } from '../engine/chart-color/paint'
-import type { ChartSeriesColor } from '../engine/chart-color/palette'
-import { paletteSlot } from '../engine/chart-color/palette'
-import {
-	AXIS_TITLE_BAND,
-	AXIS_TITLE_GAP,
-	CHART_METRICS,
-	MARKER_RADIUS,
-	MARKER_RING_WIDTH,
-	PLOT_TOP_PAD,
-	SCATTER_HIT_SLACK,
-	X_AXIS_HEIGHT,
-} from '../engine/chart-constants'
+import { resolveAxes, type ScatterAxes } from '../engine/chart-axes/schema'
+import { CHART_METRICS, SCATTER_HIT_SLACK } from '../engine/chart-constants'
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
+import { chartFrameLayout, frameFills } from '../engine/chart-frame/sizing'
 import {
-	anchorEndTicks,
-	diameterRange,
-	type ScatterDatum,
 	type ScatterMark,
 	type ScatterSnapStop,
-	scatterData,
 	scatterMarkAt,
 	scatterMarks,
-	scatterReadoutValues,
 	scatterSnapColumns,
 	scatterSnappedStop,
+	scatterSnapSeries,
 	scatterSnapStops,
-	scatterXRange,
-	sizeDomain,
-	sizeRadius,
 	uniqueXValues,
 } from '../engine/chart-geometry/scatter'
-import {
-	type ChartAspectRatio,
-	type ChartAxisTitlePlacement,
-	chartFrameLayout,
-	frameFills,
-	type PlotRect,
-	plotRect,
-	valueTicksOf,
-} from '../engine/chart-layout'
-import type { ChartLegendItem } from '../engine/chart-legend/legend'
+import { ChartHitArea } from '../engine/chart-hit-area'
 import { ChartLegend } from '../engine/chart-legend/legend'
-import {
-	legendAside,
-	legendBands,
-	legendVisible,
-	type ResolvedLegend,
-	resolveLegend,
-} from '../engine/chart-legend/schema'
+import { legendAside, legendBands, resolveLegend } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import { type LinearScale, linearScale } from '../engine/chart-scale'
+import type { PlotRect } from '../engine/chart-orientation'
 import { snapTargets } from '../engine/chart-snap'
-import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
+import { headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
-import { useChartTier } from '../engine/context'
-import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
+import type { ChartMarkRef } from '../engine/context'
+import type { ChartBaseProps, ScatterChartSeries } from '../engine/types'
+import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
-import { ScatterChartHitArea } from './scatter-chart-hit-area'
+import { ScatterChartChrome } from './scatter-chart-chrome'
+import {
+	scatterFormats,
+	scatterLegendItems,
+	scatterMetas,
+	scatterScales,
+} from './scatter-chart-layout'
 import {
 	AnimatedScatterChartMarks,
 	type ChartScatterSeries,
 	ScatterChartMarks,
 } from './scatter-chart-marks'
+import { useScatterChartReadout } from './use-scatter-chart-readout'
 
 /**
  * The frame switches the point charts (Scatter / Bubble) add on top of
@@ -89,8 +58,9 @@ import {
  */
 export type ScatterFrameProps = {
 	/**
-	 * The density step, which sets the target count of the ticks. Omit it to
-	 * take the step of the nearest density scope.
+	 * The density step, which caps the target count of the ticks. The tier of the
+	 * box can lower it further. Omit it to take the step of the nearest density
+	 * scope.
 	 */
 	size?: DensityStep
 	/**
@@ -124,439 +94,48 @@ export type ScatterChartProps<T = never> = AccessibleName &
 		series: ScatterChartSeries<T>[]
 		/**
 		 * Fires when a click lands on a point, with the point's series index and
-		 * the index of its row in `data`.
+		 * the index of its row in `data`. A click within a few pixels of a disc
+		 * lands on it.
 		 *
 		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
 		 * address space a scatter has. A point is named by a pair and not by one id,
 		 * so this does not take the module's shared `ChartItemClick`. Setting it
 		 * makes the plot interactive on its own, where the pointer layer otherwise
 		 * mounts only for a tooltip or a crosshair.
+		 *
+		 * @remarks Under a snapping crosshair (`crosshair={{ snap: true }}`), a
+		 * click off every disc also fires. It reports the point that the snapped
+		 * tooltip reads. That point is in the x column nearest the click, and its y
+		 * is the nearest to the click in that column. It can sit far from the click.
 		 */
 		onPointClick?: (at: { series: number; datum: number }) => void
 	}
 
-/** One series resolved to everything the frame parts read. @internal */
-type ScatterMeta = {
-	index: number
-	label: string
-	paint: ChartPaint
-	color: ChartSeriesColor
-	points: ScatterDatum[]
-	sized: boolean
-	sizeName: string | null
-	radius: (size: number | null) => number
-}
-
 /**
- * Every series parsed and resolved: paint, points, and the bubble radius
- * scaling. A series takes its explicit `color` (a palette slot or a raw CSS
- * color), else its slot in the fixed order.
+ * The held disc, as its place in the drawn `marks`, so that the hit test can
+ * keep it. It is `null` when no disc is held, or when the series of the held
+ * disc is hidden.
  *
  * @internal
  */
-function scatterMetas<T>(data: T[], series: ScatterChartSeries<T>[]): ScatterMeta[] {
-	return series.map((entry, index) => {
-		const points = scatterData(data, entry)
+function heldDisc(
+	held: ChartMarkRef | null,
+	indices: number[],
+): { series: number; datum: number } | null {
+	if (held?.datum == null) return null
 
-		const domain = entry.sizeKey === undefined ? null : sizeDomain(points)
+	const series = indices.indexOf(held.series)
 
-		const diameters = diameterRange(entry.size, entry.maxSize)
-
-		const color = entry.color ?? paletteSlot(index)
-
-		return {
-			index,
-			label: entry.yName ?? entry.yKey,
-			paint: resolvePaint(color),
-			color,
-			points,
-			sized: domain !== null,
-			sizeName: entry.sizeKey === undefined ? null : (entry.sizeName ?? entry.sizeKey),
-			radius: (size) => sizeRadius(size, domain, diameters),
-		}
-	})
-}
-
-/** The readout behind the discs: unique x columns crossed with each series' points. @internal */
-function scatterReadout(
-	visible: ScatterMeta[],
-	uniqueXs: number[],
-	format: (value: number) => string,
-	formatX: (value: number) => string,
-	formatSize: (value: number) => string,
-): ChartReadout | null {
-	if (visible.length === 0 || uniqueXs.length === 0) return null
-
-	return {
-		categories: uniqueXs.map(formatX),
-		rows: visible.map((meta) => ({
-			index: meta.index,
-			label: meta.label,
-			swatchClass: textClass(meta.paint) ?? '',
-			swatchColor: rawColor(meta.paint),
-			swatch: 'rect',
-			values: scatterReadoutValues(
-				meta.points,
-				uniqueXs,
-				format,
-				meta.sizeName === null ? null : (size) => `${meta.sizeName}: ${formatSize(size)}`,
-			),
-		})),
-	}
-}
-
-/**
- * The readout as a cached thunk, or `null` when there's nothing to read. At ten
- * thousand points the readout formats every unique-x column through `Intl`,
- * which costs more than drawing the discs. The mount render therefore only
- * decides one exists. The first consumer (the hover tooltip, the deferred
- * table) materializes it off that path.
- *
- * @internal
- */
-function scatterReadoutThunk(
-	visible: ScatterMeta[],
-	uniqueXs: number[],
-	format: (value: number) => string,
-	formatX: (value: number) => string,
-	formatSize: (value: number) => string,
-): (() => ChartReadout | null) | null {
-	if (visible.length === 0 || uniqueXs.length === 0) return null
-
-	return once(() => scatterReadout(visible, uniqueXs, format, formatX, formatSize))
-}
-
-/**
- * The readout thunk, memoized on the content its cells read: the rows, each
- * visible series' fields, name, and color, and the three formats. A parent render
- * hands new metas with the same content. A new thunk would reformat every cell
- * of the hidden table, and the deferred table would render the frame again.
- *
- * The metas and the x values are held while the rows and the key of the visible
- * series stay the same, so the memo lists what it reads.
- *
- * @internal
- */
-function useScatterReadout<T>(
-	data: T[],
-	series: ScatterChartSeries<T>[],
-	visible: ScatterMeta[],
-	uniqueXs: number[],
-	format: (value: number) => string,
-	formatX: (value: number) => string,
-	formatSize: (value: number) => string,
-): (() => ChartReadout | null) | null {
-	const key = visible
-		.map((meta) => {
-			const entry = series[meta.index]
-
-			return [
-				meta.index,
-				meta.label,
-				meta.sizeName,
-				entry?.xKey,
-				entry?.yKey,
-				entry?.sizeKey,
-				entry?.color,
-			].join('\u0001')
-		})
-		.join('\u0000')
-
-	const held = useStableValue(
-		{ data, key, visible, uniqueXs },
-		(previous, next) => previous.data === next.data && previous.key === next.key,
-	)
-
-	return useMemo(
-		() => scatterReadoutThunk(held.visible, held.uniqueXs, format, formatX, formatSize),
-		[held, format, formatX, formatSize],
-	)
-}
-
-/** The resolved frame flags: the plot's sizing plus the figure and legend layout. @internal */
-type ScatterFrame = {
-	sizing: FrameSizing
-	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
-	frameAspect?: number
-	/** The plot grows into its region's height rather than reserving one. */
-	fill: boolean
-	/** The legend is a side panel, so it lays out beside the plot. */
-	aside: boolean
-}
-
-/**
- * The scatter frame's sizing and legend layout resolved together. A live ratio
- * carries on the figure wrapper, so a definite-height parent clamps the whole
- * chart. That is the box-law, with the plot measuring the height a stacked band
- * leaves. A side legend instead keeps the ratio on the plot box and bands
- * beside it. The legend's placement also drives the panel-vs-row layout. Derived
- * from the props alone, so it precedes any measurement.
- *
- * @internal
- */
-function scatterFrame(
-	legend: ResolvedLegend['value'],
-	height: number | undefined,
-	aspectRatio: ChartAspectRatio,
-): ScatterFrame {
-	const aside = legendAside(legend)
-
-	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
-
-	return {
-		sizing,
-		frameAspect: outerAspect ?? undefined,
-		fill: frameFills(sizing),
-		aside,
-	}
-}
-
-/** The legend entries: on request, or by default once a second series needs telling apart. @internal */
-function scatterLegendItems(
-	metas: ScatterMeta[],
-	legend: ResolvedLegend['value'],
-): ChartLegendItem[] | null {
-	if (!legendVisible(legend, metas.length)) return null
-
-	return metas.map((meta) => ({
-		index: meta.index,
-		label: meta.label,
-		swatchClass: textClass(meta.paint) ?? '',
-		swatchColor: rawColor(meta.paint),
-		swatch: 'rect',
-		// The slot alone, so a textured swatch mirrors the mark's tile; a raw
-		// color carries no tile and inks through `swatchColor` instead.
-		color: meta.paint.kind === 'slot' ? meta.paint.slot : undefined,
-	}))
-}
-
-/** One axis's grid participation, from its own `grid` switch (default on). @internal */
-function resolveAxisGrid(axis: ChartValueAxis | undefined): boolean {
-	return axis?.grid ?? true
-}
-
-/** Both scales' pins, lifted off the props. @internal */
-type ScatterPins = { min?: number; max?: number; xMin?: number; xMax?: number }
-
-/** The resolved scatter plot: rect, scales, ticks, and placed axis titles. @internal */
-type ScatterScales = {
-	plot: PlotRect
-	xScale: LinearScale | null
-	yScale: LinearScale | null
-	xTicks: ChartAxisTick[]
-	yTicks: ChartAxisTick[]
-	/** The x / y axis titles placed in the bands the plot reserved for them; empty without titles. */
-	titles: ChartAxisTitlePlacement[]
-}
-
-/**
- * The scatter's placed axis titles. A rotated one sits in the left gutter for
- * the y axis, and a horizontal one under the x labels for the x axis. Each sits
- * in the band {@link scatterScales} reserved.
- *
- * @internal
- */
-function scatterTitles(
-	plot: PlotRect,
-	xTitle: string | undefined,
-	yTitle: string | undefined,
-): ChartAxisTitlePlacement[] {
-	const titles: ChartAxisTitlePlacement[] = []
-
-	if (yTitle) {
-		titles.push({ text: yTitle, x: AXIS_TITLE_BAND / 2, y: plot.y + plot.height / 2, rotate: -90 })
-	}
-
-	if (xTitle) {
-		titles.push({
-			text: xTitle,
-			x: plot.x + plot.width / 2,
-			y: plot.y + plot.height + X_AXIS_HEIGHT + AXIS_TITLE_BAND / 2,
-			rotate: 0,
-		})
-	}
-
-	return titles
-}
-
-/**
- * The inset a spark plot needs on every edge, so its largest disc clears the
- * frame rather than clipping. It is the widest disc radius across the visible
- * points, plus the half of the surface ring that strokes outside that radius.
- * The painted edge — not just the fill — therefore clears. Falls back to the
- * plain {@link MARKER_RADIUS} when
- * there is nothing to measure.
- * @internal
- */
-function sparkMarkInset(visible: ScatterMeta[]): number {
-	const widest = visible.reduce(
-		(outer, meta) =>
-			meta.points.reduce((inner, point) => Math.max(inner, meta.radius(point.size)), outer),
-		MARKER_RADIUS,
-	)
-
-	return widest + MARKER_RING_WIDTH / 2
-}
-
-/**
- * Both scales resolved, y from the frame height first, so its tick labels can
- * size the left gutter. Then x fills the plot width the labels leave, inset so
- * its extreme discs and end labels clear the frame. The end ticks are then
- * anchored inward, so those labels don't crowd the corner they sit in.
- *
- * @internal
- */
-function scatterScales(args: {
-	visible: ScatterMeta[]
-	frameWidth: number
-	frameHeight: number
-	axes: boolean
-	/** Spark draws bare marks, so the gutter is reclaimed and the domain fits tight. */
-	spark: boolean
-	tickTarget: number
-	pins: ScatterPins
-	format: (value: number) => string
-	formatX: (value: number) => string
-	/** The x / y axis titles; each reserves a band past its labels where the tier affords one. */
-	xTitle?: string
-	yTitle?: string
-}): ScatterScales {
-	const { visible, frameWidth, frameHeight, axes, spark, tickTarget, pins, format, formatX } = args
-
-	const drawAxes = axes && !spark
-
-	// A titled axis reserves a band past its labels — the x title under the x-axis
-	// band, the y title rotated at the far left — folded into the plot the way the
-	// cartesian layout folds its own.
-	const xTitle = drawAxes ? args.xTitle : undefined
-
-	const yTitle = drawAxes ? args.yTitle : undefined
-
-	const xTitleBand = xTitle ? AXIS_TITLE_BAND : 0
-
-	const yTitleBand = yTitle ? AXIS_TITLE_BAND + AXIS_TITLE_GAP : 0
-
-	// A spark scatter fits its domain tight — like a spark line, filling the box
-	// rather than sinking into the empty air a nice-stepped scale leaves — and
-	// insets every edge by the widest disc's radius so the marks read centered and
-	// clear the frame instead of clipping at it. A framed plot keeps the axis
-	// reservations: the ceiling tick's top pad and the x-axis band down the value
-	// axis, the gutter and end-label inset across.
-	const scaleTicks = spark ? 0 : tickTarget
-
-	const inset = spark ? sparkMarkInset(visible) : 0
-
-	const yScale = linearScale({
-		values: visible.flatMap((meta) => meta.points.map((point) => point.y)),
-		range: [
-			frameHeight - (drawAxes ? X_AXIS_HEIGHT + xTitleBand : inset),
-			spark ? inset : PLOT_TOP_PAD,
-		],
-		tickTarget: scaleTicks,
-		min: pins.min,
-		max: pins.max,
-	})
-
-	const yTicks = valueTicksOf(yScale, format)
-
-	const base = plotRect(
-		frameWidth,
-		frameHeight,
-		drawAxes,
-		yTicks.map((tick) => tick.label),
-	)
-
-	// The title bands narrow the plot from the base gutter / axis-band reservation
-	// the way the yScale range already dropped the x title's height.
-	const plot: PlotRect = {
-		x: base.x + yTitleBand,
-		y: base.y,
-		width: Math.max(0, base.width - yTitleBand),
-		height: Math.max(0, base.height - xTitleBand),
-	}
-
-	const xValues = visible.flatMap((meta) => meta.points.map((point) => point.x))
-
-	const xOptions = { tickTarget: scaleTicks, min: pins.xMin, max: pins.xMax }
-
-	const span: [number, number] = spark ? [inset, frameWidth - inset] : [plot.x, plot.x + plot.width]
-
-	// The framed x range insets so the extreme discs and end labels clear the frame;
-	// the end ticks then read inward off that range so their labels don't crowd the
-	// y floor label at the origin or butt the frame at the far end. Spark draws no
-	// axis, so its ticks stay bare and centered over the tight-fit span.
-	const xRange = drawAxes ? scatterXRange(xValues, xOptions, formatX, span) : span
-
-	const xScale = linearScale({ values: xValues, range: xRange, ...xOptions })
-
-	const xTicks = valueTicksOf(xScale, formatX)
-
-	return {
-		plot,
-		xScale,
-		yScale,
-		xTicks: drawAxes ? anchorEndTicks(xTicks, xRange[0], xRange[1]) : xTicks,
-		yTicks,
-		titles: scatterTitles(plot, xTitle, yTitle),
-	}
-}
-
-/**
- * The scatter frame's chrome: both axes' gridlines, tick labels, and titles.
- * Draws nothing at the spark tier. A sparkline is bare marks, so the labels,
- * gridlines, and titles that would clutter it stand down with the rest of the
- * chrome.
- * @internal
- */
-function ScatterChrome(props: {
-	plot: PlotRect
-	/** Spark strips the chrome entirely — the component renders nothing. */
-	spark: boolean
-	axes: boolean
-	/** Whether each axis's ticks rule the grid — resolved from the axis's own `grid` switch. */
-	xGrid: boolean
-	yGrid: boolean
-	xScale: LinearScale | null
-	yScale: LinearScale | null
-	xTicks: ChartAxisTick[]
-	yTicks: ChartAxisTick[]
-	/** The placed axis titles, empty when neither axis is titled. */
-	titles: ChartAxisTitlePlacement[]
-}) {
-	const { plot, spark, axes, xGrid, yGrid, xScale, yScale, xTicks, yTicks, titles } = props
-
-	if (spark) return null
-
-	return (
-		<>
-			{yGrid && yScale && <ChartGridLines plot={plot} ticks={yTicks.map((tick) => tick.at)} />}
-
-			{xGrid && xScale && (
-				<ChartGridLines
-					plot={plot}
-					ticks={xTicks.map((tick) => tick.at)}
-					orientation="horizontal"
-				/>
-			)}
-
-			{axes && yScale && <ChartAxis axis="y" plot={plot} ticks={yTicks} />}
-
-			{axes && xScale && <ChartAxis axis="x" plot={plot} ticks={xTicks} />}
-
-			{axes && <ChartAxisTitles titles={titles} />}
-		</>
-	)
+	return series < 0 ? null : { series, datum: held.datum }
 }
 
 /**
  * The scatter's pointer hit layer, mounted only where the chart is interactive.
  * It mounts over the columns when a tooltip, a crosshair, or `onPointClick`
  * asks for the pointer.
- * It never mounts at the spark tier, read through {@link ChartTierContext}, so
- * the frame decides. There a sparkline is non-interactive: its marks take no
- * hover or click. The crosshair and tooltip that ride this hover stand down
- * with it (the keyboard is already off at spark). Off the render so its gates stay out
- * of the frame's body, the way {@link ScatterChrome} keeps the chrome's.
+ * The hit area stands itself down at the spark tier, where a sparkline takes no
+ * hover or click. Off the render so its gates stay out of the frame's body, the
+ * way {@link ScatterChartChrome} keeps the chrome's.
  * @internal
  */
 function ScatterHitLayer(props: {
@@ -579,25 +158,18 @@ function ScatterHitLayer(props: {
 }) {
 	const { plot, tooltip, crosshair, centers, marks, indices, stops, trigger, onPointClick } = props
 
-	const spark = useChartTier() === 'spark'
-
-	if (spark || centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) {
-		return null
-	}
+	if (centers.length === 0 || !(tooltip || crosshair !== null || onPointClick)) return null
 
 	const snapping = crosshairSnaps(crosshair)
 
 	return (
-		<ScatterChartHitArea
+		<ChartHitArea
 			plot={plot}
 			centers={centers}
 			markAt={(x, y, held, index) => {
 				// The held disc's drawn position, keeping the resolution sticky across
 				// the midline between overlapping discs.
-				const heldAt = held?.datum != null ? indices.indexOf(held.series) : -1
-
-				const sticky =
-					heldAt < 0 || held?.datum == null ? null : { series: heldAt, datum: held.datum }
+				const sticky = heldDisc(held, indices)
 
 				// Isolation mirrors the readout: on a disc (within its slack), that
 				// disc; off every disc the emphasis goes to the stop the snapped
@@ -610,8 +182,10 @@ function ScatterHitLayer(props: {
 			}}
 			trigger={trigger}
 			snaps={snapping}
+			// The hit test above names a disc, so each mark that it reports has a datum.
 			onMarkClick={
-				onPointClick && ((mark) => onPointClick({ series: mark.series, datum: mark.datum ?? 0 }))
+				onPointClick &&
+				((mark) => onPointClick({ series: mark.series, datum: mark.datum as number }))
 			}
 		/>
 	)
@@ -631,8 +205,9 @@ function ScatterHitLayer(props: {
  * @remarks The hover, crosshair snap, and keyboard cursor key on the sorted
  * unique x values, the way the band charts key on categories. Focus the plot to
  * drive them. The horizontal arrows walk x columns, while the vertical arrows
- * step the points at one, duplicates included. The `texture` identity channel does not
- * apply to discs, so this chart does not take it.
+ * step the points at one, duplicates included. The cursor isolates the series of
+ * its point, and the other series recede. The `texture` identity channel does
+ * not apply to discs, so this chart does not take it.
  * @example
  * ```tsx
  * <ScatterChart
@@ -672,56 +247,55 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const metrics = CHART_METRICS[resolvedSize]
 
-	// The legend shares the aspect box, so a ratio describes the whole chart: with
-	// a legend a live ratio goes to the figure wrapper and the plot measures the
-	// height it leaves. Derived from the props — a legend shows for two or more
-	// series unless forced — so no measurement precedes the sizing.
-	// A live ratio with a legend describes the whole chart: the figure carries the
-	// ratio and the plot measures the height the legend leaves. Resolved from the
-	// props, so it precedes the measurement below.
+	// A live ratio carries on the figure wrapper, so a definite-height parent
+	// clamps the whole chart, and the plot measures the height a stacked legend
+	// leaves. A side legend instead keeps the ratio on the plot box and bands
+	// beside it. Resolved from the props, so it precedes the measurement below.
+	const aside = legendAside(resolvedLegend.value)
+
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
+
+	// The scatter reads the intrinsic tier from its measured box, as a cartesian
+	// chart does: the `data-tier` styling hook, the legend's row cap, and the
+	// tick budget and number format of both value axes. The density target above
+	// caps the tick target, and a short box lowers it. The frame draws the title
+	// and subtitle inside the aspect box, so the chrome reserve holds their lines
+	// and the legend. chartFramePolicy resolves the tier against the figure's
+	// `width / ratio` less that chrome.
 	const {
-		sizing,
-		frameAspect,
-		fill: fillFrame,
-		aside,
-	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
-
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, sizing)
-
-	// The scatter reads the intrinsic tier from its measured box for the
-	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
-	// the density target above, so only the tier and its legend budget are taken.
-	// The frame draws the title and subtitle inside the aspect box, so the chrome
-	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
-	// against the figure's `width / ratio` less that chrome.
-	const policy = chartFramePolicy({
+		ref,
 		width: frameWidth,
 		height: frameHeight,
-		aspect: frameAspect,
+		reserve,
+		policy,
+	} = useChartFrameSizing({
+		width,
+		sizing,
+		aside,
+		aspect: outerAspect,
 		chrome: {
 			headerLines: headerLineCount(props.title, props.subtitle),
 			legend: legendBands(resolvedLegend.value, series.length),
 		},
 		tickTarget: metrics.tickTarget,
-		fill: sizing.mode === 'fill',
 	})
 
-	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
+	// Spark stands the chart's chrome down to bare marks: ScatterChartChrome and
 	// scatterScales read this to shed their axis labels, gridlines, and the gutter
 	// — geometry the frame can't own. The interactivity gates need no copy of it:
 	// ScatterHitLayer and the crosshair stand themselves down through
 	// ChartTierContext, and the frame renders the drawing pointer-inert.
 	const spark = policy.tier === 'spark'
 
-	// The defaults write numbers in the ambient locale, as a cartesian chart does. A
-	// bubble's size has no formatter of its own, so it always takes the default.
+	// The defaults write numbers in the ambient locale, as a cartesian chart does.
 	const { locale } = useLocale()
 
-	const formatSize = fractionFormat(locale)
-
-	const format = axesConfig.y?.format ?? formatValue ?? formatSize
-
-	const formatX = axesConfig.x?.format ?? formatSize
+	const { format, formatX, formatSize, tickFormat, tickFormatX } = scatterFormats(
+		axesConfig,
+		formatValue,
+		locale,
+		policy.compactFormat,
+	)
 
 	const { hidden, toggle } = useChartSeriesToggle(
 		series.map((entry) => `${entry.xKey}:${entry.yKey}`),
@@ -738,15 +312,15 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 		frameHeight,
 		axes: draw,
 		spark,
-		tickTarget: metrics.tickTarget,
+		tickTarget: policy.tickTarget,
 		pins: {
 			min: axesConfig.y?.min,
 			max: axesConfig.y?.max,
 			xMin: axesConfig.x?.min,
 			xMax: axesConfig.x?.max,
 		},
-		format,
-		formatX,
+		format: tickFormat,
+		formatX: tickFormatX,
 		// Titles resolve only when the tier affords a title band, the same gate the
 		// cartesian value titles pass through.
 		xTitle: policy.axisTitles ? axesConfig.x?.title : undefined,
@@ -754,7 +328,9 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	})
 
 	// The sorted unique x values are the scatter's categories: the hover index,
-	// snap columns, keyboard cursor, and readout all key on them.
+	// snap columns, keyboard cursor, and readout all key on them. A point that
+	// draws no disc keeps its column, so the readout still reads it. Its column
+	// holds no snap stop, so the keyboard steps over it.
 	const uniqueXs = uniqueXValues(visible.map((meta) => meta.points))
 
 	const scaled = xScale !== null && yScale !== null
@@ -766,7 +342,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// the stop the tooltip anchors.
 	const snapStops = scaled
 		? scatterSnapStops(
-				visible.map((meta) => meta.points),
+				visible.map((meta) => meta.drawn),
 				uniqueXs,
 				yScale.map,
 			)
@@ -779,7 +355,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 				index: meta.index,
 				label: meta.label,
 				paint: meta.paint,
-				marks: scatterMarks(meta.points, xScale.map, yScale.map, meta.radius),
+				marks: scatterMarks(meta.drawn, xScale.map, yScale.map, meta.radius),
 				sized: meta.sized,
 			}))
 		: []
@@ -788,7 +364,19 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const indices = list.map((entry) => entry.index)
 
-	const readout = useScatterReadout(data, series, visible, uniqueXs, format, formatX, formatSize)
+	// The series behind each keyboard stop, so the cursor recedes the other
+	// series, as a cartesian cursor does. One visible series has none to recede.
+	const stopSeries = indices.length > 1 ? scatterSnapSeries(snapStops, indices) : undefined
+
+	const readout = useScatterChartReadout(
+		data,
+		series,
+		visible,
+		uniqueXs,
+		format,
+		formatX,
+		formatSize,
+	)
 
 	const rails = resolveCrosshair(crosshair)
 
@@ -811,8 +399,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
-			fill={fillFrame}
-			aspect={frameAspect}
+			fill={frameFills(sizing)}
+			aspect={outerAspect ?? undefined}
 			tier={policy.tier}
 			legend={
 				legendItems && (
@@ -833,15 +421,16 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			emphasizeMarks
 			tooltip={showTooltip}
 			snap={snapTargets(rails, bandPositions, snapColumns)}
-			focus={cartesianFocus(bandPositions, snapColumns, 'vertical')}
+			focus={cartesianFocus(bandPositions, snapColumns, 'vertical', undefined, stopSeries)}
+			keyboardEmphasis
 			className={className}
 		>
-			<ScatterChrome
+			<ScatterChartChrome
 				plot={plot}
 				spark={spark}
 				axes={draw}
-				xGrid={resolveAxisGrid(axesConfig.x)}
-				yGrid={resolveAxisGrid(axesConfig.y)}
+				xGrid={axesConfig.x?.grid ?? true}
+				yGrid={axesConfig.y?.grid ?? true}
 				xScale={xScale}
 				yScale={yScale}
 				xTicks={xTicks}
@@ -874,7 +463,7 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 					((at) =>
 						onPointClick({
 							series: at.series,
-							datum: metas[at.series]?.points[at.datum]?.row ?? at.datum,
+							datum: metas[at.series]?.drawn[at.datum]?.row ?? at.datum,
 						}))
 				}
 			/>

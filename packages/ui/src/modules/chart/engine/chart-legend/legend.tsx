@@ -7,11 +7,11 @@ import { Icon } from '../../../../components/icon'
 import { Popover, PopoverContent, PopoverTrigger } from '../../../../components/popover'
 import { Swatch } from '../../../../components/swatch'
 import { Text } from '../../../../components/text'
-import { cn } from '../../../../core'
+import { ariaAttr, cn, dataAttr } from '../../../../core'
 import { useA11yRoving } from '../../../../hooks/a11y'
 import type { ChartColorSlot } from '../../../../recipes/kata/chart'
 import { ChartSwatch } from '../chart-pattern-defs'
-import { useChartEmphasis, useChartSeriesFocus } from '../context'
+import { useChartReferencePoint, useChartSeriesFocus } from '../context'
 import { OVERFLOW_CHIP_RESERVE, visibleLegendCount } from './fit'
 import { type LegendEmphasis, LegendSwitch, useLegendEmphasis } from './legend-switch'
 
@@ -103,6 +103,35 @@ function controlLabels(
 /** The stable empty set a legend without a reference toggle reads for its off chips. @internal */
 const EMPTY_HIDDEN: ReadonlySet<number> = new Set()
 
+/** Props for {@link ChartLegendSwatch}. @internal */
+type ChartLegendSwatchProps = {
+	item: ChartLegendItem
+	/** The series is toggled off, so the swatch dims. */
+	off: boolean
+	/** The `texture` prop is on, so the square swatch hatches in every mode. */
+	texture: boolean
+}
+
+/**
+ * The key of a series switch: the {@link ChartSwatch} that mirrors the marks of
+ * the series. The row entry and the overflow switch use it.
+ *
+ * @internal
+ */
+function ChartLegendSwatch({ item, off, texture }: ChartLegendSwatchProps) {
+	return (
+		<ChartSwatch
+			swatch={item.swatch}
+			swatchClass={item.swatchClass}
+			swatchColor={item.swatchColor}
+			color={item.color}
+			dashed={item.dashed}
+			active={texture}
+			off={off}
+		/>
+	)
+}
+
 /** Props for {@link ChartLegendEntry}. @internal */
 type ChartLegendEntryProps = {
 	item: ChartLegendItem
@@ -154,17 +183,7 @@ function ChartLegendEntry({
 			label={item.label}
 			ghost={ghost}
 			className={cn(panel && 'w-full min-w-0 justify-start')}
-			keys={
-				<ChartSwatch
-					swatch={item.swatch}
-					swatchClass={item.swatchClass}
-					swatchColor={item.swatchColor}
-					color={item.color}
-					dashed={item.dashed}
-					active={texture}
-					off={off}
-				/>
-			}
+			keys={<ChartLegendSwatch item={item} off={off} texture={texture} />}
 			detail={
 				item.detail && (
 					<Text
@@ -228,15 +247,7 @@ function ChartLegendOverflowSwitch({
 			onPointerEnter={() => onEmphasis(item.index)}
 			onPointerLeave={() => onEmphasis(null)}
 		>
-			<ChartSwatch
-				swatch={item.swatch}
-				swatchClass={item.swatchClass}
-				swatchColor={item.swatchColor}
-				color={item.color}
-				dashed={item.dashed}
-				active={texture}
-				off={off}
-			/>
+			<ChartLegendSwatch item={item} off={off} texture={texture} />
 
 			<Text
 				as="span"
@@ -245,6 +256,82 @@ function ChartLegendOverflowSwitch({
 				className={cn('min-w-0 text-start leading-tight', off && 'line-through opacity-60')}
 			>
 				{item.label}
+			</Text>
+		</Button>
+	)
+}
+
+/** Props for {@link ChartLegendReferenceSwitch}. @internal */
+type ChartLegendReferenceSwitchProps = {
+	reference: ChartLegendReference
+	/** The rule is toggled off: the label strikes through and the swatch dims. */
+	off: boolean
+	/** Toggles the rule on or off by its index. */
+	onToggle: (index: number) => void
+	/** The legend's shared pointer and focus emphasis of the rules. */
+	emphasis: LegendEmphasis<number>
+	/**
+	 * Renders for measurement only, in the invisible ghost row. It carries a
+	 * distinct `chart-legend-reference-ghost` slot and no handlers, so it never
+	 * double-counts with the interactive row.
+	 * @defaultValue false
+	 */
+	ghost?: boolean
+}
+
+/**
+ * One reference chip: a switch keyed to its rule, as a series entry is keyed to
+ * its marks. It shows the label of the rule beside a line swatch in the color of
+ * the rule.
+ *
+ * @remarks
+ * A click toggles the rule. A pointer or a keyboard focus on a chip that is on
+ * recedes the marks to its rule, through the shared reference emphasis. A chip
+ * that is off strikes its label and dims its swatch, as a series entry does. Its
+ * rule is gone, so it recedes nothing. A palette slot inks the swatch through
+ * its `currentColor` class, and a raw color inks it inline. The line dashes to
+ * match the rule, unless the rule is solid.
+ * @internal
+ */
+function ChartLegendReferenceSwitch({
+	reference,
+	off,
+	onToggle,
+	emphasis,
+	ghost = false,
+}: ChartLegendReferenceSwitchProps) {
+	return (
+		<Button
+			type="button"
+			size="sm"
+			variant="plain"
+			data-slot={ghost ? 'chart-legend-reference-ghost' : 'chart-legend-reference'}
+			aria-pressed={!off}
+			{...(ghost
+				? {}
+				: {
+						onClick: () => onToggle(reference.index),
+						onPointerEnter: () => emphasis.point(reference.index),
+						onPointerLeave: () => emphasis.point(null),
+						onFocus: emphasis.sync,
+						onBlur: emphasis.sync,
+					})}
+		>
+			<Swatch
+				shape="line"
+				variant={reference.dashed === false ? 'solid' : 'dashed'}
+				color={reference.swatchClass || undefined}
+				style={reference.color ? { color: reference.color } : undefined}
+				className={cn(off && 'opacity-60')}
+			/>
+
+			<Text
+				as="span"
+				tone="muted"
+				size="sm"
+				className={cn('text-start leading-tight', off && 'line-through opacity-60')}
+			>
+				{reference.label}
 			</Text>
 		</Button>
 	)
@@ -308,6 +395,12 @@ export type ChartLegendReference = {
 	 * @defaultValue true
 	 */
 	dashed?: boolean
+	/**
+	 * Whether the plot draws the rule. A rule outside a pinned domain draws
+	 * nothing, so its chip recedes nothing, as a chip that is off does.
+	 * @defaultValue true
+	 */
+	drawn?: boolean
 }
 
 /** Props for {@link ChartLegend}. @internal */
@@ -451,6 +544,10 @@ export function ChartLegend({
 
 	const currentPage = Math.min(page, pageCount - 1)
 
+	const firstPage = currentPage === 0
+
+	const lastPage = currentPage === pageCount - 1
+
 	const pageItems = paginate
 		? items.slice(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE)
 		: items
@@ -501,40 +598,45 @@ export function ChartLegend({
 	// or keyboard focus recedes the data marks and the rule's siblings to it, the
 	// same emphasis as pointing the rule. Present whenever the legend is inside a
 	// chart.
-	const { setReferenceActive } = useChartEmphasis()
+	const setReferenceActive = useChartReferencePoint()
 
-	// Which rule the pointer's chip names, or none — the rule's own array index, so
-	// the emphasis lands on the same rule the plot draws even when a non-finite rule
-	// leaves a gap the chips skip.
-	const referencePointed = useRef<number | null>(null)
+	// The chips take the same pointer and focus rule as the series switches. Chips
+	// render in `references` order, so a focused chip's position names its entry.
+	// The entry carries the index of the rule in the chart's `reference` array. The
+	// emphasis therefore lands on the rule the plot draws, even past a non-finite
+	// rule that the chips skip. A chip that is off names a pulled rule, so it is not
+	// live and recedes nothing.
+	const referenceEmphasis = useLegendEmphasis(
+		ref,
+		'button[data-slot="chart-legend-reference"]',
+		(position) => references[position]?.index ?? null,
+		setReferenceActive,
+		(index) =>
+			!referenceHidden.has(index) &&
+			references.find((reference) => reference.index === index)?.drawn !== false,
+	)
 
-	// Reference emphasis follows the same pointer-vs-focus-visible gate as
-	// `syncEmphasis`: a pointed chip names its rule, else a keyboard-focused one
-	// (`:focus-visible`, the ring's gate) does, so a click's ring-less focus — or a
-	// backgrounded tab's refired focus — recedes nothing without a ring to explain
-	// it. Chips render in `references` order, so a focused chip's position names its
-	// entry, which carries the rule index the emphasis keys off. An off chip names a
-	// pulled rule, so it holds focus after a keyboard toggle but recedes nothing.
-	const syncReference = () => {
-		if (referencePointed.current !== null) {
-			setReferenceActive(referencePointed.current)
+	// A toggle sets the recede to the state it leaves. The hidden set of this
+	// render is the state before the toggle, so the emphasis cannot read it. A rule
+	// that comes back recedes the marks to it, because the pointer or the keyboard
+	// focus is still on its chip. A rule that goes recedes nothing.
+	const toggleReference = (index: number) => {
+		const off = referenceHidden.has(index)
 
-			return
-		}
+		onToggleReference?.(index)
 
-		const chips = ref.current?.querySelectorAll<HTMLButtonElement>(
-			'button[data-slot="chart-legend-reference"]',
-		)
+		setReferenceActive(off ? index : null)
+	}
 
-		const position = chips
-			? Array.from(chips).findIndex((chip) => chip.matches(':focus-visible'))
-			: -1
+	// Escape closes the overflow popover and unmounts the switch under a resting
+	// pointer, so no `pointerleave` reaches it. The close therefore clears the
+	// pointed switch of both emphases.
+	const onOverflowOpenChange = (open: boolean) => {
+		if (open) return
 
-		const focusedIndex = position === -1 ? null : (references[position]?.index ?? null)
+		emphasis.point(null)
 
-		setReferenceActive(
-			focusedIndex !== null && !referenceHidden.has(focusedIndex) ? focusedIndex : null,
-		)
+		referenceEmphasis.point(null)
 	}
 
 	// The row is a toolbar — one Tab stop, arrow-key roving, Escape to drop focus —
@@ -585,78 +687,6 @@ export function ChartLegend({
 		/>
 	)
 
-	// One reference chip, likewise in the visible row or the ghost. A reference
-	// chip is a switch keyed to its rule the way a series entry is to its marks:
-	// clicking toggles the rule off, and pointing or focusing a still-shown chip
-	// recedes the marks to it through the shared reference emphasis. An off chip
-	// strikes its label and dims its swatch — the same off treatment a series entry
-	// takes — and its pointer / focus path recedes nothing, since its rule is gone.
-	// The slot color rides its currentColor class; a raw color rides an inline
-	// style; and the line swatch dashes to match the rule unless it is drawn solid.
-	// The ghost copy measures width alone, so it drops the handlers its inert row
-	// would never fire and takes a distinct slot so it never double-counts.
-	const renderReference = (reference: ChartLegendReference, ghost: boolean) => {
-		const off = referenceHidden.has(reference.index)
-
-		return (
-			<Button
-				type="button"
-				key={`reference:${reference.index}`}
-				size="sm"
-				variant="plain"
-				data-slot={ghost ? 'chart-legend-reference-ghost' : 'chart-legend-reference'}
-				aria-pressed={!off}
-				{...(ghost
-					? {}
-					: {
-							onClick: () => {
-								onToggleReference?.(reference.index)
-
-								// Drive the recede to the toggle's resulting state directly: off
-								// pulls the rule so nothing recedes, on emphasizes the chip the
-								// pointer or keyboard focus still holds. Setting it here — rather
-								// than through syncReference — sidesteps the toggle's
-								// not-yet-applied hidden set.
-								const active = off ? reference.index : null
-
-								referencePointed.current = active
-
-								setReferenceActive(active)
-							},
-							onPointerEnter: () => {
-								referencePointed.current = off ? null : reference.index
-
-								syncReference()
-							},
-							onPointerLeave: () => {
-								referencePointed.current = null
-
-								syncReference()
-							},
-							onFocus: syncReference,
-							onBlur: syncReference,
-						})}
-			>
-				<Swatch
-					shape="line"
-					variant={reference.dashed === false ? 'solid' : 'dashed'}
-					color={reference.swatchClass || undefined}
-					style={reference.color ? { color: reference.color } : undefined}
-					className={cn(off && 'opacity-60')}
-				/>
-
-				<Text
-					as="span"
-					tone="muted"
-					size="sm"
-					className={cn('text-start leading-tight', off && 'line-through opacity-60')}
-				>
-					{reference.label}
-				</Text>
-			</Button>
-		)
-	}
-
 	// The shown switches, an optional pagination row, the shown reference chips,
 	// and — once the cap trims the row — the `+N` chip that opens the rest as a
 	// popover switchboard. Rendered inline in the wrap row; in panel mode they nest
@@ -671,13 +701,18 @@ export function ChartLegend({
 					data-slot="chart-legend-pagination"
 					className="flex w-full items-center justify-between gap-1 pt-1"
 				>
+					{/* A button at the end of the range announces `aria-disabled` and ignores
+					    the press. A native `disabled` drops the focus to the body. */}
 					<Button
 						type="button"
 						size="sm"
 						variant="plain"
 						aria-label="Previous legend entries"
-						disabled={currentPage === 0}
-						onClick={() => setPage(currentPage - 1)}
+						aria-disabled={ariaAttr(firstPage)}
+						data-disabled={dataAttr(firstPage)}
+						onClick={() => {
+							if (!firstPage) setPage(currentPage - 1)
+						}}
 					>
 						<Icon icon={<ChevronLeft />} className="rtl:-scale-x-100" />
 					</Button>
@@ -691,15 +726,26 @@ export function ChartLegend({
 						size="sm"
 						variant="plain"
 						aria-label="Next legend entries"
-						disabled={currentPage === pageCount - 1}
-						onClick={() => setPage(currentPage + 1)}
+						aria-disabled={ariaAttr(lastPage)}
+						data-disabled={dataAttr(lastPage)}
+						onClick={() => {
+							if (!lastPage) setPage(currentPage + 1)
+						}}
 					>
 						<Icon icon={<ChevronRight />} className="rtl:-scale-x-100" />
 					</Button>
 				</div>
 			)}
 
-			{shownReferences.map((reference) => renderReference(reference, false))}
+			{shownReferences.map((reference) => (
+				<ChartLegendReferenceSwitch
+					key={`reference:${reference.index}`}
+					reference={reference}
+					off={referenceHidden.has(reference.index)}
+					onToggle={toggleReference}
+					emphasis={referenceEmphasis}
+				/>
+			))}
 
 			{overflowCount > 0 && (
 				// The overflow chip: a switch-count badge opening the trimmed controls as
@@ -707,7 +753,7 @@ export function ChartLegend({
 				// away rather than clipping out of sight — the popover floats free of the
 				// aspect box the row is bound to. `autoFocus` seats focus in the panel so a
 				// keyboard open lands on the switches it just revealed.
-				<Popover placement="bottom">
+				<Popover placement="bottom" onOpenChange={onOverflowOpenChange}>
 					<PopoverTrigger>
 						<Button
 							type="button"
@@ -737,7 +783,15 @@ export function ChartLegend({
 								/>
 							))}
 
-							{overflowReferences.map((reference) => renderReference(reference, false))}
+							{overflowReferences.map((reference) => (
+								<ChartLegendReferenceSwitch
+									key={`reference:${reference.index}`}
+									reference={reference}
+									off={referenceHidden.has(reference.index)}
+									onToggle={toggleReference}
+									emphasis={referenceEmphasis}
+								/>
+							))}
 						</div>
 					</PopoverContent>
 				</Popover>
@@ -794,20 +848,32 @@ export function ChartLegend({
 	// visible row would. The ghost overlays the row from the top of a relative
 	// wrapper and sits out of flow (`absolute`), so it adds no height; `inert` and
 	// `invisible` keep it unpainted and out of the a11y tree while it still lays out
-	// for measurement. It packs left (`justify-start`) so each control's right edge
-	// reads as the width consumed on its row — what the fit math needs — rather than
-	// a centered offset.
+	// for measurement. A hidden box still takes its space, and the ghost holds many
+	// rows. A box of zero height clips it, so it adds no scroll range below the
+	// chart. The row inside keeps its full height, which the fit observes. It packs
+	// left (`justify-start`) so each control's right edge reads as the width
+	// consumed on its row — what the fit math needs — rather than a centered offset.
 	return (
 		<div className="relative w-full">
 			<div
-				ref={ghostRef}
 				aria-hidden
 				inert
-				className="pointer-events-none invisible absolute inset-x-0 top-0 flex flex-wrap items-center justify-start"
+				className="pointer-events-none invisible absolute inset-x-0 top-0 h-0 overflow-hidden"
 			>
-				{items.map((item) => renderEntry(item, true))}
+				<div ref={ghostRef} className="flex flex-wrap items-center justify-start">
+					{items.map((item) => renderEntry(item, true))}
 
-				{references.map((reference) => renderReference(reference, true))}
+					{references.map((reference) => (
+						<ChartLegendReferenceSwitch
+							key={`reference:${reference.index}`}
+							reference={reference}
+							off={referenceHidden.has(reference.index)}
+							ghost
+							onToggle={toggleReference}
+							emphasis={referenceEmphasis}
+						/>
+					))}
+				</div>
 			</div>
 
 			{legend}

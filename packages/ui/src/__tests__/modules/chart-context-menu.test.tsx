@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { BarChart } from '../../modules/chart'
+import { BarChart, PieChart } from '../../modules/chart'
 import { readoutToCsv } from '../../modules/chart/engine/chart-export'
 import { bySlot, fireEvent, getSlot, renderUI, screen } from '../helpers'
 
@@ -43,6 +43,25 @@ describe('Chart context menu', () => {
 
 		// Copy image is not a default action.
 		expect(screen.queryByRole('menuitem', { name: 'Copy image' })).not.toBeInTheDocument()
+	})
+
+	it('drops the data actions from an empty pie', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Share"
+				data={[] as Row[]}
+				series={[{ xKey: 'quarter', yKey: 'revenue' }]}
+				width={300}
+			/>,
+		)
+
+		openChartMenu(container)
+
+		expect(screen.getByRole('menuitem', { name: 'Download PNG' })).toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Download CSV' })).not.toBeInTheDocument()
+
+		expect(screen.queryByRole('menuitem', { name: 'Copy data' })).not.toBeInTheDocument()
 	})
 
 	it('merges custom items and can hide the defaults', () => {

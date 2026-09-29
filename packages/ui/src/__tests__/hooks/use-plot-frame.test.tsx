@@ -23,20 +23,37 @@ const Marks = memo(function Marks({
 	return <span data-testid="marks" data-width={width} data-height={height} />
 })
 
+/**
+ * A child with no memo, so it renders with each render of the frame that
+ * reaches the children. A state write that changes nothing skips it.
+ */
+function Tick({ onRender }: { onRender: () => void }) {
+	onRender()
+
+	return null
+}
+
 function Probe({
 	width,
 	sizing,
+	shared = false,
 	onMarks,
+	onFrame,
 }: {
 	width: number | undefined
 	sizing: FrameSizing
+	shared?: boolean
 	onMarks: () => void
+	/** Counts each render of the frame that reaches its children. */
+	onFrame?: () => void
 }) {
-	const plot = usePlotFrame(width, sizing)
+	const plot = usePlotFrame(width, sizing, shared)
 
 	return (
 		<div ref={plot.ref} data-testid="plot">
 			<Marks width={plot.width} height={plot.height} onRender={onMarks} />
+
+			{onFrame && <Tick onRender={onFrame} />}
 		</div>
 	)
 }
@@ -96,6 +113,83 @@ describe('usePlotFrame observer lifecycle', () => {
 		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 
 		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('300')
+	})
+
+	it('draws a shared fixed width until the plot measures the width that remains', () => {
+		renderUI(<Probe width={600} sizing={{ mode: 'aspect', ratio: 2 }} shared onMarks={vi.fn()} />)
+
+		// A side legend shares the width, so the plot observes its own box.
+		expect(observers).toHaveLength(1)
+
+		// With no measurement yet, the explicit width draws, as a server render does.
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
+
+		resizeTo(screen.getByTestId('plot'), { width: 400, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		expect(screen.getByTestId('marks').getAttribute('data-height')).toBe('200')
+	})
+
+	it('measures a shared plot as it attaches, in the render that the attach costs', () => {
+		// The plot box is narrower than the explicit width before React attaches it.
+		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(400)
+
+		const onFrame = vi.fn()
+
+		renderUI(
+			<Probe
+				width={600}
+				sizing={{ mode: 'aspect', ratio: 2 }}
+				shared
+				onMarks={vi.fn()}
+				onFrame={onFrame}
+			/>,
+		)
+
+		clientWidth.mockRestore()
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		// The mount, then one render for the attach and its measurement together.
+		expect(onFrame).toHaveBeenCalledTimes(2)
+	})
+
+	it('renders no more for a shared plot as wide as its explicit width', () => {
+		// A legend stacked below the plot leaves it the whole width.
+		const clientWidth = vi.spyOn(Element.prototype, 'clientWidth', 'get').mockReturnValue(600)
+
+		const onFrame = vi.fn()
+
+		renderUI(
+			<Probe
+				width={600}
+				sizing={{ mode: 'aspect', ratio: 2 }}
+				shared
+				onMarks={vi.fn()}
+				onFrame={onFrame}
+			/>,
+		)
+
+		clientWidth.mockRestore()
+
+		const plot = screen.getByTestId('plot')
+
+		expect(onFrame).toHaveBeenCalledTimes(2)
+
+		// The first notification repeats the size that the attach read.
+		resizeTo(plot, { width: 600, height: 0 })
+
+		expect(onFrame).toHaveBeenCalledTimes(2)
+
+		// A legend beside the plot narrows it, and the width comes back after.
+		resizeTo(plot, { width: 400, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('400')
+
+		resizeTo(plot, { width: 600, height: 0 })
+
+		expect(screen.getByTestId('marks').getAttribute('data-width')).toBe('600')
 	})
 
 	it('tracks resize notifications live and swallows the ones that change nothing', () => {

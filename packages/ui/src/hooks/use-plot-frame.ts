@@ -187,6 +187,11 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
  * size is fully fixed by props observes nothing at all, so a resize never
  * reaches it.
  *
+ * A side legend takes a share of an explicit `width`, so the plot box is
+ * narrower than that width. With `sharedWidth` set, the plot measures its own
+ * width, and the explicit `width` stands only until that measurement lands.
+ * A server render and a test frame therefore still draw from the width alone.
+ *
  * Resize notifications commit as transitions. The frame tracks its container
  * live, with no settle window and no timers. React coalesces a burst by
  * abandoning renders whose size is already stale. A window drag on a slow
@@ -204,6 +209,9 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
  * measure the container.
  * @param sizing - The frame's sizing policy, from `chartFrameSizing` or
  * `mapFrameSizing`.
+ * @param sharedWidth - A side legend shares the explicit `width` with the
+ * plot, so the plot measures the width that remains. It has no effect without
+ * an explicit `width`, because the plot then measures its width anyway.
  * @returns The wrapper `ref` to attach, and the resolved drawing box. The ref
  * is a callback ref that re-targets the observer if React swaps the node, still
  * readable through `.current`. An unmeasured `width` stays `0`, which renders
@@ -213,6 +221,7 @@ function sameFrameSize(a: FrameSize, b: FrameSize): boolean {
 export function usePlotFrame(
 	width: number | undefined,
 	sizing: FrameSizing,
+	sharedWidth = false,
 ): {
 	ref: PlotFrameRef
 	width: number
@@ -234,27 +243,13 @@ export function usePlotFrame(
 	// size while its CSS box resizes on.
 	const [node, setNode] = useState<HTMLDivElement | null>(null)
 
-	// The attachment handle: a stable callback ref, so React reports every
-	// attach and detach into `node`, carrying the object-ref `.current` view
-	// consumers read outside the render cycle (tooltip hit-testing, hover
-	// geometry).
-	const ref = useMemo<PlotFrameRef>(() => {
-		const handle = Object.assign(
-			(next: HTMLDivElement | null) => {
-				handle.current = next
-
-				setNode(next)
-			},
-			{ current: null as HTMLDivElement | null },
-		)
-
-		return handle
-	}, [])
+	const [size, setSize] = useState<FrameSize>({ width: 0, height: 0, containerHeight: 0 })
 
 	// The policy decides what the frame consumes: the width feeds every
 	// sizing but `fixed` unless the consumer fixes it directly, and a height
-	// feeds only the height-measured cases — `fill` and `aspect-fill`.
-	const measureWidth = width === undefined
+	// feeds only the height-measured cases — `fill` and `aspect-fill`. A side
+	// legend takes a share of a fixed width, so that plot measures its own.
+	const measureWidth = width === undefined || sharedWidth
 
 	// `fill` reads the container's height; `aspect-fill` reads the plot's own — the
 	// remainder its figure's aspect-ratio leaves once the legend takes its size.
@@ -266,8 +261,6 @@ export function usePlotFrame(
 	// instead. `aspect-fill` resolves that height from the width / ratio, so it never
 	// reads this.
 	const measureContainer = sizing.mode === 'fill'
-
-	const [size, setSize] = useState<FrameSize>({ width: 0, height: 0, containerHeight: 0 })
 
 	// The size of the plot element, in integer px. An axis the policy ignores
 	// stays 0, so it never re-renders the frame.
@@ -296,6 +289,31 @@ export function usePlotFrame(
 		[measureWidth, measureHeight, measureContainer],
 	)
 
+	const measures = measureWidth || measureHeight
+
+	// The attachment handle: a callback ref, so React reports every attach and
+	// detach into `node`, carrying the object-ref `.current` view consumers read
+	// outside the render cycle (tooltip hit-testing, hover geometry). It keeps
+	// its identity while the measured axes hold. A frame that measures reads its
+	// size as the node attaches, so the first size lands in the render that the
+	// attach already costs, not in one more render after it.
+	const ref = useMemo<PlotFrameRef>(() => {
+		const handle = Object.assign(
+			(next: HTMLDivElement | null) => {
+				handle.current = next
+
+				setNode(next)
+
+				const measured = next && measures ? readSize(next) : null
+
+				if (measured) setSize((current) => (sameFrameSize(current, measured) ? current : measured))
+			},
+			{ current: null as HTMLDivElement | null },
+		)
+
+		return handle
+	}, [readSize, measures])
+
 	// Settle the size before the browser paints, and re-settle on every size
 	// change: the mount measure can resolve a tier that mounts or drops the
 	// header and legend, reflowing the plot the drawing height is read from — so
@@ -313,12 +331,12 @@ export function usePlotFrame(
 	// reads the DOM afresh and compares the reading with the committed `size`, so
 	// the chain stops at the first reading that matches it.
 	useLayoutEffect(() => {
-		if (!node || !(measureWidth || measureHeight)) return
+		if (!node || !measures) return
 
 		const next = readSize(node)
 
 		if (next !== null && !sameFrameSize(next, size)) setSize(next)
-	}, [node, readSize, measureWidth, measureHeight, size])
+	}, [node, readSize, measures, size])
 
 	// Observe only while a measured axis feeds the sizing — a fully fixed
 	// frame constructs no observer, so a resize never re-renders it. Keyed on
@@ -327,7 +345,7 @@ export function usePlotFrame(
 	// delegating to `useResizeObserver` because the conditionality is this
 	// hook's policy, not the shared hook's contract.
 	useEffect(() => {
-		if (!node || !(measureWidth || measureHeight)) return
+		if (!node || !measures) return
 
 		const observer = new ResizeObserver(() => {
 			// Transition priority: a burst of notifications coalesces — React
@@ -343,9 +361,10 @@ export function usePlotFrame(
 		observer.observe(node)
 
 		return () => observer.disconnect()
-	}, [node, readSize, measureWidth, measureHeight])
+	}, [node, readSize, measures])
 
-	const resolvedWidth = width ?? size.width
+	// The explicit width stands until a shared plot has a measurement.
+	const resolvedWidth = width === undefined || (sharedWidth && size.width > 0) ? size.width : width
 
 	const { height, reserve } = resolveFrameSizing(sizing, resolvedWidth, size.height)
 

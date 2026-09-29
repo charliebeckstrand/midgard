@@ -24,6 +24,26 @@ const DATA = [
 	{ source: 'Referral', visits: 15 },
 ]
 
+/** The distance from a point to the nearest point of a line segment. */
+function segmentDistance(
+	px: number,
+	py: number,
+	x0: number,
+	y0: number,
+	x1: number,
+	y1: number,
+): number {
+	const dx = x1 - x0
+
+	const dy = y1 - y0
+
+	const length = dx * dx + dy * dy
+
+	const t = length > 0 ? Math.min(1, Math.max(0, ((px - x0) * dx + (py - y0) * dy) / length)) : 0
+
+	return Math.hypot(px - (x0 + t * dx), py - (y0 + t * dy))
+}
+
 function chart(extra?: Partial<Parameters<typeof PieChart<(typeof DATA)[number]>>[0]>) {
 	return (
 		<PieChart
@@ -168,6 +188,31 @@ describe('PieChart', () => {
 		rerender(chart({ tooltip: { trigger: 'click' }, data: DATA.slice(0, 2) }))
 
 		expect(bySlot(container, 'tooltip-content')).toBeNull()
+	})
+
+	it('recedes the other slices while the keyboard cursor reads a slice', () => {
+		const { container } = renderUI(chart())
+
+		const plot = getSlot(container, 'chart-plot')
+
+		const receded = () =>
+			allBySlot(container, 'chart-slice').map(
+				(slice) => slice.parentElement?.getAttribute('class')?.includes('opacity-25') ?? false,
+			)
+
+		// The first arrow enters on the first slice, so the other slices recede.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([false, true, true])
+
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(receded()).toEqual([true, false, true])
+
+		// Escape drops the emphasis with the readout.
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(receded()).toEqual([false, false, false])
 	})
 
 	it('drops a keyboard cursor that a shorter data set leaves past its end', () => {
@@ -656,6 +701,14 @@ describe('pieSlices', () => {
 		expect(slices.map((slice) => slice.index)).toEqual([0, 4])
 	})
 
+	it('takes no slice for an infinite value', () => {
+		const slices = pieSlices([Number.POSITIVE_INFINITY, 10, 30], FRAME)
+
+		expect(slices.map((slice) => slice.index)).toEqual([1, 2])
+
+		expect(slices.every((slice) => !slice.d.includes('NaN'))).toBe(true)
+	})
+
 	it('degenerates a single share to the full circle', () => {
 		const [only] = pieSlices([0, 42], FRAME)
 
@@ -788,6 +841,58 @@ describe('pieCallouts', () => {
 		}
 	})
 
+	it('keeps each moved callout and its leader off the pie body', () => {
+		// Two clusters of slivers sit near 12 o'clock, one on each side of the
+		// large slice, so the declump pushes their labels down each side.
+		const values = [
+			...Array.from({ length: 6 }, () => 1),
+			100,
+			...Array.from({ length: 6 }, () => 1),
+		]
+
+		const center = { cx: 150, cy: 150, radius: 80 }
+
+		const circle = center.radius + CALLOUT_LEADER
+
+		const placed = pieCallouts(pieSlices(values, center), {
+			...center,
+			top: center.cy - circle,
+			bottom: center.cy + circle,
+		})
+
+		expect(placed).toHaveLength(values.length)
+
+		for (const callout of placed) {
+			// The label anchor sits past the pie body, on or outside the leader circle.
+			expect(Math.hypot(callout.x - center.cx, callout.y - center.cy)).toBeGreaterThan(circle)
+
+			// Past its radial first segment, no part of the leader enters the pie body.
+			const points = callout.leader.split(' ').map((point) => point.split(',').map(Number))
+
+			for (let at = 2; at < points.length; at++) {
+				const [x0, y0] = points[at - 1] as [number, number]
+
+				const [x1, y1] = points[at] as [number, number]
+
+				expect(segmentDistance(center.cx, center.cy, x0, y0, x1, y1)).toBeGreaterThanOrEqual(
+					center.radius,
+				)
+			}
+		}
+
+		// The labels of one side stay at least a line apart.
+		for (const anchor of ['start', 'end'] as const) {
+			const ys = placed
+				.filter((callout) => callout.anchor === anchor)
+				.map((callout) => callout.y)
+				.sort((a, b) => a - b)
+
+			for (let i = 1; i < ys.length; i++) {
+				expect((ys[i] ?? 0) - (ys[i - 1] ?? 0)).toBeGreaterThanOrEqual(CALLOUT_LINE - 0.001)
+			}
+		}
+	})
+
 	it('routes a three-point leader with the label a constant gap past its nub', () => {
 		const [first] = pieCallouts(pieSlices([60, 40], { cx: 100, cy: 100, radius: 60 }), OPTS)
 
@@ -845,6 +950,109 @@ describe('pieCalloutFit', () => {
 
 		// Not every label reaches an edge — only the widest-reaching one per side.
 		expect(farEdges.some((edge) => edge > 5 && edge < frameWidth - 5)).toBe(true)
+	})
+
+	it('reserves the room that a moved callout takes on its leader circle', () => {
+		// Slivers on each side of a large slice sit near 12 o'clock, so the declump
+		// moves their labels down the leader circle, away from the center line.
+		const values = [
+			...Array.from({ length: 6 }, () => 1),
+			100,
+			...Array.from({ length: 6 }, () => 1),
+		]
+
+		const texts = values.map((_, index) => `Source ${index + 1}`)
+
+		const textWidth = estimateTextWidth(CALLOUT_CHAR_WIDTH)
+
+		const frameWidth = 480
+
+		const fit = pieCalloutFit({ values, texts, textWidth, frameWidth })
+
+		const cy = 200
+
+		const circle = fit.radius + CALLOUT_LEADER
+
+		const callouts = pieCallouts(pieSlices(values, { cx: fit.cx, cy, radius: fit.radius }), {
+			cx: fit.cx,
+			cy,
+			radius: fit.radius,
+			top: cy - circle,
+			bottom: cy + circle,
+		})
+
+		expect(callouts).toHaveLength(values.length)
+
+		// Each label's far edge stays inside the frame.
+		for (const callout of callouts) {
+			const extent = textWidth(texts[callout.index] ?? '')
+
+			const far = callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+
+			expect(far).toBeGreaterThanOrEqual(-1e-6)
+
+			expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
+		}
+	})
+
+	it('keeps the callouts inside the frame when the frame height caps the radius', () => {
+		// A seeded run of crowded pies. A frame height below the content fit caps the
+		// drawn radius under the fit radius, and the labels crowd more there.
+		let seed = 7
+
+		const random = () => {
+			seed = (seed * 1103515245 + 12345) % 2147483648
+
+			return seed / 2147483648
+		}
+
+		const textWidth = estimateTextWidth(CALLOUT_CHAR_WIDTH)
+
+		const band = CALLOUT_LEADER + CALLOUT_LINE
+
+		for (let run = 0; run < 300; run++) {
+			const values = [
+				60 + random() * 100,
+				...Array.from({ length: Math.floor(random() * 30) }, () => 0.2 + random() * 2),
+			]
+
+			if (random() < 0.5) values.reverse()
+
+			const texts = values.map(() => 'x'.repeat(2 + Math.floor(random() * 24)))
+
+			const frameWidth = 200 + Math.floor(random() * 800)
+
+			const fit = pieCalloutFit({ values, texts, textWidth, frameWidth })
+
+			const height = Math.round(2 * fit.radius * (0.3 + random() * 0.7) + 2 * band)
+
+			const radius = Math.min(fit.radius, height / 2 - band)
+
+			// Labels too wide for the frame fit no disc, and the chart draws no callout.
+			if (radius <= 0) continue
+
+			const cy = height / 2
+
+			const callouts = pieCallouts(pieSlices(values, { cx: fit.cx, cy, radius }), {
+				cx: fit.cx,
+				cy,
+				radius,
+				top: CALLOUT_LINE,
+				bottom: height - CALLOUT_LINE,
+			})
+
+			for (const callout of callouts) {
+				const extent = textWidth(texts[callout.index] ?? '')
+
+				const far = callout.anchor === 'start' ? callout.x + extent : callout.x - extent
+
+				expect(far).toBeGreaterThanOrEqual(-1e-6)
+
+				expect(far).toBeLessThanOrEqual(frameWidth + 1e-6)
+
+				expect(Math.hypot(callout.x - fit.cx, callout.y - cy)).toBeGreaterThan(radius)
+			}
+		}
 	})
 
 	it('falls back to a centered, flat-margin radius with fewer than two slices', () => {

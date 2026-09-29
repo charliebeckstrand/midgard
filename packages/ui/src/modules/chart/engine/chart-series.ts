@@ -15,15 +15,35 @@ import type { ChartReadout, DataKey } from './types'
 /** The em-dash a readout shows where a datum is non-finite. @internal */
 export const READOUT_GAP = '—'
 
+/** The classes of a mark at full strength. @internal */
+const LIT_CLASS = cn('transition-opacity')
+
+/** The classes of a mark that recedes behind an emphasis. @internal */
+const RECEDED_CLASS = cn('transition-opacity', 'opacity-25')
+
 /**
- * A series mark-group's classes: the legend/keyboard dim rides the group wrapper
- * so a mark's own inline motion opacity still composes over it. The line mark
- * renderers use it.
+ * The recede classes of a mark: a series group, a slice, a bar, a heatmap cell,
+ * the marks layer, or a tooltip row. The legend and keyboard dim rides the
+ * group wrapper of an animated mark, so the inline motion opacity of the mark
+ * still composes over it. This is the one home of the recede class.
  *
  * @internal
  */
 export function seriesGroupClass(dimmed: boolean | undefined): string {
-	return cn('transition-opacity', dimmed && 'opacity-25')
+	return dimmed ? RECEDED_CLASS : LIT_CLASS
+}
+
+/**
+ * The readout text of one value: the value in `format`, or {@link READOUT_GAP}
+ * where the datum is a gap.
+ *
+ * @internal
+ */
+export function readoutCell(
+	value: number | null | undefined,
+	format: (value: number) => string,
+): string {
+	return value == null ? READOUT_GAP : format(value)
 }
 
 /**
@@ -78,14 +98,18 @@ export function chartReadout<T>(
 ): ChartReadout {
 	return {
 		categories: data.map((datum) => formatCategory(datum[xKey])),
-		rows: metas.map((meta) => ({
-			index: meta.index,
-			label: meta.label,
-			swatchClass: textClass(meta.paint) ?? '',
-			swatchColor: rawColor(meta.paint),
-			swatch: meta.swatch,
-			values: meta.values.map((value) => (value === null ? READOUT_GAP : format(value, meta.axis))),
-		})),
+		rows: metas.map((meta) => {
+			const formatValue = (value: number) => format(value, meta.axis)
+
+			return {
+				index: meta.index,
+				label: meta.label,
+				swatchClass: textClass(meta.paint) ?? '',
+				swatchColor: rawColor(meta.paint),
+				swatch: meta.swatch,
+				values: meta.values.map((value) => readoutCell(value, formatValue)),
+			}
+		}),
 	}
 }
 

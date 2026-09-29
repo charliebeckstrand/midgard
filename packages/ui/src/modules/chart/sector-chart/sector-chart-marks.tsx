@@ -1,15 +1,18 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { type MouseEvent, type PointerEvent, useId } from 'react'
+import { type MouseEvent, type PointerEvent, useId, useRef } from 'react'
 import { cn } from '../../../core'
+import { useHoverAcrossScroll } from '../../../hooks'
 import type { SlotPaint } from '../engine/chart-color/paint'
 import { TICK_CHAR_WIDTH } from '../engine/chart-constants'
 import { type PieSlice, pieCentroidRadius, segmentLabelFits } from '../engine/chart-geometry/pie'
 import { SLICE_FADE, SLICE_SWEEP, SLICE_UNFADE, SLICE_UNSWEEP } from '../engine/chart-motion'
 import { textureClass, textureStyle } from '../engine/chart-pattern-defs'
+import { seriesGroupClass } from '../engine/chart-series'
 import type { ChartTooltipTrigger } from '../engine/chart-tooltip'
 import { useChartHoverStore, useChartSeriesEmphasis, useChartSeriesFocus } from '../engine/context'
+import { toFrame } from '../engine/use-chart-pointer'
 
 /** One placed segment label: its slice and resolved text. @internal */
 export type SectorSegmentLabel = {
@@ -18,9 +21,10 @@ export type SectorSegmentLabel = {
 }
 
 /**
- * A slice group's dim classes — on the wrapper, so motion's inline opacity
- * composes. A held selection wins: it lights only its own slices, and a hover
- * never re-lights them. Else the emphasized slice lights alone. @internal
+ * A slice group's recede classes, from {@link seriesGroupClass} — on the
+ * wrapper, so motion's inline opacity composes. A held selection wins: it
+ * lights only its own slices, and a hover never re-lights them. Else the
+ * emphasized slice lights alone. @internal
  */
 export function sliceGroupClass(
 	emphasis: number | null,
@@ -32,7 +36,7 @@ export function sliceGroupClass(
 			? !selected.has(index)
 			: emphasis !== null && emphasis !== index
 
-	return cn('transition-opacity', dim && 'opacity-25')
+	return seriesGroupClass(dim)
 }
 
 /**
@@ -139,6 +143,41 @@ export function segmentLabelItems({
 	})
 }
 
+/**
+ * A client point in the units that the pie draws in, which are the units that
+ * the readout anchors in. It maps through an ancestor scale or zoom, as the
+ * cartesian pointer does. A drawing with no layout size (jsdom) maps by the
+ * offset alone.
+ *
+ * @internal
+ */
+function drawingPoint(svg: SVGSVGElement, clientX: number, clientY: number) {
+	const drawing = { x: 0, y: 0, width: svg.clientWidth, height: svg.clientHeight }
+
+	return toFrame(drawing, svg.getBoundingClientRect(), clientX, clientY)
+}
+
+/**
+ * The slice that a node under the pointer belongs to, or `null` off the slices.
+ * Each child of `wedges` is the group of one slice, in the order of `slices`,
+ * and holds its hit wedge and its visible slice.
+ *
+ * @internal
+ */
+function sliceAt(
+	wedges: SVGGElement | null,
+	slices: PieSlice[],
+	node: Element | null,
+): PieSlice | null {
+	const group = node?.closest(
+		'[data-slot="chart-slice-hit"], [data-slot="chart-slice"]',
+	)?.parentNode
+
+	if (!wedges || !group || group.parentNode !== wedges) return null
+
+	return slices[Array.prototype.indexOf.call(wedges.children, group)] ?? null
+}
+
 /** Shared shape for the static and animated slice renderers. @internal */
 type SectorChartMarksProps = {
 	slices: PieSlice[]
@@ -217,12 +256,50 @@ export function SectorChartMarks({
 
 	const clickable = click || onIndexClick !== undefined
 
+	// Whether the pointer is over the slices, so the scroll rescue re-reads only a
+	// hover that the pointer owns.
+	const inside = useRef(false)
+
+	// The slice groups, so the scroll rescue can name the slice under the pointer.
+	const wedges = useRef<SVGGElement>(null)
+
+	// A scroll slides the pie under a still pointer and fires no pointer event.
+	// The rescue hides the readout and the isolation while the page moves. When
+	// the page settles, it reads the slice under the pointer off the DOM, as the
+	// map does. A pinned readout keeps its place, so the rescue runs under the
+	// hover trigger only.
+	useHoverAcrossScroll(
+		!click,
+		() => {
+			if (!inside.current) return
+
+			set(null, null)
+
+			onEmphasis(null)
+		},
+		(clientX, clientY) => {
+			if (!inside.current) return
+
+			const slice = sliceAt(wedges.current, slices, document.elementFromPoint(clientX, clientY))
+
+			const svg = wedges.current?.ownerSVGElement
+
+			if (slice === null || !svg) return
+
+			set(slice.index, drawingPoint(svg, clientX, clientY))
+
+			onEmphasis(slice.index)
+		},
+	)
+
 	return (
 		<g
 			data-slot="chart-slices"
 			// Leaving the pie clears the isolation whichever way the tooltip opens; the
 			// hover-tracked readout clears with it, a click-pinned one stays put.
 			onPointerLeave={() => {
+				inside.current = false
+
 				onEmphasis(null)
 
 				if (!click) set(null, null)
@@ -250,18 +327,18 @@ export function SectorChartMarks({
 				</mask>
 			)}
 
-			<g mask={animate ? `url(#${sweepId})` : undefined}>
+			<g ref={wedges} mask={animate ? `url(#${sweepId})` : undefined}>
 				{slices.map((slice) => {
 					// Anchor the readout at the pointer within the SVG; the click branch
 					// toggles — a second click of the shown slice clears it. A click also
 					// reports through `onIndexClick` on either trigger, after the toggle,
 					// so one gesture drives both the readout and the consumer's activation.
 					const at = (event: PointerEvent<SVGPathElement> | MouseEvent<SVGPathElement>) => {
-						const box = event.currentTarget.ownerSVGElement?.getBoundingClientRect()
+						const svg = event.currentTarget.ownerSVGElement
 
-						if (!box) return
+						if (!svg) return
 
-						set(slice.index, { x: event.clientX - box.left, y: event.clientY - box.top })
+						set(slice.index, drawingPoint(svg, event.clientX, event.clientY))
 					}
 
 					const activate = () => onIndexClick?.(slice.index)
@@ -283,6 +360,8 @@ export function SectorChartMarks({
 						: {
 								onClick: onIndexClick ? activate : undefined,
 								onPointerEnter: () => {
+									inside.current = true
+
 									set(slice.index, slice.centroid)
 
 									emphasize()

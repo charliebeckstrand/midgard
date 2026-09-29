@@ -1,7 +1,17 @@
 // @vitest-environment node
 import { describe, expect, it } from 'vitest'
-import { BAND_EDGE_PAD } from '../../modules/chart/engine/chart-constants'
-import { type CartesianLayoutInput, verticalLayout } from '../../modules/chart/engine/chart-layout'
+import {
+	BAND_EDGE_PAD,
+	PLOT_TOP_PAD,
+	X_AXIS_HEIGHT,
+} from '../../modules/chart/engine/chart-constants'
+import {
+	bandTicksOf,
+	type CartesianLayoutInput,
+	horizontalLayout,
+	verticalLayout,
+} from '../../modules/chart/engine/chart-layout'
+import { bandScale } from '../../modules/chart/engine/chart-scale'
 
 const input = (frameHeight: number, valueHeadroom: number): CartesianLayoutInput => ({
 	frameWidth: 400,
@@ -55,6 +65,27 @@ describe('verticalLayout value-label room', () => {
 		expect(withheld).toBeGreaterThan(0)
 	})
 
+	it('keeps the far extreme clear when one side widens and grows the span', () => {
+		// A one-sided widen grows the span, so the other unpinned extreme can fall
+		// under its share of the range. The low label then flips onto the line,
+		// the failure the reservation exists to prevent.
+		for (let frameHeight = 100; frameHeight <= 400; frameHeight += 1) {
+			const layout = verticalLayout({
+				...input(frameHeight, 25),
+				tickTarget: 2,
+				value: { domainValues: [23, 100], format: String },
+			})
+
+			const scale = layout.valueScale
+
+			if (!scale || !layout.valueLabelRoom) continue
+
+			expect(scale.map(100) - layout.plot.y).toBeGreaterThan(21)
+
+			expect(layout.plot.y + layout.plot.height - scale.map(23)).toBeGreaterThan(21)
+		}
+	})
+
 	it('always grants the room when none is asked', () => {
 		expect(verticalLayout(input(80, 0)).valueLabelRoom).toBe(true)
 	})
@@ -105,5 +136,82 @@ describe('verticalLayout band-edge inset', () => {
 		expect(band.center(0) - band.step / 2 - plot.x).toBeCloseTo(BAND_EDGE_PAD)
 
 		expect(plot.x + plot.width - (band.center(5) + band.step / 2)).toBeCloseTo(BAND_EDGE_PAD)
+	})
+})
+
+describe('horizontalLayout value bands', () => {
+	it('reserves no bottom band when every series binds the secondary axis', () => {
+		// The primary axis stands down when nothing binds to it, as the vertical
+		// layout drops its left gutter. The band under the plot then holds no ticks,
+		// so the plot takes its height back.
+		const layout = horizontalLayout({
+			...input(300, 0),
+			value: undefined,
+			value2: { domainValues: [12, -6, 9], format: String },
+		})
+
+		expect(layout.valueScale).toBeNull()
+
+		expect(layout.plot.y + layout.plot.height).toBe(300)
+
+		expect(layout.plot.y).toBe(PLOT_TOP_PAD + X_AXIS_HEIGHT)
+	})
+})
+
+describe('bandTicksOf tilted labels', () => {
+	it('thins a tilted run by the room each rotated label takes along the axis', () => {
+		// Sixty categories along 740px, about 12px a band. Each tilted label needs
+		// its line box across the slant, about 28px along the axis. Before, every
+		// label tilted, and the run overlapped.
+		const categories = Array.from({ length: 60 }, (_, index) => `Category ${index + 1}`)
+
+		const band = bandScale({ count: 60, range: [0, 740] })
+
+		const ticks = bandTicksOf(categories, band, 740, 0, true)
+
+		expect(ticks.length).toBeLessThan(60)
+
+		expect(ticks.every((tick) => tick.rotate !== undefined)).toBe(true)
+
+		const gaps = ticks.slice(1).map((tick, index) => tick.at - (ticks[index]?.at ?? 0))
+
+		expect(Math.min(...gaps)).toBeGreaterThanOrEqual(27)
+	})
+
+	it('keeps every tilted label where the bands leave room', () => {
+		const categories = ['January Sales', 'February Sales', 'March Sales', 'April Sales']
+
+		const ticks = bandTicksOf(categories, bandScale({ count: 4, range: [0, 400] }), 400, 0, true)
+
+		expect(ticks).toHaveLength(4)
+	})
+})
+
+describe('verticalLayout tilt', () => {
+	/** A layout input of `categories` along a 600px frame, with the tilt asked for. */
+	const tilted = (categories: string[]): CartesianLayoutInput => ({
+		...input(300, 0),
+		frameWidth: 600,
+		categories,
+		count: categories.length,
+		tickRotation: true,
+	})
+
+	it('keeps short labels flat, where a tilt would keep fewer of them', () => {
+		// Two-letter codes thin flat at about 20px. A tilted label takes about 28px,
+		// so a tilt showed fewer labels and still reserved the taller band.
+		const codes = Array.from({ length: 40 }, (_, index) => `C${index}`.slice(0, 2))
+
+		const layout = verticalLayout(tilted(codes))
+
+		expect(layout.bandTicks.every((tick) => tick.rotate === undefined)).toBe(true)
+	})
+
+	it('tilts long labels, where a tilt keeps more of them', () => {
+		const names = Array.from({ length: 40 }, (_, index) => `Category number ${index + 1}`)
+
+		const layout = verticalLayout(tilted(names))
+
+		expect(layout.bandTicks.every((tick) => tick.rotate !== undefined)).toBe(true)
 	})
 })

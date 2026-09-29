@@ -1,44 +1,22 @@
 'use client'
 
-import { ChartCartesianAxes } from '../engine/chart-axes/cartesian'
+import type { DrawnSeries } from '../engine/chart-cartesian/series'
 import type { Crosshair } from '../engine/chart-crosshair'
-import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartCartesianFrame } from '../engine/chart-frame/cartesian'
 import { type StackedAreaGeometry, stackedAreas } from '../engine/chart-geometry/area'
+import { valueLabelHeadroom } from '../engine/chart-geometry/label'
 import {
+	type ChartLineSeries,
 	type LineInterpolation,
 	type LineSeriesGeometry,
 	lineGeometry,
 } from '../engine/chart-geometry/line'
-import { ChartHitArea, cartesianHitActive } from '../engine/chart-hit-area'
 import { nearestSeriesArea } from '../engine/chart-hit-test'
 import { lineMarkReach } from '../engine/chart-layout'
-import { resolveLegend } from '../engine/chart-legend/schema'
-import { ChartMarksLayer } from '../engine/chart-marks/layer'
-import {
-	AnimatedChartLineMarks,
-	ChartLineMarks,
-	type ChartLineSeries,
-} from '../engine/chart-marks/line'
-import { useChartTexture } from '../engine/chart-pattern-defs'
-import { ChartReferenceLines } from '../engine/chart-reference-lines'
-import { snappedSeriesAt, snapTargets } from '../engine/chart-snap'
-import { resolveTooltip } from '../engine/chart-tooltip'
+import { AnimatedChartLineMarks, ChartLineMarks } from '../engine/chart-marks/line'
 import type { ChartValueLabelConfig } from '../engine/chart-value-labels'
-import {
-	axisLabelFormats,
-	ChartValueLabels,
-	resolveValueLabels,
-	valueLabelHeadroom,
-} from '../engine/chart-value-labels'
 import type { CartesianChartProps } from '../engine/types'
-import {
-	cartesianData,
-	type DrawnSeries,
-	drawnSeries,
-	useChartCartesian,
-} from '../engine/use-chart-cartesian'
-import { cartesianFocus } from '../engine/use-chart-keyboard'
+import { useChartCartesian } from '../engine/use-chart-cartesian'
 
 /**
  * Props for {@link AreaChart}. Requires an accessible name (`aria-label` or
@@ -127,20 +105,6 @@ function focusPoints(
 }
 
 /**
- * The reference lines' keyboard stops, or none when `labels.references` draws
- * their values beside them instead. A labeled rule reads its value without the
- * rove, so it leaves the value-axis roving the way it leaves the hover tooltip.
- *
- * @internal
- */
-function referenceStops(
-	labels: ChartValueLabelConfig | undefined,
-	positions: (number | null)[],
-): (number | null)[] | undefined {
-	return labels?.references ? undefined : positions
-}
-
-/**
  * The series index behind each keyboard stop, aligned to {@link focusPoints} so
  * the cursor's value lane resolves to the series it reads. Unstacked, the stops
  * are the per-series snap points, so the cartesian series map carries straight
@@ -174,14 +138,20 @@ function focusSeries(
 	})
 }
 
-/** Adapts one stacked band to the line-marks geometry shape (one segment, one ribbon). @internal */
-function stackedToLine(band: { line: string; area: string; points: LineSeriesGeometry['points'] }) {
+/**
+ * Adapts one stacked band to the line-marks geometry shape (one segment, one
+ * ribbon). A band of one category draws no ribbon, so its lone point is
+ * isolated, as a line marks a point that no segment reaches.
+ *
+ * @internal
+ */
+function stackedToLine(band: StackedAreaGeometry): LineSeriesGeometry {
 	return {
 		segments: band.line ? [band.line] : [],
 		areas: band.area ? [band.area] : [],
 		points: band.points,
 		runs: band.points.length > 0 ? [band.points] : [],
-		isolated: [],
+		isolated: band.points.length === 1 ? band.points : [],
 	}
 }
 
@@ -235,6 +205,7 @@ function stackedRibbons(
  * under its band-edge line. The series stack into a part-to-whole ribbon set,
  * or stay independent overlapping areas. Carries the cartesian standard — value
  * axis, gridlines, legend, crosshair tooltip, and the visually-hidden table.
+ * The category axis rules on the zero line that the washes stand on.
  *
  * @remarks Stacked bands treat a missing value as zero to stay continuous;
  * the unstacked variant breaks its lines at gaps like {@link LineChart}. The
@@ -262,35 +233,18 @@ function stackedRibbons(
  */
 export function AreaChart<T>(props: AreaChartProps<T>) {
 	const {
-		data,
-		series,
-		size,
-		width,
-		height,
-		aspectRatio,
-		axes,
-		legend,
-		tooltip,
-		crosshair,
 		animate = false,
 		stacked = false,
-		texture = false,
 		points = false,
 		interpolation = 'linear',
-		reference,
 		labels,
-		onCategoryClick,
-		selectedCategories,
-		onHiddenChange,
-		formatValue,
-		className,
-		...label
 	} = props
 
-	const resolvedLegend = resolveLegend(legend)
-
-	const chart = useChartCartesian(cartesianData(props, resolvedLegend.value), {
+	const chart = useChartCartesian(props, {
 		zeroBaseline: true,
+		// Each wash and the first ribbon of a stack stand on the zero line, so the
+		// category rule draws there too.
+		categoryRule: 'zero',
 		swatch: () => 'line',
 		stack: stacked,
 		markInset: lineMarkReach(points),
@@ -308,7 +262,7 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 
 	// A stack binds to one axis (the side its series agree on, else the left),
 	// so its ribbons read that one scale; unstacked series each read their own.
-	const drawn = drawnSeries(chart)
+	const { drawn, tex } = chart
 
 	const stackedGeometry = stackedRibbons(drawn, xs, stacked)
 
@@ -326,33 +280,12 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		dashed: entry.meta.dashed,
 	}))
 
-	const tex = useChartTexture(
-		texture,
-		chart.visible.map((meta) => meta.slot),
-	)
+	// Every drawn run, held for the hit test so a pointer move allocates none.
+	const seriesRuns = list.map((entry) => entry.geometry.runs)
 
 	const fills = drawn.map(({ meta }) => tex.fillFor(meta.slot))
 
-	const labelMetas = drawn.map(({ meta }) => meta)
-
-	// A plot too short to afford the reserved label room sheds the point labels
-	// whole, as a `LineChart` does.
-	const valueLabelItems = chart.valueLabelRoom
-		? resolveValueLabels(
-				labels,
-				list,
-				labelMetas,
-				chart.plot,
-				(value) => chart.formatAxisValue(value, 'y'),
-				axisLabelFormats(labelMetas, chart.formatAxisValue),
-				// Stacked ribbons carry a top-edge point per category (nulls included), not
-				// the gap-skipped points a line's geometry emits, so the labels read each
-				// category's value by index rather than zipping the gap-filtered values.
-				!stacked,
-			)
-		: []
-
-	const marksNode = animate ? (
+	const marks = animate ? (
 		<AnimatedChartLineMarks
 			list={list}
 			fill={true}
@@ -364,102 +297,46 @@ export function AreaChart<T>(props: AreaChartProps<T>) {
 		<ChartLineMarks list={list} fill={true} fills={fills} textureActive={tex.active} />
 	)
 
-	// The area chart carries a snapping y-rule by default so the fills read
-	// against a category line; a smooth curve drops the snap to glide the rule
-	// and tooltip along the interpolation rather than jumping between points.
-	const rails = resolveCrosshair(
-		crosshair ?? { x: false, y: true, snap: interpolation !== 'smooth' },
-	)
-
-	const snapping = crosshairSnaps(rails)
-
-	const { show: showTooltip, trigger } = resolveTooltip(tooltip)
-
-	const snapPoints = tooltipSnapPoints(stacked, chart.snapPoints, xs.length)
-
-	const navPoints = focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length)
-
-	const navSeries = focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length)
-
 	return (
 		<ChartCartesianFrame
-			{...label}
+			{...props}
 			chart={chart}
-			resolvedLegend={resolvedLegend}
-			tex={tex}
 			fullscreen={<AreaChart {...props} />}
-			showTooltip={showTooltip}
-			snap={snapTargets(rails, chart.bandPositions, snapPoints)}
-			focus={cartesianFocus(
-				chart.bandPositions,
-				navPoints,
-				chart.orientation,
-				referenceStops(labels, chart.referencePositions),
-				navSeries,
-			)}
-			reference={reference}
-			className={className}
-		>
-			<ChartCartesianAxes chart={chart} />
+			marks={marks}
+			markAt={(x, y) => {
+				// The ribbon or wash the pointer sits in isolates its whole series — a
+				// dot on a ribbon's boundary already reads as the ribbon whose edge it
+				// marks.
+				const within = nearestSeriesArea(
+					seriesRuns,
+					(order) => drawn[order]?.baseline ?? floor,
+					x,
+					y,
+					stacked,
+				)
 
-			{rails && (
-				<ChartCrosshair
-					plot={chart.plot}
-					crosshair={rails}
-					bandPositions={chart.bandPositions}
-					valuePoints={snapPoints}
-				/>
-			)}
-
-			<ChartMarksLayer animate={animate} dataKey={chart.dataKey}>
-				{marksNode}
-			</ChartMarksLayer>
-
-			<ChartValueLabels labels={valueLabelItems} animate={animate} dataKey={chart.dataKey} />
-
-			{cartesianHitActive(showTooltip, rails, chart.onBandClick, data.length) && (
-				<ChartHitArea
-					plot={chart.plot}
-					band={chart.band}
-					count={data.length}
-					markAt={(x, y, _held, index) => {
-						// The ribbon or wash the pointer sits in isolates its whole series — a
-						// dot on a ribbon's boundary already reads as the ribbon whose edge it
-						// marks.
-						const within = nearestSeriesArea(
-							list.map((entry) => entry.geometry.runs),
-							floor,
-							x,
-							y,
-						)
-
-						if (within !== null) return { series: list[within]?.index ?? within, datum: null }
-
-						// Isolation mirrors the snapped readout: above the fills the emphasis
-						// goes to the band edge the tooltip anchors in the snapped column. A
-						// stacked column offers no stops, so its readout floats free and
-						// nothing isolates outside the stack.
-						const series = snapping ? snappedSeriesAt(snapPoints, chart.snapSeries, index, y) : null
-
-						return series === null ? null : { series, datum: null }
-					}}
-					trigger={trigger}
-					snaps={snapping}
-					onIndexClick={chart.onBandClick}
-				/>
-			)}
-
-			{/* Last, over the hit area, so the rules win the pointer where they sit. */}
-			<ChartReferenceLines
-				plot={chart.plot}
-				scale={chart.yScale}
-				y2Scale={chart.y2Scale}
-				reference={reference}
-				format={chart.formatAxisValue}
-				animate={animate}
-				labels={labels?.references}
-				hidden={chart.referenceHidden}
-			/>
-		</ChartCartesianFrame>
+				return within === null ? null : { series: list[within]?.index ?? within, datum: null }
+			}}
+			// The area chart carries a snapping y-rule by default so the fills read
+			// against a category line; a smooth curve drops the snap to glide the rule
+			// and tooltip along the interpolation rather than jumping between points.
+			// Stacked ribbons draw straight whatever the interpolation, so they keep it.
+			defaultCrosshair={{ x: false, y: true, snap: stacked || interpolation !== 'smooth' }}
+			// Above the fills the emphasis goes to the band edge the tooltip anchors in
+			// the snapped column. A stacked column offers no stops, so its readout
+			// floats free and nothing isolates outside the stack.
+			snapStops={{
+				points: tooltipSnapPoints(stacked, chart.snapPoints, xs.length),
+				series: chart.snapSeries,
+			}}
+			focusStops={{
+				points: focusPoints(stacked, chart.snapPoints, stackedGeometry, xs.length),
+				series: focusSeries(stacked, chart.snapSeries, drawn, stackedGeometry, xs.length),
+			}}
+			// Stacked ribbons carry a top-edge point for each category (nulls
+			// included), not the gap-skipped points of a line, so the labels read each
+			// category's value by index.
+			valueLabels={{ list, gapSkipped: !stacked }}
+		/>
 	)
 }

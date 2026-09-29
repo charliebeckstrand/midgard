@@ -57,7 +57,27 @@ export const POINT_POP = mark.popHeld
 export const BAR_GROW = mark.grow
 
 /** Delay step between adjacent bar groups, so they rise in sequence. @internal */
-export const BAR_STAGGER = mark.stagger
+const BAR_STAGGER = mark.stagger
+
+/**
+ * The longest a run of bars staggers its grow, in seconds. A run of more bars
+ * than the step fits in it shortens the step, so the run still rises in order
+ * but in one beat. The map caps its point stagger in the same way.
+ *
+ * @internal
+ */
+const BAR_STAGGER_SPAN = 0.6
+
+/**
+ * The grow delay of the bar at `index` in a run of `count` bars: the
+ * {@link BAR_STAGGER} step, shortened so the run spans at most
+ * {@link BAR_STAGGER_SPAN}.
+ *
+ * @internal
+ */
+export function barGrowDelay(index: number, count: number): number {
+	return index * (count > 1 ? Math.min(BAR_STAGGER, BAR_STAGGER_SPAN / (count - 1)) : BAR_STAGGER)
+}
 
 /**
  * Reference-rule rise: the rule slides in along the value axis from the baseline
@@ -146,6 +166,15 @@ export function referenceRise(orientation: ChartOrientation, offset: number) {
 		: { initial: { x: offset }, animate: { x: 0 } }
 }
 
+/** One float, seen as its two 32-bit words, for {@link seriesDataKey}. @internal */
+const FLOAT = new Float64Array(1)
+
+/** The two words of {@link FLOAT}. @internal */
+const WORDS = new Uint32Array(FLOAT.buffer)
+
+/** A word that no finite float writes into its high half, which stands for `null`. @internal */
+const NULL_WORD = 0x7ff80001
+
 /**
  * A stable signature of a chart's resolved series values. It is the generation
  * key an animated renderer swaps on to replay its reveal out-then-in when the
@@ -153,20 +182,51 @@ export function referenceRise(orientation: ChartOrientation, offset: number) {
  * holds through a resize (same numbers at new coordinates), and a legend toggle
  * (the caller feeds every series, visible or not). It changes only when the
  * underlying data does, as under the Ship Date filter re-running the query.
- * `null` gaps stringify distinctly
- * from a zero, so a value going missing counts as a change.
  *
+ * @remarks Two 32-bit hashes over the bits of each value, not a joined string.
+ * Each chart render reads the key, so a string of every value cost a
+ * conversion for each point and a key the size of the data. Each row folds its
+ * length in first, so `[[1], [2]]` and `[[1, 2]]` differ. A `null` gap folds a
+ * word that no number writes, so a value going missing counts as a change. A
+ * collision only skips one replay of the reveal.
  * @internal
  */
 export function seriesDataKey(values: readonly (readonly (number | null)[])[]): string {
-	return values.map((row) => row.map((value) => (value === null ? '_' : value)).join(',')).join(';')
+	let a = 0x811c9dc5
+
+	let b = 0x9747b28c
+
+	for (const row of values) {
+		a = Math.imul(a ^ row.length, 0x01000193)
+
+		b = Math.imul(b ^ row.length, 0x5bd1e995)
+
+		for (const value of row) {
+			let high = NULL_WORD
+
+			let low = 0
+
+			if (value !== null) {
+				// Adds zero so -0 keys as 0, which reads the same.
+				FLOAT[0] = value + 0
+
+				low = WORDS[0] as number
+
+				high = WORDS[1] as number
+			}
+
+			a = Math.imul(Math.imul(a ^ low, 0x01000193) ^ high, 0x01000193)
+
+			b = Math.imul(Math.imul(b ^ high, 0x5bd1e995) ^ low, 0x5bd1e995)
+		}
+	}
+
+	return `${(a >>> 0).toString(36)}.${(b >>> 0).toString(36)}`
 }
 
 /**
- * The generation key an animated renderer holds still on when it must not replay
- * the out-then-in transition. That is a reduced-motion preference, where a data
- * change skips straight to the new marks. A constant, so the generation never
- * swaps and the marks reconcile in place.
+ * The generation key of animated content that has no data signature. A
+ * constant, so the generation never swaps and the content reconciles in place.
  *
  * @internal
  */

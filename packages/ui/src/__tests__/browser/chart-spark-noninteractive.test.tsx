@@ -1,4 +1,4 @@
-import { beforeAll, describe, expect, it } from 'vitest'
+import { beforeAll, describe, expect, it, vi } from 'vitest'
 import { page, userEvent } from 'vitest/browser'
 import { BarChart } from '../../modules/chart/bar-chart'
 import { HeatmapChart } from '../../modules/chart/heatmap-chart'
@@ -132,7 +132,40 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(bySlot(container, 'chart-axis-y')).toBeNull()
 
-		expect(bySlot(container, 'heatmap-hit')).toBeNull()
+		expect(bySlot(container, 'chart-hit')).toBeNull()
+	})
+
+	it('a spark heatmap takes no cell click and shows no cursor', async () => {
+		const onCellClick = vi.fn()
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits by day and hour"
+				data={GRID}
+				series={[
+					{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#eef', '#88f', '#00a'] },
+				]}
+				width={140}
+				height={100}
+				onCellClick={onCellClick}
+			/>,
+		)
+
+		const cells = getSlot(container, 'heatmap-cells').getBoundingClientRect()
+
+		// The element that takes the pointer over the middle of the grid.
+		const target = document.elementFromPoint(
+			cells.left + cells.width / 2,
+			cells.top + cells.height / 2,
+		)
+
+		if (!(target instanceof Element)) throw new Error('nothing under the grid')
+
+		expect(getComputedStyle(target).cursor).not.toBe('pointer')
+
+		await userEvent.click(target)
+
+		expect(onCellClick).not.toHaveBeenCalled()
 	})
 
 	it('a wider heatmap carries its labels and hover layer', () => {
@@ -142,7 +175,7 @@ describe('spark tier is non-interactive (real browser)', () => {
 
 		expect(bySlot(container, 'chart-axis-y')).not.toBeNull()
 
-		expect(bySlot(container, 'heatmap-hit')).not.toBeNull()
+		expect(bySlot(container, 'chart-hit')).not.toBeNull()
 	})
 
 	// One category, so the lone bar spans the chart's own center: hovering the

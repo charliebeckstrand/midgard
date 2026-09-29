@@ -195,6 +195,20 @@ describe('chart-time · timeTicks (calendar boundaries on a band axis)', () => {
 			timeTicks({ times, band, tickTarget: 6, axisLength: WIDTH, locale: 'en-US' })
 		})
 	}
+
+	// Newest-first rows, as a table sorted by date descending gives them. Only
+	// this order makes the anchors need a sort into time order.
+	const count = 10_000
+
+	const newestFirst = Array.from({ length: count }, (_, index) =>
+		new Date(2024, 0, count - index).getTime(),
+	)
+
+	const band = bandScale({ count, range: [0, WIDTH] })
+
+	bench('10,000 rows · daily instants, newest first', () => {
+		timeTicks({ times: newestFirst, band, tickTarget: 6, axisLength: WIDTH, locale: 'en-US' })
+	})
 })
 
 describe('chart-hit-test · nearestSeriesLine (every pointer move)', () => {

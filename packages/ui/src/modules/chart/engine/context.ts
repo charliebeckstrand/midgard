@@ -1,6 +1,6 @@
 'use client'
 
-import { useMemo, useSyncExternalStore } from 'react'
+import { useSyncExternalStore } from 'react'
 import { createContext } from '../../../core'
 import { createEmitter } from '../../../utilities'
 import type { ChartTier } from './chart-tier'
@@ -33,13 +33,6 @@ export type ChartHoverState = {
  * @internal
  */
 type ChartHoverSet = (index: number | null, point: ChartPoint | null, onData?: boolean) => void
-
-/**
- * Hover state with its writer, as {@link useChartHover} gives it.
- *
- * @internal
- */
-export type ChartHover = ChartHoverState & { set: ChartHoverSet }
 
 /**
  * The store that holds a chart's hover. The frame makes one for its mount and
@@ -95,17 +88,16 @@ export function createChartHoverStore(): ChartHoverStore {
 export const [ChartHoverContext, useChartHoverStore] = createContext<ChartHoverStore>('ChartHover')
 
 /**
- * Reads the chart hover and its writer. The reader renders again on each hover
- * change, and the frame around it does not.
+ * Reads the chart hover. The reader renders again on each hover change, and the
+ * frame around it does not. A writer reads the store instead
+ * ({@link useChartHoverStore}), so a pointer move does not render it.
  *
  * @internal
  */
-export function useChartHover(): ChartHover {
+export function useChartHover(): ChartHoverState {
 	const store = useChartHoverStore()
 
-	const state = useSyncExternalStore(store.subscribe, store.get, store.get)
-
-	return useMemo(() => ({ ...state, set: store.set }), [state, store])
+	return useSyncExternalStore(store.subscribe, store.get, store.get)
 }
 
 /**
@@ -154,14 +146,25 @@ export type ChartMarkEmphasis = {
 	 * where this returns `false`. Omit `datum` for a whole-series group.
 	 */
 	lit: (series: number, datum?: number | null) => boolean
-	/** Sets the pointed mark (`null` clears); the hit layer writes it while the pointer sits on a mark. */
-	setPointed: (mark: ChartMarkRef | null) => void
 }
 
 export const [ChartMarkEmphasisContext, useChartMarkEmphasis] = createContext<ChartMarkEmphasis>(
 	'ChartMarkEmphasis',
-	{ default: { mark: null, lit: () => true, setPointed: () => {} } },
+	{ default: { mark: null, lit: () => true } },
 )
+
+/**
+ * The frame's setter of the pointed mark (`null` clears it). The hit layer
+ * writes it while the pointer sits on a mark. It has its own context and keeps
+ * its identity, so a crossing from mark to mark renders the readers of
+ * {@link ChartMarkEmphasis}, not the hit layer that writes it. A no-op outside a
+ * frame.
+ *
+ * @internal
+ */
+export const [ChartMarkPointContext, useChartMarkPoint] = createContext<
+	(mark: ChartMarkRef | null) => void
+>('ChartMarkPoint', { default: () => {} })
 
 /**
  * Whether a datum sits in the held category selection. A group-level query
@@ -188,7 +191,6 @@ function selectionLights(
 export function chartMarkEmphasis(
 	pointed: ChartMarkRef | null,
 	legendSeries: number | null,
-	setPointed: (mark: ChartMarkRef | null) => void,
 	selected: ReadonlySet<number> | null = null,
 ): ChartMarkEmphasis {
 	const held = legendSeries !== null ? { series: legendSeries, datum: null } : null
@@ -207,7 +209,7 @@ export function chartMarkEmphasis(
 		return selectionLights(selected, datum)
 	}
 
-	return { mark, lit, setPointed }
+	return { mark, lit }
 }
 
 /** Whether two mark references coincide, so a redundant pointed write can bail. @internal */
@@ -225,10 +227,6 @@ export function sameMark(a: ChartMarkRef | null, b: ChartMarkRef | null): boolea
  * @internal
  */
 export type ChartEmphasis = {
-	/** Whether a reference rule is emphasized — pointed or keyboard-focused — so the data marks recede behind it. */
-	referenceActive: boolean
-	/** Sets the pointed reference's index (`null` clears); a rule or its legend chip sets it while pointed. */
-	setReferenceActive: (index: number | null) => void
 	/**
 	 * The keyboard-focused reference line's index, or `null` — the rule the arrow
 	 * cursor parks on, so it reads as chosen while the marks recede. Pointer hover
@@ -238,13 +236,26 @@ export type ChartEmphasis = {
 	/**
 	 * The reference the emphasis rests on — pointed or keyboard-focused — so its
 	 * sibling rules recede to it, the way the data marks do. Pointer wins over a
-	 * still-held keyboard focus; `null` when nothing is emphasized.
+	 * still-held keyboard focus; `null` when nothing is emphasized. While it is
+	 * set, the data marks recede behind the rule.
 	 */
 	emphasizedReference: number | null
 }
 
 export const [ChartEmphasisContext, useChartEmphasis] =
 	createContext<ChartEmphasis>('ChartEmphasis')
+
+/**
+ * The frame's setter of the pointed reference: the index of the rule that the
+ * pointer, or the legend chip of the rule, points at (`null` clears it). It has
+ * its own context and keeps its identity, so a writer such as the legend does
+ * not render again when the emphasis changes. A no-op outside a frame.
+ *
+ * @internal
+ */
+export const [ChartReferencePointContext, useChartReferencePoint] = createContext<
+	(index: number | null) => void
+>('ChartReferencePoint', { default: () => {} })
 
 /**
  * The frame's setter of the series emphasis: the series that a legend entry, a

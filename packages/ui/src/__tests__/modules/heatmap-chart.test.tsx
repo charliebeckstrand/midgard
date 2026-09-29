@@ -22,12 +22,27 @@ const cellRects = (container: HTMLElement) =>
 	Array.from(container.querySelectorAll('[data-slot="heatmap-cells"] rect'))
 
 describe('HeatmapChart', () => {
+	it('requires an accessible name (compile-time)', () => {
+		// Never rendered; exists for `tsc`. The plot is `role="img"`, so a heatmap
+		// with no `aria-label` and no `aria-labelledby` must not typecheck.
+		const typeChecks = () => (
+			<>
+				{/* @ts-expect-error: a heatmap needs aria-label or aria-labelledby */}
+				<HeatmapChart data={ROWS} series={SERIES} />
+
+				<HeatmapChart aria-labelledby="commits-heading" data={ROWS} series={SERIES} />
+			</>
+		)
+
+		expect(typeChecks).toBeTypeOf('function')
+	})
+
 	it('fills its container with no max-width cap, as the other charts do', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} />,
 		)
 
-		const root = getSlot(container, 'heatmap')
+		const root = getSlot(container, 'chart')
 
 		expect(root).toHaveClass('w-full')
 
@@ -121,12 +136,26 @@ describe('HeatmapChart', () => {
 		expect(table?.textContent).toContain('—')
 	})
 
+	it('keeps a prop that the heatmap does not take off the plot region', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits per day"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				{...{ 'data-stray': 'leak' }}
+			/>,
+		)
+
+		expect(bySlot(container, 'chart-plot')?.hasAttribute('data-stray')).toBe(false)
+	})
+
 	it('names the plot and renders the range legend by default', () => {
 		const { container } = renderUI(
 			<HeatmapChart aria-label="Commits per day" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		expect(bySlot(container, 'heatmap-plot')?.getAttribute('aria-label')).toBe('Commits per day')
+		expect(bySlot(container, 'chart-plot')?.getAttribute('aria-label')).toBe('Commits per day')
 
 		// The shared range legend paints the colorRange as an inline gradient bar.
 		expect(bySlot(container, 'heatmap-range-track')?.getAttribute('style')).toContain(
@@ -147,7 +176,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		expect(bySlot(container, 'heatmap')).toHaveClass(
+		expect(bySlot(container, 'chart')).toHaveClass(
 			'select-none',
 			'**:select-none',
 			'[-webkit-touch-callout:none]',
@@ -280,8 +309,15 @@ describe('HeatmapChart', () => {
 			cellRects(container).filter((rect) => rect.getAttribute('class')?.includes('opacity-25'))
 				.length
 
-		// Focus the track (keyboard ownership), then probe a class so cells dim.
+		// Focus the track (keyboard ownership), then probe a class so cells dim. The
+		// Tab press gives the focus the keyboard's ring (`:focus-visible`), which the
+		// track reads. An earlier pointer event in the shared window can take it away
+		// from a bare `focus()`.
+		fireEvent.keyDown(document.body, { key: 'Tab' })
+
 		act(() => track.focus())
+
+		expect(track.matches(':focus-visible')).toBe(true)
 
 		fireEvent.pointerMove(track, { clientY: 10 })
 
@@ -341,7 +377,7 @@ describe('HeatmapChart', () => {
 			<HeatmapChart aria-label="Commits" data={ROWS} series={SERIES} width={400} />,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit')
+		const hit = bySlot(container, 'chart-hit')
 
 		expect(hit).not.toBeNull()
 
@@ -400,7 +436,7 @@ describe('HeatmapChart', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit') as Element
+		const hit = bySlot(container, 'chart-hit') as Element
 
 		// The hit layer reads as clickable.
 		expect(hit.getAttribute('class')).toContain('cursor-pointer')
@@ -454,7 +490,7 @@ describe('HeatmapChart', () => {
 
 		const { container, rerender } = renderUI(pinned(full))
 
-		const hit = getSlot(container, 'heatmap-hit')
+		const hit = getSlot(container, 'chart-hit')
 
 		hit.getBoundingClientRect = () =>
 			({
@@ -516,7 +552,7 @@ describe('HeatmapChart cell clicks', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit')
+		const hit = bySlot(container, 'chart-hit')
 
 		expect(hit).not.toBeNull()
 
@@ -536,7 +572,7 @@ describe('HeatmapChart cell clicks', () => {
 			/>,
 		)
 
-		const hit = bySlot(container, 'heatmap-hit') as Element
+		const hit = bySlot(container, 'chart-hit') as Element
 
 		// The layer resolves a click through the rect it is drawn at, which jsdom
 		// measures at zero. Give it one, as the pointer-resolution test above does.
@@ -558,6 +594,44 @@ describe('HeatmapChart cell clicks', () => {
 		fireEvent.click(hit, { clientX: 130, clientY: 70 })
 
 		expect(onCellClick).toHaveBeenCalledWith({ x: '9', y: 'Mon' }, [0, 0])
+	})
+})
+
+describe('HeatmapChart context menu', () => {
+	it('names the right-clicked cell to a function-form menu by its row-major index', () => {
+		const items = vi.fn(() => [])
+
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={ROWS}
+				series={SERIES}
+				width={400}
+				contextMenu={{ items }}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		hit.getBoundingClientRect = () =>
+			({
+				left: 100,
+				top: 50,
+				right: 340,
+				bottom: 210,
+				width: 240,
+				height: 160,
+				x: 100,
+				y: 50,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// The bottom-left cell, Tue at hour 9: row 1 and column 0 of two columns.
+		fireEvent.pointerMove(hit, { clientX: 130, clientY: 200 })
+
+		fireEvent.contextMenu(hit)
+
+		expect(items).toHaveBeenLastCalledWith({ index: 2 })
 	})
 })
 
@@ -665,5 +739,162 @@ describe('the range legend under quantile binning, continued', () => {
 		fireEvent.keyDown(track, { key: 'ArrowDown' })
 
 		expect(track).toHaveAttribute('aria-valuetext', '1–5')
+	})
+})
+
+describe('HeatmapChart keyboard navigation', () => {
+	// Distinct labels and values, so each readout names one cell.
+	const GRID = [
+		{ day: 'Mon', hour: 'Early', commits: 11 },
+		{ day: 'Mon', hour: 'Late', commits: 22 },
+		{ day: 'Tue', hour: 'Early', commits: 33 },
+		{ day: 'Tue', hour: 'Late', commits: 44 },
+	]
+
+	/** The open readout's text, or `null` while it is shut. */
+	const readout = (container: HTMLElement) =>
+		bySlot(container, 'tooltip-content')?.textContent ?? null
+
+	it('makes the plot one tab stop whose arrows rove the cells', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		expect(plot).toHaveAttribute('tabindex', '0')
+
+		// Focus alone reads nothing. The first arrow reads the top-left cell.
+		expect(readout(container)).toBeNull()
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Early11Mon')
+
+		// Left and right move along the columns, up and down along the rows.
+		fireEvent.keyDown(plot, { key: 'ArrowRight' })
+
+		expect(readout(container)).toBe('Late22Mon')
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Late44Tue')
+
+		fireEvent.keyDown(plot, { key: 'ArrowLeft' })
+
+		expect(readout(container)).toBe('Early33Tue')
+
+		fireEvent.keyDown(plot, { key: 'ArrowUp' })
+
+		expect(readout(container)).toBe('Early11Mon')
+
+		// Home and End jump along the row.
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		expect(readout(container)).toBe('Late22Mon')
+
+		fireEvent.keyDown(plot, { key: 'Escape' })
+
+		expect(readout(container)).toBeNull()
+	})
+
+	it('marks the keyboard cell on the range legend', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} />,
+		)
+
+		expect(bySlot(container, 'heatmap-range-arrow')).toBeNull()
+
+		fireEvent.keyDown(getSlot(container, 'chart-plot'), { key: 'ArrowRight' })
+
+		expect(bySlot(container, 'heatmap-range-arrow')).not.toBeNull()
+	})
+
+	it('reads a no-data cell as an em-dash', () => {
+		const { container } = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID.slice(0, 3)} series={SERIES} width={400} />,
+		)
+
+		const plot = getSlot(container, 'chart-plot')
+
+		fireEvent.keyDown(plot, { key: 'End' })
+
+		fireEvent.keyDown(plot, { key: 'ArrowDown' })
+
+		expect(readout(container)).toBe('Late—Tue')
+	})
+
+	it('offers no tab stop without a tooltip or at the spark tier', () => {
+		const off = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={400} tooltip={false} />,
+		)
+
+		expect(getSlot(off.container, 'chart-plot')).not.toHaveAttribute('tabindex')
+
+		const spark = renderUI(
+			<HeatmapChart aria-label="Commits" data={GRID} series={SERIES} width={120} />,
+		)
+
+		expect(getSlot(spark.container, 'chart-plot')).not.toHaveAttribute('tabindex')
+	})
+})
+
+describe('HeatmapChart default ratio', () => {
+	/** A grid of `rows` × `cols` cells, each with a value. */
+	const grid = (rows: number, cols: number) =>
+		Array.from({ length: rows * cols }, (_, index) => ({
+			day: `R${Math.floor(index / cols)}`,
+			hour: `C${index % cols}`,
+			commits: index,
+		}))
+
+	/** The height the drawing takes at 400 px wide, with no rail beside it. */
+	const drawnHeight = (rows: number, cols: number) => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={grid(rows, cols)}
+				series={SERIES}
+				width={400}
+				legend={false}
+			/>,
+		)
+
+		return {
+			height: Number(getSlot(container, 'chart-plot').querySelector('svg')?.getAttribute('height')),
+			tier: getSlot(container, 'chart').getAttribute('data-tier'),
+		}
+	}
+
+	it('fits the frame to the grid inside the bounds', () => {
+		// 24 columns over 7 rows is a ratio of about 3.4, inside the bounds.
+		expect(drawnHeight(7, 24).height).toBe(Math.round(400 / (24 / 7)))
+	})
+
+	it('caps a wide grid at a ratio of 4, so one row draws as a chart and not a spark strip', () => {
+		const wide = drawnHeight(1, 24)
+
+		expect(wide.height).toBe(100)
+
+		expect(wide.tier).not.toBe('spark')
+	})
+
+	it('floors a tall grid at a ratio of 1/2', () => {
+		expect(drawnHeight(24, 1).height).toBe(800)
+	})
+
+	it('keeps an explicit aspectRatio outside the bounds', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={grid(1, 24)}
+				series={SERIES}
+				width={400}
+				legend={false}
+				aspectRatio={8}
+			/>,
+		)
+
+		expect(getSlot(container, 'chart-plot').querySelector('svg')).toHaveAttribute('height', '50')
 	})
 })

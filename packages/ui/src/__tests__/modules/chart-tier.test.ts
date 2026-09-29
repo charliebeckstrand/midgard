@@ -56,16 +56,6 @@ describe('chartPolicy tier', () => {
 	})
 })
 
-describe('chartPolicy value axis', () => {
-	it('drops the gutter at spark and keeps it otherwise', () => {
-		expect(chartPolicy(SPARK_WIDTH - 1, 300, CAP).valueAxis).toBe('off')
-
-		expect(chartPolicy(COMPACT_WIDTH - 1, 300, CAP).valueAxis).toBe('gutter')
-
-		expect(chartPolicy(800, 400, CAP).valueAxis).toBe('gutter')
-	})
-})
-
 describe('chartPolicy band axis', () => {
 	it('thins labels in a wide box', () => {
 		expect(chartPolicy(COMPACT_WIDTH, 300, CAP).bandAxis).toBe('thinned')
@@ -82,7 +72,9 @@ describe('chartPolicy band axis', () => {
 
 		expect(policy.bandAxis).toBe('off')
 
-		expect(policy.valueAxis).toBe('gutter')
+		expect(policy.tier).toBe('compact')
+
+		expect(policy.tickTarget).toBeGreaterThan(0)
 	})
 
 	it('drops the band at spark', () => {

@@ -4,8 +4,7 @@ import { TICK_CHAR_WIDTH } from '../../modules/chart/engine/chart-constants'
 import {
 	barMarks,
 	stackedBarMarks,
-	stackedBarSnapPoints,
-	stackedBarSnapSeries,
+	stackedBarSnaps,
 } from '../../modules/chart/engine/chart-geometry/bar'
 import { bandScale } from '../../modules/chart/engine/chart-scale'
 import { act, allBySlot, bySlot, fireEvent, getSlot, nonEmpty, present, renderUI } from '../helpers'
@@ -223,6 +222,87 @@ describe('BarChart', () => {
 		fireEvent.click(hit, { clientX: 60, clientY: 100 })
 
 		expect(clicks).toEqual(['Q1'])
+	})
+
+	it('keeps the band-click cursor over the bare band under the click trigger', () => {
+		const { container } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, onCategoryClick: () => {} }),
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		// Above the bars a click still reports the band, so the cursor stays a pointer.
+		fireEvent.pointerMove(hit, { clientX: 280, clientY: 20 })
+
+		expect(hit.style.cursor).not.toBe('default')
+	})
+
+	it('clears the readout and the crosshair when the hit layer unmounts under the pointer', () => {
+		const { container, rerender } = renderUI(chart({ crosshair: { x: true, y: true } }))
+
+		fireEvent.pointerMove(getSlot(container, 'chart-hit'), { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'chart-crosshair')).not.toBeNull()
+
+		// The data goes empty, so the hit layer unmounts with no pointer event.
+		rerender(chart({ crosshair: { x: true, y: true }, data: [] }))
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+
+		rerender(chart({ crosshair: { x: true, y: true } }))
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+	})
+
+	it('draws no crosshair at a pinned band that the data no longer holds', () => {
+		const { container, rerender } = renderUI(
+			chart({ tooltip: { trigger: 'click' }, crosshair: { x: true, y: true } }),
+		)
+
+		fireEvent.click(getSlot(container, 'chart-hit'), { clientX: 280, clientY: 100 })
+
+		expect(bySlot(container, 'chart-crosshair')).not.toBeNull()
+
+		rerender(
+			chart({
+				tooltip: { trigger: 'click' },
+				crosshair: { x: true, y: true },
+				data: DATA.slice(0, 2),
+			}),
+		)
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		expect(bySlot(container, 'chart-crosshair')).toBeNull()
+	})
+
+	it('maps the pointer through a scaled box, as under an ancestor zoom', () => {
+		const { container } = renderUI(chart())
+
+		const hit = getSlot(container, 'chart-hit')
+
+		const plotWidth = Number(hit.getAttribute('width'))
+
+		const plotHeight = Number(hit.getAttribute('height'))
+
+		// The box of the hit rect on screen is twice the size of the plot.
+		hit.getBoundingClientRect = () =>
+			({
+				left: 0,
+				top: 0,
+				right: plotWidth * 2,
+				bottom: plotHeight * 2,
+				width: plotWidth * 2,
+				height: plotHeight * 2,
+				x: 0,
+				y: 0,
+				toJSON: () => ({}),
+			}) as DOMRect
+
+		// A quarter across the box is a quarter across the plot: the first band.
+		fireEvent.pointerMove(hit, { clientX: plotWidth / 2, clientY: plotHeight * 1.8 })
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q1')
 	})
 
 	it('dismisses on an off-mark click without stranding the band (no snap)', () => {
@@ -450,6 +530,48 @@ describe('BarChart', () => {
 		expect(barCount(container)).toBe(2)
 
 		expect(bySlot(container, 'chart-table')?.textContent).toContain('—')
+	})
+
+	it('keeps each animated bar on its own node when the legend hides a series', () => {
+		// A bar keys on its series, not on its draw slot. Hidden and shown again, a
+		// middle series takes a new node, and the series after it keeps its own, so
+		// it does not replay the grow.
+		const { container } = renderUI(
+			chart({
+				animate: true,
+				series: [
+					{ xKey: 'quarter', yKey: 'revenue', yName: 'Revenue', color: '#ff0000' },
+					{ xKey: 'quarter', yKey: 'costs', yName: 'Costs', color: '#00ff00' },
+					{ xKey: 'quarter', yKey: 'revenue', yName: 'Target', color: '#0000ff' },
+				],
+			}),
+		)
+
+		const blue = () => container.querySelector('[data-slot="chart-bar"][fill="#0000ff"]')
+
+		const before = blue()
+
+		expect(before).not.toBeNull()
+
+		const costs = allBySlot(container, 'chart-legend-item')[1] as Element
+
+		fireEvent.click(costs)
+
+		expect(blue()).toBe(before)
+
+		fireEvent.click(costs)
+
+		expect(blue()).toBe(before)
+	})
+
+	it('strokes the category axis line with the axis ink', () => {
+		const { container } = renderUI(chart())
+
+		const line = getSlot(container, 'chart-axis-x').querySelector('line')
+
+		// The recipe object would write its key names (`line title`) as classes and
+		// leave the line with no stroke.
+		expect(line?.getAttribute('class')).toContain('stroke-zinc-300')
 	})
 
 	it('still renders the marks under animate', () => {
@@ -1223,7 +1345,7 @@ describe('stackedBarMarks', () => {
 	})
 })
 
-describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
+describe('stackedBarSnaps', () => {
 	const band = bandScale({ count: 1, range: [0, 100] })
 
 	const map = (value: number) => 100 - value
@@ -1234,7 +1356,7 @@ describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
 		// Bottom segment tops at its own value (map(40)); the second rides it and
 		// tops at the running total (map(70)) — not map(30), the from-zero position
 		// the shared snap points would carry.
-		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
+		expect(stackedBarSnaps(marks, [0, 1], 1).points).toEqual([[map(40), map(70)]])
 	})
 
 	it('names each stop series by its stack order, dropping the same gaps', () => {
@@ -1242,9 +1364,10 @@ describe('stackedBarSnapPoints / stackedBarSnapSeries', () => {
 
 		// The zero-valued middle series takes no segment, so it drops from both the
 		// positions and the parallel series list, keeping the two aligned.
-		expect(stackedBarSnapPoints(marks, 1)).toEqual([[map(40), map(70)]])
-
-		expect(stackedBarSnapSeries(marks, [0, 1, 2], 1)).toEqual([[0, 2]])
+		expect(stackedBarSnaps(marks, [0, 1, 2], 1)).toEqual({
+			points: [[map(40), map(70)]],
+			series: [[0, 2]],
+		})
 	})
 })
 

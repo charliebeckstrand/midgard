@@ -1,19 +1,28 @@
 /**
- * The cartesian orientation and the single coordinate transpose every oriented
- * chart part reads. A cartesian chart has one continuous **value** axis and one
- * categorical **band** axis; orientation is only which screen axis each maps to.
- * Vertical keeps the value axis on y (bars grow up) and the band on x.
- * Horizontal transposes both (bars grow right, categories run down the side).
+ * The cartesian orientation, the plot rectangle, and the coordinate transpose
+ * that the oriented chart parts read. A cartesian chart has one continuous
+ * **value** axis and one categorical **band** axis; orientation is only which
+ * screen axis each maps to. Vertical keeps the value axis on y (bars grow up)
+ * and the band on x. Horizontal transposes both (bars grow right, categories run
+ * down the side).
  *
- * Every oriented position is expressed in (value, band) space and projected
- * through {@link project}. That covers a bar corner, a gridline, a tick, a
- * crosshair rule, and a tooltip anchor. The transpose therefore lives here, and
- * nothing else branches on the orientation. Framework- and style-free, so the mapping is unit-testable in
- * isolation and reused by the pure geometry cores and the React parts alike.
+ * A part that places a point in (value, band) space projects it through
+ * {@link project}, as a keyboard stop and a tooltip anchor do. A rule at a value
+ * spans the band axis through {@link valueRule}: a gridline, the value rule of
+ * the crosshair, and a reference rule. The plot extent along each axis comes
+ * from {@link valueExtent} and {@link bandExtent}.
+ *
+ * The transpose of a point lives here, but not each branch on the orientation.
+ * A part that differs by more than a coordinate reads the orientation itself.
+ * Examples are the layout, the axis sides, the bar path and hit test, and the
+ * mount motion. The arrow keys, the reference labels, and the tooltip order
+ * also read it.
+ *
+ * The file holds no framework and no styles, so the mapping is unit-testable in
+ * isolation. The pure geometry cores and the React parts read it alike.
  */
 
 import type { Orientation } from '../../../types'
-import type { PlotRect } from './chart-layout'
 
 /**
  * Which screen axis a cartesian chart's value axis runs along: `'vertical'`
@@ -24,6 +33,14 @@ export type ChartOrientation = Orientation
 
 /** A point in `viewBox` user units, structurally shared with the frame's anchors. @internal */
 export type Vec = { x: number; y: number }
+
+/** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */
+export type PlotRect = {
+	x: number
+	y: number
+	width: number
+	height: number
+}
 
 /**
  * Projects a value-axis position crossed with a band-axis position into a frame
@@ -55,4 +72,22 @@ export function valueExtent(orientation: ChartOrientation, plot: PlotRect): [num
 /** The plot's `[start, end]` screen extent along the band axis — the range a band scale spans. @internal */
 export function bandExtent(orientation: ChartOrientation, plot: PlotRect): [number, number] {
 	return orientation === 'vertical' ? [plot.x, plot.x + plot.width] : [plot.y, plot.y + plot.height]
+}
+
+/**
+ * The ends of the rule at value-axis position `at`, drawn across the plot on
+ * the band axis. A gridline, the value rule of the crosshair, and a reference
+ * rule each draw it. The ends are the {@link project} of `at` at each end of
+ * {@link bandExtent}, written out so that no tuple is built for each rule.
+ *
+ * @internal
+ */
+export function valueRule(
+	orientation: ChartOrientation,
+	plot: PlotRect,
+	at: number,
+): { from: Vec; to: Vec } {
+	return orientation === 'vertical'
+		? { from: { x: plot.x, y: at }, to: { x: plot.x + plot.width, y: at } }
+		: { from: { x: at, y: plot.y }, to: { x: at, y: plot.y + plot.height } }
 }

@@ -3,14 +3,15 @@
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { clamp } from '../../../utilities'
-import type { PlotRect } from './chart-layout'
 import {
 	bandCoord,
 	bandExtent,
 	type ChartOrientation,
+	type PlotRect,
 	project,
 	valueCoord,
 	valueExtent,
+	valueRule,
 } from './chart-orientation'
 import { nearestValue } from './chart-snap'
 import { useChartHover, useChartTier } from './context'
@@ -56,6 +57,14 @@ export type Crosshair = {
  * @internal
  */
 export type ResolvedCrosshair = Required<Crosshair>
+
+/** The presentation of both crosshair rules, built once for every render. @internal */
+const CROSSHAIR_RULE = {
+	strokeWidth: 1,
+	strokeDasharray: '4 4',
+	shapeRendering: 'crispEdges',
+	className: cn(k.axis.line),
+} as const
 
 /** Props for {@link ChartCrosshair}. @internal */
 export type ChartCrosshairProps = {
@@ -134,14 +143,9 @@ export function ChartCrosshair({
 
 	const { index, point } = useChartHover()
 
-	if (spark || index === null || point === null) return null
-
-	const rule = {
-		strokeWidth: 1,
-		strokeDasharray: '4 4',
-		shapeRendering: 'crispEdges' as const,
-		className: cn(k.axis.line),
-	}
+	// A pinned index can outlive the data that held it. The tooltip closes there,
+	// so the crosshair draws nothing either.
+	if (spark || index === null || point === null || index >= bandPositions.length) return null
 
 	const rawValue = crosshair.snap
 		? nearestValue(valuePoints[index], valueCoord(orientation, point))
@@ -164,11 +168,9 @@ export function ChartCrosshair({
 			: clamp(rawBand, Math.min(bandStart, bandEnd), Math.max(bandStart, bandEnd))
 
 	// The value rule holds its value and spans the band axis; the band rule holds
-	// its band and spans the value axis. `project` puts each pair of ends on screen.
-	const valueRule =
-		value === null
-			? null
-			: { from: project(orientation, value, bandStart), to: project(orientation, value, bandEnd) }
+	// its band and spans the value axis. `valueRule` and `project` put each pair of
+	// ends on screen.
+	const valueLine = value === null ? null : valueRule(orientation, plot, value)
 
 	const bandRule =
 		band === null
@@ -177,14 +179,14 @@ export function ChartCrosshair({
 
 	return (
 		<g data-slot="chart-crosshair">
-			{crosshair.x && valueRule && (
+			{crosshair.x && valueLine && (
 				<line
 					data-slot="chart-crosshair-x"
-					x1={valueRule.from.x}
-					y1={valueRule.from.y}
-					x2={valueRule.to.x}
-					y2={valueRule.to.y}
-					{...rule}
+					x1={valueLine.from.x}
+					y1={valueLine.from.y}
+					x2={valueLine.to.x}
+					y2={valueLine.to.y}
+					{...CROSSHAIR_RULE}
 				/>
 			)}
 
@@ -195,7 +197,7 @@ export function ChartCrosshair({
 					y1={bandRule.from.y}
 					x2={bandRule.to.x}
 					y2={bandRule.to.y}
-					{...rule}
+					{...CROSSHAIR_RULE}
 				/>
 			)}
 		</g>

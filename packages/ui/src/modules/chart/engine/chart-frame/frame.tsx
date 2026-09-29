@@ -3,9 +3,9 @@
 import {
 	type ReactElement,
 	type ReactNode,
+	type Ref,
 	type RefObject,
 	useCallback,
-	useDeferredValue,
 	useMemo,
 	useRef,
 	useState,
@@ -30,7 +30,9 @@ import {
 	ChartHoverContext,
 	type ChartHoverState,
 	ChartMarkEmphasisContext,
+	ChartMarkPointContext,
 	type ChartMarkRef,
+	ChartReferencePointContext,
 	ChartSeriesEmphasisContext,
 	ChartSeriesFocusContext,
 	ChartTierContext,
@@ -60,12 +62,13 @@ const NONE_HIDDEN: ReadonlySet<number> = new Set()
  * as a pure sparkline. It therefore never wraps under a legend band that
  * crushes it to a sliver of dashes. The series then read on the hover tooltip,
  * as the title does on the veil. A chart with no title or subtitle draws no
- * header either way.
+ * header either way, and neither does a chart with `heading` off.
  *
  * @internal
  */
 function chartChrome(
 	tier: ChartTier | undefined,
+	heading: boolean,
 	title: string | undefined,
 	subtitle: string | undefined,
 	legend: ReactNode,
@@ -73,13 +76,29 @@ function chartChrome(
 	const spark = tier === 'spark'
 
 	const head =
-		title || subtitle ? <ChartHeader title={title} subtitle={subtitle} veil={spark} /> : null
+		heading && (title || subtitle) ? (
+			<ChartHeader title={title} subtitle={subtitle} veil={spark} />
+		) : null
 
 	return {
 		header: spark ? null : head,
 		sparkVeil: spark ? head : null,
 		legend: spark ? null : legend,
 	}
+}
+
+/** The accessible-name attributes of the plot region. @internal */
+type PlotName = { 'aria-label'?: string; 'aria-labelledby'?: string }
+
+/**
+ * The accessible name of the plot region, picked by name. A chart hands the
+ * frame the rest of its props, so a prop that the chart does not take off
+ * reaches the frame too. The pick keeps such a prop off the `role="img"` region.
+ *
+ * @internal
+ */
+export function plotName(label: PlotName): PlotName {
+	return { 'aria-label': label['aria-label'], 'aria-labelledby': label['aria-labelledby'] }
 }
 
 /**
@@ -146,9 +165,11 @@ export type ChartFrameProps = AccessibleName & {
 	ref: RefObject<HTMLDivElement | null>
 	/**
 	 * Receives the chart root, which is inside the chart's font context. A chart
-	 * that measures its label text (`useChartTextWidth`) passes its `hostRef`.
+	 * that measures its label text (`useChartTextWidth`) passes its `hostRef`. A
+	 * chart that also measures the root box composes the two refs, as the heatmap
+	 * does.
 	 */
-	textHostRef?: RefObject<HTMLDivElement | null>
+	textHostRef?: Ref<HTMLDivElement>
 	/** Resolved drawing width; `0` renders the frame shell without the SVG. */
 	width: number
 	/** Explicit width prop, fixing the wrapper instead of filling the container. */
@@ -198,6 +219,13 @@ export type ChartFrameProps = AccessibleName & {
 	title?: string
 	/** The chart subtitle, muted under the {@link ChartFrameProps.title | title}, sharing its clip and spark veil. */
 	subtitle?: string
+	/**
+	 * Whether the title and the subtitle draw as a header. Off, the title names
+	 * the context menu alone: it heads the fullscreen view and the export files.
+	 * The heatmap draws no heading.
+	 * @defaultValue true
+	 */
+	heading?: boolean
 	/** The prepared legend row, or `null` to omit it (single series). */
 	legend: ReactNode
 	/**
@@ -208,6 +236,13 @@ export type ChartFrameProps = AccessibleName & {
 	 * @defaultValue 'bottom'
 	 */
 	legendPlacement?: ChartLegendPlacement
+	/**
+	 * The legend is a color-scale rail, not a categorical panel. A rail beside
+	 * the plot keeps the wider gap that the choropleth's rail keeps, so the two
+	 * color-scaled charts match.
+	 * @defaultValue false
+	 */
+	rail?: boolean
 	/**
 	 * The values behind the marks as a cached thunk, or `null` when there is
 	 * nothing to read. A thunk so the mount-critical render never formats the
@@ -244,6 +279,13 @@ export type ChartFrameProps = AccessibleName & {
 	emphasizeMarks?: boolean
 	/** Mount the hover tooltip. */
 	tooltip: boolean
+	/**
+	 * A tooltip that the chart draws in place of the shared {@link ChartTooltip}.
+	 * It mounts under the same gate: `tooltip` on, a tier above spark, a readout,
+	 * and a measured width. It reads the hover through `useChartHover`, as the
+	 * shared one does. The heatmap reads one cell with it, not a category.
+	 */
+	customTooltip?: ReactNode
 	/** Snap targets when the crosshair snaps, carrying the tooltip to the intersection. */
 	snap?: ChartSnap
 	/**
@@ -315,14 +357,17 @@ export function ChartFrame({
 	tier,
 	title,
 	subtitle,
+	heading = true,
 	legend,
 	legendPlacement = 'bottom',
+	rail = false,
 	readout,
 	readoutOrder,
 	hidden = NONE_HIDDEN,
 	seriesCount,
 	emphasizeMarks = false,
 	tooltip,
+	customTooltip,
 	snap,
 	focus,
 	keyboardEmphasis = false,
@@ -356,19 +401,6 @@ export function ChartFrame({
 	// padding twice, where it stays null). `ChartContextMenu` takes the index and mints the target
 	// object a function-form `items` receives.
 	const [menuIndex, setMenuIndex] = useState<number | null>(null)
-
-	// The visually-hidden data table holds one row per datum, so at large row
-	// counts materializing and committing it dominates — yet nothing visual waits
-	// on it and assistive tech reads it from the settled DOM, not the first frame.
-	// Deferring the thunk drops it off the urgent render: the plot paints at full
-	// priority, then React re-renders the table alone in a low-priority pass, and
-	// only that pass calls the thunk — the mount commit never formats a cell. The
-	// `null` initial value holds the table out of the very first commit too, so a
-	// fresh mount paints its marks before any of it; a data change keeps the prior
-	// table up for a beat rather than blocking the new marks behind a rebuild.
-	// Parity is unchanged — the table always converges on the current readout,
-	// one low-priority commit behind.
-	const tableReadout = useDeferredValue(readout, null)
 
 	// The frame owns the series emphasis, not the chart body: a legend hover then
 	// does not run the body, which would make a new readout thunk and format the
@@ -412,7 +444,7 @@ export function ChartFrame({
 		focus,
 		orientation ?? 'vertical',
 		tooltipShown && readout !== null,
-		hoverStore.set,
+		hoverStore,
 		setActiveReference,
 		keyboardEmphasis ? setSeriesFocus : ignoreActiveSeries,
 	)
@@ -422,12 +454,7 @@ export function ChartFrame({
 	// index wins over a still-held keyboard focus, and the sibling rules recede to
 	// whichever it resolves to.
 	const emphasis = useMemo<ChartEmphasis>(
-		() => ({
-			referenceActive: pointerReference !== null || activeReference !== null,
-			setReferenceActive: setPointerReference,
-			activeReference,
-			emphasizedReference: pointerReference ?? activeReference,
-		}),
+		() => ({ activeReference, emphasizedReference: pointerReference ?? activeReference }),
 		[pointerReference, activeReference],
 	)
 
@@ -437,8 +464,8 @@ export function ChartFrame({
 	const markSeries = emphasizeMarks ? seriesEmphasis : null
 
 	const markEmphasis = useMemo(
-		() => chartMarkEmphasis(pointedMark, markSeries, pointMark, selected),
-		[pointedMark, markSeries, pointMark, selected],
+		() => chartMarkEmphasis(pointedMark, markSeries, selected),
+		[pointedMark, markSeries, selected],
 	)
 
 	// The SVG renders at its committed pixel size and anchors to the box's
@@ -454,6 +481,11 @@ export function ChartFrame({
 	const svg = width > 0 && (
 		<svg
 			aria-hidden="true"
+			// The drawing is physical: its geometry runs left to right, so its text
+			// anchors must too. In a right-to-left page an end anchor would otherwise
+			// run each label from its anchor into the plot. The bidi of the text
+			// itself still reads a right-to-left label in its own order.
+			direction="ltr"
 			className={cn('absolute left-0 top-0 block', k.drawing(spark))}
 			width={width}
 			height={height}
@@ -473,14 +505,19 @@ export function ChartFrame({
 	// A framed tier bands the header above the plot and keeps the legend; spark
 	// strips both to bare marks — the header to a centered hover / focus veil, the
 	// legend gone so the plot reclaims the whole aspect box (see chartChrome).
-	const { header, sparkVeil, legend: legendFrame } = chartChrome(tier, title, subtitle, legend)
+	// A chart with `heading` off keeps its title for the context menu alone.
+	const {
+		header,
+		sparkVeil,
+		legend: legendFrame,
+	} = chartChrome(tier, heading, title, subtitle, legend)
 
 	const plotRegion = (
 		<div
 			ref={ref}
 			data-slot="chart-plot"
 			role="img"
-			{...label}
+			{...plotName(label)}
 			{...plotRegionProps(keyboard, aside, fill)}
 		>
 			{/* ChartPlotBox reserves the box height from its own width, steady before
@@ -495,18 +532,21 @@ export function ChartFrame({
 
 			{sparkVeil}
 
-			{tooltipShown && readout && width > 0 && (
-				<ChartTooltip
-					plotRef={ref}
-					readout={readout}
-					order={readoutOrder}
-					snap={snap}
-					orientation={orientation}
-					// The pointed mark's series dims the other rows too, so a hovered bar or
-					// line foregrounds its row exactly as the coarse legend emphasis does.
-					emphasis={markEmphasis.mark?.series ?? null}
-				/>
-			)}
+			{tooltipShown &&
+				readout &&
+				width > 0 &&
+				(customTooltip ?? (
+					<ChartTooltip
+						plotRef={ref}
+						readout={readout}
+						order={readoutOrder}
+						snap={snap}
+						orientation={orientation}
+						// The pointed mark's series dims the other rows too, so a hovered bar or
+						// line foregrounds its row exactly as the coarse legend emphasis does.
+						emphasis={markEmphasis.mark?.series ?? null}
+					/>
+				))}
 		</div>
 	)
 
@@ -532,9 +572,7 @@ export function ChartFrame({
 				'group/chart @container flex flex-col gap-3',
 				// A long press opens the readout, as on the map. The whole chart, labels
 				// included, therefore selects no text and opens no callout under a hold.
-				// iOS Safari can select text in a descendant of a `select-none` box, so
-				// every descendant also sets it.
-				'select-none **:select-none [-webkit-touch-callout:none]',
+				k.touchReadout,
 				fixedWidth === undefined && 'w-full',
 				containerFill && 'h-full',
 				className,
@@ -543,27 +581,32 @@ export function ChartFrame({
 		>
 			<ChartTierContext value={tier ?? 'standard'}>
 				<ChartEmphasisContext value={emphasis}>
-					<ChartMarkEmphasisContext value={markEmphasis}>
-						<ChartSeriesFocusContext value={setSeriesFocus}>
-							<ChartSeriesEmphasisContext value={seriesEmphasis}>
-								<ChartHoverContext value={hoverStore}>
-									<ChartFigure
-										plot={plotRegion}
-										header={header}
-										legend={legendFrame}
-										legendPlacement={legendPlacement}
-										aside={aside}
-										containerFill={containerFill}
-										aspect={aspect}
-									/>
-								</ChartHoverContext>
-							</ChartSeriesEmphasisContext>
-						</ChartSeriesFocusContext>
-					</ChartMarkEmphasisContext>
+					<ChartReferencePointContext value={setPointerReference}>
+						<ChartMarkEmphasisContext value={markEmphasis}>
+							<ChartMarkPointContext value={pointMark}>
+								<ChartSeriesFocusContext value={setSeriesFocus}>
+									<ChartSeriesEmphasisContext value={seriesEmphasis}>
+										<ChartHoverContext value={hoverStore}>
+											<ChartFigure
+												plot={plotRegion}
+												header={header}
+												legend={legendFrame}
+												legendPlacement={legendPlacement}
+												rail={rail}
+												aside={aside}
+												containerFill={containerFill}
+												aspect={aspect}
+											/>
+										</ChartHoverContext>
+									</ChartSeriesEmphasisContext>
+								</ChartSeriesFocusContext>
+							</ChartMarkPointContext>
+						</ChartMarkEmphasisContext>
+					</ChartReferencePointContext>
 				</ChartEmphasisContext>
 			</ChartTierContext>
 
-			{tableReadout && <ChartTable readout={tableReadout} />}
+			{readout && <ChartTable readout={readout} />}
 
 			{annotations}
 		</div>
@@ -592,6 +635,8 @@ type ChartFigureProps = {
 	header: ReactNode
 	legend: ReactNode
 	legendPlacement: ChartLegendPlacement
+	/** The legend is a color-scale rail, which keeps a wider gap beside the plot. */
+	rail: boolean
 	/** The legend is a side panel, so the plot and legend lay out in a row once the container has room. */
 	aside: boolean
 	/** The frame fills its container height, so the figure grows to hold it. */
@@ -617,6 +662,7 @@ function ChartFigure({
 	header,
 	legend,
 	legendPlacement,
+	rail,
 	aside,
 	containerFill,
 	aspect,
@@ -636,9 +682,14 @@ function ChartFigure({
 		<div
 			data-slot="chart-body"
 			className={cn(
-				'flex min-h-0 flex-1 flex-col gap-2',
+				'flex min-h-0 flex-1 flex-col',
+				rail ? 'gap-4' : 'gap-2',
 				stretch ? '@sm:items-stretch' : '@sm:items-center',
-				legendPlacement === 'left' ? '@sm:flex-row-reverse' : '@sm:flex-row',
+				// The side is physical: a right-to-left row runs from the right, so it
+				// swaps the order back, and a `left` legend still draws on the left.
+				legendPlacement === 'left'
+					? '@sm:flex-row-reverse rtl:@sm:flex-row'
+					: '@sm:flex-row rtl:@sm:flex-row-reverse',
 			)}
 		>
 			{plot}

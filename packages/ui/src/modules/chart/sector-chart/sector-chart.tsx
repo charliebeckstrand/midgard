@@ -1,7 +1,7 @@
 'use client'
 
-import type { ReactNode } from 'react'
-import { usePlotFrame } from '../../../hooks'
+import { type ReactNode, useMemo } from 'react'
+import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
 import { fractionFormat, once, percentFormat } from '../../../utilities'
@@ -20,18 +20,19 @@ import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { selectedIndices, seriesValues } from '../engine/chart-series'
-import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
+import { headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
+import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
 	buildCallouts,
 	CALLOUT_TEXT_CLASS,
-	type CalloutSpec,
 	calloutFitRadius,
 	calloutRoom,
+	calloutSpecOf,
 	calloutsShown,
 	calloutTexts,
 	resolveSectorFit,
@@ -79,12 +80,13 @@ export type SectorBaseProps<T> = ChartBaseProps<T> & {
 	 * data table always carry the full readout. The `callouts` names every slice
 	 * from the outside, with a leader line to its name and percent share. It
 	 * declumps per side, so a crowded pie never overlaps them, and it shrinks the
-	 * pie to make room. See `aspectRatio`. The default frame shrinks with it too,
-	 * rather than leaving the labels' margin empty on every side. Unlike segment
-	 * labels these name the slice, so they read without the legend. In a box too
-	 * narrow for their columns they drop, and the pie draws as bare marks. Such a
-	 * box is one where they would starve the pie to the spark floor. The share is
-	 * read from the tooltip and table instead.
+	 * pie to make room. A label that the declump moves follows the leader circle,
+	 * so it never sits on the pie. See `aspectRatio`. The default frame shrinks
+	 * with it too, rather than leaving the labels' margin empty on every side.
+	 * Unlike segment labels these name the slice, so they read without the
+	 * legend. In a box too narrow for their columns they drop, and the pie draws
+	 * as bare marks. Such a box is one where they would starve the pie to the
+	 * spark floor. The share is read from the tooltip and table instead.
 	 */
 	labels?: SectorLabels
 	/**
@@ -189,18 +191,22 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Callouts sit outside the pie, so reserve room for the widest one and shrink
 	// the pie to fit — its label never spills past the frame's clip. The frame
 	// sizes from the full dataset and the pie fits the visible slices, whose
-	// shares read different percents, so both sets of texts are measured.
-	const calloutText = { labels: sliceLabels, percent }
+	// shares read different percents, so both sets of texts are measured. Each
+	// set formats once, and each fit runs once, for the whole render.
+	const calloutText = calloutTexts(
+		showCallouts,
+		{ labels: sliceLabels, percent },
+		values,
+		sliceValues,
+	)
 
 	const calloutWidth = useChartTextWidth(
-		showCallouts
-			? [...calloutTexts(calloutText, values), ...calloutTexts(calloutText, sliceValues)]
-			: [],
+		[...calloutText.full, ...calloutText.shown],
 		CALLOUT_TEXT_CLASS,
 		CALLOUT_CHAR_WIDTH,
 	)
 
-	const calloutSpec: CalloutSpec = { ...calloutText, textWidth: calloutWidth.width }
+	const calloutSpec = calloutSpecOf(calloutText, values, sliceValues, calloutWidth.width)
 
 	const vMargin = showCallouts ? CALLOUT_LEADER + CALLOUT_LINE : MARK_GAP * 2
 
@@ -210,9 +216,9 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	const sizing = sectorFrameSizing(
 		height,
 		frameAspectRatio,
-		calloutRoom(showCallouts, calloutSpec, values),
+		calloutRoom(showCallouts, calloutSpec),
 		vMargin,
-		calloutFitRadius(showCallouts, calloutSpec, values, vMargin),
+		calloutFitRadius(showCallouts, calloutSpec, vMargin),
 	)
 
 	// A live ratio with a legend describes the whole chart: the figure carries the
@@ -226,8 +232,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		stackedLegend,
 	} = sectorFrame(sizing, resolvedLegend.value, data.length)
 
-	const { ref, width: frameWidth, height: frameHeight, reserve } = usePlotFrame(width, frameSizing)
-
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
@@ -235,13 +239,19 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// The frame draws the title and subtitle inside the aspect box, so the chrome
 	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
 	// against the figure's `width / ratio` less that chrome.
-	const policy = chartFramePolicy({
+	const {
+		ref,
 		width: frameWidth,
 		height: frameHeight,
+		reserve,
+		policy,
+	} = useChartFrameSizing({
+		width,
+		sizing: frameSizing,
+		aside,
 		aspect: frameAspect,
 		chrome: { headerLines: headerLineCount(props.title, props.subtitle), legend: stackedLegend },
 		tickTarget: CHART_METRICS.md.tickTarget,
-		fill: frameSizing.mode === 'fill',
 	})
 
 	const colors = categorySlots(sliceLabels, categories)
@@ -255,13 +265,13 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// Callouts need a wide horizontal band; where that band would starve the pie to
 	// the spark floor, drop them and draw a bare pie — the sizing already squared
 	// the frame to receive it.
-	const drawCallouts = calloutsShown(showCallouts, calloutSpec, values, vMargin, frameWidth)
+	const drawCallouts = calloutsShown(showCallouts, calloutSpec, vMargin, frameWidth)
 
 	// A dropped callout returns the pie to the plain gap all round, so it fills the
 	// square rather than holding the taller callout band's margin.
 	const drawVMargin = drawCallouts ? vMargin : MARK_GAP * 2
 
-	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, sliceValues, frameWidth)
+	const pieFit = resolveSectorFit(drawCallouts, calloutSpec, frameWidth)
 
 	const radius = Math.max(0, Math.min(pieFit.radius, frameHeight / 2 - drawVMargin))
 
@@ -292,9 +302,36 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			: []
 
 	// A cached thunk ({@link ChartReadoutSource}): slices are few, but the frame
-	// contract defers every readout to its first consumer all the same.
-	const readout = once(() =>
-		sectorReadout(sliceLabels, paints, entry.yName ?? entry.yKey, values, format),
+	// contract defers every readout to its first consumer all the same. Its inputs
+	// are new on each render, so the rows, the fields, the color order, and the
+	// format hold them while their content stays the same. A parent render then
+	// formats no row again. An empty pie has no readout, so the menu drops its
+	// data actions.
+	const readoutInput = useStableValue(
+		{ data, entry, categories, format, labels: sliceLabels, paints, values },
+		(previous, next) =>
+			previous.data === next.data &&
+			previous.entry.xKey === next.entry.xKey &&
+			previous.entry.yKey === next.entry.yKey &&
+			previous.entry.yName === next.entry.yName &&
+			previous.categories === next.categories &&
+			previous.format === next.format,
+	)
+
+	const readout = useMemo(
+		() =>
+			readoutInput.labels.length > 0
+				? once(() =>
+						sectorReadout(
+							readoutInput.labels,
+							readoutInput.paints,
+							readoutInput.entry.yName ?? readoutInput.entry.yKey,
+							readoutInput.values,
+							readoutInput.format,
+						),
+					)
+				: null,
+		[readoutInput],
 	)
 
 	const legendItems = hasLegend
@@ -320,6 +357,10 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 
 		return slice ? [slice.centroid] : []
 	})
+
+	// Each stop names its own row, so the keyboard cursor isolates its slice and
+	// recedes the rest, as a pointed slice does.
+	const focusSeries = focusPoints.map((stops, index) => (stops.length > 0 ? [index] : []))
 
 	const marks = (
 		<>
@@ -382,7 +423,8 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 			hidden={sliceless}
 			seriesCount={values.length}
 			tooltip={showTooltip}
-			focus={{ points: focusPoints }}
+			focus={{ points: focusPoints, series: focusSeries }}
+			keyboardEmphasis
 			className={className}
 			overlay={
 				innerRatio > 0 && children ? (

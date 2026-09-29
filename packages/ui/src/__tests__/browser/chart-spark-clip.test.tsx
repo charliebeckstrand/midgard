@@ -56,9 +56,7 @@ const SLICES = [
  */
 async function expectNoClip(container: HTMLElement) {
 	await waitFor(() => {
-		const svgs = [
-			...container.querySelectorAll('[data-slot="chart-plot"] svg, [data-slot="heatmap-plot"] svg'),
-		]
+		const svgs = [...container.querySelectorAll('[data-slot="chart-plot"] svg')]
 
 		expect(svgs.length).toBeGreaterThan(0)
 
@@ -70,7 +68,7 @@ async function expectNoClip(container: HTMLElement) {
 			for (const el of svg.querySelectorAll('circle, rect, path, line, polyline, text')) {
 				const slot = el.getAttribute('data-slot') ?? ''
 
-				if (slot === 'chart-hit' || slot === 'heatmap-hit') continue
+				if (slot === 'chart-hit') continue
 
 				const box = el.getBoundingClientRect()
 

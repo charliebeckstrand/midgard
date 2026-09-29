@@ -9,7 +9,7 @@
  */
 
 import { MARK_GAP } from '../chart-constants'
-import type { BandScale } from '../chart-scale'
+import { type BandScale, bandIndexAt } from '../chart-scale'
 
 /** Cell corner radius; reads as a tile, not a pill. Clamped per cell below. @internal */
 const CELL_RADIUS = 2
@@ -102,22 +102,11 @@ export function cellAt(
 	cols: number,
 	rows: number,
 ): { row: number; col: number } | null {
-	const col = bandIndex(x, xBand, cols)
+	const col = bandIndexAt(x, xBand, cols)
 
-	const row = bandIndex(y, yBand, rows)
+	const row = bandIndexAt(y, yBand, rows)
 
 	if (col === null || row === null) return null
 
 	return { row, col }
-}
-
-/** The band slot a coordinate lands in, or `null` when it sits outside the range. @internal */
-function bandIndex(pos: number, band: BandScale, count: number): number | null {
-	if (count <= 0 || band.step <= 0) return null
-
-	const first = band.center(0) - band.step / 2
-
-	const index = Math.floor((pos - first) / band.step)
-
-	return index < 0 || index >= count ? null : index
 }

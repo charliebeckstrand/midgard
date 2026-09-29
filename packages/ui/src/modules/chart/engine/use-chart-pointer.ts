@@ -9,9 +9,9 @@ import {
 	useRef,
 } from 'react'
 import { useHoverAcrossScroll } from '../../../hooks'
-import type { PlotRect } from './chart-layout'
+import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
-import { type ChartMarkRef, useChartHoverStore, useChartMarkEmphasis } from './context'
+import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
 
 /** The handlers {@link useChartPointer} spreads onto the hit layer's rect. @internal */
 export type ChartPointerHandlers = {
@@ -22,9 +22,62 @@ export type ChartPointerHandlers = {
 	onClick?: (event: MouseEvent<SVGRectElement>) => void
 }
 
-/** Maps a viewport point into frame coordinates through the hit element's live box. @internal */
-function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
-	return { x: clientX - box.left + plot.x, y: clientY - box.top + plot.y }
+/**
+ * Maps a viewport point into frame coordinates through the hit element's live
+ * box. A client rect carries any ancestor `zoom` or `transform: scale`, so the
+ * point maps by its fraction of the box. A box with no size (jsdom) maps by
+ * the offset alone.
+ *
+ * @internal
+ */
+export function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number) {
+	const dx = clientX - box.left
+
+	const dy = clientY - box.top
+
+	return {
+		x: plot.x + (box.width > 0 ? (dx / box.width) * plot.width : dx),
+		y: plot.y + (box.height > 0 ? (dy / box.height) * plot.height : dy),
+	}
+}
+
+/** The mark under a frame point, fed the held mark and the resolved category. @internal */
+export type ChartMarkAt = (
+	x: number,
+	y: number,
+	held: ChartMarkRef | null,
+	index: number | null,
+) => ChartMarkRef | null
+
+/** Options for {@link useChartPointer}. @internal */
+export type ChartPointerOptions = {
+	plot: PlotRect
+	/**
+	 * Maps a frame point to the hover category index, or `null` when the point
+	 * resolves to none; memoize it so the handlers stay stable.
+	 */
+	resolveIndex: (x: number, y: number) => number | null
+	/**
+	 * The mark under a frame point. It gates the readout (on a mark, or off it)
+	 * and feeds the isolation. `held` carries the mark the pointer holds, so a
+	 * bounded catch can stay sticky. The resolved category `index` rides along, so
+	 * a snapping chart can hand the emphasis to the stop the tooltip anchors in
+	 * that column.
+	 */
+	markAt: ChartMarkAt
+	/** @defaultValue 'hover' */
+	trigger?: ChartTooltipTrigger
+	/** Whether the readout snaps, so it reads off the marks too. @defaultValue false */
+	snaps?: boolean
+	/** Reports a click that resolves to a category, by data index. */
+	onIndexClick?: (index: number) => void
+	/**
+	 * Reports a click on a mark, for a chart whose items are marks rather than
+	 * categories, such as a scatter point. It rides the same probe as
+	 * {@link ChartPointerOptions.markAt}, so the mark it reports is the one the
+	 * isolation lit.
+	 */
+	onMarkClick?: (mark: ChartMarkRef) => void
 }
 
 /**
@@ -34,8 +87,8 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * band for the cartesian charts, or the nearest unique-x column for a scatter.
  * Entry resolves the same way as movement. A held touch fires no move until
  * the finger travels. Entry alone therefore opens the readout under a long
- * press, as on the map. Leaving the layer clears both. The chart's `onData`
- * hit test rides along, gating the
+ * press, as on the map. Leaving the layer clears both, and so does an unmount
+ * under the pointer. The chart's `markAt` hit test rides along, gating the
  * tooltip to the marks while the index keeps the crosshair tracking everywhere.
  *
  * A scroll slides the plot under a stationary pointer without firing a pointer
@@ -59,40 +112,29 @@ function toFrame(plot: PlotRect, box: DOMRect, clientX: number, clientY: number)
  * public `onCategoryClick`.
  *
  * @remarks The hit element's own bounding box anchors the coordinate math,
- * so the handlers stay correct however the frame scrolls or transforms.
- * @param resolveIndex - Maps a frame point to the hover category index, or `null`
- * when the point resolves to none; memoize it so the handlers stay stable.
+ * so the handlers stay correct however the frame scrolls, transforms, or scales.
  * @returns The handlers plus the `ref` to attach to the hit element, which the
  * scroll resolve reads to map the settled pointer back into frame coordinates.
  * @internal
  */
-export function useChartPointer(
-	plot: PlotRect,
-	resolveIndex: (x: number, y: number) => number | null,
-	onData?: (x: number, y: number) => boolean,
-	trigger: ChartTooltipTrigger = 'hover',
+export function useChartPointer({
+	plot,
+	resolveIndex,
+	markAt,
+	trigger = 'hover',
 	snaps = false,
-	onIndexClick?: (index: number) => void,
-	markAt?: (
-		x: number,
-		y: number,
-		held: ChartMarkRef | null,
-		index: number | null,
-	) => ChartMarkRef | null,
-	/**
-	 * The consumer's mark-click report, for a chart whose items are marks rather
-	 * than categories — a scatter point, say. It rides the same probe
-	 * {@link markAt} runs, so the mark it reports is the one the isolation lit.
-	 */
-	onMarkClick?: (mark: ChartMarkRef) => void,
-): ChartPointerHandlers {
+	onIndexClick,
+	onMarkClick,
+}: ChartPointerOptions): ChartPointerHandlers {
 	// The store, not a subscription: the hit layer writes the hover and reads the
 	// shown index only in a click, so a pointer move does not render it.
 	const hoverStore = useChartHoverStore()
 
 	const set = hoverStore.set
 
-	const { setPointed } = useChartMarkEmphasis()
+	// The setter alone, which keeps its identity: a crossing from mark to mark
+	// renders the marks, not this hit layer.
+	const setPointed = useChartMarkPoint()
 
 	const ref = useRef<SVGRectElement>(null)
 
@@ -102,19 +144,17 @@ export function useChartPointer(
 	// another. A ref, not state: it shadows what setPointed last published.
 	const heldMark = useRef<ChartMarkRef | null>(null)
 
-	// The mark under a frame point and whether a readout shows there: with a
-	// `markAt` resolver the mark itself gates the readout — on a mark, or off it —
-	// and feeds the isolation; without one the chart's own `onData` gates alone and
-	// nothing isolates. One probe so the hit test and the isolation never disagree.
-	// The resolved category index rides along so a snapping chart can hand the
-	// emphasis to the stop the tooltip anchors in that category's column.
+	// The mark under a frame point, which also says whether a readout shows there:
+	// on a mark, or off it. One probe, so the hit test and the isolation never
+	// disagree. The resolved category index rides along, so a snapping chart can
+	// hand the emphasis to the stop the tooltip anchors in that category's column.
 	const probe = useCallback(
 		(x: number, y: number, index: number | null) => {
-			const mark = markAt ? markAt(x, y, heldMark.current, index) : null
+			const mark = markAt(x, y, heldMark.current, index)
 
-			return { mark, onData: markAt ? mark !== null : (onData?.(x, y) ?? true) }
+			return { mark, onData: mark !== null }
 		},
-		[markAt, onData],
+		[markAt],
 	)
 
 	// Every write to the pointed mark goes through here, so the held ref never
@@ -137,6 +177,22 @@ export function useChartPointer(
 	// The last viewport point the pointer tracked. A data change or a resize under
 	// a resting pointer re-resolves from it, where no pointer event fires.
 	const lastPointer = useRef<{ x: number; y: number } | null>(null)
+
+	// Whether a click of the pointer pinned the shown readout.
+	const pinned = useRef(false)
+
+	// The layer can unmount under the pointer: the data goes empty, the tier
+	// drops to spark, or nothing reads the pointer any more. No pointer event
+	// fires then, so the unmount clears what the pointer holds. A readout that the
+	// keyboard holds stays.
+	useEffect(
+		() => () => {
+			if (pointerInside.current || pinned.current) set(null, null)
+
+			point(null)
+		},
+		[set, point],
+	)
 
 	// Resolve hover from a viewport point against the hit element's live box, so
 	// a live pointer move and a post-scroll settle share one hit path. A live move
@@ -200,8 +256,10 @@ export function useChartPointer(
 			// Toggle the shown category off; and a click that would read nothing — off
 			// the marks on a chart that doesn't snap — dismisses rather than pinning a
 			// hidden one, so the next click of a real mark still opens it.
-			if (index === hoverStore.get().index || !(snaps || onDataHit)) set(null, null)
-			else set(index, { x, y }, onDataHit)
+			pinned.current = !(index === hoverStore.get().index || !(snaps || onDataHit))
+
+			if (pinned.current) set(index, { x, y }, onDataHit)
+			else set(null, null)
 
 			if (index !== null) onIndexClick?.(index)
 
@@ -255,9 +313,10 @@ export function useChartPointer(
 
 			point(mark)
 
-			if (!snaps) node.style.cursor = onDataHit ? 'pointer' : 'default'
+			// A band click reads anywhere, as a snap does, so the class keeps the cursor.
+			if (!snaps && !onIndexClick) node.style.cursor = onDataHit ? 'pointer' : 'default'
 		},
-		[plot, resolveIndex, probe, snaps, point],
+		[plot, resolveIndex, probe, snaps, onIndexClick, point],
 	)
 
 	// The scroll rescue only re-resolves while the pointer is engaged; a

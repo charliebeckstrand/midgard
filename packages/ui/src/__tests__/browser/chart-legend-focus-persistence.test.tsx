@@ -169,6 +169,52 @@ describe('chart legend focus persistence (real browser)', () => {
 		await waitFor(() => expect(marksReceded(container)).toBe(true))
 	})
 
+	it('stops the recede when keyboard focus leaves a reference chip toggled off and on', async () => {
+		const { container } = renderUI(
+			<>
+				<button type="button">before</button>
+
+				<BarChart
+					aria-label="Quarterlies"
+					data={data}
+					series={[...series]}
+					width={400}
+					legend="top"
+					reference={[{ value: 20, label: 'Target' }]}
+				/>
+			</>,
+		)
+
+		const before = present<HTMLButtonElement>(container.querySelector('button'), 'button')
+		const chip = allBySlot(container, 'chart-legend-reference')[0] as HTMLButtonElement
+
+		// Rove to the chip, then toggle its rule off and on with the keyboard.
+		before.focus()
+		await userEvent.tab()
+		await userEvent.keyboard('{ArrowRight}{ArrowRight}')
+
+		expect(document.activeElement).toBe(chip)
+
+		await userEvent.keyboard(' ')
+		await waitFor(() => expect(chip.getAttribute('aria-pressed')).toBe('false'))
+
+		await userEvent.keyboard(' ')
+		await waitFor(() => expect(chip.getAttribute('aria-pressed')).toBe('true'))
+		await waitFor(() => expect(marksReceded(container)).toBe(true))
+
+		// The keyboard toggle wrote no pointer, so the recede follows the focus.
+		await userEvent.keyboard('{ArrowLeft}')
+		await settle()
+
+		expect(chip.matches(':focus-visible')).toBe(false)
+		expect(marksReceded(container)).toBe(false)
+
+		await userEvent.keyboard('{Escape}')
+		await settle()
+
+		expect(marksReceded(container)).toBe(false)
+	})
+
 	it('does not recede the marks on a reference chip clicked into ring-less focus', async () => {
 		const { container } = renderUI(
 			<>

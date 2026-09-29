@@ -1,724 +1,58 @@
 'use client'
 
-import {
-	Fragment,
-	type MouseEvent,
-	type PointerEvent,
-	type ReactNode,
-	useMemo,
-	useState,
-} from 'react'
-import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
-import { cn, createContext } from '../../../core'
-import { useComposedRef, usePlotFrame } from '../../../hooks'
+import { useComposedRef } from '../../../hooks'
 import { useMeasuredWidth } from '../../../hooks/use-measured-width'
-import { useLocale } from '../../../providers/locale'
-import { k } from '../../../recipes/kata/chart'
-import {
-	type BinScale,
-	type ColorBin,
-	fractionFormat,
-	once,
-	resolveBinScale,
-	valueExtent,
-} from '../../../utilities'
-import { ChartAxis, type ChartAxisTick } from '../engine/chart-axes/axis'
-import {
-	BAND_LABEL_HEIGHT,
-	GUTTER_GAP,
-	GUTTER_LABEL_ROOM,
-	LABEL_CHAR_WIDTH,
-	TICK_CHAR_WIDTH,
-} from '../engine/chart-constants'
-import { ChartContextMenu } from '../engine/chart-context-menu'
-import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
-import { chartFrameSizing, type PlotRect, plotRect, thinned } from '../engine/chart-layout'
-import { resolveRangeLegend } from '../engine/chart-legend/range'
-import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
-import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
-import type { ChartOrientation } from '../engine/chart-orientation'
-import { ChartPlotBox } from '../engine/chart-plot-box'
-import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
-import { type BandScale, bandScale } from '../engine/chart-scale'
-import { READOUT_GAP } from '../engine/chart-series'
-import { ChartTable } from '../engine/chart-table'
-import { isSparkBox } from '../engine/chart-tier'
-import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
-import { samePoint } from '../engine/context'
-import type { ChartReadout, ChartReadoutSource } from '../engine/types'
-import { useChartTextWidth } from '../engine/use-chart-text-width'
-import {
-	type HeatmapChartProps,
-	type HeatmapMatrix,
-	resolveHeatmapMatrix,
-} from './heatmap-chart-schema'
-
-/** The neutral fill for a cell with no datum, one step off the surface. @internal */
-const NO_DATA_FILL = 'fill-zinc-100 dark:fill-zinc-800'
-
-/** The pointed cell and the exact pointer point the tooltip tracks. @internal */
-type HeatmapHover = {
-	/** The `[row, col]` under the pointer, or `null` when it is away. */
-	cell: { row: number; col: number } | null
-	/** The pointer's frame coordinates while hovering, `null` at rest. */
-	point: { x: number; y: number } | null
-	/** Moves the hover, or clears it with `null`s. */
-	set: (cell: { row: number; col: number } | null, point: { x: number; y: number } | null) => void
-}
-
-const [HeatmapHoverContext, useHeatmapHover] = createContext<HeatmapHover>('HeatmapHover')
-
-/** Whether two cells are the same, so a redundant hover write can bail. @internal */
-function sameCell(a: HeatmapHover['cell'], b: HeatmapHover['cell']): boolean {
-	return a === b || (a !== null && b !== null && a.row === b.row && a.col === b.col)
-}
+import { useStableEvent } from '../../../hooks/use-stable-event'
+import { ChartAxis } from '../engine/chart-axes/axis'
+import { ChartFrame } from '../engine/chart-frame/frame'
+import { ChartHitArea } from '../engine/chart-hit-area'
+import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
+import { legendAside } from '../engine/chart-legend/schema'
+import { resolveTooltip } from '../engine/chart-tooltip'
+import type { ChartMarkRef } from '../engine/context'
+import { HeatmapFocusProvider } from './context'
+import { HeatmapChartCells } from './heatmap-chart-cells'
+import { HeatmapChartLegend } from './heatmap-chart-legend'
+import type { HeatmapChartProps } from './heatmap-chart-schema'
+import { HeatmapChartTooltip } from './heatmap-chart-tooltip'
+import { useHeatmapChart } from './use-heatmap-chart'
 
 /**
- * Owns the pointer readout so a pointer move re-renders only the tooltip. The
- * cells and axes are stable children and bail, and the tooltip alone reads the
- * hover. Mirrors the map's and cartesian frame's confined-hover pattern.
+ * The mark under the pointer anywhere on the grid: the one series, whole. A
+ * heatmap reads a cell at each point of its plot, so the pointer is always on
+ * data. The mark never changes across the cells, so a move from cell to cell
+ * renders no frame.
  *
  * @internal
  */
-function HeatmapHoverProvider({ children }: { children: ReactNode }) {
-	const [state, setState] = useState<{ cell: HeatmapHover['cell']; point: HeatmapHover['point'] }>({
-		cell: null,
-		point: null,
-	})
-
-	const value = useMemo<HeatmapHover>(
-		() => ({
-			...state,
-			set: (cell, point) =>
-				setState((prev) =>
-					sameCell(prev.cell, cell) && samePoint(prev.point, point) ? prev : { cell, point },
-				),
-		}),
-		[state],
-	)
-
-	return <HeatmapHoverContext value={value}>{children}</HeatmapHoverContext>
-}
-
-/** The class the range legend is probing, or `null` at rest — the cells outside it dim. @internal */
-type HeatmapFocus = {
-	/** The probed bin index, or `null` when the legend is at rest. */
-	bin: number | null
-	/** Sets the probed bin, or clears it with `null`. */
-	set: (bin: number | null) => void
-}
-
-const [HeatmapFocusContext, useHeatmapFocus] = createContext<HeatmapFocus>('HeatmapFocus')
-
-/**
- * Owns the legend's probed bin, kept off the hover context so a pointer move
- * over the plot never touches it. The cells subscribe here alone, so only a
- * legend probe — not a grid hover — repaints them to dim.
- *
- * @internal
- */
-function HeatmapFocusProvider({ children }: { children: ReactNode }) {
-	const [bin, setBin] = useState<number | null>(null)
-
-	const value = useMemo<HeatmapFocus>(() => ({ bin, set: setBin }), [bin])
-
-	return <HeatmapFocusContext value={value}>{children}</HeatmapFocusContext>
-}
-
-/** Props for {@link HeatmapCells}: the resolved cells, their fills, and their bins. @internal */
-type HeatmapCellsProps = {
-	cells: HeatmapCell[]
-	/** The fill per cell, index-aligned; `null` paints the no-data neutral. */
-	fills: (string | null)[]
-	/** The bin per cell, index-aligned; `null` for a no-data cell. Dims against the legend probe. */
-	cellBins: (number | null)[]
-}
-
-/**
- * The cell grid: one rect per matrix cell, painted from the sequential scale or
- * the neutral no-data fill. Cells outside the legend's probed bin dim, the
- * heatmap's counterpart to the choropleth's region emphasis.
- *
- * @internal
- */
-function HeatmapCells({ cells, fills, cellBins }: HeatmapCellsProps) {
-	const { bin: focus } = useHeatmapFocus()
-
-	return (
-		<g data-slot="heatmap-cells">
-			{cells.map((cell, index) => {
-				const fill = fills[index]
-
-				const dimmed = focus !== null && cellBins[index] !== focus
-
-				return (
-					<rect
-						key={cell.key}
-						x={cell.x}
-						y={cell.y}
-						width={cell.width}
-						height={cell.height}
-						rx={cell.radius}
-						className={cn(
-							'transition-opacity',
-							fill == null && NO_DATA_FILL,
-							dimmed && 'opacity-25',
-						)}
-						{...(fill == null ? {} : { fill })}
-					/>
-				)
-			})}
-		</g>
-	)
-}
-
-/**
- * The legend's hover arrow: it marks the exact value of the cell the pointer
- * is on. It is its own {@link useHeatmapHover} consumer, so a grid hover
- * re-renders only the glyph. The choropleth's region arrow, keyed to a cell
- * instead.
- *
- * @internal
- */
-function HeatmapRangeArrow({
-	values,
-	domain,
-	orientation,
-}: {
-	values: (number | null)[][]
-	domain: [number, number] | null
-	/** Which way the host bar runs, so the glyph pins to its matching edge. */
-	orientation: ChartOrientation
-}) {
-	const { cell } = useHeatmapHover()
-
-	if (cell === null || domain === null) return null
-
-	const value = values[cell.row]?.[cell.col]
-
-	if (value == null) return null
-
-	return <RangeArrow value={value} domain={domain} slot="heatmap-range" orientation={orientation} />
-}
-
-/** Props for {@link HeatmapRangeLegend}: the scale the shared bar paints and the values its arrow reads. @internal */
-type HeatmapRangeLegendProps = RangeScale & {
-	values: (number | null)[][]
-	/** Which way the bar runs — vertical beside the plot, horizontal above or below it. */
-	orientation: ChartOrientation
-}
-
-/**
- * The heatmap's range legend: the shared {@link RangeLegend} scale-bar slider,
- * wired to the grid. Its arrow marks the exact value of the pointed cell. A probe
- * of the bar emphasizes the cells of that class through the focus context, and
- * dims the rest.
- * The `heatmap-range` slot keeps the heatmap's part names. `orientation` follows
- * the bar's resolved placement — vertical beside the plot, horizontal above or
- * below — so the arrow and slider transpose together.
- *
- * @internal
- */
-function HeatmapRangeLegend({
-	colorRange,
-	domain,
-	format,
-	label,
-	bins,
-	thresholds,
-	values,
-	orientation,
-}: HeatmapRangeLegendProps) {
-	const { set } = useHeatmapFocus()
-
-	return (
-		<RangeLegend
-			slot="heatmap-range"
-			colorRange={colorRange}
-			domain={domain}
-			format={format}
-			label={label}
-			bins={bins}
-			thresholds={thresholds}
-			orientation={orientation}
-			onProbe={set}
-			arrow={<HeatmapRangeArrow values={values} domain={domain} orientation={orientation} />}
-		/>
-	)
-}
-
-/** Props for {@link HeatmapHitLayer}: the plot and bands the pointer resolves against. @internal */
-type HeatmapHitLayerProps = {
-	plot: PlotRect
-	rows: number
-	cols: number
-	xBand: BandScale
-	yBand: BandScale
-	/**
-	 * How the tooltip opens: tracked on `'hover'`, pinned by a click on `'click'`.
-	 * A pinning click also gives the layer a pointer cursor, and toggles the
-	 * readout off on a second click of the same cell.
-	 * @defaultValue 'hover'
-	 */
-	trigger?: ChartTooltipTrigger
-	/** Band labels, so a click reports the cell by name rather than by index alone. */
-	labels: { columns: string[]; rows: string[] }
-	/** The consumer's cell-click report, or `undefined` where there is none. */
-	onCellClick?: HeatmapChartProps['onCellClick']
-}
-
-/**
- * The transparent rectangle over the plot that feeds the hover context. The
- * pointer resolves to its `[row, col]` through the band arithmetic, so a reader
- * aims at a cell without the marks repainting. Under the `'click'` trigger it
- * pins the pointed cell instead — a second click of the same cell clears it —
- * and leaves pointer movement alone.
- *
- * @internal
- */
-function HeatmapHitLayer({
-	plot,
-	rows,
-	cols,
-	xBand,
-	yBand,
-	trigger = 'hover',
-	labels,
-	onCellClick,
-}: HeatmapHitLayerProps) {
-	const { cell: active, set } = useHeatmapHover()
-
-	// Resolve a pointer event to its `[row, col]` and the client point the tooltip
-	// tracks, or `null` before the box has a size.
-	const locate = (event: MouseEvent<SVGRectElement>) => {
-		const rect = event.currentTarget.getBoundingClientRect()
-
-		if (rect.width <= 0 || rect.height <= 0) return null
-
-		// The hit rect covers the plot exactly, so the pointer's fraction across it
-		// maps onto the band range: scale that fraction by the plot span and add the
-		// plot origin for a frame coordinate. A raw client delta is plot-local (the
-		// rect starts at plot.x/plot.y) and ignores the viewBox scale — both of which
-		// this reintroduces, so the resolved cell is the one under the cursor.
-		const frameX = plot.x + ((event.clientX - rect.left) / rect.width) * plot.width
-
-		const frameY = plot.y + ((event.clientY - rect.top) / rect.height) * plot.height
-
-		return {
-			cell: cellAt(frameX, frameY, xBand, yBand, cols, rows),
-			point: { x: event.clientX, y: event.clientY },
-		}
-	}
-
-	const click = trigger === 'click'
-
-	// The consumer's report runs on any click, whichever trigger the readout is
-	// on, so a hover-tooltip heatmap is still clickable. It takes the hit the
-	// caller already resolved: `locate` reads the layout box, so a click that
-	// both reports and pins must not pay for it twice.
-	const report = (hit: ReturnType<typeof locate>) => {
-		if (!onCellClick) return
-
-		if (hit?.cell == null) return
-
-		const { row, col } = hit.cell
-
-		const x = labels.columns[col]
-
-		const y = labels.rows[row]
-
-		if (x === undefined || y === undefined) return
-
-		onCellClick({ x, y }, [row, col])
-	}
-
-	const handleClick = (event: MouseEvent<SVGRectElement>) => {
-		const hit = locate(event)
-
-		report(hit)
-
-		if (!click || hit === null) return
-
-		if (sameCell(active, hit.cell)) set(null, null)
-		else set(hit.cell, hit.point)
-	}
-
-	const follow = (event: PointerEvent<SVGRectElement>) => {
-		const hit = locate(event)
-
-		if (hit !== null) set(hit.cell, hit.point)
-	}
-
-	// Entry tracks as movement does, so a held touch, which fires no move, opens
-	// the readout on the cell under it.
-	const handlers = click
-		? { onClick: handleClick }
-		: {
-				onClick: handleClick,
-				onPointerEnter: follow,
-				onPointerMove: follow,
-				onPointerLeave: () => set(null, null),
-			}
-
-	return (
-		<rect
-			data-slot="heatmap-hit"
-			x={plot.x}
-			y={plot.y}
-			width={plot.width}
-			height={plot.height}
-			fill="none"
-			pointerEvents="all"
-			className={cn((click || onCellClick) && 'cursor-pointer')}
-			{...handlers}
-		/>
-	)
-}
-
-/** Props for {@link HeatmapTooltip}: the labels and values the pointed cell reads. @internal */
-type HeatmapTooltipProps = {
-	columns: string[]
-	rows: string[]
-	values: (number | null)[][]
-	format: (value: number) => string
-	fills: (string | null)[]
-	cols: number
-}
-
-/**
- * The hover readout: one cell's row and column labels and its value, in the
- * real Tooltip chrome via {@link TooltipPointer} anchored at the pointer. A
- * pointer enhancement, `aria-hidden` by design — the same values ship in the
- * visually-hidden table.
- *
- * @internal
- */
-function HeatmapTooltip({ columns, rows, values, format, fills, cols }: HeatmapTooltipProps) {
-	const { cell: hovered, point } = useHeatmapHover()
-
-	// A pinned cell keeps its place when the grid shrinks under it. A cell past
-	// the grid reads nothing, so the tooltip closes.
-	const cell =
-		hovered !== null && hovered.row < rows.length && hovered.col < columns.length ? hovered : null
-
-	// `point` is already the client coordinate the pointer sat at, so the tooltip
-	// anchors to the cursor directly.
-	const open = cell !== null && point !== null
-
-	const datum = cell === null ? null : values[cell.row]?.[cell.col]
-
-	const fill = cell === null ? null : fills[cell.row * cols + cell.col]
-
-	// `track="point"`: the readout anchors to the pointer point and skips
-	// autoUpdate's per-open observer wiring — ~1.5x cheaper across the
-	// open/reposition/teardown cycle (`tooltip-track.bench`). The heatmap sets it
-	// under both triggers. A pin stores the client point of the click, not the
-	// cell, so autoUpdate would re-place a pinned readout at that viewport point
-	// on a window scroll, off its cell. Without autoUpdate, the readout keeps its
-	// document position and scrolls with the cell. Neither mode re-anchors the
-	// readout in an inner scroll container.
-	return (
-		<TooltipPointer open={open} point={point} track="point" size="sm">
-			{cell !== null && (
-				<ChartReadoutCard title={columns[cell.col]}>
-					<ChartReadoutRow
-						swatch={
-							<span
-								className={cn('size-2.5 shrink-0 rounded-xs', fill === null && NO_DATA_FILL)}
-								style={fill === null ? undefined : { backgroundColor: fill }}
-							/>
-						}
-						value={datum == null ? READOUT_GAP : format(datum)}
-						label={rows[cell.row]}
-					/>
-				</ChartReadoutCard>
-			)}
-		</TooltipPointer>
-	)
-}
-
-/** The classes of a row label, as the y axis draws it. @internal */
-const ROW_LABEL_CLASS = cn(k.tick)
-
-/**
- * The x (column) and y (row) band-axis tick labels, thinned to fit their axes.
- * `fitRow` gives each row label as it draws, cut to the gutter.
- *
- * @internal
- */
-function heatmapTicks(
-	matrix: HeatmapMatrix,
-	xBand: BandScale,
-	yBand: BandScale,
-	plot: PlotRect,
-	fitRow: (label: string) => string,
-): { x: ChartAxisTick[]; y: ChartAxisTick[] } {
-	const widestCol = matrix.columns.reduce((widest, label) => Math.max(widest, label.length), 0)
-
-	// Keyed by the row/column index, not the band center `at`, which collapses onto
-	// one coordinate at zero width/height; the index is the cell's stable identity.
-	const x = thinned(
-		matrix.columns.length,
-		plot.width,
-		widestCol * TICK_CHAR_WIDTH + GUTTER_GAP,
-	).map((index) => ({ at: xBand.center(index), label: matrix.columns[index] ?? '', key: index }))
-
-	const y = thinned(matrix.rows.length, plot.height, BAND_LABEL_HEIGHT).map((index) => ({
-		at: yBand.center(index),
-		label: fitRow(matrix.rows[index] ?? ''),
-		key: index,
-	}))
-
-	return { x, y }
-}
-
-/** The visually-hidden data table's readout: columns across, rows down, one value per cell. @internal */
-function heatmapReadout(matrix: HeatmapMatrix, format: (value: number) => string): ChartReadout {
-	return {
-		categories: matrix.columns,
-		rows: matrix.rows.map((label, row) => ({
-			label,
-			swatchClass: '',
-			swatch: 'rect' as const,
-			values: matrix.columns.map((_, col) => {
-				const value = matrix.values[row]?.[col]
-
-				return value == null ? READOUT_GAP : format(value)
-			}),
-		})),
-	}
-}
-
-/** Everything {@link HeatmapChart} derives from its props once measured. @internal */
-type HeatmapModel = {
-	ref: React.RefObject<HTMLDivElement | null>
-	/** Attach to an element around the plot, so that the row labels measure in its font. */
-	textHostRef: React.RefObject<HTMLDivElement | null>
-	frameWidth: number
-	frameHeight: number
-	reserve: ReturnType<typeof usePlotFrame>['reserve']
-	/** The measured box is small enough to strip to bare cells — no labels, no readout. */
-	spark: boolean
-	plot: PlotRect
-	xBand: BandScale
-	yBand: BandScale
-	matrix: HeatmapMatrix
-	cols: number
-	rows: number
-	cells: HeatmapCell[]
-	fills: (string | null)[]
-	cellBins: (number | null)[]
-	bins: ColorBin[]
-	/** The class edges the cells are binned by under `'quantile'`; absent under `'linear'`. */
-	thresholds: number[] | undefined
-	domain: [number, number] | null
-	ticks: { x: ChartAxisTick[]; y: ChartAxisTick[] }
-	readout: ChartReadoutSource | null
-	format: (value: number) => string
-}
-
-/**
- * The heatmap's orchestration: the pivot, container sizing, sequential scale,
- * band scales, cells, fills, ticks, and readout. Kept off the component so its
- * render stays a thin assembly of these parts.
- *
- * @internal
- */
-function useHeatmap<T>(
-	data: T[],
-	primary: HeatmapChartProps<T>['series'][number] | undefined,
-	width: number | undefined,
-	height: number | undefined,
-	aspectRatio: HeatmapChartProps<T>['aspectRatio'],
-	formatValue: HeatmapChartProps<T>['formatValue'],
-): HeatmapModel {
-	const matrix = useMemo(
-		() =>
-			primary
-				? resolveHeatmapMatrix(data, primary)
-				: { columns: [], rows: [], values: [] as (number | null)[][] },
-		[data, primary],
-	)
-
-	const cols = matrix.columns.length
-
-	const rows = matrix.rows.length
-
-	// Fit the frame to the grid so cells read square-ish; the reserved gutter and
-	// axis band shave it a touch, which is fine for a categorical key.
-	const ratio = aspectRatio ?? (cols > 0 && rows > 0 ? cols / rows : '16/9')
-
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, chartFrameSizing(height, ratio))
-
-	// Spark strips the heatmap to its bare cells: no row/column labels, no gutter
-	// for them, and no hover readout — a sparkline is non-interactive. The cells,
-	// the accessible name, and the data table still carry the grid's values.
-	const spark = isSparkBox(frameWidth, frameHeight)
-
-	// The extent and the quantile thresholds read the same cells, so the grid is
-	// flattened once. Each did its own pass over every row before this.
-	const values = useMemo(() => matrix.values.flat().filter((value) => value !== null), [matrix])
-
-	// `colorDomain` applies to linear binning. Quantile bins cut the data, so the
-	// bar spans the data extent, where the bins sit.
-	const domain = useMemo(
-		() => valueExtent(values, primary?.binning === 'quantile' ? undefined : primary?.colorDomain),
-		[values, primary],
-	)
-
-	// One resolution yields both the painted bins and the assignment the cells
-	// read, so the fills and the legend cannot disagree on where the buckets fall.
-	// `MapPlat` resolves its own through the same `resolveBinScale`.
-	const { bins, thresholds, assign } = useMemo(
-		(): BinScale =>
-			domain && primary
-				? resolveBinScale(values, domain, primary.colorRange, primary.bins, primary.binning)
-				: { bins: [], assign: () => null },
-		[domain, primary, values],
-	)
-
-	// The rows are proportional category labels, so the gutter holds the width
-	// that each label draws at. A label wider than the room is cut with an
-	// ellipsis. The tooltip and the data table show the full label.
-	const rowText = useChartTextWidth(
-		matrix.rows,
-		ROW_LABEL_CLASS,
-		LABEL_CHAR_WIDTH,
-		GUTTER_LABEL_ROOM,
-	)
-
-	// Memoized so their identity holds across a re-render with unchanged data —
-	// otherwise a fresh `xBand`/`yBand` every render defeats the `cells`/`cellBins`/
-	// `fills` memos below, which key off them.
-	const plot = useMemo(
-		() => plotRect(frameWidth, frameHeight, !spark, matrix.rows, rowText.width),
-		[frameWidth, frameHeight, matrix.rows, spark, rowText.width],
-	)
-
-	const xBand = useMemo(
-		() => bandScale({ count: cols, range: [plot.x, plot.x + plot.width], padding: 0 }),
-		[cols, plot],
-	)
-
-	const yBand = useMemo(
-		() => bandScale({ count: rows, range: [plot.y, plot.y + plot.height], padding: 0 }),
-		[rows, plot],
-	)
-
-	const cells = useMemo(() => heatmapCells(matrix.values, xBand, yBand), [matrix, xBand, yBand])
-
-	// Bin per cell, index-aligned with `cells` (row-major): the class a finite
-	// value lands in, `null` for a no-data cell. The legend dims against it.
-	const cellBins = useMemo(
-		() =>
-			cells.map((cell) => (cell.value === null || bins.length === 0 ? null : assign(cell.value))),
-		[cells, bins, assign],
-	)
-
-	// Fill per cell from its bin: the bin's color, or `null` for the neutral
-	// no-data fill.
-	const fills = useMemo(
-		() => cellBins.map((bin) => (bin === null ? null : (bins[bin]?.color ?? null))),
-		[cellBins, bins],
-	)
-
-	// The default writes numbers in the ambient locale, as a cartesian chart does.
-	const { locale } = useLocale()
-
-	const format = formatValue ?? fractionFormat(locale)
-
-	return {
-		ref,
-		textHostRef: rowText.hostRef,
-		frameWidth,
-		frameHeight,
-		reserve,
-		spark,
-		plot,
-		xBand,
-		yBand,
-		matrix,
-		cols,
-		rows,
-		cells,
-		fills,
-		cellBins,
-		bins,
-		thresholds,
-		domain,
-		ticks: heatmapTicks(matrix, xBand, yBand, plot, rowText.fit),
-		// A cached thunk ({@link ChartReadoutSource}). The data table and the context
-		// menu's CSV actions call it.
-		readout: cols > 0 && rows > 0 ? once(() => heatmapReadout(matrix, format)) : null,
-		format,
-	}
-}
-
-/** Props for {@link HeatmapFigure}: the plot and the range bar arranged by placement. @internal */
-type HeatmapFigureProps = {
-	plot: ReactNode
-	/** The range bar, or a falsy node when the legend is off — placed around the plot. */
-	legend: ReactNode
-	/** Where the bar sits, resolved from the caller's `legend` and the chart's tier. */
-	placement: ChartLegendPlacement
-	/** The bar is a vertical side rail, so it bands beside the plot in a row. */
-	aside: boolean
-}
-
-/**
- * The plot and the range bar arranged by placement. A side (vertical) rail bands
- * beside the plot in a row, with a left rail reversing it rather than moving in
- * the DOM. A stacked (horizontal) bar bands above or below. Kept off
- * {@link HeatmapChart} so its render stays a thin assembly of parts, the way the
- * map frame keeps its own layout.
- *
- * One figure div, keyed children. The placement is measured-width-driven (the
- * rail drops to a bottom band across the compact boundary), so a flip
- * re-arranges this tree at runtime. The keys make React *move* the plot node
- * through a flip, rather than recreate it positionally. The plot frame's
- * ResizeObserver is bound to that node. A recreated node would strand the
- * observer on the detached one, freezing the drawing at its last committed size
- * while the box resizes on.
- *
- * @internal
- */
-function HeatmapFigure({ plot, legend, placement, aside }: HeatmapFigureProps) {
-	return (
-		<div
-			className={cn(
-				aside
-					? // A left rail reverses the row, so the DOM order holds plot-first.
-						cn('flex items-center gap-4', placement === 'left' && 'flex-row-reverse')
-					: 'flex flex-col gap-3',
-			)}
-		>
-			{placement === 'top' && <Fragment key="legend">{legend}</Fragment>}
-
-			<Fragment key="plot">{plot}</Fragment>
-
-			{placement !== 'top' && <Fragment key="legend">{legend}</Fragment>}
-		</div>
-	)
+const GRID_MARK: ChartMarkRef = { series: 0, datum: null }
+
+/** The mark hit test of the heatmap: the grid, at each point. @internal */
+function gridMarkAt(): ChartMarkRef {
+	return GRID_MARK
 }
 
 /**
  * A heatmap: a grid of cells across two categorical axes, each shaded by a
  * numeric value along a sequential color scale. The two-categorical member of
- * the chart family. It reuses the shared plot frame, band scales, and axis
+ * the chart family. It reuses the shared chart frame, band scales, and axis
  * chrome, and the same data-driven color scale the {@link ChoroplethChart}
  * shades regions with. Cells with no matching row take the neutral no-data
  * fill. A hover tooltip names the pointed cell, and a visually-hidden data table
  * carries full value parity for assistive tech.
  *
+ * The plot is one tab stop. After focus, the left and right arrows move along
+ * the columns. The up and down arrows move along the rows, and the tooltip
+ * reads the cell under the cursor. Home and End jump to the ends of the row,
+ * and Escape clears the cursor.
+ *
  * @remarks Rows pivot to the grid by their distinct `xKey` (columns) and `yKey`
  * (rows) values in first-seen order. The frame defaults to square-ish cells by
- * fitting its aspect to the grid shape; pass `aspectRatio` to override. The
- * heatmap renders as a static SVG tree and takes no `animate`.
+ * fitting its aspect to the grid shape, held between 1/2 and 4. Pass
+ * `aspectRatio` to override. The heatmap renders as a static SVG tree and takes
+ * no `animate`. A function-form context menu `items` receives the row-major
+ * index of the cell under the pointer or the keyboard cursor:
+ * `row * columns + col`.
  * @example
  * ```tsx
  * <HeatmapChart
@@ -740,14 +74,25 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		formatValue,
 		onCellClick,
 		className,
-		// Kept off the DOM so it never spreads onto the plot element as an invalid
-		// attribute, but still names the context menu's fullscreen view.
+		// The heatmap draws no heading. The title still names the context menu's
+		// fullscreen view and export files.
 		title,
 		contextMenu,
-		...label
+		...name
 	} = props
 
 	const primary = series[0]
+
+	// The bar's placement, orientation, and visibility follow the caller's
+	// `legend` prop and the chart's own tier. Both read the container, not the
+	// plot, because a side bar shrinks the plot. A fixed `width` reads
+	// deterministically (SSR, tests); otherwise the observer tracks the container.
+	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
+
+	// A side rail takes a share of a fixed width, so the plot measures the width
+	// that remains. The placement reads the width alone, so it resolves before
+	// the frame sizes the plot.
+	const sharedWidth = legend !== false && legendAside(rangeLegendPlacement(legend, containerWidth))
 
 	const {
 		ref,
@@ -755,10 +100,10 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		frameWidth,
 		frameHeight,
 		reserve,
-		spark,
+		fill,
+		boxHeight,
+		tier,
 		plot,
-		xBand,
-		yBand,
 		matrix,
 		cols,
 		rows,
@@ -771,149 +116,116 @@ export function HeatmapChart<T>(props: HeatmapChartProps<T>) {
 		ticks,
 		readout,
 		format,
-	} = useHeatmap(data, primary, width, height, aspectRatio, formatValue)
+		focus,
+		resolveCell,
+	} = useHeatmapChart(
+		data,
+		primary,
+		width,
+		height,
+		aspectRatio,
+		formatValue,
+		containerWidth,
+		sharedWidth,
+	)
 
-	// Spark is a bare, non-interactive sparkline, so the hover readout stands down
-	// with the labels; every wider tier keeps the caller's `tooltip`.
+	// The frame stands the tooltip, the keyboard, and the hit layer down at spark.
 	const { show, trigger } = resolveTooltip(tooltip)
 
-	const showTooltip = show && !spark
-
-	// The bar's placement, orientation, and visibility follow the caller's
-	// `legend` prop and the chart's own tier. Measured off the container, not the
-	// plot: a side bar shrinks the plot, so keying the move to the plot's width
-	// would feed it back on itself and oscillate. A fixed `width` reads
-	// deterministically (SSR, tests); otherwise the observer tracks the container.
-	const { ref: containerRef, width: containerWidth } = useMeasuredWidth(width)
-
+	// The root measures its width for the rail, and hosts the row label text.
 	const rootRef = useComposedRef(containerRef, textHostRef)
 
-	const rangeLegend = resolveRangeLegend(legend, containerWidth, frameHeight)
-
-	const aside = legendAside(rangeLegend.placement)
+	const rangeLegend = resolveRangeLegend(legend, containerWidth, boxHeight)
 
 	const showLegend = rangeLegend.show && domain !== null && bins.length > 0
 
-	// Pinned to its committed pixel size and anchored top-left, `viewBox` matching
-	// so user units map 1:1 — not `size-full`, which scales the drawing against a
-	// stale viewBox through a resize burst (see ChartFrame). The fraction-based hit
-	// locate above reads the rendered rect, so it stays correct either way.
-	const svg = frameWidth > 0 && (
-		<svg
-			aria-hidden="true"
-			className="absolute left-0 top-0 block"
-			width={frameWidth}
-			height={frameHeight}
-			viewBox={`0 0 ${frameWidth} ${frameHeight}`}
-		>
-			{!spark && (
-				<>
-					<ChartAxis axis="y" plot={plot} ticks={ticks.y} />
+	// The pointer reports a cell by its row-major index. A click names the cell by
+	// its two band labels and its matrix position.
+	const reportCell = useStableEvent((index: number) => {
+		const row = Math.floor(index / cols)
 
-					<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
-				</>
-			)}
+		const col = index % cols
 
-			<HeatmapCells cells={cells} fills={fills} cellBins={cellBins} />
+		const x = matrix.columns[col]
 
-			{/* The layer mounts for a readout or for a consumer's click report: a
-			    heatmap that only reports clicks still needs the pointer. */}
-			{(showTooltip || onCellClick !== undefined) && rows > 0 && cols > 0 && (
-				<HeatmapHitLayer
-					plot={plot}
-					rows={rows}
-					cols={cols}
-					xBand={xBand}
-					yBand={yBand}
-					trigger={showTooltip ? trigger : undefined}
-					labels={{ columns: matrix.columns, rows: matrix.rows }}
-					onCellClick={onCellClick}
-				/>
-			)}
-		</svg>
-	)
+		const y = matrix.rows[row]
 
-	const plotRegion = (
-		<div
-			ref={ref}
-			data-slot="heatmap-plot"
-			role="img"
-			{...label}
-			className={cn('relative min-w-0', aside && 'flex-1')}
-		>
-			<ChartPlotBox reserve={reserve} height={frameHeight}>
-				{svg}
-			</ChartPlotBox>
-
-			{showTooltip && readout && frameWidth > 0 && (
-				<HeatmapTooltip
-					columns={matrix.columns}
-					rows={matrix.rows}
-					values={matrix.values}
-					format={format}
-					fills={fills}
-					cols={cols}
-				/>
-			)}
-		</div>
-	)
-
-	const legendNode = showLegend && domain && (
-		<div data-slot="heatmap-legend-box" className={cn(aside ? 'shrink-0' : 'flex justify-center')}>
-			<HeatmapRangeLegend
-				colorRange={primary?.colorRange ?? []}
-				domain={domain}
-				format={format}
-				label={primary?.colorName}
-				bins={bins.length}
-				thresholds={thresholds}
-				values={matrix.values}
-				orientation={rangeLegend.orientation}
-			/>
-		</div>
-	)
-
-	const heatmapRoot = (
-		<div
-			ref={rootRef}
-			data-slot="heatmap"
-			// A touch hold here reads the chart. It does not open the context menu.
-			data-touch-readout=""
-			// A long press opens the readout, so the whole chart, legend included,
-			// selects no text under a hold, as the chart frame does.
-			className={cn(
-				'flex flex-col gap-3 select-none **:select-none [-webkit-touch-callout:none]',
-				// As in the chart frame, `w-full` fills the box with no max-width cap.
-				// A `className` can bound it.
-				width === undefined && 'w-full',
-				className,
-			)}
-			style={width === undefined ? undefined : { width }}
-		>
-			<HeatmapHoverProvider>
-				<HeatmapFocusProvider>
-					<HeatmapFigure
-						plot={plotRegion}
-						legend={legendNode}
-						placement={rangeLegend.placement}
-						aside={aside}
-					/>
-				</HeatmapFocusProvider>
-			</HeatmapHoverProvider>
-
-			{readout && <ChartTable readout={readout} />}
-		</div>
-	)
+		if (x !== undefined && y !== undefined) onCellClick?.({ x, y }, [row, col])
+	})
 
 	return (
-		<ChartContextMenu
-			contextMenu={contextMenu}
-			rootRef={containerRef}
-			readout={readout}
-			title={title}
-			fullscreen={<HeatmapChart {...props} />}
-		>
-			{heatmapRoot}
-		</ChartContextMenu>
+		<HeatmapFocusProvider>
+			<ChartFrame
+				{...name}
+				ref={ref}
+				textHostRef={rootRef}
+				width={frameWidth}
+				fixedWidth={width}
+				height={frameHeight}
+				reserve={reserve}
+				fill={fill}
+				tier={tier}
+				title={title}
+				heading={false}
+				legend={
+					showLegend &&
+					domain && (
+						<HeatmapChartLegend
+							colorRange={primary?.colorRange ?? []}
+							domain={domain}
+							format={format}
+							label={primary?.colorName}
+							bins={bins.length}
+							thresholds={thresholds}
+							values={matrix.values}
+							cols={cols}
+							orientation={rangeLegend.orientation}
+						/>
+					)
+				}
+				legendPlacement={rangeLegend.placement}
+				rail
+				readout={readout}
+				tooltip={show}
+				customTooltip={
+					<HeatmapChartTooltip
+						plotRef={ref}
+						columns={matrix.columns}
+						rows={matrix.rows}
+						values={matrix.values}
+						format={format}
+						fills={fills}
+					/>
+				}
+				focus={focus}
+				className={className}
+				contextMenu={contextMenu}
+				fullscreen={<HeatmapChart {...props} />}
+			>
+				{tier !== 'spark' && (
+					<>
+						<ChartAxis axis="y" plot={plot} ticks={ticks.y} />
+
+						<ChartAxis axis="x" plot={plot} ticks={ticks.x} line={false} />
+					</>
+				)}
+
+				<HeatmapChartCells cells={cells} fills={fills} cellBins={cellBins} />
+
+				{/* The layer mounts for a readout or for a consumer's click report: a
+				    heatmap that only reports clicks still needs the pointer. The
+				    whole plot reads a cell, so the layer snaps. */}
+				{(show || onCellClick !== undefined) && rows > 0 && cols > 0 && (
+					<ChartHitArea
+						plot={plot}
+						resolve={resolveCell}
+						markAt={gridMarkAt}
+						trigger={show ? trigger : undefined}
+						snaps
+						onIndexClick={onCellClick ? reportCell : undefined}
+					/>
+				)}
+			</ChartFrame>
+		</HeatmapFocusProvider>
 	)
 }

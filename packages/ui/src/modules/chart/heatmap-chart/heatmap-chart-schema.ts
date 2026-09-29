@@ -13,6 +13,7 @@
  * value-domain or crosshair switches.
  */
 
+import type { AccessibleName } from '../../../types'
 import { toNumericCell } from '../../../utilities'
 import type { ChartRangeLegendConfig } from '../engine/chart-legend/range'
 import type { ChartLegendPlacement } from '../engine/chart-legend/schema'
@@ -78,41 +79,57 @@ export type HeatmapChartSeries<T> = {
  * @remarks The grid wires neither `animate` nor `texture`, and the heatmap
  * draws no series header, so it takes neither those nor `subtitle`. `legend`
  * controls the continuous range scale bar, which is the only legend of the
- * heatmap. The object form holds only a `placement`.
+ * heatmap. The object form holds only a `placement`. The name joins outside the
+ * `Omit`: an `Omit` of the name union keeps only the keys common to its arms,
+ * so it drops both names.
  */
-export type HeatmapChartProps<T = never> = Omit<
-	ChartBaseProps<T>,
-	'legend' | 'onHiddenChange' | 'animate' | 'texture' | 'subtitle'
-> & {
-	/**
-	 * The one series to shade cells with. A one-element tuple, as pie and donut
-	 * take: the heatmap draws one color scale, so a second entry had no reading.
-	 * Empty reserves the frame and shades nothing.
-	 */
-	series: [] | [HeatmapChartSeries<T>]
-	/**
-	 * Fires when a click lands on a cell, with the cell's two band labels and
-	 * its `[row, col]` position in the matrix.
-	 *
-	 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
-	 * address space a heatmap has. A cell is named by a pair and not by one id,
-	 * so this does not take the module's shared `ChartItemClick`. Setting it
-	 * makes the plot interactive on its own, where the pointer layer otherwise
-	 * mounts only for a tooltip.
-	 */
-	onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
-	/**
-	 * Show the range scale bar, and where it sits. `true` (the default) stands it
-	 * vertical on the right; `false` drops it. A placement moves it: a horizontal
-	 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail
-	 * beside it (`'left'` / `'right'`). The object form `{ placement }` names the
-	 * same placement explicitly. Following the categorical legend, the bar sheds
-	 * at the spark tier. In a box too narrow for a side rail, it drops to a
-	 * horizontal row under the plot.
-	 * @defaultValue true
-	 */
-	legend?: boolean | ChartLegendPlacement | ChartRangeLegendConfig
-}
+export type HeatmapChartProps<T = never> = AccessibleName &
+	Omit<
+		ChartBaseProps<T>,
+		| 'legend'
+		| 'onHiddenChange'
+		| 'animate'
+		| 'texture'
+		| 'title'
+		| 'subtitle'
+		| 'aria-label'
+		| 'aria-labelledby'
+	> & {
+		/**
+		 * The chart's name for its context menu: it heads the fullscreen view and
+		 * starts the name of each exported file. The heatmap draws no heading, so
+		 * the title does not show above the grid.
+		 */
+		title?: string
+		/**
+		 * The one series to shade cells with. A one-element tuple, as pie and donut
+		 * take: the heatmap draws one color scale, so a second entry had no reading.
+		 * Empty reserves the frame and shades nothing.
+		 */
+		series: [] | [HeatmapChartSeries<T>]
+		/**
+		 * Fires when a click lands on a cell, with the cell's two band labels and
+		 * its `[row, col]` position in the matrix.
+		 *
+		 * The cross-filter hook the cartesian charts' `onCategoryClick` is, in the
+		 * address space a heatmap has. A cell is named by a pair and not by one id,
+		 * so this does not take the module's shared `ChartItemClick`. Setting it
+		 * makes the plot interactive on its own, where the pointer layer otherwise
+		 * mounts only for a tooltip.
+		 */
+		onCellClick?: (cell: { x: string; y: string }, at: [row: number, col: number]) => void
+		/**
+		 * Show the range scale bar, and where it sits. `true` (the default) stands it
+		 * vertical on the right; `false` drops it. A placement moves it: a horizontal
+		 * row above (`'top'`) or below (`'bottom'`) the plot, or a vertical rail
+		 * beside it (`'left'` / `'right'`). The object form `{ placement }` names the
+		 * same placement explicitly. Following the categorical legend, the bar sheds
+		 * at the spark tier. In a box too narrow for a side rail, it drops to a
+		 * horizontal row under the plot.
+		 * @defaultValue true
+		 */
+		legend?: boolean | ChartLegendPlacement | ChartRangeLegendConfig
+	}
 
 /**
  * The pivot from flat rows to the geometry's row-major matrix. The distinct
@@ -184,4 +201,40 @@ export function resolveHeatmapMatrix<T>(
 	}
 
 	return { columns, rows, values }
+}
+
+/** Whether two lists hold the same values in the same order; `undefined` matches only itself. @internal */
+function sameList<V>(a: readonly V[] | undefined, b: readonly V[] | undefined): boolean {
+	if (a === b) return true
+
+	if (a === undefined || b === undefined || a.length !== b.length) return false
+
+	return a.every((value, index) => value === b[index])
+}
+
+/**
+ * Whether two heatmap series read the same fields and paint the same scale. A
+ * series literal is a new object on each render of the caller, so the heatmap
+ * holds the series by its content and its grid memos hold with it.
+ *
+ * @internal
+ */
+export function sameHeatmapSeries<T>(
+	a: HeatmapChartSeries<T> | undefined,
+	b: HeatmapChartSeries<T> | undefined,
+): boolean {
+	if (a === b) return true
+
+	if (a === undefined || b === undefined) return false
+
+	return (
+		a.xKey === b.xKey &&
+		a.yKey === b.yKey &&
+		a.colorKey === b.colorKey &&
+		a.colorName === b.colorName &&
+		a.bins === b.bins &&
+		a.binning === b.binning &&
+		sameList(a.colorRange, b.colorRange) &&
+		sameList(a.colorDomain, b.colorDomain)
+	)
 }

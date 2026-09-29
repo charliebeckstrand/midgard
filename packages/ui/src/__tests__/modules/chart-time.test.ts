@@ -39,6 +39,29 @@ describe('parseInstant', () => {
 		expect(parseInstant('2026-03-15')).toBe(new Date(2026, 2, 15).getTime())
 	})
 
+	it('reads a dotted numeric date day-first, or year-first after a four-digit year', () => {
+		// `Date.parse` reads `10.06.2026` month-first, as October 6.
+		expect(parseInstant('10.06.2026')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('13.06.2026')).toBe(new Date(2026, 5, 13).getTime())
+
+		expect(parseInstant('2026.06.10')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('10.06.26')).toBe(new Date(2026, 5, 10).getTime())
+
+		expect(parseInstant('10.06.2026, 09:30')).toBe(new Date(2026, 5, 10, 9, 30).getTime())
+	})
+
+	it('returns null for a dotted date outside the calendar', () => {
+		expect(parseInstant('10.13.2026')).toBeNull()
+
+		expect(parseInstant('31.06.2026')).toBeNull()
+	})
+
+	it('keeps the slash form month-first', () => {
+		expect(parseInstant('06/10/2026')).toBe(new Date(2026, 5, 10).getTime())
+	})
+
 	it('returns null for unparseable or non-date values', () => {
 		expect(parseInstant('not a date')).toBeNull()
 
@@ -82,7 +105,8 @@ describe('timeTicks', () => {
 			locale: 'en-US',
 		})
 
-		expect(ticks?.map((tick) => tick.label)).toEqual(['Jan', 'Feb', 'Mar'])
+		// The tick on 1 January names the year, the coarser unit it starts.
+		expect(ticks?.map((tick) => tick.label)).toEqual(['2026', 'Feb', 'Mar'])
 
 		// Each month-start falls on its own daily row, so the tick sits on that band center.
 		expect(ticks?.[0]?.at).toBeCloseTo(scale.center(0))
@@ -136,6 +160,36 @@ describe('timeTicks', () => {
 		expect(ticks?.map((tick) => tick.label)).toEqual(['2024', '2025', '2026', '2027'])
 	})
 
+	it('names the date on an hourly tick at midnight', () => {
+		// Hourly rows from 01:00 on 1 June, over two days. Before, every tick read
+		// an hour, so the axis carried no date across midnight.
+		const start = new Date(2026, 5, 1, 1).getTime()
+
+		const times = Array.from({ length: 48 }, (_, index) => start + index * 3_600_000)
+
+		const labels = (
+			timeTicks({ times, band: band(48), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+		).map((tick) => tick.label)
+
+		expect(labels).toEqual(['12 PM', 'Jun 2', '12 PM', 'Jun 3'])
+	})
+
+	it('names the year on a January month tick, never a two-digit year', () => {
+		// Monthly rows from July 2023 to June 2025. Before, a tick read `Jan 24`,
+		// which reads as 24 January as well as January 2024.
+		const times = Array.from({ length: 24 }, (_, index) => new Date(2023, 6 + index, 1).getTime())
+
+		const labels = (
+			timeTicks({ times, band: band(24), tickTarget: 8, axisLength: 800, locale: 'en-US' }) ?? []
+		).map((tick) => tick.label)
+
+		expect(labels).toContain('2024')
+
+		expect(labels).toContain('2025')
+
+		expect(labels.every((label) => /^(\d{4}|[A-Z][a-z]{2})$/.test(label))).toBe(true)
+	})
+
 	it('draws calendar ticks for rows in newest-first order', () => {
 		const times = dailyTimes(30).reverse()
 
@@ -170,6 +224,81 @@ describe('timeTicks', () => {
 		expect(hours.length).toBeGreaterThan(0)
 
 		expect(hours.every((hour) => hour % 12 === 0)).toBe(true)
+	})
+
+	it('steps in minutes when the span crosses no hour', () => {
+		// Twelve rows four minutes apart, from 10:01 to 10:45.
+		const start = new Date(2026, 5, 1, 10, 1).getTime()
+
+		const times = Array.from({ length: 12 }, (_, index) => start + index * 240_000)
+
+		const ticks =
+			timeTicks({ times, band: band(12), tickTarget: 5, axisLength: 600, locale: 'en-US' }) ?? []
+
+		expect(ticks.map((tick) => tick.key)).toEqual([
+			new Date(2026, 5, 1, 10, 15).getTime(),
+			new Date(2026, 5, 1, 10, 30).getTime(),
+			new Date(2026, 5, 1, 10, 45).getTime(),
+		])
+
+		expect(ticks[0]?.label).toMatch(/^10:15\sAM$/)
+	})
+
+	it('steps in seconds when the span crosses no minute', () => {
+		// Twelve rows five seconds apart, from 10:00:01 to 10:00:56.
+		const start = new Date(2026, 5, 1, 10, 0, 1).getTime()
+
+		const times = Array.from({ length: 12 }, (_, index) => start + index * 5_000)
+
+		const ticks = timeTicks({
+			times,
+			band: band(12),
+			tickTarget: 5,
+			axisLength: 600,
+			locale: 'en-US',
+		})
+
+		expect(ticks?.map((tick) => tick.label)).toEqual(['00:15', '00:30', '00:45'])
+	})
+
+	it('returns null when no calendar boundary falls inside the span', () => {
+		// Three rows inside one second cross no second boundary.
+		const start = new Date(2026, 5, 1, 10, 0, 0, 100).getTime()
+
+		expect(
+			timeTicks({
+				times: [start, start + 300, start + 600],
+				band: band(3),
+				tickTarget: 5,
+				axisLength: 600,
+			}),
+		).toBeNull()
+	})
+
+	it('steps in centuries across a span of more than a thousand years', () => {
+		// A row each century from 1000 to 2500. A 10-year step runs out of ticks at 1990.
+		const times = Array.from({ length: 16 }, (_, index) =>
+			new Date(1000 + index * 100, 0, 1).getTime(),
+		)
+
+		const ticks = timeTicks({
+			times,
+			band: band(16),
+			tickTarget: 5,
+			axisLength: 600,
+			locale: 'en-US',
+		})
+
+		expect(ticks?.map((tick) => tick.label)).toEqual([
+			'1000',
+			'1200',
+			'1400',
+			'1600',
+			'1800',
+			'2000',
+			'2200',
+			'2400',
+		])
 	})
 
 	it('never packs more ticks than the axis fits', () => {
@@ -290,6 +419,18 @@ describe('dateCategoryFormat', () => {
 	it('returns null for numeric categories, so a year axis keeps its labels', () => {
 		// A bar chart with a numeric `year` key.
 		expect(dateCategoryFormat([2021, 2022, 2023], 2026, 'en-US')).toBeNull()
+	})
+
+	it('reads a de-DE dotted axis day-first', () => {
+		const format = dateCategoryFormat(['10.06.2026', '11.06.2026', '13.06.2026'], 2026, 'de-DE')
+
+		expect(format?.('10.06.2026')).toBe('10.06.')
+
+		expect(format?.('13.06.2026')).toBe('13.06.')
+	})
+
+	it('returns null for bare years, so a year axis keeps its labels', () => {
+		expect(dateCategoryFormat(['2019', '2020', '2021'], 2026, 'en-US')).toBeNull()
 	})
 
 	it('returns null for "<word> <n>" labels, so a plain axis keeps its labels', () => {

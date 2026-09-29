@@ -35,7 +35,9 @@ import type { ChartReadoutSource } from './types'
  * rather than the chart as a whole. `index` is the datum's index within the chart's categories,
  * the same index {@link SectorChartProps.onCategoryClick} reports. It is `null` when the click
  * landed off any mark (bare plot, plot padding, the legend, the header). A chart whose crosshair
- * snaps reads the whole column, so there any point in the plot targets its column.
+ * snaps reads the whole column, so there any point in the plot targets its column. On a heatmap,
+ * `index` is the cell under the pointer or the keyboard cursor, row by row: its row times the
+ * column count, plus its column.
  *
  * An index rather than a label on purpose. Labels are formatted for display (the sector charts run
  * period keys through a formatter). A consumer that needs the underlying value must therefore look
@@ -71,7 +73,7 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	items?: ContextMenuItem[] | ((target: ChartContextMenuTarget) => ContextMenuItem[])
 	/**
 	 * Include the legend in the downloaded PNG / JPG. Off exports the plot and
-	 * header alone, the chart reflowing to fill the space the legend leaves.
+	 * header alone, cropped so that no gap remains where the legend was.
 	 * @defaultValue true
 	 */
 	downloadLegend?: boolean
@@ -85,14 +87,14 @@ export type ChartContextMenuConfig = Omit<ContextMenuConfig, 'items'> & {
 	 */
 	onFullscreenChange?: (fullscreen: boolean) => void
 	/**
-	 * Fires when a Download PNG or Download JPG action finishes, either way.
+	 * The callback that receives the outcome of each Download PNG or Download JPG
+	 * action, success or failure.
 	 *
-	 * The rasterize runs behind the menu and a failure went into a bare `catch`. A
-	 * reader whose export silently produced nothing had no way to learn why, and neither
-	 * did the caller. An image the browser refuses to decode, a tainted canvas, and a
-	 * canvas that yields no blob all arrive as `{ ok: false }`. Use it to report the
-	 * failure, or to count a successful download. The CSV and copy actions have their own
-	 * readout and do not come through here.
+	 * The menu shows nothing when an image export fails, so this callback is the one
+	 * report of a failure. An image that the browser cannot decode, a tainted canvas,
+	 * and a canvas that gives no blob all arrive as `{ ok: false }`. Use it to report
+	 * the failure, or to count a successful download. The CSV and copy actions do not
+	 * report here.
 	 */
 	onExport?: (outcome: ChartExportOutcome) => void
 }
@@ -217,11 +219,12 @@ export function ChartContextMenu({
 
 	const items = config?.items
 
-	// This component re-renders on every pointer move across the plot (the host's
-	// hover state). Without the memo a function-form `items` — and the icon
-	// elements it builds — would be rebuilt ~60×/s while the pointer sweeps, all
-	// of it discarded. The target object is minted here, so the memo keys on the
-	// index the host actually holds.
+	// Each render of the host renders this component. In the chart frame, that is a
+	// mark crossing, a legend or reference emphasis, or a right-click. A pointer move
+	// that crosses no mark renders neither the host nor this component, because the
+	// hover lives in a store. Without the memo, each host render builds a
+	// function-form `items` again, with its icon elements, and discards it. The
+	// target object is made here, so the memo keys on the index that the host holds.
 	const customItems = useMemo(
 		() => (typeof items === 'function' ? items({ index: targetIndex ?? null }) : items),
 		[items, targetIndex],
@@ -248,9 +251,10 @@ export function ChartContextMenu({
 		[onFullscreenChange],
 	)
 
-	// A stable event, not the caller's callback: `exportImage` feeds the `defaults` memo this
-	// file keeps because it re-renders on every pointer move across the plot, and an
-	// inline `contextMenu={{ onExport }}` would rebuild it and its five icons.
+	// A stable event, not the caller's callback. `exportImage` feeds the `defaults`
+	// memo, and an inline `contextMenu={{ onExport }}` gives a new callback on each
+	// render of the caller. The memo would then build its items and five icons again
+	// each time.
 	const reportExport = useStableEvent((outcome: ChartExportOutcome) => config?.onExport?.(outcome))
 
 	const exportImage = useCallback(
@@ -288,10 +292,11 @@ export function ChartContextMenu({
 		[rootRef, includeLegend, title, reportExport],
 	)
 
-	// Memoized for the same reason `customItems` is: this array and its five icon
-	// elements were rebuilt on every pointer move and thrown away. Holding it steady
-	// also spares `ContextMenu` the re-resolve its own `entries` memo keys on this
-	// array, though that pass is the cheap half — it reorders existing references.
+	// Memoized for the same reason `customItems` is. Without the memo, each host
+	// render builds this array and its five icon elements again and discards them. A
+	// steady array also spares `ContextMenu` the pass that its own `entries` memo keys
+	// on this array, though that pass is the cheap half: it reorders the references
+	// that exist.
 	const defaults = useMemo<ContextMenuItem[]>(
 		() => [
 			...(hasFullscreen
@@ -336,12 +341,12 @@ export function ChartContextMenu({
 		[hasFullscreen, readout, title, handleFullscreenChange, exportImage],
 	)
 
-	// Held as an element, not gated on `open`. This component re-renders per pointer
-	// move across the plot, and a closed Dialog still re-runs the heaviest hook chain
-	// here on each one — its own controllable, min-width, and arrival hooks plus
-	// Overlay's floating, dismiss, and scroll-lock. Every input below is stable across
-	// a sweep, so the memo drops the whole subtree out of those renders; gating on
-	// `open` instead would discard the exit animation Overlay exists to run.
+	// Held as an element, not gated on `open`. A closed Dialog still runs the heaviest
+	// hook chain here on each host render: its own controllable, min-width, and
+	// arrival hooks, and the floating, dismiss, and scroll-lock hooks of Overlay.
+	// Each input below holds across those renders, so the memo keeps the whole
+	// subtree out of them. A gate on `open` would discard the exit animation that
+	// Overlay exists to run.
 	const dialog = useMemo(
 		() =>
 			fullscreen ? (

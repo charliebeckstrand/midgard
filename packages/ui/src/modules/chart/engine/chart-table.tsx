@@ -1,4 +1,4 @@
-import { memo } from 'react'
+import { memo, useDeferredValue } from 'react'
 import { rangeKeys } from '../../../utilities'
 import type { ChartReadoutSource } from './types'
 
@@ -12,17 +12,35 @@ export type ChartTableProps = {
  * plain markup, outside the `role="img"` region. Assistive tech gets full
  * value parity without the pointer, so the tooltip stays an enhancement.
  *
- * Takes the readout as a thunk and materializes it here. This render is the
- * frame's deferred low-priority pass, so the cell formatting lands off the
- * mount-critical commit (and warms the cache the tooltip shares).
- *
- * The table is memoized on the thunk. A pointer move renders the frame again,
- * but the thunk keeps its identity, so the table holds. It renders again only
- * when the chart body gives a new readout.
+ * The table holds one row for each datum, so at large row counts building and
+ * committing it costs the most. Nothing visual waits on it, and assistive tech
+ * reads it from the settled DOM, not the first frame. The table therefore
+ * defers its readout: the plot paints at full priority, and React renders the
+ * table alone in a low-priority pass. Only that pass calls the thunk, so the
+ * mount commit never formats a cell. The `null` initial value holds the table
+ * out of the first commit. A data change keeps the prior table up for a beat
+ * rather than holding the new marks behind a rebuild. Each host that mounts
+ * the table gets the deferral.
  *
  * @internal
  */
-export const ChartTable = memo(function ChartTable({ readout: source }: ChartTableProps) {
+export function ChartTable({ readout }: ChartTableProps) {
+	const deferred = useDeferredValue(readout, null)
+
+	return deferred && <ChartTableBody readout={deferred} />
+}
+
+/**
+ * The deferred body of {@link ChartTable}. It materializes the readout thunk and
+ * warms the cache that the tooltip shares.
+ *
+ * It is memoized on the thunk. A frame render (a mark crossing, a legend or
+ * reference emphasis) keeps the identity of the thunk, so the table holds. It
+ * renders again only when its host gives a new readout.
+ *
+ * @internal
+ */
+const ChartTableBody = memo(function ChartTableBody({ readout: source }: ChartTableProps) {
 	const readout = source()
 
 	if (readout === null) return null

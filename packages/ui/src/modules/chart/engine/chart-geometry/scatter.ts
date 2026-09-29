@@ -12,16 +12,9 @@
 
 import { toNumericCell } from '../../../../utilities'
 import type { ChartAxisTick } from '../chart-axes/axis'
-import {
-	BUBBLE_MAX_DIAMETER,
-	BUBBLE_MIN_DIAMETER,
-	GUTTER_EDGE_PAD,
-	MARKER_RADIUS,
-	TICK_CHAR_WIDTH,
-} from '../chart-constants'
+import { BUBBLE_MAX_DIAMETER, BUBBLE_MIN_DIAMETER, MARKER_RADIUS } from '../chart-constants'
 import { coord } from '../chart-coords'
 import { beatsHeldMark } from '../chart-hit-test'
-import { linearScale } from '../chart-scale'
 import { READOUT_GAP } from '../chart-series'
 import { nearestStopIndex } from '../chart-snap'
 
@@ -52,17 +45,23 @@ type ScatterKeys<T> = {
  * @internal
  */
 export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] {
-	return data.flatMap((datum, row) => {
+	const points: ScatterDatum[] = []
+
+	for (let row = 0; row < data.length; row++) {
+		const datum = data[row] as T
+
 		const x = toNumericCell(datum[keys.xKey])
 
 		const y = toNumericCell(datum[keys.yKey])
 
-		if (!Number.isFinite(x) || !Number.isFinite(y)) return []
+		if (!Number.isFinite(x) || !Number.isFinite(y)) continue
 
 		const size = keys.sizeKey === undefined ? null : toNumericCell(datum[keys.sizeKey])
 
-		return [{ x, y, row, size: size !== null && Number.isFinite(size) ? size : null }]
-	})
+		points.push({ x, y, row, size: size !== null && Number.isFinite(size) ? size : null })
+	}
+
+	return points
 }
 
 /**
@@ -73,21 +72,52 @@ export function scatterData<T>(data: T[], keys: ScatterKeys<T>): ScatterDatum[] 
  * @internal
  */
 export function uniqueXValues(seriesData: ScatterDatum[][]): number[] {
-	return [...new Set(seriesData.flat().map((point) => point.x))].sort((a, b) => a - b)
+	let count = 0
+
+	for (const points of seriesData) count += points.length
+
+	// A typed array sorts numbers natively, with no comparator call per pair.
+	const xs = new Float64Array(count)
+
+	let at = 0
+
+	for (const points of seriesData) for (const point of points) xs[at++] = point.x
+
+	xs.sort()
+
+	const unique: number[] = []
+
+	for (const x of xs) {
+		// Adds zero so -0 and 0 share one column, as a `Set` keys them.
+		if (unique.length === 0 || x !== unique[unique.length - 1]) unique.push(x + 0)
+	}
+
+	return unique
 }
 
 /**
  * One series' size extent, for the bubble radius scaling; `null` when no point
- * carries a finite size (a plain scatter series).
+ * carries a finite size that is not negative (a plain scatter series). A
+ * negative size draws no disc, so it takes no part in the extent.
  *
  * @internal
  */
 export function sizeDomain(points: ScatterDatum[]): [number, number] | null {
-	const sizes = points.flatMap((point) => (point.size === null ? [] : [point.size]))
+	// One fold, as `linearScale` reads its extent: a spread into `Math.min` copies
+	// the sizes and throws past the argument limit of the engine.
+	let low = Number.POSITIVE_INFINITY
 
-	if (sizes.length === 0) return null
+	let high = Number.NEGATIVE_INFINITY
 
-	return [Math.min(...sizes), Math.max(...sizes)]
+	for (const { size } of points) {
+		if (size === null || size < 0) continue
+
+		if (size < low) low = size
+
+		if (size > high) high = size
+	}
+
+	return low <= high ? [low, high] : null
 }
 
 /** The diameter range a series scales its bubbles into, from its spec or the defaults. @internal */
@@ -100,9 +130,14 @@ export function diameterRange(size?: number, maxSize?: number): [number, number]
 /**
  * A point's radius. Bubbles interpolate on the square root of the size, between
  * the diameter range's ends over the series' own size extent. Area, not
- * diameter, carries the quantity. A sizeless point (or series) takes the plain
- * marker radius; a degenerate extent reads mid-range, because equal sizes must
- * read equal, not minimal.
+ * diameter, carries the quantity. A sizeless series takes the plain marker
+ * radius. In a sized series:
+ *
+ * - A size that is not finite (`null`), or a size of zero, takes the smallest
+ *   diameter.
+ * - A negative size takes `0`, for no disc.
+ * - A degenerate extent reads mid-range, because equal sizes must read equal,
+ *   not minimal.
  *
  * @internal
  */
@@ -115,7 +150,9 @@ export function sizeRadius(
 
 	const [minD, maxD] = diameters
 
-	if (size === null) return minD / 2
+	if (size === null || size === 0) return minD / 2
+
+	if (size < 0) return 0
 
 	const [low, high] = [Math.sqrt(Math.max(0, domain[0])), Math.sqrt(Math.max(0, domain[1]))]
 
@@ -125,6 +162,23 @@ export function sizeRadius(
 	const t = (Math.sqrt(Math.max(0, size)) - low) / (high - low)
 
 	return (minD + t * (maxD - minD)) / 2
+}
+
+/** Whether a point draws a disc: every point does, except one with a negative size. @internal */
+function drawsDisc(point: ScatterDatum): boolean {
+	return point.size === null || point.size >= 0
+}
+
+/**
+ * The points of one series that draw a disc. A point with a negative size draws
+ * none, so it leaves the marks, the hit test, and the keyboard stops. The scales
+ * and the readout still read it from the whole list. Returns `points` itself
+ * when each point draws, so a plain series copies nothing.
+ *
+ * @internal
+ */
+export function scatterDrawn(points: ScatterDatum[]): ScatterDatum[] {
+	return points.every(drawsDisc) ? points : points.filter(drawsDisc)
 }
 
 /** One drawable point: its frame position and radius. @internal */
@@ -260,6 +314,18 @@ export function scatterSnapColumns(stops: ScatterSnapStop[][]): number[][] {
 }
 
 /**
+ * Per unique x, the series behind each stop, index-aligned with
+ * {@link scatterSnapColumns}. `indices` maps each place in the visible list to
+ * the series' own index. The keyboard cursor reads it to emphasize the series of
+ * the point it sits on.
+ *
+ * @internal
+ */
+export function scatterSnapSeries(stops: ScatterSnapStop[][], indices: number[]): number[][] {
+	return stops.map((column) => column.map((stop) => indices[stop.series] ?? stop.series))
+}
+
+/**
  * The stop nearest `y` in column `index`, or `null` off every stop (an empty
  * column, or no column). The same resolution the snapped tooltip anchors with,
  * so the isolated disc and the readout can never disagree. Moving along the
@@ -370,7 +436,8 @@ export function scatterMarkAt(
 				heldSquared = squared
 			}
 
-			if (squared < bestSquared) {
+			// A tie goes to the later disc, which paints over the earlier one.
+			if (squared <= bestSquared) {
 				bestSquared = squared
 
 				best = { series, datum }
@@ -404,42 +471,6 @@ function discCatchSquared(point: ScatterMark, x: number, y: number, slack: numbe
 	const squared = dx * dx + dy * dy
 
 	return squared > reach * reach ? -1 : squared
-}
-
-/**
- * Insets the x span so the extreme discs and the end tick labels clear the frame
- * — the horizontal layout's treatment, over a single probe scale. Ticks are
- * range-independent, so the probe answers before the final range is known. A
- * frame too narrow to seat both keeps the span, since a clipped label beats an
- * inverted axis.
- *
- * @remarks The inset is sized to the end labels' half-width. That also seats the
- * extreme discs off the frame edge, since a value-axis disc paints a smaller
- * reach than its label spans. The labels themselves then read inward through
- * {@link anchorEndTicks}, so this reservation is really the marks'. Reclaiming it
- * for a tighter fit would mean insetting by the widest disc's reach instead. It
- * would also pull the same reservation off the y range's top and floor.
- * @internal
- */
-export function scatterXRange(
-	values: number[],
-	options: { tickTarget: number; min?: number; max?: number },
-	format: (value: number) => string,
-	span: [number, number],
-): [number, number] {
-	const probe = linearScale({ values, range: span, ...options })
-
-	if (!probe || probe.ticks.length === 0) return span
-
-	const half = (value: number) => (format(value).length * TICK_CHAR_WIDTH) / 2 + GUTTER_EDGE_PAD
-
-	const [from, to] = span
-
-	const insetFrom = Math.max(from, half(probe.ticks[0] as number))
-
-	const insetTo = to - half(probe.ticks.at(-1) as number)
-
-	return insetFrom < insetTo ? [insetFrom, insetTo] : span
 }
 
 /** How far a tick's mapped position can sit from a range end and still count as sitting on it. @internal */

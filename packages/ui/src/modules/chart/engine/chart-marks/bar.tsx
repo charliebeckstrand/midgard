@@ -3,11 +3,13 @@
 import { motion } from 'motion/react'
 import { memo, useMemo } from 'react'
 import { cn } from '../../../../core'
+import { rangeKeys } from '../../../../utilities'
 import { type ChartPaint, fillClass, rawColor } from '../chart-color/paint'
 import type { BarMark } from '../chart-geometry/bar'
-import { BAR_GROW, BAR_SHRINK, BAR_STAGGER, barGrow } from '../chart-motion'
+import { BAR_GROW, BAR_SHRINK, barGrow, barGrowDelay } from '../chart-motion'
 import type { ChartOrientation } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
+import { seriesGroupClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'
 
 /** Shared shape for the static and animated bar renderers. @internal */
@@ -36,12 +38,7 @@ function barClass(
 	active: boolean,
 	fill: string | undefined,
 ): string {
-	return cn(
-		paint && fillClass(paint),
-		'transition-opacity',
-		dim && 'opacity-25',
-		textureClass(active, fill),
-	)
+	return cn(paint && fillClass(paint), seriesGroupClass(dim), textureClass(active, fill))
 }
 
 /**
@@ -154,8 +151,8 @@ type AnimatedBarProps = {
 	d: string
 	positive: boolean
 	orientation: ChartOrientation
-	/** The bar's place in its series, for the grow stagger. */
-	index: number
+	/** The grow delay of the bar in its series, in seconds ({@link barGrowDelay}). */
+	delay: number
 	fill: string | undefined
 	/** The texture tile fill URL, if any. */
 	tile: string | undefined
@@ -172,7 +169,7 @@ const AnimatedBar = memo(function AnimatedBar({
 	d,
 	positive,
 	orientation,
-	index,
+	delay,
 	fill,
 	tile,
 	className,
@@ -191,7 +188,7 @@ const AnimatedBar = memo(function AnimatedBar({
 			// reveal in reverse — when a data change swaps the marks generation.
 			exit={{ ...grow.initial, transition: BAR_SHRINK }}
 			style={{ ...grow.style, ...textureStyle(tile) }}
-			transition={{ ...BAR_GROW, delay: index * BAR_STAGGER }}
+			transition={{ ...BAR_GROW, delay }}
 		/>
 	)
 })
@@ -212,16 +209,20 @@ export function AnimatedChartBarMarks({
 
 		const series = indices[seriesIndex] ?? seriesIndex
 
-		return row.map((mark, index) => {
+		// Keyed on the series, not the draw slot: a legend toggle then leaves each
+		// shown series on its own nodes, so no other series replays the grow.
+		return rangeKeys(row.length, `bar-${series}`).map((key, index) => {
+			const mark = row[index]
+
 			if (!mark) return null
 
 			return (
 				<AnimatedBar
-					key={mark.key}
+					key={key}
 					d={mark.d}
 					positive={mark.positive}
 					orientation={orientation}
-					index={index}
+					delay={barGrowDelay(index, row.length)}
 					fill={paint && rawColor(paint)}
 					tile={fills?.[seriesIndex]}
 					className={barClass(paint, !lit(series, index), textureActive, fills?.[seriesIndex])}

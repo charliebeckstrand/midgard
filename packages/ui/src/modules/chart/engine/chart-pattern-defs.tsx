@@ -4,7 +4,6 @@ import { type CSSProperties, type ReactNode, useId } from 'react'
 import { Swatch } from '../../../components/swatch'
 import { cn } from '../../../core'
 import { type ChartColorSlot, k } from '../../../recipes/kata/chart'
-import type { SlotPaint } from './chart-color/paint'
 
 /** The pattern tile edge, in `viewBox` units — the hatch repeats every `TILE`. @internal */
 const TILE = 8
@@ -79,8 +78,44 @@ function hatch(texture: Texture): ReactNode {
 	)
 }
 
-/** One tile to define: the slot's hue paint and the scoped `id` the marks reference. @internal */
-type ChartPatternEntry = { color: ChartColorSlot; paint: SlotPaint; id: string }
+/**
+ * One texture tile: the slot's hue wash under its hatch, as a `<pattern>` that
+ * a fill reads by `id`. A rotated hatch turns the whole tiling. An unrotated
+ * tile takes `shift`, if any, to place its mark.
+ *
+ * @internal
+ */
+function patternTile(id: string, color: ChartColorSlot, shift?: string): ReactNode {
+	const texture = textureFor(color)
+
+	return (
+		<pattern
+			key={id}
+			id={id}
+			patternUnits="userSpaceOnUse"
+			width={TILE}
+			height={TILE}
+			patternTransform={texture.transform ?? shift}
+		>
+			{/* The hue wash reads as the series color normally, dropping to the
+			    system background under forced colors so the hatch stays legible. */}
+			<rect
+				width={TILE}
+				height={TILE}
+				className={cn(
+					k.series[color].fill,
+					'forced-color-adjust-none',
+					'forced-colors:fill-[Canvas]',
+				)}
+			/>
+
+			{hatch(texture)}
+		</pattern>
+	)
+}
+
+/** One tile to define: the slot and the scoped `id` the marks reference. @internal */
+type ChartPatternEntry = { color: ChartColorSlot; id: string }
 
 /**
  * The `<defs>` block of texture tiles — one per distinct slot in use, a hue
@@ -93,32 +128,7 @@ export function ChartPatternDefs({ entries }: { entries: ChartPatternEntry[] }) 
 	if (entries.length === 0) return null
 
 	return (
-		<defs data-slot="chart-patterns">
-			{entries.map(({ color, paint, id }) => {
-				const texture = textureFor(color)
-
-				return (
-					<pattern
-						key={id}
-						id={id}
-						patternUnits="userSpaceOnUse"
-						width={TILE}
-						height={TILE}
-						patternTransform={texture.transform}
-					>
-						{/* The hue wash reads as the series color normally, dropping to the
-						    system background under forced colors so the hatch stays legible. */}
-						<rect
-							width={TILE}
-							height={TILE}
-							className={cn(paint.fill, 'forced-color-adjust-none', 'forced-colors:fill-[Canvas]')}
-						/>
-
-						{hatch(texture)}
-					</pattern>
-				)
-			})}
-		</defs>
+		<defs data-slot="chart-patterns">{entries.map(({ color, id }) => patternTile(id, color))}</defs>
 	)
 }
 
@@ -151,11 +161,7 @@ export function useChartTexture(active: boolean, slots: (ChartColorSlot | null)[
 
 	const distinct = new Set(slots.filter((slot) => slot !== null))
 
-	const entries = [...distinct].map((slot) => ({
-		color: slot,
-		paint: k.series[slot],
-		id: idFor(slot),
-	}))
+	const entries = [...distinct].map((slot) => ({ color: slot, id: idFor(slot) }))
 
 	return {
 		defs: <ChartPatternDefs entries={entries} />,
@@ -225,8 +231,6 @@ export function ChartSwatch({
 		)
 	}
 
-	const texture = textureFor(color)
-
 	// The overlay rides inside the swatch box, keeping the swatch's DOM slot; it
 	// shows on screen only when the prop is on, else waits for forced colors and
 	// print, where the legend's color key collapses to one system color.
@@ -245,27 +249,7 @@ export function ChartSwatch({
 				)}
 			>
 				<defs>
-					<pattern
-						id={id}
-						patternUnits="userSpaceOnUse"
-						width={TILE}
-						height={TILE}
-						patternTransform={
-							texture.transform ?? `translate(${SWATCH_TILE_SHIFT} ${SWATCH_TILE_SHIFT})`
-						}
-					>
-						<rect
-							width={TILE}
-							height={TILE}
-							className={cn(
-								k.series[color].fill,
-								'forced-color-adjust-none',
-								'forced-colors:fill-[Canvas]',
-							)}
-						/>
-
-						{hatch(texture)}
-					</pattern>
+					{patternTile(id, color, `translate(${SWATCH_TILE_SHIFT} ${SWATCH_TILE_SHIFT})`)}
 				</defs>
 
 				<rect

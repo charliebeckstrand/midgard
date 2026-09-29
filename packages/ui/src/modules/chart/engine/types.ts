@@ -17,9 +17,9 @@ import type { CartesianAxes, ChartValueAxisId } from './chart-axes/schema'
 import type { ChartSeriesColor } from './chart-color/palette'
 import type { ChartContextMenuConfig } from './chart-context-menu'
 import type { Crosshair } from './chart-crosshair'
-import type { ChartAspectRatio } from './chart-layout'
+import type { ChartAspectRatio } from './chart-frame/sizing'
 import type { ChartLegendConfig, ChartLegendPlacement } from './chart-legend/schema'
-import type { ChartReferenceLine } from './chart-reference-lines'
+import type { ChartReferenceLine } from './chart-reference'
 import type { ChartTooltipConfig } from './chart-tooltip'
 
 /** A key of `T` naming the field a chart reads from each datum. */
@@ -113,29 +113,14 @@ export type PieChartSeries<T> = Omit<ChartSeries<T>, 'color' | 'axis' | 'dashed'
  * either field drops the point, never the scale. Agent-generated or otherwise ragged
  * datasets therefore degrade to the points that parse.
  */
-export type ScatterChartSeries<T> = {
+export type ScatterChartSeries<T> = Pick<ChartSeries<T>, 'yKey' | 'yName' | 'color'> & {
 	/** The field holding each point's numeric x position. */
 	xKey: DataKey<T>
-	/** The field holding each point's numeric y value. */
-	yKey: DataKey<T>
-	/**
-	 * Legend and tooltip name.
-	 * @defaultValue the `yKey` field name
-	 */
-	yName?: string
-	/**
-	 * Mark color override: a named palette slot (rendered through the CVD-safe
-	 * slot classes, with its texture tile), or any raw CSS color string applied
-	 * inline. Matches the cartesian series' own `color`. Defaults to the
-	 * categorical slot palette in fixed order, so a series keeps its color when
-	 * siblings toggle.
-	 */
-	color?: ChartSeriesColor
 	/**
 	 * The field sizing each point — the bubble encoding. Sizes scale by area
 	 * (radii on a square root) between `size` and `maxSize` over this series' own
-	 * size extent. A non-finite size keeps the point at the smallest diameter,
-	 * rather than dropping it.
+	 * size extent. {@link BubbleChartSeries.sizeKey} gives the rule for a size of
+	 * zero, a negative size, and a size that is not finite.
 	 */
 	sizeKey?: DataKey<T>
 	/**
@@ -160,7 +145,17 @@ export type ScatterChartSeries<T> = {
  * point carries the third measure `sizeKey` reads.
  */
 export type BubbleChartSeries<T> = ScatterChartSeries<T> & {
-	/** The field sizing each point; the bubble chart's third measure. */
+	/**
+	 * The field sizing each point; the bubble chart's third measure. A size sets
+	 * the disc as follows:
+	 *
+	 * - A size of zero draws the smallest disc, at the series' `size` diameter.
+	 * - A negative size draws no disc. The point takes no part in the size
+	 *   extent, the hit test, or the keyboard stops. The tooltip of its x column
+	 *   and the data table still read it.
+	 * - A size that is not finite (`null`, blank, or text that does not parse)
+	 *   draws the smallest disc too. The point stays, and is not dropped.
+	 */
 	sizeKey: DataKey<T>
 }
 
@@ -328,8 +323,9 @@ export type ChartBaseProps<T> = AccessibleName & {
  */
 export type CartesianFrameProps = {
 	/**
-	 * The density step, which sets the target count of the ticks. Omit it to
-	 * take the step of the nearest density scope.
+	 * The density step, which caps the target count of the ticks. The tier of the
+	 * box can lower it further. Omit it to take the step of the nearest density
+	 * scope.
 	 */
 	size?: DensityStep
 	/**

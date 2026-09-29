@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { BarChart } from '../../modules/chart/bar-chart'
+import { HeatmapChart } from '../../modules/chart/heatmap-chart'
+import { PieChart } from '../../modules/chart/pie-chart'
 import { ScatterChart } from '../../modules/chart/scatter-chart'
 import { MapPlat } from '../../modules/map'
-import { act, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
+import { act, allBySlot, allRegions, bySlot, fireEvent, getSlot, renderUI } from '../helpers'
 import { FIXTURE_GEOJSON, FIXTURE_ROWS } from '../helpers/map-geography'
 
 const DATA = [
@@ -16,8 +18,16 @@ const SERIES = [
 	{ xKey: 'quarter', yKey: 'costs', yName: 'Costs' },
 ] as const
 
-/** A viewport rect for the hit element, so the settle resolve can bound the pointer. */
-function boxOf(el: Element, right: number, bottom: number): void {
+/**
+ * A viewport rect for the hit element, so the settle resolve can bound the
+ * pointer. It is the size of the rect itself, as in an unscaled page: the
+ * pointer maps through the fraction of the box it crosses.
+ */
+function boxOf(el: Element): void {
+	const right = Number(el.getAttribute('width'))
+
+	const bottom = Number(el.getAttribute('height'))
+
 	vi.spyOn(el, 'getBoundingClientRect').mockReturnValue({
 		x: 0,
 		y: 0,
@@ -56,7 +66,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		boxOf(hit, 400, 240)
+		boxOf(hit)
 
 		// Hover Q3; the readout appears and the pointer is recorded.
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
@@ -72,6 +82,105 @@ describe('tooltip across a scroll', () => {
 		act(() => vi.advanceTimersByTime(150))
 
 		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Q3')
+	})
+
+	it('heatmap: hides on scroll, then re-reads the cell under the settled pointer', () => {
+		const { container } = renderUI(
+			<HeatmapChart
+				aria-label="Commits"
+				data={[
+					{ day: 'Mon', hour: '9', commits: 1 },
+					{ day: 'Mon', hour: '10', commits: 9 },
+					{ day: 'Tue', hour: '9', commits: 5 },
+					{ day: 'Tue', hour: '10', commits: 3 },
+				]}
+				series={[{ xKey: 'hour', yKey: 'day', colorKey: 'commits', colorRange: ['#fff', '#000'] }]}
+				width={400}
+			/>,
+		)
+
+		const hit = getSlot(container, 'chart-hit')
+
+		boxOf(hit)
+
+		act(() => fireEvent.pointerMove(hit, { clientX: 300, clientY: 60 }))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
+
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('10')
+	})
+
+	it('pie: hides on scroll, then re-reads the slice under the settled pointer', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Traffic by source"
+				data={[
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 25 },
+					{ source: 'Referral', visits: 15 },
+				]}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				width={300}
+				height={200}
+			/>,
+		)
+
+		const [, direct] = allBySlot(container, 'chart-slice')
+
+		act(() => fireEvent.pointerEnter(direct as Element, { clientX: 150, clientY: 100 }))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+
+		// jsdom has no layout, so name the slice the settled pointer lands on.
+		document.elementFromPoint = vi.fn().mockReturnValue(direct ?? null)
+
+		movePointer(150, 100)
+
+		act(() => fireEvent.scroll(window))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')?.textContent).toContain('Direct')
+	})
+
+	it('pie: stays hidden when the settled pointer rests off every slice', () => {
+		const { container } = renderUI(
+			<PieChart
+				aria-label="Traffic by source"
+				data={[
+					{ source: 'Search', visits: 60 },
+					{ source: 'Direct', visits: 25 },
+				]}
+				series={[{ xKey: 'source', yKey: 'visits' }]}
+				width={300}
+				height={200}
+			/>,
+		)
+
+		const [search] = allBySlot(container, 'chart-slice')
+
+		act(() => fireEvent.pointerEnter(search as Element, { clientX: 150, clientY: 60 }))
+
+		expect(bySlot(container, 'tooltip-content')).not.toBeNull()
+
+		// The scroll carried the pie out from under the pointer, onto the page.
+		document.elementFromPoint = vi.fn().mockReturnValue(document.body)
+
+		movePointer(150, 60)
+
+		act(() => fireEvent.scroll(window))
+
+		act(() => vi.advanceTimersByTime(150))
+
+		expect(bySlot(container, 'tooltip-content')).toBeNull()
 	})
 
 	it('chart: keeps a keyboard-driven readout through a scroll with no pointer engaged', () => {
@@ -130,7 +239,7 @@ describe('tooltip across a scroll', () => {
 
 		const hit = bySlot(container, 'chart-hit') as Element
 
-		boxOf(hit, 400, 240)
+		boxOf(hit)
 
 		act(() => fireEvent.pointerMove(hit, { clientX: 280, clientY: 100 }))
 

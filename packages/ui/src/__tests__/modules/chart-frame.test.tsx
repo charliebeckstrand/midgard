@@ -10,10 +10,9 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/engine/chart-constants'
 import { ChartFrame } from '../../modules/chart/engine/chart-frame/frame'
+import { chartFrameLayout, chartFrameSizing } from '../../modules/chart/engine/chart-frame/sizing'
 import {
 	type CartesianLayoutInput,
-	chartFrameLayout,
-	chartFrameSizing,
 	horizontalLayout,
 	plotRect,
 	verticalLayout,
@@ -90,6 +89,43 @@ describe('ChartFrame', () => {
 		const { container } = renderUI(frame(400, { legend: null }))
 
 		expect(bySlot(container, 'chart-legend')).toBeNull()
+	})
+
+	it('mounts a custom tooltip in place of the shared one, under the same gate', () => {
+		const custom = <div data-slot="custom-tooltip" />
+
+		const shown = renderUI(frame(400, { customTooltip: custom }))
+
+		expect(bySlot(shown.container, 'custom-tooltip')).not.toBeNull()
+
+		// The spark posture and a tooltip switched off stand the custom one down too.
+		const spark = renderUI(frame(400, { customTooltip: custom, tier: 'spark' }))
+
+		expect(bySlot(spark.container, 'custom-tooltip')).toBeNull()
+
+		const off = renderUI(frame(400, { customTooltip: custom, tooltip: false }))
+
+		expect(bySlot(off.container, 'custom-tooltip')).toBeNull()
+	})
+
+	it('keeps the wider gap of a color-scale rail beside the plot', () => {
+		const panel = renderUI(frame(400, { legendPlacement: 'right' }))
+
+		expect(bySlot(panel.container, 'chart-body')).toHaveClass('gap-2')
+
+		const rail = renderUI(frame(400, { legendPlacement: 'right', rail: true }))
+
+		expect(bySlot(rail.container, 'chart-body')).toHaveClass('gap-4')
+	})
+
+	it('draws no header for a title that names the context menu alone', () => {
+		const drawn = renderUI(frame(400, { title: 'Revenue' }))
+
+		expect(bySlot(drawn.container, 'chart-header')).not.toBeNull()
+
+		const unheaded = renderUI(frame(400, { title: 'Revenue', heading: false }))
+
+		expect(bySlot(unheaded.container, 'chart-header')).toBeNull()
 	})
 })
 

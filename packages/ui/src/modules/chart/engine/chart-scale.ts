@@ -80,16 +80,11 @@ function niceStep(raw: number): number {
 const FLAT_SPAN = 1e-12
 
 /**
- * The air on each side of a large flat value, as a fraction of its magnitude.
- *
- * @internal
- */
-const FLAT_AIR = 1e-9
-
-/**
  * Widens a degenerate (zero-span) domain so the scale has something to
  * divide by. An all-zero zero-baseline domain becomes `[0, 1]`, and any other
- * flat value gets a unit of air on each side.
+ * flat zero gets a unit of air on each side. A flat value other than zero gets
+ * half its magnitude of air on each side, so the axis reads at the scale of the
+ * value: a constant 0.05 reads near `[0.025, 0.075]`, not `[-1, 1.5]`.
  *
  * @internal
  */
@@ -102,8 +97,9 @@ function widen(low: number, high: number, zeroBaseline: boolean): [number, numbe
 
 	if (zeroBaseline && magnitude === 0) return [0, 1]
 
-	// The air must survive the float precision of a large value: 1e17 + 1 is 1e17.
-	const air = Math.max(1, magnitude * FLAT_AIR)
+	// Half the magnitude also survives the float precision of a large value,
+	// where a unit of air would not: 1e17 + 1 is 1e17.
+	const air = magnitude === 0 ? 1 : magnitude / 2
 
 	return [low - air, low + air]
 }
@@ -193,9 +189,12 @@ export function headroomFits(headroom: number, rangePx: number): boolean {
  * scale. A naive px→value pass under-reserves, since widening grows the span.
  * A bound is left alone when it is pinned or its nice step already clears the
  * extreme by `f`. When both sides widen they share one span, so neither crowds.
- * An unaffordable ask (see {@link headroomFits}) reserves nothing — the layout
- * sheds the labels by the same test, so no label renders against unreserved
- * edges.
+ *
+ * A one-sided widen grows the span, so the other side is tested again against
+ * the new span. When that side then falls short and is free, both sides solve
+ * together. An unaffordable ask (see {@link headroomFits}) reserves nothing —
+ * the layout sheds the labels by the same test, so no label renders against
+ * unreserved edges.
  *
  * @internal
  */
@@ -221,17 +220,21 @@ function reserveHeadroom(args: {
 
 	const widenHigh = !pinnedHigh && high - rawHigh < f * baseSpan
 
-	if (widenLow && widenHigh) {
-		const span = (rawHigh - rawLow) / (1 - 2 * f)
+	if (!widenLow && !widenHigh) return [low, high]
 
-		return [rawLow - f * span, rawHigh + f * span]
+	if (!widenLow) {
+		const next = (rawHigh - f * low) / (1 - f)
+
+		if (pinnedLow || rawLow - low >= f * (next - low)) return [low, next]
+	} else if (!widenHigh) {
+		const next = (rawLow - f * high) / (1 - f)
+
+		if (pinnedHigh || high - rawHigh >= f * (high - next)) return [next, high]
 	}
 
-	if (widenHigh) return [low, (rawHigh - f * low) / (1 - f)]
+	const span = (rawHigh - rawLow) / (1 - 2 * f)
 
-	if (widenLow) return [(rawLow - f * high) / (1 - f), high]
-
-	return [low, high]
+	return [rawLow - f * span, rawHigh + f * span]
 }
 
 /**
@@ -250,10 +253,16 @@ export function linearScale({
 	range,
 	tickTarget,
 	zeroBaseline = false,
-	min,
-	max,
+	min: pinMin,
+	max: pinMax,
 	headroom = 0,
 }: LinearScaleOptions): LinearScale | null {
+	// A non-finite pin (a `parseFloat('')` from an input) would pin the domain to
+	// NaN, so it counts as no pin.
+	const min = finiteOrUndefined(pinMin)
+
+	const max = finiteOrUndefined(pinMax)
+
 	// One pass for the finite extent, folding the zero baseline and the pins in as
 	// they are seen — the filter-to-a-copy then `Math.min(...spread)` it replaces
 	// allocated an array the size of the series and spread it through `apply`
@@ -323,6 +332,11 @@ export function linearScale({
 	return { domain: [low, high], ticks, map }
 }
 
+/** The value when it is finite, else `undefined`. @internal */
+function finiteOrUndefined(value: number | undefined): number | undefined {
+	return value !== undefined && Number.isFinite(value) ? value : undefined
+}
+
 /**
  * A band scale: evenly sized category slots across the range, each band
  * centered in its slot with symmetric air around it.
@@ -385,7 +399,25 @@ export function bandScale({ count, range, padding = 0.2 }: BandScaleOptions): Ba
 export function bandBoundaries(scale: BandScale, count: number): number[] {
 	if (count < 2 || scale.step <= 0) return []
 
-	return Array.from({ length: count - 1 }, (_, index) => scale.center(index) + scale.step / 2)
+	const boundaries = new Array<number>(count - 1)
+
+	for (let index = 0; index < count - 1; index++) {
+		boundaries[index] = scale.center(index) + scale.step / 2
+	}
+
+	return boundaries
+}
+
+/**
+ * The slot that a coordinate falls in, not clamped: it can be negative or past
+ * the last band. `null` when there are no bands.
+ *
+ * @internal
+ */
+function rawBandIndex(pos: number, scale: BandScale, count: number): number | null {
+	if (count <= 0 || scale.step <= 0) return null
+
+	return Math.floor((pos - (scale.center(0) - scale.step / 2)) / scale.step)
 }
 
 /**
@@ -395,9 +427,20 @@ export function bandBoundaries(scale: BandScale, count: number): number[] {
  * @internal
  */
 export function nearestBandIndex(x: number, scale: BandScale, count: number): number | null {
-	if (count <= 0 || scale.step <= 0) return null
+	const index = rawBandIndex(x, scale, count)
 
-	const first = scale.center(0) - scale.step / 2
+	return index === null ? null : clamp(index, 0, count - 1)
+}
 
-	return clamp(Math.floor((x - first) / scale.step), 0, count - 1)
+/**
+ * The index of the band that a coordinate falls in; `null` outside the range or
+ * when there are no bands. The strict form of {@link nearestBandIndex}, for a
+ * hit test that must miss past the ends.
+ *
+ * @internal
+ */
+export function bandIndexAt(pos: number, scale: BandScale, count: number): number | null {
+	const index = rawBandIndex(pos, scale, count)
+
+	return index === null || index < 0 || index >= count ? null : index
 }

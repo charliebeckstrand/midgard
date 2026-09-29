@@ -1,13 +1,14 @@
 /**
  * Pure geometry for the {@link LineChart}: multi-segment polylines that
- * break at non-finite values, their area washes, and the point markers.
+ * break at gaps, their area washes, and the point markers. A gap is a `null`
+ * value; the series values arrive with each non-finite value already `null`.
  * Independent of React and styling so the mark math is unit-testable in
  * isolation.
  */
 
+import type { DrawnSeries } from '../chart-cartesian/series'
+import type { ChartPaint } from '../chart-color/paint'
 import { coord } from '../chart-coords'
-import type { ChartLineSeries } from '../chart-marks/line'
-import type { DrawnSeries } from '../use-chart-cartesian'
 
 /** How a line connects its points: straight or a rounded monotone curve. */
 export type LineInterpolation = 'linear' | 'smooth'
@@ -78,25 +79,33 @@ function monotoneTangents(run: LinePoint[]): number[] {
 	return tangents
 }
 
-/** The path for one contiguous run, straight or smoothed. @internal */
-function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string {
+/**
+ * The straight path through a run of points. It accumulates into one buffer
+ * rather than `map().join()`: the map allocates an N-string array that the join
+ * then walks and discards. At ten thousand points that intermediate array is
+ * the cost the marks never needed.
+ *
+ * @internal
+ */
+export function polylinePath(run: LinePoint[]): string {
 	const start = run[0] as LinePoint
 
-	if (interpolation === 'linear' || run.length < 3) {
-		// Accumulate into one buffer rather than `map().join()`: the map allocates
-		// an N-string array the join then walks and discards. At ten thousand
-		// points that intermediate array is the cost the marks never needed —
-		// concatenation builds the same string without it. Byte-identical output.
-		let d = `M ${coord(start.x)} ${coord(start.y)}`
+	let d = `M ${coord(start.x)} ${coord(start.y)}`
 
-		for (let i = 1; i < run.length; i++) {
-			const point = run[i] as LinePoint
+	for (let i = 1; i < run.length; i++) {
+		const point = run[i] as LinePoint
 
-			d += ` L ${coord(point.x)} ${coord(point.y)}`
-		}
-
-		return d
+		d += ` L ${coord(point.x)} ${coord(point.y)}`
 	}
+
+	return d
+}
+
+/** The path for one contiguous run, straight or smoothed. @internal */
+function segmentPath(run: LinePoint[], interpolation: LineInterpolation): string {
+	if (interpolation === 'linear' || run.length < 3) return polylinePath(run)
+
+	const start = run[0] as LinePoint
 
 	const tangents = monotoneTangents(run)
 
@@ -137,23 +146,41 @@ export type LineSeriesGeometry = {
 	isolated: LinePoint[]
 }
 
+/** One line series' render inputs. @internal */
+export type ChartLineSeries = {
+	/** The series' own index in the caller's list — the React key, stable across toggles and unique where two series share a label. */
+	index: number
+	label: string
+	paint: ChartPaint
+	geometry: LineSeriesGeometry
+	/** Mark every point, not only the isolated ones. */
+	markers: boolean
+	/** Dash the connecting stroke — the reference-line dash — leaving fill and markers untouched. */
+	dashed?: boolean
+}
+
 /**
- * Min/max-per-pixel-column decimation of a dense run, for *drawing only*. A plot
- * `width` px wide can't show more than a couple of points per horizontal pixel.
- * A run of thousands therefore draws identically from its per-column vertical
- * envelope. Keep each column's first, last, min-y, and max-y points, in original
- * order. The extremes hold every visible spike. The endpoints hold the slope
- * into and out of the column, so the drawn line is pixel-identical to the full
- * path.
+ * Min/max-per-pixel-column decimation of a dense run, for *drawing only*. A run
+ * that spans `width` px can't show more than a couple of points per horizontal
+ * pixel. A run of thousands therefore draws identically from its per-column
+ * vertical envelope. Keep each column's first, last, min-y, and max-y points,
+ * in original order. The extremes hold every visible spike. The endpoints hold
+ * the slope into and out of the column, so the drawn line is pixel-identical to
+ * the full path.
  *
- * A run already at drawing resolution (at most two points per column) returns
- * unchanged, so a normal chart's path is byte-for-byte what it was. Only the
- * drawn `d` shrinks. The hit test, markers, value labels, and data table read
- * the full-resolution run, never this, so pointer values and parity stay exact.
+ * The density gate reads the span of the run itself, not of the plot. A dense
+ * series that a gap splits into runs therefore decimates each run as it would
+ * the whole line. A run already at drawing resolution (at most two points per
+ * column) returns unchanged, so a normal chart's path is byte-for-byte what it
+ * was. Only the drawn `d` shrinks. The hit test, markers, value labels, and data
+ * table read the full-resolution run, never this, so pointer values and parity
+ * stay exact.
  *
  * @internal
  */
-function decimateRun(run: LinePoint[], width: number): LinePoint[] {
+export function decimateRun(run: LinePoint[]): LinePoint[] {
+	const width = run.length < 2 ? 0 : Math.abs((run.at(-1) as LinePoint).x - (run[0] as LinePoint).x)
+
 	if (width <= 0 || run.length <= width * 2) return run
 
 	const out: LinePoint[] = []
@@ -213,13 +240,6 @@ function decimateRun(run: LinePoint[], width: number): LinePoint[] {
 	return out
 }
 
-/** The plot's drawn x-span in px — the density threshold decimation gates on. @internal */
-function drawWidth(xs: number[]): number {
-	if (xs.length < 2) return 0
-
-	return Math.abs((xs[xs.length - 1] as number) - (xs[0] as number))
-}
-
 /** Splits the values into contiguous non-null runs of plotted points. @internal */
 function runs(values: (number | null)[], xs: number[], map: (value: number) => number) {
 	const out: LinePoint[][] = []
@@ -266,12 +286,10 @@ export function lineGeometry(
 
 	const drawable = pointRuns.filter((run) => run.length > 1)
 
-	// Decimate the drawn runs to the plot's pixel width; the full-resolution
+	// Decimate each drawn run to its own pixel span; the full-resolution
 	// `pointRuns` still feed the hit test, markers, labels, and data table below,
 	// so only the `d` strings shrink. Sub-threshold runs pass through untouched.
-	const width = drawWidth(xs)
-
-	const drawnRuns = drawable.map((run) => decimateRun(run, width))
+	const drawnRuns = drawable.map(decimateRun)
 
 	const segments = drawnRuns.map((run) => segmentPath(run, interpolation))
 

@@ -1,10 +1,10 @@
 'use client'
 
-import type { RefObject } from 'react'
+import { type RefObject, useMemo } from 'react'
 import { TooltipPointer } from '../../../components/tooltip/tooltip-pointer'
-import { cn } from '../../../core'
 import { bandCoord, type ChartOrientation, project, valueCoord } from './chart-orientation'
 import { ChartReadoutCard, ChartReadoutRow, ReadoutSwatch } from './chart-readout-card'
+import { seriesGroupClass } from './chart-series'
 import { type ChartSnap, nearestValue } from './chart-snap'
 import { useChartHover } from './context'
 import type { ChartReadout, ChartReadoutSource } from './types'
@@ -65,8 +65,9 @@ export function resolveTooltip(tooltip: boolean | ChartTooltipConfig | undefined
 export type ChartTooltipProps = {
 	/**
 	 * The plot region element. Its viewport rect maps the hover's frame
-	 * coordinates to the client point floating-ui anchors to. The SVG fills the
-	 * region one-to-one, so the rect origin plus a frame point is that point.
+	 * coordinates to the client point floating-ui anchors to. The SVG starts at
+	 * the origin of the region, and a frame unit is a layout pixel of it. The
+	 * point therefore scales with the region under an ancestor scale or zoom.
 	 */
 	plotRef: RefObject<HTMLDivElement | null>
 	/**
@@ -160,8 +161,41 @@ export function ChartTooltip({
 	// The rows read in the marks' visible order when the chart supplies one — a
 	// stacked column top-first, overlapping lines in value order — looked up by
 	// series index off the readout, which itself stays in series order for the
-	// hidden data table. No order given, the rows keep that series order.
-	const rows = readoutRows(readout, order)
+	// hidden data table. No order given, the rows keep that series order. The
+	// readout is cached, so the rows hold across the moves of one hover.
+	const rows = useMemo(() => readoutRows(readout, order), [readout, order])
+
+	// The card holds across the moves inside one category, so a move repositions
+	// the panel and renders no row.
+	const card = useMemo(
+		() =>
+			index !== null &&
+			readout !== null && (
+				<ChartReadoutCard title={readout.categories[index]}>
+					<div className="space-y-0.5">
+						{rows.map((row, position) => (
+							<ChartReadoutRow
+								// Two series can share a name, so a row keys on its series.
+								key={row.index ?? position}
+								data-slot="chart-tooltip-row"
+								// A cursor on one dataset dims the rest, the same recede the marks take.
+								className={seriesGroupClass(emphasis !== null && row.index !== emphasis)}
+								swatch={
+									<ReadoutSwatch
+										shape={row.swatch}
+										className={row.swatchClasses?.[index] ?? row.swatchClass}
+										color={row.swatchColor}
+									/>
+								}
+								value={row.values[index]}
+								label={row.label}
+							/>
+						))}
+					</div>
+				</ChartReadoutCard>
+			),
+		[index, readout, rows, emphasis],
+	)
 
 	// Snapped, the anchor is the intersection — the band center crossed with the
 	// value nearest the pointer, projected onto the screen through the orientation;
@@ -182,10 +216,11 @@ export function ChartTooltip({
 	// anywhere in the plot; otherwise it waits for the pointer to sit on a mark.
 	const open = anchor !== null && (snap != null || onData)
 
-	// Frame coordinates map to the viewport by the plot region's own rect: the
-	// SVG fills it one-to-one, so the origin plus the frame point is the client
-	// point the floating readout anchors to. The pointer reads that rect when it
-	// positions the panel, not here in render.
+	// Frame coordinates map to the viewport by the plot region's own rect. The
+	// pointer scales the frame point by the drawn size of the region over its
+	// layout size, and adds it to the origin, so an ancestor scale or zoom keeps
+	// the readout on its mark. It reads that rect when it positions the panel,
+	// not here in render.
 	return (
 		<TooltipPointer
 			open={open}
@@ -201,32 +236,7 @@ export function ChartTooltip({
 			track="point"
 			size="sm"
 		>
-			{index !== null && readout !== null && (
-				<ChartReadoutCard title={readout.categories[index]}>
-					<div className="space-y-0.5">
-						{rows.map((row) => (
-							<ChartReadoutRow
-								key={row.label}
-								data-slot="chart-tooltip-row"
-								className={cn(
-									'transition-opacity',
-									// A cursor on one dataset dims the rest, the same recede the marks take.
-									emphasis !== null && row.index !== emphasis && 'opacity-25',
-								)}
-								swatch={
-									<ReadoutSwatch
-										shape={row.swatch}
-										className={row.swatchClasses?.[index] ?? row.swatchClass}
-										color={row.swatchColor}
-									/>
-								}
-								value={row.values[index]}
-								label={row.label}
-							/>
-						))}
-					</div>
-				</ChartReadoutCard>
-			)}
+			{card}
 		</TooltipPointer>
 	)
 }
