@@ -23,7 +23,7 @@ const LEGEND_SELECTOR =
 	'[data-slot="chart-legend"],[data-slot="heatmap-legend-box"],[data-slot="map-legend-box"]'
 
 /** The plot regions. The first SVG in each is the drawing that an export without the legend keeps. @internal */
-const PLOT_SELECTOR = '[data-slot="chart-plot"],[data-slot="heatmap-plot"],[data-slot="map-plot"]'
+const PLOT_SELECTOR = '[data-slot="chart-plot"],[data-slot="map-plot"]'
 
 /** The chart header. An export without the legend keeps the extent of its text. @internal */
 const HEADER_SELECTOR = '[data-slot="chart-header"]'

@@ -323,8 +323,9 @@ export type ChartBaseProps<T> = AccessibleName & {
  */
 export type CartesianFrameProps = {
 	/**
-	 * The density step, which sets the target count of the ticks. Omit it to
-	 * take the step of the nearest density scope.
+	 * The density step, which caps the target count of the ticks. The tier of the
+	 * box can lower it further. Omit it to take the step of the nearest density
+	 * scope.
 	 */
 	size?: DensityStep
 	/**

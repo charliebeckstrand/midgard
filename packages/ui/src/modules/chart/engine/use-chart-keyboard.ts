@@ -34,9 +34,9 @@ import { type ChartHoverStore, samePoint } from './context'
  * `series` names the series behind each of `points`' stops, in the same order.
  * The cursor's value lane therefore resolves to the series it sits on, the one
  * it emphasizes while the rest recede. A band step also reads it to find the
- * lane of the cursor's series. Omitted on a chart whose stops don't map to a
- * single series, where a scatter column stacks several. Such a chart reads no
- * active series, and leaves the emphasis alone.
+ * lane of the cursor's series. A scatter names the series of each point in a
+ * column, and a pie names each slice. Omitted, the chart reads no active
+ * series, and leaves the emphasis alone.
  *
  * `indices` names the hover index that each of `points`' stops writes, in the
  * same order. Omitted, a stop writes its category. The heatmap makes each

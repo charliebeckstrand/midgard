@@ -58,8 +58,9 @@ import { useScatterChartReadout } from './use-scatter-chart-readout'
  */
 export type ScatterFrameProps = {
 	/**
-	 * The density step, which sets the target count of the ticks. Omit it to
-	 * take the step of the nearest density scope.
+	 * The density step, which caps the target count of the ticks. The tier of the
+	 * box can lower it further. Omit it to take the step of the nearest density
+	 * scope.
 	 */
 	size?: DensityStep
 	/**
