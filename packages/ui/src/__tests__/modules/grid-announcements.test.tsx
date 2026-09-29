@@ -137,6 +137,26 @@ describe('Grid announcements', () => {
 		expect(liveRegion()).toHaveTextContent('Hid Age column')
 	})
 
+	it('keeps the label of a sorted column that it hides', async () => {
+		const user = userEvent.setup()
+
+		renderUI(
+			<Grid columns={columns} rows={rows} getKey={getKey} columnManager={{ toolbar: true }} />,
+		)
+
+		await user.click(screen.getByRole('button', { name: 'Sort by Name' }))
+
+		await user.click(screen.getByRole('button', { name: 'Manage columns' }))
+
+		await user.click(screen.getByRole('checkbox', { name: 'Show Name' }))
+
+		// The sort survives the hide. Its announcement keeps the label, so it does
+		// not change, and it does not speak the raw column id.
+		expect(liveRegion()).toHaveTextContent('Hid Name column')
+
+		expect(liveRegion()).not.toHaveTextContent(/Sorted by name/)
+	})
+
 	it('announces a settled column resize after a keyboard nudge', async () => {
 		await withFakeTime(async (clock) => {
 			renderUI(<Grid resizable columns={columns} rows={rows} getKey={getKey} />)

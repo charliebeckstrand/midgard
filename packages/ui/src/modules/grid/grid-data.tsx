@@ -384,6 +384,7 @@ export function GridData<T>({
 		renderRows,
 		rowKeys,
 		visibleColumns,
+		columns,
 		filters,
 		globalFilter,
 		loading,

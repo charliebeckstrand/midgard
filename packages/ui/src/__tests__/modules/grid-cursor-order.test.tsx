@@ -272,6 +272,36 @@ describe('Grid cursor over grouped rows', () => {
 		expect(activeCell(grid)).toHaveTextContent('20 units')
 	})
 
+	it('follows the row it lands on when a reseat keeps its place', () => {
+		const ui = (rows: Sale[]) => (
+			<Grid columns={columns} rows={rows} getKey={getKey} groupBy={{ value: 'region' }} navigable />
+		)
+
+		const view = renderUI(ui(sales))
+
+		const grid = screen.getByRole('treegrid')
+
+		fireEvent.mouseDown(screen.getByText('20 units').closest('td') as HTMLElement)
+
+		const west = sales.filter((sale) => sale.region === 'West')
+
+		const north: Sale[] = [
+			{ id: 5, region: 'North', units: 40 },
+			{ id: 6, region: 'North', units: 50 },
+		]
+
+		// The row and its group leave. The clamp keeps the same place, which now
+		// holds another row.
+		view.rerender(ui([...west, ...north]))
+
+		expect(activeCell(grid)).toHaveTextContent('40 units')
+
+		// The old row comes back. The cursor stays on the row it sits on.
+		view.rerender(ui([...west, ...north, sales[2] as Sale]))
+
+		expect(activeCell(grid)).toHaveTextContent('40 units')
+	})
+
 	it('keeps a plain grouped table free of tree attributes', () => {
 		const { container } = renderUI(
 			<Grid columns={columns} rows={sales} getKey={getKey} groupBy={{ value: 'region' }} />,

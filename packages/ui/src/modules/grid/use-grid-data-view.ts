@@ -29,6 +29,7 @@ export function useGridDataView<T>({
 	renderRows,
 	rowKeys,
 	visibleColumns,
+	columns,
 	filters,
 	globalFilter,
 	loading,
@@ -56,6 +57,8 @@ export function useGridDataView<T>({
 	rowKeys: (string | number)[]
 	/** The visible columns, in display order. */
 	visibleColumns: GridColumn<T>[]
+	/** Every column, hidden ones too: the sort announcement names a sorted column that is hidden. */
+	columns: GridColumn<T>[]
 	filters: GridColumnFilter | null
 	globalFilter: GridGlobalFilterView | null
 	loading: boolean
@@ -162,7 +165,7 @@ export function useGridDataView<T>({
 	// Narrate sort and selection changes to assistive tech without moving focus
 	// (WCAG 4.1.3). Both dedupe and skip their initial value; selection stays
 	// silent unless the grid has a selection column.
-	useA11yAnnouncements(describeSort(sort, visibleColumns))
+	useA11yAnnouncements(describeSort(sort, columns))
 
 	useA11yAnnouncements(describeSelection(selection.size, allSelected, paginated), {
 		enabled: hasSelectionColumn,

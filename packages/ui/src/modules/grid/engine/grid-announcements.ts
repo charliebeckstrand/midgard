@@ -15,8 +15,9 @@ import { physicalSide } from './grid-pin/overrides'
  * The polite announcement for the grid's current sort, narrated to assistive
  * tech when it changes (WCAG 4.1.3). It reads `Sorting cleared` when unsorted,
  * else the sorted columns by display label and direction, in priority order
- * (`Sorted by Name ascending, then Age descending`). Resolves each label from the visible
- * columns so multi-column sort priority is spoken, not just shown.
+ * (`Sorted by Name ascending, then Age descending`). Resolves each label from
+ * `columns`, so multi-column sort priority is spoken, not just shown. Give it
+ * every column: a sorted column that is hidden keeps its label.
  *
  * @internal
  */

@@ -1,3 +1,4 @@
+import { Profiler } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 import { Grid, type GridCellClickContext, type GridColumn } from '../../modules/grid'
 import { fireEvent, renderUI, screen } from '../helpers'
@@ -553,5 +554,108 @@ describe.each([
 		view.rerender(ui([{ id: 4, name: 'Dana', value: 'd' }, ...people]))
 
 		expect(idRows()).toEqual(['0', '1', '2', '3'])
+	})
+})
+
+describe('Grid cursor edges', () => {
+	const selectColumns: GridColumn<Row>[] = [{ id: 'select', selectable: true }, ...columns]
+
+	it('acts on no row with Enter or Space after Escape unseats the cursor', () => {
+		const onRowClick = vi.fn()
+
+		renderUI(
+			<Grid
+				columns={selectColumns}
+				rows={rows}
+				getKey={getKey}
+				navigable
+				onRowClick={onRowClick}
+			/>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		fireEvent.keyDown(grid, { key: 'Escape' })
+
+		expect(grid).not.toHaveAttribute('aria-activedescendant')
+
+		fireEvent.keyDown(grid, { key: ' ' })
+
+		fireEvent.keyDown(grid, { key: 'Enter' })
+
+		expect(screen.getByRole('checkbox', { name: 'Select row 1' })).not.toBeChecked()
+
+		expect(onRowClick).not.toHaveBeenCalled()
+
+		// A movement key seats the cursor again.
+		fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(grid).toHaveAttribute('aria-activedescendant')
+	})
+
+	it('leaves a browser shortcut to the browser', () => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[NAME] as HTMLElement)
+
+		// fireEvent returns true when no handler called preventDefault.
+		expect(fireEvent.keyDown(grid, { key: 'ArrowRight', altKey: true })).toBe(true)
+
+		expect(fireEvent.keyDown(grid, { key: 'ArrowLeft', metaKey: true })).toBe(true)
+
+		expect(fireEvent.keyDown(grid, { key: 'PageDown', ctrlKey: true })).toBe(true)
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[NAME]?.id)
+
+		// Ctrl+End stays the grid's.
+		expect(fireEvent.keyDown(grid, { key: 'End', ctrlKey: true })).toBe(false)
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW2_ROLE]?.id)
+	})
+
+	it('keeps the cursor when the whole window loses focus', ({ onTestFinished }) => {
+		renderUI(<Grid columns={columns} rows={rows} getKey={getKey} navigable />)
+
+		const grid = screen.getByRole('grid')
+
+		const cells = screen.getAllByRole('gridcell')
+
+		fireEvent.mouseDown(cells[ROW1_ROLE] as HTMLElement)
+
+		const hasFocus = vi.spyOn(document, 'hasFocus').mockReturnValue(false)
+
+		onTestFinished(() => hasFocus.mockRestore())
+
+		// A switch of the window blurs with no next target.
+		fireEvent.blur(grid, { relatedTarget: null })
+
+		expect(grid).toHaveAttribute('aria-activedescendant', cells[ROW1_ROLE]?.id)
+	})
+
+	it('commits no render for a move that stays put', () => {
+		let commits = 0
+
+		renderUI(
+			<Profiler id="grid" onRender={() => commits++}>
+				<Grid columns={columns} rows={rows} getKey={getKey} navigable />
+			</Profiler>,
+		)
+
+		const grid = screen.getByRole('grid')
+
+		fireEvent.mouseDown(screen.getAllByRole('gridcell')[ROW2_ROLE] as HTMLElement)
+
+		commits = 0
+
+		// A held arrow at the last row.
+		for (let i = 0; i < 10; i++) fireEvent.keyDown(grid, { key: 'ArrowDown' })
+
+		expect(commits).toBe(0)
 	})
 })

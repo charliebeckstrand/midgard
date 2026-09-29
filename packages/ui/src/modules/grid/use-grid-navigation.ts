@@ -114,6 +114,13 @@ export type GridNavStore = {
 	/** Seats the cursor on the one-stop row with this item key, as a click on it does. */
 	seatStop: (key: string) => void
 	/**
+	 * Whether the active cell has a change of the cursor to scroll into view.
+	 * The first call after each change returns `true`, and each later call
+	 * `false`. A row that a scroll brings back into a window mounts its active
+	 * cell again, and that cell does not move the scroll a second time.
+	 */
+	claimReveal: () => boolean
+	/**
 	 * Hands the cursor the order of a body that renders more than data rows, or
 	 * `null` for a body of data rows only. A body calls it from a layout effect
 	 * each time its order changes (see {@link GridCursorRow}).
@@ -129,6 +136,7 @@ const INERT_STORE: GridNavStore = {
 	isStopActive: () => false,
 	stopId: (key) => key,
 	seatStop: () => {},
+	claimReveal: () => false,
 	publish: () => {},
 }
 
@@ -199,6 +207,33 @@ function navTarget(
 		default:
 			return null
 	}
+}
+
+/** The keys that move the cursor. @internal */
+const MOVEMENT_KEYS = new Set([
+	'ArrowUp',
+	'ArrowDown',
+	'ArrowLeft',
+	'ArrowRight',
+	'Home',
+	'End',
+	'PageUp',
+	'PageDown',
+])
+
+/**
+ * Whether the browser keeps a movement key: Alt with any of them (history),
+ * and Ctrl or Cmd with an arrow or a page key (history, a tab switch). Ctrl or
+ * Cmd with Home and End stays the grid's, which jumps to its first or last cell.
+ *
+ * @internal
+ */
+function browserOwnsKey(event: KeyboardEvent): boolean {
+	if (!MOVEMENT_KEYS.has(event.key)) return false
+
+	if (event.altKey) return true
+
+	return (event.metaKey || event.ctrlKey) && event.key !== 'Home' && event.key !== 'End'
 }
 
 /**
@@ -408,14 +443,29 @@ function escapeFromPanel(event: KeyboardEvent<HTMLTableElement>): void {
 function createActiveCursor() {
 	let active: Coord | null = null
 
+	// The count of the changes of the active cell, and the change that a cell
+	// last scrolled into view.
+	let changed = 0
+
+	let revealed = 0
+
 	const changes = createEmitter()
 
 	return {
 		get: (): Coord | null => active,
 		set: (next: Coord | null) => {
+			if (next?.row !== active?.row || next?.col !== active?.col) changed++
+
 			active = next
 
 			changes.emit()
+		},
+		claimReveal: (): boolean => {
+			if (revealed === changed) return false
+
+			revealed = changed
+
+			return true
 		},
 		subscribe: changes.subscribe,
 	}
@@ -427,12 +477,21 @@ function createActiveCursor() {
  * cursor is exposed to assistive tech through `aria-activedescendant`. Arrow
  * keys, Home/End (row), Ctrl/Cmd+Home/End (grid), and PageUp/PageDown move the
  * cursor. Enter/Space activates the cell through `onCellActivate` then the row
- * through `onRowActivate`. Escape unseats it. In a right-to-left grid,
- * ArrowLeft moves to the next column and ArrowRight to the previous one.
+ * through `onRowActivate`. Escape unseats it, and with no cursor drawn only a
+ * movement key acts. A key that the browser keeps (Alt or Cmd with an arrow,
+ * Ctrl with a page key) passes through. In a right-to-left grid, ArrowLeft
+ * moves to the next column and ArrowRight to the previous one.
  *
- * Bounds and the active row come from `rowsRef`/`colCountRef` at event time. The
- * hook thus holds no stale counts, and its callbacks stay referentially stable
- * across renders. When `enabled` is false the hook is inert — `navTableProps`
+ * A body that renders more than data rows publishes its order through the
+ * store (see {@link GridCursorRow}). The cursor then walks that order: a group
+ * header, a group total, and a detail panel are one stop each. A new order
+ * reseats the cursor on the same row by its key, then on its parent row, then
+ * at the same place clamped to the order, and clears it when the order is
+ * empty.
+ *
+ * The bounds come from the published order, else from `rowsRef`/`colCountRef`,
+ * at event time. The hook thus holds no stale counts, and its callbacks stay
+ * referentially stable across renders. When `enabled` is false the hook is inert — `navTableProps`
  * is `undefined` and the store never reports an active cell — so a non-navigable
  * grid pays nothing.
  *
@@ -582,7 +641,11 @@ export function useGridNavigation({
 			// The new-row slot sits outside the window, and is always mounted.
 			if (row !== NEW_ROW_INDEX) scrollRowIntoViewRef.current?.(row, orderRef.current?.[row]?.key)
 
-			setActive({ row, col })
+			// A move that stays put, such as a held arrow at an edge, keeps the coord,
+			// so it commits no render.
+			setActive((current) =>
+				current && current.row === row && current.col === col ? current : { row, col },
+			)
 		},
 		[colCountRef, count, scrollRowIntoViewRef, newRowRef],
 	)
@@ -601,15 +664,16 @@ export function useGridNavigation({
 	)
 
 	// Records the key of each row the cursor seats on, against the order it was
-	// seated in. A later order looks the row up by that key.
+	// seated in. A later order looks the row up by that key. A new order counts
+	// too: a reseat that clamps to the same place keeps the coord, but the row
+	// at that place is another one.
 	useLayoutEffect(() => {
-		const entry =
-			active && active.row !== NEW_ROW_INDEX ? orderRef.current?.[active.row] : undefined
+		const entry = active && active.row !== NEW_ROW_INDEX ? view.order?.[active.row] : undefined
 
 		activeKeyRef.current = entry
 			? { key: entry.key, parent: entry.kind === 'group' ? undefined : entry.parent }
 			: null
-	}, [active])
+	}, [active, view.order])
 
 	// The store's actions. A stop row seats the cursor from an event, and a body
 	// publishes its order from a layout effect, never during render.
@@ -655,6 +719,7 @@ export function useGridNavigation({
 		},
 		stopId,
 		seatStop,
+		claimReveal: internal.claimReveal,
 		publish,
 	}))
 
@@ -773,13 +838,23 @@ export function useGridNavigation({
 				colCount: colCountRef.current,
 			}
 
+			// A browser shortcut keeps its key: history on Alt or Cmd with an arrow, a
+			// tab switch on Ctrl with a page key.
+			if (browserOwnsKey(event)) return
+
 			// A grid with no cell takes no key. The cursor seeds at the first cell when
 			// a key arrives before focus has.
 			const first = seedCoord(false, order)
 
 			if (!first) return
 
-			const base = readActive() ?? first
+			const active = readActive()
+
+			// With no cursor drawn, as after Escape, only a movement key acts: it seats
+			// the cursor. Enter or Space on a cell the reader cannot see does nothing.
+			if (!active && !MOVEMENT_KEYS.has(event.key)) return
+
+			const base = active ?? first
 
 			// In a right-to-left grid, the columns run from right to left. ArrowLeft
 			// then moves to the next column (WAI-ARIA APG grid pattern), and the group
@@ -847,9 +922,11 @@ export function useGridNavigation({
 				colCount: colCountRef.current,
 			})
 
-			if (seed) setActive(seed)
+			// Through `moveToCursor`, so a windowed body brings the row in first and
+			// `aria-activedescendant` names a cell that is mounted.
+			if (seed) moveToCursor(seed)
 		},
-		[count, colCountRef, newRowRef, readActive],
+		[count, colCountRef, newRowRef, readActive, moveToCursor],
 	)
 
 	const onBlur = useCallback((event: FocusEvent<HTMLTableElement>) => {
@@ -863,6 +940,10 @@ export function useGridNavigation({
 		// grid (e.g. its context menu), so the active cell is restored on close —
 		// mirrors the `onFocus` portal guard that declines to re-seed on return.
 		if (next instanceof Element && next.closest(FLOATING_PORTAL)) return
+
+		// Keep it seated, too, while the whole window loses focus (a switch of the
+		// window or the tab), so the reader comes back to the same cell.
+		if (next === null && !document.hasFocus()) return
 
 		setActive(null)
 	}, [])
