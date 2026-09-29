@@ -383,9 +383,21 @@ describe('KanbanColumnBody', () => {
 	// Conditional card slots that are all false render nothing. The body must
 	// count rendered children, not slots, so the placeholder shows and the
 	// read-only list role drops.
+	// Both cards are items of the column, so a rendered pair names no stray card.
+	const pairColumns: Column[] = [
+		{
+			id: 'todo',
+			title: 'Todo',
+			items: [
+				{ id: '1', title: 'One' },
+				{ id: '2', title: 'Two' },
+			],
+		},
+	]
+
 	function EmptyBody({ show, pair }: { show: boolean; pair: boolean }) {
 		return (
-			<Kanban columns={columns} getKey={(item: Item) => item.id} aria-label="Board">
+			<Kanban columns={pairColumns} getKey={(item: Item) => item.id} aria-label="Board">
 				<KanbanColumn value="todo">
 					{pair ? (
 						<KanbanColumnBody empty="No cards">

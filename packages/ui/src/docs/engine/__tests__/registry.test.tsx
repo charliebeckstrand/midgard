@@ -71,6 +71,9 @@ const settle = () => new Promise((resolve) => setTimeout(resolve, 50))
 
 describe('registry', () => {
 	it('renders the error boundary after one failed import', async () => {
+		// React logs each error that a boundary catches.
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		const loader = loaderFailing(Number.POSITIVE_INFINITY)
 
 		bind('registry-fails', loader)
@@ -84,9 +87,14 @@ describe('registry', () => {
 		await settle()
 
 		expect(loader).toHaveBeenCalledTimes(1)
+
+		expect(error.mock.calls.flat()).toContainEqual(expect.objectContaining({ message: 'chunk' }))
 	})
 
 	it('re-attempts a failed import on retry', async () => {
+		// React logs each error that a boundary catches.
+		const error = vi.spyOn(console, 'error').mockImplementation(() => {})
+
 		const loader = loaderFailing(1)
 
 		bind('registry-retries', loader)
@@ -104,6 +112,8 @@ describe('registry', () => {
 		await screen.findByText('demo')
 
 		expect(loader).toHaveBeenCalledTimes(2)
+
+		expect(error.mock.calls.flat()).toContainEqual(expect.objectContaining({ message: 'chunk' }))
 	})
 
 	it('re-attempts a failed import on prefetch', async () => {

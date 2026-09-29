@@ -1,5 +1,6 @@
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
+import { cleanup } from '@testing-library/react'
 import { afterEach, describe, expect, it } from 'vitest'
 import { useDensityStep } from '../../primitives/density'
 import {
@@ -26,7 +27,11 @@ function Probe() {
 	)
 }
 
+// A mounted density reader re-renders when the root step changes, outside
+// `act()`. Unmount it before the step is removed.
 afterEach(() => {
+	cleanup()
+
 	localStorage.clear()
 
 	document.documentElement.classList.remove('dark')
