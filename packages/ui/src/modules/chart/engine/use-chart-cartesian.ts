@@ -2,7 +2,7 @@
 
 import { type RefObject, useMemo } from 'react'
 import { cn, toInnerStep } from '../../../core'
-import { type FrameReserve, type PlotFrameRef, usePlotFrame } from '../../../hooks'
+import type { FrameReserve, PlotFrameRef } from '../../../hooks'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
@@ -13,28 +13,27 @@ import { type CartesianAxes, type ChartValueAxisId, resolveAxes } from './chart-
 import { paintSlot, rawColor, textClass } from './chart-color/paint'
 import { seriesPaint } from './chart-color/palette'
 import { CHART_METRICS, GUTTER_LABEL_ROOM, LABEL_CHAR_WIDTH } from './chart-constants'
+import { chartFrameLayout, frameFills } from './chart-frame/sizing'
 import {
 	type BandLabel,
 	type CartesianLayout,
 	type ChartAxisTitlePlacement,
 	type ChartValueAxisInput,
-	chartFrameLayout,
-	frameFills,
 	horizontalLayout,
-	type PlotRect,
 	verticalLayout,
 } from './chart-layout'
 import type { ChartLegendItem, ChartLegendReference } from './chart-legend/legend'
 import { legendAside, legendBands, legendVisible, type ResolvedLegend } from './chart-legend/schema'
 import { seriesDataKey } from './chart-motion'
-import type { ChartOrientation } from './chart-orientation'
+import type { ChartOrientation, PlotRect } from './chart-orientation'
 import type { ChartReferenceLine } from './chart-reference-lines'
 import { referenceLegendItems } from './chart-reference-lines'
 import { type BandScale, bandBoundaries, type LinearScale } from './chart-scale'
 import { chartReadout, type SeriesMeta, selectedIndices, seriesValues } from './chart-series'
-import { type ChartChrome, type ChartTier, chartFramePolicy, headerLineCount } from './chart-tier'
+import { type ChartChrome, type ChartTier, headerLineCount } from './chart-tier'
 import { dateCategoryFormat, parseInstant, timeCategory } from './chart-time'
 import type { CartesianChartProps, ChartReadoutSource, ChartSeries } from './types'
+import { useChartFrameSizing } from './use-chart-frame-sizing'
 import { useChartReferenceToggle, useChartSeriesToggle } from './use-chart-series-toggle'
 import { useChartTextWidth } from './use-chart-text-width'
 
@@ -943,13 +942,6 @@ export function useChartCartesian<T>(
 
 	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, sizing, aside)
-
 	// The measured plot box resolves the anatomy tier: the value gutter's compact
 	// format and the band-label density from width, the tick count from height,
 	// density still capping the ticks. Its budgets fold into the layout below.
@@ -957,13 +949,19 @@ export function useChartCartesian<T>(
 	// so measuring the plot's remainder for the tier loops — spark drops that
 	// chrome, the remainder jumps, the tier flips back. chartFramePolicy resolves
 	// it against the figure's own `width / ratio` less the chrome instead.
-	const policy = chartFramePolicy({
+	const {
+		ref,
 		width: frameWidth,
 		height: frameHeight,
+		reserve,
+		policy,
+	} = useChartFrameSizing({
+		width,
+		sizing,
+		aside,
 		aspect: outerAspect,
 		chrome: cartesianChrome(props),
 		tickTarget: metrics.tickTarget,
-		fill: sizing.mode === 'fill',
 	})
 
 	// Spark stands the axis chrome down to a bare sparkline; every wider tier keeps

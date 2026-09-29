@@ -6,9 +6,9 @@ import { k } from '../../../recipes/kata/chart'
 import type { ChartValueAxisId } from './chart-axes/schema'
 import { type ChartPaint, fillClass, rawColor } from './chart-color/paint'
 import { type PlacedValueLabel, resolveValueLabels } from './chart-geometry/label'
-import type { PlotRect } from './chart-layout'
 import { ChartGeneration } from './chart-marks/layer'
 import { POINT_POP, POINT_UNPOP } from './chart-motion'
+import type { PlotRect } from './chart-orientation'
 import { useChartTier } from './context'
 
 /**

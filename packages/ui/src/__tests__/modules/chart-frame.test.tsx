@@ -10,10 +10,9 @@ import {
 	X_AXIS_HEIGHT,
 } from '../../modules/chart/engine/chart-constants'
 import { ChartFrame } from '../../modules/chart/engine/chart-frame/frame'
+import { chartFrameLayout, chartFrameSizing } from '../../modules/chart/engine/chart-frame/sizing'
 import {
 	type CartesianLayoutInput,
-	chartFrameLayout,
-	chartFrameSizing,
 	horizontalLayout,
 	plotRect,
 	verticalLayout,

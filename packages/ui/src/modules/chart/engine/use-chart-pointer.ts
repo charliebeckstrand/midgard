@@ -9,7 +9,7 @@ import {
 	useRef,
 } from 'react'
 import { useHoverAcrossScroll } from '../../../hooks'
-import type { PlotRect } from './chart-layout'
+import type { PlotRect } from './chart-orientation'
 import type { ChartTooltipTrigger } from './chart-tooltip'
 import { type ChartMarkRef, useChartHoverStore, useChartMarkPoint } from './context'
 

@@ -1,7 +1,8 @@
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
 import { GUTTER_GAP } from '../chart-constants'
-import type { ChartAxisTitlePlacement, PlotRect } from '../chart-layout'
+import type { ChartAxisTitlePlacement } from '../chart-layout'
+import type { PlotRect } from '../chart-orientation'
 
 /** One rendered tick: its position along the axis and its label. @internal */
 export type ChartAxisTick = {

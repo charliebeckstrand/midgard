@@ -15,7 +15,6 @@ import {
 	REFERENCE_DASH,
 } from '../chart-constants'
 import type { LineSeriesGeometry } from '../chart-geometry/line'
-import type { PlotRect } from '../chart-layout'
 import {
 	AREA_FADE,
 	AREA_UNFADE,
@@ -24,6 +23,7 @@ import {
 	POINT_POP,
 	POINT_UNPOP,
 } from '../chart-motion'
+import type { PlotRect } from '../chart-orientation'
 import { textureClass, textureStyle } from '../chart-pattern-defs'
 import { seriesGroupClass } from '../chart-series'
 import { useChartMarkEmphasis } from '../context'

@@ -1,7 +1,6 @@
 'use client'
 
 import { type ReactNode, useMemo } from 'react'
-import { usePlotFrame } from '../../../hooks'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useLocale } from '../../../providers/locale'
 import { k } from '../../../recipes/kata/chart'
@@ -21,10 +20,11 @@ import { ChartMarksLayer } from '../engine/chart-marks/layer'
 import { seriesDataKey } from '../engine/chart-motion'
 import { useChartTexture } from '../engine/chart-pattern-defs'
 import { selectedIndices, seriesValues } from '../engine/chart-series'
-import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
+import { headerLineCount } from '../engine/chart-tier'
 import { resolveTooltip } from '../engine/chart-tooltip'
 import { useChartFullscreen } from '../engine/context'
 import type { ChartBaseProps, ChartItemClick, PieChartSeries } from '../engine/types'
+import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import { useChartTextWidth } from '../engine/use-chart-text-width'
 import {
@@ -231,13 +231,6 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 		stackedLegend,
 	} = sectorFrame(sizing, resolvedLegend.value, data.length)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, frameSizing, aside)
-
 	// The pie reads the same intrinsic tier as a cartesian chart from its measured
 	// box — the `data-tier` styling hook, and the legend's row cap so a many-slice
 	// stacked legend never overruns the frame the way it used to. It has no value
@@ -245,13 +238,19 @@ export function SectorChart<T>(props: SectorChartProps<T>) {
 	// The frame draws the title and subtitle inside the aspect box, so the chrome
 	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
 	// against the figure's `width / ratio` less that chrome.
-	const policy = chartFramePolicy({
+	const {
+		ref,
 		width: frameWidth,
 		height: frameHeight,
+		reserve,
+		policy,
+	} = useChartFrameSizing({
+		width,
+		sizing: frameSizing,
+		aside,
 		aspect: frameAspect,
 		chrome: { headerLines: headerLineCount(props.title, props.subtitle), legend: stackedLegend },
 		tickTarget: CHART_METRICS.md.tickTarget,
-		fill: frameSizing.mode === 'fill',
 	})
 
 	const colors = categorySlots(sliceLabels, categories)

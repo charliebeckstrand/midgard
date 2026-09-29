@@ -23,7 +23,7 @@ export type {
 } from './engine/chart-context-menu'
 export type { Crosshair } from './engine/chart-crosshair'
 export type { ChartImageType } from './engine/chart-export'
-export type { ChartAspectRatio } from './engine/chart-layout'
+export type { ChartAspectRatio } from './engine/chart-frame/sizing'
 export type { ChartRangeLegendConfig } from './engine/chart-legend/range'
 export type { ChartLegendConfig, ChartLegendPlacement } from './engine/chart-legend/schema'
 export type { ChartOrientation } from './engine/chart-orientation'

@@ -13,7 +13,6 @@
  */
 
 import type { Orientation } from '../../../types'
-import type { PlotRect } from './chart-layout'
 
 /**
  * Which screen axis a cartesian chart's value axis runs along: `'vertical'`
@@ -24,6 +23,14 @@ export type ChartOrientation = Orientation
 
 /** A point in `viewBox` user units, structurally shared with the frame's anchors. @internal */
 export type Vec = { x: number; y: number }
+
+/** The plot rectangle inside a chart frame, in `viewBox` user units. @internal */
+export type PlotRect = {
+	x: number
+	y: number
+	width: number
+	height: number
+}
 
 /**
  * Projects a value-axis position crossed with a band-axis position into a frame

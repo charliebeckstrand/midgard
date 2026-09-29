@@ -1,7 +1,6 @@
 import { cn } from '../../../../core'
 import { k } from '../../../../recipes/kata/chart'
-import type { PlotRect } from '../chart-layout'
-import { bandExtent, type ChartOrientation, project } from '../chart-orientation'
+import { bandExtent, type ChartOrientation, type PlotRect, project } from '../chart-orientation'
 
 /** Props for {@link ChartGridLines}. @internal */
 export type ChartGridLinesProps = {

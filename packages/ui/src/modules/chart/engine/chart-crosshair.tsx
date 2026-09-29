@@ -3,11 +3,11 @@
 import { cn } from '../../../core'
 import { k } from '../../../recipes/kata/chart'
 import { clamp } from '../../../utilities'
-import type { PlotRect } from './chart-layout'
 import {
 	bandCoord,
 	bandExtent,
 	type ChartOrientation,
+	type PlotRect,
 	project,
 	valueCoord,
 	valueExtent,

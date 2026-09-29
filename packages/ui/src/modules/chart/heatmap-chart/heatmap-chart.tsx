@@ -40,18 +40,13 @@ import {
 	TICK_CHAR_WIDTH,
 } from '../engine/chart-constants'
 import { ChartContextMenu } from '../engine/chart-context-menu'
+import { chartFrameSizing } from '../engine/chart-frame/sizing'
 import { cellAt, type HeatmapCell, heatmapCells } from '../engine/chart-geometry/heatmap'
-import {
-	bandTicksOf,
-	chartFrameSizing,
-	type PlotRect,
-	plotRect,
-	thinned,
-} from '../engine/chart-layout'
+import { bandTicksOf, plotRect, thinned } from '../engine/chart-layout'
 import { rangeLegendPlacement, resolveRangeLegend } from '../engine/chart-legend/range'
 import { RangeArrow, RangeLegend, type RangeScale } from '../engine/chart-legend/range-legend'
 import { type ChartLegendPlacement, legendAside } from '../engine/chart-legend/schema'
-import type { ChartOrientation } from '../engine/chart-orientation'
+import type { ChartOrientation, PlotRect } from '../engine/chart-orientation'
 import { ChartPlotBox } from '../engine/chart-plot-box'
 import { ChartReadoutCard, ChartReadoutRow } from '../engine/chart-readout-card'
 import { type BandScale, bandScale } from '../engine/chart-scale'

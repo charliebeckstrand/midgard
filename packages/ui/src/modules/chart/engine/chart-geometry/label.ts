@@ -18,7 +18,7 @@
  */
 
 import { TICK_CHAR_WIDTH } from '../chart-constants'
-import type { PlotRect } from '../chart-layout'
+import type { PlotRect } from '../chart-orientation'
 
 /** The gap from a point or a rule to its label. @internal */
 export const LABEL_OFFSET = 8

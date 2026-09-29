@@ -3,7 +3,6 @@
 import { useMemo } from 'react'
 import { toInnerStep } from '../../../core'
 import type { DensityStep } from '../../../core/density'
-import { type FrameSizing, usePlotFrame } from '../../../hooks'
 import { useStableValue } from '../../../hooks/use-stable-value'
 import { useDensityStep } from '../../../primitives/density'
 import { useLocale } from '../../../providers/locale'
@@ -28,6 +27,7 @@ import {
 import type { Crosshair, ResolvedCrosshair } from '../engine/chart-crosshair'
 import { ChartCrosshair, crosshairSnaps, resolveCrosshair } from '../engine/chart-crosshair'
 import { ChartFrame } from '../engine/chart-frame/frame'
+import { chartFrameLayout, frameFills } from '../engine/chart-frame/sizing'
 import {
 	anchorEndTicks,
 	diameterRange,
@@ -48,11 +48,7 @@ import {
 import { ChartHitArea } from '../engine/chart-hit-area'
 import {
 	axisTitleAt,
-	type ChartAspectRatio,
 	type ChartAxisTitlePlacement,
-	chartFrameLayout,
-	frameFills,
-	type PlotRect,
 	plotRect,
 	valueAxisRange,
 	valueTicksOf,
@@ -67,11 +63,13 @@ import {
 	resolveLegend,
 } from '../engine/chart-legend/schema'
 import { ChartMarksLayer } from '../engine/chart-marks/layer'
+import type { PlotRect } from '../engine/chart-orientation'
 import { type LinearScale, linearScale } from '../engine/chart-scale'
 import { snapTargets } from '../engine/chart-snap'
-import { chartFramePolicy, headerLineCount } from '../engine/chart-tier'
+import { headerLineCount } from '../engine/chart-tier'
 import { type ChartTooltipTrigger, resolveTooltip } from '../engine/chart-tooltip'
 import type { ChartBaseProps, ChartReadout, ScatterChartSeries } from '../engine/types'
+import { useChartFrameSizing } from '../engine/use-chart-frame-sizing'
 import { cartesianFocus } from '../engine/use-chart-keyboard'
 import { useChartSeriesToggle } from '../engine/use-chart-series-toggle'
 import {
@@ -271,44 +269,6 @@ function useScatterReadout<T>(
 		() => scatterReadoutThunk(held.visible, held.uniqueXs, format, formatX, formatSize),
 		[held, format, formatX, formatSize],
 	)
-}
-
-/** The resolved frame flags: the plot's sizing plus the figure and legend layout. @internal */
-type ScatterFrame = {
-	sizing: FrameSizing
-	/** The whole-chart aspect the figure carries; `undefined` when the plot box reserves its own. */
-	frameAspect?: number
-	/** The plot grows into its region's height rather than reserving one. */
-	fill: boolean
-	/** The legend is a side panel, so it lays out beside the plot. */
-	aside: boolean
-}
-
-/**
- * The scatter frame's sizing and legend layout resolved together. A live ratio
- * carries on the figure wrapper, so a definite-height parent clamps the whole
- * chart. That is the box-law, with the plot measuring the height a stacked band
- * leaves. A side legend instead keeps the ratio on the plot box and bands
- * beside it. The legend's placement also drives the panel-vs-row layout. Derived
- * from the props alone, so it precedes any measurement.
- *
- * @internal
- */
-function scatterFrame(
-	legend: ResolvedLegend['value'],
-	height: number | undefined,
-	aspectRatio: ChartAspectRatio,
-): ScatterFrame {
-	const aside = legendAside(legend)
-
-	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
-
-	return {
-		sizing,
-		frameAspect: outerAspect ?? undefined,
-		fill: frameFills(sizing),
-		aside,
-	}
 }
 
 /** The legend entries: on request, or by default once a second series needs telling apart. @internal */
@@ -660,26 +620,13 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 
 	const metrics = CHART_METRICS[resolvedSize]
 
-	// The legend shares the aspect box, so a ratio describes the whole chart: with
-	// a legend a live ratio goes to the figure wrapper and the plot measures the
-	// height it leaves. Derived from the props — a legend shows for two or more
-	// series unless forced — so no measurement precedes the sizing.
-	// A live ratio with a legend describes the whole chart: the figure carries the
-	// ratio and the plot measures the height the legend leaves. Resolved from the
-	// props, so it precedes the measurement below.
-	const {
-		sizing,
-		frameAspect,
-		fill: fillFrame,
-		aside,
-	} = scatterFrame(resolvedLegend.value, height, aspectRatio)
+	// A live ratio carries on the figure wrapper, so a definite-height parent
+	// clamps the whole chart, and the plot measures the height a stacked legend
+	// leaves. A side legend instead keeps the ratio on the plot box and bands
+	// beside it. Resolved from the props, so it precedes the measurement below.
+	const aside = legendAside(resolvedLegend.value)
 
-	const {
-		ref,
-		width: frameWidth,
-		height: frameHeight,
-		reserve,
-	} = usePlotFrame(width, sizing, aside)
+	const { sizing, outerAspect } = chartFrameLayout(height, aspectRatio, aside)
 
 	// The scatter reads the intrinsic tier from its measured box for the
 	// `data-tier` styling hook and the legend's row cap; its own axis ticks keep
@@ -687,16 +634,22 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 	// The frame draws the title and subtitle inside the aspect box, so the chrome
 	// reserve holds their lines and the legend. chartFramePolicy resolves the tier
 	// against the figure's `width / ratio` less that chrome.
-	const policy = chartFramePolicy({
+	const {
+		ref,
 		width: frameWidth,
 		height: frameHeight,
-		aspect: frameAspect,
+		reserve,
+		policy,
+	} = useChartFrameSizing({
+		width,
+		sizing,
+		aside,
+		aspect: outerAspect,
 		chrome: {
 			headerLines: headerLineCount(props.title, props.subtitle),
 			legend: legendBands(resolvedLegend.value, series.length),
 		},
 		tickTarget: metrics.tickTarget,
-		fill: sizing.mode === 'fill',
 	})
 
 	// Spark stands the chart's chrome down to bare marks: ScatterChrome and
@@ -804,8 +757,8 @@ export function ScatterChart<T>(props: ScatterChartProps<T>) {
 			fixedWidth={width}
 			height={frameHeight}
 			reserve={reserve}
-			fill={fillFrame}
-			aspect={frameAspect}
+			fill={frameFills(sizing)}
+			aspect={outerAspect ?? undefined}
 			tier={policy.tier}
 			legend={
 				legendItems && (
