@@ -17,7 +17,7 @@ Components split into a **static** (server-renderable) tier and a **client** tie
 
 For phone numbers and postal codes, give `mask-input` the `phoneMask` or `zipcodeMask` preset.
 
-> A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout.
+> A `readOnly` or `disabled` `rating` renders one image. Its name is the consumer's name or the `Field` label, then the score readout. The image keeps the consumer's `aria-describedby` and the `Field` description and error message.
 
 ## Form structure
 

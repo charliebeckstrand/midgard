@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { Field, Label } from '../../components/fieldset'
+import { Description, Field, Label } from '../../components/fieldset'
 import { Form, useFormState } from '../../components/form'
 import { Rating, RatingSkeleton } from '../../components/rating'
 import { allBySlot, bySlot, renderUI, screen, userEvent } from '../helpers'
@@ -230,6 +230,29 @@ describe('Rating', () => {
 			expect(screen.getByRole('img')).toHaveAccessibleName('How was it? 3 out of 5 stars')
 		})
 
+		it('keeps a consumer aria-describedby', () => {
+			renderUI(
+				<>
+					<span id="rating-note">Average of 12 reviews</span>
+					<Rating readOnly aria-label="Quality" aria-describedby="rating-note" value={4} />
+				</>,
+			)
+
+			expect(screen.getByRole('img')).toHaveAccessibleDescription('Average of 12 reviews')
+		})
+
+		it('takes the description of an enclosing Field', () => {
+			renderUI(
+				<Field>
+					<Label>How was it?</Label>
+					<Rating readOnly value={3} />
+					<Description>From your last visit</Description>
+				</Field>,
+			)
+
+			expect(screen.getByRole('img')).toHaveAccessibleDescription('From your last visit')
+		})
+
 		it('draws a fractional score as a part star', () => {
 			const { container } = renderUI(<Rating readOnly value={3.5} />)
 
@@ -267,6 +290,18 @@ describe('Rating', () => {
 		expect(stars(container)).toHaveLength(0)
 
 		expect(screen.getByRole('img')).toHaveAccessibleName('Score 3 out of 5 stars')
+	})
+
+	it('takes the description of an enclosing Field while disabled', () => {
+		renderUI(
+			<Field>
+				<Label>How was it?</Label>
+				<Rating disabled defaultValue={3} />
+				<Description>Rating closes after a week</Description>
+			</Field>,
+		)
+
+		expect(screen.getByRole('img')).toHaveAccessibleDescription('Rating closes after a week')
 	})
 })
 
